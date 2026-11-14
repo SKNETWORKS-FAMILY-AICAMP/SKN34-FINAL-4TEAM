@@ -1,0 +1,238 @@
+"""TimeChara 평가 실행: 검증 600건에서 유형마다 같은 수를 뽑아 구성별 문맥을 모으고, 인물 응답을 만들고, 공개 채점 기준으로 채점한다.
+
+    cd backend/ai-service
+    uv run --locked --extra dev --extra manuscript python eval/novelbrain/run_timechara.py contexts   # 호출 없음: 문맥·누설 지표
+    set -a; . /Users/yunseongho/orca/SKN34-FINAL-4TEAM/.env; set +a                                # 아래부터 OpenAI 호출
+    uv run --locked --extra dev --extra manuscript python eval/novelbrain/run_timechara.py pilot     # 유형마다 1문항·zero/s3만(응답 확인용)
+    uv run --locked --extra dev --extra manuscript python eval/novelbrain/run_timechara.py run
+
+구성: zero(검색 없음, 공개 zero-shot과 같은 입력) · ppr(0단계) · vector · bm25 · s1 · s2 · s3. 문맥은 상위 6개 항목(rag-cutoff와 같은 6)이다.
+채점은 공개 evaluate.py와 같다: 공간(absence·presence)이 0이면 시간은 묻지 않고, 성격은 1~7.
+"""
+
+import ast
+import json
+import re
+import sys
+from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+
+from app.manuscript.models import Excerpt
+from app.novelbrain.service import _documents, bm25_rank, recall
+from embed import best_window, embed_texts, knn
+from llm import CAP, Ledger, Llm, LlmFailure
+from metrics import parse_score, spatiotemporal_score, wilson_interval
+from prepare import DATA, SEED
+from timechara import (SERIES, TYPES, build_world, chapter_tuple, common_names, cutoff, judge_name, load_chunks, ordinal_map,
+                       parse_tables, sample_by_type, snapshot, system_prompt)
+
+PER_TYPE = 20
+K_CTX = 6
+EXCERPTS = 10
+CONFIGS = ('zero', 'ppr', 'vector', 'bm25', 's1', 's2', 's3')
+PERSONALITY_CONFIGS = ('zero', 'ppr', 's1', 's2', 's3')   # 성격 채점은 누적 단계와 기준선만(단독 구성은 성격 차이가 기대되지 않는다)
+WEIGHTS = {'future': 1 / 3, 'past-only': 1 / 3, 'past-absence': 1 / 6, 'past-presence': 1 / 6}   # 공개 600건의 유형 구성(200/200/100/100)
+JUDGE_SYSTEM = 'You are a helpful and accurate assistant.'   # 공개 evaluate.py와 같다
+GEN_TOKENS, JUDGE_TOKENS = 3000, 3000
+RESULTS = Path(__file__).resolve().parent / 'results'
+TC = DATA / 'timechara'
+
+
+def context_message(question: str, texts: list[str]) -> str:
+    """공개 rag-cutoff와 같은 사용자 메시지: 문맥이 없으면 질문만, 있으면 'Context: …\\n***\\n질문'."""
+    return 'Context: ' + '\n\n'.join(texts) + '\n***\n' + question if texts else question
+
+
+def item_episode(ref: str, lookup: dict) -> int | None:
+    """항목이 나온 회차(장 번호). 알 수 없는 항목(IDENTITY·SOUL·MEMORY)은 None."""
+    kind, _, rest = ref.partition(':')
+    if kind == 'manuscript':
+        return lookup['chunk'].get(rest)
+    if kind == 'relation':
+        return lookup['when'].get(rest)
+    if kind == 'card':
+        card, _, part = rest.partition('#')
+        return int(part[2:]) if part.startswith('ep') else lookup['event'].get(card) if not part else None
+    return None
+
+
+def foreign_memory(ref: str, character_id: str) -> bool:
+    """다른 인물의 SOUL·MEMORY·회차 기억 문서인가(계약: 인물 입력에 넣지 않는다)."""
+    kind, _, rest = ref.partition(':')
+    card, _, part = rest.partition('#')
+    return kind == 'card' and card != character_id and (part in ('soul', 'memory') or part.startswith('ep'))
+
+
+def _verdict(llm, template: str, name: str, question: str, response: str, fact: str) -> int | None:
+    prompt = template.format(agent_name=name, question_0=question, answer_0=response, agent_fact_0=fact)
+    return parse_score(llm.ask('judge', JUDGE_SYSTEM, prompt, max_output_tokens=JUDGE_TOKENS), (0, 1))
+
+
+def judge_spatiotemporal(llm, row: dict, response: str, name: str, template: str) -> dict:
+    """공개 evaluate.py의 흐름: absence·presence는 공간을 먼저 묻고 0이면 시간은 묻지 않는다. 파싱 실패는 None."""
+    kind, spatial = row['data_type'], None
+    if kind in ('past-absence', 'past-presence'):
+        spatial = _verdict(llm, template, name, row['question'], response, row['spatial_label'])
+        temporal = 0 if spatial == 0 else None if spatial is None else _verdict(
+            llm, template, name, row['question'], response, row['temporal_label'])
+    else:
+        temporal = _verdict(llm, template, name, row['question'], response, row['temporal_label'])
+    unknown = temporal is None or (kind in ('past-absence', 'past-presence') and spatial is None)
+    return {'temporal': temporal, 'spatial': spatial, 'score': None if unknown else spatiotemporal_score(kind, temporal, spatial)}
+
+
+def judge_personality(llm, question: str, response: str, name: str, personality: str, template: str) -> int | None:
+    prompt = template.format(agent_name=name, question_0=question, response_0=response, agent_personality=personality)
+    return parse_score(llm.ask('judge', JUDGE_SYSTEM, prompt, max_output_tokens=JUDGE_TOKENS), range(1, 8))
+
+
+def summarize(records: list[dict]) -> dict:
+    """구성별: 유형별 시공간 일관성(0/1 평균·Wilson 구간), 공개 유형 구성으로 가중한 평균, 성격 평균, 문맥 누설 비율, 실패 수."""
+    out = {}
+    for config in dict.fromkeys(r['config'] for r in records):
+        mine = [r for r in records if r['config'] == config]
+        by_type = {}
+        for kind in TYPES:
+            scores = [r['score'] for r in mine if r['data_type'] == kind and r['score'] is not None]
+            if scores:
+                by_type[kind] = {'n': len(scores), 'score': sum(scores) / len(scores), 'ci': list(wilson_interval(sum(scores), len(scores)))}
+        weight = sum(WEIGHTS[k] for k in by_type)
+        personality = [r['personality'] for r in mine if r['personality'] is not None]
+        out[config] = {
+            'n': len(mine), 'failed': sum(r['score'] is None for r in mine), 'by_type': by_type,
+            'weighted': sum(WEIGHTS[k] * v['score'] for k, v in by_type.items()) / weight if weight else None,
+            'personality': sum(personality) / len(personality) if personality else None,
+            'personality_n': len(personality),
+            'future_ctx': sum(r['future_ctx'] for r in mine) / len(mine), 'foreign_ctx': sum(r['foreign_ctx'] for r in mine) / len(mine)}
+    return out
+
+
+# ---- 입력 구성·실행(실제 데이터가 필요해 단위 테스트하지 않는다) ----
+
+def build_inputs():
+    import numpy as np
+
+    rows = [dict(r, idx=i) for i, r in enumerate(json.loads((TC / 'valid.json').read_text()))]
+    tables = parse_tables((TC / 'utils.py').read_text())
+    series_data = {}
+    for series in SERIES:
+        mine = [r for r in rows if r['series'] == series]
+        chunks = load_chunks(series)
+        ordinals = ordinal_map({c['tuple'] for c in chunks} | {chapter_tuple(r['question_period']) for r in mine}
+                               | {cutoff(series, r['character'], r['character_period'], tables) for r in mine})
+        words = Counter(w for c in chunks for w in re.findall(r'[A-Z][A-Za-z]+', c['text']))
+        names = sorted({r['character'] for r in mine} | {n for r in mine for n in ast.literal_eval(r['participants'])})
+        world = build_world(mine, ordinals, common_names(names, words))
+        series_data[series] = {'chunks': chunks, 'vectors': np.load(TC / f'vectors_{series}.npy'), 'ordinals': ordinals, 'world': world,
+                               'docs': _documents(world['cards']), 'tables': tables}
+    return sample_by_type(rows, PER_TYPE, SEED), series_data
+
+
+def build_contexts(sample: list[dict], series_data: dict) -> dict[int, dict]:
+    """질문마다 구성별 문맥 항목과 누설 지표. OpenAI 호출 없음."""
+    queries = embed_texts([r['question'] for r in sample], 'query')
+    contexts = {}
+    for number, r in enumerate(sample):
+        s = series_data[r['series']]
+        world = s['world']
+        episode = s['ordinals'][cutoff(r['series'], r['character'], r['character_period'], s['tables'])]
+        snap, character_id = snapshot(world, episode), world['character_id'][r['character']]
+        manuscript = []
+        for i in knn(s['vectors'], queries[number], EXCERPTS):
+            chunk = s['chunks'][i]
+            quote = best_window(chunk['text'], r['question'])
+            if quote:
+                manuscript.append(Excerpt(id=chunk['id'], episode=s['ordinals'][chunk['tuple']], quote=quote))
+        docs = s['docs']
+        bm25 = bm25_rank(r['question'], [(ref, f'{title} {text}') for ref, (title, text) in docs.items()])[:K_CTX]
+        found = {
+            'zero': [],
+            'ppr': [(i.ref, i.text) for i in recall(snap, character_id, episode, r['question'], stage=0, k=K_CTX).items],
+            'vector': [(f'manuscript:{e.id}', e.quote) for e in manuscript[:K_CTX]],
+            'bm25': [(ref, docs[ref][1]) for ref, _ in bm25],
+        }
+        for config, stage in (('s1', 1), ('s2', 2), ('s3', 3)):
+            found[config] = [(i.ref, i.text) for i in recall(snap, character_id, episode, r['question'], stage=stage,
+                                                              manuscript=manuscript, k=K_CTX).items]
+        lookup = {'chunk': {c['id']: s['ordinals'][c['tuple']] for c in s['chunks']},
+                  'event': {c.id: c.revealFromEpisode for c in world['cards'] if c.cardType == 'event'}, 'when': world['when']}
+        contexts[r['idx']] = {config: {'items': [{'ref': ref, 'text': text} for ref, text in items],
+                                       'future': any((item_episode(ref, lookup) or 0) > episode for ref, _ in items),
+                                       'foreign': any(foreign_memory(ref, character_id) for ref, _ in items)}
+                              for config, items in found.items()}
+    return contexts
+
+
+def context_report(sample: list[dict], contexts: dict) -> None:
+    for config in CONFIGS:
+        by_type = {k: [contexts[r['idx']][config] for r in sample if r['data_type'] == k] for k in TYPES}
+        future = {k: sum(c['future'] for c in v) / len(v) for k, v in by_type.items()}
+        everything = [c for v in by_type.values() for c in v]
+        print(f"{config:7s} 문맥에 기준 회차 뒤 항목 {sum(c['future'] for c in everything) / len(everything):.2f} "
+              f"(future형 {future['future']:.2f}) · 다른 인물 기억 {sum(c['foreign'] for c in everything) / len(everything):.2f} · "
+              f"평균 항목 수 {sum(len(c['items']) for c in everything) / len(everything):.1f}")
+
+
+def run(pilot: bool = False) -> None:
+    sample, series_data = build_inputs()
+    contexts = build_contexts(sample, series_data)
+    context_report(sample, contexts)
+    configs = ('zero', 's3') if pilot else CONFIGS
+    if pilot:  # 유형마다 첫 1문항: 같은 요청이라 본 실행에서 캐시로 재사용된다
+        sample = [next(r for r in sample if r['data_type'] == kind) for kind in TYPES]
+    ledger = Ledger(DATA / 'ledger.jsonl')
+    llm = Llm(ledger, DATA / 'cache')
+    template_s = (TC / 'data/spatiotemporal_consistency_evaluation_prompt.txt').read_text()
+    template_p = (TC / 'data/personality_consistency_evaluation_prompt.txt').read_text()
+    personality = {r['character']: (TC / f"data/personality/{r['character'].lower().replace(' ', '_')}_personality.txt").read_text()
+                   for r in sample}
+    tasks = [(r, config) for r in sample for config in configs]
+    distinct = len({(system_prompt(r['series'], r['character'], r['character_period']),
+                     context_message(r['question'], [i['text'] for i in contexts[r['idx']][config]['items']])) for r, config in tasks})
+    print(f'질문 {len(sample)}개 × 구성 {len(configs)} = 생성 요청 최대 {len(tasks)}(서로 다른 요청 {distinct}), '
+          f'채점은 응답마다 1~3회 → 장부 {ledger.used()}/{CAP}', flush=True)
+
+    def work(task):
+        r, config = task
+        ctx = contexts[r['idx']][config]
+        record = {'idx': r['idx'], 'config': config, 'data_type': r['data_type'], 'response': None, 'score': None,
+                  'temporal': None, 'spatial': None, 'personality': None, 'future_ctx': ctx['future'], 'foreign_ctx': ctx['foreign']}
+        try:
+            response = llm.ask('gen', system_prompt(r['series'], r['character'], r['character_period']),
+                               context_message(r['question'], [i['text'] for i in ctx['items']]), max_output_tokens=GEN_TOKENS)
+            name = judge_name(r['series'], r['character'], r['character_period'])
+            record.update(response=response, **judge_spatiotemporal(llm, r, response, name, template_s))
+            if config in PERSONALITY_CONFIGS:
+                record['personality'] = judge_personality(llm, r['question'], response, name, personality[r['character']], template_p)
+        except LlmFailure:
+            pass  # score가 None인 채로 남아 집계의 failed로 센다(성공으로 꾸미지 않는다)
+        return record
+
+    with ThreadPoolExecutor(12) as pool:
+        records = list(pool.map(work, tasks))
+    if pilot:
+        for rec in records:
+            print({k: (v if k != 'response' else (v or '')[:160].replace('\n', ' ')) for k, v in rec.items() if k != 'idx'})
+        print(f'장부 {ledger.used()}/{CAP}')
+        return
+    (DATA / 'runs').mkdir(exist_ok=True)
+    (DATA / 'runs' / 'timechara-rows.json').write_text(json.dumps(records, ensure_ascii=False))
+    RESULTS.mkdir(exist_ok=True)
+    summary = {'per_type': PER_TYPE, 'seed': SEED, 'k_context': K_CTX, 'excerpts': EXCERPTS, 'model': llm.model,
+               'calls_total_after_this_run': ledger.used(), 'configs': summarize(records)}
+    (RESULTS / 'timechara.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True))
+    for config, block in summary['configs'].items():
+        print(f"{config:7s} 시공간(가중) {block['weighted']:.3f} 성격 {block['personality'] if block['personality'] is None else round(block['personality'], 2)} "
+              f"실패 {block['failed']}/{block['n']}")
+    print(f'장부 {ledger.used()}/{CAP}')
+
+
+if __name__ == '__main__':
+    if sys.argv[1:] == ['contexts']:
+        sample, series_data = build_inputs()
+        context_report(sample, build_contexts(sample, series_data))
+    elif sys.argv[1:] in (['run'], ['pilot']):
+        run(pilot=sys.argv[1] == 'pilot')
+    else:
+        raise SystemExit('사용법: run_timechara.py contexts|pilot|run')

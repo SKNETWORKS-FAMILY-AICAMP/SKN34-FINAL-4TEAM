@@ -13,7 +13,7 @@ import random
 import re
 import sqlite3
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 
 from app.novelbrain.models import Card, Relation, WorldSnapshot
 from prepare import DATA
@@ -70,6 +70,28 @@ def cutoff(series: str, character: str, period: str, tables: dict) -> tuple[int,
     return chapter_tuple(value)
 
 
+def chapter_label(t: tuple[int, ...]) -> str:
+    """이야기 안의 위치 이름. 사건 카드 제목으로 쓴다(사건 요약이 질문에 그대로 나오는 것과 겹치지 않게)."""
+    return f'Volume {t[0]}, book {t[1]}, chapter {t[2]}' if len(t) == 3 else f'Book {t[0]}, chapter {t[1]}'
+
+
+def common_names(names: list[str], counts: Counter) -> dict[str, str]:
+    """인물 이름 → 카드 제목. 본문이 그 인물을 가장 자주 부르는 낱말(이름·이름의 앞부분)이다.
+
+    인물 카드는 작가가 본문이 쓰는 이름으로 만든다는 가정이다. 공개 데이터의 이름은 전체 이름('Ronald Weasley')인데 소설은
+    'Ron'이라 부르므로, 전체 이름을 제목으로 쓰면 인물 시점 필터(발췌에 제목이 나와야 목격으로 본다)가 거의 모든 발췌를 뺀다.
+    여러 인물이 나눠 쓰는 낱말(성)은 제외하고, 어느 것도 본문에 없으면 전체 이름을 쓴다.
+    """
+    tokens = {name: name.split() for name in names}
+    shared = {t for t, c in Counter(t for ts in tokens.values() for t in set(ts)).items() if c > 1}
+    titles = {}
+    for name, ts in tokens.items():
+        candidates = {t for t in ts if t not in shared} | {ts[0][:i] for i in range(3, len(ts[0])) if ts[0] not in shared}
+        best = max(candidates, key=lambda c: (counts[c], len(c)), default=name)
+        titles[name] = best if counts[best] else name
+    return titles
+
+
 def ordinal_map(tuples) -> dict[tuple[int, ...], int]:
     """(권, 장) 묶음을 순서를 지키는 1부터의 회차 번호로. 카드·발췌·기준 회차가 같은 번호 체계를 쓴다."""
     return {t: i for i, t in enumerate(sorted(set(tuples)), 1)}
@@ -106,11 +128,12 @@ def _slug(name: str) -> str:
     return re.sub(r'[^a-z0-9]+', '-', name.lower()).strip('-')
 
 
-def build_world(rows: list[dict], ordinals: dict[tuple[int, ...], int]) -> dict:
+def build_world(rows: list[dict], ordinals: dict[tuple[int, ...], int], titles: dict[str, str] | None = None) -> dict:
     """한 시리즈의 평가용 세계관. 사실 사건만(지어낸 사건은 정본이 아니다) 정본으로 삼는다.
 
     - 인물 카드: 본문 없음(채점 기준인 성격 설명을 넣지 않는다), `episodes[회차]` = 그 인물이 참석한 사건 요약(기억 문서).
-    - 사건 카드: 본문 = 사건 요약, revealFromEpisode = 사건이 일어난 장, 제목은 질문에 그대로 나오지 않는 중립 이름.
+    - 사건 카드: 본문 = 사건 요약, revealFromEpisode = 사건이 일어난 장, 제목은 이야기 안의 위치(사건 요약과 겹치지 않게).
+    - `titles`: 인물 카드 제목(common_names). 없으면 전체 이름.
     - 관계: 참석자 → 사건 '참석'. 관계는 일어난 회차부터 기록되므로 snapshot이 기준 회차까지만 담는다.
     """
     series = rows[0]['series']
@@ -121,7 +144,7 @@ def build_world(rows: list[dict], ordinals: dict[tuple[int, ...], int]) -> dict:
             seen.add(key)
             events.append(r)
     names = {r['character'] for r in rows} | {n for r in events for n in ast.literal_eval(r['participants'])}
-    cards = {n: Card(id=f'c-{_slug(n)}', cardType='character', title=n, text='') for n in sorted(names)}
+    cards = {n: Card(id=f'c-{_slug(n)}', cardType='character', title=(titles or {}).get(n, n), text='') for n in sorted(names)}
     memories: dict[str, dict[int, list[str]]] = defaultdict(lambda: defaultdict(list))
     relations, when, per_chapter = [], {}, defaultdict(int)
     event_cards = []
@@ -129,7 +152,8 @@ def build_world(rows: list[dict], ordinals: dict[tuple[int, ...], int]) -> dict:
         ordinal = ordinals[chapter_tuple(r['question_period'])]
         per_chapter[ordinal] += 1
         event_id = 'e-' + hashlib.sha1(f"{r['question_period']}\n{r['event_summary']}".encode()).hexdigest()[:10]
-        event_cards.append(Card(id=event_id, cardType='event', title=f'{series} {ordinal}.{per_chapter[ordinal]}',
+        position = chapter_tuple(r['question_period'])
+        event_cards.append(Card(id=event_id, cardType='event', title=f'{chapter_label(position)} (scene {per_chapter[ordinal]})',
                                 text=r['event_summary'], revealFromEpisode=ordinal))
         for name in dict.fromkeys(ast.literal_eval(r['participants'])):
             memories[name][ordinal].append(r['event_summary'])

@@ -2,9 +2,13 @@
 
 import pytest
 
+from collections import Counter
+
 from timechara import (
     build_world,
+    chapter_label,
     chapter_tuple,
+    common_names,
     cutoff,
     judge_name,
     ordinal_map,
@@ -121,7 +125,7 @@ def test_build_world_makes_events_relations_and_memories_from_fact_rows_only():
     assert harry.episodes == {1: 'Harry got a letter.', 2: 'Harry met Ron.'} and ron.episodes == {2: 'Harry met Ron.'}
     assert sorted((world['title'][r.source], r.label, r.id in world['when']) for r in world['relations']) == [
         ('Harry Potter', 'participated', True), ('Harry Potter', 'participated', True), ('Ronald Weasley', 'participated', True)]
-    assert all(' '.join(e.title.split()).startswith('harry_potter') for e in events)  # 제목이 질문에 그대로 나오지 않게 중립 이름
+    assert sorted(e.title for e in events) == ['Book 1, chapter 1 (scene 1)', 'Book 2, chapter 3 (scene 1)']  # 사건 요약이 아니라 위치로 부른다
 
 
 def test_snapshot_keeps_only_relations_recorded_up_to_the_episode():
@@ -139,3 +143,24 @@ def test_sample_by_type_takes_equal_counts_deterministically():
     assert {t: sum(r['data_type'] == t for r in picked) for t in ('future', 'past-only', 'past-absence', 'past-presence')} == dict.fromkeys(
         ('future', 'past-only', 'past-absence', 'past-presence'), 5)
     assert picked == sample_by_type(rows, per_type=5, seed=58)
+
+
+def test_chapter_label_reads_as_a_position_in_the_story():
+    assert chapter_label((5, 11)) == 'Book 5, chapter 11'
+    assert chapter_label((2, 3, 4)) == 'Volume 2, book 3, chapter 4'
+
+
+def test_common_names_pick_the_most_used_unshared_word():
+    # 본문이 인물을 부르는 이름으로 카드 제목을 정한다(전체 이름은 본문에 거의 안 나온다). 여러 인물이 나눠 쓰는 낱말(성)은 제외.
+    counts = Counter({'Ron': 100, 'Ronald': 3, 'Weasley': 90, 'Fred': 40, 'Molly': 20, 'Harry': 200, 'Potter': 10,
+                      'Sam': 60, 'Samwise': 5, 'Gamgee': 2, 'Gandalf': 70})
+    names = ['Ronald Weasley', 'Fred Weasley', 'Molly Weasley', 'Harry Potter', 'Samwise Gamgee', 'Gandalf', 'Unknown Person']
+    assert common_names(names, counts) == {
+        'Ronald Weasley': 'Ron', 'Fred Weasley': 'Fred', 'Molly Weasley': 'Molly', 'Harry Potter': 'Harry',
+        'Samwise Gamgee': 'Sam', 'Gandalf': 'Gandalf', 'Unknown Person': 'Unknown Person'}
+
+
+def test_build_world_uses_the_given_card_titles():
+    world = build_world([row()], {(2, 3): 1}, titles={'Harry Potter': 'Harry', 'Ronald Weasley': 'Ron'})
+    assert sorted(c.title for c in world['cards'] if c.cardType == 'character') == ['Harry', 'Ron']
+    assert world['character_id']['Ronald Weasley'] == next(c.id for c in world['cards'] if c.title == 'Ron')
