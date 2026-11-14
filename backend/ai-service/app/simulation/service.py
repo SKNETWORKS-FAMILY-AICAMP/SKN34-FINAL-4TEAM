@@ -284,7 +284,7 @@ def rules(plan: SimulationPlan, scene: Scene) -> tuple[list[str], str | None]:
         return ['narration'], 'note'
     if any(e.ended for e in trail):
         return ([], 'done') if turns[-1].kind == 'narration' else (['end'], 'closing')  # 나레이션을 연달아 쓰지 않으니 직전이 나레이션이면 마무리는 생략한다
-    if turns[-1].kind == 'character' and trail[-1].done:
+    if turns[-1].kind == 'character' and trail[-1].done and len(turns) < MAX_TURNS:  # 비트 전환 나레이션도 전체 턴 안전 한도는 넘지 못한다
         return ['narration'], 'transition'
     if sum(t.kind == 'character' for t in turns) >= TURN_LIMIT or len(turns) >= MAX_TURNS:
         return [], None

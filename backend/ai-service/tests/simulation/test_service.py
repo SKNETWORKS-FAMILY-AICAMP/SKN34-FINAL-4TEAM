@@ -247,6 +247,13 @@ def test_a_note_comes_before_every_other_rule_and_the_turn_cap_counts_every_kind
     assert service.rules(PLAN_IF, scene_of(PLAN_IF, ('narration', {}), *(cycle * 9), ('character', {}), ('narration', {})).model_copy(update={'memo': '비가 온다'})) == (['narration'], 'note')
     ended_at_cap = scene_of(PLAN_IF, ('narration', {}), *(cycle * 9), ('character', {}), ('narration', {}), ('character', {'ended': True}))
     assert len(ended_at_cap.result.turns) == 40 and service.rules(PLAN_IF, ended_at_cap) == (['end'], 'closing')
+    # 흐름 모드의 비트 전환 나레이션도 40턴 한도를 넘지 못한다(중간 비트가 끝난 마지막 대사 뒤): 한도 아래에서는 전환, 한도에서는 한도로 멈춘다.
+    beat_done = ('character', {'beat': 0, 'done': True})
+    below = scene_of(PLAN_FLOW, ('narration', {}), *(cycle * 9), ('character', {}), beat_done)
+    at_limit = scene_of(PLAN_FLOW, ('narration', {}), *(cycle * 9), ('character', {}), ('narration', {}), beat_done)
+    assert (len(below.result.turns), len(at_limit.result.turns)) == (39, 40)
+    assert service.rules(PLAN_FLOW, below) == (['narration'], 'transition') and service.rules(PLAN_FLOW, at_limit) == ([], None)
+    assert service.rules(PLAN_FLOW, at_limit.model_copy(update={'memo': '비가 온다'})) == ([], None)  # 메모가 있어도 같다
     # 인물 대사는 한도 아래여도 나레이션·독백까지 합친 턴이 상한에 닿으면 멈춘다
     many = scene_of(PLAN_IF, ('narration', {}), *([('character', {}), ('narration', {}), ('monologue', {}), ('narration', {})] * 10))
     assert sum(t.kind == 'character' for t in many.result.turns) == 10 and len(many.result.turns) == 41 and service.rules(PLAN_IF, many) == ([], None)
