@@ -450,20 +450,20 @@
 <tr><td>추출 후보 채택</td><td>❌</td></tr>
 <tr><td>추출 후보 제외</td><td>❌</td></tr>
 <tr><td>추출 근거 조회</td><td>❌</td></tr>
-<tr><td rowspan="14">AI 시뮬레이션</td><td rowspan="14">26 실행·결과 관리</td><td>시뮬레이션 조건 등록</td><td>❌</td><td rowspan="14"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/58">#58</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
+<tr><td rowspan="14">AI 시뮬레이션</td><td rowspan="14">26 실행·결과 관리</td><td>시뮬레이션 조건 등록</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/359">PR #359</a></td><td rowspan="14"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/58">#58</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/358">PR #358</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/359">PR #359</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a></td></tr>
 <tr><td>시뮬레이션 조건 조회</td><td>❌</td></tr>
 <tr><td>시뮬레이션 조건 수정</td><td>❌</td></tr>
-<tr><td>시뮬레이션 실행</td><td>❌</td></tr>
-<tr><td>시뮬레이션 중지</td><td>❌</td></tr>
-<tr><td>시뮬레이션 진행 상태 조회</td><td>❌</td></tr>
+<tr><td>시뮬레이션 실행</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/359">PR #359</a></td></tr>
+<tr><td>시뮬레이션 중지</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/359">PR #359</a></td></tr>
+<tr><td>시뮬레이션 진행 상태 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/359">PR #359</a></td></tr>
 <tr><td>시뮬레이션 실행 목록 조회</td><td>❌</td></tr>
-<tr><td>시뮬레이션 결과 조회</td><td>❌</td></tr>
-<tr><td>인물 행동·대화 기록 조회</td><td>❌</td></tr>
+<tr><td>시뮬레이션 결과 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/359">PR #359</a></td></tr>
+<tr><td>인물 행동·대화 기록 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/359">PR #359</a></td></tr>
 <tr><td>대안 전개 후보 조회</td><td>❌</td></tr>
-<tr><td>시뮬레이션 결과 선택</td><td>❌</td></tr>
+<tr><td>시뮬레이션 결과 선택</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/359">PR #359</a></td></tr>
 <tr><td>시뮬레이션 개인 기록 삭제</td><td>❌</td></tr>
 <tr><td>독자 오류 검증 실행</td><td>❌</td></tr>
-<tr><td>검증 근거 조회</td><td>❌</td></tr>
+<tr><td>검증 근거 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/359">PR #359</a></td></tr>
 <tr><td rowspan="15">AI 집필 지원</td><td rowspan="15">27 대화·제안 관리</td><td>발행 원고 벡터 색인·동기화</td><td>✅ <a href="writing-ai-architecture/07-retrieval-contract-and-mocks.md#원고-벡터-인덱스-v1">로컬 검증</a></td><td rowspan="15"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/57">#57</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/56">#56</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/62">#62</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/60">#60</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/55">#55</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
 <tr><td>발행 원고·설정·현재 관계 Q&A와 출처·근거 부족 표시</td><td>❌ <a href="writing-ai-architecture/07-retrieval-contract-and-mocks.md#설정관계-로컬-실모델-검증">구현 · 로컬 실모델 검증</a></td></tr>
 <tr><td>허용 문맥 미리보기</td><td>❌</td></tr>
