@@ -35,8 +35,19 @@ data class WritingAiSimulation(
     @field:Size(min = 1, max = 6) val characterIds: List<String>,
 )
 
-/** inputs는 AI가 입력 대기로 멈췄을 때 작가가 채운 단계 입력(예: web_research.question)이며 AI가 계약으로 검증한다. */
-data class WritingAiResume(val approved: Boolean, val inputs: JsonNode? = null)
+/**
+ * inputs는 AI가 입력 대기로 멈췄을 때 작가가 채운 단계 입력(예: web_research.question)이며 AI가 계약으로 검증한다.
+ * scene은 시뮬레이션 무대의 장면 조작이다. scene이 있으면 AI는 approved를 적용하지 않고 장면을 처리한 뒤 다시 멈춘다.
+ */
+data class WritingAiResume(val approved: Boolean, val inputs: JsonNode? = null, @field:Valid val scene: WritingAiScene? = null)
+
+/** 무대의 장면 조작(next·edit·redo·stop). 형식·길이만 확인해 AI로 그대로 넘기고, 조작별 필수 필드(edit의 turn·text 등)는 AI가 확인한다. */
+data class WritingAiScene(
+    @field:Pattern(regexp = "next|edit|redo|stop") val action: String,
+    @field:Min(0) val turn: Int? = null,
+    @field:Size(max = 2000) val text: String? = null,
+    @field:Size(max = 300) val note: String? = null,
+)
 
 /** result는 AI 오케스트레이션 응답(계획·단계별 원본 결과·상태·runId)을 그대로 담는다. */
 data class WritingAiResponse(val threadId: String, val result: JsonNode)

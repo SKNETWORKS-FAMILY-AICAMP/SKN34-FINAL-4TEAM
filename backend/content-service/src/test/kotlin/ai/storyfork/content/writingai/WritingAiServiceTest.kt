@@ -11,6 +11,7 @@ import ai.storyfork.content.writingai.client.WritingAiClient
 import ai.storyfork.content.writingai.service.WritingAiService
 import ai.storyfork.content.writingai.service.dto.WritingAiRequest
 import ai.storyfork.content.writingai.service.dto.WritingAiResume
+import ai.storyfork.content.writingai.service.dto.WritingAiScene
 import ai.storyfork.content.writingai.service.dto.WritingAiSimulation
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -119,6 +120,36 @@ class WritingAiServiceTest {
         val inputs = JsonMapper.builder().build().readTree("""{"web_research":{"question":"한양에서 동래까지?"}}""")
         val body = service.message("work", "owner", "thread", ask.copy(request = null, resume = WritingAiResume(true, inputs)))
         assertEquals(inputs, (body["resume"] as Map<*, *>)["inputs"])
+    }
+
+    // 시뮬레이션 무대의 장면 조작(resume.scene): 형식·길이만 확인해 AI로 그대로 넘긴다. 조작별 필수 필드는 AI가 다시 확인한다.
+    private fun resumed(scene: WritingAiScene?) = service.message("work", "owner", "thread",
+        ask.copy(request = null, resume = WritingAiResume(true, scene = scene)))["resume"] as Map<*, *>
+
+    @Test
+    fun `resume forwards the scene action of the stage with only the fields that were sent`() {
+        assertEquals(mapOf("action" to "next"), resumed(WritingAiScene("next"))["scene"])
+        assertEquals(mapOf("action" to "next", "note" to "갑자기 정전이 된다"), resumed(WritingAiScene("next", note = "갑자기 정전이 된다"))["scene"])
+        assertEquals(mapOf("action" to "edit", "turn" to 2, "text" to "고친 글"), resumed(WritingAiScene("edit", turn = 2, text = "고친 글"))["scene"])
+        assertEquals(mapOf("action" to "redo", "turn" to 0, "note" to "더 차갑게"), resumed(WritingAiScene("redo", turn = 0, note = "더 차갑게"))["scene"])
+        assertEquals(mapOf("action" to "stop"), resumed(WritingAiScene("stop"))["scene"])
+        assertEquals(true, resumed(WritingAiScene("stop"))["approved"])  // approved는 그대로 함께 간다(AI가 scene을 먼저 처리한다)
+        assertFalse("scene" in resumed(null))
+    }
+
+    @Test
+    fun `request validation bounds the scene action and its fields`() {
+        jakarta.validation.Validation.buildDefaultValidatorFactory().use { factory ->
+            val validator = factory.validator
+            fun problems(scene: WritingAiScene) = validator.validate(ask.copy(request = null, resume = WritingAiResume(true, scene = scene)))
+                .map { it.propertyPath.toString() }
+            assertTrue(problems(WritingAiScene("edit", turn = 0, text = "가".repeat(2000))).isEmpty())
+            assertTrue(problems(WritingAiScene("next", note = "가".repeat(300))).isEmpty())
+            assertEquals(listOf("resume.scene.action"), problems(WritingAiScene("jump")))
+            assertEquals(listOf("resume.scene.turn"), problems(WritingAiScene("redo", turn = -1)))
+            assertEquals(listOf("resume.scene.text"), problems(WritingAiScene("edit", turn = 1, text = "가".repeat(2001))))
+            assertEquals(listOf("resume.scene.note"), problems(WritingAiScene("next", note = "가".repeat(301))))
+        }
     }
 
     // [시뮬레이션] 버튼의 시작 양식(simulation): operation이 character_simulation인 새 요청에서만 받아 AI로 그대로 넘긴다.

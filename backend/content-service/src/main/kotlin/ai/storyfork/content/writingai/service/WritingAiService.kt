@@ -10,6 +10,7 @@ import ai.storyfork.content.writingai.client.WritingAiClient
 import ai.storyfork.content.writingai.service.dto.ChatSessionCreated
 import ai.storyfork.content.writingai.service.dto.WritingAiRequest
 import ai.storyfork.content.writingai.service.dto.WritingAiResponse
+import ai.storyfork.content.writingai.service.dto.WritingAiScene
 import ai.storyfork.content.writingai.service.dto.WritingAiSimulation
 import java.io.OutputStream
 import java.util.UUID
@@ -59,6 +60,13 @@ internal class WritingAiService(
     private fun scopeOf(workId: String, owner: String) = "user:$owner/work:$workId"
 
     /** 보낸 항목만 담는다. AI 요청 DTO가 모르는 필드를 거절하므로 null 필드를 싣지 않는다. */
+    private fun body(scene: WritingAiScene) = buildMap<String, Any?> {
+        put("action", scene.action)
+        scene.turn?.let { put("turn", it) }
+        scene.text?.let { put("text", it) }
+        scene.note?.let { put("note", it) }
+    }
+
     private fun body(form: WritingAiSimulation) = buildMap<String, Any?> {
         put("mode", form.mode)
         form.premise?.let { put("premise", it) }
@@ -91,6 +99,7 @@ internal class WritingAiService(
                     put("approved", request.resume.approved)
                     put("scope", scope)
                     request.resume.inputs?.let { put("inputs", it) }
+                    request.resume.scene?.let { put("scene", body(it)) }
                 })
             } else {
                 put("request", request.request)
