@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
-import { chatBasis, replyText, type ChatReply } from '../entities/writingChat'
+import type { CharacterSimulation } from '../entities/characterSimulation'
+import { chatBasis, replyText, stepText, type ChatReply } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -31,6 +32,25 @@ describe('replyText', () => {
       { feature: 'web_research', status: 'failed', error: '검색 실패' },
     ] }))
     expect(text).toBe('작업 중 실패가 있어요.\n\n[집필·수정] 초안\n→ 2화 초안에 반영했어요.\n\n[고증 조사] 실패: 검색 실패')
+  })
+})
+
+describe('인물 시뮬레이션 단계 글', () => {
+  const simulation: CharacterSimulation = {
+    mode: 'if', premise: '카엘이 성문을 열었다면?', beats: [], status: 'completed', stopReason: null,
+    turns: [{ index: 0, characterId: 'c', characterName: '카엘', prose: '카엘이 문을 열었다.', checks: [{ kind: 'premise', passed: true, detail: '' }], regenerated: 0, evidence: [] }],
+  }
+
+  it('말풍선에는 본문 대신 한 줄 요약을 쓰고 반영 결과를 잇는다(본문은 장면 카드가 그린다)', () => {
+    const reply: ChatReply = { status: 'completed', missingInputs: [], steps: [{ feature: 'character_simulation', status: 'completed', simulation, applied: { episode: 3, revision: 4 } }] }
+    expect(replyText(reply)).toBe('[인물 시뮬레이션] 완료 · 장면 1턴 · 검사 통과 1 · 위반 0\n→ 3화 초안에 반영했어요.')
+    expect(replyText(reply)).not.toContain('카엘이 문을 열었다.')
+  })
+
+  it('끝나지 않은 장면은 상태를 앞에 두고, 실패한 단계는 장면이 있어도 서버 사유를 그대로 알린다', () => {
+    expect(stepText({ feature: 'character_simulation', status: 'completed', simulation: { ...simulation, status: 'stopped' } })).toMatch(/^멈춤 · /)
+    expect(stepText({ feature: 'character_simulation', status: 'not_started', simulation: { ...simulation, status: 'running' } })).toMatch(/^진행 중 · /)
+    expect(stepText({ feature: 'character_simulation', status: 'failed', error: '모델 호출에 실패했어요.', simulation })).toBe('실패: 모델 호출에 실패했어요.')
   })
 })
 
