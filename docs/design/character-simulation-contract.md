@@ -64,7 +64,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 
 - 위치: `backend/ai-service/app/simulation/`(장면 에이전트·도구·연출·검사·프롬프트)와 `app/orchestration/`의 `character_simulation` 노드 연결. 실행 틀·연출·무대는 아래 절을 본다.
 - 인물 호출마다 그 인물의 입력만 새로 조립한다. 이전 인물의 입력·모델 대화 상태를 넘기지 않는다. 다른 인물에게는 인물이 겉으로 드러낸 행동(`observed`)과 나레이션이 모두에게 알린 것만 장면 상태로 보이고 속마음·독백은 가지 않는다.
-- 인물 대사 한도 12턴(나레이션·독백은 세지 않고 전체 40턴이 안전 한도), 재생성 2회. 위반 반복·비트 거부·한도는 부분 결과(`status: stopped|failed`, `stopReason`)를 남기고 승인 대상이 아니다(UC-09 E2). 대화 안에서는 멈춘 장면을 작가가 이어 가거나 끝낼 수 있다(아래 '실패·중단').
+- 인물 대사 한도 12턴(나레이션·독백은 세지 않고 전체 40턴이 안전 한도), 재생성 2회. 위반 반복·비트 거부·한도는 부분 결과(`status: stopped|failed`, `stopReason`)를 남기고 그 상태로는 승인 대상이 아니다(UC-09 E2). 대화 안에서는 멈춘 장면을 작가가 이어 가거나 `stop`으로 끝낼 수 있고, `stop`한 장면은 `completed`가 되어 승인 질문으로 이어진다(아래 '실패·중단').
 - 인물 대사는 `"대사"`와 짧은 행동만 쓴다. 배경·장소·분위기 묘사는 나레이터 몫이다(인물 지침에서 금지).
 - 인물이 자기 성격대로 비트를 거부하면 오류가 아니라 **기획 쪽 문제**로 보고 `stopReason: beat_rejected`로 멈춘다. 작가는 줄을 고치거나 흐름을 바꿔 다시 요청한다.
 - 작가가 중간에 넣는 한마디는 끼어들기 메모로 다음 턴에 반영한다(아래 '장면 조작').
@@ -104,7 +104,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 }
 ```
 
-- `running`은 첫 턴 전, `paused`는 턴 사이 대기, `completed`는 장면 끝, `stopped`·`failed`는 멈춘 부분 결과(`stopReason`: `check_failed`·`beat_rejected`·`turn_limit`, 호출 실패는 null)다. 나레이션·독백은 검사 결과(`checks`)를 내보이지 않는다.
+- `running`은 첫 턴 전, `paused`는 턴 사이 대기, `completed`는 장면 끝, `stopped`·`failed`는 멈춘 부분 결과(`stopReason` 코드: `check_failed`·`beat_rejected`·`turn_limit`·`call_limit`, 호출 실패는 null)다. 사람이 읽는 이유 문장은 `stopReason`이 아니라 단계의 `error`다. 나레이션·독백은 검사 결과(`checks`)를 내보이지 않는다.
 - 화면은 `turns[].prose`를 종류별로 그리고(나레이션 지문 블록·독백 줄·인물 말풍선) `checks`·`evidence`는 접어서 보인다.
 - 승인 시 반영 본문은 `turns[].prose`(나레이션·독백 포함)를 순서대로 빈 줄로 이은 텍스트이며, 기존 `content_mcp.apply_writing`의 Text 경로(초안 뒤에 잇기)를 쓴다.
 
@@ -115,13 +115,13 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 | Middleware | `StageMiddleware`(`scene_agent.py`) | 턴 사이 사람 개입(HITL에 준하는 `interrupt`): next·edit·redo·stop·반려를 받는다 |
 | | `DirectorMiddleware` | 연출 결정을 거쳐 도구 호출을 만든다 |
 | | `SceneCheckMiddleware` | 검사·최대 2회 재실행·통과한 턴을 장면에 붙임 |
-| | `ModelCallLimit`·`ToolCallLimit`(라이브러리) | 호출 한도 안전망(`LOOP_LIMIT`=80). 넘으면 장면을 끊고 단계 `failed` |
+| | `ModelCallLimit`·`ToolCallLimit`(라이브러리) | 호출 한도 안전망(`LOOP_LIMIT`=80). 넘으면 에이전트가 예외 없이 끝나고(`exit_behavior='end'`) 바깥 노드가 쌓은 턴을 지킨 채 `stopped`(`stopReason: call_limit`)·단계 `failed`로 기록한다 |
 | Hook | `before_agent` | 승인 대기에서 돌아온 작가의 조작을 새 실행의 시작에서 장면에 반영 |
 | | `before_model` | Stage: 턴 사이 대기 / Director: 연출 결정 |
 | | `wrap_model_call` | Director: 결정대로 도구 호출을 만든다(모델을 부르지 않는다) |
 | | `wrap_tool_call` | SceneCheck: 검사·재실행·장면 갱신·턴 이벤트 |
 | | `after_agent` | 턴 사이 표시 정리 |
-| Callback | `UsageCallback`(`callbacks.py`) | 모델 호출마다 토큰·지연·실패(`agent.py`가 `simulation.model` 이벤트로 알림)와 도구 실패를 모아 턴이 끝날 때 추적 span `simulation.turn`으로 남긴다. 본문·키는 없다 |
+| Callback | `UsageCallback`(`callbacks.py`) | 모델 호출마다 토큰·지연·실패(`agent.py`와 연출 결정 `director.py`가 `simulation.model` 이벤트로 알림)와 도구 실패를 모아 턴이 끝날 때 추적 span `simulation.turn`으로 남긴다. 본문·키는 없다 |
 | Event Listener | `SceneEvents` | 턴이 끝날 때 `adispatch_custom_event('scene', 단계 항목)`으로 낸 이벤트를 받아 LangGraph custom stream으로 중계 → SSE `step`(누적 결과) |
 
 - 도구(`tools.py`)는 `narrate`·`monologue`·`speak`·`end_scene`이며 기존 입력 조립(NovelBrain recall·인물 격리)·`act`·`check`·검증을 그대로 쓴다. 같은 턴을 재생성할 때는 조회한 입력을 다시 만들지 않는다.
@@ -131,10 +131,10 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 
 ## 연출 결정 (인물이 말하기 전에 매 턴)
 
-- 모델: `langchain_typesafe.TypeSafeClassifier`를 OpenAI Decisions(`POST https://api.openai.com/v1/decisions`, `gpt-6-luna`, 키 `OPENAI_API_KEY`)에 연결한 최소 서브클래스 `OpenAIDecisionClassifier`(`director.py`)다. 패키지 기본 경로(`/v1/systemone`)는 OpenAI에서 404이고 경로만 바꾸면 요청 형식이 달라 400이라 경로·요청 변환·응답 변환만 덮어쓴다. 형식의 정본은 `app/intent/agent.py`다. Decisions는 확률을 주지 않아 고른 값만 1.0으로 채우며, 거부·선택지 밖·질문과 다른 답은 실패다.
+- 모델: `langchain_typesafe.TypeSafeClassifier`를 OpenAI Decisions(`POST https://api.openai.com/v1/decisions`, `gpt-6-luna`, 키 `OPENAI_API_KEY`)에 연결한 최소 서브클래스 `OpenAIDecisionClassifier`(`director.py`)다. 패키지 기본 경로(`/v1/systemone`)는 OpenAI에서 404이고 경로만 바꾸면 요청 형식이 달라 400이라 경로·요청 변환·응답 변환만 덮어쓴다. 형식의 정본은 `app/intent/agent.py`다. Decisions는 확률을 주지 않아 고른 값만 1.0으로 채우며, 거부·선택지 밖·질문과 다른 답은 실패다. 원 응답의 `usage`(`input_tokens`·`output_tokens`)는 패키지 응답으로 그대로 옮기고, 호출마다 `simulation.model` 이벤트(`director`)로 알려 `UsageCallback` 장부에 남긴다. 변환한 응답에는 원 응답의 `Content-Encoding`·`Content-Length` 같은 본문 헤더를 옮기지 않는다(이미 풀린 본문을 다시 풀려다 실패한다).
 - 질문(모두 선택지): `turn`(나레이션·독백·대사·마무리 중 규칙이 허용한 것), `speaker`(대사를 할 인물), `pov`(전지적·인물의 3인칭 제한·인물의 1인칭). 입력은 장면 요약(비트·최근 8줄·끼어들기 기록·규칙이 정한 이유)이며 인물은 별칭 `c1…`으로만 주고받는다(id·설정 문서·독백 내용은 보내지 않는다).
 - 규칙(`service.rules`): 장면 시작·작가의 끼어들기 메모·흐름 모드의 비트 전환은 나레이션이 먼저, 이야기가 끝났으면(IF는 장면 완결 판정, 흐름은 모든 비트 완료) 마무리(`end`), 나레이션·독백이 두 번 이어지면 이번엔 대사, 인물 대사 12턴(또는 전체 40턴)이면 한도로 멈춘다. 규칙이 턴을 하나로 정하면 묻지 않고 알려 주고 화자·시점만 묻는다.
-- 검증: 독백은 시점 인물이 있어야 하고(전지적이면 실패), 도구가 받은 인물은 이 장면의 참여 인물이어야 한다. 어긋난 결정은 고치지 않고 실패(502), 호출 실패는 503이다. 둘 다 장면을 멈춘 채 두고 작가가 이어 간다(첫 턴이면 단계 `failed`).
+- 검증: 독백은 시점 인물이 있어야 한다. 허용된 턴이 독백뿐이면 `pov` 선택지에서 전지적을 뺀다. 여러 턴이 허용됐는데 모델이 독백과 전지적을 함께 고르면 오류로 끝내지 않고 독백인 줄 알려 주며 `pov`만 전지적을 뺀 선택지로 한 번 더 묻는다(그래도 어긋나면 502). 도구가 받은 인물은 이 장면의 참여 인물이어야 한다. 그 밖에 어긋난 결정은 고치지 않고 실패(502), 호출 실패는 503이다. 둘 다 장면을 멈춘 채 두고 작가가 이어 간다(첫 턴이면 단계 `failed`).
 - 결정은 턴에 기록된다: `kind`·`characterId`·`pov`(내부 기록에는 화자와 마무리 여부까지). 재생성(검사 위반)은 연출을 다시 정하지 않고, 다시 말하기(`redo`)는 그 턴에 기록된 결정을 그대로 쓴다.
 
 ## 시점과 독백
@@ -147,6 +147,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 | 독백(`monologue`) | 시점 인물(`limited`·`first`) | 그 인물의 속마음. 다른 인물에게 보이지 않는다 | 지식 누설 + 말투 |
 
 - 나레이션은 어느 시점이든 `characterId`가 없고 이름이 '나레이션'이다. 독백 턴만 시점 인물의 id·이름을 가진다.
+- 계획의 비트는 전지적 서술만 전체를 입력으로 받는다. 독백·3인칭 제한·1인칭 서술은 지금 비트까지만 받는다(아직 오지 않은 뒤의 비트를 인물은 모른다. 인물 입력이 지금 비트만 받는 것과 같은 규칙이고, 모든 비트가 끝났으면 전체를 준다).
 - 나레이션 문체는 설정집의 `나레이터…` 카드(제목이 `나레이터`로 시작, 유형 무관, 인물 카드면 IDENTITY+SOUL)가 정한다. 없으면 기본 지침이다. 이 카드는 문체 지침이라 인물로 고를 수 없고 인물의 입력에도 들어가지 않는다.
 - 나레이션 `observed`(모두에게 알린 사실)만 인물의 장면 상태로 간다. 나레이션 본문과 독백은 인물에게 가지 않는다.
 
@@ -172,6 +173,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 
 - 검사 반복 위반(`check_failed`)·비트 거부(`beat_rejected`)·한도(`turn_limit`)는 그 턴을 붙이지 않고 쌓은 턴과 메모를 지킨 채 `status: stopped`(호출 실패는 `failed`)와 이유를 남긴다. 턴이 하나 이상 있으면 `waiting`(awaitingScene)으로 계속 멈춰 있고(단계는 `failed`로 이유를 보인다) 작가가 줄을 고치거나 다시 말하게 하거나 `next`로 다시 시도하거나 `stop`으로 지금까지를 끝낼 수 있다. 화면은 이때 자동 재생을 멈춘다.
 - 첫 턴이 실패해 쌓은 턴이 없으면 이어 갈 장면이 없어 단계를 `failed`(부분 결과 `stopped|failed`, 승인 없음)로 끝낸다.
+- 호출 한도 안전망(`call_limit`)이 끊으면 에이전트가 끝나므로 이어 갈 수 없다. 쌓은 턴은 그대로 두고 `status: stopped`·`stopReason: call_limit`·단계 `failed`로 끝낸다(승인 없음, 실패를 숨기지 않되 결과는 남긴다).
 - 작가가 `stop`한 장면은 `completed`라서 승인 질문이 이어진다. 승인 없이 끝나는 것은 `failed`뿐이다.
 
 ### 응답·SSE
@@ -222,3 +224,6 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 - 비트는 Story Development 에이전트 없이 메인 에이전트가 채팅에서 최소 형태로 만든다(버튼 진입은 장면 계획 또는 작가가 적은 값을 쓴다).
 - 연출 결정은 Decisions가 확률을 주지 않아 선택값만 쓴다(신뢰도 기준 없음). 장면은 에이전트 상태(대화 체크포인트)에만 있어 보관 기간 정리가 없다.
 - 원고 발췌 검색은 요청(턴)마다 같은 검색어로 한 번씩 한다. 인물 시점 나레이션·독백의 조회는 그 인물의 대사 입력과 같은 규칙이다.
+- 검사는 `prose`만 본다. 다른 인물에게 가는 `observed`(공개 요약)는 같은 호출에서 `prose`와 함께 만들어지고 쓰는 모델은 금지 목록을 받지 않아 따로 검사하지 않는다. 작가가 `edit`한 글은 작가 글이 정본이라 통째로 공개 기록이 된다(속마음을 섞어 고치면 다음 인물이 보게 된다).
+- 호출 한도(`LOOP_LIMIT`=80)는 장면 한 건의 모델 노드 실행 합계다. 다시 말하기(`redo`)도 한 번씩 센다. 작가가 쓴 메모(`next`+`note`)는 인물 대사·전체 턴 한도보다 먼저 나레이션을 쓰게 하므로 한도에 닿은 뒤에도 메모마다 나레이션 한 턴은 쓸 수 있다(작가가 보내야만 쓴다).
+- 거부 사유(`beat_rejected`)·검사 설명(`detail`)은 모델이 쓴 문장을 200자로 잘라 작가에게 보인다(작가가 흐름을 고치려면 이유를 알아야 한다). 검사 설명은 재생성 안내에는 쓰지 않는다.
