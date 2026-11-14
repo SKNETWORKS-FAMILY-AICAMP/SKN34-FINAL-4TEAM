@@ -145,7 +145,7 @@ KO_TC_PAIRS = (('s3|s2', '전체 대 전체 − 필터'), ('s3|no_graph', '전�
 
 
 def ko_timechara_data() -> str:
-    """KoTimeChara 데이터 구성(분포만, 작품 제목·원문 없음)과 근거 대조·자동 점검 통과율."""
+    """KoTimeChara 데이터 구성(분포만, 작품 제목·원문 없음)과 근거 대조 통과율."""
     data = load('ko-timechara-data')
     if not data:
         return ''
@@ -162,14 +162,13 @@ def ko_timechara_data() -> str:
               ['참여·목격 인물(이름이 본문에 있고 근거 문장이 원문에 있음)', rate(label.get('refs_kept', 0), label.get('refs', 0))],
               ['나중에 전해 들은 인물(앞 회차 사건·새로 안 인물·근거 문장)', rate(learn.get('learned_kept', 0), learn.get('learned', 0))],
               ['근거 문장 대조 통과율(사건·인물·전해 들음 전체)', rate(e['evidence_ok'], e['evidence_checked'])],
-              ['질문 자동 점검(지식표로 유형 규칙을 다시 확인)', rate(c['kept'], c['audited'])],
               ['검수 표본(무작위 10%)의 근거 문장 대조', rate(c['review_evidence_ok'], c['review_sample'])]]
     genres = ', '.join(f'{g} {n}편' for g, n in sorted(data['data']['genres'].items(), key=lambda kv: -kv[1]))
     return ('\n\n'.join([table(['종류', '작품', '회차', '작품당 회차', '회차 글자 중앙값(범위)', '글자 합계'], works), f'장르(키워드 규칙으로 추정, 작품 수): {genres}.',
                           table(['유형', '질문'], types + [['합계', str(q['total'])]]),
                           f"종류별 {', '.join(f'{k} {v}' for k, v in q['by_kind'].items())}; 형식별 {', '.join(f'{k} {v}' for k, v in q['by_style'].items())}; "
                           f"작품당 {span(q['per_work'])}문항; 질문 대상 인물 {q['characters']}명(작품별 합).",
-                          table(['자동 점검', '통과'], checks)]))
+                          table(['점검', '통과'], checks)]))
 
 
 def ko_timechara_context() -> str:

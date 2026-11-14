@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from batch import SyncExecutor, run_rounds
 from cost import CostLog
 from kt_context import CONFIGS
-from kt_run import context_rates, group_report, ko_system_prompt, make_work, subset
+from kt_run import context_rates, group_report, ko_system_prompt, make_work
 from llm import Ledger, Llm
 
 TEMPLATES = {'spatiotemporal': 'S [Interactions] {question_0} {answer_0} [Fact] {agent_fact_0} Spatiotemporal Consistency {agent_name}',
@@ -76,12 +76,9 @@ def test_group_report_summarizes_and_pairs_within_each_group():
     assert out['web']['leak']['zero'] == {'future_ctx': 1.0, 'unseen_ctx': 1.0, 'foreign_ctx': 0.0}
 
 
-def test_subset_is_deterministic_and_keeps_the_requested_size_and_all_types_when_possible():
-    rows = [row(i, kind) for i, kind in enumerate(['future', 'past-only', 'past-absence', 'past-presence'] * 10)]
-    assert subset(rows, 8) == subset(rows, 8) and len(subset(rows, 8)) == 8
-    assert {r['data_type'] for r in subset(rows, 8)} == {'future', 'past-only', 'past-absence', 'past-presence'}
-    assert subset(rows, 100) == rows
-    assert 'Absence:' not in ko_system_prompt('철수', 3) and '철수' in ko_system_prompt('철수', 3) and '3화' in ko_system_prompt('철수', 3)
+def test_ko_system_prompt_names_the_character_and_cutoff():
+    prompt = ko_system_prompt('철수', 3)
+    assert '철수' in prompt and '3화' in prompt and 'Absence:' not in prompt
 
 
 def test_context_rates_average_each_flag_per_configuration_and_per_type():

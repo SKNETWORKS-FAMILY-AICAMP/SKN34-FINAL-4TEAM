@@ -13,7 +13,6 @@ HEAD = r'^[ \t　]*'
 PATTERNS = {
     'n_hwa': re.compile(HEAD + r'[\[(<]?(?:제[ \t]*)?(\d{1,4})[ \t]*[화회장][\])>]?[ \t]*(?:[.:\-–—][ \t]*)?(.{0,60})$', re.M),
     'n_dot': re.compile(HEAD + r'[\[(]?(\d{1,4})[\])]?[ \t]*[.:\-)][ \t]*(\S.{0,60})$', re.M),
-    'bare': re.compile(HEAD + r'(\d{1,4})[ \t]*()$', re.M),
     'ep': re.compile(HEAD + r'(?:EP|Ep|ep|Chapter|CHAPTER|chapter)\.?[ \t]*(\d{1,4})\b[ \t]*[.:\-]?[ \t]*(.{0,60})$', re.M),
     'hash': re.compile(HEAD + r'#[ \t]*(\d{1,4})[ \t]*(.{0,60})$', re.M),
 }

@@ -1,9 +1,8 @@
-"""질문 생성 단위 테스트: 유형별 선택 규칙·공개 형식의 채점 기준 문장·질문 검증·자동 점검. 합성 지식표만 쓴다(소설 원문 없음)."""
+"""질문 생성 단위 테스트: 유형별 선택 규칙·공개 형식의 채점 기준 문장·질문 검증. 합성 지식표만 쓴다(소설 원문 없음)."""
 
 import random
 
-from kt_questions import (QUOTA, assemble, audit, facts, main_characters, moment_passage, pick_specs, structured_question,
-                          valid_question)
+from kt_questions import QUOTA, assemble, facts, main_characters, moment_passage, pick_specs, structured_question, valid_question
 
 
 def person(name):
@@ -86,21 +85,6 @@ def test_valid_question_rejects_copied_evidence_bad_lengths_and_duplicates():
     assert valid_question('철수가 영희에게 무엇을 주었나요?', evidence, {'철수가 영희에게 무엇을 주었나요?'}) == 'duplicate'
 
 
-def row(**kw):
-    base = {'data_type': 'past-presence', 'character': '철수', 'cutoff': 4, 'event_id': 'E1.1', 'event_episode': 1, 'question': '다음 장면을 직접 보았나요? 1화의 1번째 사건이 일어났다.'}
-    return {**base, **kw}
-
-
-def test_audit_rechecks_each_rule_from_the_final_row_and_knowledge():
-    k = knowledge()
-    assert audit(row(), k) == []
-    assert audit(row(data_type='past-absence'), k) == ['absence_but_present']
-    assert audit(row(character='민수'), k) == ['presence_but_absent']
-    assert audit(row(data_type='future', cutoff=4), k) == ['future_not_after_cutoff']
-    assert audit(row(data_type='past-absence', character='영희', event_id='E2.1', event_episode=2, cutoff=3), k) == ['absence_but_learned']
-    assert audit(row(event_id='E9.9'), k) == ['unknown_event']
-
-
 def test_assemble_builds_rows_with_public_style_facts_trims_to_quota_and_drops_invalid_freeform_questions():
     k = knowledge()
     texts = {n: f'{n}화 본문입니다.\n{n}화 1번 근거 문장입니다. 그리고 이어진다.\n끝.' for n in range(1, 7)}
@@ -109,7 +93,7 @@ def test_assemble_builds_rows_with_public_style_facts_trims_to_quota_and_drops_i
     written = {i: (f'철수가 {i}번째로 어디로 갔는지 아시나요?' if i % 2 else '짧다') for i, s in enumerate(specs) if s['style'] == 'fact-freeform'}
     rows, drops = assemble(meta, k, texts, specs, written, {('future', 'fact-freeform'): 2, ('past-presence', 'fact-structured'): 2})
     assert [r['data_type'] for r in rows].count('future') == 2 and [r['data_type'] for r in rows].count('past-presence') == 2
-    assert drops['bad_length'] >= 1 and all(audit(r, k) == [] for r in rows)
+    assert drops['bad_length'] >= 1
     structured = next(r for r in rows if r['data_type'] == 'past-presence')
     assert structured['question'].startswith('다음 장면을 직접 보았나요?') and structured['question_generation'] == 'fact-structured'
     assert structured['spatial_label'].startswith('Presence:') and 'Moment (position: episode' in structured['temporal_label']

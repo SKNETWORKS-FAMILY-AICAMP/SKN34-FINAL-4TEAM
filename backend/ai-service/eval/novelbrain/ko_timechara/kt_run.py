@@ -3,7 +3,7 @@
     cd backend/ai-service
     set -a; . <저장소 루트 .env>; set +a
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko_timechara/kt_run.py contexts [작품 id …]        # 호출 없음
-    uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko_timechara/kt_run.py run [--mode=…] [--sample=N] [--configs=a,b]
+    uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko_timechara/kt_run.py run [--mode=…] [--configs=a,b]
     uv run --locked --extra dev --extra manuscript python eval/novelbrain/ko_timechara/kt_run.py report                      # 호출 없음: 표·짝 검정
 
 채점은 공개 evaluate.py와 같다: 공간(absence·presence)이 0이면 시간은 묻지 않고, 시공간은 0/1, 성격은 1~7. 채점 모델은 생성 모델과 같다.
@@ -12,12 +12,11 @@
 
 import kt_common  # noqa: F401  경로 설정이 다른 import보다 먼저여야 한다
 import json
-import random
 import sys
 
 from batch import cost_report, plan_for, run_rounds
 from embed import cached_embeddings, embed_texts
-from kt_common import KT, RESULTS, SEED
+from kt_common import KT, RESULTS
 from kt_context import CONFIGS, K_CTX, chunk_episode, contexts_for
 from kt_exec import load_works, make_executor, make_llm
 from kt_world import load_world
@@ -40,21 +39,6 @@ def ko_system_prompt(character: str, cutoff: int) -> str:
 
 def judge_name(character: str, cutoff: int) -> str:
     return f'{character} at the end of episode {cutoff}'
-
-
-def subset(rows: list[dict], n: int) -> list[dict]:
-    """유형 구성을 지키며 n개를 결정적으로 뽑는다(유형마다 비슷한 수, 파일럿·표본 실행용). n이 전체 이상이면 전체."""
-    if n >= len(rows):
-        return rows
-    by_type = {t: random.Random(f'{SEED}-{t}').sample([r for r in rows if r['data_type'] == t], len([r for r in rows if r['data_type'] == t]))
-               for t in TYPES}
-    picked, cycle = [], 0
-    while len(picked) < n and any(by_type.values()):
-        kind = TYPES[cycle % len(TYPES)]
-        if by_type[kind]:
-            picked.append(by_type[kind].pop())
-        cycle += 1
-    return sorted(picked, key=lambda r: r['idx'])
 
 
 def make_work(contexts: dict, templates: dict, personalities: dict):
@@ -126,9 +110,8 @@ def context_summary(rows: list[dict], contexts: dict) -> None:
         print(f"{config:9s} 기준 회차 뒤 항목 {b['future']:.2f} · 정답표 기준 모를 사건 발췌 {b['unseen']:.2f} · 다른 인물 기억 {b['foreign']:.2f} · 평균 항목 {b['items']:.1f}")
 
 
-def run(mode: str, sample: int | None, configs: tuple[str, ...]) -> None:
+def run(mode: str, configs: tuple[str, ...]) -> None:
     rows = load_rows()
-    rows = subset(rows, sample) if sample else rows
     data = build_data(sorted({r['work'] for r in rows}))
     contexts = build_contexts(rows, data)
     context_summary(rows, contexts)
@@ -140,13 +123,13 @@ def run(mode: str, sample: int | None, configs: tuple[str, ...]) -> None:
     print(f'질문 {len(rows)}개 × 구성 {len(configs)} = {len(tasks)} 과제 · 방식 {mode} · 장부 ${llm.cost.spent():.3f}', flush=True)
     records = run_rounds(tasks, make_work(contexts, templates, personalities), llm, make_executor(llm, mode), plan=plan_for(llm, mode))
     (KT / 'runs').mkdir(exist_ok=True)
-    (KT / 'runs' / ('rows-sample.json' if sample else 'rows.json')).write_text(json.dumps(records, ensure_ascii=False))
+    (KT / 'runs' / 'rows.json').write_text(json.dumps(records, ensure_ascii=False))
     print(f"완료: 점수 없음(실패) {sum(r['score'] is None for r in records)}/{len(records)}")
     cost_report(llm)
 
 
-def report(sample: bool = False) -> None:
-    records = json.loads((KT / 'runs' / ('rows-sample.json' if sample else 'rows.json')).read_text())
+def report() -> None:
+    records = json.loads((KT / 'runs' / 'rows.json').read_text())
     rows = {r['idx']: r for r in load_rows()}
     result = {'questions': len({r['idx'] for r in records}), 'configs': summarize(records), 'leak': leak_rates(records),
               'paired': {f'{a}|{b}': paired(records, a, b) for a, b in PAIRS},
@@ -154,8 +137,7 @@ def report(sample: bool = False) -> None:
               'by_type_paired': {kind: {f'{a}|{b}': paired([r for r in records if r['data_type'] == kind], a, b) for a, b in PAIRS}
                                  for kind in TYPES}, 'n_rows_loaded': len(rows)}
     RESULTS.mkdir(exist_ok=True)
-    out = RESULTS / ('ko-timechara-sample.json' if sample else 'ko-timechara.json')
-    out.write_text(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
+    (RESULTS / 'ko-timechara.json').write_text(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
     for config, block in result['configs'].items():
         pers = block['personality']
         print(f"{config:9s} 시공간(가중) {block['weighted']:.3f} 성격 {'-' if pers is None else round(pers, 2)} 실패 {block['failed']}/{block['n']} "
@@ -175,8 +157,8 @@ if __name__ == '__main__':
             (RESULTS / 'ko-timechara-context.json').write_text(json.dumps({'configs': context_rates(rows, contexts), 'k_context': K_CTX},
                                                                           ensure_ascii=False, indent=2, sort_keys=True))
     elif command == 'run':
-        run(opt('mode', 'sync'), int(opt('sample', 0)) or None, tuple(opt('configs', ','.join(CONFIGS)).split(',')))
+        run(opt('mode', 'sync'), tuple(opt('configs', ','.join(CONFIGS)).split(',')))
     elif command == 'report':
-        report('--sample' in options)
+        report()
     else:
-        raise SystemExit('사용법: kt_run.py contexts [작품 id …] | run [--mode=…] [--sample=N] [--configs=a,b] | report [--sample]')
+        raise SystemExit('사용법: kt_run.py contexts [작품 id …] | run [--mode=…] [--configs=a,b] | report')

@@ -134,29 +134,6 @@ def pick_specs(knowledge: list[dict], mains: list[str], quota: dict, rng: random
     return specs
 
 
-def audit(row: dict, knowledge: list[dict]) -> list[str]:
-    """최종 질문 행을 지식표로 다시 확인한다(생성 규칙과 별개의 자동 점검): 위반 이유 목록, 통과하면 빈 목록."""
-    events = {e['id']: e for r in knowledge for e in r['events']}
-    event = events.get(row['event_id'])
-    if event is None:
-        return ['unknown_event']
-    name, kind, p = row['character'], row['data_type'], row['cutoff']
-    present = {x['name'] for x in event['participants'] + event['witnesses']}
-    problems = []
-    if kind == 'future' and event['episode'] <= p:
-        problems.append('future_not_after_cutoff')
-    if kind == 'past-absence':
-        if name in present:
-            problems.append('absence_but_present')
-        elif knows(knowledge, name, event, p):
-            problems.append('absence_but_learned')
-    if kind in ('past-presence', 'past-only') and name not in present:
-        problems.append('presence_but_absent')
-    if kind != 'future' and event['episode'] > p:
-        problems.append('past_after_cutoff')
-    return problems
-
-
 def profile_input(name: str, knowledge: list[dict]) -> str:
     """성격 서술 호출의 입력: 인물이 참여·목격한 사건 요약을 회차 순으로(최대 40개)."""
     lines = [f"{e['episode']}화: {e['summary']}" for r in knowledge for e in r['events']
@@ -167,7 +144,7 @@ def profile_input(name: str, knowledge: list[dict]) -> str:
 def assemble(meta: dict, knowledge: list[dict], texts: dict[int, str], specs: list[dict], written: dict[int, str | None],
              quota: dict) -> tuple[list[dict], Counter]:
     """뽑은 spec으로 질문 행을 만든다. 자유 질문은 모델 출력(written[spec 번호])을 규칙으로 검증하고, 유형·형식마다 정원까지만 남긴다.
-    마지막에 지식표로 자동 점검(audit)해 위반 행은 버린다. 돌려주는 집계는 버린 이유별 수이고 `audited`는 점검한 행 수다."""
+    돌려주는 집계는 버린 이유별 수다. 유형 규칙(참여·목격·전해 들음·기준 회차)은 pick_specs가 지식표로 이미 지킨다."""
     events = {e['id']: e for r in knowledge for e in r['events']}
     drops: Counter = Counter()
     rows, seen, counts = [], set(), Counter()
@@ -190,10 +167,6 @@ def assemble(meta: dict, knowledge: list[dict], texts: dict[int, str], specs: li
                'character': spec['character'], 'cutoff': spec['cutoff'], 'event_id': event['id'], 'event_episode': event['episode'],
                'event_summary': event['summary'], 'evidence': event['evidence'], 'participants': [p['name'] for p in event['participants']],
                'question': question, 'temporal_label': temporal, 'spatial_label': spatial}
-        drops['audited'] += 1
-        if problems := audit(row, knowledge):
-            drops.update(problems)
-            continue
         seen.add(question)
         counts[key] += 1
         rows.append(row | {'id': f"{meta['id']}-{len(rows) + 1:03d}"})
@@ -260,8 +233,7 @@ def main(mode: str, ids: list[str]) -> None:
                                  plans[wid]['specs'], written[wid], QUOTA)
         rows += mine
         drops.update(dropped)
-        print(f"{wid} 질문 {len(mine)} ({dict(Counter(r['data_type'] for r in mine))}) 인물 {len(plans[wid]['mains'])} 버림 "
-              f"{ {k: v for k, v in dropped.items() if k != 'audited'} }")
+        print(f"{wid} 질문 {len(mine)} ({dict(Counter(r['data_type'] for r in mine))}) 인물 {len(plans[wid]['mains'])} 버림 {dict(dropped)}")
     rows = [dict(r, idx=n) for n, r in enumerate(rows)]
     (KT / 'questions.jsonl').write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in rows))
     (KT / 'personalities.json').write_text(json.dumps(personalities, ensure_ascii=False))
@@ -270,9 +242,8 @@ def main(mode: str, ids: list[str]) -> None:
         writer = csv.DictWriter(file, fieldnames=list(sample[0]))
         writer.writeheader()
         writer.writerows(sample)
-    audited = drops.pop('audited')
-    (KT / 'question_stats.json').write_text(json.dumps({'audited': audited, 'kept': len(rows), 'dropped': dict(drops),
-                                                        'review_sample': len(sample), 'review_evidence_ok': sum(s['evidence_in_episode'] for s in sample)}))
+    (KT / 'question_stats.json').write_text(json.dumps({'kept': len(rows), 'dropped': dict(drops), 'review_sample': len(sample),
+                                                        'review_evidence_ok': sum(s['evidence_in_episode'] for s in sample)}))
     print(f'질문 {len(rows)}개 (유형 {dict(Counter(r["data_type"] for r in rows))}), 버린 이유 {dict(drops)}, 검수 표본 {len(sample)}개 '
           f'(근거 대조 통과 {sum(s["evidence_in_episode"] for s in sample)}/{len(sample)})')
     cost_report(llm)
