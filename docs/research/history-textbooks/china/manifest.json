@@ -1,0 +1,1414 @@
+{
+  "schema_version": 1,
+  "checked_date": "2026-11-13",
+  "title": "China 한국어 번역 초안 묶음",
+  "status": "명시된 텍스트 범위의 번역 초안 및 통합 완료, 전문 감수 미완료",
+  "source": {
+    "title": "China",
+    "primary_author": "Demetrius Charles Boulger",
+    "supplement_author_on_title": "Mayo W. Hazeltine",
+    "gutenberg_id": 6708,
+    "catalog_url": "https://www.gutenberg.org/ebooks/6708",
+    "text_url": "https://www.gutenberg.org/cache/epub/6708/pg6708.txt",
+    "file": "source-en.txt",
+    "bytes": 1154261,
+    "sha256": "40EE257EDF3A9939D6FA5E5A666EEB4DD6679FBF7DC588A8FA8D46342833A7B8",
+    "print_year": null,
+    "print_edition": null,
+    "publisher": null,
+    "preface_date": "1893-04-28",
+    "event_coverage_through": "1898-09",
+    "rights_note": "원문 서지의 Public domain in the USA 표기. 전 세계 권리·번역권의 별도 보증은 아니다. 영어 원문에 PG 라이선스 전문 보존."
+  },
+  "translation_scope": {
+    "numbered_chapters": 22,
+    "numbered_prose_paragraphs": 488,
+    "numbered_source_words": 177446,
+    "numbered_captions": 3,
+    "numbered_chapter_details": [
+      {
+        "Chapter": 1,
+        "Paragraphs": 19,
+        "Words": 5245,
+        "Captions": 0
+      },
+      {
+        "Chapter": 2,
+        "Paragraphs": 19,
+        "Words": 6160,
+        "Captions": 0
+      },
+      {
+        "Chapter": 3,
+        "Paragraphs": 27,
+        "Words": 8728,
+        "Captions": 0
+      },
+      {
+        "Chapter": 4,
+        "Paragraphs": 23,
+        "Words": 7157,
+        "Captions": 0
+      },
+      {
+        "Chapter": 5,
+        "Paragraphs": 39,
+        "Words": 13519,
+        "Captions": 1
+      },
+      {
+        "Chapter": 6,
+        "Paragraphs": 17,
+        "Words": 5665,
+        "Captions": 0
+      },
+      {
+        "Chapter": 7,
+        "Paragraphs": 24,
+        "Words": 8748,
+        "Captions": 0
+      },
+      {
+        "Chapter": 8,
+        "Paragraphs": 15,
+        "Words": 4189,
+        "Captions": 0
+      },
+      {
+        "Chapter": 9,
+        "Paragraphs": 22,
+        "Words": 6964,
+        "Captions": 0
+      },
+      {
+        "Chapter": 10,
+        "Paragraphs": 13,
+        "Words": 3589,
+        "Captions": 0
+      },
+      {
+        "Chapter": 11,
+        "Paragraphs": 13,
+        "Words": 4969,
+        "Captions": 0
+      },
+      {
+        "Chapter": 12,
+        "Paragraphs": 12,
+        "Words": 3802,
+        "Captions": 0
+      },
+      {
+        "Chapter": 13,
+        "Paragraphs": 13,
+        "Words": 3804,
+        "Captions": 0
+      },
+      {
+        "Chapter": 14,
+        "Paragraphs": 10,
+        "Words": 3221,
+        "Captions": 0
+      },
+      {
+        "Chapter": 15,
+        "Paragraphs": 11,
+        "Words": 4097,
+        "Captions": 0
+      },
+      {
+        "Chapter": 16,
+        "Paragraphs": 8,
+        "Words": 3482,
+        "Captions": 0
+      },
+      {
+        "Chapter": 17,
+        "Paragraphs": 32,
+        "Words": 14153,
+        "Captions": 1
+      },
+      {
+        "Chapter": 18,
+        "Paragraphs": 23,
+        "Words": 8645,
+        "Captions": 0
+      },
+      {
+        "Chapter": 19,
+        "Paragraphs": 53,
+        "Words": 20078,
+        "Captions": 0
+      },
+      {
+        "Chapter": 20,
+        "Paragraphs": 31,
+        "Words": 13221,
+        "Captions": 0
+      },
+      {
+        "Chapter": 21,
+        "Paragraphs": 33,
+        "Words": 14676,
+        "Captions": 0
+      },
+      {
+        "Chapter": 22,
+        "Paragraphs": 31,
+        "Words": 13334,
+        "Captions": 1
+      }
+    ],
+    "supplement_sections": [
+      {
+        "source_heading": "THE WAR WITH JAPAN AND SUBSEQUENT EVENTS",
+        "source_lines": [
+          15510,
+          15939
+        ],
+        "file": "23-main-prose.ko.draft.md",
+        "qa": "23-translation.qa.md",
+        "paragraphs": 10,
+        "source_words": 4886,
+        "source_numeric_tokens": 77,
+        "numeric_tokens_missing": 0
+      },
+      {
+        "source_heading": "THE FUTURE OF CHINA",
+        "source_lines": [
+          15940,
+          16581
+        ],
+        "file": "24-main-prose.ko.draft.md",
+        "qa": "24-translation.qa.md",
+        "paragraphs": 18,
+        "source_words": 7326,
+        "source_numeric_tokens": 67,
+        "numeric_tokens_missing": 0
+      }
+    ],
+    "dedication_blocks": 2,
+    "dedication_source_lines": [
+      [
+        53,
+        61
+      ],
+      [
+        63,
+        71
+      ]
+    ],
+    "dedication_source_words": 105,
+    "preface_paragraphs": 2,
+    "preface_source_lines": [
+      [
+        144,
+        154
+      ],
+      [
+        156,
+        162
+      ]
+    ],
+    "preface_source_words": 205,
+    "signature_source_line": 164,
+    "signature_source_words": 6,
+    "front_file": "00-front-matter.ko.draft.md",
+    "total_numbered_and_supplement_prose_paragraphs": 516,
+    "total_numbered_and_supplement_source_words": 189658,
+    "excluded_from_korean_compilation": [
+      "표제지 전체",
+      "원전 목차",
+      "삽화목록",
+      "권두 삽화 캡션",
+      "실제 그림 이미지",
+      "Gutenberg 안내·라이선스 전문"
+    ],
+    "end_marker": "THE END at line 16582 is described in the supplement translation note, not counted as prose",
+    "limitations": [
+      "전문 역사 감수 미완료",
+      "독립적인 정밀 번역 전수 검수 미완료",
+      "원인쇄본 교감·전체 외부 사료 사실 검증 미완료",
+      "인쇄본 발행연도·판차·출판사 미확인",
+      "현대 통사 아님: 의화단·신해혁명·20–21세기 공백",
+      "강한 제국주의·민족·인종·종교 편향. 점령 권고는 저자 견해"
+    ]
+  },
+  "compilation": {
+    "file": "china-complete-text.ko.draft.md",
+    "bytes": 1229649,
+    "sha256": "DEDF9346ADB8A9492F2723132B271D65D32F1B61C44B76DC06C6F9BF08A02A9E",
+    "component_count": 25,
+    "included_components": [
+      {
+        "file": "00-front-matter.ko.draft.md",
+        "byte_offset_zero_based": 3411,
+        "byte_length": 4841,
+        "sha256": "1C039157EF4B8C4EB86CB1A07FBB1CB18D4902D3BF177879DE62D46148ED58A8",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "01-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 8349,
+        "byte_length": 42646,
+        "sha256": "6892626C8100EE7E2DD61062D402D830FA048C80D98EFE850C8D14F7B1D6E528",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "02-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 51090,
+        "byte_length": 44904,
+        "sha256": "981CEFD0330A18843439BB93A8C0F07815C0514B6886D344560CCE15E11C40E8",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "03-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 96089,
+        "byte_length": 57254,
+        "sha256": "73C1D1964FF885725C9FD166A0604E17039D35DB7FBE08E34F81B0CCA654F45C",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "04-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 153438,
+        "byte_length": 45603,
+        "sha256": "EFEEAAF0B71963D7C51FF08FE7483E1EE59D1C7A6FB2CF7CEBE1868AFB83F829",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "05-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 199136,
+        "byte_length": 83413,
+        "sha256": "0D8339B494F35E0BA332B0E2AFD0444F1015C0CE4CD29DE1322443DEF6CCAE26",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "06-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 282644,
+        "byte_length": 39538,
+        "sha256": "F36A36EF56E128B480F736E49A58C3E934C9111A770A87F4B93A1317929DB53D",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "07-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 322277,
+        "byte_length": 54001,
+        "sha256": "37C4B7D5298A26E80DA51B79EFC3908EDE65C4D7762D022830EAA429480B62EF",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "08-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 376373,
+        "byte_length": 27959,
+        "sha256": "81C8D96D19D018ADDA32AD26DD61D1B9E3FCF7DB0CE688C8EA794850384C33FB",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "09-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 404427,
+        "byte_length": 44037,
+        "sha256": "3068215BD7BBB7F9865E5E11123A95F0B05E2F8C230B2EBE9A634E58532E43C6",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "10-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 448559,
+        "byte_length": 24891,
+        "sha256": "10300B1415FE149489E8A76637C4E8F6DFA138DE2C744946AE6CC722F8EE24C6",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "11-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 473545,
+        "byte_length": 33897,
+        "sha256": "82A252B2531E31318AF56E8D76059A2A4FA92DA2D2653AF175DC4860CF092918",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "12-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 507537,
+        "byte_length": 25947,
+        "sha256": "B03A2C0B670A118059E2C054225D2FC5CFC9E7438FD0E8E46B9C4A7DF31E31E7",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "13-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 533579,
+        "byte_length": 28003,
+        "sha256": "7C4C371A7406EE461E886BE25AD58604CBDC4B2FAB9E42E483A66FC7A33028B3",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "14-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 561677,
+        "byte_length": 22693,
+        "sha256": "6EAF2FF80DE6CE1988EC8EF6FA65664FAE23E0F3C6F338257EDF23FC5CA76269",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "15-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 584465,
+        "byte_length": 28349,
+        "sha256": "23827BC0164F8AB1F97DEC1A6297072EEA5BB872914CC504CBC6AF0C19E2316E",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "16-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 612909,
+        "byte_length": 25905,
+        "sha256": "54BB9AFDDF464A06F1542551974407287A5FFD6292C31A63AED5CA4DEA74FDC6",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "17-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 638909,
+        "byte_length": 86245,
+        "sha256": "FAD85A1CD8D2778032E6E2BD959E7B10BABDCDE8C7CDCC74977B9CC293AFFB6B",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "18-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 725249,
+        "byte_length": 56684,
+        "sha256": "D6F0C4FF4118EB546D3EEA737A8D01892BF7D668E4CE50C74B0D9D3F790843FE",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "19-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 782028,
+        "byte_length": 117403,
+        "sha256": "294866AC43320BFF05CB83505088D613F312B95C65FCBE0D46BD4BEDD6AEAA65",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "20-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 899526,
+        "byte_length": 76126,
+        "sha256": "1659867F3645F43A9A73AC433ADDC09D461100DEAC9AAD64E50F3DB1E7C74B7F",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "21-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 975747,
+        "byte_length": 90614,
+        "sha256": "0321CD95BEE5F0FC2989471FB2D424A13F5CE21E27AA4EAC2CF6097D650A41E6",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "22-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 1066456,
+        "byte_length": 81013,
+        "sha256": "5B37CACE4CD7E5B90A7885E7100857BE28FD179D8F575C94A62378884AE0DEE1",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "23-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 1147564,
+        "byte_length": 31889,
+        "sha256": "A831034E67B87CC5EF0C3F5CEEA6CBA241A7EE29C9D335A17707E9343A78529B",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      },
+      {
+        "file": "24-main-prose.ko.draft.md",
+        "byte_offset_zero_based": 1179548,
+        "byte_length": 50055,
+        "sha256": "13483EFCEA7FCBD3C564090A6484C9CC17E9A4FD778FE802B4027079055CFA52",
+        "exact_content_occurrences": 1,
+        "byte_range_identical": true
+      }
+    ],
+    "preserves_full_component_files": true,
+    "earlier_status_headers_retained": true,
+    "earlier_status_headers_note": "단독 파일 작성 당시의 범위이며 현재 통합 상태는 README와 통합 머리말을 따른다",
+    "carriage_returns_preserved": 2,
+    "carriage_return_origin": "05-main-prose.ko.draft.md",
+    "qa": "china-complete-text.qa.md"
+  },
+  "worldbuilding_candidates": [
+    {
+      "file": "01-worldbuilding-candidate.ko.draft.md",
+      "status": "기존 파일 무변경 보존",
+      "scope": "번호 제1장 일부 모티프"
+    },
+    {
+      "file": "02-worldbuilding-candidate.ko.draft.md",
+      "status": "새 허구 후보",
+      "scope": "후속2 전체 독서 후 문단01·05·07·08 구조 모티프",
+      "history_fiction_separated": true,
+      "imperial_domination_and_ethnic_stereotypes_not_adopted": true
+    }
+  ],
+  "preservation": {
+    "baseline_file_count": 44,
+    "unchanged_protected_count": 43,
+    "intentional_existing_updates": [
+      "README.partial-ko.md"
+    ],
+    "comparison": [
+      {
+        "file": "01-main-prose.ko.draft.md",
+        "before_sha256": "5CB9F100336BB92FC0120F9755C91F5D95063A50AF6996D816D95747F5BB6F00",
+        "after_sha256": "5CB9F100336BB92FC0120F9755C91F5D95063A50AF6996D816D95747F5BB6F00",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "01-worldbuilding-candidate.ko.draft.md",
+        "before_sha256": "3BCFFB3AAE7A5CD9161F65E3C63979277AF0A1B28F870D5F433BA307F1386F7F",
+        "after_sha256": "3BCFFB3AAE7A5CD9161F65E3C63979277AF0A1B28F870D5F433BA307F1386F7F",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "02-main-prose.ko.draft.md",
+        "before_sha256": "981CEFD0330A18843439BB93A8C0F07815C0514B6886D344560CCE15E11C40E8",
+        "after_sha256": "981CEFD0330A18843439BB93A8C0F07815C0514B6886D344560CCE15E11C40E8",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "03-main-prose.ko.draft.md",
+        "before_sha256": "73C1D1964FF885725C9FD166A0604E17039D35DB7FBE08E34F81B0CCA654F45C",
+        "after_sha256": "73C1D1964FF885725C9FD166A0604E17039D35DB7FBE08E34F81B0CCA654F45C",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "04-main-prose.ko.draft.md",
+        "before_sha256": "EFEEAAF0B71963D7C51FF08FE7483E1EE59D1C7A6FB2CF7CEBE1868AFB83F829",
+        "after_sha256": "EFEEAAF0B71963D7C51FF08FE7483E1EE59D1C7A6FB2CF7CEBE1868AFB83F829",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "04-translation.qa.md",
+        "before_sha256": "1DBC2473C643BE4D9C68761985B1BBF792811E1FF70B4E78610C5DF828F61B6F",
+        "after_sha256": "1DBC2473C643BE4D9C68761985B1BBF792811E1FF70B4E78610C5DF828F61B6F",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "05-main-prose.ko.draft.md",
+        "before_sha256": "0D8339B494F35E0BA332B0E2AFD0444F1015C0CE4CD29DE1322443DEF6CCAE26",
+        "after_sha256": "0D8339B494F35E0BA332B0E2AFD0444F1015C0CE4CD29DE1322443DEF6CCAE26",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "05-translation.qa.md",
+        "before_sha256": "052C6A698E9E4A24F5AB759A011C46316255C775B963F29C5D6A8346961AFEAE",
+        "after_sha256": "052C6A698E9E4A24F5AB759A011C46316255C775B963F29C5D6A8346961AFEAE",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "06-main-prose.ko.draft.md",
+        "before_sha256": "F36A36EF56E128B480F736E49A58C3E934C9111A770A87F4B93A1317929DB53D",
+        "after_sha256": "F36A36EF56E128B480F736E49A58C3E934C9111A770A87F4B93A1317929DB53D",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "06-translation.qa.md",
+        "before_sha256": "1873DA8394537241D8483F596D24701BFF71CE4B268D2EE5A4D2C111B82CBB2C",
+        "after_sha256": "1873DA8394537241D8483F596D24701BFF71CE4B268D2EE5A4D2C111B82CBB2C",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "07-main-prose.ko.draft.md",
+        "before_sha256": "37C4B7D5298A26E80DA51B79EFC3908EDE65C4D7762D022830EAA429480B62EF",
+        "after_sha256": "37C4B7D5298A26E80DA51B79EFC3908EDE65C4D7762D022830EAA429480B62EF",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "07-translation.qa.md",
+        "before_sha256": "174D794A8B737D70EE69529751D869FAE2E4218D0E1776A21B44268C7BD77A2A",
+        "after_sha256": "174D794A8B737D70EE69529751D869FAE2E4218D0E1776A21B44268C7BD77A2A",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "08-main-prose.ko.draft.md",
+        "before_sha256": "81C8D96D19D018ADDA32AD26DD61D1B9E3FCF7DB0CE688C8EA794850384C33FB",
+        "after_sha256": "81C8D96D19D018ADDA32AD26DD61D1B9E3FCF7DB0CE688C8EA794850384C33FB",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "08-translation.qa.md",
+        "before_sha256": "32A8F3820ACCD99A656E257C94B68FA21EB7057822020FFA86AB095E765C45E4",
+        "after_sha256": "32A8F3820ACCD99A656E257C94B68FA21EB7057822020FFA86AB095E765C45E4",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "09-main-prose.ko.draft.md",
+        "before_sha256": "3068215BD7BBB7F9865E5E11123A95F0B05E2F8C230B2EBE9A634E58532E43C6",
+        "after_sha256": "3068215BD7BBB7F9865E5E11123A95F0B05E2F8C230B2EBE9A634E58532E43C6",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "09-translation.qa.md",
+        "before_sha256": "6377EC4D498BE23850F730FD03AF092E9EE44C2B156456EC0E3157F8CDE088F1",
+        "after_sha256": "6377EC4D498BE23850F730FD03AF092E9EE44C2B156456EC0E3157F8CDE088F1",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "10-main-prose.ko.draft.md",
+        "before_sha256": "10300B1415FE149489E8A76637C4E8F6DFA138DE2C744946AE6CC722F8EE24C6",
+        "after_sha256": "10300B1415FE149489E8A76637C4E8F6DFA138DE2C744946AE6CC722F8EE24C6",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "10-translation.qa.md",
+        "before_sha256": "351E11AB884604BEBB1358DB69371280B193D18B897BFF41D29F6952CB1D6E93",
+        "after_sha256": "351E11AB884604BEBB1358DB69371280B193D18B897BFF41D29F6952CB1D6E93",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "11-main-prose.ko.draft.md",
+        "before_sha256": "82A252B2531E31318AF56E8D76059A2A4FA92DA2D2653AF175DC4860CF092918",
+        "after_sha256": "82A252B2531E31318AF56E8D76059A2A4FA92DA2D2653AF175DC4860CF092918",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "11-translation.qa.md",
+        "before_sha256": "690C644464FCEACE2B3F47E2A2A61A31FE7E4407DF7BB8D948922AB586E4CF31",
+        "after_sha256": "690C644464FCEACE2B3F47E2A2A61A31FE7E4407DF7BB8D948922AB586E4CF31",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "12-main-prose.ko.draft.md",
+        "before_sha256": "B03A2C0B670A118059E2C054225D2FC5CFC9E7438FD0E8E46B9C4A7DF31E31E7",
+        "after_sha256": "B03A2C0B670A118059E2C054225D2FC5CFC9E7438FD0E8E46B9C4A7DF31E31E7",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "12-translation.qa.md",
+        "before_sha256": "C7406BB9F45D9E5BE95916C6ADEC27B01E3B86E88DA1D30F9798DA00BCDD3199",
+        "after_sha256": "C7406BB9F45D9E5BE95916C6ADEC27B01E3B86E88DA1D30F9798DA00BCDD3199",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "13-main-prose.ko.draft.md",
+        "before_sha256": "E535A9595E6B56148F892846C66B71765F22FD226B258B7ADEAAE3D9949BC8FF",
+        "after_sha256": "E535A9595E6B56148F892846C66B71765F22FD226B258B7ADEAAE3D9949BC8FF",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "13-translation.qa.md",
+        "before_sha256": "459D0D31ADA4EA7F0E72131C60AA248AC28C348BB3CD8E01A4628FFC599CAF14",
+        "after_sha256": "459D0D31ADA4EA7F0E72131C60AA248AC28C348BB3CD8E01A4628FFC599CAF14",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "14-main-prose.ko.draft.md",
+        "before_sha256": "6EAF2FF80DE6CE1988EC8EF6FA65664FAE23E0F3C6F338257EDF23FC5CA76269",
+        "after_sha256": "6EAF2FF80DE6CE1988EC8EF6FA65664FAE23E0F3C6F338257EDF23FC5CA76269",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "14-translation.qa.md",
+        "before_sha256": "919D8229C109C95C668208E1F22E2CDB1D267F1F9FB7A1D7CE4142A038AED616",
+        "after_sha256": "919D8229C109C95C668208E1F22E2CDB1D267F1F9FB7A1D7CE4142A038AED616",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "15-main-prose.ko.draft.md",
+        "before_sha256": "23827BC0164F8AB1F97DEC1A6297072EEA5BB872914CC504CBC6AF0C19E2316E",
+        "after_sha256": "23827BC0164F8AB1F97DEC1A6297072EEA5BB872914CC504CBC6AF0C19E2316E",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "15-translation.qa.md",
+        "before_sha256": "2639D73733CBDF742F315FA0AAC0B584CC48F7B3566249CD33A3A6D760F6D61C",
+        "after_sha256": "2639D73733CBDF742F315FA0AAC0B584CC48F7B3566249CD33A3A6D760F6D61C",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "16-main-prose.ko.draft.md",
+        "before_sha256": "54BB9AFDDF464A06F1542551974407287A5FFD6292C31A63AED5CA4DEA74FDC6",
+        "after_sha256": "54BB9AFDDF464A06F1542551974407287A5FFD6292C31A63AED5CA4DEA74FDC6",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "16-translation.qa.md",
+        "before_sha256": "0FFC41763B6AA5376F90C3EC9E19E94CDE7766A8CA16C83730AA7401B3C1FA15",
+        "after_sha256": "0FFC41763B6AA5376F90C3EC9E19E94CDE7766A8CA16C83730AA7401B3C1FA15",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "17-main-prose.ko.draft.md",
+        "before_sha256": "FAD85A1CD8D2778032E6E2BD959E7B10BABDCDE8C7CDCC74977B9CC293AFFB6B",
+        "after_sha256": "FAD85A1CD8D2778032E6E2BD959E7B10BABDCDE8C7CDCC74977B9CC293AFFB6B",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "17-translation.qa.md",
+        "before_sha256": "99A70CCE764DD772A170AD298047D11F8B7CE8B693B9BF310787AD04B63F90A7",
+        "after_sha256": "99A70CCE764DD772A170AD298047D11F8B7CE8B693B9BF310787AD04B63F90A7",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "18-main-prose.ko.draft.md",
+        "before_sha256": "D6F0C4FF4118EB546D3EEA737A8D01892BF7D668E4CE50C74B0D9D3F790843FE",
+        "after_sha256": "D6F0C4FF4118EB546D3EEA737A8D01892BF7D668E4CE50C74B0D9D3F790843FE",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "18-translation.qa.md",
+        "before_sha256": "25596D8B53F4ABA3C3EA8EE9E13794FA25FD407DE5E981FA0DB3F3997AC8DE99",
+        "after_sha256": "25596D8B53F4ABA3C3EA8EE9E13794FA25FD407DE5E981FA0DB3F3997AC8DE99",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "19-main-prose.ko.draft.md",
+        "before_sha256": "294866AC43320BFF05CB83505088D613F312B95C65FCBE0D46BD4BEDD6AEAA65",
+        "after_sha256": "294866AC43320BFF05CB83505088D613F312B95C65FCBE0D46BD4BEDD6AEAA65",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "19-translation.qa.md",
+        "before_sha256": "9EA5C9FD82E2E44B5885DF3459FCEFD8FC02191A82BE8FB1B24003B2691CE54A",
+        "after_sha256": "9EA5C9FD82E2E44B5885DF3459FCEFD8FC02191A82BE8FB1B24003B2691CE54A",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "20-main-prose.ko.draft.md",
+        "before_sha256": "1659867F3645F43A9A73AC433ADDC09D461100DEAC9AAD64E50F3DB1E7C74B7F",
+        "after_sha256": "1659867F3645F43A9A73AC433ADDC09D461100DEAC9AAD64E50F3DB1E7C74B7F",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "20-translation.qa.md",
+        "before_sha256": "B870FC7CE4304ADB2064DDE3714DC4BF203752CA01858FE836369D564EB48C90",
+        "after_sha256": "B870FC7CE4304ADB2064DDE3714DC4BF203752CA01858FE836369D564EB48C90",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "21-main-prose.ko.draft.md",
+        "before_sha256": "0321CD95BEE5F0FC2989471FB2D424A13F5CE21E27AA4EAC2CF6097D650A41E6",
+        "after_sha256": "0321CD95BEE5F0FC2989471FB2D424A13F5CE21E27AA4EAC2CF6097D650A41E6",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "21-translation.qa.md",
+        "before_sha256": "DF96DBD6463C33A8AD5345847AF2E953A395866E19C708BBB5F059E1A1C658DA",
+        "after_sha256": "DF96DBD6463C33A8AD5345847AF2E953A395866E19C708BBB5F059E1A1C658DA",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "22-main-prose.ko.draft.md",
+        "before_sha256": "5B37CACE4CD7E5B90A7885E7100857BE28FD179D8F575C94A62378884AE0DEE1",
+        "after_sha256": "5B37CACE4CD7E5B90A7885E7100857BE28FD179D8F575C94A62378884AE0DEE1",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "22-translation.qa.md",
+        "before_sha256": "5F42BC11962C61426120CEC48FA737E4CBC44B53E03BF447E21B8D8241D1201C",
+        "after_sha256": "5F42BC11962C61426120CEC48FA737E4CBC44B53E03BF447E21B8D8241D1201C",
+        "unchanged": true,
+        "intentional_update": false
+      },
+      {
+        "file": "README.partial-ko.md",
+        "before_sha256": "36A74612F4C09EBFBF88C0F9691FD7F8928A0C56A12C92E84FA2333A5004283F",
+        "after_sha256": "A971D41539B08C4BE2EE8B65A12BE6D37B6B2245A48757B0DC4473D3A6125093",
+        "unchanged": false,
+        "intentional_update": true
+      },
+      {
+        "file": "source-en.txt",
+        "before_sha256": "40EE257EDF3A9939D6FA5E5A666EEB4DD6679FBF7DC588A8FA8D46342833A7B8",
+        "after_sha256": "40EE257EDF3A9939D6FA5E5A666EEB4DD6679FBF7DC588A8FA8D46342833A7B8",
+        "unchanged": true,
+        "intentional_update": false
+      }
+    ],
+    "scope_note": "최초 통합 단계에서 확보한44파일 비교의 과거 기록이다. 현재 파일 해시는 files와 compilation을, 이후 두 구절 교정 및 보존 검증은 sample_correction을 따른다."
+  },
+  "files": [
+    {
+      "file": "00-front-matter.ko.draft.md",
+      "bytes": 4841,
+      "sha256": "1C039157EF4B8C4EB86CB1A07FBB1CB18D4902D3BF177879DE62D46148ED58A8",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "00-front-matter.translation.qa.md",
+      "bytes": 2786,
+      "sha256": "EDCC86353E68EC42CDFD54C18672BA66AC14C897B5D782B40F675617F32724AD",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "01-main-prose.ko.draft.md",
+      "bytes": 42646,
+      "sha256": "6892626C8100EE7E2DD61062D402D830FA048C80D98EFE850C8D14F7B1D6E528",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "01-worldbuilding-candidate.ko.draft.md",
+      "bytes": 6624,
+      "sha256": "3BCFFB3AAE7A5CD9161F65E3C63979277AF0A1B28F870D5F433BA307F1386F7F",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "02-main-prose.ko.draft.md",
+      "bytes": 44904,
+      "sha256": "981CEFD0330A18843439BB93A8C0F07815C0514B6886D344560CCE15E11C40E8",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "02-worldbuilding-candidate.ko.draft.md",
+      "bytes": 7372,
+      "sha256": "27975B62BB49A33C4CB91922D500BDCDA94D559FA28DBCC660D84C92DA5D6478",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "03-main-prose.ko.draft.md",
+      "bytes": 57254,
+      "sha256": "73C1D1964FF885725C9FD166A0604E17039D35DB7FBE08E34F81B0CCA654F45C",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "04-main-prose.ko.draft.md",
+      "bytes": 45603,
+      "sha256": "EFEEAAF0B71963D7C51FF08FE7483E1EE59D1C7A6FB2CF7CEBE1868AFB83F829",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "04-translation.qa.md",
+      "bytes": 10999,
+      "sha256": "1DBC2473C643BE4D9C68761985B1BBF792811E1FF70B4E78610C5DF828F61B6F",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "05-main-prose.ko.draft.md",
+      "bytes": 83413,
+      "sha256": "0D8339B494F35E0BA332B0E2AFD0444F1015C0CE4CD29DE1322443DEF6CCAE26",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 2
+    },
+    {
+      "file": "05-translation.qa.md",
+      "bytes": 14332,
+      "sha256": "052C6A698E9E4A24F5AB759A011C46316255C775B963F29C5D6A8346961AFEAE",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 1
+    },
+    {
+      "file": "06-main-prose.ko.draft.md",
+      "bytes": 39538,
+      "sha256": "F36A36EF56E128B480F736E49A58C3E934C9111A770A87F4B93A1317929DB53D",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "06-translation.qa.md",
+      "bytes": 12293,
+      "sha256": "1873DA8394537241D8483F596D24701BFF71CE4B268D2EE5A4D2C111B82CBB2C",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "07-main-prose.ko.draft.md",
+      "bytes": 54001,
+      "sha256": "37C4B7D5298A26E80DA51B79EFC3908EDE65C4D7762D022830EAA429480B62EF",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "07-translation.qa.md",
+      "bytes": 11451,
+      "sha256": "174D794A8B737D70EE69529751D869FAE2E4218D0E1776A21B44268C7BD77A2A",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "08-main-prose.ko.draft.md",
+      "bytes": 27959,
+      "sha256": "81C8D96D19D018ADDA32AD26DD61D1B9E3FCF7DB0CE688C8EA794850384C33FB",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "08-translation.qa.md",
+      "bytes": 9956,
+      "sha256": "32A8F3820ACCD99A656E257C94B68FA21EB7057822020FFA86AB095E765C45E4",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "09-main-prose.ko.draft.md",
+      "bytes": 44037,
+      "sha256": "3068215BD7BBB7F9865E5E11123A95F0B05E2F8C230B2EBE9A634E58532E43C6",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "09-translation.qa.md",
+      "bytes": 12232,
+      "sha256": "6377EC4D498BE23850F730FD03AF092E9EE44C2B156456EC0E3157F8CDE088F1",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "10-main-prose.ko.draft.md",
+      "bytes": 24891,
+      "sha256": "10300B1415FE149489E8A76637C4E8F6DFA138DE2C744946AE6CC722F8EE24C6",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "10-translation.qa.md",
+      "bytes": 10830,
+      "sha256": "351E11AB884604BEBB1358DB69371280B193D18B897BFF41D29F6952CB1D6E93",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "11-main-prose.ko.draft.md",
+      "bytes": 33897,
+      "sha256": "82A252B2531E31318AF56E8D76059A2A4FA92DA2D2653AF175DC4860CF092918",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "11-translation.qa.md",
+      "bytes": 12693,
+      "sha256": "690C644464FCEACE2B3F47E2A2A61A31FE7E4407DF7BB8D948922AB586E4CF31",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "12-main-prose.ko.draft.md",
+      "bytes": 25947,
+      "sha256": "B03A2C0B670A118059E2C054225D2FC5CFC9E7438FD0E8E46B9C4A7DF31E31E7",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "12-translation.qa.md",
+      "bytes": 9657,
+      "sha256": "C7406BB9F45D9E5BE95916C6ADEC27B01E3B86E88DA1D30F9798DA00BCDD3199",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "13-main-prose.ko.draft.md",
+      "bytes": 28003,
+      "sha256": "7C4C371A7406EE461E886BE25AD58604CBDC4B2FAB9E42E483A66FC7A33028B3",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "13-translation.qa.md",
+      "bytes": 8586,
+      "sha256": "854181772DBD55726F5C6E0DC5198C25ADA6D25C782C7B343CB1CEE2ADEA0B98",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "14-main-prose.ko.draft.md",
+      "bytes": 22693,
+      "sha256": "6EAF2FF80DE6CE1988EC8EF6FA65664FAE23E0F3C6F338257EDF23FC5CA76269",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "14-translation.qa.md",
+      "bytes": 7799,
+      "sha256": "919D8229C109C95C668208E1F22E2CDB1D267F1F9FB7A1D7CE4142A038AED616",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "15-main-prose.ko.draft.md",
+      "bytes": 28349,
+      "sha256": "23827BC0164F8AB1F97DEC1A6297072EEA5BB872914CC504CBC6AF0C19E2316E",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "15-translation.qa.md",
+      "bytes": 8538,
+      "sha256": "2639D73733CBDF742F315FA0AAC0B584CC48F7B3566249CD33A3A6D760F6D61C",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "16-main-prose.ko.draft.md",
+      "bytes": 25905,
+      "sha256": "54BB9AFDDF464A06F1542551974407287A5FFD6292C31A63AED5CA4DEA74FDC6",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "16-translation.qa.md",
+      "bytes": 9262,
+      "sha256": "0FFC41763B6AA5376F90C3EC9E19E94CDE7766A8CA16C83730AA7401B3C1FA15",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "17-main-prose.ko.draft.md",
+      "bytes": 86245,
+      "sha256": "FAD85A1CD8D2778032E6E2BD959E7B10BABDCDE8C7CDCC74977B9CC293AFFB6B",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "17-translation.qa.md",
+      "bytes": 13132,
+      "sha256": "99A70CCE764DD772A170AD298047D11F8B7CE8B693B9BF310787AD04B63F90A7",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "18-main-prose.ko.draft.md",
+      "bytes": 56684,
+      "sha256": "D6F0C4FF4118EB546D3EEA737A8D01892BF7D668E4CE50C74B0D9D3F790843FE",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "18-translation.qa.md",
+      "bytes": 9658,
+      "sha256": "25596D8B53F4ABA3C3EA8EE9E13794FA25FD407DE5E981FA0DB3F3997AC8DE99",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "19-main-prose.ko.draft.md",
+      "bytes": 117403,
+      "sha256": "294866AC43320BFF05CB83505088D613F312B95C65FCBE0D46BD4BEDD6AEAA65",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "19-translation.qa.md",
+      "bytes": 12993,
+      "sha256": "9EA5C9FD82E2E44B5885DF3459FCEFD8FC02191A82BE8FB1B24003B2691CE54A",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "20-main-prose.ko.draft.md",
+      "bytes": 76126,
+      "sha256": "1659867F3645F43A9A73AC433ADDC09D461100DEAC9AAD64E50F3DB1E7C74B7F",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "20-translation.qa.md",
+      "bytes": 12320,
+      "sha256": "B870FC7CE4304ADB2064DDE3714DC4BF203752CA01858FE836369D564EB48C90",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "21-main-prose.ko.draft.md",
+      "bytes": 90614,
+      "sha256": "0321CD95BEE5F0FC2989471FB2D424A13F5CE21E27AA4EAC2CF6097D650A41E6",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "21-translation.qa.md",
+      "bytes": 10977,
+      "sha256": "DF96DBD6463C33A8AD5345847AF2E953A395866E19C708BBB5F059E1A1C658DA",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "22-main-prose.ko.draft.md",
+      "bytes": 81013,
+      "sha256": "5B37CACE4CD7E5B90A7885E7100857BE28FD179D8F575C94A62378884AE0DEE1",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "22-translation.qa.md",
+      "bytes": 12288,
+      "sha256": "5F42BC11962C61426120CEC48FA737E4CBC44B53E03BF447E21B8D8241D1201C",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "23-main-prose.ko.draft.md",
+      "bytes": 31889,
+      "sha256": "A831034E67B87CC5EF0C3F5CEEA6CBA241A7EE29C9D335A17707E9343A78529B",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "23-translation.qa.md",
+      "bytes": 6085,
+      "sha256": "4B17CB1E9DBB6845BE642BF1A96978A9210BB63F27B4E955FCB2EE0A7A693E89",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "24-main-prose.ko.draft.md",
+      "bytes": 50055,
+      "sha256": "13483EFCEA7FCBD3C564090A6484C9CC17E9A4FD778FE802B4027079055CFA52",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "24-translation.qa.md",
+      "bytes": 7945,
+      "sha256": "039D21FBD720E64DD80DFE603B87CD939ED5211788C6AD18F627A4B07C791412",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "china-complete-text.ko.draft.md",
+      "bytes": 1229649,
+      "sha256": "DEDF9346ADB8A9492F2723132B271D65D32F1B61C44B76DC06C6F9BF08A02A9E",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 2
+    },
+    {
+      "file": "china-complete-text.qa.md",
+      "bytes": 8046,
+      "sha256": "0CB09166CCEEF9AC9EB9871F7D9E094EF9249FDB127D7A6FF775EBC4ABACCF97",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "README.partial-ko.md",
+      "bytes": 28499,
+      "sha256": "B0D4870C9C85B8B0B3825F05F8896F9734486BCFBB7DBD55A9C0D5DD28DF8A08",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "review-independent-sample.ko.md",
+      "bytes": 15696,
+      "sha256": "C3113C661B215CFA86475C98126848EC968AFDF6A43A26E7934BCBD45A36B6EB",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "sample-correction.ko.md",
+      "bytes": 6914,
+      "sha256": "402015710DD662ADA1852D584DFCB86D61C789B2DAAD3773C21D7AAA1B05F406",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "source-en.txt",
+      "bytes": 1154261,
+      "sha256": "40EE257EDF3A9939D6FA5E5A666EEB4DD6679FBF7DC588A8FA8D46342833A7B8",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 16942
+    }
+  ],
+  "file_count_including_manifest": 56,
+  "manifest_self_hash_omitted": true,
+  "no_commit_push_app_or_database_changes": true,
+  "revision_backups": [
+    {
+      "file": "revisions/pre-sample-correction/01-main-prose.ko.draft.md",
+      "bytes": 42638,
+      "sha256": "5CB9F100336BB92FC0120F9755C91F5D95063A50AF6996D816D95747F5BB6F00",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "revisions/pre-sample-correction/13-main-prose.ko.draft.md",
+      "bytes": 28006,
+      "sha256": "E535A9595E6B56148F892846C66B71765F22FD226B258B7ADEAAE3D9949BC8FF",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 0
+    },
+    {
+      "file": "revisions/pre-sample-correction/china-complete-text.ko.draft.md",
+      "bytes": 1229644,
+      "sha256": "BDD7F75B0FB60CA6FBEAB0AA994559B97C41D3637EFB25D7FE4842E64CDD4264",
+      "strict_utf8": true,
+      "utf8_bom": false,
+      "replacement_characters": 0,
+      "carriage_returns": 2
+    }
+  ],
+  "sample_correction": {
+    "date": "2026-11-13",
+    "report": "sample-correction.ko.md",
+    "independent_review": "review-independent-sample.ko.md",
+    "independent_review_sha256": "C3113C661B215CFA86475C98126848EC968AFDF6A43A26E7934BCBD45A36B6EB",
+    "independent_sample_paragraphs": 13,
+    "total_prose_paragraphs": 516,
+    "paragraphs_reread_for_correction": 2,
+    "full_independent_review_complete": false,
+    "professional_history_review_complete": false,
+    "exact_phrase_replacements": [
+      {
+        "file": "01-main-prose.ko.draft.md",
+        "paragraph": 2,
+        "before": "참된 천문학의 복구자, 나아가 창시자",
+        "after": "참된 천문학의 복구자, 혹은 아예 그 창시자",
+        "standalone_count": 1,
+        "compilation_count": 1
+      },
+      {
+        "file": "13-main-prose.ko.draft.md",
+        "paragraph": 5,
+        "before": "아무르사나를 생포하는 데 미치지 못하는 어떤 결과에도 만족하지 말라고 했다.",
+        "after": "아무르사나를 붙잡는 데 미치지 못하는 어떤 결과에도 만족하지 말라고 했다.",
+        "standalone_count": 1,
+        "compilation_count": 1
+      }
+    ],
+    "baseline_top_level_file_count": 55,
+    "intentional_existing_updates": [
+      "01-main-prose.ko.draft.md",
+      "13-main-prose.ko.draft.md",
+      "china-complete-text.ko.draft.md",
+      "13-translation.qa.md",
+      "README.partial-ko.md",
+      "china-complete-text.qa.md",
+      "manifest.json"
+    ],
+    "unchanged_existing_count": 48,
+    "unchanged_existing_files": [
+      "00-front-matter.ko.draft.md",
+      "00-front-matter.translation.qa.md",
+      "01-worldbuilding-candidate.ko.draft.md",
+      "02-main-prose.ko.draft.md",
+      "02-worldbuilding-candidate.ko.draft.md",
+      "03-main-prose.ko.draft.md",
+      "04-main-prose.ko.draft.md",
+      "04-translation.qa.md",
+      "05-main-prose.ko.draft.md",
+      "05-translation.qa.md",
+      "06-main-prose.ko.draft.md",
+      "06-translation.qa.md",
+      "07-main-prose.ko.draft.md",
+      "07-translation.qa.md",
+      "08-main-prose.ko.draft.md",
+      "08-translation.qa.md",
+      "09-main-prose.ko.draft.md",
+      "09-translation.qa.md",
+      "10-main-prose.ko.draft.md",
+      "10-translation.qa.md",
+      "11-main-prose.ko.draft.md",
+      "11-translation.qa.md",
+      "12-main-prose.ko.draft.md",
+      "12-translation.qa.md",
+      "14-main-prose.ko.draft.md",
+      "14-translation.qa.md",
+      "15-main-prose.ko.draft.md",
+      "15-translation.qa.md",
+      "16-main-prose.ko.draft.md",
+      "16-translation.qa.md",
+      "17-main-prose.ko.draft.md",
+      "17-translation.qa.md",
+      "18-main-prose.ko.draft.md",
+      "18-translation.qa.md",
+      "19-main-prose.ko.draft.md",
+      "19-translation.qa.md",
+      "20-main-prose.ko.draft.md",
+      "20-translation.qa.md",
+      "21-main-prose.ko.draft.md",
+      "21-translation.qa.md",
+      "22-main-prose.ko.draft.md",
+      "22-translation.qa.md",
+      "23-main-prose.ko.draft.md",
+      "23-translation.qa.md",
+      "24-main-prose.ko.draft.md",
+      "24-translation.qa.md",
+      "review-independent-sample.ko.md",
+      "source-en.txt"
+    ],
+    "source_unchanged": true,
+    "other_standalone_components_unchanged": 23,
+    "independent_review_unchanged": true,
+    "current_component_count": 25,
+    "component_exactly_once_count": 25,
+    "component_byte_range_match_count": 25,
+    "revision_backup_count": 3,
+    "revision_backups_excluded_from_current_components": true,
+    "translated_files_only_declared_replacements": true,
+    "no_git_status_commit_push": true
+  },
+  "file_count_scope": "최상위 현재 파일만 포함하며 revisions 아래 보존본3개는 제외한다.",
+  "physical_file_count_including_revisions": 59
+}

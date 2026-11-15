@@ -1,0 +1,288 @@
+# 중국사: 고전 통사로 읽는 왕조·제도·대외 교섭
+
+상태: 원문 대조를 마친 연구 초안. 독립적인 사실 교차검증·전문 역사 감수는 미완료.
+
+China(PG 6708)의 로컬 영어 원문에서 고대부터 1898년까지의 실제 인물·장소·기구·사건을 선별한 단일 역사 세계 자료. 오래된 편향과 오류 가능성을 표시한 연구 초안이며 현대 중국 통사나 창작 설정이 아니다.
+
+- genre: china_history
+- worldId: d3c3b3bc-1ee5-5361-82bd-d2679a258a02
+- 실질 역사 카드: 20개
+- 출처·검토 카드: 2개
+- 기계 판독 자료: china.world.json
+- 근거·발췌·해시: china.evidence.json
+
+## 카드
+
+### 1. 공자: 정치 질서와 후대 전승
+
+유형: character | 범위: 고대 중국 | ID: cf34f098-c252-5b47-8ab4-60f36d1766ea
+
+확보한 고전 통사는 공자를 여러 제후의 정치를 경험하며 개혁과 질서를 주장한 인물로 소개한다. 제자들이 그의 가르침을 전했고, 후대 통치자들이 이를 통치의 기준으로 삼았다고 저자는 서술한다. 이 카드는 정치사상과 전승의 연결만 추린다. 원문이 제시한 활동 연대, 종교적 비유, 맹자와 고전의 귀속은 별도 검증 전 사실값으로 사용하지 않는다.
+
+출전: Demetrius Charles Boulger, China, 제I장, 확보 영문본 L325–L343, L343–L346 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L325–L343 (CHAPTER I — THE EARLY AGES); docs/research/history-textbooks/china/source-en.txt L343–L346 (CHAPTER I)
+
+검토 주의: 원문의 연대·고전 귀속 오류 가능성이 있어 해당 세부는 제외했다.
+
+### 2. 진의 통합과 중앙집권
+
+유형: rule | 범위: 진 | ID: f9fef3f7-0962-542b-b587-0b38b2e692ca
+
+Boulger는 진시황과 이사(Lisseh)를 제국의 행정 재편을 추진한 군주와 대신으로 묶어 설명한다. 지방 통치와 교통망을 정비하고 권력을 군주에게 집중했다는 점이 서술의 중심이다. 원문의 “province”를 오늘날 중국의 성과 동일시하지 않는다. 그 제도가 이후 수천 년 동안 변함없이 존속했다는 저자의 연속성 주장은 채택하지 않는다.
+
+출전: Demetrius Charles Boulger, China, 제I장, 확보 영문본 L421–L433, L437–L445 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L421–L433 (CHAPTER I); docs/research/history-textbooks/china/source-en.txt L437–L445 (CHAPTER I)
+
+검토 주의: 현재 성제와 고대 군현제를 혼동하지 않는다.
+
+### 3. 유방: 한 왕조 창건의 서술
+
+유형: character | 범위: 진 말~한 초 | ID: a35d8a06-07ab-5c7c-80b0-2e5e9b3d602c
+
+원문은 진의 후계 정권이 무너지는 과정에서 유방(Liu Pang)이 경쟁 세력을 꺾고 황제에 올랐으며 새 왕조를 한이라 불렀다고 설명한다. 황제 칭호와 왕조 이름을 구별하는 인물 카드다. 점술가의 예언이나 셰익스피어 인물과의 비교는 역사적 원인으로 채택하지 않는다. 유방의 초기 관직·한이라는 이름의 유래는 이 책만으로 확정하지 않는다.
+
+출전: Demetrius Charles Boulger, China, 제II장, 확보 영문본 L633–L641, L646–L651 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L633–L641 (CHAPTER II — THE FIRST NATIONAL DYNASTY); docs/research/history-textbooks/china/source-en.txt L646–L651 (CHAPTER II)
+
+검토 주의: 예언·문학적 유추와 초기 관직·명칭 유래를 제외했다.
+
+### 4. 당: 왕조 교체와 군사·행정의 분담
+
+유형: organization | 범위: 수 말~당 초 | ID: d7bd0d10-d516-5415-bc3b-bd6cdc6e6bae
+
+고전 통사는 수 왕조 이후 이연(Liyuen)의 새 정권과 그의 아들 이세민(Lichimin)의 군사 활동을 당의 성립 과정으로 다룬다. 수도에서 행정을 재편하는 일과 여러 지역을 군사적으로 통합하는 일이 나란히 서술된다. 이 책의 즉위 연도와 궁정 권력투쟁의 설명은 별도 확인이 필요하므로 확정 연표로 옮기지 않는다.
+
+출전: Demetrius Charles Boulger, China, 제III장, 확보 영문본 L1444–L1456 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L1444–L1456 (CHAPTER III — A LONG PERIOD OF DISUNION)
+
+검토 주의: 원문의 617년 즉위 서술을 검증 없이 채택하지 않았다.
+
+### 5. 송: 군 지휘권과 왕조 창건
+
+유형: organization | 범위: 송 초 | ID: eb9f52a1-3491-5ce7-87c7-7223af437919
+
+Boulger는 조광윤(Chow Kwang Yu)이 군대의 지지를 바탕으로 황제가 되어 송 왕조를 열었다고 서술한다. 군대의 지지와 왕조 권력의 형성이 연결되는 장면이다. 저자가 제시한 출생지, 혈통의 순수성, 길조에 관한 설명은 검증된 사실이나 정당성의 근거로 사용하지 않는다. 뒤에 이어지는 군주 찬양도 사건 자체와 분리한다.
+
+출전: Demetrius Charles Boulger, China, 제IV장, 확보 영문본 L1923–L1930 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L1923–L1930 (CHAPTER IV — THE SUNGS AND THE KINS)
+
+검토 주의: 민족적 순수성 주장과 미검증 출생지 제외.
+
+### 6. 왕안석: 신법과 저자의 평가를 구분하기
+
+유형: character | 범위: 북송 | ID: 30396de2-16e8-5681-b409-79e45c12edd5
+
+원문은 왕안석(Wanganchi)을 국가가 농업과 생활 지원에 적극 관여하도록 하려던 개혁가로 소개한다. 경작자에게 자원과 조언을 제공하는 정책이 서술되지만 저자는 이를 강한 부정적 평가와 함께 제시한다. 이 카드는 국가 개입을 둘러싼 논쟁의 존재를 보여준다. 정책의 정확한 조항·성과·실패 원인을 이 책의 평가만으로 확정하지 않는다.
+
+출전: Demetrius Charles Boulger, China, 제IV장, 확보 영문본 L2150–L2155, L2167–L2184 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L2150–L2155 (CHAPTER IV); docs/research/history-textbooks/china/source-en.txt L2167–L2184 (CHAPTER IV)
+
+검토 주의: “사회주의자”, “사기꾼” 등의 가치 판단을 사실 서술로 옮기지 않았다.
+
+### 7. 몽골 쿠릴타이와 칭기즈 칸
+
+유형: organization | 범위: 몽골 제국 형성기 | ID: e9ede3f4-85db-52d0-8b8b-d96b410cc8c6
+
+원문은 테무진이 오논의 집회에서 칭기즈 칸이라는 이름으로 추대되는 장면을 서술한다. 쿠릴타이는 여러 지휘자와 유력자가 모여 지도력과 군사 방향을 정하는 회의로 나타난다. 이 카드는 지도자 개인뿐 아니라 집회와 승인 절차에 주목한다. 칭호의 어원, 민족적 성격, 전쟁 상대에 대한 서열화는 확정 사실로 옮기지 않는다.
+
+출전: Demetrius Charles Boulger, China, 제V장, 확보 영문본 L2692–L2702 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L2692–L2702 (CHAPTER V — THE MONGOL CONQUEST OF CHINA)
+
+검토 주의: 칭호 어원 및 집단의 호전성 평가 제외.
+
+### 8. 쿠빌라이: 원의 명명과 통치 구성
+
+유형: character | 범위: 1271년과 원 초기 | ID: 86cae663-e112-5173-afd6-7e56e02bd669
+
+1271년 쿠빌라이는 왕조 이름을 원(Yuen)으로 정했다고 원문은 기록한다. 그는 중국인 대신들과 여러 외부 출신 인물의 도움을 받아 통치 체제를 구성한 군주로 서술된다. 몽골의 지배권과 중국 왕조 운영의 결합을 다루되, 모든 주민이 통치에 만족했다는 저자의 평가는 채택하지 않는다.
+
+출전: Demetrius Charles Boulger, China, 제VI장, 확보 영문본 L3679–L3688 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L3679–L3688 (CHAPTER VI — KUBLAI AND THE MONGOL DYNASTY)
+
+검토 주의: 저자의 전면적 만족·우월성 평가는 제외.
+
+### 9. 칸발리크: 원의 수도 공간
+
+유형: location | 범위: 원 | ID: 161eb521-f7ac-5485-8d0a-d147cb67e83f
+
+원문이 칸발리크 또는 캄발루크라고 부르는 수도는 오늘날 베이징 일대에 놓였다. 저자는 궁정과 도로·성문을 설명하면서 마르코 폴로의 전언을 이용하고, 성벽 둘레에도 서로 다른 수치가 있음을 인정한다. 따라서 구체적인 문 수·수비 병력·둘레는 확정값으로 채택하지 않는다. 같은 도시가 여러 왕조의 수도로 활용된 층위를 구별한다.
+
+출전: Demetrius Charles Boulger, China, 제VI장, 확보 영문본 L3693–L3707 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L3693–L3707 (CHAPTER VI)
+
+검토 주의: 이 지역을 “처음 수도가 된 곳”이라고 단정하는 원문 표현은 제외.
+
+### 10. 명: 몽골 지배 이후의 왕조 재편
+
+유형: organization | 범위: 명 초 | ID: 90168f24-1319-533c-8418-0a77b8887a1e
+
+고전 통사는 주원장으로 알려진 창건자를 Choo·Hongwou라는 표기로 부르며, 몽골 세력을 몰아낸 뒤 왕조 이름을 명으로 정했다고 설명한다. 이어 군공 포상과 문관 행정의 재정비, 문헌 편찬을 다룬다. 창건 연대와 후대의 법전·편찬 사업을 한 인물에게 모두 귀속시키지 않는다. 민족 전체의 단일한 의사를 가정하는 서술도 피한다.
+
+출전: Demetrius Charles Boulger, China, 제VII장, 확보 영문본 L4172–L4188 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L4172–L4188 (CHAPTER VII — THE MING DYNASTY)
+
+검토 주의: 이어지는 영락 관련 편찬물과 창건자 업적의 혼동 가능성은 채택하지 않았다.
+
+### 11. 강희제: 할하와의 외교
+
+유형: character | 범위: 청 강희기 | ID: 05013b02-54ca-55ba-bdfa-97e056d54a55
+
+Boulger는 강희제(Kanghi)가 할하 지도자들과 서신과 선물을 주고받아 관계를 맺고, 동맹과 약정을 통해 북방 정세에 대응했다고 서술한다. 이 관계는 다른 몽골 집단과 러시아의 움직임을 함께 살펴야 이해할 수 있는 외교 문제로 나타난다. 집단 전체가 동일한 선택을 했다는 식으로 확장하지 않고, 저자의 군주 찬양과 역사적 행위를 분리한다.
+
+출전: Demetrius Charles Boulger, China, 제XI장, 확보 영문본 L6202–L6228 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L6202–L6228 (CHAPTER XI — THE EMPEROR KANGHI)
+
+검토 주의: 집단 서열·민족성 평가 제외.
+
+### 12. 네르친스크 조약과 아무르의 충돌
+
+유형: event | 범위: 17세기 말 | ID: 0df4ee01-444d-536b-b846-02e45357b248
+
+원문은 아무르강 유역 알바진 요새를 둘러싼 청·러시아의 충돌 뒤 협상이 이루어져 네르친스크 조약으로 이어졌다고 설명한다. 군사 충돌과 국경 외교가 결합된 사건이다. 요새의 처리와 협상 경과는 원문 서술에 근거하지만, 국경선의 정확한 위치와 조약 전문은 별도로 대조하지 않았다. 저자의 “유일한 전쟁”이라는 표현은 현재까지의 일반 사실로 사용하지 않는다.
+
+출전: Demetrius Charles Boulger, China, 제XI장, 확보 영문본 L6263–L6279 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L6263–L6279 (CHAPTER XI)
+
+검토 주의: 정확한 조약 조문과 국경은 미검증.
+
+### 13. 광저우: 외국 상인과 교섭의 항구
+
+유형: location | 범위: 18세기 말 대외 교섭 | ID: 803ecfe1-cf87-55a5-9235-e422f9335c07
+
+원문에서 Canton으로 표기되는 광저우는 영국 상인들이 교역 조건과 관청의 규제를 문제 삼던 항구다. 상인들은 지역 교섭의 한계를 넘기 위해 영국 정부의 공식 사절이 청 황제를 만나기를 기대했다. 이 카드는 항구의 무역과 중앙 궁정의 외교가 이어지는 구조를 보여준다. 규제의 원인을 특정 민족의 질투나 부패만으로 설명하는 저자의 시각은 채택하지 않는다.
+
+출전: Demetrius Charles Boulger, China, 제XIV장, 확보 영문본 L7375–L7389 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L7375–L7389 (CHAPTER XIV — THE COMMENCEMENT OF EUROPEAN INTERCOURSE)
+
+검토 주의: 상인·유럽 측 관점이 강한 서술.
+
+### 14. 매카트니 사절단과 청 궁정
+
+유형: event | 범위: 1792~1793년 | ID: 31af5e3a-68d1-536a-a02e-9dadc69c76be
+
+영국의 매카트니 사절단은 1792년 포츠머스를 출발했고, 이듬해 청의 수도로 가는 수로에 도착했다고 원문은 기록한다. 사절단은 선물과 통역을 준비했으며, 열하에 머물던 건륭제를 만나기 위해 이동했다. 무역 요구와 궁정 의례가 만나는 사건으로 읽는다. 저자가 전하는 환영의 의미와 협상 성과는 영국 측의 해석과 분리해 검토해야 한다.
+
+출전: Demetrius Charles Boulger, China, 제XIV장, 확보 영문본 L7402–L7412, L7437–L7444 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L7402–L7412 (CHAPTER XIV); docs/research/history-textbooks/china/source-en.txt L7437–L7444 (CHAPTER XIV)
+
+검토 주의: 사절단의 시각을 청 조정 전체의 의사로 확대하지 않는다.
+
+### 15. 임칙서: 광저우의 아편 문제
+
+유형: character | 범위: 1839년 | ID: e4f8b125-6626-56d3-9cd4-ac71bad30332
+
+1839년 도광제는 임칙서(Lin Tsihseu)를 광저우에 파견해 아편 문제를 조사하고 대책을 마련하도록 했다고 원문은 설명한다. 임칙서는 중앙의 명령을 받아 항구에서 이를 실행하는 특별 담당자로 등장한다. 아편 단속을 둘러싼 갈등은 이후 대외전쟁 서술과 이어지지만, 전쟁의 책임과 정당성을 이 책의 영국 중심 평가만으로 결정하지 않는다.
+
+출전: Demetrius Charles Boulger, China, 제XVII장, 확보 영문본 L8451–L8455 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L8451–L8455 (CHAPTER XVII — THE FIRST FOREIGN WAR)
+
+검토 주의: 강제 개항의 정당화 서술은 채택하지 않는다.
+
+### 16. 난징조약과 통상항의 확대
+
+유형: rule | 범위: 1840년대 | ID: fe2ef517-d0a2-5b9a-922a-a6afa78b8494
+
+첫 대외전쟁 뒤 체결된 난징조약을 설명하면서 원문은 광저우 외에 상하이·닝보·샤먼·푸저우의 통상을 다룬다. 개항에는 관세표 마련과 영사 임명 등 후속 절차가 연결되어 있었다. 이 카드는 조약의 서명과 실제 통상 제도의 운영을 구별한다. 뒤이은 관세 협정에도 아편 문제가 해결되지 않았다는 저자의 지적을 함께 남긴다.
+
+출전: Demetrius Charles Boulger, China, 제XVII장, 확보 영문본 L9384–L9391, L9399–L9403, L9440–L9450 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L9384–L9391 (CHAPTER XVII); docs/research/history-textbooks/china/source-en.txt L9399–L9403 (CHAPTER XVII); docs/research/history-textbooks/china/source-en.txt L9440–L9450 (CHAPTER XVII)
+
+검토 주의: 조약 전문·추가 협정 전체를 검증한 카드가 아니다.
+
+### 17. 태평천국: 난징을 거점으로 한 경쟁 정권
+
+유형: organization | 범위: 1850년대 | ID: 27b67b21-7b01-5d68-8200-54efd673d5a7
+
+원문은 태평천국이 난징을 확보한 뒤 청에 맞서는 정치·군사 세력으로 성장했다고 설명한다. 난징과 장강 수운, 운하 입구의 도시 확보는 남북 연결과 북진 계획에 영향을 주었다. 난징은 그들의 수도가 되었다. 이 카드는 영토·교통·정권의 관계에 주목하며, 저자의 적대적 인물평이나 병력 수치를 검증 없이 옮기지 않는다.
+
+출전: Demetrius Charles Boulger, China, 제XVIII장, 확보 영문본 L9929–L9947 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L9929–L9947 (CHAPTER XVIII — TAOUKWANG AND HIS SUCCESSOR)
+
+검토 주의: 피해·병력 규모 및 도덕적 평가는 별도 검토 대상.
+
+### 18. 총리아문: 대외 업무의 담당 기구
+
+유형: organization | 범위: 1861년 이후 | ID: ce117919-1f36-56b9-bb9b-494a0d572051
+
+원문은 공친왕(Prince Kung)이 1861년 총리아문을 설치하고 첫 책임자가 되었다고 설명한다. 이 기구는 외국 대표와의 업무를 처리하는 통로였지만 청 정부 전체나 모든 정책의 발원지와 동일한 조직은 아니었다. 기관의 존재와 담당 업무를 기록하되, 원문에 담긴 외국인의 편의 중심 평가를 그 자체로 성과 판정에 사용하지 않는다.
+
+출전: Demetrius Charles Boulger, China, 제XXI장, 확보 영문본 L13148–L13160 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L13148–L13160 (CHAPTER XXI — THE REGENCY)
+
+검토 주의: 설치 월과 권한 세부는 현대 연구·문서 대조 전 잠정.
+
+### 19. 청일전쟁 후 시모노세키 조약과 삼국간섭
+
+유형: event | 범위: 1895년 | ID: a4c4c84c-729d-5467-9834-625d1dd5f821
+
+보충장은 1895년 이홍장이 일본에서 강화 교섭을 맡았고 4월 17일 시모노세키 조약이 서명되었다고 기록한다. 조약은 타이완·펑후열도와 랴오둥반도 등의 양도, 배상과 통상 조건을 포함했다. 이어 러시아·프랑스·독일의 개입으로 랴오둥 조항이 변경되는 과정을 설명한다. 당시 조약의 내용을 현재 영토 주권에 대한 주장으로 옮기지 않는다.
+
+출전: Mayo W. Hazeltine, China, 보충장, 확보 영문본 L15769–L15787, L15792–L15805 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L15769–L15787 (THE WAR WITH JAPAN AND SUBSEQUENT EVENTS); docs/research/history-textbooks/china/source-en.txt L15792–L15805 (THE WAR WITH JAPAN AND SUBSEQUENT EVENTS)
+
+검토 주의: 금액 환산과 일본의 전쟁 정당화 평가는 제외.
+
+### 20. 1898년 개혁과 궁정의 권력 회수
+
+유형: event | 범위: 1898년 9월 | ID: fa1823a8-29f3-5c4b-9b3c-cc421b563ded
+
+보충장은 광서제가 캉유웨이의 영향을 받아 행정·교육 개혁을 추진했고, 1898년 9월 궁정의 반격으로 권력을 잃었다고 서술한다. 개혁 조서와 그것을 막는 권력의 작용을 구분하는 사건 카드다. 해당 부분에는 황태후의 이름과 광서제 사망에 관한 미확인 소문이 섞여 있으므로 이 세부는 역사 사실로 채택하지 않는다. 원문의 유럽 중심 진보관도 별도 평가 대상으로 남긴다.
+
+출전: Mayo W. Hazeltine, China, 보충장, 확보 영문본 L15911–L15929 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L15911–L15929 (THE WAR WITH JAPAN AND SUBSEQUENT EVENTS)
+
+검토 주의: 황태후 표기 및 사망 소문 제외. 의화단·신해혁명·현대사는 수록 범위 밖.
+
+### 21. 출처·판본·권리 안내
+
+유형: other | 범위: 자료 안내 | ID: ceea8b20-7a9a-55d3-ac89-baa4ff43b186
+
+출처는 Demetrius Charles Boulger의 China, Project Gutenberg 전자책 6708이다. 표제에는 보충장 저자로 Mayo W. Hazeltine이 기재되어 있다. https://www.gutenberg.org/ebooks/6708 . 확보 파일은 22개 번호 장과 후속 두 항목을 포함하지만 바탕 인쇄본의 정확한 발행연도·판차·출판사는 미확인이다. Project Gutenberg의 미국 퍼블릭 도메인 취급과 전 세계 권리 보증은 구분한다. 해당 파일의 라이선스 안내를 유지해 확인하고, 배포 지역의 권리는 별도 검토한다.
+
+출전: Demetrius Charles Boulger·Mayo W. Hazeltine, China, Project Gutenberg header, 확보 영문본 L1–L23 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt); Demetrius Charles Boulger·Mayo W. Hazeltine, China, Title page, 확보 영문본 L40–L46 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt); Demetrius Charles Boulger·Mayo W. Hazeltine, China, The Future of China, 확보 영문본 L15940 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L1–L23 (Project Gutenberg header); docs/research/history-textbooks/china/source-en.txt L40–L46 (Title page); docs/research/history-textbooks/china/source-en.txt L15940–L15940 (Supplement heading)
+
+검토 주의: 인쇄본 연도·판차 미확인. 모든 국가에서 자유 이용 가능하다고 주장하지 않는다.
+
+### 22. 고전 통사의 관점과 검토 상태
+
+유형: other | 범위: 편집 검토 안내 | ID: c87db2da-3415-510c-a445-5f3da8df8425
+
+이 묶음은 19세기 말까지의 고전 통사를 원문 대조해 만든 역사 자료 초안이다. 제국주의·유럽 중심 평가, 집단에 대한 고정관념, 전승과 불확실한 소식이 섞여 있어 현대 역사 교과서로 취급할 수 없다. 카드별 원문 일치 확인은 그 주장이 역사적으로 참이라는 독립 검증과 다르다. 1898년 이후의 중국사와 현재 상황은 다루지 않는다. 가상 인물·사건·대사·예언을 사실로 추가하지 않았으며 전문 감수와 현대 연구 대조는 남아 있다.
+
+출전: Demetrius Charles Boulger, China, 제I장, 확보 영문본 L173–L190 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt); Mayo W. Hazeltine, China, 보충장, 확보 영문본 L15926–L15935 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).
+
+근거: docs/research/history-textbooks/china/source-en.txt L173–L190 (CHAPTER I); docs/research/history-textbooks/china/source-en.txt L15926–L15935 (Supplement)
+
+검토 주의: 원문 관점을 드러내기 위한 근거이며 그 내용을 사실로 승인하지 않는다.
+
+## 출처와 이용 조건
+
+Demetrius Charles Boulger, China. 보충장 표제 저자 Mayo W. Hazeltine. Project Gutenberg 6708: https://www.gutenberg.org/ebooks/6708 . 원문은 미국 퍼블릭 도메인 취급 자료이며, 세계 전체의 권리·정확한 인쇄본 판권을 별도로 보증하지 않는다. 기존 source-en.txt의 Project Gutenberg 이용 안내와 라이선스를 확인한다.
+
+고전 통사의 저자 평가를 현대 사실과 동일시하지 않는다. 현대 중국 통사 보완, 정확한 판본 확인 및 전문 검수는 이번 범위 밖이다.
+
+## 검증 범위
+
+JSON 키·카드 유형·UUIDv5·중복 ID·원문 발췌 일치·줄 범위·해시·UTF-8을 확인했다. 서비스 리소스, 기존 연구 파일, 사용자 데이터, DB는 수정하지 않았다. 자동 검사는 원문과의 일치를 확인할 뿐 역사적 정확성의 보증이 아니다.
