@@ -1,0 +1,1170 @@
+{
+  "schema_version": 8,
+  "status": "Research drafts; integrated recovery-applied narrative plus separate original front matter and bilingual printed index. Historical review and final Korean editing incomplete.",
+  "scope": "All eleven narrative chapters (157 numbered sections) and the four-page chronology (91 grouped date rows) have Korean draft coverage. The new integrated file applies 63 documented II-IX source-loss recoveries, including one nested unreadable subject, and confirms one unchanged VI heading. Original chapter drafts and QA remain unchanged and keep their historical markers. This is not full two-scan proofreading, historical validation or a finalized complete-book translation. The separate original title, contents, map-list text and all 550 printed index entries now have image-compared draft coverage in separate supplements. Map plates and their complete labels and publisher advertisements remain untranslated.",
+  "source_pdf_sha256": "807409168C96A3FB1794C3D2B3DFC8125F91CA2BED6EDB80594842A730C8F644",
+  "source_text_sha256": "DEE6107BC3ADBF9CE0E37CBEC29D98BE64B7E0D9066A4DA2B12E2B9F62A85B73",
+  "chapters": {
+    "1": {
+      "combined": {
+        "sha256": "454147EC6E55685E67F78EE836E53300E15AA4B83B7AC819DF1DA189463D82BA",
+        "file": "01-main-prose.ko.draft.md",
+        "bytes": 44708
+      },
+      "status": "Draft translation; expert historical review incomplete",
+      "source_pdf_sha256": "807409168C96A3FB1794C3D2B3DFC8125F91CA2BED6EDB80594842A730C8F644",
+      "pdf_pages": "18-33",
+      "printed_pages": "1-16",
+      "parts": [
+        {
+          "sha256": "28444EF13AD0139B86FD80C39F96542376F5DC9AD14340B394AE5E47017068CD",
+          "file": "01-section-01.ko.partial.md",
+          "bytes": 8100
+        },
+        {
+          "sha256": "559A0CC62D6B5C01BD728B418BB18B0BFD1A34EF07773A2C6C18EF9C2C1696FC",
+          "file": "01-sections-02-05.ko.partial.md",
+          "bytes": 7850
+        },
+        {
+          "sha256": "0ADBFEB5384E7D2431F6254D7C92782367E26B234917A3F96E588F9445E13954",
+          "file": "01-sections-06-08.ko.partial.md",
+          "bytes": 11842
+        },
+        {
+          "sha256": "7EFBFA761DC85FBA749BD1245DB9E9FD54F7A60BBFDFC84FD3B85A79CCE91599",
+          "file": "01-sections-09-12.ko.partial.md",
+          "bytes": 16112
+        }
+      ],
+      "scope": "Chapter I, all 12 numbered sections and outline; 1 of 11 chapters",
+      "source_text_sha256": "DEE6107BC3ADBF9CE0E37CBEC29D98BE64B7E0D9066A4DA2B12E2B9F62A85B73"
+    },
+    "2": {
+      "chapter": 2,
+      "title": "The Emperor and the Pope",
+      "status": "All 14 sections covered by an image-compared Korean draft; source-image loss and conjectural passages remain. Not a verified transcription or final complete translation.",
+      "scope": "Chapter heading, outline, and all 14 numbered sections",
+      "draft": {
+        "file": "02-main-prose.ko.draft.md",
+        "bytes": 47009,
+        "sha256": "DE9BE5D0DC52E7C27E7066981E48A921D9C99922DA26D3CB8F495DF2B64BAA3A"
+      },
+      "qa": {
+        "file": "02-qa.ko.md",
+        "bytes": 7467,
+        "sha256": "25488B9E3343CA9822D54D5FB0B0E2B1F9109639D9E684497932A194BFBCB147"
+      },
+      "pdf_pages": "33-52",
+      "printed_pages": "16-35",
+      "boundary_page_checked": 53,
+      "rendered_and_visually_compared_pdf_pages": [
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52
+      ],
+      "uncertain_printed_pages": [
+        24,
+        26,
+        30,
+        32,
+        34
+      ],
+      "uncertainty_marker_count": 11,
+      "source_images_directory": "tmp/chapter02",
+      "historical_review_complete": false,
+      "alternate_scan_collation_complete": false,
+      "uncertainty_count_excludes_intro_example": true,
+      "uncertainty_count_correction": {
+        "previous_value": 12,
+        "current_value": 11,
+        "reason": "Previous count included one introductory example in addition to eleven actual body markers.",
+        "evidence": "collation/02-09-collation-audit.json",
+        "original_draft_unchanged": true
+      }
+    },
+    "3": {
+      "chapter": 3,
+      "title": "The Emperor and the Cities",
+      "status": "All 15 sections covered by an image-compared Korean draft; source-image loss and conjectural passages remain. Not a verified transcription or final complete translation.",
+      "scope": "Chapter heading, outline, and all 15 numbered sections",
+      "draft": {
+        "file": "03-main-prose.ko.draft.md",
+        "bytes": 41592,
+        "sha256": "B8E441F17CF2FC8D0C32E3959D5C77374C09317B8E6297BAD2BEDCFFFF50CB58"
+      },
+      "qa": {
+        "file": "03-qa.ko.md",
+        "bytes": 13828,
+        "sha256": "D585F92C279880FBF2E43A84C98B3B894E784C4356CDDB72DEF0409A88E5C2EE"
+      },
+      "pdf_pages": "53-69",
+      "printed_pages": "36-52",
+      "boundary_pages_checked": [
+        52,
+        70
+      ],
+      "rendered_and_visually_compared_pdf_pages": [
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69
+      ],
+      "uncertain_printed_pages": [
+        43,
+        52
+      ],
+      "uncertainty_marker_count": 8,
+      "uncertainty_count_excludes_intro_example": true,
+      "source_images_directory": "tmp/chapter03",
+      "historical_review_complete": false,
+      "alternate_scan_collation_complete": false,
+      "final_korean_edit_complete": false
+    },
+    "4": {
+      "chapter": 4,
+      "title": "The Greatness of the Guelfs",
+      "status": "All 12 sections covered by an image-compared Korean draft; source-image loss and marked conjecture remain. Not a verified transcription or final complete translation.",
+      "scope": "Chapter heading, outline, and all 12 numbered sections",
+      "draft": {
+        "file": "04-main-prose.ko.draft.md",
+        "bytes": 40320,
+        "sha256": "E918D219DC46B66AB177F8D8586079DDEE580E71AAFE39BBBEB7F267D81E6648"
+      },
+      "qa": {
+        "file": "04-qa.ko.md",
+        "bytes": 11351,
+        "sha256": "A0459300A78CD275933F89083F2C1DE7C26F93960F6A536E1BF443B458393966"
+      },
+      "pdf_pages": "70-87",
+      "printed_pages": "53-70",
+      "shared_chapter_boundary": {
+        "pdf_page": 87,
+        "printed_page": 70,
+        "note": "Chapter IV ends at the top; Chapter V starts at its mid-page heading."
+      },
+      "boundary_pages_checked": [
+        87,
+        88
+      ],
+      "rendered_and_visually_compared_pdf_pages": [
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87
+      ],
+      "uncertain_printed_pages": [
+        64
+      ],
+      "uncertainty_marker_count": 1,
+      "unreadable_marker_count": 0,
+      "uncertainty_count_excludes_intro_example": true,
+      "source_images_directory": "tmp/chapter04",
+      "historical_review_complete": false,
+      "alternate_scan_collation_complete": false,
+      "final_korean_edit_complete": false
+    },
+    "5": {
+      "chapter": 5,
+      "title": "The Ghibelin Lords",
+      "status": "All 15 sections covered by an image-compared Korean draft; source-image loss and marked conjecture remain. One unidentified subject remains explicitly unreadable. Not a verified transcription or final complete translation.",
+      "scope": "Chapter heading, outline, and all 15 numbered sections",
+      "draft": {
+        "file": "05-main-prose.ko.draft.md",
+        "bytes": 48742,
+        "sha256": "976E0A3AE55036D7713049192EC7BC1AA292F83E2C0293FC0716D5321A925A79"
+      },
+      "qa": {
+        "file": "05-qa.ko.md",
+        "bytes": 17706,
+        "sha256": "8CC1917660E0926FF636BEFA161D5A4B4EB3A1328151709975879157D6315168"
+      },
+      "pdf_pages": "87-107",
+      "printed_pages": "70-90",
+      "shared_chapter_boundary": {
+        "pdf_page": 87,
+        "printed_page": 70,
+        "note": "Chapter IV ends at the top; Chapter V starts at its mid-page heading."
+      },
+      "boundary_pages_checked": [
+        87,
+        108,
+        109
+      ],
+      "rendered_and_visually_compared_pdf_pages": [
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107
+      ],
+      "uncertain_printed_pages": [
+        70,
+        72,
+        74,
+        79,
+        80,
+        83,
+        85,
+        86
+      ],
+      "uncertainty_marker_count": 17,
+      "unreadable_marker_count": 1,
+      "uncertainty_count_excludes_intro_example": true,
+      "source_images_directory": "tmp/chapter05",
+      "historical_review_complete": false,
+      "alternate_scan_collation_complete": false,
+      "final_korean_edit_complete": false
+    },
+    "6": {
+      "chapter": 6,
+      "title": "The Great States",
+      "status": "All 15 sections covered by an image-compared Korean draft; minor source-image masking and 3 marked conjectural passages remain. Not a verified transcription or final complete translation.",
+      "scope": "Chapter heading, outline, and all 15 numbered sections",
+      "draft": {
+        "file": "06-main-prose.ko.draft.md",
+        "bytes": 56047,
+        "sha256": "4FB515C6260F9DAA98EDBED07F7BFB48B36C4B27DE46F268C59AF464F73CA011"
+      },
+      "qa": {
+        "file": "06-qa.ko.md",
+        "bytes": 13441,
+        "sha256": "7582D9546D5E323CD3414FC7E52B0EDD708953AF1499726D66E40BCD1BA5FA88"
+      },
+      "pdf_pages": "108-132",
+      "printed_pages": "91-115",
+      "boundary_pages_checked": [
+        133
+      ],
+      "rendered_and_visually_compared_pdf_pages": [
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127,
+        128,
+        129,
+        130,
+        131,
+        132
+      ],
+      "uncertain_printed_pages": [
+        92,
+        108,
+        114
+      ],
+      "uncertainty_marker_count": 3,
+      "unreadable_marker_count": 0,
+      "uncertainty_count_excludes_intro_example": true,
+      "source_images_directory": "tmp/chapter06",
+      "separate_figures_captions_footnotes_observed": 0,
+      "historical_review_complete": false,
+      "alternate_scan_collation_complete": false,
+      "final_korean_edit_complete": false,
+      "internally_reconstructed_heading": {
+        "section": 10,
+        "printed_page": 104,
+        "corroborated_by_printed_pages": [
+          91,
+          105
+        ],
+        "note": "Partly masked section heading reconstructed from same-chapter outline and next-page running heading; not counted as a body conjecture."
+      }
+    },
+    "7": {
+      "chapter": 7,
+      "title": "Italy Invaded",
+      "status": "All 17 sections covered by an image-compared Korean draft; minor source-image masking and 6 marked conjectural passages remain. Not a verified transcription or final complete translation.",
+      "scope": "Chapter heading, outline, and all 17 numbered sections",
+      "draft": {
+        "file": "07-main-prose.ko.draft.md",
+        "bytes": 62578,
+        "sha256": "D41447F954AF247FCEFC612731FBBF584DA624FF45017FC406FF2CB39F795BB7"
+      },
+      "qa": {
+        "file": "07-qa.ko.md",
+        "bytes": 17475,
+        "sha256": "BC0E57334877E814E08F93DB746693C37E0636F3E66DC6A9B0AC2DCFF253CD57"
+      },
+      "pdf_pages": "133-161",
+      "printed_pages": "116-144",
+      "boundary_pages_checked": [
+        132,
+        162
+      ],
+      "rendered_and_visually_compared_pdf_pages": [
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161
+      ],
+      "uncertain_printed_pages": [
+        116,
+        118,
+        120,
+        124,
+        134,
+        136
+      ],
+      "uncertainty_marker_count": 6,
+      "unreadable_marker_count": 0,
+      "uncertainty_count_excludes_intro_example": true,
+      "source_images_directory": "tmp/chapter07",
+      "separate_figures_captions_footnotes_observed": 0,
+      "historical_review_complete": false,
+      "alternate_scan_collation_complete": false,
+      "final_korean_edit_complete": false
+    },
+    "8": {
+      "chapter": 8,
+      "title": "Italy Conquered",
+      "status": "All 13 sections covered by an image-compared Korean draft; source-image loss and marked conjecture remain. Not a verified transcription or final translation.",
+      "scope": "Chapter heading, all 13 outline items, and all 13 numbered sections",
+      "draft": {
+        "file": "08-main-prose.ko.draft.md",
+        "bytes": 49400,
+        "sha256": "821C31C346DDF5A9BDE559D74B575A04222A3838960A960A699D647B6FF53EEE"
+      },
+      "qa": {
+        "file": "08-qa.ko.md",
+        "bytes": 9789,
+        "sha256": "EBDDA1E88609741162E029166D8D704B57E11DC3A5088315F967845DEA39CA50"
+      },
+      "pdf_pages": "162-185",
+      "printed_pages": "145-168",
+      "boundary_pages_checked": [
+        161,
+        186
+      ],
+      "rendered_and_visually_compared_pdf_pages": [
+        162,
+        163,
+        164,
+        165,
+        166,
+        167,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178,
+        179,
+        180,
+        181,
+        182,
+        183,
+        184,
+        185
+      ],
+      "uncertain_printed_pages": [
+        150,
+        154,
+        156,
+        162,
+        163,
+        164
+      ],
+      "uncertainty_marker_count": 10,
+      "unreadable_marker_count": 0,
+      "uncertainty_count_excludes_intro_example": true,
+      "source_images_directory": "tmp/chapters08-09",
+      "separate_figures_captions_footnotes_observed": 0,
+      "historical_review_complete": false,
+      "alternate_scan_collation_complete": false,
+      "final_korean_edit_complete": false
+    },
+    "9": {
+      "chapter": 9,
+      "title": "Italy Enslaved",
+      "status": "All 14 sections covered by an image-compared Korean draft; source-image loss and marked conjecture remain. Not a verified transcription or final translation.",
+      "scope": "Chapter heading, all 14 outline items, and all 14 numbered sections",
+      "draft": {
+        "file": "09-main-prose.ko.draft.md",
+        "bytes": 56252,
+        "sha256": "5E56BC9E5BA20FE9D2399114B606E0E916A4B5D7495322B6132A0A0F32004BDF"
+      },
+      "qa": {
+        "file": "09-qa.ko.md",
+        "bytes": 11953,
+        "sha256": "4116C8C78E0857A59553CFEBEDE3CADCA1ED58376A6ABFED4EF97ABCC7AE1A29"
+      },
+      "pdf_pages": "186-213",
+      "printed_pages": "169-196",
+      "boundary_pages_checked": [
+        185,
+        214
+      ],
+      "rendered_and_visually_compared_pdf_pages": [
+        186,
+        187,
+        188,
+        189,
+        190,
+        191,
+        192,
+        193,
+        194,
+        195,
+        196,
+        197,
+        198,
+        199,
+        200,
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210,
+        211,
+        212,
+        213
+      ],
+      "uncertain_printed_pages": [
+        182,
+        187
+      ],
+      "uncertainty_marker_count": 7,
+      "unreadable_marker_count": 0,
+      "uncertainty_count_excludes_intro_example": true,
+      "source_images_directory": "tmp/chapters08-09",
+      "separate_figures_captions_footnotes_observed": 0,
+      "historical_review_complete": false,
+      "alternate_scan_collation_complete": false,
+      "final_korean_edit_complete": false,
+      "shared_chapter_boundary": {
+        "pdf_page": 213,
+        "printed_page": 196,
+        "note": "Chapter IX ends in the top paragraph; Chapter X begins at the mid-page heading. The running heading already names Chapter X."
+      }
+    },
+    "10": {
+      "chapter": 10,
+      "title": "Italy Divided",
+      "status": "Full-prose Korean research draft from complete chapter text layer and selected image comparisons; not fully image-proofread, historically reviewed or finalized.",
+      "scope": "Chapter heading, outline and all 14 numbered sections",
+      "draft": {
+        "file": "10-main-prose.ko.draft.md",
+        "bytes": 59004,
+        "sha256": "E9054344DBF1330D58D56DEEE914133B8E9C410732030CE74A94323F458D48E2"
+      },
+      "qa": {
+        "file": "10-qa.ko.md",
+        "bytes": 7377,
+        "sha256": "675D8B532BFCD858F87D4AD5B679DB25A4D01B852B559B2FA573746FD703A8E0"
+      },
+      "printed_pages": "196-223",
+      "toronto_pdf_pages": "212-239",
+      "google_pdf_pages": "213-240",
+      "primary_source_pdf": "source-toronto-1883-scan.pdf",
+      "primary_source_pdf_sha256": "65697AE4B66BBF789C5E78214033868D7864B3EDFCDE2B365C5D1700EB0F3CA1",
+      "secondary_source_pdf": "source-scan.pdf",
+      "secondary_source_pdf_sha256": "807409168C96A3FB1794C3D2B3DFC8125F91CA2BED6EDB80594842A730C8F644",
+      "text_layer_pages_read": "All pages in the chapter range; extracted files retained in tmp/chapters10-11",
+      "selected_toronto_pdf_pages_visually_checked": [
+        212,
+        216,
+        217,
+        233,
+        239,
+        240
+      ],
+      "selected_google_pdf_pages_visually_checked": [
+        213
+      ],
+      "all_pages_visually_compared": false,
+      "known_unrecovered_source_loss_markers": 0,
+      "zero_loss_marker_caution": "No known unresolved passage in the completed draft; not a guarantee of complete character-level proofing.",
+      "source_images_directory": "tmp/chapters10-11",
+      "historical_review_complete": false,
+      "independent_sentence_level_review_complete": false,
+      "final_korean_edit_complete": false,
+      "alternate_scan_collation_complete": false
+    },
+    "11": {
+      "chapter": 11,
+      "title": "Italy Free and United",
+      "status": "Full-prose Korean research draft from complete chapter text layer and selected image comparisons; not fully image-proofread, historically reviewed or finalized.",
+      "scope": "Chapter heading, outline and all 16 numbered sections",
+      "draft": {
+        "file": "11-main-prose.ko.draft.md",
+        "bytes": 76497,
+        "sha256": "6A707D8EEBF97A11AE7710C457C607049B6752513BEA00C86BDB69AD391BF4EA"
+      },
+      "qa": {
+        "file": "11-qa.ko.md",
+        "bytes": 9706,
+        "sha256": "1090A6ADA82A35150E0E343F9639666EF9AEBEB28930412ACD5478CCE994B262"
+      },
+      "printed_pages": "224-260",
+      "toronto_pdf_pages": "240-276",
+      "google_pdf_pages": "241-277",
+      "primary_source_pdf": "source-toronto-1883-scan.pdf",
+      "primary_source_pdf_sha256": "65697AE4B66BBF789C5E78214033868D7864B3EDFCDE2B365C5D1700EB0F3CA1",
+      "secondary_source_pdf": "source-scan.pdf",
+      "secondary_source_pdf_sha256": "807409168C96A3FB1794C3D2B3DFC8125F91CA2BED6EDB80594842A730C8F644",
+      "text_layer_pages_read": "All pages in the chapter range; extracted files retained in tmp/chapters10-11",
+      "selected_toronto_pdf_pages_visually_checked": [
+        239,
+        240,
+        249,
+        276,
+        277
+      ],
+      "selected_google_pdf_pages_visually_checked": [
+        241,
+        250,
+        277
+      ],
+      "all_pages_visually_compared": false,
+      "known_unrecovered_source_loss_markers": 0,
+      "zero_loss_marker_caution": "No known unresolved passage in the completed draft; not a guarantee of complete character-level proofing.",
+      "source_images_directory": "tmp/chapters10-11",
+      "historical_review_complete": false,
+      "independent_sentence_level_review_complete": false,
+      "final_korean_edit_complete": false,
+      "alternate_scan_collation_complete": false,
+      "complementary_scan_repairs": [
+        {
+          "printed_page": 224,
+          "readable_source": "Toronto PDF240",
+          "secondary_image": "Google PDF241",
+          "description": "Google bottom-line distortion checked against Toronto chapter beginning."
+        },
+        {
+          "printed_page": 233,
+          "readable_source": "Google PDF250 and Toronto PDF249",
+          "description": "Google resolves Toronto ink stains over Yorkshire, baron and his, Maria Louisa and Duke of Modena; Toronto clarifies curved final lines."
+        },
+        {
+          "printed_page": 260,
+          "readable_source": "Google PDF277",
+          "secondary_image": "Toronto PDF276",
+          "description": "Google resolves Toronto ink-blotted beginnings of the opening property-value paragraph; both confirm final now (1874) and final sentence."
+        }
+      ]
+    }
+  },
+  "validation": {
+    "all_input_audit_hashes_match": true,
+    "all_original_manifest_file_hashes_match": true,
+    "all_replacement_prefixes_unique_and_sections_match": true,
+    "unchanged_body_segments_byte_identical": true,
+    "body_reversible_to_selected_original_ranges": true,
+    "chapter_headings_outlines_and_numbered_sections_preserved": true,
+    "source_and_preexisting_drafts_qa_recovery_chronology_worldbuilding_files_unchanged": true,
+    "strict_utf8_valid": true,
+    "replacement_characters": 0,
+    "null_characters": 0,
+    "full_scan_collation_complete": false,
+    "historical_review_complete": false,
+    "final_korean_edit_complete": false,
+    "application_or_database_integration": false,
+    "committed_or_pushed": false,
+    "all_eleven_numbered_sections": 157,
+    "section_counts": [
+      12,
+      14,
+      15,
+      12,
+      15,
+      15,
+      17,
+      13,
+      14,
+      14,
+      16
+    ],
+    "body_replacements": 63,
+    "unchanged_body_segments": 74,
+    "protected_input_files": 43,
+    "chronology_date_rows": 91,
+    "chronology_exact_appendix_copy": true,
+    "integration_audit_file": "integrated-11-chapters-audit.json",
+    "header_metadata_update_suffix_byte_identical": true,
+    "header_metadata_update_absolute_coordinates_revalidated": true
+  },
+  "completed_chapter_draft_count": 11,
+  "total_narrative_chapters": 11,
+  "additional_sources": {
+    "toronto_1883_pdf": {
+      "file": "source-toronto-1883-scan.pdf",
+      "bytes": 14373105,
+      "sha256": "65697AE4B66BBF789C5E78214033868D7864B3EDFCDE2B365C5D1700EB0F3CA1",
+      "pages": 296,
+      "author": "William Hunt",
+      "title": "History of Italy; with maps",
+      "edition": "Second Edition. With Maps.",
+      "publisher": "Macmillan and Co., London",
+      "publication_year": 1883,
+      "collection": "Robarts Library / University of Toronto",
+      "commons_description_url": "https://commons.wikimedia.org/wiki/File:History_of_Italy;_with_maps_(IA_historyofitalyw00hunt).pdf",
+      "internet_archive_item": "https://archive.org/details/historyofitalyw00hunt",
+      "internet_archive_pdf": "https://archive.org/download/historyofitalyw00hunt/historyofitalyw00hunt.pdf",
+      "title_page_visual_check_pdf_page": 7,
+      "title_page_checked_by": "Parent acquisition task; recorded in scan-collation-first-sample.ko.md",
+      "same_edition_check": "1883 second-edition title page; matching chapter boundaries, outline, text and typesetting in Google/Oxford and Toronto copies. Not an exhaustive edition collation.",
+      "rights_caution": "The 1883 original text is consistent with US public-domain status. Commons displays Public Domain Mark and a life-plus-100 template, but Hunt died in 1931; do not treat that template as worldwide life-plus-100 clearance. Original-work status, scan/provider guidance and website metadata licenses are distinct. No blanket commercial or worldwide warranty."
+    },
+    "toronto_ocr_text_layer": {
+      "file": "source-toronto-1883-extracted.txt",
+      "bytes": 584954,
+      "sha256": "8006E12EB376BA37163FD3777E84A257B116E7556645CC8A62F39A9748FB97F4",
+      "status": "Unverified OCR text layer, not corrected transcription",
+      "extraction_tool": "pypdf",
+      "extraction_date": "2026-11-13",
+      "page_labels": "1-based PDF positions, not printed page numbers",
+      "source_sha256": "65697AE4B66BBF789C5E78214033868D7864B3EDFCDE2B365C5D1700EB0F3CA1"
+    }
+  },
+  "supplementary_collation": {
+    "file": "scan-collation-first-sample.ko.md",
+    "bytes": 5838,
+    "sha256": "05DBE1531BD20DC4237AD483B423E10884E3EEA7BC8306316DAF9B4399E66B50",
+    "scope": "Printed page83 / Toronto PDF99 only; three complete paragraphs and previously unreadable Priors subject. Earlier chapter files remain unchanged. No blanket resolution of prior uncertainties."
+  },
+  "worldbuilding_candidates": [
+    {
+      "file": "worldbuilding-01.derived-draft.md",
+      "bytes": 3375,
+      "sha256": "C30DC1CF8A8D1E922D28CEE0D1412F6F4841D6909D5E9BBC8650773DA6710B6C",
+      "status": "Separate fictional research candidate; not a historical claim, translation body or app integration"
+    },
+    {
+      "file": "worldbuilding-02.derived-draft.md",
+      "bytes": 7587,
+      "sha256": "EB0B9A4D0ABCF7C78BD0F01C45C4E9A82B6D3C2B66A1DCCDA63FB65230523BFD",
+      "status": "Separate fictional research candidate; not a historical claim, translation body or app integration"
+    }
+  ],
+  "chronology": {
+    "status": "Image-compared draft; historical review and final Korean editing incomplete",
+    "pdf_pages": "11-14",
+    "date_rows": 91,
+    "files": [
+      {
+        "file": "chronological-table.ko.draft.md",
+        "bytes": 6269,
+        "sha256": "10B2F3CC657A9439A97C1B27F9DA3A3E6C6E528C88748622014D8BACFCB1AF4A"
+      },
+      {
+        "file": "chronological-table-qa.ko.md",
+        "bytes": 1783,
+        "sha256": "A2ABCFE6600150FC7E780AD75A72CAB78B23978B0DF553922FE74D765F649BA5"
+      }
+    ],
+    "pages": 4,
+    "included_verbatim_as_integrated_appendix": true,
+    "endpoint": 1870
+  },
+  "last_updated": "2026-11-13",
+  "chapter_records_describe": "Preserved individual chapter files and their original validation level. Integrated recovery status is recorded separately; uncertainty counts below concern the original files.",
+  "prior_stage_validation": {
+    "source_schema_version": 7,
+    "scope": "Historical validation performed before this integration; record-preservation booleans refer to that earlier stage. The chapter II metadata count is corrected in schema 8.",
+    "checks": {
+      "source_hashes_unchanged": true,
+      "chapter_01_combined_hash_unchanged": true,
+      "chapter_02_numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "chapter_02_utf8_replacement_characters": 0,
+      "no_application_or_database_integration": true,
+      "no_commit_or_push": true,
+      "chapter_02_draft_and_qa_hashes_unchanged": true,
+      "chapter_03_numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "chapter_03_utf8_replacement_characters": 0,
+      "chapter_03_qa_utf8_replacement_characters": 0,
+      "chapter_04_numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "chapter_04_utf8_replacement_characters": 0,
+      "chapter_04_qa_utf8_replacement_characters": 0,
+      "chapter_05_numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "chapter_05_utf8_replacement_characters": 0,
+      "chapter_05_qa_utf8_replacement_characters": 0,
+      "chapter_03_draft_and_qa_hashes_unchanged": true,
+      "chapter_06_numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "chapter_06_utf8_replacement_characters": 0,
+      "chapter_06_qa_utf8_replacement_characters": 0,
+      "chapter_06_dates_and_key_quantities_checked": true,
+      "chapter_07_numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "chapter_07_utf8_replacement_characters": 0,
+      "chapter_07_qa_utf8_replacement_characters": 0,
+      "chapter_07_dates_and_key_quantities_checked": true,
+      "chapter_01_to_05_records_and_files_unchanged": true,
+      "chapter_06_07_separate_captions_and_notes_checked": true,
+      "chapter_08_utf8_replacement_characters": 0,
+      "chapter_08_qa_utf8_replacement_characters": 0,
+      "chapter_08_numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "chapter_08_dates_and_key_quantities_checked": true,
+      "chapter_08_separate_captions_and_notes_checked": true,
+      "chapter_09_utf8_replacement_characters": 0,
+      "chapter_09_qa_utf8_replacement_characters": 0,
+      "chapter_09_numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "chapter_09_dates_and_key_quantities_checked": true,
+      "chapter_09_separate_captions_and_notes_checked": true,
+      "chapter_01_to_07_records_and_files_unchanged": true,
+      "chapter_10_numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "chapter_10_utf8_replacement_characters": 0,
+      "chapter_10_qa_utf8_replacement_characters": 0,
+      "chapter_10_intact_four_digit_source_years_present_in_draft": true,
+      "chapter_11_numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "chapter_11_utf8_replacement_characters": 0,
+      "chapter_11_qa_utf8_replacement_characters": 0,
+      "chapter_11_intact_four_digit_source_years_present_in_draft": true,
+      "chapter_01_to_09_records_and_files_unchanged": true,
+      "original_sources_and_toronto_pdf_hashes_unchanged": true,
+      "chapter_10_11_full_visual_proofreading_complete": false,
+      "preservation_check_file_count": 25
+    }
+  },
+  "integrated_collated_draft": {
+    "file": "integrated-11-chapters.ko.collated-draft.md",
+    "bytes": 569169,
+    "sha256": "07224022BC78BC69902B0F0FA2F741A6D5302C250A4C9281B8EC26AF56993762",
+    "qa": {
+      "file": "integrated-11-chapters-qa.ko.md",
+      "bytes": 95321,
+      "sha256": "BB85AF5EAA342E7B9ED0A178CDD062C43E62F59AFF3C510E87271CF7A6E30812"
+    },
+    "audit": {
+      "file": "integrated-11-chapters-audit.json",
+      "bytes": 83333,
+      "sha256": "DFF6E68ECD29880121052AF710861F0B748DEA37C78D8BDE99C8CBA737750E35"
+    },
+    "status": "Recovery-applied research draft; not finalized or historically certified",
+    "body_replacements": 63,
+    "nested_unreadable_resolved": 1,
+    "nested_unreadable_counted_within_body_replacements": true,
+    "unchanged_heading_directly_confirmed": 1,
+    "total_chapters": 11,
+    "total_numbered_sections": 157,
+    "chronology_appendix_verbatim": true,
+    "original_chapter_files_modified": false,
+    "rights_and_scope_header": true,
+    "full_original_book_translated": false,
+    "supplement_files_linked_in_header": [
+      "frontmatter-and-map-list.ko.draft.md",
+      "printed-index.en-ko.draft.md"
+    ],
+    "header_metadata_update": {
+      "date": "2026-11-13",
+      "body_and_chronology_byte_identical": true,
+      "unchanged_suffix_bytes": 564418,
+      "unchanged_suffix_sha256": "2A16183A573995FDF9FF4C889EB625BB4A2CADABEF8C05B180C06BB1CE6621C6",
+      "utf16_absolute_coordinate_delta": 221,
+      "audit_key": "header_metadata_update"
+    }
+  },
+  "targeted_recovery": {
+    "status": "Applied only in the new integrated draft; recovery-only records and original drafts remain unchanged",
+    "audit": {
+      "file": "collation/02-09-collation-audit.json",
+      "bytes": 8103,
+      "sha256": "914F3256445809D69EE2638BCA200E4459945575940F6A0CE63AE827201181A9"
+    },
+    "files": [
+      {
+        "file": "collation/02-recovered-passages.ko.draft.md",
+        "bytes": 28859,
+        "sha256": "C95A09E36540761FE019CF88ED314DF37EEE0FB3D66E2F36A3A37C233EDCD26F",
+        "chapter": 2,
+        "body_replacements": 11
+      },
+      {
+        "file": "collation/03-recovered-passages.ko.draft.md",
+        "bytes": 14601,
+        "sha256": "B994C3B670D6D5EC9C73BE411BD96745AEF2132C47B4DDBE154EE7545054584B",
+        "chapter": 3,
+        "body_replacements": 8
+      },
+      {
+        "file": "collation/04-recovered-passages.ko.draft.md",
+        "bytes": 2156,
+        "sha256": "BDCA4E914A3B13F111608D3EF2152917D5F41E942321980B79BB2808E2FF387B",
+        "chapter": 4,
+        "body_replacements": 1
+      },
+      {
+        "file": "collation/05-recovered-passages.ko.draft.md",
+        "bytes": 34763,
+        "sha256": "00EFCDAB905B4E3046E0C3F40D20B9D6ED0DE04452029D1E4D26F18319384B73",
+        "chapter": 5,
+        "body_replacements": 17
+      },
+      {
+        "file": "collation/06-recovered-passages.ko.draft.md",
+        "bytes": 4924,
+        "sha256": "093F93EEB71343B861242856549B8D1038A596483A39D0DAEC50BF2C2D63538A",
+        "chapter": 6,
+        "body_replacements": 3
+      },
+      {
+        "file": "collation/07-recovered-passages.ko.draft.md",
+        "bytes": 7969,
+        "sha256": "F2607522E5C083A006B04915E8FA99DC42B81E772AFB59FA3C4957C3920BB350",
+        "chapter": 7,
+        "body_replacements": 6
+      },
+      {
+        "file": "collation/08-recovered-passages.ko.draft.md",
+        "bytes": 26046,
+        "sha256": "B395F9312494526D3F0844410A35921B3326959DF5E5E49FF5FCACEFFB34FA19",
+        "chapter": 8,
+        "body_replacements": 10
+      },
+      {
+        "file": "collation/09-recovered-passages.ko.draft.md",
+        "bytes": 18153,
+        "sha256": "33F4144DC8E1D1B7396EEAE3D8032628FEC177FBF20A0ADD695AC74115256181",
+        "chapter": 9,
+        "body_replacements": 7
+      }
+    ],
+    "conjecture_replacements": 63,
+    "nested_unreadable_resolved": 1,
+    "unchanged_heading_directly_confirmed": 1,
+    "unresolved_characters_in_targeted_passages": 0,
+    "full_book_scan_collation": false,
+    "earlier_record_status_note": "The recovery audit and recovery drafts document their earlier not-yet-merged state. Current application is recorded by integrated_collated_draft and its audit."
+  },
+  "coverage": {
+    "primary_narrative_start": 476,
+    "unification_endpoint": 1870,
+    "final_assessment_current_in": 1874,
+    "chronology_endpoint": 1870,
+    "modern_history_covered": false,
+    "ancient_history_before_476": "Background only",
+    "untranslated_components": [
+      "Map plates, their separate titles, legends and complete internal place-name labels",
+      "Publisher advertisements"
+    ],
+    "editorial_navigation_is_not_original_contents_translation": true,
+    "new_separate_supplement_coverage": [
+      "Original series half-title and title page",
+      "Original contents: eleven chapters and index row",
+      "Map-list text: six entries and four Savoy subentries",
+      "Printed index: 550 entries across eleven printed pages",
+      "Front and rear printer imprints"
+    ],
+    "not_part_of_original_historical_narrative": [
+      "Google digitization/file-use notice (preserved separately in source)",
+      "Library stamps, handwriting, card pocket and barcode matter",
+      "Publisher advertisements"
+    ]
+  },
+  "frontmatter_and_index_supplement": {
+    "date": "2026-11-13",
+    "status": "Image-compared bilingual research drafts; independent review, historical review and final editing incomplete",
+    "files": [
+      {
+        "file": "frontmatter-and-map-list.ko.draft.md",
+        "bytes": 6558,
+        "sha256": "13FFE59DB6ED6983D0D3E12B9E37858BE5342B1950533A3EAA95FFB4883D1525"
+      },
+      {
+        "file": "printed-index.en-ko.draft.md",
+        "bytes": 88930,
+        "sha256": "766D2160610EF0E4B4EA03C1E02BF0D0057B8EC6299FD9B783BCFA6F267495C3"
+      },
+      {
+        "file": "frontmatter-index-qa.ko.md",
+        "bytes": 12994,
+        "sha256": "7454B7BF1E48EC44B31BC318EF2BAD2ED09694FFDB40D21C7CD86A50EF8FFE11"
+      },
+      {
+        "file": "frontmatter-index-audit.json",
+        "bytes": 333916,
+        "sha256": "C44A6F2E876ED4023AB0B061D9D2908895E6F816AFD95D632587E05562ABEF53"
+      }
+    ],
+    "original_contents_chapters": 11,
+    "original_contents_index_row": 1,
+    "map_list_entries": 6,
+    "savoy_map_subentries": 4,
+    "index_printed_pages": "261-271",
+    "index_toronto_pdf_pages": "277-287",
+    "index_google_pdf_pages": "280-290",
+    "index_entries": 550,
+    "cross_page_entries_joined_once": 4,
+    "arabic_numeric_tokens_checked": 1529,
+    "regnal_roman_numerals_checked": 195,
+    "roman_shaped_initials_or_honorifics_checked": 4,
+    "ib_references_preserved": 13,
+    "see_instructions_preserved": 22,
+    "all_index_toronto_pages_visually_read": true,
+    "every_index_reference_verified_against_target_page": false,
+    "full_two_scan_collation_complete": false,
+    "map_internal_labels_transcribed_and_translated": false,
+    "map_images_modified": false,
+    "publisher_advertisements_translated": false,
+    "digitizer_notices_merged_into_original_text": false,
+    "original_chapters_qa_chronology_recoveries_and_integrated_file_modified": false,
+    "protected_preexisting_files_unchanged": 46,
+    "application_or_database_changed": false,
+    "committed_or_pushed": false,
+    "preservation_checks_scope": "The unchanged-file statements and 46 protected-file hashes describe the prior supplement-writing stage. The later metadata-only update changed the integrated header and integration QA/audit; narrative text, recovery spans, chronology and all supplement artifacts remain unchanged."
+  }
+}

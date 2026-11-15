@@ -1,0 +1,221 @@
+{
+  "schema_version": 1,
+  "checked_date": "2026-11-13",
+  "scope": "Chapters II–IX marked source-loss passages only; separate recovery drafts, not merged into translations. Not a full-book proofreading or historical review.",
+  "total_conjecture_markers_excluding_intro_examples": 63,
+  "nested_unreadable_marker_resolved_in_chapter_5": 1,
+  "additional_section_title_confirmed_in_chapter_6": 1,
+  "remaining_unresolved_characters_within_targeted_passages": 0,
+  "chapter_2_count_note": "Existing manifest counts 12 including introductory example; body has 11 actual marked passages. Existing manifest was not edited.",
+  "sources": {
+    "source-scan.pdf": {
+      "bytes": 6277770,
+      "sha256": "807409168C96A3FB1794C3D2B3DFC8125F91CA2BED6EDB80594842A730C8F644"
+    },
+    "source-en.txt": {
+      "bytes": 581291,
+      "sha256": "DEE6107BC3ADBF9CE0E37CBEC29D98BE64B7E0D9066A4DA2B12E2B9F62A85B73"
+    },
+    "source-toronto-1883-scan.pdf": {
+      "bytes": 14373105,
+      "sha256": "65697AE4B66BBF789C5E78214033868D7864B3EDFCDE2B365C5D1700EB0F3CA1"
+    }
+  },
+  "chapters": [
+    {
+      "chapter": 2,
+      "recovery_file": "collation/02-recovered-passages.ko.draft.md",
+      "bytes": 28859,
+      "sha256": "C95A09E36540761FE019CF88ED314DF37EEE0FB3D66E2F36A3A37C233EDCD26F",
+      "conjecture_markers": 11,
+      "all_original_marker_text_included": true,
+      "strict_utf8_valid": true,
+      "replacement_characters": 0,
+      "null_characters": 0,
+      "original_files": [
+        {
+          "file": "02-main-prose.ko.draft.md",
+          "sha256": "DE9BE5D0DC52E7C27E7066981E48A921D9C99922DA26D3CB8F495DF2B64BAA3A",
+          "matches_existing_manifest": true
+        },
+        {
+          "file": "02-qa.ko.md",
+          "sha256": "25488B9E3343CA9822D54D5FB0B0E2B1F9109639D9E684497932A194BFBCB147",
+          "matches_existing_manifest": true
+        }
+      ]
+    },
+    {
+      "chapter": 3,
+      "recovery_file": "collation/03-recovered-passages.ko.draft.md",
+      "bytes": 14601,
+      "sha256": "B994C3B670D6D5EC9C73BE411BD96745AEF2132C47B4DDBE154EE7545054584B",
+      "conjecture_markers": 8,
+      "all_original_marker_text_included": true,
+      "strict_utf8_valid": true,
+      "replacement_characters": 0,
+      "null_characters": 0,
+      "original_files": [
+        {
+          "file": "03-main-prose.ko.draft.md",
+          "sha256": "B8E441F17CF2FC8D0C32E3959D5C77374C09317B8E6297BAD2BEDCFFFF50CB58",
+          "matches_existing_manifest": true
+        },
+        {
+          "file": "03-qa.ko.md",
+          "sha256": "D585F92C279880FBF2E43A84C98B3B894E784C4356CDDB72DEF0409A88E5C2EE",
+          "matches_existing_manifest": true
+        }
+      ]
+    },
+    {
+      "chapter": 4,
+      "recovery_file": "collation/04-recovered-passages.ko.draft.md",
+      "bytes": 2156,
+      "sha256": "BDCA4E914A3B13F111608D3EF2152917D5F41E942321980B79BB2808E2FF387B",
+      "conjecture_markers": 1,
+      "all_original_marker_text_included": true,
+      "strict_utf8_valid": true,
+      "replacement_characters": 0,
+      "null_characters": 0,
+      "original_files": [
+        {
+          "file": "04-main-prose.ko.draft.md",
+          "sha256": "E918D219DC46B66AB177F8D8586079DDEE580E71AAFE39BBBEB7F267D81E6648",
+          "matches_existing_manifest": true
+        },
+        {
+          "file": "04-qa.ko.md",
+          "sha256": "A0459300A78CD275933F89083F2C1DE7C26F93960F6A536E1BF443B458393966",
+          "matches_existing_manifest": true
+        }
+      ]
+    },
+    {
+      "chapter": 5,
+      "recovery_file": "collation/05-recovered-passages.ko.draft.md",
+      "bytes": 34763,
+      "sha256": "00EFCDAB905B4E3046E0C3F40D20B9D6ED0DE04452029D1E4D26F18319384B73",
+      "conjecture_markers": 17,
+      "all_original_marker_text_included": true,
+      "strict_utf8_valid": true,
+      "replacement_characters": 0,
+      "null_characters": 0,
+      "original_files": [
+        {
+          "file": "05-main-prose.ko.draft.md",
+          "sha256": "976E0A3AE55036D7713049192EC7BC1AA292F83E2C0293FC0716D5321A925A79",
+          "matches_existing_manifest": true
+        },
+        {
+          "file": "05-qa.ko.md",
+          "sha256": "8CC1917660E0926FF636BEFA161D5A4B4EB3A1328151709975879157D6315168",
+          "matches_existing_manifest": true
+        }
+      ]
+    },
+    {
+      "chapter": 6,
+      "recovery_file": "collation/06-recovered-passages.ko.draft.md",
+      "bytes": 4924,
+      "sha256": "093F93EEB71343B861242856549B8D1038A596483A39D0DAEC50BF2C2D63538A",
+      "conjecture_markers": 3,
+      "all_original_marker_text_included": true,
+      "strict_utf8_valid": true,
+      "replacement_characters": 0,
+      "null_characters": 0,
+      "original_files": [
+        {
+          "file": "06-main-prose.ko.draft.md",
+          "sha256": "4FB515C6260F9DAA98EDBED07F7BFB48B36C4B27DE46F268C59AF464F73CA011",
+          "matches_existing_manifest": true
+        },
+        {
+          "file": "06-qa.ko.md",
+          "sha256": "7582D9546D5E323CD3414FC7E52B0EDD708953AF1499726D66E40BCD1BA5FA88",
+          "matches_existing_manifest": true
+        }
+      ]
+    },
+    {
+      "chapter": 7,
+      "recovery_file": "collation/07-recovered-passages.ko.draft.md",
+      "bytes": 7969,
+      "sha256": "F2607522E5C083A006B04915E8FA99DC42B81E772AFB59FA3C4957C3920BB350",
+      "conjecture_markers": 6,
+      "all_original_marker_text_included": true,
+      "strict_utf8_valid": true,
+      "replacement_characters": 0,
+      "null_characters": 0,
+      "original_files": [
+        {
+          "file": "07-main-prose.ko.draft.md",
+          "sha256": "D41447F954AF247FCEFC612731FBBF584DA624FF45017FC406FF2CB39F795BB7",
+          "matches_existing_manifest": true
+        },
+        {
+          "file": "07-qa.ko.md",
+          "sha256": "BC0E57334877E814E08F93DB746693C37E0636F3E66DC6A9B0AC2DCFF253CD57",
+          "matches_existing_manifest": true
+        }
+      ]
+    },
+    {
+      "chapter": 8,
+      "recovery_file": "collation/08-recovered-passages.ko.draft.md",
+      "bytes": 26046,
+      "sha256": "B395F9312494526D3F0844410A35921B3326959DF5E5E49FF5FCACEFFB34FA19",
+      "conjecture_markers": 10,
+      "all_original_marker_text_included": true,
+      "strict_utf8_valid": true,
+      "replacement_characters": 0,
+      "null_characters": 0,
+      "original_files": [
+        {
+          "file": "08-main-prose.ko.draft.md",
+          "sha256": "821C31C346DDF5A9BDE559D74B575A04222A3838960A960A699D647B6FF53EEE",
+          "matches_existing_manifest": true
+        },
+        {
+          "file": "08-qa.ko.md",
+          "sha256": "EBDDA1E88609741162E029166D8D704B57E11DC3A5088315F967845DEA39CA50",
+          "matches_existing_manifest": true
+        }
+      ]
+    },
+    {
+      "chapter": 9,
+      "recovery_file": "collation/09-recovered-passages.ko.draft.md",
+      "bytes": 18153,
+      "sha256": "33F4144DC8E1D1B7396EEAE3D8032628FEC177FBF20A0ADD695AC74115256181",
+      "conjecture_markers": 7,
+      "all_original_marker_text_included": true,
+      "strict_utf8_valid": true,
+      "replacement_characters": 0,
+      "null_characters": 0,
+      "original_files": [
+        {
+          "file": "09-main-prose.ko.draft.md",
+          "sha256": "5E56BC9E5BA20FE9D2399114B606E0E916A4B5D7495322B6132A0A0F32004BDF",
+          "matches_existing_manifest": true
+        },
+        {
+          "file": "09-qa.ko.md",
+          "sha256": "4116C8C78E0857A59553CFEBEDE3CADCA1ED58376A6ABFED4EF97ABCC7AE1A29",
+          "matches_existing_manifest": true
+        }
+      ]
+    }
+  ],
+  "historical_review_complete": false,
+  "final_korean_edit_complete": false,
+  "original_drafts_and_qa_unchanged": true,
+  "original_manifest_and_readme_edited": false,
+  "app_database_training_integration": false,
+  "committed_or_pushed": false,
+  "coverage_gaps": [
+    "Before c.476",
+    "After 1874"
+  ],
+  "derivative_worldbuilding_is_separate": true
+}

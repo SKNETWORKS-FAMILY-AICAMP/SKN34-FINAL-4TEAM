@@ -1,0 +1,2319 @@
+{
+  "schema_version": 1,
+  "checked_date": "2026-11-13",
+  "scope": "Mechanical integration of 63 documented recovery replacements into eleven preserved chapter drafts. No new scan reading, translation rewriting or historical review in this integration stage.",
+  "coordinate_system": "JavaScript UTF-16 offsets [start,end); hashes are exact UTF-8 bytes, retaining existing line endings.",
+  "integrated": {
+    "file": "integrated-11-chapters.ko.collated-draft.md",
+    "bytes": 569169,
+    "sha256": "07224022BC78BC69902B0F0FA2F741A6D5302C250A4C9281B8EC26AF56993762"
+  },
+  "chapter_section_counts": [
+    12,
+    14,
+    15,
+    12,
+    15,
+    15,
+    17,
+    13,
+    14,
+    14,
+    16
+  ],
+  "total_numbered_sections": 157,
+  "conjecture_replacements": 63,
+  "nested_unreadable_resolved": 1,
+  "nested_unreadable_included_in_replacement": "05-10",
+  "unchanged_heading_confirmed": {
+    "id": "06-추가",
+    "chapter": 6,
+    "section": 10,
+    "before": "### 10. 코시모와 피에로 데 메디치",
+    "after": "### 10. 코시모와 피에로 데 메디치",
+    "recovery_file": "collation/06-recovered-passages.ko.draft.md",
+    "google_pdf_page": 121,
+    "toronto_pdf_page": 120
+  },
+  "sources_and_protected_inputs": [
+    {
+      "file": "01-main-prose.ko.draft.md",
+      "bytes": 44708,
+      "sha256": "454147EC6E55685E67F78EE836E53300E15AA4B83B7AC819DF1DA189463D82BA"
+    },
+    {
+      "file": "01-section-01.ko.partial.md",
+      "bytes": 8100,
+      "sha256": "28444EF13AD0139B86FD80C39F96542376F5DC9AD14340B394AE5E47017068CD"
+    },
+    {
+      "file": "01-sections-02-05.ko.partial.md",
+      "bytes": 7850,
+      "sha256": "559A0CC62D6B5C01BD728B418BB18B0BFD1A34EF07773A2C6C18EF9C2C1696FC"
+    },
+    {
+      "file": "01-sections-06-08.ko.partial.md",
+      "bytes": 11842,
+      "sha256": "0ADBFEB5384E7D2431F6254D7C92782367E26B234917A3F96E588F9445E13954"
+    },
+    {
+      "file": "01-sections-09-12.ko.partial.md",
+      "bytes": 16112,
+      "sha256": "7EFBFA761DC85FBA749BD1245DB9E9FD54F7A60BBFDFC84FD3B85A79CCE91599"
+    },
+    {
+      "file": "02-main-prose.ko.draft.md",
+      "bytes": 47009,
+      "sha256": "DE9BE5D0DC52E7C27E7066981E48A921D9C99922DA26D3CB8F495DF2B64BAA3A"
+    },
+    {
+      "file": "02-qa.ko.md",
+      "bytes": 7467,
+      "sha256": "25488B9E3343CA9822D54D5FB0B0E2B1F9109639D9E684497932A194BFBCB147"
+    },
+    {
+      "file": "03-main-prose.ko.draft.md",
+      "bytes": 41592,
+      "sha256": "B8E441F17CF2FC8D0C32E3959D5C77374C09317B8E6297BAD2BEDCFFFF50CB58"
+    },
+    {
+      "file": "03-qa.ko.md",
+      "bytes": 13828,
+      "sha256": "D585F92C279880FBF2E43A84C98B3B894E784C4356CDDB72DEF0409A88E5C2EE"
+    },
+    {
+      "file": "04-main-prose.ko.draft.md",
+      "bytes": 40320,
+      "sha256": "E918D219DC46B66AB177F8D8586079DDEE580E71AAFE39BBBEB7F267D81E6648"
+    },
+    {
+      "file": "04-qa.ko.md",
+      "bytes": 11351,
+      "sha256": "A0459300A78CD275933F89083F2C1DE7C26F93960F6A536E1BF443B458393966"
+    },
+    {
+      "file": "05-main-prose.ko.draft.md",
+      "bytes": 48742,
+      "sha256": "976E0A3AE55036D7713049192EC7BC1AA292F83E2C0293FC0716D5321A925A79"
+    },
+    {
+      "file": "05-qa.ko.md",
+      "bytes": 17706,
+      "sha256": "8CC1917660E0926FF636BEFA161D5A4B4EB3A1328151709975879157D6315168"
+    },
+    {
+      "file": "06-main-prose.ko.draft.md",
+      "bytes": 56047,
+      "sha256": "4FB515C6260F9DAA98EDBED07F7BFB48B36C4B27DE46F268C59AF464F73CA011"
+    },
+    {
+      "file": "06-qa.ko.md",
+      "bytes": 13441,
+      "sha256": "7582D9546D5E323CD3414FC7E52B0EDD708953AF1499726D66E40BCD1BA5FA88"
+    },
+    {
+      "file": "07-main-prose.ko.draft.md",
+      "bytes": 62578,
+      "sha256": "D41447F954AF247FCEFC612731FBBF584DA624FF45017FC406FF2CB39F795BB7"
+    },
+    {
+      "file": "07-qa.ko.md",
+      "bytes": 17475,
+      "sha256": "BC0E57334877E814E08F93DB746693C37E0636F3E66DC6A9B0AC2DCFF253CD57"
+    },
+    {
+      "file": "08-main-prose.ko.draft.md",
+      "bytes": 49400,
+      "sha256": "821C31C346DDF5A9BDE559D74B575A04222A3838960A960A699D647B6FF53EEE"
+    },
+    {
+      "file": "08-qa.ko.md",
+      "bytes": 9789,
+      "sha256": "EBDDA1E88609741162E029166D8D704B57E11DC3A5088315F967845DEA39CA50"
+    },
+    {
+      "file": "09-main-prose.ko.draft.md",
+      "bytes": 56252,
+      "sha256": "5E56BC9E5BA20FE9D2399114B606E0E916A4B5D7495322B6132A0A0F32004BDF"
+    },
+    {
+      "file": "09-qa.ko.md",
+      "bytes": 11953,
+      "sha256": "4116C8C78E0857A59553CFEBEDE3CADCA1ED58376A6ABFED4EF97ABCC7AE1A29"
+    },
+    {
+      "file": "10-main-prose.ko.draft.md",
+      "bytes": 59004,
+      "sha256": "E9054344DBF1330D58D56DEEE914133B8E9C410732030CE74A94323F458D48E2"
+    },
+    {
+      "file": "10-qa.ko.md",
+      "bytes": 7377,
+      "sha256": "675D8B532BFCD858F87D4AD5B679DB25A4D01B852B559B2FA573746FD703A8E0"
+    },
+    {
+      "file": "11-main-prose.ko.draft.md",
+      "bytes": 76497,
+      "sha256": "6A707D8EEBF97A11AE7710C457C607049B6752513BEA00C86BDB69AD391BF4EA"
+    },
+    {
+      "file": "11-qa.ko.md",
+      "bytes": 9706,
+      "sha256": "1090A6ADA82A35150E0E343F9639666EF9AEBEB28930412ACD5478CCE994B262"
+    },
+    {
+      "file": "chronological-table-qa.ko.md",
+      "bytes": 1783,
+      "sha256": "A2ABCFE6600150FC7E780AD75A72CAB78B23978B0DF553922FE74D765F649BA5"
+    },
+    {
+      "file": "chronological-table.ko.draft.md",
+      "bytes": 6269,
+      "sha256": "10B2F3CC657A9439A97C1B27F9DA3A3E6C6E528C88748622014D8BACFCB1AF4A"
+    },
+    {
+      "file": "scan-collation-first-sample.ko.md",
+      "bytes": 5838,
+      "sha256": "05DBE1531BD20DC4237AD483B423E10884E3EEA7BC8306316DAF9B4399E66B50"
+    },
+    {
+      "file": "source-en.txt",
+      "bytes": 581291,
+      "sha256": "DEE6107BC3ADBF9CE0E37CBEC29D98BE64B7E0D9066A4DA2B12E2B9F62A85B73"
+    },
+    {
+      "file": "source-scan.pdf",
+      "bytes": 6277770,
+      "sha256": "807409168C96A3FB1794C3D2B3DFC8125F91CA2BED6EDB80594842A730C8F644"
+    },
+    {
+      "file": "source-toronto-1883-extracted.txt",
+      "bytes": 584954,
+      "sha256": "8006E12EB376BA37163FD3777E84A257B116E7556645CC8A62F39A9748FB97F4"
+    },
+    {
+      "file": "source-toronto-1883-scan.pdf",
+      "bytes": 14373105,
+      "sha256": "65697AE4B66BBF789C5E78214033868D7864B3EDFCDE2B365C5D1700EB0F3CA1"
+    },
+    {
+      "file": "worldbuilding-01.derived-draft.md",
+      "bytes": 3375,
+      "sha256": "C30DC1CF8A8D1E922D28CEE0D1412F6F4841D6909D5E9BBC8650773DA6710B6C"
+    },
+    {
+      "file": "worldbuilding-02.derived-draft.md",
+      "bytes": 7587,
+      "sha256": "EB0B9A4D0ABCF7C78BD0F01C45C4E9A82B6D3C2B66A1DCCDA63FB65230523BFD"
+    },
+    {
+      "file": "collation/02-09-collation-audit.json",
+      "bytes": 8103,
+      "sha256": "914F3256445809D69EE2638BCA200E4459945575940F6A0CE63AE827201181A9"
+    },
+    {
+      "file": "collation/02-recovered-passages.ko.draft.md",
+      "bytes": 28859,
+      "sha256": "C95A09E36540761FE019CF88ED314DF37EEE0FB3D66E2F36A3A37C233EDCD26F"
+    },
+    {
+      "file": "collation/03-recovered-passages.ko.draft.md",
+      "bytes": 14601,
+      "sha256": "B994C3B670D6D5EC9C73BE411BD96745AEF2132C47B4DDBE154EE7545054584B"
+    },
+    {
+      "file": "collation/04-recovered-passages.ko.draft.md",
+      "bytes": 2156,
+      "sha256": "BDCA4E914A3B13F111608D3EF2152917D5F41E942321980B79BB2808E2FF387B"
+    },
+    {
+      "file": "collation/05-recovered-passages.ko.draft.md",
+      "bytes": 34763,
+      "sha256": "00EFCDAB905B4E3046E0C3F40D20B9D6ED0DE04452029D1E4D26F18319384B73"
+    },
+    {
+      "file": "collation/06-recovered-passages.ko.draft.md",
+      "bytes": 4924,
+      "sha256": "093F93EEB71343B861242856549B8D1038A596483A39D0DAEC50BF2C2D63538A"
+    },
+    {
+      "file": "collation/07-recovered-passages.ko.draft.md",
+      "bytes": 7969,
+      "sha256": "F2607522E5C083A006B04915E8FA99DC42B81E772AFB59FA3C4957C3920BB350"
+    },
+    {
+      "file": "collation/08-recovered-passages.ko.draft.md",
+      "bytes": 26046,
+      "sha256": "B395F9312494526D3F0844410A35921B3326959DF5E5E49FF5FCACEFFB34FA19"
+    },
+    {
+      "file": "collation/09-recovered-passages.ko.draft.md",
+      "bytes": 18153,
+      "sha256": "33F4144DC8E1D1B7396EEAE3D8032628FEC177FBF20A0ADD695AC74115256181"
+    }
+  ],
+  "chapters": [
+    {
+      "chapter": 1,
+      "source_file": "01-main-prose.ko.draft.md",
+      "source_file_sha256": "454147EC6E55685E67F78EE836E53300E15AA4B83B7AC819DF1DA189463D82BA",
+      "retained_source_ranges": [
+        {
+          "start_utf16": 1414,
+          "end_utf16": 1706,
+          "utf8_sha256": "CE2E5F01A74E45BF5D19B13241CA4DA6C4D55B5FE33C83A9D2B6F089736F7BEB"
+        },
+        {
+          "start_utf16": 1706,
+          "end_utf16": 3475,
+          "utf8_sha256": "CE440A7D3542ECF427CE3F445D38DDFD3EAF2CB701A6DDCC63228DEFF9E5E800"
+        },
+        {
+          "start_utf16": 4581,
+          "end_utf16": 5235,
+          "utf8_sha256": "56D0218C7E781D02F1B6D89830BD863088245DBED641E9006D9535378B4DE032"
+        },
+        {
+          "start_utf16": 5235,
+          "end_utf16": 5568,
+          "utf8_sha256": "470A988340F0AF91C6EA072446B8CAB534EF523928B5B58EBB59B30711001650"
+        },
+        {
+          "start_utf16": 5568,
+          "end_utf16": 6098,
+          "utf8_sha256": "B9F48D02BAE07FD596850377D7B848F8C29D7D91DDCAE2A0119E18DCCC8E1319"
+        },
+        {
+          "start_utf16": 6098,
+          "end_utf16": 6906,
+          "utf8_sha256": "9717E975D44848345F0876008B6C4D6DEED86ECBD36F9028CB5FCB0C455296D6"
+        },
+        {
+          "start_utf16": 7987,
+          "end_utf16": 9085,
+          "utf8_sha256": "1D2798AC880D83DA3F694778E1214CC2BF05D5069720BF076F6BC047061B5B61"
+        },
+        {
+          "start_utf16": 9085,
+          "end_utf16": 10899,
+          "utf8_sha256": "D9ACDAAD088226AE7AAE8E60EE3769CA44244717851A76A013BA7AD18908D548"
+        },
+        {
+          "start_utf16": 10899,
+          "end_utf16": 11973,
+          "utf8_sha256": "F05FF0A70D31246650C111B600AF0D3A3D86B37948E54979EC88FC1FD17EBCCF"
+        },
+        {
+          "start_utf16": 13038,
+          "end_utf16": 14081,
+          "utf8_sha256": "6177F824BD0EFF036CC22566DE65A7BE516C2B0B01FC765163F20E8F9D4A73D1"
+        },
+        {
+          "start_utf16": 14081,
+          "end_utf16": 15641,
+          "utf8_sha256": "6F5F570F71DE089BE9929F26EAC7E70C17BDF83FA83DAB6E426C790394B93EE5"
+        },
+        {
+          "start_utf16": 15641,
+          "end_utf16": 16943,
+          "utf8_sha256": "33BDC03174939C0158AADC5188C6B070EEF8FFBEB7AA23E143AB4C24F356B1FF"
+        },
+        {
+          "start_utf16": 16943,
+          "end_utf16": 18523,
+          "utf8_sha256": "BA536DCF07E57C565606C329854C1C1F062EF0E6B726F1BF2CD0EA33ED1C0EE6"
+        }
+      ],
+      "source_body_sha256": "64CC6D5E7572DC76CE56BE1FE24C4C22521B55FE1D81376E2BA7742B0E84884E",
+      "integrated_body_sha256": "64CC6D5E7572DC76CE56BE1FE24C4C22521B55FE1D81376E2BA7742B0E84884E",
+      "integrated_file_range": {
+        "chapter": 1,
+        "start_utf16": 2588,
+        "end_utf16": 16445
+      },
+      "numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "replacement_count": 0,
+      "unchanged_segments": [
+        {
+          "source_start": 0,
+          "source_end": 13857,
+          "integrated_body_start": 0,
+          "integrated_body_end": 13857,
+          "utf8_sha256": "64CC6D5E7572DC76CE56BE1FE24C4C22521B55FE1D81376E2BA7742B0E84884E"
+        }
+      ],
+      "reverse_reconstruction_exact": true,
+      "unresolved_markers_in_integrated_body": 0
+    },
+    {
+      "chapter": 2,
+      "source_file": "02-main-prose.ko.draft.md",
+      "source_file_sha256": "DE9BE5D0DC52E7C27E7066981E48A921D9C99922DA26D3CB8F495DF2B64BAA3A",
+      "retained_source_ranges": [
+        {
+          "start_utf16": 767,
+          "end_utf16": 19539,
+          "utf8_sha256": "27A25F5D7A2E78442B26EE19C118DD454B21500DE6286D2027ADB7674A59C27F"
+        }
+      ],
+      "source_body_sha256": "27A25F5D7A2E78442B26EE19C118DD454B21500DE6286D2027ADB7674A59C27F",
+      "integrated_body_sha256": "883D1E46CAA33FEF7FA27CF1B602477FC4B73A72D7C53E48D63A4F48A89FB874",
+      "integrated_file_range": {
+        "chapter": 2,
+        "start_utf16": 16634,
+        "end_utf16": 35251
+      },
+      "numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "replacement_count": 11,
+      "unchanged_segments": [
+        {
+          "source_start": 0,
+          "source_end": 7207,
+          "integrated_body_start": 0,
+          "integrated_body_end": 7207,
+          "utf8_sha256": "E7B0D1C612678F0E1AEB6C95E4C498961C01537A487B0A244AD5D701DC8D7F8B"
+        },
+        {
+          "source_start": 7463,
+          "source_end": 7465,
+          "integrated_body_start": 7458,
+          "integrated_body_end": 7460,
+          "utf8_sha256": "75A11DA44C802486BC6F65640AA48A730F0F684C5C07A42BA3CD1735EB3FB070"
+        },
+        {
+          "source_start": 7739,
+          "source_end": 7741,
+          "integrated_body_start": 7724,
+          "integrated_body_end": 7726,
+          "utf8_sha256": "75A11DA44C802486BC6F65640AA48A730F0F684C5C07A42BA3CD1735EB3FB070"
+        },
+        {
+          "source_start": 8157,
+          "source_end": 9478,
+          "integrated_body_start": 8119,
+          "integrated_body_end": 9440,
+          "utf8_sha256": "8005A26D540836260425165BC839CA78143D344584095A7D43DA2B12E18CD18E"
+        },
+        {
+          "source_start": 9601,
+          "source_end": 9603,
+          "integrated_body_start": 9553,
+          "integrated_body_end": 9555,
+          "utf8_sha256": "75A11DA44C802486BC6F65640AA48A730F0F684C5C07A42BA3CD1735EB3FB070"
+        },
+        {
+          "source_start": 10131,
+          "source_end": 12958,
+          "integrated_body_start": 10057,
+          "integrated_body_end": 12884,
+          "utf8_sha256": "55FEBD7A0423ADDD302B01071F9B68F4010725FBF2F553C8B12804CDBCC0C325"
+        },
+        {
+          "source_start": 13177,
+          "source_end": 13179,
+          "integrated_body_start": 13095,
+          "integrated_body_end": 13097,
+          "utf8_sha256": "75A11DA44C802486BC6F65640AA48A730F0F684C5C07A42BA3CD1735EB3FB070"
+        },
+        {
+          "source_start": 13313,
+          "source_end": 13401,
+          "integrated_body_start": 13221,
+          "integrated_body_end": 13309,
+          "utf8_sha256": "105A117BD39683D66EEB440EAA45444850DD6A4EED649373452705A9F13B7ED0"
+        },
+        {
+          "source_start": 14058,
+          "source_end": 15574,
+          "integrated_body_start": 13938,
+          "integrated_body_end": 15454,
+          "utf8_sha256": "B6CC6334D4F86215E3D01A39899DD0BDAD291378738B5FBDC71A5B4648EC60BC"
+        },
+        {
+          "source_start": 15955,
+          "source_end": 17543,
+          "integrated_body_start": 15820,
+          "integrated_body_end": 17408,
+          "utf8_sha256": "9E8E4A21A9DBDC0DE3A173532391AD09808A4F6337838C55739F99AD41E5ADF9"
+        },
+        {
+          "source_start": 17731,
+          "source_end": 17784,
+          "integrated_body_start": 17583,
+          "integrated_body_end": 17636,
+          "utf8_sha256": "FF80CB2A3F39E667EBB3E767EF1773EF7D15F9D2D4AFE5BB48EE97C4D3BB979E"
+        },
+        {
+          "source_start": 17973,
+          "source_end": 18772,
+          "integrated_body_start": 17818,
+          "integrated_body_end": 18617,
+          "utf8_sha256": "3182AF1F241E5D44F40DA7499BF50C992E1B9D30278DF4CEDF09DFDCFF7F861C"
+        }
+      ],
+      "reverse_reconstruction_exact": true,
+      "unresolved_markers_in_integrated_body": 0
+    },
+    {
+      "chapter": 3,
+      "source_file": "03-main-prose.ko.draft.md",
+      "source_file_sha256": "B8E441F17CF2FC8D0C32E3959D5C77374C09317B8E6297BAD2BEDCFFFF50CB58",
+      "retained_source_ranges": [
+        {
+          "start_utf16": 930,
+          "end_utf16": 17283,
+          "utf8_sha256": "D56E7DBF7897DDB39F068E755128E07B6C5C31ADE79F147D70E4A2F3A2417ACC"
+        }
+      ],
+      "source_body_sha256": "D56E7DBF7897DDB39F068E755128E07B6C5C31ADE79F147D70E4A2F3A2417ACC",
+      "integrated_body_sha256": "241F303362578B0220F0B854FC0D5FCDBADFF1AF46910790C4FCE1186B8F584C",
+      "integrated_file_range": {
+        "chapter": 3,
+        "start_utf16": 35439,
+        "end_utf16": 51712
+      },
+      "numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "replacement_count": 8,
+      "unchanged_segments": [
+        {
+          "source_start": 0,
+          "source_end": 6696,
+          "integrated_body_start": 0,
+          "integrated_body_end": 6696,
+          "utf8_sha256": "28A4E4CB95AD6314032CCC29081C8DD435DD8B305C132DA3E0300F990274CC9D"
+        },
+        {
+          "source_start": 7035,
+          "source_end": 7037,
+          "integrated_body_start": 7025,
+          "integrated_body_end": 7027,
+          "utf8_sha256": "75A11DA44C802486BC6F65640AA48A730F0F684C5C07A42BA3CD1735EB3FB070"
+        },
+        {
+          "source_start": 7329,
+          "source_end": 7331,
+          "integrated_body_start": 7309,
+          "integrated_body_end": 7311,
+          "utf8_sha256": "75A11DA44C802486BC6F65640AA48A730F0F684C5C07A42BA3CD1735EB3FB070"
+        },
+        {
+          "source_start": 7495,
+          "source_end": 7567,
+          "integrated_body_start": 7465,
+          "integrated_body_end": 7537,
+          "utf8_sha256": "9592FC6FD5B212556609310AFC12E5F53FF8A178D6A3E55FA6139445E6DA9E86"
+        },
+        {
+          "source_start": 7843,
+          "source_end": 15447,
+          "integrated_body_start": 7803,
+          "integrated_body_end": 15407,
+          "utf8_sha256": "D6E7A8F516E29BE8D6AE43289BBE039539E874C9834CE057A0A4D36009CEA910"
+        },
+        {
+          "source_start": 15706,
+          "source_end": 15708,
+          "integrated_body_start": 15656,
+          "integrated_body_end": 15658,
+          "utf8_sha256": "75A11DA44C802486BC6F65640AA48A730F0F684C5C07A42BA3CD1735EB3FB070"
+        },
+        {
+          "source_start": 15869,
+          "source_end": 15871,
+          "integrated_body_start": 15809,
+          "integrated_body_end": 15811,
+          "utf8_sha256": "75A11DA44C802486BC6F65640AA48A730F0F684C5C07A42BA3CD1735EB3FB070"
+        },
+        {
+          "source_start": 16155,
+          "source_end": 16157,
+          "integrated_body_start": 16085,
+          "integrated_body_end": 16087,
+          "utf8_sha256": "75A11DA44C802486BC6F65640AA48A730F0F684C5C07A42BA3CD1735EB3FB070"
+        },
+        {
+          "source_start": 16352,
+          "source_end": 16353,
+          "integrated_body_start": 16272,
+          "integrated_body_end": 16273,
+          "utf8_sha256": "01BA4719C80B6FE911B091A7C05124B64EEECE964E09C058EF8F9805DACA546B"
+        }
+      ],
+      "reverse_reconstruction_exact": true,
+      "unresolved_markers_in_integrated_body": 0
+    },
+    {
+      "chapter": 4,
+      "source_file": "04-main-prose.ko.draft.md",
+      "source_file_sha256": "E918D219DC46B66AB177F8D8586079DDEE580E71AAFE39BBBEB7F267D81E6648",
+      "retained_source_ranges": [
+        {
+          "start_utf16": 707,
+          "end_utf16": 16952,
+          "utf8_sha256": "DD3F4DDC240FB67691E534DBBCAE078AEEDED0F15DBC9EA35F6A25F39FF43D86"
+        }
+      ],
+      "source_body_sha256": "DD3F4DDC240FB67691E534DBBCAE078AEEDED0F15DBC9EA35F6A25F39FF43D86",
+      "integrated_body_sha256": "7D7DD215250561C33245B7116BBCEBFE00614B9DD897B22501081981CC6EE930",
+      "integrated_file_range": {
+        "chapter": 4,
+        "start_utf16": 51900,
+        "end_utf16": 68135
+      },
+      "numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "replacement_count": 1,
+      "unchanged_segments": [
+        {
+          "source_start": 0,
+          "source_end": 11365,
+          "integrated_body_start": 0,
+          "integrated_body_end": 11365,
+          "utf8_sha256": "338C11CF4A346C507C907BF10AFB8625590617B9287B188FF0524856B50ADD40"
+        },
+        {
+          "source_start": 11433,
+          "source_end": 16245,
+          "integrated_body_start": 11423,
+          "integrated_body_end": 16235,
+          "utf8_sha256": "EF849E89B20274CD4758A0A25D77E52D8C696D3102A7A3F2F89372B0F6307A1A"
+        }
+      ],
+      "reverse_reconstruction_exact": true,
+      "unresolved_markers_in_integrated_body": 0
+    },
+    {
+      "chapter": 5,
+      "source_file": "05-main-prose.ko.draft.md",
+      "source_file_sha256": "976E0A3AE55036D7713049192EC7BC1AA292F83E2C0293FC0716D5321A925A79",
+      "retained_source_ranges": [
+        {
+          "start_utf16": 958,
+          "end_utf16": 20494,
+          "utf8_sha256": "DAADEEB3D7C0156BD6F9AB1E8513C0766C13549D3CA281F2946EEC8ECA993107"
+        }
+      ],
+      "source_body_sha256": "DAADEEB3D7C0156BD6F9AB1E8513C0766C13549D3CA281F2946EEC8ECA993107",
+      "integrated_body_sha256": "B4AEE73E5B2530AE0736C244FDAF115AA662CF9C8BE5D011B6E9AE62FA11D2D4",
+      "integrated_file_range": {
+        "chapter": 5,
+        "start_utf16": 68324,
+        "end_utf16": 87684
+      },
+      "numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "replacement_count": 17,
+      "unchanged_segments": [
+        {
+          "source_start": 0,
+          "source_end": 555,
+          "integrated_body_start": 0,
+          "integrated_body_end": 555,
+          "utf8_sha256": "F6A12264ACC43D0AF54E59B8B51FFD810DA2F900B1BB5A726018631810E26578"
+        },
+        {
+          "source_start": 677,
+          "source_end": 2402,
+          "integrated_body_start": 667,
+          "integrated_body_end": 2392,
+          "utf8_sha256": "16EBE6B352DB8AA1B8A2A0836EA04988D2FF6AF85A68F4B9280878B5CCE032CF"
+        },
+        {
+          "source_start": 2533,
+          "source_end": 4512,
+          "integrated_body_start": 2512,
+          "integrated_body_end": 4491,
+          "utf8_sha256": "67E11429DDADA589067D1892FBB39E1A03980B7F479D6657A805F91FC3C8E06A"
+        },
+        {
+          "source_start": 4581,
+          "source_end": 8798,
+          "integrated_body_start": 4550,
+          "integrated_body_end": 8767,
+          "utf8_sha256": "E4D805F3DF79975A2D3615FD2589326BFE9ACAF16EC83C0CB8EA8190E2EF5FA5"
+        },
+        {
+          "source_start": 8958,
+          "source_end": 9300,
+          "integrated_body_start": 8917,
+          "integrated_body_end": 9259,
+          "utf8_sha256": "CE0F380A2DDBF5638177AB72EC772F67D643BF6584636BE276E54CCF4235EB03"
+        },
+        {
+          "source_start": 9555,
+          "source_end": 9559,
+          "integrated_body_start": 9504,
+          "integrated_body_end": 9508,
+          "utf8_sha256": "DBA5166AD9DB9BA648C1032EBBD34DCD0D085B50023B839EF5C68CA1DB93A563"
+        },
+        {
+          "source_start": 9852,
+          "source_end": 9856,
+          "integrated_body_start": 9791,
+          "integrated_body_end": 9795,
+          "utf8_sha256": "DBA5166AD9DB9BA648C1032EBBD34DCD0D085B50023B839EF5C68CA1DB93A563"
+        },
+        {
+          "source_start": 10141,
+          "source_end": 10145,
+          "integrated_body_start": 10070,
+          "integrated_body_end": 10074,
+          "utf8_sha256": "DBA5166AD9DB9BA648C1032EBBD34DCD0D085B50023B839EF5C68CA1DB93A563"
+        },
+        {
+          "source_start": 10240,
+          "source_end": 11941,
+          "integrated_body_start": 10159,
+          "integrated_body_end": 11860,
+          "utf8_sha256": "40D3ECB879FAD647ADD128894BC69E6A3A58E62D8FBBA0446A917FA0D85C6556"
+        },
+        {
+          "source_start": 12058,
+          "source_end": 12062,
+          "integrated_body_start": 11967,
+          "integrated_body_end": 11971,
+          "utf8_sha256": "DBA5166AD9DB9BA648C1032EBBD34DCD0D085B50023B839EF5C68CA1DB93A563"
+        },
+        {
+          "source_start": 12456,
+          "source_end": 12460,
+          "integrated_body_start": 12336,
+          "integrated_body_end": 12340,
+          "utf8_sha256": "DBA5166AD9DB9BA648C1032EBBD34DCD0D085B50023B839EF5C68CA1DB93A563"
+        },
+        {
+          "source_start": 12675,
+          "source_end": 12679,
+          "integrated_body_start": 12556,
+          "integrated_body_end": 12560,
+          "utf8_sha256": "DBA5166AD9DB9BA648C1032EBBD34DCD0D085B50023B839EF5C68CA1DB93A563"
+        },
+        {
+          "source_start": 12980,
+          "source_end": 13902,
+          "integrated_body_start": 12854,
+          "integrated_body_end": 13776,
+          "utf8_sha256": "77783E5ED55B2F8222E8CE431194BED58A6574B216F7102BFD49AD50DCF86843"
+        },
+        {
+          "source_start": 14104,
+          "source_end": 14157,
+          "integrated_body_start": 13968,
+          "integrated_body_end": 14021,
+          "utf8_sha256": "680D7A37F62FEB02A2B4B2F234F2AC232BD8B2896D0CF2CCFCD86E1037434365"
+        },
+        {
+          "source_start": 14408,
+          "source_end": 14412,
+          "integrated_body_start": 14262,
+          "integrated_body_end": 14266,
+          "utf8_sha256": "DBA5166AD9DB9BA648C1032EBBD34DCD0D085B50023B839EF5C68CA1DB93A563"
+        },
+        {
+          "source_start": 14669,
+          "source_end": 14673,
+          "integrated_body_start": 14513,
+          "integrated_body_end": 14517,
+          "utf8_sha256": "DBA5166AD9DB9BA648C1032EBBD34DCD0D085B50023B839EF5C68CA1DB93A563"
+        },
+        {
+          "source_start": 14923,
+          "source_end": 15869,
+          "integrated_body_start": 14757,
+          "integrated_body_end": 15703,
+          "utf8_sha256": "B1102F1BF6C6F874EECD20072E84BF9CE8B7320BA79D289144E0F79B126437E1"
+        },
+        {
+          "source_start": 15909,
+          "source_end": 19536,
+          "integrated_body_start": 15733,
+          "integrated_body_end": 19360,
+          "utf8_sha256": "84843EBCF1063616FF31D14FC1347C4F049969EC61F5F2504998FB2F678AE9F3"
+        }
+      ],
+      "reverse_reconstruction_exact": true,
+      "unresolved_markers_in_integrated_body": 0
+    },
+    {
+      "chapter": 6,
+      "source_file": "06-main-prose.ko.draft.md",
+      "source_file_sha256": "4FB515C6260F9DAA98EDBED07F7BFB48B36C4B27DE46F268C59AF464F73CA011",
+      "retained_source_ranges": [
+        {
+          "start_utf16": 792,
+          "end_utf16": 23303,
+          "utf8_sha256": "D558BEB8DDF45CE2A13169C983B88F57CB9987DDFA26A6ACF75EDE14005E3C68"
+        }
+      ],
+      "source_body_sha256": "D558BEB8DDF45CE2A13169C983B88F57CB9987DDFA26A6ACF75EDE14005E3C68",
+      "integrated_body_sha256": "435D818264825F488BEE58EF8B882BBBB1C382019C7197D924990DA307256A15",
+      "integrated_file_range": {
+        "chapter": 6,
+        "start_utf16": 87872,
+        "end_utf16": 110353
+      },
+      "numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "replacement_count": 3,
+      "unchanged_segments": [
+        {
+          "source_start": 0,
+          "source_end": 1805,
+          "integrated_body_start": 0,
+          "integrated_body_end": 1805,
+          "utf8_sha256": "C2717BB5355C0759FC67F0855003379E57B1F1F70C784AC0CEF3CE2D125F808E"
+        },
+        {
+          "source_start": 1860,
+          "source_end": 16527,
+          "integrated_body_start": 1850,
+          "integrated_body_end": 16517,
+          "utf8_sha256": "E11B7BD5EBF1FD7413299196FFDE9BAA27BFE916199B46B6E9179656291C548C"
+        },
+        {
+          "source_start": 16561,
+          "source_end": 21970,
+          "integrated_body_start": 16541,
+          "integrated_body_end": 21950,
+          "utf8_sha256": "F099972E1A804B6E1BFDFC1D2F56641A292BC811FBABF35BDD724462C65CC7CE"
+        },
+        {
+          "source_start": 22050,
+          "source_end": 22511,
+          "integrated_body_start": 22020,
+          "integrated_body_end": 22481,
+          "utf8_sha256": "1AC64BC6D060663354D72FA77F1819EB0FA8DF886ED6B7BEA01E2336242450FC"
+        }
+      ],
+      "reverse_reconstruction_exact": true,
+      "unresolved_markers_in_integrated_body": 0
+    },
+    {
+      "chapter": 7,
+      "source_file": "07-main-prose.ko.draft.md",
+      "source_file_sha256": "D41447F954AF247FCEFC612731FBBF584DA624FF45017FC406FF2CB39F795BB7",
+      "retained_source_ranges": [
+        {
+          "start_utf16": 811,
+          "end_utf16": 26088,
+          "utf8_sha256": "C1136F09AE1BE0CCA19D973E8FA4CA64550E71746742850270D2AD9E04B5294B"
+        }
+      ],
+      "source_body_sha256": "C1136F09AE1BE0CCA19D973E8FA4CA64550E71746742850270D2AD9E04B5294B",
+      "integrated_body_sha256": "10301420B38CC8E522E76B0F71E307534A5CE727A7400528DD0A305AE91CC02E",
+      "integrated_file_range": {
+        "chapter": 7,
+        "start_utf16": 110541,
+        "end_utf16": 135763
+      },
+      "numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "replacement_count": 6,
+      "unchanged_segments": [
+        {
+          "source_start": 0,
+          "source_end": 887,
+          "integrated_body_start": 0,
+          "integrated_body_end": 887,
+          "utf8_sha256": "398868F1EAFF4E610094C373B621937FF6E47406CDC8743757554FBB432E1CE1"
+        },
+        {
+          "source_start": 976,
+          "source_end": 2702,
+          "integrated_body_start": 966,
+          "integrated_body_end": 2692,
+          "utf8_sha256": "83DD3A61606EC4485D72320954CA5E96D94A08069601647347A2B994A197D5F7"
+        },
+        {
+          "source_start": 2745,
+          "source_end": 4562,
+          "integrated_body_start": 2725,
+          "integrated_body_end": 4542,
+          "utf8_sha256": "6C0B5F36F687E0127E07B98A5932946C3C1DBE21A660BAEB2E379340A84631EB"
+        },
+        {
+          "source_start": 4608,
+          "source_end": 8000,
+          "integrated_body_start": 4578,
+          "integrated_body_end": 7970,
+          "utf8_sha256": "4E0AF279AB56C12642E49CDED11CF61444BB474AB6E09D539D1174B552694C49"
+        },
+        {
+          "source_start": 8074,
+          "source_end": 17033,
+          "integrated_body_start": 8034,
+          "integrated_body_end": 16993,
+          "utf8_sha256": "2D24780C9BAE6945F30A5554D7B4E22CCFE5E54317A263287C59EE1784048D62"
+        },
+        {
+          "source_start": 17083,
+          "source_end": 18741,
+          "integrated_body_start": 17033,
+          "integrated_body_end": 18691,
+          "utf8_sha256": "10EC3A969E910BA3FB531D076E13B6D6CD26D1784D8D354D4B7C5A107A4FB36D"
+        },
+        {
+          "source_start": 18824,
+          "source_end": 25277,
+          "integrated_body_start": 18769,
+          "integrated_body_end": 25222,
+          "utf8_sha256": "F447E3FD9573B1C1B9953A33F6559FDC88644DD3FF0CF775B197D108F6D9420E"
+        }
+      ],
+      "reverse_reconstruction_exact": true,
+      "unresolved_markers_in_integrated_body": 0
+    },
+    {
+      "chapter": 8,
+      "source_file": "08-main-prose.ko.draft.md",
+      "source_file_sha256": "821C31C346DDF5A9BDE559D74B575A04222A3838960A960A699D647B6FF53EEE",
+      "retained_source_ranges": [
+        {
+          "start_utf16": 700,
+          "end_utf16": 20406,
+          "utf8_sha256": "DE79355482BDD4E46E72E1012A86E4375A422B2736AD1A8EC1EE6D036CC4AEDF"
+        }
+      ],
+      "source_body_sha256": "DE79355482BDD4E46E72E1012A86E4375A422B2736AD1A8EC1EE6D036CC4AEDF",
+      "integrated_body_sha256": "0FCE52E44B0DF670537F1B5551286142372F3FFFD6D42C5A2E93DBE479B232AC",
+      "integrated_file_range": {
+        "chapter": 8,
+        "start_utf16": 135952,
+        "end_utf16": 155567
+      },
+      "numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "replacement_count": 10,
+      "unchanged_segments": [
+        {
+          "source_start": 0,
+          "source_end": 4141,
+          "integrated_body_start": 0,
+          "integrated_body_end": 4141,
+          "utf8_sha256": "E2DFF645E01114643532957F101051F51B889358F3CD3310EA44FB2CC880879A"
+        },
+        {
+          "source_start": 4361,
+          "source_end": 4417,
+          "integrated_body_start": 4351,
+          "integrated_body_end": 4407,
+          "utf8_sha256": "D90E52CAF0538D235A1AFF8B2C49FA02893CE0A543CCC61A70B63EC19F9C44B6"
+        },
+        {
+          "source_start": 4766,
+          "source_end": 4768,
+          "integrated_body_start": 4746,
+          "integrated_body_end": 4748,
+          "utf8_sha256": "75A11DA44C802486BC6F65640AA48A730F0F684C5C07A42BA3CD1735EB3FB070"
+        },
+        {
+          "source_start": 5062,
+          "source_end": 8042,
+          "integrated_body_start": 5032,
+          "integrated_body_end": 8012,
+          "utf8_sha256": "C0ED433D4E8738863B3F442A668AAA6E89510020B87888185D26ACEC79C4392C"
+        },
+        {
+          "source_start": 8140,
+          "source_end": 8142,
+          "integrated_body_start": 8100,
+          "integrated_body_end": 8102,
+          "utf8_sha256": "75A11DA44C802486BC6F65640AA48A730F0F684C5C07A42BA3CD1735EB3FB070"
+        },
+        {
+          "source_start": 8351,
+          "source_end": 9685,
+          "integrated_body_start": 8301,
+          "integrated_body_end": 9635,
+          "utf8_sha256": "4FE263149C966D53940B65E572BB715B03FDE8EF08F8129A153D1E70A778E4DD"
+        },
+        {
+          "source_start": 10034,
+          "source_end": 14812,
+          "integrated_body_start": 9974,
+          "integrated_body_end": 14752,
+          "utf8_sha256": "915C06DFCE5290D1DBBD42915ECEDDF40E1E9C886F2D9204E841CE5CC07AF304"
+        },
+        {
+          "source_start": 15136,
+          "source_end": 15138,
+          "integrated_body_start": 15066,
+          "integrated_body_end": 15068,
+          "utf8_sha256": "75A11DA44C802486BC6F65640AA48A730F0F684C5C07A42BA3CD1735EB3FB070"
+        },
+        {
+          "source_start": 15525,
+          "source_end": 15527,
+          "integrated_body_start": 15454,
+          "integrated_body_end": 15456,
+          "utf8_sha256": "75A11DA44C802486BC6F65640AA48A730F0F684C5C07A42BA3CD1735EB3FB070"
+        },
+        {
+          "source_start": 15814,
+          "source_end": 16603,
+          "integrated_body_start": 15733,
+          "integrated_body_end": 16522,
+          "utf8_sha256": "D1812C089AC57EEE1266DE9BF0F4E80594F4A6C830D3C242E3F7D684BA71E38F"
+        },
+        {
+          "source_start": 16651,
+          "source_end": 19706,
+          "integrated_body_start": 16560,
+          "integrated_body_end": 19615,
+          "utf8_sha256": "75720F24838FB70118EDE10D198FC2B82DFE31F42669EF03E392EF0A89527003"
+        }
+      ],
+      "reverse_reconstruction_exact": true,
+      "unresolved_markers_in_integrated_body": 0
+    },
+    {
+      "chapter": 9,
+      "source_file": "09-main-prose.ko.draft.md",
+      "source_file_sha256": "5E56BC9E5BA20FE9D2399114B606E0E916A4B5D7495322B6132A0A0F32004BDF",
+      "retained_source_ranges": [
+        {
+          "start_utf16": 776,
+          "end_utf16": 23315,
+          "utf8_sha256": "20293E47BBC9DEB33C1E6FCA7C049564DFA263D9E9346988483F6C833D86E964"
+        }
+      ],
+      "source_body_sha256": "20293E47BBC9DEB33C1E6FCA7C049564DFA263D9E9346988483F6C833D86E964",
+      "integrated_body_sha256": "458F427FCD08A01C5F93A4F4C9CE6ED2765B41D82C29A7D6D6EFC68C4A11CBFB",
+      "integrated_file_range": {
+        "chapter": 9,
+        "start_utf16": 155755,
+        "end_utf16": 178224
+      },
+      "numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "replacement_count": 7,
+      "unchanged_segments": [
+        {
+          "source_start": 0,
+          "source_end": 10656,
+          "integrated_body_start": 0,
+          "integrated_body_end": 10656,
+          "utf8_sha256": "17255921134BB1FEF4A3237D6FAF1A192102F14119E2DAB95D7E0080F91DFFF9"
+        },
+        {
+          "source_start": 10905,
+          "source_end": 10907,
+          "integrated_body_start": 10895,
+          "integrated_body_end": 10897,
+          "utf8_sha256": "75A11DA44C802486BC6F65640AA48A730F0F684C5C07A42BA3CD1735EB3FB070"
+        },
+        {
+          "source_start": 11171,
+          "source_end": 11227,
+          "integrated_body_start": 11151,
+          "integrated_body_end": 11207,
+          "utf8_sha256": "77A803EA2FF8EF7D124D47A04006F553A237DFFD4B9D57F6DFCB44B9BEEEB8C6"
+        },
+        {
+          "source_start": 11550,
+          "source_end": 14815,
+          "integrated_body_start": 11520,
+          "integrated_body_end": 14785,
+          "utf8_sha256": "AA46E5F477AF3B406B47C7CA327B75E05A695FFB75A3EFE75259B034CAC32C4F"
+        },
+        {
+          "source_start": 15053,
+          "source_end": 15055,
+          "integrated_body_start": 15013,
+          "integrated_body_end": 15015,
+          "utf8_sha256": "75A11DA44C802486BC6F65640AA48A730F0F684C5C07A42BA3CD1735EB3FB070"
+        },
+        {
+          "source_start": 15389,
+          "source_end": 15391,
+          "integrated_body_start": 15339,
+          "integrated_body_end": 15341,
+          "utf8_sha256": "75A11DA44C802486BC6F65640AA48A730F0F684C5C07A42BA3CD1735EB3FB070"
+        },
+        {
+          "source_start": 15601,
+          "source_end": 15603,
+          "integrated_body_start": 15541,
+          "integrated_body_end": 15543,
+          "utf8_sha256": "75A11DA44C802486BC6F65640AA48A730F0F684C5C07A42BA3CD1735EB3FB070"
+        },
+        {
+          "source_start": 15715,
+          "source_end": 22539,
+          "integrated_body_start": 15645,
+          "integrated_body_end": 22469,
+          "utf8_sha256": "622761D90D4892E5C5D8F8F72F2BA855B39FA091C41C5E5A1103EAE756FBF0D4"
+        }
+      ],
+      "reverse_reconstruction_exact": true,
+      "unresolved_markers_in_integrated_body": 0
+    },
+    {
+      "chapter": 10,
+      "source_file": "10-main-prose.ko.draft.md",
+      "source_file_sha256": "E9054344DBF1330D58D56DEEE914133B8E9C410732030CE74A94323F458D48E2",
+      "retained_source_ranges": [
+        {
+          "start_utf16": 0,
+          "end_utf16": 16,
+          "utf8_sha256": "DEDCFEAD9365550F0093077E515D1E05AFB5C88485EFDCB1A2FE18730EB76FB8"
+        },
+        {
+          "start_utf16": 340,
+          "end_utf16": 24390,
+          "utf8_sha256": "BB2E7272FF384954C35A775DF0C5FEF2E24210C68FA55626A0638161F1B90AB7"
+        }
+      ],
+      "source_body_sha256": "27A130109EB9CC6CF359C87565CD99160890607DA89532584D0938F6B54459F1",
+      "integrated_body_sha256": "27A130109EB9CC6CF359C87565CD99160890607DA89532584D0938F6B54459F1",
+      "integrated_file_range": {
+        "chapter": 10,
+        "start_utf16": 178372,
+        "end_utf16": 202438
+      },
+      "numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "replacement_count": 0,
+      "unchanged_segments": [
+        {
+          "source_start": 0,
+          "source_end": 24066,
+          "integrated_body_start": 0,
+          "integrated_body_end": 24066,
+          "utf8_sha256": "27A130109EB9CC6CF359C87565CD99160890607DA89532584D0938F6B54459F1"
+        }
+      ],
+      "reverse_reconstruction_exact": true,
+      "unresolved_markers_in_integrated_body": 0
+    },
+    {
+      "chapter": 11,
+      "source_file": "11-main-prose.ko.draft.md",
+      "source_file_sha256": "6A707D8EEBF97A11AE7710C457C607049B6752513BEA00C86BDB69AD391BF4EA",
+      "retained_source_ranges": [
+        {
+          "start_utf16": 0,
+          "end_utf16": 21,
+          "utf8_sha256": "67462177336FECAA710188DBED5B719B9A84F302F2722365D0B4B5871659310B"
+        },
+        {
+          "start_utf16": 354,
+          "end_utf16": 31376,
+          "utf8_sha256": "AF5ABA8939D0821779F10295F95C892DAB053D7EDAA466670686F98C4158F35D"
+        }
+      ],
+      "source_body_sha256": "A5FE0067BD58EFEA94F2C422CD50193346AED651828220094ED99965ED5FC26B",
+      "integrated_body_sha256": "A5FE0067BD58EFEA94F2C422CD50193346AED651828220094ED99965ED5FC26B",
+      "integrated_file_range": {
+        "chapter": 11,
+        "start_utf16": 202586,
+        "end_utf16": 233629
+      },
+      "numbered_sections": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "replacement_count": 0,
+      "unchanged_segments": [
+        {
+          "source_start": 0,
+          "source_end": 31043,
+          "integrated_body_start": 0,
+          "integrated_body_end": 31043,
+          "utf8_sha256": "A5FE0067BD58EFEA94F2C422CD50193346AED651828220094ED99965ED5FC26B"
+        }
+      ],
+      "reverse_reconstruction_exact": true,
+      "unresolved_markers_in_integrated_body": 0
+    }
+  ],
+  "replacements": [
+    {
+      "id": "02-01",
+      "chapter": 2,
+      "section": 7,
+      "location": "인쇄 23~24 / 기존 PDF 40~41 / 새 PDF 39~40.",
+      "recovery_file": "collation/02-recovered-passages.ko.draft.md",
+      "source_body_start": 7207,
+      "source_body_end": 7463,
+      "integrated_body_start": 7207,
+      "integrated_body_end": 7458,
+      "before_utf8_sha256": "D4EE7EED1C005E48AC518C68BA17E8B63B26453D36EF9F660F73C4A9A165F837",
+      "after_utf8_sha256": "D6A0557DAE4251A5F8CD32E41BAA5CAA8095D0664979A3BDAEB3A79B141578D2",
+      "extended_after_marker": null
+    },
+    {
+      "id": "02-02",
+      "chapter": 2,
+      "section": 7,
+      "location": "인쇄 24 / 기존 PDF 41 / 새 PDF 40.",
+      "recovery_file": "collation/02-recovered-passages.ko.draft.md",
+      "source_body_start": 7465,
+      "source_body_end": 7739,
+      "integrated_body_start": 7460,
+      "integrated_body_end": 7724,
+      "before_utf8_sha256": "6592E0FA9CDB36DA386EF10AB4034A6449EF03D4867EAC7DB4811AD0B41381F3",
+      "after_utf8_sha256": "5655D109867691D3640FD09195883D9FEFF5F94902058A2E35F9D0405F6CC6F1",
+      "extended_after_marker": null
+    },
+    {
+      "id": "02-03",
+      "chapter": 2,
+      "section": 7,
+      "location": "인쇄 24~25 / 기존 PDF 41~42 / 새 PDF 40~41.",
+      "recovery_file": "collation/02-recovered-passages.ko.draft.md",
+      "source_body_start": 7741,
+      "source_body_end": 8157,
+      "integrated_body_start": 7726,
+      "integrated_body_end": 8119,
+      "before_utf8_sha256": "366459B2D75130C6CC0CFADAB8E5FBD1AA76142884CE4F332249A11F09A69D72",
+      "after_utf8_sha256": "CDBC44C9293E4446F77532ECA45AC6688888F3185D1A334AFD3CAAA92D910FF7",
+      "extended_after_marker": null
+    },
+    {
+      "id": "02-04",
+      "chapter": 2,
+      "section": 8,
+      "location": "인쇄 26 / 기존 PDF 43 / 새 PDF 42.",
+      "recovery_file": "collation/02-recovered-passages.ko.draft.md",
+      "source_body_start": 9478,
+      "source_body_end": 9601,
+      "integrated_body_start": 9440,
+      "integrated_body_end": 9553,
+      "before_utf8_sha256": "065E2DCED5ACC8A3E10A72A48B4EABC34DA13619E4DCAB1CCD69D1FAE17A6055",
+      "after_utf8_sha256": "9BDB6C6CB5359B569174566AE2C5A9AA39D525EA963C284F03735136210B2B99",
+      "extended_after_marker": null
+    },
+    {
+      "id": "02-05",
+      "chapter": 2,
+      "section": 8,
+      "location": "인쇄 26~27 / 기존 PDF 43~44 / 새 PDF 42~43.",
+      "recovery_file": "collation/02-recovered-passages.ko.draft.md",
+      "source_body_start": 9603,
+      "source_body_end": 10131,
+      "integrated_body_start": 9555,
+      "integrated_body_end": 10057,
+      "before_utf8_sha256": "82B7ED8F5352D6D278CFBE154F6D1C3E44C7D1BDF68578D0F5340A30265456BF",
+      "after_utf8_sha256": "ECF7434536F15E0BFC9E5F70A2B6C6A37A55FC228262B56D72566E2D9C24E839",
+      "extended_after_marker": " 밀라노에서 격렬한 투쟁을 일으켰다."
+    },
+    {
+      "id": "02-06",
+      "chapter": 2,
+      "section": 10,
+      "location": "인쇄 29~30 / 기존 PDF 46~47 / 새 PDF 45~46.",
+      "recovery_file": "collation/02-recovered-passages.ko.draft.md",
+      "source_body_start": 12958,
+      "source_body_end": 13177,
+      "integrated_body_start": 12884,
+      "integrated_body_end": 13095,
+      "before_utf8_sha256": "99846C4852FAC087E5D60D3363D3775385D1A2475D61A7F78E4BFCC1EC91B596",
+      "after_utf8_sha256": "09C6BC030B61F6B4B039C2ED4E22CE21068BE5436B5259A76FC09D4A13E777F7",
+      "extended_after_marker": null
+    },
+    {
+      "id": "02-07",
+      "chapter": 2,
+      "section": 10,
+      "location": "인쇄 30 / 기존 PDF 47 / 새 PDF 46.",
+      "recovery_file": "collation/02-recovered-passages.ko.draft.md",
+      "source_body_start": 13179,
+      "source_body_end": 13313,
+      "integrated_body_start": 13097,
+      "integrated_body_end": 13221,
+      "before_utf8_sha256": "4B537DA5824338E681CA894CD2C70E8E43BC2813F81899FE86DC71922B44A425",
+      "after_utf8_sha256": "50F123C01FD665C86559ADA47AC333B45FA05B8C68888050BB3384E75100AFA9",
+      "extended_after_marker": null
+    },
+    {
+      "id": "02-08",
+      "chapter": 2,
+      "section": 11,
+      "location": "인쇄 30~31 / 기존 PDF 47~48 / 새 PDF 46~47.",
+      "recovery_file": "collation/02-recovered-passages.ko.draft.md",
+      "source_body_start": 13401,
+      "source_body_end": 14058,
+      "integrated_body_start": 13309,
+      "integrated_body_end": 13938,
+      "before_utf8_sha256": "9CFE71E833C03E94CD23E822F56D191842B28E644B0900C44341349E02413D20",
+      "after_utf8_sha256": "CFB16DA9DA7A4132AEB05A978AEE68E167A4CC8147161F97272E6759E6AB6F70",
+      "extended_after_marker": null
+    },
+    {
+      "id": "02-09",
+      "chapter": 2,
+      "section": 12,
+      "location": "인쇄 32 / 기존 PDF 49 / 새 PDF 48.",
+      "recovery_file": "collation/02-recovered-passages.ko.draft.md",
+      "source_body_start": 15574,
+      "source_body_end": 15955,
+      "integrated_body_start": 15454,
+      "integrated_body_end": 15820,
+      "before_utf8_sha256": "FDF0E2B11C60E83A8333BB2E44ED453789B5CF60541E8A2C3178091D2C80A4D0",
+      "after_utf8_sha256": "C5F18FC8D52E4354BC8B035C2EF7378DBF939165B205CA265E5DCAC67589220F",
+      "extended_after_marker": null
+    },
+    {
+      "id": "02-10",
+      "chapter": 2,
+      "section": 13,
+      "location": "인쇄 34 / 기존 PDF 51 / 새 PDF 50.",
+      "recovery_file": "collation/02-recovered-passages.ko.draft.md",
+      "source_body_start": 17543,
+      "source_body_end": 17731,
+      "integrated_body_start": 17408,
+      "integrated_body_end": 17583,
+      "before_utf8_sha256": "512A042D717C5561560A84BB534749621DB7A4607CDCDF239E0A9069FF119D26",
+      "after_utf8_sha256": "B936E67C179DFFC7D86B37CDD51BAB53AE12F9269CE6A1EED89E7793A84E87F4",
+      "extended_after_marker": null
+    },
+    {
+      "id": "02-11",
+      "chapter": 2,
+      "section": 14,
+      "location": "인쇄 34~35 / 기존 PDF 51~52 / 새 PDF 50~51.",
+      "recovery_file": "collation/02-recovered-passages.ko.draft.md",
+      "source_body_start": 17784,
+      "source_body_end": 17973,
+      "integrated_body_start": 17636,
+      "integrated_body_end": 17818,
+      "before_utf8_sha256": "2652B40FCA26386B8CF548E668853CEE9AAD201642A6AD7B908298DFFDF2D292",
+      "after_utf8_sha256": "C301524BEE18E828F1C53C4F05A9E8ADED68E57D467B7C3450B93257EA424405",
+      "extended_after_marker": null
+    },
+    {
+      "id": "03-01",
+      "chapter": 3,
+      "section": 7,
+      "location": "인쇄 42~43 / 기존 PDF 59~60 / 새 PDF 58~59.",
+      "recovery_file": "collation/03-recovered-passages.ko.draft.md",
+      "source_body_start": 6696,
+      "source_body_end": 7035,
+      "integrated_body_start": 6696,
+      "integrated_body_end": 7025,
+      "before_utf8_sha256": "164FF7C3F109F874D4961F289E0FABD9B021AF2DDD6DBAA37B92839FC7E6A1A6",
+      "after_utf8_sha256": "46F2B1BAE09BB7299D6D59DF3AA362631751374DB51154459E0EE6CC420D37AE",
+      "extended_after_marker": null
+    },
+    {
+      "id": "03-02",
+      "chapter": 3,
+      "section": 7,
+      "location": "인쇄 43 / 기존 PDF 60 / 새 PDF 59.",
+      "recovery_file": "collation/03-recovered-passages.ko.draft.md",
+      "source_body_start": 7037,
+      "source_body_end": 7329,
+      "integrated_body_start": 7027,
+      "integrated_body_end": 7309,
+      "before_utf8_sha256": "F3DB68F2DFE848E1428AEE6F893DF3D961D332EF4E5ADC0D66E74CE628CD72C3",
+      "after_utf8_sha256": "F783EE2A6E165657075DDE293E8C74CBEB767079E0E36088165D4E87D692775A",
+      "extended_after_marker": null
+    },
+    {
+      "id": "03-03",
+      "chapter": 3,
+      "section": 7,
+      "location": "인쇄 43 / 기존 PDF 60 / 새 PDF 59.",
+      "recovery_file": "collation/03-recovered-passages.ko.draft.md",
+      "source_body_start": 7331,
+      "source_body_end": 7495,
+      "integrated_body_start": 7311,
+      "integrated_body_end": 7465,
+      "before_utf8_sha256": "E63BD097F59A70F738F42F0460174ED646AC2E92987BCCDD81E51B39EA714BBB",
+      "after_utf8_sha256": "1CC8C1BFF6983BBC47314AF9636BBD184B22310720DB07F7B5A0D3952ABC0E1E",
+      "extended_after_marker": null
+    },
+    {
+      "id": "03-04",
+      "chapter": 3,
+      "section": 8,
+      "location": "인쇄 43~44 / 기존 PDF 60~61 / 새 PDF 59~60.",
+      "recovery_file": "collation/03-recovered-passages.ko.draft.md",
+      "source_body_start": 7567,
+      "source_body_end": 7843,
+      "integrated_body_start": 7537,
+      "integrated_body_end": 7803,
+      "before_utf8_sha256": "5914455282A698356D1D84BE6FC0B28B090AC3C85CB089AA418B6F5737726565",
+      "after_utf8_sha256": "C011B24DEA0691019D24089440637D114290E0DEF6D4AF55C57045BBE8A7A4E6",
+      "extended_after_marker": null
+    },
+    {
+      "id": "03-05",
+      "chapter": 3,
+      "section": 15,
+      "location": "인쇄 52 / 기존 PDF 69 / 새 PDF 68.",
+      "recovery_file": "collation/03-recovered-passages.ko.draft.md",
+      "source_body_start": 15447,
+      "source_body_end": 15706,
+      "integrated_body_start": 15407,
+      "integrated_body_end": 15656,
+      "before_utf8_sha256": "FCC16288348E85A5E6AF2131F27FAB1F21AE57EFF983F1F368279DFC9D2DAEB1",
+      "after_utf8_sha256": "2E4DCBD7869B3A5905C99CF70787C9B8B83B499958B7F8C1569ED0CAFCEBC21F",
+      "extended_after_marker": null
+    },
+    {
+      "id": "03-06",
+      "chapter": 3,
+      "section": 15,
+      "location": "인쇄 52 / 기존 PDF 69 / 새 PDF 68.",
+      "recovery_file": "collation/03-recovered-passages.ko.draft.md",
+      "source_body_start": 15708,
+      "source_body_end": 15869,
+      "integrated_body_start": 15658,
+      "integrated_body_end": 15809,
+      "before_utf8_sha256": "B326FD0447251A477F7C2666B0146EB4B3A866F87945DB9B0528AE4E08D4C292",
+      "after_utf8_sha256": "7FA2EB98BB99F48034071047F85CB36CD569B1D5FAB8FF7CD369BE3287030086",
+      "extended_after_marker": null
+    },
+    {
+      "id": "03-07",
+      "chapter": 3,
+      "section": 15,
+      "location": "인쇄 52 / 기존 PDF 69 / 새 PDF 68.",
+      "recovery_file": "collation/03-recovered-passages.ko.draft.md",
+      "source_body_start": 15871,
+      "source_body_end": 16155,
+      "integrated_body_start": 15811,
+      "integrated_body_end": 16085,
+      "before_utf8_sha256": "B9A8535C51C571412AED82D91D17EC1B85C55F91BDC4EB3684EC1AE67F03BB97",
+      "after_utf8_sha256": "393AE9DF8C376308FCF5494BD5C138627DCC902A39BD0C17B88EC35924CD7777",
+      "extended_after_marker": null
+    },
+    {
+      "id": "03-08",
+      "chapter": 3,
+      "section": 15,
+      "location": "인쇄 52 / 기존 PDF 69 / 새 PDF 68.",
+      "recovery_file": "collation/03-recovered-passages.ko.draft.md",
+      "source_body_start": 16157,
+      "source_body_end": 16352,
+      "integrated_body_start": 16087,
+      "integrated_body_end": 16272,
+      "before_utf8_sha256": "94518ABB9BD256FE3BA79AA202DFBA0111C9EB60B3DCB855877237C1BB5DA83F",
+      "after_utf8_sha256": "2E0E4180BD6028B389C01A5F24F389B6F284BBF51A1F8D7AD91B09D250ABA7DA",
+      "extended_after_marker": null
+    },
+    {
+      "id": "04-01",
+      "chapter": 4,
+      "section": 9,
+      "location": "인쇄64 마지막 두 행 / 기존 PDF81 / 새 PDF80.",
+      "recovery_file": "collation/04-recovered-passages.ko.draft.md",
+      "source_body_start": 11365,
+      "source_body_end": 11433,
+      "integrated_body_start": 11365,
+      "integrated_body_end": 11423,
+      "before_utf8_sha256": "A77F853E81305A3D55F6F5DAFCFA8111A211D11BAA7355284C77033FB11E76EB",
+      "after_utf8_sha256": "19D71568C91ED784E51D17DDC9A68B5A664A031B27938EDB1356A8C57D2CB6BC",
+      "extended_after_marker": null
+    },
+    {
+      "id": "05-01",
+      "chapter": 5,
+      "section": 1,
+      "location": "인쇄70~71 / 기존 PDF87~88 / 새 PDF86~87.",
+      "recovery_file": "collation/05-recovered-passages.ko.draft.md",
+      "source_body_start": 555,
+      "source_body_end": 677,
+      "integrated_body_start": 555,
+      "integrated_body_end": 667,
+      "before_utf8_sha256": "6755FC5F5FDD71A0ADB3BF5C612107108190525D08A8EB52EB23B57D71BDFE8B",
+      "after_utf8_sha256": "0664482C6EEE2D24EA19FD4F23A8602F5D69ACFD91A410A936B29F3664AE53DF",
+      "extended_after_marker": null
+    },
+    {
+      "id": "05-02",
+      "chapter": 5,
+      "section": 2,
+      "location": "인쇄72 / 기존 PDF89 / 새 PDF88.",
+      "recovery_file": "collation/05-recovered-passages.ko.draft.md",
+      "source_body_start": 2402,
+      "source_body_end": 2533,
+      "integrated_body_start": 2392,
+      "integrated_body_end": 2512,
+      "before_utf8_sha256": "99C3F4E7FC3E2DD8EE43556237CD6C8594F2CA9EE5A39AF52E375612E3D18241",
+      "after_utf8_sha256": "DB3B7EC82F2CE108682AFCFD1631CE101384C77041B6EF3F6DDD108FCE98B982",
+      "extended_after_marker": null
+    },
+    {
+      "id": "05-03",
+      "chapter": 5,
+      "section": 4,
+      "location": "인쇄74~75 / 기존 PDF91~92 / 새 PDF90~91.",
+      "recovery_file": "collation/05-recovered-passages.ko.draft.md",
+      "source_body_start": 4512,
+      "source_body_end": 4581,
+      "integrated_body_start": 4491,
+      "integrated_body_end": 4550,
+      "before_utf8_sha256": "25AF739D0E69C09C070F7D58846EDA8E69292306C68AF5CF9CACEF56989C32C9",
+      "after_utf8_sha256": "EA70DE73BB07209C359C7AA16C207E2EB12714ECD0CB5DE2C8827F6C4D361CC5",
+      "extended_after_marker": null
+    },
+    {
+      "id": "05-04",
+      "chapter": 5,
+      "section": 8,
+      "location": "인쇄79 / 기존 PDF96 / 새 PDF95.",
+      "recovery_file": "collation/05-recovered-passages.ko.draft.md",
+      "source_body_start": 8798,
+      "source_body_end": 8958,
+      "integrated_body_start": 8767,
+      "integrated_body_end": 8917,
+      "before_utf8_sha256": "1A40C66ACBDB498AA17D5B6CF4B6D030BE23033D64CC31402AF92C852995A417",
+      "after_utf8_sha256": "A3E8FD74D587DD0781B510A6996FBFF5558308E02BC0E11A2C586D7B2B53B3CD",
+      "extended_after_marker": null
+    },
+    {
+      "id": "05-05",
+      "chapter": 5,
+      "section": 8,
+      "location": "인쇄80 / 기존 PDF97 / 새 PDF96.",
+      "recovery_file": "collation/05-recovered-passages.ko.draft.md",
+      "source_body_start": 9300,
+      "source_body_end": 9555,
+      "integrated_body_start": 9259,
+      "integrated_body_end": 9504,
+      "before_utf8_sha256": "916C14B6BB0C7D6239645DD5F9661ECA34E965613285DFA4F015121B108D5152",
+      "after_utf8_sha256": "5493B80EC81F120FAB402AD51A7F394E2B10C31E8347FF216AC920FE4F459C71",
+      "extended_after_marker": null
+    },
+    {
+      "id": "05-06",
+      "chapter": 5,
+      "section": 8,
+      "location": "인쇄80 / 기존 PDF97 / 새 PDF96.",
+      "recovery_file": "collation/05-recovered-passages.ko.draft.md",
+      "source_body_start": 9559,
+      "source_body_end": 9852,
+      "integrated_body_start": 9508,
+      "integrated_body_end": 9791,
+      "before_utf8_sha256": "76224FE04C5F3C5F508D28698A6ED591C35D47E9A49F6CECAC316540F02D709C",
+      "after_utf8_sha256": "5500D9C2F300D55822BFBB078538E5CBBA1F8B27D25B57CC79F12A7CA7B4FD19",
+      "extended_after_marker": null
+    },
+    {
+      "id": "05-07",
+      "chapter": 5,
+      "section": 8,
+      "location": "인쇄80 / 기존 PDF97 / 새 PDF96.",
+      "recovery_file": "collation/05-recovered-passages.ko.draft.md",
+      "source_body_start": 9856,
+      "source_body_end": 10141,
+      "integrated_body_start": 9795,
+      "integrated_body_end": 10070,
+      "before_utf8_sha256": "F0BC8FE8FD50236B6D8141F817A2215EFF28E893FA4E3C021D838BBB8A472960",
+      "after_utf8_sha256": "EB6E548604436B2F1E19E590681581979F5E361BC47431D1DFB1A5EED4B550A3",
+      "extended_after_marker": null
+    },
+    {
+      "id": "05-08",
+      "chapter": 5,
+      "section": 8,
+      "location": "인쇄80 / 기존 PDF97 / 새 PDF96.",
+      "recovery_file": "collation/05-recovered-passages.ko.draft.md",
+      "source_body_start": 10145,
+      "source_body_end": 10240,
+      "integrated_body_start": 10074,
+      "integrated_body_end": 10159,
+      "before_utf8_sha256": "CC4A176A227EE2D3A76D2522A9FCFF87097A6BE5842FF63171C4398BD214F1B4",
+      "after_utf8_sha256": "B1FA77A22AB9F893E470E8DA52E64223FD77680AE9159CDAA12EB55CDC510C99",
+      "extended_after_marker": null
+    },
+    {
+      "id": "05-09",
+      "chapter": 5,
+      "section": 10,
+      "location": "인쇄82~83 / 기존 PDF99~100 / 새 PDF98~99.",
+      "recovery_file": "collation/05-recovered-passages.ko.draft.md",
+      "source_body_start": 11941,
+      "source_body_end": 12058,
+      "integrated_body_start": 11860,
+      "integrated_body_end": 11967,
+      "before_utf8_sha256": "F601E6FB448365EE15F7E3680414D83BCEDE664346C46DB2AA5449501F459F17",
+      "after_utf8_sha256": "AD73F2C9D0D166EBCD922B588B884C1E6AE3DED7E9050385CF5EF6A91518F1EE",
+      "extended_after_marker": null
+    },
+    {
+      "id": "05-10",
+      "chapter": 5,
+      "section": 10,
+      "location": "인쇄83 / 기존 PDF100 / 새 PDF99.",
+      "recovery_file": "collation/05-recovered-passages.ko.draft.md",
+      "source_body_start": 12062,
+      "source_body_end": 12456,
+      "integrated_body_start": 11971,
+      "integrated_body_end": 12336,
+      "before_utf8_sha256": "FF080B7DC00F7C732B4EFFC5EC1517875496ECF91712F384BA7254707FAE6EEE",
+      "after_utf8_sha256": "FFE1147B7C151BE976200B94738706D1552CFB868BD842F0E3199972015BF7C5",
+      "extended_after_marker": null
+    },
+    {
+      "id": "05-11",
+      "chapter": 5,
+      "section": 10,
+      "location": "인쇄83 / 기존 PDF100 / 새 PDF99.",
+      "recovery_file": "collation/05-recovered-passages.ko.draft.md",
+      "source_body_start": 12460,
+      "source_body_end": 12675,
+      "integrated_body_start": 12340,
+      "integrated_body_end": 12556,
+      "before_utf8_sha256": "EB4B3BFF1A8B6DA78864E6CBE92BEC91C7F54C3144531A282BB93479DF05D2E7",
+      "after_utf8_sha256": "4B2CFAB5470819CA58C1A073085318A4B919A1EEDB732307DC84D48776CA62A3",
+      "extended_after_marker": null
+    },
+    {
+      "id": "05-12",
+      "chapter": 5,
+      "section": 10,
+      "location": "인쇄83 / 기존 PDF100 / 새 PDF99.",
+      "recovery_file": "collation/05-recovered-passages.ko.draft.md",
+      "source_body_start": 12679,
+      "source_body_end": 12980,
+      "integrated_body_start": 12560,
+      "integrated_body_end": 12854,
+      "before_utf8_sha256": "4394078CDCF8B8896B9BC24ACEF6051EF1D264FE4E8719E0077B2FEE1B15093A",
+      "after_utf8_sha256": "8655F8A58550C6C62B64EC10CDB1AF7F470CB454225496E9BC57E5ABB6B9F0C7",
+      "extended_after_marker": null
+    },
+    {
+      "id": "05-13",
+      "chapter": 5,
+      "section": 11,
+      "location": "인쇄84~85 / 기존 PDF101~102 / 새 PDF100~101.",
+      "recovery_file": "collation/05-recovered-passages.ko.draft.md",
+      "source_body_start": 13902,
+      "source_body_end": 14104,
+      "integrated_body_start": 13776,
+      "integrated_body_end": 13968,
+      "before_utf8_sha256": "AFF5049F3AC6C8944EA8716EDA3A120111FC0B485BA59E47F2E90203B1AB860C",
+      "after_utf8_sha256": "D9E6AD0A72DD3B334D751AA599410CC796A17A6851C60E7CA0EF353BD9CFEBDF",
+      "extended_after_marker": null
+    },
+    {
+      "id": "05-14",
+      "chapter": 5,
+      "section": 12,
+      "location": "인쇄85 / 기존 PDF102 / 새 PDF101.",
+      "recovery_file": "collation/05-recovered-passages.ko.draft.md",
+      "source_body_start": 14157,
+      "source_body_end": 14408,
+      "integrated_body_start": 14021,
+      "integrated_body_end": 14262,
+      "before_utf8_sha256": "21715F81EE88E478332E54EB18C24BBB8E32F3CA2F9325F4FDD384D9FDE4CA33",
+      "after_utf8_sha256": "B81D251AC339540A32FA08A9DF5EBB65DD489CED89253C6DFF3736CA0623CFC6",
+      "extended_after_marker": null
+    },
+    {
+      "id": "05-15",
+      "chapter": 5,
+      "section": 12,
+      "location": "인쇄85 / 기존 PDF102 / 새 PDF101.",
+      "recovery_file": "collation/05-recovered-passages.ko.draft.md",
+      "source_body_start": 14412,
+      "source_body_end": 14669,
+      "integrated_body_start": 14266,
+      "integrated_body_end": 14513,
+      "before_utf8_sha256": "3A183F3ED53297551A7E6B46C26C787C83DFB1EFA2F7B36AECCFD60FC874408D",
+      "after_utf8_sha256": "F4DCD00DB8DD46F250C346976451CDFE9E2662CEA510E3FEC056F7F3279C0FE2",
+      "extended_after_marker": null
+    },
+    {
+      "id": "05-16",
+      "chapter": 5,
+      "section": 12,
+      "location": "인쇄85~86 / 기존 PDF102~103 / 새 PDF101~102.",
+      "recovery_file": "collation/05-recovered-passages.ko.draft.md",
+      "source_body_start": 14673,
+      "source_body_end": 14923,
+      "integrated_body_start": 14517,
+      "integrated_body_end": 14757,
+      "before_utf8_sha256": "DABF88AC4B1087E11396E1BBE5ECF7C933304778E4B4D2DCDEEA1C505E3E5340",
+      "after_utf8_sha256": "AF6144DDAF1797F471121A6A55906124B2EA7786B8E9722F08EC3C11D592BFE0",
+      "extended_after_marker": null
+    },
+    {
+      "id": "05-17",
+      "chapter": 5,
+      "section": 13,
+      "location": "인쇄86 / 기존 PDF103 / 새 PDF102.",
+      "recovery_file": "collation/05-recovered-passages.ko.draft.md",
+      "source_body_start": 15869,
+      "source_body_end": 15909,
+      "integrated_body_start": 15703,
+      "integrated_body_end": 15733,
+      "before_utf8_sha256": "18F6EBA5314C61C942D0E19FC60B83DA0F49EDA6A3DBA8971DF7908E2CAA222B",
+      "after_utf8_sha256": "D01AFCC74E45E8E9F63CF622AA7FCE46BD82A373A070C7B07339DE6FECD8C9CE",
+      "extended_after_marker": null
+    },
+    {
+      "id": "06-01",
+      "chapter": 6,
+      "section": 1,
+      "location": "인쇄92 / 기존 PDF109 / 새 PDF108.",
+      "recovery_file": "collation/06-recovered-passages.ko.draft.md",
+      "source_body_start": 1805,
+      "source_body_end": 1860,
+      "integrated_body_start": 1805,
+      "integrated_body_end": 1850,
+      "before_utf8_sha256": "00ECFA4453CFA84144D4DB205260A749B96C3311FDBE5488986AF5CC1600A1A5",
+      "after_utf8_sha256": "C803EC809B49E7AE7E9FE93AB0346EA94C0AF2CF37B77683E117A35D0DBCEDE6",
+      "extended_after_marker": null
+    },
+    {
+      "id": "06-02",
+      "chapter": 6,
+      "section": 12,
+      "location": "인쇄108 / 기존 PDF125 / 새 PDF124.",
+      "recovery_file": "collation/06-recovered-passages.ko.draft.md",
+      "source_body_start": 16527,
+      "source_body_end": 16561,
+      "integrated_body_start": 16517,
+      "integrated_body_end": 16541,
+      "before_utf8_sha256": "C21E119C953FE928311FBF517384F22C23ADD8ED0257AA83FAA7C03DAC207D56",
+      "after_utf8_sha256": "5DDE6469971A53B20BFC19256A793B1E346993DD6C6995606F12A4D8F4DA4C13",
+      "extended_after_marker": null
+    },
+    {
+      "id": "06-03",
+      "chapter": 6,
+      "section": 15,
+      "location": "인쇄114~115 / 기존 PDF131~132 / 새 PDF130~131.",
+      "recovery_file": "collation/06-recovered-passages.ko.draft.md",
+      "source_body_start": 21970,
+      "source_body_end": 22050,
+      "integrated_body_start": 21950,
+      "integrated_body_end": 22020,
+      "before_utf8_sha256": "ECF3DFC7D5EF48B64F7FC80CE7D29270DD53DC2536D3AEC3997FE86134D50EB4",
+      "after_utf8_sha256": "EA094C7FD6294A1E39D3C104A6792B594B61EBFBE6FD6A3B632C81CD919F3650",
+      "extended_after_marker": null
+    },
+    {
+      "id": "07-01",
+      "chapter": 7,
+      "section": 1,
+      "location": "인쇄116~117 / 기존 PDF133~134 / 새 PDF132~133.",
+      "recovery_file": "collation/07-recovered-passages.ko.draft.md",
+      "source_body_start": 887,
+      "source_body_end": 976,
+      "integrated_body_start": 887,
+      "integrated_body_end": 966,
+      "before_utf8_sha256": "6E603C0A6B954438687E7A3ABF16190D6B138BF8AB8F04211A6C01F44FCDDF50",
+      "after_utf8_sha256": "6AA6DE03CC93267815826D0C2D2382B39B3A92F6B6AA2394B479945E8EAAEEFB",
+      "extended_after_marker": null
+    },
+    {
+      "id": "07-02",
+      "chapter": 7,
+      "section": 2,
+      "location": "인쇄118~119 / 기존 PDF135~136 / 새 PDF134~135.",
+      "recovery_file": "collation/07-recovered-passages.ko.draft.md",
+      "source_body_start": 2702,
+      "source_body_end": 2745,
+      "integrated_body_start": 2692,
+      "integrated_body_end": 2725,
+      "before_utf8_sha256": "8D30D8F42015E09D5F38E37F9944F0E339DEB4517287649D313759535C92AE19",
+      "after_utf8_sha256": "757ECA8297AE16A066D45AE156FF059B2994D85A7F3ADA2ED680CC4B2533FF21",
+      "extended_after_marker": null
+    },
+    {
+      "id": "07-03",
+      "chapter": 7,
+      "section": 4,
+      "location": "인쇄120~121 / 기존 PDF137~138 / 새 PDF136~137.",
+      "recovery_file": "collation/07-recovered-passages.ko.draft.md",
+      "source_body_start": 4562,
+      "source_body_end": 4608,
+      "integrated_body_start": 4542,
+      "integrated_body_end": 4578,
+      "before_utf8_sha256": "A888A5C95DBD91ECB8B5B4C91FD3CADFC064C60D33CB7CAB1914FDEE0035EDDF",
+      "after_utf8_sha256": "04996ADBAE462B1DABBCD1D67057C3E11D3F09731B99E74C18875F271E0D66D7",
+      "extended_after_marker": null
+    },
+    {
+      "id": "07-04",
+      "chapter": 7,
+      "section": 6,
+      "location": "인쇄124~125 / 기존 PDF141~142 / 새 PDF140~141.",
+      "recovery_file": "collation/07-recovered-passages.ko.draft.md",
+      "source_body_start": 8000,
+      "source_body_end": 8074,
+      "integrated_body_start": 7970,
+      "integrated_body_end": 8034,
+      "before_utf8_sha256": "6E27CB779D0688432FF0E39FBE4709663500AE612EA2A874442475FF16BD07BB",
+      "after_utf8_sha256": "745FCFFE2CEF629BE493182A7619389A270EFF1C4322A4A11D57442AD3B5878B",
+      "extended_after_marker": null
+    },
+    {
+      "id": "07-05",
+      "chapter": 7,
+      "section": 13,
+      "location": "인쇄134~135 / 기존 PDF151~152 / 새 PDF150~151.",
+      "recovery_file": "collation/07-recovered-passages.ko.draft.md",
+      "source_body_start": 17033,
+      "source_body_end": 17083,
+      "integrated_body_start": 16993,
+      "integrated_body_end": 17033,
+      "before_utf8_sha256": "BAF07CBCA4C56E27F0D1E367E9C45317CA4E3F6D02C46AA25BD4B65868CFF45D",
+      "after_utf8_sha256": "83FCDCB16A5049391338F44363DFFCA552A1A509E85FB1977F4D09C9ED4644C9",
+      "extended_after_marker": null
+    },
+    {
+      "id": "07-06",
+      "chapter": 7,
+      "section": 14,
+      "location": "인쇄136~137 / 기존 PDF153~154 / 새 PDF152~153.",
+      "recovery_file": "collation/07-recovered-passages.ko.draft.md",
+      "source_body_start": 18741,
+      "source_body_end": 18824,
+      "integrated_body_start": 18691,
+      "integrated_body_end": 18769,
+      "before_utf8_sha256": "3176601FC52FBAD6FC880BF8661CF9EC2FE500CD46FE0AED152BC20C755D3D1F",
+      "after_utf8_sha256": "7A2647FAED751781243EF41D627B5447016AACCC82178636ED0D34C1E77986B6",
+      "extended_after_marker": null
+    },
+    {
+      "id": "08-01",
+      "chapter": 8,
+      "section": 2,
+      "location": "인쇄149~150 / 기존 PDF166~167 / 새 PDF165~166.",
+      "recovery_file": "collation/08-recovered-passages.ko.draft.md",
+      "source_body_start": 4141,
+      "source_body_end": 4361,
+      "integrated_body_start": 4141,
+      "integrated_body_end": 4351,
+      "before_utf8_sha256": "0F6E4E33DC46EB9A6FF92E4C1FBD7E47F1AC51034762ABE8567437E70DC09131",
+      "after_utf8_sha256": "E350CC62EB55EA040FC4C6EA3194E9A05142367FAAAA009231FA02BC688F34B4",
+      "extended_after_marker": null
+    },
+    {
+      "id": "08-02",
+      "chapter": 8,
+      "section": 3,
+      "location": "인쇄150 / 기존 PDF167 / 새 PDF166.",
+      "recovery_file": "collation/08-recovered-passages.ko.draft.md",
+      "source_body_start": 4417,
+      "source_body_end": 4766,
+      "integrated_body_start": 4407,
+      "integrated_body_end": 4746,
+      "before_utf8_sha256": "B5F9EBB128037EA956937B878526C25AE831E1C6655A35947F345405AEB25491",
+      "after_utf8_sha256": "38B9D2B365D45A35043C3125B325E013E9C852F78542BB5CFB6005E4FFCBB638",
+      "extended_after_marker": null
+    },
+    {
+      "id": "08-03",
+      "chapter": 8,
+      "section": 3,
+      "location": "인쇄150~151 / 기존 PDF167~168 / 새 PDF166~167.",
+      "recovery_file": "collation/08-recovered-passages.ko.draft.md",
+      "source_body_start": 4768,
+      "source_body_end": 5062,
+      "integrated_body_start": 4748,
+      "integrated_body_end": 5032,
+      "before_utf8_sha256": "F79DCB48A8821772762F3499F6919A655D5D1878CA82155F7D67B5D393580763",
+      "after_utf8_sha256": "1F616347E858543FE1BDC31F80AA71635056BFF20A52C834C3A24946344E78A7",
+      "extended_after_marker": null
+    },
+    {
+      "id": "08-04",
+      "chapter": 8,
+      "section": 5,
+      "location": "인쇄154 / 기존 PDF171 / 새 PDF170.",
+      "recovery_file": "collation/08-recovered-passages.ko.draft.md",
+      "source_body_start": 8042,
+      "source_body_end": 8140,
+      "integrated_body_start": 8012,
+      "integrated_body_end": 8100,
+      "before_utf8_sha256": "ECC895E6F4455A8BDBCF1E0B2A412AE7E8A08C5E7EFFDB92BF9519D26107C1BE",
+      "after_utf8_sha256": "B2F730766D4E6E22DDB32032C49FD40B56B1D14139F55A7C3A99EBC320154D65",
+      "extended_after_marker": null
+    },
+    {
+      "id": "08-05",
+      "chapter": 8,
+      "section": 5,
+      "location": "인쇄154~155 / 기존 PDF171~172 / 새 PDF170~171.",
+      "recovery_file": "collation/08-recovered-passages.ko.draft.md",
+      "source_body_start": 8142,
+      "source_body_end": 8351,
+      "integrated_body_start": 8102,
+      "integrated_body_end": 8301,
+      "before_utf8_sha256": "3A0F66EE61262005A256AB29E358ED091BCBAEA928B19A8BF13BA1996E4A4010",
+      "after_utf8_sha256": "A873BA025FC170D98A3382CF346009A6968B44527D9B5B316D068000F71EB1EA",
+      "extended_after_marker": null
+    },
+    {
+      "id": "08-06",
+      "chapter": 8,
+      "section": 6,
+      "location": "인쇄156~157 / 기존 PDF173~174 / 새 PDF172~173.",
+      "recovery_file": "collation/08-recovered-passages.ko.draft.md",
+      "source_body_start": 9685,
+      "source_body_end": 10034,
+      "integrated_body_start": 9635,
+      "integrated_body_end": 9974,
+      "before_utf8_sha256": "B8DD3D77586778308D528ABD41911E1D1FA6A7DA1DFEFAC300602D14E837F989",
+      "after_utf8_sha256": "D00AF8C21AA73A2A6FDBC2433EB2EE501BF96FE911CEB1B8881B7F508A50E152",
+      "extended_after_marker": null
+    },
+    {
+      "id": "08-07",
+      "chapter": 8,
+      "section": 10,
+      "location": "인쇄162~163 / 기존 PDF179~180 / 새 PDF178~179.",
+      "recovery_file": "collation/08-recovered-passages.ko.draft.md",
+      "source_body_start": 14812,
+      "source_body_end": 15136,
+      "integrated_body_start": 14752,
+      "integrated_body_end": 15066,
+      "before_utf8_sha256": "3897282DB702F04E097D60CEC808280A7438796E5D92C28EC6426C866AD5AE0C",
+      "after_utf8_sha256": "A4D95C428E854661D61540FA74E0900F96B57101AADE160855C4E4B3D3555B4D",
+      "extended_after_marker": null
+    },
+    {
+      "id": "08-08",
+      "chapter": 8,
+      "section": 10,
+      "location": "인쇄163 / 기존 PDF180 / 새 PDF179.",
+      "recovery_file": "collation/08-recovered-passages.ko.draft.md",
+      "source_body_start": 15138,
+      "source_body_end": 15525,
+      "integrated_body_start": 15068,
+      "integrated_body_end": 15454,
+      "before_utf8_sha256": "30107C7A5212B6D04972613992C73D140BDBAC4CB7795F32CE58B722BBF21FA0",
+      "after_utf8_sha256": "748C3690FB8E2CB703C2EB61D69F6617538B4C762D7392EBD63EA599950BD5A7",
+      "extended_after_marker": null
+    },
+    {
+      "id": "08-09",
+      "chapter": 8,
+      "section": 10,
+      "location": "인쇄163~164 / 기존 PDF180~181 / 새 PDF179~180.",
+      "recovery_file": "collation/08-recovered-passages.ko.draft.md",
+      "source_body_start": 15527,
+      "source_body_end": 15814,
+      "integrated_body_start": 15456,
+      "integrated_body_end": 15733,
+      "before_utf8_sha256": "E6FF96D3E050C7D75C91BDE02E065B7F619E3637CDB11B0965E3897394D2CD86",
+      "after_utf8_sha256": "C512E2737018D6F374E234DAEE8E3AB480672F8C0337C8F0EE3A7B3BCC11345B",
+      "extended_after_marker": null
+    },
+    {
+      "id": "08-10",
+      "chapter": 8,
+      "section": 11,
+      "location": "인쇄164 / 기존 PDF181 / 새 PDF180.",
+      "recovery_file": "collation/08-recovered-passages.ko.draft.md",
+      "source_body_start": 16603,
+      "source_body_end": 16651,
+      "integrated_body_start": 16522,
+      "integrated_body_end": 16560,
+      "before_utf8_sha256": "FCD99BDCEAFCD6492D64A7154D8E5EC1BDDC35E9C8A837F2E23F5A657C2B726A",
+      "after_utf8_sha256": "3740E0188BB3C443EC2B2767B79BEB5C1B3F13072B6595A9D3E7DBC2FB38DD6C",
+      "extended_after_marker": null
+    },
+    {
+      "id": "09-01",
+      "chapter": 9,
+      "section": 8,
+      "location": "인쇄181~182 / 기존 PDF198~199 / 새 PDF197~198.",
+      "recovery_file": "collation/09-recovered-passages.ko.draft.md",
+      "source_body_start": 10656,
+      "source_body_end": 10905,
+      "integrated_body_start": 10656,
+      "integrated_body_end": 10895,
+      "before_utf8_sha256": "C1396803B3CDDC0FB6D4A170C44695979BDF3206EFEA300EF459104877632F0A",
+      "after_utf8_sha256": "294C560BB0F4CE2A92A88860AED8A6041799F5C69A4E4F9CD2478E279EC0F9B7",
+      "extended_after_marker": null
+    },
+    {
+      "id": "09-02",
+      "chapter": 9,
+      "section": 8,
+      "location": "인쇄182 / 기존 PDF199 / 새 PDF198.",
+      "recovery_file": "collation/09-recovered-passages.ko.draft.md",
+      "source_body_start": 10907,
+      "source_body_end": 11171,
+      "integrated_body_start": 10897,
+      "integrated_body_end": 11151,
+      "before_utf8_sha256": "8D9F117BC846E1E64ED6F3167479952C171B819B080BD8850B0703C5F037BB63",
+      "after_utf8_sha256": "A36F372B1CE34A0F16A9DA5081E98C21381DDB895B65DAF46B9D7D32DB626B91",
+      "extended_after_marker": null
+    },
+    {
+      "id": "09-03",
+      "chapter": 9,
+      "section": 9,
+      "location": "인쇄182~183 / 기존 PDF199~200 / 새 PDF198~199.",
+      "recovery_file": "collation/09-recovered-passages.ko.draft.md",
+      "source_body_start": 11227,
+      "source_body_end": 11550,
+      "integrated_body_start": 11207,
+      "integrated_body_end": 11520,
+      "before_utf8_sha256": "F8F5465FDAF9114108B4D41AE81D5935A26F39438127086FE83FE2ACD319BB33",
+      "after_utf8_sha256": "CFE6D4CCAF09662A3A704D9071D7A9149EB6814EF48E8CFDE7A0E3F8752B7DFE",
+      "extended_after_marker": null
+    },
+    {
+      "id": "09-04",
+      "chapter": 9,
+      "section": 11,
+      "location": "인쇄186~187 / 기존 PDF203~204 / 새 PDF202~203.",
+      "recovery_file": "collation/09-recovered-passages.ko.draft.md",
+      "source_body_start": 14815,
+      "source_body_end": 15053,
+      "integrated_body_start": 14785,
+      "integrated_body_end": 15013,
+      "before_utf8_sha256": "70AA42D06E2C7269A10CD43E6AE2836B9B20C468A905D01E5770E4F9F2B21E98",
+      "after_utf8_sha256": "E9237C55AF78C70C6D97096F7FB2AB834235637168B8CCDF72FCE65A79F23B34",
+      "extended_after_marker": null
+    },
+    {
+      "id": "09-05",
+      "chapter": 9,
+      "section": 11,
+      "location": "인쇄187 / 기존 PDF204 / 새 PDF203.",
+      "recovery_file": "collation/09-recovered-passages.ko.draft.md",
+      "source_body_start": 15055,
+      "source_body_end": 15389,
+      "integrated_body_start": 15015,
+      "integrated_body_end": 15339,
+      "before_utf8_sha256": "0DA5657FA411C83AAF5D9DFBDF89AB3157988D55EB947B554AB0CB1CC84BE2BE",
+      "after_utf8_sha256": "193795C8B702F6284A1515A73B1819E0A1486DE8AFD8B1DA0DF8D4FFAC89A8E4",
+      "extended_after_marker": null
+    },
+    {
+      "id": "09-06",
+      "chapter": 9,
+      "section": 11,
+      "location": "인쇄187 / 기존 PDF204 / 새 PDF203.",
+      "recovery_file": "collation/09-recovered-passages.ko.draft.md",
+      "source_body_start": 15391,
+      "source_body_end": 15601,
+      "integrated_body_start": 15341,
+      "integrated_body_end": 15541,
+      "before_utf8_sha256": "FC47CEB6D2FE98D3D3D59F7BB5F6B45429C03E306974EE7F6BFF9127C4686758",
+      "after_utf8_sha256": "E379456610DFC91E1F4BB974DFADE598E6ABB5A26B959B27977CD5AB2F32FE30",
+      "extended_after_marker": null
+    },
+    {
+      "id": "09-07",
+      "chapter": 9,
+      "section": 11,
+      "location": "인쇄187~188 / 기존 PDF204~205 / 새 PDF203~204.",
+      "recovery_file": "collation/09-recovered-passages.ko.draft.md",
+      "source_body_start": 15603,
+      "source_body_end": 15715,
+      "integrated_body_start": 15543,
+      "integrated_body_end": 15645,
+      "before_utf8_sha256": "4ED01CB1A9F587740F0DFCFB9BC5E8523890A752FC87687B62B552567E004B1F",
+      "after_utf8_sha256": "02F0407595D2DDEC03277FBD82E7116E96B1B7D0763F4D53E11825974660E998",
+      "extended_after_marker": null
+    }
+  ],
+  "chronology": {
+    "file": "chronological-table.ko.draft.md",
+    "sha256": "10B2F3CC657A9439A97C1B27F9DA3A3E6C6E528C88748622014D8BACFCB1AF4A",
+    "pages": 4,
+    "date_rows": 91,
+    "integrated_start_utf16": 233808,
+    "integrated_end_utf16": 236889,
+    "exact_copy": true
+  },
+  "validation": {
+    "all_input_audit_hashes_match": true,
+    "all_original_manifest_file_hashes_match": true,
+    "all_replacement_prefixes_unique_and_sections_match": true,
+    "unchanged_body_segments_byte_identical": true,
+    "body_reversible_to_selected_original_ranges": true,
+    "chapter_headings_outlines_and_numbered_sections_preserved": true,
+    "source_and_preexisting_drafts_qa_recovery_chronology_worldbuilding_files_unchanged": true,
+    "strict_utf8_valid": true,
+    "replacement_characters": 0,
+    "null_characters": 0,
+    "full_scan_collation_complete": false,
+    "historical_review_complete": false,
+    "final_korean_edit_complete": false,
+    "application_or_database_integration": false,
+    "committed_or_pushed": false,
+    "header_metadata_update_suffix_byte_identical": true,
+    "header_metadata_update_absolute_coordinates_revalidated": true
+  },
+  "qa": {
+    "file": "integrated-11-chapters-qa.ko.md",
+    "bytes": 95321,
+    "sha256": "BB85AF5EAA342E7B9ED0A178CDD062C43E62F59AFF3C510E87271CF7A6E30812"
+  },
+  "header_metadata_update": {
+    "date": "2026-11-13",
+    "scope": "Header-only correction of supplementary translation status and addition of links. No narrative, recovered passage, chapter navigation or chronology changes.",
+    "previous_integrated": {
+      "file": "integrated-11-chapters.ko.collated-draft.md",
+      "bytes": 568727,
+      "sha256": "4B1FA4162BEF1BE517579273684102D0AC3728C28052008B6DB36E17A19A2CA3"
+    },
+    "utf16_absolute_coordinate_delta": 221,
+    "unchanged_suffix_anchor": "<a id=\"chapter-01\"></a>",
+    "previous_suffix_start_byte": 4309,
+    "current_suffix_start_byte": 4751,
+    "unchanged_suffix_bytes": 564418,
+    "unchanged_suffix_sha256": "2A16183A573995FDF9FF4C889EB625BB4A2CADABEF8C05B180C06BB1CE6621C6",
+    "suffix_byte_identical_before_after": true,
+    "chapter_body_checks": [
+      {
+        "chapter": 1,
+        "bytes": 33982,
+        "sha256": "64CC6D5E7572DC76CE56BE1FE24C4C22521B55FE1D81376E2BA7742B0E84884E",
+        "byte_identical_before_after": true
+      },
+      {
+        "chapter": 2,
+        "bytes": 44822,
+        "sha256": "883D1E46CAA33FEF7FA27CF1B602477FC4B73A72D7C53E48D63A4F48A89FB874",
+        "byte_identical_before_after": true
+      },
+      {
+        "chapter": 3,
+        "bytes": 39310,
+        "sha256": "241F303362578B0220F0B854FC0D5FCDBADFF1AF46910790C4FCE1186B8F584C",
+        "byte_identical_before_after": true
+      },
+      {
+        "chapter": 4,
+        "bytes": 38865,
+        "sha256": "7D7DD215250561C33245B7116BBCEBFE00614B9DD897B22501081981CC6EE930",
+        "byte_identical_before_after": true
+      },
+      {
+        "chapter": 5,
+        "bytes": 46404,
+        "sha256": "B4AEE73E5B2530AE0736C244FDAF115AA662CF9C8BE5D011B6E9AE62FA11D2D4",
+        "byte_identical_before_after": true
+      },
+      {
+        "chapter": 6,
+        "bytes": 54326,
+        "sha256": "435D818264825F488BEE58EF8B882BBBB1C382019C7197D924990DA307256A15",
+        "byte_identical_before_after": true
+      },
+      {
+        "chapter": 7,
+        "bytes": 60779,
+        "sha256": "10301420B38CC8E522E76B0F71E307534A5CE727A7400528DD0A305AE91CC02E",
+        "byte_identical_before_after": true
+      },
+      {
+        "chapter": 8,
+        "bytes": 47796,
+        "sha256": "0FCE52E44B0DF670537F1B5551286142372F3FFFD6D42C5A2E93DBE479B232AC",
+        "byte_identical_before_after": true
+      },
+      {
+        "chapter": 9,
+        "bytes": 54500,
+        "sha256": "458F427FCD08A01C5F93A4F4C9CE6ED2765B41D82C29A7D6D6EFC68C4A11CBFB",
+        "byte_identical_before_after": true
+      },
+      {
+        "chapter": 10,
+        "bytes": 58376,
+        "sha256": "27A130109EB9CC6CF359C87565CD99160890607DA89532584D0938F6B54459F1",
+        "byte_identical_before_after": true
+      },
+      {
+        "chapter": 11,
+        "bytes": 75843,
+        "sha256": "A5FE0067BD58EFEA94F2C422CD50193346AED651828220094ED99965ED5FC26B",
+        "byte_identical_before_after": true
+      }
+    ],
+    "recovered_span_hashes_rechecked": 63,
+    "unchanged_segment_hashes_rechecked": 74,
+    "chronology_exact_original_bytes_preserved": true,
+    "qa_replacement_details_byte_identical": true,
+    "supplement_files_verified": [
+      {
+        "file": "frontmatter-and-map-list.ko.draft.md",
+        "bytes": 6558,
+        "sha256": "13FFE59DB6ED6983D0D3E12B9E37858BE5342B1950533A3EAA95FFB4883D1525"
+      },
+      {
+        "file": "printed-index.en-ko.draft.md",
+        "bytes": 88930,
+        "sha256": "766D2160610EF0E4B4EA03C1E02BF0D0057B8EC6299FD9B783BCFA6F267495C3"
+      },
+      {
+        "file": "frontmatter-index-qa.ko.md",
+        "bytes": 12994,
+        "sha256": "7454B7BF1E48EC44B31BC318EF2BAD2ED09694FFDB40D21C7CD86A50EF8FFE11"
+      },
+      {
+        "file": "frontmatter-index-audit.json",
+        "bytes": 333916,
+        "sha256": "C44A6F2E876ED4023AB0B061D9D2908895E6F816AFD95D632587E05562ABEF53"
+      }
+    ],
+    "supplement_index_entries_confirmed": 550,
+    "historical_supplement_audit_note": "frontmatter-index-audit.json remains unchanged and records protected file hashes at its prior supplementation stage, before this header-only update.",
+    "map_images_and_internal_labels_and_advertisements_remain_excluded": true,
+    "git_invoked": false
+  }
+}
