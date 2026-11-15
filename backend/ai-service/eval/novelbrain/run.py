@@ -17,7 +17,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from statistics import mean, stdev
 
-from app.manuscript.models import Excerpt
+from app.story_qa.models import Excerpt
 from app.novelbrain.models import Card, RecallItem, Relation, WorldSnapshot
 from app.novelbrain.service import _documents, bm25_rank, filter_for_character, recall, rrf  # ponytail: BM25-only 구성이 2단계와 같은 문서를 쓰도록 비공개 헬퍼를 가져온다
 from embed import best_window, cached_embeddings, embed_texts, knn

@@ -11,10 +11,10 @@
 | 모드 | **IF 모드**: 메인 에이전트와 정한 "만약 ~했다면?" 전제 하나만 강제, 인물은 자유. **흐름 모드**: 메인 에이전트와 정한 비트(장면·사건 순서)를 따른다. 흐름 모드는 메인 에이전트 단독 집필에서 생기는 오류를 인물 격리로 해결하는 장치다. |
 | 인물 입력 | DEC-47 인물 문서. `IDENTITY.md`(카드 본문)·`SOUL.md`(말투·사고)·`MEMORY.md`·`memory/NN회차.md` 중 **기준 회차 이하**만. 다른 인물의 문서·비공개 생각은 넣지 않는다. |
 | 모델 | 인물 행동·나레이션·독백·검사·요약은 OpenAI `gpt-6-luna`(DEC-28, 기존 `OPENAI_MODEL` 설정), 연출 결정은 OpenAI Decisions(`gpt-6-luna`)다. |
-| 실행 틀 | 장면은 LangChain `create_agent` + 미들웨어·훅·콜백·이벤트 리스너로 쓴다(#362, 사용자 결정 2026-11-14). 시뮬레이션만 이 틀이고 Q&A·집필·고증은 기존 오케스트레이션 그래프다. |
+| 실행 틀 | 장면은 LangChain `create_agent` + 미들웨어·훅·콜백·이벤트 리스너로 쓴다(#362, 사용자 결정 2026-11-14). Q&A·집필·고증·검수 업무 Agent도 #373(DEC-52)에서 `create_agent` + 공통 미들웨어(`app/agent_runtime.py`)로 바뀌었고, 이들을 묶는 바깥 오케스트레이션은 LangGraph 그래프 그대로다. |
 | 연출·시점 | 인물이 말하기 전에 매 턴 연출 결정(나레이션·독백·인물 대사·마무리, 화자, 시점)을 거친다. 시점은 전지적·인물의 3인칭 제한·인물의 1인칭이며 비트마다 바뀔 수 있다. 독백은 나레이터가 시점 인물의 지식 범위로 쓴다. |
 | 저장 | 시뮬레이션 기록은 대화 체크포인트에만 남는다. 장면이 끝나면 승인 질문(`waiting`, `awaitingApproval`)으로 작가 승인을 받고, 승인 시에만 Content MCP로 열린 회차 초안 끝에 나레이션·독백·대사를 순서대로 이어 붙인다(DEC-36, UC-09 최소 보장). 원고·설정 정본 자동 반영은 없다. |
-| 새 의존성 | `langchain`(v1)·`langchain-typesafe==0.0.1a3`(사용자 승인 2026-11-14, `uv add`로 `pyproject.toml`·lockfile 갱신, 다른 패키지 버전은 바뀌지 않았다). `langchain-openai`는 쓰지 않는다(아래 '실행 틀'의 모델 슬롯). BM25·PPR·RRF는 표준 라이브러리로 계산한다. 평가 스크립트의 일회성 도구는 `uv run --with`로만 쓰고 `pyproject.toml`·lockfile을 바꾸지 않는다. |
+| 새 의존성 | `langchain`(v1)·`langchain-typesafe==0.0.1a3`(사용자 승인 2026-11-14, `uv add`로 `pyproject.toml`·lockfile 갱신, 다른 패키지 버전은 바뀌지 않았다). 시뮬레이션은 `langchain-openai`를 쓰지 않는다(아래 '실행 틀'의 모델 슬롯. 업무 Agent용으로 #373에서 추가됐다). BM25·PPR·RRF는 표준 라이브러리로 계산한다. 평가 스크립트의 일회성 도구는 `uv run --with`로만 쓰고 `pyproject.toml`·lockfile을 바꾸지 않는다. |
 
 ## NovelBrain — 차례로 쌓는 4단계
 

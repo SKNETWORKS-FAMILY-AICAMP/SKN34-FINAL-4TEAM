@@ -58,7 +58,7 @@ Python 실행기는 Router의 `feature`·`when`을 사용자 의도 분류로 �
 
 #### 현재 구현: LangGraph 오케스트레이션
 
-`app/orchestration/`(2026-11-12 사용자 요청)이 위 계약 중 **구현된 Agent와 공통 Retrieval 도구만** 연결한다. 대상은 Story Context / Q&A(`manuscript.service.answer`), Writing & Editing(`writing.agent.draft|patch`), Web Research(`research.service.research`), Review(`review.service.review`, #59), 인물 시뮬레이션이다.
+`app/orchestration/`(2026-11-12 사용자 요청)이 위 계약 중 **구현된 Agent와 공통 Retrieval 도구만** 연결한다. 대상은 Story Context / Q&A(`story_qa.service.answer`), Writing & Editing(`writing.agent.draft|patch`), Web Research(`research.service.research`), Review(`review.service.review`, #59), 인물 시뮬레이션이다. Q&A·Writing·웹 조사·Review의 모델 호출은 LangChain `create_agent` + 공통 커스텀 미들웨어(`app/agent_runtime.py`, #373·DEC-52)로 실행하며, 바깥 그래프·HITL·SSE 계약은 바뀌지 않는다.
 
 - `POST /internal/v1/orchestrations` `{request, operation?, materials?, inputs}` → `plan` 노드가 Intent Router를 호출하고 계획을 검증한 뒤 기능 노드를 계획 순서로 한 번씩 실행하고 `finish`로 끝낸다. `inputs`는 Content가 권한·판본을 확인해 기능별로 채운 각 내부 API의 요청 DTO다(`story_context`, `writing_editing.draft|patch`, `web_research`, `review {check: mechanical|semantic}`). Review는 검사 종류만 입력으로 받고 검수할 초안은 Content가 확인한 `target`의 반영 회차이며, `target`이 없으면 단계 실패다. Router에는 검사 종류 출력이 없어 대화에서는 아래 HITL로 작가가 고른다(맞춤법·표기 / 설정·개연성). 검수 결과는 제안이라 승인·반영(`apply`)을 묻지 않는다.
 - Router 결과가 `clarify`·`rejected`면 고정 문구를 그대로 돌려준다. 미구현 기능(Development·World & Plot)이나 조건부 단계가 하나라도 있으면 `unsupported`이며 아무 Agent도 실행하지 않는다(축소 실행 금지). 단계 입력이 빠지면 대화 없는 요청은 `needs_input`으로 끝내고, 대화 안에서는 아래 HITL로 멈춘다. 조건부 단계는 Review의 Finding을 수정 입력으로 넘기는 연결이 필요해 아직 실행하지 않는다(Review 단독은 실행한다).

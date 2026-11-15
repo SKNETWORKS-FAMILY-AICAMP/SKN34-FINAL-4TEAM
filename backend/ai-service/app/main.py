@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from app.health.router import router as health_router
 from app.generation.router import router as generation_router
 from app.initial_world.router import router as initial_world_router
-from app.manuscript.router import router as manuscript_router
+from app.story_qa.router import router as story_qa_router
 from app.orchestration import service as orchestration
 from app.orchestration.router import router as orchestration_router
 from app.research.router import router as research_router
@@ -22,7 +22,7 @@ def create_app() -> FastAPI:
     application.include_router(health_router)
     application.include_router(generation_router)
     application.include_router(initial_world_router)
-    application.include_router(manuscript_router)
+    application.include_router(story_qa_router)
     application.include_router(orchestration_router)
     application.include_router(research_router)
     application.include_router(review_router)

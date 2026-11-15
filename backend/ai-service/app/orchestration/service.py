@@ -55,9 +55,9 @@ from app.content_mcp.errors import ContentMcpFailure
 from app.intent import service as intent
 from app.intent.errors import IntentFailure
 from app.intent.prompt import CLARIFY_MESSAGE
-from app.manuscript import service as manuscript
-from app.manuscript.errors import ManuscriptFailure
-from app.manuscript.models import AnswerRequest
+from app.story_qa import service as story_qa
+from app.story_qa.errors import StoryQaFailure
+from app.story_qa.models import AnswerRequest
 from app.orchestration.models import (ChatHistory, ChatSession, ChatTurn, OrchestrationRequest, OrchestrationResponse,
                                       QaStepResult, Resume)
 from app.research import service as research
@@ -92,7 +92,7 @@ def _story_context(data: dict | None, state: dict) -> QaStepResult:
             return QaStepResult(claims=[], gaps=gaps, coverage=coverage)
         data = {'question': _task(state)[:500], 'excerpts': [e.model_dump() for e in found.excerpts]}
     history = [] if state.get('replaceHistory') else [t['qa'] for t in state.get('turns', []) if t['qa']][-HISTORY_TURNS:]
-    answer = manuscript.answer(AnswerRequest.model_validate({**data, 'history': history}))
+    answer = story_qa.answer(AnswerRequest.model_validate({**data, 'history': history}))
     cited = {i for claim in answer.claims for i in claim.sourceIds}
     return QaStepResult(claims=answer.claims, gaps=gaps + answer.gaps, coverage=coverage,
                         sources=[e for e in data['excerpts'] if e['id'] in cited])
@@ -120,7 +120,7 @@ NO_REVIEW_TARGET = '검수할 작품과 회차를 확인할 수 없어요.'
 FEATURES = (*CALLS, 'character_simulation')
 # shortcut: 최근 5턴만 넘기고 요약하지 않는다. 긴 대화의 앞부분 지칭이 필요해지면 요약을 검토한다.
 HISTORY_TURNS = 5
-FAILURES = (ManuscriptFailure, WritingFailure, ResearchFailure, RetrievalFailure, SimulationFailure, ContentMcpFailure, ReviewFailure)
+FAILURES = (StoryQaFailure, WritingFailure, ResearchFailure, RetrievalFailure, SimulationFailure, ContentMcpFailure, ReviewFailure)
 LIMIT_MESSAGE = '시뮬레이션이 호출 한도를 넘어 멈췄어요.'
 APPROVABLE = ('writing_editing', 'character_simulation')  # 결과를 작가가 승인하면 초안에 반영하는 단계
 UNSUPPORTED_MESSAGE = ('요청에 아직 실행할 수 없는 작업이 있어 아무 작업도 실행하지 않았어요. '

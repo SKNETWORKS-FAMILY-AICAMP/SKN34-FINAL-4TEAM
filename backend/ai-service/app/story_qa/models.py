@@ -2,7 +2,7 @@
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class EmbeddingRequest(BaseModel):
@@ -37,11 +37,13 @@ class AnswerRequest(BaseModel):
 
 
 class Claim(BaseModel):
+    model_config = ConfigDict(extra='forbid')  # OpenAI strict 구조화 출력은 additionalProperties=false 스키마만 받는다
     text: str
     kind: Literal['confirmed', 'inferred']
     sourceIds: list[str]
 
 
 class AnswerResponse(BaseModel):
+    model_config = ConfigDict(extra='forbid')
     claims: list[Claim]
     gaps: list[str]

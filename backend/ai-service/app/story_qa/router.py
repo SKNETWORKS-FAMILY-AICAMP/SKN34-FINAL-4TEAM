@@ -3,9 +3,9 @@
 from fastapi import APIRouter, Header, HTTPException
 
 from app.internal_auth import require_internal_token
-from app.manuscript import service
-from app.manuscript.errors import ManuscriptFailure
-from app.manuscript.models import AnswerRequest, AnswerResponse, EmbeddingRequest, EmbeddingResponse
+from app.story_qa import service
+from app.story_qa.errors import StoryQaFailure
+from app.story_qa.models import AnswerRequest, AnswerResponse, EmbeddingRequest, EmbeddingResponse
 
 router = APIRouter()
 
@@ -16,7 +16,7 @@ def embed(data: EmbeddingRequest, x_internal_token: str = Header(default='')) ->
     require_internal_token(x_internal_token)
     try:
         return service.embed(data)
-    except ManuscriptFailure as error:
+    except StoryQaFailure as error:
         raise HTTPException(error.status, str(error)) from None
 
 
@@ -26,5 +26,5 @@ def answer(data: AnswerRequest, x_internal_token: str = Header(default='')) -> A
     require_internal_token(x_internal_token)
     try:
         return service.answer(data)
-    except ManuscriptFailure as error:
+    except StoryQaFailure as error:
         raise HTTPException(error.status, str(error)) from None

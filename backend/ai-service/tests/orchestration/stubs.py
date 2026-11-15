@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from types import SimpleNamespace
 
 from app.intent.models import IntentResult, IntentStep
-from app.manuscript.models import AnswerResponse, Claim
+from app.story_qa.models import AnswerResponse, Claim
 from app.orchestration import service
 from app.research.models import Finding, ResearchResponse
 from app.retrieval.models import RetrievalResult
@@ -65,7 +65,7 @@ def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None):
 
     monkeypatch.setattr(service.intent, 'route', recorded('route', routed))
     monkeypatch.setattr(service.retrieval, 'retrieve', recorded('retrieval', retrieved))
-    monkeypatch.setattr(service.manuscript, 'answer', recorded('story_context', AnswerResponse(
+    monkeypatch.setattr(service.story_qa, 'answer', recorded('story_context', AnswerResponse(
         claims=[Claim(text='밤에 닫는다', kind='confirmed', sourceIds=['a'])], gaps=[])))
     monkeypatch.setattr(service.writing, 'draft', recorded('draft', DraftResponse(
         text='선장은 항구에 내렸다.', model='m', providerResponseId='r', usage=None)))
