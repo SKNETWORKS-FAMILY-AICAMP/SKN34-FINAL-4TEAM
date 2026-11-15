@@ -1,0 +1,250 @@
+{
+  "status": "Research draft; full independent editing and historical review incomplete",
+  "combined": {
+    "file": "vol2-28-chapters.ko.draft.md",
+    "bytes": 901068,
+    "sha256": "D8BCF297FFE7E5DD42371ECC5F2199FA5135234BF7E549E8220106FD881E0670"
+  },
+  "chapter_count": 28,
+  "components": [
+    {
+      "order": 1,
+      "file": "vol2-01.ko.draft.md",
+      "bytes": 34672,
+      "sha256": "62DF0CF915DC09361EFD3FE8F3C47CF543CF770B83E4F40F1F50C0073BA919AB",
+      "start_byte": 3266,
+      "end_byte_exclusive": 37938
+    },
+    {
+      "order": 2,
+      "file": "vol2-01a.ko.draft.md",
+      "bytes": 27902,
+      "sha256": "BBD29084655F11D987F3F5249B3C94E2142FB8C0BCB0EDEEC0A62EDC76455CB5",
+      "start_byte": 37984,
+      "end_byte_exclusive": 65886
+    },
+    {
+      "order": 3,
+      "file": "vol2-02.ko.draft.md",
+      "bytes": 37928,
+      "sha256": "3B480BBF0F8304310068E2F4B9477E27E1CCBAC25E1CAD5D49B7F202601A34DA",
+      "start_byte": 65931,
+      "end_byte_exclusive": 103859
+    },
+    {
+      "order": 4,
+      "file": "vol2-03.ko.draft.md",
+      "bytes": 36319,
+      "sha256": "28131BA61576A194B42E9886FBA42E18CB86C7BD07A4F7A6FA32BDC2561AC9A1",
+      "start_byte": 103904,
+      "end_byte_exclusive": 140223
+    },
+    {
+      "order": 5,
+      "file": "vol2-04.ko.draft.md",
+      "bytes": 29687,
+      "sha256": "EC36BAA49B67C06A81BA74BC9603404C452CAF1AB4B9F907A57B04C3652BF366",
+      "start_byte": 140268,
+      "end_byte_exclusive": 169955
+    },
+    {
+      "order": 6,
+      "file": "vol2-05.ko.draft.md",
+      "bytes": 34550,
+      "sha256": "02CA0F96D18B2CBF5A0B24C7D9F56C240DCBC599C0F709DD70C9FD2247577594",
+      "start_byte": 170000,
+      "end_byte_exclusive": 204550
+    },
+    {
+      "order": 7,
+      "file": "vol2-06.ko.draft.md",
+      "bytes": 31919,
+      "sha256": "972C1DEBCA9AD32F84F1BDB3EB86BADB530A0EDB3C1B4D3B655D9B33A0F2141E",
+      "start_byte": 204595,
+      "end_byte_exclusive": 236514
+    },
+    {
+      "order": 8,
+      "file": "vol2-07.ko.draft.md",
+      "bytes": 36546,
+      "sha256": "A0AF5387F0702C5B8E42206B7B904061C4DA908414806B4C6432FA9931ADF92A",
+      "start_byte": 236559,
+      "end_byte_exclusive": 273105
+    },
+    {
+      "order": 9,
+      "file": "vol2-08.ko.draft.md",
+      "bytes": 35034,
+      "sha256": "561EBDA5A433AC09193FDC0F413CE8A6323844B9648D9F1E38631D95632C0A4C",
+      "start_byte": 273150,
+      "end_byte_exclusive": 308184
+    },
+    {
+      "order": 10,
+      "file": "vol2-09.ko.draft.md",
+      "bytes": 36310,
+      "sha256": "11A1EF60C662E84AF5837B4F9DA55F78BDC614373B999C9C2A76C39DD3224D7D",
+      "start_byte": 308230,
+      "end_byte_exclusive": 344540
+    },
+    {
+      "order": 11,
+      "file": "vol2-10.ko.draft.md",
+      "bytes": 33620,
+      "sha256": "DF0AAC2C15A3B8B7EC71DCC8E72F2B076F3EBC17F5AC5B713B5F1B96288EB5EE",
+      "start_byte": 344586,
+      "end_byte_exclusive": 378206
+    },
+    {
+      "order": 12,
+      "file": "vol2-11.ko.draft.md",
+      "bytes": 32855,
+      "sha256": "823CA3E6FDB0F51252E0702B21F420CCD72AA8CE8C8551C32F864B7E1292640C",
+      "start_byte": 378252,
+      "end_byte_exclusive": 411107
+    },
+    {
+      "order": 13,
+      "file": "vol2-12.ko.draft.md",
+      "bytes": 35711,
+      "sha256": "EE97E20423423CA503380A3DD95FAF30A4238074EC072B2520C159BCCFF94D8F",
+      "start_byte": 411153,
+      "end_byte_exclusive": 446864
+    },
+    {
+      "order": 14,
+      "file": "vol2-13.ko.draft.md",
+      "bytes": 33035,
+      "sha256": "8253F07736565EA5C9CA26A0DA14EA38FB82D9D29087FA3D673E229AF14E1B1E",
+      "start_byte": 446910,
+      "end_byte_exclusive": 479945
+    },
+    {
+      "order": 15,
+      "file": "vol2-14.ko.draft.md",
+      "bytes": 32401,
+      "sha256": "C6A92DD4C6FC84F1C68BE6198BA63FA75DD97E354CC00AE0CEC505203DDB079D",
+      "start_byte": 479991,
+      "end_byte_exclusive": 512392
+    },
+    {
+      "order": 16,
+      "file": "vol2-15.ko.draft.md",
+      "bytes": 32725,
+      "sha256": "FEA335B61B5E62A63E0B01F1FAE2AD85471084DFBC952DC98DF808912A241B2C",
+      "start_byte": 512438,
+      "end_byte_exclusive": 545163
+    },
+    {
+      "order": 17,
+      "file": "vol2-16.ko.draft.md",
+      "bytes": 37696,
+      "sha256": "B158BBFAA3BEE6BA8904F250F4CEBAAF08ECCC936F53016BD2CAF8013B095A03",
+      "start_byte": 545209,
+      "end_byte_exclusive": 582905
+    },
+    {
+      "order": 18,
+      "file": "vol2-17.ko.draft.md",
+      "bytes": 41025,
+      "sha256": "5D0D1731C0290A95B854C611CC667BEAF6BBCC798A3A5864C54D2676B73842C6",
+      "start_byte": 582951,
+      "end_byte_exclusive": 623976
+    },
+    {
+      "order": 19,
+      "file": "vol2-18.ko.draft.md",
+      "bytes": 20870,
+      "sha256": "098D8839A86BABC7C404CD1FCB8AB90F6EA4A05002E6EF8C56D92E04D70B489A",
+      "start_byte": 624022,
+      "end_byte_exclusive": 644892
+    },
+    {
+      "order": 20,
+      "file": "vol2-19.ko.draft.md",
+      "bytes": 19943,
+      "sha256": "75436613A301F354137A07BF9A3D36B33C02E600A5654389B18EB3DEDA625553",
+      "start_byte": 644938,
+      "end_byte_exclusive": 664881
+    },
+    {
+      "order": 21,
+      "file": "vol2-20.ko.draft.md",
+      "bytes": 23461,
+      "sha256": "E550EFF01B80A1AC2F7F47B21B65D2CBCF16B809C6CE6E5E4462FC27B585B412",
+      "start_byte": 664927,
+      "end_byte_exclusive": 688388
+    },
+    {
+      "order": 22,
+      "file": "vol2-21.ko.draft.md",
+      "bytes": 35521,
+      "sha256": "1558D8C738B6036CA94E973E8F5993F48DBA0782B8F5E5C91D9E1EB71AB3DB3B",
+      "start_byte": 688434,
+      "end_byte_exclusive": 723955
+    },
+    {
+      "order": 23,
+      "file": "vol2-22.ko.draft.md",
+      "bytes": 22336,
+      "sha256": "CD06712B1B51BA71E8ECC162C5E65C2CBC17D5C3FE333FF1AFF0F7F192F6EB12",
+      "start_byte": 724001,
+      "end_byte_exclusive": 746337
+    },
+    {
+      "order": 24,
+      "file": "vol2-23.ko.draft.md",
+      "bytes": 37887,
+      "sha256": "6B205CB7F04AA5FEFF2B829271976C2D19FED0E598976DB23ED61F69CFF4C164",
+      "start_byte": 746383,
+      "end_byte_exclusive": 784270
+    },
+    {
+      "order": 25,
+      "file": "vol2-24.ko.draft.md",
+      "bytes": 24489,
+      "sha256": "36C74D42805CB46E52BF2966E0E76E3387DA33EE7A9207299ECEE246C69EB0B8",
+      "start_byte": 784316,
+      "end_byte_exclusive": 808805
+    },
+    {
+      "order": 26,
+      "file": "vol2-25.ko.draft.md",
+      "bytes": 17314,
+      "sha256": "F283E788A408F47AD905C70CB695514D98E5590D3B1AC68C2682D9C00863A3FA",
+      "start_byte": 808851,
+      "end_byte_exclusive": 826165
+    },
+    {
+      "order": 27,
+      "file": "vol2-26.ko.draft.md",
+      "bytes": 37263,
+      "sha256": "742BF1E636B2E012183025D61E578FA620360AC7BBCF856E46EAA325A90E3833",
+      "start_byte": 826211,
+      "end_byte_exclusive": 863474
+    },
+    {
+      "order": 28,
+      "file": "vol2-27.ko.draft.md",
+      "bytes": 37548,
+      "sha256": "06C5C9CF58ADF4DD5A4F863B935A821100BF272766CD318FC10B0AA59489468E",
+      "start_byte": 863520,
+      "end_byte_exclusive": 901068
+    }
+  ],
+  "source_sha256": {
+    "source-vol1-en.txt": "DCCE85ACF41652C0BE4B9121F6C0A7AB30D327B98C9BE149AF4F9E9499CEF715",
+    "source-vol2-en.txt": "E0CB12FCF9DC105C627B85DDE2BB5511589A8F28E948624A733D84BE0AE4C8D4"
+  },
+  "checks": {
+    "all_components_byte_identical": true,
+    "whole_file_occurrences_each": 1,
+    "strict_utf8": true
+  },
+  "exclusions": [
+    "title and contents separate",
+    "indices separate",
+    "transcriber notes and PG notices Korean translation",
+    "image files"
+  ]
+}

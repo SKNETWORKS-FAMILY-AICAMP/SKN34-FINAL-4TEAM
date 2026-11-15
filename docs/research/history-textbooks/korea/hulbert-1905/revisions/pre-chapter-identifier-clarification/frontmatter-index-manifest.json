@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "created_date": "2026-11-13",
+  "status": "All frontmatter/index source entries covered in parallel Korean draft; uncertain names retained in English; expert historical review incomplete",
+  "source_hashes": {
+    "source-vol1-en.txt": "DCCE85ACF41652C0BE4B9121F6C0A7AB30D327B98C9BE149AF4F9E9499CEF715",
+    "source-vol2-en.txt": "E0CB12FCF9DC105C627B85DDE2BB5511589A8F28E948624A733D84BE0AE4C8D4"
+  },
+  "unchanged_vol1_combined_sha256": "E811AA28E7C7CF8E2DE5F37D93271BC7FB35C7DFFF6CB080F76C6301A6F18435",
+  "book_chapters": {
+    "vol1": 35,
+    "vol2_including_I_A": 28,
+    "total": 63
+  },
+  "narrative_end_year": 1904,
+  "chronology_end_year": 1392,
+  "total_index_logical_entries": 3144,
+  "frontmatter": {
+    "vol1_lines": [
+      43,
+      76
+    ],
+    "vol2_lines": [
+      43,
+      76
+    ],
+    "vol1_contents_entries": 5,
+    "vol2_contents_present": false,
+    "separate_illustration_lists_found": false,
+    "preface_introduction_retranslated": false
+  },
+  "general_index": {
+    "source_lines": [
+      13660,
+      16053
+    ],
+    "nonblank_transcription_rows": 1649,
+    "logical_entries": 1647,
+    "continuation_rows": [
+      "G0668",
+      "G1210"
+    ],
+    "cross_references": 4,
+    "arabic_numeric_tokens_preserved": 1891,
+    "roman_volume_tokens_preserved": 1662,
+    "numeric_ranges": 0,
+    "unmarked_volume_rows": [
+      "G0012",
+      "G0173",
+      "G0176",
+      "G0469",
+      "G0665"
+    ],
+    "source_row_mismatches": 0,
+    "independent_meaning_comparison": "all 1649 rows reviewed, corrections applied"
+  },
+  "biographical_index": {
+    "source_lines": [
+      16056,
+      17389
+    ],
+    "entries": 1300,
+    "korean_body_match_candidates": 472,
+    "original_forms_retained": 828,
+    "conflicting_candidate_entries": 9,
+    "kim_subentries": 67,
+    "identical_repeated_entry_pairs": 5,
+    "missing_page_entries": [
+      "Whan Ugeui",
+      "Wirye"
+    ],
+    "irregular_reference": "Soyu, 11 I 4",
+    "explicit_II": "Yang Honsu, II 210",
+    "source_row_mismatches": 0
+  },
+  "chronological_index": {
+    "source_lines": [
+      17391,
+      17820
+    ],
+    "entries": 197,
+    "data_physical_lines": 198,
+    "continuation": "C0184, source lines 17791-17792",
+    "groups": {
+      "first": 1,
+      "ancient_chosun": 41,
+      "mahan": 9,
+      "silla": 55,
+      "pakche": 30,
+      "koguryu": 28,
+      "koryu": 33
+    },
+    "bce_entries": 55,
+    "ce_entries": 142,
+    "korean_placeholders_preserved": 349,
+    "name_title_candidates": 20,
+    "name_title_original_forms_retained": 329,
+    "source_row_mismatches": 0,
+    "year_expansion_mismatches": 0
+  },
+  "excluded": {
+    "both_volumes_prefix_lines": [
+      1,
+      42
+    ],
+    "vol1_transcriber_lines": [
+      15308,
+      16031
+    ],
+    "vol1_pg_footer_lines": [
+      16032,
+      16382
+    ],
+    "vol2_transcriber_lines": [
+      17824,
+      18533
+    ],
+    "vol2_pg_footer_lines": [
+      18534,
+      18884
+    ],
+    "actual_illustrations": "not modified",
+    "original_page_image_collation": "not performed"
+  },
+  "checks": {
+    "source_hashes_match": true,
+    "frontmatter_source_blocks_match": true,
+    "all_index_source_rows_match": true,
+    "chronological_years_match": true,
+    "external_reference_page_correctness": "not exhaustively verified",
+    "expert_historical_review": "incomplete",
+    "modern_standard_name_identification": "incomplete"
+  },
+  "files": [
+    {
+      "file": "vol1-vol2-frontmatter.ko.draft.md",
+      "bytes": 4458,
+      "sha256": "63DC182AC511F74DE0286E9FE555AAB4A884C1A59C14F2A53AEE3254DDDAAAEB"
+    },
+    {
+      "file": "vol2-index-general.ko.draft.md",
+      "bytes": 125813,
+      "sha256": "787C5756AFB4516B2AC7239AAD70983E69A27A33DB82D12663D9AD93AE5212E8"
+    },
+    {
+      "file": "vol2-index-biographical.ko.draft.md",
+      "bytes": 121090,
+      "sha256": "5207AE34EB7892C3F397A496A3C8AA427EB78408C0BA8B6E47864AE33B0FF7AA"
+    },
+    {
+      "file": "vol2-index-biographical-qa.ko.md",
+      "bytes": 3296,
+      "sha256": "5C13E32D7D7261CDE355CCF4875A96FAFE3C8D48DA1ABA7759DF285C7A89C280"
+    },
+    {
+      "file": "vol2-index-chronological.ko.draft.md",
+      "bytes": 37009,
+      "sha256": "4527FC3B0469EC90325745CABB42ADE3DB8F6808798FA2C0ED963989335951DB"
+    },
+    {
+      "file": "frontmatter-index-qa.ko.md",
+      "bytes": 9277,
+      "sha256": "8623C1910FB7A942EBC439796B06ABDCABD57D419F9F8461F1D09985405C155B"
+    }
+  ]
+}

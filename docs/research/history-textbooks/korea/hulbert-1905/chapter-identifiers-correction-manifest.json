@@ -1,0 +1,938 @@
+{
+  "date": "2026-11-13",
+  "source_file": "source-vol2-en.txt",
+  "transcriber_note_lines": [
+    17882,
+    17884
+  ],
+  "basis": "PG Transcriber Notes, not a new printed-page image collation",
+  "chapter_counts": {
+    "vol1_content_units": 35,
+    "vol2_content_units": 28,
+    "total": 63
+  },
+  "backup_directory": "revisions/pre-chapter-identifier-clarification/",
+  "modified_existing_files": [
+    {
+      "file": "README.partial-ko.md",
+      "before_bytes": 57474,
+      "before_sha256": "6C5D7D8CC7EA0E48D859A5905E9D43125CA040945E3D07F5DAE30A7BADA86314",
+      "after_bytes": 59362,
+      "after_sha256": "76861C23CC328A505EBEA09C93387670890DD6A63412115E74E71DB0973ED5AF"
+    },
+    {
+      "file": "frontmatter-index-manifest.json",
+      "before_bytes": 4620,
+      "before_sha256": "6E7BA84281C49CB53CBBE395AAAF1C7FC273D97D7FE1614A7F23DB28276EFB29",
+      "after_bytes": 5032,
+      "after_sha256": "06F2DAB1ECC7BE1FD73CF011670948D17C6CA4708C5323C1CA1EAF9C0CA86A8B"
+    },
+    {
+      "file": "frontmatter-index-qa.ko.md",
+      "before_bytes": 9277,
+      "before_sha256": "8623C1910FB7A942EBC439796B06ABDCABD57D419F9F8461F1D09985405C155B",
+      "after_bytes": 10386,
+      "after_sha256": "311B475524C15D2C5DDEB26A62688CA0CC5120CED122BC8C13A093BCE03A1354"
+    },
+    {
+      "file": "korea-63-chapters-qa.ko.md",
+      "before_bytes": 1249,
+      "before_sha256": "10C84C71C430DDC0078CC3EC97E98112BAA1E8298961DB250F6118055C21FA69",
+      "after_bytes": 2044,
+      "after_sha256": "D74A2319D53518C538EE7D026C725FC4B0872DDCA0363B0BC2F93A238117D8C7"
+    },
+    {
+      "file": "korea-63-chapters.ko.draft.md",
+      "before_bytes": 2086044,
+      "before_sha256": "CFDC746326F6388E6721C863709DFFF7A924F6F0A64EE80E4647C59CFBC7401E",
+      "after_bytes": 2087690,
+      "after_sha256": "68A49F3AFC8F926383A3575F0DB21675F70FAEAF988D89CCB9607F7B8BB2E5E3"
+    },
+    {
+      "file": "korea-63-chapters.manifest.json",
+      "before_bytes": 16923,
+      "before_sha256": "5B5FF77301F4507DAE6FBE560E79CAACACF2FEA89EC143829F508D4AFFB72630",
+      "after_bytes": 16884,
+      "after_sha256": "61A30FCCEFD0D2502A13141A1BD267C732247BA1FFC8234DD8FD8077EEAE5601"
+    },
+    {
+      "file": "vol1-35-chapters-manifest.json",
+      "before_bytes": 10755,
+      "before_sha256": "502D7A0A25DE276A6E73F9B4A4B893F83AF5FAAED5540A049E270D4A210D1418",
+      "after_bytes": 11386,
+      "after_sha256": "809F740CA5215C8A9B1B91F0E54B29B4444D1BD7EC5C434EAFB5A9CD054B49D9"
+    },
+    {
+      "file": "vol1-35-chapters-qa.ko.md",
+      "before_bytes": 1893,
+      "before_sha256": "9B2867A68362933AB06C55F9DCDB60EC21E7DCF7F6F06D0707124D1A860A975D",
+      "after_bytes": 2744,
+      "after_sha256": "9A2B1E117AEF9CBD85A96BE233908312AA2B63E86375A25E1C3CB08708F73B83"
+    },
+    {
+      "file": "vol1-35-chapters.ko.draft.md",
+      "before_bytes": 1188931,
+      "before_sha256": "E811AA28E7C7CF8E2DE5F37D93271BC7FB35C7DFFF6CB080F76C6301A6F18435",
+      "after_bytes": 1189722,
+      "after_sha256": "569DFF2C020E036ACADC2BB3EDD321F60DC27EFBDAAB93DAFAC6789FE58F2AD9"
+    },
+    {
+      "file": "vol1-ancient-10.translation-qa.md",
+      "before_bytes": 7746,
+      "before_sha256": "45B62ECF8658858B08B4BD905973342EC50539985D2A783A5E00C73F4FB6A980",
+      "after_bytes": 8160,
+      "after_sha256": "ABFB297ACD64AF09BE74F585CFF4CA6B48AA49576D93064313E098493C721BE0"
+    },
+    {
+      "file": "vol1-ancient-11.translation-qa.md",
+      "before_bytes": 11125,
+      "before_sha256": "12665B7C8B20054666E8685F3EACB18494A05DC500270DE00028941BEC893B21",
+      "after_bytes": 11539,
+      "after_sha256": "60B854E7F2F1F9D825B8CA2B404AB6B96F761DE0E1E044BEFFCE809BFC649316"
+    },
+    {
+      "file": "vol1-ancient-12.translation-qa.md",
+      "before_bytes": 9773,
+      "before_sha256": "F84C1AD034266E26BB611D8F1293671915130D8B7A8AAB6C86B4B9557B0B5E0D",
+      "after_bytes": 10187,
+      "after_sha256": "A71D883893C47093409F0E729A28A5F93C48C023A96F773BB813193E07FDD391"
+    },
+    {
+      "file": "vol1-ancient-13-chapters.ko.draft.md",
+      "before_bytes": 395718,
+      "before_sha256": "0E45A586EFD0D8FF7FC16C633290C44A173ACF2C756500D38AA56E3443A16C20",
+      "after_bytes": 395896,
+      "after_sha256": "E15235CA836F118356F53311666E4507C17A966B79CD5638FCDF858634FD4FCD"
+    },
+    {
+      "file": "vol1-ancient-13-chapters.translation-qa.md",
+      "before_bytes": 4226,
+      "before_sha256": "3E6364E1BD7261AFC4BB79FC7CB67B95A0D197392E627906AA89CF75D4208726",
+      "after_bytes": 4912,
+      "after_sha256": "DC690D2B874240B9DE453B6B7FC5DB8C0C56D5799A321F31DD2EE1F247C7A0D4"
+    },
+    {
+      "file": "vol1-ancient-13.translation-qa.md",
+      "before_bytes": 9016,
+      "before_sha256": "427A5079AB584131433ABAD80C81D797D23415EAF508298499AF7B9EE7A03BA0",
+      "after_bytes": 9430,
+      "after_sha256": "731CDF61415FB7C1A5560FD504925ED306CD3F61E4A325CBF85FB76D4D3EAF58"
+    },
+    {
+      "file": "vol1-independent-sample-review.ko.md",
+      "before_bytes": 14396,
+      "before_sha256": "C1E74CA143DAC1A88FF71F3DF092356BDC86337839F64F87DF830AAE9F7B5710",
+      "after_bytes": 14810,
+      "after_sha256": "19C50895F409FA829E32E3C8147219F1F742A15888DE796F83B477FA00C7D979"
+    },
+    {
+      "file": "vol1-medieval-01.translation-qa.md",
+      "before_bytes": 10126,
+      "before_sha256": "2E43E56FBD58A802441531224D6DBBE842C8F579703CF7DDCC430CCB00D58A82",
+      "after_bytes": 10540,
+      "after_sha256": "26E1325BA2DF07F568C279252A7FC9D0A2362B231623559A1D7AAE45D8546BED"
+    },
+    {
+      "file": "vol1-medieval-02.translation-qa.md",
+      "before_bytes": 9332,
+      "before_sha256": "29272648398DF3D1FD2D756DEFCAF596CF0989D5E74945C80BD8C2AACE2B9A6C",
+      "after_bytes": 9746,
+      "after_sha256": "562BC7D51442F4E48014C538A8E4026CA5DA20FE4D95AC12FA8AECB0BC3FE5C9"
+    },
+    {
+      "file": "vol1-medieval-03.translation-qa.md",
+      "before_bytes": 10639,
+      "before_sha256": "8590B07FC133CC1FF538F7350715CE73C2EF94BF86ACFB966091E3B1427F4C2A",
+      "after_bytes": 11053,
+      "after_sha256": "96D35F80DF43CF3E7207DB5332564E1E5906916A121FF8F237CC65CD545C4350"
+    },
+    {
+      "file": "vol1-preface-introduction.ko.draft.md",
+      "before_bytes": 14706,
+      "before_sha256": "B8D26234E003760A9F402289EDDF07A00956991CD675F45A202933E8A280C0E3",
+      "after_bytes": 14927,
+      "after_sha256": "D2AAEBE14CC4D6B81AE941E89CCFDB22B1B9226FDDF32A25D2A76C69A7AEBBE6"
+    },
+    {
+      "file": "vol1-sample-correction.ko.md",
+      "before_bytes": 8303,
+      "before_sha256": "022BFA90ADD05786E7FD859FEEDF9FC4D5AA2178DEC2486615F9D6D050451291",
+      "after_bytes": 8717,
+      "after_sha256": "D32AEF2B658C8F0502FE05BCEABA17A0E3DD0303AAE04894010D468206CBAE9E"
+    },
+    {
+      "file": "vol1-vol2-frontmatter.ko.draft.md",
+      "before_bytes": 4458,
+      "before_sha256": "63DC182AC511F74DE0286E9FE555AAB4A884C1A59C14F2A53AEE3254DDDAAAEB",
+      "after_bytes": 4485,
+      "after_sha256": "61BB96D7EBF5C20521A30641F8A09C510485C6C55432EEE307B3DD8912F0C3E4"
+    },
+    {
+      "file": "vol2-01.ko.draft.md",
+      "before_bytes": 34672,
+      "before_sha256": "62DF0CF915DC09361EFD3FE8F3C47CF543CF770B83E4F40F1F50C0073BA919AB",
+      "after_bytes": 34697,
+      "after_sha256": "C7F4BFF9D4CCA962EE3E7BD879868946313A033A16189139BF5930F7A2E6BC73"
+    },
+    {
+      "file": "vol2-01.translation-qa.md",
+      "before_bytes": 10158,
+      "before_sha256": "5D615E5616A96764C3D97DF32FDA1B41A32569819580212602BFE6A99F5A8699",
+      "after_bytes": 10401,
+      "after_sha256": "4D9F6BEB38F68EF7A3F02FFC4BD8D08211AD70D1C50532713A69671A01342917"
+    },
+    {
+      "file": "vol2-01a.ko.draft.md",
+      "before_bytes": 27902,
+      "before_sha256": "BBD29084655F11D987F3F5249B3C94E2142FB8C0BCB0EDEEC0A62EDC76455CB5",
+      "after_bytes": 28465,
+      "after_sha256": "F612875D0462C6E1D67511DE98F45091E8C7FAE677603197AA2F61BA85954A9E"
+    },
+    {
+      "file": "vol2-01a.translation-qa.md",
+      "before_bytes": 9525,
+      "before_sha256": "D6E68C885FAECF9F5532A0DF7B50D689DCCAA061416271D7BEFEA8A783C6EE46",
+      "after_bytes": 10103,
+      "after_sha256": "503066CD141DAE043E9660A20EC4140510BABE0CA95CDE8379B91A19EE0DD3AC"
+    },
+    {
+      "file": "vol2-07.translation-qa.md",
+      "before_bytes": 10127,
+      "before_sha256": "47028F33DAB64A898A28ADE0AECD04CDA3AEB80E4B9A546CC7BFDC3C190EAF56",
+      "after_bytes": 10139,
+      "after_sha256": "087D09B99FE9345B5F798164D0BD646F2080056B1E861AE5AB504D23527ED492"
+    },
+    {
+      "file": "vol2-08.translation-qa.md",
+      "before_bytes": 9581,
+      "before_sha256": "350A923705022B8946FC629BECD7A4DAAF692B03AD5370513E452F3C44030D7E",
+      "after_bytes": 9604,
+      "after_sha256": "9E4AA601D5FF6F455C315FD1DBBB087250CC66E4C56B7B1CAFDA88DC1599C5CB"
+    },
+    {
+      "file": "vol2-09.translation-qa.md",
+      "before_bytes": 12856,
+      "before_sha256": "1FCEA4831B64AE6DA35C2618D2EAFAD6A8370E515060A89FA7E5B76FC9A3F51D",
+      "after_bytes": 12876,
+      "after_sha256": "E1D15B47AB2E8AD669513164BDCB502E670C0F066AFC23E23E2BD29AD565BBB9"
+    },
+    {
+      "file": "vol2-10.ko.draft.md",
+      "before_bytes": 33620,
+      "before_sha256": "DF0AAC2C15A3B8B7EC71DCC8E72F2B076F3EBC17F5AC5B713B5F1B96288EB5EE",
+      "after_bytes": 33801,
+      "after_sha256": "BB79EC63AFA9B8F7D10C1CB7BD8CE6CBD44999FFB8BA46F033EE60DE4F6A36D7"
+    },
+    {
+      "file": "vol2-10.translation-qa.md",
+      "before_bytes": 6433,
+      "before_sha256": "9A5BB6BDFCC3F58AF778A37E28FD1EF46971D8BAEFB32E85D799F45C856B4B57",
+      "after_bytes": 7126,
+      "after_sha256": "4595AC0E444215CD2A22227ED05EB3F735A16E8BC3E7ABA7D54C27E02EEBF1C1"
+    },
+    {
+      "file": "vol2-13.ko.draft.md",
+      "before_bytes": 33035,
+      "before_sha256": "8253F07736565EA5C9CA26A0DA14EA38FB82D9D29087FA3D673E229AF14E1B1E",
+      "after_bytes": 33050,
+      "after_sha256": "4CEBBEC02EE0D7D59B42D2350BC4DB2009C35787C3AD7E262E0B332754A85FDB"
+    },
+    {
+      "file": "vol2-13.translation-qa.md",
+      "before_bytes": 8274,
+      "before_sha256": "AAAD544EBDBB5801345984D0ACB887DF46D34E01EC2DC127B24B0711D884CCE3",
+      "after_bytes": 8520,
+      "after_sha256": "FF8DD30ADFB9DEFD747843109A981ACBEA4E77DC9CB451D1FDA8219A3A6E8E28"
+    },
+    {
+      "file": "vol2-14.ko.draft.md",
+      "before_bytes": 32401,
+      "before_sha256": "C6A92DD4C6FC84F1C68BE6198BA63FA75DD97E354CC00AE0CEC505203DDB079D",
+      "after_bytes": 32416,
+      "after_sha256": "D0E33188AB12992CAE75D5A6AF9A37CE32A77B055C5CFAE2D5633F36F027C998"
+    },
+    {
+      "file": "vol2-14.translation-qa.md",
+      "before_bytes": 8770,
+      "before_sha256": "6E7F5739A647AD7BDBA0D41091ED96B020B26CF0C366F0907672B2D3BD037091",
+      "after_bytes": 9020,
+      "after_sha256": "3CC4E9229388FB20073CBBE9C274570A06B14722972BE1630B285242AED1E270"
+    },
+    {
+      "file": "vol2-15.ko.draft.md",
+      "before_bytes": 32725,
+      "before_sha256": "FEA335B61B5E62A63E0B01F1FAE2AD85471084DFBC952DC98DF808912A241B2C",
+      "after_bytes": 32740,
+      "after_sha256": "0EE8FA2391A9901E4249503467AEE44C364CD5B5269A5A72638CA21F46FFE04B"
+    },
+    {
+      "file": "vol2-15.translation-qa.md",
+      "before_bytes": 9543,
+      "before_sha256": "78312C6EFD4B0F6F2BE4A3E6573AB7FE03C019ED9661054E29E27012F4B92296",
+      "after_bytes": 9783,
+      "after_sha256": "A27B17CC912244DAC1D151956B839CE10809F0430152658A0983C3340A73F5C8"
+    },
+    {
+      "file": "vol2-16.ko.draft.md",
+      "before_bytes": 37696,
+      "before_sha256": "B158BBFAA3BEE6BA8904F250F4CEBAAF08ECCC936F53016BD2CAF8013B095A03",
+      "after_bytes": 37714,
+      "after_sha256": "C96FE2F9CE84EB7C69FA6155521758CDF88F5B5F171FBFF64C80F37EBB9E5289"
+    },
+    {
+      "file": "vol2-16.translation-qa.md",
+      "before_bytes": 10001,
+      "before_sha256": "73F8DEB7FB8D5B98951E93CB69C952E1654A2C5A02AA023D74F934CF3A2842E7",
+      "after_bytes": 10248,
+      "after_sha256": "90BEC0F4592B60590EFC995365D80E7FC2A178D5E10B7ADCBAA7AC007C79328C"
+    },
+    {
+      "file": "vol2-17.ko.draft.md",
+      "before_bytes": 41025,
+      "before_sha256": "5D0D1731C0290A95B854C611CC667BEAF6BBCC798A3A5864C54D2676B73842C6",
+      "after_bytes": 41043,
+      "after_sha256": "0126DCF9BA636A5B66706264DEFADDDF2E5FE17FA4B9D9BEE33B14CF63092656"
+    },
+    {
+      "file": "vol2-17.translation-qa.md",
+      "before_bytes": 12249,
+      "before_sha256": "89EA17A12136518E6B01290117138C03492B3E767214A33AEE47F545FAC98AAC",
+      "after_bytes": 12496,
+      "after_sha256": "8E56CB7126910A1CD04A166B2B6EA5ADA15C183B9D13140A4379BF1DD46C9AE6"
+    },
+    {
+      "file": "vol2-18.ko.draft.md",
+      "before_bytes": 20870,
+      "before_sha256": "098D8839A86BABC7C404CD1FCB8AB90F6EA4A05002E6EF8C56D92E04D70B489A",
+      "after_bytes": 20888,
+      "after_sha256": "7F2F84F8A5A66C65039E70C78BCF13A76D9A788B53B2345CD33031B4C6BCC5FF"
+    },
+    {
+      "file": "vol2-18.translation-qa.md",
+      "before_bytes": 10351,
+      "before_sha256": "32E7DE5690118347A582A811056FCED8A50C5FFDC244A3D3D53B38E8D4A1C1DB",
+      "after_bytes": 10598,
+      "after_sha256": "E9C776E9CA9348DDEB5CAF538AB9FA05BDBE5751DF038727291CA1EC2CA1E453"
+    },
+    {
+      "file": "vol2-19.ko.draft.md",
+      "before_bytes": 19943,
+      "before_sha256": "75436613A301F354137A07BF9A3D36B33C02E600A5654389B18EB3DEDA625553",
+      "after_bytes": 19961,
+      "after_sha256": "A9239E0B85791ED4145402A6AFEB820033ED0919F4C23DFADF5BAB73DD22D823"
+    },
+    {
+      "file": "vol2-19.translation-qa.md",
+      "before_bytes": 10836,
+      "before_sha256": "733C894CA597C50F03F69D62CDAC51E7BA382B3F317C89A933F00896E7DAF00A",
+      "after_bytes": 11095,
+      "after_sha256": "9CE8B68363F551F118574BA30AE76769B626B0569540C56E6B333D7DD770D47A"
+    },
+    {
+      "file": "vol2-20.ko.draft.md",
+      "before_bytes": 23461,
+      "before_sha256": "E550EFF01B80A1AC2F7F47B21B65D2CBCF16B809C6CE6E5E4462FC27B585B412",
+      "after_bytes": 23479,
+      "after_sha256": "2968B0C4E12CC9C34DD8358565F5B72E3A4A71A2FEB744C01175829DD85B6889"
+    },
+    {
+      "file": "vol2-20.translation-qa.md",
+      "before_bytes": 10673,
+      "before_sha256": "000A0F18B0865EEFED7FF416E5A904D8CD5B90FECEE3651A699F76E2754001FE",
+      "after_bytes": 10932,
+      "after_sha256": "FE2CD84341827D8D3A446095A310B27ECB7316FA519E3D2E94888D0455CB06E4"
+    },
+    {
+      "file": "vol2-21.ko.draft.md",
+      "before_bytes": 35521,
+      "before_sha256": "1558D8C738B6036CA94E973E8F5993F48DBA0782B8F5E5C91D9E1EB71AB3DB3B",
+      "after_bytes": 35539,
+      "after_sha256": "EA51A01BB2061FED630FF538708B5411BF3F01C423A879E06C0C03963D72A547"
+    },
+    {
+      "file": "vol2-21.translation-qa.md",
+      "before_bytes": 14718,
+      "before_sha256": "BBC92D34C892D40F573A29B77B682B31579EC97B945F85D4619F815C42900F6D",
+      "after_bytes": 14970,
+      "after_sha256": "21AD16D82DD5D1B28CADBC5F8FCF11615411E64AFA98A972FD6D6F3C1A2D4A2E"
+    },
+    {
+      "file": "vol2-28-chapters-qa.ko.md",
+      "before_bytes": 1245,
+      "before_sha256": "C27562E338D3448244421D134C9537255ACAE92A34E4D9DE5F5E060321A60832",
+      "after_bytes": 2040,
+      "after_sha256": "43BC11CC3143584C058BD83AC05EC36D87D2C66A6C7C7E73980B8024E54B6FC6"
+    },
+    {
+      "file": "vol2-28-chapters.ko.draft.md",
+      "before_bytes": 901068,
+      "before_sha256": "D8BCF297FFE7E5DD42371ECC5F2199FA5135234BF7E549E8220106FD881E0670",
+      "after_bytes": 902493,
+      "after_sha256": "EF66795D35A7A269586804117D012572797DFF5D077E97BC0AC9C738FBE082FD"
+    },
+    {
+      "file": "vol2-28-chapters.manifest.json",
+      "before_bytes": 7700,
+      "before_sha256": "0ACEF62AE5CAD32A27C3FF82205E1759331D13751140688F718E7854680055B1",
+      "after_bytes": 7948,
+      "after_sha256": "C2179C0B5C3CED6DBA5ACAE2E117969DA59AEC01C66AE392655EEEC164661AC4"
+    },
+    {
+      "file": "vol2-index-biographical-qa.ko.md",
+      "before_bytes": 3296,
+      "before_sha256": "5C13E32D7D7261CDE355CCF4875A96FAFE3C8D48DA1ABA7759DF285C7A89C280",
+      "after_bytes": 3527,
+      "after_sha256": "B8D276C2E95426AB54F5918834CA0665E232C99D1C28DF47CC41DF8E61FDD0CB"
+    },
+    {
+      "file": "vol2-index-biographical.ko.draft.md",
+      "before_bytes": 121090,
+      "before_sha256": "5207AE34EB7892C3F397A496A3C8AA427EB78408C0BA8B6E47864AE33B0FF7AA",
+      "after_bytes": 121117,
+      "after_sha256": "EB87FFE32AEFCE6E931943BB0F78BE9F6B877F4BEBD621234D5FC51E02F0D44F"
+    },
+    {
+      "file": "vol2-index-chronological.ko.draft.md",
+      "before_bytes": 37009,
+      "before_sha256": "4527FC3B0469EC90325745CABB42ADE3DB8F6808798FA2C0ED963989335951DB",
+      "after_bytes": 37036,
+      "after_sha256": "EA73787BEA9F41A4624BFB3C69B7CA4CB9391C0B5F0A3A577E7F9F56B3830874"
+    }
+  ],
+  "new_files": [
+    {
+      "file": "chapter-identifiers-correction.ko.md",
+      "bytes": 8082,
+      "sha256": "EA77214008F50B4BF9A126B66FB398F88ACD0B36C351C7BB3CA4FDB628CE3F74"
+    }
+  ],
+  "body_comparisons": [
+    {
+      "file": "vol1-ancient-01.ko.draft.md",
+      "body_bytes": 7571,
+      "body_sha256": "645C3F24D0783787E1F28A44FA7B9FD5DF9A432991B263D154F61779A2B3E674",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-ancient-02.ko.draft.md",
+      "body_bytes": 30594,
+      "body_sha256": "B06B5889A423DBE79AF55B6B8B9501BA52EAECC71D158C46D40AD75F62EA31FE",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-ancient-03.ko.draft.md",
+      "body_bytes": 8363,
+      "body_sha256": "049C86876045C72D5EDC1746DF2EBAF49D1BCB6E6878BA2352B62C257E489C71",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-ancient-04.ko.draft.md",
+      "body_bytes": 21691,
+      "body_sha256": "36252863E6F81BEC4436856D841441E87083AE005AF59525BCAD0DF9AB9F28DF",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-ancient-05.ko.draft.md",
+      "body_bytes": 15989,
+      "body_sha256": "468F34D85A58EBBB7087C035DCBAD37D36A4C5408D29A063AA4BBA40A09E3070",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-ancient-06.ko.draft.md",
+      "body_bytes": 24707,
+      "body_sha256": "0BF8F08CE321D58E6DDDD5340BFECA3B6344277A7CC94A8D3CA39F0F3A405225",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-ancient-07.ko.draft.md",
+      "body_bytes": 20955,
+      "body_sha256": "A382943FDDBA493553DC44F711BA850C5BAA33FBDE56B532AD11C17CD982AC4B",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-ancient-08.ko.draft.md",
+      "body_bytes": 26383,
+      "body_sha256": "B44A3CC521A1221F0FEC805476BF3317D0A092C10ED93C4AB49C797B65B9AC23",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-ancient-09.ko.draft.md",
+      "body_bytes": 31741,
+      "body_sha256": "19FE61F94FA93DDE3B1390EB0EBD21FE8B9D536B9E0DE933C83CEAA11FAB929D",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-ancient-10.ko.draft.md",
+      "body_bytes": 26298,
+      "body_sha256": "DC360D682599CC7B39F685FBCA3258890CDFC555C8444773E9FDF0D39392D533",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-ancient-11.ko.draft.md",
+      "body_bytes": 37852,
+      "body_sha256": "84176991E7688AC4F8B5AF6E0F552697F34CE25BD2F1A5CDBD30B2B6E4F70740",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-ancient-12.ko.draft.md",
+      "body_bytes": 28200,
+      "body_sha256": "4EFB5DC19FDD887466F61F97F4607B7785B1E0AA7A897E891F67ACA0FC63F23D",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-ancient-13.ko.draft.md",
+      "body_bytes": 28077,
+      "body_sha256": "3ABA2EFDFF4AB00176DBE58273FA84AF25E11B18450A8B23EDCED64F64E3CC81",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-joseon-01.ko.draft.md",
+      "body_bytes": 33546,
+      "body_sha256": "5FAF3211EEB4632DDB15609B49DCB964F5226A10F7F383AB4CE0EAFBBE576EFB",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-joseon-02.ko.draft.md",
+      "body_bytes": 30644,
+      "body_sha256": "C6E396FE936037A9DBADEEAA30E1A5E6B36A1D44095B2D2373777E4BBDA1E9DE",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-joseon-03.ko.draft.md",
+      "body_bytes": 32919,
+      "body_sha256": "DFEDB42B8F88A646BA5A84F17CC97AF26D7EA99B122836A378387AC0B2067EED",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-joseon-04.ko.draft.md",
+      "body_bytes": 30072,
+      "body_sha256": "55F03D1582F332B6EAAEAE0C31BBCFFE6A1F477C1823F150EED79B05E1577CAF",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-joseon-05.ko.draft.md",
+      "body_bytes": 24164,
+      "body_sha256": "A5B7E1F2BFCD44E9ACE18CFB95051CBD6E8F9E511F46C3CDE05371FFE8AADD69",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-joseon-06.ko.draft.md",
+      "body_bytes": 28491,
+      "body_sha256": "A1825A9DDF967F1F76C04CCD3FB61BBC1183293CCFD58EF7A3EB5F6E34D2D36E",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-joseon-07.ko.draft.md",
+      "body_bytes": 29208,
+      "body_sha256": "CEA9A56EB6E910EF0D0A11606D7BCB1FA17F21B74618B37E0DD42E0FB9EAD42D",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-joseon-08.ko.draft.md",
+      "body_bytes": 32198,
+      "body_sha256": "D9E42ED2FC79ECF393FA8D93BAF083DE9917F9DD2309173CB0610CA05F6E7B3D",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-joseon-09.ko.draft.md",
+      "body_bytes": 32171,
+      "body_sha256": "193E2C50A08C71CDCAF77BF51A933BA0585ABE3F681FE8BDCDF908EAAFDC7882",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-medieval-01.ko.draft.md",
+      "body_bytes": 33824,
+      "body_sha256": "E07DB2BDC89FCDA8FD86308396705A106E42B2A1E19051810294AC5E718EADFF",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-medieval-02.ko.draft.md",
+      "body_bytes": 28863,
+      "body_sha256": "C2FF582A9002C23093AC439F8F3B965FE68B95FD913FE7B8C11860E551CD8971",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-medieval-03.ko.draft.md",
+      "body_bytes": 32266,
+      "body_sha256": "317F4DD5ED470747BC60E1726B2EBD1F169E92C08279C9CAC61E3E90742CA2F9",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-medieval-04.ko.draft.md",
+      "body_bytes": 32306,
+      "body_sha256": "D15AC8151FE504DD5145EAAE26CE74060021265612B80AA3A5846CE8FC8C3BE0",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-medieval-05.ko.draft.md",
+      "body_bytes": 31701,
+      "body_sha256": "DD89323AAF48D3A7CD74DC55B5DAF15E91D355A8CBFD1934FF817E3900575C1C",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-medieval-06.ko.draft.md",
+      "body_bytes": 30414,
+      "body_sha256": "FBA6825AEDBAA77FD4E3C49AFC0ACF35A2440CC506CB40D71B802BFA246A52C0",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-medieval-07.ko.draft.md",
+      "body_bytes": 32427,
+      "body_sha256": "D38B7D00E3A0914113E1E7AD75ECCF01B7E908AA33BD6F1333309FC85951C3C8",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-medieval-08.ko.draft.md",
+      "body_bytes": 29277,
+      "body_sha256": "209ECD3E9CF8D9C32DB91482141850DED6D40F39819EB2D2D876A407B942C9A2",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-medieval-09.ko.draft.md",
+      "body_bytes": 30387,
+      "body_sha256": "5D091042A573CC473EAF104ED0708102F30B318C12F9603B25020ABEF70DE78F",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-medieval-10.ko.draft.md",
+      "body_bytes": 28259,
+      "body_sha256": "87433325B2150BA3C4E16BC363360E16FDE96086FE4177B1275DC91611176DF5",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-medieval-11.ko.draft.md",
+      "body_bytes": 26008,
+      "body_sha256": "F8D4A32D6E7983DDED5650665032B0600579A318161297452B90B64303308F87",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-medieval-12.ko.draft.md",
+      "body_bytes": 24166,
+      "body_sha256": "85677BAA0B74E5406F2481412725384074E1E18F4A4A5B554B57F11567B41B34",
+      "unchanged": true
+    },
+    {
+      "file": "vol1-medieval-13.ko.draft.md",
+      "body_bytes": 29341,
+      "body_sha256": "C7DCA8EAB017000443F39406EB061BBA2F836106ACB6741B8D2645F80CB9E987",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-01.ko.draft.md",
+      "body_bytes": 32575,
+      "body_sha256": "038371466368172CE16B5E9B08832D4A6766105F574321B30B7D830669C3CD26",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-01a.ko.draft.md",
+      "body_bytes": 25858,
+      "body_sha256": "EBAA9E7522C31BB42F5FB200B92E7217533FCB8D82F99492C19203DFFA27EDB6",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-02.ko.draft.md",
+      "body_bytes": 35870,
+      "body_sha256": "2FEEAAC054CDD53CF7FD4C0FAE0032BD598073CDEE2B09824100C9751C4D71AF",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-03.ko.draft.md",
+      "body_bytes": 34286,
+      "body_sha256": "AE5E6FAA1C8B707D29269EEC2FD85A17F6CE670B98ECC65BAA4B7734FA32DD3F",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-04.ko.draft.md",
+      "body_bytes": 28082,
+      "body_sha256": "DE143426792CF981F7BD43DD1C195008F1B70E847D61897099D8D68CD6EF2605",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-05.ko.draft.md",
+      "body_bytes": 32934,
+      "body_sha256": "913A658910A18306C982F3D39A6E7D7B0B115926056F9E269BC997C6760496FB",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-06.ko.draft.md",
+      "body_bytes": 30320,
+      "body_sha256": "44168C4D8033B702A4DFF2A565D5E1AE559CEA60004692ED469DFE7683BEDA4E",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-07.ko.draft.md",
+      "body_bytes": 34945,
+      "body_sha256": "6C6E532108737A6E08BE7640B1F523B4E157B12AAA7659658090F8732925D4E3",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-08.ko.draft.md",
+      "body_bytes": 33385,
+      "body_sha256": "F6347F07AEA8F9DC4CD33D20D7CC3DBA8B5092D4A5661AFB7867727402686B46",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-09.ko.draft.md",
+      "body_bytes": 34676,
+      "body_sha256": "89A2DDD1FBA8B938F4FC6CA938C79E3E5075A178CB44A8EB254CA6047F41ECC7",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-10.ko.draft.md",
+      "body_bytes": 32509,
+      "body_sha256": "B9A3ACFBA29BB9AA26BD352311DDAE94AF2AFD24E352105D32FA872A5D67B895",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-11.ko.draft.md",
+      "body_bytes": 31743,
+      "body_sha256": "563D199821B7257A9446B11592DBD1654F2275CD95C2D15B28BD78E1CC944F2E",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-12.ko.draft.md",
+      "body_bytes": 34524,
+      "body_sha256": "F598C5DD75249FA9A931AC6DFBC41027504720187D992A97A60FBE34AE32B56E",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-13.ko.draft.md",
+      "body_bytes": 31860,
+      "body_sha256": "F512124B9D761A9CE02584FD8600A7A9262327E2979474CEF9817BA184E4977E",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-14.ko.draft.md",
+      "body_bytes": 31227,
+      "body_sha256": "FEEDBF7EE6EDEDB1371C67D8C0AD3757F91044961D24BAE68A92D44E7FA98E0C",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-15.ko.draft.md",
+      "body_bytes": 31489,
+      "body_sha256": "D91BDB2FC59B420C2FE425C82DC9975B0BD8CAAC95BA51475AB8FE065364390C",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-16.ko.draft.md",
+      "body_bytes": 36446,
+      "body_sha256": "007F9BEE03F0089B2CADE81064D3E0BBD7E27456223CDEC928CEBC0ABEC4BA59",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-17.ko.draft.md",
+      "body_bytes": 39724,
+      "body_sha256": "D4017377633242D1B6912C9CD6086511202649084112185C999EC29D4ADC20AA",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-18.ko.draft.md",
+      "body_bytes": 19569,
+      "body_sha256": "CEF818296B97C02462A2BDA2C2B691A7FFA7613EE8ABA2F888B93719F0EF02CA",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-19.ko.draft.md",
+      "body_bytes": 18627,
+      "body_sha256": "1BB43FC530E3F43F1989689EAA3B8206F41159428D661A480BC6C254786869AF",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-20.ko.draft.md",
+      "body_bytes": 22098,
+      "body_sha256": "F463503E633BF04D5E7BFC785B2121D63C5CC614B663FC855447B795D216C90D",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-21.ko.draft.md",
+      "body_bytes": 34205,
+      "body_sha256": "F9EE2A6F17580F13E8D8DF8732D52F85A68735399393049A67E257491DE8CED5",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-22.ko.draft.md",
+      "body_bytes": 21147,
+      "body_sha256": "5659FB86701FF5E9E37C4E3CE3D623817E42C3727311C81DFF4C6CCCA409344F",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-23.ko.draft.md",
+      "body_bytes": 36686,
+      "body_sha256": "160810B9FC3038A4B0E5FEA341F5D4E5CDA39CC79CC4EC2900CEE76DB2DE4D4D",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-24.ko.draft.md",
+      "body_bytes": 23289,
+      "body_sha256": "AB46C55140EAE089386970EED67D4DD0E73E6DC5818E86CB3048683175BFE315",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-25.ko.draft.md",
+      "body_bytes": 16508,
+      "body_sha256": "13F36DF8A6396ED74488547E9C18F9E4183F71F4AFC74A44041376AAEB86DFA1",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-26.ko.draft.md",
+      "body_bytes": 36450,
+      "body_sha256": "EC4A71BAF78324FFF7E54753EAD782EC0E7FE0A67B61B4CEEE8EC4641B406861",
+      "unchanged": true
+    },
+    {
+      "file": "vol2-27.ko.draft.md",
+      "body_bytes": 36643,
+      "body_sha256": "0726C69CB72BF92CD9476CF7078254F665AC80D91EB30234F6B1E1EDE0169248",
+      "unchanged": true
+    }
+  ],
+  "additional_unchanged_sections": [
+    {
+      "file": "vol1-preface-introduction.ko.draft.md",
+      "unchanged_suffix_bytes": 13196,
+      "unchanged_suffix_sha256": "68BD848D53B8A63B04068C841628124C538AD7EC79B91B72A1C230A5FA919347"
+    },
+    {
+      "file": "vol1-vol2-frontmatter.ko.draft.md",
+      "unchanged_suffix_bytes": 2731,
+      "unchanged_suffix_sha256": "258277094A48E280AEA2130489F0AA478005C2E62DD98E4FC667F768DF2F935E"
+    },
+    {
+      "file": "vol2-index-biographical.ko.draft.md",
+      "unchanged_suffix_bytes": 118807,
+      "unchanged_suffix_sha256": "45DECD1FB0D01182276B7D5D29BA6E3742744E81C42DBD3821B0A45AB85208F7"
+    },
+    {
+      "file": "vol2-index-chronological.ko.draft.md",
+      "unchanged_suffix_bytes": 34978,
+      "unchanged_suffix_sha256": "7B79B006B6CD7FBC6772216D6150AEDE8BCDECAC358ED1AD554FFC69E448467D"
+    }
+  ],
+  "general_index_whole_file_unchanged": {
+    "file": "vol2-index-general.ko.draft.md",
+    "sha256": "787C5756AFB4516B2AC7239AAD70983E69A27A33DB82D12663D9AD93AE5212E8"
+  },
+  "source_sha256": {
+    "source-vol1-en.txt": "DCCE85ACF41652C0BE4B9121F6C0A7AB30D327B98C9BE149AF4F9E9499CEF715",
+    "source-vol2-en.txt": "E0CB12FCF9DC105C627B85DDE2BB5511589A8F28E948624A733D84BE0AE4C8D4"
+  },
+  "ancient_components": [
+    {
+      "order": 1,
+      "file": "vol1-ancient-01.ko.draft.md",
+      "bytes": 14914,
+      "sha256": "6522626A5DED31BCF14CD27F70B58430AB78F9529415B6705C6C25A0A46F62BA",
+      "start_byte": 4350,
+      "end_byte_exclusive": 19264
+    },
+    {
+      "order": 2,
+      "file": "vol1-ancient-02.ko.draft.md",
+      "bytes": 36785,
+      "sha256": "F1860947F42318826337E7C8BB1AB0C2DA72B4F6537F0045D27C9544214C2450",
+      "start_byte": 19331,
+      "end_byte_exclusive": 56116
+    },
+    {
+      "order": 3,
+      "file": "vol1-ancient-03.ko.draft.md",
+      "bytes": 13825,
+      "sha256": "41F45883420774E35C1909B8F52EAEE45D80D744C0246463040E5DA8960C0C22",
+      "start_byte": 56183,
+      "end_byte_exclusive": 70008
+    },
+    {
+      "order": 4,
+      "file": "vol1-ancient-04.ko.draft.md",
+      "bytes": 27773,
+      "sha256": "365A646FA5F9D5958648918CE9204CC4479FAAE7A1823DF78112C9DFA5648D5D",
+      "start_byte": 70075,
+      "end_byte_exclusive": 97848
+    },
+    {
+      "order": 5,
+      "file": "vol1-ancient-05.ko.draft.md",
+      "bytes": 21778,
+      "sha256": "64BA835C8E0FDF53C40D4257134FF25CA8D4C2EC8F3D4D2EF817C2116E3B7E9D",
+      "start_byte": 97915,
+      "end_byte_exclusive": 119693
+    },
+    {
+      "order": 6,
+      "file": "vol1-ancient-06.ko.draft.md",
+      "bytes": 31265,
+      "sha256": "E9470A7E1CCC7AACC045547B5E3ABCDB7FAEE55959806957DAB68AB05AD430A7",
+      "start_byte": 119760,
+      "end_byte_exclusive": 151025
+    },
+    {
+      "order": 7,
+      "file": "vol1-ancient-07.ko.draft.md",
+      "bytes": 27411,
+      "sha256": "36A0C61D64FA0B8A5885D3FEA625276CB36E332FEFD303C3A6C52DA8C02EB93B",
+      "start_byte": 151092,
+      "end_byte_exclusive": 178503
+    },
+    {
+      "order": 8,
+      "file": "vol1-ancient-08.ko.draft.md",
+      "bytes": 33467,
+      "sha256": "21E7AB833E06751969EAB9BB4046F439D6DCA357281D83E4C6848546FF5FDBB5",
+      "start_byte": 178570,
+      "end_byte_exclusive": 212037
+    },
+    {
+      "order": 9,
+      "file": "vol1-ancient-09.ko.draft.md",
+      "bytes": 39556,
+      "sha256": "68EA1C23102B9B897EAD9A6A981BEF0875411B453C7B227E9DA57F200107A035",
+      "start_byte": 212104,
+      "end_byte_exclusive": 251660
+    },
+    {
+      "order": 10,
+      "file": "vol1-ancient-10.ko.draft.md",
+      "bytes": 31770,
+      "sha256": "A01FD363F804AA43C43237C7F17ECEEA28EF6F3C6FB305464BB48CBDDA542F0A",
+      "start_byte": 251727,
+      "end_byte_exclusive": 283497
+    },
+    {
+      "order": 11,
+      "file": "vol1-ancient-11.ko.draft.md",
+      "bytes": 43758,
+      "sha256": "A0F81753E9C61837182FBCDF1EFBD6EABEFFC78755BA032D2775367348C9CD30",
+      "start_byte": 283564,
+      "end_byte_exclusive": 327322
+    },
+    {
+      "order": 12,
+      "file": "vol1-ancient-12.ko.draft.md",
+      "bytes": 34048,
+      "sha256": "50210F353AD69A0C5487B6857F813FBFC9C27DD187E79BCDF7F533B35AE4825C",
+      "start_byte": 327389,
+      "end_byte_exclusive": 361437
+    },
+    {
+      "order": 13,
+      "file": "vol1-ancient-13.ko.draft.md",
+      "bytes": 34360,
+      "sha256": "2091ABF08BA4CD6E5AEBCEA8407276B4ACA3D3941AF2D2ECC6F29BFE87A865CD",
+      "start_byte": 361504,
+      "end_byte_exclusive": 395864
+    }
+  ],
+  "collection_component_counts": {
+    "vol1-ancient-13-chapters.ko.draft.md": 13,
+    "vol1-35-chapters.ko.draft.md": 36,
+    "vol2-28-chapters.ko.draft.md": 28,
+    "korea-63-chapters.ko.draft.md": 64
+  },
+  "validation": {
+    "all_63_translation_bodies_unchanged": true,
+    "sources_unchanged": true,
+    "components_whole_file_exactly_once": true,
+    "all_byte_offsets_and_hashes_match": true,
+    "full_independent_semantic_review": false
+  }
+}
