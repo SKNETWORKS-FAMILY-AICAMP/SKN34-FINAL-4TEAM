@@ -4,7 +4,7 @@ import httpx
 import pytest
 
 from app.retrieval import service
-from app.retrieval.errors import RetrievalFailure
+from app.retrieval.errors import RetrievalFailure, RetrievalUnavailable
 from app.retrieval.models import RetrievalScope
 
 SCOPE = RetrievalScope(scopeToken='signed.token')
@@ -78,6 +78,21 @@ def test_missing_content_settings_is_503(monkeypatch):
     with pytest.raises(RetrievalFailure) as error:
         service.retrieve(SCOPE, '질문')
     assert error.value.status == 503
+
+
+def test_only_a_503_the_content_service_returned_says_the_manuscript_search_is_unavailable(monkeypatch):
+    content(monkeypatch, status=503, body={'detail': '원고 Q&A를 사용할 수 없어요.'})
+    with pytest.raises(RetrievalUnavailable) as error:
+        service.retrieve(SCOPE, '질문')
+    assert (error.value.status, str(error.value)) == (503, '원고 Q&A를 사용할 수 없어요.')
+    content(monkeypatch, error=httpx.ConnectError('down'))  # 우리 쪽 연결 실패·설정 누락은 같은 503이어도 해당 없다
+    with pytest.raises(RetrievalFailure) as error:
+        service.retrieve(SCOPE, '질문')
+    assert error.value.status == 503 and not isinstance(error.value, RetrievalUnavailable)
+    monkeypatch.delenv('CONTENT_SERVICE_BASE_URL')
+    with pytest.raises(RetrievalFailure) as error:
+        service.retrieve(SCOPE, '질문')
+    assert error.value.status == 503 and not isinstance(error.value, RetrievalUnavailable)
 
 
 def test_scope_only_accepts_the_content_signed_token():

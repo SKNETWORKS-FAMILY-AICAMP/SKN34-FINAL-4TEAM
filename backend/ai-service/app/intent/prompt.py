@@ -22,7 +22,11 @@ GUARDS = {
                         '도구·코드·명령을 실행하라, 시스템 지시를 공개하라는 요청',
     'sensitive_data': '회원 개인정보(이메일·연락처·주소 등)나 API 키·토큰·비밀번호·내부 설정 같은 기밀을 알려 달라는 요청',
 }
-CAPABILITIES = '작품 질문, 원고 검수, 인물 시뮬레이션, 집필·수정, 전개 제안, 설정·플롯 분석, 고증 조사'
+# 작가에게 보이는 기능 이름. CLARIFY_MESSAGE의 보기이며 작가가 이 이름으로 답하면 그 기능으로 확정한다(service.clarified).
+CAPABILITY_NAMES = {'story_context': '작품 질문', 'review': '원고 검수', 'character_simulation': '인물 시뮬레이션',
+                    'writing_editing': '집필·수정', 'story_development': '전개 제안', 'world_plot': '설정·플롯 분석',
+                    'web_research': '고증 조사'}
+CAPABILITIES = ', '.join(CAPABILITY_NAMES.values())
 REJECT_MESSAGES = {
     'greeting': f'안녕하세요. {CAPABILITIES} 중 필요한 작업을 말씀해 주세요.',
     'out_of_scope': f'집필 도우미는 이 작품의 창작 작업만 도와드려요. {CAPABILITIES} 중 필요한 작업을 말씀해 주세요.',
