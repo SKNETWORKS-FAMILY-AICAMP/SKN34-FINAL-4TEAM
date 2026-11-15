@@ -1076,19 +1076,26 @@ it('서버가 별도 오류 없이 멈춘(stopped) 장면을 턴 사이 대기�
 })
 
 // 이력을 다시 읽는 await 사이에 작품이 바뀌면, 이전 작품 요청의 뒷정리가 새 작품의 멈춘 장면을 저절로 재생하게 만들던 문제.
+// 저장된 대화를 복원해 둔 채 장면 조작을 보내고(새 대화 id를 정하는 요청이면 id가 정해진 뒤 도는 이력 조회 effect가 한 번 더 불려 호출 순서가 흔들린다),
+// 요청이 끝난 뒤 저장된 내용을 읽는 이력 조회 하나만 붙잡은 채 작품을 바꾼다.
 it('이력을 읽는 사이 작품이 바뀌면 이전 작품 요청의 뒷정리가 새 작품의 장면 신호(sceneTicket)를 올리지 않는다', async () => {
   const waitingScene = scene([narrate(0)])
+  const reply: ChatReply = { status: 'waiting', steps: [stepOf(waitingScene)], missingInputs: [], awaitingScene: 'character_simulation' }
+  sessions.mockImplementation(async (work: string) => (work === 'w' ? [{ threadId: 'a', title: '대화', updatedAt: '' }] : []))
+  let hold = false
   let releaseHistory!: () => void
-  history.mockImplementationOnce(() => new Promise((resolve) => {
-    releaseHistory = () => resolve({ threadId: 'a', title: '', turns: [{ request: '시뮬레이션', reply: { status: 'waiting', steps: [stepOf(waitingScene)], missingInputs: [], awaitingScene: 'character_simulation' } }] })
-  }))
+  history.mockImplementation(async (_work: string, id: string) => {
+    if (hold) { hold = false; await new Promise<void>((resolve) => { releaseHistory = resolve }) }
+    return { threadId: id, title: '', turns: [{ request: '시뮬레이션', reply }] }
+  })
   serve((_input, emit) => { pauseAt(emit, waitingScene) })
   const { result, rerender } = renderHook(({ work }) => useWritingChatViewModel(work, BASIS), { initialProps: { work: 'w' } })
-  await waitFor(() => expect(result.current.sessions).not.toBeNull())
+  await waitFor(() => expect(result.current.awaiting).toBe('scene'))
   act(() => result.current.setConsent(true))
+  hold = true
   let sending!: Promise<boolean>
-  act(() => { sending = result.current.send(`IF 모드 시뮬레이션: ${PREMISE}`, { operation: 'character_simulation', simulation: { mode: 'if', premise: PREMISE, characterIds: ['c1'] } }) })
-  await waitFor(() => expect(history).toHaveBeenCalledTimes(1))
+  act(() => { sending = result.current.sceneAction({ action: 'next' }) })
+  await waitFor(() => expect(hold).toBe(false)) // 요청이 끝나 저장된 내용을 읽는 이력 조회가 붙잡혔다.
   rerender({ work: 'w2' })
   await act(async () => { releaseHistory(); await sending })
   expect(result.current.sceneTicket).toBe(0)
