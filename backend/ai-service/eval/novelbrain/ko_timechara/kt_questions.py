@@ -18,6 +18,7 @@ import random
 import re
 import sys
 from collections import Counter
+from pathlib import Path
 
 from pydantic import BaseModel
 
@@ -25,7 +26,7 @@ import kt_common  # noqa: F401  경로 설정이 다른 import보다 먼저여�
 from batch import Round, cost_report, plan_for, run_rounds
 from kt_common import KT, SEED
 from kt_exec import load_works, make_executor, make_llm
-from kt_label import PROFILE_INSTRUCTIONS, PROFILE_TOKENS, Profile, appearances, knows
+from kt_label import PROFILE_INSTRUCTIONS, PROFILE_TOKENS, Profile, appearances, knows, learn_gap
 from kt_text import squash
 
 # 작품당 정원(합 64): 공개 600건의 유형 구성(future 1/3·past-only 1/3·absence 1/6·presence 1/6)과 같은 비율, future는 정형·자유 반반
@@ -110,8 +111,9 @@ def pick_specs(knowledge: list[dict], mains: list[str], quota: dict, rng: random
         i = event['id']
         if kind == 'future':
             return name in actors[i] and event['episode'] > p
-        if kind == 'past-absence':
-            return name not in present[i] and min(seen[name]) <= event['episode'] <= p and not knows(knowledge, name, event, p)
+        if kind == 'past-absence':   # 사건 뒤 p화까지 '전해 들은 인물' 추출이 실패한 회차가 끼면 그 사이에 알게 됐는지 알 수 없어 질문으로 쓰지 않는다
+            return (name not in present[i] and min(seen[name]) <= event['episode'] <= p and not knows(knowledge, name, event, p)
+                    and not learn_gap(knowledge, event['episode'], p))
         return name in present[i] and event['episode'] <= p
 
     specs = []
@@ -188,6 +190,22 @@ def load_knowledge(wid: str) -> list[dict]:
     return [json.loads(line) for line in (KT / 'works' / wid / 'knowledge.jsonl').read_text().splitlines()]
 
 
+def write_questions(folder, rows: list[dict], personalities: dict, chosen: set[str] | None) -> list[dict]:
+    """questions.jsonl·personalities.json을 쓴다. 작품을 골라 실행했으면(chosen) 그 작품의 질문·성격만 새 값으로 바꾸고 다른 작품은 파일에 있던
+    그대로 둔다. 작품 id 순(작품 안 순서 유지)으로 idx를 다시 매겨 돌려준다."""
+    folder = Path(folder)
+    folder.mkdir(parents=True, exist_ok=True)
+    questions, people = folder / 'questions.jsonl', folder / 'personalities.json'
+    if chosen is not None:
+        before = [json.loads(line) for line in questions.read_text().splitlines()] if questions.exists() else []
+        rows = [r for r in before if r['work'] not in chosen] + rows
+        personalities = {**(json.loads(people.read_text()) if people.exists() else {}), **personalities}
+    rows = [dict(r, idx=n) for n, r in enumerate(sorted(rows, key=lambda r: r['work']))]
+    questions.write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in rows))
+    people.write_text(json.dumps(personalities, ensure_ascii=False))
+    return rows
+
+
 def main(mode: str, ids: list[str]) -> None:
     from kt_world import load_world
 
@@ -234,9 +252,11 @@ def main(mode: str, ids: list[str]) -> None:
         rows += mine
         drops.update(dropped)
         print(f"{wid} 질문 {len(mine)} ({dict(Counter(r['data_type'] for r in mine))}) 인물 {len(plans[wid]['mains'])} 버림 {dict(dropped)}")
-    rows = [dict(r, idx=n) for n, r in enumerate(rows)]
-    (KT / 'questions.jsonl').write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in rows))
-    (KT / 'personalities.json').write_text(json.dumps(personalities, ensure_ascii=False))
+    rows = write_questions(KT, rows, personalities, set(ids) or None)
+    if ids:   # 질문 통계·검수 표본은 전체 작품의 값이라 전체 실행에서만 다시 만든다(고른 작품의 집계로 덮어쓰지 않는다)
+        print(f'작품 {len(ids)}편만 질문·성격 파일에 병합했다(다른 작품은 그대로). 질문 통계·검수 표본은 작품을 고르지 않은 실행에서 갱신한다.')
+        cost_report(llm)
+        return
     sample = review_sample(rows, texts_of, SEED)
     with (KT / 'review_sample.csv').open('w', newline='', encoding='utf-8') as file:
         writer = csv.DictWriter(file, fieldnames=list(sample[0]))

@@ -2,6 +2,7 @@
 
 from types import SimpleNamespace
 
+import kt_run
 from batch import SyncExecutor, run_rounds
 from cost import CostLog
 from kt_context import CONFIGS
@@ -84,6 +85,20 @@ def test_ko_system_prompt_names_the_character_and_cutoff():
 def test_embed_group_keeps_the_first_works_together_and_separates_each_expansion():
     assert {embed_group(w) for w in ('c01', 'c05', 'w01', 'w12')} == {0} and {embed_group(w) for w in ('w13', 'w40')} == {1}
     assert embed_group('w41') == embed_group('w48') == 2           # ROUNDS = (12, 40, 48)
+
+
+def test_build_contexts_embeds_each_group_with_all_its_questions_even_when_only_some_works_run(monkeypatch):
+    embedded = []
+
+    def fake_embed(texts, kind):
+        embedded.append(list(texts))
+        return [(len(texts), i) for i in range(len(texts))]                      # 같은 묶음의 질문 수와 위치가 벡터를 대신한다
+
+    monkeypatch.setattr(kt_run, 'embed_texts', fake_embed)
+    monkeypatch.setattr(kt_run, 'contexts_for', lambda r, data, knowledge, vector: (r['work'], vector))
+    rows = [{'idx': 0, 'work': 'c01', 'question': 'q0'}, {'idx': 1, 'work': 'w13', 'question': 'q1'}, {'idx': 2, 'work': 'w14', 'question': 'q2'}]
+    contexts = kt_run.build_contexts(rows, {'w14': {'knowledge': []}})            # w14만 실행해도
+    assert contexts == {2: ('w14', (2, 1))} and embedded == [['q0'], ['q1', 'q2']]   # 벡터는 w13과 함께 묶은 임베딩에서 나온다(전체 실행과 같다)
 
 
 def test_context_rates_average_each_flag_per_configuration_and_per_type():

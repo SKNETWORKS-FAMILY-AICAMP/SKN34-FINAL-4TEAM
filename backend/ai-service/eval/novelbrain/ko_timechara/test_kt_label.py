@@ -1,7 +1,7 @@
 """정답표(라벨) 단위 테스트: 근거 대조 검증·나중에 전해 들은 인물·지식표 조회. 합성 입력만 쓴다(소설 원문 없음)."""
 
-from kt_label import (EpisodeLabel, Ev, Learn, LearnedLabel, Ref, appearances, build_knowledge, knows, learned_input, verify_episode,
-                      verify_learned)
+from kt_label import (EpisodeLabel, Ev, Learn, LearnedLabel, Ref, appearances, build_knowledge, knows, learn_gap, learned_input,
+                      verify_episode, verify_learned)
 
 TEXT = ('철수는 영희에게 칼을 건넸다. 영희는 말없이 받았다.\n민수는 문 밖에서 그 모습을 지켜보았다. 아무도 민수를 보지 못했다.\n'
         '밤이 깊어 갔다. 철수는 먼 길을 떠났다.')
@@ -71,3 +71,10 @@ def test_build_knowledge_canonicalizes_names_and_queries_presence_absence_and_le
     assert knows(knowledge, '철수', event, 1) and knows(knowledge, '민수', event, 1)   # 참여·목격은 곧바로
     assert not knows(knowledge, '영희', event, 1) and knows(knowledge, '영희', event, 2)   # 전해 들은 회차부터
     assert not knows(knowledge, '길동', event, 5)
+
+
+def test_build_knowledge_marks_episodes_whose_learned_extraction_failed_and_learn_gap_reads_the_marks():
+    knowledge = build_knowledge({1: [], 2: [], 3: []}, {}, {}, failed={3})
+    assert [k.get('learn_failed', False) for k in knowledge] == [False, False, True]      # 실패한 회차를 '전해 들은 인물 없음'으로 쓰지 않고 표시한다
+    assert learn_gap(knowledge, 1, 3) and learn_gap(knowledge, 2, 5)                       # (사건 회차, 기준 회차] 안에 실패한 회차가 있으면 알 수 없다
+    assert not learn_gap(knowledge, 1, 2) and not learn_gap(knowledge, 3, 5)

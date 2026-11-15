@@ -73,3 +73,16 @@ def test_world_survives_a_save_and_load_roundtrip(tmp_path):
     again = load_world(tmp_path / 'world.json')
     assert again['cards'] == world['cards'] and again['relations'] == world['relations']
     assert again['when'] == world['when'] and again['character_id'] == world['character_id']
+
+
+def test_build_world_does_not_put_a_role_found_only_in_a_later_episode_into_the_card_revealed_earlier():
+    one, _ = validate_world('범인은 아직 모른다. 철수가 문 앞에 있었다.', WorldOut(
+        characters=[WChar(name='철수', role='', memory='문 앞에 있었다.')], events=[], relations=[]))
+    two, _ = validate_world('철수가 범인이었다.', WorldOut(
+        characters=[WChar(name='철수', role='범인', memory='정체가 드러났다.')], events=[], relations=[]))
+    world = build_world('w00', {1: one, 2: two}, {'철수': '철수'})
+    card = world['cards'][0]
+    assert card.revealFromEpisode == 1 and card.text == ''                             # 1화부터 공개되는 카드 본문에 2화에서 밝혀진 신분이 없다
+    assert card.episodes == {1: '문 앞에 있었다.', 2: '정체가 드러났다.'}
+    early = recall(snapshot(world, 1), world['character_id']['철수'], 1, '철수는 범인인가', stage=3, k=20)
+    assert all('범인' not in i.text for i in early.items)

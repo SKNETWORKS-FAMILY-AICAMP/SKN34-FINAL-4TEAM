@@ -26,12 +26,13 @@
 ## 재현
 
 명령 전체는 [결과 문서 §8](../../../../docs/evaluation/novelbrain.md#8-재현)에 있다. TimeChara는 HuggingFace 로그인·약관 동의가 필요하다(비상업 연구 한정, 토큰은 `~/.cache/huggingface/token`).
-단위 테스트: `cd backend/ai-service && uv run --locked --extra dev python -m pytest eval/novelbrain -q` (numpy가 없는 환경에서는 kNN 테스트 1건만 건너뛴다).
+단위 테스트: `cd backend/ai-service && uv run --locked --extra dev python -m pytest eval/novelbrain -q` (numpy가 없는 환경에서는 numpy가 필요한 3건(kNN·벡터 캐시·KoTimeChara 문맥)만 건너뛴다).
 
 ## 규칙
 
 - 실제 OpenAI 호출은 모두 `llm.py`를 거친다. 첫 평가는 장부(`.data/ledger.jsonl`)가 3,000회를 막았고, KoTimeChara·TimeChara 600건·MuSiQue 다시 풀기는 비용 장부(`.data/cost.jsonl`)의 금액 상한(28달러, 이전 키 사용분은 `.data/cost-previous-key.jsonl`에 기록만)이 막는다. 재시도와 실패한(잘린) 호출도 센다. 큰 라운드는 Batch API(절반 가격)로 낼 수 있고 실행 전에 예상 금액을 출력한다.
 - 평가 모델은 `cost.MODEL`(`gpt-5.6-luna`)로 고정한다. 메인 `.env`의 `OPENAI_MODEL`이 바뀌어도 `usd_llm`은 읽지 않는다(비교 가능성). 키는 `.env`에서만 읽는다.
 - KoTimeChara 작품을 늘릴 때는 `kt_common.ROUNDS`(확대 차수별 누적 편수)에 새 차수를 더한다. 작품 id와 질문 임베딩 묶음이 차수를 따르므로 이미 만든 추출·질문·응답 캐시가 그대로 맞는다.
+- 저장된 산출물은 다른 실행이 조용히 덮거나 섞지 않는다. 벡터 캐시(`vectors*.npy`)는 본문 목록(순서)·접두어 종류의 지문(`.sha256`)이 같을 때만 읽고 지문이 없는 옛 캐시는 다시 계산한다. `kt_questions.py <작품 id>`는 고른 작품의 질문·성격만 바꿔 병합하고(통계·검수 표본은 전체 실행에서만 갱신), `kt_run.py --works`는 질문 임베딩 묶음을 전체 질문으로 정해 전체 실행과 같은 문맥·요청을 낸다. `ko.py generate`는 종류 하나라도 질문이 없으면 기존 질문 파일을 지키고 멈추며, `run.py answers`는 모델·문항(지문)·k가 같은 이전 구성(gold·none 등)만 이어 붙인다. 전해 들은 인물 추출이 실패한 회차는 지식표에 `learn_failed`로 남아 그 구간의 past-absence 질문을 만들지 않는다.
 - 입력·원고·모델 응답·키는 오류 메시지와 로그에 넣지 않는다. 호출 실패·잘린 응답·파싱 실패는 점수를 꾸미지 않고 집계의 `failed`로 센다.
 - 의존성 파일은 바꾸지 않았다. 일회성 도구가 필요하면 `uv run --with <패키지>`로만 쓴다.

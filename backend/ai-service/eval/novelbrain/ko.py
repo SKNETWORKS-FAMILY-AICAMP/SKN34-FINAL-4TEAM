@@ -12,7 +12,9 @@
 import csv
 import json
 import random
+import re
 import sys
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from statistics import mean
@@ -60,6 +62,11 @@ def load_works() -> dict:
     documents = {d['id']: d for d in _rows('setting_document.csv')}
     settings = _rows('setting_version.csv')
     participants, links = _rows('setting_reading_participant.csv'), _rows('setting_reading_link.csv')
+    order = {e['id']: int(e['sequence']) for e in episodes}
+    public = defaultdict(list)   # 공개 이력 id → 공개(public) 범위가 시작되는 회차
+    for r in _rows('setting_visibility_range.csv'):
+        if r['visibility'] == 'public' and r['start_episode_id'] in order:
+            public[r['visibility_history_id']].append(order[r['start_episode_id']])
     result = {}
     for title, work_id in works.items():
         sequence = {e['id']: int(e['sequence']) for e in episodes if e['work_id'] == work_id}
@@ -70,7 +77,8 @@ def load_works() -> dict:
         by_logical = {documents[s['setting_document_id']]['logical_id']: s['name'] for s in mine}
         result[title] = {
             'episodes': saved,
-            'cards': [{'name': s['name'], 'category': s['category_id'], 'content': s['content']} for s in mine],
+            'cards': [{'name': s['name'], 'category': s['category_id'], 'content': s['content'],
+                       'reveal': min(public.get(s['visibility_history_id'], []), default=None)} for s in mine],
             'participants': [(by_version[v], [p['name'] for p in sorted((p for p in participants if p['setting_version_id'] == v),
                                                                        key=lambda p: int(p['position']))])
                              for v in by_version if any(p['setting_version_id'] == v for p in participants)],
@@ -143,6 +151,15 @@ def paragraph_id(work: str, episode: int, index: int) -> str:
     return f'{WORKS.index(work)}.{episode}.{index}'
 
 
+def write_dataset(rows: list[dict], path: Path = DATASET) -> None:
+    """질문 세트를 쓴다. 종류 하나라도 질문이 없으면 쓰지 않고 멈춘다(기존 파일을 지키고, run이 빈 목록의 평균을 내다 실패하지 않게)."""
+    missing = [kind for kind in QUOTA if not any(r['kind'] == kind for r in rows)]
+    if missing:
+        raise RuntimeError(f'질문이 없는 종류 {missing}: 기존 {path.name}은 그대로 두었다. 같은 명령을 다시 실행하면 성공분은 캐시에서 이어 간다.')
+    path.parent.mkdir(exist_ok=True)
+    path.write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in rows))
+
+
 def generate() -> None:
     works = load_works()
     cands = candidates(works, SEED)
@@ -188,8 +205,7 @@ def generate() -> None:
         reason = take(c, out)
         if reason:
             dropped[reason] = dropped.get(reason, 0) + 1
-    DATASET.parent.mkdir(exist_ok=True)
-    DATASET.write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in rows))
+    write_dataset(rows)
     print(f"질문 {len(rows)}개 저장(종류별 { {k: sum(r['kind'] == k for r in rows) for k in QUOTA} }), 버린 후보 {dropped}, 장부 {ledger.used()}/{CAP}")
 
 
@@ -206,14 +222,23 @@ def ko_world(works: dict, title: str, episode: int) -> WorldSnapshot:
     return WorldSnapshot(worldId=title, episode=episode, cards=cards, relations=relations)
 
 
-def question_score(r: dict, ranked: list[str], cards_of: dict) -> dict:
-    """질문 하나의 결과. known·setting은 Recall@5·P@5, future·unwitnessed는 누설(상위 5에 막아야 할 근거가 있으면 1)."""
+def after_cutoff(evidence: str, episode: int, reveal_of: dict[str, int]) -> bool:
+    """근거가 기준 회차 뒤의 것인가: 카드 id는 공개가 시작되는 회차(모르면 아님), 문단 id(`작품.회차.번호`)는 그 회차."""
+    if evidence in reveal_of:
+        return reveal_of[evidence] > episode
+    paragraph = re.fullmatch(r'\d+\.(\d+)\.\d+', evidence)
+    return bool(paragraph) and int(paragraph[1]) > episode
+
+
+def question_score(r: dict, ranked: list[str], cards_of: dict, reveal_of: dict[str, int]) -> dict:
+    """질문 하나의 결과. known·setting은 Recall@5·P@5, future·unwitnessed는 누설(상위 5에 막아야 할 근거가 있으면 1).
+    future의 막아야 할 근거는 기준 회차 뒤 문단과, 공개가 기준 회차 뒤에 시작되는 카드다."""
     if r['kind'] in ('known', 'setting'):
         gold = ({paragraph_id(r['work'], r['gold']['episode'], r['gold']['index'])} if r['kind'] == 'known'
                 else {cards_of[r['work']][r['gold']['name']]})
         return {'recall': recall_at_k(ranked, gold, K), 'p': precision_at_k(ranked, gold, K)}
     if r['kind'] == 'future':
-        return {'leak': float(any(int(i.split('.')[1]) > r['episode'] for i in ranked if '.' in i))}
+        return {'leak': float(any(after_cutoff(i, r['episode'], reveal_of) for i in ranked))}
     return {'leak': float(paragraph_id(r['work'], r['gold']['episode'], r['gold']['index']) in ranked)}
 
 
@@ -253,7 +278,8 @@ def run() -> None:
         for config, found in refs.items():
             runs[config][r['id']] = evidence_ids(found)[:K]
     cards_of = {t: {c.title: c.id for c in ko_world(works, t, 1).cards} for t in works}
-    scores = {c: {r['id']: question_score(r, runs[c][r['id']], cards_of) for r in rows} for c in configs}
+    reveal_of = {f"{WORKS.index(t)}:{c['name']}": c['reveal'] for t, w in works.items() for c in w['cards'] if c['reveal']}
+    scores = {c: {r['id']: question_score(r, runs[c][r['id']], cards_of, reveal_of) for r in rows} for c in configs}
     result = {'n': len(rows), 'k': K, 'excerpts_per_question': EXCERPTS, 'by_kind': {kind: sum(r['kind'] == kind for r in rows) for kind in QUOTA},
               'configs': {}, 'paired': {}}
     for config in configs:

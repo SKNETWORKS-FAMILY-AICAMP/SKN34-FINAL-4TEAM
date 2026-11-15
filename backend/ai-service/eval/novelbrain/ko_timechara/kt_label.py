@@ -139,8 +139,11 @@ def verify_learned(text: str, out: LearnedLabel, earlier: dict[str, dict], numbe
     return kept, stats
 
 
-def build_knowledge(events: dict[int, list[dict]], learned: dict[int, list[dict]], canon: dict[str, str]) -> list[dict]:
-    """회차별 지식표: 이름을 대표 이름으로 맞추고(같은 사건 안의 중복은 참여가 이긴다) 회차 순으로 낸다."""
+def build_knowledge(events: dict[int, list[dict]], learned: dict[int, list[dict]], canon: dict[str, str], failed=frozenset()) -> list[dict]:
+    """회차별 지식표: 이름을 대표 이름으로 맞추고(같은 사건 안의 중복은 참여가 이긴다) 회차 순으로 낸다.
+
+    failed는 '전해 들은 인물' 추출이 실패한 회차다. 그 회차 기록에 learn_failed를 남겨 빈 learned가 '아무도 전해 듣지 않았다'로 읽히지 않게 한다.
+    """
     def rename(people: list[dict], skip: set[str]) -> list[dict]:
         seen, out = set(skip), []
         for person in people:
@@ -158,7 +161,8 @@ def build_knowledge(events: dict[int, list[dict]], learned: dict[int, list[dict]
             rows.append({**event, 'participants': participants,
                          'witnesses': rename(event['witnesses'], {p['name'] for p in participants})})
         knowledge.append({'episode': number, 'events': rows,
-                          'learned': [{**item, 'learner': canon.get(item['learner'], item['learner'])} for item in learned.get(number, [])]})
+                          'learned': [{**item, 'learner': canon.get(item['learner'], item['learner'])} for item in learned.get(number, [])],
+                          **({'learn_failed': True} if number in failed else {})})
     return knowledge
 
 
@@ -178,3 +182,8 @@ def knows(knowledge: list[dict], name: str, event: dict, by: int) -> bool:
         return True
     return any(item['event'] == event['id'] and item['learner'] == name and item['episode'] <= by
                for record in knowledge for item in record['learned'])
+
+
+def learn_gap(knowledge: list[dict], after: int, by: int) -> bool:
+    """`after`화 뒤 `by`화까지 사이에 '전해 들은 인물' 추출이 실패한 회차가 있는가(있으면 그 사이 누가 알게 됐는지 알 수 없다)."""
+    return any(record.get('learn_failed') and after < record['episode'] <= by for record in knowledge)

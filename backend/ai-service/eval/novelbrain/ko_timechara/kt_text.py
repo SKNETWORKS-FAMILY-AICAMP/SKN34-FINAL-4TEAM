@@ -171,14 +171,16 @@ def epub_text(path) -> str:
     return re.sub(r'\n{3,}', '\n\n', '\n'.join(chapters)).strip()
 
 
-def canonical_names(names, text: str) -> dict[str, str]:
+def canonical_names(names, text: str, apart=()) -> dict[str, str]:
     """이름 → 대표 이름. 한 이름이 다른 이름의 끝부분(성을 뗀 이름)이거나 첫 낱말(서양식 이름)이고 그런 긴 이름이 하나뿐이면 같은 인물로 묶는다.
 
     묶음의 대표는 본문(text)에 가장 자주 나오는 형태이고 동률이면 짧은 쪽이다(짧은 이름은 긴 이름이 나오는 글에도 부분 일치한다).
-    긴 이름이 둘 이상이거나 한 글자 이름이면 묶지 않는다(모호하면 합치지 않는다).
+    긴 이름이 둘 이상이거나 한 글자 이름이면 묶지 않는다(모호하면 합치지 않는다). apart는 같은 사건에 서로 다른 사람으로 올라온 이름 쌍
+    (별칭이 아니라는 근거)이고, 이런 쌍이 든 묶음끼리는 합치지 않는다. 별칭이라는 긍정 근거는 없다(부분 일치 휴리스틱이다).
     """
     names = sorted({n.strip() for n in names if n.strip()})
     parent = {n: n for n in names}
+    different = {frozenset(pair) for pair in apart}
 
     def find(name: str) -> str:
         while parent[name] != name:
@@ -189,7 +191,9 @@ def canonical_names(names, text: str) -> dict[str, str]:
     for short in names:
         longer = [n for n in names if len(n) > len(short) and (n.endswith(short) or n.startswith(short + ' '))]
         if len(short) >= 2 and len(longer) == 1:
-            parent[find(short)] = find(longer[0])
+            a, b = find(short), find(longer[0])
+            if not any(frozenset((x, y)) in different for x in names if find(x) == a for y in names if find(y) == b):
+                parent[a] = b
     groups: dict[str, list[str]] = {}
     for name in names:
         groups.setdefault(find(name), []).append(name)

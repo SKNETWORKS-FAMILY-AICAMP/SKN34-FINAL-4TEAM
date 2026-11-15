@@ -116,3 +116,16 @@ def test_canonical_names_merge_suffix_and_first_word_forms_only_when_unambiguous
     assert canon['민수'] == '민수' and canon['박민수'] == '박민수' and canon['한민수'] == '한민수'   # 긴 이름이 둘이면 묶지 않는다
     assert canon['엘리자베스 폰 하인'] == canon['엘리자베스'] == '엘리자베스'
     assert canon['영'] == '영'
+
+
+def test_canonical_names_keep_names_apart_that_were_listed_as_different_people_in_one_event():
+    text = '소연이 웃었다. 주소연이 왔다. 소연이 주소연을 불렀다. 철수가 갔다. 김철수가 왔다.'
+    names = ['소연', '주소연', '철수', '김철수']
+    both = canonical_names(names, text)
+    assert both['소연'] == both['주소연'] and both['철수'] == both['김철수']                        # 따로 올라온 근거가 없으면 지금까지처럼 묶는다
+    split = canonical_names(names, text, apart=[('주소연', '소연')])                               # 같은 사건에 둘 다 따로 올라온 이름은 다른 사람이다
+    assert split['소연'] == '소연' and split['주소연'] == '주소연' and split['철수'] == split['김철수']
+    both_into_one = canonical_names(['해리', '포터', '해리 포터'], '해리 포터가 왔다.')
+    assert both_into_one['해리'] == both_into_one['포터'] == both_into_one['해리 포터']
+    chain = canonical_names(['해리', '포터', '해리 포터'], '해리 포터가 왔다.', apart=[('해리', '포터')])     # 같은 긴 이름으로 둘 다 묶이는 것도 막는다
+    assert chain['해리'] != chain['포터']

@@ -11,6 +11,7 @@
 import json
 import sys
 from collections import Counter
+from itertools import combinations
 from pathlib import Path
 
 import kt_common  # noqa: F401  경로 설정이 다른 import보다 먼저여야 한다(스크립트로 실행할 때 eval/novelbrain을 찾는다)
@@ -73,8 +74,10 @@ def finish(works: dict, records: list[dict], root: Path) -> None:
         text = '\n'.join(e['text'] for e in work['episodes'])
         names = ({p['name'] for r in mine for e in r['events'] for p in e['participants'] + e['witnesses']}
                  | {item['learner'] for r in mine for item in r['learned']} | {n for r in mine for n in r['world']['characters']})
-        canon = canonical_names(names, text)
-        knowledge = build_knowledge({r['episode']: r['events'] for r in mine}, {r['episode']: r['learned'] for r in mine if r['learned']}, canon)
+        apart = [pair for r in mine for e in r['events'] for pair in combinations([p['name'] for p in e['participants'] + e['witnesses']], 2)]
+        canon = canonical_names(names, text, apart)   # 같은 사건에 따로 올라온 이름은 다른 사람이라 묶지 않는다
+        knowledge = build_knowledge({r['episode']: r['events'] for r in mine}, {r['episode']: r['learned'] for r in mine if r['learned']}, canon,
+                                    {r['episode'] for r in mine if r['failed']['learn']})
         folder = root / wid
         folder.mkdir(parents=True, exist_ok=True)
         (folder / 'knowledge.jsonl').write_text(''.join(json.dumps(k, ensure_ascii=False) + '\n' for k in knowledge))

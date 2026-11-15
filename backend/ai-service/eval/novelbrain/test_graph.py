@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from graph import Entity, Extraction, PassageOut, Triple, batches, build_graph, entity_key, extract_all, validate
+from graph import Entity, Extraction, PassageOut, Triple, batches, build_graph, entity_key, extract_all, uncached_batches, validate
 from llm import LlmFailure
 
 
@@ -43,6 +43,16 @@ def test_validate_drops_ungrounded_entities_and_bad_triples():
     assert [e.name for e in valid['p1'].entities] == ['Steve Hillage']
 
 
+def test_validate_does_not_ground_a_name_on_one_shared_word():
+    batch = [passage('p1', 'Steve Hillage married Miquette Giraudy.')]
+    result = Extraction(passages=[out('p1', entities=[('Steve Jobs', 'character'), ('Steve Hillage', 'character'), ('The', 'other')],
+                                      triples=[('Steve Jobs', 'married to', 'Miquette Giraudy'),
+                                               ('Steve Hillage', 'married to', 'Miquette Giraudy')])])
+    valid = validate(batch, result)['p1']
+    assert [e.name for e in valid.entities] == ['Steve Hillage']                  # 'Steve'만 맞는 'Steve Jobs'와 낱말이 남지 않는 'The'는 근거가 아니다
+    assert [(t.subject, t.object) for t in valid.triples] == [('Steve Hillage', 'Miquette Giraudy')]
+
+
 def test_build_graph_merges_surface_forms_and_unique_first_name_aliases():
     passages = [passage('p1', 'x'), passage('p2', 'x'), passage('p3', 'x')]
     outputs = {
@@ -74,11 +84,15 @@ def test_build_graph_reports_passages_the_model_skipped():
 
 class FakeLlm:
     def __init__(self, fail_on=None):
-        self.requests, self.fail_on = [], fail_on
+        self.requests, self.inputs, self.cached, self.fail_on = [], [], set(), fail_on
+
+    def is_cached(self, instructions, input, *, schema=None, max_output_tokens=4000):
+        return input in self.cached
 
     def ask(self, kind, instructions, input, *, schema, max_output_tokens):
         ids = [p['id'] for p in json.loads(input)]
         self.requests.append(ids)
+        self.inputs.append(input)
         if self.fail_on in ids:
             raise LlmFailure('transient')
         return Extraction(passages=[out(i, [('Alice', 'character')], [('Alice', 'knows', 'Bob')]) for i in ids])
@@ -90,6 +104,17 @@ def test_extract_all_returns_every_batch_result():
     result = extract_all(items, llm, batch_size=2, workers=2)
     assert set(result) == {f'p{i}' for i in range(5)}
     assert sorted(len(r) for r in llm.requests) == [1, 2, 2]
+
+
+def test_uncached_batches_counts_only_the_requests_that_still_need_a_call():
+    items = [passage(f'p{i}', 'Alice knows Bob.') for i in range(6)]
+    llm = FakeLlm()
+    extract_all(items, llm, batch_size=2, workers=1)                 # extract_all이 실제로 보내는 입력을 모은다
+    assert uncached_batches(items, llm, 2) == 3
+    llm.cached = set(llm.inputs[:2])                                 # 캐시된 배치는 호출 상한 계산에서 뺀다(실패한 배치만 다시 낼 때 상한에 막히지 않게)
+    assert uncached_batches(items, llm, 2) == 1
+    llm.cached = set(llm.inputs)
+    assert uncached_batches(items, llm, 2) == 0
 
 
 def test_extract_all_does_not_hide_a_failed_batch():

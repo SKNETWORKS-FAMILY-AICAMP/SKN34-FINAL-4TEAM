@@ -2,7 +2,7 @@
 
 import pytest
 
-from run import aggregate, compare, leave_one_out, passage_ranking, reader_input, score_answers, text_world
+from run import aggregate, carried, compare, leave_one_out, passage_ranking, reader_input, score_answers, text_world
 
 
 def test_passage_ranking_maps_cards_excerpts_and_relations_to_passages_in_order():
@@ -82,3 +82,13 @@ def test_compare_runs_the_sign_test_per_pair_and_per_group():
     assert out['all']['a|b'] == {'up': 2, 'down': 0, 'p': 0.5}
     assert out['by_group'][2]['a|b']['up'] == 1 and out['by_group'][3]['a|b'] == {'up': 1, 'down': 0, 'p': 1.0}
     assert compare(scores, [('a', 'b')])['by_group'] == {}
+
+
+def test_carried_configs_come_only_from_a_run_of_the_same_model_sample_and_k():
+    previous = {'model': 'm', 'k': 5, 'sample': 'a', 'configs': {'gold': {'n': 100}, 'ppr': {'n': 100}}}
+    result = {'model': 'm', 'k': 5, 'sample': 'a', 'configs': {'ppr': {'n': 100}}}
+    assert carried(previous, result) == {'gold': {'n': 100}}                          # 이번에 낸 구성은 가져오지 않는다(새 값이 이긴다)
+    assert carried({**previous, 'sample': 'b'}, result) == {}                         # 문항이 다르면 하나도 가져오지 않는다
+    assert carried({**previous, 'model': 'other'}, result) == {} and carried({**previous, 'k': 3}, result) == {}
+    assert carried({k: v for k, v in previous.items() if k != 'sample'}, result) == {}   # 문항 지문이 없는 옛 파일은 믿지 않는다
+    assert carried({}, result) == {}

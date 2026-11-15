@@ -8,7 +8,6 @@
 """
 
 import json
-import math
 import sys
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
@@ -61,8 +60,10 @@ def batches(items: list[dict], size: int) -> list[list[dict]]:
 
 
 def _grounded(name: str, tokens: set[str]) -> bool:
-    """개체 이름의 단어가 하나라도 본문에 있어야 한다(본문에 없는 개체를 모델이 지어낸 경우를 거른다)."""
-    return bool(set(entity_key(name).split()) & tokens)
+    """개체 이름의 낱말이 모두 본문에 있어야 한다(본문에 없는 개체를 모델이 지어낸 경우를 거른다. 'Steve'만 맞는 'Steve Jobs'는 근거가 아니다).
+    낱말이 남지 않는 이름('The')도 근거가 아니다."""
+    words = set(entity_key(name).split())
+    return bool(words) and words <= tokens
 
 
 def validate(batch: list[dict], result: Extraction) -> dict[str, PassageOut]:
@@ -89,11 +90,20 @@ def validate(batch: list[dict], result: Extraction) -> dict[str, PassageOut]:
     return valid
 
 
+def payload_of(batch: list[dict]) -> str:
+    return json.dumps([{k: p[k] for k in ('id', 'title', 'text') if k in p} for p in batch], ensure_ascii=False)
+
+
+def uncached_batches(passages: list[dict], llm, batch_size: int) -> int:
+    """캐시에 없어 실제 호출이 필요한 배치 수. extract_all이 보내는 것과 같은 요청으로 확인한다."""
+    return sum(not llm.is_cached(INSTRUCTIONS, payload_of(batch), schema=Extraction, max_output_tokens=MAX_OUTPUT_TOKENS)
+               for batch in batches(passages, batch_size))
+
+
 def extract_all(passages: list[dict], llm, batch_size: int, workers: int = 6) -> dict[str, PassageOut]:
     """배치마다 한 번 호출한다. 실패한 배치가 있으면 나머지를 끝낸 뒤 오류로 멈춘다(성공분은 캐시돼 재실행이 이어 간다)."""
     def one(batch):
-        payload = json.dumps([{k: p[k] for k in ('id', 'title', 'text') if k in p} for p in batch], ensure_ascii=False)
-        return validate(batch, llm.ask('extract', INSTRUCTIONS, payload, schema=Extraction, max_output_tokens=MAX_OUTPUT_TOKENS))
+        return validate(batch, llm.ask('extract', INSTRUCTIONS, payload_of(batch), schema=Extraction, max_output_tokens=MAX_OUTPUT_TOKENS))
 
     results, failed = {}, 0
     with ThreadPoolExecutor(workers) as pool:
@@ -168,12 +178,13 @@ if __name__ == '__main__':
     name = sys.argv[1]
     sample = json.loads((DATA / name / 'sample.json').read_text())
     ledger = Ledger(DATA / 'ledger.jsonl')
-    planned = math.ceil(len(sample['passages']) / BATCH[name])
-    print(f'{name}: 문단 {len(sample["passages"])}개, 배치 {BATCH[name]}개씩 → 최대 {planned}회 호출 '
-          f'(장부 {ledger.used()}/{CAP}, 캐시된 배치는 호출하지 않음)', flush=True)
+    llm = Llm(ledger, DATA / 'cache')
+    planned = uncached_batches(sample['passages'], llm, BATCH[name])   # 캐시된 배치는 호출하지 않으니 세지 않는다(실제 호출 상한은 Ledger.charge가 지킨다)
+    print(f'{name}: 문단 {len(sample["passages"])}개, 배치 {BATCH[name]}개씩 {len(batches(sample["passages"], BATCH[name]))}개 중 캐시에 없는 '
+          f'{planned}개 → 최대 {planned}회 호출 (장부 {ledger.used()}/{CAP})', flush=True)
     if ledger.used() + planned > CAP:
         raise SystemExit('상한을 넘길 수 있어 중단한다. 표본을 줄여라.')
-    graph = build_graph(sample['passages'], extract_all(sample['passages'], Llm(ledger, DATA / 'cache'), BATCH[name]))
+    graph = build_graph(sample['passages'], extract_all(sample['passages'], llm, BATCH[name]))
     (DATA / name / 'graph.json').write_text(json.dumps(graph, ensure_ascii=False))
     print(f'{name}: 개체 {len(graph["entities"])}, 트리플 {len(graph["triples"])}, 누락 문단 {len(graph["missing"])}, '
           f'장부 {ledger.used()}/{CAP}')

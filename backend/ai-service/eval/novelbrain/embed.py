@@ -4,6 +4,8 @@
 numpy는 함수 안에서 불러 와서, 추가 패키지 없이도 이 모듈의 순수 함수(best_window)를 import할 수 있다.
 """
 
+import hashlib
+import json
 import re
 from pathlib import Path
 
@@ -30,15 +32,17 @@ def embed_texts(texts: list[str], kind: str, batch_size: int = 16):
 
 
 def cached_embeddings(path: Path, texts: list[str], kind: str):
-    """같은 개수의 캐시가 있으면 읽고 없으면 계산해 저장한다."""
+    """본문 목록(순서 포함)·kind·자르는 길이가 같은 캐시만 읽는다(지문은 `<path>.sha256`). 아니거나 지문이 없는 옛 캐시면 다시 계산해 저장한다."""
     import numpy as np
 
-    if path.exists():
-        cached = np.load(path)
-        if cached.shape[0] == len(texts):
-            return cached
+    stamp = path.with_name(path.name + '.sha256')
+    fingerprint = hashlib.sha256(json.dumps([kind, MAX_CHARS, texts], ensure_ascii=False).encode()).hexdigest()
+    if path.exists() and stamp.exists() and stamp.read_text() == fingerprint:
+        return np.load(path)
+    stamp.unlink(missing_ok=True)   # 저장하다 끊겨도 옛 지문이 새 행렬에 남지 않게 한다
     matrix = embed_texts(texts, kind)
     np.save(path, matrix)
+    stamp.write_text(fingerprint)
     return matrix
 
 

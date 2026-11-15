@@ -94,13 +94,15 @@ def embed_group(work: str) -> int:
 
 
 def build_contexts(rows: list[dict], data: dict) -> dict:
+    """rows는 질문 전체. 질문 임베딩은 data에 없는 작품의 질문까지 포함한 묶음으로 만들어(작품을 골라 실행해도 벡터가 전체 실행과 같다)
+    문맥은 data에 있는 작품 것만 만든다."""
     groups: dict[int, list[int]] = {}
     for n, r in enumerate(rows):
         groups.setdefault(embed_group(r['work']), []).append(n)
     queries = {}
     for numbers in groups.values():
         queries.update(zip(numbers, embed_texts([rows[n]['question'] for n in numbers], 'query')))
-    return {r['idx']: contexts_for(r, data[r['work']], data[r['work']]['knowledge'], queries[n]) for n, r in enumerate(rows)}
+    return {r['idx']: contexts_for(r, data[r['work']], data[r['work']]['knowledge'], queries[n]) for n, r in enumerate(rows) if r['work'] in data}
 
 
 def context_rates(rows: list[dict], contexts: dict) -> dict:
@@ -122,10 +124,12 @@ def context_summary(rows: list[dict], contexts: dict) -> None:
 
 
 def run(mode: str, configs: tuple[str, ...], works: tuple[str, ...] = ()) -> None:
-    """works를 주면 그 작품의 응답·채점만 캐시에 채운다(작품을 늘린 차수를 다른 실행과 겹치지 않게 따로 돌릴 때). 전체 집계 파일은 작품을 거르지 않은 실행이 쓴다."""
-    rows = [r for r in load_rows() if not works or r['work'] in works]
+    """works를 주면 그 작품의 응답·채점만 캐시에 채운다(작품을 늘린 차수를 다른 실행과 겹치지 않게 따로 돌릴 때). 전체 집계 파일은 작품을 거르지 않은 실행이 쓴다.
+    질문 임베딩 묶음은 전체 질문으로 정해 같은 질문의 문맥·요청이 전체 실행과 같다(캐시를 그대로 쓴다)."""
+    every = load_rows()
+    rows = [r for r in every if not works or r['work'] in works]
     data = build_data(sorted({r['work'] for r in rows}))
-    contexts = build_contexts(rows, data)
+    contexts = build_contexts(every, data)
     context_summary(rows, contexts)
     llm = make_llm()
     templates = {'spatiotemporal': (TC / 'spatiotemporal_consistency_evaluation_prompt.txt').read_text(),
@@ -162,8 +166,9 @@ if __name__ == '__main__':
     rest = [a for a in sys.argv[2:] if not a.startswith('--')]
     opt = lambda name, default=None: next((o.split('=', 1)[1] for o in options if o.startswith(f'--{name}=')), default)  # noqa: E731
     if command == 'contexts':   # 호출 없음: 문맥 노출 비율을 results/ko-timechara-context.json에도 쓴다(작품을 고르지 않았을 때)
-        rows = [r for r in load_rows() if not rest or r['work'] in rest]
-        contexts = build_contexts(rows, build_data(sorted({r['work'] for r in rows})))
+        every = load_rows()
+        rows = [r for r in every if not rest or r['work'] in rest]
+        contexts = build_contexts(every, build_data(sorted({r['work'] for r in rows})))
         context_summary(rows, contexts)
         if not rest:
             RESULTS.mkdir(exist_ok=True)

@@ -4,7 +4,7 @@ import pytest
 
 from app.manuscript.models import Excerpt
 from app.novelbrain.service import _documents, bm25_rank, recall
-from ko import WORKS, candidates, evidence_ids, ko_world, load_works, valid_question
+from ko import QUOTA, WORKS, candidates, evidence_ids, ko_world, load_works, question_score, valid_question, write_dataset
 from run import filtered, fuse
 
 PARAGRAPH = '문을 지키던 기사 카엘은 서한을 흘끗 보더니 고개를 저었다. “해가 진 뒤에는 문이 열리지 않소.”'
@@ -23,6 +23,8 @@ def test_loader_reads_the_repository_sample(works):
     names = {c['name']: c['category'] for c in star['cards']}
     assert names['카엘'] == '인물' and names['별빛 탑'] == '장소'
     assert ('탑 앞에서 밤을 지새우다', ['리안', '카엘']) in star['participants']
+    reveal = {c['name']: c['reveal'] for c in star['cards']}                                   # 카드의 공개 시작 회차(공개 범위의 시작 회차)
+    assert (reveal['카엘'], reveal['지하서고'], reveal['세라핀']) == (1, 2, 3)
 
 
 def test_candidates_cover_the_four_kinds_deterministically(works):
@@ -49,6 +51,28 @@ def test_valid_question_accepts_a_grounded_question_and_rejects_the_rest():
     assert valid_question(PARAGRAPH, dict(ok, question='?'), seen=set()) == 'bad_length'
     assert valid_question(PARAGRAPH, dict(ok, question='완전히 다른 이야기를 해 주세요 제발요 지금 바로'), seen=set()) == 'no_overlap'
     assert valid_question(PARAGRAPH, ok, seen={ok['question']}) == 'duplicate'
+
+
+def test_future_leak_counts_paragraphs_and_cards_that_come_after_the_cutoff():
+    reveal = {'0:양소유': 4, '0:연화봉': 1, '0:K.O 길드': 5}
+    future = {'kind': 'future', 'work': WORKS[0], 'episode': 3}
+    leak = lambda ids: question_score(future, ids, {}, reveal)['leak']  # noqa: E731
+    assert leak(['0.1.2', '0:연화봉']) == 0.0 and leak(['0.4.0']) == 1.0                   # 뒤 회차 문단
+    assert leak(['0:연화봉', '0:양소유']) == 1.0                                              # 공개가 4화부터인 카드
+    assert leak(['0:K.O 길드']) == 1.0 and leak(['0:공개 회차를 모르는 카드']) == 0.0       # 이름에 '.'이 든 카드가 문단 id로 읽히지 않는다
+
+
+def test_write_dataset_refuses_a_set_without_every_kind_and_keeps_the_existing_file(tmp_path):
+    path = tmp_path / 'ko_sample.jsonl'
+    path.write_text('old\n')
+    with pytest.raises(RuntimeError, match='known'):
+        write_dataset([], path)                                                   # 모든 요청이 실패해 질문이 하나도 없다
+    rows = [{'id': f'ko-{n}', 'kind': kind} for n, kind in enumerate(QUOTA)]
+    with pytest.raises(RuntimeError, match='setting'):
+        write_dataset([r for r in rows if r['kind'] != 'setting'], path)         # 한 종류가 통째로 탈락했다
+    assert path.read_text() == 'old\n'
+    write_dataset(rows, path)
+    assert len(path.read_text().splitlines()) == len(QUOTA)
 
 
 def test_evidence_ids_map_items_to_paragraphs_and_cards_but_not_relations():

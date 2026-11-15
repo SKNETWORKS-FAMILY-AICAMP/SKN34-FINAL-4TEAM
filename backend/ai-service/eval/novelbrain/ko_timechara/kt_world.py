@@ -83,7 +83,8 @@ def validate_world(text: str, out: WorldOut) -> tuple[dict, Counter]:
 def build_world(work_id: str, episodes: dict[int, dict], canon: dict[str, str]) -> dict:
     """검증된 회차별 출력(회차 번호 → validate_world 결과)으로 평가용 세계관을 만든다. `timechara.snapshot`이 읽는 모양과 같다.
 
-    - 인물 카드: 본문 = 첫 회차의 role(IDENTITY), `episodes[회차]` = 그 회차의 memory(같은 인물로 합쳐진 이름은 이어 붙임), 공개 = 첫 등장 회차.
+    - 인물 카드: 본문 = 첫 등장 회차의 role(IDENTITY), `episodes[회차]` = 그 회차의 memory(같은 인물로 합쳐진 이름은 이어 붙임), 공개 = 첫 등장 회차.
+      뒤 회차에서야 나온 role은 쓰지 않는다(첫 등장 회차부터 공개되는 본문에 아직 밝혀지지 않은 신분이 들어가지 않게).
     - 사건 카드: 제목·본문 = 사건 이름·요약, 공개 = 사건이 일어난 회차. 관계: 참여 인물 → 사건 '참여', 인물 사이 관계(그 회차에 기록).
     - 이름은 `canon`(canonical_names)으로 대표 이름에 맞춘다.
     """
@@ -96,8 +97,8 @@ def build_world(work_id: str, episodes: dict[int, dict], canon: dict[str, str]) 
         for raw, info in data['characters'].items():
             who = name(raw)
             first.setdefault(who, number)
-            if info['role'] and who not in roles:
-                roles[who] = info['role']
+            if info['role'] and number == first[who]:
+                roles.setdefault(who, info['role'])
             if info['memory']:
                 memories.setdefault(who, {}).setdefault(number, []).append(info['memory'])
         for who in {name(n) for e in data['events'] for n in e['participants']} | {name(n) for r in data['relations'] for n in (r['source'], r['target'])}:

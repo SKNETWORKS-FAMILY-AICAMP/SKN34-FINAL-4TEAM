@@ -10,6 +10,7 @@
 집계 수치는 `results/*.json`, 질문별 순위·응답 원본은 `.data/runs`(git 무시)에 둔다.
 """
 
+import hashlib
 import json
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -131,6 +132,13 @@ def score_answers(rows: list[dict]) -> dict:
     return result
 
 
+def carried(previous: dict, result: dict) -> dict:
+    """이전 결과 파일에서 가져올 구성: 같은 모델·같은 문항(지문)·같은 k로 낸 것만, 이번에 낸 구성은 빼고. 다르거나 지문이 없는 옛 파일이면 하나도 가져오지 않는다
+    (다른 실험의 점수가 현재 model 아래에 섞이지 않게 한다)."""
+    same = all(previous.get(key) == result[key] for key in ('model', 'k', 'sample'))
+    return {c: block for c, block in previous.get('configs', {}).items() if same and c not in result['configs']}
+
+
 def answers(name: str, extra: tuple[str, ...] = ()) -> None:
     """MuSiQue: 구성별 상위 5개 문단(전문)을 리더에게 주고 답 정확도를 잰다. extra: gold(정답 근거 문단)·none(문단 없음) 기준선.
     `--cached-only`는 캐시에 있는 응답만 읽어 다시 계산한다(호출 0회, 캐시에 없는 요청은 실패로 센다)."""
@@ -163,7 +171,8 @@ def answers(name: str, extra: tuple[str, ...] = ()) -> None:
           f'(장부 ${llm.cost.spent():.3f} / 상한 ${LIMIT_USD:.2f})', flush=True)   # 순위가 바뀐 뒤에는 문맥이 달라져 캐시에 없는 요청이 생긴다
     with ThreadPoolExecutor(12) as pool:
         preds = list(pool.map(work, tasks))
-    result = {'dataset': name, 'k': K, 'model': llm.model, 'configs': {}}
+    result = {'dataset': name, 'k': K, 'model': llm.model, 'sample': hashlib.sha256(json.dumps([q['id'] for q in sample['questions']]).encode()).hexdigest()[:16],
+              'configs': {}}
     for config in configs:
         rows = [{'pred': pred, 'golds': [q['answer'], *q['aliases']], 'hops': q['hops']}
                 for (q, c), pred in zip(tasks, preds) if c == config]
@@ -176,8 +185,12 @@ def answers(name: str, extra: tuple[str, ...] = ()) -> None:
                            for a, b in ANSWER_PAIRS if a in em and b in em}
     RESULTS.mkdir(exist_ok=True)
     out = RESULTS / f'{name}-answers.json'
-    previous = json.loads(out.read_text())['configs'] if out.exists() else {}
-    result['configs'] = {**previous, **result['configs']}
+    previous = json.loads(out.read_text()) if out.exists() else {}
+    kept = carried(previous, result)
+    left = [c for c in previous.get('configs', {}) if c not in result['configs'] and c not in kept]
+    if left:
+        print(f'이전 결과의 {", ".join(left)}은(는) 모델·문항이 달라 가져오지 않았다(필요하면 `answers {name} {" ".join(left)}`를 다시 실행; 캐시가 있으면 호출 0).')
+    result['configs'] = {**kept, **result['configs']}
     out.write_text(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
     for config, block in result['configs'].items():
         print(f"{name:10s} {config:7s} EM={block['em']:.3f} F1={block['f1']:.3f} (n={block['n']}, 실패 {block['failed']})")

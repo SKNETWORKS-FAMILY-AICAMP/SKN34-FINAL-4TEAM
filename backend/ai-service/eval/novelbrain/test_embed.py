@@ -12,6 +12,28 @@ def test_knn_returns_best_indices_by_cosine_with_stable_ties():
     assert knn(matrix, np.array([1.0, 0.0]), 10) == [0, 1, 3, 2]  # k가 많으면 있는 만큼
 
 
+def test_cached_embeddings_reuse_only_a_cache_made_from_the_same_texts_order_and_kind(tmp_path, monkeypatch):
+    np = pytest.importorskip('numpy')
+    import embed
+    calls = []
+
+    def fake(texts, kind, batch_size=16):
+        calls.append((kind, list(texts)))
+        return np.array([[float(len(t)), float(i)] for i, t in enumerate(texts)], dtype=np.float32)
+
+    monkeypatch.setattr(embed, 'embed_texts', fake)
+    path = tmp_path / 'vectors.npy'
+    first = embed.cached_embeddings(path, ['가나', '다라마'], 'passage')
+    assert embed.cached_embeddings(path, ['가나', '다라마'], 'passage').tolist() == first.tolist() and len(calls) == 1   # 같으면 캐시를 읽는다
+    swapped = embed.cached_embeddings(path, ['다라마', '가나'], 'passage')                  # 개수가 같아도 순서가 바뀌면 다시 계산한다
+    assert len(calls) == 2 and swapped[0][0] == 3.0
+    embed.cached_embeddings(path, ['다라마', '가나'], 'query')                              # 접두어 종류가 다르면 다시 계산한다
+    assert len(calls) == 3
+    np.save(tmp_path / 'legacy.npy', first)                                                  # 지문 없이 행 수만 맞는 옛 캐시는 믿지 않는다
+    embed.cached_embeddings(tmp_path / 'legacy.npy', ['가나', '다라마'], 'passage')
+    assert len(calls) == 4
+
+
 def test_best_window_returns_short_text_whole():
     assert best_window('Short   text here.', 'text', size=256) == 'Short text here.'
 
