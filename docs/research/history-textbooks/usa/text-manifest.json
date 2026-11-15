@@ -1,0 +1,226 @@
+[
+  {
+    "file": "original-text/01-american-origins.txt",
+    "characters": 77712,
+    "words": 11405,
+    "sha256": "7815E10CE5F527C966E973CA1E2AD285610990AFD0BBF5DD27FCEC33DF3AD5FA",
+    "source": "https://www.americanyawp.com/textbook/01-american-origins",
+    "translation_status": "draft: sections I-IX prose, 15 captions, 25 recommended works and 80 notes translated/annotated; canonical bibliography preserved; image alt text and expert QA pending"
+  },
+  {
+    "file": "original-text/02-making-an-atlantic-world.txt",
+    "characters": 89086,
+    "words": 13611,
+    "sha256": "C718AAA820AB25161EEC916D29D94C806C5F5AC61BBD241B8E9C0298AEDB2E5B",
+    "source": "https://www.americanyawp.com/textbook/02-making-an-atlantic-world",
+    "translation_status": "draft: sections I-X prose, 20 captions, 25 recommended works and 46 notes translated/annotated; canonical bibliography preserved; image alt text and expert QA pending"
+  },
+  {
+    "file": "original-text/03-colliding-cultures.txt",
+    "characters": 94752,
+    "words": 14153,
+    "sha256": "223DA09C38B5495F3D173E1AE66848DE77E7D869B991F23D6F1AC69A172086D1",
+    "source": "https://www.americanyawp.com/textbook/03-colliding-cultures",
+    "translation_status": "draft: sections I-IX prose, captions, 25 recommended works and 62 notes translated/annotated; figure 3.4 CC BY-NC separately stored; expert QA pending"
+  },
+  {
+    "file": "original-text/04-british-north-america.txt",
+    "characters": 63342,
+    "words": 9643,
+    "sha256": "DA445032A9960C6F2678E59FD0F88F703627043CAFD23A3295E6EBAF1B31654C",
+    "source": "https://www.americanyawp.com/textbook/04-british-north-america",
+    "translation_status": "draft: sections I-VIII prose, 10 captions, 25 recommended works and 24 notes translated/annotated; canonical bibliography preserved; expert QA pending"
+  },
+  {
+    "file": "original-text/05-colonial-society.txt",
+    "characters": 81116,
+    "words": 12221,
+    "sha256": "E44919F9B65F258CEBA91E57ECC611940DEA9C439696438B0B758881B622D8D3",
+    "source": "https://www.americanyawp.com/textbook/05-colonial-society",
+    "translation_status": "draft: sections I-X prose, 13 captions, 25 recommended works and 58 notes translated/annotated; canonical bibliography preserved; expert QA pending"
+  },
+  {
+    "file": "original-text/06-the-american-revolution.txt",
+    "characters": 87178,
+    "words": 13083,
+    "sha256": "40DDFD24B67C8F889B37FA0EA7F8161AC9DC34EE03118021848BA9F0782F3CCB",
+    "source": "https://www.americanyawp.com/textbook/06-the-american-revolution",
+    "translation_status": "draft: sections I-IX prose, 17 captions, 25 recommended works and 57 notes translated/annotated; canonical bibliography preserved; expert QA pending"
+  },
+  {
+    "file": "original-text/07-a-new-nation.txt",
+    "characters": 73208,
+    "words": 11035,
+    "sha256": "4D990CD65FBD017D01E32E145960B9FC1AD2C855B68D9E32AA263483C0E9AF16",
+    "source": "https://www.americanyawp.com/textbook/07-a-new-nation",
+    "translation_status": "draft: sections I-XIV prose, 12 captions, 25 recommended works and 46 notes translated/annotated; canonical bibliography preserved; expert QA pending"
+  },
+  {
+    "file": "original-text/08-the-early-republic.txt",
+    "characters": 76248,
+    "words": 11492,
+    "sha256": "2536685737FA67E9FD610A3E9F1781C8687B4D1377DE46EEF7D2BCE3DEE36FAB",
+    "source": "https://www.americanyawp.com/textbook/08-the-early-republic",
+    "translation_status": "draft: all existing I-VII and XIII-XIV prose, 12 captions, 25 recommended works and 41 notes translated/annotated; original numbering jump retained; expert QA pending"
+  },
+  {
+    "file": "original-text/09-getting-forward.txt",
+    "characters": 76416,
+    "words": 11548,
+    "sha256": "8A0FED0BC8B4757CE9968A3831FC580A0AC9A80D0196DDE41AC6D4B1E6CAC472",
+    "source": "https://www.americanyawp.com/textbook/09-getting-forward",
+    "translation_status": "draft: I-V prose, VI Primary Sources, VII Conclusion and VII Reference Material, 14 caption occurrences (13 unique), 25 recommended works and 48 notes translated/annotated; expert QA pending"
+  },
+  {
+    "file": "original-text/10-american-democracy.txt",
+    "characters": 83182,
+    "words": 12536,
+    "sha256": "F3B4130EEE179EE4BD749176C70DC63BF85E7C376AE804DFB669F31DA68F9D37",
+    "source": "https://www.americanyawp.com/textbook/10-american-democracy",
+    "translation_status": "draft: all I-XIV prose, 14 captions, 25 recommended works and 63 notes saved and combined; expert QA pending"
+  },
+  {
+    "file": "original-text/11-growth-and-conflict.txt",
+    "characters": 90788,
+    "words": 13655,
+    "sha256": "BF2D10F24EA85B794271991EC11E8E2367DA1A0C4E7B5E2E4B51B0561279EDBD",
+    "source": "https://www.americanyawp.com/textbook/11-growth-and-conflict",
+    "translation_status": "draft: I-XII prose, 14 captions, 25 recommended works and 42 notes saved and combined; expert QA pending"
+  },
+  {
+    "file": "original-text/12-the-national-crisis.txt",
+    "characters": 72779,
+    "words": 11094,
+    "sha256": "5C290DD4C2FC67AA64565437B84BA23327A84DEC07416E0C673BD5E31275EE3C",
+    "source": "https://www.americanyawp.com/textbook/12-the-national-crisis",
+    "translation_status": "draft: I-VIII prose, 13 captions, 25 recommended works and 38 notes saved and combined; expert QA pending"
+  },
+  {
+    "file": "original-text/13-the-civil-war.txt",
+    "characters": 84503,
+    "words": 12955,
+    "sha256": "E1954362B9DCCCEA1A982DE967FE61B2E1D038DB3E38845D0B07DBCD319D5B74",
+    "source": "https://www.americanyawp.com/textbook/13-the-civil-war",
+    "translation_status": "draft: I-VII prose, 19 captions, 25 recommended works and 61 notes saved and combined; duplicate note 60 marker retained; expert QA pending"
+  },
+  {
+    "file": "original-text/14-reconstruction.txt",
+    "characters": 84167,
+    "words": 12656,
+    "sha256": "7A1D5F3D8D5D1A99D480C429EFB791D622DD4839BFFF174300157A493D63E270",
+    "source": "https://www.americanyawp.com/textbook/14-reconstruction/",
+    "translation_status": "draft: all prose, 16 captions, 25 recommended works and 42 notes saved and combined; duplicate VIII retained; image table cells excluded; expert QA pending"
+  },
+  {
+    "file": "original-text/15-capital-and-labor.txt",
+    "characters": 66661,
+    "words": 9895,
+    "sha256": "A52E09D877BFD40A80941BE08FFC57FF3D085AF6D2B5AA7D8354F200E12AA9F2",
+    "source": "https://www.americanyawp.com/textbook/15-capital-and-labor",
+    "translation_status": "draft: I-IX prose, 14 captions, 25 recommended works and 40 notes saved and combined; expert QA pending"
+  },
+  {
+    "file": "original-text/16-geographies-of-empire.txt",
+    "characters": 94689,
+    "words": 14358,
+    "sha256": "262767664E182CC69B2758EA0FA810663C0843BC995F55D51475333AD43FBB6E",
+    "source": "https://www.americanyawp.com/textbook/16-geographies-of-empire",
+    "translation_status": "draft: I-XIII prose, 18 captions, 29 recommended works and 50 notes translated/annotated; canonical bibliography preserved; expert QA pending"
+  },
+  {
+    "file": "original-text/17-new-lives.txt",
+    "characters": 80149,
+    "words": 11998,
+    "sha256": "FBEC7E89069D44E4CA905EF56CA21C9D17450C05C7FB03BB1B1D903AFC615AFB",
+    "source": "https://www.americanyawp.com/textbook/17-New-Lives",
+    "translation_status": "draft: I-VII prose, 16 captions, 30 recommended works and 36 notes translated/annotated; canonical bibliography preserved; expert QA pending"
+  },
+  {
+    "file": "original-text/18-the-progressive-era.txt",
+    "characters": 78398,
+    "words": 11879,
+    "sha256": "AFD2D2285115C742BC11255AC5AB67782FC314343EEEA98EB81C801B71798A36",
+    "source": "https://www.americanyawp.com/textbook/18-the-progressive-era",
+    "translation_status": "draft: I-VIII prose, 11 captions, 25 recommended works and 49 notes translated/annotated; expert QA pending"
+  },
+  {
+    "file": "original-text/19-world-war-i.txt",
+    "characters": 62527,
+    "words": 9501,
+    "sha256": "FE8B4F998AFD3BB23FBA36BBF2E1CA5652FDFCC89DC563EC8F9ED1B4E94276E7",
+    "source": "https://www.americanyawp.com/textbook/19-world-war-i",
+    "translation_status": "draft: I-XII prose, 10 captions, 25 recommended works and 37 unique notes (41 in-text citations) translated/annotated; expert QA pending"
+  },
+  {
+    "file": "original-text/20-the-new-era.txt",
+    "characters": 69304,
+    "words": 10541,
+    "sha256": "F69F5AFBEFB7C2DDD3CA43643409BA7878D2E649CDF41B1CE6032177EC1D035E",
+    "source": "https://www.americanyawp.com/textbook/20-the-new-era",
+    "translation_status": "draft: I-XI prose, 12 captions, 25 recommended works and 48 unique notes translated/annotated; source issues flagged; expert QA pending"
+  },
+  {
+    "file": "original-text/21-the-great-depression.txt",
+    "characters": 81786,
+    "words": 12318,
+    "sha256": "181DB9B9DF06B2261384D6C9B5D9F9B97D385429722960F01CD7AD933485D227",
+    "source": "https://www.americanyawp.com/textbook/21-the-great-depression",
+    "translation_status": "draft: I-XIV prose, 12 captions, 26 recommended works and 73 unique notes (74 citations) translated/annotated; expert QA pending"
+  },
+  {
+    "file": "original-text/22-world-war-ii.txt",
+    "characters": 81465,
+    "words": 12395,
+    "sha256": "1C01F1A2F2075D6BE695A9C0F3D2D09AFB2E9DB8D66FCA14236F41336FC5CA1A",
+    "source": "https://www.americanyawp.com/textbook/22-world-war-ii",
+    "translation_status": "draft: I-XI prose, 14 captions, 25 recommended works and 42 notes translated/annotated; source issues and verified date correction separated; expert QA pending"
+  },
+  {
+    "file": "original-text/23-the-cold-war.txt",
+    "characters": 76291,
+    "words": 11619,
+    "sha256": "3E1E5B08D81F4E07A7303B4758E2DFB02A98C62EE0413CB53072AA1013D6FAD1",
+    "source": "https://www.americanyawp.com/textbook/23-the-cold-war",
+    "translation_status": "draft: existing I-V, VII-VIII prose, 11 captions, 25 recommended works and 47 notes translated/annotated; source has no VI; expert QA pending"
+  },
+  {
+    "file": "original-text/24-the-affluent-society.txt",
+    "characters": 64749,
+    "words": 9558,
+    "sha256": "3B43538570790B6A4F395F5A3A7ED61D4316DFDE3DB0D6ACD441BAC4A03F1F68",
+    "source": "https://www.americanyawp.com/textbook/24-the-affluent-society",
+    "translation_status": "draft: I-VIII prose, 13 captions, 25 recommended works and 34 notes translated/annotated; expert QA pending"
+  },
+  {
+    "file": "original-text/25-the-sixties.txt",
+    "characters": 61316,
+    "words": 9130,
+    "sha256": "0D1FC135BE36E2E10D27EF68585565DE05CB4ECA638B5872A358C06F803D6354",
+    "source": "https://www.americanyawp.com/textbook/25-the-sixties",
+    "translation_status": "draft: I-VIII prose, 13 captions, 24 recommended works and 39 unique notes (40 citations) translated/annotated; expert QA pending"
+  },
+  {
+    "file": "original-text/26-the-unraveling.txt",
+    "characters": 92698,
+    "words": 13655,
+    "sha256": "5DD920F6CF92FA9D44CEC090852281120734D98D7DDBE3F61D52FE51A4594923",
+    "source": "https://www.americanyawp.com/textbook/26-the-unraveling",
+    "translation_status": "draft: I-XI prose, 12 captions, 25 recommended works and 85 notes translated/annotated; expert QA pending"
+  },
+  {
+    "file": "original-text/27-the-triumph-of-the-right.txt",
+    "characters": 105011,
+    "words": 15554,
+    "sha256": "ABB8F416CFECE7EF238F0BA529D0DAA9D1A7D542B5A7A79752B89DCB64EC495F",
+    "source": "https://www.americanyawp.com/textbook/27-the-triumph-of-the-right",
+    "translation_status": "draft: I-XII prose, 13 captions, 25 recommended works and 90 unique notes (94 citations) translated/annotated; verified date corrections separated; expert QA pending"
+  },
+  {
+    "file": "original-text/28-american-carnage.txt",
+    "characters": 76987,
+    "words": 11042,
+    "sha256": "376A464BFDA795C2262CE121EABA5EAE0F39E02F0C3560717945D358421EE6B9",
+    "source": "https://www.americanyawp.com/textbook/28-american-carnage",
+    "translation_status": "draft: I-XI prose (74 paragraphs), 9 captions, 25 recommended works and 43 notes translated/annotated; verified corrections separated; expert QA pending"
+  }
+]

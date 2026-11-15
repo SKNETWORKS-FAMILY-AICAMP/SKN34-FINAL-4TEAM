@@ -1,0 +1,198 @@
+[
+  {
+    "url": "https://www.americanyawp.com/textbook/01-american-origins",
+    "file": "original-html/01-american-origins.html",
+    "bytes": 205853,
+    "sha256": "E47D62955572E94ED4F493C0C69491BADEC2CD98B758B1BEAC054CE653BC4003",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/02-making-an-atlantic-world",
+    "file": "original-html/02-making-an-atlantic-world.html",
+    "bytes": 203197,
+    "sha256": "845659D973A69BF6DC608D0AACE7F4B16DDD477AF3B1F36D6711BC6555AED4D7",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/03-colliding-cultures",
+    "file": "original-html/03-colliding-cultures.html",
+    "bytes": 216101,
+    "sha256": "67E64E4A1B37506B4A0EA06C363DE76A8D2648B0655D5BDC754C910F241DB82F",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/04-british-north-america",
+    "file": "original-html/04-british-north-america.html",
+    "bytes": 157248,
+    "sha256": "A0493BE3522568503FE4DE00451669811E3338421A8BD4E312D21C92C15CA1EB",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/05-colonial-society",
+    "file": "original-html/05-colonial-society.html",
+    "bytes": 193242,
+    "sha256": "BD98C35EACB60E172C6485475032E2906B24C327D9AA1CFDE9FF352B56BC3FFB",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/06-the-american-revolution",
+    "file": "original-html/06-the-american-revolution.html",
+    "bytes": 209519,
+    "sha256": "18372EA06271592DAC971E28EA70660EDD824138B9E76A9E3023A81339BCC132",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/07-a-new-nation",
+    "file": "original-html/07-a-new-nation.html",
+    "bytes": 181604,
+    "sha256": "3AA37228E13790AEB8BE245773DB664B79AB913C949EFDA95F941C947C75866B",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/08-the-early-republic",
+    "file": "original-html/08-the-early-republic.html",
+    "bytes": 180718,
+    "sha256": "4C6BEC6A283B56D230D221E3CD3ABC4094EC455F19B56CE4012A4176CAE25AC0",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/09-getting-forward",
+    "file": "original-html/09-getting-forward.html",
+    "bytes": 190062,
+    "sha256": "164EEA075B4D34BB8189923CA85090E70EAFA6B2130DF3B8CF118D6A5D9105EA",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/10-american-democracy",
+    "file": "original-html/10-american-democracy.html",
+    "bytes": 202029,
+    "sha256": "945BBCCCE1E4F2E0D7906A1C5FDBE348102D6F78EF4056FBD5BE9D3B9D751375",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/11-growth-and-conflict",
+    "file": "original-html/11-growth-and-conflict.html",
+    "bytes": 198767,
+    "sha256": "F328385878FA6EDA8618F7EDDB2366E22F09374EA1AF52528C2308B4767D1442",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/12-the-national-crisis",
+    "file": "original-html/12-the-national-crisis.html",
+    "bytes": 175225,
+    "sha256": "25ABCE9C1E8E8F1A24C9C68ADE1723657A4CC5F1271B6BA2D48BF24DB1974DE3",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/13-the-civil-war",
+    "file": "original-html/13-the-civil-war.html",
+    "bytes": 205375,
+    "sha256": "AC008BF9258FEEB00B48B083D70CC1AA6514B8E0D80BB3CDAD5AA724BF22A935",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/14-reconstruction/",
+    "file": "original-html/14-reconstruction.html",
+    "bytes": 193156,
+    "sha256": "F02406B087BE17283CE5876FA9C4DF46F9B269BE4F7A05F40F4AD864139EDF9B",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/15-capital-and-labor",
+    "file": "original-html/15-capital-and-labor.html",
+    "bytes": 164918,
+    "sha256": "B3AE735B356B3055F4CA2A5401883F179EE3826AFBC92CAA090B6DD78BD2795D",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/16-geographies-of-empire",
+    "file": "original-html/16-geographies-of-empire.html",
+    "bytes": 204580,
+    "sha256": "27E778CC76A6D2EB52B34C8E1CF799C4F8F2F889D0B353976AFADA00BB9D0E53",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/17-New-Lives",
+    "file": "original-html/17-new-lives.html",
+    "bytes": 182831,
+    "sha256": "9AE08D55A9D3DAA6F4A903ED2E6FD4F58D1E65CA8FE87D250A94D86943D13BD7",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/18-the-progressive-era",
+    "file": "original-html/18-the-progressive-era.html",
+    "bytes": 180736,
+    "sha256": "33AFB59194E199C3BA3C6D61F64D4AD0984FA9A59B4F927DA189D7AAB430B3D7",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/19-world-war-i",
+    "file": "original-html/19-world-war-i.html",
+    "bytes": 158568,
+    "sha256": "1446559F3E0574ABC5233E76F5B2349E8E404E7CB8D4CAFFB73BB42E4A2424F5",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/20-the-new-era",
+    "file": "original-html/20-the-new-era.html",
+    "bytes": 168003,
+    "sha256": "49C4A19F5E033F3FAB02BDE1E77C8799C196428D07538D6CF8F3B1D91BCDA0CF",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/21-the-great-depression",
+    "file": "original-html/21-the-great-depression.html",
+    "bytes": 197098,
+    "sha256": "D27DE9F284FD008FE5A44F999D1035D8DF4B54CF4C7FB6B2B59817899C7414CE",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/22-world-war-ii",
+    "file": "original-html/22-world-war-ii.html",
+    "bytes": 183566,
+    "sha256": "8E5AFCF7AC8D7AC411AB67438D9A1FECF8E689EB9184E92EF46DECE8B5842072",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/23-the-cold-war",
+    "file": "original-html/23-the-cold-war.html",
+    "bytes": 174587,
+    "sha256": "374F269844C4F404B6DCAABD7CAC52D01060F5DF7039121614B24E746DD015B8",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/24-the-affluent-society",
+    "file": "original-html/24-the-affluent-society.html",
+    "bytes": 159632,
+    "sha256": "27E162E896CE5F2EDBBB3AA61218B7BF3104CC7E8C8BBD55D7FB950A08E2213C",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/25-the-sixties",
+    "file": "original-html/25-the-sixties.html",
+    "bytes": 159202,
+    "sha256": "4B8F631B62CCCD1F7916255F504F59894B8C589A1B43479F8168F856F7EDA3FB",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/26-the-unraveling",
+    "file": "original-html/26-the-unraveling.html",
+    "bytes": 209356,
+    "sha256": "41010E0B63C906E9C0C704A10F28BC4028817DEF8D1E447C9384AF2F4111BFAA",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/27-the-triumph-of-the-right",
+    "file": "original-html/27-the-triumph-of-the-right.html",
+    "bytes": 223605,
+    "sha256": "9B317854ABB661FB349307FAC8AC7BC30ADB9445F5C1BB1376FC74166B5FE4C3",
+    "status": 200
+  },
+  {
+    "url": "https://www.americanyawp.com/textbook/28-american-carnage",
+    "file": "original-html/28-american-carnage.html",
+    "bytes": 179085,
+    "sha256": "073F32BB3F061F7A1EFCA932DD6DFC24B144BE3384A075FD8D5ED1AE9921F86B",
+    "status": 200
+  }
+]
