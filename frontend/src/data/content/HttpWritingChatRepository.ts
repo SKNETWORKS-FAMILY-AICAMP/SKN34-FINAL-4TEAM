@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import type { CharacterSimulation } from '../../domain/entities/characterSimulation'
-import type { ChatEvent, ChatHistory, ChatMessageInput, ChatReply, ChatSession, ChatStep } from '../../domain/entities/writingChat'
+import type { ChatEvent, ChatHistory, ChatMessageInput, ChatReply, ChatReview, ChatSession, ChatStep } from '../../domain/entities/writingChat'
 import type { WritingChatRepository } from '../../domain/repositories/WritingChatRepository'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, protectedRequest } from '../api/auth'
@@ -36,18 +36,30 @@ const stepFields = {
   approval: z.enum(['approved', 'declined']).nullish(),
   applied: z.object({ episode: z.number().int(), revision: z.number().int() }).nullish(),
 }
-// 시뮬레이션 단계는 결과가 객체가 아니어도(문자열·배열·숫자) 이 단계만 실패로 바꿔야 해서 결과를 transform이 따로 검증한다.
-// 결과를 객체로 먼저 검사하면 그 실패가 transform 앞에서 응답 전체의 형식 오류가 된다.
-const simulationStep = z.object({ feature: z.literal('character_simulation'), ...stepFields, result: z.unknown() }).transform((raw): ChatStep => {
-  const { result, ...rest } = raw
-  // 완료됐다는 단계는 결과가 있어야 한다. 아직 시작 전·서버가 실패로 보낸 결과 없는 단계는 그대로 둔다.
-  if (!result && raw.status !== 'completed') return rest
-  const parsed = simulation.safeParse(result)
-  if (parsed.success) return { ...rest, simulation: parsed.data }
-  // 형식이 어긋나면 가짜 장면을 만들지 않고 일반 단계처럼 실패를 보인다. 서버가 이미 보낸 실패 사유는 지킨다.
-  return { ...rest, status: 'failed', error: (raw.status === 'failed' && raw.error) || BAD_SIMULATION }
+// 원고 검수(#59) 단계 결과. AI ReviewResponse 중 화면이 쓰는 값만 계약의 열거값으로 받는다.
+const review: z.ZodType<ChatReview> = z.object({
+  check: z.enum(['mechanical', 'semantic']), episode: z.number().int(), revision: z.number().int(), gaps: z.array(z.string()),
+  findings: z.array(z.object({
+    category: z.string(), quote: z.string(), reason: z.string(), status: z.enum(['confirmed', 'suspected', 'undeterminable']),
+    evidenceRefs: z.array(z.string()), suggestion: z.string(), start: z.number().int().nullable(), end: z.number().int().nullable(),
+  })),
 })
-const step: z.ZodType<ChatStep> = z.union([simulationStep, z.object({
+const BAD_REVIEW = '원고 검수 결과 형식을 확인할 수 없어요.'
+
+// 시뮬레이션·검수 단계는 결과가 객체가 아니어도(문자열·배열·숫자) 이 단계만 실패로 바꿔야 해서 결과를 transform이 따로 검증한다.
+// 결과를 객체로 먼저 검사하면 그 실패가 transform 앞에서 응답 전체의 형식 오류가 된다.
+const typedStep = <T,>(feature: string, schema: z.ZodType<T>, key: 'simulation' | 'review', bad: string) =>
+  z.object({ feature: z.literal(feature), ...stepFields, result: z.unknown() }).transform((raw): ChatStep => {
+    const { result, ...rest } = raw
+    // 완료됐다는 단계는 결과가 있어야 한다. 아직 시작 전·서버가 실패로 보낸 결과 없는 단계는 그대로 둔다.
+    if (!result && raw.status !== 'completed') return rest
+    const parsed = schema.safeParse(result)
+    if (parsed.success) return { ...rest, [key]: parsed.data }
+    // 형식이 어긋나면 가짜 결과를 만들지 않고 일반 단계처럼 실패를 보인다. 서버가 이미 보낸 실패 사유는 지킨다.
+    return { ...rest, status: 'failed', error: (raw.status === 'failed' && raw.error) || bad }
+  })
+const step: z.ZodType<ChatStep> = z.union([typedStep('character_simulation', simulation, 'simulation', BAD_SIMULATION),
+  typedStep('review', review, 'review', BAD_REVIEW), z.object({
   feature: z.string(),
   ...stepFields,
   result: z.looseObject({

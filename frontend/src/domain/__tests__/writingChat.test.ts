@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { chatBasis, cleanScene, replyText, stepText, type ChatReply, type SceneAction } from '../entities/writingChat'
+import { chatBasis, cleanScene, replyText, stepText, type ChatReply, type ReviewFinding, type SceneAction } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -168,4 +168,23 @@ it('shows whether web research confirmed or contradicted a finding', () => {
   ] }
   expect(replyText(reply)).toContain('확인됨 · 같은 주장')
   expect(replyText(reply)).toContain('근거 상충 · 같은 주장')
+})
+
+describe('원고 검수 결과 글(#59)', () => {
+  const finding: ReviewFinding = { category: 'spelling', quote: '웃엇다', reason: '받침 오류', status: 'confirmed', evidenceRefs: [], suggestion: '웃었다', start: 3, end: 6 }
+  const step = (findings: ReviewFinding[], gaps: string[] = []) => ({ feature: 'review', status: 'completed' as const,
+    review: { check: 'mechanical' as const, episode: 3, revision: 4, findings, gaps } })
+
+  it('지적마다 상태·분류·원문 구절·이유·제안을 보이고, 위치를 정하지 못한 구절은 여러 곳이라고 알린다', () => {
+    const text = stepText(step([finding, { ...finding, status: 'suspected', start: null, end: null, category: 'repetition' }], ['날짜 비교 대상 없음']))
+    expect(text).toContain('3화 초안 맞춤법·표기 검수')
+    expect(text).toContain('확정 · 맞춤법 · "웃엇다"\n이유: 받침 오류\n제안: 웃었다')
+    expect(text).toContain('의심 · 중복 표현 · "웃엇다" (여러 곳)')
+    expect(text).toContain('확인 못 함: 날짜 비교 대상 없음')
+  })
+
+  it('문제가 없으면 없다고 말하고 검수 단계 이름을 붙인다', () => {
+    expect(stepText(step([]))).toBe('3화 초안 맞춤법·표기 검수: 찾은 문제가 없어요.')
+    expect(replyText({ status: 'completed', missingInputs: [], steps: [step([])] })).toMatch(/^\[원고 검수\] /)
+  })
 })

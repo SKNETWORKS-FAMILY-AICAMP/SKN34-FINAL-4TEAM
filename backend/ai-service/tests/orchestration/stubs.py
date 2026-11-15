@@ -6,6 +6,7 @@ from app.manuscript.models import AnswerResponse, Claim
 from app.orchestration import service
 from app.research.models import Finding, ResearchResponse
 from app.retrieval.models import RetrievalResult
+from app.review.models import Finding as ReviewFinding, ReviewResponse
 from app.simulation import agent, director
 from app.simulation.models import Action, Check, CheckItem, Decision, Narration, SimulationPlan, SimulationResult, Turn, Verdict
 from app.writing.models import DraftResponse, PatchResponse
@@ -14,6 +15,7 @@ QA = {'question': '길드 규칙은?', 'excerpts': [{'id': 'a', 'episode': 4, 'q
 DRAFT = {'draft': {'episodeNumber': 11, 'plan': '선장이 항구에 도착한다.'}}
 PATCH = {'patch': {'selection': '그는 웃었다.', 'instruction': '더 차갑게'}}
 WEB = {'question': '조선 후기 한양에서 동래까지 며칠?'}
+REVIEW = {'check': 'mechanical'}
 SCOPE = {'scopeToken': 'signed.token'}
 COVERAGE = {'expected': [{'number': 4, 'versionId': 'r4'}], 'withVerifiedExcerpt': [{'number': 4, 'versionId': 'r4'}],
             'withoutVerifiedExcerpt': []}
@@ -74,6 +76,10 @@ def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None):
     monkeypatch.setattr(service.research, 'research', recorded('web_research', ResearchResponse(
         findings=[Finding(text='약 15일', verdict='unverified', sourceUrls=[])], gaps=[],
         searchedAt=datetime(2026, 11, 12, tzinfo=timezone.utc))))
+    monkeypatch.setattr(service.review, 'review', recorded('review', lambda data: ReviewResponse(
+        workId=data.workId, episode=data.episode, revision=4, check=data.check, gaps=[], model='m', providerResponseId='r', usage=None,
+        findings=[ReviewFinding(category='spelling', quote='웃엇다', reason='맞춤법', status='confirmed', evidenceRefs=[],
+                                suggestion='웃었다', start=3, end=6)])))
     return calls
 
 

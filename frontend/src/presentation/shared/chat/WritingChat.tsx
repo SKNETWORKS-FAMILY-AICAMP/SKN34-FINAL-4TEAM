@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 
 import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
-import { featureLabel, replyText, stepText, type ChatBasis, type ChatReply, type ChatStep, type ChatStepInputs } from '../../../domain/entities/writingChat'
+import { featureLabel, replyText, reviewCheckLabel, stepText, type ChatBasis, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck } from '../../../domain/entities/writingChat'
 import type { ChatMessage } from '../../../domain/entities/chat'
 import { ComposeIcon, MoreIcon, SparkIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
@@ -76,6 +76,7 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
   const id = useId()
   const [question, setQuestion] = useState('')
   const [plan, setPlan] = useState('')
+  const [check, setCheck] = useState<ReviewCheck | null>(null)
   const draft = reply.steps.find((s) => s.feature === 'writing_editing' && s.status === 'completed')
   if (reply.awaitingApproval === 'character_simulation' || reply.awaitingScene === 'character_simulation') return <SceneWait reply={reply} onOpenStage={onOpenStage} />
   if (reply.awaitingApproval) {
@@ -90,9 +91,10 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
     </section>
   }
   const needs = reply.missingInputs
-  const filled = needs.every((f) => (f === 'web_research' ? question.trim() : f === 'writing_editing' ? plan.trim() : false))
+  const filled = needs.every((f) => (f === 'web_research' ? question.trim() : f === 'writing_editing' ? plan.trim() : f === 'review' ? check : false))
   const inputs: ChatStepInputs = {
     ...(needs.includes('web_research') ? { web_research: { question: question.trim() } } : {}),
+    ...(needs.includes('review') && check ? { review: { check } } : {}),
     ...(needs.includes('writing_editing') && episode ? { writing_editing: { draft: { episodeNumber: episode, plan: plan.trim() } } } : {}),
   }
   return <form className="chat-hitl" aria-labelledby={`${id}-t`} onSubmit={(e) => { e.preventDefault(); if (filled) onResume(true, inputs) }}>
@@ -104,7 +106,14 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
     {needs.includes('writing_editing') && <label className="chat-field">쓸 장면 계획{episode ? ` · ${episode}화` : ''}
       <textarea rows={3} value={plan} maxLength={4000} onChange={(e) => setPlan(e.target.value)} placeholder="예: 선장이 항구에 도착해 옛 동료와 마주친다." />
     </label>}
-    {needs.some((f) => f !== 'web_research' && f !== 'writing_editing') && <p className="chat-note">이 단계의 입력은 아직 화면에서 채울 수 없어요. 취소한 뒤 다른 요청으로 보내 주세요.</p>}
+    {needs.includes('review') && <fieldset className="chat-choice">
+      <legend>검수 종류{episode ? ` · ${episode}화 초안` : ''}</legend>
+      {(['mechanical', 'semantic'] as const).map((c) => <label key={c}>
+        <input type="radio" name={`${id}-check`} checked={check === c} onChange={() => setCheck(c)} />
+        {reviewCheckLabel[c]}{c === 'semantic' && <span className="chat-note"> (연결된 세계관 설정과 대조)</span>}
+      </label>)}
+    </fieldset>}
+    {needs.some((f) => f !== 'web_research' && f !== 'writing_editing' && f !== 'review') && <p className="chat-note">이 단계의 입력은 아직 화면에서 채울 수 없어요. 취소한 뒤 다른 요청으로 보내 주세요.</p>}
     <div className="chat-hitl-actions">
       <button type="submit" className="btn sm pri" disabled={pending || !filled}>이어서 실행</button>
       <button type="button" className="btn sm" disabled={pending} onClick={() => onResume(false)}>취소</button>

@@ -66,6 +66,9 @@ from app.research.models import ResearchRequest
 from app.retrieval import service as retrieval
 from app.retrieval.errors import RetrievalFailure
 from app.retrieval.models import RetrievalScope
+from app.review import service as review
+from app.review.errors import ReviewFailure
+from app.review.models import ReviewRequest
 from app.simulation import service as simulation
 from app.simulation.callbacks import SceneEvents, UsageCallback
 from app.simulation.errors import SimulationFailure
@@ -95,6 +98,14 @@ def _story_context(data: dict | None, state: dict) -> QaStepResult:
                         sources=[e for e in data['excerpts'] if e['id'] in cited])
 
 
+def _review(data: dict, state: dict):
+    """원고 검수. 검사 종류만 단계 입력이고, 검수할 초안은 Content가 확인한 반영 대상(target) 회차다."""
+    target = state.get('target')
+    if not target:
+        raise ReviewFailure(422, NO_REVIEW_TARGET)
+    return review.review(ReviewRequest(workId=target['workId'], episode=target['episode'], check=data['check']))
+
+
 # 한 번 호출하고 끝나는 업무 Agent. 입력은 StepInputs의 같은 이름 필드(JSON)다.
 # Q&A만 대화 기록·Retrieval을 쓴다. 웹 조사는 외부 전송이라 작가가 고른 질문·맥락 외에는 보내지 않는다.
 CALLS = {
@@ -102,16 +113,18 @@ CALLS = {
     'writing_editing': lambda data, state: (writing.draft(DraftRequest.model_validate(data['draft'])) if 'draft' in data
                                             else writing.patch(PatchRequest.model_validate(data['patch']))),
     'web_research': lambda data, state: research.research(ResearchRequest.model_validate(data)),
+    'review': _review,
 }
+NO_REVIEW_TARGET = '검수할 작품과 회차를 확인할 수 없어요.'
 # 구현된 기능. 시뮬레이션은 단계 입력 없이 simulationPlan을 쓰고 턴 사이에서 멈추는 전용 노드(character_simulation)가 실행한다.
 FEATURES = (*CALLS, 'character_simulation')
 # shortcut: 최근 5턴만 넘기고 요약하지 않는다. 긴 대화의 앞부분 지칭이 필요해지면 요약을 검토한다.
 HISTORY_TURNS = 5
-FAILURES = (ManuscriptFailure, WritingFailure, ResearchFailure, RetrievalFailure, SimulationFailure, ContentMcpFailure)
+FAILURES = (ManuscriptFailure, WritingFailure, ResearchFailure, RetrievalFailure, SimulationFailure, ContentMcpFailure, ReviewFailure)
 LIMIT_MESSAGE = '시뮬레이션이 호출 한도를 넘어 멈췄어요.'
 APPROVABLE = ('writing_editing', 'character_simulation')  # 결과를 작가가 승인하면 초안에 반영하는 단계
 UNSUPPORTED_MESSAGE = ('요청에 아직 실행할 수 없는 작업이 있어 아무 작업도 실행하지 않았어요. '
-                       '작품 질문, 집필·수정, 고증 조사는 각각 요청할 수 있어요.')
+                       '작품 질문, 원고 검수, 집필·수정, 고증 조사, 인물 시뮬레이션은 각각 요청할 수 있어요.')
 NEEDS_INPUT_MESSAGE = '작업에 필요한 자료가 빠져 있어 아무 작업도 실행하지 않았어요.'
 WAITING_MESSAGE = '작업에 필요한 자료를 기다리고 있어요. 자료를 보내거나 취소하면 이어서 진행해요.'
 APPROVAL_MESSAGES = {'writing_editing': 'Writing 결과를 원고 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.',
@@ -224,7 +237,7 @@ def plan(state: State) -> State:
     if routed.status != 'route':
         return {'status': routed.status, 'message': routed.message, 'steps': []}
     steps = [{'feature': s.feature, 'when': s.when, 'status': 'not_started'} for s in routed.steps]
-    # 조건부 단계는 Review의 Finding 연결 계약이 필요하다. Review가 없고 웹 조사 뒤 조건부 수정은 미지원이다.
+    # 조건부 단계는 Review의 Finding을 수정 입력으로 넘기는 연결 계약이 필요해 아직 미지원이다(Review 단독은 실행한다).
     unsupported = [s.feature for s in routed.steps if s.feature not in FEATURES or s.when != 'always']
     if unsupported:
         return {'status': 'unsupported', 'message': UNSUPPORTED_MESSAGE, 'steps': steps, 'unsupported': unsupported}

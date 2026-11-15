@@ -18,7 +18,8 @@ from app.simulation import scene_agent
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import SimulationPlan
 
-from .stubs import (CLOSING, COVERAGE, DRAFT, FORM, LINE, OPENING, PATCH, QA, SCENE_TEXT, SCOPE, WEB, fake_agents, fake_scene, plan)
+from .stubs import (CLOSING, COVERAGE, DRAFT, FORM, LINE, OPENING, PATCH, QA, REVIEW, SCENE_TEXT, SCOPE, WEB, fake_agents, fake_scene,
+                    plan)
 
 
 def run(request='요청', **body):
@@ -47,7 +48,7 @@ def test_router_receives_request_operation_and_materials(monkeypatch):
 
 
 @pytest.mark.parametrize('steps, unsupported', [
-    (['review'], ['review']),
+    (['review', ('writing_editing', 'if_issues_found')], ['writing_editing']),
     (['story_development', 'writing_editing'], ['story_development']),
     (['world_plot'], ['world_plot']),
     (['web_research', ('writing_editing', 'if_issues_found')], ['writing_editing']),
@@ -354,6 +355,35 @@ def writer(monkeypatch, fail=None):
 def write_turn(thread, authorization='Bearer user', **body):
     data = OrchestrationRequest(conversation={'threadId': thread, 'scope': 'user:1/work:1'}, **body)
     return asyncio.run(service.run(data, authorization))
+
+
+def test_review_checks_the_target_draft_with_the_chosen_check_and_writes_nothing(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('review'))
+    applied = writer(monkeypatch)
+    result = write_turn(str(uuid4()), request='맞춤법 봐줘', target=TARGET, inputs={'review': REVIEW})
+    assert result.status == 'completed' and result.awaitingApproval is None
+    [(_, (data,), _)] = [c for c in calls if c[0] == 'review']
+    assert (data.workId, data.episode, data.check) == ('work', 3, 'mechanical')
+    found = result.steps[0].result.findings[0]
+    assert (found.quote, found.start, found.end, found.status) == ('웃엇다', 3, 6, 'confirmed')
+    assert applied == []  # 검수는 제안이라 승인·반영을 묻지 않는다
+
+
+def test_review_without_a_target_fails_the_step_without_a_model_call(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('review'))
+    result = run('검수해줘', inputs={'review': REVIEW})
+    assert result.status == 'failed' and result.steps[0].error == service.NO_REVIEW_TARGET
+    assert names(calls) == ['route']
+
+
+def test_review_waits_for_the_check_kind_in_conversation(monkeypatch):
+    thread = str(uuid4())
+    calls = fake_agents(monkeypatch, plan('review'))
+    waiting = write_turn(thread, request='검수해줘', target=TARGET)
+    assert (waiting.status, waiting.missingInputs) == ('waiting', ['review'])
+    done = write_turn(thread, resume={'approved': True, 'inputs': {'review': {'check': 'semantic'}}})
+    assert done.status == 'completed' and done.steps[0].result.check == 'semantic'
+    assert names(calls) == ['route', 'review']
 
 
 def test_writing_result_waits_for_author_approval_before_any_write(monkeypatch):
