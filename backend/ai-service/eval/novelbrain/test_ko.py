@@ -81,6 +81,16 @@ def test_evidence_ids_map_items_to_paragraphs_and_cards_but_not_relations():
     assert evidence_ids(['card:k3', 'manuscript:k3']) == ['k3']  # 같은 id는 처음 순위에서 한 번만
 
 
+def test_ko_world_hands_each_cards_reveal_episode_to_the_filter(works):
+    # 공개가 2화부터인 장소 카드는 1화 시점에서 2단계까지는 보이고 3단계(필터)에서 걸러진다. 장소는 연결 규칙(_LINKED_TYPES) 대상이 아니라 공개 회차만으로 갈린다.
+    title, episode, question = '별빛 서약의 탑', 1, '지하서고에는 무엇이 있나요?'
+    world = ko_world(works, title, episode)
+    cards = {c.title: c for c in world.cards}
+    shown = lambda stage: [i.ref for i in recall(world, cards['카엘'].id, episode, question, stage=stage, k=1000).items]  # noqa: E731
+    library = f"card:{cards['지하서고'].id}"
+    assert library in shown(2) and library not in shown(3)
+
+
 def test_filtered_fusion_reproduces_recall_stage_3(works):
     # 하나씩 빼기의 근거: 같은 목록을 RRF로 합친 뒤 필터를 걸면 recall(3단계)과 순위가 같다.
     title = '별빛 서약의 탑'

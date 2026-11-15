@@ -210,10 +210,10 @@ def generate() -> None:
 
 
 def ko_world(works: dict, title: str, episode: int) -> WorldSnapshot:
-    """한 작품의 설정을 세계관으로: 카드(본문=설정 내용), 참가자→지식(사건) 관계, 링크 관계."""
+    """한 작품의 설정을 세계관으로: 카드(본문=설정 내용, 공개 시작 회차는 revealFromEpisode), 참가자→지식(사건) 관계, 링크 관계."""
     work, number = works[title], WORKS.index(title)
-    cards = [Card(id=f"{number}:{c['name']}", cardType=CARD_TYPE.get(c['category'], 'other'), title=c['name'], text=c['content'])
-             for c in work['cards']]
+    cards = [Card(id=f"{number}:{c['name']}", cardType=CARD_TYPE.get(c['category'], 'other'), title=c['name'], text=c['content'],
+                  revealFromEpisode=c['reveal']) for c in work['cards']]
     ids = {c.title: c.id for c in cards}
     relations = [Relation(id=f'p{n}-{name}', source=ids[name], target=ids[event], label='participated', direction='directed')
                  for n, (event, names) in enumerate(work['participants']) for name in names if name in ids and event in ids]

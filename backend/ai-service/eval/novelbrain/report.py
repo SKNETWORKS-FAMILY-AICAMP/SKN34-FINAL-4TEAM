@@ -72,7 +72,7 @@ def retrieval(name: str, title: str) -> str:
             + table(header, rows) + f"\n\n천장값: Recall@{k} {ceil[f'recall@{k}']:.3f}, P@{k} {ceil[f'p@{k}']:.3f}. ± 뒤는 질문 평균의 표준오차.\n\n"
             + f"짝 부호 검정(Recall@{k}, 오른 질문 : 내린 질문, 같은 점수는 뺌, 양측 정확 검정):\n\n"
             + table(['앞 대 뒤', '수정 전', '수정 후'], pairs)
-            + ('\n\n시작점 수정 자체의 효과(같은 질문, 수정 후 대 수정 전):\n\n' + table(['구성', '오른 : 내린'], fix) if fix else ''))
+            + ('\n\n직전 실행 대비(같은 질문, 이번 대 직전 실행 — 마지막으로 낸 수정의 효과):\n\n' + table(['구성', '오른 : 내린'], fix) if fix else ''))
 
 
 def answers(name: str) -> str:
