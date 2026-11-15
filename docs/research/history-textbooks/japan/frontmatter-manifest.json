@@ -1,0 +1,513 @@
+{
+  "schema": "japan-frontmatter-translation-v1",
+  "created_date": "2026-11-13",
+  "status": "bilingual draft; not final publication or independent historical audit",
+  "source": {
+    "file": "source-en.txt",
+    "title": "Japan",
+    "author": "David Murray",
+    "print_edition": "Third Edition, 1896",
+    "ebook_id": 29798,
+    "url": "https://www.gutenberg.org/cache/epub/29798/pg29798.txt",
+    "bytes": 663800,
+    "sha256": "7FA76392800E41A4A4273DCF0322D6A3F6909B7D744083A6100F6D168763189E"
+  },
+  "source_range": {
+    "line_start": 31,
+    "line_end_inclusive": 86,
+    "line_indexing": "one-based",
+    "utf16_start": 800,
+    "utf16_end_exclusive": 2339,
+    "utf16_length": 1539,
+    "utf8_bytes": 1548,
+    "sha256": "CF4C922BA43F3E569AA8115509DA96917450D6165A5680351D081B36CDF4E8E9",
+    "hash_convention": "Original decoded substring, including original indentation and line endings, encoded as UTF-8 without BOM"
+  },
+  "coverage": {
+    "title_publication_units": 14,
+    "contents_heading": 1,
+    "contents_entries": 21,
+    "total_nonempty_source_lines": 36,
+    "translated_units": 36,
+    "chapter_titles": 15,
+    "appendix_titles": 4,
+    "illustration_list": "Not found in the preserved TXT; no claim about all paper editions",
+    "exact_illustration_placeholders_in_entire_txt": 34,
+    "actual_images_included": false
+  },
+  "checks": {
+    "english_source_cells_match_exactly_after_outer_whitespace_trim": true,
+    "missing_extra_or_reordered_source_units": 0,
+    "duplicate_ids": 0,
+    "chapter_titles_match_existing_B00": 15,
+    "arabic_numeric_omissions": 0,
+    "edition_and_century_word_numerals_reviewed": true,
+    "replacement_characters": 0,
+    "existing_files_checked": 43,
+    "existing_files_changed": 0,
+    "source_unchanged": true,
+    "git_commands_executed": false
+  },
+  "exclusions": [
+    "Previously translated preface, signature, Kyoto bell caption, 15 chapters, 4 appendices and endnotes",
+    "Project Gutenberg notices, license, ebook metadata and transcriber notes",
+    "Actual images",
+    "An invented illustration list",
+    "Paper-scan collation and final historical/publication review"
+  ],
+  "rights": "Existing provenance records Public domain in the USA. This does not guarantee reuse in other jurisdictions; no CC license is asserted. Original PG notices and license remain preserved.",
+  "artifacts": [
+    {
+      "file": "frontmatter.ko.draft.md",
+      "bytes": 6678,
+      "sha256": "AF06A70671017DC30950EBDEE0E10426E71F1C64595D1663006794CB7FBF88A9",
+      "encoding": "UTF-8 without BOM"
+    },
+    {
+      "file": "frontmatter-translation.qa.md",
+      "bytes": 7727,
+      "sha256": "3EE725D7DE991B2E02751F789EAB454FF24C631A14030A4D15B4C48154DEFBBE",
+      "encoding": "UTF-8 without BOM"
+    }
+  ],
+  "units": [
+    {
+      "id": "FMT01",
+      "source_line": 31,
+      "english": "Japan",
+      "korean": "일본"
+    },
+    {
+      "id": "FMT02",
+      "source_line": 33,
+      "english": "By",
+      "korean": "지은이"
+    },
+    {
+      "id": "FMT03",
+      "source_line": 35,
+      "english": "David Murray, Ph.D., LL.D.",
+      "korean": "데이비드 머리(David Murray), Ph.D., LL.D."
+    },
+    {
+      "id": "FMT04",
+      "source_line": 37,
+      "english": "Late Advisor to the Japanese Minister of Education",
+      "korean": "전 일본 문부대신 고문"
+    },
+    {
+      "id": "FMT05",
+      "source_line": 39,
+      "english": "Third Edition",
+      "korean": "제3판"
+    },
+    {
+      "id": "FMT06",
+      "source_line": 41,
+      "english": "London",
+      "korean": "런던"
+    },
+    {
+      "id": "FMT07",
+      "source_line": 43,
+      "english": "T. Fisher Unwin",
+      "korean": "T. 피셔 언윈"
+    },
+    {
+      "id": "FMT08",
+      "source_line": 45,
+      "english": "Paternoster Square",
+      "korean": "패터노스터 스퀘어"
+    },
+    {
+      "id": "FMT09",
+      "source_line": 47,
+      "english": "New York: G. P. Putnam’s Sons",
+      "korean": "뉴욕: G. P. 퍼트넘스 선스"
+    },
+    {
+      "id": "FMT10",
+      "source_line": 49,
+      "english": "1896",
+      "korean": "1896"
+    },
+    {
+      "id": "FMT11",
+      "source_line": 51,
+      "english": "Copyright by T. Fisher Unwin, 1894",
+      "korean": "저작권: T. 피셔 언윈, 1894"
+    },
+    {
+      "id": "FMT12",
+      "source_line": 53,
+      "english": "(For Great Britain)",
+      "korean": "(대브리튼용)"
+    },
+    {
+      "id": "FMT13",
+      "source_line": 55,
+      "english": "Copyright by G. P. Putnam’s Sons, 1894",
+      "korean": "저작권: G. P. 퍼트넘스 선스, 1894"
+    },
+    {
+      "id": "FMT14",
+      "source_line": 57,
+      "english": "(For the United States of America",
+      "korean": "(미합중국용"
+    },
+    {
+      "id": "TOC00",
+      "source_line": 63,
+      "english": "CONTENTS",
+      "korean": "목차"
+    },
+    {
+      "id": "TOC01",
+      "source_line": 66,
+      "english": "Preface.",
+      "korean": "서문."
+    },
+    {
+      "id": "TOC02",
+      "source_line": 67,
+      "english": "Chapter I. The Japanese Archipelago.",
+      "korean": "제1장. 일본 열도."
+    },
+    {
+      "id": "TOC03",
+      "source_line": 68,
+      "english": "Chapter II. The Original And Surviving Races.",
+      "korean": "제2장. 원주 인종과 현존 인종."
+    },
+    {
+      "id": "TOC04",
+      "source_line": 69,
+      "english": "Chapter III. Myths And Legends.",
+      "korean": "제3장. 신화와 전설."
+    },
+    {
+      "id": "TOC05",
+      "source_line": 70,
+      "english": "Chapter IV. Founding The Empire.",
+      "korean": "제4장. 제국의 건설."
+    },
+    {
+      "id": "TOC06",
+      "source_line": 71,
+      "english": "Chapter V. Native Culture And Continental Influences.",
+      "korean": "제5장. 토착 문화와 대륙의 영향."
+    },
+    {
+      "id": "TOC07",
+      "source_line": 72,
+      "english": "Chapter VI. The Middle Ages Of Japan.",
+      "korean": "제6장. 일본의 중세."
+    },
+    {
+      "id": "TOC08",
+      "source_line": 73,
+      "english": "Chapter VII. Emperor And Shōgun.",
+      "korean": "제7장. 천황과 쇼군."
+    },
+    {
+      "id": "TOC09",
+      "source_line": 74,
+      "english": "Chapter VIII. From The Ashikaga Shōguns To The Death Of Nobunaga.",
+      "korean": "제8장. 아시카가 쇼군들부터 노부나가의 죽음까지."
+    },
+    {
+      "id": "TOC10",
+      "source_line": 75,
+      "english": "Chapter IX. Toyotomi Hideyoshi.",
+      "korean": "제9장. 도요토미 히데요시."
+    },
+    {
+      "id": "TOC11",
+      "source_line": 76,
+      "english": "Chapter X. The Founding Of The Tokugawa Shōgunate.",
+      "korean": "제10장. 도쿠가와 막부의 성립."
+    },
+    {
+      "id": "TOC12",
+      "source_line": 77,
+      "english": "Chapter XI. Christianity In The Seventeenth Century.",
+      "korean": "제11장. 17세기의 기독교."
+    },
+    {
+      "id": "TOC13",
+      "source_line": 78,
+      "english": "Chapter XII. Feudalism In Japan.",
+      "korean": "제12장. 일본의 봉건제."
+    },
+    {
+      "id": "TOC14",
+      "source_line": 79,
+      "english": "Chapter XIII. Commodore Perry And What Followed.",
+      "korean": "제13장. 페리 제독과 그 뒤에 일어난 일."
+    },
+    {
+      "id": "TOC15",
+      "source_line": 80,
+      "english": "Chapter XIV. Revolutionary Preludes.",
+      "korean": "제14장. 혁명의 전주곡."
+    },
+    {
+      "id": "TOC16",
+      "source_line": 81,
+      "english": "Chapter XV. The Restored Empire.",
+      "korean": "제15장. 복고된 제국."
+    },
+    {
+      "id": "TOC17",
+      "source_line": 82,
+      "english": "Appendix I. List Of Emperors.",
+      "korean": "부록I. 천황 목록."
+    },
+    {
+      "id": "TOC18",
+      "source_line": 83,
+      "english": "Appendix II. List Of Year Periods.",
+      "korean": "부록II. 연호 목록."
+    },
+    {
+      "id": "TOC19",
+      "source_line": 84,
+      "english": "Appendix III. List Of Shōguns.",
+      "korean": "부록III. 쇼군 목록."
+    },
+    {
+      "id": "TOC20",
+      "source_line": 85,
+      "english": "Appendix IV. Laws Of Shōtoku Taishi.",
+      "korean": "부록IV. 쇼토쿠 태자의 법."
+    },
+    {
+      "id": "TOC21",
+      "source_line": 86,
+      "english": "Footnotes",
+      "korean": "각주"
+    }
+  ],
+  "protected_existing_files": [
+    {
+      "name": "01-main-prose.ko.draft.md",
+      "bytes": 31307,
+      "sha256": "9573C559B8865274A3470FB54D6E99D17D91F959EAA1B9D9A64791A1EDD6483B"
+    },
+    {
+      "name": "01-translation.qa.md",
+      "bytes": 11067,
+      "sha256": "946B39B5C76D69295FD69E5AB5547EA33309CDCD205A845DF0C4C803A7D56223"
+    },
+    {
+      "name": "01-worldbuilding-candidate.ko.md",
+      "bytes": 9575,
+      "sha256": "A8E404DE6C0CF527CDC062D0C32F745200A7773856F7C184B0F2F9577FAA916C"
+    },
+    {
+      "name": "02-main-prose.ko.draft.md",
+      "bytes": 19138,
+      "sha256": "DDD1520BDC886169BC8A802303D585CBA119686340D8511FA8075CDD852E6076"
+    },
+    {
+      "name": "02-translation.qa.md",
+      "bytes": 6778,
+      "sha256": "A458784E01E1FC47B916E4C7584F9FEAD3F03181C41A135D1A50F6532F072264"
+    },
+    {
+      "name": "02-worldbuilding-candidate.ko.draft.md",
+      "bytes": 4310,
+      "sha256": "A8E32426AE81C7E23E47F22C5A84475F45D576724407C76986EDFCF22AED2480"
+    },
+    {
+      "name": "03-main-prose.ko.draft.md",
+      "bytes": 31015,
+      "sha256": "6DC3107BC04C2DD9551C843374A92F2838CF88E30EB5F6720DE76B8FDFB78D90"
+    },
+    {
+      "name": "03-translation.qa.md",
+      "bytes": 9330,
+      "sha256": "83E5A53EAFD1A8AB662C7D8F8D4848B4B2504E1F69B0EA9D29A17582B2149CEB"
+    },
+    {
+      "name": "04-main-prose.ko.draft.md",
+      "bytes": 44641,
+      "sha256": "A5706BB5833DE775A1FFE977436C52CE1030B701EFE39AD98B84BAD9056F8A9C"
+    },
+    {
+      "name": "04-translation.qa.md",
+      "bytes": 8379,
+      "sha256": "84E4A7FE0ED9B0FE55A6AE83ACAC8B6FFF6DB578A3AE01A8BEEF1AA470BE53F3"
+    },
+    {
+      "name": "05-main-prose.ko.draft.md",
+      "bytes": 52239,
+      "sha256": "5B1841F0A18DF628B12548B76C1BF7EE404B0D45E50AE0933E5CFB96219BD30E"
+    },
+    {
+      "name": "05-translation.qa.md",
+      "bytes": 10021,
+      "sha256": "789E62EFAEA3817639B0A999593F4EE267415758AEF729279D74A141DB83B690"
+    },
+    {
+      "name": "06-main-prose.ko.draft.md",
+      "bytes": 50260,
+      "sha256": "6EEEF1666EBAB9AE5D7480DF7417708B4F2A05AA38D6B12B65688D2DEC15F587"
+    },
+    {
+      "name": "06-translation.qa.md",
+      "bytes": 11359,
+      "sha256": "81FDEA2652405D9715F72FF3ECC7A707D57FCBD7D51601C2414271E4F89857BD"
+    },
+    {
+      "name": "07-main-prose.ko.draft.md",
+      "bytes": 30297,
+      "sha256": "7C73F01B33534A99208D484178D65E5453320A97336D7C12D26C3C5AC7E72881"
+    },
+    {
+      "name": "07-translation.qa.md",
+      "bytes": 7648,
+      "sha256": "8CA820E7BFC9F764AF12970B79BA883D81D541C9869D33CF2BCDCAD25F947A10"
+    },
+    {
+      "name": "08-main-prose.ko.draft.md",
+      "bytes": 38472,
+      "sha256": "66D3A1A870102F5FBBB2FD371FB27AD91A9DD2B8902F1A08EADF7E36C96319B4"
+    },
+    {
+      "name": "08-translation.qa.md",
+      "bytes": 7844,
+      "sha256": "102FDFE090CB76D53DF3E6FAF68E8CA5BECBB89569909FFEF03C6D44F8CA5EAB"
+    },
+    {
+      "name": "09-main-prose.ko.draft.md",
+      "bytes": 49967,
+      "sha256": "88E15C843D1D44F9D89E5280DCCF970C3380F9314EF360ADC17720365AC6BD61"
+    },
+    {
+      "name": "09-translation.qa.md",
+      "bytes": 11683,
+      "sha256": "92023D4360E5D43309389D25C6EE38D6E7EE7BF1922989648AE28E74E12EFBA8"
+    },
+    {
+      "name": "10-main-prose.ko.draft.md",
+      "bytes": 24922,
+      "sha256": "3C4AC54A81F5002747C9AD05D8AA18B4ACE36A579350DBAF4DDE69945BBA9D78"
+    },
+    {
+      "name": "10-translation.qa.md",
+      "bytes": 7246,
+      "sha256": "890737379F7161DDE6C516AC14AC18B805AC3F8B1126B4809C7621542CA0DEC9"
+    },
+    {
+      "name": "11-main-prose.ko.draft.md",
+      "bytes": 47848,
+      "sha256": "461BE896A1390455A3EFED11750B38F6EFE049C0FD7E28D5DDED87164217D468"
+    },
+    {
+      "name": "11-translation.qa.md",
+      "bytes": 8455,
+      "sha256": "7195E376FF7FDCB12223139E71965AE64E9E9640DF35DBF493E219E63546395E"
+    },
+    {
+      "name": "12-main-prose.ko.draft.md",
+      "bytes": 53672,
+      "sha256": "95C1359903181ED6ABE7DB61D41F097E696010F16D8472A5AE567F9B916EA403"
+    },
+    {
+      "name": "12-translation.qa.md",
+      "bytes": 11551,
+      "sha256": "B41372C9F1DD7BB46521CD21F50F628C87AE257640DCA46DC71BC104BD5AEE20"
+    },
+    {
+      "name": "13-main-prose.ko.draft.md",
+      "bytes": 38033,
+      "sha256": "18F23A895832F2AF41F5D47F18544B5BFA34ED2475FBF93DDDEAEDBEEADCE0FE"
+    },
+    {
+      "name": "13-translation.qa.md",
+      "bytes": 5711,
+      "sha256": "F49AFA4E146773B837380405B65B4EC9563795D470460808ECCBB363DCD504C1"
+    },
+    {
+      "name": "14-main-prose.ko.draft.md",
+      "bytes": 44883,
+      "sha256": "02D75BBAA239075F5D04B98FAA481B1C14219C46D1B88CCA69C81F247986CEEC"
+    },
+    {
+      "name": "14-translation.qa.md",
+      "bytes": 6963,
+      "sha256": "A3ED8CA3653A3A4E6A69A75CB601AB4C8BA946C6219A033A677834745034A4B1"
+    },
+    {
+      "name": "15-main-prose.ko.draft.md",
+      "bytes": 41750,
+      "sha256": "1B12792BA2B63FFD65A0B6C33ADC354B81198C9B563E08D4FFAD1051BA2CE264"
+    },
+    {
+      "name": "15-translation.qa.md",
+      "bytes": 10001,
+      "sha256": "1DFD960CCF392FE18F62634C29E17D40E5D1A60A0FC85FD7403DFA38F83C5B8A"
+    },
+    {
+      "name": "appendix-01-03-translation.qa.md",
+      "bytes": 11577,
+      "sha256": "D654CEFA0EDBAA3983979C4553E67AEDFC4D0F0B6ACD24F9CA6F7109618C6B98"
+    },
+    {
+      "name": "appendix-01.ko.draft.md",
+      "bytes": 9500,
+      "sha256": "00A961864F13CC69FB9E1715180E75D13BE984400EA91A04794917B4170EE31D"
+    },
+    {
+      "name": "appendix-02.ko.draft.md",
+      "bytes": 12259,
+      "sha256": "6D7FC9C90A01FFFC95D992982E4EDE9AAE1B8B9572E03C73EE4C8E5192A73893"
+    },
+    {
+      "name": "appendix-03.ko.draft.md",
+      "bytes": 15226,
+      "sha256": "D6127CCF8D5E6783CDDDC696A14334BBED1B2235E1E321214309358F098EEF5B"
+    },
+    {
+      "name": "appendix-04.ko.draft.md",
+      "bytes": 9605,
+      "sha256": "83BF3A8D0D016F9161F7E7276A3DE10E55527F2763EF3DB525724C93B2E87597"
+    },
+    {
+      "name": "japan-15-chapters-and-appendices.ko.draft.md",
+      "bytes": 652716,
+      "sha256": "84412F8C6246F8D2E5822FD18BD3C9CCE79F03F39CF0DC08A9C8AB900875579B"
+    },
+    {
+      "name": "preface.ko.draft.md",
+      "bytes": 4576,
+      "sha256": "14CC62E5507F5B6DB9895463B0865FC703D78CDBA96A6D3F3409CEBC72E3D0CF"
+    },
+    {
+      "name": "README.partial-ko.md",
+      "bytes": 7512,
+      "sha256": "F018FB98A56BDA63C88A59AA67CCB3E4E7722AFEE5B20292C2F41E6FFB629E69"
+    },
+    {
+      "name": "review-sample-10-blocks.ko.md",
+      "bytes": 2420,
+      "sha256": "0F3AB4F89ECEE34DC140140CB4BF1A0483C86EA934A5052915F160BE2C904919"
+    },
+    {
+      "name": "source-en.txt",
+      "bytes": 663800,
+      "sha256": "7FA76392800E41A4A4273DCF0322D6A3F6909B7D744083A6100F6D168763189E"
+    },
+    {
+      "name": "translation-manifest.json",
+      "bytes": 8678,
+      "sha256": "B272FB2B28FA9F1BFCBB5428310DB1B0FB33DCD5D05CF4E890A0E31DFE259E08"
+    }
+  ],
+  "notes": [
+    "Existing combined translation, individual translations, README and translation-manifest.json were not modified.",
+    "The unclosed parenthesis in source line 57 is deliberately preserved.",
+    "The new manifest does not contain its own hash to avoid self-reference."
+  ]
+}

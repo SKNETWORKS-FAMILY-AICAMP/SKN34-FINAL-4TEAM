@@ -1,0 +1,278 @@
+{
+  "status": "translation_draft_scope_complete_not_historical_validation",
+  "date": "2026-11-13",
+  "source_title": "Japan",
+  "author": "David Murray",
+  "edition": "Third Edition, 1896",
+  "source_url": "https://www.gutenberg.org/ebooks/29798",
+  "source_sha256": "7FA76392800E41A4A4273DCF0322D6A3F6909B7D744083A6100F6D168763189E",
+  "scope": {
+    "chapters": 15,
+    "appendices": 4,
+    "preface_paragraphs": 3,
+    "notes": "1-344",
+    "worldbuilding_candidates": 2,
+    "chapter_blocks": 743
+  },
+  "exclusions": [
+    "Actual illustration images",
+    "Separate translation of title page and contents",
+    "Korean translation of Gutenberg notice and license",
+    "Twentieth and twenty-first century history absent from the source"
+  ],
+  "review": "Structural and numeric correspondence checked; independent full historical and linguistic review pending",
+  "files": [
+    {
+      "file": "01-main-prose.ko.draft.md",
+      "bytes": 31307,
+      "sha256": "9573C559B8865274A3470FB54D6E99D17D91F959EAA1B9D9A64791A1EDD6483B",
+      "lines": 287
+    },
+    {
+      "file": "01-translation.qa.md",
+      "bytes": 11067,
+      "sha256": "946B39B5C76D69295FD69E5AB5547EA33309CDCD205A845DF0C4C803A7D56223",
+      "lines": 114
+    },
+    {
+      "file": "01-worldbuilding-candidate.ko.md",
+      "bytes": 9575,
+      "sha256": "A8E404DE6C0CF527CDC062D0C32F745200A7773856F7C184B0F2F9577FAA916C",
+      "lines": 89
+    },
+    {
+      "file": "02-main-prose.ko.draft.md",
+      "bytes": 19138,
+      "sha256": "DDD1520BDC886169BC8A802303D585CBA119686340D8511FA8075CDD852E6076",
+      "lines": 141
+    },
+    {
+      "file": "02-translation.qa.md",
+      "bytes": 6778,
+      "sha256": "A458784E01E1FC47B916E4C7584F9FEAD3F03181C41A135D1A50F6532F072264",
+      "lines": 56
+    },
+    {
+      "file": "02-worldbuilding-candidate.ko.draft.md",
+      "bytes": 4310,
+      "sha256": "A8E32426AE81C7E23E47F22C5A84475F45D576724407C76986EDFCF22AED2480",
+      "lines": 32
+    },
+    {
+      "file": "03-main-prose.ko.draft.md",
+      "bytes": 31015,
+      "sha256": "6DC3107BC04C2DD9551C843374A92F2838CF88E30EB5F6720DE76B8FDFB78D90",
+      "lines": 341
+    },
+    {
+      "file": "03-translation.qa.md",
+      "bytes": 9330,
+      "sha256": "83E5A53EAFD1A8AB662C7D8F8D4848B4B2504E1F69B0EA9D29A17582B2149CEB",
+      "lines": 72
+    },
+    {
+      "file": "04-main-prose.ko.draft.md",
+      "bytes": 44641,
+      "sha256": "A5706BB5833DE775A1FFE977436C52CE1030B701EFE39AD98B84BAD9056F8A9C",
+      "lines": 413
+    },
+    {
+      "file": "04-translation.qa.md",
+      "bytes": 8379,
+      "sha256": "84E4A7FE0ED9B0FE55A6AE83ACAC8B6FFF6DB578A3AE01A8BEEF1AA470BE53F3",
+      "lines": 68
+    },
+    {
+      "file": "05-main-prose.ko.draft.md",
+      "bytes": 52239,
+      "sha256": "5B1841F0A18DF628B12548B76C1BF7EE404B0D45E50AE0933E5CFB96219BD30E",
+      "lines": 384
+    },
+    {
+      "file": "05-translation.qa.md",
+      "bytes": 10021,
+      "sha256": "789E62EFAEA3817639B0A999593F4EE267415758AEF729279D74A141DB83B690",
+      "lines": 84
+    },
+    {
+      "file": "06-main-prose.ko.draft.md",
+      "bytes": 50260,
+      "sha256": "6EEEF1666EBAB9AE5D7480DF7417708B4F2A05AA38D6B12B65688D2DEC15F587",
+      "lines": 327
+    },
+    {
+      "file": "06-translation.qa.md",
+      "bytes": 11359,
+      "sha256": "81FDEA2652405D9715F72FF3ECC7A707D57FCBD7D51601C2414271E4F89857BD",
+      "lines": 87
+    },
+    {
+      "file": "07-main-prose.ko.draft.md",
+      "bytes": 30297,
+      "sha256": "7C73F01B33534A99208D484178D65E5453320A97336D7C12D26C3C5AC7E72881",
+      "lines": 164
+    },
+    {
+      "file": "07-translation.qa.md",
+      "bytes": 7648,
+      "sha256": "8CA820E7BFC9F764AF12970B79BA883D81D541C9869D33CF2BCDCAD25F947A10",
+      "lines": 59
+    },
+    {
+      "file": "08-main-prose.ko.draft.md",
+      "bytes": 38472,
+      "sha256": "66D3A1A870102F5FBBB2FD371FB27AD91A9DD2B8902F1A08EADF7E36C96319B4",
+      "lines": 208
+    },
+    {
+      "file": "08-translation.qa.md",
+      "bytes": 7844,
+      "sha256": "102FDFE090CB76D53DF3E6FAF68E8CA5BECBB89569909FFEF03C6D44F8CA5EAB",
+      "lines": 58
+    },
+    {
+      "file": "09-main-prose.ko.draft.md",
+      "bytes": 49967,
+      "sha256": "88E15C843D1D44F9D89E5280DCCF970C3380F9314EF360ADC17720365AC6BD61",
+      "lines": 344
+    },
+    {
+      "file": "09-translation.qa.md",
+      "bytes": 11683,
+      "sha256": "92023D4360E5D43309389D25C6EE38D6E7EE7BF1922989648AE28E74E12EFBA8",
+      "lines": 78
+    },
+    {
+      "file": "10-main-prose.ko.draft.md",
+      "bytes": 24922,
+      "sha256": "3C4AC54A81F5002747C9AD05D8AA18B4ACE36A579350DBAF4DDE69945BBA9D78",
+      "lines": 152
+    },
+    {
+      "file": "10-translation.qa.md",
+      "bytes": 7246,
+      "sha256": "890737379F7161DDE6C516AC14AC18B805AC3F8B1126B4809C7621542CA0DEC9",
+      "lines": 59
+    },
+    {
+      "file": "11-main-prose.ko.draft.md",
+      "bytes": 47848,
+      "sha256": "461BE896A1390455A3EFED11750B38F6EFE049C0FD7E28D5DDED87164217D468",
+      "lines": 272
+    },
+    {
+      "file": "11-translation.qa.md",
+      "bytes": 8455,
+      "sha256": "7195E376FF7FDCB12223139E71965AE64E9E9640DF35DBF493E219E63546395E",
+      "lines": 63
+    },
+    {
+      "file": "12-main-prose.ko.draft.md",
+      "bytes": 53672,
+      "sha256": "95C1359903181ED6ABE7DB61D41F097E696010F16D8472A5AE567F9B916EA403",
+      "lines": 429
+    },
+    {
+      "file": "12-translation.qa.md",
+      "bytes": 11551,
+      "sha256": "B41372C9F1DD7BB46521CD21F50F628C87AE257640DCA46DC71BC104BD5AEE20",
+      "lines": 78
+    },
+    {
+      "file": "13-main-prose.ko.draft.md",
+      "bytes": 38033,
+      "sha256": "18F23A895832F2AF41F5D47F18544B5BFA34ED2475FBF93DDDEAEDBEEADCE0FE",
+      "lines": 371
+    },
+    {
+      "file": "13-translation.qa.md",
+      "bytes": 5711,
+      "sha256": "F49AFA4E146773B837380405B65B4EC9563795D470460808ECCBB363DCD504C1",
+      "lines": 55
+    },
+    {
+      "file": "14-main-prose.ko.draft.md",
+      "bytes": 44883,
+      "sha256": "02D75BBAA239075F5D04B98FAA481B1C14219C46D1B88CCA69C81F247986CEEC",
+      "lines": 386
+    },
+    {
+      "file": "14-translation.qa.md",
+      "bytes": 6963,
+      "sha256": "A3ED8CA3653A3A4E6A69A75CB601AB4C8BA946C6219A033A677834745034A4B1",
+      "lines": 64
+    },
+    {
+      "file": "15-main-prose.ko.draft.md",
+      "bytes": 41750,
+      "sha256": "1B12792BA2B63FFD65A0B6C33ADC354B81198C9B563E08D4FFAD1051BA2CE264",
+      "lines": 399
+    },
+    {
+      "file": "15-translation.qa.md",
+      "bytes": 10001,
+      "sha256": "1DFD960CCF392FE18F62634C29E17D40E5D1A60A0FC85FD7403DFA38F83C5B8A",
+      "lines": 83
+    },
+    {
+      "file": "appendix-01-03-translation.qa.md",
+      "bytes": 11577,
+      "sha256": "D654CEFA0EDBAA3983979C4553E67AEDFC4D0F0B6ACD24F9CA6F7109618C6B98",
+      "lines": 106
+    },
+    {
+      "file": "appendix-01.ko.draft.md",
+      "bytes": 9500,
+      "sha256": "00A961864F13CC69FB9E1715180E75D13BE984400EA91A04794917B4170EE31D",
+      "lines": 149
+    },
+    {
+      "file": "appendix-02.ko.draft.md",
+      "bytes": 12259,
+      "sha256": "6D7FC9C90A01FFFC95D992982E4EDE9AAE1B8B9572E03C73EE4C8E5192A73893",
+      "lines": 262
+    },
+    {
+      "file": "appendix-03.ko.draft.md",
+      "bytes": 15226,
+      "sha256": "D6127CCF8D5E6783CDDDC696A14334BBED1B2235E1E321214309358F098EEF5B",
+      "lines": 129
+    },
+    {
+      "file": "appendix-04.ko.draft.md",
+      "bytes": 9605,
+      "sha256": "83BF3A8D0D016F9161F7E7276A3DE10E55527F2763EF3DB525724C93B2E87597",
+      "lines": 52
+    },
+    {
+      "file": "japan-15-chapters-and-appendices.ko.draft.md",
+      "bytes": 652716,
+      "sha256": "84412F8C6246F8D2E5822FD18BD3C9CCE79F03F39CF0DC08A9C8AB900875579B",
+      "lines": 5333
+    },
+    {
+      "file": "preface.ko.draft.md",
+      "bytes": 4576,
+      "sha256": "14CC62E5507F5B6DB9895463B0865FC703D78CDBA96A6D3F3409CEBC72E3D0CF",
+      "lines": 28
+    },
+    {
+      "file": "README.partial-ko.md",
+      "bytes": 7512,
+      "sha256": "F018FB98A56BDA63C88A59AA67CCB3E4E7722AFEE5B20292C2F41E6FFB629E69",
+      "lines": 63
+    },
+    {
+      "file": "review-sample-10-blocks.ko.md",
+      "bytes": 2420,
+      "sha256": "0F3AB4F89ECEE34DC140140CB4BF1A0483C86EA934A5052915F160BE2C904919",
+      "lines": 22
+    },
+    {
+      "file": "source-en.txt",
+      "bytes": 663800,
+      "sha256": "7FA76392800E41A4A4273DCF0322D6A3F6909B7D744083A6100F6D168763189E",
+      "lines": 11131
+    }
+  ]
+}
