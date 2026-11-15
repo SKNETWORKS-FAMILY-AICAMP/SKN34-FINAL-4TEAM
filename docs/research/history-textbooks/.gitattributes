@@ -1,2 +1,2 @@
-# Preserve source/translation snapshot bytes and recorded SHA-256 across platforms.
-* -text
+# Historical source snapshots retain exact bytes, including CRLF and archival whitespace.
+* -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
