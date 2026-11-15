@@ -46,7 +46,9 @@ def _decide(request: str, materials: list[str], operation: str | None, history: 
         if operation:
             return IntentResult(status='route', steps=[IntentStep(feature=operation, when='always')])
         chosen = sorted((answers[f], f) for f in FEATURES if answers[f] != 'none')  # 순서 값은 한 자리(1~3)라 문자열 정렬이 곧 순서다.
-        steps = [IntentStep(feature=f, when='if_issues_found' if p.endswith('_if_issues') else 'always') for p, f in chosen]
+        check = None if answers['review_check'] == 'unclear' else answers['review_check']
+        steps = [IntentStep(feature=f, when='if_issues_found' if p.endswith('_if_issues') else 'always',
+                            check=check if f == 'review' else None) for p, f in chosen]
         # 기능별 답이 독립이라 상대 순서만 쓴다. 한 순서에 여러 기능이 오거나, 조건부 작업 앞에 문제를 찾는 작업이 없으면
         # 모호하다고 보고 확인을 묻는다.
         if (answers['clarity'] == 'ambiguous' or not steps or len({p[0] for p, _ in chosen}) != len(chosen)

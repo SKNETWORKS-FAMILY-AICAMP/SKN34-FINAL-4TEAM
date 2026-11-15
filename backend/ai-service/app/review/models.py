@@ -5,6 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 Check = Literal['mechanical', 'semantic']
+Scope = Check | Literal['both']  # both는 두 검수를 병렬로 돌려 Semantic → Mechanical 순서로 합친다(#369)
 CATEGORIES: dict[str, tuple[str, ...]] = {
     'mechanical': ('number', 'name', 'date', 'repetition', 'spelling'),
     'semantic': ('setting', 'knowledge', 'emotion', 'causality', 'foreshadowing'),
@@ -15,7 +16,7 @@ Category = Literal[CATEGORIES['mechanical'] + CATEGORIES['semantic']]
 class ReviewRequest(BaseModel):
     workId: str = Field(min_length=1, max_length=100)
     episode: int = Field(ge=1)
-    check: Check
+    check: Scope
 
 
 class DraftFinding(BaseModel):
@@ -51,9 +52,9 @@ class ReviewResponse(BaseModel):
     workId: str
     episode: int
     revision: int
-    check: Check
+    check: Scope
     findings: list[Finding]
     gaps: list[str]
     model: str
-    providerResponseId: str
+    providerResponseId: str  # both면 두 응답 ID를 Semantic, Mechanical 순서로 쉼표로 잇는다
     usage: Usage | None

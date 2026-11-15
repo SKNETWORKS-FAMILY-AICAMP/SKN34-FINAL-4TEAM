@@ -9,7 +9,7 @@ from app.intent.models import Feature
 from app.story_qa.models import AnswerRequest, AnswerResponse, Excerpt
 from app.research.models import ResearchRequest, ResearchResponse
 from app.retrieval.models import Coverage, RetrievalScope
-from app.review.models import Check, ReviewResponse
+from app.review.models import ReviewResponse, Scope
 from app.simulation.models import SceneAction, SimulationPlan, SimulationResult
 from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse
 
@@ -30,7 +30,7 @@ class WritingInput(BaseModel):
 class ReviewInput(BaseModel):
     """원고 검수의 검사 종류. 대상 초안은 Content가 확인한 반영 대상(target) 회차라 입력으로 받지 않는다."""
     model_config = ConfigDict(extra='forbid')
-    check: Check
+    check: Scope
 
 
 class StepInputs(BaseModel):

@@ -3,7 +3,8 @@ import type { WritingEpisode } from './content'
 
 /** 집필 AI 채팅(#331). 대화 원본은 AI 서비스의 LangGraph 체크포인터이며 화면은 Content API로만 읽고 쓴다. */
 export type ChatFeature = 'story_context' | 'writing_editing' | 'web_research' | 'character_simulation' | 'review' | (string & {})
-export type ReviewCheck = 'mechanical' | 'semantic'
+// both는 Router가 두 검수를 함께 고른 결과(#369)다. 작가에게 묻는 화면은 두 가지 중 하나만 고른다.
+export type ReviewCheck = 'mechanical' | 'semantic' | 'both'
 /** 원고 검수 지적 하나. 위치는 초안 본문의 UTF-16 [start,end)이고 같은 구절이 여러 곳이면 null이다(AI가 추측하지 않는다). */
 export type ReviewFinding = {
   category: string; quote: string; reason: string; status: 'confirmed' | 'suspected' | 'undeterminable'
@@ -103,7 +104,7 @@ export function cleanScene(scene: SceneAction): SceneAction {
 }
 
 export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '집필·수정', web_research: '고증 조사', character_simulation: '인물 시뮬레이션', review: '원고 검수' }
-export const reviewCheckLabel: Record<ReviewCheck, string> = { mechanical: '맞춤법·표기', semantic: '설정·개연성' }
+export const reviewCheckLabel: Record<ReviewCheck, string> = { mechanical: '맞춤법·표기', semantic: '설정·개연성', both: '설정·개연성 + 맞춤법·표기' }
 const reviewStatus: Record<ReviewFinding['status'], string> = { confirmed: '확정', suspected: '의심', undeterminable: '판단 불가' }
 const reviewCategory: Record<string, string> = {
   number: '수치', name: '이름', date: '날짜', repetition: '중복 표현', spelling: '맞춤법',

@@ -241,7 +241,9 @@ def plan(state: State) -> State:
     unsupported = [s.feature for s in routed.steps if s.feature not in FEATURES or s.when != 'always']
     if unsupported:
         return {'status': 'unsupported', 'message': UNSUPPORTED_MESSAGE, 'steps': steps, 'unsupported': unsupported}
-    return {'status': 'running', 'steps': steps, **({'task': request} if asked else {})}
+    # Router가 검수 종류를 알아냈으면 단계 입력으로 채워 묻지 않는다. 작가가 보낸 입력이 있으면 그것이 우선한다(#369).
+    found = {'review': {'check': s.check} for s in routed.steps if s.check}
+    return {'status': 'running', 'steps': steps, 'inputs': {**found, **state['inputs']}, **({'task': request} if asked else {})}
 
 
 def simulation_plan(state: State) -> State:

@@ -187,4 +187,8 @@ describe('원고 검수 결과 글(#59)', () => {
     expect(stepText(step([]))).toBe('3화 초안 맞춤법·표기 검수: 찾은 문제가 없어요.')
     expect(replyText({ status: 'completed', missingInputs: [], steps: [step([])] })).toMatch(/^\[원고 검수\] /)
   })
+
+  it('두 검수를 함께 돌린 결과는 두 검수 이름을 제목에 붙인다(#369)', () => {
+    expect(stepText({ ...step([]), review: { ...step([]).review, check: 'both' } })).toBe('3화 초안 설정·개연성 + 맞춤법·표기 검수: 찾은 문제가 없어요.')
+  })
 })

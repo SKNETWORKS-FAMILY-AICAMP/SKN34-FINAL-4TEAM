@@ -6,6 +6,7 @@ import pytest
 
 from app.content_mcp.errors import ContentMcpFailure
 from app.intent.errors import IntentFailure
+from app.intent.models import IntentResult, IntentStep
 from app.intent.prompt import CLARIFY_MESSAGE
 from app.story_qa.errors import StoryQaFailure
 from app.orchestration import service
@@ -384,6 +385,22 @@ def test_review_waits_for_the_check_kind_in_conversation(monkeypatch):
     done = write_turn(thread, resume={'approved': True, 'inputs': {'review': {'check': 'semantic'}}})
     assert done.status == 'completed' and done.steps[0].result.check == 'semantic'
     assert names(calls) == ['route', 'review']
+
+
+@pytest.mark.parametrize('check', ['semantic', 'both'])
+def test_review_uses_the_check_kind_the_router_found_without_asking(monkeypatch, check):
+    calls = fake_agents(monkeypatch, IntentResult(status='route', steps=[IntentStep(feature='review', when='always', check=check)]))
+    result = write_turn(str(uuid4()), request='설정이랑 맞춤법 다 봐줘', target=TARGET)
+    assert result.status == 'completed' and result.missingInputs == []
+    [(_, (data,), _)] = [c for c in calls if c[0] == 'review']
+    assert data.check == check
+
+
+def test_author_chosen_check_kind_wins_over_the_router(monkeypatch):
+    calls = fake_agents(monkeypatch, IntentResult(status='route', steps=[IntentStep(feature='review', when='always', check='semantic')]))
+    write_turn(str(uuid4()), request='검수해줘', target=TARGET, inputs={'review': REVIEW})
+    [(_, (data,), _)] = [c for c in calls if c[0] == 'review']
+    assert data.check == 'mechanical'
 
 
 def test_writing_result_waits_for_author_approval_before_any_write(monkeypatch):
