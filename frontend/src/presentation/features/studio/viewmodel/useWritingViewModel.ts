@@ -45,6 +45,9 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   const autosave=useRef<Promise<void>|null>(null)
   const waiting=useRef<AbortController|null>(null)
   const dirty=!!active&&(draft.title!==active.draft.title||draft.body!==active.draft.body||(draft.authorNote??'')!==(active.draft.authorNote??''))
+  // 늦게 불리는 aiApplied(반영 요청이 시작된 렌더의 함수를 스트림 콜백이 붙잡고 있다)가 옛 값이 아니라 지금의 활성 회차·입력 상태를 보게 한다.
+  const latest=useRef({active,dirty})
+  latest.current={active,dirty}
   const put=(d:Draft)=>{current.current=d;setDraft(d)}
   const resetOrder=()=>{orderRequest.current?.abort();orderRequest.current=null;setOrderLookup(null)}
   const install=(e:WritingEpisode)=>{aiReload.current?.abort();resetOrder();setActive(e);put(e.draft);setNotice('');setError('')}
@@ -172,9 +175,9 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
           const saved=previous.find(episode=>episode.number===row.number)
           return saved&&saved.draft.revision>row.draft.revision?saved:row
         }))
-        if(active?.number!==number)return
+        if(latest.current.active?.number!==number)return
         // 재조회 중 편집·저장·회차 이동이 있으면 그 화면 상태가 우선이다.
-        if(dirty||current.current!==before){
+        if(latest.current.dirty||current.current!==before){
           setNotice('AI가 이 회차 초안을 바꿨어요. 작성 중인 변경을 복사해 둔 뒤 회차를 다시 열어 주세요.')
           return
         }

@@ -48,12 +48,16 @@
 /* + 메뉴는 카드 맨 아래 왼쪽에서 위로 연다. */
 .chat-attach .pop-menu-list { bottom: calc(100% + 8px); left: 0; }
 .chat-note { margin: 0; color: var(--tsub); font-size: 12.5px; line-height: 1.5; white-space: normal; }
+/* 글줄 안의 링크처럼 보이는 버튼(무대 열기·끼어들기 취소) */
+.chat-link { display: inline; padding: 0 2px; border: 0; background: none; color: var(--pri-ink, var(--tacc)); font: inherit; text-decoration: underline; cursor: pointer; }
+.chat-link:focus-visible { outline: 2px solid var(--tacc); outline-offset: 2px; border-radius: 4px; }
 .chat-composer > .chat-note { padding-inline: 8px; }
 .pop-menu-list > .chat-note { padding: 4px 12px 8px; }
 /* 좁은 화면과 손가락이 주 입력인 기기: 누르는 버튼은 44px, 입력 글자는 16px(iOS가 초점에서 화면을 확대하지 않게). */
 @media (max-width: 600px), (pointer: coarse) {
   .chat-tools .pop-menu-btn, .chat-icon-btn, .chat-send { width: 44px; height: 44px; }
   .chat-suggest-btn { min-height: 44px; }
+  .chat-link { padding: 12px 8px; }
 }
 @media (pointer: coarse) {
   .chat-card textarea { font-size: 16px; }
@@ -122,3 +126,16 @@
   .chat-hitl { margin-left: 0; }
 }
 @media (pointer: coarse) { .chat-edit textarea, .chat-field :is(input, textarea), .chat-rename input { font-size: 16px; } }
+
+/* 인물 시뮬레이션 장면(#58): 대본·검사·승인은 집필실 무대(stage.css)가 보이고, 채팅에는 진행 중·승인 대기 장면의 상태 한 줄과 무대 열기만 둔다.
+   한 줄은 진행 표시 아래나 대화 끝(.chat-scene)에 놓인다. 면·선·글자는 위와 같은 읽기 토큰을 쓴다. */
+.chat-scene { margin: 16px 0 0 36px; }
+.chat-sceneline { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 8px 14px; border: 1px solid var(--tline); border-radius: 12px; background: var(--chat-card, var(--tcard)); color: var(--tfg); font-size: 13.5px; font-weight: 600; line-height: 1.5; }
+.chat-sceneline p { margin: 0; }
+.chat-sceneline .chat-note { font-weight: 400; }
+/* 진행 표시의 멈춘 장면: 완료(채운 점)와 실패(빨강)가 아니라 보조색 점으로 구분한다. */
+.chat-steps [data-state="stop"] .chat-step-dot { border-color: var(--tsub); background: var(--tsub); }
+.chat-steps [data-state="stop"] .chat-step-state { font-weight: 700; }
+@media (max-width: 600px), (pointer: coarse) {
+  .chat-scene { margin-left: 0; }
+}

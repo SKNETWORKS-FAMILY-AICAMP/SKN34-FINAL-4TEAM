@@ -33,6 +33,15 @@ describe('공용 채팅 메시지', () => {
     expect(within(screen.getByRole('log')).getByText('아직 이야기가 없어요.')).toBeTruthy()
   })
 
+  it('renderCard는 메시지 글 바로 아래·행동 위에 카드를 그리고, null이면 아무것도 더하지 않는다', () => {
+    const messages: ChatMessage[] = [{ id: 'a', role: 'assistant', text: '제안입니다.' }, { id: 'b', role: 'assistant', text: '글만 있어요.' }]
+    render(<ChatPanel messages={messages} renderCard={m => (m.id === 'a' ? <section aria-label="카드">내용</section> : null)} renderActions={() => <button type="button">행동</button>} />)
+    const [first, second] = within(screen.getByRole('log')).getAllByRole('listitem').filter(li => li.classList.contains('chat-msg'))
+    const bubble = first.querySelector('.chat-bubble')!
+    expect([...bubble.children].map(el => el.className || el.tagName)).toEqual(['chat-who sr-only', 'chat-text', 'SECTION', 'BUTTON'])
+    expect(within(second).queryByLabelText('카드')).toBeNull()
+  })
+
   it('빈 상태에는 제목을 붙일 수 있고, 메시지가 생기면 안내와 추천 칩을 거둔다', () => {
     const { rerender } = render(<ChatPanel messages={[]} emptyTitle="무엇을 함께 써볼까요?" emptyText="제안은 원고에 자동으로 반영되지 않아요." suggestions={['요약']} />)
     const log = screen.getByRole('log')

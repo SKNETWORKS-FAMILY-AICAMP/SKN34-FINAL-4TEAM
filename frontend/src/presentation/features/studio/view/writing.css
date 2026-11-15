@@ -63,6 +63,8 @@
 .writing-editor { min-width: 0; width: 100%; padding: 20px 16px 24px; font-size: 16px; scroll-padding-block-end: 72px; word-break: keep-all; }
 /* 집필실의 원고 열은 본문 툴바가 위에 붙어 있다(manuscript-editor.css): 커서가 그 밑에 가리지 않게 위쪽도 비운다. 세계관 설정 편집 화면에는 툴바가 없다. */
 .writing-studio:not(.world-card-studio) .writing-editor { scroll-padding-block-start: 56px; }
+/* 시뮬레이션 무대가 열린 동안 편집기는 숨기기만 한다(전역 .editor의 display가 hidden을 덮으므로 직접 지킨다). */
+.writing-editor[hidden] { display: none; }
 .writing-draftless { margin-bottom: 12px; }
 /* 제목은 입력 칸. 본문 자리(.writing-body)는 마크다운 편집기(늦게 불러온다: manuscript-editor.css) · 불러오는 중 자리표시 · 원작 기준 읽기 전용 본문 · 미리보기가 함께 쓴다. */
 .writing-title { caret-color: var(--tacc); }
