@@ -22,6 +22,18 @@ Retrieval은 Writing & Editing을 제외한 업무 Agent가 필요할 때 재사
 
 Mechanical만 요청하면 Semantic과 Simulation을 실행하지 않는다. Semantic 검수 중 행동 재현이 필요하다고 판단해도 사용자가 시뮬레이션을 명시적으로 요청하지 않았다면 Simulation을 실행하지 않는다. 명시적으로 둘 다 요청했을 때는 검수 대상이 기존 원고인지 가상 후보인지 확인한다. Finding에는 대상 참조와 대상 안의 위치, 검사 종류, 근거, 확정/의심/판단 불가, 제안이 담긴다. 수정은 사용자 요청과 Content 승인을 요구한다. 조건부 수정은 정상 완료된 검수와 유효 Finding을 요구하며, 혼합 Finding과 복수 구간은 [조건부 수정 계약](02-ai-architecture.md#조건부-수정-if_issues_found)을 따른다.
 
+### 현재 구현 — MVP (#59)
+
+`backend/ai-service/app/review/`의 내부 API `POST /internal/v1/reviews {workId, episode, check: mechanical|semantic}`이다. 오케스트레이션·Content 공개 API·화면 연결은 아직 없다.
+
+1. Content가 전달한 작가 Bearer(`X-User-Authorization`)로 Content MCP `episode_read`를 불러 작성 중 초안 본문과 `revision`을 읽는다. 빈 초안은 모델 호출 없이 422다.
+2. `semantic`만 `world_studio_list`에서 작품에 연결된 세계관을 찾아 `world_studio_read(episode)`로 그 회차 시점 관계를 읽는다. 연결이 없으면 409다. 그 회차까지 공개된 카드(`revealFromEpisode ≤ episode`, 인물 회차 기억도 그 회차까지)와 두 끝이 모두 공개된 관계만 `card:<id>`·`relation:<id>` 설정으로 보낸다. `mechanical`은 초안만 보낸다. 어느 쪽도 Simulation·Retrieval을 부르지 않는다.
+3. 검사 종류별 지시로 OpenAI structured output을 1회 호출한다. 맞춤법도 Bareun이 아니라 같은 모델로 검사한다(Bareun은 아래 목표 설계).
+4. service가 지적마다 검증한다. 분류가 검사 종류와 다르거나, `quote`가 원고에 없거나, 보내지 않은 설정 ref를 근거로 들거나, Semantic `confirmed`에 근거가 없으면 보정하지 않고 502다. `quote`가 원고에 한 번만 있으면 위치를 UTF-16 반열림 `[start,end)`로 붙이고, 여러 번 있으면 위치를 추측하지 않고 null로 두며 `confirmed`를 `suspected`로 내린다.
+5. 응답은 대상(`workId`·`episode`·`revision`)·검사 종류·지적(분류·구절·위치·이유·확정/의심/판단 불가·근거 ref·제안)·확인하지 못한 부분(`gaps`)과 모델·응답 ID·사용량이다. 원고를 고치지 않는다.
+
+한계: 선택 구간 검수·생성 후보 검수·이전 회차 원고 검색(Retrieval)·검수 기록 저장은 없다. 모델이 구절을 한 글자라도 바꿔 옮기면 검수 전체가 502이며 실모델 수용은 아직 하지 않았다. Semantic은 공개 설정 전체를 보내므로 설정이 많으면 입력이 커진다.
+
 ### 한글 맞춤법 검수 — 목표 설계, 미구현
 
 Mechanical Review에 [Bareun MCP `correct_grammar`](https://bareun.ai/docs/en/3.4.0/howtouse/mcp)를 적용한다. 별도 Agent 서버를 만들지 않고 AI Service의 Review 실행 코드가 호출한다. 맞춤법 포함 빌드와 API 키가 필요하며 배포 방식·비용·데이터 처리와 실제 응답 구조는 구현 전에 확인한다.
