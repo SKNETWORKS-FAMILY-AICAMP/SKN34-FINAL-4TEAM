@@ -9,7 +9,7 @@ from langchain_typesafe import Choice
 from langchain_typesafe.client import (TypeSafeAPIResponseValidationError, TypeSafeBadRequestError, TypeSafeNotFoundError)
 
 from app.simulation import director
-from app.simulation.callbacks import UsageCallback
+from app.agent_runtime import UsageLedger
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import Decision
 
@@ -208,13 +208,13 @@ def in_a_run(ledger, allowed=('narration', 'speech')):
 
 def test_each_decisions_call_reaches_the_usage_ledger_with_its_tokens(monkeypatch):
     wired(monkeypatch, {**reply(turn='speech', speaker='c1', pov='omniscient'), 'usage': {'input_tokens': 120, 'output_tokens': 7}})
-    (call,) = in_a_run(UsageCallback())
+    (call,) = in_a_run(UsageLedger('simulation.turn', lambda step: {}))
     assert (call['name'], call['failed'], call['inputTokens'], call['outputTokens']) == ('director', False, 120, 7) and call['ms'] >= 0
 
 
 def test_a_failed_decisions_call_is_in_the_ledger_as_a_failure_without_tokens(monkeypatch):
     wired(monkeypatch, {'error': 'x'}, status=500)
-    ledger = UsageCallback()
+    ledger = UsageLedger('simulation.turn', lambda step: {})
     with pytest.raises(SimulationFailure):
         in_a_run(ledger)
     assert [(c['name'], c['failed'], c['inputTokens'], c['outputTokens']) for c in ledger.calls] == [('director', True, None, None)]

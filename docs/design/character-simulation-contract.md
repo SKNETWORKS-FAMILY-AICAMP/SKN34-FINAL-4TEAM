@@ -118,17 +118,17 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 
 | 개념 | 구현(`app/simulation/`) | 하는 일 |
 |---|---|---|
-| Middleware | `StageMiddleware`(`scene_agent.py`) | 턴 사이 사람 개입(HITL에 준하는 `interrupt`): next·edit·redo·stop·반려를 받는다 |
+| Middleware | `ProgressMiddleware`(공통, `app/agent_runtime.py`, #373) | 맨 앞 미들웨어. 턴이 끝나며 상태의 `step`에 남은 단계 항목을 다음 반복 앞(`before_model`)이나 실행 끝(`after_agent`)에서 LangGraph custom stream으로 한 번 흘린다 → SSE `step`(누적 결과). 훅마다 별도 노드라 턴 사이 interrupt 재개 때 다시 알리지 않는다 |
+| | `StageMiddleware`(`scene_agent.py`) | 턴 사이 사람 개입(HITL에 준하는 `interrupt`): next·edit·redo·stop·반려를 받는다 |
 | | `DirectorMiddleware` | 연출 결정을 거쳐 도구 호출을 만든다 |
 | | `SceneCheckMiddleware` | 검사·최대 2회 재실행·통과한 턴을 장면에 붙임 |
 | | `ModelCallLimit`·`ToolCallLimit`(라이브러리) | 호출 한도 안전망(`LOOP_LIMIT`=80). 넘으면 에이전트가 예외 없이 끝나고(`exit_behavior='end'`) 바깥 노드가 쌓은 턴을 지킨 채 `stopped`(`stopReason: call_limit`)·단계 `failed`로 기록한다 |
 | Hook | `before_agent` | 승인 대기에서 돌아온 작가의 조작을 새 실행의 시작에서 장면에 반영 |
 | | `before_model` | Stage: 턴 사이 대기 / Director: 연출 결정 |
 | | `wrap_model_call` | Director: 결정대로 도구 호출을 만든다(모델을 부르지 않는다) |
-| | `wrap_tool_call` | SceneCheck: 검사·재실행·장면 갱신·턴 이벤트 |
+| | `wrap_tool_call` | SceneCheck: 검사·재실행·장면 갱신·단계 항목(`step`)을 상태에 남김 |
 | | `after_agent` | 턴 사이 표시 정리 |
-| Callback | `UsageCallback`(`callbacks.py`) | 모델 호출마다 토큰·지연·실패(`agent.py`와 연출 결정 `director.py`가 `simulation.model` 이벤트로 알림)와 도구 실패를 모아 턴이 끝날 때 추적 span `simulation.turn`으로 남긴다. 본문·키는 없다 |
-| Event Listener | `SceneEvents` | 턴이 끝날 때 `adispatch_custom_event('scene', 단계 항목)`으로 낸 이벤트를 받아 LangGraph custom stream으로 중계 → SSE `step`(누적 결과) |
+| Callback | `UsageLedger`(공통, `app/agent_runtime.py`, #373) | 모델 호출마다 토큰·지연·실패(`agent.py`와 연출 결정 `director.py`가 공통 `MODEL_EVENT`로 알림)와 도구 실패를 모아, `ProgressMiddleware`가 단계 항목을 알릴 때(`STEP_EVENT`) 추적 span `simulation.turn`(턴 번호·상태는 `scene_agent.turn`)으로 남긴다. 본문·키는 없다 |
 
 - 도구(`tools.py`)는 `narrate`·`monologue`·`speak`·`end_scene`이며 기존 입력 조립(NovelBrain recall·인물 격리)·`act`·`check`·검증을 그대로 쓴다. 같은 턴을 재생성할 때는 조회한 입력을 다시 만들지 않는다.
 - **모델 슬롯**: 어느 도구를 쓸지는 연출 결정(Decisions)이 정하므로 `create_agent`의 모델은 호출되지 않는 자리 표시(`DirectorModel`)다. 그래서 `langchain-openai`가 필요 없고 장면에는 모델 노드의 호출 비용이 없다.
