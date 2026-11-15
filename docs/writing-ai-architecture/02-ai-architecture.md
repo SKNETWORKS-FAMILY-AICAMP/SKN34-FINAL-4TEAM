@@ -61,7 +61,7 @@ Python 실행기는 Router의 `feature`·`when`을 사용자 의도 분류로 �
 `app/orchestration/`(2026-11-12 사용자 요청)이 위 계약 중 **구현된 Agent와 공통 Retrieval 도구만** 연결한다. 대상은 Story Context / Q&A(`story_qa.service.answer`), Writing & Editing(`writing.agent.draft|patch`), Web Research(`research.service.research`), Review(`review.service.review`, #59), 인물 시뮬레이션이다. Q&A·Writing·웹 조사·Review의 모델 호출은 LangChain `create_agent` + 공통 커스텀 미들웨어(`app/agent_runtime.py`, #373·DEC-52)로 실행하며, 바깥 그래프·HITL·SSE 계약은 바뀌지 않는다.
 
 - `POST /internal/v1/orchestrations` `{request, operation?, materials?, inputs}` → `plan` 노드가 Intent Router를 호출하고 계획을 검증한 뒤 기능 노드를 계획 순서로 한 번씩 실행하고 `finish`로 끝낸다. `inputs`는 Content가 권한·판본을 확인해 기능별로 채운 각 내부 API의 요청 DTO다(`story_context`, `writing_editing.draft|patch`, `web_research`, `review {check: mechanical|semantic|both}`). Review는 검사 종류만 입력으로 받고 검수할 초안은 Content가 확인한 `target`의 반영 회차이며, `target`이 없으면 단계 실패다. 검사 종류는 Router가 요청에서 알아내면(`review_check` 질문, #369) `plan`이 단계 입력으로 채우고, 작가가 보낸 `inputs.review`가 있으면 그것이 우선한다. 요청에 종류가 드러나지 않으면(`unclear`) 대화에서는 아래 HITL로 작가가 고른다(맞춤법·표기 / 설정·개연성). `both`는 두 검수를 병렬로 돌려 Semantic → Mechanical 순서로 합친다. 검수 결과는 제안이라 승인·반영(`apply`)을 묻지 않는다.
-- Router 결과가 `clarify`·`rejected`면 고정 문구를 그대로 돌려준다. 미구현 기능(Development·World & Plot)이나 조건부 단계가 하나라도 있으면 `unsupported`이며 아무 Agent도 실행하지 않는다(축소 실행 금지). 단계 입력이 빠지면 대화 없는 요청은 `needs_input`으로 끝내고, 대화 안에서는 아래 HITL로 멈춘다. 조건부 단계는 Review의 Finding을 수정 입력으로 넘기는 연결이 필요해 아직 실행하지 않는다(Review 단독은 실행한다).
+- Router 결과가 `clarify`·`rejected`면 고정 문구를 그대로 돌려준다. 미구현 기능(Development·World & Plot)이나 Review 바로 뒤가 아닌 조건부 단계가 하나라도 있으면 `unsupported`이며 아무 Agent도 실행하지 않는다(축소 실행 금지). 단계 입력이 빠지면 대화 없는 요청은 `needs_input`으로 끝내고, 대화 안에서는 아래 HITL로 멈춘다. 조건부 단계는 Review 바로 뒤의 집필·수정만 실행한다(#370, 아래 조건부 수정). 조건부 단계는 입력 대기(gate)에서 입력을 묻지 않는다.
 - 구현된 세 Agent 사이에는 등록된 결과 전달 연결이 없으므로 각 단계는 자기 입력으로만 실행한다(“MVP · 순차”). 기능 실패는 그 단계의 `failed`와 고정 메시지로 남기고 새 단계를 시작하지 않으며, 완료한 결과는 보존한다. 결과는 Agent 원본 결과를 계획 순서로 묶을 뿐 종합 모델을 호출하지 않는다.
 - `POST /internal/v1/orchestrations/stream`은 같은 그래프를 노드 단위로 흘리는 SSE다. 이벤트는 `plan`(계획 단계) → 단계마다 `started`(다음 노드가 실제로 실행할 기능)·`step`(그 단계의 결과·실패) → `done`(위 응답과 같은 최종 결과)이다. 응답 헤더를 보낸 뒤라 Router 실패는 `error` 이벤트 하나로 알리고 끝낸다. 내부 인증은 스트림 전에 검사한다. Agent의 모델 호출은 스트리밍하지 않아 단계 결과는 완성본 단위로 온다.
 - 공통 Retrieval: 요청에 Content가 서명한 `scope {scopeToken}`이 있으면 Q&A 단계가 `inputs.story_context` 없이 Content 내부 검색 API로 근거를 받는다([계약](07-retrieval-contract-and-mocks.md#공통-retrieval-도구-오케스트레이션-2026-11-12-사용자-결정)). 그래서 Q&A는 입력 대기 없이 실행된다. resume의 `scope`로 Content가 새로 서명한 토큰이 오면 저장된 토큰을 바꾼다. 작가용 진입점은 Content `POST /api/v1/works/{id}/writing-ai/orchestrations`다. 결과에는 인용 근거(`sources`)와 `coverage`가 붙는다.
@@ -92,6 +92,12 @@ MVP에서 한 요청 안에 이어지는 결과 전달은 Development → Writin
 **확정 오류만 수정 입력에 포함한다.** 의심이 섞이면 검수 결과에 따로 표시하고, 의심만 있으면 조건부 수정 미지원으로 안내한다. 여러 구간에 확정 오류가 있으면 사용자가 지정한 한 구간만 수정한다. 지정이 없으면 구간을 선택한 새 편집 요청을 안내한다. 후보는 Content 승인 경로를 따른다.
 
 현재 Router는 Review뿐 아니라 웹 조사·World & Plot 뒤의 `if_issues_found`도 분류할 수 있다. 이 출력이 곧 수정 허용이라는 뜻은 아니다. 각 기능의 Finding·근거·원문 범위를 위 조건에 맞게 연결하는 계약이 확정되기 전에는 해당 조건부 수정 실행을 지원하지 않는다.
+
+현재 구현(#370)은 Review → 조건부 집필·수정만 연결한다.
+- 확정 지적(원고 위치가 하나로 정해진 지적만 확정이다)이 하나면 바로, 여러 개면 대화에서 작가가 검수 결과의 지적 번호를 고른다(입력 대기 `missingInputs: [writing_editing]`, resume `inputs.writing_editing.fix`, 화면은 확정 지적만 보기로 보인다). 대화가 없는 요청에서 여러 개면 고를 수 없어 건너뛰고 구간을 골라 새 편집을 요청하라고 안내한다.
+- 고른 지적의 구절이 선택 구간, 이유·제안이 수정 지시다. 앞뒤 문장(각 2,000자)은 Content MCP `episode_read`로 다시 읽은 초안에서 자르며, 초안 `revision`이 검수 때와 다르거나 구절이 한 곳이 아니면 모델을 부르지 않고 409 실패다. 허용 문맥(`context`)은 보내지 않는다.
+- 결과는 Writing 부분 수정(before/after)이라 기존 승인 후 반영(`apply`)을 거친다.
+- 지적이 없으면 "고칠 문제를 찾지 못함", 의심만 있으면 "확정된 문제 없음"을 이유로 단계 상태 `skipped`(이유는 `error`)로 건너뛴다. 확정이 아닌 번호를 고르거나 Review 없이 `fix`만 보내면 422 단계 실패다.
 
 #### Simulation 명시 요청 확인
 

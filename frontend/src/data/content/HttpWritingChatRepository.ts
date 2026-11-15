@@ -31,7 +31,8 @@ const simulation: z.ZodType<CharacterSimulation> = z.object({
 const BAD_SIMULATION = '인물 시뮬레이션 결과 형식을 확인할 수 없어요.'
 
 const stepFields = {
-  status: z.enum(['completed', 'failed', 'not_started']),
+  when: z.enum(['always', 'if_issues_found']).optional(),
+  status: z.enum(['completed', 'failed', 'not_started', 'skipped']),
   error: z.string().nullish(),
   approval: z.enum(['approved', 'declined']).nullish(),
   applied: z.object({ episode: z.number().int(), revision: z.number().int() }).nullish(),

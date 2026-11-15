@@ -22,7 +22,9 @@ export type ChatStepResult = {
 }
 export type ChatStep = {
   feature: ChatFeature
-  status: 'completed' | 'failed' | 'not_started'
+  /** if_issues_found는 직전 검수에서 확정 지적이 있을 때만 고치는 조건부 수정이다(#370). skipped는 고칠 것이 없어 건너뛴 단계(error가 이유)다. */
+  when?: 'always' | 'if_issues_found'
+  status: 'completed' | 'failed' | 'not_started' | 'skipped'
   result?: ChatStepResult | null
   /** character_simulation 단계의 검증된 결과(#58). 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
   simulation?: CharacterSimulation | null
@@ -63,7 +65,8 @@ export type ChatBasis = { episode: number; episodeVersionId: string; targetEpiso
 export type ChatStepInputs = {
   web_research?: { question: string }
   review?: { check: ReviewCheck }
-  writing_editing?: { draft: { episodeNumber: number; plan: string } } | { patch: { selection: string; instruction: string } }
+  /** fix는 조건부 수정에서 고른 검수 지적의 번호(검수 결과 findings 순서)다. */
+  writing_editing?: { draft: { episodeNumber: number; plan: string } } | { patch: { selection: string; instruction: string } } | { fix: number }
 }
 /** 시뮬레이션 무대에서 작가가 장면에 거는 조작(AI `Resume.scene`, Content `WritingAiResume.scene`을 그대로 통과한다). */
 export type SceneAction =
@@ -139,6 +142,7 @@ const researchVerdict: Record<string, string> = { confirmed: '확인됨', confli
 /** 단계 결과를 채팅 말풍선 글로. 결과가 없거나 실패면 그 사유를 그대로 보인다(성공처럼 꾸미지 않는다). */
 export function stepText(step: ChatStep): string {
   if (step.status === 'failed') return `실패: ${step.error ?? '작업을 완료하지 못했어요.'}`
+  if (step.status === 'skipped') return `건너뜀: ${step.error ?? '할 일이 없어 건너뛰었어요.'}`
   if (step.simulation) return sceneSummary(step.simulation)
   if (step.review) return reviewText(step.review)
   const r = step.result
