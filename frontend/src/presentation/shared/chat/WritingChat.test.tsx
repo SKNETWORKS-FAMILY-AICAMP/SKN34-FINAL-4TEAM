@@ -221,6 +221,27 @@ it('조건부 수정 입력 대기는 확정 지적만 보기로 두고, 고른 
   expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true, inputs: { writing_editing: { fix: 2 } } } })
 })
 
+it('건너뛴 조건부 수정 단계는 진행 표시에서 대기가 아니라 건너뜀으로 보인다(#370)', async () => {
+  openThread([])
+  let emit!: (event: ChatEvent) => void
+  send.mockImplementation(async (_work: string, _thread: string, _input: unknown, onEvent: (event: ChatEvent) => void) => {
+    emit = onEvent
+    await new Promise<void>(() => {})
+  })
+  renderChat(vi.fn())
+  await screen.findByText('새 대화', { selector: 'h3' })
+  fireEvent.click(screen.getByRole('checkbox'))
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '검수하고 틀리면 고쳐 줘' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  await act(async () => { emit({ type: 'plan', steps: [{ feature: 'review', status: 'not_started' }, { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' }] }) })
+  await act(async () => { emit({ type: 'step', step: { feature: 'review', status: 'completed', review: { check: 'mechanical', episode: 2, revision: 4, findings: [], gaps: [] } } }) })
+  await act(async () => { emit({ type: 'step', step: { feature: 'writing_editing', when: 'if_issues_found', status: 'skipped', error: '고칠 문제가 없어요.' } }) })
+  const progress = screen.getByRole('status', { name: 'AI 진행 상황' })
+  expect(within(progress).getByText('건너뜀', { selector: '.chat-step-state' })).toBeTruthy()
+  expect(within(progress).queryByText('대기', { selector: '.chat-step-state' })).toBeNull()
+})
+
 it('빈 대화에는 IF·흐름 시뮬레이션 예시를 추천 칩으로 보이고 누르면 입력창에 글만 채운다', async () => {
   sessions.mockResolvedValue([])
   renderChat()

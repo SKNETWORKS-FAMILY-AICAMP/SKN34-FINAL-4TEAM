@@ -32,11 +32,12 @@ def review(data: ReviewRequest) -> ReviewResponse:
         raise ReviewFailure(422, EMPTY_DRAFT)
     checks = ('semantic', 'mechanical') if data.check == 'both' else (data.check,)
     settings = _settings(_world(data.workId, data.episode), data.episode) if 'semantic' in checks else []
-    # 두 검수는 서로의 결과를 쓰지 않아 동시에 부른다. 추적 문맥(contextvars)은 스레드마다 복사해 넘긴다.
-    with ThreadPoolExecutor(len(checks)) as pool:
-        runs = [pool.submit(contextvars.copy_context().run, agent.review, c, body, settings if c == 'semantic' else [])
-                for c in checks]
-        results = [run.result() for run in runs]
+    inputs = [(c, body, settings if c == 'semantic' else []) for c in checks]
+    if len(inputs) == 1:
+        results = [agent.review(*inputs[0])]
+    else:  # 두 검수는 서로의 결과를 쓰지 않아 동시에 부른다. 추적 문맥(contextvars)은 스레드마다 복사해 넘긴다.
+        with ThreadPoolExecutor(len(inputs)) as pool:
+            results = [run.result() for run in [pool.submit(contextvars.copy_context().run, agent.review, *i) for i in inputs]]
     refs = {s['ref'] for s in settings}
     findings, gaps, metas = [], [], []
     for check, (result, meta) in zip(checks, results):

@@ -1326,6 +1326,27 @@ def test_an_explicit_operation_wins_over_a_clarify_answer(monkeypatch):
     assert calls[0][1] == ('집필·수정', 'story_context', [], [VAGUE])
 
 
+def test_cancelling_the_finding_pick_runs_no_edit(monkeypatch):
+    thread = str(uuid4())
+    calls = conditional(monkeypatch, found('서윤은 웃엇다.'), found('바람이 차가왔다.'))
+    write_turn(thread, request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'review': REVIEW})
+    done = write_turn(thread, resume={'approved': False})
+    assert done.status == 'cancelled' and 'patch' not in names(calls)
+
+
+def test_malformed_draft_read_fails_the_edit_step_instead_of_the_run(monkeypatch):
+    conditional(monkeypatch, found('서윤은 웃엇다.'))
+    monkeypatch.setattr(service.content_mcp, 'call', lambda tool, args: {})
+    result = write_turn(str(uuid4()), request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'review': REVIEW})
+    assert result.status == 'failed' and result.steps[1].error == service.BAD_DRAFT
+
+
+def test_conditional_edit_listed_before_the_review_is_unsupported(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(('writing_editing', 'if_issues_found'), 'review'))
+    result = run('고치고 검수해줘', inputs={'review': REVIEW})
+    assert result.status == 'unsupported' and names(calls) == ['route']
+
+
 def test_finding_pick_without_a_review_fails_the_edit_without_a_model_call(monkeypatch):
     calls = fake_agents(monkeypatch, plan('writing_editing'))
     result = run('고쳐줘', inputs={'writing_editing': {'fix': 0}})

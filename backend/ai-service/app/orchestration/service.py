@@ -129,6 +129,7 @@ ONLY_SUSPECTED = '확정된 문제가 없어 자동으로 고치지 않았어요
 PICK_NEEDED = '확정된 문제가 여러 곳이라 자동으로 고치지 않았어요. 고칠 구간을 골라 집필·수정을 따로 요청해 주세요.'
 BAD_FIX = '고칠 수 있는 확정 지적이 아니에요. 검수 결과에서 확정 지적을 골라 주세요.'
 DRAFT_CHANGED = '검수한 뒤 초안이 바뀌어 고치지 않았어요. 다시 검수해 주세요.'
+BAD_DRAFT = 'Content 초안 응답을 확인할 수 없습니다.'
 # 구현된 기능. 시뮬레이션은 단계 입력 없이 simulationPlan을 쓰고 턴 사이에서 멈추는 전용 노드(character_simulation)가 실행한다.
 FEATURES = (*CALLS, 'character_simulation')
 # shortcut: 최근 5턴만 넘기고 요약하지 않는다. 긴 대화의 앞부분 지칭이 필요해지면 요약을 검토한다.
@@ -252,7 +253,7 @@ def plan(state: State) -> State:
     steps = [{'feature': s.feature, 'when': s.when, 'status': 'not_started'} for s in routed.steps]
     # 조건부 단계는 Review 바로 뒤의 집필·수정만 실행한다(#370). 웹 조사·World & Plot 뒤의 조건부 수정은 Finding 연결 계약이 없어 미지원이다.
     unsupported = [s.feature for i, s in enumerate(routed.steps) if s.feature not in FEATURES or (
-        s.when != 'always' and not (s.feature == 'writing_editing' and routed.steps[i - 1].feature == 'review'))]
+        s.when != 'always' and not (i > 0 and s.feature == 'writing_editing' and routed.steps[i - 1].feature == 'review'))]
     if unsupported:
         return {'status': 'unsupported', 'message': UNSUPPORTED_MESSAGE, 'steps': steps, 'unsupported': unsupported}
     # Router가 검수 종류를 알아냈으면 단계 입력으로 채워 묻지 않는다. 작가가 보낸 입력이 있으면 그것이 우선한다(#369).
@@ -388,9 +389,12 @@ def _review_fix(state: State, data: dict | None) -> dict | None:
     if pick not in confirmed:
         raise WritingFailure(422, BAD_FIX)
     chosen, target = findings[pick], state['target']
-    draft = content_mcp.call('episode_read', {'id': target['workId'], 'number': target['episode']})['draft']
-    body = draft['body']
-    if draft['revision'] != review['revision'] or body.count(chosen['quote']) != 1:
+    try:
+        draft = content_mcp.call('episode_read', {'id': target['workId'], 'number': target['episode']})['draft']
+        body, revision = draft['body'], draft['revision']
+    except (LookupError, TypeError):
+        raise ContentMcpFailure(502, BAD_DRAFT) from None
+    if revision != review['revision'] or not isinstance(body, str) or body.count(chosen['quote']) != 1:
         raise ContentMcpFailure(409, DRAFT_CHANGED)
     at = body.index(chosen['quote'])
     # shortcut: 허용 문맥(context) 없이 지적의 이유·제안만 지시로 보낸다. 설정을 고쳐 써야 하는 수정이 약하면 Semantic 근거 설정을 context로 넘긴다.
