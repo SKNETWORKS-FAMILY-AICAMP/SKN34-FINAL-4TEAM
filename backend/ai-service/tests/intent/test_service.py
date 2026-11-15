@@ -7,17 +7,26 @@ from app.intent.errors import IntentFailure
 from app.intent import agent, prompt, service
 
 
-def fake_decisions(monkeypatch, answers):
+def fake_decisions(monkeypatch, answers, flagged=(), moderated=None):
     """OpenAI Decisions 대역. answers는 {질문 이름: 선택값} 또는 던질 예외, 또는 그대로 돌려줄 응답이다.
 
     list면 호출 순서대로 하나씩 쓴다(같은 요청을 다시 물을 때 답이 달라지는 경우).
+    moderation 대역은 flagged에 든 범주(예: 'sexual_minors')를 걸고, 받은 입력을 moderated 목록에 담는다. 예외면 그대로 던진다.
     """
     monkeypatch.setenv('OPENAI_API_KEY', 'test-placeholder')
     calls = []
 
+    def moderate(model, input):
+        if moderated is not None:
+            moderated.append(input)
+        if isinstance(flagged, Exception):
+            raise flagged
+        categories = SimpleNamespace(**{c: c in flagged for c in ('sexual_minors', 'self_harm_instructions', 'illicit_violent', 'violence')})
+        return SimpleNamespace(results=[SimpleNamespace(flagged=bool(flagged), categories=categories)])
+
     class Client:
         def __init__(self, **kwargs):
-            pass
+            self.moderations = SimpleNamespace(create=moderate)
 
         def post(self, path, cast_to, body):
             calls.append((path, body))
@@ -222,5 +231,50 @@ def test_model_error_and_missing_key_are_failures(monkeypatch):
     with pytest.raises(IntentFailure):
         service.route('검수해줘')
     monkeypatch.delenv('OPENAI_API_KEY')
+    with pytest.raises(IntentFailure):
+        service.route('검수해줘')
+
+
+@pytest.mark.parametrize('request_text', ['내 메일 writer@example.com 로 원고 보내줘', '카드 4111 1111 1111 1111 로 결제해줘',
+                                          '이 키 sk-proj-AbCdEf0123456789xyz 로 설정해줘',
+                                          # 한국어 조사가 바로 붙어도 찾는다(한글은 단어 문자라 \b 경계가 없다).
+                                          'writer@example.com로 보내줘', '카드4111111111111111로 결제해줘', '키는sk-proj-AbCdEf0123456789xyz야'])
+def test_sensitive_data_in_the_request_is_rejected_before_any_model_call(monkeypatch, request_text):
+    moderated = []
+    calls = fake_decisions(monkeypatch, ok(review='1'), moderated=moderated)
+    result = service.route(request_text)
+    assert (result.status, result.reason) == ('rejected', 'sensitive_data')
+    assert result.message == prompt.REJECT_MESSAGES['sensitive_data']
+    assert calls == [] and moderated == []  # 개인정보·키를 외부 모델로 보내지 않는다
+
+
+def test_sensitive_data_only_in_materials_is_not_blocked(monkeypatch):
+    calls = fake_decisions(monkeypatch, ok(review='1'))
+    assert service.route('검수해줘', materials=['편지 끝에 writer@example.com 이라고 적혀 있었다.']).status == 'route'
+    assert len(calls) == 1
+
+
+@pytest.mark.parametrize('category', ['sexual_minors', 'self_harm_instructions', 'illicit_violent'])
+def test_moderation_blocked_category_is_rejected_as_unsafe_without_routing(monkeypatch, category):
+    moderated = []
+    calls = fake_decisions(monkeypatch, ok(review='1'), flagged=(category,), moderated=moderated)
+    result = service.route('검수해줘', materials=['자료 본문'])
+    assert (result.status, result.reason, result.message) == ('rejected', 'unsafe', prompt.REJECT_MESSAGES['unsafe'])
+    assert calls == [] and moderated == ['검수해줘']  # moderation에는 작가 요청만 보낸다
+
+
+def test_fiction_violence_flag_alone_is_left_to_the_router(monkeypatch):
+    calls = fake_decisions(monkeypatch, ok(writing_editing='1'), flagged=('violence',))
+    assert plan(service.route('결투 장면을 써 줘')) == [('writing_editing', 'always')]
+    assert len(calls) == 1
+
+
+def test_explicit_operation_is_also_guarded(monkeypatch):
+    calls = fake_decisions(monkeypatch, {'guard': 'none'})
+    assert service.route('writer@example.com', operation='review').reason == 'sensitive_data' and calls == []
+
+
+def test_moderation_error_fails_closed(monkeypatch):
+    fake_decisions(monkeypatch, ok(review='1'), flagged=OpenAIError('down'))
     with pytest.raises(IntentFailure):
         service.route('검수해줘')
