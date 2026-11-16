@@ -1,5 +1,7 @@
 /* U45 설정 위키: 나무위키 형식(분류 상자 · 문서 제목 · 목차 · 번호 매긴 접이식 문단 · 오른쪽 정보 상자). */
-.nw { --nw-acc: var(--tacc, var(--pri)); max-width: 1040px; margin: 0 auto; padding: 28px 36px 40px; min-width: 0; }
+/* display: flow-root: 설정 카드 페이지는 오른쪽 정보 상자(float)가 .nw-doc 밖, 카드(.nw)의 직접 자식이다. 카드가 float를 담지 않으면 본문이 짧을 때(특히 대표 이미지가 있어 상자가 길 때) 상자가 흰 카드 아래로 삐져나온다.
+   독자 설정 위키·세계관 개요는 상자가 .nw-doc 안이라 .nw-doc의 flow-root가 담는다. */
+.nw { --nw-acc: var(--tacc, var(--pri)); display: flow-root; max-width: 1040px; margin: 0 auto; padding: 28px 36px 40px; min-width: 0; }
 .nw a { color: var(--nw-acc); text-decoration: none; text-underline-offset: 3px; }
 .nw a:hover, .nw-rel a { text-decoration: underline; }
 .nw-cat { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 18px; padding: 8px 12px; border: 1px solid var(--tline); border-radius: 8px; font-size: 13px; }
