@@ -18,7 +18,7 @@ export function StoryPlanPanel({ workId, demo = false, vm, episode, episodes }: 
   useEffect(() => { if (episode !== undefined) setFilter(episode) }, [episode])
   const plots = vm.plans.filter(p => p.kind === 'plot')
   const scenes = vm.embedded
-    ? (filter === 'all' ? vm.plans.filter(p => p.kind === 'scene') : scenePlans(vm.plans, filter))
+    ? (filter === 'all' ? vm.plans.filter(p => p.kind === 'scene').sort((a, b) => (a.episodeNumber ?? Infinity) - (b.episodeNumber ?? Infinity) || (a.position ?? 0) - (b.position ?? 0)) : scenePlans(vm.plans, filter))
     : vm.plans.filter(p => p.kind === 'scene' && p.parentId === vm.selected?.id)
   const defaultEpisode = filter === 'all' ? episode ?? null : filter
   const planButtons = useRef(new Map<string, HTMLButtonElement>())
@@ -44,6 +44,16 @@ export function StoryPlanPanel({ workId, demo = false, vm, episode, episodes }: 
     const fallback = previous.kind === 'scene' ? addScene.current ?? addPlot.current : addPlot.current
     ;(next ?? fallback)?.focus()
   }, [workId, vm.deleting, vm.busy, vm.plans])
+  // 인라인 편집을 닫거나 순서를 옮긴 뒤 사라지거나 잠긴 초점을 누른 버튼(잠겼으면 같은 줄의 다른 버튼)으로 돌려준다.
+  const pressed = useRef<HTMLButtonElement | null>(null)
+  useEffect(() => {
+    if (!vm.embedded || vm.editor || vm.busy || vm.deleting) return
+    const target = pressed.current
+    pressed.current = null
+    const active = document.activeElement
+    if (!target?.isConnected || (active && active !== document.body && !(active instanceof HTMLButtonElement && active.disabled))) return
+    ;(target.disabled ? target.parentElement?.querySelector<HTMLButtonElement>('button:not(:disabled)') : target)?.focus()
+  }, [vm.embedded, vm.editor, vm.busy, vm.deleting, vm.plans])
 
   const refs = vm.references
   const episodeOptions = episodes ?? refs?.episodes ?? []
@@ -60,7 +70,7 @@ export function StoryPlanPanel({ workId, demo = false, vm, episode, episodes }: 
     </fieldset>
   }
   const update = (patch: Partial<PlanInput>) => vm.change(patch)
-  return <section className={`plan-workspace${vm.embedded ? ' plan-embedded' : ''}`} aria-busy={vm.busy}>
+  return <section className={`plan-workspace${vm.embedded ? ' plan-embedded' : ''}`} aria-busy={vm.busy} onClickCapture={event => { if (!vm.editor) pressed.current = event.target instanceof Element ? event.target.closest('button') : null }}>
     <div className="plan-heading"><div><h2>플롯</h2><p className="muted">플롯과 장면을 계획하세요. 저장해도 원고·사전에는 자동 반영되지 않아요.</p></div><span className="chip">비공개 계획</span></div>
     {demo && <p className="note2">메모리 데모예요. 새로고침하면 계획이 초기화되고 서버에는 저장되지 않아요.</p>}
     <div className="plan-feedback" aria-live="polite">{!vm.ready ? <p role="status">계획과 참조 목록을 불러오고 있어요…</p> : vm.busy ? <p role="status">처리 중…</p> : vm.notice && !vm.deleting ? <p role="status">{vm.notice}</p> : <p className="muted">{vm.dirty ? '저장하지 않은 변경이 있어요.' : '계획은 저장 버튼을 눌러 보관해요.'}</p>}</div>

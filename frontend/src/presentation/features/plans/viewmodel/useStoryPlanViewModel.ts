@@ -154,10 +154,16 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
     confirmLeave: () => !state.current.busy && (!state.current.dirty || window.confirm('저장하지 않은 계획이 있어요. 계속할까요? 회차 이동에서는 입력을 유지하고, 페이지를 떠나면 사라져요.')),
     move: (plan: StoryPlan, position: number) => {
       if (!mayLeave()) return
-      void run(async signal => { try { return await api.move(workId, plan, position, signal) } finally { if (!signal.aborted) setVersion(v => v + 1) } }, rows => { setPlans(rows); setNotice('장면 순서를 저장했어요.') }, true)
+      void run(async signal => {
+        try { await api.move(workId, plan, position, signal) } finally { if (!signal.aborted) setVersion(v => v + 1) }
+        // A committed move stays acknowledged even when the subsequent list refresh fails.
+        setNotice('장면 순서를 저장했어요.')
+        return api.list(workId, signal)
+      }, rows => { setPlans(rows); setNotice('장면 순서를 저장했어요.') }, true)
     },
     plans, references, selected: plans.find(p => p.id === selected) ?? null, editor, deleting, deleteNeedsReview, busy, ready, error, notice, dirty,
-    reload: () => { if (mayLeave()) void load() },
+    // 응답을 잃은 저장도 서버에는 남을 수 있으므로 다시 불러오면 시작 양식도 다시 읽게 한다.
+    reload: () => { if (mayLeave()) { setVersion(v => v + 1); void load() } },
     select: (id: string) => { if (!mayLeave()) return; void run(signal => api.read(workId, id, signal), fresh => { setPlans(rows => rows.map(p => p.id === id ? fresh : p)); setSelected(id) }) },
     create, edit, save, remove, reviewDelete,
     change: (patch: Partial<PlanInput>) => setEditor(before => before ? { ...before, value: { ...before.value, ...patch } } : null),

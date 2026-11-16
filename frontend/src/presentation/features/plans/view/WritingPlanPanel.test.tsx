@@ -76,3 +76,10 @@ it('저장 실패는 입력과 실행 잠금을 유지하고 성공한 재시도
   await waitFor(() => expect(screen.getByLabelText('시뮬레이션 잠금').textContent).toBe(''))
   expect((await api.list('starlight')).find(p => p.kind === 'scene')).toMatchObject({ title: '다시 만남', episodeNumber: 2 })
 })
+
+it('인라인 편집을 취소하면 편집을 연 버튼으로 초점이 돌아온다', async () => {
+  await setup()
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  fireEvent.click(screen.getByRole('button', { name: '취소' }))
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: '장면 계획 추가' })))
+})

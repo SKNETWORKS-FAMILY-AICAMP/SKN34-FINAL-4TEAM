@@ -124,6 +124,21 @@ class StoryPlanServiceTest {
         assertEquals(422,assertThrows(ContentFailure::class.java){service.update("w","owner","b",request("scene","q",1).copy(episodeNumber=1,position=9))}.status)
     }
 
+    @Test fun `scenes left on a deleted episode with the same number do not shift move targets`() {
+        val stale=StoryPlanEntity(id="x",workId="w",kind="scene",parentId="p",episodeNumber=1,episodeId="old",position=0)
+        val a=StoryPlanEntity(id="a",workId="w",kind="scene",parentId="p",episodeNumber=1,episodeId="e",position=1)
+        val b=StoryPlanEntity(id="b",workId="w",kind="scene",parentId="p",episodeNumber=1,episodeId="e",position=2)
+        `when`(plans.findById("a")).thenReturn(Optional.of(a))
+        `when`(plans.findById("p")).thenReturn(Optional.of(plot()))
+        `when`(plans.findAllByWorkIdAndDeletedAtIsNullOrderByCreatedAtAscIdAsc("w")).thenReturn(listOf(stale,a,b))
+        `when`(episodes.findByWorkIdAndSequence("w",1)).thenReturn(EpisodeEntity("e","w",1))
+        `when`(episodes.findById("e")).thenReturn(Optional.of(EpisodeEntity("e","w",1)))
+        // 화면은 끊긴 장면 x를 빼고 [a,b]로 보므로 a를 아래로 옮기면 목적지 1을 보낸다.
+        service.update("w","owner","a",request("scene","p").copy(episodeNumber=1,position=1))
+        assertEquals(listOf(0,1),listOf(b.position,a.position))
+        assertEquals(0,stale.revision)
+    }
+
     @Test fun `editing content preserves relative order after deletion gaps`() {
         val a=StoryPlanEntity(id="a",workId="w",kind="scene",parentId="p",position=2)
         val b=StoryPlanEntity(id="b",workId="w",kind="scene",parentId="p",position=3)
