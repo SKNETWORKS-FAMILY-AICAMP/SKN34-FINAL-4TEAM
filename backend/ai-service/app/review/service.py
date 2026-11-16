@@ -62,8 +62,8 @@ def _valid(check: str, body: str, found, refs: set[str]) -> bool:
 
 
 def _locate(body: str, found) -> Finding:
-    if body.count(found.quote) == 1:
-        start = _utf16(body[:body.index(found.quote)])
+    if (at := content_mcp.place(body, found.quote)) is not None:
+        start = _utf16(body[:at])
         return Finding(**found.model_dump(), start=start, end=start + _utf16(found.quote))
     # 같은 구절이 여러 곳이면 위치를 추측하지 않고, 위치를 모르는 지적은 확정하지 않는다
     status = 'suspected' if found.status == 'confirmed' else found.status

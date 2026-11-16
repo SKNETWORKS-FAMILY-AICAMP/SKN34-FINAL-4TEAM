@@ -412,13 +412,13 @@ def found(quote, status='confirmed'):
                          start=0 if located else None, end=len(quote) if located else None)
 
 
-def conditional(monkeypatch, *findings, revision=4):
+def conditional(monkeypatch, *findings, revision=4, body=BODY):
     """검수 → 조건부 집필·수정 계획과 검수 결과·초안 읽기 대역. 호출 기록을 돌려준다."""
     calls = fake_agents(monkeypatch, plan('review', ('writing_editing', 'if_issues_found')))
     monkeypatch.setattr(service.review, 'review', lambda data: ReviewResponse(
         workId=data.workId, episode=data.episode, revision=4, check=data.check, gaps=[], model='m', providerResponseId='r', usage=None,
         findings=list(findings)))
-    monkeypatch.setattr(service.content_mcp, 'call', lambda tool, args: {'draft': {'title': '3화', 'body': BODY, 'revision': revision}})
+    monkeypatch.setattr(service.content_mcp, 'call', lambda tool, args: {'draft': {'title': '3화', 'body': body, 'revision': revision}})
     return calls
 
 
@@ -474,6 +474,14 @@ def test_several_confirmed_findings_without_a_conversation_skip_with_guidance(mo
 
 def test_draft_changed_after_the_review_fails_the_edit_without_a_model_call(monkeypatch):
     calls = conditional(monkeypatch, found('서윤은 웃엇다.'), revision=5)
+    result = write_turn(str(uuid4()), request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'review': REVIEW})
+    assert result.status == 'failed' and result.steps[1].error == service.DRAFT_CHANGED
+    assert 'patch' not in names(calls)
+
+
+def test_overlapping_quote_is_not_one_place_and_fails_the_edit(monkeypatch):
+    # '하하하'의 '하하'는 겹쳐 두 곳이라 어느 쪽을 고칠지 정할 수 없다(#390).
+    calls = conditional(monkeypatch, found('하하'), body='하하하')
     result = write_turn(str(uuid4()), request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'review': REVIEW})
     assert result.status == 'failed' and result.steps[1].error == service.DRAFT_CHANGED
     assert 'patch' not in names(calls)

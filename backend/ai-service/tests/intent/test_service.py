@@ -239,7 +239,9 @@ def test_model_error_and_missing_key_are_failures(monkeypatch):
 @pytest.mark.parametrize('request_text', ['내 메일 writer@example.com 로 원고 보내줘', '카드 4111 1111 1111 1111 로 결제해줘',
                                           '이 키 sk-proj-AbCdEf0123456789xyz 로 설정해줘',
                                           # 한국어 조사가 바로 붙어도 찾는다(한글은 단어 문자라 \b 경계가 없다).
-                                          'writer@example.com로 보내줘', '카드4111111111111111로 결제해줘', '키는sk-proj-AbCdEf0123456789xyz야'])
+                                          'writer@example.com로 보내줘', '카드4111111111111111로 결제해줘', '키는sk-proj-AbCdEf0123456789xyz야',
+                                          # 밑줄도 단어 문자라 Markdown 강조로 감싸면 \b 경계가 없다(#389).
+                                          '_sk-abcdefghijklmnop1234_ 로 설정해줘'])
 def test_sensitive_data_in_the_request_is_rejected_before_any_model_call(monkeypatch, request_text):
     moderated = []
     calls = fake_decisions(monkeypatch, ok(review='1'), moderated=moderated)

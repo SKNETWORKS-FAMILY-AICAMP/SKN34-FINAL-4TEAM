@@ -394,9 +394,9 @@ def _review_fix(state: State, data: dict | None) -> dict | None:
         body, revision = draft['body'], draft['revision']
     except (LookupError, TypeError):
         raise ContentMcpFailure(502, BAD_DRAFT) from None
-    if revision != review['revision'] or not isinstance(body, str) or body.count(chosen['quote']) != 1:
+    at = content_mcp.place(body, chosen['quote']) if isinstance(body, str) else None
+    if revision != review['revision'] or at is None:
         raise ContentMcpFailure(409, DRAFT_CHANGED)
-    at = body.index(chosen['quote'])
     # shortcut: 허용 문맥(context) 없이 지적의 이유·제안만 지시로 보낸다. 설정을 고쳐 써야 하는 수정이 약하면 Semantic 근거 설정을 context로 넘긴다.
     return {'patch': {'selection': chosen['quote'], 'instruction': f"{chosen['reason']} 제안: {chosen['suggestion']}"[:2000],
                       'precedingText': body[:at][-2000:], 'followingText': body[at + len(chosen['quote']):][:2000]}}
