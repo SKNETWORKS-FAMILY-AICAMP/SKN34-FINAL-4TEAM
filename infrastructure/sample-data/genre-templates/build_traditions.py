@@ -1,4 +1,4 @@
-"""Validate narrative references and rebuild cards; preserve eleven released genres.
+"""Validate source references and rebuild creative and tradition cards.
 
 Run from any directory with Python 3: python build_traditions.py [--check].
 This prepares local JSON only. It never connects to a database or server.
@@ -71,10 +71,38 @@ def validate_narrative(data, text, supplementary=None):
                 assert len(ref["evidence"]) <= MAX_SUPPLEMENTARY_EVIDENCE, card["title"] + ": supplementary excerpt too long"
 
 
+def build_creative_world(world, data, template):
+    genre = world["genre"]
+    assert data["genre"] == genre == template["genre_id"], genre
+    sections = {section["id"] for section in template["setting_bible"]["sections"]}
+    cards, keys = [], set()
+    for card in data["cards"]:
+        key = card["key"]
+        assert isinstance(key, str) and re.fullmatch(r"[a-z0-9-]+", key) and key not in keys, genre
+        keys.add(key)
+        assert card["cardType"] in TYPES, key
+        for field, limit in (("title", 200), ("body", 3000)):
+            value = card[field]
+            assert isinstance(value, str) and value.strip() and len(value.encode("utf-16-le")) // 2 <= limit, key
+        refs = card["source_sections"]
+        assert isinstance(refs, list) and refs and all(isinstance(ref, str) and ref in sections for ref in refs), key
+        cards.append({"id": str(uuid5(UUID(world["worldId"]), "setting:" + key)),
+                      "title": card["title"], "body": card["body"], "cardType": card["cardType"]})
+    assert cards, genre
+    return {**world, "cards": cards}
+
+
 def build(current):
-    """Keep published entries/IDs; derive stable semantic IDs for new cards."""
+    """Keep world IDs and derive stable semantic IDs for cards."""
     by_genre = {item["genre"]: item for item in current}
-    result = [by_genre[genre] for genre in LEGACY]
+    by_id = {item["worldId"]: item for item in current}
+    frozen = {item["genre"]: item for item in read(RESOURCES / "genre-templates-v1.json")}
+    result = []
+    for genre in LEGACY:
+        world = by_id[frozen[genre]["worldId"]]
+        assert world["genre"] == genre, genre
+        source = ROOT / genre / "source"
+        result.append(build_creative_world(world, read(source / "setting-cards.json"), read(source / "template.json")))
     for genre in TRADITIONS:
         data = read(ROOT / genre / "source/tradition-cards.json")
         assert data["genre"] == genre and data["sources"], genre

@@ -1,5 +1,6 @@
 """전승 카드의 출처·유형·정본 일치와 기존 11종 보존을 검증한다. DB 적재 도구가 아니다."""
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import re
@@ -10,6 +11,16 @@ ROOT = Path(__file__).resolve().parents[2]
 BASE = ROOT / 'infrastructure/sample-data/genre-templates'
 RESOURCES = ROOT / 'backend/content-service/src/main/resources'
 TYPES = {'character', 'location', 'organization', 'ability', 'object', 'rule', 'event', 'other'}
+spec = importlib.util.spec_from_file_location('build_traditions', BASE / 'build_traditions.py')
+catalog = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(catalog)
+
+CREATIVE_PROTAGONISTS = {
+    'wuxia': ('남궁현',), 'romance_fantasy': ('에블린',), 'modern_fantasy': ('강도윤',),
+    'science_fiction': ('이안 서',), 'alternate_history': ('이환',), 'game_fantasy': ('한시우',),
+    'fusion_fantasy': ('레온', '백무진'), 'territory_management': ('에드릭',),
+    'apocalypse': ('윤태건',), 'sports_fantasy': ('한도윤',), 'entertainment': ('한서준',),
+}
 
 CHARACTER, PLACE, OBJECT, EVENT = (frozenset({t}) for t in ('character', 'location', 'object', 'event'))
 CLAN = frozenset({'organization'})  # 신족·일행처럼 집단을 가리키는 카드
@@ -129,20 +140,55 @@ def missing_subjects(cards, subjects):
 
 
 class MythSourceTest(unittest.TestCase):
-    def test_existing_eleven_genres_are_unchanged(self):
+    def test_original_sources_and_frozen_v1_are_unchanged(self):
         manifest = read_json(BASE / 'genre-preservation.json')
         for path, sha in manifest['source_files'].items():
-            self.assertEqual(sha, hashlib.sha256((ROOT / path).read_bytes().replace(b'\r\n', b'\n')).hexdigest(), path)
-        self.assertEqual(manifest['runtime_genres_sha256'], digest(read_json(RESOURCES / 'genre-templates.json')[:11]))
+            self.assertEqual(sha, hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), path)
+        self.assertEqual('96cbbb7607aada4ca8f7a27f56cfd6a6197c7826db0160fae2cc134768992d85',
+                         hashlib.sha256((RESOURCES / 'genre-templates-v1.json').read_bytes()).hexdigest())
         legacy = read_json(RESOURCES / 'genre-templates-v1.json')
         self.assertEqual(11, len(legacy))
         self.assertEqual(manifest['legacy_genres_sha256'], digest(legacy))
 
     # 원전 문서·카드 일치는 새 형식(tradition-cards.json)을 읽는 genre-templates/test_traditions.py가 검사한다.
-    def test_runtime_has_twenty_six_worlds_and_1116_cards(self):
+    def test_runtime_has_twenty_six_worlds(self):
         runtime = read_json(RESOURCES / 'genre-templates.json')
         self.assertEqual(26, len(runtime))
-        self.assertEqual(1116, sum(len(w['cards']) for w in runtime))
+
+    def test_creative_cards_match_sources_and_preserve_worlds(self):
+        runtime = {world['worldId']: world for world in read_json(RESOURCES / 'genre-templates.json')}
+        frozen = read_json(RESOURCES / 'genre-templates-v1.json')
+        self.assertEqual(set(CREATIVE_PROTAGONISTS), {world['genre'] for world in frozen})
+        for previous in frozen:
+            genre = previous['genre']
+            with self.subTest(genre=genre):
+                world = runtime[previous['worldId']]
+                for field in ('worldId', 'genre', 'name', 'description'):
+                    self.assertEqual(previous[field], world[field], genre + '/' + field)
+                source = BASE / genre / 'source'
+                template = read_json(source / 'template.json')
+                data = read_json(source / 'setting-cards.json')
+                self.assertEqual(world, catalog.build_creative_world(world, data, template), genre)
+                types = {card['cardType'] for card in world['cards']} - {'other'}
+                self.assertIn('character', types, genre)
+                self.assertGreaterEqual(len(types), 3, genre)
+                for name in CREATIVE_PROTAGONISTS[genre]:
+                    self.assertTrue(any(name in card['title'] and card['cardType'] == 'character'
+                                        and sum(other in card['title'] for other in CREATIVE_PROTAGONISTS[genre]) == 1
+                                        for card in world['cards']), genre + '/' + name)
+
+                sections = template['setting_bible']['sections']
+                excluded = [s for s in sections if s['title'] in
+                            ('첫 화 도입 예시', '서술과 분위기', '이야기에서 지켜야 할 설정 규칙', '장편 전개 구조')]
+                self.assertTrue(any(s['title'] == '첫 화 도입 예시' for s in excluded), genre)
+                excluded_text = [re.sub(r'\s+', ' ', s['content_markdown']).strip() for s in excluded]
+                for card in world['cards']:
+                    self.assertNotIn(card['title'], [s['title'] for s in excluded], genre)
+                    self.assertNotIn(card['body'].strip(), [s['content_markdown'].strip() for s in excluded], genre)
+                    body = re.sub(r'\s+', ' ', card['body']).strip()
+                    self.assertFalse(any(body[i:i + 100] in text for text in excluded_text
+                                         for i in range(len(body) - 99)),
+                                     genre + '/' + card['title'])
 
     def test_runtime_ids_are_unique_and_cards_carry_no_visibility_override(self):
         runtime = read_json(RESOURCES / 'genre-templates.json')
