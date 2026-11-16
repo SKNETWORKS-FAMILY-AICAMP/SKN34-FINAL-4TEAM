@@ -39,3 +39,18 @@
 - 원어 전사: `sukkal-a-ni ^{d}ga-ca-an-cubur-ra`
 
 ETCSL은 여러 필사본을 모은 복합 전사와 별도 영역이다. 첫 문 추가 구절은 편집자가 명시한 한 필사본의 이설이며 원문 154–158행의 여섯째 문 기록을 지우지 않는다.
+
+<a id="inana-lapis-cdli-witness"></a>
+
+## 우르 출토 점토판의 파손된 첫째 문 구절
+
+- 원문: [CDLI P346462, 앞면 1′–3′](https://cdli.earth/artifacts/346462)
+- 원어 전사: `[... esz2]-GAN2# za-gin3 [... 1(disz)]-kam#-ma [...]`
+- CDLI 현재 판독은 훼손된 행을 막대와 줄을 쥔 장면으로 번역한다. ETCSL 추가 구절의 벗겨짐을 이 판독만으로 확정하지 않는다.
+
+<a id="inana-lapis-sixth-gate"></a>
+
+## 복합 전사의 여섯째 문
+
+- 원문: [ETCSL c.1.4.1, 154–155행](https://etcsl.orinst.ox.ac.uk/section1/c141.htm)
+- 원어 전사: `abul 6-kam-ma ku_{4}-ku_{4}-da-ni-ta`

@@ -175,3 +175,27 @@
 **디도와 명계의 재회** — [베르길리우스 《아이네이스》 6.450–476](https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml) (인용: 6.450–476).
 
 > Inter quas Phoenissa recens a volnere Dido
+
+<a id="supp-helen-iliad"></a>
+
+**트로이 성벽 위의 헬레네** — [호메로스 《일리아스》 3.161–180](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).
+
+> Πρίαμος δʼ Ἑλένην ἐκαλέσσατο φωνῇ
+
+<a id="supp-horse-odyssey"></a>
+
+**에페이오스의 목마와 아테나** — [호메로스 《오디세이아》 8.492–495](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).
+
+> δουρατέου, τὸν Ἐπειὸς ἐποίησεν σὺν Ἀθήνῃ
+
+<a id="supp-laocoon-aeneid"></a>
+
+**라오콘과 아들들을 덮친 뱀** — [베르길리우스 《아이네이스》 2.212–218](https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml).
+
+> post ipsum auxilio subeuntem ac tela ferentem
+
+<a id="supp-troy-war-duel"></a>
+
+**아킬레우스와 헥토르의 결투** — [호메로스 《일리아스》 22.131–166, 226–330](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).
+
+> τῇ ῥʼ ἐπὶ οἷ μεμαῶτʼ ἔλασʼ ἔγχεϊ δῖος Ἀχιλλεύς

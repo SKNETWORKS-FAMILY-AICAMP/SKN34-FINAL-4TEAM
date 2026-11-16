@@ -931,12 +931,22 @@
       "key": "inana-lapis-rod-variant",
       "title": "청금석 측량 막대와 문에서의 이설",
       "cardType": "object",
-      "body": "이난나는 청금석 측량 막대와 줄을 지니고 내려간다. ETCSL 복합 전사의 154–158행에서는 여섯째 문에서 벗겨지지만, 129A–B행의 한 필사본 추가 구절은 첫째 문에서 벗겨졌다고도 기록한다. 이 차이는 해당 증거에 한정한다.\n\n출전: [ETCSL c.1.4.1, 25, 129A–B, 154–158; 번역 https://etcsl.orinst.ox.ac.uk/section1/tr141.htm](https://etcsl.orinst.ox.ac.uk/section1/c141.htm).",
+      "body": "이난나는 청금석 측량 막대와 줄을 지니고 내려간다. ETCSL 복합 전사의 154–158행에서는 여섯째 문에서 벗겨지지만, 129A–B행의 한 필사본 추가 구절은 첫째 문에서 벗겨졌다고도 전사한다. 해당 단편의 현재 CDLI 판독은 보존 상태가 불완전하다. 이 차이는 해당 증거에 한정한다.\n\n출전: [ETCSL c.1.4.1, 25, 129A–B, 154–158; 번역 https://etcsl.orinst.ox.ac.uk/section1/tr141.htm](https://etcsl.orinst.ox.ac.uk/section1/c141.htm).\n\n- [ETCSL 《이난나의 저승 강하》 129A–B, 154–158행](https://etcsl.orinst.ox.ac.uk/section1/c141.htm): 복합 전사는 여섯째 문에서 막대를 빼앗기는 장면과 한 필사본의 첫째 문 추가 구절을 구분한다.\n- [CDLI P346462 앞면 1′–3′](https://cdli.earth/artifacts/346462): 우르의 파손된 점토판은 첫째 문 부근에 막대와 줄이 등장하지만 현행 번역은 이를 쥔 것으로 읽는다. 첫째 문에서의 박탈은 이 판독만으로 확정할 수 없다.",
       "narrative_refs": [
         {
           "document": "supplementary.md",
           "section": "inana-lapis-rod-variant",
           "evidence": "gi 1 ninda ec_{2}-gana_{2} za-gin_{3}"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "inana-lapis-cdli-witness",
+          "evidence": "[... esz2]-GAN2# za-gin3 [... 1(disz)]-kam#-ma [...]"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "inana-lapis-sixth-gate",
+          "evidence": "abul 6-kam-ma ku_{4}-ku_{4}-da-ni-ta"
         }
       ]
     },

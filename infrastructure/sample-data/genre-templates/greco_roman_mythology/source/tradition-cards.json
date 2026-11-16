@@ -1490,12 +1490,17 @@
       "key": "helen_versions",
       "title": "헬레네의 트로이행과 이집트 이설",
       "cardType": "character",
-      "body": "《요약》 3.3–4는 파리스가 메넬라오스의 환대를 받은 뒤 헬레네를 설득하여 함께 떠나고 트로이에 도착했다고 한다. 같은 작품 3.5는 다른 이들이 전한 이야기로, 진짜 헬레네는 헤르메스가 이집트 왕 프로테우스에게 맡기고 파리스는 구름으로 만든 그녀의 모습을 트로이로 가져갔다고 구분한다. 어느 쪽을 단일 정본으로 합치지 않는다.\n\n출전: [아폴로도로스 《요약》 3.5](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).",
+      "body": "《요약》 3.3–4는 파리스가 메넬라오스의 환대를 받은 뒤 헬레네를 설득하여 함께 떠나고 트로이에 도착했다고 한다. 같은 작품 3.5는 다른 이들이 전한 이야기로, 진짜 헬레네는 헤르메스가 이집트 왕 프로테우스에게 맡기고 파리스는 구름으로 만든 그녀의 모습을 트로이로 가져갔다고 구분한다. 어느 쪽을 단일 정본으로 합치지 않는다.\n\n출전: [아폴로도로스 《요약》 3.5](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).\n\n- [호메로스 《일리아스》 3.161–180](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml): 프리아모스는 트로이 성벽에서 헬레네를 불러 그리스 장수들을 묻는다.\n- [아폴로도로스 《요약》 3.5](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml): 다른 이들의 이야기에서는 진짜 헬레네가 이집트에 있고 트로이에는 구름으로 만든 모습만 간다.",
       "narrative_refs": [
         {
           "document": "supplementary.md",
           "section": "supp-helen-versions",
           "evidence": "πεποιημένον ἐκ νεφῶν εἴδωλον Ἑλένης"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "supp-helen-iliad",
+          "evidence": "Πρίαμος δʼ Ἑλένην ἐκαλέσσατο φωνῇ"
         }
       ]
     },
@@ -1581,12 +1586,17 @@
       "key": "trojan_horse",
       "title": "목마와 트로이의 함락",
       "cardType": "event",
-      "body": "《요약》에서 오디세우스가 목마를 고안하고 에페이오스가 이데산의 목재로 속이 빈 말을 만든다. 무장한 자들이 안에 숨고 나머지는 테네도스에 숨어 있다가 밤에 돌아온다. 카산드라와 라오콘은 경고하지만 트로이인 다수는 신에게 바친 물건으로 여긴다. 《요약》은 탑승자를 50명이라 하면서 《작은 일리아스》 저자는 3,000명이라 했다는 이설도 전한다.\n\n출전: [아폴로도로스 《요약》 5.14–17](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).",
+      "body": "《요약》에서 오디세우스가 목마를 고안하고 에페이오스가 이데산의 목재로 속이 빈 말을 만든다. 무장한 자들이 안에 숨고 나머지는 테네도스에 숨어 있다가 밤에 돌아온다. 카산드라와 라오콘은 경고하지만 트로이인 다수는 신에게 바친 물건으로 여긴다. 《요약》은 탑승자를 50명이라 하면서 《작은 일리아스》 저자는 3,000명이라 했다는 이설도 전한다.\n\n출전: [아폴로도로스 《요약》 5.14–17](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).\n\n- [아폴로도로스 《요약》 5.14](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml): 오디세우스가 목마를 고안하고 에페이오스가 만들며 탑승자 수의 이견을 전한다.\n- [호메로스 《오디세이아》 8.492–495](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml): 에페이오스가 아테나의 도움으로 말을 만들고 오디세우스가 병사들을 채워 성에 들인다. 이 대목은 병사 수를 밝히지 않는다.",
       "narrative_refs": [
         {
           "document": "supplementary.md",
           "section": "supp-trojan-horse",
           "evidence": "ἐπινοεῖ δουρείου ἵππου κατασκευὴν"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "supp-horse-odyssey",
+          "evidence": "δουρατέου, τὸν Ἐπειὸς ἐποίησεν σὺν Ἀθήνῃ"
         }
       ]
     },
@@ -1594,12 +1604,17 @@
       "key": "laocoon_variants",
       "title": "라오콘과 바다뱀의 이설",
       "cardType": "event",
-      "body": "《요약》 5.17–18에서 라오콘은 목마에 무장 병력이 숨어 있다고 경고하고, 아폴론이 보낸 뱀 둘은 그의 아들들을 먹는다. 《아이네이스》 2.199–227에서는 뱀들이 두 아들을 먼저 휘감고 구하러 온 라오콘까지 죽인다. 인물의 역할은 이어지지만 희생자와 사건의 묘사는 두 작품에서 다르다.\n\n출전: [아폴로도로스 《요약》 5.18](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml). 비교: [베르길리우스 《아이네이스》 2.199–227](https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml).",
+      "body": "《요약》 5.17–18에서 라오콘은 목마에 무장 병력이 숨어 있다고 경고하고, 아폴론이 보낸 뱀 둘은 그의 아들들을 먹는다. 《아이네이스》 2.199–227에서는 뱀들이 두 아들을 먼저 휘감고 구하러 온 라오콘까지 죽인다. 인물의 역할은 이어지지만 희생자와 사건의 묘사는 두 작품에서 다르다.\n\n출전: [아폴로도로스 《요약》 5.18](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml). 비교: [베르길리우스 《아이네이스》 2.199–227](https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml).\n\n- [아폴로도로스 《요약》 5.18](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml): 아폴론이 보낸 뱀들이 라오콘의 아들들을 먹는다고 전한다.\n- [베르길리우스 《아이네이스》 2.212–227](https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml): 뱀이 두 아들을 공격한 뒤 구하러 온 라오콘도 휘감는다.",
       "narrative_refs": [
         {
           "document": "supplementary.md",
           "section": "supp-laocoon-variants",
           "evidence": "δύο γὰρ δράκοντες διανηξάμενοι"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "supp-laocoon-aeneid",
+          "evidence": "post ipsum auxilio subeuntem ac tela ferentem"
         }
       ]
     },
@@ -1795,6 +1810,24 @@
           "document": "supplementary.md",
           "section": "supp-dido-underworld",
           "evidence": "Inter quas Phoenissa recens a volnere Dido"
+        }
+      ]
+    },
+    {
+      "key": "trojan-war-achilles-hector",
+      "title": "트로이 전쟁과 아킬레우스·헥토르의 결투",
+      "cardType": "event",
+      "body": "《일리아스》에서 트로이 전쟁 중 아킬레우스는 아가멤논과 다투고 전투에서 물러나며 아카이아군은 큰 피해를 입는다. 파트로클로스가 헥토르에게 죽은 뒤 아킬레우스는 돌아와 트로이 성벽 밖에서 헥토르를 추격한다. 아테나는 데이포보스의 모습으로 헥토르를 속이고, 두 영웅이 싸운 끝에 아킬레우스의 창이 헥토르를 쓰러뜨린다. 전쟁 전체가 이 결투에서 끝나는 것은 아니다.\n\n출전: [호메로스 《일리아스》 1.1–7, 16.818–863, 22.131–330](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-achilles-wrath",
+          "evidence": "μῆνιν ἄειδε θεὰ Πηληϊάδεω Ἀχιλῆος"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "supp-troy-war-duel",
+          "evidence": "τῇ ῥʼ ἐπὶ οἷ μεμαῶτʼ ἔλασʼ ἔγχεϊ δῖος Ἀχιλλεύς"
         }
       ]
     }

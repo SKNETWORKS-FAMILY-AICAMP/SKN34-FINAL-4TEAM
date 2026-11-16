@@ -17,11 +17,11 @@ class GenreTemplateResourceTest {
     private val templates = seeder.load()
     private val cards = templates.flatMap { it.cards }
 
-    @Test fun `twenty six templates with 1107 cards in the documented order`() {
+    @Test fun `twenty six templates with 1109 cards in the documented order`() {
         assertEquals(listOf("wuxia", "romance_fantasy", "modern_fantasy", "science_fiction", "alternate_history", "game_fantasy",
             "fusion_fantasy", "territory_management", "apocalypse", "sports_fantasy", "entertainment",
             "sumerian_mythology", "cthulhu_mythos", "norse_mythology", "greco_roman_mythology", "germanic_folklore", "chinese_folklore", "japanese_mythology", "korean_mythology_fables", "egyptian_mythology", "indian_mythology", "celtic_mythology", "slavic_mythology", "maya_mythology", "aztec_mythology", "journey_to_the_west"), templates.map { it.genre })
-        assertEquals(1107, cards.size)
+        assertEquals(1109, cards.size)
     }
 
     @Test fun `only the original eleven worlds have a frozen legacy input`() {

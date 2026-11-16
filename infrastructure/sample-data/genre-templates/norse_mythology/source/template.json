@@ -1472,6 +1472,32 @@
             "evidence": "Veistu, hvé blóta skal?"
           }
         ]
+      },
+      {
+        "id": "norse_mythology_norse-ragnarok-battle",
+        "order": 80,
+        "template_part": "전승 자료",
+        "title": "라그나로크의 전투와 세계의 종말",
+        "content_markdown": "《볼루스파》의 종말 예언에서 오딘은 늑대와 싸우다 쓰러지고, 아들 비다르가 늑대에게 아버지의 원수를 갚는다. 토르는 뱀과 맞서 싸운 뒤 아홉 걸음을 걷고 죽는다. 해가 검어지고 땅이 바다에 잠기며 불꽃이 하늘까지 치솟는다. 이는 뒤이어 새 땅이 솟는 장면과 구분되는 신들과 적대자들의 마지막 싸움이다.\n\n출전: [《볼루스파》 벨로스판 제53–57연](https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.53).",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "section": "stanza-053",
+            "evidence": "오딘이 늑대와 싸우러 나서고,"
+          },
+          {
+            "section": "stanza-054",
+            "evidence": "심장 깊이 꿰뚫노라. 아버지의 원수를 갚았노라."
+          },
+          {
+            "section": "stanza-056",
+            "evidence": "뱀에게 목숨을 잃어 두려움 없이 쓰러지노라."
+          },
+          {
+            "section": "stanza-057",
+            "evidence": "해는 검게 변하고 땅은 바다에 가라앉으며,"
+          }
+        ]
       }
     ]
   }
