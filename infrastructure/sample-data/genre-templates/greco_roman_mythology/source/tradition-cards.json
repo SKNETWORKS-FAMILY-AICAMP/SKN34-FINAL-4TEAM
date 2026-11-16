@@ -1,7 +1,7 @@
 {
   "genre": "greco_roman_mythology",
-  "name": "그리스·로마 신화 · 신통기",
-  "scope": "헤시오도스 《신통기》 한 작품의 1–1022행과 저본 수록 이문을 한국어로 완역하고 그 본문에서 추출한 세계관. 휴 G. 에벌린화이트의 1914년 영역본을 중역했으며 호메로스 서사시·찬가·로마 서사·후대 신화집을 섞지 않는다.",
+  "name": "그리스·로마 신화와 전승",
+  "scope": "헤시오도스 《신통기》 한국어 중역과 그 파생 카드에 호메로스 서사시·찬가, 아폴로도로스 신화집, 베르길리우스 서사시의 선별 전승을 추가한다. 작품별 차이를 보존하며 모든 그리스·로마 전승의 망라를 주장하지 않는다.",
   "sources": [
     {
       "title": "헤시오도스 《신통기》: 1914년 공개 영어 저본",
@@ -10,6 +10,30 @@
     {
       "title": "휴 G. 에벌린화이트 생몰년과 1914년 판본 서지",
       "url": "https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924"
+    },
+    {
+      "title": "호메로스 《일리아스》 고대어 판본 (Perseus Digital Library)",
+      "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml"
+    },
+    {
+      "title": "호메로스 《오디세이아》 고대어 판본 (Perseus Digital Library)",
+      "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml"
+    },
+    {
+      "title": "아폴로도로스 《요약》 고대어 판본 (Perseus Digital Library)",
+      "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml"
+    },
+    {
+      "title": "아폴로도로스 《도서관》 고대어 판본 (Perseus Digital Library)",
+      "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml"
+    },
+    {
+      "title": "호메로스 찬가 《데메테르에게》 고대어 판본 (Perseus Digital Library)",
+      "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0013/tlg002/tlg0013.tlg002.perseus-grc2.xml"
+    },
+    {
+      "title": "베르길리우스 《아이네이스》 고대어 판본 (Perseus Digital Library)",
+      "url": "https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml"
     }
   ],
   "cards": [
@@ -1394,6 +1418,383 @@
         {
           "section": "theogony-p093",
           "evidence": "**1017–1018행** 찬란한 여신 칼립소는 오디세우스와 달콤한 사랑으로 결합하여 나우시토오스와 나우시노오스를 낳았다."
+        }
+      ]
+    },
+    {
+      "key": "cosmic_domains",
+      "title": "세 형제의 영역과 공동의 대지",
+      "cardType": "rule",
+      "body": "《일리아스》에서 포세이돈은 제우스·하데스와 제비를 뽑아 바다를 얻고, 하데스는 어둠, 제우스는 하늘을 얻었다고 말한다. 대지와 높은 올림포스는 공동으로 남는다. 이는 신들의 권역을 대립 없는 완전한 분할로 묘사하지 않는 포세이돈 자신의 설명이다.\n\n출전: [호메로스 《일리아스》 15.187–193](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-cosmic-domains",
+          "evidence": "τριχθὰ δὲ πάντα δέδασται"
+        }
+      ]
+    },
+    {
+      "key": "giants_war",
+      "title": "기간테스와 신들의 전쟁",
+      "cardType": "event",
+      "body": "《도서관》에서 가이아는 티탄들 때문에 분노하여 우라노스에게서 기간테스를 낳는다. 이들은 티탄과 별개의 집단이다. 알키오네우스는 태어난 땅에서 불사였으므로 아테나의 조언을 받은 헤라클레스가 그를 경계 밖으로 끌어낸다. 헤라클레스와 신들의 협력이 승부를 좌우한다.\n\n출전: [아폴로도로스 《도서관》 1.6.1](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-giants-war",
+          "evidence": "Γῆ δὲ περὶ Τιτάνων ἀγανακτοῦσα γεννᾷ Γίγαντας"
+        }
+      ]
+    },
+    {
+      "key": "demeter_mysteries",
+      "title": "데메테르의 상실과 엘레우시스 의례",
+      "cardType": "event",
+      "body": "《데메테르 찬가》에서 딸을 잃은 데메테르가 곡식을 자라지 못하게 하자 제우스는 귀환을 명한다. 하데스가 준 석류 씨를 먹은 페르세포네는 해마다 일부를 지하에서 보내고 나머지를 어머니와 지낸다. 데메테르는 엘레우시스의 지도자들에게 거룩한 의례를 가르친다. 의례의 비밀을 임의로 복원하지 않는다. 《신통기》 912–914행은 납치를 전하나 이 귀환 조건을 말하지 않는다.\n\n출전: [호메로스 찬가 《데메테르에게》 2.305–344, 360–374, 398–403, 470–482](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0013/tlg002/tlg0013.tlg002.perseus-grc2.xml). 비교: [헤시오도스 《신통기》 912–914행](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-demeter-mysteries",
+          "evidence": "ῥοιῆς κόκκον ἔδωκε φαγεῖν"
+        }
+      ]
+    },
+    {
+      "key": "zeus_hospitality",
+      "title": "제우스와 손님을 맞는 의무",
+      "cardType": "rule",
+      "body": "《오디세이아》에서 돼지치기 에우마이오스는 신분을 모르는 나그네에게 먹을 것을 내어주며, 낯선 이와 가난한 이는 제우스에게서 온다고 설명한다. 손님을 맞는 행위가 신의 보호와 연결되지만, 이 장면을 모든 그리스 도시의 단일 법전으로 취급하지 않는다.\n\n출전: [호메로스 《오디세이아》 14.56–58](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-zeus-hospitality",
+          "evidence": "ξεῖνʼ, οὔ μοι θέμις ἔστʼ"
+        }
+      ]
+    },
+    {
+      "key": "judgment_paris",
+      "title": "파리스의 심판과 세 여신",
+      "cardType": "event",
+      "body": "《요약》에서 불화는 헤라·아테나·아프로디테 사이에 아름다움을 겨루는 사과를 던지고, 제우스는 헤르메스에게 세 여신을 이데산의 파리스에게 이끌게 한다. 헤라는 왕권, 아테나는 전쟁의 승리, 아프로디테는 헬레네와의 혼인을 약속한다. 파리스가 아프로디테를 택하면서 인간의 선택과 신들의 경쟁이 전쟁의 배경이 된다.\n\n출전: [아폴로도로스 《요약》 3.2](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-judgment-paris",
+          "evidence": "μῆλον περὶ κάλλους Ἔρις ἐμβάλλει"
+        }
+      ]
+    },
+    {
+      "key": "helen_versions",
+      "title": "헬레네의 트로이행과 이집트 이설",
+      "cardType": "character",
+      "body": "《요약》 3.3–4는 파리스가 메넬라오스의 환대를 받은 뒤 헬레네를 설득하여 함께 떠나고 트로이에 도착했다고 한다. 같은 작품 3.5는 다른 이들이 전한 이야기로, 진짜 헬레네는 헤르메스가 이집트 왕 프로테우스에게 맡기고 파리스는 구름으로 만든 그녀의 모습을 트로이로 가져갔다고 구분한다. 어느 쪽을 단일 정본으로 합치지 않는다.\n\n출전: [아폴로도로스 《요약》 3.5](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-helen-versions",
+          "evidence": "πεποιημένον ἐκ νεφῶν εἴδωλον Ἑλένης"
+        }
+      ]
+    },
+    {
+      "key": "aulis_omen",
+      "title": "아울리스의 뱀과 전쟁의 길이",
+      "cardType": "event",
+      "body": "《요약》에서 아울리스의 제사 때 뱀이 참새 새끼 여덟과 어미를 먹고 돌로 변한다. 예언자 칼카스는 이를 트로이가 열 해 만에 함락될 징조로 풀이한다. 징조는 군대의 기대와 대기 시간을 설명하는 예언이며, 그 자체가 전쟁 전체의 연대기는 아니다.\n\n출전: [아폴로도로스 《요약》 3.15](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-aulis-omen",
+          "evidence": "τοὺς ἐν αὐτῇ καταναλώσας στρουθοὺς ὀκτὼ"
+        }
+      ]
+    },
+    {
+      "key": "iphigenia_aulis",
+      "title": "이피게네이아와 아르테미스의 제단",
+      "cardType": "event",
+      "body": "《요약》에서 아르테미스의 노여움으로 함대가 아울리스에 묶인다. 칼카스는 아가멤논의 딸을 바쳐야 한다고 말하고, 아가멤논은 혼인을 구실로 이피게네이아를 부른다. 제단에서 아르테미스는 그녀를 빼내 타우리인의 사제로 삼고 대신 사슴을 놓는다. 같은 절은 불사로 만들었다는 다른 전언도 덧붙인다.\n\n출전: [아폴로도로스 《요약》 3.21–22](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-iphigenia-aulis",
+          "evidence": "ἔλαφον ἀντʼ αὐτῆς παραστήσασα"
+        }
+      ]
+    },
+    {
+      "key": "achilles_wrath",
+      "title": "아킬레우스의 분노와 전쟁",
+      "cardType": "character",
+      "body": "《일리아스》는 펠레우스의 아들 아킬레우스의 분노와 아가멤논과의 불화로 시작한다. 전리품을 둘러싼 갈등은 그가 전투에서 물러나는 계기가 되고 아카이아 군대에 큰 손실을 부른다. 이 서사시는 전쟁 전체가 아니라 그 말기의 제한된 기간을 다룬다.\n\n출전: [호메로스 《일리아스》 1.1–7, 101–305, 430–492](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-achilles-wrath",
+          "evidence": "μῆνιν ἄειδε θεὰ Πηληϊάδεω Ἀχιλῆος"
+        }
+      ]
+    },
+    {
+      "key": "hector_family",
+      "title": "헥토르와 트로이의 가족",
+      "cardType": "character",
+      "body": "《일리아스》에서 헥토르는 트로이의 방어자이자 안드로마케의 남편, 어린 아들의 아버지다. 안드로마케는 가족을 잃은 자신의 의지처가 헥토르라며 성벽 안에 머물기를 청하고, 헥토르는 가족의 미래를 걱정하면서도 전투로 돌아간다. 영웅의 명예와 가족의 생존이 충돌한다.\n\n출전: [호메로스 《일리아스》 6.429–465](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-hector-family",
+          "evidence": "Ἕκτορ ἀτὰρ σύ μοί ἐσσι πατὴρ"
+        }
+      ]
+    },
+    {
+      "key": "achilles_shield",
+      "title": "아킬레우스의 방패와 세계상",
+      "cardType": "object",
+      "body": "《일리아스》에서 테티스의 부탁을 받은 헤파이스토스가 아킬레우스의 새 방패를 만든다. 방패에는 땅·하늘·바다와 천체, 평화와 전쟁을 겪는 도시, 경작과 춤 등 여러 장면이 담긴다. 무구가 전쟁 바깥의 인간 생활과 우주의 질서까지 비추는 물건이 된다.\n\n출전: [호메로스 《일리아스》 18.478–608](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-achilles-shield",
+          "evidence": "ἐν μὲν γαῖαν ἔτευξʼ, ἐν δʼ οὐρανόν"
+        }
+      ]
+    },
+    {
+      "key": "priam_ransom",
+      "title": "프리아모스의 간청과 헥토르의 장례",
+      "cardType": "event",
+      "body": "《일리아스》에서 트로이의 늙은 왕 프리아모스는 아킬레우스의 진영에 가서 아들의 시신을 돌려달라며 그의 아버지를 생각해 달라고 청한다. 두 사람은 각자의 상실을 슬퍼하고 시신은 돌려받는다. 작품은 트로이 함락이 아니라 헥토르의 장례로 끝난다.\n\n출전: [호메로스 《일리아스》 24.503–506](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-priam-ransom",
+          "evidence": "ἀλλʼ αἰδεῖο θεοὺς Ἀχιλεῦ"
+        }
+      ]
+    },
+    {
+      "key": "trojan_horse",
+      "title": "목마와 트로이의 함락",
+      "cardType": "event",
+      "body": "《요약》에서 오디세우스가 목마를 고안하고 에페이오스가 이데산의 목재로 속이 빈 말을 만든다. 무장한 자들이 안에 숨고 나머지는 테네도스에 숨어 있다가 밤에 돌아온다. 카산드라와 라오콘은 경고하지만 트로이인 다수는 신에게 바친 물건으로 여긴다. 《요약》은 탑승자를 50명이라 하면서 《작은 일리아스》 저자는 3,000명이라 했다는 이설도 전한다.\n\n출전: [아폴로도로스 《요약》 5.14–17](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-trojan-horse",
+          "evidence": "ἐπινοεῖ δουρείου ἵππου κατασκευὴν"
+        }
+      ]
+    },
+    {
+      "key": "laocoon_variants",
+      "title": "라오콘과 바다뱀의 이설",
+      "cardType": "event",
+      "body": "《요약》 5.17–18에서 라오콘은 목마에 무장 병력이 숨어 있다고 경고하고, 아폴론이 보낸 뱀 둘은 그의 아들들을 먹는다. 《아이네이스》 2.199–227에서는 뱀들이 두 아들을 먼저 휘감고 구하러 온 라오콘까지 죽인다. 인물의 역할은 이어지지만 희생자와 사건의 묘사는 두 작품에서 다르다.\n\n출전: [아폴로도로스 《요약》 5.18](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml). 비교: [베르길리우스 《아이네이스》 2.199–227](https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-laocoon-variants",
+          "evidence": "δύο γὰρ δράκοντες διανηξάμενοι"
+        }
+      ]
+    },
+    {
+      "key": "troy_sack",
+      "title": "트로이의 파괴와 살아남은 이들",
+      "cardType": "event",
+      "body": "《요약》에서 목마에 숨은 병사들이 밤에 문을 열어 돌아온 그리스군을 들이고 도시는 약탈당한다. 네오프톨레모스는 제우스의 제단으로 피한 프리아모스를 죽인다. 아이네아스는 아버지 앙키세스를 업고 도망치며, 그리스군은 그 효심을 보고 놓아준다. 승리의 장면은 성소 침범과 가족의 탈출을 함께 담는다.\n\n출전: [아폴로도로스 《요약》 5.20–21](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-troy-sack",
+          "evidence": "Αἰνείας δὲ Ἀγχίσην τὸν πατέρα βαστάσας ἔφυγεν"
+        }
+      ]
+    },
+    {
+      "key": "trojan_palladium",
+      "title": "카산드라와 아테나의 신상",
+      "cardType": "object",
+      "body": "《요약》에서 카산드라는 아테나의 목상에 매달리지만 로크리스의 아이아스에게 폭행당한다. 작품은 그 신상이 하늘을 향해 보게 되었다고 전한다. 신상과 성소는 피난의 장소이나 함락의 폭력은 그 경계마저 침범한다.\n\n출전: [아폴로도로스 《요약》 5.22](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-trojan-palladium",
+          "evidence": "Κασάνδραν ὁρῶν περιπεπλεγμένην τῷ ξοάνῳ"
+        }
+      ]
+    },
+    {
+      "key": "heracles_labours",
+      "title": "헤라클레스의 열두 과업",
+      "cardType": "event",
+      "body": "《도서관》 2.5.1–12에서 에우리스테우스는 헤라클레스에게 네메아 사자, 레르나 히드라, 케리네이아 암사슴, 에리만토스 멧돼지, 아우게이아스의 외양간, 스튐팔로스의 새, 크레타 황소, 디오메데스의 말, 히폴리테의 허리띠, 게리온의 소, 헤스페리데스의 사과, 케르베로스를 차례로 요구한다. 히드라와 외양간은 인정받지 못해 두 과업이 더해진다.\n\n출전: [아폴로도로스 《도서관》 2.5.11–12](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-heracles-labours",
+          "evidence": "δωδέκατον ἆθλον ἐπετάγη Κέρβερον"
+        }
+      ]
+    },
+    {
+      "key": "hippolyta_belt",
+      "title": "히폴리테의 허리띠",
+      "cardType": "object",
+      "body": "《도서관》에서 아마존의 여왕 히폴리테는 아레스의 허리띠를 지니며 이는 그녀의 우두머리 지위를 나타낸다. 에우리스테우스의 딸이 그것을 원하여 헤라클레스가 이를 가져오라는 명령을 받는다. 이 신물은 단순한 장식이 아니라 지위와 관계를 드러낸다.\n\n출전: [아폴로도로스 《도서관》 2.5.9](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-hippolyta-belt",
+          "evidence": "σύμβολον τοῦ πρωτεύειν ἁπασῶν"
+        }
+      ]
+    },
+    {
+      "key": "cerberus_variants",
+      "title": "케르베로스의 머리 수와 명계행",
+      "cardType": "character",
+      "body": "《도서관》 2.5.12의 케르베로스는 개 머리 셋과 뱀 꼬리를 지닌다. 헤라클레스는 정화와 입문을 거쳐 타이나론에서 명계로 내려가 이를 데려오라는 과업을 수행한다. 반면 《신통기》 310–312행은 케르베로스에게 머리 쉰 개가 있다고 한다. 두 수치는 작품별로 보존한다.\n\n출전: [아폴로도로스 《도서관》 2.5.12](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml). 비교: [헤시오도스 《신통기》 310–312행](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-cerberus-variants",
+          "evidence": "εἶχε δὲ οὗτος τρεῖς μὲν κυνῶν κεφαλάς"
+        }
+      ]
+    },
+    {
+      "key": "cretan_bull_variants",
+      "title": "크레타 황소의 서로 다른 출신",
+      "cardType": "character",
+      "body": "《도서관》은 크레타 황소를 두고 아쿠실라오스는 제우스를 위해 에우로페를 태워 건넌 황소라 했고, 다른 이들은 포세이돈이 바다에서 보낸 황소라 했다고 구별한다. 후자의 이야기에서 미노스가 아름다운 황소 대신 다른 것을 제물로 바치자 신은 황소를 사납게 만든다. 약속과 희생의 위반이 괴물의 등장과 연결된다.\n\n출전: [아폴로도로스 《도서관》 2.5.7](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-cretan-bull-variants",
+          "evidence": "Ἀκουσίλαος μὲν εἶναί φησι"
+        }
+      ]
+    },
+    {
+      "key": "ody_cyclops",
+      "title": "오디세우스와 폴리페모스",
+      "cardType": "event",
+      "body": "《오디세이아》에서 오디세우스는 외눈박이 폴리페모스에게 붙잡혀 동료들을 잃는다. 포도주와 거짓 이름을 이용해 거인을 눈멀게 하고 양 떼 아래에 매달려 탈출한다. 뒤에 자신의 이름을 밝히자 포세이돈의 아들인 폴리페모스가 아버지에게 귀향을 어렵게 해 달라고 빈다.\n\n출전: [호메로스 《오디세이아》 9.187–505](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-ody-cyclops",
+          "evidence": "κισσύβιον μετὰ χερσὶν ἔχων μέλανος οἴνοιο"
+        }
+      ]
+    },
+    {
+      "key": "moly_hermes",
+      "title": "헤르메스의 몰뤼와 키르케",
+      "cardType": "object",
+      "body": "《오디세이아》에서 키르케가 오디세우스의 동료들을 돼지로 바꾸자 헤르메스가 오디세우스에게 약초 몰뤼를 준다. 신이 보여준 약초는 뿌리가 검고 꽃이 젖처럼 희며 키르케의 약물에 맞설 수 있게 한다. 이는 신의 도움과 위험한 변신이 얽힌 귀향의 한 대목이다.\n\n출전: [호메로스 《오디세이아》 10.210–347](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-moly-hermes",
+          "evidence": "ἐκ γαίης ἐρύσας, καί μοι φύσιν αὐτοῦ ἔδειξε"
+        }
+      ]
+    },
+    {
+      "key": "necromancy",
+      "title": "오디세우스의 죽은 자 소환",
+      "cardType": "rule",
+      "body": "《오디세이아》에서 오디세우스는 키르케의 지시에 따라 구덩이를 파고 제물을 바쳐 죽은 이들의 혼을 불러낸다. 피가 흐르자 망자들이 모여들고 예언자 테이레시아스가 귀향에 필요한 경고를 전한다. 이는 특정 서사 속 의례로, 명계의 모든 지역과 절차를 하나로 고정하지 않는다.\n\n출전: [호메로스 《오디세이아》 11.23–50](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-necromancy",
+          "evidence": "βόθρον ὄρυξʼ ὅσσον τε πυγούσιον"
+        }
+      ]
+    },
+    {
+      "key": "sirens",
+      "title": "세이렌의 노래와 돛대",
+      "cardType": "event",
+      "body": "《오디세이아》에서 키르케는 노래로 지나가는 사람을 홀리는 세이렌을 경고한다. 오디세우스는 동료들의 귀를 밀랍으로 막고 자신은 돛대에 묶여 노래를 듣는다. 풀어 달라는 자신의 몸짓에도 동료들은 결박을 더 조인다. 지식의 유혹과 생존을 위한 사전 약속이 함께 나타난다.\n\n출전: [호메로스 《오디세이아》 12.39–54, 165–200](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-sirens",
+          "evidence": "Σειρῆνας μὲν πρῶτον ἀφίξεαι"
+        }
+      ]
+    },
+    {
+      "key": "ithaca_bed",
+      "title": "이타케의 침상과 귀향의 증거",
+      "cardType": "object",
+      "body": "《오디세이아》에서 페넬로페는 돌아온 남자를 시험하기 위해 침상을 옮기라고 말한다. 오디세우스는 살아 있는 올리브나무를 중심으로 자신이 만든 침상이 움직일 수 없다고 답한다. 두 사람만 아는 침상의 구조가 오랜 이별 끝의 재인과 혼인 관계 회복을 증명한다.\n\n출전: [호메로스 《오디세이아》 23.181–206](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-ithaca-bed",
+          "evidence": "σήματʼ ἀναγνούσῃ"
+        }
+      ]
+    },
+    {
+      "key": "aeneas_rome",
+      "title": "아이네아스의 이탈리아 항해",
+      "cardType": "character",
+      "body": "《아이네이스》는 트로이에서 이탈리아 해안으로 운명에 따라 떠밀린 아이네아스의 고난을 노래한다. 유노의 분노와 항해의 시련을 겪는 그의 여정은 라티움에 신들을 정착시키는 일과 로마인의 먼 기원에 연결된다. 이것은 로마 서사시의 관점이며 《신통기》의 출생 계보와 같은 작품이 아니다.\n\n출전: [베르길리우스 《아이네이스》 1.1–7](https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-aeneas-rome",
+          "evidence": "Arma virumque cano, Troiae qui primus ab oris"
+        }
+      ]
+    },
+    {
+      "key": "golden_bough",
+      "title": "황금 가지와 아이네아스의 명계 입구",
+      "cardType": "object",
+      "body": "《아이네이스》에서 쿠마이의 시빌라는 아이네아스가 지하 세계의 여왕에게 바칠 황금 가지를 먼저 찾아야 한다고 알려준다. 가지는 운명이 부르는 이의 손에는 쉽게 꺾이고 첫 가지를 딴 뒤 다른 가지가 돋는다. 명계행에 필요한 선물인 동시에 허락의 표지다.\n\n출전: [베르길리우스 《아이네이스》 6.136–148](https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-golden-bough",
+          "evidence": "Primo avulso non deficit alter"
+        }
+      ]
+    },
+    {
+      "key": "underworld_acheron",
+      "title": "아케론·카론과 죽은 자의 건넘",
+      "cardType": "location",
+      "body": "《아이네이스》 6권에서 아이네아스와 시빌라는 아케론의 물가에 이른다. 카론은 많은 죽은 자들을 배에 태우지만 장례를 치르지 못한 이들은 강가에서 기다린다. 이 로마 서사시의 명계 지형과 통과 조건은 《신통기》의 타르타로스 묘사와 각각의 출전으로 읽는다.\n\n출전: [베르길리우스 《아이네이스》 6.295–330](https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-underworld-acheron",
+          "evidence": "Hinc via, Tartarei quae fert Acherontis ad undas."
+        }
+      ]
+    },
+    {
+      "key": "dido_underworld",
+      "title": "디도와 명계의 재회",
+      "cardType": "character",
+      "body": "《아이네이스》에서 아이네아스는 명계의 슬픔의 들에서 상처 입은 디도를 만난다. 그는 자신이 뜻을 거슬러 떠났다고 말하지만 디도는 시선을 피하고 남편 쉬카이오스가 있는 숲으로 돌아간다. 귀향과 건국의 이야기에는 버려진 사람의 고통과 침묵이 남는다.\n\n출전: [베르길리우스 《아이네이스》 6.450–476](https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-dido-underworld",
+          "evidence": "Inter quas Phoenissa recens a volnere Dido"
         }
       ]
     }
