@@ -1,3 +1,5 @@
+import { ImageGenerationUseCase } from "../../domain/usecases/ImageGenerationUseCase"
+import { HttpImageGenerationRepository } from "../../data/api/HttpImageGenerationRepository"
 import {InitialWorldUseCase} from '../../domain/usecases/InitialWorldUseCase'
 import {HttpInitialWorldRepository} from '../../data/world-studio/HttpInitialWorldRepository'
 import { OperationsUseCase } from '../../domain/usecases/OperationsUseCase'
@@ -80,6 +82,8 @@ import type { AppContainer } from './types'
 /** 작품·열람·Fork와 홈 순위·검색은 같은 Content API를 사용한다. 나머지 데모 상태에는 샘플 작품·댓글을 주입하지 않는다. */
 export function registerAppServices(container: AppContainer) {
   container.register({
+    imageGenerationRepository: asFunction(() => new HttpImageGenerationRepository()).singleton(),
+    imageGenerationUseCase: asFunction(({ imageGenerationRepository }) => new ImageGenerationUseCase(imageGenerationRepository)).singleton(),
     operationsRepository: asFunction(() => new InMemoryOperationsRepository()).singleton(),
     operationsUseCase: asFunction(({ operationsRepository }) => new OperationsUseCase(operationsRepository)).singleton(),
     noticeRepository: asFunction(() => new HttpNoticeRepository()).singleton(),

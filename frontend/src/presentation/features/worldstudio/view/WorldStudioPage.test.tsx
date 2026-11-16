@@ -1484,15 +1484,16 @@ it('표지를 읽지 못하면 자동 생성 표지를 두고 패널에서 이�
   expect(await coverGroup().findByText('표지를 불러오지 못했어요.')).toBeTruthy()
 })
 
-it('표지 칸은 이미지 선택과 AI로 생성(준비 중, 잠김)을 두고 5 MiB 형식 안내를 보이며 삭제는 표지가 있을 때만 보인다', async () => {
+it('표지 칸은 이미지 선택과 AI 생성 입력을 두고 5 MiB 형식 안내를 보이며 삭제는 표지가 있을 때만 보인다', async () => {
   await showWorld()
   openInfoEdit()
   expect(coverGroup().getByText(/PNG·JPEG·WebP, 5 MiB 이하/)).toBeTruthy()
   const input = coverGroup().getByLabelText<HTMLInputElement>('이미지 선택')
   expect([input.type, input.accept, input.disabled]).toEqual(['file', 'image/png,image/jpeg,image/webp', false])
   const ai = coverGroup().getByRole<HTMLButtonElement>('button', { name: /AI로 생성/ })
-  expect(ai.disabled).toBe(true)
-  expect(document.getElementById(ai.getAttribute('aria-describedby') ?? '')?.textContent).toBe('준비 중')
+  expect(ai.disabled).toBe(false)
+  fireEvent.click(ai)
+  expect(screen.getByRole('group', { name: 'AI 이미지 생성' })).toBeTruthy()
   expect(coverGroup().queryByRole('button', { name: '표지 삭제' })).toBeNull()
   cleanup()
   await show(undefined, '/worldstudio/qa', { hasCover: true })

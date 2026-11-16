@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from app.images.router import router as images_router
 
 from app.health.router import router as health_router
 from app.generation.router import router as generation_router
@@ -19,6 +20,7 @@ def create_app() -> FastAPI:
         lifespan=orchestration.lifespan,
     )
     application.include_router(health_router)
+    application.include_router(images_router)
     application.include_router(generation_router)
     application.include_router(initial_world_router)
     application.include_router(manuscript_router)

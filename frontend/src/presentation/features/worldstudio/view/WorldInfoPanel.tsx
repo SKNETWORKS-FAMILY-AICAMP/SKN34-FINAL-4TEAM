@@ -11,7 +11,7 @@ type VM = ReturnType<typeof useWorldStudioViewModel>
  * 관리 모드 헤더의 세계관 정보 편집 패널(/content 작품 정보 편집과 같은 ep-edit 틀, 헤더의 소개 자리에 열린다). 이름·설명·공개 범위·장르·표지를 한 곳에서 고치고 저장·취소한다.
  * 저장은 바뀐 것만 이 순서로 보낸다: 이름·설명은 기존 초안 저장, 공개 범위·장르는 기존 공개 설정(`vm.setPublication`, 공개로 바꿀 때만 한 번 확인), 표지는 고른 이미지 올리기(교체 포함)다.
  * 하나라도 실패하면 닫지 않고 오류를 알리며 입력을 그대로 둬 남은 것만 다시 저장할 수 있다. 취소·Esc는 입력과 고른 표지를 모두 버린다(한글 조합을 끝내려고 누른 Esc는 세지 않는다).
- * 표지 삭제만은 확인한 뒤 바로 지운다. 표지 'AI로 생성'은 연결 전이라 비활성이다.
+ * 표지 삭제만은 확인한 뒤 바로 지운다. AI 표지는 생성 결과를 선택한 뒤 기존 표지 저장 흐름으로 보낸다.
  * 저장하지 않은 수정이 있으면(`vm.infoLocked`) 그 수정이 이름·설명 저장에 딸려 가지 않도록, 이름·설명을 바꾼 동안에는 저장을 잠그고 먼저 저장하라고 알린다.
  * 공개 범위·장르·표지는 초안 저장과 별개라 잠그지 않는다: 공개로 고른 뒤 경고의 `전체 공개`(초안 변경)를 눌러도 공개 설정은 그대로 저장할 수 있다.
  */
@@ -65,7 +65,7 @@ export function WorldInfoPanel({ vm, world, onClose }: { vm: VM; world: StudioWo
               이미지 선택
               <input type="file" accept="image/png,image/jpeg,image/webp" disabled={!vm.supportsCover} onChange={(e) => pickCover(e.target.files?.[0])} />
             </label>
-            <AiCoverButton />
+            <AiCoverButton purpose="world_cover" worldId={world.id} onPick={pickCover} />
             {vm.supportsCover && world.hasCover && (
               <button type="button" className="btn sm" onClick={() => { if (window.confirm('표지를 삭제할까요? 자동으로 만든 표지로 돌아가요.')) void vm.setCover(null) }}>표지 삭제</button>
             )}

@@ -6,6 +6,10 @@ services:
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-}
+      CORE_RABBITMQ_HOST: ${CORE_RABBITMQ_HOST:-rabbitmq}
+      CORE_RABBITMQ_PORT: ${CORE_RABBITMQ_PORT:-5672}
+      CORE_RABBITMQ_USER: ${CORE_RABBITMQ_USER:-storyfork}
+      CORE_RABBITMQ_PASSWORD: ${CORE_RABBITMQ_PASSWORD:-}
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
       # 집필 AI Retrieval 도구가 부르는 Content 내부 검색 API. Content는 32자 이상 INTERNAL_TOKEN만 받는다.
       CONTENT_SERVICE_BASE_URL: http://content-service:8081
@@ -20,6 +24,26 @@ services:
       - "host.docker.internal:host-gateway"
     expose:
       - "8000"
+
+  image-worker:
+    init: true
+    command: [celery, -A, app.images.worker:app, worker, --concurrency=1, --loglevel=WARNING]
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
+      CONTENT_SERVICE_BASE_URL: http://content-service:8081
+      CORE_RABBITMQ_HOST: ${CORE_RABBITMQ_HOST:-rabbitmq}
+      CORE_RABBITMQ_PORT: ${CORE_RABBITMQ_PORT:-5672}
+      CORE_RABBITMQ_USER: ${CORE_RABBITMQ_USER:-storyfork}
+      CORE_RABBITMQ_PASSWORD: ${CORE_RABBITMQ_PASSWORD:-}
+      ATTACHMENT_S3_BUCKET: ${ATTACHMENT_S3_BUCKET:-storyfork-setting-attachments}
+      ATTACHMENT_S3_REGION: ${ATTACHMENT_S3_REGION:-us-east-1}
+      ATTACHMENT_S3_ENDPOINT: ${ATTACHMENT_S3_ENDPOINT:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+    depends_on:
+      content-service:
+        condition: service_started
 
   core-api:
     init: true

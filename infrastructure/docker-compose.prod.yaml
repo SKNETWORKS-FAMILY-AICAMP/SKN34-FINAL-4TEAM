@@ -5,6 +5,10 @@ name: storyfork-production
 
 services:
   # Variable names match local/dev; the production server's own .env supplies values. Blank required values fail config.
+  image-worker:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:main
+    platform: linux/amd64
+
   ai-service:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:main
     platform: linux/amd64

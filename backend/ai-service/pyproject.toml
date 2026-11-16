@@ -8,6 +8,9 @@ version = "0.1.0"
 description = "Internal health foundation for STORYFORK"
 requires-python = ">=3.11,<3.15"
 dependencies = [
+    "celery>=5.6,<6",
+    "boto3>=1.40,<2",
+    "pillow>=12,<13",
     "fastapi>=0.139.2,<0.140.0",
     "langchain>=1.5,<2",
     "langchain-typesafe==0.0.1a3",

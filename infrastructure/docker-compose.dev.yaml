@@ -70,6 +70,17 @@ services:
       retries: 24
       start_period: 60s
 
+  image-worker:
+    image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
+    platform: linux/amd64
+    environment:
+      ATTACHMENT_S3_ENDPOINT: http://minio:9000
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
   ai-service:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-ai-service:develop
     platform: linux/amd64
