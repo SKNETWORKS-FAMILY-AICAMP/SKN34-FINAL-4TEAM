@@ -30,6 +30,57 @@ def variant_problems(card, documents=None):
 
 
 class HistoryReviewTest(unittest.TestCase):
+    def test_history_is_not_in_runtime_catalog(self):
+        current = catalog.read(catalog.RESOURCES / "genre-templates.json")
+        self.assertEqual(list(catalog.LEGACY + catalog.TRADITIONS), [world["genre"] for world in current])
+        self.assertEqual(current, catalog.build(current))
+
+    def test_candidate_soul_is_optional_and_validated_without_history_in_runtime(self):
+        current = [world for world in catalog.read(catalog.RESOURCES / "genre-templates.json")
+                   if world["genre"] in catalog.LEGACY + catalog.TRADITIONS]
+        with tempfile.TemporaryDirectory() as directory:
+            studio = Path(directory)
+            for country in catalog.HISTORY:
+                shutil.copy(catalog.STUDIO_ROOT / f"{country}.world.json", studio)
+            path = studio / f"{catalog.HISTORY[0]}.world.json"
+            world = catalog.read(path)
+            person = next(card for card in world["cards"] if card["cardType"] == "character")
+            other = next(card for card in world["cards"] if card["cardType"] != "character")
+            original_soul = person.pop("soul")
+            def save():
+                path.write_text(json.dumps(world, ensure_ascii=False), encoding="utf-8")
+            with patch.object(catalog, "STUDIO_ROOT", studio):
+                save()
+                reviewed = catalog.build_history_review(current)
+                self.assertNotIn("soul", next(c for c in reviewed[0]["cards"] if c["id"] == person["id"]))
+                person["soul"] = original_soul
+                save()
+                self.assertEqual(original_soul, next(c for c in catalog.build_history_review(current)[0]["cards"] if c["id"] == person["id"])["soul"])
+                for value in ("", " ", "😀" * 1501, None):
+                    person["soul"] = value
+                    save()
+                    with self.subTest(soul=value), self.assertRaises(AssertionError):
+                        catalog.build_history_review(current)
+                person["soul"] = original_soul
+                other["soul"] = "invalid"
+                save()
+                with self.assertRaises(AssertionError):
+                    catalog.build_history_review(current)
+                del other["soul"]
+                person["goal"] = "불필요한 필드"
+                save()
+                with self.assertRaises(AssertionError):
+                    catalog.build_history_review(current)
+                del person["goal"]
+                save()
+                collision = [{**current[0], "worldId": world["worldId"]}] + current[1:]
+                with self.assertRaises(AssertionError):
+                    catalog.build_history_review(collision)
+                person["id"] = current[0]["cards"][0]["id"]
+                save()
+                with self.assertRaises(AssertionError):
+                    catalog.build_history_review(current)
+
     def test_complete_studio_set_is_validated_without_changing_runtime_inputs(self):
         current = catalog.read(catalog.RESOURCES / "genre-templates.json")
         before = hashlib.sha256(json.dumps(current, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
@@ -97,9 +148,13 @@ class CreativeCardsTest(unittest.TestCase):
             path = Path(directory) / "country.world.json"
             path.write_text(json.dumps(world, ensure_ascii=False), encoding="utf-8")
             self.assertEqual(world, catalog.load_history(path))
+            del card["soul"]
+            path.write_text(json.dumps(world, ensure_ascii=False), encoding="utf-8")
+            with self.assertRaises(AssertionError):
+                catalog.load_history(path)
 
-    def test_generated_history_cards_include_actual_sources(self):
-        worlds = catalog.build(catalog.read(catalog.RESOURCES / "genre-templates.json"))
+    def test_loaded_history_cards_include_actual_sources(self):
+        worlds = [catalog.load_history(catalog.ROOT / "history" / f"{country}.world.json") for country in catalog.HISTORY]
         cards = {card["id"]: card["body"] for world in worlds for card in world["cards"]}
         root = "https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/blob/49c623798a01a678531ab0c2891b523400d79526/docs/research/history-textbooks/"
         with self.subTest(country="france"):
@@ -121,7 +176,7 @@ class CreativeCardsTest(unittest.TestCase):
             self.assertIn("https://www.americanyawp.com/text/contributors/", body)
             self.assertIn("https://www.americanyawp.com/textbook/01-american-origins", body)
 
-    def test_usa_runtime_license_card_links_to_chapter_credits(self):
+    def test_loaded_usa_license_card_links_to_chapter_credits(self):
         source = catalog.ROOT / "history/usa.world.json"
         original = catalog.read(source)
         result = catalog.load_history(source)
@@ -133,7 +188,7 @@ class CreativeCardsTest(unittest.TestCase):
         after["body"] = before["body"]
         self.assertEqual(before, after)
 
-    def test_history_runtime_corrects_only_recorded_notes_and_sources(self):
+    def test_loaded_history_corrects_only_recorded_notes_and_sources(self):
         descriptions = {
             "england": ("현대사 보완·서비스 반영 전 검토용.", "현대사 보완 대기 중인 비공개 연구 기반 샘플."),
             "france": ("서비스·DB 반영 대상이 아니다.", "독립 검수 미완료인 비공개 연구 기반 샘플이다."),
@@ -306,10 +361,10 @@ class TraditionCatalogTest(unittest.TestCase):
         self.assertEqual(frozen, without_soul)
         self.assertEqual(self.current, catalog.build(self.current))
         self.assertEqual(list(catalog.LEGACY + catalog.TRADITIONS), [t["genre"] for t in self.current[:26]])
-        self.assertEqual([catalog.load_history(catalog.ROOT / "history" / (country + ".world.json")) for country in catalog.HISTORY], self.current[26:])
-        history_bytes = json.dumps(self.current[26:], ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+        history = [catalog.load_history(catalog.ROOT / "history" / (country + ".world.json")) for country in catalog.HISTORY]
+        history_bytes = json.dumps(history, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
         self.assertEqual("fe26493096498e93154404f31ba9a749164889c3bcd7a6aa71ae8c5b03ab84d5", hashlib.sha256(history_bytes).hexdigest())
-        self.assertEqual((33, 1412, 405), (len(self.current), sum(len(w["cards"]) for w in self.current), sum(c["cardType"] == "character" for w in self.current for c in w["cards"])))
+        self.assertEqual((26, 1254, 379), (len(self.current), sum(len(w["cards"]) for w in self.current), sum(c["cardType"] == "character" for w in self.current for c in w["cards"])))
         self.assertEqual(catalog.build(self.current), catalog.build(catalog.build(self.current)))
 
     def test_original_source_urls_and_migrated_locations_are_unchanged(self):

@@ -56,15 +56,8 @@ class GenreTemplateSeederTest {
 
     @Test fun `every genre is created edited and saved once by the template owner in that order`() {
         assertEquals(11, legacy.size)
-        assertEquals(33, templates.size)
-        val newTemplates = templates.filter { it.worldId !in frozenIds }
-        assertEquals(7, newTemplates.size)
-        newTemplates.forEach { t ->
-            edit(t).cards.filter { it.cardType == "character" }.forEach { card ->
-                val soul = t.cards.single { it.id == card.id }.soul
-                assertEquals(mapOf("soul" to soul, "goal" to "", "episodes" to emptyMap<String, String>()), card.semanticMetadata["characterDocs"])
-            }
-        }
+        assertEquals(26, templates.size)
+        assertEquals(frozenIds, templates.map { it.worldId }.toSet())
         templates.forEach(::fresh)
         seeder.seed()
         val order = inOrder(service)

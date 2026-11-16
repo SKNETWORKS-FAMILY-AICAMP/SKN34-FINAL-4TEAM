@@ -90,14 +90,15 @@ def load_history(path):
     return world
 
 
-def validate_history(world):
+def validate_history(world, optional_soul=False):
     assert world["genre"] and world["name"].strip() and len(world["name"].encode("utf-16-le")) // 2 <= 100 and len(world["description"].encode("utf-16-le")) // 2 <= 20000 and world["cards"]
     for card in world["cards"]:
         UUID(card["id"])
         assert card["cardType"] in TYPES
         for field, limit in (("title", 200), ("body", 3000)):
             assert isinstance(card[field], str) and card[field].strip() and len(card[field].encode("utf-16-le")) // 2 <= limit, card["id"]
-        soul_field(card)
+        if not (optional_soul and card["cardType"] == "character" and "soul" not in card):
+            soul_field(card)
 
 
 def build_history_review(current):
@@ -111,12 +112,11 @@ def build_history_review(current):
         assert (world["worldId"], world["genre"]) == (old["worldId"], old["genre"]), world["genre"]
         assert set(world) == {"genre", "worldId", "name", "description", "cards"}
         assert len(world["cards"]) <= 1000
-        validate_history(world)
+        validate_history(world, optional_soul=True)
         for card in world["cards"]:
-            assert set(card) == {"id", "title", "body", "cardType"} | ({"soul"} if card["cardType"] == "character" else set())
+            assert set(card) == {"id", "title", "body", "cardType"} | ({"soul"} if "soul" in card else set())
             assert old_owner.get(UUID(card["id"]), UUID(world["worldId"])) == UUID(world["worldId"]), card["id"]
-    history_ids = {world["worldId"] for world in baseline}
-    all_worlds = [world for world in current if world["worldId"] not in history_ids] + result
+    all_worlds = current + result
     ids = [UUID(world["worldId"]) for world in all_worlds] + [UUID(card["id"]) for world in all_worlds for card in world["cards"]]
     assert len(ids) == len(set(ids)), "duplicate world/card ID"
     return result
@@ -219,7 +219,6 @@ def build(current):
         assert cards and any(c["cardType"] == "event" for c in cards), genre
         result.append({"genre": genre, "worldId": world_id, "name": data["name"],
                        "description": data["scope"], "cards": cards})
-    result.extend(load_history(ROOT / "history" / (country + ".world.json")) for country in HISTORY)
     ids = [t["worldId"] for t in result] + [c["id"] for t in result for c in t["cards"]]
     assert len(ids) == len(set(ids)), "duplicate world/card ID"
     return result
