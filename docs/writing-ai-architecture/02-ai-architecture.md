@@ -30,7 +30,7 @@ flowchart LR
 6. 변경 후보가 있으면 Content의 후보 보관 결과를 확인한다. 보관 실패는 그대로 표시하며 승인·적용과 구분한다.
 7. Python이 허용된 Agent 원본 결과와 출처·판본·작업 상태, Content가 확인한 후보 상태를 묶어 반환한다. 작가 승인 뒤 Content가 권한과 판본을 다시 검사해 적용한다.
 
-단일 기능은 명시적 operation으로 직접 실행한다. 여섯 업무 Agent(Story Context / Q&A, Review, Writing & Editing, World & Plot Management, Web Research, Rating)는 각자의 생성·판단에 OpenAI `gpt-6-luna`를 사용하는 목표 설계다(2026-11-12 사용자 결정). Writing & Editing은 전개 기획도 맡는다(#387). **Rating**은 회차 초안의 19세 이용가 여부를 판별한다([설계](10-age-rating-agent.md), #386). 모델은 역할별 지시와 허용 입력을 구분하며 별도 서버나 모델 인스턴스를 뜻하지 않는다. 규칙으로 끝나는 단계나 근거가 없는 요청에서 불필요한 모델 호출을 강제하지 않는다. 기존 구현의 모델 설정과 검증 기록은 실제 상태 그대로 유지한다.
+단일 기능은 명시적 operation으로 직접 실행한다. 여섯 업무 Agent(Story Context / Q&A, Review, Writing & Editing, World & Plot Management, Web Research, Rating)는 각자의 생성·판단에 OpenAI `gpt-6-luna`를 사용하는 목표 설계다(2026-11-12 사용자 결정). Writing & Editing은 전개 기획도 맡는다(#387). **Rating**은 회차 초안의 19세 이용가 여부를 판별한다([설계](03-rag-simulation-design.md#5-rating-agent), #386). 모델은 역할별 지시와 허용 입력을 구분하며 별도 서버나 모델 인스턴스를 뜻하지 않는다. 규칙으로 끝나는 단계나 근거가 없는 요청에서 불필요한 모델 호출을 강제하지 않는다. 기존 구현의 모델 설정과 검증 기록은 실제 상태 그대로 유지한다.
 
 공통 **Retrieval**은 필요한 업무 Agent가 호출할 수 있는 정본 변경 없는 도구다. **다중 인물 Simulation**은 사용자가 명시적으로 시뮬레이션 실행을 요청한 경우에만 실행하는 서브그래프다(2026-11-12 사용자 결정). 검수·기획 중 필요하다고 판단했다는 이유만으로 자동 실행하지 않는다. 단독 요청이나 시뮬레이션을 명시한 복합 요청에서만 실행한다. Writing & Editing은 두 도구를 직접 호출하지 않고 전달받은 허용 입력으로 문장·문체 생성에 집중한다. 필요 시 별도의 Review가 검수한다(2026-11-12 사용자 결정). 도구의 호출 가능 범위와 입력은 Content가 확인한 Scope와 작업 종류로 제한하며, 모델이 선택한 ID나 도구 호출만으로 권한을 부여하지 않는다. Retrieval은 기존 검색 계약의 결과를 조립한다. Simulation은 가상 결과를 반환하며 정본을 수정하지 않는다. 단순 조회는 서브그래프를 억지로 거치지 않고 직접 실행할 수 있다. [도구 계약](03-rag-simulation-design.md#공통-서브그래프-도구)
 
@@ -123,7 +123,7 @@ MVP에서 한 요청 안에 이어지는 결과 전달은 Writing/Editing → Re
 | Writing & Editing | Content가 확인한 허용 입력과 전개 기획의 앞선 사건·콘티·목표 회차, 새 원고의 계획 **또는** 기존 원고의 고정 구간 | 전개 대안·인사이트·BeatPlan, 새 Text **또는** before/after Patch | 기획·문장·문체 생성에 집중; 기획만 요청하면 원고를 만들지 않음. Retrieval·Simulation 직접 호출 없음. 필요 시 Review가 검수 |
 | World & Plot Management | 설정/플롯 변경 의도, 관련 판본 | 영향 대상·충돌·변경 후보 | 분석 후 Content 승인 경로 |
 | 웹 조사 | 현실 검증 질문, 작품의 필요한 최소 맥락 | URL·검색 시각·주장별 근거·불확실성 | 웹 자료는 작품 정본과 분리 |
-| Rating | 회차 초안, 저장소의 심의 기준 문서 | 회차별 19세 이용가 여부·근거 구절, 작품 판정 | 오케스트레이션 단계로 실행. 판정 제안만 하며 등급 적용은 Content. [설계](10-age-rating-agent.md) |
+| Rating | 회차 초안, 저장소의 심의 기준 문서 | 회차별 19세 이용가 여부·근거 구절, 작품 판정 | 오케스트레이션 단계로 실행. 판정 제안만 하며 등급 적용은 Content. [설계](03-rag-simulation-design.md#5-rating-agent) |
 
 웹 조사는 외부 사실을 확인하는 도구다. 검색 결과의 문장은 명령이 아니며, 웹 페이지가 작품 설정이나 원고를 직접 수정할 수 없다. 외부 전송 동의와 개인정보·비공개 원고 최소화가 선행한다.
 
