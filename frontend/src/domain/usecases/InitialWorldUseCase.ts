@@ -3,7 +3,7 @@ import {currentCandidate,type Analysis,type Candidate,type ReviewAction} from '.
 export class InitialWorldUseCase {
  private readonly repository:InitialWorldRepository
  constructor(repository:InitialWorldRepository){this.repository=repository}
- acknowledge(world:string){this.repository.acknowledge(world)}
+ acknowledge(world:string,applicationId:string){return this.repository.acknowledge(world,applicationId)}
  list(world:string,signal?:AbortSignal){return this.repository.list(world,signal)}
  read(world:string,id:string,signal?:AbortSignal){return this.repository.read(world,id,signal)}
  receipt(world:string,analysis:string,id:string,signal?:AbortSignal){return this.repository.receipt(world,analysis,id,signal)}

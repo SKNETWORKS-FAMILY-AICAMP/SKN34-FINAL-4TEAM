@@ -337,7 +337,8 @@ class InitialWorldAnalysisPostgresTest {
         val studio=ctx.getBean(WorldStudioService::class.java);val seed=seed(ctx)
         val location=CardPayload(UUID.randomUUID(),"율도국","기존 장소 원문","location","space",aliases=listOf("나라"),tags=listOf("보존"))
         val draft=studio.edit(seed.worldId,actor,EditWorldDraftRequest(seed.draftRevision,seed.name,seed.description,
-            seed.cards.map { it.copy(aliases=listOf("기존 별칭"),tags=listOf("기존 태그")) }+location,key="application-seed"))
+            seed.cards.map { it.copy(aliases=listOf("기존 별칭"),tags=listOf("기존 태그"),semanticMetadata=if(it.cardType=="character")
+                mapOf("characterDocs" to mapOf("soul" to "차분함","goal" to "나라 세우기","episodes" to mapOf("0" to "과거","3" to "경험"))) else it.semanticMetadata) }+location,key="application-seed"))
         studio.save(draft.worldId,actor,SaveWorldRequest(draft.draftRevision,"confirmed-before-application"))
         val saved=studio.draft(draft.worldId,actor)
         stub.action={ input ->
@@ -355,6 +356,37 @@ class InitialWorldAnalysisPostgresTest {
         analysis.candidateIds.forEach { (ref,id) -> service.decide(saved.worldId,actor,analysis.analysisId,id,InitialWorldDecisionRequest("approve-$ref",0,"approve",null,"")) }
         return saved to service.get(saved.worldId,actor,analysis.analysisId).body
     }
+    @Test fun `DEC51 episode history survives AI application later removal and receipt recovery`() {
+        WorldStudioPostgresFixture("independent").use { db -> Stub().use { stub -> context(db,stub).use { ctx ->
+            val (world,oldAnalysis)=applicationFixture(ctx,stub)
+            val studio=ctx.getBean(WorldStudioService::class.java)
+            val reviews=ctx.getBean(InitialWorldAnalysisService::class.java)
+            val app=ctx.getBean(InitialWorldApplicationService::class.java)
+            val past=studio.draft(world.worldId,actor,1).relationships
+            val originalRevision=studio.revision(world.worldId,actor,world.currentRevisionId!!)
+            val at3=studio.edit(world.worldId,actor,EditWorldDraftRequest(world.draftRevision,world.name,world.description,
+                relationships=listOf(past.single().copy(body="3화의 관계")),key="episode-three",episode=3))
+            assertThrows(InitialWorldReviewConflict::class.java) { app.apply(world.worldId,actor,oldAnalysis.analysisId,applicationRequest(world,oldAnalysis)) }
+            val fresh=reviews.analyze(world.worldId,actor,InitialWorldAnalysisRequest("episode-analysis",at3.draftRevision)).body
+            fresh.candidateIds.forEach { (ref,id) -> reviews.decide(world.worldId,actor,fresh.analysisId,id,InitialWorldDecisionRequest("approve-$ref",0,"approve",null,"")) }
+            val analysis=reviews.get(world.worldId,actor,fresh.analysisId).body
+            val request=applicationRequest(at3,analysis)
+            val receipt=app.apply(world.worldId,actor,analysis.analysisId,request)
+            assertEquals("applied",receipt.status)
+            assertEquals(past,studio.draft(world.worldId,actor,1).relationships)
+            val applied=studio.draft(world.worldId,actor,3)
+            assertTrue(applied.relationships.map { it.id }.containsAll(receipt.createdRelationshipIds))
+            at3.cards.forEach { original -> assertEquals(original,applied.cards.single { it.id==original.id }) }
+            val remove=applied.relationships.first { it.id in receipt.createdRelationshipIds }
+            studio.edit(world.worldId,actor,EditWorldDraftRequest(applied.draftRevision,applied.name,applied.description,
+                relationships=listOf(remove.copy(lifecycle="removed")),key="episode-five",episode=5))
+            assertEquals(applied.relationships,studio.draft(world.worldId,actor,3).relationships)
+            assertFalse(studio.draft(world.worldId,actor).relationships.any { it.id==remove.id })
+            assertEquals(receipt,app.apply(world.worldId,actor,analysis.analysisId,request))
+            assertEquals(originalRevision,studio.revision(world.worldId,actor,originalRevision.revisionId))
+        } } }
+    }
+
     private fun applicationRequest(world:WorldDraftResponse,analysis:InitialWorldAnalysisResponse,key:String="apply")=
         InitialWorldApplicationRequest(key,world.draftRevision,analysis.decisions.groupBy { it.candidateId }.values.map { rows ->
             val latest=rows.maxBy { it.sequence };InitialWorldSelection(latest.candidateId,latest.sequence)

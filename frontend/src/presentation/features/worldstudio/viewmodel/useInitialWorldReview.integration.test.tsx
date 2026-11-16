@@ -13,7 +13,7 @@ const world=crypto.randomUUID(),analysis:Analysis={analysisId:crypto.randomUUID(
 const receipt:Receipt={applicationId:crypto.randomUUID(),status:'applied',baseDraftRevision:2,resultDraftRevision:3,createdCardIds:[],createdRelationshipIds:[]}
 function setup(reload=vi.fn(async()=>{})){
  let pending=true
- const repo:InitialWorldRepository={list:vi.fn(async()=>[analysis]),read:vi.fn(),receipt:vi.fn(async()=>receipt),pending:()=>pending?{path:`/${analysis.analysisId}/applications`,body:{key:'same'}}:null,mutate:vi.fn(),resume:vi.fn(async()=>receipt),acknowledge:vi.fn(()=>{pending=false})}
+ const repo:InitialWorldRepository={list:vi.fn(async()=>[analysis]),read:vi.fn(),receipt:vi.fn(async()=>receipt),pending:()=>pending?{path:`/${analysis.analysisId}/applications`,body:{key:'same'}}:null,mutate:vi.fn(),resume:vi.fn(async()=>receipt),acknowledge:vi.fn(async()=>{pending=false})}
  const useCase=new InitialWorldUseCase(repo),lock=vi.fn(),store=createAppStore({role:'user',memberId:'owner'})
  const wrapper=({children}:{children:ReactNode})=><Provider store={store}>{children}</Provider>
  const hook=renderHook(()=>useInitialWorldReview(world,true,false,2,reload,lock,useCase),{wrapper})

@@ -860,3 +860,5 @@ Draft·미병합: 최신 승인 검증·UUID/payload 예약, replace:false 추�
 - WorldStudio 8단계: 명시적 확정 버전 생성·목록·읽기 전용 상세 UI(Draft, 미병합). 과거 관계/복원/발행은 제외.
 
 - WorldStudio 9-A: 소유자용 확정 설정 내부 Context 구성·출처/의미 메타데이터 보존. Draft PR 검증 중이며 공개 API·전체 집필 Context·회차/Fork/MCP·과거 관계는 미연결. [계약](design/worldstudio-confirmed-context.md).
+
+- 초기 세계관 DEC-47/DEC-51 호환성 후속(#426): 로컬 HTTP·React 관련 6개 파일 151건 통과. 입력 덮어쓰기·성공 receipt 복구·다른 탭 요청 기록 보호를 보완하며, 변경 HEAD의 격리 PostgreSQL/Neo4j 및 전체 CI 검증 결과는 후속 PR에 기록한다. 실서버·실모델 품질 완료를 뜻하지 않는다.

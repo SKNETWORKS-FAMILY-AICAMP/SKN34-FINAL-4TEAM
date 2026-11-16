@@ -4,13 +4,19 @@ import {csrf,withLock} from '../api/csrf'
 import type {InitialWorldRepository} from '../../domain/repositories/InitialWorldRepository'
 import type {MutationResult} from '../../domain/entities/initialWorld'
 import {analysisSchema,decisionSchema,receiptSchema} from './initialWorldSchemas'
-const pendingSchema=z.object({path:z.string().regex(/^(|\/[0-9a-f-]+\/applications|\/[0-9a-f-]+\/candidates\/[0-9a-f-]+\/decisions)$/),body:z.record(z.string(),z.unknown())})
+const pendingSchema=z.object({path:z.string().regex(/^(|\/[0-9a-f-]+\/applications|\/[0-9a-f-]+\/candidates\/[0-9a-f-]+\/decisions)$/),body:z.record(z.string(),z.unknown()),applicationId:z.uuid().optional()})
 type StoragePort=Pick<Storage,'getItem'|'setItem'|'removeItem'>
 export class HttpInitialWorldRepository implements InitialWorldRepository {
  private readonly fetcher?:typeof fetch
  private readonly storage:StoragePort
  constructor(fetcher?:typeof fetch,storage:StoragePort=localStorage){this.fetcher=fetcher;this.storage=storage}
- acknowledge(world:string){this.storage.removeItem(this.key(world))}
+ async acknowledge(world:string,applicationId:string){
+  const key=this.key(world)
+  await withLock(key,async()=>{
+   const value=this.storage.getItem(key)
+   if(value&&pendingSchema.parse(JSON.parse(value)).applicationId===applicationId)this.storage.removeItem(key)
+  })
+ }
  private key(world:string){z.uuid().parse(world);const member=authenticatedUserId();if(!member)throw new Error('로그인이 필요합니다.');return `storyfork:initial-world:${member}:${world}`}
  pending(world:string){const value=this.storage.getItem(this.key(world));return value?pendingSchema.parse(JSON.parse(value)):null}
  private async request<T>(world:string,path:string,schema:z.ZodType<T>,signal?:AbortSignal,body?:Record<string,unknown>):Promise<T>{
@@ -40,6 +46,7 @@ export class HttpInitialWorldRepository implements InitialWorldRepository {
     const result=await this.request<MutationResult>(world,path,schema,signal,pending.body)
     if('candidateId'in result&&(result.candidateId!==path.split('/')[3]||result.sequence!==Number(pending.body.expectedDecisionSequence)+1))throw new Error('검토 응답이 요청과 일치하지 않아요. 같은 요청으로 확인하세요.')
     if('applicationId'in result&&result.baseDraftRevision!==pending.body.expectedDraftRevision)throw new Error('반영 기준을 확인하지 못했어요. 같은 요청으로 확인하세요.')
+    if('applicationId'in result)this.storage.setItem(storageKey,JSON.stringify({...pending,applicationId:result.applicationId}))
     // Only a running analysis can still change under this key; the server never re-runs failed/unknown, so keeping them would lock out a new analysis.
     if('applicationId'in result?result.status==='failed':'analysisId'in result?result.executionStatus!=='running':true)this.storage.removeItem(storageKey)
     return result

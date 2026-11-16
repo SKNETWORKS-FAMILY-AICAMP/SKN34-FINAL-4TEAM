@@ -59,3 +59,12 @@ TDD 매핑/공유 Fixture 단위 검사, 격리 PostgreSQL+실제 Neo4j 통합�
 HTTP 시스템은 실제 Core 로그인 → 검토 → 별도 application → 초안 재조회와 receipt 재전송을 격리 CI에서 검증한다. AI 완료 후보는 해당 CI DB fixture로 준비하며 유료 모델/개발 DB/기존 사용자 데이터는 접근하지 않는다.
 
 작가 UI와 프런트 metadata 왕복은 미구현·미검증이다. 기존 UI가 새 semanticMetadata를 보존하는지는 별도 UI 연결 PR에서 검증해야 한다. 관계 이력과 과거 시점 복원은 팀 후속 범위이며 이번 성공은 현재 초안 반영까지만 의미한다.
+
+## DEC-47 및 DEC-51 병합 후 호환성 검증
+
+- 초기 후보 분석 입력은 여전히 세계관 설명과 활성 카드 title/body, 기존 엔터티 ID다. SOUL·GOAL·회차 기억 및 Neo4j 관계 상세를 분석 Input에 추가하지 않는다. 근거 출처와 시점별 지식 연결의 확장은 별도 계약이다.
+- AI application은 회차를 생략한 `replace:false` 부분 추가로 최신 관계에 적용한다. 기존 회차 이력은 유지하며 일반 후속 편집이 과거 성공 receipt를 무효화하지 않는다.
+- 성공은 동일 요청의 POST 응답과 application GET receipt로 확인한다. 초안 재조회 버전이 receipt 결과보다 낮으면 거절한다. 같으면 생성 ID의 존재를 검사한다. 더 높으면 후속 편집으로 카드·관계가 사라질 수 있으므로 현재 ID 부재로 과거 성공을 부정하지 않는다.
+- 재조회 중 새 카드 입력이나 미적용 관계 입력이 생기면 화면 설치를 거절하고 입력과 미확인 요청을 유지한다.
+- 브라우저의 application 요청 기록에는 서버 응답의 applicationId를 함께 보존한다. 완료 확인은 같은 저장소 잠금 안에서 일치하는 applicationId 기록만 정리한다. 다른 탭의 새 요청은 지우지 않는다. 이전 형식 기록은 동일 key 재시도로 receipt를 받아 식별자를 보완한다.
+- 검증: HTTP 어댑터의 6종 빈 metadata 카드 저장 왕복, DEC-47 memory 이전 후 재저장, 늦은 조회·후속 revision·다른 탭 기록 회귀 테스트. Content 격리 PostgreSQL/Neo4j 테스트는 회차 1/3/5 이력과 AI 반영·receipt 복구·원본 카드 및 확정 버전 불변성을 확인한다. 실제 실행 결과는 PR의 HEAD별 CI 기록으로 구분한다.
