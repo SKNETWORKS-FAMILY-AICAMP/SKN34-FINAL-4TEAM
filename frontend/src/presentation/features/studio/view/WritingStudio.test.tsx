@@ -15,7 +15,7 @@ const model = vi.hoisted(() => ({
   deleteBlocker: '', deleteBlockerOf: vi.fn((e: { inherited: boolean; publishedVersionId: string | null }) => e.inherited ? '원작 기준 회차는 삭제할 수 없어요.' : e.publishedVersionId ? '발행본이 있는 회차는 삭제할 수 없어요.' : ''),
   addImage: vi.fn().mockResolvedValue(true), orderLookup: null as null | { status: 'loading' } | { status: 'failed'; message: string } | { status: 'ready'; scope: { number: number; candidateNumbers: number[]; reasons: string[]; executable: false } },
   checkOrder: vi.fn(), deleteDraft: vi.fn(),
-  edit: vi.fn(), save: vi.fn(), reload: vi.fn(), deleteEpisode: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true),
+  edit: vi.fn(), save: vi.fn(), reload: vi.fn(), deleteEpisode: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true), clearNotice: vi.fn(),
   create: vi.fn().mockResolvedValue(true), select: vi.fn<(e: { number: number }) => boolean>(() => true),
   cancel: vi.fn(), loadPublicationHistory: vi.fn(), historyLoading: false, historyError: '', publicationHistory: null as null | unknown[],
   changeVisibility: vi.fn().mockResolvedValue(true),

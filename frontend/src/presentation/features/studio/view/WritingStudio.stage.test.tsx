@@ -21,7 +21,7 @@ const model = vi.hoisted(() => ({
   draft: { title: '셋째', body: '원고', revision: 1 },
   busy: false, error: '', notice: '', ready: true, dirty: false, editingLocked: false, deleteBlocker: '', deleteBlockerOf: () => '',
   orderLookup: null, historyLoading: false, historyError: '', publicationHistory: null,
-  save: vi.fn(), reload: vi.fn(), mayLeave: vi.fn(() => true), edit: vi.fn(), create: vi.fn(), select: vi.fn(() => true), cancel: vi.fn(),
+  save: vi.fn(), reload: vi.fn(), mayLeave: vi.fn(() => true), edit: vi.fn(), create: vi.fn(), select: vi.fn(() => true), cancel: vi.fn(), clearNotice: vi.fn(),
   loadPublicationHistory: vi.fn(), addImage: vi.fn(), checkOrder: vi.fn(), deleteDraft: vi.fn(), deleteEpisode: vi.fn(), changeVisibility: vi.fn(),
   restore: vi.fn(), publish: vi.fn(), revertCheckpoint: vi.fn(), aiApplied: vi.fn(),
 }))

@@ -706,7 +706,7 @@
 <tr><td>개발 환경에서만 화면 ID 표시·토글 제공 (일반 화면 테마 전환·인증 경로 제외 유지)</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
 <tr><td rowspan="1">60 설정 문서 탐색</td><td>설정 본문·속성의 다른 문서 이름을 내부 링크로 탐색</td><td>❌</td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a></td></tr>
 <tr><td rowspan="4">63 원고 편집 보조</td><td>원고 글자 수 확인</td><td>❌</td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a></td></tr>
-<tr><td>데모 집필실에서 동작별 저장 표시 제어</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/189">PR #189</a></td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/6">#6</a></td></tr>
+<tr><td>데모 집필실에서 동작별 저장 표시 제어 <small>(실서버 #416: 저장 중·실패·시각·버전 표시, 없는 회차 안내, 시트 완료 안내 초기화, 인용 Enter·빠른 End 입력 보완. 순수 단위 통과, 화면/Hook·브라우저 검증 대기)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/189">PR #189</a></td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/6">#6</a></td></tr>
 <tr><td>저장 표시 없이 AI 요청 입력을 데모 초안에 보존</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/189">PR #189</a></td></tr>
 <tr><td>원고 수정 후 재검사 전까지 설정 검사 무효 표시 유지</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/189">PR #189</a></td></tr>
 <tr><td rowspan="1">64 발행 전 검토</td><td>공개 확정 전 선택 저장 원고 미리보기 <small>(팀 공통 시트 연결, 로컬 구현·CI 대기)</small></td><td>❌</td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a></td></tr>

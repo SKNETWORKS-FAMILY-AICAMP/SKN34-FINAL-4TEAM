@@ -47,7 +47,7 @@ function Group({title,className,children}:{title:string;className?:string;childr
   return <section className={className?`writing-group ${className}`:'writing-group'} aria-labelledby={titleId}><h3 id={titleId} className="writing-group-title">{title}</h3>{children}</section>
 }
 
-/** episode는 주소의 ?ep=n이다. 들어올 때 그 회차를 열고, 목록에 없으면 첫 회차를 연다. */
+/** episode는 주소의 ?ep=n이다. 없는 번호면 회차 목록에서 직접 고른다. */
 export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   useScreenId('U13')
   useDocumentTitle('집필실')
@@ -66,6 +66,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   },[])
   const settingsButton=useRef<HTMLButtonElement>(null)
   const [settingsOpen,setSettingsOpen]=useState(false)
+  const openSettings=()=>{vm.clearNotice();setSettingsOpen(true)}
   // 삭제한 회차·초안의 버튼은 사라지거나 잠기므로 확정된 뒤에만 초점을 main으로 옮긴다.
   // 설정 시트가 닫히며 열었던 버튼으로 초점을 돌리는 정리가 먼저 끝나야 하므로 효과에서 옮긴다.
   const [focusMain,setFocusMain]=useState(0)
@@ -92,7 +93,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const followUrl=useEffectEvent((n:number)=>setQuery(q=>{const next=new URLSearchParams(q);next.set('ep',String(n));return next},{replace:true}))
   useEffect(()=>{
     if(activeNumber===undefined)return
-    if(shown.current!==undefined&&shown.current!==activeNumber)followUrl(activeNumber)
+    if((shown.current!==undefined&&shown.current!==activeNumber)||(episode!==undefined&&episode!==activeNumber))followUrl(activeNumber)
     shown.current=activeNumber
   },[activeNumber])
   // 왼쪽 레일에서 회차 목록이 차지하는 높이 비율(%). 화면 로컬 값이라 새로 열면 처음으로 돌아온다.
@@ -154,7 +155,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const [deleting,setDeleting]=useState(0)
   const deleteWhenSelected=useEffectEvent(()=>void deleteActive())
   useEffect(()=>{if(deleting&&active?.number===deleting){setDeleting(0);deleteWhenSelected()}},[deleting,active?.number])
-  const status=writingStatus({ready:vm.ready,busy:vm.busy,error:vm.error,dirty:vm.dirty,active:!!active,hasDraft:active?.hasDraft!==false,inherited:active?.inherited??false})
+  const status=writingStatus({ready:vm.ready,busy:vm.busy,error:vm.error,dirty:vm.dirty,active:!!active,hasDraft:active?.hasDraft!==false,inherited:active?.inherited??false,saving:vm.saving,saveError:vm.saveError,savedAt:active?.updatedAt,version:active?.versions.length})
   const openVersions=()=>{setRights(false);setHistoryView('versions');setVersionsOpen(true)}
   const openSettingHistory=()=>{setHistoryView('settings');setVersionsOpen(true)}
   const openPublication=(episode:number|null=null)=>{setHistoryEpisode(episode);setHistoryView('publication');setVersionsOpen(true);void vm.loadPublicationHistory()}
@@ -190,7 +191,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
       </div>
     </header>
     {vm.error&&<div className="ep-alert" role="alert">{vm.error} {active&&'저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.'} {active&&!active.inherited&&vm.dirty&&<button type="button" className="btn sm" disabled={vm.busy} onClick={vm.retrySave}>저장 다시 시도</button>}</div>}
-    <main ref={main} id="main" tabIndex={-1} className="studio-workspace">{!vm.ready?<p className="writing-message">회차를 불러오고 있어요…</p>:vm.error&&!active?null:<>
+    <main ref={main} id="main" tabIndex={-1} className="studio-workspace">{!vm.ready?<p className="writing-message">회차를 불러오고 있어요…</p>:vm.error&&!active&&!vm.episodes.length?null:<>
     <div className="sgrid writing-grid">
       <div className="writing-rail">
         <div className="writing-rail-head">
@@ -210,7 +211,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
                 </button>
                 {/* 항목마다 그 회차를 대상으로 하는 메뉴. 회차를 먼저 고른 뒤 기존 시트·삭제 흐름을 그대로 쓴다. */}
                 <PopMenu className="writing-episode-more" label={`${e.number}화 더보기`} icon={<MoreVerticalIcon />}>
-                  <button type="button" role="menuitem" disabled={vm.busy} onClick={()=>{if(pick(e))setSettingsOpen(true)}}>회차 설정</button>
+                  <button type="button" role="menuitem" disabled={vm.busy} onClick={()=>{if(pick(e))openSettings()}}>회차 설정</button>
                   <button type="button" role="menuitem" disabled={vm.busy||!e.checkpoints.length} onClick={()=>{if(pick(e))openVersions()}}>체크포인트</button>
                   {/* 설정 수집 기능은 아직 없다: 가짜 동작 없이 준비 중으로 잠근다. */}
                   <button type="button" role="menuitem" disabled>설정 수집 <small>준비 중</small></button>
@@ -255,10 +256,10 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
             <p className="small muted">{bodyLength(vm.draft.body).toLocaleString('ko-KR')} / {BODY_MAX.toLocaleString('ko-KR')}자{!active.inherited&&` · ${publishHint(vm.draft.body)}`} · {active.inherited?'원작 기준 버전을 보존한 원고예요.':'입력을 멈추면 2초 후 초안만 저장해요. 버전 저장과 공개는 각각 선택하세요.'}</p>
             <div className="writing-foot-actions">
               {vm.busy&&<button type="button" className="btn sm" onClick={vm.cancel}>진행 중 요청 취소</button>}
-              <button ref={settingsButton} type="button" className="btn sm" aria-haspopup="dialog" onClick={()=>setSettingsOpen(true)}>회차 설정</button>
+              <button ref={settingsButton} type="button" className="btn sm" aria-haspopup="dialog" onClick={openSettings}>회차 설정</button>
             </div>
           </footer>
-        </>:<p>회차가 없어요. 회차 목록의 새 회차 버튼으로 첫 회차를 만들어 이야기를 시작해 보세요.</p>}
+        </>:<p>{vm.episodes.length?'회차 목록에서 집필할 회차를 선택해 주세요.':'회차가 없어요. 회차 목록의 새 회차 버튼으로 첫 회차를 만들어 이야기를 시작해 보세요.'}</p>}
       </div>
     </div>
     {/* 집필실 안의 집필 AI 채팅(#331). 인물 시뮬레이션 장면은 채팅에 상태 한 줄만 보이고 무대 열기가 무대를 연다. */}

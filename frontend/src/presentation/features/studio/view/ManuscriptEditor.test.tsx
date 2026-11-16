@@ -69,6 +69,24 @@ const status = () => screen.getByRole('status')
 const end = () => act(() => { toast().moveCursorToEnd(false) })
 const type = (text: string) => act(() => { toast().insertText(text) })
 const select = (from: [number, number], to = from) => act(() => { toast().setSelection(from, to) })
+
+it('인용 줄 Enter는 인용 기호 없이 일반 문단으로 이동하고 공백을 보존한다', () => {
+  render(draw(<Harness initial="> 인용  뒤" />))
+  select([1, 5])
+  fireEvent.keyDown(surface(), { key: 'Enter', code: 'Enter' })
+  expect(toast().getMarkdown()).toBe('> 인용\n  뒤')
+})
+
+it('서식 직후 End와 Enter를 연속 입력해도 원래 줄을 지우지 않는다', () => {
+  render(draw(<Harness initial="남아야 하는 문장" />))
+  select([1, 1], [1, 11])
+  act(() => {
+    toast().exec('blockQuote')
+    fireEvent.keyDown(surface(), { key: 'End', code: 'End' })
+    fireEvent.keyDown(surface(), { key: 'Enter', code: 'Enter' })
+  })
+  expect(toast().getMarkdown()).toBe('> 남아야 하는 문장\n')
+})
 const png = () => new File(['png'], '본문.png', { type: 'image/png' })
 
 type HarnessProps = {

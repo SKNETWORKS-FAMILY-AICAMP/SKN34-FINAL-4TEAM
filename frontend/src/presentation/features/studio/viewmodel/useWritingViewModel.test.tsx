@@ -115,6 +115,39 @@ it.each([
 const row=(number:number,patch:Record<string,unknown>={})=>({number,draft:{title:`${number}화`,body:'기존',revision:4},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[],...patch})
 const deletionApi=(rows:ReturnType<typeof row>[])=>({setPublicationVisibility:vi.fn(),history:vi.fn(),writingList:vi.fn().mockResolvedValue(rows),createEpisode:vi.fn(),writeEpisode:vi.fn(),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn().mockResolvedValue(undefined),deleteEpisode:vi.fn().mockResolvedValue(undefined)})
 
+it('없는 회차 주소는 다른 원고를 열지 않고 목록에서 선택하게 한다',async()=>{
+  const api=deletionApi([row(1),row(2)])
+  const {result}=renderHook(()=>useWritingViewModel('w',api,undefined,9))
+  await act(async()=>{})
+  expect(result.current.active).toBeNull()
+  expect(result.current.error).toContain('요청한 회차가 없어요')
+  act(()=>{result.current.select(result.current.episodes[1])})
+  expect(result.current.active?.number).toBe(2)
+  expect(result.current.error).toBe('')
+})
+
+it('자동 저장 진행과 네트워크 실패를 표시하고 새 시트에서 옛 완료 안내를 비운다',async()=>{
+  vi.useFakeTimers()
+  const episode=row(1)
+  const api=deletionApi([episode])
+  let fail:(e:Error)=>void=()=>{}
+  api.writeEpisode.mockImplementationOnce(()=>new Promise((_resolve,reject)=>{fail=reject})).mockResolvedValue({...episode,updatedAt:'2026-11-16T06:00:00Z'})
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'입력'}))
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  expect(result.current.saving).toBe(true)
+  await act(async()=>{fail(new TypeError('Failed to fetch'))})
+  expect(result.current.saving).toBe(false)
+  expect(result.current.saveError).toContain('서버에 연결하지 못했어요')
+  expect(result.current.draft.body).toBe('입력')
+  await act(async()=>{await result.current.save()})
+  expect(result.current.saveError).toBe('')
+  expect(result.current.notice).not.toBe('')
+  act(()=>result.current.clearNotice())
+  expect(result.current.notice).toBe('')
+})
+
 it.each(['edit','retry'] as const)('자동 저장 실패 후 %s로 초안만 다시 저장한다',async action=>{
   vi.useFakeTimers()
   const episode=row(1)
@@ -393,7 +426,7 @@ it('autosaves note-only edits and preserves notes typed while saving', async () 
   expect(result.current.dirty).toBe(true)
 })
 
-it('opens the episode named by the entry number once and falls back to the first episode when it is missing', async () => {
+it('opens the episode named by the entry number once and leaves a missing episode unselected', async () => {
   const first={number:1,draft:{title:'1화',body:'첫 원고',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[]}
   const second={...first,number:2,draft:{title:'2화',body:'둘째 원고',revision:3}}
   const api={setPublicationVisibility:vi.fn(),history:vi.fn(),writingList:vi.fn().mockResolvedValue([first,second]),createEpisode:vi.fn(),writeEpisode:vi.fn(),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn(),deleteEpisode:vi.fn()}
@@ -408,7 +441,7 @@ it('opens the episode named by the entry number once and falls back to the first
   expect(named.result.current.active?.number).toBe(1)
   const missing=renderHook(()=>useWritingViewModel('w',api,undefined,9))
   await act(async()=>{})
-  expect(missing.result.current.active?.number).toBe(1)
+  expect(missing.result.current.active).toBeNull()
   const plain=renderHook(()=>useWritingViewModel('w',api))
   await act(async()=>{})
   expect(plain.result.current.active?.number).toBe(1)

@@ -18,4 +18,13 @@ describe('집필 상태', () => {
     expect(writingStatus({ ...base, active: false })).toBe('회차를 만들어 주세요')
     expect(writingStatus({ ...base, ready: false })).toBe('회차를 불러오는 중…')
   })
+  it('자동·수동 저장 진행과 저장 실패를 일반 요청 상태와 구분한다', () => {
+    expect(writingStatus({ ...base, saving: true, dirty: true })).toBe('저장 중…')
+    expect(writingStatus({ ...base, saveError: '연결 실패', dirty: true })).toBe('저장 실패 · 입력은 화면에 남아 있어요')
+  })
+  it('서버 저장 시각과 버전 번호를 표시하고 미저장 입력을 성공으로 표시하지 않는다', () => {
+    const savedAt = '2026-11-16T06:00:00Z'
+    expect(writingStatus({ ...base, savedAt, version: 3 })).toBe(`저장됨(${new Date(savedAt).toLocaleTimeString('ko-KR')}) · 버전 3`)
+    expect(writingStatus({ ...base, savedAt, version: 3, dirty: true })).toBe('저장되지 않은 변경')
+  })
 })

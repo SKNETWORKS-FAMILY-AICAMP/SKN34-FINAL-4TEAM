@@ -11,7 +11,7 @@ const model = vi.hoisted(() => ({
   active: { number: 3, draft: { title: '셋째', body: '원고', revision: 1 }, versions: [], inherited: false, hasDraft: true },
   episodes: [], draft: { title: '셋째', body: '원고', revision: 1 },
   busy: false, error: '', notice: '', ready: true, dirty: false, editingLocked: false,
-  save: vi.fn(), reload: vi.fn(), mayLeave: vi.fn(() => true),
+  save: vi.fn(), reload: vi.fn(), mayLeave: vi.fn(() => true), clearNotice: vi.fn(),
 }))
 vi.mock('../viewmodel/useWritingViewModel', () => ({ useWritingViewModel: () => model }))
 vi.mock('../../../shared/screenIds', () => ({ useScreenId: () => {} }))
