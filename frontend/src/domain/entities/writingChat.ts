@@ -2,7 +2,15 @@ import { sceneSummary, type CharacterSimulation, type SimulationStart } from './
 import type { WritingEpisode } from './content'
 
 /** 집필 AI 채팅(#331). 대화 원본은 AI 서비스의 LangGraph 체크포인터이며 화면은 Content API로만 읽고 쓴다. */
-export type ChatFeature = 'story_context' | 'writing_editing' | 'web_research' | 'character_simulation' | (string & {})
+export type ChatFeature = 'story_context' | 'writing_editing' | 'web_research' | 'character_simulation' | 'review' | (string & {})
+export type ReviewCheck = 'mechanical' | 'semantic'
+/** 원고 검수 지적 하나. 위치는 초안 본문의 UTF-16 [start,end)이고 같은 구절이 여러 곳이면 null이다(AI가 추측하지 않는다). */
+export type ReviewFinding = {
+  category: string; quote: string; reason: string; status: 'confirmed' | 'suspected' | 'undeterminable'
+  evidenceRefs: string[]; suggestion: string; start: number | null; end: number | null
+}
+/** 원고 검수(#59) 단계의 검증된 결과. 검수한 초안의 회차·판본과 확인하지 못한 부분(gaps)을 함께 둔다. */
+export type ChatReview = { check: ReviewCheck; episode: number; revision: number; findings: ReviewFinding[]; gaps: string[] }
 export type ChatStepResult = {
   claims?: { text: string }[]
   gaps?: string[]
@@ -17,6 +25,8 @@ export type ChatStep = {
   result?: ChatStepResult | null
   /** character_simulation 단계의 검증된 결과(#58). 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
   simulation?: CharacterSimulation | null
+  /** review 단계의 검증된 결과. 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
+  review?: ChatReview | null
   error?: string | null
   approval?: 'approved' | 'declined' | null
   applied?: { episode: number; revision: number } | null
@@ -51,6 +61,7 @@ export type ChatBasis = { episode: number; episodeVersionId: string; targetEpiso
 /** 입력 대기에서 작가가 채우는 단계 입력. 이름은 AI StepInputs 계약과 같다. */
 export type ChatStepInputs = {
   web_research?: { question: string }
+  review?: { check: ReviewCheck }
   writing_editing?: { draft: { episodeNumber: number; plan: string } } | { patch: { selection: string; instruction: string } }
 }
 /** 시뮬레이션 무대에서 작가가 장면에 거는 조작(AI `Resume.scene`, Content `WritingAiResume.scene`을 그대로 통과한다). */
@@ -91,7 +102,22 @@ export function cleanScene(scene: SceneAction): SceneAction {
   }
 }
 
-export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '집필·수정', web_research: '고증 조사', character_simulation: '인물 시뮬레이션' }
+export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '집필·수정', web_research: '고증 조사', character_simulation: '인물 시뮬레이션', review: '원고 검수' }
+export const reviewCheckLabel: Record<ReviewCheck, string> = { mechanical: '맞춤법·표기', semantic: '설정·개연성' }
+const reviewStatus: Record<ReviewFinding['status'], string> = { confirmed: '확정', suspected: '의심', undeterminable: '판단 불가' }
+const reviewCategory: Record<string, string> = {
+  number: '수치', name: '이름', date: '날짜', repetition: '중복 표현', spelling: '맞춤법',
+  setting: '설정 충돌', knowledge: '인물 지식', emotion: '감정 변화', causality: '인과관계', foreshadowing: '복선',
+}
+
+function reviewText({ check, episode, findings, gaps }: ChatReview): string {
+  const title = `${episode}화 초안 ${reviewCheckLabel[check]} 검수`
+  if (!findings.length && !gaps.length) return `${title}: 찾은 문제가 없어요.`
+  return [title, ...findings.map((f) => [
+    `${reviewStatus[f.status]} · ${reviewCategory[f.category] ?? f.category} · "${f.quote}"${f.start === null ? ' (여러 곳)' : ''}`,
+    `이유: ${f.reason}`, ...(f.suggestion ? [`제안: ${f.suggestion}`] : []),
+  ].join('\n')), ...gaps.map((g) => `확인 못 함: ${g}`)].join('\n\n')
+}
 
 /**
  * 근거 회차(지식 상한, 발행된 판본 필요)와 반영 회차(targetEpisode, 작가가 연 회차)를 나눠 고른다.
@@ -113,6 +139,7 @@ const researchVerdict: Record<string, string> = { confirmed: '확인됨', confli
 export function stepText(step: ChatStep): string {
   if (step.status === 'failed') return `실패: ${step.error ?? '작업을 완료하지 못했어요.'}`
   if (step.simulation) return sceneSummary(step.simulation)
+  if (step.review) return reviewText(step.review)
   const r = step.result
   if (step.status !== 'completed' || !r) return ''
   if (r.claims) return [...r.claims.map((c) => c.text), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '근거를 찾지 못했어요.'

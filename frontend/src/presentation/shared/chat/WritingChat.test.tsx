@@ -188,6 +188,20 @@ it('집필 입력 대기는 근거 회차가 아니라 열린(반영) 회차의 
   })
 })
 
+it('원고 검수 입력 대기는 검수 종류를 골라야 이어서 실행하고, 고른 종류를 단계 입력으로 보낸다', async () => {
+  openThread([{ request: '검수해 줘', reply: { status: 'waiting', steps: [], missingInputs: ['review'], awaitingApproval: null } }])
+  send.mockResolvedValue(undefined)
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  const form = (await screen.findByRole('heading', { name: '작업에 필요한 내용을 알려 주세요' })).closest('form') as HTMLElement
+  expect(within(form).getByRole('group', { name: '검수 종류 · 2화 초안' })).toBeTruthy()
+  expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
+  fireEvent.click(within(form).getByRole('radio', { name: /설정·개연성/ }))
+  fireEvent.click(screen.getByRole('checkbox'))
+  fireEvent.click(within(form).getByRole('button', { name: '이어서 실행' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true, inputs: { review: { check: 'semantic' } } } })
+})
+
 it('빈 대화에는 IF·흐름 시뮬레이션 예시를 추천 칩으로 보이고 누르면 입력창에 글만 채운다', async () => {
   sessions.mockResolvedValue([])
   renderChat()

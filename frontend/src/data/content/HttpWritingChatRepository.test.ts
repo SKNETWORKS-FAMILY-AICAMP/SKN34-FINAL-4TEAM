@@ -257,3 +257,36 @@ describe('시뮬레이션 무대(#58) 응답·요청', () => {
       .toMatchObject({ resume: { approved: true, scene: { action: 'edit', turn: 1, text: '"열어라."' } } })
   })
 })
+
+describe('원고 검수 단계 결과(#59)', () => {
+  const finding = (extra: Record<string, unknown> = {}) => ({
+    category: 'spelling', quote: '웃엇다', reason: '받침 오류', status: 'confirmed', evidenceRefs: [], suggestion: '웃었다', start: 3, end: 6, ...extra,
+  })
+  const review = (extra: Record<string, unknown> = {}) => ({
+    workId: 'w1', episode: 3, revision: 4, check: 'mechanical', findings: [finding()], gaps: [], model: 'm', providerResponseId: 'r', usage: null, ...extra,
+  })
+  const done = 'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'
+  const run = async (step: unknown) => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(`event: step\ndata: ${JSON.stringify(step)}\n\n`, done))).send('w1', 't1', input, (e) => events.push(e))
+    return events.flatMap((e) => (e.type === 'step' ? [e.step] : []))[0]
+  }
+
+  it('지적의 위치·이유·상태와 위치를 정하지 못한 지적(null)을 그대로 읽는다', async () => {
+    const step = await run({ feature: 'review', status: 'completed', result: review({ findings: [finding(), finding({ start: null, end: null, status: 'suspected' })] }) })
+    expect(step.review).toEqual({ check: 'mechanical', episode: 3, revision: 4, gaps: [],
+      findings: [finding(), finding({ start: null, end: null, status: 'suspected' })] })
+    expect(step.result).toBeUndefined()
+  })
+
+  it.each([
+    ['상태가 계약에 없다', review({ findings: [finding({ status: 'maybe' })] })],
+    ['구절이 없다', review({ findings: [finding({ quote: undefined })] })],
+    ['검사 종류가 계약에 없다', review({ check: 'style' })],
+    ['결과가 객체가 아니다', '문제 없음'],
+  ])('형식이 어긋난 결과(%s)는 가짜 지적 없이 단계 실패로 알린다', async (_name, result) => {
+    const step = await run({ feature: 'review', status: 'completed', result })
+    expect(step).toMatchObject({ status: 'failed', error: '원고 검수 결과 형식을 확인할 수 없어요.' })
+    expect(step.review).toBeUndefined()
+  })
+})

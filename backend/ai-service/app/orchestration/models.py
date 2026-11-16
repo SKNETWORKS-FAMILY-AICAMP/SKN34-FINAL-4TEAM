@@ -9,6 +9,7 @@ from app.intent.models import Feature
 from app.manuscript.models import AnswerRequest, AnswerResponse, Excerpt
 from app.research.models import ResearchRequest, ResearchResponse
 from app.retrieval.models import Coverage, RetrievalScope
+from app.review.models import Check, ReviewResponse
 from app.simulation.models import SceneAction, SimulationPlan, SimulationResult
 from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse
 
@@ -26,6 +27,12 @@ class WritingInput(BaseModel):
         return self
 
 
+class ReviewInput(BaseModel):
+    """원고 검수의 검사 종류. 대상 초안은 Content가 확인한 반영 대상(target) 회차라 입력으로 받지 않는다."""
+    model_config = ConfigDict(extra='forbid')
+    check: Check
+
+
 class StepInputs(BaseModel):
     """구현된 업무 Agent별 입력. 선행 결과 전달 연결이 없어 각 단계는 자기 입력으로만 실행한다.
 
@@ -35,6 +42,7 @@ class StepInputs(BaseModel):
     story_context: AnswerRequest | None = None
     writing_editing: WritingInput | None = None
     web_research: ResearchRequest | None = None
+    review: ReviewInput | None = None
 
 
 class Conversation(BaseModel):
@@ -112,7 +120,7 @@ class StepResult(BaseModel):
     feature: Feature
     when: Literal['always', 'if_issues_found']
     status: Literal['completed', 'failed', 'not_started']  # 끝까지 가지 못한 시뮬레이션 장면은 부분 result와 함께 failed다
-    result: QaStepResult | DraftResponse | PatchResponse | ResearchResponse | SimulationResult | None = None
+    result: QaStepResult | DraftResponse | PatchResponse | ResearchResponse | SimulationResult | ReviewResponse | None = None
     error: str | None = None
     approval: Literal['approved', 'declined'] | None = None  # Writing 결과·시뮬레이션 장면 반영에 대한 작가의 답
     applied: AppliedDraft | None = None
