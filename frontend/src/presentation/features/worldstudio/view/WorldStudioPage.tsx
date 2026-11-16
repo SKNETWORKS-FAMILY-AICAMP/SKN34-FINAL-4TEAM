@@ -43,7 +43,7 @@ const themes: Theme[] = ['hanji', 'star', 'neon']
 
 /**
  * 세계관 관리·작성 화면. 두 화면이다.
- * - **설정집 화면**(기본): `/content` 작품 관리와 같은 틀 — 공용 상단바 아래 서재로 돌아가는 링크, 공개 세계관 상세와 같은 모양의 헤더(표지·이름·칩·소개), 보기 전환 줄(설정집·인물 관계도·시간선, 주소 `?view=`)과
+ * - **설정집 화면**(기본): `/content` 작품 관리와 같은 틀 — 공용 상단바 아래 서재로 돌아가는 링크, 공개 세계관 상세와 같은 모양의 헤더(표지·이름·칩·소개), 보기 전환 줄(설정집·관계도·시간선, 주소 `?view=`)과
  *   오른쪽의 `AI 후보 검토 (대기 N)`(시트)·상시 저장 영역, 그 아래 설정집 게시판. 만든 직후(`?new=1`)는 작성 모드(보기 줄 없이 기본 정보 → 설정 카드 → 관계 연결 → 검토·저장 4단계 마법사)다.
  * - **편집 화면**(`?card=<id>`): 설정 카드를 열면 집필실과 같은 3단 화면(`WorldCardStudio`: 카드 목록·버전 그래프 레일 / 편집기 / AI 채팅)이 이 화면을 대신하고, `← 설정집`·뒤로가기로 돌아온다.
  * 설정집 화면은 편집 화면 뒤에서 지우지 않고 숨겨 두어 필터·적용하지 않은 관계 입력·후보 검토 상태를 지킨다. 주소 `/worldstudio`(세계관 없음)에서만 새 세계관 만들기 화면을 그린다.
@@ -186,14 +186,14 @@ function WorldPublish({ vm }: { vm: VM }) {
 
 /**
  * 작성 모드(세계관을 처음 만든 직후, 주소 `?new=1`)는 보기 줄 없이 기본 정보부터 4단계 마법사다. 그 밖의 모든 진입은 관리 모드로, `/content` 작품 관리처럼
- * 헤더 아래 보기 전환 줄(설정집·인물 관계도·시간선, 주소 `?view=`)로 화면을 바꾸고 줄 오른쪽에 `AI 후보 검토 (대기 N)`(시트)·`집필 메모 추가`·`확정 버전 남기기`와 상시 저장 영역을 둔다(이름·설명·공개·표지는 헤더 편집 패널).
+ * 헤더 아래 보기 전환 줄(설정집·관계도·시간선, 주소 `?view=`)로 화면을 바꾸고 줄 오른쪽에 `AI 후보 검토 (대기 N)`(시트)·`집필 메모 추가`·`확정 버전 남기기`와 상시 저장 영역을 둔다(이름·설명·공개·표지는 헤더 편집 패널).
  * 확정 버전은 편집 화면의 버전 그래프에서 남기고 본다. 시간선은 저장한 설정의 사건만 보인다.
  */
 function WorldEditor({ vm, world, revisions, openVersions }: { vm: VM; world: StudioWorld; revisions: ReturnType<typeof useWorldRevisions>; openVersions: () => void }) {
   const heading = useRef<HTMLHeadingElement>(null)
   const [infoOpen, setInfoOpen] = useState(false)
   const manage = vm.mode === 'manage'
-  // 작성 모드는 마법사 단계이고, 관리 모드는 보기가 곧 화면이라 설정집·시간선이면 설정 카드, 인물 관계도이면 관계 화면이다.
+  // 작성 모드는 마법사 단계이고, 관리 모드는 보기가 곧 화면이라 설정집·시간선이면 설정 카드, 관계도이면 관계 화면이다.
   const step: StudioStep = manage ? (vm.view === 'people' ? 'relations' : 'cards') : vm.flow.step
   const timeline = manage && vm.view === 'timeline'
   const current = steps.findIndex(([id]) => id === step)

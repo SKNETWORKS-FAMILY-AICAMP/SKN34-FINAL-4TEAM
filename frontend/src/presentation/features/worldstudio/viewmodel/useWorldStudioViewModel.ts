@@ -125,11 +125,11 @@ export function useWorldStudioViewModel(
     setRelationRequest(null)
     returnCard.current = ''
   }, [editingId])
-  // 주소만으로 인물 관계도 보기를 열어도(새로고침·공유) 관계 편집기가 마운트되게 한다. 한 번 열린 편집기는 보기를 옮겨도 남아 적용하지 않은 입력을 지킨다.
+  // 주소만으로 관계도 보기를 열어도(새로고침·공유) 관계 편집기가 마운트되게 한다. 한 번 열린 편집기는 보기를 옮겨도 남아 적용하지 않은 입력을 지킨다.
   useEffect(() => {
     if (mode === 'manage' && view === 'people' && editingId) setRelationWorld(editingId)
   }, [mode, view, editingId])
-  /** 작성 모드는 단계를 옮기고, 관리 모드는 그 단계에 해당하는 보기(설정 카드 → 설정집, 관계 연결 → 인물 관계도)로 옮긴다. 열려 있던 편집 화면은 닫는다. */
+  /** 작성 모드는 단계를 옮기고, 관리 모드는 그 단계에 해당하는 보기(설정 카드 → 설정집, 관계 연결 → 관계도)로 옮긴다. 열려 있던 편집 화면은 닫는다. */
   const goStep = (step: StudioStep) => {
     dispatchFlow({ type: 'step', step })
     if (step === 'relations' && editing) setRelationWorld(editing.id)
@@ -284,7 +284,7 @@ export function useWorldStudioViewModel(
     /** 방금 지운 카드(되돌릴 수 있는 동안). 이름·인물 여부로 되돌리기 안내를 만든다. */
     deletedCard: cardUndo ? { id: cardUndo.id, title: cardUndo.title, person: cardUndo.person } : null,
     flow,
-    /** 설정집 화면(게시판)의 보기(주소 `?view=`): 설정집·인물 관계도·시간선. 작성 모드는 보기가 없다. */
+    /** 설정집 화면(게시판)의 보기(주소 `?view=`): 설정집·관계도·시간선. 작성 모드는 보기가 없다. */
     view,
     setView,
     /** AI 후보 검토 시트가 열려 있는지(옛 `?tab=analysis` 주소도 이걸 연다). */

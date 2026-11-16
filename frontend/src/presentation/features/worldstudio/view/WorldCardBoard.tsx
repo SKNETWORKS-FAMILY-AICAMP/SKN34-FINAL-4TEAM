@@ -18,7 +18,7 @@ type VM = ReturnType<typeof useWorldStudioViewModel>
 /**
  * 게시판 한 줄. 제목 버튼이 편집 화면을 여는 주 컨트롤이다(줄 전체를 누르게 하지 않는다). 제목 옆 `[n]`은 공개 설정집과 같은 관계·연결 수다.
  * 맨 앞 체크박스는 공개 범위를 한 번에 바꿀 카드를 고르고, `공개` 칸은 그 카드의 공개 범위다. 다른 세계관에서 가져온 카드는 `가져옴`과 출처를 제목 아래에 보인다.
- * 인물 문서(IDENTITY.md·SOUL.md·MEMORY.md) 가운데 비어 있는 것이 있는 인물은 `정리 필요`를 붙여 알린다. 알리기만 하고 이 표시 때문에 저장·확정이 막히지는 않는다.
+ * 인물 문서(IDENTITY.md·SOUL.md·GOAL.md) 가운데 비어 있는 것이 있는 인물은 `정리 필요`를 붙여 알린다. 알리기만 하고 이 표시 때문에 저장·확정이 막히지는 않는다.
  * 본문이 좁으면 번호·분류·요약·연결 칸이 숨는다(world-studio.css의 컨테이너 규칙). 그때 분류와 요약을 잃지 않도록 제목 아래 한 줄(`.world-row-sub`)에도 두고, 넓은 본문에서는 CSS가 그 줄을 숨긴다.
  */
 function Row({ row, setting, picked, onPick, onOpen }: { row: BoardRow; setting?: StudioSetting; picked: boolean; onPick: (id: string, on: boolean) => void; onOpen: (id: string) => void }) {

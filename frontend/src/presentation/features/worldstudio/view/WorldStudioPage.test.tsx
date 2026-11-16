@@ -170,8 +170,8 @@ it('보기 전환 줄은 현재 보기를 aria-current로 알리고 보기를 �
   expect(current()).toEqual(['설정집'])
   fireEvent.click(manageTabs().getByRole('button', { name: '시간선' }))
   expect(current()).toEqual(['시간선'])
-  fireEvent.click(manageTabs().getByRole('button', { name: '인물 관계도' }))
-  expect(current()).toEqual(['인물 관계도'])
+  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
+  expect(current()).toEqual(['관계도'])
 })
 
 it('세계관 작업실은 h1 하나와 건너뛰기 링크가 닿는 main을 가진다', async () => {
@@ -210,13 +210,13 @@ it('관리 헤더는 저장한 세계관의 소개와 설정 수·저장 버전�
   expect(header.getByText('설명')).toBeTruthy()
 })
 
-it('관리 보기 전환 줄이 한 줄로 있고(설정집·인물 관계도·시간선) 보기를 옮기면 그 화면으로 바뀐다', async () => {
+it('관리 보기 전환 줄이 한 줄로 있고(설정집·관계도·시간선) 보기를 옮기면 그 화면으로 바뀐다', async () => {
   await showWorld()
-  expect(manageTabs().getAllByRole('button').map((b) => b.textContent)).toEqual(['설정집', '인물 관계도', '시간선'])
+  expect(manageTabs().getAllByRole('button').map((b) => b.textContent)).toEqual(['설정집', '관계도', '시간선'])
   for (const gone of ['세계관 탐색', 'AI 후보 검토', '확정 버전']) expect(manageTabs().queryByRole('button', { name: gone }), gone).toBeNull() // 탐색은 헤더의 공개 화면 보기, 후보 검토는 시트, 확정 버전은 편집 화면의 버전 그래프로 옮겼다
   expect(screen.getByRole('button', { name: 'AI 후보 검토 (대기 0)' })).toBeTruthy()
   expect(manageTabs().getByRole('button', { name: '설정집' }).getAttribute('aria-current')).toBe('page')
-  fireEvent.click(manageTabs().getByRole('button', { name: '인물 관계도' }))
+  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
   expect(screen.getByText('아직 연결한 관계가 없어요.')).toBeTruthy()
   expect(screen.queryByRole('table', { name: '설정 카드 목록' })).toBeNull()
   fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
@@ -403,8 +403,8 @@ it('유형과 관계없이 카드를 지울 수 있다: 이어진 관계 수를 
   expect(where()).toBe('/worldstudio/qa')
   expect(saveBar().getByText('저장하지 않은 변경 있음')).toBeTruthy()
   await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('searchbox', { name: '설정 검색' }))) // 행이 없어졌으니 목록의 첫 컨트롤로
-  fireEvent.click(manageTabs().getByRole('button', { name: '인물 관계도' }))
-  expect(screen.queryByRole('button', { name: /삭제 되돌리기/ })).toBeNull() // 인물 관계도의 되돌리기는 인물 삭제만(관계 주체 선택지에 없는 유형을 고르지 않는다)
+  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
+  expect(screen.queryByRole('button', { name: /삭제 되돌리기/ })).toBeNull() // 관계도의 되돌리기는 인물 삭제만(관계 주체 선택지에 없는 유형을 고르지 않는다)
   fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
   fireEvent.click(screen.getByRole('button', { name: '되돌리기' }))
   expect(table().getByRole('button', { name: '항구 장소' })).toBeTruthy()
@@ -439,10 +439,10 @@ it('레일의 ⋮ 메뉴 삭제는 그 카드를 열어 같은 삭제 확인을 
   expect(screen.queryByRole('region', { name: '설정 삭제 확인' })).toBeNull()
 })
 
-it('인물 관계도 보기의 인물 삭제도 같은 삭제 흐름이다: 관계와 함께 지우고 되돌릴 수 있다', async () => {
+it('관계도 보기의 인물 삭제도 같은 삭제 흐름이다: 관계와 함께 지우고 되돌릴 수 있다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   await show(friends([garam, narae], garam, narae))
-  fireEvent.click(manageTabs().getByRole('button', { name: '인물 관계도' }))
+  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
   fireEvent.change(screen.getByRole('combobox', { name: '관계 주체' }), { target: { value: garam.item.id } })
   fireEvent.click(screen.getByRole('button', { name: '선택한 인물 삭제' }))
   expect(screen.getByRole('region', { name: '인물 삭제 확인' }).textContent).toContain('인물과 연결된 관계·감정 1개를 편집본에서 삭제해요')
@@ -458,7 +458,7 @@ it('인물 관계도 보기의 인물 삭제도 같은 삭제 흐름이다: 관�
 
 it('집필 메모 추가는 보기 전환 줄의 AI 후보 검토 옆에 있어 어느 보기에서든 새 메모의 편집 화면을 열고 돌아오면 그 보기다', async () => {
   await showWorld()
-  fireEvent.click(manageTabs().getByRole('button', { name: '인물 관계도' }))
+  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
   const memo = screen.getByRole('button', { name: '집필 메모 추가' })
   expect(memo.previousElementSibling).toBe(screen.getByRole('button', { name: /^AI 후보 검토/ })) // 관리 모드에서는 헤더가 아니라 보기 전환 줄이다
   expect(headerOf().queryByRole('button', { name: '집필 메모 추가' })).toBeNull()
@@ -467,7 +467,7 @@ it('집필 메모 추가는 보기 전환 줄의 AI 후보 검토 옆에 있어 
   expect(editor().getByRole('textbox', { name: '설정 이름' })).toBeTruthy()
   backToBoard()
   expect(where()).toBe('/worldstudio/qa?view=people')
-  expect(manageTabs().getByRole('button', { name: '인물 관계도' }).getAttribute('aria-current')).toBe('page')
+  expect(manageTabs().getByRole('button', { name: '관계도' }).getAttribute('aria-current')).toBe('page')
 })
 
 it('작성 모드에는 보기 전환 줄이 없어 집필 메모 추가가 헤더 행동 줄에 남는다', async () => {
@@ -548,7 +548,7 @@ it('확정 버전 남기기는 그래프 머리의 버튼이 같은 시트를 �
   expect(graph().getByText(/목업에서는 확정 버전을 지원하지 않아요/)).toBeTruthy()
 })
 
-// ── 보기 전환(설정집·인물 관계도·시간선)과 지워진 탭의 옛 주소 ──────────────────────────────────────
+// ── 보기 전환(설정집·관계도·시간선)과 지워진 탭의 옛 주소 ──────────────────────────────────────
 it('시간선은 설정집 화면의 보기 전환이고(?view=timeline) 저장한 설정의 사건만 기존 시간선으로 보인다', async () => {
   await show([person('가람'), eventCard('건국')])
   fireEvent.click(manageTabs().getByRole('button', { name: '시간선' }))
@@ -626,7 +626,7 @@ it('관계 연결 단계에서 그래프 카드를 차례로 두 번 누르면 �
   vi.stubGlobal('PointerEvent', MouseEvent)
   const [garam, narae] = [person('가람'), person('나래')]
   await show([garam, narae, person('다온')])
-  fireEvent.click(manageTabs().getByRole('button', { name: '인물 관계도' }))
+  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
   const press = (name: string) => {
     const card = screen.getByRole('group', { name })
     fireEvent.pointerDown(card, { clientX: 20, clientY: 20 })
@@ -642,14 +642,14 @@ it('관계 연결 단계에서 그래프 카드를 차례로 두 번 누르면 �
   expect(screen.queryByText(/연결 상대를 고르세요/)).toBeNull()
 })
 
-// ── 관계 기준 회차(DEC-51): 인물 관계도 보기·작성 모드 관계 연결 단계에서 고른다 ───────────────────────
+// ── 관계 기준 회차(DEC-51): 관계도 보기·작성 모드 관계 연결 단계에서 고른다 ───────────────────────
 const episodePicker = () => within(screen.getByRole('region', { name: '관계 기준 회차' }))
-it('인물 관계도 보기에서 회차를 고르면 그 회차로 다시 읽고, 회차 칸은 다시 열리지 않으며 요청이 끝나면 입력 칸으로 초점이 돌아온다', async () => {
+it('관계도 보기에서 회차를 고르면 그 회차로 다시 읽고, 회차 칸은 다시 열리지 않으며 요청이 끝나면 입력 칸으로 초점이 돌아온다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   const at = (episode?: number): StudioWorld => ({ id: 'qa', name: '검증 세계', description: '설명', version: 1, settings: episode === 1 ? [garam, narae] : friends([garam, narae], garam, narae), analysis: null, linkedWorkId: 'w1' })
   const read = vi.fn(async (_id: string, _signal?: AbortSignal, episode?: number) => structuredClone(at(episode)))
   await show(friends([garam, narae], garam, narae), '/worldstudio/qa', { linkedWorkId: 'w1', relationEpisodes: true, read })
-  fireEvent.click(manageTabs().getByRole('button', { name: '인물 관계도' }))
+  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
   expect(screen.getByRole('button', { name: '가람 · 친구 · 나래 편집' })).toBeTruthy() // 최신 회차의 관계
   const apply = episodePicker().getByRole('button', { name: '이 회차 관계 보기' }), field = episodePicker().getByRole('textbox', { name: '관계 기준 화' })
   fireEvent.change(field, { target: { value: '1' } })
@@ -677,7 +677,7 @@ it('회차 선택은 데모(메모리)·소설 미연결·저장하지 않은 �
   expect(episodePicker().getByText('저장하지 않은 변경이 있어 회차를 바꿀 수 없어요. 먼저 세계관을 저장하세요.')).toBeTruthy()
 })
 
-/** 인물 관계도 보기의 회차 칸에 회차를 넣어 그 회차 시점으로 다시 읽는다. */
+/** 관계도 보기의 회차 칸에 회차를 넣어 그 회차 시점으로 다시 읽는다. */
 const pickEpisode = async (episode: number) => {
   fireEvent.change(episodePicker().getByRole('textbox', { name: '관계 기준 화' }), { target: { value: String(episode) } })
   fireEvent.click(episodePicker().getByRole('button', { name: '이 회차 관계 보기' }))
@@ -701,7 +701,7 @@ it('관계 기준 회차를 고른 동안에는 설정 삭제 진입점(인물 �
   expect(menu.getAttribute('aria-describedby')).toBe(editor().getByText(reason).id) // 잠긴 항목은 초점을 못 받으니 같은 이유를 메뉴의 설명으로 잇는다
   fireEvent.click(rail().getByRole('button', { name: '나래 더보기' })) // 메뉴를 닫는다
   backToBoard()
-  fireEvent.click(manageTabs().getByRole('button', { name: '인물 관계도' }))
+  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
   fireEvent.click(episodePicker().getByRole('button', { name: '최신으로' }))
   await waitFor(() => expect(episodePicker().getByText('지금은 최신 회차의 관계예요.')).toBeTruthy())
   fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
@@ -730,7 +730,7 @@ it('지난 회차를 연 채 저장하면 어느 회차로 기록되는지 저�
 it('관계 목록 표는 주체·관계·대상과 편집·삭제를 보이고 삭제는 확인한 뒤에만 편집본에서 지운다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   await show(friends([garam, narae], garam, narae))
-  fireEvent.click(manageTabs().getByRole('button', { name: '인물 관계도' }))
+  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
   const table = within(screen.getByRole('table', { name: '저장할 관계 목록' }))
   expect(table.getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['주체', '관계', '대상', '편집·삭제'])
   expect([...table.getAllByRole('row')[1].querySelectorAll('td')].slice(0, 3).map((td) => td.textContent)).toEqual(['가람', '친구', '나래'])
@@ -805,7 +805,7 @@ it('저장한 적 있는 세계관은 탭 줄과 설정집부터 시작하는 �
   expect(headerOf().getByRole('button', { name: '세계관 정보 편집' })).toBeTruthy()
 })
 
-it('관리 모드에는 단계(번호·이전·다음·관계 없이 검토·저장·검토 화면) UI가 없고 설정집·인물 관계도 탭이 그 화면을 맡는다', async () => {
+it('관리 모드에는 단계(번호·이전·다음·관계 없이 검토·저장·검토 화면) UI가 없고 설정집·관계도 탭이 그 화면을 맡는다', async () => {
   await showWorld()
   expect(screen.queryByRole('navigation', { name: '세계관 작성 단계' })).toBeNull()
   expect(screen.queryByRole('navigation', { name: '단계 이동' })).toBeNull()
@@ -868,9 +868,9 @@ it('마법사의 관리 화면으로 링크는 저장하지 않고 관리 모드
 // ── 관리 모드: 주소(?tab=)로 유지되는 탭과 상시 저장 영역 ───────────────────────────────────
 it('보기를 옮기면 주소 ?view=가 바뀌고 그 주소로 다시 열면(새로고침) 같은 보기가 복원된다', async () => {
   await showWorld()
-  fireEvent.click(manageTabs().getByRole('button', { name: '인물 관계도' }))
+  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
   expect(where()).toBe('/worldstudio/qa?view=people')
-  expect(manageTabs().getByRole('button', { name: '인물 관계도' }).getAttribute('aria-current')).toBe('page')
+  expect(manageTabs().getByRole('button', { name: '관계도' }).getAttribute('aria-current')).toBe('page')
   expect(screen.getByText('아직 연결한 관계가 없어요.')).toBeTruthy()
   fireEvent.click(manageTabs().getByRole('button', { name: '시간선' }))
   expect(where()).toBe('/worldstudio/qa?view=timeline')
@@ -882,7 +882,7 @@ it('보기를 옮기면 주소 ?view=가 바뀌고 그 주소로 다시 열면(�
   expect(screen.getByText(/아직 확정한 과거 사건이 없어요/)).toBeTruthy()
   cleanup()
   await show(undefined, '/worldstudio/qa?view=people') // 관계 편집기도 주소만으로 열린다
-  expect(manageTabs().getByRole('button', { name: '인물 관계도' }).getAttribute('aria-current')).toBe('page')
+  expect(manageTabs().getByRole('button', { name: '관계도' }).getAttribute('aria-current')).toBe('page')
   expect(screen.getByText('아직 연결한 관계가 없어요.')).toBeTruthy()
   cleanup()
   await show(undefined, '/worldstudio/qa?view=nope') // 모르는 값은 설정집이다
@@ -894,7 +894,7 @@ it('탭을 옮겨도 저장하지 않은 입력은 그대로이고 저장 상태
   openCard('가람 인물')
   fireEvent.change(screen.getByRole('textbox', { name: '설정 이름' }), { target: { value: '고친 이름' } })
   backToBoard()
-  for (const tab of ['인물 관계도', '시간선', '설정집']) {
+  for (const tab of ['관계도', '시간선', '설정집']) {
     fireEvent.click(manageTabs().getByRole('button', { name: tab }))
     expect(saveBar().getByText('저장하지 않은 변경 있음')).toBeTruthy()
   }
@@ -1371,7 +1371,7 @@ it('AI 채팅은 접었다 다시 열 수 있고 접어도 세계관 화면은 �
 it('접어 둔 AI 채팅은 탭을 옮겼다 돌아와도 접힌 채이고 어느 탭에서나 열기 버튼이 있다', async () => {
   await showWorld()
   fireEvent.click(within(chatPanel()).getByRole('button', { name: '접기' }))
-  for (const tab of ['인물 관계도', '시간선', '설정집']) {
+  for (const tab of ['관계도', '시간선', '설정집']) {
     fireEvent.click(manageTabs().getByRole('button', { name: tab }))
     expect(noChat(), tab).toBeNull()
     expect(screen.getByRole('button', { name: 'AI 채팅 열기' }), tab).toBeTruthy()
@@ -1380,7 +1380,7 @@ it('접어 둔 AI 채팅은 탭을 옮겼다 돌아와도 접힌 채이고 어�
 
 it('관리 모드는 모든 탭에서 AI 채팅을 오른쪽에 보인다', async () => {
   await showWorld()
-  for (const tab of ['설정집', '인물 관계도', '시간선']) {
+  for (const tab of ['설정집', '관계도', '시간선']) {
     fireEvent.click(manageTabs().getByRole('button', { name: tab }))
     expect(chatPanel(), tab).toBeTruthy()
   }
@@ -2072,10 +2072,10 @@ it('레일의 ⋮ 메뉴로 연 삭제 확인을 취소하면 그 항목의 더�
   await waitFor(() => expect(document.activeElement).toBe(rail().getByRole('button', { name: '항구 더보기' })))
 })
 
-it('인물 관계도의 인물 삭제도 확인으로 초점이 가고, 지우면 되돌리기 버튼으로, 되돌리면 관계 주체 선택으로 초점이 간다', async () => {
+it('관계도의 인물 삭제도 확인으로 초점이 가고, 지우면 되돌리기 버튼으로, 되돌리면 관계 주체 선택으로 초점이 간다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   await show(friends([garam, narae], garam, narae))
-  fireEvent.click(manageTabs().getByRole('button', { name: '인물 관계도' }))
+  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
   const subject = () => screen.getByRole('combobox', { name: '관계 주체' })
   fireEvent.change(subject(), { target: { value: garam.item.id } })
   const remove = screen.getByRole('button', { name: '선택한 인물 삭제' })
@@ -2095,7 +2095,7 @@ it('인물 관계도의 인물 삭제도 확인으로 초점이 가고, 지우�
 it('관계 작성 패널을 취소하거나 적용해 닫으면 사라진 버튼 대신 관계 작성 버튼으로 초점이 돌아온다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   await show([garam, narae])
-  fireEvent.click(manageTabs().getByRole('button', { name: '인물 관계도' }))
+  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
   fireEvent.change(screen.getByRole('combobox', { name: '관계 주체' }), { target: { value: garam.item.id } })
   fireEvent.change(screen.getByRole('combobox', { name: '관계 대상' }), { target: { value: narae.item.id } })
   const write = () => screen.getByRole('button', { name: '관계 작성' })
@@ -2117,7 +2117,7 @@ it('관계 작성 패널을 취소하거나 적용해 닫으면 사라진 버튼
 it('관계 목록에서 관계를 지우면 사라진 삭제 버튼 대신 관계 목록으로 초점이 간다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
   await show(friends([garam, narae], garam, narae))
-  fireEvent.click(manageTabs().getByRole('button', { name: '인물 관계도' }))
+  fireEvent.click(manageTabs().getByRole('button', { name: '관계도' }))
   vi.spyOn(window, 'confirm').mockReturnValue(true)
   const remove = screen.getByRole('button', { name: '가람 · 친구 · 나래 삭제' })
   remove.focus()
@@ -2248,8 +2248,8 @@ it('별칭 입력은 쉼표로 구분한다는 안내를 설명으로 잇는다'
   expect(document.getElementById(alias.getAttribute('aria-describedby') ?? '')?.textContent).toContain('별칭은 쉼표로 구분하며')
 })
 
-// ── 인물 문서(IDENTITY.md · SOUL.md · MEMORY.md · memory/NN회차.md): 인물 카드는 설명 자리에 문서 목록과 고른 문서의 편집기를 둔다 ──────────
-const withDocs = (row: StudioSetting, characterDocs: Partial<CharacterDocs>): StudioSetting => ({ ...row, characterDocs: { soul: '', memory: '', episodes: {}, ...characterDocs } })
+// ── 인물 문서(IDENTITY.md · SOUL.md · GOAL.md · memory/NN회차.md): 인물 카드는 설명 자리에 문서 목록과 고른 문서의 편집기를 둔다 ──────────
+const withDocs = (row: StudioSetting, characterDocs: Partial<CharacterDocs>): StudioSetting => ({ ...row, characterDocs: { soul: '', goal: '', episodes: {}, ...characterDocs } })
 const docsPanel = () => within(editor().getByRole('region', { name: '인물 문서' }))
 const docList = () => within(docsPanel().getByRole('navigation', { name: '인물 문서 목록' }))
 const docNames = () => docList().getAllByRole('button').map((b) => b.textContent)
@@ -2267,11 +2267,11 @@ const md = (name: string, text: string) => new File([text], name, { type: 'text/
 const loadFiles = (...files: File[]) => fireEvent.change(docsPanel().getByLabelText('.md 파일 불러오기'), { target: { files } })
 const saveWorld = () => fireEvent.click(saveBar().getByRole('button', { name: '세계관 저장' }))
 
-it('인물 카드는 설명 대신 문서 목록(IDENTITY.md·SOUL.md·MEMORY.md·memory/)과 고른 문서의 편집기를 보이고 처음에는 카드 본문인 IDENTITY.md가 열려 있다', async () => {
+it('인물 카드는 설명 대신 문서 목록(IDENTITY.md·SOUL.md·GOAL.md·memory/)과 고른 문서의 편집기를 보이고 처음에는 카드 본문인 IDENTITY.md가 열려 있다', async () => {
   await show([person('가람', '기존 내용'), place('항구')])
   openCard('가람 인물')
   expect(editor().queryByRole('textbox', { name: '설명' })).toBeNull()
-  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md 정리 필요', 'MEMORY.md 정리 필요']) // 비어 있는 문서는 정리 필요로 알린다
+  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md 정리 필요', 'GOAL.md 정리 필요']) // 비어 있는 문서는 정리 필요로 알린다
   expect(docList().getAllByRole<HTMLButtonElement>('button').every((b) => b.tagName === 'BUTTON' && b.type === 'button')).toBe(true) // 키보드로 옮겨 다니는 버튼이다
   expect(currentDoc()).toEqual(['IDENTITY.md'])
   expect(docBody('IDENTITY.md').value).toBe('기존 내용') // 기존 인물 카드의 본문이 그대로 IDENTITY.md다
@@ -2279,7 +2279,8 @@ it('인물 카드는 설명 대신 문서 목록(IDENTITY.md·SOUL.md·MEMORY.md
   expect(docsPanel().getByText('누구인가: 이름·나이·소속·외형·역할.')).toBeTruthy()
   expect(editor().getByText('## 제목으로 문단을 나누면 공개 페이지 목차에 나와요.')).toBeTruthy() // 공개되는 문서라 목차 안내가 그대로 있다
   expect(episodeDocs().getByText('아직 회차 기억이 없어요.')).toBeTruthy()
-  expect(docsPanel().getByText('공개 세계관과 독자 설정 위키에 나가는 글은 IDENTITY.md뿐이에요. SOUL.md·MEMORY.md·회차별 기억은 작가만 봐요.')).toBeTruthy()
+  expect(docsPanel().getByText('공개 세계관과 독자 설정 위키에 나가는 글은 IDENTITY.md뿐이에요. SOUL.md·GOAL.md·회차별 기억은 작가만 봐요.')).toBeTruthy()
+  expect(docsPanel().getByText('0회차는 이야기 시작 전부터 아는 것(비밀·과거)이에요.')).toBeTruthy() // 회차 기억 추가 옆의 0회차 안내
   expect(saveBar().getByText('저장됨')).toBeTruthy() // 열어 보기만 해서는 초안이 바뀌지 않는다
   backToBoard()
   openCard('항구 장소') // 인물이 아닌 설정은 지금 그대로 설명 하나다
@@ -2299,11 +2300,11 @@ it('문서를 바꿔 가며 쓰면 문서마다 초안에 남고 안내와 글�
   expect(editor().queryByText(/## 제목으로 문단을 나누면/)).toBeNull() // 공개 페이지 목차 안내는 공개되는 IDENTITY.md에만 있다
   expect(saveBar().getByText('저장됨')).toBeTruthy() // 문서를 옮겨 보기만 해서는 초안이 바뀌지 않는다
   fireEvent.change(docBody('SOUL.md'), { target: { value: '말수가 적다' } })
-  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md', 'MEMORY.md 정리 필요']) // 채운 문서는 정리 필요가 사라진다
+  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md', 'GOAL.md 정리 필요']) // 채운 문서는 정리 필요가 사라진다
   expect(editor().getByText(/^SOUL\.md 6 \/ 3,000자 · 저장 전 수정이 있어요/)).toBeTruthy()
-  pickDoc('MEMORY.md 정리 필요')
-  expect(docsPanel().getByText('이야기 전체에 걸쳐 유지되는 핵심 기억·관계·비밀.')).toBeTruthy()
-  fireEvent.change(docBody('MEMORY.md'), { target: { value: '스승의 유언' } })
+  pickDoc('GOAL.md 정리 필요')
+  expect(docsPanel().getByText('무엇을 원하고 하려는가: 이 인물의 목표·동기·하려는 일.')).toBeTruthy()
+  fireEvent.change(docBody('GOAL.md'), { target: { value: '스승의 원수를 찾는다' } })
   pickDoc('IDENTITY.md')
   expect(docBody('IDENTITY.md').value).toBe('기존 내용')
   fireEvent.change(docBody('IDENTITY.md'), { target: { value: '떠돌이 검객' } })
@@ -2311,7 +2312,7 @@ it('문서를 바꿔 가며 쓰면 문서마다 초안에 남고 안내와 글�
   expect(docBody('SOUL.md').value).toBe('말수가 적다') // 다른 문서를 보고 와도 그대로다
   saveWorld()
   await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
-  expect(saveStudio.mock.calls[0][0].settings[0]).toMatchObject({ item: { text: '떠돌이 검객' }, characterDocs: { soul: '말수가 적다', memory: '스승의 유언', episodes: {} } })
+  expect(saveStudio.mock.calls[0][0].settings[0]).toMatchObject({ item: { text: '떠돌이 검객' }, characterDocs: { soul: '말수가 적다', goal: '스승의 원수를 찾는다', episodes: {} } })
 })
 
 it('회차 기억 추가는 회차 번호를 받아 memory/ 아래에 그 문서를 만들어 고르고, 이미 있는 회차면 새로 만들지 않고 그 문서를 고른다', async () => {
@@ -2337,9 +2338,10 @@ it('회차 기억 추가는 회차 번호를 받아 memory/ 아래에 그 문서
   expect(docBody('memory/03회차.md').value).toBe('스승을 잃었다') // 있던 글을 덮어쓰지 않는다
   addEpisode('0')
   expect(episodes()).toEqual(['00회차.md', '03회차.md', '12회차.md']) // 회차 번호 순이고 두 자리로 0을 채운다
+  expect(docsPanel().getByText('이야기 시작 전부터 아는 것(비밀·과거).')).toBeTruthy() // 0회차 문서의 안내는 '0화에서 겪은 일'이 아니다
   saveWorld()
   await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
-  expect(saveStudio.mock.calls[0][0].settings[0].characterDocs).toEqual({ soul: '', memory: '', episodes: { 0: '', 3: '스승을 잃었다', 12: '검을 물려받았다' } })
+  expect(saveStudio.mock.calls[0][0].settings[0].characterDocs).toEqual({ soul: '', goal: '', episodes: { 0: '', 3: '스승을 잃었다', 12: '검을 물려받았다' } })
 })
 
 it('회차 기억 삭제는 회차 기억을 고른 동안에만 있고, 확인을 받은 뒤 그 문서만 지우고 IDENTITY.md로 돌아와 그 문서 버튼에 초점을 둔다', async () => {
@@ -2354,7 +2356,7 @@ it('회차 기억 삭제는 회차 기억을 고른 동안에만 있고, 확인�
   expect(saveBar().getByText('저장됨')).toBeTruthy()
   confirm.mockReturnValue(true)
   fireEvent.click(docsPanel().getByRole('button', { name: '회차 기억 삭제' }))
-  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md 정리 필요', 'MEMORY.md 정리 필요', '03회차.md'])
+  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md 정리 필요', 'GOAL.md 정리 필요', '03회차.md'])
   expect(currentDoc()).toEqual(['IDENTITY.md'])
   await waitFor(() => expect(document.activeElement).toBe(docList().getByRole('button', { name: 'IDENTITY.md' }))) // 누른 버튼이 사라진 자리 대신
   saveWorld()
@@ -2374,17 +2376,33 @@ it('.md 파일 불러오기는 여러 파일을 받아 파일 이름으로 문�
   expect(notice.textContent).toContain('알아볼 수 없어 가져오지 않은 파일: notes.md.')
   expect(confirm).not.toHaveBeenCalled() // 비어 있던 문서라 덮어쓸 것이 없다
   expect(docBody('IDENTITY.md').value).toBe('이름: 가람') // 보고 있던 문서도 불러온 글로 다시 열린다
-  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md', 'MEMORY.md 정리 필요', '03회차.md'])
+  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md', 'GOAL.md 정리 필요', '03회차.md'])
   saveWorld()
   await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
-  expect(saveStudio.mock.calls[0][0].settings[0]).toMatchObject({ item: { text: '이름: 가람' }, characterDocs: { soul: '말수가 적다', memory: '', episodes: { 3: '스승을 잃었다\n검을 받았다' } } })
+  expect(saveStudio.mock.calls[0][0].settings[0]).toMatchObject({ item: { text: '이름: 가람' }, characterDocs: { soul: '말수가 적다', goal: '', episodes: { 3: '스승을 잃었다\n검을 받았다' } } })
+})
+
+it('GOAL.md는 목표 문서로, 옛 MEMORY.md는 00회차로 불러오고, 00회차에 이미 글이 있으면 그 앞에 빈 줄로 이어 붙이며 덮어쓰기 확인을 묻지 않는다', async () => {
+  const { saveStudio } = await show([withDocs(person('가람', '기존 내용'), { episodes: { 0: '프롤로그의 기억' } })])
+  openCard('가람 인물')
+  const confirm = vi.spyOn(window, 'confirm')
+  loadFiles(md('GOAL.md', '스승의 원수를 찾는다'), md('MEMORY.md', '스승의 유언'))
+  const notice = await docsPanel().findByRole('status')
+  expect(notice.textContent).toContain('문서 2개를 불러왔어요: GOAL.md, memory/00회차.md.') // 옛 MEMORY.md가 담긴 곳을 알린다
+  expect(confirm).not.toHaveBeenCalled() // 00회차의 옛 글은 사라지지 않고 이어 붙으므로 덮어쓰기가 아니다
+  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md 정리 필요', 'GOAL.md', '00회차.md'])
+  pickDoc('00회차.md')
+  expect(docBody('memory/00회차.md').value).toBe('스승의 유언\n\n프롤로그의 기억')
+  saveWorld()
+  await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
+  expect(saveStudio.mock.calls[0][0].settings[0].characterDocs).toEqual({ soul: '', goal: '스승의 원수를 찾는다', episodes: { 0: '스승의 유언\n\n프롤로그의 기억' } })
 })
 
 it('알아볼 수 없는 파일만 고르면 아무것도 바꾸지 않고, 같은 문서로 읽히는 파일이 둘이면 앞의 것만 가져오고 나머지를 알린다', async () => {
   await show([person('가람', '기존 내용')])
   openCard('가람 인물')
   loadFiles(md('메모.md', '메모'), md('SOUL.txt', '성격'))
-  expect((await docsPanel().findByRole('status')).textContent).toBe('알아볼 수 없어 가져오지 않은 파일: 메모.md, SOUL.txt. 파일 이름은 IDENTITY.md·SOUL.md·MEMORY.md·NN회차.md여야 해요.')
+  expect((await docsPanel().findByRole('status')).textContent).toBe('알아볼 수 없어 가져오지 않은 파일: 메모.md, SOUL.txt. 파일 이름은 IDENTITY.md·SOUL.md·GOAL.md·NN회차.md여야 해요.')
   expect(saveBar().getByText('저장됨')).toBeTruthy()
   loadFiles(md('03회차.md', '먼저 고른 글'), md('3회차.md', '나중에 고른 글'))
   await waitFor(() => expect(docsPanel().getByRole('status').textContent).toContain('문서 1개를 불러왔어요: memory/03회차.md.'))
@@ -2398,18 +2416,18 @@ it('이미 내용이 있는 문서를 불러오면 바뀌는 문서를 알리고
   openCard('가람 인물')
   pickDoc('SOUL.md')
   const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
-  loadFiles(md('SOUL.md', '새 성격'), md('MEMORY.md', '새 기억'))
+  loadFiles(md('SOUL.md', '새 성격'), md('GOAL.md', '새 목표'))
   expect((await docsPanel().findByRole('status')).textContent).toContain('불러오기를 취소했어요. 문서는 그대로예요.')
   expect(confirm).toHaveBeenCalledOnce()
   expect(confirm.mock.calls[0][0]).toContain('SOUL.md')
-  expect(confirm.mock.calls[0][0]).not.toContain('MEMORY.md') // 비어 있던 문서는 덮어쓰는 것이 아니다
+  expect(confirm.mock.calls[0][0]).not.toContain('GOAL.md') // 비어 있던 문서는 덮어쓰는 것이 아니다
   expect(docBody('SOUL.md').value).toBe('옛 성격')
   expect(saveBar().getByText('저장됨')).toBeTruthy()
   confirm.mockReturnValue(true)
-  loadFiles(md('SOUL.md', '새 성격'), md('MEMORY.md', '새 기억'))
+  loadFiles(md('SOUL.md', '새 성격'), md('GOAL.md', '새 목표'))
   await waitFor(() => expect(docBody('SOUL.md').value).toBe('새 성격')) // 열려 있던 편집기도 불러온 글로 바뀐다
-  expect(docsPanel().getByRole('status').textContent).toContain('문서 2개를 불러왔어요: SOUL.md, MEMORY.md.')
-  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md', 'MEMORY.md'])
+  expect(docsPanel().getByRole('status').textContent).toContain('문서 2개를 불러왔어요: SOUL.md, GOAL.md.')
+  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md', 'GOAL.md'])
   expect(saveBar().getByText('저장하지 않은 변경 있음')).toBeTruthy()
 })
 
@@ -2430,7 +2448,7 @@ it('3,000자를 넘는 파일도 가져오되 그 문서에 초과를 표시하�
   openCard('가람 인물')
   loadFiles(md('SOUL.md', '가'.repeat(3001)))
   await docsPanel().findByRole('status')
-  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md 3,000자 초과', 'MEMORY.md 정리 필요'])
+  expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md 3,000자 초과', 'GOAL.md 정리 필요'])
   expect(saveBar().getByRole('button', { name: '‘가람’: SOUL.md는 3,000자 이하로 줄여 주세요.' })).toBeTruthy()
   expect(saveBar().getByRole<HTMLButtonElement>('button', { name: '세계관 저장' }).disabled).toBe(true)
   pickDoc('SOUL.md 3,000자 초과')
@@ -2448,8 +2466,8 @@ it('3,000자를 넘는 파일도 가져오되 그 문서에 초과를 표시하�
   expect(saveBar().getByRole<HTMLButtonElement>('button', { name: '세계관 저장' }).disabled).toBe(true)
 })
 
-it('설정집 게시판은 IDENTITY.md·SOUL.md·MEMORY.md 중 빈 문서가 있는 인물 줄에 정리 필요를 보이고, 저장은 막지 않는다', async () => {
-  const filled = { soul: '성격', memory: '비밀' }
+it('설정집 게시판은 IDENTITY.md·SOUL.md·GOAL.md 중 빈 문서가 있는 인물 줄에 정리 필요를 보이고, 저장은 막지 않는다', async () => {
+  const filled = { soul: '성격', goal: '목표' }
   const { saveStudio } = await show([person('가람', '본문'), withDocs(person('나래', '본문'), filled), withDocs(person('다온'), filled), place('항구')])
   const flagged = () => boardTable().getAllByRole('row').slice(1).map((row) => [row.querySelector('.col-title button')?.textContent, within(row).queryByText('정리 필요') !== null])
   expect(flagged()).toEqual([['가람', true], ['나래', false], ['다온', true], ['항구', false]]) // 다온은 본문(IDENTITY.md)이 비었고, 인물이 아닌 설정은 알리지 않는다
@@ -2457,13 +2475,13 @@ it('설정집 게시판은 IDENTITY.md·SOUL.md·MEMORY.md 중 빈 문서가 있
   pickDoc('SOUL.md 정리 필요')
   fireEvent.change(docBody('SOUL.md'), { target: { value: '성격' } })
   backToBoard()
-  expect(flagged()[0]).toEqual(['가람', true]) // MEMORY.md가 아직 비어 있다
+  expect(flagged()[0]).toEqual(['가람', true]) // GOAL.md가 아직 비어 있다
   expect(saveBar().getByRole<HTMLButtonElement>('button', { name: '세계관 저장' }).disabled).toBe(false) // 알리기만 하고 막지 않는다
   saveWorld()
   await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
   openCard('가람 인물')
-  pickDoc('MEMORY.md 정리 필요')
-  fireEvent.change(docBody('MEMORY.md'), { target: { value: '비밀' } })
+  pickDoc('GOAL.md 정리 필요')
+  fireEvent.change(docBody('GOAL.md'), { target: { value: '목표' } })
   backToBoard()
   expect(flagged()[0]).toEqual(['가람', false])
 })
@@ -2472,7 +2490,7 @@ it('인물이 아닌 유형으로 바꾸면 문서 목록 대신 설명 편집�
   await show([withDocs(person('가람', '기존 내용'), { soul: '말수가 적다' }), place('항구')])
   openCard('가람 인물')
   const type = () => editor().getByRole('combobox', { name: '유형' })
-  const dropped = /인물이 아닌 설정에는 SOUL\.md·MEMORY\.md·회차별 기억을 저장하지 않아요/
+  const dropped = /인물이 아닌 설정에는 SOUL\.md·GOAL\.md·회차별 기억을 저장하지 않아요/
   expect(editor().queryByText(dropped)).toBeNull()
   fireEvent.change(type(), { target: { value: 'location' } })
   expect(editor().queryByRole('region', { name: '인물 문서' })).toBeNull()

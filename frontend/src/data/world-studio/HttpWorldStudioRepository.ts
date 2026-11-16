@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import type { WorldStudioRepository } from '../../domain/repositories/WorldStudioRepository'
 import { PUBLIC_WORLD_GENRES } from '../../domain/entities/publicWorld'
-import { isEpisodeKey, storedCharacterDocs } from '../../domain/entities/characterDocs'
+import { isEpisodeKey, migrateCharacterDocs, storedCharacterDocs } from '../../domain/entities/characterDocs'
 import { newSetting, type StudioSetting, type StudioWorld, type WorldPublication, type WorldPublicationInput } from '../../domain/entities/studioWorld'
 import { cardTypeOf } from '../../domain/entities/studioCards'
 import { relationDefinitions } from '../../domain/entities/studioRelations'
@@ -72,8 +72,10 @@ const metadata = z.union([
 // 카드 semanticMetadata의 최상위 키(DEC-46): 독자 공개 시작 회차와 가져온 출처. 모양이 어긋난 값은 읽지 않는다.
 const revealFromEpisode = z.number().int().min(1)
 const importedFrom = z.object({ worldId: z.string(), worldName: z.string(), authorNickname: z.string(), revisionNo: z.number().int(), cardId: z.string() })
-// 인물 문서(SOUL.md·MEMORY.md·회차별 기억)도 인물 카드 semanticMetadata의 최상위 키 `characterDocs`다. IDENTITY.md는 카드 본문(body)이라 여기 없다.
-const characterDocs = z.object({ soul: z.string(), memory: z.string(), episodes: z.record(z.string().refine(isEpisodeKey), z.string()) })
+// 인물 문서(SOUL.md·GOAL.md·회차별 기억)도 인물 카드 semanticMetadata의 최상위 키 `characterDocs`다. IDENTITY.md는 카드 본문(body)이라 여기 없다.
+// DEC-47 이전에 저장한 문서는 `memory`가 있고 `goal`이 없어 둘 다 선택으로 받고, 읽을 때 지금 모양으로 옮긴다(memory는 00회차 앞에 이어 붙임).
+// 필수로 두면 옛 문서 전체가 버려져 다음 저장에서 사라진다.
+const characterDocs = z.object({ soul: z.string(), goal: z.string().optional(), memory: z.string().optional(), episodes: z.record(z.string().refine(isEpisodeKey), z.string()) }).transform(migrateCharacterDocs)
 // 카드 공개·독자 공개 회차·가져온 출처·인물 문서는 행 필드가 정본이라 `studio` 안에 넣지 않는다. 회차·출처·문서는 최상위 키로 쓰고 값이 없으면(문서는 전부 비었거나 인물이 아니면) 키도 넣지 않는다.
 function metadataOf(row:StudioSetting) {
   const {serverMetadata,visibility:_,revealFromEpisode:reveal,importedFrom:source,characterDocs:_docs,...view}=row

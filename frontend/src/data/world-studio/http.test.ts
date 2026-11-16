@@ -341,9 +341,9 @@ it('treats the row as the source of truth: a cleared reveal episode or import so
  expect((await savedBody([{...row,revealFromEpisode:5},b,relation])).cards[0].semanticMetadata.revealFromEpisode).toBe(5)
 })
 
-// ── 인물 문서(SOUL.md·MEMORY.md·회차별 기억): 인물 카드 semanticMetadata의 최상위 키 characterDocs. IDENTITY.md는 카드 본문(body)이다 ───
-const docs={soul:'말수가 적다',memory:'스승의 유언',episodes:{0:'프롤로그의 기억',3:'스승을 잃었다'}}
-const noDocs={soul:'',memory:'',episodes:{}}
+// ── 인물 문서(SOUL.md·GOAL.md·회차별 기억): 인물 카드 semanticMetadata의 최상위 키 characterDocs. IDENTITY.md는 카드 본문(body)이다 ───
+const docs={soul:'말수가 적다',goal:'스승의 원수를 찾는다',episodes:{0:'프롤로그의 기억',3:'스승을 잃었다'}}
+const noDocs={soul:'',goal:'',episodes:{}}
 /** 가를 장소 카드로 바꾼 행(인물이 아닌 카드). 관계의 양 끝은 그대로라 저장·읽기 검사를 지난다. */
 const place={...a,item:{...a.item,entityType:'location'}}
 it('saves the character documents of a character card as top-level metadata, never inside studio, and omits the key when every document is empty',async()=>{
@@ -368,8 +368,9 @@ it('reads the character documents of a character card into the row field and lea
  expect(Object.keys(loaded.settings[1]).sort()).toEqual(['item','tags','userCategory'])
 })
 it.each([
- ['글'],[{soul:1,memory:'',episodes:{}}],[{soul:'',memory:''}],[{soul:'',memory:'',episodes:['기억']}],[{soul:'',memory:'',episodes:{'-1':'기억'}}],
- [{soul:'',memory:'',episodes:{'1.5':'기억'}}],[{soul:'',memory:'',episodes:{'03':'기억'}}],[{soul:'',memory:'',episodes:{3:7}}],[null],
+ ['글'],[{soul:1,goal:'',episodes:{}}],[{soul:'',goal:''}],[{soul:'',goal:'',episodes:['기억']}],[{soul:'',goal:'',episodes:{'-1':'기억'}}],
+ [{soul:'',goal:'',episodes:{'1.5':'기억'}}],[{soul:'',goal:'',episodes:{'03':'기억'}}],[{soul:'',goal:'',episodes:{3:7}}],[null],
+ [{soul:'',goal:7,episodes:{}}],[{soul:'',memory:7,episodes:{}}],
 ])('drops malformed character documents (%j) without failing the load',async(characterDocs)=>{
  const fetcher=vi.fn().mockImplementation(async()=>Response.json(wireWith({semanticMetadata:{studio:a,characterDocs}})))
  expect((await new HttpWorldStudioRepository(fetcher).read(id)).settings).toEqual([a,b,relation])
@@ -391,6 +392,35 @@ it('treats the row as the source of truth for character documents: a deleted epi
  expect((await savedBody([{...row,characterDocs:fewer},b,relation])).cards[0].semanticMetadata.characterDocs).toEqual(fewer) // 지운 3회차 기억은 돌아오지 않는다
  const cleared=(await savedBody([{...row,characterDocs:noDocs},b,relation])).cards[0].semanticMetadata
  expect(Object.keys(cleared).sort()).toEqual(['kept','studio'])
+})
+
+// ── DEC-47 이전에 저장한 문서(memory): 읽을 때 00회차 앞에 이어 붙이고, 다음 저장부터는 memory 키 없이 goal을 보낸다 ───
+const readDocs=async(characterDocs:unknown)=>{
+ const fetcher=vi.fn().mockImplementation(async()=>Response.json(wireWith({semanticMetadata:{studio:a,characterDocs}})))
+ return (await new HttpWorldStudioRepository(fetcher).read(id)).settings
+}
+it('reads documents saved before GOAL.md: memory is prepended to 00회차 with one blank line, goal is empty, soul and the other episodes are kept',async()=>{
+ const [row]=await readDocs({soul:'말수가 적다',memory:'스승의 유언',episodes:{0:'프롤로그의 기억',3:'스승을 잃었다'}})
+ expect(row.characterDocs).toEqual({soul:'말수가 적다',goal:'',episodes:{0:'스승의 유언\n\n프롤로그의 기억',3:'스승을 잃었다'}})
+ expect(row.characterDocs).not.toHaveProperty('memory')
+})
+it('moves memory into 00회차 as it is when the card has none, and does not drop a document that only has memory',async()=>{
+ const [row]=await readDocs({soul:'',memory:'스승의 유언',episodes:{3:'스승을 잃었다'}})
+ expect(row.characterDocs).toEqual({soul:'',goal:'',episodes:{0:'스승의 유언',3:'스승을 잃었다'}})
+ const [only]=await readDocs({soul:'',memory:'유언',episodes:{}})
+ expect(only.characterDocs).toEqual({soul:'',goal:'',episodes:{0:'유언'}})
+ expect((await savedBody([only,b,relation])).cards[0].semanticMetadata.characterDocs).toEqual({soul:'',goal:'',episodes:{0:'유언'}}) // 다음 저장에서 사라지지 않는다
+})
+it('saves a migrated document again without the memory key and with goal, so the old memory text is not lost',async()=>{
+ const [row]=await readDocs({soul:'말수가 적다',memory:'스승의 유언',episodes:{0:'프롤로그의 기억',3:'스승을 잃었다'}})
+ const sent=(await savedBody([row,b,relation])).cards[0].semanticMetadata
+ expect(sent.characterDocs).toEqual({soul:'말수가 적다',goal:'',episodes:{0:'스승의 유언\n\n프롤로그의 기억',3:'스승을 잃었다'}})
+ expect(sent.characterDocs).not.toHaveProperty('memory')
+ expect(sent).not.toHaveProperty('memory')
+})
+it('merges memory into 00회차 even when the document already carries goal',async()=>{
+ const [both]=await readDocs({soul:'',goal:'목표',memory:'유언',episodes:{}})
+ expect(both.characterDocs).toEqual({soul:'',goal:'목표',episodes:{0:'유언'}})
 })
 
 // ── 관계 기준 회차(DEC-51): 조회 쿼리 `?episode=`, 저장 본문 `episode`, 지난 회차 관계의 삭제된 카드 끝점 ───

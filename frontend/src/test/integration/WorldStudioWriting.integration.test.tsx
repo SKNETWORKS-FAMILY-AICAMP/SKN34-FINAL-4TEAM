@@ -112,7 +112,7 @@ it('keeps the saved graph and invalid relationship draft until a valid target is
  expect(repository.saveStudio).not.toHaveBeenCalled()
  expect(world).toEqual(before)
  backToBoard()
- fireEvent.click(manageTab('인물 관계도'))
+ fireEvent.click(manageTab('관계도'))
  expect(within(await screen.findByRole('table',{name:'저장할 관계 목록'})).getAllByRole('row')).toHaveLength(2) // 관계 한 줄은 그대로다(저장하지 않은 잘못된 초안이 저장한 상태를 바꾸지 않는다)
  fireEvent.click(manageTab('설정집'))
  fireEvent.click(legacy())
@@ -128,7 +128,7 @@ it('keeps the saved graph and invalid relationship draft until a valid target is
 it('exposes the board views and switches between the settings book, the character relations and the timeline',async()=>{
  await show()
  expect(screen.getByRole('table',{name:'설정 카드 목록'})).toBeTruthy()
- fireEvent.click(manageTab('인물 관계도'))
+ fireEvent.click(manageTab('관계도'))
  expect(await screen.findByText('인물 카드 대역')).toBeTruthy()
  expect(screen.queryByRole('table',{name:'설정 카드 목록'})).toBeNull()
  fireEvent.click(manageTab('시간선'))

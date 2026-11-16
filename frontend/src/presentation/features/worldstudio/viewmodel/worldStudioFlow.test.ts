@@ -25,7 +25,7 @@ it('treats only a world just created from the creation screen (?new=1) as write 
 })
 
 it('lists the manage views (settings book · character relations · timeline) in order and reads ?view= as one of them, falling back to the settings book', () => {
-  expect(MANAGE_VIEWS.map(([id, label]) => [id, label])).toEqual([['book', '설정집'], ['people', '인물 관계도'], ['timeline', '시간선']])
+  expect(MANAGE_VIEWS.map(([id, label]) => [id, label])).toEqual([['book', '설정집'], ['people', '관계도'], ['timeline', '시간선']])
   expect(['book', 'people', 'timeline'].map(parseManageView)).toEqual(['book', 'people', 'timeline'])
   expect([null, '', 'steps', 'BOOK', 'write', 'explore', 'analysis'].map(parseManageView)).toEqual(['book', 'book', 'book', 'book', 'book', 'book', 'book'])
 })

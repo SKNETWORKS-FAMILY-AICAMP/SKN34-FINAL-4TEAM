@@ -37,7 +37,7 @@ const BODY_MAX = 3000
  *   설명은 마크다운 문자열 그대로 저장한다(`## 제목`이 공개 카드 페이지의 문단·목차가 된다). 편집기는 글자 수 제한이 없어 3000자를 넘으면 글자 수가 경고로 바뀌고 저장은 기존 검증이 막는다.
  *   글자 수 줄은 입력마다 바뀌므로 라이브 영역에 두지 않고, 3000자를 넘는 순간만 따로 둔 상태 문구로 한 번 알린다.
  *   저장 중에는 편집기를 `inert`로 잠가(글자 입력은 `fieldset disabled`가 닿지 않는다) 그사이 입력이 초안과 어긋나지 않게 한다. 편집기는 처음 값만 읽으므로 `key`로 카드마다(인물 카드는 문서마다) 다시 만든다.
- *   인물 카드는 설명 하나 대신 문서 네 종류로 쓴다(`CharacterDocs`·`useCharacterDocs`): 설명 자리에 문서 목록(IDENTITY.md = 카드 본문 · SOUL.md · MEMORY.md · memory/NN회차.md)과 고른 문서의 같은 편집기를 두고,
+ *   인물 카드는 설명 하나 대신 문서 네 종류로 쓴다(`CharacterDocs`·`useCharacterDocs`): 설명 자리에 문서 목록(IDENTITY.md = 카드 본문 · SOUL.md · GOAL.md · memory/NN회차.md)과 고른 문서의 같은 편집기를 두고,
  *   글자 수·3,000자 초과 알림은 고른 문서의 것이다. 인물이 아닌 유형으로 바꾼 카드에 문서가 남아 있으면 저장하지 않는다고 알린다(인물로 되돌리면 그대로다).
  *   설명 아래 공개 범위(DEC-46): `이 설정 공개`(기본 비공개, 공개 세계관 화면에는 공개 카드만 보인다)와 `독자 공개 N화부터`(연결된 소설의 독자 설정 위키에 보이기 시작하는 회차, 비우면 숨김, 소설을 연결해야 켜진다).
  *   회차 입력은 숫자만 받는 글자 칸이다(`type="number"`는 휠·스핀 버튼으로 값이 바뀌고 `e` 같은 글자를 받으면 보이는 값과 초안이 어긋난다). 0처럼 쓸 수 없는 값은 입력 바로 아래에 이유를 글로 보이고 입력의 설명으로 잇는다.
@@ -149,7 +149,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
                 </label>
                 {setting.importedFrom && <p className="small muted world-card-source"><span className="chip">가져옴</span>{importedSource(setting.importedFrom)}</p>}
               </div>
-              {docs.orphaned && <p role="status" className="small world-doc-orphaned">인물이 아닌 설정에는 SOUL.md·MEMORY.md·회차별 기억을 저장하지 않아요. 유형을 인물로 되돌리면 이어 쓸 수 있고, 이대로 저장하면 사라져요.</p>}
+              {docs.orphaned && <p role="status" className="small world-doc-orphaned">인물이 아닌 설정에는 SOUL.md·GOAL.md·회차별 기억을 저장하지 않아요. 유형을 인물로 되돌리면 이어 쓸 수 있고, 이대로 저장하면 사라져요.</p>}
               {docs.person ? <CharacterDocs docs={docs}>{bodyEditor}</CharacterDocs> : bodyEditor}
               {docs.doc === 'identity' && <p className="small muted world-card-help">## 제목으로 문단을 나누면 공개 페이지 목차에 나와요.</p>}
               {item.kind !== 'relation' && (

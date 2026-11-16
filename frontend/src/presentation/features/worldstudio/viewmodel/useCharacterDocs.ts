@@ -5,6 +5,7 @@ import {
   characterDocName,
   characterDocText,
   type CharacterDocKey,
+  type DocFileKey,
   episodeDocNumbers,
   hasCharacterDocs,
   importCharacterDocs,
@@ -20,7 +21,7 @@ import type { useWorldStudioViewModel } from './useWorldStudioViewModel'
 type Studio = Pick<ReturnType<typeof useWorldStudioViewModel>, 'editing' | 'update' | 'busy'>
 
 /**
- * 편집 화면에서 보고 있는 카드의 본문 편집 상태. 인물 카드는 문서 네 종류(IDENTITY.md = 카드 본문 · SOUL.md · MEMORY.md · memory/NN회차.md) 가운데 고른 문서 하나를 편집하고,
+ * 편집 화면에서 보고 있는 카드의 본문 편집 상태. 인물 카드는 문서 네 종류(IDENTITY.md = 카드 본문 · SOUL.md · GOAL.md · memory/NN회차.md) 가운데 고른 문서 하나를 편집하고,
  * 인물이 아닌 카드는 늘 본문 하나다. 문서 규칙(이름·빠진 문서·파일 이름 해석·덮어쓰기 대상)은 `domain/entities/characterDocs`의 순수 함수가 정하고, 모두 초안 변경이라 세계관 저장을 거쳐 반영된다.
  * - 고른 문서는 카드마다 따로이고(다른 카드를 열면 IDENTITY.md부터), 고른 회차별 기억이 지워지면 IDENTITY.md로 돌아온다.
  * - 편집기는 처음 값만 읽으므로 `editorKey`가 바뀌면 다시 만든다: 카드·문서가 바뀔 때와 파일을 불러와 글이 밖에서 바뀔 때다.
@@ -57,7 +58,7 @@ export function useCharacterDocs(studio: Studio, setting: StudioSetting) {
     editorKey: `${cardId}:${person ? doc : ''}:${revision}`,
     /** 회차별 기억이 있는 회차 번호(오름차순) */
     episodes,
-    /** 문서 버튼에 붙일 표시: 3,000자를 넘었거나(저장을 막는다) 비어 있다(IDENTITY·SOUL·MEMORY, 알리기만 한다). */
+    /** 문서 버튼에 붙일 표시: 3,000자를 넘었거나(저장을 막는다) 비어 있다(IDENTITY·SOUL·GOAL, 알리기만 한다). */
     flagOf: (key: CharacterDocKey): 'over' | 'missing' | undefined => (characterDocText(setting, key).length > CHARACTER_DOC_MAX ? 'over' : missing.includes(key) ? 'missing' : undefined),
     select: (key: CharacterDocKey) => setPicked({ card: cardId, doc: key }),
     write: (text: string) => write(doc, text),
@@ -77,14 +78,14 @@ export function useCharacterDocs(studio: Studio, setting: StudioSetting) {
     importFiles: async (files: File[]) => {
       const { picked: matched, unknown, duplicate } = matchDocFiles(files)
       const skipped = [
-        ...(unknown.length ? [`알아볼 수 없어 가져오지 않은 파일: ${unknown.join(', ')}. 파일 이름은 IDENTITY.md·SOUL.md·MEMORY.md·NN회차.md여야 해요.`] : []),
+        ...(unknown.length ? [`알아볼 수 없어 가져오지 않은 파일: ${unknown.join(', ')}. 파일 이름은 IDENTITY.md·SOUL.md·GOAL.md·NN회차.md여야 해요.`] : []),
         ...(duplicate.length ? [`같은 문서의 파일이 둘 이상이라 가져오지 않은 파일: ${duplicate.join(', ')}.`] : []),
       ]
       const say = (...lines: string[]) => setNotice({ card: cardId, lines: [...lines, ...skipped] })
       if (!matched.length) return say()
-      let read: [CharacterDocKey, string][]
+      let read: [DocFileKey, string][]
       try {
-        read = await Promise.all(matched.map(async ({ file, key }): Promise<[CharacterDocKey, string]> => [key, await file.text()]))
+        read = await Promise.all(matched.map(async ({ file, key }): Promise<[DocFileKey, string]> => [key, await file.text()]))
       } catch {
         return say('파일을 읽지 못했어요. 다시 골라 주세요.')
       }
