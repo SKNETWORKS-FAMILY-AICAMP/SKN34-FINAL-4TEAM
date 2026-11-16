@@ -1,7 +1,6 @@
-from contextlib import nullcontext
-from types import SimpleNamespace
+from fake_chat import fake_chat
 
-from app.review import agent, service
+from app.review import service
 from app.review.models import DraftFinding, ReviewResult
 
 WORK = 'work-1'
@@ -51,18 +50,6 @@ def fake_agent(monkeypatch, *findings, gaps=()):
     return seen
 
 
-def fake_openai(monkeypatch, parsed=None, status='completed', error=None):
-    """OpenAI Responses 대역. 호출 인자를 담은 dict를 돌려준다."""
-    seen = {}
-    monkeypatch.setenv('OPENAI_API_KEY', 'test-key')
-    monkeypatch.setenv('OPENAI_MODEL', 'test-model')
-
-    def parse(**kwargs):
-        seen.update(kwargs)
-        if error:
-            raise error
-        return SimpleNamespace(status=status, output_parsed=parsed, model='resolved-model', id='resp-1',
-                               usage=SimpleNamespace(input_tokens=10, output_tokens=5))
-
-    monkeypatch.setattr(agent, 'OpenAI', lambda **_: nullcontext(SimpleNamespace(responses=SimpleNamespace(parse=parse))))
-    return seen
+def fake_openai(monkeypatch, parsed=None, status='completed', error=None, text=None):
+    """ChatOpenAI 대역(create_agent 실행). 생성자·bind 인자와 받은 메시지를 담은 dict를 돌려준다."""
+    return fake_chat(monkeypatch, text=text if text is not None else (parsed.model_dump_json() if parsed else ''), status=status, error=error)

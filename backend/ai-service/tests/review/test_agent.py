@@ -2,11 +2,10 @@ import json
 
 import pytest
 from openai import OpenAIError
-from pydantic import ValidationError
 
 from app.review import agent
 from app.review.errors import ReviewFailure
-from app.review.models import ReviewResult, Usage
+from app.review.models import ReviewResult
 
 from .stubs import fake_openai, finding
 
@@ -17,10 +16,12 @@ def test_review_sends_draft_and_settings_as_data_and_returns_meta(monkeypatch):
 
     result, meta = agent.review('semantic', '서윤은 웃엇다.', [{'ref': 'card:seoyun', 'title': '서윤', 'text': '29세'}])
 
-    assert seen['store'] is False and seen['model'] == 'test-model' and seen['text_format'] is ReviewResult
-    assert '서윤은 웃엇다' in seen['input'] and 'card:seoyun' in seen['input'] and '"semantic"' in seen['input']
+    assert seen['init']['store'] is False and seen['init']['model'] == 'test-model' and seen['init']['max_tokens'] == 16000
+    assert seen['response_format']['json_schema']['name'] == 'ReviewResult'
+    sent = json.loads(seen['messages'][-1].content)
+    assert sent == {'check': 'semantic', 'draft': '서윤은 웃엇다.', 'settings': [{'ref': 'card:seoyun', 'title': '서윤', 'text': '29세'}]}
     assert result == parsed
-    assert meta == {'model': 'resolved-model', 'providerResponseId': 'resp-1', 'usage': Usage(inputTokens=10, outputTokens=5)}
+    assert meta == {'model': 'resolved-model', 'providerResponseId': 'resp-1', 'usage': {'inputTokens': 10, 'outputTokens': 5}}
 
 
 def test_review_is_traced_with_setting_refs_only(monkeypatch, spans):
@@ -38,9 +39,9 @@ def test_review_is_traced_with_setting_refs_only(monkeypatch, spans):
 def test_check_selects_its_own_instructions(monkeypatch):
     seen = fake_openai(monkeypatch, ReviewResult(findings=[], gaps=[]))
     agent.review('mechanical', '문장', [])
-    mechanical = seen['instructions']
+    mechanical = seen['messages'][0].content
     agent.review('semantic', '문장', [])
-    assert mechanical != seen['instructions']
+    assert mechanical != seen['messages'][0].content
 
 
 def test_missing_model_settings_is_503(monkeypatch):
@@ -53,9 +54,9 @@ def test_missing_model_settings_is_503(monkeypatch):
 
 @pytest.mark.parametrize('kwargs, code', [
     ({'error': OpenAIError('down')}, 503),
-    ({'error': ValidationError.from_exception_data('ReviewResult', [])}, 502),
+    ({'text': '{"findings": "x"}'}, 502),
     ({'status': 'incomplete', 'parsed': ReviewResult(findings=[], gaps=[])}, 502),
-    ({'parsed': None}, 502),
+    ({'text': ''}, 502),
 ])
 def test_provider_failure_and_unreadable_output_are_errors(monkeypatch, kwargs, code):
     fake_openai(monkeypatch, **kwargs)

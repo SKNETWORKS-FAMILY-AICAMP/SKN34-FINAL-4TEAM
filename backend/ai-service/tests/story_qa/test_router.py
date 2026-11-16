@@ -1,8 +1,8 @@
 import pytest
 from fastapi import HTTPException
 
-from app.manuscript import router
-from app.manuscript.models import AnswerRequest, EmbeddingRequest, Excerpt
+from app.story_qa import router
+from app.story_qa.models import AnswerRequest, EmbeddingRequest, Excerpt
 
 
 @pytest.mark.parametrize('call', [

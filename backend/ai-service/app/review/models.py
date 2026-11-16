@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 Check = Literal['mechanical', 'semantic']
 CATEGORIES: dict[str, tuple[str, ...]] = {
@@ -20,6 +20,7 @@ class ReviewRequest(BaseModel):
 
 class DraftFinding(BaseModel):
     """모델이 쓴 지적 하나. quote는 원고에서 그대로 옮긴 구절, evidenceRefs는 입력으로 받은 설정 ref다."""
+    model_config = ConfigDict(extra='forbid')  # OpenAI strict 구조화 출력은 additionalProperties=false 스키마만 받는다
     category: Category
     quote: str
     reason: str
@@ -30,6 +31,7 @@ class DraftFinding(BaseModel):
 
 class ReviewResult(BaseModel):
     """모델 structured output. gaps는 자료가 없어 확인하지 못한 부분이다."""
+    model_config = ConfigDict(extra='forbid')
     findings: list[DraftFinding]
     gaps: list[str]
 

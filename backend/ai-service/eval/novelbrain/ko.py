@@ -21,7 +21,7 @@ from statistics import mean
 
 from pydantic import BaseModel
 
-from app.manuscript.models import Excerpt
+from app.story_qa.models import Excerpt
 from app.novelbrain.models import Card, Relation, WorldSnapshot
 from app.novelbrain.service import _documents, bm25_rank, recall, tokenize
 from embed import best_window, embed_texts, knn

@@ -1,13 +1,13 @@
 import pytest
 
 from app import tracing
-from app.manuscript.errors import ManuscriptFailure
+from app.story_qa.errors import StoryQaFailure
 
 
 def test_failure_is_level_error_with_fixed_message_and_no_exception_event(spans):
-    with pytest.raises(ManuscriptFailure):
+    with pytest.raises(StoryQaFailure):
         with tracing.observe('step'):
-            raise ManuscriptFailure(502, 'Q&A 모델 응답을 확인할 수 없습니다.')
+            raise StoryQaFailure(502, 'Q&A 모델 응답을 확인할 수 없습니다.')
     with pytest.raises(ValueError):
         with tracing.observe('bug'):
             raise ValueError('원고 본문이 담긴 메시지')

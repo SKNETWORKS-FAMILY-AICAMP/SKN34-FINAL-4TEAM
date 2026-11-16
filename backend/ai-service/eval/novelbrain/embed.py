@@ -20,7 +20,7 @@ MAX_CHARS = 1800
 def embed_texts(texts: list[str], kind: str, batch_size: int = 16):
     """kind는 'passage' 또는 'query'(운영과 같은 접두어). (n, 384) float32 배열."""
     import numpy as np
-    from app.manuscript.service import E5Encoder
+    from app.story_qa.service import E5Encoder
 
     encoder = E5Encoder(DATA / 'e5-small')
     order = sorted(range(len(texts)), key=lambda i: len(texts[i]))  # 길이순으로 묶어 패딩 낭비를 줄인다

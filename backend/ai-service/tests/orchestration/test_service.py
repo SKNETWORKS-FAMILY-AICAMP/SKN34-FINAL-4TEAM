@@ -7,7 +7,7 @@ import pytest
 from app.content_mcp.errors import ContentMcpFailure
 from app.intent.errors import IntentFailure
 from app.intent.prompt import CLARIFY_MESSAGE
-from app.manuscript.errors import ManuscriptFailure
+from app.story_qa.errors import StoryQaFailure
 from app.orchestration import service
 from app.orchestration.models import OrchestrationRequest
 from app.research.errors import ResearchFailure
@@ -120,7 +120,7 @@ def test_stream_reports_plan_each_step_start_and_result_then_done(monkeypatch):
 
 def test_stream_stops_starting_steps_after_failure(monkeypatch):
     fake_agents(monkeypatch, plan('story_context', 'web_research'),
-                fail={'story_context': ManuscriptFailure(502, 'Q&A 모델 응답을 확인할 수 없습니다.')})
+                fail={'story_context': StoryQaFailure(502, 'Q&A 모델 응답을 확인할 수 없습니다.')})
     events = stream(inputs={'story_context': QA, 'web_research': WEB})
     assert [name for name, _ in events] == ['plan', 'started', 'step', 'done']
     assert events[2][1]['error'] == 'Q&A 모델 응답을 확인할 수 없습니다.'

@@ -6,7 +6,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.intent.models import Feature
-from app.manuscript.models import AnswerRequest, AnswerResponse, Excerpt
+from app.story_qa.models import AnswerRequest, AnswerResponse, Excerpt
 from app.research.models import ResearchRequest, ResearchResponse
 from app.retrieval.models import Coverage, RetrievalScope
 from app.review.models import Check, ReviewResponse

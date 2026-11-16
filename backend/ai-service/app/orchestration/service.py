@@ -23,7 +23,7 @@ interrupt로 작가 승인을 기다린다. 승인 resume이면 그 요청의 �
 양식(simulation)이 있으면 모델 없이 그 값을 계획으로 쓰되 세계관으로 확인하고, 어긋나면 되묻지 않고 단계 failed로 끝낸다.
 장면은 단계 노드가 장면 에이전트(app/simulation/scene_agent.py, LangChain create_agent + 미들웨어)로 쓴다. 대화 안에서는 에이전트가 턴
 사이마다 interrupt로 멈추고(이 노드 안에서 바깥 그래프로 전달돼 waiting·awaitingScene이 된다) 같은 대화의 resume이 이 노드를 다시
-실행하면 멈춘 자리에서 이어 간다. 턴이 끝날 때마다 에이전트의 이벤트를 콜백이 custom stream으로 중계해 SSE step(누적 결과)이 된다.
+실행하면 멈춘 자리에서 이어 간다. 턴이 끝날 때마다 공통 ProgressMiddleware가 장면 결과를 custom stream으로 흘려 SSE step(누적 결과)이 되고, 공통 UsageLedger가 턴별 사용량을 남긴다.
 장면이 끝나면 apply 노드가 승인을 기다리며, 승인 대기 중의 장면 조작(edit·redo·next)은 이 노드로 되돌려 이어 간다.
 끝까지 가지 못해 이어 갈 수 없는 장면(첫 턴 실패)은 부분 결과와 함께 failed다.
 
@@ -55,9 +55,9 @@ from app.content_mcp.errors import ContentMcpFailure
 from app.intent import service as intent
 from app.intent.errors import IntentFailure
 from app.intent.prompt import CLARIFY_MESSAGE
-from app.manuscript import service as manuscript
-from app.manuscript.errors import ManuscriptFailure
-from app.manuscript.models import AnswerRequest
+from app.story_qa import service as story_qa
+from app.story_qa.errors import StoryQaFailure
+from app.story_qa.models import AnswerRequest
 from app.orchestration.models import (ChatHistory, ChatSession, ChatTurn, OrchestrationRequest, OrchestrationResponse,
                                       QaStepResult, Resume)
 from app.research import service as research
@@ -70,10 +70,10 @@ from app.review import service as review
 from app.review.errors import ReviewFailure
 from app.review.models import ReviewRequest
 from app.simulation import service as simulation
-from app.simulation.callbacks import SceneEvents, UsageCallback
+from app.agent_runtime import UsageLedger
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import GAP_LABELS, Scene, SimulationPlan
-from app.simulation.scene_agent import scene_agent
+from app.simulation.scene_agent import scene_agent, turn as simulation_turn
 from app.simulation.service import SceneContext
 from app.writing import agent as writing
 from app.writing.errors import WritingFailure
@@ -92,7 +92,7 @@ def _story_context(data: dict | None, state: dict) -> QaStepResult:
             return QaStepResult(claims=[], gaps=gaps, coverage=coverage)
         data = {'question': _task(state)[:500], 'excerpts': [e.model_dump() for e in found.excerpts]}
     history = [] if state.get('replaceHistory') else [t['qa'] for t in state.get('turns', []) if t['qa']][-HISTORY_TURNS:]
-    answer = manuscript.answer(AnswerRequest.model_validate({**data, 'history': history}))
+    answer = story_qa.answer(AnswerRequest.model_validate({**data, 'history': history}))
     cited = {i for claim in answer.claims for i in claim.sourceIds}
     return QaStepResult(claims=answer.claims, gaps=gaps + answer.gaps, coverage=coverage,
                         sources=[e for e in data['excerpts'] if e['id'] in cited])
@@ -120,7 +120,7 @@ NO_REVIEW_TARGET = '검수할 작품과 회차를 확인할 수 없어요.'
 FEATURES = (*CALLS, 'character_simulation')
 # shortcut: 최근 5턴만 넘기고 요약하지 않는다. 긴 대화의 앞부분 지칭이 필요해지면 요약을 검토한다.
 HISTORY_TURNS = 5
-FAILURES = (ManuscriptFailure, WritingFailure, ResearchFailure, RetrievalFailure, SimulationFailure, ContentMcpFailure, ReviewFailure)
+FAILURES = (StoryQaFailure, WritingFailure, ResearchFailure, RetrievalFailure, SimulationFailure, ContentMcpFailure, ReviewFailure)
 LIMIT_MESSAGE = '시뮬레이션이 호출 한도를 넘어 멈췄어요.'
 APPROVABLE = ('writing_editing', 'character_simulation')  # 결과를 작가가 승인하면 초안에 반영하는 단계
 UNSUPPORTED_MESSAGE = ('요청에 아직 실행할 수 없는 작업이 있어 아무 작업도 실행하지 않았어요. '
@@ -303,7 +303,7 @@ async def character_simulation(state: State, config: RunnableConfig) -> State:
                            pausing=pausing)
     seed = {'messages': [HumanMessage('장면을 진행해 주세요.')], 'scene': scene.model_dump(mode='json'), 'pending': False,
             'decision': None, 'action': state.get('sceneAction')}
-    config = merge_configs(config, {'callbacks': [SceneEvents(), UsageCallback(_trace(state))]})
+    config = merge_configs(config, {'callbacks': [UsageLedger('simulation.turn', simulation_turn, _trace(state))]})
     out = paused = None
     with tracing.observe('step.character_simulation', as_type='agent', trace_context=_trace(state)):
         try:

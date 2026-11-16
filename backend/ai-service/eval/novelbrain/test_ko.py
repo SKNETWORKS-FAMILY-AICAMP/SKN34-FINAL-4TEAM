@@ -2,7 +2,7 @@
 
 import pytest
 
-from app.manuscript.models import Excerpt
+from app.story_qa.models import Excerpt
 from app.novelbrain.service import _documents, bm25_rank, recall
 from ko import QUOTA, WORKS, candidates, evidence_ids, ko_world, load_works, question_score, valid_question, write_dataset
 from run import filtered, fuse
