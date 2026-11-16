@@ -92,10 +92,10 @@ it('가져온 카드와 관계를 초안 끝에 더하고 관계는 기존 관�
   expect(draft).toHaveLength(1) // 받은 초안은 그대로다
 })
 
-it('서버 한도(설정 카드 1,000개)를 넘기면 더하지 않고 몇 개까지 가져올 수 있는지 알린다', () => {
-  const draft = Array.from({ length: 999 }, (_, n) => mine(`인물 ${n}`))
+it('활성 카드 10,000개 한도를 넘기면 더하지 않고 몇 개까지 가져올 수 있는지 알린다', () => {
+  const draft = Array.from({ length: 9999 }, (_, n) => mine(`인물 ${n}`))
   const one = importCards(source(), pick('a'), false), two = importCards(source(), pick('a', 'b'), false)
-  expect(appendImported(draft, one)).toHaveLength(1000)
-  expect(() => appendImported(draft, two)).toThrow('설정 카드는 1,000개까지 저장할 수 있어요. 지금은 1개까지 가져올 수 있어요.')
-  expect(() => appendImported([...draft, mine('마지막')], one)).toThrow('설정 카드는 1,000개까지 저장할 수 있어요. 더 가져오려면 설정을 먼저 정리해 주세요.')
+  expect(appendImported(draft, one)).toHaveLength(10000)
+  expect(() => appendImported(draft, two)).toThrow('설정 카드는 10,000개까지 저장할 수 있어요. 지금은 1개까지 가져올 수 있어요.')
+  expect(() => appendImported([...draft, mine('마지막')], one)).toThrow('설정 카드는 10,000개까지 저장할 수 있어요. 더 가져오려면 설정을 먼저 정리해 주세요.')
 })

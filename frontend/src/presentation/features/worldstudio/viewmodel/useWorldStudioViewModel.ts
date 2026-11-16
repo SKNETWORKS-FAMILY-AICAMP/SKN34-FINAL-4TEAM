@@ -480,7 +480,7 @@ export function useWorldStudioViewModel(
     },
     /**
      * 다른 세계관에서 가져온 카드(와 그 사이 관계)를 초안 끝에 더한다(저장해야 서버에 반영). 더했을 때만 true이고,
-     * 서버 한도(설정 카드 1,000개)를 넘기는 등 더할 수 없으면 초안을 그대로 두고 이유를 던진다(가져오기 시트가 보인다).
+     * 서버 한도(설정 카드 10,000개)를 넘기는 등 더할 수 없으면 초안을 그대로 두고 이유를 던진다(가져오기 시트가 보인다).
      */
     importSettings: (imported: ImportedSettings) => {
       if (!editing || busy) return false

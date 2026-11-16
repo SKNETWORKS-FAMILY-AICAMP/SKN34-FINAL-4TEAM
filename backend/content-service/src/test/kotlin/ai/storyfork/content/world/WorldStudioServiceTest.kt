@@ -297,6 +297,35 @@ class WorldStudioServiceTest {
         assertEquals(saved,service.edit(world,actor,request))
         assertEquals(3L,draft.draftRevision)
     }
+    @Test fun `large upsert changes only requested cards after a graph failure and retry`() {
+        owned()
+        val original=(1..10000).map { cardDraft(UUID.randomUUID()) }
+        val unchanged=original.drop(2)
+        val oldTime=java.time.Instant.parse("2020-01-01T00:00:00Z")
+        original.forEach { it.updatedAt=oldTime }
+        val oldFields=unchanged.map { it.fields }
+        val stored=original.associateBy { it.cardId }.toMutableMap()
+        `when`(cardDrafts.findAllByWorldId(world)).thenAnswer { stored.values.toList() }
+        `when`(cardDrafts.findById(anyUUID())).thenAnswer { Optional.ofNullable(stored[it.arguments[0] as UUID]) }
+        `when`(cardDrafts.save(any())).thenAnswer { (it.arguments[0] as SettingCardDraft).also { card -> stored[card.cardId]=card } }
+        `when`(cards.findById(anyUUID())).thenAnswer { Optional.ofNullable(stored[it.arguments[0] as UUID]?.let { card -> SettingCard(card.cardId,world) }) }
+        var interrupted=true
+        doAnswer {
+            if(interrupted) { interrupted=false;throw WorldStudioFailure.unavailable() }
+            RelationshipStateResult(world,4,state.requestKey,state.requestHash,emptyList())
+        }.`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        val newId=UUID.randomUUID()
+        val changes=listOf(payload(original[0].cardId).copy(body="수정"),payload(original[1].cardId,"removed"),payload(newId))
+        val request=EditWorldDraftRequest(2,"x","",changes,key="large-upsert")
+        assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,request) }
+        assertEquals(oldTime,original[0].updatedAt);assertFalse(state.completed);assertFalse(stored.containsKey(newId))
+        assertEquals(3L,service.edit(world,actor,request).draftRevision)
+        assertEquals("수정",stored.getValue(original[0].cardId).fields.body)
+        assertEquals("removed",stored.getValue(original[1].cardId).fields.lifecycle)
+        assertEquals("원문",stored.getValue(newId).fields.body)
+        assertTrue(unchanged.all { it.updatedAt==oldTime });assertEquals(oldFields,unchanged.map { it.fields })
+        verify(cardDrafts,times(3)).findById(anyUUID())
+    }
     @Test fun `definite foreign graph identity rejection releases only its receipt without changing the current draft`() {
         owned()
         val first=CardPayload(UUID.randomUUID(),"가","원문","character","basic");val second=first.copy(id=UUID.randomUUID(),title="나")
@@ -593,6 +622,26 @@ class WorldStudioServiceTest {
         `when`(graph.read(world,episode)).thenAnswer { RelationshipStateResult(world,state.graphVersion,state.requestKey,state.requestHash,relations.toList()) }
     }
 
+    @Test fun `relationship replacement at the limit is validated before graph preparation`() {
+        owned()
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(cardDraft(cardA),cardDraft(cardB)))
+        val existing=(1..1000).map { RelationshipPayload(UUID.randomUUID(),cardA,cardB,"structural","관계") }
+        val added=RelationshipPayload(UUID.randomUUID(),cardA,cardB,"emotional","새 관계")
+        var graphRelations=existing
+        `when`(graph.read(world,null)).thenAnswer { RelationshipStateResult(world,state.graphVersion,state.requestKey,state.requestHash,graphRelations) }
+        assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",relationships=listOf(added),key="over")) }
+        assertTrue(state.completed);assertEquals("previous",state.requestKey);assertEquals(2L,draft.draftRevision)
+        verify(states,never()).flush();verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        doAnswer {
+            @Suppress("UNCHECKED_CAST")
+            graphRelations=it.arguments[4] as List<RelationshipPayload>
+            RelationshipStateResult(world,4,state.requestKey,state.requestHash,graphRelations)
+        }.`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        val updates=listOf(existing.first().copy(lifecycle="removed",sourceCardId=null,targetCardId=null),added)
+        val saved=assertDoesNotThrow<WorldDraftResponse> { service.edit(world,actor,EditWorldDraftRequest(2,"x","",relationships=updates,key="swap")) }
+        assertEquals(existing.drop(1)+added,saved.relationships)
+        verify(graph,times(1)).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+    }
     @Test fun `the owner reads the relations as of an episode`() {
         owned()
         `when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(cardDraft(cardA),cardDraft(cardB)))
@@ -688,6 +737,38 @@ class WorldStudioServiceTest {
 
     // --- 이번 요청이 삭제하는 카드에 이어진 관계(#341) ---
     private fun payload(id:UUID,lifecycle:String="active")=CardPayload(id,"카드","원문","character","basic",lifecycle=lifecycle)
+    @Test fun `active card total allows ten thousand after upserts and removals`() {
+        owned()
+        val existing=(1..9999).map { cardDraft(UUID.randomUUID()) }
+        val removed=cardDraft(UUID.randomUUID(),"removed")
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(existing+removed)
+        graphKeeps()
+        val added=payload(UUID.randomUUID())
+        val saved=assertDoesNotThrow<WorldDraftResponse> { service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(added),key="ten-thousand")) }
+        assertEquals(3L,saved.draftRevision)
+        draft.draftRevision=2;state.graphVersion=3
+        val tenThousand=existing+cardDraft(added.id)+removed
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(tenThousand)
+        val updates=listOf(payload(existing[0].cardId).copy(title="수정"),payload(existing[1].cardId,"removed"),payload(removed.cardId))
+        assertEquals(3L,service.edit(world,actor,EditWorldDraftRequest(2,"x","",updates,key="update-at-limit")).draftRevision)
+    }
+    @Test fun `active card total rejects ten thousand and one before preparing any writes`() {
+        owned()
+        val existing=(1..10000).map { cardDraft(UUID.randomUUID()) }
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(existing)
+        val error=assertThrows(IllegalArgumentException::class.java) {
+            service.edit(world,actor,EditWorldDraftRequest(2,"변경","",listOf(payload(UUID.randomUUID())),key="over-limit"))
+        }
+        assertEquals("설정 카드는 10,000개까지 저장할 수 있습니다.",error.message)
+        nothingPrepared();assertEquals("previous",state.requestKey);assertEquals("previous",state.requestHash)
+    }
+    @Test fun `a single request still rejects one thousand and one cards and duplicate ids`() {
+        val one=payload(UUID.randomUUID())
+        val tooMany=(1..1001).map { payload(UUID.randomUUID()) }
+        assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",tooMany,key="too-many")) }
+        assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(one,one),key="duplicate")) }
+        verifyNoInteractions(worlds,graph)
+    }
     /** A·B·C가 모두 활성이고 B에 이어진 관계(keptToRemoved)와 살아 있는 관계(live)가 최신(3화 시점도 같다)에 있다. */
     private fun relationOnB() { owned();`when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(cardDraft(cardA),cardDraft(cardB),cardDraft(cardC)));at(3,keptToRemoved,live);at(null,keptToRemoved,live) }
     /** 저장소가 [kept]만 남긴 결과를 돌려주게 하고, 저장소로 보낸 인자를 쌓아 돌려준다. */

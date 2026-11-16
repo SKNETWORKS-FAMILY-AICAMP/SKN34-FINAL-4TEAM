@@ -15,6 +15,7 @@ import type { WorldStudioRepository } from '../../../../domain/repositories/Worl
 import { WorldReviewUseCase } from '../../../../domain/usecases/WorldReviewUseCase'
 import { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCase'
 import { LazyMarkdownEditor as fakeEditor } from '../../../../test/markdownEditorFake'
+import * as cardImports from '../../../shared/importCards'
 import type { useWorldRevisions } from '../viewmodel/useWorldRevisions'
 import { WorldStudioPage } from './WorldStudioPage'
 
@@ -2087,16 +2088,19 @@ it('고른 세계관이 그사이 비공개가 됐거나 없으면 찾을 수 �
   expect(await sheet.findByRole('button', { name: /사라진 세계/ })).toBeTruthy()
 })
 
-it('서버 한도(설정 카드 1,000개)를 넘기면 가져오지 않고 이유를 시트에 보이며 초안은 그대로다', async () => {
+it('설정 가져오기 한도 오류를 시트에 보이고 초안은 그대로 둔다', async () => {
   stubPublicWorlds()
-  const notes = Array.from({ length: 1000 }, () => { const row = newSetting('notes'); row.item.title = '메모'; row.item.text = '내용'; return row })
-  await show(notes)
+  const append = vi.spyOn(cardImports, 'appendImported').mockImplementation(() => { throw new Error('설정 카드는 10,000개까지 저장할 수 있어요. 더 가져오려면 설정을 먼저 정리해 주세요.') })
+  await showWorld()
   const cards = await pickSource(await openImport())
   fireEvent.click(cards.getByRole('checkbox', { name: /설화/ }))
   fireEvent.click(cards.getByRole('button', { name: '설정 1개 가져오기' }))
-  expect((await cards.findByRole('alert')).textContent).toBe('설정 카드는 1,000개까지 저장할 수 있어요. 더 가져오려면 설정을 먼저 정리해 주세요.')
+  expect((await cards.findByRole('alert')).textContent).toBe('설정 카드는 10,000개까지 저장할 수 있어요. 더 가져오려면 설정을 먼저 정리해 주세요.')
+  expect(append).toHaveBeenCalledOnce()
   expect(screen.getByRole('dialog', { name: '다른 세계관에서 가져오기' })).toBeTruthy() // 닫지 않아 고른 것을 줄여 다시 할 수 있다
   expect(saveBar().getByText('저장됨')).toBeTruthy()
+  expect(boardTable().getAllByRole('row')).toHaveLength(2) // 머리글과 원래 카드만 남는다
+  expect(boardTable().getByRole('button', { name: '가람 인물' })).toBeTruthy()
 })
 
 // ── 새로 나타나거나 사라지는 영역의 초점(삭제 확인·관계 작성 패널) ─────────────────────────────────────

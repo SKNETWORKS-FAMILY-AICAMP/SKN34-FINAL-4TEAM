@@ -9,7 +9,7 @@ import { authorEdit, newSetting, type StudioSetting } from '../../domain/entitie
  */
 
 /** 서버가 한 세계관에 두는 활성 설정 카드 수의 한도 */
-const CARD_LIMIT = 1000
+const CARD_LIMIT = 10000
 
 /** 가져올 카드(새 id)와 그 사이의 관계 입력. 관계는 `appendImported`가 기존 관계 저장 규칙으로 만든다. */
 export type ImportedSettings = { cards: StudioSetting[]; relations: RelationInput[] }
@@ -55,6 +55,6 @@ export function importCards(source: PublicWorld, selectedIds: ReadonlySet<string
  */
 export function appendImported(settings: StudioSetting[], { cards, relations }: ImportedSettings, baseline: StudioSetting[] = settings): StudioSetting[] {
   const room = CARD_LIMIT - settings.filter((setting) => setting.item.kind !== 'relation').length
-  if (cards.length > room) throw new Error(`설정 카드는 1,000개까지 저장할 수 있어요. ${room > 0 ? `지금은 ${room}개까지 가져올 수 있어요.` : '더 가져오려면 설정을 먼저 정리해 주세요.'}`)
+  if (cards.length > room) throw new Error(`설정 카드는 10,000개까지 저장할 수 있어요. ${room > 0 ? `지금은 ${room}개까지 가져올 수 있어요.` : '더 가져오려면 설정을 먼저 정리해 주세요.'}`)
   return applyRelationChanges([...settings, ...cards], relations, [], baseline)
 }

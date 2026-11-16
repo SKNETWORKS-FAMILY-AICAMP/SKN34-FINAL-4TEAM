@@ -166,7 +166,7 @@ class WorldStudioService(
         if(loaded.duplicate) return draft(worldId,subject,request.episode)
         val mergedCards=mergeCards(loaded.draft.cards,request)
         val known=mergedCards.filter { it.lifecycle=="active" }.map { it.id }.toSet()
-        require(known.size<=1000) { "설정 카드는 1,000개까지 저장할 수 있습니다." }
+        require(known.size<=10000) { "설정 카드는 10,000개까지 저장할 수 있습니다." }
         val current=graph.read(worldId,request.episode)
         val alreadyApplied=current.version==Math.incrementExact(loaded.graphVersion) && current.key==request.key && current.hash==hash
         if(current.worldId!=worldId || (!alreadyApplied && current.version!=loaded.graphVersion)) throw WorldStudioFailure.mismatch()
@@ -219,7 +219,7 @@ class WorldStudioService(
             if(state.requestKey!=request.key || state.requestHash!=hash) throw WorldConflict()
             if(!state.completed) {
                 expected(draft,request.expectedDraftRevision)
-                (if(applicationId==null) mergedCards else request.cards).forEach { card ->
+                (if(applicationId==null && request.replace) mergedCards else request.cards).forEach { card ->
                     val existing=cardDrafts.findById(card.id).orElse(null)
                     if(existing==null) cardDrafts.save(SettingCardDraft(cardId=card.id,worldId=worldId,fields=fields(card)))
                     else { existing.fields=fields(card);existing.updatedAt=Instant.now() }
