@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from app.content_mcp.errors import ContentMcpFailure
-from app.manuscript.models import Excerpt
+from app.story_qa.models import Excerpt
 from app.retrieval.errors import RetrievalFailure, RetrievalUnavailable
 from app.retrieval.models import RetrievalResult
 from app.simulation import prompt, service

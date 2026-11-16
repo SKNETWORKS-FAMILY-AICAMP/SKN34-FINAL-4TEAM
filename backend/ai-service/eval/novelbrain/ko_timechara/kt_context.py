@@ -10,7 +10,7 @@
 import kt_common  # noqa: F401  경로 설정이 다른 import보다 먼저여야 한다
 import re
 
-from app.manuscript.models import Excerpt
+from app.story_qa.models import Excerpt
 from app.novelbrain.service import _documents, bm25_rank, recall
 from embed import best_window, knn
 from kt_label import knows

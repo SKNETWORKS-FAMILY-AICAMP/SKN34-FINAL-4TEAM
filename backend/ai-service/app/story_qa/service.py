@@ -6,9 +6,9 @@ from functools import lru_cache
 from pathlib import Path
 
 from app import tracing
-from app.manuscript import agent
-from app.manuscript.errors import ManuscriptFailure
-from app.manuscript.models import AnswerRequest, AnswerResponse, EmbeddingRequest, EmbeddingResponse
+from app.story_qa import agent
+from app.story_qa.errors import StoryQaFailure
+from app.story_qa.models import AnswerRequest, AnswerResponse, EmbeddingRequest, EmbeddingResponse
 
 MODEL = 'intfloat/multilingual-e5-small'
 REVISION = '614241f622f53c4eeff9890bdc4f31cfecc418b3'
@@ -71,9 +71,9 @@ def embed(data: EmbeddingRequest) -> EmbeddingResponse:
     try:
         vectors = get_encoder().encode([f'{data.kind}: {text}' for text in data.texts])
     except ValueError:
-        raise ManuscriptFailure(422, '원고 임베딩 입력 한도 초과') from None
+        raise StoryQaFailure(422, '원고 임베딩 입력 한도 초과') from None
     except Exception:
-        raise ManuscriptFailure(503, '로컬 원고 임베딩을 실행할 수 없습니다.') from None
+        raise StoryQaFailure(503, '로컬 원고 임베딩을 실행할 수 없습니다.') from None
     return EmbeddingResponse(model=MODEL, revision=REVISION, vectors=vectors)
 
 
@@ -96,6 +96,6 @@ def answer(data: AnswerRequest) -> AnswerResponse:
             check.update(metadata={'citedIds': sorted(cited), 'invalidIds': sorted(cited - ids),
                                    'claims': len(result.claims), 'gaps': len(result.gaps)})
             if not all(claim.sourceIds and set(claim.sourceIds) <= ids for claim in result.claims):
-                raise ManuscriptFailure(502, 'Q&A 답변의 출처를 확인할 수 없습니다.')
+                raise StoryQaFailure(502, 'Q&A 답변의 출처를 확인할 수 없습니다.')
         qa.update(output=result.model_dump())
         return result

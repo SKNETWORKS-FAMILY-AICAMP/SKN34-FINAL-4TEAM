@@ -1,18 +1,18 @@
 import { useId, useState } from 'react'
 
 import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
-import { featureLabel, replyText, stepText, type ChatBasis, type ChatReply, type ChatStep, type ChatStepInputs } from '../../../domain/entities/writingChat'
+import { featureLabel, replyText, reviewCheckLabel, stepText, type ChatBasis, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck } from '../../../domain/entities/writingChat'
 import type { ChatMessage } from '../../../domain/entities/chat'
 import { ComposeIcon, MoreIcon, SparkIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
 import { ChatPanel, ConsentCheck } from './ChatPanel'
 import { useWritingChatViewModel, type ChatViewModel, type LiveTurn } from './useWritingChatViewModel'
 
-const stateLabel = { done: '완료', run: '진행 중', wait: '대기', stop: '멈춤', fail: '실패' } as const
+const stateLabel = { done: '완료', run: '진행 중', wait: '대기', stop: '멈춤', fail: '실패', skip: '건너뜀' } as const
 // 시뮬레이션 단계는 서버의 단계 상태가 아니라 장면 상태로 보인다: 진행 중 step은 완료로 오고, 멈춘 장면을 완료로 꾸미면 안 된다.
 const simState = { running: 'run', paused: 'run', completed: 'done', stopped: 'stop', failed: 'fail' } as const
 const stepState = (step: ChatStep, running: string | null) =>
-  step.status === 'failed' ? 'fail' : step.simulation ? simState[step.simulation.status] : step.status === 'completed' ? 'done' : step.feature === running ? 'run' : 'wait'
+  step.status === 'failed' ? 'fail' : step.status === 'skipped' ? 'skip' : step.simulation ? simState[step.simulation.status] : step.status === 'completed' ? 'done' : step.feature === running ? 'run' : 'wait'
 /** 인물 시뮬레이션(#58) 입력 예시. 누르면 입력창에 글만 채운다. */
 const simulationExamples = ['IF 시뮬레이션: "만약 ~했다면?"', '흐름 시뮬레이션: 비트를 적어 요청']
 
@@ -76,6 +76,8 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
   const id = useId()
   const [question, setQuestion] = useState('')
   const [plan, setPlan] = useState('')
+  const [check, setCheck] = useState<ReviewCheck | null>(null)
+  const [fix, setFix] = useState<number | null>(null)
   const draft = reply.steps.find((s) => s.feature === 'writing_editing' && s.status === 'completed')
   if (reply.awaitingApproval === 'character_simulation' || reply.awaitingScene === 'character_simulation') return <SceneWait reply={reply} onOpenStage={onOpenStage} />
   if (reply.awaitingApproval) {
@@ -90,10 +92,16 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
     </section>
   }
   const needs = reply.missingInputs
-  const filled = needs.every((f) => (f === 'web_research' ? question.trim() : f === 'writing_editing' ? plan.trim() : false))
+  // 조건부 수정(#370)은 새 원고 계획이 아니라 직전 검수의 확정 지적 중 고칠 하나를 고른다. 번호는 검수 결과 findings 순서다.
+  const fixing = reply.steps.some((s) => s.feature === 'writing_editing' && s.when === 'if_issues_found')
+  const confirmed = (reply.steps.find((s) => s.feature === 'review')?.review?.findings ?? [])
+    .flatMap((f, i) => (f.status === 'confirmed' ? [{ ...f, index: i }] : []))
+  const filled = needs.every((f) => (f === 'web_research' ? question.trim() : f === 'writing_editing' ? (fixing ? fix !== null : plan.trim()) : f === 'review' ? check : false))
   const inputs: ChatStepInputs = {
     ...(needs.includes('web_research') ? { web_research: { question: question.trim() } } : {}),
-    ...(needs.includes('writing_editing') && episode ? { writing_editing: { draft: { episodeNumber: episode, plan: plan.trim() } } } : {}),
+    ...(needs.includes('review') && check ? { review: { check } } : {}),
+    ...(needs.includes('writing_editing') && fixing && fix !== null ? { writing_editing: { fix } } : {}),
+    ...(needs.includes('writing_editing') && !fixing && episode ? { writing_editing: { draft: { episodeNumber: episode, plan: plan.trim() } } } : {}),
   }
   return <form className="chat-hitl" aria-labelledby={`${id}-t`} onSubmit={(e) => { e.preventDefault(); if (filled) onResume(true, inputs) }}>
     <h3 id={`${id}-t`}>작업에 필요한 내용을 알려 주세요</h3>
@@ -101,10 +109,24 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
     {needs.includes('web_research') && <label className="chat-field">조사할 질문
       <input value={question} maxLength={500} onChange={(e) => setQuestion(e.target.value)} placeholder="예: 조선 후기 한양에서 동래까지 며칠 걸렸나요?" />
     </label>}
-    {needs.includes('writing_editing') && <label className="chat-field">쓸 장면 계획{episode ? ` · ${episode}화` : ''}
+    {needs.includes('writing_editing') && fixing && <fieldset className="chat-choice">
+      <legend>고칠 지적{episode ? ` · ${episode}화 초안` : ''}</legend>
+      {confirmed.map((f) => <label key={f.index}>
+        <input type="radio" name={`${id}-fix`} checked={fix === f.index} onChange={() => setFix(f.index)} />
+        "{f.quote}" — {f.reason}
+      </label>)}
+    </fieldset>}
+    {needs.includes('writing_editing') && !fixing && <label className="chat-field">쓸 장면 계획{episode ? ` · ${episode}화` : ''}
       <textarea rows={3} value={plan} maxLength={4000} onChange={(e) => setPlan(e.target.value)} placeholder="예: 선장이 항구에 도착해 옛 동료와 마주친다." />
     </label>}
-    {needs.some((f) => f !== 'web_research' && f !== 'writing_editing') && <p className="chat-note">이 단계의 입력은 아직 화면에서 채울 수 없어요. 취소한 뒤 다른 요청으로 보내 주세요.</p>}
+    {needs.includes('review') && <fieldset className="chat-choice">
+      <legend>검수 종류{episode ? ` · ${episode}화 초안` : ''}</legend>
+      {(['mechanical', 'semantic'] as const).map((c) => <label key={c}>
+        <input type="radio" name={`${id}-check`} checked={check === c} onChange={() => setCheck(c)} />
+        {reviewCheckLabel[c]}{c === 'semantic' && <span className="chat-note"> (연결된 세계관 설정과 대조)</span>}
+      </label>)}
+    </fieldset>}
+    {needs.some((f) => f !== 'web_research' && f !== 'writing_editing' && f !== 'review') && <p className="chat-note">이 단계의 입력은 아직 화면에서 채울 수 없어요. 취소한 뒤 다른 요청으로 보내 주세요.</p>}
     <div className="chat-hitl-actions">
       <button type="submit" className="btn sm pri" disabled={pending || !filled}>이어서 실행</button>
       <button type="button" className="btn sm" disabled={pending} onClick={() => onResume(false)}>취소</button>

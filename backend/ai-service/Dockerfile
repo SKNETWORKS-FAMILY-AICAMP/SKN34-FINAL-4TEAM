@@ -34,7 +34,7 @@ RUN groupadd --system storyfork && \
         --shell /usr/sbin/nologin \
         storyfork
 
-# 원고 검색 v1 고정 리비전 E5 모델. 체크섬은 app/manuscript/service.py FILES와 같고, 다르면 빌드가 실패한다.
+# 원고 검색 v1 고정 리비전 E5 모델. 체크섬은 app/story_qa/service.py FILES와 같고, 다르면 빌드가 실패한다.
 ADD --chmod=444 --checksum=sha256:dd476dd0c2514e9b9be83aeb3853fac0763e0bdf4a71645407587d77c48a2d88 https://huggingface.co/intfloat/multilingual-e5-small/resolve/614241f622f53c4eeff9890bdc4f31cfecc418b3/onnx/model_qint8_avx512_vnni.onnx /app/models/multilingual-e5-small/model_qint8_avx512_vnni.onnx
 ADD --chmod=444 --checksum=sha256:0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39 https://huggingface.co/intfloat/multilingual-e5-small/resolve/614241f622f53c4eeff9890bdc4f31cfecc418b3/onnx/tokenizer.json /app/models/multilingual-e5-small/tokenizer.json
 

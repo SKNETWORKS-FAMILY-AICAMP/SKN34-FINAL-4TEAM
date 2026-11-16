@@ -11,10 +11,10 @@
 | 모드 | **IF 모드**: 메인 에이전트와 정한 "만약 ~했다면?" 전제 하나만 강제, 인물은 자유. **흐름 모드**: 메인 에이전트와 정한 비트(장면·사건 순서)를 따른다. 흐름 모드는 메인 에이전트 단독 집필에서 생기는 오류를 인물 격리로 해결하는 장치다. |
 | 인물 입력 | DEC-47 인물 문서. `IDENTITY.md`(카드 본문)·`SOUL.md`(말투·사고)·`GOAL.md`(목표)·`memory/NN회차.md` 중 **기준 회차 이하**만. 다른 인물의 문서·비공개 생각은 넣지 않는다. |
 | 모델 | 인물 행동·나레이션·독백·검사·요약은 OpenAI `gpt-6-luna`(DEC-28, 기존 `OPENAI_MODEL` 설정), 연출 결정은 OpenAI Decisions(`gpt-6-luna`)다. |
-| 실행 틀 | 장면은 LangChain `create_agent` + 미들웨어·훅·콜백·이벤트 리스너로 쓴다(#362, 사용자 결정 2026-11-14). 시뮬레이션만 이 틀이고 Q&A·집필·고증은 기존 오케스트레이션 그래프다. |
+| 실행 틀 | 장면은 LangChain `create_agent` + 미들웨어·훅·콜백·이벤트 리스너로 쓴다(#362, 사용자 결정 2026-11-14). Q&A·집필·고증·검수 업무 Agent도 #373(DEC-52)에서 `create_agent` + 공통 미들웨어(`app/agent_runtime.py`)로 바뀌었고, 이들을 묶는 바깥 오케스트레이션은 LangGraph 그래프 그대로다. |
 | 연출·시점 | 인물이 말하기 전에 매 턴 연출 결정(나레이션·독백·인물 대사·마무리, 화자, 시점)을 거친다. 시점은 전지적·인물의 3인칭 제한·인물의 1인칭이며 비트마다 바뀔 수 있다. 독백은 나레이터가 시점 인물의 지식 범위로 쓴다. |
 | 저장 | 시뮬레이션 기록은 대화 체크포인트에만 남는다. 장면이 끝나면 승인 질문(`waiting`, `awaitingApproval`)으로 작가 승인을 받고, 승인 시에만 Content MCP로 열린 회차 초안 끝에 나레이션·독백·대사를 순서대로 이어 붙인다(DEC-36, UC-09 최소 보장). 원고·설정 정본 자동 반영은 없다. |
-| 새 의존성 | `langchain`(v1)·`langchain-typesafe==0.0.1a3`(사용자 승인 2026-11-14, `uv add`로 `pyproject.toml`·lockfile 갱신, 다른 패키지 버전은 바뀌지 않았다). `langchain-openai`는 쓰지 않는다(아래 '실행 틀'의 모델 슬롯). BM25·PPR·RRF는 표준 라이브러리로 계산한다. 평가 스크립트의 일회성 도구는 `uv run --with`로만 쓰고 `pyproject.toml`·lockfile을 바꾸지 않는다. |
+| 새 의존성 | `langchain`(v1)·`langchain-typesafe==0.0.1a3`(사용자 승인 2026-11-14, `uv add`로 `pyproject.toml`·lockfile 갱신, 다른 패키지 버전은 바뀌지 않았다). 시뮬레이션은 `langchain-openai`를 쓰지 않는다(아래 '실행 틀'의 모델 슬롯. 업무 Agent용으로 #373에서 추가됐다). BM25·PPR·RRF는 표준 라이브러리로 계산한다. 평가 스크립트의 일회성 도구는 `uv run --with`로만 쓰고 `pyproject.toml`·lockfile을 바꾸지 않는다. |
 
 ## NovelBrain — 차례로 쌓는 4단계
 
@@ -118,17 +118,17 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 
 | 개념 | 구현(`app/simulation/`) | 하는 일 |
 |---|---|---|
-| Middleware | `StageMiddleware`(`scene_agent.py`) | 턴 사이 사람 개입(HITL에 준하는 `interrupt`): next·edit·redo·stop·반려를 받는다 |
+| Middleware | `ProgressMiddleware`(공통, `app/agent_runtime.py`, #373) | 맨 앞 미들웨어. 턴이 끝나며 상태의 `step`에 남은 단계 항목을 다음 반복 앞(`before_model`)이나 실행 끝(`after_agent`)에서 LangGraph custom stream으로 한 번 흘린다 → SSE `step`(누적 결과). 훅마다 별도 노드라 턴 사이 interrupt 재개 때 다시 알리지 않는다 |
+| | `StageMiddleware`(`scene_agent.py`) | 턴 사이 사람 개입(HITL에 준하는 `interrupt`): next·edit·redo·stop·반려를 받는다 |
 | | `DirectorMiddleware` | 연출 결정을 거쳐 도구 호출을 만든다 |
 | | `SceneCheckMiddleware` | 검사·최대 2회 재실행·통과한 턴을 장면에 붙임 |
 | | `ModelCallLimit`·`ToolCallLimit`(라이브러리) | 호출 한도 안전망(`LOOP_LIMIT`=80). 넘으면 에이전트가 예외 없이 끝나고(`exit_behavior='end'`) 바깥 노드가 쌓은 턴을 지킨 채 `stopped`(`stopReason: call_limit`)·단계 `failed`로 기록한다 |
 | Hook | `before_agent` | 승인 대기에서 돌아온 작가의 조작을 새 실행의 시작에서 장면에 반영 |
 | | `before_model` | Stage: 턴 사이 대기 / Director: 연출 결정 |
 | | `wrap_model_call` | Director: 결정대로 도구 호출을 만든다(모델을 부르지 않는다) |
-| | `wrap_tool_call` | SceneCheck: 검사·재실행·장면 갱신·턴 이벤트 |
+| | `wrap_tool_call` | SceneCheck: 검사·재실행·장면 갱신·단계 항목(`step`)을 상태에 남김 |
 | | `after_agent` | 턴 사이 표시 정리 |
-| Callback | `UsageCallback`(`callbacks.py`) | 모델 호출마다 토큰·지연·실패(`agent.py`와 연출 결정 `director.py`가 `simulation.model` 이벤트로 알림)와 도구 실패를 모아 턴이 끝날 때 추적 span `simulation.turn`으로 남긴다. 본문·키는 없다 |
-| Event Listener | `SceneEvents` | 턴이 끝날 때 `adispatch_custom_event('scene', 단계 항목)`으로 낸 이벤트를 받아 LangGraph custom stream으로 중계 → SSE `step`(누적 결과) |
+| Callback | `UsageLedger`(공통, `app/agent_runtime.py`, #373) | 모델 호출마다 토큰·지연·실패(`agent.py`와 연출 결정 `director.py`가 공통 `MODEL_EVENT`로 알림)와 도구 실패를 모아, `ProgressMiddleware`가 단계 항목을 알릴 때(`STEP_EVENT`) 추적 span `simulation.turn`(턴 번호·상태는 `scene_agent.turn`)으로 남긴다. 본문·키는 없다 |
 
 - 도구(`tools.py`)는 `narrate`·`monologue`·`speak`·`end_scene`이며 기존 입력 조립(NovelBrain recall·인물 격리)·`act`·`check`·검증을 그대로 쓴다. 같은 턴을 재생성할 때는 조회한 입력을 다시 만들지 않는다.
 - **모델 슬롯**: 어느 도구를 쓸지는 연출 결정(Decisions)이 정하므로 `create_agent`의 모델은 호출되지 않는 자리 표시(`DirectorModel`)다. 그래서 `langchain-openai`가 필요 없고 장면에는 모델 노드의 호출 비용이 없다.
@@ -231,7 +231,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 - BM25는 카드·인물 문서만 메모리에서 계산한다(카드 최대 1,000개). 원고 BM25는 Elasticsearch 질의 추가가 필요해 후속이다.
 - PPR은 한 세계관의 관계만으로 계산한다(작품 사이 연결 없음).
 - 오류 4~6, 대안 후보 비교, 독자 검증(F-SIM-11), 크레딧·비용 동의, 인물 상태 정본 채택(UC-06)은 범위 밖이다.
-- 비트는 Story Development 에이전트 없이 메인 에이전트가 채팅에서 최소 형태로 만든다(버튼 진입은 장면 계획 또는 작가가 적은 값을 쓴다).
+- 비트는 별도 기획 에이전트 없이 메인 에이전트가 채팅에서 최소 형태로 만든다(버튼 진입은 장면 계획 또는 작가가 적은 값을 쓴다).
 - 연출 결정은 Decisions가 확률을 주지 않아 선택값만 쓴다(신뢰도 기준 없음). 장면은 에이전트 상태(대화 체크포인트)에만 있어 보관 기간 정리가 없다.
 - 원고 발췌 검색은 요청(턴)마다 같은 검색어로 한 번씩 한다. 인물 시점 나레이션·독백의 조회는 그 인물의 대사 입력과 같은 규칙이다.
 - 검사는 `prose`만 본다. 다른 인물에게 가는 `observed`(공개 요약)는 같은 호출에서 `prose`와 함께 만들어지고 쓰는 모델은 금지 목록을 받지 않아 따로 검사하지 않는다. 작가가 `edit`한 글은 작가 글이 정본이라 통째로 공개 기록이 된다(속마음을 섞어 고치면 다음 인물이 보게 된다).

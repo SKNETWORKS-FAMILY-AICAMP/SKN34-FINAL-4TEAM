@@ -1,25 +1,14 @@
-from contextlib import nullcontext
-from types import SimpleNamespace
-
-from app.research import agent
+from fake_chat import fake_chat
 
 REAL = 'https://example.org/joseon-travel'
 
 
 def search_call(status='completed', urls=(REAL,)):
-    action = SimpleNamespace(type='search', sources=[SimpleNamespace(url=u) for u in urls])
-    return SimpleNamespace(type='web_search_call', status=status, action=action)
+    """ChatOpenAI가 AIMessage content에 담는 web_search_call 블록."""
+    return {'type': 'web_search_call', 'id': 'ws-1', 'status': status,
+            'action': {'type': 'search', 'query': 'q', 'sources': [{'type': 'url', 'url': u} for u in urls]}}
 
 
 def fake_openai(monkeypatch, output, parsed, status='completed'):
-    """OpenAI Responses 대역. 호출 인자를 담은 dict를 돌려준다."""
-    seen = {}
-    monkeypatch.setenv('OPENAI_API_KEY', 'test-key')
-    monkeypatch.setenv('OPENAI_MODEL', 'test-model')
-
-    def parse(**kwargs):
-        seen.update(kwargs)
-        return SimpleNamespace(status=status, output=output, output_parsed=parsed)
-
-    monkeypatch.setattr(agent, 'OpenAI', lambda **_: nullcontext(SimpleNamespace(responses=SimpleNamespace(parse=parse))))
-    return seen
+    """ChatOpenAI 대역(create_agent 실행). output은 web_search_call 블록, parsed는 구조화 결과다."""
+    return fake_chat(monkeypatch, text=parsed.model_dump_json() if parsed else '', status=status, blocks=output)

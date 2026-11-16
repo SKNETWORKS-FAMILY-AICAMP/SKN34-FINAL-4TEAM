@@ -14,7 +14,7 @@ from collections import Counter
 from collections.abc import Iterable, Sequence
 from typing import Literal
 
-from app.manuscript.models import Excerpt
+from app.story_qa.models import Excerpt
 from app.novelbrain.models import Card, Gap, RecallItem, RecallResult, Relation, WorldSnapshot
 
 # 한글 음절 덩어리 | 그 밖의 글자·숫자 덩어리(밑줄·구두점은 경계)

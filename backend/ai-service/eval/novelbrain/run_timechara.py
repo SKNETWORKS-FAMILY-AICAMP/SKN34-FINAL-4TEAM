@@ -17,7 +17,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from app.manuscript.models import Excerpt
+from app.story_qa.models import Excerpt
 from app.novelbrain.service import _documents, bm25_rank, recall
 from batch import Round, cost_report, make_executor, plan_for, run_rounds
 from cost import LIMIT_USD

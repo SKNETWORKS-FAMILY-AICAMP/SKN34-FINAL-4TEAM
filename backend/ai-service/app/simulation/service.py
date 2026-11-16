@@ -16,7 +16,7 @@ from difflib import SequenceMatcher
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
 from app.content_mcp import service as content_mcp
-from app.manuscript.models import Excerpt
+from app.story_qa.models import Excerpt
 from app.novelbrain import service as novelbrain
 from app.novelbrain.models import Card, WorldSnapshot, world_snapshot
 from app.retrieval import service as retrieval

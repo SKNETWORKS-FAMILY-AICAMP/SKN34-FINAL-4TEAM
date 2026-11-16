@@ -6,24 +6,32 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.intent.models import Feature
-from app.manuscript.models import AnswerRequest, AnswerResponse, Excerpt
+from app.story_qa.models import AnswerRequest, AnswerResponse, Excerpt
 from app.research.models import ResearchRequest, ResearchResponse
 from app.retrieval.models import Coverage, RetrievalScope
+from app.review.models import ReviewResponse, Scope
 from app.simulation.models import SceneAction, SimulationPlan, SimulationResult
 from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse
 
 
 class WritingInput(BaseModel):
-    """Writing & Editing은 한 기능이며 새 원고(draft)와 선택 구간 수정(patch) 중 하나만 받는다."""
+    """Writing & Editing은 한 기능이며 새 원고(draft)·선택 구간 수정(patch)·조건부 수정에서 고른 검수 지적 번호(fix) 중 하나만 받는다."""
     model_config = ConfigDict(extra='forbid')
     draft: DraftRequest | None = None
     patch: PatchRequest | None = None
+    fix: int | None = Field(default=None, ge=0)  # 직전 Review 결과 findings의 번호(#370)
 
     @model_validator(mode='after')
     def one(self):
-        if (self.draft is None) == (self.patch is None):
-            raise ValueError('draft와 patch 중 하나만 보내야 합니다.')
+        if [self.draft, self.patch, self.fix].count(None) != 2:
+            raise ValueError('draft·patch·fix 중 하나만 보내야 합니다.')
         return self
+
+
+class ReviewInput(BaseModel):
+    """원고 검수의 검사 종류. 대상 초안은 Content가 확인한 반영 대상(target) 회차라 입력으로 받지 않는다."""
+    model_config = ConfigDict(extra='forbid')
+    check: Scope
 
 
 class StepInputs(BaseModel):
@@ -35,6 +43,7 @@ class StepInputs(BaseModel):
     story_context: AnswerRequest | None = None
     writing_editing: WritingInput | None = None
     web_research: ResearchRequest | None = None
+    review: ReviewInput | None = None
 
 
 class Conversation(BaseModel):
@@ -111,9 +120,10 @@ class AppliedDraft(BaseModel):
 class StepResult(BaseModel):
     feature: Feature
     when: Literal['always', 'if_issues_found']
-    status: Literal['completed', 'failed', 'not_started']  # 끝까지 가지 못한 시뮬레이션 장면은 부분 result와 함께 failed다
-    result: QaStepResult | DraftResponse | PatchResponse | ResearchResponse | SimulationResult | None = None
-    error: str | None = None
+    # 끝까지 가지 못한 시뮬레이션 장면은 부분 result와 함께 failed다. skipped는 조건부 수정이 고칠 확정 지적이 없어 건너뛴 단계다(#370).
+    status: Literal['completed', 'failed', 'not_started', 'skipped']
+    result: QaStepResult | DraftResponse | PatchResponse | ResearchResponse | SimulationResult | ReviewResponse | None = None
+    error: str | None = None  # 실패 사유, skipped면 건너뛴 이유
     approval: Literal['approved', 'declined'] | None = None  # Writing 결과·시뮬레이션 장면 반영에 대한 작가의 답
     applied: AppliedDraft | None = None
 

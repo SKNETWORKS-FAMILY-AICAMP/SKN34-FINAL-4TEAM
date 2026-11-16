@@ -3,7 +3,7 @@ import unicodedata
 import pytest
 from pydantic import ValidationError
 
-from app.manuscript.models import Excerpt
+from app.story_qa.models import Excerpt
 from app.novelbrain.models import Card, Gap, RecallItem, Relation, WorldSnapshot
 from app.novelbrain.service import bm25_rank, filter_for_character, ppr, recall, rrf, seed_cards, tokenize
 

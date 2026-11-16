@@ -23,7 +23,7 @@ interrupt로 작가 승인을 기다린다. 승인 resume이면 그 요청의 �
 양식(simulation)이 있으면 모델 없이 그 값을 계획으로 쓰되 세계관으로 확인하고, 어긋나면 되묻지 않고 단계 failed로 끝낸다.
 장면은 단계 노드가 장면 에이전트(app/simulation/scene_agent.py, LangChain create_agent + 미들웨어)로 쓴다. 대화 안에서는 에이전트가 턴
 사이마다 interrupt로 멈추고(이 노드 안에서 바깥 그래프로 전달돼 waiting·awaitingScene이 된다) 같은 대화의 resume이 이 노드를 다시
-실행하면 멈춘 자리에서 이어 간다. 턴이 끝날 때마다 에이전트의 이벤트를 콜백이 custom stream으로 중계해 SSE step(누적 결과)이 된다.
+실행하면 멈춘 자리에서 이어 간다. 턴이 끝날 때마다 공통 ProgressMiddleware가 장면 결과를 custom stream으로 흘려 SSE step(누적 결과)이 되고, 공통 UsageLedger가 턴별 사용량을 남긴다.
 장면이 끝나면 apply 노드가 승인을 기다리며, 승인 대기 중의 장면 조작(edit·redo·next)은 이 노드로 되돌려 이어 간다.
 끝까지 가지 못해 이어 갈 수 없는 장면(첫 턴 실패)은 부분 결과와 함께 failed다.
 
@@ -55,9 +55,9 @@ from app.content_mcp.errors import ContentMcpFailure
 from app.intent import service as intent
 from app.intent.errors import IntentFailure
 from app.intent.prompt import CLARIFY_MESSAGE
-from app.manuscript import service as manuscript
-from app.manuscript.errors import ManuscriptFailure
-from app.manuscript.models import AnswerRequest
+from app.story_qa import service as story_qa
+from app.story_qa.errors import StoryQaFailure
+from app.story_qa.models import AnswerRequest
 from app.orchestration.models import (ChatHistory, ChatSession, ChatTurn, OrchestrationRequest, OrchestrationResponse,
                                       QaStepResult, Resume)
 from app.research import service as research
@@ -66,11 +66,14 @@ from app.research.models import ResearchRequest
 from app.retrieval import service as retrieval
 from app.retrieval.errors import RetrievalFailure
 from app.retrieval.models import RetrievalScope
+from app.review import service as review
+from app.review.errors import ReviewFailure
+from app.review.models import ReviewRequest
 from app.simulation import service as simulation
-from app.simulation.callbacks import SceneEvents, UsageCallback
+from app.agent_runtime import UsageLedger
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import GAP_LABELS, Scene, SimulationPlan
-from app.simulation.scene_agent import scene_agent
+from app.simulation.scene_agent import scene_agent, turn as simulation_turn
 from app.simulation.service import SceneContext
 from app.writing import agent as writing
 from app.writing.errors import WritingFailure
@@ -89,29 +92,53 @@ def _story_context(data: dict | None, state: dict) -> QaStepResult:
             return QaStepResult(claims=[], gaps=gaps, coverage=coverage)
         data = {'question': _task(state)[:500], 'excerpts': [e.model_dump() for e in found.excerpts]}
     history = [] if state.get('replaceHistory') else [t['qa'] for t in state.get('turns', []) if t['qa']][-HISTORY_TURNS:]
-    answer = manuscript.answer(AnswerRequest.model_validate({**data, 'history': history}))
+    answer = story_qa.answer(AnswerRequest.model_validate({**data, 'history': history}))
     cited = {i for claim in answer.claims for i in claim.sourceIds}
     return QaStepResult(claims=answer.claims, gaps=gaps + answer.gaps, coverage=coverage,
                         sources=[e for e in data['excerpts'] if e['id'] in cited])
+
+
+def _writing(data: dict):
+    """새 원고 또는 부분 수정. 검수 지적 번호(fix)는 Review 뒤 조건부 수정에서만 patch로 바뀌어 온다."""
+    if 'draft' in data:
+        return writing.draft(DraftRequest.model_validate(data['draft']))
+    if 'patch' not in data:
+        raise WritingFailure(422, BAD_FIX)
+    return writing.patch(PatchRequest.model_validate(data['patch']))
+
+
+def _review(data: dict, state: dict):
+    """원고 검수. 검사 종류만 단계 입력이고, 검수할 초안은 Content가 확인한 반영 대상(target) 회차다."""
+    target = state.get('target')
+    if not target:
+        raise ReviewFailure(422, NO_REVIEW_TARGET)
+    return review.review(ReviewRequest(workId=target['workId'], episode=target['episode'], check=data['check']))
 
 
 # 한 번 호출하고 끝나는 업무 Agent. 입력은 StepInputs의 같은 이름 필드(JSON)다.
 # Q&A만 대화 기록·Retrieval을 쓴다. 웹 조사는 외부 전송이라 작가가 고른 질문·맥락 외에는 보내지 않는다.
 CALLS = {
     'story_context': _story_context,
-    'writing_editing': lambda data, state: (writing.draft(DraftRequest.model_validate(data['draft'])) if 'draft' in data
-                                            else writing.patch(PatchRequest.model_validate(data['patch']))),
+    'writing_editing': lambda data, state: _writing(data),
     'web_research': lambda data, state: research.research(ResearchRequest.model_validate(data)),
+    'review': _review,
 }
+NO_REVIEW_TARGET = '검수할 작품과 회차를 확인할 수 없어요.'
+NO_ISSUES = '검수에서 고칠 문제를 찾지 못해 수정하지 않았어요.'
+ONLY_SUSPECTED = '확정된 문제가 없어 자동으로 고치지 않았어요. 의심 지적은 고칠 구간을 골라 집필·수정을 따로 요청해 주세요.'
+PICK_NEEDED = '확정된 문제가 여러 곳이라 자동으로 고치지 않았어요. 고칠 구간을 골라 집필·수정을 따로 요청해 주세요.'
+BAD_FIX = '고칠 수 있는 확정 지적이 아니에요. 검수 결과에서 확정 지적을 골라 주세요.'
+DRAFT_CHANGED = '검수한 뒤 초안이 바뀌어 고치지 않았어요. 다시 검수해 주세요.'
+BAD_DRAFT = 'Content 초안 응답을 확인할 수 없습니다.'
 # 구현된 기능. 시뮬레이션은 단계 입력 없이 simulationPlan을 쓰고 턴 사이에서 멈추는 전용 노드(character_simulation)가 실행한다.
 FEATURES = (*CALLS, 'character_simulation')
 # shortcut: 최근 5턴만 넘기고 요약하지 않는다. 긴 대화의 앞부분 지칭이 필요해지면 요약을 검토한다.
 HISTORY_TURNS = 5
-FAILURES = (ManuscriptFailure, WritingFailure, ResearchFailure, RetrievalFailure, SimulationFailure, ContentMcpFailure)
+FAILURES = (StoryQaFailure, WritingFailure, ResearchFailure, RetrievalFailure, SimulationFailure, ContentMcpFailure, ReviewFailure)
 LIMIT_MESSAGE = '시뮬레이션이 호출 한도를 넘어 멈췄어요.'
 APPROVABLE = ('writing_editing', 'character_simulation')  # 결과를 작가가 승인하면 초안에 반영하는 단계
 UNSUPPORTED_MESSAGE = ('요청에 아직 실행할 수 없는 작업이 있어 아무 작업도 실행하지 않았어요. '
-                       '작품 질문, 집필·수정, 고증 조사는 각각 요청할 수 있어요.')
+                       '작품 질문, 원고 검수, 집필·수정, 고증 조사, 인물 시뮬레이션은 각각 요청할 수 있어요.')
 NEEDS_INPUT_MESSAGE = '작업에 필요한 자료가 빠져 있어 아무 작업도 실행하지 않았어요.'
 WAITING_MESSAGE = '작업에 필요한 자료를 기다리고 있어요. 자료를 보내거나 취소하면 이어서 진행해요.'
 APPROVAL_MESSAGES = {'writing_editing': 'Writing 결과를 원고 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.',
@@ -224,11 +251,14 @@ def plan(state: State) -> State:
     if routed.status != 'route':
         return {'status': routed.status, 'message': routed.message, 'steps': []}
     steps = [{'feature': s.feature, 'when': s.when, 'status': 'not_started'} for s in routed.steps]
-    # 조건부 단계는 Review의 Finding 연결 계약이 필요하다. Review가 없고 웹 조사 뒤 조건부 수정은 미지원이다.
-    unsupported = [s.feature for s in routed.steps if s.feature not in FEATURES or s.when != 'always']
+    # 조건부 단계는 Review 바로 뒤의 집필·수정만 실행한다(#370). 웹 조사·World & Plot 뒤의 조건부 수정은 Finding 연결 계약이 없어 미지원이다.
+    unsupported = [s.feature for i, s in enumerate(routed.steps) if s.feature not in FEATURES or (
+        s.when != 'always' and not (i > 0 and s.feature == 'writing_editing' and routed.steps[i - 1].feature == 'review'))]
     if unsupported:
         return {'status': 'unsupported', 'message': UNSUPPORTED_MESSAGE, 'steps': steps, 'unsupported': unsupported}
-    return {'status': 'running', 'steps': steps, **({'task': request} if asked else {})}
+    # Router가 검수 종류를 알아냈으면 단계 입력으로 채워 묻지 않는다. 작가가 보낸 입력이 있으면 그것이 우선한다(#369).
+    found = {'review': {'check': s.check} for s in routed.steps if s.check}
+    return {'status': 'running', 'steps': steps, 'inputs': {**found, **state['inputs']}, **({'task': request} if asked else {})}
 
 
 def simulation_plan(state: State) -> State:
@@ -262,7 +292,8 @@ def gate(state: State) -> State:
     """
     inputs, scope = dict(state['inputs']), state.get('retrievalScope')
     # 시뮬레이션은 단계 입력이 없다(simulation_plan이 계획을 정한다). Q&A는 scope가 있으면 입력 없이 Retrieval로 근거를 받는다.
-    while missing := [s['feature'] for s in state['steps'] if s['feature'] not in inputs
+    # 조건부 수정은 입력이 없다(Review 결과로 만든다).
+    while missing := [s['feature'] for s in state['steps'] if s['feature'] not in inputs and s['when'] == 'always'
                       and s['feature'] != 'character_simulation' and not (s['feature'] == 'story_context' and scope)]:
         if not state.get('scope'):  # 대화가 없으면 체크포인트가 없어 멈췄다 이어갈 수 없다.
             return {'status': 'needs_input', 'message': NEEDS_INPUT_MESSAGE, 'missingInputs': missing}
@@ -290,7 +321,7 @@ async def character_simulation(state: State, config: RunnableConfig) -> State:
                            pausing=pausing)
     seed = {'messages': [HumanMessage('장면을 진행해 주세요.')], 'scene': scene.model_dump(mode='json'), 'pending': False,
             'decision': None, 'action': state.get('sceneAction')}
-    config = merge_configs(config, {'callbacks': [SceneEvents(), UsageCallback(_trace(state))]})
+    config = merge_configs(config, {'callbacks': [UsageLedger('simulation.turn', simulation_turn, _trace(state))]})
     out = paused = None
     with tracing.observe('step.character_simulation', as_type='agent', trace_context=_trace(state)):
         try:
@@ -311,18 +342,64 @@ async def character_simulation(state: State, config: RunnableConfig) -> State:
     return done
 
 
+class Skipped(Exception):
+    """조건부 수정이 고칠 확정 지적이 없어 실행하지 않는다. 메시지가 작가에게 보일 이유다."""
+
+
 def _node(feature: str):
     def run_step(state: State) -> State:
         steps = [dict(s) for s in state['steps']]
         step = next(s for s in steps if s['status'] == 'not_started')
+        data = state['inputs'].get(feature)
         try:
+            if step['when'] == 'if_issues_found':  # plan이 Review 바로 뒤의 집필·수정만 허용한다
+                data = _review_fix(state, data)
+                if data is None:
+                    return {'status': 'cancelled', 'message': CANCELLED_MESSAGE}
             with tracing.observe(f'step.{feature}', as_type='agent', trace_context=_trace(state)):
-                step.update(status='completed', result=CALLS[feature](state['inputs'].get(feature), state).model_dump(mode='json'))
+                step.update(status='completed', result=CALLS[feature](data, state).model_dump(mode='json'))
+        except Skipped as skip:
+            step.update(status='skipped', error=str(skip))
         except FAILURES as error:
             step.update(status='failed', error=str(error))
         return {'steps': steps}
     run_step.__doc__ = f'{feature} Agent를 자기 입력으로 1회 실행한다. 기능 실패는 단계 실패로 남긴다.'
     return run_step
+
+
+def _review_fix(state: State, data: dict | None) -> dict | None:
+    """조건부 수정(#370): 직전 Review의 확정 지적 하나를 부분 수정(patch) 입력으로 만든다. None이면 작가가 고르기를 취소했다.
+
+    확정 지적만 고친다(위치가 하나로 정해진 지적만 확정이다). 하나면 바로, 여러 개면 대화에서 작가가 고른다(fix). 고칠 구간 앞뒤 문장은
+    검수한 판본 그대로인지 확인한 초안에서 잘라 보낸다. interrupt 앞에는 부수효과를 두지 않는다(resume 때 이 노드가 다시 실행된다).
+    """
+    review = next(s['result'] for s in state['steps'] if s['feature'] == 'review')
+    findings = review['findings']
+    confirmed = [i for i, f in enumerate(findings) if f['status'] == 'confirmed']
+    if not confirmed:
+        raise Skipped(ONLY_SUSPECTED if findings else NO_ISSUES)
+    pick = (data or {}).get('fix', confirmed[0] if len(confirmed) == 1 else None)
+    if pick is None:
+        if not state.get('scope'):  # 대화가 없으면 멈춰 고르게 할 수 없다
+            raise Skipped(PICK_NEEDED)
+        answer = interrupt({'steps': state['steps'], 'missingInputs': ['writing_editing']})
+        if not answer['approved']:
+            return None
+        pick = answer['inputs'].get('writing_editing', {}).get('fix')
+    if pick not in confirmed:
+        raise WritingFailure(422, BAD_FIX)
+    chosen, target = findings[pick], state['target']
+    try:
+        draft = content_mcp.call('episode_read', {'id': target['workId'], 'number': target['episode']})['draft']
+        body, revision = draft['body'], draft['revision']
+    except (LookupError, TypeError):
+        raise ContentMcpFailure(502, BAD_DRAFT) from None
+    if revision != review['revision'] or not isinstance(body, str) or body.count(chosen['quote']) != 1:
+        raise ContentMcpFailure(409, DRAFT_CHANGED)
+    at = body.index(chosen['quote'])
+    # shortcut: 허용 문맥(context) 없이 지적의 이유·제안만 지시로 보낸다. 설정을 고쳐 써야 하는 수정이 약하면 Semantic 근거 설정을 context로 넘긴다.
+    return {'patch': {'selection': chosen['quote'], 'instruction': f"{chosen['reason']} 제안: {chosen['suggestion']}"[:2000],
+                      'precedingText': body[:at][-2000:], 'followingText': body[at + len(chosen['quote']):][:2000]}}
 
 
 def apply(state: State) -> State:

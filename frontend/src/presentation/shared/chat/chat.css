@@ -114,6 +114,10 @@
 .chat-hitl-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .chat-field { display: grid; gap: 4px; font-size: 13px; font-weight: 700; }
 .chat-field :is(input, textarea) { font-weight: 400; }
+.chat-choice { display: grid; gap: 4px; margin: 0; padding: 0; border: 0; font-size: 13px; }
+.chat-choice legend { margin-bottom: 4px; padding: 0; font-weight: 700; }
+.chat-choice label { display: flex; align-items: center; gap: 6px; }
+.chat-choice input { accent-color: var(--tacc); }
 .chat-error { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; padding: 10px 14px; border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--tline)); border-radius: 12px; color: var(--danger); font-size: 13px; }
 .chat-error p { flex: 1 1 160px; margin: 0; }
 .chat-consent { display: flex; align-items: flex-start; gap: 8px; padding-inline: 8px; color: var(--tsub); font-size: 12.5px; line-height: 1.5; cursor: pointer; }
