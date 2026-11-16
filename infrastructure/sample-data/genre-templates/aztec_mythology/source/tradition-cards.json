@@ -1,0 +1,1181 @@
+{
+  "genre": "aztec_mythology",
+  "name": "아즈텍 신화 · 그림으로 전한 멕시코인들의 역사",
+  "scope": "16세기 익명 문헌 「그림으로 전한 멕시코인들의 역사」 한 작품의 1882년 게재본을 바탕으로 설정을 정리한다. 창조와 태양, 이주와 왕조, 스페인 정복, 하늘과 법, 토치밀코 계보, 달력과 제복까지 포함하며 다른 문헌의 신화를 덧붙이지 않는다.",
+  "sources": [
+    {
+      "title": "16세기 익명 「그림으로 전한 멕시코인들의 역사」, 1882년 게재본, 85–106쪽",
+      "url": "https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330",
+      "note": "INAH 영인 22쪽 전체. 스페인어에서 직접 한국어 완역. 창조·이주·왕조·법·계보·달력 포함.",
+      "rights": "공공영역인 역사 원전과 1882년 활자본을 직접 번역. 현대 번역문 미사용."
+    },
+    {
+      "title": "INAH 서지 항목",
+      "url": "https://revistas.inah.gob.mx/index.php/anales/article/view/6489",
+      "note": "게재본 제목·연도·쪽수 확인."
+    }
+  ],
+  "cards": [
+    {
+      "key": "scope",
+      "title": "그림과 구술을 옮긴 기록",
+      "cardType": "rule",
+      "body": "기록자는 노인·사제·군주와 유력자들의 말을 듣고 그들이 가져온 책과 그림을 살핀다. 창조에서 도시의 역사와 법까지 이어지는 한 문헌이며, 기록자의 식민기 종교 언어와 판단을 원주민의 목소리와 구별해 읽는다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 85–86쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch01-p001"
+        }
+      ]
+    },
+    {
+      "key": "tonacatecuhtli",
+      "title": "토나카테쿠틀리와 토나카시우아틀",
+      "cardType": "character",
+      "body": "토나카테쿠틀리와 토나카시우아틀(카체케카틀)은 열세 번째 하늘에서 생겨나 줄곧 머문 부부이며 그 이전 기원은 알려지지 않았다고 기록된다. 붉은 맏아들 틀라틀라우케 테스카틀리포카는 우에호칭고·틀라스칼라에서 카마스틀레라 불린다. 둘째는 검은 야얀케 테스카틀리포카, 셋째는 케찰코아틀 또는 야구알리에카틀, 막내는 오미테쿠틀리·마케스코아틀 또는 메시카의 우칠로비이다. 기록자는 지역 언어와 맡은 일 때문에 이름이 여럿이라고 설명한다. 서로 다른 이름의 관계는 이 문헌의 설명 범위에서만 연결한다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch01-p001"
+        }
+      ]
+    },
+    {
+      "key": "tezcatlipoca",
+      "title": "테스카틀리포카",
+      "cardType": "character",
+      "body": "네 형제 가운데 검은 신이며 사람들의 생각과 마음을 아는 존재로 묘사된다. 첫 태양이 되었다가 케찰코아틀에게 물속으로 떨어져 재규어가 되고, 나중에는 케찰코아틀을 태양 자리에서 밀어낸다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 85–86, 87, 88쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch01-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch03-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch04-p002"
+        }
+      ]
+    },
+    {
+      "key": "quetzalcoatl",
+      "title": "케찰코아틀",
+      "cardType": "character",
+      "body": "우칠로비와 함께 불·반쪽 태양·최초의 남녀를 만드는 일을 맡는다. 이전 태양들의 교체에 관여하며, 홍수 뒤에는 큰 나무가 되어 하늘을 들어 올린다. 나중에 자기 아들을 불에 던져 새 태양이 되게 한다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 86–87, 88, 88–89, 90쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch02-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch04-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch05-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch07-p001"
+        }
+      ]
+    },
+    {
+      "key": "huitzilopochtli",
+      "title": "우칠로비 · 위칠로포치틀리",
+      "cardType": "character",
+      "body": "네 형제 중 막내이자 메시카의 으뜸 신이다. 처음에는 살 없이 뼈만 지니고 600년을 보낸다. 이주 도중 쿠아틀리쿠에에게서 다시 무장한 채 태어나며, 꿈속의 지시로 정착과 제사를 이끈다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 85–86, 93, 97–98쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch01-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch19-p001"
+        }
+      ]
+    },
+    {
+      "key": "coatlicue",
+      "title": "쿠아틀리쿠에 · 코아틀리쿠에",
+      "cardType": "character",
+      "body": "코아테펙에서 망토로부터 되살아난 다섯 여자 가운데 하나다. 처녀인 채 흰 깃털을 가슴에 넣고 임신한다. 되살아난 남자 400명이 그녀를 불태우려 하자, 우칠로비가 무장하여 태어나 그들을 죽인다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 93쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p005"
+        }
+      ]
+    },
+    {
+      "key": "coatepec",
+      "title": "코아테펙",
+      "cardType": "location",
+      "body": "이주 중 툴라에 이르기 전에 9년 동안 머문 산이다. 다섯 여자의 부활과 고행, 쿠아틀리쿠에의 임신, 우칠로비의 재탄생과 400명의 죽음이 이곳에서 일어난다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 93쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p005"
+        }
+      ]
+    },
+    {
+      "key": "birth-battle",
+      "title": "우칠로비의 재탄생 전투",
+      "cardType": "event",
+      "body": "테스카틀리포카가 만들었던 남자 400명이 되살아나 임신한 쿠아틀리쿠에를 불태우려 한다. 우칠로비는 무장한 채 태어나 그들을 모두 죽인다. 이 문헌은 그 탄생과 죽음을 기념하는 연례 축제와 80일 단식을 함께 기록한다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 93쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p005"
+        }
+      ]
+    },
+    {
+      "key": "cipactli",
+      "title": "시팍틀리와 땅의 창조",
+      "cardType": "event",
+      "body": "신들은 물속에 카이만 같은 큰 물고기를 만들고, 그 몸으로 땅을 만든다. 땅은 틀랄테쿠틀리라고 불리며, 물고기에서 만들어졌기 때문에 물고기 위에 누운 신의 모습으로 그려진다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 86–87쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch02-p001"
+        }
+      ]
+    },
+    {
+      "key": "tlaloc",
+      "title": "틀랄로카테쿠틀리와 네 물통",
+      "cardType": "character",
+      "body": "물의 신은 가운데 안뜰에 큰 물통 네 개가 있는 거처에 산다. 좋은 비와 작물을 병들게 하거나 얼리거나 마르게 하는 비가 구별된다. 작은 부하들이 단지에 물을 담아 뿌리고, 단지를 깨뜨릴 때 천둥이 난다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 86–87, 102쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch02-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p026"
+        }
+      ]
+    },
+    {
+      "key": "mictlan",
+      "title": "죽음의 신들의 거처",
+      "cardType": "location",
+      "body": "창조 과정에서 부부인 믹틀란테쿠틀리와 믹테카시우아틀이 만들어져 기록자가 ‘지옥’이라고 부른 곳에 놓인다. 이 카드에서는 저본에 없는 아홉 층의 여행이나 장례 물품의 규칙을 추가하지 않는다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 86–87쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch02-p001"
+        }
+      ]
+    },
+    {
+      "key": "five-suns",
+      "title": "앞선 태양들의 교체",
+      "cardType": "event",
+      "body": "테스카틀리포카가 태양인 676년에는 나무를 뽑는 거인들이 도토리를 먹는다. 케찰코아틀이 막대기로 그를 물에 떨어뜨리자 재규어가 되어 거인들을 잡아먹고, 기록은 큰곰자리와 연결한다. 케찰코아틀의 태양 676년에는 잣을 먹다가 테스카틀리포카의 공격과 거센 바람으로 무너지고 일부 평민은 원숭이가 된다. 틀랄로카테쿠틀리의 태양 364년에는 물에서 나는 아시시우틀리를 먹으며 불비로 끝난다. 찰치우틀리쿠에의 태양에는 신트로코코피를 먹고 홍수로 하늘이 무너져 사람들이 물고기가 된다. 마지막 기간의 ‘52년 여섯 배, 302년’과 전체 2,628년은 저본의 불일치 그대로이며 현대 계산으로 보정하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch03-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch04-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch05-p001"
+        }
+      ]
+    },
+    {
+      "key": "sky-restoration",
+      "title": "홍수 뒤 하늘을 들어 올리다",
+      "cardType": "event",
+      "body": "홍수로 땅에 떨어진 하늘을 복구하려 네 신이 땅 중심을 통과하는 네 길과 도움을 줄 코테무크·이스코아틀·이스말리·테네수치 네 사람을 만든다. 테스카틀리포카는 거울의 나무 타스카쿠아우이틀, 케찰코아틀은 케찰우에수치가 되어 함께 하늘과 별을 올린다. 토나카테쿠틀리가 두 신을 하늘·별의 주인으로 삼고, 두 신이 걸어 만나 머문 곳은 하늘에 보이는 길로 설명된다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch05-p001"
+        }
+      ]
+    },
+    {
+      "key": "sun-moon-birth",
+      "title": "불과 재에서 나온 태양과 달",
+      "cardType": "event",
+      "body": "홍수 뒤 26년째, 케찰코아틀은 어머니 없이 태어난 자기 아들을 큰 불 속에 던져 태양이 되게 한다. 불이 꺼진 뒤 물의 신이 자기 아들을 재 속에 던져 달이 되게 한다. 달은 태양을 뒤쫓지만 따라잡지 못한다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 90쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch07-p001"
+        }
+      ]
+    },
+    {
+      "key": "mixcoatl",
+      "title": "카마살레와 두 머리 사슴",
+      "cardType": "character",
+      "body": "카마살레는 믹스코아틀이라는 이름으로도 불린다. 바위를 쳐 치치메카 400명이 나오게 하며, 하늘에서 떨어진 두 머리 사슴을 등에 지고 전쟁에서 이긴다. 뒤에는 치치메카들이 그 사슴을 빼앗는다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 90–91, 91쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch08-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch08-p002"
+        }
+      ]
+    },
+    {
+      "key": "ce-acatl",
+      "title": "세아카틀과 툴라",
+      "cardType": "character",
+      "body": "카마살레와 테스카틀리포카가 만든 다섯 여자의 후손인 친척 여자 사이에서 태어난다. 칠 년의 피 뽑기 고행 뒤 전쟁에 나서 툴라의 첫 군주가 되고 큰 신전을 세운다. 테스카틀리포카가 틀라팔라의 집으로 떠나라고 말하자 하늘·별이 알려 준 사 년을 기다린다. 백성과 이동하며 촐룰라·쿠스카탄·셈포알에 일부를 남기고 틀라팔라 도착 다음 날 죽는다. 그 뒤 툴라는 아홉 해 비어 있었다고 기록된다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch08-p002"
+        }
+      ]
+    },
+    {
+      "key": "aztlan",
+      "title": "출발지 아스클라",
+      "cardType": "location",
+      "body": "메시카 사람들의 출발지로 기록된 큰 마을이다. 가운데 산에서 샘이 솟아 강을 이루며, 강 건너에는 쿨루아칸이 있다. 사람들은 세 지도자를 세우고 신전을 짓는 모양과 방법을 가지고 떠난다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 91–92쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch09-p001"
+        }
+      ]
+    },
+    {
+      "key": "migration",
+      "title": "신전과 유물을 옮기는 이주",
+      "cardType": "event",
+      "body": "메시카 사람들은 여러 곳에서 먹을 것을 심고 수년씩 머물며 우칠로비의 신전을 짓는다. 허리 가리개와 망토를 맡아 운반하는 이들이 바뀌고, 길에서 다른 집단들과 갈라지거나 만난다. 본문은 장소와 체류 기간을 길게 나열한다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 92, 93, 93–94, 94–95쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p007"
+        }
+      ]
+    },
+    {
+      "key": "copil",
+      "title": "코필의 심장",
+      "cardType": "character",
+      "body": "미초아칸으로 끌려간 메시카 여자의 아들이다. 차풀테펙에서 붙잡혀 제물이 되고, 심장은 우칠로비가 자기 거처로 지목한 곳에 묻힌다. 뒤에 그 자리에서 뿌리가 나온 선인장이 도시 이름의 유래로 이어진다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 95, 95–96, 96, 97–98쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch12-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch13-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch15-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch19-p001"
+        }
+      ]
+    },
+    {
+      "key": "tenochtitlan",
+      "title": "테누스티탄의 정착지",
+      "cardType": "location",
+      "body": "떠돌던 사람들이 마침내 머무를 곳으로 우칠로비가 지정한 장소다. 돌 위에서 자란 선인장의 뿌리가 코필의 심장을 묻은 곳에서 나왔다고 설명한다. 기록은 정착 첫해부터 도시의 연대를 다시 센다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 97–98쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch19-p001"
+        }
+      ]
+    },
+    {
+      "key": "new-fire",
+      "title": "52년 주기의 새 불",
+      "cardType": "rule",
+      "body": "네 해 이름과 열세 번의 계산이 모여 52년을 이룬다. 주기가 차면 모든 불을 끄고 이스타팔라파 산에서 새 불을 얻는 큰 의식을 거행한다. 도시 연대기에는 모테수마가 마지막으로 치른 축제도 나온다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 87–88, 98, 100–101쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch04-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p012"
+        }
+      ]
+    },
+    {
+      "key": "ilancueitl",
+      "title": "일란쿠에이틀",
+      "cardType": "character",
+      "body": "초기 멕시코에서 명령을 내리는 여성 군주로 기록된다. 남편 아카마피치에게 멕시코로 가면 군주로 뽑힐 것이라고 조언한다. 이 대목은 그녀가 살아 있을 때 남편은 유력자로만 여겨졌다고 전한다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 98쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p002"
+        }
+      ]
+    },
+    {
+      "key": "acamapichtli",
+      "title": "아카마피치",
+      "cardType": "character",
+      "body": "메시카 출신 어머니와 쿨루아칸 유력자 아버지에게서 나온 초기 군주다. 아내의 조언으로 멕시코에 오며 정복과 왕조 기록의 첫머리에 놓인다. 본문 안에서도 즉위와 통치 기간이 다르게 전해지므로 하나의 확정 연표로 맞추지 않는다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 98, 99, 103쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p028"
+        }
+      ]
+    },
+    {
+      "key": "sacrificial-stone",
+      "title": "둥근 제사 돌",
+      "cardType": "object",
+      "body": "늙은 모테수마가 만든, 가운데 구멍이 있는 큰 둥근 돌이다. 포로를 묶어 전투 의식을 치른 뒤 심장을 꺼냈다고 기록한다. 후대 군주들이 돌을 더 만들었고, 정복 뒤 발견되거나 세례반 아래 놓인 사정도 서술된다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 100쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p010"
+        }
+      ]
+    },
+    {
+      "key": "conquest",
+      "title": "스페인 도래와 도시의 정복",
+      "cardType": "event",
+      "body": "배의 도착, 마리나를 통한 통역, 촐룰라의 살해, 모테수마의 죽음, 천연두, 80일간의 도시 정복, 식민기 통치자들의 교체가 이어진다. 이 문헌의 설명은 식민기 기록자의 서술로 읽으며 독립적으로 확정된 사건 판정으로 바꾸지 않는다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 101, 101–102쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p014"
+        }
+      ]
+    },
+    {
+      "key": "heavens",
+      "title": "층별 하늘과 그 거주자",
+      "cardType": "location",
+      "body": "첫째 하늘의 여성 별 시탈미네와 남성 테탈라토라스는 보이지 않는 하늘의 파수꾼이다. 둘째에는 살 없는 여자 테카우시구아·시시미네, 셋째에는 노랑·검정·흰색·파랑·빨강의 사백 남자가 있다. 넷째는 새, 다섯째는 혜성·징조를 낳는 불뱀, 여섯째는 바람, 일곱째는 먼지, 여덟째는 모든 신의 모임이다. 그 위부터 최고신 부부가 있는 곳까지는 누구도 오르지 않았으며 내용도 모른다고 기록한다. 알지 못한다고 한 층들을 다른 문헌으로 채우지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p024"
+        }
+      ]
+    },
+    {
+      "key": "war-laws",
+      "title": "전쟁의 법과 재판관",
+      "cardType": "rule",
+      "body": "전쟁법 기록은 거짓 보고한 사자, 적에게 정보를 준 자, 잡은 여자 포로와 성관계한 자, 남이 생포한 포로를 빼앗은 자를 죽였다고 한다. 중간의 포로 관련 한 문장은 결손이라 새로운 조항으로 완성하지 않는다. 재판관을 겸한 대장 다섯 가운데 하나가 조사해 그림으로 기록하고 다섯이 군주에게 제출한다. 협의 뒤에는 별도 다섯 사람이 집행한다. 가혹한 처벌을 역사적 기록으로 다루며 현대의 법적 정당성을 부여하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p037"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p038"
+        }
+      ]
+    },
+    {
+      "key": "market-laws",
+      "title": "시장과 노예에 관한 법 기록",
+      "cardType": "rule",
+      "body": "이 시장 법 기록에서는 도박으로 아버지 재산을 판 유력자 아들은 비밀 처형, 평민은 노예화되며, 마게이·망토 채무·어망·카누의 손해는 망토 배상 또는 노예화로 처리한다. 미성년 여자 노예에 대한 성관계로 사망하면 남자를 노예화하고 생존하면 치료비를 물린다고 한다. 노예 매매 취소 때는 대금을 돌려주고 해방하며, 어려서 친척에게 팔린 사람의 해방과 배상, 도주자의 재매매 때 원주인 반환과 구매자 손실도 기록한다. 임신 중 죽은 노예 여성의 상대는 노예가 되고, 태어난 아이는 자유인으로 아버지가 데려간다고 한다. 사람을 불법으로 판 관계자의 노예화와 분배, 독살의 사형 또는 피해 신분에 따른 노예화, 옥수수 스무 이삭 기준의 사형·배상도 나온다. 덜 여문 옥수수, 군주의 담배 호리병 예테코마틀, 신분 제한 구슬 줄 찰치우이, 장터 물건의 절도와 노상강도는 사형이다. 술 취한 사제·미혼 청년은 사형이고 관직자·용사는 직위·칭호를 잃는다. 근친관계·여성 간 관계·사제의 성관계 및 은닉도 가혹하게 처벌하며 간통은 현장 적발을 요구한다고 적는다. 이 조항들은 식민기 기록의 신분·성별 차별과 폭력을 포함하며 현대의 행동 규칙이 아니다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p039"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p040"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p041"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p042"
+        }
+      ]
+    },
+    {
+      "key": "judicial-cases",
+      "title": "군주 시대별 재판 사례",
+      "cardType": "event",
+      "body": "기록은 초기 세 군주 시대의 판결을 전한다. 여성 간 성관계로 돌에 맞아 죽은 사례, 실로트 이스탁과 아나나카틀의 간통 처벌, 죽은 남편의 형제와의 혼인 및 재산 박탈 관습을 든다. 심은 씨앗을 파낸 소년들은 각각 망토 다섯 장에 팔리고, 옥수수 절도를 성관계로 협박한 남자는 피해 여성 대신 노예가 된다. 여물지 않은 이삭 다섯씩을 훔친 소년은 사형, 출산 뒤 사제와 함께 있던 여성 및 간통 상대를 죽인 뒤 아내와 산 남편·아내도 사형으로 적힌다. 술 취한 남성과의 성관계에서는 여자만 처벌했다고 한다. 주술로 재운 뒤 훔친 부부는 사형, 닭 도둑은 노예, 개 도둑은 개에게 이빨이 있다는 이유로 무벌이었다고 기록한다. 성별·신분 차별과 가혹한 처벌은 이 문헌의 법사례이며 현대의 정당한 규범으로 승인하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p028"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p029"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p030"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p031"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p032"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p033"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p034"
+        }
+      ]
+    },
+    {
+      "key": "tochimilco",
+      "title": "토치밀코 군주들의 계보",
+      "cardType": "organization",
+      "body": "툴라 출신 이스코쿠틀과 치말마시가 계보의 시작이다. 아틀리스코에서 받아들여진 뒤 수크테오티틀·우에페우칸(투치밀코)에 정착한다. 토날테미틀과 페틀라우카의 살팔로시, 신틀라윌시와 코요아칸의 테야카판시로 이어지지만 뒤의 자녀는 계승하지 못한다. 이스테베유시·시우아코아시가 동등한 공동 군주가 되고, 다음 카카마시·시우아코아시는 삼촌·조카 관계로 설명된다. 이어 이전 시우아코아시의 손자 콰필리가 아들 믹스코아시에게 구역을 맡긴다. 그리스도교인 도래 뒤 돈 미겔·돈 후안이 계승하며 후작과 마을의 동의가 관여한다. 아내들의 출신은 페틀라우칸·우크페틀라우카·페틀라우카, 마지막에는 키수케출라·아우페틀라우아카로 적힌다. 돈 후안과 믹스코아시를 잇는 대명사는 불명확하므로 계보를 추정해 보정하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-genealogy-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-genealogy-p002"
+        }
+      ]
+    },
+    {
+      "key": "calendar",
+      "title": "달과 날을 세는 기록",
+      "cardType": "rule",
+      "body": "스무 날씩 열여덟 달인 삼백육십 일과 남겨 둔 닷새를 기록하고 춘분을 기점으로 축일을 센다. 해 이름은 테크파틀·칼리·토치틀리·아칼 네 가지이며 각각 부싯돌·집·토끼 머리·물에 쓰는 물건 같은 그림으로 표현한다. 네 이름과 열셋의 계산을 결합해 오십이 년 주기를 정하며 처음 신들의 육백 년은 연대 계산에서 제외한다. 마지막 대목은 스무 날의 첫날과 마지막 날을 같은 이름으로 센다고 설명하고 접속어에서 문장이 끝난다. 기록자의 라틴 달력 비유나 계수의 차이를 현대 역법으로 보정하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch02-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch04-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-calendar-p001"
+        }
+      ]
+    },
+    {
+      "key": "priest-vestments",
+      "title": "제사를 올리는 사제의 옷",
+      "cardType": "object",
+      "body": "작품의 마지막 문단은 제사 때 사제들이 흰 천을 머리에 두르고 흰 깃털을 꽂았다고 기록한다. 앞이 트이고 그림이 그려진 셔츠를 입는다는 설명으로 현존 게재본이 끝난다.\n\n출전: 「그림으로 전한 멕시코인들의 역사」, 1882년, 106쪽. [INAH 영인](https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-calendar-p002"
+        }
+      ]
+    },
+    {
+      "key": "oxomoco_cipactonal",
+      "title": "옥소모코·시팍토날과 최초 평민",
+      "cardType": "character",
+      "body": "네 형제의 위임을 받은 케찰코아틀과 우칠로비는 불과 반쪽 태양 뒤 남자 옥소모코와 여자 시팍토날을 만든다. 둘에게 경작을, 여자에게 방적과 직조를 명하고 그들에게서 평민 마세우알들이 나와 쉬지 않고 일해야 한다고 정한다. 여자에게 준 옥수수 알갱이는 치료·점·주술의 도구로 설명된다. 성별 분업과 끝없는 노동은 이 창조담이 부과하는 질서이며 현대의 당위로 다루지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch02-p001"
+        }
+      ]
+    },
+    {
+      "key": "first_human_descendants",
+      "title": "필세테쿠틀리와 머리카락에서 난 아내",
+      "cardType": "organization",
+      "body": "최초 남녀의 아들 필세테쿠틀리에게 신들은 수치케찰의 머리카락으로 아내를 만들어 주며 첫 혼인이 이루어진다. 홍수 뒤 기록에서는 피센테쿠틀리 등의 이형 이름으로 나오고 아내도 신이어서 죽지 않는다고 설명한다. 여섯째 해 아들 신테울이 태어나고 여덟째 해 평민들이 다시 만들어진다. 뒤에는 첫 아내 수치시카르가 전쟁에서 죽은 최초이자 가장 용감한 여자로 기록된다. 명칭·불사·죽음 사이의 차이를 임의로 정리하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch03-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch06-p002"
+        }
+      ]
+    },
+    {
+      "key": "chalco_vision",
+      "title": "동굴에 갇힌 제물과 물의 신 궁전",
+      "cardType": "event",
+      "body": "기록 시점에서 팔십 년 전 찰코 군주가 몸이 굽은 사람을 물의 신 부하들에게 바치려고 눈 덮인 화산의 동굴에 가두었다고 전한다. 굶주려 의식을 잃은 그는 신의 궁전을 보았고, 나중에 살아서 발견되어 보고했다. 그해 찰코가 메시카에게 패배해 노예가 되었다는 일과 연결하여 사람들은 몰락의 징조로 해석했다. 체험·보고·징조 해석을 각각 구분한다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch02-p001"
+        }
+      ]
+    },
+    {
+      "key": "mixcoatl_fire_name",
+      "title": "홍수 뒤의 믹스코아틀 명칭과 불 축제",
+      "cardType": "event",
+      "body": "땅에 생명을 되돌린 뒤 둘째 해 아카틀 해에 테스카틀리포카가 이전 이름을 버리고 ‘눈의 뱀’이라는 믹스코아틀로 바꾸었다고 기록한다. 그는 신들의 축제를 위해 막대기로 불을 얻고 많은 불을 피운다. 제8장의 카마살레·믹스코아틀 계보와 이름이 겹치지만 모든 기원 설명을 한 확정 전기로 맞추지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch06-p001"
+        }
+      ]
+    },
+    {
+      "key": "war_for_sun",
+      "title": "태양의 먹이를 위한 전쟁의 창조",
+      "cardType": "event",
+      "body": "불빛뿐인 땅에 태양을 만들려는 신들은 태양이 심장과 피를 먹게 하고 이를 얻을 전쟁을 정한다. 홍수 뒤 열넷째 해 시작하여 삼 년에 걸쳐 전쟁을 만든다. 테스카틀리포카는 남자 사백과 여자 다섯을 만들며 남자들은 사 년 뒤 죽고 여자들은 살아남는다고 적힌다. 이는 이 문헌이 인신 제사의 기원을 설명하는 폭력적 서사이지 권장할 규범이 아니다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch06-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch07-p001"
+        }
+      ]
+    },
+    {
+      "key": "bloodletting_fasts",
+      "title": "단식과 피 뽑기의 신화적 기원",
+      "cardType": "rule",
+      "body": "태양과 달을 만들기 전 신들의 단식과 귀의 피 뽑기, 카마살레의 마게이 가시 고행을 사람들의 기도·제사 관습의 유래로 기록한다. 코아테펙의 재탄생 축제 전에는 원하는 사람이 팔십 일 동안 하루 한 끼를 먹었다고 한다. 원문의 단식 기간 공란은 채우지 않으며 신체를 해치는 의례는 역사적 기록으로만 다룬다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch07-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch08-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p005"
+        }
+      ]
+    },
+    {
+      "key": "chichimec_creation",
+      "title": "치치메카 사백과 하늘의 다섯 자녀",
+      "cardType": "event",
+      "body": "카마살레가 여덟째 하늘에서 만든 아들 넷과 딸 하나가 물에 떨어졌다가 돌아가 전쟁이 이루어지지 않자, 바위를 쳐 치치메카 사백 명을 만든다. 나중에 다섯 자녀가 나무 위로 내려와 독수리의 먹이를 받는다. 카마살레가 만든 술에 취한 치치메카들은 다가왔다가 죽임을 당하고 심벨·미미칠·치치메카가 된 카마살레 셋만 남는다고 전한다. 기록자의 오토미·산사람 설명과 창조 신화의 집단 동일시는 이 문헌의 관점이다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch08-p001"
+        }
+      ]
+    },
+    {
+      "key": "two_headed_deer",
+      "title": "하늘에서 내려온 두 머리 사슴",
+      "cardType": "object",
+      "body": "큰 소리와 함께 하늘에서 떨어진 사슴을 카마살레는 쿠이틀라우아카 사람들에게 신으로 섬기게 한다. 사 년 동안 토끼·뱀·나비를 먹이고 등에 지고 출전하여 이긴다. 훗날 치치메카가 사슴을 빼앗는다. 이주 집단 명단에서 소치밀코의 켈라스클리는 믹스코아틀의 이 사슴으로 풀이된다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch08-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch08-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch10-p001"
+        }
+      ]
+    },
+    {
+      "key": "exodus_leaders",
+      "title": "아스클라와 쿨루아칸의 출발 지도자",
+      "cardType": "organization",
+      "body": "메시카는 홍수 뒤 백삼십 년에 아스클라에서 정복할 땅을 찾으려 신시·테크파시·코아틀리쿠에를 지도자로 세운다. 강 건너 쿨루아칸은 인구가 많아 인쿠알틀라틀란키를 지도자로 삼고 떠난다. 신전의 모양과 신들을 지니고 첫 테크파틀 해 출발했다고 한다. 지도자 코아틀리쿠에를 같은 이름의 출산 여신과 설명 없이 동일시하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch09-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch10-p001"
+        }
+      ]
+    },
+    {
+      "key": "migrant_peoples_gods",
+      "title": "이주 집단들이 지닌 신들",
+      "cardType": "organization",
+      "body": "쿨루아칸은 신테울, 소치밀코는 사슴 켈라스클리, 아티틀라우아카는 믹스코아틀의 막대기 아미미클리, 미스키크는 케찰코아틀, 찰코는 테스카틀리포카 나파테쿠틀리를 지녔다. 타쿠바·쿨루아칸·아스카푸살코의 테파네카는 불 오코테쿠틀리를 모시고 포로를 불에 던졌다고 기록된다. 각 집단의 신전 모양은 다르다. 메시카의 출발 집단 명단과 테스코코·틀라스칼라·우에호칭고도 함께 왔다는 그들 자신의 주장은 서로 구분한다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch10-p001"
+        }
+      ]
+    },
+    {
+      "key": "migration_early_route",
+      "title": "두 산에서 코아테펙 앞까지의 이주로",
+      "cardType": "location",
+      "body": "서로 마주 보는 두 산 사이에 도착해 이 년간 농사와 우칠로비 신전을 마련한다. 출발 셋째 해 떠나 소나무 골짜기 쿠아우스티카카에서 일 년, 치코모스토크에서 구 년을 지내 첫 십삼 년을 채운다. 그곳에서 틀라쿠스킨·만카모야우알·미나케시우아틀레가 태어난다. 다음은 쿠아틀리카마트 삼 년, 마틀라우아칼라 삼 년, 오토미가 사는 오코사사 오 년이며 뒤 두 곳에도 신전을 짓는다. 기록에 없는 이동 일수나 인구는 채우지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p004"
+        }
+      ]
+    },
+    {
+      "key": "sacred_garments",
+      "title": "옮겨 다니는 망토와 허리 가리개",
+      "cardType": "object",
+      "body": "다섯 여자의 망토에서는 코아테펙의 부활이 일어난다. 우칠로비의 마스틀레와 망토는 이주 중 신전에 두거나 윈구알티·카시시 같은 담당자에게 맡겨 운반한다. 흩어질 때 남은 이들은 믹스코아틀의 망토와 사슴 가죽·화살·선인장 열매 주머니를 가진다. 패배 뒤에는 우칠로비의 망토와 허리 가리개를 생존 조건으로 쿨루아칸에 넘긴다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch12-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch16-p001"
+        }
+      ]
+    },
+    {
+      "key": "tula_massacre",
+      "title": "툴라의 울음·종이 깃발과 제사",
+      "cardType": "event",
+      "body": "치말코크 삼 년과 엔시코스 삼 년, 틀레마코 십이 년과 틀리틀라키아 이 년을 거친 메시카는 툴라에 신전과 향료 받침대를 세운다. 우칠로비가 검은 사람 모습으로 나타나 지하에서 울며 원주민의 죽음을 예고한다. 사 년 뒤 노파가 종이 깃발을 나누자 원주민들이 제사 돌에 눕고 외지인 신전지기 테키푸이울이 죽인다. 기록은 주민이 모두 죽어 메시카가 주인이 되었다고 말하며 그를 악마로 믿었다는 해석도 전한다. 이 진술은 기록의 폭력적 정복담으로 한정한다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p006"
+        }
+      ]
+    },
+    {
+      "key": "migration_northern_stops",
+      "title": "툴라에서 네포푸알코까지의 정거장",
+      "cardType": "location",
+      "body": "툴라 뒤 아토토닐텡고 일 년, 테쿠스키악 사 년, 아파스코·파스코를 거쳐 숨팡고 삼 년, 틀릴락 칠 년, 콰우티틀란 일 년과 에카테펙 일 년을 지나 네포푸알코에 이른다. 숨팡고에서는 틀라우이스칼 포통기가 포로를 바치고 머리를 막대기에 꽂아 지명의 유래가 된다. 길에서 붙잡혀 미초아칸으로 간 메시카 여자를 그곳 사람들의 조상으로 설명한다. 네포푸알코에서 시판·신카케가 사람을 셌지만 수는 전하지 않으며 나왈시·테나시·치아우토톨트는 마리날코로 갈라진다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p007"
+        }
+      ]
+    },
+    {
+      "key": "migration_lake_stops",
+      "title": "치말팔에서 호수 주변으로 이어지는 길",
+      "cardType": "location",
+      "body": "치말팔 신전과 틀라틀라테비케 산, 또 다른 콰우티틀란 산 사 년을 지나 위사치치틀란·테우불코·테나유칸으로 간다. 테나유칸은 죽은 유력자 이름 때문에 테파유카·테파유코라 불리고 군주 틀로시 아래서 여성 제물의 축제가 열린다. 테페샤키야 구 년 뒤 뜨거운 물의 페뇰시요에서 사 년을 지내며 차풀테펙의 물을 모으는 석회·돌 시설을 만든다. 차풀테펙에서 틀라체통고·아쿠알코마크·우에테틀란·이소칸·테쿨루아칸·테페토칸을 거쳐 우칠로부스코로 간다. 지명은 기록의 표기를 따르며 동명 장소를 강제로 합치지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p007"
+        }
+      ]
+    },
+    {
+      "key": "opochitli_weapons",
+      "title": "우부칠티와 우칠로부스코의 이름",
+      "cardType": "character",
+      "body": "치치메카들이 섬기는 물의 신 우부칠티가 우칠로비의 유물을 운반하는 사람에게 오리 사냥 무기와 투창기를 준다. 두 신이 모두 왼손잡이여서 우칠로비가 자기 아들인 듯하다고 말하고 친해졌다는 것이 지명 변경의 설명이다. 실제 혈통이 확인되었다고 단정하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch11-p007"
+        }
+      ]
+    },
+    {
+      "key": "dispersal_return",
+      "title": "흩어져 숨은 뒤 사카키파에 모이다",
+      "cardType": "event",
+      "body": "아치토메틀의 쿨루아칸에서 위사치틀라·케수말크 삼 년·카풀코를 지나 타쿠스칼코로 돌아와 신전을 세운다. 신테사·칼레이·에스쿠알트는 치치메카의 연합 공격을 피하려 여러 갈래로 흩어져 머리를 달리 깎으라 하고 이를 우칠로비의 명령이라 전한다. 사 년 뒤 사카키파에서 다시 모여 차풀테펙으로 돌아가 코필을 제물로 바치고 십오 년간 정착한다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch12-p001"
+        }
+      ]
+    },
+    {
+      "key": "chapultepec_dynasty",
+      "title": "차풀테펙의 지도자와 위칠리우틀",
+      "cardType": "organization",
+      "body": "차풀테펙의 세 지도자는 동명 유력자의 아들 클라우틀리케시, 시파의 아들 아시파, 틀라우이스칼 포통기의 아들 위칠리우틀이다. 위칠리우틀을 군주로 삼고 두 딸 투스카수치·치말라수치가 언급된다. 코필은 어머니가 있는 곳에서 제물이 되길 주장하지만 쿠아틀리케시와 겨루어 져 제사되며 심장과 머리는 다른 곳에 묻힌다. 뒤의 통치 기간은 앞 대목과 다른 수로 적혀 있어 하나로 보정하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch13-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch14-p001"
+        }
+      ]
+    },
+    {
+      "key": "chapultepec_defeat",
+      "title": "차풀테펙의 패배와 갈대숲 피신",
+      "cardType": "event",
+      "body": "주변 치치메카 주민들이 낮에 진치고 밤에 공격하여 메시카 대부분을 죽이고 신전을 불태웠다고 기록한다. 위칠리우틀의 딸들은 칼토카에, 군주는 쿨루아칸에 붙잡혀 가며 군주는 죽는다. 살아남은 소수는 우칠로비를 데리고 갈대숲에 팔십 일 숨으며 풀과 뱀을 먹는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch14-p001"
+        }
+      ]
+    },
+    {
+      "key": "culhuacan_service",
+      "title": "유물을 넘기고 쿨루아칸을 섬기다",
+      "cardType": "event",
+      "body": "굶주린 피난민들이 살려 달라며 쿨루아칸에 복종하고 우칠로비의 유물을 넘긴다. 아치토멜과 유력자 찰치우틀라토나크, 시우아코아틀의 신전 축제가 언급된다. 이십오 년의 섬김 중 소치밀코 전쟁 요청을 여자들을 빼앗을 계략으로 의심해 열 명만 보낸다. 열 명은 포로를 죽이지 말라는 지시로 팔십 명의 귀를 베어 용맹을 인정받는다. 폭력의 묘사를 축소하거나 찬양으로 바꾸지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch16-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch17-p001"
+        }
+      ]
+    },
+    {
+      "key": "tizapan_expulsion",
+      "title": "티사판의 제사와 추방",
+      "cardType": "event",
+      "body": "티사판에 큰 우칠로비 신전을 짓고 그 안에 심장을 놓겠다고 하자 쿨루아칸 사람들은 짚과 오물로 조롱한다. 메시카는 저본에서 연결 말이 빠진 아벤시의 제사를 행하고 피를 벽에 바른다. 쿨루아칸이 반발해 카티틀란 강 쪽으로 몰아내자 네스티키파크로 달아난다. 쿨루아칸의 유력자 콕스코시는 메시카 편에서 사람들을 죽인다. 결손 문장을 추정한 인물 관계로 완성하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch18-p001"
+        }
+      ]
+    },
+    {
+      "key": "seed_effigy",
+      "title": "두 얼굴·두 혀 형상과 불평의 속죄",
+      "cardType": "event",
+      "body": "이스타칼코에서 출산이 일어난 믹시우칸, 목욕 구역 테마스칼티틀란으로 이동한 이들이 신에게 불평한다. 우칠로비는 꿈에서 곧 안식처에 닿는다고 하며 불평을 두 얼굴·두 혀의 죄에 비긴다. 먹는 씨앗으로 두 얼굴·두 혀 머리를 만들어 활을 쏘고, 눈가린 사수들이 찾아 모두 나누어 먹게 한다. 그 무리는 작은 섬 타틸룰코에 정착한다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch19-p001"
+        }
+      ]
+    },
+    {
+      "key": "settlement_sacrifice",
+      "title": "티운초의 계시와 정착의 첫 제물",
+      "cardType": "event",
+      "body": "우칠로비가 티운초에게 나타나 이제 떠돌지 않을 집이라고 말하며 쿨루아칸 사람을 잡아 태양에게 바치라고 명한다. 소메미틀레우트가 치칠콰우틀리를 붙잡아 해 뜰 때 제사한다. 취락 이름 콰우믹스틀리틀란은 뒤에 테누스티탄이 되고, 코필의 심장에서 자란 돌 위 선인장으로 설명된다. 본문에 없는 독수리 표징을 정착 장면에 추가하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch19-p001"
+        }
+      ]
+    },
+    {
+      "key": "temple_growth",
+      "title": "층층이 커지는 우칠로비 신전",
+      "cardType": "location",
+      "body": "도시 둘째 해 기초를 놓은 뒤 군주마다 첫 단만큼 넓은 단을 더해 높고 큰 신전이 된다. 도시 백이십오 년의 확장, 백육십 년부터 어린이까지 동원한 공사, 티소시카시와 아우이소시 시대의 많은 제물과 완공이 기록된다. 후일 홍수는 첫 단까지 차오른다. 신전 건설과 희생은 이 연대기의 진술로 다룬다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p012"
+        }
+      ]
+    },
+    {
+      "key": "early_city_wars",
+      "title": "도시 21–47년의 전쟁과 징조",
+      "cardType": "event",
+      "body": "도시 이십일 년 메시카는 쿨루아칸 신전을 불태운다. 이듬해 신들을 옮기던 쿨루아칸 사람들이 강한 햇빛으로 눈멀었다가 멕시코 가까이에 이르러 신들을 남겼다고 한다. 삼십일 년에는 화산에서 불이 나오고 사십칠 년에는 테나유카를 정복해 짚 신전을 불태운다. 빛과 실명의 인과는 기록이 전하는 신이한 해석이다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p004"
+        }
+      ]
+    },
+    {
+      "key": "tlatelolco_first_rulers",
+      "title": "타틸룰코가 청한 두 단명 군주",
+      "cardType": "event",
+      "body": "도시 오십이 년 타틸룰코는 에스카푸살코에 군주를 청한다. 테수소무틀리(본문의 다른 표기 테수쿠무틀리)는 테우틀레우아크를 보내지만 주민의 멸시로 사십 일을 못 채운다. 둘째 콰콴푸아나케도 사람들이 달아나 오십 일만 다스리며 발톱으로 그려진다. 뒤의 타틸룰코 왕조 명단과 기간 차이를 강제로 맞추지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p006"
+        }
+      ]
+    },
+    {
+      "key": "acamapichtli_campaigns",
+      "title": "아카마피치에서 위칠리우시까지",
+      "cardType": "event",
+      "body": "도시 오십삼 년 아카마피치 즉위, 오십육 년 소치밀코와 전쟁, 오십구 년 메스키크 정복, 육십삼 년 쿠이틀라우아카에서 남녀 사십 명 피살, 칠십 년 그곳 정복을 기록한다. 칠십삼 년 아들이 계승하고 칠십오 년 미시우시시우시에게서 늙은 모테수마가 태어나며 이름의 뜻을 ‘화난 군주’로 설명한다. 칠십구 년 누이와 테스코코의 이스틀리수칠시 사이에 네사우알코요틀이 태어나고 팔십일 년 과시말판을 정복한다. 출생·친족·즉위는 이 기록의 계보를 따른다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p007"
+        }
+      ]
+    },
+    {
+      "key": "campaigns_85_99",
+      "title": "85–99년의 정복과 사절 피살",
+      "cardType": "event",
+      "body": "팔십오·팔십육 년 카피스클라와 콴시밀코 전쟁, 구십 년 테스키아크 정복, 구십이 년 살토칸에서 사절 일곱 중 셋의 죽음과 넷의 탈출, 이듬해 테스코코 지방 정복을 기록한다. 구십사 년 위칠리우친 뒤 치말포포카가 즉위하고 구십칠 년 테스코코 항복·툴란칭고 정복, 구십구 년 타틸룰코의 툴라 신 틀라카우에판 이전이 이어진다. 테스코코 군주의 이동과 부친 죽음 대목의 결손은 메우지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p009"
+        }
+      ]
+    },
+    {
+      "key": "maxtla_revolt",
+      "title": "마스틀라토의 연합과 이스코아시의 집권",
+      "cardType": "event",
+      "body": "도시 백오 년 테소코무크 사후 마스틀라토가 에스카푸살코를 계승해 반란을 선동하자 치말포포카가 자살하고 이스코아시가 뒤를 잇는다. 타틸룰코의 틀라카테우틀리는 도망 중 죽고 네사우알코요틀도 도피한다. 백팔 년 토톨라요의 평화 추진에 메시카는 에스카푸살코 군주의 죽음을 조건으로 삼아 살해가 이루어진다. 타틸룰코의 반란·항복과 콰우틀라토아시 처형, 백십칠 년 콰우티틀란 정복, 백십팔 년 늙은 모테수마 계승이 이어진다. 별도 전쟁 기록은 테스코코·툴티틀란·콰우티틀란·테나유카·틀라쿠바·아틀라쿠바야·쿠우아칸·쿨리아칸·소치밀코·쿠이틀라우아카·미스키크의 연합 패배를 말한다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p035"
+        }
+      ]
+    },
+    {
+      "key": "famine_old_moctezuma",
+      "title": "늙은 모테수마 시대의 기근과 제사 돌",
+      "cardType": "event",
+      "body": "도시 백이십팔 년 빵 축제의 추위로 집이 무너지고 호수가 얼며, 백삼십이 년 추위·기근 뒤에는 자기 밭 이삭을 따도 죽이는 규정이 나온다. 백삼십육 년 군주는 포로를 묶어 세 전사와 싸우게 하는 둥근 제사 돌을 만들고 쿠아이스틀라우아카 포로가 첫 제물이 된다. 백삼십구 년 그 지역의 보물, 백사십일 년 케틀라스타 정복, 백사십칠 년 죽음과 아샤야카친의 계승을 기록한다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p011"
+        }
+      ]
+    },
+    {
+      "key": "axayacatl_tizoc",
+      "title": "아샤야카친의 정복과 티소시카시 계승",
+      "cardType": "event",
+      "body": "타틸룰코 항복 뒤 케틀라스틀라에서는 공물 징수자 스무 명을 고추 집에 가두고 불태워 반란을 일으킨다. 기록은 다시 정복한 해를 ‘53년’으로 적는다. 시틀랄코아시가 말리날코 군주로 임명되고 아샤야카친은 포로 셋을 직접 잡다 다치며 마틀라칭고를 정복한다. ‘다음 해 159년’이라는 저본의 불일치를 유지하며, 그 뒤 티소시카시 즉위와 신전 확대, 백육십사 년 아우이소시 계승으로 이어진다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p012"
+        }
+      ]
+    },
+    {
+      "key": "ahuitzotl_flood",
+      "title": "아우이소시의 신전과 검은 홍수",
+      "cardType": "event",
+      "body": "아우이소시는 우칠로비 신전을 완성하며 많은 사람을 죽인 것으로 기록된다. 백칠십육 년 호수와 코요아칸 강의 검고 뱀 많은 물이 도시를 덮어 흙벽돌 집을 무너뜨리고 신전 첫 단까지 찬다. 사람들은 이를 징조라 여긴다. 백팔십 년 그의 죽음 뒤 모테수마가 계승한다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p012"
+        }
+      ]
+    },
+    {
+      "key": "last_moctezuma_omens",
+      "title": "마지막 모테수마의 신전·징조·동맹",
+      "cardType": "event",
+      "body": "모테수마는 케찰코아틀 신전을 짓지만 다음 해 번개로 타며, 물의 신 틀랄로케가 보냈다고 사람들은 설명한다. 신테울 신전, 소솔라 포로에게 화살을 쏘는 연례 축제, 백팔십오 년 마지막 새 불 축제가 기록된다. 백팔십구 년 흰 하늘 징조를 현자들은 군주의 죽음으로 풀이하나 기록자는 그리스도교인의 준비와 연결한다. 백구십삼 년 우에호칭고를 틀라스칼라의 포위에서 돕다가 신 카마스틀레 요구로 관계가 틀어지고 메시카 출신 여성·아이들이 죽는다. 예언과 기록자의 사후 해석을 구분한다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p012"
+        }
+      ]
+    },
+    {
+      "key": "arrival_envoys",
+      "title": "배의 도착과 모테수마의 사절들",
+      "cardType": "event",
+      "body": "도시 백구십육 년 과사칼코·베라크루스의 두 배를 모테수마의 관리가 보고 군주는 자기 신들이라 말한다. 이듬해 후작에게 방패·깃털·금 태양·은 별을 보내고 마리나가 통역한다. 셈포알과 틀라스칼라를 거쳐 촐룰라에서 살해 계획을 들었다며 사람들을 모아 죽인다. 알바라도의 귀환 권고와 타마요의 멕시코 진출 권고, 귀환 대가를 제시한 위스나우알의 체포가 이어진다. 소문과 동기·신격화는 이 기록의 진술이며 별도 역사적 합의로 단정하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p013"
+        }
+      ]
+    },
+    {
+      "key": "siege_epidemic",
+      "title": "모테수마의 죽음·천연두·도시 함락",
+      "cardType": "event",
+      "body": "기록은 모테수마가 자기 백성의 돌에 맞아 죽었다고 전한다. 신전의 전투와 후작의 야간 퇴각, 시코텡가의 맞이, 쿠이틀라우아시의 팔십 일 통치와 천연두의 대량 사망이 뒤따른다. 아우이소시의 아들 과테무사가 군주로 뽑혀 찰코와 싸우고 유력자 여섯을 죽였다고 적는다. 후작의 멕시코 정복은 팔십 일로 기록된다. 사인·평가·기간은 선택 문헌의 설명이다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p014"
+        }
+      ]
+    },
+    {
+      "key": "colonial_succession",
+      "title": "정복 뒤 200–207년의 통치와 징조",
+      "cardType": "event",
+      "body": "후작이 세운 이스티수칠, 그를 쫓아낸 후안 벨라스케스, 타틸룰코의 과테무사와 반격 모의가 기록된다. 후작은 온두라스로 떠나 재정관과 페랄밀데스를 남기며 돈 마르틴은 카스티야로 간다. 재정관이 재물 소재를 묻고 로드리고 데 파에스를 고문·처형한 뒤, 돌아온 후작은 재정관·감찰관을 체포해 스페인으로 보낸다. 타피아의 임명, 누뇨 데 구스만의 파누코 도착과 누에바갈리시아행, 핏비·흰 창 같은 하늘 징조, 살메론·말도나도·사인노스·키로가 네 판사와 돈 파블로의 임명이 이어진다. 식민 통치자의 정당성을 자동 승인하지 않는 사건 기록이다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p014"
+        }
+      ]
+    },
+    {
+      "key": "end_of_world",
+      "title": "태양을 빼앗는 때와 뼈 여인들",
+      "cardType": "event",
+      "body": "둘째 하늘의 뼈만 있는 여인들은 세계 끝에 모든 사람을 먹는 존재라고 전한다. 노인들은 종말의 시점을 모른다고 답하고, 신들이 끝나고 틀라스키틀레푸카가 태양을 빼앗을 때라고 말한다. 예고를 특정 연도나 자동적인 52년 종말 주기로 바꾸지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p018"
+        }
+      ]
+    },
+    {
+      "key": "sun_motion",
+      "title": "공중의 해와 따라잡지 못하는 달",
+      "cardType": "rule",
+      "body": "기록 속 설명은 태양과 달이 하늘층에 닿지 않은 공중에 있으며 달은 태양을 따라도 잡지 못한다고 한다. 태양은 정오까지 움직인 뒤 동쪽으로 돌아가고 오후 서쪽의 것은 빛이며 밤에는 움직이지 않는다고 말한다. 이는 이 문헌의 우주관이지 검증된 천문학이나 다른 전승 전체의 공통설이 아니다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch03-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch07-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p025"
+        }
+      ]
+    },
+    {
+      "key": "culhuacan_route_variant",
+      "title": "쿨루아칸이 전하는 별도의 정착 연대",
+      "cardType": "event",
+      "body": "쿨루아칸 사람들은 메시카와 함께 툴라에 왔다가 갈라져 쿨루아칸·소치밀코·말리날코·오쿠일라를 세우고 오는 길 쿠이틀라우아카에도 정착했다고 말한다. 그로부터 백이십 년 뒤 메시카가 차풀테펙에 와 전쟁했다고 주장한다. 앞선 메시카 중심 이주로와 기간을 하나로 통일하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p027"
+        }
+      ]
+    },
+    {
+      "key": "tlatelolco_dynasty",
+      "title": "멕시코와 병기된 타틸룰코 군주들",
+      "cardType": "organization",
+      "body": "별도 병기 명단은 멕시코의 아카마피칠·위칠리우틀리 시기에 타틸룰코의 콰콰푸아우아케, 치말포포카·이스코아시 시기에 그 아들 틀라카테우시, 늙은 모테수마 때 콰틀라토아시를 둔다. 아샤야카친 때는 그의 누이와 혼인한 모키우이친이며 부부가 전한 용맹 주장과 이웃 고용이 전쟁으로 이어진다. 테세시카시 때 오우아코이스시시·틀라우엘로키시, 아우소시 때 시쿠아크 푸푸쿠·율로코아우이시, 모테수마 때 토판테미치·티코케·아과탈·이세이아시 타쿠스칼코틀레키우알이 나온다. 마테무치·후안 벨라스케스·타피아 때는 평민 출신 돈 후안이 다스렸다고 한다. 사십·이십삼·삼십 년 등 이 명단의 기간과 앞선 연대기의 수치를 강제 통일하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://revistas.inah.gob.mx/index.php/anales/article/view/6489).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "az-ch20-p036"
+        }
+      ]
+    }
+  ],
+  "narrative": "sources.md"
+}
