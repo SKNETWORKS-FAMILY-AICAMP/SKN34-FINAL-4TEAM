@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 import { expect, it } from 'vitest'
 
 const css = readFileSync(new URL('./world-studio.css', import.meta.url), 'utf8')
+/** 편집 화면이 집필실과 함께 쓰는 하단 바(.writing-foot)의 규칙이 있는 파일 */
+const writingCss = readFileSync(new URL('../../studio/view/writing.css', import.meta.url), 'utf8')
 
 it('편집 화면의 파일 선택은 기본 입력을 시각적으로만 숨기고(초점·스크린리더는 유지) 라벨 버튼에 초점 링을 그린다', () => {
   const input = css.match(/\.world-card-studio \.ep-file-pick input\[type=file\]\{([^}]*)\}/)?.[1] ?? ''
@@ -50,4 +52,24 @@ it('관계 기준 회차 입력은 .episode-app의 큰 입력 규칙(폭 100%·�
   expect(input).toMatch(/padding:\s*8px 10px/)
   expect(input).toMatch(/margin-top:\s*0/) // 위 여백이 남으면 라벨 안에서 입력이 글자보다 아래로 처진다
   expect(input).not.toMatch(/font/) // 터치 기기의 16px(확대 방지) 보정은 .episode-app 규칙이 계속 맡는다
+})
+
+it('편집기 감싸개는 Toast의 z-index(본문 20·팝업 30)를 가둬 sticky 하단 바와 좁은 화면 상단 바 위로 글이 올라와 겹쳐 찍히지 않고, 두 바는 불투명한 면이다', () => {
+  // 원인: Toast가 본문 컨테이너를 position:relative + z-index:20으로 그려, z-index가 없는 sticky 하단 바(.writing-foot)와 z-index 10인 상단 바(.sbar) 위로 글이 올라온다.
+  expect(rule((s) => s === '.world-card-editor')?.body).toMatch(/isolation:\s*isolate/)
+  const foot = writingCss.match(/\.writing-foot \{([^}]*)\}/)?.[1] ?? ''
+  expect(foot).toMatch(/background:\s*var\(--tbg\)/) // 투명하지 않은 면
+  expect(foot).toMatch(/border-top:\s*1px solid/) // 위 구분선
+  expect(rule((s) => s === '.world-card-studio .sbar')?.body).toMatch(/background:\s*var\(--tbg\)/) // 전역 .sbar는 90% 면이라 좁은 화면에서 스크롤되는 본문이 비친다
+})
+
+it('AI 채팅이 열려 있는 동안 떠 있는 테마 버튼이 채팅 전송 버튼을 덮지 않는다: 데스크톱은 채팅 왼쪽으로 비키고, 채팅이 문서 끝에 쌓이는 좁은 화면은 그 아래를 비운다', () => {
+  expect(css).toMatch(/@media\s*\(min-width:\s*901px\)\s*\{body:has\(\.world-card-studio \.writing-chat\) \.screen-controls\s*\{[^}]*right:\s*calc\(350px \+ 12px\)/)
+  expect(css).toMatch(/@media\s*\(min-width:\s*901px\) and \(max-width:\s*1200px\)\s*\{body:has\(\.world-card-studio \.writing-chat\) \.screen-controls\s*\{[^}]*right:\s*calc\(300px \+ 12px\)/)
+  expect(css).toMatch(/@media\s*\(max-width:\s*900px\)\s*\{\.world-card-studio \.studio-workspace:has\(>\s*\.writing-chat\)\s*\{[^}]*padding-bottom:\s*140px/) // 컨트롤은 아래 86px부터 높이 44px(≤600px·터치) → 맨 위 130px + 여유 10px
+})
+
+it('인물 문서 탭은 전역 문서 버튼(.world-rail-kinds button, 한 줄 알약)을 이기는 선택자로 라벨 아래에 보조 글씨를 두고, 고른 회차 기억 탭은 고른 문서와 같은 모양이다', () => {
+  expect(rule((s) => s === '.world-doc-list .world-doc-tab')?.body).toMatch(/display:\s*grid/) // 라벨 아래 줄에 파일 이름·공개 범위·표시
+  expect(rule((s) => s === '.world-doc-list .world-doc-tab[data-current=true]')?.body).toMatch(/border-color:[^;]*;[^}]*background:/)
 })

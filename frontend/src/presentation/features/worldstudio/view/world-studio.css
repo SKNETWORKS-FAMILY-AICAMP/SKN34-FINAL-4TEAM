@@ -107,11 +107,19 @@ html:has(.world-writing){scrollbar-gutter:stable}
 
 /* 편집 화면: 집필실(studio/view/writing.css)의 3단·레일·버전 그래프·AI 채팅 규칙을 그대로 쓰고, 세계관에만 있는 조각만 더한다. 토큰은 .calm.rd가 준다. */
 .world-card-studio .world-save-bar{margin-left:0;padding-bottom:0}
+/* 전역 .sbar는 90% 면(반투명)이라 좁은 화면에서 sticky 상단 바 뒤로 스크롤되는 본문 글자가 비친다: 이 화면의 상단 바는 불투명한 면이다. */
+.world-card-studio .sbar{background:var(--tbg)}
 /* 편집 화면의 오류는 설정집 화면과 같은 오류 상자(공용 .ep-alert)로 보여 일반 안내와 구분한다. 상단 바 바로 아래에 두고 여러 줄 사유는 줄을 지킨다. */
 .world-card-studio>.ep-alert{margin:12px 24px 0;white-space:pre-wrap}
 /* 편집 화면의 AI 채팅은 설정집 화면의 채팅(.world-chat)과 같은 면이다: 집필실의 브랜드 틴트 대신 주변과 같은 --tbg. 틴트를 정하는 변수(--chat-bg)를 덮어 writing.css의 background가 그 값을 쓰게 한다(집필실 /studio의 채팅은 그대로).
    머리글·왼쪽 선·입력 카드와 추천 칩의 면(--chat-card)은 두 화면의 규칙이 이미 같다. */
 .writing-studio.world-card-studio .writing-chat{--chat-bg:var(--tbg)}
+/* AI 채팅이 열려 있는 동안 화면 오른쪽 아래에 떠 있는 테마 버튼(.screen-controls, 전역 셸)과 맨 위로 버튼(#top)이 채팅 전송 버튼을 덮지 않게 한다.
+   데스크톱은 채팅이 오른쪽 열(350px, 1200px 이하는 300px)이라 버튼을 그 왼쪽으로 비킨다. 채팅이 문서 끝에 쌓이는 좁은 화면은 문서 끝을 비워 마지막 줄(채팅 안내 글)과 전송 버튼이 버튼 위에서 멈추게 한다:
+   .screen-controls는 bottom:max(86px, 안전 영역 + 12px)=86px에서 높이 44px(≤600px·터치 기기, 그 밖은 36px)라 맨 위가 화면 아래에서 130px이고(#top은 24px + 50px = 74px), 아래 여백은 그 130px + 여유 10px = 140px다. */
+@media(min-width:901px){body:has(.world-card-studio .writing-chat) .screen-controls{right:calc(350px + 12px)}}
+@media(min-width:901px) and (max-width:1200px){body:has(.world-card-studio .writing-chat) .screen-controls{right:calc(300px + 12px)}}
+@media(max-width:900px){.world-card-studio .studio-workspace:has(>.writing-chat){padding-bottom:140px}}
 .world-rail-tools{display:grid;gap:8px;padding-inline:24px 12px}.world-rail-tools input{width:100%;box-sizing:border-box;padding:8px 12px;font-size:13.5px}
 .world-rail-kinds{display:flex;flex-wrap:wrap;gap:6px}.world-rail-kinds button{min-height:32px;padding:0 10px;border:1px solid var(--tline);border-radius:999px;background:none;color:var(--tsub);font-size:12.5px;font-weight:700}
 .world-rail-kinds button:hover{background:var(--muted-bg);color:var(--tfg)}.world-rail-kinds button:is([aria-pressed=true],[aria-current=true]){border-color:var(--tacc);background:var(--pri-soft);color:var(--pri-ink)}
@@ -119,18 +127,31 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-graph-actions{padding-inline:24px}.world-graph-note{margin:0;padding-inline:24px;line-height:1.6}
 .world-card-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin-bottom:12px}.world-card-meta img{border-radius:12px;object-fit:cover}
 .world-card-meta .world-type{display:flex;align-items:center;gap:8px;margin:0;color:var(--tsub);font-size:13px}.world-card-meta .world-type select{width:auto;padding:6px 10px}
-/* 설명: 마크다운 편집기(shared/MarkdownEditor, Toast UI Editor)는 글 높이만큼 자라고 스크롤은 편집 열이 맡는다. 불러오는 동안은 편집기 최소 높이(320px)와 탭 줄만큼 자리를 비운다. 저장 중에는 잠기고(inert) 흐려진다. */
-.world-card-editor{margin-bottom:8px}.world-card-editor[inert]{opacity:.6}
+/* 설명: 마크다운 편집기(shared/MarkdownEditor, Toast UI Editor)는 글 높이만큼 자라고 스크롤은 편집 열이 맡는다. 불러오는 동안은 편집기 최소 높이(320px)와 탭 줄만큼 자리를 비운다. 저장 중에는 잠기고(inert) 흐려진다.
+   isolation: Toast는 본문 컨테이너를 position:relative + z-index:20(팝업 30·툴팁 40)으로 그려, z-index 없는 sticky 하단 바(.writing-foot)와 z-index 10인 좁은 화면 상단 바(.sbar) 위로 글이 올라와 겹쳐 찍힌다. 그 값들을 이 감싸개 안에 가둔다. */
+.world-card-editor{margin-bottom:8px;isolation:isolate}.world-card-editor[inert]{opacity:.6}
 .world-card-editor-loading{display:grid;place-items:center;min-height:365px;border:1px solid var(--tline);border-radius:4px;color:var(--tsub);font-size:13.5px}
 .world-card-help{margin:0 0 16px}
-/* 인물 문서(인물 카드): 설명 편집기 자리에 머리(제목 + .md 파일 불러오기) → 문서 목록 → 회차 기억 추가 → 고른 문서의 안내 한 줄과 편집기 → 회차 기억 삭제.
-   문서 버튼은 레일의 분류 칩(.world-rail-kinds)과 같은 모양이고 고른 문서는 aria-current다. 버튼 안의 표시(.world-doc-flag)는 빈 문서의 `정리 필요`(주의색)와 `3,000자 초과`(오류색)다.
+/* 인물 문서(인물 카드): 설명 편집기 자리에 머리(제목 + ⋯ 더보기 메뉴의 .md 파일 불러오기) → 문서 탭 줄(회차 기억 펼침 포함) → 고른 문서의 안내 한 줄 → 편집기 → 회차 기억 삭제.
+   문서 탭은 레일의 분류 칩(.world-rail-kinds)과 같은 알약이고 고른 문서는 aria-current다(회차 기억 탭은 회차 문서를 고른 동안 data-current). 탭 안은 라벨(주) 아래 줄에 파일 이름·공개 범위(보조 글씨)와 표시(.world-doc-flag)다: 빈 문서의 `정리 필요`(주의색)와 `3,000자 초과`(오류색).
    문단 규칙은 바로 아래 자식에만 건다(안에 든 마크다운 편집기의 미리보기 문단까지 건드리지 않게). */
 .world-docs{display:grid;gap:10px;min-width:0;margin-bottom:8px}.world-docs>p,.world-doc-notice>p{margin:0;line-height:1.6}.world-docs>.world-card-editor{margin-bottom:0}
 .world-docs-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}.world-docs-head h4{margin:0;font-size:14px}
-.world-doc-list{display:grid;gap:8px}.world-doc-list .world-rail-kinds{align-items:center}.world-doc-dir{color:var(--tsub);font-size:12.5px;font-weight:700}
+/* ⋯ 더보기(<details>): 기본 삼각형 대신 둥근 버튼이고, 펼친 메뉴는 그 버튼 아래에 떠 있다(편집기는 isolation이라 그 위). */
+.world-docs-more{position:relative}
+.world-docs-more>summary{list-style:none;display:grid;place-items:center;width:36px;height:36px;border:1px solid var(--tline);border-radius:50%;color:var(--tsub);font-size:18px;line-height:1;cursor:pointer}
+.world-docs-more>summary::-webkit-details-marker{display:none}
+.world-docs-more>summary:hover,.world-docs-more[open]>summary{background:var(--muted-bg);color:var(--tfg)}
+.world-docs-menu{position:absolute;z-index:5;top:calc(100% + 4px);right:0;display:grid;padding:8px;border:1px solid var(--tline);border-radius:12px;background:var(--tcard,var(--surface));box-shadow:var(--sh)}
+.world-doc-list{display:grid;gap:8px}.world-doc-list .world-rail-kinds{align-items:center}
+/* 탭: 전역 `.world-rail-kinds button`(한 줄 알약)보다 구체적인 선택자로 라벨 아래 줄에 보조 글씨를 둔다. 왼쪽 여백은 간격 대신 margin이라 칸이 비어도 오른쪽이 늘지 않는다. */
+.world-doc-list .world-doc-tab{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;align-items:baseline;min-height:44px;padding:6px 14px;border-radius:14px;text-align:left}
+.world-doc-tab .world-doc-name{grid-column:1/-1;font-size:13.5px}
+.world-doc-file,.world-doc-scope{font-size:11.5px;font-weight:600}.world-doc-scope,.world-doc-tab .world-doc-flag{margin-left:6px}
+.world-doc-list .world-doc-tab[data-current=true]{border-color:var(--tacc);background:var(--pri-soft);color:var(--pri-ink)}
+.world-doc-memory{display:grid;gap:10px;padding:12px;border:1px solid var(--tline);border-radius:12px;background:var(--tcard,var(--surface))}.world-doc-memory>p{margin:0;line-height:1.6}
 .world-doc-flag{color:var(--acc-ink);font-size:12px}.world-doc-flag[data-flag=over]{color:var(--danger)}
-.world-doc-add{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:var(--tsub);font-size:13px;font-weight:650}
+.world-doc-add{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:var(--tsub);font-size:13px;font-weight:650}.world-doc-add label{display:inline-flex;align-items:center;gap:8px}
 .world-doc-guide strong{color:var(--tfg)}
 .world-doc-tools{display:flex;justify-content:flex-end}
 /* 파일 불러오기의 결과: 삭제 알림 줄(.world-notice)과 같은 면에 문장마다 한 줄이다. */
@@ -157,7 +178,7 @@ html:has(.world-writing){scrollbar-gutter:stable}
 :is(.world-danger,.relationship-remove){border-color:color-mix(in srgb,var(--danger) 45%,var(--line2));background:var(--surface);color:var(--danger)}:is(.world-danger,.relationship-remove):hover:not(:disabled){background:color-mix(in srgb,var(--danger) 8%,var(--surface))}
 .world-delete-confirm{margin-block:16px;padding:16px;border:1px solid var(--tline);border-radius:12px;background:var(--tcard,var(--surface))}.world-delete-confirm h4{margin:0 0 8px;font-size:15px}.world-delete-confirm p{margin:0 0 8px}.world-delete-confirm ul{margin:8px 0;padding-left:20px}.world-delete-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.world-delete-confirm .relationship-remove{margin-top:0}
 /* 터치 기기(폭과 무관)와 좁은 화면에서는 레일의 분류 칩·새 설정 버튼을 44px로 키운다. */
-@media(max-width:600px),(pointer:coarse){.world-rail-kinds button{min-height:44px}.world-rail-new .pop-menu-btn{width:44px;height:44px}.world-new-menu .pop-menu-btn{height:44px}}
+@media(max-width:600px),(pointer:coarse){.world-rail-kinds button{min-height:44px}.world-docs-more>summary{width:44px;height:44px}.world-rail-new .pop-menu-btn{width:44px;height:44px}.world-new-menu .pop-menu-btn{height:44px}}
 
 /* 시트(확정 버전·AI 후보 검토): 시트는 body에 그려져 .calm·.episode-app 밖이므로 전역 토큰(--line·--ink)을 쓴다. */
 .world-sheet{width:min(720px,100%)}.world-sheet-head{display:flex;align-items:center;justify-content:flex-end;gap:12px}.world-sheet-head h3{margin:0 auto 0 0}.world-sheet .initial-review,.world-sheet .world-revisions{max-width:none;margin-block:0}

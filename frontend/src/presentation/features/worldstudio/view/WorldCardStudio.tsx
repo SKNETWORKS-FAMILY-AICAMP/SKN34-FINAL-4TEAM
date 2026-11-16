@@ -34,11 +34,11 @@ const BODY_MAX = 3000
  * 설정 카드 편집 화면(주소 `?card=<id>`): 집필실(`WritingStudio`)과 같은 3단 인터페이스다. 집필실의 클래스·`VersionGraph`·`ResizeSeparator`·`PopMenu`·AI 채팅 레일을 그대로 쓰고 세계관 전용 스타일은 최소다.
  * - 왼쪽 레일: 설정 카드 목록(검색·분류 필터, 지금 카드 강조, 눌러서 다른 카드로, `+ 새 설정`, 항목 ⋮ 메뉴의 삭제) → 크기 조절선 → 버전 그래프(작업 초안 + 확정 버전, 확정 버전을 누르면 읽기 전용 시트).
  *   확정 버전 목록·시트는 설정집 화면의 `확정 버전 남기기`와 같은 것이라 페이지가 갖고 `revisions`·`openVersions`로 넘긴다.
- * - 가운데: 큰 이름 입력 · 유형 · 설명(마크다운 편집기 `MarkdownEditor`: Toast UI Editor, 쓰기·미리보기 탭, 편집 화면에서만 `React.lazy`로 늦게 불러온다) 등 기존 필드 · 한 줄 하단 바(글자 수·저장 상태·삭제). 위 상단 바에는 `← 설정집`과 상시 저장 영역이 있다.
+ * - 가운데: 큰 이름 입력 · 유형 · 설명(마크다운 편집기 `MarkdownEditor`: Toast UI Editor, 쓰기·미리보기 탭, 편집 화면에서만 `React.lazy`로 늦게 불러온다) 등 기존 필드 · 한 줄 하단 바(글자 수·저장 상태·카드 삭제). 위 상단 바에는 `← 설정집`과 상시 저장 영역이 있다.
  *   설명은 마크다운 문자열 그대로 저장한다(`## 제목`이 공개 카드 페이지의 문단·목차가 된다). 편집기는 글자 수 제한이 없어 3000자를 넘으면 글자 수가 경고로 바뀌고 저장은 기존 검증이 막는다.
  *   글자 수 줄은 입력마다 바뀌므로 라이브 영역에 두지 않고, 3000자를 넘는 순간만 따로 둔 상태 문구로 한 번 알린다.
  *   저장 중에는 편집기를 `inert`로 잠가(글자 입력은 `fieldset disabled`가 닿지 않는다) 그사이 입력이 초안과 어긋나지 않게 한다. 편집기는 처음 값만 읽으므로 `key`로 카드마다(인물 카드는 문서마다) 다시 만든다.
- *   인물 카드는 설명 하나 대신 문서 네 종류로 쓴다(`CharacterDocs`·`useCharacterDocs`): 설명 자리에 문서 목록(IDENTITY.md = 카드 본문 · SOUL.md · GOAL.md · memory/NN회차.md)과 고른 문서의 같은 편집기를 두고,
+ *   인물 카드는 설명 하나 대신 문서 네 종류로 쓴다(`CharacterDocs`·`useCharacterDocs`): 설명 자리에 문서 탭 줄(정체성 IDENTITY.md = 카드 본문 · 성격·말투 SOUL.md · 목표 GOAL.md · 회차 기억 memory/NN회차.md)과 고른 문서의 같은 편집기를 두고,
  *   글자 수·3,000자 초과 알림은 고른 문서의 것이다. 인물이 아닌 유형으로 바꾼 카드에 문서가 남아 있으면 저장하지 않는다고 알린다(인물로 되돌리면 그대로다).
  *   설명 아래 공개 범위(DEC-46): `이 설정 공개`(기본 비공개, 공개 세계관 화면에는 공개 카드만 보인다)와 `독자 공개 N화부터`(연결된 소설의 독자 설정 위키에 보이기 시작하는 회차, 비우면 숨김, 소설을 연결해야 켜진다).
  *   회차 입력은 숫자만 받는 글자 칸이다(`type="number"`는 휠·스핀 버튼으로 값이 바뀌고 `e` 같은 글자를 받으면 보이는 값과 초안이 어긋난다). 0처럼 쓸 수 없는 값은 입력 바로 아래에 이유를 글로 보이고 입력의 설명으로 잇는다.
@@ -218,7 +218,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
               <p role="status" className="sr-only">{over && (docs.person ? `${docs.name}가 3,000자를 넘었어요.` : '설명이 3,000자를 넘었어요.')}</p>
               {vm.deleteLock && <p id={deleteReason} className="small muted">{vm.deleteLock}</p>}
               <div className="writing-foot-actions">
-                <button type="button" className="btn sm world-danger" disabled={vm.busy || !!vm.deleteLock} aria-describedby={vm.deleteLock ? deleteReason : undefined} onClick={() => setConfirm(item.id)}>삭제</button>
+                <button type="button" className="btn sm world-danger" disabled={vm.busy || !!vm.deleteLock} aria-describedby={vm.deleteLock ? deleteReason : undefined} onClick={() => setConfirm(item.id)}>카드 삭제</button>
               </div>
             </footer>
           </div>
