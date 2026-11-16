@@ -9,7 +9,7 @@
 | 목표 | 세계관 정본에서 **인물이 기준 회차까지 아는 것만** 찾는 기억 추론(NovelBrain) 위에서, 인물별로 격리된 에이전트와 나레이터가 턴을 이어 가는 시뮬레이션을 집필실 무대에서 실시간으로 보여 주고, 결과를 웹소설 장면(나레이션 지문 + 독백 + `"대사"`)으로 이어 붙여 작가 승인 시 회차 원고에 저장한다. |
 | 진입 | 집필실 [시뮬레이션] 버튼으로 시작한다(아래 '버튼 진입'). 채팅 자유 입력도 Intent Router의 `character_simulation`으로 같은 실행 단계에 들어온다. 화면은 집필실 중앙의 **무대 패널**이고 채팅에는 상태 한 줄만 남는다(아래 '무대'). Router는 이번 요청만으로 먼저 분류하고 되묻기일 때만 이전 요청을 붙인다(집필 요청이 섞이면 시뮬레이션 요청이 집필로 끌려갔다). |
 | 모드 | **IF 모드**: 메인 에이전트와 정한 "만약 ~했다면?" 전제 하나만 강제, 인물은 자유. **흐름 모드**: 메인 에이전트와 정한 비트(장면·사건 순서)를 따른다. 흐름 모드는 메인 에이전트 단독 집필에서 생기는 오류를 인물 격리로 해결하는 장치다. |
-| 인물 입력 | DEC-47 인물 문서. `IDENTITY.md`(카드 본문)·`SOUL.md`(말투·사고)·`MEMORY.md`·`memory/NN회차.md` 중 **기준 회차 이하**만. 다른 인물의 문서·비공개 생각은 넣지 않는다. |
+| 인물 입력 | DEC-47 인물 문서. `IDENTITY.md`(카드 본문)·`SOUL.md`(말투·사고)·`GOAL.md`(목표)·`memory/NN회차.md` 중 **기준 회차 이하**만. 다른 인물의 문서·비공개 생각은 넣지 않는다. |
 | 모델 | 인물 행동·나레이션·독백·검사·요약은 OpenAI `gpt-6-luna`(DEC-28, 기존 `OPENAI_MODEL` 설정), 연출 결정은 OpenAI Decisions(`gpt-6-luna`)다. |
 | 실행 틀 | 장면은 LangChain `create_agent` + 미들웨어·훅·콜백·이벤트 리스너로 쓴다(#362, 사용자 결정 2026-11-14). 시뮬레이션만 이 틀이고 Q&A·집필·고증은 기존 오케스트레이션 그래프다. |
 | 연출·시점 | 인물이 말하기 전에 매 턴 연출 결정(나레이션·독백·인물 대사·마무리, 화자, 시점)을 거친다. 시점은 전지적·인물의 3인칭 제한·인물의 1인칭이며 비트마다 바뀔 수 있다. 독백은 나레이터가 시점 인물의 지식 범위로 쓴다. |
@@ -40,13 +40,13 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 - `WorldSnapshot`: `world_studio_read` 응답에서 만든 카드(id·cardType·title·text·`characterDocs`·`revealFromEpisode`)와 그 회차의 관계 목록.
 - `RecallResult.items[]`: `{ref, source: graph|manuscript|bm25, text, rank, score}`, `RecallResult.gaps[]`: 확인할 수 없어 제외한 항목.
 - 필터 단계에서 지식 출처·시점을 확인할 수 없는 항목은 결과에서 빼고 `gaps`에 남긴다. 사실로 채우지 않는다(설계 §3).
-- 구현 규칙(2026-11-14 확정): ref는 `card:<id>`·`card:<id>#identity|soul|memory|ep<NN>`·`relation:<id>`·`manuscript:<발췌id>`다. 0단계는 PPR 점수, 1단계부터 RRF 합산이다.
-  인물 필터는 다른 인물의 SOUL·MEMORY·회차 기억, 자기 기준 회차 뒤 기억, `revealFromEpisode`가 기준 회차 뒤인 카드를 조용히 뺀다.
+- 구현 규칙(2026-11-14 확정): ref는 `card:<id>`·`card:<id>#identity|soul|goal|ep<NN>`·`relation:<id>`·`manuscript:<발췌id>`다. 0단계는 PPR 점수, 1단계부터 RRF 합산이다.
+  인물 필터는 다른 인물의 SOUL·GOAL·회차 기억, 자기 기준 회차 뒤 기억, `revealFromEpisode`가 기준 회차 뒤인 카드를 조용히 뺀다.
   확인할 수 없는 것은 `gaps`로 남긴다: 관계로 연결되지 않은 인물·사건·물건 카드, 그 인물이 끝점이 아닌 관계, 상대 카드가 미공개이거나 스냅샷에 없는 관계,
   인물 이름이 나오지 않는 원고 발췌, Retrieval의 원고 아닌 발췌(`relationship_current_not_episode`·`setting_via_retrieval`), 형식을 알 수 없는 ref.
   부정(`polarity=denied`) 관계는 '연결'로 치지 않고 PPR 간선에서도 빼며, 관계 항목에는 `카엘 ↛ 리라 (아님): 스승`처럼 부정임을 드러낸다.
   `revealFromEpisode`가 없는 카드는 허용한다(독자 노출 기준이지 인물 지식 기준이 아니며, 막으면 대부분의 세계 설정이 빠진다).
-  `world.episode`가 기준 회차보다 늦으면 ValueError다. `MEMORY.md`는 회차 표시가 없어 항상 허용한다.
+  `world.episode`가 기준 회차보다 늦으면 ValueError다. `GOAL.md`는 회차 표시가 없어 자기 인물이면 항상 허용한다. 옛 `MEMORY.md`(`characterDocs.memory`)는 `00회차`로 옮겨 읽는다(DEC-47).
 
 ## 시뮬레이션 실행
 
