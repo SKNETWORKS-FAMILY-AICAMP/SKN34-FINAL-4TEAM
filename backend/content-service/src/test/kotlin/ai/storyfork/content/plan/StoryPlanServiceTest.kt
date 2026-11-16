@@ -100,4 +100,37 @@ class StoryPlanServiceTest {
         verify(plans).findById("p")
         verifyNoMoreInteractions(plans)
     }
+
+    @Test fun `scene order is persisted across plots and shifted revisions reject stale edits`() {
+        val parent=plot()
+        val a=StoryPlanEntity(id="a",workId="w",kind="scene",parentId="p",episodeNumber=1,episodeId="e",position=0)
+        val b=StoryPlanEntity(id="b",workId="w",kind="scene",parentId="q",episodeNumber=1,episodeId="e",position=1)
+        val other=StoryPlanEntity(id="other",workId="w",kind="scene",parentId="p",episodeNumber=2,position=0)
+        `when`(plans.findById("a")).thenReturn(Optional.of(a))
+        `when`(plans.findById("b")).thenReturn(Optional.of(b))
+        `when`(plans.findById("p")).thenReturn(Optional.of(parent))
+        `when`(plans.findById("q")).thenReturn(Optional.of(plot().apply {id="q"}))
+        `when`(plans.findAllByWorkIdAndDeletedAtIsNullOrderByCreatedAtAscIdAsc("w")).thenReturn(listOf(parent,a,b,other))
+        `when`(episodes.findByWorkIdAndSequence("w",1)).thenReturn(EpisodeEntity("e","w",1))
+        `when`(episodes.findById("e")).thenReturn(Optional.of(EpisodeEntity("e","w",1)))
+        val moved=service.update("w","owner","b",request("scene","q").copy(episodeNumber=1,position=0))
+        assertEquals(0,moved.position)
+        assertEquals(1,a.position)
+        assertEquals(1,a.revision)
+        assertEquals(0,other.position)
+        assertEquals(0,other.revision)
+        assertEquals(listOf("b","a"),service.list("w","owner").items.filter {it.episodeNumber==1}.map {it.id})
+        assertEquals(409,assertThrows(ContentFailure::class.java){service.update("w","owner","a",request("scene","p").copy(episodeNumber=1))}.status)
+        assertEquals(422,assertThrows(ContentFailure::class.java){service.update("w","owner","b",request("scene","q",1).copy(episodeNumber=1,position=9))}.status)
+    }
+
+    @Test fun `editing content preserves relative order after deletion gaps`() {
+        val a=StoryPlanEntity(id="a",workId="w",kind="scene",parentId="p",position=2)
+        val b=StoryPlanEntity(id="b",workId="w",kind="scene",parentId="p",position=3)
+        `when`(plans.findById("a")).thenReturn(Optional.of(a))
+        `when`(plans.findById("p")).thenReturn(Optional.of(plot()))
+        `when`(plans.findAllByWorkIdAndDeletedAtIsNullOrderByCreatedAtAscIdAsc("w")).thenReturn(listOf(a,b))
+        service.update("w","owner","a",request("scene","p"))
+        assertEquals(listOf("a","b"),service.list("w","owner").items.map {it.id})
+    }
 }

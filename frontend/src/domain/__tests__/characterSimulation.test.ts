@@ -168,6 +168,10 @@ describe('장면 계획 → 흐름 비트(버튼 진입)', () => {
     expect(many[7]).toBe('장면7: 내용')
   })
 
+  it('저장 순서가 다른 플롯에 걸쳐도 비트를 같은 순서로 만들고 끊긴 회차는 쓰지 않는다', () => {
+    expect(planBeats([plan('뒤', '', { position: 2 }), plan('앞', '', { position: 0 }), plan('끊김', '', { position: 1, episodeMissing: true })], 3)).toEqual(['앞', '뒤'])
+  })
+
   it('회차를 모르거나 장면 계획이 없으면 비트가 없다', () => {
     expect(planBeats([plan('가', '1')], null)).toEqual([])
     expect(planBeats([], 3)).toEqual([])

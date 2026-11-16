@@ -131,3 +131,31 @@ describe('11 플롯·장면 계획', () => {
     expect((await api.read(work.id, scene.id)).title).toBe(scene.title)
   })
 })
+
+
+it('회차 장면은 플롯에 관계없이 순서를 저장하고 이동된 이웃의 오래된 수정을 거부한다', async () => {
+  const { api, work } = setup()
+  const p = await api.save(work.id, plot)
+  const q = await api.save(work.id, { ...plot, title: '다른 플롯' })
+  const a = await api.save(work.id, { ...plot, kind: 'scene', parentId: p.id, episodeNumber: 1, title: 'A' })
+  const b = await api.save(work.id, { ...plot, kind: 'scene', parentId: q.id, episodeNumber: 1, title: 'B' })
+  await api.move(work.id, b, 0)
+  const rows = (await api.list(work.id)).filter(p => p.kind === 'scene')
+  expect(rows.map(p => p.title)).toEqual(['B', 'A'])
+  expect(rows.map(p => p.position)).toEqual([0, 1])
+  await expect(api.save(work.id, { ...plot, kind: 'scene', parentId: p.id, episodeNumber: 1 }, a)).rejects.toThrow(/변경/)
+  await expect(api.move(work.id, rows[0], -1)).rejects.toThrow(/순서/)
+  await expect(api.move(work.id, p, 0)).rejects.toThrow(/장면/)
+})
+
+it('삭제로 순서에 빈자리가 생겨도 내용 수정은 장면의 상대 순서를 유지한다', async () => {
+  const { api, work } = setup()
+  const p = await api.save(work.id, plot)
+  const input = { ...plot, kind: 'scene' as const, parentId: p.id, episodeNumber: 1 }
+  const a = await api.save(work.id, { ...input, title: 'A' })
+  const b = await api.save(work.id, { ...input, title: 'B' })
+  const c = await api.save(work.id, { ...input, title: 'C' })
+  await api.remove(work.id, a)
+  await api.save(work.id, { ...input, title: 'B 수정' }, b)
+  expect((await api.list(work.id)).filter(p => p.kind === 'scene').map(p => p.id)).toEqual([b.id, c.id])
+})
