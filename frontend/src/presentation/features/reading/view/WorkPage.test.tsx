@@ -19,6 +19,24 @@ import { renderApp } from '../../../../test/renderApp'
 
 afterEach(() => { cleanup(); document.title = 'STORYFORK'; vi.restoreAllMocks() })
 
+it.each([
+  { id: 'guunmong', forkAt: undefined, expected: null },
+  { id: 'gate', forkAt: undefined, expected: null },
+  { id: 'gate', forkAt: 3, expected: '원작 「구운몽」의 3화 이후, 다른 길로 간 포크 소설.' },
+])('소설 소개 줄은 유효한 소개가 있을 때만 렌더링한다: $id / $forkAt', async ({ id, forkAt, expected }) => {
+  const works = appContainer.resolve('mockDb').works
+  const index = works.findIndex((w) => w.id === id)
+  const original = works[index]
+  works[index] = { ...original, summary: '', forkAt }
+  try {
+    renderApp(`/work/${id}`)
+    await screen.findByRole('heading', { name: original.title, level: 1 })
+    const summary = document.querySelector('.whero .sum')
+    if (expected === null) expect(summary).toBeNull()
+    else expect(summary?.textContent).toBe(expected)
+  } finally { works[index] = original }
+})
+
 const expectOneMain = () => {
   const mains = document.querySelectorAll('main')
   expect(mains).toHaveLength(1)

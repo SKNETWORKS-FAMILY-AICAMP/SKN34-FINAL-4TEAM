@@ -191,7 +191,7 @@
 <tr><td>승인 장르 1~2개 선택·저장</td><td>✅</td></tr>
 <tr><td>해시태그 0~10개 검증·저장</td><td>✅</td></tr>
 <tr><td>작품 등록 권리 확인·기록</td><td>✅</td></tr>
-<tr><td>작품 상세 조회</td><td>✅</td></tr>
+<tr><td>작품 상세 조회</td><td>✅ <small>(#366: 소개 없는 원작·출처 불완전 Fork의 소개 줄 숨김 소스 구현, 로컬 단위 54개 통과. 화면 통합 검증은 CI 대기)</small></td></tr>
 <tr><td>내 작품 목록 조회</td><td>✅</td></tr>
 <tr><td>작품 기본 정보 수정</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/99">PR #99</a></td></tr>
 <tr><td>작품 삭제 요청 <small>(소유자 범위, 이후 DEC-42 소프트 삭제로 전환, #108)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/106">PR #106</a></td></tr>
