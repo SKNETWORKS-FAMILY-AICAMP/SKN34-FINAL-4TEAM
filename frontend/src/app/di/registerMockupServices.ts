@@ -73,6 +73,7 @@ export function registerMockupServices(container: AppContainer) {
     notificationRepository: asValue(mockupNotificationRepository),
     shellUseCase: asValue(new ShellUseCase(mockupNotificationRepository, feedbackRepository)),
     initialWorldUseCase: asValue(null),
+    worldReviewUseCase: asValue(null), // 설정집 AI 검토는 서버 기능이라 데모는 지원하지 않는다
     writingChatUseCase: asValue(null),
     worldStudioUseCase: asValue(new WorldStudioUseCase(createMockupWorldStudioRepository())),
     // 공개 세계관 API 대신 데모 세계관 26개를 같은 계약으로 보여 줍니다(파생·조합·작품은 이 데모에만 있습니다).

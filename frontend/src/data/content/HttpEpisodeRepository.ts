@@ -53,7 +53,7 @@ const cardId = z.string().min(1)
 /** 연결된 세계관의 독자 공개 카드(DEC-46). 관계 상태를 주기 전 응답은 current로 읽는다. */
 const readingWorldCards = z.object({
   workId: z.string(), worldId: z.string().min(1).nullable(), upto: z.number().int().nonnegative(),
-  cards: z.array(z.object({ id: cardId, title: z.string(), text: z.string(), cardType: z.enum(cardTypes.map((type) => type.id)), aliases: z.array(z.string()), tags: z.array(z.string()), revealFromEpisode: z.number().int().positive() })),
+  cards: z.array(z.object({ id: cardId, title: z.string(), text: z.string(), cardType: z.enum(cardTypes.map((type) => type.id)), aliases: z.array(z.string()), tags: z.array(z.string()), revealFromEpisode: z.number().int().positive(), imageId: z.string().min(1).nullable().default(null) })),
   relationships: z.array(z.object({ id: cardId, sourceCardId: cardId, targetCardId: cardId, label: z.string() })),
   relationshipStatus: z.enum(['current', 'unavailable']).default('current'),
 })

@@ -2,7 +2,9 @@ import { cardLibraryRows, type WritingIssue, worldSealIssues, worldWritingIssues
 import { initialWorldStudioFlow, legacyTabTarget, type ManageView, NEW_WORLD_QUERY, parseManageView, type StudioStep, studioMode, worldStudioFlow } from './worldStudioFlow'
 import { listingOf, needsPublicConfirm, PUBLIC_CONFIRM, publicationNotice } from './worldPublication'
 import { useWorldCoverImage } from './useWorldCoverImage'
+import { useCardImages } from './useCardImages'
 import { worldStudioStorage } from './worldStudioStorage'
+import { useWorldReview } from './useWorldReview'
 import {
   applyRelationChanges,
   assertNoNewRelationDuplicates,
@@ -25,6 +27,7 @@ import {
   type StudioWorld,
   type WorldPublicationInput,
 } from '../../../../domain/entities/studioWorld'
+import type { WorldReviewUseCase } from '../../../../domain/usecases/WorldReviewUseCase'
 import type { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCase'
 
 /** 편집 화면을 게시판에서 들어와 연 기록인지(그 앞 기록이 게시판이라 '← 설정집'이 한 걸음 뒤로 가면 된다). */
@@ -32,6 +35,7 @@ const cameFromBoard = (state: unknown) => typeof state === 'object' && state !==
 
 export function useWorldStudioViewModel(
   useCase: WorldStudioUseCase = appContainer.resolve('worldStudioUseCase'),
+  reviewUseCase: WorldReviewUseCase | null = appContainer.resolve('worldReviewUseCase'),
 ) {
   const { worldId = '' } = useParams()
   const restoring = useContext(RestoreContext)
@@ -61,8 +65,8 @@ export function useWorldStudioViewModel(
       else query.set('view', next)
     })
   }
-  const [reviewOpen, setReviewOpen] = useState(false) // AI 후보 검토 시트
-  // 옛 주소의 ?tab=은 그 탭을 대신한 보기·시트로 옮긴다(AI 후보 검토는 시트, 확정 버전·세계관 탐색은 설정집).
+  const [reviewOpen, setReviewOpen] = useState(false) // AI 검토 시트(설정집 검토 + AI 후보 검토)
+  // 옛 주소의 ?tab=은 그 탭을 대신한 보기·시트로 옮긴다(AI 후보 검토는 AI 검토 시트, 확정 버전·세계관 탐색은 설정집).
   useEffect(() => {
     const target = legacyTabTarget(legacyTab)
     if (!target) return
@@ -108,6 +112,7 @@ export function useWorldStudioViewModel(
   const [publishing, setPublishing] = useState<WorldPublicationInput | null>(null) // 전송 중인 공개 설정. 컨트롤만 이 값을 앞서 보이고 칩·링크는 서버 값을 따른다
   const [coverRevision, setCoverRevision] = useState(0) // 표지를 올리거나 지울 때마다 올라가 이미지를 다시 읽게 한다
   const [coverAction, setCoverAction] = useState<'upload' | 'remove' | null>(null)
+  const [imageUploading, setImageUploading] = useState(false) // 설정 카드 대표 이미지를 올리는 중
   useEffect(() => {
     leaveGuard?.setDirty(dirty)
     return () => leaveGuard?.setDirty(false)
@@ -258,6 +263,7 @@ export function useWorldStudioViewModel(
   const demo = import.meta.env.MODE === 'mockup'
   const listing = listingOf(saved, demo)
   const cover = useWorldCoverImage(useCase, saved?.id, !!saved?.hasCover && useCase.supportsCover, coverRevision)
+  const cardImages = useCardImages(useCase, saved?.id)
   // 초안 저장: 이름·설명 인라인 편집과 '세계관 저장'이 같은 흐름을 쓴다.
   const persist = async (target: StudioWorld, signal: AbortSignal) => {
     const current = generation.current
@@ -275,9 +281,13 @@ export function useWorldStudioViewModel(
       throw e
     }
   }
+  // 설정집 AI 검토(#394): 게시판의 상태 칸과 편집 화면의 지적 목록이 같은 결과를 보도록 여기서 하나만 만든다.
+  const review = useWorldReview({ useCase: reviewUseCase, saved, editing, unsaved: dirty || relationDirty, busy: busy || reviewBusy, patch })
   return {
     reviewWorldId:worldId,
     setReviewBusy,
+    /** 설정집 AI 검토: 동의·요청·결과(지적·수정안)와 수정안 반영. 결과는 저장하지 않고 세계관이 바뀌면 지운다. */
+    review,
     reload:async(expected?:{resultDraftRevision:number|null;createdCardIds:string[];createdRelationshipIds:string[]})=>{if(dirty||relationDirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.');const current=generation.current;const w=await useCase.read(worldId);if(current!==generation.current)throw new Error('다른 세계관으로 이동했어요.');if(expected&&(expected.resultDraftRevision===null||w.version<expected.resultDraftRevision||[...expected.createdCardIds,...expected.createdRelationshipIds].some(id=>!w.settings.some(s=>s.item.id===id))))throw new Error('반영된 설정 재조회를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요.');install(w);setEpisode(null);setRelationKey(v=>v+1);return w},
     storage: worldStudioStorage(import.meta.env.MODE),
     canUndoCardDeletion: !!cardUndo,
@@ -287,7 +297,7 @@ export function useWorldStudioViewModel(
     /** 설정집 화면(게시판)의 보기(주소 `?view=`): 설정집·관계도·시간선. 작성 모드는 보기가 없다. */
     view,
     setView,
-    /** AI 후보 검토 시트가 열려 있는지(옛 `?tab=analysis` 주소도 이걸 연다). */
+    /** AI 검토 시트(설정집 검토 + AI 후보 검토)가 열려 있는지(옛 `?tab=analysis` 주소도 이걸 연다). */
     reviewOpen,
     setReviewOpen,
     /** 작성 모드(마법사)를 나가 관리 모드로 간다(주소의 `new` 쿼리를 지운다). 입력은 그대로 남는다. */
@@ -518,6 +528,44 @@ export function useWorldStudioViewModel(
     supportsCover: useCase.supportsCover,
     /** 표지를 올리거나 지우는 중인 동작(없으면 null). */
     coverAction,
+    /** 설정 카드 대표 이미지(소유자 인증 읽기 → 객체 주소). 게시판·레일·편집 화면이 같은 이미지를 한 번만 읽고, `supported`가 false인 데모(메모리)는 이미지 올리기를 지원하지 않는다. */
+    cardImages,
+    /** 카드 이미지를 올리는 중인지. */
+    imageUploading,
+    /**
+     * 설정 카드의 대표 이미지를 올려 붙인다(바꾸기도 같다): 올린 이미지의 id를 초안 카드의 `imageId`로 바꾼다. 올리는 것은 바로 서버에 적용되지만 카드가 그 이미지를 쓰는 것은 초안 수정이라
+     * `세계관 저장`과 확정 버전을 거쳐야 공개 화면에 나온다. 바꿀 때 이전 이미지의 객체 주소는 해제한다. 됐을 때만 true이고, 실패하면 이유를 오류로 알리고 초안은 그대로다.
+     */
+    uploadCardImage: async (id: string, file: File) => {
+      if (!saved || !editing || busy || reviewBusy || mutation.current) return false
+      let done = false
+      await perform(async (signal) => {
+        const current = generation.current
+        setImageUploading(true)
+        try {
+          const imageId = await useCase.uploadCardImage(saved.id, file, signal)
+          if (current === generation.current) {
+            const previous = editing.settings.find((row) => row.item.id === id)?.imageId
+            patch({ settings: editStudioSetting(editing.settings, id, {}, { imageId }) })
+            if (previous) cardImages.release(previous)
+            setMessage('이미지를 올렸어요. 세계관을 저장한 뒤 ‘확정 버전 남기기’를 해야 공개 화면에 나와요.')
+            done = true
+          }
+        } finally {
+          setImageUploading(false)
+        }
+      })
+      return done
+    },
+    /** 설정 카드에서 대표 이미지를 뺀다: 서버를 부르지 않고 초안에서 연결(`imageId`)만 지운다(올린 이미지는 확정 버전이 쓸 수 있어 남는다). 저장해야 반영된다. */
+    removeCardImage: (id: string) => {
+      if (!editing || busy) return
+      const row = editing.settings.find((s) => s.item.id === id)
+      if (!row?.imageId) return
+      const { imageId, ...rest } = row
+      patch({ settings: editing.settings.map((s) => (s.item.id === id ? rest : s)) })
+      cardImages.release(imageId)
+    },
     /** 표지를 올리거나(교체 포함) 지운다(`null`). 초안 저장과 별개로 바로 적용되고 됐을 때만 true다. 실패하면 이전 표지 그대로 오류 문구를 보인다. */
     setCover: async (file: File | null) => {
       if (!saved || busy || reviewBusy || mutation.current) return false

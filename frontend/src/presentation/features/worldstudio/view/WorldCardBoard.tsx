@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { missingCharacterDocs } from '../../../../domain/entities/characterDocs'
 import { cardTypeOf } from '../../../../domain/entities/studioCards'
 import type { CardVisibility, StudioSetting } from '../../../../domain/entities/studioWorld'
+import type { CardStatus } from '../../../../domain/entities/worldReview'
 import { KindChip } from '../../../shared/KindChip'
 import { BOOK_SORTS, type BoardRow } from '../../../shared/worldBoard'
 import { publishAllCards, setCardVisibility } from '../viewmodel/cardVisibility'
 import { importedSource } from '../../../shared/importCards'
 import { labelOf } from '../viewmodel/settingBoard'
 import { useCardBoard } from '../viewmodel/useCardBoard'
+import type { CardImages } from '../viewmodel/useCardImages'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
+import { CardThumb } from './WorldCardImage'
 import { NewCardMenu } from './NewCardMenu'
 import { WorldImportSheet } from './WorldImportSheet'
 
@@ -18,10 +20,11 @@ type VM = ReturnType<typeof useWorldStudioViewModel>
 /**
  * 게시판 한 줄. 제목 버튼이 편집 화면을 여는 주 컨트롤이다(줄 전체를 누르게 하지 않는다). 제목 옆 `[n]`은 공개 설정집과 같은 관계·연결 수다.
  * 맨 앞 체크박스는 공개 범위를 한 번에 바꿀 카드를 고르고, `공개` 칸은 그 카드의 공개 범위다. 다른 세계관에서 가져온 카드는 `가져옴`과 출처를 제목 아래에 보인다.
- * 인물 문서(IDENTITY.md·SOUL.md·GOAL.md) 가운데 비어 있는 것이 있는 인물은 `정리 필요`를 붙여 알린다. 알리기만 하고 이 표시 때문에 저장·확정이 막히지는 않는다.
+ * 보완 상태는 제목 옆에 알린다(알리기만 하고 이 표시 때문에 저장·확정이 막히지는 않는다): 인물 문서(IDENTITY.md·SOUL.md·GOAL.md) 가운데 비어 있는 것이 있으면 `정리 필요`,
+ * 사건·사물이 어느 인물과도 승인된 관계로 이어지지 않았으면 `연결 필요`, 마지막 AI 검토가 남긴 지적이 있으면 `AI 의견 N`(누르면 그 카드의 편집 화면에서 지적을 본다)이다.
  * 본문이 좁으면 번호·분류·요약·연결 칸이 숨는다(world-studio.css의 컨테이너 규칙). 그때 분류와 요약을 잃지 않도록 제목 아래 한 줄(`.world-row-sub`)에도 두고, 넓은 본문에서는 CSS가 그 줄을 숨긴다.
  */
-function Row({ row, setting, picked, onPick, onOpen }: { row: BoardRow; setting?: StudioSetting; picked: boolean; onPick: (id: string, on: boolean) => void; onOpen: (id: string) => void }) {
+function Row({ row, setting, status, images, picked, onPick, onOpen }: { row: BoardRow; setting?: StudioSetting; status?: CardStatus; images: CardImages; picked: boolean; onPick: (id: string, on: boolean) => void; onOpen: (id: string) => void }) {
   const isPublic = setting?.visibility === 'public'
   return (
     <tr>
@@ -29,9 +32,12 @@ function Row({ row, setting, picked, onPick, onOpen }: { row: BoardRow; setting?
       <td className="col-no">{row.no || '–'}</td>
       <td className="col-kind"><KindChip kind={row.kind} label={row.type} /></td>
       <td className="col-title">
+        <CardThumb images={images} imageId={setting?.imageId} />
         <button type="button" data-card={row.cardId} aria-label={`${row.title} ${row.type}`} onClick={() => onOpen(row.cardId)}>{row.title}</button>
         {row.badge > 0 && <span className="worlds-badge"><span aria-hidden="true">[{row.badge}]</span><span className="sr-only">{row.kind === '인물' ? '관계' : '연결'} {row.badge}개</span></span>}
-        {setting && missingCharacterDocs(setting).length > 0 && <span className="worlds-badge world-todo">정리 필요</span>}
+        {status?.cleanup && <span className="worlds-badge world-todo">정리 필요</span>}
+        {status?.unlinked && <span className="worlds-badge world-todo">연결 필요</span>}
+        {!!status?.opinions && <button type="button" className="worlds-badge world-todo world-opinion" aria-label={`${row.title} AI 의견 ${status.opinions}건 보기`} onClick={() => onOpen(row.cardId)}>AI 의견 {status.opinions}</button>}
         {setting?.importedFrom && <><span className="worlds-badge">가져옴</span><small className="world-imported-from">{importedSource(setting.importedFrom)}</small></>}
         <span className="world-row-sub"><KindChip kind={row.kind} label={row.type} />{row.text && <span>{row.text}</span>}</span>
       </td>
@@ -112,10 +118,13 @@ export function WorldCardBoard({ vm }: { vm: VM }) {
         <div className="worlds-board">
           <nav className="worlds-cats" aria-label="설정 분류">
             <ul>
-              <li><button type="button" aria-current={board.kind ? undefined : 'true'} onClick={() => board.pickKind()}>전체 <span>{board.total}</span></button></li>
+              <li><button type="button" aria-current={board.kind || board.todo ? undefined : 'true'} onClick={() => board.pickKind()}>전체 <span>{board.total}</span></button></li>
               {board.counts.map(({ kind, count }) => (
                 <li key={kind}><button type="button" aria-current={board.kind === kind ? 'true' : undefined} onClick={() => board.pickKind(kind)}>{kind} <span>{count}</span></button></li>
               ))}
+              {/* 카드가 없는 분류는 누를 대상이 아니라 비어 있다고만 알린다. */}
+              {board.empty.map((kind) => <li key={kind} className="worlds-cats-empty"><span>{kind}</span> <span>비어 있음</span></li>)}
+              {board.todoCount > 0 && <li><button type="button" aria-current={board.todo ? 'true' : undefined} onClick={board.pickTodo}>보완 필요 <span>{board.todoCount}</span></button></li>}
             </ul>
           </nav>
           <div className="worlds-board-main">
@@ -152,7 +161,7 @@ export function WorldCardBoard({ vm }: { vm: VM }) {
                   </tr>
                 </thead>
                 <tbody ref={table}>
-                  {board.rows.map((row) => <Row key={row.cardId} row={row} setting={byId.get(row.cardId)} picked={selected.has(row.cardId)} onPick={pick} onOpen={vm.editCard} />)}
+                  {board.rows.map((row) => <Row key={row.cardId} row={row} setting={byId.get(row.cardId)} status={board.statuses.get(row.cardId)} images={vm.cardImages} picked={selected.has(row.cardId)} onPick={pick} onOpen={vm.editCard} />)}
                   {!board.rows.length && <tr><td colSpan={7} className="muted">{board.total ? '조건에 맞는 설정이 없어요.' : '설정을 추가해 시작해 보세요.'}</td></tr>}
                 </tbody>
               </table>

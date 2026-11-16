@@ -40,6 +40,15 @@ fun revealFromEpisode(metadata: Map<String, Any?>): Int? {
 }
 
 /**
+ * 설정 카드의 대표 이미지 ID(#401)다. 카드 `semanticMetadata`의 최상위 `imageId`가 UUID 문자열일 때만 읽고, 없거나 null이거나 UUID가 아니면 null이다(이미지 없음으로 닫힌 쪽으로 실패).
+ * `UUID.fromString`은 `1-1-1-1-1` 같은 축약형도 받아 주므로 표준 36자 형식(대소문자 무관)만 인정한다.
+ */
+fun cardImageId(metadata: Map<String, Any?>): UUID? {
+    val text = metadata["imageId"] as? String ?: return null
+    return try { UUID.fromString(text).takeIf { it.toString() == text.lowercase() } } catch (_: IllegalArgumentException) { null }
+}
+
+/**
  * 연결된 소설의 독자에게 기준 회차 [upto]에 보이는 카드면 그 독자 공개 회차를, 아니면 null을 돌려준다: 삭제되지 않았고 독자 공개 회차가 [upto] 이하여야 한다.
  * 카드의 공개 범위(공개 세계관에서 다른 이용자에게 보이는지, [isPublicCard])와는 별개다.
  */

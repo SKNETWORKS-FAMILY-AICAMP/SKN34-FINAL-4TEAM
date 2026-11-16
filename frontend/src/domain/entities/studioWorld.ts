@@ -28,7 +28,9 @@ export type StudioSetting = {serverMetadata?:Record<string,unknown>;item:Setting
  /** 다른 세계관에서 가져온 카드의 출처. 직접 만든 카드에는 없다. */
  importedFrom?:ImportedFrom
  /** 인물 문서(SOUL.md·GOAL.md·회차별 기억). 인물 카드에만 쓰고, 없으면 본문(IDENTITY.md)만 있는 인물이다. */
- characterDocs?:CharacterDocs}
+ characterDocs?:CharacterDocs
+ /** 카드 대표 이미지 id(#401): 이 세계관에 올린 이미지(`uploadCardImage`)의 id다. 올린 이미지는 바뀌지 않아 교체는 새 id로 바꾸는 것이고, 없으면 이미지 없는 카드다. 관계 행에는 쓰지 않는다. */
+ imageId?:string}
 /** 독자 공개 회차가 잘못됐는지: 값이 있는데 1 이상의 정수가 아니다. 저장 전 확인([worldWritingIssues])과 저장 검증(WorldStudioUseCase.save)이 같은 규칙·문구를 쓴다. */
 export const REVEAL_EPISODE_ERROR='독자 공개 회차는 1 이상의 정수로 입력해 주세요.'
 export const invalidReveal=({revealFromEpisode:n}:Pick<StudioSetting,'revealFromEpisode'>)=>n!==undefined&&!(Number.isInteger(n)&&n>=1)
@@ -61,6 +63,14 @@ export function worldCoverError(file: Pick<File, 'type' | 'size'>): string | nul
  if (!file.size) return '빈 파일은 표지로 쓸 수 없어요.'
  if (!(WORLD_COVER_TYPES as readonly string[]).includes(file.type)) return 'PNG·JPEG·WebP 이미지만 표지로 쓸 수 있어요.'
  if (file.size > WORLD_COVER_MAX_BYTES) return '표지는 5 MiB 이하여야 해요.'
+ return null
+}
+
+/** 설정 카드 대표 이미지도 세계관 표지와 같은 형식·크기만 올린다(서버가 실제 바이트로 다시 검사한다). 문제가 없으면 null이다. */
+export function cardImageError(file: Pick<File, 'type' | 'size'>): string | null {
+ if (!file.size) return '빈 파일은 이미지로 쓸 수 없어요.'
+ if (!(WORLD_COVER_TYPES as readonly string[]).includes(file.type)) return 'PNG·JPEG·WebP 이미지만 올릴 수 있어요.'
+ if (file.size > WORLD_COVER_MAX_BYTES) return '이미지는 5 MiB 이하여야 해요.'
  return null
 }
 

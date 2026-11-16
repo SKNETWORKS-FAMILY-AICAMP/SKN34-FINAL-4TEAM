@@ -6,6 +6,7 @@ import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.auth.service.WITHDRAWN_MEMBER_NAME
 import ai.storyfork.content.world.domain.WORLD_GENRES
 import ai.storyfork.content.world.domain.WorldStudioFailure
+import ai.storyfork.content.world.domain.cardImageId
 import ai.storyfork.content.world.domain.coverStorage
 import ai.storyfork.content.world.domain.isListed
 import ai.storyfork.content.world.domain.isPublicCard
@@ -31,7 +32,7 @@ import org.springframework.transaction.support.TransactionTemplate
 @Service
 class PublicWorldService(
     private val worlds: StudioWorldRepository, private val revisions: WorldRevisionRepository,
-    private val revisionCards: WorldRevisionCardRepository, private val cardVersions: SettingCardVersionRepository,
+    private val revisionCards: WorldRevisionCardRepository, private val cardVersions: SettingCardVersionRepository, private val images: SettingCardImageRepository,
     private val states: WorldRelationshipStateRepository, private val graph: Neo4jRelationshipRepository,
     private val nicknames: CoreNicknameService, private val storage: AttachmentStorageClient,
     @Qualifier("worldStudioTransactionManager") manager: PlatformTransactionManager,
@@ -79,7 +80,7 @@ class PublicWorldService(
         val author = authors(listOf(seen.world.ownerSubject)).getValue(seen.world.ownerSubject)
         val relations = currentRelationships(id, seen.state, seen.cards.map { it.cardId }.toSet())
         return PublicWorldResponse(id, seen.revision.name, seen.revision.description, seen.world.genre, author, seen.world.published(), seen.revision.revisionNo,
-            seen.cards.map { PublicWorldCardResponse(it.cardId, it.fields.title, it.fields.body, it.fields.cardType, it.fields.aliases.toList(), it.fields.tags.toList()) },
+            seen.cards.map { PublicWorldCardResponse(it.cardId, it.fields.title, it.fields.body, it.fields.cardType, it.fields.aliases.toList(), it.fields.tags.toList(), cardImageId(it.fields.semanticMetadata)) },
             // 양 끝이 공개 카드인 관계만 남았으므로 끝점은 비어 있지 않다.
             relations.orEmpty().map { PublicWorldRelationshipResponse(it.id, it.sourceCardId!!, it.targetCardId!!, it.label) },
             if (relations == null) "unavailable" else "current", seen.world.coverObjectKey != null)
@@ -100,21 +101,45 @@ class PublicWorldService(
      * 작품의 공개 여부와 기준 회차(발행된 회차 안)는 호출자([ai.storyfork.content.work.service.WorkWorldService])가 먼저 정한다.
      */
     fun readerCards(workId: String, worldId: UUID, upto: Int): ReaderWorldCardsResponse {
-        val seen = tx {
-            val revision = worlds.findById(worldId).orElse(null)?.currentRevisionId?.let { revisions.findByIdAndWorldId(it, worldId) }?.takeIf { it.sealed }
-            if (revision == null) ReaderSnapshot(emptyList(), null)
-            else ReaderSnapshot(cardVersions.findAllById(revisionCards.findAllByIdRevisionId(revision.id).map { it.versionId })
-                .mapNotNull { card -> readerCardEpisode(card.fields.lifecycle, card.fields.semanticMetadata, upto)?.let { card to it } }
-                .sortedBy { it.first.cardId.toString() }, states.findById(worldId).orElse(null))
-        }
+        val seen = tx { readerSnapshot(worldId, upto) }
         if (seen.cards.isEmpty()) return ReaderWorldCardsResponse(workId, worldId, upto)
         // 독자에게 보이는 기준 회차까지의 관계만 읽는다(카드와 같은 기준이라 관계 스포일러도 막힌다, DEC-51).
         val relations = currentRelationships(worldId, seen.state, seen.cards.map { it.first.cardId }.toSet(), upto)
         return ReaderWorldCardsResponse(workId, worldId, upto,
-            seen.cards.map { (card, from) -> ReaderWorldCardResponse(card.cardId, card.fields.title, card.fields.body, card.fields.cardType, card.fields.aliases.toList(), card.fields.tags.toList(), from) },
+            seen.cards.map { (card, from) -> ReaderWorldCardResponse(card.cardId, card.fields.title, card.fields.body, card.fields.cardType, card.fields.aliases.toList(), card.fields.tags.toList(), from, cardImageId(card.fields.semanticMetadata)) },
             // 양 끝이 독자에게 보이는 카드인 관계만 남았으므로 끝점은 비어 있지 않다.
             relations.orEmpty().map { PublicWorldRelationshipResponse(it.id, it.sourceCardId!!, it.targetCardId!!, it.label) },
             if (relations == null) "unavailable" else "current")
+    }
+
+    /**
+     * 공개 세계관 [id]의 설정 카드 이미지다(#401). 상세와 같은 기준(공개·확정 버전)이고, 그 확정 버전의 공개·활성 카드 중 하나가 [imageId]로 가리키는 이미지일 때만 돌려준다.
+     * 그 밖(비공개·확정 버전 없음·비공개 카드·삭제 카드·초안에만 있는 참조·없는 이미지)은 404다.
+     */
+    fun cardImage(id: UUID, imageId: UUID) = pointedImage(id, imageId) { snapshot(id).cards }
+
+    /**
+     * 독자 설정 위키 카드의 이미지다(#401). [readerCards]와 같은 기준([upto]화에 보이는 카드)의 카드 중 하나가 [imageId]로 가리키는 이미지일 때만 돌려주고, 세계관·카드의 공개 범위는 보지 않는다.
+     * 작품의 공개 여부와 기준 회차는 호출자([ai.storyfork.content.work.service.WorkWorldService])가 먼저 정한다.
+     */
+    fun readerCardImage(worldId: UUID, upto: Int, imageId: UUID) = pointedImage(worldId, imageId) { readerSnapshot(worldId, upto).cards.map { it.first } }
+
+    /** 읽기 트랜잭션 안에서 고른 [cards] 중 하나가 가리키는, 이 세계관이 올린 이미지다. 그 밖은 404이고 객체 저장소 실패는 그 상태 그대로다. */
+    private fun pointedImage(worldId: UUID, imageId: UUID, cards: () -> List<SettingCardVersion>): WorldCoverImage {
+        val image = tx {
+            if (cards().none { cardImageId(it.fields.semanticMetadata) == imageId }) throw notFound()
+            images.findById(imageId).orElse(null)?.takeIf { it.worldId == worldId } ?: throw notFound()
+        }
+        return WorldCoverImage(coverStorage { storage.read(image.objectKey).bytes }, image.contentType)
+    }
+
+    /** [upto]화 기준으로 독자에게 보이는 카드(독자 공개 회차와 함께)와 관계 상태다. 확정 버전이 없으면 비어 있다. 읽기 트랜잭션 안에서 부른다. */
+    private fun readerSnapshot(worldId: UUID, upto: Int): ReaderSnapshot {
+        val revision = worlds.findById(worldId).orElse(null)?.currentRevisionId?.let { revisions.findByIdAndWorldId(it, worldId) }?.takeIf { it.sealed }
+            ?: return ReaderSnapshot(emptyList(), null)
+        return ReaderSnapshot(cardVersions.findAllById(revisionCards.findAllByIdRevisionId(revision.id).map { it.versionId })
+            .mapNotNull { card -> readerCardEpisode(card.fields.lifecycle, card.fields.semanticMetadata, upto)?.let { card to it } }
+            .sortedBy { it.first.cardId.toString() }, states.findById(worldId).orElse(null))
     }
 
     /** 상세와 표지가 같이 쓰는 공개 기준이다: 공개이고 확정(sealed)된 현재 버전이 있는 세계관. 아니면 404다. 읽기 트랜잭션 안에서 부른다. */

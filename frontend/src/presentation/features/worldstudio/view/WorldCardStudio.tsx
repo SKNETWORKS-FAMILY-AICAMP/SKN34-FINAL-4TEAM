@@ -8,6 +8,7 @@ import { revealEpisodeInput } from '../../../../domain/entities/worldStudioWriti
 import { BackChev, ComposeIcon, MoreVerticalIcon } from '../../../shared/icons'
 import { LazyMarkdownEditor } from '../../../shared/LazyMarkdownEditor'
 import { PopMenu } from '../../../shared/PopMenu'
+import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { ResizeSeparator } from '../../studio/view/ResizeSeparator'
 import { VersionGraph } from '../../studio/view/VersionGraph'
 import '../../studio/view/writing.css'
@@ -20,8 +21,10 @@ import type { useWorldRevisions } from '../viewmodel/useWorldRevisions'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 import { worldVersionRows } from '../viewmodel/worldVersionGraph'
 import { CardDeletionConfirm } from './CardDeletionConfirm'
+import { CardImageControl, CardThumb } from './WorldCardImage'
 import { CharacterDocs } from './CharacterDocs'
 import { NewCardMenu } from './NewCardMenu'
+import { WorldCardFindings } from './WorldCardFindings'
 import { WorldChat } from './WorldChat'
 import { WorldSaveBar } from './WorldSaveBar'
 
@@ -33,15 +36,16 @@ const BODY_MAX = 3000
  * 설정 카드 편집 화면(주소 `?card=<id>`): 집필실(`WritingStudio`)과 같은 3단 인터페이스다. 집필실의 클래스·`VersionGraph`·`ResizeSeparator`·`PopMenu`·AI 채팅 레일을 그대로 쓰고 세계관 전용 스타일은 최소다.
  * - 왼쪽 레일: 설정 카드 목록(검색·분류 필터, 지금 카드 강조, 눌러서 다른 카드로, `+ 새 설정`, 항목 ⋮ 메뉴의 삭제) → 크기 조절선 → 버전 그래프(작업 초안 + 확정 버전, 확정 버전을 누르면 읽기 전용 시트).
  *   확정 버전 목록·시트는 설정집 화면의 `확정 버전 남기기`와 같은 것이라 페이지가 갖고 `revisions`·`openVersions`로 넘긴다.
- * - 가운데: 큰 이름 입력 · 유형 · 설명(마크다운 편집기 `MarkdownEditor`: Toast UI Editor, 쓰기·미리보기 탭, 편집 화면에서만 `React.lazy`로 늦게 불러온다) 등 기존 필드 · 한 줄 하단 바(글자 수·저장 상태·삭제). 위 상단 바에는 `← 설정집`과 상시 저장 영역이 있다.
+ * - 가운데: 머리는 두 열(왼쪽 큰 이름 입력·유형, 오른쪽 대표 이미지 타일 `CardImageControl`, 좁은 화면은 타일이 이름 아래로) · 설명(마크다운 편집기 `MarkdownEditor`: Toast UI Editor, 쓰기·미리보기 탭, 편집 화면에서만 `React.lazy`로 늦게 불러온다) 등 기존 필드 · 한 줄 하단 바(글자 수·저장 상태·카드 삭제). 위 상단 바에는 `← 설정집`과 상시 저장 영역, 그 옆 끝에 테마 전환 버튼이 있다(집필실처럼 떠 있는 테마 버튼은 GlobalChrome이 이 화면에서 뺀다).
  *   설명은 마크다운 문자열 그대로 저장한다(`## 제목`이 공개 카드 페이지의 문단·목차가 된다). 편집기는 글자 수 제한이 없어 3000자를 넘으면 글자 수가 경고로 바뀌고 저장은 기존 검증이 막는다.
  *   글자 수 줄은 입력마다 바뀌므로 라이브 영역에 두지 않고, 3000자를 넘는 순간만 따로 둔 상태 문구로 한 번 알린다.
  *   저장 중에는 편집기를 `inert`로 잠가(글자 입력은 `fieldset disabled`가 닿지 않는다) 그사이 입력이 초안과 어긋나지 않게 한다. 편집기는 처음 값만 읽으므로 `key`로 카드마다(인물 카드는 문서마다) 다시 만든다.
- *   인물 카드는 설명 하나 대신 문서 네 종류로 쓴다(`CharacterDocs`·`useCharacterDocs`): 설명 자리에 문서 목록(IDENTITY.md = 카드 본문 · SOUL.md · GOAL.md · memory/NN회차.md)과 고른 문서의 같은 편집기를 두고,
+ *   인물 카드는 설명 하나 대신 문서 네 종류로 쓴다(`CharacterDocs`·`useCharacterDocs`): 설명 자리에 문서 탭 줄(정체성 IDENTITY.md = 카드 본문 · 성격·말투 SOUL.md · 목표 GOAL.md · 회차 기억 memory/NN회차.md)과 고른 문서의 같은 편집기를 두고,
  *   글자 수·3,000자 초과 알림은 고른 문서의 것이다. 인물이 아닌 유형으로 바꾼 카드에 문서가 남아 있으면 저장하지 않는다고 알린다(인물로 되돌리면 그대로다).
  *   설명 아래 공개 범위(DEC-46): `이 설정 공개`(기본 비공개, 공개 세계관 화면에는 공개 카드만 보인다)와 `독자 공개 N화부터`(연결된 소설의 독자 설정 위키에 보이기 시작하는 회차, 비우면 숨김, 소설을 연결해야 켜진다).
  *   회차 입력은 숫자만 받는 글자 칸이다(`type="number"`는 휠·스핀 버튼으로 값이 바뀌고 `e` 같은 글자를 받으면 보이는 값과 초안이 어긋난다). 0처럼 쓸 수 없는 값은 입력 바로 아래에 이유를 글로 보이고 입력의 설명으로 잇는다.
  *   둘 다 초안 값이라 저장과 확정 버전을 거쳐야 반영된다. 다른 세계관에서 가져온 카드는 유형 옆에 `가져옴`과 출처를 보인다.
+ *   마지막 설정집 AI 검토가 이 카드에 지적을 남겼으면 편집기 맨 위에 'AI 검토 의견'(`WorldCardFindings`)이 보이고, 수정안을 `초안에 반영`하면 편집기를 지금 초안의 글로 다시 만든다(`docs.reload`).
  * - 오른쪽: AI 채팅(전송은 연결 전이라 '준비 중').
  * 삭제는 초안 변경이라 확인(함께 지워질 관계 수)을 거친 뒤 설정집으로 돌아가고 되돌릴 수 있으며, 세계관 저장으로 서버에 반영한다.
  * 관계 기준 회차를 고른 동안(`vm.deleteLock`)은 삭제가 최신 저장에서만 되므로 하단 삭제와 레일 ⋮ 삭제를 잠그고 이유를 하단에 보인다(잠긴 메뉴 항목의 설명도 같은 글).
@@ -78,11 +82,13 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
       </Suspense>
     </div>
   )
+  const imageOf = new Map(world.settings.map((s) => [s.item.id, s.imageId]))
   const rail = (id: string, title: string, sub: string) => {
     const on = id === item.id
     return (
       <div className="writing-episode-row" key={id}>
         <button type="button" className={`writing-episode${on ? ' on' : ''}`} aria-pressed={on} aria-label={`${title} ${sub}`} disabled={vm.busy} onClick={() => { setConfirm(''); if (!on) vm.editCard(id) }}>
+          <CardThumb images={vm.cardImages} imageId={imageOf.get(id)} />
           <strong>{title}</strong><small>{sub}</small>
         </button>
         {/* 항목마다 그 카드를 대상으로 하는 메뉴. 카드를 먼저 연 뒤 같은 삭제 확인을 보인다. */}
@@ -99,7 +105,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
           <button type="button" className="back rback" onClick={vm.closeCard}><BackChev />설정집</button>
           <h1 className="t">설정 편집</h1>
         </div>
-        <div className="writing-bar writing-bar-end"><WorldSaveBar vm={vm} /></div>
+        <div className="writing-bar writing-bar-end"><WorldSaveBar vm={vm} /><ThemeButton className="btn sm" /></div>
       </header>
       {vm.error && <p role="alert" className="ep-alert">{vm.error}</p>}
       {vm.message && <p role="status" className="writing-message">{vm.message}</p>}
@@ -136,18 +142,23 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
             </div>
           </div>
           <div className="editor writing-editor" role="region" aria-label="선택한 설정 편집">
+            <WorldCardFindings key={item.id} vm={vm} cardId={item.id} onOpenCard={(id) => { setConfirm(''); focusName.current = true; vm.editCard(id) }} onApplied={docs.reload} />
             <fieldset className="world-fields" disabled={vm.busy}>
               <legend className="sr-only">설정 카드 작성</legend>
-              <input ref={nameField} className="et writing-title" aria-label="설정 이름" required value={item.title} maxLength={200} placeholder="이 설정의 이름은 무엇인가요?" onChange={(e) => vm.update(item.id, { title: e.target.value })} />
-              <div className="world-card-meta">
-                {portrait && <img src={portrait} alt={`${item.title} 인물 이미지`} width={56} height={56} />}
-                <label className="field world-type">유형
-                  <select className="inp" value={cardTypeOf(item)} onChange={(e) => vm.changeCardType(item.id, e.target.value as CardType)}>
-                    {cardTypes.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
-                    {['relation', 'review', 'note'].includes(cardTypeOf(item)) && <option value={cardTypeOf(item)}>{kinds[item.kind]} · 기존 의미 유지</option>}
-                  </select>
-                </label>
-                {setting.importedFrom && <p className="small muted world-card-source"><span className="chip">가져옴</span>{importedSource(setting.importedFrom)}</p>}
+              <div className="world-card-header">
+                <div className="world-card-head">
+                  <input ref={nameField} className="et writing-title" aria-label="설정 이름" required value={item.title} maxLength={200} placeholder="이 설정의 이름은 무엇인가요?" onChange={(e) => vm.update(item.id, { title: e.target.value })} />
+                  <div className="world-card-meta">
+                    <label className="field world-type">유형
+                      <select className="inp" value={cardTypeOf(item)} onChange={(e) => vm.changeCardType(item.id, e.target.value as CardType)}>
+                        {cardTypes.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+                        {['relation', 'review', 'note'].includes(cardTypeOf(item)) && <option value={cardTypeOf(item)}>{kinds[item.kind]} · 기존 의미 유지</option>}
+                      </select>
+                    </label>
+                    {setting.importedFrom && <p className="small muted world-card-source"><span className="chip">가져옴</span>{importedSource(setting.importedFrom)}</p>}
+                  </div>
+                  <CardImageControl vm={vm} cardId={item.id} title={item.title} imageId={setting.imageId} portrait={portrait} />
+                </div>
               </div>
               {docs.orphaned && <p role="status" className="small world-doc-orphaned">인물이 아닌 설정에는 SOUL.md·GOAL.md·회차별 기억을 저장하지 않아요. 유형을 인물로 되돌리면 이어 쓸 수 있고, 이대로 저장하면 사라져요.</p>}
               {docs.person ? <CharacterDocs docs={docs}>{bodyEditor}</CharacterDocs> : bodyEditor}
@@ -206,7 +217,6 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
                     ))}
                   </>
                 )}
-                <p className="small muted">이미지 첨부는 이 화면에서 지원하지 않아요.</p>
               </details>
             </fieldset>
             {deletion && <CardDeletionConfirm deletion={deletion} onDelete={() => { if (vm.deleteCard(item.id)) setConfirm('') }} onCancel={() => setConfirm('')} />}
@@ -215,7 +225,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
               <p role="status" className="sr-only">{over && (docs.person ? `${docs.name}가 3,000자를 넘었어요.` : '설명이 3,000자를 넘었어요.')}</p>
               {vm.deleteLock && <p id={deleteReason} className="small muted">{vm.deleteLock}</p>}
               <div className="writing-foot-actions">
-                <button type="button" className="btn sm world-danger" disabled={vm.busy || !!vm.deleteLock} aria-describedby={vm.deleteLock ? deleteReason : undefined} onClick={() => setConfirm(item.id)}>삭제</button>
+                <button type="button" className="btn sm world-danger" disabled={vm.busy || !!vm.deleteLock} aria-describedby={vm.deleteLock ? deleteReason : undefined} onClick={() => setConfirm(item.id)}>카드 삭제</button>
               </div>
             </footer>
           </div>
