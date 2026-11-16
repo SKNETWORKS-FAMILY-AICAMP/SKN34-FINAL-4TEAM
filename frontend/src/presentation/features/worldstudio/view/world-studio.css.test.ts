@@ -63,9 +63,10 @@ it('편집기 감싸개는 Toast의 z-index(본문 20·팝업 30)를 가둬 stic
   expect(rule((s) => s === '.world-card-studio .sbar')?.body).toMatch(/background:\s*var\(--tbg\)/) // 전역 .sbar는 90% 면이라 좁은 화면에서 스크롤되는 본문이 비친다
 })
 
-it('AI 채팅이 열려 있는 동안 떠 있는 테마 버튼이 채팅 전송 버튼을 덮지 않는다: 데스크톱은 채팅 왼쪽으로 비키고, 채팅이 문서 끝에 쌓이는 좁은 화면은 그 아래를 비운다', () => {
-  expect(css).toMatch(/@media\s*\(min-width:\s*901px\)\s*\{body:has\(\.world-card-studio \.writing-chat\) \.screen-controls\s*\{[^}]*right:\s*calc\(350px \+ 12px\)/)
-  expect(css).toMatch(/@media\s*\(min-width:\s*901px\) and \(max-width:\s*1200px\)\s*\{body:has\(\.world-card-studio \.writing-chat\) \.screen-controls\s*\{[^}]*right:\s*calc\(300px \+ 12px\)/)
+it('AI 채팅이 열려 있는 동안 떠 있는 테마 버튼이 채팅 전송 버튼을 덮지 않는다: 데스크톱은 설정집 화면(.world-chat)과 편집 화면(.writing-chat) 모두 채팅 왼쪽으로 비키고, 채팅이 문서 끝에 쌓이는 편집 화면의 좁은 화면은 그 아래를 비운다', () => {
+  expect(css).toMatch(/@media\s*\(min-width:\s*901px\)\s*\{body:has\(\.world-chat,\.world-card-studio \.writing-chat\) \.screen-controls\s*\{[^}]*right:\s*calc\(350px \+ 12px\)/)
+  expect(css).toMatch(/@media\s*\(min-width:\s*901px\) and \(max-width:\s*1200px\)\s*\{body:has\(\.world-chat,\.world-card-studio \.writing-chat\) \.screen-controls\s*\{[^}]*right:\s*calc\(300px \+ 12px\)/)
+  // 설정집 화면은 ≤900px에서 채팅이 body의 서랍(.back-dim, z-index 100·문서 순서상 뒤)이라 버튼이 그 막에 가려져 겹치지 않는다.
   expect(css).toMatch(/@media\s*\(max-width:\s*900px\)\s*\{\.world-card-studio \.studio-workspace:has\(>\s*\.writing-chat\)\s*\{[^}]*padding-bottom:\s*140px/) // 컨트롤은 아래 86px부터 높이 44px(≤600px·터치) → 맨 위 130px + 여유 10px
 })
 

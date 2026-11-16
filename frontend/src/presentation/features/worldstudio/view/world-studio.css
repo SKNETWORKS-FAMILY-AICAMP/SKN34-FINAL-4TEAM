@@ -114,11 +114,12 @@ html:has(.world-writing){scrollbar-gutter:stable}
 /* 편집 화면의 AI 채팅은 설정집 화면의 채팅(.world-chat)과 같은 면이다: 집필실의 브랜드 틴트 대신 주변과 같은 --tbg. 틴트를 정하는 변수(--chat-bg)를 덮어 writing.css의 background가 그 값을 쓰게 한다(집필실 /studio의 채팅은 그대로).
    머리글·왼쪽 선·입력 카드와 추천 칩의 면(--chat-card)은 두 화면의 규칙이 이미 같다. */
 .writing-studio.world-card-studio .writing-chat{--chat-bg:var(--tbg)}
-/* AI 채팅이 열려 있는 동안 화면 오른쪽 아래에 떠 있는 테마 버튼(.screen-controls, 전역 셸)과 맨 위로 버튼(#top)이 채팅 전송 버튼을 덮지 않게 한다.
-   데스크톱은 채팅이 오른쪽 열(350px, 1200px 이하는 300px)이라 버튼을 그 왼쪽으로 비킨다. 채팅이 문서 끝에 쌓이는 좁은 화면은 문서 끝을 비워 마지막 줄(채팅 안내 글)과 전송 버튼이 버튼 위에서 멈추게 한다:
-   .screen-controls는 bottom:max(86px, 안전 영역 + 12px)=86px에서 높이 44px(≤600px·터치 기기, 그 밖은 36px)라 맨 위가 화면 아래에서 130px이고(#top은 24px + 50px = 74px), 아래 여백은 그 130px + 여유 10px = 140px다. */
-@media(min-width:901px){body:has(.world-card-studio .writing-chat) .screen-controls{right:calc(350px + 12px)}}
-@media(min-width:901px) and (max-width:1200px){body:has(.world-card-studio .writing-chat) .screen-controls{right:calc(300px + 12px)}}
+/* AI 채팅이 열려 있는 동안 화면 오른쪽 아래에 떠 있는 테마 버튼(.screen-controls, 전역 셸)이 채팅 전송 버튼을 덮지 않게 한다.
+   데스크톱은 채팅이 오른쪽 열이라(설정집 화면 .world-chat은 .episode-app.with-chat의 350px 열이고 1200px 이하는 300px, 편집 화면 .writing-chat도 같은 폭) 버튼을 그 왼쪽으로 비킨다: right = 열 폭 + 12px.
+   설정집 화면의 900px 이하 채팅은 body에 그려지는 서랍(.back-dim, z-index 100·문서 순서상 버튼보다 뒤)이라 버튼이 그 막 아래로 가려져 겹치지 않는다. 채팅이 문서 끝에 쌓이는 편집 화면의 좁은 화면은 문서 끝을 비워 마지막 줄(채팅 안내 글)과 전송 버튼이 버튼 위에서 멈추게 한다:
+   .screen-controls는 bottom:max(86px, 안전 영역 + 12px)=86px에서 높이 44px(≤600px·터치 기기, 그 밖은 36px)라 맨 위가 화면 아래에서 130px이고(맨 위로 버튼 #top은 24px + 50px = 74px), 아래 여백은 그 130px + 여유 10px = 140px다. */
+@media(min-width:901px){body:has(.world-chat,.world-card-studio .writing-chat) .screen-controls{right:calc(350px + 12px)}}
+@media(min-width:901px) and (max-width:1200px){body:has(.world-chat,.world-card-studio .writing-chat) .screen-controls{right:calc(300px + 12px)}}
 @media(max-width:900px){.world-card-studio .studio-workspace:has(>.writing-chat){padding-bottom:140px}}
 .world-rail-tools{display:grid;gap:8px;padding-inline:24px 12px}.world-rail-tools input{width:100%;box-sizing:border-box;padding:8px 12px;font-size:13.5px}
 .world-rail-kinds{display:flex;flex-wrap:wrap;gap:6px}.world-rail-kinds button{min-height:32px;padding:0 10px;border:1px solid var(--tline);border-radius:999px;background:none;color:var(--tsub);font-size:12.5px;font-weight:700}
