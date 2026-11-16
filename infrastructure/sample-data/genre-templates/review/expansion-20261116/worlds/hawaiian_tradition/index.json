@@ -1,0 +1,998 @@
+{
+  "world_id": "hawaiian_tradition",
+  "world_id_meaning": "신규 문화권 연구용 라벨, 실제 world 또는 DB ID 아님",
+  "id_namespace": "6082fbff-0610-5bf7-bd76-6b3bfc3a12c2",
+  "id_rule": "UUIDv5(namespace, batch_id:unit_id:candidate_key); 후보 ID일 뿐 적재나 세계관 배정 아님",
+  "scope_note": "각 구간 상태는 입력 조사자의 자기보고이며, 문헌 완전 독해·의미 전수·독립 감수·중복 검토 또는 권리 해결을 뜻하지 않는다.",
+  "rights_note": "출처 전사·번역·공동체·지역별 재사용 및 상업 이용권은 확인되지 않았으며, 조사 가능이나 공개 검토는 상업적 배포 허락이 아니다.",
+  "works": [
+    {
+      "work_id": "hawaii-pele",
+      "world_id": "hawaiian_tradition",
+      "title": "Pele and Hiiaka",
+      "target_scope": "Emerson 1915 whole narrative; selected segments not yet defined",
+      "edition_language_attribution": "Nathaniel B. Emerson 1915 English edition from multiple Hawaiian-language and oral sources",
+      "prior_investigation_grade": "A",
+      "source_url": "https://www.gutenberg.org/cache/epub/60279/pg60279-images.html",
+      "other_recorded_urls": [
+        "https://www.soest.hawaii.edu/GG/FACULTY/ROWLAND/GG104/Readings/Emerson_1915.pdf"
+      ],
+      "rights": {
+        "status": "unverified",
+        "notes": "Project Gutenberg page states eBook license conditions and distinguishes US rights from other countries; original edition, transcription, images and derivatives must be reviewed separately.",
+        "evidence_url": "https://www.gutenberg.org/policy/license.html",
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_section_boundaries_verified",
+        "reason": "English edition preface, introduction and 38 chapters bounded; Hawaiian sources, community and rights not independently assessed."
+      },
+      "scope_status": "complete_local_narrative_boundary_verified",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": "9279b6f626d7664385e7413d73881bdc3bde064e0712e7ec53bb2db02ae7f513",
+      "units": [
+        {
+          "unit_id": "hawaii-pele--preface",
+          "label": "Emerson preface",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 23310,
+            "byte_end_exclusive": 30498,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "ec7f7cffc29b8ab096a91ac4c48ca79d243f6ceabbaf2377a56d48f6d255c6c4",
+            "note": "Editorial preface, not an original Hawaiian oral account."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-15",
+              "unit_id": "hawaii-pele--preface",
+              "status": "read",
+              "read_scope": "서문 전체: 에머슨의 자료 출처와 편집 입장",
+              "reason": "편집자 서문이므로 독립 서사 설정 후보 없음",
+              "candidate_count": 0
+            }
+          ],
+          "actual_candidates": 0
+        },
+        {
+          "unit_id": "hawaii-pele--introduction",
+          "label": "Emerson introduction",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 30498,
+            "byte_end_exclusive": 52629,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "d24b2dbbefdd16b2de7e9f31ab2064043211a7d29576ec047724e8cbbe9cf8f6",
+            "note": "Editorial introduction and notes, not a canonical oral transcript."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-15",
+              "unit_id": "hawaii-pele--introduction",
+              "status": "read",
+              "read_scope": "도입부 전체: 편집자 서술·하와이어 노래·영어 번역 및 주석",
+              "reason": null,
+              "candidate_count": 13
+            }
+          ],
+          "actual_candidates": 13
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-01",
+          "label": "Chapter I",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 52629,
+            "byte_end_exclusive": 62328,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "9527f99a2330112eafae97b070a1edb7ed1dc0dc3f5a64416011bdb90b54b17a",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-15",
+              "unit_id": "hawaii-pele--chapter-01",
+              "status": "read",
+              "read_scope": "해당 장 전체: 본문·노래·영어 번역·장말 주석을 구분해 읽음",
+              "reason": null,
+              "candidate_count": 10
+            }
+          ],
+          "actual_candidates": 10
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-02",
+          "label": "Chapter II",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 62328,
+            "byte_end_exclusive": 70631,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "13ec233e8e3f5761d9df188908597cb3f3294433cf31810819dabf7967aa305c",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-15",
+              "unit_id": "hawaii-pele--chapter-02",
+              "status": "read",
+              "read_scope": "해당 장 전체: 본문·노래·영어 번역·장말 주석을 구분해 읽음",
+              "reason": null,
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-03",
+          "label": "Chapter III",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 70631,
+            "byte_end_exclusive": 73490,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "11728a3aeabb8a372d612152b12d413dbfa60b48e1c7b7992f3159c0e1110d99",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-15",
+              "unit_id": "hawaii-pele--chapter-03",
+              "status": "read",
+              "read_scope": "해당 장 전체: 본문·노래·영어 번역·장말 주석을 구분해 읽음",
+              "reason": null,
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-04",
+          "label": "Chapter IV",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 73490,
+            "byte_end_exclusive": 81182,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "13f5b4852c51fb33dc1f03f41ed06783c6fbacf40fdc869332ec97fb4ed3b90d",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-15",
+              "unit_id": "hawaii-pele--chapter-04",
+              "status": "read",
+              "read_scope": "해당 장 전체: 본문·노래·영어 번역·장말 주석을 구분해 읽음",
+              "reason": null,
+              "candidate_count": 5
+            }
+          ],
+          "actual_candidates": 5
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-05",
+          "label": "Chapter V",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 81182,
+            "byte_end_exclusive": 86923,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "cd29307bf82c495e53ffa7a0222483eecec535e102db90067ed713e3cf4e7a83",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-15",
+              "unit_id": "hawaii-pele--chapter-05",
+              "status": "read",
+              "read_scope": "해당 장 전체: 본문·노래·영어 번역·장말 주석을 구분해 읽음",
+              "reason": null,
+              "candidate_count": 5
+            }
+          ],
+          "actual_candidates": 5
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-06",
+          "label": "Chapter VI",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 86923,
+            "byte_end_exclusive": 105576,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "20560355fe6cac3eef2f697750f25d8e49f94caacc09fb9116d585cea11dfb5d",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-15",
+              "unit_id": "hawaii-pele--chapter-06",
+              "status": "read",
+              "read_scope": "해당 장 전체: 본문·노래·영어 번역·장말 주석을 구분해 읽음",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-07",
+          "label": "Chapter VII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 105576,
+            "byte_end_exclusive": 117539,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "83c83c331c282e28e3375a9e2a4ba394969435223e419834736cc83025b10289",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-15",
+              "unit_id": "hawaii-pele--chapter-07",
+              "status": "read",
+              "read_scope": "해당 장 전체: 본문·노래·영어 번역·장말 주석을 구분해 읽음",
+              "reason": null,
+              "candidate_count": 8
+            }
+          ],
+          "actual_candidates": 8
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-08",
+          "label": "Chapter VIII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 117539,
+            "byte_end_exclusive": 124935,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "a144c210d641a7ba86e8cc09ace8be520caddda2b4fb9ceb02e96239fdcce8e4",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-15",
+              "unit_id": "hawaii-pele--chapter-08",
+              "status": "read",
+              "read_scope": "해당 장 전체: 본문·노래·영어 번역·장말 주석을 구분해 읽음",
+              "reason": null,
+              "candidate_count": 5
+            }
+          ],
+          "actual_candidates": 5
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-09",
+          "label": "Chapter IX",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 124935,
+            "byte_end_exclusive": 143460,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "016c8f3eaad957a7f0a7521af0623c5ad3c29fb992298ea98a0704e3c684e6d6",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-15",
+              "unit_id": "hawaii-pele--chapter-09",
+              "status": "read",
+              "read_scope": "해당 장 전체: 본문·노래·영어 번역·장말 주석을 구분해 읽음",
+              "reason": null,
+              "candidate_count": 11
+            }
+          ],
+          "actual_candidates": 11
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-10",
+          "label": "Chapter X",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 143460,
+            "byte_end_exclusive": 185214,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "0200532b71c93adc62ebda090ee7f8f9f23cf5f46211dd068824c1f71edcc753",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-16",
+              "unit_id": "hawaii-pele--chapter-10",
+              "status": "partial",
+              "read_scope": "Chapter X의 영어 서사와 영어 번역 노래 및 편집자 주석을 확인함",
+              "reason": "하와이어 원문 노래의 독립 번역·대조와 후보 전수 확인은 미완료",
+              "candidate_count": 12
+            }
+          ],
+          "actual_candidates": 12
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-11",
+          "label": "Chapter XI",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 185214,
+            "byte_end_exclusive": 193120,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "c395e9d7447fbe592ba2a29db2c74c1489dd643e3b517ca9a1a597f402ffc085",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-16",
+              "unit_id": "hawaii-pele--chapter-11",
+              "status": "partial",
+              "read_scope": "Chapter XI의 영어 서사와 영어 번역 노래 및 편집자 주석을 확인함",
+              "reason": "하와이어 원문 노래의 독립 번역·대조와 후보 전수 확인은 미완료",
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-12",
+          "label": "Chapter XII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 193120,
+            "byte_end_exclusive": 208298,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "d8443a4f1399c7003634fd5e811b40b01519fc80253dce099d022d03a86d261f",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-16",
+              "unit_id": "hawaii-pele--chapter-12",
+              "status": "partial",
+              "read_scope": "Chapter XII의 영어 서사와 영어 번역 노래 및 편집자 주석을 확인함",
+              "reason": "하와이어 원문 노래의 독립 번역·대조와 후보 전수 확인은 미완료",
+              "candidate_count": 8
+            }
+          ],
+          "actual_candidates": 8
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-13",
+          "label": "Chapter XIII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 208298,
+            "byte_end_exclusive": 220557,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "32295556e3266de15c7569b30e856991d3e9cd8d85a671e2b79fce97fe199414",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-16",
+              "unit_id": "hawaii-pele--chapter-13",
+              "status": "partial",
+              "read_scope": "Chapter XIII의 영어 서사와 영어 번역 노래 및 편집자 주석을 확인함",
+              "reason": "하와이어 원문 노래의 독립 번역·대조와 후보 전수 확인은 미완료",
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-14",
+          "label": "Chapter XIV",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 220557,
+            "byte_end_exclusive": 225891,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "4a40506f60de44e7d6f08d3ce7dd5247f32cd80557654fd14bd8976a9ca4ba02",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-16",
+              "unit_id": "hawaii-pele--chapter-14",
+              "status": "partial",
+              "read_scope": "Chapter XIV의 영어 서사와 영어 번역 노래 및 편집자 주석을 확인함",
+              "reason": "하와이어 원문 노래의 독립 번역·대조와 후보 전수 확인은 미완료",
+              "candidate_count": 5
+            }
+          ],
+          "actual_candidates": 5
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-15",
+          "label": "Chapter XV",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 225891,
+            "byte_end_exclusive": 234893,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "6c34a5ea97740a9195cd9cef625c10749e205b52710a32dc7bf14b8a7a4d7a3f",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-16",
+              "unit_id": "hawaii-pele--chapter-15",
+              "status": "partial",
+              "read_scope": "Chapter XV의 영어 서사와 영어 번역 노래 및 편집자 주석을 확인함",
+              "reason": "하와이어 원문 노래의 독립 번역·대조와 후보 전수 확인은 미완료",
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-16",
+          "label": "Chapter XVI",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 234893,
+            "byte_end_exclusive": 251338,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "2c6a824dbc9d60769a988bfa95c717275a0368264e55846cea685cbab2c486f9",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-16",
+              "unit_id": "hawaii-pele--chapter-16",
+              "status": "partial",
+              "read_scope": "Chapter XVI의 영어 서사와 영어 번역 노래 및 편집자 주석을 확인함",
+              "reason": "하와이어 원문 노래의 독립 번역·대조와 후보 전수 확인은 미완료",
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-17",
+          "label": "Chapter XVII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 251338,
+            "byte_end_exclusive": 279304,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "5874bb8a046b123ed1bcf7f4da2fdae1d17978a6f8c415d88886ae567a2708c2",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-16",
+              "unit_id": "hawaii-pele--chapter-17",
+              "status": "partial",
+              "read_scope": "Chapter XVII의 영어 서사와 영어 번역 노래 및 편집자 주석을 확인함",
+              "reason": "하와이어 원문 노래의 독립 번역·대조와 후보 전수 확인은 미완료",
+              "candidate_count": 8
+            }
+          ],
+          "actual_candidates": 8
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-18",
+          "label": "Chapter XVIII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 279304,
+            "byte_end_exclusive": 289137,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "5a4889956a5d18c8c3f7e7a6c9dc0082b2d31db274e8f8e6a7acb1cdc9512245",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-16",
+              "unit_id": "hawaii-pele--chapter-18",
+              "status": "partial",
+              "read_scope": "Chapter XVIII의 영어 서사와 영어 번역 노래 및 편집자 주석을 확인함",
+              "reason": "하와이어 원문 노래의 독립 번역·대조와 후보 전수 확인은 미완료",
+              "candidate_count": 5
+            }
+          ],
+          "actual_candidates": 5
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-19",
+          "label": "Chapter XIX",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 289137,
+            "byte_end_exclusive": 300210,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "25e6bf075952050b27614fea63efd1070167aa4b2361881ed47a2b355e046e6a",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-16",
+              "unit_id": "hawaii-pele--chapter-19",
+              "status": "partial",
+              "read_scope": "Chapter XIX의 영어 서사와 영어 번역 노래 및 편집자 주석을 확인함",
+              "reason": "하와이어 원문 노래의 독립 번역·대조와 후보 전수 확인은 미완료",
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-20",
+          "label": "Chapter XX",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 300210,
+            "byte_end_exclusive": 326230,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "1d414b7eb2bd39d1f03635f21768067df15b5d49dc329bf06145611256777d2f",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-17",
+              "unit_id": "hawaii-pele--chapter-20",
+              "status": "read",
+              "read_scope": "배정된 원시 바이트 전체: 장 제목부터 다음 장 직전까지 본문, 하와이어 노래·영어 번역 및 편집 주석을 구분해 확인",
+              "reason": null,
+              "candidate_count": 10
+            }
+          ],
+          "actual_candidates": 10
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-21",
+          "label": "Chapter XXI",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 326230,
+            "byte_end_exclusive": 350584,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "279f26f86b79570039f14681801be83f4acc494ba9686a6bec1f6d9d8e94753d",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-17",
+              "unit_id": "hawaii-pele--chapter-21",
+              "status": "read",
+              "read_scope": "배정된 원시 바이트 전체: 장 제목부터 다음 장 직전까지 본문, 하와이어 노래·영어 번역 및 편집 주석을 구분해 확인",
+              "reason": null,
+              "candidate_count": 13
+            }
+          ],
+          "actual_candidates": 13
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-22",
+          "label": "Chapter XXII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 350584,
+            "byte_end_exclusive": 364069,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "18f14b8cfbe9c3bbb4fb842d855092348d4ec4fc9e57f44a2f3ed48cbcc67054",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-17",
+              "unit_id": "hawaii-pele--chapter-22",
+              "status": "read",
+              "read_scope": "배정된 원시 바이트 전체: 장 제목부터 다음 장 직전까지 본문, 하와이어 노래·영어 번역 및 편집 주석을 구분해 확인",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-23",
+          "label": "Chapter XXIII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 364069,
+            "byte_end_exclusive": 448568,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "c06b5aaf5fc559f38ea116858d8a3ee355d622baa9a1471b15d6ed17d3e36627",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-17",
+              "unit_id": "hawaii-pele--chapter-23",
+              "status": "read",
+              "read_scope": "배정된 원시 바이트 전체: 장 제목부터 다음 장 직전까지 본문, 하와이어 노래·영어 번역 및 편집 주석을 구분해 확인",
+              "reason": null,
+              "candidate_count": 34
+            }
+          ],
+          "actual_candidates": 34
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-24",
+          "label": "Chapter XXIV",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 448568,
+            "byte_end_exclusive": 467887,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "78421c5345b03c68b209471a9a41191d6e2560230dc42935ca1c92f69f513805",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-18",
+              "unit_id": "hawaii-pele--chapter-24",
+              "status": "read",
+              "read_scope": "배정된 원문 HTML 바이트의 chapter-24 장 전체: 본문·하와이어 노래·영어 번역과 편집자 각주를 구분해 확인",
+              "reason": null,
+              "candidate_count": 10
+            }
+          ],
+          "actual_candidates": 10
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-25",
+          "label": "Chapter XXV",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 467887,
+            "byte_end_exclusive": 490906,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "f1827422e05402a6500ec41a8a765370cce3d29ddee1242dfe7d45fa24c17bef",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-18",
+              "unit_id": "hawaii-pele--chapter-25",
+              "status": "read",
+              "read_scope": "배정된 원문 HTML 바이트의 chapter-25 장 전체: 본문·하와이어 노래·영어 번역과 편집자 각주를 구분해 확인",
+              "reason": null,
+              "candidate_count": 21
+            }
+          ],
+          "actual_candidates": 21
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-26",
+          "label": "Chapter XXVI",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 490906,
+            "byte_end_exclusive": 520430,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "95b26ef00c6fa6712d34ab75a32d32f188eb1922e725ef6b5a4871ce08af9a7d",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-18",
+              "unit_id": "hawaii-pele--chapter-26",
+              "status": "read",
+              "read_scope": "배정된 원문 HTML 바이트의 chapter-26 장 전체: 본문·하와이어 노래·영어 번역과 편집자 각주를 구분해 확인",
+              "reason": null,
+              "candidate_count": 12
+            }
+          ],
+          "actual_candidates": 12
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-27",
+          "label": "Chapter XXVII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 520430,
+            "byte_end_exclusive": 527774,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "9217e15d575c5d92b9b30fff93453451aa5cdccc36663ce89cf10aec444591ee",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-18",
+              "unit_id": "hawaii-pele--chapter-27",
+              "status": "read",
+              "read_scope": "배정된 원문 HTML 바이트의 chapter-27 장 전체: 본문·하와이어 노래·영어 번역과 편집자 각주를 구분해 확인",
+              "reason": null,
+              "candidate_count": 7
+            }
+          ],
+          "actual_candidates": 7
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-28",
+          "label": "Chapter XXVIII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 527774,
+            "byte_end_exclusive": 531882,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "6a1917737a18cb601ac45a6e7f046cb3863ad1413a3d1a4602a6bc3416040915",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-18",
+              "unit_id": "hawaii-pele--chapter-28",
+              "status": "read",
+              "read_scope": "배정된 원문 HTML 바이트의 chapter-28 장 전체: 본문·하와이어 노래·영어 번역과 편집자 각주를 구분해 확인",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-29",
+          "label": "Chapter XXIX",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 531882,
+            "byte_end_exclusive": 551881,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "04a60a78c8315e23ceac7eada3b78cc577bb1b3f2c6979044e4a2a7f95be0262",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-18",
+              "unit_id": "hawaii-pele--chapter-29",
+              "status": "read",
+              "read_scope": "배정된 원문 HTML 바이트의 chapter-29 장 전체: 본문·하와이어 노래·영어 번역과 편집자 각주를 구분해 확인",
+              "reason": null,
+              "candidate_count": 11
+            }
+          ],
+          "actual_candidates": 11
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-30",
+          "label": "Chapter XXX",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 551881,
+            "byte_end_exclusive": 573569,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "46c266331c40613d5894e6b51edd7cbd1c967f5320018fde0e3013ffe471aa5f",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-18",
+              "unit_id": "hawaii-pele--chapter-30",
+              "status": "read",
+              "read_scope": "배정된 원문 HTML 바이트의 chapter-30 장 전체: 본문·하와이어 노래·영어 번역과 편집자 각주를 구분해 확인",
+              "reason": null,
+              "candidate_count": 11
+            }
+          ],
+          "actual_candidates": 11
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-31",
+          "label": "Chapter XXXI",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 573569,
+            "byte_end_exclusive": 624189,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "51b24528f3ce7d34c954a01c62b53c32613a6db7977f980218c4bd04e1dac96b",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-19",
+              "unit_id": "hawaii-pele--chapter-31",
+              "status": "read",
+              "read_scope": "제31장 경계 전체: 본문·하와이어 시와 영어 번역·편집자 각주 및 삽화 문구를 구분하여 읽음",
+              "reason": null,
+              "candidate_count": 10
+            }
+          ],
+          "actual_candidates": 10
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-32",
+          "label": "Chapter XXXII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 624189,
+            "byte_end_exclusive": 641407,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "742102227f768bb1f7cacd2b376cedcf0fc6f0d32554cd2abcb86b14478c9507",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-19",
+              "unit_id": "hawaii-pele--chapter-32",
+              "status": "read",
+              "read_scope": "제32장 경계 전체: 본문·하와이어 시와 영어 번역·편집자 각주 및 삽화 문구를 구분하여 읽음",
+              "reason": null,
+              "candidate_count": 11
+            }
+          ],
+          "actual_candidates": 11
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-33",
+          "label": "Chapter XXXIII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 641407,
+            "byte_end_exclusive": 662952,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "03f28af1b7e20d1582af7fd14b63992caf6d97a46205be1fa1399cbb9584c99e",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-19",
+              "unit_id": "hawaii-pele--chapter-33",
+              "status": "read",
+              "read_scope": "제33장 경계 전체: 본문·하와이어 시와 영어 번역·편집자 각주 및 삽화 문구를 구분하여 읽음",
+              "reason": null,
+              "candidate_count": 9
+            }
+          ],
+          "actual_candidates": 9
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-34",
+          "label": "Chapter XXXIV",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 662952,
+            "byte_end_exclusive": 715962,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "4dbff894571c00c017d768bca33c46bbf4ff72b8102d178b8dd4d0d551129e71",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-19",
+              "unit_id": "hawaii-pele--chapter-34",
+              "status": "read",
+              "read_scope": "제34장 경계 전체: 본문·하와이어 시와 영어 번역·편집자 각주 및 삽화 문구를 구분하여 읽음",
+              "reason": null,
+              "candidate_count": 19
+            }
+          ],
+          "actual_candidates": 19
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-35",
+          "label": "Chapter XXXV",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 715962,
+            "byte_end_exclusive": 727842,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "0f8f606f2f53e4f310ce98cc42519dd27651aecc82c9619e0e6df9424b3e39be",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-19",
+              "unit_id": "hawaii-pele--chapter-35",
+              "status": "read",
+              "read_scope": "제35장 경계 전체: 본문·하와이어 시와 영어 번역·편집자 각주 및 삽화 문구를 구분하여 읽음",
+              "reason": null,
+              "candidate_count": 13
+            }
+          ],
+          "actual_candidates": 13
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-36",
+          "label": "Chapter XXXVI",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 727842,
+            "byte_end_exclusive": 756350,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "226e2c69f53d1921296c07dfb24354f600cd7be5eb44ff3bd3fa503a306b1341",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-20",
+              "unit_id": "hawaii-pele--chapter-36",
+              "status": "read",
+              "read_scope": "Chapter XXXVI에 해당하는 배정 바이트 전체를 읽고 본문·노래·주석·사이트 요소를 구분함",
+              "reason": null,
+              "candidate_count": 10
+            }
+          ],
+          "actual_candidates": 10
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-37",
+          "label": "Chapter XXXVII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 756350,
+            "byte_end_exclusive": 784866,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "6af5fdc823ad7637f8e8f1c5eada2ebe2fce0bbbcec8b1000142f501eefbe121",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-20",
+              "unit_id": "hawaii-pele--chapter-37",
+              "status": "read",
+              "read_scope": "Chapter XXXVII에 해당하는 배정 바이트 전체를 읽고 본문·노래·주석·사이트 요소를 구분함",
+              "reason": null,
+              "candidate_count": 13
+            }
+          ],
+          "actual_candidates": 13
+        },
+        {
+          "unit_id": "hawaii-pele--chapter-38",
+          "label": "Chapter XXXVIII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 784866,
+            "byte_end_exclusive": 798625,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "cc8a27bb3bc9fb173553aebba864c788e3a5e6a39914b7c2cd38a0346fffd5c7",
+            "note": "Chapter heading to next heading or end of narrative; local HTML includes notes/illustration captions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-20",
+              "unit_id": "hawaii-pele--chapter-38",
+              "status": "read",
+              "read_scope": "Chapter XXXVIII에 해당하는 배정 바이트 전체를 읽고 본문·노래·주석·사이트 요소를 구분함",
+              "reason": null,
+              "candidate_count": 11
+            }
+          ],
+          "actual_candidates": 11
+        }
+      ]
+    }
+  ],
+  "special_note": "Emerson 1915 영어 편집본은 다양한 하와이어 및 구술 자료를 바탕으로 하나 하와이 공동체 전체의 단일 정본이 아니다. 10–19장은 하와이어 노래 원어의 독립 번역·대조가 미완료다."
+}
