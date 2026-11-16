@@ -70,9 +70,13 @@
 
 <a id="supp-priam-ransom"></a>
 
-**프리아모스의 간청과 헥토르의 장례** — [호메로스 《일리아스》 24.503–506](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml) (인용: 24.503–506).
+**프리아모스의 간청과 헥토르의 장례** — [호메로스 《일리아스》 24.503–512, 24.589–601, 24.696–697, 24.785–804](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml) (인용: 24.503, 24.599, 24.804).
 
 > ἀλλʼ αἰδεῖο θεοὺς Ἀχιλεῦ
+
+> υἱὸς μὲν δή τοι λέλυται γέρον ὡς ἐκέλευες
+
+> ὣς οἵ γʼ ἀμφίεπον τάφον Ἕκτορος ἱπποδάμοιο
 
 <a id="supp-trojan-horse"></a>
 
@@ -100,7 +104,11 @@
 
 <a id="supp-heracles-labours"></a>
 
-**헤라클레스의 열두 과업** — [아폴로도로스 《도서관》 2.5.11–12](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml) (인용: 2.5.12).
+**헤라클레스의 열두 과업** — [아폴로도로스 《도서관》 2.5.1–12](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml) (인용: 2.5.1, 2.5.11–12).
+
+> πρῶτον μὲν οὖν ἐπέταξεν αὐτῷ τοῦ Νεμέου λέοντος
+
+> μὴ προσδεξάμενος Εὐρυσθεὺς τόν τε τῶν τοῦ Αὐγέου βοσκημάτων καὶ τὸν τῆς ὕδρας
 
 > δωδέκατον ἆθλον ἐπετάγη Κέρβερον
 

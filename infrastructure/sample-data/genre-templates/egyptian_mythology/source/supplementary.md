@@ -5,8 +5,13 @@
 <a id="unas-osiris"></a>
 ## 우나스 장송문 속 오시리스
 
-- 원문: [주문 219, 우나스 W 240, 세테 §167; W 243–247, §§170–176](https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall)
+- 원문: [주문 219, 우나스 W 240–250; 세테 §§167–176](https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall)
 - 원어 전사: `〈J〉tm〈,w〉 zꜣ =k pw p〈w〉-nn 〈W〉sjr`
+- W 241 (슈): `Šw zꜣ =k pw p〈w〉-nn 〈W〉sjr`
+- W 242 (테프누트): `Tfn,wt zꜣ =ṯ pw p〈w〉-nn 〈W〉sjr`
+- W 248 (네프티스): `Nb〈,t〉-ḥw〈,t〉 sn =ṯ pw p〈w〉-nn 〈W〉sjr`
+- W 250 (호루스): `Ḥr〈,w〉 jt〈j〉 =k pw p〈w〉-nn 〈W〉sjr`
+- 전사 판본: Thesaurus Linguae Aegyptiae, Doris Topmann 편집, 2018년 자료, [AED-TEI](https://github.com/simondschweitzer/aed-tei) (CC BY-SA 4.0); [Theosis Library 제공본](https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s219). W 번호는 우나스 벽면의 열 번호이며, 세테 절 번호는 별도 복합 본문 기준이다. 사이트의 Mercer 1952 영어 번역은 복합 본문을 옮긴 것으로 우나스 벽면 전사와 구분한다; 해당 번역의 미국 외 권리 상태는 확인하지 못했다.
 
 <a id="unas-sceptres"></a>
 ## 우나스와 오시리스의 왕좌·지팡이

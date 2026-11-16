@@ -345,12 +345,32 @@
       "key": "unas-osiris",
       "title": "우나스 장송문 속 오시리스",
       "cardType": "character",
-      "body": "우나스 피라미드 주문 219는 오시리스를 아툼·슈·테프누트·게브·누트의 아들, 이시스·세트·네프티스의 형제, 호루스의 아버지로 호명하며 오시리스의 생명과 왕 우나스의 생명을 나란히 말한다. 이는 장송 주문의 호명이지 모든 지역·시대에 통용되는 단일 계보가 아니다.\n\n출전: [주문 219, 우나스 W 240, 세테 §167; W 243–247, §§170–176](https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall).",
+      "body": "우나스 피라미드 주문 219는 오시리스를 아툼·슈·테프누트·게브·누트의 아들, 이시스·세트·네프티스의 형제, 호루스의 아버지로 호명하며 오시리스의 생명과 왕 우나스의 생명을 나란히 말한다. 이는 장송 주문의 호명이지 모든 지역·시대에 통용되는 단일 계보가 아니다.\n\n출전: [주문 219, 우나스 W 240–250; 세테 §§167–176](https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall).",
       "narrative_refs": [
         {
           "document": "supplementary.md",
           "section": "unas-osiris",
           "evidence": "〈J〉tm〈,w〉 zꜣ =k pw p〈w〉-nn 〈W〉sjr"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "unas-osiris",
+          "evidence": "Šw zꜣ =k pw p〈w〉-nn 〈W〉sjr"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "unas-osiris",
+          "evidence": "Tfn,wt zꜣ =ṯ pw p〈w〉-nn 〈W〉sjr"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "unas-osiris",
+          "evidence": "Nb〈,t〉-ḥw〈,t〉 sn =ṯ pw p〈w〉-nn 〈W〉sjr"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "unas-osiris",
+          "evidence": "Ḥr〈,w〉 jt〈j〉 =k pw p〈w〉-nn 〈W〉sjr"
         }
       ]
     },
