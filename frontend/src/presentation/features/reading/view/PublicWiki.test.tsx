@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it } from 'vitest'
 
@@ -69,6 +69,11 @@ describe('독자용 설정 위키 본문 (U45)', () => {
     expect(panel.textContent).not.toContain('rule')
   })
 
+  it('기존 작품 설정 위키(연결된 세계관 없음) 문서의 image 값은 그리지 않는다: 카드 이미지는 연결된 세계관의 카드 이미지뿐이다', () => {
+    const panel = show([doc({ id: 'rian', category: 'char', name: '리안', body: '견습생', image: '/legacy-image.png' })])
+    expect(panel.querySelector('img')).toBeNull()
+  })
+
   it('공개 범위를 회차로 알려 준다', () => {
     show(documents, 1)
     screen.getByText('1화까지 공개된 설정만 보여요.')
@@ -92,7 +97,7 @@ describe('연결된 세계관의 설정 카드로 채운 설정 위키 (DEC-46)'
     { id: 'r1', sourceCardId: 'rian', targetCardId: 'tower', label: '머무는 곳' },
     { id: 'r2', sourceCardId: 'seal', targetCardId: 'tower', label: '' },
   ]
-  const showLinked = () => render(<MemoryRouter><PublicWikiArticle work={{ ...mapReadingWork(record), wiki: worldCardWiki({ cards, relationships }) }} upto={2} /></MemoryRouter>).container
+  const showLinked = (list = cards) => render(<MemoryRouter><PublicWikiArticle work={{ ...mapReadingWork(record), wiki: worldCardWiki({ workId: record.id, upto: 2, cards: list, relationships }) }} upto={2} /></MemoryRouter>).container
   const docOf = (panel: HTMLElement, name: RegExp) => within(panel).getByRole('heading', { name, level: 3 }).closest('.nw-doc') as HTMLElement
 
   it('카드 유형별로 묶어 본문 마크다운·별칭·태그·독자 공개 회차를 읽기 전용으로 보이고 본문의 `##` 문단은 문서 제목 아래 소제목이 된다', () => {
@@ -110,6 +115,22 @@ describe('연결된 세계관의 설정 카드로 채운 설정 위키 (DEC-46)'
     expect(docOf(panel, /별빛 탑$/).querySelector('strong')?.textContent).toBe('탑')
     expect(panel.textContent).not.toContain('**')
     expect(panel.querySelector('input, textarea, select, button, [contenteditable]')).toBeNull()
+  })
+
+  it('이미지가 있는 카드는 정보 상자 맨 위에 독자 설정 위키 이미지 주소(같은 기준 회차)의 이미지를 보이고 없는 카드에는 없으며 읽지 못하면 감춘다', () => {
+    const panel = showLinked(cards.map((c) => (c.id === 'rian' ? { ...c, imageId: 'image 1' } : c)))
+    const rian = docOf(panel, /리안$/)
+    const image = within(rian).getByRole('img', { name: '리안 이미지' })
+    expect(image.getAttribute('src')).toBe('/api/v1/public/works/work-uuid/world-card-images/image%201?upto=2')
+    expect(rian.querySelector('.nw-info tbody tr:first-child')?.contains(image)).toBe(true) // 분류 행보다 위
+    expect(panel.querySelectorAll('img')).toHaveLength(1) // 이미지 없는 카드(별빛 탑·봉인 규칙)에는 없다
+    fireEvent.error(image)
+    expect(within(rian).queryByRole('img')).toBeNull()
+    within(rian).getByRole('table', { name: '리안' }) // 감춰도 정보 상자는 그대로다
+  })
+
+  it('이미지가 없는 카드(imageId가 null이거나 없음)에는 이미지가 없다', () => {
+    expect(showLinked(cards.map((c) => ({ ...c, imageId: null }))).querySelector('img')).toBeNull()
   })
 
   it('관계는 양 끝 문서 모두에서 상대 문서로 가는 연결과 라벨로 보이고 라벨이 없으면 이름만 보인다', () => {

@@ -3,6 +3,7 @@ import { Fragment, useId, type CSSProperties } from 'react'
 import { LINE, WCATS, type Doc, type WikiCat } from '../../../../domain/entities/wiki'
 import type { Work } from '../../../../domain/entities/work'
 import { CardMarkdown } from '../../../shared/CardMarkdown'
+import { PublicCardImage } from '../../../shared/PublicCardImage'
 import { splitCardSections } from '../../../shared/cardSections'
 import { Go } from '../../../shared/Go'
 import { Jump } from '../../../shared/Jump'
@@ -10,7 +11,7 @@ import './publicWiki.css'
 
 const docAnchor = (d: Doc) => 'doc-' + d.id
 
-/** 나무위키 정보 상자: 분류 색 띠 아래 이름, 이어서 별칭·첫 등장·공개된 속성을 표로 보인다. */
+/** 나무위키 정보 상자: 분류 색 띠 아래 이름, 연결된 세계관 카드는 대표 이미지(읽지 못하면 감춘다), 이어서 별칭·첫 등장·공개된 속성을 표로 보인다. */
 function InfoBox({ doc, cat }: { doc: Doc; cat: WikiCat }) {
   const rows: [string, string][] = [['분류', cat.n]]
   if (doc.alias.length) rows.push(['별칭', doc.alias.join(', ')])
@@ -19,7 +20,10 @@ function InfoBox({ doc, cat }: { doc: Doc; cat: WikiCat }) {
   return (
     <table className="nw-info" style={{ '--cat': cat.c } as CSSProperties}>
       <caption>{doc.t}</caption>
-      <tbody>{rows.map(([k, v]) => <tr key={k}><th scope="row">{k}</th><td>{v}</td></tr>)}</tbody>
+      <tbody>
+        {doc.cardImage && <tr className="nw-info-image"><td colSpan={2}><PublicCardImage src={doc.cardImage} title={doc.t} /></td></tr>}
+        {rows.map(([k, v]) => <tr key={k}><th scope="row">{k}</th><td>{v}</td></tr>)}
+      </tbody>
     </table>
   )
 }

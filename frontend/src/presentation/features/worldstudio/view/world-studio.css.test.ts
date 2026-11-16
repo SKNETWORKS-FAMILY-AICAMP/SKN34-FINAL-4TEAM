@@ -75,3 +75,30 @@ it('인물 문서 탭은 전역 문서 버튼(.world-rail-kinds button, 한 줄 
   expect(rule((s) => s === '.world-doc-list .world-doc-tab')?.body).toMatch(/display:\s*grid/) // 라벨 아래 줄에 파일 이름·공개 범위·표시
   expect(rule((s) => s === '.world-doc-list .world-doc-tab[data-current=true]')?.body).toMatch(/border-color:[^;]*;[^}]*background:/)
 })
+
+it('카드 편집 화면 머리는 왼쪽(이름·유형)과 오른쪽(대표 이미지 타일) 두 열이고, 편집 열이 좁으면(컨테이너 460px 미만: 좁은 화면뿐 아니라 AI 채팅을 연 900px대도) 이름 입력이 폭을 다 쓰도록 88px 타일을 이름 아래 왼쪽으로 내린다', () => {
+  const head = rule((s) => s === '.world-card-head')?.body ?? ''
+  expect(head).toMatch(/--tile:\s*150px/) // 데스크톱 타일 폭
+  expect(head).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)\s*var\(--tile\)/)
+  expect(head).toMatch(/grid-template-areas:\s*"name image" "meta image"/) // 이미지 블록은 이름·유형 두 행을 오른쪽에서 잇는다
+  // 전환 기준은 뷰포트가 아니라 편집 열의 실제 폭이다: 채팅을 연 901~1200px에서는 편집 열이 300px대라 150px 타일 옆에서 이름 입력이 120px로 짜부러진다.
+  expect(rule((s) => s === '.world-card-header')?.body).toMatch(/container:\s*world-card-head\s*\/\s*inline-size/)
+  // 좁으면 이름 줄은 폭 전체를 쓰고(390px에서 이름 입력이 258px로 줄지 않게) 타일은 그 아래 왼쪽, 유형 선택은 타일 오른쪽에 온다.
+  expect(css).toMatch(/@container world-card-head \(max-width:\s*459px\)\{\.world-card-head\{[^}]*--tile:\s*88px;[^}]*grid-template-areas:\s*"name name" "image meta"/)
+  expect(css).not.toMatch(/@media \(max-width:\s*600px\)\{\.world-card-head/) // 뷰포트 기준 전환은 두지 않는다
+})
+
+it('대표 이미지 타일은 헤더 표지(.cov)의 3:4·둥근 모서리·그림자를 그대로 쓰고 빈 타일만 점선 테두리(--line3)·그림자 없음으로 구분하며, 빈 타일 안 이미지 추가는 타일 전체를 덮는다', () => {
+  expect(rule((s) => s === '.world-card-tile.empty')?.body).toMatch(/border:\s*2px dashed var\(--line3\)[^}]*box-shadow:\s*none/)
+  // 크기·모서리·그림자는 전역 .cov가 정하므로 여기서 다시 정하지 않는다(세계관 헤더 표지와 어긋나지 않게).
+  expect(rule((s) => s === '.world-card-tile')?.body ?? '').not.toMatch(/aspect-ratio|border-radius|box-shadow/)
+  expect(rule((s) => s === '.world-card-studio .world-card-tile .world-card-tile-add')?.body).toMatch(/position:\s*absolute;\s*inset:\s*0/)
+  // 타일은 overflow:hidden이라 안쪽 라벨의 초점 고리가 잘리므로 고리는 타일에 그리고 라벨의 고리는 끈다.
+  expect(css).toMatch(/\.world-card-tile:has\(input:focus-visible\)\{[^}]*outline:\s*2px solid var\(--tacc\)/)
+  expect(rule((s) => s === '.world-card-studio .world-card-tile .world-card-tile-add:has(input:focus-visible)')?.body).toMatch(/outline:\s*0/)
+})
+
+it('편집 화면 레일의 썸네일은 왼쪽에 띄워 제목·상태 줄이 옆으로 흐르게 하고, 집필실과 함께 쓰는 writing.css는 건드리지 않는다', () => {
+  expect(rule((s) => s === '.world-card-studio .writing-episode .board-thumb')?.body).toMatch(/float:\s*left/)
+  expect(writingCss).not.toContain('board-thumb')
+})

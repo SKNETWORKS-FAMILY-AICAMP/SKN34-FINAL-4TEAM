@@ -3,8 +3,10 @@ package ai.storyfork.content.work.controller
 import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.work.service.dto.WorkWorldLinkRequest
 import ai.storyfork.content.work.service.dto.WorkWorldLinkResponse
+import ai.storyfork.content.world.controller.coverImage
 import ai.storyfork.content.world.service.dto.ReaderWorldCardsResponse
 import java.security.Principal
+import java.util.UUID
 import org.springframework.web.bind.annotation.*
 
 /** 세계관(WorldStudio)과 소설의 1:1 연결과, 그 세계관에서 독자에게 공개된 설정 카드 조회다(DEC-46). */
@@ -26,4 +28,12 @@ class WorkWorldController(private val service: WorkWorldService) {
      */
     @GetMapping("/public/works/{id}/world-cards")
     fun readerCards(@PathVariable id: String, @RequestParam(required = false) upto: String?): ReaderWorldCardsResponse = service.readerCards(id, upto)
+
+    /**
+     * 독자 설정 위키 카드의 이미지를 캐시 없이 반환한다(#401). 익명 조회를 허용한다. `world-cards?upto=N`과 같은 기준으로 보이는 카드 중 하나가 `imageId`로 가리키는 이미지일 때만이며,
+     * 그 밖(공개가 아닌 작품·연결 없음·아직 공개되지 않은 카드의 이미지 포함)은 404, `upto` 값 오류는 422다.
+     */
+    @GetMapping("/public/works/{id}/world-card-images/{imageId}")
+    fun readerCardImage(@PathVariable id: String, @PathVariable imageId: UUID, @RequestParam(required = false) upto: String?) =
+        coverImage(service.readerCardImage(id, imageId, upto))
 }

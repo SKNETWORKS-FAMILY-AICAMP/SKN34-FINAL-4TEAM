@@ -9,7 +9,9 @@ import { publishAllCards, setCardVisibility } from '../viewmodel/cardVisibility'
 import { importedSource } from '../../../shared/importCards'
 import { labelOf } from '../viewmodel/settingBoard'
 import { useCardBoard } from '../viewmodel/useCardBoard'
+import type { CardImages } from '../viewmodel/useCardImages'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
+import { CardThumb } from './WorldCardImage'
 import { NewCardMenu } from './NewCardMenu'
 import { WorldImportSheet } from './WorldImportSheet'
 
@@ -22,7 +24,7 @@ type VM = ReturnType<typeof useWorldStudioViewModel>
  * 사건·사물이 어느 인물과도 승인된 관계로 이어지지 않았으면 `연결 필요`, 마지막 AI 검토가 남긴 지적이 있으면 `AI 의견 N`(누르면 그 카드의 편집 화면에서 지적을 본다)이다.
  * 본문이 좁으면 번호·분류·요약·연결 칸이 숨는다(world-studio.css의 컨테이너 규칙). 그때 분류와 요약을 잃지 않도록 제목 아래 한 줄(`.world-row-sub`)에도 두고, 넓은 본문에서는 CSS가 그 줄을 숨긴다.
  */
-function Row({ row, setting, status, picked, onPick, onOpen }: { row: BoardRow; setting?: StudioSetting; status?: CardStatus; picked: boolean; onPick: (id: string, on: boolean) => void; onOpen: (id: string) => void }) {
+function Row({ row, setting, status, images, picked, onPick, onOpen }: { row: BoardRow; setting?: StudioSetting; status?: CardStatus; images: CardImages; picked: boolean; onPick: (id: string, on: boolean) => void; onOpen: (id: string) => void }) {
   const isPublic = setting?.visibility === 'public'
   return (
     <tr>
@@ -30,6 +32,7 @@ function Row({ row, setting, status, picked, onPick, onOpen }: { row: BoardRow; 
       <td className="col-no">{row.no || '–'}</td>
       <td className="col-kind"><KindChip kind={row.kind} label={row.type} /></td>
       <td className="col-title">
+        <CardThumb images={images} imageId={setting?.imageId} />
         <button type="button" data-card={row.cardId} aria-label={`${row.title} ${row.type}`} onClick={() => onOpen(row.cardId)}>{row.title}</button>
         {row.badge > 0 && <span className="worlds-badge"><span aria-hidden="true">[{row.badge}]</span><span className="sr-only">{row.kind === '인물' ? '관계' : '연결'} {row.badge}개</span></span>}
         {status?.cleanup && <span className="worlds-badge world-todo">정리 필요</span>}
@@ -158,7 +161,7 @@ export function WorldCardBoard({ vm }: { vm: VM }) {
                   </tr>
                 </thead>
                 <tbody ref={table}>
-                  {board.rows.map((row) => <Row key={row.cardId} row={row} setting={byId.get(row.cardId)} status={board.statuses.get(row.cardId)} picked={selected.has(row.cardId)} onPick={pick} onOpen={vm.editCard} />)}
+                  {board.rows.map((row) => <Row key={row.cardId} row={row} setting={byId.get(row.cardId)} status={board.statuses.get(row.cardId)} images={vm.cardImages} picked={selected.has(row.cardId)} onPick={pick} onOpen={vm.editCard} />)}
                   {!board.rows.length && <tr><td colSpan={7} className="muted">{board.total ? '조건에 맞는 설정이 없어요.' : '설정을 추가해 시작해 보세요.'}</td></tr>}
                 </tbody>
               </table>

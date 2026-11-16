@@ -16,8 +16,8 @@ data class PublicWorldSummaryResponse(
 
 data class PublicWorldPageResponse(val items: List<PublicWorldSummaryResponse>, val page: Int, val size: Int, val total: Long)
 
-/** 공개 설정 카드. [id]는 카드 논리 ID이며 관계의 양 끝이 가리킨다. */
-data class PublicWorldCardResponse(val id: UUID, val title: String, val text: String, val cardType: String, val aliases: List<String>, val tags: List<String>)
+/** 공개 설정 카드. [id]는 카드 논리 ID이며 관계의 양 끝이 가리킨다. [imageId]가 있으면 `/{세계관}/card-images/{imageId}`로 대표 이미지를 읽는다(#401, 없으면 null). */
+data class PublicWorldCardResponse(val id: UUID, val title: String, val text: String, val cardType: String, val aliases: List<String>, val tags: List<String>, val imageId: UUID? = null)
 
 data class PublicWorldRelationshipResponse(val id: UUID, val sourceCardId: UUID, val targetCardId: UUID, val label: String)
 
@@ -28,8 +28,8 @@ data class PublicWorldResponse(
     val relationships: List<PublicWorldRelationshipResponse>, val relationshipStatus: String, val hasCover: Boolean = false,
 )
 
-/** 독자 설정 위키의 카드. [revealFromEpisode]화부터 연결된 소설의 독자에게 보인다. */
-data class ReaderWorldCardResponse(val id: UUID, val title: String, val text: String, val cardType: String, val aliases: List<String>, val tags: List<String>, val revealFromEpisode: Int)
+/** 독자 설정 위키의 카드. [revealFromEpisode]화부터 연결된 소설의 독자에게 보인다. [imageId]가 있으면 `/public/works/{작품}/world-card-images/{imageId}?upto=N`로 대표 이미지를 읽는다(#401, 없으면 null). */
+data class ReaderWorldCardResponse(val id: UUID, val title: String, val text: String, val cardType: String, val aliases: List<String>, val tags: List<String>, val revealFromEpisode: Int, val imageId: UUID? = null)
 
 /**
  * 소설 [workId]의 독자에게 [upto]화 기준으로 보이는 설정 카드와 그 카드끼리의 현재 관계다(DEC-46). 연결된 세계관이 없으면 [worldId]는 null이다.

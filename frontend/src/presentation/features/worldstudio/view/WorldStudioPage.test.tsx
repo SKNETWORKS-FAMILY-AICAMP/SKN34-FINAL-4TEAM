@@ -68,6 +68,10 @@ const place = (title: string): StudioSetting => {
 }
 const friends = (settings: StudioSetting[], a: StudioSetting, b: StudioSetting) => putRelation(settings, { subjectId: a.item.id, targetId: b.item.id, predicate: 'friend_of', polarity: 'asserted' })
 
+/** 설정 카드 대표 이미지(#401) 대역이 올린 뒤 돌려주는 이미지 id. */
+const CARD_IMAGE = '11111111-1111-4111-8111-111111111111'
+const NEXT_IMAGE = '22222222-2222-4222-8222-222222222222'
+
 /** 대역 저장소에 줄 수 있는 값. `version`은 저장 버전(0이면 한 번도 저장하지 않은 세계관)이다. 작성 모드(마법사)는 저장 버전이 아니라 주소의 `?new=1`로 정해진다. */
 type Fixture = {
   version?: number
@@ -85,6 +89,11 @@ type Fixture = {
   readCover?: NonNullable<WorldStudioRepository['readCover']>
   /** 표지 저장소가 없는 데모(메모리) */
   demoCover?: true
+  /** 설정 카드 이미지 저장소(올리기·읽기, #401) */
+  uploadCardImage?: NonNullable<WorldStudioRepository['uploadCardImage']>
+  readCardImage?: NonNullable<WorldStudioRepository['readCardImage']>
+  /** 카드 이미지 저장소가 없는 데모(메모리) */
+  demoCardImage?: true
   /** 이 세계관에 연결된 내 소설 id(DEC-46 1:1 연결) */
   linkedWorkId?: string
   /** 관계를 회차 시점으로 읽고 쓰는 서버 저장소(DEC-51, 없으면 회차를 모르는 데모) */
@@ -115,6 +124,8 @@ function mount(settings: StudioSetting[] = [person('가람', '기존 내용')], 
   const setCover = vi.fn(fixture.setCover ?? (async () => undefined))
   const removeCover = vi.fn(fixture.removeCover ?? (async () => undefined))
   const readCover = vi.fn(fixture.readCover ?? (async () => new Blob(['png'], { type: 'image/png' })))
+  const uploadCardImage = vi.fn(fixture.uploadCardImage ?? (async () => CARD_IMAGE))
+  const readCardImage = vi.fn(fixture.readCardImage ?? (async () => new Blob(['png'], { type: 'image/png' })))
   useCase = new WorldStudioUseCase({
     listStudio: async () => [world],
     read: fixture.read ?? (async () => structuredClone(world)),
@@ -122,6 +133,7 @@ function mount(settings: StudioSetting[] = [person('가람', '기존 내용')], 
     saveStudio,
     setPublication,
     ...(fixture.demoCover ? {} : { setCover, removeCover, readCover }),
+    ...(fixture.demoCardImage ? {} : { uploadCardImage, readCardImage }),
     ...(fixture.relationEpisodes ? { relationEpisodes: true as const } : {}),
   })
   render(
@@ -133,7 +145,7 @@ function mount(settings: StudioSetting[] = [person('가람', '기존 내용')], 
       </MemoryRouter>
     </Provider>,
   )
-  return { create, setPublication, saveStudio, setCover, removeCover, readCover }
+  return { create, setPublication, saveStudio, setCover, removeCover, readCover, uploadCardImage, readCardImage }
 }
 /** `/worldstudio/qa`(저장한 세계관 관리)나 `/worldstudio`(새 세계관 만들기)를 열고 제목이 나올 때까지 기다린다. */
 async function show(settings?: StudioSetting[], path: string | string[] = '/worldstudio/qa', fixture: Fixture = {}) {
@@ -3018,4 +3030,204 @@ it('지적이 없는 카드의 편집 화면에는 AI 검토 의견 절이 없�
   await runReview()
   openCard('항구 장소')
   expect(screen.queryByRole('region', { name: 'AI 검토 의견' })).toBeNull() // 이 카드에는 지적이 없다
+})
+
+// ── 설정 카드 대표 이미지(#401): 편집 화면 제목 줄에서 올리고 바꾸고 빼며, 게시판·레일은 작은 썸네일(소유자 이미지는 인증 읽기 → 객체 주소) ───
+const withImage = (row: StudioSetting, imageId = CARD_IMAGE): StudioSetting => ({ ...row, imageId })
+const imageGroup = () => within(screen.getByRole('group', { name: '대표 이미지' }))
+const imageInput = (label = '이미지 추가') => imageGroup().getByLabelText<HTMLInputElement>(label)
+const pickImage = (file: File, label = '이미지 추가') => fireEvent.change(imageInput(label), { target: { files: [file] } })
+const preview = () => document.querySelector<HTMLImageElement>('.world-card-tile img')
+const thumbs = (root: ParentNode) => Array.from(root.querySelectorAll<HTMLImageElement>('img.board-thumb'), (img) => img.getAttribute('src'))
+const savedSettings = (saveStudio: ReturnType<typeof mount>['saveStudio']) => saveStudio.mock.calls[0][0].settings
+
+it('이미지가 없는 카드는 제목 아래 줄에 이미지 추가만 두고 형식·크기를 안내하며, 이미지 첨부 미지원 문구는 없다', async () => {
+  const { readCardImage } = await showWorld()
+  openCard('가람 인물')
+  const input = imageInput()
+  expect([input.type, input.accept, input.disabled]).toEqual(['file', 'image/png,image/jpeg,image/webp', false])
+  expect(document.getElementById(input.getAttribute('aria-describedby') ?? '')?.textContent).toBe('PNG·JPEG·WebP, 5 MiB 이하')
+  expect(imageGroup().queryByRole('button', { name: '빼기' })).toBeNull()
+  expect(imageGroup().queryByLabelText('바꾸기')).toBeNull()
+  expect(preview()).toBeNull()
+  expect(screen.queryByText('이미지 첨부는 이 화면에서 지원하지 않아요.')).toBeNull()
+  expect(readCardImage).not.toHaveBeenCalled() // 이미지가 없는 카드는 읽지 않는다
+  // 머리는 두 열이다: 이름 입력·유형 선택(+출처)이 한 열, 대표 이미지 타일이 오른쪽 열(CSS 격자가 .world-card-head를 두 열로 나눈다).
+  const head = input.closest('.world-card-head')!
+  expect(head.parentElement?.classList.contains('world-card-header')).toBe(true) // 좁은 배치가 머리 폭을 묻는 컨테이너
+  expect(Array.from(head.children, (child) => child.className.split(' ')[0])).toEqual(['et', 'world-card-meta', 'world-card-image'])
+  expect(head.querySelector('.world-card-meta select')).toBeTruthy()
+  // 이미지가 없으면 타일 자체가 점선 빈 칸이고, 그 안이 파일 선택(이미지 추가)이며 안내도 타일 안에 있다.
+  const tile = head.querySelector('.world-card-tile')!
+  expect([tile.classList.contains('cov'), tile.classList.contains('empty')]).toEqual([true, true])
+  expect(tile.contains(input)).toBe(true)
+  expect(tile.contains(document.getElementById(input.getAttribute('aria-describedby') ?? ''))).toBe(true)
+  expect(imageGroup().queryByRole('button')).toBeNull() // 바꾸기·빼기 같은 버튼 줄은 이미지가 있을 때만 있다
+})
+
+it('파일을 고르면 곧바로 올리고(올리는 동안 알림·잠금) 올라가면 미리보기와 바꾸기·빼기가 나오며, 저장 전 수정이 되고 초점은 바꾸기로 간다', async () => {
+  let finish!: (id: string) => void
+  const uploadCardImage = vi.fn((_id: string, _file: File, _signal?: AbortSignal) => new Promise<string>((resolve) => { finish = resolve }))
+  const { readCardImage, saveStudio } = await show(undefined, '/worldstudio/qa', { uploadCardImage })
+  openCard('가람 인물')
+  const file = png('portrait.png')
+  pickImage(file)
+  await waitFor(() => expect(uploadCardImage).toHaveBeenCalledWith('qa', file, expect.any(AbortSignal)))
+  expect(imageGroup().getByRole('status').textContent).toBe('이미지를 올리고 있어요…')
+  expect(imageInput().closest('fieldset')?.disabled).toBe(true) // 올리는 동안 같은 파일을 두 번 올리지 않는다(칸은 fieldset 잠금을 따른다)
+  expect(editor().getByText('저장된 상태예요', { exact: false })).toBeTruthy() // 올리는 중에는 초안이 바뀌지 않았다
+  await act(async () => finish(CARD_IMAGE))
+  await waitFor(() => expect(preview()?.getAttribute('src')).toBe('blob:cover-1'))
+  expect(readCardImage).toHaveBeenCalledOnce()
+  expect(readCardImage).toHaveBeenCalledWith('qa', CARD_IMAGE, expect.any(AbortSignal))
+  expect(preview()?.getAttribute('alt')).toBe('가람 이미지') // 편집 화면 타일 이미지는 카드 제목으로 읽힌다(썸네일과 달리 옆에 제목이 없다)
+  expect(imageGroup().getByRole('img', { name: '가람 이미지' })).toBe(preview())
+  // 이미지가 채워진 타일은 헤더 표지와 같은 .cov(3:4·둥근 모서리·그림자)이고 바꾸기·빼기는 그 아래에 놓인다.
+  const tile = preview()!.closest('.world-card-tile')!
+  expect([tile.classList.contains('cov'), tile.classList.contains('empty')]).toEqual([true, false])
+  const actions = imageGroup().getByRole('button', { name: '빼기' }).closest('.world-card-image-actions')!
+  expect(actions.contains(imageInput('바꾸기')) && !tile.contains(imageInput('바꾸기'))).toBe(true)
+  expect(tile.compareDocumentPosition(actions) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(imageGroup().queryByRole('status')).toBeNull()
+  expect(imageGroup().queryByLabelText('이미지 추가')).toBeNull()
+  expect(imageGroup().getByRole('button', { name: '빼기' })).toBeTruthy()
+  await waitFor(() => expect(document.activeElement).toBe(imageInput('바꾸기'))) // 눌렀던 칸이 잠겼다 풀리므로 초점을 이어 준다
+  expect(editor().getByText('저장 전 수정이 있어요', { exact: false })).toBeTruthy()
+  expect(screen.getByText('이미지를 올렸어요. 세계관을 저장한 뒤 ‘확정 버전 남기기’를 해야 공개 화면에 나와요.').getAttribute('role')).toBe('status')
+  expect(saveStudio).not.toHaveBeenCalled() // 올리는 것만으로 초안을 저장하지 않는다
+  saveWorld()
+  await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
+  expect(savedSettings(saveStudio).map((s) => s.imageId)).toEqual([CARD_IMAGE])
+})
+
+it('이미 이미지가 있는 카드는 미리보기를 인증 읽기로 받고, 바꾸기로 새 이미지를 올리면 카드가 새 id를 가리키고 이전 이미지의 객체 주소를 해제한다', async () => {
+  const uploadCardImage = vi.fn(async () => NEXT_IMAGE)
+  const { readCardImage, saveStudio } = await show([withImage(person('가람', '기존 내용'))], '/worldstudio/qa', { uploadCardImage })
+  openCard('가람 인물')
+  await waitFor(() => expect(preview()?.getAttribute('src')).toBe('blob:cover-1'))
+  expect(imageGroup().getByRole('button', { name: '빼기' })).toBeTruthy()
+  expect(imageInput('바꾸기').disabled).toBe(false)
+  expect(readCardImage).toHaveBeenCalledOnce() // 게시판·레일·편집 화면이 같은 이미지를 한 번만 읽는다
+  expect(objectUrls.revokeObjectURL).not.toHaveBeenCalled()
+  const file = png('new.png', 'image/webp')
+  pickImage(file, '바꾸기')
+  await waitFor(() => expect(uploadCardImage).toHaveBeenCalledWith('qa', file, expect.any(AbortSignal)))
+  await waitFor(() => expect(preview()?.getAttribute('src')).toBe('blob:cover-2'))
+  expect(objectUrls.revokeObjectURL).toHaveBeenCalledWith('blob:cover-1')
+  expect(readCardImage.mock.calls.map(([, image]) => image)).toEqual([CARD_IMAGE, NEXT_IMAGE])
+  expect(editor().getByText('저장 전 수정이 있어요', { exact: false })).toBeTruthy()
+  saveWorld()
+  await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
+  expect(savedSettings(saveStudio).map((s) => s.imageId)).toEqual([NEXT_IMAGE])
+})
+
+it('빼기는 서버를 부르지 않고 초안에서 이미지 연결만 지워 이미지 추가로 돌아가며, 이전 이미지의 객체 주소를 해제하고 저장 요청에는 이미지가 실리지 않는다', async () => {
+  const { uploadCardImage, saveStudio } = await show([withImage(person('가람', '기존 내용'))])
+  openCard('가람 인물')
+  await waitFor(() => expect(preview()).toBeTruthy())
+  fireEvent.click(imageGroup().getByRole('button', { name: '빼기' }))
+  expect(preview()).toBeNull()
+  expect(imageGroup().queryByRole('button', { name: '빼기' })).toBeNull()
+  expect(imageInput().disabled).toBe(false)
+  expect(document.activeElement).toBe(imageInput()) // 눌렀던 빼기 버튼이 사라지므로 같은 자리의 추가 칸으로 초점을 옮긴다
+  expect(objectUrls.revokeObjectURL).toHaveBeenCalledWith('blob:cover-1')
+  expect(uploadCardImage).not.toHaveBeenCalled()
+  expect(editor().getByText('저장 전 수정이 있어요', { exact: false })).toBeTruthy()
+  saveWorld()
+  await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
+  expect(savedSettings(saveStudio).map((s) => s.imageId)).toEqual([undefined])
+})
+
+it('올리기가 실패하면 서버가 준 이유를 알리고 초안·미리보기는 그대로이며 같은 칸으로 다시 올릴 수 있다', async () => {
+  const uploadCardImage = vi.fn().mockRejectedValueOnce(new Error('PNG·JPEG·WebP 이미지만 올릴 수 있어요.')).mockResolvedValueOnce(CARD_IMAGE)
+  await show(undefined, '/worldstudio/qa', { uploadCardImage })
+  openCard('가람 인물')
+  pickImage(png('broken.png'))
+  expect((await screen.findByRole('alert')).textContent).toBe('PNG·JPEG·WebP 이미지만 올릴 수 있어요.')
+  expect(preview()).toBeNull()
+  expect(imageInput().disabled).toBe(false)
+  expect(editor().getByText('저장된 상태예요', { exact: false })).toBeTruthy() // 실패는 초안을 바꾸지 않는다
+  pickImage(png('again.png'))
+  await waitFor(() => expect(preview()?.getAttribute('src')).toBe('blob:cover-1'))
+  expect(screen.queryByRole('alert')).toBeNull()
+  expect(uploadCardImage).toHaveBeenCalledTimes(2)
+})
+
+it('형식·크기가 맞지 않는 파일은 서버로 보내기 전에 이유를 알리고 올리지 않는다', async () => {
+  const { uploadCardImage } = await showWorld()
+  openCard('가람 인물')
+  pickImage(png('x.gif', 'image/gif'))
+  expect((await screen.findByRole('alert')).textContent).toBe('PNG·JPEG·WebP 이미지만 올릴 수 있어요.')
+  pickImage(png('big.png', 'image/png', 5 * 1024 * 1024 + 1))
+  await waitFor(() => expect(screen.getByRole('alert').textContent).toBe('이미지는 5 MiB 이하여야 해요.'))
+  expect(uploadCardImage).not.toHaveBeenCalled()
+  expect(preview()).toBeNull()
+})
+
+it('이미지를 읽지 못하면 미리보기 자리에 이유를 알리되 바꾸기·빼기는 그대로 쓸 수 있다', async () => {
+  const readCardImage = vi.fn(async () => { throw new Error('이미지를 찾을 수 없어요.') })
+  await show([withImage(person('가람', '기존 내용'))], '/worldstudio/qa', { readCardImage })
+  openCard('가람 인물')
+  expect(await imageGroup().findByText('이미지를 찾을 수 없어요.')).toBeTruthy()
+  expect(document.querySelector('.world-card-tile span.world-card-tile-wait')).toBeTruthy() // 깨진 그림 대신 타일 크기 그대로의 빈 자리
+  expect(preview()).toBeNull()
+  expect(imageGroup().getByRole('button', { name: '빼기' })).toBeTruthy()
+  expect(imageInput('바꾸기').disabled).toBe(false)
+})
+
+it('화면을 떠나면 만든 이미지 객체 주소를 모두 해제한다', async () => {
+  const { readCardImage } = await show([withImage(person('가람', '기존 내용'))])
+  openCard('가람 인물')
+  await waitFor(() => expect(preview()?.getAttribute('src')).toBe('blob:cover-1'))
+  expect(readCardImage).toHaveBeenCalledOnce()
+  cleanup()
+  expect(objectUrls.revokeObjectURL).toHaveBeenCalledWith('blob:cover-1')
+})
+
+it('게시판 줄과 편집 화면 레일은 이미지가 있는 카드만 빈 대체 글(alt="")의 작은 썸네일을 보이고 같은 이미지는 한 번만 읽는다', async () => {
+  const { readCardImage } = await show([withImage(person('가람', '기존 내용')), person('나래')])
+  await waitFor(() => expect(thumbs(screen.getByRole('table', { name: '설정 카드 목록' }))).toEqual(['blob:cover-1']))
+  const rows = within(screen.getByRole('table', { name: '설정 카드 목록' })).getAllByRole('row').slice(1)
+  expect(rows.map((row) => row.querySelectorAll('img.board-thumb').length)).toEqual([1, 0]) // 이미지 없는 카드는 비워 둔다
+  expect(document.querySelector('.worlds-board-table img.board-thumb')?.getAttribute('alt')).toBe('')
+  openCard('가람 인물')
+  await waitFor(() => expect(thumbs(screen.getByRole('navigation', { name: '설정 카드 목록' }))).toEqual(['blob:cover-1']))
+  expect(Array.from(screen.getByRole('navigation', { name: '설정 카드 목록' }).querySelectorAll('img.board-thumb'), (image) => image.getAttribute('alt'))).toEqual(['']) // 레일 썸네일도 빈 대체 글(제목이 옆에 있다)
+  const railRows = Array.from(screen.getByRole('navigation', { name: '설정 카드 목록' }).querySelectorAll('.writing-episode-row'))
+  expect(railRows.map((row) => row.querySelectorAll('img.board-thumb').length)).toEqual([1, 0])
+  expect(readCardImage).toHaveBeenCalledOnce() // 게시판·레일·미리보기 세 곳이 한 번의 읽기를 나눠 쓴다
+})
+
+it('카드 이미지를 읽을 수 없는 데모(메모리)에서는 이미지 추가를 잠그고 지원하지 않는다고 알리며 아무것도 읽지 않는다', async () => {
+  const { readCardImage, uploadCardImage } = await show(undefined, '/worldstudio/qa', { demoCardImage: true })
+  openCard('가람 인물')
+  expect(imageInput().disabled).toBe(true)
+  const lock = imageGroup().getByText('데모에서는 이미지 업로드를 지원하지 않아요.')
+  expect([lock.classList.contains('sr-only'), lock.closest('.world-card-tile')]).toEqual([false, null]) // 잠긴 이유는 좁은 타일 안이 아니라 타일 아래에 읽힌다
+  expect(imageInput().closest('.world-card-tile')?.classList.contains('empty')).toBe(true) // 빈 타일은 그대로 두되 잠겨 있다
+  expect(readCardImage).not.toHaveBeenCalled()
+  expect(uploadCardImage).not.toHaveBeenCalled()
+})
+
+it('목업(mockup) 모드의 발표용 인물 초상은 그대로 보이고 이미지 추가는 잠겨 있다', async () => {
+  vi.stubEnv('MODE', 'mockup')
+  await show([person('홍길동', '의적')], '/worldstudio/qa', { demoCardImage: true })
+  openCard('홍길동 인물')
+  const portrait = imageGroup().getByRole('img', { name: '홍길동 인물 이미지' })
+  const tile = portrait.closest('.world-card-tile')!
+  expect([tile.classList.contains('cov'), tile.classList.contains('empty')]).toEqual([true, false]) // 초상도 같은 타일 자리를 채운다
+  expect(imageInput().disabled).toBe(true)
+  expect(tile.contains(imageInput())).toBe(false) // 잠긴 이미지 추가는 타일 아래 작은 버튼이고
+  expect(imageGroup().getByText('데모에서는 이미지 업로드를 지원하지 않아요.').classList.contains('sr-only')).toBe(false) // 잠금 안내는 그대로 보인다
+})
+
+it('이미 이미지가 있는 카드의 안내는 화면에서는 숨기고 입력의 설명으로만 남기며, 이미지가 없을 때만 타일 안에 보인다', async () => {
+  await show([withImage(person('가람', '기존 내용')), person('나래')])
+  openCard('가람 인물')
+  await waitFor(() => expect(preview()).toBeTruthy())
+  const note = document.getElementById(imageInput('바꾸기').getAttribute('aria-describedby') ?? '')!
+  expect([note.textContent, note.classList.contains('sr-only')]).toEqual(['PNG·JPEG·WebP, 5 MiB 이하', true])
+  fireEvent.click(imageGroup().getByRole('button', { name: '빼기' }))
+  const empty = document.getElementById(imageInput().getAttribute('aria-describedby') ?? '')!
+  expect([empty.textContent, empty.classList.contains('sr-only'), !!empty.closest('.world-card-tile.empty')]).toEqual(['PNG·JPEG·WebP, 5 MiB 이하', false, true])
 })
