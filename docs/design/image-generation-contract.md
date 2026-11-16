@@ -125,3 +125,34 @@ AI의 실제 Dockerfile과 고정 uv.lock으로 Linux 이미지를 빌드했다.
 로컬 증거는 `D:/Codex/image-live-verification/compose-soak/`의 `soak-result.json`, `reconciled-result.json`, `audit-final.json`, `adoption-result.json`, `egress-probes.json`, `daemon-dns-failure.log`와 worker 로그·PNG다. 키가 컨테이너 설정·검증 텍스트 산출물·staged 문서에 없는 것도 검사했다. 제품 코드·의존성은 변경하지 않았고 PR은 만들지 않았다. 변경 문서 두 개는 CodeRabbit 0.9.2 리뷰에서 지적 0건이었으며, 실검증 수치와 추가 DNS 기록은 별도로 증거와 직접 대조했다. 종료 후 테스트 프로젝트 컨테이너·네트워크와 독립 daemon을 종료하고 backing disk를 정상 해제했다. 이미지·볼륨·검증 산출물은 보존했으며 `cleanup-result.json`에 확인 결과를 남겼다.
 
 남은 확인은 테스트 환경의 외부 DNS 안정화, 연결 실패의 안전한 진단 메타데이터(예외 종류·단계·경과 시간 등) 확보와 별도 호출 범위에서의 생성 재검증이다. 본문·키를 로그에 추가하거나 생성 자동 재시도를 도입하는 방식으로 해결하지 않는다.
+
+## 외부 DNS 조치·중단 입력 재생성 (2026-11-16 후속)
+
+사용자가 DNS 조치와 실제 재검증을 요청해 기존 키로 두 입력을 각각 한 번씩 새로 생성했다. 이전 30분 검증의 실패 기록은 보존하며, 이번 결과로 그 실행을 성공으로 변경하지 않는다.
+
+이 환경의 `/etc/resolv.conf`는 WSL 가상 DNS `10.255.255.254`를 사용했고, Windows 네트워크 어댑터에 설정된 실제 DNS는 `168.126.63.1`·`8.8.8.8`이었다. WSL에서 각 주소에 A/AAAA 질의를 10회씩 보내 모두 응답함을 확인한 후, 독립 테스트 daemon 시작 스크립트 `D:/Codex/image-live-verification/start_compose_engine.sh`에 다음 옵션만 추가했다.
+
+```text
+--dns=168.126.63.1 --dns=8.8.8.8
+```
+
+이 조치는 WSL 가상 DNS 경유를 피하고 이미 호스트에 설정된 upstream으로 질의하도록 한다. 각 worker의 실제 `/etc/resolv.conf`에서 내부 resolver는 `127.0.0.11`, ExtServers는 위 두 주소임을 확인했다. Compose 기본 bridge와 서비스 이름 해석은 유지했다. Windows·WSL 전역 DNS, 제품 Compose, 애플리케이션 코드, 이미지 모델·품질은 변경하지 않았다. 재시작 때도 같은 테스트 스크립트로 적용되지만, 다른 네트워크·VPN에서는 그 환경의 승인된 DNS 주소를 다시 확인해야 한다. 이 주소를 공통 배포 설정에 하드코딩하지 않는다. [Docker DNS 동작](https://docs.docker.com/engine/network/), [WSL DNS tunneling 설정](https://learn.microsoft.com/en-us/windows/wsl/wsl-config#experimental-settings)
+
+중단된 작업의 상태를 직접 고치거나 기존 큐 메시지를 재실행하지 않았다. 동일한 purpose·prompt·worldId를 새 요청 키로 실제 nginx API에 접수하고, worker 3개 환경에서 두 생성이 동시에 running인 것을 확인했다.
+
+| 용도 | 기존 interrupted 작업 | 새 succeeded 작업 | 접수~완료 등록 | PNG 크기 |
+|---|---|---|---|---|
+| 작품 표지 | e84e82ff-ea99-4e19-83d8-6792d629aa58 | a76a2f79-6691-4067-bc96-0b0d83e2c1d7 | 38.196초 | 2,731,665 bytes |
+| 세계관 표지 | 8446eda9-da6e-4c53-af39-8ce2ad1c7689 | 6782d30b-80b7-4c59-bb9b-0e25b5d35a22 | 32.878초 | 2,962,057 bytes |
+
+두 이미지 모두 `gpt-image-2.6-flare`·`high`, 1152×1536 PNG, 실제 디코딩 성공·5MiB 이하·`private, no-store`를 확인했다. 세계관 표지는 기존 비공개 테스트 세계관에 실제 multipart로 저장했고 재조회 바이트가 생성 원본과 일치했으며 공개 경로는 404였다. 원래 두 작업은 interrupted로 남았다. 생성 중 병렬 조회 420건에서 오류 0건, p95 650.15ms였고 worker 시작 이후 두 작업 완료 확인까지 27.782초였다.
+
+worker 3개에서 각각 5분 동안 60회씩, 총 180회 내부 서비스 DNS·외부 DNS·HTTPS 연결을 반복 검사했다. 매회 키 없이 `/v1/models`에 요청해 예상한 401 응답을 받았으며 DNS/연결 오류는 0건이었다. 이는 이미지 생성 호출에 포함되지 않는다. 새 daemon 실행의 전체 로그에서도 resolver 오류가 없었다. 컨테이너 재시작·OOM 0건, 종료 점검 시 큐 ready/unacknowledged 0과 소비자 3개를 확인했다.
+
+실제 이미지 호출은 추가 2회 모두 HTTP 200이었다. 작업마다 중복 메시지 8개씩을 넣어 총 18개 task가 처리됐지만 추가 생성 호출은 없었다. 기존 기록을 포함한 생성 시도는 누적 18회다. 실제 키가 컨테이너 설정·검증 텍스트 산출물에 없는 것도 점검했다.
+
+후속 증거는 `D:/Codex/image-live-verification/dns-retest/`의 `upstream-probes.json`, `resolv-*.txt`, `dns-probe-*.jsonl`, `dns-duration-result.json`, `retry-result.json`, `audit-result.json`, worker 로그·PNG에 별도로 보존했다. 이전 `compose-soak`의 실패 보고서는 덮어쓰지 않았다.
+
+CodeRabbit 0.9.2의 변경 문서 검토에서 지적은 없었다. 검증 뒤 테스트 컨테이너·네트워크·독립 daemon을 종료하고 디스크를 정상 해제했으며, 결과·이미지·볼륨은 보존했다. 종료 확인은 같은 디렉터리의 `cleanup-result.json`에 남겼다. PR은 생성하지 않았다.
+
+이번 검증은 외부 DNS 경로 변경과 중단 입력 두 건의 재생성 확인이다. 이전 30분 부하 전체를 다시 실행하거나 장시간 장애 부재를 보장한 것은 아니다. 원본 예외의 세부 분류를 안전하게 기록하는 제품 코드 변경도 이번에는 하지 않았다.
