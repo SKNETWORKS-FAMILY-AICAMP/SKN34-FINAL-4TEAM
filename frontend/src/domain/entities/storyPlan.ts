@@ -6,6 +6,7 @@ export type PlanInput = {
   episodeNumber: number | null
   characterIds: string[]
   placeIds: string[]
+  position?: number
 }
 export type StoryPlan = PlanInput & { id: string; workId: string; revision: number; episodeMissing: boolean }
 export type PlanReferences = {
@@ -15,6 +16,7 @@ export type PlanReferences = {
 }
 
 export function validatePlan(value: PlanInput) {
+  if (value.position !== undefined && (value.kind !== 'scene' || !Number.isInteger(value.position) || value.position < 0)) throw new Error('장면 순서를 확인해 주세요.')
   if (!value.title.trim() || value.title.length > 120 || value.content.length > 8000) throw new Error('제목은 1~120자, 계획 내용은 8,000자 이내로 입력해 주세요.')
   if ((value.kind === 'scene') !== !!value.parentId) throw new Error('장면 계획은 소속 플롯을 선택해야 해요.')
   if (value.kind === 'plot' && (value.episodeNumber !== null || value.characterIds.length || value.placeIds.length)) throw new Error('회차·인물·장소는 장면 계획에서 연결해 주세요.')
@@ -28,3 +30,11 @@ export function validatePlanReferences(value: PlanInput, refs: PlanReferences) {
     if (ids.some(id => !options.some(option => option.id === id))) throw new Error('연결할 인물·장소를 찾을 수 없어요. 다시 선택해 주세요.')
   }
 }
+
+/** 회차 전체의 장면 순서. 오래된 응답은 기존 목록 순서를 유지한다. */
+export function scenePlans<T extends Pick<StoryPlan, 'kind' | 'episodeNumber'> & Partial<Pick<StoryPlan, 'position' | 'episodeMissing'>>>(plans: T[], episode: number | null): T[] {
+  return plans.filter(p => p.kind === 'scene' && p.episodeNumber === episode && !p.episodeMissing).sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+}
+export const planStartBlocker = ({ dirty, busy }: { dirty: boolean; busy: boolean }) => busy
+  ? '계획을 처리하고 있어요. 완료 후 시작해 주세요.'
+  : dirty ? '저장하지 않은 계획이 있어요. 계획을 저장하거나 편집을 취소한 뒤 시작해 주세요.' : ''

@@ -30,7 +30,7 @@ export class InMemoryStoryPlanRepository implements StoryPlanRepository {
   }
   async list(workId: string) {
     const refs = await this.references(workId)
-    return [...this.rows.values()].filter(p => p.workId === workId && !p.deleted).map(p => this.view(p, refs))
+    return [...this.rows.values()].filter(p => p.workId === workId && !p.deleted).sort((a, b) => (a.position ?? 0) - (b.position ?? 0)).map(p => this.view(p, refs))
   }
   async read(workId: string, id: string) { const refs = await this.references(workId); return this.view(this.get(workId, id), refs) }
   private view(row: StoryPlan, refs: PlanReferences): StoryPlan {
@@ -46,6 +46,13 @@ export class InMemoryStoryPlanRepository implements StoryPlanRepository {
     if (before && (before.kind !== value.kind || before.parentId !== value.parentId)) throw new Error('계획 종류와 소속 플롯은 바꿀 수 없어요.')
     if (value.parentId && this.get(workId, value.parentId).kind !== 'plot') throw new Error('소속 플롯을 찾을 수 없어요.')
     const saved = { ...structuredClone(value), id: before?.id ?? crypto.randomUUID(), workId, revision: (before?.revision ?? 0) + 1, episodeMissing: false, deleted: false }
+    if (value.kind === 'scene') {
+      const peers = [...this.rows.values()].filter(p => p.workId === workId && !p.deleted && p.kind === 'scene' && p.episodeNumber === value.episodeNumber && p.id !== saved.id).sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+      const position = value.position ?? (before?.episodeNumber === value.episodeNumber ? peers.filter(p => (p.position ?? 0) < (before.position ?? 0)).length : peers.length)
+      if (position > peers.length) throw new Error('장면 순서를 확인해 주세요.')
+      peers.splice(position, 0, saved)
+      peers.forEach((p, i) => { if (p !== saved && p.position !== i) p.revision++; p.position = i })
+    }
     this.rows.set(saved.id, saved)
     return structuredClone(saved)
   }

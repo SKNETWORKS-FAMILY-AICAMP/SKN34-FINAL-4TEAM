@@ -168,3 +168,5 @@ AI가 반환한 시뮬레이션·원고·상태 변화는 후보입니다. 작�
 - [인프라 설계](services/infrastructure.md): 현재 PostgreSQL·선택 MinIO와 목표 DB 소유 분리·관계 그래프
 - [ERD 문서 목차](erd/README.md): 전체 업무 ERD, 서비스별 정본 소유와 업무 영역별 ERD·LangGraph Saver 참고
 - [이전 RDB 단독 MVP 설계 보관본](archive/rdb-mvp/design.md) · [KAG 설계 보관본](archive/kag-design/design.md): 현행 MVP 설계가 아님
+
+- [집필실 고급 모드·장면 순서](writing-plan-panel-contract.md): #374의 패널 배치, 미저장 보호, 기존 API의 position 확장과 시뮬레이션 비트 갱신.

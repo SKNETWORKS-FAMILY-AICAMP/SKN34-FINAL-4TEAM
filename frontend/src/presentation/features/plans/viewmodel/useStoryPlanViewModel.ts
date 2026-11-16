@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { appContainer } from '../../../../app/appContainer'
-import type { PlanInput, PlanReferences, StoryPlan } from '../../../../domain/entities/storyPlan'
+import { planStartBlocker, type PlanInput, type PlanReferences, type StoryPlan } from '../../../../domain/entities/storyPlan'
 import type { StoryPlanUseCase } from '../../../../domain/usecases/StoryPlanUseCase'
 
 type Editor = { value: PlanInput; initial: PlanInput; previous?: StoryPlan }
 const empty = (parentId: string | null): PlanInput => ({ kind: parentId ? 'scene' : 'plot', parentId, title: '', content: '', episodeNumber: null, characterIds: [], placeIds: [] })
 const historyIndex = (state: unknown) => typeof state === 'object' && state !== null && 'idx' in state && typeof state.idx === 'number' ? state.idx : null
 
-export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryPlanUseCase = appContainer.resolve(demo ? 'demoStoryPlanUseCase' : 'storyPlanUseCase')) {
+export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryPlanUseCase = appContainer.resolve(demo ? 'demoStoryPlanUseCase' : 'storyPlanUseCase'), embedded = false) {
   const [plans, setPlans] = useState<StoryPlan[]>([])
   const [references, setReferences] = useState<PlanReferences | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
@@ -18,6 +18,7 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
   const [ready, setReady] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [version, setVersion] = useState(0)
   const pending = useRef<AbortController | null>(null)
   const editorRead = useRef<AbortSignal | null>(null)
   const mutating = useRef(false)
@@ -69,6 +70,7 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
   }, [])
 
   useEffect(() => {
+    if (embedded) return
     const beforeLeave = (event: Event) => { if (!mayLeave()) event.preventDefault() }
     const beforeUnload = (event: BeforeUnloadEvent) => { if (state.current.dirty || state.current.busy) event.preventDefault() }
     const click = (event: MouseEvent) => {
@@ -94,7 +96,7 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
       document.removeEventListener('click', click, true)
       window.removeEventListener('popstate', pop, true)
     }
-  }, [mayLeave, dirty, busy])
+  }, [mayLeave, dirty, busy, embedded])
 
   const edit = (plan: StoryPlan) => {
     if (!mayLeave()) return
@@ -107,15 +109,24 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
       setEditor({ value, initial: value, previous: fresh })
     })
   }
-  const create = (parentId: string | null) => {
+  const create = (parentId: string | null, episode: number | null = null) => {
     if (!references || !mayLeave()) return
-    const value = empty(parentId)
+    const value = { ...empty(parentId), episodeNumber: parentId ? episode : null }
     setEditor({ value, initial: value }); setError(''); setNotice('')
   }
   const save = () => {
     if (!editor) return
-    void run(signal => api.save(workId, editor.value, editor.previous, signal), saved => {
+    void run(async signal => {
+      const saved = await api.save(workId, editor.value, editor.previous, signal)
+      if (signal.aborted) throw new DOMException('Aborted', 'AbortError')
       setPlans(rows => rows.some(p => p.id === saved.id) ? rows.map(p => p.id === saved.id ? saved : p) : [...rows, saved])
+      if (saved.kind === 'plot') setSelected(saved.id)
+      setNotice('계획을 저장했어요.')
+      // A committed save stays acknowledged even when the subsequent list refresh fails.
+      state.current.dirty = false; setEditor(null); setVersion(v => v + 1)
+      return { saved, rows: await api.list(workId, signal) }
+    }, ({ saved, rows }) => {
+      setPlans(rows)
       if (saved.kind === 'plot') setSelected(saved.id)
       state.current.dirty = false; setEditor(null); setNotice('계획을 저장했어요. 원고·사전은 변경되지 않아요.')
     }, true)
@@ -125,7 +136,8 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
     // 응답이 불명확한 경우에도 재전송 전 최신 목록에서 대상을 확인한다.
     setDeleteNeedsReview(true)
     void run(signal => api.remove(workId, deleting, signal), () => {
-      setPlans(rows => rows.filter(p => p.id !== deleting.id)); setDeleting(null); setDeleteNeedsReview(false)
+      setVersion(v => v + 1)
+      setPlans(rows => rows.filter(p => p.id !== deleting.id)); setSelected(before => before === deleting.id ? plans.find(p => p.kind === 'plot' && p.id !== deleting.id)?.id ?? null : before); setDeleting(null); setDeleteNeedsReview(false)
       setNotice('계획을 삭제했어요. 연결된 원고·사전은 유지돼요.')
     }, true)
   }
@@ -138,8 +150,22 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
     })
   }
   return {
+    version, embedded, startBlocker: planStartBlocker({ dirty, busy }) || (error ? '계획 상태를 확인하지 못했어요. 다시 불러온 뒤 시작해 주세요.' : ''),
+    confirmLeave: () => !state.current.busy && (!state.current.dirty || window.confirm('저장하지 않은 계획이 있어요. 계속할까요? 회차 이동에서는 입력을 유지하고, 페이지를 떠나면 사라져요.')),
+    move: (plan: StoryPlan, position: number) => {
+      if (!mayLeave()) return
+      void run(async signal => {
+        let saved: StoryPlan
+        try { saved = await api.move(workId, plan, position, signal) } finally { if (!signal.aborted) setVersion(v => v + 1) }
+        setPlans(rows => rows.map(p => p.id === saved.id ? saved : p))
+        // A committed move stays acknowledged even when the subsequent list refresh fails.
+        setNotice('장면 순서를 저장했어요.')
+        return api.list(workId, signal)
+      }, rows => { setPlans(rows); setNotice('장면 순서를 저장했어요.') }, true)
+    },
     plans, references, selected: plans.find(p => p.id === selected) ?? null, editor, deleting, deleteNeedsReview, busy, ready, error, notice, dirty,
-    reload: () => { if (mayLeave()) void load() },
+    // 응답을 잃은 저장도 서버에는 남을 수 있으므로 다시 불러오면 시작 양식도 다시 읽게 한다.
+    reload: () => { if (mayLeave()) { setVersion(v => v + 1); void load() } },
     select: (id: string) => { if (!mayLeave()) return; void run(signal => api.read(workId, id, signal), fresh => { setPlans(rows => rows.map(p => p.id === id ? fresh : p)); setSelected(id) }) },
     create, edit, save, remove, reviewDelete,
     change: (patch: Partial<PlanInput>) => setEditor(before => before ? { ...before, value: { ...before.value, ...patch } } : null),

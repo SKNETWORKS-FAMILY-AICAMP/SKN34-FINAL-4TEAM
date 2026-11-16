@@ -1,5 +1,5 @@
 import { cardTypeOf } from './studioCards'
-import type { StoryPlan } from './storyPlan'
+import { scenePlans, type StoryPlan } from './storyPlan'
 import type { StudioSetting } from './studioWorld'
 
 /**
@@ -152,8 +152,8 @@ const cut = (text: string, max: number) => {
 }
 
 /** 열린 회차의 장면 계획(kind=scene)을 목록 순서대로 비트로 쓴다: 비트 문장은 `제목: 내용`(내용이 비면 제목만)을 200자로 자르고 최대 8개. */
-export function planBeats(plans: Pick<StoryPlan, 'kind' | 'episodeNumber' | 'title' | 'content'>[], episode: number | null) {
-  const used = episode === null ? [] : plans.filter((plan) => plan.kind === 'scene' && plan.episodeNumber === episode).slice(0, SIM_BEATS_MAX)
+export function planBeats(plans: (Pick<StoryPlan, 'kind' | 'episodeNumber' | 'title' | 'content'> & Partial<Pick<StoryPlan, 'position' | 'episodeMissing'>>)[], episode: number | null) {
+  const used = episode === null ? [] : scenePlans(plans, episode).slice(0, SIM_BEATS_MAX)
   return used.map((plan) => cut([plan.title.trim(), plan.content.trim()].filter(Boolean).join(': '), SIM_BEAT_MAX))
 }
 

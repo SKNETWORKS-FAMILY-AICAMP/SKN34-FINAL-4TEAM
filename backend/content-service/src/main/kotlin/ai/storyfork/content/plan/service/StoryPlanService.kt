@@ -24,7 +24,7 @@ class StoryPlanService(
 ) {
     fun list(workId: String, owner: String): StoryPlanListResponse {
         access.own(workId, owner)
-        return StoryPlanListResponse(plans.findAllByWorkIdAndDeletedAtIsNullOrderByCreatedAtAscIdAsc(workId).map(::response))
+        return StoryPlanListResponse(plans.findAllByWorkIdAndDeletedAtIsNullOrderByCreatedAtAscIdAsc(workId).sortedBy {it.position}.map(::response))
     }
     fun read(workId: String, owner: String, id: String): StoryPlanResponse {
         access.own(workId, owner)
@@ -35,6 +35,7 @@ class StoryPlanService(
         checkContent(data.revision==0,409,"새 계획의 편집 번호를 확인해 주세요.")
         val episodeId=validate(workId, owner, data)
         val row=StoryPlanEntity(id=contentId(), workId=workId)
+        arrange(row, data, episodeId)
         apply(row, data, episodeId)
         plans.save(row)
         return response(row)
@@ -47,6 +48,7 @@ class StoryPlanService(
         val episodeId=validate(workId, owner, data)
         // A deleted episode number must not silently bind to a newly created episode.
         checkContent(row.episodeNumber!=data.episodeNumber || row.episodeNumber==null || row.episodeId==episodeId,409,"연결한 회차가 삭제되거나 바뀌었어요. 회차 연결을 해제하고 저장해 주세요.")
+        arrange(row, data, episodeId)
         apply(row, data, episodeId)
         return response(row)
     }
@@ -85,6 +87,23 @@ class StoryPlanService(
             episodes.findByWorkIdAndSequence(workId,number)?.id ?: throw ContentFailure(422,"연결할 회차를 찾을 수 없어요.")
         }
     }
+    // own() holds the work lock. Move one scene and all affected neighbours atomically.
+    // Scenes still bound to a deleted episode with the same number are excluded, matching the screen's order.
+    private fun arrange(row: StoryPlanEntity, data: StoryPlanRequest, episodeId: String?) {
+        checkContent(data.position==null || (data.kind=="scene" && data.position>=0),message="장면 순서를 확인해 주세요.")
+        if(data.kind!="scene") return
+        val peers=plans.findAllByWorkIdAndDeletedAtIsNullOrderByCreatedAtAscIdAsc(row.workId)
+            .filter {it.id!=row.id && it.kind=="scene" && it.episodeNumber==data.episodeNumber && it.episodeId==episodeId}
+            .sortedBy {it.position}.toMutableList()
+        val target=data.position ?: if(row.kind=="scene" && row.episodeNumber==data.episodeNumber) peers.count {it.position<row.position} else peers.size
+        checkContent(target in 0..peers.size,message="장면 순서를 확인해 주세요.")
+        peers.add(target,row)
+        // A failed revision check throws and rolls back the whole transaction.
+        peers.forEachIndexed { index, peer ->
+            if(peer!==row && peer.position!=index) { revision(peer,peer.revision); peer.revision++ }
+            peer.position=index
+        }
+    }
     private fun apply(row: StoryPlanEntity, data: StoryPlanRequest, episodeId: String?) {
         row.kind=data.kind; row.parentId=data.parentId; row.title=data.title.trim(); row.content=data.content
         row.episodeId=episodeId; row.episodeNumber=data.episodeNumber
@@ -94,6 +113,6 @@ class StoryPlanService(
     }
     private fun response(row: StoryPlanEntity): StoryPlanResponse {
         val missing=row.episodeNumber!=null && (row.episodeId==null || episodes.findById(row.episodeId!!).isEmpty)
-        return StoryPlanResponse(row.id,row.workId,row.kind,row.parentId,row.title,row.content,row.episodeNumber,missing,row.characterIds.toList(),row.placeIds.toList(),row.revision)
+        return StoryPlanResponse(row.id,row.workId,row.kind,row.parentId,row.title,row.content,row.episodeNumber,missing,row.characterIds.toList(),row.placeIds.toList(),row.revision,row.position)
     }
 }

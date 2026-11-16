@@ -1,4 +1,7 @@
 docs/archive/worldstudio-content-extension/*.txt -text
 
+# Keep pnpm patch hashes identical on Windows and Linux checkouts.
+frontend/patches/*.patch text eol=lf
+
 # Preserve Markdown hard breaks and final blank lines in genre source text.
 infrastructure/sample-data/genre-templates/*/source/original.md -text whitespace=-blank-at-eol,-blank-at-eof
