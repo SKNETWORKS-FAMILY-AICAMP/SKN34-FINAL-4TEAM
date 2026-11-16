@@ -1,17 +1,10 @@
 # 크툴루 신화 · 러브크래프트의 선택된 작품
 
-## 읽는 순서
+《크툴루의 부름》과 《던위치의 공포》·《다곤》·《우주에서 온 색채》·《인스머스의 그림자》의 선택된 대목을 다룬다. 화자·증언자·꿈·작중 문헌의 주장과 후대 분류를 구분하며, 후대 작가나 TRPG의 체계를 원작의 사실로 넣지 않는다.
 
-1. [한국어 완역](source/original.md): 《크툴루의 부름》의 제사·머리말·3부 전체. 판본과 번역 안내는 본문과 구분한다.
-2. [세계관 카드](source/tradition-cards.json): 기존 38장과 추가 22장. 기존 카드의 근거는 완역에, 추가 카드의 근거는 아래 보충 자료에 있다.
-3. [추가 원전 근거](source/supplementary.md): 러브크래프트 단독 저작의 원문 링크·대목·짧은 원어 구절. 추가 작품의 번역 전문이나 창작 소설은 포함하지 않는다.
-4. [소스 템플릿](source/template.json): content_markdown은 완역 파일과 같고 setting_bible.sections는 카드와 대응한다.
+[카드](source/tradition-cards.json) 60장과 [템플릿](source/template.json), [출전 위치](source/sources.md)를 제공한다. 한국어 번역 전문과 그 문단의 복제는 보관하지 않는다. [보충 출전](source/supplementary.md)의 기존 원어 발췌와 링크는 유지한다. 카드의 출전·이설은 각각 구분한다. 이 자료는 해당 전승 전체를 망라하지 않는다.
 
-## 범위와 권리
-
-완역은 [《크툴루의 부름》](https://www.hplovecraft.com/writings/texts/fiction/cc.aspx)(1928) 한 작품이다. 보충 카드는 [《던위치의 공포》](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx)(1929), [《다곤》](https://www.hplovecraft.com/writings/texts/fiction/d.aspx)(1919), [《우주에서 온 색채》](https://www.hplovecraft.com/writings/texts/fiction/cs.aspx)(1927), [《인스머스의 그림자》](https://www.gutenberg.org/files/73181/73181-h/73181-h.htm)(1936 초출, 1942년 잡지 전사본)의 선택된 대목만 다루며 전체 신화 백과가 아니다. 연도는 각 작품의 [초출 서지](https://www.hplovecraft.com/writings/fiction/publish.aspx)를 따른다. 원작의 화자·증언자·꿈·작중 문헌의 주장과 그들의 인종적 편견을 객관적 설정으로 격상하지 않는다.
-
-《크툴루의 부름》에 원래 있던 르뤼에와 네크로노미콘 카드 및 모든 기존 키·본문을 유지한다. 《던위치의 공포》의 Old Ones는 작중 책에 나오는 표현이다. 외신·구신은 후대 작가·게임 등에서 사용되는 편집상 분류일 수 있지만, 여기에 다룬 원문이 그것을 통일된 신격 서열로 확정한다고 주장하지 않는다.
+출전 위치는 기존 편집 앵커와 원전 URL·장절을 기록한다. 편집 앵커는 외부 원전의 공식 문단 번호가 아닐 수 있다. 생성기는 링크·앵커와 보충 발췌 해시를 검사하지만 번역 문단의 정확 일치나 원전에서 카드의 사실 관계를 자동 검증하지 못한다. 원전 대조와 해석은 편집 검토가 필요하다.
 
 《인스머스의 그림자》의 카드 근거는 [Project Gutenberg의 Weird Tales 1942년 1월호 전사본](https://www.gutenberg.org/files/73181/73181-h/73181-h.htm)이다. 이 전사자의 주석은 **1942년 출판물의 미국 저작권 갱신 증거를 조사했으나 찾지 못했다**고 말하며, [도서 페이지](https://www.gutenberg.org/ebooks/73181)는 미국 퍼블릭 도메인이라고 표시한다. 이는 1936년 단행본의 갱신 여부에 관한 주장이 아니다.
 
@@ -19,6 +12,14 @@
 
 《광기의 산맥》(1936), 《어둠 속의 속삭임》(1931)은 미국 내 권리 상태를 확정하지 못해 제외한다.
 
-## 검증과 반영 범위
+## 참고 링크
 
-추가 카드의 짧은 인용은 명시한 영어 원전의 해당 부 또는 본문에서 대조했다. 각 카드와 템플릿의 본문·유형·근거는 일치하며 보충 앵커를 가리킨다. 기존 번역 전문과 템플릿의 content_markdown, 기존 38장 및 섹션 ID·순서는 보존한다. 런타임 JSON 재생성과 전체 검증은 통합 단계에서 수행한다.
+- <https://www.hplovecraft.com/writings/texts/fiction/cc.aspx>
+- <https://www.hplovecraft.com/writings/texts/fiction/dh.aspx>
+- <https://www.hplovecraft.com/writings/texts/fiction/d.aspx>
+- <https://www.hplovecraft.com/writings/texts/fiction/cs.aspx>
+- <https://www.gutenberg.org/files/73181/73181-h/73181-h.htm>
+- <https://www.hplovecraft.com/writings/fiction/publish.aspx>
+- <https://www.gutenberg.org/ebooks/73181>
+- <https://en.wikisource.org/wiki/The_Shadow_Over_Innsmouth_(1936)>
+- <https://gutenberg.net.au/ebooks15/1500511h.html>

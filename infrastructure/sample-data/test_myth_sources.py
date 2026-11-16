@@ -178,7 +178,7 @@ class MythSourceTest(unittest.TestCase):
         self.assertEqual(11, len(legacy))
         self.assertEqual(manifest['legacy_genres_sha256'], digest(legacy))
 
-    # 원전 문서·카드 일치는 새 형식(tradition-cards.json)을 읽는 genre-templates/test_traditions.py가 검사한다.
+    # 출처 연결과 카드·템플릿 일치는 genre-templates/test_traditions.py가 검사한다.
     def test_runtime_has_twenty_six_worlds_and_1254_cards(self):
         runtime = read_json(RESOURCES / 'genre-templates.json')
         self.assertEqual(26, len(runtime))

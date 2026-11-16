@@ -15,14 +15,14 @@ def variant_problems(card, documents=None):
     """'이설'이라고 쓴 카드는 출처별로 갈리는 근거를 보여야 한다. 쓰지 않은 카드에는 아무것도 요구하지 않는다."""
     if "이설" not in card["title"] + card["body"]:
         return []
-    sections = {(ref.get("document", "original.md"), ref["section"]) for ref in card["narrative_refs"]}
+    sections = {(ref.get("document", "sources.md"), ref["section"]) for ref in card["narrative_refs"]}
     # 각 출전 링크와 설명이 같은 줄에 있어야 출처별 주장을 구분할 수 있다.
     claims = re.findall(r"(?m)^\s*[-*]\s*\[([^\]]+)\]\((https?://[^)]+)\)\s*:\s*(.+)$", card["body"])
     cited = set()
     for document, section in sections:
         text = (documents or {}).get(document, {}).get(section, "")
         cited.update(url.split("#")[0] for url in re.findall(r"https?://[^\s)\]]+", text))
-        if document == "original.md":
+        if document == "sources.md":
             cited.update((documents or {}).get("original_sources", set()))
     supported = [(url.split("#")[0], claim.strip()) for _, url, claim in claims
                  if len(claim.strip()) >= 10 and url.split("#")[0] in cited]
@@ -87,6 +87,22 @@ class TraditionCatalogTest(unittest.TestCase):
     def setUp(self):
         self.current = catalog.read(catalog.RESOURCES / "genre-templates.json")
 
+    def test_tradition_sources_keep_locations_without_translation_or_evidence(self):
+        for genre in catalog.TRADITIONS:
+            with self.subTest(genre=genre):
+                source = catalog.ROOT / genre / "source"
+                data = catalog.read(source / "tradition-cards.json")
+                template = catalog.read(source / "template.json")
+                self.assertFalse((source / "original.md").exists())
+                self.assertNotIn("content_markdown", template)
+                self.assertEqual("sources.md", data["narrative"])
+                catalog.validate_narrative(data, (source / "sources.md").read_text(encoding="utf-8"),
+                                           catalog.read_supplementary(genre))
+                for card, section in zip(data["cards"], template["setting_bible"]["sections"]):
+                    self.assertEqual(card["narrative_refs"], section["narrative_refs"])
+                    for ref in card["narrative_refs"]:
+                        self.assertEqual({"document", "section"} | ({"excerpt_sha256"} if ref["document"] == "supplementary.md" else set()), set(ref))
+
     def test_original_eleven_frozen_resources_are_unchanged(self):
         expected = "333e2e2f970881ab2533312ec5c523e74f70cccf0c1f33bc356b274c22c538b8"
         records = catalog.read(catalog.RESOURCES / "genre-templates-v1.json")
@@ -95,9 +111,18 @@ class TraditionCatalogTest(unittest.TestCase):
         self.assertEqual(list(catalog.LEGACY), [t["genre"] for t in catalog.read(catalog.RESOURCES / "genre-templates-v1.json")])
 
     def test_runtime_catalog_is_reproducible_and_includes_all_fifteen_traditions(self):
+        runtime = (catalog.RESOURCES / "genre-templates.json").read_bytes()
+        self.assertEqual("49a3a75f517ae461a42c0cc22d6d81b248af74b2e4d41a6338189b43ae2afe4a", hashlib.sha256(runtime).hexdigest())
         self.assertEqual(self.current, catalog.build(self.current))
         self.assertEqual(list(catalog.LEGACY + catalog.TRADITIONS), [t["genre"] for t in self.current])
         self.assertEqual(catalog.build(self.current), catalog.build(catalog.build(self.current)))
+
+    def test_original_source_urls_and_migrated_locations_are_unchanged(self):
+        sources = {g: catalog.read(catalog.ROOT / g / "source/tradition-cards.json")["sources"] for g in catalog.TRADITIONS}
+        indexes = {g: (catalog.ROOT / g / "source/sources.md").read_text(encoding="utf-8") for g in catalog.TRADITIONS}
+        digest = lambda obj: hashlib.sha256(json.dumps(obj, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+        self.assertEqual("e2a9ac512120ae23ff9d541f383b2370eeb9879578c319de3e532d9d371a5208", digest(sources))
+        self.assertEqual("8686ca514812153f499341b817e0ee0db48f90e6f449d196ecdd7a141a44cbbe", digest(indexes))
 
     def test_source_documents_match_cards_without_creative_scaffold(self):
         for genre in catalog.TRADITIONS:
@@ -105,7 +130,7 @@ class TraditionCatalogTest(unittest.TestCase):
             data = catalog.read(directory / "tradition-cards.json")
             template = catalog.read(directory / "template.json")
             self.assertNotIn("basic_template", template, genre)
-            self.assertEqual(template["content_markdown"], (directory / "original.md").read_text(encoding="utf-8-sig"), genre)
+            self.assertNotIn("content_markdown", template, genre)
             sections = template["setting_bible"]["sections"]
             self.assertEqual(len(data["cards"]), len(sections), genre)
             for card, section in zip(data["cards"], sections):
@@ -115,46 +140,18 @@ class TraditionCatalogTest(unittest.TestCase):
                 self.assertNotIn("도입 예시", section["template_part"], genre)
             self.assertTrue(data["sources"], genre)
 
-    def test_narrative_references_are_required_and_resolve_to_exact_evidence(self):
-        text = '<a id="creation"></a>\n\n## Creation\n\nThe world is formed from the first beings.\n'
-        data = {"narrative": "original.md", "cards": [{
-            "title": "Creation", "narrative_refs": [{
-                "section": "creation", "evidence": "The world is formed from the first beings."
-            }]
-        }]}
-        catalog.validate_narrative(data, text)
-        for bad in ([], [{"section": "missing", "evidence": "The world"}],
-                    [{"section": "creation", "evidence": "Not in the narrative"}]):
-            data["cards"][0]["narrative_refs"] = bad
-            with self.assertRaises(AssertionError):
-                catalog.validate_narrative(data, text)
-
-    def test_all_tradition_cards_are_derived_from_separate_narratives(self):
-        narratives = []
+    def test_source_refs_resolve_without_translation_and_card_bodies_are_distinct(self):
         for genre in catalog.TRADITIONS:
             with self.subTest(genre=genre):
                 directory = catalog.ROOT / genre / "source"
                 data = catalog.read(directory / "tradition-cards.json")
-                self.assertEqual("original.md", data["narrative"])
-                narrative = (directory / "original.md").read_text(encoding="utf-8")
-                catalog.validate_narrative(data, narrative, catalog.read_supplementary(genre))
                 template = catalog.read(directory / "template.json")
-                for card, section in zip(data["cards"], template["setting_bible"]["sections"]):
-                    self.assertEqual(card["narrative_refs"], section["narrative_refs"])
-                self.assertGreater(len(narrative), 3000)
-                self.assertNotEqual(narrative, "\n\n".join(c["body"] for c in data["cards"]))
-                narratives.append(narrative)
-        self.assertEqual(len(catalog.TRADITIONS), len(set(narratives)))
-
-    def test_worldbuilding_cards_are_distinct_extractions_not_copied_paragraphs(self):
-        for genre in catalog.TRADITIONS:
-            with self.subTest(genre=genre):
-                data = catalog.read(catalog.ROOT / genre / "source/tradition-cards.json")
+                catalog.validate_narrative(data, (directory / "sources.md").read_text(encoding="utf-8"), catalog.read_supplementary(genre))
                 bodies = [c["body"].split("\n\n출전:", 1)[0].strip() for c in data["cards"]]
                 self.assertEqual(len(bodies), len(set(bodies)), "duplicate worldbuilding bodies")
-                for card, body in zip(data["cards"], bodies):
-                    evidence = [ref["evidence"].strip() for ref in card.get("narrative_refs", [])]
-                    self.assertNotIn(body, evidence, card["title"] + ": copied narrative instead of extraction")
+                for card, section in zip(data["cards"], template["setting_bible"]["sections"]):
+                    self.assertEqual(card["narrative_refs"], section["narrative_refs"])
+                    self.assertNotIn("evidence", str(card["narrative_refs"]))
 
     def test_build_rejects_cards_without_a_narrative(self):
         real_read = catalog.read
@@ -182,6 +179,21 @@ class TraditionCatalogTest(unittest.TestCase):
                 with self.assertRaises(AssertionError):
                     catalog.build(self.current)
 
+    def test_build_rejects_invalid_source_and_card_links(self):
+        real_read = catalog.read
+        for mutation in ("source", "card"):
+            def modified(path):
+                data = real_read(path)
+                if path.name == "tradition-cards.json":
+                    if mutation == "source":
+                        data["sources"][0]["url"] = "https://"
+                    else:
+                        data["cards"][0]["body"] = "출전: https://"
+                return data
+            with self.subTest(mutation=mutation), patch.object(catalog, "LEGACY", ()), patch.object(catalog, "read", side_effect=modified):
+                with self.assertRaises(AssertionError):
+                    catalog.build(self.current)
+
     def test_build_reads_supplementary_next_to_original(self):
         genre = "egyptian_mythology"
         with tempfile.TemporaryDirectory() as tmp:
@@ -192,12 +204,12 @@ class TraditionCatalogTest(unittest.TestCase):
             data["cards"].append({
                 "key": "supplement-test", "title": "보충 카드", "cardType": "event",
                 "body": "보충 출전에서 가져온 사건.\n\n출전: [예시](https://example.test/x).",
-                "narrative_refs": [{"document": "supplementary.md", "section": "supp-1", "evidence": "원어 발췌"}],
+                "narrative_refs": [{"document": "supplementary.md", "section": "supp-1", "excerpt_sha256": hashlib.sha256("원어 발췌".encode()).hexdigest()}],
             })
             (source / "tradition-cards.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
             supplementary = source / "supplementary.md"
             with supplementary.open("a", encoding="utf-8") as file:
-                file.write('\n<a id="supp-1"></a>\n\nURL: https://example.test/x\n원어 발췌\n')
+                file.write('\n<a id="supp-1"></a>\n\nURL: https://example.test/x\n> 원어 발췌\n')
             with patch.object(catalog, "ROOT", root), patch.object(catalog, "LEGACY", ()), patch.object(catalog, "TRADITIONS", (genre,)):
                 built = catalog.build(self.current)
                 self.assertEqual("보충 카드", built[-1]["cards"][-1]["title"])
@@ -209,8 +221,8 @@ class TraditionCatalogTest(unittest.TestCase):
         for genre in catalog.TRADITIONS:
             data = catalog.read(catalog.ROOT / genre / "source/tradition-cards.json")
             cards = data["cards"]
-            original = (catalog.ROOT / genre / "source/original.md").read_text(encoding="utf-8-sig")
-            documents = {"original.md": catalog.anchor_sections(original, "original.md")}
+            original = (catalog.ROOT / genre / "source/sources.md").read_text(encoding="utf-8-sig")
+            documents = {"sources.md": catalog.anchor_sections(original, "sources.md")}
             documents["original_sources"] = {source["url"].split("#")[0] for source in data["sources"]}
             supplementary = catalog.read_supplementary(genre)
             if supplementary is not None:
@@ -220,94 +232,59 @@ class TraditionCatalogTest(unittest.TestCase):
 
 
 class NarrativeDocumentsTest(unittest.TestCase):
-    """original.md 말고 source/supplementary.md도 근거 문서로 쓸 수 있다. 합성 문서로 규칙만 확인한다."""
-    ORIGINAL = '<a id="creation"></a>\n\n## Creation\n\nThe world is formed from the first beings.\n'
-    SUPPLEMENTARY = (
-        '# 보충 출전\n\n'
-        '<a id="iliad-1-1"></a>\n\n## 일리아스 1.1\n\nURL: https://example.test/iliad\n장절: Iliad 1.1\n원어: μῆνιν ἄειδε θεὰ\n\n'
-        '<a id="iliad-2-1"></a>\n\n## 일리아스 2.1\n\nURL: https://example.test/iliad\n장절: Iliad 2.1\n원어: ἄλλοι μέν ῥα θεοί\n'
-    )
-    ORIGINAL_REF = {"section": "creation", "evidence": "The world is formed from the first beings."}
-    SUPP_1 = {"document": "supplementary.md", "section": "iliad-1-1", "evidence": "μῆνιν ἄειδε θεὰ"}
-    SUPP_2 = {"document": "supplementary.md", "section": "iliad-2-1", "evidence": "ἄλλοι μέν ῥα θεοί"}
+    SOURCE = '<a id="creation"></a>\n위치: 제1장\nURL: https://example.test/original\n'
+    SUPPLEMENTARY = '<a id="supp-1"></a>\n위치: 제2장\nURL: https://example.test/supp\n> 원어 발췌\n'
+    ORIGINAL_REF = {"document": "sources.md", "section": "creation"}
+    SUPP_REF = {"document": "supplementary.md", "section": "supp-1", "excerpt_sha256": hashlib.sha256("원어 발췌".encode()).hexdigest()}
 
-    def validate(self, *cards, supplementary=SUPPLEMENTARY, narrative="original.md"):
-        data = {"narrative": narrative, "cards": [
-            {"title": "Card %d" % i, "narrative_refs": refs} for i, refs in enumerate(cards)]}
-        catalog.validate_narrative(data, self.ORIGINAL, *(() if supplementary is None else (supplementary,)))
+    def validate(self, refs, source=SOURCE, supplementary=SUPPLEMENTARY, narrative="sources.md"):
+        catalog.validate_narrative({"narrative": narrative, "cards": [{"title": "Card", "narrative_refs": refs}]}, source, supplementary)
 
-    def rejected(self, *cards, **kwargs):
+    def test_both_documents_resolve(self):
+        self.validate([self.ORIGINAL_REF, self.SUPP_REF])
+        self.validate([self.ORIGINAL_REF], supplementary=None)
+
+    def test_missing_or_invalid_refs_are_rejected(self):
+        for refs in ([], [{**self.ORIGINAL_REF, "document": "../sources.md"}],
+                     [{**self.ORIGINAL_REF, "section": "missing"}],
+                     [{**self.ORIGINAL_REF, "evidence": "번역 문단"}],
+                     [{**self.SUPP_REF, "excerpt_sha256": "bad"}]):
+            with self.subTest(refs=refs), self.assertRaises(AssertionError):
+                self.validate(refs)
         with self.assertRaises(AssertionError):
-            self.validate(*cards, **kwargs)
+            self.validate([self.SUPP_REF], supplementary=None)
+        with self.assertRaises(AssertionError):
+            self.validate([self.ORIGINAL_REF], narrative="original.md")
 
-    def test_cards_may_cite_original_and_supplementary_documents(self):
-        self.validate([self.ORIGINAL_REF, self.SUPP_1],  # 복수 출처
-                      [self.SUPP_1, self.SUPP_2],  # 보충 출처만
-                      [self.ORIGINAL_REF],  # 기존 형식: document가 없으면 original.md
-                      [{**self.ORIGINAL_REF, "document": "original.md"}])
-        self.validate([self.ORIGINAL_REF], supplementary=None)  # 보충 문서가 없는 기존 장르
+    def test_source_url_location_and_unique_anchors_are_required(self):
+        for source in (self.SOURCE.replace("https://example.test/original", "https://"),
+                       self.SOURCE.replace("위치: 제1장", "위치:"),
+                       self.SOURCE + self.SOURCE, "no anchor"):
+            with self.subTest(source=source), self.assertRaises(AssertionError):
+                self.validate([self.ORIGINAL_REF], source=source)
+        with self.assertRaises(AssertionError):
+            self.validate([self.SUPP_REF], supplementary=self.SUPPLEMENTARY.replace("원어 발췌", "변경된 발췌"))
+        with self.assertRaises(AssertionError):
+            self.validate([self.SUPP_REF], supplementary=self.SUPPLEMENTARY.replace("https://example.test/supp", "https://"))
 
-    def test_unknown_unavailable_or_escaping_documents_are_rejected(self):
-        for document in ("other.md", "../original.md", "/etc/passwd", "source/supplementary.md",
-                         "supplementary.md/..", "SUPPLEMENTARY.md", "", None, ["supplementary.md"]):
-            with self.subTest(document=document):
-                self.rejected([{**self.ORIGINAL_REF, "document": document}], supplementary=None)
-                self.rejected([{**self.ORIGINAL_REF, "document": document}])
-                self.rejected([{**self.SUPP_1, "document": document}])
-        self.rejected([self.SUPP_1], supplementary=None)  # supplementary.md가 없는 장르
-
-    def test_anchor_and_excerpt_must_belong_to_the_cited_document(self):
-        for ref in (
-            {**self.SUPP_1, "section": "missing"},  # 없는 앵커
-            {**self.SUPP_1, "evidence": self.SUPP_2["evidence"]},  # 다른 앵커의 발췌
-            {**self.SUPP_1, "evidence": "not in any document"},  # 없는 발췌
-            {**self.SUPP_1, "evidence": "  "},  # 빈 발췌
-            {**self.SUPP_1, "evidence": self.ORIGINAL_REF["evidence"]},  # original.md 문장을 보충 근거로 인용
-            {"section": "iliad-1-1", "evidence": self.SUPP_1["evidence"]},  # document를 생략하면 original.md다
-            {**self.ORIGINAL_REF, "document": "supplementary.md"},  # 보충 문서에 original.md 앵커를 인용
-        ):
-            with self.subTest(ref=ref):
-                self.rejected([ref])
-
-    def test_supplementary_needs_unique_anchors_and_a_source_url(self):
-        no_url = self.SUPPLEMENTARY.replace("https://example.test/iliad", "출전 없음")
-        duplicate = self.SUPPLEMENTARY + '<a id="iliad-1-1"></a>\n\nURL: https://example.test/iliad\n'
-        for text in (no_url, duplicate, "# 앵커 없는 보충 문서\n"):
-            with self.subTest(text=text[:24]):
-                self.rejected([self.SUPP_1], supplementary=text)
-        for broken in (duplicate, "# 앵커 없는 보충 문서\n"):
-            self.rejected([self.ORIGINAL_REF], supplementary=broken)  # 인용하지 않아도 깨진 문서는 거절한다
-
-    def test_source_url_and_excerpt_cannot_be_empty_or_the_same(self):
-        for text, evidence in (
-            ('<a id="iliad-1-1"></a>\nhttps://\nμῆνιν', 'μῆνιν'),
-            ('<a id="iliad-1-1"></a>\nhttps://example.test/source', 'https://example.test/source'),
-        ):
-            with self.subTest(text=text):
-                self.rejected([{**self.SUPP_1, 'evidence': evidence}], supplementary=text)
-
-    def test_supplementary_excerpts_stay_short(self):
-        text = '<a id="long"></a>\n\nURL: https://example.test/\n' + "α" * (catalog.MAX_SUPPLEMENTARY_EVIDENCE + 1) + "\n"
-        ref = {"document": "supplementary.md", "section": "long"}
-        self.validate([{**ref, "evidence": "α" * catalog.MAX_SUPPLEMENTARY_EVIDENCE}], supplementary=text)
-        self.rejected([{**ref, "evidence": "α" * (catalog.MAX_SUPPLEMENTARY_EVIDENCE + 1)}], supplementary=text)
-
-    def test_narrative_stays_the_original_document(self):
-        self.rejected([self.SUPP_1], narrative="supplementary.md")
-
-    def test_original_document_keeps_its_anchor_rules(self):
-        data = {"narrative": "original.md", "cards": [{"title": "Card", "narrative_refs": [self.ORIGINAL_REF]}]}
-        for text in ("## 앵커 없는 원고\n", self.ORIGINAL + self.ORIGINAL):
-            with self.subTest(text=text[:12]), self.assertRaises(AssertionError):
-                catalog.validate_narrative(data, text)
+    def test_supplementary_excerpt_is_required_and_limited_to_500_characters(self):
+        for value, accepted in (("가" * 500, True), ("가" * 501, False), ("https://example.test/supp", False)):
+            ref = {**self.SUPP_REF, "excerpt_sha256": hashlib.sha256(value.encode()).hexdigest()}
+            document = self.SUPPLEMENTARY.replace("원어 발췌", value)
+            with self.subTest(length=len(value)):
+                if accepted:
+                    self.validate([ref], supplementary=document)
+                else:
+                    with self.assertRaises(AssertionError):
+                        self.validate([ref], supplementary=document)
 
 
 class VariantRuleTest(unittest.TestCase):
     """이설: '이설'이라고 쓴 카드만 출처별 근거를 요구한다. 모든 전승에 이설이 있다고 가정하지 않는다."""
-    A = {"section": "a", "evidence": "x"}
-    B = {"document": "supplementary.md", "section": "b", "evidence": "y"}
+    A = {"document": "sources.md", "section": "a"}
+    B = {"document": "supplementary.md", "section": "b"}
     TWO_SOURCES = "이설: 두 전승이 갈린다.\n\n출전: [가](https://a.test/x#1), [나](https://b.test/y)."
-    DOCUMENTS = {"original.md": {"a": "https://a.test/x#1 x"},
+    DOCUMENTS = {"sources.md": {"a": "https://a.test/x#1 x"},
                  "supplementary.md": {"b": "https://b.test/y y"}}
     DISTINCT = "이설:\n- [가](https://a.test/x#1): 영웅이 바다에서 죽었다고 전한다.\n- [나](https://b.test/y): 영웅이 고향에서 죽었다고 전한다."
 
@@ -320,7 +297,7 @@ class VariantRuleTest(unittest.TestCase):
         for body, refs in ((self.TWO_SOURCES, [self.A]), (self.TWO_SOURCES, [self.A, dict(self.A)]), (same_page, [self.A, self.B])):
             with self.subTest(body=body[:12], refs=len(refs)):
                 self.assertTrue(variant_problems(self.card(body, refs), self.DOCUMENTS))
-        self.assertTrue(variant_problems(self.card(self.DISTINCT, [self.A, self.B]), {"original.md": self.DOCUMENTS["original.md"]}))
+        self.assertTrue(variant_problems(self.card(self.DISTINCT, [self.A, self.B]), {"sources.md": self.DOCUMENTS["sources.md"]}))
 
     def test_cards_without_variants_are_not_required_to_have_them(self):
         plain = "한 출전만 쓴다.\n\n출전: [가](https://a.test/x)."

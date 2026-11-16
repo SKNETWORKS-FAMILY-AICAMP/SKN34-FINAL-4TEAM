@@ -4,9 +4,11 @@ Run from any directory with Python 3: python build_traditions.py [--check].
 This prepares local JSON only. It never connects to a database or server.
 """
 import argparse
+import hashlib
 import json
 import re
 from pathlib import Path
+from urllib.parse import urlsplit
 from uuid import UUID, NAMESPACE_URL, uuid5
 
 ROOT = Path(__file__).resolve().parent
@@ -24,7 +26,14 @@ TRADITIONS = (
     "maya_mythology", "aztec_mythology", "journey_to_the_west",
 )
 TYPES = {"character", "location", "organization", "ability", "object", "rule", "event", "other"}
-MAX_SUPPLEMENTARY_EVIDENCE = 500  # supplementary.md의 발췌는 짧은 인용이다(글자 수)
+
+
+def valid_url(url):
+    try:
+        parsed = urlsplit(url)
+        return parsed.scheme in {"http", "https"} and bool(parsed.hostname and "." in parsed.hostname)
+    except ValueError:
+        return False
 
 
 def read(path):
@@ -45,30 +54,30 @@ def anchor_sections(text, name):
 
 
 def validate_narrative(data, text, supplementary=None):
-    """Check editorial traceability, not automatic factual entailment.
-
-    A ref's document is original.md unless it says supplementary.md, which holds sources the single original
-    does not cover (a short excerpt under an anchor that also gives the source URL). Documents are looked up
-    by exact name; the ref never builds a path.
-    """
-    assert data.get("narrative") == "original.md", "narrative must be the local source document"
-    documents = {"original.md": anchor_sections(text, "original.md")}
+    """Check source links and locations; they do not prove a card's claims."""
+    assert data.get("narrative") == "sources.md", "narrative must be the source index"
+    documents = {"sources.md": anchor_sections(text, "sources.md")}
     if supplementary is not None:
         documents["supplementary.md"] = anchor_sections(supplementary, "supplementary.md")
     for card in data["cards"]:
         refs = card.get("narrative_refs")
         assert refs, card["title"] + ": missing narrative evidence"
         for ref in refs:
-            document = ref.get("document", "original.md")
+            document = ref["document"]
+            fields = {"document", "section"} | ({"excerpt_sha256"} if document == "supplementary.md" else set())
+            assert set(ref) == fields, card["title"] + ": invalid source reference"
             assert isinstance(document, str) and document in documents, card["title"] + ": unknown narrative document"
             assert ref["section"] in documents[document], card["title"] + ": unknown narrative section"
             section = documents[document][ref["section"]]
-            assert ref["evidence"].strip() and ref["evidence"] in section, card["title"] + ": stale evidence"
-            if document == "supplementary.md":
-                urls = re.findall(r"https?://[^\s)\]]+", section)
-                assert any(re.match(r"https?://[^/\s.]+(?:\.[^/\s.]+)+", url) for url in urls), card["title"] + ": supplementary section has no source URL"
-                assert not any(ref["evidence"] in url for url in urls), card["title"] + ": excerpt is a URL"
-                assert len(ref["evidence"]) <= MAX_SUPPLEMENTARY_EVIDENCE, card["title"] + ": supplementary excerpt too long"
+            urls = re.findall(r"https?://[^\s\]]+", section)
+            assert any(valid_url(url) for url in urls), card["title"] + ": section has no source URL"
+            if document == "sources.md":
+                assert re.search(r"(?m)^위치: \S", section), card["title"] + ": missing source location"
+            else:
+                excerpts = re.findall(r"(?m)^(?:>\s*|- 원어 발췌:\s*)(.+)$", section) + re.findall(r"`([^`]+)`", section)
+                assert any(0 < len(excerpt) <= 500 and not valid_url(excerpt)
+                           and hashlib.sha256(excerpt.encode()).hexdigest() == ref["excerpt_sha256"]
+                           for excerpt in excerpts), card["title"] + ": missing or changed supplementary excerpt"
 
 
 def build_creative_world(world, data, template):
@@ -106,7 +115,8 @@ def build(current):
     for genre in TRADITIONS:
         data = read(ROOT / genre / "source/tradition-cards.json")
         assert data["genre"] == genre and data["sources"], genre
-        validate_narrative(data, (ROOT / genre / "source/original.md").read_text(encoding="utf-8-sig"),
+        assert all(valid_url(source["url"]) for source in data["sources"]), genre + ": invalid source URL"
+        validate_narrative(data, (ROOT / genre / "source/sources.md").read_text(encoding="utf-8-sig"),
                            read_supplementary(genre))
         world_id = by_genre.get(genre, {}).get("worldId") or str(uuid5(
             NAMESPACE_URL, "storyfork:tradition:" + genre))
@@ -118,7 +128,7 @@ def build(current):
             assert card["cardType"] in TYPES, card["title"]
             assert 0 < len(card["title"]) <= 200, card["title"]
             assert 0 < len(card["body"]) <= 3000, card["title"]
-            assert "http" in card["body"], card["title"]
+            assert any(valid_url(url) for url in re.findall(r"https?://[^\s\]]+", card["body"])), card["title"]
             cards.append({
                 "id": str(uuid5(UUID(world_id), "tradition:" + card["key"])),
                 "title": card["title"], "body": card["body"],
