@@ -1,0 +1,942 @@
+{
+  "genre": "korean_mythology_fables",
+  "name": "한국 신화 · 동명왕편과 고조선 전승",
+  "scope": "카드는 이규보 「동명왕편」과 별도로 《삼국유사》 권1 고조선의 「고기」 인용을 대표 예시로 보완한다. 주몽과 단군의 전승을 통합 계보로 만들지 않으며, 바리공주와 제주 본풀이는 직접 확인한 구술 원문을 확보하지 못해 수록하지 않는다.",
+  "sources": [
+    {
+      "title": "동국이상국전집 권3 고율시: 동명왕편, 서문 포함 한문 전사",
+      "url": "https://db.history.go.kr/id/mudg_005_0010_0010"
+    },
+    {
+      "title": "삼국유사 권1 기이1 고조선, 고기 인용 (국사편찬위원회 교감 전사)",
+      "url": "https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020"
+    }
+  ],
+  "cards": [
+    {
+      "key": "scope",
+      "title": "서문과 기록의 성격",
+      "cardType": "rule",
+      "body": "작가는 처음에는 신이한 이야기를 배척했으나 『구삼국사』를 거듭 읽고 성스러운 건국의 자취라고 판단한다. 이 판단과 시·작가자주의 증언 층위를 유지하며, 다른 문헌의 빈칸을 보충하는 통합 신화로 만들지 않는다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-preface"
+        }
+      ]
+    },
+    {
+      "key": "haeburu",
+      "title": "해부루",
+      "cardType": "character",
+      "body": "부여의 왕으로 산천에 후사를 빌다가 금빛 개구리 모양의 아이를 얻어 금와라는 이름으로 기른다. 아란불의 권고에 따라 가섭원으로 도읍을 옮기며 동부여의 이름이 나온다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-note-002"
+        }
+      ]
+    },
+    {
+      "key": "geumwa",
+      "title": "금와",
+      "cardType": "character",
+      "body": "해부루가 거두어 태자로 삼은 아이이며, 뒤에는 왕으로서 유화를 별궁에 둔다. 주몽의 알을 버리게 했다가 짐승들의 보호를 확인하고 어머니에게 돌려주며, 장성한 주몽에게 말 기르는 일을 맡긴다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-note-002"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-020"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-023"
+        }
+      ]
+    },
+    {
+      "key": "haemosu",
+      "title": "해모수",
+      "cardType": "character",
+      "body": "해모수는 천제의 아들로 부여의 옛 도읍에 내려와 웅심산에 머물다 내려온다. 다섯 용 수레와 흰 고니를 탄 백여 시종, 오색구름과 음악이 동반한다. 아침에는 정사를 보고 저녁에는 하늘 궁궐로 돌아가므로 천왕랑이라 불린다. 작가는 하늘과 땅 사이의 ‘이억만 팔천칠백팔십 리’를 들어 그 왕래에 감탄한다. 하백과 변신을 겨뤄 혼인을 인정받지만 유화를 남기고 홀로 승천한다. 시가 제시한 거리와 연대를 현대 수치나 다른 전승으로 고치지 않는다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-002"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-003"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-003"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-004"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-004"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-005"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-017"
+        }
+      ]
+    },
+    {
+      "key": "habaek",
+      "title": "하백",
+      "cardType": "character",
+      "body": "유화·훤화·위화의 아버지다. 해모수에게 혼인의 예법을 요구하고 변신 능력을 시험한다. 혼인 뒤 해모수가 홀로 떠나자 유화를 벌하여 우발수로 내쫓는다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-note-006"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-013"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-017"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-018"
+        }
+      ]
+    },
+    {
+      "key": "yuhwa",
+      "title": "유화",
+      "cardType": "character",
+      "body": "하백의 맏딸로 해모수와 인연을 맺고 금와의 별궁에서 주몽을 낳는다. 아들의 출발을 돕기 위해 준마를 고르고 곡식 씨앗을 보내며, 주몽은 보리를 가져온 비둘기를 어머니의 사자로 여긴다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-note-006"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-011"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-020"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-025"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-030"
+        }
+      ]
+    },
+    {
+      "key": "jumong",
+      "title": "주몽",
+      "cardType": "character",
+      "body": "알에서 태어나 어린 때부터 활을 잘 쏘는 천제의 손자이자 하백의 외손자다. 부여에서 벗어나 강을 건너고 왕도를 세우며, 송양과 겨루어 항복을 받는 이 작품의 건국 주인공이다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-note-020"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-021"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-028"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-031"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-036"
+        }
+      ]
+    },
+    {
+      "key": "daeso",
+      "title": "대소",
+      "cardType": "character",
+      "body": "금와의 태자다. 주몽의 비범한 용맹과 눈빛을 위협으로 보고 일찍 대책을 세우지 않으면 후환이 생긴다고 왕에게 말한다. 이 작품 밖의 후대 전쟁 행적은 더하지 않는다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-note-022"
+        }
+      ]
+    },
+    {
+      "key": "yuri",
+      "title": "유리",
+      "cardType": "character",
+      "body": "아버지의 신원을 묻고 수수께끼를 풀어 부러진 검을 찾아오는 아들이다. 고구려에서 검의 다른 조각을 맞추고 햇빛을 타는 신성한 능력을 보인 뒤 태자로 세워진다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-note-039"
+        }
+      ]
+    },
+    {
+      "key": "songyang",
+      "title": "송양",
+      "cardType": "character",
+      "body": "비류의 왕으로 선인의 후손임과 오래된 왕통을 내세워 주몽을 속국으로 삼으려 한다. 활쏘기와 왕권의 위의를 둘러싸고 경쟁하다가 홍수 뒤 온 나라를 들어 항복한다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-note-032"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-033"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-034"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-036"
+        }
+      ]
+    },
+    {
+      "key": "transformation_trial",
+      "title": "하백과 해모수의 변신 겨루기",
+      "cardType": "event",
+      "body": "해모수는 하백이 바꾼 모습에 맞추어 수달·승냥이·매로 변해 대응한다. 하백은 이를 천제의 아들임을 확인하는 시험으로 받아들여 혼인을 허락하며, 시와 자주에 적힌 세부 순서는 각각 유지한다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-014"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-017"
+        }
+      ]
+    },
+    {
+      "key": "egg_birth",
+      "title": "알의 보호와 주몽의 출생",
+      "cardType": "event",
+      "body": "금와는 유화가 해모수의 아내임을 알고 별궁에 둔다. 햇빛으로 임신하여 알을 낳는 대목에서 시는 되만 한 알, 자주는 왼쪽 겨드랑이에서 나온 다섯 되쯤의 알로 서술한다. 자주에는 신작 4년 계해년 여름 4월이라고 적힌다. 말과 짐승이 버려진 알을 해치지 않고 흐린 날에도 햇빛이 비치므로 어머니에게 돌려준다. 알이 갈라져 사내아이가 나오며 자주는 한 달이 되기 전 말을 했다고 적는다. 시와 자주의 수량·시점 차이를 임의로 통일하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-020"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-020"
+        }
+      ]
+    },
+    {
+      "key": "swift_horse",
+      "title": "주몽의 준마",
+      "cardType": "object",
+      "body": "높은 울타리를 뛰어넘는 붉은 말을 유화와 주몽이 골라낸다. 주몽은 혀뿌리에 바늘을 꽂아 여위게 한 뒤 왕에게 그 말을 받아, 바늘을 뽑고 다시 먹여 출발을 준비한다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-note-025"
+        }
+      ]
+    },
+    {
+      "key": "river_crossing",
+      "title": "주몽의 강 건너기",
+      "cardType": "event",
+      "body": "엄체수에 이른 주몽은 배가 없자 하늘과 하백에 닿는 혈통을 밝히며 도움을 구한다. 활로 물을 치자 물고기와 자라가 다리를 만들고, 일행이 건넌 뒤 추격병이 오르자 다리가 사라진다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-027"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-027"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-028"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-028"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-029"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-029"
+        }
+      ]
+    },
+    {
+      "key": "grain_doves",
+      "title": "보리 씨앗과 비둘기",
+      "cardType": "event",
+      "body": "유화가 오곡 씨앗을 싸 주었으나 주몽은 보리를 잊는다. 그는 비둘기 한 쌍을 어머니의 사자로 여겨 쏘아 잡고 목에서 씨앗을 얻은 뒤, 물을 뿜어 새들을 되살려 보낸다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-030"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-030"
+        }
+      ]
+    },
+    {
+      "key": "royal_capital",
+      "title": "동명왕의 왕도와 골령",
+      "cardType": "location",
+      "body": "지세가 좋은 곳에 왕도가 열리고 임금과 신하의 자리가 정해진다. 이후 골령의 검은 구름 속에서 공사 소리가 나고 성곽과 궁대가 나타난다. 이 작품에 없는 도시의 세부 지도를 덧붙이지 않는다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-031"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-031"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-037"
+        }
+      ]
+    },
+    {
+      "key": "drums_horns",
+      "title": "비류의 북과 나팔",
+      "cardType": "object",
+      "body": "새 나라의 왕례와 위의를 갖추기 위해 부분노가 비류에서 가져오는 물건이다. 송양이 와서 확인할 때에는 오래된 물건처럼 빛깔이 변해 소유권을 다투지 못하는 장면으로 이어진다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-033"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-033"
+        }
+      ]
+    },
+    {
+      "key": "flood_submission",
+      "title": "흰 사슴의 울음과 송양의 항복",
+      "cardType": "event",
+      "body": "서쪽 사냥에서 잡은 흰 큰 사슴을 해원에 거꾸로 매달고, 비류를 잠기게 할 비가 없으면 놓아주지 않겠다고 동명왕이 위협한다. 자주는 큰 사슴의 명칭도 풀이한다. 사슴의 울음이 하늘에 닿아 이레의 장맛비가 내리고 송양은 갈대 줄과 압마로 대응하며 백성들은 줄을 붙든다. 주몽이 채찍으로 물을 그으니 물이 줄고 6월에 송양이 나라를 들어 항복한다. 시와 자주의 갈대 줄·행위자 표현은 각기 유지하며 압마의 종류를 추정하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-035"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-035"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-036"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-036"
+        }
+      ]
+    },
+    {
+      "key": "heavenly_construction",
+      "title": "구름 속 성곽의 완성",
+      "cardType": "event",
+      "body": "골령을 덮은 검은 구름 속에서 수천 명의 공사 소리가 들린다. 왕은 하늘이 성을 쌓는다고 말하며, 이레 뒤 드러난 성곽과 궁대에 하늘에 절한 뒤 들어가 산다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-037"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-037"
+        }
+      ]
+    },
+    {
+      "key": "broken_sword",
+      "title": "유리의 부러진 검",
+      "cardType": "object",
+      "body": "일곱 모가 난 기둥에서 찾은 검 조각이 아버지를 확인하는 신표가 된다. 왕이 보관한 조각과 맞추면 피가 나며 한 자루로 이어지고, 이어서 유리의 신성한 능력을 확인하는 절차가 따른다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-note-039"
+        }
+      ]
+    },
+    {
+      "key": "ascension",
+      "title": "동명왕의 승천과 옥채찍",
+      "cardType": "event",
+      "body": "재위 열아홉 해에 동명왕이 하늘로 올라가 돌아오지 않는다. 자주는 그때 나이가 마흔이었다고 하며, 태자가 남겨진 옥채찍을 용산에 장사 지냈다고 기록한다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-038"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-038"
+        }
+      ]
+    },
+    {
+      "key": "ruler_duty",
+      "title": "나라를 지키는 임금의 책무",
+      "cardType": "rule",
+      "body": "시의 끝은 신이한 건국 이야기에서 후계자의 통치 책임으로 옮겨 간다. 작가는 게으름과 방탕이 선왕의 제사를 끊는다고 경계하고, 너그러움과 어짊 및 예와 의로 나라를 오래 지킬 것을 말한다.\n\n출전: [이규보 「동명왕편」, 서문·작가자주 포함](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-040"
+        }
+      ]
+    },
+    {
+      "key": "ancient_ruler_comparisons",
+      "title": "머리말의 옛 성왕과 신이한 징조",
+      "cardType": "other",
+      "body": "작가는 천황씨·지황씨의 여러 머리, 여절과 큰 별 및 대호 지, 여추와 요광성 및 전욱의 출생을 서두의 비교 사례로 든다. 복희의 희생 마련, 수인의 불, 고제의 명협과 신농의 곡식 비, 여와의 하늘 수선, 우의 치수, 황제의 승천을 위해 온 용을 열거한다. 태고에는 신령한 자취가 많고 후세에는 드물어졌다는 작가의 판단 뒤 한나라 신작 3년 첫여름을 제시하며 자주는 4월 갑인일로 적는다. 이 비교 사례를 주몽 이야기의 같은 시공간에서 일어난 사건으로 합치지 않는다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-001"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-001"
+        }
+      ]
+    },
+    {
+      "key": "aranbul_migration",
+      "title": "아란불과 부여의 도읍 이동",
+      "cardType": "character",
+      "body": "재상 아란불은 하늘에서 자신에게 내려와 그곳에 자손의 나라를 세우려 하니 떠나라고 했다고 해부루에게 전한다. 오곡이 잘 자라는 동해 가 가섭원을 도읍터로 추천하고, 옮긴 나라가 동부여라 불린다. 하늘의 말은 아란불이 전한 말이라는 층위를 유지한다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-note-002"
+        }
+      ]
+    },
+    {
+      "key": "buyeo_geography",
+      "title": "곤연·가섭원·부여의 옛 도읍",
+      "cardType": "location",
+      "body": "곤연의 큰 돌 아래서 해부루가 금빛 개구리 모양 아이를 발견한다. 도읍은 아란불의 권고로 동해 가 가섭원으로 옮겨지고, 해모수는 부여의 옛 도읍으로 내려온다. 해모수의 첫 체류지 웅심산도 자주에 나오지만 이 장소들의 현대 지도상 좌표를 새로 정하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-note-002"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-003"
+        }
+      ]
+    },
+    {
+      "key": "heavenly_regalia",
+      "title": "오룡거·까마귀 깃 관·용광검",
+      "cardType": "object",
+      "body": "해모수의 하강에는 다섯 용이 끄는 수레가 쓰이고, 머리에는 까마귀 깃 관, 허리에는 용광검이 있다. 하백의 나라에 갈 때도 해모수가 하늘을 가리켜 청하자 오룡거가 내려와 유화와 함께 탄다. 검의 전투 능력이나 수레의 제작법은 작품에 없다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-003"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-003"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-012"
+        }
+      ]
+    },
+    {
+      "key": "three_daughters",
+      "title": "유화·훤화·위화의 물가 나들이",
+      "cardType": "character",
+      "body": "하백의 세 딸은 맏이 유화, 둘째 훤화, 막내 위화이다. 청하에서 나와 웅심연 가에서 놀며 패옥 소리와 아름다운 모습이 묘사된다. 작가는 한고의 신녀와 낙수의 물가에 비긴다. 사냥 중 본 해모수는 후사를 얻기 위해 왕비로 삼으려 한다고 말한다. 미적 비유를 세 자매의 다른 정체로 확정하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-006"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-006"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-007"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-007"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-008"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-008"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-009"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-009"
+        }
+      ]
+    },
+    {
+      "key": "river_palaces",
+      "title": "청하·웅심연과 하백의 궁궐",
+      "cardType": "location",
+      "body": "성 북쪽 청하는 작가자주에서 당시의 압록강으로 풀이된다. 하백의 딸들은 청하에서 나와 웅심연 가로 놀러 간다. 물속 하백의 궁궐은 해모수가 바로 들어가지 못한 곳이며, 유화의 권유로 용의 수레를 얻어 바람과 구름 속에 도착한다. 저자의 지리 설명과 신화의 궁궐을 구분한다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-note-005"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-007"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-012"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-012"
+        }
+      ]
+    },
+    {
+      "key": "bronze_house_capture",
+      "title": "구리 집의 술자리와 유화의 붙잡힘",
+      "cardType": "event",
+      "body": "해모수가 다가가면 세 자매는 물속으로 피한다. 신하들의 제안에 따라 채찍으로 땅을 그어 구리 집을 세우고 자리 셋과 술을 마련한 뒤 숨어 기다린다. 취한 자매들 앞을 가로막자 둘은 달아나고 유화가 붙잡힌다. 하백의 항의 뒤 해모수는 들어갈 길이 없어 놓아주려 하지만 유화는 이미 정을 맺어 떠나려 하지 않는다고 자주가 전한다. 처음 붙잡는 행위를 합의된 혼인으로 완곡하게 바꾸지 않는다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-010"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-010"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-011"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-011"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-012"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-012"
+        }
+      ]
+    },
+    {
+      "key": "marriage_rites",
+      "title": "하백이 요구하는 혼인의 예",
+      "cardType": "rule",
+      "body": "하백은 혼인을 큰일이며 천하에 공통된 법도로 말하고, 중매와 예물 없이 딸을 멋대로 붙잡은 해모수를 예를 잃어 집안을 욕되게 했다고 꾸짖는다. 해모수는 자신이 천제의 아들이라 밝히고 혼인을 구한다. 작품 속 하백의 규범적 주장이지 모든 사회의 보편 법률로 제시하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-012"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-012"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-013"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-013"
+        }
+      ]
+    },
+    {
+      "key": "leather_carriage_escape",
+      "title": "가죽 수레와 금비녀를 이용한 탈출",
+      "cardType": "event",
+      "body": "변신 겨루기 뒤 하백은 해모수가 딸을 데려가지 않을까 걱정하여 술에 취하게 하고 유화와 가죽 수레에 넣어 함께 하늘로 보내려 한다. 시는 딸을 수레 곁에 앉히는 표현을 쓰고 자주는 그 부분의 명칭을 풀이한다. 하백의 술은 이레 뒤 깬다고 자주에 적혔으나 해모수는 물을 벗어나기도 전에 깨어 금비녀로 가죽을 뚫고 혼자 하늘로 간다. 시와 자주의 세부 표현을 합쳐 지우지 않는다. 금비녀 구절 뒤의 자주는 운을 맞춘 표현이라는 작가의 설명이며 신통력의 추가 규칙이 아니다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-014"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-014"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-015"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-015"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-016"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-016"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-017"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-017"
+        }
+      ]
+    },
+    {
+      "key": "yuhwa_exile",
+      "title": "유화의 형벌과 우발수 유배",
+      "cardType": "event",
+      "body": "해모수가 홀로 떠난 뒤 하백은 유화가 가르침을 어겨 가문을 욕되게 했다고 꾸짖는다. 사람들에게 입술을 비틀어 석 자로 늘리게 하고 노비 둘만 붙여 우발수로 내쫓는다. 우발은 자주에서 당시 태백산 남쪽의 못이라 설명된다. 폭력과 책임 추궁은 서사의 행위와 인물의 말로 보존한다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-018"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-018"
+        }
+      ]
+    },
+    {
+      "key": "gangryeokbuchu",
+      "title": "어부 강력부추와 철 그물",
+      "cardType": "character",
+      "body": "어부 강력부추는 어살의 물고기를 훔치는 정체 모를 존재를 금와에게 보고한다. 첫 그물이 찢어져 철 그물로 다시 끌어 올리자 돌 위에 앉은 여인이 나온다. 길어진 입술 때문에 말하지 못하다 세 번 자른 뒤 말하게 된다. 그 여인을 처음 짐승으로 본 것은 어부의 인식이다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-019"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-019"
+        }
+      ]
+    },
+    {
+      "key": "jumong_archery",
+      "title": "파리와 사슴을 맞히는 주몽의 활",
+      "cardType": "ability",
+      "body": "주몽은 눈을 무는 파리 때문에 어머니에게 활을 청한다. 싸리 활과 화살로 물레 위 파리를 쏘면 모두 맞히며 자주는 부여에서 활 잘 쏘는 이를 주몽이라 부른다고 설명한다. 금와의 일곱 아들과 사십여 종자는 사슴 한 마리만 잡지만 주몽은 많이 잡는다. 왕자들이 묶어 놓고 사슴을 빼앗자 나무를 뽑고 떠난다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-021"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-021"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-022"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-022"
+        }
+      ]
+    },
+    {
+      "key": "departure_preparation",
+      "title": "말몰이의 불만과 어머니의 배웅",
+      "cardType": "event",
+      "body": "금와는 주몽의 뜻을 시험하려 말을 기르게 한다. 주몽은 하늘의 손자가 남의 말을 기르는 처지를 괴로워하며 남쪽에 나라를 세우고 싶지만 어머니를 두고 갈 수 없다고 한다. 유화는 자신을 걱정하지 말라며 준마 선택을 돕는다. 붉은 말의 울타리 뛰기, 혀에 꽂은 바늘과 여윈 말의 하사가 출발 준비로 이어진다. 자주가 인용한 『통전』은 주몽의 말들을 과하마라고 전하며 시가 비교한 녹이를 그 말의 실제 이름으로 확정하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-023"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-023"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-024"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-024"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-verse-025"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-025"
+        }
+      ]
+    },
+    {
+      "key": "three_companions",
+      "title": "오이·마리·협보",
+      "cardType": "organization",
+      "body": "남쪽으로 떠나기 전 주몽이 몰래 사귀는 세 벗이다. 시는 모두 지혜롭다고 말하고 작가자주는 오이·마리·협보의 이름을 밝힌다. 이 작품 밖의 개별 가계와 후대 관직은 추가하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-026"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-026"
+        }
+      ]
+    },
+    {
+      "key": "archery_sovereignty",
+      "title": "송양과 주몽의 왕권·활쏘기 겨루기",
+      "cardType": "event",
+      "body": "송양은 선인의 후손이며 여러 대의 왕통을 내세워 새로 나라를 세운 주몽에게 속국이 되라고 한다. 주몽은 천제의 손자와 하늘의 계승을 내세워 거부하고 귀복을 요구한다. 시험 삼은 활쏘기에서 송양은 백 보 안 사슴 그림의 배꼽을 놓치지만 주몽은 백 보 밖 옥가락지를 깨뜨린다. 두 인물의 정통성 주장과 작가의 평가를 검증된 역사적 판결로 바꾸지 않는다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-032"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-032"
+        }
+      ]
+    },
+    {
+      "key": "bubunno",
+      "title": "비류의 의물을 가져오는 부분노",
+      "cardType": "character",
+      "body": "새 나라에 북과 나팔이 없어 왕례로 사신을 대하지 못하자 부분노가 비류의 물건을 가져오겠다고 나선다. 그는 주몽의 생환과 요동의 명성을 천제의 명령으로 설명하며 성공을 확신한다. 부분노 등 세 사람이 북을 가져오고, 훗날 송양이 확인할 때는 빛깔이 오래된 듯 변해 다투지 못한다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-033"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-033"
+        }
+      ]
+    },
+    {
+      "key": "old_pillars",
+      "title": "썩은 나무 기둥과 도읍의 선후 다툼",
+      "cardType": "event",
+      "body": "송양이 먼저 도읍을 세운 쪽을 기준으로 속국 관계를 정하려 하자 주몽은 궁실의 기둥을 썩은 나무로 만든다. 천 년쯤 된 듯한 낡은 기둥을 본 송양은 도읍의 선후를 다투지 못한다. 낡아 보이는 장치를 실제 천 년의 왕조 연대라고 받아들이지 않는다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-034"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-034"
+        }
+      ]
+    },
+    {
+      "key": "yuri_childhood",
+      "title": "물동이의 구멍과 아버지를 찾는 유리",
+      "cardType": "event",
+      "body": "새총으로 참새를 쏘던 유리는 여인의 물동이를 깨뜨리고 아비 없는 아이라는 꾸지람을 듣는다. 진흙 탄환으로 구멍을 막고 어머니에게 아버지를 묻는다. 어머니의 장난스러운 부정에 자기 목숨을 해치려 하자 어머니가 말려 아버지의 혈통과 남쪽 건국을 밝힌다. 이후 숨겨진 검의 수수께끼를 풀어 부친을 찾아가며 햇빛을 타는 능력을 보여 태자가 된다. 이 작품의 대화와 행동을 교훈적 모범 행위로 바꾸지 않는다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-039"
+        },
+        {
+          "document": "sources.md",
+          "section": "dm-note-039"
+        }
+      ]
+    },
+    {
+      "key": "closing_han_comparisons",
+      "title": "유계·세조와 건국 징조의 비교",
+      "cardType": "other",
+      "body": "작가는 동명왕 기록을 환술로 의심하다 신령한 성왕의 자취로 받아들였다고 다시 말한다. 이어 유씨 노파의 꿈과 교룡, 유계의 탄생과 적제의 아들이라는 이야기, 세조 출생 때 방 안의 빛, 적복부와 황건을 비교 사례로 든다. 이는 성왕의 창업에는 징조가 따른다는 작가의 논증이며 주몽의 직접 행적이나 후대 왕조에 대한 별도 역사 검증이 아니다.\n\n출전: [선택 저본의 해당 본문](https://db.history.go.kr/id/mudg_005_0010_0010).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "dm-verse-040"
+        }
+      ]
+    },
+    {
+      "key": "gogi_hwanung",
+      "title": "환웅의 하강과 천부인",
+      "cardType": "character",
+      "body": "《삼국유사》가 인용한 「고기」에서 환웅은 인간 세상에 뜻을 두고 아버지에게 천부인 세 개를 받아 내려온다. 동명왕편의 해모수와 별개의 서사이며 혈연관계를 만들어 연결하지 않는다.\n\n출전: [《삼국유사》 권1 기이1 고조선, 「고기」 인용](https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "gogi-hwanung",
+          "excerpt_sha256": "7a33a69917d6500eb13da47e5ad91df420ec8b8948526713cd128f27088f64dd"
+        }
+      ]
+    },
+    {
+      "key": "gogi_sinsi",
+      "title": "태백산 신단수와 신시",
+      "cardType": "location",
+      "body": "환웅은 무리 삼천을 거느리고 태백산 꼭대기 신단수 아래 내려온다. 그곳을 신시라 부르며 원문 주는 태백을 당시의 묘향산에 비정한다.\n\n출전: [《삼국유사》 권1 기이1 고조선, 「고기」 인용](https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "gogi-sinsi",
+          "excerpt_sha256": "9684b5eec568291d973c5b1834188855f280e48fd37bf6c8e83c5183e7667711"
+        }
+      ]
+    },
+    {
+      "key": "gogi_weather_officials",
+      "title": "풍백·우사·운사와 인간사",
+      "cardType": "organization",
+      "body": "환웅은 풍백·우사·운사를 거느리고 곡식·생명·질병·형벌·선악 등 인간의 360여 가지 일을 다스린다. 이 직무 목록은 해당 기록의 묘사다.\n\n출전: [《삼국유사》 권1 기이1 고조선, 「고기」 인용](https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "gogi-weather-officials",
+          "excerpt_sha256": "5de810a852aef68d9af1108bebcaedfb140efd0fd9471b5ad5fdcb47fb48650e"
+        }
+      ]
+    },
+    {
+      "key": "gogi_sacred_garlic",
+      "title": "쑥과 마늘의 금기",
+      "cardType": "object",
+      "body": "신은 곰과 범에게 쑥 한 자루와 마늘 스무 개를 주고 먹으며 햇빛을 백 일 보지 않으면 사람이 된다고 말한다. 이는 이 이야기의 조건이며 다른 전승의 보편 규칙이 아니다.\n\n출전: [《삼국유사》 권1 기이1 고조선, 「고기」 인용](https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "gogi-sacred-garlic",
+          "excerpt_sha256": "f420a98216016bb6a3f3a1590450e9a45f0fea17816122b8c7b792743d417304"
+        }
+      ]
+    },
+    {
+      "key": "gogi_bear_tiger",
+      "title": "곰과 범의 변화",
+      "cardType": "event",
+      "body": "같은 굴에 살던 곰과 범은 사람이 되기를 빈다. 먹고 삼칠일을 금기한 뒤 곰은 여자가 되지만 범은 금기를 지키지 못해 사람이 되지 못한다. 백 일의 지시와 삼칠일의 결과를 구분한다.\n\n출전: [《삼국유사》 권1 기이1 고조선, 「고기」 인용](https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "gogi-bear-tiger",
+          "excerpt_sha256": "aa2890369dded1246fd501a3ed0cdb50ce0a014ce46511cc68686f7eb9ddae54"
+        }
+      ]
+    },
+    {
+      "key": "gogi_ungnyeo",
+      "title": "웅녀의 기원과 혼인",
+      "cardType": "character",
+      "body": "웅녀는 혼인할 이가 없어 단수 아래에서 아이를 갖기를 빈다. 환웅이 모습을 바꾸어 혼인하고 아들 단군왕검이 태어난다. 이 계보는 동명왕편의 유화·주몽 계보와 별개다.\n\n출전: [《삼국유사》 권1 기이1 고조선, 「고기」 인용](https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "gogi-ungnyeo",
+          "excerpt_sha256": "07131b2efd13fc4a28631e9f6536068568793ffaff238d3302c15bb725727631"
+        }
+      ]
+    },
+    {
+      "key": "gogi_dangun",
+      "title": "단군왕검과 아사달",
+      "cardType": "character",
+      "body": "「고기」 인용에서 단군왕검은 조선을 칭하고 평양성에서 백악산 아사달로 도읍을 옮긴다. 이후 장당경으로 옮겼다가 아사달에 돌아와 산신이 된다. 고대 건국의 전승으로 읽는다.\n\n출전: [《삼국유사》 권1 기이1 고조선, 「고기」 인용](https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "gogi-dangun",
+          "excerpt_sha256": "6b8893da0e1ab0128ff6d510a5fe5ed5f3cc35a26557aebd36ac483f5b46284c"
+        }
+      ]
+    },
+    {
+      "key": "gogi_sacred_seal",
+      "title": "천부인 세 개",
+      "cardType": "object",
+      "body": "환웅의 아버지가 인간 세상을 다스리도록 내린 천부인은 세 개다. 해당 기록은 그 모양과 각각의 능력을 구체적으로 설명하지 않는다.\n\n출전: [《삼국유사》 권1 기이1 고조선, 「고기」 인용](https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "gogi-sacred-seal",
+          "excerpt_sha256": "8872f06153282859d9218140f2c6b4f82c8eb166132e21182cee7be457421191"
+        }
+      ]
+    }
+  ],
+  "narrative": "sources.md"
+}

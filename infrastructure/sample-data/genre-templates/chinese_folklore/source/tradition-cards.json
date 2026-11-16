@@ -1,0 +1,1302 @@
+{
+  "genre": "chinese_folklore",
+  "name": "중국 고대 신화·설화: 천문과 별도 전승",
+  "scope": "카드는 《천문》의 물음과 별도로 《태평어람》에 인용된 《삼오력기》·《열자》·《풍속통》 및 《회남자》 권6 남명훈의 대표 전승을 수록한다. 서로 다른 출전의 서사를 단일 연표로 합치지 않는다.",
+  "sources": [
+    {
+      "title": "《천문》 한문 본문, 고정 판본 2639576",
+      "url": "https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576"
+    },
+    {
+      "title": "해석 참고: 왕일 장구·홍흥조 보주, 《초사》 제3권",
+      "url": "https://zh.wikisource.org/w/index.php?title=楚辭_(四部叢刊本)/卷第三&oldid=2653331"
+    },
+    {
+      "title": "태평어람 권2 천부 하: 삼오력기·열자 인용",
+      "url": "https://zh.wikisource.org/zh-hant/太平御覽/0002"
+    },
+    {
+      "title": "회남자 남명훈",
+      "url": "https://www.shidianguji.com/zh/book/SBCK089/chapter/1j713d45nri8b_15"
+    },
+    {
+      "title": "태평어람 권78 황왕부: 풍속통 인용",
+      "url": "https://www.shidianguji.com/zh/book/SK1958/chapter/1kfmlpdeu75zv"
+    }
+  ],
+  "cards": [
+    {
+      "key": "nuwa",
+      "title": "여와의 몸을 둘러싼 물음",
+      "cardType": "character",
+      "body": "여와의 몸을 누가 만들고 빚었는지 묻는다. 이 시구는 여와가 인간을 만들거나 하늘을 수선했다는 이야기를 풀어 쓰지 않으므로 그 내용을 카드에 보충하지 않는다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 100.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-100"
+        }
+      ]
+    },
+    {
+      "key": "gonggong",
+      "title": "강회와 공공",
+      "cardType": "character",
+      "body": "강회가 크게 노했을 때 땅이 왜 동남쪽으로 기울었는지 묻는다. 강회를 공공의 이름으로 식별하는 것은 왕일의 주석이며, 시구 자체에는 부주산 충돌의 과정이 없다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 37. 해석 참고: [왕일·홍흥조의 고전 주석](https://zh.wikisource.org/w/index.php?title=楚辭_(四部叢刊本)/卷第三&oldid=2653331).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-037"
+        }
+      ]
+    },
+    {
+      "key": "kunlun",
+      "title": "곤륜과 현포",
+      "cardType": "location",
+      "body": "곤륜과 현포가 어디에 있는지, 아홉 겹의 성이 얼마나 높은지 질문한다. 사방의 문과 서북쪽으로 통하는 기운도 이어서 묻지만, 본문이 좌표나 높이의 답을 제시하지는 않는다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 42·43·44·45.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-042"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-043"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-044"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-045"
+        }
+      ]
+    },
+    {
+      "key": "yi",
+      "title": "예의 활과 제사·죽음에 관한 물음",
+      "cardType": "ability",
+      "body": "예가 해를 쏜 방법과 까마귀의 날개 상실을 묻는다. 하늘임금이 이예를 내려보냈고 하나라 백성에게 변란과 재앙이 일어났다는 진술 뒤 하백을 쏘고 낙빈을 아내 삼은 까닭을 질문한다. 조개 장식 활과 시위 도구로 큰 멧돼지를 쏘았다는 말, 기름진 제물에도 하늘임금이 따르지 않은 이유, 가죽을 꿰뚫는 예를 없애려는 공모의 물음이 이어진다. 태양의 수나 모든 예가 같은 인물인지에 대한 답은 만들지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-058"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-069"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-070"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-071"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-072"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-074"
+        }
+      ]
+    },
+    {
+      "key": "origin_questions",
+      "title": "태초와 음양을 누가 아는가",
+      "cardType": "rule",
+      "body": "화자는 태고를 전한 이, 형체 이전을 살피는 근거, 흐릿한 어둠과 밝음의 끝을 아는 이와 희미한 형상을 알아보는 방법을 묻는다. 밝고 어두워지는 작용을 무엇이 이루는지, 음양이 세 갈래로 합할 때 근본과 변화해 생긴 것이 무엇인지도 묻는다. 질문의 전제를 확정된 창조 법칙이나 해답으로 만들지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-001"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-002"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-003"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-004"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-005"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-006"
+        }
+      ]
+    },
+    {
+      "key": "heaven_structure",
+      "title": "하늘의 겹·기둥·경계에 관한 물음",
+      "cardType": "location",
+      "body": "아홉 겹 하늘을 경영하고 처음 만든 이, 하늘을 돌리는 줄의 매임과 끝을 받치는 곳을 묻는다. 여덟 기둥의 지지 대상, 동남쪽의 이지러짐, 아홉 하늘 경계의 연결, 모퉁이 수, 하늘의 합쳐짐과 열두 구역의 나뉨, 해·달·별의 자리도 질문한다. 시는 이 물음들의 좌표나 수치를 답하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-007"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-008"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-009"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-010"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-011"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-012"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-013"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-014"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-015"
+        }
+      ]
+    },
+    {
+      "key": "sun_moon",
+      "title": "해와 달의 운행 및 새벽의 물음",
+      "cardType": "event",
+      "body": "해가 탕곡에서 나와 몽사에 머문다고 진술한 뒤 낮 동안 가는 거리, 달이 죽었다 되살아나는 덕과 배 속 토끼의 이로움을 묻는다. 백강과 온화한 기운의 위치, 무엇이 닫히고 열려 어둠과 밝음을 만드는지, 각수가 새벽을 맞기 전 해가 숨는 곳도 질문한다. 물음을 천체의 확정된 작동 원리로 바꾸지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-016"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-017"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-018"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-019"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-021"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-022"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-023"
+        }
+      ]
+    },
+    {
+      "key": "nvqi",
+      "title": "아홉 자식을 얻는 여기",
+      "cardType": "character",
+      "body": "짝과 합하지 않은 여기가 어디서 아홉 자식을 얻었는지 묻는다. 뒤에 옷을 꿰매며 등장하는 동명의 인물과 같은 존재라고 본문이 설명하지 않으므로 이 카드에서는 합치지 않는다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 20.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-020"
+        }
+      ]
+    },
+    {
+      "key": "gun",
+      "title": "곤의 임명·형벌과 난해한 변화",
+      "cardType": "character",
+      "body": "홍수를 다스릴 능력이 의심되는 이를 사람들이 추천하며 시험해 보자고 한 까닭, 솔개와 거북이 끌고 무는 동안 곤이 들은 것, 공을 이루려 한 그를 벌하고 우산에서 삼 년간 풀어 주지 않은 이유를 묻는다. 후반에는 서쪽 험로와 바위산, 누런 곰으로의 변화와 무당의 소생, 검은 기장의 공동 파종과 곤의 악행이라는 평가가 이어진다. 생략된 주어와 이문이 있어 모든 장면을 한 인물의 확정 전기로 연결하지 않으며 형벌의 정당성을 단정하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-024"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-025"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-026"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-027"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-028"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-029"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-075"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-076"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-077"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-078"
+        }
+      ]
+    },
+    {
+      "key": "yu",
+      "title": "우의 계승·치수와 혼인",
+      "cardType": "character",
+      "body": "우가 완고한 곤의 아들이면서 어떻게 달라지고 다른 방법으로 아버지의 사업을 이루었는지 묻는다. 사방을 살피며 공을 바쳤다는 진술 뒤 도산의 여인을 어디서 만나 대상에서 결합했는지 묻고, 배필과 후사를 바랐다는 말을 잇는다. 다른 맛을 탐하고 한 아침의 배부름에 쾌감을 느낀다는 끝의 질문은 해석이 난해하므로 별도의 확정된 혼인 일화로 풀어 쓰지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-030"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-031"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-032"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-059"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-060"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-061"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-062"
+        }
+      ]
+    },
+    {
+      "key": "flood_questions",
+      "title": "홍수와 땅의 구분·크기에 관한 물음",
+      "cardType": "event",
+      "body": "깊은 물과 샘을 메우는 방법, 땅의 아홉 등급, 응룡이 강과 바다에서 지난 길, 곤과 우가 각각 이룬 일을 질문한다. 아홉 주의 배치와 깊은 골짜기의 형성, 동쪽으로 흘러도 넘치지 않는 까닭, 동서·남북 길이의 비교와 땅의 너비도 묻는다. 답이 없는 곳에 치수 공정이나 세계 지도를 보충하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-033"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-034"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-035"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-036"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-038"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-039"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-040"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-041"
+        }
+      ]
+    },
+    {
+      "key": "zhulong",
+      "title": "촉룡과 닿지 않는 해",
+      "cardType": "character",
+      "body": "해가 이르지 못하는 곳과 촉룡이 비추는 대상을 묻는다. 희화가 아직 떠오르기 전 약목의 꽃이 어떻게 빛나는지도 이어지는 질문이다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 46·47.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-046"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-047"
+        }
+      ]
+    },
+    {
+      "key": "creatures",
+      "title": "기이한 짐승의 말·몸·거처",
+      "cardType": "other",
+      "body": "돌의 숲과 말하는 짐승, 곰을 등에 진 규룡, 머리 아홉 달린 수컷 살무사와 번개처럼 빠른 존재가 어디에 있는지 묻는다. 코끼리를 삼키는 뱀의 크기, 능어와 괴퇴의 거처도 물음으로 제시된다. 이름이나 형상이 언급되었다고 생태와 서식지를 답한 것으로 취급하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-049"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-050"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-051"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-054"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-057"
+        }
+      ]
+    },
+    {
+      "key": "death_questions",
+      "title": "죽지 않는 삶의 한계",
+      "cardType": "rule",
+      "body": "죽지 않는 곳과 키 큰 사람의 지키는 대상을 묻고, 죽음 없이 늘어나는 수명의 끝을 질문한다. 불사 능력을 얻는 절차나 조건은 설명하지 않는다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 52·56.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-052"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-056"
+        }
+      ]
+    },
+    {
+      "key": "qi",
+      "title": "계와 익의 계승",
+      "cardType": "character",
+      "body": "계가 익을 대신해 임금이 된 뒤 재난을 만났다는 진술과, 갇힘에서 벗어남에 대한 물음이 이어진다. 난해한 구절이므로 이 대목을 확정된 왕위 계승 연표로 확대하지 않는다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 63·64·65·66.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-063"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-064"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-065"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-066"
+        }
+      ]
+    },
+    {
+      "key": "qi_music",
+      "title": "구변과 구가",
+      "cardType": "object",
+      "body": "계와 관련하여 구변·구가라는 음악 이름이 나온다. 번역은 왕일의 음악을 펼친다는 풀이를 따르며, 하늘에 올라 음악을 얻었다는 다른 독법을 별도의 확정 사건으로 합치지 않는다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 67. 해석 참고: [왕일·홍흥조의 고전 주석](https://zh.wikisource.org/w/index.php?title=楚辭_(四部叢刊本)/卷第三&oldid=2653331).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-067"
+        }
+      ]
+    },
+    {
+      "key": "zhuo",
+      "title": "착과 순호",
+      "cardType": "character",
+      "body": "착이 순호를 아내로 맞는 대목, 아내의 꾀, 예를 없앨 궁리를 묻는 구절이 이어진다. 생략된 주어와 관계가 난해하므로 완성된 혼인·음모의 연대기를 덧붙이지 않는다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 73·74.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-073"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-074"
+        }
+      ]
+    },
+    {
+      "key": "jiao",
+      "title": "요와 형수의 문",
+      "cardType": "character",
+      "body": "요가 문 앞에서 형수에게 무엇을 구했는지 묻는다. 여기가 옷을 꿰매고 같은 집에 머문다는 진술과 머리가 뒤바뀌는 위험에 대한 질문이 이어진다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 87·89·90.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-087"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-089"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-090"
+        }
+      ]
+    },
+    {
+      "key": "shaokang",
+      "title": "소강과 떨어지는 머리",
+      "cardType": "event",
+      "body": "소강이 사냥개를 모는 일과 머리가 떨어지는 일이 어떻게 이어지는지 묻는다. 이 질문은 전투 전 과정이나 희생자의 확정 명단을 제공하지 않는다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 88·90.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-088"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-090"
+        }
+      ]
+    },
+    {
+      "key": "jie_meixi",
+      "title": "걸·말희와 벌",
+      "cardType": "character",
+      "body": "걸이 몽산을 쳐서 무엇을 얻었는지, 말희의 방자함과 탕의 벌은 무엇인지 묻는다. 몽산·민산 이문과 방자함·허물의 이문이 있다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 93·94.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-093"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-094"
+        }
+      ]
+    },
+    {
+      "key": "shun",
+      "title": "순의 가족과 위기",
+      "cardType": "character",
+      "body": "순이 혼인하지 못한 이유와 요의 두 딸의 혼인을 묻고, 아우를 섬겨도 해를 입는 관계를 진술한다. 아우의 악행과 순의 생존을 묻지만 본문 밖의 모든 살해 시도를 열거하지 않는다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 95·96·101·102.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-095"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-096"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-101"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-102"
+        }
+      ]
+    },
+    {
+      "key": "tang",
+      "title": "탕의 대우·계책·정벌",
+      "cardType": "character",
+      "body": "탕이 사람들의 마음을 바꾸려고 후하게 대하는 방식과 짐심을 무너뜨리고 차지한 방법을 묻는다. 고니를 삶아 옥 그릇에 바친 음식과 임금의 수용, 계책으로 걸을 멸한 일, 내쫓는 벌에도 백성이 기뻐한 까닭을 질문한다. 유신에서 작은 신하와 좋은 배필을 얻은 일, 중천에서 나온 죄, 임금을 치도록 먼저 자극한 이도 묻는다. 생략된 행위자를 모두 탕으로 단정하거나 전 과정의 연표를 만들어 넣지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-091"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-092"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-105"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-106"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-108"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-124"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-125"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-128"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-129"
+        }
+      ]
+    },
+    {
+      "key": "yizhi",
+      "title": "이지와 물가의 아이",
+      "cardType": "character",
+      "body": "임금이 아래에서 이지를 만났다는 진술과, 물가의 나무에서 얻은 아이가 혼인 행렬에 딸려 가는 까닭에 관한 질문이 있다. 왕일이 이지와 아이를 이윤으로 풀이한다는 주석을 참고하지만 나무의 변신 일화를 시의 본문으로 추가하지 않는다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 107·126·127·170·171. 해석 참고: [왕일·홍흥조의 고전 주석](https://zh.wikisource.org/w/index.php?title=楚辭_(四部叢刊本)/卷第三&oldid=2653331).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-107"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-126"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-127"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-170"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-171"
+        }
+      ]
+    },
+    {
+      "key": "jiandi",
+      "title": "간적과 검은 새",
+      "cardType": "character",
+      "body": "간적이 누대에 있고 검은 새가 선물을 가져다주었다고 하며, 곡 임금이 좋게 여긴 것과 여인의 기쁨을 묻는다. 선물의 구체적 모습과 그 뒤의 출산 과정은 이 시구에 덧붙이지 않는다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 109·110·111.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-109"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-110"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-111"
+        }
+      ]
+    },
+    {
+      "key": "early_genealogy",
+      "title": "해·항·혼미와 유호의 난해한 전승",
+      "cardType": "other",
+      "body": "해와 항이 계의 덕을 이었다는 말, 소·양을 치다 유호에서 입은 해와 유호 목동의 운명, 큰 소를 얻은 경위, 은혜를 나누고 돌아오는 행위, 혼미의 뒤따름과 유적의 불안을 묻는다. 방패를 맞춘 춤의 감복, 매끈한 살갗과 평평한 옆구리, 침상을 치고 나옴, 가시나무의 새와 아이를 업은 욕정, 아우의 음란함으로 해를 입는 형, 변장·속임수 뒤의 번창도 이어진다. 주어와 인명 독법이 난해하므로 이를 한 확정 계보와 범행 서사로 합치지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-112"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-113"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-114"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-115"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-116"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-117"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-118"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-119"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-120"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-121"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-122"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-123"
+        }
+      ]
+    },
+    {
+      "key": "king_wu",
+      "title": "무왕 발과 맹약·전쟁 준비",
+      "cardType": "character",
+      "body": "새벽 맹약의 기일과 푸른 새들을 모은 이를 묻고, 주왕을 치려는 일에 대한 숙단의 반대와 주나라 운명의 탄식을 제시한다. 다투어 보낸 전쟁 도구, 나란히 몰아 양옆을 친 군세의 지휘도 물음이다. 무왕 발이 은나라를 치려 마음에 맺힌 이유와 죽은 이의 신주를 싣고 급히 전쟁에 모인 까닭을 따져 묻는다. 질문을 정벌의 정당성에 대한 답으로 만들지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-130"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-131"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-132"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-133"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-136"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-137"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-164"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-165"
+        }
+      ]
+    },
+    {
+      "key": "king_zhou",
+      "title": "주왕의 미혹과 신하들의 처우",
+      "cardType": "character",
+      "body": "누가 주왕을 미혹했고 왜 바른 신하 대신 참소와 아첨을 택했는지 묻는다. 비간이 거스른 것과 받은 억압, 아첨한 뇌개에게 준 봉토, 같은 덕을 지닌 성인들의 다른 길을 질문한다. 매백이 젓갈로 담가지는 벌과 기자가 미친 척한 일은 진술형으로 나온다. 이를 군주의 선악을 자동 판정하는 세계관 규칙으로 만들지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-146"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-147"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-148"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-149"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-150"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-151"
+        }
+      ]
+    },
+    {
+      "key": "houji",
+      "title": "직과 얼음 위의 새",
+      "cardType": "character",
+      "body": "직이 맏아들이라는 진술을 바탕으로 하늘임금이 후대한 까닭을 묻는다. 얼음 위에 버려졌을 때 새가 왜 따뜻하게 해 주었는지도 질문한다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 152·153.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-152"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-153"
+        }
+      ]
+    },
+    {
+      "key": "western_baron",
+      "title": "백창·서백과 기산·은나라",
+      "cardType": "character",
+      "body": "백창이 권위가 쇠한 때 백성을 다스리는 자가 되었다는 진술 뒤 기산 제단의 철거, 은나라 소유의 명령, 재물을 기산으로 옮기며 백성의 의지를 얻은 방식을 묻는다. 은나라의 미혹시키는 여인과 간언, 젓갈을 받고 위에 아뢰는 서백, 하늘임금의 벌과 은나라 운명을 구하지 못한 이유도 이어진다. 여인의 정체나 고기의 재료를 본문 밖에서 단정하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-156"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-157"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-158"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-159"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-160"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-161"
+        }
+      ]
+    },
+    {
+      "key": "taigong",
+      "title": "저자에 있는 사망",
+      "cardType": "character",
+      "body": "저자의 사망을 창이 어떻게 알아보았는지, 칼 소리에 임금이 왜 기뻐했는지 묻는다. 사망을 태공으로 식별하는 것은 왕일의 주석이며, 본문에 긴 만남의 대화를 추가하지 않는다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 162·163. 해석 참고: [왕일·홍흥조의 고전 주석](https://zh.wikisource.org/w/index.php?title=楚辭_(四部叢刊本)/卷第三&oldid=2653331).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-162"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-163"
+        }
+      ]
+    },
+    {
+      "key": "mandate",
+      "title": "뒤집히는 천명",
+      "cardType": "rule",
+      "body": "천명이 왜 벌하거나 돕는지, 천하를 주었다가 멸망시키는 죄는 무엇인지 묻는다. 왕조 교체의 필연 법칙이나 임금의 선악을 자동 판정하는 규칙으로 확정하지 않는다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 134·135·144·168·169.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-134"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-135"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-144"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-168"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-169"
+        }
+      ]
+    },
+    {
+      "key": "king_mu",
+      "title": "목왕의 두루 다님",
+      "cardType": "character",
+      "body": "목왕이 왜 두루 다니며 천하에서 무엇을 찾았는지 묻는다. 탐욕에 관한 독법을 따르며 ‘원대한 계획’이라는 저본 덧글을 구분한다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 140·141.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-140"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-141"
+        }
+      ]
+    },
+    {
+      "key": "helv",
+      "title": "합려와 오나라의 광",
+      "cardType": "character",
+      "body": "합려의 유랑과 무용·위엄을 묻고, 말미에는 오나라 광이 나라를 다투어 이겼다고 말한다. 합려·수몽의 계보와 광의 식별은 왕일의 주석을 참고했으며, 이를 시의 동일 시점에 벌어진 사건으로 합치지 않는다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 172·173·187. 해석 참고: [왕일·홍흥조의 고전 주석](https://zh.wikisource.org/w/index.php?title=楚辭_(四部叢刊本)/卷第三&oldid=2653331).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-172"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-173"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-187"
+        }
+      ]
+    },
+    {
+      "key": "pengkeng",
+      "title": "팽갱의 꿩국과 긴 수명",
+      "cardType": "character",
+      "body": "팽갱이 꿩국을 올린 일과 임금이 먹은 까닭을 묻고, 그가 긴 수명을 받은 이유를 질문한다. 음식이 불사를 보장한다는 처방이나 정해진 수명 수치는 없다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 174·175.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-174"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-175"
+        }
+      ]
+    },
+    {
+      "key": "great_tortoise",
+      "title": "산을 이고 춤추는 거북",
+      "cardType": "character",
+      "body": "산을 이고 춤추는 큰 거북이 무엇으로 산을 지탱하는지 묻는다. 이어지는 뭍에서 옮기는 문제도 물음으로 남으며, 다른 작품의 산·거북 수를 가져오지 않는다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 85·86.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-085"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-086"
+        }
+      ]
+    },
+    {
+      "key": "medicine",
+      "title": "간직하지 못한 좋은 약",
+      "cardType": "object",
+      "body": "좋은 약을 어디서 얻었고 왜 단단히 간직하지 못했는지 묻는다. 약 이름·제조법·효능의 보장은 제시하지 않는다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 80.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-080"
+        }
+      ]
+    },
+    {
+      "key": "ziwen",
+      "title": "자문과 도오를 향한 말",
+      "cardType": "character",
+      "body": "마을의 문·사당·언덕에서 방탕한 행위를 묻는 뒤 자문과 도오가 언급된다. 말하는 이의 시점과 문장 경계가 난해하므로, 본문을 곧바로 저자의 실제 목격담으로 취급하지 않는다.\n\n출전: [《천문》 고정 저본](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576), 번역 단위 188·189.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-188"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-189"
+        }
+      ]
+    },
+    {
+      "key": "poet_speaker",
+      "title": "근심·초나라·충성에 관한 화자의 말",
+      "cardType": "other",
+      "body": "해 질 무렵 천둥과 번개 속에 돌아가며 품는 근심, 위엄을 받들지 않으면서 하늘임금에게 구하는 것, 굴에 숨어 할 말을 묻는다. 초나라가 공을 세우려 군사를 일으켜 얼마나 갈지 질문하고, 허물을 고치면 자신이 더 말할 것이 없다는 태도를 보인다. 마지막에는 윗사람을 시험하고 스스로 충성의 이름을 드러내려는 것인지 반문한다. 주석 속 작시 배경과 화자의 말은 구분한다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-182"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-183"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-184"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-185"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-186"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-190"
+        }
+      ]
+    },
+    {
+      "key": "strange_regions_plants",
+      "title": "계절이 뒤집힌 땅과 기이한 식물",
+      "cardType": "location",
+      "body": "겨울에 따뜻하고 여름에 차가운 곳, 아홉 갈래 길로 뻗는 부평초와 삼꽃, 흑수·현지·삼위의 위치를 묻는다. 시는 이러한 지명과 식물의 실제 좌표나 찾아가는 길을 제공하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-048"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-053"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-055"
+        }
+      ]
+    },
+    {
+      "key": "qi_birth_question",
+      "title": "어머니의 몸을 가르는 아들의 물음",
+      "cardType": "event",
+      "body": "힘써 일한 아들이 왜 어머니의 몸을 갈랐고, 어머니가 죽어 몸이 온 땅에 흩어졌는지 묻는 구절이다. 앞의 계·음악 대목과 나란히 놓이지만, 시구가 생략한 이름과 탄생의 경위를 다른 문헌에서 채워 확정하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-068"
+        }
+      ]
+    },
+    {
+      "key": "ominous_bodies_weather",
+      "title": "흰 무지개·생명·비와 기이한 몸",
+      "cardType": "other",
+      "body": "휘장을 감싼 흰 무지개와 전당의 관계, 종횡으로 펼쳐진 하늘 법도와 양기가 떠날 때의 죽음을 묻는다. 큰 새의 울음과 몸을 잃은 곳, 평이 소리쳐 비를 일으키는 수단, 옆구리가 맞붙은 사슴의 몸도 질문한다. 난해한 명칭과 주어를 특정 신의 일관된 능력 체계로 바꾸지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-079"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-081"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-082"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-083"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-084"
+        }
+      ]
+    },
+    {
+      "key": "terrace_accession",
+      "title": "조짐·열 층 누대·등극의 질문",
+      "cardType": "event",
+      "body": "처음 싹틀 때 무엇을 헤아려 알았는지, 옥으로 꾸민 열 층 누대를 누가 끝까지 쌓았는지, 높이 올라 임금이 된 이를 누가 이끌어 받들었는지 묻는다. 이 세 구절에 이름이 생략되어 있으므로 앞뒤 인물의 확정된 업적으로 편입하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-097"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-098"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-099"
+        }
+      ]
+    },
+    {
+      "key": "gugong_wu",
+      "title": "고공·오나라·두 사내의 이동",
+      "cardType": "event",
+      "body": "오나라가 어진 이를 얻은 일을 고공과 남악의 거주에 연결한 진술 뒤, 떠나기로 약속한 이와 두 사내를 얻는 까닭을 묻는다. 선택 번역은 옛 주석의 독법을 따르되 두 사람의 이름·행로·대화를 시 본문에 더하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-103"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-104"
+        }
+      ]
+    },
+    {
+      "key": "king_zhao",
+      "title": "남쪽으로 간 소왕과 흰 꿩",
+      "cardType": "character",
+      "body": "소왕이 순행하여 남쪽 땅에 이르렀다고 말한 뒤, 흰 꿩을 맞으러 갈 어떤 이로움이 있었는지 묻는다. 시가 말하지 않은 죽음의 경위나 원정 목적은 덧붙이지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-138"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-139"
+        }
+      ]
+    },
+    {
+      "key": "king_you_baosi",
+      "title": "유왕·포사와 장터의 외침",
+      "cardType": "character",
+      "body": "요사스럽다고 불린 사내가 물건을 끌고 팔면서 무엇을 외쳤는지 묻고, 유왕이 누구를 벌하고 어디서 포사를 얻었는지 질문한다. 뒤의 천명 물음과 연결되지만 포사의 출생과 봉화 사건을 다른 작품에서 가져오지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-142"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-143"
+        }
+      ]
+    },
+    {
+      "key": "duke_huan",
+      "title": "제환공의 회맹과 죽음",
+      "cardType": "character",
+      "body": "시의 화자는 제환공이 아홉 번 제후를 모았으나 끝내 제 몸이 죽임을 당했다고 진술한다. 이는 시가 대비하는 권세와 몰락이며 역사적 사인을 별도로 확정한 판정은 아니다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-145"
+        }
+      ]
+    },
+    {
+      "key": "archery_blessing_question",
+      "title": "임금을 놀라게 한 활과 오래갈 복",
+      "cardType": "event",
+      "body": "활과 화살을 잡고 남다른 재능으로 이끄는 까닭, 임금을 놀라게 하고 매섭게 몰아세운 뒤에도 오래갈 복을 만난 이유를 묻는다. 활의 주인과 복의 계승을 시구 이상으로 확정하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-154"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-155"
+        }
+      ]
+    },
+    {
+      "key": "bolin_hanging",
+      "title": "백림의 목맴과 하늘·땅의 물음",
+      "cardType": "event",
+      "body": "백림이 목을 맨 까닭, 하늘을 움직이고 땅을 누른 일과 두려워한 대상을 묻는다. 선택 저본의 호칭을 유지하며 생략된 주어·사건의 순서를 다른 일화로 완성하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-166"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-167"
+        }
+      ]
+    },
+    {
+      "key": "food_insects_deer",
+      "title": "목풀·작은 벌레·여인을 돕는 사슴",
+      "cardType": "other",
+      "body": "함께 목풀을 먹는데 임금이 노한 이유, 작은 벌과 개미의 강한 힘, 고사리를 캐다 놀란 여인을 사슴이 도운 까닭, 북쪽 회수에 머물며 기뻐한 것을 묻는다. 인접한 질문들의 주어가 같다고 단정하거나 사슴의 정체와 능력을 새로 정하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-176"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-177"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-178"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-179"
+        }
+      ]
+    },
+    {
+      "key": "fierce_dog_exchange",
+      "title": "사나운 개와 수레 백 대",
+      "cardType": "event",
+      "body": "형이 가진 사나운 개를 두고 아우가 무엇을 바랐는지, 수레 백 대와 바꾸려다 끝내 녹을 잃은 이유를 묻는다. 형제의 이름과 거래 결말의 상세 경위는 시에 보충하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://zh.wikisource.org/w/index.php?title=天問&oldid=2639576).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "tianwen-180"
+        },
+        {
+          "document": "sources.md",
+          "section": "tianwen-181"
+        }
+      ]
+    },
+    {
+      "key": "pangu_cosmic_egg",
+      "title": "반고와 혼돈의 알",
+      "cardType": "character",
+      "body": "《태평어람》이 인용한 서정의 《삼오력기》에서 하늘과 땅은 달걀처럼 혼돈했고 반고가 그 안에서 태어났다. 《천문》의 질문에 대한 단일한 해답으로 합치지 않는다.\n\n출전: [《태평어람》 권2 천부 하, 서정 《삼오력기》 인용](https://zh.wikisource.org/zh-hant/太平御覽/0002).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "pangu-cosmic-egg",
+          "excerpt_sha256": "846934001bb239b34d49356392bc0928741ebedaec71d5c3a69864295bc500be"
+        }
+      ]
+    },
+    {
+      "key": "pangu_heaven_earth",
+      "title": "맑은 하늘과 탁한 땅",
+      "cardType": "location",
+      "body": "《삼오력기》 인용문에서는 천지가 열리며 맑고 양적인 것은 하늘, 탁하고 음적인 것은 땅이 된다. 하늘은 날마다 높아지고 땅은 두꺼워지며 반고도 자란다.\n\n출전: [《태평어람》 권2 천부 하, 서정 《삼오력기》 인용](https://zh.wikisource.org/zh-hant/太平御覽/0002).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "pangu-heaven-earth",
+          "excerpt_sha256": "3e750dfa454f2c73381cea905f6bc5dd275072cda16f2035857c56678ede2638"
+        }
+      ]
+    },
+    {
+      "key": "pangu_growth",
+      "title": "반고의 성장과 천지의 거리",
+      "cardType": "event",
+      "body": "《삼오력기》 인용문은 하늘과 땅과 반고가 날마다 한 장씩 높아지거나 두꺼워지고 자라기를 만 팔천 년 했다고 서술한다. 이어 천지가 구만 리 떨어졌다고 한다.\n\n출전: [《태평어람》 권2 천부 하, 서정 《삼오력기》 인용](https://zh.wikisource.org/zh-hant/太平御覽/0002).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "pangu-growth",
+          "excerpt_sha256": "039150557c999d6442cb78cc53f7a9ca4e509c87391b9b032a367d9b23c9ce46"
+        }
+      ]
+    },
+    {
+      "key": "nuwa_repair_heaven",
+      "title": "여와의 하늘 수선",
+      "cardType": "event",
+      "body": "《회남자》 「남명훈」에서 사극이 무너지고 구주가 갈라지자 여와는 오색돌을 단련해 하늘을 기우고 큰 자라의 발을 잘라 사극을 세운다. 갈대 재로 물을 막고 흑룡을 죽여 기주를 구한다.\n\n출전: [《회남자》 권6 남명훈](https://www.shidianguji.com/zh/book/SBCK089/chapter/1j713d45nri8b_15).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "nuwa-repair-heaven",
+          "excerpt_sha256": "1c55601e1e05bb2033fec4f92fff533a41a11ce9c2ed7778fef7a30e80d5fd5d"
+        }
+      ]
+    },
+    {
+      "key": "nuwa_four_poles",
+      "title": "사극과 기주의 재난",
+      "cardType": "location",
+      "body": "《회남자》 「남명훈」의 세계는 사극이 무너지고 구주가 갈라져 불과 물, 맹수와 사나운 새가 사람들을 위협한다. 여와가 고친 뒤 사극이 바로 서고 기주가 평정된다.\n\n출전: [《회남자》 권6 남명훈](https://www.shidianguji.com/zh/book/SBCK089/chapter/1j713d45nri8b_15).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "nuwa-four-poles",
+          "excerpt_sha256": "3979bbe5adbd62ac548d800385085a1c684cd16b7c1bfd70dcb68bf92bc6e684"
+        }
+      ]
+    },
+    {
+      "key": "nuwa_yellow_clay",
+      "title": "여와의 황토 사람",
+      "cardType": "event",
+      "body": "《태평어람》 권78이 인용한 《풍속통》의 속설에서는 사람이 없던 때 여와가 황토로 사람을 빚고, 일이 많아지자 진흙 속에 줄을 끌어 사람을 만든다. 같은 여와의 보천 이야기와 서로 다른 출전이다.\n\n출전: [《태평어람》 권78 황왕부 여와씨, 《풍속통》 인용](https://www.shidianguji.com/zh/book/SK1958/chapter/1kfmlpdeu75zv).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "nuwa-yellow-clay",
+          "excerpt_sha256": "d52a72339725f92aa43fb6f6a6e4cb9eb9ae6fa558dbc770df666b5dd6b94971"
+        }
+      ]
+    },
+    {
+      "key": "nuwa_social_origin",
+      "title": "황토와 줄로 만든 사람의 구별",
+      "cardType": "rule",
+      "body": "《태평어람》의 《풍속통》 인용은 황토로 만든 사람과 줄로 만든 사람을 각각 부귀와 빈천에 연결한다. 이는 해당 기록의 위계적 설명이지 현실의 사회적 가치나 사실을 뜻하지 않는다.\n\n출전: [《태평어람》 권78 황왕부 여와씨, 《풍속통》 인용](https://www.shidianguji.com/zh/book/SK1958/chapter/1kfmlpdeu75zv).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "nuwa-social-origin",
+          "excerpt_sha256": "fa4e833aa33e887fb270b2524782fdc0cba7b9f55e16ee56855808f955e96e5f"
+        }
+      ]
+    },
+    {
+      "key": "gonggong_buzhou_variant",
+      "title": "공공과 부주산의 기울기",
+      "cardType": "event",
+      "body": "《태평어람》 권2가 인용한 《열자》에서는 공공이 전욱과 제위를 다투다 부주산을 들이받아 하늘 기둥과 땅의 줄이 끊어진다. 천체는 서북으로, 물은 동남으로 향한다는 설명이며 《천문》의 물음과 분리한다.\n\n출전: [《태평어람》 권2 천부 하, 《열자》 인용](https://zh.wikisource.org/zh-hant/太平御覽/0002).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "gonggong-buzhou-variant",
+          "excerpt_sha256": "2f52feae2ff147c84f82dc5655f205ff1e3fcd3920a1ff5f040ace370b92edb0"
+        }
+      ]
+    }
+  ],
+  "narrative": "sources.md"
+}

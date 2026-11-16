@@ -7,6 +7,8 @@ import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
 import ai.storyfork.content.world.studio.entity.*
 import ai.storyfork.content.world.studio.repository.*
 import ai.storyfork.content.world.service.WorldStudioService
+import ai.storyfork.content.world.service.GenreTemplateRepair
+import ai.storyfork.content.world.service.GenreTemplateSeeder
 import ai.storyfork.content.world.service.dto.*
 import java.util.Optional
 import java.util.UUID
@@ -44,6 +46,60 @@ class WorldStudioServiceTest {
         `when`(drafts.findById(world)).thenReturn(Optional.of(draft))
         `when`(states.findById(world)).thenReturn(if(marker) Optional.of(state) else Optional.empty())
         `when`(graph.read(world)).thenAnswer { RelationshipStateResult(world,state.graphVersion,state.requestKey,state.requestHash,emptyList()) }
+    }
+    @Test fun `template repair replaces old active cards while retaining their history and retrying`() {
+        val seeder = GenreTemplateSeeder(mock(WorldStudioService::class.java), mapper)
+        val legacy = seeder.loadLegacy().first().copy(worldId = world)
+        val target = seeder.load().first().copy(worldId = world)
+        val owner = GenreTemplateSeeder.TEMPLATE_OWNER
+        val revisionId = UUID.randomUUID()
+        val studioWorld = StudioWorld(world, owner, revisionId)
+        draft.name = legacy.name; draft.description = legacy.description; draft.baseWorldRevisionId = revisionId
+        val stored = legacy.cards.associate { c -> c.id to SettingCardDraft(c.id, world,
+            CardFields(c.title, c.body, c.cardType, "basic", visibility = "public")) }.toMutableMap()
+        `when`(worlds.lockOwned(world, owner)).thenReturn(studioWorld)
+        `when`(drafts.findById(world)).thenReturn(Optional.of(draft))
+        `when`(states.findById(world)).thenReturn(Optional.of(state))
+        `when`(cardDrafts.findAllByWorldId(world)).thenAnswer { stored.values.toList() }
+        `when`(cardDrafts.findById(anyUUID())).thenAnswer { Optional.ofNullable(stored[it.arguments[0] as UUID]) }
+        `when`(cardDrafts.save(any())).thenAnswer { val c = it.arguments[0] as SettingCardDraft; stored[c.cardId] = c; c }
+        `when`(cards.findById(anyUUID())).thenReturn(Optional.empty())
+        `when`(cards.saveAndFlush(any())).thenAnswer { it.arguments[0] }
+        `when`(graph.read(world)).thenAnswer { RelationshipStateResult(world, state.graphVersion, state.requestKey, state.requestHash, emptyList()) }
+        doAnswer { RelationshipStateResult(world, 4, it.arguments[2] as String, it.arguments[3] as String, emptyList()) }
+            .`when`(graph).replace(anyUUID(), anyLong(), anyString(), anyString(), anyList(), anyEpisode())
+        val previous = WorldRevision(revisionId, world, 1, legacy.name, legacy.description, sealed = true)
+        val previousVersions = legacy.cards.map { SettingCardVersion(cardId = it.id, worldId = world, versionNo = 1,
+            fields = CardFields(it.title, it.body, it.cardType, "basic", visibility = "public")) }
+        var next: WorldRevision? = null
+        var versions = emptyList<SettingCardVersion>()
+        var manifest = emptyList<WorldRevisionCard>()
+        `when`(revisions.findFirstByWorldIdOrderByRevisionNoDesc(world)).thenReturn(previous)
+        `when`(revisions.saveAndFlush(any())).thenAnswer { (it.arguments[0] as WorldRevision).also { value -> next = value } }
+        `when`(revisions.findByIdAndWorldId(anyUUID(), anyUUID())).thenAnswer { next?.takeIf { revision -> revision.id == it.arguments[0] } }
+        `when`(cardVersions.saveAll(any<Iterable<SettingCardVersion>>())).thenAnswer { (it.arguments[0] as Iterable<SettingCardVersion>).toList().also { value -> versions = value } }
+        `when`(revisionCards.saveAll(any<Iterable<WorldRevisionCard>>())).thenAnswer { (it.arguments[0] as Iterable<WorldRevisionCard>).toList().also { value -> manifest = value } }
+        `when`(revisionCards.findAllByIdRevisionId(anyUUID())).thenAnswer { manifest }
+        `when`(cardVersions.findAllById(any<Iterable<UUID>>())).thenAnswer { versions }
+        val realService = spy(service)
+        val key = "genre-template-${legacy.genre}-repair-v2"
+        doThrow(WorldStudioFailure.unavailable()).doCallRealMethod()
+            .`when`(realService).save(world, owner, SaveWorldRequest(3, key))
+
+        assertThrows(WorldStudioFailure::class.java) { GenreTemplateRepair(realService).repair(legacy, target) }
+        assertEquals(target.cards.map { it.id }.toSet(), stored.values.filter { it.fields.lifecycle == "active" }.map { it.cardId }.toSet())
+        assertEquals(legacy.cards.map { it.id }.toSet(), stored.values.filter { it.fields.lifecycle == "removed" }.map { it.cardId }.toSet())
+        assertEquals(revisionId, studioWorld.currentRevisionId)
+        assertEquals(revisionId, draft.baseWorldRevisionId)
+        verifyNoInteractions(revisions, revisionCards, cardVersions)
+        GenreTemplateRepair(realService).repair(legacy, target)
+        verify(realService, times(2)).save(world, owner, SaveWorldRequest(3, key))
+        assertEquals(revisionId, next!!.parentRevisionId)
+        assertEquals(next!!.id, studioWorld.currentRevisionId)
+        assertTrue(previous.sealed)
+        assertEquals(legacy.cards.map { it.body }, previousVersions.map { it.fields.body })
+        assertEquals(legacy.cards.map { it.id }.toSet(), versions.filter { it.fields.lifecycle == "removed" }.map { it.cardId }.toSet())
+        assertEquals(target.cards.map { it.id }.toSet(), versions.filter { it.fields.lifecycle == "active" }.map { it.cardId }.toSet())
     }
     @Test fun `unowned world fails before reading draft or Neo4j`() {
         assertThrows(WorldNotFound::class.java) { service.draft(world,actor) }
