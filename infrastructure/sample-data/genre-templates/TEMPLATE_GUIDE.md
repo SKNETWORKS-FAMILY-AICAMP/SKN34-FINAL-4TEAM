@@ -53,7 +53,7 @@ WorldStudio에 적재된 카드의 저장 버전은 예시를 시작 가능한 �
 
 전승과 고전에서 정리한 존재·장소·신물·규칙·사건과 출처를 살펴보세요. 카드는 새로 지어낸 소설의 시작 원고가 아닙니다.
 
-- 신화·고전의 한국어 번역 전문은 보관하지 않습니다. `source/sources.md`의 원전 URL과 장절, 선택적 `source/supplementary.md`를 통해 카드의 출처를 확인합니다. 카드의 `narrative_refs`는 이 문서의 앵커를 가리킵니다.
+- 신화·고전의 한국어 번역 전문은 보관하지 않습니다. `source/sources.md`의 원전 URL과 확인된 위치, 선택적 `source/supplementary.md`를 통해 카드의 출처를 확인합니다. 일부 위치는 작품 단위에 그칩니다. 카드의 `narrative_refs`는 이 문서의 앵커를 가리킵니다.
 - `source/tradition-cards.json`에는 범위·출전·카드가 있습니다. 편집 식별자는 원전의 공식 문단 번호가 아닐 수 있으며 사실 관계와 해석은 원전을 읽고 검토해야 합니다.
 - `source/template.json`에는 창작 `basic_template`을 두지 않습니다. `setting_bible.sections[].template_part`는 전승 자료·작품 자료·《신통기》 본문 추출 등 자료별 표기이며, `card_type`은 실제 항목 유형입니다.
 - 각 카드에 출전을 표시하고 문헌·지역별 이설을 함께 보존합니다. 현대 작품의 각색이나 자료에 없는 능력을 원전 사실처럼 덧붙이지 않습니다.

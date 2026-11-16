@@ -6,7 +6,7 @@
   "title": "인도 전승: 바가바드기타와 리그베다",
   "setting_bible": {
     "title": "인도 전승: 바가바드기타와 리그베다",
-    "introduction_markdown": "원고는 텔랑 1882년판에 근거한 《바가바드기타》 1–18장의 한국어 중역이다. 별도 전승 카드는 《리그베다》 1.1·1.32·10.90·10.129를 추가하며 인도 전승 전체의 선집이 아니다.",
+    "introduction_markdown": "텔랑 1882년판 《바가바드기타》 1–18장에 근거한 카드다. 별도 전승 카드는 《리그베다》 1.1·1.32·10.90·10.129를 추가하며 인도 전승 전체의 선집이 아니다.",
     "sections": [
       {
         "id": "indian_mythology_kurukshetra",
@@ -1080,7 +1080,7 @@
         "id": "indian_mythology_adhyatma_and_related_terms",
         "order": 57,
         "title": "아디야트마·아디부타·아디다이바·아디야즈냐",
-        "content_markdown": "제8장의 답에서 아디야트마는 브라흐만이 개별 자아로 나타남, 아디부타는 소멸하는 모든 것, 아디다이바타는 태초의 존재, 아디야즈냐는 몸 안의 크리슈나 자신으로 설명된다. 앞선 질문에서 누락된 아디다이바 질문은 전문에 대괄호로 보충되어 있다.\n\n출전: 《바가바드기타》 [제8장](https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81675.html).",
+        "content_markdown": "제8장의 답에서 아디야트마는 브라흐만이 개별 자아로 나타남, 아디부타는 소멸하는 모든 것, 아디다이바타는 태초의 존재, 아디야즈냐는 몸 안의 크리슈나 자신으로 설명된다. 앞선 질문에서 아디다이바 질문은 누락되어 있다.\n\n출전: 《바가바드기타》 [제8장](https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81675.html).",
         "template_part": "전승 자료",
         "card_type": "other",
         "narrative_refs": [

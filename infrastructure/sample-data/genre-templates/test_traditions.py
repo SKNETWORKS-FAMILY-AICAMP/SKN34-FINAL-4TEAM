@@ -22,8 +22,6 @@ def variant_problems(card, documents=None):
     for document, section in sections:
         text = (documents or {}).get(document, {}).get(section, "")
         cited.update(url.split("#")[0] for url in re.findall(r"https?://[^\s)\]]+", text))
-        if document == "sources.md":
-            cited.update((documents or {}).get("original_sources", set()))
     supported = [(url.split("#")[0], claim.strip()) for _, url, claim in claims
                  if len(claim.strip()) >= 10 and url.split("#")[0] in cited]
     return (["서로 다른 근거 절이 2개 이상 필요하다"] if len(sections) < 2 else []) + \
@@ -87,6 +85,26 @@ class TraditionCatalogTest(unittest.TestCase):
     def setUp(self):
         self.current = catalog.read(catalog.RESOURCES / "genre-templates.json")
 
+    def test_public_text_does_not_point_to_removed_translations(self):
+        obsolete = ("원고는", "한국어 중역", "한국어로 중역", "한국어 완역", "완역과", "한국어 전문", "중역하여", "전체를 직접 한국어로 옮겼다")
+        for genre in catalog.TRADITIONS:
+            with self.subTest(genre=genre):
+                source = catalog.ROOT / genre / "source"
+                data = catalog.read(source / "tradition-cards.json")
+                template = catalog.read(source / "template.json")
+                world = next(w for w in self.current if w["genre"] == genre)
+                for text in (data["scope"], world["description"], template["setting_bible"]["introduction_markdown"]):
+                    for phrase in obsolete:
+                        self.assertNotIn(phrase, text)
+                for card, section in zip(data["cards"], template["setting_bible"]["sections"]):
+                    self.assertEqual(card["body"], section["content_markdown"])
+                    if genre == "greco_roman_mythology":
+                        self.assertNotIn("원문 파일의 행 표지", card["body"])
+                    if genre == "journey_to_the_west" and card["key"] == "text":
+                        self.assertNotIn("한국어 전문", card["body"])
+                    if genre == "indian_mythology" and card["key"] == "adhyatma_and_related_terms":
+                        self.assertNotIn("전문에 대괄호", card["body"])
+
     def test_tradition_sources_keep_locations_without_translation_or_evidence(self):
         for genre in catalog.TRADITIONS:
             with self.subTest(genre=genre):
@@ -121,7 +139,7 @@ class TraditionCatalogTest(unittest.TestCase):
 
     def test_runtime_catalog_is_reproducible_and_includes_all_fifteen_traditions(self):
         runtime = (catalog.RESOURCES / "genre-templates.json").read_bytes()
-        self.assertEqual("49a3a75f517ae461a42c0cc22d6d81b248af74b2e4d41a6338189b43ae2afe4a", hashlib.sha256(runtime).hexdigest())
+        self.assertEqual("51d7356487606ea532c2b1b31c62ff5a536defaf458bacd0486c03eea4d04950", hashlib.sha256(runtime).hexdigest())
         self.assertEqual(self.current, catalog.build(self.current))
         self.assertEqual(list(catalog.LEGACY + catalog.TRADITIONS), [t["genre"] for t in self.current])
         self.assertEqual(catalog.build(self.current), catalog.build(catalog.build(self.current)))
@@ -232,7 +250,6 @@ class TraditionCatalogTest(unittest.TestCase):
             cards = data["cards"]
             original = (catalog.ROOT / genre / "source/sources.md").read_text(encoding="utf-8-sig")
             documents = {"sources.md": catalog.anchor_sections(original, "sources.md")}
-            documents["original_sources"] = {source["url"].split("#")[0] for source in data["sources"]}
             supplementary = catalog.read_supplementary(genre)
             if supplementary is not None:
                 documents["supplementary.md"] = catalog.anchor_sections(supplementary, "supplementary.md")
@@ -307,6 +324,12 @@ class VariantRuleTest(unittest.TestCase):
             with self.subTest(body=body[:12], refs=len(refs)):
                 self.assertTrue(variant_problems(self.card(body, refs), self.DOCUMENTS))
         self.assertTrue(variant_problems(self.card(self.DISTINCT, [self.A, self.B]), {"sources.md": self.DOCUMENTS["sources.md"]}))
+
+    def test_uncited_source_list_cannot_supply_a_variant_reference(self):
+        docs = {"sources.md": {"a": "https://a.test/x", "a2": "https://a.test/x"},
+                "original_sources": {"https://a.test/x", "https://b.test/y"}}
+        refs = [self.A, {"document": "sources.md", "section": "a2"}]
+        self.assertTrue(variant_problems(self.card(self.DISTINCT, refs), docs))
 
     def test_cards_without_variants_are_not_required_to_have_them(self):
         plain = "한 출전만 쓴다.\n\n출전: [가](https://a.test/x)."
