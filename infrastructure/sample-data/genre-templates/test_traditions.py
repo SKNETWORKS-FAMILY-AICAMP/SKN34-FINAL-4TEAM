@@ -85,6 +85,30 @@ class TraditionCatalogTest(unittest.TestCase):
     def setUp(self):
         self.current = catalog.read(catalog.RESOURCES / "genre-templates.json")
 
+    def test_removed_editorial_notes_are_not_present_in_public_cards(self):
+        cases = {
+            ("sumerian_mythology", "justice-vow"): ("저본의 보충 읽기",),
+            ("chinese_folklore", "qi"): ("난해한 구절", "확정된 왕위 계승 연표"),
+            ("chinese_folklore", "jie_meixi"): ("몽산·민산", "방자함·허물"),
+            ("chinese_folklore", "king_mu"): ("탐욕", "원대한 계획"),
+        }
+        for (genre, key), retained in cases.items():
+            with self.subTest(genre=genre, key=key):
+                data = catalog.read(catalog.ROOT / genre / "source/tradition-cards.json")
+                card = next(c for c in data["cards"] if c["key"] == key)
+                self.assertNotIn("원고", card["body"])
+                self.assertNotIn("편집 주", card["body"])
+                for phrase in retained:
+                    self.assertIn(phrase, card["body"])
+                world = next(w for w in self.current if w["genre"] == genre)
+                self.assertEqual(card["body"], next(c["body"] for c in world["cards"] if c["title"] == card["title"]))
+        fiction = catalog.read(catalog.ROOT / "cthulhu_mythos/source/tradition-cards.json")
+        expected = {"angell-papers": "6c564077ec876212399990342cfd57f7fa9dda5100c08928ad7f4ad4a90ab904",
+                    "johansen-manuscript": "4518557c9272d39714b2dd2a1be5c6791470f89e6b3cb12bfb274f5f741fcd04"}
+        by_key = {card["key"]: card for card in fiction["cards"]}
+        for key, digest in expected.items():
+            self.assertEqual(digest, hashlib.sha256(by_key[key]["body"].encode()).hexdigest())
+
     def test_public_text_does_not_point_to_removed_translations(self):
         obsolete = ("원고는", "한국어 중역", "한국어로 중역", "한국어 완역", "완역과", "한국어 전문", "중역하여", "전체를 직접 한국어로 옮겼다")
         for genre in catalog.TRADITIONS:
@@ -139,7 +163,7 @@ class TraditionCatalogTest(unittest.TestCase):
 
     def test_runtime_catalog_is_reproducible_and_includes_all_fifteen_traditions(self):
         runtime = (catalog.RESOURCES / "genre-templates.json").read_bytes()
-        self.assertEqual("51d7356487606ea532c2b1b31c62ff5a536defaf458bacd0486c03eea4d04950", hashlib.sha256(runtime).hexdigest())
+        self.assertEqual("4699939f749f45dc0958f7c908955ade6e9ea91ab8ed9ab55860251831aa9517", hashlib.sha256(runtime).hexdigest())
         self.assertEqual(self.current, catalog.build(self.current))
         self.assertEqual(list(catalog.LEGACY + catalog.TRADITIONS), [t["genre"] for t in self.current])
         self.assertEqual(catalog.build(self.current), catalog.build(catalog.build(self.current)))
