@@ -1,7 +1,7 @@
 # Rating Agent (심의 등급 판별)
 
-**Rating Agent**는 집필 AI 다섯 업무 Agent([02](02-ai-architecture.md#다섯-업무-agent와-공통-simulation의-경계)) 밖의 보조 Agent다. 작가의 회차 초안이 **19세 이용가로 분류할 내용인지 아닌지만** 판별한다.
-Intent Router·오케스트레이션에 연결하지 않고 내부 API로 직접 호출한다. 구현은 `backend/ai-service/app/rating/`(#386, `feat/age-rating-agent` 브랜치)이다.
+**Rating Agent**는 집필 AI 여섯 업무 Agent([02](02-ai-architecture.md#여섯-업무-agent와-공통-simulation의-경계)) 중 하나다. 작가의 회차 초안이 **19세 이용가로 분류할 내용인지 아닌지만** 판별한다.
+오케스트레이션의 한 단계로 실행한다. 현재 구현은 단독 내부 API(`backend/ai-service/app/rating/`, `feat/age-rating-agent` 브랜치)이며 Intent Router 분류와 오케스트레이션 연결은 #386에서 한다.
 15세·12세 같은 세부 등급, 자동 등급 설정·숨김·발행 차단은 하지 않는다. 결과는 판정 제안이며 작품 등급의 정본·적용은 Content가 소유한다
 ([F-ADULT-01](../requirements.md#f-adult-01): 등급 기준·연령 확인·자동 조치는 미정).
 
@@ -52,7 +52,7 @@ POST /internal/v1/ratings {workId, episodes[1..10]}
 
 ## 한계와 남은 일
 
-- Content 호출자·작가 화면 버튼·작품 등급 필드 연결이 없다. 판정 결과를 작품 등급으로 저장할지는 F-ADULT-01 정책 결정 후 Content가 정한다.
+- Intent Router·오케스트레이션 연결, 작가 화면·작품 등급 필드 연결이 없다. 판정 결과를 작품 등급으로 저장할지는 F-ADULT-01 정책 결정 후 Content가 정한다.
 - 기준 문서는 법령 요약 하나뿐이고 플랫폼별 가이드라인은 비어 있다.
 - 불법 콘텐츠(아동·청소년 대상 성적 묘사 등)의 차단은 이 Agent 범위 밖이며 운영 모더레이션([UC-20](../usecase-spec/UC-20.md))이 맡는다. `adult: true`는 성인 이용가로 허용된다는 뜻이 아니다.
 - 회차 판별은 순차 호출이라 10개 회차면 최대 약 20분(호출당 timeout 120초)이 걸릴 수 있다. 호출자는 회차 수를 줄이거나 timeout을 맞춘다. 동시 호출은 추적 span 연결을 함께 설계할 때 검토한다.
