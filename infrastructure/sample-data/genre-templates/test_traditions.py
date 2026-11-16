@@ -29,6 +29,50 @@ def variant_problems(card, documents=None):
          if len({url for url, _ in supported}) < 2 or len({claim for _, claim in supported}) < 2 else [])
 
 
+class HistoryReviewTest(unittest.TestCase):
+    def test_complete_studio_set_is_validated_without_changing_runtime_inputs(self):
+        current = catalog.read(catalog.RESOURCES / "genre-templates.json")
+        before = hashlib.sha256(json.dumps(current, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+        with tempfile.TemporaryDirectory() as directory:
+            studio = Path(directory)
+            worlds = [catalog.load_history(catalog.ROOT / "history" / f"{country}.world.json") for country in catalog.HISTORY]
+            for country, world in zip(catalog.HISTORY, worlds):
+                (studio / f"{country}.world.json").write_text(json.dumps(world, ensure_ascii=False), encoding="utf-8")
+            with patch.object(catalog, "STUDIO_ROOT", studio):
+                self.assertEqual(worlds, catalog.build_history_review(current))
+                path = studio / f"{catalog.HISTORY[-1]}.world.json"
+                original = path.read_text(encoding="utf-8")
+                path.unlink()
+                with self.assertRaises(AssertionError):
+                    catalog.build_history_review(current)
+                path.write_text(original, encoding="utf-8")
+                duplicate = json.loads(original)
+                duplicate["cards"].append(duplicate["cards"][0])
+                path.write_text(json.dumps(duplicate), encoding="utf-8")
+                with self.assertRaises(AssertionError):
+                    catalog.build_history_review(current)
+                duplicate["cards"][-1] = {**duplicate["cards"][-1], "id": duplicate["cards"][-1]["id"].upper()}
+                path.write_text(json.dumps(duplicate), encoding="utf-8")
+                with self.assertRaises(AssertionError):
+                    catalog.build_history_review(current)
+                duplicate = json.loads(original)
+                duplicate["worldId"] = worlds[0]["worldId"]
+                path.write_text(json.dumps(duplicate), encoding="utf-8")
+                with self.assertRaises(AssertionError):
+                    catalog.build_history_review(current)
+                duplicate = json.loads(original)
+                duplicate["cards"][0]["id"] = worlds[0]["cards"][0]["id"]
+                path.write_text(json.dumps(duplicate), encoding="utf-8")
+                with self.assertRaises(AssertionError):
+                    catalog.build_history_review(current)
+                duplicate = json.loads(original)
+                duplicate["genre"] = "other"
+                path.write_text(json.dumps(duplicate), encoding="utf-8")
+                with self.assertRaises(AssertionError):
+                    catalog.build_history_review(current)
+            self.assertEqual(before, hashlib.sha256(json.dumps(current, ensure_ascii=False, sort_keys=True).encode()).hexdigest())
+
+
 class CreativeCardsTest(unittest.TestCase):
     WORLD = {"genre": "example", "worldId": "4fe1e070-e9f4-5d85-8923-c34da0b276e5", "name": "세계", "description": "설명", "cards": []}
     TEMPLATE = {"genre_id": "example", "setting_bible": {"sections": [{"id": "example_section_01"}]}}
@@ -263,6 +307,8 @@ class TraditionCatalogTest(unittest.TestCase):
         self.assertEqual(self.current, catalog.build(self.current))
         self.assertEqual(list(catalog.LEGACY + catalog.TRADITIONS), [t["genre"] for t in self.current[:26]])
         self.assertEqual([catalog.load_history(catalog.ROOT / "history" / (country + ".world.json")) for country in catalog.HISTORY], self.current[26:])
+        history_bytes = json.dumps(self.current[26:], ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+        self.assertEqual("fe26493096498e93154404f31ba9a749164889c3bcd7a6aa71ae8c5b03ab84d5", hashlib.sha256(history_bytes).hexdigest())
         self.assertEqual((33, 1412, 405), (len(self.current), sum(len(w["cards"]) for w in self.current), sum(c["cardType"] == "character" for w in self.current for c in w["cards"])))
         self.assertEqual(catalog.build(self.current), catalog.build(catalog.build(self.current)))
 

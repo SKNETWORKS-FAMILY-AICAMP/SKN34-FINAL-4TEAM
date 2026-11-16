@@ -1,0 +1,219 @@
+{
+  "genre": "usa_history",
+  "worldId": "caa0b0e9-0305-566e-82ee-650f43aa464e",
+  "name": "미국사: 원주민 사회에서 20세기 권리와 권력까지",
+  "description": "확보한 The American Yawp 영어 원문을 근거로 한 단일 역사 세계 자료. 식민화 이전의 사회, 식민지와 독립, 노예제·재건, 노동·복지·시민권·정치 권력의 변화를 선별했다. 역사 연구 초안이며 창작 세계나 완결 통사가 아니다.",
+  "cards": [
+    {
+      "id": "5ddcf4a9-919d-5165-8067-8d32f6da3174",
+      "title": "카호키아: 식민화 이전의 도시",
+      "body": "카호키아는 미시시피강 유역, 오늘날 세인트루이스의 동쪽에 자리했던 대규모 원주민 정착지다. 도시 중심에는 거대한 흙 구조물인 몽크스 마운드가 있었으며, 이곳은 정치·의례·교역 활동이 교차하는 공간이었다. 교재가 제시하는 전성기 인구는 추정치이므로 확정 인원으로 사용하지 않는다.\n\n출전: Christen Mucher 외, The American Yawp, 1장, 확보 영문본 L129 (https://www.americanyawp.com/textbook/01-american-origins).",
+      "cardType": "location"
+    },
+    {
+      "id": "e357c6d5-d5f5-5a15-935a-6f02a2e27f58",
+      "title": "와훈세나카우와 포와탄 정치권",
+      "body": "영국인이 포와탄이라고 부른 와훈세나카우는 체서피크 지역의 여러 알곤킨어 사용 정치 공동체를 이끌었다. 그가 이끈 정치권의 주민들은 유럽인의 정착 이전부터 농경·사냥·토지 관리를 이어 왔다.\n\n출전: Miller Shores Wright 외, The American Yawp, 3장 (https://www.americanyawp.com/textbook/03-colliding-cultures).",
+      "cardType": "character",
+      "soul": "근거와 한계: The American Yawp는 와훈세나카우가 여러 알곤킨어 사용 정치 공동체를 이끌었다고 설명한다. 경작과 토지 관리는 공동체에 대한 서술이며 개인의 행동이나 내면으로 단정하지 않는다. 독립 역사 감수는 대기 중이다.\n\n창작 문체 제안: 여러 공동체의 관계와 그들이 살아가는 땅을 맥락으로 둔다. 실제 말투는 미확인. 이 제안은 역사적 발언이나 인물의 성격을 확정하지 않는다."
+    },
+    {
+      "id": "a3af6a42-9dca-5a66-9570-8360a12c0469",
+      "title": "제임스타운: 투자와 생존의 식민 거점",
+      "body": "1607년 버지니아의 제임스강에 세워진 제임스타운은 버지니아 회사가 추진한 영국 식민 사업의 거점이었다. 금속·모피 등 거래할 자원을 찾으려는 투자 목적과 현지의 토양·식수 문제가 함께 작용했다. 교재는 이곳을 오늘날 미국 영역에서 지속된 최초의 영국 식민지로 설명한다. 이미 원주민이 살던 지역에 들어선 정착지라는 점을 함께 기록한다.\n\n출전: Miller Shores Wright 외, The American Yawp, 3장, 확보 영문본 L157, L159 (https://www.americanyawp.com/textbook/03-colliding-cultures).",
+      "cardType": "location"
+    },
+    {
+      "id": "b77015f8-1126-54e1-9843-527e323fe62a",
+      "title": "버지니아의 모계 노예 신분 세습",
+      "body": "1662년 버지니아는 아이의 노예 신분이 어머니에게서 이어지도록 규정했다. 노예화된 여성이 낳은 아이는 아버지가 자유인인지, 노예인지와 무관하게 평생 노예 신분에 묶였다. 이 제도는 노동 계약과 다른 세습적 구속을 강화했다. 역사적 법제의 설명이며, 당시의 인종 구분이나 사람을 소유물로 취급한 관행을 정당화하지 않는다.\n\n출전: Daniel Johnson 외, The American Yawp, 4장, 확보 영문본 L55 (https://www.americanyawp.com/textbook/04-british-north-america).",
+      "cardType": "rule"
+    },
+    {
+      "id": "2699e976-3c03-544c-a386-1deda9c8d5dd",
+      "title": "자유의 아들들: 인지세 저항 조직",
+      "body": "1766년 초까지 여러 식민지에 자유의 아들들이라는 이름의 집단이 형성되어 저항을 조직했다. 인지 판매 담당자들의 사임과 업무 기피는 인지세법의 실제 집행을 어렵게 만들었다. 하나의 중앙집권적 전국 조직이었다고 단정하지 않는다.\n\n출전: Michael Hattem 외, The American Yawp, 6장, 확보 영문본 L83 (https://www.americanyawp.com/textbook/06-the-american-revolution).",
+      "cardType": "organization"
+    },
+    {
+      "id": "c9844429-22f2-5155-894b-4778c6d02259",
+      "title": "독립선언서: 승인된 정치 문서",
+      "body": "대륙회의는 1776년 7월 4일 독립선언서를 승인했다. 교재는 이 문서가 제국 행정 개편에 대한 오랜 식민지의 불만을 정리한 결과라고 설명한다. 초안의 대서양 노예무역 비판은 여러 대표의 반대로 삭제되었다. 선언의 승인과 전쟁에서 독립을 확보하는 과정은 같은 사건으로 합치지 않는다.\n\n출전: Michael Hattem 외, The American Yawp, 6장, 확보 영문본 L167, L169 (https://www.americanyawp.com/textbook/06-the-american-revolution).",
+      "cardType": "object"
+    },
+    {
+      "id": "1c2d4de7-708d-5d18-a629-05d44414910a",
+      "title": "조지 워싱턴: 군 지휘에서 대통령으로",
+      "body": "대륙회의는 버지니아 대표 조지 워싱턴을 대륙군 총사령관으로 임명했다. 전쟁기의 군사 지휘와 이후 대통령 선출은 별개의 역할이며, 교재는 후자의 권위가 새 헌법 체제의 안착에 기여했다고 본다.\n\n출전: Michael Hattem 외, The American Yawp, 6장, 확보 영문본 L145 (https://www.americanyawp.com/textbook/06-the-american-revolution); Tara Strauch 외, The American Yawp, 7장, 확보 영문본 L93 (https://www.americanyawp.com/textbook/07-a-new-nation).",
+      "cardType": "character",
+      "soul": "근거와 한계: The American Yawp는 대륙회의의 워싱턴 총사령관 임명을 서술하고, 대통령 선출이 헌법의 권위를 다졌다고 해석한다. 두 역할과 교재의 평가를 구분하며 독립 역사 감수는 대기 중이다.\n\n창작 문체 제안: 군 지휘와 새 헌법 체제의 공적 역할을 별도로 다룬다. 실제 말투는 미확인. 이 제안은 역사적 발언이나 인물의 성격을 확정하지 않는다."
+    },
+    {
+      "id": "6de9ca55-8055-5335-a718-8e64e9cb4f7e",
+      "title": "헌법의 대표제와 노예제 타협",
+      "body": "1787년 헌법 제정 과정에서 하원의 인구 비례 대표와 각 주가 두 명씩 보내는 상원이 결합했다. 노예화된 주민의 5분의 3을 대표 배분과 조세 계산에 반영하는 타협도 포함되었다. 이는 노예화된 사람에게 그만큼의 투표권을 준 제도가 아니다. 헌법 문서의 서명과 각 주의 비준 절차를 구분해 이해한다.\n\n출전: Tara Strauch 외, The American Yawp, 7장, 확보 영문본 L71, L81 (https://www.americanyawp.com/textbook/07-a-new-nation).",
+      "cardType": "rule"
+    },
+    {
+      "id": "f3fd07d5-466d-5d4e-a9b2-09456249ce17",
+      "title": "원주민 이주법과 체로키 강제 이주",
+      "body": "1830년 원주민 이주법은 동부의 토지를 서부 토지와 교환하는 협상 권한을 대통령에게 부여했다. 체로키 내부에는 이주 수용 여부를 둘러싼 대립이 있었고, 다수는 1835년 뉴에코타 조약의 정당성을 인정하지 않았다. 1838년 밴뷰런 행정부는 군대를 동원해 이주를 강제했다. 이를 자발적 인구 이동이나 단일한 원주민 의사로 서술하지 않는다.\n\n출전: Emily Arendt 외, The American Yawp, 10장, 확보 영문본 L137, L147, L149 (https://www.americanyawp.com/textbook/10-american-democracy).",
+      "cardType": "event"
+    },
+    {
+      "id": "e5e23dd7-023e-5d78-a93e-fd1b126800fa",
+      "title": "프레더릭 더글러스: 해방운동의 발언자",
+      "body": "노예 상태에서 탈출한 프레더릭 더글러스는 자신의 경험을 바탕으로 연설하고 글을 쓰는 노예제 폐지 운동가가 되었다. 1845년 출간된 첫 자서전은 여러 판과 번역으로 유통되었고, 그는 영국과 아일랜드의 반노예제 단체들로부터 지지를 얻었다. 그의 활동은 흑인의 자기 증언이 대서양 양쪽의 운동과 연결된 사례다.\n\n출전: Andrew N. Wegmann and John William Nelson 외, The American Yawp, 11장, 확보 영문본 L121 (https://www.americanyawp.com/textbook/11-growth-and-conflict).",
+      "cardType": "character",
+      "soul": "근거와 한계: The American Yawp는 더글러스의 노예제 탈출, 자서전 출간과 영국·아일랜드 반노예제 단체의 지지를 서술한다. 연설가로서의 평가는 교재의 설명이며 독립 역사 감수는 대기 중이다.\n\n창작 문체 제안: 자기 경험의 증언과 대서양 양쪽의 운동을 연결한다. 실제 말투는 미확인. 이 제안은 역사적 발언이나 인물의 성격을 확정하지 않는다."
+    },
+    {
+      "id": "dea46c6f-3697-59a1-851a-e45352b5b9c3",
+      "title": "세네카폴스 대회와 여성의 권리",
+      "body": "1848년 루크리셔 모트와 엘리자베스 케이디 스탠턴은 뉴욕주에서 여성의 권리를 논의하는 세네카폴스 대회를 조직했다. 스탠턴이 작성한 감정선언은 독립선언서를 모델로 삼아 재산권·전문직 진출·투표권을 요구했다. 이 대회는 권리를 실제로 획득한 완료 시점이 아니라 요구를 공개적으로 조직한 장면이다.\n\n출전: Andrew N. Wegmann and John William Nelson 외, The American Yawp, 11장, 확보 영문본 L129, L133 (https://www.americanyawp.com/textbook/11-growth-and-conflict).",
+      "cardType": "event"
+    },
+    {
+      "id": "a371441b-0514-524e-a7b7-c1ba496c5a9c",
+      "title": "노예해방선언의 효력과 한계",
+      "body": "링컨의 노예해방선언은 남부연합의 통제 아래 있는 지역의 노예해방을 겨냥한 전시 조치였다. 연방에 남은 경계주와 일부 점령 지역은 적용에서 제외되었으므로 미국 전역의 노예제가 그 순간 모두 끝났다고 적지 않는다. 1863년 1월 1일 발효 이후 흑인 남성의 연방군 입대가 확대되었다.\n\n출전: Frank Cirillo 외, The American Yawp, 13장, 확보 영문본 L125, L129 (https://www.americanyawp.com/textbook/13-the-civil-war).",
+      "cardType": "rule"
+    },
+    {
+      "id": "6ea57bfa-e171-5ac9-b584-0f39f27fcc20",
+      "title": "자유민지원국: 토지와 교육의 재건",
+      "body": "재건기에 자유민지원국은 해방된 주민을 위한 토지 재분배와 학교 설립에 관여했다. 그러나 정부가 확보했던 토지의 일부는 옛 남부연합 측 소유자에게 돌아가면서 토지를 얻으리라는 기대가 좌절되었다.\n\n출전: Justene Hill Edwards 외, The American Yawp, 14장, 확보 영문본 L79, L93 (https://www.americanyawp.com/textbook/14-reconstruction).",
+      "cardType": "organization"
+    },
+    {
+      "id": "ecb9e9a6-b51d-5d86-b984-d2593f71eb6a",
+      "title": "수정헌법 제14조: 시민권과 주 권력",
+      "body": "수정헌법 제14조는 시민권과 적법 절차, 평등 보호를 둘러싼 재건기의 핵심 제도였다. 교재는 1866년 하원 통과와 1868년 주들의 비준을 구별해 서술한다. 연방 차원의 권리 보장과 주정부의 권한 사이 관계가 바뀌었지만, 규정의 성립이 곧바로 모든 차별의 소멸을 뜻하지는 않는다.\n\n출전: Justene Hill Edwards 외, The American Yawp, 14장, 확보 영문본 L55, L57 (https://www.americanyawp.com/textbook/14-reconstruction).",
+      "cardType": "rule"
+    },
+    {
+      "id": "636b715f-b9e1-58c3-8e7a-bef64ef1222d",
+      "title": "노동기사단: 숙련의 경계를 넘는 조직",
+      "body": "노동기사단은 1880년대 초 숙련 노동자와 비숙련 노동자를 함께 조직하며 성장했다. 여성도 받아들였고, 노동을 중심에 둔 협동적 사회를 지향하면서 지역 노동조합의 실질적 성과를 추구했다. 1886년 철도 파업에서는 회사 측의 대체 노동력과 사설 경비, 주정부의 무력 지원에 직면했다. 모든 집단에 실제로 동등한 포용이 보장되었다는 뜻으로 확대하지 않는다.\n\n출전: Joseph L. Locke 외, The American Yawp, 15장, 확보 영문본 L96, L100 (https://www.americanyawp.com/textbook/15-capital-and-labor).",
+      "cardType": "organization"
+    },
+    {
+      "id": "ceb90e1c-cc1b-56ba-a1fc-66aff1eab39a",
+      "title": "뉴딜의 사회보장법과 배제",
+      "body": "제2차 뉴딜의 사회보장법은 노령연금·실업보험·필요에 따른 노인 및 부양 아동 지원을 마련했다. 노동부 장관 프랜시스 퍼킨스가 이를 추진했다. 그러나 초기 연금 제도는 가사노동자와 농장 노동자를 제외해 흑인에게 불균등한 영향을 미쳤다.\n\n출전: Matthew Downs and Eric Rauchway 외, The American Yawp, 21장, 확보 영문본 L200 (https://www.americanyawp.com/textbook/21-the-great-depression).",
+      "cardType": "rule"
+    },
+    {
+      "id": "6abc19ba-fd70-5090-a800-84a538613aff",
+      "title": "전시 일본계 주민의 강제 이주·수용",
+      "body": "1942년 2월 19일 루스벨트가 서명한 행정명령 9066호는 군 지휘관이 지정 지역에서 사람들을 배제할 수 있도록 했다. 그 결과 일본계 이민자뿐 아니라 미국 시민도 강제 이주·수용 대상이 되었고 집과 일자리를 잃었다. 교재는 이들에게 수용 전 개별 심사가 제공되지 않았다고 설명한다. 국적이나 혈통을 개인의 불충성 증거로 취급하지 않는다.\n\n출전: Joseph Locke 외, The American Yawp, 22장, 확보 영문본 L216 (https://www.americanyawp.com/textbook/22-world-war-ii).",
+      "cardType": "event"
+    },
+    {
+      "id": "5b62017b-4097-53e5-9db8-1de41d431db0",
+      "title": "브라운 판결: 공립학교 인종 분리",
+      "body": "1954년 5월 17일 미국 연방대법원은 브라운 대 교육위원회 사건에서 공립학교의 인종 분리가 수정헌법 제14조의 평등 보호에 어긋난다고 판단했다. 판결은 만장일치로 내려졌다. 이 카드는 헌법 해석의 전환을 다루며, 판결 발표만으로 학교와 지역사회의 분리가 즉시 사라졌다고 서술하지 않는다.\n\n출전: James McKay 외, The American Yawp, 24장, 확보 영문본 L75 (https://www.americanyawp.com/textbook/24-the-affluent-society).",
+      "cardType": "rule"
+    },
+    {
+      "id": "1212ad83-6481-5d36-ae46-710fa43adabd",
+      "title": "학생비폭력조정위원회와 풀뿌리 행동",
+      "body": "1960년 엘라 베이커는 학생비폭력조정위원회(SNCC)의 조직을 도왔다. 학생 활동가들의 직접 행동과 지역 기반의 조직화는 분리 관행에 도전하는 방법이었다. 교재는 존 루이스·다이앤 내시 등 여러 활동가를 이 흐름에 연결한다. 조직의 이후 모든 활동이 동일한 전략과 이념을 유지했다고 가정하지 않는다.\n\n출전: Samuel Abramson and Kerry Goldmann 외, The American Yawp, 25장, 확보 영문본 L29 (https://www.americanyawp.com/textbook/25-the-sixties).",
+      "cardType": "organization"
+    },
+    {
+      "id": "bb51d307-efef-5615-aea5-40f92e19d664",
+      "title": "셀마 행진과 1965년 투표권법",
+      "body": "1965년 셀마에서 몽고메리로 향한 행진은 흑인의 투표권을 요구했다. 첫 행진 참가자들이 법 집행기관의 폭력에 노출된 장면이 알려지면서 연방 입법의 압력이 커졌다. 뒤이어 제정된 투표권법은 연방·주·지방 선거의 차별적 배제에 맞서는 제도적 수단이 되었다. 당시의 법 제정과 현재 법의 적용 상태는 구분한다.\n\n출전: Samuel Abramson and Kerry Goldmann 외, The American Yawp, 25장, 확보 영문본 L65 (https://www.americanyawp.com/textbook/25-the-sixties).",
+      "cardType": "rule"
+    },
+    {
+      "id": "54a2983c-2b32-5dd1-9221-4dadfaf515a2",
+      "title": "워터게이트: 침입·은폐·대통령 사임",
+      "body": "1972년 워터게이트의 민주당 전국위원회 사무실에서 도청 장비를 설치하려던 침입자들이 체포되었다. 백악관의 은폐와 수사 방해, 의회 청문회와 녹음자료 논란이 이어졌다. 1974년 하원 법사위원회의 탄핵 추진 뒤 닉슨은 하원 전체 표결 전에 사임했다. 침입 자체를 누가 지시했는지와 이후 은폐에 누가 관여했는지는 별개의 주장으로 취급한다.\n\n출전: Edwin Breeden 외, The American Yawp, 26장, 확보 영문본 L116, L120 (https://www.americanyawp.com/textbook/26-the-unraveling).",
+      "cardType": "event"
+    },
+    {
+      "id": "0bef7a62-4958-5f89-8096-1b0dd60c1e59",
+      "title": "출처·저자·이용 조건",
+      "body": "이 설정집은 Joseph L. Locke와 Ben Wright 및 각 장의 편집자·기여자가 만든 The American Yawp의 영어 본문을 선별해 한국어로 재서술하고 카드 유형에 맞게 분리·배열한 변경본이다. 장별 편집자와 기여자 명단은 이어지는 기여자 카드에 수록했으며, 원전과 기여자 기록은 아래 링크에서 확인할 수 있다. 이 변경본은 CC BY-SA 4.0 동일 조건으로 제공한다. 저자의 이 설정집에 대한 지지를 뜻하지 않는다. 다른 자료나 프로젝트 전체의 권리를 변경하지 않는다. 이미지·제3자 설명 및 원문 전문은 수록하지 않았다.\n\n원전: https://www.americanyawp.com/\n이용 조건: https://creativecommons.org/licenses/by-sa/4.0/\n장별 기여자와 근거: https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/blob/develop/infrastructure/sample-data/genre-templates/history/usa.evidence.json",
+      "cardType": "other"
+    },
+    {
+      "id": "4ff3552f-2aa0-5e95-88a8-5cf7d2c46e8b",
+      "title": "검토 상태와 사용 범위",
+      "body": "이 설정집은 식민화 이전부터 워터게이트 시기까지 선별한 역사 연구 초안으로, 완결된 미국 통사가 아니다. 기존 자료는 핵심 서술을 확보한 영어 원문 발췌와 대조했으나, 독립적인 전수 사실 검증과 전문 역사 감수는 완료되지 않았다. 원문에도 오류가 확인된 부분이 있으므로 정확성을 보장하지 않는다. 기존 자료의 권리 검토도 전체 완료로 단정할 수 없다. 교육·역사 고증이나 재배포 전 추가 확인이 필요하다.\n\n원전: https://www.americanyawp.com/textbook/01-american-origins\n기존 근거·검토 상태: https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/blob/develop/infrastructure/sample-data/genre-templates/history/usa.evidence.json",
+      "cardType": "other"
+    },
+    {
+      "id": "88a04486-91db-5022-b868-c8f58e048819",
+      "title": "포와탄 정치권",
+      "body": "와훈세나카우가 이끈 체서피크의 여러 알곤킨어 사용 정치 공동체는 교재에서 포와탄으로 통칭된다. 주민들은 옥수수·콩·호박을 재배하고, 화입으로 관목을 정리해 사냥할 수 있는 공간을 만들었다. 이들은 영국 정착민이 도착하기 전부터 이 지역에서 살아왔다.\n\n출전: The American Yawp, 3장 V. Jamestown (장 안 검색어: Wahunsenacawh), https://www.americanyawp.com/textbook/03-colliding-cultures",
+      "cardType": "organization"
+    },
+    {
+      "id": "0c0e25ea-15f7-526a-a2e5-c83bb7e32e45",
+      "title": "1830년 원주민 이주법",
+      "body": "미국 의회가 1830년 통과시킨 원주민 이주법은 미시시피강 동쪽의 원주민 땅을 서쪽 땅과 교환하는 조약 협상을 시작할 권한을 대통령에게 부여했다. 이후 체로키 강제 이주의 배경이 된 법이다.\n\n출전: The American Yawp, 10장 VI: Indigenous Dispossession (장 안 검색어: Indian Removal Act), https://www.americanyawp.com/textbook/10-american-democracy",
+      "cardType": "rule"
+    },
+    {
+      "id": "7d0eb895-f6ff-50cc-a2e5-b1e46ce61f16",
+      "title": "감정선언",
+      "body": "엘리자베스 케이디 스탠턴은 1848년 세네카폴스 대회를 위해 감정선언을 작성했다. 독립선언서를 본뜬 이 문서는 여성의 재산권·전문직 진출·투표권을 요구했다.\n\n출전: The American Yawp, 11장 V. Fighting Sin (장 안 검색어: Declaration of Sentiments), https://www.americanyawp.com/textbook/11-growth-and-conflict",
+      "cardType": "object"
+    },
+    {
+      "id": "40f9c8e8-6315-5d65-ba14-32831ba901e9",
+      "title": "루크리셔 모트",
+      "body": "루크리셔 모트는 엘리자베스 케이디 스탠턴과 함께 1848년 뉴욕주 세네카폴스에서 여성의 권리를 논의하는 대회를 조직했다.\n\n출전: The American Yawp, 11장 V. Fighting Sin (장 안 검색어: Seneca Falls Convention), https://www.americanyawp.com/textbook/11-growth-and-conflict",
+      "cardType": "character",
+      "soul": "작가를 위한 창작 제안: 여성의 권리를 함께 논의할 공개적인 자리를 만드는 활동에 주목한다. 실제 말투는 미확인이며, 이 제안은 역사적 사실이나 발언·성격을 확정하지 않는다."
+    },
+    {
+      "id": "8f06cae1-e7d2-5139-9719-2c0063b12ab1",
+      "title": "엘리자베스 케이디 스탠턴",
+      "body": "엘리자베스 케이디 스탠턴은 루크리셔 모트와 1848년 세네카폴스 대회를 조직하고, 여성의 재산권과 투표권 등을 요구한 감정선언을 작성했다.\n\n출전: The American Yawp, 11장 V. Fighting Sin (장 안 검색어: Stanton wrote the Declaration of Sentiments), https://www.americanyawp.com/textbook/11-growth-and-conflict",
+      "cardType": "character",
+      "soul": "작가를 위한 창작 제안: 선언문과 대회에서 제기된 권리 요구를 중심에 둔다. 실제 말투는 미확인이며, 이 제안은 역사적 사실이나 발언·성격을 확정하지 않는다."
+    },
+    {
+      "id": "8f33e7f0-5e7b-5d6e-97a8-69acf1018f0a",
+      "title": "프랜시스 퍼킨스",
+      "body": "노동부 장관 프랜시스 퍼킨스는 제2차 뉴딜의 사회보장법을 추진했다. 이 법은 노령연금과 실업보험 등을 마련했지만 초기 연금에서 가사노동자와 농장 노동자를 제외했다.\n\n출전: The American Yawp, 21장 X. The “Second” New Deal (1935–1936) (장 안 검색어: Social Security Act), https://www.americanyawp.com/textbook/21-the-great-depression",
+      "cardType": "character",
+      "soul": "작가를 위한 창작 제안: 제도 확대와 적용에서 제외된 사람들의 경험을 함께 살핀다. 실제 말투는 미확인이며, 이 제안은 역사적 사실이나 발언·성격을 확정하지 않는다."
+    },
+    {
+      "id": "69efe230-3ce0-564e-aad0-47069df3578d",
+      "title": "엘라 베이커",
+      "body": "엘라 베이커는 1960년 학생비폭력조정위원회(SNCC)의 조직을 도왔고 학생 활동가들의 직접 행동과 지역 기반 활동을 지지했다.\n\n출전: The American Yawp, 25장 II. The Civil Rights Movement Accelerates (장 안 검색어: Ella Baker), https://www.americanyawp.com/textbook/25-the-sixties",
+      "cardType": "character",
+      "soul": "작가를 위한 창작 제안: 학생 활동가와 지역 주민의 조직 활동을 살피는 방향으로 다룬다. 실제 말투는 미확인이며, 이 제안은 역사적 사실이나 발언·성격을 확정하지 않는다."
+    },
+    {
+      "id": "69324596-d0d0-5302-9cba-989947ff84eb",
+      "title": "셀마에서 몽고메리로 향한 행진",
+      "body": "1965년 3월 활동가들은 흑인의 투표권을 요구하며 앨라배마주 셀마에서 몽고메리로 행진하려 했다. 3월 7일 첫 행진의 평화 시위대는 경찰의 곤봉과 최루탄 공격을 받았다. 월말에 이르러 행진 참가자들은 주 의사당까지 도착했다. 첫 행진의 폭력에 대한 보도는 뒤이은 투표권법 추진의 계기가 되었다.\n\n출전: The American Yawp, 25장 II. The Civil Rights Movement Accelerates (장 안 검색어: Selma to Montgomery), https://www.americanyawp.com/textbook/25-the-sixties",
+      "cardType": "event"
+    },
+    {
+      "id": "cc20b662-adf4-5069-b21a-a199575b7c60",
+      "title": "The American Yawp 장별 기여자 1",
+      "body": "이 설정집에서 사용한 장의 편집자와 기여자다. 이름과 표기는 확보본의 기여자 표시에 따른다.\n\n01-american-origins — 편집: Christen Mucher / 기여: L. D. Burnett, Michelle Cassidy, D. Andrew Johnson, Khalil Anthony Johnson Jr., Brenda Lakhani, Joseph Locke, Dawn Marsh, Christen Mucher, Rachel Pasierowska, Cameron Shriver, Ben Wright, Caroline Wright, and Garrett Wright.\nhttps://www.americanyawp.com/textbook/01-american-origins\n\n03-colliding-cultures — 편집: Miller Shores Wright / 기여: Erin Bonuso, L. D. Burnett, Max Flomen, Jon Grandage, Daniel Johnson, Brenda Lakhani, Joseph Locke, Lisa Mercer, Maria Montalvo, Ian Saxine, Jennifer Tellman, Luke Willert, Ben Wright, Caroline Wright, and Miller Shores Wright.\nhttps://www.americanyawp.com/textbook/03-colliding-cultures\n\n04-british-north-america — 편집: Daniel Johnson / 기여: Gregory Ablavsky, James Ambuske, Carolyn Arena, L. D. Burnett, Lori Daggar, Max Flomen, Hendrick Isom, D. Andrew Johnson, Daniel Johnson, Matthew Kruer, Brenda Lakhani, Joseph Locke, Samantha Miller, Melissa Morris, Bryan Rindfleisch, Emily Romeo, John Saillant, Ian Saxine, Marie Stango, Luke Willert, Ben Wright, Caroline Wright, and Miller Shores Wright.\nhttps://www.americanyawp.com/textbook/04-british-north-america\n\n06-the-american-revolution — 편집: Michael Hattem / 기여: James Ambuske, Alexander Burns, Joshua Beatty, Christina Carrick, Christopher Consolino, Michael Hattem, Timothy C. Hemmis, Brenda Lakhani, Joseph Moore, Emily Romeo, John Saillant, Christopher Sparshott, Ben Wright, and Caroline Wright.\nhttps://www.americanyawp.com/textbook/06-the-american-revolution\n\n07-a-new-nation — 편집: Tara Strauch / 기여: Marco Basile, Nathaniel C. Green, Brenden Kennedy, Spencer McBride, Andrea Nero, Cara Rogers, John Saillant, Tara Strauch, Michael Harrison Taylor, Jordan Taylor, Kevin Wisniewski, Ben Wright, and Caroline Wright.\nhttps://www.americanyawp.com/textbook/07-a-new-nation\n\n출전: The American Yawp, https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/blob/develop/infrastructure/sample-data/genre-templates/history/usa.evidence.json",
+      "cardType": "other"
+    },
+    {
+      "id": "48de14cc-9319-53f8-aefb-aec896029ac2",
+      "title": "The American Yawp 장별 기여자 2",
+      "body": "이 설정집에서 사용한 장의 편집자와 기여자다. 이름과 표기는 확보본의 기여자 표시에 따른다.\n\n10-american-democracy — 편집: Emily Arendt / 기여: Myles Beaupre, Marjorie Brown, Michelle Cassidy, Steffi Cerato, Christopher Childers, Kristin Condotta, Emily Conroy-Krutz, William Cossen, Adam Costanzo, Jeff Fortney, Jane Fiegen Green, Nathaniel C. Green, Robert Gudmestad, Nathan Jeremie-Brink, Christopher C. Jones, Lindsay Keiter, Brenda Lakhani, Spencer McBride, Maria Montalvo, James Anthony Owen, Katherine Rohrer, Marie Stango, Kevin Waite, Kelly Weber, Jonathan Wilfred Wilson, Caroline Wright, and Ben Wright.\nhttps://www.americanyawp.com/textbook/10-american-democracy\n\n11-growth-and-conflict — 편집: Andrew N. Wegmann and John William Nelson / 기여: Elena Abbott, Ian Beamish, Amanda Bellows, Cameron Blevins, Marjorie Brown, Matthew Byron, Steffi Cerato, Frank Cirillo, Justin Clark, Emily Conroy-Krutz, Jane Fiegen Green, Robert Gudmestad, John Harris, Nicolas Hoffmann, Christopher C. Jones, Brenda Lakhani, Jonathan Koefoed, Charles McCrary, Maria Montalvo, John William Nelson, James Anthony Owen, Katherine Rohrer, William E. Skidmore, Marie Stango, Megan Stanton, Kelly Weber, Andrew N. Wegmann, Jonathan Wilfred Wilson, Caroline Wright, and Ben Wright.\nhttps://www.americanyawp.com/textbook/11-growth-and-conflict\n\n13-the-civil-war — 편집: Frank Cirillo / 기여: Thomas Balcerski, William Black, Lauren Brand, Frank Cirillo, Angela Esco Elder, Matthew C. Hulbert, Brenda Lakhani, Andrew F. Lang, Lindsay Stallones Marshall, John Patrick Riley, Angela Riotto, Gregory N. Stern, Emma Teitelman, David Thomson, Ann Tucker, Ben Wright, Caroline Wright, and Rebecca Zimmer.\nhttps://www.americanyawp.com/textbook/13-the-civil-war\n\n14-reconstruction — 편집: Justene Hill Edwards / 기여: Christopher Abernathy, Jeremiah Bauer, Lauren Brand, Michael T. Caires, Mari Crabtree, Chris Hayashida-Knight, Krista Kinslow, Brenda Lakhani, Lindsay Stallones Marshall, Ashley Mays, Keith McCall, Ryan Poe, Bradley Proctor, Emma Teitelman, Nicole Myers Turner, Caitlin Verboon, Caroline Wright, and Ben Wright.\nhttps://www.americanyawp.com/textbook/14-reconstruction\n\n15-capital-and-labor — 편집: Joseph L. Locke / 기여: Andrew C. Baker, Jennifer M. Black, Nicholas Blood, Justin Clark, Dan Du, Kollin Fields, Caroline Bunnell Harris, David Hochfelder Scott Libson, Joseph Locke, Chad Pearson, Leah Richier, Matthew Simmons, Kate Sohasky, Joseph Super, and Kaylynn Washnock.\nhttps://www.americanyawp.com/textbook/15-capital-and-labor\n\n출전: The American Yawp, https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/blob/develop/infrastructure/sample-data/genre-templates/history/usa.evidence.json",
+      "cardType": "other"
+    },
+    {
+      "id": "24d63d24-87ae-595c-9a7a-5cde97437c74",
+      "title": "The American Yawp 장별 기여자 3",
+      "body": "이 설정집에서 사용한 장의 편집자와 기여자다. 이름과 표기는 확보본의 기여자 표시에 따른다.\n\n21-the-great-depression — 편집: Matthew Downs and Eric Rauchway / 기여: Dana Cochran, Matthew Downs, Rebecca Brenner Graham, Benjamin Helwege, Brenda L. Lakhani, Elisa Minoff, Eric Rauchway, Larisa L. Veloz, Caitlin Verboon, and Mason Williams.\nhttps://www.americanyawp.com/textbook/21-the-great-depression\n\n22-world-war-ii — 편집: Joseph Locke / 기여: Mary Beth Chopas, Andrew David, Ashton Ellett, Paula Fortier, Rebecca Brenner Graham, Dan Johnson, Joseph Locke, Jennifer Mandel, Valerie Martinez, James McKay, Ryan Menath, Laura L. Oviedo, John E. Schmitz, Chris Thomas.\nhttps://www.americanyawp.com/textbook/22-world-war-ii\n\n24-the-affluent-society — 편집: James McKay / 기여: Moisés Acuña-Gurrola, Carlos Blanton, Edwin C. Breeden, Aaron Cowan, Elsa Devienne, Maggie Flamingo, Destin Jenkins, Kyle Livie, Jennifer Mandel, James McKay, Laura Redford, Ronny Regev, and Tanya Roth.\nhttps://www.americanyawp.com/textbook/24-the-affluent-society\n\n25-the-sixties — 편집: Samuel Abramson and Kerry Goldmann / 기여: Samuel Abramson, Moisés Acuña-Gurrola, Marsha Barrett, Brent Cebul, Michell Chresfield, William Cossen, Jenifer Dodd, Michael Falcone, Leif Fredrickson, Jean-Paul de Guzman, Jordan Hill, Travis B. Hill, William Kelly, Lucie Kyrova, Zeb Larson, Maria Montalvo, Emily Prifogle, Ansley Quiros, Jo Reger, Sarah Riva, Tanya Roth, and Robert Thompson.\nhttps://www.americanyawp.com/textbook/25-the-sixties\n\n26-the-unraveling — 편집: Edwin Breeden / 기여: Seth Anziska, Emiliano Aguilar, Jeremiah Bauer, Edwin Breeden, Kyle Burke, Brent Cebul, Alexandra Evans, Sean Fear, Anne Gray Fischer, Rebecca Brenner Graham, Travis B. Hill, Destin Jenkins, Matthew Kahn, Suzanne Kahn, Brooke Lamperd, Zeb Larson, Raechel Lutz, Katherine McGarr, Matthew Pressman, Adam Parsons, Emily Prifogle, John Rosenberg, Paul C. Rosier, Brandy Thomas Wells, and Naomi R. Williams.\nhttps://www.americanyawp.com/textbook/26-the-unraveling\n\n출전: The American Yawp, https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/blob/develop/infrastructure/sample-data/genre-templates/history/usa.evidence.json",
+      "cardType": "other"
+    }
+  ]
+}

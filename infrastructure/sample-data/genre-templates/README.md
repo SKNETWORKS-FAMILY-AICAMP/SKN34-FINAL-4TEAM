@@ -77,6 +77,7 @@ DB·작품·회차·Fork 생성 스크립트를 새로 추가하지 않습니다
 - `genre-templates-v2.json`은 기존 26종의 최초·보완 요청 입력을 고정한 스냅샷입니다. 이를 변경하면 미완료 요청의 동일 key 재시도 hash가 달라질 수 있습니다.
 - 인물 `soul`은 본문과 분리해 DEC-47 `characterDocs`에 저장하고 `goal`과 `episodes`는 비워 둡니다. 기존 26종은 전체 카드·제거 카드·관계·revision·저장 이력이 동결본과 일치할 때만 별도 `soul-v1` key로 보완하며 사용자 편집은 덮어쓰지 않습니다. 이전 편집이 미완료면 서비스가 같은 key와 hash인 요청만 재개합니다. 공개 범위·장르·표지를 수정하지 않고 과거 공개 설정 변경 후 복원 이력은 증명하지 못합니다.
 - 역사 7종은 고정 연구 자료를 기존 앱 적재 경로로 포함합니다. 원본 연구 파일과 evidence를 유지하고, 런타임에서 다섯 세계관 설명과 네 카드의 낡은 미등록 문구를 비공개 연구 기반 샘플에 맞게 바꿉니다. 프랑스·이탈리아 범위 카드에는 해당 본문의 고정 원문 행을 출전에 추가합니다. 미국 출처·저자·이용 조건 카드의 없는 짝 파일 지칭을 바로잡고 장별 기여자 확인을 위한 `develop`의 `usa.evidence.json`과 원전의 현행 장별 목록 링크를 덧붙입니다. 저장소 링크는 이 변경이 `develop`에 병합된 뒤에만 유효하며 현행 원전 기여자는 고정 연구 자료와 다를 수 있습니다. 역사 원전 대조·저작권·일부 인용 감수는 미완료이고 미국 자료의 CC BY-SA 4.0 저작 표시와 장별 기여자는 [별도 안내](history/README.md)에 있습니다.
+- `history/studio/`는 새 설정집의 **검토용** 자료입니다. 기존 역사 최초 create/edit 입력은 별도 동결 파일 없이 현재 `genre-templates.json`에서 읽으므로 변경하면 같은 world ID의 create hash 또는 미완료 edit key의 hash가 충돌합니다. 테스트가 기존 입력을 고정 검사하며 이 작업은 런타임 JSON과 시드를 바꾸지 않습니다. 빈 DB에도 기존 역사 카드가 들어가고 새 카드는 자동 적재되지 않습니다. 기존 데이터 교체와 빈 DB에 새 카드 적용은 안전한 별도 이관과 사용자 승인 후 진행해야 합니다.
 - 기존 11종의 v1 최초 요청과 v2 보완 흐름은 유지합니다. 초기 상태와 일치할 때만 보완하며 사용자 편집·관계는 덮어쓰지 않습니다.
 - v2 보완은 `replace=true`로 구 카드를 제거 상태로 표시하고 새 카드만 활성으로 남깁니다. v1 확정 버전은 그대로 보존되고, 제목과 본문이 있는 제거 카드는 v2 버전 이력에도 남습니다. 따라서 첫 화·집필 지침의 기존 원문은 활성 카드에서 제외되지만 과거 이력에서 자동 삭제되지는 않습니다.
 - 과거 v2 요청이 미완료로 남은 경우 같은 key라도 변경된 입력의 hash가 다르면 서비스가 거절하고 오류를 기록합니다. 그 충돌은 성공으로 처리하지 않으며, 기존 데이터에 대한 이관은 별도 검토가 필요합니다.
@@ -92,12 +93,14 @@ DB·작품·회차·Fork 생성 스크립트를 새로 추가하지 않습니다
 ```sh
 python infrastructure/sample-data/genre-templates/build_traditions.py
 python infrastructure/sample-data/genre-templates/build_traditions.py --check
+python infrastructure/sample-data/genre-templates/build_traditions.py --check-studio
 python -m unittest discover -s infrastructure/sample-data/genre-templates -p test_traditions.py -v
 ```
 
 생성기는 창작 카드와 신화 카드를 각 source에서 재생성하며, 창작 카드 ID는 세계관 ID와 `setting:` + key의 UUIDv5입니다. 새 항목의 key는 UUID 생성 기준이므로 순서를 바꾸어도 변경하지 마세요.
 현재 신화 14종의 세계관 ID는 유지하고, 전혀 다른 내용이 된 카드에는 전승 항목별 ID를 사용합니다. 서유기는 별도 세계관입니다.
 검증은 원본 11종 보존, v1 제한, 생성 재현성, 유형·출전·길이·ID, 출전 위치와 구조화 자료의 일치를 검사합니다.
+`--check-studio`는 7개 파일 모두 있어야 성공하며 ID·장르·카드 필드·길이·중복을 검사합니다. 역사적 사실·출처의 정확성이나 권리 검수는 수행하지 않습니다.
 
 ## 한계와 운영 주의
 
