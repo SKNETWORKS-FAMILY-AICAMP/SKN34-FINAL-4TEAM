@@ -10,7 +10,7 @@
 
 - original.md: 서문+180절, 번역425블록. 모든 절과 번역블록에 고유 앵커를 둔다.
 - template.json: content_markdown에 원고 전문을 그대로 미러하며 setting_bible.sections는 별도 요약이다.
-- tradition-cards.json: 기존15개 key·제목·유형·순서를 보존한다. 카드 전체가 본문425블록을 대체하지 않는다. narrative_refs는 새 본문의 정확한 블록을 가리킨다.
+- tradition-cards.json: 기존 카드 75개의 key·제목·유형·순서를 보존하고 일본서기 카드 7개를 추가한다. 카드 전체가 본문425블록을 대체하지 않는다. 기존 narrative_refs는 본문의 블록을, 추가 카드의 narrative_refs는 supplementary.md의 일본서기 원문 발췌를 가리킨다.
 - 카드 본문3000자 제한, 고유키·앵커·정확한 근거·템플릿 미러를 검증한다. 최종 런타임 생성과 전체 검사는 상위 build_traditions.py 및 test_traditions.py를 따른다.
 
 공개 저본: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)
@@ -24,3 +24,9 @@
 본문 인용 앵커는 기존 16/425에서 확장 후 425/425로 늘었다. 이는 근거 추적 가능성의 수치이며, 카드 설명에 원문의 모든 사실이 재현되었다는 뜻은 아니다. 관계와 사건은 본문에서 확인되는 범위만 설명한다. exact evidence와 UTF-16 본문 길이(최대 433)를 검증했다.
 
 설정 카드와 전문은 별개다. template의 content_markdown에는 기존 전문 전체를 그대로 유지하고, setting_bible.sections에 확장 카드를 반영한다.
+
+## 별도 전승 보완
+
+원고는 체임벌린 영어판에서 중역한 《고사기》 전체다. 카드는 별도로 《일본서기》 권1 본문과 일서의 대표 사례를 추가하며 각 서술의 차이를 구분한다. 역사적 왕권 서사와 현재의 종교 실천을 하나의 체계로 일반화하지 않는다.
+
+[추가 원전 발췌](source/supplementary.md)는 각 카드의 짧은 원어 근거와 원문 URL을 제공한다. 대표 예시만 수록했으며 모든 지역·판본·현대 종교 실천을 대표하지 않는다. 기존 전문과 기존 카드의 내용은 그대로 보존한다.

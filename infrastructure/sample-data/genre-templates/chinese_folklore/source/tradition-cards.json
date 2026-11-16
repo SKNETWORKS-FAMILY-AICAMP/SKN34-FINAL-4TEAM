@@ -1,7 +1,7 @@
 {
   "genre": "chinese_folklore",
-  "name": "중국 고대 신화·설화",
-  "scope": "굴원에게 귀속되는 독립시 《천문》 한 작품의 한문 본문 7문단 전체를 한국어로 직접 번역했다. 기원·자연·전승·왕조를 묻는 시의 질문을 해답이나 확정된 사건·세계관 법칙으로 바꾸지 않는다.",
+  "name": "중국 고대 신화·설화: 천문과 별도 전승",
+  "scope": "원고는 《천문》 한 작품의 번역이다. 카드는 이 시의 물음과 별도로 《태평어람》에 인용된 《삼오력기》·《열자》·《풍속통》 및 《회남자》 권6 남명훈의 대표 전승을 수록한다. 서로 다른 출전의 서사를 단일 연표로 합치지 않는다.",
   "sources": [
     {
       "title": "《천문》 한문 본문, 고정 판본 2639576",
@@ -10,6 +10,18 @@
     {
       "title": "해석 참고: 왕일 장구·홍흥조 보주, 《초사》 제3권",
       "url": "https://zh.wikisource.org/w/index.php?title=楚辭_(四部叢刊本)/卷第三&oldid=2653331"
+    },
+    {
+      "title": "태평어람 권2 천부 하: 삼오력기·열자 인용",
+      "url": "https://zh.wikisource.org/zh-hant/太平御覽/0002"
+    },
+    {
+      "title": "회남자 남명훈",
+      "url": "https://www.shidianguji.com/zh/book/SBCK089/chapter/1j713d45nri8b_15"
+    },
+    {
+      "title": "태평어람 권78 황왕부: 풍속통 인용",
+      "url": "https://www.shidianguji.com/zh/book/SK1958/chapter/1kfmlpdeu75zv"
     }
   ],
   "cards": [
@@ -1178,6 +1190,110 @@
         {
           "section": "tianwen-181",
           "evidence": "수레 백 대와 바꾸려 했는데, 어찌 끝내 녹을 잃었는가?"
+        }
+      ]
+    },
+    {
+      "key": "pangu_cosmic_egg",
+      "title": "반고와 혼돈의 알",
+      "cardType": "character",
+      "body": "《태평어람》이 인용한 서정의 《삼오력기》에서 하늘과 땅은 달걀처럼 혼돈했고 반고가 그 안에서 태어났다. 《천문》의 질문에 대한 단일한 해답으로 합치지 않는다.\n\n출전: [《태평어람》 권2 천부 하, 서정 《삼오력기》 인용](https://zh.wikisource.org/zh-hant/太平御覽/0002).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "pangu-cosmic-egg",
+          "evidence": "天地渾沌如雞子，盤古生其中"
+        }
+      ]
+    },
+    {
+      "key": "pangu_heaven_earth",
+      "title": "맑은 하늘과 탁한 땅",
+      "cardType": "location",
+      "body": "《삼오력기》 인용문에서는 천지가 열리며 맑고 양적인 것은 하늘, 탁하고 음적인 것은 땅이 된다. 하늘은 날마다 높아지고 땅은 두꺼워지며 반고도 자란다.\n\n출전: [《태평어람》 권2 천부 하, 서정 《삼오력기》 인용](https://zh.wikisource.org/zh-hant/太平御覽/0002).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "pangu-heaven-earth",
+          "evidence": "陽清為天，陰濁為地"
+        }
+      ]
+    },
+    {
+      "key": "pangu_growth",
+      "title": "반고의 성장과 천지의 거리",
+      "cardType": "event",
+      "body": "《삼오력기》 인용문은 하늘과 땅과 반고가 날마다 한 장씩 높아지거나 두꺼워지고 자라기를 만 팔천 년 했다고 서술한다. 이어 천지가 구만 리 떨어졌다고 한다.\n\n출전: [《태평어람》 권2 천부 하, 서정 《삼오력기》 인용](https://zh.wikisource.org/zh-hant/太平御覽/0002).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "pangu-growth",
+          "evidence": "盤古日長一丈"
+        }
+      ]
+    },
+    {
+      "key": "nuwa_repair_heaven",
+      "title": "여와의 하늘 수선",
+      "cardType": "event",
+      "body": "《회남자》 「남명훈」에서 사극이 무너지고 구주가 갈라지자 여와는 오색돌을 단련해 하늘을 기우고 큰 자라의 발을 잘라 사극을 세운다. 갈대 재로 물을 막고 흑룡을 죽여 기주를 구한다.\n\n출전: [《회남자》 권6 남명훈](https://www.shidianguji.com/zh/book/SBCK089/chapter/1j713d45nri8b_15).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "nuwa-repair-heaven",
+          "evidence": "女媧鍊五色石以補蒼天"
+        }
+      ]
+    },
+    {
+      "key": "nuwa_four_poles",
+      "title": "사극과 기주의 재난",
+      "cardType": "location",
+      "body": "《회남자》 「남명훈」의 세계는 사극이 무너지고 구주가 갈라져 불과 물, 맹수와 사나운 새가 사람들을 위협한다. 여와가 고친 뒤 사극이 바로 서고 기주가 평정된다.\n\n출전: [《회남자》 권6 남명훈](https://www.shidianguji.com/zh/book/SBCK089/chapter/1j713d45nri8b_15).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "nuwa-four-poles",
+          "evidence": "四極廢，九州裂"
+        }
+      ]
+    },
+    {
+      "key": "nuwa_yellow_clay",
+      "title": "여와의 황토 사람",
+      "cardType": "event",
+      "body": "《태평어람》 권78이 인용한 《풍속통》의 속설에서는 사람이 없던 때 여와가 황토로 사람을 빚고, 일이 많아지자 진흙 속에 줄을 끌어 사람을 만든다. 같은 여와의 보천 이야기와 서로 다른 출전이다.\n\n출전: [《태평어람》 권78 황왕부 여와씨, 《풍속통》 인용](https://www.shidianguji.com/zh/book/SK1958/chapter/1kfmlpdeu75zv).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "nuwa-yellow-clay",
+          "evidence": "女媧摶黃土作人"
+        }
+      ]
+    },
+    {
+      "key": "nuwa_social_origin",
+      "title": "황토와 줄로 만든 사람의 구별",
+      "cardType": "rule",
+      "body": "《태평어람》의 《풍속통》 인용은 황토로 만든 사람과 줄로 만든 사람을 각각 부귀와 빈천에 연결한다. 이는 해당 기록의 위계적 설명이지 현실의 사회적 가치나 사실을 뜻하지 않는다.\n\n출전: [《태평어람》 권78 황왕부 여와씨, 《풍속통》 인용](https://www.shidianguji.com/zh/book/SK1958/chapter/1kfmlpdeu75zv).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "nuwa-social-origin",
+          "evidence": "故富貴者，黃土人也"
+        }
+      ]
+    },
+    {
+      "key": "gonggong_buzhou_variant",
+      "title": "공공과 부주산의 기울기",
+      "cardType": "event",
+      "body": "《태평어람》 권2가 인용한 《열자》에서는 공공이 전욱과 제위를 다투다 부주산을 들이받아 하늘 기둥과 땅의 줄이 끊어진다. 천체는 서북으로, 물은 동남으로 향한다는 설명이며 《천문》의 물음과 분리한다.\n\n출전: [《태평어람》 권2 천부 하, 《열자》 인용](https://zh.wikisource.org/zh-hant/太平御覽/0002).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "gonggong-buzhou-variant",
+          "evidence": "怒觸不周之山，折天柱"
         }
       ]
     }

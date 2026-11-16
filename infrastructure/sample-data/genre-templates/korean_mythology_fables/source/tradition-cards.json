@@ -1,11 +1,15 @@
 {
   "genre": "korean_mythology_fables",
-  "name": "한국 신화 · 동명왕편",
-  "scope": "이규보의 독립 작품 「동명왕편」 한 편을 서문과 작가자주까지 모두 포함해 한문 원전에서 직접 한국어로 옮겼다. 『동국이상국집』 전체의 번역이 아니며, 단군·바리공주·제주 본풀이 또는 다른 문헌의 주몽 설화를 덧붙이지 않는다.",
+  "name": "한국 신화 · 동명왕편과 고조선 전승",
+  "scope": "원고는 이규보 「동명왕편」 전문이다. 카드는 이 작품과 별도로 《삼국유사》 권1 고조선의 「고기」 인용을 대표 예시로 보완한다. 주몽과 단군의 전승을 통합 계보로 만들지 않으며, 바리공주와 제주 본풀이는 직접 확인한 구술 원문을 확보하지 못해 수록하지 않는다.",
   "sources": [
     {
       "title": "동국이상국전집 권3 고율시: 동명왕편, 서문 포함 한문 전사",
       "url": "https://db.history.go.kr/id/mudg_005_0010_0010"
+    },
+    {
+      "title": "삼국유사 권1 기이1 고조선, 고기 인용 (국사편찬위원회 교감 전사)",
+      "url": "https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020"
     }
   ],
   "cards": [
@@ -826,6 +830,110 @@
         {
           "section": "dm-verse-040",
           "evidence": "내 성품은 본래 질박하여  \n본디 기괴한 일을 좋아하지 않는다.  \n처음 동명왕의 일을 보고는  \n환술인가 의심하고 귀신인가 의심하였다.  \n차츰 그 속으로 들어가 보니  \n그 변화는 헤아려 논하기 어려웠다.  \n더구나 이는 사실을 곧게 쓴 글이어서  \n한 글자도 거짓된 글자가 없었다.  \n신령하고 또 신령하니,  \n만세에 옳다고 여길 일이다.  \n나라를 처음 세우는 임금을 생각하니,  \n성인이 아니고서 어찌 그렇게 하겠는가?  \n유씨 노파가 큰 못가에서 쉬다가  \n꿈결에 신을 만났는데,  \n천둥과 번개로 사방이 어둑한 가운데  \n교룡이 기괴하게 몸을 서리고 있었다.  \n그로 말미암아 곧 잉태하여  \n성스러운 유계를 낳았다.  \n이는 바로 적제의 아들이니,  \n일어날 때 남다른 복된 징조가 많았다.  \n세조가 처음 태어났을 때에는  \n온 방에 밝은 빛이 가득하였다.  \n스스로 적복부의 징조에 응하여  \n황건의 거짓 무리를 쓸어 없앴다.  \n예부터 제왕이 일어날 때는  \n상서로운 징조가 무성하게 나타났다.  \n뒤를 이은 자손들은 대부분 게으르고 방탕하여  \n모두 선왕의 제사를 끊어 버렸다.  \n그러므로 이룬 나라를 지키는 임금은  \n「소비」의 경계처럼 쓴 여뀌에 모이는 일을 삼가야 함을 알겠다.  \n너그러움과 어짊으로 왕위를 지키고,  \n예와 의로 백성을 교화하여,  \n길이길이 자손에게 전하고  \n오랜 세월 나라를 다스려야 하리라."
+        }
+      ]
+    },
+    {
+      "key": "gogi_hwanung",
+      "title": "환웅의 하강과 천부인",
+      "cardType": "character",
+      "body": "《삼국유사》가 인용한 「고기」에서 환웅은 인간 세상에 뜻을 두고 아버지에게 천부인 세 개를 받아 내려온다. 동명왕편의 해모수와 별개의 서사이며 혈연관계를 만들어 연결하지 않는다.\n\n출전: [《삼국유사》 권1 기이1 고조선, 「고기」 인용](https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "gogi-hwanung",
+          "evidence": "乃授天符印三箇遣徃理之"
+        }
+      ]
+    },
+    {
+      "key": "gogi_sinsi",
+      "title": "태백산 신단수와 신시",
+      "cardType": "location",
+      "body": "환웅은 무리 삼천을 거느리고 태백산 꼭대기 신단수 아래 내려온다. 그곳을 신시라 부르며 원문 주는 태백을 당시의 묘향산에 비정한다.\n\n출전: [《삼국유사》 권1 기이1 고조선, 「고기」 인용](https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "gogi-sinsi",
+          "evidence": "神壇樹下謂之神市"
+        }
+      ]
+    },
+    {
+      "key": "gogi_weather_officials",
+      "title": "풍백·우사·운사와 인간사",
+      "cardType": "organization",
+      "body": "환웅은 풍백·우사·운사를 거느리고 곡식·생명·질병·형벌·선악 등 인간의 360여 가지 일을 다스린다. 이 직무 목록은 해당 기록의 묘사다.\n\n출전: [《삼국유사》 권1 기이1 고조선, 「고기」 인용](https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "gogi-weather-officials",
+          "evidence": "將風伯·雨師·雲師"
+        }
+      ]
+    },
+    {
+      "key": "gogi_sacred_garlic",
+      "title": "쑥과 마늘의 금기",
+      "cardType": "object",
+      "body": "신은 곰과 범에게 쑥 한 자루와 마늘 스무 개를 주고 먹으며 햇빛을 백 일 보지 않으면 사람이 된다고 말한다. 이는 이 이야기의 조건이며 다른 전승의 보편 규칙이 아니다.\n\n출전: [《삼국유사》 권1 기이1 고조선, 「고기」 인용](https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "gogi-sacred-garlic",
+          "evidence": "時神遺霊艾一炷蒜二十枚"
+        }
+      ]
+    },
+    {
+      "key": "gogi_bear_tiger",
+      "title": "곰과 범의 변화",
+      "cardType": "event",
+      "body": "같은 굴에 살던 곰과 범은 사람이 되기를 빈다. 먹고 삼칠일을 금기한 뒤 곰은 여자가 되지만 범은 금기를 지키지 못해 사람이 되지 못한다. 백 일의 지시와 삼칠일의 결과를 구분한다.\n\n출전: [《삼국유사》 권1 기이1 고조선, 「고기」 인용](https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "gogi-bear-tiger",
+          "evidence": "忌三七日熊得女身"
+        }
+      ]
+    },
+    {
+      "key": "gogi_ungnyeo",
+      "title": "웅녀의 기원과 혼인",
+      "cardType": "character",
+      "body": "웅녀는 혼인할 이가 없어 단수 아래에서 아이를 갖기를 빈다. 환웅이 모습을 바꾸어 혼인하고 아들 단군왕검이 태어난다. 이 계보는 동명왕편의 유화·주몽 계보와 별개다.\n\n출전: [《삼국유사》 권1 기이1 고조선, 「고기」 인용](https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "gogi-ungnyeo",
+          "evidence": "熊女者無與爲婚故每於壇樹下呪願有孕"
+        }
+      ]
+    },
+    {
+      "key": "gogi_dangun",
+      "title": "단군왕검과 아사달",
+      "cardType": "character",
+      "body": "「고기」 인용에서 단군왕검은 조선을 칭하고 평양성에서 백악산 아사달로 도읍을 옮긴다. 이후 장당경으로 옮겼다가 아사달에 돌아와 산신이 된다. 고대 건국의 전승으로 읽는다.\n\n출전: [《삼국유사》 권1 기이1 고조선, 「고기」 인용](https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "gogi-dangun",
+          "evidence": "壇君乃移於藏唐亰後還隠於阿斯逹爲山神"
+        }
+      ]
+    },
+    {
+      "key": "gogi_sacred_seal",
+      "title": "천부인 세 개",
+      "cardType": "object",
+      "body": "환웅의 아버지가 인간 세상을 다스리도록 내린 천부인은 세 개다. 해당 기록은 그 모양과 각각의 능력을 구체적으로 설명하지 않는다.\n\n출전: [《삼국유사》 권1 기이1 고조선, 「고기」 인용](https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "gogi-sacred-seal",
+          "evidence": "乃授天符印三箇"
         }
       ]
     }
