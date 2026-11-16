@@ -34,7 +34,7 @@ vi.mock('./LazyManuscriptEditor', () => import('../../../../test/manuscriptEdito
 vi.mock('../../../../app/appContainer', async () => {
   const { WritingChatUseCase } = await import('../../../../domain/usecases/WritingChatUseCase')
   const chat = new WritingChatUseCase({ sessions, history, send, open } as never)
-  const plans = { list }
+  const plans = { list, references: async () => ({ episodes: [], characters: [], places: [] }) }
   const worlds = { list: owned, read: readWorld }
   return { appContainer: { resolve: (key: string) => (key === 'writingChatUseCase' ? chat : key === 'storyPlanUseCase' ? plans : key === 'worldStudioUseCase' ? worlds : {}) } }
 })
@@ -201,17 +201,17 @@ it('발행 전 초안 회차를 열고 시뮬레이션을 시작하면 근거는
   expect(send.mock.calls[0][2]).toMatchObject({ episode: 3, episodeVersionId: 'v3', targetEpisode: 4, operation: 'character_simulation' })
 })
 
-it('장면 계획이 없다는 안내의 플롯 화면 링크는 저장하지 않은 입력이 있으면 이동을 막는다', async () => {
+it('장면 계획 없음 안내는 원고를 유지하며 집필실 안의 플롯 패널을 연다', async () => {
   renderStudio()
   fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
   const stage = await screen.findByRole('region', { name: '인물 시뮬레이션 무대' })
   fireEvent.click(await within(stage).findByRole('radio', { name: /흐름/ }))
-  const link = within(stage).getByRole('link', { name: '플롯 화면' })
-  expect(link.getAttribute('href')).toBe('/studio/work-id?view=narrative')
+  const button = within(stage).getByRole('button', { name: '플롯 패널 열기' })
   model.mayLeave.mockReturnValue(false)
-  const proceeded = fireEvent.click(link)
-  expect(model.mayLeave).toHaveBeenCalled()
-  expect(proceeded).toBe(false) // preventDefault: 이동하지 않는다.
+  fireEvent.click(button)
+  expect(screen.getByRole('complementary', { name: '플롯과 장면 계획' })).toBeTruthy()
+  expect(model.mayLeave).not.toHaveBeenCalled()
+  expect((screen.getByRole('textbox', { name: '회차 제목', hidden: true }) as HTMLInputElement).value).toBe('셋째')
 })
 
 it('작품에 편집할 회차가 없으면 시뮬레이션 버튼을 잠근다', () => {

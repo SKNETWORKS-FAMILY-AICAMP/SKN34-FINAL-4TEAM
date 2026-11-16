@@ -79,7 +79,7 @@ it('인용 줄 Enter는 인용 기호 없이 일반 문단으로 이동하고 �
 
 it('서식 직후 End와 Enter를 연속 입력해도 원래 줄을 지우지 않는다', () => {
   render(draw(<Harness initial="남아야 하는 문장" />))
-  select([1, 1], [1, 11])
+  select([1, 1], [1, '남아야 하는 문장'.length + 1])
   act(() => {
     toast().exec('blockQuote')
     fireEvent.keyDown(surface(), { key: 'End', code: 'End' })

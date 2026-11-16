@@ -18,7 +18,7 @@ function deleteBlocker(active:WritingEpisode|null,episodes:WritingEpisode[]) {
   return [kept&&`${kept}이 있는 회차는 삭제할 수 없어요.`,active.number<last&&`마지막 회차(${last}화)만 삭제할 수 있어요.`].filter(Boolean).join(' ')
 }
 /** initialEpisode(주소의 ?ep=n)는 처음 목록을 읽을 때 열 회차다. 없는 번호면 목록에서 직접 고르게 한다. */
-export function useWritingViewModel(id:string, api:WritingApi=appContainer.resolve('episodeUseCase'), media:Pick<MediaUseCase,'upload'>=appContainer.resolve('mediaUseCase'), initialEpisode?:number) {
+export function useWritingViewModel(id:string, api:WritingApi=appContainer.resolve('episodeUseCase'), media:Pick<MediaUseCase,'upload'>=appContainer.resolve('mediaUseCase'), initialEpisode?:number, confirmPlanLeave?:()=>boolean) {
   const [episodes,setEpisodes]=useState<WritingEpisode[]>([])
   const [active,setActive]=useState<WritingEpisode|null>(null)
   const [draft,setDraft]=useState<Draft>({title:'',body:'',revision:0})
@@ -126,10 +126,11 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     if(autosave.current)void run(async()=>{},false)
     return true
   }
-  const mayLeave=()=>!inFlight()&&(!dirty||window.confirm('저장하지 않은 입력을 버리고 이동할까요?'))
+  const mayLeave=()=>!inFlight()&&(confirmPlanLeave?.()??true)&&(!dirty||window.confirm('저장하지 않은 입력을 버리고 이동할까요?'))
   // 삭제가 서버에 확정되면 true다. 뒤이은 목록 재조회가 실패해도 true라서 화면이 사라진 버튼 대신 초점을 옮길 수 있다.
   const remove=async(whole:boolean)=>{
     if(!active||active.inherited||inFlight())return false
+    if(!(confirmPlanLeave?.()??true))return false
     if(!window.confirm(whole?'회차를 삭제할까요? 삭제하면 되돌릴 수 없어요. 같은 번호로 새 회차를 만들 수 있어요. 저장하지 않은 입력은 사라져요.':'작업 초안을 삭제할까요? 저장 버전과 발행본은 보존하며, 저장하지 않은 입력은 사라져요.'))return false
     let removed=false
     await run(async signal=>{
@@ -140,7 +141,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       resetOrder()
       setNotice(whole?'회차를 삭제했어요.':'작업 초안을 삭제했어요. 새로 입력하면 새 초안으로 저장돼요.')
       // The deletion is committed: never retain a dirty buffer that could auto-save it back.
-      setActive(null);put({title:'',body:'',revision:0});setEpisodes([])
+      setActive(null);put({title:'',body:'',revision:0});setEpisodes([]);setSaveError('');setFailedDraft(null)
       const rows=await api.writingList(id,signal)
       if(signal.aborted)return
       setEpisodes(rows)
@@ -233,9 +234,9 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       setNotice('이미지를 서버에 업로드했어요. 본문 참조는 초안·버전 저장 후 유지돼요. 참조를 지워도 과거 저장본의 이미지는 보존돼요.')
     }),
     cancel:()=>{pending.current?.abort();waiting.current?.abort();pending.current=null;setFailedDraft(current.current);setSaving(false);setBusy(false);setEditingLocked(false);setError('요청을 취소했어요. 서버에서 이미 처리했을 수 있어요. 원고를 복사해 보관하고 다시 불러오기로 확인해 주세요.')},
-    create:(title:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const e=await api.createEpisode(id,title,signal);if(!signal.aborted){resetOrder();merge(e);put(e.draft);setNotice('비공개 회차를 만들었어요.')}})},
+    create:(title:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const e=await api.createEpisode(id,title,signal);if(!signal.aborted){merge(e);install(e);setNotice('비공개 회차를 만들었어요.')}})},
     reload:()=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const rows=await api.writingList(id,signal);if(!signal.aborted){setEpisodes(rows);const e=rows.find(x=>x.number===active?.number)??rows[0];if(e)install(e);else {resetOrder();setActive(null);put({title:'',body:'',revision:0})}setReady(true)}})},
-    restore:(versionId:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{if(!active)return;const e=await api.restoreEpisode(id,active.number,current.current.revision,versionId,signal);if(!signal.aborted){merge(e);put(e.draft);setNotice('선택한 원고를 새 버전으로 복원했어요. 발행본은 그대로예요.')}})},
+    restore:(versionId:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{if(!active)return;const e=await api.restoreEpisode(id,active.number,current.current.revision,versionId,signal);if(!signal.aborted){merge(e);install(e);setNotice('선택한 원고를 새 버전으로 복원했어요. 발행본은 그대로예요.')}})},
     publish:(versionId:string,rights:boolean)=>publishVersion(versionId,rights,'선택한 저장 버전을 공개했어요.'),
     revertCheckpoint:(versionId:string,rights:boolean)=>publishVersion(versionId,rights,'선택한 체크포인트로 되돌렸어요. 작업 초안과 체크포인트 이력은 그대로예요.'),
   }

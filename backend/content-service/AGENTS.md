@@ -11,7 +11,7 @@
 - 작성자·작가 표시명은 저장하지 않는다. 응답마다 `CoreNicknameService`(같은 `CoreAuthClient`, 서비스 토큰만)로 회원 ID 묶음을 한 번 조회해 채우며, Core에 없으면 `탈퇴한 회원`, 호출 실패는 503/504/502로 응답하고 대체 이름을 쓰지 않는다. Content↔Core 테이블 JOIN은 없다.
 - 기존 API·CSRF·UUID·revision·잠금·불변 이력을 유지한다.
 - Flyway: 콘텐츠 스키마는 `ContentPersistenceConfig.MIGRATION_LOCATIONS`의 `db/migration/{work,episode,world,episode_version,publication,fork,proposal,plan,sample}`와
-  단일 `content_schema_history`다. 버전은 경로를 가로질러 전역으로 매기며(현재 V1~V31·V36·V37, V24는 결번이며 V32~V35는 열린 PR 몫) 새 SQL은 최댓값 다음 번호를 쓰고 결번은 채우지 않는다(`outOfOrder` 미사용).
+  단일 `content_schema_history`다. 버전은 경로를 가로질러 전역으로 매기며(현재 V1~V31·V36~V38, V24는 결번이며 V32~V35는 열린 PR 몫) 새 SQL은 최댓값 다음 번호를 쓰고 결번은 채우지 않는다(`outOfOrder` 미사용).
   `sample/V16`은 CSV에서 생성한 개발 샘플 행이며 직접 편집하지 않는다. 샘플 변경은 다음 번호의 새 마이그레이션으로 한다.
   `db/migration/content`·root 직하 SQL을 다시 만들지 않는다. Auth·첨부·WorldStudio SQL 이력은 보존하고 자동 repair/reset하지 않는다.
 - WorldStudio는 `contentDataSource`를 재사용하고 시작 시 전용 schema(`world_studio_schema_history`)를 migrate한 뒤 전용 EntityManager/TransactionManager로 validate한다. 별도 DB·분산 transaction을 추가하지 않는다.
@@ -25,3 +25,5 @@
 - MCP 창구(`ai.storyfork.content.mcp`, `/mcp`)는 기존 Service 함수만 호출하는 어댑터다. 공개 도구는 인증 없이, 사용자 도구는 전달된 Bearer를 기존 필터로 검증한 회원 UUID로 호출하며 도구 인자로 회원 ID를 받지 않는다. [계약](../../docs/design/content-mcp-contract.md)
 - 로컬은 이 디렉터리에서 `./gradlew unitTest --tests 'ai.storyfork.content.<대상 클래스>' --no-daemon`으로 순수 단위만 실행한다.
   Spring/HTTP/DB/Flyway 검사는 CI `integrationTest`에서 실행한다.
+
+- 플롯·장면 계획(#374)의 기존 POST/PUT은 선택적 `position`을 받는다. 장면 순서는 작품+회차 단위로 플롯을 가로지르며 `own` 잠금 아래 이웃 위치·revision을 함께 갱신한다. V38은 기존 생성순을 보존해 position을 채운다. [계약](../../docs/design/writing-plan-panel-contract.md).

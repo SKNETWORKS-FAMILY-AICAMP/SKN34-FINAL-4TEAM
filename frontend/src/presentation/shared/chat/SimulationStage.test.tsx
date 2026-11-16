@@ -83,12 +83,12 @@ const serve = (...next: Handler[]) => { handlers = next }
 // 근거(지식 상한)는 발행된 3화, 작가가 연 반영 회차는 발행 전 4화 초안이다(근거와 반영 회차가 묶여 4화가 아닌 3화에 반영되던 버그 시나리오).
 const BASIS: ChatBasis = { episode: 3, episodeVersionId: 'v3', targetEpisode: 4 }
 const onApplied = vi.fn()
-function Host({ basis = BASIS }: { basis?: ChatBasis | null }) {
+function Host({ basis = BASIS, plansVersion = 0, startBlocker = '' }: { basis?: ChatBasis | null; plansVersion?: number; startBlocker?: string }) {
   const chat = useWritingChatViewModel('w', basis, onApplied)
   const stage = useSimulationStageViewModel(chat)
   return <>
     <button type="button" onClick={stage.show}>시뮬레이션</button>
-    {stage.open && <SimulationStage stage={stage} workId="w" episode={3} planEpisode={4} plotLink={<a href="/plot">플롯 화면</a>} onClose={stage.hide} />}
+    {stage.open && <SimulationStage stage={stage} plansVersion={plansVersion} startBlocker={startBlocker} workId="w" episode={3} planEpisode={4} plotLink={<a href="/plot">플롯 화면</a>} onClose={stage.hide} />}
     <p data-testid="chat-line">{chat.simulation ? sceneLine(chat.simulation) : ''}</p>
   </>
 }
@@ -1257,4 +1257,25 @@ it('새 줄이 붙으면 맨 아래에 있던 대본은 따라 내려가고, 위
   await waitFor(() => expect(lines()).toHaveLength(3))
   expect(log.scrollTop).toBe(100)
   serve()
+})
+
+it('같은 회차에서 계획을 저장하면 열린 흐름 양식과 실행 요청도 최신 순서로 갱신한다', async () => {
+  list.mockResolvedValue([plan('a', '이전', '카엘')])
+  const appStore = createAppStore()
+  const view = render(<Provider store={appStore}><Host /></Provider>)
+  await openForm()
+  // IF에서 고른 인물은 흐름의 자동 추천 갱신을 막지 않는다.
+  fireEvent.click(box().getByRole('checkbox', { name: '카엘' }))
+  fireEvent.click(box().getByRole('radio', { name: /흐름/ }))
+  consent()
+  list.mockResolvedValue([plan('a', '나중', '카엘', { position: 1 }), plan('b', '먼저', '리안', { position: 0 })])
+  view.rerender(<Provider store={appStore}><Host plansVersion={1} startBlocker="계획을 저장해 주세요." /></Provider>)
+  await box().findByText('먼저: 리안')
+  expect(startButton().disabled).toBe(true)
+  view.rerender(<Provider store={appStore}><Host plansVersion={1} /></Provider>)
+  await waitFor(() => expect(startButton().disabled).toBe(false))
+  serve((_input, emit) => finish(emit, scene([], { status: 'completed' })))
+  fireEvent.click(startButton())
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(inputs()[0]).toMatchObject({ simulation: { mode: 'flow', beats: ['먼저: 리안', '나중: 카엘'] } })
 })

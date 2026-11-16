@@ -97,4 +97,24 @@ class StoryPlanPostgresTest {
         assertTrue(plans.list(work.id,"plan-owner").items.isEmpty())
         assertEquals(confirmed,world.read(work.id,"plan-owner"))
     }
+
+    @Test fun `scene moves persist across transactions and preserve manuscript and other plots`() {
+        val owner="plan-order-owner"
+        val work=works.create(owner,CreateWorkRequest("장면 순서 회귀"))
+        val before=works.read(work.id,owner).draft
+        val p=plans.create(work.id,owner,StoryPlanRequest("plot",title="첫 플롯"))
+        val q=plans.create(work.id,owner,StoryPlanRequest("plot",title="다른 플롯"))
+        val a=plans.create(work.id,owner,StoryPlanRequest("scene",p.id,"A",episodeNumber=1))
+        val b=plans.create(work.id,owner,StoryPlanRequest("scene",q.id,"B",episodeNumber=1))
+        plans.update(work.id,owner,b.id,StoryPlanRequest("scene",q.id,"B",episodeNumber=1,revision=b.revision,position=0))
+        val stored=plans.list(work.id,owner).items.filter {it.kind=="scene"}
+        assertEquals(listOf(b.id,a.id),stored.map {it.id})
+        assertEquals(listOf(0,1),stored.map {it.position})
+        assertEquals(409,assertThrows(ContentFailure::class.java) {
+            plans.update(work.id,owner,a.id,StoryPlanRequest("scene",p.id,"오래된 편집",episodeNumber=1,revision=a.revision))
+        }.status)
+        val c=plans.create(work.id,owner,StoryPlanRequest("scene",p.id,"C",episodeNumber=1))
+        assertEquals(2,plans.read(work.id,owner,c.id).position)
+        assertEquals(before,works.read(work.id,owner).draft)
+    }
 }

@@ -4,6 +4,34 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { useWritingViewModel } from './useWritingViewModel'
 
 afterEach(()=>{cleanup();vi.useRealTimers()})
+it.each(['deleteDraft','deleteEpisode'] as const)('%s는 계획 이탈을 거절하면 삭제하지 않는다',async action=>{
+  const api=deletionApi([row(1)])
+  const confirmPlanLeave=vi.fn(()=>false)
+  const {result}=renderHook(()=>useWritingViewModel('w',api,undefined,undefined,confirmPlanLeave))
+  await act(async()=>{})
+  await act(async()=>{expect(await result.current[action]()).toBe(false)})
+  expect(confirmPlanLeave).toHaveBeenCalledOnce()
+  expect(api[action]).not.toHaveBeenCalled()
+  expect(result.current.active?.number).toBe(1)
+})
+
+it('저장 실패 후 새 회차를 만들면 이전 회차의 저장 오류를 지운다',async()=>{
+  const api=deletionApi([row(1)])
+  api.writeEpisode.mockRejectedValue(new Error('저장 실패'))
+  api.createEpisode.mockResolvedValue(row(2))
+  const confirm=vi.spyOn(window,'confirm').mockReturnValue(true)
+  try {
+    const {result}=renderHook(()=>useWritingViewModel('w',api))
+    await act(async()=>{})
+    act(()=>result.current.edit({body:'미저장 입력'}))
+    await act(async()=>{await result.current.save()})
+    expect(result.current.saveError).toBe('저장 실패')
+    await act(async()=>{await result.current.create('2화')})
+    expect(result.current.active?.number).toBe(2)
+    expect(result.current.saveError).toBe('')
+  } finally {confirm.mockRestore()}
+})
+
 it('inserts an uploaded immutable image reference at the cursor and keeps it through a saved version',async()=>{
  const id='b142427a-cd9d-4fdc-a40d-c9e553d87d30';const imageId='e25ffb25-8128-48c0-8d66-e1d56831cd56'
  const episode={number:1,draft:{title:'1화',body:'앞뒤',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[]}
