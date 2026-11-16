@@ -14,7 +14,7 @@ from .stubs import (EPISODE, GATE, KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, REL, SH
                     fake_novelbrain, recalled, text)
 
 STYLE, PERSONA, REMOVED = (f'00000000-0000-0000-0000-0000000000{n}' for n in ('a1', 'a2', 'ff'))
-PERSONA_CARD = card(PERSONA, '나레이터 페르소나', 'PERSONA-ID 오래된 이야기꾼', docs={'soul': 'PERSONA-SOUL 느릿한 말투', 'memory': '', 'episodes': {}})
+PERSONA_CARD = card(PERSONA, '나레이터 페르소나', 'PERSONA-ID 오래된 이야기꾼', docs={'soul': 'PERSONA-SOUL 느릿한 말투', 'goal': '', 'episodes': {}})
 STYLE_CARD = card(STYLE, '나레이터 문체', 'STYLE-GUIDE 담담한 3인칭 현재형으로 쓴다', cardType='etc')
 NARRATOR_WORLD = {**READ, 'cards': [*READ['cards'], STYLE_CARD, PERSONA_CARD]}
 COVERAGE = {'expected': [], 'withVerifiedExcerpt': [], 'withoutVerifiedExcerpt': []}
@@ -357,28 +357,28 @@ def test_character_input_holds_only_that_characters_documents_up_to_the_base_epi
     _, (lina, extra, _) = view(monkeypatch, actor=LINA, scene=scene)
     kael, lina = text(kael), text(lina)
     # 카엘: 자기 문서(기준 회차 이하)와 자기가 끝점인 활성 관계(부정 관계는 '아님'으로)만.
-    assert all(mark in kael for mark in ('KAEL-IDENTITY', 'KAEL-SOUL', 'KAEL-MEMORY', 'KAEL-EP2', '경계', '친구 아님', 'REL-KAEL-GATE'))
+    assert all(mark in kael for mark in ('KAEL-IDENTITY', 'KAEL-SOUL', 'KAEL-GOAL', 'KAEL-EP2', '경계', '친구 아님', 'REL-KAEL-GATE'))
     assert not any(mark in kael for mark in ('LINA-', 'KAEL-EP5-FUTURE', 'REMOVED', 'REL-LINA-GATE', 'REL-REMOVED'))
     # 기준 회차에 아직 공개되지 않은 카드와의 관계는 아는지 확인할 수 없어 관계 문장에도 상대 제목이 드러나지 않게 뺀다.
     assert not any(mark in kael for mark in ('REL-SHADOW', '그림자 길드', 'SHADOW'))
     # 리나: 카엘의 문서는 없고 장면에는 카엘이 드러낸 행동과 나레이션이 알린 것만 있다.
-    assert all(mark in lina for mark in ('LINA-IDENTITY', 'LINA-SOUL', 'LINA-MEMORY-SECRET', 'LINA-EP3', 'REL-LINA-GATE'))
-    assert not any(mark in lina for mark in ('KAEL-IDENTITY', 'KAEL-SOUL', 'KAEL-MEMORY', 'KAEL-EP'))
+    assert all(mark in lina for mark in ('LINA-IDENTITY', 'LINA-SOUL', 'LINA-GOAL', 'LINA-EP0-SECRET', 'LINA-EP3', 'REL-LINA-GATE'))  # 00회차는 늘 아는 것
+    assert not any(mark in lina for mark in ('KAEL-IDENTITY', 'KAEL-SOUL', 'KAEL-GOAL', 'KAEL-EP'))
     assert '카엘이 북문 앞에서 막아섰다.' in lina and '밤비가 성문 앞에 내리고 있다.' in lina
     assert set(service.character_view.__annotations__) >= {'plan', 'world', 'scene', 'actor'}  # 이전 인물의 입력·대화 상태를 받는 칸이 없다
 
 
 def test_real_novelbrain_filter_keeps_other_characters_private_documents_out_of_the_input(monkeypatch):
     _, (kael, _, evidence) = view(monkeypatch)  # 실제 recall(3단계 시점·인물 필터)
-    assert not any(mark in text(kael) for mark in ('LINA-SOUL', 'LINA-MEMORY-SECRET', 'LINA-EP3', 'KAEL-EP5-FUTURE'))
-    assert evidence and not any(e.ref.split('#')[-1] in ('soul', 'memory', 'ep03') and f'{LINA}' in e.ref for e in evidence)
+    assert not any(mark in text(kael) for mark in ('LINA-SOUL', 'LINA-GOAL', 'LINA-EP0-SECRET', 'LINA-EP3', 'KAEL-EP5-FUTURE'))
+    assert evidence and not any(e.ref.split('#')[-1] in ('soul', 'goal', 'ep00', 'ep03') and f'{LINA}' in e.ref for e in evidence)
 
 
 def test_input_uses_novelbrain_refs_and_lists_each_ref_once(monkeypatch):
     fake_novelbrain(monkeypatch, items=[recalled(ref=f'card:{KAEL}#soul', source='bm25', text='KAEL-SOUL 말이 짧고 퉁명스러운 반말')])
     _, (asked, _, evidence) = view(monkeypatch)
     refs = [d['ref'] for d in asked['known']]
-    assert {f'card:{KAEL}#identity', f'card:{KAEL}#soul', f'card:{KAEL}#memory', f'card:{KAEL}#ep02', f'relation:{REL}'} <= set(refs)
+    assert {f'card:{KAEL}#identity', f'card:{KAEL}#soul', f'card:{KAEL}#goal', f'card:{KAEL}#ep02', f'relation:{REL}'} <= set(refs)
     assert len(refs) == len(set(refs))  # 조회 결과가 이미 입력에 든 문서면 겹쳐 넣지 않는다
     assert [e.ref for e in evidence] == [f'card:{KAEL}#soul']  # 근거 기록에는 조회한 그대로 남는다
 
@@ -405,10 +405,10 @@ def test_the_checker_gets_other_characters_secrets_and_the_characters_future_as_
     fake_novelbrain(monkeypatch)
     _, (kael, kael_extra, _) = view(monkeypatch)
     _, (lina, lina_extra, _) = view(monkeypatch, actor=LINA)
-    assert all(mark in text(kael_extra['forbidden']) for mark in ('LINA-MEMORY-SECRET', 'LINA-EP3', 'KAEL-EP5-FUTURE'))
+    assert all(mark in text(kael_extra['forbidden']) for mark in ('LINA-GOAL', 'LINA-EP0-SECRET', 'LINA-EP3', 'KAEL-EP5-FUTURE'))
     assert 'KAEL-SOUL' not in text(kael_extra['forbidden'])  # SOUL은 말투 자료라 금지 목록이 아니다
     assert 'LINA-SOUL' in text(kael_extra['voices']) and 'KAEL-SOUL' in text(lina_extra['voices'])
-    assert all(mark in text(lina_extra['forbidden']) for mark in ('KAEL-MEMORY', 'KAEL-EP2', 'KAEL-EP5-FUTURE'))
+    assert all(mark in text(lina_extra['forbidden']) for mark in ('KAEL-GOAL', 'KAEL-EP2', 'KAEL-EP5-FUTURE'))
     assert 'forbidden' not in kael and 'voices' not in kael  # 인물에게는 금지 목록이 가지 않는다
 
 
@@ -542,7 +542,7 @@ def test_the_narrator_gets_the_world_up_to_the_base_episode_with_style_cards_and
     assert {KAEL, LINA, GATE} <= ids and not ({STYLE, PERSONA, SHADOW} & ids)  # 문체 카드·미공개 카드는 스냅샷에 없다
     assert all(5 not in c.episodes for c in recall[0]['world'].cards) and 3 in next(c for c in recall[0]['world'].cards if c.id == LINA).episodes
     assert all(mark in text(extra['forbidden']) for mark in ('KAEL-EP5-FUTURE', 'SHADOW-GUILD'))
-    assert not any(mark in text(extra['forbidden']) for mark in ('LINA-MEMORY-SECRET', 'KAEL-MEMORY')) and extra['voices'] == []
+    assert not any(mark in text(extra['forbidden']) for mark in ('LINA-EP0-SECRET', 'KAEL-GOAL')) and extra['voices'] == []
     assert asked['self'] == {'id': None, 'name': '나레이션'} and asked['present'] == ['카엘', '리나']
     # 문체 지침: 제목이 '나레이터'로 시작하는 카드는 유형과 상관없이 쓰고 인물 카드면 IDENTITY와 SOUL을 함께 쓴다.
     given = service.narration_input(PLAN_IF, world, service.new_scene(PLAN_IF), 'opening', 'omniscient')

@@ -107,3 +107,14 @@ describe('세계관 작업실 레이아웃 규칙', () => {
     expect(rule(studio, '.world-save-bar')).toMatch(/margin-left:\s*auto/)
   })
 })
+
+describe('설정 카드 썸네일(#401)', () => {
+  it('28px 고정 크기·잘라 채우기라 읽는 동안의 빈 자리와 이미지가 줄 높이를 바꾸지 않고 제목 글자와 가운데로 맞춘다', () => {
+    const thumb = rule(board, '.board-thumb')
+    expect(thumb).toMatch(/width:\s*28px/)
+    expect(thumb).toMatch(/height:\s*28px/)
+    expect(thumb).toMatch(/object-fit:\s*cover/)
+    expect(thumb).toMatch(/vertical-align:\s*middle/)
+    expect(thumb).toMatch(/flex:\s*none/)
+  })
+})

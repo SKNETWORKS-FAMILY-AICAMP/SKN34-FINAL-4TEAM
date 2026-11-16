@@ -1,0 +1,443 @@
+{
+  "id": "egyptian_mythology_default",
+  "genre_id": "egyptian_mythology",
+  "genre_name": "이집트 전승: 라와 이시스 및 피라미드 문서",
+  "order": 20,
+  "title": "이집트 전승: 라와 이시스 및 피라미드 문서",
+  "setting_bible": {
+    "title": "이집트 전승: 라와 이시스 및 피라미드 문서",
+    "introduction_markdown": "버지 1912년 「라와 이시스의 전설」에 근거한 카드다. 별도 전승 카드는 우나스 피라미드 문서의 장송 주문 23·213·219·252를 추가하며 이집트 전승 전체를 대표하지 않는다.",
+    "sections": [
+      {
+        "id": "egyptian_mythology_ra",
+        "order": 1,
+        "title": "라",
+        "content_markdown": "인간과 신들의 왕이며 스스로 자신을 창조한 신으로 소개된다. 하늘과 땅, 생명의 숨과 불, 신들과 인간 및 생물들을 만들었고, 그에게 백이십 년은 한 해와 같다. 많은 이름은 신들조차 알지 못한다. 한편 그는 자신의 부모가 태어날 때 이름을 몸속에 감추었다고 말한다. 날마다 하늘의 두 지평선에 자리하는 늙은 신이지만, 자신이 알아보지 못한 뱀에게 물려 다른 신들의 도움을 청한다. 그의 창조 권능과 이 장면의 무지는 함께 보존한다.\n\n출전: [버지 1912년: 라와 이시스의 전설](https://www.gutenberg.org/cache/epub/9411/pg9411-images.html).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p003"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p007"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p009"
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_isis",
+        "order": 2,
+        "title": "이시스",
+        "content_markdown": "힘 있는 말들을 아는 여신이다. 인간들에게 싫증이 나 신들과 영들을 향하며, 라의 거룩한 이름을 알아 그와 동등해지고 땅의 여주인이 되려 한다. 늙은 라의 침을 흙먼지와 반죽해 뱀을 만들고 그의 길에 놓는다. 물린 라에게 치유를 약속하면서 이름을 요구하고, 창조자의 여러 칭호만으로는 만족하지 않는다. 마침내 비밀 이름을 얻고 독을 물리치는 말을 한다.\n\n출전: [버지 1912년: 라와 이시스의 전설](https://www.gutenberg.org/cache/epub/9411/pg9411-images.html).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p002"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p003"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p004"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p012"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p016"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p017"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p019"
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_horus",
+        "order": 3,
+        "title": "호루스",
+        "content_markdown": "이시스의 아들로, 어머니가 라의 비밀 이름을 넘겨받는 장면에 등장한다. 어머니는 그에게 라가 두 눈을 주겠다는 맹세로 스스로를 묶어야 한다고 말한다. 이어지는 주문은 호루스의 눈이 신에게서 나와 입 밖에서 빛나기를 말하지만 저본 자체가 이 대목에 물음표를 붙인다. 마지막 낭송 지시의 네 형상 가운데 하나도 호루스다. 이 작품 밖의 눈 상실·회복 전설은 덧붙이지 않는다.\n\n출전: [버지 1912년: 라와 이시스의 전설](https://www.gutenberg.org/cache/epub/9411/pg9411-images.html).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p018"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p019"
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_created-serpent",
+        "order": 4,
+        "title": "침과 흙으로 만든 뱀",
+        "content_markdown": "이시스가 라의 침을 흙먼지와 반죽하여 빚은 거룩한 뱀. 라가 다니는 길에서 그에게 독니를 박는다. 이 뱀을 다른 전승의 아포피스와 동일시하지 않는다.\n\n출전: [「라와 이시스의 전설」](https://www.gutenberg.org/cache/epub/9411/pg9411-images.html), 버지 1912년 영어 번역 본문.",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p004"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p005"
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_secret_name",
+        "order": 5,
+        "title": "라의 비밀 이름",
+        "content_markdown": "라의 부모는 적이 힘 있는 말로 그를 지배하지 못하도록 이름을 그의 몸속에 감추었다고 라가 말한다. 이시스는 이름을 밝히는 이가 살아난다며 공개를 요구한다. 창조 행적과 케페라·라·테무라는 호칭은 이 요구의 답이 되지 못하고 독도 사라지지 않는다. 라가 자기 몸에서 이시스의 몸으로 이름이 옮겨 가도록 허락한 뒤 치유의 말이 이어진다. 독자에게 그 비밀 이름의 실제 발음이나 철자는 공개되지 않는다.\n\n출전: [버지 1912년: 라와 이시스의 전설](https://www.gutenberg.org/cache/epub/9411/pg9411-images.html).",
+        "template_part": "전승 자료",
+        "card_type": "rule",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p009"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p013"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p016"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p017"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p018"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p019"
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_healing-words",
+        "order": 6,
+        "title": "이시스의 권능의 말",
+        "content_markdown": "이시스가 구사하는 말은 작품 안에서 질병을 없애고 죽은 자를 살리는 힘을 가진다. 마지막 독 제거 주문도 이 신화적 권능에 속하며 실제 의료 효과를 주장하지 않는다.\n\n출전: [「라와 이시스의 전설」](https://www.gutenberg.org/cache/epub/9411/pg9411-images.html), 버지 1912년 영어 번역 본문.",
+        "template_part": "전승 자료",
+        "card_type": "ability",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p011"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p018"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p019"
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_two-horizons",
+        "order": 7,
+        "title": "두 지평선의 겹왕좌",
+        "content_markdown": "라가 뱃사람들을 이끌고 날마다 하늘에 들어가 자리하는 왕좌. 이 작품의 표현만 따르며 다른 문헌의 세부 우주 구조와 합치지 않는다.\n\n출전: [「라와 이시스의 전설」](https://www.gutenberg.org/cache/epub/9411/pg9411-images.html), 버지 1912년 영어 번역 본문.",
+        "template_part": "전승 자료",
+        "card_type": "location",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p003"
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_million-years-boat",
+        "order": 8,
+        "title": "수백만 년의 배",
+        "content_markdown": "라가 신들로부터 자신을 감추는 순간 그 안의 왕좌가 비는 배. 여기에서 언급되는 범위 이상으로 항해 지도를 보충하지 않는다.\n\n출전: [「라와 이시스의 전설」](https://www.gutenberg.org/cache/epub/9411/pg9411-images.html), 버지 1912년 영어 번역 본문.",
+        "template_part": "전승 자료",
+        "card_type": "object",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p017"
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_serpent-bite",
+        "order": 9,
+        "title": "라가 뱀에게 물리다",
+        "content_markdown": "라가 거대한 두 집의 성소에서 수행자들과 나와 날마다 다니던 두 땅의 길을 지날 때, 이시스가 만들어 놓은 뱀에게 물린다. 독은 나일강의 범람처럼 온몸을 차지하고 턱과 입술, 팔다리가 떨린다. 라는 가슴이 타고 찌르는 아픔을 느끼며 물보다 차갑고 불보다 뜨겁다고 말한다. 자신에게 일격을 가한 존재를 알지 못해 자식 신들과 권능의 말을 청한다.\n\n출전: [버지 1912년: 라와 이시스의 전설](https://www.gutenberg.org/cache/epub/9411/pg9411-images.html).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p004"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p005"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p006"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p007"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p010"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p011"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p012"
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_isis_ra",
+        "order": 10,
+        "title": "이시스가 라의 이름을 얻다",
+        "content_markdown": "이시스는 라에게 치유의 조건으로 이름을 밝히라고 거듭 요구한다. 라의 공개된 창조 행적과 하루의 세 호칭을 듣고도 참된 이름이 아니라고 말한다. 독이 심해지자 라는 이름이 자기 몸에서 이시스에게 넘어가도록 허락하고 신들 앞에서 모습을 감춘다. 이시스는 아들 호루스에게 두 눈의 맹세를 요구해야 한다고 말한 뒤 독을 제압하는 주문을 한다. 결말은 이시스가 라 자신의 이름으로 그를 알게 되었음을 확인하고, 이 말을 사람에게 적용하는 도상 낭송 지시로 이어진다.\n\n출전: [버지 1912년: 라와 이시스의 전설](https://www.gutenberg.org/cache/epub/9411/pg9411-images.html).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p013"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p016"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p017"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p018"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p019"
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_divine-children",
+        "order": 11,
+        "template_part": "전승 자료",
+        "title": "라의 지체에서 나온 자식 신들",
+        "content_markdown": "라는 자기 몸의 지체들에서 생겨난 수행자와 자식 신들을 부른다. 이들에게 자신이 알지 못하는 공격을 당했다고 알리고, 입으로 능숙하게 주술의 말을 외워 그 힘이 하늘까지 이르는 자들을 데려오라고 한다. 모여든 신들은 애통하게 울며, 이시스도 권능의 말을 지니고 온다. 이 장면의 신들을 본문 밖의 특정 신계 구성원으로 채우지 않는다.\n\n출전: [버지 1912년: 라와 이시스의 전설](https://www.gutenberg.org/cache/epub/9411/pg9411-images.html).",
+        "card_type": "organization",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p007"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p011"
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_creator-manifestations",
+        "order": 12,
+        "template_part": "전승 자료",
+        "title": "라가 열거하는 창조와 하루의 세 호칭",
+        "content_markdown": "이시스가 이름을 묻자 라는 자신이 하늘·땅·산·물·메흐트우르·사랑의 즐거움을 만들었다고 답한다. 눈을 뜨면 빛이, 감으면 어둠이 생기며 그의 명령으로 나일강이 솟아난다고 한다. 시간·날·축제·범람·생명의 불도 자신의 창조물로 든다. 아침에는 케페라, 한낮에는 라, 저녁에는 테무라 하지만 이 호칭들은 독을 없애지 못하고 이시스가 요구하는 비밀 이름도 아니다.\n\n출전: [버지 1912년: 라와 이시스의 전설](https://www.gutenberg.org/cache/epub/9411/pg9411-images.html).",
+        "card_type": "rule",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p013"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p014"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p015"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p016"
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_two-eyes-oath",
+        "order": 13,
+        "template_part": "전승 자료",
+        "title": "이시스가 요구한 두 눈의 맹세",
+        "content_markdown": "라에게서 심장이 나올 때가 되자 이시스는 호루스에게, 위대한 신이 자기 두 눈을 주겠다고 맹세하여 스스로를 묶어야 한다고 말한다. 바로 뒤에 이름을 내주는 일이 서술된다. 본문은 눈을 실제로 떼어 주는 별도 장면이나 그 눈의 이후 소유권을 설명하지 않으므로, 맹세의 요구와 이름 양도까지만 기록한다.\n\n출전: [버지 1912년: 라와 이시스의 전설](https://www.gutenberg.org/cache/epub/9411/pg9411-images.html).",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p018"
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_image-recitation",
+        "order": 14,
+        "template_part": "전승 자료",
+        "title": "네 신의 형상 위에서 하는 낭송",
+        "content_markdown": "결말의 말은 라가 살고 독이 죽기를 선언한 뒤, 이름을 넣는 자리인 ‘아무개의 아들 아무개’에게 같은 구문을 적용한다. 끝에는 테무·헤루헤켄누·이시스·호루스의 형상 위에서 앞의 말을 외우라는 지시가 붙는다. 따라서 이 작품은 이름을 얻는 이야기와 도상을 이용한 주문의 적용을 함께 담는다. 이는 고대 신앙 문헌의 내용이며 실제 중독이나 뱀 물림을 치료하는 방법이 아니다.\n\n출전: [버지 1912년: 라와 이시스의 전설](https://www.gutenberg.org/cache/epub/9411/pg9411-images.html).",
+        "card_type": "rule",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p019"
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_two-lands-road",
+        "order": 15,
+        "template_part": "전승 자료",
+        "title": "두 땅을 지나는 라의 길",
+        "content_markdown": "라는 자신이 만든 두 땅을 뜻대로 살피며, 거대한 두 집 안의 신들의 성소에서 나와 날마다 같은 길을 간다. 이시스는 그 일상의 길에 뱀을 놓아 공격의 장소로 삼는다. 작품은 길의 세부 지도나 성소들의 고유 명칭을 주지 않는다.\n\n출전: [버지 1912년: 라와 이시스의 전설](https://www.gutenberg.org/cache/epub/9411/pg9411-images.html).",
+        "card_type": "location",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p004"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p005"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p009"
+          },
+          {
+            "document": "sources.md",
+            "section": "ra-isis-p012"
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_unas-osiris",
+        "order": 16,
+        "title": "우나스 장송문 속 오시리스",
+        "content_markdown": "우나스 피라미드 주문 219는 오시리스를 아툼·슈·테프누트·게브·누트의 아들, 이시스·세트·네프티스의 형제, 호루스의 아버지로 호명하며 오시리스의 생명과 왕 우나스의 생명을 나란히 말한다. 이는 장송 주문의 호명이지 모든 지역·시대에 통용되는 단일 계보가 아니다.\n\n출전: [주문 219, 우나스 W 240–250; 세테 §§167–176](https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "unas-osiris",
+            "excerpt_sha256": "4aa0a92bab072226f4807d938a8d30dcc57250bf01fcac7e88ae61a48dc0bdd7"
+          },
+          {
+            "document": "supplementary.md",
+            "section": "unas-osiris",
+            "excerpt_sha256": "66185a5f856e7a2a9308b9e488e403c43c5c2eb128e1926ecbef4c2aebf913a9"
+          },
+          {
+            "document": "supplementary.md",
+            "section": "unas-osiris",
+            "excerpt_sha256": "8b406fed125c38bdc3f222fa4abe0cb2f9f7c52e417e700e0807425ec4d972d0"
+          },
+          {
+            "document": "supplementary.md",
+            "section": "unas-osiris",
+            "excerpt_sha256": "94b15da3852dd409f82356daa614c8931781e771fe3ed72748a266a56bd09ea8"
+          },
+          {
+            "document": "supplementary.md",
+            "section": "unas-osiris",
+            "excerpt_sha256": "02eb30bcf54a9768db3be645464a2bff3017d2f00709743ab7ba0679fde304ce"
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_unas-sceptres",
+        "order": 17,
+        "title": "우나스와 오시리스의 왕좌·지팡이",
+        "content_markdown": "주문 213은 죽은 왕이 살아서 오시리스의 왕좌에 앉으며 손에 지팡이를 들고 산 자들에게 명령한다고 말한다. 지팡이는 왕의 사후 권위를 표현하는 장송문 속 물건이다.\n\n출전: [주문 213, 우나스 W 206–207, 세테 §§134–135](https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall).",
+        "template_part": "전승 자료",
+        "card_type": "object",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "unas-sceptres",
+            "excerpt_sha256": "f41b4fdbf6a67854ab54fa75cd13d9b40df34aba7b280b54a0991609b9a1cb1f"
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_unas-duat",
+        "order": 18,
+        "title": "두아트와 라의 배",
+        "content_markdown": "주문 252는 두아트의 신들에게 우나스의 도착을 알리고 왕이 라의 배를 젓는 자들과 함께 앉는다고 한다. 두아트는 여기서 장송 여정의 장소이며 하나의 완결된 사후 세계 지도로 취급하지 않는다.\n\n출전: [주문 252, 우나스 W 404–410, 세테 §§272–274](https://theosislibrary.com/library/verified-pyramid-texts-unas-antechamber-west-gable).",
+        "template_part": "전승 자료",
+        "card_type": "location",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "unas-duat",
+            "excerpt_sha256": "3ed38dc912ce3345b4bfee7d353874fc55d1c9073e702f0726660c744dc2b44c"
+          }
+        ]
+      },
+      {
+        "id": "egyptian_mythology_unas-libation",
+        "order": 19,
+        "title": "우나스 장송문의 봉헌",
+        "content_markdown": "우나스 피라미드 주문 23은 오시리스와 토트에게 왕에 대한 적의를 막도록 호소하고 네 번 낭송하라고 지시한다. 병기된 영역은 이 주문을 물을 붓는 봉헌과 연결한다. 특정 왕의 장례 문맥에서 읽는다.\n\n출전: [주문 23, 우나스 W 1–4, 세테 §16](https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-north-wall-register-1).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "unas-libation",
+            "excerpt_sha256": "52d598b5b14fef5069e9b933dd9eb0dafbc7c4d1fd6fbb7ff9995d420b1e6133"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -62,8 +62,8 @@ def _valid(check: str, body: str, found, refs: set[str]) -> bool:
 
 
 def _locate(body: str, found) -> Finding:
-    if body.count(found.quote) == 1:
-        start = _utf16(body[:body.index(found.quote)])
+    if (at := content_mcp.place(body, found.quote)) is not None:
+        start = _utf16(body[:at])
         return Finding(**found.model_dump(), start=start, end=start + _utf16(found.quote))
     # 같은 구절이 여러 곳이면 위치를 추측하지 않고, 위치를 모르는 지적은 확정하지 않는다
     status = 'suspected' if found.status == 'confirmed' else found.status
@@ -90,7 +90,7 @@ def _settings(world: WorldSnapshot, episode: int) -> list[dict]:
     settings = []
     for c in cards.values():
         memories = [f'{n}화: {t}' for n, t in sorted(c.episodes.items()) if n <= episode]
-        text = '\n\n'.join(t for t in (c.text, c.soul, c.memory, *memories) if t.strip())
+        text = '\n\n'.join(t for t in (c.text, c.soul, c.goal, *memories) if t.strip())
         settings.append({'ref': f'card:{c.id}', 'type': c.cardType, 'title': c.title, 'text': text})
     for r in world.relations:
         if r.source in cards and r.target in cards:

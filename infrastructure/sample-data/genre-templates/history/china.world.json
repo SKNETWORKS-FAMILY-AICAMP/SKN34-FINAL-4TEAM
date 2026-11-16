@@ -1,0 +1,146 @@
+{
+  "genre": "china_history",
+  "worldId": "d3c3b3bc-1ee5-5361-82bd-d2679a258a02",
+  "name": "중국사: 고전 통사로 읽는 왕조·제도·대외 교섭",
+  "description": "China(PG 6708)의 로컬 영어 원문에서 고대부터 1898년까지의 실제 인물·장소·기구·사건을 선별한 단일 역사 세계 자료. 오래된 편향과 오류 가능성을 표시한 연구 초안이며 현대 중국 통사나 창작 설정이 아니다.",
+  "cards": [
+    {
+      "id": "cf34f098-c252-5b47-8ab4-60f36d1766ea",
+      "title": "공자: 정치 질서와 후대 전승",
+      "body": "확보한 고전 통사는 공자를 여러 제후의 정치를 경험하며 개혁과 질서를 주장한 인물로 소개한다. 제자들이 그의 가르침을 전했고, 후대 통치자들이 이를 통치의 기준으로 삼았다고 저자는 서술한다. 이 카드는 정치사상과 전승의 연결만 추린다. 원문이 제시한 활동 연대, 종교적 비유, 맹자와 고전의 귀속은 별도 검증 전 사실값으로 사용하지 않는다.\n\n출전: Demetrius Charles Boulger, China, 제I장, 확보 영문본 L325–L343, L343–L346 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "character",
+      "soul": "근거와 한계: Boulger는 공자가 제후들에게 개혁을 주장하고 제자들이 가르침을 전했다고 서술한다. 활동 연대와 고전의 귀속은 독립 검수 대기다.\n\n창작 문체 제안: 정치 질서에 관한 저자의 서술과 후대 전승을 구분한다. 실제 말투는 미확인. 이 제안은 역사적 발언이나 인물의 성격을 확정하지 않는다."
+    },
+    {
+      "id": "f9fef3f7-0962-542b-b587-0b38b2e692ca",
+      "title": "진의 통합과 중앙집권",
+      "body": "Boulger는 진시황과 이사(Lisseh)를 제국의 행정 재편을 추진한 군주와 대신으로 묶어 설명한다. 지방 통치와 교통망을 정비하고 권력을 군주에게 집중했다는 점이 서술의 중심이다. 원문의 “province”를 오늘날 중국의 성과 동일시하지 않는다. 그 제도가 이후 수천 년 동안 변함없이 존속했다는 저자의 연속성 주장은 채택하지 않는다.\n\n출전: Demetrius Charles Boulger, China, 제I장, 확보 영문본 L421–L433, L437–L445 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "rule"
+    },
+    {
+      "id": "a35d8a06-07ab-5c7c-80b0-2e5e9b3d602c",
+      "title": "유방: 한 왕조 창건의 서술",
+      "body": "원문은 진의 후계 정권이 무너지는 과정에서 유방(Liu Pang)이 경쟁 세력을 꺾고 황제에 올랐으며 새 왕조를 한이라 불렀다고 설명한다. 황제 칭호와 왕조 이름을 구별하는 인물 카드다. 점술가의 예언이나 셰익스피어 인물과의 비교는 역사적 원인으로 채택하지 않는다. 유방의 초기 관직·한이라는 이름의 유래는 이 책만으로 확정하지 않는다.\n\n출전: Demetrius Charles Boulger, China, 제II장, 확보 영문본 L633–L641, L646–L651 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "character",
+      "soul": "근거와 한계: Boulger는 유방이 경쟁 세력을 꺾고 황제가 되어 왕조를 한이라 불렀다고 서술한다. 예언과 명칭 유래는 역사적 원인으로 확정하지 않으며 독립 검수 대기다.\n\n창작 문체 제안: 진 이후의 경쟁과 새 왕조 명칭의 맥락에 집중한다. 실제 말투는 미확인. 이 제안은 역사적 발언이나 인물의 성격을 확정하지 않는다."
+    },
+    {
+      "id": "d7bd0d10-d516-5415-bc3b-bd6cdc6e6bae",
+      "title": "당: 왕조 교체와 군사·행정의 분담",
+      "body": "고전 통사는 수 왕조 이후 이연(Liyuen)의 새 정권과 그의 아들 이세민(Lichimin)의 군사 활동을 당의 성립 과정으로 다룬다. 수도에서 행정을 재편하는 일과 여러 지역을 군사적으로 통합하는 일이 나란히 서술된다. 이 책의 즉위 연도와 궁정 권력투쟁의 설명은 별도 확인이 필요하므로 확정 연표로 옮기지 않는다.\n\n출전: Demetrius Charles Boulger, China, 제III장, 확보 영문본 L1444–L1456 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "organization"
+    },
+    {
+      "id": "eb9f52a1-3491-5ce7-87c7-7223af437919",
+      "title": "송: 군 지휘권과 왕조 창건",
+      "body": "Boulger는 조광윤(Chow Kwang Yu)이 군대의 지지를 바탕으로 황제가 되어 송 왕조를 열었다고 서술한다. 군대의 지지와 왕조 권력의 형성이 연결되는 장면이다. 저자가 제시한 출생지, 혈통의 순수성, 길조에 관한 설명은 검증된 사실이나 정당성의 근거로 사용하지 않는다. 뒤에 이어지는 군주 찬양도 사건 자체와 분리한다.\n\n출전: Demetrius Charles Boulger, China, 제IV장, 확보 영문본 L1923–L1930 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "organization"
+    },
+    {
+      "id": "30396de2-16e8-5681-b409-79e45c12edd5",
+      "title": "왕안석: 신법과 저자의 평가를 구분하기",
+      "body": "원문은 왕안석(Wanganchi)을 국가가 농업과 생활 지원에 적극 관여하도록 하려던 개혁가로 소개한다. 경작자에게 자원과 조언을 제공하는 정책이 서술되지만 저자는 이를 강한 부정적 평가와 함께 제시한다. 이 카드는 국가 개입을 둘러싼 논쟁의 존재를 보여준다. 정책의 정확한 조항·성과·실패 원인을 이 책의 평가만으로 확정하지 않는다.\n\n출전: Demetrius Charles Boulger, China, 제IV장, 확보 영문본 L2150–L2155, L2167–L2184 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "character",
+      "soul": "근거와 한계: Boulger는 왕안석의 국가 지원 정책을 소개하며 강하게 비판한다. 정책의 세부와 성과, 실패 원인은 저자의 평가만으로 확정하지 않으며 독립 검수 대기다.\n\n창작 문체 제안: 경작자 지원을 둘러싼 정책과 논쟁을 구분해 다룬다. 실제 말투는 미확인. 이 제안은 역사적 발언이나 인물의 성격을 확정하지 않는다."
+    },
+    {
+      "id": "e9ede3f4-85db-52d0-8b8b-d96b410cc8c6",
+      "title": "몽골 쿠릴타이와 칭기즈 칸",
+      "body": "원문은 테무진이 오논의 집회에서 칭기즈 칸이라는 이름으로 추대되는 장면을 서술한다. 쿠릴타이는 여러 지휘자와 유력자가 모여 지도력과 군사 방향을 정하는 회의로 나타난다. 이 카드는 지도자 개인뿐 아니라 집회와 승인 절차에 주목한다. 칭호의 어원, 민족적 성격, 전쟁 상대에 대한 서열화는 확정 사실로 옮기지 않는다.\n\n출전: Demetrius Charles Boulger, China, 제V장, 확보 영문본 L2692–L2702 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "organization"
+    },
+    {
+      "id": "86cae663-e112-5173-afd6-7e56e02bd669",
+      "title": "쿠빌라이: 원의 명명과 통치 구성",
+      "body": "1271년 쿠빌라이는 왕조 이름을 원(Yuen)으로 정했다고 원문은 기록한다. 그는 중국인 대신들과 여러 외부 출신 인물의 도움을 받아 통치 체제를 구성한 군주로 서술된다. 몽골의 지배권과 중국 왕조 운영의 결합을 다루되, 모든 주민이 통치에 만족했다는 저자의 평가는 채택하지 않는다.\n\n출전: Demetrius Charles Boulger, China, 제VI장, 확보 영문본 L3679–L3688 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "character",
+      "soul": "근거와 한계: Boulger는 쿠빌라이가 왕조를 원이라 명명하고 중국인 대신과 외부 출신 인물의 도움을 받아 통치 체제를 구성했다고 서술한다. 주민 전체의 만족이라는 평가는 채택하지 않으며 독립 검수 대기다.\n\n창작 문체 제안: 왕조 명명과 다양한 인물의 통치 참여에 초점을 둔다. 실제 말투는 미확인. 이 제안은 역사적 발언이나 인물의 성격을 확정하지 않는다."
+    },
+    {
+      "id": "161eb521-f7ac-5485-8d0a-d147cb67e83f",
+      "title": "칸발리크: 원의 수도 공간",
+      "body": "원문이 칸발리크 또는 캄발루크라고 부르는 수도는 오늘날 베이징 일대에 놓였다. 저자는 궁정과 도로·성문을 설명하면서 마르코 폴로의 전언을 이용하고, 성벽 둘레에도 서로 다른 수치가 있음을 인정한다. 따라서 구체적인 문 수·수비 병력·둘레는 확정값으로 채택하지 않는다. 같은 도시가 여러 왕조의 수도로 활용된 층위를 구별한다.\n\n출전: Demetrius Charles Boulger, China, 제VI장, 확보 영문본 L3693–L3707 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "location"
+    },
+    {
+      "id": "90168f24-1319-533c-8418-0a77b8887a1e",
+      "title": "명: 몽골 지배 이후의 왕조 재편",
+      "body": "고전 통사는 주원장으로 알려진 창건자를 Choo·Hongwou라는 표기로 부르며, 몽골 세력을 몰아낸 뒤 왕조 이름을 명으로 정했다고 설명한다. 이어 군공 포상과 문관 행정의 재정비, 문헌 편찬을 다룬다. 창건 연대와 후대의 법전·편찬 사업을 한 인물에게 모두 귀속시키지 않는다. 민족 전체의 단일한 의사를 가정하는 서술도 피한다.\n\n출전: Demetrius Charles Boulger, China, 제VII장, 확보 영문본 L4172–L4188 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "organization"
+    },
+    {
+      "id": "05013b02-54ca-55ba-bdfa-97e056d54a55",
+      "title": "강희제: 할하와의 외교",
+      "body": "Boulger는 강희제(Kanghi)가 할하 지도자들과 서신과 선물을 주고받아 관계를 맺고, 동맹과 약정을 통해 북방 정세에 대응했다고 서술한다. 이 관계는 다른 몽골 집단과 러시아의 움직임을 함께 살펴야 이해할 수 있는 외교 문제로 나타난다. 집단 전체가 동일한 선택을 했다는 식으로 확장하지 않고, 저자의 군주 찬양과 역사적 행위를 분리한다.\n\n출전: Demetrius Charles Boulger, China, 제XI장, 확보 영문본 L6202–L6228 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "character",
+      "soul": "근거와 한계: Boulger는 강희제가 할하 지도자들과 서신과 선물을 통해 관계를 맺고 동맹을 체결했다고 서술한다. 러시아에 대한 우려를 동기로 보는 설명은 저자의 추정이며 독립 검수 대기다.\n\n창작 문체 제안: 서신·선물과 여러 북방 세력 사이의 외교 관계를 다룬다. 실제 말투는 미확인. 이 제안은 역사적 발언이나 인물의 성격을 확정하지 않는다."
+    },
+    {
+      "id": "0df4ee01-444d-536b-b846-02e45357b248",
+      "title": "네르친스크 조약과 아무르의 충돌",
+      "body": "원문은 아무르강 유역 알바진 요새를 둘러싼 청·러시아의 충돌 뒤 협상이 이루어져 네르친스크 조약으로 이어졌다고 설명한다. 군사 충돌과 국경 외교가 결합된 사건이다. 요새의 처리와 협상 경과는 원문 서술에 근거하지만, 국경선의 정확한 위치와 조약 전문은 별도로 대조하지 않았다. 저자의 “유일한 전쟁”이라는 표현은 현재까지의 일반 사실로 사용하지 않는다.\n\n출전: Demetrius Charles Boulger, China, 제XI장, 확보 영문본 L6263–L6279 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "event"
+    },
+    {
+      "id": "803ecfe1-cf87-55a5-9235-e422f9335c07",
+      "title": "광저우: 외국 상인과 교섭의 항구",
+      "body": "원문에서 Canton으로 표기되는 광저우는 영국 상인들이 교역 조건과 관청의 규제를 문제 삼던 항구다. 상인들은 지역 교섭의 한계를 넘기 위해 영국 정부의 공식 사절이 청 황제를 만나기를 기대했다. 이 카드는 항구의 무역과 중앙 궁정의 외교가 이어지는 구조를 보여준다. 규제의 원인을 특정 민족의 질투나 부패만으로 설명하는 저자의 시각은 채택하지 않는다.\n\n출전: Demetrius Charles Boulger, China, 제XIV장, 확보 영문본 L7375–L7389 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "location"
+    },
+    {
+      "id": "31af5e3a-68d1-536a-a02e-9dadc69c76be",
+      "title": "매카트니 사절단과 청 궁정",
+      "body": "영국의 매카트니 사절단은 1792년 포츠머스를 출발했고, 이듬해 청의 수도로 가는 수로에 도착했다고 원문은 기록한다. 사절단은 선물과 통역을 준비했으며, 열하에 머물던 건륭제를 만나기 위해 이동했다. 무역 요구와 궁정 의례가 만나는 사건으로 읽는다. 저자가 전하는 환영의 의미와 협상 성과는 영국 측의 해석과 분리해 검토해야 한다.\n\n출전: Demetrius Charles Boulger, China, 제XIV장, 확보 영문본 L7402–L7412, L7437–L7444 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "event"
+    },
+    {
+      "id": "e4f8b125-6626-56d3-9cd4-ac71bad30332",
+      "title": "임칙서: 광저우의 아편 문제",
+      "body": "1839년 도광제는 임칙서(Lin Tsihseu)를 광저우에 파견해 아편 문제를 조사하고 대책을 마련하도록 했다고 원문은 설명한다. 임칙서는 중앙의 명령을 받아 항구에서 이를 실행하는 특별 담당자로 등장한다. 아편 단속을 둘러싼 갈등은 이후 대외전쟁 서술과 이어지지만, 전쟁의 책임과 정당성을 이 책의 영국 중심 평가만으로 결정하지 않는다.\n\n출전: Demetrius Charles Boulger, China, 제XVII장, 확보 영문본 L8451–L8455 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "character",
+      "soul": "근거와 한계: Boulger는 도광제가 임칙서를 광저우에 보내 아편 문제를 조사하고 대책을 제시하도록 했다고 서술한다. 전쟁의 책임과 정당성은 이 저자의 평가만으로 결정하지 않으며 독립 검수 대기다.\n\n창작 문체 제안: 중앙의 명령과 항구의 상황을 연결하는 공적 임무에 초점을 둔다. 실제 말투는 미확인. 이 제안은 역사적 발언이나 인물의 성격을 확정하지 않는다."
+    },
+    {
+      "id": "fe2ef517-d0a2-5b9a-922a-a6afa78b8494",
+      "title": "난징조약과 통상항의 확대",
+      "body": "첫 대외전쟁 뒤 체결된 난징조약을 설명하면서 원문은 광저우 외에 상하이·닝보·샤먼·푸저우의 통상을 다룬다. 개항에는 관세표 마련과 영사 임명 등 후속 절차가 연결되어 있었다. 이 카드는 조약의 서명과 실제 통상 제도의 운영을 구별한다. 뒤이은 관세 협정에도 아편 문제가 해결되지 않았다는 저자의 지적을 함께 남긴다.\n\n출전: Demetrius Charles Boulger, China, 제XVII장, 확보 영문본 L9384–L9391, L9399–L9403, L9440–L9450 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "rule"
+    },
+    {
+      "id": "27b67b21-7b01-5d68-8200-54efd673d5a7",
+      "title": "태평천국: 난징을 거점으로 한 경쟁 정권",
+      "body": "원문은 태평천국이 난징을 확보한 뒤 청에 맞서는 정치·군사 세력으로 성장했다고 설명한다. 난징과 장강 수운, 운하 입구의 도시 확보는 남북 연결과 북진 계획에 영향을 주었다. 난징은 그들의 수도가 되었다. 이 카드는 영토·교통·정권의 관계에 주목하며, 저자의 적대적 인물평이나 병력 수치를 검증 없이 옮기지 않는다.\n\n출전: Demetrius Charles Boulger, China, 제XVIII장, 확보 영문본 L9929–L9947 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "organization"
+    },
+    {
+      "id": "ce117919-1f36-56b9-bb9b-494a0d572051",
+      "title": "총리아문: 대외 업무의 담당 기구",
+      "body": "원문은 공친왕(Prince Kung)이 1861년 총리아문을 설치하고 첫 책임자가 되었다고 설명한다. 이 기구는 외국 대표와의 업무를 처리하는 통로였지만 청 정부 전체나 모든 정책의 발원지와 동일한 조직은 아니었다. 기관의 존재와 담당 업무를 기록하되, 원문에 담긴 외국인의 편의 중심 평가를 그 자체로 성과 판정에 사용하지 않는다.\n\n출전: Demetrius Charles Boulger, China, 제XXI장, 확보 영문본 L13148–L13160 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "organization"
+    },
+    {
+      "id": "a4c4c84c-729d-5467-9834-625d1dd5f821",
+      "title": "청일전쟁 후 시모노세키 조약과 삼국간섭",
+      "body": "보충장은 1895년 이홍장이 일본에서 강화 교섭을 맡았고 4월 17일 시모노세키 조약이 서명되었다고 기록한다. 조약은 타이완·펑후열도와 랴오둥반도 등의 양도, 배상과 통상 조건을 포함했다. 이어 러시아·프랑스·독일의 개입으로 랴오둥 조항이 변경되는 과정을 설명한다. 당시 조약의 내용을 현재 영토 주권에 대한 주장으로 옮기지 않는다.\n\n출전: Mayo W. Hazeltine, China, 보충장, 확보 영문본 L15769–L15787, L15792–L15805 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "event"
+    },
+    {
+      "id": "fa1823a8-29f3-5c4b-9b3c-cc421b563ded",
+      "title": "1898년 개혁과 궁정의 권력 회수",
+      "body": "보충장은 광서제가 캉유웨이의 영향을 받아 행정·교육 개혁을 추진했고, 1898년 9월 궁정의 반격으로 권력을 잃었다고 서술한다. 개혁 조서와 그것을 막는 권력의 작용을 구분하는 사건 카드다. 해당 부분에는 황태후의 이름과 광서제 사망에 관한 미확인 소문이 섞여 있으므로 이 세부는 역사 사실로 채택하지 않는다. 원문의 유럽 중심 진보관도 별도 평가 대상으로 남긴다.\n\n출전: Mayo W. Hazeltine, China, 보충장, 확보 영문본 L15911–L15929 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "event"
+    },
+    {
+      "id": "ceea8b20-7a9a-55d3-ac89-baa4ff43b186",
+      "title": "출처·판본·권리 안내",
+      "body": "출처는 Demetrius Charles Boulger의 China, Project Gutenberg 전자책 6708이다. 표제에는 보충장 저자로 Mayo W. Hazeltine이 기재되어 있다. https://www.gutenberg.org/ebooks/6708 . 확보 파일은 22개 번호 장과 후속 두 항목을 포함하지만 바탕 인쇄본의 정확한 발행연도·판차·출판사는 미확인이다. Project Gutenberg의 미국 퍼블릭 도메인 취급과 전 세계 권리 보증은 구분한다. 해당 파일의 라이선스 안내를 유지해 확인하고, 배포 지역의 권리는 별도 검토한다.\n\n출전: Demetrius Charles Boulger·Mayo W. Hazeltine, China, Project Gutenberg header, 확보 영문본 L1–L23 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt); Demetrius Charles Boulger·Mayo W. Hazeltine, China, Title page, 확보 영문본 L40–L46 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt); Demetrius Charles Boulger·Mayo W. Hazeltine, China, The Future of China, 확보 영문본 L15940 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "other"
+    },
+    {
+      "id": "c87db2da-3415-510c-a445-5f3da8df8425",
+      "title": "고전 통사의 관점과 검토 상태",
+      "body": "이 묶음은 19세기 말까지의 고전 통사를 원문 대조해 만든 역사 자료 초안이다. 제국주의·유럽 중심 평가, 집단에 대한 고정관념, 전승과 불확실한 소식이 섞여 있어 현대 역사 교과서로 취급할 수 없다. 카드별 원문 일치 확인은 그 주장이 역사적으로 참이라는 독립 검증과 다르다. 1898년 이후의 중국사와 현재 상황은 다루지 않는다. 가상 인물·사건·대사·예언을 사실로 추가하지 않았으며 전문 감수와 현대 연구 대조는 남아 있다.\n\n출전: Demetrius Charles Boulger, China, 제I장, 확보 영문본 L173–L190 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt); Mayo W. Hazeltine, China, 보충장, 확보 영문본 L15926–L15935 (https://www.gutenberg.org/cache/epub/6708/pg6708.txt).",
+      "cardType": "other"
+    }
+  ]
+}

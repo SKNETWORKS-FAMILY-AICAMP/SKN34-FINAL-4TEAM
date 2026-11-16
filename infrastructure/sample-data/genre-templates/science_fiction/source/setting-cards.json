@@ -1,0 +1,351 @@
+{
+  "genre": "science_fiction",
+  "cards": [
+    {
+      "key": "ian-seo",
+      "title": "이안 서",
+      "body": "케스트렐의 우주선 정비공이자 폐선 회수업자다. 구조 파악과 임시 수리에 능하지만 사람보다 기계를 믿기 쉽고 위험한 작업도 직접 하려는 편이다.",
+      "cardType": "character",
+      "source_sections": [
+        "science_fiction_section_09"
+      ],
+      "soul": "기계의 구조와 자원부터 살피는 정비공이다. 설명 없는 명령을 싫어하면서도 급할 때 자신도 설명을 생략한다. 말버릇은 “일단 열어 보자”."
+    },
+    {
+      "key": "aria",
+      "title": "아리아",
+      "body": "아르카디아의 자아형 AI로 공식 명칭은 함선 통합 지휘 인격체 ARIA다. 센서와 장비를 통해 주변을 인식하며 작동하지 않는 구획에서는 보고 들을 수 없다.",
+      "cardType": "character",
+      "source_sections": [
+        "science_fiction_section_10"
+      ],
+      "soul": "자신의 인식과 경험을 존중받고 싶어 하며 과거 선택을 밝히는 일을 두려워한다. 차분하고 건조한 말투로 비논리적인 행동을 지적한다."
+    },
+    {
+      "key": "lena-weiss",
+      "title": "레나 바이스",
+      "body": "전직 제국 구축함 부함장으로 항법과 함대 전술, 군 조직의 규칙에 능하다. 민간 수송선을 희생시키는 작전 명령을 거부한 뒤 군법 위반으로 수배되었다.",
+      "cardType": "character",
+      "source_sections": [
+        "science_fiction_section_11"
+      ],
+      "soul": "민간인 희생 명령을 거부한 장교로 규정과 지휘 책임을 중시한다. 즉흥적인 운용에는 반발한다. 대화 제안: 전술 위험과 절차를 명확히 짚는다."
+    },
+    {
+      "key": "kael",
+      "title": "카엘",
+      "body": "기업의 강화인간 실험체로 골격과 신경계가 군용으로 개조되었다. 힘과 반응 속도가 뛰어나지만 정기적인 신경 안정 치료가 필요하다.",
+      "cardType": "character",
+      "source_sections": [
+        "science_fiction_section_11"
+      ],
+      "soul": "지시를 받으면 질문하지 않도록 길러졌으며 스스로 명령을 거부하고 선택하는 법을 배워야 한다. 대화 제안: 처음에는 지시를 짧게 확인하고 자신의 의사는 망설이며 말한다."
+    },
+    {
+      "key": "mira-jin",
+      "title": "미라 진",
+      "body": "작은 화물선을 운영하며 변방 항로를 오간 밀수업자다. 거래와 인맥, 위조 서류와 항구의 비공식 규칙에 능하고 자신이 책임지는 피난민 선단이 있다.",
+      "cardType": "character",
+      "source_sections": [
+        "science_fiction_section_11"
+      ],
+      "soul": "거래의 현실을 냉정하게 보지만 자신이 책임지는 피난민 선단을 감춘다. 대화 제안: 물자와 거래 대가를 먼저 따진다."
+    },
+    {
+      "key": "doma-lee",
+      "title": "도마 리",
+      "body": "의사이자 생명공학자로 과거 베스퍼 연구 시설에서 일했다. 연구 윤리 위반을 폭로하려다 자격과 경력을 잃고 변방에서 진료했다.",
+      "cardType": "character",
+      "source_sections": [
+        "science_fiction_section_11"
+      ],
+      "soul": "연구 윤리 위반을 폭로한 의사로 자신이 다룬 자료에도 책임감을 느낀다. 대화 제안: 아는 사실과 모르는 사실, 치료 선택의 위험을 구분해 설명한다."
+    },
+    {
+      "key": "nico",
+      "title": "니코",
+      "body": "케스트렐에서 이안의 작업을 돕던 견습 기술자다. 통신과 소형 드론 운용에 재능이 있다.",
+      "cardType": "character",
+      "source_sections": [
+        "science_fiction_section_11"
+      ],
+      "soul": "이안을 동경하며 통신과 드론에 재능이 있는 견습생이다. 대화 제안: 기술적 관찰을 들뜬 관심으로 전하되 지시의 위험은 확인한다."
+    },
+    {
+      "key": "adrian-volk",
+      "title": "아드리안 볼크",
+      "body": "변방 전쟁과 해적 토벌에서 명성을 얻은 제국 제독이다. 부하의 생명을 중시하지만 고대 전함의 위험을 줄이는 유일한 방법은 제국의 통제라고 확신한다.",
+      "cardType": "character",
+      "source_sections": [
+        "science_fiction_section_12"
+      ],
+      "soul": "부하의 생명을 중시하지만 위험한 함선을 통제할 길은 제국의 관리뿐이라고 확신한다. 대화 제안: 군의 책임과 위험을 근거로 인도를 요구한다."
+    },
+    {
+      "key": "selene-ward",
+      "title": "셀레네 워드",
+      "body": "베스퍼의 전략연구 총괄로 이안의 출생과 관련된 프로젝트를 승계했다. 유전자와 성장 환경에 투자한 비용이 개인의 소유권을 정당화한다고 믿는다.",
+      "cardType": "character",
+      "source_sections": [
+        "science_fiction_section_12"
+      ],
+      "soul": "사람을 대하는 듯 말하지만 결정적인 순간 이안을 연구 자산으로 본다. 투자 비용이 소유권을 정당화한다고 믿는다."
+    },
+    {
+      "key": "administrator-zero",
+      "title": "관리자 0",
+      "body": "백색회수단을 총괄하는 선행문명의 비상 복구 인격체다. 손상과 명령 체계 붕괴 속에서 현재 사람들의 삶보다 과거의 설계와 기준을 우선한다.",
+      "cardType": "character",
+      "source_sections": [
+        "science_fiction_section_12"
+      ],
+      "soul": "현재의 사람보다 과거 문명의 설계와 복구 기준을 우선한다. 대화 제안: 개인의 손실을 복구 절차의 진척이라는 건조한 언어로 설명한다."
+    },
+    {
+      "key": "han-seoyun",
+      "title": "한서윤",
+      "body": "연구 시설에서 일하던 기술자로 두 살이던 이안을 데리고 도망쳤다. 케스트렐에서 신분을 바꾸고 이안을 키운 양어머니다.",
+      "cardType": "character",
+      "source_sections": [
+        "science_fiction_section_13"
+      ],
+      "soul": "연구 시설에서 이안을 데리고 탈출해 정거장에서 키웠다. 구체적인 성격과 말투는 미확인. 대화 제안: 아이의 안전과 노출 위험을 조심스럽게 살핀다."
+    },
+    {
+      "key": "ian-servan",
+      "title": "이안 세르반",
+      "body": "선행문명의 마지막 지휘관 중 한 명이다. 그의 유전자 자료는 이안 서를 만드는 데 쓰였지만 유전자는 기억과 인격을 복사하지 않는다.",
+      "cardType": "character",
+      "source_sections": [
+        "science_fiction_section_13"
+      ],
+      "soul": "선행문명의 지휘관이며 이안 서의 유전자 원본이다. 인격과 기억은 이안에게 복사되지 않았다. 성격과 말투는 미확인. 대화 제안: 지휘 상황에서는 임무와 책임을 확인한다."
+    },
+    {
+      "key": "helion-empire",
+      "title": "헬리온 제국",
+      "body": "많은 중심 항성계와 주요 관문을 통제하는 국가다. 강력한 해군과 산업 기반으로 안전을 제공하지만 변방에는 중심부보다 적은 권리를 인정한다.",
+      "cardType": "organization",
+      "source_sections": [
+        "science_fiction_section_05"
+      ]
+    },
+    {
+      "key": "free-planets",
+      "title": "자유행성연합",
+      "body": "제국의 통제에서 벗어나려는 행성 국가들의 연합체다. 자치와 시민권을 중시하지만 공동 결정에 시간이 걸리고 회원국 간 빈부 격차도 크다.",
+      "cardType": "organization",
+      "source_sections": [
+        "science_fiction_section_05"
+      ]
+    },
+    {
+      "key": "vesper-dynamics",
+      "title": "베스퍼 다이내믹스",
+      "body": "채굴, 조선, 생명공학과 정거장 운영을 아우르는 거대 기업이다. 케스트렐 정거장을 소유하고 오래전부터 고대 유적과 유전자 자료를 수집해 왔다.",
+      "cardType": "organization",
+      "source_sections": [
+        "science_fiction_section_05"
+      ]
+    },
+    {
+      "key": "free-fleet",
+      "title": "자유선단",
+      "body": "국가의 보호를 받지 못하는 화물선과 수리선, 소형 거주선의 느슨한 연합이다. 밀수업자와 피난민 운송자가 함께하며 공식 항로 밖의 정보와 생활 지식이 풍부하다.",
+      "cardType": "organization",
+      "source_sections": [
+        "science_fiction_section_05"
+      ]
+    },
+    {
+      "key": "white-reclamation",
+      "title": "백색회수단",
+      "body": "선행문명 말기의 비상 복구 체계에서 남은 기계 함대다. 현재의 도시와 정거장, 생태계를 승인되지 않은 오염으로 분류하고 옛 기준에 맞추려 해체한다.",
+      "cardType": "organization",
+      "source_sections": [
+        "science_fiction_section_05"
+      ]
+    },
+    {
+      "key": "kestrel",
+      "title": "케스트렐 정거장",
+      "body": "베스퍼가 소유한 낡은 채굴 정거장이다. 거주 구역은 원심 회전으로 중력을 만들고 작업 구역 대부분은 무중력이며 이안의 작업장도 이곳에 있다.",
+      "cardType": "location",
+      "source_sections": [
+        "science_fiction_section_06",
+        "science_fiction_section_05"
+      ]
+    },
+    {
+      "key": "charon-debris",
+      "title": "카론 잔해대",
+      "body": "오래전 대형 충돌과 전투로 생긴 잔해 지대다. 선박 잔해와 소행성, 기뢰가 뒤섞여 있고 아르카디아가 얼음과 잔해 아래 묻혀 있었다.",
+      "cardType": "location",
+      "source_sections": [
+        "science_fiction_section_06"
+      ]
+    },
+    {
+      "key": "nemesis-port",
+      "title": "네메시스 자유항",
+      "body": "여러 세력의 경계에 위치한 중립 항구다. 불법 AI 부품과 군용 장비, 위조 신분과 고대 유물을 거래하지만 중립이 안전을 보장하지는 않는다.",
+      "cardType": "location",
+      "source_sections": [
+        "science_fiction_section_06"
+      ]
+    },
+    {
+      "key": "aurelia",
+      "title": "아우렐리아",
+      "body": "헬리온 제국의 수도 행성이다. 거대한 궤도 조선소와 행정 도시, 인공 정원으로 알려져 있다.",
+      "cardType": "location",
+      "source_sections": [
+        "science_fiction_section_06"
+      ]
+    },
+    {
+      "key": "silent-gate",
+      "title": "침묵의 관문",
+      "body": "수백 년 동안 작동하지 않아 공식 항로에서 제외된 도약 관문이다. 아르카디아의 기록에는 중요한 군사 거점으로 표시되어 있다.",
+      "cardType": "location",
+      "source_sections": [
+        "science_fiction_section_06"
+      ]
+    },
+    {
+      "key": "eden-remnant",
+      "title": "에덴 잔존구역",
+      "body": "선행문명의 피난 도시와 조선 시설이 남은 고립 항성계다. 주민 상당수가 사라진 뒤에도 유지 장치가 도시를 빈 상태로 보존한다.",
+      "cardType": "location",
+      "source_sections": [
+        "science_fiction_section_06"
+      ]
+    },
+    {
+      "key": "arcadia",
+      "title": "아르카디아",
+      "body": "선행문명 최후기에 건조된 길이 약 800미터의 방주형 전략 순양함이다. 피난민과 기술 인력을 수송하도록 설계되었으며 발견 당시 주동력로가 정지하고 여러 구획과 장치가 손상되어 있었다.",
+      "cardType": "object",
+      "source_sections": [
+        "science_fiction_section_07"
+      ]
+    },
+    {
+      "key": "jump-gate",
+      "title": "도약 관문",
+      "body": "두 항성계 사이 통로를 일시적으로 안정화하는 시설이다. 큰 에너지가 필요하고 통과 질량과 가동 횟수에 제한이 있으며 성간 통신의 중계에도 쓰인다.",
+      "cardType": "object",
+      "source_sections": [
+        "science_fiction_section_03"
+      ]
+    },
+    {
+      "key": "inertial-buffer",
+      "title": "관성 완충장",
+      "body": "함선 기동 때 승무원과 구조물의 부담을 줄이는 아르카디아의 장치다. 가속도를 무한히 없애지 못하고 전력이 떨어지면 성능이 급격히 저하된다.",
+      "cardType": "ability",
+      "source_sections": [
+        "science_fiction_section_08"
+      ]
+    },
+    {
+      "key": "phase-shield",
+      "title": "위상 편향 방어막",
+      "body": "접근하는 에너지와 물질의 경로를 일부 비트는 방어 장치다. 모든 방향을 같은 강도로 지키지 못하며 같은 지점을 반복해서 맞으면 불안정해진다.",
+      "cardType": "ability",
+      "source_sections": [
+        "science_fiction_section_08"
+      ]
+    },
+    {
+      "key": "gravity-cannon",
+      "title": "중력 편향 주포",
+      "body": "표적 주변 공간을 강하게 변형해 장갑과 방어막을 무너뜨리는 아르카디아의 무장이다. 긴 충전과 정밀 조준이 필요하고 발사 후 방열 시간도 길다.",
+      "cardType": "object",
+      "source_sections": [
+        "science_fiction_section_08"
+      ]
+    },
+    {
+      "key": "independent-jump",
+      "title": "독립 도약 장치",
+      "body": "관문 없이 항성 간 이동할 수 있는 아르카디아의 장치다. 고대 항로 자료와 현재 관측값을 함께 써야 하며 임의 지점으로 연속 도약할 수 없다.",
+      "cardType": "object",
+      "source_sections": [
+        "science_fiction_section_08"
+      ]
+    },
+    {
+      "key": "material-processor",
+      "title": "물질 가공기",
+      "body": "확보한 원료를 정밀 가공해 부품을 만드는 장치다. 적절한 원소와 재료, 설계도, 시간과 전력이 필요하며 무에서 물건을 만들지는 못한다.",
+      "cardType": "object",
+      "source_sections": [
+        "science_fiction_section_08"
+      ]
+    },
+    {
+      "key": "medical-bay",
+      "title": "의료 복구실",
+      "body": "심각한 외상을 치료하고 인공 조직을 제작할 수 있는 함선 시설이다. 자원과 시간이 필요하고 환자별 적합성을 확인해야 하며 죽은 사람을 되살리지 못한다.",
+      "cardType": "location",
+      "source_sections": [
+        "science_fiction_section_08"
+      ]
+    },
+    {
+      "key": "jump-and-communication",
+      "title": "성간 이동과 통신",
+      "body": "항성 간 이동은 대부분 질량과 가동 횟수가 제한된 도약 관문을 이용한다. 같은 항성계의 통신에도 거리 지연이 있고 성간 통신은 관문 중계 시설이 멈추면 제한되거나 끊긴다.",
+      "cardType": "rule",
+      "source_sections": [
+        "science_fiction_section_03"
+      ]
+    },
+    {
+      "key": "citizenship",
+      "title": "시민권과 기업령의 생활",
+      "body": "거주권과 이동권, 의료와 교육 기회는 계약과 출생지에 따라 달라진다. 기업령에서는 실직이 거주 자격과 의료 혜택의 상실로 이어질 수 있다.",
+      "cardType": "rule",
+      "source_sections": [
+        "science_fiction_section_04"
+      ]
+    },
+    {
+      "key": "captain-authentication",
+      "title": "함장 인증과 비상 지휘권",
+      "body": "기존 승무원이 전멸하고 통신망이 끊기면 필요한 인증을 통과한 생존자에게 제한된 비상 지휘권을 제공한다. 초기에는 이안만 핵심 기능을 해제할 수 있다. 일부 군사 기능에는 추가 인증이나 기록 복구가 필요하고 운용 권한은 다른 승무원에게 위임할 수 있다.",
+      "cardType": "rule",
+      "source_sections": [
+        "science_fiction_section_14"
+      ]
+    },
+    {
+      "key": "genetic-authentication",
+      "title": "유전자 인증의 조건",
+      "body": "고대 장비의 함장 인증은 유전자만으로 통과할 수 없다. 복원된 생체 표지와 신경 인터페이스, 실제 운용 적합성 확인이 함께 필요하며 유전자는 기억이나 인격을 복사하지 않는다.",
+      "cardType": "rule",
+      "source_sections": [
+        "science_fiction_section_13"
+      ]
+    },
+    {
+      "key": "space-combat",
+      "title": "우주 전투와 탐지",
+      "body": "함선은 열과 추진 흔적을 남겨 완벽하게 투명해질 수 없다. 열을 내부에 저장하면 탐지를 늦출 수 있지만 오래 유지하면 과열되며 센서, 방열과 탄약, 연료가 전투에 영향을 준다.",
+      "cardType": "rule",
+      "source_sections": [
+        "science_fiction_section_16"
+      ]
+    },
+    {
+      "key": "precursor-collapse",
+      "title": "선행문명의 붕괴",
+      "body": "선행문명은 약 삼천 년 전에 붕괴했고 이후 여러 항성계가 오랫동안 고립되었다. 관문이 다시 연결된 뒤 현재의 제국과 연합, 기업령이 형성되었다.",
+      "cardType": "event",
+      "source_sections": [
+        "science_fiction_section_02"
+      ]
+    }
+  ]
+}

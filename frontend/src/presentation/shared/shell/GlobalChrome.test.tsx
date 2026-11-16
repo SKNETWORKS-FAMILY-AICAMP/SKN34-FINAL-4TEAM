@@ -224,6 +224,34 @@ it.each([
   expect(screen.getByRole('button', { name: '다크 모드로' })).toBeTruthy()
 })
 
+const WORLD = '/worldstudio/6f0c6c4e-8f4a-4d0b-9d52-1c3b5a7e9f10'
+
+it.each([
+  ['서버 세계관(UUID)', WORLD],
+  ['UUID가 아닌 id(데모·목업)', '/worldstudio/w1'],
+  ['작성 마법사(?new=1)', `${WORLD}?new=1`],
+  ['설정 편집 화면(?card=)', `${WORLD}?card=c1`],
+])('세계관 관리 화면(W01) %s에서는 오른쪽 아래 화면 ID·테마 버튼을 숨기고 화면 ID 표시줄은 그대로 둔다', (_name, path) => {
+  vi.stubEnv('DEV', true)
+  renderChrome(path, 'light', { screen: { base: 'W01', sheet: null } })
+  expect(document.querySelector('.screen-controls')).toBeNull()
+  expect(screen.queryByRole('button', { name: /화면 ID/ })).toBeNull()
+  expect(screen.queryByRole('button', { name: /모드로/ })).toBeNull()
+  expect(document.getElementById('sid')!.hidden).toBe(false)
+})
+
+it.each([
+  ['세계관이 없는 새 세계관 만들기(상단 버튼이 없다)', '/worldstudio', 'W01'],
+  ['세계관 화면 ID가 남아 있어도 세계관 작업실이 아닌 경로', '/lib?tab=worlds', 'W01'],
+  ['공개 세계관 화면', '/worlds/w1', 'W03'],
+  ['세계관 작업실 경로지만 화면 ID가 아직 W01이 아닌 때(접근 안내·첫 렌더링)', WORLD, 'U01'],
+])('세계관 관리 화면 밖(%s)에서는 떠 있는 버튼을 그대로 둔다', (_name, path, base) => {
+  vi.stubEnv('DEV', true)
+  renderChrome(path, 'light', { screen: { base, sheet: null } })
+  expect(screen.getByRole('button', { name: '화면 ID 끄기' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '다크 모드로' })).toBeTruthy()
+})
+
 const toastNode = () => document.getElementById('toast')!
 
 it('토스트는 role=status 노드 하나를 계속 쓰고 글자만 바꾼다 — 알림마다 노드를 갈아 끼우면 보조기기가 새 알림을 놓칠 수 있다', () => {

@@ -1,0 +1,5539 @@
+{
+  "genre": "maya_mythology",
+  "name": "마야 전승: 키체의 포폴 부",
+  "scope": "키체의 《포폴 부》 브라쇠르 1861년 프랑스어판의 머리말·45장·세 왕가 계보·맺음말을 범위로 설정을 정리한다. 창세·영웅담뿐 아니라 민족 이동과 왕권의 역사까지 포함하며, 저본 자체의 결락 한 곳은 명시한다.",
+  "sources": [
+    {
+      "title": "브라쇠르 드 부르부르, 《포폴 부》 1861년판 HTML 목차",
+      "url": "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras.html"
+    },
+    {
+      "title": "1861년판 본문 HTML 1",
+      "url": "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html"
+    },
+    {
+      "title": "1861년판 본문 HTML 2",
+      "url": "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-8.html"
+    },
+    {
+      "title": "1861년판 본문 HTML 3",
+      "url": "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-9.html"
+    },
+    {
+      "title": "1861년판 본문 HTML 4",
+      "url": "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-10.html"
+    },
+    {
+      "title": "1861년판 본문 HTML 5",
+      "url": "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-11.html"
+    },
+    {
+      "title": "1861년판 본문 HTML 6",
+      "url": "https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-12.html"
+    },
+    {
+      "title": "브라쇠르 1861년판 영인 PDF",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Popol_vuh_-_le_livre_sacr%C3%A9_et_les_mythes_de_l%27antiquit%C3%A9_am%C3%A9ricaine%2C_avec_les_livres_h%C3%A9ro%C3%AFques_et_historiques_des_Quich%C3%A9s_..._%28IA_popolvuhlelivres00bras_0%29.pdf"
+    }
+  ],
+  "narrative": "sources.md",
+  "cards": [
+    {
+      "key": "heart-sky",
+      "title": "하늘의 심장",
+      "cardType": "character",
+      "body": "우라칸이라는 이름으로 불리며 번개·하늘을 가르는 번갯줄기·내리치는 벼락과 연결된다. 구쿠마츠와 의논하여 생명, 씨뿌림, 빛과 신들을 받들 인간의 형성을 정한다.\n\n출전: 《포폴 부》 제1부 제1장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p013"
+        }
+      ],
+      "soul": "구쿠마츠와 말을 나누고 뜻을 모아 생명과 인간의 형성을 의논한다. 개별적인 어조를 단정하기보다 여러 존재가 함께 생각을 조율하는 장면으로 읽는다. 출전: 《포폴 부》 브라쇠르 1861년판 본문 https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html"
+    },
+    {
+      "key": "feathered-serpent",
+      "title": "깃털 뱀 구쿠마츠",
+      "cardType": "character",
+      "body": "창조의 처음에 물 위에 있으며 초록빛과 하늘빛에 싸인 존재다. 지배자와 함께 말하고 의논하여 생각을 모으며, 산과 숲이 나타나자 하늘의 심장을 환영한다.\n\n출전: 《포폴 부》 제1부 제1장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p019"
+        }
+      ],
+      "soul": "하늘의 심장과 의논해 생각을 모으고 땅이 나타난 뒤 기뻐하며 그를 맞는다. 인사와 환영의 말은 나오지만 이를 모든 장면의 고정 말투로 확대하지 않는다. 출전: 《포폴 부》 브라쇠르 1861년판 본문 https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html"
+    },
+    {
+      "key": "mud-wood",
+      "title": "흙과 나무 인간의 실패",
+      "cardType": "event",
+      "body": "진흙 사람은 움직임과 지능이 부족하고 물에서 풀어진다. 나무 인형들은 번성하지만 창조자를 기억하지 않아 홍수와 수지의 비, 짐승과 생활 도구들의 보복을 당한다.\n\n출전: 《포폴 부》 제1부 제2장, 제1부 제3장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p036"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p007"
+        }
+      ]
+    },
+    {
+      "key": "maize",
+      "title": "옥수수로 만든 인간",
+      "cardType": "event",
+      "body": "노란 옥수수와 흰 옥수수가 첫 네 사람의 살과 팔다리를 이룬다. 처음에는 온 세상을 한눈에 보며 창조자에게 감사하지만, 하늘의 심장이 눈을 흐리게 하여 가까운 것만 보게 한다.\n\n출전: 《포폴 부》 제3부 제1장, 제3부 제2장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-10.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p016"
+        }
+      ]
+    },
+    {
+      "key": "xibalba",
+      "title": "시발바",
+      "cardType": "location",
+      "body": "훈 카메와 부쿱 카메가 지배하는 곳이다. 후나푸와 슈발란케가 내려갈 때 진흙과 피의 강, 네 갈래 길을 지나며, 안에서는 나무 형상과 달군 돌의자가 방문자를 속이려 한다.\n\n출전: 《포폴 부》 제2부 제1장, 제2부 제8장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-8.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c08-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c08-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c08-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c08-p017"
+        }
+      ]
+    },
+    {
+      "key": "death-lords",
+      "title": "시발바의 군주들",
+      "cardType": "organization",
+      "body": "최고 재판관 훈 카메와 부쿱 카메 아래 여러 제후가 있으며, 출혈·부종·쇠약·배신·길에서의 급사 같은 해악을 담당한다. 지상의 공놀이 소리를 듣고 사람들을 불러 굴복시키려 한다.\n\n출전: 《포폴 부》 제2부 제1장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-8.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p017"
+        }
+      ]
+    },
+    {
+      "key": "hunahpu",
+      "title": "후나푸",
+      "cardType": "character",
+      "body": "슈발란케와 함께 부쿱 카키시 일가와 시발바에 맞선다. 자기 다리의 털로 샨을 대신하게 해 시발바 군주들의 이름을 알아내며, 박쥐의 집에서 새벽을 살피다 머리를 잃는다.\n\n출전: 《포폴 부》 제1부 제5장, 제2부 제8장, 제2부 제10장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html) [저본 2](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-8.html) [저본 3](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-9.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-1-c05-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c08-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p011"
+        }
+      ],
+      "soul": "박쥐의 집에서 동생의 물음에 새벽을 살펴보겠다고 응답하고 바람총 밖을 내다본다. 같은 장면에서 목숨을 잃는 취약함도 함께 드러난다. 출전: 《포폴 부》 브라쇠르 1861년판 본문 https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-9.html"
+    },
+    {
+      "key": "xbalanque",
+      "title": "슈발란케",
+      "cardType": "character",
+      "body": "후나푸와 함께 시험을 견디는 젊은이다. 후나푸가 머리를 잃자 짐승들을 모아 대체할 머리를 마련하고, 토끼에게 적들을 유인하게 한 뒤 본래 머리를 되찾아 붙인다.\n\n출전: 《포폴 부》 제2부 제11장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-9.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p015"
+        }
+      ],
+      "soul": "형이 쓰러지자 괴로워하면서 동물들을 모아 대책을 구하고 토끼에게 구체적으로 지시한다. 위기 속에서도 계획을 세워 형의 머리를 되찾는다. 출전: 《포폴 부》 브라쇠르 1861년판 본문 https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-9.html"
+    },
+    {
+      "key": "blood-woman",
+      "title": "슈키크",
+      "cardType": "character",
+      "body": "쿠추마키크의 딸이다. 나무에 걸린 훈 후나푸의 머리가 손에 뱉은 침으로 후나푸와 슈발란케를 잉태한다. 자신을 죽이려는 사자들을 설득하고 붉은 수액을 심장 대신 보내 시발바를 벗어난다.\n\n출전: 《포폴 부》 제2부 제3장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-8.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p029"
+        }
+      ],
+      "soul": "열매 이야기를 듣고 홀로 나무를 찾아갈 만큼 궁금해한다. 죽임을 당할 위기에는 사자들에게 자신을 살려 달라고 논리적으로 설득하고 심장 대신 붉은 수액을 쓰게 한다. 출전: 브라쇠르 1861년판 제2부 제3장 발췌 https://peuplesautochtones.wordpress.com/2022/04/10/ixquic-et-larbre-a-calebasses-popol-vuh/"
+    },
+    {
+      "key": "ballcourt",
+      "title": "공놀이장",
+      "cardType": "location",
+      "body": "지상과 시발바의 대결이 거듭되는 놀이 공간이다. 훈 후나푸 일행의 경기가 시발바의 소환을 부르고, 후나푸의 잘린 머리가 걸린 곳에서 슈발란케가 경기를 이용해 머리를 회수한다.\n\n출전: 《포폴 부》 제2부 제1장, 제2부 제10장, 제2부 제11장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-8.html) [저본 2](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-9.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p015"
+        }
+      ]
+    },
+    {
+      "key": "seven-macaw",
+      "title": "부쿱 카키시",
+      "cardType": "character",
+      "body": "아직 해와 달의 얼굴이 드러나기 전에 자신을 해와 달이라 자랑한다. 보석 이와 은빛 눈, 왕좌의 광채를 권위로 삼지만 노인들의 치료 계책으로 이를 빼앗기고 죽는다.\n\n출전: 《포폴 부》 제1부 제4장, 제1부 제6장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-1-c04-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c04-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c04-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c04-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p026"
+        }
+      ],
+      "soul": "자신을 해와 달이라 내세우고 눈과 이의 빛을 자랑한다. 이가 아프자 치료를 간청하면서도 그것이 자신의 왕다운 아름다움이라고 걱정한다. 출전: 《포폴 부》 브라쇠르 1861년판 본문 https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html"
+    },
+    {
+      "key": "twins-return",
+      "title": "두 영웅의 죽음과 귀환",
+      "cardType": "event",
+      "body": "후나푸와 슈발란케는 장작더미에서 함께 죽고 뼈가 갈려 강에 던져진 뒤 다른 모습으로 돌아온다. 죽이고 되살리는 공연으로 왕들의 욕망을 부추겨 훈 카메와 부쿱 카메를 죽이되 되살리지 않는다.\n\n출전: 《포폴 부》 제2부 제12장, 제2부 제13장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-9.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c12-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c12-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p023"
+        }
+      ]
+    },
+    {
+      "key": "animal-speech",
+      "title": "짐승의 말과 인간의 과제",
+      "cardType": "rule",
+      "body": "창조자들은 짐승들에게 자신들의 이름을 부르라고 하지만 짐승은 각자의 소리만 낸다. 짐승에게는 숲과 골짜기의 삶, 먹히는 운명이 주어지고, 신을 기억하며 부를 인간을 만드는 시도가 이어진다.\n\n출전: 《포폴 부》 제1부 제2장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p020"
+        }
+      ]
+    },
+    {
+      "key": "divination-seeds",
+      "title": "옥수수와 치테의 점",
+      "cardType": "object",
+      "body": "슈피야코크와 슈무카네가 인간의 형성을 점칠 때 사용하는 재료다. 옥수수와 치테를 향해 말하고 짝을 이루게 하여 나무로 입과 얼굴을 만들지를 의논한다.\n\n출전: 《포폴 부》 제1부 제2장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p030"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p031"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p033"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p034"
+        }
+      ]
+    },
+    {
+      "key": "zipacna",
+      "title": "지팍나",
+      "cardType": "character",
+      "body": "부쿱 카키시의 맏아들로 산을 만든다고 자랑한다. 사백 젊은이의 매장 계략에서 살아남아 그들의 집을 무너뜨리지만, 두 영웅이 만든 가짜 가재를 잡으려다 메아반 산에 눌려 돌이 된다.\n\n출전: 《포폴 부》 제1부 제7장, 제1부 제8장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p018"
+        }
+      ],
+      "soul": "산을 만든다고 자랑하지만 나무를 운반하지 못하는 젊은이들에게는 먼저 도움을 제안한다. 젊은이들의 계략을 알아채고 몸을 숨긴다. 출전: 《포폴 부》 브라쇠르 1861년판 본문 https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html"
+    },
+    {
+      "key": "cabrakan",
+      "title": "카브라칸",
+      "cardType": "character",
+      "body": "부쿱 카키시의 둘째 아들로 발을 굴러 크고 작은 산을 갈라 놓는다. 두 영웅이 흰 흙을 묻혀 구운 새를 먹고 힘을 잃으며, 손과 목과 다리가 묶인 채 땅에 묻힌다.\n\n출전: 《포폴 부》 제1부 제9장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p024"
+        }
+      ],
+      "soul": "산을 부순다는 능력을 과시하며 다른 산의 위치를 묻고 직접 무너뜨리겠다고 말한다. 두 젊은이의 제안에 이끌려 길을 나선다. 출전: 《포폴 부》 브라쇠르 1861년판 본문 https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html"
+    },
+    {
+      "key": "hunbatz-hunchouen",
+      "title": "훈바츠와 훈초우엔의 변신",
+      "cardType": "event",
+      "body": "예술과 지혜에 뛰어난 두 형이 어린 동생들을 시기한다. 높아진 나무에서 내려오려 허리띠를 잡아당기자 꼬리가 되어 원숭이로 변한다. 할머니가 웃음을 참지 못하자 돌아오게 할 시도도 실패한다.\n\n출전: 《포폴 부》 제2부 제5장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-8.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p027"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p034"
+        }
+      ]
+    },
+    {
+      "key": "ballgame-equipment",
+      "title": "아버지들의 공놀이 도구",
+      "cardType": "object",
+      "body": "집 꼭대기에 숨겨 둔 고무공·고리·장갑·가죽 방패다. 쥐가 두 영웅에게 도구의 위치를 알려 주고 매단 줄을 끊어 주어, 아버지들의 공놀이가 다시 이어진다.\n\n출전: 《포폴 부》 제2부 제6장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-8.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p031"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p033"
+        }
+      ]
+    },
+    {
+      "key": "mosquito-spy",
+      "title": "이름을 알아내는 샨",
+      "cardType": "ability",
+      "body": "후나푸의 다리 털이 샨 대신 시발바로 가서 앉아 있는 자들을 차례로 문다. 목상은 반응하지 않고 진짜 군주들은 아픔에 서로의 이름을 부르므로 정체가 드러난다.\n\n출전: 《포폴 부》 제2부 제8장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-8.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c08-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c08-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c08-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c08-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c08-p013"
+        }
+      ]
+    },
+    {
+      "key": "trial-houses",
+      "title": "시발바의 시험의 집들",
+      "cardType": "location",
+      "body": "추위의 집, 호랑이의 집, 불의 집, 박쥐의 집은 방문자를 죽이려는 시련의 장소다. 두 영웅은 솔방울 불과 뼈 등의 방법으로 버티지만, 박쥐 카마소츠에게 후나푸의 머리를 빼앗긴다.\n\n출전: 《포폴 부》 제2부 제10장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-9.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p011"
+        }
+      ]
+    },
+    {
+      "key": "xibalba-sentence",
+      "title": "시발바에 내려진 판결",
+      "cardType": "rule",
+      "body": "승리한 두 영웅은 시발바의 영광과 권세를 줄이고 문명화된 백성을 지배할 몫을 거둔다. 불시에 사람을 사로잡던 행위를 금하며, 시발바를 무제한의 권력을 가진 존재로 남겨 두지 않는다.\n\n출전: 《포폴 부》 제2부 제14장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-9.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p006"
+        }
+      ]
+    },
+    {
+      "key": "living-canes",
+      "title": "집 한가운데의 살아 있는 줄기",
+      "cardType": "object",
+      "body": "두 영웅이 할머니에게 기억의 징표로 심어 두고 간 줄기다. 시들었다 다시 푸르게 살아나며, 슈무카네는 코팔을 태워 기리고 ‘집의 중심’, ‘살아 있는 줄기’ 등의 이름을 붙인다.\n\n출전: 《포폴 부》 제2부 제14장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-9.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p009"
+        }
+      ]
+    },
+    {
+      "key": "first-ancestors",
+      "title": "키체의 첫 조상들",
+      "cardType": "organization",
+      "body": "발람 키체·발람 아가브·마후쿠타·이키 발람은 처음 빚어진 네 사람이다. 뒤의 카베크·니하이브·아하우 키체 왕가는 앞의 세 사람을 각자의 뿌리로 기록하며, 이키 발람에게는 자식이 없다고 전한다.\n\n출전: 《포폴 부》 제3부 제2장, 제3부 제3장, 제4부 제5장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-10.html) [저본 2](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-11.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c03-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p004"
+        }
+      ]
+    },
+    {
+      "key": "tulan",
+      "title": "툴란 수이바",
+      "cardType": "location",
+      "body": "일곱 동굴과 일곱 골짜기라 불리는 도시로, 키체의 조상들이 신들을 받으러 간 곳이다. 토힐·아빌리슈·하카비츠 등을 받은 뒤 부족들의 말이 달라지고 무리들이 갈라진다.\n\n출전: 《포폴 부》 제3부 제4장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-10.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p014"
+        }
+      ]
+    },
+    {
+      "key": "tohil-fire",
+      "title": "토힐의 불과 대가",
+      "cardType": "event",
+      "body": "추위와 비로 불이 꺼지자 토힐이 신발을 두드려 불을 다시 일으킨다. 다른 부족들은 토힐과 결합한다는 조건으로 불을 받는데, 그 조건은 가슴을 열어 심장을 바치는 제사를 뜻한다.\n\n출전: 《포폴 부》 제3부 제5장, 제3부 제6장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-10.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-3-c05-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c05-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c05-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c06-p003"
+        }
+      ]
+    },
+    {
+      "key": "dawn-stones",
+      "title": "새벽과 신들의 돌 변화",
+      "cardType": "event",
+      "body": "하카비츠산에서 새벽을 기다리던 이들이 샛별과 태양을 맞아 향을 피우고 춤춘다. 태양이 땅을 말리고, 토힐·아빌리슈·하카비츠와 옛 짐승들은 돌이 된다.\n\n출전: 《포폴 부》 제3부 제9장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-10.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p013"
+        }
+      ]
+    },
+    {
+      "key": "tribal-abductions",
+      "title": "부족 사람들의 납치와 제사",
+      "cardType": "event",
+      "body": "조상들은 길에서 혼자 또는 둘씩 가는 사람들을 붙잡아 신들 앞에 제물로 바친다. 호랑이 발자국을 남기고 발자국 방향을 뒤집어 거처를 감추며, 다른 부족들은 이 위협에 맞설 계략을 의논한다.\n\n출전: 《포폴 부》 제4부 제2장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-11.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p009"
+        }
+      ]
+    },
+    {
+      "key": "painted-cloaks",
+      "title": "그림 망토 세 벌",
+      "cardType": "object",
+      "body": "부족들이 보낸 두 처녀에게 준 증표다. 발람 키체는 호랑이, 발람 아가브는 독수리, 마후쿠타는 말벌과 꿀벌을 그린다. 영주가 세 번째 망토를 걸치자 그림의 벌들이 그를 쏜다.\n\n출전: 《포폴 부》 제4부 제2장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-11.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p026"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p027"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p032"
+        }
+      ]
+    },
+    {
+      "key": "bee-defense",
+      "title": "하카비츠의 벌 방어전",
+      "cardType": "event",
+      "body": "산의 도시를 공격하는 군대에 맞서 칼라바시 그릇 네 개에 가둔 말벌과 벌을 풀어 놓는다. 적들은 눈과 몸을 쏘여 무기를 놓치고 패배하며, 살아남은 부족들은 조공을 바치는 처지가 된다.\n\n출전: 《포폴 부》 제4부 제4장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-11.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p012"
+        }
+      ]
+    },
+    {
+      "key": "bundled-majesty",
+      "title": "감싸인 위엄",
+      "cardType": "object",
+      "body": "발람 키체가 사라지기 전에 후손에게 남긴 존재의 징표다. 안의 형상과 싸맨 이음새는 알려지지 않으며, 후손은 펼치지 않은 이 꾸러미 앞에서 향을 태워 아버지를 기억한다.\n\n출전: 《포폴 부》 제4부 제5장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-11.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p014"
+        }
+      ]
+    },
+    {
+      "key": "eastern-regalia",
+      "title": "동방에서 받은 왕권 표장",
+      "cardType": "object",
+      "body": "코카이브·코아쿠테크·코아하우가 바다를 건너 나크시트에게 받은 왕권의 징표다. 아흐폽과 아흐폽 캄하의 위엄, 왕좌·악기·향료·깃발 등의 표장이 함께 전해진다.\n\n출전: 《포폴 부》 제4부 제6장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-11.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-4-c06-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c06-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c06-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c06-p006"
+        }
+      ]
+    },
+    {
+      "key": "qumarcaj",
+      "title": "구마르카아흐의 스물네 큰 집",
+      "cardType": "location",
+      "body": "이스마치를 떠난 키체 왕들과 제후들이 도착한 수도다. 신의 집을 높은 곳 한가운데 세우고, 갈등과 분화를 거쳐 왕권을 스물네 큰 집으로 나눈다. 저본은 이 도시가 뒤에 비었다고 덧붙인다.\n\n출전: 《포폴 부》 제4부 제8장, 제4부 제9장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-11.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-4-c08-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c08-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c08-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c08-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c09-p001"
+        }
+      ]
+    },
+    {
+      "key": "gucumatz-king",
+      "title": "구쿠마츠 왕",
+      "cardType": "character",
+      "body": "역사부에 등장하는 왕으로, 하늘과 시발바를 오가고 뱀·독수리·호랑이·굳은 피의 모습을 취한다고 기록된다. 이 기이한 능력을 여러 민족에 대한 지배와 왕권의 성장에 이용한다.\n\n출전: 《포폴 부》 제4부 제9장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-11.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-4-c09-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c09-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c09-p008"
+        }
+      ],
+      "soul": "역사부는 구쿠마츠 왕의 변신과 기이한 행적이 다른 군주들에게 두려움을 주고 지배의 수단이 되었다고 전한다. 직접 말투는 확인되지 않으며 창조의 깃털 뱀과 합치지 않는다. 출전: 《포폴 부》 브라쇠르 1861년판 본문 https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-11.html"
+    },
+    {
+      "key": "kikab-conquests",
+      "title": "키카브의 정복과 변경 수비",
+      "cardType": "event",
+      "body": "키카브와 카비시마흐는 여러 도시를 정복하고 조공을 강제한다. 정복한 땅에 새 집단과 보초를 보내며, 창과 투석구를 맡은 우두머리들을 세워 산과 변경을 지키게 한다.\n\n출전: 《포폴 부》 제4부 제10장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-11.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p017"
+        }
+      ]
+    },
+    {
+      "key": "royal-genealogies",
+      "title": "세 왕가의 계승 기록",
+      "cardType": "organization",
+      "body": "카베크·니하이브·아하우 키체의 계보와 큰 집의 칭호가 작품 말미를 이룬다. 카베크 계보는 카스티야인의 도착과 처형·조공, 돈 후안 데 로하스와 돈 후안 코르테스까지 기록한다. 세 왕국의 대선출자는 제후들의 아버지 역할을 한다.\n\n출전: 《포폴 부》 제4부 말미 왕가 계보(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-12.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p016"
+        }
+      ]
+    },
+    {
+      "key": "royal-fasting",
+      "title": "왕들의 단식과 기도",
+      "cardType": "rule",
+      "body": "왕들은 신의 집에서 음식과 동침을 절제하고 백성의 빛과 생명, 자손과 평탄한 길을 기원한다. 작품은 이 단식과 제사를 왕권을 누리는 값이자 민족의 짐을 지는 일로 설명한다.\n\n출전: 《포폴 부》 제4부 제11장(브라쇠르 1861년 프랑스어판 한국어 중역). [저본 1](https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-11.html).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p014"
+        }
+      ]
+    },
+    {
+      "key": "recording-context",
+      "title": "잃어버린 책과 기록의 목소리",
+      "cardType": "rule",
+      "body": "머리말은 키체의 옛 역사를 기독교 수용 뒤 다시 기록한다고 말한다. 전승의 목소리와 기록 시점, 1861년 프랑스어 중역의 표현을 구별하고 모든 마야 지역의 통일된 신화로 확대하지 않는다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 1:0.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-1-c00-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c00-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c00-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c00-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c00-p005"
+        }
+      ]
+    },
+    {
+      "key": "creation-landscape",
+      "title": "말씀과 의논으로 형성된 땅",
+      "cardType": "event",
+      "body": "고요한 물과 어둠에서 창조자들이 의논하고 말하자 땅과 산, 물길이 형성된다. 동물과 인간을 만드는 후속 시도에 앞서는 우주의 질서다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 1:1.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c01-p023"
+        }
+      ]
+    },
+    {
+      "key": "xpiyacoc-xmucane",
+      "title": "슈피야코크와 슈무카네",
+      "cardType": "character",
+      "body": "할아버지와 할머니로 불리는 두 존재는 점과 창조의 의논에 참여한다. 슈무카네의 집과 옥수수 준비 등 각 장면의 역할은 구별하며, 서로 다른 세대의 어머니 호칭을 임의로 하나로 정리하지 않는다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 1:0,1:2,2:4,3:1.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-1-c00-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c00-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c00-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c00-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c00-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p026"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p027"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p028"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p029"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p030"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p031"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p032"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p033"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p034"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p035"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p036"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p037"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c02-p038"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p010"
+        }
+      ],
+      "soul": "두 존재는 점을 통해 나무 인간을 만드는 문제를 의논하고 가능한지 답한다. 점치는 말과 공동의 판단은 전하지만 두 사람의 어투를 임의로 구분하지 않는다. 출전: 《포폴 부》 브라쇠르 1861년판 본문 https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-7.html"
+    },
+    {
+      "key": "wooden-revolt",
+      "title": "나무 인간을 벌하는 짐승과 살림도구",
+      "cardType": "event",
+      "body": "나무 인간을 멸하는 재난 속에서 짐승과 맷돌, 솥과 화덕도 자신들이 겪은 학대를 말하며 보복한다. 원숭이가 옛 나무 인간의 흔적으로 설명되는 결말까지 이어진다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 1:3.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c03-p017"
+        }
+      ]
+    },
+    {
+      "key": "false-solar-glory",
+      "title": "거짓 해와 달의 교만",
+      "cardType": "rule",
+      "body": "부쿱 카키시는 자신의 치아와 눈, 왕좌의 광채를 해와 달에 견준다. 두 영웅은 그 주장과 장식을 무너뜨리며, 반짝이는 재물을 곧 참된 창조의 권능으로 인정하지 않는다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 1:4-6.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-1-c04-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c04-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c04-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c04-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c04-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c04-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c04-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c04-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c04-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c04-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c04-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c04-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c04-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c04-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c05-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c05-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c05-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c05-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c05-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c05-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c05-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c05-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c05-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c05-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p026"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p027"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p028"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c06-p029"
+        }
+      ]
+    },
+    {
+      "key": "four-hundred-youths",
+      "title": "사백 젊은이와 지팍나의 보복",
+      "cardType": "event",
+      "body": "젊은이들은 큰 나무를 운반한 지팍나를 구덩이에서 죽이려 하지만 속아 넘어가고 역으로 죽임을 당한다. 뒤의 영웅들은 가짜 가재로 지팍나를 유인해 산 아래 쓰러뜨린다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 1:7-8.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p026"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p027"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c07-p028"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c08-p018"
+        }
+      ]
+    },
+    {
+      "key": "cabrakan-bird",
+      "title": "카브라칸에게 먹인 새",
+      "cardType": "object",
+      "body": "두 영웅은 산을 무너뜨린다는 카브라칸에게 특별히 처리한 새고기를 먹인다. 힘이 약해진 그를 묶어 땅속에 묻는 사건에서 음식과 속임수가 무력보다 중요하게 작용한다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 1:9.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-1-c09-p026"
+        }
+      ]
+    },
+    {
+      "key": "father-ballplayers",
+      "title": "훈 후나푸와 부쿱 후나푸",
+      "cardType": "character",
+      "body": "두 공놀이꾼은 시발바의 부름을 받고 내려가 속임수와 시험에 패한다. 남겨 둔 공과 머리가 달린 나무는 다음 세대의 탄생과 재도전을 잇는 매개다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 2:1-2.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c01-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p026"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p027"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p028"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p029"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p030"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p031"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p032"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p033"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p034"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p035"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p036"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p037"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p038"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p039"
+        }
+      ],
+      "soul": "두 형제는 공놀이를 하다가 시발바 군주들의 부름을 받고 시험에 응한다. 횃불과 담배를 다 썼다고 대답한 뒤 처형된다. 이 장면의 대답을 형제 각각의 고유한 말투로 나누지 않는다. 출전: 《포폴 부》 브라쇠르 1861년판 제2부 제1·2장 https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-8.html"
+    },
+    {
+      "key": "xibalba-envoys",
+      "title": "올빼미 사자들과 거짓 심장",
+      "cardType": "organization",
+      "body": "시발바의 올빼미 사자들은 초청을 전하며, 슈키크를 죽이라는 명령도 받는다. 그러나 그녀의 말에 따라 수액으로 심장을 대신하고 지상으로 올라가므로 군주의 명령을 언제나 그대로 수행하는 집단은 아니다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 2:2-3.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p026"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p027"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p028"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p029"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p030"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p031"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p032"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p033"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p034"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p035"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p036"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p037"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p038"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p039"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p026"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p027"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p028"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p029"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p030"
+        }
+      ]
+    },
+    {
+      "key": "calabash-skull",
+      "title": "칼라바시 나무의 머리와 침",
+      "cardType": "object",
+      "body": "죽은 공놀이꾼의 머리가 열매 사이에 걸리고, 슈키크가 내민 손에 침을 뱉어 후손의 탄생을 예고한다. 머리와 열매의 구별 불가능성은 죽음과 생명의 전환을 이룬다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 2:2-3.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p026"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p027"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p028"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p029"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p030"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p031"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p032"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p033"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p034"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p035"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p036"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p037"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p038"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c02-p039"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p026"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p027"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p028"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p029"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c03-p030"
+        }
+      ]
+    },
+    {
+      "key": "xquic-maize-test",
+      "title": "슈키크의 옥수수 수확 시험",
+      "cardType": "event",
+      "body": "할머니는 슈키크에게 많은 옥수수를 가져오게 한다. 얼마 남지 않은 밭에서 기도와 도움으로 양식을 얻은 일은 가족 안에서 그녀의 말을 인정하게 만드는 시험이다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 2:4.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c04-p014"
+        }
+      ]
+    },
+    {
+      "key": "twins-childhood",
+      "title": "쌍둥이의 탄생과 형들의 시기",
+      "cardType": "event",
+      "body": "갓 태어난 쌍둥이를 집 밖에 두는 일과 형들의 시기, 사냥한 새를 핑계로 나무에 오르게 한 계략이 원숭이 변신으로 이어진다. 음악을 듣고 돌아와도 할머니의 웃음 때문에 다시 떠난다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 2:5.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p026"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p027"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p028"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p029"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p030"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p031"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p032"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p033"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p034"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p035"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c05-p036"
+        }
+      ]
+    },
+    {
+      "key": "restored-forest",
+      "title": "다시 자라는 숲과 쥐의 비밀",
+      "cardType": "event",
+      "body": "쌍둥이가 베어 놓은 숲을 밤마다 짐승들이 되살린다. 붙잡은 쥐에게서 아버지들의 공놀이 도구를 듣고 그것을 되찾는 사건이 시발바 재도전의 원인이 된다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 2:6.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p026"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p027"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p028"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p029"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p030"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p031"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p032"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c06-p033"
+        }
+      ]
+    },
+    {
+      "key": "message-animal-chain",
+      "title": "이를 삼킨 두꺼비와 전갈 전달",
+      "cardType": "event",
+      "body": "할머니의 전갈은 이·두꺼비·뱀·새가 삼키고 삼켜지는 연쇄를 거쳐 전달된다. 새의 눈을 고쳐 주는 일과 전갈을 꺼내는 과정은 서로 다른 동물의 특징을 설명한다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 2:7.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c07-p025"
+        }
+      ]
+    },
+    {
+      "key": "flowers-and-ants",
+      "title": "어둠의 집과 개미가 모은 꽃",
+      "cardType": "event",
+      "body": "쌍둥이는 불빛을 흉내 내어 첫 시험을 넘기고, 공놀이 뒤 요구받은 꽃은 개미들의 도움으로 모은다. 경비를 선 자들은 영웅들이 아니라 군주들에게 벌을 받는다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 2:9.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p026"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p027"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p028"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p029"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c09-p030"
+        }
+      ]
+    },
+    {
+      "key": "camazotz",
+      "title": "카마소츠와 잘린 후나푸의 머리",
+      "cardType": "character",
+      "body": "박쥐의 집에서 바람총 안에 몸을 숨겼던 후나푸가 밖을 살피다 머리를 잃는다. 다른 시험을 통과한 영웅도 주의가 깨지면 죽을 수 있음을 보여 주는 전환점이다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 2:10.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c10-p013"
+        }
+      ],
+      "soul": "박쥐의 집에서 후나푸가 바람총 밖을 살필 때 그의 머리를 벤다. 이 장면은 살해 행위를 보여 주나 성격과 직접 대사는 제시하지 않는다. 출전: 《포폴 부》 브라쇠르 1861년판 본문 https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-9.html"
+    },
+    {
+      "key": "head-restoration",
+      "title": "임시 머리와 토끼의 속임수",
+      "cardType": "event",
+      "body": "짐승들의 도움으로 임시 머리를 만들고 공놀이 중 토끼로 시선을 돌려 진짜 머리를 되찾는다. 완전한 승리 이전에도 동물의 협력과 대체물이 필요하다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 2:11.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c11-p019"
+        }
+      ]
+    },
+    {
+      "key": "prophets-and-bones",
+      "title": "슐루·파캄과 뼈의 처리",
+      "cardType": "character",
+      "body": "쌍둥이는 자신들의 죽음을 앞두고 점치는 두 사람에게 뼈를 어떻게 처리하라고 답할지 미리 알려 준다. 재와 물을 거치는 귀환은 우연한 부활이 아니라 계획된 시험의 일부다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 2:12.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c12-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c12-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c12-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c12-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c12-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c12-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c12-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c12-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c12-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c12-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c12-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c12-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c12-p013"
+        }
+      ],
+      "soul": "슐루와 파캄은 쌍둥이에게서 죽음에 관한 질문에 어떻게 답할지 지시받는 점쟁이들이다. 이 장면의 지시는 쌍둥이의 말이며 두 사람의 개별 말투로 돌리지 않는다. 출전: 《포폴 부》 브라쇠르 1861년판 본문 https://levigilant.com/Popol_Vuh_html/popolvuhlelivres00bras_files/popolvuhlelivres00bras-9.html"
+    },
+    {
+      "key": "sacrificial-performance",
+      "title": "죽이고 되살리는 유랑 광대",
+      "cardType": "ability",
+      "body": "다시 나타난 두 영웅은 가난한 공연자처럼 꾸미고 집과 동물, 서로를 죽이고 되살리는 재주를 보인다. 이를 탐낸 군주들이 같은 일을 요구하자 그들은 죽이고 되살려 주지 않는다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 2:13.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p026"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c13-p027"
+        }
+      ]
+    },
+    {
+      "key": "solar-ascent",
+      "title": "아버지들에게 바친 공경과 천상 상승",
+      "cardType": "event",
+      "body": "시발바에 새 한계를 정한 뒤 아버지들을 기리는 장면이 이어지고 두 영웅은 하늘로 오른다. 죽은 조상을 기리는 행위와 영웅의 승천을 하나의 단순한 소생으로 합치지 않는다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 2:14.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-2-c14-p015"
+        }
+      ]
+    },
+    {
+      "key": "paxil-cayala",
+      "title": "팍실과 카얄라, 양식을 알려 준 짐승들",
+      "cardType": "location",
+      "body": "인간의 몸에 들어갈 옥수수가 발견되는 풍요로운 곳이다. 짐승들이 먹을거리를 알려 주고 슈무카네가 준비하는 과정을 통해 인간의 살이 만들어진다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 3:1.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c01-p010"
+        }
+      ]
+    },
+    {
+      "key": "limited-vision",
+      "title": "첫사람들의 시야가 흐려짐",
+      "cardType": "rule",
+      "body": "첫사람들은 멀고 가까운 모든 것을 볼 수 있었지만 창조자들은 그들의 지혜를 제한한다. 눈앞의 가까운 것만 보게 되는 변화는 인간과 신의 경계를 정한다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 3:2.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p019"
+        }
+      ]
+    },
+    {
+      "key": "first-wives",
+      "title": "첫 조상들의 아내와 세 가문",
+      "cardType": "organization",
+      "body": "잠든 조상들 곁에 아내들이 마련되고, 각 혼인에서 후손과 여러 가문의 계보가 시작된다. 여성들의 이름과 혈연은 남성 조상들의 명단으로 대체하지 않는다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 3:2-3.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c02-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c03-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c03-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c03-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c03-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c03-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c03-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c03-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c03-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c03-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c03-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c03-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c03-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c03-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c03-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c03-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c03-p016"
+        }
+      ]
+    },
+    {
+      "key": "patron-deities",
+      "title": "토힐·아빌리슈·하카비츠와 신의 분배",
+      "cardType": "organization",
+      "body": "툴란에서 받은 신들은 각 조상과 집단에 연결되고, 이동 뒤 서로 다른 장소에 숨겨진다. 같은 이름을 공유하는 집단과 각자 다른 신을 모시는 관계를 함께 보존한다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 3:4,3:8.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c04-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p016"
+        }
+      ]
+    },
+    {
+      "key": "zotzil-fire",
+      "title": "소칠의 불과 차말칸",
+      "cardType": "event",
+      "body": "소칠 가문의 무리는 연기 속에서 불을 훔쳐 얻는다. 박쥐를 상징으로 하는 카크치켈의 신 차말칸 이야기는 불을 받는 대가에 동의한 다른 부족들과 구별된다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 3:6.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-3-c06-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c06-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c06-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c06-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c06-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c06-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c06-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c06-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c06-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c06-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c06-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c06-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c06-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c06-p014"
+        }
+      ]
+    },
+    {
+      "key": "chi-pixab",
+      "title": "치 픽사브의 회의와 굶주림",
+      "cardType": "location",
+      "body": "이동한 집단들이 산 위에서 모여 이름과 공동의 앞날을 의논하는 장소다. 새벽을 기다리며 먹을거리가 없는 고통도 함께 기록된다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 3:7.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-3-c07-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c07-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c07-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c07-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c07-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c07-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c07-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c07-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c07-p009"
+        }
+      ]
+    },
+    {
+      "key": "hidden-gods",
+      "title": "숨겨 둔 신들과 조공의 명령",
+      "cardType": "rule",
+      "body": "신들은 보이지 않는 곳에 두어지고, 새벽 뒤에도 산에서 찾아가 경배하는 관계가 지속된다. 신들의 상징을 보이는 일과 사람들에게 요구하는 봉사는 첫 조상들의 권위를 뒷받침한다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 3:8-10.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c08-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c09-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c10-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c10-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c10-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c10-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c10-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c10-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c10-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c10-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c10-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c10-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-3-c10-p011"
+        }
+      ]
+    },
+    {
+      "key": "ancestral-mountain",
+      "title": "하카비츠 산의 거주와 방어",
+      "cardType": "location",
+      "body": "첫 조상들이 아내와 자녀와 함께 머무는 산이다. 납치로 긴장이 커지고 망토의 속임수, 허수아비와 벌을 이용한 방어전이 이어진다. 하카비츠라는 신의 이름과 장소의 용례는 구별한다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 4:1-4.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-4-c01-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c01-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c01-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c01-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c01-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c01-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c01-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c01-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p026"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p027"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p028"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p029"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p030"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p031"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p032"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p033"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c02-p034"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c03-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c03-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c03-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c03-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c03-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c03-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c03-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c03-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c03-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c03-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c03-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c03-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c03-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c03-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c04-p015"
+        }
+      ]
+    },
+    {
+      "key": "ancestral-departure",
+      "title": "첫 조상들의 작별과 후손의 여행",
+      "cardType": "event",
+      "body": "조상들은 아들들에게 당부와 기념물을 남기고 시신을 묻지 못하는 방식으로 사라진다. 후손들은 동방에서 왕권 표장을 받아 돌아오고 여러 거처를 옮긴다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 4:5-6.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c05-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c06-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c06-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c06-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c06-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c06-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c06-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c06-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c06-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c06-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c06-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c06-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c06-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c06-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c06-p014"
+        }
+      ]
+    },
+    {
+      "key": "ismachi",
+      "title": "이스마치의 세 왕가와 일로카브의 충돌",
+      "cardType": "location",
+      "body": "왕가가 돌과 석회로 집을 짓던 도시에서 일로카브와의 갈등, 처벌과 예속이 서술된다. 뒤의 구마르카아흐와 다른 정착 단계이며 왕가의 구분도 당시 규모로 읽는다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 4:7.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-4-c07-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c07-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c07-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c07-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c07-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c07-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c07-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c07-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c07-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c07-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c07-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c07-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c07-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c07-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c07-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c07-p016"
+        }
+      ]
+    },
+    {
+      "key": "royal-houses",
+      "title": "스물네 큰 집의 직위와 조공",
+      "cardType": "organization",
+      "body": "분열과 조정을 거쳐 큰 집과 직위가 나뉘고 왕권이 확대된다. 주술적 명성·전쟁·변경 수비·제사·조공이라는 서로 다른 권력의 근거를 함께 다룬다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 4:8-11.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-4-c08-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c08-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c08-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c08-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c08-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c08-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c08-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c08-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c08-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c08-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c08-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c08-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c09-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c09-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c09-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c09-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c09-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c09-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c09-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c09-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c09-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c10-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c11-p019"
+        }
+      ]
+    },
+    {
+      "key": "colonial-lineages",
+      "title": "정복 이후까지 이어지는 세 계보",
+      "cardType": "rule",
+      "body": "카베크·니하이브·아하우 키체의 계보는 카스티야인들과 관계된 이름과 당대 인물까지 이어진다. 본문 내부의 세대 계산 차이는 임의로 고치지 않으며 신화의 시간과 기록 당시의 통치를 구별한다.\n\n출전: [《포폴 부》](https://levigilant.com/Popol_Vuh_html/). 본문 범위: 4:12-15.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "pv-4-c12-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c12-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c13-p026"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p020"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p022"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c14-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "pv-4-c15-p018"
+        }
+      ]
+    }
+  ]
+}

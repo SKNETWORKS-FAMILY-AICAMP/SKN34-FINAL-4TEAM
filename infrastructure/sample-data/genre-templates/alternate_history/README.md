@@ -24,5 +24,6 @@
 
 - `source/original.md`: 수정하지 않은 전체 원문(보관본).
 - `source/template.json`: 구조화 데이터(`basic_template`, `setting_bible`).
+- `source/setting-cards.json`: 원본 설정 절을 추적하는 개별 카드.
 
-Content 서버가 시작될 때 이 장르의 설정 항목 23장이 운영 관리자 계정 소유 WorldStudio 세계관(ID `c5d42f50-d2e6-5e25-8a2e-99e68e23ff05`, key `genre-template-alternate_history`)으로 적재됩니다. 카드 본문은 `source/original.md`의 해당 항목 그대로이며, 전체 원문 보관본은 카드로 넣지 않습니다. 작품·회차·체크포인트는 만들지 않습니다. 적재 방식과 현재 한계는 [장르 템플릿 README](../README.md)를 참고하세요.
+Content 서버가 시작될 때 이 장르의 설정 카드 33장이 운영 관리자 계정 소유 WorldStudio 세계관(ID `c5d42f50-d2e6-5e25-8a2e-99e68e23ff05`, key `genre-template-alternate_history`)으로 적재됩니다. 카드는 `source/setting-cards.json`에서 원본 설정을 인물·장소·조직·능력·사물·규칙·사건별로 추출합니다. 첫 화 원고·집필 지침·장편 전개와 전체 원문은 카드로 넣지 않고 원본에 보존합니다. 작품·회차·체크포인트는 만들지 않습니다. 적재 방식과 현재 한계는 [장르 템플릿 README](../README.md)를 참고하세요.

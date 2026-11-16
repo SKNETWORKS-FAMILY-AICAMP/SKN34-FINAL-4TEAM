@@ -354,15 +354,15 @@ def _docs(card: Card, episode: int) -> tuple[list[dict], list[dict]]:
     """그 인물의 문서를 (기준 회차 이하라 아는 것, 아직 오지 않은 회차라 모르는 미래 기억)으로 나눈다. 빈 문서는 뺀다."""
     memories = sorted(card.episodes.items())
     known = [(f'card:{card.id}#identity', '정체(IDENTITY)', card.text), (f'card:{card.id}#soul', '말투·사고(SOUL)', card.soul),
-             (f'card:{card.id}#memory', '핵심 기억(MEMORY)', card.memory),
+             (f'card:{card.id}#goal', '목표(GOAL)', card.goal),
              *((_memory_ref(card, n), f'{n}회차 기억', t) for n, t in memories if n <= episode)]
     future = [(_memory_ref(card, n), f'{n}회차 기억', t) for n, t in memories if n > episode]
     return [_doc(*d) for d in known if d[2].strip()], [_doc(*d) for d in future if d[2].strip()]
 
 
 def _private(card: Card) -> list[dict]:
-    """다른 인물만 아는 것: 핵심 기억과 모든 회차 기억. 검사가 누설을 판정하는 기준이며 인물 입력에는 가지 않는다."""
-    docs = [(f'card:{card.id}#memory', '핵심 기억(MEMORY)', card.memory),
+    """다른 인물만 아는 것: 목표와 모든 회차 기억(00회차의 시작 전 비밀 포함). 검사가 누설을 판정하는 기준이며 인물 입력에는 가지 않는다."""
+    docs = [(f'card:{card.id}#goal', '목표(GOAL)', card.goal),
             *((_memory_ref(card, n), f'{n}회차 기억', t) for n, t in sorted(card.episodes.items()))]
     return [{**_doc(*d), 'owner': card.title} for d in docs if d[2].strip()]
 

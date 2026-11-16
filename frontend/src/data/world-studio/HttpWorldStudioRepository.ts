@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import type { WorldStudioRepository } from '../../domain/repositories/WorldStudioRepository'
 import { PUBLIC_WORLD_GENRES } from '../../domain/entities/publicWorld'
-import { isEpisodeKey, storedCharacterDocs } from '../../domain/entities/characterDocs'
+import { isEpisodeKey, migrateCharacterDocs, storedCharacterDocs } from '../../domain/entities/characterDocs'
 import { newSetting, type StudioSetting, type StudioWorld, type WorldPublication, type WorldPublicationInput } from '../../domain/entities/studioWorld'
 import { cardTypeOf } from '../../domain/entities/studioCards'
 import { relationDefinitions } from '../../domain/entities/studioRelations'
@@ -15,11 +15,14 @@ const visibility = z.enum(['private', 'public']), genre = z.enum(PUBLIC_WORLD_GE
 const publicationResult = z.object({ worldId: uuid, visibility, genre, publishedAt: z.string().nullable(), listed: z.boolean() })
 // 세계관 표지. 서버가 `hasCover`를 주기 전 응답은 표지 없음으로 읽는다.
 const coverResult = z.object({ worldId: uuid, hasCover: z.literal(true) })
+// 설정 카드 대표 이미지 업로드 결과(#401): 쓰는 값은 새 이미지 id뿐이다. 카드가 이 이미지를 쓰는지는 카드 semanticMetadata의 최상위 키 `imageId`로 정한다.
+const cardImageResult = z.object({ imageId: uuid })
 // 이 세계관에 연결된 내 소설 id(DEC-46 1:1 연결). 서버가 이 필드를 주기 전 응답은 미연결로 읽는다.
 const linkedWorkId = z.string().nullable().default(null)
 const area = z.enum(['basic', 'space', 'history', 'society', 'culture', 'special', 'conflict'])
 const evidence = z.array(z.object({ sourceId: z.string(), quote: z.string() }))
 const studio = z.object({
+  templateOrder: z.number().int().nonnegative().optional(),
   userCategory: z.string(),
   tags: z.array(z.string()),
   aliases: z.array(z.string()).optional(),
@@ -72,13 +75,15 @@ const metadata = z.union([
 // 카드 semanticMetadata의 최상위 키(DEC-46): 독자 공개 시작 회차와 가져온 출처. 모양이 어긋난 값은 읽지 않는다.
 const revealFromEpisode = z.number().int().min(1)
 const importedFrom = z.object({ worldId: z.string(), worldName: z.string(), authorNickname: z.string(), revisionNo: z.number().int(), cardId: z.string() })
-// 인물 문서(SOUL.md·MEMORY.md·회차별 기억)도 인물 카드 semanticMetadata의 최상위 키 `characterDocs`다. IDENTITY.md는 카드 본문(body)이라 여기 없다.
-const characterDocs = z.object({ soul: z.string(), memory: z.string(), episodes: z.record(z.string().refine(isEpisodeKey), z.string()) })
-// 카드 공개·독자 공개 회차·가져온 출처·인물 문서는 행 필드가 정본이라 `studio` 안에 넣지 않는다. 회차·출처·문서는 최상위 키로 쓰고 값이 없으면(문서는 전부 비었거나 인물이 아니면) 키도 넣지 않는다.
+// 인물 문서(SOUL.md·GOAL.md·회차별 기억)도 인물 카드 semanticMetadata의 최상위 키 `characterDocs`다. IDENTITY.md는 카드 본문(body)이라 여기 없다.
+// DEC-47 이전에 저장한 문서는 `memory`가 있고 `goal`이 없어 둘 다 선택으로 받고, 읽을 때 지금 모양으로 옮긴다(memory는 00회차 앞에 이어 붙임).
+// 필수로 두면 옛 문서 전체가 버려져 다음 저장에서 사라진다.
+const characterDocs = z.object({ soul: z.string(), goal: z.string().optional(), memory: z.string().optional(), episodes: z.record(z.string().refine(isEpisodeKey), z.string()) }).transform(migrateCharacterDocs)
+// 카드 공개·독자 공개 회차·가져온 출처·인물 문서·대표 이미지는 행 필드가 정본이라 `studio` 안에 넣지 않는다. 회차·출처·문서·이미지는 최상위 키로 쓰고 값이 없으면(문서는 전부 비었거나 인물이 아니면) 키도 넣지 않는다.
 function metadataOf(row:StudioSetting) {
-  const {serverMetadata,visibility:_,revealFromEpisode:reveal,importedFrom:source,characterDocs:_docs,...view}=row
+  const {serverMetadata,visibility:_,revealFromEpisode:reveal,importedFrom:source,characterDocs:_docs,imageId:image,...view}=row
   const docs=storedCharacterDocs(row)
-  return {...serverMetadata,studio:view,...(reveal!==undefined&&{revealFromEpisode:reveal}),...(source&&{importedFrom:source}),...(docs&&{characterDocs:docs})}
+  return {...serverMetadata,studio:view,...(reveal!==undefined&&{revealFromEpisode:reveal}),...(source&&{importedFrom:source}),...(docs&&{characterDocs:docs}),...(image&&{imageId:image})}
 }
 // A 6-B addition is a wire card/relation, not a complete legacy StudioSetting.
 function setting(m:z.infer<typeof metadata>, fields:Partial<StudioSetting['item']>, labels:Pick<StudioSetting,'userCategory'|'tags'|'aliases'>):StudioSetting {
@@ -110,10 +115,12 @@ const card = z.object({
   classification: z.string(),
   aliases: z.array(z.string()),
   tags: z.array(z.string()),
-  semanticMetadata: metadata,
+  semanticMetadata: z.union([metadata, z.strictObject({})]),
   visibility,
   lifecycle: z.enum(['active', 'removed']),
 })
+// 빈 메타데이터(기존 Seeder 카드)와 studio가 있는 메타데이터를 가른다. `'studio' in`만으로는 빈 객체 쪽의 index signature가 남는다.
+const hasStudio=(m:z.infer<typeof card>['semanticMetadata']):m is z.infer<typeof metadata>=>'studio' in m
 const confirmationRequest=z.object({expectedDraftRevision:revision,key:uuid})
 const revisionSummary=z.object({worldId:uuid,revisionId:uuid,revisionNo:revision.positive(),name:z.string(),createdAt:z.string()})
 const revisionSnapshot=z.object({worldId:uuid,revisionId:uuid,revisionNo:revision.positive(),name:z.string(),description:z.string(),parentRevisionId:uuid.nullable(),restoredFromRevisionId:uuid.nullable(),relationshipStatus:z.literal('not_recorded'),relationships:z.null(),cards:z.array(z.object({versionId:uuid,versionNo:revision.positive(),restoredFromVersionId:uuid.nullable(),card:card.extend({semanticMetadata:z.record(z.string(),z.unknown()),visibility:z.enum(['private','public'])})}))})
@@ -190,11 +197,24 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
   const active = value.cards.filter((c) => c.lifecycle === 'active'),
     ids = new Set(value.cards.map((c) => c.id))
   const settings: StudioSetting[] = active.map((c) => {
-    // 독자 공개 회차·가져온 출처·인물 문서는 서버 메타데이터에 남기지 않고 행 필드로 옮긴다(지운 값이 다음 저장에서 되살아나지 않게). 어긋난 값은 버리고 읽기는 계속한다.
-    const {revealFromEpisode:reveal,importedFrom:source,characterDocs:written,...known}=c.semanticMetadata
-    const row = setting(known,{id:c.id,title:c.title,text:c.body,category:c.areaCode},
-      {userCategory:c.classification,aliases:c.aliases,tags:c.tags})
-    if(c.semanticMetadata.studio.item.id!==c.id)throw invalid()
+    // 기존 Seeder는 정본 필드만 저장했다(빈 메타데이터). 그 카드만 정본 필드로 복원하며 손상된 studio는 검증에서 거절한다.
+    const m = c.semanticMetadata
+    let row: StudioSetting, reveal: unknown, source: unknown, written: unknown, image: unknown
+    if (hasStudio(m)) {
+      // 독자 공개 회차·가져온 출처·인물 문서·대표 이미지는 서버 메타데이터에 남기지 않고 행 필드로 옮긴다(지운 값이 다음 저장에서 되살아나지 않게). 어긋난 값은 버리고 읽기는 계속한다.
+      const {revealFromEpisode:r,importedFrom:f,characterDocs:w,imageId:i,...known}=m
+      reveal=r; source=f; written=w; image=i
+      row = setting(known,{id:c.id,title:c.title,text:c.body,category:c.areaCode},
+        {userCategory:c.classification,aliases:c.aliases,tags:c.tags})
+      if(m.studio.item.id!==c.id)throw invalid()
+    } else row = {
+      userCategory:c.classification, tags:c.tags, aliases:c.aliases,
+      item:{id:c.id,title:c.title,text:c.body,category:c.areaCode,
+        kind:c.cardType==='rule'?'rule':c.cardType==='event'?'event':'entity',
+        entityType:['rule','event'].includes(c.cardType)?null:c.cardType,
+        topics:[],subjectId:null,targetId:null,predicate:null,polarity:'asserted',relatedIds:[],
+        condition:'',timeText:'',afterId:null,orderEvidence:[],evidence:[],origin:'author_input',authorText:c.body,decision:'approved'},
+    }
     if (
       row.item.kind === 'relation' || row.item.id !== c.id || row.item.title !== c.title ||
       row.item.text !== c.body || row.item.category !== c.areaCode ||
@@ -202,10 +222,10 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
       JSON.stringify(row.tags) !== JSON.stringify(c.tags) ||
       JSON.stringify(row.aliases ?? []) !== JSON.stringify(c.aliases)
     ) throw invalid()
-    const episode = revealFromEpisode.safeParse(reveal), from = importedFrom.safeParse(source), docs = characterDocs.safeParse(written)
+    const episode = revealFromEpisode.safeParse(reveal), from = importedFrom.safeParse(source), docs = characterDocs.safeParse(written), picture = uuid.safeParse(image)
     return {...row,...(c.visibility==='public'&&{visibility:c.visibility}),...(episode.success&&{revealFromEpisode:episode.data}),...(from.success&&{importedFrom:from.data}),
-      ...(docs.success&&c.cardType==='character'&&{characterDocs:docs.data})}
-  })
+      ...(docs.success&&c.cardType==='character'&&{characterDocs:docs.data}),...(picture.success&&{imageId:picture.data})}
+  }).sort((a,b)=>(a.templateOrder??Number.MAX_SAFE_INTEGER)-(b.templateOrder??Number.MAX_SAFE_INTEGER))
   for (const r of value.relationships) {
     const row = setting(r.semanticMetadata,{id:r.id,kind:'relation',title:r.label,text:r.body,
       subjectId:r.sourceCardId,targetId:r.targetCardId,polarity:r.polarity??'asserted',
@@ -375,6 +395,27 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
     if (!response.ok) throw new Error(response.status === 404 ? '표지를 찾을 수 없어요.' : '표지를 불러오지 못했어요.')
     const blob = await response.blob()
     if (!blob.size) throw new Error('표지 이미지 응답을 확인할 수 없어요.')
+    return blob
+  }
+  /**
+   * 설정 카드 대표 이미지(소유자): multipart `file` POST로 올리고 새 이미지 id를 돌려준다. 카드에 붙이는 일은 이 호출이 아니라 초안 저장(카드의 `imageId`)이 한다.
+   * 올린 이미지는 바뀌지 않아 교체는 새로 올리는 것이다. 형식·크기 오류(422)와 없는 세계관(404)은 서버의 detail을 그대로 알린다.
+   */
+  async uploadCardImage(id: string, file: File, signal?: AbortSignal): Promise<string> {
+    this.checkSession()
+    uuid.parse(id)
+    const form = new FormData()
+    form.append('file', file)
+    return (await this.request('/' + id + '/card-images', cardImageResult, 'POST', form, signal)).imageId
+  }
+  async readCardImage(id: string, imageId: string, signal?: AbortSignal): Promise<Blob> {
+    this.checkSession()
+    uuid.parse(id)
+    uuid.parse(imageId)
+    const response = await this.send('/' + id + '/card-images/' + imageId, 'GET', undefined, signal)
+    if (!response.ok) throw new Error(response.status === 404 ? '이미지를 찾을 수 없어요.' : '이미지를 불러오지 못했어요.')
+    const blob = await response.blob()
+    if (!blob.size) throw new Error('이미지 응답을 확인할 수 없어요.')
     return blob
   }
   async create(name: string, description: string, signal?: AbortSignal): Promise<StudioWorld> {
