@@ -15,6 +15,11 @@ export class HttpImageGenerationRepository implements ImageGenerationRepository 
   if(!response.ok)throw new Error('상태 조회 실패')
   return job.parse(await response.json())
  }
- async read(id:string,signal?:AbortSignal) { return job.parse(await (await protectedRequest(`/api/v1/image-generations/${encodeURIComponent(id)}`,{signal})).json()) }
+ async read(id:string,signal?:AbortSignal) {
+  const response=await protectedRequest(`/api/v1/image-generations/${encodeURIComponent(id)}`,{signal},undefined,false,{allowHttpError:true})
+  if(response.status===404)return null
+  if(!response.ok)throw new Error('상태 조회 실패')
+  return job.parse(await response.json())
+ }
  async image(id:string,signal?:AbortSignal) { return (await protectedRequest(`/api/v1/image-generations/${encodeURIComponent(id)}/content`,{signal})).blob() }
 }

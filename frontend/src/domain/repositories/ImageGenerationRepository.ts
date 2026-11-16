@@ -3,6 +3,6 @@ export type ImageJob = { jobId: string; status: string; stage: string; previewUr
 export interface ImageGenerationRepository {
  submit(input: ImageRequest, key: string, signal?: AbortSignal): Promise<ImageJob>
  readByKey(key: string, signal?: AbortSignal): Promise<ImageJob | null>
- read(id: string, signal?: AbortSignal): Promise<ImageJob>
+ read(id: string, signal?: AbortSignal): Promise<ImageJob | null>
  image(id: string, signal?: AbortSignal): Promise<Blob>
 }

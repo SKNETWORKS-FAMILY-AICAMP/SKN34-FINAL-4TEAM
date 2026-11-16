@@ -43,6 +43,11 @@ export function useImageGeneration(input: Omit<ImageRequest,'prompt'>) {
    try {
     const next=await useCase.read(job!.jobId,abort.signal)
     if(abort.signal.aborted) return
+    if(!next) {
+     sessionStorage.removeItem(storageKey);setJob(undefined);setPreview('');file.current=undefined
+     setError('이미지 작업을 찾을 수 없어요. 새로 생성해 주세요.')
+     return
+    }
     setJob(current=>current?.jobId===next.jobId ? next : current)
     if(next.status==='succeeded') {
      const blob=await useCase.image(next.jobId,abort.signal)

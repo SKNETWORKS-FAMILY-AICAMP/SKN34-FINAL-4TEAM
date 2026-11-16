@@ -109,9 +109,14 @@ class ImageJobService(private val jobs:ImageJobRepository,private val client:Ima
  }
  /** 대기·실행 유실을 영구 로딩으로 남기지 않는다. 자동 재생성은 하지 않는다. */
  @Scheduled(fixedDelay=30000)
- fun expire() { transaction {
-  jobs.findAllByStatusInAndUpdatedAtBefore(listOf("accepted","queued","running"),Instant.now().minusSeconds(300)).forEach {
-   locked(it.id).also { j -> if(j.status in setOf("accepted","queued","running") && j.updatedAt.isBefore(Instant.now().minusSeconds(300))) j.status="interrupted" }
-  }; true
- } }
+ fun expire() {
+  val ids=transaction { jobs.findAllByStatusInAndUpdatedAtBefore(listOf("accepted","queued","running"),Instant.now().minusSeconds(300)).map { it.id } }
+  if(ids.isEmpty()) return
+  // 후보 조회의 JPA 캐시를 닫아야 잠금 뒤 이미 완료된 작업을 최신 상태로 다시 읽는다.
+  transaction {
+   ids.forEach { id -> locked(id).also { j ->
+    if(j.status in setOf("accepted","queued","running") && j.updatedAt.isBefore(Instant.now().minusSeconds(300))) j.status="interrupted"
+   } }; true
+  }
+ }
 }

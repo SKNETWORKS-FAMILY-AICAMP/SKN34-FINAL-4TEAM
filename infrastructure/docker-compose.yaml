@@ -30,6 +30,10 @@ services:
     command: [celery, -A, app.images.worker:app, worker, --concurrency=1, --loglevel=WARNING]
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      # 이미지 추적은 모델·규격·사용량·실패 유형만 기록한다.
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+      LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL:-}
       INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
       CONTENT_SERVICE_BASE_URL: http://content-service:8081
       CORE_RABBITMQ_HOST: ${CORE_RABBITMQ_HOST:-rabbitmq}

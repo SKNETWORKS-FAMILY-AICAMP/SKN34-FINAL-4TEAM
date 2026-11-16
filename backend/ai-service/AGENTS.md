@@ -20,6 +20,7 @@
 - 추적은 `app/tracing.py`의 `observe`로 메타데이터(단계·근거 참조·모델·사용량·실패)와 질문·원고·답변 본문을 남긴다(팀 결정 2026-11-13). 설정·현재 관계 발췌 본문은 `tracing.excerpts`로 참조만 남기고, 회원 계정 정보·키는 어떤 속성에도 넣지 않는다.
 - 회차 원고 전처리는 Celery 작업으로 실행하고 결과는 Content MCP로 적재한다(DEC-50, [전처리 계약](../../docs/design/manuscript-preprocessing-contract.md)). 이미지 생성도 사용자 결정(2026-11-16, #332)으로 Celery를 쓴다([계약](../../docs/design/image-generation-contract.md)). 그 밖의 기능에 Celery를 쓰려면 먼저 문서로 정한다.
 - 장애는 명시적 오류로 반환하고 fallback·자동 재시도로 숨기지 않는다. 입력·원고·모델 응답을 오류 메시지나 로그에 넣지 않는다. 역할·인물마다 서버나 클래스를 만들지 않는다.
+- 이미지 생성은 [이미지 계약](../../docs/design/image-generation-contract.md)에 따라 `observe`에 모델·규격·용도·템플릿 버전·사용량·실패 유형만 남긴다. 프롬프트 원문·이미지 바이트·base64·키·제공사 예외 본문은 추적 input/output에도 넣지 않는다.
 
 ## 생성 경계
 
