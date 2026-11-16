@@ -16,35 +16,35 @@
 
 ## 신화·고전 전승 15종
 
-각 장르는 아래 한 작품의 수록 본문과 그 본문에 근거한 파생 카드로 구성합니다.
+각 장르는 아래 원문의 수록 본문과 선택적 보충 출전에 근거한 카드로 구성합니다. 보충 범위는 각 자료의 안내를 확인하세요.
 
 | 자료 | 카드 수 | 범위 |
 |---|---:|---|
-| [그리스·로마](greco_roman_mythology/README.md) | 73 | 《신통기》 한 작품 한국어 완역과 세계관 |
-| [북유럽](norse_mythology/README.md) | 53 | 「볼루스파」 한 작품 한국어 완역과 세계관 |
-| [크툴루](cthulhu_mythos/README.md) | 38 | 《크툴루의 부름》 한 작품 한국어 완역과 세계관 |
+| [그리스·로마](greco_roman_mythology/README.md) | 102 | 《신통기》 한 작품 한국어 완역과 세계관 |
+| [북유럽](norse_mythology/README.md) | 79 | 「볼루스파」 한 작품 한국어 완역과 세계관 |
+| [크툴루](cthulhu_mythos/README.md) | 53 | 《크툴루의 부름》 한 작품 한국어 완역과 세계관 |
 | [서유기](journey_to_the_west/README.md) | 76 | 《서유기》 현행 위키문헌 백회본 100회 한국어 완역과 세계관 |
-| [수메르](sumerian_mythology/README.md) | 53 | 구데아 원통 A·B 한 작품의 현존 저본 전체 중역 |
+| [수메르](sumerian_mythology/README.md) | 59 | 구데아 원통 A·B 한 작품의 현존 저본 전체 중역 |
 | [게르만 설화](germanic_folklore/README.md) | 14 | 「홀레 부인」 한 작품 한국어 완역과 세계관 |
-| [중국](chinese_folklore/README.md) | 50 | 《천문》 한 작품 한국어 완역과 세계관 |
-| [일본](japanese_mythology/README.md) | 75 | 《고사기》 서문·상중하권 한 작품 한국어 중역 전문과 세계관 |
-| [한국](korean_mythology_fables/README.md) | 41 | 「동명왕편」 한 작품 한국어 완역과 세계관 |
-| [이집트](egyptian_mythology/README.md) | 15 | 「라와 이시스의 전설」 한 작품 한국어 완역과 세계관 |
-| [인도](indian_mythology/README.md) | 68 | 《바가바드기타》18장 한 작품 한국어 중역 전문과 세계관 |
+| [중국](chinese_folklore/README.md) | 58 | 《천문》 한 작품 한국어 완역과 세계관 |
+| [일본](japanese_mythology/README.md) | 82 | 《고사기》 서문·상중하권 한 작품 한국어 중역 전문과 세계관 |
+| [한국](korean_mythology_fables/README.md) | 49 | 「동명왕편」 한 작품 한국어 완역과 세계관 |
+| [이집트](egyptian_mythology/README.md) | 19 | 「라와 이시스의 전설」 한 작품 한국어 완역과 세계관 |
+| [인도](indian_mythology/README.md) | 73 | 《바가바드기타》18장 한 작품 한국어 중역 전문과 세계관 |
 | [켈트](celtic_mythology/README.md) | 25 | 「브란의 항해」 한 작품 한국어 완역과 세계관 |
 | [슬라브](slavic_mythology/README.md) | 30 | 「마리야 모레브나」 한 작품 한국어 완역과 세계관 |
 | [마야](maya_mythology/README.md) | 68 | 《포폴 부》 한 작품 한국어 중역 전문과 세계관 |
 | [아즈텍](aztec_mythology/README.md) | 72 | 《그림으로 전하는 멕시코인의 역사》 한 작품 한국어 전문과 세계관 |
 
-총 **26개 세계관·999장 카드**이며, 신화·고전 자료는 751장입니다. 인물·사건·장소·신물·규칙·계보군을 본문 전 범위에서 검토했습니다. 모든 세부 사실이나 계보 인물이 독립 카드로 분리되었다는 뜻은 아닙니다.
+총 **26개 세계관·1107장 카드**이며, 신화·고전 자료는 859장입니다. 인물·사건·장소·신물·규칙·계보군을 본문 전 범위에서 검토했습니다. 모든 세부 사실이나 계보 인물이 독립 카드로 분리되었다는 뜻은 아닙니다.
 
 ## 원문·출전·저작권
 
 기존 11종의 `source/original.md`는 기존 창작 원문의 보관본입니다.
 신화·고전 15종 모두 **단일 작품의 한국어 번역 전문**을 수록합니다. 수메르는 결락·1905년 미해독을 보존한 현존 저본 전체 중역이며 완전한 원작 복원이 아닙니다. 서유기는 진광예 삽입 회차가 포함된 현행 위키문헌 백회본이며 특정 명대 초간본의 복원이라고 주장하지 않습니다. 고사기·바가바드기타·포폴 부 등 중역 작품은 각 원고에 저본·범위·한계를 명시했습니다. 각 자료의 실제 수록 범위는 해당 README와 원고 안내에서 확인합니다.
 
-- `source/tradition-cards.json`: 신화별 범위, 출전 목록, 안정된 항목 key, 카드 유형과 본문. `narrative`는 먼저 작성한 `original.md`를 가리키며, 각 카드의 `narrative_refs`에는 근거 절과 그 절의 정확한 문장을 기록합니다.
-- `source/template.json`: 표시용 구조화 문서. `content_markdown`은 카드 모음이 아닌 전승 서사이며, `setting_bible`은 그 서사에서 추출한 세계관입니다. `setting_bible.sections`가 카드와 대응하며 `template_part`는 전승 자료입니다.
+- `source/tradition-cards.json`: 신화별 범위, 출전 목록, 안정된 항목 key, 카드 유형과 본문. `narrative`는 먼저 작성한 `original.md`를 가리키며, 각 카드의 `narrative_refs`에는 `original.md` 또는 `supplementary.md`의 근거 절과 그 절의 정확한 문장을 기록합니다.
+- `source/template.json`: 표시용 구조화 문서. `content_markdown`은 카드 모음이 아닌 전승 서사이며, `setting_bible`은 원문과 보충 출전에서 추출한 세계관입니다. `setting_bible.sections`가 카드와 대응하며 `template_part`는 전승 자료입니다.
 - 각 카드 본문에 출전을 표시합니다. 단일 문헌의 주장·화자의 추론·후대 전승을 구분합니다.
 - 크툴루는 러브크래프트 원작 범위에 한정합니다. 후대 작가나 Chaosium TRPG의 위계·수치·고유 설정을 넣지 않습니다.
 - 신·존재는 `character`, 장소는 `location`, 집단은 `organization`, 권능은 `ability`, 신물은 `object`, 규칙은 `rule`, 사건은 `event`입니다. 사건의 area는 `history`, 나머지는 `basic`입니다.
@@ -87,4 +87,4 @@ python -m unittest discover -s infrastructure/sample-data/genre-templates -p tes
 
 ## 서사 우선 자료 검증
 
-각 전승의 `source/original.md`를 먼저 읽고 `source/template.json`의 세계관 항목을 근거 절과 대조합니다. [그리스 전승](greco_roman_mythology/source/original.md)과 [세계관](greco_roman_mythology/source/template.json)이 한 예입니다. `build_traditions.py`는 모든 전승에 원고가 연결되어 있는지, 모든 카드에 근거가 있는지, 절 ID와 인용 문장이 현재 원고에 실제로 존재하는지 검사합니다. 단위 테스트는 같은 본문을 여러 카드에 반복하거나 근거 문단을 카드 본문으로 그대로 복제한 경우도 검출합니다. `narrative_refs.evidence`에는 원고 문단을 정확히 보관하되 카드 본문은 인물·장소·신물·사건별로 필요한 설정을 따로 추출합니다. 이 검사는 출처 추적과 형식 검사이지 문장의 모든 의미가 논리적으로 입증되었다는 자동 판정이 아니므로 편집 검토를 함께 합니다. 원고 전문은 현재 앱의 카드 적재 대상이 아니며, DB나 UI에서 원고 표시를 연결한 변경은 아닙니다.
+각 전승의 `source/original.md`를 먼저 읽고 `source/template.json`의 세계관 항목을 근거 절과 대조합니다. [그리스 전승](greco_roman_mythology/source/original.md)과 [세계관](greco_roman_mythology/source/template.json)이 한 예입니다. `build_traditions.py`는 모든 전승에 원고가 연결되어 있는지, 모든 카드에 근거가 있는지, 문서별 절 ID와 인용 문장이 해당 원문 또는 보충 출전에 실제로 존재하는지 검사합니다. 단위 테스트는 같은 본문을 여러 카드에 반복하거나 근거 문단을 카드 본문으로 그대로 복제한 경우도 검출합니다. `narrative_refs.evidence`에는 원고 문단을 정확히 보관하되 카드 본문은 인물·장소·신물·사건별로 필요한 설정을 따로 추출합니다. 이 검사는 출처 추적과 형식 검사이지 문장의 모든 의미가 논리적으로 입증되었다는 자동 판정이 아니므로 편집 검토를 함께 합니다. 원고 전문은 현재 앱의 카드 적재 대상이 아니며, DB나 UI에서 원고 표시를 연결한 변경은 아닙니다.

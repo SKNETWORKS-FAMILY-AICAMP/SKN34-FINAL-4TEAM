@@ -144,7 +144,8 @@ class TraditionCatalogTest(unittest.TestCase):
             })
             (source / "tradition-cards.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
             supplementary = source / "supplementary.md"
-            supplementary.write_text('<a id="supp-1"></a>\n\nURL: https://example.test/x\n원어 발췌\n', encoding="utf-8")
+            with supplementary.open("a", encoding="utf-8") as file:
+                file.write('\n<a id="supp-1"></a>\n\nURL: https://example.test/x\n원어 발췌\n')
             with patch.object(catalog, "ROOT", root), patch.object(catalog, "TRADITIONS", (genre,)):
                 built = catalog.build(self.current)
                 self.assertEqual("보충 카드", built[-1]["cards"][-1]["title"])
