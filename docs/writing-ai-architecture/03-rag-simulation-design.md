@@ -1,6 +1,8 @@
-# 7개 필수 기능 설계
+# 6개 필수 기능 설계
 
-모든 기능은 Content가 검증한 작품/Fork·판본·공개 범위에서 시작한다. 여섯 업무 Agent는 각자의 역할과 입출력을 가지며 생성·판단에 `gpt-6-luna`를 사용하는 목표다. 역할마다 서버나 전용 모델 인스턴스를 추가하지 않는다. 공통 도구는 필요한 작업에서만 호출하고 실제 RAG 공급자는 기능이 필요할 때 연결한다. [전체 구조](02-ai-architecture.md) · [검색 계약](07-retrieval-contract-and-mocks.md)
+Story Development를 Writing & Editing에 통합해(2026-11-16 사용자 결정, #387) 필수 기능은 6개다. 집필 흐름 밖의 보조 Rating Agent는 [8절](#8-rating-agent-보조)에 둔다.
+
+모든 기능은 Content가 검증한 작품/Fork·판본·공개 범위에서 시작한다. 다섯 업무 Agent는 각자의 역할과 입출력을 가지며 생성·판단에 `gpt-6-luna`를 사용하는 목표다. 역할마다 서버나 전용 모델 인스턴스를 추가하지 않는다. 공통 도구는 필요한 작업에서만 호출하고 실제 RAG 공급자는 기능이 필요할 때 연결한다. [전체 구조](02-ai-architecture.md) · [검색 계약](07-retrieval-contract-and-mocks.md)
 
 ## 공통 서브그래프 도구
 
@@ -76,14 +78,19 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 
 ## 4. Writing & Editing Agent
 
+Story Development Agent를 설계에서 제거하고 그 전개 기획 기능을 이 Agent에 통합했다(2026-11-16 사용자 결정, #387). 기획·새 원고·기존 원고 수정의 세 작업은 입력·출력·저장 검증이 각각 다르다.
+
+- **전개 기획:** 앞선 사건, 콘티, 목표 회차와 허용된 설정을 받아 앞으로의 전개 대안·인사이트·다음 화 아이디어와 사건·장면 순서를 BeatPlan으로 반환한다. 예정 사건과 확정 사건을 구분한다. 기획만 요청하면 BeatPlan만 반환하고 원고를 생성하거나 저장하지 않는다. 계획을 원고 정본처럼 저장하지 않는다.
+  - 바로 집필하라는 요청(“11화 전개를 계획하고 그 계획으로 써줘”)은 한 단계 안에서 집필용 BeatPlan 하나를 정해 새 원고로 이어 쓴다. 결과에는 사용한 BeatPlan과 Text를 구분해 보인다.
+  - 비교·직접 선택을 요청하면 기획 결과를 보여 주고 선택한 계획을 새 집필 요청으로 받는다.
 - **새 원고:** 목표 회차와 BeatPlan/콘티, 허용된 설정·직전 회차를 받아 새 소설 문장을 만든다. 출력은 생성 원문과 사용한 계획·근거다.
 - **기존 원고 수정:** 대상 문서 판본, 선택 구간, 원문 해시, 수정 지시를 받아 그 구간의 before/after Patch를 만든다. 선택 밖 문장은 유지한다.
 
 **생성 후보 검수 목표 계약:** Writing의 승인 전 결과는 정본 판본과 구분되는 고정 후보로 Review에 전달한다. 후보 식별자 또는 불변 참조, 후보 내용, 원래 초안 revision과 선택 구간/원문 스냅샷을 함께 확인한다. Finding 위치는 정본이 아니라 해당 후보를 기준으로 표시한다. 검수 후 수정 요청은 검수한 후보를 입력으로 새 후보를 만들며 이전 후보를 덮어쓰지 않는다. Content는 최종 적용 전에 원래 초안 revision·구간/본문과 현재 권한을 다시 확인하고 충돌하면 적용하지 않는다. 이 연결과 후보 참조의 구체 API·보관 방식은 아직 구현되지 않았다.
 
-두 경로 모두 문장·문체 생성에 집중하며 Retrieval과 Simulation을 직접 호출하지 않는다. Content가 기준 판본·선택 구간을 확인하고 허용된 최소 입력을 전달하며, 사용자가 선택한 계획이나 시뮬레이션 결과도 집필 재료로 받을 수 있다. 필요 시 Review가 생성 결과의 설정·연속성을 검수한다. 두 경로는 입력·출력·저장 검증이 다르다. 문체/말투 변경도 기존 원고 수정이다. 결과 표시와 실제 원고 저장을 분리하고, Content가 최신 판본·선택 범위·승인 영수증을 확인한 뒤에만 반영한다.
+세 작업 모두 기획·문장·문체 생성에 집중하며 Retrieval과 Simulation을 직접 호출하지 않는다. 기획도 Content가 전달한 허용 입력만 쓰고, Simulation은 명시적으로 요청한 실행의 결과를 사용자가 고른 경우에만 재료로 받는다. Content가 기준 판본·선택 구간을 확인하고 허용된 최소 입력을 전달하며, 사용자가 선택한 계획이나 시뮬레이션 결과도 집필 재료로 받을 수 있다. 필요 시 Review가 생성 결과의 설정·연속성을 검수한다. 두 경로는 입력·출력·저장 검증이 다르다. 문체/말투 변경도 기존 원고 수정이다. 결과 표시와 실제 원고 저장을 분리하고, Content가 최신 판본·선택 범위·승인 영수증을 확인한 뒤에만 반영한다.
 
-현재 구현(`backend/ai-service/app/writing/`, OpenAI Responses, 모델은 루트 `.env`의 `OPENAI_MODEL`):
+현재 구현(`backend/ai-service/app/writing/`, OpenAI Responses, 모델은 루트 `.env`의 `OPENAI_MODEL`)은 새 원고와 기존 원고 수정만 있다. 전개 기획 작업과 Router·오케스트레이션 연결은 #387에서 구현한다.
 
 - `POST /internal/v1/writing/drafts`: 입력 `episodeNumber`, `plan`(≤4000자, BeatPlan/콘티), `context`(≤60000자, Content가 고른 허용 문맥 JSON. 기존 이어쓰기 한도와 같고 Content가 호출 전에 422로 막음). 문체·분량 요청은 `plan`에 담는다. 응답 `text`와 `model`·`providerResponseId`·`usage`.
 - `POST /internal/v1/writing/patches`: 입력 `selection`(≤5000자), `instruction`, 읽기 전용 `precedingText`·`followingText`(각 ≤2000자), `context`. 응답 `before`(=selection)·`after`와 같은 메타. 선택 구간의 교체 문장만 돌려주므로 선택 밖 문장은 AI 결과에 없다. 판본·원문 해시·span 검증과 적용은 Content가 한다.
@@ -94,9 +101,9 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
   - 승인은 기존 `POST /api/v1/works/{id}/proposals/{pid}/accept`이다. 작품 revision이 바뀌었거나, patch인데 현재 초안이 후보 생성 때와 다르면 409로 덮어쓰지 않는다. patch는 그 구간만 교체하고 `proposal_episode_change.position`에 위치를 남긴다. 거절·목록 화면과 프론트엔드 연결은 후속이다.
 - 실모델 수용(2026-11-11, `gpt-6-luna`, 개발용 합성 자료, 실호출 3회): 11화 새 원고는 계획 3단계를 순서대로 따른 약 1,500자(32.0초, 출력 1,030토큰)였으나 "열 살 전의 서윤"처럼 설정(29세, 10년 전)과 어긋난 나이 표현이 1건 있었다. 부분 수정은 2.9초에 선택 문장 하나만 바꿨고 앞뒤 문장은 결과에 없었다. 선택 구간 안의 "앞뒤 문장까지 다시 써라" 지시는 따르지 않았으나, 맞춤법만 요청했는데 그 괄호 문구를 지웠다(1.7초). 키 미설정은 호출 없이 503이었다. 장문 생성의 설정 일치는 Review 연계 전 작가 검토에 의존한다.
 
-## 5. Story Development Agent
+## 5. Story Development Agent (제거)
 
-앞으로의 전개를 계획하고 인사이트·콘티·사건과 장면의 순서를 BeatPlan으로 반환한다. 사용자가 바로 집필하라고 요청하면 집필용 BeatPlan 하나를 지정한다. 비교·직접 선택을 요청하면 기획 결과를 보여 주고 선택 후 새 집필 요청으로 받는다. 예정 사건과 확정 사건을 구분한다. Simulation은 명시적으로 요청한 실행의 계약을 따른다.
+2026-11-16 사용자 결정으로 설계에서 제거했다. 전개 기획(BeatPlan)은 [Writing & Editing](#4-writing--editing-agent)의 전개 기획 작업이 맡는다. 다른 절의 번호와 링크를 지키려고 번호만 남긴다.
 
 ## 6. World & Plot Management
 
@@ -116,3 +123,7 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 | 장소·날씨 | [Mapbox](https://github.com/mapbox/mcp-server), [OSM MCP](https://github.com/ni-c/osm-mcp), [Open-Meteo MCP](https://github.com/cyanheads/open-meteo-mcp-server) | 현행 지도는 과거 경로의 근거가 아니며 기상 재분석은 현장 관측과 구분한다. 위치 전송과 이용 조건을 확인한다. |
 
 모두 후속 후보이며 현재 연결된 기능이 아니다. 실제 사용 사례가 생기면 기존 검색과 비교해 필요한 도구만 선택한다. 제공사·비용·보관·외부 전송과 동의 조건을 확인하고, 허용된 최소 맥락만 보낸다. URL·자료와 확인 시점·누락을 유지하며 외부 텍스트를 지시나 작품 정본으로 취급하지 않는다. 합성 자료로 품질·실패를 평가한 뒤 적용한다.
+
+## 8. Rating Agent (보조)
+
+**Rating Agent**는 작가의 회차 초안이 19세 이용가로 분류할 내용인지만 판별하는 보조 Agent다(#386). 집필 업무 Agent가 아니어서 Intent Router·오케스트레이션에 넣지 않고 내부 API `POST /internal/v1/ratings`로 직접 부른다. 심의 기준은 저장소의 마크다운 문서를 지시문에 주입하며, 결과는 판정 제안이고 작품 등급 적용은 Content가 정한다. 기준 주입 방식 비교·계약·한계는 [Rating Agent 설계](10-age-rating-agent.md)를 본다.

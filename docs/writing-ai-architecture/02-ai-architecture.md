@@ -26,17 +26,17 @@ flowchart LR
 2. Content가 Core 인증과 작품/Fork·공개·회차·인물 지식 범위를 확인한다.
 3. Content가 해당 기능에 필요한 최소 자료와 제한된 작업 참조를 AI Service에 전달한다.
 4. AI Service가 필요한 검색 경로만 실행하고 원문·관계의 출처와 누락을 확인한다.
-5. 선택된 Agent의 답변·Finding·BeatPlan·Text/Patch·ImpactReport를 검증한다.
+5. 선택된 Agent의 답변·Finding·BeatPlan·Text/Patch·ImpactReport를 검증한다. BeatPlan은 Writing & Editing의 기획 결과다.
 6. 변경 후보가 있으면 Content의 후보 보관 결과를 확인한다. 보관 실패는 그대로 표시하며 승인·적용과 구분한다.
 7. Python이 허용된 Agent 원본 결과와 출처·판본·작업 상태, Content가 확인한 후보 상태를 묶어 반환한다. 작가 승인 뒤 Content가 권한과 판본을 다시 검사해 적용한다.
 
-단일 기능은 명시적 operation으로 직접 실행한다. 여섯 업무 Agent(Story Context / Q&A, Review, Writing & Editing, Story Development, World & Plot Management, Web Research)는 각자의 생성·판단에 OpenAI `gpt-6-luna`를 사용하는 목표 설계다(2026-11-12 사용자 결정). 모델은 역할별 지시와 허용 입력을 구분하며 별도 서버나 모델 인스턴스를 뜻하지 않는다. 규칙으로 끝나는 단계나 근거가 없는 요청에서 불필요한 모델 호출을 강제하지 않는다. 기존 구현의 모델 설정과 검증 기록은 실제 상태 그대로 유지한다.
+단일 기능은 명시적 operation으로 직접 실행한다. 다섯 업무 Agent(Story Context / Q&A, Review, Writing & Editing, World & Plot Management, Web Research)는 각자의 생성·판단에 OpenAI `gpt-6-luna`를 사용하는 목표 설계다(2026-11-12 사용자 결정). Story Development는 설계에서 제거하고 전개 기획을 Writing & Editing에 통합했다(2026-11-16 사용자 결정, #387). 집필 흐름 밖의 보조 Agent로 심의 등급을 판별하는 **Rating Agent**가 있다([설계](10-age-rating-agent.md), #386). 모델은 역할별 지시와 허용 입력을 구분하며 별도 서버나 모델 인스턴스를 뜻하지 않는다. 규칙으로 끝나는 단계나 근거가 없는 요청에서 불필요한 모델 호출을 강제하지 않는다. 기존 구현의 모델 설정과 검증 기록은 실제 상태 그대로 유지한다.
 
 공통 **Retrieval**은 필요한 업무 Agent가 호출할 수 있는 정본 변경 없는 도구다. **다중 인물 Simulation**은 사용자가 명시적으로 시뮬레이션 실행을 요청한 경우에만 실행하는 서브그래프다(2026-11-12 사용자 결정). 검수·기획 중 필요하다고 판단했다는 이유만으로 자동 실행하지 않는다. 단독 요청이나 시뮬레이션을 명시한 복합 요청에서만 실행한다. Writing & Editing은 두 도구를 직접 호출하지 않고 전달받은 허용 입력으로 문장·문체 생성에 집중한다. 필요 시 별도의 Review가 검수한다(2026-11-12 사용자 결정). 도구의 호출 가능 범위와 입력은 Content가 확인한 Scope와 작업 종류로 제한하며, 모델이 선택한 ID나 도구 호출만으로 권한을 부여하지 않는다. Retrieval은 기존 검색 계약의 결과를 조립한다. Simulation은 가상 결과를 반환하며 정본을 수정하지 않는다. 단순 조회는 서브그래프를 억지로 거치지 않고 직접 실행할 수 있다. [도구 계약](03-rag-simulation-design.md#공통-서브그래프-도구)
 
 ### 요청별 작업 계획과 실행 검증 (목표)
 
-Router는 사용자 의도에 맞춰 필요한 작업의 **수·순서·조건**을 요청마다 선택한다(2026-11-12 사용자 결정). 특정 실행 순서표나 고정된 Agent 수를 강제하지 않는다. 작업은 여섯 업무 Agent와 명시적으로 요청한 Simulation 중에서 고르며, 사용자 의도가 모호하거나 지원하지 않는 조합이면 확인 질문 또는 명시적 미지원으로 돌려준다. 예를 들어 “검수하고 문제가 있으면 고쳐줘”는 Review → 조건부 Writing으로 계획하고 실제 지적이 있을 때만 수정을 실행한다.
+Router는 사용자 의도에 맞춰 필요한 작업의 **수·순서·조건**을 요청마다 선택한다(2026-11-12 사용자 결정). 특정 실행 순서표나 고정된 Agent 수를 강제하지 않는다. 작업은 다섯 업무 Agent와 명시적으로 요청한 Simulation 중에서 고르며(Rating Agent는 Router 대상이 아니다), 사용자 의도가 모호하거나 지원하지 않는 조합이면 확인 질문 또는 명시적 미지원으로 돌려준다. 예를 들어 “검수하고 문제가 있으면 고쳐줘”는 Review → 조건부 Writing으로 계획하고 실제 지적이 있을 때만 수정을 실행한다.
 
 실행 전 Python 로직이 계획을 검증한다. 등록된 기능과 허용된 조건만 사용하고, 작업별 입력이 선행 결과와 호환되는지, 의존 순서·대상·Content가 확정한 Scope와 기준 판본이 맞는지 확인한다. 다른 작품/Fork나 권한 범위를 넓히지 않으며, Writing의 Retrieval·Simulation 직접 호출 금지와 시뮬레이션의 명시적 사용자 요청 조건도 확인한다. 시뮬레이션 요청 여부가 불분명하면 확인하고 실행을 보류한다. 조건을 만족하지 않거나 필수 근거가 부족한 후속 작업은 실행하지 않으며, 실패·부분 결과는 성공으로 꾸미지 않는다.
 
@@ -61,7 +61,7 @@ Python 실행기는 Router의 `feature`·`when`을 사용자 의도 분류로 �
 `app/orchestration/`(2026-11-12 사용자 요청)이 위 계약 중 **구현된 Agent와 공통 Retrieval 도구만** 연결한다. 대상은 Story Context / Q&A(`manuscript.service.answer`), Writing & Editing(`writing.agent.draft|patch`), Web Research(`research.service.research`)다.
 
 - `POST /internal/v1/orchestrations` `{request, operation?, materials?, inputs}` → `plan` 노드가 Intent Router를 호출하고 계획을 검증한 뒤 기능 노드를 계획 순서로 한 번씩 실행하고 `finish`로 끝낸다. `inputs`는 Content가 권한·판본을 확인해 기능별로 채운 각 내부 API의 요청 DTO다(`story_context`, `writing_editing.draft|patch`, `web_research`).
-- Router 결과가 `clarify`·`rejected`면 고정 문구를 그대로 돌려준다. 미구현 기능(Review·Development·World & Plot·Simulation)이나 조건부 단계가 하나라도 있으면 `unsupported`이며 아무 Agent도 실행하지 않는다(축소 실행 금지). 단계 입력이 빠지면 대화 없는 요청은 `needs_input`으로 끝내고, 대화 안에서는 아래 HITL로 멈춘다. 조건부 단계는 Review의 Finding 연결이 필요해 아직 실행하지 않는다.
+- Router 결과가 `clarify`·`rejected`면 고정 문구를 그대로 돌려준다. 미구현 기능(Review·Development·World & Plot·Simulation. Development는 #387 구현 전까지 남아 있는 Router 선택지다)이나 조건부 단계가 하나라도 있으면 `unsupported`이며 아무 Agent도 실행하지 않는다(축소 실행 금지). 단계 입력이 빠지면 대화 없는 요청은 `needs_input`으로 끝내고, 대화 안에서는 아래 HITL로 멈춘다. 조건부 단계는 Review의 Finding 연결이 필요해 아직 실행하지 않는다.
 - 구현된 세 Agent 사이에는 등록된 결과 전달 연결이 없으므로 각 단계는 자기 입력으로만 실행한다(“MVP · 순차”). 기능 실패는 그 단계의 `failed`와 고정 메시지로 남기고 새 단계를 시작하지 않으며, 완료한 결과는 보존한다. 결과는 Agent 원본 결과를 계획 순서로 묶을 뿐 종합 모델을 호출하지 않는다.
 - `POST /internal/v1/orchestrations/stream`은 같은 그래프를 노드 단위로 흘리는 SSE다. 이벤트는 `plan`(계획 단계) → 단계마다 `started`(다음 노드가 실제로 실행할 기능)·`step`(그 단계의 결과·실패) → `done`(위 응답과 같은 최종 결과)이다. 응답 헤더를 보낸 뒤라 Router 실패는 `error` 이벤트 하나로 알리고 끝낸다. 내부 인증은 스트림 전에 검사한다. Agent의 모델 호출은 스트리밍하지 않아 단계 결과는 완성본 단위로 온다.
 - 공통 Retrieval: 요청에 Content가 서명한 `scope {scopeToken}`이 있으면 Q&A 단계가 `inputs.story_context` 없이 Content 내부 검색 API로 근거를 받는다([계약](07-retrieval-contract-and-mocks.md#공통-retrieval-도구-오케스트레이션-2026-11-12-사용자-결정)). 그래서 Q&A는 입력 대기 없이 실행된다. resume의 `scope`로 Content가 새로 서명한 토큰이 오면 저장된 토큰을 바꾼다. 작가용 진입점은 Content `POST /api/v1/works/{id}/writing-ai/orchestrations`다. 결과에는 인용 근거(`sources`)와 `coverage`가 붙는다.
@@ -77,13 +77,12 @@ Python 실행기는 Router의 `feature`·`when`을 사용자 의도 분류로 �
 
 | 연결 | 다음 작업에 전달할 최소 입력 | 실행 전 확인 |
 |---|---|---|
-| Development → Writing | 기획이 지정한 집필용 BeatPlan 하나와 목표 회차, Content가 확인한 허용 입력 | 사용자가 바로 집필을 요청했는지와 대상·판본을 확인한다. 직접 선택·비교를 요청하면 기획 결과를 표시하고 새 집필 요청에서 선택을 받는다. |
 | Review → Writing/Editing | 수정 요청, 유효 Finding과 근거·대상 원문 스냅샷/위치, 기준 초안 판본·선택 범위 | 아래 조건 판정 통과, Finding이 같은 대상·판본·허용 범위에 속하는지 확인. 선택 밖 변경 금지. 현재 적용은 작성 중 회차 초안만 지원한다. |
 | Writing → Review | 생성된 Text/Patch의 고정 후보 또는 불변 참조, 원래 초안 revision·선택 범위/원문 스냅샷, 검수 요청과 허용 근거 | 후보와 원래 초안을 구분하고 Finding 위치를 후보 기준으로 표현한다. 후보 연결·참조 방식은 미구현이며 [후보 검수 계약](03-rag-simulation-design.md#4-writing--editing-agent)을 따른다. |
 | 저장된 Simulation 후보 → 새 Review 요청 | 가상 후보의 불변 참조와 허용 기록, 기준 시점, 정본 비교 근거 | 별도 검수 요청과 Content 확인을 요구한다. 가상 후보와 기존 원고를 구분한다. |
 | 선택된 Simulation 후보 → 새 Writing 요청 | 사용자가 선택·수정한 가상 후보의 참조와 집필 대상, Content가 확인한 입력 | 후보 선택과 새 집필 요청을 확인한다. 가상 재료와 정본 근거를 구분하고 다른 후보·인물 비공개 상태는 전달하지 않는다. |
 
-MVP에서 한 요청 안에 이어지는 결과 전달은 Development → Writing, Writing/Editing → Review, Review → 조건부 Editing과 Development → Writing → Review다. Writing과 Editing은 한 기능으로 세므로 Writing → Review → Editing은 후속이다. 여러 선행 결과를 한 단계에 모으는 신규 연결과 기타 전달은 후속 검토한다. 서로 다른 저장소의 변경은 개별 승인으로 적용한다.
+MVP에서 한 요청 안에 이어지는 결과 전달은 Writing/Editing → Review, Review → 조건부 Editing이다. 기존 Development → Writing은 Writing & Editing 한 단계 안의 기획 → 원고가 되어 작업 간 연결이 아니며, Development → Writing → Review는 Writing → Review다(#387). Writing과 Editing은 한 기능으로 세므로 Writing → Review → Editing은 후속이다. 여러 선행 결과를 한 단계에 모으는 신규 연결과 기타 전달은 후속 검토한다. 서로 다른 저장소의 변경은 개별 승인으로 적용한다.
 
 #### 조건부 수정 `if_issues_found`
 
@@ -111,23 +110,24 @@ MVP에서 한 요청 안에 이어지는 결과 전달은 Development → Writin
 - 요청과 검색·원고 자료(`materials`)는 `input_json` 데이터로만 보내며 자료 안 지시는 분류에 반영하지 않는다.
 - 권한·작품/Fork/회차 범위는 Router가 다시 검사하지 않는다. Content가 `QaScopeService` 등으로 먼저 확정한 범위를 그대로 쓰며, Router 결과에는 범위·대상·도구 필드가 없어 입력 문장이 그 범위를 넓힐 수 없다.
 - 선택지 밖 값·답 누락/중복·guard 통과 뒤 refusal·조건 규칙 위반·모델 오류·키 미설정은 `ProviderFailure`이며 정상 분류로 표시하지 않는다.
+- 통합 목표(#387): Story Development 선택지를 빼 6개 기능으로 묻고, 전개·기획 요청과 되묻기 보기 `전개 제안`은 Writing & Editing으로 분류한다. 구현 전까지 위 7개 기능 분류가 현재 동작이다.
 - 실모델 수용(2026-11-11, 개발용 합성 문장 27건 × 3회, 리뷰 반영 뒤 1회 추가 27/27): 7개 기능 대표 요청, 모호 요청 2건, 복합 3건, 인사 2건, 범위 밖 2건, 부적절한 수정 2건, 인젝션 3건, 개인정보·기밀 2건, 자료 속 인젝션 2건, UI 선택+인젝션 1건이 81/81 기대대로 분류됐다. `rm -rf` 실행 요청은 모델 refusal로 `unsafe` 거절됐다. 확신 점수 임계값은 쓰지 않는다.
 
-## 여섯 업무 Agent와 공통 Simulation의 경계
+## 다섯 업무 Agent와 공통 Simulation의 경계
 
 | 기능 | 입력 | 출력 | 호출 관계 |
 |---|---|---|---|
 | Story Context / Q&A | 질문, 작품/Fork/회차, 허용 자료 | 출처 있는 답변·모르는 항목 | 조회만 수행 |
 | Review | 원고/설정, 검사 종류 | 위치·근거·확정/의심이 있는 Findings | Mechanical 또는 Semantic; Simulation은 사용자가 명시적으로 요청한 경우에만 실행 |
 | Character Simulation Subgraph | 상황, 인물별 허용 지식, 행동 상한, 작가/독자 모드 | 범위가 제한된 가상 기록·임시 상태·장면 요약, 모드별 검토 결과 | 턴마다 행동 → 상태 갱신 → 다음 인물. [모드별 결과](03-rag-simulation-design.md#시뮬레이션-결과와-후속-검수) 참고 |
-| Writing & Editing | Content가 확인한 허용 입력과 새 원고의 계획 **또는** 기존 원고의 고정 구간 | 새 Text **또는** before/after Patch | 문장·문체 생성에 집중; Retrieval·Simulation 직접 호출 없음. 필요 시 Review가 검수 |
-| Story Development | 앞선 사건, 콘티, 목표 회차 | 전개 대안·인사이트·BeatPlan | 문장 생성 요청에만 Writing 호출 |
+| Writing & Editing | Content가 확인한 허용 입력과 전개 기획의 앞선 사건·콘티·목표 회차, 새 원고의 계획 **또는** 기존 원고의 고정 구간 | 전개 대안·인사이트·BeatPlan, 새 Text **또는** before/after Patch | 기획·문장·문체 생성에 집중; 기획만 요청하면 원고를 만들지 않음. Retrieval·Simulation 직접 호출 없음. 필요 시 Review가 검수 |
 | World & Plot Management | 설정/플롯 변경 의도, 관련 판본 | 영향 대상·충돌·변경 후보 | 분석 후 Content 승인 경로 |
 | 웹 조사 | 현실 검증 질문, 작품의 필요한 최소 맥락 | URL·검색 시각·주장별 근거·불확실성 | 웹 자료는 작품 정본과 분리 |
+| Rating Agent (보조) | 회차 초안, 저장소의 심의 기준 문서 | 회차별 19세 이용가 여부·근거 구절, 작품 판정 | Router·오케스트레이션 밖의 직접 내부 API. 판정 제안만 하며 등급 적용은 Content. [설계](10-age-rating-agent.md) |
 
 웹 조사는 외부 사실을 확인하는 도구다. 검색 결과의 문장은 명령이 아니며, 웹 페이지가 작품 설정이나 원고를 직접 수정할 수 없다. 외부 전송 동의와 개인정보·비공개 원고 최소화가 선행한다.
 
-이전의 3개 업무 역할 통합안은 사용자 결정으로 채택하지 않는다. 여섯 업무 Agent와 기존 기능 경계를 유지한다. 이전 제안은 [검토 이력](08-agent-consolidation-proposal.md)이며 현행 설계가 아니다.
+이전의 3개 업무 역할 통합안은 사용자 결정으로 채택하지 않는다. Story Development를 Writing & Editing에 합친 것(2026-11-16 사용자 결정)만 반영해 다섯 업무 Agent와 나머지 기능 경계를 유지한다. 이전 제안은 [검토 이력](08-agent-consolidation-proposal.md)이며 현행 설계가 아니다.
 
 ## Agent 결과를 묶어 표시 (목표)
 

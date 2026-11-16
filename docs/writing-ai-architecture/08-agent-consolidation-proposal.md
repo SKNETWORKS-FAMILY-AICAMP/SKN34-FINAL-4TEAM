@@ -1,6 +1,7 @@
 # 집필 AI 에이전트 구조 개편 제안
 
 **상태: 미채택 이력.** 사용자는 3개 업무 역할·공통 도구로의 개편안을 채택하지 않기로 했다(2026-11-12). 아래는 당시 검토 내용이며 현행 설계나 구현 지시가 아니다. 다중 인물 Simulation은 사용자의 명시적 실행 요청이 있을 때만 실행한다.
+이후 2026-11-16 사용자 결정으로 Story Development만 Writing & Editing에 통합했다(#387). 아래의 “전개 기획”·“Development” 서술은 당시 기준이며, 현행 경계는 [현재 구조](02-ai-architecture.md#다섯-업무-agent와-공통-simulation의-경계)를 따른다.
 
 **이전 검토 당시 상태: 검토용 제안.** 현재 여섯 업무 역할, API, Router의 operation과 구현을 바꾸거나 제거한 결정이 아니다. 통합 시에도 각 사용자 기능, 입력·출력·권한·실패 계약과 `gpt-6-luna` 목표를 보존한다. 사용자 요청에 따른 Writing의 Retrieval·Simulation 직접 호출 금지와 Content 정본·승인 경계는 변경하지 않는다. [현재 구조](02-ai-architecture.md) · [기능 계약](03-rag-simulation-design.md)
 
