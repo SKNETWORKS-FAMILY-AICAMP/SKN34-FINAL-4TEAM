@@ -22,4 +22,4 @@
 
 ## 현재 검증 기록
 
-AI 단위 9개, Content 단위 7개(JUnit 직접 실행, JVM 시작 시 Mockito agent 지정), Frontend UseCase 단위 2개 통과. Content 소스·테스트 컴파일 확인. 로컬 Windows의 C 드라이브 공간 부족으로 worktree·의존성을 D 드라이브로 이동했다. Gradle 테스트 executor 메모리·self-attach 문제로 동일 단위 테스트를 작은 단일 JVM에서 실행했다. 전체 TypeScript 검사는 384/512MiB 힙 한도로 완료하지 못했다. HTTP·DB·브로커·스토리지 통합, UI 렌더링 테스트, 실제 모델 생성은 아직 검증하지 않았다. 이 기록은 #332 전체 수용 완료를 뜻하지 않는다.
+AI 단위 12개, Content 단위 7개(Gradle `unitTest`, 로컬 JVM에 Mockito agent 지정), Frontend UseCase 단위 2개 통과. Content 최신 소스·테스트 컴파일 확인. 전체 TypeScript `--noEmit` 검사 통과. 변경 TypeScript 14개 파일의 문법 검사도 통과했다. CodeRabbit 리뷰의 내부 DTO 검증·중복 호출 테스트·화면 전환·재생성 미리보기 경합 지적을 반영했다. HTTP·DB·브로커·스토리지 통합, UI 렌더링 테스트, 실제 모델 생성은 아직 검증하지 않았다. 이 기록은 #332 전체 수용 완료를 뜻하지 않는다.

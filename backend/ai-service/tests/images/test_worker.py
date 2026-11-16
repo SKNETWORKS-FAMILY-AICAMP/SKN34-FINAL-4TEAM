@@ -1,15 +1,19 @@
+from unittest.mock import Mock
+from app.images.models import ClaimResponse
 from app.images import worker
 
 def test_duplicate_delivery_skips_paid_call(monkeypatch):
-    monkeypatch.setattr(worker, "report", lambda *a: {"claimed": False})
-    monkeypatch.setattr(worker.agent, "generate", lambda *a: (_ for _ in ()).throw(AssertionError("called")))
+    monkeypatch.setattr(worker, "report", lambda *a: ClaimResponse(claimed=False))
+    generate = Mock()
+    monkeypatch.setattr(worker.agent, "generate", generate)
     worker.execute.run("job")
+    generate.assert_not_called()
 
 def test_lost_completion_does_not_regenerate(monkeypatch):
     calls=[]
     def report(job,action,body=None):
         calls.append(action)
-        if action=="claim": return {"claimed":True,"input":{"purpose":"work_cover","prompt":"scene"}}
+        if action=="claim": return ClaimResponse.model_validate({"claimed":True,"input":{"purpose":"work_cover","prompt":"scene"}})
         if action=="complete": raise OSError("private error")
         return {}
     monkeypatch.setattr(worker,"report",report)
@@ -25,7 +29,7 @@ def test_upload_failure_is_explicit(monkeypatch):
     calls=[]
     def report(job,action,body=None):
         calls.append(action)
-        return {"claimed":True,"input":{"purpose":"work_cover","prompt":"scene"}} if action=="claim" else {}
+        return ClaimResponse.model_validate({"claimed":True,"input":{"purpose":"work_cover","prompt":"scene"}}) if action=="claim" else {}
     monkeypatch.setattr(worker,"report",report)
     monkeypatch.setattr(worker.agent,"generate",lambda _:b"image")
     monkeypatch.setattr(worker.service,"validate_image",lambda *a:None)

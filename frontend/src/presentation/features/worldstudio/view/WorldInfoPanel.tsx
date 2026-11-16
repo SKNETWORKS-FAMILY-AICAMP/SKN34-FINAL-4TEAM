@@ -65,7 +65,7 @@ export function WorldInfoPanel({ vm, world, onClose }: { vm: VM; world: StudioWo
               이미지 선택
               <input type="file" accept="image/png,image/jpeg,image/webp" disabled={!vm.supportsCover} onChange={(e) => pickCover(e.target.files?.[0])} />
             </label>
-            <AiCoverButton purpose="world_cover" worldId={world.id} onPick={pickCover} />
+            <AiCoverButton disabled={!vm.supportsCover} purpose="world_cover" worldId={world.id} onPick={pickCover} />
             {vm.supportsCover && world.hasCover && (
               <button type="button" className="btn sm" onClick={() => { if (window.confirm('표지를 삭제할까요? 자동으로 만든 표지로 돌아가요.')) void vm.setCover(null) }}>표지 삭제</button>
             )}

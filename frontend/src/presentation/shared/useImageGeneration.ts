@@ -9,13 +9,15 @@ export function useImageGeneration(input: Omit<ImageRequest,'prompt'>) {
  const [prompt,setPrompt]=useState(''), [job,setJob]=useState<ImageJob>(), [error,setError]=useState(''), [busy,setBusy]=useState(false), [preview,setPreview]=useState('')
  const file=useRef<File | undefined>(undefined)
  const controller=useRef<AbortController | undefined>(undefined)
+ const pollController=useRef<AbortController | undefined>(undefined)
  const pending=useRef<{key:string;prompt:string} | undefined>(undefined)
  const [refresh,setRefresh]=useState(0)
+ const [pollRefresh,setPollRefresh]=useState(0)
  const [restoring,setRestoring]=useState(false)
  const [unresolved,setUnresolved]=useState(false)
  const storageKey=`image-generation:${authenticatedUserId()}:${input.purpose}:${input.workId ?? input.worldId ?? 'new'}`
  useEffect(()=> {
-  setJob(undefined);setPreview('');file.current=undefined;pending.current=undefined
+  setJob(undefined);setPreview('');setBusy(false);setRestoring(false);setUnresolved(false);file.current=undefined;pending.current=undefined
   const saved=sessionStorage.getItem(storageKey)
   const abort=new AbortController()
   const key=sessionStorage.getItem(storageKey+':request')
@@ -34,7 +36,7 @@ export function useImageGeneration(input: Omit<ImageRequest,'prompt'>) {
  },[storageKey,useCase,refresh])
  useEffect(()=> {
   if(!job) return
-  const abort=new AbortController()
+  const abort=new AbortController();pollController.current=abort
   let timer:ReturnType<typeof setTimeout> | undefined
   let url=''
   async function poll() {
@@ -53,10 +55,11 @@ export function useImageGeneration(input: Omit<ImageRequest,'prompt'>) {
   }
   void poll()
   return ()=>{abort.abort();if(timer)clearTimeout(timer);if(url)URL.revokeObjectURL(url)}
- },[job?.jobId,useCase,refresh])
+ },[job?.jobId,useCase,refresh,pollRefresh])
  async function generate() {
   if(busy || restoring || unresolved) return
   controller.current?.abort();const abort=new AbortController();controller.current=abort
+  pollController.current?.abort()
   setBusy(true);setError('');setPreview('');file.current=undefined
   if(!pending.current || pending.current.prompt!==prompt) pending.current={key:crypto.randomUUID(),prompt}
   try {
@@ -64,7 +67,7 @@ export function useImageGeneration(input: Omit<ImageRequest,'prompt'>) {
    const next=await useCase.submit({...input,prompt},pending.current.key,abort.signal)
    if(abort.signal.aborted)return
    sessionStorage.setItem(storageKey,next.jobId);sessionStorage.removeItem(storageKey+':request');setJob(next);pending.current=undefined
-  } catch { if(!abort.signal.aborted)setError('접수하지 못했어요. 다시 누르면 같은 요청 키로 결과를 확인해요.') }
+  } catch { if(!abort.signal.aborted) { setError('접수하지 못했어요. 다시 누르면 같은 요청 키로 결과를 확인해요.');setPollRefresh(x=>x+1) } }
   finally { if(!abort.signal.aborted)setBusy(false) }
  }
  return {prompt,setPrompt,job,error,busy:busy||restoring||unresolved,preview,generate,retry:()=>{setError('');setRefresh(x=>x+1)},file:()=>file.current}

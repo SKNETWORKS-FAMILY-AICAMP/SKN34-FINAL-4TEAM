@@ -1,7 +1,7 @@
 """이미지 목적별 고정 규격과 내부 접수 계약."""
 from typing import Literal
 from uuid import UUID
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StrictBool, model_validator
 
 MODEL = "gpt-image-2.6-flare"
 QUALITY = "high"
@@ -24,3 +24,19 @@ class JobRequest(BaseModel):
 class JobResponse(BaseModel):
     jobId: UUID
     status: str = "queued"
+
+class ClaimResponse(BaseModel):
+    claimed: StrictBool
+    input: ImageInput | None = None
+
+    @model_validator(mode="after")
+    def claimed_input(self):
+        if self.claimed and self.input is None:
+            raise ValueError("claimed input required")
+        return self
+
+class ProgressRequest(BaseModel):
+    stage: Literal["generating", "uploading"]
+
+class CompletionRequest(BaseModel):
+    key: str

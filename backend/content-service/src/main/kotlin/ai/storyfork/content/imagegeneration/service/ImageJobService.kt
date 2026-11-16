@@ -30,7 +30,7 @@ class ImageJobService(private val jobs:ImageJobRepository,private val client:Ima
  private fun owned(id:UUID,owner:String)=locked(id).also { if(it.owner!=owner || it.status=="deleted") missing() }
  private fun input(j:ImageJob)=mapper.readValue(j.input,ImageRequest::class.java)
  private fun key(id:UUID)="image-generations/$id.png"
- private fun response(j:ImageJob)=ImageResult(j.id,j.status,j.stage,if(j.status=="succeeded") "/api/v1/image-generations/${j.id}/content" else null)
+ private fun response(j:ImageJob)=ImageResult(j.id,j.status,j.stage,if(j.status=="succeeded") "/api/v1/image-generations/${j.id}/content" else null,j.model,j.quality)
  private fun authorize(r:ImageRequest,owner:String) {
   r.workId?.let { id -> val work=access.own(id,owner)
    if(work.restricted) throw ContentFailure(403,"이 작품에서는 AI 생성을 사용할 수 없어요.")
@@ -64,7 +64,7 @@ class ImageJobService(private val jobs:ImageJobRepository,private val client:Ima
  fun read(id:UUID,owner:String)=transaction { response(owned(id,owner)) }
  fun claim(id:UUID):ImageClaim=transaction {
   val job=locked(id)
-  if(!job.claim()) ImageClaim(false) else input(job).let { ImageClaim(true,ImageInput(it.purpose,it.prompt)) }
+  if(!job.claim()) ImageClaim(false) else input(job).let { ImageClaim(true,ImageInput(it.purpose,it.prompt,job.model,job.quality,job.templateVersion)) }
  }
  fun progress(id:UUID,stage:String)=transaction {
   val job=locked(id)
