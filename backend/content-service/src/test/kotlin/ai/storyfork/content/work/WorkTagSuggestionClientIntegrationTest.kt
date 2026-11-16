@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.web.client.RestClient
 
 /** #372 추천 클라이언트의 경로·내부 토큰·실패 코드 변환을 loopback HTTP 대역으로 확인한다. */
-class WorkTagSuggestionClientTest {
+class WorkTagSuggestionClientIntegrationTest {
     private val input = WorkTagSuggestionInput("work-tags.v1", "제목", "소개", listOf(WorkTagEpisode(1, "1화", "본문")), listOf("고전"), 2, 10)
 
     private fun <T> server(status: Int, body: String, run: (WorkTagSuggestionClient, MutableList<String>) -> T): T {
