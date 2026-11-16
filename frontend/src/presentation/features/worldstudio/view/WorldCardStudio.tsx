@@ -8,6 +8,7 @@ import { revealEpisodeInput } from '../../../../domain/entities/worldStudioWriti
 import { BackChev, ComposeIcon, MoreVerticalIcon } from '../../../shared/icons'
 import { LazyMarkdownEditor } from '../../../shared/LazyMarkdownEditor'
 import { PopMenu } from '../../../shared/PopMenu'
+import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { ResizeSeparator } from '../../studio/view/ResizeSeparator'
 import { VersionGraph } from '../../studio/view/VersionGraph'
 import '../../studio/view/writing.css'
@@ -34,7 +35,7 @@ const BODY_MAX = 3000
  * 설정 카드 편집 화면(주소 `?card=<id>`): 집필실(`WritingStudio`)과 같은 3단 인터페이스다. 집필실의 클래스·`VersionGraph`·`ResizeSeparator`·`PopMenu`·AI 채팅 레일을 그대로 쓰고 세계관 전용 스타일은 최소다.
  * - 왼쪽 레일: 설정 카드 목록(검색·분류 필터, 지금 카드 강조, 눌러서 다른 카드로, `+ 새 설정`, 항목 ⋮ 메뉴의 삭제) → 크기 조절선 → 버전 그래프(작업 초안 + 확정 버전, 확정 버전을 누르면 읽기 전용 시트).
  *   확정 버전 목록·시트는 설정집 화면의 `확정 버전 남기기`와 같은 것이라 페이지가 갖고 `revisions`·`openVersions`로 넘긴다.
- * - 가운데: 큰 이름 입력 · 유형 · 설명(마크다운 편집기 `MarkdownEditor`: Toast UI Editor, 쓰기·미리보기 탭, 편집 화면에서만 `React.lazy`로 늦게 불러온다) 등 기존 필드 · 한 줄 하단 바(글자 수·저장 상태·카드 삭제). 위 상단 바에는 `← 설정집`과 상시 저장 영역이 있다.
+ * - 가운데: 큰 이름 입력 · 유형 · 설명(마크다운 편집기 `MarkdownEditor`: Toast UI Editor, 쓰기·미리보기 탭, 편집 화면에서만 `React.lazy`로 늦게 불러온다) 등 기존 필드 · 한 줄 하단 바(글자 수·저장 상태·카드 삭제). 위 상단 바에는 `← 설정집`과 상시 저장 영역, 그 옆 끝에 테마 전환 버튼이 있다(집필실처럼 떠 있는 테마 버튼은 GlobalChrome이 이 화면에서 뺀다).
  *   설명은 마크다운 문자열 그대로 저장한다(`## 제목`이 공개 카드 페이지의 문단·목차가 된다). 편집기는 글자 수 제한이 없어 3000자를 넘으면 글자 수가 경고로 바뀌고 저장은 기존 검증이 막는다.
  *   글자 수 줄은 입력마다 바뀌므로 라이브 영역에 두지 않고, 3000자를 넘는 순간만 따로 둔 상태 문구로 한 번 알린다.
  *   저장 중에는 편집기를 `inert`로 잠가(글자 입력은 `fieldset disabled`가 닿지 않는다) 그사이 입력이 초안과 어긋나지 않게 한다. 편집기는 처음 값만 읽으므로 `key`로 카드마다(인물 카드는 문서마다) 다시 만든다.
@@ -101,7 +102,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
           <button type="button" className="back rback" onClick={vm.closeCard}><BackChev />설정집</button>
           <h1 className="t">설정 편집</h1>
         </div>
-        <div className="writing-bar writing-bar-end"><WorldSaveBar vm={vm} /></div>
+        <div className="writing-bar writing-bar-end"><WorldSaveBar vm={vm} /><ThemeButton className="btn sm" /></div>
       </header>
       {vm.error && <p role="alert" className="ep-alert">{vm.error}</p>}
       {vm.message && <p role="status" className="writing-message">{vm.message}</p>}
