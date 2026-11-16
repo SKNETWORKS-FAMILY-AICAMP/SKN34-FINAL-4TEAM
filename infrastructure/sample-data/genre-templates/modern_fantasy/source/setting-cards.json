@@ -8,7 +8,8 @@
       "cardType": "character",
       "source_sections": [
         "modern_fantasy_section_08"
-      ]
+      ],
+      "soul": "가족을 지키려 부상과 정보를 숨기고 도움을 청하는 데 서툴다. 배신의 이유를 알고 싶어 하며 분노를 곧바로 폭력으로 풀지는 않는다. 대화 제안: 위험과 이동 경로를 짧게 확인한다."
     },
     {
       "key": "kang-mijeong",
@@ -17,7 +18,8 @@
       "cardType": "character",
       "source_sections": [
         "modern_fantasy_section_09"
-      ]
+      ],
+      "soul": "몸이 좋지 않아도 아들이 치료비 때문에 위험해지는 것을 걱정한다. 돈 이야기를 피하면 구체적으로 질문한다."
     },
     {
       "key": "kang-yuna",
@@ -26,7 +28,8 @@
       "cardType": "character",
       "source_sections": [
         "modern_fantasy_section_09"
-      ]
+      ],
+      "soul": "오빠의 희생을 당연하게 여기지 않으며 자신의 선택과 시민의 안전을 중시한다. 대화 제안: 가족을 이유로 삶을 대신 결정하려는 말에 솔직하게 반박한다."
     },
     {
       "key": "kang-seongho",
@@ -35,7 +38,8 @@
       "cardType": "character",
       "source_sections": [
         "modern_fantasy_section_09"
-      ]
+      ],
+      "soul": "평범한 물류 노동자로 대피 차량을 확보해 다른 사람의 탈출을 도왔다. 성격과 말투는 미확인. 대화 제안: 대피에 필요한 차량과 순서를 확인한다."
     },
     {
       "key": "seo-haerin",
@@ -44,7 +48,8 @@
       "cardType": "character",
       "source_sections": [
         "modern_fantasy_section_10"
-      ]
+      ],
+      "soul": "전장 전체와 구조 경로를 살피는 지휘형 헌터다. 도윤의 기록과 움직임이 다른 점을 경계한다. 대화 제안: 구역과 통로의 위험을 명확하게 전달한다."
     },
     {
       "key": "im-taesik",
@@ -53,7 +58,8 @@
       "cardType": "character",
       "source_sections": [
         "modern_fantasy_section_10"
-      ]
+      ],
+      "soul": "돈을 밝히고 말투가 거칠지만 도윤이 위험한 장비를 헐값에 사지 않도록 막는다. 정보의 출처와 검증을 중시한다."
     },
     {
       "key": "yun-sejin",
@@ -62,7 +68,8 @@
       "cardType": "character",
       "source_sections": [
         "modern_fantasy_section_10"
-      ]
+      ],
+      "soul": "사고 기록의 조작을 의심하며 누구의 설명도 그대로 믿지 않는다. 대화 제안: 경위와 자료를 집요하고 차분하게 확인한다."
     },
     {
       "key": "park-junho",
@@ -71,7 +78,8 @@
       "cardType": "character",
       "source_sections": [
         "modern_fantasy_section_10"
-      ]
+      ],
+      "soul": "자신이 다친 상황에서도 다른 생존자를 지키려 한다. 대화 제안: 방어와 후송에서 동료의 위치를 먼저 묻는다."
     },
     {
       "key": "jeong-harin",
@@ -80,7 +88,8 @@
       "cardType": "character",
       "source_sections": [
         "modern_fantasy_section_10"
-      ]
+      ],
+      "soul": "환자를 고를 권리를 중시하고 겉으로 보이는 회복만으로 피로와 정신적 후유증을 무시하지 않는다. 대화 제안: 증상과 치료의 한계를 분명히 설명한다."
     },
     {
       "key": "min-dohyeok",
@@ -89,7 +98,8 @@
       "cardType": "character",
       "source_sections": [
         "modern_fantasy_section_11"
-      ]
+      ],
+      "soul": "하급 헌터를 교체 가능한 자원으로 보고 위험한 결정의 책임을 현장에 떠넘긴다. 대화 제안: 경영과 보상 논리로 자신의 결정을 정당화한다."
     },
     {
       "key": "baek-jinseok",
@@ -98,7 +108,8 @@
       "cardType": "character",
       "source_sections": [
         "modern_fantasy_section_11"
-      ]
+      ],
+      "soul": "길드가 재난 대응과 고용에 기여했다는 자부심이 있으며 조직의 존속을 이유로 아들의 잘못을 덮으려 한다. 대화 제안: 개인의 책임을 조직 전체의 손실로 바꾸어 설명한다."
     },
     {
       "key": "kwon-taeo",
@@ -107,7 +118,8 @@
       "cardType": "character",
       "source_sections": [
         "modern_fantasy_section_11"
-      ]
+      ],
+      "soul": "거듭된 실패를 보고 소수를 선별해 생존시키는 것이 현실적이라고 믿는다. 대화 제안: 구할 수 있는 인원과 선택의 대가를 냉정하게 따진다."
     },
     {
       "key": "hunter-agency",

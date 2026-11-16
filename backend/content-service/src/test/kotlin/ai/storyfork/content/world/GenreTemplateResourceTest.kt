@@ -17,11 +17,14 @@ class GenreTemplateResourceTest {
     private val templates = seeder.load()
     private val cards = templates.flatMap { it.cards }
 
-    @Test fun `twenty six templates with 1254 cards in the documented order`() {
+    @Test fun `thirty three templates with 1412 cards and 405 souls in documented order`() {
         assertEquals(listOf("wuxia", "romance_fantasy", "modern_fantasy", "science_fiction", "alternate_history", "game_fantasy",
             "fusion_fantasy", "territory_management", "apocalypse", "sports_fantasy", "entertainment",
-            "sumerian_mythology", "cthulhu_mythos", "norse_mythology", "greco_roman_mythology", "germanic_folklore", "chinese_folklore", "japanese_mythology", "korean_mythology_fables", "egyptian_mythology", "indian_mythology", "celtic_mythology", "slavic_mythology", "maya_mythology", "aztec_mythology", "journey_to_the_west"), templates.map { it.genre })
-        assertEquals(1254, cards.size)
+            "sumerian_mythology", "cthulhu_mythos", "norse_mythology", "greco_roman_mythology", "germanic_folklore", "chinese_folklore", "japanese_mythology", "korean_mythology_fables", "egyptian_mythology", "indian_mythology", "celtic_mythology", "slavic_mythology", "maya_mythology", "aztec_mythology", "journey_to_the_west", "korea_history", "china_history", "japan_history", "england_history", "france_history", "italy_history", "usa_history"), templates.map { it.genre })
+        assertEquals(1412, cards.size)
+        assertEquals(405, cards.count { it.cardType == "character" })
+        assertTrue(cards.all { if (it.cardType == "character") !it.soul.isNullOrBlank() && it.soul.length <= 3000 else it.soul == null })
+        assertEquals(seeder.loadV2(), templates.take(26).map { t -> t.copy(cards = t.cards.map { it.copy(soul = null) }) })
     }
 
     @Test fun `only the original eleven worlds have a frozen legacy input`() {

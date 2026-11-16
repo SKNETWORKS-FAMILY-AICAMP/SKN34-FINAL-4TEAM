@@ -9,6 +9,8 @@ import ai.storyfork.content.world.studio.repository.*
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.GenreTemplateRepair
 import ai.storyfork.content.world.service.GenreTemplateSeeder
+import ai.storyfork.content.world.service.GenreTemplate
+import ai.storyfork.content.world.service.GenreTemplateCard
 import ai.storyfork.content.world.service.dto.*
 import java.util.Optional
 import java.util.UUID
@@ -48,6 +50,94 @@ class WorldStudioServiceTest {
         `when`(drafts.findById(world)).thenReturn(Optional.of(draft))
         `when`(states.findById(world)).thenReturn(if(marker) Optional.of(state) else Optional.empty())
         `when`(graph.read(world)).thenAnswer { RelationshipStateResult(world,state.graphVersion,state.requestKey,state.requestHash,emptyList()) }
+    }
+    @Test fun `soul repair persists through real edit and save after graph interruption`() {
+        val owner = GenreTemplateSeeder.TEMPLATE_OWNER
+        val oldCard = GenreTemplateCard(UUID.randomUUID(), "이전 카드", "이전 본문", "other")
+        val character = GenreTemplateCard(UUID.randomUUID(), "인물", "인물의 정체성", "character")
+        val setting = GenreTemplateCard(UUID.randomUUID(), "장소", "장소의 본문", "location")
+        val legacy = GenreTemplate("test", world, "세계", "설명", listOf(oldCard))
+        val baseline = legacy.copy(cards = listOf(character, setting))
+        val target = baseline.copy(cards = listOf(character.copy(soul = "차분하게 말한다"), setting))
+        val previousId = UUID.randomUUID()
+        val baselineId = UUID.randomUUID()
+        val studioWorld = StudioWorld(world, owner, baselineId)
+        draft.name = baseline.name; draft.description = baseline.description
+        draft.draftRevision = 4; draft.baseWorldRevisionId = baselineId
+        state.graphVersion = 2; state.completed = true
+        val oldPayload = CardPayload(oldCard.id, oldCard.title, oldCard.body, oldCard.cardType, "basic", visibility = "public")
+        val baselinePayload = GenreTemplateRepair.payloads(baseline) + oldPayload.copy(lifecycle = "removed")
+        fun fields(card: CardPayload) = CardFields(card.title, card.body, card.cardType, card.areaCode, card.classification,
+            card.aliases, card.tags, card.semanticMetadata, card.visibility, card.lifecycle)
+        val stored = baselinePayload.associate { it.id to SettingCardDraft(it.id, world, fields(it)) }.toMutableMap()
+        val first = WorldRevision(previousId, world, 1, legacy.name, legacy.description, sealed = true)
+        val second = WorldRevision(baselineId, world, 2, baseline.name, baseline.description, previousId, sealed = true)
+        val storedRevisions = mutableMapOf(previousId to first, baselineId to second)
+        val firstVersions = listOf(SettingCardVersion(cardId = oldCard.id, worldId = world, versionNo = 1, fields = fields(oldPayload)))
+        val secondVersions = baselinePayload.map { SettingCardVersion(cardId = it.id, worldId = world,
+            versionNo = if (it.id == oldCard.id) 2 else 1, fields = fields(it)) }
+        val storedVersions = (firstVersions + secondVersions).associateBy { it.id }.toMutableMap()
+        val manifests = mutableMapOf(
+            previousId to firstVersions.map { WorldRevisionCard(RevisionCardKey(previousId, it.cardId), world, it.id) },
+            baselineId to secondVersions.map { WorldRevisionCard(RevisionCardKey(baselineId, it.cardId), world, it.id) },
+        )
+        `when`(worlds.lockOwned(world, owner)).thenReturn(studioWorld)
+        `when`(drafts.findById(world)).thenReturn(Optional.of(draft))
+        `when`(states.findById(world)).thenReturn(Optional.of(state))
+        `when`(cardDrafts.findAllByWorldId(world)).thenAnswer { stored.values.toList() }
+        `when`(cardDrafts.findById(anyUUID())).thenAnswer { Optional.ofNullable(stored[it.arguments[0] as UUID]) }
+        `when`(cardDrafts.save(any())).thenAnswer { (it.arguments[0] as SettingCardDraft).also { value -> stored[value.cardId] = value } }
+        `when`(cards.findById(anyUUID())).thenAnswer { Optional.of(SettingCard(it.arguments[0] as UUID, world)) }
+        `when`(revisions.findByIdAndWorldId(anyUUID(), anyUUID())).thenAnswer { storedRevisions[it.arguments[0] as UUID] }
+        `when`(revisions.findFirstByWorldIdOrderByRevisionNoDesc(world)).thenReturn(second)
+        `when`(revisions.saveAndFlush(any())).thenAnswer { (it.arguments[0] as WorldRevision).also { value -> storedRevisions[value.id] = value } }
+        `when`(cardVersions.findAllById(any<Iterable<UUID>>())).thenAnswer { (it.arguments[0] as Iterable<UUID>).map { id -> storedVersions.getValue(id) } }
+        `when`(cardVersions.versionNumbers(world)).thenReturn(listOf(arrayOf(oldCard.id, 2L), arrayOf(character.id, 1L), arrayOf(setting.id, 1L)))
+        `when`(cardVersions.saveAll(any<Iterable<SettingCardVersion>>())).thenAnswer {
+            (it.arguments[0] as Iterable<SettingCardVersion>).toList().also { values -> values.forEach { value -> storedVersions[value.id] = value } }
+        }
+        `when`(revisionCards.findAllByIdRevisionId(anyUUID())).thenAnswer { manifests[it.arguments[0] as UUID].orEmpty() }
+        `when`(revisionCards.saveAll(any<Iterable<WorldRevisionCard>>())).thenAnswer {
+            (it.arguments[0] as Iterable<WorldRevisionCard>).toList().also { values -> manifests[values.first().id.revisionId] = values }
+        }
+        var graphVersion = 2L
+        var interrupted = true
+        `when`(graph.read(world)).thenAnswer { RelationshipStateResult(world, graphVersion, state.requestKey, state.requestHash, emptyList()) }
+        doAnswer {
+            if (interrupted) { interrupted = false; throw WorldStudioFailure.unavailable() }
+            graphVersion = 3
+            RelationshipStateResult(world, graphVersion, it.arguments[2] as String, it.arguments[3] as String, emptyList())
+        }.`when`(graph).replace(anyUUID(), anyLong(), anyString(), anyString(), anyList(), anyEpisode())
+        val repair = GenreTemplateRepair(service)
+        assertThrows(WorldStudioFailure::class.java) { repair.repairSoul(legacy, baseline, target) }
+        assertFalse(state.completed)
+        assertEquals(4L, draft.draftRevision)
+        assertEquals(baselineId, studioWorld.currentRevisionId)
+        assertEquals(baselinePayload.toSet(), service.revision(world, owner, baselineId).cards.map { it.card }.toSet())
+        val pendingHash = state.requestHash
+        repair.repairSoul(legacy, baseline, target)
+        assertTrue(state.completed)
+        assertEquals(pendingHash, state.requestHash)
+        val result = service.draft(world, owner)
+        val saved = service.revision(world, owner, studioWorld.currentRevisionId!!)
+        val expectedDocs = mapOf("soul" to "차분하게 말한다", "goal" to "", "episodes" to emptyMap<String, String>())
+        assertEquals(6L, result.draftRevision)
+        assertEquals(3L, saved.revisionNo)
+        assertEquals(baselineId, saved.parentRevisionId)
+        assertEquals(result.cards.toSet(), saved.cards.map { it.card }.toSet())
+        assertEquals((GenreTemplateRepair.soulPayloads(target) + oldPayload.copy(lifecycle = "removed")).toSet(), result.cards.toSet())
+        assertEquals(setOf(character.id, setting.id, oldCard.id), result.cards.map { it.id }.toSet())
+        assertEquals(2L, saved.cards.single { it.card.id == character.id }.versionNo)
+        assertEquals(3L, saved.cards.single { it.card.id == oldCard.id }.versionNo)
+        assertEquals(expectedDocs, result.cards.single { it.id == character.id }.semanticMetadata["characterDocs"])
+        assertEquals(expectedDocs, saved.cards.single { it.card.id == character.id }.card.semanticMetadata["characterDocs"])
+        assertEquals(character.body, result.cards.single { it.id == character.id }.body)
+        assertEquals(oldPayload.copy(lifecycle = "removed"), result.cards.single { it.id == oldCard.id })
+        assertEquals(oldPayload.copy(lifecycle = "removed"), saved.cards.single { it.card.id == oldCard.id }.card)
+        assertEquals(oldPayload, service.revision(world, owner, previousId).cards.single().card)
+        assertEquals(baselinePayload.toSet(), service.revision(world, owner, baselineId).cards.map { it.card }.toSet())
+        repair.repairSoul(legacy, baseline, target)
+        verify(graph, times(2)).replace(anyUUID(), anyLong(), anyString(), anyString(), anyList(), anyEpisode())
     }
     @Test fun `template repair replaces old active cards while retaining their history and retrying`() {
         val seeder = GenreTemplateSeeder(mock(WorldStudioService::class.java), mapper)

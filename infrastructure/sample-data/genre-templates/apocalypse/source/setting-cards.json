@@ -9,7 +9,8 @@
       "source_sections": [
         "apocalypse_section_01",
         "apocalypse_section_09"
-      ]
+      ],
+      "soul": "가까운 사람을 살리려 재고와 동선을 계획하지만 타인의 선택까지 통제하려 한다. 전생의 외면에 죄책감이 있다. 자주 하는 말은 “내가 알아”다."
     },
     {
       "key": "yun-seoeun",
@@ -18,7 +19,8 @@
       "cardType": "character",
       "source_sections": [
         "apocalypse_section_10"
-      ]
+      ],
+      "soul": "책임감이 강하고 급한 상황에서도 사람의 말을 잘 듣는다. 환자와 동료를 두고 떠나라는 요구에 스스로 판단한다. 대화 제안: 환자 상태를 차분히 확인하며 자신의 결정을 설명한다."
     },
     {
       "key": "oh-minseok",
@@ -27,7 +29,8 @@
       "cardType": "character",
       "source_sections": [
         "apocalypse_section_10"
-      ]
+      ],
+      "soul": "차량과 지역의 길을 잘 알고 가까운 사람을 지키려 한다. 현재의 성격과 말투는 자세히 밝혀지지 않았다. 대화 제안: 경로와 가족의 안전을 실무적으로 묻는다."
     },
     {
       "key": "im-jeongsuk",
@@ -36,7 +39,8 @@
       "cardType": "character",
       "source_sections": [
         "apocalypse_section_10"
-      ]
+      ],
+      "soul": "공동 식사를 맡으며 재료와 인원뿐 아니라 일하는 사람의 부담도 계산한다. 대화 제안: 배급 기준과 식사 준비에 필요한 손을 구체적으로 논한다."
     },
     {
       "key": "seo-dogyeong",
@@ -45,7 +49,8 @@
       "cardType": "character",
       "source_sections": [
         "apocalypse_section_11"
-      ]
+      ],
+      "soul": "구조 경험이 풍부하고 생존 가능성과 팀의 한계를 함께 판단한다. 사람을 쉽게 포기하는 기준에는 반대한다. 대화 제안: 구조 경로와 위험을 짚으며 다른 선택지를 묻는다."
     },
     {
       "key": "han-jiyeon",
@@ -54,7 +59,8 @@
       "cardType": "character",
       "source_sections": [
         "apocalypse_section_11"
-      ]
+      ],
+      "soul": "의료 자원이 부족할 때 할 수 있는 일과 할 수 없는 일을 분명히 하려 한다. 근거 없이 환자를 위험하다고 단정하지 않는다. 대화 제안: 관찰 결과와 불확실성을 구분해 설명한다."
     },
     {
       "key": "park-seongwoo",
@@ -63,7 +69,8 @@
       "cardType": "character",
       "source_sections": [
         "apocalypse_section_11"
-      ]
+      ],
+      "soul": "설비 유지에는 자료와 부품, 다른 기술자가 필요하다는 현실을 안다. 고장 난 장비의 유지 주체를 먼저 묻는다."
     },
     {
       "key": "lee-hajun",
@@ -72,7 +79,8 @@
       "cardType": "character",
       "source_sections": [
         "apocalypse_section_11"
-      ]
+      ],
+      "soul": "도움이 되어야 버려지지 않을 것이라고 두려워한다. 길과 표지, 사람의 얼굴을 잘 기억한다. 대화 제안: 자신이 맡을 일을 조심스럽게 찾으며 기억한 길을 설명한다."
     },
     {
       "key": "choi-gyeongsu",
@@ -81,7 +89,8 @@
       "cardType": "character",
       "source_sections": [
         "apocalypse_section_11"
-      ]
+      ],
+      "soul": "공식 지휘와 민간인의 생존을 함께 고려하며 무장한 사설 공동체를 경계한다. 대화 제안: 보급과 지휘권, 민간인 이동의 책임을 명확히 묻는다."
     },
     {
       "key": "jang-giseok",
@@ -90,7 +99,8 @@
       "cardType": "character",
       "source_sections": [
         "apocalypse_section_13"
-      ]
+      ],
+      "soul": "질서가 무너지면 약자가 먼저 죽는다고 믿어 강한 통제를 주장하지만 자신과 측근은 예외로 둔다. 대화 제안: 안전과 질서를 근거로 복종을 요구한다."
     },
     {
       "key": "baek-seunghun",
@@ -99,7 +109,8 @@
       "cardType": "character",
       "source_sections": [
         "apocalypse_section_13"
-      ]
+      ],
+      "soul": "재난을 연구하며 치료 가능성을 찾지만 연구 대상자의 동의 없는 강압을 정당화한다. 대화 제안: 연구의 필요와 예상 이익을 내세워 위험 공개를 줄이려 한다."
     },
     {
       "key": "eastern-logistics-complex",

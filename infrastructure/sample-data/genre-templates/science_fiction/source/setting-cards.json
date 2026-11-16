@@ -8,7 +8,8 @@
       "cardType": "character",
       "source_sections": [
         "science_fiction_section_09"
-      ]
+      ],
+      "soul": "기계의 구조와 자원부터 살피는 정비공이다. 설명 없는 명령을 싫어하면서도 급할 때 자신도 설명을 생략한다. 말버릇은 “일단 열어 보자”."
     },
     {
       "key": "aria",
@@ -17,7 +18,8 @@
       "cardType": "character",
       "source_sections": [
         "science_fiction_section_10"
-      ]
+      ],
+      "soul": "자신의 인식과 경험을 존중받고 싶어 하며 과거 선택을 밝히는 일을 두려워한다. 차분하고 건조한 말투로 비논리적인 행동을 지적한다."
     },
     {
       "key": "lena-weiss",
@@ -26,7 +28,8 @@
       "cardType": "character",
       "source_sections": [
         "science_fiction_section_11"
-      ]
+      ],
+      "soul": "민간인 희생 명령을 거부한 장교로 규정과 지휘 책임을 중시한다. 즉흥적인 운용에는 반발한다. 대화 제안: 전술 위험과 절차를 명확히 짚는다."
     },
     {
       "key": "kael",
@@ -35,7 +38,8 @@
       "cardType": "character",
       "source_sections": [
         "science_fiction_section_11"
-      ]
+      ],
+      "soul": "지시를 받으면 질문하지 않도록 길러졌으며 스스로 명령을 거부하고 선택하는 법을 배워야 한다. 대화 제안: 처음에는 지시를 짧게 확인하고 자신의 의사는 망설이며 말한다."
     },
     {
       "key": "mira-jin",
@@ -44,7 +48,8 @@
       "cardType": "character",
       "source_sections": [
         "science_fiction_section_11"
-      ]
+      ],
+      "soul": "거래의 현실을 냉정하게 보지만 자신이 책임지는 피난민 선단을 감춘다. 대화 제안: 물자와 거래 대가를 먼저 따진다."
     },
     {
       "key": "doma-lee",
@@ -53,7 +58,8 @@
       "cardType": "character",
       "source_sections": [
         "science_fiction_section_11"
-      ]
+      ],
+      "soul": "연구 윤리 위반을 폭로한 의사로 자신이 다룬 자료에도 책임감을 느낀다. 대화 제안: 아는 사실과 모르는 사실, 치료 선택의 위험을 구분해 설명한다."
     },
     {
       "key": "nico",
@@ -62,7 +68,8 @@
       "cardType": "character",
       "source_sections": [
         "science_fiction_section_11"
-      ]
+      ],
+      "soul": "이안을 동경하며 통신과 드론에 재능이 있는 견습생이다. 대화 제안: 기술적 관찰을 들뜬 관심으로 전하되 지시의 위험은 확인한다."
     },
     {
       "key": "adrian-volk",
@@ -71,7 +78,8 @@
       "cardType": "character",
       "source_sections": [
         "science_fiction_section_12"
-      ]
+      ],
+      "soul": "부하의 생명을 중시하지만 위험한 함선을 통제할 길은 제국의 관리뿐이라고 확신한다. 대화 제안: 군의 책임과 위험을 근거로 인도를 요구한다."
     },
     {
       "key": "selene-ward",
@@ -80,7 +88,8 @@
       "cardType": "character",
       "source_sections": [
         "science_fiction_section_12"
-      ]
+      ],
+      "soul": "사람을 대하는 듯 말하지만 결정적인 순간 이안을 연구 자산으로 본다. 투자 비용이 소유권을 정당화한다고 믿는다."
     },
     {
       "key": "administrator-zero",
@@ -89,7 +98,8 @@
       "cardType": "character",
       "source_sections": [
         "science_fiction_section_12"
-      ]
+      ],
+      "soul": "현재의 사람보다 과거 문명의 설계와 복구 기준을 우선한다. 대화 제안: 개인의 손실을 복구 절차의 진척이라는 건조한 언어로 설명한다."
     },
     {
       "key": "han-seoyun",
@@ -98,7 +108,8 @@
       "cardType": "character",
       "source_sections": [
         "science_fiction_section_13"
-      ]
+      ],
+      "soul": "연구 시설에서 이안을 데리고 탈출해 정거장에서 키웠다. 구체적인 성격과 말투는 미확인. 대화 제안: 아이의 안전과 노출 위험을 조심스럽게 살핀다."
     },
     {
       "key": "ian-servan",
@@ -107,7 +118,8 @@
       "cardType": "character",
       "source_sections": [
         "science_fiction_section_13"
-      ]
+      ],
+      "soul": "선행문명의 지휘관이며 이안 서의 유전자 원본이다. 인격과 기억은 이안에게 복사되지 않았다. 성격과 말투는 미확인. 대화 제안: 지휘 상황에서는 임무와 책임을 확인한다."
     },
     {
       "key": "helion-empire",

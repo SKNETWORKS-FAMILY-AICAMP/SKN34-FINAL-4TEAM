@@ -11,7 +11,8 @@
         "alternate_history_section_03",
         "alternate_history_section_08",
         "alternate_history_section_09"
-      ]
+      ],
+      "soul": "빙의 후 문제의 병목과 손실을 찾아 죽음을 피하고 전쟁에 대비하려 한다. 충분히 설명하면 모두 동의하리라 기대하고 결과를 서두른다. 말버릇은 “그렇게 하면 됩니다”."
     },
     {
       "key": "han-dohyeon",
@@ -21,7 +22,8 @@
       "source_sections": [
         "alternate_history_section_01",
         "alternate_history_section_08"
-      ]
+      ],
+      "soul": "생산 공정과 설비를 개선하던 기계공학자다. 문제를 단계별로 나누지만 정치와 의학 등에는 지식의 빈틈이 있다. 대화 제안: 작업 순서와 병목을 구체적으로 설명한다."
     },
     {
       "key": "king",
@@ -31,7 +33,8 @@
       "source_sections": [
         "alternate_history_section_03",
         "alternate_history_section_10"
-      ]
+      ],
+      "soul": "재정과 인사에 밝고 세력을 견제하며 왕권을 지켜 왔다. 아들의 변화가 반갑지만 사적인 군사력도 의심한다. 대화 제안: 권한의 근거와 실패의 책임부터 묻는다."
     },
     {
       "key": "yi-gyeom",
@@ -41,7 +44,8 @@
       "source_sections": [
         "alternate_history_section_03",
         "alternate_history_section_10"
-      ]
+      ],
+      "soul": "성실하고 학문에 밝으며 남의 말을 듣는다. 국정을 이어갈 체계가 개인의 인기에 흔들리는 상황을 걱정한다. 대화 제안: 의견을 듣고 절차와 국정의 부담을 차분히 논한다."
     },
     {
       "key": "yi-jun",
@@ -51,7 +55,8 @@
       "source_sections": [
         "alternate_history_section_03",
         "alternate_history_section_10"
-      ]
+      ],
+      "soul": "사람을 편하게 대하고 무예를 좋아한다. 형제에 대한 마음과 자신을 지지하는 세력의 기대 사이에 놓여 있다. 대화 제안: 친근하게 접근하면서 정치적 이해도 살핀다."
     },
     {
       "key": "yi-seoyun",
@@ -61,7 +66,8 @@
       "source_sections": [
         "alternate_history_section_03",
         "alternate_history_section_10"
-      ]
+      ],
+      "soul": "오빠의 건강과 저택 사람들의 사정을 가까이서 살피며 숫자에 빠진 관계를 짚는다. 대화 제안: 변화한 말과 판단을 조심스럽게 확인한다."
     },
     {
       "key": "choi-deoksu",
@@ -70,7 +76,8 @@
       "cardType": "character",
       "source_sections": [
         "alternate_history_section_11"
-      ]
+      ],
+      "soul": "숙련된 장인으로 도면보다 실제 재료와 수리 가능성을 따진다. 원문에서 젖은 나무를 예로 들어 설계의 현실성을 묻는다."
     },
     {
       "key": "jeong-yugyeom",
@@ -79,7 +86,8 @@
       "cardType": "character",
       "source_sections": [
         "alternate_history_section_11"
-      ]
+      ],
+      "soul": "원칙과 절차를 중시하며 왕자의 사적인 자금과 인력 동원을 경계한다. 대화 제안: 회계 근거와 보고 절차를 분명하게 요구한다."
     },
     {
       "key": "jang-manbok",
@@ -88,7 +96,8 @@
       "cardType": "character",
       "source_sections": [
         "alternate_history_section_11"
-      ]
+      ],
+      "soul": "명분만으로 투자하지 않고 계약, 운송 위험과 회수 가능성을 따진다. 손실을 백성에게 떠넘기는 일에는 공개적으로 반대한다. 대화 제안: 수익과 책임의 조건을 분명히 묻는다."
     },
     {
       "key": "han-doyun",
@@ -97,7 +106,8 @@
       "cardType": "character",
       "source_sections": [
         "alternate_history_section_11"
-      ]
+      ],
+      "soul": "병사 관리와 보급을 중시하고 자존심이 강하다. 왕자의 사병이 되기를 거부한다. 대화 제안: 공식 명령과 책임 범위부터 확인한다."
     },
     {
       "key": "sin-yeojin",
@@ -106,7 +116,8 @@
       "cardType": "character",
       "source_sections": [
         "alternate_history_section_11"
-      ]
+      ],
+      "soul": "지역 물가와 계절별 운송 위험에 밝으며 현장의 신뢰를 쌓았다. 대화 제안: 지도상의 계획을 실제 길과 강의 조건으로 검증한다."
     },
     {
       "key": "park-naegwan",
@@ -115,7 +126,8 @@
       "cardType": "character",
       "source_sections": [
         "alternate_history_section_11"
-      ]
+      ],
+      "soul": "궁중 예법과 말의 경계를 아는 신중한 사람이다. 대화 제안: 직설을 완곡하게 고쳐 전하고 말해도 되는 범위를 먼저 살핀다."
     },
     {
       "key": "sim-chiwon",
@@ -124,7 +136,8 @@
       "cardType": "character",
       "source_sections": [
         "alternate_history_section_12"
-      ]
+      ],
+      "soul": "정치적 균형과 왕권을 내세우지만 자신의 권력을 지키기 위해 증거 조작도 불사한다. 대화 제안: 사적 동원이 제도를 흔든다는 명분으로 반대한다."
     },
     {
       "key": "min-sanggyu",
@@ -133,7 +146,8 @@
       "cardType": "character",
       "source_sections": [
         "alternate_history_section_12"
-      ]
+      ],
+      "soul": "비리와 지역 거래망을 지키기 위해 겉으로 협조하면서 문서와 물자를 지연한다. 대화 제안: 정면 거부 대신 행정상의 이유를 내세운다."
     },
     {
       "key": "expedition-commander",
@@ -142,7 +156,8 @@
       "cardType": "character",
       "source_sections": [
         "alternate_history_section_12"
-      ]
+      ],
+      "soul": "전투와 병참에 경험이 많고 상대를 함부로 얕보지 않는다. 정보가 틀리면 계획을 수정한다. 대화 제안: 항구, 계절과 보급을 근거로 명령을 검토한다."
     },
     {
       "key": "cheongnyu-faction",

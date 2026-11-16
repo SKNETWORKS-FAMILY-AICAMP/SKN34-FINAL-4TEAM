@@ -19,8 +19,7 @@ import tools.jackson.databind.json.JsonMapper
  * worldId·key가 고정이라 시작할 때마다 다시 시도해도 안전하고, 한 장르가 실패(Neo4j 장애 등)해도 로그만 남기고 서버와 다음 장르는 계속 간다.
  * 리소스 JSON을 읽지 못해도 로그만 남기고 서버는 계속 뜬다(그 시작에서는 적재 없음).
  *
- * v1 입력은 재시도 hash 보존을 위해 동결한다. 기존 11종의 v2 보완은 초기 샘플에만 적용하고, 미배포 신화·고전 15종은 최신 카드로 바로 적재한다.
- * ponytail: 그 밖에 이미 저장된 세계관은 내용 비교 없이 건너뛴다. 카드를 공개로 넣게 바꾸기(DEC-46) 전에 적재된 세계관도 그대로 비공개 카드다(다시 넣지 않는다).
+ * 최초·v2 입력은 재시도 hash 보존을 위해 동결한다. SOUL 보완은 초기 샘플과 저장 이력이 일치할 때만 별도 key로 적용한다.
  */
 @Component
 class GenreTemplateSeeder(private val service: WorldStudioService, private val mapper: JsonMapper) {
@@ -31,8 +30,11 @@ class GenreTemplateSeeder(private val service: WorldStudioService, private val m
         // 리소스를 못 읽어도 ApplicationReadyEvent 예외로 서버 기동이 실패하지 않게 로그만 남기고 돌아온다.
         val templates = try { loadLegacy() }
             catch (e: Exception) { log.error("장르 템플릿 리소스 읽기 실패: {}: {}", e.javaClass.simpleName, e.message); return }
-        val updated = try { load().associateBy { it.worldId } }
-            catch (e: Exception) { log.error("템플릿 보완 리소스 읽기 실패", e); emptyMap() }
+        val frozen = try { loadV2().associateBy { it.worldId } }
+            catch (e: Exception) { log.error("템플릿 보완 리소스 읽기 실패", e); null }
+        val updated = frozen.orEmpty()
+        val current = try { load().associateBy { it.worldId } }
+            catch (e: Exception) { log.error("최신 템플릿 리소스 읽기 실패", e); emptyMap() }
         val legacyIds = templates.map { it.worldId }.toSet()
         for (template in templates) {
             try { seedGenre(template) }
@@ -41,9 +43,21 @@ class GenreTemplateSeeder(private val service: WorldStudioService, private val m
             try { GenreTemplateRepair(service).repair(template, target) }
             catch (e: Exception) { log.error("장르 템플릿 보완 실패 genre={}: {}: {}", template.genre, e.javaClass.simpleName, e.message) }
         }
+        if (frozen == null) return
         for (template in updated.values.filter { it.worldId !in legacyIds }) {
             try { seedGenre(template, legacy = false) }
             catch (e: Exception) { log.error("신화 템플릿 적재 실패 genre={}: {}: {}", template.genre, e.javaClass.simpleName, e.message) }
+        }
+        val legacyById = templates.associateBy { it.worldId }
+        for (baseline in updated.values) {
+            val target = current[baseline.worldId]
+            if (target == null) { log.error("SOUL 템플릿 누락 genre={}", baseline.genre); continue }
+            try { GenreTemplateRepair(service).repairSoul(legacyById[baseline.worldId], baseline, target) }
+            catch (e: Exception) { log.error("SOUL 보완 실패 genre={}: {}: {}", baseline.genre, e.javaClass.simpleName, e.message) }
+        }
+        for (template in current.values.filter { it.worldId !in updated && it.worldId !in legacyIds }) {
+            try { seedGenre(template, legacy = false, soul = true) }
+            catch (e: Exception) { log.error("신규 템플릿 적재 실패 genre={}: {}: {}", template.genre, e.javaClass.simpleName, e.message) }
         }
     }
 
@@ -53,7 +67,10 @@ class GenreTemplateSeeder(private val service: WorldStudioService, private val m
     internal fun loadLegacy(): List<GenreTemplate> =
         ClassPathResource("genre-templates-v1.json").inputStream.use { mapper.readValue(it, Array<GenreTemplate>::class.java).toList() }
 
-    private fun seedGenre(template: GenreTemplate, legacy: Boolean = true) {
+    internal fun loadV2(): List<GenreTemplate> =
+        ClassPathResource("genre-templates-v2.json").inputStream.use { mapper.readValue(it, Array<GenreTemplate>::class.java).toList() }
+
+    private fun seedGenre(template: GenreTemplate, legacy: Boolean = true, soul: Boolean = false) {
         val key = "genre-template-${template.genre}"
         // create: 같은 id·같은 입력이면 기존 세계관을 돌려준다. 앞선 edit가 미완료로 남은 세계관은 INCOMPLETE라 아래 edit 재시도로 이어 간다.
         val world = try { service.create(TEMPLATE_OWNER, CreateWorldRequest(template.name, template.description, template.worldId)) }
@@ -62,7 +79,7 @@ class GenreTemplateSeeder(private val service: WorldStudioService, private val m
         if (world?.currentRevisionId != null) return
         // 카드의 기본은 비공개라(DEC-46) 템플릿 카드는 공개로 넣는다. 세계관 자체의 공개 범위는 건드리지 않는다(소유자가 따로 공개한다).
         val cards = if (legacy) template.cards.map { CardPayload(it.id, it.title, it.body, it.cardType, "basic", visibility = "public") }
-            else GenreTemplateRepair.payloads(template)
+            else if (soul) GenreTemplateRepair.soulPayloads(template) else GenreTemplateRepair.payloads(template)
         val edited = service.edit(template.worldId, TEMPLATE_OWNER, EditWorldDraftRequest(0, template.name, template.description, cards, key = key))
         service.save(template.worldId, TEMPLATE_OWNER, SaveWorldRequest(edited.draftRevision, key))
     }
@@ -82,4 +99,4 @@ class GenreTemplateSeeder(private val service: WorldStudioService, private val m
 }
 
 internal data class GenreTemplate(val genre: String, val worldId: UUID, val name: String, val description: String, val cards: List<GenreTemplateCard>)
-internal data class GenreTemplateCard(val id: UUID, val title: String, val body: String, val cardType: String)
+internal data class GenreTemplateCard(val id: UUID, val title: String, val body: String, val cardType: String, val soul: String? = null)
