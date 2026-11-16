@@ -283,6 +283,83 @@ it('rejects a cover request for an id that is not a UUID before sending anything
  expect(fetcher).not.toHaveBeenCalled()
 })
 
+// ── 설정 카드 대표 이미지(#401, 계약: POST·GET /api/v1/world-studios/{id}/card-images, 카드 semanticMetadata의 최상위 키 imageId) ───
+const cardImageId=crypto.randomUUID()
+it('uploads a card image as multipart file with Bearer and CSRF but no JSON content type and returns the new image id',async()=>{
+ const fetcher=vi.fn().mockResolvedValue(Response.json({imageId:cardImageId,contentType:'image/png'},{status:201}))
+ const controller=new AbortController()
+ await expect(new HttpWorldStudioRepository(fetcher).uploadCardImage(id,png(),controller.signal)).resolves.toBe(cardImageId)
+ const [url,init]=fetcher.mock.calls[0]
+ expect(url).toBe(`/api/v1/world-studios/${id}/card-images`)
+ expect(init.method).toBe('POST')
+ expect(init.headers).toEqual(expect.objectContaining({Authorization:'Bearer studio-bearer','X-CSRF-TOKEN':'studio-csrf'}))
+ expect(init.headers).not.toHaveProperty('Content-Type') // multipart 경계는 브라우저가 붙인다
+ expect(init.body).toBeInstanceOf(FormData)
+ expect((init.body as FormData).get('file')).toMatchObject({name:'cover.png',type:'image/png'})
+ controller.abort();expect(init.signal.aborted).toBe(true)
+})
+it('does not report a card image upload for a malformed result and reports the server detail on rejection',async()=>{
+ const fetcher=vi.fn()
+  .mockResolvedValueOnce(Response.json({imageId:'not-a-uuid',contentType:'image/png'},{status:201}))
+  .mockResolvedValueOnce(Response.json({contentType:'image/png'},{status:201}))
+  .mockResolvedValueOnce(Response.json({code:'WORLD_INPUT_INVALID',detail:'PNG·JPEG·WebP 이미지만 올릴 수 있어요.'},{status:422}))
+  .mockResolvedValueOnce(Response.json({detail:'세계관을 찾을 수 없습니다.'},{status:404}))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ for(let i=0;i<2;i++)await expect(repo.uploadCardImage(id,png())).rejects.toThrow('응답')
+ await expect(repo.uploadCardImage(id,png())).rejects.toThrow('PNG·JPEG·WebP 이미지만 올릴 수 있어요.')
+ await expect(repo.uploadCardImage(id,png())).rejects.toThrow('세계관을 찾을 수 없습니다.')
+})
+it('reads the owner card image bytes with Bearer, and reports a missing, failed or empty image instead of an empty one',async()=>{
+ const bytes=new Blob(['png-bytes'],{type:'image/png'})
+ const fetcher=vi.fn().mockResolvedValueOnce(new Response(bytes,{status:200,headers:{'Content-Type':'image/png'}})).mockResolvedValueOnce(new Response(null,{status:404})).mockResolvedValueOnce(new Response(null,{status:500})).mockResolvedValueOnce(new Response(new Blob([]),{status:200}))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ const blob=await repo.readCardImage(id,cardImageId)
+ expect([blob.size,blob.type]).toEqual([9,'image/png'])
+ const [url,init]=fetcher.mock.calls[0]
+ expect([url,init.method]).toEqual([`/api/v1/world-studios/${id}/card-images/${cardImageId}`,'GET'])
+ expect(init.headers).toEqual(expect.objectContaining({Authorization:'Bearer studio-bearer'}))
+ await expect(repo.readCardImage(id,cardImageId)).rejects.toThrow('이미지를 찾을 수 없어요.')
+ await expect(repo.readCardImage(id,cardImageId)).rejects.toThrow('이미지를 불러오지 못했어요.')
+ await expect(repo.readCardImage(id,cardImageId)).rejects.toThrow('확인할 수 없어요')
+})
+it('rejects a card image request for a world or image id that is not a UUID before sending anything',async()=>{
+ const fetcher=vi.fn()
+ const repo=new HttpWorldStudioRepository(fetcher)
+ await expect(repo.uploadCardImage('not-a-uuid',png())).rejects.toThrow()
+ await expect(repo.readCardImage('not-a-uuid',cardImageId)).rejects.toThrow()
+ await expect(repo.readCardImage(id,'not-a-uuid')).rejects.toThrow()
+ expect(fetcher).not.toHaveBeenCalled()
+})
+/** 첫 카드의 semanticMetadata에 최상위 imageId가 실린 응답(서버는 초안 저장이 보낸 값을 그대로 보존한다). */
+const withCardImage=(value:unknown=cardImageId)=>{const w=wire();return {...w,cards:w.cards.map((c,i)=>i?c:{...c,semanticMetadata:{...c.semanticMetadata,imageId:value}})}}
+it('reads the top-level imageId of a card into the row and writes it back to the same top-level key only for that card',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json(withCardImage())).mockResolvedValueOnce(Response.json(wire(3)))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ const loaded=await repo.read(id)
+ expect(loaded.settings).toEqual([{...a,imageId:cardImageId},b,relation])
+ expect(loaded.settings[0]).not.toHaveProperty('serverMetadata') // 행 필드가 정본이라 서버 메타데이터에 남기지 않는다
+ await repo.saveStudio(loaded)
+ const body=JSON.parse(fetcher.mock.calls[1][1].body)
+ expect(body.cards[0].semanticMetadata).toMatchObject({imageId:cardImageId})
+ expect(body.cards[0].semanticMetadata.studio).not.toHaveProperty('imageId') // studio 안이 아니라 최상위 키
+ expect(body.cards[1].semanticMetadata).not.toHaveProperty('imageId')
+})
+it('does not resurrect a removed image: a row without imageId is written without the key even though the server had sent one',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json(withCardImage())).mockResolvedValueOnce(Response.json(wire(3)))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ const loaded=await repo.read(id)
+ await repo.saveStudio({...loaded,settings:loaded.settings.map(({imageId:_removed,...row})=>row)})
+ expect(JSON.parse(fetcher.mock.calls[1][1].body).cards[0].semanticMetadata).not.toHaveProperty('imageId')
+})
+it('drops a malformed imageId instead of failing the whole read, so the next save does not send it back',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json(withCardImage('not-a-uuid'))).mockResolvedValueOnce(Response.json(wire(3)))
+ const repo=new HttpWorldStudioRepository(fetcher)
+ const loaded=await repo.read(id)
+ expect(loaded.settings[0]).not.toHaveProperty('imageId')
+ await repo.saveStudio(loaded)
+ expect(JSON.parse(fetcher.mock.calls[1][1].body).cards[0].semanticMetadata).not.toHaveProperty('imageId')
+})
+
 // ── 세계관에 연결된 소설(DEC-46 1:1 연결, 서버 응답의 linkedWorkId) ───
 it('reads linkedWorkId of the world, of a draft save response and of each summary, defaulting an older response to null',async()=>{
  const other=crypto.randomUUID()

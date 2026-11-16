@@ -68,6 +68,10 @@ const place = (title: string): StudioSetting => {
 }
 const friends = (settings: StudioSetting[], a: StudioSetting, b: StudioSetting) => putRelation(settings, { subjectId: a.item.id, targetId: b.item.id, predicate: 'friend_of', polarity: 'asserted' })
 
+/** 설정 카드 대표 이미지(#401) 대역이 올린 뒤 돌려주는 이미지 id. */
+const CARD_IMAGE = '11111111-1111-4111-8111-111111111111'
+const NEXT_IMAGE = '22222222-2222-4222-8222-222222222222'
+
 /** 대역 저장소에 줄 수 있는 값. `version`은 저장 버전(0이면 한 번도 저장하지 않은 세계관)이다. 작성 모드(마법사)는 저장 버전이 아니라 주소의 `?new=1`로 정해진다. */
 type Fixture = {
   version?: number
@@ -85,6 +89,11 @@ type Fixture = {
   readCover?: NonNullable<WorldStudioRepository['readCover']>
   /** 표지 저장소가 없는 데모(메모리) */
   demoCover?: true
+  /** 설정 카드 이미지 저장소(올리기·읽기, #401) */
+  uploadCardImage?: NonNullable<WorldStudioRepository['uploadCardImage']>
+  readCardImage?: NonNullable<WorldStudioRepository['readCardImage']>
+  /** 카드 이미지 저장소가 없는 데모(메모리) */
+  demoCardImage?: true
   /** 이 세계관에 연결된 내 소설 id(DEC-46 1:1 연결) */
   linkedWorkId?: string
   /** 관계를 회차 시점으로 읽고 쓰는 서버 저장소(DEC-51, 없으면 회차를 모르는 데모) */
@@ -115,6 +124,8 @@ function mount(settings: StudioSetting[] = [person('가람', '기존 내용')], 
   const setCover = vi.fn(fixture.setCover ?? (async () => undefined))
   const removeCover = vi.fn(fixture.removeCover ?? (async () => undefined))
   const readCover = vi.fn(fixture.readCover ?? (async () => new Blob(['png'], { type: 'image/png' })))
+  const uploadCardImage = vi.fn(fixture.uploadCardImage ?? (async () => CARD_IMAGE))
+  const readCardImage = vi.fn(fixture.readCardImage ?? (async () => new Blob(['png'], { type: 'image/png' })))
   useCase = new WorldStudioUseCase({
     listStudio: async () => [world],
     read: fixture.read ?? (async () => structuredClone(world)),
@@ -122,6 +133,7 @@ function mount(settings: StudioSetting[] = [person('가람', '기존 내용')], 
     saveStudio,
     setPublication,
     ...(fixture.demoCover ? {} : { setCover, removeCover, readCover }),
+    ...(fixture.demoCardImage ? {} : { uploadCardImage, readCardImage }),
     ...(fixture.relationEpisodes ? { relationEpisodes: true as const } : {}),
   })
   render(
@@ -133,7 +145,7 @@ function mount(settings: StudioSetting[] = [person('가람', '기존 내용')], 
       </MemoryRouter>
     </Provider>,
   )
-  return { create, setPublication, saveStudio, setCover, removeCover, readCover }
+  return { create, setPublication, saveStudio, setCover, removeCover, readCover, uploadCardImage, readCardImage }
 }
 /** `/worldstudio/qa`(저장한 세계관 관리)나 `/worldstudio`(새 세계관 만들기)를 열고 제목이 나올 때까지 기다린다. */
 async function show(settings?: StudioSetting[], path: string | string[] = '/worldstudio/qa', fixture: Fixture = {}) {
@@ -225,6 +237,42 @@ it('관리 보기 전환 줄이 한 줄로 있고(설정집·관계도·시간�
   expect(screen.queryByRole('table', { name: '설정 카드 목록' })).toBeNull()
   fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
   expect(screen.getByRole('table', { name: '설정 카드 목록' })).toBeTruthy()
+})
+
+it('테마 전환은 떠 있는 버튼이 아니라 설정집 화면의 저장 영역 옆(탭 줄 오른쪽 끝)에 기존 작은 버튼 한 개로 있다', async () => {
+  await showWorld()
+  const theme = screen.getByRole('button', { name: '다크 모드로' }) // 한 개: 떠 있는 버튼은 GlobalChrome이 이 화면에서 그리지 않는다
+  const end = saveBar().getByRole('button', { name: '세계관 저장' }).closest('.world-tabs-end')!
+  expect(end.lastElementChild).toBe(theme) // 저장 영역 바로 옆, 줄의 오른쪽 끝
+  expect(saveBar().queryByRole('button', { name: /모드로/ })).toBeNull() // 저장 상태 묶음 안이 아니라 그 옆
+  expect(theme.className).toBe('btn sm') // 새 스타일 없이 기존 작은 버튼: 저장 버튼(btn pri sm)보다 약하다
+  fireEvent.click(theme)
+  expect(screen.getByRole('button', { name: '라이트 모드로' })).toBeTruthy()
+})
+
+it('설정 편집 화면은 상단 바 오른쪽의 저장 영역 옆에 테마 전환 버튼을 한 개 두고, 가려진 설정집 화면의 버튼은 중복으로 보이지 않는다', async () => {
+  await showWorld()
+  openCard('가람 인물')
+  const theme = screen.getByRole('button', { name: '다크 모드로' }) // 가려진 설정집 화면(hidden)의 것은 접근성 트리에 없다
+  const bar = theme.closest('.sbar') as HTMLElement
+  expect(bar).toBeTruthy()
+  expect(within(bar).getByRole('group', { name: '저장 상태' })).toBeTruthy()
+  expect(theme.closest('.writing-bar-end')?.lastElementChild).toBe(theme) // 저장 영역 옆, 상단 바 오른쪽 끝
+  expect(theme.className).toBe('btn sm')
+})
+
+it('작성 마법사에는 탭 줄·저장 영역이 없어 테마 전환 버튼이 헤더의 행동 줄(집필 메모 추가·관리 화면으로 옆)에 한 개 있다', async () => {
+  await wizard()
+  const theme = screen.getByRole('button', { name: '다크 모드로' })
+  const acts = within(theme.closest('.acts') as HTMLElement)
+  expect(acts.getByRole('button', { name: '집필 메모 추가' })).toBeTruthy()
+  expect(acts.getByRole('button', { name: '관리 화면으로' })).toBeTruthy()
+  expect(theme.className).toBe('btn sm')
+})
+
+it('새 세계관 만들기(/worldstudio)에는 테마 버튼을 따로 두지 않는다: 그 화면은 떠 있는 테마 버튼(GlobalChrome)이 그대로 맡는다', async () => {
+  await show(undefined, '/worldstudio')
+  expect(screen.queryByRole('button', { name: /모드로/ })).toBeNull()
 })
 
 it('4단계 내비는 지금 단계만 aria-current=step이고 단계 이름·순서는 그대로다', async () => {
@@ -389,14 +437,14 @@ it('유형과 관계없이 카드를 지울 수 있다: 이어진 관계 수를 
   const [garam, harbor] = [person('가람'), place('항구')]
   const { saveStudio } = await show(friends([garam, harbor], garam, harbor))
   openCard('항구 장소')
-  fireEvent.click(editor().getByRole('button', { name: '삭제' }))
+  fireEvent.click(editor().getByRole('button', { name: '카드 삭제' }))
   const confirm = () => within(screen.getByRole('region', { name: '설정 삭제 확인' }))
   expect(confirm().getByText(/설정과 연결된 관계·감정 1개를 편집본에서 삭제해요/)).toBeTruthy()
   expect(confirm().getByText('친구')).toBeTruthy() // 함께 지워질 관계
   fireEvent.click(confirm().getByRole('button', { name: '삭제 취소' }))
   expect(screen.queryByRole('region', { name: '설정 삭제 확인' })).toBeNull()
   expect(saveBar().getByText('저장됨')).toBeTruthy() // 취소하면 아무것도 바뀌지 않는다
-  fireEvent.click(editor().getByRole('button', { name: '삭제' }))
+  fireEvent.click(editor().getByRole('button', { name: '카드 삭제' }))
   fireEvent.click(confirm().getByRole('button', { name: '설정과 연결 삭제' }))
   // 설정집으로 돌아가고, 지운 카드와 관계가 빠지며, 되돌리기 상태 메시지가 뜬다
   const table = () => within(screen.getByRole('table', { name: '설정 카드 목록' }))
@@ -418,7 +466,7 @@ it('유형과 관계없이 카드를 지울 수 있다: 이어진 관계 수를 
   await waitFor(() => expect(document.activeElement).toBe(table().getByRole('button', { name: '항구 장소' })))
   // 다시 지우고 저장하면 카드와 관계가 빠진 초안이 그대로 서버로 간다
   openCard('항구 장소')
-  fireEvent.click(editor().getByRole('button', { name: '삭제' }))
+  fireEvent.click(editor().getByRole('button', { name: '카드 삭제' }))
   fireEvent.click(confirm().getByRole('button', { name: '설정과 연결 삭제' }))
   fireEvent.click(saveBar().getByRole('button', { name: '세계관 저장' }))
   await waitFor(() => expect(saveBar().getByText('저장됨')).toBeTruthy())
@@ -697,7 +745,7 @@ it('관계 기준 회차를 고른 동안에는 설정 삭제 진입점(인물 �
   expect(within(screen.getByRole('region', { name: '관계 편집' })).getByText(reason)).toBeTruthy()
   fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
   openCard('가람 인물')
-  expect(editor().getByRole<HTMLButtonElement>('button', { name: '삭제' }).disabled).toBe(true)
+  expect(editor().getByRole<HTMLButtonElement>('button', { name: '카드 삭제' }).disabled).toBe(true)
   expect(editor().getByText(reason)).toBeTruthy()
   fireEvent.click(rail().getByRole('button', { name: '나래 더보기' }))
   const menu = screen.getByRole('menu', { name: '나래 더보기' })
@@ -710,7 +758,7 @@ it('관계 기준 회차를 고른 동안에는 설정 삭제 진입점(인물 �
   await waitFor(() => expect(episodePicker().getByText('지금은 최신 회차의 관계예요.')).toBeTruthy())
   fireEvent.click(manageTabs().getByRole('button', { name: '설정집' }))
   openCard('가람 인물')
-  expect(editor().getByRole<HTMLButtonElement>('button', { name: '삭제' }).disabled).toBe(false)
+  expect(editor().getByRole<HTMLButtonElement>('button', { name: '카드 삭제' }).disabled).toBe(false)
   expect(editor().queryByText(reason)).toBeNull()
 })
 it('지난 회차를 연 채 저장하면 어느 회차로 기록되는지 저장 영역과 작성 모드의 검토·저장 단계가 알리고, 최신이면 알리지 않는다', async () => {
@@ -2055,7 +2103,7 @@ it('서버 한도(설정 카드 1,000개)를 넘기면 가져오지 않고 이�
 it('삭제를 누르면 삭제 확인으로 초점이 가고 취소하면 누른 삭제 버튼으로 초점이 돌아온다', async () => {
   await show([place('항구')])
   openCard('항구 장소')
-  const remove = editor().getByRole('button', { name: '삭제' })
+  const remove = editor().getByRole('button', { name: '카드 삭제' })
   remove.focus()
   fireEvent.click(remove)
   const confirm = screen.getByRole('region', { name: '설정 삭제 확인' })
@@ -2256,14 +2304,34 @@ it('별칭 입력은 쉼표로 구분한다는 안내를 설명으로 잇는다'
 const withDocs = (row: StudioSetting, characterDocs: Partial<CharacterDocs>): StudioSetting => ({ ...row, characterDocs: { soul: '', goal: '', episodes: {}, ...characterDocs } })
 const docsPanel = () => within(editor().getByRole('region', { name: '인물 문서' }))
 const docList = () => within(docsPanel().getByRole('navigation', { name: '인물 문서 목록' }))
-const docNames = () => docList().getAllByRole('button').map((b) => b.textContent)
-const currentDoc = () => docList().getAllByRole('button').filter((b) => b.getAttribute('aria-current') === 'true').map((b) => b.textContent)
-const pickDoc = (name: string | RegExp) => fireEvent.click(docList().getByRole('button', { name }))
+/** 탭 줄 끝의 `회차 기억 (N)`: 펼치면 회차 문서 목록과 추가 폼이 보인다(aria-expanded). */
+const memoryToggle = () => docList().getByRole('button', { name: /^회차 기억 \(\d+\)/ })
+const openMemory = () => { if (memoryToggle().getAttribute('aria-expanded') !== 'true') fireEvent.click(memoryToggle()) }
+/** 문서 버튼: 탭 셋과 펼친 회차 목록의 회차 버튼(펼침 버튼과 추가 폼의 버튼은 문서가 아니다). */
+const docButtons = () => docList().getAllByRole<HTMLButtonElement>('button').filter((b) => !b.hasAttribute('aria-expanded') && !b.closest('form'))
+/** 문서 버튼을 예전 이름으로 읽는다: 탭(`정체성 IDENTITY.md 공개 정리 필요`)은 파일 이름과 표시(`IDENTITY.md`·`SOUL.md 정리 필요`)로, 회차 버튼은 그 글자 그대로. */
+const docName = (b: HTMLElement) => {
+  const file = b.querySelector('.world-doc-file')?.textContent
+  return file ? [file, b.querySelector('.world-doc-flag')?.textContent].filter(Boolean).join(' ') : b.textContent
+}
+const docNames = () => docButtons().map(docName)
+const currentDoc = () => docButtons().filter((b) => b.getAttribute('aria-current') === 'true').map(docName)
+const docButton = (name: string) => {
+  const found = docButtons().find((b) => docName(b) === name)
+  if (!found) throw new Error(`문서 버튼 '${name}'이 없어요: ${docNames().join(', ')}`)
+  return found
+}
+/** 회차 기억의 문서는 펼쳐야 보이므로 먼저 펼친다. */
+const pickDoc = (name: string) => {
+  if (name.endsWith('회차.md')) openMemory()
+  fireEvent.click(docButton(name))
+}
 /** 고른 문서의 편집기(대역 textarea). 이름은 문서의 파일 이름이다. */
 const docBody = (name: string) => editor().getByRole<HTMLTextAreaElement>('textbox', { name })
-const episodeDocs = () => within(docList().getByRole('group', { name: '회차별 기억 (memory/)' }))
-const episodeField = () => docsPanel().getByRole<HTMLInputElement>('textbox', { name: '추가할 회차 번호' })
+const episodeDocs = () => within(docList().getByRole('group', { name: '회차별 기억' }))
+const episodeField = () => docsPanel().getByRole<HTMLInputElement>('textbox', { name: '회차 번호' })
 const addEpisode = (value: string) => {
+  openMemory()
   fireEvent.change(episodeField(), { target: { value } })
   fireEvent.click(docsPanel().getByRole('button', { name: '회차 기억 추가' }))
 }
@@ -2282,9 +2350,10 @@ it('인물 카드는 설명 대신 문서 목록(IDENTITY.md·SOUL.md·GOAL.md·
   expect(docBody('IDENTITY.md').dataset.label).toBe('IDENTITY.md')
   expect(docsPanel().getByText('누구인가: 이름·나이·소속·외형·역할.')).toBeTruthy()
   expect(editor().getByText('## 제목으로 문단을 나누면 공개 페이지 목차에 나와요.')).toBeTruthy() // 공개되는 문서라 목차 안내가 그대로 있다
+  openMemory() // 회차 기억은 펼쳐야 보인다
   expect(episodeDocs().getByText('아직 회차 기억이 없어요.')).toBeTruthy()
-  expect(docsPanel().getByText('공개 세계관과 독자 설정 위키에 나가는 글은 IDENTITY.md뿐이에요. SOUL.md·GOAL.md·회차별 기억은 작가만 봐요.')).toBeTruthy()
-  expect(docsPanel().getByText('0회차는 이야기 시작 전부터 아는 것(비밀·과거)이에요.')).toBeTruthy() // 회차 기억 추가 옆의 0회차 안내
+  expect(docsPanel().queryByText(/공개 세계관과 독자 설정 위키에 나가는 글은/)).toBeNull() // 공개 범위는 문장 대신 탭의 `공개`·`작가만` 표시가 알린다
+  expect(docsPanel().getByText('0회차는 이야기 시작 전부터 아는 것(비밀·과거)이에요.')).toBeTruthy() // 회차 기억 추가 폼 아래의 0회차 안내
   expect(saveBar().getByText('저장됨')).toBeTruthy() // 열어 보기만 해서는 초안이 바뀌지 않는다
   backToBoard()
   openCard('항구 장소') // 인물이 아닌 설정은 지금 그대로 설명 하나다
@@ -2322,6 +2391,7 @@ it('문서를 바꿔 가며 쓰면 문서마다 초안에 남고 안내와 글�
 it('회차 기억 추가는 회차 번호를 받아 memory/ 아래에 그 문서를 만들어 고르고, 이미 있는 회차면 새로 만들지 않고 그 문서를 고른다', async () => {
   const { saveStudio } = await show([withDocs(person('가람', '기존 내용'), { episodes: { 3: '스승을 잃었다' } })])
   openCard('가람 인물')
+  openMemory()
   const episodes = () => episodeDocs().getAllByRole('button').map((b) => b.textContent)
   expect(episodes()).toEqual(['03회차.md'])
   fireEvent.click(docsPanel().getByRole('button', { name: '회차 기억 추가' })) // 번호 없이는 아무것도 만들지 않는다
@@ -2362,7 +2432,7 @@ it('회차 기억 삭제는 회차 기억을 고른 동안에만 있고, 확인�
   fireEvent.click(docsPanel().getByRole('button', { name: '회차 기억 삭제' }))
   expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md 정리 필요', 'GOAL.md 정리 필요', '03회차.md'])
   expect(currentDoc()).toEqual(['IDENTITY.md'])
-  await waitFor(() => expect(document.activeElement).toBe(docList().getByRole('button', { name: 'IDENTITY.md' }))) // 누른 버튼이 사라진 자리 대신
+  await waitFor(() => expect(document.activeElement).toBe(docButton('IDENTITY.md'))) // 누른 버튼이 사라진 자리 대신
   saveWorld()
   await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
   expect(saveStudio.mock.calls[0][0].settings[0].characterDocs?.episodes).toEqual({ 3: '스승을 잃었다' })
@@ -2380,6 +2450,7 @@ it('.md 파일 불러오기는 여러 파일을 받아 파일 이름으로 문�
   expect(notice.textContent).toContain('알아볼 수 없어 가져오지 않은 파일: notes.md.')
   expect(confirm).not.toHaveBeenCalled() // 비어 있던 문서라 덮어쓸 것이 없다
   expect(docBody('IDENTITY.md').value).toBe('이름: 가람') // 보고 있던 문서도 불러온 글로 다시 열린다
+  openMemory()
   expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md', 'GOAL.md 정리 필요', '03회차.md'])
   saveWorld()
   await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
@@ -2394,6 +2465,7 @@ it('GOAL.md는 목표 문서로, 옛 MEMORY.md는 00회차로 불러오고, 00�
   const notice = await docsPanel().findByRole('status')
   expect(notice.textContent).toContain('문서 2개를 불러왔어요: GOAL.md, memory/00회차.md.') // 옛 MEMORY.md가 담긴 곳을 알린다
   expect(confirm).not.toHaveBeenCalled() // 00회차의 옛 글은 사라지지 않고 이어 붙으므로 덮어쓰기가 아니다
+  openMemory()
   expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md 정리 필요', 'GOAL.md', '00회차.md'])
   pickDoc('00회차.md')
   expect(docBody('memory/00회차.md').value).toBe('스승의 유언\n\n프롤로그의 기억')
@@ -2520,6 +2592,124 @@ it('다른 인물 카드를 열면 그 카드의 IDENTITY.md부터 다시 보이
   fireEvent.click(rail().getByRole('button', { name: '나래 인물' }))
   expect(currentDoc()).toEqual(['IDENTITY.md']) // 다른 카드에서 고른 문서를 따라가지 않는다
   expect(docBody('IDENTITY.md').value).toBe('나래 본문')
+})
+
+// ── 인물 문서 편집 영역 UX(critique P1): 탭 재배치·라벨·공개 표시, 회차 기억 펼침, 더보기 메뉴, 카드 삭제 라벨 ─────────────────────
+it('문서 탭은 작가의 말(정체성·성격·말투·목표·회차 기억)이 주 라벨이고 파일 이름이 작은 보조 글씨이며, 공개 여부를 탭이 알린다', async () => {
+  await show([person('가람', '기존 내용')])
+  openCard('가람 인물')
+  const tab = (name: string) => docList().getByRole<HTMLButtonElement>('button', { name })
+  const identity = tab('정체성 IDENTITY.md 공개')
+  const soul = tab('성격·말투 SOUL.md 작가만 정리 필요') // 정리 필요는 지금처럼 탭 안의 글자다
+  const goal = tab('목표 GOAL.md 작가만 정리 필요')
+  const tabs = [identity, soul, goal]
+  expect(tabs.map((b) => b.querySelector('.world-doc-name')?.textContent)).toEqual(['정체성', '성격·말투', '목표'])
+  expect(tabs.map((b) => b.querySelector('small.world-doc-file')?.textContent)).toEqual(['IDENTITY.md', 'SOUL.md', 'GOAL.md']) // 파일 이름은 보조 글씨
+  expect(tabs.map((b) => b.querySelector('small.world-doc-scope')?.textContent)).toEqual(['공개', '작가만', '작가만']) // 공개 세계관·독자 설정 위키에 나가는 글은 IDENTITY.md뿐이다
+  expect(memoryToggle().textContent).toContain('회차 기억 (0)')
+  expect(memoryToggle().querySelector('.world-doc-scope')?.textContent).toBe('작가만')
+  expect(docsPanel().queryByText(/공개 세계관과 독자 설정 위키에 나가는 글은/)).toBeNull() // 문장 대신 탭이 알린다
+  fireEvent.change(docBody('IDENTITY.md'), { target: { value: '가'.repeat(3001) } })
+  expect(tab('정체성 IDENTITY.md 공개 3,000자 초과')).toBeTruthy() // 3,000자 초과도 탭 안의 글자다
+})
+
+it('문서 탭 줄은 편집기 바로 위에 붙고, 그 사이에는 문서 안내 한 줄만 있다', async () => {
+  await show([person('가람', '기존 내용')])
+  openCard('가람 인물')
+  const nav = docsPanel().getByRole('navigation', { name: '인물 문서 목록' })
+  const guide = nav.nextElementSibling
+  expect(guide?.textContent).toBe('IDENTITY.md 누구인가: 이름·나이·소속·외형·역할.') // 탭 줄 바로 다음이 문서 안내
+  expect(guide?.nextElementSibling?.classList.contains('world-card-editor')).toBe(true) // 그다음이 편집기
+  openMemory() // 회차 기억을 펼쳐도 그 안은 탭 줄 안이라 편집기와의 사이는 그대로다
+  expect(nav.nextElementSibling).toBe(guide)
+  expect(nav.contains(episodeField())).toBe(true)
+})
+
+it('회차 기억 (N)은 접혀 있다가 펼치면 회차 문서 목록과 회차 번호·추가가 보이고, 추가하면 그 회차가 선택돼 탭 줄에도 이름이 남는다', async () => {
+  await show([withDocs(person('가람', '기존 내용'), { episodes: { 3: '스승을 잃었다' } })])
+  openCard('가람 인물')
+  expect(memoryToggle().textContent).toContain('회차 기억 (1)')
+  expect(memoryToggle().getAttribute('aria-expanded')).toBe('false')
+  expect(docsPanel().queryByRole('textbox', { name: '회차 번호' })).toBeNull() // 접혀 있으면 목록도 추가 폼도 없다
+  expect(docsPanel().queryByRole('button', { name: '03회차.md' })).toBeNull()
+  fireEvent.click(memoryToggle())
+  expect(memoryToggle().getAttribute('aria-expanded')).toBe('true')
+  expect(episodeDocs().getAllByRole('button').map((b) => b.textContent)).toEqual(['03회차.md'])
+  expect(episodeField().labels?.[0]?.textContent).toContain('회차 번호') // 보이는 라벨이 있다
+  expect(docsPanel().getByRole('button', { name: '회차 기억 추가' }).textContent).toBe('추가')
+  expect(docsPanel().getByText('0회차는 이야기 시작 전부터 아는 것(비밀·과거)이에요.')).toBeTruthy()
+  addEpisode('12')
+  expect(currentDoc()).toEqual(['12회차.md']) // 그 회차의 탭이 선택으로 보이고
+  expect(docBody('memory/12회차.md')).toBeTruthy()
+  expect(memoryToggle().getAttribute('aria-expanded')).toBe('true') // 펼침은 열린 채 유지된다
+  expect(memoryToggle().textContent).toContain('회차 기억 (2)')
+  expect(memoryToggle().textContent).toContain('12회차.md') // 접어도 알 수 있게 탭 줄에 지금 편집 중인 회차 이름이 있다
+  expect(memoryToggle().dataset.current).toBe('true')
+  fireEvent.click(memoryToggle())
+  expect(docsPanel().queryByRole('button', { name: '12회차.md' })).toBeNull()
+  expect(memoryToggle().textContent).toContain('12회차.md')
+  pickDoc('IDENTITY.md')
+  expect(memoryToggle().textContent).not.toContain('12회차.md')
+  expect(memoryToggle().dataset.current).toBeUndefined()
+})
+
+it('0회차 문서를 고르면 이야기 시작 전부터 아는 것이라는 안내는 문서 안내 한 줄에만 있고 추가 폼 아래에서 되풀이하지 않는다', async () => {
+  await show()
+  openCard('가람 인물')
+  openMemory()
+  expect(docsPanel().getAllByText(/이야기 시작 전부터 아는 것/)).toHaveLength(1) // 0회차를 아직 고르지 않았으면 추가 폼 아래 안내 하나
+  addEpisode('0')
+  expect(currentDoc()).toEqual(['00회차.md'])
+  const notes = docsPanel().getAllByText(/이야기 시작 전부터 아는 것/)
+  expect(notes).toHaveLength(1)
+  expect(notes[0].classList.contains('world-doc-guide')).toBe(true) // 편집기 위의 문서 안내 한 줄이 남는다
+  addEpisode('4')
+  expect(docsPanel().getAllByText(/이야기 시작 전부터 아는 것/)).toHaveLength(1) // 다른 회차를 고르면 추가 폼 아래 안내가 돌아온다
+  expect(docsPanel().getByText('0회차는 이야기 시작 전부터 아는 것(비밀·과거)이에요.')).toBeTruthy()
+})
+
+it('.md 파일 불러오기는 인물 문서 제목 줄 오른쪽 ⋯(인물 문서 더보기) 메뉴 안에 있고, 불러오면 메뉴가 닫혀 결과 문구를 가리지 않는다', async () => {
+  await show([person('가람')])
+  openCard('가람 인물')
+  const more = docsPanel().getByLabelText('인물 문서 더보기')
+  const menu = more.closest('details')!
+  expect(more.tagName).toBe('SUMMARY')
+  expect(more.textContent).toBe('⋯')
+  expect(menu.previousElementSibling?.textContent).toBe('인물 문서') // 제목 줄의 오른쪽
+  expect(menu.contains(docsPanel().getByLabelText('.md 파일 불러오기'))).toBe(true)
+  expect(docsPanel().getByLabelText<HTMLInputElement>('.md 파일 불러오기').closest('.ep-file-pick')).toBeTruthy() // 키보드로 닿는 기존 파일 선택 방식 그대로
+  expect(menu.open).toBe(false)
+  menu.open = true
+  loadFiles(md('SOUL.md', '말수가 적다'))
+  expect((await docsPanel().findByRole('status')).textContent).toContain('문서 1개를 불러왔어요: SOUL.md.')
+  expect(menu.open).toBe(false)
+})
+
+it('⋯(인물 문서 더보기) 메뉴는 메뉴 밖을 누르거나 밖으로 초점이 가거나 Esc를 누르면 닫혀, 열린 채 뒤의 탭을 덮지 않는다', async () => {
+  await show([person('가람')])
+  openCard('가람 인물')
+  const more = docsPanel().getByLabelText('인물 문서 더보기')
+  const menu = more.closest('details')!
+  menu.open = true
+  fireEvent.pointerDown(docsPanel().getByLabelText('.md 파일 불러오기'))
+  expect(menu.open).toBe(true) // 메뉴 안을 누르는 것은 닫지 않는다
+  fireEvent.pointerDown(docButton('SOUL.md 정리 필요')) // 탭을 바꾸러 밖을 누르면
+  expect(menu.open).toBe(false)
+  menu.open = true
+  act(() => docButton('GOAL.md 정리 필요').focus()) // Tab으로 밖에 초점이 가도
+  expect(menu.open).toBe(false)
+  menu.open = true
+  fireEvent.keyDown(docsPanel().getByLabelText('.md 파일 불러오기'), { key: 'Escape' }) // Esc는 닫고 초점을 ⋯로 돌려준다
+  expect(menu.open).toBe(false)
+  expect(document.activeElement).toBe(more)
+})
+
+it('하단 바의 삭제 버튼은 카드 삭제라고 적혀 있어, 문서 글자 수 옆에서 그 문서만 지우는 것으로 읽히지 않는다', async () => {
+  await show([person('가람', '기존 내용')])
+  openCard('가람 인물')
+  const remove = editor().getByRole('button', { name: '카드 삭제' })
+  expect(remove.closest('footer')?.textContent).toContain('IDENTITY.md') // 글자 수 줄 옆의 버튼이다
+  expect(editor().queryByRole('button', { name: '삭제' })).toBeNull() // 확인창·동작은 그대로라 위의 삭제 테스트들이 '카드 삭제'로 확인한다
 })
 
 // ── 설정집 AI 검토(#394): 시트의 설정집 검토 요청 · 게시판 상태 칸 · 편집 화면의 지적과 수정안 ─────────────────────────────────────
@@ -2840,4 +3030,204 @@ it('지적이 없는 카드의 편집 화면에는 AI 검토 의견 절이 없�
   await runReview()
   openCard('항구 장소')
   expect(screen.queryByRole('region', { name: 'AI 검토 의견' })).toBeNull() // 이 카드에는 지적이 없다
+})
+
+// ── 설정 카드 대표 이미지(#401): 편집 화면 제목 줄에서 올리고 바꾸고 빼며, 게시판·레일은 작은 썸네일(소유자 이미지는 인증 읽기 → 객체 주소) ───
+const withImage = (row: StudioSetting, imageId = CARD_IMAGE): StudioSetting => ({ ...row, imageId })
+const imageGroup = () => within(screen.getByRole('group', { name: '대표 이미지' }))
+const imageInput = (label = '이미지 추가') => imageGroup().getByLabelText<HTMLInputElement>(label)
+const pickImage = (file: File, label = '이미지 추가') => fireEvent.change(imageInput(label), { target: { files: [file] } })
+const preview = () => document.querySelector<HTMLImageElement>('.world-card-tile img')
+const thumbs = (root: ParentNode) => Array.from(root.querySelectorAll<HTMLImageElement>('img.board-thumb'), (img) => img.getAttribute('src'))
+const savedSettings = (saveStudio: ReturnType<typeof mount>['saveStudio']) => saveStudio.mock.calls[0][0].settings
+
+it('이미지가 없는 카드는 제목 아래 줄에 이미지 추가만 두고 형식·크기를 안내하며, 이미지 첨부 미지원 문구는 없다', async () => {
+  const { readCardImage } = await showWorld()
+  openCard('가람 인물')
+  const input = imageInput()
+  expect([input.type, input.accept, input.disabled]).toEqual(['file', 'image/png,image/jpeg,image/webp', false])
+  expect(document.getElementById(input.getAttribute('aria-describedby') ?? '')?.textContent).toBe('PNG·JPEG·WebP, 5 MiB 이하')
+  expect(imageGroup().queryByRole('button', { name: '빼기' })).toBeNull()
+  expect(imageGroup().queryByLabelText('바꾸기')).toBeNull()
+  expect(preview()).toBeNull()
+  expect(screen.queryByText('이미지 첨부는 이 화면에서 지원하지 않아요.')).toBeNull()
+  expect(readCardImage).not.toHaveBeenCalled() // 이미지가 없는 카드는 읽지 않는다
+  // 머리는 두 열이다: 이름 입력·유형 선택(+출처)이 한 열, 대표 이미지 타일이 오른쪽 열(CSS 격자가 .world-card-head를 두 열로 나눈다).
+  const head = input.closest('.world-card-head')!
+  expect(head.parentElement?.classList.contains('world-card-header')).toBe(true) // 좁은 배치가 머리 폭을 묻는 컨테이너
+  expect(Array.from(head.children, (child) => child.className.split(' ')[0])).toEqual(['et', 'world-card-meta', 'world-card-image'])
+  expect(head.querySelector('.world-card-meta select')).toBeTruthy()
+  // 이미지가 없으면 타일 자체가 점선 빈 칸이고, 그 안이 파일 선택(이미지 추가)이며 안내도 타일 안에 있다.
+  const tile = head.querySelector('.world-card-tile')!
+  expect([tile.classList.contains('cov'), tile.classList.contains('empty')]).toEqual([true, true])
+  expect(tile.contains(input)).toBe(true)
+  expect(tile.contains(document.getElementById(input.getAttribute('aria-describedby') ?? ''))).toBe(true)
+  expect(imageGroup().queryByRole('button')).toBeNull() // 바꾸기·빼기 같은 버튼 줄은 이미지가 있을 때만 있다
+})
+
+it('파일을 고르면 곧바로 올리고(올리는 동안 알림·잠금) 올라가면 미리보기와 바꾸기·빼기가 나오며, 저장 전 수정이 되고 초점은 바꾸기로 간다', async () => {
+  let finish!: (id: string) => void
+  const uploadCardImage = vi.fn((_id: string, _file: File, _signal?: AbortSignal) => new Promise<string>((resolve) => { finish = resolve }))
+  const { readCardImage, saveStudio } = await show(undefined, '/worldstudio/qa', { uploadCardImage })
+  openCard('가람 인물')
+  const file = png('portrait.png')
+  pickImage(file)
+  await waitFor(() => expect(uploadCardImage).toHaveBeenCalledWith('qa', file, expect.any(AbortSignal)))
+  expect(imageGroup().getByRole('status').textContent).toBe('이미지를 올리고 있어요…')
+  expect(imageInput().closest('fieldset')?.disabled).toBe(true) // 올리는 동안 같은 파일을 두 번 올리지 않는다(칸은 fieldset 잠금을 따른다)
+  expect(editor().getByText('저장된 상태예요', { exact: false })).toBeTruthy() // 올리는 중에는 초안이 바뀌지 않았다
+  await act(async () => finish(CARD_IMAGE))
+  await waitFor(() => expect(preview()?.getAttribute('src')).toBe('blob:cover-1'))
+  expect(readCardImage).toHaveBeenCalledOnce()
+  expect(readCardImage).toHaveBeenCalledWith('qa', CARD_IMAGE, expect.any(AbortSignal))
+  expect(preview()?.getAttribute('alt')).toBe('가람 이미지') // 편집 화면 타일 이미지는 카드 제목으로 읽힌다(썸네일과 달리 옆에 제목이 없다)
+  expect(imageGroup().getByRole('img', { name: '가람 이미지' })).toBe(preview())
+  // 이미지가 채워진 타일은 헤더 표지와 같은 .cov(3:4·둥근 모서리·그림자)이고 바꾸기·빼기는 그 아래에 놓인다.
+  const tile = preview()!.closest('.world-card-tile')!
+  expect([tile.classList.contains('cov'), tile.classList.contains('empty')]).toEqual([true, false])
+  const actions = imageGroup().getByRole('button', { name: '빼기' }).closest('.world-card-image-actions')!
+  expect(actions.contains(imageInput('바꾸기')) && !tile.contains(imageInput('바꾸기'))).toBe(true)
+  expect(tile.compareDocumentPosition(actions) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(imageGroup().queryByRole('status')).toBeNull()
+  expect(imageGroup().queryByLabelText('이미지 추가')).toBeNull()
+  expect(imageGroup().getByRole('button', { name: '빼기' })).toBeTruthy()
+  await waitFor(() => expect(document.activeElement).toBe(imageInput('바꾸기'))) // 눌렀던 칸이 잠겼다 풀리므로 초점을 이어 준다
+  expect(editor().getByText('저장 전 수정이 있어요', { exact: false })).toBeTruthy()
+  expect(screen.getByText('이미지를 올렸어요. 세계관을 저장한 뒤 ‘확정 버전 남기기’를 해야 공개 화면에 나와요.').getAttribute('role')).toBe('status')
+  expect(saveStudio).not.toHaveBeenCalled() // 올리는 것만으로 초안을 저장하지 않는다
+  saveWorld()
+  await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
+  expect(savedSettings(saveStudio).map((s) => s.imageId)).toEqual([CARD_IMAGE])
+})
+
+it('이미 이미지가 있는 카드는 미리보기를 인증 읽기로 받고, 바꾸기로 새 이미지를 올리면 카드가 새 id를 가리키고 이전 이미지의 객체 주소를 해제한다', async () => {
+  const uploadCardImage = vi.fn(async () => NEXT_IMAGE)
+  const { readCardImage, saveStudio } = await show([withImage(person('가람', '기존 내용'))], '/worldstudio/qa', { uploadCardImage })
+  openCard('가람 인물')
+  await waitFor(() => expect(preview()?.getAttribute('src')).toBe('blob:cover-1'))
+  expect(imageGroup().getByRole('button', { name: '빼기' })).toBeTruthy()
+  expect(imageInput('바꾸기').disabled).toBe(false)
+  expect(readCardImage).toHaveBeenCalledOnce() // 게시판·레일·편집 화면이 같은 이미지를 한 번만 읽는다
+  expect(objectUrls.revokeObjectURL).not.toHaveBeenCalled()
+  const file = png('new.png', 'image/webp')
+  pickImage(file, '바꾸기')
+  await waitFor(() => expect(uploadCardImage).toHaveBeenCalledWith('qa', file, expect.any(AbortSignal)))
+  await waitFor(() => expect(preview()?.getAttribute('src')).toBe('blob:cover-2'))
+  expect(objectUrls.revokeObjectURL).toHaveBeenCalledWith('blob:cover-1')
+  expect(readCardImage.mock.calls.map(([, image]) => image)).toEqual([CARD_IMAGE, NEXT_IMAGE])
+  expect(editor().getByText('저장 전 수정이 있어요', { exact: false })).toBeTruthy()
+  saveWorld()
+  await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
+  expect(savedSettings(saveStudio).map((s) => s.imageId)).toEqual([NEXT_IMAGE])
+})
+
+it('빼기는 서버를 부르지 않고 초안에서 이미지 연결만 지워 이미지 추가로 돌아가며, 이전 이미지의 객체 주소를 해제하고 저장 요청에는 이미지가 실리지 않는다', async () => {
+  const { uploadCardImage, saveStudio } = await show([withImage(person('가람', '기존 내용'))])
+  openCard('가람 인물')
+  await waitFor(() => expect(preview()).toBeTruthy())
+  fireEvent.click(imageGroup().getByRole('button', { name: '빼기' }))
+  expect(preview()).toBeNull()
+  expect(imageGroup().queryByRole('button', { name: '빼기' })).toBeNull()
+  expect(imageInput().disabled).toBe(false)
+  expect(document.activeElement).toBe(imageInput()) // 눌렀던 빼기 버튼이 사라지므로 같은 자리의 추가 칸으로 초점을 옮긴다
+  expect(objectUrls.revokeObjectURL).toHaveBeenCalledWith('blob:cover-1')
+  expect(uploadCardImage).not.toHaveBeenCalled()
+  expect(editor().getByText('저장 전 수정이 있어요', { exact: false })).toBeTruthy()
+  saveWorld()
+  await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
+  expect(savedSettings(saveStudio).map((s) => s.imageId)).toEqual([undefined])
+})
+
+it('올리기가 실패하면 서버가 준 이유를 알리고 초안·미리보기는 그대로이며 같은 칸으로 다시 올릴 수 있다', async () => {
+  const uploadCardImage = vi.fn().mockRejectedValueOnce(new Error('PNG·JPEG·WebP 이미지만 올릴 수 있어요.')).mockResolvedValueOnce(CARD_IMAGE)
+  await show(undefined, '/worldstudio/qa', { uploadCardImage })
+  openCard('가람 인물')
+  pickImage(png('broken.png'))
+  expect((await screen.findByRole('alert')).textContent).toBe('PNG·JPEG·WebP 이미지만 올릴 수 있어요.')
+  expect(preview()).toBeNull()
+  expect(imageInput().disabled).toBe(false)
+  expect(editor().getByText('저장된 상태예요', { exact: false })).toBeTruthy() // 실패는 초안을 바꾸지 않는다
+  pickImage(png('again.png'))
+  await waitFor(() => expect(preview()?.getAttribute('src')).toBe('blob:cover-1'))
+  expect(screen.queryByRole('alert')).toBeNull()
+  expect(uploadCardImage).toHaveBeenCalledTimes(2)
+})
+
+it('형식·크기가 맞지 않는 파일은 서버로 보내기 전에 이유를 알리고 올리지 않는다', async () => {
+  const { uploadCardImage } = await showWorld()
+  openCard('가람 인물')
+  pickImage(png('x.gif', 'image/gif'))
+  expect((await screen.findByRole('alert')).textContent).toBe('PNG·JPEG·WebP 이미지만 올릴 수 있어요.')
+  pickImage(png('big.png', 'image/png', 5 * 1024 * 1024 + 1))
+  await waitFor(() => expect(screen.getByRole('alert').textContent).toBe('이미지는 5 MiB 이하여야 해요.'))
+  expect(uploadCardImage).not.toHaveBeenCalled()
+  expect(preview()).toBeNull()
+})
+
+it('이미지를 읽지 못하면 미리보기 자리에 이유를 알리되 바꾸기·빼기는 그대로 쓸 수 있다', async () => {
+  const readCardImage = vi.fn(async () => { throw new Error('이미지를 찾을 수 없어요.') })
+  await show([withImage(person('가람', '기존 내용'))], '/worldstudio/qa', { readCardImage })
+  openCard('가람 인물')
+  expect(await imageGroup().findByText('이미지를 찾을 수 없어요.')).toBeTruthy()
+  expect(document.querySelector('.world-card-tile span.world-card-tile-wait')).toBeTruthy() // 깨진 그림 대신 타일 크기 그대로의 빈 자리
+  expect(preview()).toBeNull()
+  expect(imageGroup().getByRole('button', { name: '빼기' })).toBeTruthy()
+  expect(imageInput('바꾸기').disabled).toBe(false)
+})
+
+it('화면을 떠나면 만든 이미지 객체 주소를 모두 해제한다', async () => {
+  const { readCardImage } = await show([withImage(person('가람', '기존 내용'))])
+  openCard('가람 인물')
+  await waitFor(() => expect(preview()?.getAttribute('src')).toBe('blob:cover-1'))
+  expect(readCardImage).toHaveBeenCalledOnce()
+  cleanup()
+  expect(objectUrls.revokeObjectURL).toHaveBeenCalledWith('blob:cover-1')
+})
+
+it('게시판 줄과 편집 화면 레일은 이미지가 있는 카드만 빈 대체 글(alt="")의 작은 썸네일을 보이고 같은 이미지는 한 번만 읽는다', async () => {
+  const { readCardImage } = await show([withImage(person('가람', '기존 내용')), person('나래')])
+  await waitFor(() => expect(thumbs(screen.getByRole('table', { name: '설정 카드 목록' }))).toEqual(['blob:cover-1']))
+  const rows = within(screen.getByRole('table', { name: '설정 카드 목록' })).getAllByRole('row').slice(1)
+  expect(rows.map((row) => row.querySelectorAll('img.board-thumb').length)).toEqual([1, 0]) // 이미지 없는 카드는 비워 둔다
+  expect(document.querySelector('.worlds-board-table img.board-thumb')?.getAttribute('alt')).toBe('')
+  openCard('가람 인물')
+  await waitFor(() => expect(thumbs(screen.getByRole('navigation', { name: '설정 카드 목록' }))).toEqual(['blob:cover-1']))
+  expect(Array.from(screen.getByRole('navigation', { name: '설정 카드 목록' }).querySelectorAll('img.board-thumb'), (image) => image.getAttribute('alt'))).toEqual(['']) // 레일 썸네일도 빈 대체 글(제목이 옆에 있다)
+  const railRows = Array.from(screen.getByRole('navigation', { name: '설정 카드 목록' }).querySelectorAll('.writing-episode-row'))
+  expect(railRows.map((row) => row.querySelectorAll('img.board-thumb').length)).toEqual([1, 0])
+  expect(readCardImage).toHaveBeenCalledOnce() // 게시판·레일·미리보기 세 곳이 한 번의 읽기를 나눠 쓴다
+})
+
+it('카드 이미지를 읽을 수 없는 데모(메모리)에서는 이미지 추가를 잠그고 지원하지 않는다고 알리며 아무것도 읽지 않는다', async () => {
+  const { readCardImage, uploadCardImage } = await show(undefined, '/worldstudio/qa', { demoCardImage: true })
+  openCard('가람 인물')
+  expect(imageInput().disabled).toBe(true)
+  const lock = imageGroup().getByText('데모에서는 이미지 업로드를 지원하지 않아요.')
+  expect([lock.classList.contains('sr-only'), lock.closest('.world-card-tile')]).toEqual([false, null]) // 잠긴 이유는 좁은 타일 안이 아니라 타일 아래에 읽힌다
+  expect(imageInput().closest('.world-card-tile')?.classList.contains('empty')).toBe(true) // 빈 타일은 그대로 두되 잠겨 있다
+  expect(readCardImage).not.toHaveBeenCalled()
+  expect(uploadCardImage).not.toHaveBeenCalled()
+})
+
+it('목업(mockup) 모드의 발표용 인물 초상은 그대로 보이고 이미지 추가는 잠겨 있다', async () => {
+  vi.stubEnv('MODE', 'mockup')
+  await show([person('홍길동', '의적')], '/worldstudio/qa', { demoCardImage: true })
+  openCard('홍길동 인물')
+  const portrait = imageGroup().getByRole('img', { name: '홍길동 인물 이미지' })
+  const tile = portrait.closest('.world-card-tile')!
+  expect([tile.classList.contains('cov'), tile.classList.contains('empty')]).toEqual([true, false]) // 초상도 같은 타일 자리를 채운다
+  expect(imageInput().disabled).toBe(true)
+  expect(tile.contains(imageInput())).toBe(false) // 잠긴 이미지 추가는 타일 아래 작은 버튼이고
+  expect(imageGroup().getByText('데모에서는 이미지 업로드를 지원하지 않아요.').classList.contains('sr-only')).toBe(false) // 잠금 안내는 그대로 보인다
+})
+
+it('이미 이미지가 있는 카드의 안내는 화면에서는 숨기고 입력의 설명으로만 남기며, 이미지가 없을 때만 타일 안에 보인다', async () => {
+  await show([withImage(person('가람', '기존 내용')), person('나래')])
+  openCard('가람 인물')
+  await waitFor(() => expect(preview()).toBeTruthy())
+  const note = document.getElementById(imageInput('바꾸기').getAttribute('aria-describedby') ?? '')!
+  expect([note.textContent, note.classList.contains('sr-only')]).toEqual(['PNG·JPEG·WebP, 5 MiB 이하', true])
+  fireEvent.click(imageGroup().getByRole('button', { name: '빼기' }))
+  const empty = document.getElementById(imageInput().getAttribute('aria-describedby') ?? '')!
+  expect([empty.textContent, empty.classList.contains('sr-only'), !!empty.closest('.world-card-tile.empty')]).toEqual(['PNG·JPEG·WebP, 5 MiB 이하', false, true])
 })

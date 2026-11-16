@@ -18,6 +18,7 @@ import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.*
 import org.mockito.stubbing.OngoingStubbing
 import org.springframework.data.domain.PageImpl
@@ -31,6 +32,7 @@ class PublicWorldServiceTest {
     private val revisions = mock(WorldRevisionRepository::class.java)
     private val revisionCards = mock(WorldRevisionCardRepository::class.java)
     private val cardVersions = mock(SettingCardVersionRepository::class.java)
+    private val images = mock(SettingCardImageRepository::class.java)
     private val states = mock(WorldRelationshipStateRepository::class.java)
     private val graph = mock(Neo4jRelationshipRepository::class.java)
     private val nicknames = mock(CoreNicknameService::class.java)
@@ -38,7 +40,7 @@ class PublicWorldServiceTest {
     private val manager = mock(PlatformTransactionManager::class.java).also {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
-    private val service = PublicWorldService(worlds, revisions, revisionCards, cardVersions, states, graph, nicknames, storage, manager)
+    private val service = PublicWorldService(worlds, revisions, revisionCards, cardVersions, images, states, graph, nicknames, storage, manager)
     private val published = Instant.parse("2026-11-11T01:02:03Z")
 
     /**
@@ -48,16 +50,23 @@ class PublicWorldServiceTest {
      */
     private inner class Seed(
         val owner: UUID = UUID.randomUUID(), visibility: String = "public", genre: String? = "fantasy",
-        saved: Boolean = true, name: String = "저장된 세계", cover: Boolean = false, cards: String = "public",
+        saved: Boolean = true, name: String = "저장된 세계", cover: Boolean = false, cards: String = "public", pictures: Boolean = false,
     ) {
         val id: UUID = UUID.randomUUID()
         val coverBytes = byteArrayOf(1, 2, 3)
         val revisionId: UUID = UUID.randomUUID()
-        val first = card("첫 인물", visibility = cards, reveal = 1)
-        val second = card("둘째 인물", visibility = cards)
-        val removed = card("지운 인물", "removed", reveal = 1)
+        /** [pictures]가 true이면 카드마다 대표 이미지가 있다(#401). 모두 이 세계관이 올린 이미지이고, [draftOnlyImage]는 어떤 확정 버전 카드도 가리키지 않는다(초안만 가리켰던 이미지). */
+        val firstImage: UUID = UUID.randomUUID()
+        val secondImage: UUID = UUID.randomUUID()
+        val removedImage: UUID = UUID.randomUUID()
+        val hiddenImage: UUID = UUID.randomUUID()
+        val draftOnlyImage: UUID = UUID.randomUUID()
+        val imageBytes = byteArrayOf(4, 5, 6)
+        val first = card("첫 인물", visibility = cards, reveal = 1, image = firstImage.takeIf { pictures })
+        val second = card("둘째 인물", visibility = cards, image = secondImage.takeIf { pictures })
+        val removed = card("지운 인물", "removed", reveal = 1, image = removedImage.takeIf { pictures })
         /** 소유자가 공개로 바꾸지 않은 카드다. 공개 세계관에서도 보이지 않지만(DEC-46) 독자 공개 회차가 있어 연결 소설의 독자에게는 2화부터 보인다. */
-        val hidden = card("비공개 인물", visibility = "private", reveal = 2)
+        val hidden = card("비공개 인물", visibility = "private", reveal = 2, image = hiddenImage.takeIf { pictures })
         val versions = listOf(first, second, removed, hidden)
         val relations = listOf(
             RelationshipPayload(UUID.randomUUID(), first.cardId, second.cardId, "structural", label = "동료"),
@@ -78,12 +87,17 @@ class PublicWorldServiceTest {
             `when`(states.findById(id)).thenReturn(Optional.of(state))
             graphReads(id) { it.thenReturn(RelationshipStateResult(id, 3, "key", "hash", relations)) }
             if (cover) `when`(storage.read("world-covers/$id")).thenReturn(AttachmentObjectResult(coverBytes))
+            if (pictures) listOf(firstImage, secondImage, removedImage, hiddenImage, draftOnlyImage).forEach {
+                `when`(images.findById(it)).thenReturn(Optional.of(SettingCardImage(it, id, "world-card-images/${it}", "image/png")))
+                `when`(storage.read("world-card-images/${it}")).thenReturn(AttachmentObjectResult(imageBytes))
+            }
         }
 
-        private fun card(title: String, lifecycle: String = "active", visibility: String = "public", reveal: Any? = null) = SettingCardVersion(
+        private fun card(title: String, lifecycle: String = "active", visibility: String = "public", reveal: Any? = null, image: UUID? = null) = SettingCardVersion(
             cardId = UUID.randomUUID(), worldId = id, versionNo = 1,
             fields = CardFields(title = title, body = "$title 본문", cardType = "character", aliases = listOf("별칭"), tags = listOf("태그"),
-                semanticMetadata = mapOf("studio" to mapOf("item" to title)) + (reveal?.let { mapOf("revealFromEpisode" to it) } ?: emptyMap()), visibility = visibility, lifecycle = lifecycle),
+                semanticMetadata = mapOf("studio" to mapOf("item" to title)) + (reveal?.let { mapOf("revealFromEpisode" to it) } ?: emptyMap()) +
+                    (image?.let { mapOf("imageId" to it.toString()) } ?: emptyMap()), visibility = visibility, lifecycle = lifecycle),
         )
 
         /** 목록 쿼리가 돌려줄 행(공개된 활성 카드 ID 쌍)이다. */
@@ -318,5 +332,104 @@ class PublicWorldServiceTest {
         val s = Seed(cover = true)
         `when`(storage.read("world-covers/${s.id}")).thenThrow(AttachmentFailure(503, "ATTACHMENT_STORAGE_FAILURE", "첨부 저장소 요청을 완료하지 못했어요. 다시 시도해 주세요."))
         assertEquals(503, assertThrows(ContentFailure::class.java) { service.cover(s.id) }.status)
+    }
+
+    // --- 설정 카드 대표 이미지(#401) ---
+    @Test fun `public and reader cards carry the image id of their card, or null`() {
+        val s = Seed(pictures = true)
+        `when`(nicknames.nicknames(listOf(s.owner.toString()))).thenReturn(mapOf(s.owner.toString() to "작가"))
+        assertEquals(mapOf(s.first.cardId to s.firstImage, s.second.cardId to s.secondImage), service.detail(s.id).cards.associate { it.id to it.imageId })
+        // 독자 설정 위키는 독자 공개 회차까지 열린 카드의 이미지이며 비공개 카드(2화부터)도 포함한다.
+        assertEquals(mapOf(s.first.cardId to s.firstImage, s.hidden.cardId to s.hiddenImage), service.readerCards("work", s.id, 2).cards.associate { it.id to it.imageId })
+        val plain = Seed()
+        assertTrue(service.detail(plain.id).cards.all { it.imageId == null })
+        assertTrue(service.readerCards("work", plain.id, 2).cards.all { it.imageId == null })
+    }
+
+    @Test fun `a card whose imageId is not a UUID shows no image`() {
+        val s = Seed()
+        val broken = SettingCardVersion(cardId = UUID.randomUUID(), worldId = s.id, versionNo = 1,
+            fields = CardFields(title = "깨진 이미지", body = "본문", cardType = "character", semanticMetadata = mapOf("imageId" to "1-1-1-1-1", "revealFromEpisode" to 1), visibility = "public"))
+        `when`(revisionCards.findAllByIdRevisionId(s.revisionId)).thenReturn(listOf(WorldRevisionCard(RevisionCardKey(s.revisionId, broken.cardId), s.id, broken.id)))
+        `when`(cardVersions.findAllById(listOf(broken.id))).thenReturn(listOf(broken))
+        assertNull(service.detail(s.id).cards.single().imageId)
+        assertNull(service.readerCards("work", s.id, 1).cards.single().imageId)
+    }
+
+    @Test fun `a public card image is the stored image of an active public card of the confirmed version`() {
+        val s = Seed(pictures = true)
+        listOf(s.firstImage, s.secondImage).forEach {
+            val image = service.cardImage(s.id, it)
+            assertEquals("image/png", image.contentType)
+            assertArrayEquals(s.imageBytes, image.bytes)
+        }
+    }
+
+    @Test fun `a public card image is a 404 unless a shown card of the confirmed version points at it, and storage is not read`() {
+        val s = Seed(pictures = true)
+        // 비공개 카드·삭제 카드의 이미지, 확정 버전의 어떤 카드도 가리키지 않는 이미지(초안만 가리켰던 것), 없는 ID.
+        listOf(s.hiddenImage, s.removedImage, s.draftOnlyImage, UUID.randomUUID()).forEach {
+            assertEquals(404, assertThrows(ContentFailure::class.java) { service.cardImage(s.id, it) }.status)
+        }
+        verify(storage, never()).read(anyString())
+    }
+
+    @Test fun `a card pointing at an image row of another world shows no image`() {
+        val s = Seed(pictures = true)
+        `when`(images.findById(s.firstImage)).thenReturn(Optional.of(SettingCardImage(s.firstImage, UUID.randomUUID(), "world-card-images/${s.firstImage}", "image/png")))
+        assertEquals(404, assertThrows(ContentFailure::class.java) { service.cardImage(s.id, s.firstImage) }.status)
+        assertEquals(404, assertThrows(ContentFailure::class.java) { service.readerCardImage(s.id, 1, s.firstImage) }.status)
+        verify(storage, never()).read(anyString())
+    }
+
+    @Test fun `a public card image is a 404 for private, never-saved, unsealed and unknown worlds`() {
+        val hidden = Seed(visibility = "private", pictures = true)
+        val draftOnly = Seed(saved = false, pictures = true)
+        val unsealed = Seed(pictures = true).also { it.revision.sealed = false }
+        listOf(hidden, draftOnly, unsealed).forEach {
+            assertEquals(404, assertThrows(ContentFailure::class.java) { service.cardImage(it.id, it.firstImage) }.status)
+        }
+        assertEquals(404, assertThrows(ContentFailure::class.java) { service.cardImage(UUID.randomUUID(), UUID.randomUUID()) }.status)
+        verify(storage, never()).read(anyString())
+    }
+
+    @Test fun `a storage failure on a public card image keeps its status`() {
+        val s = Seed(pictures = true)
+        `when`(storage.read("world-card-images/${s.firstImage}")).thenThrow(AttachmentFailure(503, "ATTACHMENT_STORAGE_FAILURE", "첨부 저장소 요청을 완료하지 못했어요. 다시 시도해 주세요."))
+        assertEquals(503, assertThrows(ContentFailure::class.java) { service.cardImage(s.id, s.firstImage) }.status)
+        assertEquals(503, assertThrows(ContentFailure::class.java) { service.readerCardImage(s.id, 1, s.firstImage) }.status)
+    }
+
+    @Test fun `a reader card image is the image of a card revealed up to the episode whatever the world and card visibility`() {
+        // 세계관도 비공개다: 독자 공개는 세계관 공개·카드 공개와 별개로 카드의 독자 공개 회차만 본다.
+        val s = Seed(visibility = "private", pictures = true)
+        assertArrayEquals(s.imageBytes, service.readerCardImage(s.id, 1, s.firstImage).bytes)
+        assertEquals("image/png", service.readerCardImage(s.id, 2, s.hiddenImage).contentType)
+        assertArrayEquals(s.imageBytes, service.readerCardImage(s.id, 9, s.firstImage).bytes)
+    }
+
+    @Test fun `a reader card image is a 404 for a card not revealed yet, never revealed, removed or only in the draft, and storage is not read`() {
+        val s = Seed(pictures = true)
+        listOf(
+            1 to s.hiddenImage,     // 2화부터 공개
+            9 to s.secondImage,     // 독자 공개 회차가 없다(공개 세계관의 공개 카드여도 독자에게는 숨는다)
+            9 to s.removedImage,    // 삭제된 카드
+            9 to s.draftOnlyImage,  // 확정 버전의 카드가 가리키지 않는다
+            9 to UUID.randomUUID(),
+        ).forEach { (upto, image) ->
+            assertEquals(404, assertThrows(ContentFailure::class.java) { service.readerCardImage(s.id, upto, image) }.status)
+        }
+        verify(storage, never()).read(anyString())
+    }
+
+    @Test fun `a reader card image is a 404 for a world without a sealed revision or an unknown world`() {
+        val draftOnly = Seed(saved = false, pictures = true)
+        val unsealed = Seed(pictures = true).also { it.revision.sealed = false }
+        listOf(draftOnly, unsealed).forEach {
+            assertEquals(404, assertThrows(ContentFailure::class.java) { service.readerCardImage(it.id, 9, it.firstImage) }.status)
+        }
+        assertEquals(404, assertThrows(ContentFailure::class.java) { service.readerCardImage(UUID.randomUUID(), 9, UUID.randomUUID()) }.status)
+        verify(storage, never()).read(anyString())
+        verifyNoInteractions(graph)
     }
 }
