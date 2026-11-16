@@ -54,6 +54,29 @@ class CreativeCardsTest(unittest.TestCase):
             path.write_text(json.dumps(world, ensure_ascii=False), encoding="utf-8")
             self.assertEqual(world, catalog.load_history(path))
 
+    def test_generated_history_cards_include_actual_sources(self):
+        worlds = catalog.build(catalog.read(catalog.RESOURCES / "genre-templates.json"))
+        cards = {card["id"]: card["body"] for world in worlds for card in world["cards"]}
+        root = "https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/blob/49c623798a01a678531ab0c2891b523400d79526/docs/research/history-textbooks/"
+        with self.subTest(country="france"):
+            body = cards["26f85737-beba-591e-94fe-ae97b2773e53"]
+            self.assertIn("초기 왕국부터 1870–1871년 전쟁까지", body)
+            self.assertIn("원문 49–59행", body)
+            self.assertIn(root + "france/source-en.txt#L128-L161", body)
+            self.assertIn(root + "france/source-en.txt#L2668-L2690", body)
+        with self.subTest(country="italy"):
+            body = cards["b0057fb2-639c-53f9-8e9b-0cb0cc7c5802"]
+            self.assertIn("마지막 평가는 1874년", body)
+            self.assertIn("원문 283–339행", body)
+            self.assertIn(root + "italy/hunt/source-en.txt#L11253-L11262", body)
+        with self.subTest(country="usa"):
+            body = cards["0bef7a62-4958-5f89-8096-1b0dd60c1e59"]
+            self.assertNotIn("usa.world.ko.md", body)
+            self.assertIn("저장소 병합 후 접근", body)
+            self.assertIn("https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/blob/develop/infrastructure/sample-data/genre-templates/history/usa.evidence.json", body)
+            self.assertIn("https://www.americanyawp.com/text/contributors/", body)
+            self.assertIn("https://www.americanyawp.com/textbook/01-american-origins", body)
+
     def test_usa_runtime_license_card_links_to_chapter_credits(self):
         source = catalog.ROOT / "history/usa.world.json"
         original = catalog.read(source)
@@ -62,11 +85,11 @@ class CreativeCardsTest(unittest.TestCase):
         before = next(c for c in original["cards"] if c["id"] == card_id)
         after = next(c for c in result["cards"] if c["id"] == card_id)
         url = "https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/blob/develop/infrastructure/sample-data/genre-templates/history/usa.evidence.json"
-        self.assertEqual(before["body"] + "\n\n장별 기여자와 출처(저장소 병합 후 접근): " + url + "\n원전의 현행 장별 목록: https://www.americanyawp.com/\n원전의 현행 기여자 목록: https://www.americanyawp.com/text/contributors/", after["body"])
+        self.assertEqual(before["body"].replace("짝인 usa.evidence.json과 usa.world.ko.md에", "usa.evidence.json에") + "\n\n장별 기여자와 출처(저장소 병합 후 접근): " + url + "\n원전의 현행 장별 목록: https://www.americanyawp.com/\n원전의 현행 기여자 목록: https://www.americanyawp.com/text/contributors/", after["body"])
         after["body"] = before["body"]
         self.assertEqual(before, after)
 
-    def test_history_runtime_corrects_only_outdated_registration_notes(self):
+    def test_history_runtime_corrects_only_recorded_notes_and_sources(self):
         descriptions = {
             "england": ("현대사 보완·서비스 반영 전 검토용.", "현대사 보완 대기 중인 비공개 연구 기반 샘플."),
             "france": ("서비스·DB 반영 대상이 아니다.", "독립 검수 미완료인 비공개 연구 기반 샘플이다."),
@@ -79,6 +102,9 @@ class CreativeCardsTest(unittest.TestCase):
             "29abc109-1de4-575a-aa6c-6ae29a4e0e39": ("연구용 파일만 만들며 서비스·DB에는 등록하지 않는다.", "검증되지 않은 연구 기반 샘플이다."),
             "84c432b7-7c72-5450-a0e0-9bff072b0420": ("현대 자료 신규 취득, 앱·DB 등록, 서비스 템플릿 수정, 커밋·푸시는 하지 않는다.", "현대 자료 신규 취득과 독립 역사 감수는 완료되지 않았다."),
             "4ff3552f-2aa0-5e95-88a8-5cf7d2c46e8b": ("창작 인물·가상 사건·대화·플롯을 추가하지 않았고 서비스 데이터에 반영하지 않았다.", "창작 인물·가상 사건·대화·플롯을 추가하지 않았으며 독립 검수 미완료인 연구 기반 샘플이다."),
+            "26f85737-beba-591e-94fe-ae97b2773e53": ("[원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)", "[원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt); [1장 초기 왕국, 원문 128–161행](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/blob/49c623798a01a678531ab0c2891b523400d79526/docs/research/history-textbooks/france/source-en.txt#L128-L161); [프랑스-독일 전쟁, 원문 2668–2690행](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/blob/49c623798a01a678531ab0c2891b523400d79526/docs/research/history-textbooks/france/source-en.txt#L2668-L2690)"),
+            "b0057fb2-639c-53f9-8e9b-0cb0cc7c5802": ("[원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)", "[원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt); [마지막 평가, 원문 11253–11262행](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/blob/49c623798a01a678531ab0c2891b523400d79526/docs/research/history-textbooks/italy/hunt/source-en.txt#L11253-L11262)"),
+            "0bef7a62-4958-5f89-8096-1b0dd60c1e59": ("짝인 usa.evidence.json과 usa.world.ko.md에", "usa.evidence.json에"),
         }
         url = "https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/blob/develop/infrastructure/sample-data/genre-templates/history/usa.evidence.json"
         seen = set()
