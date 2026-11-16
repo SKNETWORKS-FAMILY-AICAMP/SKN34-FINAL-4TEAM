@@ -1,7 +1,7 @@
 {
   "genre": "indian_mythology",
-  "name": "인도 신화: 바가바드기타",
-  "scope": "《바가바드기타》 제1~18장 전체의 한국어 중역. 텔랑 1882년 700절 계통을 따르며, 8.1의 누락 질문 한 구절은 베전트 1922년판으로 표시하여 보충했다. 《마하바라타》 전체나 여러 작품의 선집이 아니다.",
+  "name": "인도 전승: 바가바드기타와 리그베다",
+  "scope": "원고는 텔랑 1882년판에 근거한 《바가바드기타》 1–18장의 한국어 중역이다. 별도 전승 카드는 《리그베다》 1.1·1.32·10.90·10.129를 추가하며 인도 전승 전체의 선집이 아니다.",
   "sources": [
     {
       "title": "텔랑 1882년 인쇄본: 본편 37~131쪽",
@@ -82,6 +82,14 @@
     {
       "title": "베전트 1922년판 제8장 1절: 한 질문 보충 대조",
       "url": "https://en.wikisource.org/w/index.php?title=Bhagavad-Gita_(Besant_4th)/Discourse_8&oldid=9514547"
+    },
+    {
+      "title": "리그베다 GRETIL Aufrecht 1877 제2판 전사",
+      "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm"
+    },
+    {
+      "title": "리그베다 GRETIL Aufrecht 1877 제2판 전사",
+      "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm"
     }
   ],
   "cards": [
@@ -1246,6 +1254,71 @@
         {
           "section": "gita-18-004",
           "evidence": "우리의 이 거룩한 대화를 공부하는 사람은 내게 지식의 제사를 바친 셈이 될 것이다."
+        }
+      ]
+    },
+    {
+      "key": "rigveda-vritra",
+      "title": "리그베다의 브리트라 격파",
+      "cardType": "event",
+      "body": "《리그베다》 1.32는 인드라가 뱀 브리트라를 무찌르고 막혔던 물을 흐르게 했다고 찬양한다. 이는 《바가바드기타》의 인드라 언급과 별개의 베다 찬가다.\n\n출전: [《리그베다》 1.32.1–5, 11](https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "rigveda-vritra",
+          "evidence": "ahan vṛtraṃ vṛtrataraṃ vyaṃsam"
+        }
+      ]
+    },
+    {
+      "key": "rigveda-tvastr-vajra",
+      "title": "트바슈트리가 만든 바즈라",
+      "cardType": "object",
+      "body": "《리그베다》 1.32.2–3에서 트바슈트리가 인드라를 위해 바즈라를 만들고 인드라는 소마를 마신 뒤 무기를 든다. 여기의 제작자는 찬가에 명시된 범위로 한정한다.\n\n출전: [《리그베다》 1.32.2–3](https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "rigveda-tvastr-vajra",
+          "evidence": "tvaṣṭāsmai vajraṃ svaryaṃ tatakṣa"
+        }
+      ]
+    },
+    {
+      "key": "rigveda-agni",
+      "title": "제사의 사제 아그니",
+      "cardType": "character",
+      "body": "《리그베다》 첫 찬가는 아그니를 제사의 신이자 사제로 불러 신들을 데려오도록 청한다. 불과 제의의 관계를 그 찬가의 화법 안에서 읽는다.\n\n출전: [《리그베다》 1.1.1–2](https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "rigveda-agni",
+          "evidence": "agnim īḷe purohitaṃ"
+        }
+      ]
+    },
+    {
+      "key": "rigveda-purusha",
+      "title": "푸루샤와 제사의 세계",
+      "cardType": "event",
+      "body": "《리그베다》 10.90은 신들이 푸루샤를 제물로 삼은 제사를 노래하며 달·해와 하늘·땅을 그의 몸에 연결한다. 12절은 네 사회 집단의 기원을 몸에 빗대는데 이는 이 찬가의 역사적 표현이며 오늘날 모든 공동체의 관행을 대변하지 않는다.\n\n출전: [《리그베다》 10.90.6–15](https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "rigveda-purusha",
+          "evidence": "yat puruṣeṇa haviṣā devā yajñam atanvata"
+        }
+      ]
+    },
+    {
+      "key": "rigveda-origins-question",
+      "title": "존재 이전과 창조에 대한 물음",
+      "cardType": "rule",
+      "body": "《리그베다》 10.129는 존재와 비존재, 창조의 기원을 묻고 마지막에 가장 높은 하늘의 감시자도 알지 못할 수 있다고 열어 둔다. 10.90의 제사 노래와 별개의 찬가로 두며 차이를 하나의 확정 교리로 합치지 않는다.\n\n출전: [《리그베다》 10.129.1, 6–7](https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "rigveda-origins-question",
+          "evidence": "nāsad āsīn no sad āsīt tadānīṃ"
         }
       ]
     }

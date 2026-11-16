@@ -1,11 +1,27 @@
 {
   "genre": "sumerian_mythology",
-  "name": "수메르 신화 · 구데아의 신전 건립 찬가 · 원통 A와 B",
-  "scope": "에닌누 건립과 봉헌을 노래한 한 작품인 구데아 원통 A·B의 현존 저본 전체를 한국어로 중역한다. A 30열과 B 24열을 모두 포함하며, 물리적 결락과 1905년 미해독 부분을 보존한다. 이난나 하강 등 별개 작품을 합치지 않는다.",
+  "name": "수메르 전승: 구데아 원통과 별도 신화",
+  "scope": "원고는 구데아 원통 A·B의 한국어 중역이다. 별도 전승 카드는 ETCSL의 《이난나의 저승 하강》과 《엔키와 닌후르상가》를 추가하며 수메르 전승 전체를 대표하지 않는다.",
   "sources": [
     {
       "title": "Thureau-Dangin 1905, 구데아 원통 A·B, 135–199쪽",
       "url": "https://archive.org/details/lesinscriptionsd00thuruoft"
+    },
+    {
+      "title": "ETCSL 수메르어 복합 전사",
+      "url": "https://etcsl.orinst.ox.ac.uk/section1/c141.htm"
+    },
+    {
+      "title": "ETCSL 수메르어 복합 전사",
+      "url": "https://etcsl.orinst.ox.ac.uk/section1/c111.htm"
+    },
+    {
+      "title": "ETCSL 이난나의 저승 하강 영역",
+      "url": "https://etcsl.orinst.ox.ac.uk/section1/tr141.htm"
+    },
+    {
+      "title": "ETCSL 엔키와 닌후르상가 영역",
+      "url": "https://etcsl.orinst.ox.ac.uk/section1/tr111.htm"
     }
   ],
   "cards": [
@@ -882,6 +898,84 @@
         {
           "section": "gudea-b-xxiv",
           "evidence": "(1) 닌기르수의 […]이다. (2) 아래에서 위까지 너의 이름이 존재하기를! (3) 구데아여, 너의 […]. (4) […] […] […] […]. (5) 나는 하늘의 주문을 아는 […]이다. (6) [나의] [파]테시여, 신전의 운명을 정하는 이는 나이다. (7) 닌기시지다 신의 [아들] 구데아의 (8) 생명이 길어지기를!” (9) 큰 산처럼 하늘을 향해 세워진 신전, (10) 그 무서운 빛이 나라 위에 떨어지는 신전, (11) 아누와 엔릴이 라가시의 운명을 정하는 신전, (12–13) 나라들에게 닌기르수의 위엄을 알리는 신전, (14) 하늘과 땅에 세워진 에닌누를 (15) 닌기르수여, 영화롭게 하라! (16) 닌기르수의 신전을 (17) 다 지은 뒤에 영화롭게 하라!"
+        }
+      ]
+    },
+    {
+      "key": "inana-descent",
+      "title": "이난나의 저승 하강",
+      "cardType": "event",
+      "body": "《이난나의 저승 하강》에서 이난나는 하늘과 땅을 떠나 저승으로 간다. 저승 문에서 언니 에레시키갈의 죽은 남편을 위한 장례 의례에 참석하러 왔다고 밝힌다. 구데아 원통과는 다른 작품이다.\n\n출전: [ETCSL c.1.4.1, 1–5, 73–89](https://etcsl.orinst.ox.ac.uk/section1/c141.htm).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "inana-descent",
+          "evidence": "kur-ra ba-e-a-ed_{3}"
+        }
+      ]
+    },
+    {
+      "key": "ereshkigal-ganzer",
+      "title": "에레시키갈과 간제르",
+      "cardType": "character",
+      "body": "이난나의 언니 에레시키갈은 간제르 궁전과 저승의 문지기 네티에게 명령한다. 그녀는 일곱 문을 잠그고 하나씩 열어 들어온 이난나의 옷과 장신구를 벗기게 한다.\n\n출전: [ETCSL c.1.4.1, 90–128](https://etcsl.orinst.ox.ac.uk/section1/c141.htm).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "ereshkigal-ganzer",
+          "evidence": "abul kur-ra 7-bi ^{jic}si-jar-bi he_{2}-eb-us_{2}"
+        }
+      ]
+    },
+    {
+      "key": "inana-lapis-rod-variant",
+      "title": "청금석 측량 막대와 문에서의 이설",
+      "cardType": "object",
+      "body": "이난나는 청금석 측량 막대와 줄을 지니고 내려간다. ETCSL 복합 전사의 154–158행에서는 여섯째 문에서 벗겨지지만, 129A–B행의 한 필사본 추가 구절은 첫째 문에서 벗겨졌다고도 기록한다. 이 차이는 해당 증거에 한정한다.\n\n출전: [ETCSL c.1.4.1, 25, 129A–B, 154–158; 번역 https://etcsl.orinst.ox.ac.uk/section1/tr141.htm](https://etcsl.orinst.ox.ac.uk/section1/c141.htm).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "inana-lapis-rod-variant",
+          "evidence": "gi 1 ninda ec_{2}-gana_{2} za-gin_{3}"
+        }
+      ]
+    },
+    {
+      "key": "underworld-gates",
+      "title": "간제르의 일곱 문",
+      "cardType": "location",
+      "body": "《이난나의 저승 하강》에서 간제르의 일곱 문은 차례로 열리고, 이난나는 각 문에서 몸에 지닌 것들을 빼앗긴다. 문지기는 그것을 저승의 관례라고 설명한다.\n\n출전: [ETCSL c.1.4.1, 114–163](https://etcsl.orinst.ox.ac.uk/section1/c141.htm).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "underworld-gates",
+          "evidence": "abul kur-ra 7-bi ^{jic}si-jar-bi he_{2}-eb-us_{2}"
+        }
+      ]
+    },
+    {
+      "key": "dilmun-enki-ninhursanga",
+      "title": "엔키와 닌후르상가의 딜문",
+      "cardType": "location",
+      "body": "《엔키와 닌후르상가》의 첫머리는 딜문을 깨끗하고 때 묻지 않은 땅으로 묘사한다. 동물과 질병이 아직 평소처럼 행동하지 않는 모습도 노래하지만 그곳에는 물이 부족해 닌시키라가 엔키에게 호소한다. 구데아 원통과는 별개의 작품이다.\n\n출전: [ETCSL c.1.1.1, 1–4, 11–39; 번역 https://etcsl.orinst.ox.ac.uk/section1/tr111.htm](https://etcsl.orinst.ox.ac.uk/section1/c111.htm).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "dilmun-enki-ninhursanga",
+          "evidence": "kur dilmun^{ki} sikil-am_{3}"
+        }
+      ]
+    },
+    {
+      "key": "ninshubur-aid",
+      "title": "닌슈부르의 구원 요청",
+      "cardType": "character",
+      "body": "《이난나의 저승 하강》에서 이난나의 시종 닌슈부르는 구원을 위해 신들의 집을 찾아가라는 지시를 받는다. 이난나는 엔키가 생명의 풀과 물을 안다고 말하며, 이후 구출되어 돌아온다.\n\n출전: [ETCSL c.1.4.1, 26–67, 273–281; 번역 https://etcsl.orinst.ox.ac.uk/section1/tr141.htm](https://etcsl.orinst.ox.ac.uk/section1/c141.htm).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "ninshubur-aid",
+          "evidence": "sukkal-a-ni ^{d}ga-ca-an-cubur-ra"
         }
       ]
     }

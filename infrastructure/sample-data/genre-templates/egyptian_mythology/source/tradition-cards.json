@@ -1,11 +1,23 @@
 {
   "genre": "egyptian_mythology",
-  "name": "이집트 신화 · 라와 이시스의 전설",
-  "scope": "버지의 1912년 영어 번역을 저본으로 한 「라와 이시스의 전설」 한 작품의 한국어 완역과 세계관. 다른 이집트 전승의 계보·사건을 보충하지 않는다.",
+  "name": "이집트 전승: 라와 이시스 및 피라미드 문서",
+  "scope": "원고는 버지 1912년 「라와 이시스의 전설」 한 작품의 한국어 중역이다. 별도 전승 카드는 우나스 피라미드 문서의 장송 주문 23·213·219·252를 추가하며 이집트 전승 전체를 대표하지 않는다.",
   "sources": [
     {
       "title": "버지 1912년: 라와 이시스의 전설",
       "url": "https://www.gutenberg.org/cache/epub/9411/pg9411-images.html"
+    },
+    {
+      "title": "우나스 피라미드 문서 TLA 전사 및 Mercer 영역",
+      "url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall"
+    },
+    {
+      "title": "우나스 피라미드 문서 TLA 전사 및 Mercer 영역",
+      "url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-antechamber-west-gable"
+    },
+    {
+      "title": "우나스 피라미드 문서 TLA 전사 및 Mercer 영역",
+      "url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-north-wall-register-1"
     }
   ],
   "cards": [
@@ -326,6 +338,58 @@
         {
           "section": "ra-isis-p012",
           "evidence": "이시스가 말했다. “신성한 아버지여, 이것은 무엇입니까? 무슨 일입니까? 뱀이 당신에게 독을 쏘았습니까? 당신이 빚은 어떤 것이 당신을 거슬러 머리를 들었습니까? 참으로 그것은 이로운 권능의 말들로 쓰러질 것이며, 저는 당신의 빛 앞에서 그것을 물러나게 하겠습니다.” 거룩한 신이 입을 열어 말했다. “내 마음이 내가 만든 것을 보고 싶어 했기에, 나는 길을 따라 내 나라의 두 땅을 지나가고 있었다. 그때 나는 보지 못한 뱀에게 물렸다. 보라, 그것은 불인가? 보라, 그것은 물인가? 나는 물보다 차갑고 불보다 뜨거우며, 온몸에서 땀이 나고 내 자신이 떨리며 내 눈은 흔들린다."
+        }
+      ]
+    },
+    {
+      "key": "unas-osiris",
+      "title": "우나스 장송문 속 오시리스",
+      "cardType": "character",
+      "body": "우나스 피라미드 주문 219는 오시리스를 아툼·슈·테프누트·게브·누트의 아들, 이시스·세트·네프티스의 형제, 호루스의 아버지로 호명하며 오시리스의 생명과 왕 우나스의 생명을 나란히 말한다. 이는 장송 주문의 호명이지 모든 지역·시대에 통용되는 단일 계보가 아니다.\n\n출전: [주문 219, 우나스 W 240, 세테 §167; W 243–247, §§170–176](https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "unas-osiris",
+          "evidence": "〈J〉tm〈,w〉 zꜣ =k pw p〈w〉-nn 〈W〉sjr"
+        }
+      ]
+    },
+    {
+      "key": "unas-sceptres",
+      "title": "우나스와 오시리스의 왕좌·지팡이",
+      "cardType": "object",
+      "body": "주문 213은 죽은 왕이 살아서 오시리스의 왕좌에 앉으며 손에 지팡이를 들고 산 자들에게 명령한다고 말한다. 지팡이는 왕의 사후 권위를 표현하는 장송문 속 물건이다.\n\n출전: [주문 213, 우나스 W 206–207, 세테 §§134–135](https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "unas-sceptres",
+          "evidence": "ḥmsi̯ ḥr ḫnd 〈W〉sjr"
+        }
+      ]
+    },
+    {
+      "key": "unas-duat",
+      "title": "두아트와 라의 배",
+      "cardType": "location",
+      "body": "주문 252는 두아트의 신들에게 우나스의 도착을 알리고 왕이 라의 배를 젓는 자들과 함께 앉는다고 한다. 두아트는 여기서 장송 여정의 장소이며 하나의 완결된 사후 세계 지도로 취급하지 않는다.\n\n출전: [주문 252, 우나스 W 404–410, 세테 §§272–274](https://theosislibrary.com/library/verified-pyramid-texts-unas-antechamber-west-gable).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "unas-duat",
+          "evidence": "nṯr.pl jm〈,j〉.w dwꜣ,t"
+        }
+      ]
+    },
+    {
+      "key": "unas-libation",
+      "title": "우나스 장송문의 봉헌",
+      "cardType": "event",
+      "body": "우나스 피라미드 주문 23은 오시리스와 토트에게 왕에 대한 적의를 막도록 호소하고 네 번 낭송하라고 지시한다. 병기된 영역은 이 주문을 물을 붓는 봉헌과 연결한다. 특정 왕의 장례 문맥에서 읽는다.\n\n출전: [주문 23, 우나스 W 1–4, 세테 §16](https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-north-wall-register-1).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "unas-libation",
+          "evidence": "ḏ〈d〉-mdw zp 4"
         }
       ]
     }
