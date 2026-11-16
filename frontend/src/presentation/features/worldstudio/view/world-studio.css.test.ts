@@ -63,11 +63,12 @@ it('편집기 감싸개는 Toast의 z-index(본문 20·팝업 30)를 가둬 stic
   expect(rule((s) => s === '.world-card-studio .sbar')?.body).toMatch(/background:\s*var\(--tbg\)/) // 전역 .sbar는 90% 면이라 좁은 화면에서 스크롤되는 본문이 비친다
 })
 
-it('AI 채팅이 열려 있는 동안 떠 있는 테마 버튼이 채팅 전송 버튼을 덮지 않는다: 데스크톱은 설정집 화면(.world-chat)과 편집 화면(.writing-chat) 모두 채팅 왼쪽으로 비키고, 채팅이 문서 끝에 쌓이는 편집 화면의 좁은 화면은 그 아래를 비운다', () => {
-  expect(css).toMatch(/@media\s*\(min-width:\s*901px\)\s*\{body:has\(\.world-chat,\.world-card-studio \.writing-chat\) \.screen-controls\s*\{[^}]*right:\s*calc\(350px \+ 12px\)/)
-  expect(css).toMatch(/@media\s*\(min-width:\s*901px\) and \(max-width:\s*1200px\)\s*\{body:has\(\.world-chat,\.world-card-studio \.writing-chat\) \.screen-controls\s*\{[^}]*right:\s*calc\(300px \+ 12px\)/)
-  // 설정집 화면은 ≤900px에서 채팅이 body의 서랍(.back-dim, z-index 100·문서 순서상 뒤)이라 버튼이 그 막에 가려져 겹치지 않는다.
-  expect(css).toMatch(/@media\s*\(max-width:\s*900px\)\s*\{\.world-card-studio \.studio-workspace:has\(>\s*\.writing-chat\)\s*\{[^}]*padding-bottom:\s*140px/) // 컨트롤은 아래 86px부터 높이 44px(≤600px·터치) → 맨 위 130px + 여유 10px
+it('AI 채팅이 열려 있는 동안 스크롤한 뒤 나타나는 맨 위로 버튼(#top)이 채팅 전송 버튼을 덮지 않는다: 데스크톱은 설정집 화면(.world-chat)과 편집 화면(.writing-chat) 모두 채팅 왼쪽으로 비키고, 채팅이 문서 끝에 쌓이는 편집 화면의 좁은 화면은 그 아래를 비운다', () => {
+  expect(css).toMatch(/@media\s*\(min-width:\s*901px\)\s*\{body:has\(\.world-chat,\.world-card-studio \.writing-chat\) #top\s*\{[^}]*right:\s*calc\(350px \+ 24px\)/) // 기존 #top 오프셋(24px)에 채팅 열 폭만 더한다
+  expect(css).toMatch(/@media\s*\(min-width:\s*901px\) and \(max-width:\s*1200px\)\s*\{body:has\(\.world-chat,\.world-card-studio \.writing-chat\) #top\s*\{[^}]*right:\s*calc\(300px \+ 24px\)/)
+  // 설정집 화면은 ≤900px에서 채팅이 body의 서랍(.back-dim, z-index 100)이라 #top(z-index 50)이 그 막 아래로 가려져 겹치지 않는다.
+  expect(css).toMatch(/@media\s*\(max-width:\s*900px\)\s*\{\.world-card-studio \.studio-workspace:has\(>\s*\.writing-chat\)\s*\{[^}]*padding-bottom:\s*84px/) // #top은 아래 24px부터 높이 50px → 맨 위 74px + 여유 10px
+  expect(css.replace(/\/\*[\s\S]*?\*\//g, '')).not.toContain('.screen-controls') // 이 화면에는 떠 있는 테마 버튼이 없어(GlobalChrome) 그것을 비키는 규칙도 두지 않는다
 })
 
 it('인물 문서 탭은 전역 문서 버튼(.world-rail-kinds button, 한 줄 알약)을 이기는 선택자로 라벨 아래에 보조 글씨를 두고, 고른 회차 기억 탭은 고른 문서와 같은 모양이다', () => {

@@ -239,6 +239,42 @@ it('관리 보기 전환 줄이 한 줄로 있고(설정집·관계도·시간�
   expect(screen.getByRole('table', { name: '설정 카드 목록' })).toBeTruthy()
 })
 
+it('테마 전환은 떠 있는 버튼이 아니라 설정집 화면의 저장 영역 옆(탭 줄 오른쪽 끝)에 기존 작은 버튼 한 개로 있다', async () => {
+  await showWorld()
+  const theme = screen.getByRole('button', { name: '다크 모드로' }) // 한 개: 떠 있는 버튼은 GlobalChrome이 이 화면에서 그리지 않는다
+  const end = saveBar().getByRole('button', { name: '세계관 저장' }).closest('.world-tabs-end')!
+  expect(end.lastElementChild).toBe(theme) // 저장 영역 바로 옆, 줄의 오른쪽 끝
+  expect(saveBar().queryByRole('button', { name: /모드로/ })).toBeNull() // 저장 상태 묶음 안이 아니라 그 옆
+  expect(theme.className).toBe('btn sm') // 새 스타일 없이 기존 작은 버튼: 저장 버튼(btn pri sm)보다 약하다
+  fireEvent.click(theme)
+  expect(screen.getByRole('button', { name: '라이트 모드로' })).toBeTruthy()
+})
+
+it('설정 편집 화면은 상단 바 오른쪽의 저장 영역 옆에 테마 전환 버튼을 한 개 두고, 가려진 설정집 화면의 버튼은 중복으로 보이지 않는다', async () => {
+  await showWorld()
+  openCard('가람 인물')
+  const theme = screen.getByRole('button', { name: '다크 모드로' }) // 가려진 설정집 화면(hidden)의 것은 접근성 트리에 없다
+  const bar = theme.closest('.sbar') as HTMLElement
+  expect(bar).toBeTruthy()
+  expect(within(bar).getByRole('group', { name: '저장 상태' })).toBeTruthy()
+  expect(theme.closest('.writing-bar-end')?.lastElementChild).toBe(theme) // 저장 영역 옆, 상단 바 오른쪽 끝
+  expect(theme.className).toBe('btn sm')
+})
+
+it('작성 마법사에는 탭 줄·저장 영역이 없어 테마 전환 버튼이 헤더의 행동 줄(집필 메모 추가·관리 화면으로 옆)에 한 개 있다', async () => {
+  await wizard()
+  const theme = screen.getByRole('button', { name: '다크 모드로' })
+  const acts = within(theme.closest('.acts') as HTMLElement)
+  expect(acts.getByRole('button', { name: '집필 메모 추가' })).toBeTruthy()
+  expect(acts.getByRole('button', { name: '관리 화면으로' })).toBeTruthy()
+  expect(theme.className).toBe('btn sm')
+})
+
+it('새 세계관 만들기(/worldstudio)에는 테마 버튼을 따로 두지 않는다: 그 화면은 떠 있는 테마 버튼(GlobalChrome)이 그대로 맡는다', async () => {
+  await show(undefined, '/worldstudio')
+  expect(screen.queryByRole('button', { name: /모드로/ })).toBeNull()
+})
+
 it('4단계 내비는 지금 단계만 aria-current=step이고 단계 이름·순서는 그대로다', async () => {
   await wizard() // 4단계(기본 정보 포함)는 새로 만든 직후(?new=1) 작성 모드의 내비다
   const steps = within(screen.getByRole('navigation', { name: '세계관 작성 단계' }))
