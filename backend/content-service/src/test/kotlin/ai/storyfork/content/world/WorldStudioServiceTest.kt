@@ -16,6 +16,7 @@ import java.util.Optional
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.*
 import org.springframework.transaction.PlatformTransactionManager
@@ -33,12 +34,13 @@ class WorldStudioServiceTest {
     private val revisionCards=mock(WorldRevisionCardRepository::class.java)
     private val requests=mock(WorldSaveRequestRepository::class.java)
     private val states=mock(WorldRelationshipStateRepository::class.java)
+    private val images=mock(SettingCardImageRepository::class.java)
     private val graph=mock(Neo4jRelationshipRepository::class.java)
     private val manager=mock(PlatformTransactionManager::class.java).also {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
     private val mapper=JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
-    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,mock(InitialWorldApplicationRepository::class.java),graph,manager,mapper)
+    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,mock(InitialWorldApplicationRepository::class.java),images,graph,manager,mapper)
     private val world=UUID.randomUUID()
     private val actor=UUID.randomUUID()
     private val draft=WorldDraft(worldId=world,name="편집본",draftRevision=2)
@@ -226,6 +228,56 @@ class WorldStudioServiceTest {
         assertThrows(WorldNotFound::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(card),key="foreign")) }
         verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
         assertEquals(2L,draft.draftRevision)
+    }
+    // --- 설정 카드 대표 이미지(#401): 카드 semanticMetadata.imageId는 이 세계관이 올린 이미지만 가리킬 수 있다 ---
+    private fun withImage(image:Any?)=CardPayload(UUID.randomUUID(),"인물","원문","character","basic",semanticMetadata=mapOf("imageId" to image))
+    private fun worldsImage(image:UUID,owner:UUID=world)=SettingCardImage(image,owner,"world-card-images/${image}","image/png")
+    @Test fun `a card image id that is not a UUID is an input error before anything is read or prepared`() {
+        owned()
+        for(bad in listOf("","x","1-1-1-1-1",42,true,mapOf("id" to "x"))) {
+            assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(withImage(bad)),key="bad-image")) }
+        }
+        verifyNoInteractions(images)
+        assertTrue(state.completed);verify(states,never()).flush()
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+    }
+    @Test fun `an image of another world or an unknown image is an input error and the previous draft stays`() {
+        owned()
+        val mine=UUID.randomUUID();val foreign=UUID.randomUUID();val unknown=UUID.randomUUID()
+        `when`(images.findAllById(any())).thenReturn(listOf(worldsImage(mine),worldsImage(foreign,owner=UUID.randomUUID())))
+        for(other in listOf(foreign,unknown)) {
+            assertThrows(IllegalArgumentException::class.java) {
+                service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(withImage(mine.toString()),withImage(other.toString())),key="other-image"))
+            }
+        }
+        assertTrue(state.completed);verify(states,never()).flush()
+        verify(cards,never()).saveAndFlush(any());verify(cardDrafts,never()).save(any())
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        assertEquals(2L,draft.draftRevision);assertEquals("편집본",draft.name)
+    }
+    @Test fun `an image of this world is saved with the card`() {
+        owned()
+        val image=UUID.randomUUID()
+        `when`(images.findAllById(any())).thenReturn(listOf(worldsImage(image)))
+        doAnswer { RelationshipStateResult(world,4,state.requestKey,state.requestHash,emptyList()) }.`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        val saved=service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(withImage(image.toString())),key="with-image"))
+        val row=ArgumentCaptor.forClass(SettingCardDraft::class.java)
+        verify(cardDrafts).save(row.capture() ?: SettingCardDraft(UUID(0,0),world,CardFields()))
+        assertEquals(mapOf<String,Any?>("imageId" to image.toString()),row.value.fields.semanticMetadata)
+        assertEquals(3L,saved.draftRevision)
+    }
+    @Test fun `a null image id is no image and never asks the image table`() {
+        owned()
+        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())).thenThrow(WorldStudioFailure.unavailable())
+        // 입력 검증을 통과해 그래프 저장까지 갔다는 뜻이다(입력 오류가 아니다).
+        assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(withImage(null)),key="null-image")) }
+        verifyNoInteractions(images)
+    }
+    @Test fun `a card without an image id never asks the image table`() {
+        owned()
+        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())).thenThrow(WorldStudioFailure.unavailable())
+        assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(CardPayload(UUID.randomUUID(),"인물","원문","character","basic")),key="plain")) }
+        verifyNoInteractions(images)
     }
     @Test fun `graph failure leaves a retriable receipt and does not change PostgreSQL draft content`() {
         owned()

@@ -16,7 +16,7 @@ import { EpisodeWorldRepository } from '../../../../test/episodeWorldRepository'
 const { useWorldStudioViewModel } = studioViewModel
 // 카드 설명 편집기(Toast UI Editor)는 jsdom에서 입력을 흉내 낼 수 없어 같은 값 전달만 하는 textarea 대역을 쓴다.
 vi.mock('../../../shared/LazyMarkdownEditor', () => import('../../../../test/markdownEditorFake'))
-/** 관리 모드 설정집 화면의 보기 전환 줄(설정집·인물 관계도·시간선)에서 버튼을 찾는다. */
+/** 관리 모드 설정집 화면의 보기 전환 줄(설정집·관계도·시간선)에서 버튼을 찾는다. */
 const manageTab = (name: string) => within(screen.getByRole('navigation', { name: '세계관 메뉴' })).getByRole('button', { name })
 afterEach(() => {
   cleanup()
@@ -214,7 +214,7 @@ it.each(['text', 'title', 'name'] as const)(
       </Provider>,
     )
     await screen.findByRole('heading', { name: '탭 충돌 검증', level: 1 })
-    fireEvent.click(manageTab('인물 관계도'))
+    fireEvent.click(manageTab('관계도'))
     fireEvent.click(screen.getByRole('button', { name: '가람 · 친구 · 나래 편집' }))
     const fact = screen.getByRole('combobox', { name: '실제 관계 1' }),
       draft = screen.getByRole<HTMLTextAreaElement>('textbox', { name: '나래 → 가람 감정 1' })
@@ -255,7 +255,7 @@ it.each(['text', 'title', 'name'] as const)(
         : { title: '가람 수정 · 친구 · 나래', text: '가람 수정 · 친구 · 나래' }),
     })
     fireEvent.click(screen.getByRole('button', { name: '설정집' })) // 설정 편집 화면을 닫고 설정집 화면으로
-    fireEvent.click(manageTab('인물 관계도'))
+    fireEvent.click(manageTab('관계도'))
     expect(screen.getByRole('combobox', { name: '실제 관계 1' })).toBe(fact)
     expect(
       screen.getByRole<HTMLTextAreaElement>('textbox', {
@@ -361,6 +361,76 @@ it('focuses connection cancel, cancels choosing with Escape and clears it when t
  fireEvent.click(screen.getByRole('button',{name:'인물과 연결 삭제'}))
  expect(screen.queryByRole('button',{name:'연결 취소'})).toBeNull()
  expect(screen.getByRole('button',{name:'항구 관계 연결'})).toBeTruthy()
+})
+
+// ── 관계도 유형 필터 ──────────────────────────────────────────────────────────────────────────────
+/** 인물 둘(가람·나래)과 장소(항구) 카드, 가람↔나래(친구)·가람→항구(지키는 곳) 관계가 있는 세계관의 관계 편집기만 그리고 유형 필터 줄을 돌려준다. */
+async function openTyped() {
+  const useCase = new WorldStudioUseCase(new InMemoryWorldStudioRepository())
+  const world = await useCase.create('세계', ''), a = newSetting('people'), b = newSetting('people'), c = newSetting('places')
+  a.item.title = '가람'
+  b.item.title = '나래'
+  c.item.title = '항구'
+  const friends = putRelation([a, b, c], { subjectId: a.item.id, targetId: b.item.id, predicate: 'friend_of', polarity: 'asserted' })
+  world.settings = putRelation(friends, { subjectId: a.item.id, targetId: c.item.id, predicate: 'custom_relation_directed', polarity: 'asserted', text: '지키는 곳' })
+  await useCase.save(world)
+  function Harness() {
+    const vm = useWorldStudioViewModel(useCase)
+    return vm.editing ? <WorldRelationshipEditor studio={vm} /> : null
+  }
+  render(
+    <MemoryRouter initialEntries={['/worldstudio/' + world.id]}>
+      <Routes><Route path='/worldstudio/:worldId' element={<Harness />} /></Routes>
+    </MemoryRouter>,
+  )
+  return within(await screen.findByRole('group', { name: '관계도 유형 필터' }))
+}
+/** 유형 필터 버튼들(전체 · 유형…)의 눌림 상태. */
+const pressed = () => within(screen.getByRole('group', { name: '관계도 유형 필터' })).getAllByRole('button').map((b) => b.getAttribute('aria-pressed'))
+
+it('filters the graph by card type: hiding a type removes its cards and the edges touching them but not the select options or the relation list, and 전체 restores', async () => {
+  const filter = await openTyped()
+  expect(filter.getAllByRole('button').map((b) => b.textContent)).toEqual(['전체', '인물 2', '장소 1']) // 노드가 있는 유형만 개수와 함께(능력·조직 등은 없다)
+  expect(pressed()).toEqual(['true', 'true', 'true']) // 기본은 모두 보임
+  expect(screen.getByRole('button', { name: /관계선 편집: 가람 · 항구/ })).toBeTruthy()
+  fireEvent.click(filter.getByRole('button', { name: '장소 1' }))
+  expect(pressed()).toEqual(['false', 'true', 'false']) // 전체는 켜지지 않은 상태
+  expect(screen.queryByRole('group', { name: '항구 장소 카드' })).toBeNull()
+  expect(screen.getByRole('group', { name: '가람 인물 카드' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: /관계선 편집: 가람 · 항구/ })).toBeNull() // 항구에 닿는 관계선도 빠진다
+  expect(screen.getByRole('button', { name: /관계선 편집: 가람 · 나래/ })).toBeTruthy()
+  expect(within(screen.getByRole('combobox', { name: '관계 대상' })).getByRole('option', { name: '항구' })).toBeTruthy() // 선택지는 거르지 않는다
+  expect(within(screen.getByRole('table', { name: '저장할 관계 목록' })).getByRole('button', { name: '가람 · 지키는 곳 · 항구 편집' })).toBeTruthy() // 관계 목록도
+  fireEvent.click(filter.getByRole('button', { name: '장소 1' })) // 같은 버튼을 다시 누르면 보인다
+  expect(screen.getByRole('group', { name: '항구 장소 카드' })).toBeTruthy()
+  fireEvent.click(filter.getByRole('button', { name: '장소 1' }))
+  fireEvent.click(filter.getByRole('button', { name: '전체' }))
+  expect(pressed()).toEqual(['true', 'true', 'true'])
+  expect(screen.getByRole('group', { name: '항구 장소 카드' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: /관계선 편집: 가람 · 항구/ })).toBeTruthy()
+})
+
+it('never empties the graph: the last visible type cannot be hidden, and a source of another type keeps its connect mode', async () => {
+  const filter = await openTyped()
+  fireEvent.click(screen.getByRole('button', { name: '가람 관계 연결' }))
+  fireEvent.click(filter.getByRole('button', { name: '장소 1' })) // 출발 카드(인물)와 다른 유형을 숨기면 연결 모드는 그대로다
+  expect(screen.getByRole('button', { name: '연결 취소' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '나래 상대 선택' })).toBeTruthy()
+  expect(filter.getByRole<HTMLButtonElement>('button', { name: '인물 2' }).disabled).toBe(true) // 인물만 남았으니 끌 수 없다
+  expect(filter.getByRole<HTMLButtonElement>('button', { name: '장소 1' }).disabled).toBe(false) // 숨긴 유형은 늘 다시 켤 수 있다
+})
+
+it('releases the selection and the connect mode when the card they belong to is hidden, so nothing can be linked to a hidden card', async () => {
+  const filter = await openTyped()
+  fireEvent.click(screen.getByRole('button', { name: '항구 관계 연결' })) // 항구에서 연결을 시작: 선택되고 상대를 고르는 중
+  expect(screen.getByRole('group', { name: '항구 장소 카드' }).getAttribute('aria-current')).toBe('true')
+  expect(screen.getByRole('button', { name: '가람 상대 선택' })).toBeTruthy()
+  fireEvent.click(filter.getByRole('button', { name: '장소 1' }))
+  expect(screen.queryByRole('button', { name: '연결 취소' })).toBeNull()
+  expect(screen.queryByRole('button', { name: /상대 선택/ })).toBeNull() // 숨은 항구에 이을 상대 고르기 버튼이 남지 않는다
+  expect(screen.getByRole('button', { name: '가람 관계 연결' })).toBeTruthy()
+  fireEvent.click(filter.getByRole('button', { name: '전체' }))
+  expect(screen.getByRole('group', { name: '항구 장소 카드' }).getAttribute('aria-current')).toBeNull() // 선택도 풀려 있다
 })
 
 // ── 관계 기준 회차(DEC-51) ───────────────────────────────────────────────────────────────────────

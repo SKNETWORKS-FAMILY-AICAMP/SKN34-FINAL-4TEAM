@@ -3,11 +3,13 @@ package ai.storyfork.content.world.controller
 import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.world.domain.episodeFromText
 import ai.storyfork.content.world.domain.worldCoverFile
+import ai.storyfork.content.world.service.WorldCardImageService
 import ai.storyfork.content.world.service.WorldCoverService
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.dto.*
 import java.security.Principal
 import java.util.UUID
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -20,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile
  */
 @RestController
 @RequestMapping("/api/v1/world-studios")
-class WorldStudioController(private val service:WorldStudioService,private val covers:WorldCoverService,private val links:WorkWorldService) {
+class WorldStudioController(private val service:WorldStudioService,private val covers:WorldCoverService,private val links:WorkWorldService,private val cardImages:WorldCardImageService) {
     /** 소유 세계관 요약을 반환하며 미전환·미완료 상태도 표시한다. */
     @GetMapping
     fun list(principal:Principal):List<WorldStudioSummaryResponse> {
@@ -68,6 +70,18 @@ class WorldStudioController(private val service:WorldStudioService,private val c
     /** 소유자에게 표지 이미지를 캐시 없이 돌려준다. 표지가 없거나 남의 세계관이면 404다. */
     @GetMapping("/{id}/cover")
     fun readCover(@PathVariable id:UUID,principal:Principal)=coverImage(covers.read(id,UUID.fromString(principal.name)))
+
+    /**
+     * 소유자가 PNG·JPEG·WebP(5MB 이하) multipart `file`로 설정 카드 대표 이미지를 올린다(#401). 201과 새 이미지 ID이며, 카드에 붙이는 것은 화면이 초안 카드의
+     * `semanticMetadata.imageId`에 넣어 초안을 저장해서 한다. 값 오류(422)는 소유 확인(비소유자 404)보다 먼저다.
+     */
+    @PostMapping("/{id}/card-images",consumes=[MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun uploadCardImage(@PathVariable id:UUID,principal:Principal,@RequestParam("file",required=false) file:MultipartFile?):ResponseEntity<WorldCardImageResponse> =
+        ResponseEntity.status(HttpStatus.CREATED).body(cardImages.put(id,UUID.fromString(principal.name),worldCoverFile(file)))
+
+    /** 소유자에게 설정 카드 이미지를 캐시 없이 돌려준다. 없는 ID·다른 세계관의 ID·남의 세계관이면 404다. */
+    @GetMapping("/{id}/card-images/{imageId}")
+    fun readCardImage(@PathVariable id:UUID,@PathVariable imageId:UUID,principal:Principal)=coverImage(cardImages.read(id,UUID.fromString(principal.name),imageId))
 
     /** 소유한 세계관의 봉인된 버전 식별자와 저장 시각을 최신순으로 반환한다. */
     @GetMapping("/{id}/revisions")

@@ -29,7 +29,7 @@ class WorkWorldControllerTest {
     private val links = mock(WorkWorldService::class.java)
     private val studio = mock(WorldStudioService::class.java)
     private val works = WorkWorldController(links)
-    private val studios = WorldStudioController(studio, mock(WorldCoverService::class.java), links)
+    private val studios = WorldStudioController(studio, mock(WorldCoverService::class.java), links, mock(ai.storyfork.content.world.service.WorldCardImageService::class.java))
     private val owner = UUID.randomUUID()
     private val principal = Principal { owner.toString() }
     private val world = UUID.randomUUID()

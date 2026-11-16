@@ -10,8 +10,8 @@ const page = (extra: Record<string, unknown> = {}) => ({ items: [summary()], pag
 const world = (extra: Record<string, unknown> = {}) => ({
   id: 'w-1', name: '달무리 군도', description: '설명', genre: 'fantasy', authorNickname: '달무리', publishedAt: '2026-11-11T09:30:00Z', hasCover: false, revisionNo: 3,
   cards: [
-    { id: 'c-1', title: '조석신 하엘', text: '달을 끄는 신', cardType: 'character', aliases: ['하엘'], tags: ['신'] },
-    { id: 'c-2', title: '새벽항', text: '오래된 항구', cardType: 'location', aliases: [], tags: [] },
+    { id: 'c-1', title: '조석신 하엘', text: '달을 끄는 신', cardType: 'character', aliases: ['하엘'], tags: ['신'], imageId: null },
+    { id: 'c-2', title: '새벽항', text: '오래된 항구', cardType: 'location', aliases: [], tags: [], imageId: null },
   ],
   relationships: [{ id: 'r-1', sourceCardId: 'c-1', targetCardId: 'c-2', label: '수호' }],
   relationshipStatus: 'current', ...extra,
@@ -91,6 +91,18 @@ describe('공개 세계관 상세 읽기', () => {
     const { hasCover: _kept, ...withoutField } = world() // 필드가 없던 옛 응답
     expect((await new HttpPublicWorldRepository(respond(withoutField)).get('w-1'))?.hasCover).toBe(false)
     await expect(new HttpPublicWorldRepository(respond(world({ hasCover: 1 }))).get('w-1')).rejects.toThrow(FORMAT)
+  })
+
+  it('카드의 imageId를 그대로 읽고, 필드가 없거나 null이면 이미지 없음(null)으로 읽으며, 문자열이 아니면 던진다', async () => {
+    const cards = [
+      { id: 'c-1', title: '조석신 하엘', text: '달을 끄는 신', cardType: 'character', aliases: [], tags: [], imageId: 'img-1' },
+      { id: 'c-2', title: '새벽항', text: '오래된 항구', cardType: 'location', aliases: [], tags: [], imageId: null },
+      { id: 'c-3', title: '등대', text: '', cardType: 'location', aliases: [], tags: [] }, // 필드가 없던 옛 응답
+    ]
+    const found = await new HttpPublicWorldRepository(respond(world({ cards }))).get('w-1')
+    expect(found?.cards.map((card) => card.imageId)).toEqual(['img-1', null, null])
+    await expect(new HttpPublicWorldRepository(respond(world({ cards: [{ ...cards[0], imageId: 7 }] }))).get('w-1')).rejects.toThrow(FORMAT)
+    await expect(new HttpPublicWorldRepository(respond(world({ cards: [{ ...cards[0], imageId: '' }] }))).get('w-1')).rejects.toThrow(FORMAT)
   })
 
   it('경로에 넣는 id는 인코딩한다', async () => {

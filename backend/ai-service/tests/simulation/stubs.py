@@ -36,11 +36,11 @@ READ = {
     'worldId': WORLD, 'draftRevision': 4, 'name': '달빛 세계', 'description': '', 'relationshipStatus': 'current',
     'cards': [
         card(KAEL, '카엘', 'KAEL-IDENTITY 북문을 지키는 기사', docs={
-            'soul': 'KAEL-SOUL 말이 짧고 퉁명스러운 반말', 'memory': 'KAEL-MEMORY 왕가에 맹세했다',
+            'soul': 'KAEL-SOUL 말이 짧고 퉁명스러운 반말', 'goal': 'KAEL-GOAL 왕가를 지킨다',
             'episodes': {'2': 'KAEL-EP2 리나를 처음 만났다', '5': 'KAEL-EP5-FUTURE 왕이 죽는다'}}),
         card(LINA, '리나', 'LINA-IDENTITY 떠돌이 약초상', docs={
-            'soul': 'LINA-SOUL 존댓말을 쓰는 상냥한 말투', 'memory': 'LINA-MEMORY-SECRET 사실은 왕국의 첩자다',
-            'episodes': {'3': 'LINA-EP3 성문을 살폈다'}}),
+            'soul': 'LINA-SOUL 존댓말을 쓰는 상냥한 말투', 'goal': 'LINA-GOAL 약초를 팔며 먼 길을 간다',
+            'episodes': {'0': 'LINA-EP0-SECRET 사실은 왕국의 첩자다', '3': 'LINA-EP3 성문을 살폈다'}}),  # 이야기 시작 전부터 아는 비밀은 00회차
         card(GATE, '북문', 'GATE-LORE 북쪽 성문', cardType='location', reveal=3),  # 기준 회차(3)에 공개되는 카드
         card(SHADOW, '그림자 길드', 'SHADOW-GUILD 아직 공개되지 않은 조직', cardType='organization', reveal=5),
         card('00000000-0000-0000-0000-0000000000ff', '지워진 인물', 'REMOVED-CARD', lifecycle='removed'),

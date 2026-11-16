@@ -25,4 +25,11 @@ class PublicWorldController(private val service: PublicWorldService) {
     /** 공개 세계관의 표지 이미지를 캐시 없이 반환한다. 상세와 같은 기준(공개·확정 버전)이며 비공개·확정 버전 없음·표지 없음·없는 세계관은 404다. */
     @GetMapping("/{id}/cover")
     fun cover(@PathVariable id: UUID) = coverImage(service.cover(id))
+
+    /**
+     * 공개 세계관의 설정 카드 이미지를 캐시 없이 반환한다(#401). 상세와 같은 기준(공개·확정 버전)이고, 그 확정 버전의 공개·활성 카드 중 하나가 `imageId`로 가리키는 이미지일 때만이다.
+     * 비공개·확정 버전 없음·가리키는 카드 없음(비공개·삭제 카드, 초안에만 있는 참조 포함)·없는 이미지는 404다.
+     */
+    @GetMapping("/{id}/card-images/{imageId}")
+    fun cardImage(@PathVariable id: UUID, @PathVariable imageId: UUID) = coverImage(service.cardImage(id, imageId))
 }

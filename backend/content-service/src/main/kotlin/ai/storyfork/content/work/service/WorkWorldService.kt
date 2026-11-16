@@ -8,6 +8,7 @@ import ai.storyfork.content.work.service.dto.WorkWorldLinkResponse
 import ai.storyfork.content.world.domain.readerUpto
 import ai.storyfork.content.world.service.PublicWorldService
 import ai.storyfork.content.world.service.dto.ReaderWorldCardsResponse
+import ai.storyfork.content.world.service.dto.WorldCoverImage
 import ai.storyfork.content.world.studio.repository.StudioWorldRepository
 import java.util.UUID
 import org.springframework.beans.factory.annotation.Qualifier
@@ -57,6 +58,21 @@ class WorkWorldService(
      * 발행 회차 번호만 쓰므로 독자용 본문 가공([ai.storyfork.content.work.service.dto.WorkAccessResult.readerEpisodes])은 거치지 않는다.
      */
     fun readerCards(workId: String, upto: String?): ReaderWorldCardsResponse {
+        val (worldId, basis) = readerBasis(workId, upto)
+        return if (worldId == null) ReaderWorldCardsResponse(workId, null, basis) else publicWorlds.readerCards(workId, worldId, basis)
+    }
+
+    /**
+     * 독자 설정 위키 카드의 이미지다(#401). [readerCards]와 같은 기준(공개 작품·연결 세계관·기준 회차)으로 보이는 카드 중 하나가 [imageId]로 가리키는 이미지일 때만 돌려주고,
+     * 그 밖(공개가 아닌 작품·연결 없음 포함)은 404다. 없는(삭제된) 작품은 404, [upto] 값 오류는 어떤 조회보다 먼저 422다.
+     */
+    fun readerCardImage(workId: String, imageId: UUID, upto: String?): WorldCoverImage {
+        val (worldId, basis) = readerBasis(workId, upto)
+        return publicWorlds.readerCardImage(worldId ?: throw ContentFailure(404, "이미지를 찾을 수 없습니다."), basis, imageId)
+    }
+
+    /** 독자 설정 위키의 기준이다: 연결된 세계관(공개가 아닌 작품·연결 없음은 null)과 기준 회차(요청 회차, 발행된 마지막 회차를 넘지 못한다). */
+    private fun readerBasis(workId: String, upto: String?): Pair<UUID?, Int> {
         val requested = readerUpto(upto)
         val (worldId, published) = checkNotNull(transaction.execute {
             val work = access.get(workId)
@@ -64,7 +80,6 @@ class WorkWorldService(
             if (!work.publiclyVisible()) null to 0
             else works.findById(workId).orElseThrow().worldStudioId to (publication.publishedEpisodes(workId).items.maxOfOrNull { it.number } ?: 0)
         })
-        val basis = minOf(requested ?: published, published)
-        return if (worldId == null) ReaderWorldCardsResponse(workId, null, basis) else publicWorlds.readerCards(workId, worldId, basis)
+        return worldId to minOf(requested ?: published, published)
     }
 }

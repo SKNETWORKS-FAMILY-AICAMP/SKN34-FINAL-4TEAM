@@ -76,7 +76,7 @@ def _item(**fields):
 
 
 def card_payload(card, scope=""):
-    """world.json 카드 → `PUT /draft`의 CardPayload. 인물 문서(DEC-47)·독자 공개 회차는 semanticMetadata 최상위 키다."""
+    """world.json 카드 → `PUT /draft`의 CardPayload. 인물 문서(DEC-47: soul·goal·episodes)·독자 공개 회차는 semanticMetadata 최상위 키다."""
     kind, entity_type = KINDS[card["cardType"]]
     cid = card_id(card["key"], scope)
     item = _item(id=cid, kind=kind, entityType=entity_type, title=card["title"], text=card["body"], category=card["areaCode"],

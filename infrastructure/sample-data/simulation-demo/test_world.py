@@ -157,19 +157,20 @@ class WorldChecks:
         souls = []
         for key, card in self.characters.items():
             docs = card["characterDocs"]
-            self.assertEqual({"soul", "memory", "episodes"}, set(docs), key)
-            self.assertTrue(docs["soul"].strip() and docs["memory"].strip(), key)
-            self.assertTrue(docs["episodes"], key)
+            self.assertEqual({"soul", "goal", "episodes"}, set(docs), key)  # MEMORY.md는 없어졌다(DEC-47): 옛 memory는 00회차다
+            self.assertTrue(docs["soul"].strip() and docs["goal"].strip(), key)
+            self.assertTrue(1 <= len(docs["goal"].strip().splitlines()) <= 3, f"{key}: goal은 1~3줄")
+            self.assertTrue(docs["episodes"].get("0", "").strip(), key)  # 이야기 시작 전부터 아는 것(옛 MEMORY)
             for number, text in docs["episodes"].items():
                 self.assertRegex(number, EPISODE_KEY, key)
                 self.assertTrue(text.strip(), f"{key} {number}")
-            for text in [docs["soul"], docs["memory"], *docs["episodes"].values()]:
+            for text in [docs["soul"], docs["goal"], *docs["episodes"].values()]:
                 self.assertLessEqual(len(text), DOC_MAX, key)
-            for number, text in docs["episodes"].items():  # '~를 모른다'는 knowledge.md의 몫: 그 문장이 다른 카드를 말하면 모르는 일의 존재를 그 인물에게 알린다
+            for number, text in [("goal", docs["goal"]), *docs["episodes"].items()]:  # '~를 모른다'는 knowledge.md의 몫: 그 문장이 다른 카드를 말하면 모르는 일의 존재를 그 인물에게 알린다
                 for sentence in re.split(r"(?<=[.!?])\s+|\n", text):
                     if re.search(r"알지 못|모른다|모르고|몰랐|알아차리지 못", sentence):
                         named = [c["title"] for k, c in self.cards.items() if k != key and c["title"] in sentence]
-                        self.assertEqual([], named, f"{key} {number}화: 모른다는 문장이 {named}을(를) 알려 준다")
+                        self.assertEqual([], named, f"{key} {number}: 모른다는 문장이 {named}을(를) 알려 준다")
             souls.append(docs["soul"])
         for key, card in self.cards.items():
             self.assertEqual(key in self.characters, "characterDocs" in card, key)  # 인물 카드에만 문서가 있다
@@ -215,7 +216,7 @@ class WorldChecks:
         """recall 필터는 인물·물건 카드를 그 인물과 긍정 관계로 이어져 있을 때만 아는 것으로 본다(장소·규칙은 누구나)."""
         for key, card in self.characters.items():
             docs = card["characterDocs"]
-            text = " ".join([docs["soul"], docs["memory"], *docs["episodes"].values()])
+            text = " ".join([docs["soul"], docs["goal"], *docs["episodes"].values()])
             for other_key, other in self.cards.items():
                 if other_key != key and other["cardType"] in ("character", "object") and other["title"] in text:
                     self.assertTrue(any(r.get("polarity", "asserted") == "asserted" and {r["source"], r["target"]} == {key, other_key}
@@ -255,15 +256,16 @@ class WorldChecks:
             phrase, holders, learned = secret["phrase"], set(secret["holders"]), secret.get("learnedBy", {})
             self.assertTrue(holders and holders <= set(self.characters))
             self.assertNotIn(phrase, self.world["world"]["description"])
-            for holder in holders:  # 비밀은 보유자의 MEMORY.md에 있다
-                self.assertIn(phrase, self.characters[holder]["characterDocs"]["memory"], holder)
+            for holder in holders:  # 비밀은 보유자의 00회차(이야기 시작 전부터 아는 것)에 있고, goal에는 비밀 문구를 쓰지 않는다
+                self.assertIn(phrase, self.characters[holder]["characterDocs"]["episodes"]["0"], holder)
+                self.assertNotIn(phrase, self.characters[holder]["characterDocs"]["goal"], holder)
             others = set(self.characters) - holders
             self.assertTrue(others)
             for key in others:  # 다른 인물의 입력(기준 회차 이하 문서)에는 나오지 않는다
                 docs = self.characters[key]["characterDocs"]
                 known_from = learned.get(key, math.inf)
-                visible = [self.characters[key]["body"], docs["soul"], docs["memory"],
-                           *(t for n, t in docs["episodes"].items() if int(n) < known_from)]
+                visible = [self.characters[key]["body"], docs["soul"], docs["goal"],
+                           *(t for n, t in docs["episodes"].items() if int(n) < known_from)]  # 00회차는 늘 보인다(0 < 알게 되는 회차)
                 for text in visible:
                     self.assertNotIn(phrase, text, key)
             for key, card in self.cards.items():  # 독자도 모르는 비밀이면 카드 본문에 있을 때 숨겨진 비공개 카드여야 한다(readersKnow: 독자는 이미 안다)
@@ -294,7 +296,7 @@ class WorldChecks:
             self.assertEqual((payload["classification"], payload["tags"], payload["aliases"]),
                              (studio["userCategory"], studio["tags"], studio["aliases"]))
             self.assertEqual(card.get("revealFromEpisode"), meta.get("revealFromEpisode"))
-            self.assertEqual("characterDocs" in card, "characterDocs" in meta)
+            self.assertEqual(card.get("characterDocs"), meta.get("characterDocs"))  # 인물 문서(soul·goal·episodes)가 그대로 간다
             self.assertEqual("active", payload["lifecycle"])
         self.assertEqual(len(self.world["cards"]), len(ids))
 
@@ -393,8 +395,9 @@ class WorldChecks:
             if "characterDocs" not in old:  # 인물이 아닌 바뀐 카드(Fork 자신의 나레이터 카드): 본문만 달라진다
                 self.assertNotEqual(old["body"], new["body"], key)
                 continue
-            self.assertEqual(old["characterDocs"]["episodes"], new["characterDocs"]["episodes"], key)  # 물려받은 회차의 기억은 그대로
-            self.assertNotEqual((old["body"], old["characterDocs"]["memory"]), (new["body"], new["characterDocs"]["memory"]), key)
+            from_episode_one = lambda card: {n: t for n, t in card["characterDocs"]["episodes"].items() if n != "0"}  # noqa: E731  00회차는 옛 MEMORY라 바뀐 카드는 새로 쓴다
+            self.assertEqual(from_episode_one(old), from_episode_one(new), key)  # 물려받은 회차의 기억은 그대로
+            self.assertNotEqual((old["body"], old["characterDocs"]["episodes"]["0"]), (new["body"], new["characterDocs"]["episodes"]["0"]), key)
         grams = lambda s: {s[i:i + 2] for i in range(len(s) - 1)}  # noqa: E731
         for key in voice:  # 바뀐 말투가 원작 말투와 섞이지 않는다
             a, b = grams(source.cards[key]["characterDocs"]["soul"]), grams(self.cards[key]["characterDocs"]["soul"])
@@ -410,7 +413,7 @@ class WorldChecks:
         texts = [m.body for m in self.dataset.manuscripts] + [m.title for m in self.dataset.manuscripts]
         for key in fork["changed"] + fork.get("added", []):
             card, docs = self.cards[key], self.cards[key].get("characterDocs")
-            texts += [card["body"]] + ([docs["soul"], docs["memory"], *docs["episodes"].values()] if docs else [])
+            texts += [card["body"]] + ([docs["soul"], docs["goal"], *docs["episodes"].values()] if docs else [])
         for text in texts:
             for word in BANNED:
                 self.assertNotIn(word, text)
@@ -844,7 +847,7 @@ def write_dataset(root, name, title, episodes, **work):
     for number, text in episodes.items():
         (directory / "episodes" / f"{number:02d}.md").write_text(f"{number}화 제목\n\n{text}\n", encoding="utf-8")
     cards = [dict(key=k, cardType="character", areaCode="basic", title=t, classification="인물", aliases=[], tags=[], visibility="private",
-                  body=f"{t}의 소개.", characterDocs=dict(soul="말투", memory="기억", episodes={"1": "겪은 일"})) for k, t in (("a", "가인"), ("b", "나리"))]
+                  body=f"{t}의 소개.", characterDocs=dict(soul="말투", goal="목표", episodes={"0": "시작 전부터 아는 것", "1": "겪은 일"})) for k, t in (("a", "가인"), ("b", "나리"))]
     cards.append(dict(key="ev", cardType="event", areaCode="history", title="만남", classification="사건", aliases=[], tags=[], visibility="private", body="두 사람이 만났다."))
     rels = [dict(key="a-ev", source="a", target="ev", predicate="custom_relation_directed", label="참여", body="가인이 만났다.", **{"from": 1}),
             dict(key="b-ev", source="b", target="ev", predicate="custom_relation_directed", label="목격", body="나리가 보았다.", **{"from": 2})]

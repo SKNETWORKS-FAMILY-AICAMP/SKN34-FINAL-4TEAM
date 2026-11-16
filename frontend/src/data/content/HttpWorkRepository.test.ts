@@ -136,10 +136,10 @@ it('uses the server allowlist and reports the actual preview basis when the sele
 })
 
 describe('연결된 세계관의 독자 공개 카드 (DEC-46)', () => {
-  const [worldId, rian, tower, link] = Array.from({ length: 4 }, () => crypto.randomUUID())
+  const [worldId, rian, tower, link, towerImage] = Array.from({ length: 5 }, () => crypto.randomUUID())
   const cards = [
-    { id: rian, title: '리안', text: '## 성격\n끈질기다', cardType: 'character', aliases: ['견습 서약사'], tags: ['주인공'], revealFromEpisode: 1 },
-    { id: tower, title: '별빛 탑', text: '봉인을 지키는 탑.', cardType: 'location', aliases: [], tags: [], revealFromEpisode: 2 },
+    { id: rian, title: '리안', text: '## 성격\n끈질기다', cardType: 'character', aliases: ['견습 서약사'], tags: ['주인공'], revealFromEpisode: 1, imageId: null },
+    { id: tower, title: '별빛 탑', text: '봉인을 지키는 탑.', cardType: 'location', aliases: [], tags: [], revealFromEpisode: 2, imageId: towerImage },
   ]
   const served = (extra: object = {}) => ({ workId: 'work-uuid', worldId, upto: 2, cards, relationships: [{ id: link, sourceCardId: rian, targetCardId: tower, label: '머무는 곳' }], relationshipStatus: 'current', ...extra })
   /** 호출마다 새 Response를 준다(같은 Response는 한 번만 읽힌다). */
@@ -155,6 +155,14 @@ describe('연결된 세계관의 독자 공개 카드 (DEC-46)', () => {
     expect(url).toBe('/api/v1/public/works/work-uuid/world-cards?upto=2')
     expect(init.method).toBe('GET')
     expect(init.headers).not.toHaveProperty('Authorization')
+  })
+
+  it('카드의 imageId는 서버가 준 대로(없으면 null) 읽고, 문자열이 아니면 빈 위키로 바꾸지 않고 실패한다', async () => {
+    const [first, second] = cards
+    const { imageId: _kept, ...withoutField } = second // 필드가 없던 옛 응답
+    expect((await repositoryOf(served({ cards: [first, withoutField] })).repository.readWorldCards('work-uuid')).cards.map((card) => card.imageId)).toEqual([null, null])
+    expect((await repositoryOf(served()).repository.readWorldCards('work-uuid')).cards.map((card) => card.imageId)).toEqual([null, towerImage])
+    await expect(repositoryOf(served({ cards: [{ ...first, imageId: 3 }] })).repository.readWorldCards('work-uuid')).rejects.toThrow('서버 응답 형식')
   })
 
   it('기준 회차가 없으면 upto 없이 읽고 관계 상태가 없는 응답은 current로 읽는다', async () => {

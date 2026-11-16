@@ -240,3 +240,26 @@ it('본문의 원시 HTML은 요소로 그리지 않고 글자로 보인다', as
   expect(article.querySelector('script, img')).toBeNull()
   expect(article.textContent).toContain('<script>window.x = 1</script>')
 })
+
+// ── 카드 대표 이미지(#401): 공개 이미지 주소를 <img>로 직접 읽고, 읽지 못하면 감춘다 ──
+it('이미지가 있는 카드는 정보 상자 맨 위에 공개 카드 이미지 주소의 이미지를 보이고(대체 글은 카드 제목 이미지) 읽지 못하면 감춘다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(marked('교신사', { imageId: 'img 1' }))
+  await renderAt(cardPath('sw', 'c-uuid-1'))
+  const info = screen.getByRole('table', { name: '하린' })
+  const image = within(info).getByRole('img', { name: '하린 이미지' })
+  expect(image.getAttribute('src')).toBe('/api/v1/public/world-studios/sw/card-images/img%201')
+  expect(info.querySelector('tbody tr:first-child')?.contains(image)).toBe(true) // 유형 행보다 위
+  fireEvent.error(image)
+  expect(within(info).queryByRole('img')).toBeNull()
+  expect(within(info).getByText('유형')).toBeTruthy() // 이미지를 감춰도 정보 상자의 행은 그대로다
+})
+
+it('이미지가 없는 카드(imageId가 null이거나 없음)의 정보 상자에는 이미지가 없다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(marked('교신사', { imageId: null }))
+  await renderAt(cardPath('sw', 'c-uuid-1'))
+  expect(screen.queryByRole('img')).toBeNull()
+  cleanup()
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld())
+  await renderAt(cardPath('sw', 'c-uuid-2'))
+  expect(screen.queryByRole('img')).toBeNull()
+})
