@@ -40,8 +40,8 @@
 ```
 - `findings[].cardIds`는 1~3개, 모두 요청에 보낸 카드 id여야 한다(Content가 다시 검사, 어긋나면 502 `AI_OUTPUT_INVALID`).
 - `fix`는 선택이다. `fix.cardId`는 그 지적의 `cardIds` 중 하나, `soul|goal|episode`는 인물 카드에만, `episode`는 `target=episode`일 때만(0 이상 정수), `text`는 그 칸의 **바꾼 뒤 전체 글**(인물 문서 3,000자 이하, 본문은 기존 카드 본문 한도). 어긋나면 502.
-- 실패: AI 미설정 503 `AI_NOT_CONFIGURED`, 시간 초과 504 `AI_TIMEOUT`, 출력 오류 502 `AI_OUTPUT_INVALID`, 그 밖 502. 기존 `InitialWorldExtractionClient`의 오류 변환 규칙을 따른다. 임의 성공·빈 결과로 숨기지 않는다.
-- 카드가 0장이면 AI를 부르지 않고 `findings: []`, `reviewedCards: 0`.
+- 실패(오류 본문 `{ "detail": "<사람이 읽을 문장>", "code": "<코드>" }`): Content의 AI 토큰 미설정 503 `AI_NOT_CONFIGURED`, Content read timeout 초과 504 `AI_TIMEOUT`, 출력 검증 실패 502 `AI_OUTPUT_INVALID`, AI의 403·422는 502 `AI_REQUEST_REJECTED`, AI의 503(키 미설정·제공사 실패를 구분하지 않음)과 그 밖 502 `AI_RESPONSE_UNCONFIRMED`. 시간 기준: Content는 기존 초기 분석 클라이언트의 read timeout 75초를 쓰고 그 초과만 504, AI의 모델 timeout은 60초라 제공사 시간 초과는 AI 503 → Content 502로 먼저 끝난다. 기존 `InitialWorldExtractionClient`의 오류 변환 규칙을 따른다. 임의 성공·빈 결과로 숨기지 않는다.
+- 카드가 0장이면 AI를 부르지 않고 `findings: []`, `reviewedCards: 0`, `model: ""`. `fix`·`fix.episode`는 없으면 키를 생략한다.
 
 ## AI 내부 API
 
@@ -74,4 +74,6 @@
 - 검토 결과는 저장하지 않는다. 새로 고치면 사라지고, 검토 뒤 카드를 고쳐도 지적은 다음 검토 전까지 그대로 남는다(검토 시점을 표시).
 - 한 번에 보내는 양: 카드 300장·카드당 본문과 문서 합계 4,000자까지 보낸다. 넘는 카드는 보내지 않고 `reviewedCards < totalCards`로 화면에 알린다(긴 세계관의 분할 검토는 후속).
 - 크레딧 차감 없음(기존 채팅·초기 분석과 같음).
+- 집필 채팅 경로는 MCP로 읽은 인물 `characterDocs` 모양이 어긋나면 검토 전체를 502로 실패한다(Content 경로는 그 문서만 빼고 계속). 실패를 숨기지는 않는다.
+- Intent Router 선택 질문이 11개로 늘었다. OpenAI Decisions 질문 수 상한은 실제 호출로 확인하지 않았다.
 - 관계의 회차 기록(DEC-51)은 최신 시점만 본다.
