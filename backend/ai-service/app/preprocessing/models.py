@@ -72,3 +72,87 @@ class Relation(Model):
 class LoadPayload(Model):
     cards: list[Card]
     relations: list[Relation]
+
+
+# ── 모델 출력과 검증된 중간 결과 (#344). 정본 UUID는 생성하지 않는다. ──
+LocalId = Annotated[str, Field(pattern=r'^[a-zA-Z][a-zA-Z0-9_-]{0,63}$')]
+Quote = Annotated[str, Field(min_length=1, max_length=3000)]
+EntityKind = Literal['character', 'location', 'organization', 'object']
+
+
+class Mention(Model):
+    id: LocalId
+    name: Annotated[str, Field(min_length=1, max_length=120)]
+    kind: EntityKind
+    quote: Quote
+
+
+class Statement(Model):
+    id: LocalId
+    kind: Literal['event', 'description', 'rule', 'fact', 'conjecture', 'goal', 'plan']
+    certainty: Literal['asserted', 'uncertain', 'intended']
+    subjects: list[LocalId] = Field(min_length=1)
+    knowers: list[LocalId]
+    document: Literal['identity', 'soul', 'goal', 'memory']
+    occurredEpisode: Annotated[int, Field(strict=True, ge=0)] | None
+    knownFromEpisode: Annotated[int, Field(strict=True, ge=0)]
+    quote: Quote
+
+
+class ExtractedRelation(Model):
+    id: LocalId
+    source: LocalId
+    target: LocalId
+    label: Annotated[str, Field(min_length=1, max_length=100)]
+    fromEpisode: EpisodeNumber
+    ended: bool
+    change: Literal["started", "changed", "ended", "learned"]
+    quote: Quote
+
+
+class ProposedExtraction(Model):
+    mentions: list[Mention]
+    statements: list[Statement]
+    relationships: list[ExtractedRelation]
+
+
+class Evidence(Model):
+    quote: str
+    start: int
+    end: int
+    quoteHash: str
+
+
+class EpisodeExtraction(ProposedExtraction):
+    schemaVersion: Literal['manuscript-extraction.v1'] = 'manuscript-extraction.v1'
+    number: EpisodeNumber
+    title: str
+    source: str
+    sourceHash: str
+    evidence: list[Evidence]
+
+
+class IdentityLink(Model):
+    left: str
+    right: str
+    basis: Literal['explicit_alias', 'explicit_coreference', 'name_only', 'uncertain', 'distinct']
+    confirmedAt: EpisodeNumber
+    evidenceEpisode: EpisodeNumber
+    quote: Quote
+
+
+class ProposedResolution(Model):
+    links: list[IdentityLink]
+
+
+class IdentityDecision(Model):
+    link: IdentityLink
+    status: Literal['merged', 'deferred', 'distinct']
+    reason: str
+
+
+class IdentityResolution(Model):
+    schemaVersion: Literal['manuscript-identity.v1'] = 'manuscript-identity.v1'
+    inputHashes: dict[int, str]
+    mapping: dict[str, str]
+    decisions: list[IdentityDecision]

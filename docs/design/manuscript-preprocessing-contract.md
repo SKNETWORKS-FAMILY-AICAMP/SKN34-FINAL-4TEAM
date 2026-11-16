@@ -2,7 +2,7 @@
 
 [결정 목록](decisions.md#결정-목록) DEC-50 · [서비스 경계](service-boundaries.md) · [Content MCP 창구](content-mcp-contract.md)
 
-상태: **#351은 Celery·LangGraph 실행 기반만 구현하며 실제 접수·실행은 차단한다. extract/resolve/organize(#344), Content 작업·MCP 도구(#345), 화면(#346)은 후속이다.** 아래 실행 계약은 목표이며 전체 구현·배포 완료를 뜻하지 않는다([#343](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/343)).
+상태: **#351은 Celery·LangGraph 실행 기반만 구현하며 실제 접수·실행은 차단한다. 후속 #344 브랜치에서 extract/resolve/organize 의미 로직을 구현했으나 Content 작업·MCP 도구(#345), 화면(#346), 성공 결과 보존·재시도는 후속이다.** 아래 실행 계약은 목표이며 전체 구현·배포 완료를 뜻하지 않는다([#343](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/343)).
 
 ## 목적
 
@@ -69,7 +69,7 @@
 
 ## #351 최신화: 활성화 전 안전 조건 (2026-11-16)
 
-- 인증된 접수도 현재는 503 `PREPROCESSING_NOT_IMPLEMENTED`로 거절하며 Celery에 넣지 않는다. 직접 들어온 worker 메시지도 같은 보호에서 중단하고 Content에 실행·완료를 기록하지 않는다. `extract/resolve/organize`는 계속 미구현이다. 환경변수만으로 이 차단을 해제하는 스위치는 두지 않는다.
+- 인증된 접수도 현재는 503 `PREPROCESSING_NOT_IMPLEMENTED`로 거절하며 Celery에 넣지 않는다. 직접 들어온 worker 메시지도 같은 보호에서 중단하고 Content에 실행·완료를 기록하지 않는다. 이 차단은 #344 의미 로직을 구현한 후에도 #345와 복구 계약 검증 전까지 유지한다. 환경변수만으로 이 차단을 해제하는 스위치는 두지 않는다.
 - 202는 브로커 접수일 뿐 작업 완료가 아니다. 향후 #345는 접수 거절을 queued/running이나 완료로 남기지 않아야 하며 #346은 서버의 실제 상태를 표시해야 한다. 지금은 두 경로가 없어 실제 사용자 흐름을 검증하지 않았다.
 - worker·Router·LangGraph는 보존하되 이 기반 PR을 기능 출시로 배포하지 않는다. 활성화 전 #344 로직, #345 작업 인증·진행·멱등 적재, #346 실패·미확인 안내와 아래 재시도 계약을 함께 검증해야 한다.
 
@@ -86,3 +86,34 @@
 5. 저장 계약을 두지 않는 전체 재추출 대안은 비용·원문 고정·새 실행 식별자·이미 적재됐는지 확인을 포함한 명시적 결정이 필요하다. 부분 결과만으로 적재하거나 자동으로 새 작업을 시작하는 대체 동작은 금지한다.
 
 현재의 함수 대역 테스트 통과는 이 재시도·복구 계약 구현 완료를 뜻하지 않는다. 실패 회차 재시도는 이 계약과 #344/#345 구현·통합 검증 전까지 활성화하지 않는다.
+
+
+## #344 의미 로직 (실행 비활성, 2026-11-16)
+
+### 구현과 DTO
+
+- `extract(EpisodeText)`: LangChain `ChatOpenAI` Responses API, strict Pydantic 출력, `max_retries=0`, `store=False`, timeout 60초. 원문은 SystemMessage에 끼워 넣지 않고 HumanMessage JSON 데이터로 전달한다. schema/JSON 오류·응답 잘림·거절·timeout은 고정 오류이며 부분 성공이나 임의 보정은 없다.
+- `ProposedExtraction`: `mentions{id,name,kind,quote}`, `statements{id,kind,certainty,subjects,knowers,document,occurredEpisode,knownFromEpisode,quote}`, `relationships{id,source,target,label,fromEpisode,ended,change,quote}`. kind는 event/description/rule/fact/conjecture/goal/plan이며 certainty는 asserted/uncertain/intended다. relation change는 실제 시작/변경/종료와 learned(단순 인지)를 구분한다. 이 필드들은 **AI 중간 DTO**이며 기존 LoadPayload 변경이 아니다.
+- `EpisodeExtraction`(`manuscript-extraction.v1`): 회차 번호·제목·원문·sourceHash 및 검증된 evidence를 보존한다. sourceHash는 number/title/body의 정렬·공백 없는 JSON UTF-8 SHA-256이다. 인용은 본문에 정확히 한 번 있어야 하며 UTF-16 `[start,end)`와 quoteHash는 프로그램에서 계산한다. CRLF·공백·이모지를 정규화하지 않는다. 같은 인용을 호칭과 진술이 공유할 수 있지만 동일 진술·ID·관계의 중복 및 원문 안의 모호한 중복 위치는 거절한다.
+- `resolve`: 실제 모델이 명시적 별칭/재등장 근거와 보류·별개 판정을 제안하고 프로그램이 quote·회차·참조·종류·모순을 검증한다. 이름만 같은 경우 자동 병합하지 않는다. 정렬된 회차-local ID로 작업 내 정식 key를 결정한다. **같은 검증된 추출·정체 제안 입력**의 매핑은 재현 가능하지만 유료 모델의 반복 출력 동일성을 보장하지 않는다. key는 작업 범위에서 쓰며 Content의 실제 WorldStudio UUID를 발급하지 않는다.
+- `IdentityResolution`(`manuscript-identity.v1`): mapping, 전체 검증 추출 DTO의 canonical JSON SHA-256인 inputHashes, 원문 근거·confirmedAt·merged/deferred/distinct·reason을 가진 decisions. `organize`가 입력 해시와 결정을 다시 대조하여 다른 추출 결과의 매핑 재사용을 차단한다.
+- `organize`: 추가 모델 호출·Content 조회 없이 검증 결과에서 기존 `LoadPayload`를 만든다. 5종 카드·본문 원문과 의미 유형 표식·명시적 인지자의 회차 기억·관계 key를 구성한다. rule은 관련 대상의 진술로 보존하고 미지원 rule 카드를 만들지 않는다. 3,000자 초과를 잘라 맞추지 않는다. 실제 사건만 event 카드이며 계획·추측은 이벤트로 승격하지 않는다.
+
+### 사용자 확정: 보수적 시점 처리
+
+- 전역 제목은 최초 호칭, 전역 별칭은 첫 등장 회차에서 이미 확인된 별칭만 쓴다. 늦은 다른 호칭의 동일인 공개는 `LATE_ALIAS_REQUIRES_VERSIONED_IDENTITY` 보류 기록을 남기고 Payload 생성을 `DEFERRED_IDENTITY_REQUIRES_REVIEW`로 차단한다. 알려진 동일인을 중복 카드로 적재하거나 공개를 관계 생성 사건으로 변환하지 않는다.
+- 인물의 전역 IDENTITY·SOUL·GOAL에는 최초 등장 회차의 진술만 넣는다. 이후 목표·성격 변화는 명시적 인지자의 해당 회차 기억에 넣는다. 기억에 넣을 때도 인물이 quote에 명시돼 있어야 하며 다른 인물/미래 회차 bucket으로 퍼뜨리지 않는다. 시작 전 기억은 source가 명시한 fact·occurredEpisode=0·memory·knownFromEpisode=0 조합만 허용한다. 00회차는 보수적으로 원문에 `이야기 시작 전부터`가 명시된 경우만 받으며, 이미 등장한 인물의 뒤 회차 공개 사실을 00회차로 소급하면 `RETROACTIVE_MEMORY_NOT_REPRESENTABLE`로 거절한다. 표현이 다른 시작 전 기억도 현재는 보류/실패 대상이며 실모델 평가 후 근거 규칙 확장이 필요하다. 기억 내용을 전역 GOAL·별칭으로 복사하지 않는다.
+- 관계의 실제 시작/종료는 `fromEpisode`와 ended를 보존한다. 원문 회차와 관계 적용 회차가 다르면 공개 시점을 별도로 표현할 수 없어 `UNSUPPORTED_RELATION_TIME`으로 차단한다. 단순 관계 인지(learned)는 `RELATION_DISCOVERY_NOT_REPRESENTABLE`로 차단한다. label 변경의 동일 관계 매핑은 현재 LoadPayload에 관계 정식 key가 없어 `RELATION_CHANGE_NOT_REPRESENTABLE`로 차단하며 #345와 후속 계약이 필요하다. 지원되는 시작/종료의 동일 관계 판단도 Content가 job/key/양 끝/label 기준을 확정해야 한다.
+- 이후 비인물 설정 상태처럼 현 스키마로 과거 누출 없이 표현할 수 없는 진술은 `UNSUPPORTED_LATER_SETTING_STATE`, 어떠한 카드·기억·사건에도 담기지 않는 진술은 `UNREPRESENTABLE_STATEMENT`로 전체 Payload 생성을 차단한다. 추출 원문과 identity decisions는 중간 결과에서 확인할 수 있다. 이를 저장하거나 UI로 보여 주는 #345/#346은 이번 구현에 포함하지 않는다.
+- revealFromEpisode는 기존 계약대로 첫 등장 회차다. 공개/비공개 필드를 추가하지 않으며 Content 적재 기본 비공개를 유지해야 한다. 미래 상태의 전역 소급 반영을 허용한다는 의미가 아니다.
+- 계획/추측의 유형·certainty 불일치와 명시적 한국어 표지(계획·추측·것 같·싶어·예정·지도 모·소문)를 asserted로 내는 출력은 거절한다. 이는 보수적인 보조 규칙으로 거짓 양성도 있고, 한국어 의미 전체나 인물의 실제 지식을 증명하지 않는다. quote 일치·이름 등장만으로 정체/인지/의미적 사실성을 검증 완료라고 보고하지 않는다. 실모델 정답 평가가 필수다.
+
+### Fixture·품질·후속 계약
+
+[4회차 Fixture](../../backend/ai-service/tests/preprocessing/fixtures/four-episodes.json)는 테스트용으로 직접 작성한 홍길동 모티프 원문과 모델 대역 정답이다. 기존 `experiments/preprocessing/`는 현재 기준 트리에 없어 읽지 못했다. 실제 소설이나 실모델 실행 결과를 가장하지 않는다. [예상 적재 Payload](../../backend/ai-service/tests/preprocessing/fixtures/expected-load.json)는 실제 세 함수가 대역 결과를 검증·구성한 산출물이며 카드 5개(인물 2·조직 1·사건 2), 관계 시작/종료 2개다. 길동/홍길동 별칭, 다른 홍길동, 계획→3화 실제 사건, 3화 목표 변화·비밀, 4화 탈퇴를 다룬다. 늦은 정체 공개·미래 문서 소급·관계 인지·변조·모호한 인용·길이 초과는 별도 오류 테스트다.
+
+#345 인계 요구: job 전체 원문 version/hash manifest, 검증된 EpisodeExtraction 및 IdentityResolution(근거·보류 이유 포함) 보존·재조회, 동일 추출 버전만 결합, 전체 회차 완전성·중복 실행·응답 유실 검사, 성공 receipt/부분 실패 복구. 이번 DTO는 메모리에서만 반환하며 내구성 저장·재시작 복구를 구현한 것이 아니다. 부분 재실행 문제는 그대로 남고 `PREPROCESSING_NOT_IMPLEMENTED`를 해제하지 않는다.
+
+실모델 평가는 별도 승인 후: 이 4회차와 별도 미사용 검증 원문에 사람이 호칭 연결·사건/계획/추측·근거·인지자·공개 회차·관계 변화를 라벨링한다. 근거 정확 일치율/모호성 거절률, 엔터티 연결 precision/recall 및 동명이인 오병합 수, 의미 유형 confusion matrix, 미래 정보·타인 비밀 누출 건수, Payload 유효율/보류율, 호출 수·토큰·비용·지연을 측정한다. 안전 위반은 0건이어야 하며 품질 임계값·입력량·비용 상한은 호출 전에 합의한다. 자동화 테스트 통과를 실모델 품질로 대체하지 않는다.
+
+현재 모델 호출 입력은 직렬화 후 120,000자를 넘으면 `MODEL_INPUT_TOO_LARGE`로 거절한다(무음 truncation 없음). 100~2,000회차 전체 정체 통합은 배치·문맥 결합 및 성공 결과 보존 계약이 필요하며 이 소규모 구현으로 지원 완료라고 표시하지 않는다.

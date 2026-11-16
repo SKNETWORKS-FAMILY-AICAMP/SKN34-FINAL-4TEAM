@@ -860,3 +860,5 @@ Draft·미병합: 최신 승인 검증·UUID/payload 예약, replace:false 추�
 - WorldStudio 8단계: 명시적 확정 버전 생성·목록·읽기 전용 상세 UI(Draft, 미병합). 과거 관계/복원/발행은 제외.
 
 - WorldStudio 9-A: 소유자용 확정 설정 내부 Context 구성·출처/의미 메타데이터 보존. Draft PR 검증 중이며 공개 API·전체 집필 Context·회차/Fork/MCP·과거 관계는 미연결. [계약](design/worldstudio-confirmed-context.md).
+
+- #344 회차 원고 전처리: extract/resolve/organize 및 4회차 제공사 대역 검증 구현(후속 stacked PR). #345 적재·중간 결과 보존·재시도 전까지 자동 실행 차단 유지. 실모델 품질·대규모 회차 처리는 미검증.
