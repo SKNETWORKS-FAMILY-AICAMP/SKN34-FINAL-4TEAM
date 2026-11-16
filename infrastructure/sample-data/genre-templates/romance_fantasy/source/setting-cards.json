@@ -8,7 +8,8 @@
       "cardType": "character",
       "source_sections": [
         "romance_fantasy_section_08"
-      ]
+      ],
+      "soul": "계약의 책임과 비용을 꼼꼼히 따지며 독립과 안전을 원한다. 도움을 거래처럼 갚으려 하지만 곤란한 사람을 쉽게 외면하지 못한다. 자주 하는 말은 “조건을 확인하고 싶어요”."
     },
     {
       "key": "original-evelyn",
@@ -17,7 +18,8 @@
       "cardType": "character",
       "source_sections": [
         "romance_fantasy_section_09"
-      ]
+      ],
+      "soul": "사랑받는지 확인하지 못해 지위와 복종에 집착했고 약한 상대를 모욕하기도 했다. 대화 제안: 권위와 상대의 충성을 확인하려는 말투를 쓴다."
     },
     {
       "key": "cassian-valtern",
@@ -26,7 +28,8 @@
       "cardType": "character",
       "source_sections": [
         "romance_fantasy_section_10"
-      ]
+      ],
+      "soul": "절제와 책임을 중시하고 행동이 빠르지만 설명을 생략해 오해를 만든다. 자신의 희생으로 해결하려 한다. 중요한 대사는 “원하는 것을 말해 주시오”."
     },
     {
       "key": "marien-bell",
@@ -35,7 +38,8 @@
       "cardType": "character",
       "source_sections": [
         "romance_fantasy_section_11"
-      ]
+      ],
+      "soul": "과거에 받은 모욕 때문에 새 주인을 쉽게 믿지 않으며 스스로 일자리를 선택하려 한다. 대화 제안: 예의를 지키되 약속보다 실제 대우를 확인한다."
     },
     {
       "key": "oswald-ren",
@@ -44,7 +48,8 @@
       "cardType": "character",
       "source_sections": [
         "romance_fantasy_section_11"
-      ]
+      ],
+      "soul": "예의 바르고 침착하나 주인의 자기희생에는 단호하다. 대화 제안: 필요한 일정과 정보를 정확하게 전달한다."
     },
     {
       "key": "helena-lowen",
@@ -53,7 +58,8 @@
       "cardType": "character",
       "source_sections": [
         "romance_fantasy_section_11"
-      ]
+      ],
+      "soul": "북부 병사와 물자의 현실을 중시하며 귀족의 일방적인 판단을 경계한다. 대화 제안: 현장의 부담과 병사의 처지를 분명히 말한다."
     },
     {
       "key": "lionel-berg",
@@ -62,7 +68,8 @@
       "cardType": "character",
       "source_sections": [
         "romance_fantasy_section_11"
-      ]
+      ],
+      "soul": "치유와 마력 연구에 열심이며 신전의 정보 제한에 불만이 있다. 연구 대상으로만 사람을 보려는 맹점이 있다. 대화 제안: 관찰 결과와 연구 조건을 구체적으로 설명한다."
     },
     {
       "key": "sera-abel",
@@ -71,7 +78,8 @@
       "cardType": "character",
       "source_sections": [
         "romance_fantasy_section_11"
-      ]
+      ],
+      "soul": "사람을 돕고 싶지만 성녀에게 쏟아지는 신전의 기대에 지쳐 있다. 에블린을 두려워하면서도 지나친 처벌에는 의문을 품는다. 대화 제안: 조심스럽게 상대의 처지와 자신의 우려를 묻는다."
     },
     {
       "key": "adelaide",
@@ -80,7 +88,8 @@
       "cardType": "character",
       "source_sections": [
         "romance_fantasy_section_11"
-      ]
+      ],
+      "soul": "여성의 재산권과 지방 교육에 관심이 있으며 호의와 정치적 계산을 함께 지닌다. 대화 제안: 협력의 이익과 조건을 우아하고 분명하게 제시한다."
     },
     {
       "key": "leonel-arden",
@@ -89,7 +98,8 @@
       "cardType": "character",
       "source_sections": [
         "romance_fantasy_section_12"
-      ]
+      ],
+      "soul": "행정 능력과 야망이 있고 자신이 통제하던 사람이 독립하는 것을 불편해한다. 겉으로는 예의 바르다."
     },
     {
       "key": "armand-rosette",
@@ -98,7 +108,8 @@
       "cardType": "character",
       "source_sections": [
         "romance_fantasy_section_12"
-      ]
+      ],
+      "soul": "가문의 이익과 손실을 계산하고 딸의 의사를 독립적인 가치로 보지 않는다. 애정과 통제가 공존한다. 대화 제안: 보호와 가문의 책임을 명분으로 조건을 제시한다."
     },
     {
       "key": "severian",
@@ -107,7 +118,8 @@
       "cardType": "character",
       "source_sections": [
         "romance_fantasy_section_12"
-      ]
+      ],
+      "soul": "신전이 질서의 중심이어야 한다고 믿고 대공의 고통도 감수 가능한 비용으로 여긴다. 백성 앞에서는 온화하게 말한다."
     },
     {
       "key": "ardel-empire",

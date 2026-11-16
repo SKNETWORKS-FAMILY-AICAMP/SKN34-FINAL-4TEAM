@@ -48,6 +48,8 @@ class WorldStudioServicePostgresTest {
                     t.copy(worldId = worldId, cards = t.cards.map { it.copy(id = UUID.randomUUID()) })
                 }
                 org.mockito.Mockito.doReturn(emptyList<GenreTemplate>()).`when`(seeder).loadLegacy()
+                val frozen = template!!.copy(cards = template!!.cards.map { it.copy(soul = null) })
+                org.mockito.Mockito.doReturn(listOf(frozen)).`when`(seeder).loadV2()
                 org.mockito.Mockito.doReturn(listOf(template!!)).`when`(seeder).load()
                 return seeder
             }
@@ -56,9 +58,17 @@ class WorldStudioServicePostgresTest {
                 val seeder = seeded(service)
                 seeder.seed()
                 val draft = service.draft(worldId, owner)
-                assertEquals(2L, draft.draftRevision)
-                assertEquals(GenreTemplateRepair.payloads(template!!).toSet(), draft.cards.toSet())
+                assertEquals(4L, draft.draftRevision)
+                assertEquals(GenreTemplateRepair.soulPayloads(template!!).toSet(), draft.cards.toSet())
                 revisionId = draft.currentRevisionId!!
+                val saved = service.revision(worldId, owner, revisionId)
+                assertEquals(2L, saved.revisionNo)
+                assertEquals(draft.cards.toSet(), saved.cards.map { it.card }.toSet())
+                val first = service.revision(worldId, owner, saved.parentRevisionId!!)
+                assertEquals(1L, first.revisionNo)
+                assertEquals(GenreTemplateRepair.payloads(template!!).toSet(), first.cards.map { it.card }.toSet())
+                assertTrue(first.cards.none { it.card.semanticMetadata.containsKey("characterDocs") })
+                assertTrue(saved.cards.filter { it.card.cardType == "character" }.all { it.card.semanticMetadata.containsKey("characterDocs") })
                 seeder.seed()
                 assertEquals(draft, service.draft(worldId, owner))
             }
@@ -69,7 +79,7 @@ class WorldStudioServicePostgresTest {
                 val draft = service.draft(worldId, owner)
                 assertEquals(revisionId, draft.currentRevisionId)
                 val card = draft.cards.first().copy(body = "사용자가 고친 설명")
-                service.edit(worldId, owner, EditWorldDraftRequest(2, draft.name, draft.description, listOf(card), key = "author-edit"))
+                service.edit(worldId, owner, EditWorldDraftRequest(4, draft.name, draft.description, listOf(card), key = "author-edit"))
                 val changed = service.draft(worldId, owner)
                 seeder.seed()
                 assertEquals(changed, service.draft(worldId, owner))

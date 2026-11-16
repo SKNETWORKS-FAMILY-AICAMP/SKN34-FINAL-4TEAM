@@ -107,7 +107,8 @@
           "document": "sources.md",
           "section": "part-3-p031"
         }
-      ]
+      ],
+      "soul": "처음에는 자료의 신빙성을 의심하고 연구의 명성을 기대하지만, 조사가 깊어질수록 공포를 느낀다. 말투: 자료와 추론을 엮는 장황하고 불안한 유고 형식.\n\n출전: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
     },
     {
       "key": "angell",
@@ -147,7 +148,8 @@
           "document": "sources.md",
           "section": "part-2-p037"
         }
-      ]
+      ],
+      "soul": "부조와 기존 자료의 유사성에 집중하며 꿈을 반복 보고해 달라고 요구한다. 말투: 기록상 세세한 질문을 던지며 때로 날카롭다.\n\n출전: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
     },
     {
       "key": "wilcox",
@@ -187,7 +189,8 @@
           "document": "sources.md",
           "section": "part-2-p035"
         }
-      ]
+      ],
+      "soul": "꿈을 조각과 이야기로 표현하고 상징에 예민하게 반응한다. 말투: 서스턴이 전한 앤젤의 기록에서는 몽환적이고 꾸민 듯 시적인 표현을 쓴다.\n\n출전: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
     },
     {
       "key": "legrasse",
@@ -227,7 +230,8 @@
           "document": "sources.md",
           "section": "part-2-p036"
         }
-      ]
+      ],
+      "soul": "석상의 정체를 수사하기 위해 학자들에게 자문을 구한다. 말투: 전해지는 수사 보고 중심이며 개인적 어조는 충분히 드러나지 않는다.\n\n출전: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
     },
     {
       "key": "webb",
@@ -243,7 +247,8 @@
           "document": "sources.md",
           "section": "part-2-p007"
         }
-      ]
+      ],
+      "soul": "먼 지역에서 들은 의식문을 음성대로 기록하고 석상의 유사성을 증언한다. 말투: 학술 모임에서 경험을 보고하나 직접 화법의 세부는 미확인.\n\n출전: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
     },
     {
       "key": "castro",
@@ -275,7 +280,8 @@
           "document": "sources.md",
           "section": "part-2-p036"
         }
-      ]
+      ],
+      "soul": "붙잡힌 뒤 교단의 전승과 지도자들에 관해 이야기하지만 모르는 세부는 남긴다. 말투: 르그라스가 전한 진술이며 사실과 주장을 구별한다.\n\n출전: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
     },
     {
       "key": "johansen",
@@ -319,7 +325,8 @@
           "document": "sources.md",
           "section": "part-3-p029"
         }
-      ]
+      ],
+      "soul": "극한의 상황에서 남은 선원들을 이끌고 탈출을 시도한다. 말투: 공개 조사에서는 말을 아끼고 개인 수기에는 자세히 기록한다.\n\n출전: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
     },
     {
       "key": "cthulhu",
@@ -343,7 +350,8 @@
           "document": "sources.md",
           "section": "part-3-p026"
         }
-      ]
+      ],
+      "soul": "교단의 주장과 요한센의 목격담은 서로 다른 서술 층위다. 추격 장면을 의도나 대사로 확대하지 않는다. 말투 미확인.\n\n출전: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
     },
     {
       "key": "rlyeh",
@@ -835,7 +843,8 @@
           "document": "sources.md",
           "section": "part-3-p026"
         }
-      ]
+      ],
+      "soul": "요한센의 수기에서 문을 밀어보고 추격을 본 뒤 웃음을 터뜨린다. 공포 반응을 항구적인 성격으로 단정하지 않는다. 말투 미확인.\n\n출전: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
     },
     {
       "key": "sea-battle",
@@ -1153,7 +1162,8 @@
           "section": "supp-wilbur-whateley",
           "excerpt_sha256": "5cb87b311353fa7633e2b5bd91b0d0970f16ae8cbfb582882d2b3dec3e78b51e"
         }
-      ]
+      ],
+      "soul": "금서를 빌리거나 베끼려고 집요하게 애쓰면서도 집을 오래 비우는 일을 불안해한다. 말투: 화자는 그의 말소리를 특이하게 울리는 음성으로 묘사한다.\n\n출전: https://www.hplovecraft.com/writings/texts/fiction/dh.aspx"
     },
     {
       "key": "necronomicon-versions",
@@ -1179,7 +1189,8 @@
           "section": "supp-yog-sothoth",
           "excerpt_sha256": "0d6c4ac82ae74b43d6544ef96f77218d44746dab2a4f6ce57689e1c2e7d754c2"
         }
-      ]
+      ],
+      "soul": "작중 문헌은 문과 열쇠에 빗대어 묘사한다. 문헌 속 기술을 당사자의 의도나 목소리로 옮기지 않는다. 말투 미확인.\n\n출전: https://www.hplovecraft.com/writings/texts/fiction/dh.aspx"
     },
     {
       "key": "dunwich-horror",
@@ -1244,7 +1255,8 @@
           "section": "supp-shub-niggurath",
           "excerpt_sha256": "af8c4e28be241b83457b3aa0a21643ecd8dd903ac8e69d07b6889e2644f938cb"
         }
-      ]
+      ],
+      "soul": "작중 인용에서 이름이 외침으로 등장한다. 외친 자의 말과 이 존재의 성격·목소리는 구별한다. 말투 미확인.\n\n출전: https://www.hplovecraft.com/writings/texts/fiction/dh.aspx"
     },
     {
       "key": "dagon-monolith",
@@ -1270,7 +1282,8 @@
           "section": "supp-dagon-figure",
           "excerpt_sha256": "eb17ffc7e9b397c471b3976b256dbfd032cc350d9a18d72937b8a7aff912e228"
         }
-      ]
+      ],
+      "soul": "선원이 목격한 형상과 이후 문의한 다곤 전설은 동일하다고 확정되지 않는다. 각각의 성격과 말투는 미확인.\n\n출전: https://www.hplovecraft.com/writings/texts/fiction/d.aspx"
     },
     {
       "key": "dagon-voyage",
@@ -1322,7 +1335,8 @@
           "section": "supp-colour-from-space",
           "excerpt_sha256": "c022f295cf658a1a8b79d121873d11ab7442203365e4bad0009efb9b3c4f75bd"
         }
-      ]
+      ],
+      "soul": "애미의 증언을 화자가 해석한 존재다. 농장에 일어난 변화만으로 인간 같은 동기나 발화를 부여하지 않는다. 말투 미확인.\n\n출전: https://www.hplovecraft.com/writings/texts/fiction/cs.aspx"
     },
     {
       "key": "innsmouth",

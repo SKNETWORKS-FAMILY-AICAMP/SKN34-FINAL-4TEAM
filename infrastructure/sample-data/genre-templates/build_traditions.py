@@ -25,7 +25,21 @@ TRADITIONS = (
     "indian_mythology", "celtic_mythology", "slavic_mythology",
     "maya_mythology", "aztec_mythology", "journey_to_the_west",
 )
+HISTORY = ("korea", "china", "japan", "england", "france", "italy", "usa")
 TYPES = {"character", "location", "organization", "ability", "object", "rule", "event", "other"}
+HISTORY_DESCRIPTIONS = {
+    "c1af4125-5423-5633-a5da-822b4753df94": ("현대사 보완·서비스 반영 전 검토용.", "현대사 보완 대기 중인 비공개 연구 기반 샘플."),
+    "67907b53-fdd0-5771-8d78-0f317a0f71b9": ("서비스·DB 반영 대상이 아니다.", "독립 검수 미완료인 비공개 연구 기반 샘플이다."),
+    "936b9d62-a1de-59a2-b8e0-1d52327464de": ("현대사 확보·서비스 반영은 보류 상태다.", "현대사 확보는 보류 상태인 비공개 연구 기반 샘플이다."),
+    "8c3a276f-dda5-5b5d-89da-55221ee3d710": ("현대 통사·전수 감수본·서비스 등록본이 아니다.", "현대 통사·전수 감수본이 아닌 비공개 연구 기반 샘플이다."),
+    "b08b14fa-dc75-5e3b-8067-148fb6346c72": ("서비스·DB 등록 금지.", "독립 검수 미완료인 비공개 연구 기반 샘플이다."),
+}
+HISTORY_BODIES = {
+    "2b354d59-bb5e-5515-8eeb-63270e9c12e8": ("연구용 신규 파일만 작성했으며 앱·DB·서비스 템플릿에는 반영하지 않는다.", "독립 검수 미완료인 연구 기반 샘플이다."),
+    "29abc109-1de4-575a-aa6c-6ae29a4e0e39": ("연구용 파일만 만들며 서비스·DB에는 등록하지 않는다.", "검증되지 않은 연구 기반 샘플이다."),
+    "84c432b7-7c72-5450-a0e0-9bff072b0420": ("현대 자료 신규 취득, 앱·DB 등록, 서비스 템플릿 수정, 커밋·푸시는 하지 않는다.", "현대 자료 신규 취득과 독립 역사 감수는 완료되지 않았다."),
+    "4ff3552f-2aa0-5e95-88a8-5cf7d2c46e8b": ("창작 인물·가상 사건·대화·플롯을 추가하지 않았고 서비스 데이터에 반영하지 않았다.", "창작 인물·가상 사건·대화·플롯을 추가하지 않았으며 독립 검수 미완료인 연구 기반 샘플이다."),
+}
 
 
 def valid_url(url):
@@ -38,6 +52,44 @@ def valid_url(url):
 
 def read(path):
     return json.loads(path.read_text(encoding="utf-8-sig"))
+
+
+def soul_field(card):
+    if card["cardType"] != "character":
+        assert "soul" not in card, card["title"]
+        return {}
+    soul = card.get("soul")
+    assert isinstance(soul, str) and soul.strip() and len(soul.encode("utf-16-le")) // 2 <= 3000, card["title"]
+    return {"soul": soul}
+
+
+def load_history(path):
+    world = read(path)
+    UUID(world["worldId"])
+    if world["worldId"] in HISTORY_DESCRIPTIONS:
+        before, after = HISTORY_DESCRIPTIONS[world["worldId"]]
+        assert world["description"].count(before) == 1, world["worldId"]
+        world["description"] = world["description"].replace(before, after)
+    for card in world["cards"]:
+        if card["id"] in HISTORY_BODIES:
+            before, after = HISTORY_BODIES[card["id"]]
+            assert card["body"].count(before) == 1, card["id"]
+            card["body"] = card["body"].replace(before, after)
+    if world["worldId"] == "caa0b0e9-0305-566e-82ee-650f43aa464e":
+        cards = [card for card in world["cards"] if card["id"] == "0bef7a62-4958-5f89-8096-1b0dd60c1e59"]
+        assert len(cards) == 1, "미국 저작 표시 카드 누락"
+        cards[0]["body"] += ("\n\n장별 기여자와 출처(저장소 병합 후 접근): "
+                             "https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/blob/develop/infrastructure/sample-data/genre-templates/history/usa.evidence.json"
+                             "\n원전의 현행 장별 목록: https://www.americanyawp.com/"
+                             "\n원전의 현행 기여자 목록: https://www.americanyawp.com/text/contributors/")
+    assert world["genre"] and world["name"].strip() and len(world["name"].encode("utf-16-le")) // 2 <= 100 and len(world["description"].encode("utf-16-le")) // 2 <= 20000 and world["cards"]
+    for card in world["cards"]:
+        UUID(card["id"])
+        assert card["cardType"] in TYPES
+        for field, limit in (("title", 200), ("body", 3000)):
+            assert isinstance(card[field], str) and card[field].strip() and len(card[field].encode("utf-16-le")) // 2 <= limit, card["id"]
+        soul_field(card)
+    return world
 
 
 def read_supplementary(genre):
@@ -96,7 +148,7 @@ def build_creative_world(world, data, template):
         refs = card["source_sections"]
         assert isinstance(refs, list) and refs and all(isinstance(ref, str) and ref in sections for ref in refs), key
         cards.append({"id": str(uuid5(UUID(world["worldId"]), "setting:" + key)),
-                      "title": card["title"], "body": card["body"], "cardType": card["cardType"]})
+                      "title": card["title"], "body": card["body"], "cardType": card["cardType"], **soul_field(card)})
     assert cards, genre
     return {**world, "cards": cards}
 
@@ -132,11 +184,12 @@ def build(current):
             cards.append({
                 "id": str(uuid5(UUID(world_id), "tradition:" + card["key"])),
                 "title": card["title"], "body": card["body"],
-                "cardType": card["cardType"],
+                "cardType": card["cardType"], **soul_field(card),
             })
         assert cards and any(c["cardType"] == "event" for c in cards), genre
         result.append({"genre": genre, "worldId": world_id, "name": data["name"],
                        "description": data["scope"], "cards": cards})
+    result.extend(load_history(ROOT / "history" / (country + ".world.json")) for country in HISTORY)
     ids = [t["worldId"] for t in result] + [c["id"] for t in result for c in t["cards"]]
     assert len(ids) == len(set(ids)), "duplicate world/card ID"
     return result

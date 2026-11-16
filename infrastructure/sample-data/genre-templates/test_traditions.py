@@ -32,14 +32,81 @@ def variant_problems(card, documents=None):
 class CreativeCardsTest(unittest.TestCase):
     WORLD = {"genre": "example", "worldId": "4fe1e070-e9f4-5d85-8923-c34da0b276e5", "name": "세계", "description": "설명", "cards": []}
     TEMPLATE = {"genre_id": "example", "setting_bible": {"sections": [{"id": "example_section_01"}]}}
-    CARD = {"key": "hero", "title": "주인공", "body": "인물의 설정", "cardType": "character", "source_sections": ["example_section_01"]}
+    CARD = {"key": "hero", "title": "주인공", "body": "인물의 설정", "cardType": "character", "soul": "차분히 말한다", "source_sections": ["example_section_01"]}
+
+    def test_character_soul_is_retained_separately_and_validated(self):
+        card = {**self.CARD, "soul": "말투는 차분하다."}
+        world = catalog.build_creative_world(self.WORLD, {"genre": "example", "cards": [card]}, self.TEMPLATE)
+        self.assertEqual("말투는 차분하다.", world["cards"][0].get("soul"))
+        self.assertEqual(self.CARD["body"], world["cards"][0]["body"])
+        for soul in ("", " ", "😀" * 1501, None):
+            with self.subTest(soul=soul), self.assertRaises(AssertionError):
+                catalog.build_creative_world(self.WORLD, {"genre": "example", "cards": [{**card, "soul": soul}]}, self.TEMPLATE)
+        for invalid in ({k: v for k, v in card.items() if k != "soul"}, {**card, "cardType": "location"}):
+            with self.subTest(card=invalid), self.assertRaises(AssertionError):
+                catalog.build_creative_world(self.WORLD, {"genre": "example", "cards": [invalid]}, self.TEMPLATE)
+
+    def test_history_preserves_ids_text_order_and_soul(self):
+        card = {"id": "8c75d599-4d1e-5e09-a942-873900666c44", "title": "사람", "body": "검수 대기 · 출처 https://example.org", "cardType": "character", "soul": "원전 검토 미확인"}
+        world = {**self.WORLD, "cards": [card]}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "country.world.json"
+            path.write_text(json.dumps(world, ensure_ascii=False), encoding="utf-8")
+            self.assertEqual(world, catalog.load_history(path))
+
+    def test_usa_runtime_license_card_links_to_chapter_credits(self):
+        source = catalog.ROOT / "history/usa.world.json"
+        original = catalog.read(source)
+        result = catalog.load_history(source)
+        card_id = "0bef7a62-4958-5f89-8096-1b0dd60c1e59"
+        before = next(c for c in original["cards"] if c["id"] == card_id)
+        after = next(c for c in result["cards"] if c["id"] == card_id)
+        url = "https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/blob/develop/infrastructure/sample-data/genre-templates/history/usa.evidence.json"
+        self.assertEqual(before["body"] + "\n\n장별 기여자와 출처(저장소 병합 후 접근): " + url + "\n원전의 현행 장별 목록: https://www.americanyawp.com/\n원전의 현행 기여자 목록: https://www.americanyawp.com/text/contributors/", after["body"])
+        after["body"] = before["body"]
+        self.assertEqual(before, after)
+
+    def test_history_runtime_corrects_only_outdated_registration_notes(self):
+        descriptions = {
+            "england": ("현대사 보완·서비스 반영 전 검토용.", "현대사 보완 대기 중인 비공개 연구 기반 샘플."),
+            "france": ("서비스·DB 반영 대상이 아니다.", "독립 검수 미완료인 비공개 연구 기반 샘플이다."),
+            "italy": ("현대사 확보·서비스 반영은 보류 상태다.", "현대사 확보는 보류 상태인 비공개 연구 기반 샘플이다."),
+            "japan": ("현대 통사·전수 감수본·서비스 등록본이 아니다.", "현대 통사·전수 감수본이 아닌 비공개 연구 기반 샘플이다."),
+            "korea": ("서비스·DB 등록 금지.", "독립 검수 미완료인 비공개 연구 기반 샘플이다."),
+        }
+        bodies = {
+            "2b354d59-bb5e-5515-8eeb-63270e9c12e8": ("연구용 신규 파일만 작성했으며 앱·DB·서비스 템플릿에는 반영하지 않는다.", "독립 검수 미완료인 연구 기반 샘플이다."),
+            "29abc109-1de4-575a-aa6c-6ae29a4e0e39": ("연구용 파일만 만들며 서비스·DB에는 등록하지 않는다.", "검증되지 않은 연구 기반 샘플이다."),
+            "84c432b7-7c72-5450-a0e0-9bff072b0420": ("현대 자료 신규 취득, 앱·DB 등록, 서비스 템플릿 수정, 커밋·푸시는 하지 않는다.", "현대 자료 신규 취득과 독립 역사 감수는 완료되지 않았다."),
+            "4ff3552f-2aa0-5e95-88a8-5cf7d2c46e8b": ("창작 인물·가상 사건·대화·플롯을 추가하지 않았고 서비스 데이터에 반영하지 않았다.", "창작 인물·가상 사건·대화·플롯을 추가하지 않았으며 독립 검수 미완료인 연구 기반 샘플이다."),
+        }
+        url = "https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/blob/develop/infrastructure/sample-data/genre-templates/history/usa.evidence.json"
+        seen = set()
+        for country in catalog.HISTORY:
+            path = catalog.ROOT / "history" / (country + ".world.json")
+            expected = catalog.read(path)
+            if country in descriptions:
+                before, after = descriptions[country]
+                self.assertEqual(1, expected["description"].count(before))
+                expected["description"] = expected["description"].replace(before, after)
+            for card in expected["cards"]:
+                if card["id"] in bodies:
+                    seen.add(card["id"])
+                    before, after = bodies[card["id"]]
+                    self.assertEqual(1, card["body"].count(before))
+                    card["body"] = card["body"].replace(before, after)
+                if card["id"] == "0bef7a62-4958-5f89-8096-1b0dd60c1e59":
+                    card["body"] += "\n\n장별 기여자와 출처(저장소 병합 후 접근): " + url + "\n원전의 현행 장별 목록: https://www.americanyawp.com/\n원전의 현행 기여자 목록: https://www.americanyawp.com/text/contributors/"
+            with self.subTest(country=country):
+                self.assertEqual(expected, catalog.load_history(path))
+        self.assertEqual(set(bodies), seen)
 
     def test_stable_ids_and_runtime_fields(self):
         data = {"genre": "example", "cards": [self.CARD]}
         world = catalog.build_creative_world(self.WORLD, data, self.TEMPLATE)
         self.assertEqual({**self.WORLD, "cards": [{
             "id": str(uuid5(UUID(self.WORLD["worldId"]), "setting:hero")),
-            "title": "주인공", "body": "인물의 설정", "cardType": "character",
+            "title": "주인공", "body": "인물의 설정", "cardType": "character", "soul": "차분히 말한다",
         }]}, world)
         self.assertEqual([], self.WORLD["cards"])
         self.assertEqual(world, catalog.build_creative_world(world, data, self.TEMPLATE))
@@ -55,7 +122,7 @@ class CreativeCardsTest(unittest.TestCase):
         def read(path):
             return {"genre": genre, "cards": [card]} if path.name == "setting-cards.json" else real_read(path)
         unrelated = {**frozen, "worldId": "3cf7aea1-14ed-58af-9f2e-74f13d171cad", "genre": "other"}
-        with patch.object(catalog, "LEGACY", (genre,)), patch.object(catalog, "TRADITIONS", ()), patch.object(catalog, "read", side_effect=read):
+        with patch.object(catalog, "LEGACY", (genre,)), patch.object(catalog, "TRADITIONS", ()), patch.object(catalog, "HISTORY", ()), patch.object(catalog, "read", side_effect=read):
             result = catalog.build([unrelated, frozen])
             self.assertEqual(frozen["worldId"], result[0]["worldId"])
             self.assertEqual(frozen["name"], result[0]["name"])
@@ -148,7 +215,7 @@ class TraditionCatalogTest(unittest.TestCase):
                 catalog.validate_narrative(data, (source / "sources.md").read_text(encoding="utf-8"),
                                            catalog.read_supplementary(genre))
                 for card, section in zip(data["cards"], template["setting_bible"]["sections"]):
-                    self.assertEqual({"key", "title", "cardType", "body", "narrative_refs"}, set(card))
+                    self.assertEqual({"key", "title", "cardType", "body", "narrative_refs"} | ({"soul"} if card["cardType"] == "character" else set()), set(card))
                     self.assertEqual({"id", "order", "title", "content_markdown", "template_part", "card_type", "narrative_refs"}, set(section))
                     self.assertEqual(card["narrative_refs"], section["narrative_refs"])
                     for ref in card["narrative_refs"]:
@@ -161,11 +228,16 @@ class TraditionCatalogTest(unittest.TestCase):
         self.assertEqual(expected, digest)
         self.assertEqual(list(catalog.LEGACY), [t["genre"] for t in catalog.read(catalog.RESOURCES / "genre-templates-v1.json")])
 
-    def test_runtime_catalog_is_reproducible_and_includes_all_fifteen_traditions(self):
-        runtime = (catalog.RESOURCES / "genre-templates.json").read_bytes()
-        self.assertEqual("4699939f749f45dc0958f7c908955ade6e9ea91ab8ed9ab55860251831aa9517", hashlib.sha256(runtime).hexdigest())
+    def test_runtime_catalog_is_reproducible_and_preserves_frozen_worlds(self):
+        frozen_path = catalog.RESOURCES / "genre-templates-v2.json"
+        self.assertEqual("4699939f749f45dc0958f7c908955ade6e9ea91ab8ed9ab55860251831aa9517", hashlib.sha256(frozen_path.read_bytes()).hexdigest())
+        frozen = catalog.read(frozen_path)
+        without_soul = [{**world, "cards": [{k: v for k, v in card.items() if k != "soul"} for card in world["cards"]]} for world in self.current[:26]]
+        self.assertEqual(frozen, without_soul)
         self.assertEqual(self.current, catalog.build(self.current))
-        self.assertEqual(list(catalog.LEGACY + catalog.TRADITIONS), [t["genre"] for t in self.current])
+        self.assertEqual(list(catalog.LEGACY + catalog.TRADITIONS), [t["genre"] for t in self.current[:26]])
+        self.assertEqual([catalog.load_history(catalog.ROOT / "history" / (country + ".world.json")) for country in catalog.HISTORY], self.current[26:])
+        self.assertEqual((33, 1412, 405), (len(self.current), sum(len(w["cards"]) for w in self.current), sum(c["cardType"] == "character" for w in self.current for c in w["cards"])))
         self.assertEqual(catalog.build(self.current), catalog.build(catalog.build(self.current)))
 
     def test_original_source_urls_and_migrated_locations_are_unchanged(self):
@@ -261,7 +333,7 @@ class TraditionCatalogTest(unittest.TestCase):
             supplementary = source / "supplementary.md"
             with supplementary.open("a", encoding="utf-8") as file:
                 file.write('\n<a id="supp-1"></a>\n\nURL: https://example.test/x\n> 원어 발췌\n')
-            with patch.object(catalog, "ROOT", root), patch.object(catalog, "LEGACY", ()), patch.object(catalog, "TRADITIONS", (genre,)):
+            with patch.object(catalog, "ROOT", root), patch.object(catalog, "LEGACY", ()), patch.object(catalog, "TRADITIONS", (genre,)), patch.object(catalog, "HISTORY", ()):
                 built = catalog.build(self.current)
                 self.assertEqual("보충 카드", built[-1]["cards"][-1]["title"])
                 supplementary.unlink()  # 문서가 없으면 같은 카드가 거절된다
