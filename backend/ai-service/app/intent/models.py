@@ -15,6 +15,13 @@ class IntentStep(BaseModel):
     model_config = ConfigDict(extra='forbid')
     feature: Feature
     when: Literal['always', 'if_issues_found']
+    check: Literal['mechanical', 'semantic', 'both'] | None = None  # review 단계만. Router가 검수 종류를 알아낸 경우(#369)
+
+    @model_validator(mode='after')
+    def review_only(self):
+        if self.check and self.feature != 'review':
+            raise ValueError('검수 종류는 review 단계에만 붙습니다.')
+        return self
 
 
 class IntentResult(BaseModel):

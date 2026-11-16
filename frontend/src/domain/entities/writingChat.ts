@@ -3,7 +3,8 @@ import type { WritingEpisode } from './content'
 
 /** 집필 AI 채팅(#331). 대화 원본은 AI 서비스의 LangGraph 체크포인터이며 화면은 Content API로만 읽고 쓴다. */
 export type ChatFeature = 'story_context' | 'writing_editing' | 'web_research' | 'character_simulation' | 'review' | (string & {})
-export type ReviewCheck = 'mechanical' | 'semantic'
+// both는 Router가 두 검수를 함께 고른 결과(#369)다. 작가에게 묻는 화면은 두 가지 중 하나만 고른다.
+export type ReviewCheck = 'mechanical' | 'semantic' | 'both'
 /** 원고 검수 지적 하나. 위치는 초안 본문의 UTF-16 [start,end)이고 같은 구절이 여러 곳이면 null이다(AI가 추측하지 않는다). */
 export type ReviewFinding = {
   category: string; quote: string; reason: string; status: 'confirmed' | 'suspected' | 'undeterminable'
@@ -21,7 +22,9 @@ export type ChatStepResult = {
 }
 export type ChatStep = {
   feature: ChatFeature
-  status: 'completed' | 'failed' | 'not_started'
+  /** if_issues_found는 직전 검수에서 확정 지적이 있을 때만 고치는 조건부 수정이다(#370). skipped는 고칠 것이 없어 건너뛴 단계(error가 이유)다. */
+  when?: 'always' | 'if_issues_found'
+  status: 'completed' | 'failed' | 'not_started' | 'skipped'
   result?: ChatStepResult | null
   /** character_simulation 단계의 검증된 결과(#58). 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
   simulation?: CharacterSimulation | null
@@ -62,7 +65,8 @@ export type ChatBasis = { episode: number; episodeVersionId: string; targetEpiso
 export type ChatStepInputs = {
   web_research?: { question: string }
   review?: { check: ReviewCheck }
-  writing_editing?: { draft: { episodeNumber: number; plan: string } } | { patch: { selection: string; instruction: string } }
+  /** fix는 조건부 수정에서 고른 검수 지적의 번호(검수 결과 findings 순서)다. */
+  writing_editing?: { draft: { episodeNumber: number; plan: string } } | { patch: { selection: string; instruction: string } } | { fix: number }
 }
 /** 시뮬레이션 무대에서 작가가 장면에 거는 조작(AI `Resume.scene`, Content `WritingAiResume.scene`을 그대로 통과한다). */
 export type SceneAction =
@@ -103,7 +107,7 @@ export function cleanScene(scene: SceneAction): SceneAction {
 }
 
 export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '집필·수정', web_research: '고증 조사', character_simulation: '인물 시뮬레이션', review: '원고 검수' }
-export const reviewCheckLabel: Record<ReviewCheck, string> = { mechanical: '맞춤법·표기', semantic: '설정·개연성' }
+export const reviewCheckLabel: Record<ReviewCheck, string> = { mechanical: '맞춤법·표기', semantic: '설정·개연성', both: '설정·개연성 + 맞춤법·표기' }
 const reviewStatus: Record<ReviewFinding['status'], string> = { confirmed: '확정', suspected: '의심', undeterminable: '판단 불가' }
 const reviewCategory: Record<string, string> = {
   number: '수치', name: '이름', date: '날짜', repetition: '중복 표현', spelling: '맞춤법',
@@ -138,6 +142,7 @@ const researchVerdict: Record<string, string> = { confirmed: '확인됨', confli
 /** 단계 결과를 채팅 말풍선 글로. 결과가 없거나 실패면 그 사유를 그대로 보인다(성공처럼 꾸미지 않는다). */
 export function stepText(step: ChatStep): string {
   if (step.status === 'failed') return `실패: ${step.error ?? '작업을 완료하지 못했어요.'}`
+  if (step.status === 'skipped') return `건너뜀: ${step.error ?? '할 일이 없어 건너뛰었어요.'}`
   if (step.simulation) return sceneSummary(step.simulation)
   if (step.review) return reviewText(step.review)
   const r = step.result

@@ -2,7 +2,7 @@ import pytest
 
 from app.review import service
 from app.review.errors import ReviewFailure
-from app.review.models import ReviewRequest
+from app.review.models import ReviewRequest, ReviewResult
 
 from .stubs import WORK, WORLD, fake_agent, fake_content, finding
 
@@ -118,3 +118,37 @@ def test_semantic_without_linked_world_is_409(monkeypatch):
         service.review(semantic())
     assert error.value.status == 409
     assert seen == {}
+
+
+def test_both_reads_once_runs_semantic_and_mechanical_and_lists_semantic_first(monkeypatch):
+    calls = fake_content(monkeypatch, body='비가 왔다. 서윤은 웃엇다.')
+    seen = []
+
+    def review(check, draft, settings):
+        seen.append((check, len(settings)))
+        found = finding(category='setting', refs=['card:seoyun']) if check == 'semantic' else finding()
+        usage = {'inputTokens': 10, 'outputTokens': 2}
+        return ReviewResult(findings=[found], gaps=[f'{check} 빈 곳']), {'model': 'm', 'providerResponseId': f'resp-{check}', 'usage': usage}
+
+    monkeypatch.setattr(service.agent, 'review', review)
+    result = service.review(ReviewRequest(workId=WORK, episode=3, check='both'))
+
+    # 초안·세계관은 한 번만 읽고, 검수 두 개는 각자의 입력(Mechanical은 설정 없음)으로 부른다.
+    assert [tool for tool, _ in calls] == ['episode_read', 'world_studio_list', 'world_studio_read']
+    assert sorted(seen) == [('mechanical', 0), ('semantic', 1)]
+    assert result.check == 'both' and [f.category for f in result.findings] == ['setting', 'spelling']
+    assert result.gaps == ['semantic 빈 곳', 'mechanical 빈 곳']
+    assert result.providerResponseId == 'resp-semantic,resp-mechanical'
+    assert (result.usage.inputTokens, result.usage.outputTokens) == (20, 4)
+
+
+def test_both_still_checks_each_finding_against_its_own_check(monkeypatch):
+    fake_content(monkeypatch)
+
+    def review(check, draft, settings):  # Mechanical 결과가 설정 근거를 인용했다
+        return ReviewResult(findings=[finding(refs=['card:seoyun'])], gaps=[]), {'model': 'm', 'providerResponseId': 'r', 'usage': None}
+
+    monkeypatch.setattr(service.agent, 'review', review)
+    with pytest.raises(ReviewFailure) as error:
+        service.review(ReviewRequest(workId=WORK, episode=3, check='both'))
+    assert error.value.status == 502

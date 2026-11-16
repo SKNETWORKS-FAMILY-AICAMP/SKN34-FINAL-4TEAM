@@ -279,6 +279,16 @@ describe('원고 검수 단계 결과(#59)', () => {
     expect(step.result).toBeUndefined()
   })
 
+  it('건너뛴 조건부 수정 단계와 조건(when)을 읽는다(#370)', async () => {
+    const step = await run({ feature: 'writing_editing', when: 'if_issues_found', status: 'skipped', error: '고칠 문제가 없어요.', result: null })
+    expect(step).toMatchObject({ feature: 'writing_editing', when: 'if_issues_found', status: 'skipped', error: '고칠 문제가 없어요.' })
+  })
+
+  it('두 검수를 함께 돌린 결과(both)도 읽는다(#369)', async () => {
+    const step = await run({ feature: 'review', status: 'completed', result: review({ check: 'both' }) })
+    expect(step.review?.check).toBe('both')
+  })
+
   it.each([
     ['상태가 계약에 없다', review({ findings: [finding({ status: 'maybe' })] })],
     ['구절이 없다', review({ findings: [finding({ quote: undefined })] })],

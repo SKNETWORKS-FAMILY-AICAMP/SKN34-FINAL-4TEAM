@@ -202,6 +202,46 @@ it('원고 검수 입력 대기는 검수 종류를 골라야 이어서 실행�
   expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true, inputs: { review: { check: 'semantic' } } } })
 })
 
+it('조건부 수정 입력 대기는 확정 지적만 보기로 두고, 고른 지적 번호를 단계 입력으로 보낸다(#370)', async () => {
+  const finding = (quote: string, status: string) => ({ category: 'spelling', quote, reason: `${quote} 오류`, status, evidenceRefs: [], suggestion: '', start: status === 'confirmed' ? 0 : null, end: status === 'confirmed' ? 1 : null })
+  const review = { check: 'mechanical', episode: 2, revision: 4, gaps: [], findings: [finding('웃엇다', 'confirmed'), finding('비가', 'suspected'), finding('말햇다', 'confirmed')] }
+  openThread([{ request: '검수하고 틀리면 고쳐 줘', reply: { status: 'waiting', missingInputs: ['writing_editing'], awaitingApproval: null, steps: [
+    { feature: 'review', status: 'completed', review }, { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' }] } }])
+  send.mockResolvedValue(undefined)
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  const form = (await screen.findByRole('heading', { name: '작업에 필요한 내용을 알려 주세요' })).closest('form') as HTMLElement
+  const group = within(form).getByRole('group', { name: '고칠 지적 · 2화 초안' })
+  expect(within(group).getAllByRole('radio').map((r) => r.closest('label')?.textContent)).toEqual(['"웃엇다" — 웃엇다 오류', '"말햇다" — 말햇다 오류'])
+  expect(within(form).queryByRole('textbox')).toBeNull()  // 장면 계획을 적는 새 원고 입력이 아니다
+  expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
+  fireEvent.click(within(group).getByRole('radio', { name: /말햇다/ }))
+  fireEvent.click(screen.getByRole('checkbox'))
+  fireEvent.click(within(form).getByRole('button', { name: '이어서 실행' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true, inputs: { writing_editing: { fix: 2 } } } })
+})
+
+it('건너뛴 조건부 수정 단계는 진행 표시에서 대기가 아니라 건너뜀으로 보인다(#370)', async () => {
+  openThread([])
+  let emit!: (event: ChatEvent) => void
+  send.mockImplementation(async (_work: string, _thread: string, _input: unknown, onEvent: (event: ChatEvent) => void) => {
+    emit = onEvent
+    await new Promise<void>(() => {})
+  })
+  renderChat(vi.fn())
+  await screen.findByText('새 대화', { selector: 'h3' })
+  fireEvent.click(screen.getByRole('checkbox'))
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '검수하고 틀리면 고쳐 줘' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  await act(async () => { emit({ type: 'plan', steps: [{ feature: 'review', status: 'not_started' }, { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' }] }) })
+  await act(async () => { emit({ type: 'step', step: { feature: 'review', status: 'completed', review: { check: 'mechanical', episode: 2, revision: 4, findings: [], gaps: [] } } }) })
+  await act(async () => { emit({ type: 'step', step: { feature: 'writing_editing', when: 'if_issues_found', status: 'skipped', error: '고칠 문제가 없어요.' } }) })
+  const progress = screen.getByRole('status', { name: 'AI 진행 상황' })
+  expect(within(progress).getByText('건너뜀', { selector: '.chat-step-state' })).toBeTruthy()
+  expect(within(progress).queryByText('대기', { selector: '.chat-step-state' })).toBeNull()
+})
+
 it('빈 대화에는 IF·흐름 시뮬레이션 예시를 추천 칩으로 보이고 누르면 입력창에 글만 채운다', async () => {
   sessions.mockResolvedValue([])
   renderChat()

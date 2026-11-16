@@ -187,4 +187,13 @@ describe('원고 검수 결과 글(#59)', () => {
     expect(stepText(step([]))).toBe('3화 초안 맞춤법·표기 검수: 찾은 문제가 없어요.')
     expect(replyText({ status: 'completed', missingInputs: [], steps: [step([])] })).toMatch(/^\[원고 검수\] /)
   })
+
+  it('건너뛴 조건부 수정은 실패가 아니라 건너뛴 이유로 보인다(#370)', () => {
+    expect(stepText({ feature: 'writing_editing', status: 'skipped', error: '검수에서 고칠 문제를 찾지 못해 수정하지 않았어요.' }))
+      .toBe('건너뜀: 검수에서 고칠 문제를 찾지 못해 수정하지 않았어요.')
+  })
+
+  it('두 검수를 함께 돌린 결과는 두 검수 이름을 제목에 붙인다(#369)', () => {
+    expect(stepText({ ...step([]), review: { ...step([]).review, check: 'both' } })).toBe('3화 초안 설정·개연성 + 맞춤법·표기 검수: 찾은 문제가 없어요.')
+  })
 })
