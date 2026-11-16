@@ -1,0 +1,2244 @@
+[
+  {
+    "id": "fdf0ef61-8ece-590b-ae12-6583998cc566",
+    "title": "교황 비오 9세",
+    "body": "교황 비오는 프랑스군의 보호 아래 로마를 통치했다. 1870년 로마 점령으로 세속 영토를 잃었지만 저자는 영적 지위와 권한은 바뀌지 않았다고 적었다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10839–10851, 11160–11180, 11194–11205행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 49,
+      "key": "character-pope-pius-ix",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10839,
+          "end": 10851
+        },
+        {
+          "start": 11160,
+          "end": 11180
+        },
+        {
+          "start": 11194,
+          "end": 11205
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "a3ecb976-9184-5a48-aedd-59754b594c3e",
+          "title": "1870년 로마의 점령과 수도 문제",
+          "lines": [
+            11114,
+            11180
+          ]
+        },
+        {
+          "cardId": "2e88cf2d-ca3e-5b57-9cd1-198e24ff6f60",
+          "title": "1874년의 과제: 학교·철도·세금·로마",
+          "lines": [
+            11194,
+            11262
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "f655bdd6-820e-5576-a9f1-593bf874ef53",
+    "title": "울트라몬타네 교황 지지파",
+    "body": "저자는 울트라몬타네를 극단적인 교황 지지파라고 정의하며, 다른 이탈리아 정치 세력과 달리 베네치아와 로마 획득을 바라지 않았다고 구분한다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10851–10860행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 50,
+      "key": "organization-ultramontanes",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10851,
+          "end": 10860
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "fd7872f7-2693-561d-afa2-f8b5fa417ee5",
+    "title": "베티노 리카솔리 남작",
+    "body": "카보우르 사망 뒤 입헌파 지도자이자 이탈리아의 수석 장관이 되었다. 이후 국왕은 라타치를 그의 후임으로 임명했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10860–10863, 10877–10881행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 51,
+      "key": "character-bettino-ricasoli",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10860,
+          "end": 10863
+        },
+        {
+          "start": 10877,
+          "end": 10881
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "3777a67c-41c3-5733-9a6e-b2e6f67e8ea6",
+    "title": "우르바노 라타치",
+    "body": "피에몬테 민주파의 지도자이자 카를로 알베르토의 장관이었다. 수석 장관이 된 뒤 가리발디의 로마 원정을 저지해야 했고 1862년 아스프로몬테 사건 뒤 물러났다. 1867년 재집권 때도 가리발디의 진격 문제로 위기를 겪었다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10869–10881, 10889–10912, 11018–11020, 11031–11056, 11088–11090행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 52,
+      "key": "character-urbano-rattazzi",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10869,
+          "end": 10881
+        },
+        {
+          "start": 10889,
+          "end": 10912
+        },
+        {
+          "start": 11018,
+          "end": 11020
+        },
+        {
+          "start": 11031,
+          "end": 11056
+        },
+        {
+          "start": 11088,
+          "end": 11090
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "63d23cfe-da7a-5f46-a2e0-230fdb4235a6",
+    "title": "이탈리아 입헌파",
+    "body": "저자는 베네치아와 로마의 통합을 추구하는 여러 세력 중 입헌파가 성공을 확신할 수 있을 때까지 기다리려 했다고 설명한다. 카보우르 사후 리카솔리가 지도자가 되었다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10854–10863행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 53,
+      "key": "organization-italian-constitutional-party",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10854,
+          "end": 10863
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "91f47ff6-a196-5aa9-8b8a-314724c96970",
+    "title": "1862년 아스프로몬테 원정",
+    "body": "가리발디는 시칠리아에서 의용군을 모아 로마를 공격하려 했다. 정부는 시칠리아에 계엄을 선포했고, 본토로 건너간 가리발디는 8월 29일 아스프로몬테에서 패하고 부상했다. 라타치는 퇴임했고 일반 사면이 뒤따랐다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10882–10912행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 54,
+      "key": "event-aspromonte-expedition-1862",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10882,
+          "end": 10912
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "794d66cb-a565-5e1b-aadc-50250d7c5c69",
+    "title": "팔라비치노 장군",
+    "body": "본문의 팔라비치노(Pnllavicino, OCR) 장군은 1862년 아스프로몬테에서 가리발디의 공화파 의용군을 공격해 격파했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10895–10900행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 55,
+      "key": "character-pallavicino-general-aspromonte",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10895,
+          "end": 10900
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "20e33887-57e3-5f0a-ba71-6446ba442b50",
+    "title": "아스프로몬테",
+    "body": "1862년 가리발디의 공화파 의용군이 이탈리아 왕군에 패하고 가리발디와 그의 아들이 부상한 곳이다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10895–10901행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 56,
+      "key": "location-aspromonte",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10895,
+          "end": 10901
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "6495c5bb-977c-5452-bbab-9cc12b5d35f2",
+    "title": "1864년 9월 협약",
+    "body": "프랑스는 교황이 군대를 조직할 시간을 주면서 2년 안에 로마 주둔군을 점진 철수하기로 했다. 이탈리아 왕은 교황 영토 공격을 허용하지 않기로 했으며, 피렌체를 토리노 대신 수도로 삼기로 했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10928–10938, 10947–10952행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 57,
+      "key": "rule-september-convention-1864",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10928,
+          "end": 10938
+        },
+        {
+          "start": 10947,
+          "end": 10952
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "5fddb7a3-077c-5a51-ba80-f36f5cd0f186",
+    "title": "수도의 토리노에서 피렌체 이전",
+    "body": "1864년 9월 협약의 마지막 조항은 이탈리아 수도를 토리노에서 피렌체로 옮기기로 했다. 치알디니는 피렌체가 외국군의 위협에 더 안전하다는 이유로 이전을 지지했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10947–10965행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 58,
+      "key": "event-capital-move-florence",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10947,
+          "end": 10965
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "e8361d7e-c62c-5fbc-bae0-f0e389ffc6c8",
+    "title": "토리노",
+    "body": "첫 이탈리아 의회가 열린 이탈리아의 초기 수도. 9월 협약으로 수도 이전이 결정된 뒤에도 상공업과 대학의 중심지로 묘사된다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10736–10739, 10950–10952, 10966–10972행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 59,
+      "key": "location-turin",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10736,
+          "end": 10739
+        },
+        {
+          "start": 10950,
+          "end": 10952
+        },
+        {
+          "start": 10966,
+          "end": 10972
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "7e6df906-89bd-578e-99ec-3068a575ee04",
+          "title": "가리발디와 시칠리아·나폴리의 결합",
+          "lines": [
+            10629,
+            10743
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "7b742e87-2314-5907-a9e4-dec2e22420dc",
+    "title": "피렌체",
+    "body": "9월 협약에서 토리노를 대신할 이탈리아 수도로 정해진 도시. 치알디니는 아펜니노와 바다로 보호되어 방어 준비에 유리하다고 보았다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10950–10965행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 60,
+      "key": "location-florence",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10950,
+          "end": 10965
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "7217d6fa-29fc-58ae-89dd-c0a7f0dfd891",
+    "title": "이탈리아 상원",
+    "body": "치알디니가 9월 협약 지지와 로마를 수도로 삼고 싶다는 견해를 연설로 밝힌 의회 기구다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10954–10958행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 61,
+      "key": "organization-italian-senate",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10954,
+          "end": 10958
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "0e273952-8533-5625-9f07-1c0f49d924b1",
+    "title": "1866년 프로이센·이탈리아 동맹",
+    "body": "1866년 3월 프로이센과 이탈리아가 동맹을 맺었다. 본문은 프로이센 왕이 베네치아 본토의 상당 부분을 이탈리아에 넘길 때까지 전쟁을 계속하기로 했다고 서술한다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10974–10981행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 62,
+      "key": "event-prussian-italian-alliance-1866",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10974,
+          "end": 10981
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "0906bb94-f826-5b76-9758-4d66ab5c6a73",
+    "title": "베네치아 지방",
+    "body": "1860년대 중반 오스트리아 지배 아래 남아 있던 이탈리아 지역. 1866년 전쟁 뒤 베네치아 시와 오스트리아의 여러 요새가 이탈리아에 합쳐졌다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10839–10844, 10997–11005행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 63,
+      "key": "location-venetia",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10839,
+          "end": 10844
+        },
+        {
+          "start": 10997,
+          "end": 11005
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "555ecaf0-d30a-51b9-be2f-f3ce5a31c9fb",
+    "title": "베네치아의 사각 요새",
+    "body": "본문은 오스트리아가 장악한 베로나·레냐고·페스키에라 및 네 번째 지명의 OCR이 훼손된 사각 요새를 1866년 동맹 맥락에서 열거한다. 네 번째 이름은 원문 판독이 불완전하다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10974–10981행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 64,
+      "key": "location-quadrilateral-fortresses",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10974,
+          "end": 10981
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "501c12bc-ddee-5148-9010-8ea052727572",
+    "title": "1866년 쿠스토차 전투",
+    "body": "오스트리아와의 전쟁에서 이탈리아 왕군은 민초강을 건넜으나 쿠스토차에서 패했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10990–10996행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 65,
+      "key": "event-battle-of-custoza-1866",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10990,
+          "end": 10996
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "4bf9c87e-5ebb-5ea5-9bf5-3e69da81e1f4",
+    "title": "몬테 수엘로 전투",
+    "body": "1866년 대오스트리아 전쟁에서 가리발디는 몬테 수엘로에서 패하고 부상했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10990–10997행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 66,
+      "key": "event-battle-of-monte-suello-1866",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10990,
+          "end": 10997
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "a39477ed-07d8-58b7-ac50-009c13ef7cc8",
+    "title": "쾨니히그레츠 전투",
+    "body": "저자는 프로이센의 쾨니히그레츠 승리가 1866년 전쟁의 결과를 결정했다고 서술한다. 오스트리아는 이후 베네치아를 프랑스 황제에게 넘겨 이탈리아와의 분쟁을 해결하게 했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10997–11000행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 67,
+      "key": "event-battle-of-koniggratz-1866",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10997,
+          "end": 11000
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "c422debe-f468-5bcc-a3a5-188614eeb69e",
+    "title": "리사 해전",
+    "body": "이탈리아 함대는 1866년 리사 앞바다에서 오스트리아 함대에 패했다. 그럼에도 베네치아와 여러 요새는 이탈리아에 합쳐졌다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11000–11005행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 68,
+      "key": "event-battle-of-lissa-1866",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11000,
+          "end": 11005
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "31a94b80-54bb-5ede-8f0e-d1f3d5425741",
+    "title": "1866년 베네치아 편입",
+    "body": "프로이센의 승리 후 오스트리아가 베네치아를 프랑스 황제에게 넘겼고, 베네치아 시와 페스키에라 등 요새들이 이탈리아에 합쳐졌다. 이스트리아와 아퀼레이아 및 달마티아 해안의 옛 베네치아 영지는 오스트리아에 남았다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10997–11006행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 69,
+      "key": "event-venetia-annexation-1866",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10997,
+          "end": 11006
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "6e97b25c-552b-572f-8a97-4d9368f48fac",
+    "title": "1867년 제네바 국제평화회의",
+    "body": "가리발디는 1867년 9월 제네바 국제평화회의를 주재하면서 교황에 대한 즉각적인 전쟁 의사를 밝혔다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11031–11037행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 70,
+      "key": "event-geneva-peace-congress-1867",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11031,
+          "end": 11037
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "1289a9d7-9af6-52cc-88b6-35711f7d4501",
+    "title": "시날룽가의 가리발디 체포",
+    "body": "1867년 9월 24일 이탈리아 정부는 침공을 준비하던 가리발디를 시날룽가에서 체포했다. 알레산드리아를 거쳐 카프레라로 이송했으나 10월 14일 탈출이 허용되었다고 저자는 서술한다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11039–11050행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 71,
+      "key": "event-garibaldi-arrest-sinalunga-1867",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11039,
+          "end": 11050
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "929685cc-43ee-5f61-88d3-5398db80041f",
+    "title": "세리스토리 병영 폭발",
+    "body": "로마 공화파의 소요와 시가전 중 일부 공모자들이 세리스토리 병영을 폭파해 교황군 병사들이 사망했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11059–11064행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 72,
+      "key": "event-serristori-barracks-explosion-1867",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11059,
+          "end": 11064
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "4f38ad4c-6148-5eb5-ac02-e68c76d2c320",
+    "title": "세리스토리 병영",
+    "body": "1867년 로마의 소요 중 공모자들이 폭파해 교황군 병사들을 죽게 한 병영이다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11059–11064행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "object",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 73,
+      "key": "object-serristori-barracks",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11059,
+          "end": 11064
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "abaf071f-54a2-5d37-85f1-63b3015b586d",
+    "title": "멘타나 전투",
+    "body": "가리발디의 로마 원정 때 멘타나의 의용군 수비대는 격전 끝에 1867년 11월 4일 프랑스군과 교황군에 항복했다. 같은 날 가리발디는 이탈리아 정부 명령으로 다시 체포되었다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11070–11084행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 74,
+      "key": "event-battle-of-mentana-1867",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11070,
+          "end": 11084
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "264cc3b1-8b14-55ab-9fb0-9e2554d52dc7",
+    "title": "멘타나",
+    "body": "1867년 가리발디 의용군 수비대가 프랑스군과 교황군에 항복한 곳이다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11077–11083행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 75,
+      "key": "location-mentana",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11077,
+          "end": 11083
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "ed34b52e-d0a8-53ab-b52a-968472649281",
+    "title": "1870년 프랑스군의 로마 철수",
+    "body": "프로이센과의 전쟁으로 병력이 필요해진 프랑스는 1870년 8월 8일 로마 점령군을 철수시키고 치비타베키아에서 배로 떠나게 했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11100–11118행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 76,
+      "key": "event-french-withdrawal-rome-1870",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11100,
+          "end": 11118
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "a3ecb976-9184-5a48-aedd-59754b594c3e",
+          "title": "1870년 로마의 점령과 수도 문제",
+          "lines": [
+            11114,
+            11180
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "9dfcfafc-4fac-5adb-b5a0-0711aff22e76",
+    "title": "스당 항복과 프랑스 공화국 선포",
+    "body": "1870년 9월 2일 부오나파르트가 이끄는 프랑스군이 스당에서 프로이센 왕에게 항복했다. 그의 정부가 끝나고 공화국이 선포되었으며 새 외무장관은 9월 협약의 종료를 선언했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11139–11145행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 77,
+      "key": "event-sedan-and-french-republic-1870",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11139,
+          "end": 11145
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "a3ecb976-9184-5a48-aedd-59754b594c3e",
+          "title": "1870년 로마의 점령과 수도 문제",
+          "lines": [
+            11114,
+            11180
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "a4c31f87-234b-58eb-81b4-8b491a4a365c",
+    "title": "쥘 파브르",
+    "body": "1870년 프랑스 공화국의 새 외무장관. 부오나파르트 정부가 무너진 뒤 9월 협약이 끝났다고 선언했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11140–11145행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 78,
+      "key": "character-jules-favre",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11140,
+          "end": 11145
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "a3ecb976-9184-5a48-aedd-59754b594c3e",
+          "title": "1870년 로마의 점령과 수도 문제",
+          "lines": [
+            11114,
+            11180
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "9dffd01e-6c88-5f7b-b9a5-e8bb53c4664f",
+    "title": "프로이센 왕 빌헬름",
+    "body": "1870년 스당에서 프랑스군의 항복을 받았다. 교황은 로마에서 이탈리아 왕을 막아 달라고 요청했으나 왕은 그러한 개입이 자신의 정책에 어긋난다고 답했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11140–11142, 11154–11159행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 79,
+      "key": "character-william-i-prussia",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11140,
+          "end": 11142
+        },
+        {
+          "start": 11154,
+          "end": 11159
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "a3ecb976-9184-5a48-aedd-59754b594c3e",
+          "title": "1870년 로마의 점령과 수도 문제",
+          "lines": [
+            11114,
+            11180
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "c89e0b67-9690-5658-8dc1-97217ac00721",
+    "title": "라파엘레 카도르나 장군",
+    "body": "1870년 9월 20일 포르타 피아 성벽에 난 작은 틈을 통해 이탈리아 왕군과 함께 로마에 들어간 장군이다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11160–11166행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 80,
+      "key": "character-raffaele-cadorna",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11160,
+          "end": 11166
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "a3ecb976-9184-5a48-aedd-59754b594c3e",
+          "title": "1870년 로마의 점령과 수도 문제",
+          "lines": [
+            11114,
+            11180
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "5a3b0414-7b8f-5dac-9d69-9ffd12406c06",
+    "title": "1870년 로마 점령",
+    "body": "이탈리아 왕군은 교황령에 진입한 뒤 1870년 9월 20일 포르타 피아의 성벽을 뚫고 로마에 들어갔다. 로마와 영토는 이탈리아 왕국의 일부가 되었고 연말 국왕이 새 수도에 입성했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11160–11169행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 81,
+      "key": "event-capture-rome-1870",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11160,
+          "end": 11169
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "a3ecb976-9184-5a48-aedd-59754b594c3e",
+          "title": "1870년 로마의 점령과 수도 문제",
+          "lines": [
+            11114,
+            11180
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "6e8b7a6a-cb2c-5e6d-ab79-f583b2f8dff7",
+    "title": "포르타 피아",
+    "body": "1870년 이탈리아 왕군이 로마에 들어가기 위해 성벽에 작은 틈을 낸 문이다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11162–11166행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 82,
+      "key": "location-porta-pia",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11162,
+          "end": 11166
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "a3ecb976-9184-5a48-aedd-59754b594c3e",
+          "title": "1870년 로마의 점령과 수도 문제",
+          "lines": [
+            11114,
+            11180
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "1218c31a-af66-5baf-a983-a123acaffea9",
+    "title": "로마 점령 후 교황의 보장",
+    "body": "저자는 교황이 세속 영토를 잃은 뒤에도 근위병과 수입을 보장받았으며 바티칸, 산타 마리아 마조레 교회와 카스텔 간돌포 및 그 경내가 국가법에서 면제되었다고 서술한다. 이는 저자의 서술이며 세부 법적 범위의 별도 확인이 필요하다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11169–11180행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 83,
+      "key": "rule-papal-guarantees-1870",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11169,
+          "end": 11180
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "a3ecb976-9184-5a48-aedd-59754b594c3e",
+          "title": "1870년 로마의 점령과 수도 문제",
+          "lines": [
+            11114,
+            11180
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "b622abbf-cd70-5b96-bff3-bd2b47ee9133",
+    "title": "바티칸",
+    "body": "로마 점령 뒤 교황의 지위와 관련해 저자가 국가법에서 면제되었다고 서술한 장소 중 하나다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11169–11177행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 84,
+      "key": "location-vatican",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11169,
+          "end": 11177
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "a3ecb976-9184-5a48-aedd-59754b594c3e",
+          "title": "1870년 로마의 점령과 수도 문제",
+          "lines": [
+            11114,
+            11180
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "b6a809f9-2258-55c2-9843-914cf421e71a",
+    "title": "산타 마리아 마조레 교회",
+    "body": "로마 점령 뒤 교황의 지위를 위해 저자가 국가법에서 면제되었다고 서술한 교회다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11169–11177행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 85,
+      "key": "location-santa-maria-maggiore",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11169,
+          "end": 11177
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "a3ecb976-9184-5a48-aedd-59754b594c3e",
+          "title": "1870년 로마의 점령과 수도 문제",
+          "lines": [
+            11114,
+            11180
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "c593eef1-eb9c-51b5-9ec1-b23b2f6f3747",
+    "title": "카스텔 간돌포",
+    "body": "로마 점령 뒤 저자가 바티칸 등과 함께 국가법에서 면제되었다고 서술한 교황 관련 장소다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11169–11177행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 86,
+      "key": "location-castel-gandolfo",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11169,
+          "end": 11177
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "a3ecb976-9184-5a48-aedd-59754b594c3e",
+          "title": "1870년 로마의 점령과 수도 문제",
+          "lines": [
+            11114,
+            11180
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "07c3a9be-e563-5af7-91f4-135a962ef744",
+    "title": "통일 이탈리아의 국가 교육",
+    "body": "저자는 왕국 전역에서 국가가 주민 교육을 제공했으며 남부에서는 성직자들의 반대가 제도의 완전한 시행을 오랫동안 가로막았다고 서술한다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11209–11217행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 87,
+      "key": "rule-state-education-united-italy",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11209,
+          "end": 11217
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "2e88cf2d-ca3e-5b57-9cd1-198e24ff6f60",
+          "title": "1874년의 과제: 학교·철도·세금·로마",
+          "lines": [
+            11194,
+            11262
+          ]
+        },
+        {
+          "cardId": "0effdfde-0173-5366-b53d-7a94d87d74f5",
+          "title": "검토 상태: OCR 복구와 역사 검증의 구별",
+          "lines": [
+            11207,
+            11225
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "a495865d-67e5-5f63-b4eb-d6e149d09f60",
+    "title": "통일 이탈리아의 경찰",
+    "body": "저자는 조직된 경찰이 산적 활동을 거의 없앴다고 평가했다. 학교와 철도처럼 경찰 유지에도 비용이 들어 이탈리아 주민들의 조세 부담이 컸다고 썼다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11217–11225행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 88,
+      "key": "organization-italian-police-after-unification",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11217,
+          "end": 11225
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "2e88cf2d-ca3e-5b57-9cd1-198e24ff6f60",
+          "title": "1874년의 과제: 학교·철도·세금·로마",
+          "lines": [
+            11194,
+            11262
+          ]
+        },
+        {
+          "cardId": "0effdfde-0173-5366-b53d-7a94d87d74f5",
+          "title": "검토 상태: OCR 복구와 역사 검증의 구별",
+          "lines": [
+            11207,
+            11225
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "1e183ed3-979d-59a6-8589-13cc72312eca",
+    "title": "로마 캄파냐",
+    "body": "아그로 로마노 또는 로마 캄파냐는 로마 주변의 저습지다. 저자는 정체된 물과 말라리아를 연결하며 이곳의 비위생을 새 수도의 문제로 묘사했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11236–11241행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 89,
+      "key": "location-agro-romano",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11236,
+          "end": 11241
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "2e88cf2d-ca3e-5b57-9cd1-198e24ff6f60",
+          "title": "1874년의 과제: 학교·철도·세금·로마",
+          "lines": [
+            11194,
+            11262
+          ]
+        },
+        {
+          "cardId": "b0057fb2-639c-53f9-8e9b-0cb0cc7c5802",
+          "title": "출처와 범위: 헌트의 1883년 제2판",
+          "lines": [
+            11230,
+            11262
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "d28a013c-83a4-549e-81a8-a6f0e1bc5a74",
+    "title": "오스티아·마카레세 습지 배수 구상",
+    "body": "로마 인근 오스티아와 마카레세의 약 1만 5천 에이커 습지를 배수하자는 제안. 높은 땅의 물은 테베레와 아로네로 보내고 해수면 아래 땅은 증기 펌프로 배수할 계획이었다. 당시 제안으로 이미 완공된 것으로 기술하지 않는다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11242–11246행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 90,
+      "key": "event-ostia-maccarese-drainage-proposal",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11242,
+          "end": 11246
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "2e88cf2d-ca3e-5b57-9cd1-198e24ff6f60",
+          "title": "1874년의 과제: 학교·철도·세금·로마",
+          "lines": [
+            11194,
+            11262
+          ]
+        },
+        {
+          "cardId": "b0057fb2-639c-53f9-8e9b-0cb0cc7c5802",
+          "title": "출처와 범위: 헌트의 1883년 제2판",
+          "lines": [
+            11230,
+            11262
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "619a86e7-8553-5741-a578-eca092e0a071",
+    "title": "오스티아 습지",
+    "body": "로마 주변에서 배수 계획이 제안된 오스티아 습지. 마카레세와 함께 약 1만 5천 에이커로 서술된다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11238–11246행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 91,
+      "key": "location-ostia-marshes",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11238,
+          "end": 11246
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "2e88cf2d-ca3e-5b57-9cd1-198e24ff6f60",
+          "title": "1874년의 과제: 학교·철도·세금·로마",
+          "lines": [
+            11194,
+            11262
+          ]
+        },
+        {
+          "cardId": "b0057fb2-639c-53f9-8e9b-0cb0cc7c5802",
+          "title": "출처와 범위: 헌트의 1883년 제2판",
+          "lines": [
+            11230,
+            11262
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "0cc21e18-e0dd-50d6-8c52-605bb5d31f2e",
+    "title": "마카레세 습지",
+    "body": "로마 주변에서 배수 계획이 제안된 마카레세 습지. 오스티아와 함께 약 1만 5천 에이커로 서술된다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11238–11246행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 92,
+      "key": "location-maccarese-marshes",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11238,
+          "end": 11246
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "2e88cf2d-ca3e-5b57-9cd1-198e24ff6f60",
+          "title": "1874년의 과제: 학교·철도·세금·로마",
+          "lines": [
+            11194,
+            11262
+          ]
+        },
+        {
+          "cardId": "b0057fb2-639c-53f9-8e9b-0cb0cc7c5802",
+          "title": "출처와 범위: 헌트의 1883년 제2판",
+          "lines": [
+            11230,
+            11262
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "919295b1-fde3-51c7-99ae-97e92fa95c06",
+    "title": "폴레시네와 베로나 지방의 간척",
+    "body": "저자는 폴레시네와 베로나 지방의 넓은 땅이 증기 펌프 등을 이용한 배수 방식으로 이미 개간되었다고 적었다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11242–11247행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 93,
+      "key": "event-polesine-veronese-land-reclamation",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11242,
+          "end": 11247
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "2e88cf2d-ca3e-5b57-9cd1-198e24ff6f60",
+          "title": "1874년의 과제: 학교·철도·세금·로마",
+          "lines": [
+            11194,
+            11262
+          ]
+        },
+        {
+          "cardId": "b0057fb2-639c-53f9-8e9b-0cb0cc7c5802",
+          "title": "출처와 범위: 헌트의 1883년 제2판",
+          "lines": [
+            11230,
+            11262
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "e303e9e2-46e6-5c32-9d3a-3fdf66eed28b",
+    "title": "폴레시네",
+    "body": "저자가 습지 배수 방식으로 넓은 지역이 이미 개간되었다고 기록한 곳이다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11242–11247행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 94,
+      "key": "location-polesine",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11242,
+          "end": 11247
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "2e88cf2d-ca3e-5b57-9cd1-198e24ff6f60",
+          "title": "1874년의 과제: 학교·철도·세금·로마",
+          "lines": [
+            11194,
+            11262
+          ]
+        },
+        {
+          "cardId": "b0057fb2-639c-53f9-8e9b-0cb0cc7c5802",
+          "title": "출처와 범위: 헌트의 1883년 제2판",
+          "lines": [
+            11230,
+            11262
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "cad37b5b-f26e-5cbd-93fd-c1635fdc6bea",
+    "title": "제노바",
+    "body": "가리발디와 약 천 명의 의용병이 1860년 5월 5일 시칠리아 원정을 위해 배를 띄운 항구다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10629–10631행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 95,
+      "key": "location-genoa",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10629,
+          "end": 10631
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "7e6df906-89bd-578e-99ec-3068a575ee04",
+          "title": "가리발디와 시칠리아·나폴리의 결합",
+          "lines": [
+            10629,
+            10743
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "cc51db36-9424-5636-8003-b0fcb3fd1d73",
+    "title": "우르비노",
+    "body": "1860년 교황령에 들어간 치알디니의 사르데냐군이 점령한 도시 중 하나다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10700–10703행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 96,
+      "key": "location-urbino",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10700,
+          "end": 10703
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "7e6df906-89bd-578e-99ec-3068a575ee04",
+          "title": "가리발디와 시칠리아·나폴리의 결합",
+          "lines": [
+            10629,
+            10743
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "784a31cd-dfb5-5eab-aeb3-2cc4f138cc68",
+    "title": "페루자",
+    "body": "1860년 교황령에 들어간 치알디니의 사르데냐군이 점령한 도시 중 하나다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10700–10703행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 97,
+      "key": "location-perugia",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10700,
+          "end": 10703
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "7e6df906-89bd-578e-99ec-3068a575ee04",
+          "title": "가리발디와 시칠리아·나폴리의 결합",
+          "lines": [
+            10629,
+            10743
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "52c0a1a7-8069-556d-9966-5c6a903e9c6c",
+    "title": "레조",
+    "body": "가리발디가 1860년 본토에 상륙한 뒤 나폴리군을 몰아낸 곳이며, 1862년에는 그의 의용군과 왕군이 맞선 곳이다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10679–10681, 10893–10898행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 98,
+      "key": "location-reggio-calabria",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10679,
+          "end": 10681
+        },
+        {
+          "start": 10893,
+          "end": 10898
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "7e6df906-89bd-578e-99ec-3068a575ee04",
+          "title": "가리발디와 시칠리아·나폴리의 결합",
+          "lines": [
+            10629,
+            10743
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "15ad5182-1572-537a-bac0-eea08bc44e65",
+    "title": "몬테 로톤도",
+    "body": "1867년 가리발디가 승리를 거두어 지지자들의 기대를 높였으나, 이어 진지를 떠나 의용군을 해산하려 했던 곳이다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11070–11080행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 99,
+      "key": "location-monte-rotondo",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11070,
+          "end": 11080
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "f53b0b95-54a8-51a2-9ee2-8e9f01e18926",
+    "title": "1867년 몬테 로톤도 승리",
+    "body": "가리발디가 몬테 로톤도에서 승리해 지지 세력의 희망이 높아졌으나 프랑스의 로마 재점령과 멘타나 항복으로 원정은 실패했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11070–11081행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 100,
+      "key": "event-monte-rotondo-1867",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11070,
+          "end": 11081
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "621a4fb6-4986-512e-b6b5-257fec3aa3d6",
+    "title": "비테르보 지방",
+    "body": "1870년 이탈리아 왕군이 교황령에 들어가자 주민들이 곧 국왕의 정부 아래 들어가겠다고 선언한 지방이다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11159–11162행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 101,
+      "key": "location-viterbo",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11159,
+          "end": 11162
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "a3ecb976-9184-5a48-aedd-59754b594c3e",
+          "title": "1870년 로마의 점령과 수도 문제",
+          "lines": [
+            11114,
+            11180
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "373192de-70d1-5688-bf52-e1b749ebb30a",
+    "title": "치비타베키아",
+    "body": "1870년 프랑스 로마 점령군이 철수해 배를 타고 떠난 항구다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11114–11118행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 102,
+      "key": "location-civitavecchia",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 11114,
+          "end": 11118
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "a3ecb976-9184-5a48-aedd-59754b594c3e",
+          "title": "1870년 로마의 점령과 수도 문제",
+          "lines": [
+            11114,
+            11180
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "ff750a90-8015-5dc8-88f6-38b6e4efcdf6",
+    "title": "시칠리아",
+    "body": "페르디난도 2세와 프란체스코 2세가 나폴리와 함께 다스린 섬. 1860년 가리발디의 원정과 주민 투표를 거쳐 사르데냐 왕국에 합류했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10593–10596, 10629–10639, 10720–10725행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 103,
+      "key": "location-sicily",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10593,
+          "end": 10596
+        },
+        {
+          "start": 10629,
+          "end": 10639
+        },
+        {
+          "start": 10720,
+          "end": 10725
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "7e6df906-89bd-578e-99ec-3068a575ee04",
+          "title": "가리발디와 시칠리아·나폴리의 결합",
+          "lines": [
+            10629,
+            10743
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "2cb2b5d4-77ef-50ce-9e55-d2a6e1c55b16",
+    "title": "교황령",
+    "body": "교황의 세속 통치 영역. 1860년 사르데냐군의 침공을 받았고, 1864년 협약은 이탈리아 왕에게 이 영토에 대한 공격을 허용하지 않을 의무를 지웠다. 1870년 왕군이 로마에 진입했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10693–10703, 10928–10938, 11159–11167행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 104,
+      "key": "organization-papal-states",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10693,
+          "end": 10703
+        },
+        {
+          "start": 10928,
+          "end": 10938
+        },
+        {
+          "start": 11159,
+          "end": 11167
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "7e6df906-89bd-578e-99ec-3068a575ee04",
+          "title": "가리발디와 시칠리아·나폴리의 결합",
+          "lines": [
+            10629,
+            10743
+          ]
+        },
+        {
+          "cardId": "a3ecb976-9184-5a48-aedd-59754b594c3e",
+          "title": "1870년 로마의 점령과 수도 문제",
+          "lines": [
+            11114,
+            11180
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "9860e4a8-7dee-5c83-a799-6064fb71b65e",
+    "title": "이탈리아 왕국",
+    "body": "1861년 토리노 의회에서 비토리오 에마누엘레가 왕으로 선포된 국가. 1866년 베네치아와 1870년 로마를 편입했으며 국가가 주민 교육을 제공했다고 저자는 서술한다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10736–10739, 11000–11005, 11160–11169, 11213–11215행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 105,
+      "key": "organization-kingdom-of-italy",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10736,
+          "end": 10739
+        },
+        {
+          "start": 11000,
+          "end": 11005
+        },
+        {
+          "start": 11160,
+          "end": 11169
+        },
+        {
+          "start": 11213,
+          "end": 11215
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    },
+    "existing_review": {
+      "exact_title_and_type": [],
+      "same_source_line_overlap": [
+        {
+          "cardId": "7e6df906-89bd-578e-99ec-3068a575ee04",
+          "title": "가리발디와 시칠리아·나폴리의 결합",
+          "lines": [
+            10629,
+            10743
+          ]
+        },
+        {
+          "cardId": "a3ecb976-9184-5a48-aedd-59754b594c3e",
+          "title": "1870년 로마의 점령과 수도 문제",
+          "lines": [
+            11114,
+            11180
+          ]
+        },
+        {
+          "cardId": "2e88cf2d-ca3e-5b57-9cd1-198e24ff6f60",
+          "title": "1874년의 과제: 학교·철도·세금·로마",
+          "lines": [
+            11194,
+            11262
+          ]
+        },
+        {
+          "cardId": "0effdfde-0173-5366-b53d-7a94d87d74f5",
+          "title": "검토 상태: OCR 복구와 역사 검증의 구별",
+          "lines": [
+            11207,
+            11225
+          ]
+        }
+      ],
+      "note": "기계적 단서이며 동일 대상 판정이 아님"
+    }
+  },
+  {
+    "id": "a0c956bc-897a-57c9-aba0-24364e124f75",
+    "title": "롬바르디아",
+    "body": "오스트리아가 민초강 서쪽의 롬바르디아를 사르데냐 왕에게 넘겼다고 저자는 서술한다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10548–10551행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 106,
+      "key": "location-lombardy",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10548,
+          "end": 10551
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "35e11787-9c54-5653-821f-6098cdf3f60c",
+    "title": "교황령 침략자에 대한 파문",
+    "body": "로마냐 상실 뒤 교황은 교황령의 침략자와 찬탈자들을 이름을 밝히지 않고 대파문했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10568–10572행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 107,
+      "key": "event-papal-excommunication-annexation-1860",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10568,
+          "end": 10572
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "cb6f47f6-d839-5f12-8b0f-e1b8e9bb4f54",
+    "title": "토리노의 나폴리 망명자들",
+    "body": "페르디난도 2세의 통치를 피해 피에몬테로 간 망명자들은 동향인들에게 구원의 희망을 피에몬테에서 찾도록 권했다고 저자는 서술한다. 포에리오 남작도 이들에게 합류했다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10599–10608행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 108,
+      "key": "organization-neapolitan-exiles-turin",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10599,
+          "end": 10608
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "522c01bf-857c-5536-8a37-d05c63a29c2a",
+    "title": "1860년 시칠리아 도시들의 반란",
+    "body": "프란체스코 2세에게 외국 대사들이 개혁을 촉구한 직후 팔레르모·메시나·카타니아에서 혁명이 시작되었다고 저자는 쓴다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10611–10619행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 109,
+      "key": "event-palermo-messina-catania-revolt-1860",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10611,
+          "end": 10619
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "c6532131-1f9a-5edb-85f5-aaad247ccc29",
+    "title": "카타니아",
+    "body": "1860년 팔레르모, 메시나와 함께 혁명이 일어난 시칠리아 도시다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10614–10618행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 110,
+      "key": "location-catania",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10614,
+          "end": 10618
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  },
+  {
+    "id": "8b9dc421-1361-51ef-b99d-5f422824b881",
+    "title": "트렌토 지방",
+    "body": "1866년 가리발디와 의용병이 수와 기량에서 더 강한 오스트리아 군대와 싸우도록 보내진 지역이다.\n\n출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10987–10994행. https://archive.org/details/historyitaly00huntgoog",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-italy-11-chapter-xi-p2",
+      "input_file": "미게시-임시자료:history/refill-italy-11-chapter-xi-p2.json",
+      "input_sha256": "c72ffa519a7f2bbcf33faeb52f31171f3bb706a16105fbebeed035b0f0d3a885",
+      "candidate_index": 111,
+      "key": "location-trent",
+      "source_units": [
+        "italy:11:CHAPTER XI."
+      ],
+      "lines": [
+        {
+          "start": 10987,
+          "end": 10994
+        }
+      ],
+      "source_commit": "c20944eb62a5a0ff3b3c21e19a3653a9d128713b",
+      "source_path": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "source_sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "source_url": "https://archive.org/details/historyitaly00huntgoog"
+    }
+  }
+]

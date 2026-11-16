@@ -1,0 +1,4860 @@
+[
+  {
+    "id": "ac41f236-d6ed-5006-a4d4-4451c99c570c",
+    "title": "아시나즈치",
+    "body": "구시나다히메의 아버지인 땅의 신이다. 해마다 여덟 갈래 뱀이 딸 하나씩을 먹었다고 스사노오에게 이야기하며 딸을 맡긴다. 19절에서는 스가 궁전의 우두머리로 임명된다. 출전: 《고사기》 체임벌린판 제18절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_18 보충 출전: 제19절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_19",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ashi-nadzu-chi",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-18",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_18",
+          "location": "제18절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-19",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_19",
+          "location": "제19절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "64e2b5a1-a614-5d23-927e-ca76cc3eda61",
+        "title": "스사노오",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "578f80d1-3367-510a-9368-1981048dc039",
+        "title": "세 가지 신보",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "e779efac-fdf3-53a5-97a1-5686384ecf9d",
+        "title": "여덟 갈래 큰 뱀과 구시나다히메",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "52a3683e-f20d-5357-89bc-f10c47bd98a8",
+    "title": "테나즈치",
+    "body": "아시나즈치의 아내이자 구시나다히메의 어머니다. 남편과 함께 딸을 뱀으로부터 구하려 하며 스사노오가 지시한 준비에 참여한다. 출전: 《고사기》 체임벌린판 제18절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_18",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "te-nadzu-chi",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-18",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_18",
+          "location": "제18절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "64e2b5a1-a614-5d23-927e-ca76cc3eda61",
+        "title": "스사노오",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "578f80d1-3367-510a-9368-1981048dc039",
+        "title": "세 가지 신보",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "e779efac-fdf3-53a5-97a1-5686384ecf9d",
+        "title": "여덟 갈래 큰 뱀과 구시나다히메",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "d7c6eefe-38e9-5084-804b-d675e76d3212",
+    "title": "스가 궁전",
+    "body": "스사노오가 이즈모의 스가에 지은 궁전이다. 궁전을 지을 때 구름이 솟아 노래를 지었고, 아시나즈치를 궁전 우두머리로 삼았다. 기존 여덟 갈래 뱀 사건 카드와 범위가 겹친다. 출전: 《고사기》 체임벌린판 제19절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_19",
+    "cardType": "location",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "suga-palace",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-19",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_19",
+          "location": "제19절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "e779efac-fdf3-53a5-97a1-5686384ecf9d",
+        "title": "여덟 갈래 큰 뱀과 구시나다히메",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f92f4c0c-7630-5d11-9ddb-5818ec43b58f",
+    "title": "이나바의 토끼 신",
+    "body": "오키에서 바다 동물을 속여 건너다가 몸을 다친 토끼다. 오쿠니누시의 조언으로 회복한 뒤 그가 야카미 공주와 맺어지리라 말한다. 기존 토끼 사건 카드와 중복 가능성이 있다. 출전: 《고사기》 체임벌린판 제21절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_21",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "hare-deity-inaba",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-21",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_21",
+          "location": "제21절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+        "title": "오쿠니누시",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "bc27f7ff-eca5-59a3-bcee-576a854063c0",
+        "title": "이나바의 토끼와 형제들의 살해 시도",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "23f10328-d571-56cd-bd96-e9f7d0767d11",
+    "title": "야카미히메",
+    "body": "이나바의 공주로, 구혼한 여든 신들을 거절하고 오쿠니누시를 선택한다. 후일 아이를 낳은 뒤 스세리비메를 두려워하여 아이를 나무 갈림새에 두고 돌아간다. 출전: 《고사기》 체임벌린판 제21절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_21 보충 출전: 제22절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_22 보충 출전: 제23절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_23",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "yakami-princess",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-21",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_21",
+          "location": "제21절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-22",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_22",
+          "location": "제22절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-23",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_23",
+          "location": "제23절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+        "title": "오쿠니누시",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "bc27f7ff-eca5-59a3-bcee-576a854063c0",
+        "title": "이나바의 토끼와 형제들의 살해 시도",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "e29f1d3e-9ade-593a-8891-8366e00084bc",
+        "title": "뿌리나라와 스세리비메",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "c2247f22-dc18-5172-a499-03a360e35f41",
+    "title": "키사가이히메",
+    "body": "신의 명을 받아 불에 탄 돌로 죽은 오쿠니누시를 되살리는 조개 공주다. 본문은 껍데기를 갈고 태우는 일을 맡긴다. 출전: 《고사기》 체임벌린판 제22절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_22",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "cockle-shell-princess",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-22",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_22",
+          "location": "제22절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-22",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_22",
+          "location": "제22절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-22",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_22",
+          "location": "제22절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-22",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_22",
+          "location": "제22절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-22",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_22",
+          "location": "제22절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_limit": "발췌는 체임벌린의 이름 번역과 본문 및 각주 표기에 따른다. 조개를 갈고 태운 해석은 번역자의 주석에 근거하며 주석 자체에 이독 논의가 있다."
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+        "title": "오쿠니누시",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "bc27f7ff-eca5-59a3-bcee-576a854063c0",
+        "title": "이나바의 토끼와 형제들의 살해 시도",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "b67d8370-9daf-5b40-bb28-a8ebe8e6cc51",
+    "title": "우무기히메",
+    "body": "키사가이히메와 함께 오쿠니누시를 되살리는 조개 공주다. 물을 날라 젖처럼 발랐다고 서술된다. 출전: 《고사기》 체임벌린판 제22절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_22",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "clam-princess",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-22",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_22",
+          "location": "제22절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+        "title": "오쿠니누시",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "bc27f7ff-eca5-59a3-bcee-576a854063c0",
+        "title": "이나바의 토끼와 형제들의 살해 시도",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "c594db5a-9300-559e-978b-792bbec8698a",
+    "title": "스세리비메",
+    "body": "스사노오의 딸이며 오쿠니누시의 배우자다. 뱀과 지네·벌을 물리칠 수건을 주고, 아버지의 시련에서 남편을 돕는다. 기존 뿌리나라 사건 카드와 겹칠 수 있다. 출전: 《고사기》 체임벌린판 제23절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_23",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "suseri-princess",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-23",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_23",
+          "location": "제23절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+        "title": "오쿠니누시",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "e29f1d3e-9ade-593a-8891-8366e00084bc",
+        "title": "뿌리나라와 스세리비메",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "9f666064-4b60-530c-ac8d-8b1b825131ee",
+    "title": "뱀을 물리치는 수건",
+    "body": "스세리비메가 뱀의 집에서 자야 하는 남편에게 준 수건이다. 뱀이 물려 할 때 세 번 흔들자 뱀들이 조용해졌다고 한다. 출전: 《고사기》 체임벌린판 제23절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_23",
+    "cardType": "object",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "snake-scarf",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-23",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_23",
+          "location": "제23절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+        "title": "오쿠니누시",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "e29f1d3e-9ade-593a-8891-8366e00084bc",
+        "title": "뿌리나라와 스세리비메",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "9bb21889-e515-53c2-aa6d-9c2fdff51c5d",
+    "title": "불타는 들판의 쥐",
+    "body": "오쿠니누시가 불에 둘러싸인 들판에서 피신할 곳을 알려 준 쥐다. 화살도 물어다 주고 새끼들은 깃을 가져온다. 출전: 《고사기》 체임벌린판 제23절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_23",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "moor-mouse",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-23",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_23",
+          "location": "제23절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+        "title": "오쿠니누시",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "e29f1d3e-9ade-593a-8891-8366e00084bc",
+        "title": "뿌리나라와 스세리비메",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "7aed1444-2f8a-5175-a267-29cf8ebcdd85",
+    "title": "하늘의 말하는 거문고",
+    "body": "오쿠니누시가 스사노오에게서 가져온 거문고다. 도망칠 때 나무에 닿자 소리가 땅에 울려 잠든 스사노오가 깨어났다. 출전: 《고사기》 체임벌린판 제23절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_23",
+    "cardType": "object",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "heavenly-speaking-lute",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-23",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_23",
+          "location": "제23절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+        "title": "오쿠니누시",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "e29f1d3e-9ade-593a-8891-8366e00084bc",
+        "title": "뿌리나라와 스세리비메",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f9575367-65e3-5265-b0eb-3a4ece347e14",
+    "title": "기노마타 신",
+    "body": "야카미히메가 낳은 아이로 어머니가 나무 갈림새에 두고 돌아간 데서 나무 갈림새의 신이라 불린다. 본문은 우물의 신이라는 다른 이름도 전한다. 출전: 《고사기》 체임벌린판 제23절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_23",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "tree-fork-deity",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-23",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_23",
+          "location": "제23절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+        "title": "오쿠니누시",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "e29f1d3e-9ade-593a-8891-8366e00084bc",
+        "title": "뿌리나라와 스세리비메",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f196bf1a-a4a4-551b-a4bd-b1dc829d4655",
+    "title": "구에비코",
+    "body": "작은 신의 정체를 알아본 허수아비 신이다. 본문은 걸을 수 없는 다리를 지녔지만 나라 안의 모든 일을 안다고 말한다. 출전: 《고사기》 체임벌린판 제27절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_27",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "kuebiko-scarecrow",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-27",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_27",
+          "location": "제27절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "c7851fa1-7bd2-5768-83c0-1749c4380475",
+        "title": "스쿠나비코나와 나라 만들기",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "a400aef6-43b1-5301-858a-cd0588062240",
+    "title": "미호곶",
+    "body": "이즈모에서 오쿠니누시가 머물던 곶이다. 파도 위의 작은 배를 타고 온 스쿠나비코나를 여기에서 만난다. 출전: 《고사기》 체임벌린판 제27절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_27",
+    "cardType": "location",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "miho-cape",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-27",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_27",
+          "location": "제27절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "c7851fa1-7bd2-5768-83c0-1749c4380475",
+        "title": "스쿠나비코나와 나라 만들기",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "5a67070a-0444-5196-982c-c8da6bcc2180",
+    "title": "미모로산",
+    "body": "바다를 밝히며 나타난 신이 오쿠니누시에게 자신을 모시라고 지정한 산이다. 본문은 이 신이 산꼭대기에 산다고 말한다. 기존 미와 제사 카드와 연관된다. 출전: 《고사기》 체임벌린판 제28절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_28",
+    "cardType": "location",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "mimoro-mountain",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-28",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_28",
+          "location": "제28절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "c7851fa1-7bd2-5768-83c0-1749c4380475",
+        "title": "스쿠나비코나와 나라 만들기",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "e7e923d6-2518-5894-9b75-72a261e2a3a7",
+    "title": "아메노호히",
+    "body": "하늘의 회의가 지상의 신들을 평정할 사자로 선택한 신이다. 오쿠니누시와 가까워진 뒤 3년 동안 하늘에 보고하지 않았다. 출전: 《고사기》 체임벌린판 제30절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_30",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ame-no-hohi",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-30",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_30",
+          "location": "제30절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "bd438b53-f182-5ae3-ab51-b0312de4a13d",
+        "title": "다카마노하라",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "ddf2444f-b992-576b-9e78-9b299fa039d4",
+        "title": "아메노와카히코의 사명과 죽음",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "30ef5026-28d3-5285-b8b5-79e1302718ce",
+    "title": "나키메",
+    "body": "돌아오지 않는 아메노와카히코에게 이유를 물으려 하늘에서 보낸 암꿩이다. 사자의 말을 들은 아메노사구메가 쏘라고 하자 죽임을 당한다. 기존 사자 사건 카드와 연관된다. 출전: 《고사기》 체임벌린판 제31절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_31",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "nakime-pheasant",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-31",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_31",
+          "location": "제31절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "ddf2444f-b992-576b-9e78-9b299fa039d4",
+        "title": "아메노와카히코의 사명과 죽음",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "2619d95c-fcfc-57bf-b271-a8b526ee9dfb",
+    "title": "아메노사구메",
+    "body": "하늘에서 보낸 꿩의 말을 듣고 울음소리가 나쁘다며 아메노와카히코에게 쏘아 죽이라고 권한 여성이다. 출전: 《고사기》 체임벌린판 제31절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_31",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ame-no-sagume",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-31",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_31",
+          "location": "제31절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "ddf2444f-b992-576b-9e78-9b299fa039d4",
+        "title": "아메노와카히코의 사명과 죽음",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "69688cd3-716d-5e94-bc5c-0cb84b2c5568",
+    "title": "아지시키타카히코네",
+    "body": "아메노와카히코의 장례에 조문하러 왔다가 죽은 친구로 오인된 신이다. 그는 분노해 빈소를 베어 부수고 떠났다. 26절에서는 오쿠니누시의 자녀로 기록된다. 출전: 《고사기》 체임벌린판 제31절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_31 보충 출전: 제26절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_26",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ajishikitakahikone",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-31",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_31",
+          "location": "제31절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-26",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_26",
+          "location": "제26절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+        "title": "오쿠니누시",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "76bddd13-8782-52a8-b0e7-6d2cb011d052",
+        "title": "구혼가와 질투의 노래",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "ddf2444f-b992-576b-9e78-9b299fa039d4",
+        "title": "아메노와카히코의 사명과 죽음",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "b8146661-d8f4-52f0-945a-fd19a70cdd8d",
+    "title": "아메노토리후네",
+    "body": "국토 양도 사절에 동행한 새배의 신이다. 오쿠니누시의 아들 고토시로누시가 미호곶에 있자 그를 불러오는 사명을 받는다. 출전: 《고사기》 체임벌린판 제32절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_32",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ame-no-torifune",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-32",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_32",
+          "location": "제32절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "8476001e-05d4-5511-8563-9a7da26138a2",
+        "title": "아마쓰카미와 구니쓰카미",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "6f9f5d7d-c084-55b8-81b3-e906a89697c8",
+        "title": "다케미카즈치와 국토 양도",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "49da93bd-8b6c-5c3e-b992-3222a50d718a",
+    "title": "고토시로누시",
+    "body": "오쿠니누시의 아들로 미호곶에서 새를 잡고 고기를 낚고 있었다. 불려와 나라를 하늘의 자손에게 바치라고 답한 뒤 배를 기울이고 사라진다. 기존 국토 양도 사건 카드와 겹친다. 출전: 《고사기》 체임벌린판 제32절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_32",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "kotoshironushi",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-32",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_32",
+          "location": "제32절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "8476001e-05d4-5511-8563-9a7da26138a2",
+        "title": "아마쓰카미와 구니쓰카미",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "6f9f5d7d-c084-55b8-81b3-e906a89697c8",
+        "title": "다케미카즈치와 국토 양도",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "9442e22c-7860-59f0-82a1-d4f8e031a406",
+    "title": "다케미나카타",
+    "body": "오쿠니누시의 아들로 사자와 힘을 겨루다 패해 시나노의 스와 바다까지 쫓긴다. 그곳을 떠나지 않고 지상의 땅을 넘기겠다고 약속한다. 기존 국토 양도 카드와 겹친다. 출전: 《고사기》 체임벌린판 제32절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_32",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "takeminakata",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-32",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_32",
+          "location": "제32절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "8476001e-05d4-5511-8563-9a7da26138a2",
+        "title": "아마쓰카미와 구니쓰카미",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "6f9f5d7d-c084-55b8-81b3-e906a89697c8",
+        "title": "다케미카즈치와 국토 양도",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "24a1fd51-9539-53da-97eb-727198ad3ed5",
+    "title": "후쓰노미타마",
+    "body": "다케미카즈치의 칼로, 다카쿠라지의 창고에 내려와 진무 일행을 깨우고 구마노 산의 거친 신들을 쓰러뜨린다. 본문은 이소노카미 신전에 있는 칼이라고 말한다. 출전: 《고사기》 체임벌린판 제45절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_45",
+    "cardType": "object",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "futsunomitama",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-45",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_45",
+          "location": "제45절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "9bb44f75-9856-5661-aee2-e6742e1b1625",
+        "title": "진무의 동쪽 원정과 이쓰세의 죽음",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "935d68a0-9468-55e4-bf3d-8574e614b918",
+    "title": "위히카",
+    "body": "진무의 이동 중 빛나는 우물에서 나온 꼬리 달린 땅의 신이다. 본문은 요시노 우두머리들의 조상이라 한다. 출전: 《고사기》 체임벌린판 제46절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_46",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "wihika",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-46",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_46",
+          "location": "제46절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "9bb44f75-9856-5661-aee2-e6742e1b1625",
+        "title": "진무의 동쪽 원정과 이쓰세의 죽음",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "b61ab9c9-1a0f-5a2f-8125-d23a9c0f58d3",
+    "title": "이와오시와쿠의 아들",
+    "body": "진무를 맞으러 바위를 밀어 열고 나온 꼬리 달린 땅의 신이다. 본문은 요시노 지방 소유자들의 조상으로 설명한다. 출전: 《고사기》 체임벌린판 제46절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_46",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ihaoshiwaku",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-46",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_46",
+          "location": "제46절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "9bb44f75-9856-5661-aee2-e6742e1b1625",
+        "title": "진무의 동쪽 원정과 이쓰세의 죽음",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "46c61b1f-cbd0-5257-ad7a-cf59b1cca209",
+    "title": "오타타네코",
+    "body": "스진의 꿈에 나타난 미와의 신이 제사를 맡기라고 지정한 인물이다. 찾아온 그가 신의 후손임을 밝히자 왕이 미모로산의 대제사장으로 삼는다. 기존 역병과 미와 제사 카드와 연관된다. 출전: 《고사기》 체임벌린판 제64절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_64",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ohtataneko",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-64",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_64",
+          "location": "제64절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "b2c93b0c-658f-53d2-a6f3-2000c071568d",
+        "title": "스진 치세의 역병과 미와 제사",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "7832532a-22aa-5d55-b4df-18bece27b485",
+    "title": "이쿠타마요리비메",
+    "body": "밤마다 찾아오는 이름 모를 청년의 아이를 잉태한 여성이다. 부모의 지시에 따라 그의 옷에 실을 꿰어 미와 신전으로 이어지는 흔적을 확인한다. 출전: 《고사기》 체임벌린판 제65절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_65",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ikutamayoribime",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-65",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_65",
+          "location": "제65절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "b2c93b0c-658f-53d2-a6f3-2000c071568d",
+        "title": "스진 치세의 역병과 미와 제사",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "3f3688c4-ab1e-5f6b-99b1-26123fcb6064",
+    "title": "아케타쓰",
+    "body": "말을 하지 않던 왕자를 이즈모로 수행할 인물로 점쳐진 왕이다. 맹세로 왜가리와 나무를 죽게 했다가 다시 살렸다고 본문은 전한다. 출전: 《고사기》 체임벌린판 제72절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_72",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ake-tatsu",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-72",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_72",
+          "location": "제72절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "a006a694-a09d-5d98-a3da-4ae83165eee8",
+        "title": "말하지 않는 왕자와 이즈모 참배",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "419179ce-2b24-5912-a126-edf13a71d2b8",
+    "title": "히나가히메",
+    "body": "이즈모 참배 뒤 왕자 호무치와케와 하룻밤을 보낸 공주다. 왕자가 그녀를 뱀의 모습으로 보고 도망치자 배를 타고 뒤쫓는다. 출전: 《고사기》 체임벌린판 제72절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_72",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "hinaga-princess",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-72",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_72",
+          "location": "제72절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "a006a694-a09d-5d98-a3da-4ae83165eee8",
+        "title": "말하지 않는 왕자와 이즈모 참배",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "25be1b47-2092-5f47-ad96-5c4e880bbec5",
+    "title": "영원히 향기로운 나무의 열매",
+    "body": "다지마모리가 왕의 명령으로 영원한 나라에서 가져온 열매다. 왕이 이미 죽었으므로 황후와 왕의 무덤에 나누어 바쳤으며, 본문은 이를 귤이라 풀이한다. 출전: 《고사기》 체임벌린판 제74절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_74",
+    "cardType": "object",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ever-fragrant-fruit",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-74",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_74",
+          "location": "제74절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "358053a6-90ae-59e8-bf21-40ea69c68269",
+        "title": "다지마모리와 영원한 나라의 열매",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "a88d68a9-70e2-52b5-99c2-fdad25415dba",
+    "title": "아치키시",
+    "body": "백제 왕 쇼코가 암수 말과 함께 보낸 인물로, 본문은 아치키 서기들의 조상이라고 기록한다. 이는 저본의 계보와 조공 서술이다. 출전: 《고사기》 체임벌린판 제110절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_110",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "achikishi",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-110",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_110",
+          "location": "제110절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "ac1bcdef-195a-55f9-940c-d647076ba81c",
+        "title": "바다 건너 온 사람들과 기술",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "36bb5e77-b80f-50ea-b3e0-ddb84ef49bcd",
+    "title": "와니키시",
+    "body": "본문에서 백제에서 보낸 학자로, 《논어》 열 권과 《천자문》 한 권을 가지고 온다. 문헌에 기록된 전래 서사로 다루며 실제 전래 연대와 동일시하지 않는다. 출전: 《고사기》 체임벌린판 제110절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_110",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "wanikishi",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-110",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_110",
+          "location": "제110절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "ac1bcdef-195a-55f9-940c-d647076ba81c",
+        "title": "바다 건너 온 사람들과 기술",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "660acfb9-a08c-508b-8def-e02b3cac519b",
+    "title": "아카루히메",
+    "body": "신라의 붉은 구슬이 변한 여인이다. 아메노히보코의 모욕을 받고 배를 타고 나니와로 떠나며, 본문은 나니와의 히메고소 신전에 모셔진다고 한다. 출전: 《고사기》 체임벌린판 제114절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_114",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "akaru-princess",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-114",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_114",
+          "location": "제114절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "48b7f3d2-7789-50a0-9f81-4f63c65b844d",
+        "title": "아메노히보코와 바다 건너온 보물",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "816a1a64-3340-5caa-9855-3fe98f782aef",
+    "title": "나니와 운하",
+    "body": "닌토쿠 치세의 토목 기록에 나오는 수로다. 본문은 이를 파고 강물을 바다로 이었다고 서술한다. 출전: 《고사기》 체임벌린판 제120절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_120",
+    "cardType": "location",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "naniha-channel",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-120",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_120",
+          "location": "제120절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "2cdc6ee7-cfcc-55fc-8b7b-1f301d948542",
+        "title": "닌토쿠의 연기 관찰과 조세 면제",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "158f5a9b-55c9-547e-b4eb-97c9cbd4fc84",
+    "title": "메도리의 구슬 팔찌",
+    "body": "장수가 죽은 메도리의 팔에서 빼앗아 아내에게 준 팔찌다. 황후가 연회에서 이를 알아보고 장수를 죽이라고 명한다. 기존 하야부사와케·메도리 사건 카드와 겹친다. 출전: 《고사기》 체임벌린판 제127절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_127",
+    "cardType": "object",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "medori-armlet",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-127",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_127",
+          "location": "제127절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "823c6cb1-7b08-5a56-b575-efe56133c956",
+        "title": "하야부사와케와 메도리의 도주",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "3f5fce74-aa5c-5eaa-9fe6-c1574ec7f715",
+    "title": "고무하치무카무키무",
+    "body": "신라에서 파견된 사신의 우두머리이며 의술에 밝은 인물로 묘사된다. 인교의 오래된 병을 고친다. 출전: 《고사기》 체임벌린판 제138절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_138",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "komu-hachimu-kamu-kimu",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-138",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_138",
+          "location": "제138절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "cb8cdec5-af9a-5b65-a56f-cd6b6eb9d9c5",
+        "title": "인교의 치료와 씨족 이름 심판",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "91e70a12-324d-51be-8266-5a4ad692c36e",
+    "title": "아카위코",
+    "body": "유랴쿠가 다른 남자와 결혼하지 말고 기다리라고 명한 여성이다. 본문에서 80년 뒤 왕에게 찾아가 기다린 세월을 밝히고 노래로 답한다. 연대는 본문의 서술이다. 출전: 《고사기》 체임벌린판 제154절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_154",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "akawiko",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-154",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_154",
+          "location": "제154절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "143c1a31-db15-5ff1-9497-8c729d5a1154",
+        "title": "유랴쿠의 혼인과 궁정 권력",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "6add91b5-d887-5266-a03c-e69d9cbf903b",
+    "title": "히토코토누시",
+    "body": "가쓰라기산에서 왕의 행렬과 닮은 행렬을 이끌고 나타난 신이다. 한마디로 선과 악을 내보내는 신이라고 이름을 밝히자 왕이 무기와 옷을 바친다. 기존 신의 행렬 사건 카드와 겹친다. 출전: 《고사기》 체임벌린판 제158절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_158",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "hitokotonushi",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-158",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_158",
+          "location": "제158절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "f7c021d8-f9bd-5885-87f4-bc3b2507c980",
+        "title": "유랴쿠의 사냥과 신의 행렬",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "7ea6269a-72c8-56d0-9b8c-bfb55fbea482",
+    "title": "오다테",
+    "body": "하리마의 관직을 맡아 간 산의 씨족 우두머리다. 잔치에서 노래를 듣고 신분을 숨긴 왕자 두 명을 알아보아 임시 궁을 지었다. 출전: 《고사기》 체임벌린판 제164절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_164",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "wodate",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-164",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_164",
+          "location": "제164절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "62049d42-0037-5142-875d-9da8166e3348",
+        "title": "두 왕자의 발견과 왕위 사양",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "d496425c-8817-536d-b942-cd0d048c63b0",
+        "title": "노래·계보·지명의 서사 기능",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "6a53e457-54f9-5f3f-9092-c565f2cc0502",
+    "title": "오키메",
+    "body": "이치노베 왕의 유골이 묻힌 곳과 치아의 특징을 알고 왕에게 알려 준 노인이다. 왕은 유골을 찾은 뒤 그녀를 불러 돌보고 이름을 내렸다. 출전: 《고사기》 체임벌린판 제167절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_167",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "oki-me",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-167",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_167",
+          "location": "제167절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "38695e2d-f8f8-57e3-88ce-0021f51b70ba",
+        "title": "겐조의 유골 찾기와 복수의 제한",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "93fbed63-02ca-56b2-9d73-8b6e277bf288",
+    "title": "하늘의 떠 있는 다리",
+    "body": "이자나기와 이자나미가 보석 창으로 바닷물을 저어 오노고로섬을 만든 곳이다. 출전: 《고사기》 체임벌린판 제3절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_3",
+    "cardType": "location",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "floating-bridge-heaven",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-3",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_3",
+          "location": "제3절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "ed51016b-f6ed-5c45-b1eb-1af949450a2e",
+        "title": "이자나기",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "7b8c3876-79b8-5300-9212-f3e1cb61ed23",
+        "title": "오노고로섬",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "989bbfc9-0948-5cf0-adc3-14113429679f",
+        "title": "아메노누보코",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "c381ac02-60a1-57d2-b900-2150ae354475",
+    "title": "히루코",
+    "body": "이자나기와 이자나미의 첫 결합에서 태어난 아이로 갈대배에 실려 떠내려간다. 본문은 그 뒤의 출생 계보에서 이 아이를 세지 않는다. 출전: 《고사기》 체임벌린판 제4절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_4",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "leech-child",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-4",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_4",
+          "location": "제4절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "input_candidate",
+        "id": "158b91d6-755f-5995-87cf-5540abf3ca80",
+        "title": "히루코: 세 살이 되어도 서지 못한 아이",
+        "reason": [
+          "제목 또는 콜론 앞 이름 일치"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "7b8c3876-79b8-5300-9212-f3e1cb61ed23",
+        "title": "오노고로섬",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "0212f24e-e909-5fcd-b6d3-de366dd7e391",
+        "title": "섬 낳기와 혼인 의례의 재시도",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "de468505-a7be-5931-9d65-89df13577eb1",
+    "title": "오야마쓰미",
+    "body": "이자나기와 이자나미 사이에서 태어난 산의 신이다. 들의 신과 함께 산과 들의 여러 신을 낳으며, 37절에서는 두 딸을 니니기에게 보낸다. 출전: 《고사기》 체임벌린판 제6절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_6 보충 출전: 제37절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_37",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "great-mountain-possessor",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-6",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_6",
+          "location": "제6절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-37",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_37",
+          "location": "제37절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "0212f24e-e909-5fcd-b6d3-de366dd7e391",
+        "title": "섬 낳기와 혼인 의례의 재시도",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "eb63d9e5-6d91-505d-abe0-f46d9f79638b",
+        "title": "돌과 꽃의 혼인, 짧아진 생명",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "08a49d55-a4fb-580e-a14a-bc89462eb940",
+    "title": "오와타쓰미",
+    "body": "이자나기와 이자나미에게서 태어난 바다의 신이다. 40절에서 궁전에 온 호오리에게 딸을 혼인시키고 잃은 낚싯바늘과 조수 보배를 마련해 준다. 기존 바다 궁전 카드와 연관된다. 출전: 《고사기》 체임벌린판 제6절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_6 보충 출전: 제40절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_40",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "great-ocean-possessor",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-6",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_6",
+          "location": "제6절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-40",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_40",
+          "location": "제40절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "0212f24e-e909-5fcd-b6d3-de366dd7e391",
+        "title": "섬 낳기와 혼인 의례의 재시도",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "12c2a879-65e2-5c7c-a824-801d364726e4",
+        "title": "호오리와 호데리의 낚싯바늘",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "ead98418-39bc-5383-8cd7-cdad7df28cac",
+        "title": "바다 신의 궁전",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "61345b15-7449-53cb-9593-47d960fc71a9",
+    "title": "히바산",
+    "body": "이자나기가 죽은 이자나미를 묻었다고 하는 이즈모와 하하키 경계의 산이다. 출전: 《고사기》 체임벌린판 제7절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_7",
+    "cardType": "location",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "mount-hiba",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-7",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_7",
+          "location": "제7절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "c9c07343-f5a5-5421-9fd4-38b16c77171c",
+        "title": "이자나미",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "12cb5d79-8f73-5e0b-9879-ab24978c7b65",
+        "title": "불의 신의 탄생과 죽음",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "e33069cc-f3f2-5303-bc76-0ecbdeaf3650",
+    "title": "요모쓰시코메",
+    "body": "이자나미가 도망가는 이자나기를 추격하도록 보낸 황천의 여인이다. 이자나기가 던진 머리 장식과 빗에서 나온 포도와 죽순을 먹는 동안 그가 달아난다. 출전: 《고사기》 체임벌린판 제9절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_9",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "yomotsu-shikome",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-9",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_9",
+          "location": "제9절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "ed51016b-f6ed-5c45-b1eb-1af949450a2e",
+        "title": "이자나기",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "c9c07343-f5a5-5421-9fd4-38b16c77171c",
+        "title": "이자나미",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "101206d6-eda5-5db7-9063-93a659103ed0",
+        "title": "요미",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "9c8b3842-31f5-5377-a3ee-dcdc83c3d17b",
+        "title": "요미 방문과 결별",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "79de1eee-5ae3-54fb-b0fe-8f44acc46d74",
+    "title": "황천 고개의 복숭아",
+    "body": "이자나기가 황천 고개 아래에서 세 개를 따 추격자들에게 던진 열매다. 추격자들이 물러나자 살아 있는 사람들도 어려울 때 도우라고 명하고 신성한 이름을 붙였다. 출전: 《고사기》 체임벌린판 제9절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_9",
+    "cardType": "object",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "peaches-of-yomi",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-9",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_9",
+          "location": "제9절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "ed51016b-f6ed-5c45-b1eb-1af949450a2e",
+        "title": "이자나기",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "c9c07343-f5a5-5421-9fd4-38b16c77171c",
+        "title": "이자나미",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "101206d6-eda5-5db7-9063-93a659103ed0",
+        "title": "요미",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "9c8b3842-31f5-5377-a3ee-dcdc83c3d17b",
+        "title": "요미 방문과 결별",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f2b15526-0c0f-5893-b44e-fcca7e3288e5",
+    "title": "황천 고개의 막는 바위",
+    "body": "이자나기가 이자나미의 추격을 막으려 황천 고개에 놓은 큰 바위다. 본문은 이 바위에 길을 되돌리는 신과 황천문을 막는 신의 이름을 붙인다. 출전: 《고사기》 체임벌린판 제9절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_9",
+    "cardType": "object",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "yomi-boundary-rock",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-9",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_9",
+          "location": "제9절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "ed51016b-f6ed-5c45-b1eb-1af949450a2e",
+        "title": "이자나기",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "c9c07343-f5a5-5421-9fd4-38b16c77171c",
+        "title": "이자나미",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "101206d6-eda5-5db7-9063-93a659103ed0",
+        "title": "요미",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "9c8b3842-31f5-5377-a3ee-dcdc83c3d17b",
+        "title": "요미 방문과 결별",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "1b66f398-c300-5740-82ef-c12101d34ca7",
+    "title": "말하지 않은 해삼",
+    "body": "아메노우즈메가 바다 생물들에게 천손을 섬길지 물었을 때 유일하게 답하지 않은 생물이다. 우즈메가 칼로 그 입을 가른 것이 해삼의 갈라진 입의 유래라고 서술한다. 출전: 《고사기》 체임벌린판 제36절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_36",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "sea-cucumber",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-36",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_36",
+          "location": "제36절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "c2fe1275-539d-5567-88ca-4d027d2fcd42",
+        "title": "사루타히코와 길의 인도",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "8ac33785-8453-5bf4-9d54-f517ab898e11",
+    "title": "시오쓰치",
+    "body": "잃어버린 낚싯바늘 때문에 우는 호오리에게 바다 신의 궁전으로 가는 길을 알려 준 신이다. 빈틈없는 작은 배를 만들어 태워 보낸다. 출전: 《고사기》 체임벌린판 제40절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_40",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "shiotsuchi",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-40",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_40",
+          "location": "제40절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "12c2a879-65e2-5c7c-a824-801d364726e4",
+        "title": "호오리와 호데리의 낚싯바늘",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "ead98418-39bc-5383-8cd7-cdad7df28cac",
+        "title": "바다 신의 궁전",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "24b18c06-b92e-5e4d-9699-ac23e8ce38c8",
+    "title": "밀물의 보배",
+    "body": "바다 신이 호오리에게 준 두 보배 중 하나다. 형이 공격할 때 이 보배로 물을 불려 곤경에 빠뜨린다. 출전: 《고사기》 체임벌린판 제40절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_40",
+    "cardType": "object",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "tide-flowing-jewel",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-40",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_40",
+          "location": "제40절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "12c2a879-65e2-5c7c-a824-801d364726e4",
+        "title": "호오리와 호데리의 낚싯바늘",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "ead98418-39bc-5383-8cd7-cdad7df28cac",
+        "title": "바다 신의 궁전",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "4c296f34-25a5-581c-88eb-02d5cb8b5db9",
+    "title": "썰물의 보배",
+    "body": "바다 신이 호오리에게 준 두 보배 중 하나다. 형이 괴로워하며 굴복하자 물을 물려 살리는 데 쓴다. 출전: 《고사기》 체임벌린판 제40절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_40",
+    "cardType": "object",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "tide-ebbing-jewel",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-40",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_40",
+          "location": "제40절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "12c2a879-65e2-5c7c-a824-801d364726e4",
+        "title": "호오리와 호데리의 낚싯바늘",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "ead98418-39bc-5383-8cd7-cdad7df28cac",
+        "title": "바다 신의 궁전",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "43f191f8-a618-58dc-8ed7-7fd1c9b77c41",
+    "title": "가마우지 깃 지붕 산실",
+    "body": "도요타마비메가 바닷가에 짓고 지붕이 완성되기 전에 들어간 산실이다. 출산 때 모습을 보지 말라는 부탁이 깨지면서 바다와 육지의 경계가 닫힌다. 출전: 《고사기》 체임벌린판 제42절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_42",
+    "cardType": "location",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "cormorant-birth-hall",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-42",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_42",
+          "location": "제42절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "ead98418-39bc-5383-8cd7-cdad7df28cac",
+        "title": "바다 신의 궁전",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "803497b4-bbfb-5411-ad03-6920d7463a3e",
+        "title": "도요타마비메의 출산 금기",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "d9c7e664-5eeb-56a9-8c84-9b90a0997357",
+    "title": "미쿠라타나의 신성한 목걸이",
+    "body": "이자나기가 아마테라스에게 높은 하늘벌의 통치를 맡기면서 건넨 구슬 목걸이다. 본문은 목걸이 자체의 신성한 이름을 전한다. 출전: 《고사기》 체임벌린판 제11절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_11",
+    "cardType": "object",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "mikura-tana",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-11",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_11",
+          "location": "제11절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "cbf67bea-ba4b-5985-bb56-bdf08d0ba97d",
+        "title": "세 귀한 신의 탄생",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "4d3f01eb-271b-5aa0-bd40-35911ed1c1db",
+        "title": "아마테라스",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "4e155829-7855-5a8b-9a28-60bacbda55cd",
+        "title": "쓰쿠요미",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "bd438b53-f182-5ae3-ab51-b0312de4a13d",
+        "title": "다카마노하라",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cfc3adaf-80da-5428-a2bc-549802430e34",
+    "title": "다키리비메",
+    "body": "아마테라스가 스사노오의 칼을 씹어 내뿜은 안개에서 나온 첫 여신이다. 본문은 다른 이름을 오키쓰시마히메라 하고 무나카타의 안쪽 신전에 있다고 기록한다. 출전: 《고사기》 체임벌린판 제13절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_13 보충 출전: 제14절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_14",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "takiribime",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-13",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_13",
+          "location": "제13절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-14",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_14",
+          "location": "제14절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "40e32f3f-96aa-5378-90b2-243dc686f34b",
+        "title": "맹약으로 태어난 신들과 승리 주장",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "7d0baa1f-6e59-5a84-a769-19600661b0c0",
+    "title": "이치키시마히메",
+    "body": "아마테라스가 스사노오의 칼에서 낳은 둘째 여신이다. 본문은 다른 이름을 사요리비메라 하고 무나카타의 가운데 신전에 있다고 기록한다. 출전: 《고사기》 체임벌린판 제13절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_13 보충 출전: 제14절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_14",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ichikishimahime",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-13",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_13",
+          "location": "제13절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-14",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_14",
+          "location": "제14절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "40e32f3f-96aa-5378-90b2-243dc686f34b",
+        "title": "맹약으로 태어난 신들과 승리 주장",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "bf6c1739-e0dd-543b-9025-896ba8ecb147",
+    "title": "다기쓰히메",
+    "body": "아마테라스가 스사노오의 칼에서 낳은 셋째 여신이다. 무나카타의 바깥 신전에 있다고 기록된다. 출전: 《고사기》 체임벌린판 제13절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_13 보충 출전: 제14절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_14",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "tagitsuhime",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-13",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_13",
+          "location": "제13절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-14",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_14",
+          "location": "제14절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "40e32f3f-96aa-5378-90b2-243dc686f34b",
+        "title": "맹약으로 태어난 신들과 승리 주장",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "3660b97b-7576-5b3b-80d7-c6840fb2a37d",
+    "title": "오모이카네",
+    "body": "아마테라스가 바위집에 숨었을 때 신들이 계획을 생각하라고 요청한 신이다. 천손강림 때에는 천손과 동행하여 일을 맡도록 명령받는다. 출전: 《고사기》 체임벌린판 제16절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_16 보충 출전: 제33절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_33",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "omoikane",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-16",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_16",
+          "location": "제16절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-33",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_33",
+          "location": "제33절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "4d3f01eb-271b-5aa0-bd40-35911ed1c1db",
+        "title": "아마테라스",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "578f80d1-3367-510a-9368-1981048dc039",
+        "title": "세 가지 신보",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "68b7860e-2c82-5551-89b3-89212945bfd2",
+        "title": "니니기의 천손강림",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "8476001e-05d4-5511-8563-9a7da26138a2",
+        "title": "아마쓰카미와 구니쓰카미",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "86c5bcde-e281-5a3b-8056-c084f126ae4a",
+        "title": "하늘 바위굴과 빛의 회복",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "0d592006-1c30-5cc5-ae75-97560a3f61ce",
+        "title": "아메노우즈메",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "c2fe1275-539d-5567-88ca-4d027d2fcd42",
+        "title": "사루타히코와 길의 인도",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "d983d558-1572-5482-946a-aadb77a5840d",
+    "title": "아마쓰마라",
+    "body": "아마테라스가 숨은 바위집 앞에서 신들이 의례를 준비하며 불러온 대장장이다. 출전: 《고사기》 체임벌린판 제16절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_16",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "amatsumara",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-16",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_16",
+          "location": "제16절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "4d3f01eb-271b-5aa0-bd40-35911ed1c1db",
+        "title": "아마테라스",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "578f80d1-3367-510a-9368-1981048dc039",
+        "title": "세 가지 신보",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "86c5bcde-e281-5a3b-8056-c084f126ae4a",
+        "title": "하늘 바위굴과 빛의 회복",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "0d592006-1c30-5cc5-ae75-97560a3f61ce",
+        "title": "아메노우즈메",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "0f88749d-e51f-5600-8285-add0648059ef",
+    "title": "이시코리도메",
+    "body": "신들의 요청으로 아마테라스를 불러내는 거울을 만든 신이다. 천손강림에 동행하고 거울 제작 집단의 조상으로 기록된다. 출전: 《고사기》 체임벌린판 제16절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_16 보충 출전: 제33절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_33",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ishikoridome",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-16",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_16",
+          "location": "제16절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-33",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_33",
+          "location": "제33절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "4d3f01eb-271b-5aa0-bd40-35911ed1c1db",
+        "title": "아마테라스",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "578f80d1-3367-510a-9368-1981048dc039",
+        "title": "세 가지 신보",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "68b7860e-2c82-5551-89b3-89212945bfd2",
+        "title": "니니기의 천손강림",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "8476001e-05d4-5511-8563-9a7da26138a2",
+        "title": "아마쓰카미와 구니쓰카미",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "86c5bcde-e281-5a3b-8056-c084f126ae4a",
+        "title": "하늘 바위굴과 빛의 회복",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "0d592006-1c30-5cc5-ae75-97560a3f61ce",
+        "title": "아메노우즈메",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "c2fe1275-539d-5567-88ca-4d027d2fcd42",
+        "title": "사루타히코와 길의 인도",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "aa569bd7-3d66-5ff2-8429-79e04d5b1f0c",
+    "title": "다마노야",
+    "body": "바위집 앞 의례에 쓰이는 곡옥 줄을 만들라는 명을 받은 신이다. 천손을 수행하는 다섯 우두머리 중 하나다. 출전: 《고사기》 체임벌린판 제16절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_16 보충 출전: 제33절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_33",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "tamanoya",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-16",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_16",
+          "location": "제16절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-33",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_33",
+          "location": "제33절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "4d3f01eb-271b-5aa0-bd40-35911ed1c1db",
+        "title": "아마테라스",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "578f80d1-3367-510a-9368-1981048dc039",
+        "title": "세 가지 신보",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "68b7860e-2c82-5551-89b3-89212945bfd2",
+        "title": "니니기의 천손강림",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "8476001e-05d4-5511-8563-9a7da26138a2",
+        "title": "아마쓰카미와 구니쓰카미",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "86c5bcde-e281-5a3b-8056-c084f126ae4a",
+        "title": "하늘 바위굴과 빛의 회복",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "0d592006-1c30-5cc5-ae75-97560a3f61ce",
+        "title": "아메노우즈메",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "c2fe1275-539d-5567-88ca-4d027d2fcd42",
+        "title": "사루타히코와 길의 인도",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "b897c640-7df8-5ae4-946a-0c751f48e214",
+    "title": "아메노타지카라오",
+    "body": "아마테라스가 숨은 바위집 문 옆에 숨어 기다렸다가 그녀의 손을 잡고 밖으로 끌어낸 신이다. 출전: 《고사기》 체임벌린판 제16절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_16",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "amenotajikarao",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-16",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_16",
+          "location": "제16절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "4d3f01eb-271b-5aa0-bd40-35911ed1c1db",
+        "title": "아마테라스",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "578f80d1-3367-510a-9368-1981048dc039",
+        "title": "세 가지 신보",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "86c5bcde-e281-5a3b-8056-c084f126ae4a",
+        "title": "하늘 바위굴과 빛의 회복",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "0d592006-1c30-5cc5-ae75-97560a3f61ce",
+        "title": "아메노우즈메",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "af430737-9a77-5bc2-a0ef-a86e9fa9d3f6",
+    "title": "후토다마",
+    "body": "바위집 앞 의례의 제물을 들고, 아마테라스가 나온 뒤 다시 들어가지 못하도록 뒤쪽에 줄을 치는 신이다. 출전: 《고사기》 체임벌린판 제16절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_16",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "futodama",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-16",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_16",
+          "location": "제16절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-16",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_16",
+          "location": "제16절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-16",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_16",
+          "location": "제16절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "4d3f01eb-271b-5aa0-bd40-35911ed1c1db",
+        "title": "아마테라스",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "578f80d1-3367-510a-9368-1981048dc039",
+        "title": "세 가지 신보",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "86c5bcde-e281-5a3b-8056-c084f126ae4a",
+        "title": "하늘 바위굴과 빛의 회복",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "0d592006-1c30-5cc5-ae75-97560a3f61ce",
+        "title": "아메노우즈메",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "243d0c67-55ea-567c-be65-414052ea99a0",
+    "title": "오게쓰히메",
+    "body": "스사노오에게 음식을 바쳤다가 죽임을 당하는 음식의 여신이다. 몸에서 누에와 곡식의 씨앗이 생겨 신이 그것들을 거두었다. 기존 음식의 신 사건 카드와 겹칠 수 있다. 출전: 《고사기》 체임벌린판 제17절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_17",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ohegetsuhime",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-17",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_17",
+          "location": "제17절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-17",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_17",
+          "location": "제17절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-17",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_17",
+          "location": "제17절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-17",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_17",
+          "location": "제17절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-17",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_17",
+          "location": "제17절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-1/section-17",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_17",
+          "location": "제17절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "64e2b5a1-a614-5d23-927e-ca76cc3eda61",
+        "title": "스사노오",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "846f416d-28e6-5635-83f2-9a679d0b18d2",
+        "title": "음식의 신의 죽음과 곡물의 기원",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "d3a4e63d-0b7b-5df5-82d2-9e54179e51fa",
+    "title": "오키쓰히메",
+    "body": "오토시 신과 아메시루카루미즈 사이의 자식으로 열거되는 화덕의 여신이다. 본문은 사람들이 받드는 큰 화덕 공주라는 다른 이름을 적는다. 출전: 《고사기》 체임벌린판 제29절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_29",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "okitsuhime",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-29",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_29",
+          "location": "제29절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "752d8f9c-b4b9-5d3b-8de5-027ce98e0b8d",
+        "title": "수확과 집터의 신들",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "5c8e3dc9-e6b5-54ec-be20-9d066c06f010",
+    "title": "오야마쿠이",
+    "body": "오토시 신의 자식으로 기록된 산의 신이다. 오미의 히에산과 가즈누의 마쓰노오에 머무르며 우는 화살을 쓴다고 한다. 출전: 《고사기》 체임벌린판 제29절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_29",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "oyamakui",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-1/section-29",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_29",
+          "location": "제29절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "752d8f9c-b4b9-5d3b-8de5-027ce98e0b8d",
+        "title": "수확과 집터의 신들",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "62d890f8-1f5d-5b0a-9cd0-f0ac4d40af2d",
+    "title": "사오네쓰히코",
+    "body": "동쪽으로 가는 진무 일행이 거북 등 위에서 낚시하던 땅의 신을 만나 붙여 준 이름이다. 바닷길을 안다고 말하고 일행을 따른다. 출전: 《고사기》 체임벌린판 제44절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_44",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "saonetsuhiko",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-44",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_44",
+          "location": "제44절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "9bb44f75-9856-5661-aee2-e6742e1b1625",
+        "title": "진무의 동쪽 원정과 이쓰세의 죽음",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "9a35c799-ca7a-52a3-b6ed-5be81126ac8e",
+    "title": "나가스네히코",
+    "body": "도미의 왕자로 진무 일행에게 군대를 일으켜 맞선다. 이쓰세는 이 싸움에서 그의 화살에 상처를 입고 나중에 죽는다. 출전: 《고사기》 체임벌린판 제44절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_44",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "nagasunehiko",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-44",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_44",
+          "location": "제44절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "9bb44f75-9856-5661-aee2-e6742e1b1625",
+        "title": "진무의 동쪽 원정과 이쓰세의 죽음",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "2d11960b-aa27-5530-ba55-3c9d3c2bc735",
+    "title": "동생 우카시",
+    "body": "형 우카시가 진무를 함정에 빠뜨리려 한다는 계획을 미리 알린다. 후에 연회를 바치며 본문은 우다 물 관리자의 조상이라고 한다. 출전: 《고사기》 체임벌린판 제47절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_47",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "younger-ukashi",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-47",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_47",
+          "location": "제47절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "f80c5040-4cc9-56f7-8391-f76eafd60248",
+        "title": "우카시에서 가시하라까지의 정복",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "65a52818-8c8a-51b7-a759-6328db517fe5",
+    "title": "니기하야히",
+    "body": "하늘의 자손이 내려왔다는 말을 듣고 뒤따라 내려와 천상의 표지를 바친 인물이다. 도미 왕자의 누이와 결혼하고 우마시마지를 낳는다. 기존 진무 정복 사건 카드와 겹친다. 출전: 《고사기》 체임벌린판 제50절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_50",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "nigihayabi",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-50",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_50",
+          "location": "제50절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "f80c5040-4cc9-56f7-8391-f76eafd60248",
+        "title": "우카시에서 가시하라까지의 정복",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "c0706989-7642-508e-b163-efe76ef61f54",
+    "title": "이스케요리히메",
+    "body": "미와 신과 세야다타라 사이에서 태어난 딸로 기록된다. 진무가 아내로 맞았고, 52절에서는 노래로 자녀들에게 계승 음모를 알린다. 출전: 《고사기》 체임벌린판 제51절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_51 보충 출전: 제52절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_52",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "isukeyorihime",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-51",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_51",
+          "location": "제51절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-2/section-52",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_52",
+          "location": "제52절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "2e8ac6c7-8b77-5cd6-8d6d-bc0323a10418",
+        "title": "진무의 혼인과 계승 위기",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "a39db54a-6216-5473-84ed-76a9a5bf9d18",
+    "title": "다기시미미",
+    "body": "진무 사후 이스케요리히메와 결혼하고 이복 동생 셋을 죽이려 한 왕자다. 이스케요리히메의 경고를 들은 동생 가운데 가무누나카와미미가 그를 죽인다. 출전: 《고사기》 체임벌린판 제52절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_52",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "tagishimimi",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-52",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_52",
+          "location": "제52절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "2e8ac6c7-8b77-5cd6-8d6d-bc0323a10418",
+        "title": "진무의 혼인과 계승 위기",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "202ffcb2-6fe4-5edb-aec0-1ed799b57e1b",
+    "title": "오키비쓰히코",
+    "body": "고레이의 아들로 다른 이름은 히코이사세리비코다. 동생과 함께 하리마에 신성한 항아리를 놓고 기비를 평정했다고 기록되며, 이 주장은 저본의 왕권 서사다. 출전: 《고사기》 체임벌린판 제60절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_60",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "kibitsu-prince",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-60",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_60",
+          "location": "제60절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "86e153d1-eb25-5d3d-8407-8d8fc20753e1",
+        "title": "스이제이에서 가이카까지의 왕통",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "3f4363fc-27fd-54d4-b04d-655f91770331",
+    "title": "오호비코",
+    "body": "스진이 고시로 파견한 왕족이다. 헤라 고개에서 소녀의 수수께끼 같은 노래를 듣고 돌아가 보고하며, 이후 다케하니야스와의 싸움에 나선다. 출전: 《고사기》 체임벌린판 제66절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_66",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ohobiko",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-66",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_66",
+          "location": "제66절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "05ed4da9-711c-5b7a-9dca-5bea7ff1daac",
+        "title": "노래의 경고와 다케하니야스의 반란",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "b6784974-1b4d-5a84-a337-59f5470f5731",
+    "title": "헤라 고개의 노래하는 소녀",
+    "body": "고시로 가던 오호비코 앞에서 스진의 목숨을 노리는 자들을 암시하는 노래를 부른 뒤 사라진 소녀다. 출전: 《고사기》 체임벌린판 제66절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_66",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "hera-pass-singer",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-66",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_66",
+          "location": "제66절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "05ed4da9-711c-5b7a-9dca-5bea7ff1daac",
+        "title": "노래의 경고와 다케하니야스의 반란",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ac6ccde3-69df-5414-81a2-d09a91ed359c",
+    "title": "사호비메",
+    "body": "사호비코의 누이이자 스이닌의 황후다. 오라버니의 성에 들어가 아기를 낳고, 자신은 구출되지 않도록 준비한 뒤 아기를 내보낸다. 기존 반란 사건 카드와 연관된다. 출전: 《고사기》 체임벌린판 제71절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_71",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "sahobime",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-71",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_71",
+          "location": "제71절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "252f4a29-5198-54a0-aa77-a273660589cb",
+        "title": "사호비코와 사호비메의 불타는 성",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "481b9fb7-5384-5bd3-be10-38f21045ca6e",
+    "title": "호무치와케",
+    "body": "어머니 사호비메가 불타는 성에서 낳은 왕자다. 오랫동안 말을 하지 않다가 이즈모 신전에 참배한 뒤 돌아오는 길에 말을 한다. 기존 이즈모 참배 사건 카드와 연관된다. 출전: 《고사기》 체임벌린판 제72절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_72 기존 카드 homuchiwake와 같은 대상이므로 통합 검토가 필요하다.",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "homuchiwake",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-72",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_72",
+          "location": "제72절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "a006a694-a09d-5d98-a3da-4ae83165eee8",
+        "title": "말하지 않는 왕자와 이즈모 참배",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "0b08906e-dc1c-59be-b2ab-a1570e90be92",
+    "title": "마토누히메",
+    "body": "스이닌이 외모를 이유로 돌려보낸 자매 중 한 명이다. 수치심을 호소하고 죽음을 시도한 끝에 깊은 못에 뛰어들어 죽는다. 출전: 《고사기》 체임벌린판 제73절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_73",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "matonu-princess",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-73",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_73",
+          "location": "제73절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "358053a6-90ae-59e8-bf21-40ea69c68269",
+        "title": "다지마모리와 영원한 나라의 열매",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "a066117d-b536-5363-b12d-0976854c9338",
+    "title": "오호우스",
+    "body": "게이코의 아들로 야마토타케루의 형이다. 아버지가 두 여인을 데려오라고 보내자 자신이 두 사람과 혼인하고 다른 여인들을 대신 보낸다. 출전: 《고사기》 체임벌린판 제77절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_77",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ohousu",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-77",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_77",
+          "location": "제77절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "db8c2d61-2dbc-5ff3-a1d0-d0717a1a40d2",
+        "title": "야마토타케루",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "53222e29-4799-54a3-b9c3-3480eab0fd1f",
+    "title": "야마토히메",
+    "body": "야마토타케루의 고모로 구마소 원정 때 자신의 옷을 내준다. 동방 원정을 떠날 때에는 풀을 누르는 칼과 위급하면 열라고 당부한 주머니를 건넨다. 출전: 《고사기》 체임벌린판 제80절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_80 보충 출전: 제82절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_82",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "yamato-hime",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-80",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_80",
+          "location": "제80절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-2/section-82",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_82",
+          "location": "제82절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "db8c2d61-2dbc-5ff3-a1d0-d0717a1a40d2",
+        "title": "야마토타케루",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "45890a96-be8a-52e3-b933-ab50764043c3",
+        "title": "풀을 누르는 큰 칼과 들불",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dcb8164d-c844-5c5b-bef4-de77bd767887",
+    "title": "불을 일으키는 도구가 든 주머니",
+    "body": "야마토히메가 야마토타케루에게 위급할 때 열라며 준 주머니다. 사가무의 들불에 갇힌 왕자는 안에 든 부싯도구로 맞불을 놓는다. 출전: 《고사기》 체임벌린판 제83절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_83",
+    "cardType": "object",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "fire-striker-bag",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-83",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_83",
+          "location": "제83절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "45890a96-be8a-52e3-b933-ab50764043c3",
+        "title": "풀을 누르는 큰 칼과 들불",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "edca7566-c510-5a23-9576-62558b449369",
+    "title": "아시가라 고개의 신",
+    "body": "흰 사슴으로 변해 야마토타케루 앞에 나타난 고개의 신이다. 왕자가 던진 산나물 조각에 눈을 맞아 죽는다. 출전: 《고사기》 체임벌린판 제85절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_85",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ashigara-pass-deity",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-85",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_85",
+          "location": "제85절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "3873726f-d4f6-5936-9799-c5dee8cffd5f",
+        "title": "오토타치바나히메의 바다 희생",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "27268669-0771-5ff1-ab64-545dcb20dad5",
+    "title": "미야즈히메",
+    "body": "오와리에서 야마토타케루와 혼인을 약속하고 원정에서 돌아온 그를 맞는 여성이다. 왕자는 이부키산으로 가기 전 그녀의 집에 풀을 누르는 칼을 둔다. 출전: 《고사기》 체임벌린판 제87절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_87",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "miyazu-princess",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-87",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_87",
+          "location": "제87절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "03f8d780-0d1d-59bb-b6be-7170a01310c9",
+        "title": "이부키의 신과 흰 새가 된 왕자",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "d4257eb3-3ff3-54c6-8b17-ee2e1b49db30",
+    "title": "이부키산의 신",
+    "body": "흰 멧돼지의 모습으로 야마토타케루를 만난 산의 신이다. 왕자는 신의 사자로 오인해 지나치고, 신은 얼음비를 내린다. 출전: 《고사기》 체임벌린판 제88절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_88",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ibuki-mountain-deity",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-88",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_88",
+          "location": "제88절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "03f8d780-0d1d-59bb-b6be-7170a01310c9",
+        "title": "이부키의 신과 흰 새가 된 왕자",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "0d96df88-630b-5580-9211-fa1b22be24ab",
+    "title": "나나쓰카하기",
+    "body": "야마토타케루가 여러 나라를 평정하러 다니는 동안 늘 따라다닌 음식을 맡은 수행원이다. 본문은 구메 집단 우두머리들의 조상이라 한다. 출전: 《고사기》 체임벌린판 제91절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_91",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "nanatsukahagi",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-91",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_91",
+          "location": "제91절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "03f8d780-0d1d-59bb-b6be-7170a01310c9",
+        "title": "이부키의 신과 흰 새가 된 왕자",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "daa3b8e8-fc77-53ed-976c-b2d2f646ace0",
+    "title": "다케우치노스쿠네",
+    "body": "주아이의 대신으로 신들린 황후에게 신의 명령을 묻고, 왕이 죽은 뒤 정화 의례를 진행한다. 이후 왕자를 데리고 이동하며 궁정에서도 중재한다. 출전: 《고사기》 체임벌린판 제96절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_96",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "takeuchi-sukune",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-96",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_96",
+          "location": "제96절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "326829dd-36fd-505c-992a-5c196d7b906a",
+        "title": "주아이의 신탁 거부와 죽음",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "35a89886-11eb-5fe7-bea1-d04aa9a91852",
+    "title": "진구가 허리에 맨 돌",
+    "body": "본문의 원정 서사에서 황후가 출산을 늦추려고 옷의 허리에 묶은 돌이다. 아이는 귀환 후 쓰쿠시에서 태어나며 돌은 이토 마을에 있다고 한다. 원정에 관한 본문의 왕권 주장을 역사적 사실로 단정하지 않는다. 출전: 《고사기》 체임벌린판 제98절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_98",
+    "cardType": "object",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "jingu-birth-stone",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-98",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_98",
+          "location": "제98절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "f894c356-5117-538a-87a8-fd3cb0084b45",
+        "title": "진구의 원정과 귀환의 계승전",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "2a9ef931-402a-5321-bb34-fa51b3118cdd",
+    "title": "이자사와케",
+    "body": "쓰누가에 머무는 왕자 일행의 꿈에 나타나 왕자와 이름을 바꾸고자 한 신이다. 다음 날 바닷가에 물고기를 선물하며 본문은 음식의 신으로도 부른다. 출전: 《고사기》 체임벌린판 제101절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_101",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "izasa-wake",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-101",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_101",
+          "location": "제101절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "f894c356-5117-538a-87a8-fd3cb0084b45",
+        "title": "진구의 원정과 귀환의 계승전",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "049b4592-860c-56c4-83d2-101c2ca15e91",
+    "title": "가미나가히메",
+    "body": "오진이 아름답다는 말을 듣고 부른 히무카 출신 여성이다. 오사자키가 청하자 왕은 잔치에서 노래하며 그녀를 그에게 보낸다. 출전: 《고사기》 체임벌린판 제107절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_107",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "kaminaga-princess",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-107",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_107",
+          "location": "제107절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "114c29fe-8816-5267-9dce-9dfd8a7fccea",
+        "title": "오진의 자녀와 혼인·영지 분배",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "e7e3b5ed-eaed-5c39-8390-b2f934ba1058",
+    "title": "스스코리",
+    "body": "바다를 건너온 술 빚는 기술자로 다른 이름은 님판이다. 왕에게 술을 바치고 왕은 그 술을 마신 뒤 노래한다. 출전: 《고사기》 체임벌린판 제111절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_111",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "susukori",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-111",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_111",
+          "location": "제111절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "ac1bcdef-195a-55f9-940c-d647076ba81c",
+        "title": "바다 건너 온 사람들과 기술",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "e53484a7-9bef-587e-8274-3157c25e8181",
+    "title": "파도와 바람의 수건",
+    "body": "아메노히보코가 가져왔다고 기록된 보물 중 네 수건이다. 파도를 흔들고 끊는 두 수건과 바람을 흔들고 끊는 두 수건으로 이름을 구분한다. 출전: 《고사기》 체임벌린판 제115절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_115",
+    "cardType": "object",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "wave-wind-scarves",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-115",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_115",
+          "location": "제115절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "48b7f3d2-7789-50a0-9f81-4f63c65b844d",
+        "title": "아메노히보코와 바다 건너온 보물",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "9cd25a00-0880-5263-a846-ece913ccdee4",
+    "title": "이즈시의 여신",
+    "body": "여든 신이 구혼했으나 얻지 못한 이즈시의 여신이다. 봄 산의 안개 청년이 등나무꽃으로 바뀐 물건을 걸어 두고, 그녀가 그것을 집으로 가져가자 뒤따라 들어가 혼인한다. 출전: 《고사기》 체임벌린판 제116절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_116",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "izushi-maiden",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-116",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_116",
+          "location": "제116절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "f3ce24fa-ad86-516e-a82a-c24dc0ddaa9b",
+        "title": "봄과 가을의 구혼 내기",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f658f265-0869-5432-bb30-6a7d765ecbaa",
+    "title": "봄 산 안개의 청년",
+    "body": "형과 이즈시 여신에게 구혼할 수 있는지를 내기한 신이다. 어머니가 만든 옷과 활이 등꽃으로 바뀌고, 여신의 집에 따라 들어가 그녀와 혼인한다. 출전: 《고사기》 체임벌린판 제116절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_116",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "spring-mountain-youth",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-116",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_116",
+          "location": "제116절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "f3ce24fa-ad86-516e-a82a-c24dc0ddaa9b",
+        "title": "봄과 가을의 구혼 내기",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fa2275a2-147e-5085-b251-dc8ea0e62cba",
+    "title": "가을 산 단풍의 청년",
+    "body": "동생에게 이즈시의 여신과 혼인할 수 있는지 내기한 형이다. 내기에서 지고도 약속한 물건을 주지 않아 어머니의 저주로 8년 동안 앓았다. 출전: 《고사기》 체임벌린판 제116절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_116",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "autumn-mountain-youth",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-2/section-116",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_116",
+          "location": "제116절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "f3ce24fa-ad86-516e-a82a-c24dc0ddaa9b",
+        "title": "봄과 가을의 구혼 내기",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "01249a7f-6adb-5857-9758-03a5ade7213a",
+    "title": "이와노히메",
+    "body": "닌토쿠의 황후다. 왕의 혼인에 화를 내 야마시로로 떠났으며 시종과 사자를 통해 노래가 오간다. 기존 혼인 갈등 사건 카드와 연관된다. 출전: 《고사기》 체임벌린판 제122절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_122",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "iwanohime",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-122",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_122",
+          "location": "제122절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "283f8b5e-2f58-5926-b481-1cbba0951c32",
+        "title": "구로·이와노·야타의 혼인 갈등",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "3d44e246-4bf8-51e7-8a8d-910900b573c7",
+    "title": "구로히메",
+    "body": "기비 출신 여성으로 닌토쿠에게 불려왔으나 황후를 두려워해 고향으로 돌아간다. 왕이 뒤따라오자 음식을 대접하고 헤어질 때 노래한다. 출전: 《고사기》 체임벌린판 제122절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_122",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "kuro-princess",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-122",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_122",
+          "location": "제122절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "283f8b5e-2f58-5926-b481-1cbba0951c32",
+        "title": "구로·이와노·야타의 혼인 갈등",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "656ff53a-4143-5055-96dd-efef52e2e2d4",
+    "title": "야타노와키이라쓰메",
+    "body": "닌토쿠가 사랑한 여인이다. 왕과 노래를 주고받고, 본문은 그녀의 이름을 딴 야타 집단이 설치되었다고 기록한다. 출전: 《고사기》 체임벌린판 제125절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_125",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "yata-iratsume",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-125",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_125",
+          "location": "제125절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "283f8b5e-2f58-5926-b481-1cbba0951c32",
+        "title": "구로·이와노·야타의 혼인 갈등",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "26642325-a10c-54bb-89c8-16507f179be2",
+    "title": "메도리",
+    "body": "왕의 구혼을 거절하고 그 전령이었던 하야부사와케와 혼인한 왕녀다. 왕의 군사를 피해 남편과 달아나다 죽는다. 기존 사건 카드와 겹친다. 출전: 《고사기》 체임벌린판 제126절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_126",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "medori-queen",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-126",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_126",
+          "location": "제126절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "823c6cb1-7b08-5a56-b575-efe56133c956",
+        "title": "하야부사와케와 메도리의 도주",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "86b07a5a-8d00-510d-9ef6-e679b4beb820",
+    "title": "하야부사와케",
+    "body": "닌토쿠의 동생으로 메도리에게 구혼을 전하다 그녀와 혼인한 왕자다. 왕의 추격을 피해 함께 달아나지만 우다에서 죽는다. 출전: 《고사기》 체임벌린판 제126절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_126",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "hayabusa-wake",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-126",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_126",
+          "location": "제126절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "823c6cb1-7b08-5a56-b575-efe56133c956",
+        "title": "하야부사와케와 메도리의 도주",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "e80281f0-3a7e-5f5c-ac29-9c881b6bf67c",
+    "title": "누리노미",
+    "body": "야마시로에 머문 이와노히메를 집에 받아들인 가라 출신 인물이다. 그의 집에서 기르는 기고 고치를 거쳐 날게 되는 곤충이 왕에게 알려진다. 출전: 《고사기》 체임벌린판 제124절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_124 보충 출전: 제123절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_123",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "nurinomi",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-124",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_124",
+          "location": "제124절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-3/section-123",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_123",
+          "location": "제123절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "283f8b5e-2f58-5926-b481-1cbba0951c32",
+        "title": "구로·이와노·야타의 혼인 갈등",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "63b3b937-ec29-588c-8955-ffe13a941cfb",
+    "title": "가라누 배와 거문고",
+    "body": "큰 나무로 만든 빠른 배로 아와지섬의 물을 나르는 데 쓰였다. 배가 부서진 뒤 일부는 소금 굽는 연료가 되고 남은 나무로 거문고를 만들었다. 출전: 《고사기》 체임벌린판 제129절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_129",
+    "cardType": "object",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "karanu-vessel",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-129",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_129",
+          "location": "제129절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "37f85a66-3c2c-5212-af08-1defd27da594",
+        "title": "기러기 알과 배에서 만든 거문고",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "049bf858-ba16-5d50-a591-cc9eb58acfac",
+    "title": "아치의 수령",
+    "body": "왕궁에 불이 났을 때 술 취해 잠든 리추를 몰래 말에 태워 야마토로 피신시킨 인물이다. 134절에서는 재정을 맡게 된다. 출전: 《고사기》 체임벌린판 제132절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_132 보충 출전: 제134절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_134",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "achi-lord",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-132",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_132",
+          "location": "제132절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-3/section-134",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_134",
+          "location": "제134절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "eadc1bfc-dd04-569e-a7a9-7d6fa09b5ad1",
+        "title": "리추의 탈출과 반란, 한제이의 왕통",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "68bf23a3-5084-58db-b9c8-2a25f46fbc39",
+    "title": "소바카리",
+    "body": "스미노에의 왕을 섬기던 무사다. 미즈하와케의 제안을 받아 자신의 주인을 죽이고 재상 자리를 받지만, 연회에서 미즈하와케에게 죽임을 당한다. 출전: 《고사기》 체임벌린판 제133절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_133",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "sobakari",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-133",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_133",
+          "location": "제133절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "eadc1bfc-dd04-569e-a7a9-7d6fa09b5ad1",
+        "title": "리추의 탈출과 반란, 한제이의 왕통",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "deb60b84-94af-50a1-b4de-519414d36451",
+    "title": "오호마에오마에",
+    "body": "가루 왕자가 아나호의 군대를 피해 몸을 숨긴 대신이다. 아나호에게 군대를 물리라고 노래와 말로 권하고 가루를 붙잡아 넘긴다. 출전: 《고사기》 체임벌린판 제142절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_142",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ohomae-womae",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-142",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_142",
+          "location": "제142절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "b8b70240-1e26-5250-9b98-0213af7b3a50",
+        "title": "가루 왕자와 소토오시의 금지된 사랑",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "f2712688-c5bb-5bec-96fc-aa86156e8b01",
+    "title": "네의 대신",
+    "body": "오쿠사카에게 청혼을 전한 사신이다. 답례할 보석 머리장식을 훔치고 상대가 명령을 거부했다고 거짓 고하여 왕의 살해를 일으킨다. 출전: 《고사기》 체임벌린판 제144절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_144",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ne-grandee",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-144",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_144",
+          "location": "제144절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "8ae9dcb0-98d0-5f8d-859d-a83f5ac8469e",
+        "title": "안코와 마요와의 복수",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "2d3a8fed-7ef4-5d2e-85e1-c97a88c3ce4d",
+    "title": "마요와",
+    "body": "안코의 황후가 전 남편과 낳은 일곱 살 아이다. 안코가 자기 아버지를 죽였다는 말을 엿들은 뒤 잠든 왕을 죽이고 쓰부라의 집으로 달아난다. 출전: 《고사기》 체임벌린판 제145절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_145",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "mayowa",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-145",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_145",
+          "location": "제145절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "8ae9dcb0-98d0-5f8d-859d-a83f5ac8469e",
+        "title": "안코와 마요와의 복수",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "63ce2716-8567-57e0-855a-5ac583a67306",
+    "title": "쓰부라의 대신",
+    "body": "안코를 죽인 마요와를 자기 집에 숨겨 준 대신이다. 군사에게 포위되자 보호를 포기하지 않고 싸웠으며, 끝내 왕자를 죽이고 스스로 목숨을 끊는다. 출전: 《고사기》 체임벌린판 제147절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_147",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "tsubura-grandee",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-147",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_147",
+          "location": "제147절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "8ae9dcb0-98d0-5f8d-859d-a83f5ac8469e",
+        "title": "안코와 마요와의 복수",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "58148a29-0e27-5f0f-a2ae-a3331872154b",
+    "title": "시키의 흰 개",
+    "body": "지붕이 왕궁을 닮았다는 이유로 집을 태울 위기에 처한 시키의 관리가 바친 흰 개다. 옷을 입고 목에 방울을 달았으며, 왕은 집을 태우지 않기로 한다. 출전: 《고사기》 체임벌린판 제152절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_152",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "shiki-white-dog",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-152",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_152",
+          "location": "제152절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "143c1a31-db15-5ff1-9497-8c729d5a1154",
+        "title": "유랴쿠의 혼인과 궁정 권력",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "17a49467-bc1f-50b5-a668-dd5d5bc61c1c",
+    "title": "이이토요",
+    "body": "이치노베오시하의 누이로 세이네이 사후 계승자를 찾는 대목에서 등장한다. 164절에서는 조카 왕자들의 발견을 듣고 궁으로 부른다. 출전: 《고사기》 체임벌린판 제163절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_163 보충 출전: 제164절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_164",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "iihito-princess",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-163",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_163",
+          "location": "제163절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-3/section-164",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_164",
+          "location": "제164절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "62049d42-0037-5142-875d-9da8166e3348",
+        "title": "두 왕자의 발견과 왕위 사양",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "d496425c-8817-536d-b942-cd0d048c63b0",
+        "title": "노래·계보·지명의 서사 기능",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "8c1024ac-92e8-5dcd-9ecb-5a1c0c373504",
+    "title": "시비",
+    "body": "노래 모임에서 워케가 혼인하려는 여인의 손을 잡고 왕자와 노래를 주고받은 대신이다. 다음 날 오케와 워케가 군사를 일으켜 집을 포위하고 그를 죽인다. 출전: 《고사기》 체임벌린판 제165절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_165",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "shibi-grandee",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-165",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_165",
+          "location": "제165절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "62049d42-0037-5142-875d-9da8166e3348",
+        "title": "두 왕자의 발견과 왕위 사양",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "1f3f5a03-ca92-5245-8bfd-0d6505489848",
+    "title": "오후워",
+    "body": "우다 우두머리의 딸이다. 워케가 혼인하려 한 여성으로, 노래 모임에서 시비가 그녀의 손을 잡은 일이 왕자와의 갈등으로 이어진다. 출전: 《고사기》 체임벌린판 제165절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_165",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ofuwo",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-165",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_165",
+          "location": "제165절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "62049d42-0037-5142-875d-9da8166e3348",
+        "title": "두 왕자의 발견과 왕위 사양",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cf9393ec-ed6b-5080-814e-c9f98aa93ba0",
+    "title": "오케 왕자",
+    "body": "아버지 오시하가 죽은 뒤 동생과 숨어 지낸 왕자다. 자신의 이름을 드러낸 동생 워케에게 먼저 왕위를 양보한다. 기존 왕자 피신과 왕위 회복 사건 카드와 연관된다. 출전: 《고사기》 체임벌린판 제166절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_166 보충 출전: 제149절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_149",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "ohoke-prince",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-166",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_166",
+          "location": "제166절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-3/section-149",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_149",
+          "location": "제149절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "78c9505e-5114-5524-8d12-15eb7bc8e090",
+        "title": "오시하의 죽음과 두 왕자의 피신",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "62049d42-0037-5142-875d-9da8166e3348",
+        "title": "두 왕자의 발견과 왕위 사양",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "5bf67b1c-246e-5ea1-9abe-deed7241c566",
+    "title": "워케 왕자",
+    "body": "아버지가 죽자 형 오케와 도망쳐 숨어 지낸 왕자다. 형이 자신의 신분을 드러낸 공을 들어 왕위를 양보하자 먼저 통치한다. 출전: 《고사기》 체임벌린판 제166절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_166 보충 출전: 제149절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_149",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "woke-prince",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-166",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_166",
+          "location": "제166절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "kojiki-book-3/section-149",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_149",
+          "location": "제149절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "78c9505e-5114-5524-8d12-15eb7bc8e090",
+        "title": "오시하의 죽음과 두 왕자의 피신",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "62049d42-0037-5142-875d-9da8166e3348",
+        "title": "두 왕자의 발견과 왕위 사양",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "4034647c-c2d7-5472-b483-9edaf3785da4",
+    "title": "쓰쿠시의 이와이",
+    "body": "게이타이 치세 기록에 왕의 명령을 따르지 않은 쓰쿠시의 우두머리로 등장한다. 왕은 모노노베노아라카이와 오토모노가나무라를 그를 죽이도록 보냈다고 한다. 출전: 《고사기》 체임벌린판 제173절 https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_173",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-kojiki",
+      "input_candidate_key": "iwai-tsukushi",
+      "input_sha256": "9b3777851fb831c5249dfc8ad57b51d3cf1887552a37f48afde1b7f1cb9181c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《고사기》 Basil Hall Chamberlain 영어판 1882, Wikisource 전사",
+      "scope": "체임벌린 1882년 영어판 《고사기》 제1권 제1–43절, 제2권 제44–118절, 제3권 제119–180절. 제44절·제119절 본문에 각각 Vol. II·Vol. III가 명시됨. 일본서기는 제외. 실독한 절만 read로 표기.",
+      "evidence": [
+        {
+          "unit": "kojiki-book-3/section-173",
+          "url": "https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_173",
+          "location": "제173절 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "c38d48b8-7f2c-5aa0-954d-f38d1786b5a6",
+        "title": "닌켄에서 스이코까지의 왕통",
+        "reason": [
+          "고사기 같은 절 출전: 관련성 및 중복 여부 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "2fca8af1-eaab-5dd5-b2ee-c44fae6d21d5",
+    "title": "구구노치: 나무의 조상",
+    "body": "본문에서 이자나기와 이자나미가 산 다음으로 낳는 나무의 조상 신이다. 출전: 《일본서기 권1 신대상 제5단 본문》 https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-nihon",
+      "input_candidate_key": "shoki-kukunochi",
+      "input_sha256": "7bae3719dbbd1203f6e25ee566deca5e62f671ff9a370df9ad8cc481ed322ce6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《일본서기》 권1 신대상, 중문 Wikisource 전사; 저본 판본 세부 미확인",
+      "scope": "《일본서기》 권1 신대상: supplementary.md에 지정된 제4단 일서 제5·제7, 제5단 본문 및 일서 제1·제5·제11의 위키문헌 전사. 기존 고사기 및 일본서기 비교 카드 82장은 변경하지 않음.",
+      "evidence": [
+        {
+          "unit": "일본서기 권1 신대상 제5단 본문",
+          "url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+          "location": "일본서기 권1 신대상 제5단 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": []
+  },
+  {
+    "id": "d0d30f36-927a-57bc-ac61-de9e2deb61fc",
+    "title": "가야노히메: 풀의 조상",
+    "body": "본문에서 나무의 조상 다음에 태어나는 풀의 조상 신이며 노쓰치라고도 한다. 출전: 《일본서기 권1 신대상 제5단 본문》 https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-nihon",
+      "input_candidate_key": "shoki-kayanohime",
+      "input_sha256": "7bae3719dbbd1203f6e25ee566deca5e62f671ff9a370df9ad8cc481ed322ce6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《일본서기》 권1 신대상, 중문 Wikisource 전사; 저본 판본 세부 미확인",
+      "scope": "《일본서기》 권1 신대상: supplementary.md에 지정된 제4단 일서 제5·제7, 제5단 본문 및 일서 제1·제5·제11의 위키문헌 전사. 기존 고사기 및 일본서기 비교 카드 82장은 변경하지 않음.",
+      "evidence": [
+        {
+          "unit": "일본서기 권1 신대상 제5단 본문",
+          "url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+          "location": "일본서기 권1 신대상 제5단 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": []
+  },
+  {
+    "id": "158b91d6-755f-5995-87cf-5540abf3ca80",
+    "title": "히루코: 세 살이 되어도 서지 못한 아이",
+    "body": "본문에서는 해와 달의 신 다음에 태어난다. 세 살에도 다리가 서지 않아 배에 실려 바람을 따라 떠나보내진다. 기존 섬 낳기 카드와 내용이 일부 겹칠 수 있다. 출전: 《일본서기 권1 신대상 제5단 본문》 https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-nihon",
+      "input_candidate_key": "shoki-hiruko-main",
+      "input_sha256": "7bae3719dbbd1203f6e25ee566deca5e62f671ff9a370df9ad8cc481ed322ce6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《일본서기》 권1 신대상, 중문 Wikisource 전사; 저본 판본 세부 미확인",
+      "scope": "《일본서기》 권1 신대상: supplementary.md에 지정된 제4단 일서 제5·제7, 제5단 본문 및 일서 제1·제5·제11의 위키문헌 전사. 기존 고사기 및 일본서기 비교 카드 82장은 변경하지 않음.",
+      "evidence": [
+        {
+          "unit": "일본서기 권1 신대상 제5단 본문",
+          "url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+          "location": "일본서기 권1 신대상 제5단 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "input_candidate",
+        "id": "c381ac02-60a1-57d2-b900-2150ae354475",
+        "title": "히루코",
+        "reason": [
+          "제목 또는 콜론 앞 이름 일치"
+        ]
+      },
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "0212f24e-e909-5fcd-b6d3-de366dd7e391",
+        "title": "섬 낳기와 혼인 의례의 재시도",
+        "reason": [
+          "서사·대상 관련성; 판본과 사실 차이 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "b3561cfa-1ecf-51ac-9267-9455a8c122c2",
+    "title": "천반녹나무배",
+    "body": "본문에서 세 살이 되어도 서지 못하는 히루코를 싣고 바람에 떠내려 보내는 데 쓰인 배다. 출전: 《일본서기 권1 신대상 제5단 본문》 https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+    "cardType": "object",
+    "provenance": {
+      "input_segment": "japan-myth-nihon",
+      "input_candidate_key": "shoki-heavenly-camphor-boat",
+      "input_sha256": "7bae3719dbbd1203f6e25ee566deca5e62f671ff9a370df9ad8cc481ed322ce6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《일본서기》 권1 신대상, 중문 Wikisource 전사; 저본 판본 세부 미확인",
+      "scope": "《일본서기》 권1 신대상: supplementary.md에 지정된 제4단 일서 제5·제7, 제5단 본문 및 일서 제1·제5·제11의 위키문헌 전사. 기존 고사기 및 일본서기 비교 카드 82장은 변경하지 않음.",
+      "evidence": [
+        {
+          "unit": "일본서기 권1 신대상 제5단 본문",
+          "url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+          "location": "일본서기 권1 신대상 제5단 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": []
+  },
+  {
+    "id": "9f351379-26ca-5c80-9844-35e619f0d77b",
+    "title": "부모가 스사노오를 뿌리나라로 내쫓다",
+    "body": "본문에서 스사노오의 울음으로 나라 사람들이 일찍 죽고 푸른 산이 마르자 부모 두 신은 그를 뿌리나라로 멀리 보내 추방한다. 기존 고사기 스사노오 카드와 사건이 일부 겹치지만 해당 본문의 행위자와 추방지를 보존한다. 출전: 《일본서기 권1 신대상 제5단 본문》 https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+    "cardType": "event",
+    "provenance": {
+      "input_segment": "japan-myth-nihon",
+      "input_candidate_key": "shoki-susanoo-exile-main",
+      "input_sha256": "7bae3719dbbd1203f6e25ee566deca5e62f671ff9a370df9ad8cc481ed322ce6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《일본서기》 권1 신대상, 중문 Wikisource 전사; 저본 판본 세부 미확인",
+      "scope": "《일본서기》 권1 신대상: supplementary.md에 지정된 제4단 일서 제5·제7, 제5단 본문 및 일서 제1·제5·제11의 위키문헌 전사. 기존 고사기 및 일본서기 비교 카드 82장은 변경하지 않음.",
+      "evidence": [
+        {
+          "unit": "일본서기 권1 신대상 제5단 본문",
+          "url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+          "location": "일본서기 권1 신대상 제5단 본문",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_limit": "발췌는 추방만 직접 보여 주며 울음·조기 사망·산이 마름의 원문 대조는 추가로 필요하다."
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "64e2b5a1-a614-5d23-927e-ca76cc3eda61",
+        "title": "스사노오",
+        "reason": [
+          "서사·대상 관련성; 판본과 사실 차이 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "8b9e1a4b-04d6-5b6c-8394-cf42307a9d11",
+    "title": "아메노쿠마히토: 보식신에게 보내진 사자",
+    "body": "일서에서 아마테라스가 보식신의 상태를 살피도록 보낸 존재다. 죽은 보식신의 몸에서 난 것들을 거두어 아마테라스에게 가져간다. 출전: 《일본서기 권1 신대상 제5단 일서 제11》 https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+    "cardType": "character",
+    "provenance": {
+      "input_segment": "japan-myth-nihon",
+      "input_candidate_key": "shoki-ame-no-kumahito",
+      "input_sha256": "7bae3719dbbd1203f6e25ee566deca5e62f671ff9a370df9ad8cc481ed322ce6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《일본서기》 권1 신대상, 중문 Wikisource 전사; 저본 판본 세부 미확인",
+      "scope": "《일본서기》 권1 신대상: supplementary.md에 지정된 제4단 일서 제5·제7, 제5단 본문 및 일서 제1·제5·제11의 위키문헌 전사. 기존 고사기 및 일본서기 비교 카드 82장은 변경하지 않음.",
+      "evidence": [
+        {
+          "unit": "일본서기 권1 신대상 제5단 일서 제11",
+          "url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+          "location": "일본서기 권1 신대상 제5단 일서 제11",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "일본서기 권1 신대상 제5단 일서 제11",
+          "url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+          "location": "일본서기 권1 신대상 제5단 일서 제11",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "일본서기 권1 신대상 제5단 일서 제11",
+          "url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+          "location": "일본서기 권1 신대상 제5단 일서 제11",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_limit": "전사에는 천웅인이 거두어 가져가 바친 직후 천조대신이 기뻐한다고 이어진다. 헌상 대상은 문맥상 천조대신으로 읽히나 해당 문장에 이름이 직접 반복되지는 않는다."
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "72b7c6a0-d5a5-5606-9724-c892a972ff93",
+        "title": "보식신의 몸에서 난 곡식",
+        "reason": [
+          "서사·대상 관련성; 판본과 사실 차이 검토"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "585eb927-b743-5dfd-ad54-6fbba558c791",
+    "title": "하늘의 좁은 논과 긴 논",
+    "body": "일서에서 아마테라스가 보식신의 몸에서 거둔 벼를 씨앗으로 하여 처음 심게 한 두 논이다. 기존 곡식 기원 카드와 관련된다. 출전: 《일본서기 권1 신대상 제5단 일서 제11》 https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+    "cardType": "location",
+    "provenance": {
+      "input_segment": "japan-myth-nihon",
+      "input_candidate_key": "shoki-heavenly-rice-fields",
+      "input_sha256": "7bae3719dbbd1203f6e25ee566deca5e62f671ff9a370df9ad8cc481ed322ce6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "《일본서기》 권1 신대상, 중문 Wikisource 전사; 저본 판본 세부 미확인",
+      "scope": "《일본서기》 권1 신대상: supplementary.md에 지정된 제4단 일서 제5·제7, 제5단 본문 및 일서 제1·제5·제11의 위키문헌 전사. 기존 고사기 및 일본서기 비교 카드 82장은 변경하지 않음.",
+      "evidence": [
+        {
+          "unit": "일본서기 권1 신대상 제5단 일서 제11",
+          "url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第一",
+          "location": "일본서기 권1 신대상 제5단 일서 제11",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    },
+    "possible_duplicates": [
+      {
+        "kind": "existing_runtime",
+        "genre": "japanese_mythology",
+        "id": "72b7c6a0-d5a5-5606-9724-c892a972ff93",
+        "title": "보식신의 몸에서 난 곡식",
+        "reason": [
+          "서사·대상 관련성; 판본과 사실 차이 검토"
+        ]
+      }
+    ]
+  }
+]

@@ -27,7 +27,7 @@ object InitialWorldAdditionMapper {
                     if(c.type=="event") "history" else "basic",semanticMetadata=metadata)
             }
         }
-        require(draft.cards.count { it.lifecycle=="active" }+cards.size<=1000)
+        require(draft.cards.count { it.lifecycle=="active" }+cards.size<=10000) { "설정 카드는 10,000개까지 저장할 수 있습니다." }
         fun signature(r:RelationshipPayload):List<Any?> {
             val ends=listOf(r.sourceCardId.toString(),r.targetCardId.toString())
             return (if(r.direction=="symmetric") ends.sorted() else ends)+listOf(r.category,r.direction,r.label,r.polarity)

@@ -1,0 +1,2332 @@
+[
+  {
+    "id": "f924f706-abb8-5a9a-bfab-bf4e577ea02f",
+    "title": "닌기르수의 신전 건립 명령",
+    "body": "구데아는 닌기르수에게 신전을 지으라는 명령을 받고 그 뜻을 이해하지 못해 꿈의 해석을 구한다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A I 17–29, 137쪽.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "gudea-building-command",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A I열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "I 17–29, 137쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "dream-command",
+          "title": "신전 건립의 꿈",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        },
+        {
+          "source_key": "dream-interpretation",
+          "title": "니나의 해몽",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "edec454e-1050-58a8-9bcc-bacd93ecf810",
+    "title": "니나로 향하는 운하와 배",
+    "body": "1905년 번역에서 니나의 배는 니나 시로 이어지는 운하에 머문다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A II 4–5, 137쪽.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "nina-canal-boat",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A II열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "II 4–5, 137쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "baga-pilgrimage",
+          "title": "바가와 니나의 물길을 찾은 순례",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "66a52bf4-c3d5-5dfe-bb49-a20fdd0b5a46",
+    "title": "가툼두그",
+    "body": "구데아는 가툼두그를 라가시를 자리 잡게 한 어머니라 부르며 자신에게 생명의 숨을 준 존재로 기도한다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A III 3, 13, 139쪽.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "gatundug-mother-lagash",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A III열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "III 3, 13, 139쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "gatumdug",
+          "title": "가툼두그",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [
+        {
+          "runtime": "backend/content-service/src/main/resources/genre-templates-v2.json",
+          "genre": "sumerian_mythology",
+          "id": "2cc0fed3-005c-544c-a41a-6965e8598058",
+          "title": "가툼두그"
+        },
+        {
+          "runtime": "backend/content-service/src/main/resources/genre-templates.json",
+          "genre": "sumerian_mythology",
+          "id": "2cc0fed3-005c-544c-a41a-6965e8598058",
+          "title": "가툼두그"
+        }
+      ],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "63f328a4-3dad-5fd4-9e43-744d7ad1bc8e",
+    "title": "가툼두그의 좋은 우투쿠와 라마수",
+    "body": "구데아는 니나 시로 갈 때 가툼두그의 좋은 우투쿠가 앞서고 좋은 라마수가 뒤따르기를 빈다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A III 19–21, 139쪽.",
+    "cardType": "other",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "gatundug-protective-spirits",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A III열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "III 19–21, 139쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "protective-spirits",
+          "title": "우툭쿠와 라마수",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "fbcaacbb-4276-54f7-94d2-ab2333e93185",
+    "title": "임기그 새",
+    "body": "구데아가 꿈에서 본 신 곁의 신성한 새로, 니나는 그 신을 자신의 형제 닌기르수라고 풀이한다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A IV 14–20, 141쪽.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "dream-divine-bird-imgig",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A IV열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "IV 14–20, 141쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        },
+        {
+          "unit": "1905년 구데아 원통 A V열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=143",
+          "location": "V 15–18행, 인쇄 143쪽; V 13–14행은 141쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "dream-images",
+          "title": "임기그·해·갈대와 별의 서판",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "b5f9a73a-70f3-5858-976c-5ab471f755de",
+    "title": "운명의 벽돌과 틀",
+    "body": "꿈에 순수한 틀 위 운명의 벽돌이 놓여 있고, 니나는 이것이 에닌누의 신성한 벽돌이라고 해석한다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A V 5–7, 141쪽.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "dream-brick-of-fate",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A V열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "V 5–7, 141쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        },
+        {
+          "unit": "1905년 구데아 원통 A VI열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=143",
+          "location": "VI 6–8행, 인쇄 143쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "destiny-brick",
+          "title": "운명의 벽돌과 틀",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [
+        {
+          "runtime": "backend/content-service/src/main/resources/genre-templates-v2.json",
+          "genre": "sumerian_mythology",
+          "id": "d466256a-230c-53e7-a859-1488094d2cac",
+          "title": "운명의 벽돌과 틀"
+        },
+        {
+          "runtime": "backend/content-service/src/main/resources/genre-templates.json",
+          "genre": "sumerian_mythology",
+          "id": "d466256a-230c-53e7-a859-1488094d2cac",
+          "title": "운명의 벽돌과 틀"
+        }
+      ],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "944008b9-a11f-5cb7-a819-a5100115fa36",
+    "title": "니사바의 별 점토판",
+    "body": "꿈속 여인이 순수한 갈대 펜과 좋은 별의 점토판을 지녔다. 니나는 이 여인을 자기 자매 니사바라고 해석한다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A V 21–25 및 VI 1–2, 143쪽.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "nisaba-star-tablet",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A VI열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "V 21–25 및 VI 1–2, 143쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "nisaba",
+          "title": "니사바",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        },
+        {
+          "source_key": "dream-images",
+          "title": "임기그·해·갈대와 별의 서판",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "f74f1da4-0c0d-5f64-ad3c-2512a4adaf6d",
+    "title": "닌두브의 청금석 판",
+    "body": "니나는 청금석 판을 든 두 번째 인물을 닌두브로 해석하며, 그가 신전의 계획과 관련된 인물임을 밝힌다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A VI 3–5, 143쪽.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "nindub-lapis-plan",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A VI열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "VI 3–5, 143쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "nindub",
+          "title": "닌두브",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "42c3cd3a-36d5-57b6-8aca-be0ca09a01e8",
+    "title": "구데아가 바친 전차와 나귀",
+    "body": "구데아가 나무를 가져와 전차를 완성하고 우그카스라고 불리는 나귀를 멘다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A VII 13–21, 145쪽.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "gudea-chariot-donkey",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A VII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "VII 13–21, 145쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "divine-chariot",
+          "title": "닌기르수에게 바치는 전차",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        },
+        {
+          "source_key": "gift-preparation",
+          "title": "전차와 악기를 준비하는 구데아",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "pirig-kase-pada",
+          "reason": "이름·주제 또는 사건이 관련되어 중복·표기·판본 차이 검토 필요; 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "6c4dfdb2-edce-590a-aeb2-d5f5079a7acb",
+    "title": "우숨갈칼라마 악기",
+    "body": "1905년 번역에서는 우숨갈칼라마를 닌기르수가 아끼는 악기로 부르며 구데아가 에닌누에 들였다고 한다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A VII 24–30, 145쪽.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "usumgal-kalamma-instrument-1905",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A VII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "VII 24–30, 145쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "ushumgalkalamma",
+          "title": "우슘갈칼람마",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "cb23cb59-ca73-5a89-8ba5-2d0e626770d4",
+    "title": "수갈람",
+    "body": "닌기르수가 여러 나라를 바라보는 두려운 심판의 장소로, 구데아가 제물과 향을 올린 곳이다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A VIII 6–11, 145쪽.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "sugalam-judgment-place",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A VIII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "VIII 6–11, 145쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "sugalamt",
+          "title": "수갈람트와 기도의 재판 장소",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "bd83b7e7-5613-567d-a7ad-88aa97409965",
+    "title": "구데아의 두 번째 신탁",
+    "body": "누워 있는 구데아에게 신이 다시 나타나 그가 신전을 지을 것이라 말하고 하늘의 순수한 별을 통한 징표를 예고한다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A IX 5–10, 147쪽.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "gudea-second-dream",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A IX열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "IX 5–10, 147쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "second-dream",
+          "title": "두 번째 꿈과 건립의 약속",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "ac5987f5-3971-59bb-830c-4708cc4490fa",
+    "title": "사르우르",
+    "body": "닌기르수는 자신의 무기 사르우르가 세상을 그 권세 아래 둔다고 말한다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A IX 23–24, 147쪽.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "sharur-1905",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A IX열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "IX 23–24, 147쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "weapons-insignia",
+          "title": "신에게 바친 무기와 왕권 표장",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "sharur-weapon",
+          "reason": "이름·주제 또는 사건이 관련되어 중복·표기·판본 차이 검토 필요; 동일성 미확정"
+        },
+        {
+          "candidate_key": "sharur-lagash-weapon",
+          "reason": "이름·주제 또는 사건이 관련되어 중복·표기·판본 차이 검토 필요; 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "5087dae0-a50d-5042-8c55-cde9868e8983",
+    "title": "티라스의 초승달 축제",
+    "body": "닌기르수는 티라스를 압수에 비유하여 지을 것이며 초승달 날에 하늘 축제의 큰 명령들이 수행될 것이라고 말한다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A X 15–18, 149쪽.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "tiras-new-moon",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A X열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "X 15–18, 149쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "second-dream",
+          "title": "두 번째 꿈과 건립의 약속",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "tirash-shrine",
+          "reason": "이름·주제 또는 사건이 관련되어 중복·표기·판본 차이 검토 필요; 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "04f655ea-15ec-53cd-8d7d-93aabe934644",
+    "title": "에후스",
+    "body": "닌기르수가 자신의 두려운 장소라 부르며 용처럼 두려운 곳에 지으리라고 말하는 곳이다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A X 19–20, 149쪽.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "ehus-fearful-place-1905",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A X열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "X 19–20, 149쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "second-dream",
+          "title": "두 번째 꿈과 건립의 약속",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "ehush-shrine",
+          "reason": "이름·주제 또는 사건이 관련되어 중복·표기·판본 차이 검토 필요; 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "c6fe26ff-c3c5-5b5d-9fd7-83ba53a95856",
+    "title": "에바바르의 신탁과 재판",
+    "body": "닌기르수의 신탁 장소이며, 신은 이곳이 여신 카디처럼 도시의 정의를 보장하리라고 말한다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A X 24–26, 149쪽.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "ebabbar-oracle",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A X열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "X 24–26, 149쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "second-dream",
+          "title": "두 번째 꿈과 건립의 약속",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "ebarbar-judgment",
+          "reason": "이름·주제 또는 사건이 관련되어 중복·표기·판본 차이 검토 필요; 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "4b6fae02-bdfd-5d1d-8ac4-98ee00e00722",
+    "title": "바가의 제물상",
+    "body": "닌기르수는 바가를 자신의 제물상이 있는 신전이라 부르며 라가시의 큰 신들이 이곳에 모일 것이라고 말한다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A X 27–29, 149쪽.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "baga-offering-table",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A X열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "X 27–29, 149쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "baga-pilgrimage",
+          "title": "바가와 니나의 물길을 찾은 순례",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "70420819-2073-5f9b-b76f-8c1567ed91f5",
+    "title": "에닌누 기초와 풍요",
+    "body": "닌기르수는 신전의 기초가 놓이면 풍요가 오고 밭이 열매를 내며 물이 다시 샘솟기를 기원한다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A XI 10–15, 149쪽.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "enninu-foundation-abundance",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XI열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "XI 10–15, 149쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "second-dream",
+          "title": "두 번째 꿈과 건립의 약속",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "de1ae22a-2839-5d7c-b543-af87916f3ef4",
+    "title": "밤낮으로 짓는 신전",
+    "body": "닌기르수의 신탁은 신전을 낮과 밤에 걸쳐 건설하리라고 말한다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A XII 1–2, 151쪽.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "temple-day-night-construction",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "XII 1–2, 151쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "second-dream",
+          "title": "두 번째 꿈과 건립의 약속",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "26524af2-e615-50c6-a3ce-dd0e16791609",
+    "title": "신전 건설기의 폭행 억제",
+    "body": "서술은 종이 잘못을 저질러도 주인이 머리를 때리지 않고 하녀가 잘못해도 여주인이 얼굴을 때리지 않았다고 전한다. 이때에 관한 서술로 한정한다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A XIII 6–9, 153쪽.",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "lagash-restraint-servants",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XIII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "XIII 6–9, 153쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "purification-labor",
+          "title": "건립 전 정결과 폭력의 중지",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "ebd9ee39-1d92-59c3-aa19-c29f4a10f778",
+    "title": "벽돌의 점괘",
+    "body": "구데아가 틀 상자에 점괘를 펼치자 점괘가 벽돌을 가리켰다고 서술한다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A XIII 16–17, 153쪽.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "brick-omen",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XIII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "XIII 16–17, 153쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "brick-rite",
+          "title": "벽돌을 빚고 운반하는 의례",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "315ccb8b-a076-5354-84a2-4d455edf6ef8",
+    "title": "루갈쿠르둡 상징물",
+    "body": "구데아가 닌기르수의 높은 상징물 루갈쿠르둡을 앞에 세웠다고 1905년 번역은 말한다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A XIV 18, 153쪽.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "lugal-kur-dub-standard",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XIV열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "XIV 18, 153쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "brick-rite",
+          "title": "벽돌을 빚고 운반하는 의례",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "lugal-kur-dub-procession",
+          "reason": "이름·주제 또는 사건이 관련되어 중복·표기·판본 차이 검토 필요; 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "e9559c0d-cd74-56b8-bd6f-c600817142f9",
+    "title": "니나의 신성한 배 상징",
+    "body": "구데아가 니나의 상징인 신성한 배를 앞에 세웠다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A XIV 23, 155쪽.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "nina-sacred-barge",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XIV열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "XIV 23, 155쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "brick-rite",
+          "title": "벽돌을 빚고 운반하는 의례",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "f40ae1d4-3f05-50ed-bde0-d30b53af9bb0",
+    "title": "인니나의 원반 상징",
+    "body": "구데아가 인니나의 상징인 원반을 앞에 세웠다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A XIV 27, 155쪽.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "innina-disc-emblem",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XIV열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "XIV 27, 155쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "brick-rite",
+          "title": "벽돌을 빚고 운반하는 의례",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "7d14ea5d-1537-55b7-a539-939fc081e61d",
+    "title": "엘람과 수사의 건축 참여",
+    "body": "닌기르수 신전 건립을 위해 엘람 사람과 수사 사람이 왔으며 구데아가 그들을 기르수에 모았다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A XV 6–10, 155쪽.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "elam-susa-temple-builders",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XV열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "XV 6–10, 155쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "craft-workers",
+          "title": "장인과 건립 인력",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        },
+        {
+          "source_key": "resource-network",
+          "title": "산림·채석장·금속의 조달망",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "dc38f45d-9af1-5038-b767-e99a0df1e244",
+    "title": "구데아의 삼나무 산행",
+    "body": "구데아는 아무도 들어간 적이 없었다는 삼나무 산으로 가서 삼나무를 베고 사르우르 제작을 위한 목재를 마련한다. 기존 카드와 중복 가능. 출전: https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad 원통 A XV 19–24, 155쪽.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-sumer-a1",
+      "candidate_key": "gudea-cedar-mountain",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XV열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "XV 19–24, 155쪽",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "resource-network",
+          "title": "산림·채석장·금속의 조달망",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "sharur-weapon",
+          "reason": "이름·주제 또는 사건이 관련되어 중복·표기·판본 차이 검토 필요; 동일성 미확정"
+        },
+        {
+          "candidate_key": "sharur-1905",
+          "reason": "이름·주제 또는 사건이 관련되어 중복·표기·판본 차이 검토 필요; 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "7388fa25-e285-5d54-9323-64d1215c628e",
+    "title": "키마스 구리 산",
+    "body": "키마스는 구리 산으로, 광석을 바구니에 담아 채취한 곳으로 묘사된다. 출전: Thureau-Dangin, 1905, 157쪽 / A XVI열 15–17행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "kimas-copper-mountain",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XVI열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "157쪽 / A XVI열 15–17행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "resource-network",
+          "title": "산림·채석장·금속의 조달망",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "5418d95f-89cd-5896-a964-c1ce7c547bc2",
+    "title": "마드가 산",
+    "body": "구데아에게 건축 재료를 실어 보내는 장면에서 역청과 함께 언급되는 산이다. 출전: Thureau-Dangin, 1905, 157쪽 / A XVI열 7–12행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "madga-bitumen-source",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XVI열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "157쪽 / A XVI열 7–12행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "resource-network",
+          "title": "산림·채석장·금속의 조달망",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "ec755945-fdb5-5f68-b4bf-b8c199df6688",
+    "title": "닌투칼라마와 대장장이",
+    "body": "에닌누를 금속으로 만들 때 대장장이들은 닌투칼라마의 사제이며 여신 앞으로 인도된다. 출전: Thureau-Dangin, 1905, 157쪽 / A XVI열 28–30행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "nintu-kalamma-smiths",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XVI열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "157쪽 / A XVI열 28–30행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "craft-workers",
+          "title": "장인과 건립 인력",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "nintu-kalama-smiths",
+          "reason": "이름·주제 또는 사건이 관련되어 중복·표기·판본 차이 검토 필요; 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "5a8c009b-cc60-5b61-8b92-34867646714f",
+    "title": "니사바의 이해력",
+    "body": "니사바는 구데아의 이해력을 열어 준 신으로 묘사된다. 출전: Thureau-Dangin, 1905, 157–159쪽 / A XVII열 13–16행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "nisaba-opens-understanding",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XVII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "157–159쪽 / A XVII열 13–16행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "nisaba",
+          "title": "니사바",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "eef34282-6acc-5824-bb7f-63799fd1d1dc",
+    "title": "루갈쿠르두브",
+    "body": "벽돌 주형 의례에서 구데아 앞을 가는 신이다. 출전: Thureau-Dangin, 1905, 159쪽 / A XVIII열 13–15행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "lugal-kur-dub-procession",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XVIII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "159쪽 / A XVIII열 13–15행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "brick-rite",
+          "title": "벽돌을 빚고 운반하는 의례",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        },
+        {
+          "source_key": "war-commanders",
+          "title": "루갈쿠르두브와 전투의 보좌자들",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "lugal-kur-dub-standard",
+          "reason": "이름·주제 또는 사건이 관련되어 중복·표기·판본 차이 검토 필요; 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "29869ce8-fb97-5d3d-a3f2-ace7d78f204a",
+    "title": "갈알림",
+    "body": "벽돌 주형 의례에서 구데아 뒤를 따라가는 신이다. 출전: Thureau-Dangin, 1905, 159쪽 / A XVIII열 14–15행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "gal-alim-procession",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XVIII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "159쪽 / A XVIII열 14–15행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "brick-rite",
+          "title": "벽돌을 빚고 운반하는 의례",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        },
+        {
+          "source_key": "galalim-dunsaga",
+          "title": "갈라림과 둔사가",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "igalim-temple-steward",
+          "reason": "이름·주제 또는 사건이 관련되어 중복·표기·판본 차이 검토 필요; 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "4600081f-4bfe-5749-acc7-d96b526516bd",
+    "title": "닌기시지다의 인도",
+    "body": "닌기시지다는 의례 중 구데아의 손을 잡는 그의 신으로 묘사된다. 출전: Thureau-Dangin, 1905, 159쪽 / A XVIII열 16–17행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "ningishzida-hand",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XVIII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "159쪽 / A XVIII열 16–17행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "ningishzida",
+          "title": "닌기시지다",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        },
+        {
+          "source_key": "brick-rite",
+          "title": "벽돌을 빚고 운반하는 의례",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "ff1293e1-41ea-5ad8-849f-d37c917c2a41",
+    "title": "운명의 성스러운 벽돌 주형",
+    "body": "순수한 받침과 함께 언급되며 구데아가 점토를 넣어 성전 벽돌을 만든다. 판본은 성전에서 받침과 주형에 한 동작의 동사를 비워 둔다. 출전: Thureau-Dangin, 1905, 159쪽 / A XVIII열 10–11, 24–25행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "sacred-destiny-brick-mould",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XVIII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "159쪽 / A XVIII열 10–11, 24–25행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        },
+        {
+          "unit": "1905년 구데아 원통 A XVIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=159",
+          "location": "XVIII 10–11, 24–25행, 인쇄 159쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다.",
+        "159쪽 프랑스어 번역의 동사 빈칸과 158쪽 전사의 결락 표지를 확인하여 기존의 성소에 들여왔다는 단정을 삭제했다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "destiny-brick",
+          "title": "운명의 벽돌과 틀",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        },
+        {
+          "source_key": "brick-rite",
+          "title": "벽돌을 빚고 운반하는 의례",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "1346b907-9c8a-543d-a27e-8d26249c5cc0",
+    "title": "날빛에 놓인 성전 벽돌",
+    "body": "라가시에 해가 뜨자 구데아는 주형을 깨고 벽돌을 햇빛에 놓는다. 출전: Thureau-Dangin, 1905, 159–161쪽 / A XIX열 1–3행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "first-brick-daylight",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XIX열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "159–161쪽 / A XIX열 1–3행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "brick-rite",
+          "title": "벽돌을 빚고 운반하는 의례",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "71e65d75-c603-554e-9b91-282d0401d079",
+    "title": "니나의 성전 신탁",
+    "body": "에리두의 자식이라 불리는 니나는 성전의 신탁을 돌본다. 출전: Thureau-Dangin, 1905, 161–163쪽 / A XX열 15–16행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "nina-temple-oracles",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XX열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "161–163쪽 / A XX열 15–16행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "nina",
+          "title": "니나",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "15536de3-826e-5a05-979d-823cd5fb593a",
+    "title": "에닌누의 일곱 축복",
+    "body": "구데아는 성전에 일곱 차례 축복을 내리며 마지막에는 에닌누를 땅을 비추는 아침빛에 비유한다. 출전: Thureau-Dangin, 1905, 163–165쪽 / A XX열 27행 및 XXI열 1–12행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "temple-seven-blessings",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXI열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "163–165쪽 / A XXI열 1–12행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        },
+        {
+          "unit": "1905년 구데아 원통 A XX열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=163",
+          "location": "XX 27 및 XXI 1–12행, 인쇄 163쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다.",
+        "첫 축복은 XX 27, 둘째부터 XXI에 기록되므로 본문의 위치를 보강했다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "seven-blessings",
+          "title": "일곱 축복과 신전의 비유",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "0cbe1496-7b7a-5b94-bb3e-c8d55f0911e8",
+    "title": "신들의 물 마시는 샘",
+    "body": "신들이 물을 마시는 샘 옆에 에닌누의 타르쿨이 세워진다. 출전: Thureau-Dangin, 1905, 165쪽 / A XXII열 15–16행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "divine-drinking-fountain",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "165쪽 / A XXII열 15–16행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "temple-sound-water",
+          "title": "신전의 악기·물·정원",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "be177783-5594-5833-b248-41b0da203bc6",
+    "title": "라가시의 사르바투 나무",
+    "body": "구데아가 도시에 심고 그 그림자를 펼친 나무다. 출전: Thureau-Dangin, 1905, 165쪽 / A XXII열 18–19행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "lagash-sarbatu-tree",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "165쪽 / A XXII열 18–19행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "temple-sound-water",
+          "title": "신전의 악기·물·정원",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "f0aa5b1c-3e61-5361-af16-11fd6d160d2b",
+    "title": "라가시에 세운 샤루르",
+    "body": "무기 샤루르가 라가시에 고정되어 있는 것으로 기록된다. 출전: Thureau-Dangin, 1905, 165쪽 / A XXII열 20행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "sharur-lagash-weapon",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "165쪽 / A XXII열 20행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "weapons-insignia",
+          "title": "신에게 바친 무기와 왕권 표장",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "sharur-weapon",
+          "reason": "이름·주제 또는 사건이 관련되어 중복·표기·판본 차이 검토 필요; 동일성 미확정"
+        },
+        {
+          "candidate_key": "sharur-1905",
+          "reason": "이름·주제 또는 사건이 관련되어 중복·표기·판본 차이 검토 필요; 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "80be4569-8c82-525e-905b-309578ba5825",
+    "title": "루갈키살시의 비석",
+    "body": "높은 앞뜰에 세운 비석의 이름에 루갈키살시의 비석이라는 표현이 들어간다. 출전: Thureau-Dangin, 1905, 165–167쪽 / A XXIII열 8–12행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "lugal-kisal-si-stele",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXIII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "165–167쪽 / A XXIII열 8–12행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "seven-stelae",
+          "title": "일곱 비석",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "bc67a0dc-acc5-59f4-b611-09552d9dddce",
+    "title": "카수라 문 엔릴 비석",
+    "body": "카수라 문에 세운 비석은 엔릴이 구데아를 호의적으로 바라본다는 이름을 받는다. 출전: Thureau-Dangin, 1905, 165–167쪽 / A XXIII열 13–18행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "kasurra-enlil-stele",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXIII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "165–167쪽 / A XXIII열 13–18행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "seven-stelae",
+          "title": "일곱 비석",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "13c3429a-da48-54e9-93f4-a14e0c55d88f",
+    "title": "바우 현관의 비석",
+    "body": "바우 현관 아래 세운 비석의 이름은 에닌누를 바우의 거처라 하고 바우가 구데아에게 생명을 불어넣는다고 한다. 출전: Thureau-Dangin, 1905, 167–169쪽 / A XXIV열 4–7행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "bau-portico-stele",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXIV열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "167–169쪽 / A XXIV열 4–7행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "seven-stelae",
+          "title": "일곱 비석",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "a0a98986-9315-5d99-90a1-d811f634456a",
+    "title": "심연의 라하무",
+    "body": "성전에 놓인 두블라는 심연에 있는 괴물 라하무에 비유된다. 비유 자체가 전하는 설정이다. 출전: Thureau-Dangin, 1905, 167–169쪽 / A XXIV열 26–27행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "lahamu-abyss",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXIV열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "167–169쪽 / A XXIV열 26–27행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXIV열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=169",
+          "location": "XXIV 26–27행, 인쇄 169쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다.",
+        "Scribd OCR 표기는 169쪽 영인의 Laḫamu와 차이가 있다. OCR 발췌는 재사용권 미확인으로 공개 사본에 생략한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "gate-guardians",
+          "title": "문지기의 영웅과 용·사자 형상",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "a0c87292-00ab-5fa5-b3e0-7d016ab76b4d",
+    "title": "여섯 머리 산양을 죽이는 영웅",
+    "body": "구데아가 전투의 문에 머물게 한 영웅은 여섯 머리 산양을 죽이는 자로 묘사된다. 출전: Thureau-Dangin, 1905, 169쪽 / A XXV열 24–26행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "six-headed-ibex-hero",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXV열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "169쪽 / A XXV열 24–26행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "gate-guardians",
+          "title": "문지기의 영웅과 용·사자 형상",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "eeade5c6-4bfc-5a6c-89f0-946f9cf4f759",
+    "title": "도시 앞의 일곱 영웅",
+    "body": "구데아는 도시 앞의 빛나는 장소에 일곱 영웅을 머물게 한다. 출전: Thureau-Dangin, 1905, 169쪽 / A XXV열 27–28행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "seven-heroes-city",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXV열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "169쪽 / A XXV열 27–28행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "gate-guardians",
+          "title": "문지기의 영웅과 용·사자 형상",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "787f5e9e-ac77-582a-b379-68eb3212df39",
+    "title": "수갈람의 용",
+    "body": "수갈람의 빛나는 문에 구데아가 좋은 용을 머물게 한다. 출전: Thureau-Dangin, 1905, 169–171쪽 / A XXVI열 1–2행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "sugalam-dragon",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXVI열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "169–171쪽 / A XXVI열 1–2행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "gate-guardians",
+          "title": "문지기의 영웅과 용·사자 형상",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        },
+        {
+          "source_key": "sugalamt",
+          "title": "수갈람트와 기도의 재판 장소",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "7e9dbf78-2068-55aa-be8c-2baaeae861a8",
+    "title": "사그알림마 태양신의 표지",
+    "body": "해 뜨는 쪽 운명의 장소에 고정된 태양신의 표지다. 출전: Thureau-Dangin, 1905, 169–171쪽 / A XXVI열 3–5행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "sag-alimma-sun-emblem",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXVI열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "169–171쪽 / A XXVI열 3–5행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "gate-guardians",
+          "title": "문지기의 영웅과 용·사자 형상",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "d32f97a1-896f-50ba-887c-97798c6f24e3",
+    "title": "바우 현관의 마길루 배",
+    "body": "구데아는 바우 현관의 회의 장소에 강한 황소와 함께 마길루 배를 머물게 한다. 출전: Thureau-Dangin, 1905, 169–171쪽 / A XXVI열 12–14행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "magilu-boat-bau",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXVI열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "169–171쪽 / A XXVI열 12–14행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "gate-guardians",
+          "title": "문지기의 영웅과 용·사자 형상",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "8ca118be-a7f8-5194-9997-50bd0bf27183",
+    "title": "용인 형상의 대들보 못",
+    "body": "성전의 순수한 대들보에 박은 못은 용인 형태로 만들어졌다. 출전: Thureau-Dangin, 1905, 169–171쪽 / A XXVI열 28–29행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "dragon-man-beam-nails",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXVI열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "169–171쪽 / A XXVI열 28–29행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "gate-guardians",
+          "title": "문지기의 영웅과 용·사자 형상",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "a8c86447-63ed-543a-95b1-808030894ef7",
+    "title": "에닌누의 신성한 말뚝",
+    "body": "성전에 고정된 말뚝을 신성한 새 임기그에 비유하고 산의 뱀을 언급한다. 둘의 관계를 나타내는 동사는 프랑스어 번역에서 점선으로 남아 불완전하다. 출전: Thureau-Dangin, 1905, 171–173쪽 / A XXVII열 18–19행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "eninnu-sacred-stake-imgig",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXVII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "171–173쪽 / A XXVII열 18–19행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXVII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=171",
+          "location": "XXVII 18–19행, 인쇄 171쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다.",
+        "프랑스어 번역이 점선으로 끝나 관계의 동사가 미번역이며 170쪽 전사에는 표기가 남아 있다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "dream-images",
+          "title": "임기그·해·갈대와 별의 서판",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "a5b137a2-b3d1-56f7-8c20-27e6f48f5ebe",
+    "title": "에키수그 창문의 수호령",
+    "body": "에키수그에는 창문에 수호령들이 배치되어 있다. 출전: Thureau-Dangin, 1905, 173쪽 / A XXVIII열 9행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "ekisug-window-guardians",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXVIII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "173쪽 / A XXVIII열 9행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "gate-guardians",
+          "title": "문지기의 영웅과 용·사자 형상",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "abc0ff44-caea-52a7-918e-a9c34fce6fed",
+    "title": "성전 곁 안쿨루 정원",
+    "body": "성전 가까이에 심은 안쿨루 정원은 포도가 심어진 찬란한 산에 비유된다. 출전: Thureau-Dangin, 1905, 173쪽 / A XXVIII열 23–24행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "anqullu-temple-garden",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXVIII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "173쪽 / A XXVIII열 23–24행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "temple-sound-water",
+          "title": "신전의 악기·물·정원",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        },
+        {
+          "source_key": "temple-stores",
+          "title": "신전의 창고와 시설",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "b6ef96d7-e9d0-5092-b643-c5b257f3fbc0",
+    "title": "에닌누의 일곱 비석",
+    "body": "성전에 세운 일곱 비석은 왕이 숙고한 내용에 부합하는 것으로 묘사된다. 출전: Thureau-Dangin, 1905, 173–175쪽 / A XXIX열 1–2행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "seven-stelae-eninnu",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXIX열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "173–175쪽 / A XXIX열 1–2행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXIX열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=173",
+          "location": "XXIX 1–2행, 인쇄 173쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다.",
+        "판본은 왕이 숙고한 내용에 일치한다고 적는다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "seven-stelae",
+          "title": "일곱 비석",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "5f8458e8-01fb-52ea-af3e-d7c67971240d",
+    "title": "바드시아나의 비둘기",
+    "body": "바드시아나는 비둘기가 머무는 장소로 언급된다. 출전: Thureau-Dangin, 1905, 173–175쪽 / A XXIX열 7–10행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "badsian-na-doves",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXIX열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "173–175쪽 / A XXIX열 7–10행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "temple-sound-water",
+          "title": "신전의 악기·물·정원",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "eae84962-7a55-54da-8658-00bf2cd1bd6f",
+    "title": "닌기시지다의 성전 기단",
+    "body": "에닌누 건설의 마지막 구절에서 닌기시지다가 성전의 기단을 쌓았다고 한다. 출전: Thureau-Dangin, 1905, 175쪽 / A XXX열 1–3행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-sumer-a2",
+      "candidate_key": "ningishzida-temple-foundation",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역의 제3자 Scribd OCR; 추출자 자기보고, 원본 인쇄 판면과 OCR 독립 대조 미실시",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXX열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "location": "175쪽 / A XXX열 1–3행",
+          "excerpt_status": "제3자 OCR 재사용권 미확인으로 공개 사본에서 생략; 이 발췌가 카드의 각 주장을 직접 뒷받침하는지는 독립 검증하지 않음."
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXX열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=175",
+          "location": "XXX 1–3행, 인쇄 175쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "전체 열을 완독하지 못한 OCR 일부 확인 후보이며, 인용의 정확성과 전사·이용권 및 판본을 재검토해야 한다.",
+        "Scribd OCR 표기는 175쪽 영인의 Nin-giš-zi-da와 차이가 있다. OCR 발췌는 재사용권 미확인으로 공개 사본에 생략한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "ningishzida",
+          "title": "닌기시지다",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        },
+        {
+          "source_key": "temple-completion",
+          "title": "에닌누의 완공",
+          "reason": "관련 장면 또는 묶음과 겹칠 가능성; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  }
+]

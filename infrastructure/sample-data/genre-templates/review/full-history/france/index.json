@@ -1,0 +1,267 @@
+{
+  "genre": "france_history",
+  "worldId": "67907b53-fdd0-5771-8d78-0f317a0f71b9",
+  "status": "연구·검토용 후보, 서비스·DB 자동 적재 금지; 역사·번역·권리 독립 검수 미완료",
+  "source": {
+    "author": "Charlotte M. Yonge",
+    "title": "History of France",
+    "edition": "D. Appleton and Company, New York, 1882",
+    "url": "https://www.gutenberg.org/ebooks/17287",
+    "commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+    "path": "docs/research/history-textbooks/france/source-en.txt",
+    "sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+    "line_numbering": "1부터 시작하는 포함 범위; 각 구간 SHA-256은 원본 바이트의 해당 줄을 이어 붙여 계산"
+  },
+  "rights_and_limits": [
+    "기존 역사 연구 샘플은 연구 전용이며 서비스·DB 반영 대상이 아니다. 원저·전자판·개별 번역·관할 및 제3자 자료의 이용 조건을 별도로 검토해야 한다.",
+    "한국어 후보는 비공식 요약·번역이며 독립 번역 검수와 현대 역사 감수를 받지 않았다. 19세기 저자의 왕조·민족·종교·계층·식민지 관점과 연대·인명 오류 가능성을 포함한다.",
+    "현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다. 이 청크는 세계관 분할이나 앱 적재가 아니며 기존 후보와 합산·중복 검토 없이 반영할 수 없다. 최초 적용은 별도 #425 안전 계약 및 권리·중복 검증이 필요하다.",
+    "원문 전문을 포함하지 않는다. 구조·출처 범위 검증은 역사적 정확성이나 원문 전수 추출을 보증하지 않는다."
+  ],
+  "input_manifest": {
+    "path": "미게시-임시자료:history/manifest.json",
+    "sha256": "f3faa02f012e87678aad6cb004920343719ed797389a605ed2385517017547c1",
+    "refill_path": "미게시-임시자료:history/refill-manifest.json",
+    "refill_sha256": "469db0bff3db0f3ba50cf1380273191481e246eb276258902d59df7b1169e745",
+    "france_refills": []
+  },
+  "segments": [
+    {
+      "segment": "france-1",
+      "input_path": "미게시-임시자료:history/france-1.json",
+      "input_sha256": "3d213fe4ec5c888c62c68b5d32132138a7563b360d5b4031fc2a85e546fa700a",
+      "manifest": {
+        "kind": "history",
+        "country": "france",
+        "segment": "france-1",
+        "commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "path": "docs/research/history-textbooks/france/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/17287",
+        "line_start": 128,
+        "line_end": 1414,
+        "chapters": [
+          "france:1:CHAPTER I.",
+          "france:2:CHAPTER II.",
+          "france:3:CHAPTER III.",
+          "france:4:CHAPTER IV."
+        ],
+        "heads": [
+          [
+            128,
+            "CHAPTER I."
+          ],
+          [
+            628,
+            "CHAPTER II."
+          ],
+          [
+            1013,
+            "CHAPTER III."
+          ],
+          [
+            1192,
+            "CHAPTER IV."
+          ]
+        ],
+        "sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509"
+      },
+      "scope": {
+        "line_start": 128,
+        "line_end": 1414,
+        "chapters": [
+          "france:1:CHAPTER I.",
+          "france:2:CHAPTER II.",
+          "france:3:CHAPTER III.",
+          "france:4:CHAPTER IV."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "france:1:CHAPTER I.",
+          "line_start": 128,
+          "line_end": 627,
+          "status": "read",
+          "cards": 75,
+          "note": "본문을 읽음. 빈 행을 제외했으며 원저의 평가·전승은 사실과 구별함."
+        },
+        {
+          "unit": "france:2:CHAPTER II.",
+          "line_start": 628,
+          "line_end": 1012,
+          "status": "read",
+          "cards": 64,
+          "note": "본문 전체와 경계 공백을 읽음. 전투 연도 등 원저의 주장과 역사적 사실을 구별함."
+        },
+        {
+          "unit": "france:3:CHAPTER III.",
+          "line_start": 1013,
+          "line_end": 1191,
+          "status": "read",
+          "cards": 22,
+          "note": "장 전체와 경계 공백을 읽음. 원저의 인물 평가와 계승 설명은 원저의 견해로 기록함."
+        },
+        {
+          "unit": "france:4:CHAPTER IV.",
+          "line_start": 1192,
+          "line_end": 1414,
+          "status": "read",
+          "cards": 46,
+          "note": "장 전체와 말미 공백을 읽음. 원저 연도·전승·민족 일반화는 현대 사실 확인으로 간주하지 않음."
+        }
+      ],
+      "candidate_count": 207
+    },
+    {
+      "segment": "france-2",
+      "input_path": "미게시-임시자료:history/france-2.json",
+      "input_sha256": "2861dc7e12ed3695ec5f2c8979093550bf66baffa931875989fccd39629ce1c5",
+      "manifest": {
+        "kind": "history",
+        "country": "france",
+        "segment": "france-2",
+        "commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "path": "docs/research/history-textbooks/france/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/17287",
+        "line_start": 1415,
+        "line_end": 2797,
+        "chapters": [
+          "france:5:CHAPTER V.",
+          "france:6:CHAPTER VI.",
+          "france:7:CHAPTER VII.",
+          "france:8:CHAPTER VIII."
+        ],
+        "heads": [
+          [
+            1415,
+            "CHAPTER V."
+          ],
+          [
+            1792,
+            "CHAPTER VI."
+          ],
+          [
+            2248,
+            "CHAPTER VII."
+          ],
+          [
+            2542,
+            "CHAPTER VIII."
+          ]
+        ],
+        "sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509"
+      },
+      "scope": {
+        "line_start": 1415,
+        "line_end": 2797,
+        "chapters": [
+          "france:5:CHAPTER V.",
+          "france:6:CHAPTER VI.",
+          "france:7:CHAPTER VII.",
+          "france:8:CHAPTER VIII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "france:5:CHAPTER V.",
+          "line_start": 1415,
+          "line_end": 1791,
+          "status": "read",
+          "cards": 64,
+          "note": "본문 전체를 읽음. 원저의 도덕적 평가와 역사적 연도는 저자의 서술로 취급함."
+        },
+        {
+          "unit": "france:6:CHAPTER VI.",
+          "line_start": 1792,
+          "line_end": 2247,
+          "status": "read",
+          "cards": 73,
+          "note": "본문 전체를 읽음. 원저의 정치·종교·식민지 서술 및 연도는 저자의 관점으로 다룸."
+        },
+        {
+          "unit": "france:7:CHAPTER VII.",
+          "line_start": 2248,
+          "line_end": 2541,
+          "status": "read",
+          "cards": 59,
+          "note": "본문 전체를 읽음. 혁명과 나폴레옹에 대한 저자의 정치적 평가 및 일부 연대는 별도 검증이 필요함."
+        },
+        {
+          "unit": "france:8:CHAPTER VIII.",
+          "line_start": 2542,
+          "line_end": 2797,
+          "status": "read",
+          "cards": 44,
+          "note": "본문 2542–2687행 전체를 읽음. 2690행 THE END 뒤 2695–2797행은 출판사 도서 광고로 본문 추출에서 제외. 식민지·전쟁에 관한 원저의 편향과 연대는 별도 검증 필요."
+        }
+      ],
+      "candidate_count": 240
+    }
+  ],
+  "coverage": {
+    "assigned_line_ranges": [
+      [
+        128,
+        1414
+      ],
+      [
+        1415,
+        2797
+      ]
+    ],
+    "overlaps": [],
+    "gaps": [],
+    "status": "모든 장 read는 원 추출자의 자기보고이며 독립 완독 확인 아님",
+    "excluded_non_narrative": "THE END는 2690행이며 2695–2797행은 출판사 광고라고 추출자가 보고; 2688–2694행은 종료·빈 줄",
+    "pending_unread": [],
+    "refill_replacement": "프랑스 pending/unread 및 refill 지정 없음",
+    "unverified": "원문 문장별 근거·번역·역사 사실 및 독립 대상 전수 확인은 미완료"
+  },
+  "accounting": {
+    "input_files": 2,
+    "input_candidates": 447,
+    "output_cards": 447,
+    "merged_candidates": 0,
+    "unprocessed_candidates": 0,
+    "equation": "입력 447 = 개별 보존 447 + 합친 중복 0 + 미처리 0",
+    "dedup_rule": "자동 병합하지 않음. 같은 유형의 key 또는 제목이 같으면 검토 표시하며 본문·근거가 다를 수 있어 각각 보존. 기존 프랑스 카드와는 같은 유형의 원전 행 겹침, 26종 및 기존 프랑스 카드와는 제목·유형 완전 일치를 후보 표시; 의미상 중복 전체를 찾았다는 뜻이 아님.",
+    "type_counts": {
+      "location": 27,
+      "organization": 41,
+      "character": 227,
+      "rule": 28,
+      "event": 117,
+      "object": 7
+    },
+    "missing_required_fields": 0,
+    "source_line_range_errors": 0,
+    "ids_unique": true,
+    "id_algorithm": "UUIDv5: 기존 worldId를 namespace로 storyfork:review:full-history:france:<segment>:<candidate key>",
+    "existing_id_collisions": 0,
+    "exact_candidate_evidence_preservation": "입력 key, title, body, cardType, source_units, lines를 모두 각 출력에 1:1 보존",
+    "quarantine": []
+  },
+  "existing_comparison": {
+    "history_file": "infrastructure/sample-data/genre-templates/history/france.world.json",
+    "history_count": 20,
+    "studio_file": "infrastructure/sample-data/genre-templates/history/studio/france.world.json",
+    "studio_count": 22,
+    "source_card_files_scanned": 26,
+    "comparison_limit": "자동 표시는 이름 완전일치 또는 프랑스 원전의 행 겹침만; 이명·번역 차이·동명이인 및 실제 동일성은 수동 검토 필요"
+  },
+  "files": [
+    {
+      "file": "cards-001.json",
+      "count": 300,
+      "sha256": "93d038e3c4154e040f41866db61ef638d126288f2d8dd0232fff8b027fb8ba88",
+      "bytes": 422331
+    },
+    {
+      "file": "cards-002.json",
+      "count": 147,
+      "sha256": "09395cc545adcb8d3515981332b71ff0d3bb79c8808f9d0435cfe15bd5af4855",
+      "bytes": 205717
+    }
+  ],
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

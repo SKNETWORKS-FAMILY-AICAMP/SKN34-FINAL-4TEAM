@@ -76,8 +76,8 @@ describe('공개 설정을 내 세계관 초안에 바로 더하기 (DEC-46)', (
     expect(await addOnce(conflict, ['c1'])).toEqual({ ok: false, outcome: { status: 'failed', target: TARGET, message: '저장되지 않았습니다. 최신 상태를 다시 조회하세요.' } })
   })
 
-  it('활성 설정이 1,000개 한도를 넘으면 저장하지 않고 남은 자리를 알린다', async () => {
-    const useCase = fake(mine(Array.from({ length: 999 }, (_, i) => setting(`설정 ${i}`))))
+  it('활성 설정이 10,000개 한도를 넘으면 저장하지 않고 남은 자리를 알린다', async () => {
+    const useCase = fake(mine(Array.from({ length: 9999 }, (_, i) => setting(`설정 ${i}`))))
     expect((await addOnce(useCase, ['c1', 'c2'])).outcome).toMatchObject({ status: 'failed', message: expect.stringContaining('지금은 1개까지 가져올 수 있어요.') })
     expect(useCase.save).not.toHaveBeenCalled()
   })
@@ -101,7 +101,23 @@ describe('공개 설정을 내 세계관 초안에 바로 더하기 (DEC-46)', (
 })
 
 describe('가져오기 다시 시도 (저장 결과를 모르는 실패 뒤)', () => {
-  it('대상을 다시 읽어 초안이 그대로면 보냈던 입력을 그대로 다시 보낸다', async () => {
+  it('미완료 상태에서 조회가 실패해도 같은 저장 입력을 먼저 재시도한다', async () => {
+    const useCase = fake()
+    useCase.save.mockRejectedValueOnce(new TypeError('network'))
+    // 첫 조회는 성공하고, 재시도에서 조회하면 미완료 오류가 난다.
+    useCase.read.mockResolvedValueOnce(mine()).mockRejectedValueOnce(new Error('RELATIONSHIP_WRITE_INCOMPLETE 503'))
+    const result = open(useCase)
+    await act(async () => { await result.current.add(TARGET, ['c1']) })
+    const sent = useCase.save.mock.calls[0][0]
+    let ok = false
+    await act(async () => { ok = await result.current.retry() })
+    expect(ok).toBe(true)
+    expect(useCase.read).toHaveBeenCalledTimes(1)
+    expect(useCase.save).toHaveBeenCalledTimes(2)
+    expect(useCase.save.mock.calls[1][0]).toBe(sent)
+    expect(result.current.outcome).toEqual({ status: 'done', target: TARGET, count: 1 })
+  })
+  it('미확인 저장을 재조회 없이 보냈던 입력 그대로 다시 보낸다', async () => {
     const useCase = fake()
     useCase.save.mockRejectedValueOnce(new TypeError('network'))
     const result = open(useCase)
@@ -110,41 +126,56 @@ describe('가져오기 다시 시도 (저장 결과를 모르는 실패 뒤)', (
     let ok = false
     await act(async () => { ok = await result.current.retry() })
     expect(ok).toBe(true)
-    expect(useCase.read).toHaveBeenCalledTimes(2)
+    expect(useCase.read).toHaveBeenCalledTimes(1)
     // 저장소는 결과를 모르는 요청 뒤에 같은 입력만 받는다. 새 카드 id까지 같아야 한다.
     expect(useCase.save.mock.calls[1][0]).toBe(useCase.save.mock.calls[0][0])
     expect(result.current.outcome).toEqual({ status: 'done', target: TARGET, count: 1 })
   })
 
-  it('앞선 요청이 실제로는 반영됐으면 다시 저장하지 않고 성공으로 알린다', async () => {
+  it('저장 결과가 미확인이면 같은 저장 요청의 결과를 확인한다', async () => {
     const useCase = fake()
     useCase.save.mockRejectedValueOnce(new TypeError('network'))
     const result = open(useCase)
     await act(async () => { await result.current.add(TARGET, ['c1']) })
     const sent = useCase.save.mock.calls[0][0]
-    useCase.read.mockResolvedValue({ ...sent, version: 5 })
     await act(async () => { await result.current.retry() })
-    expect(useCase.save).toHaveBeenCalledTimes(1)
+    expect(useCase.read).toHaveBeenCalledTimes(1)
+    expect(useCase.save).toHaveBeenCalledTimes(2)
+    expect(useCase.save.mock.calls[1][0]).toBe(sent)
     expect(result.current.outcome).toEqual({ status: 'done', target: TARGET, count: 1 })
   })
 
-  it('실패한 뒤 다른 설정을 고르면 앞선 입력을 다시 보내지 않고 새로 고른 설정만 붙인다', async () => {
+  it('미확인 저장 뒤 다른 설정을 고르면 기존 요청을 보존하고 먼저 다시 확인한다', async () => {
     const useCase = fake()
     useCase.save.mockRejectedValueOnce(new TypeError('network'))
     const result = open(useCase)
     await act(async () => { await result.current.add(TARGET, ['c1']) })
     await act(async () => { await result.current.add(TARGET, ['c2']) })
-    expect(useCase.save.mock.calls[1][0].settings.map((s) => s.item.title)).toEqual(['기존 설정', '별빛 탑'])
+    expect(useCase.save).toHaveBeenCalledTimes(1)
+    expect(result.current.outcome).toMatchObject({status:'failed',message:expect.stringContaining('같은 입력')})
+    await act(async () => { await result.current.retry() })
+    expect(useCase.save.mock.calls[1][0]).toBe(useCase.save.mock.calls[0][0])
+  })
+
+  it('전송 전 한도 오류 뒤에는 선택을 줄여 다시 저장할 수 있다', async () => {
+    const useCase = fake()
+    useCase.save.mockRejectedValueOnce(new Error('요청 한도 초과', { cause: 'WORLD_WRITE_REJECTED' }))
+    const result = open(useCase)
+    await act(async () => { await result.current.add(TARGET, ['c1', 'c2']) })
+    await act(async () => { await result.current.add(TARGET, ['c1']) })
+    expect(useCase.save).toHaveBeenCalledTimes(2)
+    expect(result.current.outcome).toMatchObject({status:'done',count:1})
   })
 
   it('그 사이 대상의 초안이 바뀌었으면 최신 초안에 새로 붙인다', async () => {
     const useCase = fake()
-    useCase.save.mockRejectedValueOnce(new Error('저장되지 않았습니다. 최신 상태를 다시 조회하세요.'))
+    useCase.save.mockRejectedValueOnce(new Error('저장되지 않았습니다. 최신 상태를 다시 조회하세요.', { cause: 'WORLD_WRITE_REJECTED' }))
     const result = open(useCase)
     await act(async () => { await result.current.add(TARGET, ['c1']) })
     useCase.read.mockResolvedValue({ ...mine([setting('기존 설정'), setting('다른 탭에서 더한 설정')]), version: 5 })
     await act(async () => { await result.current.retry() })
     const [again] = useCase.save.mock.calls[1]
+    expect(useCase.read).toHaveBeenCalledTimes(2)
     expect(again.version).toBe(5)
     expect(again.settings.map((s) => s.item.title)).toEqual(['기존 설정', '다른 탭에서 더한 설정', '리안'])
     expect(result.current.outcome).toEqual({ status: 'done', target: TARGET, count: 1 })
@@ -165,11 +196,11 @@ describe('가져오기 저장 요청 (HTTP)', () => {
     const kept = { ...setting('기존 설정'), item: { ...setting('기존 설정').item, id: crypto.randomUUID() } }
     const cardOf = (row: StudioSetting) => ({ id: row.item.id, title: row.item.title, body: row.item.text, cardType: 'character', areaCode: row.item.category, classification: row.userCategory, aliases: [], tags: row.tags, semanticMetadata: { studio: row }, visibility: 'private', lifecycle: 'active' })
     const draft = { worldId, draftRevision: 4, currentRevisionId: null, baseWorldRevisionId: null, name: '내 세계', description: '', cards: [cardOf(kept)], relationships: [], relationshipVersion: 1, relationshipStatus: 'current' }
-    // 서버 대역: 읽기는 초안을, 저장은 보낸 카드를 그대로 담아 버전을 올린 초안을 돌려준다(호출마다 새 Response).
+    // 서버 대역: upsert를 기존 카드에 합쳐 버전을 올린 초안을 돌려준다.
     const fetcher = vi.fn(async (_path: string, init?: RequestInit) => {
       if (init?.method !== 'PUT') return Response.json(draft)
       const body = JSON.parse(String(init.body))
-      return Response.json({ ...draft, draftRevision: 5, cards: body.cards, relationships: body.relationships })
+      return Response.json({ ...draft, draftRevision: 5, cards: [...draft.cards, ...body.cards], relationships: body.relationships })
     })
     const result = open(new WorldStudioUseCase(new HttpWorldStudioRepository(fetcher as typeof fetch)))
     await act(async () => { await result.current.add({ id: worldId, name: '내 세계' }, ['c2']) })
@@ -177,9 +208,9 @@ describe('가져오기 저장 요청 (HTTP)', () => {
     const [url, init] = fetcher.mock.calls[1]
     expect([url, init?.method]).toEqual([`/api/v1/world-studios/${worldId}/draft`, 'PUT'])
     const body = JSON.parse(String(init?.body))
-    expect(body).toMatchObject({ expectedDraftRevision: 4, replace: true })
-    expect(body.cards[0].id).toBe(kept.item.id)
-    const added = body.cards[1]
+    expect(body).toMatchObject({ expectedDraftRevision: 4, replace: false })
+    expect(body.cards).toHaveLength(1)
+    const added = body.cards[0]
     expect(added).toMatchObject({ title: '별빛 탑', body: '봉인을 지키는 탑', cardType: 'location', visibility: 'private', lifecycle: 'active' })
     expect(added.semanticMetadata.importedFrom).toEqual({ worldId: 'src', worldName: '별빛 세계', authorNickname: '윤서하', revisionNo: 3, cardId: 'c2' })
     expect(added.semanticMetadata).not.toHaveProperty('revealFromEpisode')

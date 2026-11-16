@@ -1,0 +1,824 @@
+{
+  "genre": "norse_mythology",
+  "status": "원전 카드 검토용 후보",
+  "notice": "앱·DB에 자동 적재되지 않는 연구·검토 전용 자료. 실제 적용 전 #425 안전 계약과 권리·중복 검증 필요. 세계관 분할이나 새 world 생성이 아님.",
+  "existing_world_id_for_uuid_namespace": "cb459e34-c38c-56f4-af2d-7bfdb3321b88",
+  "uuid_v5_name_pattern": "review/full-myth/norse_mythology/{segment}/{candidate_key}",
+  "inputs": [
+    {
+      "segment": "norse-voluspa",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "manifest_units": [
+        "voluspa-01",
+        "voluspa-02",
+        "voluspa-03",
+        "voluspa-04",
+        "voluspa-05",
+        "voluspa-06",
+        "voluspa-07",
+        "voluspa-08",
+        "voluspa-09",
+        "voluspa-10",
+        "voluspa-11",
+        "voluspa-12",
+        "voluspa-13",
+        "voluspa-14",
+        "voluspa-15",
+        "voluspa-16",
+        "voluspa-17",
+        "voluspa-18",
+        "voluspa-19",
+        "voluspa-20",
+        "voluspa-21",
+        "voluspa-22",
+        "voluspa-23",
+        "voluspa-24",
+        "voluspa-25",
+        "voluspa-26",
+        "voluspa-27",
+        "voluspa-28",
+        "voluspa-29",
+        "voluspa-30",
+        "voluspa-31",
+        "voluspa-32",
+        "voluspa-33",
+        "voluspa-34",
+        "voluspa-35",
+        "voluspa-36",
+        "voluspa-37",
+        "voluspa-38",
+        "voluspa-39",
+        "voluspa-40",
+        "voluspa-41",
+        "voluspa-42",
+        "voluspa-43",
+        "voluspa-44",
+        "voluspa-45",
+        "voluspa-46",
+        "voluspa-47",
+        "voluspa-48",
+        "voluspa-49",
+        "voluspa-50",
+        "voluspa-51",
+        "voluspa-52",
+        "voluspa-53",
+        "voluspa-54",
+        "voluspa-55",
+        "voluspa-56",
+        "voluspa-57",
+        "voluspa-58",
+        "voluspa-59",
+        "voluspa-60",
+        "voluspa-61",
+        "voluspa-62",
+        "voluspa-63",
+        "voluspa-64",
+        "voluspa-65",
+        "voluspa-66"
+      ],
+      "scope": "《시 에다》 「볼루스파」 헨리 애덤스 벨로스 영어판(1923), 제1–66연. 이 파일은 해당 시에 한정하며, 같은 장르의 나머지 전승이나 북유럽 신화 전체를 다루지 않는다. 제11·13·16·24연은 원문에 개별 앵커가 없어 작품 앵커를 사용한다. 기존 80장과 겹칠 수 있는 독립 대상을 검토 후보로 보존한다.",
+      "coverage_source": "입력 추출자의 자기보고; 이번 통합에서 원문 완독이나 페이지 접근을 재검증하지 않음",
+      "units": [
+        {
+          "unit": "voluspa-01",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.1",
+          "status": "read",
+          "cards": 0,
+          "note": "무녀의 청중과 발화는 기존 무녀 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-02",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.2",
+          "status": "read",
+          "cards": 0,
+          "note": "거인과 아홉 세계는 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-03",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.3",
+          "status": "read",
+          "cards": 0,
+          "note": "이미르와 태초의 틈은 기존 창조 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-04",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.4",
+          "status": "read",
+          "cards": 0,
+          "note": "보르의 아들들의 땅 형성은 기존 창조 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-05",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.5",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "voluspa-06",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.6",
+          "status": "read",
+          "cards": 0,
+          "note": "시간의 명명은 기존 천체 질서 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-07",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.7",
+          "status": "read",
+          "cards": 0,
+          "note": "이더볼의 신전·대장간은 기존 신들의 회의 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-08",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.8",
+          "status": "read",
+          "cards": 0,
+          "note": "거인 처녀 셋은 기존 거인 무리 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-09",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.9",
+          "status": "read",
+          "cards": 0,
+          "note": "브리미르의 피와 블라인의 다리는 기존 난쟁이 카드에서 다루며 정체는 추가 단정하지 않음."
+        },
+        {
+          "unit": "voluspa-10",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.10",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "voluspa-11",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#ch1.1",
+          "status": "read",
+          "cards": 0,
+          "note": "이름 명단 외 개별 인물의 행적이 없어 독립 카드로 부풀리지 않음."
+        },
+        {
+          "unit": "voluspa-12",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.12",
+          "status": "read",
+          "cards": 0,
+          "note": "이름 명단 외 개별 인물의 행적이 없어 독립 카드로 부풀리지 않음."
+        },
+        {
+          "unit": "voluspa-13",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#ch1.1",
+          "status": "read",
+          "cards": 0,
+          "note": "이름 명단 외 개별 인물의 행적이 없어 독립 카드로 부풀리지 않음."
+        },
+        {
+          "unit": "voluspa-14",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.14",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "voluspa-15",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.15",
+          "status": "read",
+          "cards": 0,
+          "note": "이름 명단 외 개별 인물의 행적이 없어 독립 카드로 부풀리지 않음."
+        },
+        {
+          "unit": "voluspa-16",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#ch1.1",
+          "status": "read",
+          "cards": 0,
+          "note": "이름 명단 외 개별 인물의 행적이 없어 독립 카드로 부풀리지 않음."
+        },
+        {
+          "unit": "voluspa-17",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.17",
+          "status": "read",
+          "cards": 0,
+          "note": "아스크와 엠블라는 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-18",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.18",
+          "status": "read",
+          "cards": 0,
+          "note": "세 신이 준 선물은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-19",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.19",
+          "status": "read",
+          "cards": 0,
+          "note": "이그드라실과 우르드의 샘은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-20",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.20",
+          "status": "read",
+          "cards": 0,
+          "note": "세 노른과 운명 배정은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-21",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.21",
+          "status": "read",
+          "cards": 0,
+          "note": "굴베이그와 첫 전쟁은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-22",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.22",
+          "status": "read",
+          "cards": 0,
+          "note": "헤이드의 마법은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-23",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.23",
+          "status": "read",
+          "cards": 0,
+          "note": "오딘의 창과 신들의 전쟁은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-24",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#ch1.1",
+          "status": "read",
+          "cards": 0,
+          "note": "조공과 숭배에 대한 회의는 기존 신들의 회의 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-25",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.25",
+          "status": "read",
+          "cards": 0,
+          "note": "오드의 아내와 회의는 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-26",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.26",
+          "status": "read",
+          "cards": 0,
+          "note": "토르와 깨진 맹세는 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-27",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.27",
+          "status": "read",
+          "cards": 0,
+          "note": "헤임달의 숨은 뿔은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-28",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.28",
+          "status": "read",
+          "cards": 0,
+          "note": "오딘과 무녀는 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-29",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.29",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "voluspa-30",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.30",
+          "status": "read",
+          "cards": 0,
+          "note": "무녀와 오딘의 장신구는 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-31",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.31",
+          "status": "read",
+          "cards": 0,
+          "note": "이름이 열거된 발키리와 출정은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-32",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.32",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "voluspa-33",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.33",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "voluspa-34",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.34",
+          "status": "read",
+          "cards": 0,
+          "note": "복수자와 프리그는 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-35",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.35",
+          "status": "read",
+          "cards": 0,
+          "note": "결박된 자와 시귄은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-36",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.36",
+          "status": "read",
+          "cards": 0,
+          "note": "슬리드 강은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-37",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.37",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "voluspa-38",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.38",
+          "status": "read",
+          "cards": 0,
+          "note": "나스트론드 전당은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-39",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.39",
+          "status": "read",
+          "cards": 0,
+          "note": "처벌과 니드호그는 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-40",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.40",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "voluspa-41",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.41",
+          "status": "read",
+          "cards": 0,
+          "note": "해가 어두워지는 징조는 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-42",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.42",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "voluspa-43",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.43",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "voluspa-44",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.44",
+          "status": "read",
+          "cards": 0,
+          "note": "가름 후렴은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-45",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.45",
+          "status": "read",
+          "cards": 0,
+          "note": "혈연의 파괴는 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-46",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.46",
+          "status": "read",
+          "cards": 0,
+          "note": "걀라르호른은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-47",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.47",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "voluspa-48",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.48",
+          "status": "read",
+          "cards": 0,
+          "note": "요툰헤임과 난쟁이의 탄식은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-49",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.49",
+          "status": "read",
+          "cards": 0,
+          "note": "가름 후렴의 반복은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-50",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.50",
+          "status": "read",
+          "cards": 0,
+          "note": "흐림과 나글파르는 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-51",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.51",
+          "status": "read",
+          "cards": 0,
+          "note": "로키와 헬의 군세는 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-52",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.52",
+          "status": "read",
+          "cards": 0,
+          "note": "수르트와 하늘의 파괴는 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-53",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.53",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "voluspa-54",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.54",
+          "status": "read",
+          "cards": 0,
+          "note": "비다르의 복수는 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-55",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.55",
+          "status": "read",
+          "cards": 0,
+          "note": "토르와 뱀의 대결은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-56",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.56",
+          "status": "read",
+          "cards": 0,
+          "note": "토르의 아홉 걸음은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-57",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.57",
+          "status": "read",
+          "cards": 0,
+          "note": "세계의 몰락은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-58",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.58",
+          "status": "read",
+          "cards": 0,
+          "note": "가름 후렴의 반복은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-59",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.59",
+          "status": "read",
+          "cards": 0,
+          "note": "되살아난 땅은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-60",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.60",
+          "status": "read",
+          "cards": 0,
+          "note": "이더볼과 옛 룬은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-61",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.61",
+          "status": "read",
+          "cards": 0,
+          "note": "황금 놀이판은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-62",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.62",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "voluspa-63",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.63",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "voluspa-64",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.64",
+          "status": "read",
+          "cards": 0,
+          "note": "김레의 전당은 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-65",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.65",
+          "status": "read",
+          "cards": 0,
+          "note": "이름 없는 군주는 기존 카드에서 다룸."
+        },
+        {
+          "unit": "voluspa-66",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.66",
+          "status": "read",
+          "cards": 1
+        }
+      ],
+      "candidate_count": 19
+    },
+    {
+      "segment": "norse-supplement",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "manifest_units": [
+        "gylfaginning-selected",
+        "skaldskaparmal-selected",
+        "grimnismal-selected",
+        "havamal-selected",
+        "thrymskvida-selected",
+        "hymiskvida-selected"
+      ],
+      "scope": "supplementary.md에서 지정한 길피의 속임수 5–9·13–15·23–27·34·38·41–42·48–49·51·53장, 시어법 43장, 그림니르의 말 31연, 하바말 138–139·144–145연, 트림의 노래 30–32연, 히미르의 노래 22–24연만. 작품 전체나 북유럽 신화 전체가 아님.",
+      "coverage_source": "입력 추출자의 자기보고; 이번 통합에서 원문 완독이나 페이지 접근을 재검증하지 않음",
+      "units": [
+        {
+          "unit": "길피의 속임수 5장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 1
+        },
+        {
+          "unit": "길피의 속임수 6장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 3
+        },
+        {
+          "unit": "길피의 속임수 7장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 1
+        },
+        {
+          "unit": "길피의 속임수 8장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 1
+        },
+        {
+          "unit": "길피의 속임수 9장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 1
+        },
+        {
+          "unit": "길피의 속임수 13장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연을 실독했으나 독립 추가 후보를 기록하지 않음; 기존 카드와 범위는 통합 시 대조 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "길피의 속임수 14장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 2
+        },
+        {
+          "unit": "길피의 속임수 15장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 4
+        },
+        {
+          "unit": "길피의 속임수 23장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 2
+        },
+        {
+          "unit": "길피의 속임수 24장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 2
+        },
+        {
+          "unit": "길피의 속임수 25장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연을 실독했으나 독립 추가 후보를 기록하지 않음; 기존 카드와 범위는 통합 시 대조 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "길피의 속임수 26장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 1
+        },
+        {
+          "unit": "길피의 속임수 27장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 3
+        },
+        {
+          "unit": "길피의 속임수 34장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 6
+        },
+        {
+          "unit": "길피의 속임수 38장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 5
+        },
+        {
+          "unit": "길피의 속임수 41장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 1
+        },
+        {
+          "unit": "길피의 속임수 42장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 2
+        },
+        {
+          "unit": "길피의 속임수 48장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 1
+        },
+        {
+          "unit": "길피의 속임수 49장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 8
+        },
+        {
+          "unit": "길피의 속임수 51장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 3
+        },
+        {
+          "unit": "길피의 속임수 53장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 3
+        },
+        {
+          "unit": "시어법 43장",
+          "url": "https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 10
+        },
+        {
+          "unit": "그림니르의 말 31연",
+          "url": "https://www.heimskringla.no/wiki/Gr%C3%ADmnism%C3%A1l",
+          "status": "read",
+          "reason": "선택된 장·연을 실독했으나 독립 추가 후보를 기록하지 않음; 기존 카드와 범위는 통합 시 대조 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "하바말 138연",
+          "url": "https://www.heimskringla.no/wiki/H%C3%A1vam%C3%A1l",
+          "status": "read",
+          "reason": "선택된 장·연을 실독했으나 독립 추가 후보를 기록하지 않음; 기존 카드와 범위는 통합 시 대조 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "하바말 139연",
+          "url": "https://www.heimskringla.no/wiki/H%C3%A1vam%C3%A1l",
+          "status": "read",
+          "reason": "선택된 장·연을 실독했으나 독립 추가 후보를 기록하지 않음; 기존 카드와 범위는 통합 시 대조 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "하바말 144연",
+          "url": "https://www.heimskringla.no/wiki/H%C3%A1vam%C3%A1l",
+          "status": "read",
+          "reason": "선택된 장·연을 실독했으나 독립 추가 후보를 기록하지 않음; 기존 카드와 범위는 통합 시 대조 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "하바말 145연",
+          "url": "https://www.heimskringla.no/wiki/H%C3%A1vam%C3%A1l",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 1
+        },
+        {
+          "unit": "트림의 노래 30연",
+          "url": "https://www.heimskringla.no/wiki/%C3%9Erymskvi%C3%B0a",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 1
+        },
+        {
+          "unit": "트림의 노래 31연",
+          "url": "https://www.heimskringla.no/wiki/%C3%9Erymskvi%C3%B0a",
+          "status": "read",
+          "reason": "선택된 장·연을 실독했으나 독립 추가 후보를 기록하지 않음; 기존 카드와 범위는 통합 시 대조 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "트림의 노래 32연",
+          "url": "https://www.heimskringla.no/wiki/%C3%9Erymskvi%C3%B0a",
+          "status": "read",
+          "reason": "선택된 장·연만 실독; 이름만 나오는 대상은 설명이 부족하면 제외.",
+          "cards": 1
+        },
+        {
+          "unit": "히미르의 노래 22연",
+          "url": "https://www.heimskringla.no/wiki/Hymiskvi%C3%B0a",
+          "status": "read",
+          "reason": "선택된 장·연을 실독했으나 독립 추가 후보를 기록하지 않음; 기존 카드와 범위는 통합 시 대조 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "히미르의 노래 23연",
+          "url": "https://www.heimskringla.no/wiki/Hymiskvi%C3%B0a",
+          "status": "read",
+          "reason": "선택된 장·연을 실독했으나 독립 추가 후보를 기록하지 않음; 기존 카드와 범위는 통합 시 대조 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "히미르의 노래 24연",
+          "url": "https://www.heimskringla.no/wiki/Hymiskvi%C3%B0a",
+          "status": "read",
+          "reason": "선택된 장·연을 실독했으나 독립 추가 후보를 기록하지 않음; 기존 카드와 범위는 통합 시 대조 필요.",
+          "cards": 0
+        }
+      ],
+      "candidate_count": 63
+    }
+  ],
+  "counts": {
+    "input_files": 2,
+    "input_candidates": 82,
+    "output_individual_records": 82,
+    "merged_candidates": 0,
+    "unprocessed_candidates": 0,
+    "candidate_accounting": "82 = 82 개별 보존 + 0 완전 근거 보존 병합",
+    "existing_norse_runtime_cards": 80,
+    "existing_runtime_worlds": 26,
+    "existing_runtime_cards_all_worlds": 1254,
+    "existing_myth_genres": 15,
+    "existing_myth_runtime_cards": 868
+  },
+  "output_files": [
+    "cards-001.json"
+  ],
+  "duplicate_policy": "동일 제목·키 또는 제목의 기존 본문 등장, 입력자가 명시한 기존 카드 참조를 기계적 중복 후보로 표시; 일치가 동일 존재를 뜻하지 않으며 가능한 서로 다른 전승 및 모든 후보를 병합 없이 보존. 의미상 중복 전체에 대한 수동 검토는 미완료. 동일 출전의 장·연에 연결된 기존 카드도 비교 대상으로 추가했으나 같은 본문 구간이라는 뜻일 뿐 동일 대상을 보장하지 않는다.",
+  "limitations": [
+    "지정 범위는 볼루스파 벨로스 영역본 1–66연과 supplementary.md에 지정된 장·연뿐이다. 전승·작품 전체를 망라한다고 볼 수 없고 기존 카드로 처리되었다는 입력자의 판단 및 이름만 나온 항목 제외로 누락 가능성이 있다.",
+    "각 read는 원문 추출자의 자기보고이며 이 통합 작업의 재독 여부가 아니다. Sacred Texts 대조본 및 그 밖의 다른 판본은 입력이 실독했다고 밝히지 않아 미확인이다. 추가 선택 범위가 명세에 없는 경우 미정으로 남긴다.",
+    "발췌가 짧아 요약의 모든 사실과 해석을 독립적으로 증명하지 못한다. 원문 전체 맥락, 판본 차이, 지역·시기별 전승을 검토해야 한다.",
+    "추출 내용은 자체 작성 한국어 요약이며 공인 번역이 아니다. 원문 전사·번역·제3자 자료의 지적 재산 및 재사용 조건을 확인하지 못했다.",
+    "현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다. 이 검토 묶음은 자동 적용되지 않는다. 기존 북유럽 80개와 후보 82개를 단순 합산하면 162개이나 중복·권리 검토 전 고유 개수나 적용 가능성을 뜻하지 않는다.",
+    "서로 다른 출전을 단일 정본으로 단정하지 않는다. 기계적 구조 검증은 역사·신화 내용의 정확성이나 전수성을 보증하지 않는다.",
+    "원격 원전 페이지 자체의 고정 commit 또는 원문 SHA-256은 입력에 없어서 미확인이다. 기록된 SHA-256은 입력 JSON 및 로컬 자료 바이트에만 적용된다."
+  ],
+  "source_hashes_sha256": {
+    "미게시-임시자료:myth/manifest.json": "e4ba1ed138007f194b3c4133967110a63b58157d891a52205f75326b78098a9e",
+    "미게시-임시자료:myth/norse-voluspa.json": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+    "미게시-임시자료:myth/norse-supplement.json": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+    "infrastructure/sample-data/genre-templates/norse_mythology/source/tradition-cards.json": "ddf24055211b823b485afb49406ed51874f168ee438b7e2099e025c771a9c256",
+    "infrastructure/sample-data/genre-templates/norse_mythology/source/template.json": "5cb2cc0f1a32e915279fe0be3600049f7a3370672bbf63cf18ec578f8c57adc7",
+    "infrastructure/sample-data/genre-templates/norse_mythology/source/sources.md": "135a6fd12223e257b52e1932465bc371d23a7ac28a23ee3cb09098f24e94de93",
+    "infrastructure/sample-data/genre-templates/norse_mythology/source/supplementary.md": "96cd30f9e5a64ef69b6403cfb0d0fef4bfe39ad3914095fcdd7624fe3a1bc579",
+    "backend/content-service/src/main/resources/genre-templates.json": "bc3cbacd8e7806d673793963386a63c6b7d61f0ec280ce56c22fd74d33003340",
+    "backend/content-service/src/main/resources/genre-templates-v1.json": "96cbbb7607aada4ca8f7a27f56cfd6a6197c7826db0160fae2cc134768992d85",
+    "backend/content-service/src/main/resources/genre-templates-v2.json": "4699939f749f45dc0958f7c908955ade6e9ea91ab8ed9ab55860251831aa9517"
+  },
+  "repository_head": "3ec049e5f00dfc6b07c9b840631b159b5b68bd54",
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

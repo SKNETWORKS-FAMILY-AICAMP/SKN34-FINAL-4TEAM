@@ -1,0 +1,5478 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "review-only-candidates",
+  "genre": "usa_history",
+  "worldId": "caa0b0e9-0305-566e-82ee-650f43aa464e",
+  "source_manifest_path": "미게시-임시자료:history/manifest.json",
+  "source_manifest_sha256": "f3faa02f012e87678aad6cb004920343719ed797389a605ed2385517017547c1",
+  "source_commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+  "source_path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+  "source_sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+  "source_hash_verified_with_git_show": true,
+  "input_segments": [
+    {
+      "segment": "usa-1",
+      "input_path": "미게시-임시자료:history/usa-1.json",
+      "input_sha256": "50262fc282aae7e4cb4c72e75fc3c671483d11c80a9853710f75b98586560b99",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-1",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 69,
+        "line_end": 6650,
+        "chapters": [
+          "usa:chapter-1",
+          "usa:chapter-2",
+          "usa:chapter-3",
+          "usa:chapter-4",
+          "usa:chapter-5",
+          "usa:chapter-6",
+          "usa:chapter-7"
+        ],
+        "heads": [
+          [
+            69,
+            "chapter-1"
+          ],
+          [
+            1077,
+            "chapter-2"
+          ],
+          [
+            1916,
+            "chapter-3"
+          ],
+          [
+            2844,
+            "chapter-4"
+          ],
+          [
+            3510,
+            "chapter-5"
+          ],
+          [
+            4535,
+            "chapter-6"
+          ],
+          [
+            5596,
+            "chapter-7"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "superseded_by": "usa chapter groups",
+        "status": "partial"
+      },
+      "input_segment_field": "usa-1",
+      "scope": {
+        "line_start": 69,
+        "line_end": 6650,
+        "chapters": [
+          "usa:chapter-1",
+          "usa:chapter-2",
+          "usa:chapter-3",
+          "usa:chapter-4",
+          "usa:chapter-5",
+          "usa:chapter-6",
+          "usa:chapter-7"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-1",
+          "line_start": 69,
+          "line_end": 1076,
+          "status": "partial",
+          "cards": 14,
+          "note": "69–117행 I–II 본문만 읽고 추출; 118–1076행 미완료. 영문 제1장 I–II와 기존 evidence의 장별 크레딧 대조. 한국어는 미감수 번역 초안. 목차·참고문헌·그림 설명·제3자 1차사료 전문은 추출 제외 예정."
+        },
+        {
+          "unit": "usa:chapter-2",
+          "line_start": 1077,
+          "line_end": 1915,
+          "status": "unread",
+          "cards": 0,
+          "note": "미독·미추출. 목차·참고문헌·그림 설명·제3자 1차사료 전문 제외 여부와 근거 확인 필요."
+        },
+        {
+          "unit": "usa:chapter-3",
+          "line_start": 1916,
+          "line_end": 2843,
+          "status": "unread",
+          "cards": 0,
+          "note": "미독·미추출. 목차·참고문헌·그림 설명·제3자 1차사료 전문 제외 여부와 근거 확인 필요."
+        },
+        {
+          "unit": "usa:chapter-4",
+          "line_start": 2844,
+          "line_end": 3509,
+          "status": "unread",
+          "cards": 0,
+          "note": "미독·미추출. 목차·참고문헌·그림 설명·제3자 1차사료 전문 제외 여부와 근거 확인 필요."
+        },
+        {
+          "unit": "usa:chapter-5",
+          "line_start": 3510,
+          "line_end": 4534,
+          "status": "unread",
+          "cards": 0,
+          "note": "미독·미추출. 목차·참고문헌·그림 설명·제3자 1차사료 전문 제외 여부와 근거 확인 필요."
+        },
+        {
+          "unit": "usa:chapter-6",
+          "line_start": 4535,
+          "line_end": 5595,
+          "status": "unread",
+          "cards": 0,
+          "note": "미독·미추출. 목차·참고문헌·그림 설명·제3자 1차사료 전문 제외 여부와 근거 확인 필요."
+        },
+        {
+          "unit": "usa:chapter-7",
+          "line_start": 5596,
+          "line_end": 6650,
+          "status": "unread",
+          "cards": 0,
+          "note": "미독·미추출. 목차·참고문헌·그림 설명·제3자 1차사료 전문 제외 여부와 근거 확인 필요."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "attribution": {
+          "work": "The American Yawp",
+          "work_editors": [
+            "Joseph L. Locke",
+            "Ben Wright"
+          ],
+          "license": "CC BY-SA 4.0",
+          "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안을 선택·요약·카드화한 변경본이며 원저자의 승인이나 독립 감수를 뜻하지 않는다.",
+          "checked_on_utc": "2026-11-16",
+          "comparison_limit": "기존 카드 명단과 현재 공식 페이지의 기여자 명단은 같으나 이전 웹판의 고정 revision은 확인하지 못해 판본 동일성을 확정하지 않는다.",
+          "chapter": "1. American Origins",
+          "chapter_editor": "Christen Mucher",
+          "contributors": [
+            "L. D. Burnett",
+            "Michelle Cassidy",
+            "D. Andrew Johnson",
+            "Khalil Anthony Johnson Jr.",
+            "Brenda Lakhani",
+            "Joseph Locke",
+            "Dawn Marsh",
+            "Christen Mucher",
+            "Rachel Pasierowska",
+            "Cameron Shriver",
+            "Ben Wright",
+            "Caroline Wright",
+            "Garrett Wright"
+          ],
+          "edition": "조회 당시 현행 온라인판; 이 장 페이지에서 고정 판본·revision 미확인",
+          "reference_url": "https://www.americanyawp.com/textbook/01-american-origins/#IX_Reference_Material"
+        }
+      },
+      "candidate_count": 14,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch01",
+      "input_path": "미게시-임시자료:history/usa-ch01.json",
+      "input_sha256": "3654cea284c701df1c64e239dc757f8182c7e7ed0770c3ba15577abe18ada9d9",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch01",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 69,
+        "line_end": 1076,
+        "chapters": [
+          "usa:chapter-1"
+        ],
+        "heads": [
+          [
+            69,
+            "chapter-1"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-1"
+      },
+      "input_segment_field": "usa-ch01",
+      "scope": {
+        "line_start": 69,
+        "line_end": 1076,
+        "chapters": [
+          "usa:chapter-1"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-1",
+          "line_start": 69,
+          "line_end": 1076,
+          "status": "read",
+          "cards": 109,
+          "note": "I–VII 서술 본문 79–89, 103–117, 133–155, 170–188, 207–243, 256–298, 314행을 완독해 추출. 목차·안내·편집 메모·VIII 외부 사료 소개 및 제3자 전문·IX 참고문헌과 주석·그림 설명·다음 장 서문은 카드 본문에서 제외. 한국어는 비공식 번역 초안이며 1차 원어 사료가 아님. 영문 제1장 크레딧과 본문 일부 및 기존 usa.evidence.json을 확인했으나 각 신규 카드 사실의 영문 대조·독립 역사 검증은 미완료. 제1장 온라인 크레딧과 교재 홈페이지 CC BY-SA 4.0 및 소개 페이지의 라이선스를 확인함. 기존 evidence의 원어 텍스트는 해당 커밋에서 별도 파일로 존재하지 않아 evidence 기록만 확인함. 해당 장의 III–VII 개별 카드의 영문 전체 문장 대조는 미완료. 검토된 예시는 포버티포인트, 호호캄 관개, 네사우알코요틀과 첫 연어 의식, 마야 도시 단락이다. 제1장 텍스트 내 지곤하세 표기와 마야 도시 위치 등은 후속 검증이 필요하다."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "attribution": {
+          "work": "The American Yawp",
+          "work_editors": [
+            "Joseph L. Locke",
+            "Ben Wright"
+          ],
+          "license": "CC BY-SA 4.0",
+          "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안을 선택·요약·카드화한 변경본이며 원저자의 승인이나 독립 감수를 뜻하지 않는다.",
+          "checked_on_utc": "2026-11-16",
+          "comparison_limit": "기존 카드 명단과 현재 공식 페이지의 기여자 명단은 같으나 이전 웹판의 고정 revision은 확인하지 못해 판본 동일성을 확정하지 않는다.",
+          "chapter": "1. American Origins",
+          "chapter_editor": "Christen Mucher",
+          "contributors": [
+            "L. D. Burnett",
+            "Michelle Cassidy",
+            "D. Andrew Johnson",
+            "Khalil Anthony Johnson Jr.",
+            "Brenda Lakhani",
+            "Joseph Locke",
+            "Dawn Marsh",
+            "Christen Mucher",
+            "Rachel Pasierowska",
+            "Cameron Shriver",
+            "Ben Wright",
+            "Caroline Wright",
+            "Garrett Wright"
+          ],
+          "edition": "조회 당시 현행 온라인판; 이 장 페이지에서 고정 판본·revision 미확인",
+          "reference_url": "https://www.americanyawp.com/textbook/01-american-origins/#IX_Reference_Material"
+        }
+      },
+      "candidate_count": 109,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch02",
+      "input_path": "미게시-임시자료:history/usa-ch02.json",
+      "input_sha256": "2ce563408a9ab198cda8be8b2d6e45fe4cc3c170ba5d4e2fef7bc406ce5d1358",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch02",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 1077,
+        "line_end": 1915,
+        "chapters": [
+          "usa:chapter-2"
+        ],
+        "heads": [
+          [
+            1077,
+            "chapter-2"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-1"
+      },
+      "input_segment_field": "제2장 대서양 세계의 형성",
+      "scope": {
+        "line_start": 1077,
+        "line_end": 1915,
+        "chapters": [
+          "usa:chapter-2"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-2",
+          "line_start": 1077,
+          "line_end": 1095,
+          "status": "read",
+          "cards": 2,
+          "note": "I. 서론 서술 본문 읽음; 개별 카드 영문 대조와 역사적 사실 검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-2",
+          "line_start": 1096,
+          "line_end": 1133,
+          "status": "read",
+          "cards": 21,
+          "note": "II. 유럽, 대서양으로 나아가다 서술 본문 읽음; 개별 카드 영문 대조와 역사적 사실 검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-2",
+          "line_start": 1134,
+          "line_end": 1161,
+          "status": "read",
+          "cards": 16,
+          "note": "III. 북아프리카와 서아프리카 서술 본문 읽음; 개별 카드 영문 대조와 역사적 사실 검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-2",
+          "line_start": 1162,
+          "line_end": 1185,
+          "status": "read",
+          "cards": 8,
+          "note": "IV. 노예무역의 기원 서술 본문 읽음; 개별 카드 영문 대조와 역사적 사실 검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-2",
+          "line_start": 1186,
+          "line_end": 1224,
+          "status": "read",
+          "cards": 22,
+          "note": "V. 에스파냐의 탐험과 정복 서술 본문 읽음; 개별 카드 영문 대조와 역사적 사실 검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-2",
+          "line_start": 1225,
+          "line_end": 1264,
+          "status": "read",
+          "cards": 26,
+          "note": "VI. 에스파냐령 아메리카 서술 본문 읽음; 개별 카드 영문 대조와 역사적 사실 검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-2",
+          "line_start": 1265,
+          "line_end": 1331,
+          "status": "read",
+          "cards": 51,
+          "note": "VII절 서술 본문 전체 읽음. 그림 및 설명 제외; 출처별 개별 원문·역사 감수 미완료. 1309행 1789년은 1896–1897행의 독립 검증에서 1769년과 충돌하는 오류로 확인."
+        },
+        {
+          "unit": "usa:chapter-2",
+          "line_start": 1332,
+          "line_end": 1387,
+          "status": "read",
+          "cards": 0,
+          "note": "VIII 결론 1337–1341행을 읽었고 대상은 앞선 카드에 반영. IX 1차 사료 소개 1343–1380행과 외부 제3자 사료 전문은 독립 설정 본문으로 사용하지 않음."
+        },
+        {
+          "unit": "usa:chapter-2",
+          "line_start": 1388,
+          "line_end": 1900,
+          "status": "read",
+          "cards": 0,
+          "note": "참고자료·서지 1388–1845행과 그림 설명 1846–1895행은 설정 근거에서 제외. 저작자 크레딧과 1896–1897행 샌디에이고 연대 독립검증은 메타데이터에 반영."
+        },
+        {
+          "unit": "usa:chapter-2",
+          "line_start": 1901,
+          "line_end": 1915,
+          "status": "read",
+          "cards": 0,
+          "note": "제3장 통합 파일의 안내와 메타데이터이므로 제2장 추출 대상이 아님. 제3장 본문은 1916행부터."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "source_evidence": {
+          "work": "The American Yawp",
+          "edition": "2026년 제2판, Making an Atlantic World",
+          "chapter_url": "https://www.americanyawp.com/textbook/02-making-an-atlantic-world/",
+          "credit_evidence": "초안 1080–1081·1406–1410행 및 온라인 원문 X. Reference Material 확인. 총편집 Joseph L. Locke, Ben Wright; 장 편집 Max Flomen; 기여 L. D. Burnett, Max Flomen, Kathryn Green, D. Andrew Johnson, Brenda Lakhani, Joseph Locke, Cameron Shriver, Ben Wright, Caroline Wright, Miller Shores Wright.",
+          "license_evidence": "2026년 제2판 공식 서론은 프로젝트의 CC BY-SA 4.0을 명시한다: https://www.americanyawp.com/lite/2e-c00.html . 초안 1081·1166행도 본문에 같은 라이선스를 표시한다. 조건: https://creativecommons.org/licenses/by-sa/4.0/ . 이미지와 제3자 사료 권리는 별개이며 포함하지 않음.",
+          "changes": "비공식 한국어 번역 초안에서 선택·요약하여 카드로 재구성; 저자의 승인이나 보증 없음.",
+          "verification": "해당 제2판 온라인 장의 제목, 서문 일부, 일부 본문, 장 기여자를 확인했으나 각 카드의 개별 문장 전부를 영문과 대조하지 못했다. 원문은 1차 사료가 아니며 역사적 정확성·권리 최종 판단은 미검증."
+        }
+      },
+      "candidate_count": 146,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch03",
+      "input_path": "미게시-임시자료:history/usa-ch03.json",
+      "input_sha256": "a4234148e6d320f0e84dc5a50d011ba99a254beeec00bfe2f1131f3aebd31821",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch03",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 1916,
+        "line_end": 2843,
+        "chapters": [
+          "usa:chapter-3"
+        ],
+        "heads": [
+          [
+            1916,
+            "chapter-3"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-1"
+      },
+      "input_segment_field": "usa:chapter-3",
+      "scope": {
+        "line_start": 1916,
+        "line_end": 2843,
+        "chapters": [
+          "usa:chapter-3"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-3:I",
+          "line_start": 1916,
+          "line_end": 1932,
+          "status": "read",
+          "cards": 0,
+          "note": "서론 두 문단 읽음. 앞뒤 절의 구체적인 개체 카드와 중복되어 별도 카드 없음. 그림 및 대조 메모 제외."
+        },
+        {
+          "unit": "usa:chapter-3:II",
+          "line_start": 1933,
+          "line_end": 1961,
+          "status": "read",
+          "cards": 21,
+          "note": "II 서술 본문 전체 읽음. 그림 설명과 대조 메모 제외. 개별 카드의 원어 전수 대조 미완료."
+        },
+        {
+          "unit": "usa:chapter-3:III",
+          "line_start": 1962,
+          "line_end": 2047,
+          "status": "read",
+          "cards": 79,
+          "note": "III 본문과 다섯 소절을 읽음. 그림·설명·검수 메모는 본문 근거에서 제외. 일부 온라인 원문 발췌 확인, 개별 카드 전수 원어 대조 미완료."
+        },
+        {
+          "unit": "usa:chapter-3:IV",
+          "line_start": 2048,
+          "line_end": 2074,
+          "status": "read",
+          "cards": 13,
+          "note": "IV 본문을 읽음. 그림 설명과 대조 메모 제외."
+        },
+        {
+          "unit": "usa:chapter-3:V",
+          "line_start": 2075,
+          "line_end": 2127,
+          "status": "read",
+          "cards": 32,
+          "note": "V 서술 본문 전체 읽음. 그림·설명·각주 서지 제외. 초안은 일부 연대와 인용의 추가 검증을 요구한다."
+        },
+        {
+          "unit": "usa:chapter-3:VI",
+          "line_start": 2128,
+          "line_end": 2173,
+          "status": "read",
+          "cards": 34,
+          "note": "VI 서술 본문 전체 읽음. 그림·설명·각주 서지 제외. 원문 질병·인구수 및 전쟁 동맹 설명은 추가 감수가 필요하다."
+        },
+        {
+          "unit": "usa:chapter-3:VII",
+          "line_start": 2174,
+          "line_end": 2186,
+          "status": "read",
+          "cards": 1,
+          "note": "결론 본문 읽음. 이미 앞 절에서 추출한 식민지·노예제 관련 대상과 중복 병합 가능."
+        },
+        {
+          "unit": "usa:chapter-3:VIII",
+          "line_start": 2187,
+          "line_end": 2233,
+          "status": "read",
+          "cards": 8,
+          "note": "교재 자체의 사료 소개 1–7을 읽음. 외부에 연결된 제3자 1차사료 전문은 열람·재사용하지 않음. 그림 소개 8–9와 그림 설명은 제외."
+        },
+        {
+          "unit": "usa:chapter-3:IX-and-captions",
+          "line_start": 2234,
+          "line_end": 2843,
+          "status": "excluded",
+          "cards": 0,
+          "note": "IX 참고자료·주석(2234–2785), 그림 설명(2786–2834), 차장 표제 및 빈 줄(2835–2843)은 설정 본문에서 제외. 2252행 장 기여자는 출처 확인에만 사용."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "attribution": {
+          "title": "The American Yawp, Chapter 3: Colliding Cultures",
+          "editors": "Joseph L. Locke, Ben Wright",
+          "chapter_editor": "Miller Shores Wright",
+          "contributors": "Erin Bonuso, L. D. Burnett, Max Flomen, Jon Grandage, Daniel Johnson, Brenda Lakhani, Joseph Locke, Lisa Mercer, Maria Montalvo, Ian Saxine, Jennifer Tellman, Luke Willert, Ben Wright, Caroline Wright, Miller Shores Wright",
+          "url": "https://www.americanyawp.com/textbook/03-colliding-cultures/",
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안을 선정·요약해 카드로 구성, 승인·보증을 뜻하지 않음",
+          "verification": "온라인 장 구조와 일부 원문을 확인했으나 개별 카드 전부를 원어와 대조하지 않았음. 한국어 초안은 1차 원어 사료가 아니며 독립적 역사 사실감수 미완료. 장 기여자는 기존 usa.evidence.json 및 초안 2252행 확인.",
+          "license_evidence": "교재 About 페이지 https://www.americanyawp.com/text/about/ 본문에서 CC BY-SA 4.0 확인. 그림 및 제3자 사료 권리는 별도."
+        }
+      },
+      "candidate_count": 188,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch04",
+      "input_path": "미게시-임시자료:history/usa-ch04.json",
+      "input_sha256": "4efde40dd513ceaa36305186e9fe76c60c1e65d373f5641be4af9ecca5e4541d",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch04",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 2844,
+        "line_end": 3509,
+        "chapters": [
+          "usa:chapter-4"
+        ],
+        "heads": [
+          [
+            2844,
+            "chapter-4"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-1"
+      },
+      "input_segment_field": "usa-ch04",
+      "scope": {
+        "line_start": 2844,
+        "line_end": 3509,
+        "chapters": [
+          "usa:chapter-4"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-4:I",
+          "line_start": 2844,
+          "line_end": 2857,
+          "status": "read",
+          "cards": 0,
+          "note": "서론은 식민 인구와 노예제의 개관이며 독립 대상은 II절에서 추출."
+        },
+        {
+          "unit": "usa:chapter-4:II",
+          "line_start": 2858,
+          "line_end": 2905,
+          "status": "read",
+          "cards": 21,
+          "note": "서술 2866–2896 전체 열람. 인용된 1차 사료 전문 및 그림 설명 제외."
+        },
+        {
+          "unit": "usa:chapter-4:III",
+          "line_start": 2906,
+          "line_end": 2937,
+          "status": "read",
+          "cards": 16,
+          "note": "서술 본문 전부 열람. 그림 설명 및 서지 제외; 개별 원문 대조와 독립 사실검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-4:IV",
+          "line_start": 2938,
+          "line_end": 2978,
+          "status": "read",
+          "cards": 29,
+          "note": "서술 본문 전부 열람. 그림 설명 및 서지 제외; 개별 원문 대조와 독립 사실검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-4:V",
+          "line_start": 2979,
+          "line_end": 3051,
+          "status": "read",
+          "cards": 39,
+          "note": "서술 2986–3040 전체 열람. 원문도 모히건 동맹 설명에 내부 긴장이 있어 단정하지 않음."
+        },
+        {
+          "unit": "usa:chapter-4:VI",
+          "line_start": 3052,
+          "line_end": 3064,
+          "status": "read",
+          "cards": 0,
+          "note": "결론 3063행 열람. 개관이므로 별도 카드 없음."
+        },
+        {
+          "unit": "usa:chapter-4:VII",
+          "line_start": 3065,
+          "line_end": 3110,
+          "status": "read",
+          "cards": 8,
+          "note": "사료 소개 9개 열람; 연결된 제3자 1차사료 전문과 그림 설명은 제외. 인물 카드는 교재의 소개문만 근거로 작성."
+        },
+        {
+          "unit": "usa:chapter-4:excluded",
+          "line_start": 3111,
+          "line_end": 3498,
+          "status": "excluded",
+          "cards": 0,
+          "note": "참고문헌·각주 서지(3111–3434), 그림 설명과 검수 메모(3435–3498)는 독립 설정 근거에서 제외. 크레딧은 출처 확인에 사용."
+        },
+        {
+          "unit": "usa:chapter-5:header",
+          "line_start": 3499,
+          "line_end": 3509,
+          "status": "excluded",
+          "cards": 0,
+          "note": "제5장 통합 안내·다음 절 파일 표식으로 담당 제4장 본문이 아님."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "attribution": {
+          "title": "The American Yawp, Chapter 4: British North America",
+          "editors": "Joseph Locke, Ben Wright",
+          "chapter_editor": "Daniel Johnson",
+          "contributors": "Gregory Ablavsky, James Ambuske, Carolyn Arena, L. D. Burnett, Lori Daggar, Max Flomen, Hendrick Isom, D. Andrew Johnson, Daniel Johnson, Matthew Kruer, Brenda Lakhani, Joseph Locke, Samantha Miller, Melissa Morris, Bryan Rindfleisch, Emily Romeo, John Saillant, Ian Saxine, Marie Stango, Luke Willert, Ben Wright, Caroline Wright, Miller Shores Wright",
+          "url": "https://www.americanyawp.com/textbook/04-british-north-america/",
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "한국어 비공식 번역 초안을 선택·요약하고 카드별로 재구성했다. 원저자 승인이나 전문가 사실감수는 없다.",
+          "verification": "온라인 제4장과 장 크레딧은 웹 열람 확인. 각 카드의 서술은 한국어 초안에 근거하며 원문 개별 대조와 역사적 사실 검증은 미완료. 기존 evidence의 원어 파일 경로는 기록상 존재하나 본 커밋에 원어 파일 없음."
+        }
+      },
+      "candidate_count": 110,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch05",
+      "input_path": "미게시-임시자료:history/usa-ch05.json",
+      "input_sha256": "ce51e1a67ba768c3781cb44d38250ed23555130a826e3c81780c2ce1e0cf75c6",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch05",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 3510,
+        "line_end": 4534,
+        "chapters": [
+          "usa:chapter-5"
+        ],
+        "heads": [
+          [
+            3510,
+            "chapter-5"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-1"
+      },
+      "input_segment_field": "chapter-5",
+      "scope": {
+        "line_start": 3510,
+        "line_end": 4534,
+        "chapters": [
+          "usa:chapter-5"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-5/I",
+          "line_start": 3510,
+          "line_end": 3523,
+          "status": "read",
+          "cards": 0,
+          "note": "서론 3516행을 읽음. 전체 문화 변화의 일반적 개요로 독립 대상 없음."
+        },
+        {
+          "unit": "usa:chapter-5/II",
+          "line_start": 3524,
+          "line_end": 3567,
+          "status": "read",
+          "cards": 22,
+          "note": "서술 본문 3530–3556행을 읽음. 메모와 그림 설명 제외; 개별 주장 독립검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-5/III",
+          "line_start": 3568,
+          "line_end": 3607,
+          "status": "read",
+          "cards": 19,
+          "note": "본문 3574–3594행을 읽음; 서술 속 노예제 통계·질병 및 법률 주장들은 독립 검증하지 않음."
+        },
+        {
+          "unit": "usa:chapter-5/IV",
+          "line_start": 3608,
+          "line_end": 3662,
+          "status": "read",
+          "cards": 37,
+          "note": "본문 3616–3652행을 읽음. 인쇄 연대 등 초안의 불확실한 주장들은 독립 검증하지 않음."
+        },
+        {
+          "unit": "usa:chapter-5/V",
+          "line_start": 3663,
+          "line_end": 3693,
+          "status": "read",
+          "cards": 21,
+          "note": "본문 3672–3684행을 읽음. 협정의 관할과 전쟁 결과는 교과서 서술이며 별도 사료 검증이 필요하다."
+        },
+        {
+          "unit": "usa:chapter-5/VI",
+          "line_start": 3694,
+          "line_end": 3723,
+          "status": "read",
+          "cards": 22,
+          "note": "본문 3700–3712행을 읽음. 플라시 전투 교전 상대 등 교과서의 일부 주장에 독립 검증이 필요하다."
+        },
+        {
+          "unit": "usa:chapter-5/VII",
+          "line_start": 3724,
+          "line_end": 3753,
+          "status": "read",
+          "cards": 16,
+          "note": "본문 3730–3742행을 읽음. 1763년 왕령과 1766년 합의는 연대 순서에 주의; 사망자 수 등 독립 검증 전."
+        },
+        {
+          "unit": "usa:chapter-5/VIII",
+          "line_start": 3754,
+          "line_end": 3763,
+          "status": "read",
+          "cards": 1,
+          "note": "결론 3762행을 읽음."
+        },
+        {
+          "unit": "usa:chapter-5/IX",
+          "line_start": 3764,
+          "line_end": 3809,
+          "status": "read",
+          "cards": 5,
+          "note": "3768–3792행의 교과서 자체 사료소개 7개를 읽었으며 해당 인물은 기존 카드와 통합하거나 별도로 추출했다. 3796·3800행은 그림 해설이므로 제외했다. 외부 링크된 제3자 1차 사료 전문은 읽거나 수록하지 않았다."
+        },
+        {
+          "unit": "usa:chapter-5/X",
+          "line_start": 3810,
+          "line_end": 4448,
+          "status": "excluded",
+          "cards": 0,
+          "note": "장 기여 정보 3817행은 귀속 확인에만 사용했다. 추천문헌·각주·서지 및 감수 메모는 대상 본문으로 사용하지 않았다."
+        },
+        {
+          "unit": "usa:chapter-5/illustrations",
+          "line_start": 4449,
+          "line_end": 4523,
+          "status": "excluded",
+          "cards": 0,
+          "note": "그림 설명 및 감수 메모 제외; 이미지 권리 별도."
+        },
+        {
+          "unit": "usa:chapter-6/header",
+          "line_start": 4524,
+          "line_end": 4534,
+          "status": "excluded",
+          "cards": 0,
+          "note": "지정 범위 끝은 제6장 표제·범위 안내로 제5장에 속하지 않는다."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "attribution": {
+          "work": "The American Yawp, 온라인 2판, 제5장 Colonial Society",
+          "editors": [
+            "Joseph Locke",
+            "Ben Wright"
+          ],
+          "chapter_editor": "Nora Slonimsky",
+          "chapter_contributors": [
+            "Emily Arendt",
+            "Ethan R. Bennett",
+            "John Blanton",
+            "Alexander Burns",
+            "Mary Draper",
+            "Jamie Goodall",
+            "Jane Fiegen Green",
+            "Hendrick Isom",
+            "Brenda Lakhani",
+            "Kathryn Lasdow",
+            "Allison Madar",
+            "Brooke Palmieri",
+            "Nora Slonimsky",
+            "Katherine Smoak",
+            "Christopher Sparshott",
+            "Ben Wright",
+            "Caroline Wright",
+            "Garrett Wright"
+          ],
+          "chapter_url": "https://www.americanyawp.com/textbook/05-colonial-society/",
+          "license": "CC BY-SA 4.0",
+          "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "source_attribution_url": "https://www.americanyawp.com/textbook/introduction/",
+          "change": "비공식 한국어 번역 초안에서 대상별로 요약·재구성; 번역·요약 및 변경을 표시함",
+          "verification": "온라인 2판 장의 기여자 목록과 일부 절을 대조; 카드별 모든 주장과 사료는 독립 검증하지 않음. 한국어 초안은 1차 원어 사료가 아님. 그림과 제3자 사료의 별도 권리는 포함하지 않음.",
+          "existing_evidence": "고정 커밋의 infrastructure/sample-data/genre-templates/history/usa.evidence.json은 미국 자료의 저작자·CC BY-SA 4.0·변경 표기를 확인할 수 있으나 제5장은 원문/기여자 목록에 포함하지 않는다. 제5장 명단은 한국어 초안 3817행과 해당 온라인 장의 Reference Material을 대조했다.",
+          "license_evidence": "https://www.americanyawp.com/textbook/introduction/ 및 https://www.americanyawp.com/about.html; 그림과 제3자 콘텐츠의 권리는 별도."
+        }
+      },
+      "candidate_count": 143,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch06",
+      "input_path": "미게시-임시자료:history/usa-ch06.json",
+      "input_sha256": "dc633ede925b2e1519147b87ff645c8b9aa50b822b4b35181daebd0eb937a353",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch06",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 4535,
+        "line_end": 5595,
+        "chapters": [
+          "usa:chapter-6"
+        ],
+        "heads": [
+          [
+            4535,
+            "chapter-6"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-1"
+      },
+      "input_segment_field": "chapter-6",
+      "scope": {
+        "line_start": 4535,
+        "line_end": 5595,
+        "chapters": [
+          "usa:chapter-6"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-6",
+          "section": "I. 서론",
+          "line_start": 4535,
+          "line_end": 4551,
+          "status": "read",
+          "cards": 2,
+          "note": "번역 서술 본문을 읽음. 그림·각주 서지·대조 메모는 본문 근거에서 제외."
+        },
+        {
+          "unit": "usa:chapter-6",
+          "section": "II. 기원",
+          "line_start": 4552,
+          "line_end": 4580,
+          "status": "read",
+          "cards": 9,
+          "note": "번역 서술 본문을 읽음. 그림·각주 서지·대조 메모는 본문 근거에서 제외."
+        },
+        {
+          "unit": "usa:chapter-6",
+          "section": "III. 원인",
+          "line_start": 4581,
+          "line_end": 4648,
+          "status": "read",
+          "cards": 28,
+          "note": "서술 본문 및 본문 중 인용을 읽음. 그림·각주 서지·대조 메모 제외."
+        },
+        {
+          "unit": "usa:chapter-6",
+          "section": "IV. 독립",
+          "line_start": 4649,
+          "line_end": 4717,
+          "status": "read",
+          "cards": 42,
+          "note": "서술 본문 및 본문 중 인용을 읽음. 그림·각주 서지·대조 메모 제외."
+        },
+        {
+          "unit": "usa:chapter-6",
+          "section": "V. 독립전쟁",
+          "line_start": 4718,
+          "line_end": 4754,
+          "status": "read",
+          "cards": 19,
+          "note": "서술 본문을 읽음. 그림·각주 서지·대조 메모 제외."
+        },
+        {
+          "unit": "usa:chapter-6",
+          "section": "VI. 결과",
+          "line_start": 4755,
+          "line_end": 4792,
+          "status": "read",
+          "cards": 15,
+          "note": "서술 본문을 읽음. 그림·각주 서지·대조 메모 제외."
+        },
+        {
+          "unit": "usa:chapter-6",
+          "section": "VII. 결론",
+          "line_start": 4793,
+          "line_end": 4806,
+          "status": "read",
+          "cards": 0,
+          "note": "세 결론 문단을 읽음. 독립 대상은 다른 절의 카드에 반영."
+        },
+        {
+          "unit": "usa:chapter-6",
+          "section": "VIII. 사료 소개",
+          "line_start": 4807,
+          "line_end": 4853,
+          "status": "read",
+          "cards": 7,
+          "note": "교재 자체의 글 사료 소개 1–7을 읽고 추출. 연결된 제3자 1차사료 전문과 그림 설명인 8–9는 제외."
+        },
+        {
+          "unit": "usa:chapter-6",
+          "section": "IX. 참고자료 및 그림 설명",
+          "line_start": 4854,
+          "line_end": 5584,
+          "status": "excluded",
+          "cards": 0,
+          "note": "참고문헌·각주 서지·그림 설명은 본문 추출에서 제외. 4860–4863행 장별 기여 정보만 온라인 장과 기존 evidence에 대조."
+        },
+        {
+          "unit": "usa:chapter-6",
+          "section": "제7장 표지 경계",
+          "line_start": 5585,
+          "line_end": 5595,
+          "status": "excluded",
+          "cards": 0,
+          "note": "제7장 표지와 범위 안내이며 제6장 본문 아님."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "source_credit": {
+          "work": "The American Yawp, Joseph L. Locke and Ben Wright",
+          "chapter_editor": "Michael Hattem",
+          "contributors": [
+            "James Ambuske",
+            "Alexander Burns",
+            "Joshua Beatty",
+            "Christina Carrick",
+            "Christopher Consolino",
+            "Michael Hattem",
+            "Timothy C. Hemmis",
+            "Brenda Lakhani",
+            "Joseph Moore",
+            "Emily Romeo",
+            "John Saillant",
+            "Christopher Sparshott",
+            "Ben Wright",
+            "Caroline Wright"
+          ],
+          "url": "https://www.americanyawp.com/textbook/06-the-american-revolution/",
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안에서 선정·요약 및 카드별 재구성; 원저자의 승인이나 역사 감수를 뜻하지 않음",
+          "verification": "온라인 제6장 기여자 및 사이트 About의 라이선스 확인; 개별 서술은 한국어 초안 근거이며 별도 영문 대조 미검증. 기존 evidence의 장별 기여자와 일치; 제3자 사료·그림 권리는 별도."
+        }
+      },
+      "candidate_count": 122,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch07",
+      "input_path": "미게시-임시자료:history/usa-ch07.json",
+      "input_sha256": "35b41bb38e76d26b9164aadbc6891847c044ce41981639f2122100a0d8794473",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch07",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 5596,
+        "line_end": 6650,
+        "chapters": [
+          "usa:chapter-7"
+        ],
+        "heads": [
+          [
+            5596,
+            "chapter-7"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-1"
+      },
+      "input_segment_field": "미국사 제7장 새로운 나라",
+      "scope": {
+        "line_start": 5596,
+        "line_end": 6650,
+        "chapters": [
+          "usa:chapter-7"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-7",
+          "section": "I. 서론",
+          "line_start": 5596,
+          "line_end": 5614,
+          "status": "read",
+          "cards": 3,
+          "note": "해당 절 번역 본문을 읽음. 그림·각주서지·대조 메모는 설정 본문에서 제외."
+        },
+        {
+          "unit": "usa:chapter-7",
+          "section": "II. 셰이스의 반란",
+          "line_start": 5615,
+          "line_end": 5637,
+          "status": "read",
+          "cards": 5,
+          "note": "해당 절 번역 본문을 읽음. 그림·각주서지·대조 메모는 설정 본문에서 제외."
+        },
+        {
+          "unit": "usa:chapter-7",
+          "section": "III. 제헌회의",
+          "line_start": 5638,
+          "line_end": 5672,
+          "status": "read",
+          "cards": 12,
+          "note": "해당 절 번역 본문을 읽음. 그림·각주서지·대조 메모는 설정 본문에서 제외."
+        },
+        {
+          "unit": "usa:chapter-7",
+          "section": "IV. 헌법 비준",
+          "line_start": 5673,
+          "line_end": 5697,
+          "status": "read",
+          "cards": 10,
+          "note": "해당 절 번역 본문을 읽음. 그림·각주서지·대조 메모는 설정 본문에서 제외."
+        },
+        {
+          "unit": "usa:chapter-7",
+          "section": "V. 권리와 타협",
+          "line_start": 5698,
+          "line_end": 5723,
+          "status": "read",
+          "cards": 5,
+          "note": "해당 절 번역 본문을 읽음. 그림·각주서지·대조 메모는 설정 본문에서 제외."
+        },
+        {
+          "unit": "usa:chapter-7",
+          "section": "VI. 해밀턴의 금융체계",
+          "line_start": 5724,
+          "line_end": 5761,
+          "status": "read",
+          "cards": 8,
+          "note": "해당 절 번역 본문을 읽음. 그림·각주서지·대조 메모는 설정 본문에서 제외. 개별 영문 및 1차 사료 대조는 미완료."
+        },
+        {
+          "unit": "usa:chapter-7",
+          "section": "VII. 위스키 반란과 제이 조약",
+          "line_start": 5762,
+          "line_end": 5799,
+          "status": "read",
+          "cards": 12,
+          "note": "해당 절 번역 본문을 읽음. 그림·각주서지·대조 메모는 설정 본문에서 제외. 개별 영문 및 1차 사료 대조는 미완료."
+        },
+        {
+          "unit": "usa:chapter-7",
+          "section": "VIII. 프랑스혁명과 자유의 한계",
+          "line_start": 5800,
+          "line_end": 5856,
+          "status": "read",
+          "cards": 16,
+          "note": "해당 절 번역 본문을 읽음. 그림·각주서지·대조 메모는 설정 본문에서 제외. 개별 영문 및 1차 사료 대조는 미완료."
+        },
+        {
+          "unit": "usa:chapter-7",
+          "section": "IX. 노예제·지역주의·서부 팽창",
+          "line_start": 5857,
+          "line_end": 5887,
+          "status": "read",
+          "cards": 9,
+          "note": "해당 절 번역 본문을 읽음. 그림·각주서지·대조 메모는 설정 본문에서 제외. 개별 영문 및 1차 사료 대조는 미완료."
+        },
+        {
+          "unit": "usa:chapter-7",
+          "section": "X. 종교의 자유",
+          "line_start": 5888,
+          "line_end": 5922,
+          "status": "read",
+          "cards": 6,
+          "note": "해당 절 번역 본문을 읽음. 그림·각주서지·대조 메모는 설정 본문에서 제외. 개별 영문 및 1차 사료 대조는 미완료."
+        },
+        {
+          "unit": "usa:chapter-7",
+          "section": "XI. 1800년 선거",
+          "line_start": 5923,
+          "line_end": 5959,
+          "status": "read",
+          "cards": 9,
+          "note": "해당 절 번역 본문을 읽음. 그림·각주서지·대조 메모는 설정 본문에서 제외. 개별 영문 및 1차 사료 대조는 미완료."
+        },
+        {
+          "unit": "usa:chapter-7",
+          "section": "XII. 결론",
+          "line_start": 5960,
+          "line_end": 5973,
+          "status": "read",
+          "cards": 1,
+          "note": "해당 절 번역 본문을 읽음. 그림·각주서지·대조 메모는 설정 본문에서 제외. 개별 영문 및 1차 사료 대조는 미완료."
+        },
+        {
+          "unit": "usa:chapter-7",
+          "section": "XIII. 사료 소개 및 제3자 원문",
+          "line_start": 5974,
+          "line_end": 6022,
+          "status": "excluded",
+          "cards": 0,
+          "note": "사료 소개 및 링크를 포함한 별도 사료 구간은 설정 본문에서 제외. 링크된 제3자 사료 전문은 읽거나 복제하지 않았으며 각 사료의 권리는 별도."
+        },
+        {
+          "unit": "usa:chapter-7",
+          "section": "XIV. 참고자료·각주",
+          "line_start": 6023,
+          "line_end": 6565,
+          "status": "excluded",
+          "cards": 0,
+          "note": "추천문헌 및 각주 서지는 설정 본문에서 제외. 6029–6032행의 장 편집자와 기여자만 출처 확인에 사용."
+        },
+        {
+          "unit": "usa:chapter-7",
+          "section": "그림 설명",
+          "line_start": 6566,
+          "line_end": 6641,
+          "status": "excluded",
+          "cards": 0,
+          "note": "그림과 그 설명 및 감수 메모는 설정 본문에서 제외. 이미지 이용 권리는 별도."
+        },
+        {
+          "unit": "usa:chapter-8",
+          "section": "다음 장 범위 안내",
+          "line_start": 6642,
+          "line_end": 6650,
+          "status": "excluded",
+          "cards": 0,
+          "note": "할당된 범위 끝은 8장 통합 초안의 첫머리로 7장 본문이 아니므로 제외."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "source_attribution": {
+          "work": "The American Yawp, 개정 온라인판, 7장 A New Nation",
+          "editors": "Joseph Locke, Ben Wright",
+          "chapter_editor": "Tara Strauch",
+          "contributors": [
+            "Marco Basile",
+            "Nathaniel C. Green",
+            "Brenden Kennedy",
+            "Spencer McBride",
+            "Andrea Nero",
+            "Cara Rogers",
+            "John Saillant",
+            "Tara Strauch",
+            "Michael Harrison Taylor",
+            "Jordan Taylor",
+            "Kevin Wisniewski",
+            "Ben Wright",
+            "Caroline Wright"
+          ],
+          "chapter_url": "https://www.americanyawp.com/textbook/07-a-new-nation/",
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안에서 요약·재구성하고 검토 유의사항을 추가함. 원저자 또는 출판사 승인 없음.",
+          "verification": "온라인 장의 제목·I–V 도입부와 편집 기여자 및 프로젝트 라이선스를 확인했고, 나머지 개별 주장과 인용의 영문 대조 및 1차 사료 검증은 별도 수행하지 않음. 한국어 초안은 2차 교재 번역임. 고정 커밋의 출처 매니페스트와 SOURCE-QUALITY-REVIEW.partial-ko.md를 확인했으나 이는 해당 장 전체의 독립적 사실 확인이 아니다.",
+          "license_evidence": "https://www.americanyawp.com/textbook/introduction/",
+          "manifest": "고정 커밋 docs/research/history-textbooks/usa/source-manifest.json: 제7장 HTML 기록 바이트 181604, SHA-256 3aa37228e13790aeb8be245773db664b79ab913c949efda95f941c947c75866b; 기록된 HTML 파일 자체는 검토하지 않음."
+        }
+      },
+      "candidate_count": 96,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch08",
+      "input_path": "미게시-임시자료:history/usa-ch08.json",
+      "input_sha256": "47782d0fdafdb95ec5ea15d6a94cf9f670d306c2db50531a6390d759316be00f",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch08",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 6651,
+        "line_end": 7525,
+        "chapters": [
+          "usa:chapter-8"
+        ],
+        "heads": [
+          [
+            6651,
+            "chapter-8"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-2"
+      },
+      "input_segment_field": "chapter-8",
+      "scope": {
+        "line_start": 6651,
+        "line_end": 7525,
+        "chapters": [
+          "usa:chapter-8"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-8:I",
+          "line_start": 6651,
+          "line_end": 6665,
+          "status": "read",
+          "cards": 0,
+          "note": "서론 본문 전체를 읽음. 다음 절의 카드와 중복되는 제퍼슨 외 별도 후보 없음."
+        },
+        {
+          "unit": "usa:chapter-8:II",
+          "line_start": 6666,
+          "line_end": 6699,
+          "status": "read",
+          "cards": 19,
+          "note": "본문 전체를 읽음. 그림·설명과 감수 메모는 설정 본문에서 제외."
+        },
+        {
+          "unit": "usa:chapter-8:III",
+          "line_start": 6700,
+          "line_end": 6730,
+          "status": "read",
+          "cards": 10,
+          "note": "서술 본문을 읽음. 그림·설명, 대조 메모 제외. 숫자와 세부 표결 등 초안의 감수 필요 사항 유지."
+        },
+        {
+          "unit": "usa:chapter-8:IV",
+          "line_start": 6731,
+          "line_end": 6766,
+          "status": "read",
+          "cards": 14,
+          "note": "서술 본문을 읽음. 그림·설명, 대조 메모 제외. 숫자와 세부 표결 등 초안의 감수 필요 사항 유지."
+        },
+        {
+          "unit": "usa:chapter-8:V",
+          "line_start": 6767,
+          "line_end": 6811,
+          "status": "read",
+          "cards": 27,
+          "note": "원주민 외교·저항의 본문을 읽음. 그림·설명과 감수 메모 제외; 조약 면적 등 역사적 사실 검증 필요."
+        },
+        {
+          "unit": "usa:chapter-8:VI",
+          "line_start": 6812,
+          "line_end": 6879,
+          "status": "read",
+          "cards": 27,
+          "note": "1812년 전쟁과 전후 본문. 연대·수량 등 초안의 서술은 독립 감수 전이며 그림·설명 제외."
+        },
+        {
+          "unit": "usa:chapter-8:VII",
+          "line_start": 6880,
+          "line_end": 6889,
+          "status": "read",
+          "cards": 0,
+          "note": "결론 전체를 읽음. 당파와 정치적 배제에 대한 종합으로 새 독립 대상을 선정하지 않음."
+        },
+        {
+          "unit": "usa:chapter-8:XIII",
+          "line_start": 6890,
+          "line_end": 6939,
+          "status": "read",
+          "cards": 4,
+          "note": "교과서 저자들의 사료소개를 읽음; 외부 제3자 1차사료 전문은 읽거나 인용하지 않음. 그림 자체와 시각적 설명 6923·6928행은 카드 근거에서 제외."
+        },
+        {
+          "unit": "usa:chapter-8:XIV-figures-excluded",
+          "line_start": 6940,
+          "line_end": 7514,
+          "status": "excluded",
+          "cards": 0,
+          "note": "참고문헌·각주·그림 설명 및 감수 메모는 설정 본문에서 제외. 6946–6950행의 장 편집자·기여자 표시는 출처 확인에만 사용."
+        },
+        {
+          "unit": "usa:chapter-9-boundary",
+          "line_start": 7515,
+          "line_end": 7525,
+          "status": "excluded",
+          "cards": 0,
+          "note": "다음 제9장의 통합 파일 표제와 범위 안내이므로 할당된 제8장 본문이 아님."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "provenance": {
+          "work": "The American Yawp, Chapter 8, The Early Republic",
+          "editor": "Nathaniel C. Green",
+          "contributors": "Justin Clark, Adam Costanzo, Stephanie Gamble, Dale Kretz, Julie Richter, Bryan Rindfleisch, Angela Riotto, James Risk, Cara Rogers, Marie Stango, Jonathan Wilfred Wilson, Ben Wright, Caroline Wright, Charlton Yingling, Ashley Young",
+          "url": "https://www.americanyawp.com/textbook/08-the-early-republic/",
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 및 감수 메모, 카드 요약으로 변경. 원저자 승인을 뜻하지 않음.",
+          "verification": "온라인 장의 장 편집자·기여자와 CC BY-SA 4.0 표시 확인. 각 카드의 근거는 한국어 번역 초안이며 영어 본문과 개별 대조는 별도 표시가 없는 한 미검증. 역사적 정확성 독립 검증은 하지 않음.",
+          "work_editors": "Joseph Locke, Ben Wright (https://www.americanyawp.com/textbook/introduction/)",
+          "evidence": "장 편집자 및 기여자는 6654행과 6946–6950행의 기존 evidence와 온라인 장 XIV에서 확인. 사이트 소개에서 CC BY-SA 4.0 및 전체 편집자 확인. 온라인 판본은 갱신형이며 이 카드들은 한국어 고정 blob을 근거로 함."
+        }
+      },
+      "candidate_count": 101,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch09",
+      "input_path": "미게시-임시자료:history/usa-ch09.json",
+      "input_sha256": "67b90013bbf538bcf53451a8dd1a492cf02bc96c17aff5be1dd157952ae57d23",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch09",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 7526,
+        "line_end": 8582,
+        "chapters": [
+          "usa:chapter-9"
+        ],
+        "heads": [
+          [
+            7526,
+            "chapter-9"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-2"
+      },
+      "input_segment_field": "chapter-9",
+      "scope": {
+        "line_start": 7526,
+        "line_end": 8582,
+        "chapters": [
+          "usa:chapter-9"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-9",
+          "line_start": 7526,
+          "line_end": 7544,
+          "status": "read",
+          "cards": 2,
+          "note": "I 서론. 한국어 초안 근거; 개별 영문 원문 대조 미완료."
+        },
+        {
+          "unit": "usa:chapter-9",
+          "line_start": 7548,
+          "line_end": 7630,
+          "status": "read",
+          "cards": 28,
+          "note": "II 시장혁명 전 본문. 그림·설명과 대조 메모는 본문 근거에서 제외."
+        },
+        {
+          "unit": "usa:chapter-9",
+          "line_start": 7634,
+          "line_end": 7730,
+          "status": "read",
+          "cards": 24,
+          "note": "III 잭슨 시대 정치 전 본문. 당파의 주장은 그 관점으로 기록; 개별 대조 미완료."
+        },
+        {
+          "unit": "usa:chapter-9",
+          "line_start": 7734,
+          "line_end": 7778,
+          "status": "read",
+          "cards": 7,
+          "note": "IV 제2차 대각성 전 본문. 개별 영문 대조 및 역사적 독립 검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-9",
+          "line_start": 7783,
+          "line_end": 7864,
+          "status": "read",
+          "cards": 15,
+          "note": "V 남부·서부와 민주주의의 한계 전 본문. 개별 영문 대조 및 역사적 독립 검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-9",
+          "line_start": 7869,
+          "line_end": 7912,
+          "status": "read",
+          "cards": 7,
+          "note": "VI 저자 작성 사료 소개를 읽음. 외부 제3자 사료 전문은 미수록·제외했고 그림 작품 묘사 7905–7911은 카드 본문에서 제외."
+        },
+        {
+          "unit": "usa:chapter-9",
+          "line_start": 7913,
+          "line_end": 7927,
+          "status": "read",
+          "cards": 1,
+          "note": "VII 결론 전체를 읽음. 해방운동 단계에 대한 서술은 저자의 해석으로 제한."
+        },
+        {
+          "unit": "usa:chapter-9",
+          "line_start": 7929,
+          "line_end": 8571,
+          "status": "excluded",
+          "cards": 0,
+          "note": "추천문헌·각주·서지 메모 및 그림 설명은 본문 대상에서 제외. 제3자 사료 전문은 번역본에 수록되지 않음."
+        },
+        {
+          "unit": "usa:chapter-10",
+          "line_start": 8572,
+          "line_end": 8582,
+          "status": "excluded",
+          "cards": 0,
+          "note": "배정 범위 끝에 다음 장 통합본의 표지·출처 및 절 표식이 포함됨. 9장 본문이 아니므로 제외."
+        }
+      ],
+      "unclassified_ranges": [
+        {
+          "start": 7545,
+          "end": 7547,
+          "nonblank_lines": [
+            7546
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 7631,
+          "end": 7633,
+          "nonblank_lines": [
+            7632
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 7731,
+          "end": 7733,
+          "nonblank_lines": [
+            7732
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 7779,
+          "end": 7782,
+          "nonblank_lines": [
+            7781
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 7865,
+          "end": 7868,
+          "nonblank_lines": [
+            7867
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 7928,
+          "end": 7928,
+          "nonblank_lines": [],
+          "classification": "blank-unclassified",
+          "observed_contents": []
+        }
+      ],
+      "source_metadata": {
+        "attribution": {
+          "work": "The American Yawp, Joseph L. Locke and Ben Wright, 편집; 제9장 Getting Forward",
+          "chapter_editor": "Jonathan Wilfred Wilson",
+          "contributors": "Kelly Arehart, Ian Beamish, Myles Beaurpre, Marjorie Brown, Steffi Cerato, Kristin Condotta, Emily Conroy-Krutz, Mari Crabtree, Jane Fiegen Green, Robert Gudmestad, Nathan Jeremie-Brink, Lindsay Keiter, Brenden Kennedy, William Kerrigan, Brenda Lakhani, Maria Montalvo, Katherine Rohrer, Christopher Sawula, David Schley, Evgenia Shayder Shoop, Marie Stango, Kevin Waite, James Wellborn, Jonathan Wilfred Wilson, Caroline Wright, Ben Wright, Ashley Young",
+          "url": "https://www.americanyawp.com/textbook/09-getting-forward/",
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안에서 선택·요약하여 카드로 재구성함. 승인 또는 보증을 뜻하지 않음.",
+          "verification": "온라인 제9장과 장 기여자 명단, 출판사의 about 페이지에 표시된 편집자와 CC BY-SA 4.0 확인. 기존 usa.evidence.json은 저작자·라이선스 정책의 근거이나 제9장 원문은 포함하지 않음. 카드별 영어 원문 및 역사적 사실은 개별 대조·독립 검증 미완료.",
+          "license_evidence": "https://www.americanyawp.com/text/about/"
+        }
+      },
+      "candidate_count": 84,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch10",
+      "input_path": "미게시-임시자료:history/usa-ch10.json",
+      "input_sha256": "1a2ea92719a112abdeff914712ccfc1a86b2398ed568f45c1508988153c57c24",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch10",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 8583,
+        "line_end": 9615,
+        "chapters": [
+          "usa:chapter-10"
+        ],
+        "heads": [
+          [
+            8583,
+            "chapter-10"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-2"
+      },
+      "input_segment_field": "제10장 미국의 민주주의",
+      "scope": {
+        "line_start": 8583,
+        "line_end": 9615,
+        "chapters": [
+          "usa:chapter-10"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-10 I 서론",
+          "line_start": 8583,
+          "line_end": 8596,
+          "status": "read",
+          "cards": 3,
+          "note": "번역 서술 본문을 읽음. 개별 사실의 온라인 원문 대조 및 역사적 사실 확인은 미완료."
+        },
+        {
+          "unit": "usa:chapter-10 II 잭슨 내각",
+          "line_start": 8601,
+          "line_end": 8628,
+          "status": "read",
+          "cards": 14,
+          "note": "번역 서술 본문을 읽음. 개별 사실의 온라인 원문 대조 및 역사적 사실 확인은 미완료."
+        },
+        {
+          "unit": "usa:chapter-10 III 무효화와 은행 전쟁",
+          "line_start": 8633,
+          "line_end": 8654,
+          "status": "read",
+          "cards": 8,
+          "note": "번역 서술 본문을 읽음. 개별 사실의 온라인 원문 대조 및 역사적 사실 확인은 미완료."
+        },
+        {
+          "unit": "usa:chapter-10 IV 제2차 정당 체제",
+          "line_start": 8659,
+          "line_end": 8686,
+          "status": "read",
+          "cards": 17,
+          "note": "번역 서술 본문을 읽음. 개별 사실의 온라인 원문 대조 및 역사적 사실 확인은 미완료."
+        },
+        {
+          "unit": "usa:chapter-10 V 1837년 공황",
+          "line_start": 8691,
+          "line_end": 8710,
+          "status": "read",
+          "cards": 2,
+          "note": "번역 서술 본문을 읽음. 개별 사실의 온라인 원문 대조 및 역사적 사실 확인은 미완료."
+        },
+        {
+          "unit": "usa:chapter-10 VI 원주민의 토지와 권리 박탈",
+          "line_start": 8715,
+          "line_end": 8756,
+          "status": "read",
+          "cards": 38,
+          "note": "서술 본문 전체를 읽음; 인구 통계, 스페클드 스네이크 정체와 원어 대조·사실 감수는 미완료."
+        },
+        {
+          "unit": "usa:chapter-10 VII 면화지대",
+          "line_start": 8763,
+          "line_end": 8796,
+          "status": "read",
+          "cards": 14,
+          "note": "서술 본문 전체를 읽음; 인구 통계, 스페클드 스네이크 정체와 원어 대조·사실 감수는 미완료."
+        },
+        {
+          "unit": "usa:chapter-10 VIII 도시화하는 남부",
+          "line_start": 8801,
+          "line_end": 8818,
+          "status": "read",
+          "cards": 5,
+          "note": "서술 본문 전체를 읽음. 개별 사실 원문 대조 및 독립 역사 감수는 미완료."
+        },
+        {
+          "unit": "usa:chapter-10 IX 텍사스 멕시코 미국",
+          "line_start": 8823,
+          "line_end": 8838,
+          "status": "read",
+          "cards": 13,
+          "note": "서술 본문 전체를 읽음. 개별 사실 원문 대조 및 독립 역사 감수는 미완료."
+        },
+        {
+          "unit": "usa:chapter-10 X 개혁의 시대",
+          "line_start": 8843,
+          "line_end": 8860,
+          "status": "read",
+          "cards": 4,
+          "note": "서술 본문 전체를 읽음. 개별 사실 원문 대조 및 독립 역사 감수는 미완료."
+        },
+        {
+          "unit": "usa:chapter-10 XI 노예제 반대와 폐지",
+          "line_start": 8865,
+          "line_end": 8892,
+          "status": "read",
+          "cards": 23,
+          "note": "서술 본문 전체를 읽음. 개별 사실 원문 대조 및 독립 역사 감수는 미완료."
+        },
+        {
+          "unit": "usa:chapter-10 XII 결론",
+          "line_start": 8897,
+          "line_end": 8905,
+          "status": "read",
+          "cards": 0,
+          "note": "서술 본문 전체를 읽음. 개별 사실 원문 대조 및 독립 역사 감수는 미완료."
+        },
+        {
+          "unit": "usa:chapter-11 경계",
+          "line_start": 9605,
+          "line_end": 9615,
+          "status": "excluded",
+          "cards": 0,
+          "note": "지정 범위 끝은 제11장 서두이므로 제10장 추출에서 제외."
+        },
+        {
+          "unit": "usa:chapter-10 XIII 사료 소개 1–7",
+          "line_start": 8907,
+          "line_end": 8937,
+          "status": "read",
+          "cards": 2,
+          "note": "교과서 저자의 사료 소개를 읽고 독립 대상을 추출. 외부 1차사료 전문은 번역 초안에 없고 사용하지 않음."
+        },
+        {
+          "unit": "usa:chapter-10 그림 및 참고자료 제외",
+          "line_start": 8938,
+          "line_end": 9604,
+          "status": "excluded",
+          "cards": 0,
+          "note": "그림 설명(8938–8945, 9526–9604), 참고문헌·주석(8956–9525)은 설정 본문에서 제외. 8967–8971행 장별 기여자는 출처 표시로 확인."
+        }
+      ],
+      "unclassified_ranges": [
+        {
+          "start": 8597,
+          "end": 8600,
+          "nonblank_lines": [
+            8599
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 8629,
+          "end": 8632,
+          "nonblank_lines": [
+            8631
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 8655,
+          "end": 8658,
+          "nonblank_lines": [
+            8657
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 8687,
+          "end": 8690,
+          "nonblank_lines": [
+            8689
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 8711,
+          "end": 8714,
+          "nonblank_lines": [
+            8713
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 8757,
+          "end": 8762,
+          "nonblank_lines": [
+            8758,
+            8761
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "review note",
+            "translation-file marker"
+          ],
+          "review_note": "원문 주장 중 체로키 음절문자 명칭·1827년 헌법 언어·조약 및 암살 순서·이주 인원·스페클드 스네이크 인물과 출처에 대한 의문이 있는 편집 메모. 사실 확인 미완료."
+        },
+        {
+          "start": 8797,
+          "end": 8800,
+          "nonblank_lines": [
+            8799
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 8819,
+          "end": 8822,
+          "nonblank_lines": [
+            8821
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 8839,
+          "end": 8842,
+          "nonblank_lines": [
+            8841
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 8861,
+          "end": 8864,
+          "nonblank_lines": [
+            8863
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 8893,
+          "end": 8896,
+          "nonblank_lines": [
+            8895
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 8906,
+          "end": 8906,
+          "nonblank_lines": [],
+          "classification": "blank-unclassified",
+          "observed_contents": []
+        }
+      ],
+      "source_metadata": {
+        "attribution": {
+          "work": "The American Yawp",
+          "authors": "Joseph L. Locke, Ben Wright",
+          "chapter_credit": "This chapter was edited by Emily Arendt, with content contributions by Myles Beaupre, Marjorie Brown, Michelle Cassidy, Steffi Cerato, Christopher Childers, Kristin Condotta, Emily Conroy-Krutz, William Cossen, Adam Costanzo, Jeff Fortney, Jane Fiegen Green, Nathaniel C. Green, Robert Gudmestad, Nathan Jeremie-Brink, Christopher C. Jones, Lindsay Keiter, Brenda Lakhani, Spencer McBride, Maria Montalvo, James Anthony Owen, Katherine Rohrer, Marie Stango, Kevin Waite, Kelly Weber, Jonathan Wilfred Wilson, Caroline Wright, and Ben Wright.",
+          "credit_evidence": "한국어 초안 8967–8971행; 기존 usa.evidence.json chapter_credits / 10-american-democracy; 온라인 장 참고자료에도 동일",
+          "url": "https://www.americanyawp.com/textbook/10-american-democracy",
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안에서 선별·한국어 요약·카드 형식 재구성; 원저자의 승인 의미 아님",
+          "verification": "온라인 장의 서론 첫 문단, 장별 기여자와 CC BY-SA 표시 확인; 그 밖의 개별 카드 사실은 한국어 초안 기준으로 원문·독립사료 대조 미검증. 초안은 1차 사료가 아님."
+        }
+      },
+      "candidate_count": 143,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch11",
+      "input_path": "미게시-임시자료:history/usa-ch11.json",
+      "input_sha256": "d82e257cb2afcb95e324807a7c8daa3740f9a3860eb8f40db219141248d0c000",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch11",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 9616,
+        "line_end": 10592,
+        "chapters": [
+          "usa:chapter-11"
+        ],
+        "heads": [
+          [
+            9616,
+            "chapter-11"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-2"
+      },
+      "input_segment_field": "제11장 성장과 갈등",
+      "scope": {
+        "line_start": 9616,
+        "line_end": 10592,
+        "chapters": [
+          "usa:chapter-11"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-11",
+          "section": "I. 서론",
+          "line_start": 9616,
+          "line_end": 9632,
+          "status": "read",
+          "cards": 1,
+          "note": "서술 본문을 읽음. 번역 메모·제3자 인용 전문·그림 설명은 본문 근거에서 제외."
+        },
+        {
+          "unit": "usa:chapter-11",
+          "section": "II. 도시와 상품",
+          "line_start": 9633,
+          "line_end": 9663,
+          "status": "read",
+          "cards": 15,
+          "note": "서술 본문을 읽음. 번역 메모·제3자 인용 전문·그림 설명은 본문 근거에서 제외."
+        },
+        {
+          "unit": "usa:chapter-11",
+          "section": "III. 산업과 사회",
+          "line_start": 9664,
+          "line_end": 9700,
+          "status": "read",
+          "cards": 6,
+          "note": "서술 본문을 읽음. 번역 메모·제3자 인용 전문·그림 설명은 본문 근거에서 제외."
+        },
+        {
+          "unit": "usa:chapter-11",
+          "section": "IV. 새로운 신앙들",
+          "line_start": 9701,
+          "line_end": 9730,
+          "status": "read",
+          "cards": 17,
+          "note": "서술 본문을 읽음. 번역 메모·제3자 인용 전문·그림 설명은 본문 근거에서 제외."
+        },
+        {
+          "unit": "usa:chapter-11",
+          "section": "V. 죄와의 싸움",
+          "line_start": 9731,
+          "line_end": 9779,
+          "status": "read",
+          "cards": 32,
+          "note": "서술 본문 15문단을 읽음. 제3자 인용 전문과 메모는 본문 근거에서 제외."
+        },
+        {
+          "unit": "usa:chapter-11",
+          "section": "VI. 서부 팽창",
+          "line_start": 9780,
+          "line_end": 9826,
+          "status": "read",
+          "cards": 11,
+          "note": "서술 본문을 읽음. 제3자 인용 전문·그림 설명·메모는 본문 근거에서 제외."
+        },
+        {
+          "unit": "usa:chapter-11",
+          "section": "VII. 원주민과 정착민",
+          "line_start": 9827,
+          "line_end": 9855,
+          "status": "read",
+          "cards": 6,
+          "note": "서술 본문을 읽음. 제3자 인용 전문·그림 설명·메모는 본문 근거에서 제외."
+        },
+        {
+          "unit": "usa:chapter-11",
+          "section": "VIII. 서부 팽창과 노예제의 정치",
+          "line_start": 9856,
+          "line_end": 9894,
+          "status": "read",
+          "cards": 23,
+          "note": "서술 본문을 읽음. 제3자 인용 전문·그림 설명·메모는 본문 근거에서 제외."
+        },
+        {
+          "unit": "usa:chapter-11",
+          "section": "IX. 미국·멕시코전쟁",
+          "line_start": 9895,
+          "line_end": 9929,
+          "status": "read",
+          "cards": 14,
+          "note": "서술 본문을 읽음. 제3자 인용 전문·그림 설명·메모는 본문 근거에서 제외."
+        },
+        {
+          "unit": "usa:chapter-11",
+          "section": "X. 결론",
+          "line_start": 9930,
+          "line_end": 9941,
+          "status": "read",
+          "cards": 0,
+          "note": "서술 본문을 읽음. 제3자 인용 전문·그림 설명·메모는 본문 근거에서 제외."
+        },
+        {
+          "unit": "usa:chapter-11",
+          "section": "XI. 1차 사료의 교재 소개",
+          "line_start": 9942,
+          "line_end": 9991,
+          "status": "read",
+          "cards": 5,
+          "note": "교재가 작성한 사료 소개문만 읽고 일부에서 카드 작성; 외부의 제3자 1차사료 원문 및 이미지·그림 설명 9974–9980은 제외."
+        },
+        {
+          "unit": "usa:chapter-11",
+          "section": "XII. 참고자료 및 그림 설명",
+          "line_start": 9992,
+          "line_end": 10583,
+          "status": "excluded",
+          "cards": 0,
+          "note": "편집·기여자 정보는 출처 고지에만 사용. 추천문헌·각주·번역 메모·그림 설명은 설정 본문에서 제외."
+        },
+        {
+          "unit": "usa:chapter-11",
+          "section": "경계",
+          "line_start": 10584,
+          "line_end": 10592,
+          "status": "excluded",
+          "cards": 0,
+          "note": "제12장 표제부로서 제11장 본문이 아님."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "attribution": {
+          "work": "The American Yawp, Growth and Conflict",
+          "editors": "Joseph L. Locke, Ben Wright",
+          "chapter_editors": "Andrew N. Wegmann, John William Nelson",
+          "contributors": "Elena Abbott, Ian Beamish, Amanda Bellows, Cameron Blevins, Marjorie Brown, Matthew Byron, Steffi Cerato, Frank Cirillo, Justin Clark, Emily Conroy-Krutz, Jane Fiegen Green, Robert Gudmestad, John Harris, Nicolas Hoffmann, Christopher C. Jones, Brenda Lakhani, Jonathan Koefoed, Charles McCrary, Maria Montalvo, John William Nelson, James Anthony Owen, Katherine Rohrer, William E. Skidmore, Marie Stango, Megan Stanton, Kelly Weber, Andrew N. Wegmann, Jonathan Wilfred Wilson, Caroline Wright, Ben Wright",
+          "url": "https://www.americanyawp.com/textbook/11-growth-and-conflict/",
+          "license": "CC BY-SA 4.0",
+          "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "한국어 번역 초안에서 선별·요약하여 카드로 재구성. 원저자 승인·보증 아님.",
+          "evidence": "고정 커밋 world-cards-research/usa.evidence.json의 제11장 credit 및 원문 제11장 Reference Material 확인. 온라인 정보 페이지에서 라이선스 확인. 본문 전체 개별 영문 대조 및 독립 사실검증 미완료."
+        }
+      },
+      "candidate_count": 130,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch12",
+      "input_path": "미게시-임시자료:history/usa-ch12.json",
+      "input_sha256": "825bfd376fe91499eb78b6b38d925ca41aa321959fca9ede82ab493309c58b81",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch12",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 10593,
+        "line_end": 11429,
+        "chapters": [
+          "usa:chapter-12"
+        ],
+        "heads": [
+          [
+            10593,
+            "chapter-12"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-2"
+      },
+      "input_segment_field": "chapter-12",
+      "scope": {
+        "line_start": 10593,
+        "line_end": 11429,
+        "chapters": [
+          "usa:chapter-12"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-12",
+          "section": "I. 서론",
+          "line_start": 10600,
+          "line_end": 10608,
+          "status": "read",
+          "cards": 3,
+          "note": "비공식 한국어 번역 본문을 읽음; 개별 사실의 영문 원문 대조와 독립 사료 검증은 미완료. 여러 절에 근거가 있는 카드는 해당 절마다 집계하므로 절별 합계는 전체 카드 수보다 클 수 있다."
+        },
+        {
+          "unit": "usa:chapter-12",
+          "section": "II. 골드러시",
+          "line_start": 10624,
+          "line_end": 10642,
+          "status": "read",
+          "cards": 20,
+          "note": "비공식 한국어 번역 본문을 읽음; 개별 사실의 영문 원문 대조와 독립 사료 검증은 미완료. 여러 절에 근거가 있는 카드는 해당 절마다 집계하므로 절별 합계는 전체 카드 수보다 클 수 있다."
+        },
+        {
+          "unit": "usa:chapter-12",
+          "section": "III. 면화는 왕이다",
+          "line_start": 10658,
+          "line_end": 10676,
+          "status": "read",
+          "cards": 13,
+          "note": "비공식 한국어 번역 본문을 읽음; 개별 사실의 영문 원문 대조와 독립 사료 검증은 미완료. 여러 절에 근거가 있는 카드는 해당 절마다 집계하므로 절별 합계는 전체 카드 수보다 클 수 있다."
+        },
+        {
+          "unit": "usa:chapter-12",
+          "section": "IV. 자유 토지, 자유 노동, 자유인",
+          "line_start": 10703,
+          "line_end": 10765,
+          "status": "read",
+          "cards": 47,
+          "note": "비공식 한국어 번역 본문을 읽음; 개별 사실의 영문 원문 대조와 독립 사료 검증은 미완료. 여러 절에 근거가 있는 카드는 해당 절마다 집계하므로 절별 합계는 전체 카드 수보다 클 수 있다."
+        },
+        {
+          "unit": "usa:chapter-12",
+          "section": "V. 지역 간 위기에서 국가적 위기로",
+          "line_start": 10805,
+          "line_end": 10837,
+          "status": "read",
+          "cards": 29,
+          "note": "비공식 한국어 번역 본문을 읽음; 개별 사실의 영문 원문 대조와 독립 사료 검증은 미완료. 여러 절에 근거가 있는 카드는 해당 절마다 집계하므로 절별 합계는 전체 카드 수보다 클 수 있다."
+        },
+        {
+          "unit": "usa:chapter-12",
+          "section": "VI. 결론",
+          "line_start": 10867,
+          "line_end": 10869,
+          "status": "read",
+          "cards": 1,
+          "note": "비공식 한국어 번역 본문을 읽음; 개별 사실의 영문 원문 대조와 독립 사료 검증은 미완료. 여러 절에 근거가 있는 카드는 해당 절마다 집계하므로 절별 합계는 전체 카드 수보다 클 수 있다."
+        },
+        {
+          "unit": "usa:chapter-12",
+          "section": "제외 구간",
+          "line_start": 10593,
+          "line_end": 10599,
+          "status": "excluded",
+          "cards": 0,
+          "note": "I절 제목·출처·안내"
+        },
+        {
+          "unit": "usa:chapter-12",
+          "section": "제외 구간",
+          "line_start": 10609,
+          "line_end": 10623,
+          "status": "excluded",
+          "cards": 0,
+          "note": "I절 검수 메모와 II절 제목·출처·안내"
+        },
+        {
+          "unit": "usa:chapter-12",
+          "section": "제외 구간",
+          "line_start": 10643,
+          "line_end": 10657,
+          "status": "excluded",
+          "cards": 0,
+          "note": "II절 검수 메모와 III절 제목·출처·안내"
+        },
+        {
+          "unit": "usa:chapter-12",
+          "section": "제외 구간",
+          "line_start": 10677,
+          "line_end": 10702,
+          "status": "excluded",
+          "cards": 0,
+          "note": "III절 검수 메모와 IV절 제목·출처·기여자 안내"
+        },
+        {
+          "unit": "usa:chapter-12",
+          "section": "제외 구간",
+          "line_start": 10766,
+          "line_end": 10804,
+          "status": "excluded",
+          "cards": 0,
+          "note": "IV절 검수·대조 기록과 V절 제목·출처·기여자 안내"
+        },
+        {
+          "unit": "usa:chapter-12",
+          "section": "제외 구간",
+          "line_start": 10838,
+          "line_end": 10864,
+          "status": "excluded",
+          "cards": 0,
+          "note": "V절 검수·대조 기록과 VI절 제목·출처·안내"
+        },
+        {
+          "unit": "usa:chapter-12",
+          "section": "제외 구간",
+          "line_start": 10870,
+          "line_end": 10920,
+          "status": "excluded",
+          "cards": 0,
+          "note": "VII절 1차사료 소개·그림 소개 및 대조 메모; 제3자 1차사료는 카드 근거로 사용하지 않음"
+        },
+        {
+          "unit": "usa:chapter-12",
+          "section": "제외 구간",
+          "line_start": 10921,
+          "line_end": 11344,
+          "status": "excluded",
+          "cards": 0,
+          "note": "VIII절 참고문헌·주석·출처 및 검토 기록; 10923–10933행은 저자·기여자·이용허락 근거로 확인"
+        },
+        {
+          "unit": "usa:chapter-12",
+          "section": "제외 구간",
+          "line_start": 11345,
+          "line_end": 11420,
+          "status": "excluded",
+          "cards": 0,
+          "note": "그림 설명과 대조·감수 메모"
+        },
+        {
+          "unit": "usa:chapter-12",
+          "section": "제외 구간",
+          "line_start": 11421,
+          "line_end": 11429,
+          "status": "excluded",
+          "cards": 0,
+          "note": "제13장 시작으로 담당 장 외 범위"
+        }
+      ],
+      "unclassified_ranges": [
+        {
+          "start": 10865,
+          "end": 10866,
+          "nonblank_lines": [
+            10865
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "section heading"
+          ]
+        }
+      ],
+      "source_metadata": {
+        "source_evidence": {
+          "title": "The American Yawp, 12. The National Crisis",
+          "editor": "Jesse Gant",
+          "contributors": "Jeffrey Bain-Conkin, Joshua Beatty, Ethan Bennett, Matthew A. Byron, Michelle Cassidy, Christopher Childers, Jesse Gant, Jonathan Grandage, Brenda Lakhani, Gregg Lightfoot, Jose Juan Perez Melendez, Jessica Moore, Christopher Null, Ryan Poe, Michael Robinson, Nick Roland, Matthew K. Saionz, Rowan Steinecker, Patrick Troester, Nicholas Wood, Michael Woods, Ben Wright, Caroline Wright",
+          "url": "https://www.americanyawp.com/textbook/12-the-national-crisis/",
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "modifications": "비공식 한국어 번역과 카드용 요약, 각주 표기 변환",
+          "verification": "온라인 장의 기여자와 사이트 CC BY-SA 4.0 표기, 기존 evidence 10923–10933행을 확인했다. 카드별 사실은 고정 Git 한국어 번역 초안에 근거하며 영문 개별 문장과 독립 사료에 대한 대조는 미완료. 제3자 자료에는 별도 권리가 적용될 수 있다."
+        }
+      },
+      "candidate_count": 107,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch13",
+      "input_path": "미게시-임시자료:history/usa-ch13.json",
+      "input_sha256": "b49087ff0ecccadc007f914d6c98d89d507af4bc616b8257156818977e21f896",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch13",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 11430,
+        "line_end": 12481,
+        "chapters": [
+          "usa:chapter-13"
+        ],
+        "heads": [
+          [
+            11430,
+            "chapter-13"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-2"
+      },
+      "input_segment_field": "chapter-13",
+      "scope": {
+        "line_start": 11430,
+        "line_end": 12481,
+        "chapters": [
+          "usa:chapter-13"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-13:I",
+          "line_start": 11430,
+          "line_end": 11444,
+          "status": "read",
+          "cards": 1,
+          "note": "서론 본문 11436행."
+        },
+        {
+          "unit": "usa:chapter-13:II",
+          "line_start": 11445,
+          "line_end": 11477,
+          "status": "read",
+          "cards": 18,
+          "note": "선거·연방 탈퇴 본문 11451–11467행."
+        },
+        {
+          "unit": "usa:chapter-13:III",
+          "line_start": 11478,
+          "line_end": 11553,
+          "status": "read",
+          "cards": 66,
+          "note": "연방을 위한 전쟁 본문 11484–11542행. 글로리에타 전투 연대·나바호 이주 목적지 등 초안의 오류 가능성을 보존하고 미검증 표시."
+        },
+        {
+          "unit": "usa:chapter-13:IV",
+          "line_start": 11554,
+          "line_end": 11645,
+          "status": "read",
+          "cards": 58,
+          "note": "해방을 위한 전쟁 본문 11563–11631행; 의학·징병·명령의 초안상 주의점은 각 카드에 표시."
+        },
+        {
+          "unit": "usa:chapter-13:V",
+          "line_start": 11646,
+          "line_end": 11655,
+          "status": "read",
+          "cards": 1,
+          "note": "결론 11654행은 재건 카드에 추가 근거로 반영. 절별 건수는 해당 절의 근거가 있는 카드 수이므로 절간 중복이 있다."
+        },
+        {
+          "unit": "usa:chapter-13:VI-VII-and-captions",
+          "line_start": 11656,
+          "line_end": 12472,
+          "status": "excluded",
+          "cards": 0,
+          "note": "1차 사료 목록·제3자 사료 전문·그림과 그림 설명·참고문헌·주석 및 검수 메모는 설정 근거에서 제외. 기여자 정보 11712행만 출처 확인에 사용."
+        },
+        {
+          "unit": "chapter-boundary",
+          "line_start": 12473,
+          "line_end": 12481,
+          "status": "excluded",
+          "cards": 0,
+          "note": "제14장 통합 초안 머리말로 제13장 본문이 아님."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "attribution": {
+          "title": "The American Yawp, The Civil War",
+          "general_editors": "Joseph L. Locke, Ben Wright",
+          "chapter_editor": "Frank Cirillo",
+          "contributors": "Thomas Balcerski, William Black, Lauren Brand, Frank Cirillo, Angela Esco Elder, Matthew C. Hulbert, Brenda Lakhani, Andrew F. Lang, Lindsay Stallones Marshall, John Patrick Riley, Angela Riotto, Gregory N. Stern, Emma Teitelman, David Thomson, Ann Tucker, Ben Wright, Caroline Wright, Rebecca Zimmer",
+          "url": "https://www.americanyawp.com/textbook/13-the-civil-war/",
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안에서 선택·한국어 요약·카드 재배열; 원저자 승인 아님",
+          "evidence": "고정 커밋 docs/research/history-textbooks/world-cards-research/usa.evidence.json chapter_credits: 13-the-civil-war; 당시 원문 텍스트 line 257, SHA-256 e1954362b9dcccea1a982de967fe61b2e1d038db3e38845d0b07dbcd319d5b74. 온라인 장 I–IV의 구조와 일부 문단을 확인했으나 개별 카드 전체의 영문 원문 및 역사적 사실은 별도 대조·검증하지 않음. 온라인 제13장 기여자 표기는 기존 evidence와 일치하고, https://www.americanyawp.com/text/about/ 에서 프로젝트 CC BY-SA 4.0 라이선스를 확인했다."
+        }
+      },
+      "candidate_count": 142,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch14",
+      "input_path": "미게시-임시자료:history/usa-ch14.json",
+      "input_sha256": "4d8a6f4473938744dca2617ef98a1793c7345011dc90643c6270dc2ec1d05666",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch14",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 12482,
+        "line_end": 13451,
+        "chapters": [
+          "usa:chapter-14"
+        ],
+        "heads": [
+          [
+            12482,
+            "chapter-14"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-2"
+      },
+      "input_segment_field": "chapter-14-reconstruction",
+      "scope": {
+        "line_start": 12482,
+        "line_end": 13451,
+        "chapters": [
+          "usa:chapter-14"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-14",
+          "section": "I. 서론",
+          "line_start": 12482,
+          "line_end": 12498,
+          "status": "read",
+          "cards": 1,
+          "note": "지정된 한국어 초안 본문을 읽음. 개별 사실의 온라인 원문 대조 및 독립 역사 감수는 미완료."
+        },
+        {
+          "unit": "usa:chapter-14",
+          "section": "II. 재건의 정치",
+          "line_start": 12499,
+          "line_end": 12548,
+          "status": "read",
+          "cards": 33,
+          "note": "지정된 한국어 초안 본문을 읽음. 개별 사실의 온라인 원문 대조 및 독립 역사 감수는 미완료."
+        },
+        {
+          "unit": "usa:chapter-14",
+          "section": "III. 흑인에게 자유가 뜻하는 것",
+          "line_start": 12549,
+          "line_end": 12591,
+          "status": "read",
+          "cards": 18,
+          "note": "지정된 한국어 초안 본문을 읽음. 개별 사실의 온라인 원문 대조 및 독립 역사 감수는 미완료."
+        },
+        {
+          "unit": "usa:chapter-14",
+          "section": "IV. 재건과 여성",
+          "line_start": 12592,
+          "line_end": 12633,
+          "status": "read",
+          "cards": 16,
+          "note": "지정된 한국어 초안 본문을 읽음. 개별 사실의 온라인 원문 대조 및 독립 역사 감수는 미완료."
+        },
+        {
+          "unit": "usa:chapter-14",
+          "section": "V. 재건기의 인종폭력",
+          "line_start": 12634,
+          "line_end": 12674,
+          "status": "read",
+          "cards": 20,
+          "note": "지정된 한국어 초안 본문을 읽음. 개별 사실의 온라인 원문 대조 및 독립 역사 감수는 미완료."
+        },
+        {
+          "unit": "usa:chapter-14",
+          "section": "VI. 남북전쟁과 재건기의 경제 발전",
+          "line_start": 12675,
+          "line_end": 12711,
+          "status": "read",
+          "cards": 11,
+          "note": "지정된 한국어 초안 본문을 읽음. 개별 사실의 온라인 원문 대조 및 독립 역사 감수는 미완료."
+        },
+        {
+          "unit": "usa:chapter-14",
+          "section": "VII. 재건과 서부",
+          "line_start": 12712,
+          "line_end": 12742,
+          "status": "read",
+          "cards": 14,
+          "note": "지정된 한국어 초안 본문을 읽음. 개별 사실의 온라인 원문 대조 및 독립 역사 감수는 미완료."
+        },
+        {
+          "unit": "usa:chapter-14",
+          "section": "VIII. 재건의 종말",
+          "line_start": 12743,
+          "line_end": 12777,
+          "status": "read",
+          "cards": 10,
+          "note": "지정된 한국어 초안 본문을 읽음. 개별 사실의 온라인 원문 대조 및 독립 역사 감수는 미완료."
+        },
+        {
+          "unit": "usa:chapter-14",
+          "section": "VIII. 결론",
+          "line_start": 12778,
+          "line_end": 12787,
+          "status": "read",
+          "cards": 0,
+          "note": "지정된 한국어 초안 본문을 읽음. 개별 사실의 온라인 원문 대조 및 독립 역사 감수는 미완료."
+        },
+        {
+          "unit": "usa:chapter-14",
+          "section": "제외 구간 및 경계",
+          "line_start": 12788,
+          "line_end": 13451,
+          "status": "excluded",
+          "cards": 0,
+          "note": "12788–12835 사료 소개와 제3자 사료·그림, 12836–13347 추천문헌·각주·참고자료, 13348–13442 그림 설명은 설정 본문 근거에서 제외. 13443–13451은 제15장 제목 및 도입부로 담당 제14장 밖이므로 제외. 각 절의 출처·번역 범위·대조 메모는 본문으로 취급하지 않았다."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "attribution": {
+          "work": "The American Yawp",
+          "general_editors": "Joseph L. Locke, Ben Wright",
+          "chapter_editor": "Justene Hill Edwards",
+          "contributors": "Christopher Abernathy, Jeremiah Bauer, Lauren Brand, Michael T. Caires, Mari Crabtree, Chris Hayashida-Knight, Krista Kinslow, Brenda Lakhani, Lindsay Stallones Marshall, Ashley Mays, Keith McCall, Ryan Poe, Bradley Proctor, Emma Teitelman, Nicole Myers Turner, Caitlin Verboon, Caroline Wright, Ben Wright",
+          "chapter_url": "https://www.americanyawp.com/textbook/14-reconstruction/",
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 초안을 선별·한국어 요약·카드 배열. 저자 승인이나 보증을 뜻하지 않음.",
+          "evidence": "고정 커밋 docs/research/history-textbooks/world-cards-research/usa.evidence.json의 14장 크레딧과 온라인 장 X절의 편집자·기여자 일치 확인. 온라인 About의 CC BY-SA 4.0 확인. 원문은 계속 개정되는 협업 교재이며 개별 카드 사실의 전수 대조는 미완료."
+        }
+      },
+      "candidate_count": 123,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch15",
+      "input_path": "미게시-임시자료:history/usa-ch15.json",
+      "input_sha256": "e1c043532c0d7b9da9b3d9031f12a2884f7ffb156848d1c42b7c9fff491cbb54",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch15",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 13452,
+        "line_end": 14275,
+        "chapters": [
+          "usa:chapter-15"
+        ],
+        "heads": [
+          [
+            13452,
+            "chapter-15"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-3"
+      },
+      "input_segment_field": "chapter-15",
+      "scope": {
+        "line_start": 13452,
+        "line_end": 14275,
+        "chapters": [
+          "usa:chapter-15"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-15:I",
+          "line_start": 13452,
+          "line_end": 13472,
+          "status": "read",
+          "cards": 9,
+          "note": "본문을 읽음. 카드별 영문 문장 대조 및 독립 사실감수 미완료."
+        },
+        {
+          "unit": "usa:chapter-15:II",
+          "line_start": 13473,
+          "line_end": 13519,
+          "status": "read",
+          "cards": 21,
+          "note": "본문을 읽음. 카드별 영문 문장 대조 및 독립 사실감수 미완료."
+        },
+        {
+          "unit": "usa:chapter-15:III",
+          "line_start": 13520,
+          "line_end": 13546,
+          "status": "read",
+          "cards": 17,
+          "note": "본문을 읽음. 카드별 영문 문장 대조 및 독립 사실감수 미완료."
+        },
+        {
+          "unit": "usa:chapter-15:IV",
+          "line_start": 13547,
+          "line_end": 13581,
+          "status": "read",
+          "cards": 16,
+          "note": "본문을 읽음. 카드별 영문 문장 대조 및 독립 사실감수 미완료."
+        },
+        {
+          "unit": "usa:chapter-15:V",
+          "line_start": 13582,
+          "line_end": 13635,
+          "status": "read",
+          "cards": 21,
+          "note": "본문을 읽음. 카드별 영문 문장 대조 및 독립 사실감수 미완료."
+        },
+        {
+          "unit": "usa:chapter-15:VI",
+          "line_start": 13636,
+          "line_end": 13682,
+          "status": "read",
+          "cards": 8,
+          "note": "본문을 읽음. 카드별 영문 문장 대조 및 독립 사실감수 미완료."
+        },
+        {
+          "unit": "usa:chapter-15:VII",
+          "line_start": 13683,
+          "line_end": 13729,
+          "status": "read",
+          "cards": 22,
+          "note": "본문을 읽음. 카드별 영문 문장 대조 및 독립 사실감수 미완료."
+        },
+        {
+          "unit": "usa:chapter-15:VIII",
+          "line_start": 13730,
+          "line_end": 13746,
+          "status": "read",
+          "cards": 0,
+          "note": "결론 한 문단을 읽었다. 독립된 추가 개체보다 자본주의의 부와 빈곤, 계층 변화에 대한 종합이어서 새 카드는 없음."
+        },
+        {
+          "unit": "usa:chapter-15:IX-references",
+          "line_start": 13747,
+          "line_end": 14186,
+          "status": "excluded",
+          "cards": 0,
+          "note": "권장 읽을거리와 주석·서지·대조기록은 본문 대상에서 제외. 권장 인용과 기여자 표기는 출처 확인에 사용."
+        },
+        {
+          "unit": "usa:chapter-15:image-captions",
+          "line_start": 14187,
+          "line_end": 14265,
+          "status": "excluded",
+          "cards": 0,
+          "note": "그림 설명과 검수 메모는 본문 근거에서 제외. 이미지와 제3자 사료 전문도 사용하지 않음."
+        },
+        {
+          "unit": "usa:chapter-16:header-only",
+          "line_start": 14266,
+          "line_end": 14275,
+          "status": "excluded",
+          "cards": 0,
+          "note": "지정 범위 말미는 제16장 도입 메타데이터이며 제15장 본문이 아님. 제16장 본문은 범위 밖."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "attribution": {
+          "source": "Andrew C. Baker et al., “Capital and Labor,” Joseph L. Locke, chapter editor, The American Yawp, Vol. 2: Since 1865, 2nd ed., eds. Joseph L. Locke and Ben Wright, Stanford University Press, 2026.",
+          "contributors": "Andrew C. Baker, Jennifer M. Black, Nicholas Blood, Justin Clark, Dan Du, Kollin Fields, Caroline Bunnell Harris, David Hochfelder Scott Libson, Joseph Locke, Chad Pearson, Leah Richier, Matthew Simmons, Kate Sohasky, Joseph Super, Kaylynn Washnock. 온라인 원문의 쉼표 없는 이름 연결을 그대로 보존; 분리 미검증.",
+          "url": "https://www.americanyawp.com/textbook/15-capital-and-labor/",
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 및 각주 표기 변경에 이어 본 카드에서 재요약. 이미지와 제3자 전문 제외. 원문 저자나 출판사의 승인을 뜻하지 않음.",
+          "verification": "온라인 장의 머리말, 참고자료의 기여자·권장 인용 및 CC 라이선스 설명을 확인함. 직항 HTTP 403, 검색 서비스로 접근. 각 카드의 영문 원문 개별 문장 대조와 역사적 사실감수는 미완료; 행 번호는 고정 커밋의 한국어 초안 기준.",
+          "license_evidence": "교과서 프로젝트가 CC BY-SA 4.0임을 명시: https://www.americanyawp.com/text/about/ ; 조건·변경 표시는 https://creativecommons.org/licenses/by-sa/4.0/ 참조."
+        }
+      },
+      "candidate_count": 114,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch16",
+      "input_path": "미게시-임시자료:history/usa-ch16.json",
+      "input_sha256": "da967d6b8772616946009c6b2ef9e3cdd4d06a5a7d224847dcd6aa436e2ab553",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch16",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 14276,
+        "line_end": 15382,
+        "chapters": [
+          "usa:chapter-16"
+        ],
+        "heads": [
+          [
+            14276,
+            "chapter-16"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-3"
+      },
+      "input_segment_field": "chapter-16",
+      "scope": {
+        "line_start": 14276,
+        "line_end": 15382,
+        "chapters": [
+          "usa:chapter-16"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-16:i",
+          "line_start": 14276,
+          "line_end": 14288,
+          "status": "read",
+          "cards": 0,
+          "note": "서론 1문단 읽음. 뒤 절에서 다루는 개괄이므로 별도 카드 없음. 할당 범위 직전 14264–14275행은 제16장 통합본 안내·출처·번역 고지이며 본문 누락은 아니다."
+        },
+        {
+          "unit": "usa:chapter-16:ii",
+          "line_start": 14291,
+          "line_end": 14314,
+          "status": "read",
+          "cards": 4,
+          "note": "번역 본문을 읽음; 영문 전수대조 및 역사적 사실검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-16:iii",
+          "line_start": 14317,
+          "line_end": 14355,
+          "status": "read",
+          "cards": 36,
+          "note": "번역 본문 전체를 읽음; 개별 원어 대조 및 역사적 사실검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-16:iv",
+          "line_start": 14356,
+          "line_end": 14392,
+          "status": "read",
+          "cards": 15,
+          "note": "번역 본문 전체를 읽음; 개별 원어 대조 및 역사적 사실검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-16:v",
+          "line_start": 14393,
+          "line_end": 14427,
+          "status": "read",
+          "cards": 10,
+          "note": "번역 본문 전체를 읽음; 개별 원어 대조 및 역사적 사실검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-16:vi",
+          "line_start": 14428,
+          "line_end": 14468,
+          "status": "read",
+          "cards": 19,
+          "note": "번역 본문 전체를 읽음; 개별 원어 대조 및 역사적 사실검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-16:vii",
+          "line_start": 14469,
+          "line_end": 14499,
+          "status": "read",
+          "cards": 14,
+          "note": "번역 본문 전체를 읽음; 개별 원어 대조 및 역사적 사실검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-16:viii",
+          "line_start": 14500,
+          "line_end": 14535,
+          "status": "read",
+          "cards": 14,
+          "note": "번역 본문 전체를 읽음; 개별 원어 대조 및 역사적 사실검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-16:ix",
+          "line_start": 14536,
+          "line_end": 14579,
+          "status": "read",
+          "cards": 23,
+          "note": "번역 본문 전체를 읽음; 개별 원어 대조 및 역사적 사실검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-16:x",
+          "line_start": 14580,
+          "line_end": 14619,
+          "status": "read",
+          "cards": 17,
+          "note": "번역 본문 전체를 읽음; 개별 원어 대조 및 역사적 사실검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-16:xi",
+          "line_start": 14620,
+          "line_end": 14652,
+          "status": "read",
+          "cards": 6,
+          "note": "번역 본문 전체를 읽음; 개별 원어 대조 및 역사적 사실검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-16:xii",
+          "line_start": 14653,
+          "line_end": 14667,
+          "status": "read",
+          "cards": 0,
+          "note": "결론 1문단 전체 읽음. 앞 절의 종합이어서 별도 독립 대상은 없음."
+        },
+        {
+          "unit": "usa:chapter-16:excluded",
+          "line_start": 14668,
+          "line_end": 15382,
+          "status": "excluded",
+          "cards": 0,
+          "note": "14668–14768 그림 설명과 14769–15368 참고문헌·각주·기여자 서지는 카드 본문 근거에서 제외. 15369–15382는 제17장 시작으로 할당 밖; 제3자 1차사료 전문·목차·그림 설명은 본문 카드 근거로 사용하지 않음. 별도 제3자 1차사료 전문 절은 제16장에 없음."
+        }
+      ],
+      "unclassified_ranges": [
+        {
+          "start": 14289,
+          "end": 14290,
+          "nonblank_lines": [
+            14289
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 14315,
+          "end": 14316,
+          "nonblank_lines": [
+            14315
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        }
+      ],
+      "source_metadata": {
+        "attribution": {
+          "work": "Ellen Adams et al., Geographies of Empire, The American Yawp, vol. 2, 2nd ed., edited by Joseph L. Locke and Ben Wright, Stanford University Press, 2026",
+          "contributors": "Ellen Adams, Alvita Akiboh, Simon Balto, Jacob Betz, Lauren Brand, Carole Butcher, Tizoc Chavez, Morgan Deane, Dan Du, Josh Garrett-Davis, Pamela Gossin, Tracey Hanshew, Hidetaka Hirota, Amy Kohout, K. Tsianina Lomawaima, Lindsay Stallones Marshall, Jose Juan Perez Melendez, Erik Moore, Gregory Moore, Nick Roland, David Schley, Emma Teitelman, Alyce Webb",
+          "url": "https://www.americanyawp.com/textbook/16-geographies-of-empire/",
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안에서 선택·요약·카드화; 그림 등 제3자 자료 제외",
+          "verification": "온라인 제16장 원문 페이지에서 제목, 기여자 23명과 권장 인용 및 CC BY-SA 4.0 표기를 확인했다. 고정 커밋 usa.evidence.json은 편집자·라이선스 귀속을 제공하지만 제16장 기록은 찾지 못했다. 각 카드 사실은 한국어 번역 초안 근거이며 영문 원문 개별 전수대조와 독립적 역사 사실검증은 미완료다."
+        }
+      },
+      "candidate_count": 158,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch17",
+      "input_path": "미게시-임시자료:history/usa-ch17.json",
+      "input_sha256": "ced42307cdf6e103a14e13512eb62f9e5ae182ce779a9a575c5b0973a22f4405",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch17",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 15383,
+        "line_end": 16212,
+        "chapters": [
+          "usa:chapter-17"
+        ],
+        "heads": [
+          [
+            15383,
+            "chapter-17"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-3"
+      },
+      "input_segment_field": "usa-ch17",
+      "scope": {
+        "line_start": 15383,
+        "line_end": 16212,
+        "chapters": [
+          "usa:chapter-17"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-17",
+          "line_start": 15383,
+          "line_end": 15398,
+          "status": "read",
+          "cards": 1,
+          "note": "I 서론 15391행을 읽음. 서론의 전체적 변화는 별도 대상보다 이후 절에서 추출."
+        },
+        {
+          "unit": "usa:chapter-17",
+          "line_start": 15399,
+          "line_end": 15468,
+          "status": "read",
+          "cards": 28,
+          "note": "II절 서술 읽음. 15411–15421의 제3자 시 전문은 제외했으며 작품 자체의 맥락만 추출."
+        },
+        {
+          "unit": "usa:chapter-17",
+          "line_start": 15469,
+          "line_end": 15502,
+          "status": "read",
+          "cards": 15,
+          "note": "III 도시화 서술 전부 읽음. 인용문 자체의 전문은 재수록하지 않음."
+        },
+        {
+          "unit": "usa:chapter-17",
+          "line_start": 15503,
+          "line_end": 15588,
+          "status": "read",
+          "cards": 35,
+          "note": "IV 흑인의 삶과 새로운 남부 서술 전체 읽음. 폭력과 인종주의는 가해자·당대의 주장으로 명시."
+        },
+        {
+          "unit": "usa:chapter-17",
+          "line_start": 15589,
+          "line_end": 15642,
+          "status": "read",
+          "cards": 48,
+          "note": "V 젠더·종교·문화의 서술 16문단 전부 읽음. 원문과 번역 메모에 표시된 인명 철자·연대의 불확실성을 명시."
+        },
+        {
+          "unit": "usa:chapter-17",
+          "line_start": 15643,
+          "line_end": 15662,
+          "status": "read",
+          "cards": 7,
+          "note": "VI 결론 2문단을 읽음. 이미 다른 절에서 다룬 일반적 변화는 중복 카드로 만들지 않음."
+        },
+        {
+          "unit": "usa:chapter-17",
+          "line_start": 15663,
+          "line_end": 16201,
+          "status": "excluded",
+          "cards": 0,
+          "note": "그림 설명 15663–15748 및 참고문헌·주석 15749–16201은 설정 본문에서 제외. 15761–15775의 편집자·기여자·권장 인용만 출처 확인에 사용."
+        },
+        {
+          "unit": "usa:chapter-18",
+          "line_start": 16202,
+          "line_end": 16212,
+          "status": "excluded",
+          "cards": 0,
+          "note": "할당 경계 안의 다음 장 18장 머리말과 파일 경계이며 17장 본문이 아님."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "attribution": {
+          "title": "The American Yawp, New Lives / Life in Industrial America, 2nd ed. (2026)",
+          "editor": "David Hochfelder",
+          "contributors": [
+            "Jacob Betz",
+            "Anne Gray Fischer",
+            "David Hochfelder",
+            "Gerard Koeppel",
+            "Scott Libson",
+            "Kyle Livie",
+            "K. Tsianina Lomawaima",
+            "Paul Matzko",
+            "Isabella Morales",
+            "Natalie J. Ring",
+            "Andrew Robichaud",
+            "Kate Sohasky",
+            "Joseph Super",
+            "Susan Thomas",
+            "Shawn Varghese",
+            "Kaylynn Washnock",
+            "Kevin Young"
+          ],
+          "url": "https://www.americanyawp.com/textbook/17-new-lives/",
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안을 재요약함; 각주 표기를 생략하고 카드로 분리함",
+          "verification": "온라인 17장 편집자·기여자·권장 인용문 확인. 사이트 홈의 CC BY-SA 4.0 링크 및 기존 usa.evidence.json의 동일 라이선스 확인; 기존 evidence에는 17장 개별 credit 항목이 없어 온라인과 초안 15385–15388행을 사용. 개별 카드 사실의 영문 전수 대조와 전문가 감수는 미완료."
+        }
+      },
+      "candidate_count": 134,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch18",
+      "input_path": "미게시-임시자료:history/usa-ch18.json",
+      "input_sha256": "d20201a118fb374b21e5149bbc09a2547cec493051ed83ed56e58e305d12d1f2",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch18",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 16213,
+        "line_end": 17112,
+        "chapters": [
+          "usa:chapter-18"
+        ],
+        "heads": [
+          [
+            16213,
+            "chapter-18"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-3"
+      },
+      "input_segment_field": "usa:chapter-18",
+      "scope": {
+        "line_start": 16213,
+        "line_end": 17112,
+        "chapters": [
+          "usa:chapter-18"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-18",
+          "section": "I. 서론",
+          "line_start": 16213,
+          "line_end": 16231,
+          "status": "read",
+          "cards": 3,
+          "note": ""
+        },
+        {
+          "unit": "usa:chapter-18",
+          "section": "II. 개혁을 위한 동원",
+          "line_start": 16232,
+          "line_end": 16269,
+          "status": "read",
+          "cards": 19,
+          "note": ""
+        },
+        {
+          "unit": "usa:chapter-18",
+          "section": "III. 여성운동들",
+          "line_start": 16270,
+          "line_end": 16322,
+          "status": "read",
+          "cards": 32,
+          "note": ""
+        },
+        {
+          "unit": "usa:chapter-18",
+          "section": "IV. 트러스트를 겨냥하다",
+          "line_start": 16323,
+          "line_end": 16363,
+          "status": "read",
+          "cards": 26,
+          "note": ""
+        },
+        {
+          "unit": "usa:chapter-18",
+          "section": "V. 혁신주의 환경주의",
+          "line_start": 16364,
+          "line_end": 16396,
+          "status": "read",
+          "cards": 17,
+          "note": ""
+        },
+        {
+          "unit": "usa:chapter-18",
+          "section": "VI. 짐 크로와 아프리카계 아메리카인의 삶",
+          "line_start": 16397,
+          "line_end": 16450,
+          "status": "read",
+          "cards": 26,
+          "note": ""
+        },
+        {
+          "unit": "usa:chapter-18",
+          "section": "VII. 결론",
+          "line_start": 16451,
+          "line_end": 16465,
+          "status": "read",
+          "cards": 0,
+          "note": "한 문단을 읽었다. 앞 절에서 다룬 혁신주의 시대의 종합이므로 추가 독립 대상 없음."
+        },
+        {
+          "unit": "usa:chapter-18",
+          "section": "제외 범위 및 경계",
+          "line_start": 16466,
+          "line_end": 17112,
+          "status": "excluded",
+          "cards": 0,
+          "note": "16466–17036 참고자료·서지·주석은 설정 본문에서 제외하되 16474–16478의 저자 및 인용 정보만 출처 확인에 사용했다. 17037–17103 그림 설명은 제외했다. 17104–17112는 제19장 시작이므로 제18장에서 제외했다. 제3자 1차사료 전문 및 그림은 본문 근거로 사용하지 않았다."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "source_evidence": {
+          "chapter_url": "https://www.americanyawp.com/textbook/18-the-progressive-era/",
+          "citation": "Andrew C. Baker 외, The Progressive Era, Mary Anne Henderson 장 편집, Joseph L. Locke·Ben Wright 편, The American Yawp, 2권 2판, Stanford University Press, 2026.",
+          "contributors": "Andrew C. Baker, Peter Catapano, Blaine Hamilton, Mary Anne Henderson, Amanda Hughett, Amy Kohout, Maria Montalvo, Natalie J. Ring, Brent Ruswick, Philip Luke Sinitiere, Nora Slonimsky, Whitney Stewart, Brandy Thomas Wells",
+          "attribution_lines": [
+            16216,
+            16474,
+            16478
+          ],
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안에서 사실 요약·재구성, 그림 설명 제외. 원저자의 승인이나 전문가 감수 아님.",
+          "verification": "온라인 장 URL의 접근, 장 기여자·권장 인용 및 CC BY-SA 표시를 확인했다. 각 카드의 개별 사실은 온라인 원문과 일일이 대조하지 않아 미검증이며 근거는 한국어 번역 초안이다. 원어 1차 사료를 직접 검증한 것이 아니다."
+        }
+      },
+      "candidate_count": 123,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch19",
+      "input_path": "미게시-임시자료:history/usa-ch19.json",
+      "input_sha256": "173f009bb3c33250e7ac20eebd5bc22a07df36cc564c4cbd50b5cef439522ace",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch19",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 17113,
+        "line_end": 18090,
+        "chapters": [
+          "usa:chapter-19"
+        ],
+        "heads": [
+          [
+            17113,
+            "chapter-19"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-3"
+      },
+      "input_segment_field": "chapter-19",
+      "scope": {
+        "line_start": 17113,
+        "line_end": 18090,
+        "chapters": [
+          "usa:chapter-19"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-19",
+          "section": "I 서론",
+          "line_start": 17113,
+          "line_end": 17129,
+          "status": "read",
+          "cards": 1,
+          "note": "한국어 본문을 읽음. 그림 설명 및 메타데이터 제외, 개별 원문 대조 미검증."
+        },
+        {
+          "unit": "usa:chapter-19",
+          "section": "II 전쟁의 전주곡",
+          "line_start": 17130,
+          "line_end": 17162,
+          "status": "read",
+          "cards": 13,
+          "note": "한국어 본문을 읽음. 그림 설명 및 메타데이터 제외, 개별 원문 대조 미검증."
+        },
+        {
+          "unit": "usa:chapter-19",
+          "section": "III 미국과 멕시코",
+          "line_start": 17163,
+          "line_end": 17193,
+          "status": "read",
+          "cards": 21,
+          "note": "한국어 본문을 읽음. 그림 설명 및 메타데이터 제외, 개별 원문 대조 미검증."
+        },
+        {
+          "unit": "usa:chapter-19",
+          "section": "IV 유럽으로 번지는 전쟁",
+          "line_start": 17194,
+          "line_end": 17216,
+          "status": "read",
+          "cards": 7,
+          "note": "한국어 본문을 읽음. 그림 설명 및 메타데이터 제외, 개별 원문 대조 미검증."
+        },
+        {
+          "unit": "usa:chapter-19",
+          "section": "V 미국의 참전",
+          "line_start": 17217,
+          "line_end": 17286,
+          "status": "read",
+          "cards": 16,
+          "note": "한국어 본문 읽음. 캡션·제3자 1차사료 전문 제외; 개별 원문 대조 미검증."
+        },
+        {
+          "unit": "usa:chapter-19",
+          "section": "VI 국내 후방에서",
+          "line_start": 17287,
+          "line_end": 17336,
+          "status": "read",
+          "cards": 6,
+          "note": "한국어 본문 읽음. 캡션·제3자 1차사료 전문 제외; 개별 원문 대조 미검증."
+        },
+        {
+          "unit": "usa:chapter-19",
+          "section": "VII 정전 이전",
+          "line_start": 17337,
+          "line_end": 17363,
+          "status": "read",
+          "cards": 8,
+          "note": "한국어 서술 전체 읽음. 결론의 인과적 종합은 원저의 해석이며 별도 사실 검증 아님. 그림 설명과 1차사료 전문 제외; 개별 원문 대조 미검증."
+        },
+        {
+          "unit": "usa:chapter-19",
+          "section": "VIII 전쟁과 인플루엔자 대유행",
+          "line_start": 17364,
+          "line_end": 17386,
+          "status": "read",
+          "cards": 4,
+          "note": "한국어 서술 전체 읽음. 결론의 인과적 종합은 원저의 해석이며 별도 사실 검증 아님. 그림 설명과 1차사료 전문 제외; 개별 원문 대조 미검증."
+        },
+        {
+          "unit": "usa:chapter-19",
+          "section": "IX 14개조와 국제연맹",
+          "line_start": 17387,
+          "line_end": 17417,
+          "status": "read",
+          "cards": 9,
+          "note": "한국어 서술 전체 읽음. 결론의 인과적 종합은 원저의 해석이며 별도 사실 검증 아님. 그림 설명과 1차사료 전문 제외; 개별 원문 대조 미검증."
+        },
+        {
+          "unit": "usa:chapter-19",
+          "section": "X 제1차 세계대전의 여파",
+          "line_start": 17418,
+          "line_end": 17460,
+          "status": "read",
+          "cards": 37,
+          "note": "한국어 서술 전체 읽음. 결론의 인과적 종합은 원저의 해석이며 별도 사실 검증 아님. 그림 설명과 1차사료 전문 제외; 개별 원문 대조 미검증."
+        },
+        {
+          "unit": "usa:chapter-19",
+          "section": "XI 결론",
+          "line_start": 17461,
+          "line_end": 17475,
+          "status": "read",
+          "cards": 0,
+          "note": "서술 전체를 읽었으며 기존 제1차 세계대전 카드와 겹치는 역사적 종합이므로 독립 카드 0개. 인과관계는 원저의 해석이며 별도 사실 검증 아님."
+        },
+        {
+          "unit": "usa:chapter-19",
+          "section": "XII 참고자료 및 그림 설명, 다음 장 경계",
+          "line_start": 17476,
+          "line_end": 18090,
+          "status": "excluded",
+          "cards": 0,
+          "note": "17476–18020 참고문헌·주석 및 매핑, 18021–18080 그림 설명은 본문 카드 근거에서 제외. 18081–18090은 제20장 머리말로 담당 범위가 아님. 서지·기여자·이용허락은 출처 정보 확인에만 활용. 제3자 1차사료 전문 제외."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "source_attribution": {
+          "title": "The American Yawp, World War I and Its Aftermath, 2판 (2026)",
+          "editors": "Joseph L. Locke, Ben Wright; 장 편집 Paula Fortier",
+          "contributors": [
+            "Alex Beckstrand",
+            "Tizoc Chavez",
+            "Morgan Deane",
+            "Zachary W. Dresser",
+            "Blake Earle",
+            "Max Ehrenfreund",
+            "Paula Fortier",
+            "Larry A. Grant",
+            "Mariah Hepworth",
+            "Andrew Hernandez",
+            "Adam J. Hodges",
+            "Jun Suk Hyun",
+            "Benjamin C. Montoya",
+            "Leah Richier"
+          ],
+          "url": "https://www.americanyawp.com/textbook/19-world-war-i/",
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안에서 내용을 선별·요약하고 카드로 재구성. 승인이나 전문 사실감수 없음. 한국어 초안은 1차 사료가 아니다.",
+          "verification": "2026-11-16 해당 온라인 장의 크레딧과 권장 인용을 확인. 카드별 원문 대조는 별도 표시가 없는 한 미검증. 기존 usa.evidence.json의 장 기여자 목록은 19장을 포함하지 않으며 공통 라이선스 메타데이터를 확인. 온라인 장 하단과 https://www.americanyawp.com/text/about/ 에서 CC BY-SA 4.0 확인. 이전 텍스트 초안의 웹 제목과 달리 현재 온라인 페이지 제목은 World War I and Its Aftermath다."
+        }
+      },
+      "candidate_count": 116,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch20",
+      "input_path": "미게시-임시자료:history/usa-ch20.json",
+      "input_sha256": "f77444a78538ccce88fbacadf6e65c99e027aad21a8fa2dfb7bc34e3dbf8ea0b",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch20",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 18091,
+        "line_end": 18991,
+        "chapters": [
+          "usa:chapter-20"
+        ],
+        "heads": [
+          [
+            18091,
+            "chapter-20"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-3"
+      },
+      "input_segment_field": "chapter-20",
+      "scope": {
+        "line_start": 18091,
+        "line_end": 18991,
+        "chapters": [
+          "usa:chapter-20"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-20",
+          "line_start": 18091,
+          "line_end": 18107,
+          "status": "read",
+          "cards": 4,
+          "note": "I. 서론 본문을 읽음. 초안 메타데이터와 감수 메모는 본문 근거로 사용하지 않음."
+        },
+        {
+          "unit": "usa:chapter-20",
+          "line_start": 18108,
+          "line_end": 18135,
+          "status": "read",
+          "cards": 18,
+          "note": "II. 공화당의 백악관 본문을 읽음. 초안 메타데이터와 감수 메모는 본문 근거로 사용하지 않음."
+        },
+        {
+          "unit": "usa:chapter-20",
+          "line_start": 18136,
+          "line_end": 18155,
+          "status": "read",
+          "cards": 9,
+          "note": "III. 소비문화 본문을 읽음. 초안 메타데이터와 감수 메모는 본문 근거로 사용하지 않음."
+        },
+        {
+          "unit": "usa:chapter-20",
+          "line_start": 18156,
+          "line_end": 18195,
+          "status": "read",
+          "cards": 40,
+          "note": "IV. 일상에서 벗어나려는 문화 본문을 읽음. 초안 메타데이터와 감수 메모는 본문 근거로 사용하지 않음."
+        },
+        {
+          "unit": "usa:chapter-20",
+          "line_start": 18196,
+          "line_end": 18225,
+          "status": "read",
+          "cards": 5,
+          "note": "V. 신여성 본문을 읽음. 번역자 감수 메모는 본문 근거가 아니며 스코프스 재판 3월 시작일은 오류 가능성 때문에 채택하지 않음."
+        },
+        {
+          "unit": "usa:chapter-20",
+          "line_start": 18226,
+          "line_end": 18260,
+          "status": "read",
+          "cards": 30,
+          "note": "VI. 새로운 흑인 본문을 읽음. 번역자 감수 메모는 본문 근거가 아니며 스코프스 재판 3월 시작일은 오류 가능성 때문에 채택하지 않음."
+        },
+        {
+          "unit": "usa:chapter-20",
+          "line_start": 18261,
+          "line_end": 18291,
+          "status": "read",
+          "cards": 8,
+          "note": "VII. 문화전쟁 본문을 읽음. 번역자 감수 메모는 본문 근거가 아니며 스코프스 재판 3월 시작일은 오류 가능성 때문에 채택하지 않음."
+        },
+        {
+          "unit": "usa:chapter-20",
+          "line_start": 18292,
+          "line_end": 18324,
+          "status": "read",
+          "cards": 18,
+          "note": "VIII. 근본주의 기독교 본문을 읽음. 번역자 감수 메모는 본문 근거가 아니며 스코프스 재판 3월 시작일은 오류 가능성 때문에 채택하지 않음."
+        },
+        {
+          "unit": "usa:chapter-20",
+          "line_start": 18325,
+          "line_end": 18355,
+          "status": "read",
+          "cards": 15,
+          "note": "IX. 쿠 클럭스 클랜의 재탄생 본문을 읽음. 번역자 감수 메모는 본문 근거가 아니며 스코프스 재판 3월 시작일은 오류 가능성 때문에 채택하지 않음."
+        },
+        {
+          "unit": "usa:chapter-20",
+          "line_start": 18356,
+          "line_end": 18370,
+          "status": "read",
+          "cards": 1,
+          "note": "X. 결론 본문을 읽음. 번역자 감수 메모는 본문 근거가 아니며 스코프스 재판 3월 시작일은 오류 가능성 때문에 채택하지 않음."
+        },
+        {
+          "unit": "usa:chapter-20",
+          "line_start": 18371,
+          "line_end": 18931,
+          "status": "excluded",
+          "cards": 0,
+          "note": "XI 참고자료·추천문헌·각주 서지 및 감수 메모는 설정 본문에서 제외. 18379–18383행 편집·기여·인용 정보는 출처 확인에만 사용."
+        },
+        {
+          "unit": "usa:chapter-20",
+          "line_start": 18932,
+          "line_end": 18981,
+          "status": "excluded",
+          "cards": 0,
+          "note": "그림 설명문 12개와 부가 감수 메모 제외. 이미지 권리는 본문 라이선스와 별도다."
+        },
+        {
+          "unit": "usa:chapter-20",
+          "line_start": 18982,
+          "line_end": 18991,
+          "status": "excluded",
+          "cards": 0,
+          "note": "지정 범위 마지막 10행은 제21장 표제와 출처 소개이므로 제20장 본문에서 제외. 별도 제3자 1차사료 전문과 목차는 카드 근거로 사용하지 않았다."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "source_credit": {
+          "chapter_url": "https://www.americanyawp.com/textbook/20-the-new-era/",
+          "chapter_url_checked_on_utc": "2026-11-16",
+          "recommended_citation": "Micah Childress et al., “The New Era,” 장 편집 Brandy Thomas Wells, The American Yawp, 제2권, 제2판, Joseph L. Locke·Ben Wright 편, Stanford University Press, 2026.",
+          "chapter_editor": "Brandy Thomas Wells",
+          "contributors": [
+            "Micah Childress",
+            "Mari Crabtree",
+            "Maggie Flamingo",
+            "Kerry Goldmann",
+            "Pamela Gossin",
+            "Guy Lancaster",
+            "K. Tsianina Lomawaima",
+            "Benjamin C. Montoya",
+            "Emily Remus",
+            "Colin Reynolds",
+            "Kristopher Shields",
+            "Brandy Thomas Wells"
+          ],
+          "credit_evidence": "온라인 20장 XI Reference Material 및 번역 초안 18379–18383행. 고정 커밋 기존 usa.evidence.json에는 20장별 기여자 항목이 없다.",
+          "license": "CC BY-SA 4.0: https://creativecommons.org/licenses/by-sa/4.0/",
+          "license_evidence": "온라인 https://www.americanyawp.com/text/about/ 와 고정 커밋 infrastructure/sample-data/genre-templates/history/usa.evidence.json의 license 항목에서 확인. 그림과 외부 사료는 별도 권리.",
+          "changes": "한국어 번역 초안을 선택·재요약하고 유형별 카드로 배열했다. 원저자의 승인 또는 역사적 사실 보증을 뜻하지 않는다.",
+          "comparison": "온라인 제20장 본문 도입 첫 문단 및 편집·기여자 정보를 확인했으나 카드별 영문 원문 대조는 수행하지 않았다. 한국어 번역은 1차 원어 사료가 아니다."
+        }
+      },
+      "candidate_count": 148,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch21",
+      "input_path": "미게시-임시자료:history/usa-ch21.json",
+      "input_sha256": "5368207f2087d1baccf9b5f4481ecd32be8f855198e8ced68168fbb3c0dbc74e",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch21",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 18992,
+        "line_end": 20403,
+        "chapters": [
+          "usa:chapter-21"
+        ],
+        "heads": [
+          [
+            18992,
+            "chapter-21"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-3"
+      },
+      "input_segment_field": "chapter-21",
+      "scope": {
+        "line_start": 18992,
+        "line_end": 20403,
+        "chapters": [
+          "usa:chapter-21"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-21",
+          "section": "I",
+          "line_start": 18992,
+          "line_end": 19017,
+          "status": "read",
+          "cards": 2,
+          "note": "서술 본문 확인, 머리말·이미지 설명·검수 메모 제외."
+        },
+        {
+          "unit": "usa:chapter-21",
+          "section": "II",
+          "line_start": 19018,
+          "line_end": 19051,
+          "status": "read",
+          "cards": 4,
+          "note": "서술 본문 확인, 머리말·이미지 설명·검수 메모 제외."
+        },
+        {
+          "unit": "usa:chapter-21",
+          "section": "III",
+          "line_start": 19052,
+          "line_end": 19075,
+          "status": "read",
+          "cards": 5,
+          "note": "서술 본문 확인, 머리말·이미지 설명·검수 메모 제외."
+        },
+        {
+          "unit": "usa:chapter-21",
+          "section": "IV",
+          "line_start": 19076,
+          "line_end": 19109,
+          "status": "read",
+          "cards": 3,
+          "note": "서술 본문 확인, 그림 설명·외부 원문 전문 및 검수 메모 제외."
+        },
+        {
+          "unit": "usa:chapter-21",
+          "section": "V",
+          "line_start": 19110,
+          "line_end": 19148,
+          "status": "read",
+          "cards": 15,
+          "note": "서술 본문 확인, 그림 설명·외부 원문 전문 및 검수 메모 제외."
+        },
+        {
+          "unit": "usa:chapter-21",
+          "section": "VI",
+          "line_start": 19149,
+          "line_end": 19172,
+          "status": "read",
+          "cards": 4,
+          "note": "서술 본문 확인, 그림 설명·외부 원문 전문 및 검수 메모 제외."
+        },
+        {
+          "unit": "usa:chapter-21",
+          "section": "VII",
+          "line_start": 19173,
+          "line_end": 19207,
+          "status": "read",
+          "cards": 22,
+          "note": "서술 본문 확인, 그림 설명·외부 원문 전문 및 검수 메모 제외."
+        },
+        {
+          "unit": "usa:chapter-21",
+          "section": "VIII",
+          "line_start": 19208,
+          "line_end": 19238,
+          "status": "read",
+          "cards": 5,
+          "note": "서술 본문 확인, 출처 표기·주석·그림 설명 및 외부 사료 전문 제외."
+        },
+        {
+          "unit": "usa:chapter-21",
+          "section": "IX",
+          "line_start": 19239,
+          "line_end": 19292,
+          "status": "read",
+          "cards": 8,
+          "note": "서술 본문 확인, 출처 표기·주석·그림 설명 및 외부 사료 전문 제외."
+        },
+        {
+          "unit": "usa:chapter-21",
+          "section": "X",
+          "line_start": 19293,
+          "line_end": 19352,
+          "status": "read",
+          "cards": 18,
+          "note": "서술 본문 확인, 출처 표기·주석·그림 설명 및 외부 사료 전문 제외."
+        },
+        {
+          "unit": "usa:chapter-21",
+          "section": "XI",
+          "line_start": 19353,
+          "line_end": 19410,
+          "status": "read",
+          "cards": 6,
+          "note": "서술 본문 확인, 출처 표기·주석·그림 설명 및 외부 사료 전문 제외."
+        },
+        {
+          "unit": "usa:chapter-21",
+          "section": "XII",
+          "line_start": 19411,
+          "line_end": 19460,
+          "status": "read",
+          "cards": 6,
+          "note": "서술 본문 확인, 출처 표기·주석·그림 설명 및 외부 사료 전문 제외."
+        },
+        {
+          "unit": "usa:chapter-21",
+          "section": "XIII",
+          "line_start": 19461,
+          "line_end": 19475,
+          "status": "read",
+          "cards": 2,
+          "note": "서술 본문 확인, 출처 표기·주석·그림 설명 및 외부 사료 전문 제외."
+        },
+        {
+          "unit": "usa:chapter-21",
+          "section": "제외 범위",
+          "line_start": 19476,
+          "line_end": 20403,
+          "status": "excluded",
+          "cards": 0,
+          "note": "19476–20349 참고문헌·주석·대조 기록, 20350–20392 그림 설명은 제외. 20393–20403은 제22장 시작으로 본 장 범위 밖이다. 목차 및 제3자 1차 사료 전문도 제외."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "source_notice": {
+          "title": "The American Yawp, 2판, 2권, 제21장 The Great Depression",
+          "editors": "Joseph L. Locke, Ben Wright; 장 편집 Matthew Downs, Eric Rauchway",
+          "contributors": "Dana Cochran, Matthew Downs, Rebecca Brenner Graham, Benjamin Helwege, Brenda L. Lakhani, Elisa Minoff, Eric Rauchway, Larisa L. Veloz, Caitlin Verboon, Mason Williams",
+          "citation": "Dana Cochran et al., The Great Depression, Matthew Downs 편, The American Yawp 2판 2권 (Stanford University Press, 2026); 온라인 권장 인용은 장 편집자 중 Downs만 명시",
+          "url": "https://www.americanyawp.com/textbook/21-the-great-depression/",
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안을 선정·요약하여 카드로 재구성함. 각주 표기 변환.",
+          "input_transformation": "미게시 usa-ch21 입력의 카드 100건 각각의 본문에 CC BY-SA 4.0 출처·변경 고지를 추가하여 입력 본문과 바이트가 달라졌다. input_sha256은 고지 추가 전 입력 파일의 식별자이며 수정된 출력 카드의 해시가 아니다.",
+          "verification": "온라인 장의 편집자·기여자·권장인용 확인 및 기존 usa.evidence.json 확인. 카드의 근거는 한국어 번역 초안이며 원문과 문장별 대조 및 독립 역사 사실검증은 미실시. 온라인 About 페이지에서 CC BY-SA 4.0 확인: https://www.americanyawp.com/text/about/ . 기존 evidence의 제21장 기여자 출처 파일 기록과 온라인 기여자 명단 일치; evidence가 명시한 별도 원문 파일은 고정 커밋에 없어 직접 재검증하지 못함. 온라인 원문에서 Joseph Soman과 Etta Rich의 철자를 확인했다. 나머지 카드 내용은 개별 원문 대조 미검증.",
+          "evidence": "docs/research/history-textbooks/world-cards-research/usa.evidence.json chapter_credits 21-the-great-depression: 원문 txt SHA-256 181db9b9df06b2261384d6c9b5d9f9b97d385429722960f01cd7ad933485d227, 원문 기록상 232행."
+        }
+      },
+      "candidate_count": 100,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch22",
+      "input_path": "미게시-임시자료:history/usa-ch22.json",
+      "input_sha256": "4738232591c10fe9816a3d6dab085c7140c7a3adfd60df5c19f2c2d71311b1f9",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch22",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 20404,
+        "line_end": 21331,
+        "chapters": [
+          "usa:chapter-22"
+        ],
+        "heads": [
+          [
+            20404,
+            "chapter-22"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-4"
+      },
+      "input_segment_field": "usa-ch22",
+      "scope": {
+        "line_start": 20404,
+        "line_end": 21331,
+        "chapters": [
+          "usa:chapter-22"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-22",
+          "line_start": 20404,
+          "line_end": 20415,
+          "status": "read",
+          "cards": 1,
+          "note": "I절 본문과 감수 메모를 읽음. 초안은 1차 사료가 아니며 영어 웹장 개요 확인, 카드별 대조 미완료."
+        },
+        {
+          "unit": "usa:chapter-22",
+          "line_start": 20418,
+          "line_end": 20446,
+          "status": "read",
+          "cards": 24,
+          "note": "II절 본문과 감수 메모를 읽음. 초안은 1차 사료가 아니며 영어 웹장 개요 확인, 카드별 대조 미완료."
+        },
+        {
+          "unit": "usa:chapter-22",
+          "line_start": 20449,
+          "line_end": 20477,
+          "status": "read",
+          "cards": 17,
+          "note": "III절 본문과 감수 메모를 읽음. 초안은 1차 사료가 아니며 영어 웹장 개요 확인, 카드별 대조 미완료."
+        },
+        {
+          "unit": "usa:chapter-22",
+          "line_start": 20480,
+          "line_end": 20522,
+          "status": "read",
+          "cards": 27,
+          "note": "IV절 본문과 감수 메모를 읽음. 초안은 1차 사료가 아니며 영어 웹장 개요 확인, 카드별 대조 미완료."
+        },
+        {
+          "unit": "usa:chapter-22",
+          "line_start": 20525,
+          "line_end": 20588,
+          "status": "read",
+          "cards": 38,
+          "note": "V절 본문과 감수 메모를 읽음. 영어 웹장 개요 및 장별 저작자·CC BY-SA 4.0 확인, 개별 카드별 원문 대조 미완료."
+        },
+        {
+          "unit": "usa:chapter-22",
+          "line_start": 20591,
+          "line_end": 20621,
+          "status": "read",
+          "cards": 7,
+          "note": "VI절 본문·감수 메모 확인. 영문 웹장 개요와 장별 크레딧 확인, 개별 주장별 원문 대조 미완료."
+        },
+        {
+          "unit": "usa:chapter-22",
+          "line_start": 20624,
+          "line_end": 20652,
+          "status": "read",
+          "cards": 6,
+          "note": "VII절 본문·감수 메모 확인. 영문 웹장 개요와 장별 크레딧 확인, 개별 주장별 원문 대조 미완료."
+        },
+        {
+          "unit": "usa:chapter-22",
+          "line_start": 20655,
+          "line_end": 20696,
+          "status": "read",
+          "cards": 29,
+          "note": "VIII절 본문·감수 메모 확인. 영문 웹장 개요와 장별 크레딧 확인, 개별 주장별 원문 대조 미완료."
+        },
+        {
+          "unit": "usa:chapter-22",
+          "line_start": 20699,
+          "line_end": 20731,
+          "status": "read",
+          "cards": 20,
+          "note": "IX절 본문·감수 메모 확인. 영문 웹장 개요와 장별 크레딧 확인, 개별 주장별 원문 대조 미완료."
+        },
+        {
+          "unit": "usa:chapter-22",
+          "line_start": 20734,
+          "line_end": 20745,
+          "status": "read",
+          "cards": 0,
+          "note": "X절 본문·감수 메모 확인. 영문 웹장 개요와 장별 크레딧 확인, 개별 주장별 원문 대조 미완료. 결론에는 앞 절에서 추출한 대상의 요약만 있어 이 범위에 새로 연결한 카드는 없다."
+        },
+        {
+          "unit": "usa:chapter-22",
+          "line_start": 20746,
+          "line_end": 21320,
+          "status": "excluded",
+          "cards": 0,
+          "note": "XI 추천문헌·각주 서지와 별도 그림 설명은 본문 근거에서 제외했다. 영문 원전의 제3자 1차사료 전문과 목차도 제외했다."
+        },
+        {
+          "unit": "usa:chapter-23",
+          "line_start": 21321,
+          "line_end": 21331,
+          "status": "excluded",
+          "cards": 0,
+          "note": "다음 장 머리말과 구분선으로 제22장 본문이 아니다."
+        }
+      ],
+      "unclassified_ranges": [
+        {
+          "start": 20416,
+          "end": 20417,
+          "nonblank_lines": [
+            20416
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 20447,
+          "end": 20448,
+          "nonblank_lines": [
+            20447
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 20478,
+          "end": 20479,
+          "nonblank_lines": [
+            20478
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 20523,
+          "end": 20524,
+          "nonblank_lines": [
+            20523
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 20589,
+          "end": 20590,
+          "nonblank_lines": [
+            20589
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 20622,
+          "end": 20623,
+          "nonblank_lines": [
+            20622
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 20653,
+          "end": 20654,
+          "nonblank_lines": [
+            20653
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 20697,
+          "end": 20698,
+          "nonblank_lines": [
+            20697
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        },
+        {
+          "start": 20732,
+          "end": 20733,
+          "nonblank_lines": [
+            20732
+          ],
+          "classification": "nonblank-unclassified",
+          "observed_contents": [
+            "translation-file marker"
+          ]
+        }
+      ],
+      "source_metadata": {
+        "source_notes": {
+          "reference_attribution": {
+            "work": "The American Yawp",
+            "work_editors": [
+              "Joseph L. Locke",
+              "Ben Wright"
+            ],
+            "license": "CC BY-SA 4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "changes": "비공식 한국어 번역 초안을 선택·요약·카드화한 변경본이며 원저자의 승인이나 독립 감수를 뜻하지 않는다.",
+            "checked_on_utc": "2026-11-16",
+            "comparison_limit": "기존 카드 명단과 현재 공식 페이지의 기여자 명단은 같으나 이전 웹판의 고정 revision은 확인하지 못해 판본 동일성을 확정하지 않는다.",
+            "chapter": "22. World War II",
+            "chapter_editor": "Joseph Locke",
+            "contributors": [
+              "Mary Beth Chopas",
+              "Andrew David",
+              "Ashton Ellett",
+              "Paula Fortier",
+              "Rebecca Brenner Graham",
+              "Dan Johnson",
+              "Joseph Locke",
+              "Jennifer Mandel",
+              "Valerie Martinez",
+              "James McKay",
+              "Ryan Menath",
+              "Laura L. Oviedo",
+              "John E. Schmitz",
+              "Chris Thomas"
+            ],
+            "edition": "추천 인용: The American Yawp, Vol. 2, 2nd ed., Stanford University Press, 2026; 웹 본문 고정 revision 미확인",
+            "reference_url": "https://www.americanyawp.com/textbook/22-world-war-ii/#XI_Reference_Material"
+          },
+          "english_chapter": "웹판 장 제목·I–XI 절 구성과 일부 문단 개요 및 말미의 장 편집자, 기여자, 권장 인용, CC BY-SA 4.0을 직접 확인했다. 모든 카드 문장을 영어 원문과 개별 대조하지 않았다.",
+          "existing_evidence": "고정 커밋의 docs/research/history-textbooks/world-cards-research/usa.evidence.json 제22장 chapter_credits와 license 필드를 확인했다. 기록된 과거 원문 파일과 SHA-256은 현재 고정 커밋에서 별도 원문 파일로 존재한다고 확인하지 않았다.",
+          "license": "CC BY-SA 4.0; 한국어 초안의 재요약과 카드 편집은 변경이며 저자·출판사의 승인을 의미하지 않는다. 그림·제3자 콘텐츠는 제외한다."
+        }
+      },
+      "candidate_count": 157,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch23",
+      "input_path": "미게시-임시자료:history/usa-ch23.json",
+      "input_sha256": "52ba0fc9c52fd307b93eb86da424f82afdf72e4e09b64febf640caffca3663fe",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch23",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 21332,
+        "line_end": 22273,
+        "chapters": [
+          "usa:chapter-23"
+        ],
+        "heads": [
+          [
+            21332,
+            "chapter-23"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-4"
+      },
+      "input_segment_field": "usa:chapter-23",
+      "scope": {
+        "line_start": 21332,
+        "line_end": 22273,
+        "chapters": [
+          "usa:chapter-23"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-23",
+          "line_start": 21332,
+          "line_end": 21356,
+          "status": "read",
+          "cards": 4,
+          "note": "I. 서론 본문 전체 읽음. 원문과의 개별 사실 대조·사실 검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-23",
+          "line_start": 21357,
+          "line_end": 21419,
+          "status": "read",
+          "cards": 37,
+          "note": "II. 정치·경제·군사 본문 전체 읽음. 원문과의 개별 사실 대조·사실 검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-23",
+          "line_start": 21420,
+          "line_end": 21456,
+          "status": "read",
+          "cards": 30,
+          "note": "III. 군비·우주·기술 본문 전체 읽음. 원문과의 개별 사실 대조·사실 검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-23",
+          "line_start": 21457,
+          "line_end": 21522,
+          "status": "read",
+          "cards": 47,
+          "note": "IV. 적색공포 본문 전체 읽음. 원문과의 개별 사실 대조·사실 검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-23",
+          "line_start": 21523,
+          "line_end": 21615,
+          "status": "read",
+          "cards": 26,
+          "note": "V. 탈식민화 본문 전체 읽음. 원문과의 개별 사실 대조·사실 검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-23",
+          "line_start": 21616,
+          "line_end": 21632,
+          "status": "read",
+          "cards": 4,
+          "note": "VII. 결론 본문 전체 읽음. 원문과의 개별 사실 대조·사실 검증 미완료."
+        },
+        {
+          "unit": "usa:chapter-23",
+          "line_start": 21633,
+          "line_end": 22213,
+          "status": "excluded",
+          "cards": 0,
+          "note": "VIII 참고문헌·주석·서지·대조 메모는 설정 본문에서 제외. 원전 저자·기여자 및 권리 확인에만 이용."
+        },
+        {
+          "unit": "usa:chapter-23",
+          "line_start": 22214,
+          "line_end": 22263,
+          "status": "excluded",
+          "cards": 0,
+          "note": "그림 설명문 11개와 이미지 권리 제외. 제3자 1차사료 전문·목차도 추출 근거로 사용하지 않음."
+        },
+        {
+          "unit": "usa:chapter-23",
+          "line_start": 22264,
+          "line_end": 22273,
+          "status": "excluded",
+          "cards": 0,
+          "note": "다음 제24장 안내·공백으로 제23장 본문 아님. 온라인 원문 역시 VI절을 생략."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "source_evidence": {
+          "source_url": "https://www.americanyawp.com/textbook/23-the-cold-war/",
+          "recommended_citation": "Michael Brenes et al., “The Cold War,” Ari Cushner, ed., The American Yawp, Vol. 2: Since 1865, 2nd ed., Joseph L. Locke and Ben Wright, eds. (Stanford University Press, 2026).",
+          "chapter_editor": "Ari Cushner",
+          "chapter_contributors": [
+            "Michael Brenes",
+            "Ari Cushner",
+            "Michael Franczak",
+            "Joseph Haker",
+            "Jonathan Hunt",
+            "Jun Suk Hyun",
+            "Zack Jacobson",
+            "Micki Kaufman",
+            "Lucie Kyrova",
+            "Celeste Day Moore",
+            "Joseph Parrott",
+            "Colin Reynolds",
+            "Tanya Roth"
+          ],
+          "license": "CC BY-SA 4.0",
+          "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안을 바탕으로 별도 요약·분리·검증 한계 표기를 추가했다.",
+          "verification": "2026-11-16 공개 원문 페이지의 제목·차례·서론 첫 문단·편집자·기여자·권장 인용 및 페이지 CC BY-SA 4.0 표시를 확인했고 홈페이지의 4.0 라이선스 링크도 확인했다. 카드별 전체 사실과 인용을 원문에 일일 대조하지 않았으며, 한국어 초안은 1차 원어 사료가 아니다. 역사적 사실과 개별 이미지 등의 권리는 별도 검토가 필요하다."
+        }
+      },
+      "candidate_count": 148,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch24",
+      "input_path": "미게시-임시자료:history/usa-ch24.json",
+      "input_sha256": "4f425214d42e7755f33582ced3936a93490b0560d6e04fe29da3da58d0fb19b7",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch24",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 22274,
+        "line_end": 23018,
+        "chapters": [
+          "usa:chapter-24"
+        ],
+        "heads": [
+          [
+            22274,
+            "chapter-24"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-4"
+      },
+      "input_segment_field": "chapter-24",
+      "scope": {
+        "line_start": 22274,
+        "line_end": 23018,
+        "chapters": [
+          "usa:chapter-24"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-24",
+          "section": "I",
+          "line_start": 22274,
+          "line_end": 22294,
+          "status": "read",
+          "cards": 2,
+          "note": "번역 본문을 읽고 개별 대상을 요약함. 번역 초안은 1차 사료가 아니며 영문 문장별 대조는 미완료."
+        },
+        {
+          "unit": "usa:chapter-24",
+          "section": "II",
+          "line_start": 22295,
+          "line_end": 22337,
+          "status": "read",
+          "cards": 17,
+          "note": "번역 본문을 읽고 개별 대상을 요약함. 번역 초안은 1차 사료가 아니며 영문 문장별 대조는 미완료."
+        },
+        {
+          "unit": "usa:chapter-24",
+          "section": "III",
+          "line_start": 22338,
+          "line_end": 22373,
+          "status": "read",
+          "cards": 23,
+          "note": "번역 본문을 읽고 개별 대상을 요약함. 번역 초안은 1차 사료가 아니며 영문 문장별 대조는 미완료."
+        },
+        {
+          "unit": "usa:chapter-24",
+          "section": "IV",
+          "line_start": 22374,
+          "line_end": 22414,
+          "status": "read",
+          "cards": 48,
+          "note": "번역 본문을 읽고 개별 대상을 요약함. 번역 초안은 1차 사료가 아니며 영문 문장별 대조는 미완료."
+        },
+        {
+          "unit": "usa:chapter-24",
+          "section": "V",
+          "line_start": 22415,
+          "line_end": 22459,
+          "status": "read",
+          "cards": 23,
+          "note": "번역 본문을 읽고 개별 대상을 요약함. 번역 초안은 1차 사료가 아니며 영문 문장별 대조는 미완료."
+        },
+        {
+          "unit": "usa:chapter-24",
+          "section": "VI",
+          "line_start": 22460,
+          "line_end": 22498,
+          "status": "read",
+          "cards": 30,
+          "note": "번역 본문을 읽고 개별 대상을 요약함. 번역 초안은 1차 사료가 아니며 영문 문장별 대조는 미완료."
+        },
+        {
+          "unit": "usa:chapter-24",
+          "section": "VII",
+          "line_start": 22499,
+          "line_end": 22510,
+          "status": "read",
+          "cards": 0,
+          "note": "번역 본문을 읽고 개별 대상을 요약함. 번역 초안은 1차 사료가 아니며 영문 문장별 대조는 미완료."
+        },
+        {
+          "unit": "usa:chapter-24",
+          "section": "VIII 및 그림·범위 경계",
+          "line_start": 22511,
+          "line_end": 23018,
+          "status": "read",
+          "cards": 0,
+          "note": "22511–22960 참고문헌·주석은 독립 설정 추출에서 제외하되 22516–22524 서지·기여·권장 인용을 확인했다. 22961–23010 그림 설명문과 23011–23018 제25장 서두는 제외했다. 제3자 1차사료 전문 및 목차는 본문 근거에서 제외한다."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "source_attribution": {
+          "citation": "Edwin C. Breeden 외, “The Affluent Society”, James McKay 장 편집, Joseph L. Locke·Ben Wright 전체 편집, The American Yawp, Vol. 2, 2판, Stanford University Press, 2026",
+          "contributors": [
+            "Moisés Acuña-Gurrola",
+            "Carlos Blanton",
+            "Edwin C. Breeden",
+            "Aaron Cowan",
+            "Elsa Devienne",
+            "Maggie Flamingo",
+            "Destin Jenkins",
+            "Kyle Livie",
+            "Jennifer Mandel",
+            "James McKay",
+            "Laura Redford",
+            "Ronny Regev",
+            "Tanya Roth"
+          ],
+          "url": "https://www.americanyawp.com/textbook/24-the-affluent-society/",
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안을 개별 설정으로 요약·재구성함. 승인·역사 전문가 감수 없음.",
+          "verification": "온라인 제24장과 기여자·권장 인용 확인. 전체 각 카드 내용의 영문 문장별 대조는 미완료; 한국어 초안 기반이며 1차 사료가 아님. 판본 및 역사적 정확성 추가 검토 필요.",
+          "license_evidence": "https://web.stanford.edu/dept/press/cgi-bin/yawp/index.html (제2판 텍스트 CC BY-SA 4.0); https://web.stanford.edu/dept/press/cgi-bin/yawp/introduction.html (프로젝트 라이선스 설명)",
+          "chapter_mirror": "https://web.stanford.edu/dept/press/cgi-bin/yawp/chapter-24-the-affluent-society.html"
+        }
+      },
+      "candidate_count": 143,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch25",
+      "input_path": "미게시-임시자료:history/usa-ch25.json",
+      "input_sha256": "fde7211df7dea566f0482417279e8dc35da56284b04277dfbab4dac9f7e37278",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch25",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 23019,
+        "line_end": 23662,
+        "chapters": [
+          "usa:chapter-25"
+        ],
+        "heads": [
+          [
+            23019,
+            "chapter-25"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-4"
+      },
+      "input_segment_field": "제25장 1960년대",
+      "scope": {
+        "line_start": 23019,
+        "line_end": 23662,
+        "chapters": [
+          "usa:chapter-25"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-25",
+          "line_start": 23019,
+          "line_end": 23041,
+          "status": "read",
+          "cards": 0,
+          "note": "I 서론은 시대 전체의 개관으로 독립 대상 추가 없음. 출처·감수 메모 제외."
+        },
+        {
+          "unit": "usa:chapter-25",
+          "line_start": 23042,
+          "line_end": 23092,
+          "status": "read",
+          "cards": 39,
+          "note": "II 본문 23056–23080행 전체를 읽음. 출처·감수 메모 제외; 카드 사실별 영문 대조 미검증."
+        },
+        {
+          "unit": "usa:chapter-25",
+          "line_start": 23093,
+          "line_end": 23136,
+          "status": "read",
+          "cards": 17,
+          "note": "III. 린든 존슨의 위대한 사회 본문 전체를 읽음. 출처·감수 메모 제외; 카드 사실별 영문 대조 미검증."
+        },
+        {
+          "unit": "usa:chapter-25",
+          "line_start": 23137,
+          "line_end": 23176,
+          "status": "read",
+          "cards": 14,
+          "note": "IV. 베트남전의 기원 본문 전체를 읽음. 출처·감수 메모 제외; 카드 사실별 영문 대조 미검증."
+        },
+        {
+          "unit": "usa:chapter-25",
+          "line_start": 23177,
+          "line_end": 23207,
+          "status": "read",
+          "cards": 9,
+          "note": "V. 문화와 사회운동 본문 전체를 읽음. 출처·감수 메모 제외; 카드 사실별 영문 대조 미검증."
+        },
+        {
+          "unit": "usa:chapter-25",
+          "line_start": 23208,
+          "line_end": 23263,
+          "status": "read",
+          "cards": 47,
+          "note": "VI 본문 23218–23250행 전체를 읽음. 출처·감수 메모 제외; 카드 사실별 영문 대조 미검증."
+        },
+        {
+          "unit": "usa:chapter-25",
+          "line_start": 23264,
+          "line_end": 23273,
+          "status": "read",
+          "cards": 2,
+          "note": "VII 결론 23272행 전체를 읽음."
+        },
+        {
+          "unit": "usa:chapter-25",
+          "line_start": 23274,
+          "line_end": 23652,
+          "status": "excluded",
+          "cards": 0,
+          "note": "VIII 참고문헌·각주·검수 메모 및 그림 설명을 본문 추출에서 제외. 제3자 1차사료 전문 및 목차도 추출하지 않음. 편집자와 기여자 및 이용허락 확인에만 출처 메타데이터를 참고."
+        },
+        {
+          "unit": "usa:chapter-25",
+          "line_start": 23653,
+          "line_end": 23662,
+          "status": "excluded",
+          "cards": 0,
+          "note": "할당 범위 끝에 포함된 제26장 통합 초안 도입부이며 제25장 본문이 아니므로 제외."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "provenance": {
+          "source": "Samuel Abramson et al., “The Sixties,” The American Yawp, Vol. 2, 2nd ed., Joseph L. Locke and Ben Wright 편, Stanford University Press, 2026. https://www.americanyawp.com/textbook/25-the-sixties/",
+          "chapter_editors": [
+            "Samuel Abramson",
+            "Kerry Goldmann"
+          ],
+          "contributors": [
+            "Samuel Abramson",
+            "Moisés Acuña-Gurrola",
+            "Marsha Barrett",
+            "Brent Cebul",
+            "Michell Chresfield",
+            "William Cossen",
+            "Jenifer Dodd",
+            "Michael Falcone",
+            "Leif Fredrickson",
+            "Jean-Paul de Guzman",
+            "Jordan Hill",
+            "Travis B. Hill",
+            "William Kelly",
+            "Lucie Kyrova",
+            "Zeb Larson",
+            "Maria Montalvo",
+            "Emily Prifogle",
+            "Ansley Quiros",
+            "Jo Reger",
+            "Sarah Riva",
+            "Tanya Roth",
+            "Robert Thompson"
+          ],
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안을 재요약함. 개별 사실은 영문 원문과 일일이 대조하지 않았으며 초안은 1차 사료가 아님. 온라인 장의 제목, 편집·기여자, 권장 인용과 라이선스 표시 확인. 저자 승인 및 전문 감수 미완료.",
+          "existing_evidence": "고정 커밋의 docs/research/history-textbooks/world-cards-research/usa.evidence.json의 chapter_credits 25-the-sixties 항목: 원문 텍스트 161행, SHA-256 0d1fc135be36e2e10d27ef68585565de05cb4eca638b5872a358c06f803d6354. 제25장 원문 텍스트는 고정 커밋에 포함되지 않아 별도로 읽지 못했음. 동일 기여자 명단을 공개 웹 원문과 확인.",
+          "license_notice": "이 재요약·선별·카드 구성은 CC BY-SA 4.0으로 제공하며 원저자의 보증을 의미하지 않는다. 제3자 이미지·자료에는 별도 권리가 있을 수 있다."
+        }
+      },
+      "candidate_count": 128,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch26",
+      "input_path": "미게시-임시자료:history/usa-ch26.json",
+      "input_sha256": "a85bc8a8298e4e8d9265202c60d7455c0cd5d4e05044a7515303cf4278edb322",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch26",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 23663,
+        "line_end": 24923,
+        "chapters": [
+          "usa:chapter-26"
+        ],
+        "heads": [
+          [
+            23663,
+            "chapter-26"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-4"
+      },
+      "input_segment_field": "chapter-26",
+      "scope": {
+        "line_start": 23663,
+        "line_end": 24923,
+        "chapters": [
+          "usa:chapter-26"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-26",
+          "section": "I. 서론",
+          "line_start": 23663,
+          "line_end": 23683,
+          "status": "read",
+          "cards": 5,
+          "note": "본문 전체 읽음; 대조 메모·그림·제3자 원문은 카드 근거에서 제외. 개별 카드의 원문 대조와 역사적 사실 독립 검증은 미완료."
+        },
+        {
+          "unit": "usa:chapter-26",
+          "section": "II. 베트남 전쟁의 압박",
+          "line_start": 23684,
+          "line_end": 23715,
+          "status": "read",
+          "cards": 15,
+          "note": "본문 전체 읽음; 대조 메모·그림·제3자 원문은 카드 근거에서 제외. 개별 카드의 원문 대조와 역사적 사실 독립 검증은 미완료."
+        },
+        {
+          "unit": "usa:chapter-26",
+          "section": "III. 인종·사회·문화적 불안",
+          "line_start": 23716,
+          "line_end": 23754,
+          "status": "read",
+          "cards": 36,
+          "note": "본문 전체 읽음; 대조 메모·그림·제3자 원문은 카드 근거에서 제외. 개별 카드의 원문 대조와 역사적 사실 독립 검증은 미완료."
+        },
+        {
+          "unit": "usa:chapter-26",
+          "section": "IV. 1968년의 위기",
+          "line_start": 23755,
+          "line_end": 23775,
+          "status": "read",
+          "cards": 1,
+          "note": "본문 전체 읽음; 대조 메모·그림·제3자 원문은 카드 근거에서 제외. 개별 카드의 원문 대조와 역사적 사실 독립 검증은 미완료."
+        },
+        {
+          "unit": "usa:chapter-26",
+          "section": "V. 닉슨의 부상과 몰락",
+          "line_start": 23776,
+          "line_end": 23809,
+          "status": "read",
+          "cards": 18,
+          "note": "본문 전체 읽음; 대조 메모·그림·제3자 원문은 카드 근거에서 제외. 개별 카드의 원문 대조와 역사적 사실 독립 검증은 미완료."
+        },
+        {
+          "unit": "usa:chapter-26",
+          "section": "VI. 탈산업화와 선벨트",
+          "line_start": 23810,
+          "line_end": 23858,
+          "status": "read",
+          "cards": 11,
+          "note": "번역 본문 전체 읽음. 그림·설명·참고문헌·대조 메모는 본문 근거에서 제외. 개별 내용 원문 및 사실 독립 대조 미완료."
+        },
+        {
+          "unit": "usa:chapter-26",
+          "section": "VII. 환경운동",
+          "line_start": 23859,
+          "line_end": 23889,
+          "status": "read",
+          "cards": 23,
+          "note": "번역 본문 전체 읽음. 그림·설명·참고문헌·대조 메모는 본문 근거에서 제외. 개별 내용 원문 및 사실 독립 대조 미완료."
+        },
+        {
+          "unit": "usa:chapter-26",
+          "section": "VIII. 사랑·성·젠더의 정치",
+          "line_start": 23890,
+          "line_end": 23941,
+          "status": "read",
+          "cards": 18,
+          "note": "번역 본문 전체 읽음. 그림·설명·참고문헌·대조 메모는 본문 근거에서 제외. 개별 내용 원문 및 사실 독립 대조 미완료."
+        },
+        {
+          "unit": "usa:chapter-26",
+          "section": "IX. 경제고통지수",
+          "line_start": 23942,
+          "line_end": 23994,
+          "status": "read",
+          "cards": 19,
+          "note": "본문 전체 읽음. 대조 메모와 그림 설명은 본문 근거에서 제외. 개별 내용 원문 및 역사적 사실 독립 대조 미완료."
+        },
+        {
+          "unit": "usa:chapter-26",
+          "section": "X. 결론",
+          "line_start": 23995,
+          "line_end": 24006,
+          "status": "read",
+          "cards": 0,
+          "note": "본문 전체 읽음. 결론은 기존 대상의 해석 종합으로 독립 대상 없음."
+        },
+        {
+          "unit": "usa:chapter-26",
+          "section": "XI. 참고자료 및 그림 설명",
+          "line_start": 24007,
+          "line_end": 24912,
+          "status": "excluded",
+          "cards": 0,
+          "note": "추천문헌·주석·그림 설명 및 제3자 전문은 설정 본문에서 제외. 기여자와 권장 인용 24014–24020행은 출처 확인에 사용."
+        },
+        {
+          "unit": "usa:chapter-26",
+          "section": "다음 장 경계",
+          "line_start": 24913,
+          "line_end": 24923,
+          "status": "excluded",
+          "cards": 0,
+          "note": "제27장 통합본 표지와 서지 안내이며 제26장 본문이 아님."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "attribution": {
+          "author": "Seth Anziska 외",
+          "chapter_editor": "Edwin Breeden",
+          "volume_editors": [
+            "Joseph L. Locke",
+            "Ben Wright"
+          ],
+          "title": "The American Yawp, 2nd ed., vol. 2, The Unraveling (2026)",
+          "contributors": "Seth Anziska, Emiliano Aguilar, Jeremiah Bauer, Edwin Breeden, Kyle Burke, Brent Cebul, Alexandra Evans, Sean Fear, Anne Gray Fischer, Rebecca Brenner Graham, Travis B. Hill, Destin Jenkins, Matthew Kahn, Suzanne Kahn, Brooke Lamperd, Zeb Larson, Raechel Lutz, Katherine McGarr, Matthew Pressman, Adam Parsons, Emily Prifogle, John Rosenberg, Paul C. Rosier, Brandy Thomas Wells, Naomi R. Williams",
+          "url": "https://www.americanyawp.com/textbook/26-the-unraveling/",
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안을 요약하여 카드로 변형함",
+          "verification": "온라인 장 도입부·장별 기여자·권장 인용 대조; 개별 나머지 카드 내용은 온라인 원문과 별도 대조하지 않은 한국어 번역 초안 기반, 역사적 사실 독립 검증 미완료. 2판 웹 장 제목은 26, 구 1판 동일 본문은 28장.",
+          "existing_evidence": "infrastructure/sample-data/genre-templates/history/usa.evidence.json: 장 26 출처·기여자 및 라이선스 증거. 이 evidence에 기록된 영문 원본 파일 경로는 현재 미열람; 영문 장 도입부와 IX·장별 크레딧은 온라인에서 부분 열람.",
+          "license_evidence": "기존 usa.evidence.json 24–27행 및 981–988행의 출처 고지, 한국어 초안 23666–23667행. CC 라이선스 원문 고지 조건은 공식 라이선스 페이지에서 확인. 제3자 자료·이미지의 권리는 별도."
+        }
+      },
+      "candidate_count": 146,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch27",
+      "input_path": "미게시-임시자료:history/usa-ch27.json",
+      "input_sha256": "b562d0e73e401dd9313d7659050b4388e2bd423cce15fa5d35daf55dad129e82",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch27",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 24924,
+        "line_end": 25982,
+        "chapters": [
+          "usa:chapter-27"
+        ],
+        "heads": [
+          [
+            24924,
+            "chapter-27"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-4"
+      },
+      "input_segment_field": "usa-ch27",
+      "scope": {
+        "line_start": 24924,
+        "line_end": 25982,
+        "chapters": [
+          "usa:chapter-27"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-27:I",
+          "line_start": 24924,
+          "line_end": 24951,
+          "status": "read",
+          "cards": 3,
+          "note": "서술 본문을 읽음; 이미지·제3자 사료 전문 제외. 사실은 번역 초안에 근거."
+        },
+        {
+          "unit": "usa:chapter-27:II",
+          "line_start": 24952,
+          "line_end": 24988,
+          "status": "read",
+          "cards": 30,
+          "note": "서술 본문을 읽음; 이미지·제3자 사료 전문 제외. 사실은 번역 초안에 근거."
+        },
+        {
+          "unit": "usa:chapter-27:III",
+          "line_start": 24989,
+          "line_end": 25021,
+          "status": "read",
+          "cards": 6,
+          "note": "서술 본문을 읽음; 이미지·제3자 사료 전문 제외. 사실은 번역 초안에 근거."
+        },
+        {
+          "unit": "usa:chapter-27:IV",
+          "line_start": 25022,
+          "line_end": 25049,
+          "status": "read",
+          "cards": 12,
+          "note": "서술 본문을 읽음; 이미지·제3자 사료 전문 제외. 사실은 번역 초안에 근거."
+        },
+        {
+          "unit": "usa:chapter-27:V",
+          "line_start": 25050,
+          "line_end": 25080,
+          "status": "read",
+          "cards": 13,
+          "note": "서술 본문을 읽음; 이미지·제3자 사료 전문 제외. 사실은 번역 초안에 근거."
+        },
+        {
+          "unit": "usa:chapter-27:VI",
+          "line_start": 25081,
+          "line_end": 25114,
+          "status": "read",
+          "cards": 26,
+          "note": "서술 본문을 읽음; 이미지·제3자 사료 전문 제외. 사실은 번역 초안에 근거."
+        },
+        {
+          "unit": "usa:chapter-27:VII",
+          "line_start": 25115,
+          "line_end": 25139,
+          "status": "read",
+          "cards": 8,
+          "note": "서술 본문을 읽음; 이미지·제3자 사료 전문 제외. 사실은 번역 초안에 근거."
+        },
+        {
+          "unit": "usa:chapter-27:VIII",
+          "line_start": 25140,
+          "line_end": 25184,
+          "status": "read",
+          "cards": 45,
+          "note": "서술 본문을 읽음; 이미지·제3자 사료 전문 제외. 사실은 번역 초안에 근거."
+        },
+        {
+          "unit": "usa:chapter-27:IX",
+          "line_start": 25185,
+          "line_end": 25224,
+          "status": "read",
+          "cards": 25,
+          "note": "서술 본문을 읽음; 이미지·제3자 사료 전문 제외. 사실은 번역 초안에 근거."
+        },
+        {
+          "unit": "usa:chapter-27:X",
+          "line_start": 25225,
+          "line_end": 25304,
+          "status": "read",
+          "cards": 44,
+          "note": "서술 본문을 읽음; 이미지·제3자 사료 전문 제외. 사실은 번역 초안에 근거."
+        },
+        {
+          "unit": "usa:chapter-27:XI",
+          "line_start": 25305,
+          "line_end": 25325,
+          "status": "read",
+          "cards": 1,
+          "note": "서술 본문을 읽음; 이미지·제3자 사료 전문 제외. 사실은 번역 초안에 근거."
+        },
+        {
+          "unit": "usa:chapter-27:XII-and-captions",
+          "line_start": 25326,
+          "line_end": 25970,
+          "status": "excluded",
+          "cards": 0,
+          "note": "참고문헌·각주·대조 목록과 그림 설명은 설정 본문에서 제외. 제3자 1차사료 전문도 추출하지 않음."
+        },
+        {
+          "unit": "usa:chapter-28:preface",
+          "line_start": 25971,
+          "line_end": 25982,
+          "status": "excluded",
+          "cards": 0,
+          "note": "지정 범위 끝에 포함된 제28장 안내문으로 제27장 본문이 아님."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "source_credit": {
+          "work": "The American Yawp, Vol. 2, 2nd ed., Stanford University Press, 2026",
+          "volume_editors": "Joseph L. Locke, Ben Wright",
+          "chapter_editors": "Richard Anderson, William J. Schultz",
+          "contributors": "Emiliano Aguilar, Richard Anderson, Laila Ballout, Marsha Barrett, Seth Bartee, Eladio Bobadilla, Kyle Burke, Andrew Chadwick, Aaron Cowan, Jennifer Donnally, Leif Fredrickson, Anne Gray Fischer, Kori Graves, Rachel Michelle Gunter, Karissa A. Haugeberg, Jonathan Hunt, Stephen Koeth, Zeb Larson, Rose Miron, Colin Reynolds, Paul C. Rosier, William J. Schultz, Daniel Spillman",
+          "license": "CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안을 선택·요약·카드로 재구성함.",
+          "verification": "장 웹페이지의 제목·장 기여자 직접 확인. 개별 사실은 한국어 초안에 근거하며 영문 개별 문장 대조 및 독립적 역사 검증 미완료. 기존 usa.evidence.json은 27장의 장별 크레디트와 원문 파일을 수록하지 않으며, 기여자는 24930–24932행과 공개 장 웹페이지에서 확인했다. 저작권 표시는 원전 소개 페이지에서도 확인했다.",
+          "url": "https://www.americanyawp.com/textbook/27-the-triumph-of-the-right/",
+          "license_source": "https://www.americanyawp.com/text/about/"
+        }
+      },
+      "candidate_count": 213,
+      "coverage_overlapping_line_count": 0
+    },
+    {
+      "segment": "usa-ch28",
+      "input_path": "미게시-임시자료:history/usa-ch28.json",
+      "input_sha256": "3aba4f2e4843bba9e87b172ca9f82dc3d93645cfb57e8434030e8758c40c5282",
+      "manifest": {
+        "kind": "history",
+        "country": "usa",
+        "segment": "usa-ch28",
+        "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+        "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+        "url": "https://www.americanyawp.com/",
+        "line_start": 25983,
+        "line_end": 26710,
+        "chapters": [
+          "usa:chapter-28"
+        ],
+        "heads": [
+          [
+            25983,
+            "chapter-28"
+          ]
+        ],
+        "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+        "status": "pending",
+        "supersedes": "usa-4"
+      },
+      "input_segment_field": "usa-ch28",
+      "scope": {
+        "line_start": 25983,
+        "line_end": 26710,
+        "chapters": [
+          "usa:chapter-28"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "usa:chapter-28",
+          "section": "I",
+          "line_start": 25983,
+          "line_end": 26006,
+          "status": "read",
+          "cards": 4,
+          "note": "본문을 읽었으며 저자 평가와 미검증 번역 초안을 구분함. 의사당 공격에 관한 교재의 전례·최대 비교와 정치적 인과는 저자 평가임."
+        },
+        {
+          "unit": "usa:chapter-28",
+          "section": "II",
+          "line_start": 26007,
+          "line_end": 26053,
+          "status": "read",
+          "cards": 24,
+          "note": "본문을 읽었으며 저자 평가와 미검증 번역 초안을 구분함."
+        },
+        {
+          "unit": "usa:chapter-28",
+          "section": "III",
+          "line_start": 26054,
+          "line_end": 26087,
+          "status": "read",
+          "cards": 17,
+          "note": "본문을 읽었으며 저자 평가와 미검증 번역 초안을 구분함."
+        },
+        {
+          "unit": "usa:chapter-28",
+          "section": "IV",
+          "line_start": 26088,
+          "line_end": 26117,
+          "status": "read",
+          "cards": 10,
+          "note": "본문을 읽었으며 저자 평가와 미검증 번역 초안을 구분함."
+        },
+        {
+          "unit": "usa:chapter-28",
+          "section": "V",
+          "line_start": 26118,
+          "line_end": 26150,
+          "status": "read",
+          "cards": 9,
+          "note": "본문을 읽었으며 저자 평가와 미검증 번역 초안을 구분함."
+        },
+        {
+          "unit": "usa:chapter-28",
+          "section": "VI",
+          "line_start": 26151,
+          "line_end": 26181,
+          "status": "read",
+          "cards": 9,
+          "note": "본문을 읽었으며 저자 평가와 미검증 번역 초안을 구분함."
+        },
+        {
+          "unit": "usa:chapter-28",
+          "section": "VII",
+          "line_start": 26182,
+          "line_end": 26223,
+          "status": "read",
+          "cards": 18,
+          "note": "본문을 읽었으며 저자 평가와 미검증 번역 초안을 구분함."
+        },
+        {
+          "unit": "usa:chapter-28",
+          "section": "VIII",
+          "line_start": 26224,
+          "line_end": 26257,
+          "status": "read",
+          "cards": 5,
+          "note": "본문을 읽었으며 저자 평가와 미검증 번역 초안을 구분함."
+        },
+        {
+          "unit": "usa:chapter-28",
+          "section": "IX",
+          "line_start": 26258,
+          "line_end": 26312,
+          "status": "read",
+          "cards": 34,
+          "note": "본문 전체를 읽음. 교재의 정치 평가·인과와 통계는 검증된 사실과 구분함."
+        },
+        {
+          "unit": "usa:chapter-28",
+          "section": "X",
+          "line_start": 26313,
+          "line_end": 26324,
+          "status": "read",
+          "cards": 0,
+          "note": "결론 1문단을 읽음. 앞서 추출한 대상의 저자 해석과 역사적 전망이어서 별도의 독립 대상 카드를 만들지 않음."
+        },
+        {
+          "unit": "usa:chapter-28",
+          "section": "XI 참고자료 및 그림 설명",
+          "line_start": 26325,
+          "line_end": 26710,
+          "status": "read",
+          "cards": 0,
+          "note": "목차·추천 읽기·각주·참고문헌·그림 설명·제3자 1차사료 전문은 설정 본문에서 제외. 편집자·기여자·권장 인용과 라이선스 근거는 별도 확인함. 원문 삽입 그림·설명도 제외."
+        }
+      ],
+      "unclassified_ranges": [],
+      "source_metadata": {
+        "attribution": {
+          "title": "The American Yawp: A Massively Collaborative Open History of the United States, Vol. 2, 2nd ed. (2026), ch. 28 “American Carnage”",
+          "citation_author": "Eladio Bobadilla 외",
+          "chapter_editors": [
+            "Joseph Locke",
+            "Michael D. Hammond"
+          ],
+          "contributors": [
+            "Eladio Bobadilla",
+            "Andrew Chadwick",
+            "Elsa Devienne",
+            "Zach Fredman",
+            "Leif Fredrickson",
+            "Michael Hammond",
+            "Richara Hayward",
+            "Joseph Locke",
+            "Mark Kukis",
+            "Shaul Mitelpunkt",
+            "Michelle Reeves",
+            "Elizabeth Skilton",
+            "Bill Speer",
+            "Patrick T. Troester",
+            "Ben Wright"
+          ],
+          "url": "https://www.americanyawp.com/textbook/28-american-carnage/",
+          "license": "CC BY-SA 4.0",
+          "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "changes": "비공식 한국어 번역 초안에 기반한 요약 및 재구성. 원저자·출판사의 승인이나 검토를 뜻하지 않음.",
+          "verification": "온라인 28장 페이지의 제목·절 구조·장별 편집자와 기여자·권장 인용·페이지 하단 CC BY-SA 4.0을 직접 확인하고 초안 25985–25989, 26331–26337과 비교함. 개별 카드의 영문 원문 대조는 수행하지 않았으며 각 카드의 근거는 한국어 번역 초안임. 번역 초안은 1차 원어 사료가 아님."
+        }
+      },
+      "candidate_count": 130,
+      "coverage_overlapping_line_count": 0
+    }
+  ],
+  "superseded_previous_plan": [
+    {
+      "kind": "history",
+      "country": "usa",
+      "segment": "usa-1",
+      "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+      "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+      "url": "https://www.americanyawp.com/",
+      "line_start": 69,
+      "line_end": 6650,
+      "chapters": [
+        "usa:chapter-1",
+        "usa:chapter-2",
+        "usa:chapter-3",
+        "usa:chapter-4",
+        "usa:chapter-5",
+        "usa:chapter-6",
+        "usa:chapter-7"
+      ],
+      "heads": [
+        [
+          69,
+          "chapter-1"
+        ],
+        [
+          1077,
+          "chapter-2"
+        ],
+        [
+          1916,
+          "chapter-3"
+        ],
+        [
+          2844,
+          "chapter-4"
+        ],
+        [
+          3510,
+          "chapter-5"
+        ],
+        [
+          4535,
+          "chapter-6"
+        ],
+        [
+          5596,
+          "chapter-7"
+        ]
+      ],
+      "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+      "superseded_by": "usa chapter groups",
+      "status": "partial"
+    },
+    {
+      "kind": "history",
+      "country": "usa",
+      "segment": "usa-2",
+      "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+      "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+      "url": "https://www.americanyawp.com/",
+      "line_start": 6651,
+      "line_end": 13451,
+      "chapters": [
+        "usa:chapter-8",
+        "usa:chapter-9",
+        "usa:chapter-10",
+        "usa:chapter-11",
+        "usa:chapter-12",
+        "usa:chapter-13",
+        "usa:chapter-14"
+      ],
+      "heads": [
+        [
+          6651,
+          "chapter-8"
+        ],
+        [
+          7526,
+          "chapter-9"
+        ],
+        [
+          8583,
+          "chapter-10"
+        ],
+        [
+          9616,
+          "chapter-11"
+        ],
+        [
+          10593,
+          "chapter-12"
+        ],
+        [
+          11430,
+          "chapter-13"
+        ],
+        [
+          12482,
+          "chapter-14"
+        ]
+      ],
+      "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+      "superseded_by": "usa chapter groups",
+      "status": "not-dispatched-superseded"
+    },
+    {
+      "kind": "history",
+      "country": "usa",
+      "segment": "usa-3",
+      "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+      "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+      "url": "https://www.americanyawp.com/",
+      "line_start": 13452,
+      "line_end": 20403,
+      "chapters": [
+        "usa:chapter-15",
+        "usa:chapter-16",
+        "usa:chapter-17",
+        "usa:chapter-18",
+        "usa:chapter-19",
+        "usa:chapter-20",
+        "usa:chapter-21"
+      ],
+      "heads": [
+        [
+          13452,
+          "chapter-15"
+        ],
+        [
+          14276,
+          "chapter-16"
+        ],
+        [
+          15383,
+          "chapter-17"
+        ],
+        [
+          16213,
+          "chapter-18"
+        ],
+        [
+          17113,
+          "chapter-19"
+        ],
+        [
+          18091,
+          "chapter-20"
+        ],
+        [
+          18992,
+          "chapter-21"
+        ]
+      ],
+      "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+      "superseded_by": "usa chapter groups",
+      "status": "not-dispatched-superseded"
+    },
+    {
+      "kind": "history",
+      "country": "usa",
+      "segment": "usa-4",
+      "commit": "7534be5eb138e3391bab5d8bdad5940ea4e67469",
+      "path": "docs/research/history-textbooks/usa/american-yawp-28-chapters.ko.draft.md",
+      "url": "https://www.americanyawp.com/",
+      "line_start": 20404,
+      "line_end": 26710,
+      "chapters": [
+        "usa:chapter-22",
+        "usa:chapter-23",
+        "usa:chapter-24",
+        "usa:chapter-25",
+        "usa:chapter-26",
+        "usa:chapter-27",
+        "usa:chapter-28"
+      ],
+      "heads": [
+        [
+          20404,
+          "chapter-22"
+        ],
+        [
+          21332,
+          "chapter-23"
+        ],
+        [
+          22274,
+          "chapter-24"
+        ],
+        [
+          23019,
+          "chapter-25"
+        ],
+        [
+          23663,
+          "chapter-26"
+        ],
+        [
+          24924,
+          "chapter-27"
+        ],
+        [
+          25983,
+          "chapter-28"
+        ]
+      ],
+      "sha256": "c1c7bcb77a43168a3a0ad4647a59170bcbe7f391128bd300db250c10362dbb41",
+      "superseded_by": "usa chapter groups",
+      "status": "not-dispatched-superseded"
+    }
+  ],
+  "partial_replacement": "usa-1 69–117 부분 14개 후보는 별도 보존; 118–1076 미완 범위는 ch01 자기보고 read 범위에 포함되지만 서지 등 제외 여부는 자기보고에 따름. ch02–07은 usa-1 unread 범위와 대응하나 미분류 간격을 확인해야 함. usa-2–4는 미배정 대체 계획. 모든 장의 읽기는 추출자의 자기보고이며 전수 검증이 아님.",
+  "rights_and_limitations": [
+    "The American Yawp, Joseph L. Locke·Ben Wright 편 및 각 장 편집자·기여자 표시. CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/ ; 비공식 한국어 번역 초안을 선택·요약·카드화한 변경본, 저자 승인이나 보증 없음. 변경된 미국사 카드 및 근거에도 동일 라이선스 적용. 제3자 자료·이미지의 권리는 별도 확인 필요.",
+    "독립 역사 감수, 원문 문장별 대조 및 권리 최종 검토 미완료. 원문 전문을 복제하지 않음. 추출 후보는 전체 원전의 누락 없는 전수를 보증하지 않음.",
+    "연구 검토 전용; 서비스/DB 자동 등록 금지. 이전 1,000개 한도 기준으로 후보 수는 초과함. 현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다. chunk는 세계관 분할 또는 적재가 아님. 적용 전 #425 안전 계약 및 권리·중복 검증 필요."
+  ],
+  "count_reconciliation": "입력 유효 후보 = 출력 개별 후보 + 완전 보존하며 합친 입력 후보 + 누락 후보; 자동 병합 0",
+  "verification": {
+    "input_candidates": 3716,
+    "output_cards": 3716,
+    "merged_inputs": 0,
+    "quarantined_files": [],
+    "unprocessed_candidates": 0,
+    "omitted_valid_candidates": 0,
+    "duplicate_rule": "No candidates merged; same key/type or same normalized title/type and existing matching prefix are possible duplicates only; both remain.",
+    "types": {
+      "character": 1186,
+      "location": 362,
+      "object": 253,
+      "other": 121,
+      "organization": 699,
+      "rule": 459,
+      "event": 636
+    },
+    "source_anchor_issues": [],
+    "field_errors": [],
+    "unique_ids": 3716,
+    "id_collisions": 0,
+    "existing_id_collisions": 0,
+    "duplicate_segment_keys": [],
+    "possible_candidate_match_cards": 756,
+    "possible_existing_match_cards": 21,
+    "unclassified_coverage": [
+      {
+        "segment": "usa-ch09",
+        "unclassified": [
+          {
+            "start": 7545,
+            "end": 7547,
+            "nonblank_lines": [
+              7546
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 7631,
+            "end": 7633,
+            "nonblank_lines": [
+              7632
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 7731,
+            "end": 7733,
+            "nonblank_lines": [
+              7732
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 7779,
+            "end": 7782,
+            "nonblank_lines": [
+              7781
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 7865,
+            "end": 7868,
+            "nonblank_lines": [
+              7867
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 7928,
+            "end": 7928,
+            "nonblank_lines": [],
+            "classification": "blank-unclassified",
+            "observed_contents": []
+          }
+        ]
+      },
+      {
+        "segment": "usa-ch10",
+        "unclassified": [
+          {
+            "start": 8597,
+            "end": 8600,
+            "nonblank_lines": [
+              8599
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 8629,
+            "end": 8632,
+            "nonblank_lines": [
+              8631
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 8655,
+            "end": 8658,
+            "nonblank_lines": [
+              8657
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 8687,
+            "end": 8690,
+            "nonblank_lines": [
+              8689
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 8711,
+            "end": 8714,
+            "nonblank_lines": [
+              8713
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 8757,
+            "end": 8762,
+            "nonblank_lines": [
+              8758,
+              8761
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "review note",
+              "translation-file marker"
+            ],
+            "review_note": "원문 주장 중 체로키 음절문자 명칭·1827년 헌법 언어·조약 및 암살 순서·이주 인원·스페클드 스네이크 인물과 출처에 대한 의문이 있는 편집 메모. 사실 확인 미완료."
+          },
+          {
+            "start": 8797,
+            "end": 8800,
+            "nonblank_lines": [
+              8799
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 8819,
+            "end": 8822,
+            "nonblank_lines": [
+              8821
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 8839,
+            "end": 8842,
+            "nonblank_lines": [
+              8841
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 8861,
+            "end": 8864,
+            "nonblank_lines": [
+              8863
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 8893,
+            "end": 8896,
+            "nonblank_lines": [
+              8895
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 8906,
+            "end": 8906,
+            "nonblank_lines": [],
+            "classification": "blank-unclassified",
+            "observed_contents": []
+          }
+        ]
+      },
+      {
+        "segment": "usa-ch12",
+        "unclassified": [
+          {
+            "start": 10865,
+            "end": 10866,
+            "nonblank_lines": [
+              10865
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "section heading"
+            ]
+          }
+        ]
+      },
+      {
+        "segment": "usa-ch16",
+        "unclassified": [
+          {
+            "start": 14289,
+            "end": 14290,
+            "nonblank_lines": [
+              14289
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 14315,
+            "end": 14316,
+            "nonblank_lines": [
+              14315
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          }
+        ]
+      },
+      {
+        "segment": "usa-ch22",
+        "unclassified": [
+          {
+            "start": 20416,
+            "end": 20417,
+            "nonblank_lines": [
+              20416
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 20447,
+            "end": 20448,
+            "nonblank_lines": [
+              20447
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 20478,
+            "end": 20479,
+            "nonblank_lines": [
+              20478
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 20523,
+            "end": 20524,
+            "nonblank_lines": [
+              20523
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 20589,
+            "end": 20590,
+            "nonblank_lines": [
+              20589
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 20622,
+            "end": 20623,
+            "nonblank_lines": [
+              20622
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 20653,
+            "end": 20654,
+            "nonblank_lines": [
+              20653
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 20697,
+            "end": 20698,
+            "nonblank_lines": [
+              20697
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          },
+          {
+            "start": 20732,
+            "end": 20733,
+            "nonblank_lines": [
+              20732
+            ],
+            "classification": "nonblank-unclassified",
+            "observed_contents": [
+              "translation-file marker"
+            ]
+          }
+        ]
+      }
+    ],
+    "coverage_overlap_by_segment": {}
+  },
+  "chunks": [
+    {
+      "file": "cards-001.json",
+      "count": 150,
+      "bytes": 653794,
+      "sha256": "3a5acad6ec226fcfc7acb1f48713e61528e0db605dd419f1ecc8b574c12cc625"
+    },
+    {
+      "file": "cards-002.json",
+      "count": 150,
+      "bytes": 632974,
+      "sha256": "58f6b94673d7ef68d36b336ef79533a36021959d4c32aa370465842fd586ef3f"
+    },
+    {
+      "file": "cards-003.json",
+      "count": 150,
+      "bytes": 563836,
+      "sha256": "eda9121ccbb2c76b4c9dc0da82f51b9eab9158911bf3236fa7bf3ad484811480"
+    },
+    {
+      "file": "cards-004.json",
+      "count": 150,
+      "bytes": 597911,
+      "sha256": "99c16f3464fb55b2531000b370c58d46d5ccccaabcc54ccb6f13a2aed1d04d15"
+    },
+    {
+      "file": "cards-005.json",
+      "count": 150,
+      "bytes": 699611,
+      "sha256": "19ec9c28ce404caf1577655c0c1628f2a98984266278cef38153b8484b00ad39"
+    },
+    {
+      "file": "cards-006.json",
+      "count": 150,
+      "bytes": 649083,
+      "sha256": "4079e6e12fe60f7a48cd8b5d17eb00a1d69ef286e89774c69ad62120e228c6c8"
+    },
+    {
+      "file": "cards-007.json",
+      "count": 150,
+      "bytes": 610798,
+      "sha256": "bd8d9557471c644d562963ac9bcfc47c6fc2708d3d2a0cb4f4c39c352c84cffb"
+    },
+    {
+      "file": "cards-008.json",
+      "count": 150,
+      "bytes": 598642,
+      "sha256": "a2adfa310fe5007565c0f18ad7cf88f2eb8c03c8ac834d0225feeb47819026d0"
+    },
+    {
+      "file": "cards-009.json",
+      "count": 150,
+      "bytes": 601917,
+      "sha256": "524b6abffb28246f52b49fbb0bbdcea8a036a75418d25a571fb91d185df1c6a1"
+    },
+    {
+      "file": "cards-010.json",
+      "count": 150,
+      "bytes": 664138,
+      "sha256": "554955b3843185c775fa219107cfe358190e0f7f28b168721e52b00d00d2d7a1"
+    },
+    {
+      "file": "cards-011.json",
+      "count": 150,
+      "bytes": 603542,
+      "sha256": "55b2b4706bc9defbeef688ec24177f1ee6fa91eacab8f69dbfaeb45efd2fca15"
+    },
+    {
+      "file": "cards-012.json",
+      "count": 150,
+      "bytes": 593355,
+      "sha256": "a23ecc90885cc6d3b43be129d71b2ee03fbda63a34963af167b8e5b89c563da2"
+    },
+    {
+      "file": "cards-013.json",
+      "count": 150,
+      "bytes": 593616,
+      "sha256": "00a76bd86016978d0de11a8ce054e809c9e5e33cfe4ccc3283d02cde6d21bcb5"
+    },
+    {
+      "file": "cards-014.json",
+      "count": 150,
+      "bytes": 563974,
+      "sha256": "9aa8b06b193489be1315d9b98c1ea4e4b4ff5cd32a52ac8e07c0932cdd3a63fd"
+    },
+    {
+      "file": "cards-015.json",
+      "count": 150,
+      "bytes": 565696,
+      "sha256": "d034e93f99ffdee9f1277c34a9cb998e5d2fb384b27bebcac2e8e94b652e721a"
+    },
+    {
+      "file": "cards-016.json",
+      "count": 150,
+      "bytes": 618853,
+      "sha256": "dac47c96e659333ff77670728f5bebe854c883bd19427be619f1764301a9e2a2"
+    },
+    {
+      "file": "cards-017.json",
+      "count": 150,
+      "bytes": 647799,
+      "sha256": "e3173ff1e52601068d27ebd41fb038f95eebf95b8b15b23ccad7039816c4c8d5"
+    },
+    {
+      "file": "cards-018.json",
+      "count": 150,
+      "bytes": 632917,
+      "sha256": "9c76443c88b2700e649b33de61660fb149873b57919b0946c37c3d121510f7fc"
+    },
+    {
+      "file": "cards-019.json",
+      "count": 150,
+      "bytes": 598429,
+      "sha256": "290eba3eb0f07d1f42638966a9e67be43c2c8c258d8f24ed8d80583e5972ae9d"
+    },
+    {
+      "file": "cards-020.json",
+      "count": 150,
+      "bytes": 614408,
+      "sha256": "3a941e063acee4d1633e519f7bf5b702cf9d7829ec61d92b1c686da076be8273"
+    },
+    {
+      "file": "cards-021.json",
+      "count": 150,
+      "bytes": 630182,
+      "sha256": "b03004d63955046dca6a266c8eda9eb61a73d894a9b49f052e8f309b1903ec3e"
+    },
+    {
+      "file": "cards-022.json",
+      "count": 150,
+      "bytes": 679521,
+      "sha256": "050d9674b55c6f055b3add86ed00743dfbf252a2ca752cfeb31d5fc0b3b54641"
+    },
+    {
+      "file": "cards-023.json",
+      "count": 150,
+      "bytes": 608957,
+      "sha256": "30706f41226bb7f6a4efcc389f7f583e59be2060edeafbf4d83bfe9e822986ba"
+    },
+    {
+      "file": "cards-024.json",
+      "count": 150,
+      "bytes": 557335,
+      "sha256": "14bfe2cb6584b2b50269e1c3f7a5bca7ad1eb9f2b8d25f85667efa648652a452"
+    },
+    {
+      "file": "cards-025.json",
+      "count": 116,
+      "bytes": 460441,
+      "sha256": "9588c0f4b0af2a12e5cd594c7a3a9d4dab8e880b384d209124be0f4bb422d1c5"
+    }
+  ],
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

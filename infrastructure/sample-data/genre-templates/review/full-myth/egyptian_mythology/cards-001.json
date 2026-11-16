@@ -1,0 +1,361 @@
+[
+  {
+    "id": "2c6be98c-025f-508b-9fd7-1341fdc1b6eb",
+    "title": "우나스 장송 주문의 왕",
+    "body": "우나스 피라미드 주문 213은 죽은 왕 우나스가 죽은 채 떠난 것이 아니라 살아서 떠나 오시리스의 왕좌에 앉아 산 자들을 지휘한다고 호명한다. 주문 252에서는 두아트의 신들이 도착한 우나스를 보고, 라를 젓는 이들과 함께 앉는다고 한다. 1952년 Mercer 영역의 N.은 여러 피라미드를 합친 본문의 빈 이름 자리이므로 우나스 이름은 TLA 전사로 확인했다. 기존 오시리스 왕좌·두아트 카드와 일부 중복 가능. 출전: 주문 213 W 206 및 주문 252 W 404, 409, https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s213 ; https://theosislibrary.com/library/verified-pyramid-texts-unas-antechamber-west-gable#s252",
+    "cardType": "character",
+    "provenance": {
+      "segment": "egyptian-mythology",
+      "candidate_key": "unas-funerary-king",
+      "input_path": "미게시-임시자료:myth/egyptian-mythology.json",
+      "input_sha256": "a960f73ef93f06d53cb51eac2e417b179eb001b8ce2dc7e7151ecd2d490c3dc6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "버지 1912년 라와 이시스 번역 전체 및 저자 해설; 우나스 피라미드 문서 주문 23 W 1–4, 213 W 206–207, 219 W 240–250, 252 W 404–410. TLA 전사와 Mercer 1952 복합 본문 병기; TLA CC BY-SA 4.0, Mercer 영역의 미국 밖 권리 상태 미확인.",
+      "evidence": [
+        {
+          "unit": "우나스 주문 213 W 206–207",
+          "url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s213",
+          "location": "W 206 TLA 전사",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존",
+          "edition": "Thesaurus Linguae Aegyptiae, Doris Topmann 편집 2018년 전사, Theosis Library 제공",
+          "source_attribution": {
+            "credit": "Thesaurus Linguae Aegyptiae, ed. Doris Topmann (2018 data, AED-TEI); AED-TEI 변환·구조: Simon D. Schweitzer (2019)",
+            "source_url": "https://github.com/simondschweitzer/aed-tei",
+            "via": "Theosis Library",
+            "via_url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s213",
+            "license": "CC BY-SA 4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "license_scope": "이 TLA 전사 발췌에 대한 출처 및 조건이며 Mercer 영어 번역이나 Budge 저술에는 적용한다고 주장하지 않는다.",
+            "conditions": "출처와 라이선스 링크를 표시하고 변경 사항을 밝힌다. 수정·변형·기반 작성물을 배포하면 동일 라이선스 또는 호환 라이선스를 적용하며 추가 제한을 부과하지 않는다.",
+            "changes": "원문에서 해당 구절을 선택·발췌하고 카드 본문을 한국어로 요약했다. 이번 출처 보강에서는 기존 발췌와 본문을 바꾸지 않았다."
+          }
+        },
+        {
+          "unit": "우나스 주문 252 W 404–410",
+          "url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-antechamber-west-gable#s252",
+          "location": "W 409 TLA 전사",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존",
+          "edition": "Thesaurus Linguae Aegyptiae, Doris Topmann 편집 2018년 전사, Theosis Library 제공",
+          "source_attribution": {
+            "credit": "Thesaurus Linguae Aegyptiae, ed. Doris Topmann (2018 data, AED-TEI); AED-TEI 변환·구조: Simon D. Schweitzer (2019)",
+            "source_url": "https://github.com/simondschweitzer/aed-tei",
+            "via": "Theosis Library",
+            "via_url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-antechamber-west-gable#s252",
+            "license": "CC BY-SA 4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "license_scope": "이 TLA 전사 발췌에 대한 출처 및 조건이며 Mercer 영어 번역이나 Budge 저술에는 적용한다고 주장하지 않는다.",
+            "conditions": "출처와 라이선스 링크를 표시하고 변경 사항을 밝힌다. 수정·변형·기반 작성물을 배포하면 동일 라이선스 또는 호환 라이선스를 적용하며 추가 제한을 부과하지 않는다.",
+            "changes": "원문에서 해당 구절을 선택·발췌하고 카드 본문을 한국어로 요약했다. 이번 출처 보강에서는 기존 발췌와 본문을 바꾸지 않았다."
+          }
+        }
+      ],
+      "원전_원문_파일_sha256": "입력에 제공되지 않음; URL의 내용 고정 여부 미확인",
+      "원문_검토": "추출 작업자 자체 보고를 보존; 통합 작업에서는 원문을 독립 재확인하지 않음"
+    },
+    "duplicate_review": {
+      "status": "possible_overlap_preserved",
+      "matches": [
+        {
+          "genre": "egyptian_mythology",
+          "id": "7fb843bd-b983-58f7-bf6f-8c0d34c7514f",
+          "title": "우나스와 오시리스의 왕좌·지팡이",
+          "reason": "주문 213의 왕좌·생명 및 252의 도착·배 관련 내용이 겹치나 인물 후보와 물건·장소 카드의 범위가 다르다.",
+          "basis": "수동 내용 비교; 동일 여부 미확정"
+        },
+        {
+          "genre": "egyptian_mythology",
+          "id": "e6f1bdc7-9389-52c1-a18f-6add6280edce",
+          "title": "두아트와 라의 배",
+          "reason": "주문 213의 왕좌·생명 및 252의 도착·배 관련 내용이 겹치나 인물 후보와 물건·장소 카드의 범위가 다르다.",
+          "basis": "수동 내용 비교; 동일 여부 미확정"
+        }
+      ],
+      "candidate_matches": []
+    }
+  },
+  {
+    "id": "5cd76435-40b4-5940-8a7d-fb1c9833c76b",
+    "title": "우나스 왕의 신들과 닮은 신체",
+    "body": "주문 213에서는 왕의 팔·어깨·몸·등·엉덩이·다리를 아툼에, 얼굴을 아누비스에 견준다. 왕의 몸을 신들의 몸에 비유하는 장송문 구절이며, 실제 변신이나 모든 신체가 두 신과 동일하다는 일반 교리는 단정하지 않는다. 기존 왕좌·지팡이 카드와 같은 주문에 있다. 출전: 주문 213 W 207; 세테 §135a–b, https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s213",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "egyptian-mythology",
+      "candidate_key": "unas-royal-body-likeness",
+      "input_path": "미게시-임시자료:myth/egyptian-mythology.json",
+      "input_sha256": "a960f73ef93f06d53cb51eac2e417b179eb001b8ce2dc7e7151ecd2d490c3dc6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "버지 1912년 라와 이시스 번역 전체 및 저자 해설; 우나스 피라미드 문서 주문 23 W 1–4, 213 W 206–207, 219 W 240–250, 252 W 404–410. TLA 전사와 Mercer 1952 복합 본문 병기; TLA CC BY-SA 4.0, Mercer 영역의 미국 밖 권리 상태 미확인.",
+      "evidence": [
+        {
+          "unit": "우나스 주문 213 W 206–207",
+          "url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s213",
+          "location": "W 207 TLA 전사",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존",
+          "edition": "Thesaurus Linguae Aegyptiae, Doris Topmann 편집 2018년 전사, Theosis Library 제공",
+          "source_attribution": {
+            "credit": "Thesaurus Linguae Aegyptiae, ed. Doris Topmann (2018 data, AED-TEI); AED-TEI 변환·구조: Simon D. Schweitzer (2019)",
+            "source_url": "https://github.com/simondschweitzer/aed-tei",
+            "via": "Theosis Library",
+            "via_url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s213",
+            "license": "CC BY-SA 4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "license_scope": "이 TLA 전사 발췌에 대한 출처 및 조건이며 Mercer 영어 번역이나 Budge 저술에는 적용한다고 주장하지 않는다.",
+            "conditions": "출처와 라이선스 링크를 표시하고 변경 사항을 밝힌다. 수정·변형·기반 작성물을 배포하면 동일 라이선스 또는 호환 라이선스를 적용하며 추가 제한을 부과하지 않는다.",
+            "changes": "원문에서 해당 구절을 선택·발췌하고 카드 본문을 한국어로 요약했다. 이번 출처 보강에서는 기존 발췌와 본문을 바꾸지 않았다."
+          }
+        },
+        {
+          "unit": "우나스 주문 213 W 206–207",
+          "url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s213",
+          "location": "W 207 TLA 전사",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존",
+          "edition": "Thesaurus Linguae Aegyptiae, Doris Topmann 편집 2018년 전사, Theosis Library 제공",
+          "source_attribution": {
+            "credit": "Thesaurus Linguae Aegyptiae, ed. Doris Topmann (2018 data, AED-TEI); AED-TEI 변환·구조: Simon D. Schweitzer (2019)",
+            "source_url": "https://github.com/simondschweitzer/aed-tei",
+            "via": "Theosis Library",
+            "via_url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s213",
+            "license": "CC BY-SA 4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "license_scope": "이 TLA 전사 발췌에 대한 출처 및 조건이며 Mercer 영어 번역이나 Budge 저술에는 적용한다고 주장하지 않는다.",
+            "conditions": "출처와 라이선스 링크를 표시하고 변경 사항을 밝힌다. 수정·변형·기반 작성물을 배포하면 동일 라이선스 또는 호환 라이선스를 적용하며 추가 제한을 부과하지 않는다.",
+            "changes": "원문에서 해당 구절을 선택·발췌하고 카드 본문을 한국어로 요약했다. 이번 출처 보강에서는 기존 발췌와 본문을 바꾸지 않았다."
+          }
+        }
+      ],
+      "원전_원문_파일_sha256": "입력에 제공되지 않음; URL의 내용 고정 여부 미확인",
+      "원문_검토": "추출 작업자 자체 보고를 보존; 통합 작업에서는 원문을 독립 재확인하지 않음"
+    },
+    "duplicate_review": {
+      "status": "possible_overlap_preserved",
+      "matches": [
+        {
+          "genre": "egyptian_mythology",
+          "id": "7fb843bd-b983-58f7-bf6f-8c0d34c7514f",
+          "title": "우나스와 오시리스의 왕좌·지팡이",
+          "reason": "같은 주문 213을 다루지만 신체의 비유는 기존 왕좌·지팡이 카드의 핵심 사실과 다르다.",
+          "basis": "수동 내용 비교; 동일 여부 미확정"
+        }
+      ],
+      "candidate_matches": []
+    }
+  },
+  {
+    "id": "38ce8bbd-109a-5a29-8340-62c334ac8048",
+    "title": "우나스 장송문 속 토트",
+    "body": "주문 23은 토트에게 오시리스에게 해를 끼친 자와 우나스의 이름을 험담하는 자를 붙잡아 손에 넣으라고 청한다. 별도 주문 219는 토트를 오시리스의 형제로 호명하고 그가 오시리스에게 벌을 받을 수 있다고 말한다. 두 주문의 호명은 장송 의례의 문맥에서만 읽는다. 기존 우나스 봉헌 카드와 일부 중복 가능. 출전: 주문 23 W 2–4; 주문 219 W 249; https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-north-wall-register-1#s23 ; https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s219",
+    "cardType": "character",
+    "provenance": {
+      "segment": "egyptian-mythology",
+      "candidate_key": "unas-thoth",
+      "input_path": "미게시-임시자료:myth/egyptian-mythology.json",
+      "input_sha256": "a960f73ef93f06d53cb51eac2e417b179eb001b8ce2dc7e7151ecd2d490c3dc6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "버지 1912년 라와 이시스 번역 전체 및 저자 해설; 우나스 피라미드 문서 주문 23 W 1–4, 213 W 206–207, 219 W 240–250, 252 W 404–410. TLA 전사와 Mercer 1952 복합 본문 병기; TLA CC BY-SA 4.0, Mercer 영역의 미국 밖 권리 상태 미확인.",
+      "evidence": [
+        {
+          "unit": "우나스 주문 23 W 1–4",
+          "url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-north-wall-register-1#s23",
+          "location": "주문 23 W 2 TLA 전사",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존",
+          "edition": "Thesaurus Linguae Aegyptiae, Doris Topmann 편집 2018년 전사, Theosis Library 제공",
+          "source_attribution": {
+            "credit": "Thesaurus Linguae Aegyptiae, ed. Doris Topmann (2018 data, AED-TEI); AED-TEI 변환·구조: Simon D. Schweitzer (2019)",
+            "source_url": "https://github.com/simondschweitzer/aed-tei",
+            "via": "Theosis Library",
+            "via_url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-north-wall-register-1#s23",
+            "license": "CC BY-SA 4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "license_scope": "이 TLA 전사 발췌에 대한 출처 및 조건이며 Mercer 영어 번역이나 Budge 저술에는 적용한다고 주장하지 않는다.",
+            "conditions": "출처와 라이선스 링크를 표시하고 변경 사항을 밝힌다. 수정·변형·기반 작성물을 배포하면 동일 라이선스 또는 호환 라이선스를 적용하며 추가 제한을 부과하지 않는다.",
+            "changes": "원문에서 해당 구절을 선택·발췌하고 카드 본문을 한국어로 요약했다. 이번 출처 보강에서는 기존 발췌와 본문을 바꾸지 않았다."
+          }
+        },
+        {
+          "unit": "우나스 주문 219 W 240–250",
+          "url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s219",
+          "location": "주문 219 W 249 TLA 전사",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존",
+          "edition": "Thesaurus Linguae Aegyptiae, Doris Topmann 편집 2018년 전사, Theosis Library 제공",
+          "source_attribution": {
+            "credit": "Thesaurus Linguae Aegyptiae, ed. Doris Topmann (2018 data, AED-TEI); AED-TEI 변환·구조: Simon D. Schweitzer (2019)",
+            "source_url": "https://github.com/simondschweitzer/aed-tei",
+            "via": "Theosis Library",
+            "via_url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s219",
+            "license": "CC BY-SA 4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "license_scope": "이 TLA 전사 발췌에 대한 출처 및 조건이며 Mercer 영어 번역이나 Budge 저술에는 적용한다고 주장하지 않는다.",
+            "conditions": "출처와 라이선스 링크를 표시하고 변경 사항을 밝힌다. 수정·변형·기반 작성물을 배포하면 동일 라이선스 또는 호환 라이선스를 적용하며 추가 제한을 부과하지 않는다.",
+            "changes": "원문에서 해당 구절을 선택·발췌하고 카드 본문을 한국어로 요약했다. 이번 출처 보강에서는 기존 발췌와 본문을 바꾸지 않았다."
+          }
+        }
+      ],
+      "원전_원문_파일_sha256": "입력에 제공되지 않음; URL의 내용 고정 여부 미확인",
+      "원문_검토": "추출 작업자 자체 보고를 보존; 통합 작업에서는 원문을 독립 재확인하지 않음"
+    },
+    "duplicate_review": {
+      "status": "possible_overlap_preserved",
+      "matches": [
+        {
+          "genre": "egyptian_mythology",
+          "id": "286156d3-5e62-599d-abad-718fea5529a1",
+          "title": "우나스 장송문의 봉헌",
+          "reason": "주문 23의 토트에게 한 호소와 219의 형제 호명이 기존 봉헌·오시리스 카드의 일부와 겹친다.",
+          "basis": "수동 내용 비교; 동일 여부 미확정"
+        },
+        {
+          "genre": "egyptian_mythology",
+          "id": "2020ad75-a085-5847-8081-8f6a9132842a",
+          "title": "우나스 장송문 속 오시리스",
+          "reason": "주문 23의 토트에게 한 호소와 219의 형제 호명이 기존 봉헌·오시리스 카드의 일부와 겹친다.",
+          "basis": "수동 내용 비교; 동일 여부 미확정"
+        }
+      ],
+      "candidate_matches": []
+    }
+  },
+  {
+    "id": "f5856e71-99d1-57d6-8d46-262786c87020",
+    "title": "우나스 주문 219의 세트",
+    "body": "주문 219는 세트를 오시리스의 형제로 부르고 오시리스가 살아나 그를 벌한다는 대목을 함께 둔다. 이는 해당 장송문에서의 관계와 호명이며, 범위 밖 전승의 살해 이야기나 인물의 성격을 덧붙이지 않는다. 출전: 주문 219 W 246–247, 세테 §173a, https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s219",
+    "cardType": "character",
+    "provenance": {
+      "segment": "egyptian-mythology",
+      "candidate_key": "unas-set",
+      "input_path": "미게시-임시자료:myth/egyptian-mythology.json",
+      "input_sha256": "a960f73ef93f06d53cb51eac2e417b179eb001b8ce2dc7e7151ecd2d490c3dc6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "버지 1912년 라와 이시스 번역 전체 및 저자 해설; 우나스 피라미드 문서 주문 23 W 1–4, 213 W 206–207, 219 W 240–250, 252 W 404–410. TLA 전사와 Mercer 1952 복합 본문 병기; TLA CC BY-SA 4.0, Mercer 영역의 미국 밖 권리 상태 미확인.",
+      "evidence": [
+        {
+          "unit": "우나스 주문 219 W 240–250",
+          "url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s219",
+          "location": "W 246–247 TLA 전사",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존",
+          "edition": "Thesaurus Linguae Aegyptiae, Doris Topmann 편집 2018년 전사, Theosis Library 제공",
+          "source_attribution": {
+            "credit": "Thesaurus Linguae Aegyptiae, ed. Doris Topmann (2018 data, AED-TEI); AED-TEI 변환·구조: Simon D. Schweitzer (2019)",
+            "source_url": "https://github.com/simondschweitzer/aed-tei",
+            "via": "Theosis Library",
+            "via_url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s219",
+            "license": "CC BY-SA 4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "license_scope": "이 TLA 전사 발췌에 대한 출처 및 조건이며 Mercer 영어 번역이나 Budge 저술에는 적용한다고 주장하지 않는다.",
+            "conditions": "출처와 라이선스 링크를 표시하고 변경 사항을 밝힌다. 수정·변형·기반 작성물을 배포하면 동일 라이선스 또는 호환 라이선스를 적용하며 추가 제한을 부과하지 않는다.",
+            "changes": "원문에서 해당 구절을 선택·발췌하고 카드 본문을 한국어로 요약했다. 이번 출처 보강에서는 기존 발췌와 본문을 바꾸지 않았다."
+          }
+        },
+        {
+          "unit": "우나스 주문 219 W 240–250",
+          "url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s219",
+          "location": "세테 §173a Mercer의 복합 본문 영역",
+          "edition": "Mercer 1952 영어 번역, 여러 피라미드의 복합 본문",
+          "rights_status": "Mercer 1952 영어 번역의 미국 외 재배포 권리는 미확정이다. 공개 PR 전에 권리 판단을 보류하며 TLA 전사의 CC BY-SA 4.0 적용 대상으로 가정하지 않는다.",
+          "excerpt_status": "미국 외 재배포 권리 미확인으로 공개 사본에서 영어 발췌를 생략했다. 공개 전 권리 판단 및 원문 대조가 필요하며 원문은 작업 전 로컬 보존 사본에 남겼다."
+        }
+      ],
+      "원전_원문_파일_sha256": "입력에 제공되지 않음; URL의 내용 고정 여부 미확인",
+      "원문_검토": "추출 작업자 자체 보고를 보존; 통합 작업에서는 원문을 독립 재확인하지 않음"
+    },
+    "duplicate_review": {
+      "status": "possible_overlap_preserved",
+      "matches": [
+        {
+          "genre": "egyptian_mythology",
+          "id": "2020ad75-a085-5847-8081-8f6a9132842a",
+          "title": "우나스 장송문 속 오시리스",
+          "reason": "주문 219의 형제 호명이 기존 오시리스 카드에 있으나 벌을 받는 문맥이 추가된다.",
+          "basis": "수동 내용 비교; 동일 여부 미확정"
+        }
+      ],
+      "candidate_matches": []
+    }
+  },
+  {
+    "id": "7a5fe4b1-7a12-5f14-b589-2dbb07cf062f",
+    "title": "오시리스와 우나스의 생명을 나란히 호명하는 주문",
+    "body": "주문 219는 아툼·슈·테프누트 등에게 오시리스를 호명하면서 오시리스가 살면 우나스도 살고, 오시리스가 죽지 않으면 우나스도 죽지 않는다는 표현을 반복한다. 왕의 생명을 오시리스와 나란히 두는 특정 장송문의 어법으로 기록한다. 기존 오시리스 카드의 내용과 일부 겹친다. 출전: 주문 219 W 240–250, 세테 §§167–176, https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s219",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "egyptian-mythology",
+      "candidate_key": "unas-shared-life",
+      "input_path": "미게시-임시자료:myth/egyptian-mythology.json",
+      "input_sha256": "a960f73ef93f06d53cb51eac2e417b179eb001b8ce2dc7e7151ecd2d490c3dc6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "버지 1912년 라와 이시스 번역 전체 및 저자 해설; 우나스 피라미드 문서 주문 23 W 1–4, 213 W 206–207, 219 W 240–250, 252 W 404–410. TLA 전사와 Mercer 1952 복합 본문 병기; TLA CC BY-SA 4.0, Mercer 영역의 미국 밖 권리 상태 미확인.",
+      "evidence": [
+        {
+          "unit": "우나스 주문 219 W 240–250",
+          "url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s219",
+          "location": "W 240 TLA 전사",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존",
+          "edition": "Thesaurus Linguae Aegyptiae, Doris Topmann 편집 2018년 전사, Theosis Library 제공",
+          "source_attribution": {
+            "credit": "Thesaurus Linguae Aegyptiae, ed. Doris Topmann (2018 data, AED-TEI); AED-TEI 변환·구조: Simon D. Schweitzer (2019)",
+            "source_url": "https://github.com/simondschweitzer/aed-tei",
+            "via": "Theosis Library",
+            "via_url": "https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s219",
+            "license": "CC BY-SA 4.0",
+            "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "license_scope": "이 TLA 전사 발췌에 대한 출처 및 조건이며 Mercer 영어 번역이나 Budge 저술에는 적용한다고 주장하지 않는다.",
+            "conditions": "출처와 라이선스 링크를 표시하고 변경 사항을 밝힌다. 수정·변형·기반 작성물을 배포하면 동일 라이선스 또는 호환 라이선스를 적용하며 추가 제한을 부과하지 않는다.",
+            "changes": "원문에서 해당 구절을 선택·발췌하고 카드 본문을 한국어로 요약했다. 이번 출처 보강에서는 기존 발췌와 본문을 바꾸지 않았다."
+          }
+        }
+      ],
+      "원전_원문_파일_sha256": "입력에 제공되지 않음; URL의 내용 고정 여부 미확인",
+      "원문_검토": "추출 작업자 자체 보고를 보존; 통합 작업에서는 원문을 독립 재확인하지 않음"
+    },
+    "duplicate_review": {
+      "status": "possible_overlap_preserved",
+      "matches": [
+        {
+          "genre": "egyptian_mythology",
+          "id": "2020ad75-a085-5847-8081-8f6a9132842a",
+          "title": "우나스 장송문 속 오시리스",
+          "reason": "주문 219에서 생명을 나란히 호명하는 내용이 기존 오시리스 카드와 겹치나 주문 어법에 초점을 둔다.",
+          "basis": "수동 내용 비교; 동일 여부 미확정"
+        }
+      ],
+      "candidate_matches": []
+    }
+  },
+  {
+    "id": "21d243c9-7517-5011-8043-854ca8e42b97",
+    "title": "버지가 해설한 글을 녹인 물의 부적",
+    "body": "버지는 이 전설 해설에서 주문을 파피루스나 천에 형상과 함께 적어 물에 담근 뒤 그 물을 마시는 관습을 언급하고 뱀 물림에 대항하는 부적으로 해석한다. 이는 저자의 해설이며 번역 본문의 끝에 있는 네 형상 위 낭송 지시와는 구분한다. 실제 치료법을 뜻하지 않는다. 기존 형상 낭송 카드와 일부 겹친다. 출전: 버지 1912년 해설 「라와 이시스의 전설」 마지막 문단, https://www.gutenberg.org/cache/epub/9411/pg9411-images.html#id00097",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "egyptian-mythology",
+      "candidate_key": "budge-written-charm-water",
+      "input_path": "미게시-임시자료:myth/egyptian-mythology.json",
+      "input_sha256": "a960f73ef93f06d53cb51eac2e417b179eb001b8ce2dc7e7151ecd2d490c3dc6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "버지 1912년 라와 이시스 번역 전체 및 저자 해설; 우나스 피라미드 문서 주문 23 W 1–4, 213 W 206–207, 219 W 240–250, 252 W 404–410. TLA 전사와 Mercer 1952 복합 본문 병기; TLA CC BY-SA 4.0, Mercer 영역의 미국 밖 권리 상태 미확인.",
+      "evidence": [
+        {
+          "unit": "버지, 라와 이시스 해설",
+          "url": "https://www.gutenberg.org/cache/epub/9411/pg9411-images.html#id00097",
+          "location": "해설 마지막 문단",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존",
+          "edition": "버지 1912년 영어 저자 해설"
+        }
+      ],
+      "원전_원문_파일_sha256": "입력에 제공되지 않음; URL의 내용 고정 여부 미확인",
+      "원문_검토": "추출 작업자 자체 보고를 보존; 통합 작업에서는 원문을 독립 재확인하지 않음"
+    },
+    "duplicate_review": {
+      "status": "possible_overlap_preserved",
+      "matches": [
+        {
+          "genre": "egyptian_mythology",
+          "id": "8d5d5216-e9de-5c1d-a8ff-0aaa079252db",
+          "title": "네 신의 형상 위에서 하는 낭송",
+          "reason": "버지 해설의 글을 녹인 물과 본문 형상 위 낭송은 맥락이 관련되지만 서로 다른 설명이다.",
+          "basis": "수동 내용 비교; 동일 여부 미확정"
+        }
+      ],
+      "candidate_matches": []
+    }
+  }
+]

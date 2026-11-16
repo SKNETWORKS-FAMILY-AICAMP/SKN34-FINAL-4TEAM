@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 from uuid import UUID, NAMESPACE_URL, uuid5
 
 ROOT = Path(__file__).resolve().parent
+STUDIO_ROOT = ROOT / "history/studio"
 RESOURCES = ROOT.parents[2] / "backend/content-service/src/main/resources"
 LEGACY = (
     "wuxia", "romance_fantasy", "modern_fantasy", "science_fiction",
@@ -85,14 +86,40 @@ def load_history(path):
                              "https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/blob/develop/infrastructure/sample-data/genre-templates/history/usa.evidence.json"
                              "\n원전의 현행 장별 목록: https://www.americanyawp.com/"
                              "\n원전의 현행 기여자 목록: https://www.americanyawp.com/text/contributors/")
+    validate_history(world)
+    return world
+
+
+def validate_history(world, optional_soul=False):
     assert world["genre"] and world["name"].strip() and len(world["name"].encode("utf-16-le")) // 2 <= 100 and len(world["description"].encode("utf-16-le")) // 2 <= 20000 and world["cards"]
     for card in world["cards"]:
         UUID(card["id"])
         assert card["cardType"] in TYPES
         for field, limit in (("title", 200), ("body", 3000)):
             assert isinstance(card[field], str) and card[field].strip() and len(card[field].encode("utf-16-le")) // 2 <= limit, card["id"]
-        soul_field(card)
-    return world
+        if not (optional_soul and card["cardType"] == "character" and "soul" not in card):
+            soul_field(card)
+
+
+def build_history_review(current):
+    """Validate review-only cards without changing the runtime catalog or seed inputs."""
+    expected = {f"{country}.world.json" for country in HISTORY}
+    assert {path.name for path in STUDIO_ROOT.glob("*.world.json")} == expected, "missing or unexpected studio worlds"
+    baseline = [load_history(ROOT / "history" / f"{country}.world.json") for country in HISTORY]
+    result = [read(STUDIO_ROOT / f"{country}.world.json") for country in HISTORY]
+    old_owner = {UUID(card["id"]): UUID(world["worldId"]) for world in baseline for card in world["cards"]}
+    for old, world in zip(baseline, result):
+        assert (world["worldId"], world["genre"]) == (old["worldId"], old["genre"]), world["genre"]
+        assert set(world) == {"genre", "worldId", "name", "description", "cards"}
+        assert len(world["cards"]) <= 1000
+        validate_history(world, optional_soul=True)
+        for card in world["cards"]:
+            assert set(card) == {"id", "title", "body", "cardType"} | ({"soul"} if "soul" in card else set())
+            assert old_owner.get(UUID(card["id"]), UUID(world["worldId"])) == UUID(world["worldId"]), card["id"]
+    all_worlds = current + result
+    ids = [UUID(world["worldId"]) for world in all_worlds] + [UUID(card["id"]) for world in all_worlds for card in world["cards"]]
+    assert len(ids) == len(set(ids)), "duplicate world/card ID"
+    return result
 
 
 def read_supplementary(genre):
@@ -192,7 +219,6 @@ def build(current):
         assert cards and any(c["cardType"] == "event" for c in cards), genre
         result.append({"genre": genre, "worldId": world_id, "name": data["name"],
                        "description": data["scope"], "cards": cards})
-    result.extend(load_history(ROOT / "history" / (country + ".world.json")) for country in HISTORY)
     ids = [t["worldId"] for t in result] + [c["id"] for t in result for c in t["cards"]]
     assert len(ids) == len(set(ids)), "duplicate world/card ID"
     return result
@@ -201,9 +227,14 @@ def build(current):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="compare only; do not write")
+    parser.add_argument("--check-studio", action="store_true", help="validate review-only history cards; do not write")
     args = parser.parse_args()
     path = RESOURCES / "genre-templates.json"
     current = read(path)
+    if args.check_studio:
+        worlds = build_history_review(current)
+        print(f"OK: {len(worlds)} review worlds, {sum(len(t['cards']) for t in worlds)} cards")
+        return
     result = build(current)
     if args.check:
         assert current == result, "genre-templates.json is stale; run build_traditions.py"
