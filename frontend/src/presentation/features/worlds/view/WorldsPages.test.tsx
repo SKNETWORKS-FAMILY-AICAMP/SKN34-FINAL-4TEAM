@@ -607,6 +607,18 @@ it('서버 세계관의 설정집 한 줄 요약은 파생·조합 없이 장르
   expect(within(screen.getByRole('table', { name: '설정 카드 목록' })).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([cardPath('sw', 'c-1'), cardPath('sw', 'c-2'), cardPath('sw', 'c-3')])
 })
 
+it('서버 세계관의 설정집 게시판은 이미지가 있는 카드만 제목 앞에 공개 카드 이미지 썸네일을 보이고 읽지 못하면 감춘다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ cards: [{ ...card('c-1', '하린', 'character'), imageId: 'img-1' }, card('c-2', '도윤', 'character'), { ...card('c-3', '온실', 'location'), imageId: null }] }))
+  await renderAt('/worlds/sw?tab=book')
+  const table = screen.getByRole('table', { name: '설정 카드 목록' })
+  const images = within(table).getAllByRole('img')
+  expect(images.map((image) => [image.getAttribute('alt'), image.getAttribute('src')])).toEqual([['하린 이미지', '/api/v1/public/world-studios/sw/card-images/img-1']])
+  expect(images[0].closest('td')?.classList.contains('col-title')).toBe(true)
+  expect(images[0].closest('td')?.querySelector('a')?.textContent).toBe('하린') // 이미지는 제목 링크의 글자를 바꾸지 않는다
+  fireEvent.error(images[0])
+  expect(within(table).queryByRole('img')).toBeNull()
+})
+
 it('서버 관계는 인물끼리면 인물관계도(라벨이 관계)로, 그 밖은 설정 연관으로 그래프에 넘기고 노드는 카드 id 페이지로 이어진다', async () => {
   vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld())
   await renderAt('/worlds/sw?tab=people')

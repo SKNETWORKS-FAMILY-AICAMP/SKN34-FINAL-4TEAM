@@ -1,25 +1,28 @@
 import { useAppSelector } from '../../../../app/store'
 import type { PublicWorld } from '../../../../domain/entities/publicWorld'
 import { Go } from '../../../shared/Go'
+import { PublicCardImage } from '../../../shared/PublicCardImage'
 import { KindChip } from '../../../shared/KindChip'
 import { BOOK_SORTS } from '../../../shared/worldBoard'
 import { genreLabel } from '../../../shared/worldGenres'
 import { useWorldImport } from '../viewmodel/useWorldImport'
 import { useWorldBookViewModel } from '../viewmodel/useWorldsViewModel'
-import { bookPath, cardPath, type BookRow } from '../worldDetail'
+import { bookPath, cardImageSrc, cardPath, type BookRow } from '../worldDetail'
 import { ImportOutcomeNotice, WorldAddMenu } from './WorldImportMenu'
 
 /**
  * 게시판 한 줄. 제목 링크 하나가 카드 페이지로 가는 주 링크이고(줄 전체를 링크로 만들지 않는다), 제목 옆 `[n]`은 댓글 수처럼 붙는 관계(인물)·연결 수다.
  * 화면 읽기 프로그램에는 대괄호 대신 "관계 2개"·"연결 2개"로 읽힌다. `pick`이 있으면(로그인한 회원) 맨 앞에 가져올 설정을 고르는 체크박스 칸이 붙는다.
+ * 대표 이미지(`imageId`)가 있는 카드는 제목 앞에 작은 썸네일이 붙는다(읽지 못하면 감춘다).
  */
-function Row({ worldId, row, pick }: { worldId: string; row: BookRow; pick?: { checked: boolean; onChange: (on: boolean) => void } }) {
+function Row({ worldId, row, imageId, pick }: { worldId: string; row: BookRow; imageId?: string | null; pick?: { checked: boolean; onChange: (on: boolean) => void } }) {
   return (
     <tr>
       {pick && <td className="col-pick"><label className="worlds-pick"><input type="checkbox" checked={pick.checked} onChange={(e) => pick.onChange(e.target.checked)} /><span className="sr-only">{row.title} 선택</span></label></td>}
       <td className="col-no">{row.no}</td>
       <td className="col-kind"><KindChip kind={row.kind} label={row.type} /></td>
       <td className="col-title">
+        {imageId && <PublicCardImage className="board-thumb" src={cardImageSrc(worldId, imageId)} title={row.title} />}
         <Go to={cardPath(worldId, row.cardId)}>{row.title}</Go>
         {row.badge > 0 && <span className="worlds-badge"><span aria-hidden="true">[{row.badge}]</span><span className="sr-only">{row.kind === '인물' ? '관계' : '연결'} {row.badge}개</span></span>}
       </td>
@@ -43,6 +46,7 @@ export function WorldBook({ world }: { world: PublicWorld }) {
   const direct = useWorldImport(world)
   const picked = vm.picked.size
   const derived = world.lineage?.children.length ?? 0
+  const imageOf = new Map(world.cards.map((card) => [card.id, card.imageId]))
   return (
     <div className="calm">
       <p className="muted small worlds-book-line">{`${genreLabel(world.genre)} · 작가 ${world.authorNickname} · 설정 카드 ${world.cards.length}개${derived ? ` · 파생·조합된 세계관 ${derived}개` : ''}`}</p>
@@ -88,7 +92,7 @@ export function WorldBook({ world }: { world: PublicWorld }) {
             </thead>
             <tbody>
               {vm.rows.length
-                ? vm.rows.map((row) => <Row key={row.cardId} worldId={world.id} row={row} pick={member ? { checked: vm.picked.has(row.cardId), onChange: (on) => vm.pick(row.cardId, on) } : undefined} />)
+                ? vm.rows.map((row) => <Row key={row.cardId} worldId={world.id} row={row} imageId={imageOf.get(row.cardId)} pick={member ? { checked: vm.picked.has(row.cardId), onChange: (on) => vm.pick(row.cardId, on) } : undefined} />)
                 : <tr><td colSpan={member ? 6 : 5} className="muted">조건에 맞는 설정이 없어요.</td></tr>}
             </tbody>
           </table>

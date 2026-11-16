@@ -2,6 +2,7 @@ package ai.storyfork.content.world
 
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.world.domain.WORLD_GENRES
+import ai.storyfork.content.world.domain.cardImageId
 import ai.storyfork.content.world.domain.isListed
 import ai.storyfork.content.world.domain.isPublicCard
 import ai.storyfork.content.world.domain.publicWorldPage
@@ -113,6 +114,20 @@ class PublicWorldRulesTest {
     @Test fun `bad page and size are 422 rather than a type conversion 400`() {
         listOf("-1" to null, "x" to null, "" to null, "21474837" to null, "2147483647" to "100", null to "0", null to "101", null to "x").forEach { (page, size) ->
             assertEquals(422, assertThrows(ContentFailure::class.java) { publicWorldPage(page, size) }.status)
+        }
+    }
+
+    @Test fun `a card image id is the top level imageId when it is a standard UUID string, otherwise there is no image`() {
+        val id = UUID.randomUUID()
+        assertEquals(id, cardImageId(mapOf("imageId" to id.toString())))
+        assertEquals(id, cardImageId(mapOf("imageId" to id.toString().uppercase())))
+        assertEquals(id, cardImageId(mapOf("studio" to mapOf("item" to "x"), "imageId" to id.toString())))
+        assertNull(cardImageId(emptyMap()))
+        assertNull(cardImageId(mapOf("imageId" to null)))
+        // 중첩된 키·UUID가 아닌 값·UUID.fromString이 받아 주는 축약형은 이미지가 아니다.
+        assertNull(cardImageId(mapOf("studio" to mapOf("imageId" to id.toString()))))
+        listOf("", " ", "x", "1-1-1-1-1", " $id", "$id ", "{$id}", id.toString().replace("-", ""), 42, true, mapOf("id" to id.toString()), listOf(id.toString())).forEach {
+            assertNull(cardImageId(mapOf("imageId" to it)), it.toString())
         }
     }
 }

@@ -3,6 +3,7 @@ import { useParams } from 'react-router'
 
 import type { PublicWorld } from '../../../../domain/entities/publicWorld'
 import { CardMarkdown } from '../../../shared/CardMarkdown'
+import { PublicCardImage } from '../../../shared/PublicCardImage'
 import { splitCardSections } from '../../../shared/cardSections'
 import { Go } from '../../../shared/Go'
 import { Jump } from '../../../shared/Jump'
@@ -14,7 +15,7 @@ import { CARD_COLORS } from '../../../shared/worldBoard'
 import { useAppSelector } from '../../../../app/store'
 import { useWorldImport } from '../viewmodel/useWorldImport'
 import { useWorldCardViewModel } from '../viewmodel/useWorldsViewModel'
-import { bookPath, cardPath, type CardPage, type CardRef } from '../worldDetail'
+import { bookPath, cardImageSrc, cardPath, type CardPage, type CardRef } from '../worldDetail'
 import { ImportOutcomeNotice, WorldAddMenu } from './WorldImportMenu'
 import { DemoNotice, InfoRow, LoadFailed, WorldLink, WorldLoading } from './WorldParts'
 import '../../reading/view/publicWiki.css'
@@ -32,13 +33,14 @@ function CardList({ worldId, refs, withType }: { worldId: string; refs: readonly
   )
 }
 
-/** 나무위키 정보 상자(오른쪽): 유형 색 띠 아래 카드 이름, 맨 위에 유형 칩, 별칭(쉼표로)이 있으면 이어서. 인물은 소속(이어진 조직)·관계 수, 그 밖은 연결 수, 태그(칩)가 있으면 그 뒤에 보인다. 응답에 있는 값만 쓰고 비어 있으면 그 행은 없다. */
+/** 나무위키 정보 상자(오른쪽): 유형 색 띠 아래 카드 이름, 대표 이미지가 있으면 그 이미지(읽지 못하면 감춘다), 맨 위에 유형 칩, 별칭(쉼표로)이 있으면 이어서. 인물은 소속(이어진 조직)·관계 수, 그 밖은 연결 수, 태그(칩)가 있으면 그 뒤에 보인다. 응답에 있는 값만 쓰고 비어 있으면 그 행은 없다. */
 function CardInfoBox({ world, page }: { world: PublicWorld; page: CardPage }) {
   const { card, affiliations, relations, links, backlinks } = page
   return (
     <table className="nw-info" style={{ '--cat': CARD_COLORS[card.kind] } as CSSProperties}>
       <caption>{card.title}</caption>
       <tbody>
+        {card.imageId && <tr className="nw-info-image"><td colSpan={2}><PublicCardImage src={cardImageSrc(world.id, card.imageId)} title={card.title} /></td></tr>}
         <InfoRow k="유형"><KindChip kind={card.kind} label={card.type} /></InfoRow>
         {card.aliases.length > 0 && <InfoRow k="별칭">{card.aliases.join(', ')}</InfoRow>}
         {card.kind === '인물' ? (

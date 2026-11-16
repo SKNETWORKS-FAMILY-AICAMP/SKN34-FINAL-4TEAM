@@ -175,6 +175,61 @@ ReaderWorldCards = { "workId", "worldId": "<uuid>" | null, "upto": <적용된 �
 - 화면 흐름(로그인한 회원에게만 보이는 진입점 셋): 공개 세계관 화면의 ① 설정집 게시판의 줄 선택(`보이는 설정 모두 선택` 포함) 뒤 `선택한 설정 가져오기 (N)`과 ② 설정 카드 페이지의 `이 설정 가져오기`는 이동 없이 고른 설정만 고른 내 세계관의 **초안에 바로 추가·저장**한다: 대상의 최신 초안을 읽어(`GET /api/v1/world-studios/{id}`) 새 카드를 끝에 붙이고 초안 저장을 보내며, 관계는 함께 오지 않고 진행·결과·실패 사유와 `다시 시도`를 그 자리에 보인다. ③ 내 세계관 관리 화면 게시판의 `다른 세계관에서 가져오기`는 가져오기 시트를 열며 공개 세계관 목록(대상 세계관 자신은 제외, 공개 설정이 0개인 세계관은 고를 수 없음) → 그 세계관의 공개 설정 체크 → `같이 가져온 카드 사이 관계 포함`(기본 꺼짐) 순서다. 공개 세계관 상세 헤더에서 이 시트로 이동하던 `내 세계관으로 가져오기`와 그 주소(`/worldstudio/<대상>?import=<원본>`)는 2026-11-12에 없앴다(사용자 결정).
 - 가져온 카드는 초안 끝에 **새 카드 id·비공개·독자 공개 회차 없음**으로 더해지고 제목·본문·유형·별칭·태그만 옮긴다. 관계는 양 끝을 모두 가져온 것만 옮기며, 공개 상세가 `label`만 주므로 원본의 양 끝 순서를 지킨 사용자 정의 방향 관계로 넣는다. 관계를 불러오지 못한 응답(`relationshipStatus: unavailable`)이면 관계 포함을 고를 수 없고, 활성 카드 1,000개 한도를 넘기면 아무것도 더하지 않고 이유를 보인다. 화면은 가져온 카드에 `가져옴`과 `참고: {worldName} 세계관 · {authorNickname}`를 보인다.
 
+## 설정 카드 대표 이미지 (#401, 2026-11-16 사용자 결정)
+
+- 설정 카드마다 **대표 이미지 1장**(인물 초상·장소·사물 그림)을 둘 수 있다. 소유자가 직접 올린 PNG·JPEG·WebP 5MB 이하만 쓴다(세계관 표지와 같은 규칙). 본문 안 이미지 삽입과 AI 생성은 이 계약에 없다.
+- 보이는 곳: 편집 화면 제목 옆, 설정집 게시판·카드 목록, 공개 세계관(설정집·카드 페이지), 독자 설정 위키. 관계도 노드에는 넣지 않는다.
+- 공개 화면 노출은 **확정 버전 기준**이다(글과 같은 규칙). 이미지를 올리거나 바꿔도 `세계관 저장`(초안) 뒤 `확정 버전 남기기`를 해야 공개 세계관·독자 설정 위키에 나온다.
+
+### 저장
+
+WorldStudio 전용 마이그레이션 `V8__setting_card_image.sql`(V7 다음 번호).
+
+```sql
+CREATE TABLE worldstudio.setting_card_image (
+    id uuid PRIMARY KEY,
+    world_id uuid NOT NULL REFERENCES worldstudio.world(id),
+    object_key text NOT NULL UNIQUE,
+    content_type text NOT NULL CHECK (content_type IN ('image/png','image/jpeg','image/webp')),
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX setting_card_image_world_idx ON worldstudio.setting_card_image(world_id);
+```
+
+- 바이트는 세계관 표지와 같은 객체 저장소(`AttachmentStorageClient`)의 `world-card-images/<id>` 키에 둔다. **올린 이미지는 바뀌지 않는다**(교체 = 새 이미지를 올리고 카드가 새 id를 가리킴). 그래서 확정 버전이 옛 id를 가리켜도 그 이미지가 그대로 보인다.
+- 카드가 어떤 이미지를 쓰는지는 DB 칼럼을 더하지 않고 카드 `semanticMetadata`의 **최상위 키 `imageId`**(UUID 문자열, 없으면 키 없음)에 둔다. 출처·독자 공개 회차와 같은 자리다. 초안 저장이 그대로 보존하고, 확정 버전은 카드 `semanticMetadata`를 복사하므로 따로 처리하지 않는다.
+- 초안 저장(`PUT /{id}/draft`)은 카드의 `imageId`가 **같은 세계관의 `setting_card_image` 행**일 때만 받는다. 형식 오류·없는 id·다른 세계관 id는 422 `WORLD_INPUT_INVALID`이고 저장하지 않는다(이전 초안 유지).
+- ponytail: 참조를 지워도(이미지 빼기) 바이트와 행은 지우지 않는다. 확정 버전이 아직 가리킬 수 있기 때문이다. 어떤 버전도 가리키지 않는 이미지 정리(GC)는 없다(한계).
+
+### 소유자 API (인증·CSRF, 기존 `/api/v1/world-studios` 규칙)
+
+| 메서드·경로 | 동작 |
+|---|---|
+| `POST /api/v1/world-studios/{id}/card-images` | 소유자만. multipart `file`(PNG·JPEG·WebP, 5MB 이하, 내용 서명으로 형식 확인). 201 + `{ "imageId": "<uuid>", "contentType": "image/png" }`. 카드에 붙이는 것은 화면이 초안 `semanticMetadata.imageId`에 넣고 초안 저장으로 한다. 값 오류 422 `WORLD_INPUT_INVALID`(소유 확인보다 먼저, 표지와 같음), 비소유자 404 |
+| `GET /api/v1/world-studios/{id}/card-images/{imageId}` | 소유자만 이미지 바이트. 없는 id·다른 세계관 id·비소유자 404 |
+
+nginx `location ^~ /api/v1/world-studios/`의 `client_max_body_size 6m`이 이미 있어 라우팅 변경은 없다.
+
+### 공개 API (비로그인 허용)
+
+| 메서드·경로 | 동작 |
+|---|---|
+| `GET /api/v1/public/world-studios/{id}/card-images/{imageId}` | 공개 상세와 같은 기준(공개이고 확정 버전이 있는 세계관)이고, 그 확정 버전의 **공개·활성 카드 중 하나가 `imageId`로 가리키는** 이미지일 때만 바이트. 그 밖에는 모두 404 |
+| `GET /api/v1/public/works/{workId}/world-card-images/{imageId}?upto=N` | 독자 설정 위키(`/world-cards?upto=N`)와 같은 기준으로 반환되는 카드 중 하나가 가리키는 이미지일 때만 바이트. 그 밖에는 404 |
+
+- 응답 헤더는 표지와 같다: 저장한 `Content-Type`, `Cache-Control: private, no-store`, `X-Content-Type-Options: nosniff`.
+- 공개 상세 카드와 독자 설정 위키 카드 응답에 `imageId`(없으면 `null`) 필드를 **추가**한다(기존 필드 그대로). 화면은 `imageId`가 있을 때만 위 공개 경로를 `<img src>`로 직접 읽는다.
+
+### 화면
+
+- 편집 화면 제목·유형 줄의 이미지 자리(지금 목업 초상 자리): 없으면 `이미지 추가`, 있으면 미리보기 + `바꾸기`·`빼기`. 고르면 바로 `POST`로 올리고 초안 카드의 `semanticMetadata.imageId`를 바꾼다(저장 전 수정 표시 → `세계관 저장`). `빼기`는 키만 지운다.
+- 소유자 이미지는 Bearer 인증이라 `<img src>`로 못 읽으므로 인증 `fetch` → Blob → object URL로 그리고, 바뀌거나 화면을 떠나면 URL을 해제한다.
+- 설정집 게시판·카드 목록은 작은 썸네일, 없으면 지금처럼 비워 둔다.
+- 설정 가져오기는 원본 세계관의 이미지를 복사하지 않는다: 가져온 카드에서 `imageId`를 뺀다(다른 세계관 id는 초안 저장이 422로 막기 때문). ponytail: 이미지까지 복사하려면 서버 복사 API가 필요하다(후속).
+- 목업(`mockup`) 모드의 기존 초상(`presentationPortrait`)은 그대로 둔다.
+- AI 입력(검토·채팅·시뮬레이션)에는 이미지를 넣지 않는다.
+- 구현 메모: 업로드 422 문구는 표지와 같은 일반 문구, 독자 이미지의 `upto` 값 오류는 위키와 같이 422, UUID가 아닌 경로 변수는 400. 화면 썸네일 캐시는 `imageId` 기준이며 목업(`mockup`) 모드는 업로드를 잠근다.
+
 ## 구현 선택 (계약이 정하지 않은 부분)
 
 - **이름·설명은 마지막 저장 버전의 값**이다. 저장하지 않은 초안의 이름·설명·카드·관계 수정은 다음 저장 전까지 공개 화면에 반영되지 않는다.
@@ -189,7 +244,7 @@ ReaderWorldCards = { "workId", "worldId": "<uuid>" | null, "upto": <적용된 �
 
 - 참조·추종 이용·세계관 Fork·파생·조합은 없다(DEC-35). 공개 세계관 응답에는 연결된 소설과 '가져간 세계관 수'가 없다.
 - 관계는 현재 상태 하나뿐이다. 과거 관계·이력·시점별 조회는 없다([#132 계약](worldstudio-independent-schema.md#현재-관계-mvp-계약--132)). 마지막 저장 버전의 카드와 **현재** 관계를 합쳐 보이므로, 저장 이후 관계만 바뀌었다면 두 시점이 섞일 수 있다.
-- 카드 이미지·첨부는 이 응답에 없다. 공개 세계관 응답은 공개 카드만 담고 카드의 `visibility`·독자 공개 회차 값은 싣지 않는다. 세계관 표지는 소유자 업로드 한 장뿐이고 AI 생성·크롭·여러 장·대체 텍스트는 없다.
+- 카드 이미지는 `imageId`로 가리키는 대표 이미지 한 장뿐이다(본문 삽입·AI 생성·여러 장·첨부 없음, #401). 공개 세계관 응답은 공개 카드만 담고 카드의 `visibility`·독자 공개 회차 값은 싣지 않는다. 세계관 표지는 소유자 업로드 한 장뿐이고 AI 생성·크롭·여러 장·대체 텍스트는 없다.
 - 표지의 WebP는 디코딩하지 않고 RIFF 구조만 확인한다(JDK가 읽지 못한다). 교체·삭제 중 DB 갱신이 실패하면 새 객체가, 이전 객체 삭제가 실패하면 이전 객체가 객체 저장소에 남을 수 있고 정리하지 않는다(운영자 몫, 보상 트랜잭션 없음).
 - 목록 정렬은 최근 공개순 하나이고 검색어·복수 장르·카드 수 정렬은 없다. 목록은 세계관마다 Neo4j를 한 번씩 읽는다(한 쪽 최대 100번). 공개 세계관이 늘면 한 쿼리로 묶는 조회와 `(visibility, published_at)` 부분 인덱스를 둔다.
 - 목록의 `total`은 쿼리가 센 수다. 확정되지 않은 현재 버전의 세계관이 있다면(`current_revision_id`는 확정 뒤에만 정해져 지금은 생기지 않는다) `items`보다 클 수 있고, 생기면 목록 쿼리에 `sealed` 조건을 둔다.

@@ -28,6 +28,13 @@ it('고른 공개 카드만 새 id의 설정으로 복사하고 제목·본문·
   expect(cards.every((s) => s.item.authorText === s.item.text && s.item.origin === 'author_addition' && s.item.decision === 'approved')).toBe(true) // 작가가 직접 쓴 카드와 같은 모양
 })
 
+it('원본 카드의 이미지(imageId)는 복사하지 않는다: 다른 세계관의 이미지 id는 초안 저장이 거절하므로 이미지 없는 카드로 가져온다', () => {
+  const world = source({ cards: [{ ...publicCard('a', '가람'), imageId: 'image-of-source-world' }, publicCard('b', '나래')] })
+  const { cards } = importCards(world, pick('a', 'b'), false)
+  expect(cards.map((s) => 'imageId' in s)).toEqual([false, false])
+  expect(JSON.stringify(cards)).not.toContain('image-of-source-world')
+})
+
 it('카드 유형 여덟 가지를 그대로 옮긴다(사건은 역사 영역)', () => {
   const world = source({ cards: cardTypes.map((type) => publicCard(type.id, type.label, type.id)), relationships: [] })
   const { cards } = importCards(world, pick(...cardTypes.map((type) => type.id)), false)

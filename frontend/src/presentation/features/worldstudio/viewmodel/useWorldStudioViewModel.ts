@@ -2,6 +2,7 @@ import { cardLibraryRows, type WritingIssue, worldSealIssues, worldWritingIssues
 import { initialWorldStudioFlow, legacyTabTarget, type ManageView, NEW_WORLD_QUERY, parseManageView, type StudioStep, studioMode, worldStudioFlow } from './worldStudioFlow'
 import { listingOf, needsPublicConfirm, PUBLIC_CONFIRM, publicationNotice } from './worldPublication'
 import { useWorldCoverImage } from './useWorldCoverImage'
+import { useCardImages } from './useCardImages'
 import { worldStudioStorage } from './worldStudioStorage'
 import { useWorldReview } from './useWorldReview'
 import {
@@ -111,6 +112,7 @@ export function useWorldStudioViewModel(
   const [publishing, setPublishing] = useState<WorldPublicationInput | null>(null) // 전송 중인 공개 설정. 컨트롤만 이 값을 앞서 보이고 칩·링크는 서버 값을 따른다
   const [coverRevision, setCoverRevision] = useState(0) // 표지를 올리거나 지울 때마다 올라가 이미지를 다시 읽게 한다
   const [coverAction, setCoverAction] = useState<'upload' | 'remove' | null>(null)
+  const [imageUploading, setImageUploading] = useState(false) // 설정 카드 대표 이미지를 올리는 중
   useEffect(() => {
     leaveGuard?.setDirty(dirty)
     return () => leaveGuard?.setDirty(false)
@@ -261,6 +263,7 @@ export function useWorldStudioViewModel(
   const demo = import.meta.env.MODE === 'mockup'
   const listing = listingOf(saved, demo)
   const cover = useWorldCoverImage(useCase, saved?.id, !!saved?.hasCover && useCase.supportsCover, coverRevision)
+  const cardImages = useCardImages(useCase, saved?.id)
   // 초안 저장: 이름·설명 인라인 편집과 '세계관 저장'이 같은 흐름을 쓴다.
   const persist = async (target: StudioWorld, signal: AbortSignal) => {
     const current = generation.current
@@ -525,6 +528,44 @@ export function useWorldStudioViewModel(
     supportsCover: useCase.supportsCover,
     /** 표지를 올리거나 지우는 중인 동작(없으면 null). */
     coverAction,
+    /** 설정 카드 대표 이미지(소유자 인증 읽기 → 객체 주소). 게시판·레일·편집 화면이 같은 이미지를 한 번만 읽고, `supported`가 false인 데모(메모리)는 이미지 올리기를 지원하지 않는다. */
+    cardImages,
+    /** 카드 이미지를 올리는 중인지. */
+    imageUploading,
+    /**
+     * 설정 카드의 대표 이미지를 올려 붙인다(바꾸기도 같다): 올린 이미지의 id를 초안 카드의 `imageId`로 바꾼다. 올리는 것은 바로 서버에 적용되지만 카드가 그 이미지를 쓰는 것은 초안 수정이라
+     * `세계관 저장`과 확정 버전을 거쳐야 공개 화면에 나온다. 바꿀 때 이전 이미지의 객체 주소는 해제한다. 됐을 때만 true이고, 실패하면 이유를 오류로 알리고 초안은 그대로다.
+     */
+    uploadCardImage: async (id: string, file: File) => {
+      if (!saved || !editing || busy || reviewBusy || mutation.current) return false
+      let done = false
+      await perform(async (signal) => {
+        const current = generation.current
+        setImageUploading(true)
+        try {
+          const imageId = await useCase.uploadCardImage(saved.id, file, signal)
+          if (current === generation.current) {
+            const previous = editing.settings.find((row) => row.item.id === id)?.imageId
+            patch({ settings: editStudioSetting(editing.settings, id, {}, { imageId }) })
+            if (previous) cardImages.release(previous)
+            setMessage('이미지를 올렸어요. 세계관을 저장한 뒤 ‘확정 버전 남기기’를 해야 공개 화면에 나와요.')
+            done = true
+          }
+        } finally {
+          setImageUploading(false)
+        }
+      })
+      return done
+    },
+    /** 설정 카드에서 대표 이미지를 뺀다: 서버를 부르지 않고 초안에서 연결(`imageId`)만 지운다(올린 이미지는 확정 버전이 쓸 수 있어 남는다). 저장해야 반영된다. */
+    removeCardImage: (id: string) => {
+      if (!editing || busy) return
+      const row = editing.settings.find((s) => s.item.id === id)
+      if (!row?.imageId) return
+      const { imageId, ...rest } = row
+      patch({ settings: editing.settings.map((s) => (s.item.id === id ? rest : s)) })
+      cardImages.release(imageId)
+    },
     /** 표지를 올리거나(교체 포함) 지운다(`null`). 초안 저장과 별개로 바로 적용되고 됐을 때만 true다. 실패하면 이전 표지 그대로 오류 문구를 보인다. */
     setCover: async (file: File | null) => {
       if (!saved || busy || reviewBusy || mutation.current) return false

@@ -108,4 +108,12 @@ class WorldReviewInputTest {
              "relationships":[{"id":"${relation.id}","sourceCardId":"${hero.id}","targetCardId":"${rule.id}","label":"소속","polarity":"denied"}]}""")
         assertEquals(expected, actual)
     }
+
+    @Test fun `the card image id is not part of what the AI is sent`() {
+        val image = UUID.randomUUID().toString()
+        val sent = request(card("초상 있는 인물", type = "character", meta = mapOf("imageId" to image) + docs()), card("그림 있는 규칙", meta = mapOf("imageId" to image)))
+        val json = JsonMapper.builder().addModule(KotlinModule.Builder().build()).build().writeValueAsString(sent)
+        assertEquals(2, sent.cards.size)
+        assertFalse(image in json || "imageId" in json, json)
+    }
 }

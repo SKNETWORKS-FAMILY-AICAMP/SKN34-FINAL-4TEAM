@@ -127,6 +127,12 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-graph-actions{padding-inline:24px}.world-graph-note{margin:0;padding-inline:24px;line-height:1.6}
 .world-card-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin-bottom:12px}.world-card-meta img{border-radius:12px;object-fit:cover}
 .world-card-meta .world-type{display:flex;align-items:center;gap:8px;margin:0;color:var(--tsub);font-size:13px}.world-card-meta .world-type select{width:auto;padding:6px 10px}
+/* 카드 대표 이미지(#401): 유형 선택 옆 첫 칸. 56px 미리보기 옆에 바꾸기·빼기와 안내가 세로로 쌓이고, 읽는 중·읽지 못한 때의 빈 자리도 같은 크기라 줄이 흔들리지 않는다. */
+.world-card-image{display:flex;align-items:center;gap:12px;min-width:0}
+.world-card-image-preview{flex:none;width:56px;height:56px;border:1px solid var(--tline);background:var(--muted-bg)}span.world-card-image-preview{display:block;border-radius:12px}
+.world-card-image-body{display:grid;gap:6px;justify-items:start;min-width:0}.world-card-image-actions{display:flex;flex-wrap:wrap;gap:8px}.world-card-image-note{margin:0;line-height:1.5}
+/* 레일 항목의 썸네일은 왼쪽에 띄워 제목·상태 줄이 그 옆으로 흐르게 한다(.writing-episode는 집필실과 함께 쓰는 규칙이라 건드리지 않는다). */
+.world-card-studio .writing-episode .board-thumb{float:left;margin:2px 10px 0 0}
 /* 설명: 마크다운 편집기(shared/MarkdownEditor, Toast UI Editor)는 글 높이만큼 자라고 스크롤은 편집 열이 맡는다. 불러오는 동안은 편집기 최소 높이(320px)와 탭 줄만큼 자리를 비운다. 저장 중에는 잠기고(inert) 흐려진다.
    isolation: Toast는 본문 컨테이너를 position:relative + z-index:20(팝업 30·툴팁 40)으로 그려, z-index 없는 sticky 하단 바(.writing-foot)와 z-index 10인 좁은 화면 상단 바(.sbar) 위로 글이 올라와 겹쳐 찍힌다. 그 값들을 이 감싸개 안에 가둔다. */
 .world-card-editor{margin-bottom:8px;isolation:isolate}.world-card-editor[inert]{opacity:.6}

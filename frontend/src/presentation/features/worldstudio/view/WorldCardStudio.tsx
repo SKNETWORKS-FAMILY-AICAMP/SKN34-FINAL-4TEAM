@@ -20,6 +20,7 @@ import type { useWorldRevisions } from '../viewmodel/useWorldRevisions'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 import { worldVersionRows } from '../viewmodel/worldVersionGraph'
 import { CardDeletionConfirm } from './CardDeletionConfirm'
+import { CardImageControl, CardThumb } from './WorldCardImage'
 import { CharacterDocs } from './CharacterDocs'
 import { NewCardMenu } from './NewCardMenu'
 import { WorldCardFindings } from './WorldCardFindings'
@@ -80,11 +81,13 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
       </Suspense>
     </div>
   )
+  const imageOf = new Map(world.settings.map((s) => [s.item.id, s.imageId]))
   const rail = (id: string, title: string, sub: string) => {
     const on = id === item.id
     return (
       <div className="writing-episode-row" key={id}>
         <button type="button" className={`writing-episode${on ? ' on' : ''}`} aria-pressed={on} aria-label={`${title} ${sub}`} disabled={vm.busy} onClick={() => { setConfirm(''); if (!on) vm.editCard(id) }}>
+          <CardThumb images={vm.cardImages} imageId={imageOf.get(id)} />
           <strong>{title}</strong><small>{sub}</small>
         </button>
         {/* 항목마다 그 카드를 대상으로 하는 메뉴. 카드를 먼저 연 뒤 같은 삭제 확인을 보인다. */}
@@ -143,7 +146,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
               <legend className="sr-only">설정 카드 작성</legend>
               <input ref={nameField} className="et writing-title" aria-label="설정 이름" required value={item.title} maxLength={200} placeholder="이 설정의 이름은 무엇인가요?" onChange={(e) => vm.update(item.id, { title: e.target.value })} />
               <div className="world-card-meta">
-                {portrait && <img src={portrait} alt={`${item.title} 인물 이미지`} width={56} height={56} />}
+                <CardImageControl vm={vm} cardId={item.id} title={item.title} imageId={setting.imageId} portrait={portrait} />
                 <label className="field world-type">유형
                   <select className="inp" value={cardTypeOf(item)} onChange={(e) => vm.changeCardType(item.id, e.target.value as CardType)}>
                     {cardTypes.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
@@ -209,7 +212,6 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
                     ))}
                   </>
                 )}
-                <p className="small muted">이미지 첨부는 이 화면에서 지원하지 않아요.</p>
               </details>
             </fieldset>
             {deletion && <CardDeletionConfirm deletion={deletion} onDelete={() => { if (vm.deleteCard(item.id)) setConfirm('') }} onCancel={() => setConfirm('')} />}

@@ -73,3 +73,16 @@ it('인물 문서 탭은 전역 문서 버튼(.world-rail-kinds button, 한 줄 
   expect(rule((s) => s === '.world-doc-list .world-doc-tab')?.body).toMatch(/display:\s*grid/) // 라벨 아래 줄에 파일 이름·공개 범위·표시
   expect(rule((s) => s === '.world-doc-list .world-doc-tab[data-current=true]')?.body).toMatch(/border-color:[^;]*;[^}]*background:/)
 })
+
+it('카드 대표 이미지 미리보기는 읽는 중·읽지 못한 때의 빈 자리도 같은 56px라 줄이 흔들리지 않고, 빈 자리는 블록이다', () => {
+  const preview = rule((s) => s === '.world-card-image-preview')?.body ?? ''
+  expect(preview).toMatch(/flex:\s*none/)
+  expect(preview).toMatch(/width:\s*56px/)
+  expect(preview).toMatch(/height:\s*56px/)
+  expect(rule((s) => s === 'span.world-card-image-preview')?.body).toMatch(/display:\s*block/) // span은 기본이 인라인이라 크기가 먹지 않는다
+})
+
+it('편집 화면 레일의 썸네일은 왼쪽에 띄워 제목·상태 줄이 옆으로 흐르게 하고, 집필실과 함께 쓰는 writing.css는 건드리지 않는다', () => {
+  expect(rule((s) => s === '.world-card-studio .writing-episode .board-thumb')?.body).toMatch(/float:\s*left/)
+  expect(writingCss).not.toContain('board-thumb')
+})
