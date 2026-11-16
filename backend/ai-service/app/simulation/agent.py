@@ -3,7 +3,7 @@
 호출마다 새 입력만 보낸다(store=False, 이전 응답 id 없음). 그래서 한 인물의 입력과 모델 대화 상태가 다음 인물에게 이어지지 않는다.
 키·모델은 호출 시 읽고(OPENAI_API_KEY·OPENAI_MODEL), 제공사 실패·불완전 응답은 고정 문구의 SimulationFailure로 바꾼다.
 추적에는 모델·사용량·실패만 남긴다. 설정 문서·생성 문단은 팀 결정 범위(질문·원고·답변) 밖이라 남기지 않는다.
-LangChain 실행(장면 에이전트의 도구) 안에서 부르면 호출마다 사용량·지연·실패를 `simulation.model` 이벤트로 알려 콜백이 모은다.
+LangChain 실행(장면 에이전트의 도구) 안에서 부르면 호출마다 사용량·지연·실패를 공통 `MODEL_EVENT`로 알려 사용량 장부(app/agent_runtime.UsageLedger)가 모은다.
 """
 
 import json
@@ -15,6 +15,7 @@ from openai import OpenAI, OpenAIError
 from pydantic import BaseModel, ValidationError
 
 from app import tracing
+from app.agent_runtime import MODEL_EVENT
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import Action, Narration, PlanDraft, Verdict
 from app.simulation.prompt import ACT_INSTRUCTIONS, CHECK_INSTRUCTIONS, NARRATE_INSTRUCTIONS, PLAN_INSTRUCTIONS
@@ -72,7 +73,7 @@ def _parse(name: str, instructions: str, data: dict, text_format: type[BaseModel
 def _report(name: str, started: float, usage, failed: bool) -> None:
     """호출 하나의 지연·토큰·실패를 LangChain 콜백에 알린다(본문·키는 없다). LangChain 실행 밖이면 알릴 곳이 없어 건너뛴다."""
     try:
-        dispatch_custom_event('simulation.model', {
+        dispatch_custom_event(MODEL_EVENT, {
             'name': name, 'ms': round((time.monotonic() - started) * 1000), 'failed': failed,
             'inputTokens': getattr(usage, 'input_tokens', None), 'outputTokens': getattr(usage, 'output_tokens', None)})
     except RuntimeError:

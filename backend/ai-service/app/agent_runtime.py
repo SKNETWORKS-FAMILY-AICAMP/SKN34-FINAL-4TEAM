@@ -4,15 +4,20 @@ Story Context Q&A·Writing·웹 조사·Review가 같은 방식으로 쓴다. �
 구조화 출력은 제공사 strict JSON schema(ProviderStrategy)다. `ModelCallMiddleware`(AgentMiddleware 상속)가 모델 호출을 Langfuse
 generation으로 감싸 모델·사용량·출력을 남기고, 제공사 오류·불완전(토큰 한도로 잘린) 응답·스키마 위반을 기능의 고정 실패 문구로 바꾼다.
 호출 한도는 라이브러리 ModelCallLimitMiddleware가 지킨다(업무 Agent는 모델 호출 1회). 실패를 fallback·재시도로 숨기지 않는다.
+
+여러 단계를 도는 Agent(인물 시뮬레이션)의 공통 진행 이벤트·사용량 장부도 여기 둔다. 미들웨어가 상태의 `step`에 단계 결과를 남기면
+`ProgressMiddleware`가 LangGraph custom stream으로 흘리고(바깥 오케스트레이션이 SSE `step`으로 중계), `UsageLedger`(콜백)가 그 단계까지
+`MODEL_EVENT`로 알려진 모델 호출의 토큰·지연·실패를 추적 span 하나로 묶는다. 본문·키는 어느 쪽에도 담지 않는다.
 """
 
 import json
 import os
-from typing import Any
+from typing import Any, NotRequired
 
 from langchain.agents import create_agent
-from langchain.agents.middleware import AgentMiddleware, ModelCallLimitMiddleware
+from langchain.agents.middleware import AgentMiddleware, AgentState, ModelCallLimitMiddleware
 from langchain.agents.structured_output import ProviderStrategy, StructuredOutputValidationError
+from langchain_core.callbacks import BaseCallbackHandler, adispatch_custom_event
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 from openai import OpenAIError
@@ -21,6 +26,62 @@ from pydantic import BaseModel
 from app import tracing
 
 WEB_SEARCH = {'type': 'web_search'}
+MODEL_EVENT = 'agent.model'  # 모델 호출 하나의 {name, ms, failed, inputTokens, outputTokens}
+STEP_EVENT = 'agent.step'  # 단계 결과 하나(SSE step 항목). 사용량 장부가 이 단계까지의 호출을 묶는다
+
+
+class StepState(AgentState):
+    step: NotRequired[dict | None]  # 알릴 단계 결과. ProgressMiddleware가 알린 뒤 비운다
+
+
+class ProgressMiddleware(AgentMiddleware):
+    """공통 진행 이벤트(SSE step): 상태에 남은 단계 결과를 다음 반복 앞이나 실행 끝에서 한 번 알린다.
+
+    미들웨어 목록의 맨 앞에 둔다. 훅마다 별도 노드라, 이 훅이 끝난 뒤 다른 미들웨어가 interrupt로 멈추고 재개해도 다시 알리지 않는다.
+    """
+    state_schema = StepState
+
+    async def abefore_model(self, state, runtime) -> dict | None:
+        return await self._emit(state, runtime)
+
+    async def aafter_agent(self, state, runtime) -> dict | None:
+        return await self._emit(state, runtime)
+
+    async def _emit(self, state, runtime) -> dict | None:
+        if not state.get('step'):
+            return None
+        runtime.stream_writer(state['step'])
+        await adispatch_custom_event(STEP_EVENT, state['step'])
+        return {'step': None}
+
+
+class UsageLedger(BaseCallbackHandler):
+    """공통 사용량 장부: MODEL_EVENT로 알려진 호출과 도구 실패를 모았다가 STEP_EVENT마다 span(name) 하나로 남긴다.
+
+    describe(step)는 span 메타데이터에 넣을 단계 식별(예: 턴 번호·상태)이다. trace가 없으면 현재 문맥이 없어 추적만 건너뛴다.
+    """
+
+    def __init__(self, name: str, describe, trace: dict | None = None):
+        self.name, self.describe, self.trace = name, describe, trace
+        self.calls: list[dict] = []
+        self.records: list[dict] = []  # 지금까지 남긴 단계 요약(추적이 꺼져 있어도 남아 테스트·진단이 읽는다)
+
+    def on_custom_event(self, name: str, data: dict, **kwargs) -> None:
+        if name == MODEL_EVENT:
+            self.calls.append(data)
+        elif name == STEP_EVENT:
+            self._flush(data)
+
+    def on_tool_error(self, error: BaseException, **kwargs) -> None:
+        self.calls.append({'name': 'tool', 'ms': 0, 'failed': True, 'inputTokens': None, 'outputTokens': None})
+
+    def _flush(self, step: dict) -> None:
+        total = lambda key: sum(c[key] or 0 for c in self.calls)  # noqa: E731
+        record = {**self.describe(step), 'modelCalls': len(self.calls), 'failures': sum(c['failed'] for c in self.calls),
+                  'ms': total('ms'), 'inputTokens': total('inputTokens'), 'outputTokens': total('outputTokens'), 'calls': self.calls}
+        self.records.append(record)
+        self.calls = []
+        tracing.client().start_observation(name=self.name, as_type='span', trace_context=self.trace, metadata=record).end()
 
 
 class ModelCallMiddleware(AgentMiddleware):

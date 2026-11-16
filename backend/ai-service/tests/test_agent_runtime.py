@@ -134,3 +134,83 @@ def test_generation_stays_under_the_callers_observation(monkeypatch, spans):
     generation, parent = spans()
     assert (generation.name, parent.name) == ('test.generation', 'story_context.qa')
     assert generation.parent.span_id == parent.context.span_id
+
+
+def test_progress_middleware_streams_a_step_left_in_state_once_and_clears_it(monkeypatch):
+    import asyncio
+
+    from langchain.agents import create_agent
+    from langchain.agents.middleware import AgentMiddleware
+
+    from fake_chat import FakeChat
+    from langchain_core.messages import AIMessage, HumanMessage
+
+    class Finisher(AgentMiddleware):
+        state_schema = agent_runtime.StepState
+
+        async def aafter_model(self, state, runtime):
+            return {'step': {'feature': 'x', 'status': 'completed'}}
+
+    model = FakeChat(seen={}, reply=AIMessage(content='끝', response_metadata={'status': 'completed'}), model_name='m')
+    agent = create_agent(model, middleware=[agent_runtime.ProgressMiddleware(), Finisher()], checkpointer=False)
+
+    async def collect():
+        return [c async for c in agent.astream({'messages': [HumanMessage('시작')]}, stream_mode=['custom', 'values'])]
+
+    chunks = asyncio.run(collect())
+    assert [c for mode, c in chunks if mode == 'custom'] == [{'feature': 'x', 'status': 'completed'}]
+    assert [c for mode, c in chunks if mode == 'values'][-1].get('step') is None
+
+
+def test_usage_ledger_closes_the_model_calls_of_each_step_in_one_span(spans):
+    from app import tracing
+    ledger = agent_runtime.UsageLedger('test.turn', lambda step: {'turn': step['n']},
+                                       trace=tracing.context(*tracing.start_run('run', as_type='chain')))
+    call = {'name': 'act', 'ms': 5, 'failed': False, 'inputTokens': 10, 'outputTokens': 4}
+    ledger.on_custom_event(agent_runtime.MODEL_EVENT, call)
+    ledger.on_tool_error(RuntimeError('x'))
+    ledger.on_custom_event(agent_runtime.STEP_EVENT, {'n': 1})
+    ledger.on_custom_event(agent_runtime.STEP_EVENT, {'n': 2})
+    first, second = ledger.records
+    assert (first['turn'], first['modelCalls'], first['failures'], first['inputTokens'], first['ms']) == (1, 2, 1, 10, 5)
+    assert second['modelCalls'] == 0 and ledger.calls == []
+    assert len([s for s in spans() if s.name == 'test.turn']) == 2
+
+
+def test_a_step_from_an_agent_inside_an_orchestration_node_reaches_the_outer_custom_stream():
+    import asyncio
+    from typing import TypedDict
+
+    from langchain.agents import create_agent
+    from langchain.agents.middleware import AgentMiddleware
+    from langchain_core.messages import AIMessage, HumanMessage
+    from langgraph.graph import END, START, StateGraph
+
+    from fake_chat import FakeChat
+
+    class Finisher(AgentMiddleware):
+        state_schema = agent_runtime.StepState
+
+        async def aafter_model(self, state, runtime):
+            return {'step': {'feature': 'character_simulation'}}
+
+    inner = create_agent(FakeChat(seen={}, reply=AIMessage(content='끝'), model_name='m'),
+                         middleware=[agent_runtime.ProgressMiddleware(), Finisher()])
+
+    class State(TypedDict):
+        done: bool
+
+    async def node(state, config):
+        await inner.ainvoke({'messages': [HumanMessage('시작')]}, config)
+        return {'done': True}
+
+    graph = StateGraph(State)
+    graph.add_node('step', node)
+    graph.add_edge(START, 'step')
+    graph.add_edge('step', END)
+
+    async def collect():
+        # 바깥 오케스트레이션(orchestrate_stream)과 같은 스트림 설정
+        return [(mode, data) async for _, mode, data in graph.compile().astream({'done': False}, stream_mode=['updates', 'custom'], subgraphs=True)]
+
+    assert ('custom', {'feature': 'character_simulation'}) in asyncio.run(collect())

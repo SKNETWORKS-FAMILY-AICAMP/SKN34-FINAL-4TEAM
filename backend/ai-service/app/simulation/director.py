@@ -20,6 +20,7 @@ from langchain_typesafe.client import (TypeSafeAPIConnectionError, TypeSafeAPIRe
 from langchain_typesafe.types import ClassifierRequest, ClassifierResponse
 from pydantic import Field, JsonValue, SecretStr
 
+from app.agent_runtime import MODEL_EVENT
 from app.intent.models import Decision as DecisionsReply
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import Decision
@@ -127,7 +128,7 @@ async def decide(state: dict, allowed: Sequence[str], cast: Sequence[dict], last
 
 
 async def _ask(state: dict, questions: dict[str, Choice]) -> dict:
-    """Decisions를 한 번 부른다. 호출 하나의 지연·토큰·실패는 `simulation.model` 이벤트로 알려 콜백(장부)이 남기게 한다(본문·키는 없다)."""
+    """Decisions를 한 번 부른다. 호출 하나의 지연·토큰·실패는 공통 `MODEL_EVENT`로 알려 사용량 장부가 남기게 한다(본문·키는 없다)."""
     try:
         chosen = classifier()
     except ValueError:  # 키가 없다
@@ -143,7 +144,7 @@ async def _ask(state: dict, questions: dict[str, Choice]) -> dict:
         raise SimulationFailure(503, FAILED) from None
     finally:
         try:
-            await adispatch_custom_event('simulation.model', {
+            await adispatch_custom_event(MODEL_EVENT, {
                 'name': 'director', 'ms': round((time.monotonic() - started) * 1000), 'failed': usage is None,
                 'inputTokens': usage and usage.input_tokens, 'outputTokens': usage and usage.output_tokens})
         except RuntimeError:  # LangChain 실행 밖이면 알릴 곳이 없다

@@ -8,6 +8,7 @@ from langchain_core.runnables import RunnableLambda
 from openai import OpenAIError
 from pydantic import ValidationError
 
+from app.agent_runtime import MODEL_EVENT
 from app.simulation import agent, prompt
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import Action, CheckItem, Narration, PlanDraft, Verdict
@@ -104,7 +105,7 @@ def test_every_model_call_inside_a_langchain_run_reports_usage_latency_and_failu
     with pytest.raises(SimulationFailure):
         RunnableLambda(lambda _: agent.narrate(SECRET_DOC)).invoke(None, {'callbacks': [listener]})
     (name, ok), (_, failed) = listener.events
-    assert name == 'simulation.model'
+    assert name == MODEL_EVENT
     assert (ok['name'], ok['failed'], ok['inputTokens'], ok['outputTokens']) == ('act', False, 10, 4) and ok['ms'] >= 0
     assert (failed['name'], failed['failed'], failed['inputTokens']) == ('narrate', True, None)
     assert 'KAEL-SOUL' not in str(listener.events) and '멈춰' not in str(listener.events)  # 본문·키는 없다

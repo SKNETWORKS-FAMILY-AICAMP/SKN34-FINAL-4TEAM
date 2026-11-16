@@ -12,7 +12,6 @@ DAG 우선순위는 실제 호출 빈도나 비용 측정이 아니라 현재 �
 |---|---|---|
 | 높음 | Retrieval → Q&A | 질문의 허용 근거와 출처를 조립한다. |
 | 높음 | Retrieval → Review | 원고·설정의 대조 근거를 확인한다. 기계적 검사만으로 끝나는 경우 검색을 강제하지 않는다. |
-| 높음 | Development → Writing | 사용자가 계획에 따른 문장 생성을 요청한 경우다. |
 | 높음 | Writing → Review | 생성 후보의 검수가 필요한 경우다. 고정 후보·기준 초안 판본 계약이 먼저다. |
 | 높음 | Review → Writing | 수정 요청과 유효한 지적이 함께 있을 때 후보를 만든다. |
 | 높음 | Simulation → 사용자 선택 → Writing | 선택한 가상 결과만 집필 재료로 사용한다. Writing이 Simulation을 직접 호출하지 않는다. |
@@ -28,13 +27,13 @@ DAG 우선순위는 실제 호출 빈도나 비용 측정이 아니라 현재 �
 | 제안 단위 | 현재 역할 대응 | 구체적 책임과 경계 |
 |---|---|---|
 | **작품 분석** | Q&A + Review + World & Plot | 각각 `질문 답변`, `원고 검수`, `설정/플롯 영향 분석` 작업으로 구분한다. 공통 Retrieval과 필요한 경우 Simulation을 재사용한다. Answer·Finding·ImpactReport/변경 후보는 서로 다른 결과다. 영향 분석의 변경 후보는 Content 승인 경로를 유지한다. |
-| **전개 기획** | Story Development | 기존 사건과 사용자 목표를 바탕으로 BeatPlan을 만든다. 필요할 때 Retrieval·Simulation을 쓴다. 사용자에게 문장 작성 요청이 있을 때만 집필 결과로 이어진다. |
+| **전개 기획** | Writing & Editing | 기존 사건과 사용자 목표를 바탕으로 BeatPlan을 만든다. 필요할 때 Retrieval·Simulation을 쓴다. 사용자에게 문장 작성 요청이 있을 때만 집필 결과로 이어진다. |
 | **문장 생성** | Writing & Editing | 새 Text와 선택 구간 Patch를 구분한다. Content가 확인한 입력을 사용하며 Retrieval·Simulation을 직접 호출하지 않는다. 필요 시 작품 분석의 검수 작업이 결과를 확인한다. |
 | **공통 검색 도구** | Retrieval | 출처·판본·권한·Coverage/Gap을 확인한다. Q&A의 답변 생성은 작품 분석에 남긴다. |
 | **공통 인물 시뮬레이션 도구** | Character Simulation | 인물별 지식 격리·행동 반복·별도 `gpt-6-luna` 장면 요약을 담당한다. 독립 사용자 기능도 유지한다. |
 | **외부 사실 조사 도구** | Web Research | 기존 OpenAI 웹 조사 기능의 검색·출처 검증을 필요할 때 호출하는 기능으로 재사용한다. 단독 조사 요청도 유지하고, 외부 전송 동의·500자 제한·실제 검색 URL 검증을 보존한다. Simulation은 직접 호출하지 않는다. |
 
-World & Plot은 영향 분석과 검수에 겹치는 부분이 있어 작품 분석으로 묶되, 변경 후보와 승인 경로를 일반 Review 결과에 합치지 않는다. Q&A도 답변 생성 자체를 삭제하지 않는다. Web Research는 별도 상시 Agent 역할을 없애는 제안이며 검색 기능·단독 진입점·실패 처리의 삭제가 아니다. Development와 Writing은 기획만 요청했을 때 문장이 자동 생성되지 않도록 분리한다.
+World & Plot은 영향 분석과 검수에 겹치는 부분이 있어 작품 분석으로 묶되, 변경 후보와 승인 경로를 일반 Review 결과에 합치지 않는다. Q&A도 답변 생성 자체를 삭제하지 않는다. Web Research는 별도 상시 Agent 역할을 없애는 제안이며 검색 기능·단독 진입점·실패 처리의 삭제가 아니다. Writing & Editing은 기획만 요청했을 때 문장을 자동 생성하지 않는다.
 
 ## 실행 및 이행 순서
 
