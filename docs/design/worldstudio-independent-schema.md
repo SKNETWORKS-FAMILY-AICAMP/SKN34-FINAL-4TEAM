@@ -142,7 +142,7 @@ WorldStudio는 기능 플래그 없이 항상 켜져 있다. Content 서버 시�
 
 ## 플랫폼 장르 템플릿 세계관
 
-장르별 예시 템플릿 26개(카드 1109장, [안내](../../infrastructure/sample-data/genre-templates/README.md))는 플랫폼 제공 콘텐츠로, 기존 운영 관리자 계정(Core `auth/V8__member_admin_operations.sql`의 `admin@example.test`, 회원 UUID `5f0c2c7e-8a51-4d6b-9a39-1f4f2b6d0a01`, `operator=true`)에 **임시 할당**해 그 계정이 소유하는 **WorldStudio 독립 세계관으로만** 둔다. 운영자로 로그인하면 세계관 목록에서 보인다. 작품·회차·체크포인트로는 넣지 않으며 사용자 샘플 CSV와 섞지 않는다.
+장르별 예시 템플릿 26개(카드 1116장, [안내](../../infrastructure/sample-data/genre-templates/README.md))는 플랫폼 제공 콘텐츠로, 기존 운영 관리자 계정(Core `auth/V8__member_admin_operations.sql`의 `admin@example.test`, 회원 UUID `5f0c2c7e-8a51-4d6b-9a39-1f4f2b6d0a01`, `operator=true`)에 **임시 할당**해 그 계정이 소유하는 **WorldStudio 독립 세계관으로만** 둔다. 운영자로 로그인하면 세계관 목록에서 보인다. 작품·회차·체크포인트로는 넣지 않으며 사용자 샘플 CSV와 섞지 않는다.
 
 - **적재 경로:** WorldStudio 읽기는 Neo4j 현재 상태 노드가 필요해 SQL로 넣을 수 없다. Content 서버 시작(`ApplicationReadyEvent`) 때 `GenreTemplateSeeder`가 classpath `genre-templates.json`을 읽어 기존 `WorldStudioService`의 create → edit(`expectedDraftRevision=0`) → save를 운영 관리자 subject(`GenreTemplateSeeder.TEMPLATE_OWNER`)로 호출한다. 별도 쓰기 경로나 Neo4j 직접 쓰기는 없다.
 - **멱등:** 세계관 ID는 장르별 고정, edit·save key는 `genre-template-<장르>`다. 최초 v1 적재에서는 저장까지 끝난 세계관(`currentRevisionId`가 있음)을 건너뛰며, 이후 별도의 v2 보완을 검사한다. save가 draft revision을 올려 같은 edit의 중복 판정이 `WORLD_CONFLICT`로 바뀌기 때문이다. 앞선 edit가 미완료(`RELATIONSHIP_WRITE_INCOMPLETE`)로 남은 세계관은 create가 같은 코드로 거절하므로 이를 무시하고 같은 요청으로 edit를 재시도한다.

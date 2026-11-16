@@ -139,10 +139,10 @@ class MythSourceTest(unittest.TestCase):
         self.assertEqual(manifest['legacy_genres_sha256'], digest(legacy))
 
     # 원전 문서·카드 일치는 새 형식(tradition-cards.json)을 읽는 genre-templates/test_traditions.py가 검사한다.
-    def test_runtime_has_twenty_six_worlds_and_1109_cards(self):
+    def test_runtime_has_twenty_six_worlds_and_1116_cards(self):
         runtime = read_json(RESOURCES / 'genre-templates.json')
         self.assertEqual(26, len(runtime))
-        self.assertEqual(1109, sum(len(w['cards']) for w in runtime))
+        self.assertEqual(1116, sum(len(w['cards']) for w in runtime))
 
     def test_runtime_ids_are_unique_and_cards_carry_no_visibility_override(self):
         runtime = read_json(RESOURCES / 'genre-templates.json')
