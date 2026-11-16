@@ -24,25 +24,51 @@ TRADITIONS = (
     "maya_mythology", "aztec_mythology", "journey_to_the_west",
 )
 TYPES = {"character", "location", "organization", "ability", "object", "rule", "event", "other"}
+MAX_SUPPLEMENTARY_EVIDENCE = 500  # supplementary.md의 발췌는 짧은 인용이다(글자 수)
 
 
 def read(path):
     return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
-def validate_narrative(data, text):
-    """Check editorial traceability, not automatic factual entailment."""
-    assert data.get("narrative") == "original.md", "narrative must be the local source document"
+def read_supplementary(genre):
+    """source/supplementary.md의 글. 없는 장르는 None."""
+    path = ROOT / genre / "source/supplementary.md"
+    return path.read_text(encoding="utf-8-sig") if path.exists() else None
+
+
+def anchor_sections(text, name):
     parts = re.split(r'<a id="([a-z0-9-]+)"></a>', text)
     anchors = parts[1::2]
-    assert anchors and len(anchors) == len(set(anchors)), "missing/duplicate narrative anchors"
-    sections = dict(zip(anchors, parts[2::2]))
+    assert anchors and len(anchors) == len(set(anchors)), name + ": missing/duplicate narrative anchors"
+    return dict(zip(anchors, parts[2::2]))
+
+
+def validate_narrative(data, text, supplementary=None):
+    """Check editorial traceability, not automatic factual entailment.
+
+    A ref's document is original.md unless it says supplementary.md, which holds sources the single original
+    does not cover (a short excerpt under an anchor that also gives the source URL). Documents are looked up
+    by exact name; the ref never builds a path.
+    """
+    assert data.get("narrative") == "original.md", "narrative must be the local source document"
+    documents = {"original.md": anchor_sections(text, "original.md")}
+    if supplementary is not None:
+        documents["supplementary.md"] = anchor_sections(supplementary, "supplementary.md")
     for card in data["cards"]:
         refs = card.get("narrative_refs")
         assert refs, card["title"] + ": missing narrative evidence"
         for ref in refs:
-            assert ref["section"] in sections, card["title"] + ": unknown narrative section"
-            assert ref["evidence"].strip() and ref["evidence"] in sections[ref["section"]], card["title"] + ": stale evidence"
+            document = ref.get("document", "original.md")
+            assert isinstance(document, str) and document in documents, card["title"] + ": unknown narrative document"
+            assert ref["section"] in documents[document], card["title"] + ": unknown narrative section"
+            section = documents[document][ref["section"]]
+            assert ref["evidence"].strip() and ref["evidence"] in section, card["title"] + ": stale evidence"
+            if document == "supplementary.md":
+                urls = re.findall(r"https?://[^\s)\]]+", section)
+                assert any(re.match(r"https?://[^/\s.]+(?:\.[^/\s.]+)+", url) for url in urls), card["title"] + ": supplementary section has no source URL"
+                assert not any(ref["evidence"] in url for url in urls), card["title"] + ": excerpt is a URL"
+                assert len(ref["evidence"]) <= MAX_SUPPLEMENTARY_EVIDENCE, card["title"] + ": supplementary excerpt too long"
 
 
 def build(current):
@@ -52,7 +78,8 @@ def build(current):
     for genre in TRADITIONS:
         data = read(ROOT / genre / "source/tradition-cards.json")
         assert data["genre"] == genre and data["sources"], genre
-        validate_narrative(data, (ROOT / genre / "source/original.md").read_text(encoding="utf-8-sig"))
+        validate_narrative(data, (ROOT / genre / "source/original.md").read_text(encoding="utf-8-sig"),
+                           read_supplementary(genre))
         world_id = by_genre.get(genre, {}).get("worldId") or str(uuid5(
             NAMESPACE_URL, "storyfork:tradition:" + genre))
         cards = []
