@@ -5,7 +5,8 @@ from fastapi import APIRouter, Header, HTTPException
 from kombu.exceptions import OperationalError
 
 from app.internal_auth import require_internal_token
-from app.preprocessing import tasks
+from app.preprocessing import service, tasks
+from app.preprocessing.errors import PreprocessingFailure
 from app.preprocessing.models import Accepted, JobRequest
 
 router = APIRouter()
@@ -13,8 +14,12 @@ router = APIRouter()
 
 @router.post('/internal/v1/preprocessing/jobs', status_code=202, response_model=Accepted)
 def accept_job(job: JobRequest, x_internal_token: str = Header(default='')) -> Accepted:
-    """Content가 접수한 전처리 작업을 Celery에 등록한다. 같은 jobId를 다시 보내면 받은 회차만 다시 실행한다."""
+    """Content가 접수한 전처리 작업을 Celery에 등록한다. 현재 미구현 단계는 브로커 접수 전에 명시적으로 거절한다."""
     require_internal_token(x_internal_token)
+    try:
+        service.require_available()
+    except PreprocessingFailure as error:
+        raise HTTPException(error.status, str(error)) from None
     if not os.environ.get('CELERY_BROKER_URL'):
         raise HTTPException(503, 'BROKER_NOT_CONFIGURED')
     try:

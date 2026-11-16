@@ -3,6 +3,9 @@ package ai.storyfork.content.world
 import ai.storyfork.content.world.domain.*
 import ai.storyfork.content.world.relationship.Neo4jRelationshipConfig
 import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
+import ai.storyfork.content.world.service.GenreTemplate
+import ai.storyfork.content.world.service.GenreTemplateRepair
+import ai.storyfork.content.world.service.GenreTemplateSeeder
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.dto.*
 import jakarta.persistence.EntityManagerFactory
@@ -31,6 +34,60 @@ class WorldStudioServicePostgresTest {
         register(ai.storyfork.content._common.config.ContentDatabaseConfig::class.java,WorldStudioConfig::class.java,
             Neo4jRelationshipConfig::class.java,Neo4jRelationshipRepository::class.java,WorldStudioService::class.java)
         refresh()
+    }
+    @Test fun `new myth seeds final typed cards once and preserves later author edits`() {
+        WorldStudioPostgresFixture("independent").use { db ->
+            val mapper = JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
+            val owner = GenreTemplateSeeder.TEMPLATE_OWNER
+            val worldId = UUID.randomUUID()
+            var revisionId = UUID.randomUUID()
+            var template: GenreTemplate? = null
+            fun seeded(service: WorldStudioService): GenreTemplateSeeder {
+                val seeder = org.mockito.Mockito.spy(GenreTemplateSeeder(service, mapper))
+                if (template == null) template = seeder.load().first { it.genre == "norse_mythology" }.let { t ->
+                    t.copy(worldId = worldId, cards = t.cards.map { it.copy(id = UUID.randomUUID()) })
+                }
+                org.mockito.Mockito.doReturn(emptyList<GenreTemplate>()).`when`(seeder).loadLegacy()
+                val frozen = template!!.copy(cards = template!!.cards.map { it.copy(soul = null) })
+                org.mockito.Mockito.doReturn(listOf(frozen)).`when`(seeder).loadV2()
+                org.mockito.Mockito.doReturn(listOf(template!!)).`when`(seeder).load()
+                return seeder
+            }
+            context(db).use { ctx ->
+                val service = ctx.getBean(WorldStudioService::class.java)
+                val seeder = seeded(service)
+                seeder.seed()
+                val draft = service.draft(worldId, owner)
+                assertEquals(4L, draft.draftRevision)
+                assertEquals(GenreTemplateRepair.soulPayloads(template!!).toSet(), draft.cards.toSet())
+                revisionId = draft.currentRevisionId!!
+                val saved = service.revision(worldId, owner, revisionId)
+                assertEquals(2L, saved.revisionNo)
+                assertEquals(draft.cards.toSet(), saved.cards.map { it.card }.toSet())
+                val first = service.revision(worldId, owner, saved.parentRevisionId!!)
+                assertEquals(1L, first.revisionNo)
+                assertEquals(GenreTemplateRepair.payloads(template!!).toSet(), first.cards.map { it.card }.toSet())
+                assertTrue(first.cards.none { it.card.semanticMetadata.containsKey("characterDocs") })
+                saved.cards.filter { it.card.cardType == "character" }.forEach { card ->
+                    val soul = template!!.cards.single { it.id == card.card.id }.soul
+                    assertEquals(mapOf("soul" to soul, "goal" to "", "episodes" to emptyMap<String, String>()), card.card.semanticMetadata["characterDocs"])
+                }
+                seeder.seed()
+                assertEquals(draft, service.draft(worldId, owner))
+            }
+            context(db).use { ctx ->
+                val service = ctx.getBean(WorldStudioService::class.java)
+                val seeder = seeded(service)
+                seeder.seed()
+                val draft = service.draft(worldId, owner)
+                assertEquals(revisionId, draft.currentRevisionId)
+                val card = draft.cards.first().copy(body = "사용자가 고친 설명")
+                service.edit(worldId, owner, EditWorldDraftRequest(4, draft.name, draft.description, listOf(card), key = "author-edit"))
+                val changed = service.draft(worldId, owner)
+                seeder.seed()
+                assertEquals(changed, service.draft(worldId, owner))
+            }
+        }
     }
     @Test fun `startup migrates the worldstudio schema once and validates it`() {
         WorldStudioPostgresFixture("independent").use { db ->

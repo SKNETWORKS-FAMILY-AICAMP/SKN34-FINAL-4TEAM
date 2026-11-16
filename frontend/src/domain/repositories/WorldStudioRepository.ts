@@ -19,4 +19,7 @@ export interface WorldStudioRepository {
  setCover?(id:string,file:File,signal?:AbortSignal):Promise<void>
  removeCover?(id:string,signal?:AbortSignal):Promise<void>
  readCover?(id:string,signal?:AbortSignal):Promise<Blob>
+ /** 설정 카드 대표 이미지(소유자): 올리고 새 이미지 id를 돌려준다. 카드에 붙이는 일은 초안 저장이 한다(카드의 `imageId`). 서버 저장소가 없는 데모는 구현하지 않는다. */
+ uploadCardImage?(id:string,file:File,signal?:AbortSignal):Promise<string>
+ readCardImage?(id:string,imageId:string,signal?:AbortSignal):Promise<Blob>
 }

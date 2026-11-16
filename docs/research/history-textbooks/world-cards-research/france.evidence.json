@@ -1,0 +1,444 @@
+{
+  "worldId": "67907b53-fdd0-5771-8d78-0f317a0f71b9",
+  "genre": "france_history",
+  "status": "source-aligned; independent modern historical review pending",
+  "source": {
+    "filename": "docs/research/history-textbooks/france/source-en.txt",
+    "sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+    "author": "Charlotte M. Yonge",
+    "title": "History of France",
+    "edition": "D. Appleton and Company, New York, 1882",
+    "catalogUrl": "https://www.gutenberg.org/ebooks/17287",
+    "scope": "Chapters I–VIII, historical narrative ends in 1871; not a current textbook"
+  },
+  "idPolicy": {
+    "algorithm": "UUIDv5",
+    "namespace": "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
+    "worldName": "storyfork:history-research:france:world",
+    "cardNamePattern": "storyfork:history-research:france:card:<slug>"
+  },
+  "excerptPolicy": "Exact UTF-8 decoded contiguous source lines including original line endings; line numbers are one-based inclusive; excerpt SHA-256 hashes UTF-8 bytes of excerpt, source hash hashes original file bytes.",
+  "reviewPolicy": "Existing Korean translation drafts consulted as interpretation aids, not independent historical corroboration. Modern-source acquisition deferred. No factual claim has been independently approved.",
+  "cards": [
+    {
+      "cardId": "26f85737-beba-591e-94fe-ae97b2773e53",
+      "slug": "source-status",
+      "chapter": "Front matter",
+      "section": "표제면",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 49,
+      "lineEnd": 59,
+      "excerpt": "HISTORY OF FRANCE.\r\n\r\nBY\r\n\r\nCHARLOTTE M. YONGE.\r\n\r\n\r\nNEW YORK:\r\nD. APPLETON AND COMPANY\r\n1, 3, AND 5 BOND STREET.\r\n1882.\r\n",
+      "excerptSha256": "69520c2d2f431a512209ade17d3556af83dc566f958dc2779801ff9015e426dc",
+      "sourceAlignedClaims": [
+        "이 세계관은 Charlotte M. Yonge의 《History of France》 1882년판을 대상으로 한 국가 단위 사료 연구 묶음이다. 원저의 여덟 장에서 초기 왕국부터 1870–1871년 전쟁까지 다루며, 아래 카드는 실제 인물·장소·제도·사건의 원문 서술을 정리한다. 가상 국가나 이름을 바꾼 창작 후보가 아니며, 현행 프랑스 교과서도 아니다."
+      ],
+      "pendingReview": [
+        "판본 표제면은 저자·서명·출판사·연도를 제공한다. 현대 연구와 독립 대조한 판본·내용 검수는 대기 중이다."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), Front matter · 표제면, 원문 49–59행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "2b7d808e-d3f7-543e-b123-056d894c7e81",
+      "slug": "review-status",
+      "chapter": 1,
+      "section": "2. The House of Paris",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 164,
+      "lineEnd": 189,
+      "excerpt": "2. The House of Paris.--The great danger which this Neustrian kingdom\r\nhad to meet came from the Northmen, or as they were called in England\r\nthe Danes. These ravaged in Neustria as they ravaged in England; and a\r\nlarge part of the northern coast, including the mouth of the Seine, was\r\ngiven by Charles the Bald to Rolf or Rollo, one of their leaders, whose\r\nland became known as the Northman's land, or Normandy. What most checked\r\nthe ravages of these pirates was the resistance of Paris, a town which\r\ncommanded the road along the river Seine; and it was in defending the\r\ncity of Paris from the Northmen, that a warrior named Robert the Strong\r\ngained the trust and affection of the inhabitants of the Neustrian\r\nkingdom. He and his family became Counts (_i.e._, judges and protectors)\r\nof Paris, and Dukes (or leaders) of the Franks. Three generations of\r\nthem were really great men--Robert the Strong, Odo, and Hugh the White;\r\nand when the descendants of Charles the Great had died out, a Duke of\r\nthe Franks, _Hugh Capet_, was in 987 crowned King of the Franks. All the\r\nafter kings of France down to Louis Philippe were descendants of Hugh\r\nCapet. By this change, however, he gained little in real power; for,\r\nthough he claimed to rule over the whole country of the Neustrian\r\nFranks, his authority was little heeded, save in the domain which he had\r\npossessed as Count of Paris, including the cities of Paris, Orleans,\r\nAmiens, and Rheims (the coronation place). He was guardian, too, of the\r\ngreat Abbeys of St. Denys and St. Martin of Tours. The Duke of Normandy\r\nand the Count of Anjou to the west, the Count of Flanders to the north,\r\nthe Count of Champagne to the east, and the Duke of Aquitaine to the\r\nsouth, paid him homage, but were the only actual rulers in their own\r\ndomains.\r\n",
+      "excerptSha256": "01ba82f1ac96720f50a4938542a5eca45eb27db60c6c245caeb0c8d1bad46944",
+      "sourceAlignedClaims": [
+        "저자는 노르망디의 롤로에게 토지를 준 왕을 Charles the Bald라고 서술한다. 이처럼 원전의 인명·연대·계보에는 별도 검토가 필요한 대목이 있으므로 원문과의 일치가 역사적 정확성을 보증하지 않는다. 카드 전체는 독립 현대 역사 검수 대기 상태이다. 왕조 중심 관점, 민족·계층·종교에 대한 평가를 현대의 집단 특성으로 일반화하지 않는다."
+      ],
+      "pendingReview": [
+        "노르망디 수여자의 신원·수여 연대, 초기 왕조 계보를 현대 연구로 대조해야 한다. 오류 후보는 사실로 승인하거나 출처 없이 조용히 교정하지 않는다."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 1 · 2. The House of Paris, 원문 164–189행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "0aa9efd3-a7f0-5851-bfe3-9dc3d6ab0c97",
+      "slug": "hugh-capet",
+      "chapter": 1,
+      "section": "2. The House of Paris",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 178,
+      "lineEnd": 189,
+      "excerpt": "the Franks, _Hugh Capet_, was in 987 crowned King of the Franks. All the\r\nafter kings of France down to Louis Philippe were descendants of Hugh\r\nCapet. By this change, however, he gained little in real power; for,\r\nthough he claimed to rule over the whole country of the Neustrian\r\nFranks, his authority was little heeded, save in the domain which he had\r\npossessed as Count of Paris, including the cities of Paris, Orleans,\r\nAmiens, and Rheims (the coronation place). He was guardian, too, of the\r\ngreat Abbeys of St. Denys and St. Martin of Tours. The Duke of Normandy\r\nand the Count of Anjou to the west, the Count of Flanders to the north,\r\nthe Count of Champagne to the east, and the Duke of Aquitaine to the\r\nsouth, paid him homage, but were the only actual rulers in their own\r\ndomains.\r\n",
+      "excerptSha256": "3ceb709d351a3bb7265130f946148a6823410727bba71517a30b25846411f548",
+      "sourceAlignedClaims": [
+        "저자는 위그 카페가 987년 프랑크인의 왕으로 즉위했지만 실제 권력의 증가는 크지 않았다고 서술한다. 파리·오를레앙·아미앵·랭스를 포함한 기존 영역과 수도원 보호권을 그의 기반으로 제시한다. 노르망디·앙주·플랑드르·샹파뉴·아키텐의 유력자들은 충성을 표하면서도 자기 영지를 직접 다스렸다는 것이 원문의 구도다."
+      ],
+      "pendingReview": [
+        "영역의 정확한 범위와 봉신 관계, 왕조 단절 표현은 독립 검수 대기."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 1 · 2. The House of Paris, 원문 178–189행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "cb7730b4-41f7-50ec-9fb4-373f9a948daa",
+      "slug": "parlement-paris",
+      "chapter": 1,
+      "section": "9. The Parliament of Paris",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 466,
+      "lineEnd": 483,
+      "excerpt": "9. The Parliament of Paris.--France had a wise ruler in Blanche, and a\r\nstill better one in her son, _Louis IX._, who is better known as _St.\r\nLouis_, and who was a really good and great man. He was the first to\r\nestablish the Parliament of Paris--a court consisting of the great\r\nfeudal vassals, lay and ecclesiastical, who held of the king direct, and\r\nwho had to try all causes. They much disliked giving such attendance,\r\nand a certain number of men trained to the law were added to them to\r\nguide the decisions. The Parliament was thus only a court of justice and\r\nan office for registering wills and edicts. The representative assembly\r\nof France was called the States-General, and consisted of all estates of\r\nthe realm, but was only summoned in time of emergency. Louis IX. was the\r\nfirst king to bring nobles of the highest rank to submit to the judgment\r\nof Parliament when guilty of a crime. Enguerrand de Coucy, one of the\r\nproudest nobles of France, who had hung two Flemish youths for killing a\r\nrabbit, was sentenced to death. The penalty was commuted, but the\r\nprinciple was established. Louis's uprightness and wisdom gained him\r\nhonour and love everywhere, and he was always remembered as sitting\r\nunder the great oak at Vincennes, doing equal justice to rich and poor.\r\n",
+      "excerptSha256": "bc9540a25cbda2b30623c4ee7c76fd1d04a0adb00b8417dd206c1efa80f8583b",
+      "sourceAlignedClaims": [
+        "저자는 루이 9세가 파리 고등법원을 처음 설치하고 직속 세속·성직 봉신에 법률 전문가를 더했다고 서술한다. 원문에서 이 기관은 재판과 유언·칙령 등록을 담당하며, 신분 대표를 모으는 삼부회와 구별된다. 드 쿠시 사건과 뱅센의 참나무 아래 재판은 왕의 공정함을 강조하는 사례로 제시된다."
+      ],
+      "pendingReview": [
+        "최초 설치라는 설명, 구성과 등록 권한의 발전 시기, 드 쿠시 사건 및 일화의 근거는 독립 검수 대기."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 1 · 9. The Parliament of Paris, 원문 466–483행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "80b8dfb9-faf3-50e1-8eb7-c5296f194572",
+      "slug": "jacquerie",
+      "chapter": 2,
+      "section": "3. The Jacquerie",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 695,
+      "lineEnd": 725,
+      "excerpt": "3. The Jacquerie.--The calls made on their vassals by these captive\r\nnobles to supply their ransoms brought the misery to a height. The salt\r\ntax, or _gabelle_, which was first imposed to meet the expenses of the\r\nwar, was only paid by those who were neither clergy nor nobles, and the\r\ngeneral saying was--\"Jacques Bonhomme (the nickname for the peasant) has\r\na broad back, let him bear all the burthens.\" Either by the king, the\r\nfeudal lords, the clergy, or the bands of men-at-arms who roved through\r\nthe country, selling themselves to any prince who would employ them, the\r\nwretched people were stripped of everything, and used to hide in holes\r\nand caves from ill-usage or insult, till they broke out in a rebellion\r\ncalled the Jacquerie, and whenever they could seize a castle revenged\r\nthemselves, like the brutes they had been made, on those within it.\r\nTaxation was so levied by the king's officers as to be frightfully\r\noppressive, and corruption reigned everywhere. As the king was in\r\nprison, and his heir, Charles, had fled ignominiously from Poitiers,\r\nthe citizens of Paris hoped to effect a reform, and rose with their\r\nprovost-marshal, Stephen Marcel, at their head, threatened Charles, and\r\nslew two of his officers before his eyes. On their demand the\r\nStates-General were convoked, and made wholesome regulations as to the\r\nmanner of collecting the taxes, but no one, except perhaps Marcel, had\r\nany real zeal or public spirit. Charles the Bad, of Navarre, who had\r\npretended to espouse their cause, betrayed it; the king declared the\r\ndecisions of the States-General null and void; and the crafty management\r\nof his son prevented any union between the malcontents. The gentry\r\nrallied, and put down the Jacquerie with horrible cruelty and revenge.\r\nThe burghers of Paris found that Charles the Bad only wanted to gain the\r\nthrone, and Marcel would have proclaimed him; but those who thought him\r\neven worse than his cousins of Valois admitted the other Charles, by\r\nwhom Marcel and his partisans were put to death. The attempt at reform\r\nthus ended in talk and murder, and all fell back into the same state of\r\nmisery and oppression.\r\n",
+      "excerptSha256": "c62505fc5709f113bd796b075123cae30bbe7a79eb1dbb8086321c265d6d6495",
+      "sourceAlignedClaims": [
+        "저자는 전쟁 포로 귀족의 몸값, 소금세와 약탈이 농민의 부담을 키워 자크리로 이어졌다고 서술한다. 이어 파리의 에티엔 마르셀과 삼부회의 조세 개혁 요구, 왕실·귀족 세력의 대응을 연결한다. 원문은 반란 진압의 잔혹함도 지적하지만 농민을 짐승에 비유하는 표현은 저자의 계층적 평가이므로 채택하지 않는다."
+      ],
+      "pendingReview": [
+        "소금세의 도입·면제 범위, 사건 순서와 마르셀 사망 경위, 사회집단의 동기는 독립 검수 대기."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 2 · 3. The Jacquerie, 원문 695–725행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "ea1684ec-3e8d-54fb-b890-df61aaea7e00",
+      "slug": "joan-orleans",
+      "chapter": 2,
+      "section": "11. The Maid of Orleans",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 909,
+      "lineEnd": 940,
+      "excerpt": "11. The Maid of Orleans.--When Henry V. died in 1422, and the unhappy\r\nCharles a few weeks later, the infant Henry VI. was proclaimed King of\r\nFrance as well as of England, at both Paris and London, while _Charles\r\nVII._ was only proclaimed at Bourges, and a few other places in the\r\nsouth. Charles was of a slow, sluggish nature, and the men around him\r\nwere selfish and pleasure-loving intriguers, who kept aloof all the\r\nbolder spirits from him. The brother of Henry V., John, Duke of Bedford,\r\nruled all the country north of the Loire, with Rouen as his\r\nhead-quarters. For seven years little was done; but in 1429 he caused\r\nOrleans to be besieged. The city held out bravely, all France looked on\r\nanxiously, and a young peasant girl, named Joan d'Arc, believed herself\r\ncalled by voices from the saints to rescue the city, and lead the king\r\nto his coronation at Rheims. With difficulty she obtained a hearing of\r\nthe king, and was allowed to proceed to Orleans. Leading the army with a\r\nconsecrated sword, which she never stained with blood, she filled the\r\nFrench with confidence, the English with fear as of a witch, and thus\r\nshe gained the day wherever she appeared. Orleans was saved, and she\r\nthen conducted Charles VII. to Rheims, and stood beside his throne when\r\nhe was crowned. Then she said her work was done, and would have returned\r\nhome; but, though the wretched king and his court never appreciated her,\r\nthey thought her useful with the soldiers, and would not let her leave\r\nthem. She had lost her heart and hope, and the men began to be angered\r\nat her for putting down all vice and foul language. The captains were\r\nenvious of her; and at last, when she had led a sally out of the\r\nbesieged town of Compiègne, the gates were shut, and she was made\r\nprisoner by a Burgundian, John of Luxembourg. The Burgundians hated her\r\neven more than the English. The inquisitor was of their party, and a\r\ncourt was held at Rouen, which condemned her to die as a witch. Bedford\r\nconsented, but left the city before the execution. Her own king made no\r\neffort to save her, though, many years later, he caused enquiries to be\r\nmade, established her innocence, ennobled her family, and freed her\r\nvillage from taxation.\r\n",
+      "excerptSha256": "91a13169de952944faab7feba91411044e2e52cff95369157c6cc3bbd705cb16",
+      "sourceAlignedClaims": [
+        "저자는 잔 다르크가 성인의 목소리를 들었다고 믿고 오를레앙 구원과 샤를 7세의 랭스 대관을 위해 나섰다고 서술한다. 이어 콩피에뉴에서의 포로 생활, 부르고뉴 측 인물과 루앙 재판, 사후 재조사를 이야기한다. 초자연적 부름은 당사자의 믿음에 관한 서술이며 입증된 현상으로 취급하지 않는다."
+      ],
+      "pendingReview": [
+        "왕실·지휘관의 동기, 잔의 귀향 의사, 체포·재판의 법적 절차와 정치적 맥락은 독립 검수 대기."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 2 · 11. The Maid of Orleans, 원문 909–940행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "cf45f21e-6c5f-5d5a-a134-acad00ce4dab",
+      "slug": "burgundy",
+      "chapter": 3,
+      "section": "1. Power of Burgundy",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 1018,
+      "lineEnd": 1043,
+      "excerpt": "1. Power of Burgundy.--All the troubles of France, for the last 80\r\nyears, had gone to increase the strength of the Dukes of Burgundy. The\r\ncounty and duchy, of which Dijon was the capital, lay in the most\r\nfertile district of France, and had, as we have seen, been conferred on\r\nPhilip the Bold. His marriage had given to him Flanders, with a gallant\r\nnobility, and with the chief manufacturing cities of Northern Europe.\r\nPhilip's son, John the Fearless, had married a lady who ultimately\r\nbrought into the family the great imperial counties of Holland and\r\nZealand; and her son, Duke Philip the Good, by purchase or inheritance,\r\nobtained possession of all the adjoining little fiefs forming the\r\ncountry called the Netherlands, some belonging to the Empire, some to\r\nFrance. Philip had turned the scale in the struggle between England and\r\nFrance, and, as his reward, had won the cities on the Somme. He had\r\nthus become the richest and most powerful prince in Europe, and seemed\r\non the point of founding a middle state lying between France and\r\nGermany, his weak point being that the imperial fiefs in Lorraine and\r\nElsass lay between his dukedom of Burgundy and his counties in the\r\nNetherlands. No European court equalled in splendour that of Philip. The\r\ngreat cities of Ghent, Bruges, Antwerp, and the rest, though full of\r\nfierce and resolute men, paid him dues enough to make him the richest of\r\nprinces, and the Flemish knights were among the boldest in Europe. All\r\nthe arts of life, above all painting and domestic architecture,\r\nnourished at Brussels; and nowhere were troops so well equipped,\r\nburghers more prosperous, learning more widespread, than in his domains.\r\nHere, too, were the most ceremonious courtesy, the most splendid\r\nbanquets, and the most wonderful display of jewels, plate, and\r\n",
+      "excerptSha256": "83440d7917821cb709034c74690e68b79fba32f3bcb3281ddb5e08877b3827aa",
+      "sourceAlignedClaims": [
+        "저자는 디종을 중심으로 한 부르고뉴와 플랑드르·저지대의 도시들이 공작의 부와 권력을 뒷받침했다고 서술한다. 프랑스와 제국에 걸친 봉토, 솜강 도시, 두 영토군 사이의 로렌·엘자스가 통합의 조건과 장애로 등장한다. 브뤼셀의 회화·건축과 화려한 궁정 묘사는 저자의 번영 평가를 함께 담는다."
+      ],
+      "pendingReview": [
+        "홀란트·제일란트 상속 계보, 봉토별 법적 지위, 유럽 최강·최부라는 최상급 평가는 독립 검수 대기."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 3 · 1. Power of Burgundy, 원문 1018–1043행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "23bea76c-535a-5eaa-b022-bc65b4f8b990",
+      "slug": "brittany-provence",
+      "chapter": 3,
+      "section": "6. Provence and Brittany",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 1167,
+      "lineEnd": 1187,
+      "excerpt": "6. Provence and Brittany.--Louis had added much to the French\r\nmonarchy. He had won back Artois; he had seized the duchy and county of\r\nBurgundy; he had bought Roussillon. His last acquisition was the county\r\nof Provence. The second Angevin family, beginning with Louis, the son of\r\nKing John, had never succeeded in gaining a footing in Naples, though\r\nthey bore the royal title. They held, however, the imperial fief of\r\nProvence, and Louis XI., whose mother had been of this family, obtained\r\nfrom her two brothers, René and Charles, that Provence should be\r\nbequeathed to him instead of passing to René's grandson, the Duke of\r\nLorraine. The Kings of France were thenceforth Counts of Provence; and\r\nthough the county was not viewed as part of the kingdom, it was\r\npractically one with it. A yet greater acquisition was made soon after\r\nLouis's death in 1483. The great Celtic duchy of Brittany fell to a\r\nfemale, Anne of Brittany, and the address of Louis's daughter, the Lady\r\nof Beaujeu, who was regent of the realm, prevailed to secure the hand of\r\nthe heiress for her brother, Charles VIII. Thus the crown of France had\r\nby purchase, conquest, or inheritance, obtained all the great feudal\r\nstates that made up the country between the English Channel and the\r\nPyrenees; but each still remained a separate state, with different laws\r\nand customs, and a separate parliament in each to register laws, and to\r\nact as a court of justice.\r\n",
+      "excerptSha256": "1456ad6e66ee03506f97b643d68cf0ae4e22d96723bf3a0da6eca77a4ef7f98c",
+      "sourceAlignedClaims": [
+        "저자는 루이 11세의 영토 확대 뒤 프로방스의 유증과 브르타뉴의 안·샤를 8세 혼인이 왕실의 영역을 넓혔다고 서술한다. 원문은 매입·정복·상속을 확대 방식으로 묶으면서도 각 지역에 서로 다른 법·관습과 재판기관이 남았다고 설명한다. 이는 현재 프랑스의 단일한 행정구역에 대한 설명이 아니다."
+      ],
+      "pendingReview": [
+        "프로방스 계보·상속 절차, 혼인과 완전한 통합의 차이, 모든 봉건국가를 얻었다는 일반화는 독립 검수 대기."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 3 · 6. Provence and Brittany, 원문 1167–1187행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "142bcb49-b9f8-5d60-86b0-9e0cda60587e",
+      "slug": "charles-naples",
+      "chapter": 4,
+      "section": "1. Campaign of Charles VIII. (1493)",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 1197,
+      "lineEnd": 1220,
+      "excerpt": "1. Campaign of Charles VIII. (1493).--From grasping at province after\r\nprovince on their own border, however, the French kings were now to turn\r\nto wider dreams of conquest abroad. Together with the county of\r\nProvence, Louis XI. had bought from King René all the claims of the\r\nhouse of Anjou. Among these was included a claim to the kingdom of\r\nNaples. Louis's son, _Charles VIII._, a vain and shallow lad, was\r\ntempted by the possession of large treasures and a fine army to listen\r\nto the persuasions of an Italian intriguer, Ludovico Sforza, Duke of\r\nMilan, and put forward these pretensions, thus beginning a war which\r\nlasted nearly as long as the Hundred Years' War with England. But it was\r\na war of aggression instead of a war of self-defence. Charles crossed\r\nthe Alps in 1493, marched the whole length of Italy without opposition,\r\nand was crowned at Naples; while its royal family, an illegitimate\r\noffshoot from the Kings of Aragon, fled into Sicily, and called on\r\nSpain for help. But the insolent exactions of the French soldiery caused\r\nthe people to rise against them; and when Charles returned, he was beset\r\nat Fornovo by a great league of Italians, over whom he gained a complete\r\nvictory. Small and puny though he was, he fought like a lion, and seemed\r\nquite inspired by the ardour of combat. The \"French fury,\" _la furia\r\nFrancese_, became a proverb among the Italians. Charles neglected,\r\nhowever, to send any supplies or reinforcements to the garrisons he had\r\nleft behind him in Naples, and they all perished under want, sickness,\r\nand the sword of the Spaniards. He was meditating another expedition,\r\nwhen he struck his head against the top of a doorway, and died in 1498.\r\n",
+      "excerptSha256": "11f56638dca00b31c7b376e1ec882003ce2a82a23abaa3ecfb252e0c4e74bd2f",
+      "sourceAlignedClaims": [
+        "저자는 앙주 가문의 나폴리 청구권과 루도비코 스포르차의 권유가 샤를 8세의 이탈리아 원정으로 이어졌다고 서술한다. 나폴리 진입 이후 현지 반발, 포르노보의 연합군, 보급과 증원을 받지 못한 주둔군의 몰락이 사건의 축이다. 원문 표제와 본문이 제시하는 1493년은 확인되지 않은 원전 표기다."
+      ],
+      "pendingReview": [
+        "알프스 횡단·원정 연대, 포르노보의 승패 평가, 주둔군 손실 규모는 독립 검수 대기."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 4 · 1. Campaign of Charles VIII. (1493), 원문 1197–1220행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "d4c796e1-10b4-5603-9187-6850d503b287",
+      "slug": "francis-renaissance",
+      "chapter": 4,
+      "section": "4. Campaigns of Francis I.",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 1274,
+      "lineEnd": 1304,
+      "excerpt": "4. Campaigns of Francis I.--Louis left only two daughters, the elder\r\nof whom, Claude, carried Brittany to his male heir, Francis, Count of\r\nAngoulêine. Anne of Brittany had been much averse to the match; but\r\nLouis said he kept his mice for his own cats, and gave his daughter and\r\nher duchy to Francis as soon as Anne was dead. _Francis I._ was one of\r\nthe vainest, falsest, and most dashing of Frenchmen. In fact, he was an\r\nexaggeration in every way of the national character, and thus became a\r\nnational hero, much overpraised. He at once resolved to recover\r\nLombardy; and after crossing the Alps encountered an army of Swiss\r\ntroops, who had been hired to defend the Milanese duchy, on the field of\r\nMarignano. Francis had to fight a desperate battle with them; after\r\nwhich he caused Bayard to dub him knight, though French kings were said\r\nto be born knights. In gaining the victory over these mercenaries, who\r\nhad been hitherto deemed invincible, he opened for himself a way into\r\nItaly, and had all Lombardy at his feet. The Pope, Leo X., met him at\r\nBologna, and a concordat took place, by which the French Church became\r\nmore entirely subject to the Pope, while in return all patronage was\r\ngiven up to the crown. The effects were soon seen in the increased\r\ncorruption of the clergy and people. Francis brought home from this\r\nexpedition much taste for Italian art and literature, and all matters of\r\nelegance and ornament made great progress from this time. The great\r\nItalian masters worked for him; Raphael painted some of his most\r\nbeautiful pictures for him, and Leonardo da Vinci came to his court, and\r\nthere died in his arms. His palaces, especially that of Blois, were\r\nexceedingly beautiful, in the new classic style, called the Renaissance.\r\nGreat richness and splendour reigned at court, and set off his\r\npretensions to romance and chivalry. Learning and scholarship,\r\nespecially classical, increased much; and the king's sister, Margaret,\r\nQueen of Navarre, was an excellent and highly cultivated woman, but even\r\nher writings prove that the whole tone of feeling was terribly coarse,\r\nwhen not vicious.\r\n",
+      "excerptSha256": "c2839137e43ccfa9a7fcb323ae2e60d4eaf1aff286e9c4d7f8be62b5a562405b",
+      "sourceAlignedClaims": [
+        "저자는 프랑수아 1세의 롬바르디아 원정과 마리냐노 전투를 교황 레오 10세와의 협약, 왕실의 교회 인사권, 이탈리아 예술 수용과 연결한다. 블루아 궁전과 예술가의 후원을 궁정 문화 변화의 사례로 든다. 국민성과 도덕성을 단정하는 인물평, 레오나르도가 왕의 품에서 죽었다는 일화는 저자의 서술로만 남긴다."
+      ],
+      "pendingReview": [
+        "협약의 권한 배분, 전쟁과 예술 후원의 인과, 레오나르도 임종 일화는 독립 검수 대기."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 4 · 4. Campaigns of Francis I., 원문 1274–1304행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "336dc2eb-79fe-5fe6-9d71-a0dd35580372",
+      "slug": "edict-nantes",
+      "chapter": 5,
+      "section": "10. The Edict of Nantes",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 1660,
+      "lineEnd": 1676,
+      "excerpt": "10. The Edict of Nantes.--Two years later, in 1598, Henry put forth\r\nwhat was called the Edict of Nantes, because first registered in that\r\nparliament. It secured to the Huguenots equal civil rights with those of\r\nthe Catholics, accepted their marriages, gave them, under restrictions,\r\npermission to meet for worship and for consultations, and granted them\r\ncities for the security of their rights, of which La Rochelle was the\r\nchief. The Calvinists had been nearly exterminated in the north, but\r\nthere were still a large number in the south of France, and the burghers\r\nof the chief southern cities were mostly Huguenot. The war had been from\r\nthe first a very horrible one; there had been savage slaughter, and\r\nstill more savage reprisals on each side. The young nobles had been\r\ntrained into making a fashion of ferocity, and practising graceful ways\r\nof striking death-blows. Whole districts had been laid waste, churches\r\nand abbeys destroyed, tombs rifled, and the whole population accustomed\r\nto every sort of horror and suffering; while nobody but Henry IV.\r\nhimself, and the Duke of Sully, had any notion either of statesmanship\r\nor of religious toleration.\r\n",
+      "excerptSha256": "5d72cbfcf05bc36b1e0ffe2ee21b892daa040333fef6ec13a6eb834c8afd09f0",
+      "sourceAlignedClaims": [
+        "저자는 앙리 4세가 1598년 낭트 칙령으로 위그노의 시민적 권리와 혼인을 인정하고, 제한된 예배·집회 및 권리 보호용 도시를 허용했다고 서술한다. 라로셸은 그 주요 도시로 제시된다. 원문은 종교전쟁의 상호 보복과 파괴를 배경으로 관용을 설명하지만 앙리와 쉴리만 관용을 이해했다는 평가는 저자의 과도한 인물 중심 판단이다."
+      ],
+      "pendingReview": [
+        "등록지에서 이름이 유래했다는 설명, 권리의 지역·제도적 한계, 인구 분포는 독립 검수 대기."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 5 · 10. The Edict of Nantes, 원문 1660–1676행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "c5d90e1e-5ea5-56d9-94ef-fced7b711ba0",
+      "slug": "la-rochelle",
+      "chapter": 5,
+      "section": "13. The Siege of Rochelle",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 1770,
+      "lineEnd": 1787,
+      "excerpt": "the queen-mother and the Prince of Condé, ending in both being set aside\r\nby the queen's almoner, Armand de Richelieu, Bishop of Luçon, and\r\nafterwards a cardinal, the ablest statesman then in Europe, who gained\r\ncomplete dominion over the king and country, and ruled them both with a\r\nrod of iron. The Huguenots were gradually driven out of all their\r\nstrongholds, till only Rochelle remained to them. This city was bravely\r\nand patiently defended by the magistrates and the Duke of Rohan, with\r\nhopes of succour from England, until these being disconcerted by the\r\nmurder of the Duke of Buckingham, they were forced to surrender, after\r\nhaving held out for more than a year. Louis XIII. entered in triumph,\r\ndeprived the city of all its privileges, and thus in 1628 concluded the\r\nwar that had begun by the attack of the Guisards on the congregation at\r\nVassy, in 1561. The lives and properties of the Huguenots were still\r\nsecure, but all favour was closed against them, and every encouragement\r\nheld out to them to join the Church. Many of the worst scandals had been\r\nremoved, and the clergy were much improved; and, from whatever motive it\r\nmight be, many of the more influential Huguenots began to conform to the\r\nState religion.\r\n",
+      "excerptSha256": "ea134c28d08effa7f3450343f2dfe252ad6c3c0981ac47ec987a04438d20c2a0",
+      "sourceAlignedClaims": [
+        "저자는 리슐리외 집권 뒤 위그노의 요새들이 무너지고 라로셸이 장기간 항전했다고 서술한다. 영국 원조에 대한 기대와 좌절, 항복 이후 루이 13세의 입성과 도시 특권 박탈을 연결한다. 생명·재산의 안전과 정치적 영향력 약화를 구별해 읽어야 하며, 모든 종교적 권리가 한 번에 사라졌다는 뜻으로 확대하지 않는다."
+      ],
+      "pendingReview": [
+        "마지막 거점이라는 표현, 로앙의 역할, 버킹엄 사망과 항복의 관계, 1628년을 전쟁의 끝으로 삼는 구분은 독립 검수 대기."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 5 · 13. The Siege of Rochelle, 원문 1770–1787행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "6d95ad58-ad8a-597a-b986-a68eedcd40c0",
+      "slug": "richelieu",
+      "chapter": 6,
+      "section": "1. Richelieu's Administration",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 1797,
+      "lineEnd": 1818,
+      "excerpt": "1. Richelieu's Administration.--Cardinal de Richelieu's whole idea of\r\nstatesmanship consisted in making the King of France the greatest of\r\nprinces at home and abroad. To make anything great of Louis XIII., who\r\nwas feeble alike in mind and body, was beyond any one's power, and\r\nRichelieu kept him in absolute subjection, allowing him a favourite with\r\nwhom to hunt, talk, and amuse himself, but if the friend attempted to\r\nrouse the king to shake off the yoke, crushing him ruthlessly. It was\r\nthe crown rather than the king that the cardinal exalted, putting down\r\nwhatever resisted. Gaston, Duke of Orleans, the king's only brother,\r\nmade a futile struggle for power, and freedom of choice in marriage, but\r\nwas soon overcome. He was spared, as being the only heir to the kingdom,\r\nbut the Duke of Montmorency, who had been led into his rebellion, was\r\nbrought to the block, amid the pity and terror of all France. Whoever\r\nseemed dangerous to the State, or showed any spirit of independence,\r\nwas marked by the cardinal, and suffered a hopeless imprisonment, if\r\nnothing worse; but at the same time his government was intelligent and\r\nable, and promoted prosperity, as far as was possible where there was\r\nsuch a crushing of individual spirit and enterprise. Richelieu's plan,\r\nin fact, was to found a despotism, though a wise and well-ordered\r\ndespotism, at home, while he made France great by conquests abroad. And\r\nat this time the ambition of France found a favourable field in the\r\nstate both of Germany and of Spain.\r\n",
+      "excerptSha256": "092016f73c9ffae93cd26b286a1b1bcb0780e822e8fcf5c3b666c2bc8c9e63a7",
+      "sourceAlignedClaims": [
+        "저자는 리슐리외가 군주 개인보다 왕권을 높이고 국내의 반대 세력을 억제하며 대외 팽창을 추구했다고 서술한다. 가스통의 저항과 몽모랑시 처형이 그 사례로 등장한다. 이를 현명하고 질서 있는 전제정으로 평가하면서 개인의 독립성과 활력을 억압했다고 비판하는 양면성은 저자의 해석이다."
+      ],
+      "pendingReview": [
+        "루이 13세와 대신의 실제 권력 관계, 처형·투옥의 맥락, 번영에 대한 인과 평가는 독립 검수 대기."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 6 · 1. Richelieu's Administration, 원문 1797–1818행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "7da91e9b-d163-5fb2-9204-22cc8ed32b0b",
+      "slug": "versailles",
+      "chapter": 6,
+      "section": "5. Court of Louis XIV.",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 1931,
+      "lineEnd": 1957,
+      "excerpt": "5. Court of Louis XIV.--The attempt from the earliest times of the\r\nFrench monarchy had been to draw all government into the hands of the\r\nsovereign, and the suppression of the Fronde completed the work. Louis\r\nXIV., though ill educated, was a man of considerable ability, much\r\nindustry, and great force of character, arising from a profound belief\r\nthat France was the first country in the world, and himself the first of\r\nFrenchmen; and he had a magnificent courtesy of demeanour, which so\r\nimpressed all who came near him as to make them his willing slaves.\r\n\"There is enough in him to make four kings and one respectable man\r\nbesides\" was what Mazarin said of him; and when in 1661 the cardinal\r\ndied, the king showed himself fully equal to becoming his own prime\r\nminister. \"The State is myself,\" he said, and all centred upon him so\r\nthat no room was left for statesmen. The court was, however, in a most\r\nbrilliant state. There had been an unusual outburst of talent of every\r\nkind in the lull after the Wars of Religion, and in generals, thinkers,\r\nartists, and men of literature, France was unusually rich. The king had\r\na wonderful power of self-assertion, which attached them all to him\r\nalmost as if he were a sort of divinity. The stately, elaborate Spanish\r\netiquette brought in by his mother, Anne of Austria, became absolutely\r\nan engine of government. Henry IV. had begun the evil custom of keeping\r\nthe nobles quiet by giving them situations at court, with pensions\r\nattached, and these offices were multiplied to the most enormous and\r\nabsurd degree, so that every royal personage had some hundreds of\r\npersonal attendants. Princes of the blood and nobles of every degree\r\nwere contented to hang about the court, crowding into the most narrow\r\nlodgings at Versailles, and thronging its anterooms; and to be ordered\r\nto remain in the country was a most severe punishment.\r\n",
+      "excerptSha256": "3f7f3b300561c54517400657616d3893e29e809dd3b3887f716ea5f66131966d",
+      "sourceAlignedClaims": [
+        "저자는 루이 14세가 마자랭 사후 직접 정치를 맡고 궁정 의례를 통치 수단으로 삼았다고 서술한다. 연금이 붙은 궁정 직책과 많은 시종, 베르사유의 비좁은 거처와 대기실은 귀족을 궁정에 묶는 장치로 묘사된다. 원문의 국가와 왕을 동일시하는 유명한 발언은 진위 검증 없이 실제 발언으로 확정하지 않는다."
+      ],
+      "pendingReview": [
+        "왕의 발언 출처, 궁정 직책 수와 귀족 통제의 효과, 프롱드 이후 중앙집권 완성론은 독립 검수 대기."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 6 · 5. Court of Louis XIV., 원문 1931–1957행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "79a3bf2f-b349-5462-984b-f81f2b7bdba5",
+      "slug": "revocation-nantes",
+      "chapter": 6,
+      "section": "8. Revocation of the Edict of Nantes",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 2031,
+      "lineEnd": 2048,
+      "excerpt": "8. Revocation of the Edict of Nantes.--In 1685 Louis supposed that the\r\nHuguenots had been so reduced in numbers that the Edict of Nantes could\r\nbe repealed. All freedom of worship was denied them; their ministers\r\nwere banished, but their flocks were not allowed to follow them. If\r\ntaken while trying to escape, men were sent to the galleys, women to\r\ncaptivity, and children to convents for education. Dragoons were\r\nquartered on families to torment them into going to mass. A few made\r\nhead in the wild moors of the Cevennes under a brave youth named\r\nCavalier, and others endured severe persecution in the south of France.\r\nDragoons were quartered on them, who made it their business to torment\r\nand insult them; their marriages were declared invalid, their children\r\ntaken from them to be educated in the Roman Catholic faith. A great\r\nnumber, amounting to at least 100,000, succeeded in escaping, chiefly to\r\nPrussia, Holland, and England, whither they carried many of the\r\nmanufactures that Colbert had taken so much pains to establish. Many of\r\nthose who settled in England were silk weavers, and a large colony was\r\nthus established at Spitalfields, which long kept up its French\r\ncharacter.\r\n",
+      "excerptSha256": "c67924062c4976b429051a8499aa9054f7feac59ef746afcd1fdc33ea558d703",
+      "sourceAlignedClaims": [
+        "저자는 1685년 칙령 폐지와 함께 예배 금지, 목사 추방, 탈출 제약, 용기병 숙영과 자녀 분리를 서술한다. 세벤의 저항과 프로이센·네덜란드·잉글랜드로의 이주, 스피털필즈 비단 직조공 공동체를 연결한다. 난민 규모와 서로 다른 시기의 사건을 한 단락에 압축한 방식은 별도 검토가 필요하다."
+      ],
+      "pendingReview": [
+        "적어도 10만 명이라는 추산, 장 카발리에 활동과 폐지의 시간차, 이주 산업의 규모는 독립 검수 대기."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 6 · 8. Revocation of the Edict of Nantes, 원문 2031–2048행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "7b6c59fa-856d-5665-b587-428360ad8cc6",
+      "slug": "estates-1789",
+      "chapter": 7,
+      "section": "2. The States-General",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 2288,
+      "lineEnd": 2300,
+      "excerpt": "2. The States-General.--No one exactly knew the limits of the powers\r\nof the States-General when it met in 1789. Nobles, clergy, and the\r\ndeputies who represented the commonalty, all formed the assembly at\r\nVersailles; and though the king would have kept apart these last, who\r\nwere called the _Tiers Etât_, or third estate, they refused to withdraw\r\nfrom the great hall of Versailles. The Count of Mirabeau, the younger\r\nson of a noble family, who sat as a deputy, declared that nothing short\r\nof bayonets should drive out those who sat by the will of the people,\r\nand Louis yielded. Thenceforth the votes of a noble, a bishop, or a\r\ndeputy all counted alike. The party names of democrat for those who\r\nwanted to exalt the power of the people, and of aristocrat for those who\r\nmaintained the privileges of the nobles, came into use, and the most\r\nextreme democrats were called Jacobins, from an old convent of Jacobin\r\n",
+      "excerptSha256": "d12a83455a16c132a31ae4667ccf577ab97a021576c7967f2462a98474f690bf",
+      "sourceAlignedClaims": [
+        "저자는 1789년 베르사유에 귀족·성직자·제3신분 대표가 모였고 제3신분의 퇴장 거부와 미라보의 저항 뒤 표결 질서가 바뀌었다고 서술한다. 이어 민주파·귀족파 및 자코뱅 명칭을 설명한다. 이 카드는 왕권과 대표권의 충돌이라는 원문의 논점을 정리하며 혁명 전체의 절차를 이 짧은 서술로 확정하지 않는다."
+      ],
+      "pendingReview": [
+        "국민의회 전환과 표결 절차의 시간순서, 미라보의 말, 정파 명칭의 성립은 독립 검수 대기."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 7 · 2. The States-General, 원문 2288–2300행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "bada5025-bd36-5d35-a19b-ae4cbc4bf7da",
+      "slug": "napoleonic-administration",
+      "chapter": 7,
+      "section": "9. France under Napoleon",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 2511,
+      "lineEnd": 2537,
+      "excerpt": "9. France under Napoleon.--The old laws and customs, varying in\r\ndifferent provinces, had been swept away, so that the field was clear;\r\nand the system of government which Napoleon devised has remained\r\npractically unchanged from that time to this. Everything was made to\r\ndepend upon the central government. The Ministers of Religion, of\r\nJustice, of Police, of Education, etc., have the regulation of all\r\ninterior affairs, and appoint all who work under them, so that nobody\r\nlearns how to act alone; and as the Government has been in fact ever\r\nsince dependent on the will of the people of Paris, the whole country is\r\nhelplessly in their hands. The army, as in almost all foreign nations,\r\nis raised by conscription--that is, by drawing lots among the young men\r\nliable to serve, and who can only escape by paying a substitute to serve\r\nin their stead; and this is generally the first object of the savings of\r\na family. All feudal claims had been done away with, and with them the\r\nright of primogeniture; and, indeed, it is not possible for a testator\r\nto avoid leaving his property to be shared among his family, though he\r\ncan make some small differences in the amount each receives, and thus\r\nestates are continually freshly divided, and some portions become very\r\nsmall indeed. French peasants are, however, most eager to own land, and\r\nare usually very frugal, sober, and saving; and the country has gone on\r\nincreasing in prosperity and comfort. It is true that, probably from the\r\nlong habit of concealing any wealth they might possess, the French\r\nfarmers and peasantry care little for display, or what we should call\r\ncomfort, and live rough hard-working lives even while well off and with\r\nlarge hoards of wealth; but their condition has been wonderfully changed\r\nfor the better ever since the Revolution. All this has continued under\r\nthe numerous changes that have taken place in the forms of government.\r\n",
+      "excerptSha256": "802b4fe06de15a2f3cca7d7f81145c4fad4b9bc7cd128d549bf69e8a7504ca53",
+      "sourceAlignedClaims": [
+        "저자는 지역별 관습법 폐지 뒤 중앙정부와 각 부처에 의존하는 행정 체계, 추첨 징병과 대리 복무, 상속재산 분할을 설명한다. 농민의 토지 소유 욕구와 혁명 이후 생활 개선도 연결한다. 제도가 저자 시대까지 거의 변하지 않았거나 전국이 파리의 의지에 종속되었다는 말은 저자의 일반화이며 현행 프랑스 법률 안내가 아니다."
+      ],
+      "pendingReview": [
+        "제도별 도입·변경 시기, 상속 예외와 대리 복무 적용 범위, 농민 생활의 지역 차이는 독립 검수 대기."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 7 · 9. France under Napoleon, 원문 2511–2537행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "042195fd-52ba-5b87-ae12-d33e4ca8cb73",
+      "slug": "louis-philippe",
+      "chapter": 8,
+      "section": "2. Reign of Louis Philippe",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 2570,
+      "lineEnd": 2584,
+      "excerpt": "2. Reign of Louis Philippe.--The chambers of deputies offered the\r\ncrown to _Louis Philippe_, Duke of Orleans. He was descended from the\r\nregent; his father had been one of the democratic party in the\r\nRevolution, and, when titles were abolished, had called himself Philip\r\n_Egalité_ (Equality). This had not saved his head under the Reign of\r\nTerror, and his son had been obliged to flee and lead a wandering life,\r\nat one time gaining his livelihood by teaching mathematics at a school\r\nin Switzerland. He had recovered his family estates at the Restoration,\r\nand, as the head of the Liberal party, was very popular. He was elected\r\nKing of the French, not of France, with a chamber of peers nominated for\r\nlife only, and another of deputies elected by voters, whose\r\nqualification was two hundred francs, or eight pounds a year. He did his\r\nutmost to gain the good will of the people, living a simple, friendly\r\nfamily life, and trying to merit the term of the \"citizen king,\" and in\r\nthe earlier years of his reign he was successful. The country was\r\n",
+      "excerptSha256": "596fead1a581a7a0eb25544e134f0de4aa6163b5122c5e24f4b258aaaaedb61a",
+      "sourceAlignedClaims": [
+        "저자는 오를레앙 공작 루이필리프가 프랑스의 왕이 아닌 프랑스인의 왕으로 선출되었다고 서술한다. 종신 임명 귀족원과 납세 자격이 있는 유권자가 선출하는 대의원을 함께 제시하며, 소박한 가족생활과 시민왕 이미지를 대중적 지지 전략으로 묘사한다."
+      ],
+      "pendingReview": [
+        "선거권의 200프랑 기준과 시기, 의회의 구성과 즉위 절차, 대중적 지지의 범위는 독립 검수 대기."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 8 · 2. Reign of Louis Philippe, 원문 2570–2584행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "390a378d-1bac-51f1-a1fa-8d27cb57227a",
+      "slug": "revolution-1848",
+      "chapter": 8,
+      "section": "3. The Revolution of 1848",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 2612,
+      "lineEnd": 2638,
+      "excerpt": "3. The Revolution of 1848.--In spite of the increased prosperity of\r\nthe country, there was general disaffection. There were four\r\nparties--the Orleanists, who held by Louis Philippe and his minister\r\nGuizot, and whose badge was the tricolour; the Legitimists, who retained\r\ntheir loyalty to the exiled Henry, and whose symbol was the white\r\nBourbon flag; the Buonapartists; and the Republicans, whose badge was\r\nthe red cap and flag. A demand for a franchise that should include the\r\nmass of the people was rejected, and the general displeasure poured\r\nitself out in speeches at political banquets. An attempt to stop one of\r\nthese led to an uproar. The National Guard refused to fire on the\r\npeople, and their fury rose unchecked; so that the king, thinking\r\nresistance vain, signed an abdication, and fled to England in February,\r\n1848. A provisional Government was formed, and a new constitution was to\r\nbe arranged; but the Paris mob, who found their condition unchanged, and\r\nreally wanted equality of wealth, not of rights, made disturbances again\r\nand again, and barricaded the streets, till they were finally put down\r\nby General Cavaignac, while the rest of France was entirely dependent on\r\nthe will of the capital. After some months, a republic was determined\r\non, which was to have a president at its head, chosen every five years\r\nby universal suffrage. Louis Napoleon Buonaparte, nephew to the great\r\nNapoleon, was the first president thus chosen; and, after some\r\nstruggles, he not only mastered Paris, but, by the help of the army,\r\nwhich was mostly Buonapartist, he dismissed the chamber of deputies, and\r\nimprisoned or exiled all the opponents whom the troops had not put to\r\ndeath, on the plea of an expected rising of the mob. This was called a\r\n_coup d'état_, and Louis Napoleon was then declared president for ten\r\nyears.\r\n",
+      "excerptSha256": "cbc0f959444568ef780da4e31e0a864fe6fee929733aaa1773621c59e9c02da6",
+      "sourceAlignedClaims": [
+        "저자는 선거권 확대 요구와 정치 연회 금지가 항의로 이어지고, 국민방위대의 발포 거부 이후 루이필리프가 퇴위했다고 서술한다. 임시정부와 거리 봉기 진압, 루이 나폴레옹의 대통령 선출과 군대를 동원한 의회 해산을 이어 설명한다. 군중이 권리가 아니라 부의 평등만 원했다는 판단은 저자의 계층적 해석이다."
+      ],
+      "pendingReview": [
+        "대통령 임기를 5년으로 쓴 원문, 공화국 성립 순서, 6월 봉기와 쿠데타의 시점·동기는 독립 검수 대기."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 8 · 3. The Revolution of 1848, 원문 2612–2638행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    },
+    {
+      "cardId": "a4442e74-7912-5349-b641-58b87d70f1cc",
+      "slug": "war-1870",
+      "chapter": 8,
+      "section": "5. The Franco-German War",
+      "sourceFile": "docs/research/history-textbooks/france/source-en.txt",
+      "sourceSha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+      "lineStart": 2668,
+      "lineEnd": 2687,
+      "excerpt": "5. The Franco-German War.--In 1870 the Spaniards, who had deposed\r\ntheir queen, Isabel II., made choice of a relation of the King of\r\nPrussia as their king. There had long been bitter jealousy between\r\nFrance and Prussia, and, though the prince refused the offer of Spain,\r\nthe French showed such an overbearing spirit that a war broke out. The\r\nreal desire of France was to obtain the much-coveted frontier of the\r\nRhine, and the Emperor heated their armies with boastful proclamations\r\nwhich were but the prelude to direful defeats, at Weissenburg, Wörth,\r\nand Forbach. At Sedan, the Emperor was forced to surrender himself as a\r\nprisoner, and the tidings no sooner arrived at Paris than the whole of\r\nthe people turned their wrath on him and his family. His wife, the\r\nEmpress Eugènie, had to flee, a republic was declared, and the city\r\nprepared to stand a siege. The Germans advanced, and put down all\r\nresistance in other parts of France. Great part of the army had been\r\nmade prisoners, and, though there was much bravado, there was little\r\nsteadiness or courage left among those who now took up arms. Paris,\r\nwhich was blockaded, after suffering much from famine, surrendered in\r\nFebruary, 1871; and peace was purchased in a treaty by which great part\r\nof Elsass and Lorraine, and the city of Metz, were given back to\r\nGermany.\r\n",
+      "excerptSha256": "28f509ae363cb0da4d56dfe66ac8d02cb5076cbce40f392a9b08c4b38bf710a8",
+      "sourceAlignedClaims": [
+        "저자는 에스파냐 왕위 후보 문제를 전쟁의 계기로 제시하고 스당에서 황제가 포로가 된 뒤 공화국 선포와 파리 포위가 뒤따랐다고 서술한다. 식량난과 항복, 엘자스·로렌 및 메스의 영토 이전으로 책의 역사 서술을 마친다. 프랑스의 오만이 전쟁을 낳았다는 인과나 영토를 독일에 돌려주었다는 표현은 저자의 관점이다."
+      ],
+      "pendingReview": [
+        "파리 항복을 1871년 2월로 적은 연대, 조약과 휴전의 구별, 영토 범위, 전쟁 원인의 편향은 독립 검수 대기."
+      ],
+      "status": "independent-modern-history-review-pending",
+      "displayCitation": "출전: Charlotte M. Yonge, 《History of France》(1882), 8 · 5. The Franco-German War, 원문 2668–2687행. [원문](https://www.gutenberg.org/cache/epub/17287/pg17287.txt)",
+      "displaySourceUrl": "https://www.gutenberg.org/cache/epub/17287/pg17287.txt"
+    }
+  ]
+}

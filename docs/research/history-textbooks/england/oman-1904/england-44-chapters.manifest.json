@@ -1,0 +1,2972 @@
+{
+  "schema_version": 1,
+  "assembled_at_utc": "2026-11-13T17:14:46.6798336Z",
+  "book": {
+    "file": "england-44-chapters.ko.draft.md",
+    "bytes": 1986614,
+    "sha256": "68C5DBD3943F0E946C13B7613477194BC3063FB6E6C33C4CD5741FA12153A5D9",
+    "encoding": "UTF-8; original embedded bytes retained",
+    "chapter_count": 44,
+    "preface_count": 2,
+    "input_file_count": 45,
+    "chapter_prose_units": 1735,
+    "preface_paragraphs": 6,
+    "coverage": "Ancient Britain to 1902; professional full review incomplete"
+  },
+  "source": {
+    "file": "source-en.txt",
+    "bytes": 1881002,
+    "sha256": "74C6692775FDD51D7E8F2814C5FE0C26D41221E6DA790108DD895E6CD3E314A4",
+    "body_last_line": 30220,
+    "last_footnote_line": 30229,
+    "index_first_line": 30234,
+    "unchanged": true
+  },
+  "components": [
+    {
+      "order": 0,
+      "chapter": null,
+      "file": "prefaces.ko.draft.md",
+      "anchor": "oman-prefaces",
+      "label": "서문 두 편",
+      "preface_paragraphs": 6,
+      "byte_start_zero_based": 10266,
+      "byte_end_exclusive": 15994,
+      "bytes": 5728,
+      "sha256": "96B127AECF7B5CDBA0ADB3B6DF814359DBC215B737D7910B1995EE9C3EF7CEAD",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 1,
+      "chapter": 1,
+      "file": "01-main-prose.ko.draft.md",
+      "anchor": "oman-ch01",
+      "label": "제1장",
+      "prose_units": 29,
+      "declared_prose_units": 29,
+      "count_evidence_file": "01-main-prose.ko.draft.md",
+      "count_evidence_text": "본문 29문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 16284,
+      "byte_end_exclusive": 54523,
+      "bytes": 38239,
+      "sha256": "A22E7A897A167B2B29E68D8F45CAD566D27EAFDCCDCFA94D7D841EA545832B84",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 2,
+      "chapter": 2,
+      "file": "02-coming-of-english.ko.draft.md",
+      "anchor": "oman-ch02",
+      "label": "제2장",
+      "prose_units": 22,
+      "declared_prose_units": 22,
+      "count_evidence_file": "02-coming-of-english.ko.draft.md",
+      "count_evidence_text": "본문 **22문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 54839,
+      "byte_end_exclusive": 80892,
+      "bytes": 26053,
+      "sha256": "9F95A5C5B52F453551E646630A21CBCF7A814ED0A4E3E9C88C965CB29CED320B",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 3,
+      "chapter": 3,
+      "file": "03-conversion-wessex.ko.draft.md",
+      "anchor": "oman-ch03",
+      "label": "제3장",
+      "prose_units": 24,
+      "declared_prose_units": 24,
+      "count_evidence_file": "03-conversion-wessex.ko.draft.md",
+      "count_evidence_text": "본문 **24문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 81215,
+      "byte_end_exclusive": 111626,
+      "bytes": 30411,
+      "sha256": "87109E0842EE498071F1119C2FD37A961E5DC559ADB530793BB3ABC4037CD93F",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 4,
+      "chapter": 4,
+      "file": "04-main-prose.ko.draft.md",
+      "anchor": "oman-ch04",
+      "label": "제4장",
+      "prose_units": 47,
+      "declared_prose_units": 47,
+      "count_evidence_file": "04-translation-qa.md",
+      "count_evidence_text": "산문 47블록",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 111928,
+      "byte_end_exclusive": 159045,
+      "bytes": 47117,
+      "sha256": "F1BC70CB4BA5BFC3BBA0D6ABE3A49C5C14BEFE630DCD4636AC98CB2B230B13EB",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 5,
+      "chapter": 5,
+      "file": "05-main-prose.ko.draft.md",
+      "anchor": "oman-ch05",
+      "label": "제5장",
+      "prose_units": 34,
+      "declared_prose_units": 34,
+      "count_evidence_file": "05-translation-qa.md",
+      "count_evidence_text": "본문 34문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 159340,
+      "byte_end_exclusive": 204134,
+      "bytes": 44794,
+      "sha256": "1D4454E6C3B29DE081DB665C4BA3D98F5287FD5D4E30D0A2F1013BF121A1B83E",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 6,
+      "chapter": 6,
+      "file": "06-main-prose.ko.draft.md",
+      "anchor": "oman-ch06",
+      "label": "제6장",
+      "prose_units": 24,
+      "declared_prose_units": 24,
+      "count_evidence_file": "06-translation-qa.md",
+      "count_evidence_text": "본문 24문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 204429,
+      "byte_end_exclusive": 243993,
+      "bytes": 39564,
+      "sha256": "E62BE5C335FB6FB3421936F4F95D4CF0D593FD95FFBB2C731AC835DAC9747F2C",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 7,
+      "chapter": 7,
+      "file": "07-main-prose.ko.draft.md",
+      "anchor": "oman-ch07",
+      "label": "제7장",
+      "prose_units": 33,
+      "declared_prose_units": 33,
+      "count_evidence_file": "07-translation-qa.md",
+      "count_evidence_text": "본문 33문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 244288,
+      "byte_end_exclusive": 288502,
+      "bytes": 44214,
+      "sha256": "861EB67B68B944C02EBE82C184F5CB71362DFF85652C42684B5E60F5256A12EF",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 8,
+      "chapter": 8,
+      "file": "08-main-prose.ko.draft.md",
+      "anchor": "oman-ch08",
+      "label": "제8장",
+      "prose_units": 32,
+      "declared_prose_units": 32,
+      "count_evidence_file": "08-translation-qa.md",
+      "count_evidence_text": "본문 32문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 288797,
+      "byte_end_exclusive": 333543,
+      "bytes": 44746,
+      "sha256": "BB1AEAE7349254D8BCD3C0FBE0AFC8D3323FCB58889F432C776CADD680D0E7EF",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 9,
+      "chapter": 9,
+      "file": "09-main-prose.ko.draft.md",
+      "anchor": "oman-ch09",
+      "label": "제9장",
+      "prose_units": 50,
+      "declared_prose_units": 50,
+      "count_evidence_file": "09-translation-qa.md",
+      "count_evidence_text": "본문 50문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 333838,
+      "byte_end_exclusive": 386240,
+      "bytes": 52402,
+      "sha256": "75108A5E4B67C2690C0CE40DBA835C498BF572E577207DD9EBCEB41C22145ED8",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 10,
+      "chapter": 10,
+      "file": "10-main-prose.ko.draft.md",
+      "anchor": "oman-ch10",
+      "label": "제10장",
+      "prose_units": 32,
+      "declared_prose_units": 32,
+      "count_evidence_file": "10-translation-qa.md",
+      "count_evidence_text": "본문 32문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 386536,
+      "byte_end_exclusive": 422678,
+      "bytes": 36142,
+      "sha256": "5FF956122DA4799AECAFDF3E69482FECA1E636C099D835F0DB611432578A062B",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 11,
+      "chapter": 11,
+      "file": "11-main-prose.ko.draft.md",
+      "anchor": "oman-ch11",
+      "label": "제11장",
+      "prose_units": 42,
+      "declared_prose_units": 42,
+      "count_evidence_file": "11-translation-qa.md",
+      "count_evidence_text": "산문 42문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 422974,
+      "byte_end_exclusive": 484719,
+      "bytes": 61745,
+      "sha256": "F7752C1555B3E42C202BE4AEBA75507B9EC58293D22077E4131E39A6ABBD8226",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 12,
+      "chapter": 12,
+      "file": "12-main-prose.ko.draft.md",
+      "anchor": "oman-ch12",
+      "label": "제12장",
+      "prose_units": 21,
+      "declared_prose_units": 21,
+      "count_evidence_file": "12-translation-qa.md",
+      "count_evidence_text": "본문 21문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 485015,
+      "byte_end_exclusive": 509073,
+      "bytes": 24058,
+      "sha256": "B73F8254D37110649DC0E31A61AFFBE0A8FD41338B62602AC9168EFD3EB13736",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 13,
+      "chapter": 13,
+      "file": "13-main-prose.ko.draft.md",
+      "anchor": "oman-ch13",
+      "label": "제13장",
+      "prose_units": 38,
+      "declared_prose_units": 38,
+      "count_evidence_file": "13-translation-qa.md",
+      "count_evidence_text": "본문 **38/38문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 509369,
+      "byte_end_exclusive": 570039,
+      "bytes": 60670,
+      "sha256": "C076F13838362254005F1B5C5B42E81C8320BCB50D1C8BA3356BF99C96B853E8",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 14,
+      "chapter": 14,
+      "file": "14-main-prose.ko.draft.md",
+      "anchor": "oman-ch14",
+      "label": "제14장",
+      "prose_units": 29,
+      "declared_prose_units": 29,
+      "count_evidence_file": "14-translation-qa.md",
+      "count_evidence_text": "본문 29문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 570335,
+      "byte_end_exclusive": 599634,
+      "bytes": 29299,
+      "sha256": "92F8B20F110D03D653A6C41C396F913A2E03B99D6C6BC06479292E07C00A3CAB",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 15,
+      "chapter": 15,
+      "file": "15-main-prose.ko.draft.md",
+      "anchor": "oman-ch15",
+      "label": "제15장",
+      "prose_units": 16,
+      "declared_prose_units": 16,
+      "count_evidence_file": "15-translation-qa.md",
+      "count_evidence_text": "본문 16문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 599930,
+      "byte_end_exclusive": 618356,
+      "bytes": 18426,
+      "sha256": "D26B34E6A61A02FE4AEC71F491454AB14C3034ED6E0D186B1BA8A17DB77D2917",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 16,
+      "chapter": 16,
+      "file": "16-main-prose.ko.draft.md",
+      "anchor": "oman-ch16",
+      "label": "제16장",
+      "prose_units": 22,
+      "declared_prose_units": 22,
+      "count_evidence_file": "16-translation-qa.md",
+      "count_evidence_text": "본문 22문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 618652,
+      "byte_end_exclusive": 644992,
+      "bytes": 26340,
+      "sha256": "6ACBD152215B1335CD2CE5ED81275639BD0B2EA61054C062024F818FCC527882",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 17,
+      "chapter": 17,
+      "file": "17-main-prose.ko.draft.md",
+      "anchor": "oman-ch17",
+      "label": "제17장",
+      "prose_units": 38,
+      "declared_prose_units": 38,
+      "count_evidence_file": "17-translation-qa.md",
+      "count_evidence_text": "본문 38문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 645288,
+      "byte_end_exclusive": 684036,
+      "bytes": 38748,
+      "sha256": "4B6D0B3EE4A86A28FADC73907F902D5CE0E58A7B32EE2E09E5F703E7E14CD2CF",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 18,
+      "chapter": 18,
+      "file": "18-main-prose.ko.draft.md",
+      "anchor": "oman-ch18",
+      "label": "제18장",
+      "prose_units": 46,
+      "declared_prose_units": 46,
+      "count_evidence_file": "18-translation-qa.md",
+      "count_evidence_text": "본문 46/46문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 684332,
+      "byte_end_exclusive": 723198,
+      "bytes": 38866,
+      "sha256": "5372554FFA7EBF187A86A4FDDA39EC121051A6A1F52E804628CE09EC37FFD1BC",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 19,
+      "chapter": 19,
+      "file": "19-main-prose.ko.draft.md",
+      "anchor": "oman-ch19",
+      "label": "제19장",
+      "prose_units": 37,
+      "declared_prose_units": 37,
+      "count_evidence_file": "19-translation-qa.md",
+      "count_evidence_text": "본문 37/37문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 723494,
+      "byte_end_exclusive": 756666,
+      "bytes": 33172,
+      "sha256": "525308F8F69E87067F68BCE08DAE701AC8C98C61AE009DDB5C152ED5FE1CA59D",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 20,
+      "chapter": 20,
+      "file": "20-main-prose.ko.draft.md",
+      "anchor": "oman-ch20",
+      "label": "제20장",
+      "prose_units": 21,
+      "declared_prose_units": 21,
+      "count_evidence_file": "20-translation-qa.md",
+      "count_evidence_text": "본문 21/21문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 756962,
+      "byte_end_exclusive": 783704,
+      "bytes": 26742,
+      "sha256": "55ED51F0EA664AE9105FB1ED4D4A050D2086E0975732F8ED6AADB88EB2A38B14",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 21,
+      "chapter": 21,
+      "file": "21-main-prose.ko.draft.md",
+      "anchor": "oman-ch21",
+      "label": "제21장",
+      "prose_units": 29,
+      "declared_prose_units": 29,
+      "count_evidence_file": "21-translation-qa.md",
+      "count_evidence_text": "본문 29/29문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 784000,
+      "byte_end_exclusive": 820827,
+      "bytes": 36827,
+      "sha256": "8011440AD2F118FCE60138C360765B2A05153FE73743F9728D556409C34E0917",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 22,
+      "chapter": 22,
+      "file": "22-main-prose.ko.draft.md",
+      "anchor": "oman-ch22",
+      "label": "제22장",
+      "prose_units": 43,
+      "declared_prose_units": 43,
+      "count_evidence_file": "22-translation-qa.md",
+      "count_evidence_text": "본문 43/43문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 821123,
+      "byte_end_exclusive": 869300,
+      "bytes": 48177,
+      "sha256": "3EE08B4064A33495F640982DCE9DB8CD7BE2603885C51C639C0ABBB3B98C7710",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 23,
+      "chapter": 23,
+      "file": "23-main-prose.ko.draft.md",
+      "anchor": "oman-ch23",
+      "label": "제23장",
+      "prose_units": 16,
+      "declared_prose_units": 16,
+      "count_evidence_file": "23-translation-qa.md",
+      "count_evidence_text": "본문 16/16문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 869596,
+      "byte_end_exclusive": 891291,
+      "bytes": 21695,
+      "sha256": "CB9226B4844453BE49FEA66D86E55904C5F16CE6B014348E837D56E9696CBA7C",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 24,
+      "chapter": 24,
+      "file": "24-main-prose.ko.draft.md",
+      "anchor": "oman-ch24",
+      "label": "제24장",
+      "prose_units": 63,
+      "declared_prose_units": 63,
+      "count_evidence_file": "24-translation-qa.md",
+      "count_evidence_text": "본문 63/63문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 891587,
+      "byte_end_exclusive": 966536,
+      "bytes": 74949,
+      "sha256": "1572F8452B62A40E35D942A9ABC8BA460C37C2FCD2BD09B3932FB6B3AC12372D",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 25,
+      "chapter": 25,
+      "file": "25-main-prose.ko.draft.md",
+      "anchor": "oman-ch25",
+      "label": "제25장",
+      "prose_units": 27,
+      "declared_prose_units": 27,
+      "count_evidence_file": "25-translation-qa.md",
+      "count_evidence_text": "본문 27/27문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 966832,
+      "byte_end_exclusive": 1000109,
+      "bytes": 33277,
+      "sha256": "941626D89CA302BC66B357BAE57C930F6B94CA18C028A33C2B07C781336557D3",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 26,
+      "chapter": 26,
+      "file": "26-main-prose.ko.draft.md",
+      "anchor": "oman-ch26",
+      "label": "제26장",
+      "prose_units": 49,
+      "declared_prose_units": 49,
+      "count_evidence_file": "26-translation-qa.md",
+      "count_evidence_text": "본문 49/49문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1000405,
+      "byte_end_exclusive": 1048244,
+      "bytes": 47839,
+      "sha256": "041F6230096266374A3D6FDBFB6091C87B9403BF19B129B3A2B93179F073ED88",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 27,
+      "chapter": 27,
+      "file": "27-main-prose.ko.draft.md",
+      "anchor": "oman-ch27",
+      "label": "제27장",
+      "prose_units": 54,
+      "declared_prose_units": 54,
+      "count_evidence_file": "27-translation-qa.md",
+      "count_evidence_text": "본문 54/54문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1048540,
+      "byte_end_exclusive": 1112284,
+      "bytes": 63744,
+      "sha256": "5BB32CB8E40C2DFDCD0F9991637DEB0CC5ADF4CC8DFD2E25DC2B523C9D55F04B",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 28,
+      "chapter": 28,
+      "file": "28-main-prose.ko.draft.md",
+      "anchor": "oman-ch28",
+      "label": "제28장",
+      "prose_units": 32,
+      "declared_prose_units": 32,
+      "count_evidence_file": "28-translation-qa.md",
+      "count_evidence_text": "본문 32/32문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1112580,
+      "byte_end_exclusive": 1149703,
+      "bytes": 37123,
+      "sha256": "855E1838269F8C26DA1A02C1E09B9054C5BDF98685D04AF60713E79256BE49B7",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 29,
+      "chapter": 29,
+      "file": "29-main-prose.ko.draft.md",
+      "anchor": "oman-ch29",
+      "label": "제29장",
+      "prose_units": 41,
+      "declared_prose_units": 41,
+      "count_evidence_file": "29-translation-qa.md",
+      "count_evidence_text": "본문 41/41문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1149999,
+      "byte_end_exclusive": 1192847,
+      "bytes": 42848,
+      "sha256": "CADE47DD002427FBE2EFDDE54F736EAE6D5CFF16B133775884800A5538D159C1",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 30,
+      "chapter": 30,
+      "file": "30-main-prose.ko.draft.md",
+      "anchor": "oman-ch30",
+      "label": "제30장",
+      "prose_units": 23,
+      "declared_prose_units": 23,
+      "count_evidence_file": "30-translation-qa.md",
+      "count_evidence_text": "본문 23/23문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1193143,
+      "byte_end_exclusive": 1216761,
+      "bytes": 23618,
+      "sha256": "FC6E66DC98DB7DACE58B2470B78A6B9C35CD7C9849F084F88DDDE7E0F0A48399",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 31,
+      "chapter": 31,
+      "file": "31-main-prose.ko.draft.md",
+      "anchor": "oman-ch31",
+      "label": "제31장",
+      "prose_units": 40,
+      "declared_prose_units": 40,
+      "count_evidence_file": "31-translation-qa.md",
+      "count_evidence_text": "본문 40/40문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1217057,
+      "byte_end_exclusive": 1261075,
+      "bytes": 44018,
+      "sha256": "31D24BC98728D29E32423386E8688A60C181B6DB2CF3461A3054B7EF637D58F6",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 32,
+      "chapter": 32,
+      "file": "32-main-prose.ko.draft.md",
+      "anchor": "oman-ch32",
+      "label": "제32장",
+      "prose_units": 43,
+      "declared_prose_units": 43,
+      "count_evidence_file": "32-translation-qa.md",
+      "count_evidence_text": "본문 43/43문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1261371,
+      "byte_end_exclusive": 1311850,
+      "bytes": 50479,
+      "sha256": "3D2D51C41E1DEF596EBC6DDB5918F52EB2F94A78FBBE46CCB984FF1B8446EE31",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 33,
+      "chapter": 33,
+      "file": "33-main-prose.ko.draft.md",
+      "anchor": "oman-ch33",
+      "label": "제33장",
+      "prose_units": 42,
+      "declared_prose_units": 42,
+      "count_evidence_file": "33-translation-qa.md",
+      "count_evidence_text": "본문 42/42문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1312146,
+      "byte_end_exclusive": 1352039,
+      "bytes": 39893,
+      "sha256": "E754B1CCB5A501295D752CE8370D4F1C73455E4B65B910A00264F19293E2B8DB",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 34,
+      "chapter": 34,
+      "file": "34-main-prose.ko.draft.md",
+      "anchor": "oman-ch34",
+      "label": "제34장",
+      "prose_units": 75,
+      "declared_prose_units": 75,
+      "count_evidence_file": "34-translation-qa.md",
+      "count_evidence_text": "본문 **75/75문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1352335,
+      "byte_end_exclusive": 1433567,
+      "bytes": 81232,
+      "sha256": "F9D9856695673DDB11B21BE8A69A8123B94D02E54A909E2434A2F1068CA64844",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 35,
+      "chapter": 35,
+      "file": "35-main-prose.ko.draft.md",
+      "anchor": "oman-ch35",
+      "label": "제35장",
+      "prose_units": 63,
+      "declared_prose_units": 63,
+      "count_evidence_file": "35-translation-qa.md",
+      "count_evidence_text": "본문 **63/63문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1433863,
+      "byte_end_exclusive": 1488004,
+      "bytes": 54141,
+      "sha256": "F9073D16E5B4AA33D2A21A396682097A506D8AF81D6DBE22E09D4306C5EB7EA0",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 36,
+      "chapter": 36,
+      "file": "36-main-prose.ko.draft.md",
+      "anchor": "oman-ch36",
+      "label": "제36장",
+      "prose_units": 47,
+      "declared_prose_units": 47,
+      "count_evidence_file": "36-translation-qa.md",
+      "count_evidence_text": "본문 **47/47문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1488300,
+      "byte_end_exclusive": 1535816,
+      "bytes": 47516,
+      "sha256": "3C943EEF653C7E4308C6E4DCD74CFDAFF0A4E30D864BEC5BED6D8406AA84B078",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 37,
+      "chapter": 37,
+      "file": "37-main-prose.ko.draft.md",
+      "anchor": "oman-ch37",
+      "label": "제37장",
+      "prose_units": 53,
+      "declared_prose_units": 53,
+      "count_evidence_file": "37-translation-qa.md",
+      "count_evidence_text": "본문 **53/53문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1536112,
+      "byte_end_exclusive": 1597334,
+      "bytes": 61222,
+      "sha256": "9DDF41F42647D88A2E48B996AE8498B88D367161B95761DF5DC37C968FBB86A3",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 38,
+      "chapter": 38,
+      "file": "38-main-prose.ko.draft.md",
+      "anchor": "oman-ch38",
+      "label": "제38장",
+      "prose_units": 64,
+      "declared_prose_units": 64,
+      "count_evidence_file": "38-translation-qa.md",
+      "count_evidence_text": "본문 **64/64문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1597630,
+      "byte_end_exclusive": 1680529,
+      "bytes": 82899,
+      "sha256": "EB26F69F72C92B4B6F524036559382FE327497FC87FA6FDD37391CADCC85D14E",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 39,
+      "chapter": 39,
+      "file": "39-main-prose.ko.draft.md",
+      "anchor": "oman-ch39",
+      "label": "제39장",
+      "prose_units": 47,
+      "declared_prose_units": 47,
+      "count_evidence_file": "39-translation-qa.md",
+      "count_evidence_text": "본문 **47/47문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1680825,
+      "byte_end_exclusive": 1726537,
+      "bytes": 45712,
+      "sha256": "6BDEDAC2F1F3CAEF184B370DE6DD9BA644AF436ACE42FAAEC67084FCD43204CA",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 40,
+      "chapter": 40,
+      "file": "40-main-prose.ko.draft.md",
+      "anchor": "oman-ch40",
+      "label": "제40장",
+      "prose_units": 44,
+      "declared_prose_units": 44,
+      "count_evidence_file": "40-translation-qa.md",
+      "count_evidence_text": "본문 **44/44문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1726833,
+      "byte_end_exclusive": 1778281,
+      "bytes": 51448,
+      "sha256": "276B5797A9EFD93F40DA59305B1373EF97F4D543592E4CD29DDBCF463D1DEED3",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 41,
+      "chapter": 41,
+      "file": "41-main-prose.ko.draft.md",
+      "anchor": "oman-ch41",
+      "label": "제41장",
+      "prose_units": 58,
+      "declared_prose_units": 58,
+      "count_evidence_file": "41-translation-qa.md",
+      "count_evidence_text": "본문 **58/58문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1778577,
+      "byte_end_exclusive": 1846281,
+      "bytes": 67704,
+      "sha256": "DB06259E2A46426D19A4DC8EC6A52EA263F0A78B10194B12205AD6E788976691",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 42,
+      "chapter": 42,
+      "file": "42-main-prose.ko.draft.md",
+      "anchor": "oman-ch42",
+      "label": "제42장",
+      "prose_units": 45,
+      "declared_prose_units": 45,
+      "count_evidence_file": "42-translation-qa.md",
+      "count_evidence_text": "본문 **45/45문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1846577,
+      "byte_end_exclusive": 1890758,
+      "bytes": 44181,
+      "sha256": "9CEE169077174713C19B6C9D0251E8870741C981C1B962BB30D70FCEC920D9FC",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 43,
+      "chapter": 43,
+      "file": "43-main-prose.ko.draft.md",
+      "anchor": "oman-ch43",
+      "label": "제43장",
+      "prose_units": 35,
+      "declared_prose_units": 35,
+      "count_evidence_file": "43-translation-qa.md",
+      "count_evidence_text": "본문 **35/35문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1891054,
+      "byte_end_exclusive": 1928292,
+      "bytes": 37238,
+      "sha256": "FE0336DAB1D89CD26CE58E4B733ED6FF9B6F4EE5239ABA2733086ED15D5798BB",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    },
+    {
+      "order": 44,
+      "chapter": 44,
+      "file": "44-main-prose.ko.draft.md",
+      "anchor": "oman-ch44",
+      "label": "제44장",
+      "prose_units": 65,
+      "declared_prose_units": 65,
+      "count_evidence_file": "44-translation-qa.md",
+      "count_evidence_text": "본문 **65/65문단",
+      "p_sequence_verified": true,
+      "byte_start_zero_based": 1928588,
+      "byte_end_exclusive": 1986566,
+      "bytes": 57978,
+      "sha256": "FFBC7313984FD1E7448E1D9419DD88784BC5E602C4DC0C099ED0CF0DE3DE73EE",
+      "full_text_occurrences": 1,
+      "byte_exact_verified": true
+    }
+  ],
+  "protected_files": [
+    {
+      "file": "source-en.txt",
+      "bytes": 1881002,
+      "sha256": "74C6692775FDD51D7E8F2814C5FE0C26D41221E6DA790108DD895E6CD3E314A4",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "source-manifest.json",
+      "bytes": 386,
+      "sha256": "36F1221B15BE8D608E2C320384F90BFBF3476688A7F15DE8635952E54C4A3DD5",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "review-independent-samples.ko.md",
+      "bytes": 41386,
+      "sha256": "8A3F021207675D7A1E2F7CC52E41F72146C8FBF7499355B122ADFABF303362A5",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "sample-correction.ko.md",
+      "bytes": 13374,
+      "sha256": "F9DACC2F59BC3E82312C515C5962CFE2D3749FC707C38D73AE0C8A103CE14F5C",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "01-worldbuilding-candidate.ko.md",
+      "bytes": 7267,
+      "sha256": "7812EFBB5383F53471E99C15CC056AB1ACAD363575D816B18D51A7D05988D7C2",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "prefaces.ko.draft.md",
+      "bytes": 5728,
+      "sha256": "96B127AECF7B5CDBA0ADB3B6DF814359DBC215B737D7910B1995EE9C3EF7CEAD",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "01-main-prose.ko.draft.md",
+      "bytes": 38239,
+      "sha256": "A22E7A897A167B2B29E68D8F45CAD566D27EAFDCCDCFA94D7D841EA545832B84",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "02-coming-of-english.ko.draft.md",
+      "bytes": 26053,
+      "sha256": "9F95A5C5B52F453551E646630A21CBCF7A814ED0A4E3E9C88C965CB29CED320B",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "03-conversion-wessex.ko.draft.md",
+      "bytes": 30411,
+      "sha256": "87109E0842EE498071F1119C2FD37A961E5DC559ADB530793BB3ABC4037CD93F",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "04-main-prose.ko.draft.md",
+      "bytes": 47117,
+      "sha256": "F1BC70CB4BA5BFC3BBA0D6ABE3A49C5C14BEFE630DCD4636AC98CB2B230B13EB",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "05-main-prose.ko.draft.md",
+      "bytes": 44794,
+      "sha256": "1D4454E6C3B29DE081DB665C4BA3D98F5287FD5D4E30D0A2F1013BF121A1B83E",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "06-main-prose.ko.draft.md",
+      "bytes": 39564,
+      "sha256": "E62BE5C335FB6FB3421936F4F95D4CF0D593FD95FFBB2C731AC835DAC9747F2C",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "07-main-prose.ko.draft.md",
+      "bytes": 44214,
+      "sha256": "861EB67B68B944C02EBE82C184F5CB71362DFF85652C42684B5E60F5256A12EF",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "08-main-prose.ko.draft.md",
+      "bytes": 44746,
+      "sha256": "BB1AEAE7349254D8BCD3C0FBE0AFC8D3323FCB58889F432C776CADD680D0E7EF",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "09-main-prose.ko.draft.md",
+      "bytes": 52402,
+      "sha256": "75108A5E4B67C2690C0CE40DBA835C498BF572E577207DD9EBCEB41C22145ED8",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "10-main-prose.ko.draft.md",
+      "bytes": 36142,
+      "sha256": "5FF956122DA4799AECAFDF3E69482FECA1E636C099D835F0DB611432578A062B",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "11-main-prose.ko.draft.md",
+      "bytes": 61745,
+      "sha256": "F7752C1555B3E42C202BE4AEBA75507B9EC58293D22077E4131E39A6ABBD8226",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "12-main-prose.ko.draft.md",
+      "bytes": 24058,
+      "sha256": "B73F8254D37110649DC0E31A61AFFBE0A8FD41338B62602AC9168EFD3EB13736",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "13-main-prose.ko.draft.md",
+      "bytes": 60670,
+      "sha256": "C076F13838362254005F1B5C5B42E81C8320BCB50D1C8BA3356BF99C96B853E8",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "14-main-prose.ko.draft.md",
+      "bytes": 29299,
+      "sha256": "92F8B20F110D03D653A6C41C396F913A2E03B99D6C6BC06479292E07C00A3CAB",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "15-main-prose.ko.draft.md",
+      "bytes": 18426,
+      "sha256": "D26B34E6A61A02FE4AEC71F491454AB14C3034ED6E0D186B1BA8A17DB77D2917",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "16-main-prose.ko.draft.md",
+      "bytes": 26340,
+      "sha256": "6ACBD152215B1335CD2CE5ED81275639BD0B2EA61054C062024F818FCC527882",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "17-main-prose.ko.draft.md",
+      "bytes": 38748,
+      "sha256": "4B6D0B3EE4A86A28FADC73907F902D5CE0E58A7B32EE2E09E5F703E7E14CD2CF",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "18-main-prose.ko.draft.md",
+      "bytes": 38866,
+      "sha256": "5372554FFA7EBF187A86A4FDDA39EC121051A6A1F52E804628CE09EC37FFD1BC",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "19-main-prose.ko.draft.md",
+      "bytes": 33172,
+      "sha256": "525308F8F69E87067F68BCE08DAE701AC8C98C61AE009DDB5C152ED5FE1CA59D",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "20-main-prose.ko.draft.md",
+      "bytes": 26742,
+      "sha256": "55ED51F0EA664AE9105FB1ED4D4A050D2086E0975732F8ED6AADB88EB2A38B14",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "21-main-prose.ko.draft.md",
+      "bytes": 36827,
+      "sha256": "8011440AD2F118FCE60138C360765B2A05153FE73743F9728D556409C34E0917",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "22-main-prose.ko.draft.md",
+      "bytes": 48177,
+      "sha256": "3EE08B4064A33495F640982DCE9DB8CD7BE2603885C51C639C0ABBB3B98C7710",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "23-main-prose.ko.draft.md",
+      "bytes": 21695,
+      "sha256": "CB9226B4844453BE49FEA66D86E55904C5F16CE6B014348E837D56E9696CBA7C",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "24-main-prose.ko.draft.md",
+      "bytes": 74949,
+      "sha256": "1572F8452B62A40E35D942A9ABC8BA460C37C2FCD2BD09B3932FB6B3AC12372D",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "25-main-prose.ko.draft.md",
+      "bytes": 33277,
+      "sha256": "941626D89CA302BC66B357BAE57C930F6B94CA18C028A33C2B07C781336557D3",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "26-main-prose.ko.draft.md",
+      "bytes": 47839,
+      "sha256": "041F6230096266374A3D6FDBFB6091C87B9403BF19B129B3A2B93179F073ED88",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "27-main-prose.ko.draft.md",
+      "bytes": 63744,
+      "sha256": "5BB32CB8E40C2DFDCD0F9991637DEB0CC5ADF4CC8DFD2E25DC2B523C9D55F04B",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "28-main-prose.ko.draft.md",
+      "bytes": 37123,
+      "sha256": "855E1838269F8C26DA1A02C1E09B9054C5BDF98685D04AF60713E79256BE49B7",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "29-main-prose.ko.draft.md",
+      "bytes": 42848,
+      "sha256": "CADE47DD002427FBE2EFDDE54F736EAE6D5CFF16B133775884800A5538D159C1",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "30-main-prose.ko.draft.md",
+      "bytes": 23618,
+      "sha256": "FC6E66DC98DB7DACE58B2470B78A6B9C35CD7C9849F084F88DDDE7E0F0A48399",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "31-main-prose.ko.draft.md",
+      "bytes": 44018,
+      "sha256": "31D24BC98728D29E32423386E8688A60C181B6DB2CF3461A3054B7EF637D58F6",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "32-main-prose.ko.draft.md",
+      "bytes": 50479,
+      "sha256": "3D2D51C41E1DEF596EBC6DDB5918F52EB2F94A78FBBE46CCB984FF1B8446EE31",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "33-main-prose.ko.draft.md",
+      "bytes": 39893,
+      "sha256": "E754B1CCB5A501295D752CE8370D4F1C73455E4B65B910A00264F19293E2B8DB",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "34-main-prose.ko.draft.md",
+      "bytes": 81232,
+      "sha256": "F9D9856695673DDB11B21BE8A69A8123B94D02E54A909E2434A2F1068CA64844",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "35-main-prose.ko.draft.md",
+      "bytes": 54141,
+      "sha256": "F9073D16E5B4AA33D2A21A396682097A506D8AF81D6DBE22E09D4306C5EB7EA0",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "36-main-prose.ko.draft.md",
+      "bytes": 47516,
+      "sha256": "3C943EEF653C7E4308C6E4DCD74CFDAFF0A4E30D864BEC5BED6D8406AA84B078",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "37-main-prose.ko.draft.md",
+      "bytes": 61222,
+      "sha256": "9DDF41F42647D88A2E48B996AE8498B88D367161B95761DF5DC37C968FBB86A3",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "38-main-prose.ko.draft.md",
+      "bytes": 82899,
+      "sha256": "EB26F69F72C92B4B6F524036559382FE327497FC87FA6FDD37391CADCC85D14E",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "39-main-prose.ko.draft.md",
+      "bytes": 45712,
+      "sha256": "6BDEDAC2F1F3CAEF184B370DE6DD9BA644AF436ACE42FAAEC67084FCD43204CA",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "40-main-prose.ko.draft.md",
+      "bytes": 51448,
+      "sha256": "276B5797A9EFD93F40DA59305B1373EF97F4D543592E4CD29DDBCF463D1DEED3",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "41-main-prose.ko.draft.md",
+      "bytes": 67704,
+      "sha256": "DB06259E2A46426D19A4DC8EC6A52EA263F0A78B10194B12205AD6E788976691",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "42-main-prose.ko.draft.md",
+      "bytes": 44181,
+      "sha256": "9CEE169077174713C19B6C9D0251E8870741C981C1B962BB30D70FCEC920D9FC",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "43-main-prose.ko.draft.md",
+      "bytes": 37238,
+      "sha256": "FE0336DAB1D89CD26CE58E4B733ED6FF9B6F4EE5239ABA2733086ED15D5798BB",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "44-main-prose.ko.draft.md",
+      "bytes": 57978,
+      "sha256": "FFBC7313984FD1E7448E1D9419DD88784BC5E602C4DC0C099ED0CF0DE3DE73EE",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "04-translation-qa.md",
+      "bytes": 9810,
+      "sha256": "7837F1CABF75B71B3219C132E3E0FE3200483E2E6A2576BD6C893C44696E3D47",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "05-translation-qa.md",
+      "bytes": 9026,
+      "sha256": "1A91342F37484D9B119D5A0978A5EAA52C1151BF82D052E8171FCC2365440DAB",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "06-translation-qa.md",
+      "bytes": 8993,
+      "sha256": "771BBFECB7E0EBBF1E2F1EC438B6E284269DFC281B3122481EB52B312FB9B956",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "07-translation-qa.md",
+      "bytes": 12175,
+      "sha256": "82951CECA79B0F50809FC1A3C7EA354EED94C1D60A55CD2A38B945CD76A68BDB",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "08-translation-qa.md",
+      "bytes": 9455,
+      "sha256": "CAE6777E1EBC23CC6CA37D97D5A30A305C329CCD2E7C3DE2D7406E9BC7215974",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "09-translation-qa.md",
+      "bytes": 12557,
+      "sha256": "681A0E6B6F4B17549499301C332030D7100C09A5BE38421E8857ECB328BA59E3",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "10-translation-qa.md",
+      "bytes": 9328,
+      "sha256": "498D677767E022F4D4E5F77D3AB559D3732D136290BB9222BB47403E91E30B72",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "11-translation-qa.md",
+      "bytes": 13449,
+      "sha256": "31C562A22E064BFF41E51B161DE766C0D240459D17EB05D8F42E5AA22CD73849",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "12-translation-qa.md",
+      "bytes": 9305,
+      "sha256": "ABA63D7744DE4D5C1270CE2DD8CB2801C8301F8A0F81A991883B89C6F91C8ACD",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "13-translation-qa.md",
+      "bytes": 17258,
+      "sha256": "E8873EE521C9E4E315C92D03E597AF02CD6F4949C5939D0A3C3B33D56EF78FBD",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "14-translation-qa.md",
+      "bytes": 8640,
+      "sha256": "8DD69DC92D7FA21801BC94972DE97C923162D1C0419282F0CEC9B48D5D533101",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "15-translation-qa.md",
+      "bytes": 7836,
+      "sha256": "0F680EAE405279C3CAFDE39B7264D0487D7AD15037FF837EBB241E5B66EE66CF",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "16-translation-qa.md",
+      "bytes": 8352,
+      "sha256": "24C33AC68F22E9C764D09C3EF2C7DF9D5DB5B6C4B7E89E78D07552DAFBF2D8F6",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "17-translation-qa.md",
+      "bytes": 11361,
+      "sha256": "FB51D7D5645AA3D35A24507F040D9B937C6411BF9A9C7430B56A32A21D6D5C17",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "18-translation-qa.md",
+      "bytes": 11999,
+      "sha256": "09B591506C927B21548AC0B97B5B6B752C9FAD95ED6E50F053C3CF7591318885",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "19-translation-qa.md",
+      "bytes": 11360,
+      "sha256": "EE085D10BBD05C3F739398CC8A6D82667410D09F576DE7F3A478EA055E80C110",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "20-translation-qa.md",
+      "bytes": 9789,
+      "sha256": "0A5DBBA33B3D28056B9FED77AB804046B57614E61996F34492B711172A17DA94",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "21-translation-qa.md",
+      "bytes": 13377,
+      "sha256": "FA10677781BDFE94F442642C91BE6AC53F668CC39AE23DD1FF92B3DFBA8B1AA1",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "22-translation-qa.md",
+      "bytes": 12956,
+      "sha256": "B8A8E81350747C66E1D68027E4E7475BAAFD0D57D173EBE7FE79EBDDB2D78DB6",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "23-translation-qa.md",
+      "bytes": 8681,
+      "sha256": "4EA820FA9F7B75BDE68FFE828B3499ABCD31DAC21207401A19E7B41ACE6AF5D9",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "24-translation-qa.md",
+      "bytes": 20764,
+      "sha256": "A572FA7B29A9291D104BACB9EC81CF2EB453646C3D44205E13D2FA771F52B6DC",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "25-translation-qa.md",
+      "bytes": 10638,
+      "sha256": "A0E4904BDAF44014C85499ED4B2B13AE4E10DE9D9F9BF63B9ED03C09E0805CAD",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "26-translation-qa.md",
+      "bytes": 14881,
+      "sha256": "11EE85BF2C75D206414B02FD0991E640130720521FCB01E0E2F093AD2EFF8826",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "27-translation-qa.md",
+      "bytes": 18570,
+      "sha256": "5EE61F8BFB944966496F892EE7C8214E13051D64AE7D034C1656165C065444B3",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "28-translation-qa.md",
+      "bytes": 12841,
+      "sha256": "774BB5258FB9F09E78CF6FAC41CAB567CADD8C461A8600FB0807D03FEC0734CE",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "29-translation-qa.md",
+      "bytes": 17558,
+      "sha256": "75CB05E851BBBCD57643EB7F5259C33B6192F67CC7F4B157A4A6C75362ABCBD9",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "30-translation-qa.md",
+      "bytes": 9167,
+      "sha256": "3E38D8E8E69F9D001F3E2451D5BF9A76351FAB4185805DD9D2C083E64A0DE2F1",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "31-translation-qa.md",
+      "bytes": 17187,
+      "sha256": "66D444117EF96D417A93F94B3AD6407323F0583EDC6CFA5C776893A95903387A",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "32-translation-qa.md",
+      "bytes": 17821,
+      "sha256": "FD4CB1C140ADDE267D11D37ACA98574F632188B2B6F37F7A665E61F1E204F0BB",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "33-translation-qa.md",
+      "bytes": 18927,
+      "sha256": "FAA51FC5869FDD5A890A8A7261D6D877FA6F81E3DE92333C294359D4F3F6671F",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "34-translation-qa.md",
+      "bytes": 9573,
+      "sha256": "D42EA8714C3091CE92A1D472960581EA7FD75C2E0B91CFB68964ABFB49B5BDF0",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "35-translation-qa.md",
+      "bytes": 11825,
+      "sha256": "A54C556743897F825F3D41BA5A13EFB9D320B1101D2F5BF89BE3C1F6D6BF2357",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "36-translation-qa.md",
+      "bytes": 11688,
+      "sha256": "9EF28646BF9EC5DDF69A7E344AD008904A4DE023413054E06055EABCED783AC7",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "37-translation-qa.md",
+      "bytes": 18042,
+      "sha256": "C53B2DFCECC5C9129B86AFDE59AF1A0D055C5266ED465A15BD582D64D9D2A483",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "38-translation-qa.md",
+      "bytes": 9800,
+      "sha256": "24E976D2A3B17C6F0B8DCA9F8FA32135DA7609657E4F8BC5D75C24171CB06D8F",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "39-translation-qa.md",
+      "bytes": 14116,
+      "sha256": "5D286C0E95FEE83B5D7F55D4DDD1EAFD6B2BD96A79E8B2391C520BCD0123474B",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "40-translation-qa.md",
+      "bytes": 14098,
+      "sha256": "9487F7E96D2C3BD4D8D2711A01D3103487B10AD6207BF4ECB04BF9188DC99EE6",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "41-translation-qa.md",
+      "bytes": 13738,
+      "sha256": "9CE17299CBE85B91563D6D6DF72750F3E9A8C87813B57DBF6DF592FCB22056CC",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "42-translation-qa.md",
+      "bytes": 14617,
+      "sha256": "55D784A03690DF2F200DF76F66D0B53AF4F908CCC40FC22536C05555DA83EB13",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "43-translation-qa.md",
+      "bytes": 15556,
+      "sha256": "AF3E693DCF24F448433B56016F788D5E7FB2C34199709676A2679BD3F5733A66",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "44-translation-qa.md",
+      "bytes": 21002,
+      "sha256": "2DC3BB07264C502477EED144E64F84B4585AFBD30EF1A2D8CA9B09B07E086A07",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "revisions/pre-sample-correction/01-main-prose.ko.draft.md",
+      "bytes": 38201,
+      "sha256": "C288A99171D449990CD97DE269737763655A3D7F198CFCA961524895D8DE64AA",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "revisions/pre-sample-correction/12-main-prose.ko.draft.md",
+      "bytes": 24040,
+      "sha256": "0F0C57447CD8CEAD6490C5B963D6A631FCCEAAB1A2C8ABFAEF4EA5018F6EE3AB",
+      "byte_identical_before_after": true
+    },
+    {
+      "file": "revisions/pre-sample-correction/12-translation-qa.md",
+      "bytes": 7976,
+      "sha256": "D60908E93802CF0AFF2F8883D299EED5248FFA0BBE7481E9F956B1E1D9B28FF3",
+      "byte_identical_before_after": true
+    }
+  ],
+  "readme": {
+    "file": "README.partial-ko.md",
+    "before_bytes": 18854,
+    "before_sha256": "B18127F7F2923A3444687EE11AF4738C0A25F516825D62C5E3F1F5B901F0BD8E",
+    "after_bytes": 21855,
+    "after_sha256": "866FB526B759FA6A96F2EEAAD080E4C3770D166E57914869D987F1F416138519",
+    "change_scope": "Only chapter 1/12 byte counts replaced; final integration/correction section and candidate 2 link appended; later appendix-completion section appended and current combined metadata refreshed",
+    "supplement_update_before_bytes": 21148,
+    "supplement_update_before_sha256": "97AC24FAF3FE4F6CC91882649768E8A7BFD599EF7FD933C48EF56F9250CEFC04"
+  },
+  "checks": {
+    "all_components_full_text_once": true,
+    "all_components_byte_exact": true,
+    "all_component_p_sequences_contiguous": true,
+    "declared_prose_counts_match_actual": true,
+    "unique_navigation_anchor_count": 45,
+    "order": "prefaces, chapters 01 through 44",
+    "protected_file_count": 94,
+    "strict_utf8": true,
+    "replacement_characters": 0,
+    "relative_and_anchor_link_checks": [
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "README.partial-ko.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "review-independent-samples.ko.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "sample-correction.ko.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "england-44-chapters-qa.ko.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "england-44-chapters.manifest.json",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-prefaces",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "prefaces.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch01",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "01-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch02",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "02-coming-of-english.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch03",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "03-conversion-wessex.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch04",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "04-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch05",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "05-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch06",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "06-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch07",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "07-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch08",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "08-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch09",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "09-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch10",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "10-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch11",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "11-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch12",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "12-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch13",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "13-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch14",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "14-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch15",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "15-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch16",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "16-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch17",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "17-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch18",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "18-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch19",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "19-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch20",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "20-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch21",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "21-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch22",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "22-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch23",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "23-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch24",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "24-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch25",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "25-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch26",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "26-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch27",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "27-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch28",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "28-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch29",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "29-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch30",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "30-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch31",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "31-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch32",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "32-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch33",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "33-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch34",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "34-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch35",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "35-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch36",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "36-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch37",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "37-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch38",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "38-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch39",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "39-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch40",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "40-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch41",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "41-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch42",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "42-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch43",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "43-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "#oman-ch44",
+        "kind": "same_file_explicit_anchor",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "44-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "prefaces.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "01-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "02-coming-of-english.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "03-conversion-wessex.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "04-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "05-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "06-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "07-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "06-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "08-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "09-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "10-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "11-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "12-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "13-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "14-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "15-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "16-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "17-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "18-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "19-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "20-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "21-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "22-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "23-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "24-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "25-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "26-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "27-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "28-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "29-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "30-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "31-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "32-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "33-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "34-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "35-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "36-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "37-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "38-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "39-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "40-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "41-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "42-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "43-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "44-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters-qa.ko.md",
+        "target": "england-44-chapters.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters-qa.ko.md",
+        "target": "england-44-chapters.manifest.json",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters-qa.ko.md",
+        "target": "02-worldbuilding-candidate.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "02-worldbuilding-candidate.ko.draft.md",
+        "target": "01-worldbuilding-candidate.ko.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "02-worldbuilding-candidate.ko.draft.md",
+        "target": "england-44-chapters.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "02-worldbuilding-candidate.ko.draft.md",
+        "target": "source-en.txt",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "02-worldbuilding-candidate.ko.draft.md",
+        "target": "39-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "02-worldbuilding-candidate.ko.draft.md",
+        "target": "review-independent-samples.ko.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "02-worldbuilding-candidate.ko.draft.md",
+        "target": "41-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "02-worldbuilding-candidate.ko.draft.md",
+        "target": "41-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "01-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "02-coming-of-english.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "03-conversion-wessex.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "04-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "04-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "05-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "05-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "06-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "06-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "07-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "07-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "08-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "08-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "09-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "09-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "10-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "10-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "11-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "11-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "12-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "12-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "13-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "13-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "14-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "14-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "15-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "15-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "16-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "16-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "17-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "17-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "18-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "18-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "19-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "19-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "20-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "20-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "21-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "21-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "22-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "22-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "23-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "23-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "24-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "24-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "25-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "25-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "26-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "26-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "27-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "27-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "28-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "28-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "29-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "29-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "30-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "30-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "31-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "31-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "32-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "32-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "33-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "33-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "34-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "34-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "35-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "35-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "36-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "36-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "37-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "37-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "38-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "38-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "39-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "39-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "40-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "40-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "41-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "41-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "42-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "42-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "43-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "43-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "44-main-prose.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "44-translation-qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "prefaces.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "01-worldbuilding-candidate.ko.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "england-44-chapters.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "england-44-chapters-qa.ko.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "england-44-chapters.manifest.json",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "review-independent-samples.ko.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "sample-correction.ko.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "02-worldbuilding-candidate.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "frontmatter-index.frontmatter.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "england-44-chapters.ko.draft.md",
+        "target": "frontmatter-index.index.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "frontmatter-index.frontmatter.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "frontmatter-index.index.ko.draft.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "frontmatter-index.qa.md",
+        "kind": "relative_file",
+        "verified": true
+      },
+      {
+        "from": "README.partial-ko.md",
+        "target": "frontmatter-index.manifest.json",
+        "kind": "relative_file",
+        "verified": true
+      }
+    ],
+    "web_url_status_checked": false,
+    "renderer_checked": false,
+    "semantic_review": "Not a full bilingual or professional historical review",
+    "supplement_metadata_update": {
+      "header_byte_delta": 133,
+      "unchanged_components": 45,
+      "components_each_exactly_once": true,
+      "added_local_links": 6
+    }
+  },
+  "excluded": {
+    "frontmatter_index_files": "Completed separately; linked from combined header and README but not included in the 45 body/preface components",
+    "post_body": "Index, publisher advertisements, transcriber notes, Project Gutenberg notices",
+    "images": "Actual map/illustration images not collected; TXT captions retained within chapter bytes",
+    "revisions": "Pre-correction backups are protected records, not current translation components",
+    "source_manifest": "Initial source-manifest.json unchanged including original translation_complete value"
+  },
+  "artifacts": [
+    {
+      "file": "england-44-chapters-qa.ko.md",
+      "bytes": 6802,
+      "sha256": "E9D492719D09CACCF30A0E7D51769D6D6BE2C71979B7882807148E3B96D84FC2"
+    },
+    {
+      "file": "02-worldbuilding-candidate.ko.draft.md",
+      "bytes": 9948,
+      "sha256": "336373E2E37BA8939B6C7E3ED54BDE5EE81481ABD3FDEB73DD8D1DDB624D5F80"
+    }
+  ],
+  "supplement_files": [
+    {
+      "file": "frontmatter-index.frontmatter.ko.draft.md",
+      "bytes": 11686,
+      "sha256": "78A04BD4F411198DC8F80DF65E435B4FCF388084CF799EFA8C7853C4A0758929"
+    },
+    {
+      "file": "frontmatter-index.index.ko.draft.md",
+      "bytes": 193790,
+      "sha256": "45379254E2710745F0B8113070D702522B62274D150E564A4F0BFE5E67588129"
+    },
+    {
+      "file": "frontmatter-index.qa.md",
+      "bytes": 10449,
+      "sha256": "1ACACF4D8812CC23151F57DC2E471799D9ED03ACDF1DEC29E1E5776E78EB28B0"
+    },
+    {
+      "file": "frontmatter-index.manifest.json",
+      "bytes": 129762,
+      "sha256": "23D693520F6A3A3315090CB4BD5E446C4DC6DF4B01D3B848BA2270DFE111BE06"
+    }
+  ]
+}

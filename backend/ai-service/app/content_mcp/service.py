@@ -40,6 +40,12 @@ class EpisodeUpdateResponse(BaseModel):
     draft: DraftRevision
 
 
+def place(body: str, quote: str) -> int | None:
+    """구절이 원고에 한 곳만 있으면 그 위치. str.count는 겹치는 출현('하하하'의 '하하')을 한 번으로 세서 쓰지 않는다(Content 규칙과 같다)."""
+    at = body.find(quote)
+    return at if at >= 0 and body.find(quote, at + 1) < 0 else None
+
+
 def apply_writing(work_id: str, number: int, result: dict) -> dict:
     """승인된 Text는 기존 초안 뒤에 잇고, Patch는 초안 안에 하나뿐인 선택 구간만 바꿔 저장한다."""
     try:
@@ -49,7 +55,7 @@ def apply_writing(work_id: str, number: int, result: dict) -> dict:
     if 'text' in result:
         # 기존 초안을 덮어써 작가 원고를 잃지 않도록 뒤에 잇는다.
         body = f"{draft.body}\n\n{result['text']}" if draft.body.strip() else result['text']
-    elif draft.body.count(result['before']) == 1:
+    elif place(draft.body, result['before']) is not None:
         body = draft.body.replace(result['before'], result['after'])
     else:
         raise ContentMcpFailure(409, SELECTION_CHANGED)

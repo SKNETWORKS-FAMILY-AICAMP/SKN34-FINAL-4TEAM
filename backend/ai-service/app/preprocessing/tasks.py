@@ -5,7 +5,7 @@
 """
 import logging
 
-from app.preprocessing import graph
+from app.preprocessing import graph, service
 from app.preprocessing.errors import UNEXPECTED, StageFailure, error_code
 from app.worker import celery
 
@@ -14,7 +14,8 @@ log = logging.getLogger(__name__)
 
 @celery.task(name='preprocessing.run')
 def run_job(job_id: str, work_id: str, episodes: list[int]) -> None:
-    """접수한 회차의 전처리 그래프를 끝까지 실행한다. 같은 jobId 재접수는 받은 회차만 다시 추출한다."""
+    """접수한 회차의 전처리 그래프를 끝까지 실행한다. 미구현 상태는 직접 큐 메시지로도 우회하지 못한다."""
+    service.require_available()
     try:
         graph.run(job_id, episodes)
     except StageFailure as error:

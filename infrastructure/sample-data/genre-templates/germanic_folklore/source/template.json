@@ -1,0 +1,309 @@
+{
+  "id": "germanic_folklore_default",
+  "genre_id": "germanic_folklore",
+  "genre_name": "게르만 설화 · 홀레 부인",
+  "order": 16,
+  "title": "게르만 설화 · 홀레 부인",
+  "setting_bible": {
+    "title": "게르만 설화 · 홀레 부인",
+    "introduction_markdown": "그림 형제의 「홀레 부인」(1857년 제7판) 한 작품을 바탕으로 한 세계관 카드. 다른 동화나 고대 게르만·북유럽 신화의 설정을 합치지 않으며, 원판의 헤센 지방 각주를 본문과 구분한다.",
+    "sections": [
+      {
+        "id": "germanic_folklore_holle",
+        "order": 1,
+        "title": "홀레 부인",
+        "content_markdown": "커다란 이빨 때문에 첫 소녀를 놀라게 하지만 다정한 말로 집에 머물며 집안일을 맡으라고 제안하는 노파다. 침구를 잘 털어 깃털이 날리게 하면 세상에 눈이 내린다고 말한다. 성실한 소녀에게 화를 내지 않고 좋은 음식을 주며, 귀향 소망을 좋게 여겨 직접 문까지 이끈다. 소녀의 몸에 쏟아지는 황금을 성실한 일의 보수라고 설명하고 실감개도 돌려준다. 일하지 않는 둘째 소녀는 내보내고 역청을 일한 대가로 준다. 다른 작품의 신명이나 계보는 붙이지 않는다.\n\n출전: [홀레 부인: 1857년 제7판 독일어 전사본과 133~136쪽 영인본](https://de.wikisource.org/wiki/Frau_Holle_(1857)).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "holle-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p004"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p006"
+          }
+        ]
+      },
+      {
+        "id": "germanic_folklore_diligent-girl",
+        "order": 2,
+        "title": "부지런한 의붓딸",
+        "content_markdown": "아름답고 부지런하지만 계모에게 온갖 일을 떠맡아 재투성이 하녀로 지내고, 길가 우물 옆에서 손가락에 피가 날 때까지 실을 잣는 의붓딸이다. 피 묻은 실감개를 씻다 빠뜨린 뒤 계모가 되찾아 오라 하자 두려움에 우물로 뛰어든다. 깨어난 풀밭에서 빵과 사과나무의 부탁을 모두 들어주고 홀레의 집에서 성실히 일한다. 이전보다 훨씬 좋은 생활을 누리면서도 자기 식구가 있는 위쪽 세상을 그리워해 돌아가겠다고 청한다. 황금과 실감개를 받아 귀향하며, 가족은 황금 때문에 반긴다.\n\n출전: [홀레 부인: 1857년 제7판 독일어 전사본과 133~136쪽 영인본](https://de.wikisource.org/wiki/Frau_Holle_(1857)).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "holle-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p002"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p003"
+          }
+        ]
+      },
+      {
+        "id": "germanic_folklore_stepmother",
+        "order": 3,
+        "title": "친딸을 편애하는 계모",
+        "content_markdown": "두 딸 가운데 게으르고 못생긴 친딸을 편애하고, 아름답고 부지런한 의붓딸에게 온갖 일을 시키는 과부다. 의붓딸이 실감개를 잃자 직접 다시 가져오라고 명령한다. 황금을 입고 돌아온 소녀는 환대하지만, 사연을 들은 뒤에는 친딸에게도 같은 재산을 얻어 주려고 같은 길을 보내려 한다. 두 딸의 서로 다른 태도와 홀레가 내린 보상의 차이는 통제하지 못한다.\n\n출전: [홀레 부인: 1857년 제7판 독일어 전사본과 133~136쪽 영인본](https://de.wikisource.org/wiki/Frau_Holle_(1857)).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "holle-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p003"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p004"
+          }
+        ]
+      },
+      {
+        "id": "germanic_folklore_lazy-daughter",
+        "order": 4,
+        "title": "게으른 친딸",
+        "content_markdown": "어머니의 편애를 받는 친딸이다. 다른 소녀가 얻은 황금을 자신도 받으려고 손가락을 찌르고 가시에 손을 긁어 실감개에 피를 묻힌 뒤 일부러 우물에 던진다. 빵을 꺼내면 더러워지고 사과를 털면 머리에 맞을 수 있다며 부탁을 거절한다. 홀레의 이빨을 미리 알고 두려워하지 않으며 첫날에는 황금을 생각해 일하지만, 다음 날부터 게을러지고 셋째 날에는 아예 일어나지 않는다. 해고도 보상받을 기회로 여기나 문에서 역청을 뒤집어쓰고, 그것은 죽을 때까지 떨어지지 않는다.\n\n출전: [홀레 부인: 1857년 제7판 독일어 전사본과 133~136쪽 영인본](https://de.wikisource.org/wiki/Frau_Holle_(1857)).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "holle-p004"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p005"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p006"
+          }
+        ]
+      },
+      {
+        "id": "germanic_folklore_holle-well",
+        "order": 5,
+        "title": "풀밭으로 이어지는 우물",
+        "content_markdown": "큰길가의 우물은 두 소녀가 실을 잣는 곳이자 낯선 풀밭으로 내려가는 통로다. 첫 소녀는 실감개를 찾으려 뛰어들었다가 정신을 잃고 풀밭에서 깨어나며, 두 번째 딸도 같은 길에 이른다.\n\n출전: [「홀레 부인」 1857년 제7판, 133~136쪽](https://de.wikisource.org/wiki/Frau_Holle_(1857)).",
+        "template_part": "전승 자료",
+        "card_type": "location",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "holle-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p004"
+          }
+        ]
+      },
+      {
+        "id": "germanic_folklore_holle-bed",
+        "order": 6,
+        "title": "눈을 내리게 하는 침구",
+        "content_markdown": "홀레의 침구를 힘껏 털어 깃털이 날리게 하면 세상에 눈이 내린다. 침구 정돈은 홀레가 구체적으로 당부한 집안일이며, 헤센에서 눈을 홀레의 침구 정돈으로 표현한다는 설명은 원판의 작가 각주다.\n\n출전: [「홀레 부인」 1857년 제7판, 133~136쪽](https://de.wikisource.org/wiki/Frau_Holle_(1857)).",
+        "template_part": "전승 자료",
+        "card_type": "object",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "holle-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-note-001"
+          }
+        ]
+      },
+      {
+        "id": "germanic_folklore_spool",
+        "order": 7,
+        "title": "피 묻은 실감개",
+        "content_markdown": "첫 소녀가 손가락의 피로 더러워진 것을 씻으려다 우물에 빠뜨린 실감개다. 계모의 회수 명령은 소녀가 우물로 뛰어드는 계기가 된다. 홀레는 성실히 일하고 귀향하는 소녀에게 황금뿐 아니라 그 실감개도 돌려준다. 두 번째 소녀는 이 사건을 흉내 내 피를 일부러 묻히고 실감개를 우물에 던진다. 두 소녀가 같은 물건 하나를 공유한다거나 실감개 자체가 마력을 낸다는 설명은 없다.\n\n출전: [홀레 부인: 1857년 제7판 독일어 전사본과 133~136쪽 영인본](https://de.wikisource.org/wiki/Frau_Holle_(1857)).",
+        "template_part": "전승 자료",
+        "card_type": "object",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "holle-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p004"
+          }
+        ]
+      },
+      {
+        "id": "germanic_folklore_helping-on-the-road",
+        "order": 8,
+        "title": "빵과 사과나무의 부탁",
+        "content_markdown": "홀레의 집에 닿기 전에 두 소녀는 다 구워진 빵과 익은 사과나무의 말을 듣는다. 첫 소녀는 빵을 꺼내고 사과를 떨어뜨려 모으지만, 두 번째 딸은 더러워지거나 사과에 맞을까 봐 모두 거절한다.\n\n출전: [「홀레 부인」 1857년 제7판, 133~136쪽](https://de.wikisource.org/wiki/Frau_Holle_(1857)).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "holle-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p004"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p004"
+          }
+        ]
+      },
+      {
+        "id": "germanic_folklore_return-gate",
+        "order": 9,
+        "title": "귀향의 커다란 문",
+        "content_markdown": "홀레가 소녀들의 일을 마친 뒤 데려가는 문이다. 문 아래에서 각자의 보수가 쏟아지며, 첫 소녀는 문이 닫힌 뒤 어머니의 집 근처인 위쪽 세상으로 돌아온다.\n\n출전: [「홀레 부인」 1857년 제7판, 133~136쪽](https://de.wikisource.org/wiki/Frau_Holle_(1857)).",
+        "template_part": "전승 자료",
+        "card_type": "location",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "holle-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p004"
+          }
+        ]
+      },
+      {
+        "id": "germanic_folklore_holle-reward",
+        "order": 10,
+        "title": "황금과 역청의 상반된 귀환",
+        "content_markdown": "성실한 소녀가 고향을 그리워한다고 말하자 홀레는 그 뜻을 좋게 여기고 큰 문으로 이끈다. 소녀가 문 아래 섰을 때 황금이 쏟아져 온몸에 붙으며, 홀레는 부지런히 일했기 때문이라고 말하고 실감개도 돌려준다. 둘째 소녀는 해고되면서도 같은 황금을 기대하지만 역청 한 가마를 뒤집어쓴다. 그 역청은 평생 떨어지지 않는다. 보상은 같은 경로를 따라가기만 하면 반복되는 재산 획득법이 아니다.\n\n출전: [홀레 부인: 1857년 제7판 독일어 전사본과 133~136쪽 영인본](https://de.wikisource.org/wiki/Frau_Holle_(1857)).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "holle-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p004"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p006"
+          }
+        ]
+      },
+      {
+        "id": "germanic_folklore_rooster",
+        "order": 11,
+        "title": "귀환을 알리는 수탉",
+        "content_markdown": "집의 우물 위에서 돌아온 두 소녀를 알아보고 노래한다. 황금에 덮인 첫 소녀와 역청에 덮인 두 번째 딸을 서로 다른 말로 맞아, 각각의 귀환을 드러낸다.\n\n출전: [「홀레 부인」 1857년 제7판, 133~136쪽](https://de.wikisource.org/wiki/Frau_Holle_(1857)).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "holle-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p002"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p004"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p005"
+          }
+        ]
+      },
+      {
+        "id": "germanic_folklore_holle-house",
+        "order": 12,
+        "template_part": "전승 자료",
+        "title": "홀레가 머무는 작은 집",
+        "content_markdown": "꽃 핀 풀밭에서 빵 굽는 화덕과 사과나무를 지나면 닿는 작은 집이다. 그 안에서 커다란 이빨의 노파 홀레가 내다본다. 첫 소녀는 처음 겁을 먹지만 다정한 초대에 들어가 집안일과 침구 정돈을 맡는다. 이곳에서는 꾸중 없이 삶은 음식과 구운 음식을 먹지만 고향 생각까지 사라지지는 않는다. 둘째 소녀도 같은 집에 도착하나 노동을 지속하지 않는다.\n\n출전: [홀레 부인: 1857년 제7판 독일어 전사본과 133~136쪽 영인본](https://de.wikisource.org/wiki/Frau_Holle_(1857)).",
+        "card_type": "location",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "holle-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p004"
+          }
+        ]
+      },
+      {
+        "id": "germanic_folklore_oven-bread",
+        "order": 13,
+        "template_part": "전승 자료",
+        "title": "화덕에서 도움을 청하는 빵들",
+        "content_markdown": "화덕 속에서 소녀에게 자신들을 꺼내 달라고 말하는 빵들이다. 오래 구워져 다 익었으므로 그대로 두면 타 버린다고 호소한다. 첫 소녀는 빵삽으로 모두 꺼내 주지만 둘째 소녀는 더러워지기 싫다며 지나친다. 빵들이 직접 황금이나 벌을 준다는 장면은 없다.\n\n출전: [홀레 부인: 1857년 제7판 독일어 전사본과 133~136쪽 영인본](https://de.wikisource.org/wiki/Frau_Holle_(1857)).",
+        "card_type": "object",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "holle-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p004"
+          }
+        ]
+      },
+      {
+        "id": "germanic_folklore_apple-tree",
+        "order": 14,
+        "template_part": "전승 자료",
+        "title": "잘 익은 사과를 털어 달라는 나무",
+        "content_markdown": "열매가 가득 달려 소녀에게 나무를 흔들어 달라고 말하는 사과나무다. 사과들이 모두 익었다고 부탁하자 첫 소녀는 하나도 남지 않을 때까지 털고 바닥의 열매를 한데 모아 준다. 둘째 소녀는 사과가 머리에 떨어질 수 있다며 거절한다. 이 나무가 홀레의 변신이거나 다른 인물과 동일하다는 설명은 본문에 없다.\n\n출전: [홀레 부인: 1857년 제7판 독일어 전사본과 133~136쪽 영인본](https://de.wikisource.org/wiki/Frau_Holle_(1857)).",
+        "card_type": "object",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "holle-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "holle-p004"
+          }
+        ]
+      }
+    ]
+  }
+}

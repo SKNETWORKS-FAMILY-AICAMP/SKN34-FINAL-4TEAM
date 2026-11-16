@@ -13,9 +13,22 @@ HITL: 대화 안에서 단계 입력이 빠지면 gate가 interrupt로 멈추고
 resume(승인+입력 또는 취소)으로 Router를 다시 부르지 않고 저장된 계획을 이어 실행한다. 체크포인트는
 AsyncPostgresSaver가 PostgreSQL에 보관한다.
 
-Content MCP(DEC-49): 대화 안에서 Content가 반영 대상(target)을 보내면 Writing 결과 뒤 apply 노드가 interrupt로
-작가 승인을 기다린다. 승인 resume이면 그 요청의 사용자 Bearer로 Content MCP에 초안 반영을 요청하고, 거절이면 쓰지 않는다.
-토큰은 요청마다 컨텍스트로만 넘겨 체크포인트에 남기지 않는다.
+Content MCP(DEC-49): 대화 안에서 Content가 반영 대상(target)을 보내면 Writing 결과와 시뮬레이션 장면 뒤 apply 노드가
+interrupt로 작가 승인을 기다린다. 승인 resume이면 그 요청의 사용자 Bearer로 Content MCP에 초안 반영을 요청하고, 거절이면
+쓰지 않는다. 토큰은 요청마다 컨텍스트로만 넘겨 체크포인트에 남기지 않는다.
+
+인물 시뮬레이션(#58·#362): character_simulation은 단계 입력이 없다. simulation_plan 노드가 요청 문장과 연결 세계관의 인물 목록으로
+모드·IF 전제·비트·참여 인물을 한 번 정해 상태에 남기고(gate interrupt에서 되돌아와도 다시 만들지 않는다), 정하지 못한 것이
+있으면 아무 Agent도 실행하지 않고 clarify 한 문장으로 작가가 다음 채팅 메시지로 답하게 한다. [시뮬레이션] 버튼이 보낸 시작
+양식(simulation)이 있으면 모델 없이 그 값을 계획으로 쓰되 세계관으로 확인하고, 어긋나면 되묻지 않고 단계 failed로 끝낸다.
+장면은 단계 노드가 장면 에이전트(app/simulation/scene_agent.py, LangChain create_agent + 미들웨어)로 쓴다. 대화 안에서는 에이전트가 턴
+사이마다 interrupt로 멈추고(이 노드 안에서 바깥 그래프로 전달돼 waiting·awaitingScene이 된다) 같은 대화의 resume이 이 노드를 다시
+실행하면 멈춘 자리에서 이어 간다. 턴이 끝날 때마다 공통 ProgressMiddleware가 장면 결과를 custom stream으로 흘려 SSE step(누적 결과)이 되고, 공통 UsageLedger가 턴별 사용량을 남긴다.
+장면이 끝나면 apply 노드가 승인을 기다리며, 승인 대기 중의 장면 조작(edit·redo·next)은 이 노드로 되돌려 이어 간다.
+끝까지 가지 못해 이어 갈 수 없는 장면(첫 턴 실패)은 부분 결과와 함께 failed다.
+
+설정집 검토(world_review): 단계 입력이 없다. target의 작품에 연결된 세계관을 작가 권한(Content MCP)으로 읽어 HTTP 경로(POST /internal/v1/world-reviews)와
+같은 app/world_review service 함수로 검토하고 지적·수정안을 단계 결과로 돌려준다. 제안일 뿐이라 승인 단계가 없고 조건부 수정과도 이어지지 않는다.
 
 대화 세션 CRUD(#331): 대화용 테이블 없이 체크포인터만 쓴다. 실행마다 checkpoint metadata에 scope를 남겨 목록을 거르고,
 턴마다 최종 응답을 turns에 남겨 이력을 다시 그린다. 메시지 수정·삭제는 그 턴 직전의 완료 checkpoint에서 갈라져 나간다
@@ -29,9 +42,13 @@ from contextlib import asynccontextmanager
 from typing import Annotated, TypedDict
 
 from fastapi.sse import ServerSentEvent
+from langchain_core.messages import HumanMessage
+from langchain_core.runnables import RunnableConfig
+from langchain_core.runnables.config import merge_configs
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from psycopg import AsyncConnection, errors, sql
 from psycopg.conninfo import conninfo_to_dict, make_conninfo
+from langgraph.errors import GraphBubbleUp
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, Overwrite, interrupt
 
@@ -40,17 +57,29 @@ from app.content_mcp import service as content_mcp
 from app.content_mcp.errors import ContentMcpFailure
 from app.intent import service as intent
 from app.intent.errors import IntentFailure
-from app.manuscript import service as manuscript
-from app.manuscript.errors import ManuscriptFailure
-from app.manuscript.models import AnswerRequest
+from app.intent.prompt import CLARIFY_MESSAGE
+from app.story_qa import service as story_qa
+from app.story_qa.errors import StoryQaFailure
+from app.story_qa.models import AnswerRequest
 from app.orchestration.models import (ChatHistory, ChatSession, ChatTurn, OrchestrationRequest, OrchestrationResponse,
-                                      QaStepResult)
+                                      QaStepResult, Resume)
 from app.research import service as research
 from app.research.errors import ResearchFailure
 from app.research.models import ResearchRequest
 from app.retrieval import service as retrieval
 from app.retrieval.errors import RetrievalFailure
 from app.retrieval.models import RetrievalScope
+from app.review import service as review
+from app.review.errors import ReviewFailure
+from app.review.models import ReviewRequest
+from app.simulation import service as simulation
+from app.agent_runtime import UsageLedger
+from app.simulation.errors import SimulationFailure
+from app.simulation.models import GAP_LABELS, Scene, SimulationPlan
+from app.simulation.scene_agent import scene_agent, turn as simulation_turn
+from app.simulation.service import SceneContext
+from app.world_review import service as world_review
+from app.world_review.errors import WorldReviewFailure
 from app.writing import agent as writing
 from app.writing.errors import WritingFailure
 from app.writing.models import DraftRequest, PatchRequest
@@ -62,35 +91,79 @@ def _story_context(data: dict | None, state: dict) -> QaStepResult:
     gaps, coverage = [], None
     if data is None:
         # shortcut: 검색어는 이번 요청 문장 그대로다. 지칭만 있는 후속 질문의 검색이 약하면 이전 질문을 붙이는 재작성을 검토한다.
-        found = retrieval.retrieve(RetrievalScope.model_validate(state['retrievalScope']), state['request'])
+        found = retrieval.retrieve(RetrievalScope.model_validate(state['retrievalScope']), _task(state))
         gaps, coverage = [g.detail for g in found.gaps], found.coverage
         if not found.excerpts:
             return QaStepResult(claims=[], gaps=gaps, coverage=coverage)
-        data = {'question': state['request'][:500], 'excerpts': [e.model_dump() for e in found.excerpts]}
+        data = {'question': _task(state)[:500], 'excerpts': [e.model_dump() for e in found.excerpts]}
     history = [] if state.get('replaceHistory') else [t['qa'] for t in state.get('turns', []) if t['qa']][-HISTORY_TURNS:]
-    answer = manuscript.answer(AnswerRequest.model_validate({**data, 'history': history}))
+    answer = story_qa.answer(AnswerRequest.model_validate({**data, 'history': history}))
     cited = {i for claim in answer.claims for i in claim.sourceIds}
     return QaStepResult(claims=answer.claims, gaps=gaps + answer.gaps, coverage=coverage,
                         sources=[e for e in data['excerpts'] if e['id'] in cited])
 
 
-# 구현된 업무 Agent. 입력은 StepInputs의 같은 이름 필드(JSON)다.
+def _writing(data: dict):
+    """새 원고 또는 부분 수정. 검수 지적 번호(fix)는 Review 뒤 조건부 수정에서만 patch로 바뀌어 온다."""
+    if 'draft' in data:
+        return writing.draft(DraftRequest.model_validate(data['draft']))
+    if 'patch' not in data:
+        raise WritingFailure(422, BAD_FIX)
+    return writing.patch(PatchRequest.model_validate(data['patch']))
+
+
+def _review(data: dict, state: dict):
+    """원고 검수. 검사 종류만 단계 입력이고, 검수할 초안은 Content가 확인한 반영 대상(target) 회차다."""
+    target = state.get('target')
+    if not target:
+        raise ReviewFailure(422, NO_REVIEW_TARGET)
+    return review.review(ReviewRequest(workId=target['workId'], episode=target['episode'], check=data['check']))
+
+
+def _world_review(state: dict):
+    """설정집 검토. 단계 입력이 없고 검토할 세계관은 Content가 확인한 작품(target)에 연결된 세계관이다. HTTP 경로와 같은 service 함수를 쓴다."""
+    target = state.get('target')
+    if not target:
+        raise WorldReviewFailure(422, NO_WORLD_REVIEW_TARGET)
+    return world_review.review(world_review.linked_request(target['workId']))
+
+
+# 한 번 호출하고 끝나는 업무 Agent. 입력은 StepInputs의 같은 이름 필드(JSON)다.
 # Q&A만 대화 기록·Retrieval을 쓴다. 웹 조사는 외부 전송이라 작가가 고른 질문·맥락 외에는 보내지 않는다.
 CALLS = {
     'story_context': _story_context,
-    'writing_editing': lambda data, state: (writing.draft(DraftRequest.model_validate(data['draft'])) if 'draft' in data
-                                            else writing.patch(PatchRequest.model_validate(data['patch']))),
+    'writing_editing': lambda data, state: _writing(data),
     'web_research': lambda data, state: research.research(ResearchRequest.model_validate(data)),
+    'review': _review,
+    'world_review': lambda data, state: _world_review(state),
 }
+NO_REVIEW_TARGET = '검수할 작품과 회차를 확인할 수 없어요.'
+NO_WORLD_REVIEW_TARGET = '검토할 작품을 확인할 수 없어요.'
+NO_ISSUES = '검수에서 고칠 문제를 찾지 못해 수정하지 않았어요.'
+ONLY_SUSPECTED = '확정된 문제가 없어 자동으로 고치지 않았어요. 의심 지적은 고칠 구간을 골라 집필·수정을 따로 요청해 주세요.'
+PICK_NEEDED = '확정된 문제가 여러 곳이라 자동으로 고치지 않았어요. 고칠 구간을 골라 집필·수정을 따로 요청해 주세요.'
+BAD_FIX = '고칠 수 있는 확정 지적이 아니에요. 검수 결과에서 확정 지적을 골라 주세요.'
+DRAFT_CHANGED = '검수한 뒤 초안이 바뀌어 고치지 않았어요. 다시 검수해 주세요.'
+BAD_DRAFT = 'Content 초안 응답을 확인할 수 없습니다.'
+# 구현된 기능. 시뮬레이션은 단계 입력 없이 simulationPlan을 쓰고 턴 사이에서 멈추는 전용 노드(character_simulation)가 실행한다.
+FEATURES = (*CALLS, 'character_simulation')
 # shortcut: 최근 5턴만 넘기고 요약하지 않는다. 긴 대화의 앞부분 지칭이 필요해지면 요약을 검토한다.
 HISTORY_TURNS = 5
-FAILURES = (ManuscriptFailure, WritingFailure, ResearchFailure, RetrievalFailure)
+FAILURES = (StoryQaFailure, WritingFailure, ResearchFailure, RetrievalFailure, SimulationFailure, ContentMcpFailure, ReviewFailure,
+            WorldReviewFailure)
+LIMIT_MESSAGE = '시뮬레이션이 호출 한도를 넘어 멈췄어요.'
+APPROVABLE = ('writing_editing', 'character_simulation')  # 결과를 작가가 승인하면 초안에 반영하는 단계
 UNSUPPORTED_MESSAGE = ('요청에 아직 실행할 수 없는 작업이 있어 아무 작업도 실행하지 않았어요. '
-                       '작품 질문, 집필·수정, 고증 조사는 각각 요청할 수 있어요.')
+                       '작품 질문, 원고 검수, 설정집 검토, 집필·수정, 고증 조사, 인물 시뮬레이션은 각각 요청할 수 있어요.')
 NEEDS_INPUT_MESSAGE = '작업에 필요한 자료가 빠져 있어 아무 작업도 실행하지 않았어요.'
 WAITING_MESSAGE = '작업에 필요한 자료를 기다리고 있어요. 자료를 보내거나 취소하면 이어서 진행해요.'
-APPROVAL_MESSAGE = 'Writing 결과를 원고 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.'
+APPROVAL_MESSAGES = {'writing_editing': 'Writing 결과를 원고 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.',
+                     'character_simulation': '시뮬레이션 장면을 원고 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.'}
 CANCELLED_MESSAGE = '요청을 취소해 아무 작업도 실행하지 않았어요.'
+SCENE_MESSAGE = '시뮬레이션 장면을 진행하고 있어요. 다음 턴을 이어 가거나 줄을 고치고 다시 말하게 하거나 끝낼 수 있어요.'
+SCENE_NOT_WAITING = '지금은 장면을 조작할 수 없어요.'
+SCENE_NO_TURN = '장면에 그 번호의 턴이 없어요.'
+SCENE_FIRST = '장면이 끝난 뒤에 승인할 수 있어요. 지금은 장면을 이어 가거나 끝내거나 반영하지 않기로 해 주세요.'
 FAILED_MESSAGE = '작업 중 실패가 있어 남은 작업을 실행하지 않았어요.'
 ROUTER_FAILED_MESSAGE = '요청 분류에 실패했습니다.'
 CONVERSATION_MISMATCH_MESSAGE = '다른 사용자나 작품의 대화는 이어갈 수 없습니다.'
@@ -122,6 +195,10 @@ class ConversationUnavailable(Exception):
     """대화 체크포인트 저장소(AI_CHECKPOINT_DATABASE_URL)가 설정되지 않았다."""
 
 
+class SceneRejected(Exception):
+    """resume.scene을 지금 받을 수 없다: 장면·승인 대기가 아니거나 없는 턴을 가리키거나 장면이 끝나기 전에 승인했다. 메시지는 고정 문구다."""
+
+
 class State(TypedDict, total=False):
     request: str
     operation: str | None
@@ -135,6 +212,11 @@ class State(TypedDict, total=False):
     scope: str | None
     retrievalScope: dict | None  # Content가 확인한 Q&A 조회 키. 있으면 Q&A가 Retrieval로 근거를 받는다.
     target: dict | None  # Content가 확인한 Writing 반영 대상(workId·episode). 토큰은 담지 않는다.
+    simulationPlan: dict | None  # simulation_plan이 정한 시뮬레이션 계획(SimulationPlan JSON). 장면 단계가 쓴다.
+    task: str | None  # Router 되묻기에 기능 이름으로 답한 턴이 실행할 요청(되물음을 받은 직전 요청). 없으면 request를 실행한다.
+    simulationForm: dict | None  # [시뮬레이션] 버튼의 시작 양식(SimulationPlan JSON). 있으면 simulation_plan이 모델 없이 이 값을 계획으로 쓴다.
+    scene: dict | None  # 끝났거나 승인을 기다리는 장면(Scene JSON). 승인 대기 중 장면 조작이 이 장면에서 이어 간다. 진행 중 장면은 에이전트 상태에 있다.
+    sceneAction: dict | None  # 승인 대기에서 장면으로 돌아온 작가의 조작(SceneAction JSON). 다음 에이전트 실행이 처리한다.
     runId: str | None  # Langfuse trace id. resume한 단계도 같은 trace에 붙는다.
     traceParent: str | None
     title: str  # 대화 제목. 첫 턴 요청 앞부분이며 rename으로만 바뀐다.
@@ -142,20 +224,80 @@ class State(TypedDict, total=False):
     turns: Annotated[list[dict], operator.add]  # 턴마다 {request, qa, reply}를 하나씩 덧붙인다.
 
 
+def _previous(state: State) -> list[dict]:
+    """이전 턴들. 메시지 수정으로 대화를 다시 시작하는 턴에는 없다."""
+    return [] if state.get('replaceHistory') else state.get('turns', [])
+
+
+def _history(state: State) -> list[str]:
+    """이전 턴의 요청. 지칭 해석용 자료로만 쓴다."""
+    return [t['request'] for t in _previous(state)][-HISTORY_TURNS:]
+
+
+def _task(state: State) -> str:
+    """이번 턴이 실행하는 요청. 되물음에 기능 이름으로 답한 턴은 되물음을 받은 직전 요청이고, 아니면 작가가 보낸 request다."""
+    return state.get('task') or state['request']
+
+
+def _clarified(state: State) -> tuple[str, str] | None:
+    """직전 턴이 Router의 되묻기였고 이번 요청이 그 보기 이름이면 (그 기능, 되물음을 받은 요청). 아니면 None.
+
+    UI가 operation을 골랐으면 그것이 우선한다. 시뮬레이션 계획의 되묻기는 문구가 달라 해당하지 않는다.
+    """
+    feature, last = intent.clarified(state['request']), _previous(state)[-1:]
+    if state.get('operation') or not feature or not last or (last[0].get('reply') or {}).get('message') != CLARIFY_MESSAGE:
+        return None
+    return feature, last[0]['request']
+
+
 def plan(state: State) -> State:
-    """Router 계획을 검증한다. 실행할 수 있으면 status=running과 대기 단계를 남긴다."""
-    history = [] if state.get('replaceHistory') else [t['request'] for t in state.get('turns', [])][-HISTORY_TURNS:]
-    with tracing.observe('plan', trace_context=_trace(state), input={'request': state['request']}) as span:
-        routed = intent.route(state['request'], state.get('operation'), state['materials'], history)
+    """Router 계획을 검증한다. 실행할 수 있으면 status=running과 대기 단계를 남긴다.
+
+    작가가 되묻기에 기능 이름으로 답했으면 모델에게 다시 분류시키지 않는다. 되물음을 받은 요청을 그 기능의 operation 경로(가드레일만)로
+    확정하고 이번 턴은 그 요청을 실행한다(task).
+    """
+    asked = _clarified(state)
+    if asked:
+        operation, request, history = asked[0], asked[1], []
+    else:
+        operation, request, history = state.get('operation'), state['request'], _history(state)
+    with tracing.observe('plan', trace_context=_trace(state), input={'request': request}) as span:
+        routed = intent.route(request, operation, state['materials'], history)
         span.update(metadata={'status': routed.status, 'steps': [[s.feature, s.when] for s in routed.steps]})
     if routed.status != 'route':
         return {'status': routed.status, 'message': routed.message, 'steps': []}
     steps = [{'feature': s.feature, 'when': s.when, 'status': 'not_started'} for s in routed.steps]
-    # 조건부 단계는 Review의 Finding 연결 계약이 필요하다. Review가 없고 웹 조사 뒤 조건부 수정은 미지원이다.
-    unsupported = [s.feature for s in routed.steps if s.feature not in CALLS or s.when != 'always']
+    # 조건부 단계는 Review 바로 뒤의 집필·수정만 실행한다(#370). 웹 조사·World & Plot 뒤의 조건부 수정은 Finding 연결 계약이 없어 미지원이다.
+    unsupported = [s.feature for i, s in enumerate(routed.steps) if s.feature not in FEATURES or (
+        s.when != 'always' and not (i > 0 and s.feature == 'writing_editing' and routed.steps[i - 1].feature == 'review'))]
     if unsupported:
         return {'status': 'unsupported', 'message': UNSUPPORTED_MESSAGE, 'steps': steps, 'unsupported': unsupported}
-    return {'status': 'running', 'steps': steps}
+    # Router가 검수 종류를 알아냈으면 단계 입력으로 채워 묻지 않는다. 작가가 보낸 입력이 있으면 그것이 우선한다(#369).
+    found = {'review': {'check': s.check} for s in routed.steps if s.check}
+    return {'status': 'running', 'steps': steps, 'inputs': {**found, **state['inputs']}, **({'task': request} if asked else {})}
+
+
+def simulation_plan(state: State) -> State:
+    """시뮬레이션 계획(모드·IF 전제·비트·참여 인물)을 요청 문장과 연결 세계관의 인물 목록으로 정한다.
+
+    정하지 못한 것이 있으면 아무 Agent도 실행하지 않고 clarify로 빠진 것을 한 문장으로 돌려준다. 작가가 다음 채팅 메시지로
+    답하면 새 턴이 이전 요청을 history로 받아 다시 정한다. 계획은 이 노드에서 한 번만 만들어 상태에 남긴다.
+    """
+    steps = [dict(s) for s in state['steps']]
+    step = next(s for s in steps if s['feature'] == 'character_simulation')
+    try:
+        with tracing.observe('step.character_simulation.plan', as_type='agent', trace_context=_trace(state)):
+            if form := state.get('simulationForm'):  # 버튼 진입: 모델에게 묻지 않고 작가가 양식에 적은 값을 세계관으로 확인해 쓴다
+                drafted = simulation.plan_from_form(SimulationPlan.model_validate(form), state.get('target'))
+            else:
+                drafted = simulation.plan(_task(state), _history(state), state.get('target'))
+    except FAILURES as error:
+        step.update(status='failed', error=str(error))
+        return {'steps': steps}
+    if gaps := drafted.gaps():
+        asked = ', '.join(GAP_LABELS[g] for g in gaps)
+        return {'status': 'clarify', 'steps': [], 'message': f'시뮬레이션을 시작하려면 {asked}을(를) 알려 주세요.'}
+    return {'simulationPlan': drafted.model_dump(mode='json')}
 
 
 def gate(state: State) -> State:
@@ -165,8 +307,10 @@ def gate(state: State) -> State:
     값을 돌려받아 여러 번 기다려도 같은 결과가 된다.
     """
     inputs, scope = dict(state['inputs']), state.get('retrievalScope')
-    while missing := [s['feature'] for s in state['steps'] if s['feature'] not in inputs
-                      and not (s['feature'] == 'story_context' and scope)]:
+    # 시뮬레이션은 단계 입력이 없다(simulation_plan이 계획을 정한다). 설정집 검토도 입력 없이 target의 연결 세계관을 읽는다.
+    # Q&A는 scope가 있으면 입력 없이 Retrieval로 근거를 받는다. 조건부 수정은 입력이 없다(Review 결과로 만든다).
+    while missing := [s['feature'] for s in state['steps'] if s['feature'] not in inputs and s['when'] == 'always'
+                      and s['feature'] not in ('character_simulation', 'world_review') and not (s['feature'] == 'story_context' and scope)]:
         if not state.get('scope'):  # 대화가 없으면 체크포인트가 없어 멈췄다 이어갈 수 없다.
             return {'status': 'needs_input', 'message': NEEDS_INPUT_MESSAGE, 'missingInputs': missing}
         answer = interrupt({'steps': state['steps'], 'missingInputs': missing})
@@ -178,13 +322,60 @@ def gate(state: State) -> State:
     return {'inputs': inputs, 'retrievalScope': scope}
 
 
+async def character_simulation(state: State, config: RunnableConfig) -> State:
+    """장면 에이전트로 장면을 쓴다. 대화 안에서는 턴이 끝날 때마다 에이전트가 interrupt로 멈춘다.
+
+    에이전트의 interrupt는 이 노드를 지나 바깥 그래프로 전달되어 waiting(awaitingScene)이 된다. 같은 대화의 resume이 이 노드를 처음부터
+    다시 실행하면 에이전트는 멈춘 자리에서 이어 가므로 여기서 만드는 입력은 새 실행일 때만 쓰인다. 에이전트가 끝나면(장면 완결·작가의
+    stop·반려, 이어 갈 수 없는 실패) 단계 결과를 남기고 돌아온다. 승인 대기 중 돌아온 작가의 조작(sceneAction)은 새 실행의 시작에서
+    장면에 반영된다. 대화가 없으면 멈출 수 없어 에이전트가 장면이 끝날 때까지 한 번에 돈다.
+    """
+    steps = [dict(s) for s in state['steps']]
+    plan, pausing = SimulationPlan.model_validate(state['simulationPlan']), bool(state.get('scope'))
+    scene = Scene.model_validate(state['scene']) if state.get('scene') else simulation.new_scene(plan)
+    context = SceneContext(plan=plan, target=state.get('target'), request=_task(state), scope=state.get('retrievalScope'), steps=steps,
+                           pausing=pausing)
+    seed = {'messages': [HumanMessage('장면을 진행해 주세요.')], 'scene': scene.model_dump(mode='json'), 'pending': False,
+            'decision': None, 'action': state.get('sceneAction')}
+    config = merge_configs(config, {'callbacks': [UsageLedger('simulation.turn', simulation_turn, _trace(state))]})
+    out = paused = None
+    with tracing.observe('step.character_simulation', as_type='agent', trace_context=_trace(state)):
+        try:
+            out = await scene_agent(pausing).ainvoke(seed, config, context=context)
+        except GraphBubbleUp as pause:  # 턴 사이 대기는 정상이라 추적에 실패로 남기지 않는다
+            paused = pause
+    if paused:
+        raise paused
+    final = Scene.model_validate(out['scene'])
+    if final.result.status in ('running', 'paused') and not final.declined:
+        # 에이전트는 장면이 끝나거나 멈춰야 끝난다. 이어 갈 장면인데 끝났다면 호출 한도(안전망)가 끊은 것이다. 쌓은 턴은 두고 이유를 남긴다.
+        final = simulation.stop_scene(final, LIMIT_MESSAGE, 'stopped', 'call_limit')
+    index = next(i for i, s in enumerate(steps) if s['feature'] == 'character_simulation')
+    steps[index] = context.step(final)
+    done: State = {'steps': steps, 'sceneAction': None, 'scene': final.model_dump(mode='json')}
+    if final.declined:  # 작가가 장면을 반영하지 않기로 했다
+        done.update(status='cancelled', message=CANCELLED_MESSAGE)
+    return done
+
+
+class Skipped(Exception):
+    """조건부 수정이 고칠 확정 지적이 없어 실행하지 않는다. 메시지가 작가에게 보일 이유다."""
+
+
 def _node(feature: str):
     def run_step(state: State) -> State:
         steps = [dict(s) for s in state['steps']]
         step = next(s for s in steps if s['status'] == 'not_started')
+        data = state['inputs'].get(feature)
         try:
+            if step['when'] == 'if_issues_found':  # plan이 Review 바로 뒤의 집필·수정만 허용한다
+                data = _review_fix(state, data)
+                if data is None:
+                    return {'status': 'cancelled', 'message': CANCELLED_MESSAGE}
             with tracing.observe(f'step.{feature}', as_type='agent', trace_context=_trace(state)):
-                step.update(status='completed', result=CALLS[feature](state['inputs'].get(feature), state).model_dump(mode='json'))
+                step.update(status='completed', result=CALLS[feature](data, state).model_dump(mode='json'))
+        except Skipped as skip:
+            step.update(status='skipped', error=str(skip))
         except FAILURES as error:
             step.update(status='failed', error=str(error))
         return {'steps': steps}
@@ -192,31 +383,77 @@ def _node(feature: str):
     return run_step
 
 
+def _review_fix(state: State, data: dict | None) -> dict | None:
+    """조건부 수정(#370): 직전 Review의 확정 지적 하나를 부분 수정(patch) 입력으로 만든다. None이면 작가가 고르기를 취소했다.
+
+    확정 지적만 고친다(위치가 하나로 정해진 지적만 확정이다). 하나면 바로, 여러 개면 대화에서 작가가 고른다(fix). 고칠 구간 앞뒤 문장은
+    검수한 판본 그대로인지 확인한 초안에서 잘라 보낸다. interrupt 앞에는 부수효과를 두지 않는다(resume 때 이 노드가 다시 실행된다).
+    """
+    review = next(s['result'] for s in state['steps'] if s['feature'] == 'review')
+    findings = review['findings']
+    confirmed = [i for i, f in enumerate(findings) if f['status'] == 'confirmed']
+    if not confirmed:
+        raise Skipped(ONLY_SUSPECTED if findings else NO_ISSUES)
+    pick = (data or {}).get('fix', confirmed[0] if len(confirmed) == 1 else None)
+    if pick is None:
+        if not state.get('scope'):  # 대화가 없으면 멈춰 고르게 할 수 없다
+            raise Skipped(PICK_NEEDED)
+        answer = interrupt({'steps': state['steps'], 'missingInputs': ['writing_editing']})
+        if not answer['approved']:
+            return None
+        pick = answer['inputs'].get('writing_editing', {}).get('fix')
+    if pick not in confirmed:
+        raise WritingFailure(422, BAD_FIX)
+    chosen, target = findings[pick], state['target']
+    try:
+        draft = content_mcp.call('episode_read', {'id': target['workId'], 'number': target['episode']})['draft']
+        body, revision = draft['body'], draft['revision']
+    except (LookupError, TypeError):
+        raise ContentMcpFailure(502, BAD_DRAFT) from None
+    at = content_mcp.place(body, chosen['quote']) if isinstance(body, str) else None
+    if revision != review['revision'] or at is None:
+        raise ContentMcpFailure(409, DRAFT_CHANGED)
+    # shortcut: 허용 문맥(context) 없이 지적의 이유·제안만 지시로 보낸다. 설정을 고쳐 써야 하는 수정이 약하면 Semantic 근거 설정을 context로 넘긴다.
+    return {'patch': {'selection': chosen['quote'], 'instruction': f"{chosen['reason']} 제안: {chosen['suggestion']}"[:2000],
+                      'precedingText': body[:at][-2000:], 'followingText': body[at + len(chosen['quote']):][:2000]}}
+
+
 def apply(state: State) -> State:
-    """Writing 결과를 작가에게 보여 주고 승인하면 사용자 권한으로 Content MCP에 초안 반영을 요청한다.
+    """승인 대기 중인 Writing 결과나 시뮬레이션 장면을 작가에게 보여 주고 승인하면 사용자 권한으로 Content MCP에 초안 반영을 요청한다.
 
     resume 때 이 노드는 처음부터 다시 실행되므로 interrupt 앞에는 부수효과를 두지 않는다. 반영 실패는 결과를 보존한 채
     단계 실패로 남겨 남은 단계를 시작하지 않는다.
     """
     steps = [dict(s) for s in state['steps']]
-    step = next(s for s in steps if s['feature'] == 'writing_editing')
-    answer = interrupt({'steps': state['steps'], 'awaitingApproval': 'writing_editing'})
+    feature = _pending(state)['feature']
+    step = next(s for s in steps if s['feature'] == feature)
+    answer = interrupt({'steps': state['steps'], 'awaitingApproval': feature})
+    if feature == 'character_simulation' and answer.get('scene'):
+        # 승인 대신 장면을 고치거나 이어 가는 조작이다(승인·거절은 scene 없는 답으로만 한다). 단계를 다시 진행 중으로 돌리고
+        # 조작은 character_simulation 노드가 새 에이전트 실행의 시작에서 처리한다.
+        step.update(status='not_started')
+        step.pop('error', None)
+        return {'steps': steps, 'sceneAction': answer['scene'], 'retrievalScope': answer.get('scope') or state.get('retrievalScope')}
     step['approval'] = 'approved' if answer['approved'] else 'declined'
     if answer['approved']:
         target = state['target']
+        # 장면은 지문 + "대사" 문단을 빈 줄로 이어 Text 경로(초안 뒤에 잇기)로 반영한다.
+        result = step['result'] if feature == 'writing_editing' else {'text': '\n\n'.join(t['prose'] for t in step['result']['turns'])}
         try:
-            with tracing.observe('step.writing_editing.apply', as_type='tool', trace_context=_trace(state),
+            with tracing.observe(f'step.{feature}.apply', as_type='tool', trace_context=_trace(state),
                                  metadata={'episode': target['episode']}):
-                step['applied'] = content_mcp.apply_writing(target['workId'], target['episode'], step['result'])
+                step['applied'] = content_mcp.apply_writing(target['workId'], target['episode'], result)
         except ContentMcpFailure as error:
             step.update(status='failed', error=str(error))
     return {'steps': steps, 'retrievalScope': answer.get('scope') or state.get('retrievalScope')}
 
 
-def _awaiting_approval(state: State) -> bool:
-    """대화 안의 반영 대상이 있고, 완료된 Writing 결과에 아직 작가의 답이 없다."""
-    return bool(state.get('scope') and state.get('target')) and any(
-        s['feature'] == 'writing_editing' and s['status'] == 'completed' and 'approval' not in s for s in state['steps'])
+def _pending(state: State) -> dict | None:
+    """대화 안의 반영 대상이 있을 때, 작가의 답을 아직 못 받은 완료된 결과(Writing·시뮬레이션 장면)의 첫 단계."""
+    if not (state.get('scope') and state.get('target')):
+        return None
+    return next((s for s in state['steps'] if s['feature'] in APPROVABLE and s['status'] == 'completed'
+                 and 'approval' not in s), None)
 
 
 def finish(state: State) -> State:
@@ -229,7 +466,7 @@ def finish(state: State) -> State:
               None)
     if qa:
         answer = ' '.join(c['text'] for c in qa['claims']) or ' '.join(qa['gaps'])
-        question = state['inputs'].get('story_context', {}).get('question') or state['request'][:500]
+        question = state['inputs'].get('story_context', {}).get('question') or _task(state)[:500]
         qa = {'question': question, 'answer': answer[:2000]}
     reply = _response({**state, **done}).model_dump(mode='json')
     turn = [{'request': state['request'], 'qa': qa, 'reply': reply}]
@@ -243,30 +480,45 @@ def _trace(state: State) -> dict | None:
 
 
 def _next(state: State) -> str:
-    """승인 대기 중인 Writing 결과가 있으면 apply로, 아니면 대기 중인 첫 단계의 기능 노드로 간다.
+    """승인 대기 중인 Writing 결과·시뮬레이션 장면이 있으면 apply로, 아니면 대기 중인 첫 단계의 기능 노드로 간다.
 
     실패가 있으면 새 단계를 시작하지 않는다.
     """
     if state['status'] != 'running' or any(s['status'] == 'failed' for s in state['steps']):
         return 'finish'
-    if _awaiting_approval(state):
+    if _pending(state):
         return 'apply'
     return next((s['feature'] for s in state['steps'] if s['status'] == 'not_started'), 'finish')
+
+
+def _after_plan(state: State) -> str:
+    """시뮬레이션 단계가 있으면 먼저 계획을 정하고, 아니면 입력 확인(gate)으로 간다."""
+    if state['status'] != 'running':
+        return 'finish'
+    return 'simulation_plan' if any(s['feature'] == 'character_simulation' for s in state['steps']) else 'gate'
+
+
+def _after_simulation_plan(state: State) -> str:
+    """계획이 서면 입력 확인으로 가고, 되묻거나 계획 단계가 실패했으면 아무 단계도 실행하지 않고 끝낸다."""
+    failed = any(s['status'] == 'failed' for s in state['steps'])
+    return 'gate' if state['status'] == 'running' and not failed else 'finish'
 
 
 def build() -> StateGraph:
     graph = StateGraph(State)
     graph.add_node('plan', plan)
+    graph.add_node('simulation_plan', simulation_plan)
     graph.add_node('gate', gate)
     for feature in CALLS:
         graph.add_node(feature, _node(feature))
+    graph.add_node('character_simulation', character_simulation)
     graph.add_node('apply', apply)
     graph.add_node('finish', finish)
     graph.add_edge(START, 'plan')
-    graph.add_conditional_edges('plan', lambda state: 'gate' if state['status'] == 'running' else 'finish',
-                                ['gate', 'finish'])
-    for name in ('gate', *CALLS, 'apply'):
-        graph.add_conditional_edges(name, _next, [*CALLS, 'apply', 'finish'])
+    graph.add_conditional_edges('plan', _after_plan, ['simulation_plan', 'gate', 'finish'])
+    graph.add_conditional_edges('simulation_plan', _after_simulation_plan, ['gate', 'finish'])
+    for name in ('gate', *FEATURES, 'apply'):
+        graph.add_conditional_edges(name, _next, [*FEATURES, 'apply', 'finish'])
     graph.add_edge('finish', END)
     return graph
 
@@ -323,10 +575,11 @@ def _initial(data: OrchestrationRequest) -> State:
                                        metadata={'operation': data.operation, 'conversation': data.conversation is not None})
     return {'runId': run_id, 'traceParent': parent, 'request': data.request, 'operation': data.operation, 'materials': data.materials,
             'inputs': data.inputs.model_dump(exclude_none=True), 'status': 'planning', 'message': None,
-            'steps': [], 'missingInputs': [], 'unsupported': [], 'replaceHistory': False,
+            'steps': [], 'missingInputs': [], 'unsupported': [], 'replaceHistory': False, 'simulationPlan': None, 'task': None,
+            'scene': None, 'sceneAction': None, 'simulationForm': data.simulation.model_dump(mode='json') if data.simulation else None,
             'scope': data.conversation.scope if data.conversation else None,
             'retrievalScope': data.scope.model_dump() if data.scope else None,
-            'target': data.target.model_dump() if data.target else None}
+            'target': data.target.model_dump(exclude_none=True) if data.target else None}
 
 
 async def _target(data: OrchestrationRequest):
@@ -351,15 +604,37 @@ async def _target(data: OrchestrationRequest):
         return CHAT, config, state, dict(state)
     if not snapshot.interrupts:
         raise NothingToResume()
+    _check_scene(data.resume, snapshot.interrupts[0].value)
     return CHAT, config, Command(resume=data.resume.model_dump(mode='json', exclude_none=True)), dict(snapshot.values)
+
+
+def _check_scene(resume: Resume, waiting: dict) -> None:
+    """멈춘 실행이 받을 수 있는 장면 조작인지 그래프를 실행하기 전에 확인한다(어긋나면 상태가 바뀌지 않는다).
+
+    scene은 장면 대기나 장면 승인 대기에서만 받고 턴 번호는 장면 안이어야 한다. 장면이 끝나기 전의 승인(scene 없는 approved=true)은
+    받지 않는다. 거절(approved=false)만 장면을 반영하지 않고 끝낸다.
+    """
+    on_scene = waiting.get('awaitingScene') == 'character_simulation'
+    on_approval = waiting.get('awaitingApproval') == 'character_simulation'
+    if resume.scene is None:
+        if on_scene and resume.approved:
+            raise SceneRejected(SCENE_FIRST)
+        return
+    if not (on_scene or on_approval):
+        raise SceneRejected(SCENE_NOT_WAITING)
+    shown = next(step for step in waiting['steps'] if step['feature'] == 'character_simulation')
+    if resume.scene.turn is not None and resume.scene.turn >= len((shown.get('result') or {}).get('turns', [])):
+        raise SceneRejected(SCENE_NO_TURN)
 
 
 def _response(state: dict) -> OrchestrationResponse:
     if state.get('__interrupt__'):
         waiting = state['__interrupt__'][0].value
-        approval = waiting.get('awaitingApproval')
-        state = {**state, 'status': 'waiting', 'message': APPROVAL_MESSAGE if approval else WAITING_MESSAGE,
-                 'missingInputs': waiting.get('missingInputs', []), 'awaitingApproval': approval,
+        approval, scene = waiting.get('awaitingApproval'), waiting.get('awaitingScene')
+        message = APPROVAL_MESSAGES[approval] if approval else SCENE_MESSAGE if scene else WAITING_MESSAGE
+        # 장면은 에이전트 상태에서 진행 중이라 바깥 상태의 단계에는 아직 결과가 없다. 멈춘 payload의 단계가 현재 모습이다.
+        state = {**state, 'status': 'waiting', 'message': message, 'steps': waiting.get('steps', state.get('steps', [])),
+                 'missingInputs': waiting.get('missingInputs', []), 'awaitingApproval': approval, 'awaitingScene': scene,
                  'approvalEpisode': (state.get('target') or {}).get('episode') if approval else None}
     return OrchestrationResponse.model_validate({k: v for k, v in state.items() if k in OrchestrationResponse.model_fields})
 
@@ -459,29 +734,48 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
     """같은 그래프를 노드 단위로 흘려 plan → (started → step)* → done 이벤트를 보낸다.
 
     started는 다음 노드가 실제로 실행할 단계라서 화면의 진행 표시가 그래프 상태와 같다. interrupt로 멈추면
-    waiting(계획·빠진 입력)과 done(status=waiting)으로 끝난다. 응답 헤더를 보낸 뒤라 Router 실패·대화 오류는
-    HTTP 상태 대신 error 이벤트 하나로 알린다.
+    waiting(계획·빠진 입력·승인·장면 대기)과 done(status=waiting)으로 끝난다. 시뮬레이션 장면은 노드가 끝나기 전에 턴이 끝날 때마다
+    장면 에이전트의 이벤트를 받아 step 이벤트(그때까지의 누적 결과, 단계 status는 아직 not_started)로 중계하고, 모델을 부르지 않은 조작
+    (edit)이면 멈춘 payload의 장면을 step으로 알린 뒤 waiting(awaitingScene)을 보낸다. 응답 헤더를 보낸 뒤라
+    Router 실패·대화 오류는 HTTP 상태 대신 error 이벤트 하나로 알린다.
     """
     errors = {IntentFailure: ROUTER_FAILED_MESSAGE, ConversationMismatch: CONVERSATION_MISMATCH_MESSAGE,
               NothingToResume: NOTHING_TO_RESUME_MESSAGE, ConversationUnavailable: CONVERSATION_UNAVAILABLE_MESSAGE,
               ConversationNotFound: CONVERSATION_NOT_FOUND_MESSAGE}
     content_mcp.AUTHORIZATION.set(authorization)
+    relayed = False
     try:
         graph, config, payload, state = await _target(data)
-        async for update in graph.astream(payload, config, stream_mode='updates'):
+        async for namespace, mode, update in graph.astream(payload, config, stream_mode=['updates', 'custom'], subgraphs=True):
+            if mode == 'custom':  # 장면 에이전트가 턴이 끝날 때 낸 그때까지의 결과
+                relayed = True
+                yield ServerSentEvent(event='step', data=update)
+                continue
+            if namespace:  # 장면 에이전트 안쪽 노드의 갱신은 알리지 않는다
+                continue
             for node, change in update.items():
                 if node == '__interrupt__':
                     state['__interrupt__'] = change
-                    yield ServerSentEvent(event='waiting', data=change[0].value)
+                    waiting = change[0].value
+                    if waiting.get('awaitingScene') and not relayed:  # 턴 이벤트 없이 멈췄다(edit): 고친 장면을 알린다
+                        yield ServerSentEvent(event='step', data=next(s for s in waiting['steps'] if s['feature'] == waiting['awaitingScene']))
+                    yield ServerSentEvent(event='waiting', data=waiting)
                     continue
+                before = state.get('steps', [])
                 state.update(change)
                 if node == 'plan':
                     yield ServerSentEvent(event='plan', data={'steps': state['steps']})
-                elif node in CALLS or node == 'apply':
-                    feature = 'writing_editing' if node == 'apply' else node
+                elif node in FEATURES or (node == 'simulation_plan' and change.get('steps')):  # 계획 단계가 실패한 단계만 알린다
+                    feature = 'character_simulation' if node == 'simulation_plan' else node
                     yield ServerSentEvent(event='step', data=next(s for s in state['steps'] if s['feature'] == feature))
-                if node in ('gate', *CALLS, 'apply') and (upcoming := _next(state)) in CALLS:
+                elif node == 'apply' and (answered := next((s for s, old in zip(state['steps'], before)
+                                                            if 'approval' in s and 'approval' not in old), None)):  # 방금 작가의 답을 받은 단계
+                    yield ServerSentEvent(event='step', data=answered)
+                if node in ('gate', *FEATURES, 'apply') and (upcoming := _next(state)) in FEATURES:
                     yield ServerSentEvent(event='started', data={'feature': upcoming})
+    except SceneRejected as error:
+        yield ServerSentEvent(event='error', data={'message': str(error)})
+        return
     except tuple(errors) as error:
         yield ServerSentEvent(event='error', data={'message': errors[type(error)]})
         return

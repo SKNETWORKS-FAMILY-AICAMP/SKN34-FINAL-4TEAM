@@ -2,7 +2,7 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { Provider } from 'react-redux'
-import { MemoryRouter, useLocation } from 'react-router'
+import { MemoryRouter, useLocation, useNavigationType } from 'react-router'
 import { createAppStore } from '../../../../app/store'
 import { LazyManuscriptEditor as fakeEditor } from '../../../../test/manuscriptEditorFake'
 import { WritingStudio } from './WritingStudio'
@@ -23,6 +23,10 @@ const model = vi.hoisted(() => ({
 // 호출 인자(주소의 ?ep=n)를 확인하려고 훅 호출을 기록한다. 실제 ViewModel의 삭제는 그 렌더의 활성 회차를 지우므로 함수가 렌더 시점의 active를 붙잡도록 흉내 낸다.
 const useModel = vi.hoisted(() => vi.fn())
 vi.mock('../viewmodel/useWritingViewModel', () => ({ useWritingViewModel: (...args: unknown[]) => { useModel(...args); const { active } = model; return { ...model, deleteEpisode: () => model.deleteEpisode(active) } } }))
+vi.mock('../../plans/viewmodel/useStoryPlanViewModel', () => ({ useStoryPlanViewModel: () => ({
+  plans: [], references: null, selected: null, editor: null, deleting: null, embedded: true,
+  busy: false, ready: true, dirty: false, error: '', notice: '', version: 0, startBlocker: '', confirmLeave: () => true,
+}) }))
 vi.mock('../../../shared/screenIds', () => ({ useScreenId: () => {} }))
 vi.mock('../../../shared/media/MediaPanel', () => ({ ManuscriptBody: ({ body }: { body: string }) => <p>{body}</p>, StoredImage: () => null }))
 vi.mock('./SettingHistoryPanel', () => ({ SettingHistoryPanel: ({ workId }: { workId: string }) => <section aria-label="설정 버전 이력"><h2>설정 버전 이력</h2><p>{workId}</p></section> }))
@@ -39,12 +43,13 @@ const comparisonVersions = [
   { ...originalActive.versions[0], id: 'v3', body: '추가 원고' },
 ]
 afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllEnvs(); model.active = originalActive; model.draft = originalDraft; model.deleteBlocker = ''; model.orderLookup = null; model.episodes = []; model.busy = false; model.dirty = false; model.editingLocked = false; model.publicationHistory = null; model.error = ''; model.notice = ''; fakeEditor.suspend = false })
-const Where = () => { const l = useLocation(); return <p hidden data-testid="where">{l.pathname + l.search}</p> }
+const Where = () => { const l = useLocation(); return <p hidden data-testid="where" data-nav={useNavigationType()}>{l.pathname + l.search}</p> }
 const where = () => screen.getByTestId('where').textContent
-const renderStudio = (ui: Parameters<typeof createAppStore>[1] = {}, episode?: number) => {
+const navigation = () => screen.getByTestId('where').dataset.nav
+const renderStudio = (ui: Parameters<typeof createAppStore>[1] = {}, episode?: number, path = '/studio/work-id') => {
   const store = createAppStore({}, ui)
   const view = render(<WritingStudio id="work-id" episode={episode} />, {
-    wrapper: ({ children }) => <Provider store={store}><MemoryRouter initialEntries={['/studio/work-id']}>{children}<Where /></MemoryRouter></Provider>,
+    wrapper: ({ children }) => <Provider store={store}><MemoryRouter initialEntries={[path]}>{children}<Where /></MemoryRouter></Provider>,
   })
   return { ...view, store }
 }
@@ -68,10 +73,34 @@ it('connects the whole episode deletion button and disables it for inherited epi
 
 it('passes the ?ep=n episode number to the writing view model so the studio opens that episode, and nothing when there is none', () => {
   renderStudio({}, 2)
-  expect(useModel).toHaveBeenLastCalledWith('work-id', undefined, undefined, 2)
+  expect(useModel).toHaveBeenLastCalledWith('work-id', undefined, undefined, 2, expect.any(Function))
   cleanup()
   renderStudio()
-  expect(useModel).toHaveBeenLastCalledWith('work-id', undefined, undefined, undefined)
+  expect(useModel).toHaveBeenLastCalledWith('work-id', undefined, undefined, undefined, expect.any(Function))
+})
+
+// 활성 회차는 ViewModel이 바꾸지만(목록 선택·새 회차·삭제·다시 읽기) 주소는 처음 연 ?ep=n에 머물러, 새로 고치면 옛 회차로 열리던 버그.
+it('활성 회차가 바뀌면 주소의 ?ep=n이 따라가고(다른 쿼리는 지키고 기록은 쌓지 않는다) 처음 연 회차는 주소를 건드리지 않는다', () => {
+  model.active = { ...originalActive, number: 2 }
+  const { rerender } = renderStudio({}, 2, '/studio/work-id?ep=2&x=1')
+  expect(where()).toBe('/studio/work-id?ep=2&x=1')
+  expect(navigation()).toBe('POP')
+  model.active = { ...originalActive, number: 4 }
+  rerender(<WritingStudio id="work-id" episode={2} />)
+  expect(where()).toBe('/studio/work-id?ep=4&x=1')
+  expect(navigation()).toBe('REPLACE')
+})
+
+it('열린 회차가 잠깐 없어졌다 다른 회차로 돌아와도(삭제 뒤 다음 회차) 주소가 따라간다', () => {
+  model.active = { ...originalActive, number: 5 }
+  const { rerender } = renderStudio({}, undefined, '/studio/work-id?ep=5')
+  expect(where()).toBe('/studio/work-id?ep=5')
+  model.active = null as never
+  rerender(<WritingStudio id="work-id" />)
+  expect(where()).toBe('/studio/work-id?ep=5')
+  model.active = { ...originalActive, number: 1 }
+  rerender(<WritingStudio id="work-id" />)
+  expect(where()).toBe('/studio/work-id?ep=1')
 })
 
 const manage = () => screen.getByRole('region', { name: '회차 관리' })
@@ -391,24 +420,21 @@ it('버전이 두 개 미만으로 줄어 비교 화면이 사라져도 제거�
   expect(screen.queryByRole('region', { name: '원고 변경 내용' })).toBeNull()
 })
 
-it('내가 쓰는 소설·플롯 링크는 전체 새로고침 없이 앱 안에서 이동한다', () => {
+it('플롯은 집필실 안에서 열리고 서재 링크만 이동한다', () => {
   renderStudio()
   openMore()
-  expect(fireEvent.click(screen.getByRole('menuitem', { name: '플롯' }))).toBe(false)
-  expect(where()).toBe('/studio/work-id?view=narrative')
-  // 항목을 고르면 메뉴가 닫힌다
+  fireEvent.click(screen.getByRole('menuitem', { name: '플롯' }))
+  expect(where()).toBe('/studio/work-id')
+  expect(screen.getByRole('complementary', { name: '플롯과 장면 계획' })).toBeTruthy()
   expect(screen.queryByRole('menu')).toBeNull()
-  expect(fireEvent.click(screen.getByRole('link', { name: '내가 쓰는 소설' }))).toBe(false)
+  expect(model.mayLeave).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByRole('link', { name: '내가 쓰는 소설' }))
   expect(where()).toBe('/lib?tab=write')
-  expect(model.mayLeave).toHaveBeenCalledTimes(2)
+  expect(model.mayLeave).toHaveBeenCalledTimes(1)
 })
 
-it('저장하지 않은 입력이나 진행 중 요청 때문에 이동할 수 없으면 링크가 이동하지 않는다', () => {
+it('미저장 입력 때문에 이탈을 취소하면 현재 집필실에 남는다', () => {
   renderStudio()
-  openMore()
-  model.mayLeave.mockReturnValueOnce(false)
-  expect(fireEvent.click(screen.getByRole('menuitem', { name: '플롯' }))).toBe(false)
-  expect(where()).toBe('/studio/work-id')
   model.mayLeave.mockReturnValueOnce(false)
   fireEvent.click(screen.getByRole('link', { name: '내가 쓰는 소설' }))
   expect(where()).toBe('/studio/work-id')
@@ -585,34 +611,26 @@ it('처리 중에는 그래프 노드를 잠그고 원작 기준 회차는 기�
   expect(rows[0].textContent).toContain('원작 기준')
 })
 
-it('상단 바의 기본·고급 토글은 기본이 눌려 있고 고급에서만 준비 중 자리표시를 보인다', () => {
+it('고급 패널은 기본 모드에서 숨겨지고 토글해도 같은 원고 편집기를 유지한다', () => {
   renderStudio()
-  const group = screen.getByRole('group', { name: '집필 모드' })
-  expect(screen.getByRole('banner').contains(group)).toBe(true)
-  const basic = within(group).getByRole('button', { name: '기본' })
-  const advanced = within(group).getByRole('button', { name: '고급' })
-  expect([basic, advanced].map(b => b.getAttribute('aria-pressed'))).toEqual(['true', 'false'])
-  expect(screen.queryByRole('region', { name: '고급 도구' })).toBeNull()
-  fireEvent.click(advanced)
-  expect([basic, advanced].map(b => b.getAttribute('aria-pressed'))).toEqual(['false', 'true'])
-  const placeholder = screen.getByRole('region', { name: '고급 도구' })
-  expect(within(placeholder).getByText('고급 도구 준비 중')).toBeTruthy()
-  expect(screen.getByLabelText('원고 본문')).toBeTruthy()
-  // 제목과 본문 사이를 끊지 않고 본문 뒤 하단 바 위에 한 줄로 놓는다.
-  expect(follows(screen.getByLabelText('원고 본문'), placeholder)).toBe(true)
-  expect(follows(placeholder, footer())).toBe(true)
-  fireEvent.click(basic)
-  expect(screen.queryByRole('region', { name: '고급 도구' })).toBeNull()
+  const editor = screen.getByLabelText('원고 본문')
+  expect(screen.queryByRole('complementary', { name: '플롯과 장면 계획' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '고급' }))
+  expect(screen.getByRole('complementary', { name: '플롯과 장면 계획' })).toBeTruthy()
+  expect(screen.queryByText('고급 도구 준비 중')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '기본' }))
+  expect(screen.queryByRole('complementary', { name: '플롯과 장면 계획' })).toBeNull()
+  expect(screen.getByLabelText('원고 본문')).toBe(editor)
 })
 
-it('상단 바는 컨트롤을 네 개만 보이고 저장 상태는 제목 옆 작은 글씨로 둔다', () => {
+it('상단 바는 자주 쓰는 컨트롤(모드·시뮬레이션·버전 저장·버전 공개·더보기)만 보이고 저장 상태는 제목 옆 작은 글씨로 둔다', () => {
   renderStudio()
   const bar = screen.getByRole('banner')
   expect(within(bar).getByRole('link', { name: '내가 쓰는 소설' })).toBeTruthy()
   expect(within(bar).getByRole('heading', { level: 1, name: '집필실' })).toBeTruthy()
   expect(within(bar).getByRole('status').textContent).toBe('저장됨')
   const names = within(bar).getAllByRole('button').map(b => b.textContent || b.getAttribute('aria-label'))
-  expect(names).toEqual(['기본', '고급', '버전 저장', '버전 · 공개', '더보기'])
+  expect(names).toEqual(['기본', '고급', '시뮬레이션', '버전 저장', '버전 · 공개', '더보기'])
   // 자주 안 쓰는 이동·이력은 메뉴가 열리기 전에는 상단에 없다
   for (const name of ['플롯', '다시 불러오기', '설정 버전 이력', '발행 이력']) {
     expect(within(bar).queryByRole('link', { name })).toBeNull()
@@ -655,7 +673,7 @@ it('더보기 메뉴는 플롯·다시 불러오기·설정 버전 이력·발�
   expect(more.getAttribute('aria-expanded')).toBe('true')
   const menu = screen.getByRole('menu', { name: '더보기' })
   expect(within(menu).getAllByRole('menuitem').map(i => i.textContent)).toEqual(['플롯', '다시 불러오기', '설정 버전 이력', '발행 이력', '다크 모드'])
-  expect(within(menu).getByRole('menuitem', { name: '플롯' }).getAttribute('href')).toBe('/studio/work-id?view=narrative')
+  expect(within(menu).getByRole('menuitem', { name: '플롯' }).tagName).toBe('BUTTON')
   // 열면 첫 항목으로 초점이 가고 방향키로 옮긴다. Escape로 닫으면 버튼으로 돌아온다.
   expect(document.activeElement).toBe(within(menu).getByRole('menuitem', { name: '플롯' }))
   fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' })

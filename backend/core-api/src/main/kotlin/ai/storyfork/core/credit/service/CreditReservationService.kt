@@ -1,6 +1,8 @@
 package ai.storyfork.core.credit.service
 
 import ai.storyfork.core.credit.domain.CreditAllocator
+import ai.storyfork.core.credit.domain.ReservationClosedException
+import ai.storyfork.core.credit.domain.ReservationNotFoundException
 import ai.storyfork.core.credit.entity.CreditLedgerEntryEntity
 import ai.storyfork.core.credit.entity.CreditReservationEntity
 import ai.storyfork.core.credit.entity.CreditReservationLineEntity
@@ -21,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional
  * AI 작업의 크레딧 예약·정산·해제(F-CRD-01 v7). 실행 전에 동의한 상한만큼 예약하고, 정산 때 실제 사용량만 차감하며
  * 남은 예약은 푼다. 실패·시간 초과는 해제(차감 없음), 긴 작업이 중간에 멈추면 사용분만 정산한다(F-CRD-03).
  * 예약 중인 양은 직접 차감과 소멸에서 빠지므로 다른 작업이 쓸 수 없다. 같은 [operationKey]로 다시 호출해도 결과가 같다.
- * 호출하는 AI 기능의 계약(작업 식별자·비용 환산)은 아직 없어서 이 서비스는 내부 Kotlin API만 제공한다.
+ * 다른 서비스는 [ai.storyfork.core.credit.controller.InternalCreditController]의 내부 API로 부른다. 작업 식별자·비용 환산은 호출한 쪽이 정한다.
  *
  * 예약을 닫는 것은 호출한 쪽의 몫이다. 작업이 비정상 종료돼 settle·release가 오지 않은 예약은 [CreditReservationCleanupJob]이
  * 시간 기준이 지나면 차감 없이 해제한다. 그 작업은 AI 작업의 최대 실행 시간이 정해질 때까지 꺼져 있다.
@@ -37,7 +39,8 @@ class CreditReservationService(
     /**
      * 사용 가능한 잔액(잔여−예약)에서 [amount]를 소멸이 빠른 지급분부터 예약한다. 모자라면
      * [ai.storyfork.core.credit.domain.InsufficientCreditException]을 던지며 아무것도 예약하지 않는다.
-     * 같은 회원이 같은 키·금액으로 다시 호출하면 새로 예약하지 않고 처음 예약을 돌려준다.
+     * 같은 회원이 같은 키·금액으로 다시 호출하면 새로 예약하지 않고 처음 예약을 돌려준다. 그 예약이 이미 정산·해제로 닫혔으면
+     * 잡아 둔 크레딧이 없으므로 성공으로 돌려주지 않고 [ReservationClosedException]을 던진다.
      */
     @Transactional
     fun reserve(memberId: UUID, amount: BigDecimal, operationKey: String, now: Instant = Instant.now()): CreditReservationResponse {
@@ -49,6 +52,7 @@ class CreditReservationService(
         reservations.findByOperationKey(operationKey)?.let { existing ->
             require(existing.memberId == memberId) { "이미 다른 작업에 쓰인 operationKey입니다." }
             require(existing.amount.compareTo(amount) == 0) { "같은 operationKey로 다른 금액을 예약할 수 없습니다." }
+            if (existing.status != CreditReservationEntity.RESERVED) throw ReservationClosedException("이미 닫힌 예약입니다.")
             return toResponse(existing)
         }
         require(ledger.findByOperationKey(operationKey).isEmpty()) { "이미 차감에 쓰인 operationKey입니다." }
@@ -72,7 +76,7 @@ class CreditReservationService(
                 require(requireNotNull(reservation.settledAmount).compareTo(actual) == 0) { "이미 다른 금액으로 정산한 예약입니다." }
                 return toResponse(reservation)
             }
-            CreditReservationEntity.RELEASED -> throw IllegalStateException("이미 해제한 예약은 정산할 수 없습니다.")
+            CreditReservationEntity.RELEASED -> throw ReservationClosedException("이미 해제한 예약은 정산할 수 없습니다.")
         }
         require(actual <= reservation.amount) { "정산 금액이 예약 상한을 넘을 수 없습니다." }
         val held = lines.findByReservationId(reservation.id).associate { it.grantId to it.amount }
@@ -100,7 +104,7 @@ class CreditReservationService(
         val reservation = owned(memberId, operationKey)
         when (reservation.status) {
             CreditReservationEntity.RELEASED -> return toResponse(reservation)
-            CreditReservationEntity.SETTLED -> throw IllegalStateException("이미 정산한 예약은 해제할 수 없습니다.")
+            CreditReservationEntity.SETTLED -> throw ReservationClosedException("이미 정산한 예약은 해제할 수 없습니다.")
         }
         // 같은 지급분을 소멸 처리하는 작업과 겹치지 않도록 지급분을 잠근 뒤 푼다.
         grants.lockByIds(lines.findByReservationId(reservation.id).map { it.grantId })
@@ -117,7 +121,7 @@ class CreditReservationService(
 
     /** 본인의 예약만 잠가서 읽는다. 없거나 다른 회원의 예약이면 같은 오류다. */
     private fun owned(memberId: UUID, operationKey: String): CreditReservationEntity =
-        reservations.lockByOperationKey(operationKey)?.takeIf { it.memberId == memberId } ?: throw NoSuchElementException("예약을 찾을 수 없습니다.")
+        reservations.lockByOperationKey(operationKey)?.takeIf { it.memberId == memberId } ?: throw ReservationNotFoundException()
 
     private fun toResponse(r: CreditReservationEntity) = CreditReservationResponse(r.id, r.operationKey, r.status, r.amount, r.settledAmount)
 

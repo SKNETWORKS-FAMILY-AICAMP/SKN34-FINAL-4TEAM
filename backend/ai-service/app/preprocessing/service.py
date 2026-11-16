@@ -10,7 +10,13 @@
   예외 메시지·로그에 원고·모델 응답을 넣지 않는다. 재시도·fallback을 두지 않는다.
 - 테스트는 `tests/preprocessing/`에서 모델을 monkeypatch 대역으로 바꿔 단위로만 돌린다(실제 OpenAI 호출 금지).
 """
+from app.preprocessing.errors import PreprocessingFailure
 from app.preprocessing.models import EpisodeText, LoadPayload
+
+
+def require_available() -> None:
+    """#344/#345 로직·성공 결과 보존·멱등 적재 검증 전에는 실제 작업을 접수하지 않는다."""
+    raise PreprocessingFailure('PREPROCESSING_NOT_IMPLEMENTED', 503)
 
 
 def extract(episode: EpisodeText) -> object:
@@ -33,7 +39,7 @@ def resolve(extractions: dict[int, object]) -> object:
 def organize(identities: object, extractions: dict[int, object]) -> LoadPayload:
     """3~5단계 사건·인물·설정 정리. 1·2단계 결과만 읽어 계약의 `cards[]`·`relations[]`(models.LoadPayload)를 만든다.
 
-    인물 카드는 DEC-47 문서(본문=IDENTITY, characterDocs의 SOUL·MEMORY·memory/NN회차, 각 3,000자 이하),
+    인물 카드는 DEC-47 문서(본문=IDENTITY, characterDocs의 SOUL·GOAL·memory/NN회차(이야기 시작 전은 00회차), 각 3,000자 이하),
     `revealFromEpisode`=첫 등장 회차, 관계는 `fromEpisode` 시점별(DEC-51). N화 상태에 N화 이후 정보를 넣지 않는다.
     """
     raise NotImplementedError('#344 후속: 사건·인물·설정 정리')

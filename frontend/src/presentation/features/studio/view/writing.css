@@ -63,6 +63,8 @@
 .writing-editor { min-width: 0; width: 100%; padding: 20px 16px 24px; font-size: 16px; scroll-padding-block-end: 72px; word-break: keep-all; }
 /* 집필실의 원고 열은 본문 툴바가 위에 붙어 있다(manuscript-editor.css): 커서가 그 밑에 가리지 않게 위쪽도 비운다. 세계관 설정 편집 화면에는 툴바가 없다. */
 .writing-studio:not(.world-card-studio) .writing-editor { scroll-padding-block-start: 56px; }
+/* 시뮬레이션 무대가 열린 동안 편집기는 숨기기만 한다(전역 .editor의 display가 hidden을 덮으므로 직접 지킨다). */
+.writing-editor[hidden] { display: none; }
 .writing-draftless { margin-bottom: 12px; }
 /* 제목은 입력 칸. 본문 자리(.writing-body)는 마크다운 편집기(늦게 불러온다: manuscript-editor.css) · 불러오는 중 자리표시 · 원작 기준 읽기 전용 본문 · 미리보기가 함께 쓴다. */
 .writing-title { caret-color: var(--tacc); }
@@ -84,8 +86,6 @@
 /* 공개 분량(5,000자) 미달로 공개 버튼을 잠근 사유 */
 .writing-publish-reason { display: block; margin-top: 6px; }
 /* 고급 모드 자리표시: 본문 뒤, 하단 바 위의 작은 한 줄 */
-.writing-advanced { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 8px; }
-.writing-advanced b { padding: 2px 8px; border-radius: 999px; background: var(--muted-bg); color: var(--tsub); font-size: 12px; }
 .writing-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-top: auto; padding: 12px 0; border-top: 1px solid var(--tline); background: var(--tbg); }
 .writing-foot > p { flex: 1 1 280px; min-width: 0; font-variant-numeric: tabular-nums; }
 .writing-foot-actions { display: flex; flex: none; gap: 8px; margin-left: auto; }
@@ -210,3 +210,22 @@
 /* 사전의 바로 고치는 칸과 검색: 전역 규칙이 지운 초점 고리를 키보드 초점에 다시 그린다. */
 .wiki :is(.wt, .wtext, .wprops [contenteditable], .wtbl [contenteditable]):focus-visible, .ovtop h2:focus-visible { outline: 2px solid var(--tacc); outline-offset: 2px; }
 .wq:focus-within { outline: 2px solid var(--tacc); outline-offset: 2px; }
+
+/* 고급 모드: 계획과 원고(또는 시뮬레이션)를 동시에 읽는다. */
+.writing-plan-panel { min-width: 0; overflow: auto; border-left: 1px solid var(--tline); scrollbar-width: thin; scrollbar-color: var(--tsub) transparent; }
+.writing-plan-panel[hidden], .stage[hidden] { display: none; }
+.writing-plan-panel:focus-visible { outline: 2px solid var(--pri); outline-offset: -2px; }
+.writing-studio .studio-workspace .writing-grid.writing-with-plans { grid-template-columns: var(--writing-rail) minmax(0, 1fr) minmax(300px, 340px); }
+.writing-with-plans .writing-editor { padding-inline: 24px; }
+@media (max-width: 1200px) {
+  .writing-studio .studio-workspace .writing-grid.writing-with-plans { grid-template-columns: var(--writing-rail) minmax(0, 1fr); }
+  .writing-plan-panel { grid-column: 2; max-height: 55dvh; border-left: 0; border-top: 1px solid var(--tline); }
+}
+@media (min-width: 901px) and (max-width: 1200px) {
+  .writing-studio .studio-workspace .writing-grid.writing-with-plans { grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
+  .writing-with-plans .writing-rail { grid-row: 1 / 3; }
+}
+@media (max-width: 900px) {
+  .writing-studio .studio-workspace .writing-grid.writing-with-plans { grid-template-columns: minmax(0, 1fr); }
+  .writing-plan-panel { grid-column: 1; max-height: none; overflow: visible; }
+}

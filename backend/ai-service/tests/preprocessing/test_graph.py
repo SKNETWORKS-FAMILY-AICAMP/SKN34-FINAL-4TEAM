@@ -30,3 +30,15 @@ def test_failed_episodes_go_to_fail_and_nothing_after_resolve_runs(monkeypatch):
 def test_the_logic_is_left_for_the_follow_up_work():
     with pytest.raises(NotImplementedError):
         service.extract(episode(1))
+
+
+def test_separate_graph_invocations_do_not_resume_successful_episodes(monkeypatch):
+    """후속 재시도 계약의 재현 증거: 새 invoke는 이전 성공 결과를 보관하지 않는다."""
+    remote = content_double(monkeypatch)
+    logic_double(monkeypatch, failing={2})
+    first = graph.run(JOB, [1, 2])
+    assert first['extractions'] == {1: 1} and first['failed'] == [2]
+    assert remote.loads == []
+    retry = logic_double(monkeypatch)
+    graph.run(JOB, [2])
+    assert retry.resolved == [{2: 2}]  # 전체 {1, 2}가 아님: 실제 접수/worker는 후속 계약 전 차단한다.

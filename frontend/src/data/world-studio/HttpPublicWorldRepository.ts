@@ -9,6 +9,8 @@ const count = z.number().int().nonnegative()
 const instant = z.iso.datetime({ offset: true })
 const genre = z.enum(PUBLIC_WORLD_GENRES).nullable()
 const cardType: z.ZodType<CardType> = z.enum(['character', 'location', 'organization', 'ability', 'object', 'rule', 'event', 'other'])
+// 카드 대표 이미지 id(#401). 이 필드를 주기 전 응답과 이미지 없는 카드는 null이다.
+const imageId = z.string().min(1).nullable().default(null)
 
 const summary: z.ZodType<PublicWorldSummary> = z.object({
   id, name: z.string(), description: z.string(), genre, authorNickname: z.string(), cardCount: count, relationshipCount: count, publishedAt: instant, hasCover: z.boolean().default(false),
@@ -16,7 +18,7 @@ const summary: z.ZodType<PublicWorldSummary> = z.object({
 const worldPage: z.ZodType<PublicWorldPage> = z.object({ items: z.array(summary), page: count, size: z.number().int().positive(), total: count })
 const world: z.ZodType<PublicWorld> = z.object({
   id, name: z.string(), description: z.string(), genre, authorNickname: z.string(), publishedAt: instant, hasCover: z.boolean().default(false), revisionNo: z.number().int().positive(),
-  cards: z.array(z.object({ id, title: z.string(), text: z.string(), cardType, aliases: z.array(z.string()), tags: z.array(z.string()) })),
+  cards: z.array(z.object({ id, title: z.string(), text: z.string(), cardType, aliases: z.array(z.string()), tags: z.array(z.string()), imageId })),
   relationships: z.array(z.object({ id, sourceCardId: id, targetCardId: id, label: z.string() })),
   relationshipStatus: z.enum(['current', 'unavailable']),
 })

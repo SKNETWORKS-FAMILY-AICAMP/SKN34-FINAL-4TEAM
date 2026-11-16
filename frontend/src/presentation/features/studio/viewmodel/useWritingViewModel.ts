@@ -17,7 +17,7 @@ function deleteBlocker(active:WritingEpisode|null,episodes:WritingEpisode[]) {
   return [kept&&`${kept}이 있는 회차는 삭제할 수 없어요.`,active.number<last&&`마지막 회차(${last}화)만 삭제할 수 있어요.`].filter(Boolean).join(' ')
 }
 /** initialEpisode(주소의 ?ep=n)는 처음 목록을 읽을 때 열 회차다. 목록에 없으면 첫 회차를 연다. */
-export function useWritingViewModel(id:string, api:WritingApi=appContainer.resolve('episodeUseCase'), media:Pick<MediaUseCase,'upload'>=appContainer.resolve('mediaUseCase'), initialEpisode?:number) {
+export function useWritingViewModel(id:string, api:WritingApi=appContainer.resolve('episodeUseCase'), media:Pick<MediaUseCase,'upload'>=appContainer.resolve('mediaUseCase'), initialEpisode?:number, confirmPlanLeave?:()=>boolean) {
   const [episodes,setEpisodes]=useState<WritingEpisode[]>([])
   const [active,setActive]=useState<WritingEpisode|null>(null)
   const [draft,setDraft]=useState<Draft>({title:'',body:'',revision:0})
@@ -45,6 +45,9 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   const autosave=useRef<Promise<void>|null>(null)
   const waiting=useRef<AbortController|null>(null)
   const dirty=!!active&&(draft.title!==active.draft.title||draft.body!==active.draft.body||(draft.authorNote??'')!==(active.draft.authorNote??''))
+  // 늦게 불리는 aiApplied(반영 요청이 시작된 렌더의 함수를 스트림 콜백이 붙잡고 있다)가 옛 값이 아니라 지금의 활성 회차·입력 상태를 보게 한다.
+  const latest=useRef({active,dirty})
+  latest.current={active,dirty}
   const put=(d:Draft)=>{current.current=d;setDraft(d)}
   const resetOrder=()=>{orderRequest.current?.abort();orderRequest.current=null;setOrderLookup(null)}
   const install=(e:WritingEpisode)=>{aiReload.current?.abort();resetOrder();setActive(e);put(e.draft);setNotice('');setError('')}
@@ -111,7 +114,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     if(autosave.current)void run(async()=>{},false)
     return true
   }
-  const mayLeave=()=>!inFlight()&&(!dirty||window.confirm('저장하지 않은 입력을 버리고 이동할까요?'))
+  const mayLeave=()=>!inFlight()&&(confirmPlanLeave?.()??true)&&(!dirty||window.confirm('저장하지 않은 입력을 버리고 이동할까요?'))
   // 삭제가 서버에 확정되면 true다. 뒤이은 목록 재조회가 실패해도 true라서 화면이 사라진 버튼 대신 초점을 옮길 수 있다.
   const remove=async(whole:boolean)=>{
     if(!active||active.inherited||inFlight())return false
@@ -172,9 +175,9 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
           const saved=previous.find(episode=>episode.number===row.number)
           return saved&&saved.draft.revision>row.draft.revision?saved:row
         }))
-        if(active?.number!==number)return
+        if(latest.current.active?.number!==number)return
         // 재조회 중 편집·저장·회차 이동이 있으면 그 화면 상태가 우선이다.
-        if(dirty||current.current!==before){
+        if(latest.current.dirty||current.current!==before){
           setNotice('AI가 이 회차 초안을 바꿨어요. 작성 중인 변경을 복사해 둔 뒤 회차를 다시 열어 주세요.')
           return
         }

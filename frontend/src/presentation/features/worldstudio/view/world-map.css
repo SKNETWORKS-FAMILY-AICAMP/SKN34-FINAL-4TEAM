@@ -1,6 +1,6 @@
 /*
  * 관계 연결 단계: 왼쪽은 공개 인물관계도와 같은 어두운 면(라이트·다크 모두 고정 색, 홈 지도와 같은 그라데이션)에 인물·설정 카드 그래프·범례를 올리고, 오른쪽은 관계 추가·목록 카드다.
- * 카드·간선 색은 --rc-*·--edge* 토큰으로 읽고 기본값은 밝은 화면 색이라, 같은 CharacterCards를 쓰는 읽기 전용 인물 관계도(탐색 도구)는 그대로다.
+ * 카드·간선 색은 --rc-*·--edge* 토큰으로 읽고 기본값은 밝은 화면 색이라, 같은 CharacterCards를 쓰는 읽기 전용 관계도(탐색 도구)는 그대로다.
  * 무대에만 있는 고정 색(그라데이션 3색·간선 2색)은 아래 변수 한 곳에서 정하고, 그 위의 흰색·보라 틴트는 전역의 고정 면 토큰(--fixed-ink·--fixed-pri)을 섞어 만든다.
  * 그래프 | 관계 폼 2열은 뷰포트가 아니라 편집기 자신의 폭(컨테이너)으로 정한다: 오른쪽 AI 채팅 레일이 열리면 뷰포트가 넓어도 본문이 좁아 그래프가 230px까지 눌렸다.
  */
@@ -11,6 +11,9 @@
 .relationship-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px 16px 6px}.relationship-toolbar h4{margin:0 auto 0 0;font-size:14px;font-weight:800;letter-spacing:.02em}
 .relationship-hint{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 16px 10px;color:var(--fixed-sub);font-size:12.5px;line-height:1.6}.relationship-hint .btn{margin-left:auto}
 .relationship-stage .btn{background:var(--stage-tint);border-color:color-mix(in srgb,var(--fixed-ink) 20%,transparent);color:var(--fixed-ink)}.relationship-stage .btn:hover{background:color-mix(in srgb,var(--fixed-ink) 16%,transparent)}.relationship-stage .btn.pri{background:var(--fixed-pri);border-color:var(--fixed-pri);color:var(--on-fixed-pri)}.relationship-stage .btn.pri:hover{background:color-mix(in srgb,var(--fixed-pri) 75%,var(--fixed-ink))}
+/* 유형 필터 줄: 안내 아래·그래프 위. 켜진(보이는) 유형은 고른 카드와 같은 보라 틴트·테두리라 꺼진 유형(기본 무대 버튼)과 구분된다. */
+.relationship-filter{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:0 16px 10px}
+.relationship-stage .relationship-filter .btn[aria-pressed=true]{background:var(--rc-sel);border-color:var(--rc-accent)}
 .episode-app .relationship-stage :focus-visible{outline-color:var(--fixed-pri)}
 .relationship-stage .relationship-cards-scroll{background:none;scrollbar-color:color-mix(in srgb,var(--fixed-ink) 30%,transparent) transparent}
 .relationship-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0;padding:10px 16px 12px;border-top:1px solid var(--stage-tint);list-style:none;color:var(--fixed-sub);font-size:11.5px}.relationship-legend li{display:inline-flex;align-items:center;gap:6px}.relationship-key.edge{color:var(--edge)}.relationship-key.emotion{color:var(--edge-emotion)}
@@ -19,7 +22,7 @@
 .relationship-group h4{font-size:16px;margin:0 0 12px;overflow-wrap:anywhere}.relationship-row{padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--line)}
 .relationship-row details{margin-block:14px}.relationship-row summary{cursor:pointer;color:var(--sub);font-size:13px}
 .relationship-remove{margin-top:12px}.relationship-apply{position:sticky;bottom:-20px;background:var(--surface);display:flex;gap:10px;padding:16px 0;border-top:1px solid var(--line)}
-@media(max-width:600px){.relationship-toolbar{padding:12px 12px 4px}.relationship-hint{padding:4px 12px 10px}.relationship-legend{padding-inline:12px}.relationship-apply{bottom:-18px}}
+@media(max-width:600px){.relationship-toolbar{padding:12px 12px 4px}.relationship-hint{padding:4px 12px 10px}.relationship-filter{padding-inline:12px}.relationship-legend{padding-inline:12px}.relationship-apply{bottom:-18px}}
 .relationship-cards-scroll{height:clamp(380px,55vh,590px);overflow:auto;overscroll-behavior:contain;background:var(--surface);scrollbar-color:var(--pri) var(--surface)}
 .relationship-cards-board{position:relative;min-height:360px}.relationship-card-edges{position:absolute;inset:0;pointer-events:none;overflow:visible}
 .relationship-edge-hit{pointer-events:stroke;cursor:pointer}.relationship-character-card h4 img{object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px}.relationship-edge-label{font-size:12px;pointer-events:none;paint-order:stroke;stroke:var(--edge-halo,var(--surface));stroke-width:4px;stroke-linejoin:round}

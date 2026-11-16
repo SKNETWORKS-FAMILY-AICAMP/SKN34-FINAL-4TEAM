@@ -9,7 +9,7 @@ from celery import Celery
 
 celery = Celery('storyfork-ai', broker=os.environ.get('CELERY_BROKER_URL'), include=['app.preprocessing.tasks'])
 celery.conf.update(
-    task_ignore_result=True,                    # 결과 저장소 없음: 진행·결과는 Content 작업 상태와 작업 디렉터리에만 남는다
+    task_ignore_result=True,                    # 결과 저장소 없음: 진행은 Content 작업 상태에, 추출 결과는 invoke 메모리에만 있다(부분 재시도 미지원)
     worker_prefetch_multiplier=1,               # 모델 호출이 길어 task를 미리 쌓아 두지 않는다
     broker_connection_retry_on_startup=True,    # worker가 broker보다 먼저 떠도 연결될 때까지 기다린다
     task_serializer='json',

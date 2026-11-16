@@ -59,6 +59,8 @@ MVP는 팀 시연용 핵심 흐름입니다. [DEC-22~25](decisions.md#결정-목
 
 게시판 방식은 **항목별 문서를 작성·목록화·분류한다**는 뜻이지 댓글·좋아요 등 설정집 커뮤니티 기능을 추가한다는 뜻이 아닙니다. 설정 문서 변경을 매번 댓글 행으로만 저장한다는 옛 규칙도 확정하지 않습니다.
 
+소설 상세 소개 줄은 작성된 소개를 우선 표시한다. 소개가 비어 있거나 공백뿐이면 원작은 해당 줄을 숨기고, Fork는 원작 ID·비어 있지 않은 원작 제목·양의 정수 기준 회차가 있을 때만 출처 안내를 표시한다. 원작 제목은 조회된 부모 작품 제목을 우선하고 없으면 Fork에 보존된 제목을 사용한다. 출처 정보가 불완전하면 소개 줄 자체를 숨기며 대체 문구나 `undefined`를 출력하지 않는다(2026-11-16 사용자 결정, [#366](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/366)).
+
 ## Architecture
 
 ### 구성과 호출 방향
@@ -166,3 +168,5 @@ AI가 반환한 시뮬레이션·원고·상태 변화는 후보입니다. 작�
 - [인프라 설계](services/infrastructure.md): 현재 PostgreSQL·선택 MinIO와 목표 DB 소유 분리·관계 그래프
 - [ERD 문서 목차](erd/README.md): 전체 업무 ERD, 서비스별 정본 소유와 업무 영역별 ERD·LangGraph Saver 참고
 - [이전 RDB 단독 MVP 설계 보관본](archive/rdb-mvp/design.md) · [KAG 설계 보관본](archive/kag-design/design.md): 현행 MVP 설계가 아님
+
+- [집필실 고급 모드·장면 순서](writing-plan-panel-contract.md): #374의 패널 배치, 미저장 보호, 기존 API의 position 확장과 시뮬레이션 비트 갱신.

@@ -1,0 +1,250 @@
+{
+  "genre": "sports_fantasy",
+  "cards": [
+    {
+      "key": "han-doyun",
+      "title": "한도윤",
+      "body": "회귀 시점에 17세인 오른발잡이 축구 선수다. 왼쪽 측면 공격수와 세컨드 스트라이커로 뛰며 공간 인식과 짧은 연계가 강점이지만 최고 속도와 제공권, 강한 압박을 몸으로 버티는 능력에는 한계가 있다.",
+      "cardType": "character",
+      "source_sections": [
+        "sports_fantasy_section_06"
+      ],
+      "soul": "공간과 연계를 읽는 선수다. 과거에는 득점으로 자신을 증명하려 했고 회귀 후에는 실수를 피하려 지나치게 양보하기도 한다. 말버릇은 “다음 장면을 봐”."
+    },
+    {
+      "key": "han-jeongho",
+      "title": "한정호",
+      "body": "48세 버스 기사이자 도윤의 아버지다. 아들의 재능을 믿지만 생활비와 축구 비용이 겹치며 부담을 느낀다.",
+      "cardType": "character",
+      "source_sections": [
+        "sports_fantasy_section_09"
+      ],
+      "soul": "아들의 재능을 믿지만 생활비와 축구 비용의 부담을 느낀다. 대화 제안: 꿈을 응원하면서 가계와 앞으로의 선택을 조심스럽게 묻는다."
+    },
+    {
+      "key": "park-eunyoung",
+      "title": "박은영",
+      "body": "46세로 급식 조리 업무를 하는 도윤의 어머니다. 아들의 경기를 꼼꼼히 보고 경기 뒤의 표정과 식사량, 잠드는 시간을 기억한다.",
+      "cardType": "character",
+      "source_sections": [
+        "sports_fantasy_section_09"
+      ],
+      "soul": "아들의 경기를 살피며 전술보다 표정과 식사, 수면 변화를 기억한다. 대화 제안: 경기 결과보다 몸과 마음의 상태를 구체적으로 묻는다."
+    },
+    {
+      "key": "han-soyun",
+      "title": "한소윤",
+      "body": "14세 도윤의 여동생이다. 가족의 관심이 오빠에게 집중되는 상황에 익숙하지만 언제나 괜찮은 것은 아니며 자신의 삶과 요구가 있다.",
+      "cardType": "character",
+      "source_sections": [
+        "sports_fantasy_section_09"
+      ],
+      "soul": "가족의 관심이 오빠에게 집중되는 일에 늘 만족하지 않으며 자기 삶도 있다. 대화 제안: 자신의 일정과 서운함을 솔직히 표현한다."
+    },
+    {
+      "key": "park-seongjin",
+      "title": "박성진",
+      "body": "44세 유소년 감독으로 기본기와 전술적 책임을 중시한다. 재능 있는 선수의 자유를 인정하면서도 팀 전체가 한 사람의 실수를 반복해 감당하는 것은 허용하지 않는다.",
+      "cardType": "character",
+      "source_sections": [
+        "sports_fantasy_section_10"
+      ],
+      "soul": "기본기와 전술적 책임을 중시하며 한 경기보다 훈련과 반복된 행동으로 선수를 판단한다. 대화 제안: 개인의 재능과 팀이 감당할 책임을 함께 짚는다."
+    },
+    {
+      "key": "kim-uchan",
+      "title": "김우찬",
+      "body": "17세 중앙 미드필더로 성실하고 패스가 안정적이지만 눈에 띄는 장면은 적다. 도윤의 전생에서는 이른 시기에 축구를 그만두었다.",
+      "cardType": "character",
+      "source_sections": [
+        "sports_fantasy_section_10"
+      ],
+      "soul": "성실하고 안정적인 패스를 하는 선수다. 자신의 진로에 대한 구체적 생각과 말투는 미확인. 대화 제안: 팀의 연결과 본인이 원하는 선택을 차분히 말한다."
+    },
+    {
+      "key": "oh-junhyeok",
+      "title": "오준혁",
+      "body": "18세 유소년팀 공격수로 빠르고 득점력이 뛰어나며 프로 승격이 유력하다. 독자적으로 경기를 결정할 수 있는 선수다.",
+      "cardType": "character",
+      "source_sections": [
+        "sports_fantasy_section_10"
+      ],
+      "soul": "빠르고 득점력이 뛰어난 공격수로 자신의 자리를 지키려 한다. 대화 제안: 골을 향한 자신감과 경쟁심을 드러낸다."
+    },
+    {
+      "key": "seo-mingyu",
+      "title": "서민규",
+      "body": "17세 수비수다. 도윤이 수비에 충분히 가담하지 않아 자주 고생했기 때문에 그의 갑작스러운 협조를 쉽게 믿지 않는다.",
+      "cardType": "character",
+      "source_sections": [
+        "sports_fantasy_section_10"
+      ],
+      "soul": "도윤의 부족한 수비 가담으로 고생했기에 갑작스러운 친절을 쉽게 믿지 않는다. 대화 제안: 말보다 경기에서의 수비 협력을 요구한다."
+    },
+    {
+      "key": "lee-juhee",
+      "title": "이주희",
+      "body": "33세 피지컬 코치로 선수의 신체 상태와 훈련 부담을 관리한다. 도윤이 미래의 부상에 대한 기억과 불안만으로 훈련량을 혼자 조정하는 일을 경계한다.",
+      "cardType": "character",
+      "source_sections": [
+        "sports_fantasy_section_10"
+      ],
+      "soul": "선수의 신체 상태와 훈련 부담을 관리하며 불안만으로 훈련량을 임의 조정하는 일을 경계한다. 대화 제안: 현재 몸 상태와 부하를 확인해 설명한다."
+    },
+    {
+      "key": "choi-dohyeok",
+      "title": "최도혁",
+      "body": "51세 인천 하버스 1군 감독이다. 성적 압박 속에서 유망주를 육성해야 하며 도윤의 가능성을 인정하더라도 현재의 경기 결과를 고려한다.",
+      "cardType": "character",
+      "source_sections": [
+        "sports_fantasy_section_11"
+      ],
+      "soul": "유망주의 가능성과 당장의 성적 압박을 함께 고려하는 감독이다. 대화 제안: 출전 시간과 팀의 승점이라는 현실적 조건을 말한다."
+    },
+    {
+      "key": "park-jaemin",
+      "title": "박재민",
+      "body": "32세 베테랑 미드필더로 대표팀 경력이 있고 팀의 중심이다. 전성기보다 활동량은 줄었지만 경기 흐름과 동료의 상태를 잘 읽는다.",
+      "cardType": "character",
+      "source_sections": [
+        "sports_fantasy_section_11"
+      ],
+      "soul": "경기의 흐름과 동료의 상태를 읽는 베테랑이다. 후배의 경쟁을 경계하면서도 팀에 필요한 것을 가르친다. 대화 제안: 공을 돌리는 이유와 경기의 속도를 짚는다."
+    },
+    {
+      "key": "yun-hagyeong",
+      "title": "윤하경",
+      "body": "34세 선수 대리인으로 큰 회사에서 독립했다. 유명 구단의 이름보다 출전 계획과 계약 구조, 선수의 생활 적응을 중시한다.",
+      "cardType": "character",
+      "source_sections": [
+        "sports_fantasy_section_11"
+      ],
+      "soul": "구단의 명성보다 출전 계획, 계약 구조와 선수의 생활 적응을 중시한다. 대화 제안: 이적 선택의 비용과 조건을 구체적으로 설명한다."
+    },
+    {
+      "key": "lucas-barrera",
+      "title": "루카스 바레라",
+      "body": "47세로 포르투갈의 가상 구단 SC 포르투스를 이끄는 감독이다. 공간 점유와 빠른 압박 전환을 중시하며 전술 판단뿐 아니라 실제 수행 속도도 평가한다.",
+      "cardType": "character",
+      "source_sections": [
+        "sports_fantasy_section_11"
+      ],
+      "soul": "공간 점유와 빠른 압박 전환을 중시하며 이해뿐 아니라 실제 수행 속도도 요구한다. 대화 제안: 경기 상황의 위치와 전환 속도를 짚는다."
+    },
+    {
+      "key": "mateo-silva",
+      "title": "마테오 실바",
+      "body": "21세 공격형 미드필더로 창의적인 볼 터치와 순간적인 판단이 뛰어나다. 도윤이 유럽에서 경쟁하게 되는 선수다.",
+      "cardType": "character",
+      "source_sections": [
+        "sports_fantasy_section_11"
+      ],
+      "soul": "창의적인 볼 터치와 순간 판단이 뛰어난 경쟁 선수다. 성격과 말투는 미확인. 대화 제안: 자신의 플레이 선택을 간결히 설명하되 과장된 악의는 부여하지 않는다."
+    },
+    {
+      "key": "lee-myeongseok",
+      "title": "이명석",
+      "body": "40대 선수 대리인이다. 유망주와 가족에게 과도한 성공을 약속하고 선수의 장기 성장보다 빠른 계약 수익을 우선한다.",
+      "cardType": "character",
+      "source_sections": [
+        "sports_fantasy_section_12"
+      ],
+      "soul": "유망주에게 과도한 성공을 약속하며 선수의 장기 성장보다 빠른 계약 수익을 우선한다. 대화 제안: 화려한 기회와 즉각적인 이익을 강조한다."
+    },
+    {
+      "key": "incheon-harbors",
+      "title": "인천 하버스",
+      "body": "항구 도시를 연고로 하는 가상의 프로축구 구단이다. 큰 자금 지출보다 육성한 선수를 성인 팀에 올리는 운영을 중시한다.",
+      "cardType": "organization",
+      "source_sections": [
+        "sports_fantasy_section_08"
+      ]
+    },
+    {
+      "key": "incheon-harbors-u18",
+      "title": "인천 하버스 U-18",
+      "body": "한도윤이 속한 인천 하버스의 유소년 팀이다. 평가에는 득점뿐 아니라 훈련 태도, 이해력, 반복 수행과 팀 요구에 대한 적응이 포함되지만 관찰 기간과 선호에 따른 편견도 있을 수 있다.",
+      "cardType": "organization",
+      "source_sections": [
+        "sports_fantasy_section_08"
+      ]
+    },
+    {
+      "key": "sc-portus",
+      "title": "SC 포르투스",
+      "body": "루카스 바레라 감독이 이끄는 포르투갈의 가상 축구 구단이다. 감독은 공간 점유와 빠른 압박 전환을 중요하게 여긴다.",
+      "cardType": "organization",
+      "source_sections": [
+        "sports_fantasy_section_11"
+      ]
+    },
+    {
+      "key": "football-system",
+      "title": "가상 축구계의 구조",
+      "body": "현대와 유사한 가상의 축구계에는 대한민국 프로 1·2부 리그와 유소년 시스템, 유럽 리그 및 연령별·성인 대표팀 대회가 존재한다. 실제 구단과 선수 대신 독립적인 이름과 역사를 사용한다.",
+      "cardType": "other",
+      "source_sections": [
+        "sports_fantasy_section_02"
+      ]
+    },
+    {
+      "key": "regression-limits",
+      "title": "도윤의 회귀와 한계",
+      "body": "회귀는 한 번만 일어나며 도윤은 원인이나 반복 방법을 알지 못한다. 기억과 판단은 돌아오지만 몸은 열일곱 살의 상태이고 미래 결과는 개입에 따라 달라질 수 있으며 경기 중 시간을 멈추거나 다시 시도할 수 없다.",
+      "cardType": "rule",
+      "source_sections": [
+        "sports_fantasy_section_04"
+      ]
+    },
+    {
+      "key": "physical-training",
+      "title": "성장기 신체와 훈련",
+      "body": "전생의 움직임은 현재의 근력과 지구력, 균형 감각에 맞춰 다시 적응해야 한다. 전생에 다친 날짜를 피하는 것만으로 부상을 막을 수 없으며 훈련과 회복에는 코치와 의료진의 평가가 필요하다.",
+      "cardType": "rule",
+      "source_sections": [
+        "sports_fantasy_section_04",
+        "sports_fantasy_section_07"
+      ]
+    },
+    {
+      "key": "future-knowledge",
+      "title": "미래 지식의 범위",
+      "body": "도윤의 지식은 직접 뛴 경험, 지도와 분석으로 익힌 지식, 경기와 보도로 기억하는 미래로 나뉘며 신뢰도가 다르다. 타인의 사생활이나 비공개 전술까지 알지는 못하고 팀과 선수의 선택이 바뀌면 기억한 결과도 달라질 수 있다.",
+      "cardType": "rule",
+      "source_sections": [
+        "sports_fantasy_section_03",
+        "sports_fantasy_section_04"
+      ]
+    },
+    {
+      "key": "former-life-release",
+      "title": "전생의 유소년팀 방출",
+      "body": "도윤은 전생의 유소년 평가전에서 두 골을 넣었지만 방출되었다. 득점 외의 기여가 부족했고 피드백을 거부했으며, 감독은 골뿐 아니라 동료들이 감당한 수비와 전술적 손실도 평가했다.",
+      "cardType": "event",
+      "source_sections": [
+        "sports_fantasy_section_01",
+        "sports_fantasy_section_03",
+        "sports_fantasy_section_17"
+      ]
+    },
+    {
+      "key": "former-life-injury",
+      "title": "전생의 스물네 살 부상",
+      "body": "도윤은 전생에 24세에 큰 부상을 입고 장기간 경기에 나서지 못했다. 복귀를 서두르며 신체 상태를 숨겼고 이전의 움직임을 되찾지 못했다.",
+      "cardType": "event",
+      "source_sections": [
+        "sports_fantasy_section_01",
+        "sports_fantasy_section_03"
+      ]
+    },
+    {
+      "key": "former-life-career",
+      "title": "도윤의 전생 선수 경력",
+      "body": "도윤은 전생에 21세에 프로 2부에 데뷔하고 23세에 1부 팀으로 이적했다. 부상 이후 여러 팀을 옮기다 30세에 은퇴했고 이후 유소년 지도와 영상 분석을 했다.",
+      "cardType": "event",
+      "source_sections": [
+        "sports_fantasy_section_03"
+      ]
+    }
+  ]
+}

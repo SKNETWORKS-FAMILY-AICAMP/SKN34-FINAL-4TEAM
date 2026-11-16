@@ -38,6 +38,8 @@
 .worlds-board-table .col-sum { overflow: hidden; color: var(--tsub); text-overflow: ellipsis; white-space: nowrap; }
 .worlds-board-table .chip { height: auto; padding: 0; background: none; font-weight: 600; }
 .worlds-badge { margin-left: 6px; color: var(--tacc); font-size: 12px; font-weight: 700; }
+/* 카드 대표 이미지의 작은 썸네일(#401): 게시판 줄은 제목 앞에 놓고(편집 화면 레일은 world-studio.css가 왼쪽에 띄운다), 이미지가 있는 카드만 그린다. 읽는 동안의 빈 자리도 같은 크기라 줄이 흔들리지 않는다. */
+.board-thumb { display: inline-block; flex: none; width: 28px; height: 28px; margin-right: 8px; border: 1px solid var(--tline); border-radius: 6px; background: var(--muted-bg); object-fit: cover; vertical-align: middle; }
 
 /* 좁은 화면: 분류 메뉴는 가로 스크롤 칩이 되고(홈 칩과 같은 크기·모양) 게시판은 번호·요약 열을 숨겨 제목·분류·연결만 남긴다. nw 정보 상자가 쌓이는 폭(720px)과 같다. */
 @media (max-width: 720px) {

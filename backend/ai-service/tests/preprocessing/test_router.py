@@ -4,13 +4,14 @@ from types import SimpleNamespace
 import pytest
 from fastapi import HTTPException
 
-from app.preprocessing import router, tasks
+from app.preprocessing import router, service, tasks
 from app.preprocessing.models import JobRequest
 
 from .stubs import JOB, WORK
 
 
 def test_the_internal_token_gates_the_registration(monkeypatch):
+    monkeypatch.setattr(service, "require_available", lambda: None)
     sent = []
     monkeypatch.setattr(tasks, 'run_job', SimpleNamespace(apply_async=lambda args: sent.append(args)))
     monkeypatch.setenv('INTERNAL_TOKEN', 'test-internal-token')
@@ -22,3 +23,15 @@ def test_the_internal_token_gates_the_registration(monkeypatch):
         assert failure.value.status_code == 403 and sent == []
     assert str(router.accept_job(job, 'test-internal-token').jobId) == JOB
     assert sent == [[JOB, WORK, [1, 2]]]
+
+
+def test_unimplemented_pipeline_is_rejected_before_queueing(monkeypatch):
+    sent = []
+    monkeypatch.setenv('INTERNAL_TOKEN', 'test-internal-token')
+    monkeypatch.setenv('CELERY_BROKER_URL', 'amqp://broker.invalid//')
+    monkeypatch.setattr(tasks, 'run_job', SimpleNamespace(apply_async=lambda args: sent.append(args)))
+    with pytest.raises(HTTPException) as failure:
+        router.accept_job(JobRequest(jobId=JOB, workId=WORK, episodes=[1]), 'test-internal-token')
+    assert failure.value.status_code == 503
+    assert failure.value.detail == 'PREPROCESSING_NOT_IMPLEMENTED'
+    assert sent == []

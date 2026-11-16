@@ -6,6 +6,7 @@ from .stubs import JOB, WORK, content_double, logic_double
 
 
 def test_a_stage_failure_is_left_on_the_job_with_its_fixed_reason(monkeypatch):
+    monkeypatch.setattr(service, "require_available", lambda: None)
     remote = content_double(monkeypatch)
     logic_double(monkeypatch)
     monkeypatch.setattr(tasks.celery.conf, 'task_always_eager', True)
@@ -18,3 +19,11 @@ def test_a_stage_failure_is_left_on_the_job_with_its_fixed_reason(monkeypatch):
     tasks.run_job.delay(JOB, WORK, [1, 2, 3])
     assert remote.progress[-1] == {'stage': 'resolving', 'done': 0, 'total': 1, 'failedEpisodes': [], 'failed': REASONS['resolving']}
     assert remote.loads == []
+
+
+def test_direct_worker_message_cannot_run_unimplemented_pipeline(monkeypatch):
+    import pytest
+    remote = content_double(monkeypatch)
+    with pytest.raises(PreprocessingFailure, match='PREPROCESSING_NOT_IMPLEMENTED'):
+        tasks.run_job.run(JOB, WORK, [1])
+    assert remote.reads == [] and remote.progress == [] and remote.loads == []

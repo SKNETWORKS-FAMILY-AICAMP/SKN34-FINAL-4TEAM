@@ -1,0 +1,1060 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "source-grounded-history-research-draft",
+  "country": "usa",
+  "genre": "usa_history",
+  "worldId": "caa0b0e9-0305-566e-82ee-650f43aa464e",
+  "checked_date": "2026-11-13",
+  "status": "local-original-excerpts-verified; independent-historical-and-expert-review-pending",
+  "uuid_policy": {
+    "algorithm": "UUIDv5",
+    "namespace": "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
+    "world_name": "storyfork/history-research/v1/usa/world",
+    "card_name_prefix": "storyfork/history-research/v1/usa/card/"
+  },
+  "source_policy": {
+    "new_acquisition": false,
+    "translation_drafts_used_as_authority": false,
+    "fiction_added": false,
+    "images_captions_and_third_party_quotations_reused": false,
+    "source_agreement_is_not_historical_truth": true
+  },
+  "license": {
+    "id": "CC-BY-SA-4.0",
+    "url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "The American Yawp, Joseph L. Locke and Ben Wright, and the named editors and contributors of each used chapter.",
+    "changes": "Selected, paraphrased in Korean, and arranged as typed cards; no endorsement implied.",
+    "notice": "The American Yawp 및 Joseph L. Locke·Ben Wright, 아래 각 장의 편집자·기여자에게 저작을 표시한다. 원전 https://www.americanyawp.com/ . 변경본인 이 미국사 카드·근거·설명 문서는 CC BY-SA 4.0(https://creativecommons.org/licenses/by-sa/4.0/)으로 제공한다. 그 밖의 저장소·타국 자료·제3자 콘텐츠의 권리를 변경하지 않는다."
+  },
+  "sources": [
+    {
+      "file": "docs/research/history-textbooks/usa/original-text/01-american-origins.txt",
+      "sha256": "7815e10ce5f527c966e973ca1e2ad285610990afd0bbf5dd27fcec33df3ad5fa",
+      "url": "https://www.americanyawp.com/textbook/01-american-origins"
+    },
+    {
+      "file": "docs/research/history-textbooks/usa/original-text/03-colliding-cultures.txt",
+      "sha256": "223da09c38b5495f3d173e1ae66848de77e7d869b991f23d6f1ac69a172086d1",
+      "url": "https://www.americanyawp.com/textbook/03-colliding-cultures"
+    },
+    {
+      "file": "docs/research/history-textbooks/usa/original-text/04-british-north-america.txt",
+      "sha256": "da445032a9960c6f2678e59fd0f88f703627043cafd23a3295e6ebaf1b31654c",
+      "url": "https://www.americanyawp.com/textbook/04-british-north-america"
+    },
+    {
+      "file": "docs/research/history-textbooks/usa/original-text/06-the-american-revolution.txt",
+      "sha256": "40ddfd24b67c8f889b37fa0ea7f8161ac9dc34ee03118021848ba9f0782f3ccb",
+      "url": "https://www.americanyawp.com/textbook/06-the-american-revolution"
+    },
+    {
+      "file": "docs/research/history-textbooks/usa/original-text/07-a-new-nation.txt",
+      "sha256": "4d990cd65fbd017d01e32e145960b9fc1ad2c855b68d9e32aa263483c0e9af16",
+      "url": "https://www.americanyawp.com/textbook/07-a-new-nation"
+    },
+    {
+      "file": "docs/research/history-textbooks/usa/original-text/10-american-democracy.txt",
+      "sha256": "f3b4130eee179ee4bd749176c70dc63bf85e7c376ae804dfb669f31da68f9d37",
+      "url": "https://www.americanyawp.com/textbook/10-american-democracy"
+    },
+    {
+      "file": "docs/research/history-textbooks/usa/original-text/11-growth-and-conflict.txt",
+      "sha256": "bf2d10f24ea85b794271991ec11e8e2367da1a0c4e7b5e2e4b51b0561279edbd",
+      "url": "https://www.americanyawp.com/textbook/11-growth-and-conflict"
+    },
+    {
+      "file": "docs/research/history-textbooks/usa/original-text/13-the-civil-war.txt",
+      "sha256": "e1954362b9dcccea1a982de967fe61b2e1d038db3e38845d0b07dbcd319d5b74",
+      "url": "https://www.americanyawp.com/textbook/13-the-civil-war"
+    },
+    {
+      "file": "docs/research/history-textbooks/usa/original-text/14-reconstruction.txt",
+      "sha256": "7a1d5f3d8d5d1a99d480c429efb791d622dd4839bfff174300157a493d63e270",
+      "url": "https://www.americanyawp.com/textbook/14-reconstruction"
+    },
+    {
+      "file": "docs/research/history-textbooks/usa/original-text/15-capital-and-labor.txt",
+      "sha256": "a52e09d877bfd40a80941be08ffc57ff3d085af6d2b5aa7d8354f200e12aa9f2",
+      "url": "https://www.americanyawp.com/textbook/15-capital-and-labor"
+    },
+    {
+      "file": "docs/research/history-textbooks/usa/original-text/21-the-great-depression.txt",
+      "sha256": "181db9b9df06b2261384d6c9b5d9f9b97d385429722960f01cd7ad933485d227",
+      "url": "https://www.americanyawp.com/textbook/21-the-great-depression"
+    },
+    {
+      "file": "docs/research/history-textbooks/usa/original-text/22-world-war-ii.txt",
+      "sha256": "1c01f1a2f2075d6be695a9c0f3d2d09afb2e9db8d66fca14236f41336fc5ca1a",
+      "url": "https://www.americanyawp.com/textbook/22-world-war-ii"
+    },
+    {
+      "file": "docs/research/history-textbooks/usa/original-text/24-the-affluent-society.txt",
+      "sha256": "3b43538570790b6a4f395f5a3a7ed61d4316dfde3db0d6acd441bac4a03f1f68",
+      "url": "https://www.americanyawp.com/textbook/24-the-affluent-society"
+    },
+    {
+      "file": "docs/research/history-textbooks/usa/original-text/25-the-sixties.txt",
+      "sha256": "0d1fc135be36e2e10d27ef68585565de05cb4eca638b5872a358c06f803d6354",
+      "url": "https://www.americanyawp.com/textbook/25-the-sixties"
+    },
+    {
+      "file": "docs/research/history-textbooks/usa/original-text/26-the-unraveling.txt",
+      "sha256": "5dd920f6cf92fa9d44cec090852281120734d98d7ddbe3f61d52fe51a4594923",
+      "url": "https://www.americanyawp.com/textbook/26-the-unraveling"
+    },
+    {
+      "file": "docs/research/history-textbooks/usa/license-about.html",
+      "sha256": "fb86d19adc76e866e910cfcd7347fad33f577bf4ff87e05e2dacec395111e393",
+      "url": "https://www.americanyawp.com/text/about/"
+    }
+  ],
+  "chapter_credits": [
+    {
+      "chapter": "01-american-origins",
+      "url": "https://www.americanyawp.com/textbook/01-american-origins",
+      "credit_text": "This chapter was edited by Christen Mucher, with content contributions by L. D. Burnett, Michelle Cassidy, D. Andrew Johnson, Khalil Anthony Johnson Jr., Brenda Lakhani, Joseph Locke, Dawn Marsh, Christen Mucher, Rachel Pasierowska, Cameron Shriver, Ben Wright, Caroline Wright, and Garrett Wright.",
+      "credit_evidence": {
+        "source_file": "docs/research/history-textbooks/usa/original-text/01-american-origins.txt",
+        "source_sha256": "7815e10ce5f527c966e973ca1e2ad285610990afd0bbf5dd27fcec33df3ad5fa",
+        "section": "Reference Material / credit",
+        "line_start": 247,
+        "line_end": 247,
+        "excerpt": "This chapter was edited by Christen Mucher, with content contributions by L. D. Burnett, Michelle Cassidy, D. Andrew Johnson, Khalil Anthony Johnson Jr., Brenda Lakhani, Joseph Locke, Dawn Marsh, Christen Mucher, Rachel Pasierowska, Cameron Shriver, Ben Wright, Caroline Wright, and Garrett Wright.",
+        "excerpt_sha256": "63bb620a726b62fe6f409dcc5e7ef16dc48228c7f8f2188ee196d5369aa7bdba",
+        "supports": "장별 편집자와 기여자"
+      },
+      "original_html_file": "docs/research/history-textbooks/usa/original-html/01-american-origins.html",
+      "original_html_sha256": "e47d62955572e94ed4f493c0c69491badec2cd98b758b1beac054ce653bc4003"
+    },
+    {
+      "chapter": "03-colliding-cultures",
+      "url": "https://www.americanyawp.com/textbook/03-colliding-cultures",
+      "credit_text": "This chapter was edited by Miller Shores Wright, with content contributions by Erin Bonuso, L. D. Burnett, Max Flomen, Jon Grandage, Daniel Johnson, Brenda Lakhani, Joseph Locke, Lisa Mercer, Maria Montalvo, Ian Saxine, Jennifer Tellman, Luke Willert, Ben Wright, Caroline Wright, and Miller Shores Wright.",
+      "credit_evidence": {
+        "source_file": "docs/research/history-textbooks/usa/original-text/03-colliding-cultures.txt",
+        "source_sha256": "223da09c38b5495f3d173e1ae66848de77e7d869b991f23d6f1ac69a172086d1",
+        "section": "Reference Material / credit",
+        "line_start": 277,
+        "line_end": 277,
+        "excerpt": "This chapter was edited by Miller Shores Wright, with content contributions by Erin Bonuso, L. D. Burnett, Max Flomen, Jon Grandage, Daniel Johnson, Brenda Lakhani, Joseph Locke, Lisa Mercer, Maria Montalvo, Ian Saxine, Jennifer Tellman, Luke Willert, Ben Wright, Caroline Wright, and Miller Shores Wright.",
+        "excerpt_sha256": "7dad18564bafd1bce83df887938c82c9879327c58bc04cd8c7c441fd8eb69a4d",
+        "supports": "장별 편집자와 기여자"
+      },
+      "original_html_file": "docs/research/history-textbooks/usa/original-html/03-colliding-cultures.html",
+      "original_html_sha256": "67e64e4a1b37506b4a0ea06c363de76a8d2648b0655d5bdc754c910f241db82f"
+    },
+    {
+      "chapter": "04-british-north-america",
+      "url": "https://www.americanyawp.com/textbook/04-british-north-america",
+      "credit_text": "This chapter was edited by Daniel Johnson, with content contributions by Gregory Ablavsky, James Ambuske, Carolyn Arena, L. D. Burnett, Lori Daggar, Max Flomen, Hendrick Isom, D. Andrew Johnson, Daniel Johnson, Matthew Kruer, Brenda Lakhani, Joseph Locke, Samantha Miller, Melissa Morris, Bryan Rindfleisch, Emily Romeo, John Saillant, Ian Saxine, Marie Stango, Luke Willert, Ben Wright, Caroline Wright, and Miller Shores Wright.",
+      "credit_evidence": {
+        "source_file": "docs/research/history-textbooks/usa/original-text/04-british-north-america.txt",
+        "source_sha256": "da445032a9960c6f2678e59fd0f88f703627043cafd23a3295e6ebaf1b31654c",
+        "section": "Reference Material / credit",
+        "line_start": 225,
+        "line_end": 225,
+        "excerpt": "This chapter was edited by Daniel Johnson, with content contributions by Gregory Ablavsky, James Ambuske, Carolyn Arena, L. D. Burnett, Lori Daggar, Max Flomen, Hendrick Isom, D. Andrew Johnson, Daniel Johnson, Matthew Kruer, Brenda Lakhani, Joseph Locke, Samantha Miller, Melissa Morris, Bryan Rindfleisch, Emily Romeo, John Saillant, Ian Saxine, Marie Stango, Luke Willert, Ben Wright, Caroline Wright, and Miller Shores Wright.",
+        "excerpt_sha256": "b7b9c210bdad23089975528e119a2fa72bcc3369089eefbe4206fb5f5b6b81c7",
+        "supports": "장별 편집자와 기여자"
+      },
+      "original_html_file": "docs/research/history-textbooks/usa/original-html/04-british-north-america.html",
+      "original_html_sha256": "a0493be3522568503fe4de00451669811e3338421a8bd4e312d21c92c15ca1eb"
+    },
+    {
+      "chapter": "06-the-american-revolution",
+      "url": "https://www.americanyawp.com/textbook/06-the-american-revolution",
+      "credit_text": "This chapter was edited by Michael Hattem, with content contributions by James Ambuske, Alexander Burns, Joshua Beatty, Christina Carrick, Christopher Consolino, Michael Hattem, Timothy C. Hemmis, Brenda Lakhani, Joseph Moore, Emily Romeo, John Saillant, Christopher Sparshott, Ben Wright, and Caroline Wright.",
+      "credit_evidence": {
+        "source_file": "docs/research/history-textbooks/usa/original-text/06-the-american-revolution.txt",
+        "source_sha256": "40ddfd24b67c8f889b37fa0ea7f8161ac9dc34ee03118021848ba9f0782f3ccb",
+        "section": "Reference Material / credit",
+        "line_start": 277,
+        "line_end": 277,
+        "excerpt": "This chapter was edited by Michael Hattem, with content contributions by James Ambuske, Alexander Burns, Joshua Beatty, Christina Carrick, Christopher Consolino, Michael Hattem, Timothy C. Hemmis, Brenda Lakhani, Joseph Moore, Emily Romeo, John Saillant, Christopher Sparshott, Ben Wright, and Caroline Wright.",
+        "excerpt_sha256": "b0f1f3ea239fc7c784f145d0bd118fff7d815fab8a19a54d884915571aef711f",
+        "supports": "장별 편집자와 기여자"
+      },
+      "original_html_file": "docs/research/history-textbooks/usa/original-html/06-the-american-revolution.html",
+      "original_html_sha256": "18372ea06271592dac971e28ea70660edd824138b9e76a9e3023a81339bcc132"
+    },
+    {
+      "chapter": "07-a-new-nation",
+      "url": "https://www.americanyawp.com/textbook/07-a-new-nation",
+      "credit_text": "This chapter was edited by Tara Strauch, with content contributions by Marco Basile, Nathaniel C. Green, Brenden Kennedy, Spencer McBride, Andrea Nero, Cara Rogers, John Saillant, Tara Strauch, Michael Harrison Taylor, Jordan Taylor, Kevin Wisniewski, Ben Wright, and Caroline Wright.",
+      "credit_evidence": {
+        "source_file": "docs/research/history-textbooks/usa/original-text/07-a-new-nation.txt",
+        "source_sha256": "4d990cd65fbd017d01e32e145960b9fc1ad2c855b68d9e32aa263483c0e9af16",
+        "section": "Reference Material / credit",
+        "line_start": 303,
+        "line_end": 303,
+        "excerpt": "This chapter was edited by Tara Strauch, with content contributions by Marco Basile, Nathaniel C. Green, Brenden Kennedy, Spencer McBride, Andrea Nero, Cara Rogers, John Saillant, Tara Strauch, Michael Harrison Taylor, Jordan Taylor, Kevin Wisniewski, Ben Wright, and Caroline Wright.",
+        "excerpt_sha256": "878772606e939268ec28e0ac86ed456fc62789f5f83cf187af8111ea1928beb2",
+        "supports": "장별 편집자와 기여자"
+      },
+      "original_html_file": "docs/research/history-textbooks/usa/original-html/07-a-new-nation.html",
+      "original_html_sha256": "3aa37228e13790aeb8be245773db664b79ab913c949efda95f941c947c75866b"
+    },
+    {
+      "chapter": "10-american-democracy",
+      "url": "https://www.americanyawp.com/textbook/10-american-democracy",
+      "credit_text": "This chapter was edited by Emily Arendt, with content contributions by Myles Beaupre, Marjorie Brown, Michelle Cassidy, Steffi Cerato, Christopher Childers, Kristin Condotta, Emily Conroy-Krutz, William Cossen, Adam Costanzo, Jeff Fortney, Jane Fiegen Green, Nathaniel C. Green, Robert Gudmestad, Nathan Jeremie-Brink, Christopher C. Jones, Lindsay Keiter, Brenda Lakhani, Spencer McBride, Maria Montalvo, James Anthony Owen, Katherine Rohrer, Marie Stango, Kevin Waite, Kelly Weber, Jonathan Wilfred Wilson, Caroline Wright, and Ben Wright.",
+      "credit_evidence": {
+        "source_file": "docs/research/history-textbooks/usa/original-text/10-american-democracy.txt",
+        "source_sha256": "f3b4130eee179ee4bd749176c70dc63bf85e7c376ae804dfb669f31da68f9d37",
+        "section": "Reference Material / credit",
+        "line_start": 283,
+        "line_end": 283,
+        "excerpt": "This chapter was edited by Emily Arendt, with content contributions by Myles Beaupre, Marjorie Brown, Michelle Cassidy, Steffi Cerato, Christopher Childers, Kristin Condotta, Emily Conroy-Krutz, William Cossen, Adam Costanzo, Jeff Fortney, Jane Fiegen Green, Nathaniel C. Green, Robert Gudmestad, Nathan Jeremie-Brink, Christopher C. Jones, Lindsay Keiter, Brenda Lakhani, Spencer McBride, Maria Montalvo, James Anthony Owen, Katherine Rohrer, Marie Stango, Kevin Waite, Kelly Weber, Jonathan Wilfred Wilson, Caroline Wright, and Ben Wright.",
+        "excerpt_sha256": "df1694de08d1712d5ec51cde9545bb777b2e14d67c567dc6abde65b2af21579c",
+        "supports": "장별 편집자와 기여자"
+      },
+      "original_html_file": "docs/research/history-textbooks/usa/original-html/10-american-democracy.html",
+      "original_html_sha256": "945bbccce1e4f2e0d7906a1c5fdbe348102d6f78ef4056fbd5be9d3b9d751375"
+    },
+    {
+      "chapter": "11-growth-and-conflict",
+      "url": "https://www.americanyawp.com/textbook/11-growth-and-conflict",
+      "credit_text": "This chapter was edited by Andrew N. Wegmann and John William Nelson, with content contributions by Elena Abbott, Ian Beamish, Amanda Bellows, Cameron Blevins, Marjorie Brown, Matthew Byron, Steffi Cerato, Frank Cirillo, Justin Clark, Emily Conroy-Krutz, Jane Fiegen Green, Robert Gudmestad, John Harris, Nicolas Hoffmann, Christopher C. Jones, Brenda Lakhani, Jonathan Koefoed, Charles McCrary, Maria Montalvo, John William Nelson, James Anthony Owen, Katherine Rohrer, William E. Skidmore, Marie Stango, Megan Stanton, Kelly Weber, Andrew N. Wegmann, Jonathan Wilfred Wilson, Caroline Wright, and Ben Wright.",
+      "credit_evidence": {
+        "source_file": "docs/research/history-textbooks/usa/original-text/11-growth-and-conflict.txt",
+        "source_sha256": "bf2d10f24ea85b794271991ec11e8e2367da1a0c4e7b5e2e4b51b0561279edbd",
+        "section": "Reference Material / credit",
+        "line_start": 281,
+        "line_end": 281,
+        "excerpt": "This chapter was edited by Andrew N. Wegmann and John William Nelson, with content contributions by Elena Abbott, Ian Beamish, Amanda Bellows, Cameron Blevins, Marjorie Brown, Matthew Byron, Steffi Cerato, Frank Cirillo, Justin Clark, Emily Conroy-Krutz, Jane Fiegen Green, Robert Gudmestad, John Harris, Nicolas Hoffmann, Christopher C. Jones, Brenda Lakhani, Jonathan Koefoed, Charles McCrary, Maria Montalvo, John William Nelson, James Anthony Owen, Katherine Rohrer, William E. Skidmore, Marie Stango, Megan Stanton, Kelly Weber, Andrew N. Wegmann, Jonathan Wilfred Wilson, Caroline Wright, and Ben Wright.",
+        "excerpt_sha256": "ca79712548e3704531669f1f079c4cdbee8895d61abd1a619e11da979c15f127",
+        "supports": "장별 편집자와 기여자"
+      },
+      "original_html_file": "docs/research/history-textbooks/usa/original-html/11-growth-and-conflict.html",
+      "original_html_sha256": "f328385878fa6eda8618f7eddb2366e22f09374ea1af52528c2308b4767d1442"
+    },
+    {
+      "chapter": "13-the-civil-war",
+      "url": "https://www.americanyawp.com/textbook/13-the-civil-war",
+      "credit_text": "This chapter was edited by Frank Cirillo, with content contributions by Thomas Balcerski, William Black, Lauren Brand, Frank Cirillo, Angela Esco Elder, Matthew C. Hulbert, Brenda Lakhani, Andrew F. Lang, Lindsay Stallones Marshall, John Patrick Riley, Angela Riotto, Gregory N. Stern, Emma Teitelman, David Thomson, Ann Tucker, Ben Wright, Caroline Wright, and Rebecca Zimmer.",
+      "credit_evidence": {
+        "source_file": "docs/research/history-textbooks/usa/original-text/13-the-civil-war.txt",
+        "source_sha256": "e1954362b9dcccea1a982de967fe61b2e1d038db3e38845d0b07dbcd319d5b74",
+        "section": "Reference Material / credit",
+        "line_start": 257,
+        "line_end": 257,
+        "excerpt": "This chapter was edited by Frank Cirillo, with content contributions by Thomas Balcerski, William Black, Lauren Brand, Frank Cirillo, Angela Esco Elder, Matthew C. Hulbert, Brenda Lakhani, Andrew F. Lang, Lindsay Stallones Marshall, John Patrick Riley, Angela Riotto, Gregory N. Stern, Emma Teitelman, David Thomson, Ann Tucker, Ben Wright, Caroline Wright, and Rebecca Zimmer.",
+        "excerpt_sha256": "cf5709405c0c9d3aae9ab5eb749cfe07420ad1892aff72e1454bc5193e5ec29d",
+        "supports": "장별 편집자와 기여자"
+      },
+      "original_html_file": "docs/research/history-textbooks/usa/original-html/13-the-civil-war.html",
+      "original_html_sha256": "ac008bf9258feeb00b48b083d70cc1aa6514b8e0d80bb3cdad5aa724bf22a935"
+    },
+    {
+      "chapter": "14-reconstruction",
+      "url": "https://www.americanyawp.com/textbook/14-reconstruction",
+      "credit_text": "This chapter was edited by Justene Hill Edwards, with content contributions by Christopher Abernathy, Jeremiah Bauer, Lauren Brand, Michael T. Caires, Mari Crabtree, Chris Hayashida-Knight, Krista Kinslow, Brenda Lakhani, Lindsay Stallones Marshall, Ashley Mays, Keith McCall, Ryan Poe, Bradley Proctor, Emma Teitelman, Nicole Myers Turner, Caitlin Verboon, Caroline Wright, and Ben Wright.",
+      "credit_evidence": {
+        "source_file": "docs/research/history-textbooks/usa/original-text/14-reconstruction.txt",
+        "source_sha256": "7a1d5f3d8d5d1a99d480c429efb791d622dd4839bfff174300157a493d63e270",
+        "section": "Reference Material / credit",
+        "line_start": 273,
+        "line_end": 273,
+        "excerpt": "This chapter was edited by Justene Hill Edwards, with content contributions by Christopher Abernathy, Jeremiah Bauer, Lauren Brand, Michael T. Caires, Mari Crabtree, Chris Hayashida-Knight, Krista Kinslow, Brenda Lakhani, Lindsay Stallones Marshall, Ashley Mays, Keith McCall, Ryan Poe, Bradley Proctor, Emma Teitelman, Nicole Myers Turner, Caitlin Verboon, Caroline Wright, and Ben Wright.",
+        "excerpt_sha256": "b2ca0eb60a46f726741a9f9536195f8ff01e0d7637bf7af9e62f7bb5a5d429ae",
+        "supports": "장별 편집자와 기여자"
+      },
+      "original_html_file": "docs/research/history-textbooks/usa/original-html/14-reconstruction.html",
+      "original_html_sha256": "f02406b087be17283ce5876fa9c4df46f9b269be4f7a05f40f4ad864139edf9b"
+    },
+    {
+      "chapter": "15-capital-and-labor",
+      "url": "https://www.americanyawp.com/textbook/15-capital-and-labor",
+      "credit_text": "This chapter was edited by Joseph L. Locke, with content contributions by Andrew C. Baker, Jennifer M. Black, Nicholas Blood, Justin Clark, Dan Du, Kollin Fields, Caroline Bunnell Harris, David Hochfelder Scott Libson, Joseph Locke, Chad Pearson, Leah Richier, Matthew Simmons, Kate Sohasky, Joseph Super, and Kaylynn Washnock.",
+      "credit_evidence": {
+        "source_file": "docs/research/history-textbooks/usa/original-text/15-capital-and-labor.txt",
+        "source_sha256": "a52e09d877bfd40a80941be08ffc57ff3d085af6d2b5aa7d8354f200e12aa9f2",
+        "section": "Reference Material / credit",
+        "line_start": 182,
+        "line_end": 182,
+        "excerpt": "This chapter was edited by Joseph L. Locke, with content contributions by Andrew C. Baker, Jennifer M. Black, Nicholas Blood, Justin Clark, Dan Du, Kollin Fields, Caroline Bunnell Harris, David Hochfelder Scott Libson, Joseph Locke, Chad Pearson, Leah Richier, Matthew Simmons, Kate Sohasky, Joseph Super, and Kaylynn Washnock.",
+        "excerpt_sha256": "4e1608920fc05613fa1aba17898ded5023392c320f5f0d5a7d30e0da259dffc1",
+        "supports": "장별 편집자와 기여자"
+      },
+      "original_html_file": "docs/research/history-textbooks/usa/original-html/15-capital-and-labor.html",
+      "original_html_sha256": "b3ae735b356b3055f4ca2a5401883f179ee3826afbc92caa090b6dd78bd2795d"
+    },
+    {
+      "chapter": "21-the-great-depression",
+      "url": "https://www.americanyawp.com/textbook/21-the-great-depression",
+      "credit_text": "This chapter was edited by Matthew Downs and Eric Rauchway, with content contributed by Dana Cochran, Matthew Downs, Rebecca Brenner Graham, Benjamin Helwege, Brenda L. Lakhani, Elisa Minoff, Eric Rauchway, Larisa L. Veloz, Caitlin Verboon, and Mason Williams.",
+      "credit_evidence": {
+        "source_file": "docs/research/history-textbooks/usa/original-text/21-the-great-depression.txt",
+        "source_sha256": "181db9b9df06b2261384d6c9b5d9f9b97d385429722960f01cd7ad933485d227",
+        "section": "Reference Material / credit",
+        "line_start": 232,
+        "line_end": 232,
+        "excerpt": "This chapter was edited by Matthew Downs and Eric Rauchway, with content contributed by Dana Cochran, Matthew Downs, Rebecca Brenner Graham, Benjamin Helwege, Brenda L. Lakhani, Elisa Minoff, Eric Rauchway, Larisa L. Veloz, Caitlin Verboon, and Mason Williams.",
+        "excerpt_sha256": "8bd8b6a5eb78c4da1da0d30adab5d040d427e4b409b67c120b5c6aec4efbe021",
+        "supports": "장별 편집자와 기여자"
+      },
+      "original_html_file": "docs/research/history-textbooks/usa/original-html/21-the-great-depression.html",
+      "original_html_sha256": "d27de9f284fd008fe5a44f999d1035d8df4b54cf4c7fb6b2b59817899c7414ce"
+    },
+    {
+      "chapter": "22-world-war-ii",
+      "url": "https://www.americanyawp.com/textbook/22-world-war-ii",
+      "credit_text": "This chapter was edited by Joseph Locke, with content contributions by Mary Beth Chopas, Andrew David, Ashton Ellett, Paula Fortier, Rebecca Brenner Graham, Dan Johnson, Joseph Locke, Jennifer Mandel, Valerie Martinez, James McKay, Ryan Menath, Laura L. Oviedo, John E. Schmitz, Chris Thomas.",
+      "credit_evidence": {
+        "source_file": "docs/research/history-textbooks/usa/original-text/22-world-war-ii.txt",
+        "source_sha256": "1c01f1a2f2075d6be695a9c0f3d2d09afb2e9db8d66fca14236f41336fc5ca1a",
+        "section": "Reference Material / credit",
+        "line_start": 252,
+        "line_end": 252,
+        "excerpt": "This chapter was edited by Joseph Locke, with content contributions by Mary Beth Chopas, Andrew David, Ashton Ellett, Paula Fortier, Rebecca Brenner Graham, Dan Johnson, Joseph Locke, Jennifer Mandel, Valerie Martinez, James McKay, Ryan Menath, Laura L. Oviedo, John E. Schmitz, Chris Thomas.",
+        "excerpt_sha256": "a354dd2cedf93b2482acb28cdc5b8ed9d8e7ec4c2febe3080e70676ec6b5970d",
+        "supports": "장별 편집자와 기여자"
+      },
+      "original_html_file": "docs/research/history-textbooks/usa/original-html/22-world-war-ii.html",
+      "original_html_sha256": "8e5afcf7ac8d7ac411ab67438d9a1fecf8e689eb9184e92ef46dece8b5842072"
+    },
+    {
+      "chapter": "24-the-affluent-society",
+      "url": "https://www.americanyawp.com/textbook/24-the-affluent-society",
+      "credit_text": "This chapter was edited by James McKay, with content contributions by Moisés Acuña-Gurrola, Carlos Blanton, Edwin C. Breeden, Aaron Cowan, Elsa Devienne, Maggie Flamingo, Destin Jenkins, Kyle Livie, Jennifer Mandel, James McKay, Laura Redford, Ronny Regev, and Tanya Roth.",
+      "credit_evidence": {
+        "source_file": "docs/research/history-textbooks/usa/original-text/24-the-affluent-society.txt",
+        "source_sha256": "3b43538570790b6a4f395f5a3a7ed61d4316dfde3db0d6acd441bac4a03f1f68",
+        "section": "Reference Material / credit",
+        "line_start": 189,
+        "line_end": 189,
+        "excerpt": "This chapter was edited by James McKay, with content contributions by Moisés Acuña-Gurrola, Carlos Blanton, Edwin C. Breeden, Aaron Cowan, Elsa Devienne, Maggie Flamingo, Destin Jenkins, Kyle Livie, Jennifer Mandel, James McKay, Laura Redford, Ronny Regev, and Tanya Roth.",
+        "excerpt_sha256": "c8918387c1ffc1dc1269d3a36278a1b25dc6e4ca1b29b801748c2439c0e63b24",
+        "supports": "장별 편집자와 기여자"
+      },
+      "original_html_file": "docs/research/history-textbooks/usa/original-html/24-the-affluent-society.html",
+      "original_html_sha256": "27e162e896ce5f2edbbb3aa61218b7bf3104cc7e8c8bbd55d7fb950a08e2213c"
+    },
+    {
+      "chapter": "25-the-sixties",
+      "url": "https://www.americanyawp.com/textbook/25-the-sixties",
+      "credit_text": "This chapter was edited by Samuel Abramson and Kerry Goldmann, with content contributions by Samuel Abramson, Moisés Acuña-Gurrola, Marsha Barrett, Brent Cebul, Michell Chresfield, William Cossen, Jenifer Dodd, Michael Falcone, Leif Fredrickson, Jean-Paul de Guzman, Jordan Hill, Travis B. Hill, William Kelly, Lucie Kyrova, Zeb Larson, Maria Montalvo, Emily Prifogle, Ansley Quiros, Jo Reger, Sarah Riva, Tanya Roth, and Robert Thompson.",
+      "credit_evidence": {
+        "source_file": "docs/research/history-textbooks/usa/original-text/25-the-sixties.txt",
+        "source_sha256": "0d1fc135be36e2e10d27ef68585565de05cb4eca638b5872a358c06f803d6354",
+        "section": "Reference Material / credit",
+        "line_start": 161,
+        "line_end": 161,
+        "excerpt": "This chapter was edited by Samuel Abramson and Kerry Goldmann, with content contributions by Samuel Abramson, Moisés Acuña-Gurrola, Marsha Barrett, Brent Cebul, Michell Chresfield, William Cossen, Jenifer Dodd, Michael Falcone, Leif Fredrickson, Jean-Paul de Guzman, Jordan Hill, Travis B. Hill, William Kelly, Lucie Kyrova, Zeb Larson, Maria Montalvo, Emily Prifogle, Ansley Quiros, Jo Reger, Sarah Riva, Tanya Roth, and Robert Thompson.",
+        "excerpt_sha256": "99374ce96a22e33fac2d0b63939e06f3637387ebfe8481a393fab7480e50be4e",
+        "supports": "장별 편집자와 기여자"
+      },
+      "original_html_file": "docs/research/history-textbooks/usa/original-html/25-the-sixties.html",
+      "original_html_sha256": "4b8f631b62cccd1f7916255f504f59894b8c589a1b43479f8168f856f7eda3fb"
+    },
+    {
+      "chapter": "26-the-unraveling",
+      "url": "https://www.americanyawp.com/textbook/26-the-unraveling",
+      "credit_text": "This chapter was edited by Edwin Breeden, with content contributions by Seth Anziska, Emiliano Aguilar, Jeremiah Bauer, Edwin Breeden, Kyle Burke, Brent Cebul, Alexandra Evans, Sean Fear, Anne Gray Fischer, Rebecca Brenner Graham, Travis B. Hill, Destin Jenkins, Matthew Kahn, Suzanne Kahn, Brooke Lamperd, Zeb Larson, Raechel Lutz, Katherine McGarr, Matthew Pressman, Adam Parsons, Emily Prifogle, John Rosenberg, Paul C. Rosier, Brandy Thomas Wells, and Naomi R. Williams.",
+      "credit_evidence": {
+        "source_file": "docs/research/history-textbooks/usa/original-text/26-the-unraveling.txt",
+        "source_sha256": "5dd920f6cf92fa9d44cec090852281120734d98d7ddbe3f61d52fe51a4594923",
+        "section": "Reference Material / credit",
+        "line_start": 261,
+        "line_end": 261,
+        "excerpt": "This chapter was edited by Edwin Breeden, with content contributions by Seth Anziska, Emiliano Aguilar, Jeremiah Bauer, Edwin Breeden, Kyle Burke, Brent Cebul, Alexandra Evans, Sean Fear, Anne Gray Fischer, Rebecca Brenner Graham, Travis B. Hill, Destin Jenkins, Matthew Kahn, Suzanne Kahn, Brooke Lamperd, Zeb Larson, Raechel Lutz, Katherine McGarr, Matthew Pressman, Adam Parsons, Emily Prifogle, John Rosenberg, Paul C. Rosier, Brandy Thomas Wells, and Naomi R. Williams.",
+        "excerpt_sha256": "b9194455a953dfce2b1120c175e7dc769c1d48391bddb845d907adb89e74f24c",
+        "supports": "장별 편집자와 기여자"
+      },
+      "original_html_file": "docs/research/history-textbooks/usa/original-html/26-the-unraveling.html",
+      "original_html_sha256": "41010e0b63c906e9c0c704a10f28bc4028817def8d1e447c9384af2f4111bfaa"
+    }
+  ],
+  "cards": [
+    {
+      "card_id": "5ddcf4a9-919d-5165-8067-8d32f6da3174",
+      "key": "cahokia",
+      "title": "카호키아: 식민화 이전의 도시",
+      "card_type": "location",
+      "era_or_scope": "유럽 식민화 이전",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/01-american-origins.txt",
+          "source_sha256": "7815e10ce5f527c966e973ca1e2ad285610990afd0bbf5dd27fcec33df3ad5fa",
+          "section": "The American Yawp chapter 01",
+          "line_start": 129,
+          "line_end": 129,
+          "excerpt": "Roughly one thousand years ago, the largest Mississippian settlement, Cahokia, located just east of modern-day St. Louis, peaked at a population of perhaps as many as 30,000 people. It rivaled contemporary European cities in size. No city north of modern Mexico, in fact, would match Cahokia’s peak population levels until after the American Revolution. The city itself spanned 2,000 acres. The center was marked by what is known today as Monks Mound, a large earthen hill that rose ten stories high. Its base was larger than that of the pyramids in Egypt. Scholars believe that, as with many of the peoples who lived in the Eastern Woodlands, life and death in Cahokia was linked to the movement of the stars, sun, and moon, and their ceremonial earthwork structures reflected these important structuring forces. They were also places of important economic exchange and political intrigue.",
+          "excerpt_sha256": "96d2fd9b2868fe764d6374d0a252c8adb182722c08a0ebb46ed75031836c074e",
+          "supports": "카호키아의 위치, 추정 인구, 몽크스 마운드, 의례·교역 기능"
+        }
+      ],
+      "caveats": [
+        "인구 규모와 천체 관련 해석은 추정·학술 해석으로 유지한다."
+      ]
+    },
+    {
+      "card_id": "e357c6d5-d5f5-5a15-935a-6f02a2e27f58",
+      "key": "powhatan",
+      "title": "와훈세나카우와 포와탄 정치권",
+      "card_type": "character",
+      "era_or_scope": "17세기 초",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/03-colliding-cultures.txt",
+          "source_sha256": "223da09c38b5495f3d173e1ae66848de77e7d869b991f23d6f1ac69a172086d1",
+          "section": "The American Yawp chapter 03",
+          "line_start": 159,
+          "line_end": 159,
+          "excerpt": "The English had not entered a wilderness but had arrived in what Algonquian-speakers called Tsennacommacah. Wahunsenacawh, the mamanatowick (paramount chief) whom the English called Powhatan, led over ten thousand Algonquian-speaking people in the Chesapeake living in over thirty separate polities known collectively as the Powhatan.36 They burned vast acreage to clear brush and create sprawling artificial, parklike grasslands so they could easily hunt deer, elk, and bison. The Powhatan raised corn, beans, squash, and possibly sunflowers, rotating acreage throughout the Chesapeake. Without plows, manure, or draft animals, the Powhatan produced a remarkable number of calories cheaply and efficiently.",
+          "excerpt_sha256": "d023190aae2cd86125ae821d83033285202669960ee4f3fc4c12aa5c9a44b7d7",
+          "supports": "와훈세나카우의 호칭·정치권·경작과 토지 관리"
+        }
+      ],
+      "caveats": []
+    },
+    {
+      "card_id": "a3af6a42-9dca-5a66-9570-8360a12c0469",
+      "key": "jamestown",
+      "title": "제임스타운: 투자와 생존의 식민 거점",
+      "card_type": "location",
+      "era_or_scope": "1607년",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/03-colliding-cultures.txt",
+          "source_sha256": "223da09c38b5495f3d173e1ae66848de77e7d869b991f23d6f1ac69a172086d1",
+          "section": "The American Yawp chapter 03",
+          "line_start": 157,
+          "line_end": 157,
+          "excerpt": "After King James made peace with the Spanish in 1604, colonization took on a new appeal. The Virginia Company, established in 1606, hoped to find gold and silver as well as other valuable trading commodities in the New World: glass, iron, furs, pitch, tar, and anything else the country could supply. In April 1607, Englishmen aboard three ships—the Susan Constant, the Godspeed, and the Discovery—sailed forty miles up the James River (named for the English king) in present-day Virginia (named for Elizabeth I, the Virgin Queen) and settled on just such a place. But the location was a disaster. Indigenous people had ignored the peninsula for two reasons: terrible soil hampered agriculture, and brackish tidal water led to debilitating disease. Despite these setbacks, the English built Jamestown, the first permanent English colony in the present-day United States.",
+          "excerpt_sha256": "3e7bfae2c27a721b5ac8da47a96960c1426e4be61317293d51135c6d9e0ccaf6",
+          "supports": "버지니아 회사, 정착 연도·위치·환경·지속 식민지 범위"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/03-colliding-cultures.txt",
+          "source_sha256": "223da09c38b5495f3d173e1ae66848de77e7d869b991f23d6f1ac69a172086d1",
+          "section": "The American Yawp chapter 03",
+          "line_start": 159,
+          "line_end": 159,
+          "excerpt": "The English had not entered a wilderness but had arrived in what Algonquian-speakers called Tsennacommacah. Wahunsenacawh, the mamanatowick (paramount chief) whom the English called Powhatan, led over ten thousand Algonquian-speaking people in the Chesapeake living in over thirty separate polities known collectively as the Powhatan.36",
+          "excerpt_sha256": "71ca90e49eeb35269cf2b47a82a568d88cd8b643d7b0154b2707246ed7a32a05",
+          "supports": "기존 원주민 정치권"
+        }
+      ],
+      "caveats": []
+    },
+    {
+      "card_id": "b77015f8-1126-54e1-9843-527e323fe62a",
+      "key": "maternal-slavery",
+      "title": "버지니아의 모계 노예 신분 세습",
+      "card_type": "rule",
+      "era_or_scope": "1662년",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/04-british-north-america.txt",
+          "source_sha256": "da445032a9960c6f2678e59fd0f88f703627043cafd23a3295e6ebaf1b31654c",
+          "section": "The American Yawp chapter 04",
+          "line_start": 55,
+          "line_end": 55,
+          "excerpt": "In 1662, Virginia made the condition of slavery heritable from the mother, a response to questions over the status of the children of English men and African women. All children born to enslaved women would be enslaved for life, whether the father was white or Black, enslaved or free.",
+          "excerpt_sha256": "16708d430c417d0e04dde90f44ab2619ddef799d79eafef0cc0192dda258f88d",
+          "supports": "어머니의 신분을 따르는 법과 그 효과"
+        }
+      ],
+      "caveats": []
+    },
+    {
+      "card_id": "2699e976-3c03-544c-a386-1deda9c8d5dd",
+      "key": "sons-of-liberty",
+      "title": "자유의 아들들: 인지세 저항 조직",
+      "card_type": "organization",
+      "era_or_scope": "1765~1766년",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/06-the-american-revolution.txt",
+          "source_sha256": "40ddfd24b67c8f889b37fa0ea7f8161ac9dc34ee03118021848ba9f0782f3ccb",
+          "section": "The American Yawp chapter 06",
+          "line_start": 83,
+          "line_end": 83,
+          "excerpt": "By November 16, all of the original twelve stamp distributors had resigned, and by early 1766, groups calling themselves the Sons of Liberty were formed in most colonies to direct and organize further resistance. These tactics had the dual effect of sending a message to Parliament and discouraging colonists from accepting appointments as stamp distributors. With no one willing to distribute the stamps, the act became unenforceable.",
+          "excerpt_sha256": "e69e45dd4f34942cc6ea3b4833e80d85b7e574c58e6f68663c415074b2b4c098",
+          "supports": "담당자 사임, 복수의 저항 집단, 집행 불능"
+        }
+      ],
+      "caveats": []
+    },
+    {
+      "card_id": "c9844429-22f2-5155-894b-4778c6d02259",
+      "key": "declaration",
+      "title": "독립선언서: 승인된 정치 문서",
+      "card_type": "object",
+      "era_or_scope": "1776년",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/06-the-american-revolution.txt",
+          "source_sha256": "40ddfd24b67c8f889b37fa0ea7f8161ac9dc34ee03118021848ba9f0782f3ccb",
+          "section": "The American Yawp chapter 06",
+          "line_start": 167,
+          "line_end": 167,
+          "excerpt": "The majority of the document outlined a list of specific grievances that the colonists had with British attempts to reform imperial administration during the 1760s and 1770s. An early draft blamed the British for the transatlantic slave trade and even for discouraging attempts by the colonists to promote abolition. Delegates from South Carolina and Georgia as well as those from Northern states who profited from the trade all opposed this language, and it was removed.39",
+          "excerpt_sha256": "c40e34f8707f8933a1f2f70733b6dd0b2452fc0db0c8d834f2cbfe1a034f3325",
+          "supports": "불만 목록과 노예무역 관련 초안 삭제"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/06-the-american-revolution.txt",
+          "source_sha256": "40ddfd24b67c8f889b37fa0ea7f8161ac9dc34ee03118021848ba9f0782f3ccb",
+          "section": "The American Yawp chapter 06",
+          "line_start": 169,
+          "line_end": 169,
+          "excerpt": "Neither the grievances nor the rhetoric of the preamble were new. Instead, they were the culmination of both a decade of popular resistance to imperial reform and decades more of long-term developments that saw both sides develop incompatible understandings of the British Empire and the colonies’ place within it. The Congress approved the document on July 4, 1776. However, it was one thing to declare independence; it was quite another to win it on the battlefield.",
+          "excerpt_sha256": "cf212452dabc90c7f9cb8041cd7b3d9696be0857fa9f62cc281e59c8bffd1045",
+          "supports": "1776년 승인 및 선언·전쟁의 구분"
+        }
+      ],
+      "caveats": []
+    },
+    {
+      "card_id": "1c2d4de7-708d-5d18-a629-05d44414910a",
+      "key": "washington",
+      "title": "조지 워싱턴: 군 지휘에서 대통령으로",
+      "card_type": "character",
+      "era_or_scope": "독립전쟁~초기 공화국",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/06-the-american-revolution.txt",
+          "source_sha256": "40ddfd24b67c8f889b37fa0ea7f8161ac9dc34ee03118021848ba9f0782f3ccb",
+          "section": "The American Yawp chapter 06",
+          "line_start": 145,
+          "line_end": 145,
+          "excerpt": "The Congress struck a compromise, agreeing to adopt the Massachusetts militia and form a Continental Army, naming Virginia delegate George Washington commander in chief.",
+          "excerpt_sha256": "b3f2ac28c461b6978792b05137ad4439d049b59a064ac58e2305d2d7aa8f5b28",
+          "supports": "대륙군 창설과 총사령관 임명"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/07-a-new-nation.txt",
+          "source_sha256": "4d990cd65fbd017d01e32e145960b9fc1ad2c855b68d9e32aa263483c0e9af16",
+          "section": "The American Yawp chapter 07",
+          "line_start": 93,
+          "line_end": 93,
+          "excerpt": "Although debates continued, Washington’s election as president cemented the Constitution’s authority.",
+          "excerpt_sha256": "e0b3f328720361fec5110d9f7a4ece4b0c315e63253e29388cf720f92ba716e2",
+          "supports": "대통령 선출과 헌법의 권위에 대한 교재 해석"
+        }
+      ],
+      "caveats": []
+    },
+    {
+      "card_id": "6de9ca55-8055-5335-a718-8e64e9cb4f7e",
+      "key": "constitution",
+      "title": "헌법의 대표제와 노예제 타협",
+      "card_type": "rule",
+      "era_or_scope": "1787년",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/07-a-new-nation.txt",
+          "source_sha256": "4d990cd65fbd017d01e32e145960b9fc1ad2c855b68d9e32aa263483c0e9af16",
+          "section": "The American Yawp chapter 07",
+          "line_start": 71,
+          "line_end": 71,
+          "excerpt": "Ultimately, Roger Sherman suggested a compromise. Congress would have a lower house, the House of Representatives, in which state population determined the number of representative members, and an upper house, which became the Senate, in which each state would have one vote. This proposal, after months of debate, was adopted in a slightly altered form as the Great Compromise: each state would have two senators, who could vote independently. In addition to establishing both types of representation, this compromise also counted three-fifths of a state’s enslaved population for representation and tax purposes.",
+          "excerpt_sha256": "b348fee6ddf8c771011a33545f613fa1860fdd66cb8a35fec0c2ff2595ff08e4",
+          "supports": "양원 구성과 5분의 3 계산"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/07-a-new-nation.txt",
+          "source_sha256": "4d990cd65fbd017d01e32e145960b9fc1ad2c855b68d9e32aa263483c0e9af16",
+          "section": "The American Yawp chapter 07",
+          "line_start": 81,
+          "line_end": 81,
+          "excerpt": "On September 17, 1787, the Constitutional Convention voted on and signed this new document. The plan for adopting the new Constitution, however, required approval from special state ratification conventions, not just Congress.",
+          "excerpt_sha256": "ca6399d44b8a46bdc064b9427a0fae23740b1023cc18d592a6c388babd0ea385",
+          "supports": "서명 및 별도 주 비준 절차"
+        }
+      ],
+      "caveats": [
+        "5분의 3 조항을 인격·참정권의 비율로 해석하지 않는다."
+      ]
+    },
+    {
+      "card_id": "f3fd07d5-466d-5d4e-a9b2-09456249ce17",
+      "key": "cherokee-removal",
+      "title": "원주민 이주법과 체로키 강제 이주",
+      "card_type": "event",
+      "era_or_scope": "1830~1838년",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/10-american-democracy.txt",
+          "source_sha256": "f3b4130eee179ee4bd749176c70dc63bf85e7c376ae804dfb669f31da68f9d37",
+          "section": "The American Yawp chapter 10",
+          "line_start": 137,
+          "line_end": 137,
+          "excerpt": "Congress passed the Indian Removal Act in 1830, granting the president authority to begin treaty negotiations that would give Native Americans land in the West in exchange for their lands east of the Mississippi.",
+          "excerpt_sha256": "fcc8566b9c2d35acb78a7c308ab75182c492440b2081e578f52990cc8086f54f",
+          "supports": "이주법과 대통령 권한"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/10-american-democracy.txt",
+          "source_sha256": "f3b4130eee179ee4bd749176c70dc63bf85e7c376ae804dfb669f31da68f9d37",
+          "section": "The American Yawp chapter 10",
+          "line_start": 147,
+          "line_end": 147,
+          "excerpt": "A portion of the Cherokee Nation led by Ridge, hoping to prevent further tribal bloodshed, signed the Treaty of New Echota in 1835. This treaty ceded lands in Georgia for $5 million and, the signatories hoped, would limit future conflicts between the Cherokee and white settlers. However, most of the tribal members refused to adhere to the terms, viewing the treaty as illegitimately negotiated.",
+          "excerpt_sha256": "c24de4d3040c7a4cce00725f01677e90ba5203c5a621762143b3d3027154dc6b",
+          "supports": "조약과 다수의 반대"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/10-american-democracy.txt",
+          "source_sha256": "f3b4130eee179ee4bd749176c70dc63bf85e7c376ae804dfb669f31da68f9d37",
+          "section": "The American Yawp chapter 10",
+          "line_start": 149,
+          "line_end": 149,
+          "excerpt": "In 1838, President Martin Van Buren used the New Echota Treaty provisions to order the army to forcibly remove Cherokee not obeying the treaty’s cession of territory.",
+          "excerpt_sha256": "6e8ff7a356c830ebbd5c6c47eef52747ca92e593c19c5ef5edc6eee9851675bb",
+          "supports": "군대에 의한 강제 이주"
+        }
+      ],
+      "caveats": [
+        "이 원문의 사망·생존 수치는 별도 검증 전 채택하지 않는다."
+      ]
+    },
+    {
+      "card_id": "e5e23dd7-023e-5d78-a93e-fd1b126800fa",
+      "key": "douglass",
+      "title": "프레더릭 더글러스: 해방운동의 발언자",
+      "card_type": "character",
+      "era_or_scope": "1840년대",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/11-growth-and-conflict.txt",
+          "source_sha256": "bf2d10f24ea85b794271991ec11e8e2367da1a0c4e7b5e2e4b51b0561279edbd",
+          "section": "The American Yawp chapter 11",
+          "line_start": 121,
+          "line_end": 121,
+          "excerpt": "Frederick Douglass represented the intersection of these two trends. After escaping from slavery, Douglass came to the fore of the abolitionist movement as a naturally gifted orator and a powerful narrator of his experiences in slavery. His first autobiography, Narrative of the Life of Frederick Douglass, An American Slave, published in 1845, was so widely read that it was reprinted in nine editions and translated into several languages.14 Douglass traveled to Great Britain in 1845 and harnessed moral and financial support from British and Irish antislavery societies.",
+          "excerpt_sha256": "4f218a44663314e97480c8f8d6633c77575ac518b28f9435a891ce3e84456a09",
+          "supports": "탈출, 운동, 1845년 자서전, 영국·아일랜드 지지"
+        }
+      ],
+      "caveats": []
+    },
+    {
+      "card_id": "dea46c6f-3697-59a1-851a-e45352b5b9c3",
+      "key": "seneca-falls",
+      "title": "세네카폴스 대회와 여성의 권리",
+      "card_type": "event",
+      "era_or_scope": "1848년",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/11-growth-and-conflict.txt",
+          "source_sha256": "bf2d10f24ea85b794271991ec11e8e2367da1a0c4e7b5e2e4b51b0561279edbd",
+          "section": "The American Yawp chapter 11",
+          "line_start": 129,
+          "line_end": 129,
+          "excerpt": "Angered by such treatment, Lucretia Mott and Elizabeth Cady Stanton, whose husband was also a delegate, returned to the United States with a renewed interest in pursuing women’s rights. In 1848, they organized the Seneca Falls Convention, a two-day summit in New York state in which women’s rights advocates came together to discuss the problems facing women.",
+          "excerpt_sha256": "be2d08a1642752a77c04efc4f36253279753cd04cd601241cc56df96d6281281",
+          "supports": "모트·스탠턴과 1848년 대회"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/11-growth-and-conflict.txt",
+          "source_sha256": "bf2d10f24ea85b794271991ec11e8e2367da1a0c4e7b5e2e4b51b0561279edbd",
+          "section": "The American Yawp chapter 11",
+          "line_start": 133,
+          "line_end": 133,
+          "excerpt": "Stanton wrote the Declaration of Sentiments for the Seneca Falls Convention to capture the wide range of issues embraced by the early women’s rights movement. She modeled the document on the Declaration of Independence to make explicit the connection between women’s liberty and the rhetoric of America’s founding. The Declaration of Sentiments outlined fifteen grievances and eleven resolutions. They championed property rights, access to the professions (such as medicine and the law), and, most controversially, the right to vote.",
+          "excerpt_sha256": "88f94091bb8d0b68cd93526fb42cd3a84f56ff47113016fb218e91201aa02929",
+          "supports": "선언문의 모델과 권리 요구"
+        }
+      ],
+      "caveats": []
+    },
+    {
+      "card_id": "a371441b-0514-524e-a7b7-c1ba496c5a9c",
+      "key": "emancipation",
+      "title": "노예해방선언의 효력과 한계",
+      "card_type": "rule",
+      "era_or_scope": "1863년",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/13-the-civil-war.txt",
+          "source_sha256": "e1954362b9dcccea1a982de967fe61b2e1d038db3e38845d0b07dbcd319d5b74",
+          "section": "The American Yawp chapter 13",
+          "line_start": 125,
+          "line_end": 125,
+          "excerpt": "Yet it provided enough of a victory for Lincoln to issue the Emancipation Proclamation, which freed enslaved people in areas under Confederate control. There were significant exemptions to the Emancipation Proclamation, including the loyal border states and Union-occupied areas of the Confederacy. But while it was a far cry from a universal end to slavery, the Emancipation Proclamation proved unquestionably vital by transforming a war for the Union into one for both the Union and emancipation.",
+          "excerpt_sha256": "144449b70a1da258dca5fceb93f0da9ea0357ef043473523a8aafa2195e68d4f",
+          "supports": "적용 지역과 예외, 전쟁 목적의 변화"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/13-the-civil-war.txt",
+          "source_sha256": "e1954362b9dcccea1a982de967fe61b2e1d038db3e38845d0b07dbcd319d5b74",
+          "section": "The American Yawp chapter 13",
+          "line_start": 129,
+          "line_end": 129,
+          "excerpt": "Although a few commanders began forming Black units in 1862, such as Massachusetts abolitionist Thomas Wentworth Higginson’s First South Carolina Volunteers (the first regiment of Black soldiers), widespread enlistment did not occur until the Emancipation Proclamation went into effect on January 1, 1863.",
+          "excerpt_sha256": "21b1f868217e70f678fddaede97e2d2930dce8ed4ab196ee00131afbd9ad4761",
+          "supports": "발효 시점과 입대 확대"
+        }
+      ],
+      "caveats": []
+    },
+    {
+      "card_id": "6ea57bfa-e171-5ac9-b584-0f39f27fcc20",
+      "key": "freedmens-bureau",
+      "title": "자유민지원국: 토지와 교육의 재건",
+      "card_type": "organization",
+      "era_or_scope": "재건기",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/14-reconstruction.txt",
+          "source_sha256": "7a1d5f3d8d5d1a99d480c429efb791d622dd4839bfff174300157a493d63e270",
+          "section": "The American Yawp chapter 14",
+          "line_start": 79,
+          "line_end": 79,
+          "excerpt": "One of the main purposes of the federal government’s Reconstruction-era Freedmen’s Bureau, however, was to redistribute land to formerly enslaved people that had been abandoned and confiscated by the federal government. Even these land grants were short lived. In 1866, land that ex-Confederates had left behind was reinstated to them.",
+          "excerpt_sha256": "415315f30e6574e27ac9f924e957812c5655db82cf1af01241e71e3b7a05a049",
+          "supports": "재분배 목표와 1866년 토지 반환"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/14-reconstruction.txt",
+          "source_sha256": "7a1d5f3d8d5d1a99d480c429efb791d622dd4839bfff174300157a493d63e270",
+          "section": "The American Yawp chapter 14",
+          "line_start": 93,
+          "line_end": 93,
+          "excerpt": "Freedpeople placed a great emphasis on education for their children and themselves, and the Freedmen’s Bureau helped establish schools across the South.",
+          "excerpt_sha256": "db12551d64fb42796eaeacca9084a084806b5c11adbfacbfc55f923e9bf1a3d5",
+          "supports": "자유민의 교육 요구와 학교 지원"
+        }
+      ],
+      "caveats": []
+    },
+    {
+      "card_id": "ecb9e9a6-b51d-5d86-b984-d2593f71eb6a",
+      "key": "fourteenth",
+      "title": "수정헌법 제14조: 시민권과 주 권력",
+      "card_type": "rule",
+      "era_or_scope": "1866~1868년",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/14-reconstruction.txt",
+          "source_sha256": "7a1d5f3d8d5d1a99d480c429efb791d622dd4839bfff174300157a493d63e270",
+          "section": "The American Yawp chapter 14",
+          "line_start": 55,
+          "line_end": 55,
+          "excerpt": "The Fourteenth Amendment developed concurrently with the Civil Rights Act to ensure its constitutionality. The House of Representatives approved the Fourteenth Amendment on June 13, 1866. Section One granted citizenship and repealed the Supreme Court’s infamous Dred Scott (1857) decision. Moreover, it ensured that state laws could not deny due process or discriminate against particular groups of people. The Fourteenth Amendment signaled the federal government’s willingness to enforce the Bill of Rights over the authority of the states.",
+          "excerpt_sha256": "1f15a39bc6f5aa4e77dd5630c9bcd0c9a62808eb16fc77651dc2da68c18ad0f6",
+          "supports": "시민권·적법 절차·국가 권력의 관계"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/14-reconstruction.txt",
+          "source_sha256": "7a1d5f3d8d5d1a99d480c429efb791d622dd4839bfff174300157a493d63e270",
+          "section": "The American Yawp chapter 14",
+          "line_start": 57,
+          "line_end": 57,
+          "excerpt": "Six weeks later, on July 9, 1868, the states ratified the Fourteenth Amendment,",
+          "excerpt_sha256": "1d847e53ded6ad510220a13a8fd7911e72bb0aa83b7e7b2b85ed4a0c1df7f60f",
+          "supports": "비준 날짜"
+        }
+      ],
+      "caveats": [
+        "현재 법률 적용이나 법률 조언을 제공하는 카드가 아니다."
+      ]
+    },
+    {
+      "card_id": "636b715f-b9e1-58c3-8e7a-bef64ef1222d",
+      "key": "knights",
+      "title": "노동기사단: 숙련의 경계를 넘는 조직",
+      "card_type": "organization",
+      "era_or_scope": "1880년대",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/15-capital-and-labor.txt",
+          "source_sha256": "a52e09d877bfd40a80941be08ffc57ff3d085af6d2b5aa7d8354f200e12aa9f2",
+          "section": "The American Yawp chapter 15",
+          "line_start": 96,
+          "line_end": 96,
+          "excerpt": "The failure of the Great Railroad Strike of 1877 convinced workers of the need to organize. Union memberships began to climb. The Knights of Labor enjoyed considerable success in the early 1880s, due in part to its efforts to unite skilled and unskilled workers. It welcomed all laborers, including women (the Knights barred only lawyers, bankers, and liquor dealers). By 1886, the Knights had over seven hundred thousand members. The Knights envisioned a cooperative producer-centered society that rewarded labor, not capital, but, despite their sweeping vision, the Knights focused on practical gains that could be won through the organization of workers into local unions.17",
+          "excerpt_sha256": "459098e44ca1ffa73e2566d8e6233637970d54ea8fb5a9d0dabbcb5e67976aae",
+          "supports": "조직 성장, 숙련·비숙련·여성, 지향"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/15-capital-and-labor.txt",
+          "source_sha256": "a52e09d877bfd40a80941be08ffc57ff3d085af6d2b5aa7d8354f200e12aa9f2",
+          "section": "The American Yawp chapter 15",
+          "line_start": 100,
+          "line_end": 100,
+          "excerpt": "In Marshall, Texas, in the spring of 1886, one of Jay Gould’s rail companies fired a Knights of Labor member for attending a union meeting. His local union walked off the job, and soon others joined. From Texas and Arkansas into Missouri, Kansas, and Illinois, nearly two hundred thousand workers struck against Gould’s rail lines. Gould hired strikebreakers and the Pinkerton Detective Agency, a kind of private security contractor, to suppress the strikes and get the rails moving again. Political leaders helped him, and state militias were enlisted in support of Gould’s companies.",
+          "excerpt_sha256": "d672db468db25c4a0be50f543ad3fbf7e70d5f1838b9a95a4c5be210d8a6f53c",
+          "supports": "철도 파업과 회사·정부 대응"
+        }
+      ],
+      "caveats": [
+        "교재의 포괄적 환영 표현을 모든 인종·이민자에게 적용되는 무제한 포용으로 읽지 않는다."
+      ]
+    },
+    {
+      "card_id": "ceb90e1c-cc1b-56ba-a1fc-66aff1eab39a",
+      "key": "social-security",
+      "title": "뉴딜의 사회보장법과 배제",
+      "card_type": "rule",
+      "era_or_scope": "1930년대 뉴딜",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/21-the-great-depression.txt",
+          "source_sha256": "181db9b9df06b2261384d6c9b5d9f9b97d385429722960f01cd7ad933485d227",
+          "section": "The American Yawp chapter 21",
+          "line_start": 200,
+          "line_end": 200,
+          "excerpt": "Perhaps the signature piece of Roosevelt’s Second New Deal, however, was the Social Security Act. Championed by Secretary of Labor Perkins, it provided for old-age pensions, unemployment insurance, and economic aid, based on means, to assist both the elderly and dependent children.60",
+          "excerpt_sha256": "d898dba01218463fca0d9d7ebf69cafdf8036f9fe76c16e54ad479946ccea390",
+          "supports": "사회보장법과 퍼킨스, 지원 구성"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/21-the-great-depression.txt",
+          "source_sha256": "181db9b9df06b2261384d6c9b5d9f9b97d385429722960f01cd7ad933485d227",
+          "section": "The American Yawp chapter 21",
+          "line_start": 200,
+          "line_end": 200,
+          "excerpt": "Nevertheless, the act excluded large swaths of the American population. Its pension program excluded domestic workers and farmworkers, for instance, a policy that disproportionately affected African Americans.",
+          "excerpt_sha256": "fc96abd46ac1936107cc88ea4201ddb25c00bd5fd0d7b177b3e8d7f41faf078a",
+          "supports": "연금 배제와 불균등 영향"
+        }
+      ],
+      "caveats": []
+    },
+    {
+      "card_id": "6abc19ba-fd70-5090-a800-84a538613aff",
+      "key": "japanese-incarceration",
+      "title": "전시 일본계 주민의 강제 이주·수용",
+      "card_type": "event",
+      "era_or_scope": "1942년 이후 제2차 세계대전",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/22-world-war-ii.txt",
+          "source_sha256": "1c01f1a2f2075d6be695a9c0f3d2d09afb2e9db8d66fca14236f41336fc5ca1a",
+          "section": "The American Yawp chapter 22",
+          "line_start": 216,
+          "line_end": 216,
+          "excerpt": "Then, on February 19, 1942, President Roosevelt signed Executive Order 9066, authorizing the removal of any persons from designated “exclusion zones”—which ultimately covered the entirety of the West Coast—at the discretion of military commanders. Thirty thousand Japanese Americans fought for the United States in World War II, but wartime anti-Japanese sentiment built on historical prejudices, and under the order, people of Japanese descent, both immigrants and American citizens, were detained and placed under the custody of the War Relocation Authority, the civil agency that supervised their relocation to internment camps. They lost their homes and their jobs.",
+          "excerpt_sha256": "d4def537cb02769159abf12cdaacfd3571dbfe2ab6c65b8f465aa0b7ef3ee714",
+          "supports": "행정명령과 일본계 시민·이민자 수용"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/22-world-war-ii.txt",
+          "source_sha256": "1c01f1a2f2075d6be695a9c0f3d2d09afb2e9db8d66fca14236f41336fc5ca1a",
+          "section": "The American Yawp chapter 22",
+          "line_start": 216,
+          "line_end": 216,
+          "excerpt": "but American policies disproportionately targeted Japanese-descended populations, and individuals did not receive personalized reviews prior to their internment.",
+          "excerpt_sha256": "4bbe52a886d5eabd2f5145ee74265400142c9e971941b7057b0309b716347f34",
+          "supports": "일본계 표적화와 개별 심사 부재"
+        }
+      ],
+      "caveats": []
+    },
+    {
+      "card_id": "5b62017b-4097-53e5-9db8-1de41d431db0",
+      "key": "brown",
+      "title": "브라운 판결: 공립학교 인종 분리",
+      "card_type": "rule",
+      "era_or_scope": "1954년",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/24-the-affluent-society.txt",
+          "source_sha256": "3b43538570790b6a4f395f5a3a7ed61d4316dfde3db0d6acd441bac4a03f1f68",
+          "section": "The American Yawp chapter 24",
+          "line_start": 75,
+          "line_end": 75,
+          "excerpt": "On May 17, 1954, after two years of argument, re-argument, and deliberation, Chief Justice Earl Warren announced the Supreme Court’s decision on segregated schooling in Brown v. Board of Education. The court found by a unanimous 9–0 vote that racial segregation violated the Equal Protection Clause of the Fourteenth Amendment.",
+          "excerpt_sha256": "bb847dc548d79a9d2c0b183752165f9f58687d0e1855d348807456f8608c284e",
+          "supports": "판결 날짜·학교·만장일치·평등 보호"
+        }
+      ],
+      "caveats": []
+    },
+    {
+      "card_id": "1212ad83-6481-5d36-ae46-710fa43adabd",
+      "key": "sncc",
+      "title": "학생비폭력조정위원회와 풀뿌리 행동",
+      "card_type": "organization",
+      "era_or_scope": "1960년대 초",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/25-the-sixties.txt",
+          "source_sha256": "0d1fc135be36e2e10d27ef68585565de05cb4eca638b5872a358c06f803d6354",
+          "section": "The American Yawp chapter 25",
+          "line_start": 29,
+          "line_end": 29,
+          "excerpt": "Increasingly disenchanted with the seemingly distant, professionalized civil rights leadership of older southern ministers, Ella Baker left King’s Southern Christian Leadership Conference (SCLC) and helped organize the Student Nonviolent Coordinating Committee (SNCC, often pronounced “snick”) that year. She embraced the direct, grassroots action of student activists such as Julian Bond, Stokely Carmichael, Diane Nash, John Lewis, and countless others who would push the civil rights movement in a new, more confrontational direction.2",
+          "excerpt_sha256": "7cde7200571e2086cf7dd2788121009d2055fa542e17d739b3dddc9e88580dbe",
+          "supports": "베이커, SNCC, 학생·지역 기반 행동과 활동가"
+        }
+      ],
+      "caveats": []
+    },
+    {
+      "card_id": "bb51d307-efef-5615-aea5-40f92e19d664",
+      "key": "voting-rights",
+      "title": "셀마 행진과 1965년 투표권법",
+      "card_type": "rule",
+      "era_or_scope": "1965년",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/25-the-sixties.txt",
+          "source_sha256": "0d1fc135be36e2e10d27ef68585565de05cb4eca638b5872a358c06f803d6354",
+          "section": "The American Yawp chapter 25",
+          "line_start": 65,
+          "line_end": 65,
+          "excerpt": "Activists kept fighting. In March 1965, activists attempted to march from Selma to Montgomery, Alabama, on behalf of African American voting rights. In a narrative that had become all too familiar, what became known as “Bloody Sunday”—Sunday, March 7, 1965—featured peaceful protesters being attacked by white law enforcement with batons and tear gas. After they were turned away violently a second time, marchers finally made the fifty-mile trek to the Alabama State Capitol later in the month. Coverage of the first march prompted President Johnson to present the bill that became the Voting Rights Act of 1965, an act that abolished voting discrimination in federal, state, and local elections.",
+          "excerpt_sha256": "b420c793ed8e4691aa3373d8e1a509cef542f868c50877c595cb1db30d8f7a24",
+          "supports": "행진·폭력·보도·연방 입법의 연결"
+        }
+      ],
+      "caveats": []
+    },
+    {
+      "card_id": "54a2983c-2b32-5dd1-9221-4dadfaf515a2",
+      "key": "watergate",
+      "title": "워터게이트: 침입·은폐·대통령 사임",
+      "card_type": "event",
+      "era_or_scope": "1972~1974년",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/26-the-unraveling.txt",
+          "source_sha256": "5dd920f6cf92fa9d44cec090852281120734d98d7ddbe3f61d52fe51a4594923",
+          "section": "The American Yawp chapter 26",
+          "line_start": 116,
+          "line_end": 116,
+          "excerpt": "On June 17, 1972, five men were arrested inside the offices of the Democratic National Committee (DNC) in the Watergate Complex in downtown Washington, D.C. After being tipped off by a security guard, police found the men attempting to install sophisticated bugging equipment.",
+          "excerpt_sha256": "ee6bcf78e456b9e8ed1f3fca739faf402ce223453e9d5ba8ce9a79133ce2eadb",
+          "supports": "침입·체포·도청 시도"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/26-the-unraveling.txt",
+          "source_sha256": "5dd920f6cf92fa9d44cec090852281120734d98d7ddbe3f61d52fe51a4594923",
+          "section": "The American Yawp chapter 26",
+          "line_start": 120,
+          "line_end": 120,
+          "excerpt": "Whether or not the president ordered the Watergate break-in, the White House launched a massive cover-up. Administration officials ordered the CIA to halt the FBI investigation and paid hush money to the burglars and White House aides.",
+          "excerpt_sha256": "0c797a5e84cba88c51f1e61a728c87a349f5b5732a8718c857449cd0e589ccce",
+          "supports": "은폐·수사 방해"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/26-the-unraveling.txt",
+          "source_sha256": "5dd920f6cf92fa9d44cec090852281120734d98d7ddbe3f61d52fe51a4594923",
+          "section": "The American Yawp chapter 26",
+          "line_start": 120,
+          "line_end": 120,
+          "excerpt": "In July 1974, the House Judiciary Committee approved a bill to impeach the president. Nixon resigned before the full House could vote on impeachment.",
+          "excerpt_sha256": "95e1394f4044be1c32b987de2e3d7ae2ae1e5ba96d276b6402fba27248f92795",
+          "supports": "위원회 단계와 사임"
+        }
+      ],
+      "caveats": [
+        "원문의 현재형 “유일한” 표현은 미래까지 유효한 사실로 재사용하지 않는다."
+      ]
+    },
+    {
+      "card_id": "0bef7a62-4958-5f89-8096-1b0dd60c1e59",
+      "key": "sources-and-license",
+      "title": "출처·저자·이용 조건",
+      "card_type": "other",
+      "era_or_scope": "자료 안내",
+      "review_status": "editorial-provenance-with-source-evidence",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/license-about.html",
+          "source_sha256": "fb86d19adc76e866e910cfcd7347fad33f577bf4ff87e05e2dacec395111e393",
+          "section": "About / Copyright",
+          "line_start": 142,
+          "line_end": 142,
+          "excerpt": "Creative Commons Attribution-Share Alike 4.0 International (CC-BY-SA) License",
+          "excerpt_sha256": "dce8f646871b2655373cbad0f174746d3112e7f0792112edce079e503f94b498",
+          "supports": "CC BY-SA 4.0 표시"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/01-american-origins.txt",
+          "source_sha256": "7815e10ce5f527c966e973ca1e2ad285610990afd0bbf5dd27fcec33df3ad5fa",
+          "section": "Reference Material / credit",
+          "line_start": 247,
+          "line_end": 247,
+          "excerpt": "This chapter was edited by Christen Mucher, with content contributions by L. D. Burnett, Michelle Cassidy, D. Andrew Johnson, Khalil Anthony Johnson Jr., Brenda Lakhani, Joseph Locke, Dawn Marsh, Christen Mucher, Rachel Pasierowska, Cameron Shriver, Ben Wright, Caroline Wright, and Garrett Wright.",
+          "excerpt_sha256": "63bb620a726b62fe6f409dcc5e7ef16dc48228c7f8f2188ee196d5369aa7bdba",
+          "supports": "장별 편집자와 기여자"
+        }
+      ],
+      "caveats": [
+        "프로젝트 전체나 타 자료의 권리를 이 라이선스로 재지정하지 않는다."
+      ]
+    },
+    {
+      "card_id": "4ff3552f-2aa0-5e95-88a8-5cf7d2c46e8b",
+      "key": "review-status",
+      "title": "검토 상태와 사용 범위",
+      "card_type": "other",
+      "era_or_scope": "편집 검토 안내",
+      "review_status": "editorial-provenance-with-source-evidence",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/usa/original-text/01-american-origins.txt",
+          "source_sha256": "7815e10ce5f527c966e973ca1e2ad285610990afd0bbf5dd27fcec33df3ad5fa",
+          "section": "The American Yawp chapter 01",
+          "line_start": 3,
+          "line_end": 3,
+          "excerpt": "The American Yawp is an evolving, collaborative text.",
+          "excerpt_sha256": "8b5a1c27e5fe5c4c7249bca7d7c9a826aa82d25b3751b67f64a5b806d7a2b059",
+          "supports": "원전의 협업·개정 가능성 표시"
+        }
+      ],
+      "caveats": [
+        "작업 상태·범위는 이 작업의 검증 기록이며 원저자의 주장으로 귀속하지 않는다."
+      ]
+    }
+  ],
+  "validation": {
+    "expected_world_keys": [
+      "genre",
+      "worldId",
+      "name",
+      "description",
+      "cards"
+    ],
+    "expected_card_keys": [
+      "id",
+      "title",
+      "body",
+      "cardType"
+    ],
+    "total_cards": 23,
+    "substantive_cards": 21,
+    "provenance_and_review_cards": 2,
+    "all_card_ids_unique": true,
+    "uuid_version": 5,
+    "all_cards_have_exact_local_excerpts": true,
+    "all_excerpts_match_source_bytes_as_utf8": true,
+    "all_sources_sha256_checked": true,
+    "utf8_replacement_characters": 0,
+    "production_template_sha256_before": "e2488085f8ac19d57b6869debd7e8690b63ec97078708128e9e93358d6dc6c0f",
+    "production_template_changed": false,
+    "service_or_database_import": false,
+    "card_bodies_with_source_footer": 23,
+    "source_footer_scope": "Only appended author/title, chapter/section, acquired-English-file line ranges, and source URLs; historical body and evidence excerpts unchanged.",
+    "world_json_sha256": "bb572384c1d881e8cabc28ba962e3859fef9948ad113c874f13081af55188e3a",
+    "markdown_sha256": "1c94009dcbcd95dd79ba83715c1aff3e59e573a343d8ddfe2e24458a8760307d"
+  }
+}

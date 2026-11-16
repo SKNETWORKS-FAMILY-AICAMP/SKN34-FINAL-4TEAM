@@ -2,7 +2,7 @@
 
 [결정 목록](decisions.md#결정-목록) DEC-50 · [서비스 경계](service-boundaries.md) · [Content MCP 창구](content-mcp-contract.md)
 
-상태: **결정·실행 계약 기록. Celery·전처리 코드·MCP 전처리 도구는 미구현([#343](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/343)).**
+상태: **#351은 Celery·LangGraph 실행 기반만 구현하며 실제 접수·실행은 차단한다. extract/resolve/organize(#344), Content 작업·MCP 도구(#345), 화면(#346)은 후속이다.** 아래 실행 계약은 목표이며 전체 구현·배포 완료를 뜻하지 않는다([#343](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/343)).
 
 ## 목적
 
@@ -59,10 +59,30 @@
 | `preprocessing_progress` | `jobId`, `stage`(`extracting/resolving/organizing/loading`), `done`, `total`, `failedEpisodes[]`, `failed`(선택, 고정 사유 문구) | 갱신된 작업 상태 |
 | `preprocessing_load` | `jobId`, `cards[]`, `relations[]` | 적재 결과(카드 수·관계 수), 작업 `completed` |
 
-`cards[]` 항목: `key`(작업 안 정식 ID), `cardType`(`character/location/organization/object/event`), `title`, `aliases[]`, `body`(마크다운, 인물은 `IDENTITY.md`), `revealFromEpisode`(첫 등장 회차), 인물만 `characterDocs{soul, memory, episodes{"NN": 글}}`(DEC-47, 문서마다 3,000자 이하). 사건 카드 본문은 회차 번호와 참여 인물을 적는다.
+`cards[]` 항목: `key`(작업 안 정식 ID), `cardType`(`character/location/organization/object/event`), `title`, `aliases[]`, `body`(마크다운, 인물은 `IDENTITY.md`), `revealFromEpisode`(첫 등장 회차), 인물만 `characterDocs{soul, goal, episodes{"NN": 글}}`(`memory` 키는 쓰지 않음, 이야기 시작 전 기억은 `episodes{"00"}`)(DEC-47, 문서마다 3,000자 이하). 사건 카드 본문은 회차 번호와 참여 인물을 적는다.
 `relations[]` 항목: `fromKey`, `toKey`, `label`, `fromEpisode`, `ended`(선택). Content가 DEC-51 회차별 관계로 변환해 `fromEpisode` 시점마다 기록한다. 카드 공개 여부는 기본 비공개(DEC-46) 그대로다.
 
 ## 관련
 
 - [#122](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/122) 원고 기반 설정 추출, [#124](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/124) 회차별 세계관 스냅샷.
 - 품질 확인(추출·정체 정리 정확도)은 Celery 없이 스크립트로 먼저 한다(메밀꽃 S01~S04, 4회차).
+
+## #351 최신화: 활성화 전 안전 조건 (2026-11-16)
+
+- 인증된 접수도 현재는 503 `PREPROCESSING_NOT_IMPLEMENTED`로 거절하며 Celery에 넣지 않는다. 직접 들어온 worker 메시지도 같은 보호에서 중단하고 Content에 실행·완료를 기록하지 않는다. `extract/resolve/organize`는 계속 미구현이다. 환경변수만으로 이 차단을 해제하는 스위치는 두지 않는다.
+- 202는 브로커 접수일 뿐 작업 완료가 아니다. 향후 #345는 접수 거절을 queued/running이나 완료로 남기지 않아야 하며 #346은 서버의 실제 상태를 표시해야 한다. 지금은 두 경로가 없어 실제 사용자 흐름을 검증하지 않았다.
+- worker·Router·LangGraph는 보존하되 이 기반 PR을 기능 출시로 배포하지 않는다. 활성화 전 #344 로직, #345 작업 인증·진행·멱등 적재, #346 실패·미확인 안내와 아래 재시도 계약을 함께 검증해야 한다.
+
+### 실패 회차 재실행의 확인된 갭과 제안 (결정 전)
+
+`graph.run` 호출마다 state를 새로 만들며 체크포인터·Celery result backend가 없다. 첫 실행에서 1화 성공/2화 실패 후 같은 jobId로 2화만 호출하면 `resolve`에는 2화만 전달된다. 기존 성공 결과를 합쳤다고 보고 적재하면 누락이 생긴다. 테스트는 이 현상을 재현하며 접수 차단을 안전장치로 검증한다.
+
+목표인 '실패 회차만 재실행'을 지원하려면 #344/#345에서 다음 계약을 먼저 합의한다. **이번 PR은 결과 저장소를 새로 추가하거나 기존 작업 테이블의 스키마를 확정하지 않는다.**
+
+1. job의 전체 회차 목록·원문 저장 버전/해시를 고정하고 같은 jobId의 재시도에서 검증한다. 현재 `EpisodeText`는 number/title/body만 있어 이 기준 식별도 후속이다.
+2. 성공 회차 결과의 보존 주체·형식·보관 기간과 회수 API를 결정한다. 권장 방향은 Content가 관리하는 작업 범위에서 검증된 중간 결과를 보존·재조회하도록 계약화하는 것이며, 새 DB나 Celery 결과 저장소 도입을 뜻하지 않는다.
+3. 실패 회차 결과와 기존 성공 결과를 합친 뒤 전체 회차가 정확히 한 번씩 채워진 경우에만 resolve/organize/load로 간다. 누락·중복·원문 변경은 정리·적재를 차단한다.
+4. 동일 작업 동시 실행·중복 메시지, worker 종료, 브로커 응답 유실, Content 진행 갱신 실패·적재 결과 미확인은 별도로 처리한다. 적재의 jobId 멱등성과 원래 payload 보존을 검증하고 실패 상태 전송을 못했다고 완료로 추정하지 않는다.
+5. 저장 계약을 두지 않는 전체 재추출 대안은 비용·원문 고정·새 실행 식별자·이미 적재됐는지 확인을 포함한 명시적 결정이 필요하다. 부분 결과만으로 적재하거나 자동으로 새 작업을 시작하는 대체 동작은 금지한다.
+
+현재의 함수 대역 테스트 통과는 이 재시도·복구 계약 구현 완료를 뜻하지 않는다. 실패 회차 재시도는 이 계약과 #344/#345 구현·통합 검증 전까지 활성화하지 않는다.

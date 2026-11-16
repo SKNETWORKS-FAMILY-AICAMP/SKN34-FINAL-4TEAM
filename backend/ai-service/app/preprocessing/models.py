@@ -19,7 +19,7 @@ class Model(BaseModel):
 # ── 접수 ──
 
 class JobRequest(Model):
-    """Content가 접수하는 전처리 작업. 실패 회차만 다시 보낼 때도 같은 jobId를 쓴다."""
+    """Content가 접수하는 전처리 작업. 실패 회차 재시도는 성공 결과 보존 계약 구현 전까지 비활성이다."""
     jobId: UUID
     workId: UUID
     episodes: list[EpisodeNumber] = Field(min_length=1)
@@ -47,7 +47,7 @@ class EpisodeText(BaseModel):
 
 class CharacterDocs(Model):
     soul: Doc
-    memory: Doc
+    goal: Doc
     episodes: dict[str, Doc]
 
 

@@ -5,6 +5,14 @@ import { PopMenu } from '../PopMenu'
 import './chat.css'
 
 const who = { user: '나', assistant: 'AI', system: '안내' } as const
+
+/** OpenAI 전송·비용 동의 한 줄. 집필 AI 채팅 입력창 위와 시뮬레이션 무대가 같은 문구·같은 값을 쓴다. */
+export function ConsentCheck({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) {
+  return <label className="chat-consent">
+    <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+    <span>질문과 발행 회차 일부를 OpenAI로 보내고 API 비용이 드는 데 동의해요.</span>
+  </label>
+}
 const kinds = ['image', 'audio'] as const
 const kindLabel = { image: '이미지', audio: '음성' } as const
 
@@ -16,9 +24,10 @@ const kindLabel = { image: '이미지', audio: '음성' } as const
  * - disabledReason: 있으면 입력·전송·첨부·추천 칩을 모두 잠그고 이 사유를 입력 카드 아래에 보여 준다.
  * - emptyTitle·emptyText·suggestions: 대화가 없을 때 보이는 제목·안내·추천 칩. 칩을 누르면 입력창에 글만 채운다(보내지 않는다).
  * - after: 메시지 뒤에 이어 그릴 것(진행 표시·승인 카드). 있으면 빈 상태 대신 그린다.
+ * - renderCard: 메시지 글 바로 아래에 이어 그릴 카드(인물 시뮬레이션 장면 등). 이 카드가 있는 말풍선은 폭을 채운다.
  * - renderActions: 메시지 말풍선 아래의 행동(수정·삭제 등). composerTop: 입력 카드 위 한 줄(동의 등).
  */
-export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledReason, emptyTitle, emptyText = '아직 대화가 없어요.', suggestions, after, renderActions, composerTop }: {
+export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledReason, emptyTitle, emptyText = '아직 대화가 없어요.', suggestions, after, renderCard, renderActions, composerTop }: {
   messages: ChatMessage[]
   onSend?: (text: string) => boolean | Promise<boolean>
   busy?: boolean
@@ -28,6 +37,7 @@ export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledRe
   emptyText?: string
   suggestions?: string[]
   after?: ReactNode
+  renderCard?: (message: ChatMessage) => ReactNode
   renderActions?: (message: ChatMessage) => ReactNode
   composerTop?: ReactNode
 }) {
@@ -66,6 +76,7 @@ export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledRe
           <span className="chat-who sr-only">{who[m.role]}</span>
           <p className="chat-text">{m.text}</p>
           {!!m.attachments?.length && <ul className="chat-chips" aria-label="첨부">{m.attachments.map(a => <li key={a.id} className="chip">{kindLabel[a.kind]} · {a.name}</li>)}</ul>}
+          {renderCard?.(m)}
           {renderActions?.(m)}
         </div>
       </li>)}</ol>{after}</> : <div className="chat-empty">

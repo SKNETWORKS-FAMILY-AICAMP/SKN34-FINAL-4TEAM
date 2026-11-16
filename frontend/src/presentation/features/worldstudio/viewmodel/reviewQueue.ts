@@ -16,3 +16,7 @@ export function reviewGroups(analysis: Analysis | undefined): Record<ReviewFilte
   }
   return groups
 }
+
+/** 관리 화면의 `AI 검토` 버튼 이름: 설정집 검토 의견과 후보 검토 대기가 있을 때만 그 수를 짧게 붙인다(`AI 검토 · 의견 5 · 후보 2`). */
+export const reviewButtonLabel = (opinions: number, waiting: number) =>
+  ['AI 검토', opinions > 0 && `의견 ${opinions}`, waiting > 0 && `후보 ${waiting}`].filter(Boolean).join(' · ')

@@ -38,6 +38,18 @@ def test_conversation_failures_become_http_status(monkeypatch, failure, status):
     assert error.value.status_code == status
 
 
+def test_a_scene_action_the_stage_cannot_take_becomes_422_with_its_fixed_message(monkeypatch):
+    monkeypatch.setenv('INTERNAL_TOKEN', 'test-token')
+
+    async def run(data, authorization=''):
+        raise service.SceneRejected(service.SCENE_NO_TURN)
+
+    monkeypatch.setattr(service, 'run', run)
+    with pytest.raises(HTTPException) as error:
+        asyncio.run(router.orchestrate(OrchestrationRequest(request='요청'), 'test-token'))
+    assert (error.value.status_code, error.value.detail) == (422, service.SCENE_NO_TURN)
+
+
 def test_user_authorization_header_reaches_the_service(monkeypatch):
     monkeypatch.setenv('INTERNAL_TOKEN', 'test-token')
     seen = []
