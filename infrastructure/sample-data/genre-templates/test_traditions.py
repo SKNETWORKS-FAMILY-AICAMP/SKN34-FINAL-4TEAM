@@ -96,6 +96,7 @@ class TraditionCatalogTest(unittest.TestCase):
                 self.assertEqual({"genre", "name", "scope", "sources", "cards", "narrative"}, set(data))
                 self.assertEqual({"id", "genre_id", "genre_name", "order", "title", "setting_bible"}, set(template))
                 self.assertEqual({"title", "introduction_markdown", "sections"}, set(template["setting_bible"]))
+                self.assertNotIn("original.md", template["setting_bible"]["introduction_markdown"])
                 self.assertEqual({"template.json", "tradition-cards.json", "sources.md"} |
                                  ({"supplementary.md"} if catalog.read_supplementary(genre) is not None else set()),
                                  {path.name for path in source.iterdir()})
