@@ -17,7 +17,7 @@ class GenreTemplateRepairTest {
     private val updated = old.copy(cards = listOf(card.copy(cardType = "object")))
     private val saved = UUID.randomUUID()
     private fun draft(revision: Long, cards: List<CardPayload>) = WorldDraftResponse(old.worldId, revision, saved, saved, old.name, old.description, cards, emptyList())
-    private fun legacy() = listOf(CardPayload(card.id, card.title, card.body, card.cardType, "basic"))
+    private fun legacy() = listOf(CardPayload(card.id, card.title, card.body, card.cardType, "basic", visibility = "public"))
     private fun edit() = EditWorldDraftRequest(2, old.name, old.description, GenreTemplateRepair.payloads(updated), key = "genre-template-test-repair-v2")
     private fun prepare() {
         `when`(service.edit(old.worldId, owner, edit())).thenReturn(draft(3, GenreTemplateRepair.payloads(updated)))
@@ -58,6 +58,7 @@ class GenreTemplateRepairTest {
         val studio = c.semanticMetadata["studio"] as Map<*, *>
         val item = studio["item"] as Map<*, *>
         assertEquals(0, studio["templateOrder"])
+        assertEquals("public", c.visibility)
         assertEquals(c.body, item["text"])
         assertEquals("object", item["entityType"])
         assertEquals("approved", item["decision"])

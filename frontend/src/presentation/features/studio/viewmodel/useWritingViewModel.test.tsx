@@ -485,3 +485,43 @@ it('자동 저장이 끝났을 때 그사이 입력이 남아 있으면 2초 뒤
   expect(api.writeEpisode).toHaveBeenLastCalledWith('w',1,{title:'1화',body:'둘째 입력',revision:1},false,expect.any(AbortSignal))
   expect(result.current.dirty).toBe(false)
 })
+
+it('keeps typing that starts while the AI draft is reloading', async () => {
+  const episode = { number: 1, draft: { title: '1화', body: '기존', revision: 0 }, versions: [], publishedVersionId: null, inherited: false, updatedAt: null, checkpointStatus: 'content_only', checkpoints: [] }
+  let finishReload: (rows: typeof episode[]) => void = () => {}
+  const writingList = vi.fn().mockResolvedValueOnce([episode])
+    .mockImplementationOnce(() => new Promise(resolve => { finishReload = resolve }))
+  const api = { writingList, setPublicationVisibility: vi.fn(), history: vi.fn(), createEpisode: vi.fn(), writeEpisode: vi.fn(), restoreEpisode: vi.fn(), publishEpisode: vi.fn(), orderScope: vi.fn(), deleteDraft: vi.fn(), deleteEpisode: vi.fn() }
+  const { result } = renderHook(() => useWritingViewModel('w', api))
+  await act(async () => {})
+  let reloading: Promise<void> | undefined
+  act(() => { reloading = result.current.aiApplied(1) })
+  act(() => result.current.edit({ body: '새로 입력한 문장' }))
+  await act(async () => {
+    finishReload([{ ...episode, draft: { ...episode.draft, body: '서버의 AI 초안', revision: 1 } }])
+    await reloading
+  })
+  expect(result.current.draft.body).toBe('새로 입력한 문장')
+  expect(result.current.episodes[0].draft.body).toBe('서버의 AI 초안')
+})
+
+// 4화에서 시작한 반영 요청의 스트림 콜백은 그때 렌더의 aiApplied를 붙잡고 있다. 그 뒤 3화로 옮겨 입력해도 옛 active·dirty를 보고 4화를 덮어쓰던 문제.
+it('does not replace the typing in another episode when a late aiApplied call from an older render arrives', async () => {
+  const base = { versions: [], publishedVersionId: null, inherited: false, updatedAt: null, checkpointStatus: 'content_only', checkpoints: [] }
+  const three = { ...base, number: 3, draft: { title: '3화', body: '셋째 원고', revision: 0 } }
+  const four = { ...base, number: 4, draft: { title: '4화', body: '넷째 원고', revision: 0 } }
+  const writingList = vi.fn().mockResolvedValueOnce([three, four])
+    .mockResolvedValueOnce([three, { ...four, draft: { ...four.draft, body: 'AI가 이어 쓴 넷째', revision: 1 } }])
+  const api = { writingList, setPublicationVisibility: vi.fn(), history: vi.fn(), createEpisode: vi.fn(), writeEpisode: vi.fn(), restoreEpisode: vi.fn(), publishEpisode: vi.fn(), orderScope: vi.fn(), deleteDraft: vi.fn(), deleteEpisode: vi.fn() }
+  const { result } = renderHook(() => useWritingViewModel('w', api, undefined, 4))
+  await act(async () => {})
+  expect(result.current.active?.number).toBe(4)
+  const stale = result.current.aiApplied
+  act(() => { result.current.select(result.current.episodes[0]) })
+  act(() => result.current.edit({ body: '3화에서 새로 쓴 문장' }))
+  await act(async () => { await stale(4) })
+  expect(result.current.active?.number).toBe(3)
+  expect(result.current.draft.body).toBe('3화에서 새로 쓴 문장')
+  // 목록의 4화 초안은 AI가 이어 쓴 내용으로 갱신돼, 나중에 4화를 열면 보인다.
+  expect(result.current.episodes.find((e) => e.number === 4)?.draft.body).toBe('AI가 이어 쓴 넷째')
+})

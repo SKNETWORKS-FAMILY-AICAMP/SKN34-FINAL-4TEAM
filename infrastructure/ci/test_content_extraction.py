@@ -77,6 +77,9 @@ class ContentExtractionTest(unittest.TestCase):
                 expected = list(mappings)
                 if relative == 'publication/controller/PublicationController.kt':
                     expected.insert(-1, ['PutMapping', '"/works/{id}/episodes/{number}/visibility"'])
+                if relative == 'proposal/controller/ProposalController.kt':
+                    at = expected.index(['PostMapping', '"/works/{id}/proposals"']) + 1
+                    expected[at:at] = [['PostMapping', '"/works/{id}/writing/drafts"'], ['PostMapping', '"/works/{id}/writing/patches"']]
                 self.assertEqual(expected, actual)
 
     def test_public_proxies_select_content_without_exposing_internal_verification(self):

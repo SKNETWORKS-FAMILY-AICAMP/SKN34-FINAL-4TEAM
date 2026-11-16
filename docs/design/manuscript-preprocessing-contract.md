@@ -2,7 +2,7 @@
 
 [결정 목록](decisions.md#결정-목록) DEC-50 · [서비스 경계](service-boundaries.md) · [Content MCP 창구](content-mcp-contract.md)
 
-상태: **결정·설계만 기록. Celery·전처리 코드·MCP 적재 도구는 미구현.**
+상태: **결정·실행 계약 기록. Celery·전처리 코드·MCP 전처리 도구는 미구현([#343](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/343)).**
 
 ## 목적
 
@@ -37,14 +37,29 @@
 - **AI 서비스:** Celery 작업 실행, 추출·정리, 진행 상태, 완료 후 MCP 적재 호출.
 - **Core:** 기존대로 인증. 크레딧 비용 안내·동의(UC-03 A3)는 기존 크레딧 계약을 따른다.
 
-## 미정
+## 실행 계약 (2026-11-13, [#343](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/343))
 
-- **접수 경로:** Content가 전처리를 AI 서비스에 넘기는 방식. Kotlin이 Celery 메시지 형식을 직접 맞추는 대신 AI 서비스의 내부 접수 API를 호출하는 안을 권장한다.
-- **백그라운드 적재 인증:** MCP 사용자 도구는 호출 사용자의 Bearer 토큰으로 동작하고(DEC-49) 작업 중 만료되면 인증 오류다. 작가가 자리를 비운 몇 시간짜리 작업의 완료 후 적재에 쓸 권한(승인 시점에 위임받는 작업 권한 등)을 정해야 한다.
-- **적재 도구와 위치:** 현재 MCP 도구에는 사건·기억·회차별 상태(Snapshot)를 넣는 도구가 없고 일괄 적재도 없다. 세계관 초안에 넣을지 확정 버전으로 남길지 함께 정한다.
-- **진행 상태 저장소:** AI 서비스에는 DB가 없다(LangGraph 체크포인트용 Postgres는 PR #321 미병합). 작가 화면의 진행률은 브라우저가 Content `/api`만 호출하므로 Content를 거쳐야 한다.
-- **실패·재실행:** 일부 회차 추출 실패 시 정리 단계를 진행할지, 재실행 시 같은 결과가 중복 적재되지 않게 하는 기준(작업 ID·회차 번호).
-- **회차별 관계도:** 관계 정본은 Neo4j 현재 상태 하나다(#132). 회차별 상태에 관계를 넣으려면 이 결정을 바꿔야 한다.
+화면 진입점은 작품 관리의 **[세계관 만들기]** 버튼이다. 이번 범위는 최초 구축만이고, 새 회차 증분 반영은 후속이다.
+
+| 항목 | 결정 |
+|---|---|
+| 접수 | 화면 → Content `POST /api/v1/works/{id}/world-preprocessing`(소유자만, 저장 회차 0개 422, 진행 중·완료 작업 409) → AI `POST /internal/v1/preprocessing/jobs`(`X-Internal-Token`, 본문 `{jobId, workId, episodes:[회차 번호]}`, 202). Kotlin은 Celery 메시지를 직접 만들지 않는다. 같은 `jobId` 재접수는 실패 회차만 다시 실행한다 |
+| 작업 기록·진행 상태 | Content 작업 테이블(작업 ID·작품·세계관·회원·상태 `queued/running/loading/completed/failed`·완료 수/전체 수·실패 회차·시각). 화면은 `GET /api/v1/works/{id}/world-preprocessing`만 조회한다. Celery 결과 저장소와 AI DB는 쓰지 않는다 |
+| 백그라운드 인증 | 전처리 MCP 도구는 사용자 Bearer 대신 `X-Internal-Token` + 도구 인자 `jobId`로 호출한다. Content는 그 작업이 진행 중(`queued/running/loading`)일 때만 받아들이고 작업에 기록된 회원 권한으로 기존 Service를 호출한다. 종료된 작업 ID는 거절한다 |
+| 읽을 원문 | 회차별 최신 저장 버전 |
+| 적재 위치 | 작품에 연결된 세계관의 **초안**. 연결 세계관이 없으면 접수 때 새 세계관을 만들어 1:1 연결한다(`work.world_studio_id`). 확정 버전은 작가가 수정 후 직접 남긴다 |
+| 실패·재실행 | 추출 실패 회차가 하나라도 있으면 정리 단계 전에 `failed`로 멈추고 실패 회차를 기록한다. 적재는 `jobId`로 멱등(같은 작업의 재호출이 카드를 중복 생성하지 않음) |
+
+### 전처리 MCP 도구 (Content, `jobId` 인증)
+
+| 도구 | 인자 | 결과 |
+|---|---|---|
+| `preprocessing_episode_read` | `jobId`, `number` | `{number, title, body}` 그 회차 최신 저장 버전 |
+| `preprocessing_progress` | `jobId`, `stage`(`extracting/resolving/organizing/loading`), `done`, `total`, `failedEpisodes[]`, `failed`(선택, 고정 사유 문구) | 갱신된 작업 상태 |
+| `preprocessing_load` | `jobId`, `cards[]`, `relations[]` | 적재 결과(카드 수·관계 수), 작업 `completed` |
+
+`cards[]` 항목: `key`(작업 안 정식 ID), `cardType`(`character/location/organization/object/event`), `title`, `aliases[]`, `body`(마크다운, 인물은 `IDENTITY.md`), `revealFromEpisode`(첫 등장 회차), 인물만 `characterDocs{soul, memory, episodes{"NN": 글}}`(DEC-47, 문서마다 3,000자 이하). 사건 카드 본문은 회차 번호와 참여 인물을 적는다.
+`relations[]` 항목: `fromKey`, `toKey`, `label`, `fromEpisode`, `ended`(선택). Content가 DEC-51 회차별 관계로 변환해 `fromEpisode` 시점마다 기록한다. 카드 공개 여부는 기본 비공개(DEC-46) 그대로다.
 
 ## 관련
 

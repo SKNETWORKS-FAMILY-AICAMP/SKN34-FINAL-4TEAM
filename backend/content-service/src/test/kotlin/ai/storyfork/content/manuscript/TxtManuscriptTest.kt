@@ -10,6 +10,10 @@ class TxtManuscriptTest {
     private fun parse(text: String, name: String = "원고.txt") = TxtManuscript.parse(text.toByteArray(), name)
     private fun failure(bytes: ByteArray) = assertThrows(ContentFailure::class.java) { TxtManuscript.parse(bytes, "원고.txt") }
 
+    @Test fun `bulk keeps title lines and normalizes line endings`() {
+        assertEquals("1화\n본문\n2화", TxtManuscript.singleEpisodeBody("1화\r\n본문\r2화".toByteArray()))
+    }
+
     @Test fun `title lines split episodes and the preface joins the first one`() {
         val manuscript = parse(listOf("머리말", "1화 시작", "", "첫 줄", "둘째 줄", "", "2화", "다음 이야기").joinToString("\n") + "\n")
         assertEquals("txt", manuscript.format); assertEquals("line", manuscript.unit); assertEquals(8, manuscript.unitCount)

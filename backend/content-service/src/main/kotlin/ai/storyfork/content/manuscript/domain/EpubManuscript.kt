@@ -65,8 +65,27 @@ class EpubManuscript private constructor(private val chapters: List<Chapter>) : 
         private fun drm() = ContentFailure(422, "DRM이 걸린 EPUB은 가져올 수 없어요.")
         private fun <T> readable(action: () -> T): T = try { action() } catch (e: ContentFailure) { throw e } catch (_: Exception) { throw unreadable() }
 
-        fun parse(bytes: ByteArray): EpubManuscript {
-            val files = read(bytes)
+        fun parse(bytes: ByteArray): EpubManuscript =
+            EpubManuscript(readChapters(bytes, textOnly = false).toList())
+
+        fun singleEpisodeBody(bytes: ByteArray, maxChars: Int): String {
+            val body = StringBuilder()
+            for (chapter in readChapters(bytes, textOnly = true)) {
+                chapter.error?.let { throw ContentFailure(422, it) }
+                if (chapter.text.isEmpty()) continue
+                val separatorLength = if (body.isEmpty()) 0 else 1
+                if (body.length.toLong() + separatorLength + chapter.text.length > maxChars) {
+                    throw ContentFailure(422, "본문이 ${maxChars}자를 넘어 등록할 수 없어요.")
+                }
+                if (body.isNotEmpty()) body.append('\n')
+                body.append(chapter.text)
+            }
+            if (body.isBlank()) throw ContentFailure(422, "읽을 수 있는 본문이 없어요.")
+            return body.toString()
+        }
+
+        private fun readChapters(bytes: ByteArray, textOnly: Boolean): Sequence<Chapter> {
+            val files = read(bytes, textOnly)
             checkDrm(files)
             val container = readable { xml(files["META-INF/container.xml"] ?: throw unreadable()) }
             val opfPath = container.elements("rootfile").firstOrNull()?.getAttribute("full-path")?.let { resolve("", it) } ?: throw unreadable()
@@ -75,13 +94,34 @@ class EpubManuscript private constructor(private val chapters: List<Chapter>) : 
             val items = opf.elements("item").mapNotNull { e ->
                 resolve(base, e.getAttribute("href"))?.let { e.getAttribute("id") to Item(it, e.getAttribute("media-type"), e.getAttribute("properties")) }
             }.toMap()
-            val spine = opf.elements("itemref").mapNotNull { items[it.getAttribute("idref")] }.filter { it.type in XHTML_TYPES }
+            val references = opf.elements("itemref")
+            if (textOnly && references.size > MAX_ENTRIES) throw tooBig()
+            val spine = references.mapNotNull { ref ->
+                val item = items[ref.getAttribute("idref")]
+                if (textOnly) {
+                    if (item == null) throw ContentFailure(422, "EPUB의 읽기 순서가 가리키는 문서를 찾지 못했어요.")
+                    if (item.type !in XHTML_TYPES) throw ContentFailure(422, "EPUB에 읽을 수 없는 형식의 본문 문서가 있어요.")
+                }
+                item?.takeIf { it.type in XHTML_TYPES }
+            }
             if (spine.isEmpty()) throw ContentFailure(422, "읽을 수 있는 장이 없어요.")
-            if (spine.size > MAX_EPISODES) throw tooManyEpisodes(spine.size)
+            // Repeated spine references must also fit the byte budget for XML parsing.
+            if (textOnly && spine.sumOf { files[it.path]?.size?.toLong() ?: 0L } > MAX_TOTAL_BYTES) {
+                throw tooBig()
+            }
+            if (!textOnly && spine.size > MAX_EPISODES) throw tooManyEpisodes(spine.size)
             val labels = HashMap<String, String>()
-            items.values.firstOrNull { "nav" in it.properties.split(' ') }?.let { navLabels(it.path, files, labels) { doc -> navLinks(doc) } }
-            items.values.firstOrNull { it.type == "application/x-dtbncx+xml" }?.let { navLabels(it.path, files, labels) { doc -> ncxLinks(doc) } }
-            return EpubManuscript(spine.mapIndexed { i, item -> chapter(item.path, files, labels[item.path], i + 1) })
+            if (!textOnly) {
+                items.values.firstOrNull { "nav" in it.properties.split(' ') }?.let {
+                    navLabels(it.path, files, labels) { doc -> navLinks(doc) }
+                }
+                items.values.firstOrNull { it.type == "application/x-dtbncx+xml" }?.let {
+                    navLabels(it.path, files, labels) { doc -> ncxLinks(doc) }
+                }
+            }
+            return spine.asSequence().mapIndexed { index, item ->
+                chapter(item.path, files, labels[item.path], index + 1, textOnly)
+            }
         }
 
         private class Item(val path: String, val type: String, val properties: String)
@@ -91,7 +131,7 @@ class EpubManuscript private constructor(private val chapters: List<Chapter>) : 
          * 메모리에는 텍스트 항목(4 MiB까지, 넘으면 422)과 이미지(10 MiB까지, 넘으면 빠진 이미지)만 남기고,
          * 나머지 항목은 고정 버퍼로 크기만 센다.
          */
-        private fun read(bytes: ByteArray): Map<String, ByteArray> {
+        private fun read(bytes: ByteArray, textOnly: Boolean): Map<String, ByteArray> {
             val files = HashMap<String, ByteArray>()
             val buffer = ByteArray(64 * 1024)
             var count = 0
@@ -101,9 +141,13 @@ class EpubManuscript private constructor(private val chapters: List<Chapter>) : 
                     while (true) {
                         val entry = zip.nextEntry ?: break
                         if (++count > MAX_ENTRIES) throw tooBig()
-                        if (entry.isDirectory) continue
                         val extension = entry.name.substringAfterLast('.', "").lowercase()
-                        val limit = when (extension) { in TEXT_EXTENSIONS -> MAX_TEXT_ENTRY_BYTES; in IMAGE_EXTENSIONS -> MAX_IMAGE_BYTES; else -> 0L }
+                        val isText = !entry.isDirectory && extension in TEXT_EXTENSIONS
+                        val limit = when {
+                            isText -> MAX_TEXT_ENTRY_BYTES
+                            !entry.isDirectory && !textOnly && extension in IMAGE_EXTENSIONS -> MAX_IMAGE_BYTES
+                            else -> 0L
+                        }
                         var kept = if (limit > 0) ByteArrayOutputStream() else null
                         val room = minOf(MAX_ENTRY_BYTES, MAX_TOTAL_BYTES - total)
                         var size = 0L
@@ -113,7 +157,7 @@ class EpubManuscript private constructor(private val chapters: List<Chapter>) : 
                             size += n
                             if (size > room) throw tooBig()
                             if (size > limit) {
-                                if (extension in TEXT_EXTENSIONS) throw tooBig()
+                                if (isText) throw tooBig()
                                 kept = null
                             }
                             kept?.write(buffer, 0, n)
@@ -199,14 +243,14 @@ class EpubManuscript private constructor(private val chapters: List<Chapter>) : 
             src to (point.elements("text").firstOrNull()?.textContent ?: "")
         }
 
-        private fun chapter(path: String, files: Map<String, ByteArray>, label: String?, number: Int): Chapter {
+        private fun chapter(path: String, files: Map<String, ByteArray>, label: String?, number: Int, textOnly: Boolean): Chapter {
             fun failed(reason: String) = Chapter(label?.let { collapse(it) }?.takeIf { it.isNotEmpty() }?.take(MAX_TITLE) ?: "${number}화", "", emptyList(), 0, reason)
             val bytes = files[path] ?: return failed("이 장을 찾지 못했어요.")
-            return try { extract(path, xml(bytes), files, label, number) } catch (_: Exception) { failed("이 장을 읽지 못했어요.") }
+            return try { extract(path, xml(bytes), files, label, number, textOnly) } catch (_: Exception) { failed("이 장을 읽지 못했어요.") }
         }
 
         /** 블록 요소·br은 줄바꿈으로, img는 그 위치의 이미지 자리(IMAGE_PLACEHOLDER 한 줄)로 바꾼다. 제목으로 쓴 맨 앞 머리글은 본문에서 뺀다. */
-        private fun extract(path: String, doc: Document, files: Map<String, ByteArray>, label: String?, number: Int): Chapter {
+        private fun extract(path: String, doc: Document, files: Map<String, ByteArray>, label: String?, number: Int, textOnly: Boolean): Chapter {
             val dir = path.substringBeforeLast('/', "")
             val lines = ArrayList<String>()
             val images = ArrayList<ParsedImage>()
@@ -225,6 +269,7 @@ class EpubManuscript private constructor(private val chapters: List<Chapter>) : 
                         when {
                             name in SKIP -> {}
                             name == "br" -> flush()
+                            name == "img" && textOnly -> flush()
                             name == "img" -> {
                                 flush()
                                 val image = image(dir, node as Element, files)
@@ -246,7 +291,7 @@ class EpubManuscript private constructor(private val chapters: List<Chapter>) : 
             walk(doc.getElementsByTagNameNS("*", "body").item(0) ?: doc.documentElement, 0)
             val title = listOf(label, heading, doc.getElementsByTagNameNS("*", "title").item(0)?.textContent)
                 .firstNotNullOfOrNull { text -> text?.let { collapse(it) }?.takeIf { it.isNotEmpty() } }?.take(MAX_TITLE) ?: "${number}화"
-            if (headingLine == 0 && heading == title) lines.removeAt(0)
+            if (!textOnly && headingLine == 0 && heading == title) lines.removeAt(0)
             return Chapter(title, lines.joinToString("\n"), images, missing, null)
         }
 

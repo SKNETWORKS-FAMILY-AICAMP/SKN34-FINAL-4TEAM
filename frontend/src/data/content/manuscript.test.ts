@@ -58,6 +58,38 @@ it('확정은 같은 파일과 application/json request 파트를 multipart로 �
   expect(result).toEqual(summaryBody)
 })
 
+it('일괄 업로드는 GET 기준 revision과 파일 순서에 맞는 multipart를 사용한다', async () => {
+  const basis = { lastNumber: 2, workRevision: 7 }
+  const result = {
+    workRevision: 8, stopReason: null,
+    results: [
+      { number: 2, title: '둘째', status: 'versioned', versionId: 'saved-2', reason: null },
+      { number: 3, title: '셋째', status: 'failed', versionId: null, reason: '본문이 비어 있어요.' },
+    ],
+  }
+  const fetcher = vi.fn().mockResolvedValueOnce(Response.json(basis)).mockResolvedValueOnce(Response.json(result))
+  const repo = new HttpManuscriptRepository(fetcher)
+  expect(await repo.bulkBasis(workId)).toEqual(basis)
+  expect(await repo.importBulkBatch(workId, [
+    { file: file(), number: 2, title: '둘째' },
+    { file: new File(['epub'], '셋째.epub'), number: 3, title: '셋째' },
+  ], basis.workRevision)).toEqual(result)
+
+  const [[getUrl, get], [postUrl, post]] = fetcher.mock.calls
+  expect(getUrl).toBe(`/api/v1/works/${workId}/manuscript-imports/bulk`)
+  expect(postUrl).toBe(getUrl)
+  expect(get.method).toBe('GET')
+  expect(get.headers).not.toHaveProperty('X-CSRF-TOKEN')
+  expect(post.method).toBe('POST')
+  expect(post.headers).toMatchObject({ Authorization: 'Bearer manuscript-bearer', 'X-CSRF-TOKEN': 'manuscript-csrf' })
+  expect(post.body.getAll('files').map((part: File) => part.name)).toEqual(['episode.txt', 'episode.epub'])
+  expect(await post.body.getAll('files')[0].text()).toBe('1화 시작\n본문')
+  expect(JSON.parse(await post.body.get('request').text())).toEqual({
+    rightsConfirmed: true, expectedWorkRevision: 7,
+    items: [{ number: 2, title: '둘째' }, { number: 3, title: '셋째' }],
+  })
+})
+
 it('서버의 detail을 그대로 보이고, detail이 없으면 상태별 안내를 쓴다', async () => {
   const fetcher = vi.fn()
   const repo = new HttpManuscriptRepository(fetcher)

@@ -21,6 +21,16 @@
 - 업로드 한도: TXT 10MB, EPUB 50MB, 한 번에 300회차 이하. Content `spring.servlet.multipart.max-file-size=50MB`, `max-request-size=51MB`이고 첨부 업로드는 기존 `AttachmentUploadHelper` 10 MiB 검사를 그대로 유지한다. nginx(`frontend/nginx.conf`, `infrastructure/nginx.dev.conf`)의 `/api/v1/works/` 위치에 `client_max_body_size 51m;`를 둔다.
 - 회차 원고 검증은 기존 규칙을 재사용한다: 제목 1~120자, 본문 40,000자 이하, 이미지는 `[[image:<UUID>]]` 참조만.
 
+## 작품 관리 회차 파일 일괄 업로드 (#333)
+
+- `/content?work=<id>`의 회차 탭에서 TXT·EPUB을 최대 1,000개 선택한다. 자연 정렬을 기본으로 하고 작가가 순서와 시작 회차를 바꾼다. 파일명에서 확장자를 뺀 이름을 제목으로 쓴다. 기존 회차에 새 버전이 쌓이는 행을 미리 표시한다.
+- 파일 하나를 회차 하나로 읽는다. TXT는 UTF-8·CP949로 읽고 본문의 회차 제목 줄을 보존한다. EPUB은 spine 순서대로 XHTML 본문과 머리글을 합치고 삽화는 제외한다. 본문 문서가 손상됐거나 누락된 EPUB은 파일 단위로 실패한다. 변환한 본문은 40,000자까지 저장한다.
+- `GET /api/v1/works/{workId}/manuscript-imports/bulk`는 소유자에게 `lastNumber`와 `workRevision`을 반환한다. `POST`는 같은 경로에 `files` 반복 파트와 `request` JSON(`rightsConfirmed`, `expectedWorkRevision`, 파일과 같은 순서의 `items[{number,title}]`)을 받는다. 기존 인증·CSRF·소유권 규칙을 적용한다.
+- 브라우저는 요청당 파일 20개와 파일 합계 50 MiB를 기준으로 묶어 순서대로 전송한다. 전체 선택에는 바이트 합계 상한을 따로 두지 않는다. 파일당 TXT 10 MiB·EPUB 50 MiB, multipart 전체 Spring/Nginx 51 MiB 기준을 적용한다. 요청 용량 초과는 413, 요청 검증 오류는 422로 반환한다.
+- 파일별 트랜잭션에서 새 회차는 생성과 버전 저장을 함께 처리한다. 기존 회차는 필요한 경우 작업 중인 초안을 먼저 보존하고 업로드 원고를 새 버전으로 쌓는다. 상속 회차와 앞 번호가 비어 있는 신규 회차는 실패한다. 파일별 결과는 `created`, `versioned`, `failed`이고 성공 행의 `versionId`는 이번에 저장한 원고 버전 ID다.
+- 묶음 응답은 최신 확인 `workRevision`을 반환한다. 앞 묶음이 반환한 revision을 다음 묶음에 쓰며, 동시 수정이나 저장 결과 미확인으로 중단되면 받은 결과와 `stopReason`을 표시한다. 실패가 확인된 파일은 교체해 원래 번호로 재시도할 수 있다. 저장 여부가 불명확한 요청은 저장본을 확인한 뒤 다시 시작한다.
+- 원본 파일은 DB·객체 저장소에 보관하지 않는다. 파일 입력 스트림은 처리 후 닫고 multipart 임시 파일은 요청 종료 시 컨테이너가 정리한다. DEC-50 전처리는 작가가 별도로 시작하며 업로드 응답에서 확인한 저장 버전 ID를 기준으로 삼을 수 있다.
+
 ## 1. 설정 첨부 파일명 수정 (기능 17 · 파일 메타데이터 수정)
 
 `PATCH /api/v1/works/{workId}/settings/{settingId}/attachments/{attachmentId}` · JSON `{"filename": "새 이름.pdf"}` · CSRF 필요

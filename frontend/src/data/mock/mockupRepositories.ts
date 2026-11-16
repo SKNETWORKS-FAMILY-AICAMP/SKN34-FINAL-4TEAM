@@ -55,6 +55,8 @@ export function createMockupManuscriptRepository(writing: Pick<EpisodeRepository
   return {
     preview: demoUnsupported,
     confirm: demoUnsupported,
+    bulkBasis: demoUnsupported,
+    importBulkBatch: demoUnsupported,
     exportManuscript: async (workId, query, signal) => {
       if (query.format !== 'txt' || query.source !== 'draft') return demoUnsupported()
       const whole = query.episode === undefined

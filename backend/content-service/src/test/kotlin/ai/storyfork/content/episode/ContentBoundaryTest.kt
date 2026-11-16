@@ -128,6 +128,10 @@ class ContentBoundaryTest {
         assertTrue(Files.readString(root.resolve("_common/exception/ContentExceptionHandler.kt")).contains("\"ai.storyfork.content.notice.controller\""))
     }
 
+    @Test fun `writing ai failures become their own http status through the content exception handler`() {
+        assertTrue(Files.readString(root.resolve("_common/exception/ContentExceptionHandler.kt")).contains("\"ai.storyfork.content.writingai.controller\""))
+    }
+
     @Test fun `edit suggestion table follows the contract and keeps the report link free of foreign keys for now`() {
         val sql = Files.readString(Path.of("src/main/resources/db/migration/work/V29__edit_suggestion.sql"))
         val tables = sql.split("CREATE TABLE ").drop(1).associate { it.substringBefore(" (") to it }

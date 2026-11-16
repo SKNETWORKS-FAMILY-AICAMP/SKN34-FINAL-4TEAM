@@ -2,6 +2,7 @@ package ai.storyfork.content.proposal.service
 
 import ai.storyfork.content._common.exception.*
 import ai.storyfork.content.proposal.domain.ProposalTextPolicy
+import ai.storyfork.content.proposal.domain.WritingSelection
 import ai.storyfork.content._common.helper.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -41,25 +42,48 @@ class ProposalService(
     @Qualifier("contentTransactions") private val transaction: TransactionTemplate,
 ) {
 
-    private data class Prepared(val jobId: String,val selected: StoryContextResponse,val body: String,val target: Int)
+    private data class Prepared(val jobId: String,val selected: StoryContextResponse,val body: String,val target: Int,val selection: WritingSelection?)
+    private data class Ask(val revision: Int,val consent: Boolean,val prompt: String,val episode: Int?,val character: String,val kind: String,val span: Pair<Int,Int>? = null)
 
     @Transactional(transactionManager="contentTransactionManager", propagation=org.springframework.transaction.annotation.Propagation.NEVER)
     fun propose(id: String,owner: String,data: ProposalRequest): ProposalResponse {
         checkContent(data.consent,message="OpenAI 전송과 API 비용에 동의해 주세요.")
         checkContent(data.prompt.isNotBlank() && data.prompt.length<=2000 && data.character.length<=80,message="AI 요청 범위를 확인해 주세요.")
+        return run(id,owner,Ask(data.revision,data.consent,data.prompt,data.episode,data.character,"continuation")) {ai.generate(GenerationPayload(it.selected,data.prompt))}
+    }
+
+    /** 새 회차 원고 후보(#62). 승인 시 기존 이어쓰기처럼 작성 중 초안 끝에 덧붙인다. */
+    @Transactional(transactionManager="contentTransactionManager", propagation=org.springframework.transaction.annotation.Propagation.NEVER)
+    fun writeDraft(id: String,owner: String,data: WritingDraftRequest): ProposalResponse =
+        run(id,owner,Ask(data.revision,data.consent,data.plan,data.episode,data.character,"draft")) {
+            ai.draft(WritingDraftPayload(it.target,data.plan,mapper.writeValueAsString(it.selected)))
+        }
+
+    /** 작성 중 초안의 선택 구간 수정 후보(#62). 승인 시 그 구간만 교체한다. */
+    @Transactional(transactionManager="contentTransactionManager", propagation=org.springframework.transaction.annotation.Propagation.NEVER)
+    fun writePatch(id: String,owner: String,data: WritingPatchRequest): ProposalResponse =
+        run(id,owner,Ask(data.revision,data.consent,data.instruction,data.episode,data.character,"patch",data.start to data.end)) {
+            val s=it.selection!!
+            // 초안 전문은 앞뒤 문장으로 대신 보내므로 문맥에서 뺀다.
+            ai.patch(WritingPatchPayload(s.before,data.instruction,s.preceding,s.following,mapper.writeValueAsString(it.selected.copy(draft=""))))
+        }
+
+    private fun run(id: String,owner: String,data: Ask,generate: (Prepared)->GenerationResponse): ProposalResponse {
+        checkContent(data.consent,message="OpenAI 전송과 API 비용에 동의해 주세요.")
         val prepared=transaction.execute {
             val w=access.own(id,owner);access.requireRevision(w,data.revision)
             val target=publication.nextEpisodeNumber(id)
             val selected=context.read(id,owner,ContextRequest(data.episode ?: target,data.prompt,data.character))
             val row=episodes.findByWorkIdAndSequence(id,target) ?: throw ContentFailure(409,"작성 회차를 확인할 수 없어요.")
             val body=drafts.findById(row.id).orElseThrow().content
-            val job=jobs.saveAndFlush(AiJobEntity(id=contentId(),requesterId=owner,workId=id,kind="continuation",status="running",requestText=data.prompt,startedAt=Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)))
+            val selection=data.span?.let {WritingSelection.of(body,it.first,it.second)}
+            val job=jobs.saveAndFlush(AiJobEntity(id=contentId(),requesterId=owner,workId=id,kind=data.kind,status="running",requestText=data.prompt,startedAt=Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)))
             calls.saveAndFlush(AiModelCallEntity(id=job.id,jobId=job.id,sequence=1,role="writer",provider="openai",status="running",usageStatus="unreported",startedAt=Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS)))
-            Prepared(job.id,selected,body,target)
+            Prepared(job.id,selected,body,target,selection)
         }
         try {
             // The paid call has no database transaction or row locks held.
-            val result=ai.generate(GenerationPayload(prepared.selected,data.prompt))
+            val result=generate(prepared)
             transaction.executeWithoutResult {
                 val call=calls.findFirstByJobIdOrderBySequence(prepared.jobId) ?: error("Missing AI call")
                 call.status="completed";call.model=result.model;call.traceRef=result.providerResponseId
@@ -72,8 +96,8 @@ class ProposalService(
                 checkContent(context.read(id,owner,ContextRequest(prepared.selected.basisEpisode,data.prompt,data.character))==prepared.selected,409,"생성 중 문맥이 변경됐어요. 원고에는 반영하지 않았어요.")
                 val now=Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);val inputId=contentKey("input",prepared.jobId)
                 val row=episodes.findByWorkIdAndSequence(id,prepared.target) ?: throw ContentFailure(409,"작성 회차가 변경됐어요.")
-                inputs.saveAndFlush(AiInputSnapshotEntity(id=inputId,jobId=prepared.jobId,episodeId=row.id,sourceKind="draft",contentSnapshot=prepared.body,draftRevision=data.revision,capturedAt=now))
-                proposals.saveAndFlush(AiProposalEntity(id=prepared.jobId,jobId=prepared.jobId,kind="continuation",content=result.text,createdAt=now,inputSnapshotId=inputId,sequence=1))
+                inputs.saveAndFlush(AiInputSnapshotEntity(id=inputId,jobId=prepared.jobId,episodeId=row.id,sourceKind="draft",position=prepared.selection?.position,contentSnapshot=prepared.body,draftRevision=data.revision,capturedAt=now))
+                proposals.saveAndFlush(AiProposalEntity(id=prepared.jobId,jobId=prepared.jobId,kind=data.kind,content=result.text,createdAt=now,inputSnapshotId=inputId,sequence=1))
                 val evidenceId=contentKey("evidence",prepared.jobId)
                 evidence.saveAndFlush(AiEvidenceEntity(id=evidenceId,kind="context",excerptSnapshot=mapper.writeValueAsString(prepared.selected),capturedAt=now))
                 evidenceLinks.saveAndFlush(ProposalEvidenceEntity(proposalId=prepared.jobId,evidenceId=evidenceId))
@@ -104,7 +128,7 @@ class ProposalService(
             val target=input.episodeId?.let {episodes.findById(it).orElse(null)?.sequence}
             ProposalResponse(p.id,p.content,call.model ?: throw ContentFailure(409,"AI 모델 기록이 누락됐어요."),input.draftRevision ?: throw ContentFailure(409,"AI 기준 revision이 누락됐어요."),
                 if(applied==null) "pending" else "accepted",job.requestText,input.contentSnapshot,mapper.readValue(contextEvidence.excerptSnapshot,StoryContextResponse::class.java),call.traceRef,
-                if(call.inputTokens==null || call.outputTokens==null) null else UsageResponse(call.inputTokens!!,call.outputTokens!!),p.createdAt.toString(),target,resultVersion?.contentVersionId)
+                if(call.inputTokens==null || call.outputTokens==null) null else UsageResponse(call.inputTokens!!,call.outputTokens!!),p.createdAt.toString(),target,resultVersion?.contentVersionId,p.kind,input.position)
         })
     }
     @Transactional(transactionManager="contentTransactionManager")
@@ -118,14 +142,18 @@ class ProposalService(
         val row=episodes.findByWorkIdAndSequence(id,target) ?: throw ContentFailure(409,"작성 회차를 확인할 수 없어요.")
         val draft=drafts.findById(row.id).orElseThrow()
         ProposalTextPolicy.validate(p.text)
-        val body=(draft.content+"\n\n"+p.text).trim()
+        val body=if(p.kind=="patch") {
+            // 선택 밖 문장을 보존하려면 후보를 만든 초안과 지금 초안이 같아야 한다.
+            checkContent(draft.content==p.baseBody,409,"원고가 변경됐어요. 최신 원고에서 다시 수정을 요청해 주세요.")
+            WritingSelection.apply(draft.content,p.position ?: throw ContentFailure(409,"수정 구간 기록이 누락됐어요."),p.text)
+        } else (draft.content+"\n\n"+p.text).trim()
         checkContent(body.length<=40000,message="회차 원고는 40,000자까지 저장할 수 있어요.")
         val saved=savedVersions.saveCurrent(id,owner,DraftRequest(draft.title,body,expected,draft.authorNote))
         val decision=contentKey("proposal-decision",pid);val application=contentKey("proposal-application",pid)
         val at=Instant.parse(saved.version.savedAt)
         decisions.saveAndFlush(ProposalDecisionEntity(id=decision,proposalId=pid,sequence=1,actorId=owner,decision="accept",approvedContent=p.text,decidedAt=at))
         applications.saveAndFlush(ProposalApplicationEntity(id=application,decisionId=decision,attemptNo=1,outcome="applied",attemptedAt=at))
-        changes.saveAndFlush(ProposalEpisodeChangeEntity(id=contentKey("proposal-result",pid),applicationId=application,episodeId=row.id,resultVersionId=episodeVersionId(id,target,saved.version.id),beforeContent=p.baseBody,afterContent=saved.draft.body,baseDraftRevision=p.revision,resultDraftRevision=saved.draft.revision))
+        changes.saveAndFlush(ProposalEpisodeChangeEntity(id=contentKey("proposal-result",pid),applicationId=application,episodeId=row.id,position=p.position,resultVersionId=episodeVersionId(id,target,saved.version.id),beforeContent=p.baseBody,afterContent=saved.draft.body,baseDraftRevision=p.revision,resultDraftRevision=saved.draft.revision))
         return saved.draft
     }
 

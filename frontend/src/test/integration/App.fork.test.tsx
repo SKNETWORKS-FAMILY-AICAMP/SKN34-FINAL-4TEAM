@@ -58,7 +58,7 @@ describe('포크 (U09·U10)', () => {
     agree()
     await screen.findByRole('heading', { name: '「구운몽」 포크' })
     expect(where()).toBe('/fork/guunmong')
-    expect(sid()).toBe('U09 포크 (3단계 폼)')
+    await waitFor(() => expect(sid()).toBe('U09 포크 (3단계 폼)'))
     expect(screen.getByRole('button', { name: /1화 끝에서/ }).hasAttribute('disabled')).toBe(true)
     expect(document.getElementById('atl')!.textContent).toBe('2')
     fireEvent.click(screen.getByRole('button', { name: /4화 끝에서/ }))

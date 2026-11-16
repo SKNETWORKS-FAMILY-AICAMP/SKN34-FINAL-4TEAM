@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
-import type { ReactNode } from 'react'
+import { useLayoutEffect, type ReactNode } from 'react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { afterEach, expect, it, vi } from 'vitest'
@@ -23,7 +23,7 @@ const page = (ids: string[], hasMore = true): Page => ({ list: ids.map((id) => (
 const ids = (list?: Work[]) => list?.map((w) => w.id)
 
 /** findWorks 호출마다 응답을 대기시켜, 테스트가 응답 순서(늦은 응답 포함)를 직접 정한다. */
-function setup(path: string) {
+function setup(path: string, loadOnFirstPage = false) {
   const calls: { query: Parameters<ReadingUseCase['findWorks']>[0]; signal?: AbortSignal; response: ReturnType<typeof deferred<Page>> }[] = []
   const readingUseCase = {
     findWorks: vi.fn((query: Parameters<ReadingUseCase['findWorks']>[0], signal?: AbortSignal) => {
@@ -33,7 +33,13 @@ function setup(path: string) {
     }),
   } as unknown as ReadingUseCase
   const wrapper = ({ children }: { children: ReactNode }) => <Provider store={createAppStore()}><MemoryRouter initialEntries={[path]} useTransitions={false}>{children}</MemoryRouter></Provider>
-  return { ...renderHook(() => useSearchViewModel(readingUseCase), { wrapper }), calls }
+  return { ...renderHook(() => {
+    const vm = useSearchViewModel(readingUseCase)
+    useLayoutEffect(() => {
+      if (loadOnFirstPage && vm.list && calls.length === 1) vm.more.load()
+    }, [vm])
+    return vm
+  }, { wrapper }), calls }
 }
 /** 첫 서버 페이지를 받아 화면이 목록을 보이는 상태까지 만든다. */
 async function loaded(path: string, first: Page) {
@@ -65,6 +71,16 @@ it('더 보기는 page 1, 2…를 차례로 받아 이어 붙이고 마지막 �
   expect(result.current.more.hasMore).toBe(false)
   act(() => result.current.more.load())
   expect(calls).toHaveLength(3)
+})
+
+it('첫 페이지가 화면에 반영되는 즉시 더 보기를 요청해도 그 요청을 취소하지 않는다', async () => {
+  const { result, calls } = setup('/search', true)
+  await waitFor(() => expect(calls).toHaveLength(1))
+  await act(async () => calls[0].response.resolve(page(['a1'])))
+  expect(calls[1].query.page).toBe(1)
+  expect(calls[1].signal?.aborted).toBe(false)
+  await act(async () => calls[1].response.resolve(page(['a2'], false)))
+  expect(ids(result.current.list)).toEqual(['a1', 'a2'])
 })
 
 it('첫 페이지가 마지막이면 더 보기가 없고, 불러오지 못한 첫 페이지에도 없다', async () => {

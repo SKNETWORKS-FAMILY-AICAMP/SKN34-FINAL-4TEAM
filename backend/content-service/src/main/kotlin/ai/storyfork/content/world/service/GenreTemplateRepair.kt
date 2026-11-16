@@ -4,7 +4,7 @@ import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.service.dto.*
 import org.slf4j.LoggerFactory
 
-/** v1과 정확히 같은 초기 샘플만 v2로 저장한다. 사용자 편집과 과거 저장 버전은 보존한다. */
+/** v1과 정확히 같은 초기 샘플만 v2로 저장한다. 사용자 편집과 과거 저장 버전은 보존한다. 카드는 Seeder와 같이 공개로 넣는다(DEC-46). */
 internal class GenreTemplateRepair(private val service: WorldStudioService) {
     private val log = LoggerFactory.getLogger(javaClass)
     fun repair(legacy: GenreTemplate, updated: GenreTemplate) {
@@ -13,7 +13,7 @@ internal class GenreTemplateRepair(private val service: WorldStudioService) {
         val target = payloads(updated)
         val draft = try { service.draft(legacy.worldId, owner) }
             catch (e: WorldStudioFailure) { if (e.reason == WorldStudioFailure.Reason.INCOMPLETE) null else throw e }
-        val original = legacy.cards.map { CardPayload(it.id, it.title, it.body, it.cardType, "basic") }
+        val original = legacy.cards.map { CardPayload(it.id, it.title, it.body, it.cardType, "basic", visibility = "public") }
         if (draft != null) {
             val sameWorld = draft.currentRevisionId != null && draft.baseWorldRevisionId == draft.currentRevisionId &&
                 draft.name == legacy.name && draft.description == legacy.description && draft.relationships.isEmpty()
@@ -46,7 +46,7 @@ internal class GenreTemplateRepair(private val service: WorldStudioService) {
             CardPayload(c.id, c.title, c.body, c.cardType, area, semanticMetadata = mapOf("studio" to mapOf(
                 "userCategory" to "", "tags" to emptyList<String>(), "aliases" to emptyList<String>(),
                 "templateOrder" to index, "item" to item,
-            )))
+            )), visibility = "public")
         }
     }
 }

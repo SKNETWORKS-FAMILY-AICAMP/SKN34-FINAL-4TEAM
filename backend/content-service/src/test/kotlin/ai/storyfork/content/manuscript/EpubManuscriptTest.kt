@@ -18,6 +18,46 @@ class EpubManuscriptTest {
     private fun chapter(body: String, name: String = "ch1.xhtml", title: String = "", extra: Map<String, ByteArray> = emptyMap()) =
         EpubManuscript.parse(epub(listOf(name to xhtml(body, title)), extra = extra)).episodes.single()
 
+    @Test fun `bulk joins spine text preserving headings and skips illustrations`() {
+        val bytes = epub(listOf(
+            "a.xhtml" to xhtml("<h1>첫 장</h1><img src=\"x.png\"/><p>본문</p>"),
+            "b.xhtml" to xhtml("<h2>다음 장</h2><p>마지막</p>"),
+        ), nav = listOf("a.xhtml" to "목차 제목"), extra = mapOf("OEBPS/x.png" to EpubFixture.png))
+        assertEquals("첫 장\n본문\n다음 장\n마지막", EpubManuscript.singleEpisodeBody(bytes, 40_000))
+        assertEquals(422, assertThrows(ContentFailure::class.java) {
+            EpubManuscript.singleEpisodeBody(bytes, 5)
+        }.status)
+    }
+
+    @Test fun `bulk fails on a broken spine instead of keeping partial text`() {
+        val bytes = epub(listOf("a.xhtml" to xhtml("<p>본문</p>")),
+            spine = """<itemref idref="c0"/><itemref idref="missing"/>""")
+        assertEquals(422, assertThrows(ContentFailure::class.java) {
+            EpubManuscript.singleEpisodeBody(bytes, 40_000)
+        }.status)
+        val oversized = EpubFixture.zeros("OEBPS/picture.png" to ((50L shl 20) + 1))
+        val error = assertThrows(ContentFailure::class.java) {
+            EpubManuscript.singleEpisodeBody(oversized, 40_000)
+        }
+        assertTrue("너무" in error.message)
+    }
+
+    @Test fun `bulk limits repeated spine references even when they have no body text`() {
+        val reference = """<itemref idref="c0"/>"""
+        val bytes = epub(listOf("empty.xhtml" to xhtml("")), spine = reference.repeat(2_001))
+        val failure = assertThrows(ContentFailure::class.java) {
+            EpubManuscript.singleEpisodeBody(bytes, 40_000)
+        }
+        assertTrue("너무 많거나" in failure.message)
+
+        val padded = xhtml("<!--${"x".repeat(3 * 1024 * 1024)}-->")
+        val repeated = epub(listOf("large.xhtml" to padded), spine = reference.repeat(70))
+        val sizeFailure = assertThrows(ContentFailure::class.java) {
+            EpubManuscript.singleEpisodeBody(repeated, 40_000)
+        }
+        assertTrue("너무 많거나" in sizeFailure.message)
+    }
+
     @Test fun `spine chapters become episodes titled from the table of contents`() {
         val manuscript = EpubManuscript.parse(epub(
             listOf("ch1.xhtml" to xhtml("<h1>1화 시작</h1><p>첫 문단</p><p>둘째 문단</p>"), "ch2.xhtml" to xhtml("<p>둘째 장</p>")),

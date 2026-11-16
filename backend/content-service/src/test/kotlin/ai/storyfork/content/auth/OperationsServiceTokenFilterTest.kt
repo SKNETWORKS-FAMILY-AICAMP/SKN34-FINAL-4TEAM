@@ -37,4 +37,16 @@ class OperationsServiceTokenFilterTest {
             verifyNoInteractions(chain)
         }
     }
+
+    @Test fun `ai retrieval reads only its own header`() {
+        val request = mock(HttpServletRequest::class.java)
+        val response = mock(HttpServletResponse::class.java)
+        val chain = mock(FilterChain::class.java)
+        `when`(request.getHeaders("X-Internal-Token")).thenReturn(Collections.enumeration(listOf(token)))
+        `when`(request.getHeaders("X-Operations-Service-Token")).thenReturn(Collections.enumeration(emptyList()))
+        OperationsServiceTokenFilter(token, "X-Internal-Token", "AI_SERVICE").doFilter(request, response, chain)
+        verify(chain).doFilter(any(), any())
+        OperationsServiceTokenFilter(token).doFilter(request, response, chain)
+        verify(response).status = 403
+    }
 }

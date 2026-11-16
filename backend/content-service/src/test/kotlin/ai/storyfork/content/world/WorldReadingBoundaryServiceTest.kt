@@ -72,6 +72,18 @@ class WorldReadingBoundaryServiceTest {
         verifyNoInteractions(readingDetails)
     }
 
+    @Test fun `private committed settings are available to the author only`() {
+        history()
+        `when`(access.own("w","owner")).thenReturn(work)
+        `when`(access.published("w")).thenReturn(work)
+        `when`(visibility.findAllById(listOf("visibility"))).thenReturn(
+            listOf(SettingVisibilityHistoryEntity(id="visibility",settingDocumentId=doc.id,defaultVisibility="private")))
+        `when`(currentEpisodes.findByWorkIdAndSequence("w",1)).thenReturn(
+            ai.storyfork.content.episode.entity.EpisodeCurrentEntity(id="e",workId="w",sequence=1,publishedVersionId="v"))
+        assertEquals(listOf("원문"), service.settingsForQa("w","owner",1).map { it.body })
+        assertTrue(service.settingsForQa("w",null,1).isEmpty())
+    }
+
     @Test fun `original can draft and confirm a new simple setting without rewriting rich history`() {
         `when`(access.own("w","owner")).thenReturn(work)
         `when`(access.get("w")).thenReturn(work)

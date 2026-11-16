@@ -29,11 +29,7 @@ class GenreTemplateSeederTest {
     private fun create(t: GenreTemplate) = CreateWorldRequest(t.name, t.description, t.worldId)
     /** 템플릿 카드는 공개로 넣는다(DEC-46: 카드의 기본은 비공개라, 비공개로 넣으면 템플릿 세계관을 공개해도 카드가 보이지 않는다). */
     private fun edit(t: GenreTemplate) = EditWorldDraftRequest(0, t.name, t.description,
-<<<<<<< HEAD
-        (if (t in legacy) t.cards.map { CardPayload(it.id, it.title, it.body, it.cardType, "basic") } else GenreTemplateRepair.payloads(t)), key = "genre-template-${t.genre}")
-=======
-        t.cards.map { CardPayload(it.id, it.title, it.body, it.cardType, "basic", visibility = "public") }, key = "genre-template-${t.genre}")
->>>>>>> 243423237fe91204f89d25cab238c64cabe6e285
+        (if (t in legacy) t.cards.map { CardPayload(it.id, it.title, it.body, it.cardType, "basic", visibility = "public") } else GenreTemplateRepair.payloads(t)), key = "genre-template-${t.genre}")
     private fun save(t: GenreTemplate, revision: Long) = SaveWorldRequest(revision, "genre-template-${t.genre}")
     private fun draft(t: GenreTemplate, revision: Long = 0, saved: UUID? = null) =
         WorldDraftResponse(t.worldId, revision, saved, null, t.name, t.description, emptyList(), emptyList())
@@ -50,7 +46,7 @@ class GenreTemplateSeederTest {
 
     @Test fun `every genre is created edited and saved once by the template owner in that order`() {
         assertEquals(11, legacy.size)
-        assertEquals(25, templates.size)
+        assertEquals(26, templates.size)
         templates.forEach(::fresh)
         seeder.seed()
         val order = inOrder(service)

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import type { ManuscriptPreview } from '../entities/manuscript'
+import type { BulkImportResponse, BulkUploadRow, ManuscriptPreview } from '../entities/manuscript'
 import type { ManuscriptRepository } from '../repositories/ManuscriptRepository'
 import { adjustableEpisodes, ManuscriptUseCase, mergeWithNext, toImportItems } from '../usecases/ManuscriptUseCase'
 
@@ -13,6 +13,12 @@ function setup() {
   const repo = {
     preview: vi.fn(async () => preview),
     confirm: vi.fn(async () => summary),
+    bulkBasis: vi.fn(async () => ({ lastNumber: 2, workRevision: 5 })),
+    importBulkBatch: vi.fn(async (_work: string, rows: readonly BulkUploadRow[], revision: number, _signal?: AbortSignal): Promise<BulkImportResponse> => ({
+      workRevision: revision + 1,
+      stopReason: null,
+      results: rows.map(({ number, title }) => ({ number, title, status: 'created', versionId: String(number), reason: null })),
+    })),
     exportManuscript: vi.fn(async () => ({ blob: new Blob(['x']), filename: '작품.txt' })),
   } satisfies ManuscriptRepository
   return { repo, api: new ManuscriptUseCase(repo) }
@@ -121,5 +127,30 @@ describe('원고 내보내기 입력 검사', () => {
     await api.exportManuscript(workId, { format: 'txt', source: 'draft' })
     expect(repo.exportManuscript).toHaveBeenNthCalledWith(1, workId, { format: 'epub', source: 'published', episode: 2 }, signal)
     expect(repo.exportManuscript).toHaveBeenNthCalledWith(2, workId, { format: 'txt', source: 'draft' }, undefined)
+  })
+})
+
+describe('회차 일괄 업로드', () => {
+  it('1,000개를 순차 전송하고 묶음마다 갱신된 revision과 원래 회차 번호를 쓴다', async () => {
+    const { api, repo } = setup()
+    const rows = Array.from({ length: 1000 }, (_, i) => ({ file: file(), number: i + 1, title: '원고' }))
+    const progress = vi.fn()
+    const response = await api.importBulk(workId, rows, true, 5, progress)
+    expect(repo.importBulkBatch).toHaveBeenCalledTimes(50)
+    expect(repo.importBulkBatch).toHaveBeenNthCalledWith(2, workId, rows.slice(20, 40), 6, undefined)
+    expect(response.results.map(({ number }) => number)).toEqual(rows.map(({ number }) => number))
+    expect(progress.mock.calls.at(-1)?.[0]).toHaveLength(1000)
+    await expect(api.importBulk(workId, [...rows, rows[0]], true, 5, progress)).rejects.toThrow('1,000')
+  })
+
+  it('응답을 잃은 묶음에서 멈추고 앞 묶음의 결과는 보존한다', async () => {
+    const { api, repo } = setup()
+    repo.importBulkBatch.mockImplementationOnce(repo.importBulkBatch.getMockImplementation()!)
+      .mockRejectedValueOnce(new Error('연결 끊김'))
+    const rows = Array.from({ length: 21 }, (_, i) => ({ file: file(), number: i + 10, title: '원고' }))
+    const response = await api.importBulk(workId, rows, true, 5, vi.fn())
+    expect(response.results).toHaveLength(20)
+    expect(response.stopReason).toContain('30화')
+    expect(repo.importBulkBatch).toHaveBeenCalledTimes(2)
   })
 })

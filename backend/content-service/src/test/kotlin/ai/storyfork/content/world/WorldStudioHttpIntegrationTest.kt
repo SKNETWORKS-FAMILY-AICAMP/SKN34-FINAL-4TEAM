@@ -61,11 +61,19 @@ class WorldStudioHttpIntegrationTest {
                 val conflict=send("/${create.id}/draft",method="PUT",body=edit.copy(name="다른 입력"))
                 assertEquals(409,conflict.statusCode());assertFalse(conflict.body().contains("자유 관계 원문"))
                 assertEquals("WORLD_CONFLICT",mapper.readTree(conflict.body()).path("code").asText())
+                // 회차(episode)는 선택 쿼리다: 1 이상의 정수만, 값 오류는 422다(관계는 1화에 기록됐다).
+                assertEquals("자유 관계 원문",mapper.readTree(send("/${create.id}?episode=1").body()).path("relationships").get(0).path("body").asText())
+                for(bad in listOf("0","abc")) {
+                    val invalidEpisode=send("/${create.id}?episode=$bad")
+                    assertEquals(422,invalidEpisode.statusCode());assertEquals("WORLD_INPUT_INVALID",mapper.readTree(invalidEpisode.body()).path("code").asText())
+                }
                 val stale=send("/${create.id}/draft",method="PUT",body=edit.copy(key="stale"))
                 assertEquals(409,stale.statusCode());assertEquals("WORLD_WRITE_REJECTED",mapper.readTree(stale.body()).path("code").asText())
                 val another=CreateWorldRequest("다른 세계관")
                 assertEquals(200,send(method="POST",body=another).statusCode())
-                val collision=send("/${another.id}/draft",method="PUT",body=EditWorldDraftRequest(0,another.name,"",relationships=listOf(relation.copy(sourceCardId=null,targetCardId=null)),key="collision"))
+                // DEC-51: 끝이 빈 관계는 저장할 수 없어, 다른 세계관의 관계 ID 재사용도 이 세계관의 실제 카드 둘로 시도한다.
+                val foreignA=a.copy(id=UUID.randomUUID(),title="다른 세계관의 인물");val foreignB=a.copy(id=UUID.randomUUID(),title="다른 세계관의 장소")
+                val collision=send("/${another.id}/draft",method="PUT",body=EditWorldDraftRequest(0,another.name,"",listOf(foreignA,foreignB),listOf(relation.copy(sourceCardId=foreignA.id,targetCardId=foreignB.id)),"collision"))
                 assertEquals(409,collision.statusCode());assertEquals("WORLD_WRITE_REJECTED",mapper.readTree(collision.body()).path("code").asText())
                 val unchanged=send("/${another.id}")
                 assertEquals(200,unchanged.statusCode());assertEquals(0,mapper.readTree(unchanged.body()).path("draftRevision").asInt())

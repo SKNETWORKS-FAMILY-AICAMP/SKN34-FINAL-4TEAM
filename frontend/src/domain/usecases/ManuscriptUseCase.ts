@@ -1,9 +1,12 @@
-import type { AdjustableEpisode, ManuscriptExportQuery, ManuscriptImportItem, ManuscriptPreview } from '../entities/manuscript'
+import type { AdjustableEpisode, BulkImportResponse, BulkImportResult, BulkUploadRow, ManuscriptExportQuery, ManuscriptImportItem, ManuscriptPreview } from '../entities/manuscript'
 import type { ManuscriptRepository } from '../repositories/ManuscriptRepository'
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const MB = 1024 * 1024
 const BODY_LIMIT = 40000
+export const BULK_SELECTION_LIMIT = 1000
+const BULK_BATCH_FILES = 20
+const BULK_BATCH_BYTES = 50 * MB
 const OVER_LIMIT = '본문이 40,000자를 넘어 등록할 수 없어요.'
 
 function validateWork(workId: string) {
@@ -33,6 +36,23 @@ export function mergeWithNext(list: AdjustableEpisode[], index: number): Adjusta
 export const toImportItems = (list: AdjustableEpisode[]): ManuscriptImportItem[] =>
   list.flatMap((episode, index) => episode.excluded ? [] : [{ number: index + 1, title: episode.title.trim(), from: episode.from, to: episode.to }])
 
+function splitIntoBatches(rows: readonly BulkUploadRow[]): BulkUploadRow[][] {
+  const batches: BulkUploadRow[][] = []
+  let batch: BulkUploadRow[] = []
+  let bytes = 0
+  for (const row of rows) {
+    if (batch.length === BULK_BATCH_FILES || bytes + row.file.size > BULK_BATCH_BYTES) {
+      batches.push(batch)
+      batch = []
+      bytes = 0
+    }
+    batch.push(row)
+    bytes += row.file.size
+  }
+  if (batch.length) batches.push(batch)
+  return batches
+}
+
 export class ManuscriptUseCase {
   private readonly repository: ManuscriptRepository
   constructor(repository: ManuscriptRepository) { this.repository = repository }
@@ -49,6 +69,55 @@ export class ManuscriptUseCase {
     if (items.length > 300) throw new Error('한 번에 300회차까지 등록할 수 있어요.')
     if (items.some((item) => !item.title || item.title.length > 120)) throw new Error('회차 제목은 1~120자로 입력해 주세요.')
     return this.repository.confirm(workId, file, true, items, signal)
+  }
+  async bulkBasis(workId: string, signal?: AbortSignal) {
+    validateWork(workId)
+    return this.repository.bulkBasis(workId, signal)
+  }
+  async importBulk(
+    workId: string, rows: readonly BulkUploadRow[], rightsConfirmed: boolean, previewRevision: number,
+    onProgress: (results: readonly BulkImportResult[]) => void, signal?: AbortSignal,
+  ): Promise<BulkImportResponse> {
+    validateWork(workId)
+    if (!rightsConfirmed) throw new Error('원고 등록 권리를 확인해 주세요.')
+    if (rows.length < 1 || rows.length > BULK_SELECTION_LIMIT) {
+      throw new Error('회차 파일은 한 번에 1~1,000개를 선택해 주세요.')
+    }
+    for (const [index, row] of rows.entries()) {
+      validateManuscriptFile(row.file)
+      if (!row.title.trim() || row.title.trim().length > 120) {
+        throw new Error('회차 제목은 1~120자로 입력해 주세요.')
+      }
+      if (!Number.isInteger(row.number) || row.number < 1 || row.number > 2_147_483_647 ||
+        (index > 0 && row.number <= rows[index - 1].number)) {
+        throw new Error('회차 번호는 1 이상이고 중복 없이 오름차순이어야 해요.')
+      }
+    }
+
+    let revision = previewRevision
+    const results: BulkImportResult[] = []
+    for (const batch of splitIntoBatches(rows)) {
+      let response: BulkImportResponse
+      try {
+        signal?.throwIfAborted()
+        response = await this.repository.importBulkBatch(workId, batch, revision, signal)
+        if ((!response.stopReason && response.results.length !== batch.length) ||
+          response.results.some((row, index) => row.number !== batch[index]?.number)) {
+          throw new Error('파일별 처리 결과를 확인할 수 없어요.')
+        }
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : '응답을 받지 못했어요.'
+        return {
+          workRevision: revision, results,
+          stopReason: `${batch[0].number}화부터 저장 결과를 확인해 주세요. ${detail}`,
+        }
+      }
+      results.push(...response.results)
+      revision = response.workRevision
+      onProgress([...results])
+      if (response.stopReason) return { workRevision: revision, results, stopReason: response.stopReason }
+    }
+    return { workRevision: revision, results, stopReason: null }
   }
   async exportManuscript(workId: string, query: ManuscriptExportQuery, signal?: AbortSignal) {
     validateWork(workId)

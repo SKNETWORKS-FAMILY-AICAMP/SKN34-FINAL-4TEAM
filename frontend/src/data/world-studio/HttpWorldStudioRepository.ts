@@ -111,15 +111,12 @@ const card = z.object({
   classification: z.string(),
   aliases: z.array(z.string()),
   tags: z.array(z.string()),
-<<<<<<< HEAD
   semanticMetadata: z.union([metadata, z.strictObject({})]),
-  visibility: z.literal('private'),
-=======
-  semanticMetadata: metadata,
   visibility,
->>>>>>> 243423237fe91204f89d25cab238c64cabe6e285
   lifecycle: z.enum(['active', 'removed']),
 })
+// 빈 메타데이터(기존 Seeder 카드)와 studio가 있는 메타데이터를 가른다. `'studio' in`만으로는 빈 객체 쪽의 index signature가 남는다.
+const hasStudio=(m:z.infer<typeof card>['semanticMetadata']):m is z.infer<typeof metadata>=>'studio' in m
 const confirmationRequest=z.object({expectedDraftRevision:revision,key:uuid})
 const revisionSummary=z.object({worldId:uuid,revisionId:uuid,revisionNo:revision.positive(),name:z.string(),createdAt:z.string()})
 const revisionSnapshot=z.object({worldId:uuid,revisionId:uuid,revisionNo:revision.positive(),name:z.string(),description:z.string(),parentRevisionId:uuid.nullable(),restoredFromRevisionId:uuid.nullable(),relationshipStatus:z.literal('not_recorded'),relationships:z.null(),cards:z.array(z.object({versionId:uuid,versionNo:revision.positive(),restoredFromVersionId:uuid.nullable(),card:card.extend({semanticMetadata:z.record(z.string(),z.unknown()),visibility:z.enum(['private','public'])})}))})
@@ -192,12 +189,21 @@ function relationship(row: StudioSetting) {
 }
 function world(value: z.infer<typeof draft>, id: string): StudioWorld {
   if (value.worldId !== id) throw invalid()
+  // 관계 끝점은 삭제한 카드도 이 세계관의 카드다: 지난 회차 시점 관계는 그 뒤에 삭제한 설정을 끝점으로 가질 수 있다(DEC-51). 그 이름은 화면이 쓰도록 남긴다.
   const active = value.cards.filter((c) => c.lifecycle === 'active'),
-    ids = new Set(active.map((c) => c.id))
+    ids = new Set(value.cards.map((c) => c.id))
   const settings: StudioSetting[] = active.map((c) => {
-<<<<<<< HEAD
-    // 기존 Seeder는 정본 필드만 저장했다. 빈 메타데이터만 복원하며 손상된 studio는 검증에서 거절한다.
-    const row: StudioSetting = 'studio' in c.semanticMetadata ? c.semanticMetadata.studio : {
+    // 기존 Seeder는 정본 필드만 저장했다(빈 메타데이터). 그 카드만 정본 필드로 복원하며 손상된 studio는 검증에서 거절한다.
+    const m = c.semanticMetadata
+    let row: StudioSetting, reveal: unknown, source: unknown, written: unknown
+    if (hasStudio(m)) {
+      // 독자 공개 회차·가져온 출처·인물 문서는 서버 메타데이터에 남기지 않고 행 필드로 옮긴다(지운 값이 다음 저장에서 되살아나지 않게). 어긋난 값은 버리고 읽기는 계속한다.
+      const {revealFromEpisode:r,importedFrom:f,characterDocs:w,...known}=m
+      reveal=r; source=f; written=w
+      row = setting(known,{id:c.id,title:c.title,text:c.body,category:c.areaCode},
+        {userCategory:c.classification,aliases:c.aliases,tags:c.tags})
+      if(m.studio.item.id!==c.id)throw invalid()
+    } else row = {
       userCategory:c.classification, tags:c.tags, aliases:c.aliases,
       item:{id:c.id,title:c.title,text:c.body,category:c.areaCode,
         kind:c.cardType==='rule'?'rule':c.cardType==='event'?'event':'entity',
@@ -205,13 +211,6 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
         topics:[],subjectId:null,targetId:null,predicate:null,polarity:'asserted',relatedIds:[],
         condition:'',timeText:'',afterId:null,orderEvidence:[],evidence:[],origin:'author_input',authorText:c.body,decision:'approved'},
     }
-=======
-    // 독자 공개 회차·가져온 출처·인물 문서는 서버 메타데이터에 남기지 않고 행 필드로 옮긴다(지운 값이 다음 저장에서 되살아나지 않게). 어긋난 값은 버리고 읽기는 계속한다.
-    const {revealFromEpisode:reveal,importedFrom:source,characterDocs:written,...known}=c.semanticMetadata
-    const row = setting(known,{id:c.id,title:c.title,text:c.body,category:c.areaCode},
-      {userCategory:c.classification,aliases:c.aliases,tags:c.tags})
-    if(c.semanticMetadata.studio.item.id!==c.id)throw invalid()
->>>>>>> 243423237fe91204f89d25cab238c64cabe6e285
     if (
       row.item.kind === 'relation' || row.item.id !== c.id || row.item.title !== c.title ||
       row.item.text !== c.body || row.item.category !== c.areaCode ||
@@ -219,15 +218,10 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
       JSON.stringify(row.tags) !== JSON.stringify(c.tags) ||
       JSON.stringify(row.aliases ?? []) !== JSON.stringify(c.aliases)
     ) throw invalid()
-<<<<<<< HEAD
-    return row
-  }).sort((a,b)=>(a.templateOrder??Number.MAX_SAFE_INTEGER)-(b.templateOrder??Number.MAX_SAFE_INTEGER))
-=======
     const episode = revealFromEpisode.safeParse(reveal), from = importedFrom.safeParse(source), docs = characterDocs.safeParse(written)
     return {...row,...(c.visibility==='public'&&{visibility:c.visibility}),...(episode.success&&{revealFromEpisode:episode.data}),...(from.success&&{importedFrom:from.data}),
       ...(docs.success&&c.cardType==='character'&&{characterDocs:docs.data})}
-  })
->>>>>>> 243423237fe91204f89d25cab238c64cabe6e285
+  }).sort((a,b)=>(a.templateOrder??Number.MAX_SAFE_INTEGER)-(b.templateOrder??Number.MAX_SAFE_INTEGER))
   for (const r of value.relationships) {
     const row = setting(r.semanticMetadata,{id:r.id,kind:'relation',title:r.label,text:r.body,
       subjectId:r.sourceCardId,targetId:r.targetCardId,polarity:r.polarity??'asserted',
@@ -256,12 +250,14 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
     hasCover: value.hasCover,
     linkedWorkId: value.linkedWorkId,
     settings,
+    deletedTitles: Object.fromEntries(value.cards.filter((c) => c.lifecycle !== 'active').map((c) => [c.id, c.title])),
     analysis: null,
   }
 }
 
-/** 현재 상태만 저장한다. 재시도 입력은 이 탭의 메모리에만 보존하며 PG·브라우저 영구 저장소에 복제하지 않는다. */
+/** 관계는 회차 시점으로 읽고 쓴다(DEC-51). 재시도 입력은 이 탭의 메모리에만 보존하며 PG·브라우저 영구 저장소에 복제하지 않는다. */
 export class HttpWorldStudioRepository implements WorldStudioRepository {
+  readonly relationEpisodes = true as const
   private readonly fetcher?: typeof fetch
   private session = authVersion()
   private pendingCreate?: { id: string; name: string; description: string }
@@ -359,10 +355,11 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
       relationshipStatus: r.relationshipStatus,
     }))
   }
-  async read(id: string, signal?: AbortSignal): Promise<StudioWorld> {
+  async read(id: string, signal?: AbortSignal, episode?: number): Promise<StudioWorld> {
     this.checkSession()
     uuid.parse(id)
-    return world(await this.request('/' + id, draft, 'GET', undefined, signal), id)
+    const query = episode === undefined ? '' : '?episode=' + episode
+    return world(await this.request('/' + id + query, draft, 'GET', undefined, signal), id)
   }
   /** 공개 범위·장르는 초안 저장과 별개로 바로 적용된다. 공개로 설정해도 확정 버전이 없으면 `listed`가 false다. */
   async setPublication(id: string, publication: WorldPublicationInput, signal?: AbortSignal): Promise<WorldPublication> {
@@ -418,15 +415,17 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
       throw error
     }
   }
-  async saveStudio(value: StudioWorld, signal?: AbortSignal): Promise<StudioWorld> {
+  async saveStudio(value: StudioWorld, signal?: AbortSignal, episode?: number): Promise<StudioWorld> {
     this.checkSession()
     uuid.parse(value.id)
+    // 회차도 같은 입력의 일부다: 미확인 저장을 다른 회차로 바꿔 덮어쓰지 않는다(undefined는 직렬화에서 빠져 회차 없는 입력은 그대로다).
     const input = JSON.stringify({
       id: value.id,
       name: value.name,
       description: value.description,
       version: value.version,
       settings: value.settings,
+      episode,
     })
     const previous = this.pending.get(value.id)
     if (previous && previous.input !== input) {
@@ -439,6 +438,7 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
         expectedDraftRevision: value.version,
         key: crypto.randomUUID(),
         replace: true,
+        episode,
         name: value.name,
         description: value.description,
         cards: value.settings.filter((s) => s.item.kind !== 'relation').map((row) => ({

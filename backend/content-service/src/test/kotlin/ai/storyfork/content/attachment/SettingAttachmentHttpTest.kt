@@ -53,6 +53,7 @@ class SettingAttachmentHttpTest {
     lateinit var attachmentTransactions: org.springframework.transaction.support.TransactionTemplate
     @Autowired lateinit var content: ContentService
     @Autowired lateinit var json: ObjectMapper
+    @Autowired lateinit var servletContext: jakarta.servlet.ServletContext
     @Autowired lateinit var s3: software.amazon.awssdk.services.s3.S3Client
     @Autowired @org.springframework.beans.factory.annotation.Qualifier("contentDataSource") lateinit var source: javax.sql.DataSource
     private val jdbc get() = org.springframework.jdbc.core.JdbcTemplate(source)
@@ -78,6 +79,9 @@ class SettingAttachmentHttpTest {
     private fun send(builder: HttpRequest.Builder): HttpResponse<ByteArray> = http.send(builder.build(), HttpResponse.BodyHandlers.ofByteArray())
     private fun node(response: HttpResponse<ByteArray>): JsonNode = json.readTree(response.body())
     private fun csrf(): String {
+        cookies.cookieStore.cookies.filter { it.name == "XSRF-TOKEN" }.forEach {
+            cookies.cookieStore.remove(URI.create("http://127.0.0.1:$port"), it)
+        }
         cookies.cookieStore.add(URI.create("http://127.0.0.1:$port"),java.net.HttpCookie("XSRF-TOKEN",CsrfFixture.raw).apply { path="/";version=0 })
         return CsrfFixture.token()
     }
@@ -494,6 +498,52 @@ class SettingAttachmentHttpTest {
     }
     private fun importRequest(vararg items: String, rights: Boolean = true) =
         Part("request", null, "application/json", """{"rightsConfirmed":$rights,"items":[${items.joinToString(",")}]}""".toByteArray())
+
+    @Test fun `bulk manuscript HTTP saves each file to its original episode and returns its saved version`() {
+        val owner = actor()
+        val other = actor()
+        val work = content.create(owner.id, CreateWorkRequest("회차 일괄 업로드 검증"))
+        val path = "/api/v1/works/${work.id}/manuscript-imports/bulk"
+        val temp = (servletContext.getAttribute(jakarta.servlet.ServletContext.TEMPDIR) as java.io.File).toPath()
+        fun temporaryUploads() = java.nio.file.Files.list(temp).use { files ->
+            files.filter { it.fileName.toString().startsWith("upload_") }.toList().toSet()
+        }
+        val beforeUploads = temporaryUploads()
+        val before = get(path, owner)
+        assertEquals(200, before.statusCode())
+        assertEquals(404, get(path, other).statusCode())
+        assertEquals(1, node(before).path("lastNumber").asInt())
+        val revision = node(before).path("workRevision").asInt()
+        val text = Part("files", "a.txt", "text/plain", "1화\n본문".toByteArray())
+        val broken = Part("files", "b.epub", "application/epub+zip", byteArrayOf(1))
+        val book = Part("files", "c.epub", "application/epub+zip", EpubFixture.epub(listOf(
+            "a.xhtml" to EpubFixture.xhtml("<h1>앞 장</h1><p>앞 본문</p>"),
+            "b.xhtml" to EpubFixture.xhtml("<h1>뒤 장</h1><p>뒤 본문</p>"),
+        )))
+        fun command(expected: Int, vararg numbers: Int) = Part(
+            "request", "blob", "application/json",
+            """{"rightsConfirmed":true,"expectedWorkRevision":$expected,"items":[${numbers.joinToString(",") { """{"number":$it,"title":"${it}화"}""" }}]}""".toByteArray(),
+        )
+        assertEquals(403, parts(path, owner, text, command(revision, 1), token = "").statusCode())
+        val first = parts(path, owner, text, broken, book, command(revision, 1, 2, 3))
+        assertEquals(200, first.statusCode(), String(first.body()))
+        val result = node(first)
+        val firstRows = result.path("results").toList()
+        assertEquals(listOf("versioned", "failed", "failed"), firstRows.map { it.path("status").asText() }, String(first.body()))
+        val saved = content.writing(work.id, owner.id, 1)
+        assertEquals("1화\n본문", saved.draft.body)
+        assertEquals(saved.versions.single().id, firstRows.first().path("versionId").asText())
+        assertEquals(1, content.writingList(work.id, owner.id).size)
+        assertEquals(409, parts(path, owner, text, command(revision, 1)).statusCode())
+
+        val retry = parts(path, owner, book, text, command(result.path("workRevision").asInt(), 2, 3))
+        assertEquals(200, retry.statusCode(), String(retry.body()))
+        assertEquals(listOf("created", "created"), node(retry).path("results").toList().map { it.path("status").asText() }, String(retry.body()))
+        assertEquals("앞 장\n앞 본문\n뒤 장\n뒤 본문", content.writing(work.id, owner.id, 2).draft.body)
+        assertEquals("1화\n본문", content.writing(work.id, owner.id, 3).draft.body)
+        assertEquals(1, content.writing(work.id, owner.id, 1).versions.size)
+        assertEquals(beforeUploads, temporaryUploads())
+    }
 
     @Test fun `episode image list alt text and public alt text follow the manuscript image contract`() {
         val owner = actor(); val other = actor()

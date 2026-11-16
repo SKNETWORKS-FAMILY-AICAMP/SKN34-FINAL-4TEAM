@@ -188,6 +188,7 @@ class SelectionTest(unittest.TestCase):
         configuration = workflow.split('\n  configuration:\n', 1)[1].split('\n  unit:\n', 1)[0]
         self.assertIn('python3 -I -m unittest discover -s infrastructure/tests -p test_attachment_environment.py -v', configuration)
         self.assertIn("python3 -I -m unittest discover -s infrastructure/sample-data -p 'test_*.py' -v", configuration)
+        self.assertIn('python3 -I -m unittest discover -s infrastructure/sample-data/genre-templates -p test_traditions.py -v', configuration)
 
     def test_unit_and_integration_run_in_parallel_before_system(self):
         workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()

@@ -2,6 +2,11 @@ package ai.storyfork.content.regression
 
 import ai.storyfork.content.auth.config.ContentSecurityConfig
 import ai.storyfork.content.auth.service.CoreAuthVerificationService
+import ai.storyfork.content.context.controller.ManuscriptQaController
+import ai.storyfork.content.context.service.ManuscriptQaService
+import ai.storyfork.content.context.service.dto.ManuscriptQaRequest
+import ai.storyfork.content.context.service.dto.ManuscriptQaResponse
+import ai.storyfork.content.context.service.dto.QaCoverage
 import ai.storyfork.content._common.config.WebCorsConfig
 import ai.storyfork.content.work.controller.WorkController
 import ai.storyfork.content.work.service.WorkService
@@ -27,7 +32,7 @@ import org.mockito.Mockito.*
 import jakarta.servlet.http.Cookie
 import java.time.Instant
 
-@WebMvcTest(controllers=[WorkController::class,EpisodeController::class,EpisodeVersionController::class,PublicationController::class,ai.storyfork.content.context.controller.ContextController::class,ai.storyfork.content.plan.controller.StoryPlanController::class],properties=["app.cors.allowed-origin=http://localhost:5173","AUTH_JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="])
+@WebMvcTest(controllers=[WorkController::class,EpisodeController::class,EpisodeVersionController::class,PublicationController::class,ai.storyfork.content.context.controller.ContextController::class,ManuscriptQaController::class,ai.storyfork.content.plan.controller.StoryPlanController::class],properties=["app.cors.allowed-origin=http://localhost:5173","AUTH_JWT_SECRET=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="])
 @Import(ContentSecurityConfig::class,WebCorsConfig::class,ai.storyfork.content._common.exception.ContentExceptionHandler::class,ContentAuthorizationTest.MvcSecurity::class)
 class ContentAuthorizationTest {
     @org.springframework.boot.test.context.TestConfiguration(proxyBeanMethods=false)
@@ -51,6 +56,7 @@ class ContentAuthorizationTest {
     @MockitoBean lateinit var versions: EpisodeVersionService
     @MockitoBean lateinit var publication: PublicationService
     @MockitoBean lateinit var context: ai.storyfork.content.context.service.ContextService
+    @MockitoBean internal lateinit var manuscriptQa: ManuscriptQaService
     @MockitoBean lateinit var plans: ai.storyfork.content.plan.service.StoryPlanService
     private fun token(): String {
         `when`(verification.verify("Bearer opaque-user-token")).thenReturn(ai.storyfork.content.auth.client.VerifiedMemberResponse(verifiedUser))
@@ -60,6 +66,19 @@ class ContentAuthorizationTest {
     private fun workUpdate(body: String) = put("/api/v1/works/work-id").header("Authorization","Bearer "+token())
         .cookie(Cookie("XSRF-TOKEN","test-csrf")).header("X-CSRF-TOKEN",csrfValue()).contentType("application/json")
         .content(body)
+
+    @Test fun `public manuscript qa requires membership and csrf while using reader scope`() {
+        val path = "/api/v1/public/works/work-id/context/qa"
+        val body = """{"episode":2,"episodeVersionId":"v2","question":"누가 왔나요?","consent":true}"""
+        val request = ManuscriptQaRequest(2, "v2", "누가 왔나요?", true)
+        mvc.perform(mutation(path).content(body)).andExpect(status().isUnauthorized())
+        mvc.perform(post(path).header("Authorization", "Bearer " + token()).content(body)).andExpect(status().isForbidden())
+        verifyNoInteractions(manuscriptQa)
+        `when`(manuscriptQa.ask("work-id", null, request))
+            .thenReturn(ManuscriptQaResponse("insufficient", emptyList(), emptyList(), emptyList(), QaCoverage(emptyList(), emptyList(), emptyList())))
+        mvc.perform(mutation(path).header("Authorization", "Bearer " + token()).content(body)).andExpect(status().isOk())
+        verify(manuscriptQa).ask("work-id", null, request)
+    }
 
     @Test fun `browser demo identity and forged headers cannot authorize`() {
         mvc.perform(get("/api/v1/works").header("X-User-Id","me")).andExpect(status().isUnauthorized())

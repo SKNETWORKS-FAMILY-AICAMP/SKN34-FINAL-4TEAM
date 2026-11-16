@@ -10,6 +10,8 @@ import ai.storyfork.content.episode.service.dto.CreateEpisodeRequest
 import ai.storyfork.content.episode.service.dto.DraftRequest
 import ai.storyfork.content.episode.service.dto.EpisodeResponse
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
+import ai.storyfork.content.episode_version.service.dto.VersionResponse
+import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.manuscript.domain.*
 import ai.storyfork.content.manuscript.service.dto.*
 import java.io.IOException
@@ -29,6 +31,7 @@ class ManuscriptImportService(
     private val versions: EpisodeVersionService,
     private val attachments: AttachmentService,
     @Qualifier("contentTransactions") private val transactions: TransactionTemplate,
+    private val access: WorkAccessService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -56,10 +59,87 @@ class ManuscriptImportService(
         return ManuscriptImportResponse(results.count { it.status != "failed" }, results.count { it.status == "failed" }, results)
     }
 
-    /** 현재 회차 수는 새 회차 번호를 정하는 EpisodeService.create와 같은 기준(가장 큰 번호)이다. */
-    private fun existingEpisodeCount(work: String, owner: String) = episodes.list(work, owner).items.maxOfOrNull { it.number } ?: 0
+    fun bulkBasis(work: String, owner: String): BulkImportBasis = requireNotNull(transactions.execute {
+        val basis = access.own(work, owner)
+        BulkImportBasis(episodes.lastNumber(work, owner), basis.revision)
+    })
 
-    private fun parse(upload: MultipartFile?): Manuscript {
+    fun importBulk(work: String, owner: String, files: List<MultipartFile>, request: BulkImportRequest): BulkImportResponse {
+        var revision = access.own(work, owner).also { access.requireRevision(it, request.expectedWorkRevision) }.revision
+        checkContent(request.rightsConfirmed, message = "원고를 등록하려면 권리 확인이 필요해요.")
+        checkContent(files.size in 1..BULK_FILES && files.size == request.items.size,
+            message = "요청당 파일 1~20개와 파일별 회차 정보가 필요해요.")
+        checkContent(files.sumOf { it.size } <= EPUB_LIMIT.toLong(), 413, "요청당 파일 합계는 50 MiB 이하여야 해요.")
+        checkContent(request.items.all { it.number > 0 } &&
+            request.items.zipWithNext().all { (a, b) -> a.number < b.number },
+            message = "회차 번호는 1 이상이고 중복 없이 오름차순이어야 해요.")
+
+        val results = mutableListOf<BulkImportResult>()
+        for ((file, item) in files.zip(request.items)) {
+            val title = item.title.trim()
+            fun failed(reason: String) = BulkImportResult(item.number, title, "failed", reason = reason)
+            val body = try {
+                checkContent(title.length in 1..MAX_TITLE, message = "제목은 1~120자여야 해요.")
+                readSingleEpisode(file).also { checkContent(it.length <= MAX_BODY, message = BODY_TOO_LONG) }
+            } catch (e: ContentFailure) {
+                results += failed(e.message)
+                continue
+            }
+
+            val committed = try {
+                requireNotNull(transactions.execute {
+                    val current = access.own(work, owner)
+                    if (current.revision != revision) {
+                        throw ContentFailure(409, "작품이 변경됐어요. 최신 회차를 확인해 주세요.", "BULK_WORK_CHANGED")
+                    }
+                    val result = saveBulkEpisode(work, owner, item.number, title, body)
+                    result to access.own(work, owner).revision
+                })
+            } catch (e: ContentFailure) {
+                if (e.code == "BULK_WORK_CHANGED" || e.status == 401 || e.status == 404 || e.status >= 500) {
+                    return BulkImportResponse(revision, results, e.message)
+                }
+                results += failed(e.message)
+                continue
+            } catch (e: RuntimeException) {
+                log.warn("일괄 원고 저장 결과 미확인: work={} number={}", work, item.number, e)
+                return BulkImportResponse(revision, results,
+                    "${item.number}화의 저장 결과를 확인하지 못했어요. 저장본을 확인해 주세요.")
+            }
+            results += committed.first
+            revision = committed.second
+        }
+        return BulkImportResponse(revision, results)
+    }
+
+    private fun saveBulkEpisode(work: String, owner: String, number: Int, title: String, body: String): BulkImportResult {
+        val last = episodes.lastNumber(work, owner)
+        checkContent(number.toLong() <= last.toLong() + 1, message = "앞 회차가 없어 등록할 수 없어요.")
+        val creating = number > last
+        val episode = if (creating) {
+            episodes.create(work, owner, CreateEpisodeRequest(title)).also {
+                checkContent(it.number == number, 409, "회차 번호가 변경됐어요.")
+            }
+        } else {
+            try {
+                episodes.read(work, owner, number)
+            } catch (e: ContentFailure) {
+                if (e.status != 404) throw e
+                // The caller already holds the owned-work lock. This is a missing target row.
+                throw ContentFailure(422, e.message)
+            }
+        }
+        checkContent(!episode.inherited, 403, "원작 기준 회차는 수정할 수 없어요.")
+        val saved = stack(work, owner, number, episode.takeUnless { creating }, episode.draft.revision, title, body)
+        return BulkImportResult(number, title, if (creating) "created" else "versioned", versionId = saved.id)
+    }
+
+    /** 현재 회차 수는 새 회차 번호를 정하는 EpisodeService.create와 같은 기준(가장 큰 번호)이다. */
+    private fun existingEpisodeCount(work: String, owner: String) = episodes.lastNumber(work, owner)
+
+    private data class Upload(val name: String, val extension: String, val bytes: ByteArray)
+
+    private fun readUpload(upload: MultipartFile?): Upload {
         val file = upload ?: throw ContentFailure(422, "올릴 파일을 선택해 주세요.")
         val name = file.originalFilename.orEmpty().substringAfterLast('/').substringAfterLast('\\')
         val extension = name.substringAfterLast('.', "").lowercase()
@@ -72,9 +152,20 @@ class ManuscriptImportService(
         if (file.size > limit) throw tooLarge()
         val bytes = try { file.inputStream.use { it.readNBytes(limit + 1) } } catch (_: IOException) { throw ContentFailure(422, "파일을 읽지 못했어요.") }
         if (bytes.size > limit) throw tooLarge()
+        return Upload(name, extension, bytes)
+    }
+
+    private fun parse(upload: MultipartFile?): Manuscript {
+        val (name, extension, bytes) = readUpload(upload)
         val manuscript = if (extension == "txt") TxtManuscript.parse(bytes, name) else EpubManuscript.parse(bytes)
         if (manuscript.episodes.size > MAX_EPISODES) throw tooManyEpisodes(manuscript.episodes.size)
         return manuscript
+    }
+
+    private fun readSingleEpisode(upload: MultipartFile): String {
+        val (_, extension, bytes) = readUpload(upload)
+        return if (extension == "txt") TxtManuscript.singleEpisodeBody(bytes)
+        else EpubManuscript.singleEpisodeBody(bytes, MAX_BODY)
     }
 
     private fun previewOf(episode: ParsedEpisode) = ManuscriptPreviewEpisode(
@@ -147,9 +238,12 @@ class ManuscriptImportService(
      * 가져온 원고를 새 저장 버전으로 쌓는다. 기존 회차의 현재 초안이 최신 저장 버전과 다르면(UC-03 E4: 기존 원고를 묵시적으로 덮어쓰지 않는다)
      * 덮어쓰기 전에 그 초안을 그대로 저장 버전으로 남긴다. 두 저장은 한 트랜잭션이라 하나라도 실패하면 함께 취소된다.
      */
-    private fun stack(work: String, owner: String, number: Int, existing: EpisodeResponse?, revision: Int, title: String, body: String) {
-        val next = if (existing != null && hasUnsavedDraft(existing)) versions.save(work, owner, number, DraftRequest(existing.draft.title, existing.draft.body, revision, existing.draft.authorNote)).draft.revision else revision
-        versions.save(work, owner, number, DraftRequest(title, body, next, existing?.draft?.authorNote.orEmpty()))
+    private fun stack(work: String, owner: String, number: Int, existing: EpisodeResponse?, revision: Int, title: String, body: String): VersionResponse {
+        val next = if (existing != null && hasUnsavedDraft(existing)) {
+            val draft = existing.draft
+            versions.saveWithVersion(work, owner, number, DraftRequest(draft.title, draft.body, revision, draft.authorNote)).revision
+        } else revision
+        return versions.saveWithVersion(work, owner, number, DraftRequest(title, body, next, existing?.draft?.authorNote.orEmpty()))
     }
 
     /** 최신 저장 버전과 제목·본문이 다른 초안이다. 저장 버전이 없으면 본문이 있는 초안이다. 빈 초안과 초안 없는 회차는 보존하지 않는다. */
@@ -194,6 +288,7 @@ class ManuscriptImportService(
     }
 
     private companion object {
+        const val BULK_FILES = 20
         const val TXT_LIMIT = 10 * 1024 * 1024
         const val EPUB_LIMIT = 50 * 1024 * 1024
         const val MAX_TITLE = 120

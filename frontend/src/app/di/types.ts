@@ -71,6 +71,8 @@ export type AppCradle = {
   manuscriptUseCase: import('../../domain/usecases/ManuscriptUseCase').ManuscriptUseCase
   manuscriptRepository: import('../../domain/repositories/ManuscriptRepository').ManuscriptRepository
   episodeUseCase: EpisodeUseCase
+  /** 집필 AI 채팅(#331). `--mode mockup`은 서버 대화가 없어 null이다. */
+  writingChatUseCase: import('../../domain/usecases/WritingChatUseCase').WritingChatUseCase | null
   episodeRepository: EpisodeRepository
   episodeCommentUseCase: import('../../domain/usecases/EpisodeCommentUseCase').EpisodeCommentUseCase
   episodeCommentRepository: import('../../domain/repositories/EpisodeCommentRepository').EpisodeCommentRepository

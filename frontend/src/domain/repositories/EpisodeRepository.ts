@@ -1,8 +1,10 @@
 import type { PublicationSchedule, PublicationScheduleInput, PublicationScheduleRevision } from '../entities/publicationSchedule'
 import type {WorkRegistration,WorkTaxonomy,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext,WorldCheckpoint,WorldCheckpointSummary} from '../entities/content'
 import type { EpisodeWorldBasis, EpisodeWorldBasisChoice, WorldBasisCard, WorldBasisVersion } from '../entities/episodeWorldBasis'
+import type { ManuscriptQaAnswer, StoryQaInput } from '../entities/content'
 
 export interface EpisodeRepository {
+  askStoryContext(id: string, input: StoryQaInput, owner: boolean, signal?: AbortSignal): Promise<ManuscriptQaAnswer>
   orderScope(id:string,number:number,signal?:AbortSignal):Promise<import('../entities/content').EpisodeOrderScope>
   deleteDraft(id:string,number:number,revision:number,signal?:AbortSignal):Promise<void>
   deleteEpisode(id:string,number:number,revision:number,signal?:AbortSignal):Promise<void>

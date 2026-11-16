@@ -9,3 +9,10 @@ export type ManuscriptImportResult = { number: number; title: string; status: Ma
 export type ManuscriptImportSummary = { succeeded: number; failed: number; results: ManuscriptImportResult[] }
 export type ManuscriptExportQuery = { format: 'txt' | 'epub'; source: 'draft' | 'published'; episode?: number }
 export type ManuscriptDownload = { blob: Blob; filename: string }
+
+export type BulkUploadRow = { file: File; number: number; title: string }
+export type BulkImportBasis = { lastNumber: number; workRevision: number }
+export type BulkImportResult =
+  | { number: number; title: string; status: 'created' | 'versioned'; versionId: string; reason: null }
+  | { number: number; title: string; status: 'failed'; versionId: null; reason: string }
+export type BulkImportResponse = { workRevision: number; results: BulkImportResult[]; stopReason: string | null }

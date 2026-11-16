@@ -4,6 +4,10 @@ import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.proposal.client.GenerationClient
 import ai.storyfork.content.proposal.client.dto.GenerationResponse
 import ai.storyfork.content.proposal.service.dto.UsageResponse
+import ai.storyfork.content.proposal.client.dto.WritingDraftPayload
+import ai.storyfork.content.proposal.client.dto.WritingPatchPayload
+import ai.storyfork.content.proposal.service.dto.WritingDraftRequest
+import ai.storyfork.content.proposal.service.dto.WritingPatchRequest
 import ai.storyfork.content.fixture.*
 import ai.storyfork.content.fixture.model.*
 import ai.storyfork.content.fixture.ContentTestDriver
@@ -25,6 +29,7 @@ class ContentPostgresTest {
     @MockitoBean lateinit var nicknames: CoreNicknameService
     @Autowired lateinit var service: ContentTestDriver
     @MockitoBean lateinit var ai: GenerationClient
+    @Autowired lateinit var proposals: ai.storyfork.content.proposal.service.ProposalService
     private fun create() = service.create("author",CreateWorkRequest("통합 검증 "+contentId()))
     private val jdbc get() = JdbcTemplate(DriverManagerDataSource(System.getenv("TEST_CONTENT_DATABASE_URL"),"content_test",""))
     @Test fun `content is stored in ERD tables with episode ownership constraints`() {
@@ -121,6 +126,27 @@ class ContentPostgresTest {
         val p2=service.propose(w.id,"author",ProposalRequest(1,"계속",true))
         setting(w.id,"새 규칙","변경")
         assertEquals(409,assertThrows(ContentFailure::class.java) { service.accept(w.id,p2.id,"author",1) }.status)
+    }
+    @Test fun `writing patch replaces only the selection after accept and draft is appended`() {
+        val w=create()
+        service.edit(w.id,"author",DraftRequest("1화","문이 닫혔다. 그는 웃었다. 창밖은 어두웠다.",0))
+        val revision=service.read(w.id,"author").draft!!.revision
+        doReturn(GenerationResponse("그는 조용히 웃었다.","stub-model")).`when`(ai).patch(any(WritingPatchPayload::class.java) ?: WritingPatchPayload("","","","",""))
+        val patch=proposals.writePatch(w.id,"author",WritingPatchRequest(revision,8,15,"차분하게",true))
+        assertEquals("patch" to "8:15",patch.kind to patch.position)
+        assertEquals("문이 닫혔다. 그는 웃었다. 창밖은 어두웠다.",service.read(w.id,"author").draft!!.body)
+        assertEquals("문이 닫혔다. 그는 조용히 웃었다. 창밖은 어두웠다.",service.accept(w.id,patch.id,"author",revision).body)
+
+        val next=service.read(w.id,"author").draft!!.revision
+        val stale=proposals.writePatch(w.id,"author",WritingPatchRequest(next,0,7,"바꿔",true))
+        service.edit(w.id,"author",DraftRequest("1화","다른 원고",next))
+        assertEquals(409,assertThrows(ContentFailure::class.java) { service.accept(w.id,stale.id,"author",next) }.status)
+        assertEquals(422,assertThrows(ContentFailure::class.java) { proposals.writePatch(w.id,"author",WritingPatchRequest(service.read(w.id,"author").draft!!.revision,3,99,"바꿔",true)) }.status)
+
+        doReturn(GenerationResponse("새 장면","stub-model")).`when`(ai).draft(any(WritingDraftPayload::class.java) ?: WritingDraftPayload(1,"",""))
+        val latest=service.read(w.id,"author").draft!!.revision
+        val draft=proposals.writeDraft(w.id,"author",WritingDraftRequest(latest,"1. 서윤이 편지를 찾는다.",true))
+        assertEquals("다른 원고\n\n새 장면",service.accept(w.id,draft.id,"author",latest).body)
     }
     @Test fun `AI references explicit target and result when episode revisions overlap`() {
         val work=create()

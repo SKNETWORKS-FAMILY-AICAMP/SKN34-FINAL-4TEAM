@@ -12,6 +12,40 @@ beforeEach(async () => {
 })
 afterEach(() => vi.unstubAllGlobals())
 
+it('원고 Q&A에 기준 판본, 동의와 회원 인증을 보내고 근거 부족을 반환한다', async () => {
+  const response = {
+    status: 'insufficient', claims: [], sources: [],
+    gaps: [{ code: 'NO_EVIDENCE', detail: '근거를 찾지 못했어요.' }],
+    coverage: { expected: [{ number: 2, versionId: 'v2' }], withVerifiedExcerpt: [], withoutVerifiedExcerpt: [{ number: 2, versionId: 'v2' }] },
+  }
+  const fetcher = vi.fn().mockResolvedValue(Response.json(response))
+  const api = new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+  const controller = new AbortController()
+  const input = { episode: 2, episodeVersionId: 'v2', question: '누가 왔나요?', consent: true, target: 'manuscript' } as const
+  expect(await api.askStoryContext('fork/id', input, false, controller.signal)).toEqual(response)
+  const [url, request] = fetcher.mock.calls[0]
+  expect(url).toBe('/api/v1/public/works/fork%2Fid/context/qa')
+  expect(request.method).toBe('POST')
+  expect(request.headers).toMatchObject({ Authorization: 'Bearer content-bearer', 'X-CSRF-TOKEN': 'content-csrf' })
+  expect(JSON.parse(request.body)).toEqual(input)
+  controller.abort()
+  expect(request.signal.aborted).toBe(true)
+})
+
+it('작가 Q&A는 소유자 API를 호출하고 현재 관계 출처를 보존한다', async () => {
+  const graphSource = { id: 'edge', kind: 'relationship', workId: 'w', sourceWorkId: null, episode: 2,
+    worldId: 'db2f4ac5-f2b8-4ed2-9812-d5a03596558b', relationshipId: 'f73810ec-561c-49b3-8e29-9f9adca5a98a',
+    graphVersion: 7, title: '리안 → 카엘', quote: '동맹' }
+  const fetcher = vi.fn().mockResolvedValue(Response.json({
+    status: 'answered', claims: [], sources: [graphSource], gaps: [],
+    coverage: { expected: [], withVerifiedExcerpt: [], withoutVerifiedExcerpt: [] },
+  }))
+  const api = new HttpEpisodeRepository(fetcher)
+  const answer = await api.askStoryContext('w', { episode: 2, episodeVersionId: 'v2', question: '둘은 무슨 관계인가요?', consent: true, target: 'relationship' }, true)
+  expect(fetcher.mock.calls[0][0]).toBe('/api/v1/works/w/context/qa')
+  expect(answer.sources).toEqual([graphSource])
+})
+
 describe('회차 예약 발행', () => {
   const path = '/api/v1/works/w/episodes/2/publication-schedules'
   const scheduledAt = '2099-11-10T01:30:00.000Z'

@@ -35,10 +35,13 @@ class EpisodeVersionService(
             .map {VersionResponse(it.contentVersionId,it.title,it.content,it.revisionNo,numbers.getValue(it.episodeId).sequence,it.createdAt.toString(),it.authorNote)})
     }
     fun save(id: String,owner: String,number: Int,data: DraftRequest): EpisodeResponse {
-        access.own(id,owner)
-        val changed=episodeService.update(id,owner,number,data)
-        saveVersion(id,owner,number,changed.draft)
-        return episodeService.read(id,owner,number)
+        saveWithVersion(id, owner, number, data)
+        return episodeService.read(id, owner, number)
+    }
+    fun saveWithVersion(id: String, owner: String, number: Int, data: DraftRequest): VersionResponse {
+        access.own(id, owner)
+        val changed = episodeService.update(id, owner, number, data)
+        return saveVersion(id, owner, number, changed.draft)
     }
     fun restore(id: String,owner: String,number: Int,data: RevertRequest): EpisodeResponse {
         access.own(id,owner)

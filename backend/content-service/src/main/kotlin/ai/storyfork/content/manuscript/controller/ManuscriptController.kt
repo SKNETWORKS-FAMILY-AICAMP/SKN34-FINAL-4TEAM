@@ -1,11 +1,16 @@
 package ai.storyfork.content.manuscript.controller
 
+import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.manuscript.service.ManuscriptExportService
 import ai.storyfork.content.manuscript.service.ManuscriptImportService
+import ai.storyfork.content.manuscript.service.dto.BulkImportBasis
+import ai.storyfork.content.manuscript.service.dto.BulkImportRequest
+import ai.storyfork.content.manuscript.service.dto.BulkImportResponse
 import ai.storyfork.content.manuscript.service.dto.ManuscriptImportRequest
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.security.Principal
+import org.springframework.http.CacheControl
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -25,6 +30,21 @@ class ManuscriptController(private val imports: ManuscriptImportService, private
     @PostMapping("/manuscript-imports", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun confirm(@PathVariable workId: String, principal: Principal, @RequestPart("file", required = false) file: MultipartFile?, @RequestPart("request", required = false) request: ManuscriptImportRequest?) =
         imports.confirm(workId, principal.name, file, request)
+
+    @GetMapping("/manuscript-imports/bulk")
+    fun bulkBasis(@PathVariable workId: String, principal: Principal): ResponseEntity<BulkImportBasis> =
+        ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(imports.bulkBasis(workId, principal.name))
+
+    @PostMapping("/manuscript-imports/bulk", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun importBulk(
+        @PathVariable workId: String,
+        principal: Principal,
+        @RequestPart("files", required = false) files: List<MultipartFile>?,
+        @RequestPart("request", required = false) request: BulkImportRequest?,
+    ): BulkImportResponse {
+        val command = request ?: throw ContentFailure(422, "회차 정보를 보내 주세요.")
+        return imports.importBulk(workId, principal.name, files.orEmpty(), command)
+    }
 
     /** 소유자의 초안·발행본을 TXT·EPUB 첨부 파일로 내려 준다. 잘못된 형식은 422, 상속 회차 단독 내보내기는 403이다. */
     @GetMapping("/manuscript-export")

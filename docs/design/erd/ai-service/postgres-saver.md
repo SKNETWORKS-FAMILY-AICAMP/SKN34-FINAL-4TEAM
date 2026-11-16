@@ -1,6 +1,8 @@
 # AI Service 참고 — LangGraph PostgreSQL Saver
 
-> **외부 라이브러리 참고 스키마.** STORYFORK 업무 테이블이 아니며, 도입·DB 배치·보관 정책은 미정입니다. Core·콘텐츠·운영의 업무 데이터와 소유권은 [전체 업무 ERD](../overview.md), [콘텐츠 업무 AI 작업·대화 연결](../core/ai-work.md)을 따릅니다.
+> **외부 라이브러리 참고 스키마.** STORYFORK 업무 테이블이 아닙니다. 도입(PR #321, `langgraph-checkpoint-postgres` 3.x)과 DB 배치(아래)는 정했고 보관 정책은 미정입니다.
+>
+> **DB 배치(#337, 사용자 결정 2026-11-13):** Core·Content가 쓰는 `storyfork`가 아니라 같은 PostgreSQL 서버의 **전용 DB `storyfork_ai`**에 둡니다. AI가 시작할 때 없으면 만들고(`ensure_database`), DB 생성 권한이 없는 환경(운영 외부 DB 등)은 미리 만들어야 합니다. 업무 DB와 섞이지 않으므로 빈 DB에서 Core Flyway가 멈추지 않습니다. Core·콘텐츠·운영의 업무 데이터와 소유권은 [전체 업무 ERD](../overview.md), [콘텐츠 업무 AI 작업·대화 연결](../core/ai-work.md)을 따릅니다.
 
 ## 3. LangGraph PostgresSaver의 실제 테이블
 
@@ -12,7 +14,7 @@
 
 아래는 이 버전의 **일반 `PostgresSaver`와 `AsyncPostgresSaver`**가 빈 PostgreSQL에서 `setup()`으로 마이그레이션 0~9를 정상 적용한 뒤의 스키마입니다.[4]
 
-`setup()`은 라이브러리의 테이블을 생성하고 마이그레이션을 적용합니다. 실제 STORYFORK DB에 접속하거나 이 메서드를 실행한 것은 아닙니다.[3][7] 버전이 달라지면 SQL을 다시 확인해야 하며, DB와 스키마를 업무 데이터와 어떻게 분리할지는 미정입니다.
+`setup()`은 라이브러리의 테이블을 생성하고 마이그레이션을 적용합니다. 실제 STORYFORK DB에 접속하거나 이 메서드를 실행한 것은 아닙니다.[3][7] 버전이 달라지면 SQL을 다시 확인해야 합니다. 업무 데이터와는 전용 DB(`storyfork_ai`)로 분리합니다(#337).
 
 ```mermaid
 erDiagram

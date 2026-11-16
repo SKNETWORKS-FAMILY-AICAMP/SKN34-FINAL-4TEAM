@@ -119,7 +119,7 @@ it('keeps the saved graph and invalid relationship draft until a valid target is
  expect(screen.getByRole<HTMLSelectElement>('combobox',{name:'관계 대상'}).value).toBe('')
  fireEvent.change(screen.getByRole('combobox',{name:'관계 대상'}),{target:{value:c.item.id}})
  fireEvent.click(screen.getByRole('button',{name:'세계관 저장'}))
- await screen.findByText('서버에 현재 세계관을 저장했어요. 관계는 현재 상태만 보관하며 과거 관계 복원은 지원하지 않아요.')
+ await screen.findByText('서버에 현재 세계관을 저장했어요. 관계는 회차별로 기록하며 과거 관계 복원은 지원하지 않아요.')
  expect(repository.saveStudio).toHaveBeenCalledTimes(1)
  expect(world.settings[3].item).toMatchObject({id:relation.id,subjectId:relation.subjectId,targetId:c.item.id})
  expect(world.version).toBe(before.version+1)

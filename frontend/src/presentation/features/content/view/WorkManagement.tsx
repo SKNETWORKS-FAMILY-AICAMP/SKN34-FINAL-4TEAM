@@ -12,6 +12,7 @@ import { inheritedRangeLabel } from '../viewmodel/inheritedRange'
 import { useEpisodeForkCounts } from '../viewmodel/useEpisodeForkCounts'
 import type { useEpisodeViewModel } from '../viewmodel/useEpisodeViewModel'
 import { ContextPreview } from './ContextPreview'
+import { EpisodeBulkImportSheet } from './EpisodeBulkImportSheet'
 import { LinkedWorldPanel } from './LinkedWorldPanel'
 import { WorkOverview } from './WorkOverview'
 import { WorldPanel } from './WorldPanel'
@@ -32,6 +33,7 @@ type Props = {
 export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Props) {
   const [tab, setTab] = useState<'read' | 'fork' | 'history' | 'world' | 'feedback'>('read')
   const [mediaBusy, setMediaBusy] = useState(false)
+  const [bulkImportOpen, setBulkImportOpen] = useState(false)
   const [forkTitle, setForkTitle] = useState('')
   const [direction, setDirection] = useState('')
   const [at, setAt] = useState(1)
@@ -184,7 +186,13 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
           <Pager page={view.page} pages={view.pages} onPage={(next) => { setPage(next); episodeList.current?.scrollIntoView?.({ block: 'start' }) }} />
           <div className='ep-list-foot'>
             <Go to={`/studio/${w.id}`} className='btn pri'>새 회차 집필하기</Go>
+            {!mockup && <button type="button" className="btn" disabled={locked}
+              onClick={() => setBulkImportOpen(true)}>회차 파일 일괄 업로드</button>}
           </div>
+          {bulkImportOpen && <EpisodeBulkImportSheet workId={w.id} onClose={(refresh) => {
+            setBulkImportOpen(false)
+            if (refresh) void vm.reload()
+          }} />}
         </>
       )}
       {tab === 'fork' && (

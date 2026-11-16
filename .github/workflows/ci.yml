@@ -96,6 +96,8 @@ jobs:
         run: python3 -I -m unittest discover -s infrastructure/tests -p test_attachment_environment.py -v
       - name: Validate sample CSV import contract without a database
         run: python3 -I -m unittest discover -s infrastructure/sample-data -p 'test_*.py' -v
+      - name: Validate myth template sources without a database
+        run: python3 -I -m unittest discover -s infrastructure/sample-data/genre-templates -p test_traditions.py -v
 
   unit:
     name: Unit / ${{ matrix.service }}

@@ -13,6 +13,7 @@ import org.springframework.core.annotation.AnnotatedElementUtils
 import org.springframework.http.ContentDisposition
 import org.springframework.http.HttpHeaders
 import org.springframework.mock.web.MockMultipartFile
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -51,9 +52,30 @@ class ManuscriptControllerTest {
         val method = { name: String -> ManuscriptController::class.java.methods.first { it.name == name } }
         assertEquals(listOf("/manuscript-imports/preview"), AnnotatedElementUtils.findMergedAnnotation(method("preview"), PostMapping::class.java)!!.value.toList())
         assertEquals(listOf("/manuscript-imports"), AnnotatedElementUtils.findMergedAnnotation(method("confirm"), PostMapping::class.java)!!.value.toList())
+        assertEquals(listOf("/manuscript-imports/bulk"), AnnotatedElementUtils.findMergedAnnotation(method("bulkBasis"), GetMapping::class.java)!!.value.toList())
+        assertEquals(listOf("/manuscript-imports/bulk"), AnnotatedElementUtils.findMergedAnnotation(method("importBulk"), PostMapping::class.java)!!.value.toList())
         assertNull(AnnotatedElementUtils.findMergedAnnotation(method("export"), PatchMapping::class.java))
         val advice = AnnotatedElementUtils.findMergedAnnotation(ContentExceptionHandler::class.java, RestControllerAdvice::class.java)!!
         assertTrue("ai.storyfork.content.manuscript.controller" in advice.basePackages)
         assertEquals("ai.storyfork.content.manuscript.controller", ManuscriptController::class.java.packageName)
+    }
+
+    @Test fun `bulk import uses the authenticated owner and keeps the basis response out of caches`() {
+        val basis = BulkImportBasis(2, 7)
+        val files = listOf(
+            MockMultipartFile("files", "2화.txt", "text/plain", "둘째".toByteArray()),
+            MockMultipartFile("files", "3화.epub", "application/epub+zip", byteArrayOf(1)),
+        )
+        val request = BulkImportRequest(true, 7, listOf(BulkImportItem(2, "2화"), BulkImportItem(3, "3화")))
+        val result = BulkImportResponse(8, listOf(
+            BulkImportResult(2, "2화", "versioned", versionId = "v2"),
+            BulkImportResult(3, "3화", "failed", reason = "파일을 읽지 못했어요."),
+        ))
+        `when`(imports.bulkBasis("work", "owner")).thenReturn(basis)
+        `when`(imports.importBulk("work", "owner", files, request)).thenReturn(result)
+        val response = controller.bulkBasis("work", principal)
+        assertSame(basis, response.body)
+        assertEquals("no-store", response.headers.cacheControl)
+        assertSame(result, controller.importBulk("work", principal, files, request))
     }
 }
