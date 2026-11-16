@@ -110,9 +110,9 @@ def test_monologue_is_written_by_the_narrator_from_the_pov_characters_knowledge_
     assert mono.prose == 'MONO-TEXT 카엘은 리나를 의심했다.' and scene.trail[1].observed == ''
     asked = h.calls.narrate[1]  # 독백도 나레이터가 쓰되 시점 인물이 아는 것만 받는다
     assert (asked['self']['id'], asked['purpose'], asked['pov']) == (KAEL, 'monologue', {'kind': 'limited', 'character': '카엘'})
-    assert 'KAEL-SOUL' in text(asked['known']) and 'LINA-MEMORY-SECRET' not in text(asked)
+    assert 'KAEL-SOUL' in text(asked['known']) and 'LINA-EP0-SECRET' not in text(asked)
     check = h.calls.check[0]
-    assert check['checks'] == ['knowledge_leak', 'voice_mix'] and 'LINA-MEMORY-SECRET' in text(check['forbidden'])
+    assert check['checks'] == ['knowledge_leak', 'voice_mix'] and 'LINA-EP0-SECRET' in text(check['forbidden'])
     assert h.calls.check[1]['checks'] == IF_KINDS
     assert 'MONO-' not in text(h.calls.act[0])  # 다음 인물은 독백을 보지 못한다
     assert [e['allowed'] for e in h.director][:3] == [['narration'], NOT_NARRATION, ['speech']]  # 서술·독백이 두 번 이어지면 이번엔 대사
@@ -125,8 +125,8 @@ def test_narration_from_a_characters_point_of_view_knows_only_what_that_characte
     opening = scene.result.turns[0]
     assert (opening.kind, opening.characterId, opening.characterName, opening.pov, opening.checks) == ('narration', None, '나레이션', pov, [])
     asked = h.calls.narrate[0]
-    assert asked['self']['id'] == KAEL and asked['pov']['kind'] == pov.split(':')[0] and 'LINA-MEMORY-SECRET' not in text(asked)
-    assert h.calls.check[0]['checks'] == kinds and 'LINA-MEMORY-SECRET' in text(h.calls.check[0]['forbidden'])
+    assert asked['self']['id'] == KAEL and asked['pov']['kind'] == pov.split(':')[0] and 'LINA-EP0-SECRET' not in text(asked)
+    assert h.calls.check[0]['checks'] == kinds and 'LINA-EP0-SECRET' in text(h.calls.check[0]['forbidden'])
     assert h.calls.review == [h.calls.review[0]] and h.calls.review[0]['self']['id'] is None  # 마무리는 전지적이라 따로 검사한다
 
 
@@ -142,7 +142,7 @@ def test_a_speaker_the_director_picked_must_be_a_character_of_this_scene(monkeyp
 
 def test_violation_regenerates_only_that_turn_then_stops_after_two_retries(monkeypatch):
     h = setup(monkeypatch, speech(KAEL), verdicts=lambda payload: verdict(
-        payload, fail=('knowledge_leak',), refs=[f'card:{LINA}#memory'], detail='LEAK-DETAIL 리나의 정체를 말했다'))
+        payload, fail=('knowledge_leak',), refs=[f'card:{LINA}#ep00'], detail='LEAK-DETAIL 리나의 정체를 말했다'))
     scene = run_auto()
     assert len(h.calls.act) == len(h.calls.check) == 3  # 처음 + 재생성 2회
     assert (scene.result.status, scene.result.stopReason, [t.kind for t in scene.result.turns]) == ('stopped', 'check_failed', ['narration'])

@@ -1,7 +1,8 @@
 """NovelBrain 계약: 세계관 스냅샷(Content MCP `world_studio_read` 응답에서 변환)과 `recall` 결과.
 
 계약 문서: docs/design/character-simulation-contract.md. 카드·관계·인물 문서·회차별 기억의 출처 필드는
-`semanticMetadata.characterDocs{soul, memory, episodes}`와 `semanticMetadata.revealFromEpisode`이며 화면 매핑과 같은 규칙으로 읽는다.
+`semanticMetadata.characterDocs{soul, goal, episodes}`와 `semanticMetadata.revealFromEpisode`이며 화면 매핑과 같은 규칙으로 읽는다.
+DEC-47 이전에 저장한 문서의 `memory`(옛 MEMORY.md)는 읽을 때 `episodes[0]`(00회차) 앞에 이어 붙여 옮기므로 카드에는 없다.
 """
 
 import re
@@ -15,13 +16,13 @@ _DIRECTIONS = ('directed', 'symmetric')
 
 
 class Card(BaseModel):
-    """세계관 카드. `text`는 카드 본문이고 인물 카드에서는 IDENTITY.md다. soul·memory·episodes는 인물 카드에만 있다."""
+    """세계관 카드. `text`는 카드 본문이고 인물 카드에서는 IDENTITY.md다. soul·goal·episodes는 인물 카드에만 있다."""
     id: str
     cardType: str
     title: str
     text: str
     soul: str = ''
-    memory: str = ''
+    goal: str = ''
     episodes: dict[int, str] = {}
     revealFromEpisode: int | None = None
 
@@ -74,12 +75,16 @@ def _reveal(value) -> int | None:
 
 
 def _docs(raw) -> tuple[str, str, dict[int, str]]:
-    # 모양이 어긋난 characterDocs는 통째로 버리고 변환은 계속한다(화면 매핑과 같은 규칙).
+    # 모양이 어긋난 characterDocs는 통째로 버리고 변환은 계속한다(화면 매핑과 같은 규칙). `goal`·`memory`는 선택 키다:
+    # DEC-47 이전 문서는 `memory`가 있고 `goal`이 없다(없으면 빈 글). 필수로 두면 옛 문서 전체가 버려진다.
     if isinstance(raw, dict):
-        soul, memory, episodes = raw.get('soul'), raw.get('memory'), raw.get('episodes')
-        if (isinstance(soul, str) and isinstance(memory, str) and isinstance(episodes, dict)
+        soul, goal, memory, episodes = raw.get('soul'), raw.get('goal', ''), raw.get('memory', ''), raw.get('episodes')
+        if (isinstance(soul, str) and isinstance(goal, str) and isinstance(memory, str) and isinstance(episodes, dict)
                 and all(isinstance(k, str) and _EPISODE_KEY.fullmatch(k) and isinstance(v, str) for k, v in episodes.items())):
-            return soul, memory, {int(k): v for k, v in episodes.items()}
+            moved = {int(k): v for k, v in episodes.items()}
+            if memory.strip():  # 옛 memory는 00회차 앞에 빈 줄 하나로 이어 붙인다(00회차가 비어 있으면 그대로 00회차). 글은 자르지 않는다.
+                moved[0] = f'{memory}\n\n{moved[0]}' if moved.get(0, '').strip() else memory
+            return soul, goal, moved
     return '', '', {}
 
 
@@ -94,8 +99,8 @@ def world_snapshot(read: dict, episode: int) -> WorldSnapshot:
             if c.get('lifecycle') == 'removed':
                 continue
             meta = c.get('semanticMetadata') or {}
-            soul, memory, episodes = _docs(meta.get('characterDocs')) if c['cardType'] == 'character' else ('', '', {})
-            cards.append(Card(id=c['id'], cardType=c['cardType'], title=c['title'], text=c['body'], soul=soul, memory=memory,
+            soul, goal, episodes = _docs(meta.get('characterDocs')) if c['cardType'] == 'character' else ('', '', {})
+            cards.append(Card(id=c['id'], cardType=c['cardType'], title=c['title'], text=c['body'], soul=soul, goal=goal,
                               episodes=episodes, revealFromEpisode=_reveal(meta.get('revealFromEpisode'))))
         ids = {c.id for c in cards}
         relations = []

@@ -3,7 +3,7 @@
 표준 라이브러리만 쓰는 순수 함수다. 모델·네트워크·DB를 부르지 않고, 원고 발췌는 호출자가 Content Retrieval로 받아 넘긴다.
 항목 ref 형식(필터가 이 형식을 읽는다):
 - `card:<id>`: 인물이 아닌 카드의 본문
-- `card:<id>#identity|soul|memory|ep<NN>`: 인물 카드의 IDENTITY(카드 본문)·SOUL·MEMORY·회차별 기억(NN은 두 자리로 0을 채운 회차)
+- `card:<id>#identity|soul|goal|ep<NN>`: 인물 카드의 IDENTITY(카드 본문)·SOUL·GOAL·회차별 기억(NN은 두 자리로 0을 채운 회차, `#ep00`은 이야기 시작 전부터 아는 것)
 - `relation:<id>`: 관계, `manuscript:<발췌 id>`: 원고 발췌
 """
 
@@ -141,15 +141,15 @@ def filter_for_character(items: list[RecallItem], world: WorldSnapshot, characte
                          episode: int) -> tuple[list[RecallItem], list[Gap]]:
     """계약 3단계: 인물이 `episode`화까지 아는 것만 남긴다. `character_id=None`(메인 에이전트)이면 거르지 않는다.
 
-    - 그 인물 자신의 IDENTITY·SOUL·MEMORY와 `episode` 이하 회차 기억은 허용한다.
-    - 다른 인물의 SOUL·MEMORY·회차 기억과 `revealFromEpisode`가 아직 안 온 카드는 아는 것이 아님이 확인되므로 조용히 뺀다.
+    - 그 인물 자신의 IDENTITY·SOUL·GOAL과 `episode` 이하 회차 기억은 허용한다.
+    - 다른 인물의 SOUL·GOAL·회차 기억과 `revealFromEpisode`가 아직 안 온 카드는 아는 것이 아님이 확인되므로 조용히 뺀다.
     - 근거를 확인할 수 없는 것은 빼고 Gap으로 남긴다: 관계로 연결되지 않은 다른 인물·사건·물건 카드(부정 관계는 연결이 아니다),
       그 인물이 끝점이 아닌 관계,
       상대 카드가 아직 공개되지 않았거나 스냅샷에 없는 관계(관계 문장에 상대 제목이 드러난다), 그 인물 이름이 나오지 않는 원고 발췌,
       형식을 알 수 없는 ref(닫힌 쪽으로 실패).
 
     ponytail: 발췌에 이름이 나오면 목격으로 근사한다(라틴 이름은 낱말 경계, 한글 이름은 부분 일치. 별칭·호칭·대명사 미지원).
-    MEMORY.md는 회차 표시가 없어 항상 허용한다.
+    GOAL.md는 회차 표시가 없어 자기 인물이면 항상 허용한다. 없어진 `#memory` ref(옛 MEMORY.md)는 형식을 알 수 없는 ref라 gap이다.
     """
     if character_id is None:
         return list(items), []
@@ -191,7 +191,7 @@ def filter_for_character(items: list[RecallItem], world: WorldSnapshot, characte
                 return False, ''
             return (False, _NOT_LINKED) if card.cardType in _LINKED_TYPES and card_id not in linked else (True, '')
         number = _EPISODE_DOC.fullmatch(part)
-        if part not in ('soul', 'memory') and not number:
+        if part not in ('soul', 'goal') and not number:
             return False, _UNKNOWN
         return (True, '') if card_id == character_id and (not number or int(number.group(1)) <= episode) else (False, '')
 
@@ -210,13 +210,13 @@ def _body_ref(card: Card) -> str:
 
 
 def _documents(cards: list[Card]) -> dict[str, tuple[str, str]]:
-    # ref → (제목, 본문): 카드 본문과 인물 카드의 SOUL·MEMORY·회차별 기억. 빈 문서는 뺀다.
+    # ref → (제목, 본문): 카드 본문과 인물 카드의 SOUL·GOAL·회차별 기억. 빈 문서는 뺀다.
     docs = {}
     for c in cards:
         docs[_body_ref(c)] = (c.title, c.text)
         if c.cardType == 'character':
             docs[f'card:{c.id}#soul'] = (c.title, c.soul)
-            docs[f'card:{c.id}#memory'] = (c.title, c.memory)
+            docs[f'card:{c.id}#goal'] = (c.title, c.goal)
             docs.update({f'card:{c.id}#ep{n:02d}': (c.title, text) for n, text in sorted(c.episodes.items())})
     return {ref: doc for ref, doc in docs.items() if doc[1].strip()}
 

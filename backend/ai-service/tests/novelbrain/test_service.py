@@ -7,11 +7,11 @@ from app.manuscript.models import Excerpt
 from app.novelbrain.models import Card, Gap, RecallItem, Relation, WorldSnapshot
 from app.novelbrain.service import bm25_rank, filter_for_character, ppr, recall, rrf, seed_cards, tokenize
 
-KAEL = Card(id='kael', cardType='character', title='카엘', text='성문 수비대장이다.', soul='말투는 건조하고 짧다.', memory='리라의 오빠다.',
+KAEL = Card(id='kael', cardType='character', title='카엘', text='성문 수비대장이다.', soul='말투는 건조하고 짧다.', goal='리라의 오빠다.',
             episodes={1: '1화: 성문에서 리라를 만났다.', 3: '3화: 왕의 비밀을 알게 되었다.'}, revealFromEpisode=1)
 LIRA = Card(id='lira', cardType='character', title='리라', text='마법사 견습생이다.', soul='활달하게 말한다.',
-            memory='카엘의 동생이다. 왕의 사생아라는 비밀이 있다.', episodes={2: '2화: 비밀 문서를 훔쳤다.'}, revealFromEpisode=1)
-SERA = Card(id='sera', cardType='character', title='세라', text='떠돌이 상인이다.', soul='능글맞게 말한다.', memory='리라와 거래한다.',
+            goal='카엘의 동생이다. 왕의 사생아라는 비밀이 있다.', episodes={2: '2화: 비밀 문서를 훔쳤다.'}, revealFromEpisode=1)
+SERA = Card(id='sera', cardType='character', title='세라', text='떠돌이 상인이다.', soul='능글맞게 말한다.', goal='리라와 거래한다.',
             revealFromEpisode=2)
 GATE = Card(id='gate', cardType='location', title='성문', text='북쪽 성문이다. 밤에는 닫힌다.')
 CROWN = Card(id='crown', cardType='object', title='왕관', text='왕의 비밀과 얽힌 왕관이다.', revealFromEpisode=5)
@@ -265,19 +265,19 @@ def test_filter_without_a_character_keeps_everything():
     assert filter_for_character(items, WORLD, None, 2) == (items, [])
 
 
-def test_filter_keeps_the_characters_own_identity_soul_memory_and_episodes_up_to_the_base_episode():
-    items = [item('card:kael#identity'), item('card:kael#soul'), item('card:kael#memory'), item('card:kael#ep01'),
+def test_filter_keeps_the_characters_own_identity_soul_goal_and_episodes_up_to_the_base_episode():
+    items = [item('card:kael#identity'), item('card:kael#soul'), item('card:kael#goal'), item('card:kael#ep00'), item('card:kael#ep01'),
              item('card:kael#ep03')]
 
     kept, gaps = filter_for_character(items, WORLD, 'kael', 2)
 
-    assert refs(kept) == ['card:kael#identity', 'card:kael#soul', 'card:kael#memory', 'card:kael#ep01']
+    assert refs(kept) == ['card:kael#identity', 'card:kael#soul', 'card:kael#goal', 'card:kael#ep00', 'card:kael#ep01']  # 00회차는 이야기 시작 전부터 아는 것
     assert gaps == []  # 미래 회차 기억은 '모르는 것'이지 '확인할 수 없는 것'이 아니다.
     assert 'card:kael#ep03' in refs(filter_for_character(items, WORLD, 'kael', 3)[0])
 
 
-def test_filter_never_lets_another_characters_soul_memory_or_episodes_through():
-    items = [item('card:lira#soul'), item('card:lira#memory'), item('card:lira#ep02'), item('card:lira#ep00')]
+def test_filter_never_lets_another_characters_soul_goal_or_episodes_through():
+    items = [item('card:lira#soul'), item('card:lira#goal'), item('card:lira#ep02'), item('card:lira#ep00')]
 
     assert filter_for_character(items, WORLD, 'kael', 99) == ([], [])
 
@@ -401,6 +401,7 @@ def test_filter_asks_for_a_word_boundary_when_checking_that_an_excerpt_names_the
 
 
 @pytest.mark.parametrize('ref', ['card:ghost#identity', 'card:kael#nonsense', 'card:kael#ep', 'card:kael#epx1',
+                                 'card:kael#memory', 'card:lira#memory',  # MEMORY.md는 없어졌다(DEC-47)
                                  'relation:ghost', 'weird:1', 'no-colon', ''])
 def test_filter_fails_closed_on_a_reference_it_cannot_resolve(ref):
     kept, gaps = filter_for_character([item(ref, '카엘')], WORLD, 'kael', 2)
@@ -441,7 +442,7 @@ def test_stage_0_is_the_ppr_graph_only_with_cards_and_relations():
     assert by_ref['card:gate'].text == GATE.text
     assert by_ref['relation:r-kl'].text == '카엘 ↔ 리라: 남매'
     assert by_ref['relation:r-kg'].text == '카엘 → 성문: 근무지'
-    assert not [r for r in by_ref if '#soul' in r or '#memory' in r or '#ep' in r or r.startswith('manuscript:')]
+    assert not [r for r in by_ref if '#soul' in r or '#goal' in r or '#ep' in r or r.startswith('manuscript:')]
     assert result.items[0].score > 1 / 61  # 0단계 점수는 RRF가 아니라 PPR 점수 그대로다.
 
 
@@ -472,7 +473,7 @@ def test_stage_2_adds_bm25_documents_the_graph_cannot_reach_and_rewards_agreemen
     stage1 = {i.ref: i for i in recall(WORLD, None, 2, '왕의 비밀', stage=1, **kwargs).items}
     stage2 = {i.ref: i for i in recall(WORLD, None, 2, '왕의 비밀', stage=2, **kwargs).items}
 
-    assert 'card:lira#memory' not in stage1 and stage2['card:lira#memory'].source == 'bm25'
+    assert 'card:lira#goal' not in stage1 and stage2['card:lira#goal'].source == 'bm25'
     assert stage2['card:kael#ep03'].text == KAEL.episodes[3]
     assert stage2['card:crown'].source == 'graph'  # 처음 찾은 방식으로 표시한다.
     assert stage2['card:crown'].score > stage1['card:crown'].score  # 그래프와 BM25가 함께 올린 항목은 점수가 높다.
@@ -491,11 +492,11 @@ def test_stage_3_filters_for_the_character_and_reports_what_it_could_not_confirm
 
     kept, gap_refs = set(refs(result.items)), [g.ref for g in result.gaps]
     assert {'card:kael#identity', 'card:lira#identity', 'relation:r-kl', 'manuscript:m1'} <= kept
-    assert not kept & {'card:lira#soul', 'card:lira#memory', 'card:lira#ep02', 'card:sera#identity', 'card:sera#soul',
+    assert not kept & {'card:lira#soul', 'card:lira#goal', 'card:lira#ep02', 'card:sera#identity', 'card:sera#soul',
                        'card:crown', 'card:kael#ep03', 'relation:r-ls', 'relation:r-lc', 'manuscript:m2', 'manuscript:m3'}
     # 확인할 수 없어 뺀 것만 gap이다. 다른 인물의 문서·미래 항목·미래 회차 발췌는 gap도 아니다.
     assert {'card:sera#identity', 'relation:r-ls', 'relation:r-lc', 'manuscript:m2'} <= set(gap_refs)
-    assert not set(gap_refs) & {'card:lira#soul', 'card:lira#memory', 'card:crown', 'card:kael#ep03', 'manuscript:m3'}
+    assert not set(gap_refs) & {'card:lira#soul', 'card:lira#goal', 'card:crown', 'card:kael#ep03', 'manuscript:m3'}
     assert all(g.reason for g in result.gaps) and len(gap_refs) == len(set(gap_refs))
 
 
@@ -503,7 +504,7 @@ def test_stage_3_fills_k_with_allowed_items_after_filtering_and_renumbers_ranks(
     result = recall(WORLD, 'kael', 2, QUERY, stage=3, manuscript=[M1, M2], k=3)
 
     assert [i.rank for i in result.items] == [1, 2, 3]
-    assert not {i.ref for i in result.items} & {'card:lira#memory', 'card:sera#identity', 'relation:r-ls', 'manuscript:m2'}
+    assert not {i.ref for i in result.items} & {'card:lira#goal', 'card:sera#identity', 'relation:r-ls', 'manuscript:m2'}
     assert [i.score for i in result.items] == sorted((i.score for i in result.items), reverse=True)
 
 
@@ -631,14 +632,14 @@ def test_episode_documents_are_named_with_a_two_digit_episode_number():
 
 def test_blank_documents_and_relations_to_unknown_cards_are_not_items():
     world = WorldSnapshot(worldId='w', episode=1, cards=[
-        Card(id='a', cardType='character', title='가이', text='', soul='  ', memory='기억 용사'),
+        Card(id='a', cardType='character', title='가이', text='', soul='  ', goal='기억 용사'),
         Card(id='b', cardType='location', title='성', text='성 용사')],
         relations=[Relation(id='r1', source='a', target='b', label='살다', direction=None),
                    Relation(id='r2', source='a', target='ghost', label='?', direction='directed')])
 
     result = recall(world, None, 1, '가이 용사', stage=2, k=100)
 
-    assert set(refs(result.items)) == {'card:a#memory', 'card:b', 'relation:r1'}
+    assert set(refs(result.items)) == {'card:a#goal', 'card:b', 'relation:r1'}
     assert {i.ref: i.text for i in result.items}['relation:r1'] == '가이 — 성: 살다'
 
 

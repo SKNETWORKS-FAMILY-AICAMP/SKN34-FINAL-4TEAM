@@ -24,7 +24,7 @@ OPENING, LINE, CLOSING = '성문 위로 밤비가 내렸다.', '카엘이 말했
 SCENE_TEXT = '\n\n'.join([OPENING, LINE, LINE, CLOSING])  # 시작 나레이션, 카엘 두 번, 마무리 나레이션
 WORLD = {'worldId': 'w', 'relationships': [], 'cards': [{
     'id': 'k', 'title': '카엘', 'body': 'KAEL-IDENTITY 북문을 지키는 기사', 'cardType': 'character', 'lifecycle': 'active',
-    'semanticMetadata': {'characterDocs': {'soul': 'KAEL-SOUL 말이 짧다', 'memory': '', 'episodes': {}}}}]}
+    'semanticMetadata': {'characterDocs': {'soul': 'KAEL-SOUL 말이 짧다', 'goal': '', 'episodes': {}}}}]}
 
 
 def scene(*prose, status='completed', reason=None):
