@@ -4,7 +4,7 @@ import { useParams } from 'react-router'
 import type { PublicWorld } from '../../../../domain/entities/publicWorld'
 import { CardMarkdown } from '../../../shared/CardMarkdown'
 import { PublicCardImage } from '../../../shared/PublicCardImage'
-import { splitCardSections } from '../../../shared/cardSections'
+import { numberCardSections, splitCardSections } from '../../../shared/cardSections'
 import { Go } from '../../../shared/Go'
 import { Jump } from '../../../shared/Jump'
 import { KindChip } from '../../../shared/KindChip'
@@ -56,12 +56,12 @@ function CardInfoBox({ world, page }: { world: PublicWorld; page: CardPage }) {
   )
 }
 
-type Section = { id: string; title: string; body: ReactNode }
+type Section = { id: string; no: string; depth: number; title: string; body: ReactNode; children: Section[] }
 
 /**
- * 문단: 본문(마크다운)의 `## 제목`마다 한 문단 → 관계(인물) → 연관 설정 → 이 카드를 가리키는 설정 → 같은 유형의 다른 설정.
- * 목차는 이 문단들이고 본문 쪽은 작가가 쓴 `## 제목` 그대로다. 첫 `##` 앞의 글은 제목 없는 첫머리(`lead`)라 목차·번호에 넣지 않는다(개요를 지어 붙이지 않는다).
- * 내용이 없는 문단은 빠지고 번호는 화면이 연속으로 매긴다. 본문을 어떻게 나누는지는 독자 설정 위키와 같은 `splitCardSections`가 정한다.
+ * 문단: 본문(마크다운)의 `#`·`##`·`###` 제목마다 한 문단(단계대로 `1`·`1.1`·`1.1.1`, 하위 문단은 상위 문단 안) → 관계(인물) → 연관 설정 → 이 카드를 가리키는 설정 → 같은 유형의 다른 설정(최상위 번호를 이어 받음).
+ * 목차는 이 문단들이고 본문 쪽은 작가가 쓴 제목 그대로다. 첫 제목 앞의 글은 제목 없는 첫머리(`lead`)라 목차·번호에 넣지 않는다(개요를 지어 붙이지 않는다).
+ * `####` 이하는 문단 본문 안의 소제목이다. 내용이 없는 연결 문단은 빠진다. 본문을 어떻게 나누는지는 독자 설정 위키와 같은 `splitCardSections`가 정한다.
  */
 function sectionsOf(page: CardPage, worldId: string): { lead: string; sections: Section[] } {
   const lists = [
@@ -71,11 +71,40 @@ function sectionsOf(page: CardPage, worldId: string): { lead: string; sections: 
     ['same', '같은 유형의 다른 설정', page.sameType, false],
   ] as const
   const parts = splitCardSections(page.card.text)
-  const lead = parts[0]?.title === '' ? parts[0].body : ''
-  return { lead, sections: [
-    ...parts.filter(({ title }) => title).map(({ title, body }, i) => ({ id: `text-${i}`, title, body: <CardMarkdown text={body} /> })),
-    ...lists.filter(([, , refs]) => refs.length > 0).map(([id, title, refs, withType]) => ({ id, title, body: <CardList worldId={worldId} refs={refs} withType={withType} /> })),
-  ] }
+  const text = numberCardSections(parts)
+  const top = text.filter((s) => s.depth === 1).length
+  const flat: Section[] = [
+    ...text.map(({ title, body, no, depth }, i) => ({ id: `text-${i}`, no, depth, title, body: body && <CardMarkdown text={body} />, children: [] })),
+    ...lists.filter(([, , refs]) => refs.length > 0).map(([id, title, refs, withType], i) => ({ id, no: String(top + i + 1), depth: 1, title, body: <CardList worldId={worldId} refs={refs} withType={withType} />, children: [] })),
+  ]
+  // 단계(depth)대로 앞 문단의 하위로 넣는다. 번호를 매길 때 단계가 한 칸씩만 깊어지므로 부모는 늘 바로 앞 단계다.
+  const sections: Section[] = []
+  const path: Section[] = []
+  for (const s of flat) {
+    path.length = s.depth - 1
+    ;(path.at(-1)?.children ?? sections).push(s)
+    path.push(s)
+  }
+  return { lead: parts[0]?.level === 0 ? parts[0].body : '', sections }
+}
+
+/** 목차 한 단계: 하위 문단은 안쪽 목록으로 들여 쓴다. */
+const TocList = ({ sections }: { sections: Section[] }) => (
+  <ol>{sections.map((s) => (
+    <li key={s.id}><Jump to={`nw-s-${s.id}`}><span className="nw-no">{s.no}.</span> {s.title}</Jump>{s.children.length > 0 && <TocList sections={s.children} />}</li>
+  ))}</ol>
+)
+
+/** 접이식 문단. 하위 문단을 안에 두어 상위를 접으면 함께 접힌다. 제목 단계는 h2(1단계)·h3·h4다. */
+function SectionView({ s }: { s: Section }) {
+  const Heading = s.depth === 1 ? 'h2' : s.depth === 2 ? 'h3' : 'h4'
+  return (
+    <details className="nw-sec" open>
+      <summary id={`nw-s-${s.id}`}><Heading><span className="nw-no">{s.no}.</span> {s.title}</Heading></summary>
+      {s.body && <div className="nw-doc">{s.body}</div>}
+      {s.children.map((c) => <SectionView key={c.id} s={c} />)}
+    </details>
+  )
 }
 
 /**
@@ -98,7 +127,7 @@ function CardImport({ world, cardId }: { world: PublicWorld; cardId: string }) {
 
 /**
  * 설정 카드 한 장의 공개 페이지(`/worlds/:id/cards/:cardId`). 작품 설정 위키(`PublicWikiArticle`)와 같은 `nw-*` 나무위키 형식 문서 한 편이다:
- * 빵부스러기 → 분류 상자 → 문서 제목 → 오른쪽 정보 상자 → 번호 목차(본문 `## 제목`과 연결 문단) → 첫머리 글(제목 없음) → 번호 매긴 접이식 문단. 아래에 설정집 순서의 이전·다음 카드와 세계관으로 돌아가기가 있다.
+ * 빵부스러기 → 분류 상자 → 문서 제목 → 오른쪽 정보 상자 → 번호 목차(본문 `#`·`##`·`###` 제목과 연결 문단) → 첫머리 글(제목 없음) → 번호 매긴 접이식 문단. 아래에 설정집 순서의 이전·다음 카드와 세계관으로 돌아가기가 있다.
  * 내용 구성(어떤 문단이 있고 어떤 순서인지)은 `cardPage`가 정하고 이 화면은 그대로 그린다. 로그인 없이 볼 수 있고 읽기 전용이다.
  * 로그인한 회원에게는 빵부스러기 아래에 '이 설정 가져오기'(`CardImport`)가 보이고 고른 내 세계관 초안에 이 카드를 바로 더한다.
  */
@@ -143,17 +172,10 @@ export function WorldCardPage() {
                 <CardInfoBox world={world} page={page} />
                 {sections.length > 0 && <nav className="nw-toc" id="nw-toc" tabIndex={-1} aria-label="목차">
                   <b>목차</b>
-                  <ol>{sections.map((s, i) => (
-                    <li key={s.id}><Jump to={`nw-s-${s.id}`}><span className="nw-no">{i + 1}.</span> {s.title}</Jump></li>
-                  ))}</ol>
+                  <TocList sections={sections} />
                 </nav>}
                 {lead && <div className="nw-doc nw-lead"><CardMarkdown text={lead} /></div>}
-                {sections.map((s, i) => (
-                  <details key={s.id} className="nw-sec" open>
-                    <summary id={`nw-s-${s.id}`}><h2><span className="nw-no">{i + 1}.</span> {s.title}</h2></summary>
-                    <div className="nw-doc">{s.body}</div>
-                  </details>
-                ))}
+                {sections.map((s) => <SectionView key={s.id} s={s} />)}
               </article>
               <nav className="worlds-cardnav" aria-label="이전·다음 설정">
                 {page.prev && <Go to={cardPath(world.id, page.prev.cardId)} rel="prev"><small>이전 설정</small>{' '}<b>{page.prev.title}</b></Go>}

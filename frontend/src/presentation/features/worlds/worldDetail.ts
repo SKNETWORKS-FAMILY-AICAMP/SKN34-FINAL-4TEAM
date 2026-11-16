@@ -106,7 +106,7 @@ const cardRef = (world: PublicWorld, i: number, label?: string): CardRef => {
 const bookOrder = (world: PublicWorld) => KINDS.flatMap((kind) => world.cards.flatMap((c, i) => (CARD_KIND[c.cardType] === kind ? [i] : [])))
 
 export type CardPage = {
-  /** `text`는 마크다운 원문 그대로다(화면이 `## 제목` 문단으로 나눠 그린다). `imageId`는 대표 이미지가 있을 때만 있다. */
+  /** `text`는 마크다운 원문 그대로다(화면이 `#`·`##`·`###` 제목 문단으로 나눠 그린다). `imageId`는 대표 이미지가 있을 때만 있다. */
   card: CardRef & { text: string; aliases: string[]; tags: string[]; imageId?: string }
   /** 인물의 소속: 어느 쪽이 썼든 이어진 조직 카드. 인물이 아니면 빈 목록이다. */
   affiliations: CardRef[]

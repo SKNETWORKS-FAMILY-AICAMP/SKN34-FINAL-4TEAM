@@ -1688,7 +1688,7 @@ it('설명은 이름 붙은 마크다운 편집기 자리이고 문단을 나누
   expect(description.dataset.label).toBe('설정 본문')
   expect(description.value).toBe('건국이 일어났다')
   expect(description.placeholder).toContain('어떤 인물인가요?')
-  expect(editor().getByText('## 제목으로 문단을 나누면 공개 페이지 목차에 나와요.')).toBeTruthy()
+  expect(editor().getByText('# · ## · ### 제목은 공개 페이지 목차에 나와요.')).toBeTruthy()
 })
 
 it('글을 고치면 초안이 바뀌어 저장 전 수정이 있다고 알리고 글자 수를 센다', async () => {
@@ -2353,7 +2353,7 @@ it('인물 카드는 설명 대신 문서 목록(IDENTITY.md·SOUL.md·GOAL.md·
   expect(docBody('IDENTITY.md').value).toBe('기존 내용') // 기존 인물 카드의 본문이 그대로 IDENTITY.md다
   expect(docBody('IDENTITY.md').dataset.label).toBe('IDENTITY.md')
   expect(docsPanel().getByText('누구인가: 이름·나이·소속·외형·역할.')).toBeTruthy()
-  expect(editor().getByText('## 제목으로 문단을 나누면 공개 페이지 목차에 나와요.')).toBeTruthy() // 공개되는 문서라 목차 안내가 그대로 있다
+  expect(editor().getByText('# · ## · ### 제목은 공개 페이지 목차에 나와요.')).toBeTruthy() // 공개되는 문서라 목차 안내가 그대로 있다
   openMemory() // 회차 기억은 펼쳐야 보인다
   expect(episodeDocs().getByText('아직 회차 기억이 없어요.')).toBeTruthy()
   expect(docsPanel().queryByText(/공개 세계관과 독자 설정 위키에 나가는 글은/)).toBeNull() // 공개 범위는 문장 대신 탭의 `공개`·`작가만` 표시가 알린다
@@ -2374,7 +2374,7 @@ it('문서를 바꿔 가며 쓰면 문서마다 초안에 남고 안내와 글�
   expect(currentDoc()).toEqual(['SOUL.md 정리 필요'])
   expect(docBody('SOUL.md').value).toBe('')
   expect(docsPanel().getByText('어떻게 생각하고 말하는가: 성격·가치관·말투·욕망·두려움.')).toBeTruthy()
-  expect(editor().queryByText(/## 제목으로 문단을 나누면/)).toBeNull() // 공개 페이지 목차 안내는 공개되는 IDENTITY.md에만 있다
+  expect(editor().queryByText(/제목은 공개 페이지 목차에 나와요/)).toBeNull() // 공개 페이지 목차 안내는 공개되는 IDENTITY.md에만 있다
   expect(saveBar().getByText('저장됨')).toBeTruthy() // 문서를 옮겨 보기만 해서는 초안이 바뀌지 않는다
   fireEvent.change(docBody('SOUL.md'), { target: { value: '말수가 적다' } })
   expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md', 'GOAL.md 정리 필요']) // 채운 문서는 정리 필요가 사라진다

@@ -34,7 +34,7 @@ const renderAt = async (path: string) => {
 const open = (cardId: number) => renderAt(cardPath(WORLD, cardId))
 const items = (section: Element) => within(section as HTMLElement).getAllByRole('listitem').map((li) => li.textContent)
 const sections = () => Array.from(document.querySelectorAll('details.nw-sec'))
-const heads = () => sections().map((d) => d.querySelector('h2')?.textContent)
+const heads = () => sections().map((d) => d.querySelector(':scope > summary')?.textContent)
 /** `##` 앞 첫머리 글: 제목·번호 없이 목차 아래에 그린다(개요 문단을 지어 붙이지 않는다). */
 const lead = () => document.querySelector<HTMLElement>('article.nw .nw-lead')
 const rows = (table: HTMLElement) => ({
@@ -214,6 +214,20 @@ it('목차는 본문 마크다운의 ## 제목이고 그 뒤에 연관 설정 �
   expect(past.querySelector('h5')?.textContent).toBe('어린 시절') // 본문 제목은 문단 제목(h2)보다 낮은 단계다
   expect(items(links)).toEqual(['장소 온실 · 거점']) // 유형 칩 + 대상 카드 · 연관 라벨
   expect(document.querySelectorAll('h1')).toHaveLength(1)
+})
+
+it('#·##·### 제목은 겹친 번호의 목차와 안에 든 접이식 문단이 되고 상위를 접으면 하위도 함께 접힌다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(marked('교신사다.\n\n# 인물\n## 성격\n차분하다.\n### 말버릇\n음…\n## 과거\n#### 어린 시절\n자랐다.'))
+  await renderAt(cardPath('sw', 'c-uuid-1'))
+  const toc = screen.getByRole('navigation', { name: '목차' })
+  expect(within(toc).getAllByRole('link').map((a) => a.textContent)).toEqual(['1. 인물', '1.1. 성격', '1.1.1. 말버릇', '1.2. 과거', '2. 연관 설정'])
+  expect(toc.querySelectorAll('ol ol ol li')).toHaveLength(1) // 말버릇이 세 번째 단계 목록에 든다
+  expect(heads()).toEqual(['1. 인물', '1.1. 성격', '1.1.1. 말버릇', '1.2. 과거', '2. 연관 설정'])
+  const [person, trait, habit, past] = sections()
+  expect([person, trait, habit].map((d) => d.querySelector(':scope > summary > *')?.tagName)).toEqual(['H2', 'H3', 'H4'])
+  expect(person.contains(trait) && trait.contains(habit) && person.contains(past)).toBe(true) // 하위 문단은 상위 문단 안에 있다
+  expect(past.querySelector('.nw-doc h5')?.textContent).toBe('어린 시절') // #### 이하는 목차가 아니라 본문 소제목이다
+  within(lead()!).getByText('교신사다.')
 })
 
 it('## 줄이 없는 본문은 개요 문단 없이 첫머리 글로 마크다운을 그리고 목차에 넣지 않는다', async () => {
