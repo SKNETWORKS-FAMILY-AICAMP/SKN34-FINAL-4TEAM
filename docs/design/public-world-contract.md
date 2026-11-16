@@ -75,6 +75,7 @@ WorldCoverResponse  = { "worldId", "hasCover": true }
 - 표지 교체는 **새 객체 저장 → DB 갱신 → 이전 객체 삭제** 순서다. 새 객체 저장이 실패하면 DB와 이전 객체는 그대로이고(503), 이전 객체 삭제가 실패하면 로그만 남기고 성공으로 답한다. 삭제는 DB 참조를 먼저 지우고 객체를 그 다음에 지운다. 객체 저장소 오류는 고정 문구의 503 그대로 전한다.
 - 소유자 표지 읽기는 `Cache-Control: private, no-store`·`X-Content-Type-Options: nosniff`이다. 소유자 화면은 Bearer가 필요해 인증 fetch → Blob → objectURL(해제 포함)로 읽는다.
 - 기존 `GET /api/v1/world-studios`(내 목록) 요약과 `GET /api/v1/world-studios/{id}` 응답에 `visibility`, `genre`, `hasCover`(표지가 있는지) 필드가 **추가**됐다(기존 필드는 그대로).
+- 내 목록 요약에는 `cardCount`(초안의 활성 설정 카드 수, 삭제한 카드·관계 제외, 옛 응답은 0)도 있다. 요약은 카드를 싣지 않으므로 서재 '내가 만드는 세계관'의 `설정 N개`는 이 값으로 그린다.
 
 ## 공개 API (비로그인 허용 `GET`)
 

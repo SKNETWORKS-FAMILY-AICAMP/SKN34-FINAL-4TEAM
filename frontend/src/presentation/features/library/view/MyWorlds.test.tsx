@@ -15,6 +15,12 @@ const world = (index: number, settings = 2) => ({ id: `w${index}`, name: `세계
 const show = () => render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter><MyWorlds /></MemoryRouter></Provider>)
 const names = () => screen.getAllByRole('heading', { level: 3 }).map(heading => heading.textContent)
 
+it('shows the server card count of a summary, which carries no settings', async () => {
+  api.list.mockResolvedValueOnce([{ ...world(1, 0), cardCount: 7 }])
+  show()
+  expect(await screen.findByText('설정 7개 · 버전 3')).toBeTruthy()
+})
+
 it('lists my worlds as cards that open the world studio, with a new-world link on top', async () => {
   api.list.mockResolvedValueOnce([world(1), world(2, 5)])
   const { container } = show()
