@@ -76,3 +76,53 @@
 ## 우주에서 온 색채
 《우주에서 온 색채》 본문: https://www.hplovecraft.com/writings/texts/fiction/cs.aspx
 > a colour out of space
+
+<a id="supp-innsmouth"></a>
+## 인스머스
+《인스머스의 그림자》 Weird Tales 1942년 1월호 전사본 제I부: https://www.gutenberg.org/files/73181/73181-h/73181-h.htm
+> ancient Massachusetts seaport of Innsmouth
+
+<a id="supp-devil-reef"></a>
+## 데빌 리프
+《인스머스의 그림자》 Weird Tales 1942년 1월호 전사본 제I부: https://www.gutenberg.org/files/73181/73181-h/73181-h.htm
+> a full mile and a half out from Innsmouth Harbor
+
+<a id="supp-esoteric-order-of-dagon"></a>
+## 다곤 비밀 교단
+《인스머스의 그림자》 Weird Tales 1942년 1월호 전사본 제I부: https://www.gutenberg.org/files/73181/73181-h/73181-h.htm
+> The Esoteric Order of Dagon
+
+<a id="supp-innsmouth-decline"></a>
+## 인스머스의 쇠퇴와 변화
+《인스머스의 그림자》 Weird Tales 1942년 1월호 전사본 제I부: https://www.gutenberg.org/files/73181/73181-h/73181-h.htm
+> The epidemic and riots of 1846
+
+<a id="supp-innsmouth-zadok-account"></a>
+## 자독 앨런의 암초 이야기
+《인스머스의 그림자》 Weird Tales 1942년 1월호 전사본 제III부: https://www.gutenberg.org/files/73181/73181-h/73181-h.htm
+> fish began to swarm into the harbor
+
+<a id="supp-innsmouth-federal-investigation"></a>
+## 인스머스 연방 조사
+《인스머스의 그림자》 Weird Tales 1942년 1월호 전사본 제I부: https://www.gutenberg.org/files/73181/73181-h/73181-h.htm
+> Federal government officials made a strange and secret investigation
+
+<a id="supp-yha-nthlei"></a>
+## 이하나틀레이
+《인스머스의 그림자》 Weird Tales 1942년 1월호 전사본 제V부: https://www.gutenberg.org/files/73181/73181-h/73181-h.htm
+> Y'ha-nthlei was not destroyed
+
+<a id="supp-innsmouth-ii"></a>
+## 인스머스의 작중 지리
+《인스머스의 그림자》 Weird Tales 1942년 1월호 전사본 제II부: https://www.gutenberg.org/files/73181/73181-h/73181-h.htm
+> where the Manuxet joins the sea
+
+<a id="supp-esoteric-order-of-dagon-ii"></a>
+## 다곤 비밀 교단의 간판
+《인스머스의 그림자》 Weird Tales 1942년 1월호 전사본 제II부: https://www.gutenberg.org/files/73181/73181-h/73181-h.htm
+> Esoteric Order of Dagon
+
+<a id="supp-innsmouth-decline-ii"></a>
+## 인스머스의 버려진 부두
+《인스머스의 그림자》 Weird Tales 1942년 1월호 전사본 제II부: https://www.gutenberg.org/files/73181/73181-h/73181-h.htm
+> there were great seaward gaps

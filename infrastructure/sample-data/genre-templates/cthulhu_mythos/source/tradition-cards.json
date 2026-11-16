@@ -1,7 +1,7 @@
 {
   "genre": "cthulhu_mythos",
   "name": "크툴루 신화 · 러브크래프트의 선택된 작품",
-  "scope": "《크툴루의 부름》 완역과 《던위치의 공포》, 《다곤》, 《우주에서 온 색채》에서 직접 확인한 일부 항목. 전체 신화 백과가 아니며 증언·꿈·작중 문헌·화자의 추론과 후대 분류를 구분한다.",
+  "scope": "《크툴루의 부름》 완역과 《던위치의 공포》, 《다곤》, 《우주에서 온 색채》, 《인스머스의 그림자》에서 직접 확인한 일부 항목. 전체 신화 백과가 아니며 증언·꿈·작중 문헌·화자의 추론과 후대 분류를 구분한다.",
   "sources": [
     {
       "title": "크툴루의 부름: 영어 전사본",
@@ -22,6 +22,10 @@
     {
       "title": "우주에서 온 색채: 영어 전사본",
       "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx"
+    },
+    {
+      "title": "인스머스의 그림자: Weird Tales 1942년 1월호 전사본",
+      "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
     }
   ],
   "cards": [
@@ -1317,6 +1321,112 @@
           "document": "supplementary.md",
           "section": "supp-colour-from-space",
           "evidence": "a colour out of space"
+        }
+      ]
+    },
+    {
+      "key": "innsmouth",
+      "title": "인스머스",
+      "cardType": "location",
+      "body": "매사추세츠 해안의 오래된 항구 마을이다. 화자는 1927년 뉴버리포트에서 아컴으로 가는 버스를 타고 이곳을 방문한다. 머넉셋강이 바다로 흘러드는 곳에 있으며, 항구와 폭포, 버려진 거리와 정제소가 마을 풍경을 이룬다.\n\n출전: [인스머스의 그림자: Weird Tales 1942년 1월호 전사본](https://www.gutenberg.org/files/73181/73181-h/73181-h.htm), 제I·II부.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-innsmouth",
+          "evidence": "ancient Massachusetts seaport of Innsmouth"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "supp-innsmouth-ii",
+          "evidence": "where the Manuxet joins the sea"
+        }
+      ]
+    },
+    {
+      "key": "devil-reef",
+      "title": "데빌 리프",
+      "cardType": "location",
+      "body": "인스머스 항구에서 약 1.5마일 떨어진 낮고 검은 암초다. 바다 쪽에 깊은 곳이 이어지며, 마을 사람들에 관한 소문과 연결된다. 암초 주변의 사건은 소문과 화자의 서술을 구분해 읽는다.\n\n출전: [인스머스의 그림자: Weird Tales 1942년 1월호 전사본](https://www.gutenberg.org/files/73181/73181-h/73181-h.htm), 제I부.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-devil-reef",
+          "evidence": "a full mile and a half out from Innsmouth Harbor"
+        }
+      ]
+    },
+    {
+      "key": "esoteric-order-of-dagon",
+      "title": "다곤 비밀 교단",
+      "cardType": "organization",
+      "body": "뉴버리포트의 틸턴은 인스머스에 자리 잡은 비밀 교단이 기존 교회들을 흡수하고 마을에 큰 영향력을 갖게 됐다고 말한다. 다음 날 화자는 교단의 간판이 있는 건물을 본다. 교단의 기원과 의식에 관한 설명은 틸턴과 다른 증언자의 이야기로 남는다.\n\n출전: [인스머스의 그림자: Weird Tales 1942년 1월호 전사본](https://www.gutenberg.org/files/73181/73181-h/73181-h.htm), 제I·II부.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-esoteric-order-of-dagon",
+          "evidence": "The Esoteric Order of Dagon"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "supp-esoteric-order-of-dagon-ii",
+          "evidence": "Esoteric Order of Dagon"
+        }
+      ]
+    },
+    {
+      "key": "innsmouth-decline",
+      "title": "인스머스의 쇠퇴와 변화",
+      "cardType": "event",
+      "body": "화자가 도서관에서 읽은 지역 기록에 따르면 인스머스는 1643년에 세워졌고 조선업과 해상 무역, 이후 공장으로 번성했다. 1846년 전염병과 폭동은 기록이 드물며 남북전쟁 이후 주요 산업은 마시 정제소에 집중됐다. 화자가 1927년에 본 마을에는 버려진 부두와 무너져 가는 건물이 많다.\n\n출전: [인스머스의 그림자: Weird Tales 1942년 1월호 전사본](https://www.gutenberg.org/files/73181/73181-h/73181-h.htm), 제I·II부.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-innsmouth-decline",
+          "evidence": "The epidemic and riots of 1846"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "supp-innsmouth-decline-ii",
+          "evidence": "there were great seaward gaps"
+        }
+      ]
+    },
+    {
+      "key": "innsmouth-zadok-account",
+      "title": "자독 앨런의 암초 이야기",
+      "cardType": "event",
+      "body": "노인 자독 앨런은 오비드 마시가 남태평양에서 들은 이야기를 좇아 암초에서 의식을 치렀고, 이후 항구에 물고기가 몰려들었다고 화자에게 말한다. 그는 1846년 체포와 그 뒤의 참사도 들려주지만, 이는 자독의 증언이며 기록과는 구분된다.\n\n출전: [인스머스의 그림자: Weird Tales 1942년 1월호 전사본](https://www.gutenberg.org/files/73181/73181-h/73181-h.htm), 제III부.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-innsmouth-zadok-account",
+          "evidence": "fish began to swarm into the harbor"
+        }
+      ]
+    },
+    {
+      "key": "innsmouth-federal-investigation",
+      "title": "인스머스 연방 조사",
+      "cardType": "event",
+      "body": "화자에 따르면 1927~28년 겨울 연방 정부가 인스머스를 비밀 조사했고 2월에 대규모 체포와 해안가 건물 철거가 이어졌다. 화자는 자신의 탈출과 신고가 조사로 이어졌다고 주장한다. 암초 너머 잠수함에 관한 보도는 단 한 신문의 이야기로 제시된다.\n\n출전: [인스머스의 그림자: Weird Tales 1942년 1월호 전사본](https://www.gutenberg.org/files/73181/73181-h/73181-h.htm), 제I부.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-innsmouth-federal-investigation",
+          "evidence": "Federal government officials made a strange and secret investigation"
+        }
+      ]
+    },
+    {
+      "key": "yha-nthlei",
+      "title": "이하나틀레이",
+      "cardType": "location",
+      "body": "화자는 바닷속 궁전에서 할머니와 그 할머니를 만나는 꿈을 꾸고, 이하나틀레이가 바다에 가해진 공격으로 상처를 입었지만 파괴되지는 않았다는 이야기를 듣는다. 이후 화자는 암초 너머 깊은 바다의 도시로 향하겠다고 말한다. 도시와 그 운명은 꿈의 내용과 화자의 계획으로 구분한다.\n\n출전: [인스머스의 그림자: Weird Tales 1942년 1월호 전사본](https://www.gutenberg.org/files/73181/73181-h/73181-h.htm), 제V부.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-yha-nthlei",
+          "evidence": "Y'ha-nthlei was not destroyed"
         }
       ]
     }
