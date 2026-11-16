@@ -1,0 +1,2774 @@
+[
+  {
+    "id": "96288bb4-1baa-5a61-bae0-4364ce4da9a8",
+    "title": "토비 의사",
+    "body": "윌콕스가 열병과 섬망에 시달리는 동안 진료했으며 앤젤에게 환자의 발언을 전한다. 출전: 크툴루의 부름 I — https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "tobey",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "크툴루의 부름 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "location": "크툴루의 부름 I · 토비 의사에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "크툴루의 부름 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "크툴루의 부름 I",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "크툴루의 부름 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "220532aa-2795-5782-9690-540e3a865016",
+    "title": "아르두아 보노",
+    "body": "1926년 파리 봄 살롱에 「꿈의 풍경」을 출품한 화가로, 앤젤이 수집한 기사에 등장한다. 출전: 크툴루의 부름 I — https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "ardois-bonnot",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "크툴루의 부름 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "location": "크툴루의 부름 I · 아르두아 보노에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "크툴루의 부름 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "크툴루의 부름 I",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "크툴루의 부름 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "8ba145d7-9368-57ec-99bd-2ec6dcaa37d1",
+    "title": "꿈의 풍경",
+    "body": "아르두아 보노가 1926년 파리 봄 살롱에 내건 그림으로 신문 스크랩에 기록된다. 출전: 크툴루의 부름 I — https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+    "cardType": "object",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "dream-landscape",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "크툴루의 부름 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "location": "크툴루의 부름 I · 꿈의 풍경에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "크툴루의 부름 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "크툴루의 부름 I",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "크툴루의 부름 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "61b87d1a-35d5-57fe-8f7c-3d3617df8610",
+    "title": "플뢰르 드 리스 건물",
+    "body": "프로비던스에서 조각가 윌콕스가 혼자 살던 건물이다. 출전: 크툴루의 부름 I — https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+    "cardType": "location",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "fleur-de-lys",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "크툴루의 부름 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "location": "크툴루의 부름 I · 플뢰르 드 리스 건물에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "크툴루의 부름 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "크툴루의 부름 I",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "크툴루의 부름 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ce38a569-2b3e-5fc4-ba7e-4904b4473df7",
+    "title": "서그린란드의 돌 부조",
+    "body": "웹 교수는 서그린란드에서 본 거친 돌 부조의 형상과 문자가 르그라스 석상과 근본적으로 닮았다고 증언한다. 출전: 크툴루의 부름 II — https://www.hplovecraft.com/writings/texts/fiction/cc.aspx 기존 카드 webb와 내용 중복 가능.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "webb-greenland-tablet",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "location": "크툴루의 부름 II · 서그린란드의 돌 부조에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "59821f14-639a-5bef-b88f-7722889f911c",
+          "title": "윌리엄 채닝 웹",
+          "basis": "관련 대상 또는 기존 카드 내용과 겹칠 가능성; 동일 여부 미확정"
+        }
+      ],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "크툴루의 부름 II",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "437fb858-d35a-5b44-8c34-131c107680a2",
+    "title": "조지프 D. 갈베스",
+    "body": "늪 급습에 참가한 사람으로 멀리서 응답과 날개 소리, 빛나는 눈을 보았다고 암시한다. 서스턴은 그의 진술을 상상과 지역 전설의 영향일 수 있다고 의심한다. 출전: 크툴루의 부름 II — https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "galvez",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "location": "크툴루의 부름 II · 조지프 D. 갈베스에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "location": "늪 급습 대목의 갈베스가 암시한 목격",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "excerpt_found_in_download": true
+        },
+        {
+          "unit": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "크툴루의 부름 II",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
+        },
+        {
+          "unit": "크툴루의 부름 II",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "28ec28e4-b6f8-5e1f-9972-0c88f7588789",
+    "title": "검은 날개를 가진 존재들",
+    "body": "체포된 신도들은 의식 살인이 자신들이 아니라 숲에서 온 검은 날개 존재들의 소행이라고 주장한다. 서술자는 그들의 증언이 일관되지 않는다고 밝힌다. 출전: 크툴루의 부름 II — https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+    "cardType": "other",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "black-winged-ones",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "location": "크툴루의 부름 II · 검은 날개를 가진 존재들에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "크툴루의 부름 II",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "a39d29ff-110d-59d7-88c7-5202917a0fb6",
+    "title": "카스트로가 말하는 바닷물의 차단",
+    "body": "카스트로의 전승에 따르면 르뤼에가 바다에 잠기면서 깊은 물이 꿈을 통한 교신을 끊었다. 이는 그가 전한 주장이다. 출전: 크툴루의 부름 II — https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "castro-water-dream-barrier",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "location": "크툴루의 부름 II · 카스트로가 말하는 바닷물의 차단에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "61f6d92f-89a8-5c3e-98c0-3ca9d3459832",
+          "title": "꿈과 의식의 연락",
+          "basis": "관련 대상 또는 기존 카드 내용과 겹칠 가능성; 동일 여부 미확정"
+        }
+      ],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "크툴루의 부름 II",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "9471d8b1-d33e-52eb-90ac-57ecb13ecab0",
+    "title": "서그린란드 의식과 주술사",
+    "body": "웹의 진술에는 연로한 주술 사제가 들려준 의식문과 거친 부조가 등장한다. 원문은 이누이트를 인종주의적으로 묘사하므로 이야기 속 편견과 실제 문화는 구분한다. 출전: 크툴루의 부름 II — https://www.hplovecraft.com/writings/texts/fiction/cc.aspx 기존 카드 cult-chant와 내용 중복 가능.",
+    "cardType": "other",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "greenland-ritual",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "location": "크툴루의 부름 II · 서그린란드 의식과 주술사에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "89a8c120-7051-54d3-8c03-d18d147ef10a",
+          "title": "두 지역에서 일치한 의식문",
+          "basis": "관련 대상 또는 기존 카드 내용과 겹칠 가능성; 동일 여부 미확정"
+        },
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "59821f14-639a-5bef-b88f-7722889f911c",
+          "title": "윌리엄 채닝 웹",
+          "basis": "관련 대상 또는 기존 카드 내용과 겹칠 가능성; 동일 여부 미확정"
+        }
+      ],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "크툴루의 부름 II",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "c7b8cdde-76e3-5cee-98fb-95e265832b8a",
+    "title": "윌콕스의 후속 조각상",
+    "body": "서스턴이 방문했을 때 윌콕스의 방에 있던 조각상으로, 작가는 형상이 무의식적으로 손에서 나왔다고 말한다. 출전: 크툴루의 부름 II — https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+    "cardType": "object",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "wilcox-statue",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "location": "크툴루의 부름 II · 윌콕스의 후속 조각상에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "크툴루의 부름 II",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "크툴루의 부름 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "6364e2dc-8b01-5c57-823c-f2f31c3b7526",
+    "title": "던이든 얼러트호 소유 집단",
+    "body": "신문 기사는 얼러트호가 수상한 야간 모임을 갖던 던이든 집단 소유의 교역선이었다고 전한다. 출전: 크툴루의 부름 III — https://www.hplovecraft.com/writings/texts/fiction/cc.aspx 기존 카드 alert와 내용 중복 가능.",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "dunedin-alert-owners",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "크툴루의 부름 III",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "location": "크툴루의 부름 III · 던이든 얼러트호 소유 집단에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "크툴루의 부름 III",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "e335a85d-eb9a-5c29-ab00-04e2aaf8911c",
+          "title": "얼러트호",
+          "basis": "관련 대상 또는 기존 카드 내용과 겹칠 가능성; 동일 여부 미확정"
+        }
+      ],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "크툴루의 부름 III",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "크툴루의 부름 III",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "88fe12d2-7f56-5ec4-94f4-7bc9492a265b",
+    "title": "르뤼에의 거대한 문",
+    "body": "요한센 수기에 따르면 거대한 문에는 촉수와 용을 닮은 부조가 있고 도너번이 가장자리를 눌러 열었다. 출전: 크툴루의 부름 III — https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+    "cardType": "object",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "rlyeh-portal",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "크툴루의 부름 III",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "location": "크툴루의 부름 III · 르뤼에의 거대한 문에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "크툴루의 부름 III",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "8efe75e2-e73b-52ef-9223-0f9b1d44a2ec",
+          "title": "섬의 상륙과 문 개방",
+          "basis": "입력 후보의 중복 지목 또는 관련 장면; 동일 여부 미확정"
+        }
+      ],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "크툴루의 부름 III",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "크툴루의 부름 III",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "9d55e829-c448-561d-a0d0-6c29991239fd",
+    "title": "파커",
+    "body": "상륙대의 한 사람으로, 요한센은 도주 중 그가 비정상적인 석조물의 각에 삼켜졌다고 맹세한다. 출전: 크툴루의 부름 III — https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "parker",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "크툴루의 부름 III",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "location": "크툴루의 부름 III · 파커에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "크툴루의 부름 III",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "크툴루의 부름 III",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "크툴루의 부름 III",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cc.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "0147ecce-4afd-5ae6-82c0-c0bae314f63f",
+    "title": "센티널 힐과 제단형 바위",
+    "body": "정상에 거친 돌기둥 고리와 탁자 같은 바위가 있는 던위치의 언덕이다. 유골을 두고 주민 전승과 민족학자들의 해석이 엇갈린다. 출전: 던위치의 공포 I — https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "cardType": "location",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "sentinel-hill",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "던위치의 공포 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "location": "던위치의 공포 I · 센티널 힐과 제단형 바위에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "던위치의 공포 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "던위치의 공포 I",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "던위치의 공포 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "a9be942c-8757-5963-928a-24a37b5f0734",
+    "title": "악마의 홉밭",
+    "body": "나무와 관목과 풀이 자라지 않는 황량한 언덕 비탈로, 현지에 여러 설명이 전해진다. 출전: 던위치의 공포 I — https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "cardType": "location",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "devils-hop-yard",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "던위치의 공포 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "location": "던위치의 공포 I · 악마의 홉밭에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "던위치의 공포 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "던위치의 공포 I",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "던위치의 공포 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "21b91ee2-57de-5de8-9e85-fe2cf998a365",
+    "title": "애비자 호들리 목사",
+    "body": "1747년 지하의 목소리에 관해 설교하고 그 직후 실종된 던위치 회중교회 목사다. 인쇄된 설교문이 남았다고 한다. 출전: 던위치의 공포 I — https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "hoadley",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "던위치의 공포 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "location": "던위치의 공포 I · 애비자 호들리 목사에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "던위치의 공포 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "던위치의 공포 I",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "던위치의 공포 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "c89fe879-5de2-5fec-b204-3925aea0702b",
+    "title": "쏙독새와 영혼의 지역 전승",
+    "body": "던위치 주민들은 쏙독새가 죽어가는 이의 영혼을 기다린다고 믿으며 새 울음이 호흡과 맞는다고 전한다. 사실로 검증된 규칙이 아닌 지역 전승이다. 출전: 던위치의 공포 I — https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "whippoorwill-soul-lore",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "던위치의 공포 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "location": "던위치의 공포 I · 쏙독새와 영혼의 지역 전승에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "던위치의 공포 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "location": "던위치의 공포 I · 쏙독새와 영혼의 지역 전승에 관한 서술의 추가 대목",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "던위치의 공포 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "excerpt_found_in_download": true
+        },
+        {
+          "unit": "던위치의 공포 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "던위치의 공포 I",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "던위치의 공포 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx"
+        },
+        {
+          "unit": "던위치의 공포 I",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "던위치의 공포 I",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "7d1791c4-0763-5baf-bee9-362d15501f25",
+    "title": "라비니아 웨이틀리",
+    "body": "윌버의 어머니로 아버지에게서 오래된 지식을 배웠으며 집안의 낡은 책들을 읽으려 한다. 출전: 던위치의 공포 II — https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "lavinia-whateley",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "던위치의 공포 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "location": "던위치의 공포 II · 라비니아 웨이틀리에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "던위치의 공포 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "location": "던위치의 공포 II · 라비니아 웨이틀리에 관한 서술의 추가 대목",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "던위치의 공포 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "excerpt_found_in_download": true
+        },
+        {
+          "unit": "던위치의 공포 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "던위치의 공포 II",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "던위치의 공포 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx"
+        },
+        {
+          "unit": "던위치의 공포 II",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "던위치의 공포 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "7c644b91-0d6d-519d-81b1-087bedb04837",
+    "title": "늙은 웨이틀리",
+    "body": "라비니아의 아버지이자 윌버의 외조부다. 지역에 마술에 관한 소문이 있고 손자 출생 뒤 소를 사들이기 시작한다. 출전: 던위치의 공포 II — https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "old-whateley",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "던위치의 공포 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "location": "던위치의 공포 II · 늙은 웨이틀리에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "던위치의 공포 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "던위치의 공포 II",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "던위치의 공포 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx"
+        }
+      ],
+      "review_notes": [
+        "인용된 짧은 구절만으로 본문의 모든 관계·사건을 확인할 수 없다. 원문 문맥 대조가 필요하다."
+      ]
+    }
+  },
+  {
+    "id": "4fa94bba-8616-56e1-9b08-b5f9e023df6b",
+    "title": "헨리 아미티지",
+    "body": "미스캐토닉 대학 도서관 사서로, 윌버가 네크로노미콘 두 판을 대조하는 모습을 보고 라틴어 본문을 해석한다. 출전: 던위치의 공포 V — https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "henry-armitage",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "던위치의 공포 V",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "location": "던위치의 공포 V · 헨리 아미티지에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "던위치의 공포 V",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [
+        {
+          "file": "genre-templates-v2.json",
+          "genre": "cthulhu_mythos",
+          "id": "914f51cf-d10c-5fb8-b3ba-069749172532",
+          "title": "미스캐토닉 대학 도서관",
+          "basis": "제목 일치 또는 기존 본문에 후보 제목 포함; 의미상 동일 여부 미확정"
+        },
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "914f51cf-d10c-5fb8-b3ba-069749172532",
+          "title": "미스캐토닉 대학 도서관",
+          "basis": "제목 일치 또는 기존 본문에 후보 제목 포함; 의미상 동일 여부 미확정"
+        }
+      ],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "던위치의 공포 V",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "던위치의 공포 V",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "9260083e-1b82-5584-8614-e6b2d6879c06",
+    "title": "웨이틀리 농가",
+    "body": "던위치 마을에서 4마일 떨어진 산비탈의 외딴 농가로 윌버가 태어난 곳이다. 출전: 던위치의 공포 II — https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "cardType": "location",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "whateley-farm",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "던위치의 공포 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "location": "던위치의 공포 II · 웨이틀리 농가에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "던위치의 공포 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [
+        {
+          "file": "genre-templates-v2.json",
+          "genre": "cthulhu_mythos",
+          "id": "1ba5d588-1a90-5ed9-b5e8-551a17dbbe6b",
+          "title": "윌버 웨이틀리",
+          "basis": "제목 일치 또는 기존 본문에 후보 제목 포함; 의미상 동일 여부 미확정"
+        },
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "1ba5d588-1a90-5ed9-b5e8-551a17dbbe6b",
+          "title": "윌버 웨이틀리",
+          "basis": "제목 일치 또는 기존 본문에 후보 제목 포함; 의미상 동일 여부 미확정"
+        }
+      ],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "던위치의 공포 II",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "던위치의 공포 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "85de772b-33d6-5d0d-b1ee-e9c2b70b87dc",
+    "title": "웨이틀리 가축 구입과 상처",
+    "body": "가족은 수년간 소를 계속 사지만 보이는 가축은 적고 상처와 빈혈처럼 보이는 징후가 관찰된다. 원문은 원인에 여러 추정을 남긴다. 출전: 던위치의 공포 II — https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+    "cardType": "event",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "whateley-cattle",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "던위치의 공포 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "location": "던위치의 공포 II · 웨이틀리 가축 구입과 상처에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "던위치의 공포 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "던위치의 공포 II",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "던위치의 공포 II",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "5d4505c0-b0e1-5e0c-ad33-1ba5021143a2",
+    "title": "다곤의 표류 선원",
+    "body": "태평양에서 독일 함선에 붙잡혔다가 작은 배로 탈출한 화물 감독이다. 단석과 형상을 본 일이 환각이었을 가능성도 스스로 묻는다. 출전: 다곤 본문 — https://www.hplovecraft.com/writings/texts/fiction/d.aspx 기존 카드 dagon-voyage와 내용 중복 가능.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "dagon-sailor",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "다곤 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/d.aspx",
+          "location": "다곤 본문 · 다곤의 표류 선원에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "다곤 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/d.aspx",
+          "location": "다곤 본문 · 다곤의 표류 선원에 관한 서술의 추가 대목",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "다곤 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/d.aspx",
+          "excerpt_found_in_download": true
+        },
+        {
+          "unit": "다곤 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/d.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "425c4c21-3132-537a-9fa6-24c18a2b303e",
+          "title": "표류한 선원의 발견",
+          "basis": "관련 대상 또는 기존 카드 내용과 겹칠 가능성; 동일 여부 미확정"
+        }
+      ],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "다곤 본문",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "다곤 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/d.aspx"
+        },
+        {
+          "unit": "다곤 본문",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "다곤 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/d.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ecd08715-292f-5818-89c6-3cf2c076c7f2",
+    "title": "다곤 단석의 해양 부조",
+    "body": "화자는 물갈퀴가 있는 인간형 존재들과 바다 밑 신전을 그린 커다란 부조를 본다. 그는 한때 이를 어부들의 상상 속 신으로 해석한다. 출전: 다곤 본문 — https://www.hplovecraft.com/writings/texts/fiction/d.aspx 기존 카드 dagon-monolith와 내용 중복 가능.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "dagon-carvings",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "다곤 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/d.aspx",
+          "location": "다곤 본문 · 다곤 단석의 해양 부조에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "다곤 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/d.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "51e313a7-6dee-532b-acb8-0f957112802b",
+          "title": "바다 밑에서 드러난 단석",
+          "basis": "관련 대상 또는 기존 카드 내용과 겹칠 가능성; 동일 여부 미확정"
+        }
+      ],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "다곤 본문",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "다곤 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/d.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bb47a46b-e8c1-5717-b0dd-89e35e18bb44",
+    "title": "아미 피어스",
+    "body": "가드너 가족의 이웃이자 생존한 목격자로, 측량사에게 운석과 농장의 참상을 회고한다. 출전: 우주에서 온 색채 본문 — https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "ammi-pierce",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "location": "우주에서 온 색채 본문 · 아미 피어스에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "49d98fdc-34dd-56df-b217-da72235403f1",
+    "title": "네이험 가드너",
+    "body": "운석이 떨어진 농장의 주인이다. 임종 무렵 우물의 색채가 생명을 빨아들였다고 아미에게 말한다. 출전: 우주에서 온 색채 본문 — https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "nahum-gardner",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "location": "우주에서 온 색채 본문 · 네이험 가드너에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx"
+        }
+      ],
+      "review_notes": [
+        "인용된 짧은 구절만으로 본문의 모든 관계·사건을 확인할 수 없다. 원문 문맥 대조가 필요하다."
+      ]
+    }
+  },
+  {
+    "id": "660d1953-c752-5986-b242-54a793c5704a",
+    "title": "내비 가드너",
+    "body": "네이험의 아내로, 불안과 발광에 관한 이야기를 한 뒤 병이 심해져 다락방에 갇힌다. 출전: 우주에서 온 색채 본문 — https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "nabby-gardner",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "location": "우주에서 온 색채 본문 · 내비 가드너에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "location": "우주에서 온 색채 본문 · 내비 가드너에 관한 서술의 추가 대목",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "excerpt_found_in_download": true
+        },
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx"
+        },
+        {
+          "unit": "우주에서 온 색채 본문",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "e073d183-e545-5331-8044-55a74d33872f",
+    "title": "새디어스 가드너",
+    "body": "가드너의 둘째 아들로 바람 없는 나뭇가지의 움직임을 먼저 보고 우물에 다녀온 뒤 정신이 흐려진다. 출전: 우주에서 온 색채 본문 — https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "thaddeus-gardner",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "location": "우주에서 온 색채 본문 · 새디어스 가드너에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "2b6bf0d0-c7ef-50da-b8f5-357a64ae1b6f",
+    "title": "머윈 가드너",
+    "body": "밤에 물을 길으러 갔다가 사라진 가드너의 어린 아들로, 조사자들은 뒤에 우물에서 그의 유해 일부를 발견한다. 출전: 우주에서 온 색채 본문 — https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "merwin-gardner",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "location": "우주에서 온 색채 본문 · 머윈 가드너에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx"
+        }
+      ],
+      "review_notes": [
+        "인용된 짧은 구절만으로 본문의 모든 관계·사건을 확인할 수 없다. 원문 문맥 대조가 필요하다."
+      ]
+    }
+  },
+  {
+    "id": "8de099e8-a3eb-59e5-a560-a58ab844c4df",
+    "title": "지너스 가드너",
+    "body": "가드너의 맏아들로 네이험의 지시에 따라 일하다가 사라지며, 이후 그의 유해 일부가 우물에서 발견된다. 출전: 우주에서 온 색채 본문 — https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "zenas-gardner",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "location": "우주에서 온 색채 본문 · 지너스 가드너에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "location": "우주에서 온 색채 본문 · 지너스 가드너에 관한 서술의 추가 대목",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "excerpt_found_in_download": true
+        },
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx"
+        },
+        {
+          "unit": "우주에서 온 색채 본문",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "03610137-d694-5f73-81a5-c5d904eb4b44",
+    "title": "가드너 농장의 우물",
+    "body": "운석이 떨어진 자리 옆의 우물이다. 오염된 듯한 물을 계속 마셨고, 조사자들이 우물에서 유해를 발견한 밤 색채가 솟아오른다. 출전: 우주에서 온 색채 본문 — https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+    "cardType": "location",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "gardner-well",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "location": "우주에서 온 색채 본문 · 가드너 농장의 우물에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "c4fa5e08-3ab2-5c83-a318-46d118ea2ac8",
+    "title": "운석 속 빛깔 있는 구체",
+    "body": "교수들이 운석에서 발견한 부서지기 쉬운 색채의 구체다. 망치에 터진 뒤 빈 공간이 남았으며 다른 구체가 있었는지는 추정이다. 출전: 우주에서 온 색채 본문 — https://www.hplovecraft.com/writings/texts/fiction/cs.aspx 기존 카드 gardner-meteorite와 내용 중복 가능.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "meteor-globule",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "location": "우주에서 온 색채 본문 · 운석 속 빛깔 있는 구체에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "939adc52-e442-500f-9c08-3653c213e256",
+          "title": "가드너 농장의 운석",
+          "basis": "입력 후보의 중복 지목 또는 관련 장면; 동일 여부 미확정"
+        }
+      ],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "1fc5d172-0e47-5351-bc27-fdce63233cbb",
+    "title": "운석의 대학 실험",
+    "body": "대학의 과학자들이 운석 조각을 분석하자 알려진 스펙트럼에 없는 띠가 나타났고 조각과 유리 비커가 사라졌다. 출전: 우주에서 온 색채 본문 — https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+    "cardType": "event",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "meteor-analysis",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "location": "우주에서 온 색채 본문 · 운석의 대학 실험에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "cd33d8cd-1b49-5267-b91b-08005fd421a6",
+    "title": "가드너 농장의 쇠퇴",
+    "body": "기묘한 빛깔의 초목은 이후 회색으로 변해 부서졌고 가축과 가족도 쓰러졌다. 색채가 생명을 흡수한다는 설명은 네이험과 아미의 추론이다. 출전: 우주에서 온 색채 본문 — https://www.hplovecraft.com/writings/texts/fiction/cs.aspx 기존 카드 colour-from-space와 내용 중복 가능.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "gardner-blight",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "location": "우주에서 온 색채 본문 · 가드너 농장의 쇠퇴에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "b7275967-6ab4-5369-95a4-5f1d8b641bdf",
+          "title": "우주에서 온 색채",
+          "basis": "입력 후보의 중복 지목 또는 관련 장면; 동일 여부 미확정"
+        }
+      ],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "057a5d30-4061-550c-bc5b-099020095f31",
+    "title": "아컴의 계획 저수지",
+    "body": "화자가 측량한 저수지는 황폐한 땅과 계곡을 물속에 잠기게 할 예정이다. 화자는 그 물을 마시지 않겠다고 말한다. 출전: 우주에서 온 색채 본문 — https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+    "cardType": "location",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "arkham-reservoir",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "location": "우주에서 온 색채 본문 · 아컴의 계획 저수지에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "6463040b-642f-5156-b965-e8f08d0c13b9",
+    "title": "히어로",
+    "body": "아미의 말로, 농가 조사 당일 우물에서 색채가 솟는 동안 죽는다. 출전: 우주에서 온 색채 본문 — https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "hero-horse",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "location": "우주에서 온 색채 본문 · 히어로에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "location": "우주에서 온 색채 본문 · 히어로에 관한 서술의 추가 대목",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "excerpt_found_in_download": true
+        },
+        {
+          "unit": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "우주에서 온 색채 본문",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx"
+        },
+        {
+          "unit": "우주에서 온 색채 본문",
+          "edition": "H. P. Lovecraft Archive 영어 전사본",
+          "range": "우주에서 온 색채 본문",
+          "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx"
+        }
+      ]
+    }
+  },
+  {
+    "id": "5d6724e5-006c-5eab-bfc5-6fe5e2a3c0c7",
+    "title": "인스머스 방문자",
+    "body": "뉴잉글랜드를 여행하다 인스머스의 소문을 듣고 방문한 화자다. 귀환 후 정부에 조사를 요청했다고 밝힌다. 출전: 인스머스의 그림자 I — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm 기존 카드 innsmouth-federal-investigation와 내용 중복 가능.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "innsmouth-narrator",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 I",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 I · 인스머스 방문자에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 I",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "1809da5f-ce53-5984-9436-ba5f2cb81fdb",
+          "title": "인스머스 연방 조사",
+          "basis": "입력 후보의 중복 지목 또는 관련 장면; 동일 여부 미확정"
+        }
+      ],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 I",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 I",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "c4889b4e-0a44-5996-9c3a-2ff5b94d76e2",
+    "title": "조 사전트",
+    "body": "뉴버리포트와 인스머스, 아컴을 잇는 버스 운전사다. 화자는 그의 생김새와 걸음걸이를 불편하게 관찰한다. 출전: 인스머스의 그림자 II — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "joe-sargent",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 II",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 II · 조 사전트에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 II",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 II",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 II",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "01806ea0-db69-5a4b-8b25-1c629bd96abc",
+    "title": "자독 앨런",
+    "body": "96세 인스머스 주민으로, 술을 마신 뒤 마을의 과거를 단편적으로 이야기한다고 식료품점 직원이 소개한다. 출전: 인스머스의 그림자 II — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "zadok-allen",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 II",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 II · 자독 앨런에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 II",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [
+        {
+          "file": "genre-templates-v2.json",
+          "genre": "cthulhu_mythos",
+          "id": "a6d674aa-7b01-5e70-b52f-813085c15e7c",
+          "title": "자독 앨런의 암초 이야기",
+          "basis": "제목 일치 또는 기존 본문에 후보 제목 포함; 의미상 동일 여부 미확정"
+        },
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "a6d674aa-7b01-5e70-b52f-813085c15e7c",
+          "title": "자독 앨런의 암초 이야기",
+          "basis": "관련 대상 또는 기존 카드 내용과 겹칠 가능성; 동일 여부 미확정"
+        }
+      ],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 II",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 II",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "5f8094c4-d974-5583-841e-232b9ffb62b7",
+    "title": "오벳 마시 선장",
+    "body": "자독의 증언에서 남태평양의 거래와 의식을 인스머스로 들여온 선장이자 정련소 창립자다. 여러 세부는 자독이 전해 들은 이야기다. 출전: 인스머스의 그림자 III — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "obed-marsh",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 III · 오벳 마시 선장에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "a6d674aa-7b01-5e70-b52f-813085c15e7c",
+          "title": "자독 앨런의 암초 이야기",
+          "basis": "관련 대상 또는 기존 카드 내용과 겹칠 가능성; 동일 여부 미확정"
+        }
+      ],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "eb407a91-8751-59e8-b0f3-9c697b38f5f7",
+    "title": "맷 엘리엇",
+    "body": "자독이 전하는 오벳 선장의 일등항해사로, 섬에서의 의식과 마을에서 이를 따르는 일에 반대했다고 한다. 출전: 인스머스의 그림자 III — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "matt-eliot",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 III · 맷 엘리엇에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ffbcd3ec-92f0-52c4-a75f-ebce846e1709",
+    "title": "왈라케아",
+    "body": "자독의 재전언에 등장하는 남태평양 섬의 추장이다. 오벳에게 바다 존재와의 거래를 들려주고 그들을 부를 물건을 건넸다고 한다. 출전: 인스머스의 그림자 III — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "walakea",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 III · 왈라케아에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "8a7082bd-a5a1-56a6-a567-bc9cf52d45ea",
+    "title": "왈라케아의 납빛 물건",
+    "body": "자독에 따르면 왈라케아가 오벳에게 준 납 같은 물건은 알맞은 기도와 함께 바다에 떨어뜨려 존재들을 부르는 데 쓰인다. 출전: 인스머스의 그림자 III — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "object",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "walakea-token",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 III · 왈라케아의 납빛 물건에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 III · 왈라케아의 납빛 물건에 관한 서술의 추가 대목",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        },
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        },
+        {
+          "unit": "인스머스의 그림자 III",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "127f19f6-4733-5c3b-a1cf-1ac8f5e11a29",
+    "title": "남태평양 섬의 거래",
+    "body": "자독이 오벳과 맷의 이야기를 전하며 묘사한 거래다. 섬 주민들이 희생을 제공하고 바다의 존재들에게 물고기와 금빛 물건을 받았다고 한다. 출전: 인스머스의 그림자 III — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "event",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "pacific-island-compact",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 III · 남태평양 섬의 거래에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "382d2e34-0646-5630-ae4e-fe31f3e44213",
+    "title": "바다 존재의 후손에 관한 자독의 증언",
+    "body": "자독은 인간과 바다 존재의 자녀가 처음엔 인간처럼 보이다가 저마다 다른 속도로 변화하며 일부는 물속에 들어간다고 주장한다. 출전: 인스머스의 그림자 III — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm 기존 카드 innsmouth-zadok-account와 내용 중복 가능.",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "deep-one-change",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 III · 바다 존재의 후손에 관한 자독의 증언에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "a6d674aa-7b01-5e70-b52f-813085c15e7c",
+          "title": "자독 앨런의 암초 이야기",
+          "basis": "입력 후보의 중복 지목 또는 관련 장면; 동일 여부 미확정"
+        }
+      ],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "523a3108-a7e8-50e5-9d0f-cf0720b851c3",
+    "title": "다곤의 맹세",
+    "body": "자독은 주민들이 첫 번째 맹세를 해야 했으며 일부는 두 번째와 세 번째도 했다고 말한다. 자신은 두 번까지 했고 세 번째를 거절했다고 증언한다. 출전: 인스머스의 그림자 III — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm 기존 카드 esoteric-order-of-dagon와 내용 중복 가능.",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "dagon-oaths",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 III · 다곤의 맹세에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "467127c8-4aad-56cc-9084-41a6935966ec",
+          "title": "다곤 비밀 교단",
+          "basis": "입력 후보의 중복 지목 또는 관련 장면; 동일 여부 미확정"
+        }
+      ],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "a132c3a3-6f9f-5db6-9327-bb846de355ad",
+    "title": "어머니 히드라",
+    "body": "자독은 교단 신앙을 전하면서 자손이 어머니 히드라와 아버지 다곤에게 돌아간다고 말한다. 이름 외의 신체나 역할은 확정하지 않는다. 출전: 인스머스의 그림자 III — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "other",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "mother-hydra",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 III · 어머니 히드라에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "3ba1ccb4-d57b-522e-b2b3-4e02d58b0986",
+    "title": "아버지 다곤",
+    "body": "자독이 교단의 믿음을 전하며 어머니 히드라와 함께 부르는 이름이다. 《다곤》의 바다 형상과 동일하다고 단정할 근거는 이 구간에 없다. 출전: 인스머스의 그림자 III — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm 기존 카드 dagon-figure와 내용 중복 가능.",
+    "cardType": "other",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "father-dagon",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 III · 아버지 다곤에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 III · 아버지 다곤에 관한 서술의 추가 대목",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        },
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "2e266bdf-c012-5f5d-8c85-005a49eb2dd7",
+          "title": "다곤의 이름과 바다의 형상",
+          "basis": "관련 대상 또는 기존 카드 내용과 겹칠 가능성; 동일 여부 미확정"
+        }
+      ],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        },
+        {
+          "unit": "인스머스의 그림자 III",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "36f76749-6be4-5003-a25a-c58e0198ca04",
+    "title": "뉴버리포트의 티아라",
+    "body": "1873년 인스머스 사람이 전당 잡힌 장신구로, 뉴버리포트 역사협회에 보관되어 마시 가문이 거듭 매입을 시도한다. 출전: 인스머스의 그림자 I — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "object",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "innsmouth-tiara",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 I",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 I · 뉴버리포트의 티아라에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 I",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 I",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 I",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "715c7f32-b7f0-5871-8623-5987792df5cc",
+    "title": "애나 틸턴",
+    "body": "뉴버리포트 역사협회 관리인으로 화자에게 티아라를 보여 주고 해적의 보물일 수 있다는 자신의 견해를 말한다. 출전: 인스머스의 그림자 I — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "anna-tilton",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 I",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 I · 애나 틸턴에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 I",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 I",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 I",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "a9408a0d-446a-54bc-8cc3-73c0498abce9",
+    "title": "길먼 하우스",
+    "body": "인스머스 광장에 자리한 오래된 호텔로, 화자는 로비에 여행 가방을 맡긴다. 출전: 인스머스의 그림자 II — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "location",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "gilman-house",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 II",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 II · 길먼 하우스에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 II",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 II",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 II",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bc82dd94-4116-5004-ad56-7b2db588418e",
+    "title": "마시 정련소",
+    "body": "마누셋 강의 가파른 강변에 있는 정련소다. 화자는 지나가며 산업 시설치고 소음이 거의 없다고 느낀다. 출전: 인스머스의 그림자 II — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "location",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "marsh-refinery",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 II",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 II · 마시 정련소에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 II",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 II",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 II",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "220568cd-ac5b-58f3-9dc2-3d0dd04d0b11",
+    "title": "바너버스 마시",
+    "body": "자독에 따르면 현재 정련소를 운영하는 오벳의 손자로 변화가 진행 중이다. 이는 자독의 증언이다. 출전: 인스머스의 그림자 III — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "barnabas-marsh",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 III · 바너버스 마시에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 III · 바너버스 마시에 관한 서술의 추가 대목",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        },
+        {
+          "unit": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 III",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        },
+        {
+          "unit": "인스머스의 그림자 III",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 III",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "aab2c2e9-abe7-5066-9813-ecd28321503d",
+    "title": "일라이자 오른",
+    "body": "화자의 아컴 출신 외할머니로 어릴 때 실종된 것으로 알려졌다. 이후 화자의 꿈에서 바닷속에 살고 있다고 말한다. 출전: 인스머스의 그림자 V — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "eliza-orne",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 V · 일라이자 오른에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ],
+      "review_notes": [
+        "원문은 화자가 여덟 살일 때 외할머니가 사라졌다고 서술한다. 후보의 ‘어릴 때 실종’은 외할머니가 어릴 때로 오해될 수 있으므로 표현 검토가 필요하며, 입력 본문은 보존했다.",
+        "인용된 짧은 구절만으로 본문의 모든 관계·사건을 확인할 수 없다. 원문 문맥 대조가 필요하다."
+      ]
+    }
+  },
+  {
+    "id": "19ddfca0-8f66-5092-8be9-ca7809eff11f",
+    "title": "더글러스 외삼촌",
+    "body": "화자의 외삼촌으로 뉴잉글랜드에서 가족사를 조사한 뒤 스스로 목숨을 끊었다. 화자는 그 이유를 짐작하지만 확정하지 못한다. 출전: 인스머스의 그림자 V — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "douglas-uncle",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 V · 더글러스 외삼촌에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "2a11c1bb-c7fe-553c-8546-1fa19923e4ae",
+    "title": "사촌 로런스",
+    "body": "화자의 사촌으로 캔턴의 요양 시설에 장기간 격리되어 있다. 화자는 마지막에 그를 데리고 바다로 가려 계획한다. 출전: 인스머스의 그림자 V — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "lawrence-cousin",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 V · 사촌 로런스에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "7e9a25b1-a0fc-5d7c-9544-8bb60fb5669f",
+    "title": "프스티아리",
+    "body": "화자의 꿈에서 외할머니의 할머니로 등장하며 이하나틀레이에서 8만 년을 살았다고 전해진다. 꿈의 진술이다. 출전: 인스머스의 그림자 V — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "character",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "pththya-lyi",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 V · 프스티아리에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "1bf3b846-9d69-530d-8803-447c14185e0c",
+    "title": "깊은 존재들",
+    "body": "화자는 꿈에서 이하나틀레이가 깊은 존재들의 거처이고 그들이 파괴되지 않는다는 말을 듣는다. 불멸과 향후 계획은 꿈의 진술로 한정한다. 출전: 인스머스의 그림자 V — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm 기존 카드 innsmouth-zadok-account와 내용 중복 가능.",
+    "cardType": "other",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "deep-ones",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 V · 깊은 존재들에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [
+        {
+          "file": "genre-templates.json",
+          "genre": "cthulhu_mythos",
+          "id": "a6d674aa-7b01-5e70-b52f-813085c15e7c",
+          "title": "자독 앨런의 암초 이야기",
+          "basis": "관련 대상 또는 기존 카드 내용과 겹칠 가능성; 동일 여부 미확정"
+        }
+      ],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "29abcbfc-9b9d-5e66-a5ae-430d288a040a",
+    "title": "꿈속의 쇼고스",
+    "body": "화자가 이하나틀레이에 관한 꿈에서 처음 보았다고 말하는 존재다. 모습과 성질은 이 전사 구간에서 구체적으로 확인되지 않는다. 출전: 인스머스의 그림자 V — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "other",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "shoggoth-dream",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 V · 꿈속의 쇼고스에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 V · 꿈속의 쇼고스에 관한 서술의 추가 대목",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        },
+        {
+          "unit": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        },
+        {
+          "unit": "인스머스의 그림자 V",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "c4f73ee1-af6e-5b30-847f-454b05fbf37a",
+    "title": "오른 가문의 유산 장신구",
+    "body": "화자의 증조모에게서 내려온 팔찌 두 점, 티아라, 가슴 장식으로 화자는 티아라를 보고 기절한다. 출전: 인스머스의 그림자 V — https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+    "cardType": "object",
+    "provenance": {
+      "segment": "cthulhu-mythos",
+      "candidate_key": "orne-jewels",
+      "input_path": "미게시-임시자료:myth/cthulhu-mythos.json",
+      "input_sha256": "87127b1bb25eb1ffeb1d5bc7e99d4a75323f38893bd0477d1bd7b4cecf76050b",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition_and_scope": "크툴루의 부름 영어 전사 전 3부 및 초출 서지; supplementary.md 지정 던위치 I·II·V, 다곤 본문, 우주에서 온 색채 본문, 인스머스 Weird Tales 1942년 1월 전사 I·II·III·V. 다른 부는 범위 밖. 기존 60장 보존, 증언과 꿈을 구분. 권리: 인스머스 전사본은 구텐베르크가 미국 내 갱신 기록을 찾지 못했다고 밝힘; 다른 지역의 저작권 상태는 별도 확인하지 않았다. 다른 전사 사이트의 이용 조건 및 지역별 권리 상태도 별도 확인하지 않았다.",
+      "evidence": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "location": "인스머스의 그림자 V · 오른 가문의 유산 장신구에 관한 서술",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "excerpt_checks": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+          "excerpt_found_in_download": true
+        }
+      ],
+      "translation_status": "한국어 요약·번역 후보, 공식 번역 아님; 권리 미확인",
+      "possible_duplicates": [],
+      "duplicate_decision": "개별 보존; 동일 여부 미확정",
+      "evidence_editions": [
+        {
+          "unit": "인스머스의 그림자 V",
+          "edition": "Project Gutenberg의 Weird Tales 1942년 1월호 전사본",
+          "range": "인스머스의 그림자 V",
+          "url": "https://www.gutenberg.org/files/73181/73181-h/73181-h.htm"
+        }
+      ]
+    }
+  }
+]

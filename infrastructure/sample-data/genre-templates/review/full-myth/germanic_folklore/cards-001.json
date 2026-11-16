@@ -1,0 +1,96 @@
+[
+  {
+    "id": "5773c139-da13-5618-9552-a3afdb2f789f",
+    "title": "우물 아래의 꽃 핀 풀밭",
+    "body": "첫 소녀가 우물에 뛰어들어 정신을 잃은 뒤 깨어나는 곳이다. 햇빛이 비치고 수많은 꽃이 있으며, 소녀는 이곳을 걸어 화덕과 사과나무를 지나 홀레의 집으로 향한다. 둘째 소녀도 같은 풀밭에 닿아 같은 길을 따른다. 기존 우물·홀레의 집 카드와 연결되지만 별개의 장소다.\n\n출전: 「홀레 부인」 1857년 제7판, 133쪽 및 135쪽, https://de.wikisource.org/wiki/Frau_Holle_(1857)",
+    "cardType": "location",
+    "provenance": {
+      "input_segment": "germanic-folklore",
+      "input_key": "holle-sunny-meadow",
+      "input_file_sha256": "a16a0d30fba71aeb2b3f41f0b9552cfa31872d474838c2746192021774ca2b5a",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "그림 형제 어린이와 가정의 동화 1857년 제7판, 위키문헌 독일어 전사본",
+      "scope": "그림 형제 「홀레 부인」(1857년 제7판) 133~136쪽 본문 전체 및 134쪽 헤센 각주. source/supplementary.md가 존재하지 않아 지정된 별도 보충 구간은 없다. 다른 동화·고대 게르만·북유럽 신화를 결합하지 않는다. 기존 14장 보존.",
+      "evidence": [
+        {
+          "unit": "24. 홀레 부인, 133쪽",
+          "url": "https://de.wikisource.org/wiki/Frau_Holle_(1857)",
+          "location": "133쪽, 우물에 뛰어든 뒤",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "24. 홀레 부인, 135쪽",
+          "url": "https://de.wikisource.org/wiki/Frau_Holle_(1857)",
+          "location": "135쪽, 둘째 딸의 여정",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 요약, 비공식 번역",
+      "duplicate_candidates": [
+        {
+          "genre": "germanic_folklore",
+          "id": "cbb3ab9d-1aec-5806-9cd1-c273653257c5",
+          "title": "풀밭으로 이어지는 우물",
+          "reason": "같은 풀밭을 언급하지만 우물과 풀밭은 별개 장소다."
+        },
+        {
+          "genre": "germanic_folklore",
+          "id": "320e8c03-3d7a-575d-a273-7e0230a81759",
+          "title": "홀레가 머무는 작은 집",
+          "reason": "같은 풀밭 경로를 언급하지만 풀밭과 집은 별개 장소다."
+        }
+      ],
+      "integration_additional_evidence": [
+        {
+          "unit": "24. 홀레 부인, 133쪽",
+          "url": "https://de.wikisource.org/wiki/Frau_Holle_(1857)",
+          "location": "133쪽, 우물에서 깨어나 화덕까지",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "24. 홀레 부인, 133–134쪽",
+          "url": "https://de.wikisource.org/wiki/Frau_Holle_(1857)",
+          "location": "133–134쪽, 화덕에서 사과나무와 집까지",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "24. 홀레 부인, 134쪽",
+          "url": "https://de.wikisource.org/wiki/Frau_Holle_(1857)",
+          "location": "134쪽, 사과나무 다음의 집",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ]
+    }
+  },
+  {
+    "id": "4cd0949b-6f5b-551e-abb1-720a09115362",
+    "title": "헤센 지방의 눈 내리는 날 속담",
+    "body": "1857년 판본의 각주는 헤센에서는 눈이 오면 홀레 부인이 침구를 정돈한다고 말한다고 설명한다. 이는 본문에서 홀레가 침구의 깃털을 날리면 세상에 눈이 온다고 말하는 대목에 달린 지역적 주석이다. 기존 눈을 내리게 하는 침구 카드와 관련되므로 통합 시 중복을 검토할 수 있다.\n\n출전: 「홀레 부인」 1857년 제7판, 134쪽 각주 1, https://de.wikisource.org/wiki/Frau_Holle_(1857)",
+    "cardType": "other",
+    "provenance": {
+      "input_segment": "germanic-folklore",
+      "input_key": "hessian-snow-saying",
+      "input_file_sha256": "a16a0d30fba71aeb2b3f41f0b9552cfa31872d474838c2746192021774ca2b5a",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "그림 형제 어린이와 가정의 동화 1857년 제7판, 위키문헌 독일어 전사본",
+      "scope": "그림 형제 「홀레 부인」(1857년 제7판) 133~136쪽 본문 전체 및 134쪽 헤센 각주. source/supplementary.md가 존재하지 않아 지정된 별도 보충 구간은 없다. 다른 동화·고대 게르만·북유럽 신화를 결합하지 않는다. 기존 14장 보존.",
+      "evidence": [
+        {
+          "unit": "24. 홀레 부인, 134쪽 각주",
+          "url": "https://de.wikisource.org/wiki/Frau_Holle_(1857)",
+          "location": "134쪽 본문에 연결된 각주 1",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 요약, 비공식 번역",
+      "duplicate_candidates": [
+        {
+          "genre": "germanic_folklore",
+          "id": "ab1d6439-cc90-50b7-9938-afbf018f03ee",
+          "title": "눈을 내리게 하는 침구",
+          "reason": "기존 카드에 각주 정보가 포함되어 의미가 겹치지만 각주 자체와 침구는 유형과 범위가 다르므로 보존한다."
+        }
+      ]
+    }
+  }
+]

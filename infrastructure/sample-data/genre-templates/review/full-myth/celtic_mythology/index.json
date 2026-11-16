@@ -1,0 +1,569 @@
+{
+  "kind": "review_only_not_for_app_or_database",
+  "genre": "celtic_mythology",
+  "worldId": "9a085473-158b-5a61-ae38-df7843dc3dcb",
+  "world_id_usage": "기존 worldId는 UUIDv5 이름공간으로만 사용하며 세계관 분할이나 앱 적재를 의미하지 않음",
+  "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+  "current_repository_head": "3ec049e5f00dfc6b07c9b840631b159b5b68bd54",
+  "manifest_entry": {
+    "segment": "celtic-mythology",
+    "focus": "source/tradition-cards.json의 scope에 명시된 주 저본 전체와 supplementary.md에 명시된 보충 구간만 모두 읽고 장·작품별 coverage를 실제 작성.",
+    "units": [
+      "main-text",
+      "specified-supplements"
+    ],
+    "genre": "celtic_mythology",
+    "scope": "《브란의 항해》 한 작품의 1895년 마이어 영역본에 근거한 설정 카드. 이세계 노래·항해·귀환을 구분하며 기독교적 층위와 교감 판본의 불확실성도 보존한다.",
+    "existing_cards": 25,
+    "source_urls": [
+      "https://archive.org/details/voyageofbransono01scuoft"
+    ],
+    "kind": "myth"
+  },
+  "input_files": [
+    {
+      "path": "미게시-임시자료:myth/celtic-mythology.json",
+      "sha256": "8ba0cf7281b0e6b586016e72d22142ab78d5e14edf7076575fcb141759b55a74",
+      "candidate_count": 6,
+      "source_scope_and_access_report": "《브란의 항해》 마이어 1895년 제1권 영역 1–66절. 지정 저본 https://archive.org/details/voyageofbransono01scuoft의 전문 다운로드가 타임아웃되어 같은 마이어 영역을 제공하는 AncientTexts 전사 https://ancienttexts.org/library/celtic/ctexts/branvoyage.html로 전체 절을 읽었고 1895년 인쇄본 스캔 https://upload.wikimedia.org/wikipedia/commons/2/25/The_voyage_of_Bran%2C_son_of_Febal%2C_to_the_land_of_the_living%3B_an_old_Irish_saga_%28IA_cu31924096849629%29.pdf 의 발행 사항과 일부 구절·56절 주석을 대조했다. supplementary.md가 존재하지 않아 별도 지정 보충 구간은 없다. 전사는 1895년 영역을 표방하나 원래 인쇄본의 모든 주석·표기를 재현한다고 보증할 수 없다. 1895년 판본 자체는 미국 퍼블릭 도메인으로 표기되며 전사본의 별도 이용 조건은 미확인."
+    }
+  ],
+  "manifest_sha256": "e4ba1ed138007f194b3c4133967110a63b58157d891a52205f75326b78098a9e",
+  "reference_files_sha256": {
+    "infrastructure/sample-data/genre-templates/celtic_mythology/source/tradition-cards.json": "5eb93d532b452bd87720e3c1c864682460be80c08b800ce724ffd1df68fde731",
+    "infrastructure/sample-data/genre-templates/celtic_mythology/source/template.json": "32cdaee72c49c2baed04ec637569fe720375a28953665bc3ef2c1a50782ae2ec",
+    "infrastructure/sample-data/genre-templates/celtic_mythology/source/sources.md": "42799cf31e2029a0fa74ea82a733a38f1c8de3d4b43cdd6e06a066ced86a53be",
+    "backend/content-service/src/main/resources/genre-templates.json": "bc3cbacd8e7806d673793963386a63c6b7d61f0ec280ce56c22fd74d33003340",
+    "backend/content-service/src/main/resources/genre-templates-v1.json": "96cbbb7607aada4ca8f7a27f56cfd6a6197c7826db0160fae2cc134768992d85",
+    "backend/content-service/src/main/resources/genre-templates-v2.json": "4699939f749f45dc0958f7c908955ade6e9ea91ab8ed9ab55860251831aa9517"
+  },
+  "coverage": [
+    {
+      "unit": "브란의 항해 1절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 2절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 3절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 4절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 5절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 6절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 7절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 1,
+      "reason": "새들이 시간을 알리는 나무는 기존 에마인 카드와 부분 중복 가능.",
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 8절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 9절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 10절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 11절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 12절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "reason": "Aircthech은 묘사의 지시 대상이 불확실해 별도 대상을 확정하지 않음.",
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 13절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 14절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 15절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 16절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 1,
+      "reason": "이름 없는 기수의 예고를 추출했으며 다른 인물과의 동일성은 미확인.",
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 17절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 18절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 19절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 20절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 21절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 22절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 23절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 24절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 25절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 26절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 27절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 28절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 29절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 30절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 31절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 32절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 33절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 34절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 35절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 36절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 37절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 38절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 39절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 40절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 41절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 42절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 43절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 44절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 45절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 46절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 47절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 48절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 49절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "reason": "Line-Mag는 여인의 소재로 언급되지만 별도 지리 설명은 부족함.",
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 50절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 51절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 2,
+      "reason": "카인티게른과 피아크나는 몽간 예언 내 관계로 한정함.",
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 52절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 53절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 54절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 55절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 56절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "reason": "1895년 교감본 주석이 이 절의 여러 곳이 훼손되어 번역이 매우 불확실하다고 밝힘; 별도 설정을 확정하지 않음.",
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 57절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "reason": "이름 없는 son of error는 본문만으로 별도 인물의 정체를 확정하지 않음.",
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 58절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 1,
+      "reason": "Senlabor는 예언된 싸움의 장소이나 별도 지리 묘사는 부족함.",
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 59절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 1,
+      "reason": "Loch Ló는 몽간이 청하는 물의 출처로만 언급됨.",
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 60절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 61절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "reason": "웃는 주민과 남겨진 동료는 기존 기쁨의 섬 카드에 포함됨.",
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 62절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 63절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 64절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 65절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "reason": "귀환자의 재와 네크탄은 기존 카드에 포함됨.",
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    },
+    {
+      "unit": "브란의 항해 66절",
+      "url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "status": "read",
+      "cards": 0,
+      "status_basis": "입력 작업자의 전사본 읽기 자기보고; 이번 통합에서 독립 완독하지 않음"
+    }
+  ],
+  "manifest_units": [
+    {
+      "unit": "main-text",
+      "status": "partial_self_reported",
+      "reason": "지정 Archive.org 스캔 전문 다운로드 시간 초과. 대체 AncientTexts 전사 1–66절 전체 읽기는 입력 작업자 자기보고; 1895년 인쇄본 스캔은 발행사항·일부 구절·56절 주석만 대조했다는 보고. 통합자는 독립 완독하지 않음.",
+      "designated_url": "https://archive.org/details/voyageofbransono01scuoft",
+      "alternative_url": "https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "scan_url": "https://upload.wikimedia.org/wikipedia/commons/2/25/The_voyage_of_Bran%2C_son_of_Febal%2C_to_the_land_of_the_living%3B_an_old_Irish_saga_%28IA_cu31924096849629%29.pdf"
+    },
+    {
+      "unit": "specified-supplements",
+      "status": "undetermined",
+      "reason": "celtic_mythology/source/supplementary.md가 존재하지 않으므로 보충 범위 자체가 명시되지 않음. 보충 전승이 없거나 완독됐다고 판단할 수 없음."
+    }
+  ],
+  "counts": {
+    "manifest_matching_segments": 1,
+    "input_files": 1,
+    "input_candidates": 6,
+    "output_individual": 6,
+    "merged_candidates": 0,
+    "unprocessed_input_candidates": 0,
+    "preservation_equation": "입력 6 = 개별 보존 6 + 병합 0",
+    "self_reported_coverage_units": 66,
+    "existing_celtic_cards": 25,
+    "existing_runtime_worlds": 26,
+    "existing_runtime_cards": 1254,
+    "output_by_cardType": {
+      "character": 3,
+      "object": 2,
+      "organization": 1
+    }
+  },
+  "duplicate_policy": "동일 제목과 유형을 전체 현재 runtime 26종에서 기계 비교하고 켈트 원본과 내용상 겹치는 대상은 별도 표시했다. 동일 제목이나 부분 중복만으로 병합하지 않고 입력 6개를 모두 보존했다. 전승 차이나 동명이인에 대한 동일성·타 장르 의미상 중복 전수 여부는 독립 검토가 필요하다.",
+  "coverage_issues": [
+    "입력 coverage 58절 이유는 센라보르 장소, 59절 이유는 로크 로 장소라 설명하지만 실제 각 절 후보는 각각 용석과 흰 무리다. 절별 후보 수 합계 6은 일치하나 설명은 후보와 불일치하며 원문 재검토 필요.",
+    "본문 한글 요약의 모든 주장과 짧은 excerpt의 관계는 구조 검증만으로 증명되지 않는다. 자기보고 외 독립 대조가 필요하다."
+  ],
+  "limitations": [
+    "자동 앱·DB 적재 대상이 아닌 연구·검토 후보이며 기존 25장과 전체 기존 자료는 수정하지 않았다.",
+    "누락 없는 전수 추출, 독립 역사·전승 감수, 법률 검토 완료를 뜻하지 않는다. 지역·시기별 전승과 변형의 동일성은 확인되지 않았다.",
+    "입력은 1895년 인쇄본의 미국 퍼블릭 도메인 표기를 보고하지만 전사·번역·발췌의 재사용 조건 및 타 지역 권리는 미확인이다. 한국어 본문은 입력 작업자의 비공식 요약이다.",
+    "이전 1,000개 세계관 한도에 25+6=31로 수치상 미초과이나 실제 기존 카드와의 중복 및 권리 검증 전이며 적재 승인이나 #425 안전 계약을 대체하지 않는다. 현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다.",
+    "원문 전체의 고정 해시가 입력에 없어 원문 해시 검증 불가. 입력 파일과 저장소 자료의 SHA-256만 기록한다."
+  ],
+  "card_files": [
+    {
+      "path": "cards-001.json",
+      "count": 6,
+      "sha256": "6aed6329426151df829b263662d0ecc181ac54ed46783632fdd77a9fa164971d"
+    }
+  ],
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

@@ -1,0 +1,1685 @@
+{
+  "schemaVersion": "1.0",
+  "status": "REVIEW_CANDIDATES_NOT_VERIFIED",
+  "usage": "RESEARCH_ONLY; DO_NOT_IMPORT",
+  "genre": "korea_history",
+  "worldId": "b08b14fa-dc75-5e3b-8067-148fb6346c72",
+  "input_manifest": "미게시-임시자료:history/manifest.json",
+  "input_manifest_sha256": "f3faa02f012e87678aad6cb004920343719ed797389a605ed2385517017547c1",
+  "input_commit": "3ec049e5f00dfc6b07c9b840631b159b5b68bd54",
+  "identity": {
+    "algorithm": "UUIDv5",
+    "namespace": "b08b14fa-dc75-5e3b-8067-148fb6346c72",
+    "name": "storyfork:history-review:korea:<segment>:<candidate key>",
+    "note": "검토 후보 식별자이며 기존 세계관 분할 또는 서비스 등록이 아님"
+  },
+  "rights_and_limitations": [
+    "원저: Homer B. Hulbert, The History of Korea (1905), Project Gutenberg 52127·52749. 원저·전사·개별 번역 및 제3자 자료의 권리와 재사용·공개 조건은 별도 검토 필요.",
+    "기존 연구 전용·서비스/DB 등록 금지 정책 유지. 앱·DB 자동 적재 대상이 아니며 반영에는 사용자 승인, #425 안전 계약 및 권리·중복 검증이 필요하다.",
+    "한국어는 원문 기반 비공식 추출·요약이며 역사적 정확성, 고유 인물 식별, 번역, 편향 및 법률 감수 미완료. 원저의 종교·민족·문명 관점과 전승·추측·수치 및 일화는 검증된 사실이 아니다.",
+    "이전 1,000개 한도 기준으로 후보 수는 초과한다. 현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다. 검토용 조각은 세계관 분할이나 앱 적재가 아니며 수량을 맞추려고 후보를 버리지 않는다.",
+    "구조·고정행 검사는 원문의 근거 내용이나 전수 추출을 독립적으로 입증하지 않는다. 본문 밖 빈 구간과 제3자 문서 등 제외 범위는 각 입력 자기보고를 참조한다."
+  ],
+  "sources": {
+    "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt": {
+      "commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "expected_sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "line_count": 16382,
+      "result": "match"
+    },
+    "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt": {
+      "commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "expected_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "line_count": 18884,
+      "result": "match"
+    }
+  },
+  "inputs": [
+    {
+      "segment": "korea-v1-1",
+      "input_path": "미게시-임시자료:history/korea-v1-1.json",
+      "input_sha256": "b7e7fec417bb3a861739079cdc2865ae110f278495e8be6d1139ef3242964f14",
+      "manifest": {
+        "kind": "history",
+        "country": "korea",
+        "segment": "korea-v1-1",
+        "commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+        "path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/52127",
+        "line_start": 296,
+        "line_end": 2561,
+        "chapters": [
+          "korea-v1:1:Chapter I.",
+          "korea-v1:2:Chapter II.",
+          "korea-v1:3:Chapter III.",
+          "korea-v1:4:Chapter IV.",
+          "korea-v1:5:Chapter V.",
+          "korea-v1:6:Chapter VI.",
+          "korea-v1:7:Chapter VII.",
+          "korea-v1:8:Chapter VIII."
+        ],
+        "heads": [
+          [
+            296,
+            "Chapter I."
+          ],
+          [
+            409,
+            "Chapter II."
+          ],
+          [
+            845,
+            "Chapter III."
+          ],
+          [
+            965,
+            "Chapter IV."
+          ],
+          [
+            1286,
+            "Chapter V."
+          ],
+          [
+            1530,
+            "Chapter VI."
+          ],
+          [
+            1893,
+            "Chapter VII."
+          ],
+          [
+            2185,
+            "Chapter VIII."
+          ]
+        ],
+        "sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715"
+      },
+      "input_scope": {
+        "line_start": 296,
+        "line_end": 2561,
+        "chapters": [
+          "korea-v1:1:Chapter I.",
+          "korea-v1:2:Chapter II.",
+          "korea-v1:3:Chapter III.",
+          "korea-v1:4:Chapter IV.",
+          "korea-v1:5:Chapter V.",
+          "korea-v1:6:Chapter VI.",
+          "korea-v1:7:Chapter VII.",
+          "korea-v1:8:Chapter VIII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "korea-v1:1:Chapter I.",
+          "line_start": 296,
+          "line_end": 408,
+          "status": "read",
+          "cards": 13,
+          "note": "장 제목·개요·삽화 설명·각주 자체는 본문 근거에서 제외. 기자 왕조 가문 기록은 원저가 신뢰성에 의문을 제기함."
+        },
+        {
+          "unit": "korea-v1:2:Chapter II.",
+          "line_start": 409,
+          "line_end": 844,
+          "status": "read",
+          "cards": 42,
+          "note": "장 제목·개요·삽화 설명·각주 자체는 본문 근거에서 제외. 기자 왕조 가문 기록은 원저가 신뢰성에 의문을 제기함."
+        },
+        {
+          "unit": "korea-v1:3:Chapter III.",
+          "line_start": 845,
+          "line_end": 964,
+          "status": "read",
+          "cards": 10,
+          "note": "장 개요는 제외. 민족 기원·집단 특성에 관한 저자의 추론과 편향을 사실로 확정하지 않음."
+        },
+        {
+          "unit": "korea-v1:4:Chapter IV.",
+          "line_start": 965,
+          "line_end": 1285,
+          "status": "read",
+          "cards": 18,
+          "note": "장 개요는 제외. 민족 기원·집단 특성에 관한 저자의 추론과 편향을 사실로 확정하지 않음."
+        },
+        {
+          "unit": "korea-v1:5:Chapter V.",
+          "line_start": 1286,
+          "line_end": 1529,
+          "status": "read",
+          "cards": 9,
+          "note": "장 개요는 제외. 민족 기원·집단 특성에 관한 저자의 추론과 편향을 사실로 확정하지 않음."
+        },
+        {
+          "unit": "korea-v1:6:Chapter VI.",
+          "line_start": 1530,
+          "line_end": 1892,
+          "status": "read",
+          "cards": 33,
+          "note": "장 제목과 개요는 본문 근거에서 제외. 건국 설화와 저자의 국가·민족 평가를 사료적 사실과 구분함."
+        },
+        {
+          "unit": "korea-v1:7:Chapter VII.",
+          "line_start": 1893,
+          "line_end": 2184,
+          "status": "read",
+          "cards": 25,
+          "note": "장 제목과 개요는 본문 근거에서 제외. 건국 설화와 저자의 국가·민족 평가를 사료적 사실과 구분함."
+        },
+        {
+          "unit": "korea-v1:8:Chapter VIII.",
+          "line_start": 2185,
+          "line_end": 2561,
+          "status": "read",
+          "cards": 39,
+          "note": "장 제목과 개요는 본문 근거에서 제외. 건국 설화와 저자의 국가·민족 평가를 사료적 사실과 구분함."
+        }
+      ],
+      "reported_coverage_card_sum": 189,
+      "actual_input_card_count": 187
+    },
+    {
+      "segment": "korea-v1-2",
+      "input_path": "미게시-임시자료:history/korea-v1-2.json",
+      "input_sha256": "fc5c9239adc2f027f3f43e8f1f0b6eadddf0e1343699cd5c06306328e2741997",
+      "manifest": {
+        "kind": "history",
+        "country": "korea",
+        "segment": "korea-v1-2",
+        "commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+        "path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/52127",
+        "line_start": 2562,
+        "line_end": 6974,
+        "chapters": [
+          "korea-v1:9:Chapter IX.",
+          "korea-v1:10:Chapter X.",
+          "korea-v1:11:Chapter XI.",
+          "korea-v1:12:Chapter XII.",
+          "korea-v1:13:Chapter XIII.",
+          "korea-v1:14:Chapter I.",
+          "korea-v1:15:Chapter II.",
+          "korea-v1:16:Chapter III.",
+          "korea-v1:17:Chapter IV."
+        ],
+        "heads": [
+          [
+            2562,
+            "Chapter IX."
+          ],
+          [
+            3026,
+            "Chapter X."
+          ],
+          [
+            3428,
+            "Chapter XI."
+          ],
+          [
+            4030,
+            "Chapter XII."
+          ],
+          [
+            4479,
+            "Chapter XIII."
+          ],
+          [
+            4946,
+            "Chapter I."
+          ],
+          [
+            5463,
+            "Chapter II."
+          ],
+          [
+            5927,
+            "Chapter III."
+          ],
+          [
+            6450,
+            "Chapter IV."
+          ]
+        ],
+        "sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715"
+      },
+      "input_scope": {
+        "line_start": 2562,
+        "line_end": 6974,
+        "chapters": [
+          "korea-v1:9",
+          "korea-v1:10",
+          "korea-v1:11",
+          "korea-v1:12",
+          "korea-v1:13",
+          "korea-v1:14",
+          "korea-v1:15",
+          "korea-v1:16",
+          "korea-v1:17"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "korea-v1:9",
+          "line_start": 2562,
+          "line_end": 3025,
+          "status": "read",
+          "cards": 52,
+          "note": "장 머리 요약은 본문 근거에서 제외; 2580–3021행 본문을 읽음."
+        },
+        {
+          "unit": "korea-v1:10",
+          "line_start": 3026,
+          "line_end": 3427,
+          "status": "read",
+          "cards": 42,
+          "note": "장 머리 요약 및 3269행 그림 설명 제외; 본문 읽음."
+        },
+        {
+          "unit": "korea-v1:11",
+          "line_start": 3428,
+          "line_end": 4029,
+          "status": "read",
+          "cards": 27,
+          "note": "장 머리 요약 제외; 3448–4025행 본문 읽음. 원저의 민족적 일반화는 채택하지 않음."
+        },
+        {
+          "unit": "korea-v1:12",
+          "line_start": 4030,
+          "line_end": 4478,
+          "status": "read",
+          "cards": 31,
+          "note": "장 머리 요약과 4391행 그림 설명 제외; 본문 읽음."
+        },
+        {
+          "unit": "korea-v1:13",
+          "line_start": 4479,
+          "line_end": 4945,
+          "status": "read",
+          "cards": 32,
+          "note": "장 머리 요약과 4930–4945부 말미·부 표제 제외; 본문 읽음."
+        },
+        {
+          "unit": "korea-v1:14",
+          "line_start": 4946,
+          "line_end": 5462,
+          "status": "read",
+          "cards": 26,
+          "note": "장 머리 요약과 5237행 그림 설명 제외; 본문 읽음."
+        },
+        {
+          "unit": "korea-v1:15",
+          "line_start": 5463,
+          "line_end": 5926,
+          "status": "read",
+          "cards": 31,
+          "note": "장 머리 요약 제외; 본문 읽음. 원저의 연대 불일치 및 종교 편향에 유의."
+        },
+        {
+          "unit": "korea-v1:16",
+          "line_start": 5927,
+          "line_end": 6449,
+          "status": "read",
+          "cards": 31,
+          "note": "장 머리 요약과 6199행 그림 설명 제외; 본문 읽음."
+        },
+        {
+          "unit": "korea-v1:17",
+          "line_start": 6450,
+          "line_end": 6974,
+          "status": "read",
+          "cards": 40,
+          "note": "장 머리 요약 제외; 6469–6970행 본문과 할당 끝까지 읽음."
+        }
+      ],
+      "reported_coverage_card_sum": 312,
+      "actual_input_card_count": 312
+    },
+    {
+      "segment": "korea-v1-3",
+      "input_path": "미게시-임시자료:history/korea-v1-3.json",
+      "input_sha256": "2faaffd0321ad6c059f57b9c48635547f18e6fe41b90d649811a6ad0414ec028",
+      "manifest": {
+        "kind": "history",
+        "country": "korea",
+        "segment": "korea-v1-3",
+        "commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+        "path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/52127",
+        "line_start": 6975,
+        "line_end": 11120,
+        "chapters": [
+          "korea-v1:18:Chapter V.",
+          "korea-v1:19:Chapter VI.",
+          "korea-v1:20:Chapter VII.",
+          "korea-v1:21:Chapter VIII.",
+          "korea-v1:22:Chapter IX.",
+          "korea-v1:23:Chapter X.",
+          "korea-v1:24:Chapter XI.",
+          "korea-v1:25:Chapter XII.",
+          "korea-v1:26:Chapter XIII."
+        ],
+        "heads": [
+          [
+            6975,
+            "Chapter V."
+          ],
+          [
+            7489,
+            "Chapter VI."
+          ],
+          [
+            7969,
+            "Chapter VII."
+          ],
+          [
+            8469,
+            "Chapter VIII."
+          ],
+          [
+            8922,
+            "Chapter IX."
+          ],
+          [
+            9403,
+            "Chapter X."
+          ],
+          [
+            9840,
+            "Chapter XI."
+          ],
+          [
+            10258,
+            "Chapter XII."
+          ],
+          [
+            10648,
+            "Chapter XIII."
+          ]
+        ],
+        "sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715"
+      },
+      "input_scope": {
+        "line_start": 6975,
+        "line_end": 11120,
+        "chapters": [
+          "korea-v1:18:Chapter V.",
+          "korea-v1:19:Chapter VI.",
+          "korea-v1:20:Chapter VII.",
+          "korea-v1:21:Chapter VIII.",
+          "korea-v1:22:Chapter IX.",
+          "korea-v1:23:Chapter X.",
+          "korea-v1:24:Chapter XI.",
+          "korea-v1:25:Chapter XII.",
+          "korea-v1:26:Chapter XIII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "korea-v1:18:Chapter V.",
+          "line_start": 6975,
+          "line_end": 7488,
+          "status": "read",
+          "cards": 43,
+          "note": "장 머리말은 목차식 요약이며 삽화 설명 제외; 저자의 편향과 전승은 주의하여 표시."
+        },
+        {
+          "unit": "korea-v1:19:Chapter VI.",
+          "line_start": 7489,
+          "line_end": 7968,
+          "status": "read",
+          "cards": 31,
+          "note": "장 머리말과 저자의 편견 섞인 평가는 독립 근거로 삼지 않음."
+        },
+        {
+          "unit": "korea-v1:20:Chapter VII.",
+          "line_start": 7969,
+          "line_end": 8468,
+          "status": "read",
+          "cards": 28,
+          "note": "목차식 장 서두 제외. 저자의 민족적 평가와 전승은 사실과 구별."
+        },
+        {
+          "unit": "korea-v1:21:Chapter VIII.",
+          "line_start": 8469,
+          "line_end": 8921,
+          "status": "read",
+          "cards": 17,
+          "note": "장 서두와 삽화 설명 제외, 저자의 날짜·수치 및 평가를 원전 주장으로 표시."
+        },
+        {
+          "unit": "korea-v1:22:Chapter IX.",
+          "line_start": 8922,
+          "line_end": 9402,
+          "status": "read",
+          "cards": 30,
+          "note": "목차식 장 서두 제외; 충혜왕에 대한 저자의 도덕적 비난과 원전 기록 구별."
+        },
+        {
+          "unit": "korea-v1:23:Chapter X.",
+          "line_start": 9403,
+          "line_end": 9839,
+          "status": "read",
+          "cards": 20,
+          "note": "장 서두 제외. 9806행 원문 자체의 [...] 생략을 보존하며 혈통 논란은 확정하지 않음."
+        },
+        {
+          "unit": "korea-v1:24:Chapter XI.",
+          "line_start": 9840,
+          "line_end": 10257,
+          "status": "read",
+          "cards": 25,
+          "note": "장 서두, 삽화 설명과 9924–9937행 1차 사료 전문은 제외; 해당 편지의 수용 맥락만 추출."
+        },
+        {
+          "unit": "korea-v1:25:Chapter XII.",
+          "line_start": 10258,
+          "line_end": 10647,
+          "status": "read",
+          "cards": 22,
+          "note": "장 서두 제외; 이성계 무용담은 원저의 전승·영웅화 경고와 함께 기록."
+        },
+        {
+          "unit": "korea-v1:26:Chapter XIII.",
+          "line_start": 10648,
+          "line_end": 11120,
+          "status": "read",
+          "cards": 24,
+          "note": "장 서두 및 11083–11087행 서약 원문 제외. 본문은 11097행 종료, 11099–11120행은 부 종료·다음 부 표제와 공백. 이성계 미화 가능성을 원저도 지적."
+        }
+      ],
+      "reported_coverage_card_sum": 240,
+      "actual_input_card_count": 239
+    },
+    {
+      "segment": "korea-v1-4",
+      "input_path": "미게시-임시자료:history/korea-v1-4.json",
+      "input_sha256": "de16759623ae844189434838b9dd4f05f1d8a1378d1a34e91d9bc674122158f7",
+      "manifest": {
+        "kind": "history",
+        "country": "korea",
+        "segment": "korea-v1-4",
+        "commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+        "path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/52127",
+        "line_start": 11121,
+        "line_end": 15349,
+        "chapters": [
+          "korea-v1:27:Chapter I.",
+          "korea-v1:28:Chapter II.",
+          "korea-v1:29:Chapter III.",
+          "korea-v1:30:Chapter IV.",
+          "korea-v1:31:Chapter V.",
+          "korea-v1:32:Chapter VI.",
+          "korea-v1:33:Chapter VII.",
+          "korea-v1:34:Chapter VIII.",
+          "korea-v1:35:Chapter IX."
+        ],
+        "heads": [
+          [
+            11121,
+            "Chapter I."
+          ],
+          [
+            11653,
+            "Chapter II."
+          ],
+          [
+            12152,
+            "Chapter III."
+          ],
+          [
+            12684,
+            "Chapter IV."
+          ],
+          [
+            13134,
+            "Chapter V."
+          ],
+          [
+            13509,
+            "Chapter VI."
+          ],
+          [
+            13947,
+            "Chapter VII."
+          ],
+          [
+            14379,
+            "Chapter VIII."
+          ],
+          [
+            14844,
+            "Chapter IX."
+          ]
+        ],
+        "sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715"
+      },
+      "input_scope": {
+        "line_start": 11121,
+        "line_end": 15349,
+        "chapters": [
+          "korea-v1:27:Chapter I.",
+          "korea-v1:28:Chapter II.",
+          "korea-v1:29:Chapter III.",
+          "korea-v1:30:Chapter IV.",
+          "korea-v1:31:Chapter V.",
+          "korea-v1:32:Chapter VI.",
+          "korea-v1:33:Chapter VII.",
+          "korea-v1:34:Chapter VIII.",
+          "korea-v1:35:Chapter IX."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "korea-v1:27:Chapter I.",
+          "line_start": 11121,
+          "line_end": 11652,
+          "status": "read",
+          "cards": 46,
+          "note": "본문 전체 읽음. 장머리 요약과 삽화 설명 제외. 원저의 연대·언어 기원 주장은 검증되지 않음."
+        },
+        {
+          "unit": "korea-v1:28:Chapter II.",
+          "line_start": 11653,
+          "line_end": 12151,
+          "status": "read",
+          "cards": 43,
+          "note": "본문 전체 읽음. 장머리 요약과 직접 인용된 유배 시 전문 제외. 전승 및 저자의 불교 비판은 사실과 구분."
+        },
+        {
+          "unit": "korea-v1:29:Chapter III.",
+          "line_start": 12152,
+          "line_end": 12683,
+          "status": "read",
+          "cards": 44,
+          "note": "본문 전체 읽음. 장머리 요약과 장문의 직접 연설 제외. 원저의 가치판단과 불확실한 연대 구분."
+        },
+        {
+          "unit": "korea-v1:30:Chapter IV.",
+          "line_start": 12684,
+          "line_end": 13133,
+          "status": "unread",
+          "cards": 0,
+          "note": "작업량으로 미열독·미추출. 후속 담당 필요."
+        },
+        {
+          "unit": "korea-v1:31:Chapter V.",
+          "line_start": 13134,
+          "line_end": 13508,
+          "status": "unread",
+          "cards": 0,
+          "note": "작업량으로 미열독·미추출. 후속 담당 필요."
+        },
+        {
+          "unit": "korea-v1:32:Chapter VI.",
+          "line_start": 13509,
+          "line_end": 13946,
+          "status": "unread",
+          "cards": 0,
+          "note": "작업량으로 미열독·미추출. 후속 담당 필요."
+        },
+        {
+          "unit": "korea-v1:33:Chapter VII.",
+          "line_start": 13947,
+          "line_end": 14378,
+          "status": "unread",
+          "cards": 0,
+          "note": "작업량으로 미열독·미추출. 후속 담당 필요."
+        },
+        {
+          "unit": "korea-v1:34:Chapter VIII.",
+          "line_start": 14379,
+          "line_end": 14843,
+          "status": "unread",
+          "cards": 0,
+          "note": "작업량으로 미열독·미추출. 후속 담당 필요."
+        },
+        {
+          "unit": "korea-v1:35:Chapter IX.",
+          "line_start": 14844,
+          "line_end": 15349,
+          "status": "unread",
+          "cards": 0,
+          "note": "작업량으로 미열독·미추출. 후속 담당 필요."
+        }
+      ],
+      "reported_coverage_card_sum": 133,
+      "actual_input_card_count": 133
+    },
+    {
+      "segment": "korea-v2-1",
+      "input_path": "미게시-임시자료:history/korea-v2-1.json",
+      "input_sha256": "affea44894a90b94cd58389bbcf587923dd7029a5a58bd81d8f633cb63b71dc5",
+      "manifest": {
+        "kind": "history",
+        "country": "korea",
+        "segment": "korea-v2-1",
+        "commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+        "path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/52749",
+        "line_start": 81,
+        "line_end": 4683,
+        "chapters": [
+          "korea-v2:1:Chapter I.",
+          "korea-v2:2:Chapter I-A.",
+          "korea-v2:3:Chapter II.",
+          "korea-v2:4:Chapter III.",
+          "korea-v2:5:Chapter IV.",
+          "korea-v2:6:Chapter V.",
+          "korea-v2:7:Chapter VI.",
+          "korea-v2:8:Chapter VII.",
+          "korea-v2:9:Chapter VIII."
+        ],
+        "heads": [
+          [
+            81,
+            "Chapter I."
+          ],
+          [
+            624,
+            "Chapter I-A."
+          ],
+          [
+            1066,
+            "Chapter II."
+          ],
+          [
+            1656,
+            "Chapter III."
+          ],
+          [
+            2224,
+            "Chapter IV."
+          ],
+          [
+            2680,
+            "Chapter V."
+          ],
+          [
+            3210,
+            "Chapter VI."
+          ],
+          [
+            3686,
+            "Chapter VII."
+          ],
+          [
+            4193,
+            "Chapter VIII."
+          ]
+        ],
+        "sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4"
+      },
+      "input_scope": {
+        "line_start": 81,
+        "line_end": 4683,
+        "chapters": [
+          "korea-v2:1:Chapter I.",
+          "korea-v2:2:Chapter I-A.",
+          "korea-v2:3:Chapter II.",
+          "korea-v2:4:Chapter III.",
+          "korea-v2:5:Chapter IV.",
+          "korea-v2:6:Chapter V.",
+          "korea-v2:7:Chapter VI.",
+          "korea-v2:8:Chapter VII.",
+          "korea-v2:9:Chapter VIII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "korea-v2:1:Chapter I.",
+          "line_start": 81,
+          "line_end": 623,
+          "status": "read",
+          "cards": 25,
+          "note": "83–96행 장 개요 제외, 99–619행 본문 읽음."
+        },
+        {
+          "unit": "korea-v2:2:Chapter I-A.",
+          "line_start": 624,
+          "line_end": 1065,
+          "status": "read",
+          "cards": 17,
+          "note": "626–641행 장 개요와 777행 삽화 설명 제외. 644–1061행 본문 읽음. 원문의 1395년 표기는 문맥상 오류 가능성이 있어 확정하지 않음."
+        },
+        {
+          "unit": "korea-v2:3:Chapter II.",
+          "line_start": 1066,
+          "line_end": 1655,
+          "status": "read",
+          "cards": 15,
+          "note": "1068–1079행 개요 및 1533–1628, 1644–1649행 제3자 서신 전문을 본문 근거에서 제외. 1082–1531, 1630–1642, 1651행의 저자 서술 확인."
+        },
+        {
+          "unit": "korea-v2:4:Chapter III.",
+          "line_start": 1656,
+          "line_end": 2223,
+          "status": "read",
+          "cards": 19,
+          "note": "1658–1666행 개요와 1838행 삽화 설명 제외. 1669–2219행 본문 확인. 원전 내 일본군 지휘관 배치가 앞뒤에서 달라 확정하지 않음."
+        },
+        {
+          "unit": "korea-v2:5:Chapter IV.",
+          "line_start": 2224,
+          "line_end": 2679,
+          "status": "read",
+          "cards": 16,
+          "note": "2226–2236행 개요 제외, 2238–2675행 본문 확인. 인조반정 연도 등 원전 연대의 정확성은 별도 검증 필요."
+        },
+        {
+          "unit": "korea-v2:6:Chapter V.",
+          "line_start": 2680,
+          "line_end": 3209,
+          "status": "read",
+          "cards": 12,
+          "note": "2682–2694행 개요, 2931행 삽화 설명 제외. 2697–3205행 본문 확인; 3129–3140행 서약 전문은 독립 근거로 사용하지 않음."
+        },
+        {
+          "unit": "korea-v2:7:Chapter VI.",
+          "line_start": 3210,
+          "line_end": 3685,
+          "status": "read",
+          "cards": 10,
+          "note": "3212–3221행 개요 및 3441–3471행 제3자 상소 전문은 본문 근거로 제외. 나머지 저자 본문 확인."
+        },
+        {
+          "unit": "korea-v2:8:Chapter VII.",
+          "line_start": 3686,
+          "line_end": 4192,
+          "status": "read",
+          "cards": 10,
+          "note": "3688–3699행 개요와 3923–3946, 4097–4113, 4126–4139, 4157–4181행에 실린 제3자 서신 전문은 설정 근거에서 제외. 나머지 저자 본문 확인."
+        },
+        {
+          "unit": "korea-v2:9:Chapter VIII.",
+          "line_start": 4193,
+          "line_end": 4683,
+          "status": "read",
+          "cards": 12,
+          "note": "4195–4207행 개요, 4368행 삽화 설명, 4452–4488행 제3자 서신 전문 제외. 4210–4679행 나머지 저자 본문 확인."
+        }
+      ],
+      "reported_coverage_card_sum": 136,
+      "actual_input_card_count": 136
+    },
+    {
+      "segment": "korea-v2-2",
+      "input_path": "미게시-임시자료:history/korea-v2-2.json",
+      "input_sha256": "44b29ff343dff51188ce15ec1902c28b773a117f0a5bc135bd07a439c347c1d2",
+      "manifest": {
+        "kind": "history",
+        "country": "korea",
+        "segment": "korea-v2-2",
+        "commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+        "path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/52749",
+        "line_start": 4684,
+        "line_end": 9574,
+        "chapters": [
+          "korea-v2:10:Chapter IX.",
+          "korea-v2:11:Chapter X.",
+          "korea-v2:12:Chapter XI.",
+          "korea-v2:13:Chapter XII.",
+          "korea-v2:14:Chapter XIII.",
+          "korea-v2:15:Chapter XIV.",
+          "korea-v2:16:Chapter XV.",
+          "korea-v2:17:Chapter XVI.",
+          "korea-v2:18:Chapter XVII."
+        ],
+        "heads": [
+          [
+            4684,
+            "Chapter IX."
+          ],
+          [
+            5218,
+            "Chapter X."
+          ],
+          [
+            5745,
+            "Chapter XI."
+          ],
+          [
+            6301,
+            "Chapter XII."
+          ],
+          [
+            6878,
+            "Chapter XIII."
+          ],
+          [
+            7357,
+            "Chapter XIV."
+          ],
+          [
+            7833,
+            "Chapter XV."
+          ],
+          [
+            8341,
+            "Chapter XVI."
+          ],
+          [
+            8937,
+            "Chapter XVII."
+          ]
+        ],
+        "sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4"
+      },
+      "input_scope": {
+        "line_start": 4684,
+        "line_end": 9574,
+        "chapters": [
+          "korea-v2:10:Chapter IX.",
+          "korea-v2:11:Chapter X.",
+          "korea-v2:12:Chapter XI.",
+          "korea-v2:13:Chapter XII.",
+          "korea-v2:14:Chapter XIII.",
+          "korea-v2:15:Chapter XIV.",
+          "korea-v2:16:Chapter XV.",
+          "korea-v2:17:Chapter XVI.",
+          "korea-v2:18:Chapter XVII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "korea-v2:10:Chapter IX.",
+          "line_start": 4684,
+          "line_end": 5217,
+          "status": "read",
+          "cards": 38,
+          "note": "본문 전체를 읽음. 장 첫머리의 목차와 별도 비문 전문은 본문 근거에서 제외함."
+        },
+        {
+          "unit": "korea-v2:11:Chapter X.",
+          "line_start": 5218,
+          "line_end": 5744,
+          "status": "read",
+          "cards": 32,
+          "note": "본문 전체를 읽음. 장 머리 목차와 외부 문헌 내용은 본문에서 제외함."
+        },
+        {
+          "unit": "korea-v2:12:Chapter XI.",
+          "line_start": 5745,
+          "line_end": 6300,
+          "status": "read",
+          "cards": 32,
+          "note": "본문 전체를 읽음. 장 머리 목차는 본문 근거에서 제외함."
+        },
+        {
+          "unit": "korea-v2:13:Chapter XII.",
+          "line_start": 6301,
+          "line_end": 6877,
+          "status": "read",
+          "cards": 32,
+          "note": "본문 전체를 읽음. 장 머리 목차는 본문 근거에서 제외함."
+        },
+        {
+          "unit": "korea-v2:14:Chapter XIII.",
+          "line_start": 6878,
+          "line_end": 7356,
+          "status": "read",
+          "cards": 27,
+          "note": "본문 전체를 읽음. 장 머리 목차와 7189–7236행의 제3자 서신 전문은 본문 근거에서 제외함."
+        },
+        {
+          "unit": "korea-v2:15:Chapter XIV.",
+          "line_start": 7357,
+          "line_end": 7832,
+          "status": "read",
+          "cards": 30,
+          "note": "본문 전체를 읽음. 장 머리 목차와 7819–7823행의 비문 전문은 본문 근거에서 제외함."
+        },
+        {
+          "unit": "korea-v2:16:Chapter XV.",
+          "line_start": 7833,
+          "line_end": 8340,
+          "status": "read",
+          "cards": 33,
+          "note": "본문 전체를 읽음. 장 머리 목차는 본문 근거에서 제외함."
+        },
+        {
+          "unit": "korea-v2:17:Chapter XVI.",
+          "line_start": 8341,
+          "line_end": 8936,
+          "status": "read",
+          "cards": 35,
+          "note": "본문 전체를 읽음. 장 머리 목차는 본문 근거에서 제외함."
+        },
+        {
+          "unit": "korea-v2:18:Chapter XVII.",
+          "line_start": 8937,
+          "line_end": 9574,
+          "status": "read",
+          "cards": 38,
+          "note": "본문 전체를 읽음. 장 머리 목차는 본문 근거에서 제외함."
+        }
+      ],
+      "reported_coverage_card_sum": 297,
+      "actual_input_card_count": 297
+    },
+    {
+      "segment": "korea-v2-3",
+      "input_path": "미게시-임시자료:history/korea-v2-3.json",
+      "input_sha256": "9f2478a47c00d18afdd86bfd08bedb7b390f64d1a13595b289b24dd06ddc4bcd",
+      "manifest": {
+        "kind": "history",
+        "country": "korea",
+        "segment": "korea-v2-3",
+        "commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+        "path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/52749",
+        "line_start": 9575,
+        "line_end": 13386,
+        "chapters": [
+          "korea-v2:19:Chapter XVIII.",
+          "korea-v2:20:Chapter XIX.",
+          "korea-v2:21:Chapter XX.",
+          "korea-v2:22:Chapter XXI.",
+          "korea-v2:23:Chapter XXII.",
+          "korea-v2:24:Chapter XXIII.",
+          "korea-v2:25:Chapter XXIV.",
+          "korea-v2:26:Chapter XXV.",
+          "korea-v2:27:Chapter XXVI.",
+          "korea-v2:28:Chapter XXVII."
+        ],
+        "heads": [
+          [
+            9575,
+            "Chapter XVIII."
+          ],
+          [
+            9911,
+            "Chapter XIX."
+          ],
+          [
+            10217,
+            "Chapter XX."
+          ],
+          [
+            10553,
+            "Chapter XXI."
+          ],
+          [
+            11091,
+            "Chapter XXII."
+          ],
+          [
+            11404,
+            "Chapter XXIII."
+          ],
+          [
+            11957,
+            "Chapter XXIV."
+          ],
+          [
+            12310,
+            "Chapter XXV."
+          ],
+          [
+            12557,
+            "Chapter XXVI."
+          ],
+          [
+            13104,
+            "Chapter XXVII."
+          ]
+        ],
+        "sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4"
+      },
+      "input_scope": {
+        "line_start": 9575,
+        "line_end": 13386,
+        "chapters": [
+          "korea-v2:19:Chapter XVIII.",
+          "korea-v2:20:Chapter XIX.",
+          "korea-v2:21:Chapter XX.",
+          "korea-v2:22:Chapter XXI.",
+          "korea-v2:23:Chapter XXII.",
+          "korea-v2:24:Chapter XXIII.",
+          "korea-v2:25:Chapter XXIV.",
+          "korea-v2:26:Chapter XXV.",
+          "korea-v2:27:Chapter XXVI.",
+          "korea-v2:28:Chapter XXVII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "korea-v2:19:Chapter XVIII.",
+          "line_start": 9575,
+          "line_end": 9910,
+          "status": "read",
+          "cards": 18,
+          "note": "장 머리의 요약 목록은 본문 근거로 사용하지 않음. 저자의 제국주의적 평가와 개혁안의 실제 시행은 구분함."
+        },
+        {
+          "unit": "korea-v2:20:Chapter XIX.",
+          "line_start": 9911,
+          "line_end": 10216,
+          "status": "read",
+          "cards": 15,
+          "note": "장 머리 요약과 인용된 제3자 원문은 본문 근거에서 제외; 저자의 판단은 사실과 구분함."
+        },
+        {
+          "unit": "korea-v2:21:Chapter XX.",
+          "line_start": 10217,
+          "line_end": 10552,
+          "status": "read",
+          "cards": 12,
+          "note": "장 머리 요약과 인용된 제3자 원문은 본문 근거에서 제외; 저자의 판단은 사실과 구분함."
+        },
+        {
+          "unit": "korea-v2:22:Chapter XXI.",
+          "line_start": 10553,
+          "line_end": 11090,
+          "status": "read",
+          "cards": 11,
+          "note": "10572–10737행 히로시마 법원 결정문 전문은 제3자 사료로 근거에서 제외; 저자의 별도 논평 사용."
+        },
+        {
+          "unit": "korea-v2:23:Chapter XXII.",
+          "line_start": 11091,
+          "line_end": 11403,
+          "status": "read",
+          "cards": 12,
+          "note": "장 머리 요약 제외. 저자의 정치 평가와 추정을 구분함."
+        },
+        {
+          "unit": "korea-v2:24:Chapter XXIII.",
+          "line_start": 11404,
+          "line_end": 11956,
+          "status": "read",
+          "cards": 17,
+          "note": "장 요약, 삽화 및 제3자 인용문을 근거에서 제외하고 저자의 추정과 평가를 구분함."
+        },
+        {
+          "unit": "korea-v2:25:Chapter XXIV.",
+          "line_start": 11957,
+          "line_end": 12309,
+          "status": "read",
+          "cards": 12,
+          "note": "장 머리 요약 제외. 저자의 인물 비방과 국제정치 해석은 관점으로 처리함."
+        },
+        {
+          "unit": "korea-v2:26:Chapter XXV.",
+          "line_start": 12310,
+          "line_end": 12556,
+          "status": "read",
+          "cards": 6,
+          "note": "장 요약 제외, 일본·러시아에 대한 저자의 제국주의적 전망은 사실로 단정하지 않음."
+        },
+        {
+          "unit": "korea-v2:27:Chapter XXVI.",
+          "line_start": 12557,
+          "line_end": 13103,
+          "status": "read",
+          "cards": 11,
+          "note": "장 요약 제외. 제국주의적 평가, 종교 분쟁 서술의 편향과 교전 당사자의 상충 주장을 구분함."
+        },
+        {
+          "unit": "korea-v2:28:Chapter XXVII.",
+          "line_start": 13104,
+          "line_end": 13386,
+          "status": "read",
+          "cards": 7,
+          "note": "장 머리 요약 제외. 할당이 장 중간 13386행에서 끝나며 나머지는 이 워커의 추출 범위 밖이다."
+        }
+      ],
+      "reported_coverage_card_sum": 121,
+      "actual_input_card_count": 121
+    },
+    {
+      "segment": "refill-korea-v1-30-chapter-iv",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-30-chapter-iv.json",
+      "input_sha256": "9e304389e52cf01b43f84d3d3b405630f072b3566dca48fb092f1b1b523afa19",
+      "manifest": {
+        "kind": "history",
+        "country": "korea",
+        "segment": "refill-korea-v1-30-chapter-iv",
+        "commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+        "path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/52127",
+        "line_start": 12684,
+        "line_end": 13133,
+        "chapters": [
+          "korea-v1:30:Chapter IV."
+        ],
+        "heads": [
+          [
+            12684,
+            "korea-v1:30:Chapter IV."
+          ]
+        ],
+        "sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+        "status": "pending",
+        "parent_partial": "korea-v1-4"
+      },
+      "input_scope": {
+        "line_start": 12684,
+        "line_end": 13133,
+        "chapters": [
+          "korea-v1:30:Chapter IV."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "korea-v1:30:Chapter IV.",
+          "line_start": 12684,
+          "line_end": 13133,
+          "status": "read",
+          "cards": 73,
+          "note": "12684–13133 전 행과 앞뒤 문맥 12655–12683, 13134–13163 확인. 12686–12699는 장 요약, 12825는 삽화 설명, 13065–13077과 13104–13116은 제3자 서한 전문이므로 독립 본문 근거에서 제외. 13134부터 다음 장이며 할당 범위 누락 없음. 원저의 편향과 연대·계보·화기 서술은 별도 검증 필요; 권리와 재이용 조건 미확인."
+        }
+      ],
+      "reported_coverage_card_sum": 73,
+      "actual_input_card_count": 73
+    },
+    {
+      "segment": "refill-korea-v1-31-chapter-v",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-31-chapter-v.json",
+      "input_sha256": "7a926c6840ac84daf5c8205a2ce9d854f964d1da7b043a09467bb0775f1aefa1",
+      "manifest": {
+        "kind": "history",
+        "country": "korea",
+        "segment": "refill-korea-v1-31-chapter-v",
+        "commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+        "path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/52127",
+        "line_start": 13134,
+        "line_end": 13508,
+        "chapters": [
+          "korea-v1:31:Chapter V."
+        ],
+        "heads": [
+          [
+            13134,
+            "korea-v1:31:Chapter V."
+          ]
+        ],
+        "sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+        "status": "pending",
+        "parent_partial": "korea-v1-4"
+      },
+      "input_scope": {
+        "line_start": 13134,
+        "line_end": 13508,
+        "chapters": [
+          "korea-v1:31:Chapter V"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "korea-v1:31:Chapter V",
+          "line_start": 13134,
+          "line_end": 13508,
+          "status": "read",
+          "cards": 52,
+          "note": "장 제목 13134행, 개요 13136–13145행을 본문 근거에서 제외하고 본문 13148–13504행 전체를 읽었다. 13505–13508행은 빈 줄이며 다음 장은 13509행에서 시작한다. 앞뒤 문맥 13100–13133행과 13509–13540행을 확인했다. 원저의 평가·전승과 병력 수치는 검증된 사실로 확정하지 않았다."
+        }
+      ],
+      "reported_coverage_card_sum": 52,
+      "actual_input_card_count": 52
+    },
+    {
+      "segment": "refill-korea-v1-32-chapter-vi",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-32-chapter-vi.json",
+      "input_sha256": "f53cfb316aaa4be88815e8d10eff22971ad0ed5dfc4077208eaf10ac8ddccafd",
+      "manifest": {
+        "kind": "history",
+        "country": "korea",
+        "segment": "refill-korea-v1-32-chapter-vi",
+        "commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+        "path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/52127",
+        "line_start": 13509,
+        "line_end": 13946,
+        "chapters": [
+          "korea-v1:32:Chapter VI."
+        ],
+        "heads": [
+          [
+            13509,
+            "korea-v1:32:Chapter VI."
+          ]
+        ],
+        "sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+        "status": "pending",
+        "parent_partial": "korea-v1-4"
+      },
+      "input_scope": {
+        "line_start": 13509,
+        "line_end": 13946,
+        "chapters": [
+          "korea-v1:32:Chapter VI."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "korea-v1:32:Chapter VI.",
+          "line_start": 13509,
+          "line_end": 13946,
+          "status": "read",
+          "cards": 57,
+          "note": "제목·장 요약은 본문 근거에서 제외하고 본문 13525–13942행 전체와 양쪽 경계를 읽음. 13943–13946행은 공백이며 13947행에 다음 장이 시작됨. 저자의 추측·전승과 원문 내부 날짜 불일치를 구분함."
+        }
+      ],
+      "reported_coverage_card_sum": 57,
+      "actual_input_card_count": 57
+    },
+    {
+      "segment": "refill-korea-v1-33-chapter-vii",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-33-chapter-vii.json",
+      "input_sha256": "92813ab584734fb37a661ddb8c833ea976469ce2eadff2e6b1c1e732fb69f951",
+      "manifest": {
+        "kind": "history",
+        "country": "korea",
+        "segment": "refill-korea-v1-33-chapter-vii",
+        "commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+        "path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/52127",
+        "line_start": 13947,
+        "line_end": 14378,
+        "chapters": [
+          "korea-v1:33:Chapter VII."
+        ],
+        "heads": [
+          [
+            13947,
+            "korea-v1:33:Chapter VII."
+          ]
+        ],
+        "sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+        "status": "pending",
+        "parent_partial": "korea-v1-4"
+      },
+      "input_scope": {
+        "line_start": 13947,
+        "line_end": 14378,
+        "chapters": [
+          "korea-v1:33:Chapter VII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "korea-v1:33:Chapter VII.",
+          "line_start": 13947,
+          "line_end": 14378,
+          "status": "read",
+          "cards": 58,
+          "note": "13947–14378행 전체와 앞뒤 경계(13920–13946, 14379–14405)를 직접 읽음. 개요 13949–13962행과 삽화 설명 14153행은 본문 근거에서 제외. 전승·저자의 추정과 해석은 사실로 확정하지 않음; 본문 14374행에서 끝나고 다음 장은 14379행 시작."
+        }
+      ],
+      "reported_coverage_card_sum": 58,
+      "actual_input_card_count": 58
+    },
+    {
+      "segment": "refill-korea-v1-34-chapter-viii",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-34-chapter-viii.json",
+      "input_sha256": "5dd8e966ec896ceaf5164ddd7d4c87c2925715775fea1cc6a77ea1cf2d17f673",
+      "manifest": {
+        "kind": "history",
+        "country": "korea",
+        "segment": "refill-korea-v1-34-chapter-viii",
+        "commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+        "path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/52127",
+        "line_start": 14379,
+        "line_end": 14843,
+        "chapters": [
+          "korea-v1:34:Chapter VIII."
+        ],
+        "heads": [
+          [
+            14379,
+            "korea-v1:34:Chapter VIII."
+          ]
+        ],
+        "sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+        "status": "pending",
+        "parent_partial": "korea-v1-4"
+      },
+      "input_scope": {
+        "line_start": 14379,
+        "line_end": 14843,
+        "chapters": [
+          "korea-v1:34:Chapter VIII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "korea-v1:34:Chapter VIII.",
+          "line_start": 14379,
+          "line_end": 14843,
+          "status": "read",
+          "cards": 86,
+          "note": "제8장 전체 본문 14396–14839행과 장 제목·개요 및 빈 경계를 확인했다. 14381–14393행은 장 개요로 본문 근거에서 제외했고 앞 장 말미와 다음 장 시작을 대조했다. 제3자 사료 전문·이미지 설명은 배정 범위에 없다. 원저의 편견·전승과 개별 주장, 역사적 정확성 및 재사용 권리는 별도 검토가 필요하다."
+        }
+      ],
+      "reported_coverage_card_sum": 86,
+      "actual_input_card_count": 86
+    },
+    {
+      "segment": "refill-korea-v1-35-chapter-ix",
+      "input_path": "미게시-임시자료:history/refill-korea-v1-35-chapter-ix.json",
+      "input_sha256": "b5ba9f8652e8fc45193c8a2739da518892aa1848c324976c4aae97590adce0c0",
+      "manifest": {
+        "kind": "history",
+        "country": "korea",
+        "segment": "refill-korea-v1-35-chapter-ix",
+        "commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+        "path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol1-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/52127",
+        "line_start": 14844,
+        "line_end": 15349,
+        "chapters": [
+          "korea-v1:35:Chapter IX."
+        ],
+        "heads": [
+          [
+            14844,
+            "korea-v1:35:Chapter IX."
+          ]
+        ],
+        "sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+        "status": "pending",
+        "parent_partial": "korea-v1-4"
+      },
+      "input_scope": {
+        "line_start": 14844,
+        "line_end": 15349,
+        "chapters": [
+          "korea-v1:35:Chapter IX"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "korea-v1:35:Chapter IX",
+          "line_start": 14844,
+          "line_end": 15349,
+          "status": "read",
+          "cards": 89,
+          "note": "14844–15349행 전체를 읽음. 14844–14859 장 제목·요약은 본문 근거에서 제외했고 본문은 14862–15304에서 끝남. 15306–15349는 전사자 주석으로 설정 근거에서 제외. 앞 14820–14843 및 뒤 15350–15374 문맥을 확인했으며 배정 범위 밖은 카드 근거로 쓰지 않음. 인명만 나열된 15258–15269의 개별 인물은 실질 개별 정보 부족으로 별도 카드에서 제외. 저자의 주관적 전쟁 해석, 전승과 수치는 사실 확정으로 취급하지 않음."
+        }
+      ],
+      "reported_coverage_card_sum": 89,
+      "actual_input_card_count": 89
+    },
+    {
+      "segment": "refill-korea-v2-ending",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f",
+      "manifest": null,
+      "manifest_note": "기존 manifest 밖의 추가 보충 입력이며 아래 source 메타데이터와 scope를 별도로 검증했다.",
+      "supplemental_source": {
+        "commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+        "path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+        "sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+        "url": "https://www.gutenberg.org/ebooks/52749"
+      },
+      "input_scope": {
+        "line_start": 13387,
+        "line_end": 13654,
+        "chapters": [
+          "korea-v2:28:Chapter XXVII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "korea-v2:28:Chapter XXVII.",
+          "line_start": 13387,
+          "line_end": 13654,
+          "status": "read",
+          "cards": 38,
+          "note": "Chapter XXVII. 장 제목은 13104행, 장머리 항목은 13106–13113행이며 대상 본문은 13388–13653행이다. 13387·13654행은 빈 줄, 13655행은 THE END, 13660행부터 색인이다. 장 앞부분 13104–13386행은 경계 확인을 위해 13295–13386행과 장 제목·요약만 확인했고 기존 산출 범위다. 원문 13517–13524행의 Il-chin 반복, Sung-su와 Sung-jin 및 Sŭng-ju 지명 대응은 미확인. 저자의 1905년 인종·문명·선교·제국주의 관점은 사료 비판이 필요하며 역사 검증과 국가별 재사용 권리는 확인되지 않았다."
+        }
+      ],
+      "reported_coverage_card_sum": 38,
+      "actual_input_card_count": 38
+    }
+  ],
+  "refill_coverage": {
+    "replacement_ranges": [
+      {
+        "parent_unit": "korea-v1:30:Chapter IV.",
+        "range": [
+          12684,
+          13133
+        ],
+        "parent_status": "unread",
+        "replacement": "refill-korea-v1-30-chapter-iv",
+        "replacement_status": "read (self-reported)",
+        "same_source_and_exact_range": true
+      },
+      {
+        "parent_unit": "korea-v1:31:Chapter V.",
+        "range": [
+          13134,
+          13508
+        ],
+        "parent_status": "unread",
+        "replacement": "refill-korea-v1-31-chapter-v",
+        "replacement_status": "read (self-reported)",
+        "same_source_and_exact_range": true
+      },
+      {
+        "parent_unit": "korea-v1:32:Chapter VI.",
+        "range": [
+          13509,
+          13946
+        ],
+        "parent_status": "unread",
+        "replacement": "refill-korea-v1-32-chapter-vi",
+        "replacement_status": "read (self-reported)",
+        "same_source_and_exact_range": true
+      },
+      {
+        "parent_unit": "korea-v1:33:Chapter VII.",
+        "range": [
+          13947,
+          14378
+        ],
+        "parent_status": "unread",
+        "replacement": "refill-korea-v1-33-chapter-vii",
+        "replacement_status": "read (self-reported)",
+        "same_source_and_exact_range": true
+      },
+      {
+        "parent_unit": "korea-v1:34:Chapter VIII.",
+        "range": [
+          14379,
+          14843
+        ],
+        "parent_status": "unread",
+        "replacement": "refill-korea-v1-34-chapter-viii",
+        "replacement_status": "read (self-reported)",
+        "same_source_and_exact_range": true
+      },
+      {
+        "parent_unit": "korea-v1:35:Chapter IX.",
+        "range": [
+          14844,
+          15349
+        ],
+        "parent_status": "unread",
+        "replacement": "refill-korea-v1-35-chapter-ix",
+        "replacement_status": "read (self-reported)",
+        "same_source_and_exact_range": true
+      }
+    ],
+    "result": "상위 미열독 6개 구간은 동일 source/hash와 정확한 범위로 보충 입력의 read 자기보고에 대응한다. 부모 구간과 보충 구간의 중복은 의도된 대체이며 부모 후보는 모두 보존했다.",
+    "manifest_pending_note": "refill manifest의 pending은 계획 상태이며 결과 파일의 read 자기보고와 구분한다.",
+    "ending_supplement": {
+      "segment": "refill-korea-v2-ending",
+      "range": [
+        13387,
+        13654
+      ],
+      "prior_coverage": [
+        "korea-v2-3",
+        9575,
+        13386
+      ],
+      "coverage_status": "read (추출 워커 자기보고)",
+      "boundary": "고정 원문 13655행 THE END; 이 보충으로 앞선 범위와 이어진다",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "note": "실제 역사적 검증이나 후보 전수 보장은 아니다."
+    }
+  },
+  "scope_gaps": [
+    "1권 1–295 및 15350–16382행, 2권 1–80 및 13655–18884행은 입력 분할의 할당 범위 밖이다. 2권 13655행은 THE END이며 그 이후의 자료 전체가 역사 본문이라는 뜻은 아니다.",
+    "전체 원전의 완독·전수 추출 및 독립 역사 감수를 주장할 수 없다. 보충분 열독과 제외 항목은 입력 워커의 자기보고다.",
+    "1권 35장 보충 자기보고에 따르면 이름만 나열된 15258–15269행 개별 인물은 정보 부족으로 별도 카드에서 제외되었다.",
+    "기존 카드와의 자동 비교는 정규화한 동일 제목·유형만 포착하며 의미상 유사나 동명이인 여부는 검수하지 않았다."
+  ],
+  "quarantine": {
+    "count": 0,
+    "note": "지정된 13개 JSON은 파싱 가능하고 필수 필드가 있어 파일 단위 손상 격리는 없었다. 내용의 사실성은 검증되지 않았다."
+  },
+  "duplicate_policy": "원문·근거 손실을 막기 위해 입력 후보는 하나도 병합하지 않았다. 같은 key 또는 정규화한 같은 제목·유형은 각 카드에 다른 후보 ID로 표시하며 동일 인물·사건 확정이 아니다. 기존 카드와 동일 제목·유형도 검토 대상으로만 표시한다. 2권 끝 보충과 관련된 교차 후보는 기존 레코드를 수정하지 않고 index의 additional_duplicate_review에 양방향 ID 그룹으로 기록했다.",
+  "counts": {
+    "input_files": 14,
+    "input_candidates": 1878,
+    "output_records": 1878,
+    "merged_input_candidates": 0,
+    "unprocessed_input_candidates": 0,
+    "conservation_equation": "1878 = 1878 + 0",
+    "card_types": {
+      "character": 842,
+      "event": 449,
+      "location": 190,
+      "object": 133,
+      "organization": 99,
+      "other": 2,
+      "rule": 163
+    },
+    "same_key_groups": 39,
+    "same_title_type_groups": 37,
+    "records_with_existing_title_type_match": 11
+  },
+  "validation": {
+    "input_fields_and_source_anchors": "입력 카드 필수 필드·고정 원문 행 범위·원저자 및 URL 존재를 확인했고, 2개 카드의 원문 대조 정정은 각 provenance.input_corrections에 기록했다.",
+    "id": "UUIDv5 고유 및 기존 역사 원본·studio·26개 런타임 카드 ID와 충돌 없음",
+    "utf16": "제목 최대 200, 본문 최대 3000 UTF-16 코드 단위 확인",
+    "max_title_utf16": 45,
+    "max_body_utf16": 322,
+    "coverage_count_discrepancies": [
+      {
+        "segment": "korea-v1-1",
+        "reported": 189,
+        "actual": 187,
+        "note": "여러 장을 source_units에 함께 가진 카드가 장별 수에 중복 집계됨; 각 장별 수와 실제 source_units 집계는 일치.",
+        "multi_unit_candidate_keys": [
+          "location-pyongyang",
+          "character-yuri-silla"
+        ]
+      },
+      {
+        "segment": "korea-v1-3",
+        "reported": 240,
+        "actual": 239,
+        "note": "여러 장을 source_units에 함께 가진 카드가 장별 수에 중복 집계됨; 각 장별 수와 실제 source_units 집계는 일치.",
+        "multi_unit_candidate_keys": [
+          "character-kim-in-jun"
+        ]
+      }
+    ],
+    "historical_truth": "미검증; 구조 확인은 사실 검수가 아님",
+    "ending_supplement": "추가 입력 SHA·원전 commit/hash·범위·출처·38개 입력 필드 및 근거 보존 확인; 기존 7개 청크의 SHA 불변 확인",
+    "source_spot_corrections": {
+      "count": 2,
+      "card_ids": [
+        "a0e021d7-d887-516d-99d4-62d9851159a7",
+        "f7a1aba7-ede9-5e1c-995e-1a3b0533f5d0"
+      ],
+      "note": "원문 14882–14884 및 12182–12191행 직접 대조, 변경 전 입력 스냅샷 SHA 보존; 다른 카드 1876개 불변. 전체 역사 사실 검수는 아니다."
+    }
+  },
+  "chunks": [
+    {
+      "file": "cards-001.json",
+      "count": 300,
+      "sha256": "d3a88102932d7b2f4f15bc6bb50e11ecefabbf719f00d59db845c65f1951e8da",
+      "bytes": 391375
+    },
+    {
+      "file": "cards-002.json",
+      "count": 300,
+      "sha256": "c57f99b3d818f11f3cca08dafb55fd768913411f7a190eaa69c3e32807da0bb3",
+      "bytes": 396145
+    },
+    {
+      "file": "cards-003.json",
+      "count": 300,
+      "sha256": "20efbf2c06a8448b5d3b948826327893107a8e259a06afaac181d9ad50696c8d",
+      "bytes": 392114,
+      "previous_outputs": [
+        {
+          "sha256": "d4a3c3ca49763d31684fcc8f6608e5ea0aa197cef68c745f95b470dd37865736",
+          "bytes": 391697,
+          "note": "이 정정 전 출력 파일; 입력 스냅샷 SHA와 구분"
+        }
+      ]
+    },
+    {
+      "file": "cards-004.json",
+      "count": 300,
+      "sha256": "06099f750b8683d2c2eb56a97930de64f7a4848bea4c8c40713c19527a0f160a",
+      "bytes": 405761
+    },
+    {
+      "file": "cards-005.json",
+      "count": 300,
+      "sha256": "91055254501dc5304f4c5348c2b555594b5cccd06ff61cf6e3e5751df03c0fcd",
+      "bytes": 412464
+    },
+    {
+      "file": "cards-006.json",
+      "count": 300,
+      "sha256": "034b6cb28cbbb3f1a1501455a9dfcf1b54313b3f70941a1a59f43739f1544b46",
+      "bytes": 433734,
+      "previous_outputs": [
+        {
+          "sha256": "dcd3309835a2935b005473244b6ddb543c421a7c2ec1c845961a56d718d7f51b",
+          "bytes": 433319,
+          "note": "이 정정 전 출력 파일; 입력 스냅샷 SHA와 구분"
+        }
+      ]
+    },
+    {
+      "file": "cards-007.json",
+      "count": 40,
+      "sha256": "f5f37fab2effbe391f28e30b5d5bff3a316da517079ade1d094e13f79d10c29d",
+      "bytes": 56812
+    },
+    {
+      "file": "cards-008.json",
+      "count": 38,
+      "sha256": "502c3c3d25a00b52762260f304901463e46ff49afb60dfae46f48fd8056e2350",
+      "bytes": 56411
+    }
+  ],
+  "additional_duplicate_review": {
+    "same_candidate_key": [
+      {
+        "key": "location-hamheung",
+        "ids": [
+          "81a20fe0-32a3-5db2-aad1-e8a2f91d80df",
+          "d89b15f2-88bf-537d-bda8-f387257e0c83"
+        ]
+      }
+    ],
+    "same_title_type": [
+      {
+        "title_normalized": "두만강",
+        "cardType": "location",
+        "ids": [
+          "0ca7dd3a-2f90-5699-be6b-2fe35f15e189",
+          "4f5de147-1e7b-5a65-b5f2-e158b0ecadd0"
+        ]
+      }
+    ]
+  },
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

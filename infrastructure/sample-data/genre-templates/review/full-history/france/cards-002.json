@@ -1,0 +1,4531 @@
+{
+  "genre": "france_history",
+  "worldId": "67907b53-fdd0-5771-8d78-0f317a0f71b9",
+  "status": "검토용 후보, 서비스·DB 미적재",
+  "cards": [
+    {
+      "id": "6a09c83f-0449-5ed4-9f0f-4cf2b62e3a67",
+      "title": "베르사유 궁전",
+      "body": "루이 14세 궁정의 화려함을 상징한 궁전이다. 정원과 분수도 왕의 위세를 드러내는 장치로 원저가 묘사한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2021–2028행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "location",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "location-palace-of-versailles",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2021,
+            "end": 2028,
+            "sha256": "3c067119ca52292c7b8b3e27d41d3be2c8ab2961cab9fe325a54a2aecdd5424a"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "8a62c256-7fdf-5304-9924-8517da79ad45",
+      "title": "낭트 칙령 폐지",
+      "body": "1685년 루이 14세는 위그노의 예배 자유를 없애고 목사를 추방했다. 신도들의 출국을 막고 군대를 가정에 숙영시키는 등 강제 개종을 압박했으며 많은 이들이 해외로 도피했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2031–2047행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "rule",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "rule-revocation-of-edict-of-nantes",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2031,
+            "end": 2047,
+            "sha256": "c1344de951175751d3627b72c47a3c52b86f5df0dba28fa8fad98e320678e603"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "a8672185-7557-5282-992b-26e6ff41728e",
+      "title": "장 카발리에",
+      "body": "세벤의 황야에서 위그노의 저항을 이끈 젊은 지도자다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2036–2039행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-jean-cavalier",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2036,
+            "end": 2039,
+            "sha256": "98b2f17542dff570e29651aecc36b202ff6c484e7b901b4ebc365c4585d109e8"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "417cf906-be72-5884-b176-837edb6189fa",
+      "title": "세벤",
+      "body": "낭트 칙령 폐지 뒤 카발리에가 이끈 위그노 일부가 저항한 프랑스 남부의 황야 지역이다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2036–2039행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "location",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "location-cevennes",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2036,
+            "end": 2039,
+            "sha256": "98b2f17542dff570e29651aecc36b202ff6c484e7b901b4ebc365c4585d109e8"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "de0f7347-8799-5b9c-affb-6e3b507d3df0",
+      "title": "스피털필즈",
+      "body": "잉글랜드에서 프랑스 출신 비단 직공들이 정착하여 오랫동안 프랑스적 성격을 유지한 지역이다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2043–2048행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "location",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "location-spitalfields",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2043,
+            "end": 2048,
+            "sha256": "48762f8f48acf358afbed6d166523c557b3e37ad0174fdb193b29c9594b8e3a9"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "a63c2e88-d1de-5274-bcf5-1ef6e6958372",
+      "title": "팔츠 전쟁",
+      "body": "루이 14세는 올케 오를레앙 공작부인의 상속권을 구실로 라인강 유역 팔츠를 침공했다. 전쟁은 1697년 레이스베이크 화약으로 끝났다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2051–2060행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-war-of-palatinate",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2051,
+            "end": 2060,
+            "sha256": "8d9d74bd36c1f761b0644c3ca6b36163e0956d7741fc6f1ecf1d2347c738099e"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "b29a3bcb-2c10-5a96-99a3-ec36bccd2575",
+      "title": "스페인 왕위 계승 전쟁",
+      "body": "스페인 국왕 카를로스 2세가 후계자로 프랑스의 앙주 공 필리프를 지명하면서 유럽 세력들이 충돌했다. 잉글랜드와 네덜란드는 오스트리아의 카를을 지지했고 전쟁은 여러 지역으로 번졌다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2063–2085행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-war-of-spanish-succession",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2063,
+            "end": 2085,
+            "sha256": "8d104e4887fe8eba401dc26104aa1b2b980dd69d50f70ab2c0e623916e320a80"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "bf1261b9-2b4f-522a-a581-f6ed9dbb1134",
+      "title": "스페인 국왕 펠리페 5세",
+      "body": "앙주 공 필리프로 불린 루이 14세의 손자다. 스페인 왕위 계승 전쟁 뒤 스페인의 왕위를 유지했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2063–2076행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-philip-v-of-spain",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2063,
+            "end": 2076,
+            "sha256": "fb017b913f6f8fea9a44b94b963d97e6d9d655ef6775b5b9096a8175cf5a119d"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "a7480a0b-7949-574b-9d9a-87b095a016b4",
+      "title": "신성로마제국 황제 카를 6세",
+      "body": "황제 레오폴트의 차남으로 스페인 왕위 계승 전쟁에서 잉글랜드와 네덜란드의 지지를 받았다. 황제가 된 뒤 스페인 왕위 주장을 접었으며 국사조칙으로 딸 마리아 테레지아의 세습 영토 상속을 정했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장 2148–2158행, 2067–2073행, 2095–2099행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-charles-vi-holy-roman-emperor",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI.",
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2148,
+            "end": 2158,
+            "sha256": "6d85ace244dc408a051eeb23a1770fc5ece8bf8db7868847acdb9520ee29780a"
+          },
+          {
+            "start": 2067,
+            "end": 2073,
+            "sha256": "ff186e4dfa3d1e19746bf95f9a10638c7f8ef050646de33ca4247cb829717b8a"
+          },
+          {
+            "start": 2095,
+            "end": 2099,
+            "sha256": "a0ef6b50d7a50b2179dc249e83ebec742b2d53cc2925414d0b0e76da733b5136"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "ae49a24d-d3b1-574f-a482-479576b4f47e",
+      "title": "말버러 공 존 처칠",
+      "body": "잉글랜드군을 이끌고 오스트리아의 외젠 공과 함께 블레넘에서 승리했으며 저지대의 라미 전투에서도 승리했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2074–2085행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-john-churchill-duke-of-marlborough",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2074,
+            "end": 2085,
+            "sha256": "77fa40843be881636e5920cdac73c4fcae562abd32756c83bea626f54c3375f5"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "8868b4bf-bd20-5569-9e74-4dca32f81d98",
+      "title": "사보이의 외젠 공",
+      "body": "사보이 가문의 방계 출신으로 프랑스에서 자랐으나 황제를 섬겼다. 블레넘에서 싸우고 사보이의 빅토르 아마데우스를 도와 토리노에서 승리했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2076–2084행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-prince-eugene-of-savoy",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2076,
+            "end": 2084,
+            "sha256": "c1642174e229fbcdfa63083f47e03d0f6507a8159f3608386dc838305c8f3476"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "1e24481f-479a-5f59-a7e4-4c0f465aee1f",
+      "title": "블레넘 전투",
+      "body": "말버러의 잉글랜드군과 외젠의 오스트리아군이 바이에른 선제후가 독일로 들여온 프랑스 동맹군을 격파했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2074–2079행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-battle-of-blenheim",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2074,
+            "end": 2079,
+            "sha256": "03af704cd2ffc2f39e42ca5986fb329462f93430e406f4fd2bec6e50b95f9de5"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "24b588f4-f90a-53dd-b71f-c97db9046eec",
+      "title": "위트레흐트 화약",
+      "body": "잉글랜드의 앤 여왕이 군대를 철수시키고 카를 대공이 황제위를 계승해 스페인 왕위 주장을 접은 뒤 1713년 일반 평화가 가능해졌다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2088–2100행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-peace-of-utrecht",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2088,
+            "end": 2100,
+            "sha256": "25bdf09b21840ff8bd27da2c959ae1016cc399a188697bec3eaceb2bc9f06a21"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "722845be-6f5e-5fb4-9553-08fd003ca3f7",
+      "title": "루이 15세",
+      "body": "루이 14세의 증손으로 어린 나이에 왕위를 이었다. 오를레앙 공의 섭정을 받았고 성년 뒤 부르봉 공과 플뢰리 추기경이 실권을 행사했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2113–2121, 2137–2142행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-louis-xv-of-france",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2113,
+            "end": 2121,
+            "sha256": "26aa12d3b8aa6119858545958e6ad93d81b6f616200c7d49cbe1f6c80171d7d6"
+          },
+          {
+            "start": 2137,
+            "end": 2142,
+            "sha256": "6cf2ff54269201b558a92668dd2eaa4de7cb80e7fe2ea649e21309a1549b8dc9"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "26b69916-399b-5432-8e28-f9aaa2b70f71",
+      "title": "오를레앙 공 필리프 2세",
+      "body": "루이 14세의 조카이자 왕족 서열상 유력자로 루이 15세의 단독 섭정이 되었다. 1723년에 급사했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2113–2126, 2136–2138행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-philippe-ii-duke-of-orleans",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2113,
+            "end": 2126,
+            "sha256": "f5822dc1ef84d3ebd00c6054bd8069ff9365c17a0160714cb416a7887f4803e5"
+          },
+          {
+            "start": 2136,
+            "end": 2138,
+            "sha256": "fedfed5505ee6101364300b1f12e55498ddfba3869b01a76530b7cda439380e2"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "ebff1d43-2e18-5f0c-b942-65d9b85e6ab1",
+      "title": "존 로",
+      "body": "스코틀랜드 출신으로 국가 신용에 기초해 자금을 조달하고 미시시피 식민 사업 회사를 구상했다. 주식 투기 열풍과 붕괴로 많은 사람이 파산했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2127–2137행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-john-law",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2127,
+            "end": 2137,
+            "sha256": "fa3bf6a66ef7d7d039fcf0cb563e9d9c8023a48dc01d33e0d96098b693813f73"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "5a47986c-90e8-58b8-ab18-5b5e33eed2ec",
+      "title": "미시시피 회사 투기와 붕괴",
+      "body": "존 로의 미시시피 정착 사업과 국가 신용 구상에 주식 투자가 몰렸다. 급등락 뒤 계획이 무너져 경제적 파탄을 낳았다고 원저는 설명한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2127–2137행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-mississippi-bubble",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2127,
+            "end": 2137,
+            "sha256": "fa3bf6a66ef7d7d039fcf0cb563e9d9c8023a48dc01d33e0d96098b693813f73"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "257b6623-fa33-5b34-9798-4515cfa3cd7f",
+      "title": "플뢰리 추기경",
+      "body": "오를레앙 섭정 사망과 부르봉 공 집권 뒤 프랑스를 실질적으로 다스린 고령의 정치가다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2137–2142행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-cardinal-andre-hercule-de-fleury",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2137,
+            "end": 2142,
+            "sha256": "6cf2ff54269201b558a92668dd2eaa4de7cb80e7fe2ea649e21309a1549b8dc9"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "7bff1382-fb51-5eb7-9b88-30baf45392bd",
+      "title": "스타니스와프 레슈친스키",
+      "body": "폴란드 귀족이자 루이 15세의 장인으로 폴란드 왕위에서 축출된 뒤 로렌 공국을 받았다. 원저는 그의 사후 딸을 거쳐 프랑스에 귀속되도록 했다고 설명한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2145–2151행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-stanislaw-leszczynski",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2145,
+            "end": 2151,
+            "sha256": "a8a1b2f647c116e44ec176735229a4854a0dd73956ad97e753f31b286c4d792d"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "fb643fe8-a00b-54de-bc69-33a6dc1b3f9c",
+      "title": "국사조칙",
+      "body": "황제 카를 6세가 딸 마리아 테레지아에게 오스트리아·헝가리 등 세습 영토를 상속시키도록 정한 조치다. 여러 유럽 열강의 동의에도 황제 사후 분쟁이 일어났다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2151–2158행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "rule",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "rule-pragmatic-sanction-1713",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2151,
+            "end": 2158,
+            "sha256": "5a5be03c3d5c05d7ce4c3e6f63e6096495958b3f4d67390ae6dcb2f2bd3785ea"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "d6703a5d-e47a-5939-ad23-a416c2fb7dfd",
+      "title": "오스트리아의 마리아 테레지아",
+      "body": "황제 카를 6세의 장녀이자 로렌 공 프란츠의 아내다. 부친의 세습 영토 상속을 두고 프리드리히 2세와 프랑스 등의 반대에 직면했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2151–2163행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-maria-theresa-of-austria",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2151,
+            "end": 2163,
+            "sha256": "d52a830216cb5642a68e8bed79e110553974575b6de38a76ec80ca9598ff9643"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "49077ff8-0c8f-51f7-9cc8-824a3d4ecc71",
+      "title": "프로이센의 프리드리히 2세",
+      "body": "마리아 테레지아의 세습 영토 권리와 남편의 황제 선출에 반대한 프로이센 국왕이다. 이후 7년 전쟁에서 잉글랜드와 동맹했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2157–2163, 2180–2184행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-frederick-ii-of-prussia",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2157,
+            "end": 2163,
+            "sha256": "2c70862a2aa5a7f992250d5c05081469b9d59450203270232df94df78425a870"
+          },
+          {
+            "start": 2180,
+            "end": 2184,
+            "sha256": "196a29e95cfff3d664d5314456bc198431a32d06fd9b2b22b8ac95467cf83e68"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "f4fd70a4-bd29-5a72-8576-39b876a4d457",
+      "title": "오스트리아 왕위 계승 전쟁",
+      "body": "카를 6세의 사후 마리아 테레지아의 상속권과 황제 선출을 둘러싸고 유럽 전쟁이 벌어졌다. 프랑스는 그녀의 적을 지원했고 1748년 아헨에서 평화가 체결되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2151–2168행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-war-of-austrian-succession",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2151,
+            "end": 2168,
+            "sha256": "62c4fd891e8c52680b54cb54dfd7c80898dc617191304413f33f335f5c50c9b5"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "8052aa96-a434-5bfb-ba40-ce3233983182",
+      "title": "퐁트누아 전투",
+      "body": "1745년 루이 15세가 군대에 합류한 가운데 프랑스가 잉글랜드에 승리한 전투다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2161–2166행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-battle-of-fontenoy",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2161,
+            "end": 2166,
+            "sha256": "07a5c860f05b1e531a18d86a3cdc0d5db973682624e9f59484d53f54e068dd82"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "e52a7ee9-cbff-5115-846b-69ac993a2bc3",
+      "title": "7년 전쟁",
+      "body": "프로이센과 오스트리아의 대립이 재점화되어 프랑스는 오스트리아, 잉글랜드는 프로이센과 동맹했다. 원저는 프랑스가 인도와 북아메리카의 식민지에서 크게 패했다고 기술한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2180–2189행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-seven-years-war",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2180,
+            "end": 2189,
+            "sha256": "ab8e5aaa0bded4d36f2a72a1e7a806e9b0d27e81b39610da6a0eec7c9467b824"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "5debf3ab-c660-5d97-a8e0-770bb58ecd6e",
+      "title": "가벨 소금세",
+      "body": "소금세는 실제 사용량이 아니라 각 가족과 가축이 필요하다고 간주된 양에 따라 부과되었다고 원저가 설명한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2210–2217행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "rule",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "rule-gabelle",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2210,
+            "end": 2217,
+            "sha256": "eaabfa32f583ba7c441be2bc836b242ecb10dd17bfc265747adaeb313ecdbe47"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [
+          {
+            "id": "07cd2d61-955c-5462-ae9d-061b54c6d67b",
+            "reason": "같은 유형과 key 또는 제목; 동일 대상 여부 미확인"
+          }
+        ],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "246d0087-0ff8-5da4-88b5-5f252e705c38",
+      "title": "볼테르",
+      "body": "변화 요구가 커진 시기에 기존 관념을 공격한 주요 작가 중 하나로, 원저는 그의 신랄한 재치를 강조한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2229–2239행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-voltaire",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2229,
+            "end": 2239,
+            "sha256": "2027365fde3292de2bcdfb65d022ffb0f896a72b952b4fce1e2d56c1c74a908f"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "a7ad06ef-29f9-532d-b3a1-94c89be09178",
+      "title": "장자크 루소",
+      "body": "기존 관념과 제도를 비판한 주요 작가 중 하나로, 원저는 그의 열정적인 소박함을 강조한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2229–2239행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-jean-jacques-rousseau",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2229,
+            "end": 2239,
+            "sha256": "2027365fde3292de2bcdfb65d022ffb0f896a72b952b4fce1e2d56c1c74a908f"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "00c0ab39-fe7a-50bd-9da5-2df2a97d0746",
+      "title": "《백과전서》",
+      "body": "당시 출판되던 대규모 백과사전으로 필자들이 신앙과 정부에 관련된 기존 관념을 비판하는 장이 되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2229–2239행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "object",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "object-encyclopedie",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2229,
+            "end": 2239,
+            "sha256": "2027365fde3292de2bcdfb65d022ffb0f896a72b952b4fce1e2d56c1c74a908f"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "0ed6d367-5e87-5892-9f28-a309b9d4ba1d",
+      "title": "루이 16세",
+      "body": "재정 파탄과 조세 부담 속에서 개혁을 시도한 국왕이다. 삼부회를 소집했으나 혁명 과정에서 폐위되어 1793년 처형되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2253–2271, 2282–2285, 2379–2383행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-louis-xvi-of-france",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2253,
+            "end": 2271,
+            "sha256": "8bd186c255557c31fe7435f5811fffe29df5f791920b184bf67d985001d0c98f"
+          },
+          {
+            "start": 2282,
+            "end": 2285,
+            "sha256": "4acc562de7e4274003ff2f8bb881cf7069118239e2d2a333adff1ba9d55b462b"
+          },
+          {
+            "start": 2379,
+            "end": 2383,
+            "sha256": "ed6a85b53f888b1e6e29ec095556191e0af2461c6aac97692e8995543086fe39"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "2db248c5-91fb-5a0f-8b57-62b55a7f40f0",
+      "title": "마리 앙투아네트",
+      "body": "오스트리아 출생의 프랑스 왕비로 원저는 그녀가 출신 때문에 미움을 받았다고 설명한다. 혁명기에 남편이 처형된 지 아홉 달 뒤 처형되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2253–2261, 2390–2393행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-marie-antoinette",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2253,
+            "end": 2261,
+            "sha256": "44dc89da411d2f27e5644ec6f56ac6703dc9e8936612a9bb940af65060a4c2ee"
+          },
+          {
+            "start": 2390,
+            "end": 2393,
+            "sha256": "2fe912d61a62d1c609f1abb499e69de257578438221bc8ced1cedc90fe012509"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "3deebc48-cee9-57ad-b93c-c1a33f76ec23",
+      "title": "자크 네케르",
+      "body": "스위스 은행가로 프랑스 재정을 맡아 국채 이자를 지급하고 지출을 일부 줄였다. 원저는 모레파의 질투로 해임되었다고 서술한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2270–2276행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-jacques-necker",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2270,
+            "end": 2276,
+            "sha256": "e48f1ceaf666a5c1db8f9873b4ff26c53056f89b6dcaa4f64387f5abb1c9dbc5"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "e57f9db7-278b-577d-8f9a-926eda8a3d00",
+      "title": "모레파 백작",
+      "body": "국왕의 오래된 대신으로 재정가 네케르의 인기를 시기하여 해임을 이끌었다고 원저가 기술한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2271–2276행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-jean-frederic-phelypeaux-maurepas",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2271,
+            "end": 2276,
+            "sha256": "b62dc7d65b1fc85770bb0c82ae67c9667c6aacea15d7942d12aeccfecfba3249"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "9666b442-4134-5876-afe5-2615aee24299",
+      "title": "명사회",
+      "body": "루이 16세가 조세 부담 분담을 모색하기 위해 소집한 고위 귀족들의 모임이다. 원저에 따르면 이들은 자신들에 대한 과세에 반대했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2277–2285행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "organization",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "organization-assembly-of-notables",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2277,
+            "end": 2285,
+            "sha256": "33e808d170138ecb1b6fa32a959cb572434d017ede9407e48f972cb4e8260de9"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "9967e0c6-fc3e-56d7-be99-8e54452f7c1b",
+      "title": "1789년 삼부회",
+      "body": "베르사유에서 귀족·성직자·제3신분 대표가 모였다. 제3신분은 별도 회의장으로 물러나길 거부했고 이후 의원의 표가 동등하게 계산되었다고 원저가 서술한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2288–2300행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-estates-general-1789",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2288,
+            "end": 2300,
+            "sha256": "d12a83455a16c132a31ae4667ccf577ab97a021576c7967f2462a98474f690bf"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "6d9d180b-e803-536b-9d86-ff4cb2e3bf46",
+      "title": "미라보 백작",
+      "body": "귀족 가문의 차남이자 1789년 삼부회 대표로, 국민의 뜻에 따라 앉은 의원들을 총검 없이는 내쫓을 수 없다고 선언했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2291–2296행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-honore-gabriel-ricauti-mirabeau",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2291,
+            "end": 2296,
+            "sha256": "ce6d8e67d923778e8290466c47042a71a8865697d950b443770faa82c4a3b256"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "2e675169-08b9-55b6-a096-f9e6a8b11d12",
+      "title": "자코뱅파",
+      "body": "민주파 가운데 가장 급진적인 이들을 가리키는 명칭으로 원저는 그들이 모이던 옛 자코뱅 수도원에서 이름이 유래했다고 설명한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2297–2301행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "organization",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "organization-jacobins",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2297,
+            "end": 2301,
+            "sha256": "3262eb2671ed588bc0f7fc680623f01a6c33fa3954297289d1c2dfef15737164"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": [
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/france.world.json",
+            "key": null,
+            "title": "1789년 삼부회와 정치적 대표",
+            "type": "organization",
+            "id": "7b6c59fa-856d-5665-b587-428360ad8cc6",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          },
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/studio/france.world.json",
+            "key": null,
+            "title": "1789년 삼부회와 정치적 대표",
+            "type": "organization",
+            "id": "7b6c59fa-856d-5665-b587-428360ad8cc6",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          }
+        ]
+      }
+    },
+    {
+      "id": "a5bc0961-cf7c-5f80-af0b-f147defd786c",
+      "title": "프랑스 국민방위군",
+      "body": "국왕이 군대를 가까이 불러들이자 시민들이 조직한 부대다. 적·청·백 삼색 표장을 착용하고 라파예트가 지휘했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2306–2310행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "organization",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "organization-french-national-guard",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2306,
+            "end": 2310,
+            "sha256": "b841d9d5f09269c89032e14f0e0a6887088d4c3b5837e41daebf52211b3c9e0b"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "cd55c1f5-47c5-5fa6-9584-720e283ee7a6",
+      "title": "라파예트",
+      "body": "민주적 견해를 가진 귀족으로 젊어서 미국 독립전쟁에 참가했으며 프랑스 국민방위군을 지휘했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2306–2310행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-gilbert-du-motier-lafayette",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2306,
+            "end": 2310,
+            "sha256": "b841d9d5f09269c89032e14f0e0a6887088d4c3b5837e41daebf52211b3c9e0b"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "8703d870-4a97-5f98-b6d3-c7cc1cf8facd",
+      "title": "바스티유",
+      "body": "파리의 오래된 성채로 대포가 시민을 향했다는 소문 뒤 군중의 공격을 받아 파괴되었다. 수감자에 관한 원저의 서술은 별도 검증이 필요하다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2310–2315행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "location",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "location-bastille",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2310,
+            "end": 2315,
+            "sha256": "7cb2d697edfdcc8c337c7aded668fe243f501c6d5e8cf179574e1da8d6ec60e4"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "de348e6d-ba66-5380-bf82-a002a0b6fd45",
+      "title": "바스티유 습격",
+      "body": "대포가 파리를 향했다는 소문이 퍼진 뒤 군중이 바스티유를 공격하고 성채를 파괴했다. 원저의 수감자 관련 주장은 역사 검증이 필요하다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2306–2315행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-storming-of-the-bastille",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2306,
+            "end": 2315,
+            "sha256": "208c4c110205eaa228d67ef50fb43003dca01c86732b6d88380e6c2567751d94"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "0e9f6d7e-8549-5d28-9fe6-41b0cddf51f6",
+      "title": "베르사유 행진",
+      "body": "파리의 식량 부족과 개혁 중단에 대한 불안 속에서 군중이 베르사유로 가 왕실을 파리로 데려왔다. 의회도 파리로 옮겨 새 헌법을 논의했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2318–2328행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-womens-march-on-versailles",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2318,
+            "end": 2328,
+            "sha256": "f8722a53b3f657409493e532fbc548d9a7cf60409e5c47badd5deaaccc45bc7a"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "674585f1-6188-5fab-b281-a1b683046a8d",
+      "title": "제헌국민의회",
+      "body": "귀족의 칭호와 특권을 없애고 교회 재산과 성직자 선서, 행정구역 및 헌법을 다뤘다. 왕에게 거부권을 남긴 새 체제를 마련했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2334–2351행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "organization",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "organization-national-constituent-assembly",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2334,
+            "end": 2351,
+            "sha256": "2020eeeca6898ec1db703057845635d70560fd82f1f12147d8ff8b58262905ae"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "8c1bfeb1-4f3f-53d3-982a-403e6e67db19",
+      "title": "성직자의 국가 선서",
+      "body": "제헌의회는 교회 재산을 국가에 넘기고 성직자가 직분의 권한을 국민에게서 받으며 국가에만 복종한다는 선서를 요구했다. 많은 성직자는 이를 거부하고 직을 잃었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2334–2346행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "rule",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "rule-civil-constitution-of-the-clergy",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2334,
+            "end": 2346,
+            "sha256": "8797b49a6cd8474077f9a8951aae2179655b2b8780fb814273edc293c428c622"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "1ea36837-c580-5166-99f4-981f34fae0d4",
+      "title": "아시냐 지폐",
+      "body": "몰수한 교회 재산을 곧바로 현금화할 수 없어 발행한 지급 약속 증서다. 원저는 금속 화폐 부족 속에 액면보다 가치가 떨어졌다고 설명한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2339–2343행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "object",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "object-assignats",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2339,
+            "end": 2343,
+            "sha256": "c9b5c0ff57b5f25ac889209ea6392d9df6455d0df622f74dff5decadf6b4c9af"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "520dddb4-c382-51b8-a1c0-cb6720af9fb8",
+      "title": "프랑스 데파르트망 체제",
+      "body": "옛 지방의 경계를 없애고 프랑스를 데파르트망으로 나누었다. 각 지역이 대의원을 선출하고 왕에게 법안 거부권을 남기는 체제였다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2346–2351행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "rule",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "rule-french-departments",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2346,
+            "end": 2351,
+            "sha256": "5c7071d9006259e3ec095db17dd961a4bc769cbc81248a113fdd9ac5d5b14e4e"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "db3b42fd-0273-55b1-bcb7-be7417391f77",
+      "title": "프랑스 입법의회",
+      "body": "제헌의회가 해산한 뒤 이를 대체한 의회다. 군중 봉기와 왕정 몰락 뒤 국민공회가 뒤를 이었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2354–2369행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "organization",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "organization-legislative-assembly-france",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2354,
+            "end": 2369,
+            "sha256": "7f23c01a91d4249782fc960db6cc01c5f19dc27ea07c38f5a72e241445f7d400"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "4c1a2872-b610-512e-a965-fdf7d6fcbe0b",
+      "title": "1792년 8월 10일 봉기",
+      "body": "망명 귀족군의 진격 속에서 튈르리 궁이 습격되고 근위병들이 살해되었다. 왕과 가족은 폐위되어 탕플 탑에 감금되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2357–2368행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-august-10-1792",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2357,
+            "end": 2368,
+            "sha256": "81fd565a1f9f6343fed127fdbf21e7165b5d7344d11a20444dd88d44aa9a04e5"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "c64a52d3-7817-50dd-a676-31ea2fa89c43",
+      "title": "혁명기 감옥 학살",
+      "body": "감옥 속 귀족들이 망명군에 가담할 것을 두려워하여 대규모 살해가 일어났다고 원저는 서술한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2363–2368행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-september-massacres",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2363,
+            "end": 2368,
+            "sha256": "9b7af846ac4dc5425179e8028c540b4b6eb47a75c016c1460727f066413352b5"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "0107b356-c191-5dbc-9265-4e1b985cd560",
+      "title": "프랑스 국민공회",
+      "body": "입법의회에 이어 프랑스 공화국의 최고 권력을 맡은 의회다. 지롱드파와 산악파가 다른 혁명 노선을 놓고 경쟁했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2368–2378행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "organization",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "organization-national-convention-france",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2368,
+            "end": 2378,
+            "sha256": "a318aca91d66821d23fbb1f4a12a3312f4abcb12b9e3c44e457fdf73ceadbd36"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "b63c698b-ae8a-5970-a760-684595f9ba98",
+      "title": "지롱드파",
+      "body": "국민공회의 비교적 온건한 구성원으로 원저는 지롱드 지역 출신이 많았고 자코뱅파보다 온건했다고 설명한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2369–2375행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "organization",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "organization-girondins",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2369,
+            "end": 2375,
+            "sha256": "f4d7cee0fb42a0769c98c97b8cc87436f6391e1925682f215d05371789a62ced"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "0a780929-163f-5e93-a2f5-d7c1441201cd",
+      "title": "산악파",
+      "body": "로베스피에르·당통·마라 등이 속한 급진 공화파다. 평등을 방해한다고 여겨진 대상들을 제거하려 했다고 원저는 서술한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2374–2383행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "organization",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "organization-mountain-france",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2374,
+            "end": 2383,
+            "sha256": "7597588444633d04def39737cce3ca372d48b5c4b49f91ae5214db2c3d098500"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "b45376fc-05a0-5b21-ac60-01f874e8ac4b",
+      "title": "막시밀리앵 로베스피에르",
+      "body": "아르투아 출신 법률가이자 자코뱅파의 주요 인물이다. 국민공회의 다른 의원들에게 고발되어 체포되고 단두대에서 처형되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2371–2378, 2424–2427행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-maximilien-robespierre",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2371,
+            "end": 2378,
+            "sha256": "3aa064bbb0a0f38aab9345a5d2c15bee2c58ab1f28104d6ac680f5160a65ae52"
+          },
+          {
+            "start": 2424,
+            "end": 2427,
+            "sha256": "0bde327ebe3deee92b140affb0aeeb651aa8c2e48040c5b45a01157f65d81f70"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "2b02c148-dd0e-5b42-8577-f971a8808935",
+      "title": "조르주 당통",
+      "body": "국민공회의 급진 공화파인 산악파의 주요 인물로, 뒤에 로베스피에르에게 고발되어 처형되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2374–2378, 2395–2397행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-georges-danton",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2374,
+            "end": 2378,
+            "sha256": "6582e62d5c54fddadaa432658331aca02fa1ff88d4a4ce73672d2e97c0de6fc7"
+          },
+          {
+            "start": 2395,
+            "end": 2397,
+            "sha256": "685cc04c6345719c09a1cec3f172d5738d4153145ff9f24076a994ff98f47c44"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "1fcfba31-2ee9-5a21-bae7-1095c7c14945",
+      "title": "장폴 마라",
+      "body": "국민공회 산악파의 주요 인물이다. 폭력의 주된 원인이라고 그를 여긴 샤를로트 코르데에게 암살되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2374–2378, 2386–2389행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-jean-paul-marat",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2374,
+            "end": 2378,
+            "sha256": "6582e62d5c54fddadaa432658331aca02fa1ff88d4a4ce73672d2e97c0de6fc7"
+          },
+          {
+            "start": 2386,
+            "end": 2389,
+            "sha256": "966655adf69f76e6e14023057060647ceb3d821ec446299dbb8749863e4c6e41"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "53e053eb-377e-54a4-82a6-1dc9bb01f77d",
+      "title": "단두대",
+      "body": "혁명기에 여러 주요 시장에 설치되어 국가에 대한 음모 혐의를 받은 사람들을 참수하는 데 사용된 기계다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2377–2383행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "object",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "object-guillotine",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2377,
+            "end": 2383,
+            "sha256": "988848d8488f0a9c9a616d5ec174678705269c67bceac5c211720790a95688c0"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "c6d2a5d5-b269-5485-b8ee-8353845bae11",
+      "title": "샤를로트 코르데",
+      "body": "산악파의 유혈 행위에 충격을 받아 마라를 잔혹 행위의 주원인으로 여기고 암살했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2386–2389행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-charlotte-corday",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2386,
+            "end": 2389,
+            "sha256": "966655adf69f76e6e14023057060647ceb3d821ec446299dbb8749863e4c6e41"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "f70e9ad9-1282-5562-8e2a-0195f5f4cfed",
+      "title": "공안위원회",
+      "body": "국민공회가 설치한 위원회다. 원저는 평등에 반대하거나 신분상의 권리를 상속할 가능성이 있는 사람들을 제거하려 했다고 설명한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2386–2396행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "organization",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "organization-committee-of-public-safety",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2386,
+            "end": 2396,
+            "sha256": "487e07ec90dd78bf00fefdd44f67ce817a92787fdd258a21990c77c89b6a47c9"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "788d47d5-78b3-53dd-ab33-68a2a3f18843",
+      "title": "공포정치",
+      "body": "혁명 정부가 반대자로 의심되는 사람들을 대규모로 처형한 시기다. 왕비와 지롱드파, 당통 등이 희생되었고 로베스피에르의 체포와 처형으로 원저가 서술하는 국면이 끝났다. 원저의 기간과 사망자 수는 재검증이 필요하다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2386–2429행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-reign-of-terror",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2386,
+            "end": 2429,
+            "sha256": "9d133b499a157e5309a0abad79e023d05922eb7a32fa40777de05a8b114b5b61"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "9defe6e6-f864-5e4a-a18c-487df7578389",
+      "title": "콜로 데르부아",
+      "body": "공안위원회 위원으로 리옹의 저항이 진압된 뒤 포도탄을 사용한 대규모 처형을 명령했다고 원저가 서술한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2402–2409행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-jean-marie-collot-dherbois",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2402,
+            "end": 2409,
+            "sha256": "068262671cd8e1ecb6ad78a9d06ec2300554e786fd73725a7376d729e543ef4a"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "aac9ed01-e61d-5240-a063-97b3ddb50b23",
+      "title": "방데 반란",
+      "body": "성직자와 귀족에 대한 충성심이 강한 방데 지역의 농민들이 봉기하여 한때 왕의 어린 아들을 구출하려 했으나 무력으로 진압되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2409–2415행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-vendee-uprising",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2409,
+            "end": 2415,
+            "sha256": "5d317ee2ab06ab04323d460e37d3e067d1d61d35768a25861e4be2f3069b8e3f"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "4779c5ea-76d0-596a-80b3-0704bf4e0899",
+      "title": "방데",
+      "body": "원저가 앙주의 한 지역으로 설명하는 곳으로 성직자·귀족에 충성하는 농민들의 반란이 일어났다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2409–2415행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "location",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "location-vendee",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2409,
+            "end": 2415,
+            "sha256": "5d317ee2ab06ab04323d460e37d3e067d1d61d35768a25861e4be2f3069b8e3f"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "0c2ed746-6695-556a-be10-878bc294c8f0",
+      "title": "프랑스 혁명력",
+      "body": "1792년 9월 22일을 새 시대의 시작으로 정하고 달 이름을 바꾸었다. 일곱째 날 대신 열흘째 날을 쉬는 날로 삼았다고 원저가 설명한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2417–2424행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "rule",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "rule-french-revolutionary-calendar",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2417,
+            "end": 2424,
+            "sha256": "3dfb29871f7cd2e6d49acfce21640f99a0c367bd618926019fa5443f8e5b7768"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "5787b607-d0ec-5b1a-8261-30feb8ff2e4d",
+      "title": "십진 도량형",
+      "body": "길이·무게·용량에 관한 십진법 척도를 지구의 비율에 기초해 계획했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2421–2424행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "rule",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "rule-metric-system",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2421,
+            "end": 2424,
+            "sha256": "6ed3b768a4f7a61a1e99da3b8a7c202cb2c84fa1e3ece59042920abdca073665"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "77e29778-96fa-53a3-abf3-db41df9a1a86",
+      "title": "프랑스 총재정부",
+      "body": "공포정치 뒤 행정권을 맡은 정부다. 이탈리아 원정과 대외 전쟁이 이어지는 가운데 나폴레옹이 보다 단순한 전시 정부를 내세워 제1통령이 되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2432–2452행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "organization",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "organization-directory-france",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2432,
+            "end": 2452,
+            "sha256": "4dc3db2f2c0ce23964e52b0cf1d3d8a98ec4c4507752d3491323e217579b15c7"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "22583e2f-c85b-5b60-b938-7c3976d41943",
+      "title": "나폴레옹 보나파르트",
+      "body": "코르시카 출신 장교로 이탈리아에서 승리하며 명성을 얻었고 1799년 제1통령이 되었다. 1804년 황제가 되어 여러 전쟁을 벌였으며 1814년 퇴위했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2432–2452, 2460–2464, 2497–2503행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-napoleon-bonaparte",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2432,
+            "end": 2452,
+            "sha256": "4dc3db2f2c0ce23964e52b0cf1d3d8a98ec4c4507752d3491323e217579b15c7"
+          },
+          {
+            "start": 2460,
+            "end": 2464,
+            "sha256": "0873f722e23875e6f840c96be5384999e7340a7a68fb83fad1093f9dc03c573a"
+          },
+          {
+            "start": 2497,
+            "end": 2503,
+            "sha256": "0d90da9e56f0f66c3588881925261f20b37515cc204a3a54ee5ae8b97f0a4d13"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "6482ab3c-5d34-52c2-990a-b688a1b16967",
+      "title": "나폴레옹의 이집트 원정",
+      "body": "보나파르트는 인도에 접근할 목적으로 이집트를 공격했으나 나일강 해전에서 함대가 파괴되고 아크레에서 저항을 받았다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2439–2445행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-egyptian-campaign-napoleon",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2439,
+            "end": 2445,
+            "sha256": "52d0f5ca6157758eb9b6c510819f1a00b73eaab70d8c8bde80779a5851ea191e"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "32234767-4c5f-5ef6-b9e2-69d77fded722",
+      "title": "호레이쇼 넬슨",
+      "body": "나일강 해전에서 나폴레옹의 함대를 파괴한 영국 제독이다. 이후 트라팔가에서 프랑스·스페인 함대를 격파했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2441–2445, 2474–2477행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-horatio-nelson",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2441,
+            "end": 2445,
+            "sha256": "91e10468404400413c2ad151f9b53184a35b578bc3135475a1ffd5acb9c05818"
+          },
+          {
+            "start": 2474,
+            "end": 2477,
+            "sha256": "6040f02cd9e50c1829587f9108b1b23fe1984e023b66ae30caa0a576a20ad577"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "f695dcdd-3b7c-54a1-8c5c-001d2ba68c10",
+      "title": "시드니 스미스",
+      "body": "나폴레옹의 원정에 맞서 아크레를 방어한 영국인이다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2441–2445행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-sidney-smith",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2441,
+            "end": 2445,
+            "sha256": "91e10468404400413c2ad151f9b53184a35b578bc3135475a1ffd5acb9c05818"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "64129c7a-714e-58fc-af1c-2da85a5764bc",
+      "title": "장빅토르 모로",
+      "body": "통령정부 시기 독일에서 프랑스군을 지휘하여 승리를 거둔 장군이다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2455–2457행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-jean-victor-moreau",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2455,
+            "end": 2457,
+            "sha256": "48cb5a2e9592099ddca42e6853d13f6e6db53b99f9f5fb80ac72d4aedf8920e0"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "7ebd9d0c-6f29-5457-ac64-581b3c165bcd",
+      "title": "나폴레옹의 교황청 정교협약",
+      "body": "교황과의 협약으로 성직을 복원하되 교구 구획을 바꾸고 주교와 사제를 국가의 급여를 받는 지위에 두었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2460–2467행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "rule",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "rule-concordat-of-1801",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2460,
+            "end": 2467,
+            "sha256": "041d25a258a4805ca7a25bfa3f0ff703ea50a5691928cfc2efdb4b30b8897c36"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "4e0eddfe-0338-57d7-8240-0e54fc4373d3",
+      "title": "나폴레옹의 황제 대관",
+      "body": "1804년 나폴레옹이 공화국을 제국으로 바꾸고 대관식을 거행했다. 교황이 미사를 집전했으나 왕관은 나폴레옹이 스스로 썼다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2460–2467행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-napoleon-coronation",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2460,
+            "end": 2467,
+            "sha256": "041d25a258a4805ca7a25bfa3f0ff703ea50a5691928cfc2efdb4b30b8897c36"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "a814760a-3658-54d0-947d-afd6ba8099d9",
+      "title": "트라팔가 해전",
+      "body": "넬슨이 프랑스와 스페인의 함대를 격파하여 나폴레옹의 잉글랜드 침공 계획을 좌절시켰다고 원저가 서술한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2474–2478행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-battle-of-trafalgar",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2474,
+            "end": 2478,
+            "sha256": "ea62abc450249c7eba4a797b5ce54d9ecfa0156c51ec17702234b1ccae138355"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "7c4a324f-d9ba-5721-a684-446424b9857d",
+      "title": "조제프 보나파르트",
+      "body": "나폴레옹의 형제로 프랑스가 스페인 왕실을 장악한 뒤 스페인 왕이 되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2478–2482행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-joseph-bonaparte",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2478,
+            "end": 2482,
+            "sha256": "295ae2adef212f8020173fff29bd11ce952bd54104bb65b75f3a5c4433b97fe0"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "115dec5a-f10f-5b88-8c2e-d057f63ab648",
+      "title": "반도 전쟁",
+      "body": "나폴레옹이 스페인 왕가를 장악하고 형제 조제프를 왕으로 세우자 스페인인들이 저항하고 영국의 지원을 요청했다. 웰링턴이 이끈 영국군이 여러 차례 승리했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2478–2483행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-peninsular-war",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2478,
+            "end": 2483,
+            "sha256": "6437f1432636bf3ecc8e23f2d36b622fa4ee7c55efa89caad4306c2c247403db"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "99267fd5-d0be-5e0d-b9b9-ca696496b2c9",
+      "title": "웰링턴 공 아서 웰즐리",
+      "body": "반도 전쟁에서 영국군을 지휘하여 일련의 승리를 거두었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2478–2483행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-arthur-wellesley-duke-of-wellington",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2478,
+            "end": 2483,
+            "sha256": "6437f1432636bf3ecc8e23f2d36b622fa4ee7c55efa89caad4306c2c247403db"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "5f61d15b-3041-565d-8808-022c9bb5249f",
+      "title": "1812년 러시아 원정",
+      "body": "나폴레옹의 대군은 모스크바에 도달했으나 도시가 불타고 보급과 피난처를 잃었다. 혹한과 보급 부족, 코사크의 공격 속에 퇴각하면서 군대가 붕괴했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2483–2492행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-french-invasion-of-russia-1812",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2483,
+            "end": 2492,
+            "sha256": "56d14e811462e4d21fca08c3e12a1e219a9029ce2a39604e82681289c5a127b4"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "406f4bef-d901-5103-8efb-fb9033f5fe9b",
+      "title": "라이프치히 전투",
+      "body": "러시아 원정 실패 뒤 독일에서 연합국과 싸우던 나폴레옹이 원저가 이틀이라고 기술한 전투에서 크게 패했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2493–2497행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-battle-of-leipzig",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2493,
+            "end": 2497,
+            "sha256": "bd30b642cff47988a611e4d1e08b5ab5005f17ea704a4f4d8b2c09e33cf1fd83"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "7ed28e5b-c4db-5367-ae64-fb3e686f992e",
+      "title": "나폴레옹의 1814년 퇴위",
+      "body": "연합군이 프랑스에 진입하고 파리를 점령한 뒤 나폴레옹은 퇴위하여 지중해 엘바섬으로 보내졌다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2497–2503행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-napoleon-abdication-1814",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2497,
+            "end": 2503,
+            "sha256": "0d90da9e56f0f66c3588881925261f20b37515cc204a3a54ee5ae8b97f0a4d13"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "ce4086e0-06d7-5134-80cb-58e2c1f809fe",
+      "title": "엘바섬",
+      "body": "1814년 퇴위한 나폴레옹이 경비를 받으며 보내진 작은 지중해 섬이다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2501–2503행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "location",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "location-elba",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2501,
+            "end": 2503,
+            "sha256": "aa6f7e6961f4b5d1bcf2864d7debc6f36cae147cdb4567e7fd77cddd79770e5d"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "2de0220a-59cf-5871-ab22-649dec43694d",
+      "title": "나폴레옹 법전",
+      "body": "나폴레옹이 프랑스에 남긴 법전으로 원저는 이후에도 계속 효력을 유지했다고 설명한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2503–2508행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "rule",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "rule-napoleonic-code",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2503,
+            "end": 2508,
+            "sha256": "5c99c3e181409ec67e5165b5e99629e5d00e1ff61674563ae7cf89ea6f78cca4"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "37e5996e-2e29-5260-acfd-b87ad0fa3529",
+      "title": "나폴레옹 시대 징병",
+      "body": "군 복무 대상 청년을 추첨으로 선발하며 대리 복무자를 돈으로 구해 군역을 피할 수 있었다고 원저가 설명한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2518–2523행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "rule",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "rule-napoleonic-conscription",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2518,
+            "end": 2523,
+            "sha256": "e392d17605fcf76b3ce30983631cf4e203538b8e4b9af2e88290cdb97d29c691"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": [
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/france.world.json",
+            "key": null,
+            "title": "나폴레옹 시대 행정·병역·상속",
+            "type": "rule",
+            "id": "bada5025-bd36-5d35-a19b-ae4cbc4bf7da",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          },
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/studio/france.world.json",
+            "key": null,
+            "title": "나폴레옹 시대의 행정과 법",
+            "type": "rule",
+            "id": "bada5025-bd36-5d35-a19b-ae4cbc4bf7da",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ab69b2df-3818-5c54-9ea8-018a72b49398",
+      "title": "혁명 이후 상속과 재산 분할",
+      "body": "봉건적 권리와 장자 상속권을 없애고 유언자의 재산을 가족에게 나누도록 했다. 원저는 그 결과 토지가 자주 작게 분할되었다고 설명한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2523–2529행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "rule",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "rule-post-revolutionary-inheritance",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2523,
+            "end": 2529,
+            "sha256": "b96f2acb6ae9cb418c77d903409bb084c0fff849c4cb48d69dfa564b1a73a818"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": [
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/france.world.json",
+            "key": null,
+            "title": "나폴레옹 시대 행정·병역·상속",
+            "type": "rule",
+            "id": "bada5025-bd36-5d35-a19b-ae4cbc4bf7da",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          },
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/studio/france.world.json",
+            "key": null,
+            "title": "나폴레옹 시대의 행정과 법",
+            "type": "rule",
+            "id": "bada5025-bd36-5d35-a19b-ae4cbc4bf7da",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cd66880b-57a1-5f56-a585-988bbb0bc503",
+      "title": "부르봉 왕정복고",
+      "body": "나폴레옹 퇴위 뒤 망명한 왕가가 돌아와 루이 18세가 즉위했다. 1815년 백일천하와 워털루 전투 뒤 다시 복위하고 두 의회와 제한된 선거권을 둔 입헌군주제를 시행했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2547–2561행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-bourbon-restoration",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2547,
+            "end": 2561,
+            "sha256": "2bf615da4f4a435492913a7ddbd8a8c704dff0d558aeb32719d8c1149f7ee6ff"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "90561ca3-e21d-58c4-9fed-585b063cb42d",
+      "title": "루이 18세",
+      "body": "루이 16세의 동생으로 왕정복고 뒤 즉위했다. 나폴레옹의 엘바 탈출 때 헨트로 피했다가 워털루 전투 뒤 다시 복위했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2547–2562행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-louis-xviii-of-france",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2547,
+            "end": 2562,
+            "sha256": "756bd98f601c6be5cfa6cd14a23461156f348f73396c0cbfecf9f37301e3b8bd"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "c036c73e-e1ad-5abe-952e-0d3ef4f774d1",
+      "title": "루이 17세",
+      "body": "루이 16세의 아들로 감금된 상태에서 사망하여 숙부 루이 18세가 왕위를 이었다고 원저가 서술한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2547–2551행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-louis-xvii-of-france",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2547,
+            "end": 2551,
+            "sha256": "423b3b7d05d4677d47f2ad8d8dc938302236f107bbcc5676f93dd6b2b2c9444a"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "157e7c2e-d0f0-578d-9297-b6e026133fe8",
+      "title": "나폴레옹의 백일천하",
+      "body": "나폴레옹이 1815년 봄 엘바를 탈출하자 군대가 그를 맞았고 루이 18세는 피신했다. 연합군이 다시 결집해 워털루에서 나폴레옹을 격파했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2551–2558행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-hundred-days",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2551,
+            "end": 2558,
+            "sha256": "318ae5ebb6b1075cb018ef66f390e91081804cac8b066bba8c16ce66ff265ec4"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "3f317f5c-c02a-59b5-ba73-7d16ec73dc24",
+      "title": "워털루 전투",
+      "body": "1815년 6월 18일 잉글랜드와 프로이센 군대가 나폴레옹을 격파했다. 나폴레옹은 이후 세인트헬레나로 보내졌다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2553–2558행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-battle-of-waterloo",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2553,
+            "end": 2558,
+            "sha256": "004c162e63fe72475e1d6fae601626d373dd245549140c970b183c0b2002321a"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "701b7d98-a076-54ae-a856-04733121d2e3",
+      "title": "세인트헬레나섬",
+      "body": "대서양의 외딴 섬으로 워털루 이후 나폴레옹이 유배되어 1821년 사망한 곳이다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2555–2558행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "location",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "location-saint-helena",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2555,
+            "end": 2558,
+            "sha256": "7d2b12f33acb67ce1c39d63a24e46f127ef45e71320d6d3942a00910c2807a04"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "b2950975-3a72-55f8-9ef4-3221b32c2da2",
+      "title": "왕정복고기의 입헌 헌장",
+      "body": "국왕과 귀족원·대의원회의 두 의회를 두는 제한 군주제를 수립했으며 선거권은 매우 좁게 제한되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2558–2562행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "rule",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "rule-charter-of-1814",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2558,
+            "end": 2562,
+            "sha256": "e9ddaabb89e249353750433a5cfb9072678287c3f5d58cb3d15b428bf2c2a7f5"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "36f8cbc0-d403-5de9-b1f1-d6b0293db9b9",
+      "title": "샤를 10세",
+      "body": "루이 18세의 동생이자 후계자다. 언론과 선거의 자유를 제한하다 1830년 7월 혁명으로 손자 앙리와 함께 망명했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2561–2567행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-charles-x-of-france",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2561,
+            "end": 2567,
+            "sha256": "204567fd7cd07928969367023b1217455a7c43792b2c26ad65f1465aa5859fe8"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "94fcae8a-4237-5336-9ddf-30da009ee258",
+      "title": "샹보르 백작 앙리",
+      "body": "샤를 10세의 손자이자 암살된 베리 공의 아들로 1830년 왕과 함께 망명했다. 이후 정통왕당파가 그에게 충성을 바쳤다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2562–2567, 2612–2617행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-henri-count-of-chambord",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2562,
+            "end": 2567,
+            "sha256": "5de4300deb99c5440d905675b854a7697c369e2e564f1a81907cd54fc62c56a2"
+          },
+          {
+            "start": 2612,
+            "end": 2617,
+            "sha256": "68b48f77562aa56034059d117d5d1e2db9d9ca4500ac9d79774ba14f38b1c1c3"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "8a6cbbbf-5df7-5020-93d0-d73db1f8af43",
+      "title": "베리 공 샤를 페르디낭",
+      "body": "샤를 10세의 손자 앙리의 아버지로 1820년 암살되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2564–2567행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-charles-ferdinand-duke-of-berry",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2564,
+            "end": 2567,
+            "sha256": "6a5e30a8805f29703496f9d3449ed1ecec1f5cac5ec96d83026b9d2431a56c3a"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "64def08b-ad65-51d7-9677-8d8f3a348ac5",
+      "title": "1830년 7월 혁명",
+      "body": "샤를 10세가 언론과 선거의 자유를 제한한 뒤 혁명이 일어나 그를 망명시켰다. 이후 대의원들이 오를레앙 공에게 왕관을 제안했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2561–2567행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-july-revolution-1830",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2561,
+            "end": 2567,
+            "sha256": "204567fd7cd07928969367023b1217455a7c43792b2c26ad65f1465aa5859fe8"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "e5faefe7-bc43-59b9-8d43-c21d892de293",
+      "title": "루이 필리프 1세",
+      "body": "오를레앙 공으로 혁명기에 망명해 스위스에서 수학을 가르친 적이 있다. 복고기에 영지를 회복하고 자유주의파의 지도자로 프랑스인의 왕이 되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2570–2584행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-louis-philippe-i",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2570,
+            "end": 2584,
+            "sha256": "596fead1a581a7a0eb25544e134f0de4aa6163b5122c5e24f4b258aaaaedb61a"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": [
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/france.world.json",
+            "key": null,
+            "title": "루이필리프와 7월왕정의 대표성",
+            "type": "character",
+            "id": "042195fd-52ba-5b87-ae12-d33e4ca8cb73",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          },
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/studio/france.world.json",
+            "key": null,
+            "title": "루이필리프와 7월왕정의 대표성",
+            "type": "character",
+            "id": "042195fd-52ba-5b87-ae12-d33e4ca8cb73",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          }
+        ]
+      }
+    },
+    {
+      "id": "d3846b35-eccc-5a87-8393-4307121b720d",
+      "title": "필리프 에갈리테",
+      "body": "루이 필리프의 아버지로 혁명기의 민주파에 가담하고 신분 칭호가 폐지되자 평등을 뜻하는 이름을 썼다. 공포정치 때 처형되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2570–2575행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-philippe-egalite",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2570,
+            "end": 2575,
+            "sha256": "f634d7829c202ef17934378bfde6e885ef48125340d4ffeb0039a36c68f06f72"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": [
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/france.world.json",
+            "key": null,
+            "title": "루이필리프와 7월왕정의 대표성",
+            "type": "character",
+            "id": "042195fd-52ba-5b87-ae12-d33e4ca8cb73",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          },
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/studio/france.world.json",
+            "key": null,
+            "title": "루이필리프와 7월왕정의 대표성",
+            "type": "character",
+            "id": "042195fd-52ba-5b87-ae12-d33e4ca8cb73",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          }
+        ]
+      }
+    },
+    {
+      "id": "04ddf7c2-e3a7-567e-8b20-71f0d3f0dee7",
+      "title": "7월 왕정의 선거 자격",
+      "body": "루이 필리프가 프랑스인의 왕으로 선출된 체제에서 귀족원은 종신 임명되었고 대의원 선거에는 연 200프랑의 자격 기준이 적용되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2578–2581행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "rule",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "rule-july-monarchy-franchise",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2578,
+            "end": 2581,
+            "sha256": "15801da5f134a2de97a5f80dd6fff555921fc9874dd65bfc7d3650d29fb914a5"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "c29dbe55-f89a-5497-8e84-2b30c76da933",
+      "title": "알제리의 프랑스 식민지",
+      "body": "루이 필리프 치세에 프랑스가 대규모 식민 정착을 추진하고 아랍인들과 장기간 전쟁을 벌인 곳이다. 원저의 식민주의적 묘사는 저자의 관점이다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2584–2589행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "location",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "location-algiers-colony",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2584,
+            "end": 2589,
+            "sha256": "2b39e1e73ce46d73836461da5cbda2ab2b83fbfe8cd2910e64525972a67e2d1e"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "fe587c44-3201-5ddb-a500-85dc53aca8ba",
+      "title": "뉴칼레도니아",
+      "body": "태평양의 프랑스 식민지로 원저는 영국과의 전쟁에서 잃은 식민지를 보충하려는 노력과 연결한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2584–2589행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "location",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "location-new-caledonia",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2584,
+            "end": 2589,
+            "sha256": "2b39e1e73ce46d73836461da5cbda2ab2b83fbfe8cd2910e64525972a67e2d1e"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "a077599f-e1b5-5bb0-b5d4-41c124083280",
+      "title": "나폴레옹 유해 봉환",
+      "body": "루이 필리프는 민심을 얻으려 나폴레옹의 유해를 불러들여 앵발리드에 성대한 장례와 기념물을 마련했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2590–2597행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-return-of-napoleons-remains",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2590,
+            "end": 2597,
+            "sha256": "cff13e2d671b2cd9f47d1d487d052028f69090a03e774fab3dfbc08e2ec9a3b9"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "bf72cc5f-b711-5094-8175-a236ebc33bbb",
+      "title": "앵발리드",
+      "body": "나폴레옹의 옛 군인들과 관련된 장소로 그의 유해가 돌아온 뒤 성대한 장례와 기념물이 마련되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2594–2597행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "location",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "location-les-invalides",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2594,
+            "end": 2597,
+            "sha256": "b486c9de18a3cc70d209f33d1acf623c8089e750f22ee7bf32cc65354ac5aa5a"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "a84d02e9-dd7c-5084-a247-c314431edd13",
+      "title": "오를레앙 공 페르디낭 필리프",
+      "body": "루이 필리프의 장남으로 인기가 있었으나 1842년 마차에서 떨어져 사망했다. 어린 두 아들을 남겼다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2596–2600행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-ferdinand-philippe-duke-of-orleans",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2596,
+            "end": 2600,
+            "sha256": "25f65c260b0353e8b0813839f5512ba69d5ad591404808135e0b1a667cc6d29e"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "b4289006-2d9f-58f1-9556-495244a3ea78",
+      "title": "몽팡시에 공 앙투안",
+      "body": "루이 필리프의 아들로 스페인 여왕의 여동생이자 추정 상속인 루이즈와 결혼했다. 원저는 이 혼인이 유럽 열강과의 합의에 어긋났다고 설명한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2600–2605행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-antoine-duke-of-montpensier",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2600,
+            "end": 2605,
+            "sha256": "e768b7d89461af7c9b3cd639d60071d5cc5dbcc141c517105cf92018e3559d38"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "e7444a9b-b753-585e-a84b-0e0a22146ec0",
+      "title": "스페인의 루이즈 페르난다",
+      "body": "스페인 여왕의 여동생이자 추정 상속인으로 프랑스 왕자 몽팡시에 공과 결혼했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2600–2605행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-louise-fernanda-of-spain",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2600,
+            "end": 2605,
+            "sha256": "e768b7d89461af7c9b3cd639d60071d5cc5dbcc141c517105cf92018e3559d38"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "06ebdce9-257e-5a4d-a37d-e579c03c1a06",
+      "title": "프랄랭 공 샤를",
+      "body": "아내를 살해한 귀족으로 공개 처형을 피하려 감옥에서 자살했다. 공화파는 귀족 처형을 피하도록 허용된 것이 아니냐고 의혹을 제기했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2604–2609행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-charles-de-choiseul-praslin",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2604,
+            "end": 2609,
+            "sha256": "0cca24b1e2f1e9ae4eb89149393c3e1143720229e472bd5015fda36431b4d203"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "dba2a8c3-a74e-529e-8d1a-11a510a4dce9",
+      "title": "오를레앙파",
+      "body": "루이 필리프와 그의 대신 기조를 지지한 정치 세력으로 삼색기를 표지로 삼았다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2612–2618행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "organization",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "organization-orleanists",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2612,
+            "end": 2618,
+            "sha256": "ba0788e8eb02ae8bba40e8bf88ac2e1ec866de7122cccd8ada23ffe359c1784f"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "c96bbdf9-c3b7-5f4b-9bb5-8783c9a59a1f",
+      "title": "프랑스 정통왕당파",
+      "body": "망명한 앙리에게 충성을 지킨 세력으로 흰 부르봉기를 상징으로 사용했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2612–2618행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "organization",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "organization-legitimists-france",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2612,
+            "end": 2618,
+            "sha256": "ba0788e8eb02ae8bba40e8bf88ac2e1ec866de7122cccd8ada23ffe359c1784f"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "def4f8d8-fb30-50ad-886c-7027cfae4823",
+      "title": "보나파르트파",
+      "body": "1848년 혁명 전 프랑스의 네 주요 정치 세력 중 하나로 보나파르트 가문을 지지했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2612–2618행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "organization",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "organization-bonapartists",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2612,
+            "end": 2618,
+            "sha256": "ba0788e8eb02ae8bba40e8bf88ac2e1ec866de7122cccd8ada23ffe359c1784f"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "5499c95d-d3da-5202-aa6c-b9c20ee26168",
+      "title": "1848년의 프랑스 공화파",
+      "body": "1848년 혁명 전 주요 정치 세력으로 붉은 모자와 붉은 깃발을 상징으로 삼았다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2612–2618행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "organization",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "organization-french-republicans-1848",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2612,
+            "end": 2618,
+            "sha256": "ba0788e8eb02ae8bba40e8bf88ac2e1ec866de7122cccd8ada23ffe359c1784f"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "c090cd08-dc80-5df7-b06c-66f7e1ce5030",
+      "title": "프랑수아 기조",
+      "body": "루이 필리프의 대신으로 오를레앙파가 국왕과 함께 지지한 정치가다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2612–2616행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-francois-guizot",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2612,
+            "end": 2616,
+            "sha256": "cc777d127ab8d29719cb9e392bd929516585170296bc53897069358b50d38e3c"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "52cd8206-f0d0-5009-a146-e839197e4fb8",
+      "title": "1848년 프랑스 혁명",
+      "body": "선거권 확대 요구가 거부되고 정치 연회가 금지되면서 소요가 발생했다. 국민방위군이 발포를 거부하자 루이 필리프는 퇴위해 영국으로 피했고 임시정부가 들어섰다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2612–2630행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-french-revolution-1848",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2612,
+            "end": 2630,
+            "sha256": "39c1322c020af5db935ea51e153e4d78375a85d8e4dee75d7a11bbb5e1e59a77"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": [
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/france.world.json",
+            "key": null,
+            "title": "1848년 혁명과 권력 재편",
+            "type": "event",
+            "id": "390a378d-1bac-51f1-a1fa-8d27cb57227a",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          },
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/studio/france.world.json",
+            "key": null,
+            "title": "1848년 혁명과 권력 재편",
+            "type": "event",
+            "id": "390a378d-1bac-51f1-a1fa-8d27cb57227a",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          }
+        ]
+      }
+    },
+    {
+      "id": "37db6218-19ab-5e3c-9656-ceb7df03cc03",
+      "title": "루이 외젠 카베냐크",
+      "body": "1848년 혁명 후 파리의 바리케이드 소요를 진압한 장군이다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2623–2629행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-louis-eugene-cavaignac",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2623,
+            "end": 2629,
+            "sha256": "1f74c20c976a59bd6ebec799cf1649fcbc49a966ee4b6acaeebf3ec51f9c15b8"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "ea6ac6fe-0373-5158-a82a-2056e5a4dbe6",
+      "title": "나폴레옹 3세",
+      "body": "나폴레옹의 조카 루이 나폴레옹으로 공화국의 초대 대통령에 선출되었다. 군대의 도움으로 의회를 해산하고 정적을 체포하거나 추방한 뒤 1852년 황제가 되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2629–2638, 2641–2643행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-napoleon-iii",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2629,
+            "end": 2638,
+            "sha256": "df930fee437ca8ff9a024afb341eb13f7542b6c5dd76724144fccc34645acffb"
+          },
+          {
+            "start": 2641,
+            "end": 2643,
+            "sha256": "d3b25d23d95b91779791bb25645e1f8cacf48f6cbb456aadae8723276016b67c"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "505277bf-d9cb-53e1-bc67-e2cc2a2dc0a2",
+      "title": "루이 나폴레옹의 쿠데타",
+      "body": "루이 나폴레옹은 군대의 도움으로 대의원회를 해산하고 반대자들을 체포하거나 추방했다. 이후 대통령 임기가 10년으로 선언되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2631–2638행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-coup-detat-1851-france",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2631,
+            "end": 2638,
+            "sha256": "b9b6a727115030920214034cdcf795b59cb4dac5a582aa469dfd478c311d98d1"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": [
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/france.world.json",
+            "key": null,
+            "title": "1848년 혁명과 권력 재편",
+            "type": "event",
+            "id": "390a378d-1bac-51f1-a1fa-8d27cb57227a",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          },
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/studio/france.world.json",
+            "key": null,
+            "title": "1848년 혁명과 권력 재편",
+            "type": "event",
+            "id": "390a378d-1bac-51f1-a1fa-8d27cb57227a",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          }
+        ]
+      }
+    },
+    {
+      "id": "2319fd20-c044-50de-bfd2-77cc2cef957c",
+      "title": "프랑스 제2제정",
+      "body": "1852년 12월 루이 나폴레옹이 나폴레옹 3세라는 황제 칭호를 취하면서 시작된 체제다. 정부는 권력을 강하게 통제하는 한편 파리의 도로 확장과 상업 조약을 추진했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2641–2650행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-second-french-empire",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2641,
+            "end": 2650,
+            "sha256": "7bd35ef95700c57ddc5b96bb0302b308b52550042644217aeeaf8bf937e84771"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "46ca8f2e-f747-530c-8cee-b6e314096508",
+      "title": "크림 전쟁의 프랑스 참전",
+      "body": "프랑스와 영국이 러시아에 맞서 세바스토폴을 포위하고 알마와 인케르만에서 싸웠다. 도시 함락 뒤 파리 조약을 맺었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2650–2655행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-crimean-war-france",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2650,
+            "end": 2655,
+            "sha256": "ed8eae1acc75c886ef839fb5a5c18adc2917581dbb80d23a9e0a66e883f1f271"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "bcbd15a1-e115-54ad-b0c9-86f581b0bd5b",
+      "title": "세바스토폴",
+      "body": "크림 전쟁에서 프랑스와 영국군이 거의 1년 동안 포위한 뒤 점령한 도시다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2650–2654행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "location",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "location-sevastopol",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2650,
+            "end": 2654,
+            "sha256": "ce7e7214b785ebd667d981cf00555c45d6a75e9c7e9bc94e5da06e5fd93f9be4"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "f0597776-e1b5-5ff7-9475-8aca286d8577",
+      "title": "1859년 이탈리아 전쟁",
+      "body": "나폴레옹 3세는 사르데냐의 비토리오 에마누엘레와 함께 이탈리아의 오스트리아 세력을 공격해 마젠타와 솔페리노에서 승리했다. 이후 사보이와 니스가 프랑스에 넘어갔다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2655–2661행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-second-italian-war-of-independence",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2655,
+            "end": 2661,
+            "sha256": "49be0af570d508b6c18d8632efa775009e16e4bd4bd2fd2b95d1ff457dfe0db2"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "2b7ed11d-e48f-5eda-be5b-d2e91f387d8f",
+      "title": "비토리오 에마누엘레 2세",
+      "body": "사르데냐 왕으로 나폴레옹 3세와 함께 오스트리아군에 맞섰다. 원저는 통일 이탈리아 왕위에 대한 프랑스의 동의를 얻는 대가로 사보이와 니스를 넘겼다고 서술한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2655–2661행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-victor-emmanuel-ii",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2655,
+            "end": 2661,
+            "sha256": "49be0af570d508b6c18d8632efa775009e16e4bd4bd2fd2b95d1ff457dfe0db2"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "509c0e18-f179-566e-9e1f-dca8139d9b67",
+      "title": "프랑스-프로이센 전쟁",
+      "body": "1870년 스페인 왕위 후보 문제와 프랑스·프로이센 간 대립 속에 전쟁이 벌어졌다. 나폴레옹 3세가 스당에서 항복하고 파리는 포위된 뒤 1871년 항복했으며 프랑스는 영토를 양도했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2668–2687행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-franco-prussian-war",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2668,
+            "end": 2687,
+            "sha256": "28f509ae363cb0da4d56dfe66ac8d02cb5076cbce40f392a9b08c4b38bf710a8"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": [
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/france.world.json",
+            "key": null,
+            "title": "1870–1871년 전쟁과 파리 포위",
+            "type": "event",
+            "id": "a4442e74-7912-5349-b641-58b87d70f1cc",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          },
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/studio/france.world.json",
+            "key": null,
+            "title": "1870–1871년 전쟁과 파리 포위",
+            "type": "event",
+            "id": "a4442e74-7912-5349-b641-58b87d70f1cc",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          }
+        ]
+      }
+    },
+    {
+      "id": "87b38b5b-2158-5025-9923-73107c21887f",
+      "title": "1870년 스당 전투",
+      "body": "프랑스의 연이은 패배 뒤 나폴레옹 3세가 스당에서 포로로 항복했다. 소식이 파리에 전해지자 황후가 도피하고 공화국이 선포되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2673–2679행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-battle-of-sedan-1870",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2673,
+            "end": 2679,
+            "sha256": "d4928719df230a811af53d06d5291a99ead0325eb8be52b43acf876c4c57f1ff"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": [
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/france.world.json",
+            "key": null,
+            "title": "1870–1871년 전쟁과 파리 포위",
+            "type": "event",
+            "id": "a4442e74-7912-5349-b641-58b87d70f1cc",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          },
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/studio/france.world.json",
+            "key": null,
+            "title": "1870–1871년 전쟁과 파리 포위",
+            "type": "event",
+            "id": "a4442e74-7912-5349-b641-58b87d70f1cc",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          }
+        ]
+      }
+    },
+    {
+      "id": "dc0536b1-cc9d-5ca8-aaf0-145331357a49",
+      "title": "외제니 황후",
+      "body": "나폴레옹 3세의 황후로 남편이 스당에서 항복한 소식에 파리의 민심이 돌아서자 도피했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2675–2679행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-empress-eugenie",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2675,
+            "end": 2679,
+            "sha256": "e9c665a05688e09b357ca91947228eb8b0b715ebf636ca85639df201412a48b4"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "4c5a0b29-b306-5f54-860e-3f5da7f4b866",
+      "title": "1870~1871년 파리 포위",
+      "body": "독일군에 포위된 파리는 기근을 겪고 1871년 2월 항복했다는 것이 원저의 서술이다. 뒤이은 평화조약에서 알자스·로렌의 상당 부분과 메스가 넘어갔다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2677–2687행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-siege-of-paris-1870",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2677,
+            "end": 2687,
+            "sha256": "d9bf3e3c70b91d158fe9a081e0cc53b53bc4c7e2d13deebd372b560240cfbabf"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": [
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/france.world.json",
+            "key": null,
+            "title": "1870–1871년 전쟁과 파리 포위",
+            "type": "event",
+            "id": "a4442e74-7912-5349-b641-58b87d70f1cc",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          },
+          {
+            "file": "infrastructure/sample-data/genre-templates/history/studio/france.world.json",
+            "key": null,
+            "title": "1870–1871년 전쟁과 파리 포위",
+            "type": "event",
+            "id": "a4442e74-7912-5349-b641-58b87d70f1cc",
+            "reason": "같은 유형·동일 원전 행 겹침; 의미 중복 여부 미확인"
+          }
+        ]
+      }
+    },
+    {
+      "id": "e520c11c-84bb-5456-867a-c252a3d296a3",
+      "title": "스코틀랜드 여왕 메리",
+      "body": "프랑수아 2세의 왕비이며 기즈 공의 조카다. 이 혼인 관계는 기즈 가문이 프랑스 궁정에서 우위를 누린 이유 중 하나였다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제V장, 1433–1436행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-mary-queen-of-scots",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:5:CHAPTER V."
+        ],
+        "lines": [
+          {
+            "start": 1433,
+            "end": 1436,
+            "sha256": "794bfa67da8cf16c8f5965b524e397da632b3c3f281a5cf7435698e5ed7388be"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "feb27ebc-36e8-5d9b-a090-98df34b0f2bd",
+      "title": "마르그리트 드 발루아",
+      "body": "카트린 드 메디시스의 막내딸로, 왕대비는 잔 드 나바라의 아들 앙리를 궁정으로 끌어들이기 위해 두 사람의 결혼을 제안했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제V장, 1546–1550행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-marguerite-de-valois",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:5:CHAPTER V."
+        ],
+        "lines": [
+          {
+            "start": 1546,
+            "end": 1550,
+            "sha256": "0388ebb92b50dbe7f24d5b3592876caa8338a32d578b48bb9d9ff5134e126fff"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "7e746947-81ae-5a98-af35-f0741c7e10b1",
+      "title": "나바라 왕비 마르그리트",
+      "body": "프랑수아 1세의 누이로, 성경의 프랑스어 번역이 이루어진 종교개혁 초기 개혁가들을 격려했다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제V장, 1443–1449행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-marguerite-of-navarre",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:5:CHAPTER V."
+        ],
+        "lines": [
+          {
+            "start": 1443,
+            "end": 1449,
+            "sha256": "f4f3d02bb3778b6318f0adddab60263c8b90ff760d6f0c9c02c20e9f70a8b45c"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [
+          {
+            "id": "40cc26bb-9b57-5f3f-aeba-ef70aac5ddcd",
+            "reason": "같은 유형과 key 또는 제목; 동일 대상 여부 미확인"
+          }
+        ],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "18712e14-b87c-580d-b817-b716fb20034a",
+      "title": "잉글랜드 여왕 엘리자베스 1세",
+      "body": "성 바르톨로메오 축일 학살 뒤 교황이 공개 감사 기도를 명한 것과 달리 상복을 입었다고 원저가 서술한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제V장, 1584–1589행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-elizabeth-i-of-england",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:5:CHAPTER V."
+        ],
+        "lines": [
+          {
+            "start": 1584,
+            "end": 1589,
+            "sha256": "f54fca6b0d7d2243a5ebe7a4c92378489304290cda68fec8f2f23e2bbd5b269e"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "920b5ebc-41ec-5f4b-a39d-62adbacefbcb",
+      "title": "신성로마제국 황제 막시밀리안 2세",
+      "body": "성 바르톨로메오 축일 학살에 가톨릭 군주들 가운데 유일하게 공포나 분노를 드러냈다고 원저가 서술한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제V장, 1584–1589행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-maximilian-ii-holy-roman-emperor",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:5:CHAPTER V."
+        ],
+        "lines": [
+          {
+            "start": 1584,
+            "end": 1589,
+            "sha256": "f54fca6b0d7d2243a5ebe7a4c92378489304290cda68fec8f2f23e2bbd5b269e"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "56432bdb-8300-525b-b8e7-80da6ce73333",
+      "title": "몽토방 공성",
+      "body": "루이 13세와 뤼인이 위그노와 다시 전쟁을 벌여 몽토방을 포위했다. 원저는 도시가 함락되고 군대에 병이 돌았다고 서술하지만 함락 주장은 별도 검증이 필요하다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제V장, 1764–1769행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-siege-of-montauban-1621",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:5:CHAPTER V."
+        ],
+        "lines": [
+          {
+            "start": 1764,
+            "end": 1769,
+            "sha256": "57d24fcce068c41ade285f98f778b716cfbc58e1567dd397871bd19626d85c5b"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "8414a3ef-9cc0-5881-a6ce-9f580fce0fc1",
+      "title": "바시",
+      "body": "기즈 추종자들이 칼뱅파 집회를 습격해 프랑스 종교전쟁의 유혈 사태가 시작된 곳으로 원저가 서술한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제V장, 1493–1499행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "location",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "location-vassy",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:5:CHAPTER V."
+        ],
+        "lines": [
+          {
+            "start": 1493,
+            "end": 1499,
+            "sha256": "a83c86a8bd4eb53fdc57f02b078d7272aed423924430542380a249c772bee7e3"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "9b35c7c1-fb14-5944-bb63-c4e3c200a266",
+      "title": "오를레앙",
+      "body": "종교전쟁 시기 위그노의 집결지로 기즈 공이 포위 중 암살되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제V장, 1517–1520행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "location",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "location-orleans",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:5:CHAPTER V."
+        ],
+        "lines": [
+          {
+            "start": 1517,
+            "end": 1520,
+            "sha256": "720226aeed16419aebd765741d14ee0fb5513eaceaf5902cc181ecc75fd95a8f"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "8bfe3429-3f64-596a-ab39-4fbddf542afc",
+      "title": "프라이부르크 전투",
+      "body": "로크루아 승리에 이어 프랑스 장군들의 명성을 높였다고 원저가 언급한 전투 중 하나다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 1850–1855행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-battle-of-freiburg",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 1850,
+            "end": 1855,
+            "sha256": "6ef71f2b018a9c9f68935efee7b205795275573217ec0d10529bae24fa2722b2"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "cc3b317e-4bcf-5d05-bcc7-29ee36f646c6",
+      "title": "뇌르틀링겐 전투",
+      "body": "30년 전쟁 시기 프라이부르크·랑스 전투와 더불어 프랑스 장군들의 명성을 높인 전투로 원저가 소개한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 1850–1855행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-battle-of-nordlingen-1645",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 1850,
+            "end": 1855,
+            "sha256": "6ef71f2b018a9c9f68935efee7b205795275573217ec0d10529bae24fa2722b2"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "9d170b63-cfb5-5100-9bd9-f97b5aabfa54",
+      "title": "랑스 전투",
+      "body": "로크루아 전투 이후 프랑스 장군들의 명성을 높였고 뮌스터의 평화에 이르는 배경이 된 전투로 원저가 언급한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 1850–1855행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-battle-of-lens",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 1850,
+            "end": 1855,
+            "sha256": "6ef71f2b018a9c9f68935efee7b205795275573217ec0d10529bae24fa2722b2"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "740e9477-a42b-5123-9526-336442c1e8e1",
+      "title": "멘 공 루이 오귀스트",
+      "body": "루이 14세의 서자로 어린 루이 15세를 위한 섭정회의의 주요 자리를 유언으로 부여받았으나 귀족의 반발로 임명이 취소되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2113–2119행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-louis-auguste-duke-of-maine",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2113,
+            "end": 2119,
+            "sha256": "1255d8f07cb69ad5295822911fa527b7e5685b29a687d4b376043113efa59c84"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "458afe8d-73c3-528c-8171-cdda773d7b79",
+      "title": "로렌 공 프란츠",
+      "body": "마리아 테레지아의 남편으로 자신의 로렌 공국을 스타니스와프에게 넘기고 대신 토스카나 공국을 받았다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2151–2154행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-francis-i-holy-roman-emperor",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2151,
+            "end": 2154,
+            "sha256": "3532e82693f71a765fa7a6ec9302c3bdfe1f584ccf8ce76969d09aaa775df3c3"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "b6c468ab-d07d-5efd-9955-ae2d16c0320d",
+      "title": "영국 국왕 조지 2세",
+      "body": "오스트리아 계승 전쟁에서 마리아 테레지아를 지지하고 데팅겐에서 프랑스에 승리했다고 원저가 서술한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2161–2165행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-george-ii-of-great-britain",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2161,
+            "end": 2165,
+            "sha256": "70703c5afa2bfc6bd664e17ad02821a95d2e56849cde4ce24bd353797def860c"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "2e72425a-d044-54bb-80fc-cc405df447ac",
+      "title": "데팅겐 전투",
+      "body": "오스트리아 계승 전쟁에서 조지 2세가 프랑스에 승리한 전투다. 원저의 연도 표기는 별도 검증이 필요하다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VI장, 2161–2165행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-battle-of-dettingen",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:6:CHAPTER VI."
+        ],
+        "lines": [
+          {
+            "start": 2161,
+            "end": 2165,
+            "sha256": "70703c5afa2bfc6bd664e17ad02821a95d2e56849cde4ce24bd353797def860c"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "116d9cb6-eeab-5ff0-a371-d9766605fe88",
+      "title": "캄포포르미오 조약",
+      "body": "나폴레옹의 이탈리아 전역 뒤 황제가 플랑드르를 프랑스에 넘긴 조약으로 원저가 설명한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2437–2442행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-treaty-of-campo-formio",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2437,
+            "end": 2442,
+            "sha256": "6066d5ab6e1910434fc6adcc990f25547dcb9359f87cf8de097e0504d1941926"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "e93bd7ca-6514-5c3a-bd53-6151fdb00b25",
+      "title": "아미앵 화약",
+      "body": "나폴레옹의 통령정부 시기에 오스트리아와 러시아가 강화한 뒤 잉글랜드까지 포함한 일반 평화가 이뤄졌다. 원저의 연도 및 전쟁 재개 설명은 별도 검증이 필요하다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2455–2460행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-peace-of-amiens",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2455,
+            "end": 2460,
+            "sha256": "7164066912df9263d047a33270ebc75f2ba61acf178da12fc706bddbdeafaa22"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "99da35b4-1c07-5fef-abbb-87b508c69f59",
+      "title": "틸지트 조약",
+      "body": "나폴레옹이 오스트리아·프로이센·러시아와의 전쟁을 거쳐 1807년 체결한 평화로 원저는 프로이센에 특히 가혹한 조건이 부과되었다고 설명한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2470–2475행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-treaty-of-tilsit",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2470,
+            "end": 2475,
+            "sha256": "42dccde438df816b2b9ef524abfac288a292ab5c358b4a6119321990c91af39b"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "734acc46-25a8-5a2f-8cf6-4f9284edccbe",
+      "title": "아우스터리츠 전투",
+      "body": "나폴레옹의 제국 시기 오스트리아군이 패배한 전투로 원저가 울름과 함께 언급한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2470–2473행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-battle-of-austerlitz",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2470,
+            "end": 2473,
+            "sha256": "0dfbed51448801f784e22aa73ace76610ab49cff129b7a7a8c3557377f02b16a"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "8f9bb14a-e1bd-5eec-8509-f0485ae5964f",
+      "title": "예나 전투",
+      "body": "나폴레옹의 제국 시기 프로이센군이 크게 패배한 전투다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VII장, 2470–2473행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-battle-of-jena",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:7:CHAPTER VII."
+        ],
+        "lines": [
+          {
+            "start": 2470,
+            "end": 2473,
+            "sha256": "0dfbed51448801f784e22aa73ace76610ab49cff129b7a7a8c3557377f02b16a"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "00bf5074-cb3f-5686-a459-702882227edf",
+      "title": "스페인 여왕 이사벨 2세",
+      "body": "1870년 무렵 폐위된 스페인 여왕이다. 스페인 왕위의 후계 후보 문제는 프랑스와 프로이센의 전쟁 발발 배경이 되었다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2668–2672행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "character",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "character-isabella-ii-of-spain",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2668,
+            "end": 2672,
+            "sha256": "17b5d7bc7abf35a495bdb63694bd0c34b2984e943969aaa18206932bc1bd0f78"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "2aa1cc57-6c15-526f-991e-c7dfe3f93229",
+      "title": "1856년 파리 조약",
+      "body": "크림 전쟁에서 세바스토폴이 함락된 뒤 체결된 조약이다. 원저는 오스만 제국의 기독교 신민 대우를 조건으로 그 안전을 보장했다고 서술한다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2650–2655행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-treaty-of-paris-1856",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2650,
+            "end": 2655,
+            "sha256": "ed8eae1acc75c886ef839fb5a5c18adc2917581dbb80d23a9e0a66e883f1f271"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "5baac1ca-3f69-57a8-b011-32c464c4dcc2",
+      "title": "마젠타 전투",
+      "body": "1859년 나폴레옹 3세와 사르데냐 왕이 이탈리아의 오스트리아 세력을 공격해 승리한 전투다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2655–2658행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-battle-of-magenta",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2655,
+            "end": 2658,
+            "sha256": "b3dc827079ef5fd4dc36ee43f3c7b33ca4022418c4add4f89ab7761a47c4bdac"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    },
+    {
+      "id": "4ddd6d99-f651-5ba0-9edc-19c5cfabb07a",
+      "title": "솔페리노 전투",
+      "body": "1859년 프랑스와 사르데냐 측이 오스트리아 세력에 승리한 전투다.\n\n출처: 샬럿 M. 영, 《History of France》, J. R. 그린 편, D. Appleton, 1882, 제VIII장, 2655–2658행, https://www.gutenberg.org/ebooks/17287",
+      "cardType": "event",
+      "provenance": {
+        "segment": "france-2",
+        "candidate_key": "event-battle-of-solferino",
+        "input_path": "미게시-임시자료:history/france-2.json",
+        "source_commit": "4df82055b9b3026c9c2ae99933b2c369cf1d6424",
+        "source_path": "docs/research/history-textbooks/france/source-en.txt",
+        "source_sha256": "97277ef88cf95a91dec6a4ab428067480666753d89e8d64cdf2faf4f04fd4509",
+        "source_url": "https://www.gutenberg.org/ebooks/17287",
+        "source_units": [
+          "france:8:CHAPTER VIII."
+        ],
+        "lines": [
+          {
+            "start": 2655,
+            "end": 2658,
+            "sha256": "b3dc827079ef5fd4dc36ee43f3c7b33ca4022418c4add4f89ab7761a47c4bdac"
+          }
+        ]
+      },
+      "duplicate_review": {
+        "candidate_matches": [],
+        "existing_matches": []
+      }
+    }
+  ]
+}

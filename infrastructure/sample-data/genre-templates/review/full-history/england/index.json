@@ -1,0 +1,2339 @@
+{
+  "schemaVersion": 1,
+  "genre": "england_history",
+  "worldId": "c1af4125-5423-5633-a5da-822b4753df94",
+  "status": "연구 전용 검토 후보; 서비스 및 DB에 자동 적재되지 않음",
+  "inputs": [
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "england-1",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 351,
+        "line_end": 4713,
+        "chapters": [
+          "england:1:CHAPTER I.",
+          "england:2:CHAPTER II.",
+          "england:3:CHAPTER III.",
+          "england:4:CHAPTER IV.",
+          "england:5:CHAPTER V.",
+          "england:6:CHAPTER VI.",
+          "england:7:CHAPTER VII.",
+          "england:8:CHAPTER VIII."
+        ],
+        "heads": [
+          [
+            351,
+            "CHAPTER I."
+          ],
+          [
+            809,
+            "CHAPTER II."
+          ],
+          [
+            1145,
+            "CHAPTER III."
+          ],
+          [
+            1515,
+            "CHAPTER IV."
+          ],
+          [
+            2207,
+            "CHAPTER V."
+          ],
+          [
+            2851,
+            "CHAPTER VI."
+          ],
+          [
+            3427,
+            "CHAPTER VII."
+          ],
+          [
+            4060,
+            "CHAPTER VIII."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4"
+      },
+      "input_path": "미게시-임시자료:history/england-1.json",
+      "input_sha256": "db4af07a409833abe75f65efe679f76bfd6780488758230887d31c19870c74a0",
+      "scope": {
+        "line_start": 351,
+        "line_end": 4713,
+        "chapters": [
+          "england:1:CHAPTER I.",
+          "england:2:CHAPTER II.",
+          "england:3:CHAPTER III.",
+          "england:4:CHAPTER IV.",
+          "england:5:CHAPTER V.",
+          "england:6:CHAPTER VI.",
+          "england:7:CHAPTER VII.",
+          "england:8:CHAPTER VIII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:1:CHAPTER I.",
+          "line_start": 351,
+          "line_end": 808,
+          "status": "read",
+          "cards": 41,
+          "note": "본문 351–797행을 읽음. 삽화 설명과 800–804행 각주는 본문에서 제외. 실제 원본 메타데이터의 공개 eBook은 47753이며 지시 URL 27846과 다름."
+        },
+        {
+          "unit": "england:2:CHAPTER II.",
+          "line_start": 809,
+          "line_end": 1144,
+          "status": "read",
+          "cards": 29,
+          "note": "본문 전체를 읽음. 삽화 설명은 제외. 정복과 민족의 성격에 관한 저자의 일반화는 1904년판의 관점이다."
+        },
+        {
+          "unit": "england:3:CHAPTER III.",
+          "line_start": 1145,
+          "line_end": 1514,
+          "status": "read",
+          "cards": 41,
+          "note": "본문 전체를 읽음. 삽화 및 1502–1510행 각주 제외. 선교와 종교에 대한 평가는 원저자의 시각이다."
+        },
+        {
+          "unit": "england:4:CHAPTER IV.",
+          "line_start": 1515,
+          "line_end": 2206,
+          "status": "read",
+          "cards": 40,
+          "note": "본문 전체를 읽음. 삽화·시 인용·2196–2202행 각주 제외. 저자의 인종·문명과 종교적 가치 평가는 사실과 구분한다."
+        },
+        {
+          "unit": "england:5:CHAPTER V.",
+          "line_start": 2207,
+          "line_end": 2850,
+          "status": "read",
+          "cards": 34,
+          "note": "본문 2207–2790행 전체를 읽음. 2793–2836행 계보 및 2839–2846행 각주는 본문 근거에서 제외. 전투 및 살해에 대한 논쟁적 해석은 원저의 주장이다."
+        },
+        {
+          "unit": "england:6:CHAPTER VI.",
+          "line_start": 2851,
+          "line_end": 3426,
+          "status": "read",
+          "cards": 21,
+          "note": "본문 2851–3378행을 읽음. 3381–3415행 계보와 3418–3422행 각주 제외. 봉건제 및 인구 피해에 관한 수치는 저자의 해석이다."
+        },
+        {
+          "unit": "england:7:CHAPTER VII.",
+          "line_start": 3427,
+          "line_end": 4059,
+          "status": "read",
+          "cards": 24,
+          "note": "본문 전체를 읽음. 4010–4019행 인용 원문과 4040–4055행 각주는 본문 근거에서 제외. 저자의 왕과 민족에 대한 도덕적 평가는 원저의 관점이다."
+        },
+        {
+          "unit": "england:8:CHAPTER VIII.",
+          "line_start": 4060,
+          "line_end": 4713,
+          "status": "read",
+          "cards": 30,
+          "note": "본문 4060–4699행을 읽음. 삽화 설명과 4702–4709행 각주 제외. 교회와 아일랜드인에 대한 저자의 편향 및 정복 정당화는 사실과 구분한다."
+        }
+      ],
+      "candidate_count": 260
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "england-2",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 4714,
+        "line_end": 9839,
+        "chapters": [
+          "england:9:CHAPTER IX.",
+          "england:10:CHAPTER X.",
+          "england:11:CHAPTER XI.",
+          "england:12:CHAPTER XII.",
+          "england:13:CHAPTER XIII.",
+          "england:14:CHAPTER XIV.",
+          "england:15:CHAPTER XV.",
+          "england:16:CHAPTER XVI.",
+          "england:17:CHAPTER XVII."
+        ],
+        "heads": [
+          [
+            4714,
+            "CHAPTER IX."
+          ],
+          [
+            5501,
+            "CHAPTER X."
+          ],
+          [
+            6024,
+            "CHAPTER XI."
+          ],
+          [
+            6925,
+            "CHAPTER XII."
+          ],
+          [
+            7270,
+            "CHAPTER XIII."
+          ],
+          [
+            8150,
+            "CHAPTER XIV."
+          ],
+          [
+            8603,
+            "CHAPTER XV."
+          ],
+          [
+            8878,
+            "CHAPTER XVI."
+          ],
+          [
+            9262,
+            "CHAPTER XVII."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4"
+      },
+      "input_path": "미게시-임시자료:history/england-2.json",
+      "input_sha256": "14627f0a83233724ed6233ecf56845c00b50503519143e96f6f32e6f637938a4",
+      "scope": {
+        "line_start": 4714,
+        "line_end": 9839,
+        "chapters": [
+          "england:9:CHAPTER IX.",
+          "england:10:CHAPTER X.",
+          "england:11:CHAPTER XI.",
+          "england:12:CHAPTER XII.",
+          "england:13:CHAPTER XIII.",
+          "england:14:CHAPTER XIV.",
+          "england:15:CHAPTER XV.",
+          "england:16:CHAPTER XVI.",
+          "england:17:CHAPTER XVII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:9:CHAPTER IX.",
+          "line_start": 4714,
+          "line_end": 5500,
+          "status": "read",
+          "cards": 56,
+          "note": "본문을 읽고 개별 대상을 추출함. 저자의 가치 판단은 사실과 구분하며 주석·그림 설명은 제외."
+        },
+        {
+          "unit": "england:10:CHAPTER X.",
+          "line_start": 5501,
+          "line_end": 6023,
+          "status": "read",
+          "cards": 37,
+          "note": "본문 전체를 읽었으며 각주 6017–6019행과 삽화 설명은 제외함. 저자의 평가는 사실과 구분함."
+        },
+        {
+          "unit": "england:11:CHAPTER XI.",
+          "line_start": 6024,
+          "line_end": 6924,
+          "status": "unread",
+          "cards": 0,
+          "note": "아직 읽거나 추출하지 않음."
+        },
+        {
+          "unit": "england:12:CHAPTER XII.",
+          "line_start": 6925,
+          "line_end": 7269,
+          "status": "unread",
+          "cards": 0,
+          "note": "아직 읽거나 추출하지 않음."
+        },
+        {
+          "unit": "england:13:CHAPTER XIII.",
+          "line_start": 7270,
+          "line_end": 8149,
+          "status": "unread",
+          "cards": 0,
+          "note": "아직 읽거나 추출하지 않음."
+        },
+        {
+          "unit": "england:14:CHAPTER XIV.",
+          "line_start": 8150,
+          "line_end": 8602,
+          "status": "unread",
+          "cards": 0,
+          "note": "아직 읽거나 추출하지 않음."
+        },
+        {
+          "unit": "england:15:CHAPTER XV.",
+          "line_start": 8603,
+          "line_end": 8877,
+          "status": "unread",
+          "cards": 0,
+          "note": "아직 읽거나 추출하지 않음."
+        },
+        {
+          "unit": "england:16:CHAPTER XVI.",
+          "line_start": 8878,
+          "line_end": 9261,
+          "status": "unread",
+          "cards": 0,
+          "note": "아직 읽거나 추출하지 않음."
+        },
+        {
+          "unit": "england:17:CHAPTER XVII.",
+          "line_start": 9262,
+          "line_end": 9839,
+          "status": "unread",
+          "cards": 0,
+          "note": "아직 읽거나 추출하지 않음."
+        }
+      ],
+      "candidate_count": 93
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "england-3",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 9840,
+        "line_end": 15298,
+        "chapters": [
+          "england:18:CHAPTER XVIII.",
+          "england:19:CHAPTER XIX.",
+          "england:20:CHAPTER XX.",
+          "england:21:CHAPTER XXI.",
+          "england:22:CHAPTER XXII.",
+          "england:23:CHAPTER XXIII.",
+          "england:24:CHAPTER XXIV.",
+          "england:25:CHAPTER XXV.",
+          "england:26:CHAPTER XXVI."
+        ],
+        "heads": [
+          [
+            9840,
+            "CHAPTER XVIII."
+          ],
+          [
+            10442,
+            "CHAPTER XIX."
+          ],
+          [
+            10934,
+            "CHAPTER XX."
+          ],
+          [
+            11325,
+            "CHAPTER XXI."
+          ],
+          [
+            11887,
+            "CHAPTER XXII."
+          ],
+          [
+            12619,
+            "CHAPTER XXIII."
+          ],
+          [
+            12926,
+            "CHAPTER XXIV."
+          ],
+          [
+            14062,
+            "CHAPTER XXV."
+          ],
+          [
+            14550,
+            "CHAPTER XXVI."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4"
+      },
+      "input_path": "미게시-임시자료:history/england-3.json",
+      "input_sha256": "c7b16079230bcf9c52df760c2e03a61927dae311025b6a6a86d081f0fa6a657d",
+      "scope": {
+        "line_start": 9840,
+        "line_end": 15298,
+        "chapters": [
+          "england:18:CHAPTER XVIII.",
+          "england:19:CHAPTER XIX.",
+          "england:20:CHAPTER XX.",
+          "england:21:CHAPTER XXI.",
+          "england:22:CHAPTER XXII.",
+          "england:23:CHAPTER XXIII.",
+          "england:24:CHAPTER XXIV.",
+          "england:25:CHAPTER XXV.",
+          "england:26:CHAPTER XXVI."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:18:CHAPTER XVIII.",
+          "line_start": 9840,
+          "line_end": 10441,
+          "status": "read",
+          "cards": 37,
+          "note": "본문을 읽었으나 카드 추출은 예비 상태이며 완전성 재검토 필요. 10432–10441행 각주와 공백은 제외."
+        },
+        {
+          "unit": "england:19:CHAPTER XIX.",
+          "line_start": 10442,
+          "line_end": 10933,
+          "status": "read",
+          "cards": 19,
+          "note": "본문을 읽었으나 카드 추출은 예비 상태이며 완전성 재검토 필요."
+        },
+        {
+          "unit": "england:20:CHAPTER XX.",
+          "line_start": 10934,
+          "line_end": 11324,
+          "status": "unread",
+          "cards": 0,
+          "note": "미독 및 미추출."
+        },
+        {
+          "unit": "england:21:CHAPTER XXI.",
+          "line_start": 11325,
+          "line_end": 11886,
+          "status": "unread",
+          "cards": 0,
+          "note": "미독 및 미추출."
+        },
+        {
+          "unit": "england:22:CHAPTER XXII.",
+          "line_start": 11887,
+          "line_end": 12618,
+          "status": "unread",
+          "cards": 0,
+          "note": "미독 및 미추출."
+        },
+        {
+          "unit": "england:23:CHAPTER XXIII.",
+          "line_start": 12619,
+          "line_end": 12925,
+          "status": "unread",
+          "cards": 0,
+          "note": "미독 및 미추출."
+        },
+        {
+          "unit": "england:24:CHAPTER XXIV.",
+          "line_start": 12926,
+          "line_end": 14061,
+          "status": "unread",
+          "cards": 0,
+          "note": "미독 및 미추출."
+        },
+        {
+          "unit": "england:25:CHAPTER XXV.",
+          "line_start": 14062,
+          "line_end": 14549,
+          "status": "unread",
+          "cards": 0,
+          "note": "미독 및 미추출."
+        },
+        {
+          "unit": "england:26:CHAPTER XXVI.",
+          "line_start": 14550,
+          "line_end": 15298,
+          "status": "unread",
+          "cards": 0,
+          "note": "미독 및 미추출."
+        }
+      ],
+      "candidate_count": 56
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "england-4",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 15299,
+        "line_end": 22234,
+        "chapters": [
+          "england:27:CHAPTER XXVII.",
+          "england:28:CHAPTER XXVIII.",
+          "england:29:CHAPTER XXIX.",
+          "england:30:CHAPTER XXX.",
+          "england:31:CHAPTER XXXI.",
+          "england:32:CHAPTER XXXII.",
+          "england:33:CHAPTER XXXIII.",
+          "england:34:CHAPTER XXXIV.",
+          "england:35:CHAPTER XXXV."
+        ],
+        "heads": [
+          [
+            15299,
+            "CHAPTER XXVII."
+          ],
+          [
+            16292,
+            "CHAPTER XXVIII."
+          ],
+          [
+            16846,
+            "CHAPTER XXIX."
+          ],
+          [
+            17520,
+            "CHAPTER XXX."
+          ],
+          [
+            17865,
+            "CHAPTER XXXI."
+          ],
+          [
+            18528,
+            "CHAPTER XXXII."
+          ],
+          [
+            19357,
+            "CHAPTER XXXIII."
+          ],
+          [
+            20032,
+            "CHAPTER XXXIV."
+          ],
+          [
+            21328,
+            "CHAPTER XXXV."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4"
+      },
+      "input_path": "미게시-임시자료:history/england-4.json",
+      "input_sha256": "f04a2e00349eb6f49b524e60e0e1c0732cbfe091e2a9196b3181b8064dd930f7",
+      "scope": {
+        "line_start": 15299,
+        "line_end": 22234,
+        "chapters": [
+          "england:27:CHAPTER XXVII.",
+          "england:28:CHAPTER XXVIII.",
+          "england:29:CHAPTER XXIX.",
+          "england:30:CHAPTER XXX.",
+          "england:31:CHAPTER XXXI.",
+          "england:32:CHAPTER XXXII.",
+          "england:33:CHAPTER XXXIII.",
+          "england:34:CHAPTER XXXIV.",
+          "england:35:CHAPTER XXXV."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:27:CHAPTER XXVII.",
+          "line_start": 15299,
+          "line_end": 16291,
+          "status": "read",
+          "cards": 55,
+          "note": "본문 검토; 삽화 설명과 16280–16287행의 주석 제외. 원저의 종교적 편향과 학살 규모 추정에 유의."
+        },
+        {
+          "unit": "england:28:CHAPTER XXVIII.",
+          "line_start": 16292,
+          "line_end": 16845,
+          "status": "read",
+          "cards": 25,
+          "note": "본문 검토; 16676–16677행의 밀턴 시 인용은 독립 근거에서 제외. 원저의 정치·종교 평가와 사실을 구별."
+        },
+        {
+          "unit": "england:29:CHAPTER XXIX.",
+          "line_start": 16846,
+          "line_end": 17519,
+          "status": "read",
+          "cards": 39,
+          "note": "본문 검토; 17508–17515행 주석 및 17200–17201행 제3자 시 인용 제외. 저자의 종교·당파적 평가에 유의."
+        },
+        {
+          "unit": "england:30:CHAPTER XXX.",
+          "line_start": 17520,
+          "line_end": 17864,
+          "status": "read",
+          "cards": 23,
+          "note": "본문 검토; 17856–17860행 주석 제외. 인물에 대한 원저의 종교적·도덕적 평가와 사건을 구별."
+        },
+        {
+          "unit": "england:31:CHAPTER XXXI.",
+          "line_start": 17865,
+          "line_end": 18527,
+          "status": "read",
+          "cards": 28,
+          "note": "본문 검토; 18514–18523행 주석과 18354–18376행 가계 도식은 본문 근거에서 제외. 아일랜드·종교 서술의 원저 편향에 유의."
+        },
+        {
+          "unit": "england:32:CHAPTER XXXII.",
+          "line_start": 18528,
+          "line_end": 19356,
+          "status": "read",
+          "cards": 30,
+          "note": "본문 검토; 19266–19336행 가계도, 19339–19352행 주석 및 삽화 설명 제외. 전쟁과 인물에 관한 원저의 평가에 유의."
+        },
+        {
+          "unit": "england:33:CHAPTER XXXIII.",
+          "line_start": 19357,
+          "line_end": 20031,
+          "status": "read",
+          "cards": 27,
+          "note": "본문 검토; 19977–20019행 가계도와 20022–20027행 주석 제외. 하이랜드 주민과 정치가에 대한 원저의 편견에 유의."
+        },
+        {
+          "unit": "england:34:CHAPTER XXXIV.",
+          "line_start": 20032,
+          "line_end": 21327,
+          "status": "read",
+          "cards": 61,
+          "note": "본문 전체 검토; 삽화 설명 제외. 원주민·인도인에 대한 제국주의적 묘사와 블랙홀 사망 수치는 원저의 주장으로 취급."
+        },
+        {
+          "unit": "england:35:CHAPTER XXXV.",
+          "line_start": 21328,
+          "line_end": 22234,
+          "status": "read",
+          "cards": 52,
+          "note": "본문 전체 검토; 21350–21351행 제3자 시 인용 제외. 영국 중심·식민지 서술과 외교 날짜의 정확성은 별도 검증 필요."
+        }
+      ],
+      "candidate_count": 340
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "england-5",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 22235,
+        "line_end": 30222,
+        "chapters": [
+          "england:36:CHAPTER XXXVI.",
+          "england:37:CHAPTER XXXVII.",
+          "england:38:CHAPTER XXXVIII.",
+          "england:39:CHAPTER XXXIX.",
+          "england:40:CHAPTER XL.",
+          "england:41:CHAPTER XLI.",
+          "england:42:CHAPTER XLII.",
+          "england:43:CHAPTER XLIII.",
+          "england:44:CHAPTER XLIV."
+        ],
+        "heads": [
+          [
+            22235,
+            "CHAPTER XXXVI."
+          ],
+          [
+            22996,
+            "CHAPTER XXXVII."
+          ],
+          [
+            23953,
+            "CHAPTER XXXVIII."
+          ],
+          [
+            25258,
+            "CHAPTER XXXIX."
+          ],
+          [
+            26027,
+            "CHAPTER XL."
+          ],
+          [
+            26863,
+            "CHAPTER XLI."
+          ],
+          [
+            27932,
+            "CHAPTER XLII."
+          ],
+          [
+            28671,
+            "CHAPTER XLIII."
+          ],
+          [
+            29281,
+            "CHAPTER XLIV."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4"
+      },
+      "input_path": "미게시-임시자료:history/england-5.json",
+      "input_sha256": "fc6f398561a91b1d46c2e6fcfa4f62d8558f3964ff2b75cfadec5c668899e065",
+      "scope": {
+        "line_start": 22235,
+        "line_end": 30222,
+        "chapters": [
+          "england:36:CHAPTER XXXVI.",
+          "england:37:CHAPTER XXXVII.",
+          "england:38:CHAPTER XXXVIII.",
+          "england:39:CHAPTER XXXIX.",
+          "england:40:CHAPTER XL.",
+          "england:41:CHAPTER XLI.",
+          "england:42:CHAPTER XLII.",
+          "england:43:CHAPTER XLIII.",
+          "england:44:CHAPTER XLIV."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:36:CHAPTER XXXVI.",
+          "line_start": 22235,
+          "line_end": 22995,
+          "status": "read",
+          "cards": 53,
+          "note": "본문을 읽고 독립 대상을 추출함. 삽화 설명은 본문에서 제외; 원저의 식민주의적 편향과 역사적 오류 가능성을 유의."
+        },
+        {
+          "unit": "england:37:CHAPTER XXXVII.",
+          "line_start": 22996,
+          "line_end": 23952,
+          "status": "read",
+          "cards": 84,
+          "note": "본문을 읽고 독립 대상을 추출함. 23943–23948행 각주 및 삽화 설명은 설정 본문에서 제외; 원저의 정치·종교 편향에 유의."
+        },
+        {
+          "unit": "england:38:CHAPTER XXXVIII.",
+          "line_start": 23953,
+          "line_end": 25257,
+          "status": "pending",
+          "cards": 0,
+          "note": "아직 읽지 않음."
+        },
+        {
+          "unit": "england:39:CHAPTER XXXIX.",
+          "line_start": 25258,
+          "line_end": 26026,
+          "status": "pending",
+          "cards": 0,
+          "note": "아직 읽지 않음."
+        },
+        {
+          "unit": "england:40:CHAPTER XL.",
+          "line_start": 26027,
+          "line_end": 26862,
+          "status": "pending",
+          "cards": 0,
+          "note": "아직 읽지 않음."
+        },
+        {
+          "unit": "england:41:CHAPTER XLI.",
+          "line_start": 26863,
+          "line_end": 27931,
+          "status": "pending",
+          "cards": 0,
+          "note": "아직 읽지 않음."
+        },
+        {
+          "unit": "england:42:CHAPTER XLII.",
+          "line_start": 27932,
+          "line_end": 28670,
+          "status": "pending",
+          "cards": 0,
+          "note": "아직 읽지 않음."
+        },
+        {
+          "unit": "england:43:CHAPTER XLIII.",
+          "line_start": 28671,
+          "line_end": 29280,
+          "status": "pending",
+          "cards": 0,
+          "note": "아직 읽지 않음."
+        },
+        {
+          "unit": "england:44:CHAPTER XLIV.",
+          "line_start": 29281,
+          "line_end": 30222,
+          "status": "pending",
+          "cards": 0,
+          "note": "아직 읽지 않음."
+        }
+      ],
+      "candidate_count": 137
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-11-chapter-xi",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 6024,
+        "line_end": 6924,
+        "chapters": [
+          "england:11:CHAPTER XI."
+        ],
+        "heads": [
+          [
+            6024,
+            "england:11:CHAPTER XI."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-2"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-11-chapter-xi.json",
+      "input_sha256": "7becc77b3727e07e78814b5a940a194fea08c79d68d47795fe751b69bc15bd64",
+      "scope": {
+        "line_start": 6024,
+        "line_end": 6924,
+        "chapters": [
+          "england:11:CHAPTER XI."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:11:CHAPTER XI.",
+          "line_start": 6024,
+          "line_end": 6924,
+          "status": "read",
+          "cards": 107,
+          "note": "제11장 본문 전체를 읽음. 6271행 지도 설명과 6918–6920행 각주는 설정 본문에서 제외. 6522–6564행 계보표는 인물 구별의 보조 문맥으로 확인. 앞 장 5985–6019행과 다음 장 시작 6925–6950행은 경계 문맥으로만 확인. 원저의 제국주의적·반유대주의적 표현과 평가, 전승은 검증된 사실과 구분해야 하며 이용권은 관할 지역별 추가 확인이 필요하다."
+        }
+      ],
+      "candidate_count": 107
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-12-chapter-xii",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 6925,
+        "line_end": 7269,
+        "chapters": [
+          "england:12:CHAPTER XII."
+        ],
+        "heads": [
+          [
+            6925,
+            "england:12:CHAPTER XII."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-2"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-12-chapter-xii.json",
+      "input_sha256": "e0ad19963c385f0c890775b710d55183553ccecd8a536cd5d0941bbd9b299253",
+      "scope": {
+        "line_start": 6925,
+        "line_end": 7269,
+        "chapters": [
+          "england:12:CHAPTER XII"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:12:CHAPTER XII",
+          "line_start": 6925,
+          "line_end": 7269,
+          "status": "read",
+          "cards": 83,
+          "note": "6925–7256행 장 제목과 본문을 모두 읽음. 7259–7265행 각주와 7266–7269행 공백, 7076–7078행 삽화 설명은 본문 근거에서 제외. 앞선 6890–6924행과 다음 장 7270–7300행을 경계 문맥으로 확인했으나 카드 근거로 쓰지 않음. 저자의 편향·전승과 1904년 판본의 한계가 있음."
+        }
+      ],
+      "candidate_count": 83
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-13-chapter-xiii",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 7270,
+        "line_end": 8149,
+        "chapters": [
+          "england:13:CHAPTER XIII."
+        ],
+        "heads": [
+          [
+            7270,
+            "england:13:CHAPTER XIII."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-2"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-13-chapter-xiii.json",
+      "input_sha256": "b6b17f937ef7c048be13acdd8b849103ef5aedd84ebfec416ef05f66a35a9e85",
+      "scope": {
+        "line_start": 7270,
+        "line_end": 8149,
+        "chapters": [
+          "england:13:CHAPTER XIII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:13:CHAPTER XIII.",
+          "line_start": 7270,
+          "line_end": 8149,
+          "status": "read",
+          "cards": 112,
+          "note": "7270–8149행 전체를 읽음. 본문 7277–8045행과 계보 7430–7451·8048–8136행을 확인했으며 계보의 실질 인물 정보는 본문과 대조함. 삽화 설명과 각주 8139–8145행은 카드 본문 근거에서 제외. 8150행부터 다음 장; 원저 연도·수치·인물 평가는 검증된 현대 사실로 단정하지 않음."
+        }
+      ],
+      "candidate_count": 112
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-14-chapter-xiv",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 8150,
+        "line_end": 8602,
+        "chapters": [
+          "england:14:CHAPTER XIV."
+        ],
+        "heads": [
+          [
+            8150,
+            "england:14:CHAPTER XIV."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-2"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-14-chapter-xiv.json",
+      "input_sha256": "58bfc85db783bfe4e9ed61a43c42eef3ae177949e7a9784834f360163d097efe",
+      "scope": {
+        "line_start": 8150,
+        "line_end": 8602,
+        "chapters": [
+          "england:14:CHAPTER XIV."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:14:CHAPTER XIV.",
+          "line_start": 8150,
+          "line_end": 8602,
+          "status": "read",
+          "cards": 92,
+          "note": "14장 제목부터 마지막 빈 행까지 전부 읽음. 앞의 계보·각주와 다음 장을 경계 확인용으로 읽었으며 카드 근거는 할당 범위에 한정함. 1904년 저자의 가치 판단과 살해 단정은 원저의 견해로 구분함."
+        }
+      ],
+      "candidate_count": 92
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-15-chapter-xv",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 8603,
+        "line_end": 8877,
+        "chapters": [
+          "england:15:CHAPTER XV."
+        ],
+        "heads": [
+          [
+            8603,
+            "england:15:CHAPTER XV."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-2"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-15-chapter-xv.json",
+      "input_sha256": "78fbaae39b872b148e7b877626a46637c578df70e0604230820de3ab7935ed6d",
+      "scope": {
+        "line_start": 8603,
+        "line_end": 8877,
+        "chapters": [
+          "england:15:CHAPTER XV."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:15:CHAPTER XV.",
+          "line_start": 8603,
+          "line_end": 8877,
+          "status": "read",
+          "cards": 78,
+          "note": "15장 제목 및 본문 8603–8863행 전체를 읽었다. 8866–8873행은 주석이며 본문 근거에서 제외했고 나머지는 빈 줄이다. 8560–8602행과 8878–8910행을 경계 문맥으로 읽었으나 카드 근거에는 넣지 않았다. 이 1904년 교과서의 해석·전승·연대는 현대 사료 검증과 구별한다. 미국 외 이용권과 현지 법은 별도 확인이 필요하다."
+        }
+      ],
+      "candidate_count": 78
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-16-chapter-xvi",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 8878,
+        "line_end": 9261,
+        "chapters": [
+          "england:16:CHAPTER XVI."
+        ],
+        "heads": [
+          [
+            8878,
+            "england:16:CHAPTER XVI."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-2"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-16-chapter-xvi.json",
+      "input_sha256": "9f19c7891a5894bb12615b1af892d96019dbdcf02895d2fb4bb5f50835dcff4a",
+      "scope": {
+        "line_start": 8878,
+        "line_end": 9261,
+        "chapters": [
+          "england:16:CHAPTER XVI."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:16:CHAPTER XVI.",
+          "line_start": 8878,
+          "line_end": 9261,
+          "status": "read",
+          "cards": 77,
+          "note": "제16장 전체 및 전후 경계 8860–8877, 9262–9280행 확인. 9028행 삽화 설명과 공백은 본문 근거에서 제외. 1904년 저자의 가치판단·수치·인과 해석은 사료 비판이 필요하며, 지역별 이용 권리 미확인."
+        }
+      ],
+      "candidate_count": 77
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-17-chapter-xvii",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 9262,
+        "line_end": 9839,
+        "chapters": [
+          "england:17:CHAPTER XVII."
+        ],
+        "heads": [
+          [
+            9262,
+            "england:17:CHAPTER XVII."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-2"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-17-chapter-xvii.json",
+      "input_sha256": "ebfaafedb7a14f45c2363b46ca1fffdc3cb676e85ba302e44c9decd21092123b",
+      "scope": {
+        "line_start": 9262,
+        "line_end": 9839,
+        "chapters": [
+          "england:17:CHAPTER XVII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:17:CHAPTER XVII.",
+          "line_start": 9262,
+          "line_end": 9839,
+          "status": "read",
+          "cards": 98,
+          "note": "제17장 전체 9262–9839행을 읽음. 9262–9266은 장 제목·연대, 9837–9839는 공백이며 다음 장은 9840행에 시작한다. 삽입된 연대기 작가의 직접 인용은 독립 근거로 사용하지 않았다. 원저자의 편향과 확증되지 않은 전언은 구분한다."
+        }
+      ],
+      "candidate_count": 98
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-20-chapter-xx",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 10934,
+        "line_end": 11324,
+        "chapters": [
+          "england:20:CHAPTER XX."
+        ],
+        "heads": [
+          [
+            10934,
+            "england:20:CHAPTER XX."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-3"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-20-chapter-xx.json",
+      "input_sha256": "8265f80f4076bb44f87842c6526cc3086a5b15e42ab97a41b3c9d63e533b9cb0",
+      "scope": {
+        "line_start": 10934,
+        "line_end": 11324,
+        "chapters": [
+          "england:20:CHAPTER XX"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:20:CHAPTER XX",
+          "line_start": 10934,
+          "line_end": 11324,
+          "status": "read",
+          "cards": 82,
+          "note": "10934–11324행 전체와 이전 장 끝·다음 장 시작(10900–10933, 11325–11350)을 확인. 본문은 10941–11312행이며 11315–11320행 각주와 빈 행은 본문 근거에서 제외. 제20장의 시작과 끝을 모두 포함한다. 원저의 해석·연대와 법률 설명은 별도 사료 검증이 필요하다."
+        }
+      ],
+      "candidate_count": 82
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-21-chapter-xxi",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 11325,
+        "line_end": 11886,
+        "chapters": [
+          "england:21:CHAPTER XXI."
+        ],
+        "heads": [
+          [
+            11325,
+            "england:21:CHAPTER XXI."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-3"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-21-chapter-xxi.json",
+      "input_sha256": "76a440cdefa56a8d54589e57b2ab5fdecb97862da3a2178034bf81cde9f421c9",
+      "scope": {
+        "line_start": 11325,
+        "line_end": 11886,
+        "chapters": [
+          "england:21:CHAPTER XXI."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:21:CHAPTER XXI.",
+          "line_start": 11325,
+          "line_end": 11886,
+          "status": "read",
+          "cards": 76,
+          "note": "본문 11325–11877행 전체를 읽음. 11520–11554행 족보는 본문과 구분하여 인물 카드의 단독 근거로 사용하지 않음. 11880–11882행 각주와 나머지 빈 줄은 본문 카드에서 제외. 앞 11295–11324행 및 뒤 11887–11916행은 경계 확인용으로 읽었으며 카드 근거에서 제외."
+        }
+      ],
+      "candidate_count": 76
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-22-chapter-xxii",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 11887,
+        "line_end": 12618,
+        "chapters": [
+          "england:22:CHAPTER XXII."
+        ],
+        "heads": [
+          [
+            11887,
+            "england:22:CHAPTER XXII."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-3"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-22-chapter-xxii.json",
+      "input_sha256": "3590f2fa05984c5b1e1c1ca3ee688a185e505e505fa88a3e2756200216e2db4b",
+      "scope": {
+        "line_start": 11887,
+        "line_end": 12618,
+        "chapters": [
+          "england:22:CHAPTER XXII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:22:CHAPTER XXII.",
+          "line_start": 11887,
+          "line_end": 12618,
+          "status": "read",
+          "cards": 121,
+          "note": "22장 본문 11894–12606행과 제목, 경계 공백을 읽음. 12609–12614행 각주는 본문 근거에서 제외. 11867–11886행 및 12619–12639행 경계 문맥 확인. 원저의 종파적 판단과 오류 가능성을 분리한 검토용 초안."
+        }
+      ],
+      "candidate_count": 121
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-23-chapter-xxiii",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 12619,
+        "line_end": 12925,
+        "chapters": [
+          "england:23:CHAPTER XXIII."
+        ],
+        "heads": [
+          [
+            12619,
+            "england:23:CHAPTER XXIII."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-3"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-23-chapter-xxiii.json",
+      "input_sha256": "4b357a5a8a4addfb8d4ed8c1a871141decda6f5c801cd1dfcd8e7442a54756cb",
+      "scope": {
+        "line_start": 12619,
+        "line_end": 12925,
+        "chapters": [
+          "england:23:CHAPTER XXIII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:23:CHAPTER XXIII.",
+          "line_start": 12619,
+          "line_end": 12925,
+          "status": "read",
+          "cards": 58,
+          "note": "12619–12925행 전체와 앞뒤 경계를 읽음. 본문은 12628–12916행이며 장 제목·소제목·빈 줄을 확인했고 12919–12921행 각주는 본문 근거에서 제외했다. 전 장 말미 12595–12618행과 다음 장 시작 12926–12945행은 경계 확인용 문맥이다. 서술의 종교적 편향과 역사적 정확성은 별도 검증이 필요하며 이용권은 관할별 미확인이다."
+        }
+      ],
+      "candidate_count": 58
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-24-chapter-xxiv-p1",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 12926,
+        "line_end": 13493,
+        "chapters": [
+          "england:24:CHAPTER XXIV."
+        ],
+        "heads": [
+          [
+            12926,
+            "england:24:CHAPTER XXIV."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-3"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-24-chapter-xxiv-p1.json",
+      "input_sha256": "89a19e8807d3e85735a08d0f9d7d79ec9cce25a7c70bedee6a0149c6aee872d4",
+      "scope": {
+        "line_start": 12926,
+        "line_end": 13493,
+        "chapters": [
+          "england:24:CHAPTER XXIV"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:24:CHAPTER XXIV",
+          "line_start": 12926,
+          "line_end": 13493,
+          "status": "read",
+          "cards": 87,
+          "note": "12926–13493행 전체와 경계 문맥 12890–12925·13494–13520행을 읽었다. 본문 근거는 할당 구간으로 제한했다. 제24장은 13493행 이후에도 계속되며 마지막 문장은 경계에서 잘린다. 종교·성별·제국주의적 원저 관점과 논쟁적 진술은 귀속해 표기했다."
+        }
+      ],
+      "candidate_count": 87
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-24-chapter-xxiv-p2",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 13494,
+        "line_end": 14061,
+        "chapters": [
+          "england:24:CHAPTER XXIV."
+        ],
+        "heads": [
+          [
+            13494,
+            "england:24:CHAPTER XXIV."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-3"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-24-chapter-xxiv-p2.json",
+      "input_sha256": "7338147b1e11261a035becfc25444d89225c0b8039fd5b58932946d940b55124",
+      "scope": {
+        "line_start": 13494,
+        "line_end": 14061,
+        "chapters": [
+          "england:24:CHAPTER XXIV."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:24:CHAPTER XXIV.",
+          "line_start": 13494,
+          "line_end": 14061,
+          "status": "read",
+          "cards": 98,
+          "note": "13494행은 이전 문단 중간이며 앞 문맥 13460–13493행을 확인했다. 본문은 14046행에서 끝나고 14049–14057행은 각주 가계도, 14058–14061행은 빈 줄이므로 추출 근거에서 제외했다. 다음 장은 14062행에 시작한다. 원저의 제국주의적 기술과 역사적 해석은 독립 검증된 사실로 취급하지 않는다."
+        }
+      ],
+      "candidate_count": 98
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-25-chapter-xxv",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 14062,
+        "line_end": 14549,
+        "chapters": [
+          "england:25:CHAPTER XXV."
+        ],
+        "heads": [
+          [
+            14062,
+            "england:25:CHAPTER XXV."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-3"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-25-chapter-xxv.json",
+      "input_sha256": "f2e786e91d525668b7f94c20e3e14bb84ee74834bd75cc9f23e31b6c8741e4f7",
+      "scope": {
+        "line_start": 14062,
+        "line_end": 14549,
+        "chapters": [
+          "england:25:CHAPTER XXV"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:25:CHAPTER XXV",
+          "line_start": 14062,
+          "line_end": 14549,
+          "status": "read",
+          "cards": 88,
+          "note": "14062–14528행 본문 전체를 읽음. 14531–14545행은 주석으로 읽었으나 본문 근거에서 제외했고 14546–14549행은 빈 줄. 앞 장 말미와 다음 장 시작도 대조함. 원저의 편향 및 일부 연대는 검증이 필요함. 특히 원저의 제임스 사망 월, 바베이도스·버뮤다 정착 연대 및 1607년 오닐 반란 서술은 별도 검증 필요."
+        }
+      ],
+      "candidate_count": 88
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-26-chapter-xxvi",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 14550,
+        "line_end": 15298,
+        "chapters": [
+          "england:26:CHAPTER XXVI."
+        ],
+        "heads": [
+          [
+            14550,
+            "england:26:CHAPTER XXVI."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-3"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-26-chapter-xxvi.json",
+      "input_sha256": "6bee2eed60f53fe82b14ef2f35eb1c1c810bbad7f7990e3c606586a7271807fb",
+      "scope": {
+        "line_start": 14550,
+        "line_end": 15298,
+        "chapters": [
+          "CHAPTER XXVI"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:26:CHAPTER XXVI",
+          "line_start": 14550,
+          "line_end": 15298,
+          "status": "read",
+          "cards": 103,
+          "note": "제목 14550–14554, 본문 14557–15280 전체 확인. 각주 15283–15294와 공백 15295–15298은 읽었으나 본문 근거에서 제외. 앞선 장 끝 14520–14549 및 다음 장 시작 15299–15329 대조. 저자의 정치·종교적 가치 판단과 전승, 사상·사건 수치에 유의."
+        }
+      ],
+      "candidate_count": 103
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-38-chapter-xxxviii-p1",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 23953,
+        "line_end": 24605,
+        "chapters": [
+          "england:38:CHAPTER XXXVIII."
+        ],
+        "heads": [
+          [
+            23953,
+            "england:38:CHAPTER XXXVIII."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-5"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-38-chapter-xxxviii-p1.json",
+      "input_sha256": "7d7ff14a35f0d37e1ac148ce8c5ffb816b9fe96b8a4b396940ba92bfd6d7bdb4",
+      "scope": {
+        "line_start": 23953,
+        "line_end": 24605,
+        "chapters": [
+          "england:38:CHAPTER XXXVIII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:38:CHAPTER XXXVIII.",
+          "line_start": 23953,
+          "line_end": 24605,
+          "status": "read",
+          "cards": 94,
+          "note": "제38장 시작부터 스페인 봉기에 대한 영국 반응 중 인용문 중간까지 전체를 읽음. 앞 문맥 23935–23952행과 뒤 문맥 24606–24639행도 확인했으나 카드 근거로 사용하지 않음. 각주 표식은 있으나 주석 전문·삽화 설명·목차는 본문 근거에서 제외. 장의 나머지 24606–25257행은 할당 범위 밖. 원저의 영국 중심 전쟁 서술 및 제국주의적 평가와 수치·연대는 별도 검증이 필요."
+        }
+      ],
+      "candidate_count": 94
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-38-chapter-xxxviii-p2",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 24606,
+        "line_end": 25257,
+        "chapters": [
+          "england:38:CHAPTER XXXVIII."
+        ],
+        "heads": [
+          [
+            24606,
+            "england:38:CHAPTER XXXVIII."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-5"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-38-chapter-xxxviii-p2.json",
+      "input_sha256": "2940bdf004b9b3b9e5f3f1b4719a35d8f7fd3df12391260eebce40e8e3e2af75",
+      "scope": {
+        "line_start": 24606,
+        "line_end": 25257,
+        "chapters": [
+          "england:38:CHAPTER XXXVIII"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:38:CHAPTER XXXVIII",
+          "line_start": 24606,
+          "line_end": 25257,
+          "status": "read",
+          "cards": 118,
+          "note": "할당 652행 전체와 경계 앞뒤 문맥을 읽음. 24606행은 문장 중간에서 시작하므로 앞 문맥 24586–24605행을 참조했으나 카드 근거는 할당 범위만 사용. 본문은 25242행까지이며 24705–24707·24845–24847·25162–25164행의 지도 설명, 25245–25253행의 각주, 나머지 빈 줄은 카드 근거에서 제외. 다음 장은 25258행에 시작."
+        }
+      ],
+      "candidate_count": 118
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-39-chapter-xxxix",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 25258,
+        "line_end": 26026,
+        "chapters": [
+          "england:39:CHAPTER XXXIX."
+        ],
+        "heads": [
+          [
+            25258,
+            "england:39:CHAPTER XXXIX."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-5"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-39-chapter-xxxix.json",
+      "input_sha256": "1f28d692058c904dd63d30df72f01e9473d858205c3242d942309daf9628da55",
+      "scope": {
+        "line_start": 25258,
+        "line_end": 26026,
+        "chapters": [
+          "england:39:CHAPTER XXXIX."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:39:CHAPTER XXXIX.",
+          "line_start": 25258,
+          "line_end": 26026,
+          "status": "read",
+          "cards": 98,
+          "note": "제39장 제목과 본문 25258–26012행을 전부 읽었다. 26015–26022행 각주와 26013–26014·26023–26026행 빈 줄은 본문 카드 근거에서 제외했다. 앞뒤 경계 25231–25257·26027–26060행도 확인했다. 원저의 정치적·제국주의적 편향 및 시대적 오류 가능성을 유의한다."
+        }
+      ],
+      "candidate_count": 98
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-40-chapter-xl",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 26027,
+        "line_end": 26862,
+        "chapters": [
+          "england:40:CHAPTER XL."
+        ],
+        "heads": [
+          [
+            26027,
+            "england:40:CHAPTER XL."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-5"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-40-chapter-xl.json",
+      "input_sha256": "a22dad875be7205377e9492ae7c6185adb0dec4c9c40d2b2fdeacb61ef09671e",
+      "scope": {
+        "line_start": 26027,
+        "line_end": 26862,
+        "chapters": [
+          "england:40:CHAPTER XL"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:40:CHAPTER XL",
+          "line_start": 26027,
+          "line_end": 26862,
+          "status": "read",
+          "cards": 89,
+          "note": "제40장 본문 26027–26846행 전체를 읽고 26849–26858행의 각주와 나머지 공백은 본문 추출에서 제외했다. 앞 장 끝과 다음 장 시작을 대조했다. 원저의 제국주의적 관점과 일부 연대·외교 서술의 불확실성을 유의한다."
+        }
+      ],
+      "candidate_count": 89
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-41-chapter-xli",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 26863,
+        "line_end": 27931,
+        "chapters": [
+          "england:41:CHAPTER XLI."
+        ],
+        "heads": [
+          [
+            26863,
+            "england:41:CHAPTER XLI."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-5"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-41-chapter-xli.json",
+      "input_sha256": "97296ea91663f788ac3a888ef44b77b1bdb18d2b00e5f23a727641ac1dfdcd96",
+      "scope": {
+        "line_start": 26863,
+        "line_end": 27931,
+        "chapters": [
+          "england:41:CHAPTER XLI"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:41:CHAPTER XLI",
+          "line_start": 26863,
+          "line_end": 27931,
+          "status": "read",
+          "cards": 125,
+          "note": "제41장 전체. 27403–27405 도판 설명과 27925–27927 각주는 본문 카드 근거에서 제외. 전후 경계 확인. 원저의 제국주의적·종교적 가치판단은 저자의 견해로 취급한다."
+        }
+      ],
+      "candidate_count": 125
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-42-chapter-xlii",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 27932,
+        "line_end": 28670,
+        "chapters": [
+          "england:42:CHAPTER XLII."
+        ],
+        "heads": [
+          [
+            27932,
+            "england:42:CHAPTER XLII."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-5"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-42-chapter-xlii.json",
+      "input_sha256": "7203f4b3bc88a8059add66a0835f4cd37fd0a97984940884726e32274fa74b3b",
+      "scope": {
+        "line_start": 27932,
+        "line_end": 28670,
+        "chapters": [
+          "england:42:CHAPTER XLII"
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:42:CHAPTER XLII",
+          "line_start": 27932,
+          "line_end": 28670,
+          "status": "read",
+          "cards": 104,
+          "note": "42장 전체 본문 27932–28657행을 읽음. 28660–28666행은 각주, 나머지 끝부분은 빈 줄이며 카드 본문 근거에서 제외. 앞뒤 장 경계를 확인함. 저자 관점·당시 편향 및 연도 서술은 독립 검증하지 않음."
+        }
+      ],
+      "candidate_count": 104
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-43-chapter-xliii",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 28671,
+        "line_end": 29280,
+        "chapters": [
+          "england:43:CHAPTER XLIII."
+        ],
+        "heads": [
+          [
+            28671,
+            "england:43:CHAPTER XLIII."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-5"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-43-chapter-xliii.json",
+      "input_sha256": "38c23b054c19695f6985f399af680324c0bf5d8b3c1ffef4cae64f10400d1423",
+      "scope": {
+        "line_start": 28671,
+        "line_end": 29280,
+        "chapters": [
+          "england:43:CHAPTER XLIII."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:43:CHAPTER XLIII.",
+          "line_start": 28671,
+          "line_end": 29280,
+          "status": "read",
+          "cards": 115,
+          "note": "제43장 본문 전체를 읽음. 29143–29149 삽화 설명 및 29272–29276 주석은 본문 근거에서 제외. 제42장 말미와 제44장 시작으로 경계를 확인함. 원저의 제국주의적 평가와 역사적 오류 가능성은 별도 검증 필요."
+        }
+      ],
+      "candidate_count": 115
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "england",
+        "segment": "refill-england-44-chapter-xliv",
+        "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+        "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/47753",
+        "line_start": 29281,
+        "line_end": 30222,
+        "chapters": [
+          "england:44:CHAPTER XLIV."
+        ],
+        "heads": [
+          [
+            29281,
+            "england:44:CHAPTER XLIV."
+          ]
+        ],
+        "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+        "status": "pending",
+        "parent_partial": "england-5"
+      },
+      "input_path": "미게시-임시자료:history/refill-england-44-chapter-xliv.json",
+      "input_sha256": "1f3965e25e26b347bc27e5d9ad1c01894385f2e7584c2543e36a98b9a0b81f62",
+      "scope": {
+        "line_start": 29281,
+        "line_end": 30222,
+        "chapters": [
+          "england:44:CHAPTER XLIV."
+        ]
+      },
+      "coverage_self_report": [
+        {
+          "unit": "england:44:CHAPTER XLIV.",
+          "line_start": 29281,
+          "line_end": 30222,
+          "status": "read",
+          "cards": 188,
+          "note": "29281–30222행 전체와 앞뒤 경계를 확인했다. 29368–29370의 삽화 설명을 카드 근거에서 제외했고 30223행 이후 주석·색인은 범위 밖이다. 1904년 원저의 식민주의·인종주의적 평가와 역사적 정확성, 공개판 이용권은 별도 검토가 필요하다."
+        }
+      ],
+      "candidate_count": 188
+    }
+  ],
+  "quarantine": [],
+  "counts": {
+    "input_files": 28,
+    "input_candidates": 3177,
+    "output_records": 3177,
+    "merged_input_candidates": 0,
+    "unprocessed_input_candidates": 0,
+    "quarantined_files": 0,
+    "card_types": {
+      "location": 526,
+      "organization": 270,
+      "object": 89,
+      "character": 1263,
+      "event": 781,
+      "rule": 246,
+      "other": 2
+    },
+    "same_title_type_groups": 193,
+    "same_key_groups": 200,
+    "existing_england_source_overlap_records": 75,
+    "existing_exact_title_type_records": 2,
+    "candidate_missing_key_or_anchor": 0
+  },
+  "source": {
+    "author": "Charles Oman",
+    "title": "A History of England",
+    "edition": "제11판 (1904)",
+    "commit": "a343f13181524989366c8a647fea7a6a1f976fc1",
+    "path": "docs/research/history-textbooks/england/oman-1904/source-en.txt",
+    "sha256": "74c6692775fdd51d7e8f2814c5fe0c26d41221e6da790108dd895e6cd3e314a4",
+    "url": "https://www.gutenberg.org/ebooks/47753",
+    "sha256_verified_against_git_object": true,
+    "line_convention": "1-based inclusive"
+  },
+  "rights_and_limitations": [
+    "The stored Gutenberg notice is preserved. Jurisdiction-specific reuse conditions and electronic-edition notices require separate review; no blanket worldwide clearance is claimed.",
+    "기존 역사 연구 자료는 연구 전용이며 서비스·DB 자동 등록 및 공개 승인이 아니다. 최초 적용은 별도 #425 안전 계약과 권리·중복 검증이 필요하다.",
+    "원저의 인종·민족·종교·계층·성별·식민지에 대한 편향과 시대적 한계를 유의한다. 추출과 한국어 요약은 비공식이며 역사 사실·번역·법률 감수 미완료다.",
+    "이전 1,000개 한도 기준으로 후보 수는 초과한다. 현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다. 본 파일 분할은 세계관 분할이나 앱 적재가 아니며 모든 후보를 검토용으로 보존한다.",
+    "입력의 read는 추출 워커의 자기보고이며 실제 독서 완전성·모든 원문 대상 추출·역사적 진실·가공 인물 부재를 독립 검증하지 않았다.",
+    "기존 기록의 각주·그림·일부 자료 제외와 예비 추출 등은 coverage 자기보고를 참고한다."
+  ],
+  "manifest_path": "미게시-임시자료:history/manifest.json",
+  "manifest_sha256": "f3faa02f012e87678aad6cb004920343719ed797389a605ed2385517017547c1",
+  "workspace_commit": "3ec049e5f00dfc6b07c9b840631b159b5b68bd54",
+  "chunks": [
+    {
+      "file": "cards-001.json",
+      "count": 300,
+      "sha256": "b1fcc7795b7fc866c56615dd89674ebb5b1f13be20b6870758eeddbe672a5116",
+      "bytes": 348657
+    },
+    {
+      "file": "cards-002.json",
+      "count": 300,
+      "sha256": "e4a6caaef7b70c269a838bf91f953b8c53c4a7d1c3ce89e96699b4361b5d287a",
+      "bytes": 355566
+    },
+    {
+      "file": "cards-003.json",
+      "count": 300,
+      "sha256": "60b5390489931d180a088f0bbfacf8df2e297b56cd060b4bba6324e7419cffd0",
+      "bytes": 357264
+    },
+    {
+      "file": "cards-004.json",
+      "count": 300,
+      "sha256": "8c2edea35d9a2837e3e7a66d4f229bf9548ca8f3cc944c6bcf34e53002b6fb1d",
+      "bytes": 412666
+    },
+    {
+      "file": "cards-005.json",
+      "count": 300,
+      "sha256": "7ef21282bb3151d1bd9a3786c6016984769fb2540cd92d7f762226846666f3c4",
+      "bytes": 423304
+    },
+    {
+      "file": "cards-006.json",
+      "count": 300,
+      "sha256": "fa99bfc0cc1a1df03bc1a5c149afe20ff4b9e63330099e672626e23832966676",
+      "bytes": 432872
+    },
+    {
+      "file": "cards-007.json",
+      "count": 300,
+      "sha256": "22aa1d8be4163e47035450a1175debf6ad07ce25f16dfe6fe13a435cd67dc259",
+      "bytes": 425392
+    },
+    {
+      "file": "cards-008.json",
+      "count": 300,
+      "sha256": "ff81a3c350631efe0d95e5b75af2aa29f7da0b05d421bb5766a6641c2eeeb57f",
+      "bytes": 408611
+    },
+    {
+      "file": "cards-009.json",
+      "count": 300,
+      "sha256": "49cd8b5c768710ba3db7b1020442d1247b9434856d0056287b02d5dd8b5c9d57",
+      "bytes": 413097
+    },
+    {
+      "file": "cards-010.json",
+      "count": 300,
+      "sha256": "4ecce059bf5a20f32cd2260c289b76b96e73f93800cd2003c1d1dbbad9d5a292",
+      "bytes": 392098
+    },
+    {
+      "file": "cards-011.json",
+      "count": 177,
+      "sha256": "f0384e4c81bb44bb82c09f27277346f5a1ff7c2a19a1ecde99aafcaac5264a68",
+      "bytes": 224028
+    }
+  ],
+  "duplicate_policy": "자동 병합 없음: 모든 입력 후보와 근거를 개별 보존. 같은 제목·유형, 같은 key, 기존 카드 제목·유형 및 같은 원문 행의 교차는 중복 가능성만 표시하며 의미 동일 판정이 아니다.",
+  "existing_comparison": {
+    "files": [
+      "infrastructure/sample-data/genre-templates/history/studio/england.world.json",
+      "infrastructure/sample-data/genre-templates/history/england.world.json",
+      "backend/content-service/src/main/resources/genre-templates-v1.json",
+      "backend/content-service/src/main/resources/genre-templates-v2.json"
+    ],
+    "existing_studio_cards": 20,
+    "england_research_cards": 21,
+    "existing_evidence_cards": 21,
+    "method": "exact title+type and existing England evidence line overlap only; semantic and different-name matches remain unreviewed",
+    "uuid_collisions": 0
+  },
+  "coverage": {
+    "range": [
+      351,
+      30222
+    ],
+    "read_self_report_uncovered_line_count": 0,
+    "read_self_report_overlapping_line_count": 0,
+    "partial_pending_unread_refills": [
+      {
+        "segment": "england-2",
+        "original_status": "unread",
+        "start": 6024,
+        "end": 6924,
+        "refills": [
+          {
+            "segment": "refill-england-11-chapter-xi",
+            "start": 6024,
+            "end": 6924
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-2",
+        "original_status": "unread",
+        "start": 6925,
+        "end": 7269,
+        "refills": [
+          {
+            "segment": "refill-england-12-chapter-xii",
+            "start": 6925,
+            "end": 7269
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-2",
+        "original_status": "unread",
+        "start": 7270,
+        "end": 8149,
+        "refills": [
+          {
+            "segment": "refill-england-13-chapter-xiii",
+            "start": 7270,
+            "end": 8149
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-2",
+        "original_status": "unread",
+        "start": 8150,
+        "end": 8602,
+        "refills": [
+          {
+            "segment": "refill-england-14-chapter-xiv",
+            "start": 8150,
+            "end": 8602
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-2",
+        "original_status": "unread",
+        "start": 8603,
+        "end": 8877,
+        "refills": [
+          {
+            "segment": "refill-england-15-chapter-xv",
+            "start": 8603,
+            "end": 8877
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-2",
+        "original_status": "unread",
+        "start": 8878,
+        "end": 9261,
+        "refills": [
+          {
+            "segment": "refill-england-16-chapter-xvi",
+            "start": 8878,
+            "end": 9261
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-2",
+        "original_status": "unread",
+        "start": 9262,
+        "end": 9839,
+        "refills": [
+          {
+            "segment": "refill-england-17-chapter-xvii",
+            "start": 9262,
+            "end": 9839
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-3",
+        "original_status": "unread",
+        "start": 10934,
+        "end": 11324,
+        "refills": [
+          {
+            "segment": "refill-england-20-chapter-xx",
+            "start": 10934,
+            "end": 11324
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-3",
+        "original_status": "unread",
+        "start": 11325,
+        "end": 11886,
+        "refills": [
+          {
+            "segment": "refill-england-21-chapter-xxi",
+            "start": 11325,
+            "end": 11886
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-3",
+        "original_status": "unread",
+        "start": 11887,
+        "end": 12618,
+        "refills": [
+          {
+            "segment": "refill-england-22-chapter-xxii",
+            "start": 11887,
+            "end": 12618
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-3",
+        "original_status": "unread",
+        "start": 12619,
+        "end": 12925,
+        "refills": [
+          {
+            "segment": "refill-england-23-chapter-xxiii",
+            "start": 12619,
+            "end": 12925
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-3",
+        "original_status": "unread",
+        "start": 12926,
+        "end": 14061,
+        "refills": [
+          {
+            "segment": "refill-england-24-chapter-xxiv-p1",
+            "start": 12926,
+            "end": 13493
+          },
+          {
+            "segment": "refill-england-24-chapter-xxiv-p2",
+            "start": 13494,
+            "end": 14061
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-3",
+        "original_status": "unread",
+        "start": 14062,
+        "end": 14549,
+        "refills": [
+          {
+            "segment": "refill-england-25-chapter-xxv",
+            "start": 14062,
+            "end": 14549
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-3",
+        "original_status": "unread",
+        "start": 14550,
+        "end": 15298,
+        "refills": [
+          {
+            "segment": "refill-england-26-chapter-xxvi",
+            "start": 14550,
+            "end": 15298
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-5",
+        "original_status": "pending",
+        "start": 23953,
+        "end": 25257,
+        "refills": [
+          {
+            "segment": "refill-england-38-chapter-xxxviii-p1",
+            "start": 23953,
+            "end": 24605
+          },
+          {
+            "segment": "refill-england-38-chapter-xxxviii-p2",
+            "start": 24606,
+            "end": 25257
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-5",
+        "original_status": "pending",
+        "start": 25258,
+        "end": 26026,
+        "refills": [
+          {
+            "segment": "refill-england-39-chapter-xxxix",
+            "start": 25258,
+            "end": 26026
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-5",
+        "original_status": "pending",
+        "start": 26027,
+        "end": 26862,
+        "refills": [
+          {
+            "segment": "refill-england-40-chapter-xl",
+            "start": 26027,
+            "end": 26862
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-5",
+        "original_status": "pending",
+        "start": 26863,
+        "end": 27931,
+        "refills": [
+          {
+            "segment": "refill-england-41-chapter-xli",
+            "start": 26863,
+            "end": 27931
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-5",
+        "original_status": "pending",
+        "start": 27932,
+        "end": 28670,
+        "refills": [
+          {
+            "segment": "refill-england-42-chapter-xlii",
+            "start": 27932,
+            "end": 28670
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-5",
+        "original_status": "pending",
+        "start": 28671,
+        "end": 29280,
+        "refills": [
+          {
+            "segment": "refill-england-43-chapter-xliii",
+            "start": 28671,
+            "end": 29280
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      },
+      {
+        "segment": "england-5",
+        "original_status": "pending",
+        "start": 29281,
+        "end": 30222,
+        "refills": [
+          {
+            "segment": "refill-england-44-chapter-xliv",
+            "start": 29281,
+            "end": 30222
+          }
+        ],
+        "uncovered_line_count": 0,
+        "overlap_line_count": 0
+      }
+    ],
+    "note": "read는 입력의 자기보고. 범위 대조는 내용·누락 없는 추출을 증명하지 않음.",
+    "chapter_label_mismatches": [
+      {
+        "segment": "refill-england-12-chapter-xii",
+        "manifest_chapters": [
+          "england:12:CHAPTER XII."
+        ],
+        "input_scope_chapters": [
+          "england:12:CHAPTER XII"
+        ]
+      },
+      {
+        "segment": "refill-england-20-chapter-xx",
+        "manifest_chapters": [
+          "england:20:CHAPTER XX."
+        ],
+        "input_scope_chapters": [
+          "england:20:CHAPTER XX"
+        ]
+      },
+      {
+        "segment": "refill-england-24-chapter-xxiv-p1",
+        "manifest_chapters": [
+          "england:24:CHAPTER XXIV."
+        ],
+        "input_scope_chapters": [
+          "england:24:CHAPTER XXIV"
+        ]
+      },
+      {
+        "segment": "refill-england-25-chapter-xxv",
+        "manifest_chapters": [
+          "england:25:CHAPTER XXV."
+        ],
+        "input_scope_chapters": [
+          "england:25:CHAPTER XXV"
+        ]
+      },
+      {
+        "segment": "refill-england-26-chapter-xxvi",
+        "manifest_chapters": [
+          "england:26:CHAPTER XXVI."
+        ],
+        "input_scope_chapters": [
+          "CHAPTER XXVI"
+        ]
+      },
+      {
+        "segment": "refill-england-38-chapter-xxxviii-p2",
+        "manifest_chapters": [
+          "england:38:CHAPTER XXXVIII."
+        ],
+        "input_scope_chapters": [
+          "england:38:CHAPTER XXXVIII"
+        ]
+      },
+      {
+        "segment": "refill-england-40-chapter-xl",
+        "manifest_chapters": [
+          "england:40:CHAPTER XL."
+        ],
+        "input_scope_chapters": [
+          "england:40:CHAPTER XL"
+        ]
+      },
+      {
+        "segment": "refill-england-41-chapter-xli",
+        "manifest_chapters": [
+          "england:41:CHAPTER XLI."
+        ],
+        "input_scope_chapters": [
+          "england:41:CHAPTER XLI"
+        ]
+      },
+      {
+        "segment": "refill-england-42-chapter-xlii",
+        "manifest_chapters": [
+          "england:42:CHAPTER XLII."
+        ],
+        "input_scope_chapters": [
+          "england:42:CHAPTER XLII"
+        ]
+      }
+    ],
+    "chapter_label_mismatch_note": "9개 분할에서 마침표 또는 접두사가 다르므로 원래 라벨은 그대로 보존했다. 구간으로 범위를 대조했으며 이 차이를 정규화해 동일하다고 단정하지 않았다."
+  },
+  "id_policy": {
+    "algorithm": "UUIDv5",
+    "namespace_worldId": "c1af4125-5423-5633-a5da-822b4753df94",
+    "name_pattern": "storyfork:full-history:england:<segment>:<candidate_key>"
+  },
+  "validation": {
+    "title_utf16_max": 23,
+    "body_utf16_max": 320,
+    "all_source_lines_nonempty_and_within_segment": true,
+    "all_original_author_and_url_in_body": true,
+    "input_reconciliation": "입력 3177 = 개별 보존 3177 + 완전 근거 보존 병합 0 + 미처리 0",
+    "historical_truth_and_semantic_duplicates_verified": false,
+    "candidate_source_units_match_input_coverage": true
+  },
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

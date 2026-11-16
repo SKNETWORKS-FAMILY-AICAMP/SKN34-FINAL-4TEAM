@@ -1,0 +1,1186 @@
+[
+  {
+    "id": "a6297e10-bb62-5f00-8a3f-8b68a70fc5f7",
+    "title": "원산항",
+    "body": "원산항은 러시아 함대가 출현하고 일본 소형선이 파괴된 곳이다. 이후 원산에는 일본군이 주둔했고 방어용 참호도 설치되었다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13390–13396행, 13410–13415행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "location-wonsan-harbor",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13390,
+          "end": 13396
+        },
+        {
+          "start": 13410,
+          "end": 13415
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "1c39bf46-e6a1-5973-9fbc-3e9626908ba9",
+    "title": "러시아 블라디보스토크 함대",
+    "body": "저자에 따르면 함대가 4월 25일 원산항 입구에 나타났고 어뢰정이 항내 일본 선박을 파괴했다. 6월 말에는 러시아 어뢰정 일곱 척이 원산을 포격했다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13388–13396행, 13422–13431행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "organization-russian-vladivostok-squadron",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13388,
+          "end": 13396
+        },
+        {
+          "start": 13422,
+          "end": 13431
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "a1f78852-0430-5c10-a352-41c57bdd0732",
+    "title": "고요마루 (Goyo Maru)",
+    "body": "원산항에 정박한 일본의 소형선으로, 4월 25일 러시아 어뢰정에 파괴되었다고 원문은 전한다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13390–13394행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "object",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "object-japanese-boat-goyo-maru",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13390,
+          "end": 13394
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "1682ee32-cce0-5a7a-b5c5-0025c0f5bf46",
+    "title": "일본 수송선 킨슈 (Kinshiu)",
+    "body": "원문에 따르면 일본군 150여 명을 태우고 원산에서 북쪽 Sŭng-ju로 향하다 악천후로 돌아왔으며, 러시아 함대에 항복을 거부한 뒤 침몰했다. 탑승 병력 가운데 45명이 육지로 탈출했다고 한다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13397–13403행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "object",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "object-japanese-transport-kinshiu",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13397,
+          "end": 13403
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "bc3b2790-5e50-546f-a812-63acdf47eeca",
+    "title": "원산 앞바다의 함대 출현과 수송선 침몰",
+    "body": "1904년 4월 25일 러시아 함대가 원산항에 나타나 소형선 고요마루를 파괴했다. 몇 시간 전 출항했다 돌아오던 킨슈도 함대와 만나 침몰했으며, 원산 주민 가운데 여성과 어린이가 급히 피란했다는 것이 저자의 서술이다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13388–13403행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "event-wonsan-naval-incidents-april-1904",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13388,
+          "end": 13403
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "6a88c5ab-ab54-5caf-85a6-35f551ee9ebe",
+    "title": "원산 북쪽 Sŭng-ju",
+    "body": "원문은 일본 수송선 킨슈가 원산에서 출항해 향하던 목적지를 원산 북쪽의 Sŭng-ju로 적는다. 정확한 현대 지명 대응은 확인하지 않았다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13397–13401행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "location-sung-ju-north-of-wonsan",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13397,
+          "end": 13401
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "f7e9437c-3d86-5f8f-b24a-e636f5303435",
+    "title": "함흥에 진입한 코사크 부대",
+    "body": "저자는 동해안을 따라 남하한 코사크 부대가 한국군과 두 시간 교전한 뒤 함흥에 들어갔고 주택과 다리를 태운 뒤 북쪽으로 물러났다고 기록한다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13405–13410행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "organization-russian-cossack-raiding-force-hamheung",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13405,
+          "end": 13410
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "1b89c6da-2d61-5929-b1bc-1e63d56f7c26",
+    "title": "코사크 부대의 함흥 진입과 방화",
+    "body": "원문에 따르면 코사크 부대가 한국군과 교전해 함흥에 들어가 교외 주택 약 300채와 만세교 열네 칸을 불태운 뒤 북쪽으로 철수했다. 시점은 4월 25일의 수일 전으로 서술된다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13390–13391행, 13405–13410행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "event-cossack-raid-hamheung-1904",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13390,
+          "end": 13391
+        },
+        {
+          "start": 13405,
+          "end": 13410
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "d89b15f2-88bf-537d-bda8-f387257e0c83",
+    "title": "함흥",
+    "body": "원문에서 함흥은 동해안을 남하한 코사크 부대가 진입한 도시이며, 이후 일본군이 주둔한 동북부 거점이다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13405–13412행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "location-hamheung",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13405,
+          "end": 13412
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [
+        "81a20fe0-32a3-5db2-aad1-e8a2f91d80df"
+      ],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "6f187ff9-ebf8-505d-9bd5-8e0a531d2388",
+    "title": "함흥 만세교 (Ten Thousand Year Bridge)",
+    "body": "저자는 이 다리를 한국에서 가장 긴 다리라고 소개하고, 코사크 부대가 열네 칸을 불태웠다고 적었다. 길이 비교는 저자의 주장이다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13405–13409행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "object",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "object-ten-thousand-year-bridge-hamheung",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13405,
+          "end": 13409
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "cfa2142f-ffae-523e-8d71-8d636f47b887",
+    "title": "1904년 8월 원산 교외의 러시아군 접근",
+    "body": "8월 8일 러시아 소부대가 원산 교외까지 남하했으나 참호를 구축하고 있던 일본군에게 곧 격퇴당했다고 저자는 적는다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13413–13415행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "event-wonsan-russian-raid-august-1904",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13413,
+          "end": 13415
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "e5f15b8e-fbe5-59e0-b436-a3db873ed1df",
+    "title": "동북부 러시아군 도로 정비",
+    "body": "저자는 러시아군이 두만강에서 Sung-su까지와 그 남쪽의 도로를 보수하고 Sung-jin 남쪽 두 고개에 정비된 도로를 놓았다고 기술한다. 두 지명의 동일성이나 현대 지명 대응은 원문만으로 확정하지 않는다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13416–13420행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "event-northeast-korea-roadworks-1904",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13416,
+          "end": 13420
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "4f5de147-1e7b-5a65-b5f2-e158b0ecadd0",
+    "title": "두만강",
+    "body": "저자는 러시아군이 두만강에서 남쪽 Sung-su 방면으로 도로를 보수했다고 적었다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13416–13418행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "location-tuman-river",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13416,
+          "end": 13418
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": [
+        "0ca7dd3a-2f90-5699-be6b-2fe35f15e189"
+      ]
+    }
+  },
+  {
+    "id": "ca6a8ae9-d603-5cb7-85cd-753e48354c6a",
+    "title": "동북부 Sung-su",
+    "body": "원문에서 Sung-su는 두만강에서 남하하는 도로 정비의 기준점으로 나온다. 현대 지명이나 이어 언급된 Sung-jin과의 관계는 확인하지 않았다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13416–13418행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "location-sung-su-northeast-korea",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13416,
+          "end": 13418
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "11f22b63-57cc-5d2d-9963-9f8b2a12b1ce",
+    "title": "동북부 Sung-jin",
+    "body": "러시아군이 이곳 남쪽 고개 둘에 정비된 도로를 만들었다고 저자는 기술한다. 현대 지명과 앞에 나오는 Sung-su의 관계는 확인하지 않았다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13416–13419행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "location-sung-jin-northeast-korea",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13416,
+          "end": 13419
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "42f1aed1-001b-57a3-aaab-1dc8aae32f75",
+    "title": "1904년 6월 말 원산 포격",
+    "body": "저자는 6월 마지막 날 러시아 어뢰정 일곱 척이 일본 병영 등의 위치를 물은 후 원산에 200발 넘게 포격했고 주민들이 언덕으로 피했다고 썼다. 별다른 큰 피해가 없었다는 기록과 공격을 부당하다고 보는 평가는 저자의 서술이다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13422–13431행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "event-russian-bombardment-wonsan-june-1904",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13422,
+          "end": 13431
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "8ccde3dd-d61c-501e-9cf1-430f62d647be",
+    "title": "나가모리 (Nagamori)",
+    "body": "저자는 일본이 한국의 미경작지와 국유 자원 개방을 제안한 구상이 나가모리에게서 나와 도쿄 당국의 지지를 얻은 것으로 보인다고 썼다. 구상의 기원은 저자의 추정이다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13437–13442행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "character-nagamori-land-proposal",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13437,
+          "end": 13442
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "6d27bac4-d10c-50b6-bd48-504354c431ec",
+    "title": "1904년 일본의 미경작지 개방 제안",
+    "body": "6월 17일 일본 당국이 한반도 미경작지와 다른 국유 자원을 일본인에게 개방하자고 제안했다고 저자는 전한다. 제한 조건이 모호하여 수리권과 치외법권에 따른 관할 문제가 우려되었고 한국인들의 반발이 일어났다. 저자에 따르면 타협 시도 후 추진은 중단됐으나 일본 측의 요청 철회나 한국 정부의 거부 수용이 명시되지는 않았다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13437–13442행, 13451–13467행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "rule-japanese-waste-land-proposal-1904",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13437,
+          "end": 13442
+        },
+        {
+          "start": 13451,
+          "end": 13467
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "16f20c66-1a7c-5cd1-abee-7245a6dd50e0",
+    "title": "미경작지 개방 제안 반대 운동",
+    "body": "일본 측 제안에 대한 반대가 전국으로 퍼졌고 서울에서는 보안회 회합과 황제에게 올리는 상소가 이어졌다. 일본 경찰은 7월 16일 회합을 급습해 주도 회원 일부를 연행했다. 추진이 중단된 뒤에도 정치적 동요가 계속되었다고 저자는 기록한다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13443–13447행, 13476–13489행, 13517–13519행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "event-korean-protest-waste-land-proposal-1904",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13443,
+          "end": 13447
+        },
+        {
+          "start": 13476,
+          "end": 13489
+        },
+        {
+          "start": 13517,
+          "end": 13519
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "04f0681f-6187-54fa-b5d4-beb065eaa365",
+    "title": "보안회 (Po-an-whe)",
+    "body": "원문은 보안회를 평화와 안전의 증진을 뜻하는 단체로 풀이한다. 주요 한국 관리 일부가 참여했고 서울 중심의 면포 상인 조합에서 모여 일본의 미경작지 제안에 반대했다. 일본 경찰이 회원들을 연행하고 문서를 압수했으며 각 도에서 수천 명이 가입했다고 서술한다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13476–13489행, 13497–13502행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "organization-po-an-whe",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13476,
+          "end": 13489
+        },
+        {
+          "start": 13497,
+          "end": 13502
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "75600845-825a-5a00-ab04-73b692803180",
+    "title": "서울 면포 상인 조합 회합 장소",
+    "body": "저자에 따르면 보안회는 서울 중심에 있던 면포 상인 조합에서 회합하고 일본의 토지 개방 요구에 반대할 방법을 논의했다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13478–13483행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "location-seoul-cotton-guild-meeting-place",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13478,
+          "end": 13483
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "19fdbdc2-dc0c-5f88-9b64-3c6207813f8b",
+    "title": "대한제국 내 일본 경찰",
+    "body": "저자는 일본 경찰이 보안회 회합을 해산하고 회원들을 연행하며 문서를 압수했다고 기록한다. 이후 새로 등장한 일진회에는 자격을 인정받은 회원만 들이면서 그 단체를 보호했다고 서술한다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13485–13489행, 13519–13522행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "organization-japanese-police-korea-1904",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13485,
+          "end": 13489
+        },
+        {
+          "start": 13519,
+          "end": 13522
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "4be42963-b4cd-5cba-985d-845564e572fd",
+    "title": "1904년 일본군의 한국인 노무자 모집",
+    "body": "일본 군 당국이 8월 초 북부에서 일할 한국인 노무자 6천 명을 각 도에 배정해 요청했다. 이들이 전선에 배치될 것이라는 소문이 퍼졌고 가까스로 2천 명을 구했으며 강제 동원 시도가 있던 여러 도시에서 유혈 충돌이 일어났다고 저자는 썼다. 소문의 진위는 원문에서 확인되지 않는다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13504–13511행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "event-japanese-labor-requisition-korea-1904",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13504,
+          "end": 13511
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "12504a7b-59cb-5a5a-8e7a-80c867b6f7cf",
+    "title": "일진회 (Il-chin Society)",
+    "body": "원문은 8월 22일 새 일진회가 등장해 일본 경찰의 보호를 받았다고 서술한다. 바로 앞과 뒤에도 다른 단체를 가리키는 것처럼 똑같이 Il-chin이라는 이름을 사용하므로 기존 단체와의 관계 및 인쇄상 오류 여부는 확정할 수 없다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13517–13524행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "organization-il-chin-society-1904",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13517,
+          "end": 13524
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "36e66d32-9d42-5ed8-b36b-930a5915884e",
+    "title": "국민회 (Kuk-min Society)",
+    "body": "저자는 앞선 단체들의 움직임에 이어 세 번째 단체가 Kuk-min 또는 National People’s Society라는 이름으로 등장했다고 기록한다. 이들 단체의 강령과 실천력에 관한 부정적 평가는 저자의 의견이다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13522–13528행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "organization-kuk-min-society-1904",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13522,
+          "end": 13528
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "8aa7edb0-3edc-5017-8598-bdb955f73312",
+    "title": "한국 외교 대표 소환 제안",
+    "body": "여름에 일본 측이 한국의 해외 외교 대표를 소환하고 일본 공사관을 통해 한국의 해외 외교 업무를 처리하자고 제안했다고 저자는 썼다. 진지한 시도였는지 의향 탐색이었는지는 알 수 없으며 연말까지 추진되지 않았다고 명시한다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13530–13535행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "rule-proposed-korean-diplomatic-recall-1904",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13530,
+          "end": 13535
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "c08e988e-ddfe-5185-bf3a-00b0eac39cf3",
+    "title": "스티븐스 (Stevens)",
+    "body": "원문은 미국 국적의 스티븐스가 일본 측의 추천을 받아 한국 외부 고문으로 임명되어 연말에 직무를 시작했다고 기록한다. 외교가 잘 처리될 것이라는 전망은 저자의 평가다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13535–13538행, 13591–13594행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "character-stevens-foreign-adviser",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13535,
+          "end": 13538
+        },
+        {
+          "start": 13591,
+          "end": 13594
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "7ebeb5fd-489c-5811-b10e-063a7ebf44f5",
+    "title": "대한 교육협회 (Educational Association of Korea)",
+    "body": "원문에 따르면 여러 외국인이 한국 학교에 적합한 교과서를 마련하고 교육 문제 해결을 돕기 위해 이 단체를 결성했다. 한글 명칭은 원문 영문 명칭의 번역이며 공식 명칭은 확인하지 않았다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13540–13548행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "organization-educational-association-of-korea",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13540,
+          "end": 13548
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "fbd661fc-c0a5-5f1e-9035-b05a6f14a50c",
+    "title": "한국 학교용 교과서 계획",
+    "body": "저자는 외국인들이 결성한 Educational Association of Korea의 목적 가운데 하나로 한국 학교에 적합한 교과서의 마련을 들었다. 개별 교과서가 완성되었는지는 기록하지 않았다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13545–13548행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "object",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "object-korean-school-textbooks-association",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13545,
+          "end": 13548
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "8344fbf7-5520-50a0-a8d6-2afc30a218da",
+    "title": "관립학교 졸업생 관직 우대 건의",
+    "body": "저자는 학부 대신이 관립학교 졸업생에게 관직 배분에서 우선권을 주자고 정부에 건의했으나 당시 명백한 효과가 없었다고 기록한다. 저자의 기대와 실제 채택 여부는 구별해야 한다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13548–13553행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "rule-government-school-graduates-office-preference-proposal",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13548,
+          "end": 13553
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "bd446324-4832-5555-96d9-a4d5e4e0f1c4",
+    "title": "한국인 교육회 (Educational Society)",
+    "body": "그해 후반 다수의 한국인이 교육회를 세워 정치적 의미를 내세우지 않고 대중 교육이 필요하다고 여기는 사람들을 모았다고 저자는 썼다. 명칭은 원문 번역이며 기존 외국인 협회와의 관계는 명시되지 않는다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13553–13557행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "organization-korean-educational-society-1904",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13553,
+          "end": 13557
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "bc3829db-203f-5ab7-a72c-8a5316c5d555",
+    "title": "한국 개신교 선교 20주년 기념",
+    "body": "9월에 한국 개신교 선교 창립 20주년을 기념했다. 예정된 대규모 대회는 전쟁으로 1909년의 25주년으로 연기되었으나 별도 모임에서는 선교 성과를 논의했다. 선교의 성공과 미래에 관한 서술은 저자의 평가다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13559–13567행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "event-protestant-mission-anniversary-korea-1904",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13559,
+          "end": 13567
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "c1b1c31e-75d8-5618-b715-8b169a5b5220",
+    "title": "하세가와 (Hasegawa)",
+    "body": "저자는 일본 군 당국이 10월 중순 하세가와 원수를 한국의 군무 책임자로 보냈으며 그가 13일 도착하고 얼마 뒤 원산을 시찰했다고 적는다. 원문에는 이름이나 다른 인적 사항이 없다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13569–13574행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "character-hasegawa-japanese-marshal",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13569,
+          "end": 13574
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "b86b42fd-548f-5027-a007-439a5ec02ca4",
+    "title": "서울·부산 철도",
+    "body": "저자는 서울·부산 철도의 마지막 레일 부설을 한국의 중요한 사건으로 기록한다. 빠른 교통, 연선 토지 가치 상승과 일본의 이해관계 확대에 관한 설명은 저자의 경제적·정치적 평가다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13576–13582행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "object",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "object-seoul-fusan-railway",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13576,
+          "end": 13582
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "08afd54c-6fa3-546b-84cb-2e1ee1fbc7a7",
+    "title": "서울·부산 철도 마지막 레일 부설",
+    "body": "이 장은 서울·부산 철도의 마지막 레일 부설을 기록하지만 해당 문단에 구체적인 날짜는 제시하지 않는다. 철도의 정치·경제적 효과를 긍정적으로 보는 것은 저자의 전망이다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13576–13582행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "event-seoul-fusan-railway-last-rail",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13576,
+          "end": 13582
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "1856ea7f-6653-53bd-83cf-bc6900ba7d4e",
+    "title": "메가타 (Megata)",
+    "body": "새 재정 고문 메가타가 가을에 도착하여 한국의 통화와 재정 상태를 조사하기 시작했다고 저자는 기록한다. 이를 좋은 징조로 본 것은 저자의 평가다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13584–13587행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "character-megata-finance-adviser",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13584,
+          "end": 13587
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "28968665-9e52-5c89-be4c-406c4f747ef6",
+    "title": "1904년 말 행정 개혁 전망",
+    "body": "저자는 연말 일본이 점진적 행정 개혁에 착수할 조짐을 보았다고 쓰고, 불필요한 관청 폐지·군대 축소·지출 절감·교육 장려를 거론했다. 이 구절은 당시의 계획 또는 전망이며 개혁 완료의 증거는 아니다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13596–13602행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "rule-proposed-government-reforms-end-1904",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13596,
+          "end": 13602
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  },
+  {
+    "id": "d6447c16-5db3-5a7a-8892-d1a7f9714d46",
+    "title": "헐버트의 한국사 종결 논평",
+    "body": "저자는 한국인의 오래된 동질성과 왕조 교체·침략의 효과를 주장하고, 한국 사회를 쇠퇴와 개혁이라는 틀로 평가한다. 특히 인종을 서열화하는 이른바 투라니아계와 인도유럽계 비교는 1905년 저자의 편향된 문명관이며 검증된 사실로 취급할 수 없다. 장래를 예언하지 않겠다면서 한국의 지속적인 역사를 희망한다.\n\n출처: Homer B. Hulbert, The History of Korea, vol. 2 (1905), Chapter XXVII., 13604–13632행, 13634–13653행, https://www.gutenberg.org/ebooks/52749",
+    "cardType": "other",
+    "provenance": {
+      "segment": "refill-korea-v2-ending",
+      "candidate_key": "other-hulbert-historical-conclusion-korea-1905",
+      "source_units": [
+        "korea-v2:28:Chapter XXVII."
+      ],
+      "lines": [
+        {
+          "start": 13604,
+          "end": 13632
+        },
+        {
+          "start": 13634,
+          "end": 13653
+        }
+      ],
+      "source_commit": "915381a2552fc5e54cd80ee8571841020e88cf3e",
+      "source_path": "docs/research/history-textbooks/korea/hulbert-1905/source-vol2-en.txt",
+      "source_sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "source_url": "https://www.gutenberg.org/ebooks/52749",
+      "input_path": "미게시-임시자료:history/refill-korea-v2-ending.json",
+      "input_sha256": "e3483de9349a4ec158ea06cc9a1e479c743c282fc10d6eb3637caf5e4f04551f"
+    },
+    "duplicate_review": {
+      "existing_title_type_matches": [],
+      "same_candidate_key_ids": [],
+      "same_title_type_ids": []
+    }
+  }
+]

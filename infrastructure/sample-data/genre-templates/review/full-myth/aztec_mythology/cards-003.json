@@ -1,0 +1,918 @@
+[
+  {
+    "id": "ff3def2d-4ef0-5fb9-964f-38c3988500ee",
+    "title": "아벤시 희생 구절",
+    "body": "티사판 신전 모욕에 이어 이름을 아벤시라 적고 우칠로보스에게 희생한 뒤 그 다리로 벽에 피를 발랐다고 한다. 인쇄본은 아벤시를 도입하는 연결 문장이 불완전하므로 신분과 관계를 보충하지 않는다. 52개 검토 후보 대조: 기존 tizapan-temple-insult는 앞선 모욕과 희생 문장의 불완전성만 다뤄 일부 관련; 동일 사실 전체의 단독 후보 없음. 기존 source 카드 대조: source의 tizapan_expulsion은 이 희생을 이미 서술. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA97 (가운데 CAPÍTULO, 신전 모욕 다음 문장; 1882년 스캔과 OCR 비교).",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "avenci-sacrifice-fragment",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 7 제사와 추방",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA97",
+          "location": "1882년판 가운데 CAPÍTULO, 신전 모욕 다음 문장; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 7 제사와 추방",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA97",
+          "status": "partial",
+          "reason": "97쪽 두 번째 CAPÍTULO 전체 인쇄면 판독. 아벤시가 희생되었다고 쓰인 문장의 도입부가 1882년 인쇄본 자체에서 이어지지 않는다. OCR도 같은 결락을 보이므로 OCR 오류로 단정하거나 다른 판본의 보충을 삽입하지 않는다. 확인 가능한 신전 조롱·추방 부분은 읽음.",
+          "cards": 2
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "tizapan_expulsion",
+          "title": "티사판의 제사와 추방",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        },
+        {
+          "segment": "gap-aztec-unread",
+          "candidate_key": "tizapan-temple-insult",
+          "id": "792d9074-cbba-575b-abd3-13656586800f",
+          "basis": "입력 본문에 이 후보가 언급됨; 동일 여부와 문맥은 입력 서술을 참고해 검토"
+        }
+      ]
+    }
+  },
+  {
+    "id": "a95c5224-3c85-5eed-b9da-cbcbecc29647",
+    "title": "네스티키파케 피난지",
+    "body": "쿨루아칸에서 쫓긴 메시카가 달아난 곳이다. 서술 시점에 이곳의 열 집이 멕시코를 섬긴다고 기록한다. 52개 검토 후보 대조: 기존 52개 중 동일 대상·집 수를 설명한 단독 후보 없음. 기존 source 카드 대조: source의 tizapan_expulsion과 피난지 서술 일부 중복. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA97 (가운데 CAPÍTULO, 카티틀란 강과 피난 경로; 1882년 스캔과 OCR 비교).",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "nextiquipaque-refuge",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 7 제사와 추방",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA97",
+          "location": "1882년판 가운데 CAPÍTULO, 카티틀란 강과 피난 경로; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 7 제사와 추방",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA97",
+          "status": "partial",
+          "reason": "97쪽 두 번째 CAPÍTULO 전체 인쇄면 판독. 아벤시가 희생되었다고 쓰인 문장의 도입부가 1882년 인쇄본 자체에서 이어지지 않는다. OCR도 같은 결락을 보이므로 OCR 오류로 단정하거나 다른 판본의 보충을 삽입하지 않는다. 확인 가능한 신전 조롱·추방 부분은 읽음.",
+          "cards": 2
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "tizapan_expulsion",
+          "title": "티사판의 제사와 추방",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        }
+      ]
+    }
+  },
+  {
+    "id": "d4512c02-88d3-5078-91b0-072b087be97c",
+    "title": "테우틀레우아크",
+    "body": "타틸룰코가 에스카푸살코에 청했을 때 보내진 군주다. 기록은 주민들이 그를 존중하지 않아 40일을 채우지 못했다고 말한다. 52개 검토 후보 대조: 기존 52개 중 동일 인물 단독 후보 없음. 기존 source 카드 대조: source의 tlatelolco_first_rulers가 동일 사실 포함. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA99 (99쪽 첫 문장, 98쪽 끝에서 이어지는 첫 임명; 1882년 스캔과 OCR 비교).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "teutleuac-tlatelolco",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA99",
+          "location": "1882년판 99쪽 첫 문장, 98쪽 끝에서 이어지는 첫 임명; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "tlatelolco_first_rulers",
+          "title": "타틸룰코가 청한 두 단명 군주",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        }
+      ]
+    }
+  },
+  {
+    "id": "7c6f74b1-8c90-5374-8a6f-6e1851e4d6b6",
+    "title": "콰콴푸아나케",
+    "body": "에스카푸살코 군주가 타틸룰코에 보낸 둘째 군주다. 사람들이 그에게서 달아나 통치가 50일 지속되었으며 발에 발톱이 있는 모습으로 그린다고 서술한다. 52개 검토 후보 대조: 기존 52개 중 동일 인물 단독 후보 없음. 기존 source 카드 대조: source의 tlatelolco_first_rulers와 사실 중복. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA99 (99쪽 상단, 둘째 군주 서술; 1882년 스캔과 OCR 비교).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "quaquanpuanaque-tlatelolco",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA99",
+          "location": "1882년판 99쪽 상단, 둘째 군주 서술; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "tlatelolco_first_rulers",
+          "title": "타틸룰코가 청한 두 단명 군주",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        }
+      ]
+    }
+  },
+  {
+    "id": "3e429999-b42e-52c8-8aa2-26a28d664e09",
+    "title": "테수쿠무틀리",
+    "body": "기록은 그를 메시카 출신으로 에스카푸살코의 두 군주 가운데 한 명으로 뽑힌 사람이라고 적는다. 52개 검토 후보 대조: 기존 52개 중 동일 인물 단독 후보 없음. 기존 source 카드 대조: source의 tlatelolco_first_rulers와 이름 관련; 지위는 영인의 이 문장 그대로 기록. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA99 (99쪽 첫 문단, 두 군주 설명; 1882년 스캔과 OCR 비교).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "te-cucumutli-azcapotzalco",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA99",
+          "location": "1882년판 99쪽 첫 문단, 두 군주 설명; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "tlatelolco_first_rulers",
+          "title": "타틸룰코가 청한 두 단명 군주",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        }
+      ]
+    }
+  },
+  {
+    "id": "8475adb5-585c-59ba-990e-e57a630da598",
+    "title": "미시우시시우시",
+    "body": "쿠에르나바카 군주 에스코아시의 딸이자 비칠리우시의 아내로, 도시 75년에 늙은 모테수마를 낳았다고 기록된다. 52개 검토 후보 대조: 기존 52개 중 동일 인물 단독 후보 없음. 기존 source 카드 대조: source의 acamapichtli_campaigns가 동일 친족·출생 사실 포함. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA99 (99쪽 중상단, 75년의 출생 기록; 1882년 스캔과 OCR 비교).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "miciucixiuci-mother",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA99",
+          "location": "1882년판 99쪽 중상단, 75년의 출생 기록; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "acamapichtli_campaigns",
+          "title": "아카마피치에서 위칠리우시까지",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        }
+      ]
+    }
+  },
+  {
+    "id": "cf0c05e8-5e62-59a0-83ee-2c11e172e9f9",
+    "title": "툴라에서 옮겨 온 틀라카우에판",
+    "body": "도시 99년에 타틸룰코 사람들이 툴라에 남아 있던 신 틀라카우에판을 가져왔다고 한다. 문장의 죽음에 관한 지시 대상은 모호하므로 확정하지 않는다. 52개 검토 후보 대조: 기존 52개 중 동일 신의 이전 사실을 독립적으로 다룬 후보 없음. 기존 source 카드 대조: source의 campaigns_85_99에 동일 사건. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA99 (99쪽 하단, 99년의 툴라 방문; 1882년 스캔과 OCR 비교).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "tlacauepan-god-tula",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA99",
+          "location": "1882년판 99쪽 하단, 99년의 툴라 방문; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "campaigns_85_99",
+          "title": "85–99년의 정복과 사절 피살",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bf0f9956-1504-57b9-b742-32249e6ea995",
+    "title": "콰우틀라토아시의 반란과 꿈",
+    "body": "도시 113년에 타틸룰코 군주가 멕시코에 반란을 일으켰다가, 신이 꿈에 나타나 잘못을 지적하자 항복했다고 기록한다. 멕시코 측은 그를 자기 사람들에게 넘겨 죽이게 했다. 52개 검토 후보 대조: 기존 52개의 totolayo는 앞선 평화 교섭으로 사건이 다름; 동일 사건 후보 없음. 기존 source 카드 대조: source의 maxtla_revolt와 동일 사실 포함. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA100 (100쪽 상단, 113년 기록; 1882년 스캔과 OCR 비교).",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "quautlatoaci-dream-revolt",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA100",
+          "location": "1882년판 100쪽 상단, 113년 기록; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "maxtla_revolt",
+          "title": "마스틀라토의 연합과 이스코아시의 집권",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        },
+        {
+          "segment": "aztec-mythology",
+          "candidate_key": "totolayo",
+          "id": "6596820c-4642-5f8d-ae50-563f60a96ac6",
+          "basis": "입력 본문에 이 후보가 언급됨; 동일 여부와 문맥은 입력 서술을 참고해 검토"
+        }
+      ]
+    }
+  },
+  {
+    "id": "374766b7-1270-5791-a220-bb43e332a552",
+    "title": "로드리고 고메스와 둥근 돌",
+    "body": "기록은 로드리고 고메스가 자기 집 문 앞 땅속에 묻혀 있던 늙은 모테수마의 큰 돌을 꺼냈다고 설명한다. 52개 검토 후보 대조: 기존 stone-gladiatorial-sacrifice는 돌의 제작·의례를 설명하지만 발견자 이름은 없음. 기존 source 카드 대조: source의 sacrificial-stone은 발견 사실만 언급. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA100 (100쪽 상중단, 136년 돌 원반 서술; 1882년 스캔과 OCR 비교).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "rodrigo-gomez-stone",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA100",
+          "location": "1882년판 100쪽 상중단, 136년 돌 원반 서술; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "sacrificial-stone",
+          "title": "둥근 제사 돌",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        },
+        {
+          "segment": "gap-aztec-unread",
+          "candidate_key": "stone-gladiatorial-sacrifice",
+          "id": "4d60de3c-c05b-5753-8d7c-9718ac7cd545",
+          "basis": "입력 본문에 이 후보가 언급됨; 동일 여부와 문맥은 입력 서술을 참고해 검토"
+        }
+      ]
+    }
+  },
+  {
+    "id": "babb8bc3-436b-55aa-8be4-cea12d83913d",
+    "title": "말리날코 군주 시틀랄코아시",
+    "body": "연대기는 아샤야카시가 시틀랄코아시를 말리날코의 군주로 삼았다고 기록한다. 52개 검토 후보 대조: 기존 52개 중 동일 임명 인물 후보 없음. 기존 source 카드 대조: source의 axayacatl_tizoc이 동일 임명 포함. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA100 (100쪽 하반부, 케틀라스타 전쟁 뒤; 1882년 스캔과 OCR 비교).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "citlalcoaci-malinalco",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA100",
+          "location": "1882년판 100쪽 하반부, 케틀라스타 전쟁 뒤; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "axayacatl_tizoc",
+          "title": "아샤야카친의 정복과 티소시카시 계승",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        }
+      ]
+    }
+  },
+  {
+    "id": "897b77dc-d289-5fc3-bd66-39e775ec82a6",
+    "title": "통역자 마리나",
+    "body": "후작이 인디언들과 마리나라는 통역자를 통해 뜻을 주고받았다고 기록한다. 편집 각주는 그 통역자가 어디 출신인지 살펴야 한다고 덧붙인다. 52개 검토 후보 대조: 기존 52개 중 동일 인물 단독 후보 없음. 기존 source 카드 대조: source의 arrival_envoys 및 conquest에 통역 사실 포함. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA101 (101쪽 중단, 197년 선물과 촐룰라 원정 사이; 1882년 스캔과 OCR 비교).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "marina-interpreter",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA101",
+          "location": "1882년판 101쪽 중단, 197년 선물과 촐룰라 원정 사이; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "conquest",
+          "title": "스페인 도래와 도시의 정복",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        },
+        {
+          "source_key": "arrival_envoys",
+          "title": "배의 도착과 모테수마의 사절들",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        }
+      ]
+    }
+  },
+  {
+    "id": "dd5fae9e-f0bc-53b4-83ee-e8d0d87e977a",
+    "title": "셈포알 군주 타마요",
+    "body": "알바라도가 땅과 사람을 나쁘게 보아 돌아가자고 하자, 타마요는 모테수마가 부유한 멕시코로 가라고 권했다고 기록한다. 52개 검토 후보 대조: 기존 52개 중 동일 인물 단독 후보 없음. 기존 source 카드 대조: source의 arrival_envoys에 동일 권고 포함. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA101 (101쪽 중하단, 촐룰라에서의 권고; 1882년 스캔과 OCR 비교).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "tamayo-cempoal-advice",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA101",
+          "location": "1882년판 101쪽 중하단, 촐룰라에서의 권고; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "arrival_envoys",
+          "title": "배의 도착과 모테수마의 사절들",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        }
+      ]
+    }
+  },
+  {
+    "id": "e1a067d2-f7e2-52bd-a105-a0c677b7a525",
+    "title": "모테수마의 사자 비스나괄",
+    "body": "모테수마가 보낸 비스나괄은 후작에게 돌아가는 대가로 금과 은을 주겠다고 했고, 후작은 그를 붙잡았다고 기록한다. 52개 검토 후보 대조: 기존 52개 중 동일 인물 단독 후보 없음. 기존 source 카드 대조: source의 arrival_envoys와 사자 체포 사실 중복. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA101 (101쪽 중하단, 촐룰라 체류 직후; 1882년 스캔과 OCR 비교).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "viznagual-moctezuma-envoy",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA101",
+          "location": "1882년판 101쪽 중하단, 촐룰라 체류 직후; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "arrival_envoys",
+          "title": "배의 도착과 모테수마의 사절들",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        }
+      ]
+    }
+  },
+  {
+    "id": "7605774c-b83f-5b5b-b43d-2296ee664421",
+    "title": "틀라스칼라 군주 시코텡가",
+    "body": "후작이 밤에 멕시코를 떠나 틀라스칼라로 가자 그곳 군주 시코텡가가 맞이했다고 기록된다. 52개 검토 후보 대조: 기존 52개 중 동일 인물 단독 후보 없음. 기존 source 카드 대조: source의 siege_epidemic에 같은 맞이 서술. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA101 (101쪽 하단, 후작의 야간 퇴각; 1882년 스캔과 OCR 비교).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "xicotenga-receives-marquis",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA101",
+          "location": "1882년판 101쪽 하단, 후작의 야간 퇴각; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "siege_epidemic",
+          "title": "모테수마의 죽음·천연두·도시 함락",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        }
+      ]
+    }
+  },
+  {
+    "id": "db26c1bd-4bb5-56c5-b8a7-a3100726c082",
+    "title": "쿠이틀라우아시의 80일 통치",
+    "body": "모테수마의 형제이자 이스타팔라파 군주였으며, 모테수마 사후 멕시코의 군주가 되어 80일 다스렸다고 기록한다. 52개 검토 후보 대조: 기존 52개 중 동일 인물 단독 후보 없음. 기존 source 카드 대조: source의 siege_epidemic에 동일 통치 기간 포함. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA101 (101쪽 하단, 모테수마 사후; 1882년 스캔과 OCR 비교).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "cuitlavaci-eighty-days",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA101",
+          "location": "1882년판 101쪽 하단, 모테수마 사후; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "siege_epidemic",
+          "title": "모테수마의 죽음·천연두·도시 함락",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        }
+      ]
+    }
+  },
+  {
+    "id": "f59ac5c0-8a4a-548b-a5f3-f0e416d24b00",
+    "title": "과테무사의 군주 지위",
+    "body": "아우이소시의 아들로 선출되어 찰코와 싸운 뒤 유력자 여섯을 죽였다고 하며, 201년에는 타틸룰코의 군주가 된 것으로 기록된다. 52개 검토 후보 대조: 기존 52개 중 동일 인물 단독 후보 없음. 기존 source 카드 대조: source의 siege_epidemic 및 colonial_succession에 동일 사실 포함. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA101 (101쪽 마지막 문단, 199–201년; 1882년 스캔과 OCR 비교).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "guatemuca-tlatelolco",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA101",
+          "location": "1882년판 101쪽 마지막 문단, 199–201년; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "siege_epidemic",
+          "title": "모테수마의 죽음·천연두·도시 함락",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        },
+        {
+          "source_key": "colonial_succession",
+          "title": "정복 뒤 200–207년의 통치와 징조",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        }
+      ]
+    }
+  },
+  {
+    "id": "a8b454b1-b399-5099-aa62-e3db9955dc03",
+    "title": "로드리고 데 파에스",
+    "body": "재정관이 후작의 재산 소재를 알아내려 로드리고 데 파에스를 고문하고, 말하지 않자 교수형에 처했다고 이 문헌은 전한다. 52개 검토 후보 대조: 기존 52개 중 동일 인물 단독 후보 없음. 기존 source 카드 대조: source의 colonial_succession에 동일 사건 포함. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA102 (102쪽 상단, 203년 재정관의 재물 조사; 1882년 스캔과 OCR 비교).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "rodrigo-de-paez-torment",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA102",
+          "location": "1882년판 102쪽 상단, 203년 재정관의 재물 조사; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "colonial_succession",
+          "title": "정복 뒤 200–207년의 통치와 징조",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        }
+      ]
+    }
+  },
+  {
+    "id": "8c6f8099-ed61-5ba8-97ce-6c04d1c7b611",
+    "title": "닭과 개 절도의 다른 처벌",
+    "body": "닭을 훔친 사람은 노예가 되지만 개를 훔친 사람에게는 형벌이 없었다고 기록한다. 서술자는 개에게 스스로 지킬 이가 있다는 이유를 덧붙인다. 52개 검토 후보 대조: 기존 enchanted-granary-sleep는 앞 문단의 다른 절도 사건이며 동일 규칙 후보 없음. 기존 source 카드 대조: source의 judicial-cases에 같은 두 절도 처벌과 이유가 명시되어 사실 중복. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA103 (103쪽 하단, 마술 절도 판결 다음 문단; 1882년 스캔과 OCR 비교).",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "chicken-dog-theft-law",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA103",
+          "location": "1882년판 103쪽 하단, 마술 절도 판결 다음 문단; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "judicial-cases",
+          "title": "군주 시대별 재판 사례",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        },
+        {
+          "segment": "gap-aztec-unread",
+          "candidate_key": "enchanted-granary-sleep",
+          "id": "b6bbb0a4-9ce4-5d3a-84f0-b07130b552d6",
+          "basis": "입력 본문에 이 후보가 언급됨; 동일 여부와 문맥은 입력 서술을 참고해 검토"
+        }
+      ]
+    }
+  },
+  {
+    "id": "38fc5781-b5ef-5e27-8016-9c8fad7a8e78",
+    "title": "타틸룰코 군주 모키우이친",
+    "body": "멕시코의 아샤야카시 시대에 타틸룰코를 다스렸고 그의 누이와 결혼했다고 병기 명단은 적는다. 이 결혼과 부부가 전한 용맹 주장이 두 도시 전쟁에 연결된다. 52개 검토 후보 대조: 기존 52개 중 동일 인물 단독 후보 없음. 기존 source 카드 대조: source의 tlatelolco_dynasty가 같은 결혼·전쟁 기록 포함. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA104 (104쪽 상단, 병기된 군주들; 1882년 스캔과 OCR 비교).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "moquiuicin-tlatelolco",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA104",
+          "location": "1882년판 104쪽 상단, 병기된 군주들; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "tlatelolco_dynasty",
+          "title": "멕시코와 병기된 타틸룰코 군주들",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        }
+      ]
+    }
+  },
+  {
+    "id": "1379d754-9f02-53fa-9edd-aa23b6bbbd07",
+    "title": "타틸룰코 총독 돈 후안",
+    "body": "마테무치·후안 벨라스케스·타피아가 멕시코에서 통치하던 시기의 타틸룰코 총독이다. 서술자는 그가 당시 총독의 아버지이며 멕시코 출신 평민이었다고 기록한다. 52개 검토 후보 대조: 기존 52개 중 이 인물과 총독직을 직접 다룬 후보 없음; 토치밀코 돈 후안과 동일시하지 않음. 기존 source 카드 대조: source의 tlatelolco_dynasty 말미와 사실 중복. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA104 (104쪽 상단, 동시대 군주 목록 끝; 1882년 스캔과 OCR 비교).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "tlatelolco-don-juan-governor",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA104",
+          "location": "1882년판 104쪽 상단, 동시대 군주 목록 끝; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "tlatelolco_dynasty",
+          "title": "멕시코와 병기된 타틸룰코 군주들",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        }
+      ]
+    }
+  },
+  {
+    "id": "69a377b7-3112-51e2-a74c-054721c6083f",
+    "title": "테푹스칼리",
+    "body": "술 취한 미혼 청년이 끌려가 곤봉으로 죽임을 당했다고 기록된 집의 이름이다. 역사적 처벌 서술로 한정한다. 52개 검토 후보 대조: 기존 52개 중 동일 장소 후보 없음. 기존 source 카드 대조: source의 market-laws에 같은 미혼 청년 음주 처벌이 있으나 건물 이름은 없다. 출전: https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA105 (105쪽 중단, 음주 처벌 조항; 1882년 스캔과 OCR 비교).",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-aztec-scan",
+      "candidate_key": "tepuxcali-house",
+      "input_path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "input_sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "입력 작성자가 Google Books Berkeley 소장 1882년판 스캔·OCR을 비교했다고 보고; INAH 영인과 판본 동일성은 독립 검증되지 않음",
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA105",
+          "location": "1882년판 105쪽 중단, 음주 처벌 조항; Google Books 버클리 영인, 접근성 OCR 대조",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "evidence_limit": "발췌, 위치와 영인·OCR 비교는 보충 작업자 자기보고이며 전체 본문 사실을 독립적으로 확인하거나 완독한 것으로 간주하지 않는다. 짧은 발췌가 모든 주장과 관계를 입증하는지, 개별 OCR 철자·쪽 경계는 추가 대조가 필요하다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "rights": "1882년판, Google Books 스캔·OCR 및 재사용 조건은 미확인이다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "market-laws",
+          "title": "시장과 노예에 관한 법 기록",
+          "basis": "입력 작성자가 관련 또는 중복 가능성을 지목한 기존 source 카드; 검토 후에도 병합하지 않음"
+        }
+      ]
+    }
+  }
+]

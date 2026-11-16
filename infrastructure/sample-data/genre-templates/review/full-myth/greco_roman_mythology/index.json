@@ -1,0 +1,999 @@
+{
+  "genre": "greco_roman_mythology",
+  "status": "연구·검토 전용 후보; 앱과 DB에 자동 적재되지 않음",
+  "world_id_for_uuid_namespace_only": "7c081689-8b1f-53b7-856f-78b779bbe289",
+  "id_rule": "UUIDv5(existing worldId, review:full-myth:<input filename stem>:<candidate key>)",
+  "input_manifest": {
+    "path": "미게시-임시자료:myth/manifest.json",
+    "sha256": "e4ba1ed138007f194b3c4133967110a63b58157d891a52205f75326b78098a9e",
+    "matched_segments": [
+      {
+        "segment": "greco-theogony",
+        "focus": "주 저본 헤시오도스 《신통기》 전체, 1행부터 끝까지 각 연/단락을 순차 확인. 추가 출전은 담당하지 않는다.",
+        "units": [
+          "theogony"
+        ],
+        "genre": "greco_roman_mythology",
+        "scope": "헤시오도스 《신통기》 관련 카드에 호메로스 서사시·찬가, 아폴로도로스 신화집, 베르길리우스 서사시의 선별 전승을 추가한다. 작품별 차이를 보존하며 모든 그리스·로마 전승의 망라를 주장하지 않는다.",
+        "existing_cards": 103,
+        "source_urls": [
+          "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924",
+          "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml",
+          "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml",
+          "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0013/tlg002/tlg0013.tlg002.perseus-grc2.xml",
+          "https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml"
+        ],
+        "kind": "myth"
+      },
+      {
+        "segment": "greco-supplement",
+        "focus": "선택된 보충 출전들(일리아스·오디세이아·아폴로도로스·데메테르 찬가·아이네이스)에 관해 기존 supplementary.md에 지정된 실제 발췌 범위 전체만 확인. 출전으로 제시된 작품 전체를 범위라고 오인하지 말 것.",
+        "units": [
+          "iliad-selected",
+          "odyssey-selected",
+          "apollodorus-epitome-selected",
+          "apollodorus-library-selected",
+          "demeter-hymn-selected",
+          "aeneid-selected"
+        ],
+        "genre": "greco_roman_mythology",
+        "scope": "헤시오도스 《신통기》 관련 카드에 호메로스 서사시·찬가, 아폴로도로스 신화집, 베르길리우스 서사시의 선별 전승을 추가한다. 작품별 차이를 보존하며 모든 그리스·로마 전승의 망라를 주장하지 않는다.",
+        "existing_cards": 103,
+        "source_urls": [
+          "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924",
+          "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml",
+          "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml",
+          "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0013/tlg002/tlg0013.tlg002.perseus-grc2.xml",
+          "https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml"
+        ],
+        "kind": "myth"
+      }
+    ]
+  },
+  "inputs": [
+    {
+      "input_segment": "greco-theogony",
+      "segment_as_reported": "theogony",
+      "input_scope": "헤시오도스 《신통기》 1–1022행 전체 및 별도 표기된 929a–929t 단편, H. G. Evelyn-White 영어 번역 1914 판본의 Project Gutenberg 전사. 지정 전사의 992행 독립 표기 없음. 보충 출전은 담당 범위 밖. 번역자 1884–1924 및 1914년 판본 서지: https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924. 기존 103장 보존·중복 가능 후보 명시.",
+      "input_file": "미게시-임시자료:myth/greco-theogony.json",
+      "input_sha256": "c23b4a58b3c6a95157cf8d1ea65aede817a18688b3371a057971bd6f455f39c7",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "candidate_count": 32,
+      "coverage_basis": "입력 추출자의 자기보고; 통합 담당자는 원문 전문을 재열람하거나 출처 사실을 독립 검증하지 않음",
+      "units": [
+        {
+          "unit": "신통기 1-25행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 26-28행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 29-35행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "신통기 36-52행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 53-74행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 75-103행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "신통기 104-115행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 116-138행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "신통기 139-146행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 147-163행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "신통기 164-166행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 167-169행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 170-172행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 173-175행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 176-206행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "신통기 207-210행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 211-225행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 226-232행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "신통기 233-239행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 240-264행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1,
+          "note": "다수 네레이데스는 이름 위주로 제시되며 파도 진정의 주체 외 개별 카드를 강제하지 않았다."
+        },
+        {
+          "unit": "신통기 265-269행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 270-294행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "신통기 295-305행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 306-332행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 6
+        },
+        {
+          "unit": "신통기 333-336행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 334-345행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0,
+          "note": "강과 오케아니스의 열거는 대체로 이름 위주여서 개별 서술이 없는 이름을 억지 카드로 만들지 않았다."
+        },
+        {
+          "unit": "신통기 346-370행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0,
+          "note": "강과 오케아니스의 열거는 대체로 이름 위주여서 개별 서술이 없는 이름을 억지 카드로 만들지 않았다."
+        },
+        {
+          "unit": "신통기 371-374행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 375-377행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 378-382행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "신통기 383-403행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "신통기 404-452행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 453-491행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "신통기 492-506행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 507-543행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 3
+        },
+        {
+          "unit": "신통기 543-544행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 545-547행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 548-558행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 559-560행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 561-584행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "신통기 585-589행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 590-612행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 613-616행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 617-643행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "신통기 644-653행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 654-663행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 664-686행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 687-712행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 713-735행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "신통기 736-744행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 744-757행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "신통기 758-766행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 767-774행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "신통기 775-806행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 807-819행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "신통기 820-868행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 869-880행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 881-885행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 886-900행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 901-906행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 907-911행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 912-914행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 915-917행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 918-920행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 921-923행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "신통기 924-929행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 929a-929t행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0,
+          "note": "지정 전사에 따로 실린 단편적 대체 구절이며 결락 표기가 있다. 본문 924–929행과 구분한다."
+        },
+        {
+          "unit": "신통기 930-933행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 933-937행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 938-939행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "신통기 940-942행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 943-944행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 945-946행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 947-949행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 950-955행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "신통기 956-962행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 963-968행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 969-974행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 975-978행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 979-983행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 984-991행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "신통기 993-1002행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 1,
+          "note": "지정 전사는 앞 구절을 984–991행으로, 다음을 993–1002행으로 표기해 992행이 독립 표기되지 않는다."
+        },
+        {
+          "unit": "신통기 1003-1007행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0,
+          "note": "기존 계보 카드와 겹치고 이름·혈연 또는 형제들의 공동 통치만 서술된 인물은 개별 카드로 강제하지 않았다."
+        },
+        {
+          "unit": "신통기 1008-1010행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 1011-1016행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0,
+          "note": "기존 계보 카드와 겹치고 이름·혈연 또는 형제들의 공동 통치만 서술된 인물은 개별 카드로 강제하지 않았다."
+        },
+        {
+          "unit": "신통기 1017-1018행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0,
+          "note": "기존 계보 카드와 겹치고 이름·혈연 또는 형제들의 공동 통치만 서술된 인물은 개별 카드로 강제하지 않았다."
+        },
+        {
+          "unit": "신통기 1019-1020행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "신통기 1021-1022행",
+          "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+          "status": "read",
+          "cards": 0
+        }
+      ]
+    },
+    {
+      "input_segment": "greco-supplement",
+      "segment_as_reported": "greco-supplement",
+      "input_scope": "supplementary.md의 지정된 일리아스·오디세이아·아폴로도로스 요약 및 도서관·데메테르 찬가·아이네이스 발췌 범위만. 원어 Perseus 판본; 작품 전체나 그리스·로마 전승 전체가 아님. 각 구간 실독과 카드 후보 선별을 기록하되 후보의 완전성은 재검토 필요. 이름만 등장하는 대상은 임의의 설정을 만들지 않음. 저작권 상태는 판본별 별도 확인 필요.",
+      "input_file": "미게시-임시자료:myth/greco-supplement.json",
+      "input_sha256": "577ac320a218efa1e8d38538bddb864b8ddcb64bd51b9bad53f59df95397c1d4",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "candidate_count": 48,
+      "coverage_basis": "입력 추출자의 자기보고; 통합 담당자는 원문 전문을 재열람하거나 출처 사실을 독립 검증하지 않음",
+      "units": [
+        {
+          "unit": "일리아스 1.1–7",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "일리아스 1.101–305",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "일리아스 1.430–492",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "일리아스 3.161–180",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "일리아스 6.429–465",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "일리아스 15.187–193",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "일리아스 18.478–608",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "일리아스 22.131–166",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "일리아스 22.226–330",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "일리아스 24.503–512",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "일리아스 24.589–601",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "일리아스 24.696–697",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "일리아스 24.785–804",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "오디세이아 8.492–495",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "오디세이아 9.187–505",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "오디세이아 10.210–347",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "오디세이아 11.23–50",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "오디세이아 12.39–54",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "오디세이아 12.165–200",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "오디세이아 14.56–58",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "오디세이아 23.181–206",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "아폴로도로스 요약 3.2",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "아폴로도로스 요약 3.5",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "아폴로도로스 요약 3.15",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "아폴로도로스 요약 3.21–22",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "아폴로도로스 요약 5.14–17",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "아폴로도로스 요약 5.18",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "아폴로도로스 요약 5.20–21",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "아폴로도로스 요약 5.22",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "아폴로도로스 도서관 1.6.1",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.1",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.2",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.3",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.4",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 3
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.5",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 3
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.6",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.7",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.8",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.9",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.10",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.11",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 3
+        },
+        {
+          "unit": "아폴로도로스 도서관 2.5.12",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+          "status": "read",
+          "cards": 3
+        },
+        {
+          "unit": "데메테르 찬가 2.305–344",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0013/tlg002/tlg0013.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "데메테르 찬가 2.360–374",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0013/tlg002/tlg0013.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "데메테르 찬가 2.398–403",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0013/tlg002/tlg0013.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "데메테르 찬가 2.470–482",
+          "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0013/tlg002/tlg0013.tlg002.perseus-grc2.xml",
+          "status": "read",
+          "cards": 2
+        },
+        {
+          "unit": "아이네이스 1.1–7",
+          "url": "https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "아이네이스 2.212–218",
+          "url": "https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "아이네이스 6.136–148",
+          "url": "https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml",
+          "status": "read",
+          "cards": 0
+        },
+        {
+          "unit": "아이네이스 6.295–330",
+          "url": "https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml",
+          "status": "read",
+          "cards": 1
+        },
+        {
+          "unit": "아이네이스 6.450–476",
+          "url": "https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml",
+          "status": "read",
+          "cards": 1
+        }
+      ]
+    }
+  ],
+  "additional_unresolved_coverage": [
+    {
+      "unit": "신통기 992행",
+      "status": "unresolved",
+      "reason": "입력 자기보고: 선택 전사에 992행이 독립 표기되지 않음; 별도의 대응 본문과 판본 확인은 미완료."
+    }
+  ],
+  "source_file_hashes": {
+    "infrastructure/sample-data/genre-templates/greco_roman_mythology/source/tradition-cards.json": "dd0a7650247e6d952d29ee15ed1e6fe355c0a9177c51dbbe5684dbc834d5a65f",
+    "infrastructure/sample-data/genre-templates/greco_roman_mythology/source/template.json": "80467504d5f9fc47ddcd182c017775cae98c1d741220679150d721f8024ea5d8",
+    "infrastructure/sample-data/genre-templates/greco_roman_mythology/source/sources.md": "8b51593b636d6991a092a683372d4d07312a6340805c29a266582aed7f621b42",
+    "infrastructure/sample-data/genre-templates/greco_roman_mythology/source/supplementary.md": "e522fe897a83a044c0555fc15af48bf72f8d6da8d51932151583aab5fc5503ee",
+    "backend/content-service/src/main/resources/genre-templates.json": "bc3cbacd8e7806d673793963386a63c6b7d61f0ec280ce56c22fd74d33003340",
+    "backend/content-service/src/main/resources/genre-templates-v1.json": "96cbbb7607aada4ca8f7a27f56cfd6a6197c7826db0160fae2cc134768992d85",
+    "backend/content-service/src/main/resources/genre-templates-v2.json": "4699939f749f45dc0958f7c908955ade6e9ea91ab8ed9ab55860251831aa9517"
+  },
+  "source_revision": "입력 baseline_ref는 추출 기준 저장소 커밋이며 원전 웹 판본의 고정 커밋·본문 SHA는 제공되지 않아 미확인",
+  "source_limitations": [
+    "본문 excerpt는 원문의 일부일 뿐 카드 전체 사실을 자동 증명하지 않으며, 원문·행·해석·지역·시기 전승은 독립 감수 전이다.",
+    "신통기 지정 전사의 읽기 및 보충 원어 선택 구간의 읽기는 각각 입력 작성자의 자기보고이며 미접근 판본을 실독했다고 주장하지 않는다.",
+    "이름 위주로 등장해 후보에서 제외된 항목 등 누락 가능성이 있으며, 각 저작 전체나 모든 전승의 전수 목록이 아니다.",
+    "보충 출전은 supplementary.md에 기재된 범위만 대상이며 목록에 없는 범위는 미정이다.",
+    "입력 요약은 비공식 한국어 번역·요약이다. 출전별 판본, 번역·전사 및 인용의 지적재산권·재사용 조건은 확인되지 않았다.",
+    "이설과 지역·시기별 차이를 단일 정본으로 확정하지 않는다.",
+    "기존 26개 세계관 전체와 신화 868개 카드(그리스·로마 103개)는 수정하지 않았다. 현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다. 이 자료는 서비스·DB 등록용이 아니며 최초 적용 전 #425 안전 계약과 권리·중복 검증이 필요하다."
+  ],
+  "duplicates_policy": "모든 입력을 개별 보존한다. 동일 key·동일 제목/유형·기존 본문 속 제목 및 관련 주제의 기계적/수동 후보만 표시하며, 다른 출전과 사건을 자동 통합하거나 동일성 확정하지 않는다. 표시는 완전한 의미 중복 탐지가 아니다.",
+  "preservation_equation": "80 입력 = 80 개별 보존 + 0 완전 합침; 미처리 0",
+  "summary": {
+    "input_files": 2,
+    "input_candidates": 80,
+    "output_individual_cards": 80,
+    "merged_input_candidates": 0,
+    "unprocessed_input_candidates": 0,
+    "evidence_items": 92,
+    "missing_evidence": 0,
+    "card_types": {
+      "character": 43,
+      "object": 8,
+      "ability": 4,
+      "organization": 1,
+      "rule": 4,
+      "location": 6,
+      "event": 13,
+      "other": 1
+    },
+    "existing_match_candidates": 57,
+    "input_match_candidates": 10,
+    "max_title_utf16": 19,
+    "max_body_utf16": 256
+  },
+  "outputs": [
+    {
+      "file": "cards-001.json",
+      "cards": 80,
+      "sha256": "3caa01f8a24b21d07e7b590c0363de225f58987d1c59ba1e5287c96664e4b6c8",
+      "bytes": 201554
+    }
+  ],
+  "validation": "입출력 필드·원 evidence 완전 일치, UTF-16 한도, UUIDv5 유일성 및 기존 런타임 ID 충돌, URL 형식, 원본 파일 SHA 유지, JSON 재파싱 확인. URL 실제 접근성이나 역사적 사실·모든 근거의 타당성은 검증하지 않았다. 추가 검토한 네 카드의 신규 근거는 지정 원문과 직접 대조했으며 기존 근거도 그대로 보존했다; 나머지 후보의 사실·근거 전체는 별도 검증하지 않았다.",
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "sample_evidence_verification": {
+    "scope": "네 카드에 추가한 발췌만 직접 대조; 전체 판본·권리 검증 아님",
+    "perseus_revision": "8375d5b7f542fd28790d05895c380d9c2620ca9d",
+    "perseus_revision_url": "https://github.com/PerseusDL/canonical-greekLit/blob/8375d5b7f542fd28790d05895c380d9c2620ca9d/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml",
+    "perseus_xml_sha256": "c2fe0f80e7ce074ba2211569a9529820244e0dbf09ca38c20d8f7e04c9fdc8f0",
+    "gutenberg_url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26",
+    "gutenberg_response_sha256": "8f2159f4eeb830b6dbca7cfaf8d298de3cb4306df0883afb52747a82b1b7372a",
+    "gutenberg_note": "접근 당시 응답 해시이며 고정 revision은 확인되지 않았다",
+    "added_evidence_count": 11
+  },
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

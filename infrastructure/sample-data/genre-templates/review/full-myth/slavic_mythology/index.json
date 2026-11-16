@@ -1,0 +1,113 @@
+{
+  "genre": "slavic_mythology",
+  "purpose": "원문 추출 후보 검토 전용; 앱·서비스·DB 자동 적재 금지",
+  "world_reference": {
+    "existing_worldId": "78cc7495-2652-50f4-941b-cbf0e4203811",
+    "note": "UUIDv5 이름 공간으로만 사용; 새 세계관 배정 또는 등록 아님"
+  },
+  "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+  "repository_head_at_start": "3ec049e5f00dfc6b07c9b840631b159b5b68bd54",
+  "scope": "아파나시예프 수집·레너드 A. 매그너스 영역 Russian Folk-Tales의 「마리야 모레브나」 pp. 192–203 한 작품 및 지정 서지. 다른 민담·중세 루스 신앙·다른 코셰이 판본 제외. supplementary.md가 없어 지정 보충 구간을 확인할 수 없다.",
+  "input": {
+    "manifest_path": "미게시-임시자료:myth/manifest.json",
+    "manifest_sha256": "e4ba1ed138007f194b3c4133967110a63b58157d891a52205f75326b78098a9e",
+    "manifest_entry": {
+      "segment": "slavic-mythology",
+      "focus": "source/tradition-cards.json의 scope에 명시된 주 저본 전체와 supplementary.md에 명시된 보충 구간만 모두 읽고 장·작품별 coverage를 실제 작성.",
+      "units": [
+        "main-text",
+        "specified-supplements"
+      ],
+      "genre": "slavic_mythology",
+      "scope": "매그너스의 『러시아 민담집』에 실린 「마리야 모레브나」 한 작품에 근거한 세계관 카드. 중세 루스 신앙, 다른 민담, 몸 밖의 알에 생명을 숨긴 다른 코셰이 판본을 합치지 않는다.",
+      "existing_cards": 30,
+      "source_urls": [
+        "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_192",
+        "https://www.gutenberg.org/ebooks/62509"
+      ],
+      "kind": "myth"
+    },
+    "segment_path": "미게시-임시자료:myth/slavic-mythology.json",
+    "segment_sha256": "931848c7ed37abf194f62813c078abb83cf8e124d9f43be169accb8914697716",
+    "segment_count": 1,
+    "candidate_count": 9
+  },
+  "source_files": {
+    "infrastructure/sample-data/genre-templates/slavic_mythology/source/tradition-cards.json": "8ff41d80798978b45a848f1a255c7890ae2f54315eee82b00b085178cf5d4a1e",
+    "infrastructure/sample-data/genre-templates/slavic_mythology/source/template.json": "eeb23b3effe98957134e1f6cdc1dc88c722ef4d0cb44c97b77905141d71f725e",
+    "infrastructure/sample-data/genre-templates/slavic_mythology/source/sources.md": "82f26a5772dd6d847e7196e9868cb36f1464754d9d28e47e0064473114e0bf36",
+    "backend/content-service/src/main/resources/genre-templates.json": "bc3cbacd8e7806d673793963386a63c6b7d61f0ec280ce56c22fd74d33003340",
+    "backend/content-service/src/main/resources/genre-templates-v1.json": "96cbbb7607aada4ca8f7a27f56cfd6a6197c7826db0160fae2cc134768992d85",
+    "backend/content-service/src/main/resources/genre-templates-v2.json": "4699939f749f45dc0958f7c908955ade6e9ea91ab8ed9ab55860251831aa9517"
+  },
+  "missing_source_files": [
+    "infrastructure/sample-data/genre-templates/slavic_mythology/source/supplementary.md"
+  ],
+  "coverage": [
+    {
+      "unit": "main-text",
+      "url": "https://www.gutenberg.org/cache/epub/62509/pg62509-images.html#Page_192",
+      "status": "read",
+      "reason": "pp. 192–203 전체를 다음 작품 시작 전까지 확인. 부모와 패전 생존자는 개인별 고유 식별이나 독립 설정이 충분하지 않아 별도 인물 카드로 만들지 않았다. 기존 30장과 후보의 중복 검토 필요.",
+      "cards": 9,
+      "status_origin": "입력 작성자 자기보고; 본 작업자가 본문 전체 완독을 독립 검증한 것은 아님"
+    },
+    {
+      "unit": "specified-supplements",
+      "url": "",
+      "status": "unavailable",
+      "reason": "이 장르 source/supplementary.md가 존재하지 않아 보충 구간의 지정 여부를 확인할 수 없다. 다른 장르의 보충 자료는 범위 밖이다.",
+      "cards": 0,
+      "status_origin": "입력 보고 및 파일 부재 확인"
+    },
+    {
+      "unit": "bibliographic-metadata",
+      "url": "https://www.gutenberg.org/ebooks/62509",
+      "status": "read",
+      "reason": "Gutenberg 서지는 저자 A. N. Afanas’ev, 역자 Leonard A. Magnus, 미국 내 퍼블릭 도메인으로 표기한다. 다른 국가의 저작권 상태는 확인하지 않았다.",
+      "cards": 0,
+      "status_origin": "입력 작성자 자기보고; 본 작업자가 본문 전체 완독을 독립 검증한 것은 아님"
+    }
+  ],
+  "verification": {
+    "current_worker": "입력 JSON 전체 및 기존 source/runtime 구조를 검토했고 Gutenberg 본문 각 근거 발췌 21개가 해당 페이지에 있는지 확인함. 작품 전체 완독·각 본문 사실 검증·역사 감수는 하지 않음.",
+    "gutenberg_fetched_sha256": "f3a6bb2032e0d31badbc81aaa9cd368c2c821e6a76adc77abda738a56c2f4706",
+    "evidence_excerpt_page_match": "21/21",
+    "all_input_candidates_preserved": true,
+    "deduplication_rule": "서로 다른 key/title/type을 자동 병합하지 않고 기존 카드의 부분적 의미 겹침만 후보로 표시; 전승 차이 및 출처는 각각 보존",
+    "identical_candidates_merged": 0,
+    "unprocessed_input_candidates": 0,
+    "independent_historical_and_legal_review": "미실시"
+  },
+  "counts": {
+    "existing_myth_cards_all_genres": 868,
+    "existing_slavic_cards": 30,
+    "input_candidates": 9,
+    "output_individual_cards": 9,
+    "merged_input_candidates": 0,
+    "unprocessed_input_candidates": 0,
+    "representation_equation": "9 = 9 + 0",
+    "types": {
+      "character": 3,
+      "location": 5,
+      "event": 1
+    },
+    "evidence_entries": 21,
+    "cards_with_missing_evidence": 0
+  },
+  "files": [
+    {
+      "path": "cards-001.json",
+      "cards": 9
+    }
+  ],
+  "limitations": [
+    "기존 868개 카드는 수정하지 않음; 후보 수는 누락이 없다는 증거가 아님.",
+    "원문의 지역·시기 전승 범위 및 텍스트·번역·발췌의 재사용 조건은 확인되지 않았으며 별도 법률 및 전승 검토 필요.",
+    "입력에 구텐베르크 미국 내 퍼블릭 도메인 서지 자기보고가 있으나 다른 지역 권리와 재사용 조건을 보증하지 않음; 한국어 요약은 비공식 추출 후보.",
+    "보충 자료 파일이 없어 보충 구간 지정 여부 자체가 미정. 다른 판본과 전승을 단일 정본으로 단정하지 않음.",
+    "review 청크는 세계관 분할이나 서비스 등록이 아니며 DB 반영 전 #425 안전 계약·권리 및 중복 검증 필요; 현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다. 자동 적용하지 않음."
+  ],
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

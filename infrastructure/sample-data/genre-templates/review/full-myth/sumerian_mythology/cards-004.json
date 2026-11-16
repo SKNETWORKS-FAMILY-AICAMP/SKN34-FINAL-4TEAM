@@ -1,0 +1,491 @@
+[
+  {
+    "id": "1c1f1819-e741-5d9a-809a-295c665b379b",
+    "title": "꿈속 나귀의 해몽",
+    "body": "니나는 꿈에서 왕의 오른쪽에 누운 나귀를 구데아 자신으로 해석한다. 뒤따르는 행동을 설명한 번역은 일부가 비어 있으므로 그 부분을 보충하지 않는다. 출전: https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=143 원통 A VI열 12–13행, 인쇄 143쪽.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-sumer-a-scan1",
+      "candidate_key": "dream-donkey-gudea",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan1.json",
+      "input_sha256": "21e449f22474ca25c49ff0fea4071039ef1fcbebc9da56ec31323e0ac2a2ce98",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역; PDF 스캔 기반 Vision OCR에 대한 추출자의 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A VI열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=143",
+          "location": "원통 A VI열 12–13행, 인쇄 143쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "신규 후보 인용과 본문의 대응은 통합자가 독립 검증하지 않았고, 원통 결락·번역 복원·Vision OCR 판독과 재사용 권리 검토가 필요하다.",
+        "추출자의 중복 판단: 기존 dream-interpretation·dream-command의 포괄적인 해몽과 부분 중복; Scribd 26개에는 독립 대상 없음."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "dream-interpretation",
+          "title": "니나의 해몽",
+          "reason": "추출자 보고에 따른 관련 묶음; 동일성과 범위는 미확정"
+        },
+        {
+          "source_key": "dream-command",
+          "title": "신전 건립의 꿈",
+          "reason": "추출자 보고에 따른 관련 묶음; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "47bee056-ce8d-58e9-be76-bc3d8c231ad0",
+    "title": "안카르와 용맹의 팔",
+    "body": "니나는 구데아에게 안카르를 돌보라고 명하며 이를 용맹의 팔이라 부른다. 1905년 판본의 명칭을 남기며 형태나 용도를 추정하지 않는다. 출전: https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=143 원통 A VI열 21행, 인쇄 143쪽.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a-scan1",
+      "candidate_key": "an-kar-arm-of-valor",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan1.json",
+      "input_sha256": "21e449f22474ca25c49ff0fea4071039ef1fcbebc9da56ec31323e0ac2a2ce98",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역; PDF 스캔 기반 Vision OCR에 대한 추출자의 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A VI열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=143",
+          "location": "원통 A VI열 21행, 인쇄 143쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "신규 후보 인용과 본문의 대응은 통합자가 독립 검증하지 않았고, 원통 결락·번역 복원·Vision OCR 판독과 재사용 권리 검토가 필요하다.",
+        "추출자의 중복 판단: 기존 gift-preparation의 선물 준비와 관련되지만 독립 명칭은 없음; Scribd 26개에 독립 카드 없음."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "gift-preparation",
+          "title": "전차와 악기를 준비하는 구데아",
+          "reason": "추출자 보고에 따른 관련 묶음; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "5a9b7adc-605e-52c5-ba47-0a3587abae05",
+    "title": "빛나는 화살과 화살통",
+    "body": "니나는 구데아에게 왕의 전차를 꾸미라고 지시하며 화살통 속 화살이 날처럼 빛날 것이라고 말한다. 출전: https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=143 원통 A VI열 17–20행, 인쇄 143쪽.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a-scan1",
+      "candidate_key": "shining-arrows-quiver",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan1.json",
+      "input_sha256": "21e449f22474ca25c49ff0fea4071039ef1fcbebc9da56ec31323e0ac2a2ce98",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역; PDF 스캔 기반 Vision OCR에 대한 추출자의 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A VI열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=143",
+          "location": "원통 A VI열 17–20행, 인쇄 143쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "신규 후보 인용과 본문의 대응은 통합자가 독립 검증하지 않았고, 원통 결락·번역 복원·Vision OCR 판독과 재사용 권리 검토가 필요하다.",
+        "추출자의 중복 판단: 기존 divine-chariot·gift-preparation과 관련된 세부; Scribd gudea-chariot-donkey와 연관되나 독립 카드 없음."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "divine-chariot",
+          "title": "닌기르수에게 바치는 전차",
+          "reason": "추출자 보고에 따른 관련 묶음; 동일성과 범위는 미확정"
+        },
+        {
+          "source_key": "gift-preparation",
+          "title": "전차와 악기를 준비하는 구데아",
+          "reason": "추출자 보고에 따른 관련 묶음; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "gudea-chariot-donkey",
+          "reason": "입력 추출자의 관계 검토; 겹치거나 인접한 장면이며 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "a4c7cc4d-48ac-5e0e-abee-8bed7ca5a135",
+    "title": "우프슈키나쿠에서의 기도",
+    "body": "구데아는 제물과 향을 마련하고 우프슈키나쿠에 들어가 몸을 굽혀 닌기르수에게 기도한다. 판본이 이 명칭의 구조를 설명하지 않으므로 특정 건축물로 단정하지 않는다. 출전: https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=145 원통 A VIII열 10–15행, 인쇄 145쪽.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a-scan1",
+      "candidate_key": "upsukinnaku-prayer",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan1.json",
+      "input_sha256": "21e449f22474ca25c49ff0fea4071039ef1fcbebc9da56ec31323e0ac2a2ce98",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역; PDF 스캔 기반 Vision OCR에 대한 추출자의 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A VIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=145",
+          "location": "원통 A VIII열 10–15행, 인쇄 145쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "신규 후보 인용과 본문의 대응은 통합자가 독립 검증하지 않았고, 원통 결락·번역 복원·Vision OCR 판독과 재사용 권리 검토가 필요하다.",
+        "추출자의 중복 판단: 기존 sugalamt·Scribd sugalam-judgment-place의 인접 기도 장면과 관련; 두 장소의 동일성은 미확인."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "sugalamt",
+          "title": "수갈람트와 기도의 재판 장소",
+          "reason": "추출자 보고에 따른 관련 묶음; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "sugalam-judgment-place",
+          "reason": "입력 추출자의 관계 검토; 겹치거나 인접한 장면이며 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "06f6a580-a432-58a6-92c4-8b8b28495a2b",
+    "title": "이기후시",
+    "body": "닌기르수가 자신의 무기들을 말하는 대목에서 이기후시는 세상이 견디지 못하는 것으로 묘사된다. 무기의 생김새는 여기서 밝히지 않는다. 출전: https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=149 원통 A IX열 24–25 및 X 1행, 인쇄 149쪽.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a-scan1",
+      "candidate_key": "igi-hus-divine-weapon",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan1.json",
+      "input_sha256": "21e449f22474ca25c49ff0fea4071039ef1fcbebc9da56ec31323e0ac2a2ce98",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역; PDF 스캔 기반 Vision OCR에 대한 추출자의 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A IX열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=149",
+          "location": "원통 A IX열 24–25 및 X 1행, 인쇄 149쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "신규 후보 인용과 본문의 대응은 통합자가 독립 검증하지 않았고, 원통 결락·번역 복원·Vision OCR 판독과 재사용 권리 검토가 필요하다.",
+        "추출자의 중복 판단: 기존 weapons-insignia는 후반 무기 묶음이며 동일성 미확인; Scribd sharur-1905는 다른 이름의 무기다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "weapons-insignia",
+          "title": "신에게 바친 무기와 왕권 표장",
+          "reason": "추출자 보고에 따른 관련 묶음; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "sharur-1905",
+          "reason": "입력 추출자의 관계 검토; 겹치거나 인접한 장면이며 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "03457b24-df0a-5824-9f8c-f096b70fb0d7",
+    "title": "다바드",
+    "body": "닌기르수는 자신의 다-BAD에서 아무도 벗어나지 못한다고 말한다. 대문자 BAD는 이 1905년 판본의 표기를 유지한 것이다. 출전: https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=149 원통 A IX열 25–26 및 X 1행, 인쇄 149쪽.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a-scan1",
+      "candidate_key": "da-bad-divine-weapon",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan1.json",
+      "input_sha256": "21e449f22474ca25c49ff0fea4071039ef1fcbebc9da56ec31323e0ac2a2ce98",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역; PDF 스캔 기반 Vision OCR에 대한 추출자의 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A IX열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=149",
+          "location": "원통 A IX열 25–26 및 X 1행, 인쇄 149쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "신규 후보 인용과 본문의 대응은 통합자가 독립 검증하지 않았고, 원통 결락·번역 복원·Vision OCR 판독과 재사용 권리 검토가 필요하다.",
+        "추출자의 중복 판단: 기존 weapons-insignia는 후반 무기 묶음이고 동일성 미확인; Scribd sharur-1905는 다른 무기다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "weapons-insignia",
+          "title": "신에게 바친 무기와 왕권 표장",
+          "reason": "추출자 보고에 따른 관련 묶음; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "sharur-1905",
+          "reason": "입력 추출자의 관계 검토; 겹치거나 인접한 장면이며 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "e9400f9f-3213-50bc-81dd-7cfcf8ea360b",
+    "title": "신성한 산의 생명 바람",
+    "body": "닌기르수는 신전의 테멘이 고정될 때 폭풍이 사는 산의 정결한 곳에서 바람을 보내 땅에 생명의 숨을 주겠다고 말한다. 건설을 앞둔 신탁 속 예고다. 출전: https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=151 원통 A XI열 18–24행, 인쇄 151쪽.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-sumer-a-scan1",
+      "candidate_key": "mountain-wind-life",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan1.json",
+      "input_sha256": "21e449f22474ca25c49ff0fea4071039ef1fcbebc9da56ec31323e0ac2a2ce98",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역; PDF 스캔 기반 Vision OCR에 대한 추출자의 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XI열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=151",
+          "location": "원통 A XI열 18–24행, 인쇄 151쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "신규 후보 인용과 본문의 대응은 통합자가 독립 검증하지 않았고, 원통 결락·번역 복원·Vision OCR 판독과 재사용 권리 검토가 필요하다.",
+        "추출자의 중복 판단: 기존 enlil-decree·second-dream의 풍요와 신탁에 일부 포함; Scribd enninu-foundation-abundance에 인접하나 별도 바람 예고다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "enlil-decree",
+          "title": "엔릴의 호의와 범람수의 회복",
+          "reason": "추출자 보고에 따른 관련 묶음; 동일성과 범위는 미확정"
+        },
+        {
+          "source_key": "second-dream",
+          "title": "두 번째 꿈과 건립의 약속",
+          "reason": "추출자 보고에 따른 관련 묶음; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "enninu-foundation-abundance",
+          "reason": "입력 추출자의 관계 검토; 겹치거나 인접한 장면이며 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "80860ab5-0b52-5e96-8907-d74a129a0e38",
+    "title": "옆구리에 닿는 불의 징조",
+    "body": "닌기르수는 건축 자재를 열거한 뒤 상대의 옆구리에 불꽃이 닿는 일을 자신의 징조라고 예고한다. 번역에서 불꽃의 성격은 설명하지 않는다. 출전: https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=151 원통 A XII열 3–11행, 인쇄 151쪽.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-sumer-a-scan1",
+      "candidate_key": "flame-omen-prophecy",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan1.json",
+      "input_sha256": "21e449f22474ca25c49ff0fea4071039ef1fcbebc9da56ec31323e0ac2a2ce98",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역; PDF 스캔 기반 Vision OCR에 대한 추출자의 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=151",
+          "location": "원통 A XII열 3–11행, 인쇄 151쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "신규 후보 인용과 본문의 대응은 통합자가 독립 검증하지 않았고, 원통 결락·번역 복원·Vision OCR 판독과 재사용 권리 검토가 필요하다.",
+        "추출자의 중복 판단: 기존 second-dream과 Scribd gudea-second-dream의 신탁·징조와 부분 중복 가능."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "second-dream",
+          "title": "두 번째 꿈과 건립의 약속",
+          "reason": "추출자 보고에 따른 관련 묶음; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "gudea-second-dream",
+          "reason": "입력 추출자의 관계 검토; 겹치거나 인접한 장면이며 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "d5f486da-987f-5543-b531-586488458a36",
+    "title": "건립 전 주술사 추방",
+    "body": "구데아의 도시 정화 대목에서 무서운 sorciers와 다른 사람들을 도시에서 내보낸다고 한다. 다른 사람들의 설명에는 빈칸이 있어 복원하지 않는다. 출전: https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=153 원통 A XIII열 12–15행, 인쇄 153쪽.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-sumer-a-scan1",
+      "candidate_key": "temple-sorcerer-expulsion",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan1.json",
+      "input_sha256": "21e449f22474ca25c49ff0fea4071039ef1fcbebc9da56ec31323e0ac2a2ce98",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역; PDF 스캔 기반 Vision OCR에 대한 추출자의 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=153",
+          "location": "원통 A XIII열 12–15행, 인쇄 153쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "신규 후보 인용과 본문의 대응은 통합자가 독립 검증하지 않았고, 원통 결락·번역 복원·Vision OCR 판독과 재사용 권리 검토가 필요하다.",
+        "추출자의 중복 판단: 기존 purification-labor와 부분 중복; Scribd lagash-restraint-servants는 종과 주인의 폭력 억제에 한정된다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "purification-labor",
+          "title": "건립 전 정결과 폭력의 중지",
+          "reason": "추출자 보고에 따른 관련 묶음; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "lagash-restraint-servants",
+          "reason": "입력 추출자의 관계 검토; 겹치거나 인접한 장면이며 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "4bd87375-69c9-54bd-873e-48ca41139076",
+    "title": "닌자가의 신탁과 구리",
+    "body": "1905년 판본은 닌자가가 신탁을 낸 뒤 구리와 구데아를 언급한다. 구리의 이동을 설명하는 동사는 번역에서 비어 있어 누가 무엇을 조달했는지 확정하지 않는다. 출전: https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=155 원통 A XV열 11–14행, 인쇄 155쪽.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-sumer-a-scan1",
+      "candidate_key": "ninzagga-oracle-copper",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan1.json",
+      "input_sha256": "21e449f22474ca25c49ff0fea4071039ef1fcbebc9da56ec31323e0ac2a2ce98",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역; PDF 스캔 기반 Vision OCR에 대한 추출자의 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XV열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=155",
+          "location": "원통 A XV열 11–14행, 인쇄 155쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "신규 후보 인용과 본문의 대응은 통합자가 독립 검증하지 않았고, 원통 결락·번역 복원·Vision OCR 판독과 재사용 권리 검토가 필요하다.",
+        "추출자의 중복 판단: ETCSL 기반 기존 nin-zaga-copper와 이름·소재가 겹치나 1905년 판독에는 동사의 빈칸이 있다; 다른 판본의 조달 내용을 이 판본에 합치지 않는다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "resource-network",
+          "title": "산림·채석장·금속의 조달망",
+          "reason": "추출자 보고에 따른 관련 묶음; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "nin-zaga-copper",
+          "reason": "입력 추출자의 관계 검토; 겹치거나 인접한 장면이며 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "be22c702-f499-5c40-a63b-a6b048f837ab",
+    "title": "니넬의 신탁과 목재",
+    "body": "1905년 판본은 니넬이 신탁을 낸 뒤 훌루푸·우수·압바 목재와 신전 건축자를 언급한다. 마지막 동사가 빈칸이라 조달 주체를 확정하지 않는다. 출전: https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=155 원통 A XV열 15–18행, 인쇄 155쪽.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-sumer-a-scan1",
+      "candidate_key": "ninel-oracle-timber",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan1.json",
+      "input_sha256": "21e449f22474ca25c49ff0fea4071039ef1fcbebc9da56ec31323e0ac2a2ce98",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 프랑스어 번역; PDF 스캔 기반 Vision OCR에 대한 추출자의 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XV열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=155",
+          "location": "원통 A XV열 15–18행, 인쇄 155쪽",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "신규 후보 인용과 본문의 대응은 통합자가 독립 검증하지 않았고, 원통 결락·번역 복원·Vision OCR 판독과 재사용 권리 검토가 필요하다.",
+        "추출자의 중복 판단: 기존 nin-sikil-timber의 목재 조달과 소재가 겹치나 명칭 및 서로 다른 판본의 동일성은 미확인; Scribd 26개에 독립 카드 없음."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "resource-network",
+          "title": "산림·채석장·금속의 조달망",
+          "reason": "추출자 보고에 따른 관련 묶음; 동일성과 범위는 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "nin-sikil-timber",
+          "reason": "입력 추출자의 관계 검토; 겹치거나 인접한 장면이며 동일성 미확정"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  }
+]
