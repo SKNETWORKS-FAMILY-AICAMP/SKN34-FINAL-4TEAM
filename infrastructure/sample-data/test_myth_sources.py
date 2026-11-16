@@ -179,15 +179,14 @@ class MythSourceTest(unittest.TestCase):
         self.assertEqual(manifest['legacy_genres_sha256'], digest(legacy))
 
     # 출처 연결과 카드·템플릿 일치는 genre-templates/test_traditions.py가 검사한다.
-    def test_runtime_has_thirty_three_worlds_and_1412_cards(self):
+    def test_runtime_has_twenty_six_worlds_and_1254_cards(self):
         runtime = read_json(RESOURCES / 'genre-templates.json')
-        self.assertEqual(33, len(runtime))
+        self.assertEqual(26, len(runtime))
         self.assertEqual(386, sum(len(w['cards']) for w in runtime[:11]))
         self.assertEqual(868, sum(len(w['cards']) for w in runtime[11:26]))
-        self.assertEqual(158, sum(len(w['cards']) for w in runtime[26:]))
-        self.assertEqual(1412, sum(len(w['cards']) for w in runtime))
+        self.assertEqual(1254, sum(len(w['cards']) for w in runtime))
         self.assertEqual(set(EXISTING_CARDS), {w['genre'] for w in runtime[11:26]})
-        self.assertEqual({'korea_history', 'china_history', 'japan_history', 'england_history', 'france_history', 'italy_history', 'usa_history'}, {w['genre'] for w in runtime[26:]})
+        self.assertTrue({'korea_history', 'china_history', 'japan_history', 'england_history', 'france_history', 'italy_history', 'usa_history'}.isdisjoint(w['genre'] for w in runtime))
         without_soul = [{**w, 'cards': [{k: v for k, v in c.items() if k != 'soul'} for c in w['cards']]} for w in runtime[:26]]
         self.assertEqual(read_json(RESOURCES / 'genre-templates-v2.json'), without_soul)
 
@@ -239,7 +238,7 @@ class MythSourceTest(unittest.TestCase):
                 if is_character:
                     characters += 1
                     self.assertTrue(isinstance(card['soul'], str) and card['soul'].strip() and len(card['soul'].encode('utf-16-le')) // 2 <= 3000, card['title'])
-        self.assertEqual(405, characters)
+        self.assertEqual(379, characters)
 
     def test_existing_tradition_cards_keep_ids_order_and_types(self):
         worlds = {w['genre']: w for w in read_json(RESOURCES / 'genre-templates.json')}
