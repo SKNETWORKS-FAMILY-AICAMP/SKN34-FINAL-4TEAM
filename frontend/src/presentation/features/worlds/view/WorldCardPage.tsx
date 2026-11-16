@@ -59,20 +59,23 @@ function CardInfoBox({ world, page }: { world: PublicWorld; page: CardPage }) {
 type Section = { id: string; title: string; body: ReactNode }
 
 /**
- * 문단: 본문(마크다운)의 `## 제목`마다 한 문단(`##`가 없으면 개요 하나) → 관계(인물) → 연관 설정 → 이 카드를 가리키는 설정 → 같은 유형의 다른 설정.
- * 내용이 없는 문단은 빠지고 번호는 화면이 연속으로 매긴다. 본문을 어떻게 나누는지는 편집 화면 미리보기와 같은 `splitCardSections`가 정한다.
+ * 문단: 본문(마크다운)의 `## 제목`마다 한 문단 → 관계(인물) → 연관 설정 → 이 카드를 가리키는 설정 → 같은 유형의 다른 설정.
+ * 목차는 이 문단들이고 본문 쪽은 작가가 쓴 `## 제목` 그대로다. 첫 `##` 앞의 글은 제목 없는 첫머리(`lead`)라 목차·번호에 넣지 않는다(개요를 지어 붙이지 않는다).
+ * 내용이 없는 문단은 빠지고 번호는 화면이 연속으로 매긴다. 본문을 어떻게 나누는지는 독자 설정 위키와 같은 `splitCardSections`가 정한다.
  */
-function sectionsOf(page: CardPage, worldId: string): Section[] {
+function sectionsOf(page: CardPage, worldId: string): { lead: string; sections: Section[] } {
   const lists = [
     ['relations', '관계', page.relations, false],
     ['links', '연관 설정', page.links, true],
     ['backlinks', '이 카드를 가리키는 설정', page.backlinks, true],
     ['same', '같은 유형의 다른 설정', page.sameType, false],
   ] as const
-  return [
-    ...splitCardSections(page.card.text).map(({ title, body }, i) => ({ id: `text-${i}`, title, body: <CardMarkdown text={body} /> })),
+  const parts = splitCardSections(page.card.text)
+  const lead = parts[0]?.title === '' ? parts[0].body : ''
+  return { lead, sections: [
+    ...parts.filter(({ title }) => title).map(({ title, body }, i) => ({ id: `text-${i}`, title, body: <CardMarkdown text={body} /> })),
     ...lists.filter(([, , refs]) => refs.length > 0).map(([id, title, refs, withType]) => ({ id, title, body: <CardList worldId={worldId} refs={refs} withType={withType} /> })),
-  ]
+  ] }
 }
 
 /**
@@ -95,7 +98,7 @@ function CardImport({ world, cardId }: { world: PublicWorld; cardId: string }) {
 
 /**
  * 설정 카드 한 장의 공개 페이지(`/worlds/:id/cards/:cardId`). 작품 설정 위키(`PublicWikiArticle`)와 같은 `nw-*` 나무위키 형식 문서 한 편이다:
- * 빵부스러기 → 분류 상자 → 문서 제목 → 오른쪽 정보 상자 → 번호 목차 → 번호 매긴 접이식 문단. 아래에 설정집 순서의 이전·다음 카드와 세계관으로 돌아가기가 있다.
+ * 빵부스러기 → 분류 상자 → 문서 제목 → 오른쪽 정보 상자 → 번호 목차(본문 `## 제목`과 연결 문단) → 첫머리 글(제목 없음) → 번호 매긴 접이식 문단. 아래에 설정집 순서의 이전·다음 카드와 세계관으로 돌아가기가 있다.
  * 내용 구성(어떤 문단이 있고 어떤 순서인지)은 `cardPage`가 정하고 이 화면은 그대로 그린다. 로그인 없이 볼 수 있고 읽기 전용이다.
  * 로그인한 회원에게는 빵부스러기 아래에 '이 설정 가져오기'(`CardImport`)가 보이고 고른 내 세계관 초안에 이 카드를 바로 더한다.
  */
@@ -103,7 +106,7 @@ export function WorldCardPage() {
   const { id, cardId } = useParams()
   const { world, page, isLoading, isError, retry } = useWorldCardViewModel(id, cardId)
   const heading = useId()
-  const sections = world && page ? sectionsOf(page, world.id) : []
+  const { lead, sections } = world && page ? sectionsOf(page, world.id) : { lead: '', sections: [] }
   useScreenId('W04')
   useDocumentTitle(world && page ? `${page.card.title} · ${world.name}` : world ? '찾을 수 없는 설정' : isLoading || isError ? '세계관' : '찾을 수 없는 세계관')
   return (
@@ -138,12 +141,13 @@ export function WorldCardPage() {
                 <p className="nw-cat"><b>분류</b><Go to={`/worlds/${world.id}`}>{world.name}</Go><Go to={bookPath(world.id, page.card.kind)}>{page.card.kind}</Go></p>
                 <header className="nw-head"><h1 id={heading}>{page.card.title}</h1></header>
                 <CardInfoBox world={world} page={page} />
-                <nav className="nw-toc" id="nw-toc" tabIndex={-1} aria-label="목차">
+                {sections.length > 0 && <nav className="nw-toc" id="nw-toc" tabIndex={-1} aria-label="목차">
                   <b>목차</b>
                   <ol>{sections.map((s, i) => (
                     <li key={s.id}><Jump to={`nw-s-${s.id}`}><span className="nw-no">{i + 1}.</span> {s.title}</Jump></li>
                   ))}</ol>
-                </nav>
+                </nav>}
+                {lead && <div className="nw-doc nw-lead"><CardMarkdown text={lead} /></div>}
                 {sections.map((s, i) => (
                   <details key={s.id} className="nw-sec" open>
                     <summary id={`nw-s-${s.id}`}><h2><span className="nw-no">{i + 1}.</span> {s.title}</h2></summary>
