@@ -15,5 +15,11 @@ export class StoryPlanUseCase {
     validatePlan(value)
     return this.repository.save(workId, { ...value, title: value.title.trim() }, previous, signal)
   }
+  async move(workId: string, plan: StoryPlan, position: number, signal?: AbortSignal) {
+    if (plan.kind !== 'scene') throw new Error('장면 계획만 순서를 바꿀 수 있어요.')
+    const { kind, parentId, title, content, episodeNumber, characterIds, placeIds } = plan
+    await this.save(workId, { kind, parentId, title, content, episodeNumber, characterIds, placeIds, position }, plan, signal)
+    return this.list(workId, signal)
+  }
   remove(workId: string, plan: StoryPlan, signal?: AbortSignal) { return this.repository.remove(workId, plan, signal) }
 }

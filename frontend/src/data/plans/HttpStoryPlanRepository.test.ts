@@ -65,3 +65,16 @@ describe('계획 HTTP 계약', () => {
     await expect(repo.list('w', abort.signal)).rejects.toThrow()
   })
 })
+
+it('장면 순서는 기존 PUT의 revision과 position으로 저장하고 목록을 다시 읽는다', async () => {
+  const scene = { ...plan, kind: 'scene' as const, parentId: 'plot', episodeNumber: 1, position: 2 }
+  const moved = { ...scene, position: 0, revision: 2 }
+  const fetcher = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => Response.json(init?.method === 'PUT' ? moved : [moved]))
+  const api = new StoryPlanUseCase(new HttpStoryPlanRepository(new HttpEpisodeRepository(fetcher), fetcher))
+  expect(await api.move('w', scene, 0)).toEqual([moved])
+  const [url, request] = fetcher.mock.calls[0]
+  expect(url).toBe('/api/v1/works/w/story-plans/p')
+  expect(request?.method).toBe('PUT')
+  expect(JSON.parse(String(request?.body))).toMatchObject({ position: 0, revision: 1, kind: 'scene', episodeNumber: 1 })
+  expect(fetcher.mock.calls[1][1]?.method).toBe('GET')
+})
