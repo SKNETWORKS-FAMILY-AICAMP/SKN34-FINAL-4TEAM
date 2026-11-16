@@ -11,4 +11,5 @@ data class StoryPlanRequest(
     @field:Size(max=30) val characterIds: List<String> = emptyList(),
     @field:Size(max=30) val placeIds: List<String> = emptyList(),
     @field:Min(0) val revision: Int = 0,
+    @field:Min(0) val position: Int? = null,
 )

@@ -1,3 +1,6 @@
+import { StoryPlanPanel } from '../../plans/view/StoryPlanWorkspace'
+import { useStoryPlanViewModel } from '../../plans/viewmodel/useStoryPlanViewModel'
+import { useWritingPlanNavigation } from '../viewmodel/useWritingPlanNavigation'
 import { Suspense,useEffect,useEffectEvent,useId,useRef,useState,type ReactNode } from 'react'
 import { useSearchParams } from 'react-router'
 import { useWritingViewModel } from '../viewmodel/useWritingViewModel'
@@ -51,7 +54,9 @@ function Group({title,className,children}:{title:string;className?:string;childr
 export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   useScreenId('U13')
   useDocumentTitle('집필실')
-  const vm=useWritingViewModel(id,undefined,undefined,episode)
+  const plans=useStoryPlanViewModel(id,false,undefined,true)
+  const vm=useWritingViewModel(id,undefined,undefined,episode,plans.confirmLeave)
+  useWritingPlanNavigation(vm.mayLeave,vm.dirty||plans.dirty,vm.busy||plans.busy)
   const editor=useRef<ManuscriptEditorHandle>(null)
   const main=useRef<HTMLElement>(null)
   // 좁은 화면(900px 이하)은 문서가 스크롤하고 상단 바가 화면 위에 붙어 있다. 버튼이 줄바꿈되면 높이가 달라지므로,
@@ -101,7 +106,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const dispatch=useAppDispatch()
   const showSid=useAppSelector(s=>s.ui.showSid)
   const dev=import.meta.env.DEV
-  // 기본은 단순 집필이고, 고급은 문맥 선택·장면 비트·고급 플롯 도구가 들어올 자리표시다.
+  // 고급 패널은 숨겨도 마운트를 유지해 계획 입력과 원고를 함께 보존한다.
   const [mode,setMode]=useState<'basic'|'advanced'>('basic')
   // 채팅이 본문 폭을 줄이지 않게, 창이 1200px 이하면 접은 채로 시작한다(세계관 작업실의 기본값과 같은 방식).
   const [chatOpen,setChatOpen]=useState(()=>!window.matchMedia?.('(max-width: 1200px)').matches)
@@ -123,12 +128,20 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   // 근거는 열린 회차가 발행돼 있으면 그 회차, 아니면 가장 뒤의 발행 회차다. 데모(mockup)는 잠긴다.
   const chat=useWritingChatViewModel(id,chatBasis(vm.episodes,active?.number),vm.aiApplied)
   const stage=useSimulationStageViewModel(chat)
+  const [setupVersion,setSetupVersion]=useState(0)
+  const [stageVisited,setStageVisited]=useState(false)
+  useEffect(()=>{if(stage.open)setStageVisited(true)},[stage.open])
+  const planPanel=useRef<HTMLElement>(null)
+  const [planFocus,setPlanFocus]=useState(0)
+  useEffect(()=>{if(planFocus)planPanel.current?.focus()},[planFocus])
+  const openPlans=()=>{setMode('advanced');setPlanFocus(n=>n+1)}
+  const startBlocker=plans.startBlocker||(vm.dirty||vm.busy?'원고 저장이 끝난 뒤 시작해 주세요. 저장 실패가 있으면 원고를 먼저 저장해 주세요.':'')
   // 사용자가 무대를 열었을 때만 무대 제목으로 초점을 옮기고(저절로 열린 무대는 초점을 빼앗지 않는다), 닫으면 버튼으로 돌려준다.
   const stageButton=useRef<HTMLButtonElement>(null)
   const stageHeading=useRef<HTMLHeadingElement>(null)
   const [stageFocus,setStageFocus]=useState(0)
   useEffect(()=>{if(stageFocus)stageHeading.current?.focus()},[stageFocus])
-  const openStage=()=>{stage.show();setStageFocus(n=>n+1)}
+  const openStage=()=>{setSetupVersion(n=>n+1);stage.show();setStageFocus(n=>n+1)}
   const closeStage=()=>{stage.hide();stageButton.current?.focus()}
   const historyLabel={
     versions:'원고 저장본 · 공개',
@@ -139,7 +152,6 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   }[historyView]
   const comparison=useVersionComparisonViewModel(active?.versions??[],versionsOpen&&active?`${id}:${active.number}`:'')
   const selected=active?.number===selection.episode?active.versions.find(v=>v.id===selection.id):undefined
-  const leave=(e:{preventDefault():void})=>{if(!vm.mayLeave())e.preventDefault()}
   // 그래프의 저장 버전 노드는 기존 버전 시트를 열고 그 버전을 선택해 둔다(비교·복원·공개는 시트의 기존 기능).
   const openVersion=(versionId:string)=>{if(!active)return;setSelection({episode:active.number,id:versionId});setRights(false);setHistoryView('versions');setVersionsOpen(true)}
   // 항목의 ⋮ 메뉴가 고른 회차를 먼저 선택한다(저장하지 않은 입력을 버리지 않으면 false). 이미 선택된 회차는 다시 고르지 않는다.
@@ -164,7 +176,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
     {/* 상단 바: 왼쪽은 어디서 무엇을 하는지(돌아가기·제목·저장 상태), 오른쪽은 자주 쓰는 네 가지(모드·버전 저장·버전 공개·더보기)만 둔다. */}
     <header ref={bar} className="sbar">
       <div className="writing-bar">
-        <Go className="back rback" to="/lib?tab=write" onClick={leave}><BackChev />내가 쓰는 소설</Go>
+        <Go className="back rback" to="/lib?tab=write"><BackChev />내가 쓰는 소설</Go>
         <h1 className="t">집필실</h1>
         {/* 완료 안내는 늘 있는 이 줄에 이어 적는다: 알림 문단이 생기고 사라지며 아래 3단을 밀지 않고, 스크린리더도 저장 상태와 함께 한 번만 읽는다. */}
         <span className="st" role="status" aria-live="polite">{status}{vm.notice&&<span className="writing-notice"> · {vm.notice}</span>}</span>
@@ -179,7 +191,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         <button className="tbtn" disabled={vm.busy||!active||active.inherited} onClick={()=>void vm.save()}>버전 저장</button>
         <button className="tbtn pri" disabled={vm.busy||!active} onClick={openVersions}>버전 · 공개</button>
         <PopMenu className="writing-more" label="더보기" icon={<MoreIcon />}>
-          <Go role="menuitem" to={`/studio/${id}?view=narrative`} onClick={leave}>플롯</Go>
+          <button type="button" role="menuitem" onClick={openPlans}>플롯</button>
           <button type="button" role="menuitem" disabled={vm.busy} onClick={()=>void vm.reload()}>다시 불러오기</button>
           <button type="button" role="menuitem" disabled={vm.busy||!vm.ready} onClick={openSettingHistory}>설정 버전 이력</button>
           <button type="button" role="menuitem" disabled={vm.historyLoading} onClick={()=>openPublication()}>발행 이력</button>
@@ -191,7 +203,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
     </header>
     {vm.error&&<div className="ep-alert" role="alert">{vm.error} {active&&'저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.'}</div>}
     <main ref={main} id="main" tabIndex={-1} className="studio-workspace">{!vm.ready?<p className="writing-message">회차를 불러오고 있어요…</p>:vm.error&&!active?null:<>
-    <div className="sgrid writing-grid">
+    <div className={`sgrid writing-grid${mode==='advanced'?' writing-with-plans':''}`}>
       <div className="writing-rail">
         <div className="writing-rail-head">
           <h2>회차</h2>
@@ -232,8 +244,8 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         </div>
       </div>
       {/* 시뮬레이션 무대가 열려 있는 동안은 편집기 자리를 대신한다. 편집기는 숨기기만 해 입력·되돌리기 기록을 지킨다. */}
-      {stage.open&&<SimulationStage stage={stage} workId={id} episode={chat.basisEpisode??active?.number??1} planEpisode={active?.number??null}
-        plotLink={<Go to={`/studio/${id}?view=narrative`} onClick={leave}>플롯 화면</Go>} headingRef={stageHeading} onClose={closeStage}/>}
+      {(stage.open||stageVisited)&&<SimulationStage hidden={!stage.open} plansVersion={plans.version+setupVersion} startBlocker={startBlocker} stage={stage} workId={id} episode={chat.basisEpisode??active?.number??1} planEpisode={active?.number??null}
+        plotLink={<button type="button" className="btn sm" onClick={openPlans}>플롯 패널 열기</button>} headingRef={stageHeading} onClose={closeStage}/>}
       {/* 가운데는 원고만: 제목 · 본문 · 한 줄 하단 바. 나머지 기능은 '회차 설정' 시트에 있다. */}
       <div className="editor writing-editor" hidden={stage.open}>
         {active?<>
@@ -247,10 +259,6 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
             :<Suspense fallback={<div className="writing-body writing-loading" aria-live="polite">편집기를 불러오고 있어요.</div>}>
               <LazyManuscriptEditor ref={editor} value={vm.draft.body} editable={!vm.editingLocked} busy={vm.busy} workId={id} number={active.number} onChange={body=>vm.edit({body})} onImage={(file,start,end)=>vm.addImage(file,start,end)}/>
             </Suspense>}
-          {mode==='advanced'&&<section className="writing-advanced" aria-label="고급 도구">
-            <b>고급 도구 준비 중</b>
-            <span className="small muted">문맥 선택·장면 비트·고급 플롯 도구가 들어올 자리예요. 지금은 기본 집필과 같은 기능을 써요.</span>
-          </section>}
           <footer className="writing-foot">
             <p className="small muted">{bodyLength(vm.draft.body).toLocaleString('ko-KR')} / {BODY_MAX.toLocaleString('ko-KR')}자{!active.inherited&&` · ${publishHint(vm.draft.body)}`} · {active.inherited?'원작 기준 버전을 보존한 원고예요.':'입력을 멈추면 2초 후 초안만 저장해요. 버전 저장과 공개는 각각 선택하세요.'}</p>
             <div className="writing-foot-actions">
@@ -260,6 +268,9 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
           </footer>
         </>:<p>회차가 없어요. 회차 목록의 새 회차 버튼으로 첫 회차를 만들어 이야기를 시작해 보세요.</p>}
       </div>
+      <aside ref={planPanel} tabIndex={-1} className="writing-plan-panel" aria-label="플롯과 장면 계획" hidden={mode!=='advanced'}>
+        <StoryPlanPanel workId={id} vm={plans} episode={active?.number} episodes={vm.episodes.map(e=>({number:e.number,title:e.draft.title}))} />
+      </aside>
     </div>
     {/* 집필실 안의 집필 AI 채팅(#331). 인물 시뮬레이션 장면은 채팅에 상태 한 줄만 보이고 무대 열기가 무대를 연다. */}
     {chatOpen?<aside className="studio-chat writing-chat" aria-label="AI 채팅">

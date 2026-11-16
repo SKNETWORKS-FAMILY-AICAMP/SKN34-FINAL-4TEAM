@@ -1,0 +1,2 @@
+patchedDependencies:
+  '@toast-ui/editor@3.2.2': patches/@toast-ui__editor@3.2.2.patch

@@ -83,12 +83,12 @@ const serve = (...next: Handler[]) => { handlers = next }
 // 근거(지식 상한)는 발행된 3화, 작가가 연 반영 회차는 발행 전 4화 초안이다(근거와 반영 회차가 묶여 4화가 아닌 3화에 반영되던 버그 시나리오).
 const BASIS: ChatBasis = { episode: 3, episodeVersionId: 'v3', targetEpisode: 4 }
 const onApplied = vi.fn()
-function Host({ basis = BASIS }: { basis?: ChatBasis | null }) {
+function Host({ basis = BASIS, plansVersion = 0, startBlocker = '' }: { basis?: ChatBasis | null; plansVersion?: number; startBlocker?: string }) {
   const chat = useWritingChatViewModel('w', basis, onApplied)
   const stage = useSimulationStageViewModel(chat)
   return <>
     <button type="button" onClick={stage.show}>시뮬레이션</button>
-    {stage.open && <SimulationStage stage={stage} workId="w" episode={3} planEpisode={4} plotLink={<a href="/plot">플롯 화면</a>} onClose={stage.hide} />}
+    {stage.open && <SimulationStage stage={stage} plansVersion={plansVersion} startBlocker={startBlocker} workId="w" episode={3} planEpisode={4} plotLink={<a href="/plot">플롯 화면</a>} onClose={stage.hide} />}
     <p data-testid="chat-line">{chat.simulation ? sceneLine(chat.simulation) : ''}</p>
   </>
 }
@@ -236,7 +236,7 @@ it('흐름 양식은 열린 회차의 장면 계획을 순서대로 비트로 �
   setup((_input, emit) => { pauseAt(emit, scene([narrate(0)])) }, () => {})
   await openForm()
   fireEvent.click(box().getByRole('radio', { name: /흐름/ }))
-  expect(box().getByText(/4화의 장면 계획 2개를 순서대로 비트로 써요/)).toBeTruthy()
+  expect(box().getByText(/4화의 저장된 장면 계획 2개를 순서대로 써요/)).toBeTruthy()
   expect(within(box().getByRole('list', { name: '흐름 비트' })).getAllByRole('listitem').map((li) => li.textContent))
     .toEqual(['성문 대면: 카엘이 성문 앞에서 리안과 마주친다.', '협상: 두 사람이 조건을 흥정한다. 서연이 중재한다.'])
   expect(checkedPeople()).toEqual(['카엘', '리안', '서연']) // 다른 회차 계획의 도윤은 비트가 아니라 고르지 않는다.
@@ -1257,4 +1257,25 @@ it('새 줄이 붙으면 맨 아래에 있던 대본은 따라 내려가고, 위
   await waitFor(() => expect(lines()).toHaveLength(3))
   expect(log.scrollTop).toBe(100)
   serve()
+})
+
+it('같은 회차에서 계획을 저장하면 열린 흐름 양식과 실행 요청도 최신 순서로 갱신한다', async () => {
+  list.mockResolvedValue([plan('a', '이전', '카엘')])
+  const appStore = createAppStore()
+  const view = render(<Provider store={appStore}><Host /></Provider>)
+  await openForm()
+  // IF에서 고른 인물은 흐름의 자동 추천 갱신을 막지 않는다.
+  fireEvent.click(box().getByRole('checkbox', { name: '카엘' }))
+  fireEvent.click(box().getByRole('radio', { name: /흐름/ }))
+  consent()
+  list.mockResolvedValue([plan('a', '나중', '카엘', { position: 1 }), plan('b', '먼저', '리안', { position: 0 })])
+  view.rerender(<Provider store={appStore}><Host plansVersion={1} startBlocker="계획을 저장해 주세요." /></Provider>)
+  await box().findByText('먼저: 리안')
+  expect(startButton().disabled).toBe(true)
+  view.rerender(<Provider store={appStore}><Host plansVersion={1} /></Provider>)
+  await waitFor(() => expect(startButton().disabled).toBe(false))
+  serve((_input, emit) => finish(emit, scene([], { status: 'completed' })))
+  fireEvent.click(startButton())
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(inputs()[0]).toMatchObject({ simulation: { mode: 'flow', beats: ['먼저: 리안', '나중: 카엘'] } })
 })

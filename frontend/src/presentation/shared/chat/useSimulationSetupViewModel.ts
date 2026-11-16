@@ -8,15 +8,15 @@ import { useAsyncData } from '../useAsyncData'
  *   서버가 characterIds를 연결 세계관의 활성 인물 카드 id로 검증하므로 레거시 설정집이나 장면 계획의 인물 id는 쓰지 않는다.
  * - 흐름 비트: 열린 회차의 장면 계획(기존 StoryPlanUseCase). 참여 인물은 그 비트 문장에 이름이 나오는 카드를 미리 고른다.
  */
-export function useSimulationSetupViewModel(workId: string, episode: number | null) {
+export function useSimulationSetupViewModel(workId: string, episode: number | null, plansVersion = 0) {
   const plans = appContainer.resolve('storyPlanUseCase')
   const worlds = appContainer.resolve('worldStudioUseCase')
-  const { data, isLoading, isError, retry } = useAsyncData(async (signal) => {
+  const { data, isLoading, isRefreshing, isError, retry } = useAsyncData(async (signal) => {
     const [list, owned] = await Promise.all([plans.list(workId, signal), worlds.list(signal)])
     const linked = owned.find((world) => world.linkedWorkId === workId)
     const characters = linked ? worldCharacters((await worlds.read(linked.id, signal)).settings) : []
     const beats = planBeats(list, episode)
-    return { linked: !!linked, characters, beats, characterIds: beatCharacterIds(beats, characters) }
-  }, [plans, worlds, workId, episode])
-  return { ready: data, loading: isLoading, failed: isError && !data, retry }
+    return { plansVersion, linked: !!linked, characters, beats, characterIds: beatCharacterIds(beats, characters) }
+  }, [plans, worlds, workId, episode], [plansVersion])
+  return { ready: data, loading: isLoading, refreshing: isRefreshing || !!data && data.plansVersion !== plansVersion, failed: isError, retry }
 }
