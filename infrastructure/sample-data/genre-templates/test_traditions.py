@@ -93,12 +93,20 @@ class TraditionCatalogTest(unittest.TestCase):
                 source = catalog.ROOT / genre / "source"
                 data = catalog.read(source / "tradition-cards.json")
                 template = catalog.read(source / "template.json")
+                self.assertEqual({"genre", "name", "scope", "sources", "cards", "narrative"}, set(data))
+                self.assertEqual({"id", "genre_id", "genre_name", "order", "title", "setting_bible"}, set(template))
+                self.assertEqual({"title", "introduction_markdown", "sections"}, set(template["setting_bible"]))
+                self.assertEqual({"template.json", "tradition-cards.json", "sources.md"} |
+                                 ({"supplementary.md"} if catalog.read_supplementary(genre) is not None else set()),
+                                 {path.name for path in source.iterdir()})
                 self.assertFalse((source / "original.md").exists())
                 self.assertNotIn("content_markdown", template)
                 self.assertEqual("sources.md", data["narrative"])
                 catalog.validate_narrative(data, (source / "sources.md").read_text(encoding="utf-8"),
                                            catalog.read_supplementary(genre))
                 for card, section in zip(data["cards"], template["setting_bible"]["sections"]):
+                    self.assertEqual({"key", "title", "cardType", "body", "narrative_refs"}, set(card))
+                    self.assertEqual({"id", "order", "title", "content_markdown", "template_part", "card_type", "narrative_refs"}, set(section))
                     self.assertEqual(card["narrative_refs"], section["narrative_refs"])
                     for ref in card["narrative_refs"]:
                         self.assertEqual({"document", "section"} | ({"excerpt_sha256"} if ref["document"] == "supplementary.md" else set()), set(ref))
