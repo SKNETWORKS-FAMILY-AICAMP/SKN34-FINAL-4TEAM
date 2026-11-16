@@ -1,7 +1,7 @@
 {
   "genre": "cthulhu_mythos",
-  "name": "크툴루 신화 · 크툴루의 부름",
-  "scope": "《크툴루의 부름》(1928) 한 작품의 한국어 완역에서 추출한 세계관. 다른 소설과 후대 작가·TRPG 설정을 포함하지 않으며 증언·작중 문헌·화자의 추론을 구분한다.",
+  "name": "크툴루 신화 · 러브크래프트의 선택된 작품",
+  "scope": "《크툴루의 부름》 완역과 《던위치의 공포》, 《다곤》, 《우주에서 온 색채》에서 직접 확인한 일부 항목. 전체 신화 백과가 아니며 증언·꿈·작중 문헌·화자의 추론과 후대 분류를 구분한다.",
   "sources": [
     {
       "title": "크툴루의 부름: 영어 전사본",
@@ -10,6 +10,18 @@
     {
       "title": "크툴루의 부름: 초출 서지",
       "url": "https://www.hplovecraft.com/writings/fiction/cc.aspx"
+    },
+    {
+      "title": "던위치의 공포: 영어 전사본",
+      "url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx"
+    },
+    {
+      "title": "다곤: 영어 전사본",
+      "url": "https://www.hplovecraft.com/writings/texts/fiction/d.aspx"
+    },
+    {
+      "title": "우주에서 온 색채: 영어 전사본",
+      "url": "https://www.hplovecraft.com/writings/texts/fiction/cs.aspx"
     }
   ],
   "cards": [
@@ -1110,6 +1122,201 @@
         {
           "section": "part-3-p011",
           "evidence": "그 뒤 시드니로 가서 선원들과 해사재판소 관계자들을 만나 이야기했으나 성과는 없었다. 시드니코브의 서큘러키에서 이미 매각되어 상업용으로 쓰이고 있던 얼러트호를 보았지만, 아무것도 말해 주지 않는 그 육중한 선체에서는 아무런 단서도 얻지 못했다. 갑오징어 머리와 용의 몸통, 비늘 덮인 날개, 상형문자가 새겨진 받침대를 지닌 웅크린 석상은 하이드파크의 박물관에 보존되어 있었다. 나는 그것을 오래도록 면밀히 살펴보았고, 불길할 정도로 정교한 솜씨로 만들어졌으며 르그라스가 지닌 더 작은 표본에서 보았던 것과 똑같은 철저한 불가사의, 두려울 만큼 아득한 연대, 이 세상 것이 아닌 듯한 재료의 기이함을 갖추고 있음을 확인했다. 관장의 말에 따르면 지질학자들에게도 그것은 엄청난 수수께끼였다. 그들은 세상에 그와 같은 암석은 없다고 단언했다는 것이다. 그때 나는 늙은 카스트로가 태초의 위대한 존재들에 관해 르그라스에게 했던 말을 떠올리며 몸을 떨었다. “그들은 별에서 왔으며, 자신들의 형상을 함께 가져왔소.”"
+        }
+      ]
+    },
+    {
+      "key": "dunwich",
+      "title": "던위치",
+      "cardType": "location",
+      "body": "외부인이 잘 찾지 않는 시골 지역으로, 서술자는 1928년의 공포 사건 이후 이정표가 없어졌다고 전한다. 마을 주민과 가문에 대한 경멸적 묘사는 원작의 편견을 담은 서술이지 객관적인 지역 특성이 아니다.\n\n출전: [던위치의 공포](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx), 제I부.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-dunwich",
+          "evidence": "the Dunwich horror of 1928"
+        }
+      ]
+    },
+    {
+      "key": "wilbur-whateley",
+      "title": "윌버 웨이틀리",
+      "cardType": "character",
+      "body": "1913년 던위치의 웨이틀리 농가에서 태어난 인물이다. 훗날 가계에 관한 초자연적 설명은 작중 문헌과 인물들의 해석을 거친다.\n\n출전: [던위치의 공포](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx), 제II부.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-wilbur-whateley",
+          "evidence": "that Wilbur Whateley was born"
+        }
+      ]
+    },
+    {
+      "key": "necronomicon-versions",
+      "title": "네크로노미콘의 대학 소장본",
+      "cardType": "object",
+      "body": "윌버는 할아버지가 물려준 불완전한 디 박사의 영어본을 들고 아컴 대학 도서관을 찾는다. 그는 올라우스 보르미우스의 라틴어본과 비교해 누락된 대목을 찾으려 한다. 책의 문장은 작중 문헌의 주장으로 다루며 실제 존재하는 역사적 금서로 제시하지 않는다.\n\n출전: [던위치의 공포](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx), 제V부.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-necronomicon-versions",
+          "evidence": "Wilbur had with him the priceless but imperfect copy"
+        }
+      ]
+    },
+    {
+      "key": "yog-sothoth",
+      "title": "요그 소토스",
+      "cardType": "character",
+      "body": "아미티지가 머릿속으로 번역하는 네크로노미콘 대목은 요그 소토스를 문과 열쇠 및 문지기로 묘사한다. 이것은 허구의 책에 기록된 진술이다. 작품 밖에서 후대의 정해진 신격 분류나 서열을 덧붙이지 않는다.\n\n출전: [던위치의 공포](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx), 제V부.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-yog-sothoth",
+          "evidence": "Yog-Sothoth knows the gate."
+        }
+      ]
+    },
+    {
+      "key": "dunwich-horror",
+      "title": "1928년 던위치의 공포",
+      "cardType": "event",
+      "body": "서술자는 1928년 던위치에서 일어난 공포 사건이 무마되었다고 말한다. 뒤이어 웨이틀리 가문의 사정과 아미티지 등의 조사가 제시된다. 서술자가 숨겨진 진상을 설명하는 방식과 소문은 구별한다.\n\n출전: [던위치의 공포](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx), 제I부.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-dunwich-horror",
+          "evidence": "the Dunwich horror of 1928"
+        }
+      ]
+    },
+    {
+      "key": "old-ones-usage",
+      "title": "옛 존재라는 말의 용례",
+      "cardType": "rule",
+      "body": "《던위치의 공포》에서 네크로노미콘은 Old Ones를 언급하며 인간과 보이지 않는 관계를 묘사한다. 이는 작중 문헌의 진술이다. 외신·구신은 후대 작가와 게임 등이 정리한 분류일 수 있으나 이 원문에 고정된 신격 체계가 있다고 주장하지 않는다.\n\n출전: [던위치의 공포](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx), 제V부.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-old-ones-usage",
+          "evidence": "The Old Ones were, the Old Ones are"
+        }
+      ]
+    },
+    {
+      "key": "arkham",
+      "title": "아컴과 미스캐토닉 도서관",
+      "cardType": "location",
+      "body": "윌버 웨이틀리가 네크로노미콘의 라틴어본을 찾아 방문한 대학 도시다. 대학 도서관의 아미티지는 윌버의 연구를 경계한다. 아컴은 지명이며 던위치와 같은 마을이 아니다.\n\n출전: [던위치의 공포](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx), 제V부.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-arkham",
+          "evidence": "one day in Arkham"
+        }
+      ]
+    },
+    {
+      "key": "miskatonic-library",
+      "title": "미스캐토닉 대학 도서관",
+      "cardType": "organization",
+      "body": "아컴의 대학 도서관은 네크로노미콘 라틴어본을 잠가 보관한다. 사서 헨리 아미티지는 윌버 웨이틀리가 이 책의 특정 부분을 베끼는 모습을 지켜본다.\n\n출전: [던위치의 공포](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx), 제V부.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-miskatonic-library",
+          "evidence": "the dreaded volume kept under lock and key"
+        }
+      ]
+    },
+    {
+      "key": "shub-niggurath",
+      "title": "슈브 니구라스의 이름",
+      "cardType": "character",
+      "body": "아미티지가 번역하는 네크로노미콘의 인용문에서 슈브 니구라스의 이름이 외침으로 나타난다. 이 짧은 언급은 다른 존재와의 족보나 신격 서열을 확정하지 않는다.\n\n출전: [던위치의 공포](https://www.hplovecraft.com/writings/texts/fiction/dh.aspx), 제V부.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-shub-niggurath",
+          "evidence": "Iä! Shub-Niggurath!"
+        }
+      ]
+    },
+    {
+      "key": "dagon-monolith",
+      "title": "바다 밑에서 드러난 단석",
+      "cardType": "object",
+      "body": "선원의 기록에 따르면 바다 밑에서 드러난 진흙 벌판의 틈에서 조각과 문자가 새겨진 거대한 단석을 발견한다. 돌의 제작자와 실제 나이에 대한 묘사는 그의 추측을 포함한다.\n\n출전: [다곤](https://www.hplovecraft.com/writings/texts/fiction/d.aspx), 본문.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-dagon-monolith",
+          "evidence": "a well-shaped monolith"
+        }
+      ]
+    },
+    {
+      "key": "dagon-figure",
+      "title": "다곤의 이름과 바다의 형상",
+      "cardType": "character",
+      "body": "선원은 거대한 물속 형상을 목격했다고 기록한 후, 민족학자에게 필리스티아의 물고기 신 다곤 전설을 묻는다. 작품은 그가 본 형상의 이름을 다곤이라고 확정하지 않으므로 둘을 동일시하지 않는다.\n\n출전: [다곤](https://www.hplovecraft.com/writings/texts/fiction/d.aspx), 본문.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-dagon-figure",
+          "evidence": "the ancient Philistine legend of Dagon"
+        }
+      ]
+    },
+    {
+      "key": "dagon-voyage",
+      "title": "표류한 선원의 발견",
+      "cardType": "event",
+      "body": "전쟁 중 포로로 잡혔다가 작은 배로 탈출한 선원은 바다 밑 땅으로 보이는 곳에서 단석과 물속 형상을 보았다고 서술한다. 이후 구조되지만 그 경험과 꿈에 시달린다. 사건은 그의 유고를 통해서만 전해진다.\n\n출전: [다곤](https://www.hplovecraft.com/writings/texts/fiction/d.aspx), 본문.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-dagon-voyage",
+          "evidence": "a well-shaped monolith"
+        }
+      ]
+    },
+    {
+      "key": "blasted-heath",
+      "title": "아컴 서쪽의 황폐한 땅",
+      "cardType": "location",
+      "body": "측량사는 아컴 서쪽 계곡에서 황폐한 땅과 오래된 우물을 보고, 인근 주민에게 연유를 묻는다. 늙은 애미 피어스가 그곳의 가드너 농장에 관한 이야기를 들려준다.\n\n출전: [우주에서 온 색채](https://www.hplovecraft.com/writings/texts/fiction/cs.aspx), 본문.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-blasted-heath",
+          "evidence": "where the blasted heath is now"
+        }
+      ]
+    },
+    {
+      "key": "gardner-meteorite",
+      "title": "가드너 농장의 운석",
+      "cardType": "event",
+      "body": "애미 피어스는 나훔 가드너의 농장에 운석이 떨어진 후 이상한 일들이 시작됐다고 측량사에게 이야기한다. 대학 교수들이 운석을 조사하고, 농작물과 농가의 변화가 이어진다. 인과관계는 애미의 증언과 등장인물들의 해석을 거친다.\n\n출전: [우주에서 온 색채](https://www.hplovecraft.com/writings/texts/fiction/cs.aspx), 본문.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-gardner-meteorite",
+          "evidence": "It all began, old Ammi said, with the meteorite."
+        }
+      ]
+    },
+    {
+      "key": "colour-from-space",
+      "title": "우주에서 온 색채",
+      "cardType": "character",
+      "body": "화자는 애미의 이야기를 듣고 농장에 나타난 정체를 우주에서 온 색채라고 이해한다. 사건의 원인은 전언과 화자의 해석을 통해 제시되며, 색채를 특정 신격이나 정해진 생물 종으로 단정하지 않는다.\n\n출전: [우주에서 온 색채](https://www.hplovecraft.com/writings/texts/fiction/cs.aspx), 본문.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-colour-from-space",
+          "evidence": "a colour out of space"
         }
       ]
     }
