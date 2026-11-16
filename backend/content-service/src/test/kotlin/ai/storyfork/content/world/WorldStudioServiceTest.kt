@@ -120,7 +120,7 @@ class WorldStudioServiceTest {
         assertEquals(pendingHash, state.requestHash)
         val result = service.draft(world, owner)
         val saved = service.revision(world, owner, studioWorld.currentRevisionId!!)
-        val expectedDocs = mapOf("soul" to "차분하게 말한다", "memory" to "", "episodes" to emptyMap<String, String>())
+        val expectedDocs = mapOf("soul" to "차분하게 말한다", "goal" to "", "episodes" to emptyMap<String, String>())
         assertEquals(6L, result.draftRevision)
         assertEquals(3L, saved.revisionNo)
         assertEquals(baselineId, saved.parentRevisionId)

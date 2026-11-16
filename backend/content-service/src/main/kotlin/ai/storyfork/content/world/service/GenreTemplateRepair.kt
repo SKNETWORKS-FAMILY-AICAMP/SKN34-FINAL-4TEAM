@@ -90,7 +90,7 @@ internal class GenreTemplateRepair(private val service: WorldStudioService) {
             if (card.cardType == "character") {
                 val soul = card.soul
                 require(!soul.isNullOrBlank() && soul.length <= 3000) { "인물 SOUL 누락 또는 길이 초과: ${card.title}" }
-                payload.copy(semanticMetadata = payload.semanticMetadata + ("characterDocs" to mapOf("soul" to soul, "memory" to "", "episodes" to emptyMap<String, String>())))
+                payload.copy(semanticMetadata = payload.semanticMetadata + ("characterDocs" to mapOf("soul" to soul, "goal" to "", "episodes" to emptyMap<String, String>())))
             } else {
                 require(card.soul == null) { "인물이 아닌 카드에 SOUL: ${card.title}" }
                 payload

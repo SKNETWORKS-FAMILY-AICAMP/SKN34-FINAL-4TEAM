@@ -68,7 +68,10 @@ class WorldStudioServicePostgresTest {
                 assertEquals(1L, first.revisionNo)
                 assertEquals(GenreTemplateRepair.payloads(template!!).toSet(), first.cards.map { it.card }.toSet())
                 assertTrue(first.cards.none { it.card.semanticMetadata.containsKey("characterDocs") })
-                assertTrue(saved.cards.filter { it.card.cardType == "character" }.all { it.card.semanticMetadata.containsKey("characterDocs") })
+                saved.cards.filter { it.card.cardType == "character" }.forEach { card ->
+                    val soul = template!!.cards.single { it.id == card.card.id }.soul
+                    assertEquals(mapOf("soul" to soul, "goal" to "", "episodes" to emptyMap<String, String>()), card.card.semanticMetadata["characterDocs"])
+                }
                 seeder.seed()
                 assertEquals(draft, service.draft(worldId, owner))
             }
