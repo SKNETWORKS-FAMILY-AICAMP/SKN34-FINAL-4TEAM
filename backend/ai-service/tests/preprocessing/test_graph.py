@@ -27,9 +27,10 @@ def test_failed_episodes_go_to_fail_and_nothing_after_resolve_runs(monkeypatch):
     assert logic.resolved == [] and remote.loads == []
 
 
-def test_the_logic_is_left_for_the_follow_up_work():
-    with pytest.raises(NotImplementedError):
-        service.extract(episode(1))
+def test_real_execution_stays_blocked_until_content_and_retry_contracts_exist():
+    from app.preprocessing.errors import PreprocessingFailure
+    with pytest.raises(PreprocessingFailure, match="PREPROCESSING_NOT_IMPLEMENTED"):
+        service.require_available()
 
 
 def test_separate_graph_invocations_do_not_resume_successful_episodes(monkeypatch):
