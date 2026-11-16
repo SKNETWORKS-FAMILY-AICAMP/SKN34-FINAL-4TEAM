@@ -155,7 +155,9 @@ export function useStoryPlanViewModel(workId: string, demo: boolean, api: StoryP
     move: (plan: StoryPlan, position: number) => {
       if (!mayLeave()) return
       void run(async signal => {
-        try { await api.move(workId, plan, position, signal) } finally { if (!signal.aborted) setVersion(v => v + 1) }
+        let saved: StoryPlan
+        try { saved = await api.move(workId, plan, position, signal) } finally { if (!signal.aborted) setVersion(v => v + 1) }
+        setPlans(rows => rows.map(p => p.id === saved.id ? saved : p))
         // A committed move stays acknowledged even when the subsequent list refresh fails.
         setNotice('장면 순서를 저장했어요.')
         return api.list(workId, signal)

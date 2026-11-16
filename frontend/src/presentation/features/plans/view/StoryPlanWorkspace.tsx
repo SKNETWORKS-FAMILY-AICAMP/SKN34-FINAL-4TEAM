@@ -51,8 +51,10 @@ export function StoryPlanPanel({ workId, demo = false, vm, episode, episodes }: 
     const target = pressed.current
     pressed.current = null
     const active = document.activeElement
-    if (!target?.isConnected || (active && active !== document.body && !(active instanceof HTMLButtonElement && active.disabled))) return
-    ;(target.disabled ? target.parentElement?.querySelector<HTMLButtonElement>('button:not(:disabled)') : target)?.focus()
+    if (!target || (active && active !== document.body && !(active instanceof HTMLButtonElement && active.disabled))) return
+    // 편집한 장면이 회차를 옮겨 목록에서 빠졌으면 추가 버튼으로 돌린다.
+    const button = target.isConnected ? target : addScene.current ?? addPlot.current
+    ;(button?.disabled ? button.parentElement?.querySelector<HTMLButtonElement>('button:not(:disabled)') : button)?.focus()
   }, [vm.embedded, vm.editor, vm.busy, vm.deleting, vm.plans])
 
   const refs = vm.references
@@ -99,7 +101,7 @@ export function StoryPlanPanel({ workId, demo = false, vm, episode, episodes }: 
             <button type="button" ref={button => { if (button) planButtons.current.set(scene.id, button); else planButtons.current.delete(scene.id) }} className="plan-scene-open" disabled={vm.busy} onClick={() => vm.edit(scene)}>
               <small>{vm.embedded && `${plots.find(p => p.id === scene.parentId)?.title ?? '플롯'} · `}{scene.episodeMissing ? '연결 회차 확인 필요' : scene.episodeNumber ? `${scene.episodeNumber}화 계획` : '회차 미정'}</small><strong id={`${sceneTitle}-${scene.id}`}>{scene.title}</strong><span>{scene.content || '아직 장면 내용이 없어요.'}</span>
               {refs && <small>{names(scene.characterIds, refs.characters) || '등장인물 미정'}{scene.placeIds.length ? ` / ${names(scene.placeIds, refs.places)}` : ''}</small>}
-            </button><div className="plan-scene-actions"><button type="button" className="btn sm" aria-label={`${scene.title} 위로 이동`} disabled={vm.busy || index <= 0} onClick={() => vm.move(scene, index - 1)}>위로</button><button type="button" className="btn sm" aria-label={`${scene.title} 아래로 이동`} disabled={vm.busy || index < 0 || index >= ordered.length - 1} onClick={() => vm.move(scene, index + 1)}>아래로</button><button type="button" className="btn sm" aria-label="장면 계획 삭제" aria-describedby={`${sceneTitle}-${scene.id}`} disabled={vm.busy} onClick={() => vm.askDelete(scene)}>삭제</button></div>
+            </button><div className="plan-scene-actions"><button type="button" className="btn sm" aria-label={`${scene.title} 위로 이동`} disabled={vm.busy || !!vm.error || index <= 0} onClick={() => vm.move(scene, index - 1)}>위로</button><button type="button" className="btn sm" aria-label={`${scene.title} 아래로 이동`} disabled={vm.busy || !!vm.error || index < 0 || index >= ordered.length - 1} onClick={() => vm.move(scene, index + 1)}>아래로</button><button type="button" className="btn sm" aria-label="장면 계획 삭제" aria-describedby={`${sceneTitle}-${scene.id}`} disabled={vm.busy} onClick={() => vm.askDelete(scene)}>삭제</button></div>
           </li>})}</ol>
         </> : <p className="plan-empty muted">플롯을 추가하거나 목록에서 선택하면 상세 내용과 장면 계획을 볼 수 있어요.</p>}
       </div>
