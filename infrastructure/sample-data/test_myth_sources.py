@@ -140,20 +140,52 @@ def missing_subjects(cards, subjects):
 
 
 class MythSourceTest(unittest.TestCase):
+    def test_apocalypse_character_relationships_and_regression_timing(self):
+        data = read_json(BASE / 'apocalypse/source/setting-cards.json')
+        cards = {card['key']: card for card in data['cards']}
+        self.assertIn('태건의 여동생', cards['yun-seoeun']['body'])
+        for phrase in ('전생', '가족을 인질', '거점 위치', '이번 생', '아직 배신하지 않'):
+            self.assertIn(phrase, cards['oh-minseok']['body'])
+        for phrase in ('전생', 'D-30', '다가올'):
+            self.assertIn(phrase, cards['gray-fall']['body'])
+
+    def test_creative_details_follow_the_named_source_sections(self):
+        cases = {
+            ('modern_fantasy', 'baek-jinseok'): ('아들',),
+            ('wuxia', 'regression-token'): ('회천검패',),
+            ('science_fiction', 'captain-authentication'): ('초기에는 이안만',),
+            ('alternate_history', 'northern-garrison'): ('북방', '중앙의 평판'),
+            ('game_fantasy', 'resurrection'): ('세 번', '되돌아올 방법은 확인되지'),
+            ('fusion_fantasy', 'alteon-imperial-house'): ('영웅들이 세운 알테온 제국',),
+            ('territory_management', 'lowell-estate'): ('늦여름', '42일', '연간 현금 수입'),
+        }
+        for (genre, key), phrases in cases.items():
+            with self.subTest(genre=genre, key=key):
+                cards = read_json(BASE / genre / 'source/setting-cards.json')['cards']
+                body = next(card['body'] for card in cards if card['key'] == key)
+                for phrase in phrases:
+                    self.assertIn(phrase, body)
+                if (genre, key) == ('modern_fantasy', 'baek-jinseok'):
+                    self.assertNotIn('민도혁', body)
+
     def test_original_sources_and_frozen_v1_are_unchanged(self):
         manifest = read_json(BASE / 'genre-preservation.json')
         for path, sha in manifest['source_files'].items():
-            self.assertEqual(sha, hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), path)
+            self.assertEqual(sha, hashlib.sha256((ROOT / path).read_bytes().replace(b'\r\n', b'\n')).hexdigest(), path)
         self.assertEqual('96cbbb7607aada4ca8f7a27f56cfd6a6197c7826db0160fae2cc134768992d85',
-                         hashlib.sha256((RESOURCES / 'genre-templates-v1.json').read_bytes()).hexdigest())
+                         hashlib.sha256((RESOURCES / 'genre-templates-v1.json').read_bytes().replace(b'\r\n', b'\n')).hexdigest())
         legacy = read_json(RESOURCES / 'genre-templates-v1.json')
         self.assertEqual(11, len(legacy))
         self.assertEqual(manifest['legacy_genres_sha256'], digest(legacy))
 
     # 원전 문서·카드 일치는 새 형식(tradition-cards.json)을 읽는 genre-templates/test_traditions.py가 검사한다.
-    def test_runtime_has_twenty_six_worlds(self):
+    def test_runtime_has_twenty_six_worlds_and_1254_cards(self):
         runtime = read_json(RESOURCES / 'genre-templates.json')
         self.assertEqual(26, len(runtime))
+        self.assertEqual(386, sum(len(w['cards']) for w in runtime[:11]))
+        self.assertEqual(868, sum(len(w['cards']) for w in runtime[11:]))
+        self.assertEqual(1254, sum(len(w['cards']) for w in runtime))
+        self.assertEqual(set(EXISTING_CARDS), {w['genre'] for w in runtime[11:]})
 
     def test_creative_cards_match_sources_and_preserve_worlds(self):
         runtime = {world['worldId']: world for world in read_json(RESOURCES / 'genre-templates.json')}

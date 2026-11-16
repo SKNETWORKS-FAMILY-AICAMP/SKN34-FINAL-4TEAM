@@ -18,7 +18,7 @@ class GenreTemplateRepairTest {
     private val saved = UUID.randomUUID()
     private fun draft(revision: Long, cards: List<CardPayload>) = WorldDraftResponse(old.worldId, revision, saved, saved, old.name, old.description, cards, emptyList())
     private fun legacy() = listOf(CardPayload(card.id, card.title, card.body, card.cardType, "basic", visibility = "public"))
-    private fun edit() = EditWorldDraftRequest(2, old.name, old.description, GenreTemplateRepair.payloads(updated), key = "genre-template-test-repair-v2")
+    private fun edit() = EditWorldDraftRequest(2, old.name, old.description, GenreTemplateRepair.payloads(updated), key = "genre-template-test-repair-v2", replace = true)
     private fun prepare() {
         `when`(service.edit(old.worldId, owner, edit())).thenReturn(draft(3, GenreTemplateRepair.payloads(updated)))
     }
@@ -31,11 +31,15 @@ class GenreTemplateRepairTest {
         order.verify(service).save(old.worldId, owner, SaveWorldRequest(3, "genre-template-test-repair-v2"))
     }
     @Test fun `does not overwrite user changes or an already repaired world`() {
-        for (d in listOf(draft(2, legacy().map { it.copy(body = "사용자 원고") }), draft(4, GenreTemplateRepair.payloads(updated)), draft(5, legacy()))) {
+        val relationship = RelationshipPayload(UUID.randomUUID(), card.id, card.id, "structural", "사용자 관계")
+        val removed = legacy().map { it.copy(lifecycle = "removed") }
+        for (d in listOf(draft(2, legacy().map { it.copy(body = "사용자 원고") }),
+            draft(2, legacy()).copy(relationships = listOf(relationship)),
+            draft(4, GenreTemplateRepair.payloads(updated) + removed), draft(5, legacy()))) {
             `when`(service.draft(old.worldId, owner)).thenReturn(d)
             repair.repair(old, updated)
         }
-        verify(service, times(3)).draft(old.worldId, owner)
+        verify(service, times(4)).draft(old.worldId, owner)
         verifyNoMoreInteractions(service)
     }
     @Test fun `resumes the identical edit after graph prepare or before save`() {

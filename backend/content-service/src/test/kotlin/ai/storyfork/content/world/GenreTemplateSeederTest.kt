@@ -22,7 +22,8 @@ class GenreTemplateSeederTest {
     private val service = mock(WorldStudioService::class.java)
     private val seeder = GenreTemplateSeeder(service, JsonMapper.builder().addModule(KotlinModule.Builder().build()).build())
     private val legacy = seeder.loadLegacy()
-    private val templates = legacy + seeder.load().filter { current -> legacy.none { it.worldId == current.worldId } }
+    private val current = seeder.load()
+    private val templates = legacy + current.filter { current -> legacy.none { it.worldId == current.worldId } }
     /** Core auth V8 운영 관리자(admin@example.test, operator=true)의 회원 ID. 템플릿 소유자로 임시 할당한 값을 리터럴로 고정한다. */
     private val owner = UUID.fromString("5f0c2c7e-8a51-4d6b-9a39-1f4f2b6d0a01")
 
@@ -35,6 +36,12 @@ class GenreTemplateSeederTest {
         WorldDraftResponse(t.worldId, revision, saved, null, t.name, t.description, emptyList(), emptyList())
     private fun revision(t: GenreTemplate) =
         WorldRevisionResponse(t.worldId, UUID.randomUUID(), 1, t.name, t.description, null, null, emptyList(), null)
+    private fun repairEdit(t: GenreTemplate) = EditWorldDraftRequest(2, t.name, t.description,
+        GenreTemplateRepair.payloads(t), key = "genre-template-${t.genre}-repair-v2", replace = true)
+    private fun savedDraft(t: GenreTemplate, revision: Long, cards: List<CardPayload>): WorldDraftResponse {
+        val saved = UUID.randomUUID()
+        return WorldDraftResponse(t.worldId, revision, saved, saved, t.name, t.description, cards, emptyList())
+    }
 
     /** 아직 아무것도 적재되지 않은 서비스: create는 새 draft(0), edit는 draft(1)를 돌려준다. */
     private fun fresh(t: GenreTemplate) {
@@ -57,6 +64,45 @@ class GenreTemplateSeederTest {
             if (t in legacy) order.verify(service).draft(t.worldId, owner)
         }
         verifyNoMoreInteractions(service)
+    }
+
+    @Test fun `all pristine v1 worlds repair with actual current resources`() {
+        templates.forEach(::fresh)
+        legacy.forEach { old ->
+            val target = current.single { it.worldId == old.worldId }
+            assertNotEquals(old.cards, target.cards, old.genre)
+            `when`(service.draft(old.worldId, owner)).thenReturn(savedDraft(old, 2, edit(old).cards))
+            `when`(service.edit(old.worldId, owner, repairEdit(target))).thenReturn(draft(target, 3))
+        }
+        seeder.seed()
+        legacy.forEach { old ->
+            val target = current.single { it.worldId == old.worldId }
+            val order = inOrder(service)
+            order.verify(service).edit(old.worldId, owner, edit(old))
+            order.verify(service).save(old.worldId, owner, save(old, 1))
+            order.verify(service).edit(old.worldId, owner, repairEdit(target))
+            order.verify(service).save(old.worldId, owner, SaveWorldRequest(3, "genre-template-${old.genre}-repair-v2"))
+        }
+    }
+
+    @Test fun `actual resources skip user edits and completed repairs and reject pending conflicts`() {
+        templates.forEach(::fresh)
+        val (user, completed, pending) = legacy.take(3)
+        for (old in listOf(user, completed, pending)) {
+            `when`(service.create(owner, create(old))).thenReturn(draft(old, 2, UUID.randomUUID()))
+        }
+        val userCards = edit(user).cards.mapIndexed { i, card -> if (i == 0) card.copy(body = "사용자 변경") else card }
+        `when`(service.draft(user.worldId, owner)).thenReturn(savedDraft(user, 2, userCards))
+        val doneTarget = current.single { it.worldId == completed.worldId }
+        `when`(service.draft(completed.worldId, owner)).thenReturn(savedDraft(completed, 4, GenreTemplateRepair.payloads(doneTarget)))
+        val pendingTarget = current.single { it.worldId == pending.worldId }
+        `when`(service.draft(pending.worldId, owner)).thenThrow(WorldStudioFailure.incomplete())
+        `when`(service.edit(pending.worldId, owner, repairEdit(pendingTarget))).thenThrow(IllegalStateException("hash conflict"))
+        assertDoesNotThrow { seeder.seed() }
+        verify(service, never()).edit(user.worldId, owner, repairEdit(current.single { it.worldId == user.worldId }))
+        verify(service, never()).edit(completed.worldId, owner, repairEdit(doneTarget))
+        verify(service).edit(pending.worldId, owner, repairEdit(pendingTarget))
+        verify(service, never()).save(pending.worldId, owner, SaveWorldRequest(3, "genre-template-${pending.genre}-repair-v2"))
     }
 
     @Test fun `a failing genre is logged and never stops the others or escapes`() {

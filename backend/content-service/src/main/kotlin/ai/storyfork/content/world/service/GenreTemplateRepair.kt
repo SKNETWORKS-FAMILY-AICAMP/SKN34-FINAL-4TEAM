@@ -18,16 +18,16 @@ internal class GenreTemplateRepair(private val service: WorldStudioService) {
             val sameWorld = draft.currentRevisionId != null && draft.baseWorldRevisionId == draft.currentRevisionId &&
                 draft.name == legacy.name && draft.description == legacy.description && draft.relationships.isEmpty()
             val pristine = draft.draftRevision == 2L && draft.cards.toSet() == original.toSet()
-            val edited = draft.draftRevision == 3L && draft.cards.toSet() == target.toSet()
+            val edited = draft.draftRevision == 3L && draft.cards.filter { it.lifecycle == "active" }.toSet() == target.toSet()
             if (!sameWorld || (!pristine && !edited)) {
-                if (draft.draftRevision != 4L || draft.cards.toSet() != target.toSet())
+                if (draft.draftRevision != 4L || draft.cards.filter { it.lifecycle == "active" }.toSet() != target.toSet())
                     log.warn("템플릿 보완 건너뜀 genre={}: 초기 샘플과 다름; 사용자 편집 보존", legacy.genre)
                 return
             }
         }
         // 미완료 재시도도 고정 expected revision/key/hash를 사용한다. 다른 요청이면 서비스가 거절한다.
         val key = "genre-template-${legacy.genre}-repair-v2"
-        val edited = service.edit(legacy.worldId, owner, EditWorldDraftRequest(2, updated.name, updated.description, target, key = key))
+        val edited = service.edit(legacy.worldId, owner, EditWorldDraftRequest(2, updated.name, updated.description, target, key = key, replace = true))
         service.save(legacy.worldId, owner, SaveWorldRequest(edited.draftRevision, key))
     }
 
