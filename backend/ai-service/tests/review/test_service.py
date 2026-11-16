@@ -41,6 +41,14 @@ def test_quote_found_twice_has_no_location_and_is_not_confirmed(monkeypatch):
     assert (found.start, found.end, found.status) == (None, None, 'suspected')
 
 
+def test_overlapping_quote_counts_as_twice(monkeypatch):
+    # str.count는 겹치는 출현을 한 번으로 센다('하하하'에서 '하하'는 0·1 두 곳, #390).
+    fake_content(monkeypatch, body='하하하')
+    fake_agent(monkeypatch, finding(quote='하하'))
+    found = service.review(mechanical()).findings[0]
+    assert (found.start, found.end, found.status) == (None, None, 'suspected')
+
+
 @pytest.mark.parametrize('bad', [
     finding(quote='원고에 없는 문장'),             # 원고에 없는 구절
     finding(category='setting'),                   # Mechanical에 Semantic 분류
@@ -109,6 +117,16 @@ def test_semantic_suspicion_may_have_no_evidence(monkeypatch):
     fake_content(monkeypatch)
     fake_agent(monkeypatch, finding(category='emotion', status='suspected'))
     assert service.review(semantic()).findings[0].status == 'suspected'
+
+
+@pytest.mark.parametrize('world', [[], None, {'worldId': 'world-1'}, {'worldId': 'world-1', 'cards': [{'id': 'c'}]}])
+def test_semantic_with_malformed_world_read_is_502(monkeypatch, world):
+    # 세계관 응답 형식 오류는 처리되지 않은 500이 아니라 정해진 502다(#392).
+    fake_content(monkeypatch, world=world)
+    fake_agent(monkeypatch)
+    with pytest.raises(ReviewFailure) as error:
+        service.review(semantic())
+    assert (error.value.status, str(error.value)) == (502, service.BAD_CONTENT)
 
 
 def test_semantic_without_linked_world_is_409(monkeypatch):

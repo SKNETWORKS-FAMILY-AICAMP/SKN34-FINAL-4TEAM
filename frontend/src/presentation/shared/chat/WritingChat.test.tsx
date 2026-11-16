@@ -221,6 +221,19 @@ it('조건부 수정 입력 대기는 확정 지적만 보기로 두고, 고른 
   expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true, inputs: { writing_editing: { fix: 2 } } } })
 })
 
+it('조건부 수정 지적 고르기 중에도 직전 검수 결과(제안·의심·확인 못 함)가 보인다(#391)', async () => {
+  const finding = (quote: string, status: string) => ({ category: 'spelling', quote, reason: `${quote} 오류`, status, evidenceRefs: [], suggestion: `${quote} 고침`, start: status === 'confirmed' ? 0 : null, end: status === 'confirmed' ? 1 : null })
+  const review = { check: 'mechanical', episode: 2, revision: 4, gaps: ['날짜 비교 대상 없음'], findings: [finding('웃엇다', 'confirmed'), finding('비가', 'suspected'), finding('말햇다', 'confirmed')] }
+  openThread([{ request: '검수하고 틀리면 고쳐 줘', reply: { status: 'waiting', missingInputs: ['writing_editing'], awaitingApproval: null, steps: [
+    { feature: 'review', status: 'completed', review }, { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' }] } }])
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  const form = (await screen.findByRole('heading', { name: '작업에 필요한 내용을 알려 주세요' })).closest('form') as HTMLElement
+  const result = within(form).getByLabelText('검수 결과').textContent
+  expect(result).toContain('제안: 웃엇다 고침')
+  expect(result).toContain('"비가"')
+  expect(result).toContain('확인 못 함: 날짜 비교 대상 없음')
+})
+
 it('건너뛴 조건부 수정 단계는 진행 표시에서 대기가 아니라 건너뜀으로 보인다(#370)', async () => {
   openThread([])
   let emit!: (event: ChatEvent) => void
