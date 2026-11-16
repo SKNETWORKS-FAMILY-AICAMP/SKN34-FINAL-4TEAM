@@ -33,7 +33,7 @@ export function useInitialWorldReview(world:string,active:boolean,dirty:boolean,
     if(verified.status!=='applied')throw new Error('반영 완료를 아직 확인하지 못했어요.')
     // Unlock the original editor only for its server reload; no local candidate insertion.
     if(signal.aborted)return;await reload(verified);if(signal.aborted)return
-    setReceipt(verified);useCase!.acknowledge(world)
+    await useCase!.acknowledge(world,verified.applicationId);if(signal.aborted)return;setReceipt(verified)
     setMessage('승인한 내용이 세계관 초안에 반영됐어요. 확정 버전은 ‘확정 버전 남기기’로 따로 남길 수 있어요.')
    }else setMessage(r.status==='failed'?'초안 반영 실패로 보고됐어요. 최신 상태를 확인해 주세요.':'반영 결과가 아직 미확인이에요. 같은 요청으로 확인해 주세요. 예약 취소는 지원하지 않아요.')
   }else if('analysisId'in r){setSelected(r.analysisId);setMessage(r.executionStatus==='completed'?'분석이 완료됐어요. 후보를 검토해 주세요.':r.executionStatus==='running'?'분석 중이에요. 결과 확인으로 진행 상태를 확인하세요.':r.executionStatus==='unknown'?'분석 결과가 미확인으로 종료됐어요. 실행·비용 여부는 확인할 수 없어요. 필요하면 ‘AI 분석 다시 요청’으로 새 분석을 직접 시작하세요.':'분석에 실패했어요. 원본 초안은 변경되지 않았어요.')}

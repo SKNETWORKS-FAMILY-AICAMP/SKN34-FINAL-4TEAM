@@ -591,3 +591,32 @@ it('still rejects a relation whose endpoint is neither an active nor a deleted c
  const fetcher=vi.fn().mockResolvedValue(Response.json({...value,relationships:value.relationships.map(r=>r.id===goneRelation.item.id?{...r,targetCardId:crypto.randomUUID()}:r)}))
  await expect(new HttpWorldStudioRepository(fetcher).read(id,undefined,2)).rejects.toThrow('응답')
 })
+
+it.each(['character','location','organization','rule','event','other'])('round trips a legacy %s card through edit save and a fresh HTTP read',async cardType=>{
+ const original={...wire().cards[0],cardType,aliases:['별칭'],tags:['태그'],semanticMetadata:{}}
+ let response={...wire(),cards:[original],relationships:[]}
+ const fetcher=vi.fn(async(_url:RequestInfo|URL,init?:RequestInit)=>{
+  if(init?.method==='PUT')response={...response,...JSON.parse(String(init.body)),draftRevision:3}
+  return Response.json(response)
+ })
+ const repo=new HttpWorldStudioRepository(fetcher)
+ const loaded=await repo.read(id)
+ loaded.settings[0].item.text+='\n추가 원문'
+ await repo.saveStudio(loaded)
+ const reread=await new HttpWorldStudioRepository(fetcher).read(id)
+ expect(response.cards[0]).toMatchObject({id:original.id,cardType,body:original.body+'\n추가 원문',aliases:['별칭'],tags:['태그']})
+ expect(reread.settings[0]).toMatchObject({aliases:['별칭'],tags:['태그'],item:{id:original.id,text:original.body+'\n추가 원문'}})
+})
+
+it('round trips legacy memory with GOAL public episode and identity without duplicating 00 memory',async()=>{
+ let response=wireWith({aliases:['별칭'],tags:['태그'],semanticMetadata:{studio:{...a,aliases:['별칭'],tags:['태그']},revealFromEpisode:3,characterDocs:{...docs,memory:'옛 기억'}}})
+ const fetcher=vi.fn(async(_url:RequestInfo|URL,init?:RequestInit)=>{
+  if(init?.method==='PUT')response={...response,...JSON.parse(String(init.body)),draftRevision:response.draftRevision+1}
+  return Response.json(response)
+ })
+ const repo=new HttpWorldStudioRepository(fetcher)
+ for(let i=0;i<2;i++)await repo.saveStudio(await repo.read(id))
+ const row=(await new HttpWorldStudioRepository(fetcher).read(id)).settings[0]
+ expect(row).toMatchObject({aliases:['별칭'],tags:['태그'],revealFromEpisode:3,characterDocs:{...docs,episodes:{0:'옛 기억\n\n프롤로그의 기억',3:'스승을 잃었다'}},item:{id:a.item.id,text:a.item.text}})
+ expect(response.cards[0].semanticMetadata).not.toHaveProperty('characterDocs.memory')
+})

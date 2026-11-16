@@ -14,7 +14,7 @@ import {
   removeCard,
 } from '../../../../domain/entities/studioRelations'
 import { areaPatch, type CardType, cardTypeOf, cardTypePatch } from '../../../../domain/entities/studioCards'
-import { useContext, useEffect, useReducer, useRef, useState } from 'react'
+import { useContext, useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { RestoreContext } from '../../../shared/session/restoreContext'
 import { WorldStudioLeaveContext } from './worldStudioLeaveGuard'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
@@ -102,7 +102,9 @@ export function useWorldStudioViewModel(
     } | null
   >(null)
   const [dirty, setDirty] = useState(false)
-  const [relationDirty, setRelationDirty] = useState(false)
+  const inputVersion = useRef(0)
+  const [relationDirty, updateRelationDirty] = useState(false)
+  const setRelationDirty = useCallback((value: boolean) => { inputVersion.current++; updateRelationDirty(value) }, [])
   // 편집 중인 카드는 주소의 card이고, 초안에 없는 카드(새로고침으로 사라진 미저장 카드·지운 카드)면 없는 것으로 본다.
   const selected = editing?.settings.some((row) => row.item.id === cardParam) ? cardParam : ''
   const [error, setError] = useState('')
@@ -231,6 +233,7 @@ export function useWorldStudioViewModel(
     if (generation.current === current) install(w)
   }
   const patch = (p: Partial<StudioWorld>) => {
+    inputVersion.current++
     setCardUndo(null)
     setEditing((w) => w ? { ...w, ...p } : null)
     setDirty(true)
@@ -288,7 +291,18 @@ export function useWorldStudioViewModel(
     setReviewBusy,
     /** 설정집 AI 검토: 동의·요청·결과(지적·수정안)와 수정안 반영. 결과는 저장하지 않고 세계관이 바뀌면 지운다. */
     review,
-    reload:async(expected?:{resultDraftRevision:number|null;createdCardIds:string[];createdRelationshipIds:string[]})=>{if(dirty||relationDirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.');const current=generation.current;const w=await useCase.read(worldId);if(current!==generation.current)throw new Error('다른 세계관으로 이동했어요.');if(expected&&(expected.resultDraftRevision===null||w.version<expected.resultDraftRevision||[...expected.createdCardIds,...expected.createdRelationshipIds].some(id=>!w.settings.some(s=>s.item.id===id))))throw new Error('반영된 설정 재조회를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요.');install(w);setEpisode(null);setRelationKey(v=>v+1);return w},
+    reload:async(expected?:{resultDraftRevision:number|null;createdCardIds:string[];createdRelationshipIds:string[]})=>{
+      if(dirty||relationDirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.')
+      const current=generation.current, input=inputVersion.current
+      const w=await useCase.read(worldId)
+      if(current!==generation.current)throw new Error('다른 세계관으로 이동했어요.')
+      if(input!==inputVersion.current)throw new Error('조회 중 입력이 변경됐어요. 작성 중인 입력을 먼저 저장해 주세요.')
+      // An applied receipt proves the original write. Later drafts may legitimately remove its cards or relations.
+      if(expected&&(expected.resultDraftRevision===null||w.version<expected.resultDraftRevision||
+        (w.version===expected.resultDraftRevision&&[...expected.createdCardIds,...expected.createdRelationshipIds].some(id=>!w.settings.some(s=>s.item.id===id)))))
+        throw new Error('반영된 설정 재조회를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요.')
+      install(w);setEpisode(null);setRelationKey(v=>v+1);return w
+    },
     storage: worldStudioStorage(import.meta.env.MODE),
     canUndoCardDeletion: !!cardUndo,
     /** 방금 지운 카드(되돌릴 수 있는 동안). 이름·인물 여부로 되돌리기 안내를 만든다. */

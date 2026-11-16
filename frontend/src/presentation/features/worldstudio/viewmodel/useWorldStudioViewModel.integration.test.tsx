@@ -184,3 +184,44 @@ it('refuses to delete a setting while an episode is chosen, keeps the draft unto
  expect(deleted).toBe(true)
  expect(result.current.editing!.settings.some(s=>s.item.id===person)).toBe(false)
 })
+
+it('does not install an AI reload over edits made while the server read is pending',async()=>{
+ const {result,repository}=await openEpisodeStudio()
+ const snapshot=structuredClone(result.current.saved!)
+ let finish!:(value:typeof snapshot)=>void
+ vi.spyOn(repository,'read').mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve}))
+ let request!:Promise<unknown>
+ act(()=>{request=result.current.reload()})
+ const rejected=expect(request).rejects.toThrow('입력')
+ act(()=>result.current.patch({description:'조회 중 새로 작성한 설명'}))
+ await act(async()=>{finish(snapshot);await rejected})
+ expect(result.current.editing?.description).toBe('조회 중 새로 작성한 설명')
+ expect(result.current.dirty).toBe(true)
+})
+
+it('recovers an applied receipt after a later revision has removed its relationship',async()=>{
+ const {result,repository}=await openEpisodeStudio()
+ const snapshot={...structuredClone(result.current.saved!),version:8}
+ vi.spyOn(repository,'read').mockResolvedValueOnce(snapshot)
+ await act(async()=>{await expect(result.current.reload({resultDraftRevision:7,createdCardIds:[],createdRelationshipIds:[crypto.randomUUID()]})).resolves.toMatchObject({version:8})})
+})
+
+it('still rejects missing application IDs at the exact applied revision',async()=>{
+ const {result,repository}=await openEpisodeStudio()
+ const snapshot={...structuredClone(result.current.saved!),version:7}
+ vi.spyOn(repository,'read').mockResolvedValueOnce(snapshot)
+ await act(async()=>{await expect(result.current.reload({resultDraftRevision:7,createdCardIds:[],createdRelationshipIds:[crypto.randomUUID()]})).rejects.toThrow('재조회')})
+})
+
+it('preserves unapplied relationship input entered during reload',async()=>{
+ const {result,repository}=await openEpisodeStudio()
+ const snapshot=structuredClone(result.current.saved!)
+ let finish!:(value:typeof snapshot)=>void
+ vi.spyOn(repository,'read').mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve}))
+ let request!:Promise<unknown>
+ act(()=>{request=result.current.reload()})
+ const rejected=expect(request).rejects.toThrow('입력')
+ act(()=>result.current.setRelationDirty(true))
+ await act(async()=>{finish(snapshot);await rejected})
+ expect(result.current.relationDirty).toBe(true)
+})

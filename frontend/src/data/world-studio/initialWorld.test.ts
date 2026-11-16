@@ -18,7 +18,7 @@ it('persists exact application after response loss, blocks another payload and r
  await expect(repo.mutate(world,`/${analysis}/applications`,{...body,expectedDraftRevision:3})).rejects.toThrow('미확인')
  repo=new HttpInitialWorldRepository(fetcher,storage)
  expect(await repo.resume(world)).toMatchObject({status:'unknown'});expect(repo.pending(world)).not.toBeNull()
- expect(await repo.resume(world)).toMatchObject({status:'applied'});expect(repo.pending(world)).not.toBeNull();repo.acknowledge(world);expect(repo.pending(world)).toBeNull()
+ expect(await repo.resume(world)).toMatchObject({status:'applied'});expect(repo.pending(world)).not.toBeNull();await repo.acknowledge(world,receipt.applicationId);expect(repo.pending(world)).toBeNull()
  expect(fetcher.mock.calls.map(c=>c[1].body).every(v=>v===fetcher.mock.calls[0][1].body)).toBe(true)
 })
 it('never sends when durable request storage fails',async()=>{
@@ -48,4 +48,24 @@ it('keeps the analysis request when the 503 carries no analysis state (storage u
  const repo=new HttpInitialWorldRepository(vi.fn().mockResolvedValue(Response.json({code:'ANALYSIS_STORAGE_UNCONFIRMED',detail:'저장 결과를 확인하지 못했습니다. 동일 키로 조회하고 새 키로 자동 실행하지 마세요.'},{status:503})),storage)
  await expect(repo.mutate(world,'',{expectedDraftRevision:2})).rejects.toThrow('저장 결과를 확인하지 못했습니다')
  expect(repo.pending(world)).not.toBeNull()
+})
+
+it('acknowledges only the applied request and preserves another tab request',async()=>{
+ const repo=new HttpInitialWorldRepository(vi.fn().mockResolvedValue(Response.json(receipt)),storage)
+ await repo.mutate(world,`/${analysis}/applications`,body)
+ const key=[...memory.keys()][0]
+ const newer=JSON.stringify({path:'',body:{key:'newer',expectedDraftRevision:4}})
+ memory.set(key,newer)
+ await repo.acknowledge(world,receipt.applicationId)
+ expect(memory.get(key)).toBe(newer)
+})
+
+it('does not acknowledge another applied application even if it has the same basis',async()=>{
+ const repo=new HttpInitialWorldRepository(vi.fn().mockResolvedValue(Response.json(receipt)),storage)
+ await repo.mutate(world,`/${analysis}/applications`,body)
+ const key=[...memory.keys()][0],value=JSON.parse(memory.get(key)!)
+ memory.set(key,JSON.stringify({...value,applicationId:crypto.randomUUID(),body:{...value.body,key:'another'}}))
+ const newer=memory.get(key)
+ await repo.acknowledge(world,receipt.applicationId)
+ expect(memory.get(key)).toBe(newer)
 })
