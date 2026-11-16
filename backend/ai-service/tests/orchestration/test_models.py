@@ -3,8 +3,9 @@ from pydantic import ValidationError
 
 from app.orchestration.models import OrchestrationRequest, StepResult, WritingInput
 from app.simulation.models import SimulationPlan, SimulationResult
+from app.world_review.models import WorldReviewResponse
 
-from .stubs import DRAFT, PATCH, SCENE
+from .stubs import DRAFT, PATCH, SCENE, WORLD_REVIEW
 
 
 @pytest.mark.parametrize('body', [{}, {**DRAFT, **PATCH}])
@@ -36,6 +37,18 @@ def test_simulation_result_is_a_step_result():
     step = StepResult.model_validate({'feature': 'character_simulation', 'when': 'always', 'status': 'completed',
                                       'result': SCENE.model_dump(mode='json')})
     assert isinstance(step.result, SimulationResult) and len(step.result.turns) == 2
+
+
+def test_world_review_result_is_a_step_result():
+    step = StepResult.model_validate({'feature': 'world_review', 'when': 'always', 'status': 'completed',
+                                      'result': WORLD_REVIEW.model_dump(mode='json')})
+    assert isinstance(step.result, WorldReviewResponse) and step.result.findings[0].fix.text == '말이 짧다.'
+
+
+def test_world_review_can_be_chosen_as_an_operation_but_takes_no_step_input():
+    assert OrchestrationRequest(request='설정집 검토', operation='world_review').operation == 'world_review'
+    with pytest.raises(ValidationError):
+        OrchestrationRequest(request='설정집 검토', inputs={'world_review': {}})
 
 
 # [시뮬레이션] 버튼의 시작 양식(simulation): operation이 character_simulation인 새 요청에서만 받고 한도는 SimulationPlan이 지킨다.

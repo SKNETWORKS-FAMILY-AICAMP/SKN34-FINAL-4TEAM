@@ -9,6 +9,7 @@ from app.retrieval.models import RetrievalResult
 from app.review.models import Finding as ReviewFinding, ReviewResponse
 from app.simulation import agent, director
 from app.simulation.models import Action, Check, CheckItem, Decision, Narration, SimulationPlan, SimulationResult, Turn, Verdict
+from app.world_review.models import Finding as WorldFinding, Fix, WorldReviewRequest, WorldReviewResponse
 from app.writing.models import DraftResponse, PatchResponse
 
 QA = {'question': '길드 규칙은?', 'excerpts': [{'id': 'a', 'episode': 4, 'quote': '길드는 밤에 문을 닫는다.'}]}
@@ -27,6 +28,12 @@ SCENE_TEXT = '\n\n'.join([OPENING, LINE, LINE, CLOSING])  # 시작 나레이션,
 WORLD = {'worldId': 'w', 'relationships': [], 'cards': [{
     'id': 'k', 'title': '카엘', 'body': 'KAEL-IDENTITY 북문을 지키는 기사', 'cardType': 'character', 'lifecycle': 'active',
     'semanticMetadata': {'characterDocs': {'soul': 'KAEL-SOUL 말이 짧다', 'goal': '', 'episodes': {}}}}]}
+
+
+WORLD_REVIEW = WorldReviewResponse(
+    findings=[WorldFinding(cardIds=['k'], kind='doc_role', message='SOUL에 목표가 섞여 있어요.',
+                           fix=Fix(cardId='k', target='soul', episode=None, text='말이 짧다.'))], reviewedCards=1, model='m')
+WORLD_REVIEW_REQUEST = WorldReviewRequest(worldName='달빛 세계', worldDescription='', cards=[], relationships=[])
 
 
 def scene(*prose, status='completed', reason=None):
@@ -80,6 +87,8 @@ def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None):
         workId=data.workId, episode=data.episode, revision=4, check=data.check, gaps=[], model='m', providerResponseId='r', usage=None,
         findings=[ReviewFinding(category='spelling', quote='웃엇다', reason='맞춤법', status='confirmed', evidenceRefs=[],
                                 suggestion='웃었다', start=3, end=6)])))
+    monkeypatch.setattr(service.world_review, 'linked_request', recorded('world_review_read', lambda work_id: WORLD_REVIEW_REQUEST))
+    monkeypatch.setattr(service.world_review, 'review', recorded('world_review', WORLD_REVIEW))
     return calls
 
 

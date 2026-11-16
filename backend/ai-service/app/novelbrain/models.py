@@ -74,6 +74,14 @@ def _reveal(value) -> int | None:
     return int(value) if 1 <= value <= 2**31 - 1 and value == int(value) else None
 
 
+def with_memory(memory: str, episodes: dict[int, str]) -> dict[int, str]:
+    """DEC-47 이전의 옛 memory를 00회차 앞에 빈 줄 하나로 이어 붙인 회차별 기억(00회차가 비어 있으면 그대로 00회차). 글은 자르지 않는다."""
+    moved = dict(episodes)
+    if memory.strip():
+        moved[0] = f'{memory}\n\n{moved[0]}' if moved.get(0, '').strip() else memory
+    return moved
+
+
 def _docs(raw) -> tuple[str, str, dict[int, str]]:
     # 모양이 어긋난 characterDocs는 통째로 버리고 변환은 계속한다(화면 매핑과 같은 규칙). `goal`·`memory`는 선택 키다:
     # DEC-47 이전 문서는 `memory`가 있고 `goal`이 없다(없으면 빈 글). 필수로 두면 옛 문서 전체가 버려진다.
@@ -81,10 +89,7 @@ def _docs(raw) -> tuple[str, str, dict[int, str]]:
         soul, goal, memory, episodes = raw.get('soul'), raw.get('goal', ''), raw.get('memory', ''), raw.get('episodes')
         if (isinstance(soul, str) and isinstance(goal, str) and isinstance(memory, str) and isinstance(episodes, dict)
                 and all(isinstance(k, str) and _EPISODE_KEY.fullmatch(k) and isinstance(v, str) for k, v in episodes.items())):
-            moved = {int(k): v for k, v in episodes.items()}
-            if memory.strip():  # 옛 memory는 00회차 앞에 빈 줄 하나로 이어 붙인다(00회차가 비어 있으면 그대로 00회차). 글은 자르지 않는다.
-                moved[0] = f'{memory}\n\n{moved[0]}' if moved.get(0, '').strip() else memory
-            return soul, goal, moved
+            return soul, goal, with_memory(memory, {int(k): v for k, v in episodes.items()})
     return '', '', {}
 
 
