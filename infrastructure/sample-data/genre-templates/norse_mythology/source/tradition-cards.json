@@ -1,7 +1,7 @@
 {
   "genre": "norse_mythology",
-  "name": "북유럽 신화",
-  "scope": "《시 에다》의 독립시 《볼루스파》(무녀의 예언) 한 작품. 벨로스 1923년 영어판의 66연 전체를 한국어로 중역한 본문에서 카드와 근거를 추출한다. 에다 전체의 전문이나 여러 전승을 합친 재서술이 아니다.",
+  "name": "북유럽 신화: 에다 전승",
+  "scope": "《볼루스파》 벨로스 영어판 66연의 한국어 중역과 그 카드에 더해, 《산문 에다》의 「길피의 속임수」·「시어법」 및 《시 에다》의 「그림니르의 말」·「하바말」·「트림의 노래」·「히미르의 노래」에서 확인한 일부 전승을 출전별로 요약한다. 북유럽 신화 전체나 에다 전체의 완역·완전한 전승 목록이 아니다.",
   "sources": [
     {
       "title": "《볼루스파》, 헨리 애덤스 벨로스 영어판(1923), 제1–66연",
@@ -10,6 +10,30 @@
     {
       "title": "같은 벨로스 번역의 공개 대조본",
       "url": "https://sacred-texts.com/neu/poe/poe03.htm"
+    },
+    {
+      "title": "《산문 에다》 「길피의 속임수」 고대 노르드어 공개 전사",
+      "url": "https://www.heimskringla.no/wiki/Gylfaginning"
+    },
+    {
+      "title": "《산문 에다》 「시어법」 고대 노르드어 공개 전사",
+      "url": "https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l"
+    },
+    {
+      "title": "《시 에다》 「그림니르의 말」 고대 노르드어 공개 전사",
+      "url": "https://www.heimskringla.no/wiki/Gr%C3%ADmnism%C3%A1l"
+    },
+    {
+      "title": "《시 에다》 「하바말」 고대 노르드어 공개 전사",
+      "url": "https://www.heimskringla.no/wiki/H%C3%A1vam%C3%A1l"
+    },
+    {
+      "title": "《시 에다》 「트림의 노래」 고대 노르드어 공개 전사",
+      "url": "https://www.heimskringla.no/wiki/%C3%9Erymskvi%C3%B0a"
+    },
+    {
+      "title": "《시 에다》 「히미르의 노래」 고대 노르드어 공개 전사",
+      "url": "https://www.heimskringla.no/wiki/Hymiskvi%C3%B0a"
     }
   ],
   "cards": [
@@ -978,6 +1002,344 @@
         {
           "section": "stanza-065",
           "evidence": "모든 권능을 쥐려고 높은 곳에서 오시는 이,  \n온 땅을 다스리는 힘센 군주가 있노라.  \n……  \n……"
+        }
+      ]
+    },
+    {
+      "key": "norse-ymir-origins",
+      "title": "이미르와 태초의 혈통",
+      "cardType": "event",
+      "body": "길피에게 답하는 화자는 니플헤임의 서리와 무스펠의 열기가 만난 틈에서 이미르가 생겨났고, 잠든 그의 몸에서 서리 거인 계보가 생겼다고 말한다. 암소 아우둠라는 그를 젖으로 기르고 소금기 있는 돌을 핥아 부리를 드러낸다. 부리의 아들 보르와 거인 베스틀라에게서 오딘·빌리·베가 태어난다. 보르의 아들들이 이미르를 죽일 때 베르겔미르와 아내는 살아남는다.\n\n출전: [《산문 에다》 「길피의 속임수」 5–7장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-ymir-origins",
+          "evidence": "Sá er nefndr Búri."
+        }
+      ]
+    },
+    {
+      "key": "norse-ymir-world",
+      "title": "이미르의 몸으로 만든 세계",
+      "cardType": "event",
+      "body": "보르의 아들들은 이미르의 살로 땅, 피로 바다와 물, 뼈로 산, 두개골로 하늘을 만들고 네 모퉁이에 난쟁이를 둔다. 바깥 바닷가를 거인들에게 주고 눈썹으로 인간의 미드가르드를 둘러싼다. 이어 해변의 두 나무에서 아스크와 엠블라를 만든다. 이는 기존 《볼루스파》 카드의 압축된 창세와 구별되는 산문 서술이다.\n\n출전: [《산문 에다》 「길피의 속임수」 8–9장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-ymir-world",
+          "evidence": "Þeir tóku Ymi ok fluttu í mitt Ginnungagap"
+        }
+      ]
+    },
+    {
+      "key": "norse-asgard-hall",
+      "title": "아스가르드와 신들의 전당",
+      "cardType": "location",
+      "body": "보르의 아들들이 세계 가운데 아스가르드를 세우고 신들과 그 후손이 산다. 이다볼에 신들이 의논할 자리를 두고 글라드스헤임의 전당과 여신들의 빙골프를 마련한다. 서술자는 아스가르드를 트로이라고도 부르는데 이는 이 산문 작품의 틀이며 모든 전승에 적용할 사실은 아니다.\n\n출전: [《산문 에다》 「길피의 속임수」 9·14장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-asgard-hall",
+          "evidence": "sem heitir Iðavöllur í miðri borginni"
+        }
+      ]
+    },
+    {
+      "key": "norse-bifrost",
+      "title": "비프로스트와 하늘길",
+      "cardType": "location",
+      "body": "신들이 땅과 하늘을 잇도록 만든 세 빛깔 다리는 사람이 무지개라고 부르는 비프로스트다. 산문 화자는 이 다리가 튼튼하지만 무스펠의 아들들이 타고 올 때 부서진다고 말한다. 그 붉은 부분은 거인들의 통행을 막는 불이며, 헤임달은 다리 곁 히민비외르그에서 신들을 지킨다.\n\n출전: [《산문 에다》 「길피의 속임수」 13·15·27장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-bifrost",
+          "evidence": "er heitir Bifröst?"
+        }
+      ]
+    },
+    {
+      "key": "norse-vanir-hostages",
+      "title": "바니르의 인질과 뇨르드",
+      "cardType": "character",
+      "body": "뇨르드는 바나헤임에서 자랐으며 바니르가 신들에게 인질로 보냈고, 그 대가로 회니르를 받았다. 화자는 이를 신들과 바니르의 화해라고 설명한다. 뇨르드는 바람과 바다를 다스리며 항해와 어획을 위해 기원받는다. 거인 티아치의 딸 스카디와는 산과 바다 중 거처를 두고 갈등한다.\n\n출전: [《산문 에다》 「길피의 속임수」 23장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-vanir-hostages",
+          "evidence": "Hann var upp fæddr í Vanaheimi"
+        }
+      ]
+    },
+    {
+      "key": "norse-freyr-freyja",
+      "title": "프레이르와 프레이야의 영역",
+      "cardType": "character",
+      "body": "뇨르드의 자녀 프레이르는 비와 햇빛, 땅의 결실을 다스리며 풍년과 평화를 위해 부른다. 프레이야는 폴크방의 전당을 차지하고 전사자 절반을, 오딘이 나머지 절반을 얻는다. 두 고양이가 끄는 수레를 타며 사랑을 위해 기원받는다고 한다.\n\n출전: [《산문 에다》 「길피의 속임수」 24장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-freyr-freyja",
+          "evidence": "Hét annat Freyr, en dóttir Freyja."
+        }
+      ]
+    },
+    {
+      "key": "norse-tyr-fenrir",
+      "title": "티르와 펜리르의 결박",
+      "cardType": "event",
+      "body": "신들은 강한 쇠사슬 둘을 끊은 펜리르를 묶으려 난쟁이들에게 글레이프니르를 만든다. 고양이 발소리와 산의 뿌리 등 여섯 재료로 만든 끈을 의심한 늑대는 손을 담보로 요구한다. 티르가 오른손을 입에 넣고, 신들이 풀어주지 않자 늑대가 손을 문다. 화자는 신성한 장소에 피를 흘리기 싫어 신들이 늑대를 죽이지 않았다고 설명한다.\n\n출전: [《산문 에다》 「길피의 속임수」 25·34장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-tyr-fenrir",
+          "evidence": "þá beit hann höndina af"
+        }
+      ]
+    },
+    {
+      "key": "norse-gleipnir",
+      "title": "글레이프니르의 여섯 재료",
+      "cardType": "object",
+      "body": "스키르니르가 스바르트알파헤임의 난쟁이들에게 주문한 끈이다. 고양이의 발소리, 여자의 수염, 산의 뿌리, 곰의 힘줄, 물고기의 숨, 새의 침으로 만들었다고 한다. 겉으로는 부드러운 비단 띠 같지만 펜리르가 몸부림칠수록 단단해진다.\n\n출전: [《산문 에다》 「길피의 속임수」 34장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-gleipnir",
+          "evidence": "af dyn kattarins ok af skeggi konunnar"
+        }
+      ]
+    },
+    {
+      "key": "norse-hel-goddess",
+      "title": "헬과 로키의 세 자녀",
+      "cardType": "character",
+      "body": "로키와 거인 여성 앙그르보다의 자녀는 펜리르·요르문간드·헬이다. 오딘은 뱀을 바다에 던지고 헬에게 니플헤임에서 자신에게 보내진 이들의 거처를 나누는 권한을 준다. 화자는 병사자와 노환으로 죽은 자를 언급하며 헬을 반은 푸르고 반은 살빛인 존재로 묘사한다. 기존 장소 카드 헬과 이 인물을 구별한다.\n\n출전: [《산문 에다》 「길피의 속임수」 34장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-hel-goddess",
+          "evidence": "þriðja er Hel."
+        }
+      ]
+    },
+    {
+      "key": "norse-idunn-apples",
+      "title": "이둔의 사과와 브라기",
+      "cardType": "object",
+      "body": "시와 말솜씨에 뛰어난 브라기의 아내 이둔은 상자에 사과를 보관한다. 신들은 나이가 들 때 이 사과를 먹어 다시 젊어지며, 화자는 이런 상태가 라그나로크까지 계속된다고 설명한다.\n\n출전: [《산문 에다》 「길피의 속임수」 26장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-idunn-apples",
+          "evidence": "Kona hans er Iðunn."
+        }
+      ]
+    },
+    {
+      "key": "norse-mjolnir-forge",
+      "title": "묠니르의 제작과 성질",
+      "cardType": "object",
+      "body": "로키가 시프의 머리칼을 자른 일에서 시작된 내기에서 브로크와 신드리가 신들에게 줄 보물을 만든다. 풀무질을 방해한 파리 때문에 망치 손잡이는 짧아졌지만, 브로크는 토르에게 망치가 무엇을 쳐도 부서지지 않고 던지면 빗나가지 않으며 손으로 돌아온다고 설명한다. 신들은 서리 거인을 막는 이 망치를 가장 좋은 보물로 판정한다.\n\n출전: [《산문 에다》 「시어법」 43장](https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-mjolnir-forge",
+          "evidence": "Þá tók hann ór aflinum hamar."
+        }
+      ]
+    },
+    {
+      "key": "norse-gungnir-forge",
+      "title": "궁니르와 이발디의 아들들",
+      "cardType": "object",
+      "body": "시프의 머리칼을 자른 로키는 보상으로 난쟁이 이발디의 아들들에게 황금 머리칼을 부탁한다. 그들은 머리칼과 배 스키드블라드니르, 오딘의 창 궁니르를 만든다. 로키는 궁니르를 오딘에게 주면서 창이 찌르기를 멈추지 않는다고 설명한다.\n\n출전: [《산문 에다》 「시어법」 43장](https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-gungnir-forge",
+          "evidence": "er Óðinn átti, er Gungnir heitir."
+        }
+      ]
+    },
+    {
+      "key": "norse-hammer-wedding",
+      "title": "묠니르를 되찾은 혼례",
+      "cardType": "rule",
+      "body": "거인 트림이 묠니르를 신부를 성별하려고 가져오게 하여 무릎에 놓게 하자, 신부로 가장한 토르가 망치를 알아보고 트림과 거인들을 친다. 시 속 혼례 장면에서 망치가 성별에 쓰이지만, 이를 모든 역사적 의례의 보편 규칙으로 단정하지 않는다.\n\n출전: [《시 에다》 「트림의 노래」 30–32연](https://www.heimskringla.no/wiki/%C3%9Erymskvi%C3%B0a).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-hammer-wedding",
+          "evidence": "brúði at vígja"
+        }
+      ]
+    },
+    {
+      "key": "norse-runes-sacrifice",
+      "title": "나무에 매달려 얻은 룬",
+      "cardType": "ability",
+      "body": "《하바말》의 화자는 바람 부는 나무에 창으로 상처 입고 자신을 오딘에게 바쳐 아홉 밤 매달렸다고 말한다. 빵이나 뿔잔도 받지 못한 채 아래를 보다가 소리치며 룬을 집어 들고 다시 떨어진다. 시는 그 나무의 이름을 이 대목에서 밝히지 않는다.\n\n출전: [《시 에다》 「하바말」 138–139연](https://www.heimskringla.no/wiki/H%C3%A1vam%C3%A1l).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-runes-sacrifice",
+          "evidence": "nam ek upp rúnar,"
+        }
+      ]
+    },
+    {
+      "key": "norse-root-prose",
+      "title": "이그드라실 세 뿌리: 산문의 배치",
+      "cardType": "location",
+      "body": "산문 화자는 이그드라실의 세 뿌리 중 하나는 아스 신들 곁, 하나는 옛 긴눙가가프의 서리 거인들 곁, 하나는 니플헤임 위에 있다고 말한다. 거인 쪽 뿌리 아래 미미르의 샘이 있고, 하늘에 있는 뿌리 아래 우르드의 샘이 있으며, 니플헤임 쪽에는 흐베르겔미르와 뿌리를 갉는 니드호그가 있다.\n\n출전: [《산문 에다》 「길피의 속임수」 15장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-root-prose",
+          "evidence": "In þriðja stendr yfir Niflheimi"
+        }
+      ]
+    },
+    {
+      "key": "norse-root-poem",
+      "title": "이그드라실 세 뿌리: 시의 배치",
+      "cardType": "location",
+      "body": "《그림니르의 말》 제31연은 세 뿌리 아래에 각각 헬, 서리 거인, 인간이 산다고 노래한다. 《길피의 속임수》 제15장의 아스 신들·서리 거인·니플헤임 배치와 표현이 다르므로 두 목록을 하나의 확정 지도로 합치지 않는다.\n\n출전: [《시 에다》 「그림니르의 말」 31연](https://www.heimskringla.no/wiki/Gr%C3%ADmnism%C3%A1l). [《산문 에다》 「길피의 속임수」 15장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-root-poem",
+          "evidence": "Hel býr und einni,"
+        }
+      ]
+    },
+    {
+      "key": "norse-nine-worlds-scope",
+      "title": "아홉 세계와 이름의 범위",
+      "cardType": "rule",
+      "body": "《볼루스파》의 무녀는 아홉 세계를 기억한다고 말하지만 그 연에서 아홉 이름을 열거하지 않는다. 《길피의 속임수》는 아스가르드·미드가르드·바나헤임·니플헤임 등 여러 지명을 따로 언급하며, 헬이 아홉 세계에 대한 권한을 받았다고도 말한다. 이 대목들만으로 보편적으로 확정된 아홉 지명 목록이나 위치도를 만들 수는 없다.\n\n출전: [《산문 에다》 「길피의 속임수」 9·23·34장](https://www.heimskringla.no/wiki/Gylfaginning). [《볼루스파》 벨로스판 제2연](https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.2).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-nine-worlds-scope",
+          "evidence": "gaf henni vald yfir níu heimum"
+        }
+      ]
+    },
+    {
+      "key": "norse-norns-fates",
+      "title": "노른과 운명의 차이",
+      "cardType": "rule",
+      "body": "우르드의 샘 곁 전당에서 우르드·베르단디·스쿨드가 나와 사람들의 수명을 정한다. 화자는 이 셋 외에도 태어나는 아이마다 찾아오는 노른들이 있으며 그 계보가 신·엘프·난쟁이로 다양하다고 말한다. 길고 짧은 생의 차이는 좋은 노른과 나쁜 노른으로 설명한다.\n\n출전: [《산문 에다》 「길피의 속임수」 15장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-norns-fates",
+          "evidence": "Þessar meyjar skapa mönnum aldr."
+        }
+      ]
+    },
+    {
+      "key": "norse-holy-oath",
+      "title": "성벽 장인과 신들의 맹세",
+      "cardType": "event",
+      "body": "장인은 신들의 성벽을 세우는 대가로 프레이야와 해와 달을 요구한다. 신들은 한 겨울 안에 마칠 것과 사람의 도움을 받지 않을 것을 조건으로 맹세하고, 로키의 제안으로 말 스바딜파리의 도움은 허락한다. 로키가 암말로 변해 말을 꾀어 공사를 지연시키고, 장인이 거인으로 드러나자 신들은 맹세를 지키지 않고 토르를 불러 죽인다. 로키가 낳은 여덟 다리 말이 슬레이프니르다.\n\n출전: [《산문 에다》 「길피의 속임수」 42장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-holy-oath",
+          "evidence": "at kaupi þeira váru sterk vitni ok mörg særi"
+        }
+      ]
+    },
+    {
+      "key": "norse-baldr-mistletoe",
+      "title": "발드르의 맹세와 겨우살이",
+      "cardType": "event",
+      "body": "발드르의 위험한 꿈 뒤에 프리그는 온갖 것에서 그를 해치지 않겠다는 맹세를 받는다. 다만 너무 어리다고 여긴 겨우살이에게는 맹세를 요구하지 않았다. 여인으로 변장한 로키가 이를 알아내고 겨우살이로 무기를 만들어 눈먼 회드르가 발드르를 쏘게 한다.\n\n출전: [《산문 에다》 「길피의 속임수」 49장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-baldr-mistletoe",
+          "evidence": "Sá er mistilteinn kallaðr."
+        }
+      ]
+    },
+    {
+      "key": "norse-thor-fishing-prose",
+      "title": "토르의 뱀 낚시: 산문과 전해지는 말",
+      "cardType": "event",
+      "body": "토르는 히미르와 배를 타고 나가 소의 머리를 미끼로 미드가르드 뱀을 낚는다. 산문에 따르면 히미르가 낚싯줄을 끊어 뱀이 바다에 잠기자 토르는 망치를 던진다. 누군가는 뱀의 머리를 쳤다고 말하지만 화자 자신은 뱀이 여전히 바다에 살아 있다고 생각한다고 구분한다.\n\n출전: [《산문 에다》 「길피의 속임수」 48장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-thor-fishing-prose",
+          "evidence": "en ormrinn sökkðist í sæinn."
+        }
+      ]
+    },
+    {
+      "key": "norse-thor-fishing-poem",
+      "title": "토르의 뱀 낚시: 히미르의 노래",
+      "cardType": "event",
+      "body": "《히미르의 노래》에서 토르는 소 머리를 미끼로 온 땅을 둘러싼 뱀을 끌어올려 망치로 친다. 이어 뱀이 바다에 가라앉는다고 하며, 이 연들은 산문처럼 히미르가 줄을 끊는 장면을 명시하지 않는다. 두 텍스트의 결말을 한 문장으로 확정하지 않는다.\n\n출전: [《시 에다》 「히미르의 노래」 22–24연](https://www.heimskringla.no/wiki/Hymiskvi%C3%B0a).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-thor-fishing-poem",
+          "evidence": "sökkðisk síðan"
+        }
+      ]
+    },
+    {
+      "key": "norse-valhalla-einherjar",
+      "title": "발할라의 전사자들과 양식",
+      "cardType": "location",
+      "body": "발할라의 에인헤랴르는 매일 무장하고 밖에서 서로 싸워 쓰러뜨린 뒤 식사 때 전당으로 돌아와 함께 마신다. 멧돼지 세흐림니르는 매일 삶아지지만 저녁이면 온전해져 많은 이들의 양식이 된다. 화자는 전투에서 죽은 이들이 오딘에게 간다고 설명하지만, 같은 작품 24장은 프레이야와 오딘이 전사자를 나눈다고도 말한다.\n\n출전: [《산문 에다》 「길피의 속임수」 24·38·41장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-valhalla-einherjar",
+          "evidence": "Hann er soðinn hvern dag"
+        }
+      ]
+    },
+    {
+      "key": "norse-fimbulwinter",
+      "title": "핌불베트르와 종말의 싸움",
+      "cardType": "event",
+      "body": "《길피의 속임수》의 예언에서는 여름 없는 세 겨울 핌불베트르가 닥치고, 그보다 앞선 세 겨울에는 전 세계의 전쟁과 가족 간 살육이 일어난다. 이후 늑대와 뱀이 풀리고 무스펠의 아들들이 진군한다. 오딘은 늑대와, 프레이르는 수르트와 싸우며 로키와 헤임달은 서로를 죽인다.\n\n출전: [《산문 에다》 「길피의 속임수」 51장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-fimbulwinter",
+          "evidence": "er kallaðr er fimbulvetr."
+        }
+      ]
+    },
+    {
+      "key": "norse-after-ragnarok",
+      "title": "라그나로크 뒤의 신들과 망치",
+      "cardType": "event",
+      "body": "산문에서는 바다에서 다시 푸른 땅이 솟고 씨 뿌리지 않은 밭이 자란다. 비다르와 발리가 이다볼에 살고 토르의 아들 모디와 마그니가 묠니르를 가져온다. 헬에서 돌아온 발드르와 회드르가 이들과 만나 옛 사건을 이야기하고 풀밭에서 신들의 황금 놀이말을 찾는다.\n\n출전: [《산문 에다》 「길피의 속임수」 53장](https://www.heimskringla.no/wiki/Gylfaginning).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-after-ragnarok",
+          "evidence": "Móði ok Magni, ok hafa þar Mjöllni."
+        }
+      ]
+    },
+    {
+      "key": "norse-ritual-offering",
+      "title": "제물과 룬을 묻는 말",
+      "cardType": "rule",
+      "body": "《하바말》 화자는 룬을 새기고 해석하고 물들이고 시험하는 법, 기원하고 제사하고 보내고 바치는 법을 아느냐고 묻는다. 다음 연은 지나치게 제사하느니 기원하지 않는 편이 낫다고 말한다. 이 시적 권고만으로 구체적인 의례 절차나 모든 지역의 관습을 복원하지 않는다.\n\n출전: [《시 에다》 「하바말」 144–145연](https://www.heimskringla.no/wiki/H%C3%A1vam%C3%A1l).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "norse-ritual-offering",
+          "evidence": "Veistu, hvé blóta skal?"
         }
       ]
     }

@@ -3,11 +3,11 @@
   "genre_id": "norse_mythology",
   "genre_name": "북유럽 신화",
   "order": 14,
-  "title": "《볼루스파》 완역과 세계관",
+  "title": "《볼루스파》 완역과 에다 전승 설정집",
   "content_markdown": "<a id=\"edition-note\"></a>\n\n## 판본과 번역 안내\n\n이 파일은 《시 에다》에 실린 독립시 《볼루스파》(무녀의 예언) 한 작품의 한국어 완역이다. 《시 에다》 전체나 북유럽 신화 전체의 전문이 아니다. 헨리 애덤스 벨로스의 1923년 영어 번역에 실린 제1연부터 제66연까지를 모두 새로 옮겼다. 아래 안내는 편집 정보이며 시 본문이 아니다.\n\n- 원작: 작자 미상의 중세 고대 노르드어 시 《볼루스파》. 번역 저본: 헨리 애덤스 벨로스, 《시 에다》, 1923년, 「볼루스파」 1–27쪽의 시 본문. [프로젝트 구텐베르크 공개 전사본](https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#ch1.1), [동일 번역 대조본](https://sacred-texts.com/neu/poe/poe03.htm).\n- 번역 방식: 고대 노르드어에서 직접 옮긴 번역이 아니라 벨로스 영어판을 매개로 한 한국어 중역이다. 현대 한국어 번역을 복사하지 않았다. 다른 에다 작품이나 산문 신화를 이어 붙이거나 줄거리로 축약하지 않았다.\n- 범위: 벨로스판의 66연 전부. 제9–16연의 난쟁이 명단, 제44·49·58연의 반복 후렴, 제65·66연을 포함한다. 벨로스의 서론과 학술 각주 전체는 시의 일부가 아니므로 번역 대상에 포함하지 않았다. 연 번호와 배열은 이 판본을 따르며 다른 판본의 번호와 같다고 가정하지 않는다.\n- 결락 표시: 제30·36·55·61·63·65연에 있는 저본의 점선은 각각 해당 행의 ‘……’로 보존했다. 이는 번역에서 내용을 생략했다는 뜻이 아니라 벨로스가 편집상 표시한 빈자리이며, 필사본에 실제 결락이 확정되었다는 뜻도 아니다. 그 자리에 추측한 시구를 채워 넣지 않았다.\n- 판본의 해석: 제23·24연의 순서, 제29연의 첫 행, 제51연의 ‘북쪽’과 ‘헬의 백성’ 등도 벨로스판의 선택을 따른다. 서로 다른 필사본을 새로 교감한 번역이 아니다. 신의 별칭은 시의 표현대로 옮겼으며, 카드의 인물 식별은 필요한 경우 같은 판본의 각주에 따른다고 명시했다.\n- 권리: 중세 원작과 1939년 사망한 벨로스의 1923년 영어 번역은 한국과 미국에서 저작권 보호기간이 만료된 저작물이다. [번역자·판본 권리 정보](https://en.wikisource.org/wiki/The_Poetic_Edda_(tr._Bellows)). 이 자료의 한국어 문장은 해당 공개 번역을 바탕으로 새로 작성했다. 웹사이트의 현대 해설·디자인·상표는 전재하지 않았다.\n- 저본 확인: 2026-11-12. 확보한 구텐베르크 HTML 문자열을 UTF-8로 인코딩한 SHA-256: `942078b203759b45288479fa48942b243cf9e827d8e9831f800ee2d4cb5406cc`.\n- 대응 방식: 연마다 `stanza-001`부터 `stanza-066`까지 앵커를 두었다. 카드의 근거는 해당 연에 실제로 들어 있는 한국어 문자열이며, 시의 예언·회고·인물의 말을 모든 북유럽 전승의 확정된 체계로 일반화하지 않는다.\n\n# 볼루스파: 무녀의 예언\n\n작자 미상 · 벨로스 영어판을 통한 한국어 중역\n\n<a id=\"stanza-001\"></a>\n\n## 제1연\n\n거룩한 겨레에게 귀 기울여 달라 청하노라.  \n높은 이든 낮은 이든, 헤임달의 자손 모두에게.  \n전사자들의 아버지여, 그대는 내가 잘 이야기하기를 바라니,  \n내가 기억하는, 아득히 옛사람들의 오랜 이야기를.\n\n<a id=\"stanza-002\"></a>\n\n## 제2연\n\n나는 아직도 옛 거인들을 기억하노라.  \n지나간 날들에 내게 빵을 주었던 이들을.  \n나는 아홉 세계를 알았고, 나무 안의 그 아홉을 알았노라.  \n흙 아래로 힘센 뿌리를 뻗은 그 나무를.\n\n<a id=\"stanza-003\"></a>\n\n## 제3연\n\n먼 옛날, 이미르가 살던 시절,  \n바다도 서늘한 물결도 모래도 없었노라.  \n땅도 없었고 그 위의 하늘도 없었으며,  \n입 벌린 틈뿐, 풀은 어디에도 없었노라.\n\n<a id=\"stanza-004\"></a>\n\n## 제4연\n\n그때 보르의 아들들이 평평한 땅을 들어 올려  \n그곳에 드넓은 미드가르드를 만들었노라.  \n남쪽의 해가 땅의 돌들을 덥히자,  \n자라나는 부추로 대지가 푸르러졌노라.\n\n<a id=\"stanza-005\"></a>\n\n## 제5연\n\n달의 누이인 해는 남쪽에서  \n하늘 가장자리 너머로 오른손을 뻗었노라.  \n해는 제 집이 어디여야 하는지 알지 못했고,  \n달은 제게 어떤 힘이 있는지 알지 못했으며,  \n별들은 저마다 어디에 자리할지 알지 못했노라.\n\n<a id=\"stanza-006\"></a>\n\n## 제6연\n\n그러자 신들은 회의의 자리로 갔노라.  \n거룩한 이들이 모여 의논했노라.  \n한낮과 땅거미에 이름을 주었고,  \n아침과 기우는 달에도 이름을 주었으며,  \n해를 헤아리도록 밤과 저녁에도 이름을 주었노라.\n\n<a id=\"stanza-007\"></a>\n\n## 제7연\n\n이더볼에 힘센 신들이 모여  \n나무로 성소와 신전을 높이 세웠노라.  \n대장간을 마련하고 광석을 벼렸으며,  \n집게를 만들고 연장을 빚었노라.\n\n<a id=\"stanza-008\"></a>\n\n## 제8연\n\n그들은 거처에서 평화롭게 판놀이를 즐겼고,  \n그때 신들에게는 금이 모자라는 일이 없었노라.  \n그러다가 거인 처녀 셋이 그곳으로 왔으니,  \n요툰헤임에서 온, 엄청난 힘을 지닌 이들이었노라.\n\n<a id=\"stanza-009\"></a>\n\n## 제9연\n\n그러자 신들은 회의의 자리로 갔노라.  \n거룩한 이들이 모여 의논했노라.  \n누가 난쟁이 종족을 일으킬 것인가,  \n브리미르의 피와 블라인의 다리에서.\n\n<a id=\"stanza-010\"></a>\n\n## 제10연\n\n모든 난쟁이 가운데 가장 힘센 존재로  \n모트소그니르가 생겨났고, 다음은 두린이었노라.  \n땅속의 난쟁이들은 사람을 닮은 형상을  \n수없이 만들었으니, 두린이 말한 대로였노라.\n\n<a id=\"stanza-011\"></a>\n\n## 제11연\n\n니이와 니디, 노르드리와 수드리,  \n아우스트리와 베스트리, 알트요프와 드발린,  \n나르와 나인, 니핑과 다인,  \n비푸르와 보푸르, 봄부르와 노리,  \n안과 오나르, 아이와 묘드비트니르.\n\n<a id=\"stanza-012\"></a>\n\n## 제12연\n\n비그와 간달프, 빈달프와 스라인,  \n세크와 소린, 스로르와 비트와 리트,  \n니르와 니라드, 이제 나는 말했노라,  \n레긴과 라드스비드, 그 이름들을 빠짐없이.\n\n<a id=\"stanza-013\"></a>\n\n## 제13연\n\n필리와 킬리, 푼딘과 날리,  \n헵티필리와 한나르와 스비우르,  \n프라르와 호른보리, 프래그와 로니,  \n아우르방과 야리와 에이킨스캴디.\n\n<a id=\"stanza-014\"></a>\n\n## 제14연\n\n드발린의 무리에 속한 난쟁이 겨레를,  \n로파르에 이르기까지 내가 열거해야 하노라.  \n그들은 바위를 떠나 젖은 땅들을 지나  \n모래 들판에서 살 곳을 찾았노라.\n\n<a id=\"stanza-015\"></a>\n\n## 제15연\n\n드라우프니르와 돌그스라시르가 있었으며,  \n호르와 하우그스포리, 흘레방과 글로인,  \n도리와 오리, 두프와 안드바리,  \n스키르피르와 비르피르, 스카피드와 아이가 있었노라.\n\n<a id=\"stanza-016\"></a>\n\n## 제16연\n\n알프와 잉그비, 에이킨스캴디,  \n퍌라르와 프로스티, 피드와 긴나르.  \n이 이야기는 영원토록 알려지리라.  \n로파르의 모든 선조를 늘어놓은 이 이름들은.\n\n<a id=\"stanza-017\"></a>\n\n## 제17연\n\n그때 무리 가운데서 셋이 나왔노라.  \n신들의 집에서 나온, 힘세고 자애로운 이들이었노라.  \n그들은 땅 위에서 운명 없는 둘을 발견했으니,  \n아무 힘도 없는 아스크와 엠블라였노라.\n\n<a id=\"stanza-018\"></a>\n\n## 제18연\n\n그들에게는 영혼도 없었고 감각도 없었으며,  \n온기도 움직임도 고운 혈색도 없었노라.  \n오딘은 영혼을 주고 회니르는 감각을 주었으며,  \n로두르는 온기와 고운 혈색을 주었노라.\n\n<a id=\"stanza-019\"></a>\n\n## 제19연\n\n나는 한 물푸레나무를 아노니, 그 이름은 이그드라실,  \n흰 물이 그 큰 나무를 적시고 있노라.  \n그곳에서 골짜기에 내리는 이슬이 나오며,  \n우르드의 샘가에서 나무는 언제나 푸르게 자라노라.\n\n<a id=\"stanza-020\"></a>\n\n## 제20연\n\n그곳에서 지혜가 깊은 처녀들이 오노라.  \n나무 아래 거처에서 나오는 세 처녀.  \n하나의 이름은 우르드, 다음은 베르단디,  \n그들은 나무에 새겼으며, 셋째는 스쿨드.  \n그곳에서 그들은 법을 세우고 삶을 나누어 주었노라.  \n사람의 자손들에게, 그리고 그들의 운명을 정했노라.\n\n<a id=\"stanza-021\"></a>\n\n## 제21연\n\n나는 기억하노라, 세상에서 맨 처음 일어난 전쟁을.  \n신들이 창으로 굴베이그를 찌르고,  \n호르의 전당에서 그녀를 불태웠을 때를.  \n세 번 불타고 세 번 태어났으니,  \n몇 번이고 되풀이되어도 그녀는 여전히 살아 있노라.\n\n<a id=\"stanza-022\"></a>\n\n## 제22연\n\n사람들은 집을 찾아온 그녀를 헤이드라 불렀노라.  \n멀리 내다보며 마법에 밝은 마녀를.  \n그녀의 마법에 움직인 마음들은 홀렸고,  \n악한 여자들에게 그녀는 기쁨이었노라.\n\n<a id=\"stanza-023\"></a>\n\n## 제23연\n\n오딘은 적의 군세를 향해 창을 던졌노라.  \n그때 세상에 처음으로 전쟁이 일어났노라.  \n신들을 에워싸던 성벽은 무너졌고,  \n들판은 호전적인 바니르에게 짓밟혔노라.\n\n<a id=\"stanza-024\"></a>\n\n## 제24연\n\n그러자 신들은 회의의 자리로 갔노라.  \n거룩한 이들이 모여 의논했노라.  \n신들이 조공을 바쳐야 할 것인지,  \n아니면 모두가 똑같이 숭배를 받아야 할 것인지.\n\n<a id=\"stanza-025\"></a>\n\n## 제25연\n\n그러자 신들은 회의의 자리로 갔노라.  \n거룩한 이들이 모여 의논했노라.  \n누가 독으로 공기를 채웠는지,  \n또는 오드의 아내를 거인의 무리에게 내주었는지 알아내려고.\n\n<a id=\"stanza-026\"></a>\n\n## 제26연\n\n그러자 토르는 치솟는 분노로 벌떡 일어났노라.  \n그런 말을 들으면 좀처럼 앉아 있지 않는 이.  \n맹세는 깨지고 말과 결속도 깨졌노라.  \n그들 사이에 맺었던 굳센 서약들이.\n\n<a id=\"stanza-027\"></a>\n\n## 제27연\n\n나는 헤임달의 뿔나팔이 숨겨진 곳을 아노라.  \n높이 솟은 거룩한 나무 아래를.  \n전사자들의 아버지가 맡긴 담보에서  \n거센 물줄기가 그 위로 쏟아지노라. 더 알고 싶은가?\n\n<a id=\"stanza-028\"></a>\n\n## 제28연\n\n내가 홀로 앉아 있을 때 늙은 이가 나를 찾아왔노라.  \n신들을 두렵게 하는 그가 내 눈을 들여다보았노라.  \n“무엇을 물으려 하는가? 어찌하여 이곳에 왔는가?  \n오딘이여, 나는 그대의 눈이 어디 숨겨져 있는지 아노라.”\n\n<a id=\"stanza-029\"></a>\n\n## 제29연\n\n나는 오딘의 눈이 어디 숨겨져 있는지 아노라.  \n널리 이름난 미미르의 샘 깊은 곳을.  \n미미르는 아침마다 오딘이 맡긴 담보로  \n벌꿀술을 마시노라. 더 알고 싶은가?\n\n<a id=\"stanza-030\"></a>\n\n## 제30연\n\n나는 군세의 아버지에게서 목걸이와 반지를 받았노라.  \n내 말은 지혜로웠고 마법의 지식도 깊었노라.  \n……  \n나는 모든 세계를 널리 내다보았노라.\n\n<a id=\"stanza-031\"></a>\n\n## 제31연\n\n사방에서 발키리들이 모여드는 모습을 보았노라.  \n신들의 대열을 향해 말을 달릴 준비를 갖추고.  \n스쿨드는 방패를 들었고 스코굴이 그다음에 달렸으며,  \n구드와 힐드, 곤둘과 게이르스코굴이 있었노라.  \n그대들은 헤르얀의 처녀들 이름을 들었노라.  \n대지 위로 말을 달릴 준비를 갖춘 발키리들을.\n\n<a id=\"stanza-032\"></a>\n\n## 제32연\n\n나는 보았노라, 피 흘리는 신 발드르에게,  \n오딘의 아들에게 정해진 운명을.  \n높은 들판에 이름나고 아름다운  \n겨우살이가 힘차게 다 자라 서 있었노라.\n\n<a id=\"stanza-033\"></a>\n\n## 제33연\n\n그토록 가늘고 아름다워 보이던 가지에서  \n회드르가 던질 해로운 화살이 나왔노라.  \n그러나 머지않아 발드르의 형제가 태어났고,  \n오딘의 그 아들은 태어난 지 하룻밤 만에 싸웠노라.\n\n<a id=\"stanza-034\"></a>\n\n## 제34연\n\n그는 손을 씻지도 머리를 빗지도 않았노라.  \n발드르의 원수를 장작불로 데려갈 때까지.  \n그러나 펜살리르에서 프리그는 몹시 울었노라.  \n발할라의 고난 때문에. 더 알고 싶은가?\n\n<a id=\"stanza-035\"></a>\n\n## 제35연\n\n나는 축축한 숲에 묶인 자를 보았노라.  \n악을 좋아하고 로키를 닮은 자를.  \n그 곁에는 시귄이 앉아 있되,  \n제 짝을 보고도 기쁘지 않노라. 더 알고 싶은가?\n\n<a id=\"stanza-036\"></a>\n\n## 제36연\n\n동쪽에서 독으로 물든 골짜기들을 지나  \n칼과 단검을 싣고 슬리드 강이 쏟아져 흐르노라.  \n……  \n……\n\n<a id=\"stanza-037\"></a>\n\n## 제37연\n\n북쪽 니다벨리르에는  \n신드리의 겨레를 위한 황금 전당이 솟았노라.  \n오콜니르에도 다른 전당이 서 있었으니,  \n거인 브리미르가 맥주 전당을 둔 곳이었노라.\n\n<a id=\"stanza-038\"></a>\n\n## 제38연\n\n나는 해에서 멀리 떨어진 전당을 보았노라.  \n나스트론드에 서 있고, 문들은 북쪽을 향하노라.  \n연기 구멍으로 독액이 떨어지니,  \n벽 둘레를 뱀들이 휘감고 있기 때문이노라.\n\n<a id=\"stanza-039\"></a>\n\n## 제39연\n\n나는 그곳에서 사나운 강들을 헤쳐 가는 자들을 보았노라.  \n배신자들과 살인자들,  \n그리고 남의 아내와 악행을 저지른 자들을.  \n그곳에서 니드호그는 죽은 자들의 피를 빨고,  \n늑대는 사람들을 찢었노라. 더 알고 싶은가?\n\n<a id=\"stanza-040\"></a>\n\n## 제40연\n\n늙은 여자 거인은 동쪽 철의 숲에 앉아  \n펜리르의 자손들을 낳았노라.  \n그 가운데 하나는 괴물의 모습을 하고  \n머지않아 하늘에서 해를 훔치리라.\n\n<a id=\"stanza-041\"></a>\n\n## 제41연\n\n그는 죽은 자들의 살을 실컷 먹고,  \n신들의 집을 선혈로 붉게 물들이노라.  \n해는 어두워지고, 곧 여름에  \n거센 폭풍들이 닥치리라. 더 알고 싶은가?\n\n<a id=\"stanza-042\"></a>\n\n## 제42연\n\n언덕에 앉아 하프를 뜯는 이가 있었노라.  \n거인들의 파수꾼, 즐거운 에그데르였노라.  \n그 위 새들이 사는 숲에서 수탉이 울었으니,  \n아름답고 붉은 퍌라르가 서 있었노라.\n\n<a id=\"stanza-043\"></a>\n\n## 제43연\n\n그러자 굴린캄비가 신들을 향해 울었노라.  \n오딘의 전당에 있는 영웅들을 깨우노라.  \n땅 아래에서는 또 다른 닭이 우니,  \n헬의 빗장 앞에 있는 녹슨 듯 붉은 새로다.\n\n<a id=\"stanza-044\"></a>\n\n## 제44연\n\n이제 가름이 그니파헬리르 앞에서 크게 울부짖노라.  \n족쇄는 터지고 늑대는 풀려나 달리리라.  \n나는 많은 것을 알고, 더 많은 것을 볼 수 있노라.  \n싸움에 강한 신들의 운명에 관하여.\n\n<a id=\"stanza-045\"></a>\n\n## 제45연\n\n형제들은 싸워 서로를 쓰러뜨리고,  \n자매들의 아들들은 혈연을 더럽히리라.  \n땅 위는 참혹하고 음란이 극심하리라.  \n도끼의 시대, 칼의 시대, 방패들이 쪼개지고,  \n바람의 시대, 늑대의 시대가 세상의 몰락에 앞서리라.  \n사람들은 결코 서로를 살려 두지 않으리라.\n\n<a id=\"stanza-046\"></a>\n\n## 제46연\n\n밈의 아들들이 급히 움직이고, 운명이  \n걀라르호른의 음성 속에서 들려오노라.  \n헤임달은 뿔나팔을 높이 들고 크게 부니,  \n헬로 가는 길의 모든 이가 두려움에 떠노라.\n\n<a id=\"stanza-047\"></a>\n\n## 제47연\n\n이그드라실이 흔들리고, 높은 곳에서  \n오랜 가지들이 떨며, 거인은 풀려났노라.  \n오딘은 밈의 머리가 하는 말에 귀를 기울이지만,  \n수르트의 혈족이 곧 그를 죽이리라.\n\n<a id=\"stanza-048\"></a>\n\n## 제48연\n\n신들은 어떠한가? 요정들은 어떠한가?  \n온 요툰헤임이 신음하고 신들은 의논하노라.  \n돌문 앞에서 난쟁이들이 크게 울부짖노라.  \n바위의 주인들이. 더 알고 싶은가?\n\n<a id=\"stanza-049\"></a>\n\n## 제49연\n\n이제 가름이 그니파헬리르 앞에서 크게 울부짖노라.  \n족쇄는 터지고 늑대는 풀려나 달리리라.  \n나는 많은 것을 알고, 더 많은 것을 볼 수 있노라.  \n싸움에 강한 신들의 운명에 관하여.\n\n<a id=\"stanza-050\"></a>\n\n## 제50연\n\n동쪽에서 흐림이 방패를 높이 들고 오노라.  \n뱀은 거대한 분노로 몸부림치고,  \n물결 위에서 몸을 뒤틀며, 황갈색 독수리는  \n울부짖으며 시체를 뜯노라. 나글파르가 풀려났노라.\n\n<a id=\"stanza-051\"></a>\n\n## 제51연\n\n북쪽에서 바다를 가로질러 배 한 척이 오노라.  \n헬의 백성들을 싣고, 키 앞에는 로키가 서 있노라.  \n늑대 뒤를 광포한 자들이 따르고,  \n그들과 함께 뷜레이스트의 형제가 가노라.\n\n<a id=\"stanza-052\"></a>\n\n## 제52연\n\n수르트는 가지를 벌하는 재앙을 들고 남쪽에서 오노라.  \n전쟁의 신들의 태양이 그의 검에서 빛났노라.  \n절벽들은 갈라지고 여자 거인들은 가라앉으며,  \n죽은 자들은 헬의 길에 몰려들고 하늘은 쪼개지노라.\n\n<a id=\"stanza-053\"></a>\n\n## 제53연\n\n이제 흘린에게 또 다른 고통이 닥치노라.  \n오딘이 늑대와 싸우러 나서고,  \n벨리를 죽인 아름다운 이가 수르트를 찾아 나설 때,  \n프리그의 기쁨인 그가 그곳에서 쓰러져야 하리라.\n\n<a id=\"stanza-054\"></a>\n\n## 제54연\n\n그때 승리의 아버지의 힘센 아들,  \n비다르가 거품 무는 늑대와 싸우러 오노라.  \n그는 거인의 아들 몸속으로 검을 찔러  \n심장 깊이 꿰뚫노라. 아버지의 원수를 갚았노라.\n\n<a id=\"stanza-055\"></a>\n\n## 제55연\n\n이리로 흘로딘의 아들이 오노라.  \n빛나는 뱀이 하늘을 향해 아가리를 벌리노라.  \n……  \n오딘의 아들이 뱀을 향해 나아가노라.\n\n<a id=\"stanza-056\"></a>\n\n## 제56연\n\n땅의 수호자는 분노하여 내리치노라.  \n모든 사람은 제 집에서 달아나야 하리라.  \n푀르긴의 아들은 아홉 걸음을 걷고,  \n뱀에게 목숨을 잃어 두려움 없이 쓰러지노라.\n\n<a id=\"stanza-057\"></a>\n\n## 제57연\n\n해는 검게 변하고 땅은 바다에 가라앉으며,  \n뜨거운 별들은 하늘에서 휘돌아 떨어지노라.  \n수증기와 생명을 기르는 불길이 사나워져,  \n마침내 불꽃이 하늘 자체를 둘러 높이 치솟노라.\n\n<a id=\"stanza-058\"></a>\n\n## 제58연\n\n이제 가름이 그니파헬리르 앞에서 크게 울부짖노라.  \n족쇄는 터지고 늑대는 풀려나 달리리라.  \n나는 많은 것을 알고, 더 많은 것을 볼 수 있노라.  \n싸움에 강한 신들의 운명에 관하여.\n\n<a id=\"stanza-059\"></a>\n\n## 제59연\n\n이제 나는 땅이 새롭게,  \n물결에서 다시 온통 푸르게 솟아오르는 것을 보노라.  \n폭포는 떨어지고 독수리는 날아,  \n절벽 아래에서 물고기를 잡노라.\n\n<a id=\"stanza-060\"></a>\n\n## 제60연\n\n신들은 이더볼에 함께 모여  \n땅을 에워싸던 무서운 자를 이야기하노라.  \n그들은 위대했던 옛날을 되새기고,  \n신들의 지배자가 지녔던 오래된 룬을 기억하노라.\n\n<a id=\"stanza-061\"></a>\n\n## 제61연\n\n경이로운 아름다움 속에서 다시 한번  \n황금 놀이판들이 풀 사이에 놓이리라.  \n아득한 옛날 신들이 가졌던 것들이.  \n……\n\n<a id=\"stanza-062\"></a>\n\n## 제62연\n\n그때 씨 뿌리지 않은 들판에 열매가 익고,  \n모든 재앙은 나아지며 발드르가 돌아오노라.  \n발드르와 회드르가 흐로프트의 전투 전당에 살고,  \n힘센 신들도 함께하노라. 더 알고 싶은가?\n\n<a id=\"stanza-063\"></a>\n\n## 제63연\n\n그때 회니르가 예언의 지팡이를 얻노라.  \n……  \n트베기의 형제들의 아들들은  \n이제 빈드헤임에 머무노라. 더 알고 싶은가?\n\n<a id=\"stanza-064\"></a>\n\n## 제64연\n\n나는 해보다 더 아름다운 전당을 보노라.  \n황금 지붕을 얹고 김레에 서 있노라.  \n그곳에 의로운 지배자들이 살리니,  \n그곳에서 언제나 행복을 누리리라.\n\n<a id=\"stanza-065\"></a>\n\n## 제65연\n\n모든 권능을 쥐려고 높은 곳에서 오시는 이,  \n온 땅을 다스리는 힘센 군주가 있노라.  \n……  \n……\n\n<a id=\"stanza-066\"></a>\n\n## 제66연\n\n아래에서 검은 용이 나타나노라.  \n니드호그가 니다푤에서 날아오노라.  \n그 빛나는 뱀은 날개에 사람들의 시체를 싣고 오노라.  \n그러나 이제 나는 가라앉아야 하노라.\n",
   "setting_bible": {
-    "title": "《볼루스파》의 인물과 세계",
-    "introduction_markdown": "《시 에다》의 독립시 《볼루스파》(무녀의 예언) 한 작품. 벨로스 1923년 영어판의 66연 전체를 한국어로 중역한 본문에서 카드와 근거를 추출한다. 에다 전체의 전문이나 여러 전승을 합친 재서술이 아니다.\n\n시의 한국어 본문은 공개 영어 저본을 바탕으로 새로 번역했다. 카드 본문은 시에서 추출한 별도의 요약이며, 별칭을 식별할 때는 같은 판본의 각주를 명시한다. 모든 근거는 원고의 연 앵커와 정확히 일치한다.",
+    "title": "북유럽 신화: 에다 전승 설정집",
+    "introduction_markdown": "《볼루스파》 벨로스 영어판 66연의 한국어 중역과 그 카드에 더해, 《산문 에다》의 「길피의 속임수」·「시어법」 및 《시 에다》의 「그림니르의 말」·「하바말」·「트림의 노래」·「히미르의 노래」에서 확인한 일부 전승을 출전별로 요약한다. 북유럽 신화 전체나 에다 전체의 완역·완전한 전승 목록이 아니다.\n\n기존 시 본문의 근거는 original.md의 연 앵커에, 추가 카드의 근거는 supplementary.md의 원어 발췌와 공개 원전 장·연에 연결한다. 카드의 한국어는 해당 작품을 요약한 새 문장이다.",
     "sections": [
       {
         "id": "norse_mythology_creation",
@@ -1080,6 +1080,396 @@
           {
             "section": "stanza-065",
             "evidence": "모든 권능을 쥐려고 높은 곳에서 오시는 이,  \n온 땅을 다스리는 힘센 군주가 있노라.  \n……  \n……"
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-ymir-origins",
+        "order": 54,
+        "template_part": "전승 자료",
+        "title": "이미르와 태초의 혈통",
+        "content_markdown": "길피에게 답하는 화자는 니플헤임의 서리와 무스펠의 열기가 만난 틈에서 이미르가 생겨났고, 잠든 그의 몸에서 서리 거인 계보가 생겼다고 말한다. 암소 아우둠라는 그를 젖으로 기르고 소금기 있는 돌을 핥아 부리를 드러낸다. 부리의 아들 보르와 거인 베스틀라에게서 오딘·빌리·베가 태어난다. 보르의 아들들이 이미르를 죽일 때 베르겔미르와 아내는 살아남는다.\n\n출전: [《산문 에다》 「길피의 속임수」 5–7장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-ymir-origins",
+            "evidence": "Sá er nefndr Búri."
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-ymir-world",
+        "order": 55,
+        "template_part": "전승 자료",
+        "title": "이미르의 몸으로 만든 세계",
+        "content_markdown": "보르의 아들들은 이미르의 살로 땅, 피로 바다와 물, 뼈로 산, 두개골로 하늘을 만들고 네 모퉁이에 난쟁이를 둔다. 바깥 바닷가를 거인들에게 주고 눈썹으로 인간의 미드가르드를 둘러싼다. 이어 해변의 두 나무에서 아스크와 엠블라를 만든다. 이는 기존 《볼루스파》 카드의 압축된 창세와 구별되는 산문 서술이다.\n\n출전: [《산문 에다》 「길피의 속임수」 8–9장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-ymir-world",
+            "evidence": "Þeir tóku Ymi ok fluttu í mitt Ginnungagap"
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-asgard-hall",
+        "order": 56,
+        "template_part": "전승 자료",
+        "title": "아스가르드와 신들의 전당",
+        "content_markdown": "보르의 아들들이 세계 가운데 아스가르드를 세우고 신들과 그 후손이 산다. 이다볼에 신들이 의논할 자리를 두고 글라드스헤임의 전당과 여신들의 빙골프를 마련한다. 서술자는 아스가르드를 트로이라고도 부르는데 이는 이 산문 작품의 틀이며 모든 전승에 적용할 사실은 아니다.\n\n출전: [《산문 에다》 「길피의 속임수」 9·14장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "location",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-asgard-hall",
+            "evidence": "sem heitir Iðavöllur í miðri borginni"
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-bifrost",
+        "order": 57,
+        "template_part": "전승 자료",
+        "title": "비프로스트와 하늘길",
+        "content_markdown": "신들이 땅과 하늘을 잇도록 만든 세 빛깔 다리는 사람이 무지개라고 부르는 비프로스트다. 산문 화자는 이 다리가 튼튼하지만 무스펠의 아들들이 타고 올 때 부서진다고 말한다. 그 붉은 부분은 거인들의 통행을 막는 불이며, 헤임달은 다리 곁 히민비외르그에서 신들을 지킨다.\n\n출전: [《산문 에다》 「길피의 속임수」 13·15·27장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "location",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-bifrost",
+            "evidence": "er heitir Bifröst?"
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-vanir-hostages",
+        "order": 58,
+        "template_part": "전승 자료",
+        "title": "바니르의 인질과 뇨르드",
+        "content_markdown": "뇨르드는 바나헤임에서 자랐으며 바니르가 신들에게 인질로 보냈고, 그 대가로 회니르를 받았다. 화자는 이를 신들과 바니르의 화해라고 설명한다. 뇨르드는 바람과 바다를 다스리며 항해와 어획을 위해 기원받는다. 거인 티아치의 딸 스카디와는 산과 바다 중 거처를 두고 갈등한다.\n\n출전: [《산문 에다》 「길피의 속임수」 23장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-vanir-hostages",
+            "evidence": "Hann var upp fæddr í Vanaheimi"
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-freyr-freyja",
+        "order": 59,
+        "template_part": "전승 자료",
+        "title": "프레이르와 프레이야의 영역",
+        "content_markdown": "뇨르드의 자녀 프레이르는 비와 햇빛, 땅의 결실을 다스리며 풍년과 평화를 위해 부른다. 프레이야는 폴크방의 전당을 차지하고 전사자 절반을, 오딘이 나머지 절반을 얻는다. 두 고양이가 끄는 수레를 타며 사랑을 위해 기원받는다고 한다.\n\n출전: [《산문 에다》 「길피의 속임수」 24장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-freyr-freyja",
+            "evidence": "Hét annat Freyr, en dóttir Freyja."
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-tyr-fenrir",
+        "order": 60,
+        "template_part": "전승 자료",
+        "title": "티르와 펜리르의 결박",
+        "content_markdown": "신들은 강한 쇠사슬 둘을 끊은 펜리르를 묶으려 난쟁이들에게 글레이프니르를 만든다. 고양이 발소리와 산의 뿌리 등 여섯 재료로 만든 끈을 의심한 늑대는 손을 담보로 요구한다. 티르가 오른손을 입에 넣고, 신들이 풀어주지 않자 늑대가 손을 문다. 화자는 신성한 장소에 피를 흘리기 싫어 신들이 늑대를 죽이지 않았다고 설명한다.\n\n출전: [《산문 에다》 「길피의 속임수」 25·34장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-tyr-fenrir",
+            "evidence": "þá beit hann höndina af"
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-gleipnir",
+        "order": 61,
+        "template_part": "전승 자료",
+        "title": "글레이프니르의 여섯 재료",
+        "content_markdown": "스키르니르가 스바르트알파헤임의 난쟁이들에게 주문한 끈이다. 고양이의 발소리, 여자의 수염, 산의 뿌리, 곰의 힘줄, 물고기의 숨, 새의 침으로 만들었다고 한다. 겉으로는 부드러운 비단 띠 같지만 펜리르가 몸부림칠수록 단단해진다.\n\n출전: [《산문 에다》 「길피의 속임수」 34장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "object",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-gleipnir",
+            "evidence": "af dyn kattarins ok af skeggi konunnar"
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-hel-goddess",
+        "order": 62,
+        "template_part": "전승 자료",
+        "title": "헬과 로키의 세 자녀",
+        "content_markdown": "로키와 거인 여성 앙그르보다의 자녀는 펜리르·요르문간드·헬이다. 오딘은 뱀을 바다에 던지고 헬에게 니플헤임에서 자신에게 보내진 이들의 거처를 나누는 권한을 준다. 화자는 병사자와 노환으로 죽은 자를 언급하며 헬을 반은 푸르고 반은 살빛인 존재로 묘사한다. 기존 장소 카드 헬과 이 인물을 구별한다.\n\n출전: [《산문 에다》 「길피의 속임수」 34장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-hel-goddess",
+            "evidence": "þriðja er Hel."
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-idunn-apples",
+        "order": 63,
+        "template_part": "전승 자료",
+        "title": "이둔의 사과와 브라기",
+        "content_markdown": "시와 말솜씨에 뛰어난 브라기의 아내 이둔은 상자에 사과를 보관한다. 신들은 나이가 들 때 이 사과를 먹어 다시 젊어지며, 화자는 이런 상태가 라그나로크까지 계속된다고 설명한다.\n\n출전: [《산문 에다》 「길피의 속임수」 26장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "object",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-idunn-apples",
+            "evidence": "Kona hans er Iðunn."
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-mjolnir-forge",
+        "order": 64,
+        "template_part": "전승 자료",
+        "title": "묠니르의 제작과 성질",
+        "content_markdown": "로키가 시프의 머리칼을 자른 일에서 시작된 내기에서 브로크와 신드리가 신들에게 줄 보물을 만든다. 풀무질을 방해한 파리 때문에 망치 손잡이는 짧아졌지만, 브로크는 토르에게 망치가 무엇을 쳐도 부서지지 않고 던지면 빗나가지 않으며 손으로 돌아온다고 설명한다. 신들은 서리 거인을 막는 이 망치를 가장 좋은 보물로 판정한다.\n\n출전: [《산문 에다》 「시어법」 43장](https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l).",
+        "card_type": "object",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-mjolnir-forge",
+            "evidence": "Þá tók hann ór aflinum hamar."
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-gungnir-forge",
+        "order": 65,
+        "template_part": "전승 자료",
+        "title": "궁니르와 이발디의 아들들",
+        "content_markdown": "시프의 머리칼을 자른 로키는 보상으로 난쟁이 이발디의 아들들에게 황금 머리칼을 부탁한다. 그들은 머리칼과 배 스키드블라드니르, 오딘의 창 궁니르를 만든다. 로키는 궁니르를 오딘에게 주면서 창이 찌르기를 멈추지 않는다고 설명한다.\n\n출전: [《산문 에다》 「시어법」 43장](https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l).",
+        "card_type": "object",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-gungnir-forge",
+            "evidence": "er Óðinn átti, er Gungnir heitir."
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-hammer-wedding",
+        "order": 66,
+        "template_part": "전승 자료",
+        "title": "묠니르를 되찾은 혼례",
+        "content_markdown": "거인 트림이 묠니르를 신부를 성별하려고 가져오게 하여 무릎에 놓게 하자, 신부로 가장한 토르가 망치를 알아보고 트림과 거인들을 친다. 시 속 혼례 장면에서 망치가 성별에 쓰이지만, 이를 모든 역사적 의례의 보편 규칙으로 단정하지 않는다.\n\n출전: [《시 에다》 「트림의 노래」 30–32연](https://www.heimskringla.no/wiki/%C3%9Erymskvi%C3%B0a).",
+        "card_type": "rule",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-hammer-wedding",
+            "evidence": "brúði at vígja"
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-runes-sacrifice",
+        "order": 67,
+        "template_part": "전승 자료",
+        "title": "나무에 매달려 얻은 룬",
+        "content_markdown": "《하바말》의 화자는 바람 부는 나무에 창으로 상처 입고 자신을 오딘에게 바쳐 아홉 밤 매달렸다고 말한다. 빵이나 뿔잔도 받지 못한 채 아래를 보다가 소리치며 룬을 집어 들고 다시 떨어진다. 시는 그 나무의 이름을 이 대목에서 밝히지 않는다.\n\n출전: [《시 에다》 「하바말」 138–139연](https://www.heimskringla.no/wiki/H%C3%A1vam%C3%A1l).",
+        "card_type": "ability",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-runes-sacrifice",
+            "evidence": "nam ek upp rúnar,"
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-root-prose",
+        "order": 68,
+        "template_part": "전승 자료",
+        "title": "이그드라실 세 뿌리: 산문의 배치",
+        "content_markdown": "산문 화자는 이그드라실의 세 뿌리 중 하나는 아스 신들 곁, 하나는 옛 긴눙가가프의 서리 거인들 곁, 하나는 니플헤임 위에 있다고 말한다. 거인 쪽 뿌리 아래 미미르의 샘이 있고, 하늘에 있는 뿌리 아래 우르드의 샘이 있으며, 니플헤임 쪽에는 흐베르겔미르와 뿌리를 갉는 니드호그가 있다.\n\n출전: [《산문 에다》 「길피의 속임수」 15장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "location",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-root-prose",
+            "evidence": "In þriðja stendr yfir Niflheimi"
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-root-poem",
+        "order": 69,
+        "template_part": "전승 자료",
+        "title": "이그드라실 세 뿌리: 시의 배치",
+        "content_markdown": "《그림니르의 말》 제31연은 세 뿌리 아래에 각각 헬, 서리 거인, 인간이 산다고 노래한다. 《길피의 속임수》 제15장의 아스 신들·서리 거인·니플헤임 배치와 표현이 다르므로 두 목록을 하나의 확정 지도로 합치지 않는다.\n\n출전: [《시 에다》 「그림니르의 말」 31연](https://www.heimskringla.no/wiki/Gr%C3%ADmnism%C3%A1l). [《산문 에다》 「길피의 속임수」 15장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "location",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-root-poem",
+            "evidence": "Hel býr und einni,"
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-nine-worlds-scope",
+        "order": 70,
+        "template_part": "전승 자료",
+        "title": "아홉 세계와 이름의 범위",
+        "content_markdown": "《볼루스파》의 무녀는 아홉 세계를 기억한다고 말하지만 그 연에서 아홉 이름을 열거하지 않는다. 《길피의 속임수》는 아스가르드·미드가르드·바나헤임·니플헤임 등 여러 지명을 따로 언급하며, 헬이 아홉 세계에 대한 권한을 받았다고도 말한다. 이 대목들만으로 보편적으로 확정된 아홉 지명 목록이나 위치도를 만들 수는 없다.\n\n출전: [《산문 에다》 「길피의 속임수」 9·23·34장](https://www.heimskringla.no/wiki/Gylfaginning). [《볼루스파》 벨로스판 제2연](https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.2).",
+        "card_type": "rule",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-nine-worlds-scope",
+            "evidence": "gaf henni vald yfir níu heimum"
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-norns-fates",
+        "order": 71,
+        "template_part": "전승 자료",
+        "title": "노른과 운명의 차이",
+        "content_markdown": "우르드의 샘 곁 전당에서 우르드·베르단디·스쿨드가 나와 사람들의 수명을 정한다. 화자는 이 셋 외에도 태어나는 아이마다 찾아오는 노른들이 있으며 그 계보가 신·엘프·난쟁이로 다양하다고 말한다. 길고 짧은 생의 차이는 좋은 노른과 나쁜 노른으로 설명한다.\n\n출전: [《산문 에다》 「길피의 속임수」 15장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "rule",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-norns-fates",
+            "evidence": "Þessar meyjar skapa mönnum aldr."
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-holy-oath",
+        "order": 72,
+        "template_part": "전승 자료",
+        "title": "성벽 장인과 신들의 맹세",
+        "content_markdown": "장인은 신들의 성벽을 세우는 대가로 프레이야와 해와 달을 요구한다. 신들은 한 겨울 안에 마칠 것과 사람의 도움을 받지 않을 것을 조건으로 맹세하고, 로키의 제안으로 말 스바딜파리의 도움은 허락한다. 로키가 암말로 변해 말을 꾀어 공사를 지연시키고, 장인이 거인으로 드러나자 신들은 맹세를 지키지 않고 토르를 불러 죽인다. 로키가 낳은 여덟 다리 말이 슬레이프니르다.\n\n출전: [《산문 에다》 「길피의 속임수」 42장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-holy-oath",
+            "evidence": "at kaupi þeira váru sterk vitni ok mörg særi"
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-baldr-mistletoe",
+        "order": 73,
+        "template_part": "전승 자료",
+        "title": "발드르의 맹세와 겨우살이",
+        "content_markdown": "발드르의 위험한 꿈 뒤에 프리그는 온갖 것에서 그를 해치지 않겠다는 맹세를 받는다. 다만 너무 어리다고 여긴 겨우살이에게는 맹세를 요구하지 않았다. 여인으로 변장한 로키가 이를 알아내고 겨우살이로 무기를 만들어 눈먼 회드르가 발드르를 쏘게 한다.\n\n출전: [《산문 에다》 「길피의 속임수」 49장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-baldr-mistletoe",
+            "evidence": "Sá er mistilteinn kallaðr."
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-thor-fishing-prose",
+        "order": 74,
+        "template_part": "전승 자료",
+        "title": "토르의 뱀 낚시: 산문과 전해지는 말",
+        "content_markdown": "토르는 히미르와 배를 타고 나가 소의 머리를 미끼로 미드가르드 뱀을 낚는다. 산문에 따르면 히미르가 낚싯줄을 끊어 뱀이 바다에 잠기자 토르는 망치를 던진다. 누군가는 뱀의 머리를 쳤다고 말하지만 화자 자신은 뱀이 여전히 바다에 살아 있다고 생각한다고 구분한다.\n\n출전: [《산문 에다》 「길피의 속임수」 48장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-thor-fishing-prose",
+            "evidence": "en ormrinn sökkðist í sæinn."
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-thor-fishing-poem",
+        "order": 75,
+        "template_part": "전승 자료",
+        "title": "토르의 뱀 낚시: 히미르의 노래",
+        "content_markdown": "《히미르의 노래》에서 토르는 소 머리를 미끼로 온 땅을 둘러싼 뱀을 끌어올려 망치로 친다. 이어 뱀이 바다에 가라앉는다고 하며, 이 연들은 산문처럼 히미르가 줄을 끊는 장면을 명시하지 않는다. 두 텍스트의 결말을 한 문장으로 확정하지 않는다.\n\n출전: [《시 에다》 「히미르의 노래」 22–24연](https://www.heimskringla.no/wiki/Hymiskvi%C3%B0a).",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-thor-fishing-poem",
+            "evidence": "sökkðisk síðan"
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-valhalla-einherjar",
+        "order": 76,
+        "template_part": "전승 자료",
+        "title": "발할라의 전사자들과 양식",
+        "content_markdown": "발할라의 에인헤랴르는 매일 무장하고 밖에서 서로 싸워 쓰러뜨린 뒤 식사 때 전당으로 돌아와 함께 마신다. 멧돼지 세흐림니르는 매일 삶아지지만 저녁이면 온전해져 많은 이들의 양식이 된다. 화자는 전투에서 죽은 이들이 오딘에게 간다고 설명하지만, 같은 작품 24장은 프레이야와 오딘이 전사자를 나눈다고도 말한다.\n\n출전: [《산문 에다》 「길피의 속임수」 24·38·41장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "location",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-valhalla-einherjar",
+            "evidence": "Hann er soðinn hvern dag"
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-fimbulwinter",
+        "order": 77,
+        "template_part": "전승 자료",
+        "title": "핌불베트르와 종말의 싸움",
+        "content_markdown": "《길피의 속임수》의 예언에서는 여름 없는 세 겨울 핌불베트르가 닥치고, 그보다 앞선 세 겨울에는 전 세계의 전쟁과 가족 간 살육이 일어난다. 이후 늑대와 뱀이 풀리고 무스펠의 아들들이 진군한다. 오딘은 늑대와, 프레이르는 수르트와 싸우며 로키와 헤임달은 서로를 죽인다.\n\n출전: [《산문 에다》 「길피의 속임수」 51장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-fimbulwinter",
+            "evidence": "er kallaðr er fimbulvetr."
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-after-ragnarok",
+        "order": 78,
+        "template_part": "전승 자료",
+        "title": "라그나로크 뒤의 신들과 망치",
+        "content_markdown": "산문에서는 바다에서 다시 푸른 땅이 솟고 씨 뿌리지 않은 밭이 자란다. 비다르와 발리가 이다볼에 살고 토르의 아들 모디와 마그니가 묠니르를 가져온다. 헬에서 돌아온 발드르와 회드르가 이들과 만나 옛 사건을 이야기하고 풀밭에서 신들의 황금 놀이말을 찾는다.\n\n출전: [《산문 에다》 「길피의 속임수」 53장](https://www.heimskringla.no/wiki/Gylfaginning).",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-after-ragnarok",
+            "evidence": "Móði ok Magni, ok hafa þar Mjöllni."
+          }
+        ]
+      },
+      {
+        "id": "norse_mythology_norse-ritual-offering",
+        "order": 79,
+        "template_part": "전승 자료",
+        "title": "제물과 룬을 묻는 말",
+        "content_markdown": "《하바말》 화자는 룬을 새기고 해석하고 물들이고 시험하는 법, 기원하고 제사하고 보내고 바치는 법을 아느냐고 묻는다. 다음 연은 지나치게 제사하느니 기원하지 않는 편이 낫다고 말한다. 이 시적 권고만으로 구체적인 의례 절차나 모든 지역의 관습을 복원하지 않는다.\n\n출전: [《시 에다》 「하바말」 144–145연](https://www.heimskringla.no/wiki/H%C3%A1vam%C3%A1l).",
+        "card_type": "rule",
+        "narrative_refs": [
+          {
+            "document": "supplementary.md",
+            "section": "norse-ritual-offering",
+            "evidence": "Veistu, hvé blóta skal?"
           }
         ]
       }
