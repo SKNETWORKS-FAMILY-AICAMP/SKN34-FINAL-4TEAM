@@ -39,3 +39,4 @@
 - 로컬: StoryPlan UseCase·메모리/HTTP Repository·비트 변환·시작 잠금, Content StoryPlanService/MCP 순수 단위.
 - CI: 계획 패널/집필실/시뮬레이션 Hook·React 회귀, PostgreSQL 순서 재조회·revision 충돌, V38 기존 순서 보존·음수 제약.
 - 실제 화면·공유 DB 실행은 별도 요청 전에는 수행하지 않는다. 소스 구현과 hosted CI·실행 검증 완료를 구분한다.
+- #374 후속 요청으로 격리된 로컬 PostgreSQL·Neo4j·실제 AI와 화면을 검증했다([기록](../verification/issue-374-ui.md)). 폭 변경 직후 회차 전환 시 Toast UI 3.2.2의 제거된 툴바 콜백 오류는 pnpm 패치로 공용 편집기 라이브러리에서 차단한다. 설치 시 `pnpm-workspace.yaml`과 `patches/`가 함께 필요하다.
