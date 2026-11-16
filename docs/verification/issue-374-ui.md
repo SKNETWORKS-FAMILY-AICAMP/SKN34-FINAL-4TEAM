@@ -2,9 +2,22 @@
 
 현재 결과: **Toast 툴바 오류 수정, 화면 17항목 재검증 통과·브라우저 오류 0건. 실제 PostgreSQL 저장과 실제 OpenAI 생성·승인 반영·새로고침 유지 확인**. hosted CI는 별도 대기다.
 
+## 최종 polish·리뷰
+
+후속 요청으로 Impeccable polish·CodeRabbit·ponytail 리뷰를 수행했다. 검증을 마친 뒤 기존 작업 브랜치에서 PR을 만드는 것으로 앞선 PR 금지 지시가 변경됐다.
+
+- **Polish:** 좁은 고급 패널에서 세로 버튼 묶음이 장면 본문 폭을 줄이고 있었다. 본문 아래에 위로·아래로·삭제를 한 줄로 배치했다. 모바일에서 로컬 CSS가 공용 버튼의 44px 높이를 36px로 덮던 것도 수정했다. 기존 색상·글꼴·문구·동작은 유지했다. CSS만 수정했으므로 새 로직 단위 테스트는 추가하지 않았다.
+- **화면:** 실제 Chrome에서 라이트·다크 × 320/390/750/1100/1500px, 총 10조합의 가로 넘침과 버튼 크기를 검사했다. 좁은 화면 버튼은 44px 이상이었다. 긴 제목·본문, 키보드 Enter로 편집·순서 이동, Tab 이동 시 포커스 윤곽선도 확인했다. Impeccable detector 지적 0건. 최종 전체 화면 시나리오 17항목과 pageerror 0건을 다시 확인했다.
+- **CodeRabbit:** `upstream/develop` 대비 브랜치 전체 46파일 리뷰에서 경미한 제안 1건. 삭제·회차 이동 뒤 원래 회차의 position 공백을 없애자는 제안은 채택하지 않았다. [계약](../design/writing-plan-panel-contract.md)은 공백을 허용하고 일반 편집은 position을 생략한다. 실제 `useStoryPlanViewModel.edit`도 position 없이 입력을 만들며, 순서 변경만 현재 목록의 목적지 인덱스를 보낸다. 저장 응답의 position을 그대로 PUT하는 가정은 이 편집 계약과 다르다. 기존 `editing content preserves relative order after deletion gaps` 테스트를 포함한 Content 9개와 프론트 계획·HTTP 16개가 통과했다. 최종 CSS 변경 별도 리뷰는 지적 0건이다.
+- **Ponytail full/review:** 기존 패널·버튼·토큰을 재사용하고 CSS 3규칙만 보완했다. 순서 저장·미저장 보호·공용 Toast 패치 흐름도 검토했으며 추가 추상화나 리팩터링이 필요한 유효 결함은 없었다.
+
+판정: 요청한 범위의 유효 미해결 결함 없음. PR 제출 가능. hosted CI와 공유 환경 적용 여부는 이 로컬 판정과 구분한다.
+
+추가 근거는 같은 로컬 증거 폴더의 `polish-checks.json`, `polish-detector.json`, `full-branch-review.log`, `polish-review.log`, `polish-plan-tests.log`, `polish-plan-service-tests.log`, `polish-final-results.json`, `polish-final.mp4`, `polish-light-*.png`, `polish-dark-*.png`, `polish-long-content.png`에 있다.
+
 ## 후속 수정·실제 서버 검증
 
-사용자가 오류 수정과 실제 DB·AI 호출·녹화를 추가 요청했다. 기존 `feat/writing-plan-panel`에서 수행했으며 PR은 만들지 않는다.
+사용자가 오류 수정과 실제 DB·AI 호출·녹화를 추가 요청했다. 기존 `feat/writing-plan-panel`에서 수행했으며 당시 요청에 따라 PR은 만들지 않았다.
 
 - 원인: Toast UI Editor 3.2.2 툴바의 `ResizeObserver`를 해제해도 이미 예약된 200ms throttle 콜백은 남는다. 편집기 제거 뒤 콜백이 `setState`로 제거된 DOM을 다시 그렸다.
 - 수정: pnpm 패치로 툴바 제거 여부를 표시하고 늦은 resize 콜백을 중단한다. ESM·CommonJS 진입점에 동일하게 적용했다. 버전 변경이나 새 production 의존성은 없다. Docker 개발/배포 이미지도 설치 전에 패치 설정과 파일을 복사한다.
