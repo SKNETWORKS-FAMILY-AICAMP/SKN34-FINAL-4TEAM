@@ -30,7 +30,7 @@ export function StudioPage() {
   const { id = '' } = useParams()
   const [query] = useSearchParams()
   // Server work IDs use the persisted writing flow(narrative는 플롯·장면 계획); 이름 경로는 서버 작품을 찾아 UUID로 보내고 없으면 명시적 데모입니다.
-  return /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? query.get('view') === 'narrative' ? <RequireRole><StoryPlanPage key={id} id={id}/></RequireRole> : <WritingStudio key={id} id={id}/> : <NamedStudioRoute key={id} id={id}/>
+  return /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? query.get('view') === 'narrative' ? <RequireRole><StoryPlanPage key={id} id={id}/></RequireRole> : <WritingStudio key={id} id={id} episode={Number(query.get('ep')) || undefined}/> : <NamedStudioRoute key={id} id={id}/>
 }
 function NamedStudioRoute({id}:{id:string}) {
   const [query]=useSearchParams()

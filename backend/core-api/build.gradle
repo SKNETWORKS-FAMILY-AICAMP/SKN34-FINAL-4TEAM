@@ -83,6 +83,8 @@ def integrationTestClasses = [
 
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
+    // 테스트가 공유 DB에 만든 알림 Outbox 행을 다른 테스트 컨텍스트의 발행기가 가져가지 않게 주기 발행은 끈다(테스트가 직접 호출한다).
+    systemProperty 'app.notification.outbox.relay-enabled', 'false'
     failOnNoDiscoveredTests = true
     filter { failOnNoMatchingTests = true }
 }

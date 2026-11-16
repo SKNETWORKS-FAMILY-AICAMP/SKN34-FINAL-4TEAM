@@ -171,6 +171,35 @@ describe('독립 운영 CRUD 화면 (오프라인 데모)', () => {
     await screen.findByText('등록된 운영 공지가 없어요. 공지를 작성해 보세요.')
   })
 
+  it('완료 문구는 한 곳에만 보인다: 폼이 바뀌거나 사라진 조치는 화면 위 완료 줄에, 폼이 남아 있는 조치는 폼 안에', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    renderAt('/admin?tab=notices')
+    // 토스트(div#toast)에도 같은 문구가 뜨므로 화면에 남는 안내 문단만 센다.
+    const lines = (text: string) => screen.getAllByText(text, { selector: 'p' })
+    const inForm = (line: HTMLElement) => line.closest('[aria-label="운영 공지"]') !== null
+    const saved = '공지를 저장했어요. 회원 공지사항에 바로 공개돼요.'
+    fireEvent.click(await screen.findByRole('button', { name: '공지 작성' }))
+    fill('공지 제목', '한 곳 공지')
+    fill('공지 내용', '본문')
+    fireEvent.click(screen.getByRole('button', { name: '공지 저장' }))
+    await screen.findByRole('heading', { name: '한 곳 공지' })
+    // 새 공지 폼은 저장 뒤 상세로 바뀌어 사라졌으므로 화면 위 완료 줄이 알린다.
+    expect(lines(saved)).toHaveLength(1)
+    expect(inForm(lines(saved)[0])).toBe(false)
+
+    fill('공지 제목', '한 곳 공지 수정')
+    fireEvent.click(screen.getByRole('button', { name: '공지 저장' }))
+    await screen.findByRole('heading', { name: '한 곳 공지 수정' })
+    // 고친 공지의 폼은 그대로 남아 있으므로 폼 안에서만 알린다.
+    await waitFor(() => expect(inForm(lines(saved)[0])).toBe(true))
+    expect(lines(saved)).toHaveLength(1)
+
+    fireEvent.click(screen.getByRole('button', { name: '공지 삭제' }))
+    await screen.findByText('등록된 운영 공지가 없어요. 공지를 작성해 보세요.')
+    // 삭제로 폼이 사라졌으므로 삭제 완료도 화면 위 완료 줄이 알린다.
+    expect(lines('공지를 삭제했어요. 회원 공지사항에서도 사라져요.')).toHaveLength(1)
+  })
+
   it('이벤트의 선택 한국시간 입력·UTC 저장·역전 오류와 탭 초안 보존을 안내한다', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     renderAt('/admin?tab=events')

@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
 import { HttpWorkRepository } from './HttpWorkRepository'
 import { HttpEpisodeRepository, type ReadingWorkRecord } from './HttpEpisodeRepository'
+import { ForkUseCase } from '../../domain/usecases/ForkUseCase'
 import { epsOf, isMine } from '../../domain/entities/work'
 
 const record = (extra: Partial<ReadingWorkRecord> = {}): ReadingWorkRecord => ({
   id: 'work-uuid', slug: 'old-slug', title: '원고', summary: '소개', visibility: 'public', authorName: '나', ownerId: 'other-member',
-  revision: 2, theme: 'star', hook: '', hanja: null, hero: null, heroBg: null, genres: ['판타지'], hashtags: ['서약'], views: 0,
+  revision: 2, theme: 'star', hook: '', hanja: null, hero: null, heroBg: null, genres: ['판타지'], hashtags: ['서약'], views: 0, likes: 4,
   allowFork: true, allowForkPublication: true, forkableEpisodes: [2], source: null, episodes: [
     { number: 1, version: 1, versionId: 'v1', title: '하나', body: '첫 문단\n\n둘째 문단', inherited: false },
     { number: 2, version: 1, versionId: 'v2', title: '둘', body: '셋째 문단', inherited: false },
@@ -27,6 +28,8 @@ describe('canonical WorkRepository', () => {
     expect(work.slug).toBe('old-slug')
     expect(work.eps[0].p).toEqual(['첫 문단', '둘째 문단'])
     expect(isMine(work)).toBe(false)
+    // 좋아요 수는 서버 값이지만 댓글 수·갱신 시각은 서버에 없으니 지표 전체를 "지원"으로 표시하지 않는다.
+    expect(work.likes).toBe(4)
     expect(work.statisticsSupported).toBe(false)
     expect(work.forkEps).toEqual([2])
     expect(work.wiki?.docs).toEqual([])
@@ -71,6 +74,14 @@ describe('canonical WorkRepository', () => {
     world.workId='another-work'
     await expect(repository.readWorld(work,2)).rejects.toThrow('작품')
   })
+  it('keeps the source title and deleted flag from the transport so a deleted original is shown as deleted', async () => {
+    const forked = record({ source: { workId: 'parent-uuid', title: '부모', episode: 1, version: 1, direction: '분기', deleted: true },
+      episodes: record().episodes.map((e, i) => ({ ...e, inherited: i === 0, body: i === 0 ? '' : e.body })) })
+    const repository = new HttpWorkRepository(new HttpEpisodeRepository(vi.fn(async () => Response.json([forked]))), () => false)
+    const [work] = await repository.listWorks()
+    expect(work.parentTitle).toBe('부모')
+    expect(work.parentDeleted).toBe(true)
+  })
   it('rejects malformed canonical transport instead of silently dropping required ownership metadata', async () => {
     const fetcher=vi.fn(async () => Response.json([record({ownerId:''})]))
     const repository=new HttpWorkRepository(new HttpEpisodeRepository(fetcher),()=>false)
@@ -80,5 +91,96 @@ describe('canonical WorkRepository', () => {
     const { api, repository } = setup()
     expect(await repository.createFork('work-uuid', 2, '분기 제목', '분기 방향')).toEqual({ id: 'created-server-uuid' })
     expect(api.fork).toHaveBeenCalledWith('work-uuid', 2, '분기 제목', '분기 방향')
+  })
+})
+
+
+it('공개 중단된 중간 회차의 자리를 보존하고 뒤 회차 번호를 바꾸지 않는다', async () => {
+  const {repository}=setup([record({episodes:[{number:3,version:1,versionId:'v3',title:'3화',body:'공개 본문',inherited:false}]})])
+  const [work]=await repository.listWorks()
+  expect(epsOf(work)).toHaveLength(3)
+  expect(epsOf(work)[0]).toMatchObject({hidden:true,p:[]})
+  expect(epsOf(work)[1]).toMatchObject({hidden:true,p:[]})
+  expect(epsOf(work)[2].t).toBe('3화')
+})
+
+
+it('공개 중단된 회차는 공개 세계관 조회를 요청하지 않는다',async()=>{
+  const {repository,api}=setup([record({episodes:[{number:2,version:1,versionId:'v2',title:'2화',body:'본문',inherited:false}]})])
+  const [work]=await repository.listWorks()
+  await repository.readWorld(work,1)
+  expect(api.readingWorld).not.toHaveBeenCalled()
+})
+
+
+it('preserves published author notes through HTTP and inherited Fork reading', async () => {
+  const row = record({ source: {workId:'parent',title:'원작',episode:1,version:1,direction:'',deleted:true},
+    episodes: [{...record().episodes[0], inherited:true, authorNote:'원작 후기'}] })
+  const api = new HttpEpisodeRepository(vi.fn(async () => Response.json([row])))
+  const repository = new HttpWorkRepository(api, () => false)
+  const [work] = await repository.listWorks()
+  expect(work.parentDeleted).toBe(true)
+  expect(epsOf(work)[0].authorNote).toBe('원작 후기')
+})
+
+it('uses the server allowlist and reports the actual preview basis when the selected episode is no longer allowed', async () => {
+  const { api, repository } = setup([record({
+    forkableEpisodes: [3],
+    episodes: [{ number: 3, version: 1, versionId: 'v3', title: '3화', body: '본문', inherited: false }],
+  })])
+  api.readingWorld.mockResolvedValue({ workId: 'work-uuid', episode: 3, documents: [] })
+  const form = await new ForkUseCase(repository).getForm('work-uuid', 1)
+  expect(form?.forkList).toEqual([3])
+  expect(form?.basisEpisode).toBe(3)
+  expect(api.readingWorld).toHaveBeenCalledWith('work-uuid', 3)
+})
+
+describe('연결된 세계관의 독자 공개 카드 (DEC-46)', () => {
+  const [worldId, rian, tower, link, towerImage] = Array.from({ length: 5 }, () => crypto.randomUUID())
+  const cards = [
+    { id: rian, title: '리안', text: '## 성격\n끈질기다', cardType: 'character', aliases: ['견습 서약사'], tags: ['주인공'], revealFromEpisode: 1, imageId: null },
+    { id: tower, title: '별빛 탑', text: '봉인을 지키는 탑.', cardType: 'location', aliases: [], tags: [], revealFromEpisode: 2, imageId: towerImage },
+  ]
+  const served = (extra: object = {}) => ({ workId: 'work-uuid', worldId, upto: 2, cards, relationships: [{ id: link, sourceCardId: rian, targetCardId: tower, label: '머무는 곳' }], relationshipStatus: 'current', ...extra })
+  /** 호출마다 새 Response를 준다(같은 Response는 한 번만 읽힌다). */
+  const repositoryOf = (body: unknown, status = 200) => {
+    const fetcher = vi.fn(async () => Response.json(body, { status }))
+    return { fetcher, repository: new HttpWorkRepository(new HttpEpisodeRepository(fetcher), () => false) }
+  }
+
+  it('기준 회차를 붙여 Bearer 없이 읽고 서버가 준 카드·관계를 그대로 돌려준다', async () => {
+    const { fetcher, repository } = repositoryOf(served())
+    expect(await repository.readWorldCards('work-uuid', 2)).toEqual(served())
+    const [url, init] = fetcher.mock.calls[0] as unknown as [string, RequestInit]
+    expect(url).toBe('/api/v1/public/works/work-uuid/world-cards?upto=2')
+    expect(init.method).toBe('GET')
+    expect(init.headers).not.toHaveProperty('Authorization')
+  })
+
+  it('카드의 imageId는 서버가 준 대로(없으면 null) 읽고, 문자열이 아니면 빈 위키로 바꾸지 않고 실패한다', async () => {
+    const [first, second] = cards
+    const { imageId: _kept, ...withoutField } = second // 필드가 없던 옛 응답
+    expect((await repositoryOf(served({ cards: [first, withoutField] })).repository.readWorldCards('work-uuid')).cards.map((card) => card.imageId)).toEqual([null, null])
+    expect((await repositoryOf(served()).repository.readWorldCards('work-uuid')).cards.map((card) => card.imageId)).toEqual([null, towerImage])
+    await expect(repositoryOf(served({ cards: [{ ...first, imageId: 3 }] })).repository.readWorldCards('work-uuid')).rejects.toThrow('서버 응답 형식')
+  })
+
+  it('기준 회차가 없으면 upto 없이 읽고 관계 상태가 없는 응답은 current로 읽는다', async () => {
+    const { fetcher, repository } = repositoryOf(served({ relationshipStatus: undefined }))
+    expect((await repository.readWorldCards('work-uuid')).relationshipStatus).toBe('current')
+    expect(fetcher.mock.calls[0]).toEqual(['/api/v1/public/works/work-uuid/world-cards', expect.anything()])
+  })
+
+  it('연결된 세계관이 없는 작품과 관계를 읽지 못한 응답을 서버가 준 그대로 구분해 돌려준다', async () => {
+    const unlinked = { workId: 'work-uuid', worldId: null, upto: 0, cards: [], relationships: [], relationshipStatus: 'current' }
+    expect(await repositoryOf(unlinked).repository.readWorldCards('work-uuid')).toEqual(unlinked)
+    const unavailable = served({ relationships: [], relationshipStatus: 'unavailable' })
+    expect((await repositoryOf(unavailable).repository.readWorldCards('work-uuid')).relationshipStatus).toBe('unavailable')
+  })
+
+  it('다른 작품의 응답·모르는 카드 유형·없는 작품(404)은 빈 위키로 바꾸지 않고 실패한다', async () => {
+    await expect(repositoryOf(served({ workId: 'another-work' })).repository.readWorldCards('work-uuid')).rejects.toThrow('작품')
+    await expect(repositoryOf(served({ cards: [{ ...cards[0], cardType: 'weapon' }] })).repository.readWorldCards('work-uuid')).rejects.toThrow('서버 응답 형식')
+    await expect(repositoryOf({ detail: '작품을 찾을 수 없어요.' }, 404).repository.readWorldCards('work-uuid')).rejects.toThrow('작품을 찾을 수 없어요.')
   })
 })

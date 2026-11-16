@@ -49,3 +49,18 @@ it('keeps input, reports a real failure and releases duplicate-submit protection
   expect(send).toHaveBeenCalledTimes(2)
   expect(result.current.error).toBe('서버 거부')
 })
+it('clears the picked episode when the server answers with another one so later reads follow the server',async()=>{
+  const uc=new ForkUseCase(new InMemoryWorkRepository(createFixtureDb()))
+  const real=uc.getForm.bind(uc)
+  // 서버가 3화를 허용하지 않아 2화로 바꿔 답하는 상황
+  const getForm=vi.spyOn(uc,'getForm').mockImplementation((id,at)=>real(id,at===3?2:at))
+  const store=createAppStore({role:'user'})
+  const wrapper=({children}:{children:ReactNode})=><Provider store={store}><MemoryRouter>{children}</MemoryRouter></Provider>
+  const {result}=renderHook(()=>useForkViewModel('guunmong',2,uc),{wrapper})
+  await waitFor(()=>expect(result.current.at).toBe(2))
+  act(()=>{result.current.pick(3)})
+  await waitFor(()=>expect(getForm).toHaveBeenCalledWith('guunmong',3))
+  // 고른 값이 지워져 이후 조회는 고른 3화가 아니라 처음 주소의 회차를 따른다(재조회 중 3화로 깜빡이지 않는다).
+  await waitFor(()=>expect(getForm).toHaveBeenLastCalledWith('guunmong',2))
+  expect(result.current.at).toBe(2)
+})

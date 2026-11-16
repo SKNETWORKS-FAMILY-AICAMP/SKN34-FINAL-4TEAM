@@ -10,4 +10,7 @@ interface WorkViewRepository : JpaRepository<WorkViewEntity, WorkViewEntity.Key>
     @Query("""select v.workId, sum(case when v.viewedAt >= :split then 1 else 0 end), sum(case when v.viewedAt < :split then 1 else 0 end)
         from WorkViewEntity v where v.viewedAt >= :windowStart group by v.workId""")
     fun countByWork(@Param("windowStart") windowStart: Instant, @Param("split") split: Instant): List<Array<Any>>
+    /** 한 작품의 회차별 누적 조회 수를 `[회차 번호, 조회 수]` 행으로 돌려준다. 조회가 없는 회차는 행이 없다. */
+    @Query("select v.episodeNumber, count(v) from WorkViewEntity v where v.workId = :workId group by v.episodeNumber")
+    fun countByEpisode(@Param("workId") workId: String): List<Array<Any>>
 }

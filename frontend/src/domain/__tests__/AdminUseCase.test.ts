@@ -1,11 +1,10 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { seedAdmin, seedWorks, seedWorlds } from '../../data/mock/seed'
 import type { DemoCredits } from '../entities/credit'
 import type { ReaderReport, ReviewItem } from '../entities/feedback'
 import type { Work } from '../entities/work'
-import { AGGREGATE_WRITE_UNSUPPORTED } from '../repositories/WorkRepository'
-import { AdminUseCase, canToggleWork } from '../usecases/AdminUseCase'
+import { AdminUseCase } from '../usecases/AdminUseCase'
 
 function fakes() {
   let works = seedWorks(0), admin = seedAdmin(), chats = null as null | { id: string; workId: string; character: string; enabled: boolean }[]
@@ -25,44 +24,26 @@ function fakes() {
     { get: async () => db.credits, save: async (c) => { db.credits = c } },
     chatRepository,
   )
-  return { uc, db, works: () => works, admin: () => admin }
+  return { uc, db, admin: () => admin }
 }
+
+describe('관리자 데모 조치 기록', () => {
+  it('조치 시각은 활동 기록 화면이 한국시간으로 바꿀 수 있는 ISO 시각이다', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-10T01:00:00Z'))
+    try {
+      const { uc, admin } = fakes()
+      // 데모 댓글 숨김은 운영 댓글 API(75)로 옮겨져 남은 데모 조치인 정기 작업 재시도로 확인한다.
+      await uc.runJob('notification-cleanup')
+      expect(admin().audit).toEqual([{ at: '2026-11-10T01:00:00.000Z', actor: '관리자', action: '정기 작업 재시도 시연', detail: '알림 90일 보관기간 정리' }])
+    } finally { vi.useRealTimers() }
+  })
+})
 
 describe('관리자 신고 처리 (목업 data-qact)', () => {
   it('정기 작업 재시도는 실패한 작업만 기록한다', async () => {
     const { uc } = fakes()
     expect(await uc.runJob('series')).toBeNull()
     expect((await uc.runJob('notification-cleanup'))?.msg).toMatch('수동 재시도')
-  })
-
-  it('없는 댓글은 숨기지 않고 로그도 남기지 않는다 (목업 data-comment-action)', async () => {
-    const { uc, admin } = fakes()
-    expect(await uc.toggleComment('nope', '구운몽 · 누군가')).toBeNull()
-    expect(admin().hiddenComments).toEqual([])
-    expect(admin().audit).toEqual([])
-    expect(await uc.toggleComment('hanji-0', '구운몽 · 연화봉러')).toEqual({ ok: true, msg: '댓글 상태를 변경했어요 (데모)' })
-    expect(admin().hiddenComments).toEqual(['hanji-0'])
-  })
-})
-
-describe('작품 탭 조치 대상 (#197)', () => {
-  it('정본 작품은 조치 대상이 아니고 toggleWork도 같은 기준으로 거절해 상태와 로그를 바꾸지 않는다', async () => {
-    const { uc, works, admin } = fakes()
-    const work = works().find((w) => w.id === 'guunmong')!
-    work.canonical = true
-    expect(canToggleWork(work)).toBe(false)
-    expect(await uc.toggleWork(work.id)).toEqual({ ok: false, msg: AGGREGATE_WRITE_UNSUPPORTED })
-    expect(works().find((w) => w.id === work.id)?.hidden).toBeFalsy()
-    expect(admin().audit).toEqual([])
-  })
-
-  it('메모리 데모 작품은 조치 대상이고 toggleWork가 공개 상태를 바꿔 로그를 남긴다', async () => {
-    const { uc, works, admin } = fakes()
-    const work = works().find((w) => w.id === 'guunmong')!
-    expect(canToggleWork(work)).toBe(true)
-    expect(canToggleWork({ canonical: false })).toBe(true)
-    expect(await uc.toggleWork(work.id)).toEqual({ ok: true, msg: '작품 공개 상태를 변경했어요 (데모)' })
-    expect(works().find((w) => w.id === work.id)?.hidden).toBe(true)
-    expect(admin().audit[0]).toMatchObject({ action: '작품 공개 상태 변경', detail: `${work.title} · 운영상 비공개` })
   })
 })

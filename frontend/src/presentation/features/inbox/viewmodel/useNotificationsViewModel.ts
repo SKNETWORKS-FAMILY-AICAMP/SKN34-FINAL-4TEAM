@@ -96,17 +96,28 @@ export function useNotificationsViewModel(
     )
   }, [noticeVersion, shellUseCase])
 
-  const run = async (action: () => Promise<void>, failure: string) => {
+  /**
+   * 조작 실패 안내. 토스트는 곧 사라지므로 어디서 실패했는지(at)와 함께 남겨 화면이 그 자리에 보이게 한다.
+   * at은 'all'(모두 읽음)·'more'(더 보기)·'prefs'(수신 설정)·`row:<알림 id>`이고, 다음 조작을 시작하면 지운다.
+   */
+  const [failure, setFailure] = useState<{ at: string; msg: string } | null>(null)
+  const fail = (at: string, msg: string) => {
+    setFailure({ at, msg })
+    toast(msg)
+  }
+  const run = async (at: string, action: () => Promise<void>, msg: string) => {
+    setFailure(null)
     try {
       await action()
       return true
     } catch {
-      toast(failure)
+      fail(at, msg)
       return false
     }
   }
   return {
     ...state,
+    failure,
     unread: state.items.filter((n) => !n.read).length,
     live: noticeStream,
     retry: load,
@@ -114,6 +125,7 @@ export function useNotificationsViewModel(
       const cursor = state.nextCursor
       if (!cursor || state.loadingMore) return
       const id = alive.current
+      setFailure(null)
       setState((s) => ({ ...s, loadingMore: true }))
       try {
         const page = await shellUseCase.listNotifications(cursor, controller.current?.signal)
@@ -134,7 +146,7 @@ export function useNotificationsViewModel(
       } catch {
         if (alive.current === id) {
           setState((s) => ({ ...s, loadingMore: false }))
-          toast('알림을 더 불러오지 못했어요. 다시 시도해 주세요.')
+          fail('more', '알림을 더 불러오지 못했어요. 다시 시도해 주세요.')
         }
       }
     },
@@ -148,6 +160,7 @@ export function useNotificationsViewModel(
       const id = alive.current
       if (
         !await run(
+          'all',
           () => shellUseCase.markAllRead(upTo),
           '모두 읽음 처리하지 못했어요. 다시 시도해 주세요.',
         ) ||
@@ -160,6 +173,7 @@ export function useNotificationsViewModel(
       if (!n.read) {
         if (
           !await run(
+            `row:${n.id}`,
             () => shellUseCase.markRead(n.id),
             '읽음 처리하지 못했어요. 다시 시도해 주세요.',
           )
@@ -176,6 +190,7 @@ export function useNotificationsViewModel(
     remove: async (n: AppNotification) => {
       if (
         !await run(
+          `row:${n.id}`,
           () => shellUseCase.removeNotification(n.id),
           '알림을 삭제하지 못했어요. 다시 시도해 주세요.',
         )
@@ -186,13 +201,14 @@ export function useNotificationsViewModel(
     },
     setPref: async (k: keyof NotificationPrefs, on: boolean) => {
       if (!state.prefs || state.saving) return
+      setFailure(null)
       setState((s) => ({ ...s, saving: true }))
       try {
         const prefs = await shellUseCase.savePrefs({ ...state.prefs, [k]: on })
         setState((s) => ({ ...s, prefs, saving: false }))
       } catch {
         setState((s) => ({ ...s, saving: false }))
-        toast('알림 설정을 저장하지 못했어요. 다시 시도해 주세요.')
+        fail('prefs', '알림 설정을 저장하지 못했어요. 다시 시도해 주세요.')
       }
     },
   }

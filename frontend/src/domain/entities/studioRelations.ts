@@ -2,6 +2,7 @@ import {cardTypes,cardTypeOf} from './studioCards'
 import { authorEdit, newSetting, type SettingItem, type StudioSetting } from './studioWorld'
 
 export const relationDefinitions:Record<string,{label:string;group:'fact'|'emotion'|'other';symmetric?:boolean}>={
+ preserved_emotion_symmetric:{label:'대칭 감정 · 읽기 전용',group:'emotion',symmetric:true},
  custom_relation:{label:'직접 쓴 관계',group:'fact',symmetric:true},custom_relation_directed:{label:'직접 쓴 방향 관계',group:'fact'},custom_emotion:{label:'직접 쓴 감정',group:'emotion'},
  friend_of:{label:'친구',group:'fact',symmetric:true}, sibling_of:{label:'남매·형제자매',group:'fact',symmetric:true},
  child_of:{label:'자녀 → 부모',group:'fact'}, parent_of:{label:'부모 → 자녀',group:'fact'}, spouse_of:{label:'배우자',group:'fact',symmetric:true},
@@ -9,7 +10,7 @@ export const relationDefinitions:Record<string,{label:string;group:'fact'|'emoti
  member_of:{label:'소속',group:'other'}, leads:{label:'이끎',group:'other'}, can_use:{label:'사용 가능',group:'other'}, located_in:{label:'위치',group:'other'},
 }
 export type RelationInput=Pick<SettingItem,'subjectId'|'targetId'|'predicate'|'polarity'> & Partial<Pick<SettingItem,'id'|'title'|'text'>>
-export const isFreeRelation=(predicate:string|null|undefined)=>['custom_relation','custom_relation_directed','custom_emotion'].includes(predicate??'')
+export const isFreeRelation=(predicate:string|null|undefined)=>['custom_relation','custom_relation_directed','custom_emotion','preserved_emotion_symmetric'].includes(predicate??'')
 export function relationLabel(item:Pick<SettingItem,'predicate'|'polarity'>&Partial<Pick<SettingItem,'text'>>) {
  return ((isFreeRelation(item.predicate)?item.text:undefined)??relationDefinitions[item.predicate??'']?.label??item.predicate??'관계')+(item.polarity==='denied'?' 아님':'')
 }
@@ -102,16 +103,21 @@ export function removeRelation(settings:StudioSetting[],id:string) {
  return settings.filter(s=>s.item.id!==id)
 }
 
-export function personDeletionInfo(settings:StudioSetting[],id:string) {
- const person=settings.find(s=>s.item.id===id&&s.item.kind==='entity'&&s.item.entityType==='character')
- if(!person)throw new Error('삭제할 인물을 찾을 수 없습니다.')
+/** 어떤 유형의 설정이든 지울 때 함께 사라질 관계(그 설정에 이어진 관계)와, 남는 설정 중 아직 참조하고 있어 지울 수 없게 막는 설정을 미리 보인다. */
+export function cardDeletionInfo(settings:StudioSetting[],id:string) {
+ const card=settings.find(s=>s.item.id===id)
+ if(!card)throw new Error('삭제할 설정을 찾을 수 없습니다.')
  const relations=settings.filter(s=>s.item.kind==='relation'&&(s.item.subjectId===id||s.item.targetId===id))
  const removed=new Set([id,...relations.map(s=>s.item.id)])
  const blockers=settings.filter(s=>!removed.has(s.item.id)&&[s.item.subjectId,s.item.targetId,s.item.afterId,...s.item.relatedIds].some(ref=>ref!==null&&removed.has(ref)))
- return {person,relations,blockers}
+ return {card,relations,blockers}
 }
-export function removePerson(settings:StudioSetting[],id:string) {
- const {relations,blockers}=personDeletionInfo(settings,id)
+/** 지난 회차 관계의 끝점이 그 뒤에 삭제한 설정이면 관계 목록에 이 이름으로 보인다(서버가 그 이름을 알려 줬으면 '삭제된 설정: 이름', DEC-51). */
+export const DELETED_CARD_NAME='삭제된 설정'
+/** 끝점 id가 이 초안의 설정 카드(관계 행 제외)에 없는지. 비어 있는(null) 끝점은 삭제가 아니라 아직 고르지 않은 것이다. 새 관계는 활성 카드만 끝점으로 고르므로 이런 끝점은 지난 회차를 읽을 때만 생기고, 화면은 그 관계를 읽기 전용으로 둔다. */
+export const isDeletedCard=(settings:StudioSetting[],id:string|null)=>id!==null&&!settings.some(s=>s.item.kind!=='relation'&&s.item.id===id)
+export function removeCard(settings:StudioSetting[],id:string) {
+ const {relations,blockers}=cardDeletionInfo(settings,id)
  if(blockers.length)throw new Error(`다른 설정에서 참조하고 있어 삭제할 수 없습니다: ${blockers.map(s=>s.item.title).join(', ')}`)
  const removed=new Set([id,...relations.map(s=>s.item.id)])
  return settings.filter(s=>!removed.has(s.item.id))

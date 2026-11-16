@@ -16,6 +16,7 @@ import { VerifyEmailChangePage, VerifyEmailPage } from './presentation/features/
 import { HomePage } from './presentation/features/home/view/HomePage'
 import { CoreApiConnectionStatus } from './presentation/shared/core-api-status/CoreApiConnectionStatus'
 import { RequireRole } from './presentation/shared/session/RequireRole'
+import { Footer } from './presentation/shared/shell/Gnb'
 import { GlobalChrome } from './presentation/shared/shell/GlobalChrome'
 import { PolicySheet } from './presentation/shared/shell/PolicySheet'
 import { QuickJump } from './presentation/shared/shell/QuickJump'
@@ -26,12 +27,17 @@ const AccountPage = lazy(() => import('./presentation/features/account/view/Acco
 const ChatPage = lazy(() => import('./presentation/features/chat/view/ChatPages').then((m) => ({ default: m.ChatPage })))
 const EpisodePage = lazy(() => import('./presentation/features/content/view/EpisodePage').then((m) => ({ default: m.EpisodePage })))
 const ImportPage = lazy(() => import('./presentation/features/library/view/ImportPage').then((m) => ({ default: m.ImportPage })))
+const ManuscriptImportPage = lazy(() => import('./presentation/features/library/view/ManuscriptImportPage').then((m) => ({ default: m.ManuscriptImportPage })))
 const LibraryPage = lazy(() => import('./presentation/features/library/view/LibraryPage').then((m) => ({ default: m.LibraryPage })))
 const NewWorkPage = lazy(() => import('./presentation/features/library/view/NewWorkPage').then((m) => ({ default: m.NewWorkPage })))
 
 const StudioPage = lazy(() => import('./presentation/features/studio/view/StudioPage').then((m) => ({ default: m.StudioPage })))
 const WorldStudioPage = lazy(() => import('./presentation/features/worldstudio/view/WorldStudioPage').then((m) => ({ default: m.WorldStudioPage })))
+const WorldsPage = lazy(() => import('./presentation/features/worlds/view/WorldsPages').then((m) => ({ default: m.WorldsPage })))
+const WorldDetailPage = lazy(() => import('./presentation/features/worlds/view/WorldsPages').then((m) => ({ default: m.WorldDetailPage })))
+const WorldCardPage = lazy(() => import('./presentation/features/worlds/view/WorldCardPage').then((m) => ({ default: m.WorldCardPage })))
 const ReaderPage = lazy(() => import('./presentation/features/reading/view/ReaderPage').then((m) => ({ default: m.ReaderPage })))
+const PublicWikiPage = lazy(() => import('./presentation/features/reading/view/PublicWikiPage').then((m) => ({ default: m.PublicWikiPage })))
 const WorkPage = lazy(() => import('./presentation/features/reading/view/WorkPage').then((m) => ({ default: m.WorkPage })))
 const IfsPage = lazy(() => import('./presentation/features/reading/view/ExplorePages').then((m) => ({ default: m.IfsPage })))
 const RankPage = lazy(() => import('./presentation/features/reading/view/ExplorePages').then((m) => ({ default: m.RankPage })))
@@ -54,9 +60,11 @@ class RouteErrorBoundary extends Component<{ pathname: string; children: ReactNo
   }
 }
 
+/** 다른 화면처럼 공용 푸터를 #root 직속에 둔다. main이 min-h-screen이면 푸터가 첫 화면 밖으로 밀리므로, 남는 높이는 storyfork.css의 #root:has(>.foot) 세로 flex가 채운다. */
 function StartPage() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-8 px-4 py-12 sm:px-8">
+    <>
+    <main className="mx-auto flex max-w-3xl flex-col justify-center gap-8 px-4 py-12 sm:px-8">
       <header>
         <p className="mb-4 text-sm font-semibold text-brand-primary">개발 기반 / 기능 준비 중</p>
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">STORYFORK</h1>
@@ -81,12 +89,19 @@ function StartPage() {
         집필·피드백 기능은 아직 구현되지 않았습니다.
       </p>
     </main>
+    <Footer />
+    </>
   )
 }
 
+/** 세션 복원이 끝나기 전에는 로그인 상태에 따라 달라지는 화면(콘텐츠·집필실·회차 열람)을 열지 않는다. */
+const checkingSession = <p role="status">로그인 상태를 확인하고 있어요.</p>
+
+/** 로그인 상태를 복원한 뒤 모드에 맞는 작품 생성·원고 가져오기 경로를 연다. */
 function App() {
   const { pathname } = useLocation()
   const { restoring, restoreError } = useSessionRestore()
+  const mockup = import.meta.env.MODE === 'mockup'
   return (
     <RestoreContext.Provider value={restoring}>
       {restoreError === 'lock' && <p role="alert">브라우저에서 인증을 안전하게 처리할 수 없어요. 브라우저 설정을 확인하거나 다른 브라우저를 사용해 주세요.</p>}
@@ -94,7 +109,7 @@ function App() {
       <RouteErrorBoundary pathname={pathname}>
         <Suspense fallback={<main className="wrap"><p role="status">화면을 불러오고 있어요.</p></main>}>
           <Routes>
-            <Route path="/content" element={restoring ? <p role="status">로그인 상태를 확인하고 있어요.</p> : <EpisodePage />} />
+            <Route path="/content" element={restoring ? checkingSession : <EpisodePage />} />
             <Route path="/status" element={<StartPage />} />
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -105,8 +120,10 @@ function App() {
             <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
             <Route path="/auth/verify-email-change" element={<VerifyEmailChangePage />} />
             <Route path="/work/:id" element={<WorkPage />} />
-            <Route path="/read/:id/:n" element={<RequireRole><ReaderPage /></RequireRole>} />
-            <Route path="/read/:id" element={<RequireRole><ReaderPage /></RequireRole>} />
+            <Route path="/work/:id/wiki" element={<PublicWikiPage />} />
+            {/* 공개 회차 열람은 비회원도 할 수 있다(UC-01). 세션 복원이 끝난 뒤에 열어 로그인 회원이 새로 고칠 때 두 번 불러오지 않게 한다. */}
+            <Route path="/read/:id/:n" element={restoring ? checkingSession : <ReaderPage />} />
+            <Route path="/read/:id" element={restoring ? checkingSession : <ReaderPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/rank" element={<RankPage />} />
             <Route path="/ifs" element={<IfsPage />} />
@@ -116,11 +133,14 @@ function App() {
             <Route path="/forked/:id" element={<RequireRole><ForkedPage /></RequireRole>} />
             <Route path="/lib" element={<RequireRole><LibraryPage /></RequireRole>} />
             <Route path="/write" element={<RequireRole><Navigate replace to="/lib?tab=write" /></RequireRole>} />
-            <Route path="/new" element={<RequireRole><NewWorkPage /></RequireRole>} />
-            <Route path="/worlds" element={<Navigate replace to="/new" />} />
+            <Route path="/new" element={<RequireRole>{mockup ? <NewWorkPage /> : <Navigate replace to="/content" />}</RequireRole>} />
+            {/* 공개 세계관 둘러보기는 비회원도 볼 수 있다. 실제 모드는 Content 공개 API를, --mode mockup은 데모 세계관을 읽는다. */}
+            <Route path="/worlds" element={<WorldsPage />} />
+            <Route path="/worlds/:id" element={<WorldDetailPage />} />
+            <Route path="/worlds/:id/cards/:cardId" element={<WorldCardPage />} />
             <Route path="/worldstudio/:worldId?" element={<RequireRole><WorldStudioPage /></RequireRole>} />
-            <Route path="/import" element={<RequireRole><ImportPage /></RequireRole>} />
-            <Route path="/studio/:id" element={restoring ? <p role="status">로그인 상태를 확인하고 있어요.</p> : <StudioPage />} />
+            <Route path="/import" element={<RequireRole>{mockup ? <ImportPage /> : <ManuscriptImportPage />}</RequireRole>} />
+            <Route path="/studio/:id" element={restoring ? checkingSession : <StudioPage />} />
             <Route path="/inbox" element={<RequireRole><InboxPage /></RequireRole>} />
             <Route path="/notifications" element={<RequireRole><NotificationsPage /></RequireRole>} />
             <Route path="/reports" element={<RequireRole><ReportsPage /></RequireRole>} />
@@ -131,7 +151,7 @@ function App() {
           </Routes>
         </Suspense>
       </RouteErrorBoundary>
-      {pathname !== '/status' && pathname !== '/content' && <><GlobalChrome /><QuickJump /><PolicySheet /></>}
+      {pathname !== '/status' && <><GlobalChrome /><QuickJump /><PolicySheet /></>}
     </RestoreContext.Provider>
   )
 }

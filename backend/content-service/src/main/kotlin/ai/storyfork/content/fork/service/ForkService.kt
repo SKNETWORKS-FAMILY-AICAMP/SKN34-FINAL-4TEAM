@@ -46,23 +46,25 @@ class ForkService(
 
     fun create(id: String,owner: String,data: ForkRequest): WorkResponse {
         access.lockScope(id);val original=access.get(id)
+        checkContent(!original.deleted,404,"작품을 찾을 수 없어요.")
         checkContent(original.source==null && original.publiclyVisible() && original.allowFork,403,"이 작품은 분기를 허용하지 않아요.")
         val published=publication.publishedEpisodes(id).items
         checkContent(data.episode in published.map {it.number},message="공개된 기준 회차를 선택해 주세요.")
         checkContent(data.episode in access.forkable(id,published.map {it.number}),403,"이 회차에서는 분기할 수 없어요.")
+        // 소프트 삭제한 이전 Fork도 행과 UNIQUE(owner_id,source_work_id)가 남으므로 중복으로 센다(DEC-42).
         checkContent(forks.findAllByOwnerIdAndSourceWorkId(owner,id).isEmpty(),409,"이미 만든 분기 작품이 있어요.")
         checkContent(data.title.isNotBlank() && data.title.length<=120 && data.summary.length<=2000 && data.direction.length<=2000,message="분기 작품 입력을 확인해 주세요.")
         members.ensure(owner)
-        val forkId=contentId();val prefix=published.take(data.episode)
+        val forkId=contentId();val prefix=published.filter {it.number<=data.episode}
         val basisSettings=selectSettings(world.historyForContext(id).items.map {it.toDomain()},data.episode,true).map {it.toPayload()}
         works.saveAndFlush(WorkEntity(id=forkId,ownerId=owner,title=data.title.trim(),description=data.summary,originKind="fork",revision=0))
         val history=workWorlds.saveAndFlush(WorkWorldHistoryEntity(id=contentKey("work-world",forkId,"0"),workId=forkId,worldId=original.worldId,revisionNo=0))
         visibility.saveAndFlush(WorkPublicationHistoryEntity(id=contentKey("work-publication",forkId,"0"),workId=forkId,revisionNo=0,visibility="private"))
         prefix.forEach {e ->
             val row=episodes.saveAndFlush(EpisodeEntity(id=episodeId(forkId,e.number),workId=forkId,sequence=e.number))
-            versions.saveAndFlush(EpisodeVersionEntity(id=episodeVersionId(forkId,e.number,e.versionId),episodeId=row.id,contentVersionId=e.versionId,revisionNo=e.version,title=e.title,content=e.body,createdAt=Instant.EPOCH,isSaved=false,workWorldHistoryId=history.id))
+            versions.saveAndFlush(EpisodeVersionEntity(id=episodeVersionId(forkId,e.number,e.versionId),episodeId=row.id,contentVersionId=e.versionId,revisionNo=e.version,title=e.title,content=e.body,authorNote=e.authorNote,createdAt=Instant.EPOCH,isSaved=false,workWorldHistoryId=history.id))
         }
-        val next=prefix.size+1
+        val next=data.episode+1
         val row=episodes.saveAndFlush(EpisodeEntity(id=episodeId(forkId,next),workId=forkId,sequence=next))
         drafts.saveAndFlush(EpisodeDraftEntity(episodeId=row.id,title="새 회차",content="",editRevision=0))
         val cp=contentKey("checkpoint",forkId)
@@ -76,6 +78,8 @@ class ForkService(
         val w=access.own(id,owner)
         checkContent(data.decision in setOf("apply","reject"),message="변경 선택을 확인해 주세요.")
         val source=w.source ?: throw ContentFailure(409,"원작 변경이 없는 작품이에요.")
+        // 거절은 허용해 삭제 전에 남은 변경 알림을 닫을 수 있게 한다.
+        checkContent(data.decision=="reject" || !source.deleted,409,"삭제된 원작의 변경은 반영할 수 없어요.")
         val before=world.read(id,owner)
         checkContent(before.revision==data.revision,409,"설정집이 변경됐어요. 최신 데이터를 불러와 주세요.")
         val change=before.changes.find {it.id==data.changeId} ?: throw ContentFailure(409,"원본 변경이 달라졌어요. 알림을 다시 확인해 주세요.")

@@ -29,7 +29,7 @@ export function ImportPage() {
             <button type="button" className="drop" style={{ marginTop: 10 }} onClick={vm.pick}>예시 소설 선택 · 실제 파일 업로드는 연결되지 않은 데모{vm.picked ? <b>✓ {IMPORT.file} · {IMPORT.size}</b> : <b style={{ color: 'var(--faint)' }}>눌러서 예시 소설 선택</b>}</button>
             <label className="field">연결할 내 세계관<select className="inp" id="importWorld" value={vm.world} onChange={(e) => vm.setWorld(e.target.value)}><option value="">세계관을 선택해 주세요</option>{vm.myWorlds.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
             <Go to="/new" className="btn sm">새 소설 만들기에서 세계관 만들기</Go>
-            <div className="field" style={{ marginTop: 12 }}>어떤 소설인가요?<div className="seg" id="ikind">{['자체 창작', '다른 사람 소설'].map((x) => <button type="button" key={x} className={vm.kind === x ? 'on' : ''} aria-pressed={vm.kind === x} onClick={() => vm.setKind(x)}>{x}</button>)}</div></div>
+            <div className="field" style={{ marginTop: 12 }}>어떤 소설인가요?<div className="seg" id="ikind" role="group" aria-label="어떤 소설인가요?">{['자체 창작', '다른 사람 소설'].map((x) => <button type="button" key={x} className={vm.kind === x ? 'on' : ''} aria-pressed={vm.kind === x} onClick={() => vm.setKind(x)}>{x}</button>)}</div></div>
             <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13, marginTop: 10 }}><input type="checkbox" id="iok" checked={vm.ok} onChange={(e) => vm.setOk(e.target.checked)} /> 이 소설을 AI로 처리할 권리가 있어요</label>
             <div style={{ marginTop: 16 }}><b>2. AI가 정리하는 단계</b><div>{STEPS.map((s, i) => {
               const fin = step > i || (done && i < 4)
@@ -41,7 +41,7 @@ export function ImportPage() {
             {done ? (
               <>
                 <div className="res3">{([['인물', 'cast'], ['세계관', 'world'], ['사건', 'events']] as const).map(([h, k]) => (
-                  <div className="rc" key={h}><h4>{h} <span className="muted">{vm.result[k].length}</span></h4><ul>{vm.result[k].map((c, i) => <li key={i + c}><div contentEditable suppressContentEditableWarning role="textbox" tabIndex={0} aria-label={`${h} ${i + 1}`} onBlur={(e) => vm.edit(k, i, e.currentTarget.innerText ?? e.currentTarget.textContent ?? '')}>{c}</div></li>)}</ul></div>
+                  <div className="rc" key={h}><h4 aria-level={2}>{h} <span className="muted">{vm.result[k].length}</span></h4><ul>{vm.result[k].map((c, i) => <li key={i + c}><div contentEditable suppressContentEditableWarning role="textbox" tabIndex={0} aria-label={`${h} ${i + 1}`} onBlur={(e) => vm.edit(k, i, e.currentTarget.innerText ?? e.currentTarget.textContent ?? '')}>{c}</div></li>)}</ul></div>
                 ))}</div>
                 <div className="json" id="json">{json}</div>
                 <div className="rowend" style={{ marginTop: 14 }}><button type="button" className="btn" onClick={vm.rerun}>다시 정리 <span className="demo">예시 10 · 미확정</span></button><button type="button" className="btn pri" id="saveimp" onClick={vm.save}>확인하고 저장</button></div>

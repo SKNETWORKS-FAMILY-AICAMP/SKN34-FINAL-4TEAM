@@ -91,19 +91,6 @@ describe('계정 (U30~U35E)', () => {
     expect(within(screen.getByRole('navigation', { name: '계정 메뉴' })).queryByRole('button', { name: '로그아웃' })).toBeNull()
   })
 
-  it('회원탈퇴는 30일 유예를 안내하고 실제로 바꾸지 않는다', async () => {
-    const { store } = renderAt('/me/profile')
-    fireEvent.click(await screen.findByRole('button', { name: '회원탈퇴' }))
-    const sheet = await screen.findByRole('dialog', { name: '회원탈퇴' })
-    within(sheet).getByText(/탈퇴 기능은 준비 중이며, 여기서는 실제 계정을 삭제할 수 없어요/)
-    within(sheet).getByText(/정책 기획안.*30일/)
-    expect(within(sheet).queryByRole('button', { name: '탈퇴하기' })).toBeNull()
-    expect(within(sheet).queryByRole('checkbox')).toBeNull()
-    fireEvent.click(within(sheet).getByRole('button', { name: '확인' }))
-    expect(screen.queryByRole('dialog')).toBeNull()
-    expect(store.getState().session.role).toBe('user')
-  })
-
   it('저장 공간은 MVP 제외를 안내하고 발행 회차 수정 초안을 보여 준다', async () => {
     renderAt('/studio/starlight?ep=1')
     const body = await screen.findByLabelText('원고 본문')
@@ -234,13 +221,16 @@ describe('계정 (U30~U35E)', () => {
     expect(screen.queryByText('공지사항을 찾을 수 없어요.')).toBeNull()
   })
 
-  it('관심 소설은 처음 누른 순서대로 보인다 (목업 Object.keys(S.liked))', async () => {
+  it('관심 소설은 서재와 같은 관심 목록을 최근 등록순으로 보이고, 좋아요는 섞지 않는다', async () => {
+    const interest = appContainer.resolve('workInterestUseCase')
     const reading = appContainer.resolve('readingUseCase')
-    await reading.toggleLike('postman'); await reading.toggleLike('guunmong')
+    await interest.setInterested('postman', true); await interest.setInterested('guunmong', true)
+    await reading.toggleLike('hong')
     renderAt('/me/liked')
     await screen.findByText('2편')
-    expect([...document.querySelectorAll('.grid6 .hk')].map((x) => x.textContent)).toEqual(['회색 도시의 우편배달부', '구운몽'].map((t) => expect.stringContaining(t.split(' ')[0])))
-    await reading.toggleLike('postman'); await reading.toggleLike('guunmong')
+    expect([...document.querySelectorAll('.grid6 .hk')].map((x) => x.textContent)).toEqual(['구운몽', '회색 도시의 우편배달부'].map((t) => expect.stringContaining(t.split(' ')[0])))
+    await interest.setInterested('postman', false); await interest.setInterested('guunmong', false)
+    await reading.toggleLike('hong')
   })
 
   it('불러오기 전에는 없음·0 상태를 먼저 그리지 않는다', () => {

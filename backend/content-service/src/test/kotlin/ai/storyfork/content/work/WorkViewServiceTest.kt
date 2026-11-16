@@ -128,6 +128,12 @@ class WorkViewServiceTest {
         assertThrows(DataIntegrityViolationException::class.java) { service.record("work", 1, "reader") }
     }
 
+    @Test fun `episode counts are cumulative member views per episode number`() {
+        `when`(views.countByEpisode("work")).thenReturn(listOf(arrayOf<Any>(1, 4L), arrayOf<Any>(3, BigInteger.TWO)))
+
+        assertEquals(mapOf(1 to 4L, 3 to 2L), service.episodeCounts("work"))
+    }
+
     @Test fun `counts map the aggregate rows of the last two 24 hour windows`() {
         `when`(views.countByWork(ArgumentMatchers.any(Instant::class.java) ?: Instant.EPOCH, ArgumentMatchers.any(Instant::class.java) ?: Instant.EPOCH))
             .thenReturn(listOf(arrayOf<Any>("w1", 3L, 1L), arrayOf<Any>("w2", 2, BigInteger.ZERO)))
@@ -139,5 +145,18 @@ class WorkViewServiceTest {
         verify(views).countByWork(from.capture() ?: Instant.EPOCH, split.capture() ?: Instant.EPOCH)
         assertEquals(Duration.ofHours(24), Duration.between(from.value, split.value))
         assertTrue(Duration.between(split.value, Instant.now()) in Duration.ofHours(24)..Duration.ofHours(24).plusMinutes(1))
+    }
+
+    @Test fun `counts use the requested window for the recent and the previous period`() {
+        `when`(views.countByWork(ArgumentMatchers.any(Instant::class.java) ?: Instant.EPOCH, ArgumentMatchers.any(Instant::class.java) ?: Instant.EPOCH))
+            .thenReturn(listOf(arrayOf<Any>("w1", 4L, 2L)))
+
+        assertEquals(mapOf("w1" to WorkViews(4, 2)), service.counts(Duration.ofDays(7)))
+
+        val from = ArgumentCaptor.forClass(Instant::class.java)
+        val split = ArgumentCaptor.forClass(Instant::class.java)
+        verify(views).countByWork(from.capture() ?: Instant.EPOCH, split.capture() ?: Instant.EPOCH)
+        assertEquals(Duration.ofDays(7), Duration.between(from.value, split.value))
+        assertTrue(Duration.between(split.value, Instant.now()) in Duration.ofDays(7)..Duration.ofDays(7).plusMinutes(1))
     }
 }

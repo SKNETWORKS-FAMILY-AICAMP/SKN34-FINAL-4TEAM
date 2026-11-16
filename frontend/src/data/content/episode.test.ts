@@ -12,6 +12,87 @@ beforeEach(async () => {
 })
 afterEach(() => vi.unstubAllGlobals())
 
+it('원고 Q&A에 기준 판본, 동의와 회원 인증을 보내고 근거 부족을 반환한다', async () => {
+  const response = {
+    status: 'insufficient', claims: [], sources: [],
+    gaps: [{ code: 'NO_EVIDENCE', detail: '근거를 찾지 못했어요.' }],
+    coverage: { expected: [{ number: 2, versionId: 'v2' }], withVerifiedExcerpt: [], withoutVerifiedExcerpt: [{ number: 2, versionId: 'v2' }] },
+  }
+  const fetcher = vi.fn().mockResolvedValue(Response.json(response))
+  const api = new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+  const controller = new AbortController()
+  const input = { episode: 2, episodeVersionId: 'v2', question: '누가 왔나요?', consent: true, target: 'manuscript' } as const
+  expect(await api.askStoryContext('fork/id', input, false, controller.signal)).toEqual(response)
+  const [url, request] = fetcher.mock.calls[0]
+  expect(url).toBe('/api/v1/public/works/fork%2Fid/context/qa')
+  expect(request.method).toBe('POST')
+  expect(request.headers).toMatchObject({ Authorization: 'Bearer content-bearer', 'X-CSRF-TOKEN': 'content-csrf' })
+  expect(JSON.parse(request.body)).toEqual(input)
+  controller.abort()
+  expect(request.signal.aborted).toBe(true)
+})
+
+it('작가 Q&A는 소유자 API를 호출하고 현재 관계 출처를 보존한다', async () => {
+  const graphSource = { id: 'edge', kind: 'relationship', workId: 'w', sourceWorkId: null, episode: 2,
+    worldId: 'db2f4ac5-f2b8-4ed2-9812-d5a03596558b', relationshipId: 'f73810ec-561c-49b3-8e29-9f9adca5a98a',
+    graphVersion: 7, title: '리안 → 카엘', quote: '동맹' }
+  const fetcher = vi.fn().mockResolvedValue(Response.json({
+    status: 'answered', claims: [], sources: [graphSource], gaps: [],
+    coverage: { expected: [], withVerifiedExcerpt: [], withoutVerifiedExcerpt: [] },
+  }))
+  const api = new HttpEpisodeRepository(fetcher)
+  const answer = await api.askStoryContext('w', { episode: 2, episodeVersionId: 'v2', question: '둘은 무슨 관계인가요?', consent: true, target: 'relationship' }, true)
+  expect(fetcher.mock.calls[0][0]).toBe('/api/v1/works/w/context/qa')
+  expect(answer.sources).toEqual([graphSource])
+})
+
+describe('회차 예약 발행', () => {
+  const path = '/api/v1/works/w/episodes/2/publication-schedules'
+  const scheduledAt = '2099-11-10T01:30:00.000Z'
+  const schedule = { id: 's1', versionId: 'v1', scheduledAt, status: 'pending', revision: 0, completedAt: null, failureReason: null }
+
+  it('예약과 실행 결과를 조회하고 취소 신호를 전달한다', async () => {
+    const failed = { ...schedule, id: 'old', status: 'failed', completedAt: scheduledAt, failureReason: '공개 제한 중이에요.' }
+    const fetcher = vi.fn().mockResolvedValue(Response.json([schedule, failed]))
+    const api = new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    const controller = new AbortController()
+    expect(await api.publicationSchedules('w', 2, controller.signal)).toEqual([schedule, failed])
+    const [url, request] = fetcher.mock.calls[0]
+    expect(url).toBe(path)
+    controller.abort()
+    expect(request.signal.aborted).toBe(true)
+  })
+
+  it.each(['POST', 'PUT'])('%s로 한국 시각과 고정 저장 버전을 전송한다', async method => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json(schedule))
+    const api = new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    await api.savePublicationSchedule('w', 2, 'v1', '2099-11-10T10:30', true, method === 'PUT' ? schedule : undefined)
+    const [url, request] = fetcher.mock.calls[0]
+    expect(url).toBe(method === 'PUT' ? path + '/s1' : path)
+    expect(request.method).toBe(method)
+    expect(JSON.parse(request.body)).toEqual({ versionId: 'v1', scheduledAt, rightsConfirmed: true, ...(method === 'PUT' ? { revision: 0 } : {}) })
+  })
+
+  it('권리 확인과 유효한 미래 시각이 필요하다', async () => {
+    const fetcher = vi.fn()
+    const api = new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    await expect(api.savePublicationSchedule('w', 2, 'v1', '2099-11-10T10:30', false)).rejects.toThrow('공개 권리')
+    await expect(api.savePublicationSchedule('w', 2, 'v1', '2000-11-10T10:30', true)).rejects.toThrow('미래')
+    await expect(api.savePublicationSchedule('w', 2, 'v1', '2099-02-30T10:30', true)).rejects.toThrow('시각')
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+
+  it('예약 수정 번호로 취소하고 서버가 거절하면 오류를 반환한다', async () => {
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(Response.json({ detail: '이미 실행한 예약이에요.' }, { status: 409 }))
+    const api = new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    await expect(api.cancelPublicationSchedule('w', 2, schedule)).resolves.toBeUndefined()
+    expect(fetcher.mock.calls[0]).toEqual([path + '/s1?revision=0', expect.objectContaining({ method: 'DELETE' })])
+    await expect(api.cancelPublicationSchedule('w', 2, schedule)).rejects.toThrow('이미 실행한 예약이에요.')
+  })
+})
+
 describe('설정 이력 연결', () => {
   const world = { id: 'w', name: '세계관', revision: 3, mode: 'own', basis: null, draft: null, drafts: [], settings: [], history: [], sourceToken: 't', changes: [] }
   it.each(['read', 'restore'])('이력 %s 요청에 호출자의 취소 신호를 전달한다', async action => {
@@ -40,7 +121,7 @@ describe('content authentication bridge', () => {
   it.each(['POST', 'PUT'])('adds csrf and bearer to %s without losing the injected fetcher', async method => {
     const value = { title: '제목', body: '본문', revision: 1 }
     const fetcher = vi.fn().mockResolvedValue(method === 'PUT' ? Response.json(value) : Response.json({
-      id: 'w', title: '제목', summary: '', visibility: 'private', allowFork: false, source: null, episodes: [], draft: value,
+      id: 'w', title: '제목', summary: '', visibility: 'private', allowFork: false, source: null, episodes: [], draft: value, revision: 0,
     }))
     const repo = new HttpEpisodeRepository(fetcher)
     if (method === 'PUT') await repo.save('w', value)
@@ -106,7 +187,7 @@ describe('episode API boundary', () => {
 })
 
 it('public browsing never exposes an editable owner draft', async()=>{
- const fetcher=vi.fn().mockResolvedValue(new Response(JSON.stringify([{id:'p',title:'공개',summary:'',visibility:'public',allowFork:true,allowForkPublication:true,source:null,episodes:[],draft:null}])))
+ const fetcher=vi.fn().mockResolvedValue(new Response(JSON.stringify([{id:'p',title:'공개',summary:'',visibility:'public',allowFork:true,allowForkPublication:true,source:null,episodes:[],draft:null,revision:0}])))
  const rows=await new HttpEpisodeRepository(fetcher).publicList()
  expect(rows[0].readOnly).toBe(true)
  expect(rows[0].draft.body).toBe('')
@@ -115,6 +196,14 @@ it('public browsing never exposes an editable owner draft', async()=>{
 
 
 describe('episode removal contract', () => {
+  it('sends a whole episode deletion with bearer, CSRF and the observed revision', async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response(null, {status:204}))
+    await expect(new HttpEpisodeRepository(fetcher).deleteEpisode('w',2,7)).resolves.toBeUndefined()
+    expect(fetcher).toHaveBeenCalledWith('/api/v1/works/w/episodes/2?revision=7', expect.objectContaining({
+      method:'DELETE',
+      headers:expect.objectContaining({Authorization:'Bearer content-bearer','X-CSRF-TOKEN':'content-csrf'}),
+    }))
+  })
   it('sends the observed revision and handles an empty deletion response', async () => {
     const fetcher = vi.fn().mockResolvedValue(new Response(null, {status:204}))
     await new HttpEpisodeRepository(fetcher).deleteDraft('w',2,7)
@@ -135,13 +224,13 @@ it('does not treat an unexpected successful deletion response as confirmed remov
 
 
 it('preserves the missing writing episode state from Core',async()=>{
- const value={id:'w',title:'작품',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:4},hasWritingEpisode:false}
+ const value={id:'w',title:'작품',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:4},hasWritingEpisode:false,revision:0}
  const repo=new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json([value])))
  expect((await repo.list())[0].hasWritingEpisode).toBe(false)
 })
 
 describe('work update and delete', () => {
-  const work = { id: 'w', title: '새 제목', summary: '소개', visibility: 'private', allowFork: false, source: null, episodes: [], draft: { title: '', body: '', revision: 0 } }
+  const work = { id: 'w', title: '새 제목', summary: '소개', visibility: 'private', allowFork: false, source: null, episodes: [], draft: { title: '', body: '', revision: 0 }, revision: 0 }
   it('puts title, summary and revision to the work and parses the response', async () => {
     const fetcher = vi.fn().mockResolvedValue(Response.json(work))
     const saved = await new HttpEpisodeRepository(fetcher).updateWork('w', '새 제목', '소개', 3)
@@ -176,6 +265,33 @@ describe('work update and delete', () => {
     expect(repo.create).not.toHaveBeenCalled()
     expect(repo.updateWork).not.toHaveBeenCalled()
   })
+  it('adds genres and hashtags to the update body only when supplied, so leaving them out keeps the stored values', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ ...work, genres: ['SF'], hashtags: ['회귀'] }))
+    const saved = await new HttpEpisodeRepository(fetcher).updateWork('w', '새 제목', '소개', 3, undefined, { genres: ['SF'], hashtags: ['회귀'] })
+    expect(saved.genres).toEqual(['SF'])
+    expect(saved.hashtags).toEqual(['회귀'])
+    expect(fetcher).toHaveBeenCalledWith('/api/v1/works/w', expect.objectContaining({ method: 'PUT', body: JSON.stringify({ title: '새 제목', summary: '소개', revision: 3, genres: ['SF'], hashtags: ['회귀'] }) }))
+    // 한쪽만 주면 그쪽만 보낸다. 빈 배열은 '비우기'라 생략과 달리 그대로 보낸다.
+    const only = vi.fn().mockResolvedValue(Response.json(work))
+    await new HttpEpisodeRepository(only).updateWork('w', '새 제목', '소개', 3, undefined, { hashtags: [] })
+    expect(only).toHaveBeenCalledWith('/api/v1/works/w', expect.objectContaining({ body: JSON.stringify({ title: '새 제목', summary: '소개', revision: 3, hashtags: [] }) }))
+    const none = vi.fn().mockResolvedValue(Response.json(work))
+    await new HttpEpisodeRepository(none).updateWork('w', '새 제목', '소개', 3, undefined, {})
+    expect(none).toHaveBeenCalledWith('/api/v1/works/w', expect.objectContaining({ body: JSON.stringify({ title: '새 제목', summary: '소개', revision: 3 }) }))
+  })
+  it('validates the genres and hashtags of an update like registration and passes valid ones to the repository untouched', async () => {
+    const repo = { updateWork: vi.fn().mockResolvedValue(work) }
+    const useCase = new EpisodeUseCase(repo as never)
+    await expect(useCase.updateWork('w', '제목', '', 0, undefined, { genres: [] })).rejects.toThrow('장르는 1~2개')
+    await expect(useCase.updateWork('w', '제목', '', 0, undefined, { genres: ['a', 'b', 'c'] })).rejects.toThrow('장르는 1~2개')
+    await expect(useCase.updateWork('w', '제목', '', 0, undefined, { hashtags: Array(11).fill('x') })).rejects.toThrow('해시태그는 10개')
+    expect(repo.updateWork).not.toHaveBeenCalled()
+    await useCase.updateWork('w', ' 제목 ', ' 소개 ', 2, undefined, { genres: ['판타지', 'SF'], hashtags: [] })
+    expect(repo.updateWork).toHaveBeenLastCalledWith('w', '제목', '소개', 2, undefined, { genres: ['판타지', 'SF'], hashtags: [] })
+    // 장르·해시태그를 주지 않는 기존 호출은 검증 없이 그대로 통과한다.
+    await useCase.updateWork('w', '제목', '', 2)
+    expect(repo.updateWork).toHaveBeenLastCalledWith('w', '제목', '', 2, undefined, undefined)
+  })
 })
 
 describe('episode checkpoints (DEC-43)', () => {
@@ -202,5 +318,89 @@ describe('episode checkpoints (DEC-43)', () => {
     expect(init.method).toBe('POST')
     expect(JSON.parse(init.body)).toEqual({ revision: 4, versionId: 'v1', rightsConfirmed: true })
     expect(reverted.checkpoints.map(c => [c.versionId, c.active])).toEqual([['v1', true], ['v2', false]])
+  })
+})
+
+describe('회차 공개 상태와 발행 이력', () => {
+  const episode = {number:2,draft:{title:'2화',body:'초안',revision:5},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[],publicationStatus:'suspended'}
+  it.each([false,true])('공개 상태 %s 변경에 revision과 권리 확인을 보내고 상태를 반환한다', async visible => {
+    const fetcher=vi.fn().mockResolvedValue(Response.json(episode))
+    const api=new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    const controller=new AbortController()
+    const result=await api.setPublicationVisibility('w',2,4,visible,visible,controller.signal)
+    expect(result.publicationStatus).toBe('suspended')
+    const [url,init]=fetcher.mock.calls[0]
+    expect(url).toBe('/api/v1/works/w/episodes/2/visibility')
+    expect(init.method).toBe('PUT')
+    expect(JSON.parse(init.body)).toEqual({revision:4,visible,rightsConfirmed:visible})
+    controller.abort();expect(init.signal.aborted).toBe(true)
+  })
+  it('권리 확인 없는 재공개는 전송하지 않는다', async () => {
+    const fetcher=vi.fn()
+    const api=new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    await expect(api.setPublicationVisibility('w',2,4,true,false)).rejects.toThrow('권리')
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+  it('발행 사건 목록을 보존하고 조회 취소 신호를 연결한다', async () => {
+    const publicationHistory=['publish','replace','unpublish','republish'].map(action=>({episode:2,versionId:'v',publishedAt:'2026-11-09T00:00:00Z',action}))
+    const fetcher=vi.fn().mockResolvedValue(Response.json({versions:[],proposals:[],publicationHistory}))
+    const controller=new AbortController()
+    const result=await new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).history('w',controller.signal)
+    expect(result.publicationHistory).toEqual(publicationHistory)
+    controller.abort();expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
+  })
+})
+
+
+it('공개 중단 후 서버가 지정한 다음 작성 회차 번호를 유지한다',async()=>{
+  const fetcher=vi.fn().mockResolvedValue(Response.json([{id:'w',title:'작품',summary:'',visibility:'public',allowFork:false,source:null,episodes:[],draft:{title:'3화',body:'',revision:3},writingEpisodeNumber:3,revision:0}]))
+  expect((await new HttpEpisodeRepository(fetcher).list())[0].writingEpisodeNumber).toBe(3)
+})
+
+it('stops Fork publication through its dedicated authenticated command', async () => {
+  const fetcher = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+  await new HttpEpisodeRepository(fetcher).stopForkPublication('fork-id')
+  expect(fetcher).toHaveBeenCalledWith('/api/v1/works/fork-id/fork-publication', expect.objectContaining({ method: 'DELETE' }))
+})
+
+it('서버가 항상 보내는 작품 revision이 없는 응답은 거절한다', async () => {
+  const value = { id: 'w', title: '작품', summary: '', visibility: 'private', allowFork: false, source: null, episodes: [], draft: { title: '새 회차', body: '', revision: 4 } }
+  await expect(new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json([value]))).list()).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
+})
+
+describe('작품과 세계관 연결(DEC-46)', () => {
+  const worldId = '11111111-1111-4111-8111-111111111111'
+  const owned = { id: 'w', title: '작품', summary: '', visibility: 'private', allowFork: false, source: null, episodes: [], draft: { title: '새 회차', body: '', revision: 0 }, revision: 0 }
+
+  it('소유자 목록 응답의 연결된 세계관 id를 읽고, 그 필드가 없는 응답도 받는다', async () => {
+    const fetcher = vi.fn().mockImplementation(async () => Response.json([{ ...owned, worldStudioId: worldId }, { ...owned, id: 'w2', worldStudioId: null }, { ...owned, id: 'w3' }]))
+    expect((await new HttpEpisodeRepository(fetcher).list()).map((w) => w.worldStudioId)).toEqual([worldId, null, undefined])
+  })
+
+  it('작품에 세계관을 연결하는 PUT을 CSRF와 함께 보내고 서버 결과를 돌려준다', async () => {
+    const fetcher = vi.fn().mockImplementation(async () => Response.json({ workId: 'w 1', worldId }))
+    const api = new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+    expect(await api.linkWorldStudio('w 1', worldId)).toEqual({ workId: 'w 1', worldId })
+    const [url, request] = fetcher.mock.calls[0]
+    expect(url).toBe('/api/v1/works/w%201/world-studio')
+    expect(request.method).toBe('PUT')
+    expect(JSON.parse(request.body)).toEqual({ worldId })
+    expect(request.headers).toEqual(expect.objectContaining({ Authorization: 'Bearer content-bearer', 'X-CSRF-TOKEN': 'content-csrf' }))
+  })
+
+  it('worldId가 null이면 연결 해제를 보낸다', async () => {
+    const fetcher = vi.fn().mockImplementation(async () => Response.json({ workId: 'w', worldId: null }))
+    expect(await new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).linkWorldStudio('w', null)).toEqual({ workId: 'w', worldId: null })
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ worldId: null })
+  })
+
+  it('이미 다른 작품에 연결된 세계관이면 서버 안내 문구로 실패한다', async () => {
+    const fetcher = vi.fn().mockImplementation(async () => Response.json({ detail: '이미 다른 작품에 연결된 세계관이에요.', code: 'WORLD_ALREADY_LINKED' }, { status: 409 }))
+    await expect(new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).linkWorldStudio('w', worldId)).rejects.toThrow('이미 다른 작품에 연결된 세계관이에요.')
+  })
+
+  it('연결 응답이 계약 모양이 아니면 성공으로 받지 않는다', async () => {
+    const fetcher = vi.fn().mockImplementation(async () => Response.json({ workId: 'w', worldId: 'not-a-uuid' }))
+    await expect(new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).linkWorldStudio('w', worldId)).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
   })
 })

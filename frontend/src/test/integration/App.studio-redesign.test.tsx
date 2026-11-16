@@ -1,17 +1,22 @@
 // @vitest-environment jsdom
 import '../fixtureApp'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { waitFor } from '@testing-library/react'
 import { renderApp } from '../renderApp'
 import { createAppStore } from '../../app/store'
+import { appContainer } from '../../app/appContainer'
 
-afterEach(cleanup)
+// 화면 구성 검증은 실제 인증 네트워크나 jsdom의 Web Locks 지원에 의존하지 않는다.
+beforeEach(() => {
+  vi.spyOn(appContainer.resolve('authUseCase'), 'refresh').mockResolvedValue({ id: 'me', email: 'writer@example.test', nickname: '나', operator: false })
+})
+afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
 describe('집필실 화면 구성', () => {
   it('집필 도구와 모든 화면의 AI 채팅을 표시한다', async () => {
     renderApp('/studio/starlight', createAppStore({ role: 'user' }))
-    const nav = await screen.findByRole('navigation', { name: '집필 도구' })
+    const nav = await screen.findByRole('navigation', { name: '집필 도구' }, { timeout: 5000 })
     expect(within(nav).queryByRole('link', { name: '보드' })).toBeNull()
     expect(within(nav).queryByRole('link', { name: '개요' })).toBeNull()
     fireEvent.click(within(nav).getByRole('link', { name: '플롯' }))

@@ -30,9 +30,13 @@ class WorkController(
     @PutMapping("/works/{id}")
     fun update(@PathVariable id: String,principal: Principal,@Valid @RequestBody data: UpdateWorkRequest): WorkResponse = service.update(id,principal.name,data)
 
-    /** 작품을 삭제한다. 소유자만 가능하며 접근 불가는 404, 세계관 설정·발행·저장 이력이 있거나 분기 작품이면 409다. */
+    /** 작품을 소프트 삭제한다. 원작과 Fork 모두 소유자만 가능하며 접근 불가는 404다. */
     @DeleteMapping("/works/{id}") @ResponseStatus(HttpStatus.NO_CONTENT)
     fun delete(@PathVariable id: String,principal: Principal) = service.delete(id,principal.name)
+
+    /** Fork 소유자가 작품 공개를 중단한다. 발행된 회차와 기록은 보존한다. */
+    @DeleteMapping("/works/{id}/fork-publication") @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun stopForkPublication(@PathVariable id: String,principal: Principal) = service.stopForkPublication(id,principal.name)
 
     /** 저장 버전·제안·정책·발행 이력을 기존 복합 DTO로 반환한다. 소유자만 가능하며 접근 불가는 404다. */
     @GetMapping("/works/{id}/history")
@@ -42,17 +46,21 @@ class WorkController(
     @PutMapping("/works/{id}/policy")
     fun policy(@PathVariable id: String,principal: Principal,@Valid @RequestBody data: PolicyRequest): WorkResponse = service.policy(id,principal.name,data)
 
-    /** 공개 작품 목록을 초안 없이 반환한다. 익명 조회를 허용한다. q(제목·작가명·해시태그·장르 부분 일치)·f(all|title|author|tag|genre)·sort(latest|view)는 선택이며 잘못된 f·sort는 422다. */
+    /**
+     * 공개 작품 목록을 초안 없이 반환한다. 익명 조회를 허용한다. q(제목·작가명·해시태그·장르 부분 일치)·f(all|title|author|tag|genre)·sort(latest|like|view)·
+     * page(0부터)·size(1~100, 기본 20)는 선택이며 page·size를 모두 생략하면 전체를 반환하고 하나라도 오면 정렬 후 그 구간만 반환한다.
+     * 잘못된 f·sort와 음수 page·범위 밖 size·숫자 아닌 값은 422다(page·size는 문자열로 받아 Spring 타입 변환 400이 되지 않게 한다).
+     */
     @GetMapping("/public/works")
-    fun publicList(@RequestParam(required=false) q: String?,@RequestParam(required=false) f: String?,@RequestParam(required=false) sort: String?): WorkListResponse = service.publicList(q,f,sort)
+    fun publicList(@RequestParam(required=false) q: String?,@RequestParam(required=false) f: String?,@RequestParam(required=false) sort: String?,@RequestParam(required=false) page: String?,@RequestParam(required=false) size: String?): WorkListResponse = service.publicList(q,f,sort,page,size)
 
     /** 최근 24시간 조회 기준 실시간 인기(top)·급상승(rising) 공개 작품을 최대 10개 반환한다. 익명 가능, kind 누락은 400·잘못된 값은 422다. */
     @GetMapping("/public/works/ranking")
     fun ranking(@RequestParam kind: String): WorkListResponse = service.ranking(kind)
 
-    /** 공개 작품 DTO를 초안 없이 반환한다. 익명 가능, 비공개·없는 작품은 404다. */
+    /** 공개 작품 DTO를 초안 없이 반환한다. 익명 가능(liked는 false)하고 Bearer가 오면 그 회원의 좋아요 여부(liked)를 채운다. 비공개·없는 작품은 404다. */
     @GetMapping("/public/works/{id}")
-    fun publicRead(@PathVariable id: String): WorkResponse = service.publicRead(id)
+    fun publicRead(@PathVariable id: String,principal: Principal?): WorkResponse = service.publicRead(id,principal?.name)
 
     /** 공개 작품의 발행 회차 열람을 회원·회차별 하루 1회 기록한다. 같은 날 중복은 무시하고 204이며, 비공개 작품·미발행 회차는 404다. */
     @PostMapping("/works/{id}/episodes/{number}/views") @ResponseStatus(HttpStatus.NO_CONTENT)

@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import org.springframework.beans.factory.ObjectProvider
 
-/** DEC-43: 회차 체크포인트는 발행(publish·applied) 기록이며, 작가용 회차 응답이 발행 시각 오름차순으로 보여 준다. */
+/** DEC-43: 회차 체크포인트는 발행(publish/replace/republish·applied) 기록이며, 작가용 회차 응답이 발행 시각 오름차순으로 보여 준다. */
 class EpisodeCheckpointListTest {
     private val current = mock(EpisodeCurrentRepository::class.java)
     private val episodes = mock(EpisodeRepository::class.java)
@@ -61,7 +61,7 @@ class EpisodeCheckpointListTest {
             checkpoints("v1", v, listOf(log("p1", "v1", 1), log("p2", "v2", 5), log("p3", "v1", 9))))
     }
 
-    @Test fun `only applied publish records are checkpoints`() {
+    @Test fun `only successful publication records are checkpoints`() {
         val v = saved("v1", "v2")
         assertEquals(
             listOf(EpisodeCheckpointResponse("v2", at(3), true)),
@@ -70,5 +70,22 @@ class EpisodeCheckpointListTest {
 
     @Test fun `an unpublished episode has no checkpoint`() {
         assertEquals(emptyList<EpisodeCheckpointResponse>(), checkpoints(null, saved("v1"), emptyList()))
+    }
+    @Test fun `replacement and republication retain checkpoints while suspension deactivates them`() {
+        val versions = saved("v1", "v2")
+        val history = listOf(log("p1","v1",1), log("p2","v2",2,action="replace"), log("p3","v2",3,action="unpublish"))
+        assertEquals(listOf(EpisodeCheckpointResponse("v1",at(1),false),EpisodeCheckpointResponse("v2",at(2),false)),checkpoints(null,versions,history))
+        assertEquals(listOf(EpisodeCheckpointResponse("v1",at(1),false),EpisodeCheckpointResponse("v2",at(2),true)),checkpoints("v2",versions,history+log("p4","v2",4,action="republish")))
+    }
+
+    @Test fun `owner reads separate draft and saved author notes`() {
+        val v=saved("v1").onEach {it.authorNote="발행 후기"}
+        checkpoints("v1",v,listOf(log("p1","v1",1)))
+        `when`(drafts.findAllById(listOf("e"))).thenReturn(listOf(EpisodeDraftEntity("e","제목","초안",3,authorNote="미발행 후기")))
+        val response=service.read("w","owner",1)
+        assertEquals("미발행 후기",response.draft.authorNote)
+        assertEquals("발행 후기",response.versions.single().authorNote)
+        `when`(drafts.findAllById(listOf("e"))).thenReturn(emptyList())
+        assertEquals("발행 후기",service.read("w","owner",1).draft.authorNote)
     }
 }

@@ -1,25 +1,38 @@
 # AI Service 구현 지침
 
 `backend/ai-service/**`에 적용한다. [루트 공통 지침](../../AGENTS.md)을 함께 따른다.
-현재 내부 Health와 이어쓰기 제안 API가 있다. 콘텐츠 정본·인가·발행은 Content, 크레딧·알림은 Core가 판단한다.
+현재 내부 Health, 이어쓰기 제안, 초기 세계관 후보 추출, 원고 임베딩과 Story Context Q&A(`app/story_qa/`), 웹 조사(`app/research/`, OpenAI `web_search`), 새 원고·부분 수정(`app/writing/`) API, 작가 초안을 Content MCP로 읽어 Mechanical·Semantic 한 가지로 검수하는 원고 검수(`app/review/`, #59) API, Intent Router(`app/intent/`, OpenAI Decisions `gpt-6-luna`), Content 내부 검색 API를 부르는 공통 Retrieval(`app/retrieval/`), 설정집 AI 검토(`app/world_review/`, [계약](../../docs/design/world-review-contract.md)), 인물 시뮬레이션의 기억 추론 라이브러리 NovelBrain(`app/novelbrain/`, [계약](../../docs/design/character-simulation-contract.md))과 인물별로 격리된 턴을 이어 가는 인물 시뮬레이션(`app/simulation/`: LangChain `create_agent` + 미들웨어의 장면 에이전트, 오케스트레이션 `character_simulation` 단계), Q&A·Writing·웹 조사·Review 업무 Agent의 공통 실행 틀(`app/agent_runtime.py`: LangChain `create_agent` + 커스텀 미들웨어, #373)과 이를 묶는 LangGraph 오케스트레이션(`app/orchestration/`), 작가가 승인한 Writing 결과를 작가 권한으로 초안에 반영하는 Content MCP 클라이언트(`app/content_mcp/`)가 있다. AI 실행 체크포인트는 전용 PostgreSQL DB에 저장한다. 콘텐츠 정본은 Content API와 MCP로만 읽고 쓴다. 콘텐츠 정본·인가·발행은 Content, 크레딧·알림은 Core가 판단한다.
+현재 호출 흐름과 기능별 코드 구조는 [AI Service 구현 경계](docs/agent-structure.md)를 본다.
 
 ## 구조
 
-- FastAPI Router는 입력 검증, 업무 함수 호출, 응답 변환만 한다. 모듈·엔드포인트에 한국어 docstring을 단다.
+- 기능마다 `app/<기능>/` 패키지를 두고 `app/main.py`에서 기능별 Router를 조립한다. 모듈·엔드포인트에 한국어 docstring을 단다.
+- 패키지 파일은 `router.py`(내부 인증·HTTP 입출력·오류의 HTTP 변환), `models.py`(DTO와 불변식), `prompt.py`(모델 지시),
+  `agent.py`(모델 SDK 호출·timeout·제공사 오류 변환), `service.py`(입력·결과 검증, 근거 대조, 모델 밖 계산), `errors.py`(기능 실패)로 나눈다.
+  `router.py`·`models.py`만 필수이며 나머지는 그 책임이 있을 때만 만든다. 통과만 하는 service·빈 파일을 만들지 않는다. 계층 규칙은 [구현 경계](docs/agent-structure.md#계층-규칙)를 따른다.
 - 요청·응답은 Pydantic DTO(`Request`·`Payload`·`Response`·`Result`)로 정의한다. 임의 `dict`·외부 SDK 응답을 계약으로 노출하지 않는다.
+- 프롬프트에 맡긴 규칙(식별자·근거·URL·점수 범위)은 `models`·`service`에서 다시 검증하고, 어긋난 결과는 보정하지 않고 오류로 반환한다.
+- 임베딩·색인·검색 같은 모델 밖 처리는 service가 직접 수행한다. 파일을 나누려고 Agent를 만들지 않는다.
+- 그래프는 반복 상태 갱신·조건 분기·중단 및 재개가 실제로 필요한 기능에서 [집필 AI 설계](../../docs/writing-ai-architecture/02-ai-architecture.md)에 따라 검토한다. 단순 호출과 조회는 직접 실행한다.
 - 구체 클래스와 직접 함수 호출을 기본으로 한다. production 구현체가 둘 이상이거나 사용자가 요청하지 않으면
-  `Protocol`·ABC·provider·registry·factory 추상화를 만들지 않는다. 테스트 편의를 위해 production 추상화를 추가하지 않는다.
-- 모델·제공사·에이전트 프레임워크는 미정이다(DEC-28). 의존성·lockfile을 미리 바꾸지 않는다.
-- 장애는 명시적 오류로 반환하고 fallback으로 숨기지 않는다. 역할·인물마다 서버나 클래스를 만들지 않는다.
+  `Protocol`·ABC·provider·registry·factory·bootstrap 추상화를 만들지 않는다. 테스트 편의를 위해 production 추상화를 추가하지 않는다.
+- 집필 AI의 여섯 업무 Agent와 시뮬레이션 인물 행동·장면 요약의 목표 모델은 사용자 결정으로 OpenAI `gpt-6-luna`다. Intent Router도 OpenAI Decisions(`gpt-6-luna`)를 쓴다. 기존 구현의 모델 설정과 실제 검증 기록은 구분한다. 집필 AI 복합 실행은 사용자 요청으로 LangGraph를 쓰고, 인물 시뮬레이션의 실행 틀은 사용자 결정(2026-11-14, #362)으로 LangChain `create_agent` + 미들웨어이며 연출 결정은 `langchain-typesafe`로 OpenAI Decisions를 부른다(의존성 `langchain`·`langchain-typesafe==0.0.1a3`). 업무 Agent(Q&A·Writing·웹 조사·Review)는 사용자 결정(2026-11-16, #373)으로 `create_agent`(`langchain-openai`의 `ChatOpenAI`) + 공통 미들웨어(`app/agent_runtime.py`)로 실행한다. Intent Router는 Decisions 분류를 그대로 두고 `create_agent` 위에서 입력 가드레일 미들웨어(`PIIMiddleware`·`OpenAIModerationMiddleware` 상속)를 먼저 거친다(#373). 그 밖의 모델·프레임워크와 상세 도입은 미정이며 의존성·lockfile을 미리 바꾸지 않는다. lockfile은 `ai-service/Dockerfile`의 uv 버전(0.12.5)으로 갱신한다.
+- 추적은 `app/tracing.py`의 `observe`로 메타데이터(단계·근거 참조·모델·사용량·실패)와 질문·원고·답변 본문을 남긴다(팀 결정 2026-11-13). 설정·현재 관계 발췌 본문은 `tracing.excerpts`로 참조만 남기고, 회원 계정 정보·키는 어떤 속성에도 넣지 않는다.
+- 회차 원고 전처리는 Celery 작업으로 실행하고 결과는 Content MCP로 적재한다(DEC-50, [전처리 계약](../../docs/design/manuscript-preprocessing-contract.md)). 그 밖의 기능에 Celery를 쓰려면 먼저 문서로 정한다.
+- 장애는 명시적 오류로 반환하고 fallback·자동 재시도로 숨기지 않는다. 입력·원고·모델 응답을 오류 메시지나 로그에 넣지 않는다. 역할·인물마다 서버나 클래스를 만들지 않는다.
 
 ## 생성 경계
 
 - 허용 문맥과 작업 범위로만 조회하고 정본 수정·권한·승인·과금을 확정하지 않는다. 결과는 제안으로 반환한다.
+- 콘텐츠 생성의 기준 버전·조회 범위·제안 저장과 채택은 Content가 소유한다. Content 조회·작업 도구는 Content MCP 창구(DEC-49)를 호출한 사용자의 토큰으로만 쓰고, 모델이 제시한 식별자는 인가 근거로 사용하지 않는다.
+- 실행용 상태·색인은 해당 기능의 설계 계약을 따른다. 실행 완료·제안 채택·원고 반영·과금 확정은 각각 소유 서비스가 검증한다.
 - 캐릭터별 허용 기억·관찰 정보를 분리하고 다른 인물의 비밀이나 미래 사건을 누출하지 않는다.
 - 피드백 유형은 독자가 고르며 AI로 분류하지 않는다(BR-15). 오류 수정도 수정안까지만 생성한다.
 
 ## 변경 범위와 검증
 
+- 테스트는 `tests/<기능>/`에 계층별 `test_models.py`·`test_agent.py`·`test_service.py`·`test_router.py`로 두고 각 디렉터리에 `__init__.py`를 둔다.
+  TestClient 경계는 같은 디렉터리의 `test_http.py`(integration marker)에 둔다. [테스트 배치](docs/agent-structure.md#테스트-배치)
 - 로컬: `backend/ai-service`에서 `uv run --locked --extra dev python -m pytest -m 'not integration' <대상 파일> -k '<대상>'`로 단위만 실행한다.
   제공사는 monkeypatch 대역을 쓰고 FastAPI TestClient는 통합(`integration` marker)으로 분류해 CI에서 실행한다.
-- 유료 OpenAI 호출은 하지 않는다. 상세는 [AI README](README.md)와 [Agent 구조](docs/agent-structure.md)를 본다.
+- 기본 단위 테스트와 CI는 모델 대역을 사용한다. 집필 AI 기능별 수용은 사용자가 요청한 개발 방식에 따라 개발용 데이터·키·호출 상한을 정하고 실제 OpenAI API로 별도 검증한다. 키·원고를 로그나 저장소에 남기지 않는다. 상세는 [집필 AI 로드맵](../../docs/writing-ai-architecture/05-implementation-roadmap.md)을 본다.

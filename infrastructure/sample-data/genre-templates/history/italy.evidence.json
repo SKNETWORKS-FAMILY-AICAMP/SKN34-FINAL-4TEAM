@@ -1,0 +1,732 @@
+{
+  "schemaVersion": 1,
+  "worldId": "936b9d62-a1de-59a2-b8e0-1d52327464de",
+  "genre": "italy_history",
+  "status": "research-only; not integrated into application or database",
+  "generatedOn": "2026-11-13",
+  "sources": [
+    {
+      "key": "main",
+      "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+      "sha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+      "bytes": 581291,
+      "title": "History of Italy",
+      "author": "William Hunt",
+      "edition": "Macmillan, 1883, second edition, Historical Course for Schools IV",
+      "textStatus": "preserved Oxford/Google scan OCR distributed via Internet Archive; not corrected transcription"
+    },
+    {
+      "key": "toronto",
+      "filename": "docs/research/history-textbooks/italy/hunt/source-toronto-1883-extracted.txt",
+      "sha256": "8006e12eb376ba37163fd3777e84a257b116e7556645cc8a62f39a9748fb97f4",
+      "bytes": 584954,
+      "title": "History of Italy",
+      "author": "William Hunt",
+      "edition": "Macmillan, 1883, second edition, Historical Course for Schools IV",
+      "textStatus": "pypdf extraction from preserved Toronto scan, with PDF page markers; not corrected transcription"
+    }
+  ],
+  "provenanceNote": "Acquisition URLs and scan identity are retained in docs/research/history-textbooks/italy/hunt/README.md. No new acquisition or full image collation was performed.",
+  "rightsNote": "Original digitizer notices remain in the source files. Public-domain status of the underlying historical text is not blanket worldwide clearance or unconditional permission to redistribute scans. Google scan-use notices require separate review.",
+  "idPolicy": {
+    "algorithm": "UUIDv5",
+    "namespace": "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
+    "worldName": "storyfork:history-research:italy:world",
+    "cardNamePattern": "storyfork:history-research:italy:card:<stableSlug>",
+    "cardSlugs": [
+      "zeno-odoacer",
+      "lombard-divisions",
+      "charles-coronation",
+      "city-communes",
+      "worms-investiture",
+      "lombard-league",
+      "sicilian-vespers",
+      "dante-arts",
+      "plague-1348",
+      "condottieri-finance",
+      "cosimo-medici",
+      "nicholas-learning",
+      "french-army",
+      "sack-rome",
+      "florence-fall",
+      "utrecht-savoy",
+      "napoleonic-kingdom",
+      "vienna-order",
+      "cavour-diplomacy",
+      "garibaldi-south",
+      "rome-1870",
+      "italy-1874-assessment",
+      "source-scope",
+      "review-policy"
+    ]
+  },
+  "scope": {
+    "oneCountrywideSourceWorld": true,
+    "chapterCoverage": [
+      "I",
+      "II",
+      "III",
+      "IV",
+      "V",
+      "VI",
+      "VII",
+      "VIII",
+      "IX",
+      "X",
+      "XI"
+    ],
+    "all157SectionsRepresented": false,
+    "substantiveHistoricalCards": 22,
+    "sourceOrEditorialCards": 2,
+    "modernAcquisition": "deferred",
+    "modernHistoricalVerification": "not performed",
+    "sourceClaimMeaning": "A claim exists in the source; source alignment does not establish its historical truth.",
+    "translationReview": "scoped consultation of recovered integrated draft, not a new full independent audit"
+  },
+  "consultedKoreanDrafts": [
+    {
+      "filename": "docs/research/history-textbooks/italy/hunt/README.md",
+      "sha256": "7486fb5582d6f05d7d4b5e17000c25f3ecc2afc427678c8940bef06c12829326",
+      "bytes": 24151,
+      "consultation": "scoped reading; not full independent review"
+    },
+    {
+      "filename": "docs/research/history-textbooks/italy/hunt/integrated-11-chapters.ko.collated-draft.md",
+      "sha256": "07224022bc78bc69902b0f0fa2f741a6d5302c250a4c9281b8ec26af56993762",
+      "bytes": 569169,
+      "consultation": "scoped reading; not full independent review"
+    }
+  ],
+  "cards": [
+    {
+      "cardId": "c6e55181-1ff8-52f8-b982-eee87fe6eb1a",
+      "cardTitle": "476년의 제노·오도아케르와 제국 권위",
+      "era": "476년 무렵",
+      "sourceClaim": "황제의 형식적 주권과 오도아케르의 실권을 구분하는 원저 서술.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "민족 형성의 단일 기원론, 원로원 결정의 의미, 관직·정체성 및 OCR 손상 부위는 현대 연구·스캔 대조 대기다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "I §2",
+          "section": "476년의 제노·오도아케르와 제국 권위",
+          "lineStart": 817,
+          "lineEnd": 845,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "2. Zeno sole Emperor, 476. — The history of the Italian \nnation begins with the invasion of the Lombards, As long as \nthe Emperor remained in Italy, or was able to protect her, no \nindependent national life could arise. The barbarian invaders \nof Italy tore her away from the Empire, and in doing so \nthey made her people into a separate nation. When an Em- \nperor of the Romans was again acknowledged in Italy, he had \nless real power there than in any other part of his dominions. \nThe tie was not broken at once ; Italy first became used to the \nEmperor* s absence, before she saw his rule shaken off. In \n476, Romulus Augustulus, the Emperor reigning over Old \nRome, was deposed, and the Senate voted that there should \nbe only one Emperor; so Zeno, the Emperor reigning in \nNew Rome or Constantinople, was made lord of the whole \nEmpire without any rival in the West. When this ha^i^tied^ \nthe chief power in Itsly was in the Yiatids ol Odoocer, -ax^ \nHendian, leader of the mercenary bands vi\\v\\cXi V^^ xs^^^v \n\n\n\n\n4 THE EMPEROR AND THE BARBARIANS, [chap. \n\nthe place of a native army. He was King over his own \npeople, and regent for the Emperor over the other inhabit- \nants of Italy. He was in name the servant of the Emperor, \nbut he was really independent of him. The government of \nOdoacer gave way before the invasion of the East-Goths \nunder Theodoric. ",
+          "excerptSha256": "c7ba2f6b0cb1564be1869581b7e7e759d7732d177636ce4c78c356aeb8f5bac9"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), I §2 · 476년의 제노·오도아케르와 제국 권위, 원문 817–845행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "6520ad3f-f5ea-5637-8256-3c5c566488f1",
+      "cardTitle": "롬바르드 왕국과 나뉜 이탈리아의 지리",
+      "era": "568–774년 범위",
+      "sourceClaim": "왕국·총독 관할·공국·섬들의 구분에 관한 출처상 지리 서술.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "세기별 경계 변화·명목상 종속과 실권, 베네치아 기원 전승을 별도 검증해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "I §7",
+          "section": "롬바르드 왕국과 나뉜 이탈리아의 지리",
+          "lineStart": 970,
+          "lineEnd": 986,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "7. The liombard Ki&gdom, 568-774. — The Imperial \npower in Italy had now almost ceased. The Exarch i*uled \nover the land east of the Apennines, from the Po to Ancona- \nRome, with the country between Terracina and Civita Vec- \nchia and the Duchy of Naples, also owned his authority. \nOf these, Naples soon became really independent. The islands \nof Sardinia, Corsica, and Sicily also still held to the Emperor ; \nbut his name was nowhere so much honoured as in the little \ngroup of islands which formed in after-time the Republic of \nVenice. The invasion of Attila, and the destruction of Padua \nand the neighbouring country, had driven the unhappy people \nto take shelter in the small islands of the Lagoon. The \ninvasion of Alboin and the fall of Aquileia increased the \nimportance of the settlement by causing a fresh number to \ntake refuge there. Besides the Lombard kingdom in the \nnorth of Italy, the Duchy of Spoletum kept watch over Rome \nand Ravenna, and the Duchy of Beneventum held in check ",
+          "excerptSha256": "b5370afe1b96f5e7edd9627eff003a92479e81450115ee01abdf7e206a987689"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), I §7 · 롬바르드 왕국과 나뉜 이탈리아의 지리, 원문 970–986행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "734d07af-34aa-51ac-9209-21fb4321b52d",
+      "cardTitle": "800년 성탄절 로마의 대관",
+      "era": "800년",
+      "sourceClaim": "대관 장면과 그에 대한 제국 계승 해석.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "황제 칭호·교황 역할·동로마의 승인 문제와 서방 제국 부활이라는 틀은 전문 검토 대기다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "I §10",
+          "section": "800년 성탄절 로마의 대관",
+          "lineStart": 1171,
+          "lineEnd": 1185,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "on the other hand, was the undoubted Lord of the West, tire \nchampion of the Catholic faith against heathen and heretic, \nthe Defender of the Holy See, the Patrician of the Romans, \nand the Guardian of the city. His voice declared the inno- \ncence of the Pope and the punishment of his enemies. He \nwas now to receive the reward of all the good things which \nhe and his father had done for the Papacy. On Christmas \nday, 800, as he knelt in the Church of St. Peter, the Pope \nplaced a crown of gold upon his head, and the mighty multi- \ntude of Romans and Franks hailed him as the successor of \nAugustus. The Empire of the West, which, in 476, Zeno had \nmade one with the Empire of the East, again rose into separate \nexistence. Italy was again joined to the Empire, of which \nRome was the head. The Italian kingdom of Charles stretched \nfrom the Alps as far as Terracina. The Duchy of Beneven- ",
+          "excerptSha256": "c95d815080e9c4f5f4cda96333b714f703ca35609894171b99a22eb0468b1145"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), I §10 · 800년 성탄절 로마의 대관, 원문 1171–1185행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "9fa0342f-f4fe-5349-8b0e-84bc7b12817b",
+      "cardTitle": "북부 도시의 집정관·평의회·시민총회",
+      "era": "중세 북부 이탈리아",
+      "sourceClaim": "집정관·두 평의회·시민총회의 기능과 도시 자치에 대한 저자 설명.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "고대에서 중세까지의 제도 연속성, 도시별 차이, 시민 자격과 비시민의 배제는 확인이 필요하다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-toronto-1883-extracted.txt",
+          "sourceSha256": "8006e12eb376ba37163fd3777e84a257b116e7556645cc8a62f39a9748fb97f4",
+          "chapter": "II §7",
+          "section": "북부 도시의 집정관·평의회·시민총회",
+          "lineStart": 1256,
+          "lineEnd": 1295,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "7. The Lombard Cities.—The large cities of North Italy\nseem to have kept, under one form or another, a good part\n\n\n=== TORONTO PDF PAGE 40 ===\nM THE EMPEROR AND THE POPE. [chap.\nof the municipal liberty which they had in earlier times.\nFrom the beginning of the Empire their internal govern-\nment had been in the hands of the higher class. This\nOrder (Ordo Decurionum) was responsible to the Imperial\ntreasury for the taxes ; it thus represented the city, and\nwas a sort of governing corporation, and, though it was much\nweakened by taxation and general distress, it must still have\nbeen the foremost power in Pavia and other large cities.\nThe smaller cities, for the most part, must have fallen under\nthe power either of some great secular lord or bishop, and\neven Milan had often enough to do to keep her Archbishop\nin check. The lord's officer commanded the militia of the\ncity, and was judge in the more important cases, while other\nmatters were managed by officers chosen by the citizens.\nThe troubles which came upon Italy at the break up of the\nCarolingian dominion, the disputes for the throne and the\ninvasion of the Hungarians, made the cities rise in power\nand importance, as places which either could be made capable\nof defence, or had been already fortified in older times. In\nthe eleventh century the government was generally carried\non by two or more Consuls, chosen by the people. Their\nduties were to dispense justice, to cail out and head the\nmilitia, and to preside over the councils of the city. Each\nof these infant republics had generally two councils. The\nsmaller one carried out the laws and policy of the city,\nand in after-time was called the Consiglio di Credenza. The\nother consisted of more members, and was called the Great\nCouncilox Senate. In this larger Council new measures were\ndebated. The highest power in the city was in the whole\nbody of the citizens themselves. On great occasions the\ncommon bell of the city was tolled, and all the citizens\ngathered together in \"Parliament\" in the square of the\ncity-palace. These municipalities gained importance at the\ndeath of Otto the Third, for then there was another dispute",
+          "excerptSha256": "610380c897f5051bfaf788813fc51c48d8fb38ae93f9a9aeee15b32c3ce40c73"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), II §7 · 북부 도시의 집정관·평의회·시민총회, 원문 1256–1295행. [원문](https://archive.org/download/historyofitalyw00hunt/historyofitalyw00hunt.pdf)",
+      "displaySourceUrl": "https://archive.org/download/historyofitalyw00hunt/historyofitalyw00hunt.pdf"
+    },
+    {
+      "cardId": "ad41faaa-315f-56db-b628-ba43eccabec5",
+      "cardTitle": "보름스 협약과 서임권의 구분",
+      "era": "1122년",
+      "sourceClaim": "협약의 상호 양보와 교황·황제·도시 관계에 대한 원저 해석.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "협약의 지역별 적용·문언, 세속 재산과 봉신 의무의 차이, 국가교회라는 후대적 용어는 별도 검증 대상이다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-toronto-1883-extracted.txt",
+          "sourceSha256": "8006e12eb376ba37163fd3777e84a257b116e7556645cc8a62f39a9748fb97f4",
+          "chapter": "II §14",
+          "section": "보름스 협약과 서임권의 구분",
+          "lineStart": 1673,
+          "lineEnd": 1704,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "14. The Concordat of Worms, 1122.—At last the ques-\ntion of Investitures was decided at Worms. Each party gave\nup something : the substantial gain was on the Pope's side.\nThe Emperor surrendered the right of Investiture by ring\nand staff, and granted the right of free election to the clergy.\nOn the other hand, the Pope granted that the temporalities\n\n\n=== TORONTO PDF PAGE 51 ===\nii] THE CONCORDAT OF WORMS. 35\nof the Church in Germany should be received from the\nEmperor, that it should in fact become a National Church.\nThus the Emperor lost, while the King of the Germans\ngained. The contest, however, had really been for Papal\nindependence, the forerunner of Papal ascendancy, and here\ntoo the Pope was the victor. The power which Charles and\nOtto and Henry the Third had exercised over the Papacy\nwas gone for ever. The Pope became independent of the\nEmperor, while the Imperial crown was still conferred by the\nhands of the Pope. The independence of the Pope gave\nItaly an ally against her Emperor. The long struggle left\nher cities an increased importance and freedom from control.\nThe War of Investitures made it possible for them in after-\ntime to combine together against the common enemy. For\na while indeed they used their strength against one another.\nThe long feud between Milan and Pavia divided the North\ninto two great parties, and the smaller cities shared the\nquarrels and fortunes of the larger, who were at their head.\nMilan was the more successful during the early part of the\ntwelfth century, and the conquest of Lodi and Como con-\nfirmed her headship in Lombardy. In Tuscany, Florence\nrose to independence at the death of the Countess Matilda,",
+          "excerptSha256": "170236290cf3a47f88991155a970d58cc74b7dc272bd26981a418b4e2d59a81f"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), II §14 · 보름스 협약과 서임권의 구분, 원문 1673–1704행. [원문](https://archive.org/download/historyofitalyw00hunt/historyofitalyw00hunt.pdf)",
+      "displaySourceUrl": "https://archive.org/download/historyofitalyw00hunt/historyofitalyw00hunt.pdf"
+    },
+    {
+      "cardId": "8a49f9bb-5476-57f4-9b09-57d2e69e617a",
+      "cardTitle": "롬바르드 동맹과 콘스탄츠의 타협",
+      "era": "1167–1183년",
+      "sourceClaim": "도시 동맹·전투·협상과 도시 자치 및 황제 권리의 병존.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "동맹 가입·전투 기여·조약 권한의 세부와 자치·독립의 법적 의미는 전문 대조 대기다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "III §6",
+          "section": "롬바르드 동맹과 콘스탄츠의 타협",
+          "lineStart": 2386,
+          "lineEnd": 2452,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "6. The Lombard Leagrue.— In 1165, while Frederic was \nkept in Germany, Pope Alexander came back to Rome. All \nthe enemies of the Emperor immediately rallied round him. \nThe cities of the Veronese March had already formed a \n\nJeague agsdnst the Emperor, and they hoyt uvvlted others to \n\n\n\nIII.] THE LOMBARD LEAGUE. 41 \n\njoin them. In 1 167, the famous Lombard League was formed, \nand its members began to help the Milanese to rebuild their \ncity. The League included Cremona and other cities which \nformerly had hated Milan, for old hostilities were overcome \nby a common desire for freedom. The Emperor came back \nand went southwards. The Eastern Emperor Manuel Kom- \nninos was at feud with the Venetians, and upheld Ancona \ntheir rival against them. In alliance with Venice, Frederic \nvainly besieged Ancona, and then marched to Rome. The \nPope fled before him, but the Emperor's success was checked \nby a power which has often rid Rome of her foreign enemies. \nA pestilential fever almost destroyed his army, and he was \nforced to retreat in haste. The triumphant cities of the \nLeague, in order to check Ghibelin Pavia, built a city near \nit, which they called Alessandria, after the name of their \npatron, the Pope. The war was carried on by Christian^ \nArchbishop 0/ Mains, who laid siege to Ancona ; but, though \nthe city was brought to great straits, he was not able to take \nit. When the Emperor came back, in 11 74, he was stopped \nby the new city, Alessandria ; and though its defences were \nso poor that he called it the \" Town of Straw,\" its new citizens \nwere able to keep him in check, till the army of the League \nforced him to raise the siege. Attempts were made to arrange \nthe causes of dispute, but neither party would yield. At \nlength, in 11 76, the Imperial army advanced to Legnano, \nabout fifteen miles from the gates of Milan. The Milanese \nhad few of their allies with them, but they fought so gallantly \nround the carroccio of their city that the Imperial army was \ntotally defeated, and the Emperor escaped with difficulty. \nThis great battle decided the struggle between the Emperor \nand the Lombard cities, and for a time between the Emperor \nand the Pope. A truce was made at Venice, and Frederic \nand Alexander -were reconciled. Frederic ackxvovilwi^<id. \nAlexander as Pope, and was allowed to TCtavxi \\\\ift \\ftTt\\\\53r«.'^ \n\n\n\n42 THE EMPEROR AND THE CITIES. [chap. \n\nof the Countess Matilda for his life, after which they were \nto revert to the Holy See. The Emperor also made a truce \nwith the King of Sicily. By the time that the truce with the \nLombard cities had ended, six years after the battle of \nLegnano, the wrath of both parties had cooled, and a lasting \npeace was made at Constanz, or Constance^ a city of Swabia, \nin 1 183. The Emperor ceded to the towns ill rights within \ntheir walls ; he allowed them to administer their own laws, \nand to make peace and war on their own account ; the \nancient regalian rights were retained, they were defined and \nprovisions made against future disputes ; he allowed the \ncities to keep their Consuls, but they were nominally invested \nby him, and each city was to admit an Imperial Judge of \nAppeal. Frederic and his house loyally kept these provisions. \nThe Lombard cities thus remained part of the Empire, while \nat the same time they became virtually independent. The \nresult of the struggle was the establishment of their political ",
+          "excerptSha256": "4d65b8c493671b19211c06cd4e92e8fd1d750a8ad033f78eae625ecdb6166652"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), III §6 · 롬바르드 동맹과 콘스탄츠의 타협, 원문 2386–2452행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "2a36b9e2-de2e-5273-8e09-ddc987bac163",
+      "cardTitle": "시칠리아의 저녁기도와 남부 왕국의 분리",
+      "era": "1282년 및 이후",
+      "sourceClaim": "봉기 전승과 아라곤 개입, 섬·본토의 왕조 분리에 대한 원저 서술.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "일화의 사료성, 학살 규모, 왕가 계보·사망 연도 및 전쟁 종결 과정을 독립 확인해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "IV §5",
+          "section": "시칠리아의 저녁기도와 남부 왕국의 분리",
+          "lineStart": 3115,
+          "lineEnd": 3153,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "5. The Sicilian Vespers. — Peter^ King of Aragon, had \nmarried df/tstance, the daughter of Manfred, and laid claim \nPt> the kingdom of Sicily in her ng\\il. H^ sexit for help to \n\n\n\nIV.] THE SICILIAN VESPERS. 59 \n\nMichael Palaiologos, the restorer of the Eastern Empire. \nThe Emperor agreed to his proposals, for Charles of Anjou \nthreatened his Empire. These negotiations were, it is \nsaid, carried on through Giovanni di Procida^ a Sicilian \nexile, who, as the story goes, had suffered cruel wrongs from \nthe French. Charles knew something of the plans of the \nallies, and both parties were preparing for war, when affairs \nwere brought to a crisis by a chance occurrence. On March \n30, 1282, a brutal insult was offered by a French soldier to a \nbride in the presence of her friends and neighbours outside \nthe walls of Palermo, The smothered hatred of the people \nbroke out into open violence. The cry \"Death to the \nFrench \" was raised, and all who belonged to that nation in \nPalermo were slain without mercy. This massacre, which is \ncalled The Sicilian Vespers^ spread through the whole island. \nThe yoke of the oppressor was broken and the land was \ndelivered. Charles laid siege to Messina, He was forced to \nretire by Peter of Aragon, who landed and was received as \nKing. Pope Martin in vain excommunicated the rebels and \ntheir allies. In 1284, Charles received a great blow, for his \nson was defeated and taken prisoner by Roger of Lcria^ the \nAdmiral of the Catalan fleet. Charles of Anjou died in 1286, \nand two years later his son, also called Charles, ransomed \nhimself from prison. After a desultory war of twenty years \nin Sicily and Apulia, and after the death of Peter, his younger \nson Frederic was chosen by the Sicilians to be their King. \nThe Angevin house continued to reign in Naples, which \nfrom this time was the capital of the kingdom on the main- \nland. The Angevins of Naples upheld the Guelfic party. \nThe Aragonese of Sicily, who had been set up against the \nwill of the Pope, were Gbibelins. ",
+          "excerptSha256": "0f55333eda997f056d18e2c2efbd172dc05b482d332c97681f19116bbcabdd2b"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), IV §5 · 시칠리아의 저녁기도와 남부 왕국의 분리, 원문 3115–3153행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "7ed8ebe4-cfd6-53cc-9b0a-6c305fbdb9fc",
+      "cardTitle": "단테·도시 예술·이탈리아어 문학",
+      "era": "13–14세기",
+      "sourceClaim": "예술가·도시·작품과 언어 형성에 관한 원저 서술을 묶은 카드.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "작품 귀속·연대, 문어의 형성 과정, 예술 발전의 선형적 설명을 현대 미술사·문학사와 대조해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "IV §12",
+          "section": "단테·도시 예술·이탈리아어 문학",
+          "lineStart": 3513,
+          "lineEnd": 3560,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "12. The other Arts and Literature. — Sculpture began to \nrise again in Italy about the time when men turned to the \nGothic style of building. The first great Italian sculptor of \nChristian times was Niccola Pisano who lived in the middle \nof the thirteenth century. He was also a famous architect. \nThe pulpit in the Baptistery of Pisa is his work. He was \nsucceeded by his pupils : by his son Giovanni who designed \nthe Spina Chapel and the Campo Sante at Pisa, and by \nAndrea Pisano who worked (about 1300) in bronze and marble \nfor the Baptistery and Cathedral Church of Florence. The \nead of the fbirteenth century saw the rise of a purely Italian \nmcbool t^ pamdng. The earliei liaXi^xi v^c\\>\\t«s have the \n\n\n\nnr.] ARTS AKD LITERATURE. ^ \n\nhard Imes and unnatural figures which speak the influence of \nthe East. At length, first Cimabtte and then Giotto sought \nbeauty in nature. Giotto indeed attained a freshness and \nvitality which are not found in the works of the sterner \nCimabue. It was a long time before the Italians found out \nthat they had ceased to speak Latin, for long after it had \nceased to be spoken it was always used in writing. Italian \nwas first used as a written language at the end of the twelfth \ncentury. It received great encouragement at the Sicilian \nCourt of Frederick the Second. He and his sons and some \nof his courtiers wrote poems in Italian, which for a while was \ncalled the Sicilian tongue. Up to the time of Dante, the \npoets of Northern Italy used the Provencal dialect. That \nwhich really fixed the Italian language was the magnificent \npoem of Dante, Alighieri, called the Divine Comedy, This \nwas written, partly at least, during his exile at the court of \nCan' Grande della Scala, lord of Verona. It is a religious \nepic, and describes the author as visiting Hell, Purgatory, \nand Heaven^ and beholding and talking with those who had \nbeen most known for good or evil, and especially those who \nbelonged to his own land and had played a part in the history \nof Florence, his native city. The great poem of Dante \nstands alone in the literary history, not only of his own city \nand country but of the world. The study of the literature \nand the law of Rome in early days strongly implanted in \nmen's minds reverence for the Emperor, a feeling often to \nbe disappointed and at last crushed by a near acquaintance \nwith the bearer of this mighty title. This feeling comes out \nvery strongly in the poems and prose writings of Dante, and \nmost of all in the treatise De Monarchia, Italy had also \nmade a rapid advance in material wealth. Milan had intro- ",
+          "excerptSha256": "39974a0c1e3c310e960e7a853a0593a5597673010826c41f88bc0f38f5da3719"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), IV §12 · 단테·도시 예술·이탈리아어 문학, 원문 3513–3560행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "c6932674-60b6-5d95-b2a8-9cce2588fcbf",
+      "cardTitle": "1348년 역병과 도시의 손실",
+      "era": "1348년 무렵",
+      "sourceClaim": "1348년 역병과 특정 도시 피해, 보카치오 및 후속 재발에 대한 서술.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "역병 경로·피해 규모·기근과 감염의 관계, 도시별 회복 및 문학 자료의 사용 범위는 전문 검토 대기다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "V §6",
+          "section": "1348년 역병과 도시의 손실",
+          "lineStart": 3858,
+          "lineEnd": 3874,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "6. The Plasriie.~In the middle of this century Italy vas \nalso wasted by natural evils. In 1345, there were very heavy \nrains, which were followed by a great scarcity of grain, and \nan utter failure of the vintage, so that many died of hunger. \nMeanwhile, a fearful plague, which had already laid the \nEastern part of the world waste, was rapidly advancing west- \nwards. It reached Italy in 1348, and fell upon the country \nwith great violence. It is said that Naples alone lost 60^000 \ninhabitants, and that in Pisa seven died out of every ten. \nSiena never again recovered her former prosper i ty. 1 1 is often \ncalled the Plague ofFlorencey because the Florentine Gio- \nveuimi Boccaccio has given us a wonderfully vivid account of \nthe snfierings of his native city. Under this terrible scourge \nmen became selfish and lawless, and all the bonds of society, \nand even of natural affection, seemed unloosed by the near- \nness of death. Although the violence of the plague soon \nabated, yet for many years it occasionally broke out again. ",
+          "excerptSha256": "958e33413bf792a79a56ff69a5bd4b579964a0f5b6a06c47f1b647a4ec38a9d8"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), V §6 · 1348년 역병과 도시의 손실, 원문 3858–3874행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "2d036a2a-680d-5176-99c8-3a41a452e13f",
+      "cardTitle": "용병대·장기 전쟁·도시의 부채",
+      "era": "14세기 후반",
+      "sourceClaim": "전쟁 기간·고용 지휘관·재정 조달 및 용병대의 다양한 역할.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "계약 방식·채무 제도·시민군과 용병의 병존, 국채 기원론 및 전쟁의 실제 피해를 검토해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "V §14",
+          "section": "용병대·장기 전쟁·도시의 부채",
+          "lineStart": 4340,
+          "lineEnd": 4381,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "become the property of some one man. Italian armies were \nnow no longer composed of the militia of a state, in which \neach man fought for his home and his city. The different \nTyrants knew that it was safer for them to employ mercen- \naries, who were wholly at their disposal, and who cared not \nfor the cause for which they fought, but only for the man \nwho paid them. This change was liked by the people, for \ncampaigns now lasted a much longer time than formerly. \nBefore the fourteenth century a campaign lasted only a few \ndays. A pitched battle was fought, or a town was attacked, \nand then the citizen soldiers went back, every man to his \nown affairs, until they were called out again. In the latter \nhalf of the century war became an art. Campaigns and \nsieges lasted for months, and the citizen soldier would have \nbeen ruined, because his shop or his office would have been \nshut while he was at the wars. The mercenaries were \nsoldiers by profession, and thus were far better fitted for war \nthan the militia, who went to war only when some need arose. \nIn order to pay these troops, the states contracted heavy \ndebts to different private persons ; these debts were funded^ \nor placed in one stock with the same security for payment \nand the same rate of interest. From these funds the present \nsystem of national debts and securities arose. At first the \nmercenaries were foreigners, but towards the end of the century \na famous school of generalship arose in Italy. This was the \nCompany of St, George^ founded hy Aiberigo, Couniof Barbiano^ \nand from that time the great tacticians in the Italian wars were \nthemselves Italians, as Jacopo del Verme aijd others. These \nmercenary troops often gave a Tyrant power to extend his \nterritories ; but sometimes they enabled a free state, like \n\n\n\n90 THE GHIBELIN LORDS. [chap. \n\nFlorence, to defend herself against those who wished to \nenslave her. The use of gunpowder began to change the \nmode of warfare. Gian-Galeazzo had a great number of \nlarge and small field-pieces. It was not however until some \nyears later that muskets began to be used in the Italian \nwars, and then the length of time which was taken up in \nloading and firing off these new weapons much hindered ",
+          "excerptSha256": "1e9f315e77ce11b85d850f857c0d80cad8809deada995c24dd2ef2afed0b69bb"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), V §14 · 용병대·장기 전쟁·도시의 부채, 원문 4340–4381행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "bf4266c8-2692-52a5-9457-fa2fab342493",
+      "cardTitle": "코시모 데 메디치와 피렌체의 발리아",
+      "era": "1433–1434년",
+      "sourceClaim": "코시모의 부·후원·추방·귀환과 특별 위원회의 역할에 관한 원저 서술.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "1433–1434년 절차, 조국의 아버지 호칭의 시점, 이후 메디치 권력의 단절을 포함한 장기사는 별도 검증 대상이다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "VI §5",
+          "section": "코시모 데 메디치와 피렌체의 발리아",
+          "lineStart": 4706,
+          "lineEnd": 4747,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "5. Bise of Crosimo de' Medici — Ever since the insurrec* \ntion of the Ciompi the old Guelfic families and the new \npopolani grossi, or rich men of the people, had had the chief \npower in Florence. This oligarchy, in 1433, was under the \ndirection of Rinaldo degli Albizzi^ who, though a brilliant \nand eloquent man, was wavering in purpose and disdainful \nin manner. The head of the opposition was Cosimo d^ \nMediciy the son of Giovanni d^ Meaiciy who by his ability \nand attention to commerce had amassed a very large for- \ntune. Cosimo carried on his father's trade. He lived splen- \ndidly; he was a great supporter of all literary men, and \nspent and distributed his wealth amongst his fellow-citizens. \nHe was courteous and liberal, and was looked upon with \nalmost unbounded respect and affection by a large party in \nthe state. Rinaldo was bent upon his ruin, and, in 1433^ \nwhen he had a Signoria devoted to his party, he cited Cosimo \nbefore the Council, and shut him up in the tower of the Public \nPalace. This violent step caused much excitement, and \ntwo days afterwards the Signoria held a Parliament of \nthe people. The great bell of the city was tolled, and the \npeople gathered round the Palace. Then the gates of the \nPalace were thrown open, and the Signoria, the Colleges of \nArts and the Gonfaloniere came forth, and asked the people \nif they would have a Balia. So a Balia was appointed, the \nnames being proposed by the Signoria, to decide on the fate \n\n\n\nVL] COSIMO BE' MEDICI. 99 \n\n\n\nof Cosimo. At first it was proposed to kill him, but he was \nonly banished, much against the will of Rinaldo, who knew \nthat, if he lived, he would some day come back again. The \nnext year the Signoria was favourable to him. A new Balia \nwas appointed ; the party of the Albizzi was banished, and \nCosimo was recalled. He was received with a greeting such \nas men give to a conqueror, and was hailed as the Father of \nhis Country, This triumphant return gave the Medici a \npower in the Republic which they never afterwards lost \nThe banished party fled to the court of the Du'ce of Milan, ",
+          "excerptSha256": "bef30c934f9330cac08f6416fe69221adda604349492cbba54cb21b60f92790e"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), VI §5 · 코시모 데 메디치와 피렌체의 발리아, 원문 4706–4747행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "0ae406ed-c659-5af7-a5fd-252b31a4f9cf",
+      "cardTitle": "니콜라우스 5세의 로마와 학문 후원",
+      "era": "15세기 중엽",
+      "sourceClaim": "교황의 세속 권력·학문 후원·필사본 수집에 관한 저자의 설명.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "도서관의 제도화 시점·후원망·로디 협상의 참여자와 인쇄술 보급 연대는 독립 대조가 필요하다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "VI §7",
+          "section": "니콜라우스 5세의 로마와 학문 후원",
+          "lineStart": 4862,
+          "lineEnd": 4907,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "\nAftera short schism Nicolas V., the successor of Eugenius, was \nuniversally acknowledged. The failure of the Council of Basel \nrestored the position of the Papacy, and set it free from control. \nThe character and abiHty of Pope Nicolas made him respect- \ned) and the part which he took in politics made him rank \namongst the great temporal powers in Italy. From this \ntime onwards to the end of our history we shall see the \nPopes the undisputed Princes of Rome, and the lords of all \nthat part of Italy which they claimed by the gift of Kings \nand Emperors, and not least by the will of the Countess \nMatilda. Pope Nicolas used this power better than any of \nthose who came after him, for he used it in the cause of \npeace, and to forward learning and artistic taste. He applied \nhimself to the general pacification of Italy, and, in 1454, brought \nabout the Peace of Lodi^ which was signed by Venice and \nMilan and by King Alfonso. Christendom had great need \nof peace, for, in 1453, Constantinople had been taken by the \nInfidels, and Mahomet the Second ytdiS spreading his conquests \nover the East of Europe. Before the fall of the city a great \nmany Greeks had come to Italy, on different missions, and \nespecially to attend a Council at Florence, where terms of \nunion were made between the Greek and Latin Churches. \nTheir coming revived the taste for Greek learning, which \nhad been so powerfully felt by Petrarca and Boccaccio. \nPope Nicolas made Rome the centre of this literature, and \nothers followed his example. Theodore of Gaza^ George of \nTrebizondy and many more, found enlightened patrons in the \nPope, the King of Naples, Cosimo de' Medici, and Federigo, \nCount of Urbino. The Pope was a lover and patron of art \nas well as of literature. He rebuilt the churches, palaces, \nand fortifications of Rome and the Roman States. He formed \nthe scheme of raising a church worthy of the memory of St. \nPeter, and left behind him the Vatican Palace as a worthy \nttpufence for the Apostle's successors. TYie Vsi^iV VKJot^x^ \n\n\n\nVI.] POPE NICOLAS THE FIFTH. 103 \n\nhad been scattered during the Captivity and the Schism. \nPope Nicolas made a large collection of manuscripts^ \nand thus founded the Library of the Vatican. The introduc- \ntion of printing into Italy about this time gave great strength \nto the revival of learning. In 1452, the Pope crowned \nFrederic the TJUrd Emperor at Rome with great magnifi- ",
+          "excerptSha256": "2070a50b91348ea619b34597a8efc06879bff373abb21806d57b555bc1146379"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), VI §7 · 니콜라우스 5세의 로마와 학문 후원, 원문 4862–4907행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "de7412bc-41b3-5af4-9bf8-883100b43ac7",
+      "cardTitle": "프랑스 원정군과 이탈리아의 군사 조직",
+      "era": "15세기 말 이탈리아 전쟁",
+      "sourceClaim": "군대의 고용·급료·대형·포병 기술에 관한 출처상 비교.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "무기 재질·기동성·편성의 실제 차이와 시기별 변동, 민족 단위 비교의 과장을 검토해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "VII §2",
+          "section": "프랑스 원정군과 이탈리아의 군사 조직",
+          "lineStart": 5524,
+          "lineEnd": 5560,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "2. Italian and French. Warfare. — The French army \nwhich was gathering together at Vienne was very different \nin its strength, its order, and its mode of warfare to any \nof the armies of Italy. The French cavalry was made up of \nLanceSf each composed of a man-at-arms who was fully \narmed, and his four or five attendants. These men-at-arms \nwere all Frenchmen, and their officers were for the most \npart of noble birth. The troops belonged to the King and \nnot to their officers, and were paid by him. They and their \nhorses were splendidly equipped ; they were well paid and \nunder good discipline. The infantry consisted of Frenchmen \narmed with bows and arbalists, and of Swiss and German \nmercenaries. The Italian troops were subjects of different \nstates ; they followed their own captains, and were paid by \nthem. An Italian state when at war engaged different captains, \nand only had power over their men through them, so that \nthere was a total lack of union and order in their armies. The \nItalian infantry fought in small detached bodies, while the \nSwiss of the French army formed solid squares, against \nwhich heavy cavalry charged in vain. The Italian foot- \nsoldiers were quite equal to the native French, but were far \ninferior to the Swiss, who were held to be the first foot- \nsoldiers in the world. The chief strength of the King's \narmy lay in his artillery. The Italians used great guns \ncalled bfnnbards^ which threw stone balls. They were drawn \n^axea, and were so heavy that they were Cor the most part \n\n\n\nyii.] ITALIAN AND FRENCH WARFARE. ^ 119 \n\nonly used in sieges, and a long time was spent between each \ndischarge in loading and pointing the gun. The French \nbrought with them much lighter guns, called cannons^ made \nof brass, which threw iron balls. These cannons were drawn \nby horses, and could be used in the field, and the French \nartillerymen pointed and fired them off with great speed. ",
+          "excerptSha256": "9c540ea979d7513d8f30d247b2b9bdedbbed9d51e3d7fa9032675c950f6c52eb"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), VII §2 · 프랑스 원정군과 이탈리아의 군사 조직, 원문 5524–5560행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "0908f3c1-7d1c-524b-98c8-96adcf93f9b0",
+      "cardTitle": "로마 약탈과 산탄젤로성의 교황",
+      "era": "16세기 이탈리아 전쟁",
+      "sourceClaim": "공격·피신·약탈과 인명·문화재 피해에 대한 저자의 서술.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "연도·날짜·병력, 지휘 체계 붕괴와 폭력의 범위 및 르네상스 쇠퇴 해석을 확인해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "VIII §11",
+          "section": "로마 약탈과 산탄젤로성의 교황",
+          "lineStart": 7374,
+          "lineEnd": 7411,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "II. Tlie Sack of Borne. — The Constable was so badly in \nwant of provisions that he could not, if he would, have kept \nhis army in Tuscany. He marched quickly on towards \nRome. The Pope had made some preparation for the \ndefence of the city, and believed that his generals would be \nable to hold it. On May 5th, the Constable led his army \nbefore Rome. The Lutherans of George Frundsberg were \neager for the overthrow of the Pope, and Spaniards and \nGermans alike greedily coveted the splendid booty which lay \nbefore them within the walls. At daybreak on the 6th the Con- \nstable led his army to the assault. A thick mist hid his troops \nas they approached. The scaling ladders were quickly planted, \nand the assault began. The Swiss guard of the Pope and \nthe troops of the allies met the attack with firmness. The \nConstable himself climbed one of the ladders. He fell \nmortally wounded by a musket-shot. His death made his \nmen furious for revenge. The city was stormed between the \nJaniculum and the Vatican, The Pope took shelter in the \nCastle of St. Angelo, and the enemy crossed the Tiber from \nthe Trasieverey and made themselves masters of the whole \ncity. The capital of the world lay at the mercy of 40,000 \nfierce and ungovernable soldiers. Bourbon was dead. \nFrundsberg had been seized with a fit some time before. \nThe German Lutherans destroyed pictures and statues which \nwere beyond price, for in their eyes they were instruments of \nidolatry. But the Spaniards surpassed even the Germans in \ncruelty and avarice. For seven months the City was a scene \nof robbery, lust, and murder. The arts and letters of the \n■ttouuVsance were fast perishmg \\>v x\\i^ ^^is ux Italy. The \n\n\n\nviii.] THE SACK OF ROME. 165 \n\nsack of Rome seemed to crush them at a blow. The Pope \nremained shut up in the Castle of St. Angelo until June 5th. \nThen he was forced to surrender because his provisions ran \nshort. He was kept a prisoner until September 9th, and ",
+          "excerptSha256": "0707a022a1f93ae577adef552b284d8286214824c867e8d4b226888c0e8f97b7"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), VIII §11 · 로마 약탈과 산탄젤로성의 교황, 원문 7374–7411행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "009ef33e-dc1e-5d29-a78a-531c8e97b5c6",
+      "cardTitle": "피렌체 공화국의 패배와 메디치 복귀",
+      "era": "16세기 전반",
+      "sourceClaim": "구원군의 패배·항복 조건·발리아와 관직 교체를 연결한 출처 요약.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "전투 일화의 전승, 항복 조건의 문언, 후속 제도 변화와 메디치 정권 성립 단계를 확인해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "IX §4",
+          "section": "피렌체 공화국의 패배와 메디치 복귀",
+          "lineStart": 7740,
+          "lineEnd": 7789,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "4. The Fall of Florence. — Francesco Ferruccio was \nalmost worn out with anxiety and weariness. He had been \nsuffering from fever, and was weakened by his wounds and \nhis want of rest. Nevertheless, he set out from Pisa on July \n31st, at the head of a small army, in the almost desperate \nhope of passing over the mountains of Pistoia, and reinforc- \ning the Florentines within the city. He was misled by his \nguides, who brought his army down from the top of the \nmountains ; and everything which was planned in his camp \nwas carried by traitors to the enemy. The Prince of Orange \n\n\n\n174 ITALY ENSLAVED. [ohap. \n\n\n\nwith a powerful army met the Florentines, August 3rd, at \nGavinana, a small village in the hills to the north-west of \nPistoia. A fierce struggle took place in the little market- \nplace and at the gate of the village. As the Prince of Orange \nled his horsemen to the charge, he was shot dead. For a \ntime it seemed as though the Florentines had gained the day, \nfor the Imperialists began to retreat After a while the \nGerman infantry rallied, and the battle began again. Fran- \ncesco Ferruccio and Gianpagolo Orsini made a gallant stand. \nFrancesco was covered with wounds, and was at last taken \nprisoner. He was brought faint and dying mto the market- \nplace before Fabrizio Maramaldo. There the Imperialist \ngeneral gratified his spite by striking him with his own hand. \nThe soldiers who stood by finished the murder. He met his \ndeath without fear, only saying to those who struck him, '' It \nis a noble thing to kill a dead man.** With Francesco \nFerruccio died the last hopes of the Florentines. Malatesta \nhad been faithless to the cause of the city throughout the \nsiege, and had worked as far as he could for the enemy. \nThe Gonfalon iere and the Signory were forced by his \ntreachery to accept the fair-sounding offers of the Pope. It \nwas agreed that the Emperor should regfulate the government \nof the city, but that it should still preserve its liberty ; that the \nFlorentines should pay a ransom and give hostages ; that the \nMedici should be restored, and that the Pope should show \nkindness to his fellow citizens. Baccio Valori^ who entered \nthe city on behalf of the Pope, filled the Palace with armed \nmen, and then called together a Parliament of the people. \nHe asked the few trembling citizens who came together if \nthey would have a Balia. He was answered by faint cries of \n\" Palle ** and \" Medici^ A Balia was appointed. The repub- \nlican magistrates laid down their offices, and the freedom \nof Florence came to an end. The great Guelfic Republic ",
+          "excerptSha256": "d8bf6427f13ade25da93a87bcf4c252f01b272d8503c7684bbf6ffc507d19998"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), IX §4 · 피렌체 공화국의 패배와 메디치 복귀, 원문 7740–7789행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "f1175720-ae76-5894-8fe1-a955e575f090",
+      "cardTitle": "위트레흐트 조약과 사보이의 왕위",
+      "era": "18세기 초",
+      "sourceClaim": "왕위계승전쟁 후 이탈리아 영토와 사보이 왕위에 관한 원저 설명.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "절 제목의 연도는 OCR·인쇄 대조 필요. 위트레흐트·후속 조약별 영토 조정과 주권 용어를 확인해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "X §7",
+          "section": "위트레흐트 조약과 사보이의 왕위",
+          "lineStart": 9123,
+          "lineEnd": 9172,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "7. The Treaty of Utrecht, 1718. — The eighteenth century \nwas marked by European wars about rights of succession. \nThese wars were partly fought in Italy, and this brought \nmuch distress on the people. They were followed by treaties \nby which different powers divided Italy between themselves \nand their allies, without in any way asking the wishes of the \nItalian people. In 1700, Charles the Second of Spain died \nwithout children, and thus the line of the Habsburg Kings of \nSpain came to an end. Lewis the Fourteenth claimed the \nthrone for his grandson Philips Duke of Anjou, whom the \nlast king named as his heir, and who derived his right from \nhis grandmother Maria Theresa, Queen of France, daughter \nof Philip the Fourth of Spain. His claim was opposed by \nCharles, Archduke of Austria, the son of Leopold, the \nEmperor-elect, who was grandson of Philip the Third. \nThe army of France occupied Lombardy. The French \ncause was upheld by Cosimo the Third of Tuscany, and Fer- \ndinando da Gonzaga of Mantua, and for a time by Victor \nAmadeus of Savoy, the father-in-law of Philip. In 1704, \nAustria gained over Savoy. The French under Vend6me de- \nfeated the Austrians and conquered the whole Duchy except \nTurin. Prince Eugene saved this city by a brilliant victory. \nIn 1706, the French were driven out of Lombardy and Naples, \nand Charles the Third was proclaimed. The war in Italy \nwas of small consequence compared to that which was carried \non north of the Alps, in which France was opposed by \nThe Grand Alliance of the Emperor, England, and Holland, \nand in which our Marlborough won his splendid victories. \nIn 17 1 3 the war was ended by the Peace of Utrecht, The \nAustrian Charles, who had now become the Emperor Charles \nthe Sixth, received Milan, Naples, and Sardinia; and to \npunish Ferdinandp for his alliance v«\\t\\v¥x^2Rs:&\\ifcVi^'2^'^ \n\n\n\n203 ITALY DIVIDED. [chap. \n\nMantua from him. The Duke of Savoy, as a reward for his \ntimely help, received Sicily, with the title of King, and the \nsame year was crowned at Palermo. Thus the Bourbon king \nof Spain lost the dominions in Italy which the Habsburg \nkings of Spain had gained. The Italians passed from under \nthe power of Spain to be under the power of Austria. They \ndid not gain any freedom by the change, though the rule of \nthe Austrians, bad as it was, was yet better than the rule of \nthe Spaniards. The Duke of Savoy had gained Pinerolo in \n1696. By this war he gained Montferrat, Alessandria, and \nsome other places. By the Treaty of Utrecht his Duchy was \nrecognized as an independent power, which means that it \nwas now free from all Imperial claims. ",
+          "excerptSha256": "ccebd930c1fff18c274227d2971a1e0e0b743e39dc346574f50e64124c216cc5"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), X §7 · 위트레흐트 조약과 사보이의 왕위, 원문 9123–9172행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "07f65bf3-fa23-5e40-9088-4cb4dd7d9ccc",
+      "cardTitle": "나폴레옹의 이탈리아 왕국과 나폴리",
+      "era": "1804–1808년 범위",
+      "sourceClaim": "나폴레옹 아래 서로 다른 왕국·부왕·왕위 배치에 관한 출처 요약.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "왕국 성립 전 단계, 대관 장소, 리구리아의 실제 편입 대상과 연도, 나폴리 왕위 교체를 확인해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "X §13",
+          "section": "나폴레옹의 이탈리아 왕국과 나폴리",
+          "lineStart": 9580,
+          "lineEnd": 9610,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "13. Buonaparte, King of Italy. — In 1804, Buonaparte \n\nchose to call himself Emperor of the French^ and sent for the \n\nPope to anoint him. The next year this successful Corsican \n\nchanged the Cisalpine Republic into a monarchy, and was \n\ncrowned King of Italy in the church of St. Ambrose. He \n\njoined the Ligurian Republic to the new kingdom ; and made \n\nhis stepson. Engine Beauhamais^ the grandson of a West \n\nIndian planter, the Viceroy of Italy. At the close of the year, the \n\nAustrians, by their defeat at Austerlitjf, were forced to give up \n\nthe whole of the Venetian territory to Buonaparte. This he \n\njoined on to his Italian kingdom. Early in 1806, Buonaparte \n\nagain turned the Bourbons out of Naples, and made his brother \n\n^S4^A King, When he made 3osep\\\\, \"^m^ tJl ^^?c«i^ Va. \n\n\n\nX.] THE BOURBONIST BRIGANDS. 219 \n\n1808, he appointed Joachim Murat, one of his generals, to ",
+          "excerptSha256": "ad0442e8c26e865dbe436fc445be46c69de3d69a322f37c8bf1c31bb2d8e9ee3"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), X §13 · 나폴레옹의 이탈리아 왕국과 나폴리, 원문 9580–9610행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "63f2b428-ebcd-5a92-be8c-ea7d5c75e3cf",
+      "cardTitle": "빈 회의와 복원된 왕조 질서",
+      "era": "1814–1815년",
+      "sourceClaim": "나폴레옹 이후 영토 재편과 저자의 자유·왕조 평가.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "개별 조약·군주의 정확한 칭호·승계 조건과 지역별 여론은 독립 검증 대기다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "X §14",
+          "section": "빈 회의와 복원된 왕조 질서",
+          "lineStart": 9694,
+          "lineEnd": 9750,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "14. The Congress of Vieima, 181 5. — ^The power of \nBuonaparte was at last overthrown by an alliance of the \nPowers of Europe. In the war of 18 14, Joachim, King of \nNaples, deserted his patron. He joined the Allies and seized \non Rome and Ancona. A Piedmontese legion was raised \nunder the flag of King Victor Emmanuel. The Allies carried \nthe war into France, and, on March 31st, entered Paris in \ntriumph. Buonaparte was forced to give up all claims on \nItaly and on the rest of his conquests, and was sent off to \nreign over the little isle of Elba, In 181 5, the Allies met in \ncongress at Vienna, to settle the fate of the countries which \nBuonaparte had lost. The gaieties and negotiations of \nVienna were interrupted by the news of the escape of Buona- \nparte. Europe escaped from this fresh danger by the battle of \nWaterloo, and the new arrangements came into effect. The \npeople of Italy hailed with delight the success of the Allies, \nand joined in driving the French out of their land. They \nlooked forward with hope to the Congress at Vienna, for they \nthought that the Allied Powers would give them liberty. \nThey were deceived. In almost every case they were handed \nover to the masters who had ruled them before the French \nRevolution. Italy was made the means of gratifying the \nselfish ambition of the sovereigns of Europe. By the Treaty \nof Paris, Victor Emmanuel received much the same dominion \nas had belonged to his house before 1792. The restoration \nof the King of Sardinia was held to be the best safeguard \nagainst another French invasion, but it was useless so long \nas a French army could be landed at Genoa. The Genoese \nhad been encouraged by an envoy from England to drive \nout the French, and restore their old Republic. They were \nbasely deceived, and the city \"was \\i2txi^^^ cn^x \\a ^^ \"^Ksoji^ \n\n\n\n222 ITALY DIVIDED. [chap. \n\nof Sardinia, and became part of his kingdom. Genoa has \ngained greatly by this change, though this does not lessen the \ncrime of betraying her independence. The only excuse which \ncan be put forward for this act is that, the change has \nturned out to have been necessary for the welfare of Italy. \nNo such excuse can be pleaded for giving Venice over to \nAustria, to make up for the large share of Poland which \nRussia took. Milan also was given back to the Austrian \nEmperor, Francis the Second, and thus the Austrian king- \ndom of Lombardo-Venetia was set up. Parma and Piacenza \nwere given to Maria Louisa^ the wife of Buonaparte, the \ndaughter of the Austrian Emperor. Lucca was given to the \nBourbons of Parma. On the death of Maria Louisa, this \nfamily was to regain its former possessions, and was to give \nup Lucca. Lucca was then to pass to the family of the \nAustrian Ferdinand the Third, who was made Grand Duke \nof Tuscany again. Francis the Fourth, the son of Beatrice, \nheiress of the ancient house of Este and of the Austrian \nArchduke Ferdinand, was made Duke of Modena, When \nLucca should be joined to Tuscany, he was also to receive \nLunigiana from the Grand Duke. Pope Pius the Seventh ",
+          "excerptSha256": "574c92719af4491d5aeb7bcc2937961907b91f3e919deb4ba4ec5389a64c44d2"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), X §14 · 빈 회의와 복원된 왕조 질서, 원문 9694–9750행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "50976e0b-409b-5098-b340-5a823ae42f7d",
+      "cardTitle": "카보우르와 사르데냐의 국제 외교",
+      "era": "1850년대",
+      "sourceClaim": "카보우르의 연합 정치와 크림 전쟁·파리 회의 연결에 관한 원저 설명.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "카보우르의 취임 연도·동맹 협상·파리 회의의 발언과 효과를 확인해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "XI §8",
+          "section": "카보우르와 사르데냐의 국제 외교",
+          "lineStart": 10467,
+          "lineEnd": 10500,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "The quick progress of reform frightened Count Massimo \nd'Azeglio. He retired from office in 1853. His place was \ntaken by Count Cavour, who made a coalition with the demo- \ncratic party in Piedmont headed by Urbano Rattazzi. The new \nchief Minister began to work not only for the good of Pied- \nmont but for Italy at large. The Milanese still listened to \nthe hopes which Mazzini held out, and could not quietly bear \ntheir subjection. Count Cavour indignandy remonstrated \nwith Radetzky for his harsh government. He also protested \nin vain against the oppressive rule of King Ferdinand the \nSecond in Naples. The division and slavery of Italy had \nshut her out from European politics. Cavour held that, if \nshe was once looked upon as an useful ally, then her deliver- \nance might be hastened by foreign interference. The Sar- \ndinian army had been brought into good order by Alfonso \ndella Marmora, and was ready for action. In 1855, Sardinia \nmade alliance with England and France, who were at war \nwith Russia ; for Cavour looked on Russia as the chief \nsupport of the system of despotism on the Continent, and \nheld that it was necessary for Italian freedom that Russia \nshould be humbled. The Sardinian army was therefore sent \nto Crimea^ under La Marmora. This force did good service in \nthe battle of Tchemaya, Aug. i6th. In the same month, the \nAllied Powers remonstrated in vain with King Ferdinand. The \nnext year the Congress of Paris was held to arrange terms of \npeace between the Allies and Russia. At Paris Cavour took \nthe opportunity of laying before the representatives of the \nEuropean powers the unhappy state of his countrymen under \nKing Ferdinand and the Pope. The Governments of Eng- \nland and France in vain tried to persuade the King to rule \nbetter, and at length the dispute became so serious that their \nambassadors were withdrawn from Naples. QY^\\si\\s^a^Ss:.x^^a.- \ntions were not resumed until after xYie d^^AXi ot '^^t^vco^^^ \n",
+          "excerptSha256": "9e9b88a3b52fbc9502114de38c20b6b032a383fa6445661c66df873d7f0b06ba"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), XI §8 · 카보우르와 사르데냐의 국제 외교, 원문 10467–10500행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "7e6df906-89bd-578e-99ec-3068a575ee04",
+      "cardTitle": "가리발디와 시칠리아·나폴리의 결합",
+      "era": "1860–1861년 범위",
+      "sourceClaim": "지원군 원정·왕정과 공화파의 긴장·국왕과의 만남·병합 투표에 관한 서술.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "행군·입성 연표, 지원군 규모, 투표 방식과 강압 가능성 및 남부 주민의 다양한 반응을 확인해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "XI §10–11",
+          "section": "가리발디와 시칠리아·나폴리의 결합",
+          "lineStart": 10629,
+          "lineEnd": 10743,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "Nevertheless an expedition was made without the King*s \nconsent General Garibaldi raised a body of looo volunteers, \nand, on May 5th, set sail from Genoa. The Government \ndeclared its displeasure at this expedition, and it seemed as \nthough it was sure to end in failure. But Garibaldi was not \ndisheartened. He landed at Marsala, and took the title of \nDictator of Sicily \" in the name of Victor Emmanuel of Italy.** \nWith his little band of volunteers he took Palermo, and \ndefeated the troops of the King on the promontory oiMelazzo, \nThis victory completed the conquest of the island, save that \nthe soldiers of King Francis still defended Messina. The \nNeapolitans made no movement, for they were kept down by \nterror. The guns of the fortress of St. Elmo seemed daily to \nthreaten Naples with destruction, and the soldiers of the \nKing insulted and ill-used the citizens. All people of every \nclass were in great fear ; the more wealthy left the city ; trade \nceased, and every one who had anything to lose set about \nseeking for some means of saving it The King, who was the \ncause of all this terror, was himself gfreatly alarmed at the \nsuccess of Garibaldi. Francis made many promises of \nreform, and begged the King of Sardinia to interfere on his \nbehalf. Victor Emmanuel and Count Cavour could probably \nhave stopped the expedition at the onset Instead of doing \nthis, they were contented with declaring that they disapproved \nit. They would not be responsible for the attack on the King \nof Naples. Having made this declaration, they did no more, \nfor they considered that they might gain and could not lose. \nBut now, though the King and his minister were willing \nenough that the Neapolitans and the Sicilians should have \nan opportunity of rising against their Bourbon King and \nvoluntarily joining themselves to the Sardinian Kingdom, yet \nthey began to be somewhat afraid as to what might be the \nintentions of the victorious General The republvc;wv viftaa. \nof Garibaldi were well known, aivd Oaet^ ^^xas.^ \\a \\sr. ^ \n\n\n\n246 ITALY FREE AND UNITED. [chap. \n\n\n\ndanger lest he should not only embroil Sardinia in war with \nother powers, but also lest his success should encourage the \nrevolutionary party throughout Italy. The King therefore \nforbade Garibaldi to take any steps against Naples until the \nSicilians had had an opportunity of voting as to whether they \nwould become his subjects. Garibaldi, in answer, expressed \nhis devotion to his sovereign, but refused to obey his com- \nmand, for he said that, if he hesitated now, he would \nendanger the cause of Italy, and be faithless to his duty as \nan Italian. Accordingly, on August 20th, Garibaldi landed at \nSpartiventOy and drove back the Neapolitan troops at Reggio \nand San Giovanni, King Francis was abandoned by his family, \nand by a great number of his soldiers, and was afraid to stay in \nNaples. On September 7th he sailed away in a Spanish ship \nto Gaeta, and the next day Garibaldi entered the capital \nThe perplexity of King Francis had enabled many political \nrefugees to return to Naples, and thus when the Dictator \nentered the city, he found a provisional government ready to \nhis hand. Giuseppe Mazzini and a number of extreme demo- \ncrats quickly joined him in Naples. Great efforts were made \nto induce Garibaldi to delay giving up his conquests to the \nKing as long as possible, and the hopes and plans of the \ndemocrats caused considerable uneasiness at Turin. By this \ntime it became evident that unless the Sardinians invaded \nthe Papal States, the Republicans would invade them. For \nthe mercenary force of the Pope under General Lamoricihre \nendangered the success of the Southern expedition. Cavour \nsaw that the union of Southern Italy with Sardinia depended \non the King taking the lead in the Italian movement. The \nFrench Emperor did not wish for further Republican success, \nand so did not prevent the invasion of the Papal States by \nSardinia. An army under General Cialdini entered the States, \nand took Urbino, Perugia, and some other places. The Papal \nGeneral Lamoricihre was defeated al Castcl/idardo, T\\as.«K^. \n\n\n\nXI-] GARIBALDI AND THE KING. 247 \n\ndition prevented the Pope's army from seriously hindering the \nunion of Southern Italy, but the Pope was still able to disturb \nits peace, and to thwart the action of the Sardinian govern- \nment. Meanwhile, Garibaldi was perplexed by different \nparties, by Mazzinians, by the party for annexation, by those \nwho upheld the sche ne of confederation, by his friends and \nhis enemies. At the same time, the people of Naples hailed \nhim as their Deliverer, and crowds of volunteers joined him \nfrom all quarters. The Neapolitan Generals attacked the \nGaribaldian army. They had no experience of war, and their \nmen had no confidence in them. They were defeated in a \nbattle on the Volturno, In October, King Victor Emmanuel \nentered the Abruzzi to receive the fruits of the expedition \nwhich he had forbidden. He was met by the Dictator at the \nhead of his red-shirted volunteers, and was hailed as King of \nItaly. The people of Naples and Sicily joined themselves by \nvote to the Sardinian Kingdom. Some of the States of \nEurope expressed their displeasure at the invasion of the \nPapal States and at the annexation of the Southern provinces. \nThe English government, under Viscount Palmerston^ boldly \nannounced its warm sympathy with the Italian people. The \nFrench were gratified by bsing allowed to add the tiny \nprincipality of Monaco to the new department which they \nmade but of Nizza {Nice), and the Emperor in return ac- \nknowledged Victor Emmanuel as King of Italy. Thus the \ndaring of one man gave freedom to Naples and Sicily. \n\nII. Difficulties of tlie Govenunent. — In February 1861, \nthe first Italian Parliament was held at Turin in a wooden \nbuilding made for the purpose, and there Victor Emmanuel \nwas declared King of Italy, Though Garibaldi had thus \nwonderfully brought about the union of Northern and South- \nem Italy, the Government had many difficulties to meet. \nThe excitable people of the South had received Garibaldi \nvnth enthusiasm, not merely becaMa^V^fe ^^n^ ^^'ask.^'t^*^'^'^®^ ",
+          "excerptSha256": "f3e79e2da327de8d8eaa74b7fce3ef07707136717139d0deda4e4191b7b5494a"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), XI §10–11 · 가리발디와 시칠리아·나폴리의 결합, 원문 10629–10743행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "a3ecb976-9184-5a48-aedd-59754b594c3e",
+      "cardTitle": "1870년 로마의 점령과 수도 문제",
+      "era": "1870년",
+      "sourceClaim": "프랑스 철수·왕국군 진입·교황의 영토권과 종교권 구분에 관한 원저 서술.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "포르타 피아 사건·수도 이전 연표, 보장법·교황의 대응 및 공화파 역할을 독립 검토해야 한다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "XI §15",
+          "section": "1870년 로마의 점령과 수도 문제",
+          "lineStart": 11114,
+          "lineEnd": 11180,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "badge of their party, began to gather together and inarch \nabout in the Tuscan Maremma and in Calabria. The war \nwith Prussia called for all the forces which France could \nmuster, and, on August 8th, the army of occupation left \nRome, and sailed from Civita Vecchia. The Republicans in \nRome now became more violent every day. Still the Pope \nrefused to leave the city. This placed the Italian govern- \nment in some difficulty, for there was reason to fear that the \ndemocrats of Rome would attack the Pope on their own \naccount. Mazzini, who was in Italy, strongly urged them to \ntake some decisive step. If Rome had been taken in this \nway the authority of the King, and the cause of order and \nunion, would have been much shaken throughout the penin- \nsula. If Rome was to be the capital of the Kingdom, it was \nneedful that it should be made so by the King. If it had \nbeen gained without him, it might have been the capital of a \nrepublican Italy, but it is more than doubtful whether the \nItalians would in that case have long remained one nation. \nIt was needful that Victor Emmanuel, and no one else, should \nadd Rome to the Italian Kingdom. The King, however, \nwould not stir so long as he was bound by the September \nConvention. For this reason Mazzini was arrested, August \n14th, and sent to Gaeta. He was working for Italy, but he \nwas working in a way which would have overset the estab- \nlished government, and which would probably have really \ninjured his country. Before long Victor Emmanuel felt him- \nself able to act. On September 2nd, the French army, with \nBuonaparte at its head, surrendered to the King of Prussia \nat Sedan. The government of Buonaparte was ended, and a \nRepublic was proclaimed. M, yules Favre, the Foreign \nMinister of the new government, declared the September \nConvention at an end. Within a week the King of Italy \nannounced to the Pope that he took upon himself the duty of \nkeeping order within the pen\\ti5»w\\aL, Vr. cjICc^rx ^<st^'5.^>i». \nAT ^ \n\n\n\n258 ITALY FREE AND UNITED. [chap. \n\nmeant for the future to be King of Rome and its territory, as \nhe was of the rest of Italy. The Pope made an appeal to the \nvictorious King William of Prussia, ^.nd begged him to take \nthe place of Buonaparte, and keep the Italian King out of \nRome. King William answered plainly that any such inter- \nference was against his policy. In a few days the King*s \ntroops entered the Papal territory, and the people of the \nprovince of Viterbo immediately declared themselves under \nthe King*s government. The army advanced to Rome. The \nPope allowed just so much resistance to be made as might \nshow that force was used, A small breach was made in the \nwall at Porta Pia, and through it General Cadorna and the \nRoyal troops entered the city, September 20th. Rome and \nits territory were declared part of the Kingdom of Italy, and \non the last day of the year King Victor Emmanuel entered \nthe city which was now his capital. The loss of Rome and \nof all temporal dominions in no way changed the spiritual \ntitle and power of the Pope. His personal comfort and \ndignity were carefully considered by the King. He was even \nallowed to keep his guards, and an ample income was secured \nto him. The VaticaUy the Church of S^a, Maria Maggiore, \nand the Castel Gandol/Oy with their precincts, were exempted \nfrom the law of the Sta«e, that the Pope might not be \noffended by seeing the signs of the King's power. Thus the \nPope ceased to be a jtemporal Prince, and lost all power save \nthat which he exercises over the minds of a large part of the \npeople of the world. ",
+          "excerptSha256": "4cf40cf54faf47778f1fcfc59a9c4f2d034a57ac1c9b110544bb8d07a8d53fae"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), XI §15 · 1870년 로마의 점령과 수도 문제, 원문 11114–11180행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "2e88cf2d-ca3e-5b57-9cd1-198e24ff6f60",
+      "cardTitle": "1874년의 과제: 학교·철도·세금·로마",
+      "era": "저자가 말하는 현재: 1874년",
+      "sourceClaim": "1874년 동시대 평가에 등장하는 국가 시설·재정·환경 사업의 과제.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "지역 불평등·교육 보급·세금과 무역·치안 통계, 말라리아 설명은 전문 검토 대상이며 후자의 원문 설명을 의학적 사실로 사용하지 않는다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "XI §16",
+          "section": "1874년의 과제: 학교·철도·세금·로마",
+          "lineStart": 11194,
+          "lineEnd": 11262,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "than any other from a long bondage, both mental and physical. \nIt has to be carried on in the face of great difficulties. Pope \nPius, by uttering curses and complaints against the policy of \nthe King and his government, made it difficult for the King's \nministers to deal with him on those terms of cordial respect \nwhich they would wish to observe. On the other hand, the \nhatred of the Romans against the priests who ruled them so \nlong, forces the government to protect against its own people \nmen who look upon it with abhorrence. Victor Emmanuel \nsteadily kept his word to the Pope, and no condemnation \nfrom the Vatican provoked him to curtail the privileges \nwhich were granted to Pius in 1870. At the same time \nthe Italian ministers followed the same policy in Rome as \nthey did in Turin, and have curtailed the over-large power and \npossessions of some of the religious corporations. The country \nis rapidly growing more prosperous. Sicily and Southern \nItaly are still the most backward parts of the Kingdom. It \nmay be that the people of the South are less naturally anxious \nfor reform, and less capable of enjoying it, than those, of the \nNorth. But even there, as in the rest of Italy, education is \ndoing its work. Throughout the Kingdom the education of \nthe people is provided for by the State. In the South the \nopposition of the priests has long hindered the full working \nof the system. Brigandage has almost disappeared before \nan efficient police, and all suspicion of any understanding \nbetween the thief and him who should be the thief-catcher is \nlong ago at an end. Schools, railways, an organized body of \npolice, and other suchlike things, which were rare in Italy a \nfew years ago, all cost money, and the Italians are heavily \ntaxed. There are but few imports, for the country brings forth \nnearly all things which her people want. The burthen there- \nfore falls heavily on landed property. The people, however, \nfeel that the things for which they pay are worth paying for. \nThe increase in the prosperity of xfe.^ ccw.wxx'^ Vas* -^^^ ^«c?!^^^ \n\n\n\n260 ITALY FREE AND UNITED. [chap. xi. \n\nproperty rise in value, and lands and houses, even in the \ndeserted capitals of Turin and Florence, are worth more \nthan they were before the seat of government was moved to \nRome. The change of the capital has been accompanied by \n9Qj)ie drawbacks. One of the greatest of these is the im- \nheit|thiness of the Agro Romano^ the Roman Campagnau \nThe'ignalaria which rises from the marshes and infects all the \nneighbourhood seems to be the effect of the stag^nant water \nwhich lies on and just below the surface of the soil. It has \nbeen proposed to drain the marshes of Ostia and Maccarese^ \nwhich extend over fifteen thousand acres. The water is to \nbe drawn off the higher land to the Tiber and the Arone^ \nwhile the land, which lies below the level of the sea, is to be \ndrained by steam-pumps. A large tract of country in Polesina \nand the Veronese has been already reclaimed in this way. \nPlans are also made for the drainage, cultivation, and plant- \ning of other large marshes in the neighbourhood of Rome^ \nand there seems reason to hope that these works will in time \nmake these dreary wastes fruitful, and the air which comes \nfrom them at least far less hurtful to life than it is at present. \nThe lack of all government offices in the new capital has also \nbeen inconvenient, but this is now (1874) being remedied. In \none sense it may seem that Rome has lost in^dignity. Her \nposition as a national capital in some degree lessens her \nposition as the capital of the world, the City which, as the \nhome either of the Emperor or the Pope, belonged equally \nto all nations and to none. Nevertheless, in the truest sense \nshe has gained in dignity, for she has become the seat of a \nliberal and enlightened government, the head of free and \nunited Italy. ",
+          "excerptSha256": "14ba98d3983be45dc075c203905e96e42790a7df259cb7936f2047e0abacefad"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), XI §16 · 1874년의 과제: 학교·철도·세금·로마, 원문 11194–11262행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "b0057fb2-639c-53f9-8e9b-0cb0cc7c5802",
+      "cardTitle": "출처와 범위: 헌트의 1883년 제2판",
+      "era": "476–1870년 중심, 1874년 평가",
+      "sourceClaim": "표제와 본문 종점을 근거로 한 편집상의 출처·범위 안내.",
+      "cardStatementType": "attributed-source-summary",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "11장과 157절은 기존 통합 대조초안의 범위다. 현대 자료 확보·전수 이미지 대조·독립 역사 감수는 완료하지 않았다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "Title page; XI §16",
+          "section": "출처와 범위: 헌트의 1883년 제2판",
+          "lineStart": 283,
+          "lineEnd": 339,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "\nHISTORICAL COURSE \n\nFOR SCHOOLS, edUed by \nEdward A. Freeman, D.C.L. \n\n\n\nIV. \n\nHISTORY OF ITALY. \n\n\n\n} \n\n\n\n\ni \n\n\n\niistorical €om&t far Sf^fools. \n\n\n\nHISTORY \n\n\n\nOF \n\n\n\nITALY. \n\n\n\nBY \n\nWILLIAM HUNT, M.A., \n\nVICAR OF CONCRKSBURV. \n\n\n\nSECOXD EDITION. WITH MAPS. \n\n\n\nMACMILLAN A^T> CO. \n\n\n\n1883, \n",
+          "excerptSha256": "7961a7aee3bd57f353a65dfbf7f88c60e027193865660a55242053c0f623499d"
+        },
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "I §2",
+          "section": "Zeno sole Emperor, 476",
+          "lineStart": 817,
+          "lineEnd": 835,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "2. Zeno sole Emperor, 476. — The history of the Italian \nnation begins with the invasion of the Lombards, As long as \nthe Emperor remained in Italy, or was able to protect her, no \nindependent national life could arise. The barbarian invaders \nof Italy tore her away from the Empire, and in doing so \nthey made her people into a separate nation. When an Em- \nperor of the Romans was again acknowledged in Italy, he had \nless real power there than in any other part of his dominions. \nThe tie was not broken at once ; Italy first became used to the \nEmperor* s absence, before she saw his rule shaken off. In \n476, Romulus Augustulus, the Emperor reigning over Old \nRome, was deposed, and the Senate voted that there should \nbe only one Emperor; so Zeno, the Emperor reigning in \nNew Rome or Constantinople, was made lord of the whole \nEmpire without any rival in the West. When this ha^i^tied^ \nthe chief power in Itsly was in the Yiatids ol Odoocer, -ax^ \nHendian, leader of the mercenary bands vi\\v\\cXi V^^ xs^^^v \n\n",
+          "excerptSha256": "0d37184b498d9b35a988f964fa9de465d0b2b9b886561abc7b6d0e8bad14eee7"
+        },
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "XI §16",
+          "section": "Explicit now (1874) endpoint",
+          "lineStart": 11230,
+          "lineEnd": 11262,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "\n260 ITALY FREE AND UNITED. [chap. xi. \n\nproperty rise in value, and lands and houses, even in the \ndeserted capitals of Turin and Florence, are worth more \nthan they were before the seat of government was moved to \nRome. The change of the capital has been accompanied by \n9Qj)ie drawbacks. One of the greatest of these is the im- \nheit|thiness of the Agro Romano^ the Roman Campagnau \nThe'ignalaria which rises from the marshes and infects all the \nneighbourhood seems to be the effect of the stag^nant water \nwhich lies on and just below the surface of the soil. It has \nbeen proposed to drain the marshes of Ostia and Maccarese^ \nwhich extend over fifteen thousand acres. The water is to \nbe drawn off the higher land to the Tiber and the Arone^ \nwhile the land, which lies below the level of the sea, is to be \ndrained by steam-pumps. A large tract of country in Polesina \nand the Veronese has been already reclaimed in this way. \nPlans are also made for the drainage, cultivation, and plant- \ning of other large marshes in the neighbourhood of Rome^ \nand there seems reason to hope that these works will in time \nmake these dreary wastes fruitful, and the air which comes \nfrom them at least far less hurtful to life than it is at present. \nThe lack of all government offices in the new capital has also \nbeen inconvenient, but this is now (1874) being remedied. In \none sense it may seem that Rome has lost in^dignity. Her \nposition as a national capital in some degree lessens her \nposition as the capital of the world, the City which, as the \nhome either of the Emperor or the Pope, belonged equally \nto all nations and to none. Nevertheless, in the truest sense \nshe has gained in dignity, for she has become the seat of a \nliberal and enlightened government, the head of free and \nunited Italy. ",
+          "excerptSha256": "d313ac111789bd6d9852cd32d085b18f1a93fed62687394eb677609a12a59c7d"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), Title page; XI §16 · 출처와 범위: 헌트의 1883년 제2판, 원문 283–339행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    },
+    {
+      "cardId": "0effdfde-0173-5366-b53d-7a94d87d74f5",
+      "cardTitle": "검토 상태: OCR 복구와 역사 검증의 구별",
+      "era": "연구 편집 안내",
+      "sourceClaim": "원문 편향과 OCR 상태를 구분하여 다루기 위한 편집 정책.",
+      "cardStatementType": "editorial-policy-with-source-examples",
+      "reviewStatus": "source-aligned; independent-historical-review-pending; not newly image-collated",
+      "reviewPending": "이 카드는 역사적 사건이 아니라 편집 안내다. 인용은 주의가 필요한 원문 사례이며 정책을 원저에게 귀속하지 않는다.",
+      "evidence": [
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-en.txt",
+          "sourceSha256": "dee6107bc3adbf9ce0e37cbec29d98be64b7e0d9066a4da2b12e2b9f62a85b73",
+          "chapter": "XI §16; source extraction notice",
+          "section": "검토 상태: OCR 복구와 역사 검증의 구별",
+          "lineStart": 11207,
+          "lineEnd": 11225,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "they did in Turin, and have curtailed the over-large power and \npossessions of some of the religious corporations. The country \nis rapidly growing more prosperous. Sicily and Southern \nItaly are still the most backward parts of the Kingdom. It \nmay be that the people of the South are less naturally anxious \nfor reform, and less capable of enjoying it, than those, of the \nNorth. But even there, as in the rest of Italy, education is \ndoing its work. Throughout the Kingdom the education of \nthe people is provided for by the State. In the South the \nopposition of the priests has long hindered the full working \nof the system. Brigandage has almost disappeared before \nan efficient police, and all suspicion of any understanding \nbetween the thief and him who should be the thief-catcher is \nlong ago at an end. Schools, railways, an organized body of \npolice, and other suchlike things, which were rare in Italy a \nfew years ago, all cost money, and the Italians are heavily \ntaxed. There are but few imports, for the country brings forth \nnearly all things which her people want. The burthen there- \nfore falls heavily on landed property. The people, however, ",
+          "excerptSha256": "cb0b29a410e30c6c6e5f71e4572923978bec6b79afa24585a0aeae170344ea93"
+        },
+        {
+          "filename": "docs/research/history-textbooks/italy/hunt/source-toronto-1883-extracted.txt",
+          "sourceSha256": "8006e12eb376ba37163fd3777e84a257b116e7556645cc8a62f39a9748fb97f4",
+          "chapter": "Extraction notice",
+          "section": "Unverified OCR text-layer notice",
+          "lineStart": 1,
+          "lineEnd": 2,
+          "lineConvention": "1-based inclusive; LF-normalized excerpt; OCR errors and page markers preserved",
+          "excerpt": "UNVERIFIED OCR TEXT LAYER extracted with pypdf from source-toronto-1883-scan.pdf; not a corrected transcription.\nExtraction date: 2026-11-13. PDF page labels below are 1-based PDF positions, not printed page numbers.",
+          "excerptSha256": "17c9231ee68f5c89e19fab169395697256d7637eeb0d7730f6a1b2967504d28e"
+        }
+      ],
+      "displayCitation": "출전: William Hunt, 《History of Italy》(1883), XI §16; source extraction notice · 검토 상태: OCR 복구와 역사 검증의 구별, 원문 11207–11225행. [원문](https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt)",
+      "displaySourceUrl": "https://archive.org/download/historyitaly00huntgoog/historyitaly00huntgoog_djvu.txt"
+    }
+  ],
+  "validation": {
+    "worldSchemaKeys": [
+      "genre",
+      "worldId",
+      "name",
+      "description",
+      "cards"
+    ],
+    "cardSchemaKeys": [
+      "id",
+      "title",
+      "body",
+      "cardType"
+    ],
+    "cardCount": 24,
+    "evidenceCardCount": 24,
+    "allIdsUuidV5": true,
+    "exactExcerptAndHashChecks": "validated at creation against unchanged sources",
+    "fullHistoricalFactCheck": false,
+    "newImageCollation": false
+  }
+}

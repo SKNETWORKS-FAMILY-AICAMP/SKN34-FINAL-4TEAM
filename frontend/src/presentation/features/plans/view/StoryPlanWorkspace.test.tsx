@@ -147,6 +147,20 @@ describe('계획 화면 · CI 통합', () => {
     } finally { outside.remove() }
   })
 
+  it('장면마다 있는 삭제 버튼은 이름은 같게 두고 어느 장면인지 설명으로 이어 구분한다', async () => {
+    await setupDeletion(2)
+    const buttons = screen.getAllByRole('button', { name: '장면 계획 삭제' })
+    expect(buttons.map(button => document.getElementById(button.getAttribute('aria-describedby') ?? '')?.textContent)).toEqual(['장면 1', '장면 2'])
+  })
+
+  it('오류는 작품 관리 화면과 같은 공용 오류 상자로 알린다', async () => {
+    const { api } = await setupDeletion()
+    vi.spyOn(api, 'remove').mockRejectedValueOnce(new Error('삭제 충돌'))
+    const { dialog } = askSceneDelete()
+    fireEvent.click(dialog.getByRole('button', { name: '삭제' }))
+    expect((await dialog.findByRole('alert')).className).toContain('ep-alert')
+  })
+
   it('본문 입력 이름과 글자 수 안내를 분리한다', async () => {
     setup()
     await waitFor(() => expect(screen.getByRole('button', { name: '플롯 추가' })).toHaveProperty('disabled', false))

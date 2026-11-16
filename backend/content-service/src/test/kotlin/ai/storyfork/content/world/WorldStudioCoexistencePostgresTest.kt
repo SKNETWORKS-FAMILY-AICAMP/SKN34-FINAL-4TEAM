@@ -1,6 +1,7 @@
 package ai.storyfork.content.world
 
 import ai.storyfork.content.ContentServiceApplication
+import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.work.service.WorkService
 import ai.storyfork.content.work.service.dto.CreateWorkRequest
 import ai.storyfork.content.world.service.WorldService
@@ -9,13 +10,22 @@ import ai.storyfork.content.world.service.dto.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
+import org.mockito.Mockito.mock
 import org.springframework.boot.builder.SpringApplicationBuilder
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Primary
 import java.sql.Connection
 import java.util.UUID
 
 @EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DATABASE_URL",matches=".+")
 class WorldStudioCoexistencePostgresTest {
-    private fun context(db:WorldStudioPostgresFixture)=SpringApplicationBuilder(ContentServiceApplication::class.java).run(
+    /** 작가명은 Core 닉네임이다. 이 테스트는 이름을 보지 않으므로 Core 조회는 빈 결과를 돌려주는 대역이다. */
+    @TestConfiguration(proxyBeanMethods=false)
+    class Core {
+        @Bean @Primary fun coreNicknames():CoreNicknameService=mock(CoreNicknameService::class.java)
+    }
+    private fun context(db:WorldStudioPostgresFixture)=SpringApplicationBuilder(ContentServiceApplication::class.java,Core::class.java).run(
         "--spring.datasource.hikari.maximum-pool-size=3", "--spring.datasource.hikari.minimum-idle=0",
         "--server.port=0",
         "--DATABASE_URL=${db.url}", "--DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",

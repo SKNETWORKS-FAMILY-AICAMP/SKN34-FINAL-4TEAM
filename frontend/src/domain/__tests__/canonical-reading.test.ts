@@ -1,16 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import { createFixtureDb } from '../../data/mock/fixtureDb'
-import { InMemoryReadingRepository, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
+import { InMemoryReadingRecordRepository, InMemoryReadingRepository, InMemoryWorkRepository } from '../../data/mock/InMemoryRepositories'
 import { ReadingUseCase } from '../usecases/ReadingUseCase'
-import { isMine } from '../entities/work'
+import { forkList, isMine } from '../entities/work'
 import { ForkUseCase } from '../usecases/ForkUseCase'
 
 describe('canonical reading, independent of sample slugs', () => {
+  it('keeps a server-allowed Fork basis after a suspended episode', () => {
+    const work = createFixtureDb().works.find(w => w.id === 'guunmong')!
+    Object.assign(work, { canonical: true, forkAll: false, forkEps: [1, 3], worldIds: undefined,
+      eps: [{ t: '1화', p: ['본문'] }, { t: '2화', p: [], hidden: true }, { t: '3화', p: ['본문'] }] })
+    expect(forkList(work, [])).toEqual([1, 3])
+  })
   it('selects home shelves from returned works, not a hardcoded sample ID list', async () => {
     const db = createFixtureDb()
     const ids = new Map(db.works.map((w, i) => [w.id, `canonical-${i}`]))
     db.works = db.works.map(w => ({ ...w, id: ids.get(w.id)!, parent: w.parent ? ids.get(w.parent) : undefined }))
-    const result = await new ReadingUseCase(new InMemoryWorkRepository(db), new InMemoryReadingRepository(db)).getHome(null, '추천')
+    const result = await new ReadingUseCase(new InMemoryWorkRepository(db), new InMemoryReadingRepository(db), new InMemoryReadingRecordRepository(db)).getHome(null, '추천')
     expect(result.picks).toHaveLength(6)
     expect(result.weekly).toHaveLength(4)
     expect(result.picks.every(w => w.id.startsWith('canonical-'))).toBe(true)
@@ -18,10 +24,11 @@ describe('canonical reading, independent of sample slugs', () => {
   it('never ranks canonical works by placeholder engagement or recency', async () => {
     const db=createFixtureDb()
     db.works=db.works.map(w=>({...w,canonical:true,statisticsSupported:false}))
-    const uc=new ReadingUseCase(new InMemoryWorkRepository(db),new InMemoryReadingRepository(db))
+    const uc=new ReadingUseCase(new InMemoryWorkRepository(db),new InMemoryReadingRepository(db),new InMemoryReadingRecordRepository(db))
     const expected=db.works.filter(w=>!w.private && (!w.parent || w.eps.length>0)).slice().sort((a,b)=>a.title.localeCompare(b.title,'ko')).map(w=>w.id)
-    expect((await uc.findWorks({sort:'latest'})).map(w=>w.id)).toEqual(expected)
-    expect((await uc.findWorks({sort:'view'})).map(w=>w.id)).toEqual(expected)
+    expect((await uc.findWorks({sort:'latest'})).list.map(w=>w.id)).toEqual(expected)
+    expect((await uc.findWorks({sort:'view'})).list.map(w=>w.id)).toEqual(expected)
+    expect((await uc.findWorks({sort:'like'})).list.map(w=>w.id)).toEqual(expected)
     const home=await uc.getHome(null,'추천')
     expect(home.top10.map(w=>w.id)).toEqual(expected.slice(0,10))
     expect(home.fresh.map(w=>w.id)).toEqual(expected.slice(0,5))
@@ -45,4 +52,16 @@ describe('canonical reading, independent of sample slugs', () => {
     expect(isMine({ ...work, author: '나', mine: false })).toBe(false)
     expect(isMine({ ...work, author: '작성자', owner: 'member-uuid', mine: true })).toBe(true)
   })
+})
+
+
+it('공개 중단 회차와 범위 밖 서버 회차를 다른 회차로 열지 않는다',async()=>{
+  const db=createFixtureDb()
+  const work=db.works.find(w=>w.id==='guunmong')!
+  work.canonical=true;work.mine=true
+  work.eps=[{t:'공개 중단',p:[],hidden:true},{t:'2화',p:['공개 본문']}]
+  const uc=new ReadingUseCase(new InMemoryWorkRepository(db),new InMemoryReadingRepository(db),new InMemoryReadingRecordRepository(db))
+  expect(await uc.openEpisode(work.id,1,'user')).toBe('hidden')
+  expect(await uc.openEpisode(work.id,3,'user')).toBe('hidden')
+  expect((await uc.getWork(work.id,'user'))?.visible.map(([,i])=>i+1)).toEqual([2])
 })

@@ -45,7 +45,7 @@ describe('ForkUseCase (목업 fork()·startFork·forked())', () => {
     original.eps[0].t = '원작 수정'
     original.rules.push('새 규칙')
     const view = await useCase.getForked(made.id, 'user')
-    expect(view?.parent.id).toBe('guunmong')
+    expect(view?.parent?.id).toBe('guunmong')
     const snap = view!.fork.snap!
     expect(snap.eps.map((e) => e.t)).not.toContain('원작 수정')
     expect(snap.eps).toHaveLength(2)

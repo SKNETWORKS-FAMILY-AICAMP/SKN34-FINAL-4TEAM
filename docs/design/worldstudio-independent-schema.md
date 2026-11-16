@@ -6,7 +6,80 @@
 
 작성일: 2026-11-04. 상태: 독립 V1 및 JPA Repository·Service 구현. 공용 DB 적용·HTTP API/기존 UI 전환 완료를 뜻하지 않는다. 최신 실행 결과는 [JPA 검증 기록](worldstudio-jpa-verification.md)을 따른다.
 
+## 회차별 관계 — DEC-51
+
+**상태: 소스 구현, hosted CI 대기(2026-11-13 설계 확정).** 서버(`episode` 조회·저장)·MCP·독자 설정 위키(`upto`)와 관리 화면의 회차 선택(아래 '화면')은 소스에 구현했다(브라우저 육안 미확인). 기존 데이터 이전(공유 Neo4j, [스크립트](../../infrastructure/neo4j/dec51-relationship-edges.cypher) 미실행)은 남았다.
+
+### 저장 모델
+
+```
+(:StudioCard A)-[:RELATED {relationId, worldId, fromEpisode, ended, payload}]->(:StudioCard B)
+```
+
+- 카드 노드는 지금처럼 `id`·`worldId`만 둔다. 인물·회차마다 새 노드를 만들지 않는다.
+- 관계가 바뀐 회차마다 두 카드 사이에 `RELATED` 연결을 하나 추가한다. `relationId`가 같은 연결들이 한 관계의 회차별 값이다. 한 쌍 사이의 여러 관계는 `relationId`로 구분한다.
+- `payload`는 지금 `StudioRelationship.payload`와 같은 내용(분류·방향/대칭·극성·본문·label·semantic metadata)이다. 방향 없는 관계도 source→target 연결 하나로 저장하고 payload의 대칭 값으로 구분한다.
+- 관계가 끝나면 `ended=true` 연결을 추가한다. 연결을 지우는 것은 같은 회차 값을 덮어쓸 때뿐이다.
+- 기존 `StudioRelationship` 노드는 없앤다. 다른 세계관이 같은 관계 ID를 쓰지 못하게 막는 확인은 연결의 `relationId`·`worldId`로 한다.
+- 세계관 노드(`StudioRelationshipWorld`)의 CAS token·요청 key/hash·잠금(`mutex`)은 그대로 쓴다.
+- 세계관 노드의 `count`는 이 세계관의 `RELATED` 연결 수(종료 연결 포함)로 뜻을 바꿨다. 조회마다 실제 연결 수와 비교해 다르면 `RELATIONSHIP_VERSION_MISMATCH`(409)다. 아직 이전하지 않은 기존 세계관이 빈 관계 성공으로 보이지 않게 하는 점검이기도 하다.
+
+### 회차 기준
+
+- 회차는 연결된 소설의 회차 순번 `episode.sequence`다. 독자 공개 회차 `revealFromEpisode`와 같은 번호다.
+- 소설이 연결되지 않은 세계관은 모든 관계를 1화로 기록한다.
+- 회차 삭제·순서 변경으로 번호가 바뀌어도 연결의 `fromEpisode`는 옮기지 않는다(ponytail 한계, 필요해지면 별도 결정).
+
+### 조회
+
+N화 시점 관계: 관계마다 `fromEpisode <= N`인 연결 중 가장 최근 하나를 고르고, 그것이 종료 연결이면 뺀다.
+
+```cypher
+MATCH (a:StudioCard)-[e:RELATED {worldId:$world}]->(b:StudioCard)
+WHERE e.fromEpisode <= $ep
+WITH e ORDER BY e.fromEpisode DESC
+WITH e.relationId AS id, head(collect(e)) AS e
+WHERE NOT e.ended
+RETURN id, startNode(e).id AS source, endNode(e).id AS target, e.payload
+```
+
+구현은 이 규칙의 설명용 질의와 달리 세계관의 연결을 한 질의로 모두 읽고(세계관 노드의 token·`count`와 함께), 같은 규칙을 코드(`relationsAsOf`)로 적용한다. 같은 관계·같은 회차의 가장 최근 연결이 둘이면 손상으로 보고 `RELATIONSHIP_VERSION_MISMATCH`다.
+
+| 호출 | 회차 |
+|---|---|
+| 작가 관리 화면·초안 조회 (`GET /api/v1/world-studios/{id}?episode=N`, MCP `world_studio_read`) | 요청의 회차, 생략하면 최신 |
+| 공개 세계관 조회 | 최신 |
+| 독자 설정 위키 `GET /public/works/{id}/world-cards?upto=` | `upto`(카드와 같은 기준이라 관계 스포일러도 막힌다) |
+
+### 저장
+
+- 저장 API는 지금처럼 'N화 시점의 관계 전체'를 받는다. 저장소가 N화 시점 값과 비교해 바뀐 관계만 `fromEpisode=N` 연결로 넣고(같은 관계·회차가 있으면 덮어씀), 목록에서 빠진 관계는 종료 연결을 넣는다. 회차를 생략하면 최신 회차다.
+- N화를 고쳐도 N화보다 뒤 회차에 이미 있는 연결은 바꾸지 않는다.
+- 카드 삭제(`lifecycle=removed`, `replace=true`에서 생략)는 `episode`를 생략한 최신 편집에서만 한다. 회차를 지정한 편집이 카드를 삭제하면 422 `WORLD_INPUT_INVALID`다(아래 '한계 ①').
+- PG prepare → Neo4j CAS → PG finalization 순서, 원래 요청 재시도, 오류 코드는 아래 #132 계약을 그대로 따른다.
+
+### 구현 결과
+
+- **API**: `GET /api/v1/world-studios/{id}?episode=N`(선택)과 `PUT /api/v1/world-studios/{id}/draft` 본문의 `episode`(선택)는 1 이상의 정수다. 아니면 422 `WORLD_INPUT_INVALID`이고 저장 전에 거절한다(쿼리는 문자열로 받아 Spring 변환 400이 되지 않게 한다). 응답의 `relationships`는 요청한 회차 시점이며 저장 응답도 저장한 회차 기준이다. MCP `world_studio_read`·`world_studio_edit_draft`도 같은 `episode`를 받는다. 공개 세계관 조회는 최신, 독자 설정 위키는 `upto` 시점이다. 카드·revision 응답 모양은 바뀌지 않았다.
+- **저장 회차**: 요청의 `episode`, 생략하면 그 세계관 연결의 가장 큰 `fromEpisode`(종료 연결 포함), 연결이 하나도 없으면 1화다. 본문의 관계는 그 회차 시점의 관계 전체이고 upsert 모드(`replace=false`)는 그 시점 관계에 합쳐 전체로 만든다. 저장소가 그 시점 값과 비교해 새로 생겼거나 끝점·내용이 바뀐 관계만 `fromEpisode=N` 연결로 쓰고 목록에서 빠진 관계는 종료 연결을 쓴다. 바뀐 것이 없으면 연결을 쓰지 않고 세계관 노드의 token·key/hash만 올린다.
+- **덮어쓰기·끝점 변경**: 같은 관계의 같은 회차 연결이 있으면 지우고 새로 쓴다. 끝점이 바뀌어도 그 회차에는 연결이 하나만 남는다. N화보다 뒤 회차의 연결은 건드리지 않는다.
+- **미완성 관계**: 양 끝 카드 중 하나라도 비어 있는 활성 관계는 저장할 수 없다(요청 검증 422 `WORLD_INPUT_INVALID`, 저장 순서 1단계 전). `lifecycle="removed"`로 표시한 관계는 끝이 비어도 되며 그 시점 목록에서 빠져 종료 연결이 된다. 아래 #132의 '미완성 nullable endpoint 허용'을 대체한다.
+- **다른 세계관 ID 차단**: 다른 세계관의 연결이 같은 `relationId`를 쓰거나 카드가 다른 세계관 소속이면 이전처럼 그래프 콜백 안에서 거절한다(`WorldNotFound` → 확정 비적용 → `409 WORLD_WRITE_REJECTED`). 같은 key/hash 재시도의 멱등성과 token 불일치 처리는 #132와 같다.
+- **화면**: `/worldstudio/:id` 관계도 보기의 `관계 기준 회차` 칸이 소설을 연결한 서버 세계관에서만 `GET ?episode=N`으로 그 회차 관계를 다시 읽고(비우면 최신) 저장에 같은 값을 본문 `episode`로 보내며, 저장하지 않은 변경이 있거나 메모리 데모면 잠근다. 지난 회차 관계의 끝점이 삭제된 설정이면(응답의 `lifecycle=removed` 카드) '삭제된 설정'(응답이 준 그 카드의 이름이 있으면 '삭제된 설정: 이름')으로 읽기 전용이고 저장 시 그대로 보낸다(한계 ①). 카드 삭제는 회차를 생략한(최신) 저장에서만 허용되고 회차를 지정한 저장의 카드 삭제는 서버가 422로 거절하므로, 회차를 고른 동안에는 설정 삭제 진입점(편집 화면 삭제·레일 ⋮ 삭제·인물 삭제)을 '설정 삭제는 최신 회차에서 할 수 있어요.'와 함께 잠그고 삭제 처리도 거절하며 삭제는 최신 회차에서 한다. 지난 회차를 연 채 저장하면 저장 영역·검토·저장 단계가 '관계는 N화 기준으로 저장돼요'를 알리고, AI 후보 검토·확정 버전 요청 중에도 회차 선택을 잠근다.
+- **기존 데이터**: [`infrastructure/neo4j/dec51-relationship-edges.cypher`](../../infrastructure/neo4j/dec51-relationship-edges.cypher)가 `StudioRelationship`을 `fromEpisode=1`·`ended=false` 연결로 옮긴다. 공유 Neo4j 데이터라 실행 전에 승인을 받으며 아직 실행하지 않았다. 이전 전의 기존 세계관은 `count`가 연결 수와 달라 조회가 `RELATIONSHIP_VERSION_MISMATCH`이고 빈 관계로 보이지 않는다.
+- **한계**: ① 편집에서 그 회차 시점의 관계와 완전히 같게 둔 관계는 지난 회차에 이미 삭제된 카드가 끝점이어도 그대로 통과한다(끝점이 이 세계관의 카드이기만 하면 된다). 새로 만들거나 끝점·내용을 바꾼 관계는 양 끝이 활성 카드여야 하므로, 삭제한 카드를 끝점으로 하는 관계를 새로 잇거나 고칠 수는 없고 빼면 그 회차에 종료 연결이 생긴다. 다만 **카드 삭제는 `episode`를 생략한(최신) 편집에서만** 할 수 있다: 이번 요청이 삭제하는 카드(요청 전 초안에서 활성이던 카드, `replace=true`에서 생략한 카드 포함)가 있는데 `episode`를 지정하면 422 `WORLD_INPUT_INVALID`다(지난 회차 시점의 관계만으로는 최신 관계에 그 카드가 남는지 알 수 없다. 그 회차에서 끝낸 관계를 더 뒤 회차에서 같은 내용으로 다시 이었을 수 있다). 최신 편집에서도 삭제하는 카드를 끝점으로 하는 관계가 저장 결과에 남으면 같은 422이므로 그 관계는 `lifecycle=removed`로 보내거나 `replace=true`에서 생략해 함께 빼야 한다(#341). 이미 반영된 재시도는 두 검사를 모두 건너뛴다. 최신 관계에 삭제 카드 끝점이 남아 AI 초기 세계관 적용의 활성 카드 사전 검사(`InitialWorldAdditionMapper.build`)가 422로 거절하던 것을 저장 쪽에서 막은 것이며 매퍼는 바꾸지 않았다. 최신 관계에 없는 지난 회차 관계는 삭제된 카드를 끝점으로 계속 가질 수 있다. 이 세계관의 카드가 아닌 끝점은 어느 경우에도 422로 거절한다. 조회도 삭제된 카드를 이 세계관의 카드로 본다. ② `RELATED`에 인덱스가 없어 세계관 조회와 관계 ID 확인이 모든 연결을 훑는다. ③ 관계 ID는 노드가 없어 두 세계관이 같은 새 ID를 동시에 처음 쓰는 경합은 잠그지 못한다(이미 커밋된 ID는 막는다).
+
+### 기존 데이터
+
+지금 있는 `StudioRelationship` 관계는 `fromEpisode=1` 연결로 한 번 옮긴다. 공유 Neo4j 데이터라 실행 전에 승인을 받는다. 이전 스크립트: [`dec51-relationship-edges.cypher`](../../infrastructure/neo4j/dec51-relationship-edges.cypher)(한 트랜잭션·멱등, 양 끝이 모두 있는 관계만 옮기고 `count`를 새 뜻으로 다시 센다. 끝이 비어 옮기지 못한 관계는 노드로 남기며 스크립트의 점검 조회로 확인한다).
+
+### 범위 밖
+
+관계 이력 복원 API, 세계관 전체 restore, 같은 회차 정정 이력, 회차 재배치, 인물 자체의 회차별 상태(카드 값).
+
 ## 현재 관계 MVP 계약 — #132
+
+> **DEC-51로 대체됨(소스 구현, hosted CI 대기).** 관계 저장 모델·시점 조회·미완성 관계 거절은 위 절을 따르고, 저장 순서·인가·부분 실패 계약은 계속 유효하다. 이 절의 '현재 상태 하나' 서술은 DEC-51 이전 설명이다.
 
 2026-11-05 사용자 변경 결정: **관계 내용은 Neo4j의 현재 상태 하나만 정본으로 저장한다. 관계 변경 이력·과거 snapshot·버전 조회·복원은 만들지 않는다.** DEC-27·33의 관계 이력 보존에 대한 이번 MVP만의 예외이며, 인물·설정·원고의 기존 버전 기능과 기존 SQL·데이터를 폐기하는 결정은 아니다. 아래 V1 설계는 역사적 기록이며, 관계 저장·HTTP 연결·실행 소유권은 이 절과 Content 실행 계약을 우선한다. 소스 구현은 병합·hosted CI·실제 이관·배포 완료와 다르다.
 
@@ -15,8 +88,8 @@
 - Content의 `WorldStudioController → WorldStudioService → JPA / Neo4jRelationshipRepository`가 처리한다. Core의 기존 인증 확인으로 검증된 UUID Principal만 사용하며 body owner ID·체험 actor를 신뢰하지 않는다. 모든 개별 조회/변경은 소유 world를 먼저 검사한다. 변경 요청의 Bearer·쿠키·CSRF 경계를 유지한다.
 - PostgreSQL은 world/card UUID·소유권·카드 원문·기존 카드 버전/manifest와 요청 상태만 소유한다. 추가 V2의 `relationship_state`는 graph token·생성 hash·최근 key/hash·예상 draft revision·완료 여부만 저장한다. 관계 내용·관계 snapshot·outbox를 이중 저장하지 않는다.
 - 기존 V1의 12개 테이블과 SQL 바이트는 보존하고 V2로 상태 테이블 하나만 추가한다. 새 경로는 기존 PG `relationship*`/`world_revision_relationship`에 쓰지 않는다. 과거 데이터의 실제 Neo4j 이관은 승인·실행하지 않았고 자동 backfill/import도 없다. 전환 marker가 없는 기존 world는 빈 관계 성공이 아니라 `migration_required`다.
-- Neo4j는 안정적인 world/card/relation UUID, 한 쌍의 다중 관계, 방향/대칭·극성·구조/감정·자유 본문·label·semantic metadata를 현재 값으로 보존한다. 삭제는 현재 edge/payload를 제거하며 교차 world 재사용 방지용 ID 예약만 남을 수 있다. `relationshipVersion`/`graphVersion`은 CAS·정합성 token이지 과거 관계를 조회할 수 있는 버전이 아니다.
-- 관계 endpoint는 같은 world의 활성 카드만 참조한다. API는 미완성 nullable endpoint도 허용하지만 기존 UI의 명시 저장 검증은 양 endpoint를 요구한다. 요청당 카드·관계 최대 1,000개, 편집 요청 직렬화 크기 2 MB, key 1~200 UTF-8 바이트를 검사한다.
+- Neo4j는 안정적인 world/card/relation UUID, 한 쌍의 다중 관계, 방향/대칭·극성·구조/감정·자유 본문·label·semantic metadata를 현재 값으로 보존한다. 삭제는 현재 edge/payload를 제거하며 교차 world 재사용 방지용 ID 예약만 남을 수 있다(DEC-51 이후: 현재 값이 아니라 회차별 연결로 보존하고 삭제는 종료 연결을 추가한다). `relationshipVersion`/`graphVersion`은 CAS·정합성 token이지 과거 관계를 조회할 수 있는 버전이 아니다.
+- 관계 endpoint는 같은 world의 카드여야 하고, 새로 만들거나 바뀐 관계는 활성 카드만 참조한다(그 회차 시점 관계와 같게 둔 관계는 지난 회차에 이미 삭제된 카드도 허용하되 이번 요청이 삭제하는 카드는 최신 편집에서만 지울 수 있고 거기 이어진 관계는 남길 수 없다, 위 '한계 ①'). DEC-51 이후 관계는 양 endpoint가 모두 있어야 저장하며 미완성(nullable) endpoint는 422 `WORLD_INPUT_INVALID`다(위 '구현 결과'). 요청당 카드·관계 최대 1,000개, 편집 요청 직렬화 크기 2 MB, key 1~200 UTF-8 바이트를 검사한다.
 
 ### 두 저장소의 부분 실패
 
@@ -35,12 +108,16 @@ nginx/Vite의 `/api/v1/world-studios` exact 및 하위 경로는 Content:8081로
 |---|---|
 | `GET /` | 소유 world 요약과 `current` / `incomplete` / `migration_required` 상태 |
 | `POST /` | caller UUID를 사용한 생성·같은 입력 재시도 |
-| `GET /{id}` | token이 일치하는 현재 카드·관계 전체 |
-| `PUT /{id}/draft` | 기본 upsert, `replace=true`면 현재 전체 교체. 관계 삭제도 이 요청으로 반영 |
+| `GET /{id}` | token이 일치하는 현재 카드와 `?episode=N`(선택, 생략하면 최신) 시점의 관계 전체 |
+| `PUT /{id}/draft` | 기본 upsert, `replace=true`면 전체 교체. 본문 `episode`(선택, 생략하면 최신 회차) 시점의 관계로 저장하고 관계 삭제도 이 요청으로 반영(종료 연결) |
 | `POST /{id}/revisions` | 기존 카드·설정의 불변 revision 저장. 관계 snapshot 없음 |
 | `GET /{id}/revisions/{revisionId}` | 기존 카드 revision 조회. `relationships=null`, `relationshipStatus=not_recorded` |
+| `PUT /{id}/publication` | 세계관 단위 공개 범위(`private`/`public`)·장르 설정(V6, [DEC-45](decisions.md)). 카드·관계·revision은 바꾸지 않는다 |
+| `PUT·DELETE·GET /{id}/cover` | 세계관 표지(PNG·JPEG·WebP 5MB 이하 multipart `file`) 저장·교체·삭제·소유자 읽기(V7). 바이트는 객체 저장소, DB에는 키·형식만 두며 카드·관계·revision은 바꾸지 않는다 |
 
-기존 관계 편집·관계도는 서버가 확인한 현재 draft를 사용한다. UI의 저장 버튼은 현재 draft PUT이며 카드 revision POST·공개·발행을 자동 실행하지 않는다. AI 후보는 연결하지 않았다. 이탈 시 요청을 취소하고 늦은 응답 설치를 막는다. 지원하는 `semanticMetadata.studio`가 없거나 현재 UI 모델과 불일치하는 서버 응답은 임의 변환/빈 데이터로 대체하지 않고 실패한다. 기존 데이터 호환 import는 별도 승인 대상이다.
+공개 조회는 소유자 API가 아니라 비로그인 읽기 전용 `GET /api/v1/public/world-studios`·`/{id}`가 맡는다. 공개이고 저장 버전이 있는 세계관만 마지막 저장 버전의 공개 카드(`visibility=public`, DEC-46)와 그 카드끼리의 Neo4j 현재 관계를 보이며(관계 이력 API는 여전히 없다) 참조 이용·Fork는 없다([계약](public-world-contract.md)). 설정 가져오기는 화면이 이 공개 API로 읽은 카드를 내 세계관 초안에 복사해 `PUT /{id}/draft`로 저장하는 것이라 전용 API가 없다. 소유자 응답(`GET /`의 요약과 `GET /{id}`·`PUT /{id}/draft`·`POST /`의 초안 응답)에는 이 세계관에 연결된 소설 `linkedWorkId`가 붙는다(1:1, 정본은 Content `work.world_studio_id`, 같은 계약). 공개 표지는 같은 기준일 때만 `GET /api/v1/public/world-studios/{id}/cover`로 읽는다. 이 경로의 nginx/Vite 라우팅도 Content:8081이다.
+
+기존 관계 편집·관계도는 서버가 확인한 현재 draft를 사용한다. UI의 저장 버튼은 현재 draft PUT이며 카드 revision POST·공개·발행을 자동 실행하지 않는다. AI 후보는 연결하지 않았다. 이탈 시 요청을 취소하고 늦은 응답 설치를 막는다. 지원하는 `semanticMetadata.studio`가 없거나 현재 UI 모델과 불일치하는 서버 응답은 임의 변환/빈 데이터로 대체하지 않고 실패한다. 카드 `semanticMetadata` 최상위의 `revealFromEpisode`·`importedFrom`(DEC-46, 독자 공개 회차와 가져오기 출처)은 `studio` 밖에 따로 두며 모양이 어긋나면 그 값만 버리고 로드는 계속한다([계약](public-world-contract.md)). 기존 데이터 호환 import는 별도 승인 대상이다.
 
 | 오류 code | HTTP | 의미 |
 |---|---|---|
@@ -53,7 +130,7 @@ nginx/Vite의 `/api/v1/world-studios` exact 및 하위 경로는 Content:8081로
 | `WORLD_CONFLICT` | 409 | 요청 충돌, 비적용을 보장하지 않으므로 같은 body/key 보존 |
 | `RELATIONSHIP_HISTORY_UNSUPPORTED` | 409 | 관계를 포함한 과거 세계관 전체 복원 미지원 |
 
-현재 관계를 과거 revision에 끼워 넣지 않는다. 기존 전체 restore Service는 소유권 검사 뒤 명시적으로 차단하며 restore/history HTTP API를 새로 추가하지 않는다. 관계 시점 조회·복원과 관계까지 포함한 체크포인트/Fork는 미지원이다. 원고·인물·설정의 기존 버전 데이터와 관계 없는 버전 기능은 유지한다.
+현재 관계를 과거 revision에 끼워 넣지 않는다. 기존 전체 restore Service는 소유권 검사 뒤 명시적으로 차단하며 restore/history HTTP API를 새로 추가하지 않는다. 회차 시점 관계 조회는 DEC-51로 지원하지만 과거 값으로 되돌리는 복원과 관계까지 포함한 체크포인트/Fork는 미지원이다. 원고·인물·설정의 기존 버전 데이터와 관계 없는 버전 기능은 유지한다.
 
 ### 설정과 검증 경계
 
@@ -62,6 +139,25 @@ WorldStudio는 기능 플래그 없이 항상 켜져 있다. Content 서버 시�
 소스 검증용 `base + docker-compose.prod.yaml`에는 opt-in `worldstudio` profile의 `neo4j:5.26.0-community`, 별도 `worldstudio-neo4j` volume, loopback Bolt 포트만 둔다. 이 조합의 username은 `neo4j`, password는 별도 비밀값(8자 이상), URI는 내부 `bolt://neo4j:7687`을 사용한다. 이미지 전용 `docker-compose.dev.yaml`은 그래프를 자동 배포하지 않으며 승인된 외부 Neo4j가 필요하다. profile·flag가 실제 migration/데이터 이관/기동을 승인하지 않는다.
 
 로컬은 선택 순수 단위·설정 계약·Compose `config --quiet`만 확인한다. Content HTTP/PG/Neo4j 및 React/Hook 통합 회귀는 CI 소스에 두고 격리 자원으로 실행한다. 실제 Core 로그인·nginx를 통과한 Studio HTTP 시스템 시나리오는 추가하지 않았다. hosted `Required CI`·브라우저·실제 이관·배포는 별도 대기이며 관계 이력·시점 복원 기능표는 ❌로 유지한다.
+
+## 플랫폼 장르 템플릿 세계관
+
+장르별 예시 템플릿 33개(카드 1412장, 인물 405명, [안내](../../infrastructure/sample-data/genre-templates/README.md))는 기존 운영 관리자 계정(Core `auth/V8__member_admin_operations.sql`의 `admin@example.test`, 회원 UUID `5f0c2c7e-8a51-4d6b-9a39-1f4f2b6d0a01`, `operator=true`)에 **임시 할당**해 그 계정이 소유하는 **WorldStudio 독립 세계관으로만** 둔다. 운영자로 로그인하면 세계관 목록에서 보인다. 작품·회차·체크포인트로는 넣지 않으며 사용자 샘플 CSV와 섞지 않는다.
+
+- **적재 경로:** WorldStudio 읽기는 Neo4j 현재 상태 노드가 필요해 SQL로 넣을 수 없다. Content 서버 시작(`ApplicationReadyEvent`) 때 `GenreTemplateSeeder`가 classpath `genre-templates.json`을 읽어 기존 `WorldStudioService`의 create → edit(`expectedDraftRevision=0`) → save를 운영 관리자 subject(`GenreTemplateSeeder.TEMPLATE_OWNER`)로 호출한다. 별도 쓰기 경로나 Neo4j 직접 쓰기는 없다.
+- **멱등:** 세계관 ID는 장르별 고정, edit·save key는 `genre-template-<장르>`다. 최초 v1 적재에서는 저장까지 끝난 세계관(`currentRevisionId`가 있음)을 건너뛰며, 이후 별도의 v2 보완을 검사한다. save가 draft revision을 올려 같은 edit의 중복 판정이 `WORLD_CONFLICT`로 바뀌기 때문이다. 앞선 edit가 미완료(`RELATIONSHIP_WRITE_INCOMPLETE`)로 남은 세계관은 create가 같은 코드로 거절하므로 이를 무시하고 같은 요청으로 edit를 재시도한다.
+- **실패:** Neo4j·PG 장애 등 장르별 실패는 장르·예외 클래스·메시지만 `error`로 남기고 다음 장르와 서버 기동을 계속한다. 다음 시작 때 같은 방식으로 다시 시도한다. `genre-templates.json`을 읽지 못해도 `error`만 남기고 기동하며 그 시작에서는 적재하지 않는다.
+- **한계(PG만 초기화):** PostgreSQL만 초기화하고 Neo4j 데이터가 남으면 고정 worldId의 create가 graph mismatch(`RELATIONSHIP_VERSION_MISMATCH`)로 실패해 해당 장르가 재시작마다 오류 로그만 남기고 적재되지 않는다. 둘을 함께 초기화해야 한다. CI처럼 여러 PG가 Neo4j 하나를 공유하면 컨텍스트마다 오류 로그가 나오지만 테스트는 깨지지 않는다.
+- **한계(임시 소유자):** 템플릿을 기존 운영 관리자 계정에 임시로 할당했다. ① V8 샘플 관리자 비밀번호가 마이그레이션 주석에 공개되어 있어 그 계정으로 로그인하면 누구나 템플릿을 수정·삭제할 수 있다. 실제 운영 계정·공개 템플릿 조회가 생기면 소유자를 바꾼다. ② V8은 `ON CONFLICT (email) DO NOTHING`이라 기존 DB에 `admin@example.test`가 다른 id로 있으면 템플릿 소유자가 실제 로그인 계정과 다를 수 있다. ③ 세계관이 비공개라 다른 사용자에게는 여전히 보이지 않는다(소유자가 세계관을 공개해야 공개 목록·상세에 나온다). 소유자를 바꿔도 이미 적재된 세계관은 옮겨지지 않는다. 고정 worldId의 create가 소유자 불일치로 거절(`WorldNotFound`)되어 장르별 오류 로그만 남으므로, 소유자 변경 때는 기존 세계관(PG·Neo4j)을 승인 하에 정리해야 한다.
+- **v2 보완:** 기존 장르 11종의 최초 적재 입력만 `genre-templates-v1.json`으로 동결하고, 최초 저장 뒤 `GenreTemplateRepair`가 v1과 동일한 이름·설명·카드 및 관계 없는 revision 2만 갱신한다. 세계관 ID와 과거 저장 버전은 유지하며, 새 개별 카드 ID는 UUIDv5(worldId, `setting:` + key)다. 기존 카드 ID는 과거 저장 버전에 남는다. 고정 key `genre-template-<장르>-repair-v2`와 expected revision 2로 edit 후 revision 3을 save하며 미완료 작업은 같은 요청으로 재시도한다. 사용자 수정·완료된 보완은 건너뛰므로 새 카드를 자동 적용하지 않는다. 기존 미완료 v2와 변경된 입력의 hash가 다르면 서비스가 거절하고 오류를 기록한다. 창작 11종의 386장은 원본 설정에서 추출하며 첫 화 원고·집필 지침·장편 전개는 원본에 보존하고 활성 카드에서 제외한다. v2 본문·유형·메타데이터는 배포 후 동결하며 이후 임의 수정은 자동 반영 대상이 아니다. 자세한 절차는 [샘플 README](../../infrastructure/sample-data/genre-templates/README.md#v2-보완과-기존-데이터-반영)를 따른다.
+- **SOUL 보완:** 이전 26종의 최초 요청과 기존 11종의 v2 보완은 `genre-templates-v2.json` 스냅샷을 사용해 기존 key·hash를 유지한다. `genre-template-<장르>-soul-v1`은 DEC-47의 `semanticMetadata.characterDocs`에 `soul`, 빈 `goal`, 빈 `episodes`만 더한다. 기존 세계관은 카드 전체(제거 카드와 메타데이터 포함), 이름·설명·관계, 초안 및 관계 revision과 두 저장 이력(기존 11종) 또는 최초 저장 이력(15종)이 고정 기준과 일치할 때만 `replace=true`로 보완한다. 사용자 카드 수정·삭제·관계·문서 변경과 수정 후 되돌린 이력은 revision 또는 내용 불일치로 건너뛴다. 편집 후 저장 전 재시도는 같은 key·hash를 사용하고, 미완료의 다른 요청이나 Neo4j 장애는 오류로 남긴다. 머지 전 `memory` 형식의 PR 후보를 별도로 실행해 미완료 요청이 남은 환경은 새 `goal` 입력과 hash가 달라 자동 재개하지 않으므로 이전 입력으로 완료해야 한다(기존 26종 SOUL 보완과 역사 7종 최초 적재 모두 해당). 공개 범위·장르·표지는 쓰지 않으며, 공개 설정의 과거 변경 후 복원 이력은 초안으로 증명할 수 없다. 보완 후 기존 확정 버전은 유지된다.
+- **역사 연구 7종(158장):** 한국·중국·일본·잉글랜드·프랑스·이탈리아·미국의 고정 연구 자료를 같은 create → edit → save 경로로 적재한다. 연구 원본 파일과 evidence는 변경하지 않는다. 런타임 생성 시 다섯 세계관 설명과 네 카드의 낡은 미등록 문구만 고쳐 비공개 연구 기반 샘플임을 표시하고, 미국 출처 카드에는 `develop`의 `usa.evidence.json` 링크와 공식 장별 목록을 덧붙인다. 저장소 링크는 이 변경이 `develop`에 병합된 뒤에야 유효하며 공식 목록은 현재 판이라 고정 연구 근거의 장별 기여자와 다를 수 있다. 출처·권리·검수 대기 및 연구의 편향 표기를 유지하며, 독립 역사 감수·원저 저작권 및 일부 인용 검토는 미완료다. 사용자 승인에 따른 샘플 적재가 외부 공개나 권리 검토 완료를 의미하지 않는다. 미국 자료의 CC BY-SA 4.0 저작 표시와 변경 이력, 장별 기여자는 [역사 자료 안내](../../infrastructure/sample-data/genre-templates/history/README.md)에 보존한다.
+- **v2 교체·이력:** 관계가 없는 pristine 세계관만 `replace=true`로 편집하여 이전 카드를 `removed`로 표시하고 새 카드만 활성으로 둔다. `replace` 자체도 요청 hash에 포함되므로 이전에 미완료된 같은 key의 요청과 충돌할 수 있으며 거절을 성공으로 처리하지 않는다. v1의 확정 버전은 불변이고, 제목·본문이 있는 제거 카드는 새 버전에도 이력으로 남는다. 따라서 이전 첫 화·집필 지침이 활성 카드에서는 빠져도 버전 이력에서 삭제되지는 않는다.
+- **신화·고전 15종(카드 868장):** v1 동결본에서 제외하고 각 장르 작품과 선택적 보충 출전에 근거한 카드로 create → edit → save한다. 처음부터 `templateOrder`와 유형 메타데이터를 넣고 사건은 event/history로 적재한다. 한국어 번역 전문과 번역 문단 복제는 저장하지 않는다. 기존 검증용 DB에 다른 내용으로 동일 ID가 있으면 자동 교체하지 않고 충돌을 기록한다. 사용자 편집과 저장된 세계관은 재시작 시 보존한다. 카드마다 출처와 문헌 범위를 표시하며 Neo4j 관계선은 자동 생성하지 않는다.
+- **출처 참조:** `source/sources.md`에는 기존 편집 앵커와 원전 URL·위치가 있다. 편집 앵커는 원전의 공식 문단 번호가 아닐 수 있으며, 이집트 자료 등은 작품 단위 위치만 제공해 카드별 구절을 특정하지 못한다. 선택적 `supplementary.md`는 기존 출전·원어 발췌를 유지하며, `narrative_refs`는 문서와 앵커, 보충 출전에는 중복 문장 대신 발췌 SHA-256을 둔다. 생성기는 문서·고유 앵커·URL과 보충 발췌의 해시 및 500자 제한을 검증한다. 한국어 원고를 제거했으므로 과거 문단과의 정확한 일치나 외부 원전·카드의 사실 관계는 자동 검증하지 못하며 편집 검토가 필요하다.
+- **우선 주제·기존 카드 검사:** `infrastructure/sample-data/test_myth_sources.py`가 사용자 요구(PR #287 추가 요청)의 우선 주제를 확인한다: 그리스 트로이 전쟁·영웅·명계, 북유럽 라그나로크·묠니르·궁니르·아홉 세계, 크툴루 아컴·인스머스·르뤼에·네크로노미콘·외신, 서유기(별도 `journey_to_the_west` 세계관) 일행·여정(팔십일난)·법보. 주제마다 제목에 이름이 있고 카드 유형이 맞으며(장소 `location`·신물 `object`·사건 `event`·인물 `character`) 설명(출전 줄을 뺀 30자 이상과 주제 관련 단어)과 출전 링크가 있는 **서로 다른 카드**가 하나씩 있어야 하며, 한 카드가 여러 주제를 대신할 수 없다. 신화 15종의 기존 카드는 세계관 ID·카드 ID·순서·유형을 앞 N장의 해시로 고정하므로 새 카드는 뒤에 추가한다. 카드 공개(`public`)는 적재기가 모든 템플릿 카드에 일괄 적용하므로 데이터에 카드별 값을 두지 않는다. 이설은 모든 전승에 요구하지 않는다. 카드에 "이설"이라고 쓴 경우에만 서로 다른 근거 절 2개 이상과 서로 다른 출전 URL 2개 이상을 요구한다. 본문에는 `- [출전명](URL): 해당 출전의 설명` 줄을 출전마다 두고 각 설명은 10자 이상이면서 서로 달라야 하며, 각 출전은 실제로 참조한 절의 URL과 연결되어야 한다(`genre-templates/test_traditions.py`). 문장의 사실 관계와 차이를 정확히 설명하는지는 편집자가 확인한다.
+- **기존 정책과의 관계:** 카드의 기본은 비공개지만(DEC-36·46) 템플릿 카드는 공개(`visibility=public`)로 넣는다. 공개 세계관 조회가 공개 카드만 보이므로(DEC-46), 소유자가 템플릿 세계관을 공개했을 때 카드가 함께 보이게 하려는 것이다. 세계관 자체의 공개 범위는 건드리지 않아 비공개다. 이 변경 전에 적재된 세계관은 다시 넣지 않아 카드가 비공개인 채이고, 확정 버전은 불변이라 소유자가 초안의 카드를 공개로 저장한 뒤 새 확정 버전을 남기거나 PostgreSQL·Neo4j를 함께 초기화해 다시 적재해야 바뀐다. [요구사항 F-WLD-01](../requirements.md#f-wld-01)·[유스케이스 6.2](../usecase.md)의 "장르 기본 세계관을 복사해 시작"(원본 관계 없는 새 세계관)은 아직 없고, 작품 Fork와 무관한 타인 세계관의 참조·추종 이용은 두지 않는다(DEC-35, 카드 단위 복사는 설정 가져오기 DEC-46).
+- **후속(미구현):** 목록은 소유자 전용이라 운영 관리자 계정만 볼 수 있다. 템플릿 세계관은 비공개로 적재되며, 세계관 단위 공개 설정(`PUT /{id}/publication`, DEC-45)으로 소유자가 직접 공개해야만 공개 목록·상세에 나온다(그때 공개 카드가 보인다). 소유자가 템플릿 세계관을 공개하면 다른 사용자는 설정 가져오기(DEC-46)로 그 공개 카드를 카드 단위로 자기 세계관에 복사할 수 있다. 템플릿을 통째로 복사해 새 세계관으로 시작하는 흐름과 Fork 연계는 없다. 서버 시작 적재는 로컬 단위(서비스 대역)로만 확인했고 실제 PG·Neo4j 실행은 CI·개발 환경 확인 대기다.
 
 ## 기준
 
@@ -87,7 +183,7 @@ Flyway location은 `classpath:db/migration/worldstudio`로 유지하되 독립 V
 
 | 테이블 | 핵심 정보와 책임 |
 |---|---|
-| world | 안정적인 world ID, 소유자 식별자, 생성 시각, 현재 확정 revision 참조. 작품/회차 FK 없음 |
+| world | 안정적인 world ID, 소유자 식별자, 생성 시각, 현재 확정 revision 참조, 세계관 단위 공개 설정(V6 `visibility` 기본 `private`·`genre`·`published_at`, DEC-45), 소유자 표지(V7 `cover_object_key`·`cover_content_type`, 바이트는 객체 저장소). 작품/회차 FK 없음(소설과의 1:1 연결은 Content `work.world_studio_id`가 정본이고 FK 없이 값만 가리킨다, DEC-46) |
 | world_draft | world당 이름·설명, draft_revision, base_world_revision_id, 수정 시각. 자동저장 대상 |
 | setting_card | card ID, world ID, 생성 시각. 제목이나 유형 변경에도 ID 유지 |
 | setting_card_draft | card별 제목·원문·card_type·area_code·별칭·태그·자유 분류·semantic metadata·lifecycle·visibility. 초안 |
@@ -118,7 +214,7 @@ card_type은 character/location/organization/ability/object/rule/event/other 8�
 - 조립 중 revision은 커밋할 수 없게 하고 확정 뒤 manifest와 버전은 수정·삭제할 수 없게 한다. 복원은 새 version/revision이다. 구체 봉인 trigger는 새 V1 SQL에서 테스트한다.
 - 활성 관계의 양 endpoint는 같은 revision의 활성 카드여야 한다. 관계 입력은 선택적이며 미등록을 관계 없음의 확정 사실로 해석하지 않는다.
 - 카드·관계 삭제는 lifecycle tombstone을 새 버전에 기록한다. 과거 version/manifest를 삭제하지 않는다.
-- 카드 초안과 불변 버전 모두 `visibility`를 가지며 기본값은 `private`다. `public` V2에서 `private` V1을 복원하면 V3에 V1의 비공개 정책도 복사한다. 명시 저장은 발행이 아니며 카드의 public만으로 독자 접근을 허용하지 않는다. 회차별 공개·지식·상태는 이후 계약으로 연결한다.
+- 카드 초안과 불변 버전 모두 `visibility`를 가지며 기본값은 `private`다. `public` V2에서 `private` V1을 복원하면 V3에 V1의 비공개 정책도 복사한다. 명시 저장은 발행이 아니며 카드의 public만으로 독자 접근을 허용하지 않는다. 카드의 `visibility`는 공개 세계관 조회에 쓴다(DEC-46): 세계관이 공개이면 마지막 저장 버전의 활성 카드 중 `public`인 것과 그 카드끼리의 관계만 보인다. 독자 공개는 이 값과 별개로 카드 `semanticMetadata.revealFromEpisode`('N화부터')와 연결된 소설의 발행된 회차로 정한다([계약](public-world-contract.md)). 인물별 지식·상태의 회차별 공개는 이후 계약으로 연결한다.
 
 ## 인증과 회차 연결
 
@@ -126,7 +222,13 @@ card_type은 character/location/organization/ability/object/rule/event/other 8�
 
 JWT 서명·만료 검증과 Principal→UUID 변환은 호출 계층의 책임이다. 독립 Service는 UUID subject를 인자로 받아 모든 읽기/쓰기에서 소유 world를 먼저 잠그고 대조한다. DB 소유자 컬럼이나 FK 부재가 HTTP 인증 완료를 뜻하지 않는다. SQL 관리자 권한으로는 소유권 검사를 우회할 수 있다. 이번에는 독립 Entity·JpaRepository·Service까지만 연결하며 HTTP Controller·기존 작업실 UI는 연결하지 않는다.
 
-향후 회차는 world_id와 확정 world_revision_id를 명시적으로 참조한다. WorldStudio는 회차 번호·작품 ID 없이 동작한다. 회차 쪽 상태 변화·Checkpoint·Fork는 초기 version을 덮어쓰지 않으며 이 초기 migration에 구현하지 않는다. 서비스 간 FK/DTO는 공동 계약 확정 후 후속 migration으로 추가한다.
+### 집필 회차의 기준 세계관 (기능 87)
+
+2026-11-10 사용자 결정에 따라 작가는 소유한 WorldStudio의 봉인된 버전을 집필 회차의 기준으로 선택·조회·변경한다. Content는 회차에 세계관 UUID와 버전 UUID를 함께 기록한다. WorldStudio는 소유권과 해당 세계관의 봉인된 버전을 확인하며 작품·회차를 참조하지 않는다. 두 스키마의 검증과 기록은 각각의 트랜잭션에서 수행하고 회차 선택을 저장할 때 작품 소유권과 회차 수정 가능 여부를 다시 확인한다.
+
+- `GET/PUT /api/v1/works/{id}/episodes/{number}/world-basis`는 소유자의 선택과 변경을 처리한다. 선택 전 응답에는 `basis: null`과 수정 번호가 들어 있다. 수정 번호가 바뀐 상태에서 다른 버전을 선택하면 409로 응답한다. 같은 버전의 재시도는 현재 선택을 돌려준다. 원작에서 상속한 회차는 기준 세계관을 조회·선택하지 않으며 두 요청 모두 403이다.
+- `GET /api/v1/world-studios/{id}/revisions`는 소유한 세계관의 봉인된 버전 목록을 반환한다. 집필실에서 기존 확정 저장 API로 현재 저장된 인물·설정을 새 버전으로 만들 수 있고, 기준으로 선택한 버전의 설정은 기존 버전 상세 API로 읽는다.
+- 적용 범위는 집필실의 회차 참조다. 발행본·Fork 기준·집필 AI 문맥과 Neo4j 관계의 과거 상태는 이 참조에 포함하지 않는다. 기존 회차는 기준 선택 없이 열 수 있다.
 
 ## 새 SQL 작성 전 확정할 항목
 
@@ -139,3 +241,5 @@ JWT 서명·만료 검증과 Principal→UUID 변환은 호출 계층의 책임�
 공용 개발 DB 적용은 이 PR 범위에서 제외한다. 이전 배포 시도는 인증·접속 확인 실패로 중단했고 백업/migration을 수행하지 않았다. 실제 적용 상태는 미확인이며 [배포 사전 확인](../deployment/worldstudio-v1-rollout.md)에 기록했다. SQL과 독립 JPA 구현은 작업 브랜치에 커밋·일반 push하여 팀 리뷰용 일반 PR로 제출한다. #86·#76과 원본 UX worktree는 변경하지 않는다.
 
 **PR 병합만으로 자동 마이그레이션이 실행되는지는 미확정이다.** 현재 WorldStudioConfig는 validate만 수행하고 migrate를 자동 호출하지 않는다. 실제 개발 DB 적용 여부, 배포 시 Flyway의 명시 실행 주체/시점/권한과 기능 활성화 순서는 팀원 검토가 필요하다.
+
+템플릿 보완의 `semanticMetadata.studio`는 정본 카드 필드와 일치하며, `templateOrder`로 읽기 순서를 보존한다. 프런트는 빈 메타데이터의 기존 카드만 정본 필드로 해석하고 손상된 studio는 거절한다. 사건 area는 `history`다.

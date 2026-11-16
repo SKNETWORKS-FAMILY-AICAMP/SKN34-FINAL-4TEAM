@@ -2,10 +2,13 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Art } from '../../../shared/art'
 import { BackChev } from '../../../shared/icons'
+import { Footer } from '../../../shared/shell/Gnb'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
 
+/** 인증 화면 공통 틀. 공용 푸터는 .lg와 형제로 둬 #root 직속이어야 `#root:has(>.foot)` 하단 고정 규칙이 먹는다. */
 export function AuthLayout({ title, intro, children }: { title: string; intro?: string; children: ReactNode }) {
-  return <div className="lg">
+  return <>
+  <div className="lg">
     <aside className="lg-l" aria-label="STORYFORK">
       <Link to="/" className="logo"><b>SF</b>STORYFORK</Link>
       <div className="auth-brand-copy">
@@ -27,4 +30,6 @@ export function AuthLayout({ title, intro, children }: { title: string; intro?: 
       </div>
     </main>
   </div>
+  <Footer />
+  </>
 }

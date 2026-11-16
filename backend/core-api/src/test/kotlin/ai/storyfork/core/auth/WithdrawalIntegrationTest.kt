@@ -49,6 +49,18 @@ class WithdrawalIntegrationTest {
         csrf(request).header("Authorization", auth).contentType(MediaType.APPLICATION_JSON).content(body)
 
     @Test
+    fun `a withdrawal request records a rights and security notice event for the member in the same transaction`() {
+        val m = member(); val auth = bearer(login(m))
+        mvc.perform(json(post("/api/v1/me/withdrawal"), auth, """{"password":"test-password"}""")).andExpect(status().isAccepted())
+        val withdrawalId = jdbc.queryForObject("select id::text from auth_withdrawal where member_id = ?", String::class.java, m.id)
+        val row = jdbc.queryForMap("select event_type, target_type, target_id from notification_outbox where recipient_id = ?", m.id)
+        assertEquals("core.member.withdrawal-requested", row["event_type"])
+        assertEquals("withdrawal", row["target_type"])
+        assertEquals(withdrawalId, row["target_id"])
+        jdbc.update("update notification_outbox set sent_at = now() where recipient_id = ?", m.id)
+    }
+
+    @Test
     fun `anonymous requests are rejected`() {
         mvc.perform(get("/api/v1/me/withdrawal")).andExpect(status().isUnauthorized())
     }

@@ -15,9 +15,9 @@ const motion = (value: boolean) => act(() => { reduced = value; mediaListeners.f
 const advance = (ms = 4500) => act(() => { vi.advanceTimersByTime(ms) })
 const count = () => document.getElementById('cnt')!.textContent
 
-function Carousel() {
+function Carousel({ list = works }: { list?: typeof works }) {
   const [hero, setHero] = useState(0)
-  return <MemoryRouter><Hero works={works} hero={hero} setHero={setHero} stepHero={(d) => setHero((i) => i + d)} /></MemoryRouter>
+  return <MemoryRouter><Hero works={list} hero={hero} setHero={setHero} stepHero={(d) => setHero((i) => i + d)} /></MemoryRouter>
 }
 
 beforeEach(() => {
@@ -108,6 +108,34 @@ describe('홈 Hero 자동 넘김과 접근성', () => {
       expect(link.hasAttribute('inert')).toBe(true)
       expect(link.getAttribute('tabindex')).toBe('-1')
     }
+  })
+
+  it('소설이 많아도 위치 점은 현재 위치 주변 5개만 그리고 넘기면 따라 움직인다', () => {
+    // 점 버튼은 44px 터치 대상이라 소설 수만큼 늘리면 좁은 화면에서 줄어들거나 넘친다.
+    const many = Array.from({ length: 12 }, (_, i) => ({ ...works[0], id: `w${i}`, title: `소설 ${i + 1}` }))
+    render(<Carousel list={many} />)
+    const dots = () => screen.getAllByRole('button', { name: /번째 소설 보기/ })
+    const pressed = () => dots().filter((dot) => dot.getAttribute('aria-pressed') === 'true').map((dot) => dot.getAttribute('aria-label'))
+    const names = () => dots().map((dot) => dot.getAttribute('aria-label')!.replace('번째 소설 보기', ''))
+    expect(names()).toEqual(['1', '2', '3', '4', '5'])
+    expect(pressed()).toEqual(['1번째 소설 보기'])
+    fireEvent.click(screen.getByRole('button', { name: '5번째 소설 보기' }))
+    expect(count()).toBe('5 / 12')
+    expect(names()).toEqual(['3', '4', '5', '6', '7'])
+    expect(pressed()).toEqual(['5번째 소설 보기'])
+    fireEvent.click(screen.getByRole('button', { name: '다음 소설' }))
+    expect(names()).toEqual(['4', '5', '6', '7', '8'])
+    expect(pressed()).toEqual(['6번째 소설 보기'])
+  })
+
+  it('마지막 소설에서는 끝의 점 5개를 그린다', () => {
+    const many = Array.from({ length: 12 }, (_, i) => ({ ...works[0], id: `w${i}`, title: `소설 ${i + 1}` }))
+    render(<Carousel list={many} />)
+    fireEvent.click(screen.getByRole('button', { name: '이전 소설' }))
+    expect(count()).toBe('12 / 12')
+    const dots = screen.getAllByRole('button', { name: /번째 소설 보기/ })
+    expect(dots.map((dot) => dot.getAttribute('aria-label'))).toEqual(['8번째 소설 보기', '9번째 소설 보기', '10번째 소설 보기', '11번째 소설 보기', '12번째 소설 보기'])
+    expect(dots[4].getAttribute('aria-pressed')).toBe('true')
   })
 
   it('데스크톱에서 완전히 보이는 두 카드는 모두 탐색할 수 있고 리사이즈하면 가시 범위를 갱신한다', () => {

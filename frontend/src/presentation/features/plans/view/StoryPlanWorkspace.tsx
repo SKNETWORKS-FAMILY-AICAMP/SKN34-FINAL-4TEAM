@@ -1,10 +1,12 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import type { PlanInput } from '../../../../domain/entities/storyPlan'
 import type { StoryPlanUseCase } from '../../../../domain/usecases/StoryPlanUseCase'
 import { Sheet } from '../../../shared/Sheet'
 import { useStoryPlanViewModel } from '../viewmodel/useStoryPlanViewModel'
 import { deletionFocusOrder } from './deletionFocus'
 import './plans.css'
+// 오류 상자(.ep-alert)는 작품 관리·집필실과 같은 공용 모양을 쓴다.
+import '../../../shared/episode.css'
 
 export function StoryPlanWorkspace({ workId, demo = false, api }: { workId: string; demo?: boolean; api?: StoryPlanUseCase }) {
   const vm = useStoryPlanViewModel(workId, demo, api)
@@ -14,6 +16,8 @@ export function StoryPlanWorkspace({ workId, demo = false, api }: { workId: stri
   const addPlot = useRef<HTMLButtonElement>(null)
   const addScene = useRef<HTMLButtonElement>(null)
   const deletionFocus = useRef<{ workId: string; id: string; kind: 'plot' | 'scene'; order: string[] } | null>(null)
+  // 장면마다 있는 '삭제' 버튼이 어느 장면의 것인지 그 장면 제목을 설명으로 잇는 id의 앞머리
+  const sceneTitle = useId()
 
   useEffect(() => {
     if (deletionFocus.current?.workId !== workId) deletionFocus.current = null
@@ -50,7 +54,7 @@ export function StoryPlanWorkspace({ workId, demo = false, api }: { workId: stri
     <div className="plan-heading"><div><h2>플롯</h2><p className="muted">플롯과 장면을 계획하세요. 저장해도 원고·사전에는 자동 반영되지 않아요.</p></div><span className="chip">비공개 계획</span></div>
     {demo && <p className="note2">메모리 데모예요. 새로고침하면 계획이 초기화되고 서버에는 저장되지 않아요.</p>}
     <div className="plan-feedback" aria-live="polite">{!vm.ready ? <p role="status">계획과 참조 목록을 불러오고 있어요…</p> : vm.busy ? <p role="status">처리 중…</p> : vm.notice && !vm.deleting ? <p role="status">{vm.notice}</p> : <p className="muted">{vm.dirty ? '저장하지 않은 변경이 있어요.' : '계획은 저장 버튼을 눌러 보관해요.'}</p>}</div>
-    {vm.error && !vm.editor && !vm.deleting && <div className="plan-error" role="alert"><p>{vm.error}</p><button type="button" className="btn sm" disabled={vm.busy} onClick={vm.reload}>다시 불러오기</button></div>}
+    {vm.error && !vm.editor && !vm.deleting && <div className="ep-alert" role="alert"><p>{vm.error}</p><button type="button" className="btn sm" disabled={vm.busy} onClick={vm.reload}>다시 불러오기</button></div>}
     <div className="plan-layout">
       <nav className="plan-list" aria-label="플롯 목록">
         <div className="plan-section-head"><h3>내 플롯</h3><button ref={addPlot} type="button" className="btn sm pri" disabled={vm.busy || !refs} onClick={() => vm.create(null)}>플롯 추가</button></div>
@@ -65,9 +69,9 @@ export function StoryPlanWorkspace({ workId, demo = false, api }: { workId: stri
           {!scenes.length && <p className="plan-empty muted">이 플롯의 첫 장면을 계획해 보세요.</p>}
           <ol className="plan-scenes">{scenes.map(scene => <li key={scene.id}>
             <button type="button" ref={button => { if (button) planButtons.current.set(scene.id, button); else planButtons.current.delete(scene.id) }} className="plan-scene-open" disabled={vm.busy} onClick={() => vm.edit(scene)}>
-              <small>{scene.episodeMissing ? '연결 회차 확인 필요' : scene.episodeNumber ? `${scene.episodeNumber}화 계획` : '회차 미정'}</small><strong>{scene.title}</strong><span>{scene.content || '아직 장면 내용이 없어요.'}</span>
+              <small>{scene.episodeMissing ? '연결 회차 확인 필요' : scene.episodeNumber ? `${scene.episodeNumber}화 계획` : '회차 미정'}</small><strong id={`${sceneTitle}-${scene.id}`}>{scene.title}</strong><span>{scene.content || '아직 장면 내용이 없어요.'}</span>
               {refs && <small>{names(scene.characterIds, refs.characters) || '등장인물 미정'}{scene.placeIds.length ? ` / ${names(scene.placeIds, refs.places)}` : ''}</small>}
-            </button><button type="button" className="btn sm" aria-label="장면 계획 삭제" disabled={vm.busy} onClick={() => vm.askDelete(scene)}>삭제</button>
+            </button><button type="button" className="btn sm" aria-label="장면 계획 삭제" aria-describedby={`${sceneTitle}-${scene.id}`} disabled={vm.busy} onClick={() => vm.askDelete(scene)}>삭제</button>
           </li>)}</ol>
         </> : <p className="plan-empty muted">플롯을 추가하거나 목록에서 선택하면 상세 내용과 장면 계획을 볼 수 있어요.</p>}
       </div>
@@ -76,13 +80,13 @@ export function StoryPlanWorkspace({ workId, demo = false, api }: { workId: stri
       <form className="plan-form" onSubmit={event => { event.preventDefault(); vm.save() }}>
         <h2>{value.kind === 'plot' ? '플롯' : '장면 계획'} {vm.editor.previous ? '수정' : '추가'}</h2>
         <p className="small muted">비공개 계획이에요. 저장해도 원고·확정 사건·인물 상태는 바뀌지 않아요.</p>
-        {vm.error && <div className="plan-error" role="alert" id="plan-form-error"><p>{vm.error}</p><button type="button" className="btn sm" disabled={vm.busy} onClick={vm.reload}>최신 내용 다시 불러오기</button></div>}
+        {vm.error && <div className="ep-alert" role="alert" id="plan-form-error"><p>{vm.error}</p><button type="button" className="btn sm" disabled={vm.busy} onClick={vm.reload}>최신 내용 다시 불러오기</button></div>}
         <fieldset disabled={vm.busy} className="plan-fields" aria-describedby={vm.error ? 'plan-form-error' : undefined}>
           <label className="field">{value.kind === 'plot' ? '플롯 제목' : '장면 제목'}<input className="inp" data-autofocus required maxLength={120} value={value.title} onChange={e => update({ title: e.target.value })} /></label>
           <label className="field">계획 내용<textarea className="ta" aria-label="계획 내용" aria-describedby="plan-content-count" maxLength={8000} rows={7} value={value.content} onChange={e => update({ content: e.target.value })} /><span id="plan-content-count" className="small muted plan-count">{value.content.length.toLocaleString('ko-KR')} / 8,000자</span></label>
           {value.kind === 'scene' && refs && <>
             <label className="field">연결 회차<select className="inp" value={value.episodeNumber ?? ''} onChange={e => update({ episodeNumber: e.target.value ? Number(e.target.value) : null })}><option value="">회차 미정</option>{refs.episodes.map(e => <option key={e.number} value={e.number}>{e.number}화 · {e.title}</option>)}{value.episodeNumber && !refs.episodes.some(e => e.number === value.episodeNumber) && <option value={value.episodeNumber}>연결 회차 없음 · 연결 해제 필요</option>}</select></label>
-            {vm.editor.previous?.episodeMissing && <p className="small plan-error">이전에 연결한 회차가 없어요. 회차 미정으로 저장한 뒤 필요한 회차를 다시 선택해 주세요.</p>}
+            {vm.editor.previous?.episodeMissing && <p className="policy">이전에 연결한 회차가 없어요. 회차 미정으로 저장한 뒤 필요한 회차를 다시 선택해 주세요.</p>}
             {options('characterIds', '등장인물', refs.characters)}{options('placeIds', '장소', refs.places)}
           </>}
         </fieldset>
@@ -95,7 +99,7 @@ export function StoryPlanWorkspace({ workId, demo = false, api }: { workId: stri
         <p className="plan-content">{vm.deleting.title}</p>
         <p className="plan-content">{vm.deleting.content || '아직 계획 내용이 없어요.'}</p>
         <p className="muted">목록에서 제외돼요. 연결된 회차·원고·사전은 삭제하지 않아요. 하위 장면 계획이 남은 플롯은 삭제할 수 없어요.</p>
-        {vm.error && <div className="plan-error" role="alert">{vm.error}</div>}
+        {vm.error && <div className="ep-alert" role="alert">{vm.error}</div>}
         {vm.deleteNeedsReview && <p className="small muted">목록이 바뀌었을 수 있어요. 최신 목록을 확인한 뒤 삭제해 주세요.</p>}
         {vm.notice && <p role="status">{vm.notice}</p>}
         <div className="plan-form-actions">

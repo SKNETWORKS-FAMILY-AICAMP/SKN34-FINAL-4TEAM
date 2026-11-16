@@ -47,7 +47,7 @@ const Linked = (
           d={p}
           className='wl'
           style={{
-            '--dc': (cats.find((c) => c.id === p.cat) ?? { c: '#999' }).c,
+            '--dc': (cats.find((c) => c.id === p.cat) ?? { c: 'var(--faint)' }).c,
           } as CSSProperties}
         >
           {p.t}
@@ -91,7 +91,7 @@ export function WikiView({ vm }: { vm: VM }) {
     id = w.id,
     docs = vm.docs.filter((d) => d.cat !== 'event'),
     cats = vm.cats.filter((c) => c.id !== 'event')
-  const catOf = (x: string) => cats.find((c) => c.id === x) ?? { id: x, n: x, c: '#999' }
+  const catOf = (x: string) => cats.find((c) => c.id === x) ?? { id: x, n: x, c: 'var(--faint)' }
   const [form, setForm] = useState<Omit<Form, 'onClose'> | null>(null)
   const [q, setQ] = useSearchParams()
   const ep = Number(q.get('ep')) || 0, eps = epsOf(w).length + 1
@@ -315,10 +315,11 @@ export function WikiView({ vm }: { vm: VM }) {
                 <small>클릭해 추가</small>
               </span>
             )}
+            {/* hidden이면 키보드로 닿지 않는다. 시각적으로만 숨기고 초점 고리는 라벨에 그린다(writing.css). */}
             <input
               type='file'
               accept='image/*'
-              hidden
+              className='sr-only'
               onChange={(e) => resizeImg(e.target.files?.[0], (url) => vm.setDocImg(doc.id, url))}
             />
           </label>

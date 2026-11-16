@@ -15,6 +15,7 @@ export function ReportWorkForm({ workId, workTitle, alwaysOpen = false }: { work
         <form
           className='mt-3 grid gap-3'
           aria-label={`${workTitle} 신고`}
+          noValidate
           onSubmit={async (e) => {
             e.preventDefault()
             const form = e.currentTarget

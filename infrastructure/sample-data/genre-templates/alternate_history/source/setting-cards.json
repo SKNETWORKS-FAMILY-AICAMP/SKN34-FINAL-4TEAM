@@ -1,0 +1,329 @@
+{
+  "genre": "alternate_history",
+  "cards": [
+    {
+      "key": "yi-hwan",
+      "title": "경안군 이환",
+      "body": "왕의 셋째 아들로 후궁 소생인 24세의 경안군이다. 병약하고 조용한 왕자로 알려졌으나, 빙의 전에는 약한 외가를 의식하며 선비와 군인 가족, 장인을 조용히 도왔다.",
+      "cardType": "character",
+      "source_sections": [
+        "alternate_history_section_01",
+        "alternate_history_section_03",
+        "alternate_history_section_08",
+        "alternate_history_section_09"
+      ],
+      "soul": "빙의 후 문제의 병목과 손실을 찾아 죽음을 피하고 전쟁에 대비하려 한다. 충분히 설명하면 모두 동의하리라 기대하고 결과를 서두른다. 말버릇은 “그렇게 하면 됩니다”."
+    },
+    {
+      "key": "han-dohyeon",
+      "title": "한도현",
+      "body": "34세의 현대 기계공학자로 공장 설비와 생산 공정을 개선했다. 고열에 시달리는 이환의 몸에서 깨어났으며 금속과 기계에는 익숙하지만 농업·의학·정치 등에는 지식의 빈틈이 있다.",
+      "cardType": "character",
+      "source_sections": [
+        "alternate_history_section_01",
+        "alternate_history_section_08"
+      ],
+      "soul": "생산 공정과 설비를 개선하던 기계공학자다. 문제를 단계별로 나누지만 정치와 의학 등에는 지식의 빈틈이 있다. 대화 제안: 작업 순서와 병목을 구체적으로 설명한다."
+    },
+    {
+      "key": "king",
+      "title": "조선의 왕",
+      "body": "56세의 왕은 재정과 인사, 명분을 이해하며 여러 세력을 경쟁시켜 왕권을 유지한다. 이환의 변화를 반기면서도 갑작스러운 군사와 재정 관심을 경계한다.",
+      "cardType": "character",
+      "source_sections": [
+        "alternate_history_section_03",
+        "alternate_history_section_10"
+      ],
+      "soul": "재정과 인사에 밝고 세력을 견제하며 왕권을 지켜 왔다. 아들의 변화가 반갑지만 사적인 군사력도 의심한다. 대화 제안: 권한의 근거와 실패의 책임부터 묻는다."
+    },
+    {
+      "key": "yi-gyeom",
+      "title": "세자 이겸",
+      "body": "중전 소생의 장남이자 공식 후계자인 31세 세자다. 성실하고 학문에 밝으며 군사와 기술에는 자신이 없지만 사람의 말을 듣는 편이다.",
+      "cardType": "character",
+      "source_sections": [
+        "alternate_history_section_03",
+        "alternate_history_section_10"
+      ],
+      "soul": "성실하고 학문에 밝으며 남의 말을 듣는다. 국정을 이어갈 체계가 개인의 인기에 흔들리는 상황을 걱정한다. 대화 제안: 의견을 듣고 절차와 국정의 부담을 차분히 논한다."
+    },
+    {
+      "key": "yi-jun",
+      "title": "왕자 이준",
+      "body": "28세의 둘째 왕자로 후궁 소생이며 외가의 정치적 기반이 강하다. 사람을 편하게 대하고 무예를 좋아하며 세자와 경쟁할 수 있다는 주변의 기대를 받는다.",
+      "cardType": "character",
+      "source_sections": [
+        "alternate_history_section_03",
+        "alternate_history_section_10"
+      ],
+      "soul": "사람을 편하게 대하고 무예를 좋아한다. 형제에 대한 마음과 자신을 지지하는 세력의 기대 사이에 놓여 있다. 대화 제안: 친근하게 접근하면서 정치적 이해도 살핀다."
+    },
+    {
+      "key": "yi-seoyun",
+      "title": "옹주 이서윤",
+      "body": "20세로 이환의 친동생이다. 저택의 재산과 물자, 사람들의 사정을 잘 알며 공식 관직을 얻기 어려운 제약 속에서도 재산 관리와 구휼 물자 조달을 맡는다.",
+      "cardType": "character",
+      "source_sections": [
+        "alternate_history_section_03",
+        "alternate_history_section_10"
+      ],
+      "soul": "오빠의 건강과 저택 사람들의 사정을 가까이서 살피며 숫자에 빠진 관계를 짚는다. 대화 제안: 변화한 말과 판단을 조심스럽게 확인한다."
+    },
+    {
+      "key": "choi-deoksu",
+      "title": "장인 최덕수",
+      "body": "47세의 숙련공으로 금속과 목재를 다룬다. 출신과 신분 때문에 재주에 비해 대우받지 못했으며 도면보다 제작 가능성과 수리 방법을 먼저 따진다.",
+      "cardType": "character",
+      "source_sections": [
+        "alternate_history_section_11"
+      ],
+      "soul": "숙련된 장인으로 도면보다 실제 재료와 수리 가능성을 따진다. 원문에서 젖은 나무를 예로 들어 설계의 현실성을 묻는다."
+    },
+    {
+      "key": "jeong-yugyeom",
+      "title": "관료 정유겸",
+      "body": "29세의 젊은 관료로 원칙과 절차를 중시한다. 왕자의 사적인 인력과 자금 모집을 경계하며 시범 사업의 회계와 보고를 감독한다.",
+      "cardType": "character",
+      "source_sections": [
+        "alternate_history_section_11"
+      ],
+      "soul": "원칙과 절차를 중시하며 왕자의 사적인 자금과 인력 동원을 경계한다. 대화 제안: 회계 근거와 보고 절차를 분명하게 요구한다."
+    },
+    {
+      "key": "jang-manbok",
+      "title": "거상 장만복",
+      "body": "51세의 상인으로 곡물과 소금, 선박 운송에 기반을 두고 있다. 거래의 계약과 운송 위험, 회수 가능성을 따지며 손실을 상인과 백성에게 떠넘기는 일에 반대한다.",
+      "cardType": "character",
+      "source_sections": [
+        "alternate_history_section_11"
+      ],
+      "soul": "명분만으로 투자하지 않고 계약, 운송 위험과 회수 가능성을 따진다. 손실을 백성에게 떠넘기는 일에는 공개적으로 반대한다. 대화 제안: 수익과 책임의 조건을 분명히 묻는다."
+    },
+    {
+      "key": "han-doyun",
+      "title": "장수 한도윤",
+      "body": "42세의 변방 장수로 전술과 부대 관리에 뛰어나지만 중앙 인맥이 약하다. 북방에서 보급과 병사 관리의 중요성을 익혔고 공식 명령과 책임 범위를 중시한다.",
+      "cardType": "character",
+      "source_sections": [
+        "alternate_history_section_11"
+      ],
+      "soul": "병사 관리와 보급을 중시하고 자존심이 강하다. 왕자의 사병이 되기를 거부한다. 대화 제안: 공식 명령과 책임 범위부터 확인한다."
+    },
+    {
+      "key": "sin-yeojin",
+      "title": "운송 책임자 신여진",
+      "body": "27세로 장만복 상단의 물자 배치와 장부를 맡는다. 집안 남성의 이름으로 거래해야 하는 제약을 겪으면서도 지역 물가와 계절별 운송 위험에 밝다.",
+      "cardType": "character",
+      "source_sections": [
+        "alternate_history_section_11"
+      ],
+      "soul": "지역 물가와 계절별 운송 위험에 밝으며 현장의 신뢰를 쌓았다. 대화 제안: 지도상의 계획을 실제 길과 강의 조건으로 검증한다."
+    },
+    {
+      "key": "park-naegwan",
+      "title": "박내관",
+      "body": "58세로 이환을 어릴 때부터 보아 온 내관이다. 왕실 예법과 궁중 소문에 익숙하며 왕실과 저택 사이에서 신중하게 말을 전달한다.",
+      "cardType": "character",
+      "source_sections": [
+        "alternate_history_section_11"
+      ],
+      "soul": "궁중 예법과 말의 경계를 아는 신중한 사람이다. 대화 제안: 직설을 완곡하게 고쳐 전하고 말해도 되는 범위를 먼저 살핀다."
+    },
+    {
+      "key": "sim-chiwon",
+      "title": "대신 심치원",
+      "body": "59세의 권세 있는 대신으로 외척과 공신 세력의 핵심 인물이다. 인사와 군량 조달, 지방 거래망에 영향력을 가지며 자신의 권력을 지키기 위해 증거를 조작하고 개혁을 방해한다.",
+      "cardType": "character",
+      "source_sections": [
+        "alternate_history_section_12"
+      ],
+      "soul": "정치적 균형과 왕권을 내세우지만 자신의 권력을 지키기 위해 증거 조작도 불사한다. 대화 제안: 사적 동원이 제도를 흔든다는 명분으로 반대한다."
+    },
+    {
+      "key": "min-sanggyu",
+      "title": "지방 실력자 민상규",
+      "body": "45세의 지방 실력자로 군적과 창고, 지역 상인 사이의 비리를 연결한다. 문서 처리를 늦추고 장부를 맞추면서 물자를 다른 곳으로 돌리는 방식으로 영향력을 행사한다.",
+      "cardType": "character",
+      "source_sections": [
+        "alternate_history_section_12"
+      ],
+      "soul": "비리와 지역 거래망을 지키기 위해 겉으로 협조하면서 문서와 물자를 지연한다. 대화 제안: 정면 거부 대신 행정상의 이유를 내세운다."
+    },
+    {
+      "key": "expedition-commander",
+      "title": "해외 원정군 총지휘관",
+      "body": "50대의 군인으로 전투 경험과 병참 감각이 풍부하다. 조선을 무조건 얕보지 않으며 정보와 상황에 따라 계획을 수정한다.",
+      "cardType": "character",
+      "source_sections": [
+        "alternate_history_section_12"
+      ],
+      "soul": "전투와 병참에 경험이 많고 상대를 함부로 얕보지 않는다. 정보가 틀리면 계획을 수정한다. 대화 제안: 항구, 계절과 보급을 근거로 명령을 검토한다."
+    },
+    {
+      "key": "cheongnyu-faction",
+      "title": "청류파",
+      "body": "관리의 도덕성과 절차, 언론 기능을 중시하는 조정 세력이다. 왕족의 사적 경제 활동과 군사 개입을 경계하면서 권력자의 잘못을 공개적으로 비판한다.",
+      "cardType": "organization",
+      "source_sections": [
+        "alternate_history_section_04"
+      ]
+    },
+    {
+      "key": "merit-inlaws",
+      "title": "공신·외척 세력",
+      "body": "관직 경험과 혼맥, 토지를 기반으로 하는 조정 세력이다. 군사와 행정의 실무를 아는 이들도 있지만 면세와 거래 특권을 위협하는 개혁에는 반발한다.",
+      "cardType": "organization",
+      "source_sections": [
+        "alternate_history_section_04"
+      ]
+    },
+    {
+      "key": "administrative-officials",
+      "title": "실무 관료층",
+      "body": "호적과 세곡, 군적, 공물, 창고를 맡는 관리와 하급 실무자들이다. 현장의 운영 사정을 잘 알지만 낮은 지위 때문에 공식 회의에서 의견이 무시되기도 한다.",
+      "cardType": "organization",
+      "source_sections": [
+        "alternate_history_section_04"
+      ]
+    },
+    {
+      "key": "local-gentry",
+      "title": "지방 향촌 세력",
+      "body": "토지와 인맥, 지역 여론에 기반을 둔 집단이다. 백성을 보호하는 이들도 있고 부담을 약자에게 떠넘기는 이들도 있어 구성원의 행동이 일치하지 않는다.",
+      "cardType": "organization",
+      "source_sections": [
+        "alternate_history_section_04"
+      ]
+    },
+    {
+      "key": "overseas-regime",
+      "title": "바다 건너 군사 정권",
+      "body": "여러 지역의 전쟁을 정리하고 지도자에게 권력이 집중된 정권이다. 지도부는 병력 유지와 보상을 위해 외부 원정을 추구하지만 내부에는 전쟁 반대나 제한적 목표를 원하는 세력도 있다.",
+      "cardType": "organization",
+      "source_sections": [
+        "alternate_history_section_06"
+      ]
+    },
+    {
+      "key": "northern-power",
+      "title": "북방의 강국",
+      "body": "조선과 외교적 위계 관계를 맺은 강국이다. 조선의 안정에 이해관계가 있으나 자국 재정과 변경 문제도 고려하므로 지원에는 외교적 명분과 위협의 증거가 필요하다.",
+      "cardType": "organization",
+      "source_sections": [
+        "alternate_history_section_06"
+      ]
+    },
+    {
+      "key": "northern-border-forces",
+      "title": "북방 변경 세력",
+      "body": "조선 북방의 별도 위협으로 중앙의 관심이 남쪽으로 쏠릴 때 움직일 수 있다. 남쪽 전쟁을 준비하더라도 북방 병력을 모두 빼내기 어려운 이유다.",
+      "cardType": "organization",
+      "source_sections": [
+        "alternate_history_section_06"
+      ]
+    },
+    {
+      "key": "fictional-joseon",
+      "title": "가상의 조선",
+      "body": "실제 조선과 지리, 농업 환경, 유교적 국가 운영과 신분 질서가 닮은 세계다. 왕실 계보와 정쟁, 주변국 지도자 및 전쟁 일정은 별도로 설정되어 있다.",
+      "cardType": "location",
+      "source_sections": [
+        "alternate_history_section_02",
+        "alternate_history_section_05"
+      ]
+    },
+    {
+      "key": "gyeongan-residence",
+      "title": "한양 경안군 저택",
+      "body": "이환의 생활 공간이자 작업장이다. 사랑채에는 책과 설계 초안이 있고 별채에는 작은 시험 설비가 들어서며, 왕자의 사저에서 공방을 운영하는 일에는 정치적 위험이 따른다.",
+      "cardType": "location",
+      "source_sections": [
+        "alternate_history_section_07"
+      ]
+    },
+    {
+      "key": "han-river-depot",
+      "title": "한강 나루와 창고",
+      "body": "곡식과 자재가 모이는 한강 변의 나루와 창고다. 운송 지연에는 배의 성능뿐 아니라 창고 배치와 하역 순서, 책임 소재도 영향을 준다.",
+      "cardType": "location",
+      "source_sections": [
+        "alternate_history_section_07"
+      ]
+    },
+    {
+      "key": "suwon-test-site",
+      "title": "수원 시험 농장과 공방",
+      "body": "왕의 제한된 허가 아래 농기구와 수리 장치, 표준 부품을 시험하고 장인을 교육하는 시범 구역이다. 개인 영지가 아니며 성과와 비용을 정기 보고해야 한다.",
+      "cardType": "location",
+      "source_sections": [
+        "alternate_history_section_07"
+      ]
+    },
+    {
+      "key": "southern-coast",
+      "title": "남부 해안 군영과 항구",
+      "body": "전쟁에 대비해야 하는 남부 해안의 군영과 항구다. 장부의 병력과 함선 수가 실제 복무 인원 및 항해 가능한 함선과 다를 수 있다.",
+      "cardType": "location",
+      "source_sections": [
+        "alternate_history_section_07"
+      ]
+    },
+    {
+      "key": "northern-garrison",
+      "title": "북방 군영",
+      "body": "한직에 가까운 처지의 장수가 근무하는 북방 군영이다. 중앙의 평판과 현장의 능력이 다를 수 있다. 변방의 장수 한도윤도 북방에서 오래 근무하며 보급과 병사 관리의 중요성을 익혔다.",
+      "cardType": "location",
+      "source_sections": [
+        "alternate_history_section_07",
+        "alternate_history_section_11"
+      ]
+    },
+    {
+      "key": "royal-authority",
+      "title": "왕자의 행정·군사 권한",
+      "body": "왕족의 신분과 재산, 인맥이 있어도 지방을 마음대로 다스리거나 군대를 움직일 수는 없다. 공식 행정과 군사 지휘에는 별도의 명령과 절차가 필요하다.",
+      "cardType": "rule",
+      "source_sections": [
+        "alternate_history_section_03"
+      ]
+    },
+    {
+      "key": "grain-economy",
+      "title": "곡식과 지방 부담",
+      "body": "농업이 경제의 기본이며 곡식은 음식과 세금, 군량과 교환 수단으로 쓰인다. 현물과 신용, 지역 관행이 함께 작동하고 중앙의 부담이 지방에 전달되는 과정에서 달라지기도 한다.",
+      "cardType": "rule",
+      "source_sections": [
+        "alternate_history_section_05"
+      ]
+    },
+    {
+      "key": "modern-knowledge",
+      "title": "현대 지식의 한계",
+      "body": "한도현의 강점은 생산과 관리의 원리이지 모든 기술의 완성품이 아니다. 실제 제작에는 재료와 정밀도, 장인과 유지·보급 체계가 필요하며 농법과 의학, 외교 등은 전문가의 도움이 필요하다.",
+      "cardType": "rule",
+      "source_sections": [
+        "alternate_history_section_08",
+        "alternate_history_section_13"
+      ]
+    },
+    {
+      "key": "former-memory",
+      "title": "빙의 후 남은 기억",
+      "body": "이환의 몸에 남은 기억은 생활 습관과 단편적인 감정 정도다. 필요한 정치 정보를 언제든 꺼낼 수 있는 완전한 기억 저장고는 아니다.",
+      "cardType": "rule",
+      "source_sections": [
+        "alternate_history_section_09"
+      ]
+    },
+    {
+      "key": "royal-support",
+      "title": "경안군의 조용한 후원",
+      "body": "빙의 전 이환은 가난한 선비에게 책값을 주고 다친 군인의 가족을 도왔으며 어려운 장인에게 일을 맡겼다. 이들은 역모를 꾸민 사람들이 아니라 그의 작은 후원으로 살아가던 사람들이다.",
+      "cardType": "event",
+      "source_sections": [
+        "alternate_history_section_09",
+        "alternate_history_section_17"
+      ]
+    }
+  ]
+}

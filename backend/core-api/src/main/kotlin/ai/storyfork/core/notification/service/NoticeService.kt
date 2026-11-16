@@ -7,6 +7,10 @@ import ai.storyfork.core.notification.entity.NoticePreferenceEntity
 import ai.storyfork.core.notification.repository.NoticePreferenceRepository
 import ai.storyfork.core.notification.repository.NoticeRepository
 import ai.storyfork.core.notification.service.dto.NoticeCreateRequest
+import ai.storyfork.core.notification.service.dto.NoticeGroupItemsRequest
+import ai.storyfork.core.notification.service.dto.NoticeGroupListRequest
+import ai.storyfork.core.notification.service.dto.NoticeGroupListResponse
+import ai.storyfork.core.notification.service.dto.NoticeGroupResponse
 import ai.storyfork.core.notification.service.dto.NoticeListRequest
 import ai.storyfork.core.notification.service.dto.NoticeListResponse
 import ai.storyfork.core.notification.service.dto.NoticePreferenceResponse
@@ -43,6 +47,34 @@ class NoticeService(
         val items = rows.take(request.limit)
         val next = if (rows.size > request.limit) items.last().let { "${it.createdAt}_${it.id}" } else null
         return NoticeListResponse(items.map(::toResponse), next)
+    }
+
+    /** 본인의 삭제되지 않은 알림 하나를 반환한다. 읽음 처리는 하지 않으며, 없거나 타인·삭제된 알림이면 404다. */
+    @Transactional(readOnly = true)
+    fun get(memberId: UUID, id: UUID): NoticeResponse = toResponse(visible(memberId, id))
+
+    /**
+     * 같은 종류·대상의 알림을 하나로 묶어 최근 도착순으로 limit개 반환한다. 대상이 없는 알림은 묶지 않으므로 목록 API로 본다.
+     * 묶음 표시 기준 시간은 UC-27에서 미정이라 1차는 시간 제한 없이 같은 종류·대상이면 묶는다.
+     */
+    @Transactional(readOnly = true)
+    fun groups(memberId: UUID, request: NoticeGroupListRequest): NoticeGroupListResponse =
+        NoticeGroupListResponse(notices.groupSummaries(memberId, PageRequest.of(0, request.limit)).mapNotNull { row ->
+            notices.groupItems(memberId, row.kind, row.targetType, row.targetId, PageRequest.of(0, 1)).firstOrNull()
+                ?.let { NoticeGroupResponse(row.kind, row.targetType, row.targetId, row.total, row.unread, row.latestAt, it.summary) }
+        })
+
+    /**
+     * 한 묶음에 속한 개별 알림을 최신순으로 최대 limit개 반환한다. 알 수 없는 종류는 400이다.
+     * 1차는 페이지 넘김이 없어 묶음이 limit보다 크면 오래된 알림은 이 API로 볼 수 없고, nextCursor는 항상 null이다.
+     */
+    @Transactional(readOnly = true)
+    fun groupItems(memberId: UUID, request: NoticeGroupItemsRequest): NoticeListResponse {
+        val kind = NoticeKind.fromCode(requireNotNull(request.kind))?.code ?: throw NoticeException(NoticeException.Reason.INVALID)
+        return NoticeListResponse(
+            notices.groupItems(memberId, kind, requireNotNull(request.targetType), requireNotNull(request.targetId), PageRequest.of(0, request.limit)).map(::toResponse),
+            null,
+        )
     }
 
     /** 삭제하지 않은 본인의 미읽음 알림 수를 반환한다. */

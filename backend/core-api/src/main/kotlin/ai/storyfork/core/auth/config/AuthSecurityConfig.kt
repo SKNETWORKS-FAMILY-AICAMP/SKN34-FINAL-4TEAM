@@ -66,6 +66,7 @@ class AuthSecurityConfig {
                     .requestMatchers("/api/v1/me", "/api/v1/me/email-change", "/api/v1/me/withdrawal").authenticated()
                     .requestMatchers("/api/v1/auth/sessions", "/api/v1/auth/sessions/*", "/api/v1/auth/logout-all").authenticated()
                     .requestMatchers("/api/v1/me/notifications", "/api/v1/me/notifications/**", "/api/v1/me/notification-preferences").authenticated()
+                    .requestMatchers("/api/v1/me/credits", "/api/v1/me/credits/history").authenticated()
                     .anyRequest().denyAll()
             }
             .oauth2ResourceServer { it.jwt(withDefaults()) }

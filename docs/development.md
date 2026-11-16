@@ -26,6 +26,7 @@ native `include`로 재사용합니다. `storyfork-local` 프로젝트의 새 `s
 콘텐츠는 항상 활성이며 Core/Content의 별도 `CONTENT_CORE_AUTH_TOKEN`, 생성 시 Content/AI의 `INTERNAL_TOKEN`이 필요합니다([콘텐츠 설정](content-integration.md#인증과-실행)). **새 Content 이력은 개발용 fresh 전용**이며 기존 history에 바로 배포하지 않습니다. 정확한 대상·보존/복구 범위 승인 전 실제 DB/volume을 지우지 않습니다.
 WorldStudio(Neo4j)와 알림 사건(RabbitMQ)은 기능 플래그·compose profile 없이 local·개발 배포에서 항상 함께 뜹니다. `.env`에 `NEO4J_PASSWORD`, `CORE_RABBITMQ_PASSWORD`만 정하면 되고, WorldStudio schema는 Content 시작 시 Flyway가 적용합니다. 관계 계약은 [현재 관계 계약](design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132)을 따릅니다.
 Health 확인에는 `OPENAI_API_KEY`가 필요하지 않습니다.
+집필 AI 대화(채팅·HITL)를 쓰려면 `AI_CHECKPOINT_DATABASE_URL`을 Core·Content의 `storyfork`가 아닌 전용 DB `storyfork_ai`로 설정합니다(예시는 `.env.example`). AI가 시작할 때 그 DB가 없으면 만들고, 비워 두면 대화 요청만 503입니다. 같은 `storyfork`로 설정하면 빈 DB에서 Core가 시작하지 못합니다(#337).
 
 | loopback 주소 | 용도 |
 |---|---|
@@ -75,11 +76,11 @@ Frontend는 Node 24·pnpm 11.22, Core는 JDK 21, AI는 Python 3.11 이상 3.15 �
 ```
 
 이 명령들은 루트 `.env`를 자동으로 읽지 않습니다. 자동 설정 전달이 필요하면 Compose를 사용하며, Compose 자동 전달은 Operations에는 적용되지 않습니다.
-루트 `.env` 전체를 source하지 말고 OpenAI 키는 AI에만, Auth/JWT/SMTP는 Core에만, Content DB·S3/생성은 Content에만 전달합니다. 기존 같은 DB 대상·계정을 사용하며 별도 서비스 자격만 Core/Content가 공유합니다. Operations DB 자격은 Operations에만, 별도 `OPERATIONS_SERVICE_TOKEN`은 Operations와 신뢰하는 호출 서버에만 주입하며 Core/Content 토큰과 재사용하거나 브라우저에 전달하지 않습니다.
+루트 `.env` 전체를 source하지 말고 OpenAI 키는 AI에만, Auth/JWT/SMTP·가입 체험 크레딧 지급량(`CREDIT_SIGNUP_TRIAL_AMOUNT`, 기본 0)은 Core에만, Content DB·S3/생성은 Content에만 전달합니다. 기존 같은 DB 대상·계정을 사용하며 별도 서비스 자격만 Core/Content가 공유합니다. Operations DB 자격은 Operations에만, 별도 `OPERATIONS_SERVICE_TOKEN`은 Operations와 신뢰하는 호출 서버에만 주입하며 Core/Content 토큰과 재사용하거나 브라우저에 전달하지 않습니다.
 기존 서비스별 `.env.local` 등이 있으면 Vite가 별도로 읽을 수 있으므로 필요한 값을 루트로 수동 통합하세요.
 네이티브 Core의 AI 기본 주소는 `http://127.0.0.1:8000`, Compose는 `http://ai-service:8000`을 고정 사용합니다.
 
-[Content](../backend/content-service/README.md)는 loopback 8081의 실제 업무 앱이며 콘텐츠/Studio 모두 비활성일 때 DB 없이 시작하도록 구성했습니다. 활성화에는 DB·Core 인증 설정이 필요합니다. [운영](../backend/operations-service/README.md)은 loopback 8082의 독립 CRUD이며 PostgreSQL 연결과 operations schema 초기화 권한이 필요합니다. 기본 빈 서비스 토큰으로는 보호 접근을 허용하지 않습니다. nginx/Vite에는 브라우저용 `/api/v1/operations/{reports,members,admins,support,admin/notices,public/notices,admin/events,public/events}` 하위 경로만 연결합니다. Content의 Compose·nginx/Vite·공개 API 연결 소스와 실제 앱/DB/배포 검증은 구분합니다.
+[Content](../backend/content-service/README.md)는 loopback 8081의 실제 업무 앱이며 콘텐츠/Studio 모두 비활성일 때 DB 없이 시작하도록 구성했습니다. 활성화에는 DB·Core 인증 설정이 필요합니다. [운영](../backend/operations-service/README.md)은 loopback 8082의 독립 CRUD이며 PostgreSQL 연결과 operations schema 초기화 권한이 필요합니다. 기본 빈 서비스 토큰으로는 보호 접근을 허용하지 않습니다. nginx/Vite에는 브라우저용 `/api/v1/operations/{reports,members,admins,support,works,comments,admin/notices,public/notices,admin/events,public/events,admin/activities}` 하위 경로만 연결합니다. Content의 Compose·nginx/Vite·공개 API 연결 소스와 실제 앱/DB/배포 검증은 구분합니다.
 
 ## 검증
 
@@ -95,7 +96,7 @@ python3 -m unittest infrastructure.ci.test_ci.SelectionTest infrastructure.ci.te
 # 각 서비스 디렉터리에서 변경한 단위 테스트를 지정하는 예
 pnpm exec vitest run src/domain/__tests__/LibraryUseCase.test.ts
 ./gradlew unitTest --tests 'ai.storyfork.core.auth.AuthSecurityConfigTest' --no-daemon
-uv run --locked --extra dev python -m pytest -m 'not integration' tests/test_generation.py -k missing_key
+uv run --locked --extra dev python -m pytest -m 'not integration' tests/generation/test_agent.py -k missing_key
 ```
 
 자세한 선택 명령은 [Frontend 지침](../frontend/AGENTS.md#검증), [Core 지침](../backend/core-api/AGENTS.md#검증),
@@ -156,7 +157,7 @@ CI 이후 단일 CD의 게시 → 배포 흐름은 [인프라 안내](../infrast
 | 세션 시작 | ponytail 권장과 graphify 사용 안내(graphify·`graphify-out/graph.json`이 있을 때만) 주입 |
 | 셸 실행 전 | 브랜치·커밋 형식 위반, 실제 `.env`의 `git add`는 차단. `main`·`develop` 직접 푸시와 `gh pr merge`는 사용자 확인(Codex는 확인 기능이 없어 차단) |
 | 첫 검색 | graphify가 준비돼 있으면 세션의 첫 grep·검색을 한 번 막고 `graphify query`를 먼저 쓰게 함 |
-| 작업 종료 | 세션 시작 커밋 이후의 코드 변경(작업 중 커밋 포함)마다 한 번 TDD·단위 테스트·아키텍처/docs 점검과 권장 리뷰를 요청하고 `graphify update .`를 백그라운드로 실행 |
+| 작업 종료 | 세션 시작 커밋 이후의 코드 변경(작업 중 커밋 포함)마다 한 번 TDD·단위 테스트·아키텍처/docs 점검, 권장 리뷰, 이슈 → PR(`Closes #`)·후속 이슈 생성(`gh`가 있을 때만)을 요청하고 `graphify update .`를 백그라운드로 실행 |
 
 - **Claude Code**: [`.claude/settings.json`](../.claude/settings.json)이 자동 적용됩니다. 스킬은 `.claude/skills`(→ `.agents/skills`)입니다.
 - **Codex**: [`.codex/hooks.json`](../.codex/hooks.json)은 프로젝트를 신뢰하고 `/hooks`에서 훅을 승인해야 실행됩니다. 스킬은 `.agents/skills`를 읽습니다.

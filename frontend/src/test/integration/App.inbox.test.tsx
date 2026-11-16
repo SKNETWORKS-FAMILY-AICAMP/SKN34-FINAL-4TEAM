@@ -10,6 +10,7 @@ import '../scrollToSpy'
 import App from '../../App'
 import type { AppNotification } from '../../domain/entities/notification'
 import { appContainer } from '../../app/appContainer'
+import { forgetSession } from '../../data/api/auth'
 import { createAppStore } from '../../app/store'
 import { sessionActions } from '../../presentation/shared/session/sessionSlice'
 
@@ -91,6 +92,42 @@ describe('알림함 (U42)', () => {
     fireEvent.click(await screen.findByRole('button', { name: /^알림 a\b/ }))
     await waitFor(() => expect(where()).toBe('/work/starlight'))
     expect(b.read).toHaveBeenCalledWith('a')
+  })
+
+  it('크레딧 소멸 예정 알림을 누르면 결제 내역으로 간다', async () => {
+    backend([notice('a', { kind: 'credit', targetType: 'credit-expiry', targetId: '2026-12-01' })])
+    renderAt('/notifications')
+    fireEvent.click(await screen.findByRole('button', { name: /^알림 a\b/ }))
+    await waitFor(() => expect(where()).toBe('/me/pay'))
+  })
+
+  it('탈퇴 요청 알림을 누르면 프로필 아래의 탈퇴 취소 카드로 스크롤하고 취소 버튼에 포커스한다', async () => {
+    const user = { id: '1', nickname: '읽는사람', email: 'reader@storyfork.demo', operator: false }
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (url.endsWith('/csrf')) return Response.json({ csrfToken: 'c' })
+      if (url.endsWith('/refresh')) return Response.json({ accessToken: 'token', user })
+      if (url.endsWith('/api/v1/me/withdrawal')) return Response.json({ status: 'PENDING', requestedAt: '2026-11-12T01:00:00Z', dueAt: '2099-12-12T01:00:00Z' })
+      if (url.includes('/auth/sessions')) return Response.json({ sessions: [] })
+      return Response.json(user)
+    }))
+    // 알림함은 저장소를 가로채지만 프로필·탈퇴 카드는 HTTP라, 토큰 갱신이 쓰는 브라우저 잠금을 둔다.
+    vi.stubGlobal('navigator', { locks: { request: (_name: string, _options: object, callback: (lock: object) => Promise<unknown>) => callback({}) } })
+    const scroll = vi.fn()
+    Element.prototype.scrollIntoView = scroll
+    try {
+      backend([notice('a', { kind: 'rights-security', targetType: 'withdrawal', targetId: 'w1' })])
+      renderAt('/notifications')
+      fireEvent.click(await screen.findByRole('button', { name: /^알림 a\b/ }))
+      const cancel = await screen.findByRole('button', { name: '탈퇴 요청 취소' }, { timeout: 5000 })
+      await waitFor(() => expect(document.activeElement).toBe(cancel))
+      expect(scroll).toHaveBeenCalledWith({ block: 'center' })
+      // 포커스를 옮긴 뒤 표시를 지워 다시 끌어당기지 않는다.
+      await waitFor(() => expect(where()).toBe('/me/profile'))
+    } finally {
+      delete (Element.prototype as Partial<Element>).scrollIntoView
+      vi.unstubAllGlobals()
+      forgetSession()
+    }
   })
 
   it('이동할 대상을 모르는 알림은 읽음만 처리하고 이동하지 않는다', async () => {
@@ -205,7 +242,7 @@ describe('독자 피드백함 (U20)', () => {
     await toastIs('처리했어요 (데모)')
     await waitFor(() => expect(screen.queryByRole('link', { name: /처리할 독자 제보/ })).toBeNull())
     cleanup()
-    renderAt('/lib?tab=qa')
+    renderAt('/content?view=reports')
     const rep = await screen.findByText('🤖 작가 답변: 의도한 복선이에요')
     within(rep.closest('.rp') as HTMLElement).getByText('처리 완료')
   })
@@ -243,12 +280,14 @@ describe('권리 신고 소명 (data-appeal-form)', () => {
   })
 })
 
-describe('캐릭터 챗 (U27)', () => {
+describe('캐릭터챗 (U27)', () => {
   it('목록에서 인물을 골라 읽은 회차까지만 대답한다', async () => {
     renderAt('/chat')
     await screen.findByRole('heading', { name: '캐릭터챗' })
+    // 제목은 목록보다 먼저 그려지므로(불러오는 동안에도 틀을 보인다) 목록이 도착한 뒤에 조작한다.
+    const kinds = await screen.findByRole('navigation', { name: '작품 유형' })
     expect(sid()).toContain('U27')
-    fireEvent.click(within(screen.getByRole('navigation', { name: '작품 유형' })).getByRole('link', { name: '포크' }))
+    fireEvent.click(within(kinds).getByRole('link', { name: '포크' }))
     await waitFor(() => expect(where()).toContain('kind=fork'))
     fireEvent.click(within(screen.getByRole('navigation', { name: '작품 유형' })).getByRole('link', { name: '전체' }))
     fireEvent.click(await screen.findByRole('link', { name: /^성진 .*구운몽/ }))

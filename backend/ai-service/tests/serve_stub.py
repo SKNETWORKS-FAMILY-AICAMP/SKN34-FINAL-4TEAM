@@ -1,6 +1,6 @@
 """Local E2E fixture only. Never calls OpenAI; never use for deployment."""
 from app.main import create_app
-from app.generation import router as generation
+from app.generation import agent as generation
 
 
 def create_stub_app():

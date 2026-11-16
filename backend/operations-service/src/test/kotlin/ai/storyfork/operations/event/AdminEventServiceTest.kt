@@ -1,6 +1,7 @@
 package ai.storyfork.operations.event
 
 import ai.storyfork.operations._common.service.dto.PageResponse
+import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.event.service.AdminEventService
 import ai.storyfork.operations.event.service.EventService
 import ai.storyfork.operations.event.service.dto.EventRequest
@@ -22,7 +23,8 @@ import org.springframework.web.server.ResponseStatusException
 class AdminEventServiceTest {
     private val events = mock(EventService::class.java)
     private val permissions = mock(AdminPermissionRepository::class.java)
-    private val service = AdminEventService(events, permissions, Validation.buildDefaultValidatorFactory().validator)
+    private val activities = mock(AdminActivityService::class.java)
+    private val service = AdminEventService(events, permissions, Validation.buildDefaultValidatorFactory().validator, activities)
 
     private val admin = OperationsMember(UUID.randomUUID(), true)
     private val operatorWithoutEvents = OperationsMember(UUID.randomUUID(), true)
@@ -58,7 +60,7 @@ class AdminEventServiceTest {
             assertForbidden { service.update(member, id, invalid) }
             assertForbidden { service.delete(member, id) }
         }
-        verifyNoInteractions(events)
+        verifyNoInteractions(events, activities)
     }
 
     @Test
@@ -69,7 +71,7 @@ class AdminEventServiceTest {
             assertThrows(ConstraintViolationException::class.java) { service.create(admin, invalid) }
             assertThrows(ConstraintViolationException::class.java) { service.update(admin, id, invalid) }
         }
-        verifyNoInteractions(events)
+        verifyNoInteractions(events, activities)
     }
 
     @Test
@@ -85,6 +87,36 @@ class AdminEventServiceTest {
         service.delete(admin, id)
 
         verify(events).delete(id)
+    }
+
+    @Test
+    fun `create update and delete record the admin activity after the event service succeeded`() {
+        givenEventsPermission()
+        `when`(events.create(request)).thenReturn(event)
+        `when`(events.update(id, request)).thenReturn(event.copy(title = "수정 제목"))
+
+        service.create(admin, request)
+        service.update(admin, id, request)
+        service.delete(admin, id)
+
+        verify(activities).record(admin, "EVENT_CREATE", "EVENT", id, "제목")
+        verify(activities).record(admin, "EVENT_UPDATE", "EVENT", id, "수정 제목")
+        verify(activities).record(admin, "EVENT_DELETE", "EVENT", id, null)
+        verifyNoMoreInteractions(activities)
+    }
+
+    @Test
+    fun `nothing is recorded when the event service fails`() {
+        givenEventsPermission()
+        `when`(events.create(request)).thenThrow(IllegalStateException("db down"))
+        `when`(events.update(id, request)).thenThrow(NoSuchElementException())
+        doThrow(NoSuchElementException()).`when`(events).delete(id)
+
+        assertThrows(IllegalStateException::class.java) { service.create(admin, request) }
+        assertThrows(NoSuchElementException::class.java) { service.update(admin, id, request) }
+        assertThrows(NoSuchElementException::class.java) { service.delete(admin, id) }
+
+        verifyNoInteractions(activities)
     }
 
     @Test

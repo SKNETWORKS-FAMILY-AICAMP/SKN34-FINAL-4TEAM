@@ -55,12 +55,21 @@ class WorldService(
     fun publicRead(id: String, episode: Int): ReadingWorldResponse {
         val l=load(access.published(id))
         checkContent(episode>0 && currentEpisodes.findByWorkIdAndSequence(id,episode)?.publishedVersionId!=null,404,"공개된 회차를 찾을 수 없어요.")
-        val selected=selectSettings(effective(l),episode,true)
+        return ReadingWorldResponse(id, episode, readingDocuments(l, episode, public = true))
+    }
+    fun settingsForQa(id: String, owner: String?, episode: Int): List<ReadingDocumentResponse> {
+        if (owner == null) return publicRead(id, episode).documents
+        val loaded = load(access.own(id, owner))
+        return readingDocuments(loaded, episode, public = loaded.state.mode == "following")
+    }
+    private fun readingDocuments(l: Loaded, episode: Int, public: Boolean): List<ReadingDocumentResponse> {
+        if(l.state.mode=="following" && l.work.source?.deleted==true) return emptyList()
+        val selected=selectSettings(effective(l),episode,public)
         val world=if(l.state.mode=="following") l.sourceWorld!! else ownedWorld(l)
         val details=readingDetails.findAllById(selected.map {settingVersionId(world,it.id,it.versionId)}).associateBy {it.settingVersionId}
         val visible=selected.filter {s -> details[settingVersionId(world,s.id,s.versionId)]?.eventEpisode?.let {it<=episode} ?: true}
         val ids=visible.map {it.id}.toSet()
-        return ReadingWorldResponse(id,episode,visible.map {toReadingResponse(it,details[settingVersionId(world,it.id,it.versionId)],episode,ids,if(l.state.mode=="following") l.work.source?.episode else null)})
+        return visible.map {toReadingResponse(it,details[settingVersionId(world,it.id,it.versionId)],episode,ids,if(l.state.mode=="following") l.work.source?.episode else null)}
     }
     fun isFollowingForContext(id: String): Boolean = load(access.get(id)).state.mode=="following"
     fun historyForContext(id: String): SettingListResponse {
@@ -211,7 +220,7 @@ class WorldService(
             if(!versions.existsById(id)) {
                 val visibilityId=contentKey("visibility",id)
                 visibility.saveAndFlush(SettingVisibilityHistoryEntity(id=visibilityId,settingDocumentId=doc,revisionNo=index,defaultVisibility="private"))
-                fun ensure(number: Int): EpisodeEntity = episodes.findByWorkIdAndSequence(l.work.id,number) ?: episodes.saveAndFlush(EpisodeEntity(id=episodeId(l.work.id,number),workId=l.work.id,sequence=number))
+                fun ensure(number: Int): EpisodeEntity = episodes.findByWorkIdAndSequence(l.work.id,number) ?: episodes.saveAndFlush(EpisodeEntity(id=contentId(),workId=l.work.id,sequence=number))
                 val first=ensure(s.fromEpisode);val last=s.toEpisode?.let(::ensure)
                 ranges.saveAndFlush(SettingVisibilityRangeEntity(id=contentKey("range",id),visibilityHistoryId=visibilityId,startEpisodeId=first.id,endEpisodeId=last?.id,visibility=s.visibility))
                 versions.saveAndFlush(SettingVersionEntity(id=id,settingDocumentId=doc,contentVersionId=s.versionId,revisionNo=index,name=s.name,categoryId=s.category,content=s.content,evidence=s.evidence,visibilityHistoryId=visibilityId))

@@ -12,7 +12,10 @@
 .plan-scenes{list-style:none;padding:0;margin:0}.plan-scenes li{display:flex;gap:12px;align-items:center;border-top:1px solid var(--tline)}.plan-scenes li:first-child{border-top:0}
 .plan-scene-open{display:flex;flex-direction:column;gap:8px;flex:1;min-width:0;border:0;border-radius:12px;background:transparent;color:var(--tfg);padding:18px 12px;text-align:left;overflow-wrap:anywhere;white-space:normal}
 .plan-scene-open:hover:not(:disabled){background:var(--muted-bg)}.plan-scene-open strong{font-size:16px}.plan-scene-open small,.plan-scene-open span{color:var(--tsub)}.plan-scene-open span{font-size:14px;line-height:1.7;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.plan-error{padding:12px 14px;margin:12px 0;border:1px solid var(--line2);border-radius:12px;background:var(--muted-bg);color:var(--ink);font-size:14px;line-height:1.7}.plan-error .btn{margin-top:10px}
+/* 오류 상자는 공용 .ep-alert(shared/episode.css), 연결 회차 주의는 전역 .policy를 쓴다. 폼 안에서는 줄 간격만 맞춘다. */
+.plan-form .ep-alert{margin-top:12px}.plan-fields>.policy{margin-bottom:18px}
+/* 삭제 확인의 위험 버튼은 집필실 회차 설정(.writing-danger)·작품 관리(.ep-danger)와 같은 윤곽선으로 맞춘다(전역 .btn.danger는 --danger 채움이다). */
+.plan-sheet .btn.danger{border-color:color-mix(in srgb,var(--danger) 45%,var(--line2));background:var(--surface);color:var(--danger)}.plan-sheet .btn.danger:hover:not(:disabled){background:color-mix(in srgb,var(--danger) 8%,var(--surface))}
 .plan-sheet{width:min(680px,100%);max-height:90dvh;overflow:auto;word-break:keep-all;overflow-wrap:anywhere;scrollbar-color:var(--line2) var(--surface)}
 .plan-form{padding:24px;color:var(--ink);font-family:var(--ui)}.plan-form h2{font-size:22px;line-height:1.4;margin:0 0 12px}.plan-form>.small{line-height:1.7}
 .plan-fields{border:0;padding:0;margin:24px 0;min-width:0}.plan-fields>.field{margin-bottom:18px}.plan-fields .inp,.plan-fields .ta{width:100%;min-width:0}.plan-fields textarea{resize:vertical;min-height:160px;line-height:1.8}.plan-count{text-align:right;font-variant-numeric:tabular-nums}
@@ -21,4 +24,7 @@
 .plan-workspace button:disabled,.plan-sheet button:disabled{cursor:not-allowed;opacity:.5}.plan-workspace button:focus-visible,.plan-sheet :focus-visible{outline:2px solid var(--pri);outline-offset:3px}
 .plan-sheet input,.plan-sheet textarea{caret-color:var(--pri)}.plan-sheet ::selection,.plan-workspace ::selection{background:var(--pri-soft);color:var(--pri-ink)}
 @media(max-width:900px){.plan-workspace{padding:24px}.plan-layout{grid-template-columns:220px minmax(0,1fr)}.plan-section-head{align-items:flex-start;flex-wrap:wrap}.plan-detail{padding-left:20px}.plan-heading{align-items:flex-start}}
-@media(max-width:600px){.plan-workspace{padding:20px 16px}.plan-layout{grid-template-columns:1fr}.plan-list{border-right:0;border-bottom:1px solid var(--tline);padding:16px 0}.plan-detail{padding:20px 0}.plan-heading{flex-direction:column;gap:10px}.plan-form{padding:20px 16px}.plan-form-actions>span{width:100%;margin:0}.plan-scenes li{align-items:flex-start}.plan-scenes li>.btn{margin-top:18px}.plan-sheet{max-height:92dvh}.plan-options label{min-height:44px}}
+/* 좁은 화면: 시트(전역 .sheet 26px)와 폼의 여백이 겹쳐 입력 폭이 줄지 않게 시트 쪽 여백을 뺀다. */
+@media(max-width:600px){.plan-workspace{padding:20px 16px}.plan-layout{grid-template-columns:1fr}.plan-list{border-right:0;border-bottom:1px solid var(--tline);padding:16px 0}.plan-detail{padding:20px 0}.plan-heading{flex-direction:column;gap:10px}.plan-sheet{padding:0}.plan-form{padding:20px 16px}.plan-form-actions>span{width:100%;margin:0}.plan-scenes li{align-items:flex-start}.plan-scenes li>.btn{margin-top:18px}.plan-sheet{max-height:92dvh}}
+/* 손가락으로 누르는 기기(폭과 무관)와 좁은 화면에서는 선택 항목 줄을 44px로 키운다. */
+@media(pointer:coarse),(max-width:600px){.plan-options label{min-height:44px}}

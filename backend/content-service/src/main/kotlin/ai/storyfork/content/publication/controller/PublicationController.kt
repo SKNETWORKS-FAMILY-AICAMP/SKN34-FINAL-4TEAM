@@ -16,6 +16,10 @@ class PublicationController(private val service: ai.storyfork.content.publicatio
     @PostMapping("/works/{id}/episodes/{number}/publish")
     fun publish(@PathVariable id: String,@PathVariable number: Int,principal: Principal,@Valid @RequestBody data: PublishRequest): EpisodeResponse = service.publishEpisode(id,principal.name,number,data)
 
+    /** 소유자가 회차를 중단·재공개한다. 권리 위반은 403, revision·상태 충돌은 409다. */
+    @PutMapping("/works/{id}/episodes/{number}/visibility")
+    fun visibility(@PathVariable id: String,@PathVariable number: Int,principal: Principal,@Valid @RequestBody data: PublicationVisibilityRequest): EpisodeResponse = service.visibility(id,principal.name,number,data)
+
     /** 기존 작품 단위 발행 요청을 처리하고 작품 DTO를 반환한다. 소유자·권리 확인 필요, 기준 충돌은 409다. */
     @PostMapping("/works/{id}/publish")
     fun publishCurrent(@PathVariable id: String,principal: Principal,@Valid @RequestBody data: PublishRequest): WorkResponse {

@@ -2,13 +2,13 @@
 
 [메인 README](../README.md) · [문서 목록](README.md)
 
-> **현재 소스 상태:** Core는 Auth·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio 코드/테스트를 소유한다. nginx/Vite의 works와 world-studios exact·하위 경로는 Content:8081, 나머지 `/api`는 Core:8080으로 간다. #132의 관계 정본은 Neo4j 현재 상태 하나이며 관계 이력·과거 snapshot·전체 세계관 복원은 지원하지 않는다. 아래 WorldStudio 절은 현재 계약으로 갱신했다. 같은 기존 DB에서 writer/migration만 분리했고 Content 초기 SQL은 승인된 fresh 7개 업무 leaf/전역 V1~V9로 재작성했다. Auth·첨부·독립 Studio SQL은 보존한다. Operations는 loopback 8082의 독립 공지·이벤트·문의/답변 CRUD와 전용 서비스 토큰 인증, operations schema/Flyway/JPA 설정을 소스 구현했고, 신고·회원·관리자·고객지원 문의는 회원 Bearer API로 프런트·Core·Content와 연결했다. hosted CI·실제 DB 전환·게시/배포는 대기다. 현재 정본은 [서비스 경계](design/service-boundaries.md)와 [이관 계약](design/content-service-migration-contract.md)이다. **아래 본문은 분리 전 구현의 역사적 설명으로, Core 소유·JSONB importer·통합 migration 경로·세 이미지 안내를 현재 실행 지침으로 사용하지 않는다.**
+> **현재 소스 상태:** Core는 Auth·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio 코드/테스트를 소유한다. nginx/Vite의 works와 world-studios exact·하위 경로는 Content:8081, 나머지 `/api`는 Core:8080으로 간다. #132의 관계 정본은 Neo4j 하나이며 DEC-51로 회차별 연결로 기록·조회한다(서버·MCP 소스 구현). 관계 이력 복원·과거 snapshot·전체 세계관 복원은 지원하지 않는다. 아래 WorldStudio 절은 현재 계약으로 갱신했다. 같은 기존 DB에서 writer/migration만 분리했고 Content 초기 SQL은 승인된 fresh 7개 업무 leaf/전역 V1~V9로 재작성했다. Auth·첨부·독립 Studio SQL은 보존한다. Operations는 loopback 8082의 독립 공지·이벤트·문의/답변 CRUD와 전용 서비스 토큰 인증, operations schema/Flyway/JPA 설정을 소스 구현했고, 신고·회원·관리자·고객지원 문의는 회원 Bearer API로 프런트·Core·Content와 연결했다. hosted CI·실제 DB 전환·게시/배포는 대기다. 현재 정본은 [서비스 경계](design/service-boundaries.md)와 [이관 계약](design/content-service-migration-contract.md)이다. **아래 본문은 분리 전 구현의 역사적 설명으로, Core 소유·JSONB importer·통합 migration 경로·세 이미지 안내를 현재 실행 지침으로 사용하지 않는다.**
 
 ## 운영 서비스의 현재 범위
 
-[Operations API 인계](../backend/operations-service/README.md)는 `/api/v1/operations/{notices,events,inquiries}` 및 문의 하위 답변의 UUID CRUD를 정의한다. 각 리소스의 `Controller → Service → JpaRepository`와 명시적 DTO를 사용하고 `X-Operations-Service-Token`으로 모든 운영 접근을 보호한다. 설정이 없거나 공백뿐이면 거절하며 서비스 자격을 사람의 관리자·회원 신원/소유권으로 해석하지 않는다. 이 서비스 토큰 CRUD는 브라우저에 노출하지 않는다. 브라우저용 `/api/v1/operations/{reports,members,admins,support,admin/notices,admin/events}`는 회원 Bearer를 Core `POST /internal/v1/auth/verify`로 확인하고 관리자 업무 권한은 `admin_permission`으로 판단하며([신고·회원·관리자 계약](design/operations-member-report-contract.md), [고객지원 문의 계약](design/operations-support-inquiry-contract.md)), `/api/v1/operations/public/{notices,events}`는 인증 없는 공지·이벤트 조회(GET)다([운영 공지 계약](design/operations-notice-contract.md), [운영 이벤트 계약](design/operations-event-contract.md)). nginx/Vite는 이 경로만 운영 서비스로 보내고 서비스 토큰 경로는 열지 않는다.
+[Operations API 인계](../backend/operations-service/README.md)는 `/api/v1/operations/{notices,events,inquiries}` 및 문의 하위 답변의 UUID CRUD를 정의한다. 각 리소스의 `Controller → Service → JpaRepository`와 명시적 DTO를 사용하고 `X-Operations-Service-Token`으로 모든 운영 접근을 보호한다. 설정이 없거나 공백뿐이면 거절하며 서비스 자격을 사람의 관리자·회원 신원/소유권으로 해석하지 않는다. 이 서비스 토큰 CRUD는 브라우저에 노출하지 않는다. 브라우저용 `/api/v1/operations/{reports,members,admins,support,works,comments,admin/notices,admin/events,admin/activities}`는 회원 Bearer를 Core `POST /internal/v1/auth/verify`로 확인하고 관리자 업무 권한은 `admin_permission`으로 판단하며([신고·회원·관리자 계약](design/operations-member-report-contract.md), [고객지원 문의 계약](design/operations-support-inquiry-contract.md), [운영 작품 조회 계약](design/operations-work-contract.md), [운영 댓글 조회·조치 계약](design/operations-comment-contract.md), [관리자 활동 기록 계약](design/operations-admin-activity-contract.md)), `/api/v1/operations/public/{notices,events}`는 인증 없는 공지·이벤트 조회(GET)다([운영 공지 계약](design/operations-notice-contract.md), [운영 이벤트 계약](design/operations-event-contract.md)). nginx/Vite는 이 경로만 운영 서비스로 보내고 서비스 토큰 경로는 열지 않는다.
 
-기존 PostgreSQL에서 `operations` schema와 `operations.operations_flyway_schema_history`를 독립 소유한다. V1 공지·V2 이벤트·V3 문의/답변·V4 관리자 권한·V5 신고·V6 문의 작성 회원을 운영 location에서 적용하고 다른 서비스 이력을 재실행하지 않는다. JPA `validate`/UTC/`@Version`, 기본 20·최대 100개 고정 정렬 목록과 안전한 400/404/409를 사용한다. 고객지원 문의 처리 상태는 답변 유무로 계산한다. 공개 게시·이벤트 진행 상태·문의 답변 알림은 제외한다.
+기존 PostgreSQL에서 `operations` schema와 `operations.operations_flyway_schema_history`를 독립 소유한다. V1 공지·V2 이벤트·V3 문의/답변·V4 관리자 권한·V5 신고·V6 문의 작성 회원·V7 관리자 활동 기록을 운영 location에서 적용하고 다른 서비스 이력을 재실행하지 않는다. JPA `validate`/UTC/`@Version`, 기본 20·최대 100개 고정 정렬 목록과 안전한 400/404/409를 사용한다. 고객지원 문의 처리 상태는 답변 유무로 계산한다. 공개 게시·이벤트 진행 상태·문의 답변 알림은 제외한다.
 
 선택 순수 단위만 로컬 실행하며 Spring/HTTP/PostgreSQL/Flyway 통합은 CI의 Operations job에서 격리 DB로 실행하도록 구성한다. 실제 hosted `Required CI` 결과와 DB 적용·배포는 아직 확인하지 않았고 기능표는 ❌를 유지한다. 아래 기존 Core/Content 본문은 상단 고지대로 분리 전 역사 설명이다.
 
@@ -18,19 +18,16 @@
 
 콘텐츠 저장은 작품·세계관 연결 이력·회차 버전·발행 사건·Fork 기준점·AI 선택/적용 관계로 정규화했습니다. 조회 VIEW가 현재 상태를 계산하며 이전 `content_work` JSONB는 이관 백업입니다. [물리 대응과 보존 경계](content-erd-migration.md)를 참고하세요.
 
-> 현재 Content의 실제 코드 추출·8081 라우팅과 Operations의 독립 CRUD·8082 서비스 자격/저장은 위 현재 소스 상태 및 각 서비스 README를 따릅니다. Operations는 Compose·공개 proxy·배포에 연결하지 않습니다. 목표는 [DEC-41의 Core·콘텐츠·운영·AI 4개 서비스](design/service-boundaries.md)이며 아래 연결 구조는 분리 전 상태를 유지합니다.
-
-STORYFORK 화면 데모와 Core·AI 연결 확인, Core의 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공하는 개발 기반입니다. 선택적 `/content` React 작업실과 `/studio/{UUID}`는 Core 콘텐츠 API를 사용하며 Core가 PostgreSQL 정본 및 AI Service `/internal/v1/proposals` 요청을 소유합니다. 나머지 목업 화면과 구분하며 상세 범위·검증 한계는 [콘텐츠 통합 안내](content-integration.md)를 참고하세요. 실제 약관·동의와 회원 탈퇴의 최종 처리(콘텐츠 삭제·익명화)는 미구현이므로 운영 가입용이 아닙니다.
-서비스 책임을 분리한 MSA 구조입니다. Frontend는 TypeScript로 Clean Architecture·MVVM을 따르고,
-백엔드는 기능 중심 레이어드 구조를 유지합니다.
+STORYFORK 화면 데모와 Core·AI 연결 확인, Core의 이메일 가입·인증, 로그인·세션, 비밀번호 복구·프로필 API를 제공하는 개발 기반입니다. `/content` React 작업실과 `/studio/{UUID}`의 콘텐츠 API, PostgreSQL 콘텐츠 정본 및 AI Service `/internal/v1/proposals` 요청은 Content가 소유합니다. 상세 범위·검증 한계는 [콘텐츠 통합 안내](content-integration.md)를 참고하세요.
+Frontend는 TypeScript로 Clean Architecture·MVVM을 따르고, 백엔드는 [DEC-41의 서비스 책임](design/service-boundaries.md) 안에서 기능 중심으로 구성합니다.
 
 ```text
-Browser → React Web → 공개 Core API → 내부 FastAPI AI Service
-             /api       /api/v1/health       /internal/v1/health
-                        /api/v1/health/ai-service
+Browser → React Web → /api
+  ├─ Core → AI Service GET /internal/v1/health
+  └─ Content → AI Service POST /internal/v1/proposals
 ```
 
-사용자가 명시적으로 생성할 때 AI Service에서 OpenAI Responses API를 호출합니다. 개인 브랜치의 모델 설정은 팀 전체 모델 선정 결정과 구분합니다. 새 Agent 프레임워크·그래프 DB는 도입하지 않았습니다.
+사용자가 명시적으로 생성할 때 AI Service에서 OpenAI Responses API를 호출합니다. 팀의 모델·에이전트 프레임워크 결정은 [결정 기록](design/decisions.md#미결-사항)을 따릅니다.
 키 없이 시작하며 Health는 OpenAI 인증·모델 접근·생성 검증이 아닙니다.
 가입 후보·회원·refresh 세션·복구/이메일 변경 challenge 저장에 PostgreSQL·Flyway, 로컬 메일 확인에 Mailpit을 사용합니다. SMTP는 가입 인증·비밀번호 복구·이메일 변경에 사용하며, 가입 인증은 24시간, 복구·이메일 변경 challenge는 1시간 유효합니다. Content는 같은 PostgreSQL에서 별도 `content_schema_history`로 콘텐츠를 저장합니다. 비공개 콘텐츠 API는 JWT Bearer 인증을 요구하고 공개 작품은 GET만 익명으로 조회합니다. Redis·큐·worker·운영 seed는 없습니다.
 
@@ -78,7 +75,7 @@ Auth 영속성은 5개 JPA Entity와 Spring Data `JpaRepository`의 파생 쿼�
 
 회원 탈퇴 요청은 `auth/controller → WithdrawalService → JpaRepository`가 `auth_withdrawal`(Flyway V7, `db/migration/auth`)에 요청·30일 유예·복구 상태만 기록하고 refresh 세션을 폐기합니다. 콘텐츠 소프트 삭제(DEC-42)·익명화와 유예 만료 후 최종 처리는 콘텐츠 서비스와의 계약이 확정된 뒤 후속으로 연결합니다.
 
-알림함(#89)은 `notification/controller → NoticeService → JpaRepository`로 Auth와 분리된 `notification`·`notification_preference` 테이블에 저장합니다. Flyway는 Auth와 같은 `flyway_schema_history`를 공유하고 `db/migration/notification`(V5~)을 추가로 읽으며, 회원이 삭제되면 알림·설정도 함께 삭제됩니다(`ON DELETE CASCADE`). 조회·읽음·삭제 API와 분류별 수신 설정, 서버 내부 생성(`NoticeService.create`), 웹 알림함·배지·설정 화면의 Core API 연결, 알림 저장 커밋 후 본인에게 보내는 SSE 변경 신호(`GET /api/v1/me/notifications/stream`, 단일 Core 인스턴스 전제, 신호를 받으면 프론트가 DB에서 재조회)까지입니다. RabbitMQ outbox·소비자와 모바일 푸시는 후속 범위입니다.
+알림함(#89)은 `notification/controller → NoticeService → JpaRepository`로 Auth와 분리된 `notification`·`notification_preference` 테이블에 저장합니다. Flyway는 Auth와 같은 `flyway_schema_history`를 공유하고 `db/migration/notification`(V5~)을 추가로 읽으며, 회원이 삭제되면 알림·설정도 함께 삭제됩니다(`ON DELETE CASCADE`). 조회·읽음·삭제 API와 분류별 수신 설정, 서버 내부 생성(`NoticeService.create`), 웹 알림함·배지·설정 화면의 Core API 연결, 알림 저장 커밋 후 본인에게 보내는 SSE 변경 신호(`GET /api/v1/me/notifications/stream`, 단일 Core 인스턴스 전제, 신호를 받으면 프론트가 DB에서 재조회)까지입니다. RabbitMQ 사건 소비자(`NoticeEventListener`)와 Core Outbox·발행기(`notification_outbox` V11, `NoticeOutboxRelay`)는 구현돼 있으나 Core가 직접 만드는 사건은 아직 연결하지 않았고(계약은 [알림 사건 계약](notification-event-contract.md)), 모바일 푸시는 후속 범위입니다.
 
 `_common`에는 HTTP 연결 설정 검증·RestClient·통신 실패 분류·안전한 ProblemDetail·전역 CORS와 여러 콘텐츠 기능에서 공유하는 실패·식별자 계약이 있습니다.
 Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 않은 HTTP 상태는 502입니다.
@@ -114,18 +111,18 @@ MinIO는 local·개발 배포 compose에 항상 포함된 소스 빌드 runtime�
 
 ### 작품 표지·본문 이미지 (#92)
 
-`attachment/controller → AttachmentService → JPA repository / 기존 S3 client`가 표지·회차 이미지 정본을 관리합니다. 별도 production 의존성·실행 계층을 추가하지 않고 attachment의 bounded Hikari pool·EntityManager를 재사용합니다. `content_image`(회차 0 = 단일 표지, 양수 = 불변 회차 이미지)와 별도 `content_image_schema_history`만 추가하며 기존 Auth·Content·설정 첨부 migration은 보존합니다.
+`attachment/controller → AttachmentService → JPA repository / 기존 S3 client`가 표지·회차 이미지 정본을 관리합니다. 별도 production 의존성·실행 계층을 추가하지 않고 attachment의 bounded Hikari pool·EntityManager를 재사용합니다. `content_image`(회차 0 = 단일 표지, 양수 = 불변 회차 이미지, V2 `alt_text` = 이미지별 대체 텍스트)와 별도 `content_image_schema_history`만 추가하며 기존 Auth·Content·설정 첨부 migration은 보존합니다.
 
 원고의 `[[image:<UUID>]]` 참조가 삽입 위치와 불변 bytes를 연결합니다. Core는 동일 작품·회차의 참조만 저장하고 공개 download는 기존 공개 회차 본문에 실제 포함된 marker로 제한합니다. inherited 원고는 기존 고정 본문의 참조만 허용하며 새로운 Fork 공유 정책은 추가하지 않습니다. 표지 변경/삭제의 미참조 object는 모호한 DB commit 때 기존 bytes 손실을 피하도록 비공개 버킷에 남을 수 있고 자동 정리 worker는 없습니다. 상세 [표지·원고 계약](../backend/core-api/README.md#작품-표지원고-이미지-92)을 따릅니다.
 
-Frontend의 공유 `MediaPanel/useMediaViewModel → MediaUseCase → HttpMediaRepository`가 실제 UUID 대상으로 인증 multipart/bytes를 전송합니다. View에서 Repository를 호출하지 않으며 이미지 Blob URL은 교체·이탈 때 해제합니다. `/content`의 생성 표지·기존 표지·설정 첨부 및 `/studio/{UUID}`의 커서 이미지·저장 버전 미리보기·텍스트 전용 TXT에 연결하고 기존 이름 기반 데모에는 서버 미저장 안내를 둡니다. 실패한 표지/첨부 요청은 기존 데이터와 생성된 작품을 보존하며 성공 fallback을 두지 않습니다.
+Frontend의 공유 `MediaPanel/useMediaViewModel → MediaUseCase → HttpMediaRepository`가 실제 UUID 대상으로 인증 multipart/bytes를 전송합니다. View에서 Repository를 호출하지 않으며 이미지 Blob URL은 교체·이탈 때 해제합니다. `/content`의 생성 표지·기존 표지·설정 첨부 및 `/studio/{UUID}`의 커서 이미지·저장 버전 미리보기·회차 이미지 목록/대체 텍스트/본문에서 빼기·서버 TXT·EPUB 내보내기([원고 가져오기·내보내기 계약](design/manuscript-import-export-contract.md))에 연결하고 기존 이름 기반 데모에는 서버 미저장 안내를 둡니다. 실패한 표지/첨부 요청은 기존 데이터와 생성된 작품을 보존하며 성공 fallback을 두지 않습니다.
 
 ## AI Service
 
-`app/main.py`가 Health·generation router를 조립합니다. 내부 인증된 생성 요청에서만 OpenAI를 호출하며 정본은 Core에서 반영합니다.
+`app/main.py`가 기능별 Health·generation Router를 조립합니다. Core는 AI Health를 확인하고, Content는 권한과 기준 버전을 확인한 뒤 내부 생성 API를 호출합니다. AI는 제안과 모델 사용량을 반환하고 Content는 제안 저장·채택·원고 반영을 담당합니다.
 시작 시 모델 클라이언트를 만들지 않습니다. 생성 요청에서만 AI 런타임의 키·모델·내부 토큰 설정을 사용합니다.
-향후 합의된 AI 기능은 필요한 `router → service → agent → OpenAI` 흐름으로 추가합니다.
-상세는 [Agent 구현 경계](../backend/ai-service/docs/agent-structure.md)를 따릅니다.
+단일 모델 호출은 `Router → 실행 함수 → 모델 SDK`로 구성합니다. 검색·검증을 조율하거나 실행 상태를 여러 단계에서 갱신해야 할 때 기능 안에서 필요한 실행 서비스·그래프를 추가합니다.
+상세는 [AI Service 구현 경계](../backend/ai-service/docs/agent-structure.md)를 따릅니다.
 
 ## 실행·보안 경계
 
@@ -163,6 +160,6 @@ OpenAI 설정을 사용할 때도 AI 런타임만 받고 Core·Frontend·build A
 
 콘텐츠는 별도 JPA 영속성 단위와 `contentTransactionManager`를 사용하고, Auth는 기존 JDBC 트랜잭션을 유지합니다. 작품·원작의 행 잠금을 ID 순서로 획득하고 오래된 1차 캐시를 갱신한 뒤 revision을 비교합니다. 저장·복원·제안 반영은 각 유스케이스 트랜잭션에서 원자적으로 처리합니다. AI 요청은 짧은 준비 트랜잭션과 결과 검증 트랜잭션 사이에서 실행하며 외부 호출 동안 DB 트랜잭션을 유지하지 않습니다.
 
-SQL 위치는 `db/migration/auth`와 `db/migration/content`이며 기존 `flyway_schema_history`·`content_schema_history`를 유지합니다. 공통 콘텐츠 과거 이력은 분할·재실행하지 않으며 Hibernate는 스키마를 변경하지 않습니다. V5의 JDBC는 이관 전용 패키지에 격리합니다. 회차 삭제 정책·전체 세계관/그래프 체크포인트는 미확정 범위로 남깁니다. 실제 검증 상태는 [#84 대응](issue-84-content-boundaries.md)에 기록합니다.
+SQL 위치는 `db/migration/auth`와 `db/migration/content`이며 기존 `flyway_schema_history`·`content_schema_history`를 유지합니다. 공통 콘텐츠 과거 이력은 분할·재실행하지 않으며 Hibernate는 스키마를 변경하지 않습니다. V5의 JDBC는 이관 전용 패키지에 격리합니다. 회차 삭제는 DEC-42(소프트 삭제)와 [UC-10](usecase-spec/UC-10.md)을 따르고, 회차 순서 변경 정책·전체 세계관/그래프 체크포인트는 미확정 범위로 남깁니다. 실제 검증 상태는 [#84 대응](issue-84-content-boundaries.md)에 기록합니다.
 
 Content 세계관의 `world.entity`·`world.repository`와 독립 WorldStudio의 `world.studio.entity`·`world.studio.repository`는 별도 JPA 스캔 범위입니다. Content의 `WorldRepository`(String)와 WorldStudio의 `StudioWorldRepository`(UUID)를 구분하며, WorldStudio 비활성 시 Content에 독립 스키마를 요구하지 않습니다. 공존 검증은 현재 WorkService·WorldService와 WorldStudioService로 수행합니다.

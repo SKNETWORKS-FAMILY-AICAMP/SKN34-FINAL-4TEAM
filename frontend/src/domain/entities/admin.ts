@@ -2,6 +2,7 @@
 type AdminUser = { id: string; nick: string; email: string; role: string; status: string; joined: string }
 type AdminJob = { id: string; name: string; status: string; last: string }
 type AdminAccount = { id: string; nick: string; email: string; permissions: string[]; created: string }
+/** 데모 조치 기록. at은 ISO 시각이며 활동 기록 탭(72)은 이를 메모리 AdminActivity로 바꿔 보여 줍니다. */
 type AuditEntry = { at: string; actor: string; action: string; detail: string }
 type Flagged = { id: string; title: string; owner: string; kind: string; rights: string; fork: string; reports: number; state: string; log: string[] }
 export type AdminComment = { id: string; work: string; workId: string; author: string; text: string; likes: number; status: string }

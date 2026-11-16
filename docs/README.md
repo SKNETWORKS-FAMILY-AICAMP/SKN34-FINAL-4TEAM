@@ -10,12 +10,12 @@
 
 | 문서 | 확인할 내용 |
 |---|---|
-| [기획서](<deliverables/SKN34-final-4Team_기획서.pdf>) | 기획 기준 v1.4: 문제 정의, 사용자, 핵심 기능, 비용·권리 방향 |
+| [기획서](<deliverables/SKN34-final-4Team_기획서.pdf>) | 기획 기준 v1.5: 문제 정의, 사용자, 핵심 기능, 비용·권리 방향 |
 | [요구사항 정의서](<deliverables/SKN34-final-4Team_요구사항정의서.xlsx>) · [기능 ID 색인](requirements.md) | 원본 요구사항과 Markdown으로 옮긴 기능 ID 색인 |
 | [WBS](deliverables/SKN34-final-4Team_WBS.xlsx) | 일정·작업 분해 |
 | [화면 설계서](<deliverables/SKN34-final-4Team_화면설계서.pdf>) | 화면 구성·흐름 |
 | [시스템 구상도](<deliverables/SKN34-final-4Team_시스템 구상도.pdf>) · [AI 시스템 아키텍처](<deliverables/SKN34-final-4Team_AI 시스템 아키텍처.pdf>) | 제출용 시스템·AI 구성도 |
-| [중간발표 자료](deliverables/) | 버전별 발표 PPT와 미리보기 PDF |
+| [산출물 안내](deliverables/README.md) | 산출물 목록, 중간발표 최종본(v36)과 발표 보조 자료 |
 
 ## 유스케이스·화면
 
@@ -30,12 +30,16 @@
 
 | 문서 | 확인할 내용 |
 |---|---|
-| [결정 기록](design/decisions.md) | DEC-01~41 아키텍처·정책 결정과 우선순위 |
+| [결정 기록](design/decisions.md) | DEC-01~45 아키텍처·정책 결정과 우선순위 |
 | [서비스 구조(DEC-41)](design/service-boundaries.md) | Core·콘텐츠·운영·AI 4개 서비스의 책임·데이터·실행 구조 |
 | [콘텐츠 서비스 이관 계약](design/content-service-migration-contract.md) | Core → Content 이관 범위, 인증 연동, 마이그레이션 소유 |
 | [MVP 설계](design/design.md) | MVP 포함·제외 범위, 저장 방향 |
 | [서비스별 설계](design/services/core-api.md) | [Core](design/services/core-api.md) · [AI](design/services/ai-service.md) · [Frontend](design/services/web.md) · [인프라](design/services/infrastructure.md) 목표 설계 |
 | [WorldStudio 관계 계약](design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132) | Neo4j 현재 관계 정본, PG 메타데이터, 재시도·실패 경계(#132) |
+| [공개 세계관 계약(DEC-45·46·47)](design/public-world-contract.md) | 세계관 단위 공개·비공개, 비로그인 읽기 전용 공개 목록·상세 API(공개 설정 카드만), 소유자 표지 업로드, 세계관-소설 1:1 연결, 독자 설정 위키, 설정 가져오기·인물 문서의 카드 메타데이터, 한계 |
+| [원고 기본 서식 계약(DEC-48)](design/manuscript-format-contract.md) | 집필실 Toast UI 편집기와 원고 기본 서식(굵게·기울임·소제목·인용·구분선)의 문법·검증 표, 화면·내보내기별 동작, 한계 |
+| [초기 세계관 AI 전처리 v1](design/initial-world-preprocessing/README.md) | 계약·JSON Schema·홍길동전 fixture. 실제 분석·검토·반영 기능은 후속 구현 |
+| [회차 원고 전처리](design/manuscript-preprocessing-contract.md) | DEC-50: AI 서비스 Celery 실행, Content MCP 적재, 실행 승인 후 자동 적재·적재 후 수정. 미구현 |
 
 ## 데이터
 
@@ -75,6 +79,7 @@
 | [이슈 #50 대응](issue-50-alignment.md) | 회차 생성·원고 관리 구현 진행 기록 |
 | [PR #86 차이 기록](design/worldstudio-independent-schema-pr86-delta.md) | PR #86 설계와 독립 초기 스키마 비교 |
 | [PR #98 JPA 검증 기록](design/worldstudio-jpa-verification.md) | WorldStudio의 Core 기본 JPA 재사용 검증 |
+| [WorldStudio 후속 이슈 재평가(2026-11-09)](worldstudio-followup-status-20261109.md) | 11-09 기준 후속 이슈별 소스 대조·유효성 판정 |
 | [회차 삭제 정책 초안](episode-deletion-policy-draft.md) | 정책 확정 전 이슈 초안 |
 | [이전 설계: KAG](design/archive/kag-design/design.md) · [RDB MVP](design/archive/rdb-mvp/design.md) | 현재 설계 이전의 아키텍처안 |
 | [WorldStudio 콘텐츠 확장안](archive/worldstudio-content-extension/README.md) | 폐기된 Content 확장 스키마 원본 보관 |

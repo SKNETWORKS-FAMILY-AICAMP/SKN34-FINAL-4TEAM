@@ -7,6 +7,7 @@ import { checkProfile } from '../../../../domain/entities/account'
 import { eventStatus, type EventPeriod } from '../../../../domain/entities/event'
 import { OperationsError } from '../../../../domain/entities/operations'
 import type { AccountUseCase } from '../../../../domain/usecases/AccountUseCase'
+import type { CreditLedgerUseCase } from '../../../../domain/usecases/CreditLedgerUseCase'
 import type { EventUseCase } from '../../../../domain/usecases/EventUseCase'
 import type { NoticeUseCase } from '../../../../domain/usecases/NoticeUseCase'
 import type { SupportInquiryUseCase } from '../../../../domain/usecases/SupportInquiryUseCase'
@@ -23,6 +24,7 @@ export function useAccountViewModel(
   supportInquiryUseCase: SupportInquiryUseCase = appContainer.resolve('supportInquiryUseCase'),
   noticeUseCase: NoticeUseCase = appContainer.resolve('noticeUseCase'),
   eventUseCase: EventUseCase = appContainer.resolve('eventUseCase'),
+  creditLedgerUseCase: CreditLedgerUseCase = appContainer.resolve('creditLedgerUseCase'),
 ) {
   const { role, user } = useAppSelector((s) => s.session)
   const restoring = useContext(RestoreContext)
@@ -73,8 +75,10 @@ export function useAccountViewModel(
   }), [accountUseCase, noticeUseCase, eventUseCase, sub, noticeId, eventKey])
   // 내 문의: 로그인한 회원의 문의하기 화면에서만 실제 목록을 읽습니다. 로딩·실패·빈 목록은 화면이 구분합니다.
   const mine = useAsyncData(async () => sub === 'inquiry' && role ? supportInquiryUseCase.listMine() : [], [supportInquiryUseCase, sub])
+  // 결제 내역(U33): 로그인한 회원의 보유 크레딧과 지급·사용·소멸 내역을 Core 크레딧 API로 읽습니다. 로딩·실패·빈 내역은 화면이 구분합니다.
+  const credit = useAsyncData(async () => sub === 'pay' && role ? creditLedgerUseCase.overview() : null, [creditLedgerUseCase, sub])
   return {
-    role, user, profileState, saving, pendingEmail, profileError, profileErrors, profileNotice, asking, inquiry, mine, restoring, data: data?.sub === sub ? data : undefined,
+    role, user, profileState, saving, pendingEmail, profileError, profileErrors, profileNotice, asking, inquiry, mine, credit, restoring, data: data?.sub === sub ? data : undefined,
     loadFailed: isError, retryLoad: retry,
     /** 이벤트 기간으로 계산한, 지금 시각 기준 진행 상태(브라우저 시계). */
     eventStatusNow: (event: EventPeriod) => eventStatus(event, new Date()),

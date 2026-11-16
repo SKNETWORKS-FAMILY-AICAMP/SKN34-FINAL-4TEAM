@@ -1,0 +1,52 @@
+{
+  "combined": {
+    "file": "eight-chapters.ko.draft.md",
+    "bytes": 243493,
+    "sha256": "E073BAB71E665B5BA6C8B682255FA7C4A74139A9F9B826B42FEC4402A904D10D"
+  },
+  "historical_end": 1871,
+  "status": "Eight historical prose chapters drafted; expert review pending",
+  "source_sha256": "97277EF88CF95A91DEC6A4AB428067480666753D89E8D64CDF2FAF4F04FD4509",
+  "chapters": [
+    {
+      "file": "01-earlier-kings.ko.draft.md",
+      "bytes": 46576,
+      "sha256": "086B89C496518DF1102BECEE12CE51488F288A95E556EA2CF982CE572121FB45"
+    },
+    {
+      "file": "02-medieval-france.ko.draft.md",
+      "bytes": 41820,
+      "sha256": "ED1F0AA93BCE7CF595E36FB61651D264137A9E7369D4BFE9DA9774CA7648CC1B"
+    },
+    {
+      "file": "03-struggle-with-burgundy.ko.draft.md",
+      "bytes": 14914,
+      "sha256": "0C434BFC86410AE61F23D21EB5ECD730AC99FA55CC56EED905857C5A0F3B7F5F"
+    },
+    {
+      "file": "04-italian-wars.ko.draft.md",
+      "bytes": 18482,
+      "sha256": "7BAD4E8B2F28189A421D420095720DC4DF77C51CEDFEF6298C60518B189D958B"
+    },
+    {
+      "file": "05-wars-of-religion.ko.draft.md",
+      "bytes": 36477,
+      "sha256": "19BC33B0684F814C67BE494BC3B72E6C7645901B2B9E20FE861F3958C213EEB9"
+    },
+    {
+      "file": "06-power-of-the-crown.ko.draft.md",
+      "bytes": 41310,
+      "sha256": "A87CBC90B46E6574265C686A7D9B2C9336D4C26FC448D944834C0A61216D0304"
+    },
+    {
+      "file": "07-revolution.ko.draft.md",
+      "bytes": 29950,
+      "sha256": "3576566B5BC98310A654BEB89FEA969C7BF3357BD8AD4046D1DB382141840B7B"
+    },
+    {
+      "file": "08-france-since-revolution.ko.draft.md",
+      "bytes": 12201,
+      "sha256": "6D8D278F6313466A8D3C267B86F991159DDE4DB85F43D8734F07D8A5FFA0AA87"
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 package ai.storyfork.operations._common.exception
 
+import ai.storyfork.operations._common.client.UpstreamRejection
 import ai.storyfork.operations._common.service.dto.OperationsErrorResponse
 import jakarta.persistence.OptimisticLockException
 import jakarta.servlet.http.HttpServletRequest
@@ -51,6 +52,13 @@ class OperationsExceptionHandler {
             ResponseEntity.status(502).body(OperationsErrorResponse("UPSTREAM_FAILED", "Upstream service request failed."))
         }
         else -> ResponseEntity.status(error.statusCode).body(OperationsErrorResponse("REQUEST_FAILED", "Request could not be completed."))
+    }
+
+    /** Keeps the status and code a plain status exception would get, but shows the upstream's own message instead of the generic one. */
+    @ExceptionHandler(UpstreamRejection::class)
+    fun upstreamRejected(error: UpstreamRejection, request: HttpServletRequest): ResponseEntity<OperationsErrorResponse> {
+        val generic = responseStatus(error, request)
+        return ResponseEntity.status(generic.statusCode).body(OperationsErrorResponse(requireNotNull(generic.body).code, error.userMessage))
     }
 
     @ExceptionHandler(Exception::class)

@@ -1,0 +1,17 @@
+/* 아이콘 버튼이 여는 작은 메뉴. 버튼 모양·열리는 방향은 쓰는 화면이 정하고, 여기는 목록 상자와 항목만 그린다. 색은 읽기 토큰(--t*)을 읽고, 읽기 화면 밖에서는 :root의 기본값을 물려받는다. */
+.pop-menu { position: relative; display: inline-flex; }
+.pop-menu-btn { display: inline-grid; place-items: center; flex: none; padding: 0; border: 0; background: none; color: inherit; }
+.pop-menu-list { position: absolute; z-index: 20; display: grid; gap: 2px; width: max-content; min-width: 200px; max-width: min(280px, 90vw); padding: 8px; border: 1px solid var(--tline); border-radius: 16px; background: var(--tcard); color: var(--tfg); box-shadow: var(--sh-up); }
+.pop-menu-list [role="menuitem"] { display: flex; align-items: center; min-height: 40px; padding: 0 12px; border: 0; border-radius: 10px; background: none; color: inherit; font-size: 14px; font-weight: 600; text-align: left; text-decoration: none; white-space: nowrap; }
+.pop-menu-list [role="menuitem"]:hover:not(:disabled) { background: var(--muted-bg); }
+.pop-menu-list [role="menuitem"]:focus-visible { outline: 2px solid var(--tacc); outline-offset: -2px; }
+.pop-menu-list [role="menuitem"]:disabled { color: var(--tsub); cursor: not-allowed; }
+.pop-menu-list [role="menuitem"].danger:not(:disabled) { color: var(--danger); }
+/* 항목 안 작은 안내(예: 준비 중). 쓰는 화면의 목록 규칙(.seps small 등)이 줄을 바꾸거나 숨기지 못하게 값을 정한다. */
+.pop-menu-list [role="menuitem"] small { display: inline; margin-left: 6px; color: var(--tsub); font-size: 12px; font-weight: 600; }
+.pop-menu-list hr { margin: 4px 8px; border: 0; border-top: 1px solid var(--tline); }
+/* 항목 아래 사유(예: 삭제할 수 없는 이유) */
+.pop-menu-note { margin: 0; padding: 4px 12px 8px; color: var(--tsub); font-size: 12.5px; line-height: 1.5; white-space: normal; }
+@media (max-width: 600px), (pointer: coarse) {
+  .pop-menu-list [role="menuitem"] { min-height: 44px; }
+}

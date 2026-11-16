@@ -5,6 +5,7 @@ import ai.storyfork.content.attachment.service.dto.AttachmentErrorResponse
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -16,6 +17,7 @@ class AttachmentExceptionHandler {
     fun failure(e: AttachmentFailure) = ResponseEntity.status(e.status).body(AttachmentErrorResponse(e.code, e.message))
     @ExceptionHandler(ai.storyfork.content._common.exception.ContentFailure::class)
     fun content(e: ai.storyfork.content._common.exception.ContentFailure) = ResponseEntity.status(e.status).body(AttachmentErrorResponse("IMAGE_ACCESS_FAILURE", e.message))
-    @ExceptionHandler(MethodArgumentNotValidException::class)
+    /** 파일명·대체 텍스트 수정 JSON을 읽지 못한 경우도 업로드 검증과 같은 422로 안내한다. */
+    @ExceptionHandler(MethodArgumentNotValidException::class, HttpMessageNotReadableException::class)
     fun invalid() = ResponseEntity.unprocessableContent().body(AttachmentErrorResponse("ATTACHMENT_INVALID", "파일 입력을 확인해 주세요."))
 }

@@ -6,6 +6,8 @@ import ai.storyfork.core.auth.repository.SessionRepository
 import ai.storyfork.core.auth.repository.WithdrawalRepository
 import ai.storyfork.core.auth.service.dto.WithdrawalRequest
 import ai.storyfork.core.auth.service.dto.WithdrawalResponse
+import ai.storyfork.core.notification.domain.NoticeEventType
+import ai.storyfork.core.notification.service.NoticeOutboxService
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -24,6 +26,7 @@ class WithdrawalService(
     private val withdrawals: WithdrawalRepository,
     private val sessions: SessionRepository,
     private val passwords: PasswordEncoder,
+    private val notices: NoticeOutboxService,
 ) {
     /** 비밀번호를 확인한 뒤 유예 요청을 만들고 모든 refresh 세션을 폐기한다. 이미 진행 중이면 409, 비밀번호가 다르면 403이다. */
     @Transactional
@@ -37,6 +40,8 @@ class WithdrawalService(
             reason = request.reason?.trim()?.takeIf { it.isNotEmpty() },
         ))
         sessions.revokeAll(memberId)
+        // 같은 트랜잭션에서 알림 사건을 기록한다. 요청이 롤백되면 알림도 남지 않는다.
+        notices.enqueue(NoticeEventType.WITHDRAWAL_REQUESTED, memberId, saved.id.toString())
         return toResponse(saved)
     }
 

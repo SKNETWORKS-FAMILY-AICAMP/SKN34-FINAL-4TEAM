@@ -41,6 +41,9 @@ LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합�
 | `PATCH /api/v1/me` | Bearer 인증과 `nickname`; 변경한 회원 정보, 200 |
 | `POST /api/v1/me/email-change` | Bearer 인증과 새 `email`; 변경 확인 메일 요청, 202 |
 | `GET /api/v1/me/notifications` | Bearer 인증, 선택 `cursor`·`limit`(1~50, 기본 20); 본인 알림 최신순 `{"items":[…],"nextCursor"}`, 200 |
+| `GET /api/v1/me/notifications/{id}` | Bearer 인증; 알림 하나(읽음 처리는 하지 않음), 타인·삭제된 알림·UUID가 아닌 id는 404 |
+| `GET /api/v1/me/notifications/groups` | Bearer 인증, 선택 `limit`(1~50, 기본 20); 같은 종류·대상(`kind`·`targetType`·`targetId`) 알림 묶음 `{"items":[{"kind","targetType","targetId","count","unreadCount","latestAt","latestSummary"}]}`을 최근 도착순으로, 200. 대상이 없는 알림은 묶지 않으며 페이지 넘김은 아직 없음. 묶음 표시 기준 시간은 UC-27에서 미정이라 시간 제한 없이 묶음 |
+| `GET /api/v1/me/notifications/groups/items` | Bearer 인증과 `kind`·`targetType`·`targetId`, 선택 `limit`(1~50, 기본 20); 그 묶음의 개별 알림 최신순 `{"items":[…],"nextCursor":null}`, 200. 묶음이 `limit`보다 크면 최신 `limit`개만 반환하고 나머지는 이 API로 볼 수 없음(페이지 넘김은 아직 없음). 누락·잘못된 limit·알 수 없는 `kind`는 400 |
 | `GET /api/v1/me/notifications/unread-count` | Bearer 인증; 삭제하지 않은 미읽음 수 `{"count":N}`, 200 |
 | `PATCH /api/v1/me/notifications/{id}/read` | Bearer 인증; 읽음 처리(반복 호출도 204), 타인·삭제된 알림 404 |
 | `POST /api/v1/me/notifications/read-all` | Bearer 인증과 `upTo`; 그 시각 이전 도착분만 읽음, 204 |
@@ -48,26 +51,34 @@ LLMOps는 운영 영역이며 Langfuse 도입 시 별도 제품으로 배포합�
 | `GET /api/v1/me/notifications/stream` | Bearer 인증; SSE(`text/event-stream`). `ready`(연결·재연결 직후)와 `changed`(새 알림 저장 후)만 보내며 내용은 없음. 받으면 목록·미읽음 수를 다시 조회. 연결은 10분 뒤 끝나고 20초마다 `:ping`을 보냄 |
 | `GET /api/v1/me/notification-preferences` | Bearer 인증; 분류별 `{"items":[{"kind","enabled","mutable"}]}`, 200 |
 | `PUT /api/v1/me/notification-preferences` | Bearer 인증과 `items`; 읽기(`reading`)·창작(`creation`)만 변경, 그 외 분류 끄기·알 수 없는 분류·중복은 400 |
+| `GET /api/v1/me/credits` | Bearer 인증; 사용 가능한 크레딧 합계와 지급분별 남은 양·소멸 예정(소멸이 빠른 순) `{"total","items":[{"kind","remaining","expiresAt"}]}`, 200 |
+| `GET /api/v1/me/credits/history` | Bearer 인증; 본인의 지급·사용·소멸 내역 최신순 `{"items":[{"type":"grant"\|"spend"\|"expire","kind","amount","occurredAt"}]}`, 200 |
 | `POST /api/v1/me/withdrawal` | Bearer 인증과 현재 `password`, 선택 `reason`(300자 이하); 30일 유예 탈퇴 요청·모든 refresh 세션 폐기, 202. 비밀번호 불일치 403, 이미 진행 중 409 |
 | `GET /api/v1/me/withdrawal` | Bearer 인증; 진행 중이면 `{"status":"PENDING","requestedAt","dueAt"}`, 없으면 `{"status":"NONE"}`, 200 |
 | `DELETE /api/v1/me/withdrawal` | Bearer 인증; 유예 중인 탈퇴 요청 취소(복구), 204. 진행 중인 요청이 없으면 404, 유예 기한이 지난 요청은 복구할 수 없어 409 |
 
+AI 요청 속도 제한(F-CRD-05)은 `AiRateLimitService`(내부 서비스, HTTP 엔드포인트 없음)가 토큰 버킷으로 맡습니다. `tryAcquire(memberId, tokens)`가 회원별 분당 요청 수·토큰 수와 플랫폼 전체 분당 요청 수·토큰 수를 함께 확인해 모두 통과하면 한도를 가져가고, 하나라도 모자라면 아무것도 가져가지 않은 채 다시 시도할 시점(`retryAfter`)을 돌려줍니다. 한도 값은 `app.ai-rate-limit.user-requests-per-minute`(기본 20)·`user-tokens-per-minute`(60000)·`platform-requests-per-minute`(300)·`platform-tokens-per-minute`(600000)로 바꿀 수 있으며, 기본값은 임시입니다. 플랜별 한도는 플랜이 정해지지 않아 모든 회원에게 같은 값을 씁니다. 버킷 상태는 Core 인스턴스 메모리에만 있어서 재시작하면 초기화되고, 인스턴스를 여러 개로 늘리면 인스턴스마다 따로 적용되므로 단일 Core 인스턴스를 전제로 합니다. 아직 호출하는 쪽이 없고 AI 요청 토큰 수 산정 방식은 정해지지 않았습니다.
+
+AI 작업용 크레딧 예약·정산은 `CreditReservationService`(내부 서비스, HTTP 엔드포인트 없음)가 맡습니다. `reserve`가 상한만큼 지급분을 소멸이 빠른 순으로 잡아 두고, `settle`이 실제 사용량(상한 이하)만 차감하고 나머지를 돌려주며, `release`는 차감 없이 전부 돌려줍니다. 같은 `operationKey`로 다시 호출해도 한 번만 반영됩니다. 예약된 양은 잔액 합계와 지급분별 남은 양에서 빠지고, 예약이 끝나기 전에는 소멸 처리되지 않습니다. 아직 호출하는 쪽이 없고 작업 식별자 계약(#54)은 정해지지 않았습니다. 마이그레이션은 `V13__credit_reservation.sql`입니다. 예약을 닫는 것은 호출한 쪽의 몫이라, 작업이 비정상 종료되면 예약이 남아 그 크레딧이 잔액에서 빠진 채 소멸되지 않습니다. 오래된 예약은 `CreditReservationCleanupJob`이 `app.credit.reservation-cleanup.timeout`(기본 `PT1H`)보다 오래된 `RESERVED` 예약을 차감 없이 해제합니다(`poll-interval` 기본 `PT10M`, 한 번에 `batch-size` 100건). 해제된 예약은 정산할 수 없으므로 시간 기준은 AI 작업의 최대 실행 시간보다 길어야 하고, 그 값이 정해지지 않아 기본은 꺼져 있습니다(`app.credit.reservation-cleanup.enabled=false`). 첫 AI 호출자를 붙일 때 최대 실행 시간을 확인하고 켭니다.
+
 ### 내부 API (Content·운영 서비스 전용, nginx 비노출)
 
-[운영 회원·관리자 계약](../../docs/design/operations-member-report-contract.md)을 따릅니다. 모두 회원 Bearer가 필요합니다.
+[운영 회원·관리자 계약](../../docs/design/operations-member-report-contract.md)을 따릅니다. 닉네임 조회를 뺀 모두 회원 Bearer가 필요합니다.
 
 | 메서드·경로 | 서비스 자격 | 동작 |
 |---|---|---|
 | `POST /internal/v1/auth/verify` | `X-Content-Service-Token` 또는 `X-Operations-Service-Token` | `{memberId, operator}`. 없는 회원·이용 제한 회원 401 |
+| `POST /internal/v1/members/nicknames` | 〃 (사용자 Bearer 불필요) | `{ids: [uuid…]}`(최대 200개, 중복 무시) → `{nicknames: {<uuid>: 닉네임}}`. Content가 작성자·작가 표시명을 응답 때마다 조회한다. 없는 회원은 빠지고 이용 제한 회원은 포함하며, 잘못된 UUID·200개 초과는 400 |
+| `POST /internal/v1/ai-rate-limit/acquire`, `POST /internal/v1/credits/reservations`(`/settle`·`/release`) | 〃 (사용자 Bearer 불필요) | AI 작업용 속도 제한 확인과 크레딧 예약·정산·해제. 예약·정산·해제는 같은 `operationKey`로 다시 불러도 결과가 같고, `acquire`는 부를 때마다 한도를 쓴다. 잔액 부족 409 `INSUFFICIENT_CREDIT`, 없는 예약 404, 닫힌 예약 409, 규칙 위반 422. [크레딧 내부 API 계약](../../docs/design/credit-internal-api.md) |
 | `GET /internal/v1/members?role=ALL\|MEMBER\|ADMIN&q=&sort=newest\|oldest` | `X-Operations-Service-Token`만 | `{items: MemberItem[]}` 최대 200개, `q`는 닉네임·이메일 대소문자 무시 부분 일치 |
 | `PUT`·`DELETE /internal/v1/members/{id}/restriction` | 〃 | 이용 제한·해제 후 `MemberItem`. 자기 자신 400, 없는 회원 404 |
 | `POST /internal/v1/members/admins` | 〃 | `{email, nickname, password}`로 관리자 생성, 201 `MemberItem`. 중복 이메일 409 |
 
-`MemberItem = {id, email, nickname, role: "MEMBER"|"ADMIN", restricted, createdAt}`. 회원 API는 Bearer 회원이 이용 제한 상태면 401, 제한되지 않았지만 `operator=true`가 아니면 403입니다. 이용 제한 회원은 로그인(403, `code: "ACCOUNT_RESTRICTED"`)·refresh(401)·verify(401)가 거절되며, 이미 발급된 access JWT는 만료까지 Core 공개 API에 남습니다. 샘플 관리자는 `admin@example.test / StoryforkDev123!`(V8)입니다.
+`MemberItem = {id, email, nickname, role: "MEMBER"|"ADMIN", restricted, createdAt}`. 회원 API는 Bearer 회원이 이용 제한 상태면 401, 제한되지 않았지만 `operator=true`가 아니면 403입니다. 이용 제한 회원은 로그인(403, `code: "ACCOUNT_RESTRICTED"`)·refresh(401)·verify(401)가 거절되며, 이미 발급된 access JWT는 만료까지 Core 공개 API에 남습니다. 샘플 관리자는 `admin@example.test / StoryforkDev123!`(V8)입니다. 고전 원작 샘플의 소유 계정(`b1b09f26…`) 닉네임은 운영자처럼 보이지 않게 V10이 `운영팀`일 때만 `고전 아카이브`로 바꿉니다.
 
-탈퇴 요청은 계정 상태와 30일 유예 기한만 기록하며 유예 중에도 로그인해 복구할 수 있습니다. 작품·세계관 숨김·삭제·익명화, 유예 만료 후 최종 처리, 남은 크레딧·결제 내역 처리는 콘텐츠 서비스 계약과 정책이 정해진 뒤 연결하므로 아직 없습니다.
+탈퇴 요청은 계정 상태와 30일 유예 기한만 기록하며 유예 중에도 로그인해 복구할 수 있습니다. 유예 만료 후 Core 안의 최종 처리(계정을 "탈퇴한 회원"으로 익명화하고 이메일·비밀번호를 쓸 수 없게 바꾸며 세션·확인 요청을 지움, 요청은 `COMPLETED`)는 `app.withdrawal.completion.enabled=true`일 때만 `app.withdrawal.completion.poll-interval`(기본 `PT1H`, 한 번에 `batch-size` 50건)마다 실행하며 기본은 꺼져 있습니다. 실패하거나 처리되지 않은 요청은 `app.withdrawal.completion.retry-delay`(기본 `PT6H`) 동안 건너뛰어 뒤의 요청이 밀리지 않으며, 건너뛸 목록은 메모리에만 있어 재시작하면 비워집니다. 이용 제한 회원은 이미 발급된 토큰이 남아 있어도 닉네임을 바꾸거나 이메일 변경을 요청할 수 없습니다. 이메일 링크로 여는 비밀번호 재설정·이메일 변경 확인은 로그인 상태가 아니므로 예전처럼 동작합니다(이용 제한 회원의 재설정 허용 여부는 정책이 정해지면 정합니다). 탈퇴 사유는 그대로 두고, 이미 발급된 액세스 토큰이 남아 있어도 바로 막히도록 계정을 이용 제한 상태로 바꿉니다. 완료된 요청은 되돌릴 수 없고 Content의 작품은 정리하지 않으므로 Content 연동 전에는 켜지 않습니다. 작품·세계관 숨김·삭제·익명화, 남은 크레딧·결제 내역 처리, 같은 이메일 재가입 정책은 콘텐츠 서비스 계약과 정책이 정해진 뒤 연결하므로 아직 없습니다.
 
-알림 분류는 `reading`·`creation`(끌 수 있음), `result`·`credit`·`rights-security`(항상 수신)입니다. 모든 변경 요청은 CSRF 헤더가 필요하고 알림은 요청한 회원 본인 것만 보입니다. RabbitMQ·모바일 푸시는 아직 없습니다. SSE 연결 목록은 Core 인스턴스 메모리에 있으므로 단일 Core 인스턴스를 전제로 하며, 여러 인스턴스로 늘리면 인스턴스 간 신호 전달을 추가해야 합니다. 전송은 연결별 가상 스레드에서 직렬화하고 대기 신호는 종류별로 병합합니다. 전송이 5초를 넘으면 논리적으로 등록 해제하고 종료 처리를 호출자와 분리합니다. 이 기한은 막힌 Servlet 소켓의 물리적 종료를 보장하지 않으며, 실제 자원 회수에는 컨테이너의 쓰기 타임아웃이 필요합니다.
+알림 분류는 `reading`·`creation`(끌 수 있음), `result`·`credit`·`rights-security`(항상 수신)입니다. Core가 직접 만드는 알림은 크레딧 소멸 예정(매일 00:10 KST, 남은 크레딧이 `app.credit.expiry-notice.lead-time`(기본 `P3D`, 임시) 안에 소멸하면 소멸 날짜마다 한 번, `app.credit.expiry-notice.enabled` 기본 켜짐)과 탈퇴 요청(요청과 같은 트랜잭션)이며, 다른 사건과 같이 Outbox를 거쳐 발행됩니다. 모든 변경 요청은 CSRF 헤더가 필요하고 알림은 요청한 회원 본인 것만 보입니다. RabbitMQ·모바일 푸시는 아직 없습니다. SSE 연결 목록은 Core 인스턴스 메모리에 있으므로 단일 Core 인스턴스를 전제로 하며, 여러 인스턴스로 늘리면 인스턴스 간 신호 전달을 추가해야 합니다. 전송은 연결별 가상 스레드에서 직렬화하고 대기 신호는 종류별로 병합합니다. 전송이 5초를 넘으면 논리적으로 등록 해제하고 종료 처리를 호출자와 분리합니다. 이 기한은 막힌 Servlet 소켓의 물리적 종료를 보장하지 않으며, 실제 자원 회수에는 컨테이너의 쓰기 타임아웃이 필요합니다.
 
 가입 인증 링크는 24시간, 비밀번호 재설정·이메일 변경 링크는 1시간 유효하며 한 번만 사용할 수 있습니다. 가입 인증 화면은 fragment를 지운 뒤 비밀번호 입력과 명시적 확인을 기다리고, 이메일 변경 확인 화면은 기존처럼 토큰만으로 자동 진행합니다. SMTP는 가입 인증·비밀번호 복구·이메일 변경 메일에 사용합니다. 메일과 데이터베이스는 로컬 검증용이며 운영 SMTP·TLS 정책은 미정입니다.
 
@@ -131,6 +142,7 @@ JDK **21**에서 이 디렉터리를 기준으로 실행합니다.
 | `AUTH_PUBLIC_ORIGIN`, `AUTH_MAIL_FROM` | 필수 |
 | `AUTH_JWT_SECRET` | 필수, 32바이트 이상의 무작위 키를 Base64 인코딩 |
 | `AUTH_COOKIE_SECURE` | `true`; 로컬 HTTP 검증에서만 `false` |
+| `CREDIT_SIGNUP_TRIAL_AMOUNT` | `0`(가입 체험 크레딧을 지급하지 않음, 팀 결정 전); 양수면 가입을 완료한 회원에게 한 번 지급하고 30일 뒤 소멸. Compose는 이 값을 Core에만 전달 |
 
 Core는 AI Health만 호출합니다. 생성 전용 HTTP 클라이언트는 Content에 있습니다. AI 주소는 origin만 허용하고 양수 timeout을 검증하며 redirect를 따라가지 않습니다.
 `./gradlew bootRun`은 루트 `.env`를 자동으로 읽지 않습니다. 자동 설정 전달은 Compose를 사용합니다.
@@ -241,6 +253,8 @@ CI Content 통합 job이 임시 MinIO(`127.0.0.1:19087`)와 전용 `attachment_t
 자격증명·운영자 절차는 [WorldStudio 배포 문서](../../docs/deployment/worldstudio-v1-rollout.md)를 참고하세요.
 
 ## 작품 표지·원고 이미지 (#92)
+
+> 회차 이미지 목록·대체 텍스트(`content_image.alt_text`, contentimage V2)·공개 대체 텍스트 조회는 [원고 가져오기·내보내기 계약](../../docs/design/manuscript-import-export-contract.md) 5절을 따릅니다.
 
 기존 비공개 S3 client·바이트 검증·인증/CSRF와 bounded attachment connection pool을 재사용합니다. `attachment/controller → AttachmentService → JPA repository / AttachmentStorageClient`가 파일 정본을 소유하고 기존 Content 저장 구조를 전환하지 않습니다. `content_image`의 회차 0은 작품당 표지 하나, 양수는 실제 회차 이미지이며 새 Flyway leaf/history는 `db/migration/contentimage` / `content_image_schema_history`입니다. Auth·설정 첨부·이미지·독립 Studio SQL 바이트/history는 보존합니다. Content 업무 초기 스키마만 사용자 승인 fresh 이력으로 재작성했습니다.
 

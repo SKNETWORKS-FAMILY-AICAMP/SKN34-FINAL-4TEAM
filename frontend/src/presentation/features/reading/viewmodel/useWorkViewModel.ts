@@ -1,9 +1,12 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
-import { canReport } from '../../../../domain/entities/work'
+import { canReport, isPub } from '../../../../domain/entities/work'
+import { SessionExpired } from '../../../../domain/repositories/ProfileRepository'
 import type { ReadingUseCase } from '../../../../domain/usecases/ReadingUseCase'
+import type { WorkInterestUseCase } from '../../../../domain/usecases/WorkInterestUseCase'
 import { toast } from '../../../shared/events'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
@@ -12,23 +15,38 @@ import { useAsyncData } from '../../../shared/useAsyncData'
 import { useLook } from './useLook'
 
 /** 목업 work(id): 소설 상세 U04 */
-export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = appContainer.resolve('readingUseCase')) {
+export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = appContainer.resolve('readingUseCase'), interestUseCase: WorkInterestUseCase = appContainer.resolve('workInterestUseCase')) {
   const role = useAppSelector((s) => s.session.role)
   const memberId = useAppSelector((s) => s.session.memberId)
   const epSort = useAppSelector((s) => s.ui.epSort)
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const look = useLook()
   const { data, isError, retry } = useAsyncData(() => readingUseCase.getWork(id, role), [readingUseCase, id, role])
   const [query, setQuery] = useState('')
   const [reporting, setReporting] = useState(false)
+  // 관심 작품(기능 21-B)은 좋아요와 별개다. 비회원은 서버를 부르지 않고(버튼은 로그인 링크), 회원은 서버의 관심 목록으로 상태를 안다.
+  const workId = data?.work.id
+  const interest = useAsyncData(() => (role && workId ? interestUseCase.isInterested(workId) : Promise.resolve(false)), [interestUseCase, workId])
+  const [interestPending, setInterestPending] = useState(false)
+  // 회차별 누적 조회 수는 공개 상세 응답에만 있어 따로 읽습니다. 읽지 못하면 0회로 채우지 않고 수를 감춥니다.
+  const views = useAsyncData((signal) => (data ? readingUseCase.episodeViews(data.work, signal) : Promise.resolve(undefined)), [readingUseCase, workId])
+  /** 좋아요 요청이 진행 중인 동안 다시 누르지 못하게 합니다. */
+  const [liking, setLiking] = useState(false)
   // 목업 render(): 다른 작품으로 옮기면 회차 검색어(#epq)를 비우고, 열린 신고 시트도 닫습니다(이전 작품용 신고가 새 작품에 접수되지 않게).
   const [shown, setShown] = useState(id)
   if (shown !== id) { setShown(id); setQuery(''); setReporting(false) }
   useScreenId(data ? 'U04' : null)
 
+  // 회차 본문을 이어 붙여 만드는 값(공백을 뺀 글자 수·검색 대상 글)은 작품을 읽었을 때 한 번만 만든다. 렌더나 검색 입력마다 전 회차 본문을 다시 훑지 않는다.
+  const indexed = useMemo(() => (data?.visible ?? []).map(([e, i]) => ({
+    e, n: i + 1, chars: e.p.join('').replace(/\s/g, '').length, text: (i + 1 + '화 ' + e.t + ' ' + e.p.join(' ')).toLowerCase(),
+  })), [data])
   const v = query.trim().toLowerCase()
-  const ordered = data ? (epSort === 'new' ? data.visible.slice().reverse() : data.visible) : []
-  const episodes = ordered.map(([e, i]) => ({ e, n: i + 1, match: !v || (i + 1 + '화 ' + e.t + ' ' + e.p.join(' ')).toLowerCase().includes(v) }))
+  const ordered = epSort === 'new' ? indexed.slice().reverse() : indexed
+  // 서버 작품의 조회 수는 자체 회차에만 기록된다(Fork의 상속 회차는 원작 몫이라 수를 보이지 않음). 데모 작품은 시드의 e.views를 그대로 씁니다.
+  const inherited = data?.work.snap?.eps.length ?? 0
+  const episodes = ordered.map(({ e, n, chars, text }) => ({ e, n, chars, views: views.data && n > inherited ? (views.data[n] ?? 0) : e.views, match: !v || text.includes(v) }))
 
   return {
     /** undefined: 불러오는 중, null: 없거나 볼 수 없는 작품 */
@@ -40,11 +58,55 @@ export function useWorkViewModel(id: string, readingUseCase: ReadingUseCase = ap
     epSort,
     setSort: (s: 'old' | 'new') => dispatch(uiActions.setEpSort(s)),
     bandAmb: !look.dark && look.eff === 'world' && look.motion,
-    toggleLike: () => readingUseCase.toggleLike(data?.work.id ?? id).then((on) => {
-      dispatch(sessionActions.dataChanged())
-      toast(on ? '이 창의 관심 소설에 담았어요 · 계정에 저장되지 않아요' : '이 창의 관심 소설에서 뺐어요')
-    }),
-    share: () => toast('링크 공유는 데모예요 (실제 복사 없음)'),
+    /** 공개 작품에서만 관심 등록 버튼을 보입니다(서버도 공개 작품만 받습니다). */
+    canInterest: !!data && isPub(data.work),
+    isMember: !!role,
+    /** 서버 상태를 모르는 동안(undefined)은 버튼을 잠급니다. */
+    interested: interest.data,
+    interestBusy: interestPending || interest.isLoading || interest.isRefreshing,
+    toggleInterest: async () => {
+      if (!workId || interestPending) return
+      if (interest.data === undefined) { interest.retry(); toast('관심 상태를 다시 확인하고 있어요. 잠시 뒤 다시 눌러 주세요.'); return }
+      const on = !interest.data
+      setInterestPending(true)
+      try {
+        await interestUseCase.setInterested(workId, on)
+        dispatch(sessionActions.dataChanged())
+        toast(on ? '관심 소설에 담았어요' : '관심 소설에서 뺐어요')
+      } catch (error) {
+        toast(error instanceof Error ? error.message : '관심 작품을 바꾸지 못했어요.')
+      } finally { setInterestPending(false) }
+    },
+    /** 비회원이 관심 등록을 누르면 로그인 후 이 작품으로 돌아오도록 안내를 남깁니다. 이동은 로그인 링크가 맡습니다. */
+    requireLogin: () => { dispatch(sessionActions.requireLogin({ next: `/work/${id}`, msg: '관심 소설은 로그인한 뒤 담을 수 있어요.', role: 'user' })) },
+    likePending: liking,
+    /**
+     * 서버 작품은 회원의 좋아요를 Content에 보내고 결과를 다시 조회해 보입니다(낙관적 갱신 없음). 비로그인은 로그인 안내 후 이 작품으로
+     * 돌아오게 하고, 실패는 안내 문구로 알립니다. 데모 작품은 기존처럼 이 창의 메모리 관심 소설에 담습니다.
+     */
+    toggleLike: async () => {
+      if (!data || liking) return
+      const { work, liked } = data
+      if (work.canonical && !role) {
+        dispatch(sessionActions.requireLogin({ next: `/work/${id}`, msg: '좋아요는 로그인한 회원만 누를 수 있어요.', role: 'user' }))
+        navigate('/login')
+        return
+      }
+      setLiking(true)
+      try {
+        const on = await readingUseCase.toggleLike(work.id, { canonical: work.canonical, liked })
+        dispatch(sessionActions.dataChanged())
+        toast(on ? (work.canonical ? '좋아요를 눌렀어요' : '이 창에서만 좋아요를 눌렀어요 · 계정에 저장되지 않아요') : '좋아요를 취소했어요')
+      } catch (error) {
+        if (error instanceof SessionExpired) { dispatch(sessionActions.logout()); toast('세션이 만료됐어요. 다시 로그인해 주세요.') }
+        else toast(error instanceof Error && error.message ? error.message : '좋아요를 처리하지 못했어요. 잠시 후 다시 시도해 주세요.')
+      } finally { setLiking(false) }
+    },
+    /** 현재 소설 상세 주소를 클립보드에 복사합니다. 클립보드가 없거나(비보안 출처) 거부되면 주소를 보여 줍니다. */
+    share: async () => {
+      const url = window.location.href
+      try { await navigator.clipboard.writeText(url); toast('링크를 복사했어요') } catch { toast(`링크를 복사하지 못했어요 · ${url}`) }
+    },
     /** 남의 공개 작품에서만 신고 버튼을 보입니다. */
     canReport: !!data && canReport(data.work, memberId),
     reporting,

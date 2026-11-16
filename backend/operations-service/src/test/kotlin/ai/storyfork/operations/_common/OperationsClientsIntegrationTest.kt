@@ -3,8 +3,10 @@ package ai.storyfork.operations._common
 import ai.storyfork.operations._common.client.ContentClient
 import ai.storyfork.operations._common.client.CoreAdminRequest
 import ai.storyfork.operations._common.client.CoreClient
+import ai.storyfork.operations._common.client.UpstreamRejection
 import ai.storyfork.operations._common.client.operationsRestClient
 import ai.storyfork.operations.security.OperationsMember
+import ai.storyfork.operations.work.service.dto.OperationsWork
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -117,9 +119,116 @@ class OperationsClientsIntegrationTest {
             .andRespond(withSuccess(body.replace("true", "false"), MediaType.APPLICATION_JSON))
 
         val restricted = client.restrict(id)
-        assertEquals(owner, restricted.ownerId)
+        assertEquals(owner.toString(), restricted.ownerId)
         assertTrue(restricted.restricted)
         assertFalse(client.unrestrict(id).restricted)
         server.verify()
+    }
+
+    @Test
+    fun `Content work list sends only the service token parses OperationsWorkList and maps failure to 502`() {
+        val (client, server) = content()
+        val owner = "ops-list-owner"
+        val body = """
+            {"items":[{"workId":"$id","ownerId":"$owner","title":"작품","authorName":"작가","originKind":"fork",
+            "creationType":"external_derivative","rightsConfirmed":true,"visibility":"public","restricted":false}]}
+        """.trimIndent()
+        server.expect(requestTo("http://content.test/internal/v1/works")).andExpect(method(HttpMethod.GET))
+            .andExpect(header("X-Operations-Service-Token", token))
+            .andExpect { assertNull(it.headers.getFirst("Authorization")) }
+            .andRespond(withSuccess(body, MediaType.APPLICATION_JSON))
+
+        assertEquals(listOf(OperationsWork(id, owner, "작품", "작가", "fork", "external_derivative", true, "public", false)), client.works().items)
+        server.verify()
+
+        val (failing, failingServer) = content()
+        failingServer.expect(requestTo("http://content.test/internal/v1/works")).andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE))
+        assertEquals(502, status { failing.works() })
+    }
+
+    @Test
+    fun `fork integrity sends only the service token and parses the report`() {
+        val (client, server) = content()
+        val hash = "a".repeat(64)
+        server.expect(requestTo("http://content.test/internal/v1/works/$id/fork-integrity")).andExpect(method(HttpMethod.GET))
+            .andExpect(header("X-Operations-Service-Token", token))
+            .andExpect { assertNull(it.headers.getFirst("Authorization")) }
+            .andRespond(withSuccess("""{"basisEpisode":2,"forkHash":"$hash","sourceHash":"$hash","matches":true,"characterStateStatus":"unavailable"}""", MediaType.APPLICATION_JSON))
+
+        val report = client.forkIntegrity(id)
+        assertEquals(2, report.basisEpisode)
+        assertTrue(report.matches)
+        server.verify()
+    }
+
+    @Test
+    fun `fork integrity keeps Content's own failure text for 400 404 and 409 while other Content calls keep only the status`() {
+        val text = "원작의 고정 기준 기록을 확인할 수 없어요."
+        for (upstream in listOf(HttpStatus.BAD_REQUEST, HttpStatus.NOT_FOUND, HttpStatus.CONFLICT)) {
+            val (client, server) = content()
+            for (path in listOf("$id/fork-integrity", "$id")) {
+                server.expect(requestTo("http://content.test/internal/v1/works/$path"))
+                    .andRespond(withStatus(upstream).contentType(MediaType.APPLICATION_JSON).body("""{"detail":"$text"}"""))
+            }
+
+            val rejected = assertThrows(UpstreamRejection::class.java) { client.forkIntegrity(id) }
+            assertEquals(upstream.value(), rejected.statusCode.value(), upstream.toString())
+            assertEquals(text, rejected.userMessage, upstream.toString())
+            assertFalse(assertThrows(ResponseStatusException::class.java) { client.work(id) } is UpstreamRejection, upstream.toString())
+            server.verify()
+        }
+    }
+
+    @Test
+    fun `fork integrity maps Content failures other than 400 404 and 409 to 502 without the text`() {
+        for (upstream in listOf(HttpStatus.FORBIDDEN, HttpStatus.SERVICE_UNAVAILABLE)) {
+            val (client, server) = content()
+            server.expect(requestTo("http://content.test/internal/v1/works/$id/fork-integrity"))
+                .andRespond(withStatus(upstream).contentType(MediaType.APPLICATION_JSON).body("""{"detail":"private text"}"""))
+
+            val failure = assertThrows(ResponseStatusException::class.java) { client.forkIntegrity(id) }
+            assertEquals(502, failure.statusCode.value(), upstream.toString())
+            assertFalse(failure is UpstreamRejection, upstream.toString())
+        }
+    }
+
+    @Test
+    fun `Content comment calls send only the service token and parse non-UUID ids`() {
+        val (client, server) = content()
+        val row = """
+            {"commentId":"ops-comment-1","workId":"ops-work-1","workTitle":"작품","episodeNumber":3,"authorId":"ops-comment-author",
+            "authorName":"작가","body":"원문","likeCount":2,"hidden":false,"createdAt":"2026-11-10T01:02:03Z"}
+        """.trimIndent()
+        server.expect(requestTo("http://content.test/internal/v1/comments")).andExpect(method(HttpMethod.GET))
+            .andExpect(header("X-Operations-Service-Token", token))
+            .andExpect { assertNull(it.headers.getFirst("Authorization")) }
+            .andRespond(withSuccess("""{"items":[$row]}""", MediaType.APPLICATION_JSON))
+        server.expect(requestTo("http://content.test/internal/v1/comments/ops-comment-1/hidden")).andExpect(method(HttpMethod.PUT))
+            .andExpect(header("X-Operations-Service-Token", token))
+            .andExpect { assertNull(it.headers.getFirst("Authorization")) }
+            .andRespond(withSuccess(row.replace("\"hidden\":false", "\"hidden\":true"), MediaType.APPLICATION_JSON))
+        server.expect(requestTo("http://content.test/internal/v1/comments/ops-comment-1/hidden")).andExpect(method(HttpMethod.DELETE))
+            .andRespond(withSuccess(row, MediaType.APPLICATION_JSON))
+
+        val listed = client.listComments().items.single()
+        assertEquals("ops-comment-author", listed.authorId)
+        assertFalse(listed.hidden)
+        assertTrue(client.hideComment("ops-comment-1").hidden)
+        assertFalse(client.unhideComment("ops-comment-1").hidden)
+        server.verify()
+    }
+
+    @Test
+    fun `Content comment calls keep 404 and map other failures to 502`() {
+        for ((upstream, expected) in listOf(HttpStatus.NOT_FOUND to 404, HttpStatus.SERVICE_UNAVAILABLE to 502)) {
+            val (client, server) = content()
+            server.expect(requestTo("http://content.test/internal/v1/comments")).andRespond(withStatus(upstream))
+            server.expect(requestTo("http://content.test/internal/v1/comments/ops-comment-1/hidden")).andExpect(method(HttpMethod.PUT)).andRespond(withStatus(upstream))
+            server.expect(requestTo("http://content.test/internal/v1/comments/ops-comment-1/hidden")).andExpect(method(HttpMethod.DELETE)).andRespond(withStatus(upstream))
+
+            assertEquals(expected, status { client.listComments() }, upstream.toString())
+            assertEquals(expected, status { client.hideComment("ops-comment-1") }, upstream.toString())
+            assertEquals(expected, status { client.unhideComment("ops-comment-1") }, upstream.toString())
+        }
     }
 }

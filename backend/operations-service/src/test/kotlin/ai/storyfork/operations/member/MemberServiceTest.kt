@@ -2,6 +2,7 @@ package ai.storyfork.operations.member
 
 import ai.storyfork.operations._common.client.CoreAdminRequest
 import ai.storyfork.operations._common.client.CoreClient
+import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.member.entity.AdminPermissionEntity
 import ai.storyfork.operations.member.repository.ADMIN_PERMISSIONS
 import ai.storyfork.operations.member.repository.AdminPermissionRepository
@@ -23,7 +24,8 @@ import org.springframework.web.server.ResponseStatusException
 class MemberServiceTest {
     private val core = mock(CoreClient::class.java)
     private val permissions = mock(AdminPermissionRepository::class.java)
-    private val service = MemberService(core, permissions)
+    private val activities = mock(AdminActivityService::class.java)
+    private val service = MemberService(core, permissions, activities)
     private val admin = OperationsMember(UUID.randomUUID(), true)
     private val member = OperationsMember(UUID.randomUUID(), false)
     private val bearer = "Bearer admin-access"
@@ -52,6 +54,73 @@ class MemberServiceTest {
         assertEquals(listOf(targetId), service.list(admin, bearer, "MEMBER", "kim", "oldest").items.map { it.id })
         assertTrue(service.restrict(admin, bearer, targetId).restricted)
         assertFalse(service.unrestrict(admin, bearer, targetId).restricted)
+    }
+
+    @Test
+    fun `restrict and unrestrict record the admin activity with the target nickname after Core succeeds`() {
+        grant("users")
+        `when`(core.restrict(bearer, targetId)).thenReturn(item().copy(restricted = true))
+        `when`(core.unrestrict(bearer, targetId)).thenReturn(item())
+
+        service.restrict(admin, bearer, targetId)
+        service.unrestrict(admin, bearer, targetId)
+
+        val order = inOrder(core, activities)
+        order.verify(core).restrict(bearer, targetId)
+        order.verify(activities).record(admin, "MEMBER_RESTRICT", "MEMBER", targetId, "닉")
+        order.verify(core).unrestrict(bearer, targetId)
+        order.verify(activities).record(admin, "MEMBER_UNRESTRICT", "MEMBER", targetId, "닉")
+        verifyNoMoreInteractions(activities)
+    }
+
+    @Test
+    fun `admin creation records ADMIN_CREATE with the email and permission keys after the permissions are saved`() {
+        grant("admins")
+        `when`(core.createAdmin(bearer, CoreAdminRequest("n@example.test", "새 관리자", "password1")))
+            .thenReturn(item(role = "ADMIN").copy(email = "n@example.test"))
+
+        service.createAdmin(admin, bearer, CreateAdminRequest("n@example.test", "새 관리자", "password1", listOf("users", "rights", "users")))
+
+        val order = inOrder(core, permissions, activities)
+        order.verify(core).createAdmin(bearer, CoreAdminRequest("n@example.test", "새 관리자", "password1"))
+        order.verify(permissions).saveAllAndFlush(anyList<AdminPermissionEntity>())
+        order.verify(activities).record(admin, "ADMIN_CREATE", "MEMBER", targetId, "n@example.test · users,rights")
+        verifyNoMoreInteractions(activities)
+    }
+
+    @Test
+    fun `a denied invalid or failed member operation records no activity`() {
+        grant("users", "admins")
+        val operatorWithoutPermission = OperationsMember(UUID.randomUUID(), true)
+        val newAdmin = CreateAdminRequest("n@example.test", "새", "password1", listOf("users"))
+        for (denied in listOf(member, operatorWithoutPermission)) {
+            assertForbidden { service.restrict(denied, bearer, targetId) }
+            assertForbidden { service.unrestrict(denied, bearer, targetId) }
+            assertForbidden { service.createAdmin(denied, bearer, newAdmin) }
+        }
+        assertThrows(IllegalArgumentException::class.java) { service.createAdmin(admin, bearer, newAdmin.copy(permissions = listOf("root"))) }
+        `when`(core.restrict(bearer, targetId)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
+        `when`(core.unrestrict(bearer, targetId)).thenThrow(ResponseStatusException(HttpStatus.NOT_FOUND))
+        `when`(core.createAdmin(bearer, CoreAdminRequest("n@example.test", "새", "password1"))).thenThrow(ResponseStatusException(HttpStatus.CONFLICT))
+
+        assertThrows(ResponseStatusException::class.java) { service.restrict(admin, bearer, targetId) }
+        assertThrows(ResponseStatusException::class.java) { service.unrestrict(admin, bearer, targetId) }
+        assertThrows(ResponseStatusException::class.java) { service.createAdmin(admin, bearer, newAdmin) }
+
+        verifyNoInteractions(activities)
+    }
+
+    @Test
+    fun `no activity is recorded when saving the new admins permissions fails`() {
+        grant("admins")
+        `when`(core.createAdmin(bearer, CoreAdminRequest("n@example.test", "새 관리자", "password1"))).thenReturn(item(role = "ADMIN"))
+        doThrow(IllegalStateException("db down")).`when`(permissions).saveAllAndFlush(anyList<AdminPermissionEntity>())
+
+        assertThrows(IllegalStateException::class.java) {
+            service.createAdmin(admin, bearer, CreateAdminRequest("n@example.test", "새 관리자", "password1", listOf("users")))
+        }
+
+        verifyNoInteractions(activities)
     }
 
     @Test

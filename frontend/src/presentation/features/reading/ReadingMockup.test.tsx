@@ -3,6 +3,7 @@ import '../../../test/fixtureApp'
 import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { Provider } from 'react-redux'
+import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { appContainer } from '../../../app/appContainer'
@@ -16,7 +17,8 @@ afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
 const wrap = () => {
   const store = createAppStore({ role: 'user' })
-  return ({ children }: { children: ReactNode }) => <Provider store={store}>{children}</Provider>
+  // useReaderViewModel·useWorkViewModel은 로그인 안내 이동에 라우터가 필요하다.
+  return ({ children }: { children: ReactNode }) => <Provider store={store}><MemoryRouter>{children}</MemoryRouter></Provider>
 }
 const sentence = { t: '이건 어디로 가야 하지.', pi: 0 }
 const sheets = [

@@ -44,6 +44,7 @@ class ContentServiceTest {
         `when`(world.historyForContext("work")).thenReturn(SettingListResponse(emptyList()))
         val originals=(1..3).map {PublishedEpisodeResponse(it,1,"v$it","회차",text)}
         `when`(publication.publishedEpisodes("work")).thenReturn(PublishedEpisodeListResponse(originals))
+        `when`(publication.nextEpisodeNumber("work")).thenReturn(4)
         val service=ContextService(access,world,publication,mock(EpisodeRepository::class.java),mock(EpisodeDraftRepository::class.java),JsonMapper.builder().findAndAddModules().build())
         val context=service.read("work","author",ContextRequest(3,"에리히"))
         assertEquals(3,context.episodes.size)

@@ -26,11 +26,13 @@ STORYFORK는 다중 AI 에이전트 기반 독자 참여형 스토리 창작·�
    (type: feat, fix, docs, refactor, test, style, perf, build, ci, chore, revert). 작업 브랜치에서 PR을 만들고
    `main`·`develop` 직접 푸시와 PR 병합은 사용자 확인 없이 하지 않는다. 커밋·PR 본문은 한국어로 쓰고,
    PR 본문은 변경 → 동작 → 결정 → 한계 → 남은 일 → 검증 → 한 줄 요약 순서로 실제 검증 결과를 적는다.
+   `gh`가 설치돼 있으면 흐름은 이슈 → 작업 브랜치 → PR(본문에 `Closes #<이슈>`) → 사용자 확인 후 병합이다. '남은 일' 중 독립적으로 실행할 수 있는
+   항목은 기존 이슈 중복을 확인한 뒤 후속 이슈로 만든다(보류·이슈화 금지로 정한 항목은 제외).
 5. **최소 안전**: 실제 `.env`·키를 커밋하거나 `VITE_*`·프론트 번들에 넣지 않는다(설정은 루트 `.env` 하나, 공유는 `.env.example`).
    공유 DB 데이터를 승인 없이 삭제하지 않는다.
 
 [`.agent-hooks/guard.py`](.agent-hooks/guard.py)가 Claude Code·Codex·Hermes에서 Git workflow·`.env` 커밋을 검사하고,
-작업 종료 시 코드 변경마다 한 번 TDD·아키텍처·단위 테스트 점검을 요청한다.
+작업 종료 시 코드 변경마다 한 번 TDD·아키텍처·단위 테스트·이슈/PR 점검을 요청한다.
 
 ## 아키텍처
 
@@ -51,8 +53,9 @@ STORYFORK는 다중 AI 에이전트 기반 독자 참여형 스토리 창작·�
 - 원작·Fork·초안·시뮬레이션 상태를 구분한다. Fork는 기준 회차·버전을 보존하고, 최초 수정 전에는 원본 변경을 따라가며
   독립 후에는 알림과 사용자 선택으로만 반영한다(DEC-37).
 - 설정은 항목별 공개·비공개와 회차별 공개 범위를 두며 기본은 비공개다. AI 제안과 사용자 승인·실제 반영을 구분한다(DEC-36).
-- 저장: PostgreSQL은 원문·버전·체크포인트·Fork, 관계는 Neo4j 현재 상태 하나만 정본이다(관계 이력·과거 복원 없음,
-  [#132 계약](docs/design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132)). `pg_git`은 쓰지 않는다.
+- 저장: PostgreSQL은 원문·버전·체크포인트·Fork, 관계는 Neo4j 하나만 정본이며 회차별 연결로 기록한다
+  ([DEC-51](docs/design/worldstudio-independent-schema.md#회차별-관계--dec-51), 서버·MCP 소스 구현, 회차 선택 화면과 기존 데이터 이전은 남음).
+  이전 #132는 현재 상태만 저장했다([계약](docs/design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132)). `pg_git`은 쓰지 않는다.
 - 기능을 완료하면 [기능표](docs/feature-roadmap.md)의 해당 행 체크를 실제 상태대로 갱신한다.
 
 ## 권장 스킬·도구

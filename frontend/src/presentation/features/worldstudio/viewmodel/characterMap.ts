@@ -1,9 +1,19 @@
 import type { StudioSetting } from '../../../../domain/entities/studioWorld'
 import { relationDefinitions, relationLabel } from '../../../../domain/entities/studioRelations'
-import { buildWorldMap, type MapLink } from './useWorldMapViewModel'
+import { buildWorldMap, mapEndpoint, type MapLink, type MapNode } from './useWorldMapViewModel'
+import { cardTypeOf, cardTypes, type CardType } from '../../../../domain/entities/studioCards'
 
 export function buildCharacterMap(settings:StudioSetting[]) {
- const nodes=buildWorldMap(settings.filter(s=>s.item.kind==='entity'&&s.item.entityType==='character')).nodes.map(n=>({...n,name:settings.find(s=>s.item.id===n.id)?.item.title||'새 인물',unnamed:!settings.find(s=>s.item.id===n.id)?.item.title.trim()}))
+ return relationshipMap(settings,settings.filter(s=>s.item.kind==='entity'&&s.item.entityType==='character'))
+}
+export function buildSettingRelationshipMap(settings:StudioSetting[]) {
+ return relationshipMap(settings,settings.filter(s=>cardTypes.some(t=>t.id===cardTypeOf(s.item))))
+}
+function relationshipMap(settings:StudioSetting[],cards:StudioSetting[]) {
+ const nodes=buildWorldMap(cards).nodes.map(n=>{
+  const item=settings.find(s=>s.item.id===n.id)?.item
+  return {...n,name:item?.title||(n.kind==='인물'?'새 인물':'새 설정'),unnamed:!item?.title.trim(),type:item&&cardTypes.find(t=>t.id===cardTypeOf(item))?.id}
+ })
  const ids=new Set(nodes.map(n=>n.id)),links:MapLink[]=[]
  let missingLinks=0
  for(const {item} of settings.filter(s=>s.item.kind==='relation'&&s.item.decision==='approved')) {
@@ -17,4 +27,22 @@ export function buildCharacterMap(settings:StudioSetting[]) {
   link.curve=direction*(index-(pair.length-1)/2)*.35
  }
  return {nodes,links,missingLinks}
+}
+
+/** 관계도 유형 필터 버튼: 그래프에 노드가 있는 유형만 `cardTypes` 순서로, 그 개수와 함께. */
+export const cardTypeCounts=(nodes:MapNode[])=>cardTypes.map(({id,label})=>({id,label,count:nodes.filter(n=>n.type===id).length})).filter(t=>t.count>0)
+
+/** 숨긴 유형의 노드와 그 노드에 닿는 간선(한쪽 끝만 닿아도)을 뺀 그래프. 화면 보기용이라 원본은 그대로이고, 숨긴 유형이 없으면 같은 그래프를 돌려준다. */
+export function hideCardTypes(graph:ReturnType<typeof buildWorldMap>,hidden:ReadonlySet<CardType>) {
+ if(!hidden.size)return graph
+ const nodes=graph.nodes.filter(n=>!n.type||!hidden.has(n.type)),ids=new Set(nodes.map(n=>n.id))
+ return {...graph,nodes,links:graph.links.filter(l=>ids.has(mapEndpoint(l.source))&&ids.has(mapEndpoint(l.target)))}
+}
+
+/** 유형 버튼을 눌렀을 때의 숨김 집합. 숨긴 유형은 다시 보이게 하고, 보이는 유형이 그것 하나뿐이면 끄지 않고(빈 그래프가 되지 않게) 같은 집합을 돌려준다. */
+export function toggleHiddenType(hidden:ReadonlySet<CardType>,type:CardType,present:readonly CardType[]):ReadonlySet<CardType> {
+ const next=new Set(hidden)
+ if(next.delete(type))return next
+ next.add(type)
+ return present.some(t=>!next.has(t))?next:hidden
 }

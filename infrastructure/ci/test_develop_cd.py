@@ -51,6 +51,16 @@ class DevelopDeploymentTest(unittest.TestCase):
         self.assertLess(commands.index("postgres mailpit"), commands.index("up -d --no-build --pull never --wait --wait-timeout 180\n"))
         self.assertNotIn("run --rm", commands)
 
+    def test_superseded_images_are_pruned_only_after_the_new_stack_is_healthy(self):
+        code, commands, error = self.deploy()
+        self.assertEqual(0, code, error)
+        self.assertLess(commands.index("up -d --no-build --pull never --wait --wait-timeout 180\n"),
+            commands.index("image prune --force\n"))
+
+    def test_failed_revision_check_keeps_previous_images(self):
+        _, commands, _ = self.deploy(overrides={"TARGET_SHA": "%040d" % 2})
+        self.assertNotIn("image prune", commands)
+
     def test_inherited_profile_cannot_change_the_deployed_stack(self):
         code, commands, error = self.deploy(overrides={"COMPOSE_PROFILES": "anything"})
         self.assertEqual(0, code, error)
@@ -61,6 +71,25 @@ class DevelopDeploymentTest(unittest.TestCase):
         code, commands, _ = self.deploy(overrides={"TARGET_SHA": "%040d" % 2})
         self.assertNotEqual(0, code)
         self.assertNotIn("stop web core-api content-service", commands)
+
+    def test_embedding_model_is_smoke_tested_in_the_new_stack_before_prune(self):
+        code, commands, error = self.deploy()
+        self.assertEqual(0, code, error)
+        smoke = commands.index("exec -T ai-service python -c")
+        self.assertLess(commands.index("up -d --no-build --pull never --wait --wait-timeout 180\n"), smoke)
+        self.assertLess(smoke, commands.index("image prune --force\n"))
+
+    def test_develop_stack_runs_official_elasticsearch_for_content_on_a_kept_volume(self):
+        dev = (ROOT / "infrastructure/docker-compose.dev.yaml").read_text(encoding="utf-8")
+        service = dev.split("\n  elasticsearch:\n", 1)[1].split("\n\n", 1)[0]
+        self.assertIn("image: docker.elastic.co/elasticsearch/elasticsearch:9.5.6", service)
+        self.assertIn("manuscript-index:/usr/share/elasticsearch/data", service)
+        self.assertNotIn("ports:", service)
+        self.assertIn("\n  manuscript-index:\n    labels: *cd-labels", dev)
+        content = dev.split("\n  content-service:\n", 1)[1].split("\n\n", 1)[0]
+        self.assertIn("elasticsearch:\n        condition: service_healthy", content)
+        self.assertIn('MANUSCRIPT_INDEX_ENABLED: "true"', content)
+        self.assertIn("MANUSCRIPT_INDEX_URL: http://elasticsearch:9200", content)
 
     def test_publish_requires_target_to_be_current_develop_head(self):
         workflow = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8")

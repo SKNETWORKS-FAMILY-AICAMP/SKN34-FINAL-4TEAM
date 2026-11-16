@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -69,5 +69,27 @@ describe('알림함 (U42)', () => {
     await act(async () => {}) // 실패 처리와 이어지는 상태 갱신을 모두 반영한다
     expect(screen.getByText('알림 a')).toBeTruthy()
     expect(document.activeElement).toBe(button)
+  })
+
+  it('삭제에 실패하면 토스트가 사라져도 남도록 그 알림 줄에 실패를 알린다', async () => {
+    setup(['a', 'b'], () => Promise.reject(new Error('down')))
+    fireEvent.click(await deleteButton('a'))
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toBe('알림을 삭제하지 못했어요. 다시 시도해 주세요.')
+    expect(alert.closest('li')!.contains(openButton('a'))).toBe(true)
+    expect(alert.closest('li')!.contains(openButton('b'))).toBe(false)
+  })
+
+  it('알림은 목록 요소로 그리고 한 줄에 본문과 삭제 버튼을 두며, 피드백함용 2단 틀(.inbox)을 빌려 쓰지 않는다', async () => {
+    setup(['a', 'b'])
+    await screen.findByText('알림 a')
+    const list = screen.getByRole('list', { name: '알림 목록' })
+    expect(document.querySelector('.inbox')).toBeNull()
+    const rows = within(list).getAllByRole('listitem')
+    expect(rows).toHaveLength(2)
+    expect(within(rows[0]).getAllByRole('button').map((button) => button.parentElement!.className)).toEqual(['notice-row', 'notice-row'])
+    // 수신 설정 체크박스 줄도 정의 없는 .row 대신 전용 줄을 쓴다.
+    expect(screen.getByLabelText('읽기 알림').closest('.notice-prefs')).not.toBeNull()
+    expect(document.querySelector('.row')).toBeNull()
   })
 })

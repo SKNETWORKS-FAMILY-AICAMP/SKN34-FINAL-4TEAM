@@ -1,0 +1,306 @@
+{
+  "genre": "romance_fantasy",
+  "cards": [
+    {
+      "key": "evelyn-rosette",
+      "title": "에블린 로제트",
+      "body": "은금발과 회색 눈을 가진 스물두 살 공녀의 몸에 윤서하가 들어왔다. 계약과 정산 실무 경험으로 조건을 꼼꼼히 따지지만, 도움을 받으면 반드시 갚아야 한다고 여기는 결점이 있다.",
+      "cardType": "character",
+      "source_sections": [
+        "romance_fantasy_section_08"
+      ],
+      "soul": "계약의 책임과 비용을 꼼꼼히 따지며 독립과 안전을 원한다. 도움을 거래처럼 갚으려 하지만 곤란한 사람을 쉽게 외면하지 못한다. 자주 하는 말은 “조건을 확인하고 싶어요”."
+    },
+    {
+      "key": "original-evelyn",
+      "title": "빙의 이전의 에블린",
+      "body": "어릴 때부터 황태자의 배우자가 되도록 교육받으며 지위와 복종에 집착했다. 하녀와 사교계의 약한 상대를 실제로 모욕했지만 독살과 반역 혐의에는 조작이 개입했다.",
+      "cardType": "character",
+      "source_sections": [
+        "romance_fantasy_section_09"
+      ],
+      "soul": "사랑받는지 확인하지 못해 지위와 복종에 집착했고 약한 상대를 모욕하기도 했다. 대화 제안: 권위와 상대의 충성을 확인하려는 말투를 쓴다."
+    },
+    {
+      "key": "cassian-valtern",
+      "title": "카시안 발테른",
+      "body": "북부 대공이자 방위군 총사령관. 절제되고 책임감이 강하나 자신이 견디면 된다는 생각으로 필요한 설명을 생략하기도 한다. 열아홉 살에 아버지를 잃고 봉인을 계승했다.",
+      "cardType": "character",
+      "source_sections": [
+        "romance_fantasy_section_10"
+      ],
+      "soul": "절제와 책임을 중시하고 행동이 빠르지만 설명을 생략해 오해를 만든다. 자신의 희생으로 해결하려 한다. 중요한 대사는 “원하는 것을 말해 주시오”."
+    },
+    {
+      "key": "marien-bell",
+      "title": "마리엔 벨",
+      "body": "에블린의 시녀로 이전 주인에게 여러 차례 모욕당했다. 유행과 사교계의 관계를 잘 읽으며, 달라진 에블린을 바로 믿지 않고 시간을 두고 판단한다.",
+      "cardType": "character",
+      "source_sections": [
+        "romance_fantasy_section_11"
+      ],
+      "soul": "과거에 받은 모욕 때문에 새 주인을 쉽게 믿지 않으며 스스로 일자리를 선택하려 한다. 대화 제안: 예의를 지키되 약속보다 실제 대우를 확인한다."
+    },
+    {
+      "key": "oswald-ren",
+      "title": "오스왈드 렌",
+      "body": "카시안의 아버지 때부터 흑설성을 관리한 집사다. 예의 바르고 침착하지만 주인의 자기희생에는 단호하다.",
+      "cardType": "character",
+      "source_sections": [
+        "romance_fantasy_section_11"
+      ],
+      "soul": "예의 바르고 침착하나 주인의 자기희생에는 단호하다. 대화 제안: 필요한 일정과 정보를 정확하게 전달한다."
+    },
+    {
+      "key": "helena-lowen",
+      "title": "헬레나 로웬",
+      "body": "평민 출신으로 실력을 인정받아 북부 기사단 부단장이 된 기사다. 카시안의 오랜 전우이며 에블린의 평판과 북부 물자에 대한 판단을 경계한다.",
+      "cardType": "character",
+      "source_sections": [
+        "romance_fantasy_section_11"
+      ],
+      "soul": "북부 병사와 물자의 현실을 중시하며 귀족의 일방적인 판단을 경계한다. 대화 제안: 현장의 부담과 병사의 처지를 분명히 말한다."
+    },
+    {
+      "key": "lionel-berg",
+      "title": "리오넬 베르크",
+      "body": "대공의 주치의이자 마도학자로 치유와 마력 연구를 함께 공부했다. 신전이 흑맥증의 정보를 제한하는 데 불만을 갖고 있다.",
+      "cardType": "character",
+      "source_sections": [
+        "romance_fantasy_section_11"
+      ],
+      "soul": "치유와 마력 연구에 열심이며 신전의 정보 제한에 불만이 있다. 연구 대상으로만 사람을 보려는 맹점이 있다. 대화 제안: 관찰 결과와 연구 조건을 구체적으로 설명한다."
+    },
+    {
+      "key": "sera-abel",
+      "title": "세라 아벨",
+      "body": "지방의 작은 치유소에서 자란 성녀다. 강한 신성력이 발견되어 황도로 불려 왔으며 사람을 돕고 싶은 마음과 신전의 기대 사이에서 지쳐 있다.",
+      "cardType": "character",
+      "source_sections": [
+        "romance_fantasy_section_11"
+      ],
+      "soul": "사람을 돕고 싶지만 성녀에게 쏟아지는 신전의 기대에 지쳐 있다. 에블린을 두려워하면서도 지나친 처벌에는 의문을 품는다. 대화 제안: 조심스럽게 상대의 처지와 자신의 우려를 묻는다."
+    },
+    {
+      "key": "adelaide",
+      "title": "아델라이드 황녀",
+      "body": "황태자의 이복누나로 유능하지만 계승 경쟁에서 의도적으로 밀려나 있다. 여성 귀족의 재산권과 지방 교육에 관심이 있으며 정치적 기반도 중요하게 여긴다.",
+      "cardType": "character",
+      "source_sections": [
+        "romance_fantasy_section_11"
+      ],
+      "soul": "여성의 재산권과 지방 교육에 관심이 있으며 호의와 정치적 계산을 함께 지닌다. 대화 제안: 협력의 이익과 조건을 우아하고 분명하게 제시한다."
+    },
+    {
+      "key": "leonel-arden",
+      "title": "레오넬 아르덴",
+      "body": "백성에게 인기가 높은 황태자로 행정 능력과 정치적 야망을 갖췄다. 에블린을 사랑하지 않으면서도 그녀가 자신을 사랑하는 상태를 당연하게 여겼다.",
+      "cardType": "character",
+      "source_sections": [
+        "romance_fantasy_section_12"
+      ],
+      "soul": "행정 능력과 야망이 있고 자신이 통제하던 사람이 독립하는 것을 불편해한다. 겉으로는 예의 바르다."
+    },
+    {
+      "key": "armand-rosette",
+      "title": "아르망 로제트",
+      "body": "에블린의 아버지인 로제트 공작. 경제적으로 유능해 가문의 세력을 확장했으나 딸을 황실과 연결되는 자산으로 여기며 가족의 독립적인 의사를 가볍게 본다.",
+      "cardType": "character",
+      "source_sections": [
+        "romance_fantasy_section_12"
+      ],
+      "soul": "가문의 이익과 손실을 계산하고 딸의 의사를 독립적인 가치로 보지 않는다. 애정과 통제가 공존한다. 대화 제안: 보호와 가문의 책임을 명분으로 조건을 제시한다."
+    },
+    {
+      "key": "severian",
+      "title": "세베리안",
+      "body": "대신관으로 치유소를 확장하고 전염병 때 많은 사람을 구했다. 신전이 제국의 힘의 중심이어야 한다고 믿으며 북부 봉인 지식의 독점을 유지한다.",
+      "cardType": "character",
+      "source_sections": [
+        "romance_fantasy_section_12"
+      ],
+      "soul": "신전이 질서의 중심이어야 한다고 믿고 대공의 고통도 감수 가능한 비용으로 여긴다. 백성 앞에서는 온화하게 말한다."
+    },
+    {
+      "key": "ardel-empire",
+      "title": "아르델 제국",
+      "body": "약 사백 년 전 여러 왕국이 마물의 대침공에 맞서 결합하며 세운 제국이다. 황실, 귀족, 대신전이 각각 행정과 군사, 지역 자원, 종교와 정화 의례를 통해 권력을 나눈다.",
+      "cardType": "organization",
+      "source_sections": [
+        "romance_fantasy_section_02"
+      ]
+    },
+    {
+      "key": "valtern-house",
+      "title": "발테른 대공가",
+      "body": "북부 방어를 맡는 귀족 가문으로 일반 공작가보다 독립성이 강하다. 그 대가로 황실의 일부 세금과 군사 명령에서 예외를 인정받는다.",
+      "cardType": "organization",
+      "source_sections": [
+        "romance_fantasy_section_02"
+      ]
+    },
+    {
+      "key": "grand-temple",
+      "title": "대신전",
+      "body": "신성력 인증과 정화 의식, 주요 종교 의례를 독점하는 제국의 종교 세력이다. 치유소와 고아원도 운영하지만 고대 기록과 신성력에 대한 접근을 통제한다.",
+      "cardType": "organization",
+      "source_sections": [
+        "romance_fantasy_section_02"
+      ]
+    },
+    {
+      "key": "lumiere",
+      "title": "황도 루미에르",
+      "body": "황궁과 대신전, 귀족 저택과 극장이 모인 제국의 중심지다. 흰 대리석과 금빛 지붕의 중심가 바깥에는 난방 연료가 부족한 빈민가도 있다.",
+      "cardType": "location",
+      "source_sections": [
+        "romance_fantasy_section_04"
+      ]
+    },
+    {
+      "key": "valtern-north",
+      "title": "북부 대공령 발테른",
+      "body": "긴 겨울과 산악 지형을 가진 변경 영지다. 남부 평야와 계곡에는 농지, 광산과 온천이 있지만 방위비와 긴 운송로의 비용이 크다.",
+      "cardType": "location",
+      "source_sections": [
+        "romance_fantasy_section_04"
+      ]
+    },
+    {
+      "key": "black-snow-castle",
+      "title": "흑설성",
+      "body": "발테른 대공의 본성이자 북부 방어 지휘소다. 검은 돌과 깊은 창을 갖춘 성이며 생활 구역에는 두꺼운 카펫과 벽난로, 주방이 있다.",
+      "cardType": "location",
+      "source_sections": [
+        "romance_fantasy_section_04"
+      ]
+    },
+    {
+      "key": "white-temple",
+      "title": "백색 대신전",
+      "body": "황도의 언덕 위에 자리한 거대한 종교 시설이다. 치유소와 고아원, 교육 시설로 사람들을 돕는 동시에 고대 기록의 접근을 엄격히 제한한다.",
+      "cardType": "location",
+      "source_sections": [
+        "romance_fantasy_section_04"
+      ]
+    },
+    {
+      "key": "gray-wall",
+      "title": "회색 장벽",
+      "body": "북부 최전선의 요새군이다. 대공가의 혈통 마력과 고대 장치가 차원 균열의 침식을 억제하며 수천 명의 군인과 가족이 살아간다.",
+      "cardType": "location",
+      "source_sections": [
+        "romance_fantasy_section_04"
+      ]
+    },
+    {
+      "key": "serena",
+      "title": "남부 항구도시 세레나",
+      "body": "겨울이 온화하고 외지인이 많은 남부 항구도시다. 귀족 출신보다 사업 능력이 중요하게 평가되며 에블린이 이혼 후 정착을 생각하는 곳이다.",
+      "cardType": "location",
+      "source_sections": [
+        "romance_fantasy_section_04"
+      ]
+    },
+    {
+      "key": "resonance",
+      "title": "공명 조율",
+      "body": "로제트 가문의 혈통 능력으로 타인의 불규칙한 마력 흐름을 감지하고 일정 범위에서 조정한다. 에블린은 직접 접촉으로 흑맥증을 일시 안정시킬 수 있지만 통증이 전달되고 무리하면 고열이나 감각 손실을 겪는다.",
+      "cardType": "ability",
+      "source_sections": [
+        "romance_fantasy_section_07"
+      ]
+    },
+    {
+      "key": "sealing-power",
+      "title": "발테른의 봉인 능력",
+      "body": "발테른 가문에서 반복적으로 나타나는 혈통 마력이다. 북부의 균열을 억제하는 봉인에 쓰이며 가문의 혈통을 가진 정식 봉인 주체에게는 흑맥증이 발현될 수 있다.",
+      "cardType": "ability",
+      "source_sections": [
+        "romance_fantasy_section_05",
+        "romance_fantasy_section_06"
+      ]
+    },
+    {
+      "key": "divine-power",
+      "title": "신성력",
+      "body": "생명과 마력의 흐름을 안정시키고 외부의 침식을 분리하는 힘이다. 신전은 신의 축복으로 해석하지만 힘을 가진 사람이 모두 신전 교리에 동의하는 것은 아니다.",
+      "cardType": "ability",
+      "source_sections": [
+        "romance_fantasy_section_05"
+      ]
+    },
+    {
+      "key": "black-vein-illness",
+      "title": "흑맥증",
+      "body": "북부 대공가의 봉인과 연결될 때 본격적으로 나타나는 저주다. 검은 혈관 같은 문양, 저체온과 통증, 감각 혼란이 생기고 악화되면 주변 마력을 끌어들여 결계와 마도구를 파괴한다.",
+      "cardType": "rule",
+      "source_sections": [
+        "romance_fantasy_section_06"
+      ]
+    },
+    {
+      "key": "seal-burden",
+      "title": "북부 봉인의 부담",
+      "body": "초대 대공은 균열을 닫는 대신 자신을 봉인의 일부로 만들었다. 본래 조율자와 정화자가 부담을 나누어야 했지만 협력 가문의 역할이 사라지고 신전이 유지 의식을 독점하면서 부담이 대공에게 집중되었다.",
+      "cardType": "rule",
+      "source_sections": [
+        "romance_fantasy_section_06"
+      ]
+    },
+    {
+      "key": "magic-limits",
+      "title": "마력과 신성력의 한계",
+      "body": "마력과 신성력은 죽은 사람을 되살리거나 사라진 기억을 마음대로 복원하지 못한다. 과도한 사용은 신체와 감각을 손상시키며 치유와 정화가 저주의 구조를 자동으로 바꾸지는 않는다.",
+      "cardType": "rule",
+      "source_sections": [
+        "romance_fantasy_section_05"
+      ]
+    },
+    {
+      "key": "noble-property",
+      "title": "귀족 여성의 재산권",
+      "body": "여성도 작위와 재산을 상속할 수 있고 혼인 후에도 지참금과 혼전 재산을 보유할 수 있다. 다만 별도 계약이 없으면 남편이나 친정이 관리권을 행사하기 쉽고 사회적 편견도 남아 있다.",
+      "cardType": "rule",
+      "source_sections": [
+        "romance_fantasy_section_03"
+      ]
+    },
+    {
+      "key": "marriage-agreement",
+      "title": "계약 결혼 협약",
+      "body": "혼인 등록과 별도로 작성한 재산·생활 협약이다. 원칙상 혼인은 일 년이며 각자 혼전 재산을 관리하고, 침실과 서신 침범 및 조율 능력 사용은 동의에 따른다. 성적 관계와 출산, 사랑은 의무가 아니다.",
+      "cardType": "rule",
+      "source_sections": [
+        "romance_fantasy_section_13"
+      ]
+    },
+    {
+      "key": "novel-knowledge",
+      "title": "원작 지식의 한계",
+      "body": "윤서하가 읽은 소설은 세라와 황태자 주변에 집중해 북부와 에블린의 내면을 거의 다루지 않았다. 실제 사건과 인물의 믿음, 생략된 원인이 섞여 있으며 기억도 완벽하지 않고 바뀐 사건이 원작대로 복원되는 초월적 힘은 없다.",
+      "cardType": "rule",
+      "source_sections": [
+        "romance_fantasy_section_14"
+      ]
+    },
+    {
+      "key": "imperial-founding",
+      "title": "제국의 건국",
+      "body": "약 사백 년 전 마물의 대침공에 맞서 여러 왕국이 결합했다. 초대 황제는 군사력을 통합하고 초대 성녀는 침식을 정화했으며 초대 북부 대공은 균열의 봉인을 지켰다.",
+      "cardType": "event",
+      "source_sections": [
+        "romance_fantasy_section_02"
+      ]
+    },
+    {
+      "key": "saint-insult",
+      "title": "성녀 모욕 사건",
+      "body": "원래 에블린이 성녀를 질투하여 모욕한 일은 실제로 있었다. 다만 황태자와 신전이 두 사람을 의도적으로 경쟁 관계에 놓은 배경도 있다.",
+      "cardType": "event",
+      "source_sections": [
+        "romance_fantasy_section_15"
+      ]
+    }
+  ]
+}

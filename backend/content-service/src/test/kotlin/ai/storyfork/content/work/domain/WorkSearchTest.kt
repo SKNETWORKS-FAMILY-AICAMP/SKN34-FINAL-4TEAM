@@ -58,6 +58,7 @@ class WorkSearchTest {
         assertEquals(SearchField.GENRE, queryOption("genre", SearchField.ALL, "f"))
         assertEquals(SearchField.AUTHOR, queryOption("author", SearchField.ALL, "f"))
         assertEquals(WorkSort.VIEW, queryOption("view", WorkSort.LATEST, "sort"))
+        assertEquals(WorkSort.LIKE, queryOption("like", WorkSort.LATEST, "sort"))
         assertEquals(RankingKind.RISING, queryOption("rising", RankingKind.TOP, "kind"))
         for (bad in listOf("", " ", "body", "AUTHOR", "TAG", " tag")) assertEquals(422, rejected { queryOption(bad, SearchField.ALL, "f") }.status, bad)
         assertEquals(422, rejected { queryOption("popular", WorkSort.LATEST, "sort") }.status)
@@ -94,6 +95,42 @@ class WorkSearchTest {
         val newestFirst = listOf("new", "mid", "old", "idle")
         assertEquals(listOf("old", "new", "mid", "idle"), orderByViews(newestFirst, counts(Triple("old", 4, 0), Triple("new", 1, 9), Triple("mid", 1, 0))))
         assertEquals(newestFirst, orderByViews(newestFirst, emptyMap()))
+    }
+
+    @Test fun `like order puts the most liked first, keeps works without likes and breaks ties by newest first`() {
+        val newestFirst = listOf("new", "mid", "old", "idle")
+        assertEquals(listOf("old", "new", "mid", "idle"), orderByLikes(newestFirst, mapOf("old" to 4L, "new" to 1L, "mid" to 1L)))
+        assertEquals(newestFirst, orderByLikes(newestFirst, emptyMap()))
+    }
+
+    @Test fun `page and size are optional, both absent means the whole list and a missing one takes its default`() {
+        assertNull(workPage(null, null))
+        assertEquals(WorkPage(0, 20), workPage("0", null))
+        assertEquals(WorkPage(0, 5), workPage(null, "5"))
+        assertEquals(WorkPage(3, 100), workPage("3", "100"))
+        assertEquals(WorkPage(0, 1), workPage("0", "1"))
+    }
+
+    @Test fun `a negative page, a size outside 1 to 100 and a non numeric value are 422 in the same format as the other options`() {
+        for (bad in listOf("-1", "abc", "", " 1", "1.5", "99999999999")) assertEquals(422, rejected { workPage(bad, null) }.status, "page=$bad")
+        for (bad in listOf("0", "-1", "101", "abc", "", "1.5")) assertEquals(422, rejected { workPage(null, bad) }.status, "size=$bad")
+        assertEquals(422, rejected { workPage("0", "0") }.status)
+        assertEquals(422, rejected { workPage("abc", "10") }.status)
+        assertEquals("page 값을 확인해 주세요.", rejected { workPage("-1", null) }.message)
+        assertEquals("size 값을 확인해 주세요.", rejected { workPage(null, "101") }.message)
+    }
+
+    @Test fun `a page is the slice of the sorted list and a page beyond the end is empty`() {
+        val sorted = (1..5).map { "w$it" }
+        assertEquals(sorted, pageOf(sorted, null))
+        assertEquals(listOf("w1", "w2"), pageOf(sorted, WorkPage(0, 2)))
+        assertEquals(listOf("w3", "w4"), pageOf(sorted, WorkPage(1, 2)))
+        assertEquals(listOf("w5"), pageOf(sorted, WorkPage(2, 2)))
+        assertEquals(emptyList<String>(), pageOf(sorted, WorkPage(3, 2)))
+        assertEquals(sorted, pageOf(sorted, WorkPage(0, 100)))
+        // 아주 큰 page도 오버플로 없이 빈 목록이다.
+        assertEquals(emptyList<String>(), pageOf(sorted, WorkPage(Int.MAX_VALUE, 100)))
+        assertEquals(emptyList<String>(), pageOf(emptyList<String>(), WorkPage(0, 20)))
     }
 
     @Test fun `view date is the Asia Seoul calendar day`() {

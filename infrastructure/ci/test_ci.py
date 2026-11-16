@@ -187,7 +187,8 @@ class SelectionTest(unittest.TestCase):
         self.assertIn('CONFIGURATION_NEEDED:', workflow)
         configuration = workflow.split('\n  configuration:\n', 1)[1].split('\n  unit:\n', 1)[0]
         self.assertIn('python3 -I -m unittest discover -s infrastructure/tests -p test_attachment_environment.py -v', configuration)
-        self.assertIn('python3 -I -m unittest discover -s infrastructure/sample-data -p test_import.py -v', configuration)
+        self.assertIn("python3 -I -m unittest discover -s infrastructure/sample-data -p 'test_*.py' -v", configuration)
+        self.assertIn('python3 -I -m unittest discover -s infrastructure/sample-data/genre-templates -p test_traditions.py -v', configuration)
 
     def test_unit_and_integration_run_in_parallel_before_system(self):
         workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
@@ -467,7 +468,7 @@ class SystemContractTest(unittest.TestCase):
                             self.assertGreater(index, 0)
                             self.assertEqual(f'refresh_csrf({call.func.value.id})', ast.unparse(function.body[index - 1]))
                         mutations += 1
-        self.assertEqual(8, mutations)  # Anonymous missing-CSRF rejection stays intentionally unrefreshed.
+        self.assertEqual(29, mutations)  # Anonymous missing-CSRF rejection stays intentionally unrefreshed.
 
 
 class ConfigurationTest(unittest.TestCase):
@@ -512,6 +513,37 @@ class ConfigurationTest(unittest.TestCase):
         text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
         self.assertIn('world-studios', text)
 
+    def test_public_world_studio_routes_go_to_content(self):
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            text = (ci.ROOT / path).read_text()
+            for location in ['location = /api/v1/public/world-studios {', 'location ^~ /api/v1/public/world-studios/ {']:
+                self.assertIn(location + '\n        proxy_pass http://content-service:8081;', text)
+        vite = (ci.ROOT / 'frontend/vite.config.ts').read_text()
+        pattern = re.search(r"'([^']*world-studios[^']*)':\s*\{", vite)[1].replace('\\\\', '\\')
+        for path in ['/api/v1/world-studios', '/api/v1/world-studios/id', '/api/v1/public/world-studios',
+                     '/api/v1/public/world-studios?genre=sf&page=0&size=24', '/api/v1/public/world-studios/id']:
+            self.assertRegex(path, pattern)
+        for path in ['/api/v1/world-studios-extra', '/api/v1/public/world-studios-extra', '/api/v1/public/auth', '/api/v1/auth/csrf']:
+            self.assertNotRegex(path, pattern)
+
+    def test_work_world_link_and_reader_wiki_routes_go_to_content(self):
+        # DEC-46: 연결 PUT /api/v1/works/{id}/world-studio와 독자 설정 위키 GET /api/v1/public/works/{id}/world-cards는
+        # 새 location 없이 기존 works 접두로 Content에 간다(더 긴 접두나 정규식 location이 가로채지 않는다).
+        routes = ['/api/v1/works/work-id/world-studio', '/api/v1/public/works/work-id/world-cards']
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            text = (ci.ROOT / path).read_text()
+            self.assertNotRegex(text, r'location\s+~')
+            locations = re.findall(r'location (\^~ |= |)(/\S*) \{([^}]*)\}', text)
+            for route in routes:
+                with self.subTest(proxy=path, route=route):
+                    _, prefix, body = max((l for l in locations if l[0] != '= ' and route.startswith(l[1])), key=lambda l: len(l[1]))
+                    self.assertIn(prefix, ['/api/v1/works/', '/api/v1/public/works/'])
+                    self.assertIn('proxy_pass http://content-service:8081;', body)
+        vite = (ci.ROOT / 'frontend/vite.config.ts').read_text()
+        pattern = re.search(r"'([^']*works[^']*)':\s*\{", vite)[1].replace('\\\\', '\\')
+        for route in routes + ['/api/v1/public/works/work-id/world-cards?upto=3']:
+            self.assertRegex(route, pattern)
+
     def test_operations_support_public_routes_expose_only_the_support_prefix(self):
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
             text = (ci.ROOT / path).read_text()
@@ -521,7 +553,25 @@ class ConfigurationTest(unittest.TestCase):
             for private in ['/api/v1/operations/inquiries', '/api/v1/operations/notices', '/api/v1/operations/events']:
                 self.assertNotIn(private, text)
         text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
-        self.assertIn('(?:reports|members|admins|support|admin/notices|public/notices|admin/events|public/events)', text)
+        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities)', text)
+
+    def test_operations_works_public_routes_go_to_operations(self):
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            text = (ci.ROOT / path).read_text()
+            for location in ['location = /api/v1/operations/works {', 'location ^~ /api/v1/operations/works/ {']:
+                self.assertIn(location + '\n        proxy_pass http://operations-service:8082;', text)
+
+    def test_operations_comments_public_routes_go_to_operations(self):
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            text = (ci.ROOT / path).read_text()
+            for location in ['location = /api/v1/operations/comments {', 'location ^~ /api/v1/operations/comments/ {']:
+                self.assertIn(location + '\n        proxy_pass http://operations-service:8082;', text)
+
+    def test_operations_admin_activities_public_route_goes_to_operations(self):
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            text = (ci.ROOT / path).read_text()
+            for location in ['location = /api/v1/operations/admin/activities {', 'location ^~ /api/v1/operations/admin/activities/ {']:
+                self.assertIn(location + '\n        proxy_pass http://operations-service:8082;', text)
 
     def test_redaction_does_not_keep_tokens_or_addresses(self):
         text = ci.redact('Bearer abc.def.ghi test@example.invalid #token=opaque-token ' + 'a' * 64)

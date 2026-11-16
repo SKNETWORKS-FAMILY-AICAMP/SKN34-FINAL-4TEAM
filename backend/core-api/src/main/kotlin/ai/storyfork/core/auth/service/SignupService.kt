@@ -1,5 +1,6 @@
 package ai.storyfork.core.auth.service
 
+import ai.storyfork.core.credit.service.CreditService
 import ai.storyfork.core.auth.entity.AuthMember
 import ai.storyfork.core.auth.entity.AuthSignupChallenge
 import ai.storyfork.core.auth.helper.AuthTokenHelper
@@ -32,6 +33,7 @@ class SignupService(
     private val secrets: AuthTokenHelper,
     private val transactions: TransactionTemplate,
     private val mail: JavaMailSender,
+    private val credits: CreditService,
     @param:Value("\${app.auth.public-origin}") private val publicOrigin: String,
     @param:Value("\${app.auth.mail-from}") private val mailFrom: String,
 ) {
@@ -97,7 +99,8 @@ class SignupService(
         if (!passwords.matches(request.password, challenge.passwordHash)) throw AuthException(AuthException.Reason.INVALID)
         challenges.delete(challenge)
         try {
-            members.saveAndFlush(AuthMember(UUID.randomUUID(), challenge.email, challenge.passwordHash, challenge.nickname))
+            val member = members.saveAndFlush(AuthMember(UUID.randomUUID(), challenge.email, challenge.passwordHash, challenge.nickname))
+            credits.grantSignupTrial(member.id)
         } catch (_: DataIntegrityViolationException) {
             throw AuthException(AuthException.Reason.CONFLICT)
         }

@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { AuthSession } from '../../../../domain/repositories/AuthRepository'
+import { kstDateTime } from '../../../shared/format'
 import { useDevicesViewModel } from '../viewmodel/useDevicesViewModel'
 
 function deviceName(raw: string) {
@@ -39,7 +40,7 @@ export function Devices() {
       const name = deviceName(device.deviceLabel)
       return <li key={device.id} className="rp">
         {device.current && <span className="chip ok">현재 기기</span>}
-        <b>{name}</b><p className="small muted">로그인: {new Date(device.createdAt).toLocaleString('ko-KR')}</p>
+        <b>{name}</b><p className="small muted">로그인: {kstDateTime(device.createdAt)}</p>
         <details className="device-details"><summary>기기 상세 정보</summary><p className="small muted" style={{ overflowWrap: 'anywhere' }}>{device.deviceLabel || '기기 정보가 제공되지 않았어요.'}</p></details>
         <button id={`revoke-${device.id}`} className="btn" type="button" disabled={vm.pending} onClick={() => revoke(device, all)} aria-label={device.current ? '이 기기에서 로그아웃' : `${name} 로그아웃`}>{device.current ? '이 기기에서 로그아웃' : '로그아웃'}</button>
       </li>

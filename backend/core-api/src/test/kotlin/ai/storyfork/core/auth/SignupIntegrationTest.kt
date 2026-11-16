@@ -46,6 +46,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@org.springframework.test.context.TestPropertySource(properties = ["app.credit.signup-trial-amount=100"])
 @EnabledIfEnvironmentVariable(named = "AUTH_INTEGRATION_TEST", matches = "true")
 class SignupIntegrationTest {
     @Autowired lateinit var mvc: MockMvc
@@ -173,6 +174,8 @@ class SignupIntegrationTest {
         mvc.perform(securedPost("/api/v1/auth/verify-email").contentType(MediaType.APPLICATION_JSON)
             .content("""{"token":"$token","password":"a-long-test-password"}""")).andExpect(status().isNoContent())
         assertEquals(1, jdbc.queryForObject("select count(*) from auth_member", Int::class.java))
+        // 가입 체험 크레딧이 가입과 함께 한 번 지급된다.
+        assertEquals(1, jdbc.queryForObject("select count(*) from credit_grant where kind = 'signup-trial' and amount = 100", Int::class.java))
         mvc.perform(securedPost("/api/v1/auth/verify-email").contentType(MediaType.APPLICATION_JSON)
             .content("""{"token":"$token","password":"a-long-test-password"}""")).andExpect(status().is4xxClientError())
         mvc.perform(securedPost("/api/v1/auth/signup").contentType(MediaType.APPLICATION_JSON)

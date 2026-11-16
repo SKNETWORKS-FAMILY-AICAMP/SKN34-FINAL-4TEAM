@@ -1,0 +1,60 @@
+"""집필 AI Intent Router(#55): 작가 요청을 입력 가드레일로 거른 뒤 등록된 8개 기능의 실행 순서나 확인 질문으로 분류한다.
+
+OpenAI Decisions(`gpt-6-luna`)에 고정 선택지 질문만 보내므로 모델은 등록된 값 중 하나만 고를 수 있고,
+작가에게 보이는 거절·확인 문구는 서버 고정 문구다. 권한·작품/Fork/회차 범위는 Content(`QaScopeService` 등)가
+확정한 값만 쓴다. 결과에는 범위·대상·도구 필드가 없어 입력 문장이 그 결과를 바꿀 수 없다.
+"""
+
+import re
+
+from pydantic import ValidationError
+
+from app.intent import agent
+from app.intent.errors import IntentFailure
+from app.intent.models import IntentResult, IntentStep
+from app.intent.prompt import (CAPABILITY_NAMES, CLARIFY_MESSAGE, FEATURES, FINDING_FEATURES, GUARD_QUESTION,
+                               REJECT_MESSAGES, ROUTE_QUESTIONS)
+
+_PLAIN = re.compile(r'[\s·ㆍ・]')  # 보기 이름을 알아볼 때 공백·가운뎃점(· ㆍ ・) 차이는 무시한다
+_BY_NAME = {_PLAIN.sub('', name): feature for feature, name in CAPABILITY_NAMES.items()}
+
+
+def clarified(request: str) -> str | None:
+    """작가가 되묻기(CLARIFY_MESSAGE)의 기능 보기 이름으로 답했으면 그 기능, 아니면 None. 호출자가 직전 턴이 되묻기였는지 확인한다."""
+    return _BY_NAME.get(_PLAIN.sub('', request))
+
+
+def route(request: str, operation: str | None = None, materials: list[str] = (), history: list[str] = ()) -> IntentResult:
+    """UI에서 고른 operation이 있으면 가드레일만 묻고 그 기능으로 확정한다. 모델 실패·규격 밖 응답은 IntentFailure.
+
+    자유 입력은 이번 요청만으로 먼저 분류한다. 이전 요청을 같이 보내면 이미 끝난 요청에 분류가 끌려가기 때문이다. 되묻기(clarify)가 나왔을 때만
+    history(같은 대화의 이전 요청)를 붙여 한 번 더 묻는다. "그거 고쳐줘" 같은 지칭은 이전 요청이 있어야 풀린다.
+    """
+    if operation is not None:
+        IntentStep(feature=operation, when='always')  # 등록 밖 값은 모델 호출 전에 ValidationError(ValueError)
+    if operation:
+        return _decide(request, materials, operation, history)
+    first = _decide(request, materials, None, ())
+    return _decide(request, materials, None, history) if first.status == 'clarify' and history else first
+
+
+def _decide(request: str, materials: list[str], operation: str | None, history: list[str]) -> IntentResult:
+    answers = agent.decide(request, list(materials), [GUARD_QUESTION] if operation else ROUTE_QUESTIONS, list(history))
+    try:
+        if answers['guard'] != 'none':
+            return IntentResult(status='rejected', reason=answers['guard'], message=REJECT_MESSAGES[answers['guard']])
+        if operation:
+            return IntentResult(status='route', steps=[IntentStep(feature=operation, when='always')])
+        chosen = sorted((answers[f], f) for f in FEATURES if answers[f] != 'none')  # 순서 값은 한 자리(1~3)라 문자열 정렬이 곧 순서다.
+        check = None if answers['review_check'] == 'unclear' else answers['review_check']
+        steps = [IntentStep(feature=f, when='if_issues_found' if p.endswith('_if_issues') else 'always',
+                            check=check if f == 'review' else None) for p, f in chosen]
+        # 기능별 답이 독립이라 상대 순서만 쓴다. 한 순서에 여러 기능이 오거나, 조건부 작업 앞에 문제를 찾는 작업이 없으면
+        # 모호하다고 보고 확인을 묻는다.
+        if (answers['clarity'] == 'ambiguous' or not steps or len({p[0] for p, _ in chosen}) != len(chosen)
+                or any(s.when == 'if_issues_found' and (i == 0 or steps[i - 1].feature not in FINDING_FEATURES)
+                       for i, s in enumerate(steps))):
+            return IntentResult(status='clarify', message=CLARIFY_MESSAGE)
+        return IntentResult(status='route', steps=steps)
+    except (KeyError, ValidationError):
+        raise IntentFailure() from None

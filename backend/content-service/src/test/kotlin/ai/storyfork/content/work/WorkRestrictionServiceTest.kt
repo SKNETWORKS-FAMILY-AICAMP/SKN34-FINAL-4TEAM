@@ -1,6 +1,7 @@
 package ai.storyfork.content.work
 
 import ai.storyfork.content._common.exception.ContentFailure
+import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.episode.repository.*
 import ai.storyfork.content.episode_version.repository.*
 import ai.storyfork.content.fork.repository.*
@@ -19,19 +20,30 @@ import org.mockito.Mockito.*
 /** 운영 제한 플래그와 공개 접근 차단을 저장소 mock으로 검증한다. */
 class WorkRestrictionServiceTest {
     private val works = mock(WorkRepository::class.java)
+    private val nicknames = mock(CoreNicknameService::class.java)
     private val row = WorkEntity(id = "work", ownerId = "author", title = "작품")
 
     @Test fun `internal read returns owner title and restriction and 404 for missing work`() {
         `when`(works.findById("work")).thenReturn(Optional.of(row))
-        assertEquals(InternalWorkResponse("work", "author", "작품", false), InternalWorkService(works).read("work"))
+        assertEquals(InternalWorkResponse("work", "author", "작품", false), InternalWorkService(works, nicknames).read("work"))
 
         `when`(works.findById("none")).thenReturn(Optional.empty())
-        assertEquals(404, assertThrows(ContentFailure::class.java) { InternalWorkService(works).read("none") }.status)
+        assertEquals(404, assertThrows(ContentFailure::class.java) { InternalWorkService(works, nicknames).read("none") }.status)
+    }
+
+    @Test fun `operations cannot read or restrict a soft deleted work`() {
+        val gone = WorkEntity(id = "gone", ownerId = "author", title = "삭제", deletedAt = java.time.Instant.now())
+        `when`(works.findById("gone")).thenReturn(Optional.of(gone))
+        `when`(works.lockAll(listOf("gone"))).thenReturn(listOf(gone))
+        val service = InternalWorkService(works, nicknames)
+        assertEquals(404, assertThrows(ContentFailure::class.java) { service.read("gone") }.status)
+        assertEquals(404, assertThrows(ContentFailure::class.java) { service.restrict("gone", true) }.status)
+        assertFalse(gone.restricted)
     }
 
     @Test fun `restrict and unrestrict lock the work row and return the new flag`() {
         `when`(works.lockAll(listOf("work"))).thenReturn(listOf(row))
-        val service = InternalWorkService(works)
+        val service = InternalWorkService(works, nicknames)
 
         assertEquals(InternalWorkResponse("work", "author", "작품", true), service.restrict("work", true))
         assertTrue(row.restricted)

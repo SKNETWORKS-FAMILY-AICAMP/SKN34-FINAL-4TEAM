@@ -28,4 +28,6 @@ class EpisodeVersionEntity(
     var workWorldHistoryId: String? = null,
     @field:Column(name = "restored_from_id")
     var restoredFromId: String? = null,
+    @field:Column(name = "author_note", length = 2000)
+    var authorNote: String = "",
 )

@@ -72,6 +72,18 @@ class WorldReadingBoundaryServiceTest {
         verifyNoInteractions(readingDetails)
     }
 
+    @Test fun `private committed settings are available to the author only`() {
+        history()
+        `when`(access.own("w","owner")).thenReturn(work)
+        `when`(access.published("w")).thenReturn(work)
+        `when`(visibility.findAllById(listOf("visibility"))).thenReturn(
+            listOf(SettingVisibilityHistoryEntity(id="visibility",settingDocumentId=doc.id,defaultVisibility="private")))
+        `when`(currentEpisodes.findByWorkIdAndSequence("w",1)).thenReturn(
+            ai.storyfork.content.episode.entity.EpisodeCurrentEntity(id="e",workId="w",sequence=1,publishedVersionId="v"))
+        assertEquals(listOf("원문"), service.settingsForQa("w","owner",1).map { it.body })
+        assertTrue(service.settingsForQa("w",null,1).isEmpty())
+    }
+
     @Test fun `original can draft and confirm a new simple setting without rewriting rich history`() {
         `when`(access.own("w","owner")).thenReturn(work)
         `when`(access.get("w")).thenReturn(work)
@@ -106,6 +118,19 @@ class WorldReadingBoundaryServiceTest {
         assertEquals("원문",version.content)
         assertEquals(listOf(ReadingProperty(0,"관계","보존",2)),detail.properties)
         verify(versions,never()).saveAndFlush(version)
+        verifyNoInteractions(readingDetails)
+    }
+
+    @Test fun `readers of a following Fork whose source was deleted see no source settings`() {
+        val forkWork=work.copy(id="f",source=SourceResponse("w","작품",1,1,"분기",deleted=true))
+        `when`(access.published("f")).thenReturn(forkWork)
+        `when`(access.get("w")).thenReturn(work.copy(deleted=true))
+        `when`(forks.findById("f")).thenReturn(Optional.of(ForkEntity(workId="f",sourceWorkId="w",sourceCheckpointId="cp")))
+        `when`(references.findById("f")).thenReturn(Optional.of(ForkWorldReferenceEntity(forkWorkId="f",sourceWorldId="w",referenceStatus="following")))
+        history()
+        `when`(currentEpisodes.findByWorkIdAndSequence("f",1)).thenReturn(ai.storyfork.content.episode.entity.EpisodeCurrentEntity(id="e",workId="f",sequence=1,publishedVersionId="v"))
+
+        assertEquals(emptyList<Any>(),service.publicRead("f",1).documents)
         verifyNoInteractions(readingDetails)
     }
 

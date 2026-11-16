@@ -1,106 +1,147 @@
-# 검색 계약과 Fixture
+# 전체 RAG 검색 계약과 단계적 구현
 
-네 어댑터는 **동일한 Scope·Evidence 규약**을 사용한다. Content는 다섯 번째 검색 엔진으로 집계하지 않는다. 허용된 자료 목록과 정확한 원문·버전·현재 관계를 확인하는 기준이다. 개발자는 아래 합성 자료와 대역만으로 라우팅, 누락 처리, 인용 검증, 승인 전 차단을 재현할 수 있다.
+RAG 목표는 **현재 관계 Graph + 회차 Wiki Graph + 원고 Vector + 템플릿 Vector**다. 네 공급자는 같을 필요가 없지만, 결과는 같은 권한 범위와 출처 규약으로 읽힌다. 구현 순서는 [로드맵](05-implementation-roadmap.md)에 따른다. Content는 검색 엔진이 아니라 정본·권한·판본 확인자다.
 
-### 5. 필요한 검색 경로와 정본 확인
-
-```mermaid
+~~~mermaid
 flowchart LR
-    A[요청과 Content 발급 Scope] --> C[Retrieval Coordinator]
-    C -.-> R[현재 관계 Graph]
-    C -.-> W[회차 Wiki Graph]
-    C -.-> M[원고 Vector]
-    C -.-> T[템플릿 Vector]
-    R -.-> V[Evidence Normalizer]
-    W -.-> V
-    M -.-> V
-    T -.-> V
-    C -.-> S[Content manifest 및 정확 조회]
-    S --> V
-    V --> X[권한 및 revision 대조]
-    X --> P[ContextPacket과 Coverage]
-    classDef default fill:#dbeafe,stroke:#2563eb,color:#111827
-```
+  S[Content 허용 Scope/manifest] --> R[현재 관계: Neo4j]
+  S --> M[원고 Vector: Elasticsearch]
+  S -.-> W[회차 Wiki Graph]
+  S -.-> T[템플릿 Vector]
+  R --> N[출처 정규화]
+  M --> N
+  W -.-> N
+  T -.-> N
+  N --> V[Content 권한과 출처별 확인]
+  V --> C[ContextPacket + Coverage/Gap]
+~~~
 
-## 입력과 반환 규약 v1
+## 공통 입력과 출력
 
-아래는 구현용 타입 표기다. `Id`는 경계에서 검증하는 불투명 문자열이다. 원작의 `fork_id=null`은 원작만 일치시키며 와일드카드로 해석하지 않는다. Fork의 `work_id`와 `fork_id`는 대상 Fork 작품 PK다. 원작에서 상속한 근거는 Content가 허용한 출처 참조로만 연결한다.
+공통 Retrieval 도구/서브그래프는 Writing & Editing을 제외한 업무 Agent가 필요할 때 호출하며, 아래 Scope와 결과 계약을 재사용한다. Writing & Editing에는 Content가 확인한 허용 입력을 직접 전달하고, 필요 시 Review가 검수한다. 별도 정본이 아니고 모든 공급자나 모델을 매번 호출하지 않는다. 단순 조회는 직접 실행할 수 있다. [공통 도구](03-rag-simulation-design.md#공통-서브그래프-도구)
 
-```text
-Scope = {grant_ref, subject_ref, work_id, fork_id?, world_id?, basis_episode,
-         audience: owner|reader|character, character_id?, purpose, manifest_ref}
-Query = {scope, operation, query_text?, entity_ids[], episode_range?,
-         document_ids[], top_k, token_budget, deadline, required_fields[]}
-RetrievalPort.search(query: Query) async -> RetrievalResult
-CanonicalAdapter.manifest(scope) -> {expected_episodes[], source_versions, scope_digest}
-CanonicalAdapter.read(scope, typed_target, revision, span?) -> VerifiedSource
-RetrievalResult = {status: ok|partial|unavailable|unsupported|denied,
-                   evidence[], gaps[], conflicts[], coverage?, next_cursor?, is_mock}
-Gap = {source_ref?, episode_number?, code: missing|stale|unsupported|timeout|unverified}
-Coverage = {manifest_ref, requested_range, expected_count, verified_count,
-            episodes:[{number, episode_id?, expected_rev?, indexed_rev?, state, refs[]}],
-            missing_ranges[], critical_gaps[], checked_at, is_mock}
-```
+Scope에는 사용자 작업 참조, 대상 work/Fork, 기준 회차·판본 manifest, audience(owner/reader/character), 인물 ID, 목적, 만료가 들어간다. UI·모델이 만든 Scope를 신뢰하지 않는다. Query에는 작업 종류, 검색 문구 또는 ID, 허용 회차/문서, 결과·토큰 상한을 넣는다. 결과는 ok/partial/unavailable/unsupported/denied 중 하나이며 evidence, gaps, coverage를 반환한다. 정상 0건은 검색 장애와 다르다.
 
-`grant_ref`는 서버 전용 단기 위임 참조다. 클라이언트·모델이 만든 Scope는 무효다. 검색 전에 서버가 scope·작업·시점·공개·인물 지식 필터를 적용한다. 반환 단계에서 Content와 다시 확인한다. 대상 범위를 벗어난 행 한 건이라도 반환한 adapter 응답은 격리하고 보안 실패로 처리한다. 사용자에게 다른 작품의 ID·제목·존재를 내보내지 않는다. 정상 0건, 미지원, timeout을 구분한다.
+Evidence의 공통 필수 정보는 출처 종류, 그 종류 안에서 식별 가능한 출처 참조, 검증에 사용한 판본·세대·토큰 등 출처별 식별 정보, canonical/inferred/hypothetical 상태, 조회 시점이다. 작품·회차에 속하는 근거에는 해당 work/Fork와 회차·문서 식별자를 포함한다. 위치·인용을 확인하는 방식은 출처 종류에 따른다.
 
-| Evidence 필드 | 자료형·의미 |
+| 출처 종류 | 출처별 확인 정보 |
 |---|---|
-| `id, retrieval_type, source_backend, is_mock, retrieved_at` | 안정적 출처 키, relationship/wiki/manuscript/template 또는 정확 조회 canonical, 제공사/fixture 이름, bool, UTC timestamp |
-| `work_id?, fork_id?, episode_id?, scene_id?, document_id?, entity_ids[]` | 정본과 결합할 식별자. 카탈로그 템플릿은 작품 식별자 null, `template_id`와 catalog_revision·license_ref 필수 |
-| `source_revision, source_span?, as_of_episode?, evidence_refs[]` | source_kind와 불투명 버전 쌍. 범위는 원본 문자열 **UTF-16 code unit [start,end)**, 개행·정규화 원본 그대로. quote hash는 해당 원문 UTF-8 바이트 SHA-256. Python은 명시 변환, 대리쌍 경계 분할 거부 |
-| `content, fact_or_relation?, canonical_status, known_by?, visible_from?, visible_to?` | 최소 발췌와 주장. `verified_source / inferred / disputed / hypothetical`. 원문에 적힌 대사와 등장인물 주장의 진실성을 분리. `known_by` 미정은 인물에게 숨김 |
-| `retrieval_score?, score_kind?, confidence_basis?, source_hash?` | cosine·순위·그래프 거리 같은 점수 의미를 함께 기록. 사실 확률로 변환하지 않는다. 추론·충돌에는 근거와 반대 근거를 함께 보존 |
+| 원고 Vector | work/Fork, 회차·문서 ID, 판본, 본문 해시, 원문 기준 UTF-16 `[start,end)`, 인용. Content가 PostgreSQL 판본 원문에서 대조한다. |
+| 현재 관계 Graph | 세계관 ID, 관계 ID, 현재 graph token과 방향·라벨·양 끝 카드. Content가 world 연결·소유권·공개 범위와 현재 그래프를 확인한다. 출처의 시점을 현재로 표시한다. |
+| 회차 Wiki Graph | 출처 회차·문서의 판본, 파생 노드·경로 참조, 근거와 회차 coverage. 원고 직접 인용이 있을 때 해당 원문 위치와 인용을 대조한다. |
+| 템플릿 Vector | 카탈로그 항목 ID, catalog revision, 라이선스·공개 범위. 독립 카탈로그에는 작품/Fork와 회차 필드를 요구하지 않는다. |
+| Q&A의 설정 | 설정 ID와 판본, 사용한 공개 범위와 인용. Content가 해당 회차에 허용한 설정 본문·속성·지식을 확인한다. |
 
-### 네 Adapter의 책임
+Python은 출처 종류별 필수 정보와 검증 결과를 확인한다. 해당 종류에 적용되지 않는 필드는 누락으로 세지 않는다. 템플릿의 카탈로그 정보는 작품의 확정 설정과 구분한다. 벡터 점수는 검색 관련도를 뜻하며, 공급자별 점수를 평균해 사실을 결정하지 않는다.
 
-| Adapter / 입력 제약 | 자료 모양과 반환 | 누락·갱신·확인 정책 |
+Coverage는 요청한 범위의 expected와 verified 판본, 누락·stale·삭제·미지원 구간을 표시한다. top-k가 관련 문단을 찾았다는 이유만으로 작품 전체를 검수했다고 쓰지 않는다. 권한 밖 회차는 존재 자체를 드러내지 않는다. 인물용 packet은 해당 시점에 배운 정보만 포함한다.
+
+## Q&A 범위 확정 (1단계 구현)
+
+`content-service`의 `QaScopeService.resolve`가 Q&A의 작품·Fork·발행 판본 범위를 확정한다. 답변 경로는 아래 계약을 사용한다.
+
+- 입력: 경로의 작품/Fork ID, Core가 검증한 Principal(없으면 공개 독자), 기준 회차 번호, 기준 회차 발행 판본 ID(`versionId`), 질문 대상 `manuscript|relationship`, 관계 시점 `current`.
+- 권한: 작가는 `WorkAccessService.own`, 독자는 `published`로 판단한다. 판본·세계관 ID는 요청에서 받지 않고 정본에서 다시 읽는다.
+- 범위: 해당 작품/Fork의 발행 회차 중 기준 회차 이하와 각 현재 발행 판본. Fork의 상속 회차는 Fork가 보는 판본이며, 원작이 삭제된 Fork의 독자 범위에서는 상속 회차를 뺀다. 미발행·없는 회차는 422, 판본 불일치(오래된 판본·다른 Fork 판본)는 409다.
+- 관계: 기준 회차의 `basisWorldId`(기능 87)를 작품↔세계관 연결로 보고, 그 world 소유자 기준으로 현재 Neo4j graph token을 `WorldStudioService.draft`로 확인한다. Fork의 상속 회차는 원작 같은 회차에 원작 작가가 연결한 world를 쓰고(2026-11-11 사용자 결정), Fork 자체 회차는 Fork 작가가 연결한 world만 쓴다. 연결 없음은 422 `WORLD_LINK_REQUIRED`, 확인 불가 world는 404, `current` 외 시점은 409 `RELATIONSHIP_HISTORY_UNSUPPORTED`, 저장소 오류는 WorldStudio의 code·상태(409/503)를 그대로 쓴다. 독자의 관계 질문은 403이다.
+- 기준은 발행 판본만이며 작가의 미발행 초안은 범위에 넣지 않는다(2026-11-11 사용자 결정).
+- 독자의 관계 질문은 회차별 관계 공개 정책이 생길 때까지 403으로 막는다. 현재 관계는 이후 회차의 변화까지 담아 독자에게 미래 정보를 드러내고, 설정 기본값도 비공개이기 때문이다(DEC-36, 2026-11-11 사용자 결정).
+- 회차에 연결된 world는 봉인 버전이지만 관계는 Neo4j 현재 상태다. WorldStudio는 DEC-51로 회차별 관계를 조회할 수 있다. 이번 집필 AI Q&A는 최신 관계를 사용하며 답변에 "현재 관계(기준 회차 시점 아님)"와 graph token을 표시한다. 회차별 Q&A 연동은 [#124](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/124)의 기준 회차 문맥과 함께 다룬다.
+- Q&A 답변 생성은 상속 회차의 원작 현재 관계와 비공개 카드를 AI 문맥에서 제외한다. Fork의 자체 회차는 그 회차에 연결된, Fork 작가가 소유한 세계관의 현재 관계를 사용한다.
+
+## 공급자별 계약
+
+| 공급자 | 우선순위와 입력 | 검증·한계 |
 |---|---|---|
-| `RelationshipGraphRetriever` / Content가 결합을 확인한 world·현재 graph_version, 양 끝의 공개 허용 카드 | 현재 World→Relation→Source/Target. 유향·무향, 동맹·적대·가족·소속은 원본 payload의 방향과 라벨을 보존. 사용자 확정 관계와 Wiki 추론을 구별. 소속·조직·장소 등은 허용된 카드가 있을 때만 | current-only. 현재 version과 완료 상태 재확인. 과거 유효 구간·변경 이력 조회에는 unsupported. 회차 제한 요청에서 현재 관계가 당시에도 같았다고 추측하지 않는다. 행 단위 공개·지식 증명이 없으면 원작자 개인의 현재 보기 외 사용 차단. [관계 계약](../design/worldstudio-independent-schema.md) |
-| `EpisodeWikiRetriever` / manifest와 회차 범위·시점·관점 | Episode/Scene/Event/Claim/Knowledge/Rule/PlotPoint와 인용 경로. 필수 사건 및 회차별 색인 revision 반환 | 전체 범위 확인과 질문 연관 top-k는 별도 질의. 오래된 revision·삭제 출처 및 파생 경로는 무효화. 본문으로 확인되지 않은 추론은 inferred |
-| `ManuscriptVectorRetriever` / work·fork·문서 종류·버전 prefilter | 회차/장면 안의 문단 단위 chunk, 긴 문단은 문장 경계로 분할, 겹침은 직전 한 문장까지. `chunk_id,document_id,revision,span,embedding_model,index_generation,score` 반환. 콘티는 source_kind로 분리 | 다른 회차·문서·권한 경계 넘는 overlap 금지. 겹친 span 병합, 같은 revision에서 재정렬. 정확 대사·전체 원문은 Content로 읽는다. 새 색인 준비 전 구버전 차단. BM25·reranker는 평가 후 선택 |
-| `TemplateVectorRetriever` / 독립 카탈로그, 이용자 권리·라이선스·언어·장르 필터 | 템플릿 ID/버전, 이름, 태그, 목적, 이미 사용하는 설정과의 중복·충돌 근거. 요청에는 비공개 원고 대신 허용 태그와 요약을 사용 | 철회·만료된 항목 차단. 카탈로그 데이터는 작품 memory에 자동 합치지 않는다. 적용 요청이 오면 별도 변경안 생성 |
+| 현재 관계 Graph | 1단계. Content가 연결·소유권·현재 graph token을 확인한 WorldStudio 관계 | 현재 방향·라벨·양 끝 카드와 공개 범위만. 과거 회차 관계 복원은 unsupported. |
+| 원고 Vector | 2단계. PostgreSQL 판본에서 만든 Elasticsearch 인덱스, work/Fork·revision 선필터 | chunk가 문서/권한 경계를 넘지 않는다. 검색 후 Content 원문·hash·span을 재검증한다. 색인 세대가 뒤처지면 stale. |
+| 회차 Wiki Graph | 후속. 회차/장면/사건/인물 지식/복선·회수/인과의 출처 있는 파생 그래프 | source revision·회차 coverage·삭제 전파가 확인된 경로만 사용. 관계 이력을 재구성하지 않는다. |
+| 템플릿 Vector | 후속. 작품과 분리된 장르/세계관 카탈로그 | 라이선스·공개 범위와 catalog revision을 확인한다. 추천 결과를 자동으로 작품에 반영하지 않는다. |
 
-Normalizer는 같은 `(source_kind,id,revision,span)`을 중복 제거한다. 정확 인용은 검증된 원문을 우선하고, 의도별로 Wiki의 사건 경로·관계 방향·원고 유사 구간·템플릿 적합도를 각기 해석한다. 서로 다른 점수의 산술 평균은 사용하지 않는다. 상충 주장은 출처별로 반환하고 적은 점수 차만으로 정본을 결정하지 않는다. 캐시 키에 subject/grant epoch·purpose·관점·character·작품/Fork·회차 범위·manifest·query·index_generation을 포함한다. 권한 변경·삭제에는 즉시 접근을 닫고 캐시에서 내보낼 때도 재검증한다.
+Content는 `episode_current`의 활성 발행 판본과 `work_current`의 공개 상태를 읽어 첫 일괄 적재와 이후 대조를 같은 경로로 처리한다. 초안이나 저장 버전은 발행된 시점부터 적재 대상이다. 비공개·권리 제한·삭제 작품, 공개 중단·삭제 회차, 삭제 원작에서 상속된 회차는 제외한다. Fork의 자체 회차와 생성 시 고정한 상속 판본은 기존 읽기 계약을 따른다.
 
-## Fixture와 교체 절차
+## 원고 벡터 인덱스 v1
 
-현재 Neo4j 관계를 읽은 결과는 run에서 허용된 동안만 사용한다. PostgreSQL의 Evidence·Saver·감사 기록에는 관계 본문을 snapshot으로 복제하지 않고 world/관계 ID·CAS token과 확인 결과만 남긴다. 재개 때 token이 바뀌면 현재 상태를 새로 확인한다. 과거 관계를 재구성하는 용도로 Wiki나 검색 캐시를 사용하지 않는다. V2 marker가 없는 기존 world는 `migration_required`이며 이 설계에서 자동 이관하지 않는다.
+[`storyfork-manuscript-v1` 매핑](../../infrastructure/elasticsearch/manuscript-chunks-v1.json)은 `intfloat/multilingual-e5-small`의 384차원 벡터를 `dense_vector`와 cosine으로 검색한다. 문단에는 `passage: `, 질문에는 `query: `를 붙이고 같은 모델 리비전으로 임베딩한다. 평가에는 배포자가 제공한 INT8 ONNX 모델로 512토큰 이내 입력을 처리하고, padding을 제외한 평균 풀링 뒤 L2 정규화를 적용했다. [모델 카드](https://huggingface.co/intfloat/multilingual-e5-small/tree/614241f622f53c4eeff9890bdc4f31cfecc418b3)
 
-다음 YAML은 테스트 전용 약식 seed다. FixtureDataProvider는 여기의 별칭을 테스트 ID로, manifest를 서버 승인 읽기 목록으로 변환한다. mock provider는 고정 순위로 필터링 후 `is_mock=true`를 모든 결과에 붙인다. Mock에서도 Content 대역을 통해 source span을 확인한다.
+`work_id`는 `QaScope.workId`에 해당한다. Fork의 상속 회차도 해당 Fork의 작품 ID와 회차 ID로 색인한다. `source_work_id`는 Fork의 직접 분기 원본이며 원작에서는 필드를 생략한다. `source_revision`은 회차 버전 행의 PK 대신 `QaEpisodeRef.versionId`와 동일한 `content_version_id`를 사용한다. 상속된 원작과 Fork가 같은 `content_version_id`를 공유하므로 `work_id`를 항상 함께 제한한다.
 
-```yaml
-fixture_version: 1
-scope: {subject_ref: author-A, work_id: w1, fork_id: null, basis_episode: 3}
-manifest: [{episode: 1, revision: r1}, {episode: 2, revision: r2}, {episode: 3, revision: r3}]
-sources:
-  - {id: m1, episode: 1, revision: r1, text: "카이는 문을 닫았다."}
-  - {id: m2, episode: 2, revision: r2, text: "리나만 암호를 들었다."}
-  - {id: m3, episode: 3, revision: r3, text: "카이는 암호를 물었다."}
-wiki:
-  - {id: e1, episode: 1, kind: event, ref: m1, revision: r1}
-  - {id: e2, episode: 2, kind: learns, fact: password, known_by: [lina], ref: m2, revision: r2}
-  - {id: e3, episode: 3, kind: asks, actor: kai, ref: m3, revision: r3, caused_by: e2}
-relationship: [{id: rel1, source: kai, target: lina, label: 동료, graph_version: 7, temporal: current}]
-manuscript: [{id: c2, doc: m2, revision: r2, span: [0, 12], rank: 1}]
-template: [{id: magic1, revision: t2, name: 대가가 있는 마법, license_ref: demo_allowed, tags: [마법, 제약]}]
-variants:
-  fork: {work_id: f1, fork_id: f1, episode: 3, fact: "카이는 떠났다", revision: f3}
-  conflict: {claim: "카이도 암호를 들었다", status: disputed, contradicts: e2}
-  missing: {omit_wiki_episode: 2}
-  stale: {override_chunk_revision: old2}
-  unauthorized: {inject_result_from: other_author_fork}
-  outage: {backend: wiki, error: timeout}
+`episode_id`, `source_hash`(UTF-8 판본 본문 SHA-256), `[start_utf16, end_utf16)`를 반환하면 Content가 판본 본문에서 인용을 확인한다. 인덱스에는 원고 본문을 저장하지 않는다. 현재 로컬 색인 세대는 `1`이다.
+
+대조 작업은 기본 60초 간격이다. 청크는 문단 기준이며 긴 문단은 UTF-16 256단위 이내로 자른다. 작품·회차·판본·본문 해시·범위로 문서 ID를 고정해 다음 주기에 이미 반영된 청크를 건너뛴다. 구판·삭제된 청크를 먼저 제거하고 누락분은 로컬 AI Service에서 임베딩해 배치로 적재한다. 실패한 실행은 다음 주기에 다시 대조한다. 같은 Content DB의 동시 작업은 PostgreSQL advisory lock으로 막는다. 대조 전에는 PostgreSQL이 확정한 최신 Scope와 원문 검증이 여전히 필요하다. Content는 시작할 때 인덱스가 없을 때만 v1 매핑으로 만들고 기존 인덱스는 매핑만 검증한다. 불일치하면 시작하지 않는다. 개발 서버 CD는 Elasticsearch와 고정 리비전 모델을 포함한 AI 이미지를 함께 배포한다. [로컬 실행·배포 안내](../../infrastructure/README.md#로컬-원고-검색용-elasticsearch-56)
+
+`POST /storyfork-manuscript-v1/_search`에서 `knn.field`는 `embedding`, `knn.query_vector`는 같은 모델의 질문 벡터다. 아래는 원작의 허용 회차가 2개일 때 `knn.filter` 예시다. Fork 조회는 `must_not exists`를 `source_work_id`의 `term`으로 바꾼다. 회차 번호와 판본을 한 쌍으로 비교하고 허용 목록이 비어 있으면 `match_none`을 사용한다. [Elastic kNN 사전 필터](https://www.elastic.co/docs/solutions/search/vector/knn)
+
+```json
+[
+  { "term": { "work_id": "<QaScope.workId>" } },
+  { "bool": { "must_not": { "exists": { "field": "source_work_id" } } } },
+  { "term": { "index_generation": 1 } },
+  { "bool": {
+    "minimum_should_match": 1,
+    "should": [
+      { "bool": { "filter": [
+        { "term": { "episode_number": 1 } },
+        { "term": { "source_revision": "<1화 versionId>" } }
+      ] } },
+      { "bool": { "filter": [
+        { "term": { "episode_number": 2 } },
+        { "term": { "source_revision": "<2화 versionId>" } }
+      ] } }
+    ]
+  } }
+]
 ```
 
-예를 들어 2화까지 카이 시점으로 질의하면 `e2`의 암호 내용은 카이 입력과 그 인물용 citation에 모두 없어야 한다. 원작자에게 같은 회차의 대사를 물으면 `m2/r2`에서 `[0,12)` 원문을 검증한다. 현재 관계가 확인되어도 “2화 관계 복원” 요청은 unsupported다. 2화 Wiki가 빠지면 3화까지의 coverage는 2/3이고 완전한 검수로 표시하지 않는다.
+### 개발 표본 평가
 
-| 계약 검증 | Mock과 실 Adapter 공통 기대값 |
-|---|---|
-| 같은 요청·고정 버전 | 식별자, 범위, schema, visibility, 정렬 tie-break 재현. 실 검색 순위는 동일 문자열 순위 대신 기대 관련 문서 recall 및 노출 금지로 검증 |
-| 권한·Fork·지식·삭제 | 교차 사용자·다른 Fork·미래 회차·라이선스 철회 자료가 결과/캐시/로그/인용에 0건. 삭제한 근거를 참조한 Wiki 경로도 차단 |
-| 잘못된 데이터 | 누락→coverage gap, stale→원문 재조회 또는 stale, 충돌→disputed, timeout→unavailable. 실 장애에 Mock 결과를 대입하지 않는다 |
-| 공급자 선택 | 단위/CI fixture 명시, 개발은 요청되지 않은 외부 호출 금지, 운영은 허용된 real만 등록. 운영에서 mock 설정·표시 누락이면 기동/작업 거부 |
-| 교체 | 같은 Port에 실제 adapter 바인딩 → 고정 corpus로 계약 검증 → 권한 필터·시점·품질 평가 → 제한 트래픽 관측 → 문제 시 해당 capability 중지. Agent와 DAG 입력 형식 유지 |
+2026-11-11에 저장소 [시연용 원고 CSV](../../infrastructure/sample-data/README.md)의 `starlight` 1–3화, `postman` 1–2화, `crown` 4화, `seal` 3화에서 문단 26개를 뽑았다. 각 질문에 정답 문단 하나를 미리 지정하고 11개 질문을 같은 문단 집합에서 cosine으로 순위화했다. 두 모델의 상위 3개 지표가 같아 벡터 차원이 절반인 E5-small을 선택했다. [E5-small](https://huggingface.co/intfloat/multilingual-e5-small) · [E5-base](https://huggingface.co/intfloat/multilingual-e5-base)
 
-실제 DB 단계에는 권리 확인된 corpus, chunk·임베딩 세대 관리, 변경 이벤트 재처리 및 삭제 전파, 인덱스 교체, 백업·복구, 지연·recall과 동시 부하 측정이 필요하다. Mock으로 확인되는 것은 분기·계약·격리 규칙이다. 실제 검색 품질이나 사업 데이터 coverage의 증거는 별도로 수집해야 한다.
+| 모델 | 차원 | 정답 1위 | 정답 상위 3위 | MRR@3 |
+| --- | ---: | ---: | ---: | ---: |
+| E5-small | 384 | 7/11 | 8/11 | 0.682 |
+| E5-base | 768 | 7/11 | 8/11 | 0.682 |
+
+Elasticsearch 9.5.6의 `storyfork-manuscript-v1-dev-sample`에 원고 표본 26문단, 원작과 같은 판본을 쓰는 Fork 상속 문단 1개, 차단 검증용 문서 5개를 넣었다. `knn.filter`로 작품·회차·판본을 제한했을 때 정답은 1위 8/11, 상위 3위 11/11이었다. 필터를 제거하거나 회차와 판본을 별도 `terms`로 비교하면 차단 검증용 문서가 결과에 들어왔다. 올바른 필터는 다른 작품, 같은 원작의 다른 Fork, 이전 판본, 잘못 조합한 회차·판본, 허용 세대 밖 문서를 모두 제외했다. 빈 허용 범위는 0건, 차원 불일치와 매핑에 없는 필드는 HTTP 400이었다.
+
+초기 매핑 평가에서는 `storyfork-manuscript-v1`을 빈 상태로 만들었다. 다음 검증에서 Content의 첫 대조로 개발 PostgreSQL의 발행본 32회차(작품 11개, 그중 Fork 7개)에서 청크 134개를 적재했다. 같은 판본 ID를 공유하는 원작과 두 Fork를 각각 검색하고 PostgreSQL 원문 해시와 UTF-16 위치를 대조했다. 검증 DB에서 최초 발행, 판본 교체, 공개 중단, 재발행, 회차 삭제, 원작 삭제 후 상속 회차 제외를 확인했다.
+
+## 작품 Q&A API
+
+- 작가는 `POST /api/v1/works/{id}/context/qa`를 사용하고, 독서 화면은 `POST /api/v1/public/works/{id}/context/qa`를 사용한다. 두 경로는 회원 인증·CSRF·요청별 OpenAI 전송 및 API 비용 동의를 요구한다. 공개 독서 경로는 로그인한 작가도 공개 독자 범위를 적용한다.
+- 요청은 `episode`, `episodeVersionId`, `question`(500자 이하), `consent`, `target`이다. 대상은 `manuscript`(기본값), `setting`, `relationship` 중 하나다. 독서 화면의 **작품에 질문하기**에는 발행 원고와 공개 설정이 있고, 집필실의 발행 회차에는 저장된 설정과 현재 인물 관계도 있다.
+- 발행 원고는 허용 회차·판본 쌍을 kNN의 사전 필터에 넣고, 상위 8개 후보를 PostgreSQL의 현재 발행 회차 ID·판본·본문 해시·UTF-16 범위와 대조한다. 설정은 공개 Wiki와 같은 읽기 투영을 재사용한다. 독자는 기준 회차에 공개된 설정 본문과 공개 속성·지식을 쓸 수 있다. 작가는 자신의 확정 설정 본문을 비공개 여부와 관계없이 읽을 수 있다. 원작을 따라가는 Fork의 설정은 상속된 공개 범위를 적용한다.
+- 현재 관계는 작가 소유의 회차 연결 세계관에서 Neo4j가 반환한 활성 관계를 사용한다. 양 끝 카드의 이름과 관계 방향·라벨·설명을 근거로 쓴다. 관계 시점과 과거 관계는 모델이 `gaps`로 설명한다. 공개 경로의 현재 관계 요청은 403이다.
+- 응답의 `sources[].kind`는 발행 원고·설정·현재 관계를 구분한다. 설정에는 설정 ID와 판본, 현재 관계에는 세계관 ID·관계 ID·현재 그래프 토큰이 들어간다. `claims`에는 확인·추론과 출처 ID를 담고, `gaps`에는 답할 근거가 부족한 부분을 담는다. `coverage`의 회차별 검색 범위는 원고 질문에 적용한다.
+- 설정·관계는 제목과 근거의 문자 일치로 정렬해 최대 8건을 보낸다. 근거가 없으면 모델을 호출하지 않고 `insufficient`를 반환한다. 저장소 또는 모델 연결 장애는 503, 미등록 출처를 인용한 모델 응답은 502, 답변 도중 발행 범위나 확인한 근거가 바뀌면 409를 반환한다.
+- `MANUSCRIPT_INDEX_ENABLED=true`와 Content DB에 맞는 `MANUSCRIPT_INDEX_NAME`을 사용한다. 위에서 준비한 로컬 DB의 인덱스는 `storyfork-manuscript-v1-local`이다. AI Service에는 로컬 E5와 `OPENAI_API_KEY`, Structured Outputs를 지원하는 `OPENAI_MODEL`을 설정한다. [실행 안내](../../infrastructure/README.md#네이티브-자동-적재) · [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses)
+
+### 공통 Retrieval 도구 (오케스트레이션, 2026-11-12 사용자 결정)
+
+AI가 DB에 직접 접속하지 않고 Content API를 호출하는 방식이다. Flyway 마이그레이션과 원고 색인 동기화·시드 코드는 그대로 Content에 둔다.
+
+- Content `POST /internal/v1/ai/qa/retrieval` `{scopeToken, question}` → `{status: found|insufficient, sources, excerpts, gaps, coverage, steps}`. 위 Q&A API와 같은 `ManuscriptQaService.retrieve`(범위 확정 → 임베딩 → Elasticsearch → PostgreSQL 원문 재대조, 또는 설정·Neo4j 현재 관계)를 쓰고 모델은 부르지 않는다. `steps`는 공급자별(`embedding`·`elasticsearch`·`postgres_verify`·`postgres_settings`·`neo4j`) 소요 ms·결과 수다.
+- 인증은 `/internal/v1/ai/**` 전용 보안 체인의 `X-Internal-Token`(`INTERNAL_TOKEN`, 32자 이상)이다. 조회 키(작품·작가·회차·판본·대상)는 Content가 인증 뒤 `QaScopeGrants`로 HMAC 서명해 발급한 `scopeToken`(1시간 만료)에서만 읽는다. AI는 토큰을 되돌려 줄 뿐이라 `INTERNAL_TOKEN`만으로 다른 작가를 지정할 수 없다. 서명이 틀리거나 만료되면 403이다. Content가 그 값으로 `QaScopeService` 권한·범위를 다시 확정한다. 서명 키는 프로세스마다 새로 만들어 Content 재시작·다중 인스턴스에서는 발급한 토큰이 무효다. 독자 관계 질문 거절도 같다. 외부 전송 동의는 아래 Content 공개 경로가 확인하고 이 내부 경로는 확인하지 않는다.
+- 토큰 발급은 Content 공개 경로 `POST /api/v1/works/{id}/writing-ai/orchestrations` `{request | resume{approved}, threadId?, operation?, episode, episodeVersionId, targetEpisode?, target, consent}`가 한다(`episode`·`episodeVersionId`는 근거 회차, 선택 `targetEpisode`는 승인 뒤 쓸 반영 회차로 없으면 `episode`와 같다). 회원 인증(Principal)·동의·작품 범위를 확인한 뒤 작가 본인으로 토큰을 발급하고, 대화를 `user:<작가>/work:<작품>` scope에 묶어 AI 오케스트레이션을 부른다. 응답은 `{threadId, result}`이며 result는 AI 응답 그대로다. resume 때도 새 토큰을 보내 AI가 저장된 토큰을 바꾸므로 1시간 만료·Content 재시작 뒤에도 이어 실행할 수 있다. 아직 Writing 문맥·웹 조사 입력은 보내지 않아 그 단계는 `waiting`이 되며, 화면·SSE 프록시는 없다.
+- AI `app/retrieval/service.retrieve`가 이 API를 호출한다. 오케스트레이션 요청에 Content가 확인한 `scope`가 있으면 Q&A 단계가 발췌 입력 없이 Retrieval로 근거를 받고, 근거가 없으면 모델을 부르지 않고 gaps만 돌려준다. Writing & Editing은 호출하지 않는다.
+- 한계: 오케스트레이션 경로는 답변 생성 뒤 Content의 범위·근거 재확인(409)을 하지 않는다. 검색어는 이번 요청 문장 그대로이며 후속 질문 재작성이 없다. Review·World & Plot이 생기면 같은 도구에 목적별 조회를 더한다.
+
+### 로컬 실모델 검증 (2026-11-11)
+
+`gpt-5.6-luna`로 로그인한 독서 화면에서 공개 개발 샘플 질문을 세 번 제출했다. 원작 `starlight` 2화와 Fork `seal` 2화에서 카엘이 허락한 일을 묻자 각각 서고 열람을 답했고, 같은 상속 판본 `ec9e6883-0c2d-3b95-9976-b5fbaf6688bc`의 2화 원문을 표시했다. 동일 질문을 API에서 각각 한 번 재현해 두 응답 모두 200 `answered`이며 각 `workId`·`episodeId`가 PostgreSQL의 해당 작품과 회차에 일치하고 인용 청크 ID가 서로 다른 것을 확인했다. Fork의 `sourceWorkId`는 원작을 가리켰다.
+
+Fork에서 카엘의 생년월일을 묻자 화면에 “확인된 원고 근거로 답하기 어려워요.”와 **근거가 부족한 부분**이 표시됐다. 모델은 제공된 발췌에서 생년월일을 확인할 수 없다고 설명했다. 확인 범위는 개발 샘플 원작과 Fork의 이 세 사례다.
+
+### 설정·관계 로컬 실모델 검증
+
+`gpt-6-luna`로 합성 개발 작품의 1화 발행본을 기준으로 검증했다. Neo4j에서 라온과 모루의 관계를 수정한 뒤 작가 답변이 현재 역할인 ‘기록 안내자’와 그래프 토큰 `3`을 인용했다. 같은 질문의 공개 API는 403, 비소유 회원의 작가 API는 404였다.
+
+작가와 독자가 검은 별 지도의 보관 장소를 물었다. 작가는 ‘보라색 관측함’과 비공개 설정 판본을 받았다. 독자는 출처 없이 `insufficient`를 받았고, 2화부터 공개되는 새벽 탑의 입장 규칙에도 같은 상태를 받았다. 독자에게 1화부터 공개된 은빛 도서관의 질문은 ‘은제 책갈피’와 공개 설정 판본을 반환했다.
+
+브라우저에서 집필실의 **현재 관계** 출처와 그래프 토큰을 확인했다. 독서 화면에는 공개 설정의 제목·판본·인용문이 표시됐고, 비공개 설정 질문에는 출처 없이 **근거가 부족한 부분**이 표시됐다. 집필실 첫 요청에는 Neo4j 연결 오류가 표시됐고 같은 질문을 다시 보내 출처를 확인했다.
+
+## Mock과 실제 검증의 구분
+
+Mock은 권한 필터, 누락, 오래된 판본, Fork 분리, 출처 형식을 단위 테스트에서 재현하는 데 쓴다. 모든 Mock evidence는 mock임을 표시하고 실제 변경 적용 근거로 사용하지 않는다. 기능 완료에는 해당 실제 공급자와 실제 OpenAI 모델의 결과가 필요하다. 실 Neo4j/Elasticsearch/OpenAI 장애를 Mock 성공으로 바꾸지 않는다.
+
+최소 수용 사례: 현재 관계 질문, 타 작품/Fork 차단, 원고 관련 문단 검색, 판본 변경 뒤 stale 차단, 1~10화 중 누락된 회차의 coverage gap, 인물 지식 습득 전후, 템플릿 권리 철회. Wiki·템플릿 사례는 해당 공급자 구현 단계에서 실제 검증한다.

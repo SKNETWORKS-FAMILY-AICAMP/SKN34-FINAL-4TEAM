@@ -20,9 +20,7 @@ export function useLoginViewModel() {
   const busy = useRef(false)
   const active = useRef(true)
   useEffect(() => { active.current = true; return () => { active.current = false } }, [])
-  const submit = async (email: string, password: string) => {
-    if (busy.current) return
-    if (!EMAIL.test(email) || !password) { setError('이메일과 비밀번호를 확인해 주세요.'); setInvalid(true); return }
+  const send = async (email: string, password: string) => {
     busy.current = true
     setPending(true)
     setError('')
@@ -48,6 +46,13 @@ export function useLoginViewModel() {
       busy.current = false
       if (active.current) setPending(false)
     }
+  }
+  /** 요청을 보냈으면 true. 입력 오류나 진행 중이라 보내지 않았으면 false라서 화면은 쓰던 비밀번호를 지우지 않습니다. */
+  const submit = (email: string, password: string) => {
+    if (busy.current) return false
+    if (!EMAIL.test(email) || !password) { setError('이메일과 비밀번호를 확인해 주세요.'); setInvalid(true); return false }
+    void send(email, password)
+    return true
   }
   return { loginMsg, pending, error, invalid, submit }
 }

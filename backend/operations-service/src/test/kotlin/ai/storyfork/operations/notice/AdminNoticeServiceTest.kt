@@ -1,5 +1,6 @@
 package ai.storyfork.operations.notice
 
+import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.member.repository.AdminPermissionRepository
 import ai.storyfork.operations.notice.entity.NoticeEntity
 import ai.storyfork.operations.notice.repository.NoticeRepository
@@ -19,6 +20,8 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
+import org.mockito.Mockito.doThrow
+import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
@@ -32,7 +35,8 @@ import org.springframework.web.server.ResponseStatusException
 class AdminNoticeServiceTest {
     private val notices = mock(NoticeRepository::class.java)
     private val permissions = mock(AdminPermissionRepository::class.java)
-    private val service = AdminNoticeService(NoticeService(notices), permissions, Validation.buildDefaultValidatorFactory().validator)
+    private val activities = mock(AdminActivityService::class.java)
+    private val service = AdminNoticeService(NoticeService(notices), permissions, Validation.buildDefaultValidatorFactory().validator, activities)
 
     private val admin = OperationsMember(UUID.randomUUID(), true)
     private val operatorWithoutNotices = OperationsMember(UUID.randomUUID(), true)
@@ -63,7 +67,7 @@ class AdminNoticeServiceTest {
             }
         }
 
-        verifyNoInteractions(notices)
+        verifyNoInteractions(notices, activities)
     }
 
     @Test
@@ -75,6 +79,7 @@ class AdminNoticeServiceTest {
         }
 
         verify(notices, never()).saveAndFlush(any())
+        verifyNoInteractions(activities)
     }
 
     @Test
@@ -88,6 +93,7 @@ class AdminNoticeServiceTest {
         assertEquals(0, result.page)
         assertEquals(100, result.size)
         verify(notices).findAll(bounded)
+        verifyNoInteractions(activities)
     }
 
     @Test
@@ -101,5 +107,32 @@ class AdminNoticeServiceTest {
         service.delete(admin, entity.id)
 
         verify(notices).delete(entity)
+    }
+
+    @Test
+    fun `create update and delete record the admin activity after the change succeeded`() {
+        doAnswer { it.getArgument<NoticeEntity>(0) }.`when`(notices).saveAndFlush(any())
+        `when`(notices.findById(entity.id)).thenReturn(Optional.of(entity))
+
+        val created = service.create(admin, NoticeRequest("제목", "본문"))
+        service.update(admin, entity.id, NoticeRequest("새 제목", "새 본문"))
+        service.delete(admin, entity.id)
+
+        verify(activities).record(admin, "NOTICE_CREATE", "NOTICE", created.id, "제목")
+        verify(activities).record(admin, "NOTICE_UPDATE", "NOTICE", entity.id, "새 제목")
+        verify(activities).record(admin, "NOTICE_DELETE", "NOTICE", entity.id, null)
+        verifyNoMoreInteractions(activities)
+    }
+
+    @Test
+    fun `nothing is recorded when the notice is missing or saving fails`() {
+        `when`(notices.findById(entity.id)).thenReturn(Optional.empty())
+        assertThrows(NoSuchElementException::class.java) { service.update(admin, entity.id, NoticeRequest("제목", "본문")) }
+        assertThrows(NoSuchElementException::class.java) { service.delete(admin, entity.id) }
+        doThrow(IllegalStateException("db down")).`when`(notices).saveAndFlush(any())
+
+        assertThrows(IllegalStateException::class.java) { service.create(admin, NoticeRequest("제목", "본문")) }
+
+        verifyNoInteractions(activities)
     }
 }

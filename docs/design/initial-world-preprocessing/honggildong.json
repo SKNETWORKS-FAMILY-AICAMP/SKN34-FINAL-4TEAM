@@ -1,0 +1,1012 @@
+{
+  "description": "홍길동전 인물·배경을 사용해 직접 작성한 합성 계약 fixture. 원전 인용·모델 품질 평가가 아님.",
+  "valid": {
+    "input": {
+      "schemaVersion": "initial-world.v1",
+      "analysisId": "00000000-0000-4000-8000-000000000005",
+      "worldId": "00000000-0000-4000-8000-000000000001",
+      "basis": {
+        "draftRevision": 12,
+        "relationshipVersion": 8,
+        "currentRevisionId": null,
+        "inputHash": "425f1a6b213f774165bb95f10a7da2c2cdc1ef8960aac13f1d0429256b29f1de"
+      },
+      "sources": [
+        {
+          "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+          "ownerId": "00000000-0000-4000-8000-000000000002",
+          "field": "body",
+          "text": "홍길동은 활빈당을 이끈다. 😀\r\n홍길동은 율도국에 가기를 원한다. 홍길동은 내일 출발할 계획이다. 홍길동은 관군이 올 것이라고 추측한다. 활빈당은 재물을 나눈다. 활빈당은 백성을 해치지 않아야 한다. 홍길동은 집을 떠났다.",
+          "textHash": "d88c7b659fb913c2b5173147fc13686d20730588ed3966267c03645bcd4f416f"
+        }
+      ],
+      "entities": [
+        {
+          "cardId": "00000000-0000-4000-8000-000000000002",
+          "entityType": "character",
+          "name": "홍길동",
+          "aliases": []
+        },
+        {
+          "cardId": "00000000-0000-4000-8000-000000000003",
+          "entityType": "organization",
+          "name": "활빈당",
+          "aliases": []
+        },
+        {
+          "cardId": "00000000-0000-4000-8000-000000000004",
+          "entityType": "location",
+          "name": "율도국",
+          "aliases": []
+        }
+      ]
+    },
+    "output": {
+      "schemaVersion": "initial-world.v1",
+      "candidates": [
+        {
+          "localRef": "c1",
+          "type": "fact",
+          "title": "fact",
+          "text": "활빈당은 재물을 나눈다.",
+          "subjectId": "00000000-0000-4000-8000-000000000003",
+          "relatedEntityIds": [],
+          "provenance": "ai_extraction",
+          "evidence": [
+            {
+              "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+              "start": 78,
+              "end": 91,
+              "quote": "활빈당은 재물을 나눈다.",
+              "quoteHash": "2dfc594a2779221f3b6ce33f3f6c0b168a1507e53298042d231499cc8cf0da43"
+            }
+          ],
+          "relation": null,
+          "condition": "",
+          "timeText": "",
+          "polarity": "asserted"
+        },
+        {
+          "localRef": "c2",
+          "type": "relation",
+          "title": "relation",
+          "text": "홍길동은 활빈당을 이끈다.",
+          "subjectId": "00000000-0000-4000-8000-000000000002",
+          "relatedEntityIds": [],
+          "provenance": "ai_extraction",
+          "evidence": [
+            {
+              "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+              "start": 0,
+              "end": 14,
+              "quote": "홍길동은 활빈당을 이끈다.",
+              "quoteHash": "08af4b2a3c2a9f9263d2eb6a5f91be743d4edf3503037fc0338ce9af2b42f141"
+            }
+          ],
+          "relation": {
+            "sourceCardId": "00000000-0000-4000-8000-000000000002",
+            "targetCardId": "00000000-0000-4000-8000-000000000003",
+            "category": "structural",
+            "label": "이끈다",
+            "direction": "directed",
+            "polarity": "asserted"
+          },
+          "condition": "",
+          "timeText": "",
+          "polarity": "asserted"
+        },
+        {
+          "localRef": "c3",
+          "type": "rule",
+          "title": "rule",
+          "text": "활빈당은 백성을 해치지 않아야 한다.",
+          "subjectId": "00000000-0000-4000-8000-000000000003",
+          "relatedEntityIds": [],
+          "provenance": "ai_extraction",
+          "evidence": [
+            {
+              "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+              "start": 92,
+              "end": 112,
+              "quote": "활빈당은 백성을 해치지 않아야 한다.",
+              "quoteHash": "2fafed2443ba24bb9c9a8c99bc3383aa44c703b9a423076de43e1accace30c36"
+            }
+          ],
+          "relation": null,
+          "condition": "",
+          "timeText": "",
+          "polarity": "asserted"
+        },
+        {
+          "localRef": "c4",
+          "type": "event",
+          "title": "event",
+          "text": "홍길동은 집을 떠났다.",
+          "subjectId": "00000000-0000-4000-8000-000000000002",
+          "relatedEntityIds": [],
+          "provenance": "ai_extraction",
+          "evidence": [
+            {
+              "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+              "start": 113,
+              "end": 125,
+              "quote": "홍길동은 집을 떠났다.",
+              "quoteHash": "ce5c9dda51bc881980741421e66edf94f1ced0d657ff1e6e39da5175245b2822"
+            }
+          ],
+          "relation": null,
+          "condition": "",
+          "timeText": "",
+          "polarity": "asserted"
+        },
+        {
+          "localRef": "c5",
+          "type": "conjecture",
+          "title": "conjecture",
+          "text": "홍길동은 관군이 올 것이라고 추측한다.",
+          "subjectId": "00000000-0000-4000-8000-000000000002",
+          "relatedEntityIds": [],
+          "provenance": "ai_extraction",
+          "evidence": [
+            {
+              "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+              "start": 56,
+              "end": 77,
+              "quote": "홍길동은 관군이 올 것이라고 추측한다.",
+              "quoteHash": "7d7958c5525a199a97baf930d3cc07a0a8b49a33b64372009731997b618bb87b"
+            }
+          ],
+          "relation": null,
+          "condition": "",
+          "timeText": "",
+          "polarity": "asserted"
+        },
+        {
+          "localRef": "c6",
+          "type": "goal",
+          "title": "goal",
+          "text": "홍길동은 율도국에 가기를 원한다.",
+          "subjectId": "00000000-0000-4000-8000-000000000002",
+          "relatedEntityIds": [
+            "00000000-0000-4000-8000-000000000004"
+          ],
+          "provenance": "ai_extraction",
+          "evidence": [
+            {
+              "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+              "start": 19,
+              "end": 37,
+              "quote": "홍길동은 율도국에 가기를 원한다.",
+              "quoteHash": "210334d4d37afccbbd3b44083451412402b438eaabcd1ccc7568295631dbff43"
+            }
+          ],
+          "relation": null,
+          "condition": "",
+          "timeText": "",
+          "polarity": "asserted"
+        },
+        {
+          "localRef": "c7",
+          "type": "plan",
+          "title": "plan",
+          "text": "홍길동은 내일 출발할 계획이다.",
+          "subjectId": "00000000-0000-4000-8000-000000000002",
+          "relatedEntityIds": [],
+          "provenance": "ai_extraction",
+          "evidence": [
+            {
+              "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+              "start": 38,
+              "end": 55,
+              "quote": "홍길동은 내일 출발할 계획이다.",
+              "quoteHash": "0f42dcdc3cedb65911a675a347f413c32feb85cd388a308c4acc45a7275df77a"
+            }
+          ],
+          "relation": null,
+          "condition": "",
+          "timeText": "내일",
+          "polarity": "asserted"
+        }
+      ],
+      "diagnostics": []
+    },
+    "analysisRequest": {
+      "key": "analysis-1",
+      "expectedDraftRevision": 12
+    },
+    "analysisResponse": {
+      "analysisId": "00000000-0000-4000-8000-000000000005",
+      "basis": {
+        "draftRevision": 12,
+        "relationshipVersion": 8,
+        "currentRevisionId": null,
+        "inputHash": "425f1a6b213f774165bb95f10a7da2c2cdc1ef8960aac13f1d0429256b29f1de"
+      },
+      "executionStatus": "completed",
+      "freshness": "current",
+      "output": {
+        "schemaVersion": "initial-world.v1",
+        "candidates": [
+          {
+            "localRef": "c1",
+            "type": "fact",
+            "title": "fact",
+            "text": "활빈당은 재물을 나눈다.",
+            "subjectId": "00000000-0000-4000-8000-000000000003",
+            "relatedEntityIds": [],
+            "provenance": "ai_extraction",
+            "evidence": [
+              {
+                "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+                "start": 78,
+                "end": 91,
+                "quote": "활빈당은 재물을 나눈다.",
+                "quoteHash": "2dfc594a2779221f3b6ce33f3f6c0b168a1507e53298042d231499cc8cf0da43"
+              }
+            ],
+            "relation": null,
+            "condition": "",
+            "timeText": "",
+            "polarity": "asserted"
+          },
+          {
+            "localRef": "c2",
+            "type": "relation",
+            "title": "relation",
+            "text": "홍길동은 활빈당을 이끈다.",
+            "subjectId": "00000000-0000-4000-8000-000000000002",
+            "relatedEntityIds": [],
+            "provenance": "ai_extraction",
+            "evidence": [
+              {
+                "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+                "start": 0,
+                "end": 14,
+                "quote": "홍길동은 활빈당을 이끈다.",
+                "quoteHash": "08af4b2a3c2a9f9263d2eb6a5f91be743d4edf3503037fc0338ce9af2b42f141"
+              }
+            ],
+            "relation": {
+              "sourceCardId": "00000000-0000-4000-8000-000000000002",
+              "targetCardId": "00000000-0000-4000-8000-000000000003",
+              "category": "structural",
+              "label": "이끈다",
+              "direction": "directed",
+              "polarity": "asserted"
+            },
+            "condition": "",
+            "timeText": "",
+            "polarity": "asserted"
+          },
+          {
+            "localRef": "c3",
+            "type": "rule",
+            "title": "rule",
+            "text": "활빈당은 백성을 해치지 않아야 한다.",
+            "subjectId": "00000000-0000-4000-8000-000000000003",
+            "relatedEntityIds": [],
+            "provenance": "ai_extraction",
+            "evidence": [
+              {
+                "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+                "start": 92,
+                "end": 112,
+                "quote": "활빈당은 백성을 해치지 않아야 한다.",
+                "quoteHash": "2fafed2443ba24bb9c9a8c99bc3383aa44c703b9a423076de43e1accace30c36"
+              }
+            ],
+            "relation": null,
+            "condition": "",
+            "timeText": "",
+            "polarity": "asserted"
+          },
+          {
+            "localRef": "c4",
+            "type": "event",
+            "title": "event",
+            "text": "홍길동은 집을 떠났다.",
+            "subjectId": "00000000-0000-4000-8000-000000000002",
+            "relatedEntityIds": [],
+            "provenance": "ai_extraction",
+            "evidence": [
+              {
+                "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+                "start": 113,
+                "end": 125,
+                "quote": "홍길동은 집을 떠났다.",
+                "quoteHash": "ce5c9dda51bc881980741421e66edf94f1ced0d657ff1e6e39da5175245b2822"
+              }
+            ],
+            "relation": null,
+            "condition": "",
+            "timeText": "",
+            "polarity": "asserted"
+          },
+          {
+            "localRef": "c5",
+            "type": "conjecture",
+            "title": "conjecture",
+            "text": "홍길동은 관군이 올 것이라고 추측한다.",
+            "subjectId": "00000000-0000-4000-8000-000000000002",
+            "relatedEntityIds": [],
+            "provenance": "ai_extraction",
+            "evidence": [
+              {
+                "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+                "start": 56,
+                "end": 77,
+                "quote": "홍길동은 관군이 올 것이라고 추측한다.",
+                "quoteHash": "7d7958c5525a199a97baf930d3cc07a0a8b49a33b64372009731997b618bb87b"
+              }
+            ],
+            "relation": null,
+            "condition": "",
+            "timeText": "",
+            "polarity": "asserted"
+          },
+          {
+            "localRef": "c6",
+            "type": "goal",
+            "title": "goal",
+            "text": "홍길동은 율도국에 가기를 원한다.",
+            "subjectId": "00000000-0000-4000-8000-000000000002",
+            "relatedEntityIds": [
+              "00000000-0000-4000-8000-000000000004"
+            ],
+            "provenance": "ai_extraction",
+            "evidence": [
+              {
+                "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+                "start": 19,
+                "end": 37,
+                "quote": "홍길동은 율도국에 가기를 원한다.",
+                "quoteHash": "210334d4d37afccbbd3b44083451412402b438eaabcd1ccc7568295631dbff43"
+              }
+            ],
+            "relation": null,
+            "condition": "",
+            "timeText": "",
+            "polarity": "asserted"
+          },
+          {
+            "localRef": "c7",
+            "type": "plan",
+            "title": "plan",
+            "text": "홍길동은 내일 출발할 계획이다.",
+            "subjectId": "00000000-0000-4000-8000-000000000002",
+            "relatedEntityIds": [],
+            "provenance": "ai_extraction",
+            "evidence": [
+              {
+                "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+                "start": 38,
+                "end": 55,
+                "quote": "홍길동은 내일 출발할 계획이다.",
+                "quoteHash": "0f42dcdc3cedb65911a675a347f413c32feb85cd388a308c4acc45a7275df77a"
+              }
+            ],
+            "relation": null,
+            "condition": "",
+            "timeText": "내일",
+            "polarity": "asserted"
+          }
+        ],
+        "diagnostics": []
+      },
+      "candidateIds": {
+        "c1": "00000000-0000-4000-8000-000000000020",
+        "c2": "00000000-0000-4000-8000-000000000021",
+        "c3": "00000000-0000-4000-8000-000000000022",
+        "c4": "00000000-0000-4000-8000-000000000023",
+        "c5": "00000000-0000-4000-8000-000000000024",
+        "c6": "00000000-0000-4000-8000-000000000025",
+        "c7": "00000000-0000-4000-8000-000000000026"
+      },
+      "decisions": []
+    },
+    "decisionRequest": {
+      "key": "decision-1",
+      "expectedDecisionSequence": 0,
+      "action": "approve",
+      "editedCandidate": null,
+      "comment": ""
+    },
+    "decisions": [
+      {
+        "candidateId": "00000000-0000-4000-8000-000000000020",
+        "candidateRef": "c1",
+        "sequence": 1,
+        "state": "approved",
+        "content": {
+          "localRef": "c1",
+          "type": "fact",
+          "title": "fact",
+          "text": "활빈당은 재물을 나눈다.",
+          "subjectId": "00000000-0000-4000-8000-000000000003",
+          "relatedEntityIds": [],
+          "provenance": "ai_extraction",
+          "evidence": [
+            {
+              "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+              "start": 78,
+              "end": 91,
+              "quote": "활빈당은 재물을 나눈다.",
+              "quoteHash": "2dfc594a2779221f3b6ce33f3f6c0b168a1507e53298042d231499cc8cf0da43"
+            }
+          ],
+          "relation": null,
+          "condition": "",
+          "timeText": "",
+          "polarity": "asserted"
+        }
+      },
+      {
+        "candidateId": "00000000-0000-4000-8000-000000000021",
+        "candidateRef": "c2",
+        "sequence": 1,
+        "state": "approved",
+        "content": {
+          "localRef": "c2",
+          "type": "relation",
+          "title": "relation",
+          "text": "홍길동은 활빈당을 이끈다.",
+          "subjectId": "00000000-0000-4000-8000-000000000002",
+          "relatedEntityIds": [],
+          "provenance": "ai_extraction",
+          "evidence": [
+            {
+              "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+              "start": 0,
+              "end": 14,
+              "quote": "홍길동은 활빈당을 이끈다.",
+              "quoteHash": "08af4b2a3c2a9f9263d2eb6a5f91be743d4edf3503037fc0338ce9af2b42f141"
+            }
+          ],
+          "relation": {
+            "sourceCardId": "00000000-0000-4000-8000-000000000002",
+            "targetCardId": "00000000-0000-4000-8000-000000000003",
+            "category": "structural",
+            "label": "이끈다",
+            "direction": "directed",
+            "polarity": "asserted"
+          },
+          "condition": "",
+          "timeText": "",
+          "polarity": "asserted"
+        }
+      },
+      {
+        "candidateId": "00000000-0000-4000-8000-000000000022",
+        "candidateRef": "c3",
+        "sequence": 1,
+        "state": "approved",
+        "content": {
+          "localRef": "c3",
+          "type": "rule",
+          "title": "rule",
+          "text": "활빈당은 백성을 해치지 않아야 한다.",
+          "subjectId": "00000000-0000-4000-8000-000000000003",
+          "relatedEntityIds": [],
+          "provenance": "ai_extraction",
+          "evidence": [
+            {
+              "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+              "start": 92,
+              "end": 112,
+              "quote": "활빈당은 백성을 해치지 않아야 한다.",
+              "quoteHash": "2fafed2443ba24bb9c9a8c99bc3383aa44c703b9a423076de43e1accace30c36"
+            }
+          ],
+          "relation": null,
+          "condition": "",
+          "timeText": "",
+          "polarity": "asserted"
+        }
+      },
+      {
+        "candidateId": "00000000-0000-4000-8000-000000000023",
+        "candidateRef": "c4",
+        "sequence": 1,
+        "state": "approved",
+        "content": {
+          "localRef": "c4",
+          "type": "event",
+          "title": "event",
+          "text": "홍길동은 집을 떠났다.",
+          "subjectId": "00000000-0000-4000-8000-000000000002",
+          "relatedEntityIds": [],
+          "provenance": "ai_extraction",
+          "evidence": [
+            {
+              "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+              "start": 113,
+              "end": 125,
+              "quote": "홍길동은 집을 떠났다.",
+              "quoteHash": "ce5c9dda51bc881980741421e66edf94f1ced0d657ff1e6e39da5175245b2822"
+            }
+          ],
+          "relation": null,
+          "condition": "",
+          "timeText": "",
+          "polarity": "asserted"
+        }
+      },
+      {
+        "candidateId": "00000000-0000-4000-8000-000000000024",
+        "candidateRef": "c5",
+        "sequence": 1,
+        "state": "approved",
+        "content": {
+          "localRef": "c5",
+          "type": "conjecture",
+          "title": "conjecture",
+          "text": "홍길동은 관군이 올 것이라고 추측한다.",
+          "subjectId": "00000000-0000-4000-8000-000000000002",
+          "relatedEntityIds": [],
+          "provenance": "ai_extraction",
+          "evidence": [
+            {
+              "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+              "start": 56,
+              "end": 77,
+              "quote": "홍길동은 관군이 올 것이라고 추측한다.",
+              "quoteHash": "7d7958c5525a199a97baf930d3cc07a0a8b49a33b64372009731997b618bb87b"
+            }
+          ],
+          "relation": null,
+          "condition": "",
+          "timeText": "",
+          "polarity": "asserted"
+        }
+      },
+      {
+        "candidateId": "00000000-0000-4000-8000-000000000025",
+        "candidateRef": "c6",
+        "sequence": 1,
+        "state": "approved",
+        "content": {
+          "localRef": "c6",
+          "type": "goal",
+          "title": "goal",
+          "text": "홍길동은 율도국에 가기를 원한다.",
+          "subjectId": "00000000-0000-4000-8000-000000000002",
+          "relatedEntityIds": [
+            "00000000-0000-4000-8000-000000000004"
+          ],
+          "provenance": "ai_extraction",
+          "evidence": [
+            {
+              "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+              "start": 19,
+              "end": 37,
+              "quote": "홍길동은 율도국에 가기를 원한다.",
+              "quoteHash": "210334d4d37afccbbd3b44083451412402b438eaabcd1ccc7568295631dbff43"
+            }
+          ],
+          "relation": null,
+          "condition": "",
+          "timeText": "",
+          "polarity": "asserted"
+        }
+      },
+      {
+        "candidateId": "00000000-0000-4000-8000-000000000026",
+        "candidateRef": "c7",
+        "sequence": 1,
+        "state": "approved",
+        "content": {
+          "localRef": "c7",
+          "type": "plan",
+          "title": "plan",
+          "text": "홍길동은 내일 출발할 계획이다.",
+          "subjectId": "00000000-0000-4000-8000-000000000002",
+          "relatedEntityIds": [],
+          "provenance": "ai_extraction",
+          "evidence": [
+            {
+              "sourceId": "card:00000000-0000-4000-8000-000000000002:body",
+              "start": 38,
+              "end": 55,
+              "quote": "홍길동은 내일 출발할 계획이다.",
+              "quoteHash": "0f42dcdc3cedb65911a675a347f413c32feb85cd388a308c4acc45a7275df77a"
+            }
+          ],
+          "relation": null,
+          "condition": "",
+          "timeText": "내일",
+          "polarity": "asserted"
+        }
+      }
+    ],
+    "applicationRequest": {
+      "key": "apply-1",
+      "expectedDraftRevision": 12,
+      "candidates": [
+        {
+          "candidateId": "00000000-0000-4000-8000-000000000020",
+          "decisionSequence": 1
+        },
+        {
+          "candidateId": "00000000-0000-4000-8000-000000000021",
+          "decisionSequence": 1
+        },
+        {
+          "candidateId": "00000000-0000-4000-8000-000000000022",
+          "decisionSequence": 1
+        },
+        {
+          "candidateId": "00000000-0000-4000-8000-000000000023",
+          "decisionSequence": 1
+        },
+        {
+          "candidateId": "00000000-0000-4000-8000-000000000024",
+          "decisionSequence": 1
+        },
+        {
+          "candidateId": "00000000-0000-4000-8000-000000000025",
+          "decisionSequence": 1
+        },
+        {
+          "candidateId": "00000000-0000-4000-8000-000000000026",
+          "decisionSequence": 1
+        }
+      ]
+    },
+    "applicationResponse": {
+      "applicationId": "00000000-0000-4000-8000-000000000050",
+      "status": "applied",
+      "baseDraftRevision": 12,
+      "resultDraftRevision": 13,
+      "createdCardIds": [
+        "00000000-0000-4000-8000-000000000060",
+        "00000000-0000-4000-8000-000000000062",
+        "00000000-0000-4000-8000-000000000063",
+        "00000000-0000-4000-8000-000000000064",
+        "00000000-0000-4000-8000-000000000065",
+        "00000000-0000-4000-8000-000000000066"
+      ],
+      "createdRelationshipIds": [
+        "00000000-0000-4000-8000-000000000061"
+      ]
+    },
+    "currentDraftRevision": 12,
+    "currentRelationshipVersion": 8,
+    "appliedCandidateIds": []
+  },
+  "invalid": [
+    {
+      "name": "없는 출처",
+      "changes": [
+        {
+          "path": [
+            "decisions",
+            0,
+            "content",
+            "evidence",
+            0,
+            "sourceId"
+          ],
+          "value": "missing"
+        }
+      ],
+      "error": "UNKNOWN_SOURCE"
+    },
+    {
+      "name": "잘못된 인용",
+      "changes": [
+        {
+          "path": [
+            "decisions",
+            0,
+            "content",
+            "evidence",
+            0,
+            "quote"
+          ],
+          "value": "다른 문장"
+        }
+      ],
+      "error": "QUOTE_MISMATCH"
+    },
+    {
+      "name": "잘못된 인용 해시",
+      "changes": [
+        {
+          "path": [
+            "decisions",
+            0,
+            "content",
+            "evidence",
+            0,
+            "quoteHash"
+          ],
+          "value": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ],
+      "error": "QUOTE_HASH"
+    },
+    {
+      "name": "UTF16 범위 초과",
+      "changes": [
+        {
+          "path": [
+            "decisions",
+            0,
+            "content",
+            "evidence",
+            0,
+            "end"
+          ],
+          "value": 999
+        }
+      ],
+      "error": "SPAN_RANGE"
+    },
+    {
+      "name": "등록되지 않은 ID",
+      "changes": [
+        {
+          "path": [
+            "decisions",
+            0,
+            "content",
+            "subjectId"
+          ],
+          "value": "00000000-0000-4000-8000-000000000999"
+        }
+      ],
+      "error": "UNKNOWN_ENTITY"
+    },
+    {
+      "name": "원문 근거 없는 추출",
+      "changes": [
+        {
+          "path": [
+            "decisions",
+            0,
+            "content",
+            "evidence"
+          ],
+          "value": []
+        }
+      ],
+      "error": "EVIDENCE_REQUIRED"
+    },
+    {
+      "name": "작가 수정에 AI 근거 재사용",
+      "changes": [
+        {
+          "path": [
+            "decisions",
+            0,
+            "content",
+            "provenance"
+          ],
+          "value": "author_revision"
+        }
+      ],
+      "error": "AUTHOR_EVIDENCE"
+    },
+    {
+      "name": "계획을 발생 사실로 변경",
+      "changes": [
+        {
+          "path": [
+            "decisions",
+            6,
+            "content",
+            "type"
+          ],
+          "value": "event"
+        }
+      ],
+      "error": "FALSE_EXTRACTION"
+    },
+    {
+      "name": "모델의 승인 필드 삽입",
+      "changes": [
+        {
+          "path": [
+            "output",
+            "candidates",
+            0,
+            "approved"
+          ],
+          "value": true
+        }
+      ],
+      "error": "extra_forbidden"
+    },
+    {
+      "name": "지원하지 않는 의미 유형",
+      "changes": [
+        {
+          "path": [
+            "decisions",
+            0,
+            "content",
+            "type"
+          ],
+          "value": "entity"
+        }
+      ],
+      "error": "literal_error"
+    },
+    {
+      "name": "미승인 후보 반영",
+      "changes": [
+        {
+          "path": [
+            "decisions",
+            0,
+            "state"
+          ],
+          "value": "held"
+        }
+      ],
+      "error": "NOT_APPROVED"
+    },
+    {
+      "name": "이전 검토본 반영",
+      "changes": [
+        {
+          "path": [
+            "applicationRequest",
+            "candidates",
+            0,
+            "decisionSequence"
+          ],
+          "value": 2
+        }
+      ],
+      "error": "NOT_APPROVED"
+    },
+    {
+      "name": "중복 반영 선택",
+      "changes": [
+        {
+          "path": [
+            "applicationRequest",
+            "candidates"
+          ],
+          "value": [
+            {
+              "candidateId": "00000000-0000-4000-8000-000000000020",
+              "decisionSequence": 1
+            },
+            {
+              "candidateId": "00000000-0000-4000-8000-000000000020",
+              "decisionSequence": 1
+            }
+          ]
+        }
+      ],
+      "error": "DUPLICATE"
+    },
+    {
+      "name": "이미 반영된 후보",
+      "changes": [
+        {
+          "path": [
+            "appliedCandidateIds"
+          ],
+          "value": [
+            "00000000-0000-4000-8000-000000000020"
+          ]
+        }
+      ],
+      "error": "ALREADY_APPLIED"
+    },
+    {
+      "name": "원본 변경",
+      "changes": [
+        {
+          "path": [
+            "currentDraftRevision"
+          ],
+          "value": 13
+        }
+      ],
+      "error": "ANALYSIS_STALE"
+    },
+    {
+      "name": "관계 변경",
+      "changes": [
+        {
+          "path": [
+            "currentRelationshipVersion"
+          ],
+          "value": 9
+        }
+      ],
+      "error": "ANALYSIS_STALE"
+    },
+    {
+      "name": "인물 ID를 새 의미 카드로 사용",
+      "changes": [
+        {
+          "path": [
+            "applicationResponse",
+            "createdCardIds"
+          ],
+          "value": [
+            "00000000-0000-4000-8000-000000000002"
+          ]
+        }
+      ],
+      "error": "EXISTING_ENTITY_ID"
+    },
+    {
+      "name": "미완료 결과를 완료로 표시",
+      "changes": [
+        {
+          "path": [
+            "applicationResponse",
+            "status"
+          ],
+          "value": "unknown"
+        }
+      ],
+      "error": "UNCONFIRMED_RESULT"
+    },
+    {
+      "name": "AI 내용 변조",
+      "changes": [
+        {
+          "path": [
+            "decisions",
+            0,
+            "content",
+            "text"
+          ],
+          "value": "활빈당은 관군이다."
+        }
+      ],
+      "error": "FALSE_EXTRACTION"
+    },
+    {
+      "name": "입력 해시 변조",
+      "changes": [
+        {
+          "path": [
+            "input",
+            "basis",
+            "inputHash"
+          ],
+          "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        }
+      ],
+      "error": "INPUT_HASH"
+    },
+    {
+      "name": "관계 필드 제거",
+      "changes": [
+        {
+          "path": [
+            "decisions",
+            1,
+            "content",
+            "relation"
+          ],
+          "value": null
+        }
+      ],
+      "error": "RELATION_TYPE"
+    },
+    {
+      "name": "목표 주체 제거",
+      "changes": [
+        {
+          "path": [
+            "decisions",
+            5,
+            "content",
+            "subjectId"
+          ],
+          "value": null
+        }
+      ],
+      "error": "SUBJECT_REQUIRED"
+    }
+  ]
+}

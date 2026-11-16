@@ -1,198 +1,191 @@
-# 회차 문맥, 시뮬레이션, 집필 기능
+# 7개 필수 기능 설계
 
-“10화까지 읽은 독자가 아는 사실”과 “10화 시점의 카이가 아는 사실”은 서로 다른 입력이다. 모든 기능은 Content가 승인한 작품·Fork·판본에서 시작한다. 요청 범위와 인물 관점을 각각 좁힌 뒤 필요한 자료만 모델에 전달한다. [검색 계약 및 합성 예제](07-retrieval-contract-and-mocks.md)
+모든 기능은 Content가 검증한 작품/Fork·판본·공개 범위에서 시작한다. 여섯 업무 Agent는 각자의 역할과 입출력을 가지며 생성·판단에 `gpt-6-luna`를 사용하는 목표다. 역할마다 서버나 전용 모델 인스턴스를 추가하지 않는다. 공통 도구는 필요한 작업에서만 호출하고 실제 RAG 공급자는 기능이 필요할 때 연결한다. [전체 구조](02-ai-architecture.md) · [검색 계약](07-retrieval-contract-and-mocks.md)
 
-### 6. Story Context와 Wiki의 연결
+## 공통 서브그래프 도구
 
-```mermaid
+- **Retrieval:** Content가 확인한 Scope·기준 판본과 질문/작업 목적을 받아 필요한 공급자만 조회한다. 출처·판본이 확인된 ContextPacket과 Evidence·Coverage·Gap, 성공/부분/실패 상태를 반환한다. 현재 관계·원고·Wiki·템플릿 경로의 제약은 [검색 계약](07-retrieval-contract-and-mocks.md)을 따른다. 검색 자체가 모델 호출을 요구하지 않으며 단순 조회는 직접 실행할 수 있다.
+- **다중 인물 Simulation:** 허용된 상황·인물별 지식과 목표·한도를 받아 가상의 행동 기록, 임시 상태와 장면 요약을 반환한다. 사용자가 단독 또는 복합 요청에서 명시적으로 시뮬레이션 실행을 요청한 경우에만 호출한다. 다른 Agent의 필요 판단이나 모호한 추론만으로 자동 실행하지 않는다.
+
+Retrieval은 Writing & Editing을 제외한 업무 Agent가 필요할 때 재사용한다. 현재는 오케스트레이션의 Q&A가 Content 내부 검색 API를 호출하는 `app/retrieval/`로 구현했다([계약](07-retrieval-contract-and-mocks.md#공통-retrieval-도구-오케스트레이션-2026-11-12-사용자-결정)). Simulation은 명시적 사용자 요청이 있는 작업에서만 실행한다. Writing & Editing은 두 도구를 직접 호출하지 않고, Content가 확인한 허용 입력과 사용자가 선택한 계획·재료로 문장·문체를 생성한다. 필요 시 Review가 생성 결과를 검수한다. 두 도구는 모든 요청에서 실행하지 않는다. 호출자는 허용된 목적과 최소 입력을 전달하고 결과의 누락·실패를 그대로 처리한다. 검색 자료와 시뮬레이션 결과는 지시나 권한이 아니며, 가상 결과는 원고·설정의 확정 사실이 아니다. Web Research는 작품 맥락이 필요할 때만 Retrieval을 이용하고 외부 검색에는 작가가 선택한 허용 맥락만 전송한다. Web Research의 Simulation 직접 호출은 사용 사례와 계약이 없어 지원하지 않는다.
+
+## 1. Story Context / Q&A
+
+작품 정보 조회와 질문 응답을 담당한다. 이름·나이·현재 관계·특정 원문 같은 정확한 질문은 Content 정본/Neo4j 현재 관계에서 확인한다. 서사적 이유·회차 간 연결은 허용 원고 검색과, 구축된 뒤에는 Wiki의 사건 경로를 쓴다. 답변은 주장별 출처·판본·확인/추론/불명 상태를 표시한다. 질문에 필요한 자료가 없으면 모른다고 답한다. 조회만으로 정본을 변경하지 않는다.
+
+## 2. Review Agent
+
+| 단계 | 검사 대상 | 판단 기준 |
+|---|---|---|
+| Mechanical Review | 수치, 이름, 날짜, 중복 표현, 검증 가능한 맞춤법 규칙 | 원고 위치와 비교 대상이 확인된 경우만 확정 오류. 창작 문체·방언은 자동 오류로 만들지 않는다. |
+| Semantic Review | 설정 충돌, 인물 지식, 감정 변화, 서사 인과관계, 복선 | 원고·설정·관계·사건의 판본과 근거를 대조한다. 사실 충돌, 해석 의심, 근거 부족을 구분한다. |
+
+Mechanical만 요청하면 Semantic과 Simulation을 실행하지 않는다. Semantic 검수 중 행동 재현이 필요하다고 판단해도 사용자가 시뮬레이션을 명시적으로 요청하지 않았다면 Simulation을 실행하지 않는다. 명시적으로 둘 다 요청했을 때는 검수 대상이 기존 원고인지 가상 후보인지 확인한다. Finding에는 대상 참조와 대상 안의 위치, 검사 종류, 근거, 확정/의심/판단 불가, 제안이 담긴다. 수정은 사용자 요청과 Content 승인을 요구한다. 조건부 수정은 정상 완료된 검수와 유효 Finding을 요구하며, 혼합 Finding과 복수 구간은 [조건부 수정 계약](02-ai-architecture.md#조건부-수정-if_issues_found)을 따른다.
+
+### 현재 구현 — MVP (#59)
+
+`backend/ai-service/app/review/`의 내부 API `POST /internal/v1/reviews {workId, episode, check: mechanical|semantic|both}`이고, 집필 AI 오케스트레이션의 `review` 단계가 같은 service를 부른다(검사 종류는 단계 입력 `review.check`, 대상은 Content가 확인한 `target` 반영 회차, 승인·반영 없음). Router가 요청에서 검사 종류를 알아내면 묻지 않고, 모르면 집필실 채팅이 입력 대기에서 고르게 하며 지적을 상태·분류·구절·이유·제안으로 보인다. 단독 Content 공개 API는 없다.
+
+1. Content가 전달한 작가 Bearer(`X-User-Authorization`)로 Content MCP `episode_read`를 불러 작성 중 초안 본문과 `revision`을 읽는다. 빈 초안은 모델 호출 없이 422다.
+2. `semantic`만 `world_studio_list`에서 작품에 연결된 세계관을 찾아 `world_studio_read(episode)`로 그 회차 시점 관계를 읽는다. 연결이 없으면 409다. 그 회차까지 공개된 카드(`revealFromEpisode ≤ episode`, 인물 회차 기억도 그 회차까지)와 두 끝이 모두 공개된 관계만 `card:<id>`·`relation:<id>` 설정으로 보낸다. `mechanical`은 초안만 보낸다. 어느 쪽도 Simulation·Retrieval을 부르지 않는다.
+3. 검사 종류별 지시로 OpenAI structured output을 1회 호출한다. `both`는 초안·세계관을 한 번 읽고 두 검수(Mechanical은 설정 없이)를 병렬로 호출해 Semantic → Mechanical 순서로 지적·gaps를 합친다(응답 ID는 같은 순서로 쉼표로 잇고 사용량은 더한다). 맞춤법도 Bareun이 아니라 같은 모델로 검사한다(Bareun은 아래 목표 설계).
+4. service가 지적마다 검증한다. 분류가 검사 종류와 다르거나, `quote`가 원고에 없거나, 보내지 않은 설정 ref를 근거로 들거나, Semantic `confirmed`에 근거가 없으면 보정하지 않고 502다. `quote`가 원고에 한 번만 있으면 위치를 UTF-16 반열림 `[start,end)`로 붙이고, 여러 번 있으면 위치를 추측하지 않고 null로 두며 `confirmed`를 `suspected`로 내린다.
+5. 응답은 대상(`workId`·`episode`·`revision`)·검사 종류·지적(분류·구절·위치·이유·확정/의심/판단 불가·근거 ref·제안)·확인하지 못한 부분(`gaps`)과 모델·응답 ID·사용량이다. 원고를 고치지 않는다.
+
+한계: 요청에 검사 종류가 드러나지 않으면 묻는다. 조건부 수정은 Review → 집필·수정의 확정 지적 한 곳씩만 지원한다([조건부 수정](02-ai-architecture.md#조건부-수정-if_issues_found), #370). 선택 구간 검수·생성 후보 검수·이전 회차 원고 검색(Retrieval)·검수 기록 저장은 없다. 모델이 구절을 한 글자라도 바꿔 옮기면 검수 전체가 502다. 실모델 확인(2026-11-15, 로컬 집필실 채팅 브라우저 e2e, 개발용 시드 작품 1화 초안 512자, 실호출 2회): 맞춤법·표기는 14초에 지적 없음, 설정·개연성은 연결 세계관에 카드가 없어 지적 없이 gaps로 "대조할 설정 없음"을 알렸다. 이어 같은 작품 2화 초안에 오타 3개("웃엇다"·"차가왔다"·"말햇다")를 넣은 문장을 저장하고 맞춤법·표기 검수를 돌리자 8초에 세 곳 모두 확정·맞춤법으로 짚고 고친 문장을 제안했으며, 구절이 한 곳뿐이라 '(여러 곳)' 표시 없이 위치가 잡혔다. 설정 카드가 있는 경우(#371, 2026-11-16)는 시연 세계관 「별빛 서약의 탑」(카드 15개, `seed.py`)을 적재해 새 4화 초안에 공개 규칙 둘("해가 지면 탑의 문은 열리지 않는다"·"탑 안에서는 어떤 마법도 허락되지 않는다")과 어긋나는 문장을 넣고 설정·개연성 검수를 돌렸다. 11초에 두 문장 모두 확정·설정 충돌로 짚고 규칙 내용을 이유로, 시점 조정·횃불 같은 대안을 제안으로 냈다(근거 없는 semantic 확정은 서비스가 502로 거절하므로 확정 지적은 보낸 카드 ref를 인용했다). 화면은 근거 ref를 보여 주지 않는다. 같은 확인에서 "1화 초안의 맞춤법을 검수해 줘"는 Router가 되묻기(clarify)로 분류해 "원고 검수"로 답한 뒤 실행됐다. Semantic은 공개 설정 전체를 보내므로 설정이 많으면 입력이 커진다.
+
+### 한글 맞춤법 검수 — 목표 설계, 미구현
+
+Mechanical Review에 [Bareun MCP `correct_grammar`](https://bareun.ai/docs/en/3.4.0/howtouse/mcp)를 적용한다. 별도 Agent 서버를 만들지 않고 AI Service의 Review 실행 코드가 호출한다. 맞춤법 포함 빌드와 API 키가 필요하며 배포 방식·비용·데이터 처리와 실제 응답 구조는 구현 전에 확인한다.
+
+1. Content가 요청자·작품/Fork·판본·선택 구간과 권한을 확인하고, 허용된 원고 또는 고정 후보의 스냅샷을 전달한다. 외부 전송 범위·동의와 제공사 데이터 처리 조건이 정해지고 충족되기 전에는 실제 원고를 외부로 보내지 않는다.
+2. Review는 허용된 최소 구간을 교정기에 보내고 원문·교정안·대상 판본·위치·도구 버전과 확인 가능한 근거를 Finding으로 반환한다. 자격 증명은 백엔드에만 둔다.
+3. 교정 제안만으로 확정 오류라고 단정하지 않는다. 원문 위치와 규칙 근거를 검증한 항목만 확정하고 나머지는 의심 또는 판단 불가로 표시한다. 고유명사·방언·대사·의도적 문체를 자동 오류로 만들지 않는다.
+4. 교정 결과를 자동 저장·발행하지 않는다. 수정은 기존 사용자 요청과 Content의 승인·현재 판본 재확인 경로를 따른다.
+
+Content 선택 구간은 UTF-16 반열림 `[start,end)`이다. 교정 응답의 위치 제공 여부·단위·길이 한도는 미확인이다. 구현 시 분할 전 원문 오프셋을 보존하고 이모지·결합 문자·반복 구절·줄바꿈과 분할 경계의 문맥 손실을 검증한다. 위치를 유일하게 확인할 수 없으면 추측하지 않는다. 인증·시간 초과·잘린 응답·위치 불일치·일부 구간 실패는 실패 또는 부분 검수와 미검사 범위로 표시하며, 조건부 Editing을 시작하지 않는다.
+
+실제 도입 전 합성 원고로 검출·오탐·위치 정확도와 비용·지연을 평가하고, 원고 외부 전송 정책·근거의 확정 기준을 정한다. Review 연결·판본·권한·동의·위치 변환·부분 실패는 구현 시 단위 검증한다. 구체 보존 범위는 [검수 기록 정책](04-infrastructure-integration.md)을 따른다.
+
+## 3. Character Simulation Subgraph
+
+한 인물의 행동을 만든 뒤 임시 상황을 갱신하고 다음 인물의 관찰·지식 입력을 다시 만든다. 한 번에 여러 인물의 행동을 생성하고 끝내지 않는다. 행동 생성은 동일한 OpenAI `gpt-6-luna` 모델을 인물 턴마다 호출하되, 해당 인물의 페르소나와 허용된 관찰·기억만 새 입력으로 조립한다. 이전 인물의 비공개 입력이나 모델 대화 상태를 그대로 넘기지 않는다. 종료 후 별도의 요약 호출에서 OpenAI `gpt-6-luna`에 요약 목적과 요청자 범위에 허용된 행동 기록과 임시 상태를 전달해 장면 요약을 만든다(2026-11-12 사용자 결정). 행동 생성과 요약은 서로 다른 모델 호출이며 별도 모델 인스턴스가 필요하다는 뜻은 아니다.
+
+~~~mermaid
 flowchart TD
-    W[Work 개요 및 대상 Fork] --> M[허용 회차와 원문 revision manifest]
-    M --> E[회차별 Summary와 Timeline]
-    E --> S[Scene과 Event]
-    S --> F[Claim 및 Evidence Reference]
-    S --> P[인과와 복선 및 회수]
-    F --> K[인물별 습득 시점과 지식]
-    F --> R[원고 버전 및 구간]
-    K --> C[관점별 ContextPacket]
-    P --> C
-    R --> C
-    classDef default fill:#dbeafe,stroke:#2563eb,color:#111827
-```
+  A[허용된 초기 상황과 인물별 지식] --> B[다음 인물 선택]
+  B --> C[그 인물에게 보이는 상태만 투영]
+  C --> D[OpenAI 행동 생성]
+  D --> E{행동·한도 검증}
+  E -->|유효| F[임시 상태 갱신]
+  F --> G{목표·종료 조건}
+  G -->|계속| B
+  G -->|종료| J[OpenAI 장면 요약]
+  J --> H[가상 행동 기록·임시 상태·요약과 근거]
+  E -->|실패| I[실패/부분 결과]
+  J -->|실패| I
+~~~
 
-Wiki의 논리 키는 `(대상 work/Fork, source_revision, local_id)`다. Episode contains Scene, Scene contains Event, Entity participates_in Event, Event precedes/causes Event, Character learns Claim, PlotPoint foreshadows Event, Event pays_off PlotPoint, Scene establishes WorldRule로 탐색한다. 이야기 속 시간과 독자에게 공개된 회차·장면 순서는 별도 필드다. `Event changes Relationship`은 해당 장면의 **텍스트 주장**으로 기록하며 역사적 Neo4j 관계 snapshot으로 승격하지 않는다. Entity·장소·조직은 출처가 확인된 ID로 연결한다. 노드와 간선 모두 `evidence_refs, source_revision, canonical_status, valid_from_scene?, visible_from_episode`를 갖는다.
+인물별 입력은 Content가 허용한 대상·기준 시점 안에서 출처와 습득 시점을 확인할 수 있는 지식만 사용한다. 인물 ID, knownBy 또는 시점 근거가 없어 인물의 지식인지 확인할 수 없는 정보는 해당 인물 입력에서 제외하고 누락을 표시한다. 진행에 필수인 인물 정보가 부족하면 부족 항목을 알리고 진행 여부를 묻는다([UC-09 E3](../usecase-spec/UC-09.md)). 계속 진행해도 미확인 지식을 사실로 채우지 않는다. 구체적인 인물별 지식 확인 수단은 구현 전 확정해야 한다.
 
-문맥은 작품 개요 → Fork가 상속한 공개 기준판과 독립 변경 → 회차 요약·사건 시간선 → 장면과 원인 → 인물별 지식 → 원문 구간 순으로 좁힌다. 작품 전체 요약도 작성 근거 중 하나가 미래 회차면 과거 질문에 재사용할 수 없다. 설정 변경 영향은 `rule ← establishes ← scene → event → downstream plot/episode`를 순회한다. 출처 revision이 변경되거나 회차가 삭제되면 역참조되는 요약·간선·지식과 캐시를 차단하고 재검증 후 새 세대로 공개한다. 추출 추론과 사용자 승인 사실을 별도로 유지한다.
+인물의 비밀과 미래 지식은 다른 인물의 입력에 들어가지 않는다. 현재 Neo4j 관계는 현재 시점에 허용된 경우에만 사용한다. 과거 시점의 관계는 그 시점의 별도 근거가 없으면 불명으로 처리하며 현재 관계로 추정하지 않는다.
 
-**Coverage 판정.** 권한 내 요청 구간의 예상 회차 번호와 Content manifest의 존재·판본을 먼저 대조한다. 예컨대 1~100화는 100개 상태를 확인하되, 모델에는 회차군 요약·직전 회차 상세·관련 근거만 넣는다. `verified`는 회차 존재, Wiki 판본 일치, 그 작업에 필요한 사건·원문 검증까지 만족할 때 부여한다. 전체 회차 종합이나 연속성 검수의 `complete`는 expected>0, verified=expected, 필수 근거 누락 0개다. 순번 구멍·삭제는 Content가 공개 가능한 범위의 gap만 표시한다. 열람 불가 회차의 존재도 숨긴다. 요청이 한 문장의 정확 인용이면 그 원문만 확인하고 작품 전체 coverage라고 표시하지 않는다. 생성은 제한된 초안으로 반환 가능하나 중요한 변경의 적용이나 “오류 없음” 확정은 중단한다.
+행동 기록은 외부에 드러난 행동·대화와 인물별 비공개 생각·기억·상태를 구분한다. 다음 인물에게는 실제로 관찰하거나 알게 된 내용만 투영한다. 요약 모델과 호출 Agent·사용자에게도 각 목적과 요청자의 권한 범위에 맞게 따로 투영하며, 인물별 비공개 상태를 전체 상태째 넘기지 않는다. 독자 검증에는 독자가 본 회차까지 공개된 정보만 사용한다.
 
-`ContextPacket={scope_ref,manifest_ref,basis_episode,viewpoint,overview_ref,episode_summaries,scene_events,knowledge_by_actor,open_threads,style_spans,evidence_refs,coverage,conflicts,gaps}`. Agent마다 필요한 필드만 투영한다. 독자용은 공개된 사건만, 작가용은 명시 허용된 초안까지, 인물용은 당시 인물의 관찰·학습 사실만 쓴다. 단일 LLM 호출에 여러 인물의 비밀을 섞지 않는다.
+요약은 입력 행동 기록에 없는 사실을 확정하지 않으며 가상 결과로 표시한다. 턴·모델 호출·시간 한도에는 장면 요약 호출도 포함한다. 무효 행동·취소·제공사 실패나 요약 실패는 표시하고, 요약 실패를 완전한 성공으로 꾸미지 않는다. 임시 세계 상태와 인물 기억은 작품 정본으로 저장하지 않는다. 처음에는 짧은 개발용 시나리오로 상태 갱신·지식 격리·요약의 충실도를 실모델 검증한다.
 
-### 7. Story Context & Q&A
+#### 시뮬레이션 결과와 후속 검수
 
-```mermaid
-flowchart LR
-    Q[질문 및 기준 회차] --> K{정확한 속성 또는 인용}:::gate
-    K -->|예| E[정본 값 또는 원문 검증]
-    K -->|아니오| C[사건 경로 및 Coverage]
-    C --> A(근거로 서사 해석):::model
-    C -.-> T[Wiki 및 관련 원문]
-    E --> V[출처와 누락 검증]
-    A --> V
-    classDef default fill:#dbeafe,stroke:#2563eb,color:#111827
-    classDef model fill:#fee2e2,stroke:#b91c1c,color:#111827
-    classDef gate fill:#e5e7eb,stroke:#4b5563,color:#111827
-```
+| 실행 목적 | 사용자에게 표시할 결과 |
+|---|---|
+| 창작자 전개 탐색 | 행동·대화·사건 진행 기록, 전개 후보와 사건 인과관계, 기존 설정과의 충돌 의심 지점, 대조 근거와 누락을 표시한다. |
+| 독자 오류 검증 | 입력한 회차·구절과 의심 항목에 대해 오류 가능성 판정, 신뢰도, 근거 회차·구절을 표시한다. 독자가 본 회차까지의 공개 정보만 쓴다. 결과는 독자 본인의 기록으로 남기고 제보할 때만 작가에게 첨부한다. |
+| 명시적으로 요청한 Simulation 후속 Review | 요청에서 가리킨 검수 대상이 가상 후보라면 해당 후보의 위치 또는 행동 기록 참조를 사용한다. Content가 확인한 기준 시점의 원고·설정 등과 대조하고 근거로 확인한 충돌, 의심, 근거 부족을 구분한다. 가상 행동 자체는 기존 원고의 확정 오류를 입증하지 못한다. 기존 원고 검수도 함께 요청한 경우 대상과 Finding을 가상 후보 검수와 구분한다. |
 
-“나이가 몇 살인가”는 허용된 설정의 값과 출처로 응답한다. “왜 그 인물이 배신했나”는 원인·대사·반대 증거를 함께 확인한다. `Answer={claims:[{text,status,refs}],coverage,gaps}`. 현재 관계는 관계 도구, 특정 장면의 정확 인용은 원고 검색 후 Content 원문, 복선은 Wiki 경로를 사용한다. 증거가 없으면 질문 범위를 좁히거나 확인 가능한 내용만 돌려준다. 저장·승인 없음.
+Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 인용이 입력 근거에 포함되는지 확인하고, 정본 근거를 확인하지 못한 부분은 비교 불가로 표시한다. 독자 검증의 신뢰도는 직접 근거 있음, 간접 근거만 있음, 근거 부족으로 표시한다. 사용자가 저장된 가상 후보의 Review를 별도로 요청하면 해당 후보를 사용한다.
 
-### 8. Review
+같은 상황에서 대안 생성 시 후보마다 실행 기록·임시 상태·요약을 분리해 비교한다. 창작자가 선택·수정한 결과만 집필 재료로 전달한다. 인물 상태 변화의 정본 반영은 별도 채택을 요구한다. [UC-09](../usecase-spec/UC-09.md)의 기록 보관과 실패·부분 결과 정책은 [복합 요청에도 적용한다](04-infrastructure-integration.md#복합-실행-기록과-중복-요청). 후보 수와 상세 실행 계약은 미정이다.
 
-```mermaid
-flowchart TD
-    I[검수 범위와 원문] --> M[기계 검사]
-    M --> K{요청 검사 종류}:::gate
-    K -->|수치 및 이름만| F[위치와 근거가 있는 Findings]
-    K -->|의미 및 서사| C[Wiki와 인물별 근거]
-    C --> H{행동과 반응 재현 필요}:::gate
-    H -->|예| S{{Simulation subgraph}}:::optional --> N(서사 검수):::model
-    H -->|아니오| N
-    N --> F
-    F -.->|수정 요청 및 유효 지적| E[Editing 입력]
-    classDef default fill:#dbeafe,stroke:#2563eb,color:#111827
-    classDef optional fill:#fef3c7,stroke:#b45309,color:#111827
-    classDef model fill:#fee2e2,stroke:#b91c1c,color:#111827
-    classDef gate fill:#e5e7eb,stroke:#4b5563,color:#111827
-```
+## 4. Writing & Editing Agent
 
-Mechanical은 등록 용어·별칭, 날짜·나이의 기준 시점, 중복 어절, 검증 가능한 맞춤법·숫자 규칙을 사용한다. 사전 미등재 방언·의도적 문체는 의심으로 남긴다. 포괄적 한국어 교정률은 평가 전 미정이다. Semantic은 설정·지식·감정·인과·미회수 복선을 확인하고 행동 해석이 필요한 경우만 Simulation을 위임한다. 결과 `Finding={issue_id,issue_type,severity,status,target_location,description,evidence_refs,confirmed_or_suspected,explanation,suggested_fix?,simulation_refs[],confidence_basis}`. 산술 위반과 정본/원문 일치가 확인된 오류만 confirmed, 가상 반응 차이는 suspected다. 결과 자체에 승인 불필요, 원문 수정에는 필요하다.
+기획·새 원고·기존 원고 수정의 세 작업은 입력·출력·저장 검증이 각각 다르다.
 
-### 9. Writing & Editing
+- **전개 기획:** 앞선 사건, 콘티, 목표 회차와 허용된 설정을 받아 앞으로의 전개 대안·인사이트·다음 화 아이디어와 사건·장면 순서를 BeatPlan으로 반환한다. 예정 사건과 확정 사건을 구분한다. 기획만 요청하면 BeatPlan만 반환하고 원고를 생성하거나 저장하지 않는다. 계획을 원고 정본처럼 저장하지 않는다.
+  - 바로 집필하라는 요청(“11화 전개를 계획하고 그 계획으로 써줘”)은 한 단계 안에서 집필용 BeatPlan 하나를 정해 새 원고로 이어 쓴다. 결과에는 사용한 BeatPlan과 Text를 구분해 보인다.
+  - 비교·직접 선택을 요청하면 기획 결과를 보여 주고 선택한 계획을 새 집필 요청으로 받는다.
+- **새 원고:** 목표 회차와 BeatPlan/콘티, 허용된 설정·직전 회차를 받아 새 소설 문장을 만든다. 출력은 생성 원문과 사용한 계획·근거다.
+- **기존 원고 수정:** 대상 문서 판본, 선택 구간, 원문 해시, 수정 지시를 받아 그 구간의 before/after Patch를 만든다. 선택 밖 문장은 유지한다.
 
-```mermaid
-flowchart LR
-    I[요청과 고정 원문] --> D{기존 문서}:::gate
-    D -->|예| P[대상 구간과 말투 예문]
-    D -->|아니오| B[Beat 또는 콘티]
-    P -.-> T[원문 검색과 인물 설정]
-    P --> G(편집 또는 집필):::model
-    B --> G
-    G --> V[버전과 범위 및 지식 검증]
-    V --> O[초안 또는 Patch 제안]
-    classDef default fill:#dbeafe,stroke:#2563eb,color:#111827
-    classDef model fill:#fee2e2,stroke:#b91c1c,color:#111827
-    classDef gate fill:#e5e7eb,stroke:#4b5563,color:#111827
-```
+**생성 후보 검수 목표 계약:** Writing의 승인 전 결과는 정본 판본과 구분되는 고정 후보로 Review에 전달한다. 후보 식별자 또는 불변 참조, 후보 내용, 원래 초안 revision과 선택 구간/원문 스냅샷을 함께 확인한다. Finding 위치는 정본이 아니라 해당 후보를 기준으로 표시한다. 검수 후 수정 요청은 검수한 후보를 입력으로 새 후보를 만들며 이전 후보를 덮어쓰지 않는다. Content는 최종 적용 전에 원래 초안 revision·구간/본문과 현재 권한을 다시 확인하고 충돌하면 적용하지 않는다. 이 연결과 후보 참조의 구체 API·보관 방식은 아직 구현되지 않았다.
 
-신규 텍스트·콘티 확장·다음 화는 `generated_text`, 새 문서로 저장 요청 시 `document_create_proposal`, 문장·문단·대사·감정·문체 변경은 `change_set`이다. 선택 span 원본 해시와 before/after를 함께 반환한다. 같은 문단의 문체와 말투는 한 번에 편집해 겹치는 patch를 방지한다. 원문이나 화자 식별이 모호하면 선택을 요청한다. 원문 스타일 샘플은 같은 작품의 허용 판본에 한정한다.
+세 작업 모두 기획·문장·문체 생성에 집중하며 Retrieval과 Simulation을 직접 호출하지 않는다. 기획도 Content가 전달한 허용 입력만 쓰고, Simulation은 명시적으로 요청한 실행의 결과를 사용자가 고른 경우에만 재료로 받는다. Content가 기준 판본·선택 구간을 확인하고 허용된 최소 입력을 전달하며, 사용자가 선택한 계획이나 시뮬레이션 결과도 집필 재료로 받을 수 있다. 필요 시 Review가 생성 결과의 설정·연속성을 검수한다. 두 경로는 입력·출력·저장 검증이 다르다. 문체/말투 변경도 기존 원고 수정이다. 결과 표시와 실제 원고 저장을 분리하고, Content가 최신 판본·선택 범위·승인 영수증을 확인한 뒤에만 반영한다.
 
-### 10. Story Development와 다음 회차
+현재 구현(`backend/ai-service/app/writing/`, OpenAI Responses, 모델은 루트 `.env`의 `OPENAI_MODEL`)은 새 원고와 기존 원고 수정만 있다. 전개 기획 작업과 Router·오케스트레이션 연결은 #387에서 구현한다.
 
-```mermaid
-flowchart TD
-    I[목표 회차 및 모드] --> C[전체 범위 Coverage와 직전 회차]
-    C -.-> R[플롯 콘티 관계 및 문체]
-    C --> K{인물 반응 분석 필요}:::gate
-    K -->|예| S{{Simulation}}:::optional --> B(전개 대안 또는 Scene Beat):::model
-    K -->|아니오| B
-    B --> D{초안 요청}:::gate
-    D -->|예| W(콘티 기반 원고 확장):::model --> V[연속성 점검]
-    D -->|아니오| A[대안과 위험 및 근거]
-    classDef default fill:#dbeafe,stroke:#2563eb,color:#111827
-    classDef optional fill:#fef3c7,stroke:#b45309,color:#111827
-    classDef model fill:#fee2e2,stroke:#b91c1c,color:#111827
-    classDef gate fill:#e5e7eb,stroke:#4b5563,color:#111827
-```
+- `POST /internal/v1/writing/drafts`: 입력 `episodeNumber`, `plan`(≤4000자, BeatPlan/콘티), `context`(≤60000자, Content가 고른 허용 문맥 JSON. 기존 이어쓰기 한도와 같고 Content가 호출 전에 422로 막음). 문체·분량 요청은 `plan`에 담는다. 응답 `text`와 `model`·`providerResponseId`·`usage`.
+- `POST /internal/v1/writing/patches`: 입력 `selection`(≤5000자), `instruction`, 읽기 전용 `precedingText`·`followingText`(각 ≤2000자), `context`. 응답 `before`(=selection)·`after`와 같은 메타. 선택 구간의 교체 문장만 돌려주므로 선택 밖 문장은 AI 결과에 없다. 판본·원문 해시·span 검증과 적용은 Content가 한다.
+- 키·모델 미설정과 제공사 오류는 503, 미완료(토큰 한도로 잘림 포함)·빈 응답은 502이며 잘린 원고를 결과로 돌려주지 않는다. AI에는 저장 API가 없다.
+- Content 연결(`proposal` 패키지, 2026-11-12 사용자 결정): 대상은 **작성 중 회차 초안만**이고 발행 회차 수정은 미지원이다. 기존 이어쓰기의 제안 저장·승인 흐름을 `kind`로 재사용하며 마이그레이션은 없다.
+  - `POST /api/v1/works/{id}/writing/drafts` `{revision, plan, consent, episode?, character?}` → `kind=draft` 후보. 승인하면 기존 이어쓰기처럼 초안 끝에 덧붙인다.
+  - `POST /api/v1/works/{id}/writing/patches` `{revision, start, end, instruction, consent, episode?, character?}` → 초안 본문 UTF-16 구간 `[start,end)`(공백 아님·≤5000자·서로게이트 분할 금지, 위반 시 422)의 `kind=patch` 후보. `position="start:end"`를 입력 스냅샷에 남기고 응답의 `baseBody`·`position`으로 before를 보여준다. 문맥 JSON에서는 초안 전문을 빼고 앞뒤 2000자만 보낸다.
+  - 승인은 기존 `POST /api/v1/works/{id}/proposals/{pid}/accept`이다. 작품 revision이 바뀌었거나, patch인데 현재 초안이 후보 생성 때와 다르면 409로 덮어쓰지 않는다. patch는 그 구간만 교체하고 `proposal_episode_change.position`에 위치를 남긴다. 거절·목록 화면과 프론트엔드 연결은 후속이다.
+- 실모델 수용(2026-11-11, `gpt-6-luna`, 개발용 합성 자료, 실호출 3회): 11화 새 원고는 계획 3단계를 순서대로 따른 약 1,500자(32.0초, 출력 1,030토큰)였으나 "열 살 전의 서윤"처럼 설정(29세, 10년 전)과 어긋난 나이 표현이 1건 있었다. 부분 수정은 2.9초에 선택 문장 하나만 바꿨고 앞뒤 문장은 결과에 없었다. 선택 구간 안의 "앞뒤 문장까지 다시 써라" 지시는 따르지 않았으나, 맞춤법만 요청했는데 그 괄호 문구를 지웠다(1.7초). 키 미설정은 호출 없이 503이었다. 장문 생성의 설정 일치는 Review 연계 전 작가 검토에 의존한다.
 
-`insight / alternative_plot`은 요청 개수만큼 `{idea,character_reaction,scene,impact,risk,unresolved_hook,refs}`를 반환한다. `expansion / next_episode_planning`은 콘티의 장면 목표·행동·대사·전후 인과를 분석해 `BeatPlan`을 만든다. `next_episode_draft`는 같은 packet·미회수 복선·인물별 상태·시뮬레이션 결과를 재사용하여 Writing에 위임한다. 명시된 시뮬레이션이 실패하면 완료한 초안으로 표시하지 않는다. 직전 회차의 인용/인물 지식 규칙은 결정적으로 검사하고, 서사 연속성 평가가 요청된 경우 Review를 추가한다. 인사이트/초안은 창작 제안이고 원고로 저장할 때만 승인이 필요하다.
+## 5. Rating Agent
 
-### 11. Simulation 실행과 행동 검증
+**Rating Agent**는 집필 AI 여섯 업무 Agent([02](02-ai-architecture.md#여섯-업무-agent와-공통-simulation의-경계)) 중 하나다. 작가의 회차 초안이 **19세 이용가로 분류할 내용인지 아닌지만** 판별한다.
+오케스트레이션의 한 단계로 실행한다. 현재 구현은 단독 내부 API(`backend/ai-service/app/rating/`, `feat/age-rating-agent` 브랜치)이며 Intent Router 분류와 오케스트레이션 연결은 #386에서 한다.
+15세·12세 같은 세부 등급, 자동 등급 설정·숨김·발행 차단은 하지 않는다. 결과는 판정 제안이며 작품 등급의 정본·적용은 Content가 소유한다
+([F-ADULT-01](../requirements.md#f-adult-01): 등급 기준·연령 확인·자동 조치는 미정).
 
-```mermaid
-flowchart TD
-    I[예산 및 대상 확인] --> C[허용 snapshot과 상황 구성]
-    C -.-> R[Wiki 및 현재 허용 관계와 원문]
-    C --> T[Turn Scheduler]
-    T --> P[한 인물의 관찰 및 지식 투영]
-    P --> A(공통 Character Agent):::model
-    A --> V{행동 DTO와 제약 유효}:::gate
-    V -->|허용| U[임시 World State Reducer]
-    V -->|재시도 가능| P
-    V -->|회복 불가| F[부분 보고]
-    U --> E{목표 또는 상한 도달}:::gate
-    E -->|계속| T
-    E -->|종료| O[결과 및 인과 분석]
-    O --> F
-    classDef default fill:#dbeafe,stroke:#2563eb,color:#111827
-    classDef model fill:#fee2e2,stroke:#b91c1c,color:#111827
-    classDef gate fill:#e5e7eb,stroke:#4b5563,color:#111827
-```
+### 심의 기준을 모델에 주는 방식
 
-**한 턴은 한 인물의 행동 하나다.** 기본 두 인물이 교대하며 최대 세 턴, 한 시나리오를 실행한다. 비교 요청에만 두 시나리오를 독립 초기 상태로 시작한다. 상태 갱신 순서가 중요하므로 같은 시나리오에서 두 인물을 병렬 호출하지 않는다. 각 행동당 무효 재생성 최대 1회. 따라서 기본 최대 6회, 비교 최대 12회, 전체 Simulation 상한 14회와 남은 run 예산 중 작은 값을 따른다. Call이 timeout되어도 예약은 소모된 것으로 처리한다. Scenario Builder·Scheduler·Reducer·기본 Analyzer는 모델 0회다.
+| 방안 | 내용 | 판단 |
+|---|---|---|
+| MCP 조회 | 심의 규정·플랫폼 가이드라인을 제공하는 MCP 서버를 두고 Agent가 도구로 조회 | 공개된 심의 규정 MCP가 없어 서버를 새로 만들어야 한다. Content MCP(DEC-49)는 콘텐츠 정본 창구라 규정 문서를 넣을 자리가 아니다. 기준은 몇 쪽 분량이라 매 호출 전부 넣어도 되고 검색할 이유가 없다. |
+| 파일 시스템 연결 | 문서 폴더를 Agent의 파일 도구(MCP filesystem 등)로 열어 필요한 파일을 고르게 함 | tool 호출 루프가 생기고 모델이 기준을 빼먹을 수 있다. 결과가 실행마다 달라지고 추적이 어렵다. |
+| **마크다운 프롬프트 주입(채택)** | `app/rating/guidelines/*.md`를 파일 이름순으로 읽어 지시문 뒤에 붙임 | 기존 기능(`prompt.py` + `agent.py` structured output 1회)과 같은 구조라 새 서버·의존성·도구가 없다. 기준 문서는 저장소에서 리뷰·이력 관리된다. 플랫폼 가이드라인은 같은 폴더에 파일을 더하면 된다. |
+
+기준 문서가 수십 쪽으로 커지거나 운영자가 화면에서 고쳐야 하면 운영 서비스 소유 문서 + 조회 방식으로 다시 검토한다.
+
+#### 기준 문서
+
+- `youth-protection.md`: 「청소년 보호법」 제9조 청소년유해매체물 심의 기준과 간행물 유해성 심의 항목을 판별 항목(criterion) 여섯 개로 **요약**한 것이다. 조문 원문이 아니다.
+  F-ADULT-01의 등급 기준은 아직 팀이 확정하지 않았다. 이 문서는 사용자 요청(법령·심의 규정 기반 판별)에 따른 **판별용 초안 기준**이며 팀 확정 전까지 제품 등급 정책으로 쓰지 않는다.
+  간행물윤리위원회 심의 규정 원문·최신 개정은 [국가법령정보센터](https://www.law.go.kr)와 [간행물윤리위원회](https://www.kpipa.or.kr)에서 확인해 보완한다.
+- 플랫폼별 금칙어·수위 가이드라인은 공식 원문을 확인한 팀이 `<플랫폼>.md`로 추가한다. 원문을 확인하지 않은 기준을 추측해 넣지 않는다.
+- 기준 폴더에는 모델에 보낼 문서만 둔다. 폴더의 모든 `.md`가 지시문에 들어가며, 하나도 없으면 앱 시작이 실패한다.
+- Docker 이미지는 `app/` 폴더를 그대로 복사해 실행하므로 기준 문서가 함께 들어간다. wheel 패키지 데이터에는 포함하지 않았다.
+
+### 실행 흐름
 
 ```text
-SimulationInput = {scope_ref, snapshot_ref, scenario, active_ids, goal, constraints, budget}
-CharacterState = {id, profile_ref, values, motivation, goal, voice_refs, emotion,
-                  location, resources, beliefs:[{fact_id,learned_at,source_ref}], observations[]}
-SimulationState = {simulation_id, scenario_id, snapshot_ref, active_character_ids,
-                   turn_index, temporary_world_state, character_states, character_knowledge,
-                   action_history, event_history, budget_usage, stop_reason?, partial_result?}
-SimulationReport = {simulation_id, scenario_id, source_refs, hypothetical:true,
-                    turns[], outcomes[], causal_links[], contradictions[], limitations[],
-                    stop_reason, budget_usage, partial_result}
+POST /internal/v1/ratings {workId, episodes[1..10]}
+  → router: X-Internal-Token 검증, X-User-Authorization을 Content MCP 컨텍스트에 설정
+  → service: 회차마다 Content MCP episode_read(작가 권한) → 초안 본문·revision (모델 호출 전에 전부 읽음)
+  → agent.rate: 회차마다 OpenAI responses.parse 1회(지시문 + 기준 문서, 입력은 초안 본문)
+  → models: adult와 근거 유무 불변식
+  → service: 근거 구절이 그 회차 초안에 그대로 있는지 대조, 작품 판정 = 회차 판정 중 하나라도 19세
 ```
 
-Character Agent 시스템 지시에는 “지정된 배우 한 명으로 입력에 있는 관찰·믿음·물리 제약 안에서 다음 행동 하나를 제안한다”를 둔다. 데이터 영역에는 해당 인물의 목표·감정·말투 예문과 보이는 상황만 넣는다. 다른 인물의 미발화 의도, 독자만 아는 사실, 미래 사건, 전역 비밀 목록은 제외한다. 출력은 아래 Action schema를 만족해야 한다. `used_fact_ids`에는 행동의 판단 근거를, `disclosed_fact_ids`에는 상대에게 실제로 전달한 사실만 넣는다.
+- 회차별로 따로 판별한다. 여러 회차 원고를 한 호출에 넣으면 입력이 길어지고 어느 회차 근거인지 섞인다.
+- 세계관·Retrieval·Simulation은 부르지 않는다. 판별 근거는 원고 표현이다.
+- 한 회차라도 초안이 비었거나 Content가 거절하면 모델을 부르기 전에 전체 요청이 실패한다.
 
-```json
-{
-  "type": "object", "additionalProperties": false,
-  "required": ["actor_id","turn","kind","target_ids","text","used_fact_ids","disclosed_fact_ids"],
-  "properties": {
-    "actor_id":{"type":"string"}, "turn":{"type":"integer","minimum":1},
-    "kind":{"enum":["speak","move","observe","wait"]},
-    "target_ids":{"type":"array","items":{"type":"string"},"uniqueItems":true},
-    "text":{"type":"string","maxLength":800},
-    "used_fact_ids":{"type":"array","items":{"type":"string"},"uniqueItems":true},
-    "disclosed_fact_ids":{"type":"array","items":{"type":"string"},"uniqueItems":true}
-  }
-}
-```
+### 계약
 
-Validator는 배우·턴·허용 대상, 근거 ID 부분집합, 공개 가능한 사실, 이동 가능성·자원·규칙·이전 행동과 중복을 확인한다. 자유문에 숨은 누설은 ID 검사만으로 보장할 수 없다. 비공개 사실을 프롬프트에서 제거하고, 생성문을 허용 근거와 대조해 미확인 지식 사용은 폐기한다. 오류만 요약해 한 번 재생성하며 정답 비밀을 오류 메시지에 넣지 않는다.
+| 항목 | 내용 |
+|---|---|
+| 요청 | `workId`(1–100자), `episodes`(1 이상 서로 다른 회차 번호 1–10개) |
+| 회차 결과 | `episode`, `revision`, `adult`, `reasons[] {criterion, quote, explanation}`, `model`, `providerResponseId`, `usage` |
+| 작품 결과 | `workId`, `adult`(회차 중 하나라도 `adult`), `episodes[]` |
+| criterion | `sexual`(선정성)·`violence`(폭력성)·`crime`(범죄·반사회성)·`drug`(약물)·`gambling`(사행성)·`language`(언어) |
+| 불변식 | `adult`가 참이면 근거가 하나 이상, 거짓이면 근거가 없다(models). `quote`는 그 회차 초안에 그대로 있어야 한다(service). 어긋나면 고치지 않고 502 |
+| 오류 | 내부 토큰 불일치 403, Content 거절은 상태 유지(401·403·404·409·422), 빈 초안 422, 모델 미설정·호출 실패 503, 응답 형식·불변식·근거 위반 502 |
 
-Reducer는 검증한 action을 `(scenario_id,turn)`에서 한 번만 반영한다. `move`는 허용된 위치 이동, `speak`는 들을 수 있는 대상의 관찰에 발화 추가, 검증된 공개 사실만 시뮬레이션 지식에 추가한다. 다른 사람의 주장과 세계의 사실을 구분한다. 원본 packet은 읽기 전용이다. 목표 달성, 무행동 반복, 인물 소진, 한도·시간 초과, 취소, 검증 실패 시 종료 사유와 마지막 성공 턴을 반환한다. Analyzer는 전후 상태 차이·인과·규칙 위반·목표 달성도를 요약한다. Review는 대안 행동과 원고의 차이를 검토하고 Development/Writing은 beat 후보로 쓰며 World는 예측 영향으로 인용한다.
+### 한계와 남은 일
 
-### 12. World & Plot Management
+- Intent Router·오케스트레이션 연결, 작가 화면·작품 등급 필드 연결이 없다. 판정 결과를 작품 등급으로 저장할지는 F-ADULT-01 정책 결정 후 Content가 정한다.
+- 기준 문서는 법령 요약 하나뿐이고 플랫폼별 가이드라인은 비어 있다.
+- 불법 콘텐츠(아동·청소년 대상 성적 묘사 등)의 차단은 이 Agent 범위 밖이며 운영 모더레이션([UC-20](../usecase-spec/UC-20.md))이 맡는다. `adult: true`는 성인 이용가로 허용된다는 뜻이 아니다.
+- 회차 판별은 순차 호출이라 10개 회차면 최대 약 20분(호출당 timeout 120초)이 걸릴 수 있다. 호출자는 회차 수를 줄이거나 timeout을 맞춘다. 동시 호출은 추적 span 연결을 함께 설계할 때 검토한다.
+- 고정 모델 응답 단위 테스트만 있으며 실제 OpenAI 판별 품질은 측정하지 않았다.
 
-```mermaid
-flowchart LR
-    I[변경 목표와 현행 판본] --> C[설정과 플롯 조회]
-    C -.-> R[Wiki 역참조와 현재 관계]
-    C --> A(영향 문서와 대안 분석):::model
-    A --> P[고정 ChangeSet 및 충돌 검사]
-    P --> H[사용자 결정]
-    H --> V[Content 트랜잭션 및 결과 버전]
-    V -.-> X[영향받은 검색 자료 무효화]
-    classDef default fill:#dbeafe,stroke:#2563eb,color:#111827
-    classDef model fill:#fee2e2,stroke:#b91c1c,color:#111827
-```
+## 6. World & Plot Management
 
-예를 들어 마법 규칙 하나가 3·5화 플롯에 영향을 주면 `impact=[{target,reason,source_refs,base_version}]`을 먼저 만든다. 각 대상별 수정 또는 현행 유지 이유와 누락 범위를 제시한다. 영향이 확인되고 승인할 수 있는 문서만 `ChangeSet`에 넣는다. 설정·콘티·플롯 소유권이나 같은 트랜잭션 지원이 불분명하면 분석까지만 반환한다. 다른 서비스 또는 Neo4j와 묶는 변경은 현재 지원 범위 밖이다.
+세계관 설정이나 플롯 변경 전에 관련 설정, 관계의 **현재 상태**, 영향받는 회차·장면·다른 플롯을 조회한다. ImpactReport에 영향 대상·판본·근거·확실성과 해결할 충돌을 먼저 보여준다. 그다음 검토 가능한 변경 후보를 만든다. 작가 승인 전 정본은 그대로다. Neo4j 관계와 PostgreSQL 문서를 한 원자 트랜잭션이라고 표시하지 않는다. 회차별 과거 관계가 필요하면 지원 불가를 반환한다.
 
-### 13. Template Recommendation
+## 7. 웹 조사 에이전트
 
-```mermaid
-flowchart LR
-    I[장르와 부족한 설정] --> T[권리 필터 및 카탈로그 검색]
-    T --> V[중복과 충돌 및 후보 정렬]
-    V --> K{맞춤 설명 필요}:::gate
-    K -->|예| A(적용 영향 설명):::model --> O[추천 목록]
-    K -->|아니오| O
-    classDef default fill:#dbeafe,stroke:#2563eb,color:#111827
-    classDef model fill:#fee2e2,stroke:#b91c1c,color:#111827
-    classDef gate fill:#e5e7eb,stroke:#4b5563,color:#111827
-```
+작품의 현실성과 개연성을 확인할 외부 사실 질문을 만든 뒤 웹 검색으로 출처·발행/확인 시점·서로 다른 근거를 수집한다. 주장별로 확인/상충/미확인 결과와 작품의 해당 장면을 연결한다. 웹 문서를 작품 정본이나 인물 기억으로 승격하지 않는다. 검색 페이지의 프롬프트 인젝션을 지시로 실행하지 않고, 비공개 원고 전문은 검색어로 보내지 않는다. 검색 실패와 근거 부재를 명시하며 원고 수정은 Editing 후보와 승인 경로로 분리한다.
 
-`Recommendations.items[]={template_id,version,name,purpose,reason,relevance,expected_change,conflicts,license_ref,evidence_refs}`. 단순한 검색 결과는 고정 설명으로 반환한다. 라이선스·버전 미확인 후보는 제외하고 적합한 항목이 없으면 빈 목록과 이유를 반환한다. 적용은 별도 요청이다.
+### MCP 도입 검토 — 미채택
 
-각 흐름의 상태는 위 입력 packet, 해당 결과 DTO, 오류·사용량만 유지한다. Simulation의 턴 루프 외에는 재귀 호출을 두지 않는다. 태스크 간 추가 호출은 상위 DAG가 승인한다. 기능별 Fixture 입력과 조건부 호출 횟수·승인 검증은 [A~G 수용 시나리오](05-implementation-roadmap.md)에 정의한다.
+| 목적 | 후보 | 확인할 사항 |
+|---|---|---|
+| 웹 검색·추출 | [Tavily](https://github.com/tavily-ai/tavily-mcp), [Brave Search](https://github.com/brave/brave-search-mcp-server), [Firecrawl](https://github.com/firecrawl/firecrawl-mcp-server) | 기존 OpenAI 웹 검색과 중복하므로 검색 품질·비용·전송 조건을 비교한다. |
+| 공개 페이지 읽기 | [Fetch](https://github.com/modelcontextprotocol/servers/tree/main/src/fetch), [MediaWiki](https://github.com/ProfessionalWiki/MediaWiki-MCP-Server) | Fetch는 검색기가 아니다. 접근·이용 조건, 누락, 사설 주소·리다이렉트와 DNS 위험을 확인하고 위키는 읽기만 검토한다. |
+| 논문·번역 | [research-mcp](https://github.com/404Simon/research-mcp), [arxiv-mcp-server](https://github.com/blazickjp/arxiv-mcp-server), [DeepL](https://github.com/DeepL/deepl-mcp-server) | 출처·원문 접근권과 번역 정확도를 확인한다. 프리프린트는 동료 심사 완료를 뜻하지 않는다. |
+| 장소·날씨 | [Mapbox](https://github.com/mapbox/mcp-server), [OSM MCP](https://github.com/ni-c/osm-mcp), [Open-Meteo MCP](https://github.com/cyanheads/open-meteo-mcp-server) | 현행 지도는 과거 경로의 근거가 아니며 기상 재분석은 현장 관측과 구분한다. 위치 전송과 이용 조건을 확인한다. |
+
+모두 후속 후보이며 현재 연결된 기능이 아니다. 실제 사용 사례가 생기면 기존 검색과 비교해 필요한 도구만 선택한다. 제공사·비용·보관·외부 전송과 동의 조건을 확인하고, 허용된 최소 맥락만 보낸다. URL·자료와 확인 시점·누락을 유지하며 외부 텍스트를 지시나 작품 정본으로 취급하지 않는다. 합성 자료로 품질·실패를 평가한 뒤 적용한다.

@@ -1,0 +1,359 @@
+{
+  "genre": "modern_fantasy",
+  "cards": [
+    {
+      "key": "kang-doyun",
+      "title": "강도윤",
+      "body": "네 해 동안 장비 운반과 채집 보조, 부상자 후송을 해 온 F급 헌터다. 위험 감지와 체력 안배에 능하지만 도움을 요청하지 못하고 자신의 부상을 숨기는 편이다.",
+      "cardType": "character",
+      "source_sections": [
+        "modern_fantasy_section_08"
+      ],
+      "soul": "가족을 지키려 부상과 정보를 숨기고 도움을 청하는 데 서툴다. 배신의 이유를 알고 싶어 하며 분노를 곧바로 폭력으로 풀지는 않는다. 대화 제안: 위험과 이동 경로를 짧게 확인한다."
+    },
+    {
+      "key": "kang-mijeong",
+      "title": "강미정",
+      "body": "강도윤의 어머니로 과거 게이트 재난에서 마력 오염에 노출되어 장기 치료를 받는다. 아들이 치료비 때문에 위험을 감수한다는 사실을 알고 그의 안전을 걱정한다.",
+      "cardType": "character",
+      "source_sections": [
+        "modern_fantasy_section_09"
+      ],
+      "soul": "몸이 좋지 않아도 아들이 치료비 때문에 위험해지는 것을 걱정한다. 돈 이야기를 피하면 구체적으로 질문한다."
+    },
+    {
+      "key": "kang-yuna",
+      "title": "강유나",
+      "body": "대학 진학을 준비하는 강도윤의 여동생이다. 가계 부담을 고민하지만 오빠의 희생을 당연하게 여기지 않으며 재난 정보와 도시 안전에 관심이 있다.",
+      "cardType": "character",
+      "source_sections": [
+        "modern_fantasy_section_09"
+      ],
+      "soul": "오빠의 희생을 당연하게 여기지 않으며 자신의 선택과 시민의 안전을 중시한다. 대화 제안: 가족을 이유로 삶을 대신 결정하려는 말에 솔직하게 반박한다."
+    },
+    {
+      "key": "kang-seongho",
+      "title": "강성호",
+      "body": "대형 게이트 재난 때 실종된 강도윤의 아버지다. 당시 지역 물류센터에서 일하던 평범한 사람으로 대피 차량을 확보해 다른 사람의 탈출을 도왔다.",
+      "cardType": "character",
+      "source_sections": [
+        "modern_fantasy_section_09"
+      ],
+      "soul": "평범한 물류 노동자로 대피 차량을 확보해 다른 사람의 탈출을 도왔다. 성격과 말투는 미확인. 대화 제안: 대피에 필요한 차량과 순서를 확인한다."
+    },
+    {
+      "key": "seo-haerin",
+      "title": "서해린",
+      "body": "한울길드 소속 S급 헌터로 구조 임무에 강한 지휘형 인물이다. 경계장을 이용해 마력 흐름을 구분하고 공격을 분산하지만 넓은 구역을 오래 유지하면 감각 부담이 커진다.",
+      "cardType": "character",
+      "source_sections": [
+        "modern_fantasy_section_10"
+      ],
+      "soul": "전장 전체와 구조 경로를 살피는 지휘형 헌터다. 도윤의 기록과 움직임이 다른 점을 경계한다. 대화 제안: 구역과 통로의 위험을 명확하게 전달한다."
+    },
+    {
+      "key": "im-taesik",
+      "title": "임태식",
+      "body": "던전 사고로 다리를 다쳐 은퇴한 전직 B급 정찰 헌터다. 중고 장비점과 정보 중개를 운영하며 도윤에게 정보의 검증이 중요하다는 점을 가르친다.",
+      "cardType": "character",
+      "source_sections": [
+        "modern_fantasy_section_10"
+      ],
+      "soul": "돈을 밝히고 말투가 거칠지만 도윤이 위험한 장비를 헐값에 사지 않도록 막는다. 정보의 출처와 검증을 중시한다."
+    },
+    {
+      "key": "yun-sejin",
+      "title": "윤세진",
+      "body": "게이트 사고와 공략 기록 조작을 조사하는 관리청 조사관이다. 비각성자로서 도윤의 생환 경위도 의심하지만 길드의 설명을 그대로 받아들이지 않는다.",
+      "cardType": "character",
+      "source_sections": [
+        "modern_fantasy_section_10"
+      ],
+      "soul": "사고 기록의 조작을 의심하며 누구의 설명도 그대로 믿지 않는다. 대화 제안: 경위와 자료를 집요하고 차분하게 확인한다."
+    },
+    {
+      "key": "park-junho",
+      "title": "박준호",
+      "body": "초기 D급의 방어계 헌터로 무거운 방패와 도발 계열 능력을 사용한다. 던전에서 다리가 깔린 상태에도 다른 생존자를 지키려 했다.",
+      "cardType": "character",
+      "source_sections": [
+        "modern_fantasy_section_10"
+      ],
+      "soul": "자신이 다친 상황에서도 다른 생존자를 지키려 한다. 대화 제안: 방어와 후송에서 동료의 위치를 먼저 묻는다."
+    },
+    {
+      "key": "jeong-harin",
+      "title": "정하린",
+      "body": "현장 치료와 응급 처치에 능한 C급 치유계 헌터다. 좋은 계약 조건보다 환자를 고를 권리를 중시하며 회복 뒤에도 남는 피로와 정신적 후유증에 주목한다.",
+      "cardType": "character",
+      "source_sections": [
+        "modern_fantasy_section_10"
+      ],
+      "soul": "환자를 고를 권리를 중시하고 겉으로 보이는 회복만으로 피로와 정신적 후유증을 무시하지 않는다. 대화 제안: 증상과 치료의 한계를 분명히 설명한다."
+    },
+    {
+      "key": "min-dohyeok",
+      "title": "민도혁",
+      "body": "청명길드 공략사업본부장이자 A급 헌터다. 첫 던전의 위험 보고를 묵살하고 공략을 강행했으며 하급 헌터를 교체 가능한 자원으로 본다.",
+      "cardType": "character",
+      "source_sections": [
+        "modern_fantasy_section_11"
+      ],
+      "soul": "하급 헌터를 교체 가능한 자원으로 보고 위험한 결정의 책임을 현장에 떠넘긴다. 대화 제안: 경영과 보상 논리로 자신의 결정을 정당화한다."
+    },
+    {
+      "key": "baek-jinseok",
+      "title": "백진석",
+      "body": "청명길드 대표이자 비전투 각성자다. 재난 대응과 고용에 기여했지만 아들의 잘못을 알면서도 조직의 신뢰와 고용을 이유로 사건을 덮으려 한다.",
+      "cardType": "character",
+      "source_sections": [
+        "modern_fantasy_section_11"
+      ],
+      "soul": "길드가 재난 대응과 고용에 기여했다는 자부심이 있으며 조직의 존속을 이유로 아들의 잘못을 덮으려 한다. 대화 제안: 개인의 책임을 조직 전체의 손실로 바꾸어 설명한다."
+    },
+    {
+      "key": "kwon-taeo",
+      "title": "권태오",
+      "body": "과거 대형 재난을 막고 실종된 S급 헌터다. 특정 던전과 몬스터를 통제하고 시스템 관리 기능 일부를 사용할 수 있으며 소수의 적합자를 선별하는 생존 전략을 믿는다.",
+      "cardType": "character",
+      "source_sections": [
+        "modern_fantasy_section_11"
+      ],
+      "soul": "거듭된 실패를 보고 소수를 선별해 생존시키는 것이 현실적이라고 믿는다. 대화 제안: 구할 수 있는 인원과 선택의 대가를 냉정하게 따진다."
+    },
+    {
+      "key": "hunter-agency",
+      "title": "한국헌터관리청",
+      "body": "각성자 등록과 등급 판정, 게이트 위험도 관리와 대피 명령, 공략 면허를 담당하는 국가 기관이다. 인력과 정보가 부족해 고위험 게이트 처리에는 대형 길드의 협조가 필요하다.",
+      "cardType": "organization",
+      "source_sections": [
+        "modern_fantasy_section_06"
+      ]
+    },
+    {
+      "key": "hunter-association",
+      "title": "헌터협회",
+      "body": "헌터의 민간 직능 단체로 계약 중재, 법률 지원, 교육과 복지를 맡는다. 상위 헌터와 대형 길드의 목소리가 커 하급 헌터 노동 문제가 뒷순위로 밀리곤 한다.",
+      "cardType": "organization",
+      "source_sections": [
+        "modern_fantasy_section_06"
+      ]
+    },
+    {
+      "key": "cheongmyeong-guild",
+      "title": "청명길드",
+      "body": "공략 실적과 대중적 이미지가 뛰어난 국내 최상위 길드 중 하나다. 장비와 마석 유통 계열사를 운영하고 도윤이 버려진 공격대를 실질적으로 관리했다.",
+      "cardType": "organization",
+      "source_sections": [
+        "modern_fantasy_section_06"
+      ]
+    },
+    {
+      "key": "hanul-guild",
+      "title": "한울길드",
+      "body": "구조와 방어에 강점을 가진 대형 길드로 S급 헌터 서해린이 소속되어 있다. 수익성이 낮은 재난 대응을 많이 맡아 이미지가 좋지만 비용 부담에 따른 내부 갈등이 있다.",
+      "cardType": "organization",
+      "source_sections": [
+        "modern_fantasy_section_06"
+      ]
+    },
+    {
+      "key": "taeseong-energy",
+      "title": "태성에너지",
+      "body": "마석 정제와 발전 사업을 하는 대기업이다. 안정적인 공급을 위해 길드와 장기 계약을 맺으며 채굴 기간과 게이트 안전 사이에 이해관계가 생긴다.",
+      "cardType": "organization",
+      "source_sections": [
+        "modern_fantasy_section_06"
+      ]
+    },
+    {
+      "key": "international-response",
+      "title": "국제게이트대응기구",
+      "body": "각국의 게이트 정보를 공유하고 대규모 재난에 공동 대응하는 기구다. 국가 간 이해관계와 안보 문제로 정보가 완전히 공유되지는 않는다.",
+      "cardType": "organization",
+      "source_sections": [
+        "modern_fantasy_section_06"
+      ]
+    },
+    {
+      "key": "doyun-home",
+      "title": "도윤의 집",
+      "body": "수도권 외곽의 오래된 빌라다. 비좁고 단열이 좋지 않지만 가족의 생활이 쌓여 있는 공간이다.",
+      "cardType": "location",
+      "source_sections": [
+        "modern_fantasy_section_07"
+      ]
+    },
+    {
+      "key": "contamination-ward",
+      "title": "마력오염 전문병동",
+      "body": "마력 오염으로 장기 치료가 필요한 환자들이 머무는 곳이다. 치료 지원이 있어도 희귀 약제와 간병, 생활비 부담이 남는다.",
+      "cardType": "location",
+      "source_sections": [
+        "modern_fantasy_section_07"
+      ]
+    },
+    {
+      "key": "assessment-center",
+      "title": "수도권 측정센터",
+      "body": "관리청이 등급 재측정과 능력 평가를 실시하는 장소다. 도윤도 이곳에서 반복적으로 등급을 측정받았다.",
+      "cardType": "location",
+      "source_sections": [
+        "modern_fantasy_section_07"
+      ]
+    },
+    {
+      "key": "cheongmyeong-headquarters",
+      "title": "청명길드 본사",
+      "body": "고층 건물에 훈련 시설과 의료 센터, 미디어 스튜디오가 갖춰진 복합 공간이다. 하청 공격대의 열악한 대기실과 대비된다.",
+      "cardType": "location",
+      "source_sections": [
+        "modern_fantasy_section_07"
+      ]
+    },
+    {
+      "key": "closed-zone-17",
+      "title": "폐쇄구역 17번지",
+      "body": "도윤이 시스템을 얻은 던전이 발생한 공장 지대다. 공식적으로 공략 중 붕괴로 처리되었지만 같은 장소에서 비정상적인 마력 반응이 반복된다.",
+      "cardType": "location",
+      "source_sections": [
+        "modern_fantasy_section_07"
+      ]
+    },
+    {
+      "key": "forgotten-city",
+      "title": "망각도시",
+      "body": "도로와 건물, 대피 표지판이 남은 멸망한 도시 형태의 대형 던전이다. 그 안에는 도윤과 같은 인터페이스를 사용했던 사람의 기록이 있다.",
+      "cardType": "location",
+      "source_sections": [
+        "modern_fantasy_section_07"
+      ]
+    },
+    {
+      "key": "boundary-field",
+      "title": "경계장",
+      "body": "서해린의 능력으로 일정 구역의 마력 흐름을 구분하고 공격을 분산하거나 통로를 유지한다. 넓은 범위를 오래 지키면 감각 부담이 커지며 강한 공격을 무한정 막을 수 없다.",
+      "cardType": "ability",
+      "source_sections": [
+        "modern_fantasy_section_10"
+      ]
+    },
+    {
+      "key": "danger-sense",
+      "title": "위험 감지",
+      "body": "마력 변화와 소리, 진동, 신체 반응을 빠르게 통합하는 능력이다. 생존 감각이 강화된 것이며 완전히 새로운 함정이나 마력을 숨긴 공격에는 속을 수 있다.",
+      "cardType": "ability",
+      "source_sections": [
+        "modern_fantasy_section_14"
+      ]
+    },
+    {
+      "key": "hardening",
+      "title": "경화",
+      "body": "피부와 근육 일부를 단단하게 만드는 방어 스킬이다. 움직임이 둔해지고 지속 사용하면 관절과 내부 장기에 부담이 쌓인다.",
+      "cardType": "ability",
+      "source_sections": [
+        "modern_fantasy_section_14"
+      ]
+    },
+    {
+      "key": "echo-tracking",
+      "title": "잔향 추적",
+      "body": "최근 남은 마력의 흔적을 감지하는 스킬이다. 흔적이 겹치거나 시간이 지나면 해석하기 어렵고 사람의 신원을 자동으로 알려 주지 않는다.",
+      "cardType": "ability",
+      "source_sections": [
+        "modern_fantasy_section_14"
+      ]
+    },
+    {
+      "key": "leap",
+      "title": "도약",
+      "body": "짧은 시간 근육과 마력을 집중해 이동하는 스킬이다. 순간이동이 아니므로 중간의 벽을 통과할 수 없고 착지 공간을 고려해야 한다.",
+      "cardType": "ability",
+      "source_sections": [
+        "modern_fantasy_section_14"
+      ]
+    },
+    {
+      "key": "mana-cut",
+      "title": "마력 절단",
+      "body": "상대의 마력 연결이 약해지는 지점을 공격하는 스킬이다. 충분한 관측과 정확한 타격이 필요하며 판단을 잘못하면 반격에 노출된다.",
+      "cardType": "ability",
+      "source_sections": [
+        "modern_fantasy_section_14"
+      ]
+    },
+    {
+      "key": "awakening-ranks",
+      "title": "각성과 헌터 등급",
+      "body": "각성은 마력을 감지하고 운용할 수 있는 신체 변화다. 등록 등급은 F부터 S까지 마력량과 출력 등을 종합해 정하며 대체로 고정된다. EX는 협회의 공식 등급이 아니라 시스템 내부의 성장 권한 표기다.",
+      "cardType": "rule",
+      "source_sections": [
+        "modern_fantasy_section_03"
+      ]
+    },
+    {
+      "key": "gate-operation",
+      "title": "게이트와 던전 브레이크",
+      "body": "게이트는 현실과 별도 공간을 잇는 통로다. 핵심 개체나 핵을 제거하면 철수 유예 뒤 닫히지만 공략하지 않아 한계에 도달하면 몬스터와 마력 오염이 현실로 쏟아진다.",
+      "cardType": "rule",
+      "source_sections": [
+        "modern_fantasy_section_04"
+      ]
+    },
+    {
+      "key": "dungeon-constraints",
+      "title": "던전 내부 제약",
+      "body": "던전에서는 휴대전화 통신이 대부분 끊기고 전용 중계 장비도 마력 간섭을 받는다. 헌터에게 식량과 수면이 필요하며 치유 능력으로 죽은 사람을 되살릴 수 없다.",
+      "cardType": "rule",
+      "source_sections": [
+        "modern_fantasy_section_05"
+      ]
+    },
+    {
+      "key": "growth-system",
+      "title": "성장 시스템",
+      "body": "도윤에게만 보이는 인터페이스로 상태, 레벨, 능력치, 퀘스트와 스킬을 기록한다. 창이 만든 신체 변화는 외부에서도 관측할 수 있으며 보관함은 정보와 일부 귀속 핵편만 저장한다.",
+      "cardType": "rule",
+      "source_sections": [
+        "modern_fantasy_section_12"
+      ]
+    },
+    {
+      "key": "adaptation-slots",
+      "title": "적응 각인과 슬롯",
+      "body": "몬스터 능력을 얻으려면 능력을 관측하거나 견디고 핵심 개체의 마력 구조에 접촉해야 한다. 신체 호환성에 제약이 있으며 스킬은 동시에 최대 세 개까지 활성화하고 교체에도 시간과 마력이 든다.",
+      "cardType": "rule",
+      "source_sections": [
+        "modern_fantasy_section_13"
+      ]
+    },
+    {
+      "key": "quest-rules",
+      "title": "퀘스트의 보상과 위험",
+      "body": "훈련, 탐사, 긴급 퀘스트가 있다. 긴급 퀘스트는 수락 시 보조 효과를 주지만 실패하면 효과 회수나 일시적인 능력 저하가 생길 수 있으며 불이익은 사전에 표시된다.",
+      "cardType": "rule",
+      "source_sections": [
+        "modern_fantasy_section_15"
+      ]
+    },
+    {
+      "key": "erosion",
+      "title": "침식",
+      "body": "다른 세계의 문명이 맞서던 재난으로 마력 구조와 생태계를 변형하고 생명체를 새로운 환경에 종속시킨다. 몬스터 중에는 원래 생물, 침식된 생명체와 방어 체계의 인공 개체가 섞여 있다.",
+      "cardType": "rule",
+      "source_sections": [
+        "modern_fantasy_section_16"
+      ]
+    },
+    {
+      "key": "gate-disaster",
+      "title": "과거 대형 게이트 재난",
+      "body": "도윤이 열여덟 살이었을 때 대형 게이트 재난이 발생해 아버지 강성호가 실종되었다. 어머니 강미정은 재난에서 마력 오염에 노출되었다.",
+      "cardType": "event",
+      "source_sections": [
+        "modern_fantasy_section_09"
+      ]
+    }
+  ]
+}

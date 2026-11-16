@@ -42,8 +42,18 @@ class SpringServiceConfigurationTest(unittest.TestCase):
 
     def test_core_flyway_includes_sample_migrations_in_normal_order(self):
         properties = (ROOT / "backend/core-api/src/main/resources/application.properties").read_text(encoding="utf-8")
-        self.assertIn("spring.flyway.locations=classpath:db/migration/auth,classpath:db/migration/notification,classpath:db/migration/sample\n", properties)
+        self.assertIn("spring.flyway.locations=classpath:db/migration/auth,classpath:db/migration/notification,classpath:db/migration/credit,classpath:db/migration/sample\n", properties)
         self.assertNotIn("out-of-order", properties)
+
+    def test_signup_trial_credit_is_turned_on_only_by_configuration_and_is_off_by_default(self):
+        # 가입 체험 크레딧은 팀 결정 전이라 기본 0(지급 안 함)이다. 값은 환경 설정(CREDIT_SIGNUP_TRIAL_AMOUNT)으로만 켜고 Core에만 넘긴다.
+        properties = (ROOT / "backend/core-api/src/main/resources/application.properties").read_text(encoding="utf-8")
+        self.assertIn("app.credit.signup-trial-amount=${CREDIT_SIGNUP_TRIAL_AMOUNT:0}\n", properties)
+        self.assertRegex((ROOT / ".env.example").read_text(encoding="utf-8"), r"(?m)^CREDIT_SIGNUP_TRIAL_AMOUNT=0$")
+        compose = (ROOT / "infrastructure/docker-compose.yaml").read_text(encoding="utf-8")
+        core = compose.split("\n  core-api:\n", 1)[1].split("\n  content-service:\n", 1)[0]
+        self.assertIn("CREDIT_SIGNUP_TRIAL_AMOUNT: ${CREDIT_SIGNUP_TRIAL_AMOUNT:-0}", core)
+        self.assertNotIn("CREDIT_SIGNUP_TRIAL_AMOUNT", compose.replace(core, ""))
 
     def test_content_service_is_always_enabled_without_feature_flag(self):
         sources = (ROOT / "backend/content-service/src").rglob("*.kt")

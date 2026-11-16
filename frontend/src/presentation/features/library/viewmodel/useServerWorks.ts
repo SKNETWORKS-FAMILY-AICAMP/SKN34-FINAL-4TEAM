@@ -12,7 +12,7 @@ export function useServerWorks(api: Pick<EpisodeUseCase, 'list'> = appContainer.
     const controller = new AbortController()
     setLoading(true)
     setError('')
-    setWorks([])
+    // 다시 불러오는 동안에는 기존 목록을 그대로 둔다. 처음 불러올 때만 비어 있다.
     api.list(controller.signal).then(rows => {
       if (!controller.signal.aborted) setWorks(rows)
     }).catch((cause: unknown) => {

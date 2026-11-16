@@ -36,3 +36,29 @@ it('creates cards without links and separates dragging, info and explicit connec
  expect(onSelect).toHaveBeenCalledWith(a.item.id)
  expect(a.item).not.toHaveProperty('x')
 })
+it('onPick이 있으면 카드 본문을 누를 때(드래그 없이) onSelect 대신 onPick을 부르고 드래그하면 부르지 않는다',()=>{
+ vi.stubGlobal('PointerEvent',MouseEvent)
+ const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
+ const onSelect=vi.fn(),onPick=vi.fn()
+ function Harness(){const vm=useWorldMapViewModel([a,b],buildCharacterMap);return <CharacterCards vm={vm} editing={{busy:false,selectedRelations:[],targetSource:null,onSelect,onConnect:vi.fn(),onRelation:vi.fn(),onPick}}/>}
+ render(<Harness/>)
+ const card=screen.getByRole('group',{name:'가람 인물 카드'})
+ fireEvent.pointerDown(card,{clientX:30,clientY:30});fireEvent.pointerUp(card,{clientX:30,clientY:30})
+ expect(onPick).toHaveBeenCalledOnce();expect(onPick).toHaveBeenCalledWith(a.item.id);expect(onSelect).not.toHaveBeenCalled()
+ fireEvent.pointerDown(card,{clientX:30,clientY:30});fireEvent.pointerMove(card,{clientX:110,clientY:70});fireEvent.pointerUp(card,{clientX:110,clientY:70})
+ expect(onPick).toHaveBeenCalledOnce()
+ fireEvent.click(screen.getByRole('button',{name:'가람 정보 편집'}))
+ expect(onSelect).toHaveBeenCalledWith(a.item.id);expect(onPick).toHaveBeenCalledOnce()
+})
+it('상대를 고르는 중에도 카드 본문을 누르면 onPick이 불리고 그때는 카드를 끌 수 없다',()=>{
+ vi.stubGlobal('PointerEvent',MouseEvent)
+ const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
+ const onPick=vi.fn()
+ function Harness(){const vm=useWorldMapViewModel([a,b],buildCharacterMap);return <CharacterCards vm={vm} editing={{busy:false,selectedRelations:[],targetSource:a.item.id,onSelect:vi.fn(),onConnect:vi.fn(),onRelation:vi.fn(),onPick}}/>}
+ render(<Harness/>)
+ const card=screen.getByRole('group',{name:'나래 인물 카드'}),before=card.style.transform
+ fireEvent.pointerDown(card,{clientX:30,clientY:30});fireEvent.pointerUp(card,{clientX:30,clientY:30})
+ expect(onPick).toHaveBeenCalledOnce();expect(onPick).toHaveBeenCalledWith(b.item.id)
+ fireEvent.pointerDown(card,{clientX:30,clientY:30});fireEvent.pointerMove(card,{clientX:110,clientY:70});fireEvent.pointerUp(card,{clientX:110,clientY:70})
+ expect(card.style.transform).toBe(before);expect(onPick).toHaveBeenCalledOnce()
+})

@@ -44,6 +44,11 @@ class SettingAttachmentController(private val service: AttachmentService) {
     fun replace(@PathVariable workId: String, @PathVariable settingId: String, @PathVariable attachmentId: String, principal: Principal, @Valid @ModelAttribute request: AttachmentUploadRequest): AttachmentResponse =
         service.replaceSettingAttachment(workId, settingId, attachmentId, principal.name, checked(workId, settingId, principal, request))
 
+    /** JSON `{"filename"}`으로 소유자의 첨부 파일명만 바꿔 AttachmentResponse를 반환한다. 규칙 위반·확장자 변경은 422, 타인·미존재 리소스는 404다. */
+    @PatchMapping("/{attachmentId}")
+    fun rename(@PathVariable workId: String, @PathVariable settingId: String, @PathVariable attachmentId: String, principal: Principal, @RequestBody request: AttachmentRenameRequest): AttachmentResponse =
+        service.renameSettingAttachment(workId, settingId, attachmentId, principal.name, request)
+
     /** 인증된 소유자의 첨부를 삭제하고 204를 반환한다. 타인·미존재 리소스와 DB·저장소 실패를 구분한다. */
     @DeleteMapping("/{attachmentId}")
     fun delete(@PathVariable workId: String, @PathVariable settingId: String, @PathVariable attachmentId: String, principal: Principal): ResponseEntity<Void> {
