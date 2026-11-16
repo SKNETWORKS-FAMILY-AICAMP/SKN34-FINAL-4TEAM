@@ -90,7 +90,7 @@ def _settings(world: WorldSnapshot, episode: int) -> list[dict]:
     settings = []
     for c in cards.values():
         memories = [f'{n}화: {t}' for n, t in sorted(c.episodes.items()) if n <= episode]
-        text = '\n\n'.join(t for t in (c.text, c.soul, c.memory, *memories) if t.strip())
+        text = '\n\n'.join(t for t in (c.text, c.soul, c.goal, *memories) if t.strip())
         settings.append({'ref': f'card:{c.id}', 'type': c.cardType, 'title': c.title, 'text': text})
     for r in world.relations:
         if r.source in cards and r.target in cards:

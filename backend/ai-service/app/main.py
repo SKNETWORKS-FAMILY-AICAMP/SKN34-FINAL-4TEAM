@@ -8,6 +8,7 @@ from app.orchestration import service as orchestration
 from app.orchestration.router import router as orchestration_router
 from app.research.router import router as research_router
 from app.review.router import router as review_router
+from app.world_review.router import router as world_review_router
 from app.writing.router import router as writing_router
 
 
@@ -26,5 +27,6 @@ def create_app() -> FastAPI:
     application.include_router(orchestration_router)
     application.include_router(research_router)
     application.include_router(review_router)
+    application.include_router(world_review_router)
     application.include_router(writing_router)
     return application

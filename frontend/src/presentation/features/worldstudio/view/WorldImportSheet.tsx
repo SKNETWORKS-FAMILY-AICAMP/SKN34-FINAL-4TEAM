@@ -102,7 +102,7 @@ function ImportCards({ vm, sourceId, back, done }: { vm: VM; sourceId: string; b
                   })}
                 </ul>
                 <label className="world-import-check"><input type="checkbox" checked={withRelations && relations} disabled={!relations} onChange={(e) => setWithRelations(e.target.checked)} />같이 가져온 카드 사이 관계 포함</label>
-                <p className="small muted">{relations ? '관계는 이름만 옮겨 와요. 방향과 종류는 가져온 뒤 인물 관계도에서 고칠 수 있어요.' : '관계를 불러오지 못해 지금은 관계를 함께 가져올 수 없어요.'}</p>
+                <p className="small muted">{relations ? '관계는 이름만 옮겨 와요. 방향과 종류는 가져온 뒤 관계도에서 고칠 수 있어요.' : '관계를 불러오지 못해 지금은 관계를 함께 가져올 수 없어요.'}</p>
                 {problem && <p role="alert" className="world-error">{problem}</p>}
                 <div className="world-sheet-actions">
                   <p className="small muted">가져온 설정은 비공개로 초안에 더해져요. 세계관을 저장해야 반영돼요.</p>

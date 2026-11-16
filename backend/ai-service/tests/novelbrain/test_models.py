@@ -23,7 +23,7 @@ def read(cards, relationships=()):
             'relationshipVersion': 1, 'relationshipStatus': 'current', 'visibility': 'private'}
 
 
-DOCS = {'soul': '말투는 건조하다.', 'memory': '리라의 오빠다.', 'episodes': {'1': '1화 기억', '12': '12화 기억'}}
+DOCS = {'soul': '말투는 건조하다.', 'goal': '리라를 지킨다.', 'episodes': {'1': '1화 기억', '12': '12화 기억'}}
 
 
 def test_world_snapshot_maps_cards_character_docs_and_relations():
@@ -34,7 +34,7 @@ def test_world_snapshot_maps_cards_character_docs_and_relations():
 
     assert snapshot == WorldSnapshot(
         worldId='w1', episode=4,
-        cards=[Card(id='kael', cardType='character', title='카엘', text='성문 수비대장', soul='말투는 건조하다.', memory='리라의 오빠다.',
+        cards=[Card(id='kael', cardType='character', title='카엘', text='성문 수비대장', soul='말투는 건조하다.', goal='리라를 지킨다.',
                     episodes={1: '1화 기억', 12: '12화 기억'}, revealFromEpisode=2),
                Card(id='gate', cardType='location', title='성문', text='북쪽 성문')],
         relations=[Relation(id='r1', source='kael', target='gate', label='근무지', direction='directed', body='설명')])
@@ -59,32 +59,78 @@ def test_world_snapshot_relation_without_polarity_or_body_uses_the_defaults():
 
 
 @pytest.mark.parametrize('docs', [
-    {'soul': 5, 'memory': 'm', 'episodes': {}},
-    {'soul': 's', 'episodes': {}},
-    {'soul': 's', 'memory': 'm', 'episodes': []},
-    {'soul': 's', 'memory': 'm', 'episodes': {'-1': 'x'}},
-    {'soul': 's', 'memory': 'm', 'episodes': {'1.5': 'x'}},
-    {'soul': 's', 'memory': 'm', 'episodes': {'03': 'x'}},
-    {'soul': 's', 'memory': 'm', 'episodes': {'x': 'x'}},
-    {'soul': 's', 'memory': 'm', 'episodes': {'1': 7}},
-    {'soul': 's', 'memory': 'm', 'episodes': {'1': 'ok', 'bad': 'x'}},
+    {'soul': 5, 'goal': 'g', 'episodes': {}},
+    {'goal': 'g', 'episodes': {}},
+    {'soul': 's', 'goal': 'g'},
+    {'soul': 's', 'goal': 5, 'episodes': {}},
+    {'soul': 's', 'goal': None, 'episodes': {}},
+    {'soul': 's', 'memory': 5, 'episodes': {}},
+    {'soul': 's', 'memory': None, 'episodes': {}},
+    {'soul': 's', 'goal': 'g', 'episodes': []},
+    {'soul': 's', 'goal': 'g', 'episodes': {'-1': 'x'}},
+    {'soul': 's', 'goal': 'g', 'episodes': {'1.5': 'x'}},
+    {'soul': 's', 'goal': 'g', 'episodes': {'03': 'x'}},
+    {'soul': 's', 'goal': 'g', 'episodes': {'x': 'x'}},
+    {'soul': 's', 'goal': 'g', 'episodes': {'1': 7}},
+    {'soul': 's', 'goal': 'g', 'episodes': {'1': 'ok', 'bad': 'x'}},
+    {'soul': 's', 'memory': 'm', 'episodes': {'-1': 'x'}},  # 옛 모양도 episodes가 어긋나면 통째로 버린다
     ['soul'], 'soul', 3, None,
 ])
 def test_world_snapshot_drops_malformed_character_docs_without_failing_the_conversion(docs):
     snapshot = world_snapshot(read([card('kael', '카엘', '본문', meta={'characterDocs': docs}), card('lira', '리라', '리라 본문')]), 1)
 
     kael, lira = snapshot.cards
-    assert (kael.title, kael.text, kael.soul, kael.memory, kael.episodes) == ('카엘', '본문', '', '', {})
+    assert (kael.title, kael.text, kael.soul, kael.goal, kael.episodes) == ('카엘', '본문', '', '', {})
     assert lira.text == '리라 본문'
 
 
 def test_world_snapshot_accepts_episode_zero_and_ignores_docs_of_non_character_cards():
     snapshot = world_snapshot(read([
-        card('kael', '카엘', meta={'characterDocs': {'soul': '', 'memory': '', 'episodes': {'0': '프롤로그'}}}),
+        card('kael', '카엘', meta={'characterDocs': {'soul': '', 'goal': '', 'episodes': {'0': '프롤로그'}}}),
         card('gate', '성문', card_type='location', meta={'characterDocs': DOCS})]), 1)
 
     assert snapshot.cards[0].episodes == {0: '프롤로그'}
-    assert (snapshot.cards[1].soul, snapshot.cards[1].memory, snapshot.cards[1].episodes) == ('', '', {})
+    assert (snapshot.cards[1].soul, snapshot.cards[1].goal, snapshot.cards[1].episodes) == ('', '', {})
+
+
+def docs_of(raw):
+    """`characterDocs`를 가진 인물 카드 하나를 스냅샷으로 읽어 (soul, goal, episodes)를 돌려준다."""
+    kael = world_snapshot(read([card('kael', '카엘', meta={'characterDocs': raw})]), 1).cards[0]
+    return kael.soul, kael.goal, kael.episodes
+
+
+def test_world_snapshot_reads_goal_and_the_card_has_no_memory_field():
+    assert docs_of({'soul': '말투', 'goal': '리라를 지킨다.', 'episodes': {'1': '1화'}}) == ('말투', '리라를 지킨다.', {1: '1화'})
+    assert 'memory' not in Card.model_fields  # MEMORY.md는 없어졌다(DEC-47)
+
+
+def test_world_snapshot_reads_a_document_without_goal_as_an_empty_goal():
+    assert docs_of({'soul': '말투', 'episodes': {'1': '1화'}}) == ('말투', '', {1: '1화'})
+
+
+def test_world_snapshot_moves_the_old_memory_into_episode_zero():
+    # 옛 데이터(DEC-47 이전): memory는 00회차가 되고 soul·다른 회차는 그대로다. 00회차가 이미 있으면 그 앞에 빈 줄 하나로 이어 붙인다(화면과 같은 규칙).
+    assert docs_of({'soul': '말투', 'memory': '스승의 유언', 'episodes': {'3': '3화'}}) == ('말투', '', {0: '스승의 유언', 3: '3화'})
+    assert docs_of({'soul': '말투', 'memory': '스승의 유언', 'episodes': {'0': '프롤로그', '3': '3화'}})[2] == {0: '스승의 유언\n\n프롤로그', 3: '3화'}
+
+
+@pytest.mark.parametrize('memory', ['', ' \n '])
+def test_world_snapshot_leaves_the_episodes_alone_when_the_old_memory_is_blank(memory):
+    assert docs_of({'soul': 's', 'goal': 'g', 'memory': memory, 'episodes': {'3': '3화'}}) == ('s', 'g', {3: '3화'})
+
+
+@pytest.mark.parametrize('zero', ['', '  \n'])
+def test_world_snapshot_treats_a_blank_episode_zero_as_absent_when_it_moves_the_old_memory(zero):
+    assert docs_of({'soul': 's', 'memory': '유언', 'episodes': {'0': zero}})[2] == {0: '유언'}
+
+
+def test_world_snapshot_keeps_goal_and_merges_memory_when_a_document_has_both():
+    assert docs_of({'soul': 's', 'goal': '목표', 'memory': '유언', 'episodes': {}}) == ('s', '목표', {0: '유언'})
+
+
+def test_world_snapshot_does_not_truncate_a_merged_episode_zero():
+    # 합친 글이 3,000자를 넘어도 자르지 않는다(화면의 저장 전 확인이 막는다).
+    assert docs_of({'soul': '', 'memory': '가' * 2000, 'episodes': {'0': '나' * 2000}})[2][0] == '가' * 2000 + '\n\n' + '나' * 2000
 
 
 @pytest.mark.parametrize('value,expected', [(1, 1), (3, 3), (3.0, 3), (2**31 - 1, 2**31 - 1),

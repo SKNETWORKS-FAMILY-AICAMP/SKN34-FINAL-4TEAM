@@ -141,7 +141,9 @@ export function GlobalChrome() {
   const showTools = pathname !== '/login' && pathname !== '/me' && !pathname.startsWith('/me/') && !pathname.startsWith('/auth/')
   // 집필실(U13)은 화면 ID·테마 전환을 상단 더보기 메뉴에 두므로 오른쪽 아래에 떠 있는 버튼을 뺀다(화면 ID 표시줄은 그대로).
   // 데모 집필실의 '내 소설만 쓸 수 있어요' 화면도 U13이지만 더보기 메뉴가 없으므로 서버(UUID) 집필실에서만 숨긴다.
-  const writing = screen.base === 'U13' && /^\/studio\/[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(pathname)
+  // 세계관 관리 화면(W01, `/worldstudio/:worldId?`의 id가 있는 경로: 설정집 화면·작성 마법사·설정 편집 화면)도 같은 3단 작업 화면이라 같은 규칙이다. 테마 전환은 설정집 화면의 저장 영역 옆·작성 마법사의 헤더 행동 줄·편집 화면의 상단 바에 있고,
+  // 채팅이 열린 동안 떠 있는 버튼이 전송 버튼을 덮는다. 세계관 작업실은 데모도 같은 화면이라 id 모양(UUID)은 따지지 않고, 세계관이 없는 만들기 화면(`/worldstudio`)은 상단 버튼이 없어 그대로 둔다.
+  const writing = (screen.base === 'U13' && /^\/studio\/[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(pathname)) || (screen.base === 'W01' && /^\/worldstudio\/[^/]+\/?$/.test(pathname))
   const dispatch = useAppDispatch()
   return (
     <>
