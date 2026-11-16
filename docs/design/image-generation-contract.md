@@ -156,3 +156,84 @@ worker 3개에서 각각 5분 동안 60회씩, 총 180회 내부 서비스 DNS·
 CodeRabbit 0.9.2의 변경 문서 검토에서 지적은 없었다. 검증 뒤 테스트 컨테이너·네트워크·독립 daemon을 종료하고 디스크를 정상 해제했으며, 결과·이미지·볼륨은 보존했다. 종료 확인은 같은 디렉터리의 `cleanup-result.json`에 남겼다. PR은 생성하지 않았다.
 
 이번 검증은 외부 DNS 경로 변경과 중단 입력 두 건의 재생성 확인이다. 이전 30분 부하 전체를 다시 실행하거나 장시간 장애 부재를 보장한 것은 아니다. 원본 예외의 세부 분류를 안전하게 기록하는 제품 코드 변경도 이번에는 하지 않았다.
+
+## DNS 수정 환경의 30분 재검증·D: 이전 (2026-11-16 후속)
+
+### 재검증 중 확인한 환경 장애
+
+DNS 수정 후 첫 재실행(`compose-soak-fixed-dns`)은 14:24:33에 시작해 1,513.16초에서 실패했다. 조회 29,997건은 모두 HTTP 200이고 통신 오류도 없었지만, 후반 세계관 표지 접수는 503이었다. 실제 생성은 초반 3건과 후반 작품 표지 1건, 총 4건만 HTTP 200·저장 완료됐으며 503 접수에는 모델 호출이 없었다. 새 생성 시도 누적은 앞선 18회에 이 4회를 더한 22회다. 실패한 실행의 전체 지연 분포와 보고서는 보존했다.
+
+원인은 이 실행에서 Neo4j 컨테이너가 14:26:34에 OOM으로 종료된 사실과 연결된다. Docker 상태의 `OOMKilled=true`, 종료 코드 137, 커널 OOM 기록을 확인했고, 세계관 조회도 `RELATIONSHIP_STORE_UNAVAILABLE` 503을 반환했다. 조회 부하 대상인 이미지 작업 조회가 계속 200인 것만으로 서비스 전체의 정상 여부를 판정할 수 없었다.
+
+검증 도구의 `compose ps -q`가 종료된 컨테이너를 누락하는 결함도 발견했다. `compose ps -a -q`로 바꾸고 서비스 11종·단계별 worker 수·모든 컨테이너의 실행/건강 상태·OOM·재시작을 확인하도록 보완했다. 실패 시에도 요청 수와 원시 지연 표본을 저장한다. 제품 코드 변경은 아니다.
+
+테스트 override의 Neo4j healthcheck에는 별도 JVM 메모리 한도를 지정했다. `JAVA_OPTS`로 heap 8/32MiB, metaspace 64MiB, direct/code cache 각각 16MiB, CPU 1개, stack 256KiB를 사용하고 `exec`로 cypher-shell을 실행한다. 간격 15초·timeout 10초·시작 유예 45초로 조정했다. 서버 heap 64/192MiB, page cache 32MiB, 컨테이너 512MiB와 전체 slice 3,200MiB 제한은 유지했다. 반복 probe와 서버가 함께 쓰는 메모리를 제한한 조치이며, probe가 OOM의 유일한 원인이었다고 단정하지 않는다.
+
+이후 성공 이미지 4개를 재사용하도록 준비했던 실행(`compose-soak-resource-fixed`)은 180.38초, 조회 3,570건 모두 200에서 제어 명령 timeout으로 중단됐다. 이 실행은 새 이미지 접수·모델 호출이 0회였다. 당시 C: 여유가 0바이트였고 WSL 루트 디스크 I/O 오류와 Neo4j 종료 코드 135가 확인됐다. D: 테스트 ext4에는 여유 공간이 남아 있었다. 앞선 OOM과 이번 디스크 오류를 같은 장애로 취급하지 않는다.
+
+### 테스트용 WSL 저장소 이동
+
+사용자가 기존 성공 이미지를 재사용하지 않고 **새 이미지 6회로 동일 조건 재검증**하도록 선택했고, 이어 WSL도 D:로 옮겨 계속하도록 승인했다. 테스트 서비스를 정지하고 전용 ext4를 해제한 뒤 읽기 전용 `e2fsck -fn` 검사에서 종료 코드 0을 확인했다. 데이터·볼륨·앞선 실패 보고서는 보존했다.
+
+WSL의 `--manage Ubuntu-26.04 --move`로 테스트용 배포판을 `D:/Codex/wsl/Ubuntu-26.04`에 이동했다. 배포판 종료 직후에는 VHD 사용 중 오류가 있었으므로 모든 배포판이 정지 상태임을 확인하고 WSL VM을 종료한 뒤 이동을 완료했다. 다른 배포판의 저장 위치는 변경하지 않았다. 등록된 `BasePath`와 이동 후 파일 쓰기·동기화를 확인했다.
+
+`C:/Users/playdata2/.wslconfig`의 기존 `networkingMode=mirrored`를 유지하면서 `swapFile=D:\\Codex\\wsl\\swap.vhdx`를 지정했다. 이 설정은 WSL 2 전체에 적용되며 Windows pagefile 설정과는 별개다. 원래 설정은 새 검증 디렉터리에 백업했고 D:에 실제 swap VHD가 생성됐음을 확인했다. [Microsoft WSL 설정](https://learn.microsoft.com/en-us/windows/wsl/wsl-config)
+
+이동 후 독립 daemon을 기존 DNS 옵션으로 시작하고, 테스트 컨테이너와 기본 Compose 네트워크를 다시 만들었다. DB·이미지 볼륨은 재사용했다. 유료 생성 전에 기존 세계관 읽기 HTTP 200, worker 3개의 내부 DNS·키 없는 외부 HTTPS 401, 모든 서비스의 실행·건강 상태를 확인했다. 최종 재실행 증거는 `D:/Codex/image-live-verification/compose-soak-final-six/`에 별도로 기록한다.
+
+### D: 이전 후 첫 재실행 결과: 미통과
+
+15:18:58에 시작한 `compose-soak-final-six`는 초반 실제 생성 3건이 모두 generating 단계에서 interrupted가 되어 5분의 생성 완료 조건을 통과하지 못했다. 실제 부하 시간은 309.12초, 조회 6,131건 모두 HTTP 200·통신 오류 0건, p50 27.08ms / p95 288.41ms / p99 980.35ms / 최대 1,986.15ms였다. SQL에서 동시 running 3건을 관찰했다. worker 3→1→3과 후반 3건 생성은 수행하지 못했으며 30분 검증 통과로 보지 않는다.
+
+| 생성 작업 | 최종 상태/단계 | 접수~상태 등록 |
+|---|---|---|
+| 2931df5e-2c6d-4b06-8d1d-ae392a87b0e0 | interrupted / generating | 209.104초 |
+| bc63a761-5267-45c1-b895-34c9b27953d6 | interrupted / generating | 204.450초 |
+| 021d4310-956d-45b7-a6b1-51bf5a0b2582 | interrupted / generating | 201.508초 |
+
+해당 Celery task 실행은 각각 약 183초였고, 모델 SDK의 제한은 180초였다. 생성 HTTP 응답은 worker 로그에 한 건도 기록되지 않았다. 제품 코드상 `APITimeoutError` 또는 `APIConnectionError` 처리 경로이지만 두 예외의 구분과 하위 원인은 현재 로그만으로 확정하지 않는다. Celery task 87개의 succeeded 로그는 중복 메시지와 interrupted 처리까지 정상 반환됐다는 뜻이며 이미지 생성 성공을 의미하지 않는다. 기존 12개 작업의 상태는 그대로 보존됐다.
+
+실패 직후 컨테이너 13개의 실행/건강 상태, 컨테이너 재시작·OOM 0건, slice OOM/oom_kill 0건을 확인했다. 새 daemon의 resolver 오류나 커널 디스크 I/O 오류도 관찰되지 않았다. 같은 worker에서 기존 키로 `/v1/models` GET은 1.246초에 200과 모델 가용 목록을 반환했다. 모델·프롬프트를 넣지 않은 `/v1/images/generations` POST는 0.705초에 400 `invalid_request_error`를 반환했다. 두 요청은 새 이미지 생성을 요청하지 않은 인증·전송 경로 검사다. 이 결과로 실제 생성 서비스의 장애나 지연 원인을 단정하지 않는다.
+
+이번 실제 생성 시도는 3회이며, 앞선 기록을 포함하면 누적 25회다. 응답을 받지 못한 요청의 제공사 도달·과금 여부는 확인되지 않았다. 사용자 승인 범위인 새 6회 중 남은 3회는 아직 호출하지 않았고 자동 재시도도 없었다. `failure-audit.json`, `post-failure-snapshot.json`, `authenticated-model-probe.json`, `invalid-generation-request-probe.json`, 원시 지연 표본과 worker 로그에 증거를 보존했다.
+
+### 추가 승인 후 응답 대기 timeout 재현
+
+사용자가 추가 3회를 승인해 남은 3회와 합친 새 6회 범위로 `compose-soak-d-drive-retry6`를 시작했다. 제품의 모델·품질·입력·180초 timeout·자동 재시도 없음은 유지하고, 테스트 worker bootstrap에서 SDK 전송 event 이름·예외 클래스 체인·경과 시간만 기록했다. 헤더 값·키·프롬프트·응답·예외 본문은 기록하지 않았다. 진단 wrapper가 기존 예외를 그대로 전파하고 timeout/retry 값을 바꾸지 않으며 예외 본문의 시험 문자열을 로그에 남기지 않는 자체 검사도 통과했다. 제품 소스 변경은 아니다.
+
+15:34:26에 시작한 초반 새 요청 3건 모두 클라이언트 기준 약 1.6초 안에 TCP 연결·TLS·요청 본문 전송을 완료했으나, 응답 헤더 수신 단계에서 약 180초를 기다린 뒤 실패했다. 세 요청의 예외 클래스명 체인은 `APITimeoutError → ReadTimeout → ReadTimeout`이었다. DNS/연결 단계 오류와 구분할 수 있지만 제공사 내부 지연인지 응답 경로 문제인지는 이 기록만으로 확정하지 않는다. 세 작업은 generating/interrupted로 남았고 이 실행도 5분의 생성 완료 조건에서 중단됐다. 새 시도는 3회, 누적 28회이며 자동 재시도는 없었다.
+
+이에 조회 부하·worker 확장과 모델 성공 판정을 분리했다. 별도 `compose-soak-d-drive-load`는 위 3개의 interrupted 작업을 조회·같은 키 재접수·중복 큐 처리 대상으로 재사용하고, 승인 범위에서 남은 새 생성 3건만 25분 시점에 접수한다. 실행 중 작업이 없고 상태가 terminal이면 worker 축소를 진행하되, 생성 실패를 성공으로 바꾸지 않는다. 이 구간은 새 6건을 초반/후반에 모두 생성하는 원래 시나리오와 구분하며, 앞선 실행의 실패 판정은 보존한다. 전체 부하 통계를 남긴 뒤 각 이미지의 최종 상태를 별도로 확인하도록 검증 도구를 보완했다.
+
+### 분리한 30분 부하 구간·후반 생성 결과
+
+15:40:32부터 **1,800.30초** 동안 실제 nginx를 통한 조회 부하를 실행했다. 사후 대조 결과는 **부분 통과**다. 30분 조회·중복 억제·worker 확장은 통과했지만, 추가 승인 뒤 새로 시도한 6건은 초반 interrupted 3건·후반 succeeded 3건이므로 생성 전체 성공이나 동일 조건의 새 6건 연속 성공으로 보지 않는다.
+
+| 검증 | 결과 |
+|---|---|
+| 조회 부하 | 35,589건, HTTP·통신 오류 0건, 약 19.8건/초 |
+| 전체 응답 시간 | p50 27.17ms / p95 201.11ms / p99 820.47ms / 최대 3,315.81ms |
+| 동일 키 재접수 | 600건, 기존 jobId 유지, 추가 생성 없음 |
+| 큐 중복 처리 | 중복 348개 + 새 작업 3개 = 351개 task 처리, 실제 모델 POST HTTP 200은 3회 |
+| worker 확장 | 3→1→3, 종료 시 소비자 3개, ready/unacknowledged 모두 0 |
+| 인증 | 10분·20분 토큰 refresh 성공 |
+| 실행 환경 | 기본 Compose bridge 유지, 종료 시 13개 컨테이너 정상, 재시작·OOM·resolver 오류 0 |
+| 기존 데이터 | 시작 전 작업 18개의 상태 보존, 새 작업 3개만 추가 |
+
+후반 새 생성 3건은 모두 실제 `gpt-image-2.6-flare`·`high` 호출, 생성 결과 검증·저장까지 성공했다. PNG는 모두 1152×1536, 5MiB 이하이며 소유자 조회의 `private, no-store`를 확인했다.
+
+| 용도 | 작업 ID | 접수~완료 등록 | PNG 크기 |
+|---|---|---|---|
+| 작품 표지 | e490263e-f5cc-4231-bfe7-b54ab0f9d06c | 22.410초 | 2,963,199 bytes |
+| 세계관 표지 | a5c57662-ea10-4bbc-8c04-167659285aa8 | 17.162초 | 2,852,872 bytes |
+| 작품 표지 | e604fc17-67be-4b1a-9ab1-2dcc87de16a6 | 17.603초 | 2,973,716 bytes |
+
+세계관 표지를 실제 multipart API로 적용하고 재조회 바이트 일치 및 비공개 세계관의 공개 표지 경로 404를 확인했다. 앞선 interrupted 3건의 content 조회는 여전히 409였다. 추가 승인 뒤 6회 중 나머지 3회를 사용한 것이며, 전체 기록의 생성 시도는 누적 31회다. 이 가운데 응답을 받지 못한 요청의 실제 과금 여부는 별도 확인이 필요하다. 자동 재시도와 승인 범위 밖 추가 호출은 없었다.
+
+SQL 폴링은 후반 running 최대 1건만 관찰했으나, 세 worker의 완료 로그와 task 실행 시간을 대조하면 07:06:00.872~07:06:07.914 UTC에 세 task 실행 구간이 겹친다. 이는 생성·검증·업로드·완료 보고를 포함한 worker task의 동시 실행이며 제공사 내부 연산의 동시성을 뜻하지 않는다. 실행 중이던 검증 도구의 `SQL 최대값 == 3` 단정 때문에 원본 `soak-result.json`은 실패로 종료됐다. 원본을 수정하지 않고, 30개 분 단위 체크포인트·전체 지연 표본·worker 로그·DB·큐·실제 PNG/API 검증을 독립적으로 대조한 `audit-result.json`에 인프라 통과/생성 전체 실패를 기록했다. 이후 검증 도구에서는 SQL 표본을 하한값으로 남기고 worker 로그 구간을 최종 동시성 근거로 확인하도록 수정했다.
+
+이 구간 도중 Windows의 C: pagefile 할당량이 23,804MiB에서 26,656MiB로 증가했고 C: 여유가 소진되기도 했다. D:로 이전한 WSL 저장소에서는 디스크 I/O 오류 없이 실행됐지만, 약 8분 시점에 `sync` 후 WSL의 깨끗한 파일 캐시를 한 번 회수했다. 서비스·daemon 재시작이나 timeout 변경은 없었다. 해당 개입과 메모리 압박이 있으므로 지연 수치는 이 로컬 환경의 관측값이며 운영 성능이나 개입 없는 장시간 안정성을 보장하지 않는다. Windows pagefile 위치는 변경하지 않았다.
+
+증거는 `compose-soak-d-drive-retry6`의 진단 worker 로그·`failed-attempt-intervals.json`과 `compose-soak-d-drive-load`의 `audit-result.json`, `final-image-verification.json`, `adoption-result.json`, `worker-execution-intervals.json`, `resolver-log.json`, `host-disk-samples.jsonl`, `cache-reclamation.json`, 원시 지연 표본·PNG다. 후반 생성 성공은 확인했으나 앞선 응답 헤더 대기 timeout의 근본 원인과 재발 방지는 아직 확인하지 못했다. 180초 제한 확대나 생성 자동 재시도는 채택하지 않았다.
+
+변경 문서의 CodeRabbit 0.9.2 검토에서 지적은 없었고, 실제 키가 staged 문서·검증 텍스트·컨테이너 설정에 없는 것도 확인했다. 제품 소스·의존성은 변경하지 않았다. 검증 뒤 테스트 컨테이너·네트워크·독립 daemon을 종료하고 ext4 backing disk를 정상 해제했다. 이미지·볼륨·증거는 보존했으며 종료 결과는 `compose-soak-d-drive-load/cleanup-result.json`에 남겼다. PR은 생성하지 않았다.
