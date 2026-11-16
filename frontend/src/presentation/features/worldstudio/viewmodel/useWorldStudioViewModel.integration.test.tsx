@@ -189,7 +189,7 @@ it('does not install an AI reload over edits made while the server read is pendi
  const {result,repository}=await openEpisodeStudio()
  const snapshot=structuredClone(result.current.saved!)
  let finish!:(value:typeof snapshot)=>void
- vi.spyOn(repository,'read').mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve}))
+ vi.spyOn(repository,'read').mockImplementationOnce(()=>new Promise<typeof snapshot>(resolve=>{finish=resolve}))
  let request!:Promise<unknown>
  act(()=>{request=result.current.reload()})
  const rejected=expect(request).rejects.toThrow('입력')
@@ -217,7 +217,7 @@ it('preserves unapplied relationship input entered during reload',async()=>{
  const {result,repository}=await openEpisodeStudio()
  const snapshot=structuredClone(result.current.saved!)
  let finish!:(value:typeof snapshot)=>void
- vi.spyOn(repository,'read').mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve}))
+ vi.spyOn(repository,'read').mockImplementationOnce(()=>new Promise<typeof snapshot>(resolve=>{finish=resolve}))
  let request!:Promise<unknown>
  act(()=>{request=result.current.reload()})
  const rejected=expect(request).rejects.toThrow('입력')
