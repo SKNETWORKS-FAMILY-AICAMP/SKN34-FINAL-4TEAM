@@ -5,6 +5,7 @@ import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import type {MediaUseCase} from '../../../../domain/usecases/MediaUseCase'
 import {imageMarker} from '../../../../domain/entities/media'
 import {pickEpisode} from './pickEpisode'
+import {shouldAutoSave} from '../../../../domain/entities/draftAutosave'
 
 type WritingApi = Pick<EpisodeUseCase,'writingList'|'createEpisode'|'writeEpisode'|'restoreEpisode'|'publishEpisode'|'orderScope'|'deleteDraft'|'deleteEpisode'|'setPublicationVisibility'|'history'>
 type OrderLookup = { status: 'loading' } | { status: 'failed'; message: string } | { status: 'ready'; scope: EpisodeOrderScope }
@@ -25,6 +26,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   const [editingLocked,setEditingLocked]=useState(false)
   const [ready,setReady]=useState(false)
   const [error,setError]=useState('')
+  const [failedDraft,setFailedDraft]=useState<Draft|null>(null)
   const [notice,setNotice]=useState('')
   const [orderLookup,setOrderLookup]=useState<OrderLookup|null>(null)
   const orderRequest=useRef<AbortController|null>(null)
@@ -92,22 +94,24 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   const save=()=>run(signal=>write(true,signal))
   // 발행과 체크포인트 되돌리기는 같은 회차 발행 요청이다. 완료 안내만 다르고, 성공 표시는 실제 응답을 받은 뒤에만 한다.
   const publishVersion=(versionId:string,rights:boolean,done:string)=>run(async signal=>{if(!active)return;const e=await api.publishEpisode(id,active.number,current.current.revision,versionId,rights,signal);if(!signal.aborted){resetHistory();merge(e);put({...current.current,revision:e.draft.revision});setNotice(done)}})
-  // 자동 저장은 조용하다: 화면을 잠그지도 알림을 바꾸지도 않고, 실패만 오류로 알린다(오류가 있으면 다시 시도하지 않는다).
+  // 실패한 입력만 멈춘다. 새 입력·명시적 재시도는 공용 오류와 관계없이 초안 저장을 다시 예약한다.
   // 서버에 가 있는 동안 다시 예약된 자동 저장은 건너뛰고, 응답으로 active가 바뀌면 아래 효과가 남은 입력을 다시 예약한다.
   // ponytail: 응답이 오래 걸려도 상태는 '저장되지 않은 변경'으로만 보인다. 지연 표시가 필요해지면 일정 시간 뒤 busy로 올린다.
-  const autoSave=useEffectEvent(()=>{
+  const autoSave=()=>{
     if(pending.current||waiting.current)return
-    const controller=new AbortController();pending.current=controller
+    const sent=current.current
+    const controller=new AbortController();pending.current=controller;setError('')
     const saving=write(false,controller.signal)
-      .catch((e:unknown)=>{if(!controller.signal.aborted)setError(e instanceof Error?e.message:'저장에 실패했어요. 입력은 화면에 남아 있어요.')})
+      .catch((e:unknown)=>{if(!controller.signal.aborted){setFailedDraft(sent);setError(e instanceof Error?e.message:'저장에 실패했어요. 입력은 화면에 남아 있어요.')}})
       .finally(()=>{if(pending.current===controller)pending.current=null;if(autosave.current===saving)autosave.current=null})
     autosave.current=saving
-  })
+  }
+  const scheduledAutoSave=useEffectEvent(autoSave)
   useEffect(()=>{
-    if(!dirty||busy||error||active?.inherited)return
-    const timer=window.setTimeout(()=>autoSave(),2000)
+    if(!shouldAutoSave({dirty,busy,inherited:active?.inherited??false,draft,failedDraft}))return
+    const timer=window.setTimeout(()=>scheduledAutoSave(),2000)
     return ()=>window.clearTimeout(timer)
-  },[draft,active,busy,error,dirty])
+  },[draft,active,busy,failedDraft,dirty])
   // 요청이 서버에 가 있으면 true다. 그것이 자동 저장이면 끝날 때까지 화면을 진행 중으로 올려, 회차 전환·이동·삭제가 왜 안 되는지 보이고 취소할 수 있게 한다.
   const inFlight=()=>{
     if(!pending.current)return false
@@ -190,6 +194,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     deleteBlockerOf:(e:WritingEpisode)=>deleteBlocker(e,episodes),
     edit:(patch:Partial<Pick<Draft,'title'|'body'|'authorNote'>>)=>{put({...current.current,...patch});setNotice('')},
     save,
+    retrySave:()=>{if(active&&!active.inherited&&dirty&&!pending.current&&!waiting.current){setFailedDraft(null);setError('');autoSave()}},
     deleteDraft:()=>remove(false),
     deleteEpisode:()=>remove(true),
     checkOrder:async()=>{
@@ -218,7 +223,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       put({...current.current,body:sent.body.slice(0,from)+`\n\n${imageMarker(item.id)}\n\n`+sent.body.slice(to)})
       setNotice('이미지를 서버에 업로드했어요. 본문 참조는 초안·버전 저장 후 유지돼요. 참조를 지워도 과거 저장본의 이미지는 보존돼요.')
     }),
-    cancel:()=>{pending.current?.abort();waiting.current?.abort();pending.current=null;setBusy(false);setEditingLocked(false);setError('요청을 취소했어요. 서버에서 이미 처리했을 수 있어요. 원고를 복사해 보관하고 다시 불러오기로 확인해 주세요.')},
+    cancel:()=>{pending.current?.abort();waiting.current?.abort();pending.current=null;setFailedDraft(current.current);setBusy(false);setEditingLocked(false);setError('요청을 취소했어요. 서버에서 이미 처리했을 수 있어요. 원고를 복사해 보관하고 다시 불러오기로 확인해 주세요.')},
     create:(title:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const e=await api.createEpisode(id,title,signal);if(!signal.aborted){resetOrder();merge(e);put(e.draft);setNotice('비공개 회차를 만들었어요.')}})},
     reload:()=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const rows=await api.writingList(id,signal);if(!signal.aborted){setEpisodes(rows);const e=rows.find(x=>x.number===active?.number)??rows[0];if(e)install(e);else {resetOrder();setActive(null);put({title:'',body:'',revision:0})}setReady(true)}})},
     restore:(versionId:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{if(!active)return;const e=await api.restoreEpisode(id,active.number,current.current.revision,versionId,signal);if(!signal.aborted){merge(e);put(e.draft);setNotice('선택한 원고를 새 버전으로 복원했어요. 발행본은 그대로예요.')}})},

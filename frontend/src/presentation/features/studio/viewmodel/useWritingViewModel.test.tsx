@@ -115,6 +115,45 @@ it.each([
 const row=(number:number,patch:Record<string,unknown>={})=>({number,draft:{title:`${number}화`,body:'기존',revision:4},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[],...patch})
 const deletionApi=(rows:ReturnType<typeof row>[])=>({setPublicationVisibility:vi.fn(),history:vi.fn(),writingList:vi.fn().mockResolvedValue(rows),createEpisode:vi.fn(),writeEpisode:vi.fn(),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn().mockResolvedValue(undefined),deleteEpisode:vi.fn().mockResolvedValue(undefined)})
 
+it.each(['edit','retry'] as const)('자동 저장 실패 후 %s로 초안만 다시 저장한다',async action=>{
+  vi.useFakeTimers()
+  const episode=row(1)
+  const api=deletionApi([episode])
+  api.writeEpisode.mockRejectedValueOnce(new Error('오프라인')).mockImplementation(async(_id,_number,draft)=>({...episode,draft:{...draft,revision:5}}))
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'잃으면 안 되는 입력'}))
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  expect(result.current.error).toBe('오프라인')
+  expect(result.current.draft.body).toBe('잃으면 안 되는 입력')
+  await act(async()=>{await vi.advanceTimersByTimeAsync(10000)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(1)
+  await act(async()=>{if(action==='edit')result.current.edit({body:'계속 쓴 입력'});else result.current.retrySave()})
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(2)
+  expect(api.writeEpisode.mock.calls.every(call=>call[3]===false)).toBe(true)
+  expect(result.current.dirty).toBe(false)
+  expect(result.current.error).toBe('')
+})
+
+it('자동 저장을 기다리며 입력한 글은 이전 요청 실패 후에도 저장된다',async()=>{
+  vi.useFakeTimers()
+  const episode=row(1)
+  const api=deletionApi([episode])
+  let reject:(e:Error)=>void=()=>{}
+  api.writeEpisode.mockImplementationOnce(()=>new Promise((_resolve,rejectSave)=>{reject=rejectSave})).mockImplementation(async(_id,_number,draft)=>({...episode,draft:{...draft,revision:5}}))
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'전송한 입력'}))
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  act(()=>result.current.edit({body:'요청 중 추가 입력'}))
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);reject(new Error('연결 끊김'))})
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(2)
+  expect(result.current.draft.body).toBe('요청 중 추가 입력')
+  expect(result.current.dirty).toBe(false)
+})
+
 it.each([
   ['the last episode without versions has nothing to explain',[row(1)],''],
   ['a published episode',[row(1,{publishedVersionId:'v1'})],'발행본이 있는 회차는 삭제할 수 없어요.'],
