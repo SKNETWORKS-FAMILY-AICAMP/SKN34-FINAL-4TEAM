@@ -3037,7 +3037,7 @@ const withImage = (row: StudioSetting, imageId = CARD_IMAGE): StudioSetting => (
 const imageGroup = () => within(screen.getByRole('group', { name: '대표 이미지' }))
 const imageInput = (label = '이미지 추가') => imageGroup().getByLabelText<HTMLInputElement>(label)
 const pickImage = (file: File, label = '이미지 추가') => fireEvent.change(imageInput(label), { target: { files: [file] } })
-const preview = () => document.querySelector<HTMLImageElement>('img.world-card-image-preview')
+const preview = () => document.querySelector<HTMLImageElement>('.world-card-tile img')
 const thumbs = (root: ParentNode) => Array.from(root.querySelectorAll<HTMLImageElement>('img.board-thumb'), (img) => img.getAttribute('src'))
 const savedSettings = (saveStudio: ReturnType<typeof mount>['saveStudio']) => saveStudio.mock.calls[0][0].settings
 
@@ -3052,8 +3052,17 @@ it('이미지가 없는 카드는 제목 아래 줄에 이미지 추가만 두�
   expect(preview()).toBeNull()
   expect(screen.queryByText('이미지 첨부는 이 화면에서 지원하지 않아요.')).toBeNull()
   expect(readCardImage).not.toHaveBeenCalled() // 이미지가 없는 카드는 읽지 않는다
-  // 이름 입력·유형 선택과 같은 줄(world-card-meta) 안에 있다.
-  expect(imageGroup().getByLabelText('이미지 추가').closest('.world-card-meta')?.querySelector('select')).toBeTruthy()
+  // 머리는 두 열이다: 이름 입력·유형 선택(+출처)이 한 열, 대표 이미지 타일이 오른쪽 열(CSS 격자가 .world-card-head를 두 열로 나눈다).
+  const head = input.closest('.world-card-head')!
+  expect(head.parentElement?.classList.contains('world-card-header')).toBe(true) // 좁은 배치가 머리 폭을 묻는 컨테이너
+  expect(Array.from(head.children, (child) => child.className.split(' ')[0])).toEqual(['et', 'world-card-meta', 'world-card-image'])
+  expect(head.querySelector('.world-card-meta select')).toBeTruthy()
+  // 이미지가 없으면 타일 자체가 점선 빈 칸이고, 그 안이 파일 선택(이미지 추가)이며 안내도 타일 안에 있다.
+  const tile = head.querySelector('.world-card-tile')!
+  expect([tile.classList.contains('cov'), tile.classList.contains('empty')]).toEqual([true, true])
+  expect(tile.contains(input)).toBe(true)
+  expect(tile.contains(document.getElementById(input.getAttribute('aria-describedby') ?? ''))).toBe(true)
+  expect(imageGroup().queryByRole('button')).toBeNull() // 바꾸기·빼기 같은 버튼 줄은 이미지가 있을 때만 있다
 })
 
 it('파일을 고르면 곧바로 올리고(올리는 동안 알림·잠금) 올라가면 미리보기와 바꾸기·빼기가 나오며, 저장 전 수정이 되고 초점은 바꾸기로 간다', async () => {
@@ -3071,8 +3080,14 @@ it('파일을 고르면 곧바로 올리고(올리는 동안 알림·잠금) 올
   await waitFor(() => expect(preview()?.getAttribute('src')).toBe('blob:cover-1'))
   expect(readCardImage).toHaveBeenCalledOnce()
   expect(readCardImage).toHaveBeenCalledWith('qa', CARD_IMAGE, expect.any(AbortSignal))
-  expect([preview()?.getAttribute('alt'), preview()?.getAttribute('width'), preview()?.getAttribute('height')]).toEqual(['가람 이미지', '56', '56']) // 편집 화면 미리보기는 카드 제목으로 읽힌다(썸네일과 달리 옆에 제목이 없다)
+  expect(preview()?.getAttribute('alt')).toBe('가람 이미지') // 편집 화면 타일 이미지는 카드 제목으로 읽힌다(썸네일과 달리 옆에 제목이 없다)
   expect(imageGroup().getByRole('img', { name: '가람 이미지' })).toBe(preview())
+  // 이미지가 채워진 타일은 헤더 표지와 같은 .cov(3:4·둥근 모서리·그림자)이고 바꾸기·빼기는 그 아래에 놓인다.
+  const tile = preview()!.closest('.world-card-tile')!
+  expect([tile.classList.contains('cov'), tile.classList.contains('empty')]).toEqual([true, false])
+  const actions = imageGroup().getByRole('button', { name: '빼기' }).closest('.world-card-image-actions')!
+  expect(actions.contains(imageInput('바꾸기')) && !tile.contains(imageInput('바꾸기'))).toBe(true)
+  expect(tile.compareDocumentPosition(actions) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   expect(imageGroup().queryByRole('status')).toBeNull()
   expect(imageGroup().queryByLabelText('이미지 추가')).toBeNull()
   expect(imageGroup().getByRole('button', { name: '빼기' })).toBeTruthy()
@@ -3154,7 +3169,7 @@ it('이미지를 읽지 못하면 미리보기 자리에 이유를 알리되 바
   await show([withImage(person('가람', '기존 내용'))], '/worldstudio/qa', { readCardImage })
   openCard('가람 인물')
   expect(await imageGroup().findByText('이미지를 찾을 수 없어요.')).toBeTruthy()
-  expect(document.querySelector('span.world-card-image-preview')).toBeTruthy() // 깨진 그림 대신 같은 크기의 빈 자리
+  expect(document.querySelector('.world-card-tile span.world-card-tile-wait')).toBeTruthy() // 깨진 그림 대신 타일 크기 그대로의 빈 자리
   expect(preview()).toBeNull()
   expect(imageGroup().getByRole('button', { name: '빼기' })).toBeTruthy()
   expect(imageInput('바꾸기').disabled).toBe(false)
@@ -3187,7 +3202,9 @@ it('카드 이미지를 읽을 수 없는 데모(메모리)에서는 이미지 �
   const { readCardImage, uploadCardImage } = await show(undefined, '/worldstudio/qa', { demoCardImage: true })
   openCard('가람 인물')
   expect(imageInput().disabled).toBe(true)
-  expect(imageGroup().getByText('데모에서는 이미지 업로드를 지원하지 않아요.')).toBeTruthy()
+  const lock = imageGroup().getByText('데모에서는 이미지 업로드를 지원하지 않아요.')
+  expect([lock.classList.contains('sr-only'), lock.closest('.world-card-tile')]).toEqual([false, null]) // 잠긴 이유는 좁은 타일 안이 아니라 타일 아래에 읽힌다
+  expect(imageInput().closest('.world-card-tile')?.classList.contains('empty')).toBe(true) // 빈 타일은 그대로 두되 잠겨 있다
   expect(readCardImage).not.toHaveBeenCalled()
   expect(uploadCardImage).not.toHaveBeenCalled()
 })
@@ -3197,6 +3214,20 @@ it('목업(mockup) 모드의 발표용 인물 초상은 그대로 보이고 이�
   await show([person('홍길동', '의적')], '/worldstudio/qa', { demoCardImage: true })
   openCard('홍길동 인물')
   const portrait = imageGroup().getByRole('img', { name: '홍길동 인물 이미지' })
-  expect([portrait.getAttribute('width'), portrait.getAttribute('height')]).toEqual(['56', '56'])
+  const tile = portrait.closest('.world-card-tile')!
+  expect([tile.classList.contains('cov'), tile.classList.contains('empty')]).toEqual([true, false]) // 초상도 같은 타일 자리를 채운다
   expect(imageInput().disabled).toBe(true)
+  expect(tile.contains(imageInput())).toBe(false) // 잠긴 이미지 추가는 타일 아래 작은 버튼이고
+  expect(imageGroup().getByText('데모에서는 이미지 업로드를 지원하지 않아요.').classList.contains('sr-only')).toBe(false) // 잠금 안내는 그대로 보인다
+})
+
+it('이미 이미지가 있는 카드의 안내는 화면에서는 숨기고 입력의 설명으로만 남기며, 이미지가 없을 때만 타일 안에 보인다', async () => {
+  await show([withImage(person('가람', '기존 내용')), person('나래')])
+  openCard('가람 인물')
+  await waitFor(() => expect(preview()).toBeTruthy())
+  const note = document.getElementById(imageInput('바꾸기').getAttribute('aria-describedby') ?? '')!
+  expect([note.textContent, note.classList.contains('sr-only')]).toEqual(['PNG·JPEG·WebP, 5 MiB 이하', true])
+  fireEvent.click(imageGroup().getByRole('button', { name: '빼기' }))
+  const empty = document.getElementById(imageInput().getAttribute('aria-describedby') ?? '')!
+  expect([empty.textContent, empty.classList.contains('sr-only'), !!empty.closest('.world-card-tile.empty')]).toEqual(['PNG·JPEG·WebP, 5 MiB 이하', false, true])
 })

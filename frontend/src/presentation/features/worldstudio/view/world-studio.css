@@ -126,12 +126,28 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-rail-kinds button:hover{background:var(--muted-bg);color:var(--tfg)}.world-rail-kinds button:is([aria-pressed=true],[aria-current=true]){border-color:var(--tacc);background:var(--pri-soft);color:var(--pri-ink)}
 .world-rail-empty{padding:8px 12px}
 .world-graph-actions{padding-inline:24px}.world-graph-note{margin:0;padding-inline:24px;line-height:1.6}
-.world-card-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin-bottom:12px}.world-card-meta img{border-radius:12px;object-fit:cover}
+/* 카드 편집 화면 머리(#401): 왼쪽 열은 이름 입력·유형 선택(+가져온 출처), 오른쪽 열은 대표 이미지 타일이다(--tile 폭, 데스크톱 150px). 이미지 블록은 이름·유형 두 행을 오른쪽에서 잇고, 타일 아래에 바꾸기·빼기와 올리는 중 안내가 놓인다.
+   편집 열이 좁으면(머리 컨테이너 460px 미만: 390px 폰, 그리고 AI 채팅을 연 901~1200px대도 편집 열이 300px대다) 150px 타일 옆에서 이름 입력이 120~260px로 줄어 이름이 잘리므로, 이름 줄을 폭 전체로 두고 88px 타일을 그 아래 왼쪽으로 내려 유형 선택이 그 오른쪽에 온다.
+   전환 기준을 뷰포트 @media가 아니라 컨테이너 쿼리로 둔 까닭이 그것이다. 래퍼(.world-card-header)만 컨테이너로 삼는 것은, 편집 열 전체에 containment를 걸면 안쪽 팝업(position: fixed)의 기준이 바뀌기 때문이다. */
+.world-card-head{--tile:150px;display:grid;grid-template-columns:minmax(0,1fr) var(--tile);grid-template-areas:"name image" "meta image";grid-template-rows:auto 1fr;column-gap:24px;align-items:start;margin-bottom:12px}
+.world-card-head>.writing-title{grid-area:name}.world-card-head>.world-card-meta{grid-area:meta}.world-card-head>.world-card-image{grid-area:image}
+.world-card-header{container:world-card-head/inline-size}
+@container world-card-head (max-width:459px){.world-card-head{--tile:88px;grid-template-columns:var(--tile) minmax(0,1fr);grid-template-areas:"name name" "image meta";grid-template-rows:auto;column-gap:12px}}
+.world-card-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
 .world-card-meta .world-type{display:flex;align-items:center;gap:8px;margin:0;color:var(--tsub);font-size:13px}.world-card-meta .world-type select{width:auto;padding:6px 10px}
-/* 카드 대표 이미지(#401): 유형 선택 옆 첫 칸. 56px 미리보기 옆에 바꾸기·빼기와 안내가 세로로 쌓이고, 읽는 중·읽지 못한 때의 빈 자리도 같은 크기라 줄이 흔들리지 않는다. */
-.world-card-image{display:flex;align-items:center;gap:12px;min-width:0}
-.world-card-image-preview{flex:none;width:56px;height:56px;border:1px solid var(--tline);background:var(--muted-bg)}span.world-card-image-preview{display:block;border-radius:12px}
-.world-card-image-body{display:grid;gap:6px;justify-items:start;min-width:0}.world-card-image-actions{display:flex;flex-wrap:wrap;gap:8px}.world-card-image-note{margin:0;line-height:1.5}
+/* 대표 이미지 타일: 세계관 관리 헤더의 표지와 같은 전역 .cov(3:4·모서리 14px·--sh 그림자)를 그대로 쓰고 여기서는 다시 정하지 않는다. 빈 타일만 점선 테두리·그림자 없음으로 구분하고, 그 안의 이미지 추가 라벨이 타일 전체를 덮어 눌리는 면이 타일 전체다.
+   읽는 중·읽지 못한 때의 빈 자리(.world-card-tile-wait)도 같은 타일이라 줄이 흔들리지 않는다. .cov svg(전역 100%)가 안쪽 + 아이콘을 늘리지 않게 아이콘 크기를 정한다. */
+.world-card-image{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-width:0}
+.world-card-tile .world-card-tile-wait{display:block;width:100%;height:100%}
+.world-card-tile.empty{border:2px dashed var(--line3);background:transparent;box-shadow:none}
+.world-card-tile.empty:has(input:enabled):hover{border-color:var(--tacc);background:color-mix(in srgb,var(--tacc) 6%,transparent)}
+.world-card-studio .world-card-tile .world-card-tile-add{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px 8px 40px;color:var(--tfg);font-size:13.5px;font-weight:700;line-height:1.3;text-align:center}
+.world-card-tile-add svg{flex:none;width:22px;height:22px}
+.world-card-tile-note{position:absolute;inset:auto 8px 10px;margin:0;color:var(--tsub);font-size:11.5px;line-height:1.4;text-align:center;pointer-events:none}
+/* 타일은 overflow:hidden이라 안쪽 라벨의 초점 고리가 잘리므로 고리는 타일 바깥에 그리고 라벨 자신의 고리는 끈다. */
+.world-card-tile:has(input:focus-visible){outline:2px solid var(--tacc);outline-offset:3px}.world-card-studio .world-card-tile .world-card-tile-add:has(input:focus-visible){outline:0}
+.world-card-image-actions{display:flex;flex-wrap:wrap;gap:8px}.world-card-image-note{margin:0;line-height:1.5}
+@container world-card-head (max-width:459px){.world-card-studio .world-card-tile .world-card-tile-add{padding:8px 4px;font-size:12px}.world-card-tile-note{inset:auto;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}} /* 88px 타일 안에는 안내가 들어가지 않아 화면에서만 숨기고 입력의 설명으로는 남긴다 */
 /* 레일 항목의 썸네일은 왼쪽에 띄워 제목·상태 줄이 그 옆으로 흐르게 한다(.writing-episode는 집필실과 함께 쓰는 규칙이라 건드리지 않는다). */
 .world-card-studio .writing-episode .board-thumb{float:left;margin:2px 10px 0 0}
 /* 설명: 마크다운 편집기(shared/MarkdownEditor, Toast UI Editor)는 글 높이만큼 자라고 스크롤은 편집 열이 맡는다. 불러오는 동안은 편집기 최소 높이(320px)와 탭 줄만큼 자리를 비운다. 저장 중에는 잠기고(inert) 흐려진다.
