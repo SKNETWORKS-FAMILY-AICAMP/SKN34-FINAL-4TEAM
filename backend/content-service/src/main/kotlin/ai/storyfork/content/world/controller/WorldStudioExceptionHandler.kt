@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 /** 비공개 입력·SQL·Cypher·드라이버 오류를 응답이나 로그에 노출하지 않는다. */
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@RestControllerAdvice(assignableTypes=[WorldStudioController::class,InitialWorldAnalysisController::class,InitialWorldApplicationController::class])
+@RestControllerAdvice(basePackages=["ai.storyfork.content.imagegeneration.controller"],assignableTypes=[WorldStudioController::class,InitialWorldAnalysisController::class,InitialWorldApplicationController::class])
 class WorldStudioExceptionHandler {
     @ExceptionHandler(ai.storyfork.content.world.service.InitialWorldReviewConflict::class)
     fun reviewConflict(error:ai.storyfork.content.world.service.InitialWorldReviewConflict)=ResponseEntity.status(409).body(WorldStudioErrorResponse(error.code,
