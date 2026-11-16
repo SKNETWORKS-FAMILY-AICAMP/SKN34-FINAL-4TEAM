@@ -3,6 +3,9 @@ package ai.storyfork.content.world
 import ai.storyfork.content.world.domain.*
 import ai.storyfork.content.world.relationship.Neo4jRelationshipConfig
 import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
+import ai.storyfork.content.world.service.GenreTemplate
+import ai.storyfork.content.world.service.GenreTemplateRepair
+import ai.storyfork.content.world.service.GenreTemplateSeeder
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.dto.*
 import jakarta.persistence.EntityManagerFactory
@@ -31,6 +34,47 @@ class WorldStudioServicePostgresTest {
         register(ai.storyfork.content._common.config.ContentDatabaseConfig::class.java,WorldStudioConfig::class.java,
             Neo4jRelationshipConfig::class.java,Neo4jRelationshipRepository::class.java,WorldStudioService::class.java)
         refresh()
+    }
+    @Test fun `new myth seeds final typed cards once and preserves later author edits`() {
+        WorldStudioPostgresFixture("independent").use { db ->
+            val mapper = JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
+            val owner = GenreTemplateSeeder.TEMPLATE_OWNER
+            val worldId = UUID.randomUUID()
+            var revisionId = UUID.randomUUID()
+            var template: GenreTemplate? = null
+            fun seeded(service: WorldStudioService): GenreTemplateSeeder {
+                val seeder = org.mockito.Mockito.spy(GenreTemplateSeeder(service, mapper))
+                if (template == null) template = seeder.load().first { it.genre == "norse_mythology" }.let { t ->
+                    t.copy(worldId = worldId, cards = t.cards.map { it.copy(id = UUID.randomUUID()) })
+                }
+                org.mockito.Mockito.doReturn(emptyList<GenreTemplate>()).`when`(seeder).loadLegacy()
+                org.mockito.Mockito.doReturn(listOf(template!!)).`when`(seeder).load()
+                return seeder
+            }
+            context(db).use { ctx ->
+                val service = ctx.getBean(WorldStudioService::class.java)
+                val seeder = seeded(service)
+                seeder.seed()
+                val draft = service.draft(worldId, owner)
+                assertEquals(2L, draft.draftRevision)
+                assertEquals(GenreTemplateRepair.payloads(template!!).toSet(), draft.cards.toSet())
+                revisionId = draft.currentRevisionId!!
+                seeder.seed()
+                assertEquals(draft, service.draft(worldId, owner))
+            }
+            context(db).use { ctx ->
+                val service = ctx.getBean(WorldStudioService::class.java)
+                val seeder = seeded(service)
+                seeder.seed()
+                val draft = service.draft(worldId, owner)
+                assertEquals(revisionId, draft.currentRevisionId)
+                val card = draft.cards.first().copy(body = "사용자가 고친 설명")
+                service.edit(worldId, owner, EditWorldDraftRequest(2, draft.name, draft.description, listOf(card), key = "author-edit"))
+                val changed = service.draft(worldId, owner)
+                seeder.seed()
+                assertEquals(changed, service.draft(worldId, owner))
+            }
+        }
     }
     @Test fun `startup migrates the worldstudio schema once and validates it`() {
         WorldStudioPostgresFixture("independent").use { db ->

@@ -95,8 +95,8 @@ it('인물 문서가 3,000자를 넘거나 회차 번호가 어긋나면 그 카
   const person = newSetting('people')
   person.item.title = '가람'
   person.item.text = '본문'
-  const docs = (soul: string, episodes: Record<string, string> = {}) => ({ ...person, characterDocs: { soul, memory: '', episodes } })
-  expect(worldWritingIssues(world([person]))).toEqual([]) // SOUL.md·MEMORY.md가 없는 기존 인물 카드
+  const docs = (soul: string, episodes: Record<string, string> = {}) => ({ ...person, characterDocs: { soul, goal: '', episodes } })
+  expect(worldWritingIssues(world([person]))).toEqual([]) // SOUL.md·GOAL.md가 없는 기존 인물 카드
   expect(worldSealIssues(world([person]))).toEqual([])
   expect(worldWritingIssues(world([docs('가'.repeat(3000), { 0: '', 3: '기억' })]))).toEqual([])
   expect(worldWritingIssues(world([docs('가'.repeat(3001), { 3: '가'.repeat(3001) })])).map((issue) => writingIssueLabel(world([person]), issue))).toEqual([

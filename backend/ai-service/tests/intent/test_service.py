@@ -99,6 +99,28 @@ def test_free_text_is_classified_and_sent_only_as_data(monkeypatch, text, featur
     assert [q['name'] for q in body['questions']] == ['guard', 'clarity', *prompt.FEATURES, 'review_check']
 
 
+def test_world_review_is_classified_from_free_text_and_told_apart_from_the_manuscript_review(monkeypatch):
+    calls = fake_decisions(monkeypatch, ok(world_review='1'))
+    assert plan(service.route('설정에 오류 없는지 봐줘')) == [('world_review', 'always')]
+    asked = {q['name']: q['instructions'] for q in calls[0][1]['questions']}
+    # 설정집 자체의 검토와 원고 검수는 서로를 가리켜 모델이 둘을 섞지 않게 한다.
+    assert '설정집' in asked['world_review'] and '원고 검수는 review' in asked['world_review']
+    assert 'world_review' in prompt.FEATURES['review']
+    assert 'world_review' in prompt.INSTRUCTIONS
+
+
+def test_ui_operation_world_review_asks_only_the_guard(monkeypatch):
+    calls = fake_decisions(monkeypatch, {'guard': 'none'})
+    result = service.route('설정집 검토', operation='world_review')
+    assert plan(result) == [('world_review', 'always')] and result.steps[0].check is None
+    assert [q['name'] for q in calls[0][1]['questions']] == ['guard']
+
+
+def test_world_review_is_not_a_finding_feature_so_nothing_is_edited_after_it(monkeypatch):
+    fake_decisions(monkeypatch, ok(world_review='1', writing_editing='2_if_issues'))
+    assert service.route('설정 검토하고 틀리면 고쳐줘').status == 'clarify'
+
+
 def history_sent(calls):
     """호출마다 모델에 보낸 history."""
     return [body['input'][1]['content'][0]['data']['history'] for _, body in calls]
@@ -145,7 +167,7 @@ def test_every_feature_has_a_name_in_the_clarify_question():
 @pytest.mark.parametrize('text, feature', [
     ('작품 질문', 'story_context'), ('원고 검수', 'review'), ('인물 시뮬레이션', 'character_simulation'),
     ('집필·수정', 'writing_editing'), ('전개 제안', 'story_development'), ('설정·플롯 분석', 'world_plot'),
-    ('고증 조사', 'web_research'),
+    ('고증 조사', 'web_research'), ('설정집 검토', 'world_review'), ('설정집검토', 'world_review'),
     ('집필 수정', 'writing_editing'), ('집필ㆍ수정', 'writing_editing'), (' 인물  시뮬레이션 ', 'character_simulation'),
 ])
 def test_a_capability_name_answers_the_clarify_question(text, feature):
@@ -239,7 +261,9 @@ def test_model_error_and_missing_key_are_failures(monkeypatch):
 @pytest.mark.parametrize('request_text', ['내 메일 writer@example.com 로 원고 보내줘', '카드 4111 1111 1111 1111 로 결제해줘',
                                           '이 키 sk-proj-AbCdEf0123456789xyz 로 설정해줘',
                                           # 한국어 조사가 바로 붙어도 찾는다(한글은 단어 문자라 \b 경계가 없다).
-                                          'writer@example.com로 보내줘', '카드4111111111111111로 결제해줘', '키는sk-proj-AbCdEf0123456789xyz야'])
+                                          'writer@example.com로 보내줘', '카드4111111111111111로 결제해줘', '키는sk-proj-AbCdEf0123456789xyz야',
+                                          # 밑줄도 단어 문자라 Markdown 강조로 감싸면 \b 경계가 없다(#389).
+                                          '_sk-abcdefghijklmnop1234_ 로 설정해줘'])
 def test_sensitive_data_in_the_request_is_rejected_before_any_model_call(monkeypatch, request_text):
     moderated = []
     calls = fake_decisions(monkeypatch, ok(review='1'), moderated=moderated)

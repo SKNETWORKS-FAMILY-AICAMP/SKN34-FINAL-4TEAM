@@ -26,7 +26,7 @@ from app.intent.prompt import INSTRUCTIONS, MODEL
 
 GUARD = 'guard'  # 가드레일이 끝낸 실행의 마지막 메시지 이름. 내용이 거절 사유(Reason)다
 BLOCKED = ('sexual_minors', 'self_harm_instructions', 'illicit_violent')  # 창작 맥락이어도 처리하지 않는 moderation 범주
-API_KEY = r'\b[sp]k-[A-Za-z0-9_-]{16,}'  # OpenAI·Langfuse 형식(sk-…, pk-…)의 키
+API_KEY = r'(?<![A-Za-z0-9])[sp]k-[A-Za-z0-9_-]{16,}'  # OpenAI·Langfuse 형식(sk-…, pk-…)의 키. 밑줄 강조(_sk-…_)도 잡는다
 HANGUL = re.compile(r'[ㄱ-ㅣ가-힣]')  # 탐지 전에 공백으로 바꿀 한글
 
 
@@ -37,7 +37,7 @@ def _reject(reason: str) -> dict:
 class SensitiveDataGuard(PIIMiddleware):
     """작가 요청(첫 모델 호출 앞의 유일한 사용자 메시지)에서 라이브러리 탐지기로 개인정보·키를 찾으면 sensitive_data 거절로 끝낸다.
 
-    탐지기는 정규식 단어 경계(\\b)를 쓰는데 한글도 단어 문자라 "a@b.com로"처럼 조사가 붙으면 놓친다. 그래서 한글을 공백으로 바꾼 글에서 찾는다.
+    이메일·카드 탐지기는 정규식 단어 경계(\\b)를 쓰는데 한글도 단어 문자라 "a@b.com로"처럼 조사가 붙으면 놓친다. 그래서 한글을 공백으로 바꾼 글에서 찾는다.
     차단만 하고 글을 고치지 않으므로 위치는 쓰지 않는다.
     """
 

@@ -14,7 +14,7 @@ const val WORLD_COVER_MAX_BYTES = 5 * 1024 * 1024
 /** 표지 업로드 검사를 통과한 바이트와, 그 바이트가 정한 형식(image/png·image/jpeg·image/webp)이다. */
 class WorldCoverFile(val bytes: ByteArray, val contentType: String)
 
-private fun coverInvalid() = ContentFailure(422, "표지는 5MB 이하의 PNG·JPEG·WebP 이미지만 올릴 수 있어요.", "WORLD_INPUT_INVALID")
+private fun coverInvalid() = ContentFailure(422, "이미지는 5MB 이하의 PNG·JPEG·WebP만 올릴 수 있어요.", "WORLD_INPUT_INVALID")
 
 private fun ByteArray.startsWith(vararg prefix: Int) = size >= prefix.size && prefix.indices.all { this[it] == prefix[it].toByte() }
 
@@ -29,7 +29,7 @@ private fun isWebp(bytes: ByteArray): Boolean {
 /**
  * 업로드 바이트의 실제 시그니처로 표지 형식을 정한다. 클라이언트가 보낸 형식·파일명은 믿지 않는다.
  * PNG·JPEG는 첨부와 같은 디코딩 검사([AttachmentUploadHelper.validateImage])를 거치고, JDK가 못 읽는 WebP는 RIFF 컨테이너 구조만 확인한다.
- * 비었거나 5MB를 넘거나 알 수 없는 형식·깨진 이미지는 422 `WORLD_INPUT_INVALID`다.
+ * 비었거나 5MB를 넘거나 알 수 없는 형식·깨진 이미지는 422 `WORLD_INPUT_INVALID`다. 표지와 설정 카드 이미지가 이 검사를 함께 쓴다.
  * ponytail: WebP는 디코딩하지 않아 구조만 맞춘 깨진 이미지는 통과한다(브라우저가 못 그릴 뿐 해롭지 않다). 문제가 되면 WebP 디코더를 둔다.
  */
 fun worldCoverType(bytes: ByteArray): String {

@@ -12,6 +12,7 @@ import ai.storyfork.content.work.service.dto.WorkAccessResult
 import ai.storyfork.content.work.service.dto.WorkWorldLinkResponse
 import ai.storyfork.content.world.service.PublicWorldService
 import ai.storyfork.content.world.service.dto.ReaderWorldCardsResponse
+import ai.storyfork.content.world.service.dto.WorldCoverImage
 import ai.storyfork.content.world.studio.entity.StudioWorld
 import ai.storyfork.content.world.studio.repository.StudioWorldRepository
 import java.util.Optional
@@ -174,6 +175,51 @@ class WorkWorldServiceTest {
 
     @Test fun `a bad upto is 422 before any lookup`() {
         listOf("0", "-1", "x", "1.5").forEach { assertEquals(422, failure { service.readerCards("work", it) }.status) }
+
+        verifyNoInteractions(access, works, publication, publicWorlds)
+    }
+
+    @Test fun `a reader card image asks the linked world for the same capped basis as the wiki`() {
+        row.worldStudioId = world
+        `when`(access.get("work")).thenReturn(work())
+        `when`(works.findById("work")).thenReturn(Optional.of(row))
+        published(1, 2, 3)
+        val image = UUID.randomUUID()
+        val second = WorldCoverImage(byteArrayOf(2), "image/png")
+        val latest = WorldCoverImage(byteArrayOf(3), "image/png")
+        `when`(publicWorlds.readerCardImage(world, 2, image)).thenReturn(second)
+        `when`(publicWorlds.readerCardImage(world, 3, image)).thenReturn(latest)
+
+        assertSame(second, service.readerCardImage("work", image, "2"))
+        // 발행된 마지막 회차(3화)를 넘는 요청과 upto 생략은 3화 기준이다.
+        assertSame(latest, service.readerCardImage("work", image, "9"))
+        assertSame(latest, service.readerCardImage("work", image, null))
+    }
+
+    @Test fun `a reader card image of a private, restricted or unlinked work is a 404 without reading any world`() {
+        `when`(works.findById("work")).thenReturn(Optional.of(row))
+        published(1, 2)
+        row.worldStudioId = world
+        `when`(access.get("work")).thenReturn(work(visibility = "private"), work(restricted = true))
+        repeat(2) { assertEquals(404, failure { service.readerCardImage("work", UUID.randomUUID(), "2") }.status) }
+        row.worldStudioId = null
+        `when`(access.get("work")).thenReturn(work())
+        assertEquals(404, failure { service.readerCardImage("work", UUID.randomUUID(), "2") }.status)
+
+        verifyNoInteractions(publicWorlds)
+    }
+
+    @Test fun `a reader card image of an unknown or deleted work is a 404`() {
+        `when`(access.get("missing")).thenThrow(ContentFailure(404, "작품을 찾을 수 없어요."))
+        `when`(access.get("work")).thenReturn(work(deleted = true))
+
+        listOf("missing", "work").forEach { assertEquals(404, failure { service.readerCardImage(it, UUID.randomUUID(), null) }.status) }
+
+        verifyNoInteractions(publicWorlds)
+    }
+
+    @Test fun `a bad upto on a reader card image is 422 before any lookup`() {
+        listOf("0", "-1", "x", "1.5").forEach { assertEquals(422, failure { service.readerCardImage("work", UUID.randomUUID(), it) }.status) }
 
         verifyNoInteractions(access, works, publication, publicWorlds)
     }

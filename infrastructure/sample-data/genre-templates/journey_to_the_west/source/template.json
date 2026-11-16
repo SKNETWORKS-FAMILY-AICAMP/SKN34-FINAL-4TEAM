@@ -1,0 +1,1377 @@
+{
+  "id": "journey_to_the_west_default",
+  "genre_id": "journey_to_the_west",
+  "genre_name": "서유기 · 백회본",
+  "order": 26,
+  "title": "서유기 · 백회본",
+  "setting_bible": {
+    "title": "서유기 · 백회본",
+    "introduction_markdown": "현행 위키문헌 100회본 《서유기》 한 작품을 바탕으로 정리한 인물·장소·도구·능력·사건 자료. 청대에 삽입된 진광예 일화를 제9회에 두는 현행 배열을 따르며 1592년 초판 자체의 번역으로 표기하지 않는다. 역사적 현장의 여행 기록 및 중국 종교 전체와 구별한다.",
+    "sections": [
+      {
+        "id": "journey_to_the_west_text",
+        "order": 1,
+        "title": "판본과 자료 범위",
+        "content_markdown": "현행 위키문헌 100회본 《서유기》를 바탕으로 정리한 세계관 카드다. 출전은 시·대화·반복·종결을 포함한다. 청대에 삽입된 진광예 일화를 제9회에 두는 현행 배열을 따르며, 1592년 초판 자체의 번역으로 표기하지 않는다. 소설 속 삼장과 세계는 역사적 현장의 여행 기록이나 중국 종교 전체의 공통 체계와 구별한다.\n\n출전: 《서유기》 [제1회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC001%E5%9B%9E), [제100회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC100%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "rule",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch001-p004"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch100-p032"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_sun",
+        "order": 2,
+        "title": "손오공",
+        "content_markdown": "화과산의 신령한 돌에서 태어난 원숭이로, 수보리조사에게 배운다. 오행산에 갇혔다가 삼장을 보호하는 제자가 된다. 여정을 마친 뒤 마귀를 물리치고 처음과 끝을 온전히 한 공으로 투전승불의 과위를 받는다.\n\n출전: 《서유기》 [제1회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC001%E5%9B%9E), [제2회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC002%E5%9B%9E), [제100회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC100%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch001-p006"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch002-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch100-p023"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_tripitaka",
+        "order": 3,
+        "title": "삼장법사 · 당삼장",
+        "content_markdown": "동토 대당의 칙명으로 서천의 대승 경전을 구하는 현장이다. 당승·삼장으로 불린다. 여래는 그 전생을 설법을 가벼이 여겨 쫓겨난 둘째 제자 금선자라고 밝히며, 경전을 가져간 공으로 전단공덕불의 과위를 내린다.\n\n출전: 《서유기》 [제100회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC100%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch100-p007"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch100-p023"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_pig",
+        "order": 4,
+        "title": "저팔계 · 저오능",
+        "content_markdown": "법명 오능인 돼지 모습의 제자로 삼장에게 팔계라는 별명을 얻는다. 아홉 이 쇠스랑을 쓰며 천봉원수였던 내력을 지닌다. 식욕과 색정이 남아 있으나 짐을 진 공을 인정받아 정단사자가 된다.\n\n출전: 《서유기》 [제19회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC019%E5%9B%9E), [제100회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC100%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch019-p014"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch019-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch100-p023"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_sand",
+        "order": 5,
+        "title": "사오정 · 사승",
+        "content_markdown": "사오정·사화상·사승으로 불리는 제자다. 권렴대장이었다가 유리잔을 깨뜨려 쫓겨나 유사하에서 사람을 해쳤으나 불문에 귀의한다. 성승을 보호하고 산에 오르며 말을 끈 공으로 금신나한의 과위를 받는다.\n\n출전: 《서유기》 [제100회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC100%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch100-p008"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch100-p023"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_horse",
+        "order": 6,
+        "title": "백룡마",
+        "content_markdown": "서해용왕의 아들로, 삼장의 원래 말을 삼킨 뒤 관음의 구제와 명으로 백마가 되어 탈것을 맡는다. 서쪽으로는 성승을, 동쪽으로는 경전을 실은 공으로 팔부천룡마의 과위를 받으며 화룡지에서 용의 몸으로 돌아간다.\n\n출전: 《서유기》 [제100회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC100%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch100-p008"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch100-p023"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch100-p024"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_guanyin",
+        "order": 7,
+        "title": "관음보살",
+        "content_markdown": "여래의 뜻을 받아 동토로 경전을 구할 사람을 찾으러 가는 보살이다. 귀환 때에도 재난 장부를 살펴 여든 난에 한 난을 더하게 하여 구구의 수를 채운다. 취경의 시작과 끝에 관여하는 인물이다.\n\n출전: 《서유기》 [제8회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC008%E5%9B%9E), [제99회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC099%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch008-p016"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch099-p003"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_buddha",
+        "order": 8,
+        "title": "여래불",
+        "content_markdown": "여래는 손오공을 손바닥 밖으로 벗어나지 못하게 하고 오행산 아래 누른다. 영산에서는 삼장경을 동토에 전하도록 지시하며, 귀환한 일행에게 공과에 따라 서로 다른 과위와 직분을 내린다.\n\n출전: 《서유기》 [제7회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC007%E5%9B%9E), [제98회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E), [제100회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC100%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch007-p021"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch098-p025"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch100-p023"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_court",
+        "order": 9,
+        "title": "천계 조정",
+        "content_markdown": "옥제가 주재하는 천상의 조정으로 관직과 신장, 군대를 갖춘다. 손오공을 필마온에 임명하나 그는 제천대성을 자칭하며 맞선다. 인간 세상의 비를 내리는 명도 이 조정에 요청하는 장면이 나온다.\n\n출전: 《서유기》 [제4회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC004%E5%9B%9E), [제87회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC087%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "organization",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch004-p004"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch004-p010"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch087-p014"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_pilgrims",
+        "order": 10,
+        "title": "취경 일행",
+        "content_markdown": "삼장과 손오공·저팔계·사오정, 용왕의 아들인 백마가 함께 경전을 구한다. 보호, 짐 운반, 말 돌보기와 이동을 나누어 수행한다. 최종 과위는 모두 같지 않으며 각자의 공과와 남은 성품에 따라 다르다.\n\n출전: 《서유기》 [제100회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC100%E5%9B%9E), [제98회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "organization",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch100-p008"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch098-p036"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch100-p023"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_continents",
+        "order": 11,
+        "title": "사대부주와 세계 구조",
+        "content_markdown": "제1회는 세계를 동승신주·서우하주·남섬부주·북구로주의 사대부주로 제시한다. 동승신주의 오래국과 화과산에서 원숭이의 이야기가 시작된다. 이 카드의 공간 설명은 해당 소설의 설정 범위에 한정한다.\n\n출전: 《서유기》 [제1회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC001%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "location",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch001-p004"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_mountain",
+        "order": 12,
+        "title": "화과산 · 수렴동",
+        "content_markdown": "동승신주 오래국 바다에 있는 화과산과 그곳의 수렴동은 원숭이 무리의 터전이다. 폭포 뒤 동굴에는 화과산 복지와 수렴동 동천이라는 글씨가 새겨져 있다. 미후왕과 무리는 이곳에서 함께 살고 논다.\n\n출전: 《서유기》 [제1회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC001%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "location",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch001-p004"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch001-p016"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch001-p021"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_dragon-palace",
+        "order": 13,
+        "title": "동해 용궁",
+        "content_markdown": "손오공이 신철 무기 여의금고봉을 얻는 동해 용궁이다. 용왕과 권속이 사는 영역이며, 신철은 대우가 강과 바다의 깊이를 재던 물건으로 설명된다. 무기를 얻는 장면과 그 내력은 제3회와 제88회에서 연결된다.\n\n출전: 《서유기》 [제3회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC003%E5%9B%9E), [제88회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC088%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "location",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch003-p010"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch088-p027"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_five-elements",
+        "order": 14,
+        "title": "오행산 · 양계산",
+        "content_markdown": "여래가 손오공을 눌러 가둔 오행산이다. 훗날 삼장이 지나는 양계산의 갇힌 원숭이는 산꼭대기의 여래 부적을 떼어 달라고 청한다. 봉인 해제는 그가 취경 수행에 합류하는 계기가 된다.\n\n출전: 《서유기》 [제7회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC007%E5%9B%9E), [제14회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC014%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "location",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch007-p021"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch014-p005"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_west",
+        "order": 15,
+        "title": "서천 영산 · 뇌음사",
+        "content_markdown": "서천 영산과 뇌음사는 일행이 불조를 뵙고 경전을 받는 목적지다. 금정대선이 영취봉의 성스러운 경계를 가리켜 주며, 일행은 능운도를 건너 대웅보전으로 간다. 경전 수령 뒤에도 동토 전달과 귀환이 남는다.\n\n출전: 《서유기》 [제98회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "location",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch098-p010"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch098-p025"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch098-p042"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_staff",
+        "order": 16,
+        "title": "여의금고봉",
+        "content_markdown": "손오공의 여의금고봉은 무게 일만 삼천오백 근인 신철 병기다. 대우가 물의 깊이를 재는 데 쓰던 내력을 지니며, 구결을 따라 크고 작게 변한다. 제88회에서 손오공이 그 기원과 사용을 직접 설명한다.\n\n출전: 《서유기》 [제3회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC003%E5%9B%9E), [제88회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC088%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "object",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch003-p010"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch088-p027"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_fillet",
+        "order": 17,
+        "title": "긴고와 긴고주",
+        "content_markdown": "손오공의 머리에 씌운 긴고와 삼장이 외우는 긴고주는 제자를 제약하는 장치다. 삼장이 주문을 외우면 고통이 일어난다. 제100회에서 부처가 된 손오공이 벗겨 달라고 하자 이미 사라졌음이 확인된다.\n\n출전: 《서유기》 [제14회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC014%E5%9B%9E), [제100회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC100%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "object",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch014-p030"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch100-p025"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_rake",
+        "order": 18,
+        "title": "구치정파",
+        "content_markdown": "저팔계가 사용하는 아홉 이 쇠스랑으로 구치정파라고 부른다. 고로장 사건에서 들고 나오며, 취경 중 전투에서도 금고봉·항요보장과 함께 등장한다.\n\n출전: 《서유기》 [제19회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC019%E5%9B%9E), [제92회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC092%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "object",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch019-p001"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch092-p010"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_fan",
+        "order": 19,
+        "title": "파초선",
+        "content_markdown": "철선공주 또는 나찰녀의 파초선이다. 화염산을 통과하기 위해 빌려야 하며, 가짜와 진짜를 둘러싼 속임수와 싸움이 이어진다. 진짜 부채로 불을 끈 손오공은 약속대로 부채를 나찰에게 돌려준다.\n\n출전: 《서유기》 [제59회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC059%E5%9B%9E), [제61회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC061%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "object",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch059-p013"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch061-p032"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch061-p037"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_transformation",
+        "order": 20,
+        "title": "칠십이변화와 근두운",
+        "content_markdown": "손오공이 조사에게서 배운 지살의 칠십이변화와 근두운이다. 근두운은 구결을 외우고 재주넘기 한 번으로 십만 팔천 리를 가는 법으로 설명된다. 두 능력은 원문에 제시된 수와 방식으로 한정한다.\n\n출전: 《서유기》 [제2회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC002%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "ability",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch002-p018"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch002-p019"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_bone",
+        "order": 21,
+        "title": "백골정",
+        "content_markdown": "백호령에서 당승을 노리는 백골부인이다. 젊은 여자와 노파 등 사람 모습으로 속이며, 손오공의 공격은 삼장에게 살생으로 보인다. 마지막에는 뼈에 적힌 백골부인의 이름으로 정체가 드러난다.\n\n출전: 《서유기》 [제27회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC027%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch027-p014"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch027-p019"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch027-p030"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_red-boy",
+        "order": 22,
+        "title": "홍해아",
+        "content_markdown": "홍해아는 취경 길에서 삼장을 붙잡는 요괴이며 관음에게 제압된다. 제42회에서 관음은 그를 선재동자로 부르게 한다. 그의 항복은 요괴를 죽이는 해결만 존재하는 것이 아님을 보여 주는 사건이다.\n\n출전: 《서유기》 [제42회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC042%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch042-p032"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_iron-fan",
+        "order": 23,
+        "title": "철선공주",
+        "content_markdown": "철선공주는 나찰녀라고도 하며 화염산의 불을 끄는 파초선의 주인이다. 우마왕의 아내로, 남편을 구하기 위해 진짜 부채를 내놓는다. 일행이 산을 넘은 뒤 돌려받고 수행하며, 뒤에 바른 결실을 얻었다고 서술된다.\n\n출전: 《서유기》 [제59회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC059%E5%9B%9E), [제61회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC061%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch059-p013"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch061-p030"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch061-p037"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_havoc",
+        "order": 24,
+        "title": "대뇨천궁과 오행산의 봉인",
+        "content_markdown": "필마온 벼슬에 반발한 손오공이 제천대성을 자칭하고 천계와 충돌하는 사건이다. 여래는 손바닥을 벗어나는 내기를 제안하고, 끝내 다섯 손가락을 산으로 바꾸어 손오공을 오행산 아래 누른다.\n\n출전: 《서유기》 [제4회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC004%E5%9B%9E), [제7회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC007%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch004-p004"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch004-p010"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch007-p018"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch007-p021"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_bone-event",
+        "order": 25,
+        "title": "백골정 세 번 격퇴와 결별",
+        "content_markdown": "백골정 사건에서 손오공은 요괴를 알아보고 공격하지만 삼장은 무고한 사람을 죽였다고 꾸짖는다. 뼈의 정체가 드러나도 스승과 제자의 신뢰 문제는 남고, 삼장은 손오공을 제자로 두지 않겠다고 한다.\n\n출전: 《서유기》 [제27회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC027%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch027-p017"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch027-p030"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_trial-count",
+        "order": 26,
+        "title": "팔십일난의 완성",
+        "content_markdown": "관음은 재난 장부에 여든 난만 있음을 확인하고 금강에게 한 난을 더하게 한다. 통천하의 늙은 자라는 수명을 물어 달라는 부탁이 이행되지 않자 일행을 물에 빠뜨린다. 젖은 경전을 말리다가 일부가 돌에 붙어 찢어진다. 팔십일난은 회차별 전투 수와 같지 않다.\n\n출전: 《서유기》 [제99회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC099%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch099-p003"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch099-p009"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch099-p016"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_scriptures",
+        "order": 27,
+        "title": "경전 수령과 귀환",
+        "content_markdown": "일행은 처음 글자 없는 경전을 받았다가 다시 돌아간다. 삼장이 자금발우를 내놓은 뒤 글자 있는 경전 오천사십팔 권을 받는다. 당나라에 경전을 전달한 일행은 다시 영산으로 돌아가 각자의 과위를 받는다.\n\n출전: 《서유기》 [제98회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC098%E5%9B%9E), [제100회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC100%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch098-p034"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch098-p036"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch100-p023"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_discipline",
+        "order": 28,
+        "title": "살생과 수행의 갈등",
+        "content_markdown": "살생을 둘러싼 삼장과 손오공의 판단은 충돌한다. 삼장은 길을 막은 강도라 해도 관아에 잡아가면 죽을죄까지는 아니었다고 꾸짖는다. 긴고주는 제자를 억제하는 장치이며, 부처가 된 뒤에는 필요가 없어져 사라진다.\n\n출전: 《서유기》 [제14회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC014%E5%9B%9E), [제100회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC100%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "rule",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch014-p023"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch014-p030"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch100-p025"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_fengxian-rain",
+        "order": 29,
+        "title": "봉선군의 기우",
+        "content_markdown": "봉선군의 삼 년 가뭄을 풀기 위해 손오공이 옥제에게 비의 명을 청한다. 옥제는 군후가 공물을 뒤엎고 모욕한 죄를 말한다. 이후 단비가 내려 마른 모와 나무가 살아나고 백성이 안정을 되찾는다.\n\n출전: 《서유기》 [제87회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC087%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch087-p014"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch087-p027"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_kou-restored",
+        "order": 30,
+        "title": "구홍의 소생과 누명 해소",
+        "content_markdown": "승려 만 명에게 공양한 구홍은 강도에게 죽고, 그의 가족은 취경 일행을 모함한다. 손오공은 저승의 지장왕에게 구홍을 돌려보내도록 청한다. 구홍은 십이 년의 수명을 더 얻어 살아나며 직접 성승들의 무고함을 밝힌다.\n\n출전: 《서유기》 [제97회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC097%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch097-p002"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch097-p030"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch097-p031"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_register-erased",
+        "order": 31,
+        "title": "생사부에서 이름을 지우다",
+        "content_markdown": "손오공은 저승으로 끌려간 뒤 열 왕과 다투고 자신과 원숭이들의 이름을 생사부에서 지운다. 이후 화과산 원숭이 가운데 늙지 않는 것이 많아진 까닭을 소설은 명부에서 이름이 없어진 일과 연결한다.\n\n출전: 《서유기》 [제3회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC003%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch003-p019"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_peaches-and-elixir",
+        "order": 32,
+        "title": "반도회 소란과 선단 도난",
+        "content_markdown": "손오공의 복숭아·술·선단 도난과 반도회 소란이 천계의 토벌로 이어진다. 소설은 그가 초래한 분쟁을 천계 측의 죄목과 손오공 자신의 응답으로 함께 제시한다.\n\n출전: 《서유기》 [제5회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC005%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch005-p031"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_erlang-capture",
+        "order": 33,
+        "title": "이랑신의 추격과 손오공 생포",
+        "content_markdown": "천계와 손오공의 싸움에서 노군의 금강탁이 떨어져 손오공을 맞히고, 이랑신의 사냥개와 일곱 성인이 그를 붙잡는다. 비파뼈를 꿰어 변화하지 못하게 한 뒤 천상으로 압송한다.\n\n출전: 《서유기》 [제6회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC006%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch006-p026"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch006-p027"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_jiangliu-origins",
+        "order": 34,
+        "title": "강류승의 부모 찾기",
+        "content_markdown": "현장은 자신의 아명을 강류라 밝히고, 혈서와 속옷을 증거로 어머니 은온교와 만난다. 진광예를 죽인 유홍과 이표를 벌하는 가족 서사가 이어진다. 이 일화는 현재 사용한 100회본의 제9회 위치를 따르며 초판 배열로 일반화하지 않는다.\n\n출전: 《서유기》 [제9회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC009%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch009-p020"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch009-p027"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_jinghe-dragon",
+        "order": 35,
+        "title": "경하용왕의 천법 위반",
+        "content_markdown": "경하용왕은 원수성과의 내기에서 비의 시각과 양을 바꾸어 옥제의 칙지를 어긴다. 원수성은 이를 하늘의 법을 범한 일로 밝히며 용왕의 죽음을 예고한다.\n\n출전: 《서유기》 [제10회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC010%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch010-p040"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_taizong-underworld",
+        "order": 36,
+        "title": "태종의 저승 방문과 환혼",
+        "content_markdown": "태종은 저승에서 수명이 남았다는 판정을 받고 양세로 돌아간다. 귀혼들에게 막혔던 길과 수륙대회를 열라는 최판관의 당부를 신하들에게 전한다. 이는 소설의 취경 발단을 이루는 저승 서사다.\n\n출전: 《서유기》 [제11회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC011%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch011-p011"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch011-p039"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_imperial-mission",
+        "order": 37,
+        "title": "수륙법회에서 취경의 서원으로",
+        "content_markdown": "태종이 대승경을 구하러 갈 사람을 찾자 현장이 스스로 나선다. 황제와 의형제를 맺고, 진경을 얻지 못하면 돌아오지 않겠다고 부처 앞에서 서원한다.\n\n출전: 《서유기》 [제12회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC012%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch012-p058"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_liuboqin",
+        "order": 38,
+        "title": "진산태보 유백흠",
+        "content_markdown": "호랑이를 잡는 사냥꾼이며 어머니에게 효도하는 인물이다. 아버지 기일을 맞아 삼장에게 불사를 부탁하고 길손인 승려를 머물게 한다. 신통한 제자들과 만나기 전 삼장의 길을 돕는 인간 조력자다.\n\n출전: 《서유기》 [제13회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC013%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch013-p032"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_black-bear-cassock",
+        "order": 39,
+        "title": "흑풍산의 가사 탈환",
+        "content_markdown": "가사를 둘러싼 흑풍산 사건은 관음이 곰 요괴에게 계를 주고 산을 지키는 대신으로 데려가며 끝난다. 요괴의 죽음 대신 귀의와 거둠으로 해결되는 장면이다.\n\n출전: 《서유기》 [제17회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC017%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch017-p043"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch017-p045"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_heart-sutra",
+        "order": 40,
+        "title": "부도산에서 받은 심경",
+        "content_markdown": "당나라 법사가 한 번 듣고 기억한 《다심경》이다. 본문은 이 경이 참됨을 닦고 부처가 되는 길의 문이라고 설명한다. 카드의 설명은 작품 안의 전승 위치이며 현대 수행 지침을 새로 보태지 않는다.\n\n출전: 《서유기》 [제19회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC019%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "object",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch019-p026"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch019-p029"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_yellow-wind",
+        "order": 41,
+        "title": "황풍령의 바람 마귀",
+        "content_markdown": "행자는 영길보살을 청하여 황풍령의 요괴를 항복시킨 뒤 팔계와 함께 스승을 구한다. 동굴에서 식사를 마련한 일행은 큰길로 나와 다시 서쪽으로 향한다.\n\n출전: 《서유기》 [제21회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC021%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch021-p036"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_flowing-sands",
+        "order": 42,
+        "title": "유사하에서 사오정이 합류하다",
+        "content_markdown": "관음에게서 사오정이라는 법명을 받은 요괴가 삼장에게 귀의한다. 손오공이 머리를 깎아 주고 제자들 사이의 서열을 정한 뒤 목차의 지시에 따라 강을 건널 법선을 마련한다.\n\n출전: 《서유기》 [제22회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC022%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch022-p032"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_four-saints-test",
+        "order": 43,
+        "title": "네 성인의 혼인 시험",
+        "content_markdown": "여산노모·관음·보현·문수가 여인으로 변해 일행의 수행심을 시험한다. 남겨진 시는 삼장의 속된 마음 없음과 팔계의 욕심을 대비하고 허물을 고치라고 당부한다.\n\n출전: 《서유기》 [제23회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC023%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch023-p039"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_ginseng-tree",
+        "order": 44,
+        "title": "오장관의 인삼과나무",
+        "content_markdown": "만수산 오장관의 인삼과와 영근을 훼손한 사건은 감로로 나무를 되살리고 함께 열매를 먹는 화해로 이어진다. 인삼과가 구천 년에 한 번 익는다는 설명은 이 대목의 시에도 나온다.\n\n출전: 《서유기》 [제26회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC026%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch026-p040"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_yellow-robe",
+        "order": 45,
+        "title": "보상국의 황포괴와 규목랑",
+        "content_markdown": "황포괴의 정체는 하늘의 별 규목랑으로 밝혀진다. 그는 보상국 공주와 천상에서 맺은 인연을 주장하며 십삼 년 부부로 살았다고 아뢴다. 옥제는 금패를 거두고 도솔궁에서 불을 때는 직무로 강등한다.\n\n출전: 《서유기》 [제31회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC031%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch031-p026"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_gold-silver-kings",
+        "order": 46,
+        "title": "금각·은각과 다섯 보물",
+        "content_markdown": "연화동에서는 호리병·정병 등 보물의 소유와 사용을 둘러싼 속임수가 벌어진다. 손오공은 이름을 부르면 응답한 상대를 담는 정병으로 금각을 잡는다. 노군이 보물 다섯 가지를 거두자 금동자와 은동자가 원래 모습으로 돌아간다.\n\n출전: 《서유기》 [제35회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC035%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch035-p033"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch035-p036"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_wuji-false-king",
+        "order": 47,
+        "title": "오계국의 거짓 임금",
+        "content_markdown": "오계국 사건의 요괴는 당삼장과 같은 모습으로 변해 진위를 가리기 어렵게 만든다. 최종 정체는 문수의 사자왕이다. 겉모습이 같은 존재를 어떻게 구별하는지가 이 사건의 중요한 난관이다.\n\n출전: 《서유기》 [제39회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC039%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch039-p023"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch039-p028"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_black-river",
+        "order": 48,
+        "title": "흑하의 타룡 제압",
+        "content_markdown": "흑하에서 스승을 붙잡은 타룡이 사촌 마앙에게 잡힌다. 타룡은 스승이 수부에 묶여 있다고 밝히고 풀어 달라 청하지만, 마앙은 놓아주면 다시 간계를 쓸 수 있다고 경계한다.\n\n출전: 《서유기》 [제43회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC043%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch043-p041"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_cart-slow-contest",
+        "order": 49,
+        "title": "차지국의 국사들과 겨루다",
+        "content_markdown": "차지국에서는 목 베기·배 가르기·기름 가마 같은 법술 내기가 벌어진다. 국사들의 죽음과 짐승 정체가 드러나며, 양력의 기름 가마를 차갑게 만든 냉룡의 비밀도 밝혀진다.\n\n출전: 《서유기》 [제46회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC046%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch046-p023"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch046-p030"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch046-p040"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_heaven-river-fish",
+        "order": 50,
+        "title": "통천하의 금붕어 요괴",
+        "content_markdown": "관음이 대바구니로 통천하의 요괴를 거두니 연화지에서 경을 듣던 금붕어였다. 이후 흰 자라가 일행을 태워 강을 건넌다. 후일 제99회의 재난은 이 강과 자라를 다시 잇는다.\n\n출전: 《서유기》 [제49회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC049%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch049-p034"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch049-p044"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_blue-ox-ring",
+        "order": 51,
+        "title": "청우와 금강탁",
+        "content_markdown": "노군이 나타나 요괴의 주인임을 드러내고 보배 고리를 거둔다. 요괴는 푸른 소의 본모습을 드러내며, 노군은 금강탁을 코에 꿰고 도솔원으로 돌아간다.\n\n출전: 《서유기》 [제52회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC052%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch052-p033"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch052-p034"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_women-country",
+        "order": 52,
+        "title": "여인국과 자모하의 물",
+        "content_markdown": "자모하 물을 잘못 마신 삼장에게 태가 생겨 손오공이 낙태천 물을 구한다. 여인국 여왕은 삼장을 남편이자 임금으로 맞으려 하지만 일행은 취경의 길을 계속하려 한다.\n\n출전: 《서유기》 [제53회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC053%E5%9B%9E), [제54회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC054%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch053-p024"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch054-p033"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_scorpion",
+        "order": 53,
+        "title": "암전갈과 묘일성관",
+        "content_markdown": "삼장을 붙잡은 여요괴는 큰 암전갈이었다. 관음의 가르침에 따라 손오공이 묘일성관을 청해 항복시키며, 일행은 함께 잡혀 있던 여인들도 집으로 돌아가게 한다.\n\n출전: 《서유기》 [제55회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC055%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch055-p037"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_six-eared-macaque",
+        "order": 54,
+        "title": "육이미후와 진짜 손오공",
+        "content_markdown": "가짜 행자는 육이미후였으며 여래가 그 정체를 알아본다. 가짜가 죽은 뒤 관음은 삼장에게 손오공을 받아들이고 그 보호를 받아 영산으로 가라고 당부한다.\n\n출전: 《서유기》 [제58회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC058%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch058-p027"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_relic-tower",
+        "order": 55,
+        "title": "금광사 사리자의 회복",
+        "content_markdown": "구두충과 용왕 일가가 연루된 불보 도난을 밝히고 사리자를 금광사 탑에 돌려놓는다. 손오공은 용왕의 아내를 살려 탑을 지키게 하고 신들에게 사흘에 한 끼씩 먹을 것을 보내게 한다.\n\n출전: 《서유기》 [제63회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC063%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch063-p031"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch063-p032"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_tree-poets",
+        "order": 56,
+        "title": "목선암의 나무 정령",
+        "content_markdown": "삼장이 만난 시인들과 여인의 정체를 손오공은 소나무·측백나무·향나무·대나무·살구나무 등으로 밝힌다. 팔계가 나무를 베자 삼장은 해치지 말라고 하지만 제자들은 뒤의 위험을 들어 베어 버린다.\n\n출전: 《서유기》 [제64회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC064%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch064-p065"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_false-thunderclap",
+        "order": 57,
+        "title": "소뇌음사의 황미동자",
+        "content_markdown": "황미는 거짓 소뇌음사를 꾸미고 부처를 자칭한다. 미륵은 그가 자신의 경쇠 맡은 동자이며 후천 주머니와 채를 훔쳤다고 밝힌다. 신성한 외양이 곧 정체를 증명하지 않는 사건이다.\n\n출전: 《서유기》 [제65회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC065%E5%9B%9E), [제66회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC066%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch065-p022"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch066-p027"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_python-road",
+        "order": 58,
+        "title": "타라장의 구렁이 재난",
+        "content_markdown": "손오공과 팔계가 사람을 해치던 큰 구렁이를 죽여 끌고 온다. 마을 사람들은 밤새 돌아오지 않은 두 제자를 걱정하다가 괴물을 보고 안심하며 감사한다.\n\n출전: 《서유기》 [제67회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC067%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch067-p029"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_scarlet-country",
+        "order": 59,
+        "title": "주자국의 왕과 금성궁",
+        "content_markdown": "손오공은 낯선 얼굴을 볼 수 없는 주자국 왕에게 실을 걸어 맥을 짚겠다고 제안한다. 왕비 금성궁을 돌려보내기 위한 요괴와의 대결에서는 자금령의 진짜와 가짜를 바꾸는 계책이 이어진다.\n\n출전: 《서유기》 [제68회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC068%E5%9B%9E), [제71회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC071%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch068-p031"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch071-p015"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch071-p024"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_spiders-centipede",
+        "order": 60,
+        "title": "반사동에서 다목괴까지",
+        "content_markdown": "반사동 사건 뒤에는 다목괴의 독과 빛이 일행을 위협한다. 비람의 도움으로 위기를 벗어나며, 손오공은 묘일성관과 그 어머니를 닭과 연결하여 지네를 제압한 까닭을 설명한다.\n\n출전: 《서유기》 [제73회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC073%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch073-p041"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch073-p043"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_lion-camel",
+        "order": 61,
+        "title": "사타령·사타국의 세 마왕",
+        "content_markdown": "사타령과 사타국에서 거듭 속고 붙잡힌 일행은 여래의 개입으로 구원받는다. 손오공이 스승을 잃었다고 여기지만 대붕은 삼장이 금향정 쇠 궤 안에 있다고 밝힌다. 여래는 대붕을 놓지 않고 호법으로 거둔다.\n\n출전: 《서유기》 [제77회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC077%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch077-p030"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_bhiksu-country",
+        "order": 62,
+        "title": "비구국의 사슴과 여우",
+        "content_markdown": "비구국의 요괴 사건에서 미녀는 흰 얼굴 여우로 드러나고, 수성은 달아난 자신의 사슴을 거둔다. 손오공은 국왕에게 본모습을 보여 주어 사실을 밝히려 한다.\n\n출전: 《서유기》 [제79회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC079%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch079-p020"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch079-p021"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch079-p022"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_bottomless-cave",
+        "order": 63,
+        "title": "무저동의 지용부인",
+        "content_markdown": "삼장을 납치한 지용부인의 본모습은 금코 흰털 늙은 쥐 요정이다. 반절관음이라는 이름도 썼으며 천왕과 맺은 은혜의 관계가 드러난다. 천왕과 삼태자가 요괴를 압송한 뒤 일행은 길을 잇는다.\n\n출전: 《서유기》 [제83회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC083%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch083-p017"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch083-p026"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_dharma-destruction",
+        "order": 64,
+        "title": "멸법국의 삭발 소동",
+        "content_markdown": "중들을 죽여 온 멸법국에서 삼장은 궤에 갇힌 채 목숨을 걱정한다. 밤이 지난 뒤 국왕·황후·궁인·관리들의 머리카락이 모두 없어지자 왕은 자신이 중들을 죽인 일 때문이라고 여긴다.\n\n출전: 《서유기》 [제84회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC084%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch084-p029"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch084-p033"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch084-p034"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_leopard-demon",
+        "order": 65,
+        "title": "은무산 표범 요괴",
+        "content_markdown": "표범 요괴가 삼장과 나무꾼을 붙잡지만 세 제자가 구한다. 살아난 나무꾼은 요괴가 쑥잎 무늬 가죽의 표범이었다고 밝히며 일행에게 받은 은혜를 아내에게 설명한다.\n\n출전: 《서유기》 [제86회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC086%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch086-p028"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_jade-flower-lions",
+        "order": 66,
+        "title": "옥화주의 제자와 아홉 머리 사자",
+        "content_markdown": "세 왕자가 손오공·팔계·사승에게 배우고 병기를 본떠 만들려다 원래 병기를 도둑맞는다. 사자 요괴들과 싸우며 왕과 제자들까지 붙잡히자 손오공이 태을구고천존에게 아홉 머리 사자를 거두어 달라고 청한다.\n\n출전: 《서유기》 [제88회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC088%E5%9B%9E), [제90회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC090%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch088-p032"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch090-p021"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_rhinoceros-lanterns",
+        "order": 67,
+        "title": "금평부의 등불과 코뿔소 요괴",
+        "content_markdown": "등불 구경에서 시작한 재난은 사목금성과 용궁의 도움으로 코뿔소 요괴들을 붙잡으며 해결된다. 금평부는 금등을 켜지 않도록 고시하고 기름 구입을 맡던 집들의 부역을 면제한다.\n\n출전: 《서유기》 [제92회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC092%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch092-p028"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch092-p030"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_jade-rabbit-princess",
+        "order": 68,
+        "title": "천축국의 가짜 공주와 옥토끼",
+        "content_markdown": "가짜 공주가 수구를 던져 당승을 배우자로 삼으려 하지만 정체는 월궁의 옥토끼다. 태음성이 거두어 간 뒤 손오공은 진짜 공주가 급고포금사에 있음을 밝힌다. 소아와 옥토끼 사이의 옛 원한은 태음에게 들은 인과로 설명한다.\n\n출전: 《서유기》 [제95회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC095%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "event",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch095-p024"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch095-p029"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_underworld",
+        "order": 69,
+        "title": "명부와 저승 관청",
+        "content_markdown": "열 왕과 생사부가 있는 저승은 손오공이 이름을 지우는 곳이며, 태종이 수명을 확인하고 환혼하는 곳이다. 작품 안에서 장부·판정·인간 세상의 행위가 서로 연결된다.\n\n출전: 《서유기》 [제3회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC003%E5%9B%9E), [제11회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC011%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "location",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch003-p019"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch011-p011"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_mortal-vow",
+        "order": 70,
+        "title": "취경의 서원과 귀환 조건",
+        "content_markdown": "현장은 서천에 이르지 못하거나 진경을 얻지 못하면 고국에 돌아오지 않겠다고 맹세한다. 이는 이 인물의 취경 서원이며 모든 등장인물에게 적용되는 자동적인 세계 법칙으로 확대하지 않는다.\n\n출전: 《서유기》 [제12회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC012%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "rule",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch012-p058"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_treasure-command",
+        "order": 71,
+        "title": "이름을 불러 담는 정병",
+        "content_markdown": "금각을 겨눈 정병은 이름을 부르고 상대가 응답하면 그를 담는다. 손오공은 담은 뒤 부적을 붙인다. 이는 연화동 사건의 특정 보물 작동 방식으로 설명하며 모든 호리병에 같은 규칙을 부여하지 않는다.\n\n출전: 《서유기》 [제35회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC035%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "object",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch035-p033"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_milo-bag",
+        "order": 72,
+        "title": "미륵의 후천 주머니",
+        "content_markdown": "황미동자가 훔친 보물로 속칭 인종대라 한다. 미륵은 황미의 내력을 밝히면서 주머니와 경쇠채가 자신의 물건임을 설명한다.\n\n출전: 《서유기》 [제66회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC066%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "object",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch066-p027"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_discernment",
+        "order": 73,
+        "title": "가짜 모습과 정체 판별",
+        "content_markdown": "오계국에서는 요괴가 당삼장으로 변하고, 소뇌음사에서는 황미가 부처를 자칭하며, 천축국에서는 옥토끼가 공주로 행세한다. 겉모습이나 자칭만으로 진위를 확정할 수 없다는 반복적 서사 장치다.\n\n출전: 《서유기》 [제39회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC039%E5%9B%9E), [제65회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC065%E5%9B%9E), [제95회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC095%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "rule",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch039-p023"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch065-p022"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch095-p024"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_conversion-not-death",
+        "order": 74,
+        "title": "항복·귀의·본주인의 회수",
+        "content_markdown": "요괴 사건은 모두 같은 방식으로 끝나지 않는다. 관음이 흑곰을 거두고 미륵이 황미를 데려가며 여래가 대붕을 호법으로 삼는 경우가 있다. 이를 모든 요괴가 구원받는 보편 규칙으로 바꾸지 않는다.\n\n출전: 《서유기》 [제17회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC017%E5%9B%9E), [제66회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC066%E5%9B%9E), [제77회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC077%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "rule",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch017-p043"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch066-p027"
+          },
+          {
+            "document": "sources.md",
+            "section": "journey-ch077-p030"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_taught-princes",
+        "order": 75,
+        "title": "옥화주의 세 왕자",
+        "content_markdown": "손오공·팔계·사승을 스승으로 삼아 무예를 배우는 세 왕자다. 신력을 얻은 뒤에도 스승들의 병기를 그대로 쓰기는 어려워 모양을 본뜨되 무게를 줄인 병기를 만들고자 한다.\n\n출전: 《서유기》 [제88회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC088%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch088-p032"
+          }
+        ]
+      },
+      {
+        "id": "journey_to_the_west_nine-headed-lion",
+        "order": 76,
+        "title": "구령의 아홉 머리 사자",
+        "content_markdown": "옥화주 사건에서 삼장과 제자들, 왕과 왕자들을 붙잡는 강한 사자 요괴다. 손오공은 토지신에게서 주인의 내력을 듣고 태을구고천존을 찾아 구원을 청한다.\n\n출전: 《서유기》 [제90회](https://zh.wikisource.org/wiki/%E8%A5%BF%E9%81%8A%E8%A8%98/%E7%AC%AC090%E5%9B%9E).",
+        "template_part": "전승 자료",
+        "card_type": "character",
+        "narrative_refs": [
+          {
+            "document": "sources.md",
+            "section": "journey-ch090-p021"
+          }
+        ]
+      }
+    ]
+  }
+}
