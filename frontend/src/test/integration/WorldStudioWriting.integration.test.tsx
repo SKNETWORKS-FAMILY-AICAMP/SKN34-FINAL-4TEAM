@@ -56,7 +56,7 @@ it('makes add visible and keeps management entries out of the compact type filte
  expect(screen.getByRole('button',{name:'새 설정'})).toBeTruthy()
  expect(screen.queryByRole('button',{name:'인물 0개'})).toBeNull()
  const menu=within(screen.getByRole('navigation',{name:'설정 분류'}))
- expect(menu.getAllByRole('button').map(button=>button.textContent)).toEqual(['전체 1','인물 1'])
+ expect(menu.getAllByRole('button').map(button=>button.textContent)).toEqual(['전체 1','인물 1','보완 필요 1']) // 가람은 SOUL·GOAL이 비어 정리 필요다
  expect(screen.queryByText('상세 설정 · 선택')).toBeNull() // 행을 고르기 전에는 편집 패널이 없다
  fireEvent.click(screen.getByRole('button',{name:'가람 인물'}))
  expect(screen.getByText('상세 설정 · 선택').closest('details')?.open).toBe(false)
@@ -85,7 +85,7 @@ it('keeps failed edits and AI candidates out of the saved confirmed view',async(
  expect(screen.getByRole<HTMLTextAreaElement>('textbox',{name:'설명'}).value).toBe('실패해도 남길 내용')
  backToBoard()
  expect(manageTab('시간선')).toBeTruthy()
- expect(screen.getByRole('button',{name:/^AI 후보 검토/})).toBeTruthy()
+ expect(screen.getByRole('button',{name:/^AI 검토/})).toBeTruthy()
  expect(screen.getByRole('button',{name:'집필 메모 추가'})).toBeTruthy()
  fireEvent.click(manageTab('시간선'))
  const confirmed=screen.getByRole('region',{name:'시간선'})

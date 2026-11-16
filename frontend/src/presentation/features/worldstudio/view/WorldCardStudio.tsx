@@ -22,6 +22,7 @@ import { worldVersionRows } from '../viewmodel/worldVersionGraph'
 import { CardDeletionConfirm } from './CardDeletionConfirm'
 import { CharacterDocs } from './CharacterDocs'
 import { NewCardMenu } from './NewCardMenu'
+import { WorldCardFindings } from './WorldCardFindings'
 import { WorldChat } from './WorldChat'
 import { WorldSaveBar } from './WorldSaveBar'
 
@@ -42,6 +43,7 @@ const BODY_MAX = 3000
  *   설명 아래 공개 범위(DEC-46): `이 설정 공개`(기본 비공개, 공개 세계관 화면에는 공개 카드만 보인다)와 `독자 공개 N화부터`(연결된 소설의 독자 설정 위키에 보이기 시작하는 회차, 비우면 숨김, 소설을 연결해야 켜진다).
  *   회차 입력은 숫자만 받는 글자 칸이다(`type="number"`는 휠·스핀 버튼으로 값이 바뀌고 `e` 같은 글자를 받으면 보이는 값과 초안이 어긋난다). 0처럼 쓸 수 없는 값은 입력 바로 아래에 이유를 글로 보이고 입력의 설명으로 잇는다.
  *   둘 다 초안 값이라 저장과 확정 버전을 거쳐야 반영된다. 다른 세계관에서 가져온 카드는 유형 옆에 `가져옴`과 출처를 보인다.
+ *   마지막 설정집 AI 검토가 이 카드에 지적을 남겼으면 편집기 맨 위에 'AI 검토 의견'(`WorldCardFindings`)이 보이고, 수정안을 `초안에 반영`하면 편집기를 지금 초안의 글로 다시 만든다(`docs.reload`).
  * - 오른쪽: AI 채팅(전송은 연결 전이라 '준비 중').
  * 삭제는 초안 변경이라 확인(함께 지워질 관계 수)을 거친 뒤 설정집으로 돌아가고 되돌릴 수 있으며, 세계관 저장으로 서버에 반영한다.
  * 관계 기준 회차를 고른 동안(`vm.deleteLock`)은 삭제가 최신 저장에서만 되므로 하단 삭제와 레일 ⋮ 삭제를 잠그고 이유를 하단에 보인다(잠긴 메뉴 항목의 설명도 같은 글).
@@ -136,6 +138,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
             </div>
           </div>
           <div className="editor writing-editor" role="region" aria-label="선택한 설정 편집">
+            <WorldCardFindings key={item.id} vm={vm} cardId={item.id} onOpenCard={(id) => { setConfirm(''); focusName.current = true; vm.editCard(id) }} onApplied={docs.reload} />
             <fieldset className="world-fields" disabled={vm.busy}>
               <legend className="sr-only">설정 카드 작성</legend>
               <input ref={nameField} className="et writing-title" aria-label="설정 이름" required value={item.title} maxLength={200} placeholder="이 설정의 이름은 무엇인가요?" onChange={(e) => vm.update(item.id, { title: e.target.value })} />

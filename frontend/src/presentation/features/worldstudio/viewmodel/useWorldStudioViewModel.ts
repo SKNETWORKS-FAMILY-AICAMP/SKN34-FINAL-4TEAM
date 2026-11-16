@@ -3,6 +3,7 @@ import { initialWorldStudioFlow, legacyTabTarget, type ManageView, NEW_WORLD_QUE
 import { listingOf, needsPublicConfirm, PUBLIC_CONFIRM, publicationNotice } from './worldPublication'
 import { useWorldCoverImage } from './useWorldCoverImage'
 import { worldStudioStorage } from './worldStudioStorage'
+import { useWorldReview } from './useWorldReview'
 import {
   applyRelationChanges,
   assertNoNewRelationDuplicates,
@@ -25,6 +26,7 @@ import {
   type StudioWorld,
   type WorldPublicationInput,
 } from '../../../../domain/entities/studioWorld'
+import type { WorldReviewUseCase } from '../../../../domain/usecases/WorldReviewUseCase'
 import type { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCase'
 
 /** 편집 화면을 게시판에서 들어와 연 기록인지(그 앞 기록이 게시판이라 '← 설정집'이 한 걸음 뒤로 가면 된다). */
@@ -32,6 +34,7 @@ const cameFromBoard = (state: unknown) => typeof state === 'object' && state !==
 
 export function useWorldStudioViewModel(
   useCase: WorldStudioUseCase = appContainer.resolve('worldStudioUseCase'),
+  reviewUseCase: WorldReviewUseCase | null = appContainer.resolve('worldReviewUseCase'),
 ) {
   const { worldId = '' } = useParams()
   const restoring = useContext(RestoreContext)
@@ -61,8 +64,8 @@ export function useWorldStudioViewModel(
       else query.set('view', next)
     })
   }
-  const [reviewOpen, setReviewOpen] = useState(false) // AI 후보 검토 시트
-  // 옛 주소의 ?tab=은 그 탭을 대신한 보기·시트로 옮긴다(AI 후보 검토는 시트, 확정 버전·세계관 탐색은 설정집).
+  const [reviewOpen, setReviewOpen] = useState(false) // AI 검토 시트(설정집 검토 + AI 후보 검토)
+  // 옛 주소의 ?tab=은 그 탭을 대신한 보기·시트로 옮긴다(AI 후보 검토는 AI 검토 시트, 확정 버전·세계관 탐색은 설정집).
   useEffect(() => {
     const target = legacyTabTarget(legacyTab)
     if (!target) return
@@ -275,9 +278,13 @@ export function useWorldStudioViewModel(
       throw e
     }
   }
+  // 설정집 AI 검토(#394): 게시판의 상태 칸과 편집 화면의 지적 목록이 같은 결과를 보도록 여기서 하나만 만든다.
+  const review = useWorldReview({ useCase: reviewUseCase, saved, editing, unsaved: dirty || relationDirty, busy: busy || reviewBusy, patch })
   return {
     reviewWorldId:worldId,
     setReviewBusy,
+    /** 설정집 AI 검토: 동의·요청·결과(지적·수정안)와 수정안 반영. 결과는 저장하지 않고 세계관이 바뀌면 지운다. */
+    review,
     reload:async(expected?:{resultDraftRevision:number|null;createdCardIds:string[];createdRelationshipIds:string[]})=>{if(dirty||relationDirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.');const current=generation.current;const w=await useCase.read(worldId);if(current!==generation.current)throw new Error('다른 세계관으로 이동했어요.');if(expected&&(expected.resultDraftRevision===null||w.version<expected.resultDraftRevision||[...expected.createdCardIds,...expected.createdRelationshipIds].some(id=>!w.settings.some(s=>s.item.id===id))))throw new Error('반영된 설정 재조회를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요.');install(w);setEpisode(null);setRelationKey(v=>v+1);return w},
     storage: worldStudioStorage(import.meta.env.MODE),
     canUndoCardDeletion: !!cardUndo,
@@ -287,7 +294,7 @@ export function useWorldStudioViewModel(
     /** 설정집 화면(게시판)의 보기(주소 `?view=`): 설정집·관계도·시간선. 작성 모드는 보기가 없다. */
     view,
     setView,
-    /** AI 후보 검토 시트가 열려 있는지(옛 `?tab=analysis` 주소도 이걸 연다). */
+    /** AI 검토 시트(설정집 검토 + AI 후보 검토)가 열려 있는지(옛 `?tab=analysis` 주소도 이걸 연다). */
     reviewOpen,
     setReviewOpen,
     /** 작성 모드(마법사)를 나가 관리 모드로 간다(주소의 `new` 쿼리를 지운다). 입력은 그대로 남는다. */

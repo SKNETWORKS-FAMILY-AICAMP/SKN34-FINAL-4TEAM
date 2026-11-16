@@ -184,3 +184,32 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-sheet-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px 16px}.world-sheet-actions p{flex:1 1 220px}
 /* 소설 연결 시트 아래의 '새 소설 만들기' 줄: 링크는 본문 링크처럼 밑줄로 구분한다. */
 .world-sheet-more a{color:var(--pri-ink);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+
+/* 설정집 AI 검토(#394) */
+/* AI 검토 시트 맨 위의 '설정집 검토' 절: 시트는 body에 그려져 .calm·.episode-app 밖이므로 전역 토큰(--line·--pri)을 쓴다. 아래 AI 후보 검토 절과는 선 하나로 나눈다. */
+.world-review-ask{display:grid;gap:10px;min-width:0;margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--line)}
+.world-review-ask h3{margin:0;font-size:18px}
+.world-review-ask p{margin:0;line-height:1.7;overflow-wrap:anywhere}
+.world-review-ask .world-consent{align-items:center;min-height:44px;margin-block:0}
+.world-review-ask .world-consent input{flex:none;width:18px;height:18px;accent-color:var(--pri)}
+/* 분류 메뉴: 카드가 없는 분류는 누를 대상이 아니라 비어 있다고만 알린다. 좁은 배치(칩 줄)에서도 줄어들지 않게 flex:none이다. */
+.worlds-cats .worlds-cats-empty{display:flex;flex:none;align-items:center;justify-content:space-between;gap:8px;min-height:40px;padding:0 12px;color:var(--tsub);font-weight:600;white-space:nowrap}
+.worlds-cats .worlds-cats-empty span:last-child{font-size:12px}
+/* 줄의 `AI 의견 N`: 제목 칸의 버튼 규칙(굵은 제목 글자·넓힌 누름 영역)을 이 작은 배지에 맞게 줄이고, 눌러지는 것은 밑줄로 알린다. */
+.worlds-board-table .col-title .world-opinion{font-size:12px;font-weight:700;color:var(--acc-ink);text-decoration:underline;text-underline-offset:3px}
+.worlds-board-table .col-title .world-opinion::after{inset:-8px -4px}
+/* 편집 화면 맨 위의 AI 검토 의견: 지적 문장·수정안(지금 글 / 바꿀 글을 나란히, 좁으면 위아래). */
+.world-findings{display:grid;gap:12px;min-width:0;margin-bottom:20px;padding:14px 16px;border:1px solid var(--tline);border-radius:14px;background:color-mix(in srgb,var(--tacc) 6%,var(--surface))}
+.world-findings h4{margin:0;font-size:14px}.world-findings h4 .small{margin-left:6px;font-weight:500}
+.world-findings ul{display:grid;gap:12px;margin:0;padding:0;list-style:none}
+.world-finding{display:grid;justify-items:start;gap:8px;min-width:0;padding-top:12px;border-top:1px solid var(--tline)}.world-finding:first-child{padding-top:0;border-top:0}
+.world-finding p{margin:0;line-height:1.7;overflow-wrap:anywhere}
+.world-finding-link{display:inline;margin-inline:4px 2px;padding:6px 4px;border:0;background:none;color:var(--pri-ink);font:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.world-finding-fix{display:grid;gap:10px;width:100%;min-width:0}
+.world-finding-diff{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.world-finding-diff section{min-width:0;padding:10px 12px;border:1px solid var(--tline);border-radius:10px}
+.world-finding-diff h5{margin:0 0 6px;color:var(--tsub);font-size:12px}
+.world-finding-diff pre{margin:0;max-height:260px;overflow:auto;font:inherit;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
+.world-finding-actions{display:flex;flex-wrap:wrap;gap:8px}
+.world-findings .world-field-error{color:var(--danger);font-weight:650}
+@media (max-width:720px){.world-finding-diff{grid-template-columns:minmax(0,1fr)}}
