@@ -13,17 +13,18 @@ import { SimulationStage } from './SimulationStage'
 import { useSimulationStageViewModel } from './useSimulationStageViewModel'
 import { useWritingChatViewModel } from './useWritingChatViewModel'
 
-const { sessions, history, send, open, list, owned, readWorld } = vi.hoisted(() => ({
-  sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), list: vi.fn(), owned: vi.fn(), readWorld: vi.fn(),
+const { sessions, history, send, open, list, owned, readWorld, inherited } = vi.hoisted(() => ({
+  sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), list: vi.fn(), owned: vi.fn(), readWorld: vi.fn(), inherited: vi.fn(),
 }))
 // 채팅은 실제 WritingChatUseCase(장면 조작·시작 값 검증·정리) 위에 가짜 Repository를 얹어 와이어에 닿는 값을 본다.
-// 장면 계획(list)과 세계관(owned=내 세계관 목록, readWorld=카드 읽기)은 대역 UseCase다.
+// 장면 계획(list)과 세계관(owned=내 세계관 목록, readWorld=카드 읽기, inherited=Fork가 이어받는 원작 세계관)은 대역 UseCase다.
 vi.mock('../../../app/appContainer', async () => {
   const { WritingChatUseCase } = await import('../../../domain/usecases/WritingChatUseCase')
   const chat = new WritingChatUseCase({ sessions, history, send, open } as never)
   const plans = { list }
   const worlds = { list: owned, read: readWorld }
-  return { appContainer: { resolve: (key: string) => (key === 'storyPlanUseCase' ? plans : key === 'worldStudioUseCase' ? worlds : chat) } }
+  const episodes = { inheritedWorld: inherited }
+  return { appContainer: { resolve: (key: string) => (key === 'storyPlanUseCase' ? plans : key === 'worldStudioUseCase' ? worlds : key === 'episodeUseCase' ? episodes : chat) } }
 })
 
 // ── 시작 양식이 읽는 장면 계획과, 작품에 연결된 WorldStudio 세계관의 인물 카드 ──
@@ -115,6 +116,7 @@ beforeEach(() => {
   list.mockResolvedValue([])
   owned.mockResolvedValue([summary('world-other', 'other-work'), summary('world-1', 'w')])
   readWorld.mockResolvedValue(world())
+  inherited.mockResolvedValue(null)
   sessions.mockResolvedValue([])
   open.mockResolvedValue('a')
   history.mockImplementation(async () => ({ threadId: 'a', title: '', turns: store.reply ? [{ request: store.request, reply: store.reply }] : [] }))
@@ -355,6 +357,60 @@ it('나레이터 카드뿐인 세계관은 인물 카드가 없는 것과 같이
   fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
   expect(await box().findByText('이 작품에 연결된 세계관에 인물 카드가 없어요. 세계관에 인물을 먼저 만들어 주세요.')).toBeTruthy()
   expect(startButton().disabled).toBe(true)
+})
+
+// ── Fork 자기 회차: 연결된 세계관이 없으면 원작 세계관을 읽기 전용으로 이어받는다(#365) ──
+const originCard = (id: string, title: string, cardType = 'character') => ({ id, title, cardType, aliases: [] as string[] })
+const inheritFrom = (...cards: ReturnType<typeof originCard>[]) => inherited.mockResolvedValue({ worldId: 'origin-world', upto: 2, cards })
+
+it('연결된 세계관이 없는 Fork는 이어받은 공개 인물 카드가 후보가 되고 잠기지 않으며 그 카드 id로 시작한다', async () => {
+  owned.mockResolvedValue([summary('world-free', null)])
+  inheritFrom(originCard('k1', '카엘'), originCard('p1', '성문', 'location'), originCard('n1', '나레이터 — 홍길동전'), originCard('k2', '리안'))
+  setup()
+  await openForm()
+  expect(people().map((c) => c.labels?.[0]?.textContent)).toEqual(['카엘', '리안'])
+  expect(box().queryByText('연결된 세계관이 없어요.')).toBeNull()
+  expect(box().getByText('원작 세계관에서 2화까지 공개된 인물을 이어받았어요(읽기 전용).')).toBeTruthy()
+  // 소유하지 않은 원작 세계관은 내 세계관 읽기로 읽지 않고, 서버가 준 이어받은 카드를 쓴다. 상한은 지금 여는 회차(4화) 기준으로 서버에 묻는다.
+  expect(readWorld).not.toHaveBeenCalled()
+  expect(inherited).toHaveBeenCalledWith('w', 4, expect.any(AbortSignal))
+  fireEvent.change(box().getByRole('textbox', { name: '전제' }), { target: { value: PREMISE } })
+  pick('리안'); consent()
+  expect(startButton().disabled).toBe(false)
+  fireEvent.click(startButton())
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(inputs()[0]).toMatchObject({ simulation: { mode: 'if', premise: PREMISE, characterIds: ['k2'] } })
+  serve()
+})
+
+it('자기 세계관이 연결돼 있으면 그것이 우선이라 이어받은 세계관을 묻지 않는다', async () => {
+  setup()
+  await openForm()
+  expect(people().map((c) => c.labels?.[0]?.textContent)).toEqual(['카엘', '리안', '도윤', '서연', '하준', '지우', '민서'])
+  expect(inherited).not.toHaveBeenCalled()
+  expect(box().queryByText(/이어받았어요/)).toBeNull()
+})
+
+it('이어받은 세계관에 공개 인물 카드가 없으면 그 사유를 알리고 시작을 잠근다', async () => {
+  owned.mockResolvedValue([summary('world-free', null)])
+  inheritFrom(originCard('p1', '성문', 'location'))
+  setup()
+  fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
+  expect(await box().findByText(/이어받은 원작 세계관에 공개된 인물 카드가 없어요/)).toBeTruthy()
+  expect(box().queryByText('연결된 세계관이 없어요.')).toBeNull()
+  expect(startButton().disabled).toBe(true)
+})
+
+it('이어받은 세계관을 읽지 못하면 연결 없음으로 바꾸지 않고 불러오기 실패를 알린다', async () => {
+  owned.mockResolvedValue([summary('world-free', null)])
+  inherited.mockRejectedValue(new Error('서버가 응답하지 않아요.'))
+  setup()
+  fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
+  expect(await box().findByText('장면 계획과 인물을 불러오지 못했어요.')).toBeTruthy()
+  expect(box().queryByText('연결된 세계관이 없어요.')).toBeNull()
+  inheritFrom(originCard('k1', '카엘'))
+  fireEvent.click(box().getByRole('button', { name: '다시 불러오기' }))
+  expect(await box().findByRole('checkbox', { name: '카엘' })).toBeTruthy()
 })
 
 it('작품에 연결된 세계관이 없으면 그 이유를 IF·흐름 모두에 알리고 시작을 잠그며 세계관 카드를 읽지 않는다', async () => {
