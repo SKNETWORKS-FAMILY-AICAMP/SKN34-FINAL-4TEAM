@@ -30,15 +30,28 @@ it('연결된 세계관은 이름을 그 세계관 관리 화면 링크로 보�
   expect(onLink).toHaveBeenCalledWith(null)
 })
 
-it('미연결이면 다른 소설에 연결되지 않은 내 세계관만 고를 수 있고 고른 세계관으로 연결을 요청한다', async () => {
+it('미연결이면 기본값이 선택 안 함이라 고르기 전에는 연결할 수 없고, 고른 세계관으로만 연결을 요청한다', async () => {
   const { card, onLink } = show(null, async () => [...MINE, world('free-2', '둘째 빈 세계')])
   const select = await card().findByRole('combobox', { name: '연결할 세계관' })
-  // 다른 소설에 연결된 세계관은 빠지고, 목록을 읽은 뒤 이 소설에서 연결을 푼 세계관은 다시 고를 수 있다.
-  expect(within(select).getAllByRole('option').map((o) => o.textContent)).toEqual(['빈 세계', '이 소설의 세계', '둘째 빈 세계'])
-  fireEvent.click(card().getByRole('button', { name: '세계관 연결' }))
+  // 다른 소설에 연결된 세계관은 빠지고, 목록을 읽은 뒤 이 소설에서 연결을 푼 세계관은 다시 고를 수 있다. 맨 위 기본 선택은 어느 세계관도 아닌 '선택 안 함'이다.
+  expect(within(select).getAllByRole('option').map((o) => o.textContent)).toEqual(['선택 안 함', '빈 세계', '이 소설의 세계', '둘째 빈 세계'])
+  expect(within(select).getByRole('option', { name: '선택 안 함', selected: true })).toBeTruthy()
+  // 고르기 전에는 버튼이 잠기고 이유를 버튼에 이어 알린다. 잠긴 버튼을 눌러도, 양식이 그대로 제출돼도 연결 요청은 가지 않는다.
+  const connect = card().getByRole('button', { name: '세계관 연결' }) as HTMLButtonElement
+  expect(connect.disabled).toBe(true)
+  expect(document.getElementById(connect.getAttribute('aria-describedby') ?? '')?.textContent).toBe('연결할 세계관을 먼저 골라 주세요.')
+  fireEvent.click(connect)
+  fireEvent.submit(connect.closest('form')!)
+  expect(onLink).not.toHaveBeenCalled()
+  // 고르면 그 세계관으로 연결을 요청한다.
+  fireEvent.change(select, { target: { value: 'free' } })
+  expect(connect.disabled).toBe(false)
+  expect(card().queryByText('연결할 세계관을 먼저 골라 주세요.')).toBeNull()
+  expect(connect.hasAttribute('aria-describedby')).toBe(false)
+  fireEvent.click(connect)
   expect(onLink).toHaveBeenLastCalledWith('free')
   fireEvent.change(select, { target: { value: 'free-2' } })
-  fireEvent.click(card().getByRole('button', { name: '세계관 연결' }))
+  fireEvent.click(connect)
   expect(onLink).toHaveBeenLastCalledWith('free-2')
   expect(card().queryByRole('button', { name: '연결 해제' })).toBeNull()
 })
