@@ -1,0 +1,35 @@
+{
+  "genre": "persian_tradition",
+  "worldId": "fb223030-63fb-5c7a-83a9-abdc5960e963",
+  "relationships": [
+    {
+      "id": "c0633509-e790-567a-8135-0f37bf75a479",
+      "sourceCardId": "88122750-9757-5d7f-9685-9c4b0530c94f",
+      "targetCardId": "edb265c8-f15c-5fe4-aab7-45cb9f5c4edc",
+      "category": "structural",
+      "body": "가즈다함의 편지에 따르면 호지르는 소흐라브에게 붙들려 살아 있는 채 그의 보호 아래 있다. 근거 카드 ID: edb265c8-f15c-5fe4-aab7-45cb9f5c4edc. 출처: 소흐라브 제8절 10–14번째 베이트 https://ganjoor.net/ferdousi/shahname/sohrab/sh8. 출처의 판본·이용 권리는 별도 확인 필요.",
+      "label": "포로",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1fa10ec5-ddc4-5e8e-aa9c-6f8dfd6ad328",
+      "sourceCardId": "028aac14-956f-514a-8507-0b092e381d3b",
+      "targetCardId": "3750b61b-9905-5d0a-b738-23f27d9b4429",
+      "category": "structural",
+      "body": "기브는 회의에서 로스탐을 부를 사절로 선택된다. 근거 카드 ID: 028aac14-956f-514a-8507-0b092e381d3b. 출처: 소흐라브 제8절 37, 42–44번째 베이트 https://ganjoor.net/ferdousi/shahname/sohrab/sh8. 출처의 판본·이용 권리는 별도 확인 필요.",
+      "label": "사절 선정",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ],
+  "reviewedCardIds": [
+    "028aac14-956f-514a-8507-0b092e381d3b",
+    "3750b61b-9905-5d0a-b738-23f27d9b4429",
+    "581de68e-fb3e-5fce-86e8-b4ad87b73601",
+    "88122750-9757-5d7f-9685-9c4b0530c94f",
+    "99ba3b6c-31f2-5e87-8d62-06c39e5670db",
+    "edb265c8-f15c-5fe4-aab7-45cb9f5c4edc"
+  ],
+  "ambiguousCardIds": []
+}

@@ -1,0 +1,14 @@
+{
+  "genre": "inca_tradition",
+  "worldId": "48aa45ea-04fe-5f12-9ef9-f3b5b1c25913",
+  "relationships": [],
+  "reviewedCardIds": [
+    "393ca356-a5b6-5c81-b5da-36cc5bf542ef",
+    "3dacd4d3-1f7b-5f86-8998-7d8ac33a2e9b",
+    "3f73d378-9908-54d4-9816-0ab4b5dc62ed",
+    "74cd3b63-1b80-5f30-831c-637a6b40da24",
+    "8d5f33fc-d355-5ed9-b810-587c3210a6f1",
+    "c832fe09-45e4-5561-a239-f4eba17c2987"
+  ],
+  "ambiguousCardIds": []
+}

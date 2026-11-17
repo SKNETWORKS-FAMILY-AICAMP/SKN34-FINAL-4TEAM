@@ -1,0 +1,145 @@
+{
+  "genre": "celtic_mythology",
+  "worldId": "9a085473-158b-5a61-ae38-df7843dc3dcb",
+  "relationships": [
+    {
+      "id": "f4d1ae0d-a84c-5d09-abc5-8e8ee145044f",
+      "sourceCardId": "e31090eb-833b-5c09-a5ba-75ce17a091d7",
+      "targetCardId": "ee9a384d-cb80-5b56-97fa-1c53c27042ef",
+      "category": "structural",
+      "body": "여인은 브란에게 여인들의 땅으로 항해하라고 권한다. 근거 카드 ID: e31090eb-833b-5c09-a5ba-75ce17a091d7. 출처: https://archive.org/details/voyageofbransono01scuoft",
+      "label": "항해 권유",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "70299d5c-eab8-5cf9-a29d-596ac863c719",
+      "sourceCardId": "57c6894b-9a3d-5cbc-af47-d32155ecffdf",
+      "targetCardId": "ee9a384d-cb80-5b56-97fa-1c53c27042ef",
+      "category": "structural",
+      "body": "마나난은 바다에서 브란에게 노래하며 여인들의 땅이 가깝다고 알린다. 근거 카드 ID: 57c6894b-9a3d-5cbc-af47-d32155ecffdf. 출처: https://archive.org/details/voyageofbransono01scuoft",
+      "label": "바다의 만남",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4dee226c-51a1-5260-94ca-80eeff42576d",
+      "sourceCardId": "57c6894b-9a3d-5cbc-af47-d32155ecffdf",
+      "targetCardId": "799f49d6-2ed6-53cd-adb5-f8a2c8a4112b",
+      "category": "structural",
+      "body": "마나난은 몽간을 자기 아들로 예고한다. 근거 카드 ID: 57c6894b-9a3d-5cbc-af47-d32155ecffdf. 출처: https://archive.org/details/voyageofbransono01scuoft",
+      "label": "아들의 예언",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5f9d4ccc-44cd-5d68-8674-fb01c07f444a",
+      "sourceCardId": "6e57a014-22e8-52ba-aa26-f2c59d0ca671",
+      "targetCardId": "799f49d6-2ed6-53cd-adb5-f8a2c8a4112b",
+      "category": "structural",
+      "body": "마나난은 피아크나가 몽간을 자기 아들로 인정하리라고 노래한다. 근거 카드 ID: 6e57a014-22e8-52ba-aa26-f2c59d0ca671. 출처: https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "label": "아들로 인정 예언",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4804a95a-3815-5be5-a097-0ffbe7ec4f42",
+      "sourceCardId": "57c6894b-9a3d-5cbc-af47-d32155ecffdf",
+      "targetCardId": "20160019-1f65-58c2-a7f0-e29c634cc64b",
+      "category": "structural",
+      "body": "마나난의 예언에서 카인티게른은 모난의 잠자리 짝으로 나온다. 근거 카드 ID: 20160019-1f65-58c2-a7f0-e29c634cc64b. 출처: https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "label": "예언 속 만남",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "65696ce8-4e0f-5e80-b420-10daf0427825",
+      "sourceCardId": "986cac89-5259-5b46-917c-7870e58a7f00",
+      "targetCardId": "ee9a384d-cb80-5b56-97fa-1c53c27042ef",
+      "category": "structural",
+      "body": "우두머리는 실뭉치를 던져 브란의 배를 항구로 이끈다. 근거 카드 ID: 986cac89-5259-5b46-917c-7870e58a7f00. 출처: https://archive.org/details/voyageofbransono01scuoft",
+      "label": "환영과 인도",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "cbfa41cf-259e-532a-90ea-4617d8458fdb",
+      "sourceCardId": "ee9a384d-cb80-5b56-97fa-1c53c27042ef",
+      "targetCardId": "e7344268-d378-59e6-9655-7e3e09da39cb",
+      "category": "structural",
+      "body": "브란은 아홉 명씩 세 무리의 일행과 항해한다. 근거 카드 ID: ee9a384d-cb80-5b56-97fa-1c53c27042ef. 출처: https://archive.org/details/voyageofbransono01scuoft",
+      "label": "항해",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d20977bb-c9ba-556c-8883-cb79f0fc56e3",
+      "sourceCardId": "c4319b13-8142-54a1-a6bf-7c844b96ef88",
+      "targetCardId": "e7344268-d378-59e6-9655-7e3e09da39cb",
+      "category": "structural",
+      "body": "네크탄은 여인들의 땅에서 고향을 그리워한 일행이다. 근거 카드 ID: c4319b13-8142-54a1-a6bf-7c844b96ef88. 출처: https://archive.org/details/voyageofbransono01scuoft",
+      "label": "일행",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a8d18a1e-8de5-5547-b6c8-84c05eda654a",
+      "sourceCardId": "5a85334f-bafb-5ea2-b07c-503c3c4ff9f0",
+      "targetCardId": "799f49d6-2ed6-53cd-adb5-f8a2c8a4112b",
+      "category": "structural",
+      "body": "마나난은 바다에서 온 용석이 몽간을 죽일 것이라고 예언한다. 근거 카드 ID: 5a85334f-bafb-5ea2-b07c-503c3c4ff9f0. 출처: https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "label": "예언 속 사인",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c38054df-a09a-5e54-bfd4-9aac15a51058",
+      "sourceCardId": "3ab0fbac-461a-5fa8-991a-7834774c6126",
+      "targetCardId": "799f49d6-2ed6-53cd-adb5-f8a2c8a4112b",
+      "category": "structural",
+      "body": "마나난의 노래에서 흰 무리는 몽간을 이끈다. 근거 카드 ID: 3ab0fbac-461a-5fa8-991a-7834774c6126. 출처: https://ancienttexts.org/library/celtic/ctexts/branvoyage.html",
+      "label": "예언 속 인도",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ],
+  "reviewedCardIds": [
+    "ee9a384d-cb80-5b56-97fa-1c53c27042ef",
+    "e31090eb-833b-5c09-a5ba-75ce17a091d7",
+    "57c6894b-9a3d-5cbc-af47-d32155ecffdf",
+    "799f49d6-2ed6-53cd-adb5-f8a2c8a4112b",
+    "c4319b13-8142-54a1-a6bf-7c844b96ef88",
+    "986cac89-5259-5b46-917c-7870e58a7f00",
+    "e7344268-d378-59e6-9655-7e3e09da39cb",
+    "7cc0c20f-7a69-5427-8360-9a2a0eb13e99",
+    "f4edcc17-b98b-533b-a065-aa37918b3133",
+    "fa41d97f-dbb2-532e-80e2-62bd89275798",
+    "4306e648-4db7-51ee-b320-5bb33eaa18b5",
+    "c5b5423c-af22-5a88-9a98-8ac8dd65134f",
+    "ee7f30bd-a284-5800-85d0-f079e0bd8a51",
+    "6a47b599-eda1-5b6e-8916-36f853dc3056",
+    "4c687c66-9294-507c-8ef2-b053dc686bae",
+    "7f28c510-6e74-551e-a64d-b95f8e3bc523",
+    "bde573fc-44a3-5c1e-803c-25e765a13029",
+    "5f64ab24-8547-5465-a535-d76704799da8",
+    "c0625c87-4851-527f-b5ba-4f4cb463fc20",
+    "067cf634-c6fa-52f1-b388-12a48c4a5799",
+    "a40ebf09-7117-5f5a-83b7-98e7d29e328d",
+    "c59847ca-dd78-58ed-84a1-5d80b7ec2d8a",
+    "3c30bd2e-eab5-55a2-9aee-0fa7d8611e2e",
+    "8a5c277a-3919-54bc-bd5d-2daa4fa62672",
+    "2d54f536-7f64-56fc-a1b4-9feebca13f05",
+    "20160019-1f65-58c2-a7f0-e29c634cc64b",
+    "6e57a014-22e8-52ba-aa26-f2c59d0ca671",
+    "229aa337-28f0-51a9-942c-b8771182d88a",
+    "3e69570b-5628-5b28-b8cd-163975467e8b",
+    "5a85334f-bafb-5ea2-b07c-503c3c4ff9f0",
+    "3ab0fbac-461a-5fa8-991a-7834774c6126"
+  ],
+  "ambiguousCardIds": [
+    "e31090eb-833b-5c09-a5ba-75ce17a091d7",
+    "986cac89-5259-5b46-917c-7870e58a7f00",
+    "229aa337-28f0-51a9-942c-b8771182d88a",
+    "3e69570b-5628-5b28-b8cd-163975467e8b"
+  ]
+}

@@ -8,10 +8,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DATABASE_URL", matches=".+")
 class InitialWorldStoragePostgresTest {
-    @Test void sequentialV1ThroughV9PreservesExistingWorldCardAndAnalysis() throws Exception {
+    @Test void sequentialV1ThroughV11PreservesExistingWorldCardAndAnalysis() throws Exception {
         try(var db=new WorldStudioPostgresFixture("independent")) {
             String world=id(), card=id(), analysis=id();
-            for(int version=1;version<=9;version++) {
+            for(int version=1;version<=11;version++) {
                 var flyway=org.flywaydb.core.Flyway.configure().configuration(db.studio().getConfiguration())
                     .target(Integer.toString(version)).load();
                 assertEquals(1,flyway.migrate().migrationsExecuted);
@@ -85,7 +85,7 @@ class InitialWorldStoragePostgresTest {
                 sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+w+"','"+id()+"'),('"+other+"','"+id()+"')");
                 sql(c,"INSERT INTO worldstudio.world_draft(world_id,name,description) VALUES ('"+w+"','홍길동전','원문 보존')");
             }
-            assertEquals(7,db.studio().migrate().migrationsExecuted);
+            assertEquals(9,db.studio().migrate().migrationsExecuted);
             db.studio().validate();
             assertEquals(0,db.studio().migrate().migrationsExecuted);
             try(var c=db.connect()) {
@@ -147,7 +147,7 @@ class InitialWorldStoragePostgresTest {
                 sql(c,"INSERT INTO worldstudio.initial_candidate(id,world_id,analysis_id,local_ref,content) VALUES ('"+candidate+"','"+w+"','"+a+"','old','"+content+"')");
                 sql(c,"INSERT INTO worldstudio.initial_decision(id,world_id,analysis_id,candidate_id,sequence,action,state,actor_id,content) VALUES ('"+decision+"','"+w+"','"+a+"','"+candidate+"',1,'approve','approved','"+id()+"','"+content+"')");
             }
-            assertEquals(5,db.studio().migrate().migrationsExecuted);
+            assertEquals(7,db.studio().migrate().migrationsExecuted);
             db.studio().validate();
             try(var c=db.connect()) {
                 assertEquals(List.of(decision),rows(c,"SELECT id FROM worldstudio.initial_decision WHERE request_key IS NULL AND request_hash IS NULL AND comment IS NULL AND sequence=1 AND state='approved'"));

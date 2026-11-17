@@ -1,0 +1,2326 @@
+{
+  "genre": "italy_history",
+  "worldId": "936b9d62-a1de-59a2-b8e0-1d52327464de",
+  "relationships": [
+    {
+      "id": "5a804b64-e29f-516e-8b02-2cf20725824f",
+      "sourceCardId": "7598bfe1-6421-57ad-951a-3e528f4df990",
+      "targetCardId": "0f8c646d-3dc6-5dd8-a797-f6d89d878637",
+      "category": "structural",
+      "body": "테오도리쿠스는 오도아케르를 무너뜨렸다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 844–859행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "무너뜨림",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "dea1c3a5-6356-563f-ac02-62e501c80729",
+      "sourceCardId": "7598bfe1-6421-57ad-951a-3e528f4df990",
+      "targetCardId": "0128c229-bca4-5cfa-b81d-73c48cd778c0",
+      "category": "structural",
+      "body": "테오도리쿠스가 동고트인을 이끌었다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 844–873행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "이끎",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f0fb58be-ac9c-5580-8267-ba950c61e7d4",
+      "sourceCardId": "28150930-8465-572f-8b52-ab9e59f63605",
+      "targetCardId": "47c8938f-0048-5536-ad31-787edf376592",
+      "category": "structural",
+      "body": "벨리사리우스는 유스티니아누스의 장군이었다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 864–872행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "장군",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ae57ae47-46e5-55db-b5db-a9e82dbddfec",
+      "sourceCardId": "296fbcf6-3a64-58ae-adcd-c2a5785fbd11",
+      "targetCardId": "7077be8d-7217-5148-af24-dc7ec3933194",
+      "category": "structural",
+      "body": "아바르인은 알보인과 동맹했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 904–908행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "동맹",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4750170a-083b-545a-981b-92b65b65d15d",
+      "sourceCardId": "041f1eb9-b8c1-5c12-9d54-121148b9ac1c",
+      "targetCardId": "726a60e4-2f81-5bc3-be11-7bd26bfa3f1d",
+      "category": "structural",
+      "body": "아우도인은 랑고바르드인을 이끈 왕이었다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 897–900행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "왕",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f3a1061d-982a-55b4-844e-2dd142afb234",
+      "sourceCardId": "7077be8d-7217-5148-af24-dc7ec3933194",
+      "targetCardId": "ab39e792-62fb-5edf-837d-57363836467a",
+      "category": "structural",
+      "body": "알보인은 게피다이 왕 쿠니문트를 죽였다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 900–945행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "살해",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "09007b05-df90-533d-a663-3cd53fede7de",
+      "sourceCardId": "7077be8d-7217-5148-af24-dc7ec3933194",
+      "targetCardId": "726a60e4-2f81-5bc3-be11-7bd26bfa3f1d",
+      "category": "structural",
+      "body": "알보인은 랑고바르드인을 이끌고 북이탈리아를 정복했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 900–945행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "이끎",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "48bbcfa1-9ba0-59fe-883a-42af688a6eef",
+      "sourceCardId": "7077be8d-7217-5148-af24-dc7ec3933194",
+      "targetCardId": "2a0b1b30-cb0f-5d37-b3b8-3fd61cd3ffcd",
+      "category": "structural",
+      "body": "알보인은 로자문드와 결혼했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 900–945행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "결혼",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a1b03f09-c8b9-5f2c-8800-894f9a1da6c4",
+      "sourceCardId": "2a0b1b30-cb0f-5d37-b3b8-3fd61cd3ffcd",
+      "targetCardId": "ab39e792-62fb-5edf-837d-57363836467a",
+      "category": "structural",
+      "body": "로자문드는 쿠니문트의 딸이다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 906–945행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "딸",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9e7d1657-6358-5783-93f1-24385dfabb7a",
+      "sourceCardId": "2a0b1b30-cb0f-5d37-b3b8-3fd61cd3ffcd",
+      "targetCardId": "7077be8d-7217-5148-af24-dc7ec3933194",
+      "category": "structural",
+      "body": "로자문드는 알보인을 죽이게 했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 906–945행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "살해 모의",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "cb3384b4-8a66-5bbe-9201-5f179eeaf873",
+      "sourceCardId": "9ab46c6d-481d-5c47-9e93-d7cbc8db1d02",
+      "targetCardId": "84296587-1ec7-5a9b-83ca-adc8b7deb9ac",
+      "category": "structural",
+      "body": "아우타리는 클레프의 아들이다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 950–968행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d7d10295-fea1-56a6-9dae-fdf506a0f687",
+      "sourceCardId": "d96fc6c0-77e7-5421-aab7-8bfaaad5796c",
+      "targetCardId": "9ab46c6d-481d-5c47-9e93-d7cbc8db1d02",
+      "category": "structural",
+      "body": "킬데베르트의 공격은 아우타리의 전략에 저지되었다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 955–958행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "공격",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b640a5c8-1796-5b1e-a48f-45413b4dbb74",
+      "sourceCardId": "f7c948ae-db15-50c6-977b-d3489b097461",
+      "targetCardId": "b3379952-df96-52fb-a93a-04b7b9ebff11",
+      "category": "structural",
+      "body": "교황 그레고리우스 1세는 아길울프에 맞섰다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 1010–1030행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "대항",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d4125737-71a0-5b32-befa-f1fd2bbedcc4",
+      "sourceCardId": "3f6f6d5b-eec1-5f6b-94e0-6fef25684e16",
+      "targetCardId": "9ab46c6d-481d-5c47-9e93-d7cbc8db1d02",
+      "category": "structural",
+      "body": "테오델린다는 아우타리의 미망인이었다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 1027–1030행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "미망인",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "dfe788b7-39f9-5819-805c-161d64fc5188",
+      "sourceCardId": "b3379952-df96-52fb-a93a-04b7b9ebff11",
+      "targetCardId": "3f6f6d5b-eec1-5f6b-94e0-6fef25684e16",
+      "category": "structural",
+      "body": "아길울프는 테오델린다의 남편이다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 1021–1029행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "남편",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6814779d-dc78-52b8-a476-5013619815b2",
+      "sourceCardId": "3f6f6d5b-eec1-5f6b-94e0-6fef25684e16",
+      "targetCardId": "f7c948ae-db15-50c6-977b-d3489b097461",
+      "category": "structural",
+      "body": "테오델린다는 그레고리우스 1세의 랑고바르드 개종 추진을 도왔다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 1027–1030행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "개종 추진 지원",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9e3f0adc-3856-504e-b9c5-b3e1c493d947",
+      "sourceCardId": "d1975b96-0949-585c-aed5-94c609f126a4",
+      "targetCardId": "9aa48b7e-2a2f-5745-b653-ac0f92beb627",
+      "category": "structural",
+      "body": "베네벤토의 로모알드는 그리모알드의 아들이다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 1035–1039행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "878c6bf3-2667-53c1-a489-8ab37827eca3",
+      "sourceCardId": "1954c1f5-7fc9-561f-bf8e-5c9be5c0df06",
+      "targetCardId": "d1975b96-0949-585c-aed5-94c609f126a4",
+      "category": "structural",
+      "body": "콘스탄스 2세는 베네벤토의 로모알드를 공격했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 1035–1039행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "공격",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8ddd9f05-7435-5108-ae80-95a2a3a836b4",
+      "sourceCardId": "8035a2bb-afb7-541b-a9d4-71044e567637",
+      "targetCardId": "f601cd6e-ff7e-5f59-9525-9290944a872e",
+      "category": "structural",
+      "body": "교황 그레고리우스 3세는 카를 마르텔에게 도움을 청했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 1095–1108행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "지원 요청",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2c9f27cd-6d27-5b5d-b42a-79efb88d6e22",
+      "sourceCardId": "a2b91821-cba4-530b-a660-daa00a0c36c8",
+      "targetCardId": "71b7503f-78e9-5818-8147-291e738c9697",
+      "category": "structural",
+      "body": "피핀 3세는 원정으로 아이스툴프에게 정복지를 포기하게 했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 1109–1119행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "정복지 포기 요구",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "979d2cdb-c9d2-5b0c-a1af-0209d7db6299",
+      "sourceCardId": "1d24a72c-ec58-5e24-a9c1-c760807e1a48",
+      "targetCardId": "9385517d-ebf1-54dc-9a01-f61d180f8518",
+      "category": "structural",
+      "body": "카를 대제는 데시데리우스를 사로잡았다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 1132–1145행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "포로로 잡음",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a9d339fd-41f4-5179-8327-858a8c438877",
+      "sourceCardId": "3f7f9673-54a7-54dd-b1b6-8a545c432ffc",
+      "targetCardId": "1d24a72c-ec58-5e24-a9c1-c760807e1a48",
+      "category": "structural",
+      "body": "교황 레오 3세는 카를 대제에게 제관을 씌웠다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 1150–1180행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "대관",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "cfd28dab-8952-5575-8676-4b87ffd05319",
+      "sourceCardId": "0d7e9b85-65e4-5ee3-a44c-aa5407699657",
+      "targetCardId": "1d24a72c-ec58-5e24-a9c1-c760807e1a48",
+      "category": "structural",
+      "body": "경건왕 루트비히는 카를 대제의 아들이다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 1200–1212행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e28a4918-1be3-58d3-8efd-dab612286ad3",
+      "sourceCardId": "15d9f49f-7744-5299-ac92-e520eb4dfba3",
+      "targetCardId": "bca67841-f31f-5266-923e-d26fe8281bf7",
+      "category": "structural",
+      "body": "교황 레오 4세는 레오네 성구를 요새화했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 1232–1235행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "요새화",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b06660c3-9211-5acf-bd84-86462bedc8aa",
+      "sourceCardId": "4326519d-5cab-5d50-81eb-77669bf9081c",
+      "targetCardId": "21de8ed1-9894-55e7-8903-241afefb12fc",
+      "category": "structural",
+      "body": "황제 루트비히 2세와 바실리우스 1세는 바리 봉쇄에 협력했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 1252–1257행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "바리 봉쇄 협력",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "822c401d-cd6b-57cb-9e66-9991d1b3e46d",
+      "sourceCardId": "62281ac2-e1c5-5856-91da-109aa184203a",
+      "targetCardId": "b810e338-931b-5b1a-8b8f-ffdb0703aea2",
+      "category": "structural",
+      "body": "베렝가리오 1세는 스폴레토의 귀도와 이탈리아 왕위를 다투었다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1388–1407행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "왕위 경쟁",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "98c25099-c1b6-5680-97cd-30d08ca19e0d",
+      "sourceCardId": "62281ac2-e1c5-5856-91da-109aa184203a",
+      "targetCardId": "fa700579-3ecb-5516-b74c-98646a292f16",
+      "category": "structural",
+      "body": "베렝가리오 1세는 아르눌프를 이탈리아로 불렀다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1388–1407행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "이탈리아에 초청",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "590b8b13-d9ca-5e0e-a79d-dd1be3ef009f",
+      "sourceCardId": "3820583c-5f12-5756-985a-aef0c529d985",
+      "targetCardId": "b810e338-931b-5b1a-8b8f-ffdb0703aea2",
+      "category": "structural",
+      "body": "토스카나의 아달베르토는 왕위 경쟁에서 귀도를 지지했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1389–1411행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "지지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f419c938-c47a-5952-a083-f5a12c6939d7",
+      "sourceCardId": "246d9834-eebb-58e6-8f1f-d4fbb325c83f",
+      "targetCardId": "b810e338-931b-5b1a-8b8f-ffdb0703aea2",
+      "category": "structural",
+      "body": "람베르토는 스폴레토의 귀도의 아들이다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1394–1406행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "74174f5d-9638-5ff3-a76a-a52e62714c37",
+      "sourceCardId": "246d9834-eebb-58e6-8f1f-d4fbb325c83f",
+      "targetCardId": "fa700579-3ecb-5516-b74c-98646a292f16",
+      "category": "structural",
+      "body": "람베르토는 아르눌프와 경쟁했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1394–1406행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "경쟁",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6cb8b1fc-001a-5cac-b6c7-83afda7da931",
+      "sourceCardId": "3820583c-5f12-5756-985a-aef0c529d985",
+      "targetCardId": "f327aa4d-ee47-567c-b437-0a4f8605da7f",
+      "category": "structural",
+      "body": "아달베르토는 프로방스의 루도비코를 초청했다가 축출했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1407–1411행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "축출",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5d562e08-df01-522b-a64b-3810238cf091",
+      "sourceCardId": "6fb00ec0-9db0-5fad-a763-44f033d2c4c4",
+      "targetCardId": "3820583c-5f12-5756-985a-aef0c529d985",
+      "category": "structural",
+      "body": "에르멘가르다는 토스카나의 아달베르토의 딸이다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1473–1484행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "딸",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "dadd1522-9d6d-5d19-83bc-4ef2bd4bbe6a",
+      "sourceCardId": "2ece4cb2-3af6-5b78-a9c3-9779bac31ec1",
+      "targetCardId": "c5952ced-7332-5301-ad3c-50305b8483e9",
+      "category": "structural",
+      "body": "프로방스의 위그는 마로치아와 결혼했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1481–1494행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "결혼",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "828b990a-dcb0-514f-9302-527d8c7e55d7",
+      "sourceCardId": "07700a12-a8a1-5901-8894-5664cd9cc70c",
+      "targetCardId": "c5952ced-7332-5301-ad3c-50305b8483e9",
+      "category": "structural",
+      "body": "로마의 알베리코는 마로치아의 아들이다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1491–1497행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2abdc8af-35bf-5612-b6ff-ddfcecbba4de",
+      "sourceCardId": "07700a12-a8a1-5901-8894-5664cd9cc70c",
+      "targetCardId": "2ece4cb2-3af6-5b78-a9c3-9779bac31ec1",
+      "category": "structural",
+      "body": "로마의 알베리코는 프로방스의 위그를 몰아냈다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1491–1497행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "축출",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b7a002c3-f0ea-5745-bf05-bfd213a32648",
+      "sourceCardId": "e574a19d-91fe-5b9d-ae21-c160a34861b3",
+      "targetCardId": "07700a12-a8a1-5901-8894-5664cd9cc70c",
+      "category": "structural",
+      "body": "교황 요한 12세는 로마의 알베리코의 아들이다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1493–1503행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bea24035-c578-5f8f-bc27-676f00060f39",
+      "sourceCardId": "fd394f46-f8a6-5554-99ce-6b9162367155",
+      "targetCardId": "849552a4-4c6e-5a43-b681-9a2de193ba6c",
+      "category": "structural",
+      "body": "이브레아의 윌라는 베렝가리오 2세의 아내였다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1508–1513행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아내",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "dd0ad41d-22b4-5896-9f87-4fe767ec46a6",
+      "sourceCardId": "fd394f46-f8a6-5554-99ce-6b9162367155",
+      "targetCardId": "2ece4cb2-3af6-5b78-a9c3-9779bac31ec1",
+      "category": "structural",
+      "body": "이브레아의 윌라는 프로방스의 위그의 조카였다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1508–1513행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "조카",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3a7931e1-3e38-5432-a61a-dc320657168b",
+      "sourceCardId": "f1368cb9-b69c-5dcf-87a8-0fbdcdb307a8",
+      "targetCardId": "2ece4cb2-3af6-5b78-a9c3-9779bac31ec1",
+      "category": "structural",
+      "body": "이탈리아의 로타리오는 프로방스의 위그의 아들이다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1512–1521행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "27616315-5dd2-5dd8-b81b-0300a9c87653",
+      "sourceCardId": "f1368cb9-b69c-5dcf-87a8-0fbdcdb307a8",
+      "targetCardId": "849552a4-4c6e-5a43-b681-9a2de193ba6c",
+      "category": "structural",
+      "body": "로타리오는 베렝가리오 2세에게 위험을 알려 피신시켰다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1512–1521행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "위험을 알림",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7be9a78d-1c91-5b2b-8f62-702bfa9e5637",
+      "sourceCardId": "058a45c5-c62a-5caa-a114-4af859e15ee7",
+      "targetCardId": "f1368cb9-b69c-5dcf-87a8-0fbdcdb307a8",
+      "category": "structural",
+      "body": "아델하이트는 이탈리아의 로타리오의 미망인이었다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1524–1531행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "미망인",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bc440169-6bdf-5ffd-aa1f-e16fc06164af",
+      "sourceCardId": "849552a4-4c6e-5a43-b681-9a2de193ba6c",
+      "targetCardId": "058a45c5-c62a-5caa-a114-4af859e15ee7",
+      "category": "structural",
+      "body": "베렝가리오 2세는 아델하이트를 가두었다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1507–1533행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "감금",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9ae4d05b-a014-56d9-be6c-ba43505bfbf9",
+      "sourceCardId": "e61eea37-c745-57d4-9f0a-6f0848ab1fd7",
+      "targetCardId": "058a45c5-c62a-5caa-a114-4af859e15ee7",
+      "category": "structural",
+      "body": "오토 1세는 아델하이트를 구출했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1524–1555행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "구출",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9abe39ec-64c6-5db1-a41e-280468fe7382",
+      "sourceCardId": "e61eea37-c745-57d4-9f0a-6f0848ab1fd7",
+      "targetCardId": "058a45c5-c62a-5caa-a114-4af859e15ee7",
+      "category": "structural",
+      "body": "오토 1세는 아델하이트와 결혼했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1524–1531행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "결혼",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fc01749e-9c68-5493-9a2b-a0941cd822c2",
+      "sourceCardId": "e61eea37-c745-57d4-9f0a-6f0848ab1fd7",
+      "targetCardId": "849552a4-4c6e-5a43-b681-9a2de193ba6c",
+      "category": "structural",
+      "body": "오토 1세는 베렝가리오 2세를 굴복시켰다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1524–1555행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "굴복시킴",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9ed63e79-4efe-521a-9083-30781a587537",
+      "sourceCardId": "e61eea37-c745-57d4-9f0a-6f0848ab1fd7",
+      "targetCardId": "e574a19d-91fe-5b9d-ae21-c160a34861b3",
+      "category": "structural",
+      "body": "오토 1세는 교황 요한 12세를 폐위했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1583–1591행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "폐위",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "87ba26bd-a592-5c13-a98c-db2a6175eb6f",
+      "sourceCardId": "e61eea37-c745-57d4-9f0a-6f0848ab1fd7",
+      "targetCardId": "444839a5-a228-5f0c-98db-44eb2f417c78",
+      "category": "structural",
+      "body": "오토 1세는 교황 레오 8세를 선택해 로마의 관리를 맡겼다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1583–1591행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "선택",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f1f66e16-c84f-5011-aa5c-7b699bb1f651",
+      "sourceCardId": "b0b549e8-a09a-5712-85aa-f5fa640c4fea",
+      "targetCardId": "b87bb6db-2473-540c-8126-cf6601dc3ffd",
+      "category": "structural",
+      "body": "오토 2세는 테오파노와 결혼했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1597–1617행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "결혼",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1eb98510-f3bc-55e3-830e-23e0b1ed8214",
+      "sourceCardId": "62794f01-cba7-56ca-81e7-b9305e27625c",
+      "targetCardId": "b0b549e8-a09a-5712-85aa-f5fa640c4fea",
+      "category": "structural",
+      "body": "철두 판둘프는 오토 2세를 도왔다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1607–1627행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "지원",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e3ce3e06-5c39-5761-a968-c3af8af6fb0f",
+      "sourceCardId": "e55d6403-2a91-57d1-a404-444f9e9a858a",
+      "targetCardId": "d99b02a2-0af0-5ada-b259-5be25fc1e903",
+      "category": "structural",
+      "body": "오토 3세는 크레센티우스를 처형했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1647–1675행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "처형",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a4035de0-ccd3-51f2-98da-0f25928508f6",
+      "sourceCardId": "e55d6403-2a91-57d1-a404-444f9e9a858a",
+      "targetCardId": "44456459-087b-5313-b1df-a5bcfec6431a",
+      "category": "structural",
+      "body": "오토 3세는 교황 그레고리우스 5세를 임명했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1647–1653행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "임명",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2eb71f9a-00a9-576e-8dd0-26e09222dd0a",
+      "sourceCardId": "44456459-087b-5313-b1df-a5bcfec6431a",
+      "targetCardId": "e55d6403-2a91-57d1-a404-444f9e9a858a",
+      "category": "structural",
+      "body": "교황 그레고리우스 5세는 오토 3세를 황제로 대관했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1647–1653행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "대관",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c04f65ad-b8ed-56a7-95e5-cdbe4a495d8f",
+      "sourceCardId": "3ab74c64-46fa-5778-b8ca-aa30233015bf",
+      "targetCardId": "d99b02a2-0af0-5ada-b259-5be25fc1e903",
+      "category": "structural",
+      "body": "스테파니아는 크레센티우스의 미망인이다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1670–1675행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "미망인",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "31377737-ef08-5aca-8c0c-974db4e1c24f",
+      "sourceCardId": "3c0065a5-90d6-5392-a142-9e7b66123822",
+      "targetCardId": "dd3becff-81ff-5986-aabb-294157f41258",
+      "category": "structural",
+      "body": "밀라노 대주교 헤리베르토는 콘라트 2세에게 철관을 씌웠다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1752–1755행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "대관",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b9619bfa-d5d5-5409-bb0a-57a427b5a528",
+      "sourceCardId": "4546b617-d020-5efe-ad88-513e4193328f",
+      "targetCardId": "8ac2c3f0-108e-5c58-9b58-b169ca8b340d",
+      "category": "structural",
+      "body": "하인리히 3세는 교황 레오 9세를 임명했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1798–1825행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "임명",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "261a95e6-b9be-529a-82d1-0e0b3ea92019",
+      "sourceCardId": "8ac2c3f0-108e-5c58-9b58-b169ca8b340d",
+      "targetCardId": "4546b617-d020-5efe-ad88-513e4193328f",
+      "category": "structural",
+      "body": "교황 레오 9세는 하인리히 3세의 친족이었다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1792–1803행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "친족",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a96f2815-cca0-51ff-9e6c-0d407b3d5f58",
+      "sourceCardId": "d9506a04-4784-54fc-b5b7-6d9e2c74e9a0",
+      "targetCardId": "ef9e281c-7ef9-5e19-9139-f44b2d94af7c",
+      "category": "structural",
+      "body": "시칠리아 백작 루제로 1세는 로베르 기스카르의 형제다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1883–1893행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "형제",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0772f961-33ca-5b1b-9a3b-ac1e51316bc2",
+      "sourceCardId": "7f5679f9-c2c3-5cf9-ae8a-c11b94a331d1",
+      "targetCardId": "d9506a04-4784-54fc-b5b7-6d9e2c74e9a0",
+      "category": "structural",
+      "body": "시칠리아 왕 루제로 2세는 루제로 1세의 아들이다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1890–1895행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "db6bd117-8095-5f46-8f12-50b3b02de500",
+      "sourceCardId": "7a4678e6-8f84-5693-8aa8-cec1e8b84e71",
+      "targetCardId": "51f96ede-5451-51cd-8b05-8a5ce53626d4",
+      "category": "structural",
+      "body": "그레고리우스 7세는 하인리히 4세를 파문했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 2014–2039행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "파문",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "19006e55-72c8-5942-8b9a-d067c0ba6132",
+      "sourceCardId": "c7199826-c4c2-5429-8e53-d4be2ef7bdd8",
+      "targetCardId": "51f96ede-5451-51cd-8b05-8a5ce53626d4",
+      "category": "structural",
+      "body": "대립교황 클레멘스 3세는 하인리히 4세를 황제로 대관했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 2048–2070행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "대관",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e9692aed-306c-5a9a-bd10-a7b539cd77da",
+      "sourceCardId": "deb1ba54-2561-521b-80be-15299e37155b",
+      "targetCardId": "51f96ede-5451-51cd-8b05-8a5ce53626d4",
+      "category": "structural",
+      "body": "콘라트는 아버지 하인리히 4세에게 반란을 일으켰다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 2089–2097행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "반란",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "911111ce-2a78-5d19-9446-3e546a691212",
+      "sourceCardId": "a5a297aa-fed5-5686-816e-83213205b1d7",
+      "targetCardId": "deb1ba54-2561-521b-80be-15299e37155b",
+      "category": "structural",
+      "body": "토스카나의 마틸다는 콘라트에게 아버지에 대한 반란을 설득했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 2089–2097행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "반란 설득",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ce9a95c1-d9ee-502e-ba56-50fb5793e6ec",
+      "sourceCardId": "1a6cfb7e-c584-5b32-917c-c1aa06eb3201",
+      "targetCardId": "deb1ba54-2561-521b-80be-15299e37155b",
+      "category": "structural",
+      "body": "교황 우르바노 2세는 콘라트의 반란을 후원했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 2090–2101행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "반란 후원",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c16b1fd8-fe4a-5b05-a6ca-9770d1d37062",
+      "sourceCardId": "450ce267-4d18-5e15-ba51-81e8e348cdef",
+      "targetCardId": "7a5592f5-1fa5-5caa-9897-1c765cf8f14d",
+      "category": "structural",
+      "body": "하인리히 5세는 교황 파스칼 2세를 가두었다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 2106–2136행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "감금",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "dd4b0f48-a14f-5e72-a639-d028c4179f9c",
+      "sourceCardId": "7a5592f5-1fa5-5caa-9897-1c765cf8f14d",
+      "targetCardId": "450ce267-4d18-5e15-ba51-81e8e348cdef",
+      "category": "structural",
+      "body": "파스칼 2세는 석방 조건으로 하인리히 5세를 황제로 대관했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 2116–2119행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "대관",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c5b1e7bd-21c6-56f7-98cc-97067b36bf88",
+      "sourceCardId": "c562158e-33b8-5f3d-8efb-301fad925ffa",
+      "targetCardId": "2e41de81-68f9-525c-a8fb-593993f37814",
+      "category": "structural",
+      "body": "교황 인노첸시오 2세는 로타르 3세를 대관했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2224–2244행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "대관",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8d59168b-4884-5b65-8412-8b854fe512c8",
+      "sourceCardId": "c562158e-33b8-5f3d-8efb-301fad925ffa",
+      "targetCardId": "ed1fbaeb-5361-5408-912f-98dadba2fe7b",
+      "category": "structural",
+      "body": "인노첸시오 2세는 아나클레토 2세와 교황위를 다투었다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2224–2244행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "교황위 경쟁",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f4612687-9ca2-5722-978c-0e24886a5eba",
+      "sourceCardId": "7f5679f9-c2c3-5cf9-ae8a-c11b94a331d1",
+      "targetCardId": "ed1fbaeb-5361-5408-912f-98dadba2fe7b",
+      "category": "structural",
+      "body": "시칠리아 왕 루제로 2세는 아나클레토 2세를 지지했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2224–2227행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "지지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f0587781-8513-5c8f-bb86-70c65decefcd",
+      "sourceCardId": "c7112c6d-74f5-5713-be66-b07efafbb7b0",
+      "targetCardId": "a4179121-2666-5dc3-8c09-558a158e5425",
+      "category": "structural",
+      "body": "프리드리히 1세는 콘라트 3세의 조카다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2276–2307행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "조카",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "af12f762-3bad-5a87-8f7b-95a1cc4e8a06",
+      "sourceCardId": "6fae0555-255e-5762-af24-121d1ba51630",
+      "targetCardId": "c7112c6d-74f5-5713-be66-b07efafbb7b0",
+      "category": "structural",
+      "body": "교황 하드리아노 4세는 프리드리히 1세를 황제로 대관했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2301–2306행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "대관",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9d5354f9-d232-5387-986a-9639836d05a2",
+      "sourceCardId": "6fae0555-255e-5762-af24-121d1ba51630",
+      "targetCardId": "fcaa1be8-786c-52ba-b471-1846b6f024e1",
+      "category": "structural",
+      "body": "교황 하드리아노 4세는 브레시아의 아르날도를 처형했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2301–2306행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "처형",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6492f24a-dbc5-517d-a667-94d8331e1242",
+      "sourceCardId": "7ea0873e-ebe4-5b2e-b607-43702522f815",
+      "targetCardId": "38450c26-21d6-5874-81af-3b96de8a1c6b",
+      "category": "structural",
+      "body": "알렉산데르 3세와 빅토르 4세는 서로 파문했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2333–2337행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "상호 파문",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bdbe13c8-eba6-5bbc-b55a-06eba194f755",
+      "sourceCardId": "ed554138-ade7-593b-85af-1d286fe55880",
+      "targetCardId": "7f5679f9-c2c3-5cf9-ae8a-c11b94a331d1",
+      "category": "structural",
+      "body": "시칠리아의 콘스탄차는 루제로 2세의 딸이다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2460–2465행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "딸",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5975ea54-ca53-51c9-9b82-d87dfde51f67",
+      "sourceCardId": "ed554138-ade7-593b-85af-1d286fe55880",
+      "targetCardId": "74fd3daa-d1f5-5761-b6c3-e9e11baed54e",
+      "category": "structural",
+      "body": "콘스탄차는 프리드리히의 아들 하인리히 6세와 결혼했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2460–2465행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "결혼",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a26d9937-40f3-54a1-9261-3be16d1c7bfb",
+      "sourceCardId": "31232bc5-6ea9-58c9-96c6-c734455b616d",
+      "targetCardId": "74fd3daa-d1f5-5761-b6c3-e9e11baed54e",
+      "category": "structural",
+      "body": "슈바벤의 필리프는 하인리히 6세의 동생이다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2503–2521행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "동생",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d70c64a0-b9c7-5335-8e4b-b3a57488aff0",
+      "sourceCardId": "ef83425c-50e4-5f96-aed2-caf8ca0479da",
+      "targetCardId": "82c7c14a-95a6-5488-9731-454300cfb716",
+      "category": "structural",
+      "body": "오도 아리기는 부온델몬테와 다투었다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2566–2571행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "다툼",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3031b926-3f44-5749-88bf-663e598be19d",
+      "sourceCardId": "82c7c14a-95a6-5488-9731-454300cfb716",
+      "targetCardId": "daac9bab-b353-59e8-a9c1-8702492a7e01",
+      "category": "structural",
+      "body": "부온델몬테는 아미데이 가문과의 약혼을 파기했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2566–2583행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "약혼 파기",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "aef03d88-59a1-5aee-9da7-25626ea52fc7",
+      "sourceCardId": "3d01c061-8cf1-5c87-bc67-9063762ed86c",
+      "targetCardId": "ead90a05-3395-5a63-9981-e2668d4a251a",
+      "category": "structural",
+      "body": "알렉시오스 앙겔로스는 이사키오스의 아들이다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2616–2627행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "caf8ef1c-4fed-57a9-94b4-7f5bfc7297b0",
+      "sourceCardId": "06ef1136-6c4a-594d-ade2-32c8b5bbaaee",
+      "targetCardId": "ead90a05-3395-5a63-9981-e2668d4a251a",
+      "category": "structural",
+      "body": "엔리코 단돌로는 십자군과 함께 이사키오스를 복위시켰다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2620–2629행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "복위 지원",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ba5cf616-052c-5f97-8bf7-5afe6025811d",
+      "sourceCardId": "216d72c5-711e-522a-b818-3575f5974e1d",
+      "targetCardId": "0d8c00f3-7629-5de2-a017-0704c3953d3e",
+      "category": "structural",
+      "body": "프리드리히 2세는 나폴리 대학을 설립했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2723–2733행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "설립",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f6ba7ee1-5e05-5bfe-9345-e5373db341e5",
+      "sourceCardId": "e4553a0f-b8a1-572a-8cf7-64b86152a9f9",
+      "targetCardId": "216d72c5-711e-522a-b818-3575f5974e1d",
+      "category": "structural",
+      "body": "교황 그레고리우스 9세는 프리드리히 2세의 십자군 지연을 이유로 파문했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2735–2749행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "파문",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "edf6659c-6234-5689-ab6b-e8265c874b60",
+      "sourceCardId": "28708ca2-489f-5ea8-ad95-ad6ded921ab8",
+      "targetCardId": "3bef149c-b439-5db3-8991-59cf32c197c7",
+      "category": "structural",
+      "body": "비첸차의 조반니 수사는 도미니코회의 설교자였다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2773–2782행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "소속",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ebeb5c18-749a-57e3-a917-74f37d510f38",
+      "sourceCardId": "1af1ac2a-fe9e-5eb7-b5d3-f4ffe0098fdb",
+      "targetCardId": "216d72c5-711e-522a-b818-3575f5974e1d",
+      "category": "structural",
+      "body": "프리드리히 2세의 아들 하인리히는 부친에게 반란을 일으켰다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2784–2792행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "부친에게 반란",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "978873c8-1ebc-554e-a6e3-69bce7b358b3",
+      "sourceCardId": "193463ec-e9a4-58b6-8062-2b800992383b",
+      "targetCardId": "216d72c5-711e-522a-b818-3575f5974e1d",
+      "category": "structural",
+      "body": "교황 인노첸시오 4세는 리옹 공의회에서 프리드리히 2세를 고발했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2834–2846행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "고발",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4a66993f-0617-5c24-b10d-cf65a5aff41d",
+      "sourceCardId": "f2411102-d6f1-5b08-befa-dc94d9107871",
+      "targetCardId": "216d72c5-711e-522a-b818-3575f5974e1d",
+      "category": "structural",
+      "body": "세사의 타데오는 프리드리히 2세의 고문으로 공의회에서 황제를 변호했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2834–2846행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "고문",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4e3048f6-6bcc-594f-818f-bcab34a337a6",
+      "sourceCardId": "d81f62b3-c92b-57a9-9613-b9c21b46485a",
+      "targetCardId": "216d72c5-711e-522a-b818-3575f5974e1d",
+      "category": "structural",
+      "body": "안티오키아의 프리드리히는 프리드리히 2세의 서자였다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2852–2855행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "서자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9c217b36-c87d-5ad3-9138-7f8aa5a46133",
+      "sourceCardId": "bda646b5-7d83-5ffa-b81f-d26a7b59c11a",
+      "targetCardId": "216d72c5-711e-522a-b818-3575f5974e1d",
+      "category": "structural",
+      "body": "엔치오는 프리드리히 2세의 아들이었다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2854–2857행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "161b8403-7a97-54c5-9cd8-9efdd093559e",
+      "sourceCardId": "70686f8f-ca02-5994-acdf-bb34d2f7bc88",
+      "targetCardId": "a2b91821-cba4-530b-a660-daa00a0c36c8",
+      "category": "structural",
+      "body": "교황 스테파노는 피핀 3세에게 구원을 요청했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 1106–1115행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "지원 요청",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bf5e12d0-1d71-520e-94bc-a2cadd73dfcf",
+      "sourceCardId": "1d0046dd-ed64-542c-806a-44ce3b3abc5d",
+      "targetCardId": "a2b91821-cba4-530b-a660-daa00a0c36c8",
+      "category": "structural",
+      "body": "교황 자카리아는 피핀을 프랑크 왕으로 선언했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 1109–1112행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "왕으로 선언",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8890c502-b6d1-5773-bc21-f32ec8bc02e5",
+      "sourceCardId": "ac1ca86b-078e-54b4-9de1-7d6cf1142f0a",
+      "targetCardId": "1d24a72c-ec58-5e24-a9c1-c760807e1a48",
+      "category": "structural",
+      "body": "하드리아노 1세는 카를 대제에게 지원을 요청했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 1132–1145행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "지원 요청",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "abe98bf0-c1a6-5c2d-b124-51e33acf095f",
+      "sourceCardId": "583de06e-0d68-5833-b5a4-8ef10cd91406",
+      "targetCardId": "5221011c-ef2a-55b0-aaeb-792f8b64ee12",
+      "category": "structural",
+      "body": "교황 요한 8세는 대머리 카를을 황제로 대관했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 1265–1269행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "대관",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "dec25aab-d075-56d1-a48e-cb8e59f5c3cc",
+      "sourceCardId": "31303048-eac2-5a00-96b3-f036e31924c2",
+      "targetCardId": "583de06e-0d68-5833-b5a4-8ef10cd91406",
+      "category": "structural",
+      "body": "프로방스의 보소는 교황 요한 8세의 양자가 되었다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제1장, 원문 1336–1343행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "양자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8fcf58e0-aa76-59db-a223-ed54cb70888e",
+      "sourceCardId": "ab2a8428-c38c-5ddd-9603-be632892cd42",
+      "targetCardId": "e61eea37-c745-57d4-9f0a-6f0848ab1fd7",
+      "category": "structural",
+      "body": "니케포로스 포카스는 오토 1세와 전쟁을 벌였다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1593–1603행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "전쟁",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "eb67a014-f5c4-58f8-acff-f2208140570a",
+      "sourceCardId": "60783927-5b9a-53cb-8901-1593417d4265",
+      "targetCardId": "ab2a8428-c38c-5ddd-9603-be632892cd42",
+      "category": "structural",
+      "body": "요한 치미스키스는 니케포로스의 뒤를 이었다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1597–1603행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "뒤를 이음",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "aa5edaff-b5d1-50db-8fd2-afb6ca7c50a6",
+      "sourceCardId": "60783927-5b9a-53cb-8901-1593417d4265",
+      "targetCardId": "e61eea37-c745-57d4-9f0a-6f0848ab1fd7",
+      "category": "structural",
+      "body": "요한 치미스키스는 오토 1세와 평화를 맺었다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1597–1603행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "화친",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "46453aa9-a107-5430-8a0f-1c3c4934512e",
+      "sourceCardId": "8d0f5f8f-94cc-5bb8-a62e-c7dfce30ddbd",
+      "targetCardId": "ef9e281c-7ef9-5e19-9139-f44b2d94af7c",
+      "category": "structural",
+      "body": "알렉시오스 1세는 로베르 기스카르의 침공을 견제했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제2장, 원문 1899–1906행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "침공 견제",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "199413a7-daa4-5916-855c-4c37c893fb43",
+      "sourceCardId": "a4179121-2666-5dc3-8c09-558a158e5425",
+      "targetCardId": "22f001e7-628e-57af-9915-e4c14e49c9e4",
+      "category": "structural",
+      "body": "콘라트 3세는 동방 황제 마누일과 동맹했다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2240–2247행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "동맹",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ed3b559e-1fb4-5f96-a1fe-093ea697d160",
+      "sourceCardId": "2d4173c3-099b-5f50-aae7-da96234d1705",
+      "targetCardId": "216d72c5-711e-522a-b818-3575f5974e1d",
+      "category": "structural",
+      "body": "교황 호노리오 3세는 프리드리히 2세에게 황제관을 씌웠다. 출처: William Hunt, History of Italy, 제2판, Macmillan, 1883, 제3장, 원문 2695–2698행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "대관",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "42513474-0cb8-55aa-9666-ad6936d4cb92",
+      "sourceCardId": "0eb5bd72-71eb-5e86-b56f-14e5f170acdc",
+      "targetCardId": "216d72c5-711e-522a-b818-3575f5974e1d",
+      "category": "structural",
+      "body": "콘라트 4세는 프리드리히 2세의 아들이었다. 출처: W. Hunt, Italy, 제4장, 2893–2909행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f3d81c24-91e5-56b9-8742-08d0d716d894",
+      "sourceCardId": "27e7183c-ca68-5f6f-aa6d-286c54d14bfa",
+      "targetCardId": "0eb5bd72-71eb-5e86-b56f-14e5f170acdc",
+      "category": "structural",
+      "body": "콘라딘은 콘라트 4세의 아들이었다. 출처: W. Hunt, Italy, 제4장, 2893–2909행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f88b728e-080b-56fd-85c4-4c5752325650",
+      "sourceCardId": "160cfbf3-19f0-57fb-bd7c-f42b8bc7c4fe",
+      "targetCardId": "0eb5bd72-71eb-5e86-b56f-14e5f170acdc",
+      "category": "structural",
+      "body": "시칠리아의 만프레드는 콘라트 4세의 이복형제였다. 출처: W. Hunt, Italy, 제4장, 2897–2909행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "이복형제",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c56daa4f-ba06-57f7-a126-79532fbf50c4",
+      "sourceCardId": "160cfbf3-19f0-57fb-bd7c-f42b8bc7c4fe",
+      "targetCardId": "27e7183c-ca68-5f6f-aa6d-286c54d14bfa",
+      "category": "structural",
+      "body": "만프레드는 조카 콘라딘을 위해 섭정했다. 출처: W. Hunt, Italy, 제4장, 2897–2909행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "섭정",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fa8d70ea-587c-54c2-a84e-93ccf3c15c47",
+      "sourceCardId": "5792c6ed-f60f-5482-8f4c-ef6b8bf0a857",
+      "targetCardId": "160cfbf3-19f0-57fb-bd7c-f42b8bc7c4fe",
+      "category": "structural",
+      "body": "브란칼레오네는 만프레드와 동맹했다. 출처: W. Hunt, Italy, 제4장, 2942–2954행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "동맹",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "87663f6a-5817-5d95-95ac-1f2174dc8561",
+      "sourceCardId": "49bfd769-736d-5e2d-9d06-fded5e976ecb",
+      "targetCardId": "160cfbf3-19f0-57fb-bd7c-f42b8bc7c4fe",
+      "category": "structural",
+      "body": "파리나타 델리 우베르티는 만프레드에게 도움을 요청했다. 출처: W. Hunt, Italy, 제4장, 2965–2983행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "지원 요청",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e226ba05-c3ba-563e-ad88-63bad2cc02ec",
+      "sourceCardId": "07479c79-39d0-5b38-a605-bb6f1ba25f49",
+      "targetCardId": "1b2ddc7c-6651-56d0-8926-dc5c07ecd540",
+      "category": "structural",
+      "body": "시칠리아의 페데리코는 아라곤의 페드로의 작은아들이었다. 출처: W. Hunt, Italy, 제4장, 3146–3153행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "10f671c4-6dd0-5924-9562-692fc64d3d93",
+      "sourceCardId": "93cbac29-aab4-5dcc-82ae-8c6e9507d428",
+      "targetCardId": "631fd3ce-0033-5037-b7cc-b0197ae0c5db",
+      "category": "structural",
+      "body": "코르소 도나티는 피렌체 네리파를 이끌었다. 출처: W. Hunt, Italy, 제4장, 3284–3292행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "이끎",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "be4fcf0b-9515-59f6-9b55-0e656f124116",
+      "sourceCardId": "93cbac29-aab4-5dcc-82ae-8c6e9507d428",
+      "targetCardId": "a5f330e5-39ba-5f42-a287-1b6a8ae8cb37",
+      "category": "structural",
+      "body": "코르소 도나티는 발루아의 샤를에 합류했다. 출처: W. Hunt, Italy, 제4장, 3284–3292행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "합류",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "67d1331f-6cbf-534e-a37d-8967147d22e6",
+      "sourceCardId": "1c20aba5-344a-5fd2-b8ab-1d872381b9e0",
+      "targetCardId": "4ae85ae2-63c3-5741-8520-3d9c8535b3eb",
+      "category": "structural",
+      "body": "조반니 피사노는 니콜라 피사노의 아들이었다. 출처: W. Hunt, Italy, 제4장, 3518–3521행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ecebb443-d2ce-5bfe-8c07-f79ecc1aa53c",
+      "sourceCardId": "1c20aba5-344a-5fd2-b8ab-1d872381b9e0",
+      "targetCardId": "4ae85ae2-63c3-5741-8520-3d9c8535b3eb",
+      "category": "structural",
+      "body": "조반니 피사노는 니콜라 피사노의 제자였다. 출처: W. Hunt, Italy, 제4장, 3518–3521행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "제자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1713ab95-1a6c-55e9-b973-f2f1f2007146",
+      "sourceCardId": "aee8e747-1acc-5e66-b7a9-97e23837ec54",
+      "targetCardId": "4ae85ae2-63c3-5741-8520-3d9c8535b3eb",
+      "category": "structural",
+      "body": "원저는 안드레아 피사노를 니콜라 피사노의 제자로 소개한다. 출처: W. Hunt, Italy, 제4장, 3519–3522행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "제자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9429a5db-e2a7-519c-9c48-0672ee793ee5",
+      "sourceCardId": "ad167633-c66a-5276-8472-5a71256f3e40",
+      "targetCardId": "6357b378-933c-518e-8dc3-dcad86b50ec4",
+      "category": "structural",
+      "body": "단테 알리기에리는 신곡의 저자다. 출처: W. Hunt, Italy, 제4장, 3541–3559행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "저자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8e27b0bd-c40f-5010-9f1b-9fc781332cb3",
+      "sourceCardId": "ad167633-c66a-5276-8472-5a71256f3e40",
+      "targetCardId": "cb9776dc-8afe-5ec7-b7c3-26c304ba960c",
+      "category": "structural",
+      "body": "단테 알리기에리는 군주론의 저자다. 출처: W. Hunt, Italy, 제4장, 3541–3559행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "저자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4f68e698-287d-5833-b942-3e392220f15d",
+      "sourceCardId": "a5a55711-ec0e-598f-8945-336692dd3691",
+      "targetCardId": "371a7e54-5b24-5794-ac0c-c70c9bf7db4c",
+      "category": "structural",
+      "body": "갈레아초 1세 비스콘티는 마테오 비스콘티의 아들이었다. 출처: W. Hunt, Italy, 제5장, 3666–3671행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "63195348-62c7-5804-8e73-1b73d7128f75",
+      "sourceCardId": "a5a55711-ec0e-598f-8945-336692dd3691",
+      "targetCardId": "60b8a379-4ec1-530d-9aac-b08686247708",
+      "category": "structural",
+      "body": "갈레아초 1세는 바이에른의 루트비히 4세와 동맹했다. 출처: W. Hunt, Italy, 제5장, 3666–3671행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "동맹",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0856d109-5683-53dc-9ba4-7519d52f2ae9",
+      "sourceCardId": "e5e25384-55ed-5cc8-bcd0-554c7398c83f",
+      "targetCardId": "019003b9-d0bd-5688-bf13-d1dec135c6cf",
+      "category": "structural",
+      "body": "보헤미아의 얀은 하인리히 7세의 아들이었다. 출처: W. Hunt, Italy, 제5장, 3719–3737행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e12af964-aaf9-5a67-9de5-b7fa69e78acc",
+      "sourceCardId": "6d592515-0016-5f51-bef8-47fe16cf64e4",
+      "targetCardId": "52fba6f1-6d6b-5322-8f97-43cbd6c128e5",
+      "category": "structural",
+      "body": "나폴리의 조반나 1세는 사촌 안드레아와 결혼했다. 출처: W. Hunt, Italy, 제5장, 3793–3813행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "결혼",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2257a35e-dfbc-565c-b530-e89c57838b19",
+      "sourceCardId": "2f50d071-b82c-5d21-ab0f-e9c66209be43",
+      "targetCardId": "52fba6f1-6d6b-5322-8f97-43cbd6c128e5",
+      "category": "structural",
+      "body": "헝가리의 러요시 1세는 안드레아의 형제였다. 출처: W. Hunt, Italy, 제5장, 3803–3807행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "형제",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5dd1d151-2268-50b7-a460-e828ed08a9ef",
+      "sourceCardId": "db74fa3b-d309-5842-b6b7-4ea8d276f657",
+      "targetCardId": "db9e4c9d-6b94-565f-9818-3bc9309f1a8b",
+      "category": "structural",
+      "body": "존 호크우드는 백색 용병대를 지휘했다. 출처: W. Hunt, Italy, 제5장, 3854–3856행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "77535843-94a7-5085-af3f-f4748815b575",
+      "sourceCardId": "db9fec8b-4c8b-530a-8b20-6afe8b599606",
+      "targetCardId": "63004216-f641-5685-8096-d29d37436424",
+      "category": "structural",
+      "body": "치옴피는 봉기 때 미켈레 디 란도를 지도자로 세웠다. 출처: W. Hunt, Italy, 제5장, 4095–4141행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "지도자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "279cb3a3-3277-5e1f-a37d-39f7490c994a",
+      "sourceCardId": "b3c855b5-0145-5e04-ac95-399b0e370b62",
+      "targetCardId": "6d592515-0016-5f51-bef8-47fe16cf64e4",
+      "category": "structural",
+      "body": "두라초의 카를로는 조반나 1세를 사로잡아 죽였다. 출처: W. Hunt, Italy, 제5장, 4158–4170행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "살해",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e25ad29f-8ffc-56b6-8f17-407481eddc24",
+      "sourceCardId": "f4208c07-76b6-5d4b-94bc-842e30a50a69",
+      "targetCardId": "c0071689-1bf8-5c44-9812-341b37dbc601",
+      "category": "structural",
+      "body": "브라초 다 몬토네는 스포르차 아텐돌로와 대립했다. 출처: W. Hunt, Italy, 제6장, 4534–4543행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "대립",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f28ae3d1-f11a-5b5a-b9e1-91cb4493889f",
+      "sourceCardId": "2c53db83-ebb5-50f0-851c-ae53f1aba017",
+      "targetCardId": "4afff2d2-18c9-5eb1-9982-6722e7fd25e1",
+      "category": "structural",
+      "body": "나폴리의 조반나 2세는 라디슬라오의 누이다. 출처: W. Hunt, Italy, 제6장, 4632–4646행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "누이",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a090a31b-b60c-5b21-8e88-2a2cab2ac62c",
+      "sourceCardId": "2c53db83-ebb5-50f0-851c-ae53f1aba017",
+      "targetCardId": "a8c960b5-f1da-53b5-9803-9951060501c2",
+      "category": "structural",
+      "body": "조반나 2세는 아라곤의 알폰소를 양자로 삼았다가 취소했다. 출처: W. Hunt, Italy, 제6장, 4632–4646행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "양자로 삼음",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6b60920b-95d5-585c-a32f-7da8e068912c",
+      "sourceCardId": "b6767293-a04c-5f4e-8ced-a482dc75361d",
+      "targetCardId": "710e70e4-f942-56c2-a890-a362fa8e7c4d",
+      "category": "structural",
+      "body": "루도비코 스포르차는 살해된 공작 갈레아초 마리아의 동생이다. 출처: W. Hunt, Italy, 제6장, 5104–5106행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "동생",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6b3a0c94-e88e-5d91-a2a3-fc9134dcea9b",
+      "sourceCardId": "f947e843-089e-5949-9991-afb966c7a6c6",
+      "targetCardId": "3bef149c-b439-5db3-8991-59cf32c197c7",
+      "category": "structural",
+      "body": "지롤라모 사보나롤라는 도미니코회 수사였다. 출처: W. Hunt, Italy, 제6장, 5325–5333행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "소속",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6e777c30-e883-5fb8-b289-303d02a14ede",
+      "sourceCardId": "80b5eb13-54ca-514c-989c-0cadcf3f9efd",
+      "targetCardId": "f947e843-089e-5949-9991-afb966c7a6c6",
+      "category": "structural",
+      "body": "피아뇨니는 사보나롤라를 따랐다. 출처: W. Hunt, Italy, 제6장, 5325–5333행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "추종",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "72745cff-8a7c-51b4-901a-e2ece0d83c8c",
+      "sourceCardId": "b6767293-a04c-5f4e-8ced-a482dc75361d",
+      "targetCardId": "d2f6dbf8-193f-5563-ac71-c63fef035b41",
+      "category": "structural",
+      "body": "루도비코 스포르차는 샤를 8세에게 나폴리 침공을 요청했다. 출처: W. Hunt, Italy, 제6장, 5363–5381행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "침공 요청",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "911272c0-205c-59b0-8850-b97dec1a698a",
+      "sourceCardId": "4ee3e756-19b0-5045-bf28-b3ef6d552115",
+      "targetCardId": "d2f6dbf8-193f-5563-ac71-c63fef035b41",
+      "category": "structural",
+      "body": "필리프 드 코민은 샤를 8세가 베네치아에 보낸 대사였다. 출처: W. Hunt, Italy, 제7장, 5619–5622행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "대사",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3a6db9c5-c82d-5598-9091-d867b03affe1",
+      "sourceCardId": "0fbe8174-bb26-57a5-b8bc-d50d1aa8e392",
+      "targetCardId": "60b35f92-19bd-58b1-83ab-8b86fb06d9df",
+      "category": "structural",
+      "body": "루이 12세는 체사레 보르자에게 발랑티누아 공작위를 주었다. 출처: W. Hunt, Italy, 제7장, 5993–6009행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "작위 수여",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c3f40c13-106f-5995-a89e-980009f4c8d7",
+      "sourceCardId": "60b35f92-19bd-58b1-83ab-8b86fb06d9df",
+      "targetCardId": "26b1cf60-1dad-55c1-abce-0b8f0b4f3cd1",
+      "category": "structural",
+      "body": "체사레 보르자는 알렉산데르 6세의 아들이었다. 출처: W. Hunt, Italy, 제7장, 6103–6120행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "09423030-24d6-5b55-be23-746b96428fc0",
+      "sourceCardId": "60b35f92-19bd-58b1-83ab-8b86fb06d9df",
+      "targetCardId": "fdd3556e-8f4d-5551-afb2-1503ade6d53a",
+      "category": "structural",
+      "body": "체사레 보르자는 자신을 위해 로마냐 소란을 진압한 라미로 도르코를 처형했다. 출처: W. Hunt, Italy, 제7장, 6140–6144행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "처형",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4333f2ff-6a7b-5ceb-874a-cd239a258793",
+      "sourceCardId": "4ed38016-7b33-5990-b9a8-337f2352dfca",
+      "targetCardId": "371a7e54-5b24-5794-ac0c-c70c9bf7db4c",
+      "category": "structural",
+      "body": "귀도 델라 토레는 마테오 비스콘티와 도시 지배권을 다퉜다. 출처: W. Hunt, Italy, 제4장, 3346–3353행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "지배권 경쟁",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "66ef5962-9f02-5cc0-809d-aae3f2a770fb",
+      "sourceCardId": "4ae85ae2-63c3-5741-8520-3d9c8535b3eb",
+      "targetCardId": "eeddcf54-e9b1-5965-a9ed-4d746319b1f2",
+      "category": "structural",
+      "body": "니콜라 피사노가 피사 세례당 설교단을 만들었다. 출처: W. Hunt, Italy, 제4장, 3513–3519행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "제작",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1ac1c796-c306-51c9-9572-a11e744da8c2",
+      "sourceCardId": "5e6bb641-a6c0-57b9-86d6-8a70cbe608db",
+      "targetCardId": "4c1a1c0b-ebc6-5d7d-ae7c-1840e20c9154",
+      "category": "structural",
+      "body": "아초 비스콘티는 루키노와 함께 가문의 세력을 회복했다. 출처: W. Hunt, Italy, 제5장, 3934–3937행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "가문 세력 회복 협력",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "aa8d5ca3-a66c-5d17-a3de-53ef9b94fde4",
+      "sourceCardId": "4c1a1c0b-ebc6-5d7d-ae7c-1840e20c9154",
+      "targetCardId": "58c62105-9339-599c-ba7e-f6143ea740fd",
+      "category": "structural",
+      "body": "루키노 비스콘티와 조반니 비스콘티는 형제였다. 출처: W. Hunt, Italy, 제5장, 3934–3940행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "형제",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "034ae89c-a404-5c28-b3fc-0b4078ca63c6",
+      "sourceCardId": "507b9873-405c-5a19-997e-3d02d80d5338",
+      "targetCardId": "db74fa3b-d309-5842-b6b7-4ea8d276f657",
+      "category": "structural",
+      "body": "베르나보 비스콘티는 존 호크우드의 용병대를 고용했다. 출처: W. Hunt, Italy, 제5장, 3983–4003행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "고용",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "847e9488-03bf-5571-8087-0507879b1a53",
+      "sourceCardId": "6fbcab5b-5da7-5097-b1b9-e29f75575d72",
+      "targetCardId": "507b9873-405c-5a19-997e-3d02d80d5338",
+      "category": "structural",
+      "body": "갈레아초 2세와 베르나보 비스콘티는 형제였다. 출처: W. Hunt, Italy, 제5장, 3983–3997행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "형제",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "42be3c06-dd3d-5aa7-a728-2a381025c125",
+      "sourceCardId": "fc43f344-6535-5abb-83e7-9b2f32cf54b2",
+      "targetCardId": "6fbcab5b-5da7-5097-b1b9-e29f75575d72",
+      "category": "structural",
+      "body": "잔 갈레아초는 갈레아초 2세 비스콘티의 아들이었다. 출처: W. Hunt, Italy, 제5장, 3983–3997행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5696d485-9963-51ee-84b6-1ccff37a197f",
+      "sourceCardId": "2557e08a-c48f-5418-9118-ccb178a2d581",
+      "targetCardId": "e5e25384-55ed-5cc8-bcd0-554c7398c83f",
+      "category": "structural",
+      "body": "카를 4세는 보헤미아 왕 얀의 아들이었다. 출처: W. Hunt, Italy, 제5장, 3953–3965행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "792f1fcd-194a-5995-b2a3-7c49b5339890",
+      "sourceCardId": "c2e28f34-38eb-5a2c-8326-6cef5e6713cc",
+      "targetCardId": "fe80d672-92bd-50cf-9b61-3b2e54736042",
+      "category": "structural",
+      "body": "알베리코 다 바르비아노는 성 조르조 용병대를 세웠다. 출처: W. Hunt, Italy, 제5장, 4363–4367행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "설립",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4803564b-6348-566e-b87d-111161689576",
+      "sourceCardId": "97baa344-467f-5a00-b26f-41580ef00d44",
+      "targetCardId": "1ffe1796-d86d-5066-b257-d5fbb8444826",
+      "category": "structural",
+      "body": "베아트리체 텐다는 파치노 카네의 미망인이었다. 출처: W. Hunt, Italy, 제6장, 4595–4601행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "미망인",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fcbc6221-fb8c-5466-bc3f-b47743e60c90",
+      "sourceCardId": "2f8843f2-bfe2-5011-81ec-8e9854debdbb",
+      "targetCardId": "710e70e4-f942-56c2-a890-a362fa8e7c4d",
+      "category": "structural",
+      "body": "사보이아의 보나는 갈레아초 마리아 스포르차의 미망인이었다. 출처: W. Hunt, Italy, 제6장, 5092–5106행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "미망인",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ff7e79c7-f87c-5437-8789-a843cf930235",
+      "sourceCardId": "b6767293-a04c-5f4e-8ced-a482dc75361d",
+      "targetCardId": "2f8843f2-bfe2-5011-81ec-8e9854debdbb",
+      "category": "structural",
+      "body": "루도비코 스포르차는 사보이아의 보나에게서 권력을 빼앗았다. 출처: W. Hunt, Italy, 제6장, 5092–5106행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "권력 탈취",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4e39cefa-a1c2-5760-ad34-5f14037e1dce",
+      "sourceCardId": "08cb6225-03bd-5883-993a-8a04c3f98fc3",
+      "targetCardId": "58017afb-befe-54cd-9c72-1ea1c42f8f5a",
+      "category": "structural",
+      "body": "마사초는 브란카치 예배당을 장식했다. 출처: W. Hunt, Italy, 제6장, 5023–5027행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "장식",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6860e985-97b4-5310-ae52-98f443cde8ba",
+      "sourceCardId": "d1223947-ce50-5244-b4e0-2add030feb10",
+      "targetCardId": "a5ef3b07-7727-5ae1-bd24-b1aaab02d4f8",
+      "category": "structural",
+      "body": "니콜라오 5세는 바티칸 궁전을 재건했다. 출처: W. Hunt, Italy, 제6장, 4891–4896행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "재건",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "cb065df0-8ea8-5cfe-8957-0ed891ea186c",
+      "sourceCardId": "c1bef166-f1ea-5ccf-a15c-722b86b72d3a",
+      "targetCardId": "08934489-7278-5eac-94e7-c76e13a78ad3",
+      "category": "structural",
+      "body": "도나토 브라만테는 새 성 베드로 대성당을 설계했다. 출처: W. Hunt, Italy, 제8장, 원문 6649–6656행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "설계",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a54fe788-836e-5bcb-a8c4-293b01706e90",
+      "sourceCardId": "dc37396d-1f6d-5af1-9098-77e980775c88",
+      "targetCardId": "1f4b195c-542c-5ede-b99e-015989f4b24a",
+      "category": "structural",
+      "body": "미켈란젤로는 시스티나 예배당의 프레스코를 그렸다. 출처: W. Hunt, Italy, 제8장, 원문 6669–6674행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "프레스코 제작",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c50bbce7-6699-550f-a0d1-a3bfe5946549",
+      "sourceCardId": "623b87e7-6704-58c6-b7e1-6db20446556b",
+      "targetCardId": "a9135094-1530-58d2-a58d-416ead568555",
+      "category": "structural",
+      "body": "레오나르도 다 빈치는 최후의 만찬을 그렸다. 출처: W. Hunt, Italy, 제8장, 원문 6678–6682행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "제작",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7cae55e9-3685-5e00-b53b-09edc81c62e9",
+      "sourceCardId": "f7b4bd82-8486-5a33-a68d-833d8cbee543",
+      "targetCardId": "59b028d9-4a97-5113-aeac-8429be2c9edb",
+      "category": "structural",
+      "body": "라파엘로는 바티칸 서명의 방을 그림으로 장식했다. 출처: W. Hunt, Italy, 제8장, 원문 6688–6691행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "장식",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b22d2634-6793-5ce0-b4e1-e3bdcb507633",
+      "sourceCardId": "bf2a8a56-5541-5d4c-8264-4fcfe2da4532",
+      "targetCardId": "23cbd5b1-78d9-5f2a-80f7-8563913c2fd9",
+      "category": "structural",
+      "body": "로베르 드 라 마르크는 흑색 군단을 지휘했다. 출처: W. Hunt, Italy, 제8장, 원문 6818–6822행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "91095bbb-9bc7-503f-87c3-e74568fa277e",
+      "sourceCardId": "36a7b746-0d81-5c58-9e7d-a9078537ac56",
+      "targetCardId": "b743720d-9c1b-5248-a25c-a8a246d44e3b",
+      "category": "structural",
+      "body": "보니베 원수는 프로스페로 콜론나의 기동에 밀렸다. 출처: W. Hunt, Italy, 제8장, 원문 7035–7046행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "대립",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fe2435a6-0656-56ce-abf0-1fa1ef1dd8b3",
+      "sourceCardId": "8ea4600b-c733-5a5f-9e0b-1b1484a652f3",
+      "targetCardId": "dc074af3-4689-5fb1-aa38-e5766b37c6b6",
+      "category": "structural",
+      "body": "교황 클레멘스 7세는 하드리아노 6세의 뒤를 이었다. 출처: W. Hunt, Italy, 제8장, 원문 7045–7063행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "뒤를 이음",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "23120d0c-026a-5c3c-866c-1ce30caa6ce7",
+      "sourceCardId": "4778704e-6dd0-58bb-b04a-0e8e59a6d226",
+      "targetCardId": "034bbdf1-9ad1-5258-93b6-94a7accd7140",
+      "category": "structural",
+      "body": "조반니 데 메디치는 자신의 흑색 군단을 지휘했다. 출처: W. Hunt, Italy, 제8장, 원문 7124–7130행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f5946c76-fe96-55f8-97ac-d105ea17d1cd",
+      "sourceCardId": "f3649e41-bed8-5a99-9277-6c44eb2709f2",
+      "targetCardId": "452998bb-fb46-5eec-95ef-922c364a0dd3",
+      "category": "structural",
+      "body": "지롤라모 모로네는 페스카라 후작에게 스페인 축출 가담을 제안했다. 출처: W. Hunt, Italy, 제8장, 원문 7174–7187행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "제안",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7825112b-662d-5c84-af7e-dea7a3e285c8",
+      "sourceCardId": "5c2c9d8e-a455-5e4d-9461-c4526913fe89",
+      "targetCardId": "c836249d-95f7-5d39-b8c0-d4d86eb83d3b",
+      "category": "structural",
+      "body": "마르게리타는 알레산드로 데 메디치의 미망인이었다. 출처: William Hunt, History of Italy (Macmillan, 1883), 제9장, 7586–7589행, 7849–7852행, 7976–7979행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "미망인",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1103637e-87b1-51ea-97e3-f44404364484",
+      "sourceCardId": "2aad8e9e-f71b-58a9-bd86-fe5598f82a2a",
+      "targetCardId": "35b1d71a-de99-57d0-8c22-cd500a228fae",
+      "category": "structural",
+      "body": "라파엘로 지롤라미는 프란체스코 카르두치의 뒤를 이어 곤팔로니에레가 되었다. 출처: William Hunt, History of Italy (Macmillan, 1883), 제9장, 7689–7694행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "후임",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c37c8b3a-cb0c-544f-9022-49e1bcd7a83c",
+      "sourceCardId": "951c8af5-de03-563a-9d87-3e5222ab9067",
+      "targetCardId": "20a5c94b-2dcc-5a42-b750-d7ee43dec15c",
+      "category": "structural",
+      "body": "파브리치오 마라말도는 페루치오가 지키는 볼테라를 포위했다. 출처: William Hunt, History of Italy (Macmillan, 1883), 제9장, 7725–7730행, 7764–7770행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "볼테라 포위",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a7e77f99-a0c8-58ea-b2b9-8462387c45c6",
+      "sourceCardId": "d7e2e32f-d775-5ffd-beab-8721e3b25776",
+      "targetCardId": "20a5c94b-2dcc-5a42-b750-d7ee43dec15c",
+      "category": "structural",
+      "body": "잔파올로 오르시니는 가비나나 전투에서 페루치오와 함께 제국군에 맞섰다. 출처: William Hunt, History of Italy (Macmillan, 1883), 제9장, 7761–7766행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "함께 교전",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7d4ac1be-348f-518a-a21c-131f9b24e9a3",
+      "sourceCardId": "c56a566b-55d0-5208-b533-b2a0ae0c6e97",
+      "targetCardId": "cb8d60bd-32a3-52f6-8910-715442a7d52e",
+      "category": "structural",
+      "body": "바오로 3세는 피에르루이지 파르네세의 아버지였다. 출처: William Hunt, History of Italy (Macmillan, 1883), 제9장, 7909–7911행, 7919–7925행, 7961–7966행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d46f595d-d911-5961-846a-309f873aaa86",
+      "sourceCardId": "e4c87843-f624-5d72-acc1-a0a305e11326",
+      "targetCardId": "c6652114-fbe8-5fc0-9b12-e33cd883cad5",
+      "category": "structural",
+      "body": "페르디난도 데 메디치는 코시모 2세의 뒤를 이었다. 출처: William Hunt, History of Italy (Macmillan, 1883), 제9장, 7886–7891행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "후계자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "77486101-42bb-5a30-a12c-b1983f5ced24",
+      "sourceCardId": "c79a2f68-eefd-5f2b-85b4-67c540519358",
+      "targetCardId": "c56a566b-55d0-5208-b533-b2a0ae0c6e97",
+      "category": "structural",
+      "body": "교황 율리오 3세는 바오로 3세를 계승했다. 출처: William Hunt, History of Italy (Macmillan, 1883), 제9장, 7970–7976행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "계승",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "79b2b41c-ba2b-5a09-aeff-708d6a0e363c",
+      "sourceCardId": "d350012b-6fe7-5992-a074-937e378988f9",
+      "targetCardId": "5c2c9d8e-a455-5e4d-9461-c4526913fe89",
+      "category": "structural",
+      "body": "알레산드로 파르네세는 마르게리타의 아들이었다. 출처: William Hunt, History of Italy (Macmillan, 1883), 제9장, 7977–7990행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9305921f-a1d5-58dc-888e-c7354279262e",
+      "sourceCardId": "5056331a-dd0f-50be-b1a1-90797a451a72",
+      "targetCardId": "d350012b-6fe7-5992-a074-937e378988f9",
+      "category": "structural",
+      "body": "펠리페 2세는 알레산드로 파르네세를 네덜란드 총독으로 임명했다. 출처: William Hunt, History of Italy (Macmillan, 1883), 제9장, 7974–7982행, 8009–8011행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "총독 임명",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9959de59-ad5d-5e41-87be-7594344ddd51",
+      "sourceCardId": "ccf341d3-e4ee-5920-b56b-148853b43953",
+      "targetCardId": "f6828846-eaaf-569e-ae58-676eca5d4dbc",
+      "category": "structural",
+      "body": "마리냐노 후작은 코시모 1세에게 고용되었다. 출처: William Hunt, History of Italy (Macmillan, 1883), 제9장, 8056–8063행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "고용됨",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f40fad66-02ce-5933-815d-dd996eef3e67",
+      "sourceCardId": "20a5c94b-2dcc-5a42-b750-d7ee43dec15c",
+      "targetCardId": "bf20a95d-e712-5609-9eca-77bedfafb58a",
+      "category": "structural",
+      "body": "프란체스코 페루치오는 토스카나 검은 부대에서 직책을 맡았다. 출처: William Hunt, History of Italy (Macmillan, 1883), 제9장, 7680–7684행, 7706–7709행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "소속",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "caf76f7a-c57b-527b-a72c-37788cc183d5",
+      "sourceCardId": "cf6a15e9-8cad-5711-a9b1-db9753bfad49",
+      "targetCardId": "1a96b5b3-0336-595c-ac89-7e803245b952",
+      "category": "structural",
+      "body": "스테파노 콜론나는 피렌체 산미니아토 요새를 지휘했다. 출처: William Hunt, History of Italy (Macmillan, 1883), 제9장, 7694–7699행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b7a03d21-694c-530e-aa5c-0f80ecfaa900",
+      "sourceCardId": "d3d12094-778b-5f28-994c-cf57e20926a1",
+      "targetCardId": "bbdff982-dbe8-5b80-b412-2500e41e629e",
+      "category": "structural",
+      "body": "바르바로사는 프랑스 함대를 도와 니차를 약탈했다. 출처: William Hunt, History of Italy (Macmillan, 1883), 제9장, 8011–8014행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "약탈",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0250dc0b-1598-5e10-9a2f-0c703a7e5643",
+      "sourceCardId": "d350012b-6fe7-5992-a074-937e378988f9",
+      "targetCardId": "486ab65b-c6dd-50d3-aa7b-b32704a64991",
+      "category": "structural",
+      "body": "알레산드로 파르네세는 안트베르펀을 함락했다. 출처: William Hunt, History of Italy (Macmillan, 1883), 제9장, 7977–7983행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "함락",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c429be18-3105-51cf-9d30-914c89063771",
+      "sourceCardId": "61fc9110-9afd-5ebb-8c64-ac84498f46b2",
+      "targetCardId": "ee938707-c683-5fe9-a48a-1b4a0d40beeb",
+      "category": "structural",
+      "body": "알바 공작은 기즈 공작이 북쪽으로 물러나게 했다. 출처: W. Hunt, 『Italy』, Macmillan 역사 교과서 판본, 제9장, 8175–8178행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "퇴각시킴",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5bfac343-97e6-561b-8cba-0c53ec5a2f79",
+      "sourceCardId": "3204caf5-1a33-54f9-b8b4-99792462865a",
+      "targetCardId": "95a6a504-df84-5445-820f-8a72ea1fa618",
+      "category": "structural",
+      "body": "이냐시오 로욜라는 예수회를 세웠다. 출처: W. Hunt, 『Italy』, Macmillan 역사 교과서 판본, 제9장, 8264–8268행, 8274–8277행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "설립",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0e907834-99ed-58e2-9e33-cfed19cd3b4e",
+      "sourceCardId": "6f52ce4d-2d0a-52aa-8b67-a5ee4ab0a796",
+      "targetCardId": "e5635581-906d-591a-9485-59cb958e84c5",
+      "category": "structural",
+      "body": "셀림 2세는 술탄 쉴레이만의 아들이었다. 출처: W. Hunt, 『Italy』, Macmillan 역사 교과서 판본, 제9장, 8414–8419행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3002f33c-b06b-544e-ae76-2075e7bb7fef",
+      "sourceCardId": "a60dccac-df3e-5b2a-8658-45ac65659540",
+      "targetCardId": "60f9f4e2-5590-55d4-9230-c8fe74d73478",
+      "category": "structural",
+      "body": "프로방스의 엘레오노르는 레몽 베랑제의 딸이다. 출처: W. Hunt, 『Italy』, Macmillan 역사 교과서 판본, 제9장, 8497–8506행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "딸",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ad81ef17-567b-5e8e-9dc7-559dfaf76370",
+      "sourceCardId": "a60dccac-df3e-5b2a-8658-45ac65659540",
+      "targetCardId": "1782d618-4262-55c4-bc34-37dcb2e967af",
+      "category": "structural",
+      "body": "엘레오노르는 잉글랜드의 헨리 3세와 결혼했다. 출처: W. Hunt, 『Italy』, Macmillan 역사 교과서 판본, 제9장, 8497–8506행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "결혼",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8688d044-3fd3-5627-bbbd-d6ddc961db76",
+      "sourceCardId": "baa93cc1-0ca8-5e02-9922-12cc167c8f0c",
+      "targetCardId": "60f9f4e2-5590-55d4-9230-c8fe74d73478",
+      "category": "structural",
+      "body": "마르그리트는 프로방스 백작 레몽 베랑제의 딸이었다. 출처: W. Hunt, 『Italy』, Macmillan 역사 교과서 판본, 제9장, 8497–8501행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "딸",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7824ef6b-c136-500e-9e5f-cbcedc8f0292",
+      "sourceCardId": "51bd5256-496d-5288-9cd3-df69086c5e29",
+      "targetCardId": "60f9f4e2-5590-55d4-9230-c8fe74d73478",
+      "category": "structural",
+      "body": "산치아는 프로방스 백작 레몽 베랑제의 딸이었다. 출처: W. Hunt, 『Italy』, Macmillan 역사 교과서 판본, 제9장, 8497–8503행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "딸",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3a9bb67c-54a5-541b-a2ca-9976b25b0ebc",
+      "sourceCardId": "0d2cb471-e31b-5cd9-a0fa-fb0d344332ca",
+      "targetCardId": "8c9e80ff-fa77-5b8c-8fba-629c15698834",
+      "category": "structural",
+      "body": "사보이 공작 루도비코는 아메데오 8세의 아들이었다. 출처: W. Hunt, 『Italy』, Macmillan 역사 교과서 판본, 제9장, 8585–8588행, 8594–8597행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ad54f410-d27b-5216-abc7-8b3288405580",
+      "sourceCardId": "0d2cb471-e31b-5cd9-a0fa-fb0d344332ca",
+      "targetCardId": "bd28dfd1-c991-54e4-a7a8-c3a4bb26fb00",
+      "category": "structural",
+      "body": "사보이 공작 루도비코는 키프로스의 안나와 결혼했다. 출처: W. Hunt, 『Italy』, Macmillan 역사 교과서 판본, 제9장, 8585–8588행, 8594–8597행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "결혼",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4beaf9cd-8891-59a7-8f35-afd0ee269a8e",
+      "sourceCardId": "f2b24b91-f7e7-5a08-953e-cfaa43419d09",
+      "targetCardId": "b6fe9720-a76c-5251-b37e-1e0d7c42f68b",
+      "category": "structural",
+      "body": "에마누엘레 필리베르토는 카를로 3세의 아들이었다. 출처: W. Hunt, 『Italy』, Macmillan 역사 교과서 판본, 제9장, 8646–8663행, 8675–8682행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e409bcb6-8f89-5b91-8d43-8a0f77ff4c83",
+      "sourceCardId": "aa5611bf-e1af-5755-9e5e-4052bcae3266",
+      "targetCardId": "1caee6b1-c90d-56e2-8bd3-0c9dcf09ed4e",
+      "category": "structural",
+      "body": "앙리 3세는 기즈 공작 앙리의 암살을 명령했다. 출처: William Hunt, Italy, 제2판, Macmillan, 1883, 제10장, 원문 8748–8754, 8761–8764행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "암살 명령",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4e2a9986-2726-55c4-8f30-56e5761038c8",
+      "sourceCardId": "9ec71027-ad1c-5519-a679-0757ca02a1ff",
+      "targetCardId": "793dfb9d-6cdc-5dde-97c9-702d996d221d",
+      "category": "structural",
+      "body": "페르디난도 곤차가는 프란체스코 곤차가의 동생이었다. 출처: William Hunt, Italy, 제2판, Macmillan, 1883, 제10장, 원문 8792–8795행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "동생",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e9303379-777a-5626-bb1c-7d56b4a0ba23",
+      "sourceCardId": "9d5ab977-e862-55e7-9f85-50977c7aa7e6",
+      "targetCardId": "35a36e2c-dd8c-5f6f-86ac-d6b5bd3f9aab",
+      "category": "structural",
+      "body": "펠리페 4세는 펠리페 3세의 뒤를 이었다. 출처: William Hunt, Italy, 제2판, Macmillan, 1883, 제10장, 원문 8806–8811, 9054–9056, 9070–9072행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "계승",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1c71a5c9-7c6c-5fa1-8485-9d45263dc777",
+      "sourceCardId": "948fac47-8df8-51b2-990b-e044a2b920fc",
+      "targetCardId": "dc7668f1-293b-5934-b6dd-40601249f51d",
+      "category": "structural",
+      "body": "체사레 데스테는 알폰소 데스테의 친족이자 상속자로 지명되었다. 출처: William Hunt, Italy, 제2판, Macmillan, 1883, 제10장, 원문 8845–8855행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "상속자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1d2d4c9d-16cb-506c-bb4c-a099473429be",
+      "sourceCardId": "81eae070-2990-5e45-9f11-d4630813de77",
+      "targetCardId": "0883773e-bee3-53e5-9750-5135833f2c0f",
+      "category": "structural",
+      "body": "식스토 5세는 그레고리오 13세의 뒤를 이었다. 출처: William Hunt, Italy, 제2판, Macmillan, 1883, 제10장, 원문 8879–8883행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "계승",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c3c7a12f-b4f2-5891-bb8d-8e9e09f168bf",
+      "sourceCardId": "1ff46d95-84ab-546d-9500-d5e0e9a28fc6",
+      "targetCardId": "56117904-f91f-5f74-aadc-a2895a47cc6c",
+      "category": "structural",
+      "body": "리슐리외는 루이 13세의 대신이었다. 출처: William Hunt, Italy, 제2판, Macmillan, 1883, 제10장, 원문 8812–8814, 9028–9032행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "대신",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0545d24c-eeaa-564d-bceb-a5487e17cc99",
+      "sourceCardId": "72dde25c-7772-5849-9851-7b96d82aa5ce",
+      "targetCardId": "1d95d9ce-7675-51d7-9de0-25f8c02473d3",
+      "category": "structural",
+      "body": "아르코스 공작은 마사니엘로를 암살하게 했다. 출처: William Hunt, Italy, 제2판, Macmillan, 1883, 제10장, 원문 9059–9069행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "암살",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5ebed64c-1398-5b16-9622-653c9a5204dc",
+      "sourceCardId": "d1775bd9-845b-5755-a5fb-ebd8c1ab4d7a",
+      "targetCardId": "05d1aa90-6a7f-547e-9827-231e73fb424e",
+      "category": "structural",
+      "body": "젠나로 안네세는 나폴리 반란기의 기즈 공작에게 도움을 청했다. 출처: William Hunt, Italy, 제2판, Macmillan, 1883, 제10장, 원문 9083–9092행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "지원 요청",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1bc319af-3cad-5601-b89a-cfa6b28a9fca",
+      "sourceCardId": "ee575402-8f6e-5f4e-84ad-6d1bbb3a2144",
+      "targetCardId": "22e0ac5d-dd4a-5d7d-bbfe-24ffe2dba43a",
+      "category": "structural",
+      "body": "스페인 왕 펠리페 5세는 루이 14세의 손자였다. 출처: William Hunt, Italy, 제2판, Macmillan, 1883, 제10장, 원문 9131–9135, 9174–9193행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "손자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3d356163-3e65-5c95-85b1-3eeb79e39e5b",
+      "sourceCardId": "41a82da3-d3a3-5a44-bd65-f4cf93dde435",
+      "targetCardId": "9d5ab977-e862-55e7-9f85-50977c7aa7e6",
+      "category": "structural",
+      "body": "마리아 테레사는 펠리페 4세의 딸이었다. 출처: William Hunt, Italy, 제2판, Macmillan, 1883, 제10장, 원문 9131–9135행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "딸",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "cc9a5bd9-7b7b-5e19-8837-f5d0f3627aae",
+      "sourceCardId": "ee575402-8f6e-5f4e-84ad-6d1bbb3a2144",
+      "targetCardId": "e9104345-22b6-58f3-a178-e3457e5923fa",
+      "category": "structural",
+      "body": "펠리페 5세는 엘리자베타 파르네세와 결혼했다. 출처: William Hunt, Italy, 제2판, Macmillan, 1883, 제10장, 원문 9131–9135, 9174–9193행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "결혼",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f247173d-7e56-5dd4-b063-b00e589097ff",
+      "sourceCardId": "294049da-3306-54b5-8847-49db5b2ca4bb",
+      "targetCardId": "e9104345-22b6-58f3-a178-e3457e5923fa",
+      "category": "structural",
+      "body": "돈 카를로스는 엘리자베타 파르네세의 아들이었다. 출처: William Hunt, Italy, 제2판, Macmillan, 1883, 제10장, 원문 9189–9190, 9211–9213행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e3bf9a2b-3131-53f0-aa60-71fb90f1d0f3",
+      "sourceCardId": "f8f51720-7893-5a45-b90c-ca0f7f192aee",
+      "targetCardId": "9e590ed9-76a4-5170-89a7-02135ed60f0b",
+      "category": "structural",
+      "body": "안나 메디치는 잔 가스토네의 누이였다. 출처: William Hunt, Italy, 제2판, Macmillan, 1883, 제10장, 원문 9181–9187행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "누이",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "59dedb67-c2fe-5332-84bb-8c41ca3f28f0",
+      "sourceCardId": "0883773e-bee3-53e5-9750-5135833f2c0f",
+      "targetCardId": "99710c68-13d3-5511-892f-eb0871383ac1",
+      "category": "structural",
+      "body": "그레고리오 13세는 안코나에 무거운 관세를 부과했다. 출처: William Hunt, Italy, 제2판, Macmillan, 1883, 제10장, 원문 8870–8873행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "관세 부과",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5095da3f-4890-514e-a627-f55df805b22f",
+      "sourceCardId": "f014ded0-1f43-5549-85f1-fbb577f2cf87",
+      "targetCardId": "0ffb868b-ed0e-5b99-ab2d-44ee4b233611",
+      "category": "structural",
+      "body": "베네치아 장군 모로시니는 펠로폰네소스를 정복했다. 출처: William Hunt, Italy, 제2판, Macmillan, 1883, 제10장, 원문 8983–8987행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "정복",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0c81dd00-b481-5707-a787-9c1feb949d50",
+      "sourceCardId": "dbd184af-8887-5eb7-b00e-af4f7247fafd",
+      "targetCardId": "bf09d5c2-3419-58c1-b5d3-96ce2b49ecbc",
+      "category": "structural",
+      "body": "알도 마누치오의 이름으로 알려진 활자가 베네치아 인쇄업의 사례로 소개된다. 출처: William Hunt, Italy, 제2판, Macmillan, 1883, 제10장, 원문 8931–8935행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "이름이 알려진 활자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2ce43839-fe4b-5eb5-bbc7-031433d3b0a7",
+      "sourceCardId": "72dde25c-7772-5849-9851-7b96d82aa5ce",
+      "targetCardId": "fe6f47e3-b633-539f-9a7c-f073ba1eba8e",
+      "category": "structural",
+      "body": "아르코스 공작은 나폴리 봉기 때 산텔모 성에 피신했다. 출처: William Hunt, Italy, 제2판, Macmillan, 1883, 제10장, 원문 9059–9062행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "피신",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a15e380d-5ce6-53bd-bc28-8aa4012612a2",
+      "sourceCardId": "1d95d9ce-7675-51d7-9de0-25f8c02473d3",
+      "targetCardId": "59b9725a-b201-5738-948a-9e89e3c24bc7",
+      "category": "structural",
+      "body": "마사니엘로는 아말피 출신이었다. 출처: William Hunt, Italy, 제2판, Macmillan, 1883, 제10장, 원문 9056–9060행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "출생지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b778c10c-9c09-5f89-ba97-d4e320a7e2d6",
+      "sourceCardId": "30db6668-ea59-5cc6-8919-9371cc6b101e",
+      "targetCardId": "5d9f4978-17b4-59f7-8ddf-9b2f01896f46",
+      "category": "structural",
+      "body": "로렌의 프란체스코는 마리아 테레지아와 결혼했다. 출처: W. Hunt, Italy, Macmillan 역사 교과서 판본, 제10장, 원문 9264–9267행. https://archive.org/details/historyitaly00huntgoog",
+      "label": "결혼",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6b9aea25-407a-5e7c-a124-39995c433e7f",
+      "sourceCardId": "a9b69f73-cb31-5507-957a-a579e2c6db4b",
+      "targetCardId": "30db6668-ea59-5cc6-8919-9371cc6b101e",
+      "category": "structural",
+      "body": "피에트로 레오폴도는 프란체스코 1세의 셋째 아들이었다. 출처: W. Hunt, Italy, Macmillan 역사 교과서 판본, 제10장, 원문 9383–9392행. https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d81ec185-9932-5a44-b928-8a6582394cf7",
+      "sourceCardId": "871c7351-291d-53f6-807b-9151e7355cf3",
+      "targetCardId": "a9b69f73-cb31-5507-957a-a579e2c6db4b",
+      "category": "structural",
+      "body": "토스카나의 페르디난도는 레오폴도의 둘째 아들이었다. 출처: W. Hunt, Italy, Macmillan 역사 교과서 판본, 제10장, 원문 9408–9410행. https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c5256bf7-478b-5abb-9e01-b779826563ad",
+      "sourceCardId": "5c4faf21-07c1-50f7-b39f-98eb0a8ac10f",
+      "targetCardId": "56142a0a-1887-514f-8fec-08e251ab5b02",
+      "category": "structural",
+      "body": "알레산드로 볼타는 볼타 전지를 발명했다. 출처: W. Hunt, Italy, Macmillan 역사 교과서 판본, 제10장, 원문 9453–9455행. https://archive.org/details/historyitaly00huntgoog",
+      "label": "발명",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "229f283d-f894-5113-b710-ad2196b16199",
+      "sourceCardId": "06ef1136-6c4a-594d-ade2-32c8b5bbaaee",
+      "targetCardId": "72eb8bf7-77c3-5c8b-a249-314e5826df97",
+      "category": "structural",
+      "body": "엔리코 단돌로는 산마르코의 청동 말을 콘스탄티노폴리스에서 가져왔다고 원저는 설명한다. 출처: W. Hunt, Italy, Macmillan 역사 교과서 판본, 제10장, 원문 9540–9544행. https://archive.org/details/historyitaly00huntgoog",
+      "label": "반입",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5ca089e2-e3a1-5402-b8d5-385aee077fdb",
+      "sourceCardId": "472a82e7-e1d4-50c3-8c30-9f6a7d81ad04",
+      "targetCardId": "acd9e5e2-eb73-5d4b-9c98-83d5695dbc81",
+      "category": "structural",
+      "body": "외젠 드 보아르네는 나폴레옹 보나파르트의 의붓아들이었다. 출처: W. Hunt, Italy, Macmillan 역사 교과서 판본, 제10장, 원문 9590–9594행. https://archive.org/details/historyitaly00huntgoog",
+      "label": "의붓아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "be4b11c3-7ba5-575e-b037-5c8dbb4faa16",
+      "sourceCardId": "8f57edab-8c68-57ba-85be-cf2706565137",
+      "targetCardId": "acd9e5e2-eb73-5d4b-9c98-83d5695dbc81",
+      "category": "structural",
+      "body": "조제프 보나파르트는 나폴레옹의 형제였다. 출처: W. Hunt, Italy, Macmillan 역사 교과서 판본, 제10장, 원문 9600–9611행. https://archive.org/details/historyitaly00huntgoog",
+      "label": "형제",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "19275234-e9da-5327-99d9-f26d5affea6d",
+      "sourceCardId": "5e54bef5-e1bb-515d-a4d3-3e5b36ee1eef",
+      "targetCardId": "8f57edab-8c68-57ba-85be-cf2706565137",
+      "category": "structural",
+      "body": "조아키노 무라는 조제프의 뒤를 이어 나폴리 왕이 되었다. 출처: W. Hunt, Italy, Macmillan 역사 교과서 판본, 제10장, 원문 9610–9611행. https://archive.org/details/historyitaly00huntgoog",
+      "label": "왕위 계승",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "985aa863-9dbb-53d8-bcee-26b0ae0aa3bf",
+      "sourceCardId": "b6bbb6d4-e924-598d-9f9a-3b8e9f3878d1",
+      "targetCardId": "acd9e5e2-eb73-5d4b-9c98-83d5695dbc81",
+      "category": "structural",
+      "body": "엘리자 보나파르트는 나폴레옹의 여동생이었다. 출처: W. Hunt, Italy, Macmillan 역사 교과서 판본, 제10장, 원문 9655–9660행. https://archive.org/details/historyitaly00huntgoog",
+      "label": "여동생",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e91c9522-9013-5126-837d-e1c558caaff3",
+      "sourceCardId": "b1a3f920-2a02-5cca-a8d3-8c4e9f6c23d6",
+      "targetCardId": "acd9e5e2-eb73-5d4b-9c98-83d5695dbc81",
+      "category": "structural",
+      "body": "마리아 루이사는 나폴레옹 보나파르트의 아내였다. 출처: W. Hunt, Italy, Macmillan 역사 교과서 판본, 제10장, 원문 9739–9744행. https://archive.org/details/historyitaly00huntgoog",
+      "label": "아내",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "14670261-3d3e-5720-a984-4377c8ec9567",
+      "sourceCardId": "9c7384e6-4994-523d-aec3-059dc6ad4de6",
+      "targetCardId": "94f1d60e-4158-5edf-a41e-b570043498af",
+      "category": "structural",
+      "body": "파올리 장군은 코르시카에서 봉기를 이끌었다. 출처: W. Hunt, Italy, Macmillan 역사 교과서 판본, 제10장, 원문 9378–9382행. https://archive.org/details/historyitaly00huntgoog",
+      "label": "봉기 지도",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b3c85cd9-0587-5014-899b-1e9ce318953b",
+      "sourceCardId": "7281f67c-ddfe-5d6f-8bd3-bedb062eb5d4",
+      "targetCardId": "b6bbb6d4-e924-598d-9f9a-3b8e9f3878d1",
+      "category": "structural",
+      "body": "바초키 대령은 엘리자 보나파르트의 남편이었다. 출처: W. Hunt, Italy, Macmillan 역사 교과서 판본, 제10장, 원문 9655–9659행. https://archive.org/details/historyitaly00huntgoog",
+      "label": "남편",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "31a2c52a-f79a-5b66-8d53-6a6a4fa1fbb0",
+      "sourceCardId": "8607e0d6-5b83-503f-9a1c-9d4131ee6eac",
+      "targetCardId": "514a6ce8-3fc4-5d30-9323-51847a89890e",
+      "category": "structural",
+      "body": "피에트로 잔노네는 나폴리 왕국사를 썼다. 출처: W. Hunt, Italy, Macmillan 역사 교과서 판본, 제10장, 원문 9430–9435행. https://archive.org/details/historyitaly00huntgoog",
+      "label": "저자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2e6a4369-2996-5be5-a1c2-f14a9f0d0856",
+      "sourceCardId": "e5cc01e5-78c5-5b4f-a44d-55cc2c844ec7",
+      "targetCardId": "8a929ebe-b9c4-5601-af84-affe6f2b67c3",
+      "category": "structural",
+      "body": "무라토리는 이탈리아 연대기를 편찬했다. 출처: W. Hunt, Italy, Macmillan 역사 교과서 판본, 제10장, 원문 9441–9442행. https://archive.org/details/historyitaly00huntgoog",
+      "label": "저자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0abf66e1-1298-53cf-9f85-c67fd34ae0ce",
+      "sourceCardId": "a71d6e16-415b-58da-b424-17f2ca3f6a9c",
+      "targetCardId": "1f401012-c2d2-5167-925b-7d2f76a58b71",
+      "category": "structural",
+      "body": "카를로 펠리체는 형 비토리오 에마누엘레 1세의 왕위를 이었다. 출처: William Hunt, History of Italy, 제2판(1883), 제11장 1절, 9884–9904행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "왕위 계승",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6789d673-990a-5997-93aa-4eaf756cc31e",
+      "sourceCardId": "2caa2123-44b4-5f8c-8460-2c4f8caee90a",
+      "targetCardId": "6618240d-1f19-534d-af38-16aa575d2eab",
+      "category": "structural",
+      "body": "모데나 공작 프란체스코는 치로 메노티를 체포하고 처형했다. 출처: William Hunt, History of Italy, 제2판(1883), 제11장 2절, 9922–9943행, 9954–9957행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "체포와 처형",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "17988454-517f-5965-ab21-74261762aad7",
+      "sourceCardId": "242d6c4c-07fa-52bc-98a9-377170a2de51",
+      "targetCardId": "af944353-c964-5639-8add-af513d55001c",
+      "category": "structural",
+      "body": "반디에라 형제는 반디에라 제독의 두 아들이었다. 출처: William Hunt, History of Italy, 제2판(1883), 제11장 3절, 10041–10045행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3f73e5a4-21e2-55bb-9e30-134fd19f3340",
+      "sourceCardId": "d00c62c1-ef8a-5d04-bbee-da663d442bb3",
+      "targetCardId": "17bf3a9a-8a43-5963-be7a-3332732dd69f",
+      "category": "structural",
+      "body": "체사레 발보는 프로스페로 발보의 아들이었다. 출처: William Hunt, History of Italy, 제2판(1883), 제11장 4절, 10061–10065행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2234c205-d306-5f93-8fd9-9364eccc94d5",
+      "sourceCardId": "79b98e6f-4026-54b2-b7a3-fb68bf113408",
+      "targetCardId": "9157ec87-3c0b-538e-afe6-cbc008a11f9d",
+      "category": "structural",
+      "body": "토스카나 대공 레오폴도 2세는 페르디난도 3세의 아들이었다. 출처: William Hunt, History of Italy, 제2판(1883), 제11장 4절, 10079–10082행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a2412b80-795b-5891-9c9b-242322c54028",
+      "sourceCardId": "8fdd6308-78ae-5198-ab32-756b6b5eca0d",
+      "targetCardId": "488b60da-3969-55d0-af7a-8870f22f8611",
+      "category": "structural",
+      "body": "지노 카포니는 주세페 주스티의 친구였다. 출처: William Hunt, History of Italy, 제2판(1883), 제11장 4절, 7절, 10100–10102행, 10299–10301행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "친구",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "62ca1416-8555-50b2-adc7-b7a4b802d664",
+      "sourceCardId": "d5c0bbda-d02f-542d-a13e-7b028952174e",
+      "targetCardId": "ffe2dfaf-1254-51bc-bbb6-3908823f338c",
+      "category": "structural",
+      "body": "몬타넬리와 게라치는 대공에게 제헌의회 소집 승인을 요구했다. 출처: William Hunt, History of Italy, 제2판(1883), 제11장 7절, 10299–10303행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "공동 요구",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "421787a7-e99f-57b5-981c-beb3b67de106",
+      "sourceCardId": "13b8364c-15d4-5887-a7a5-bddda5f6952d",
+      "targetCardId": "8f93928a-9fac-521f-862a-bbabb838629e",
+      "category": "structural",
+      "body": "우디노 장군은 레셉스가 체결한 휴전의 권한을 부정했다. 출처: William Hunt, History of Italy, 제2판(1883), 제11장 7절, 10348–10365행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "휴전 권한 부정",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3a2472e7-a239-550e-8046-3642b579ba00",
+      "sourceCardId": "b2ca7fad-a061-5da1-909d-88032468fbf1",
+      "targetCardId": "617d8213-1ecf-5d45-8053-89121378eb7c",
+      "category": "structural",
+      "body": "나폴레옹 조제프는 사보이아의 클로틸데와 결혼했다. 출처: William Hunt, History of Italy, 제2판(1883), 제11장 9절, 10511–10513행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "결혼",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "27020fbc-48aa-56c0-9e0a-395c12903567",
+      "sourceCardId": "2e5b5dcc-25ad-5fa4-930e-03bc4897a93b",
+      "targetCardId": "12f73127-8ff9-5e30-a9de-9c218fc1781d",
+      "category": "structural",
+      "body": "프랑스 황제 나폴레옹과 프란츠 요제프는 이탈리아 연방안에 합의했다. 출처: William Hunt, History of Italy, 제2판(1883), 제11장 9절, 10544–10547행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "빌라프랑카 합의",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8e78b005-87ad-57f8-919b-bc50ec91dabc",
+      "sourceCardId": "d00c62c1-ef8a-5d04-bbee-da663d442bb3",
+      "targetCardId": "15cf8c2f-8993-5a9a-aea3-7051993795b1",
+      "category": "structural",
+      "body": "체사레 발보는 이탈리아의 희망을 썼다. 출처: William Hunt, History of Italy, 제2판(1883), 제11장 4절, 10061–10065행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "저자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b403e71b-b8c8-58a1-8d2a-4a51a8dd0aed",
+      "sourceCardId": "5844a095-ec48-5cea-b1c6-e3807556b513",
+      "targetCardId": "68da7cbb-35b9-5b74-b562-01b4cf049151",
+      "category": "structural",
+      "body": "조베르티는 프리마토를 썼다. 출처: William Hunt, History of Italy, 제2판(1883), 제11장 4절, 10071–10076행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "저자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "16321be4-903a-5d5e-b82c-f1dcf39f56f5",
+      "sourceCardId": "3b145829-16b1-5a61-b091-1a1c227919c8",
+      "targetCardId": "e348ed30-accb-537b-886a-596f5a419ed9",
+      "category": "structural",
+      "body": "알레산드로 만초니는 소설 약혼자들을 썼다. 출처: William Hunt, History of Italy, 제2판(1883), 제11장 4절, 10102–10114행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "저자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9a3d5be2-73a1-531d-9512-d3dd7985e48d",
+      "sourceCardId": "552e3349-68a4-551d-99d2-5cf2b5d7e0a5",
+      "targetCardId": "623f1f4e-3f5d-553d-aec7-0c1ed2842e09",
+      "category": "structural",
+      "body": "라데츠키의 군대는 쿠스토차에서 카를로 알베르토의 군대를 격파했다. 출처: William Hunt, History of Italy, 제2판(1883), 제11장 6절, 10242–10246행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "격파",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7b33b12c-51c1-59d3-8d63-c108f3a7dcb2",
+      "sourceCardId": "1a78758b-a70a-56cf-acb4-6f348ca10893",
+      "targetCardId": "ce586038-dd73-5e03-9d77-4617eba771c8",
+      "category": "structural",
+      "body": "라 마르모라 장군은 1849년 제노바 봉기를 진압했다. 출처: William Hunt, History of Italy, 제2판(1883), 제11장 8절, 10413–10420행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "진압",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "edfaa3a0-7961-5aa2-922e-bddbe9d0e29a",
+      "sourceCardId": "1a78758b-a70a-56cf-acb4-6f348ca10893",
+      "targetCardId": "2275fc4a-5953-5d6b-bf76-5ecede4ba315",
+      "category": "structural",
+      "body": "라 마르모라가 지휘한 사르데냐군이 체르나야 전투에 참가했다. 출처: William Hunt, History of Italy, 제2판(1883), 제11장 8절, 10480–10489행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "사르데냐군 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e558a496-85f0-5251-8561-12a41c667bf8",
+      "sourceCardId": "f216cecd-202b-53cf-bf71-3eebb1c8a36c",
+      "targetCardId": "11502c63-f15b-51c9-a400-2b993565f69d",
+      "category": "structural",
+      "body": "라모리시에르는 카스텔피다르도에서 교황의 용병대를 지휘했다. 출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 10693–10703행. https://archive.org/details/historyitaly00huntgoog",
+      "label": "교황 용병대 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "75f591c4-90ce-57a5-8e0a-f6f159b9a028",
+      "sourceCardId": "caf29174-36a1-5b2f-9aed-86ea31903d37",
+      "targetCardId": "0afb13ef-b68d-5ee6-a1f3-4066eb1e7342",
+      "category": "structural",
+      "body": "다니엘레 마닌은 베네치아 임시정부의 수장이 되었다. 출처: William Hunt, History of Italy, 제2판(1883), 제11장 6절, 10209–10215행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "임시정부 수장",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0212d66d-acfd-5b21-a3cb-3c2dfe6b4a29",
+      "sourceCardId": "c89e0b67-9690-5658-8dc1-97217ac00721",
+      "targetCardId": "6e8b7a6a-cb2c-5e6d-ab79-f583b2f8dff7",
+      "category": "structural",
+      "body": "라파엘레 카도르나 장군은 포르타 피아의 성벽을 통해 로마에 들어갔다. 출처: W. Hunt, Italy, Macmillan, 제2판, 1883, 제11장, 원문 11160–11166행. https://archive.org/details/historyitaly00huntgoog",
+      "label": "입성",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e8369ae7-4d7c-54d2-8dd8-45eb7e09f82b",
+      "sourceCardId": "19d6d92c-7e12-5356-89c2-903f6604799f",
+      "targetCardId": "7bd7bf8b-580c-57d1-beef-1f45178244f4",
+      "category": "structural",
+      "body": "저자는 티치아노를 베네치아 화파의 색채를 보여 주는 화가로 소개한다. 출처: William Hunt, History of Italy, 제2판(1883), 제8장, 원문 6717–6720행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "화파",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "286b611c-d6ae-54ca-8d19-4050396110cd",
+      "sourceCardId": "0bcc142c-be2b-55b6-87f3-3bdb1e6978a1",
+      "targetCardId": "7bd7bf8b-580c-57d1-beef-1f45178244f4",
+      "category": "structural",
+      "body": "저자는 틴토레토를 베네치아 화파의 색채를 보여 주는 화가로 소개한다. 출처: William Hunt, History of Italy, 제2판(1883), 제8장, 원문 6717–6720행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "화파",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "026a29a9-867a-5886-956f-350d410e145e",
+      "sourceCardId": "796c8dec-b35b-5f8e-b247-aa111cdd4fad",
+      "targetCardId": "7bd7bf8b-580c-57d1-beef-1f45178244f4",
+      "category": "structural",
+      "body": "저자는 파올로 베로네세를 베네치아 화파의 색채를 보여 주는 화가로 소개한다. 출처: William Hunt, History of Italy, 제2판(1883), 제8장, 원문 6717–6720행, https://archive.org/details/historyitaly00huntgoog",
+      "label": "화파",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ]
+}

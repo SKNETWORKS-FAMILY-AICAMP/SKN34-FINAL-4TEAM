@@ -1,0 +1,526 @@
+{
+  "genre": "norse_mythology",
+  "worldId": "cb459e34-c38c-56f4-af2d-7bfdb3321b88",
+  "relationships": [
+    {
+      "id": "8b1336ec-ce0d-576a-941a-4640d78443db",
+      "sourceCardId": "46b7211c-7373-5179-98f1-b56b679f42fe",
+      "targetCardId": "acae503e-9190-59f8-8017-841777faadd2",
+      "category": "structural",
+      "body": "볼루스파에서 발드르는 오딘의 아들이다. 근거 카드 ID: acae503e-9190-59f8-8017-841777faadd2. 출처: https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.32",
+      "label": "부친",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e9199bb9-3579-56aa-8c96-f709bdb9384b",
+      "sourceCardId": "acae503e-9190-59f8-8017-841777faadd2",
+      "targetCardId": "90aa1c78-eadc-5861-8ae7-ac57a0e41a88",
+      "category": "structural",
+      "body": "볼루스파의 새 세계에서 두 인물은 같은 전당에 거주한다. 근거 카드 ID: 90aa1c78-eadc-5861-8ae7-ac57a0e41a88. 출처: https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.62",
+      "label": "새 전당 동거",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f150db5d-7370-54d3-8394-96a337e5da8e",
+      "sourceCardId": "094a60cf-70d4-5d06-b9c2-034582eb09c0",
+      "targetCardId": "5db62bf8-204d-5019-bf78-da5335ef61f7",
+      "category": "structural",
+      "body": "로카센나 후일담에서 시귄은 로키의 아내로 독을 받는다. 근거 카드 ID: 5db62bf8-204d-5019-bf78-da5335ef61f7. 출처: Lokasenna 산문 후일담 시귄과 지진 부분 https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+      "label": "부부",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "52f40553-a762-5055-825e-91288083a8a8",
+      "sourceCardId": "2b93bd30-dc18-5e1c-b8aa-b9d7f0b33689",
+      "targetCardId": "46b7211c-7373-5179-98f1-b56b679f42fe",
+      "category": "structural",
+      "body": "미미르는 샘에 숨겨진 오딘의 담보에서 벌꿀술을 마신다. 근거 카드 ID: 2b93bd30-dc18-5e1c-b8aa-b9d7f0b33689. 출처: https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.29",
+      "label": "담보와 샘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5a441e75-1fa9-5e54-ba0a-26a4512d70f3",
+      "sourceCardId": "4de16083-0297-5f65-bad0-1f24591989fd",
+      "targetCardId": "6b977aa7-02a0-5d7e-9d8c-43793e30d2e0",
+      "category": "structural",
+      "body": "볼루스파의 해와 달은 남매다. 근거 카드 ID: 4de16083-0297-5f65-bad0-1f24591989fd. 출처: https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.5",
+      "label": "남매",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "514cb1d2-36f6-5bbb-8910-e240a0c69667",
+      "sourceCardId": "7c0ef684-ee1b-50c4-bb8a-0fe69fc0e7c9",
+      "targetCardId": "e2087010-f83a-58f7-a855-22616b4daa40",
+      "category": "structural",
+      "body": "벨로스판 각주가 토르와 미드가르드의 뱀으로 풀이하는 인물들이 종말에 맞선다. 근거 카드 ID: fbad09ac-c4a4-597d-a740-c03986618778. 출처: https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.53",
+      "label": "종말의 대결",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "05379ea6-7c57-5c65-aa9e-85d651d9fb06",
+      "sourceCardId": "767e6d31-0092-5a47-90b9-3623a96fb0cc",
+      "targetCardId": "b4be78a3-6dac-5f1f-87c4-3ea44a2552a1",
+      "category": "structural",
+      "body": "비다르는 늑대를 죽여 아버지의 원수를 갚으며 벨로스판 각주는 늑대를 펜리르로 풀이한다. 근거 카드 ID: b4be78a3-6dac-5f1f-87c4-3ea44a2552a1. 출처: https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.40",
+      "label": "늑대와 대결",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "425556b8-569d-5ddb-b744-7de95864a4f2",
+      "sourceCardId": "15c67869-3973-5a97-840c-701e543ad1de",
+      "targetCardId": "93d63689-e0e2-575c-8019-4231862efa7a",
+      "category": "structural",
+      "body": "수르트가 올 때 벨리를 죽인 이는 그와 맞서기 위해 나아가며 벨로스판 각주는 이 별칭을 프레이르로 풀이한다. 근거 카드 ID: 93d63689-e0e2-575c-8019-4231862efa7a. 출처: https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.52",
+      "label": "종말의 대결",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "403de54e-6afb-508c-b253-188c655cbb6c",
+      "sourceCardId": "fed65744-b100-5ab4-903a-005bce6be8a9",
+      "targetCardId": "46b7211c-7373-5179-98f1-b56b679f42fe",
+      "category": "structural",
+      "body": "무녀는 오딘의 숨겨진 눈을 안다고 말한다. 근거 카드 ID: fed65744-b100-5ab4-903a-005bce6be8a9. 출처: https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.1",
+      "label": "오딘의 숨겨진 눈에 대한 예언",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e7e3e150-e22b-542c-afa5-d62cb5d3b2bf",
+      "sourceCardId": "e1827878-ca84-5d64-8d4f-bcb1327e1b6d",
+      "targetCardId": "6158f0ed-353c-57f3-8764-30e1b3be36da",
+      "category": "structural",
+      "body": "세 처녀는 나무 아래 거처에서 나와 운명을 정한다. 근거 카드 ID: e1827878-ca84-5d64-8d4f-bcb1327e1b6d. 출처: https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.20",
+      "label": "나무 아래 거처",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "af5ab0a6-5fba-5384-bfbc-6a30dfbd5800",
+      "sourceCardId": "f0f72c7a-e732-552c-bb15-7cbdf837dded",
+      "targetCardId": "ddf66394-92cb-569f-9f9c-a79f7d93fecf",
+      "category": "structural",
+      "body": "모트소그니르는 난쟁이들 가운데 가장 힘센 이로 나온다. 근거 카드 ID: ddf66394-92cb-569f-9f9c-a79f7d93fecf. 출처: https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#ch1.1",
+      "label": "난쟁이 종족",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "352073c1-6b3f-5180-946c-93348f8d3588",
+      "sourceCardId": "ddf66394-92cb-569f-9f9c-a79f7d93fecf",
+      "targetCardId": "afba3868-75c2-56ea-b524-e86a52cf5143",
+      "category": "structural",
+      "body": "난쟁이들은 두린의 말에 따라 사람을 닮은 형상을 만든다. 근거 카드 ID: ddf66394-92cb-569f-9f9c-a79f7d93fecf. 출처: https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#ch1.1",
+      "label": "두린의 말 따름",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8eac9296-6f17-5f70-a51f-a7184f5ba7b8",
+      "sourceCardId": "46b7211c-7373-5179-98f1-b56b679f42fe",
+      "targetCardId": "a1ccd9fb-9b3b-5c93-b32b-1298f401c8ac",
+      "category": "structural",
+      "body": "볼루스파에서 오딘은 아스크와 엠블라에게 영혼을 준다. 근거 카드 ID: a1ccd9fb-9b3b-5c93-b32b-1298f401c8ac. 출처: https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#ch1.1",
+      "label": "영혼 부여",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "681c08db-348c-5c7c-998b-a0895ec9975c",
+      "sourceCardId": "78fe3050-53e1-5491-af3a-ab37b721e74f",
+      "targetCardId": "a1ccd9fb-9b3b-5c93-b32b-1298f401c8ac",
+      "category": "structural",
+      "body": "볼루스파에서 회니르는 아스크와 엠블라에게 감각을, 로두르는 온기와 혈색을 준다. 근거 카드 ID: 78fe3050-53e1-5491-af3a-ab37b721e74f. 출처: https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#ch1.1",
+      "label": "감각과 온기 부여",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f3523994-4736-5774-8a21-63edbab1313c",
+      "sourceCardId": "5db62bf8-204d-5019-bf78-da5335ef61f7",
+      "targetCardId": "094a60cf-70d4-5d06-b9c2-034582eb09c0",
+      "category": "structural",
+      "body": "로카센나 후일담에서 시귄은 로키를 위해 그릇으로 독을 받는다. 근거 카드 ID: 5db62bf8-204d-5019-bf78-da5335ef61f7. 출처: Lokasenna 산문 후일담 시귄과 지진 부분 https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+      "label": "독을 받음",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a50d38ff-0be4-5faf-aab3-38c9e2aaffbd",
+      "sourceCardId": "46b7211c-7373-5179-98f1-b56b679f42fe",
+      "targetCardId": "5bf35b0c-547a-593f-ab1a-96129eebe79e",
+      "category": "structural",
+      "body": "볼루스파에서 오딘은 프리그의 기쁨으로 불린다. 근거 카드 ID: 5bf35b0c-547a-593f-ab1a-96129eebe79e. 출처: https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#ch1.1",
+      "label": "프리그의 기쁨",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8c141902-a771-5624-92c4-142a87904d70",
+      "sourceCardId": "dc602eb4-f57a-56ab-b682-ea59c5a98500",
+      "targetCardId": "e1b8da5d-9e94-5105-a624-3f51f4d60d34",
+      "category": "structural",
+      "body": "산문 에다에서 헤임달은 비프로스트 곁 히민비외르그에서 신들을 지킨다. 근거 카드 ID: e1b8da5d-9e94-5105-a624-3f51f4d60d34. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "다리 곁 수호",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f9ff5d96-d7c9-5e7f-81bf-d40838dfb0e3",
+      "sourceCardId": "7b6404a1-3450-5d90-b12d-890fe2f5910b",
+      "targetCardId": "1215890e-8e7f-579a-9b7a-fa10e8e0a46f",
+      "category": "structural",
+      "body": "산문 에다에서 프레이르와 프레이야는 뇨르드의 자녀다. 근거 카드 ID: 1215890e-8e7f-579a-9b7a-fa10e8e0a46f. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "프레이르·프레이야의 아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "57ae11b5-9015-5a59-a540-da43d8c368aa",
+      "sourceCardId": "63f697c8-05d7-51d0-a35d-a5193f4e15e0",
+      "targetCardId": "d2f82d31-2c6b-59f0-b86b-3475bf43f287",
+      "category": "structural",
+      "body": "산문 에다에서 이둔은 사과를 보관한다. 근거 카드 ID: d2f82d31-2c6b-59f0-b86b-3475bf43f287. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "이둔의 사과",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7d57ddc4-baff-5b62-8964-b1bee3ae6912",
+      "sourceCardId": "7c0ef684-ee1b-50c4-bb8a-0fe69fc0e7c9",
+      "targetCardId": "0795ccaa-0685-5373-89e5-4fd82de90467",
+      "category": "structural",
+      "body": "《시어법》에서 토르는 브로크에게 망치의 성질을 듣는다. 근거 카드 ID: 0795ccaa-0685-5373-89e5-4fd82de90467. 출처: https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l",
+      "label": "망치의 성질을 설명받음",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3077b23f-798c-5a45-91fc-0fa2eaf99fd1",
+      "sourceCardId": "094a60cf-70d4-5d06-b9c2-034582eb09c0",
+      "targetCardId": "46b7211c-7373-5179-98f1-b56b679f42fe",
+      "category": "structural",
+      "body": "시어법에서 로키는 난쟁이가 만든 궁니르를 오딘에게 준다. 근거 카드 ID: 45820560-967b-5dac-9234-795eb94b6ce4. 출처: https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l",
+      "label": "궁니르 수여",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1b081d54-b236-5ebd-be7f-37e6523eaccc",
+      "sourceCardId": "094a60cf-70d4-5d06-b9c2-034582eb09c0",
+      "targetCardId": "acae503e-9190-59f8-8017-841777faadd2",
+      "category": "structural",
+      "body": "길피의 속임수에서 로키는 겨우살이 무기를 만들어 회드르가 발드르를 쏘게 한다. 근거 카드 ID: 6627a137-3b24-5409-a380-4c4448575eeb. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "겨우살이 음모",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6ef44f5f-7db3-5847-a562-f0e92a6ddbfc",
+      "sourceCardId": "dc602eb4-f57a-56ab-b682-ea59c5a98500",
+      "targetCardId": "094a60cf-70d4-5d06-b9c2-034582eb09c0",
+      "category": "structural",
+      "body": "길피의 속임수에서 로키와 헤임달은 종말에 서로를 죽인다. 근거 카드 ID: 516cd9f8-637d-5708-a4e8-7e694e414cb1. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "종말의 싸움",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "59582a9b-b80e-5127-a396-be3a08678fd5",
+      "sourceCardId": "46b7211c-7373-5179-98f1-b56b679f42fe",
+      "targetCardId": "767e6d31-0092-5a47-90b9-3623a96fb0cc",
+      "category": "structural",
+      "body": "볼루스파에서 비다르는 늑대에게 오딘의 원수를 갚는 아들이다. 근거 카드 ID: fbad09ac-c4a4-597d-a740-c03986618778. 출처: https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.53",
+      "label": "부자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "343d417e-3b2c-56ae-a7c3-3d9d1932039f",
+      "sourceCardId": "7c0ef684-ee1b-50c4-bb8a-0fe69fc0e7c9",
+      "targetCardId": "9426a65d-6fe1-540e-958d-9861277c704f",
+      "category": "structural",
+      "body": "트림의 노래에서 토르는 신부로 가장해 망치를 되찾고 거인들을 친다. 근거 카드 ID: 9426a65d-6fe1-540e-958d-9861277c704f. 출처: https://www.heimskringla.no/wiki/%C3%9Erymskvi%C3%B0a",
+      "label": "망치 회수",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1126ff3c-15da-5f9c-a309-e22b8138606c",
+      "sourceCardId": "447d15df-4897-58c3-a295-21a6a83fe04e",
+      "targetCardId": "46b7211c-7373-5179-98f1-b56b679f42fe",
+      "category": "structural",
+      "body": "길피의 속임수에서 베스틀라는 오딘의 어머니다. 근거 카드 ID: 447d15df-4897-58c3-a295-21a6a83fe04e. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "066de456-dbe1-50c5-be4d-dfc497e3e575",
+      "sourceCardId": "46b7211c-7373-5179-98f1-b56b679f42fe",
+      "targetCardId": "9c006351-93f0-5148-bffc-4b48662bcf85",
+      "category": "structural",
+      "body": "길피의 속임수에서 슬레이프니르는 오딘의 여덟 다리 말이다. 근거 카드 ID: 9c006351-93f0-5148-bffc-4b48662bcf85. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "말",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "663774ec-91fd-50e5-86d5-f3ac96480248",
+      "sourceCardId": "78ceae08-3b98-5f10-b73b-d0be1e26a0eb",
+      "targetCardId": "7b6404a1-3450-5d90-b12d-890fe2f5910b",
+      "category": "structural",
+      "body": "스카디는 산을 원하고 뇨르드는 바닷가를 선호해 교대로 머물기로 한다. 근거 카드 ID: 78ceae08-3b98-5f10-b73b-d0be1e26a0eb. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "거처 갈등",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "aacce92c-c146-5daa-a389-cb9f1c543d5e",
+      "sourceCardId": "7a6e0baf-3c6e-5644-a236-03fcef647aec",
+      "targetCardId": "4b90ab4f-632a-5eba-8d39-ec9b405ae428",
+      "category": "structural",
+      "body": "아우둠라가 핥은 돌에서 부리가 나타난다. 근거 카드 ID: 4b90ab4f-632a-5eba-8d39-ec9b405ae428. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "돌을 핥아 드러냄",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d63f4004-54e3-5727-b4f0-29fc7daf8746",
+      "sourceCardId": "acae503e-9190-59f8-8017-841777faadd2",
+      "targetCardId": "3243d309-d56d-5396-a7c7-f02233f6c5e7",
+      "category": "structural",
+      "body": "볼루스파에서 발드르는 회드르와 전투 전당에 거주한다. 근거 카드 ID: 3243d309-d56d-5396-a7c7-f02233f6c5e7. 출처: https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.62",
+      "label": "새 세계 전당",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d622d042-8017-5a55-8810-ae3bb1aa10c7",
+      "sourceCardId": "90aa1c78-eadc-5861-8ae7-ac57a0e41a88",
+      "targetCardId": "3243d309-d56d-5396-a7c7-f02233f6c5e7",
+      "category": "structural",
+      "body": "볼루스파에서 회드르는 발드르와 전투 전당에 거주한다. 근거 카드 ID: 3243d309-d56d-5396-a7c7-f02233f6c5e7. 출처: https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.62",
+      "label": "새 세계 전당",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7d4d379e-008f-5205-8793-be672820f976",
+      "sourceCardId": "4c51d6f7-380a-5f68-a645-9da9cf6bf3f2",
+      "targetCardId": "63f697c8-05d7-51d0-a35d-a5193f4e15e0",
+      "category": "structural",
+      "body": "길피의 속임수에서 브라기는 이둔의 남편이다. 근거 카드 ID: 4c51d6f7-380a-5f68-a645-9da9cf6bf3f2. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "부부",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "880a0367-fc70-52a5-80d2-87e0ee45c4ab",
+      "sourceCardId": "49967157-f44b-5d00-b7ad-1e140ce906e9",
+      "targetCardId": "46b7211c-7373-5179-98f1-b56b679f42fe",
+      "category": "structural",
+      "body": "게리와 프레키는 오딘의 식탁에 놓인 음식을 먹는다. 근거 카드 ID: 49967157-f44b-5d00-b7ad-1e140ce906e9. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "식탁의 늑대",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "53614b87-0a6c-583f-a8ad-0f8f6f7d29eb",
+      "sourceCardId": "5c0ba7c0-7cdd-55dc-af8a-1768f5828cfc",
+      "targetCardId": "46b7211c-7373-5179-98f1-b56b679f42fe",
+      "category": "structural",
+      "body": "후긴과 무닌은 세계를 날아다닌 뒤 오딘에게 보고 들은 소식을 전한다. 근거 카드 ID: 5c0ba7c0-7cdd-55dc-af8a-1768f5828cfc. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "소식 전달",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "20b65029-66da-5b9b-a94a-efcb4ca3876f",
+      "sourceCardId": "094a60cf-70d4-5d06-b9c2-034582eb09c0",
+      "targetCardId": "9c006351-93f0-5148-bffc-4b48662bcf85",
+      "category": "structural",
+      "body": "길피의 속임수에서 로키는 스바딜파리에게 다가간 뒤 여덟 다리의 망아지를 낳는다. 근거 카드 ID: 563c0a79-2f01-5c1e-bc7d-0e4755e75a15. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "출생",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0352c725-7804-5e1e-b086-c2eab512714c",
+      "sourceCardId": "fe2e152d-8c78-5c1f-9e22-77e7748dff53",
+      "targetCardId": "acae503e-9190-59f8-8017-841777faadd2",
+      "category": "structural",
+      "body": "길피의 속임수에서 난나는 발드르의 아내다. 근거 카드 ID: fe2e152d-8c78-5c1f-9e22-77e7748dff53. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "부부",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5fbb49a9-86a4-554c-8cc0-0b0cdd1d8271",
+      "sourceCardId": "ca09b5e3-3444-59bd-b23d-e249acbd3bcf",
+      "targetCardId": "acae503e-9190-59f8-8017-841777faadd2",
+      "category": "structural",
+      "body": "길피의 속임수에서 헤르모드는 헬에게 발드르의 석방을 청한다. 근거 카드 ID: ca09b5e3-3444-59bd-b23d-e249acbd3bcf. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "발드르 석방을 헬에게 요청",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "913db065-6d1d-503d-97f1-00a66f458819",
+      "sourceCardId": "ded0c47c-dcfe-568c-9f09-c803aa1f2ec4",
+      "targetCardId": "ca09b5e3-3444-59bd-b23d-e249acbd3bcf",
+      "category": "structural",
+      "body": "모드구드는 헤르모드에게 발드르가 다리를 건넜다고 말하고 헬로 가는 길을 알려 준다. 근거 카드 ID: ded0c47c-dcfe-568c-9f09-c803aa1f2ec4. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "길 안내",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b5cbd57b-8b2c-5ea4-9163-91a74c352351",
+      "sourceCardId": "46b7211c-7373-5179-98f1-b56b679f42fe",
+      "targetCardId": "ca09b5e3-3444-59bd-b23d-e249acbd3bcf",
+      "category": "structural",
+      "body": "길피의 속임수에서 헤르모드는 오딘의 아들이다. 근거 카드 ID: ca09b5e3-3444-59bd-b23d-e249acbd3bcf. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "부친",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "89d64013-934b-567b-9cff-cccf5d966149",
+      "sourceCardId": "094a60cf-70d4-5d06-b9c2-034582eb09c0",
+      "targetCardId": "cfd6a5d4-4ea6-5ccb-b1d9-f7369383589b",
+      "category": "structural",
+      "body": "길피의 속임수에서 로키와 앙그르보다는 펜리르·요르문간드르·헬을 낳는다. 근거 카드 ID: cfd6a5d4-4ea6-5ccb-b1d9-f7369383589b. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "자녀의 부모",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ea89061c-fd49-5161-8d01-0c04e6c23eaf",
+      "sourceCardId": "116123fb-2535-510e-aa08-4b7b6f04fe76",
+      "targetCardId": "a8450737-9360-50c1-9bd4-93eca5e51a40",
+      "category": "structural",
+      "body": "시어법에서 브로크는 신드리의 형제다. 근거 카드 ID: a8450737-9360-50c1-9bd4-93eca5e51a40. 출처: https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "32c5da95-75b9-5f62-a4c4-68b1b91cbde6",
+      "sourceCardId": "116123fb-2535-510e-aa08-4b7b6f04fe76",
+      "targetCardId": "0795ccaa-0685-5373-89e5-4fd82de90467",
+      "category": "structural",
+      "body": "시어법에서 신드리는 형제 브로크의 풀무질로 망치를 만든다. 근거 카드 ID: 116123fb-2535-510e-aa08-4b7b6f04fe76. 출처: https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l",
+      "label": "망치 제작",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f30270dd-fdb3-592c-bb36-8cf8d537f397",
+      "sourceCardId": "a8450737-9360-50c1-9bd4-93eca5e51a40",
+      "targetCardId": "094a60cf-70d4-5d06-b9c2-034582eb09c0",
+      "category": "structural",
+      "body": "시어법에서 브로크는 로키와 내기한다. 근거 카드 ID: a8450737-9360-50c1-9bd4-93eca5e51a40. 출처: https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l",
+      "label": "내기",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9b3cf03c-d87d-5018-8721-bf88432452fa",
+      "sourceCardId": "8fe67398-8e16-5a77-85e6-077dc9cfc51d",
+      "targetCardId": "42482f70-df29-53c8-a4c9-7cafe24793f1",
+      "category": "structural",
+      "body": "길피의 속임수에서 안드흐림니르는 새흐림니르를 삶아 전사자들에게 먹인다. 근거 카드 ID: 8fe67398-8e16-5a77-85e6-077dc9cfc51d. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "요리",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ebc71676-7a03-5a5f-bded-7b91de650406",
+      "sourceCardId": "8fe67398-8e16-5a77-85e6-077dc9cfc51d",
+      "targetCardId": "10d07195-ea31-51c6-b3b1-eb216e909219",
+      "category": "structural",
+      "body": "요리사 안드흐림니르는 엘드흐림니르 솥에 새흐림니르를 삶는다. 근거 카드 ID: 10d07195-ea31-51c6-b3b1-eb216e909219. 출처: https://www.heimskringla.no/wiki/Gylfaginning",
+      "label": "솥 사용",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a7b18954-12f3-5fed-abba-4e66bb1f1321",
+      "sourceCardId": "46b7211c-7373-5179-98f1-b56b679f42fe",
+      "targetCardId": "094a60cf-70d4-5d06-b9c2-034582eb09c0",
+      "category": "structural",
+      "body": "로카센나에서 로키는 오래전 오딘과 피를 섞고 술에 관해 맺은 약속을 상기시킨다. 근거 카드 ID: 02a95c80-0d44-5ab5-9d1d-1246ed674d86. 출처: 9–10연 로키의 요청과 오딘의 명령 https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+      "label": "피를 섞은 약속",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e25b775f-7bdd-58fa-9cb4-a5176e7dbfea",
+      "sourceCardId": "4c51d6f7-380a-5f68-a645-9da9cf6bf3f2",
+      "targetCardId": "094a60cf-70d4-5d06-b9c2-034582eb09c0",
+      "category": "structural",
+      "body": "로카센나에서 브라기는 신들의 분노를 사지 말라고 하고 로키는 그를 겁쟁이라 비난한다. 근거 카드 ID: 2423192b-00f1-58d0-9f49-900e3c9ff278. 출처: 11–15연 선물 제안과 응수 https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+      "label": "말다툼",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d5ebda86-d7db-5a5b-8500-a71e957e6db5",
+      "sourceCardId": "7c0ef684-ee1b-50c4-bb8a-0fe69fc0e7c9",
+      "targetCardId": "094a60cf-70d4-5d06-b9c2-034582eb09c0",
+      "category": "structural",
+      "body": "로카센나에서 토르는 묠니르로 로키를 위협한다. 근거 카드 ID: 87faf213-31d7-5841-922c-37bb6ad749c4. 출처: 57–59연 토르의 등장 https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+      "label": "망치 위협",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "faef08cb-fcb0-549d-94fa-bcd64cc7d31b",
+      "sourceCardId": "78ceae08-3b98-5f10-b73b-d0be1e26a0eb",
+      "targetCardId": "094a60cf-70d4-5d06-b9c2-034582eb09c0",
+      "category": "structural",
+      "body": "로카센나 후일담에서 스카디는 로키의 얼굴 위에 독사를 매단다. 근거 카드 ID: 29b6393a-148d-5880-990e-3346f5f431ad. 출처: Lokasenna 산문 후일담 독사 부분 https://www.heimskringla.no/wiki/Lokasenna_%28FJ%29",
+      "label": "독사 설치",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2c511350-7218-55e6-baa4-579c7dc200e4",
+      "sourceCardId": "46b7211c-7373-5179-98f1-b56b679f42fe",
+      "targetCardId": "7d9e400c-4823-53af-84b1-47b63a36afc2",
+      "category": "structural",
+      "body": "발드르의 꿈에서 무녀는 베그탐이 오딘임을 알아보고 오딘은 무녀가 세 거인의 어머니라고 주장한다. 근거 카드 ID: 6fb1f87d-ddb1-57ac-9bc6-9cafd4783977. 출처: Baldrs draumar 13연 https://heimskringla.no/wiki/Baldrs_draumar_%28FJ%29",
+      "label": "정체에 관한 주장",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6869a92e-61e2-5e33-9bda-e3999a19be30",
+      "sourceCardId": "46b7211c-7373-5179-98f1-b56b679f42fe",
+      "targetCardId": "d3994554-0570-5e34-865d-3a0393603719",
+      "category": "structural",
+      "body": "바프스루드니르의 말에서 오딘은 거인의 지식을 알고자 그를 찾아간다. 근거 카드 ID: d3994554-0570-5e34-865d-3a0393603719. 출처: Vafþrúðnismál 1–6연 https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+      "label": "거인 방문",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "663528af-91df-5472-b300-311cf9e5d0b6",
+      "sourceCardId": "46b7211c-7373-5179-98f1-b56b679f42fe",
+      "targetCardId": "7d61f635-cfdc-560e-b9d9-65f6bb22f4b0",
+      "category": "structural",
+      "body": "바프스루드니르의 말에서 전사자들은 오딘의 뜰에서 날마다 싸운 뒤 다시 화해한다. 근거 카드 ID: 7d61f635-cfdc-560e-b9d9-65f6bb22f4b0. 출처: Vafþrúðnismál 41연 https://heimskringla.no/wiki/Vaf%C3%BEr%C3%BA%C3%B0nism%C3%A1l",
+      "label": "전사자들의 뜰",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ]
+}

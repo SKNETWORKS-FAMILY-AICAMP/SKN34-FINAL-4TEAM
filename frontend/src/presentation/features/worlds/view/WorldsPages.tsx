@@ -1,4 +1,4 @@
-import { Component, lazy, Suspense, useId, useRef, type KeyboardEvent, type ReactNode, type Ref } from 'react'
+import { Component, lazy, Suspense, useId, useRef, useState, type KeyboardEvent, type ReactNode, type Ref } from 'react'
 import { useParams } from 'react-router'
 
 import { useAppSelector } from '../../../../app/store'
@@ -9,10 +9,12 @@ import { useScreenId } from '../../../shared/screenIds'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { CARD_COLORS } from '../../../shared/worldBoard'
+import { PageControls } from '../../../shared/PageControls'
+import { pageItems } from '../../../shared/pageItems'
 import { WORLD_GENRES, genreLabel } from '../../../shared/worldGenres'
 import { useWorldDetailViewModel, useWorldsViewModel } from '../viewmodel/useWorldsViewModel'
 import { GENRE_COLORS, LINEAGE_COLORS, atlasFeatures, type AtlasNode, type WorldAtlas } from '../worldAtlas'
-import { DETAIL_TABS, type DetailGraph, type DetailNode, type DetailTab } from '../worldDetail'
+import { DETAIL_TABS, detailEndpoint, graphNeighbors, graphPage, type DetailGraph, type DetailNode, type DetailTab } from '../worldDetail'
 import { WorldBook } from './WorldBook'
 import { WorldOverview } from './WorldOverview'
 import { DemoNotice, LoadFailed, WorldCover, WorldLoading } from './WorldParts'
@@ -30,7 +32,7 @@ const RIGHT = 'M9 5l7 7-7 7'
 
 /** 홈 `BookCard`와 같은 책 카드. `badge`는 표지 오른쪽 아래 알약이다. */
 const WorldCard = ({ w, badge }: { w: PublicWorldRef; badge?: string }) => (
-  <Go to={`/worlds/${w.id}`} className="bk prox"><WorldCover w={w} badge={badge} /><h3 className="hk">{w.name}</h3><small>{meta(w)}</small></Go>
+  <Go to={`/worlds/${w.id}`} className="bk prox"><WorldCover w={w} badge={badge} /><h3 className="hk">{w.name}</h3><small>{meta(w)}</small>{'relationshipCount' in w && w.relationshipCount === null && <small>관계 수 확인 불가</small>}</Go>
 )
 
 /** 캔버스를 내려받거나 그리다 실패해도 이 화면의 나머지는 그대로 쓰게 한다. `message`는 그때 대신 보일 안내(찾을 다른 길)다. */
@@ -236,17 +238,32 @@ function DetailTabBar({ tab, onTab }: { tab: DetailTab; onTab: (next: DetailTab)
  * 상세의 그래프 카드 한 장. 세계관 지도 카드와 같은 어두운 캔버스(`.atlas-stage`)·컨트롤·통계 줄이고 캔버스만 더 높다(데스크톱 460px·모바일 340px).
  * 마우스로만 쓰는 시각 탐색이라 같은 내용은 설정집 탭의 카드 목록과 카드 페이지가 글로 대신한다.
  */
-function GraphCard({ title, mode, data, summary, stats, legend, onOpen }: {
-  title: string; mode: 'setting' | 'people'; data: DetailGraph; summary: string; stats: string; legend?: ReactNode; onOpen: (node: DetailNode) => void
+function GraphCard({ title, mode, data, summary, stats, legend, onOpen, unavailable = false }: {
+  title: string; mode: 'setting' | 'people'; data: DetailGraph; summary: string; stats: string; legend?: ReactNode; onOpen: (node: DetailNode) => void; unavailable?: boolean
 }) {
   const heading = useId()
+  const [page, setPage] = useState(0)
+  const paged = pageItems(data.nodes.filter((n) => n.kind !== '세계관'), page, 50)
+  const [query, setQuery] = useState(''), [choicePage, setChoicePage] = useState(0), [anchor, setAnchor] = useState(''), [neighborPage, setNeighborPage] = useState(0)
+  const choices = pageItems(data.nodes.filter((n) => n.kind !== '세계관' && n.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())), choicePage, 50)
+  const anchorNode = data.nodes.find((n) => n.id === anchor)
+  const neighbors = new Set(data.links.filter((l) => l.kind === 'link' && (detailEndpoint(l.source) === anchor || detailEndpoint(l.target) === anchor)).map((l) => detailEndpoint(l.source) === anchor ? detailEndpoint(l.target) : detailEndpoint(l.source)))
+  const neighborPages = pageItems([...neighbors], neighborPage, 49)
+  const shown = anchorNode ? graphNeighbors(data, anchor, neighborPages.page, 49) : graphPage(data, paged.page, 50)
+  const [edgePage, setEdgePage] = useState(0)
+  const edges = pageItems(shown.links.filter((l) => l.kind === 'link'), edgePage, 20)
+  const pairs = new Map<string, typeof edges.items>()
+  for (const link of edges.items) { const key = [detailEndpoint(link.source), detailEndpoint(link.target)].sort().join('\0'); const group = pairs.get(key) ?? []; group.push(link); pairs.set(key, group) }
+  const curves = new Map<DetailGraph['links'][number], number>()
+  for (const group of pairs.values()) group.forEach((link, i) => curves.set(link, (detailEndpoint(link.source) < detailEndpoint(link.target) ? 1 : -1) * (i - (group.length - 1) / 2) * Math.min(0.4, 1 / Math.max(1, (group.length - 1) / 2))))
+  const graph = { nodes: shown.nodes, links: [...shown.links.filter((l) => l.kind === 'world'), ...edges.items.map((link) => ({ ...link, curve: curves.get(link) }))] }
   return (
     <section className="worlds-graph" aria-labelledby={heading}>
       <div className="atlas-stage">
         <h2 id={heading} className="atlas-title">{title}</h2>
         <AtlasBoundary message="그래프를 표시하지 못했어요. 설정집 탭에서 설정 카드를 열어 같은 내용을 글로 읽을 수 있어요.">
           <Suspense fallback={<p className="atlas-loading" role="status">그래프를 불러오고 있어요.</p>}>
-            <WorldGraphCanvas data={data} mode={mode} summary={summary} onOpen={onOpen} />
+            <WorldGraphCanvas data={graph} mode={mode} summary={summary} onOpen={onOpen} />
           </Suspense>
           <div className="atlas-info">
             <p className="atlas-stats">{stats}</p>
@@ -254,6 +271,11 @@ function GraphCard({ title, mode, data, summary, stats, legend, onOpen }: {
           </div>
         </AtlasBoundary>
       </div>
+      <label>관계 볼 설정 검색 <input type="search" className="inp" value={query} onChange={(e) => { setQuery(e.target.value); setChoicePage(0) }} /></label>
+      <div role="group" aria-label="관계 볼 설정">{choices.items.map((node) => <button type="button" className="btn sm" key={node.id} aria-pressed={anchor === node.id} onClick={() => { setAnchor(node.id); setNeighborPage(0); setEdgePage(0) }}>{node.name}</button>)}</div>
+      <PageControls page={choices.page} pages={choices.pages} onPage={setChoicePage} />
+      {anchorNode ? <><p className="small muted">{unavailable ? '연결 정보를 불러오지 못했어요.' : `${anchorNode.name}의 연결된 설정 ${neighbors.size}개를 보여요.`}</p><button className="btn sm" type="button" onClick={() => { setAnchor(''); setEdgePage(0) }}>전체 그래프로</button><PageControls page={neighborPages.page} pages={neighborPages.pages} onPage={(next) => { setNeighborPage(next); setEdgePage(0) }} /></> : <><PageControls page={paged.page} pages={paged.pages} onPage={(next) => { setPage(next); setEdgePage(0) }} />{paged.pages > 1 && <p className="small muted">설정을 검색해 선택하면 다른 페이지의 연결도 그래프로 볼 수 있어요.</p>}</>}
+      {edges.pages > 1 && <><p className="small muted">현재 카드의 연결을 페이지별로 보여요.</p><PageControls page={edges.page} pages={edges.pages} onPage={setEdgePage} /></>}
       <p className="sr-only">그래프는 눈으로 훑어보는 용도예요. 같은 내용은 설정집 탭의 설정 카드에서 글로 읽을 수 있어요.</p>
     </section>
   )
@@ -355,7 +377,7 @@ export function WorldDetailPage() {
                             stats={`인물 ${detail.people.nodes.length}명 · 관계 ${linkCount(detail.people)}개`} />}
                   </>
                 ) : (
-                  <GraphCard title="설정 그래프" mode="setting" data={detail.setting} onOpen={openNode}
+                  <GraphCard title="설정 그래프" mode="setting" data={detail.setting} onOpen={openNode} unavailable={unavailable}
                     summary={unavailable ? `${world.name}의 설정 카드 ${world.cards.length}개 그래프(연결 정보를 불러오지 못함)` : `${world.name}의 설정 카드 ${world.cards.length}개가 ${linkCount(detail.setting)}개의 연결로 이어진 그래프`}
                     stats={`설정 카드 ${world.cards.length}개 · ${unavailable ? '연결 정보를 불러오지 못했어요' : `연결 ${linkCount(detail.setting)}개`}`}
                     legend={(

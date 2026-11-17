@@ -1,0 +1,96 @@
+{
+  "genre": "alternate_history",
+  "worldId": "c5d42f50-d2e6-5e25-8a2e-99e68e23ff05",
+  "relationships": [
+    {
+      "id": "cc12de0d-c816-58e8-b441-b2f341017024",
+      "sourceCardId": "a415d83b-d6f7-5b42-a35d-2c700f7732cb",
+      "targetCardId": "f8db18bd-2b2f-55ee-b8f4-ff111495cb8a",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 기계공학자 한도현은 경안군 이환의 몸에서 깨어났다. 근거 카드 ID: a415d83b-d6f7-5b42-a35d-2c700f7732cb",
+      "label": "빙의",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "81c8e503-5856-5f9f-bb73-78822a0e7172",
+      "sourceCardId": "036d3e6b-da85-58ff-bbc4-d7eb757021af",
+      "targetCardId": "f8db18bd-2b2f-55ee-b8f4-ff111495cb8a",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 이서윤은 이환의 친동생이다. 근거 카드 ID: 036d3e6b-da85-58ff-bbc4-d7eb757021af",
+      "label": "친동생",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "446136fe-e634-5e50-b1f7-541cfc7c6c27",
+      "sourceCardId": "f8d60b7d-a565-5900-97c5-cbcc2c58245c",
+      "targetCardId": "f8db18bd-2b2f-55ee-b8f4-ff111495cb8a",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 박내관은 이환을 어릴 때부터 보아 온 내관이다. 근거 카드 ID: f8d60b7d-a565-5900-97c5-cbcc2c58245c",
+      "label": "내관",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f9afac3d-7b13-55dc-9c7f-1994d1170b44",
+      "sourceCardId": "b6e9230d-fadf-57f0-a04d-0b4cc0746d76",
+      "targetCardId": "f8db18bd-2b2f-55ee-b8f4-ff111495cb8a",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 이환은 왕의 셋째 아들이다. 근거 카드 ID: f8db18bd-2b2f-55ee-b8f4-ff111495cb8a",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f8003774-dcbd-5ff1-b05b-7037ebf79920",
+      "sourceCardId": "14f3745f-4c67-5119-a8c3-e67bda583963",
+      "targetCardId": "6a8707b4-e77d-55ef-870f-5262293557bd",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 신여진은 장만복의 상단에서 물자와 장부를 담당한다. 근거 카드 ID: 14f3745f-4c67-5119-a8c3-e67bda583963",
+      "label": "상단 실무",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8b385187-5eb6-5e73-a4fb-fb0abcab5121",
+      "sourceCardId": "e8158225-f1d7-57d6-ad9d-70daea85ff66",
+      "targetCardId": "4cfcc25e-be2d-5865-9d65-ce3aa86f96a5",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 심치원은 공신과 외척 세력의 핵심 인물이다. 근거 카드 ID: e8158225-f1d7-57d6-ad9d-70daea85ff66",
+      "label": "핵심 인물",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "42acc4f6-cb01-5469-ae65-e7e0de928669",
+      "sourceCardId": "f8db18bd-2b2f-55ee-b8f4-ff111495cb8a",
+      "targetCardId": "762a7043-e89b-5867-b386-76c963144048",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 경안군 저택은 이환이 생활하고 작업하는 공간이다. 근거 카드 ID: 762a7043-e89b-5867-b386-76c963144048",
+      "label": "거주와 작업",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9eb4ec6a-717d-5784-ae87-23de35fefd8a",
+      "sourceCardId": "35e11d6d-1283-5bdd-85bd-439be5659b55",
+      "targetCardId": "c91ef894-aa1f-57de-9b80-c44d269982c8",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 한도윤은 북방 군영에서 오래 근무했다. 근거 카드 ID: c91ef894-aa1f-57de-9b80-c44d269982c8",
+      "label": "근무",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "db576a9c-079f-591b-b5e6-78cff3e69f02",
+      "sourceCardId": "f8db18bd-2b2f-55ee-b8f4-ff111495cb8a",
+      "targetCardId": "53343bfd-f9ea-5f8e-86ea-cb471a64d25d",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 빙의 전 이환은 어려운 선비와 군인 가족과 장인을 조용히 후원했다. 근거 카드 ID: 53343bfd-f9ea-5f8e-86ea-cb471a64d25d",
+      "label": "빙의 전 후원",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ]
+}

@@ -10,6 +10,7 @@ import {
   LABEL_ALL_MAX, bookPath, bookRows, buildCharacterGraph, buildSettingGraph, cardPage, cardPairs, cardPath, detailEndpoint, kindCounts, parseBookKind, parseDetailTab,
   selectVisible, showsDetailLabel, type CardRef, type DetailGraph, type DetailNode,
 } from './worldDetail'
+import { graphPage, graphNeighbors } from './worldDetail'
 
 /** 카드 한 장의 명세. `links`는 제목으로 이은 연관(대상 제목, 인물끼리는 라벨이 관계)이고 `world()`가 서버와 같은 관계 목록으로 바꾼다. */
 type Card = { type: CardType; title: string; links?: readonly { to: string; label?: string }[] }
@@ -55,6 +56,77 @@ const guild = world([
   card('후원자', 'character'),
 ])
 
+it('그래프는 페이지의 양 끝이 보이는 관계만 그리며 다른 페이지에도 접근한다', () => {
+  const graph = buildCharacterGraph(sample)
+  expect(graphPage(graph, 0, 2).links).toHaveLength(2)
+  expect(graphPage(graph, 1, 2).nodes.map((n) => n.name)).toEqual(['하엘'])
+})
+it('같은 두 카드의 관계마다 ID·방향을 보존하고 카드별 관계 수에 모두 센다', () => {
+  const w = world([card('가', 'character'), card('나', 'character')])
+  w.relationships = [{ id: 'one', sourceCardId: '0', targetCardId: '1', label: '동료', direction: 'directed' }, { id: 'two', sourceCardId: '1', targetCardId: '0', label: '동료', direction: 'directed' }]
+  expect(buildCharacterGraph(w).links.map(({ id, direction }) => [id, direction])).toEqual([['one', 'directed'], ['two', 'directed']])
+  expect(bookRows(w).map((row) => [row.connections, row.badge])).toEqual([[2, 2], [2, 2]])
+})
+it('페이지가 다른 이웃도 선택한 카드의 관계 그래프에서 확인한다', () => {
+  const w = world(Array.from({ length: 101 }, (_, i) => card(`설정 ${i}`, 'character')))
+  w.relationships = [{ id: 'cross', sourceCardId: '0', targetCardId: '100', label: '친구', direction: 'directed' }]
+  const graph = graphNeighbors(buildCharacterGraph(w), 'card:0', 0, 49)
+  expect(graph.nodes.map((n) => n.id)).toEqual(['card:0', 'card:100'])
+  expect(graph.links.map((l) => l.id)).toEqual(['cross'])
+})
+it('이웃이 많아도 선택한 카드를 유지하며 마지막 이웃 페이지까지 탐색한다', () => {
+  const w = world(Array.from({ length: 105 }, (_, i) => card(`설정 ${i}`, 'character')))
+  w.relationships = Array.from({ length: 104 }, (_, i) => ({ id: `r${i}`, sourceCardId: '0', targetCardId: String(i + 1), label: '관계' }))
+  const graph = graphNeighbors(buildCharacterGraph(w), 'card:0', 2, 49)
+  expect(graph.nodes.map((n) => n.id)).toEqual(['card:0', ...Array.from({ length: 6 }, (_, i) => `card:${i + 99}`)])
+  expect(graph.links).toHaveLength(6)
+})
+it('같은 카드 쌍의 나머지 관계도 카드 상세에서 볼 수 있다', () => {
+  expect(page(sample, '오르').additionalRelations.map((r) => [r.title, r.label])).toEqual([['미라', '제자-스승']])
+})
+it('같은 라벨의 역순 관계는 양쪽 상세에서 기록된 양 끝의 순서를 구별한다', () => {
+  const w = world([card('가', 'character'), card('나', 'character')])
+  w.relationships = [{ id: 'a', sourceCardId: '0', targetCardId: '1', label: '관계' }, { id: 'b', sourceCardId: '1', targetCardId: '0', label: '관계' }]
+  expect([cardPage(w, '0')!.relations[0].sourceFirst, cardPage(w, '0')!.additionalRelations[0].sourceFirst]).toEqual([true, false])
+  expect([cardPage(w, '1')!.relations[0].sourceFirst, cardPage(w, '1')!.additionalRelations[0].sourceFirst]).toEqual([false, true])
+})
+it('관계의 실제 방향과 미상을 양쪽 상세와 그래프에 전달한다', () => {
+  const w = world([card('가', 'character'), card('나', 'character')])
+  w.relationships = [{ id: 'a', sourceCardId: '0', targetCardId: '1', label: '관계', direction: 'directed', polarity: 'denied', body: '원문\n설명' }, { id: 'b', sourceCardId: '1', targetCardId: '0', label: '관계', direction: 'symmetric' }, { id: 'c', sourceCardId: '0', targetCardId: '1', label: '관계' }]
+  for (const id of ['0', '1']) {
+    const detail = cardPage(w, id)!
+    expect([detail.relations[0].direction, ...detail.additionalRelations.map((r) => r.direction)]).toEqual(['directed', 'symmetric', null])
+    expect(detail.relations[0]).toMatchObject({ polarity: 'denied', body: '원문\n설명' })
+  }
+  expect(buildCharacterGraph(w).links[0].direction).toBe('directed')
+  expect(buildCharacterGraph(w).links[0].polarity).toBe('denied')
+})
+it('인물 밖의 대칭·미상 관계는 기록 순서와 상관없이 중립적 연관으로 분류한다', () => {
+  const w = world([card('가', 'location'), card('나', 'location')])
+  w.relationships = [{ id: 's', sourceCardId: '0', targetCardId: '1', label: '대칭', direction: 'symmetric' }, { id: 'u', sourceCardId: '0', targetCardId: '1', label: '미상' }]
+  const target = cardPage(w, '1')!
+  expect(target.backlinks).toHaveLength(0)
+  expect(target.links.map((r) => r.label)).toEqual(['대칭'])
+  expect(target.additionalRelations.map((r) => r.label)).toEqual(['미상'])
+  w.relationships = [{ id: 'd', sourceCardId: '0', targetCardId: '1', label: '단방향', direction: 'directed' }]
+  expect(cardPage(w, '1')!.backlinks.map((r) => r.label)).toEqual(['단방향'])
+})
+it('만 장과 만 개 관계의 게시판과 양 끝 상세가 다른 관계를 빠뜨리지 않는다', () => {
+  const large = world(Array.from({ length: 10000 }, (_, i) => card(`카드 ${i}`, i % 2 ? 'location' : 'character')))
+  large.relationships = Array.from({ length: 9999 }, (_, i) => ({ id: `r${i}`, sourceCardId: String(i), targetCardId: String(i + 1), label: `관계 ${i}` }))
+  large.relationships.push({ id: 'extra', sourceCardId: '9999', targetCardId: '0', label: '첫 관계' }, { id: 'extra2', sourceCardId: '0', targetCardId: '9999', label: '반대 관계' })
+  expect(kindCounts(large)).toEqual([{ kind: '인물', count: 5000 }, { kind: '장소', count: 5000 }])
+  const rows = bookRows(large)
+  expect(rows).toHaveLength(10000)
+  expect(rows.find((row) => row.cardId === '0')?.connections).toBe(3)
+  expect(rows.find((row) => row.cardId === '9999')?.connections).toBe(3)
+  for (const id of ['0', '9999']) {
+    const detail = cardPage(large, id)!
+    expect([...detail.links, ...detail.backlinks].some((r) => r.label === '첫 관계')).toBe(true)
+    expect(detail.additionalRelations.map((r) => r.label)).toEqual(['반대 관계'])
+  }
+}, 10000)
+
 /** 링크를 읽기 쉬운 [출발 이름, 도착 이름, 라벨]로 */
 const edges = (graph: DetailGraph, kind: 'world' | 'link') => {
   const name = new Map(graph.nodes.map((n) => [n.id, n.name]))
@@ -65,8 +137,8 @@ const names = (refs: CardRef[]) => refs.map((r) => (r.label ? `${r.title}·${r.l
 const page = (w: PublicWorld, title: string) => cardPage(w, String(w.cards.findIndex((c) => c.title === title)))!
 
 describe('cardPairs', () => {
-  it('없는 대상과 자기 참조는 버리고 같은 두 카드를 잇는 중복은 방향과 상관없이 먼저 나온 하나만 남긴다', () => {
-    expect(cardPairs(sample)).toEqual([{ a: 0, b: 1, label: '스승-제자' }, { a: 0, b: 3, label: '거점' }, { a: 1, b: 2, label: '의심' }])
+  it('없는 대상과 자기 참조는 버리고 같은 두 카드를 잇는 관계는 모두 남긴다', () => {
+    expect(cardPairs(sample)).toEqual([{ id: 'r0', a: 0, b: 1, label: '스승-제자' }, { id: 'r1', a: 0, b: 3, label: '거점' }, { id: 'r4', a: 1, b: 0, label: '제자-스승' }, { id: 'r5', a: 1, b: 2, label: '의심' }])
   })
 
   it('연관이 없는 세계관은 빈 목록이다', () => {
@@ -90,7 +162,7 @@ describe('buildSettingGraph', () => {
   it('중심에서 카드마다 옅은 선 하나를, 카드끼리는 연관마다 선 하나를 긋는다', () => {
     const graph = buildSettingGraph(sample)
     expect(edges(graph, 'world')).toEqual(['오르', '미라', '하엘', '새벽항', '금기'].map((name) => ['시험 세계', name, undefined]))
-    expect(edges(graph, 'link')).toEqual([['오르', '미라', '스승-제자'], ['오르', '새벽항', '거점'], ['미라', '하엘', '의심']])
+    expect(edges(graph, 'link')).toEqual([['오르', '미라', '스승-제자'], ['오르', '새벽항', '거점'], ['미라', '오르', '제자-스승'], ['미라', '하엘', '의심']])
   })
 
   it('카드가 없는 세계관은 중심 노드 하나뿐이다', () => {
@@ -114,7 +186,7 @@ describe('buildCharacterGraph', () => {
   it('인물 카드만 노드가 되고 인물끼리의 관계만 라벨 있는 선이 된다(장소로 가는 연관은 뺀다)', () => {
     const graph = buildCharacterGraph(sample)
     expect(graph.nodes.map((n) => [n.id, n.name, n.color])).toEqual([['card:0', '오르', CARD_COLORS.인물], ['card:1', '미라', CARD_COLORS.인물], ['card:2', '하엘', CARD_COLORS.인물]])
-    expect(edges(graph, 'link')).toEqual([['오르', '미라', '스승-제자'], ['미라', '하엘', '의심']])
+    expect(edges(graph, 'link')).toEqual([['오르', '미라', '스승-제자'], ['미라', '오르', '제자-스승'], ['미라', '하엘', '의심']])
     expect(graph.links.every((l) => l.kind === 'link')).toBe(true)
   })
 
@@ -175,9 +247,9 @@ describe('cardPage', () => {
     expect(names(haer.relations)).toEqual(['미라·의심'])
   })
 
-  it('인물이 아닌 카드는 관계 없이 자기 연관을 links로, 자기를 가리키는 카드를 인물이어도 backlinks로 보인다', () => {
+  it('방향을 모르는 연관은 저장 순서와 무관하게 중립적 연관으로 보인다', () => {
     const harbor = page(sample, '새벽항')
-    expect([names(harbor.relations), names(harbor.links), names(harbor.backlinks)]).toEqual([[], [], ['오르·거점']])
+    expect([names(harbor.relations), names(harbor.links), names(harbor.backlinks)]).toEqual([[], ['오르·거점'], []])
   })
 
   it('같은 두 카드를 서로 가리켜도 한 번만 나오고(먼저 쓴 쪽 방향·라벨) 없는 대상·자기 참조는 나오지 않는다', () => {
@@ -186,8 +258,8 @@ describe('cardPage', () => {
     expect(all(orr)).toEqual(['미라·스승-제자', '새벽항·거점'])
     expect(all(mira)).toEqual(['오르·스승-제자', '하엘·의심']) // 제자-스승이 아니라 먼저 쓴 스승-제자
     // 장소→인물('거주')을 쓴 뒤 인물→장소('방문')를 또 써도 장소의 links·인물의 backlinks에 한 번
-    expect(names(page(mixed, 'a장소').links)).toEqual(['c인물·거주'])
-    expect([names(page(mixed, 'c인물').links), names(page(mixed, 'c인물').backlinks)]).toEqual([[], ['a장소·거주']])
+    expect(names(page(mixed, 'a장소').links)).toEqual(['c인물·거주', 'e사건·무대'])
+    expect([names(page(mixed, 'c인물').links), names(page(mixed, 'c인물').backlinks)]).toEqual([['a장소·거주'], []])
   })
 
   it('연관 목록은 쓴 순서가 아니라 설정집 순서(유형 묶음 순서 → 카드 순서)로 나온다', () => {
@@ -236,15 +308,15 @@ describe('서버 카드 id(위치와 다른 id)로 이은 세계관', () => {
     ])
   })
 
-  it('관계는 양 끝 카드 id로 카드를 찾고 없는 카드·반대 방향 중복은 버리며 빈 라벨은 라벨 없음이다', () => {
-    expect(cardPairs(server)).toEqual([{ a: 0, b: 1, label: '스승-제자' }, { a: 2, b: 0, label: '머무는 곳' }, { a: 2, b: 1, label: undefined }])
-    expect(edges(buildSettingGraph(server), 'link')).toEqual([['오르', '미라', '스승-제자'], ['새벽항', '오르', '머무는 곳'], ['새벽항', '미라', undefined]])
+  it('관계는 양 끝 카드 id로 카드를 찾고 모든 관계를 보존하며 빈 라벨은 라벨 없음이다', () => {
+    expect(cardPairs(server)).toEqual([{ id: 'r-1', a: 0, b: 1, label: '스승-제자' }, { id: 'r-2', a: 2, b: 0, label: '머무는 곳' }, { id: 'r-3', a: 1, b: 0, label: '제자-스승' }, { id: 'r-5', a: 2, b: 1, label: undefined }])
+    expect(edges(buildSettingGraph(server), 'link')).toEqual([['오르', '미라', '스승-제자'], ['새벽항', '오르', '머무는 곳'], ['미라', '오르', '제자-스승'], ['새벽항', '미라', undefined]])
   })
 
   it('인물관계도는 인물끼리의 관계만 카드 id로 이은 노드를 쓴다', () => {
     const graph = buildCharacterGraph(server)
     expect(graph.nodes.map((n) => n.id)).toEqual(['card:c-9', 'card:c-3'])
-    expect(edges(graph, 'link')).toEqual([['오르', '미라', '스승-제자']])
+    expect(edges(graph, 'link')).toEqual([['오르', '미라', '스승-제자'], ['미라', '오르', '제자-스승']])
   })
 
   it('카드 페이지는 카드 id로 찾고 위치 번호나 모르는 id는 undefined다', () => {
@@ -255,7 +327,7 @@ describe('서버 카드 id(위치와 다른 id)로 이은 세계관', () => {
   it('게시판 줄·이전·다음·관계 목록이 모두 카드 id를 가리킨다', () => {
     expect(bookRows(server).map((r) => r.cardId)).toEqual(['c-9', 'c-3', 'c-7'])
     const orr = cardPage(server, 'c-9')!
-    expect([orr.relations.map((r) => r.cardId), orr.backlinks.map((r) => r.cardId), orr.next?.cardId, orr.prev?.cardId]).toEqual([['c-3'], ['c-7'], 'c-3', undefined])
+    expect([orr.relations.map((r) => r.cardId), orr.links.map((r) => r.cardId), orr.next?.cardId, orr.prev?.cardId]).toEqual([['c-3'], ['c-7'], 'c-3', undefined])
   })
 
   it('관계가 없는 세계관(관계 상태 unavailable 포함)은 카드만 있고 연결이 없다', () => {
@@ -277,8 +349,8 @@ describe('bookRows', () => {
 
   it('한 줄은 카드 주소용 cardId·제목·본문·유형과 연결 수(관계+연관)·제목 옆 수(인물은 인물 관계 수, 그 밖은 연결 수)를 가진다', () => {
     expect(bookRows(sample).find((r) => r.title === '하엘')).toEqual({ cardId: '2', title: '하엘', text: '하엘 설명', type: '인물', kind: '인물', no: 3, connections: 1, badge: 1 })
-    // 오르는 미라(인물 관계)와 새벽항(설정 연관)에 이어져 연결 2·관계 1이다
-    expect(bookRows(sample).map((r) => [r.title, r.connections, r.badge])).toEqual([['오르', 2, 1], ['미라', 2, 2], ['하엘', 1, 1], ['새벽항', 1, 1], ['금기', 0, 0]])
+    // 오르와 미라 사이의 역방향 관계 두 개도 각각 센다.
+    expect(bookRows(sample).map((r) => [r.title, r.connections, r.badge])).toEqual([['오르', 3, 2], ['미라', 3, 3], ['하엘', 1, 1], ['새벽항', 1, 1], ['금기', 0, 0]])
   })
 
   it('요약(text)은 마크다운 기호를 벗긴 한 줄이고 검색어도 벗긴 글자에 맞춘다', () => {
@@ -300,7 +372,7 @@ describe('bookRows', () => {
   })
 
   it('연결 많은 순은 연결 수 내림차순(같으면 설정집 순서), 가나다순은 제목 순이고 순번은 정렬한 순서대로 매긴다', () => {
-    expect(bookRows(mixed, { sort: 'links' }).map((r) => [r.no, r.title, r.connections])).toEqual([[1, 'e사건', 3], [2, 'c인물', 2], [3, 'd인물', 2], [4, 'a장소', 2], [5, 'b규칙', 1]])
+    expect(bookRows(mixed, { sort: 'links' }).map((r) => [r.no, r.title, r.connections])).toEqual([[1, 'c인물', 3], [2, 'a장소', 3], [3, 'e사건', 3], [4, 'd인물', 2], [5, 'b규칙', 1]])
     const korean = world([card('다 항구', 'location'), card('가 항구', 'location'), card('나 항구', 'location')])
     expect(bookRows(korean, { sort: 'name' }).map((r) => [r.no, r.title])).toEqual([[1, '가 항구'], [2, '나 항구'], [3, '다 항구']])
     expect(titles(korean, { sort: 'book' })).toEqual(['다 항구', '가 항구', '나 항구'])

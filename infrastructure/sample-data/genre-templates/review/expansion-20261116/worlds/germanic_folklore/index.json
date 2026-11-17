@@ -1,0 +1,227 @@
+{
+  "world_id": "germanic_folklore",
+  "world_id_meaning": "기존 worldId 참조용 라벨",
+  "id_namespace": "278f30fb-e7cf-54b0-b007-38266319945f",
+  "id_rule": "UUIDv5(namespace, batch_id:unit_id:candidate_key); 후보 ID일 뿐 적재나 세계관 배정 아님",
+  "scope_note": "각 구간 상태는 입력 조사자의 자기보고이며, 문헌 완전 독해·의미 전수·독립 감수·중복 검토 또는 권리 해결을 뜻하지 않는다.",
+  "rights_note": "출처 전사·번역·공동체·지역별 재사용 및 상업 이용권은 확인되지 않았으며, 조사 가능이나 공개 검토는 상업적 배포 허락이 아니다.",
+  "works": [
+    {
+      "work_id": "germanic-aschen",
+      "world_id": "germanic_folklore",
+      "title": "Aschenputtel",
+      "target_scope": "Kinder- und Hausmärchen 1857 7th edition vol. 1 pp.119–126",
+      "edition_language_attribution": "Brothers Grimm; German; Wikisource transcription; oldid unverified",
+      "prior_investigation_grade": "A",
+      "source_url": "https://de.wikisource.org/wiki/Aschenputtel_%281857%29",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Page links site license CC BY-SA 4.0; scope of that notice versus original work, transcription, quotations and images, attribution requirements and jurisdiction not resolved.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_section_boundaries_verified",
+        "reason": "Page markers 119–126 in German transcription bounded; images and source edition not compared."
+      },
+      "scope_status": "complete_local_tale_boundary_verified",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": "a5f37179793b208b84edfe0cd08bd9e51aa5abdb4a7ac064a586e3c6ef279fdc",
+      "units": [
+        {
+          "unit_id": "germanic-aschen--page-119",
+          "label": "Printed page 119",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 53425,
+            "byte_end_exclusive": 55684,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "012ef4b52fb8a3d0e86507d1d987357c7d82f4ba0df418ccb2330841ea62cad2",
+            "note": "Printed page marker to next marker; page boundaries may split a sentence or HTML element; consult adjoining page."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-10",
+              "unit_id": "germanic-aschen--page-119",
+              "status": "read",
+              "read_scope": "Printed page 119의 배정 raw byte 전체; 본문과 같은 구간의 주석을 구별하여 읽음",
+              "reason": null,
+              "candidate_count": 3
+            }
+          ],
+          "actual_candidates": 3
+        },
+        {
+          "unit_id": "germanic-aschen--page-120",
+          "label": "Printed page 120",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 55684,
+            "byte_end_exclusive": 58039,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "88cd0346b9c24bd081d860eb4fe0b5866a9b1a39e6a3b86b4006b0bad7a6e0ef",
+            "note": "Printed page marker to next marker; page boundaries may split a sentence or HTML element; consult adjoining page."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-10",
+              "unit_id": "germanic-aschen--page-120",
+              "status": "read",
+              "read_scope": "Printed page 120의 배정 raw byte 전체; 본문과 같은 구간의 주석을 구별하여 읽음",
+              "reason": null,
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "germanic-aschen--page-121",
+          "label": "Printed page 121",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 58039,
+            "byte_end_exclusive": 60705,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "ecee73dde245c99a05f5e09d7308dc53470c9c86b158df967b1ade19d562df5f",
+            "note": "Printed page marker to next marker; page boundaries may split a sentence or HTML element; consult adjoining page."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-10",
+              "unit_id": "germanic-aschen--page-121",
+              "status": "read",
+              "read_scope": "Printed page 121의 배정 raw byte 전체; 본문과 같은 구간의 주석을 구별하여 읽음",
+              "reason": null,
+              "candidate_count": 2
+            }
+          ],
+          "actual_candidates": 2
+        },
+        {
+          "unit_id": "germanic-aschen--page-122",
+          "label": "Printed page 122",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 60705,
+            "byte_end_exclusive": 63281,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "61d091c67e2867b3805d949d9750470a6f7b65cb8f36c0972ba879b8caa77bf9",
+            "note": "Printed page marker to next marker; page boundaries may split a sentence or HTML element; consult adjoining page."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-11",
+              "unit_id": "germanic-aschen--page-122",
+              "status": "read",
+              "read_scope": "Printed page 122 배정 raw byte 전체; 본문과 머리말·해설 구분",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "germanic-aschen--page-123",
+          "label": "Printed page 123",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 63281,
+            "byte_end_exclusive": 66158,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "e6ad4fa064006b2dc3a3fb796ae66cb76569dad877951302a26a3377ae46e414",
+            "note": "Printed page marker to next marker; page boundaries may split a sentence or HTML element; consult adjoining page."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-11",
+              "unit_id": "germanic-aschen--page-123",
+              "status": "read",
+              "read_scope": "Printed page 123 배정 raw byte 전체; 본문과 머리말·해설 구분",
+              "reason": null,
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "germanic-aschen--page-124",
+          "label": "Printed page 124",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 66158,
+            "byte_end_exclusive": 68665,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "1793d167f003123315744862f25a8fb5f51e3978ff896c5ffa406c0a5f0606ef",
+            "note": "Printed page marker to next marker; page boundaries may split a sentence or HTML element; consult adjoining page."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-11",
+              "unit_id": "germanic-aschen--page-124",
+              "status": "read",
+              "read_scope": "Printed page 124 배정 raw byte 전체; 본문과 머리말·해설 구분",
+              "reason": null,
+              "candidate_count": 5
+            }
+          ],
+          "actual_candidates": 5
+        },
+        {
+          "unit_id": "germanic-aschen--page-125",
+          "label": "Printed page 125",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 68665,
+            "byte_end_exclusive": 71427,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "6774ccd079dc06e6f2ac72b3d0b949b27c48be745f44182d2b2730d21b6eb690",
+            "note": "Printed page marker to next marker; page boundaries may split a sentence or HTML element; consult adjoining page."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-11",
+              "unit_id": "germanic-aschen--page-125",
+              "status": "read",
+              "read_scope": "Printed page 125 배정 raw byte 전체; 본문과 머리말·해설 구분",
+              "reason": null,
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "germanic-aschen--page-126",
+          "label": "Printed page 126",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 71427,
+            "byte_end_exclusive": 73911,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "ffa246f747cb13f96f0e553018c7c8fc5d72bc3b923221bbbad937ee38362336",
+            "note": "Printed page marker to next marker; page boundaries may split a sentence or HTML element; consult adjoining page."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-11",
+              "unit_id": "germanic-aschen--page-126",
+              "status": "read",
+              "read_scope": "Printed page 126 배정 raw byte 전체; 본문과 머리말·해설 구분",
+              "reason": null,
+              "candidate_count": 3
+            }
+          ],
+          "actual_candidates": 3
+        }
+      ]
+    }
+  ]
+}

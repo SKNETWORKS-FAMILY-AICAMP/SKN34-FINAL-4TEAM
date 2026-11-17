@@ -1,0 +1,71 @@
+{
+  "world_id": "persian_tradition",
+  "world_id_meaning": "신규 문화권 연구용 라벨, 실제 world 또는 DB ID 아님",
+  "id_namespace": "fb223030-63fb-5c7a-83a9-abdc5960e963",
+  "id_rule": "UUIDv5(namespace, batch_id:unit_id:candidate_key); 후보 ID일 뿐 적재나 세계관 배정 아님",
+  "scope_note": "각 구간 상태는 입력 조사자의 자기보고이며, 문헌 완전 독해·의미 전수·독립 감수·중복 검토 또는 권리 해결을 뜻하지 않는다.",
+  "rights_note": "출처 전사·번역·공동체·지역별 재사용 및 상업 이용권은 확인되지 않았으며, 조사 가능이나 공개 검토는 상업적 배포 허락이 아니다.",
+  "works": [
+    {
+      "work_id": "persia-sohrab",
+      "world_id": "persian_tradition",
+      "title": "Shahnameh: Rostam and Sohrab",
+      "target_scope": "entire episode; prior investigation read section 8 only",
+      "edition_language_attribution": "Ferdowsi; Persian; Ganjoor transcription, base edition and revision unverified",
+      "prior_investigation_grade": "A",
+      "source_url": "https://ganjoor.net/ferdousi/shahname/sohrab/sh8",
+      "other_recorded_urls": [
+        "https://ganjoor.net/ferdousi/shahname/sohrab",
+        "https://searcharchives.bl.uk/catalog/032-004341622"
+      ],
+      "rights": {
+        "status": "unverified",
+        "notes": "Original work, transcription, translation, images and jurisdiction separately unverified; access is not redistribution permission.",
+        "evidence_url": null,
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_partial",
+        "reason": "Only episode section 8 obtained; no claim of complete episode."
+      },
+      "scope_status": "partial_section_8_bounded",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": "0052cdf9f818c45e32373df4c3237546d7103b64a90624f09ed948779abeda1b",
+      "units": [
+        {
+          "unit_id": "persia-sohrab--section-08",
+          "label": "Sohrab section 8",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 54554,
+            "byte_end_exclusive": 68227,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "891e0ac9071e6a42789ad68788542a40c4a135dd1f161718ee18ce52f95cbc70",
+            "note": "Ganjoor article bounds include site heading and poetry; section 8 only."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-20",
+              "unit_id": "persia-sohrab--section-08",
+              "status": "read",
+              "read_scope": "Sohrab section 8에 해당하는 배정 바이트 전체를 읽고 본문·노래·주석·사이트 요소를 구분함",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "persia-sohrab--remaining-sections",
+          "label": "Remaining sections of the episode",
+          "status": "blocked",
+          "reason": "Full episode index, complete section list and source files have not been checked.",
+          "input_boundary": null,
+          "coverage": [],
+          "actual_candidates": 0
+        }
+      ]
+    }
+  ]
+}

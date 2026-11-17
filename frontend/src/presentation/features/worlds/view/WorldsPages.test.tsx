@@ -449,6 +449,115 @@ const serverWorld = (extra: Partial<PublicWorld> = {}): PublicWorld => ({
   relationships: [{ id: 'r-1', sourceCardId: 'c-1', targetCardId: 'c-2', label: '적대' }, { id: 'r-2', sourceCardId: 'c-1', targetCardId: 'c-3', label: '거점' }],
   relationshipStatus: 'current', ...extra,
 })
+it('목록에서 관계 수를 확인할 수 없으면 0개로 표시하지 않는다', async () => {
+  vi.spyOn(useCase(), 'list').mockResolvedValue(serverPage([server('a', { relationshipCount: null })]))
+  await renderAt('/worlds')
+  const grid = within(screen.getByRole('heading', { name: '세계관 모아 보기' }).closest('section')!)
+  expect(grid.getByText('관계 수 확인 불가')).toBeTruthy()
+})
+it('공개 카드 관계는 실제 단방향·대칭·부정·본문과 이전 응답의 방향 미상을 구별한다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ cards: [card('a', '가', 'character'), card('b', '나', 'character')], relationships: [
+    { id: 'r1', sourceCardId: 'a', targetCardId: 'b', label: '동료', direction: 'directed', polarity: 'denied', body: '첫 줄\n둘째 줄' },
+    { id: 'r2', sourceCardId: 'b', targetCardId: 'a', label: '동료', direction: 'symmetric' },
+    { id: 'r3', sourceCardId: 'b', targetCardId: 'a', label: '동료' },
+  ] }))
+  await renderAt('/worlds/sw/cards/a')
+  expect(screen.getByText(/단방향: 이 설정 → 나/)).toBeTruthy()
+  expect(screen.getByText(/부정된 관계/)).toBeTruthy()
+  expect(screen.getByText('첫 줄 둘째 줄')).toBeTruthy()
+  expect(screen.getByText(/대칭 관계/)).toBeTruthy()
+  expect(screen.getByText(/방향 미상/)).toBeTruthy()
+})
+it('인물관계도는 방향과 부정을 그래프에 전달한다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ cards: [card('a', '가', 'character'), card('b', '나', 'character')], relationships: [
+    { id: 'r', sourceCardId: 'a', targetCardId: 'b', label: '동료', direction: 'directed', polarity: 'denied' },
+  ] }))
+  await renderAt('/worlds/sw?tab=people')
+  await screen.findByText('그래프 캔버스')
+  expect(graph.props!.data.links[0]).toMatchObject({ source: 'card:a', target: 'card:b', direction: 'directed', polarity: 'denied' })
+})
+it('대형 공개 설정집은 페이지를 이동하고 검색해 마지막 카드의 원문과 페이지 밖 관계를 연다', async () => {
+  const cards = Array.from({ length: 101 }, (_, i) => ({ ...card(`c-${i}`, `설정 ${i}`, 'character'), text: `# 원문 ${i}\n출처: 기록` }))
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ cards, relationships: [{ id: 'r', sourceCardId: 'c-0', targetCardId: 'c-100', label: '인연' }] }))
+  await renderAt('/worlds/sw?tab=book')
+  expect(within(screen.getByRole('table', { name: '설정 카드 목록' })).getAllByRole('row')).toHaveLength(51)
+  fireEvent.change(screen.getByRole('searchbox', { name: '설정 카드 제목·본문 검색' }), { target: { value: '설정 100' } })
+  fireEvent.click(screen.getByRole('link', { name: '설정 100' }))
+  expect(await screen.findByText('출처: 기록')).toBeTruthy()
+  expect(within(screen.getByRole('heading', { name: /^\d+\. 관계$/ }).closest('details')!).getByRole('link', { name: '설정 0' })).toBeTruthy()
+})
+it('페이지를 가로지르는 관계를 그래프 안내와 양쪽 카드 상세에서 따라간다', async () => {
+  const cards = Array.from({ length: 101 }, (_, i) => card(`c-${i}`, `설정 ${i}`, 'character'))
+  const relationships = [
+    { id: 'r1', sourceCardId: 'c-0', targetCardId: 'c-100', label: '스승' },
+    { id: 'r2', sourceCardId: 'c-100', targetCardId: 'c-0', label: '제자' },
+  ]
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ cards, relationships }))
+  await renderAt('/worlds/sw?tab=people')
+  await screen.findByText('그래프 캔버스')
+  expect(graph.props!.data.nodes).toHaveLength(50)
+  expect(graph.props!.data.links).toHaveLength(0)
+  expect(screen.getByText(/다른 페이지의 연결도 그래프로 볼 수 있어요/)).toBeTruthy()
+  fireEvent.change(within(screen.getByRole('region', { name: '인물관계도' })).getAllByRole('combobox', { name: /페이지/ })[1], { target: { value: '2' } })
+  expect(graph.props!.data.nodes.map((n) => n.name)).toEqual(['설정 100'])
+  act(() => graph.props!.onOpen(graph.props!.data.nodes[0]))
+  await screen.findByRole('heading', { level: 1, name: '설정 100' })
+  expect(screen.getByText(/스승/)).toBeTruthy()
+  expect(screen.getByText(/제자/)).toBeTruthy()
+  const relationSection = () => screen.getByRole('heading', { name: /^\d+\. 관계$/ }).closest('details')!
+  fireEvent.click(within(relationSection()).getByRole('link', { name: '설정 0' }))
+  await screen.findByRole('heading', { level: 1, name: '설정 0' })
+  expect(screen.getByText(/스승/)).toBeTruthy()
+  expect(screen.getByText(/제자/)).toBeTruthy()
+  expect(within(relationSection()).getByRole('link', { name: '설정 100' }).getAttribute('href')).toBe('/worlds/sw/cards/c-100')
+})
+it('다른 그래프 페이지의 두 카드 사이 여러 관계를 검색해 그래프에서 모두 본다', async () => {
+  const cards = Array.from({ length: 101 }, (_, i) => card(`c-${i}`, `설정 ${i}`, 'character'))
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ cards, relationships: [
+    { id: 'r1', sourceCardId: 'c-0', targetCardId: 'c-100', label: '관계', direction: 'directed', category: 'structural' },
+    { id: 'r2', sourceCardId: 'c-100', targetCardId: 'c-0', label: '관계', direction: 'directed', category: 'emotional' },
+  ] }))
+  await renderAt('/worlds/sw?tab=people')
+  await screen.findByText('그래프 캔버스')
+  expect(within(screen.getByRole('region', { name: '인물관계도' })).getByText('인물 101명 · 관계 2개')).toBeTruthy()
+  fireEvent.change(screen.getByRole('searchbox', { name: '관계 볼 설정 검색' }), { target: { value: '설정 0' } })
+  fireEvent.click(within(screen.getByRole('group', { name: '관계 볼 설정' })).getByRole('button', { name: '설정 0' }))
+  expect(graph.props!.data.nodes.map((n) => n.name)).toEqual(['설정 0', '설정 100'])
+  expect(graph.props!.data.links.map((l) => [l.id, l.direction, l.category])).toEqual([['r1', 'directed', 'structural'], ['r2', 'directed', 'emotional']])
+  expect(graph.props!.data.links.every((l) => l.curve !== 0)).toBe(true)
+  act(() => graph.props!.onOpen(graph.props!.data.nodes[1]))
+  await screen.findByRole('heading', { level: 1, name: '설정 100' })
+  expect(within(screen.getByRole('table', { name: '설정 100' })).getByText('2개')).toBeTruthy()
+})
+it('같은 카드 사이 관계가 많으면 선 페이지를 넘겨 마지막 관계도 본다', async () => {
+  const cards = [card('a', '가', 'character'), card('b', '나', 'character')]
+  const relationships = Array.from({ length: 22 }, (_, i) => ({ id: `r${i}`, sourceCardId: 'a', targetCardId: 'b', label: `관계 ${i}`, direction: 'directed' as const }))
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ cards, relationships }))
+  await renderAt('/worlds/sw?tab=people')
+  await screen.findByText('그래프 캔버스')
+  expect(graph.props!.data.links).toHaveLength(20)
+  const graphRegion = within(screen.getByRole('region', { name: '인물관계도' }))
+  fireEvent.click(within(graphRegion.getByRole('navigation', { name: '페이지 이동' })).getByRole('button', { name: '다음' }))
+  expect(graph.props!.data.links.map((l) => l.id)).toEqual(['r20', 'r21'])
+  expect(graphRegion.getByText('인물 2명 · 관계 22개')).toBeTruthy()
+})
+it('같은 라벨의 역순 관계는 상세에서 기록 순서를 구별하고 실제 방향이라고 단정하지 않는다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ cards: [card('a', '가', 'character'), card('b', '나', 'character')], relationships: [
+    { id: 'r1', sourceCardId: 'a', targetCardId: 'b', label: '동료' }, { id: 'r2', sourceCardId: 'b', targetCardId: 'a', label: '동료' },
+  ] }))
+  await renderAt('/worlds/sw/cards/a')
+  expect(screen.getByText(/기록 순서는 관계의 방향이나 대칭 여부를 뜻하지 않아요/)).toBeTruthy()
+  expect(screen.getByText(/기록 순서: 이 설정 → 나/)).toBeTruthy()
+  expect(screen.getByText(/기록 순서: 나 → 이 설정/)).toBeTruthy()
+})
+it('대칭 또는 미상 관계는 저장된 끝점 순서만으로 가리키는 설정이라 표시하지 않는다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ cards: [card('a', '가', 'location'), card('b', '나', 'location')], relationships: [
+    { id: 'r1', sourceCardId: 'a', targetCardId: 'b', label: '연결', direction: 'symmetric' },
+  ] }))
+  await renderAt('/worlds/sw/cards/b')
+  expect(screen.getByRole('heading', { name: /연관 설정/ })).toBeTruthy()
+  expect(screen.queryByRole('heading', { name: /이 카드를 가리키는 설정/ })).toBeNull()
+})
 const deferred = <T,>() => {
   let resolve!: (value: T) => void
   const promise = new Promise<T>((done) => { resolve = done })

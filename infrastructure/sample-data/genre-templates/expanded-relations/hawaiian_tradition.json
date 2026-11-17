@@ -1,0 +1,636 @@
+{
+  "genre": "hawaiian_tradition",
+  "worldId": "6082fbff-0610-5bf7-bd76-6b3bfc3a12c2",
+  "relationships": [
+    {
+      "id": "aeb8db31-e73c-54e3-af3d-4ea389d5e806",
+      "sourceCardId": "3fd477ab-80e9-5f8d-b096-279e047e00da",
+      "targetCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "category": "structural",
+      "body": "도입부는 히이아카가 하우메아에게서 태어났다고 전한다. 근거 카드 ID: 3fd477ab-80e9-5f8d-b096-279e047e00da. 출처: 도입부 출생 이야기 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "eae7dc2f-0ecb-53d5-9453-de15b3bbf1a3",
+      "sourceCardId": "3fd477ab-80e9-5f8d-b096-279e047e00da",
+      "targetCardId": "c1cebc56-f6ca-55b4-91e4-b557228319a2",
+      "category": "structural",
+      "body": "도입부는 하우메아를 펠레의 어머니로 소개한다. 근거 카드 ID: 3fd477ab-80e9-5f8d-b096-279e047e00da. 출처: 도입부 출생 이야기 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9a632d8d-c640-5b6d-9273-bdc047ee9db8",
+      "sourceCardId": "c1cebc56-f6ca-55b4-91e4-b557228319a2",
+      "targetCardId": "7fee3e6c-b5e1-5018-a5ac-d6f2cf42e9b1",
+      "category": "structural",
+      "body": "어린 펠레는 로노마쿠아가 불을 다루는 방법을 관찰해 익혔다. 근거 카드 ID: 7fee3e6c-b5e1-5018-a5ac-d6f2cf42e9b1. 출처: 도입부 어린 펠레 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "불 익히기",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "358302ea-0d55-54b8-a858-1c4a6646e0d6",
+      "sourceCardId": "8926a155-689c-5250-adbb-c75be13923e7",
+      "targetCardId": "c1cebc56-f6ca-55b4-91e4-b557228319a2",
+      "category": "structural",
+      "body": "펠레의 언니 나마카오카하이는 펠레를 추격해 마우이에서 싸운다. 근거 카드 ID: 8926a155-689c-5250-adbb-c75be13923e7. 출처: 도입부 고향과 전투 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "자매와 추격",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d07f3ca6-085a-57b1-a424-32ec5ca4ee10",
+      "sourceCardId": "34e6b744-6ba2-5dbf-a65f-ee4deee94ae0",
+      "targetCardId": "c1cebc56-f6ca-55b4-91e4-b557228319a2",
+      "category": "structural",
+      "body": "펠레는 오빠 카모호알리이의 옷자락에 숨어 추격을 피한다. 근거 카드 ID: 34e6b744-6ba2-5dbf-a65f-ee4deee94ae0. 출처: 도입부 피난과 항해 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "오빠와 보호",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9ba73d2d-21ad-551e-9fd8-29d5e008760a",
+      "sourceCardId": "e78bcd55-71cb-59ce-b810-8ef9cb1422e8",
+      "targetCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "category": "structural",
+      "body": "호포에는 히이아카의 가까운 친구이자 노래와 춤의 스승이다. 근거 카드 ID: e78bcd55-71cb-59ce-b810-8ef9cb1422e8. 출처: 제1장 1–2쪽 춤 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "친구와 스승",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "36de9847-fb45-5403-bda6-4468e2b6be2f",
+      "sourceCardId": "e78bcd55-71cb-59ce-b810-8ef9cb1422e8",
+      "targetCardId": "ab48ce7e-8055-59e7-9fa4-c26820ed52cb",
+      "category": "structural",
+      "body": "하에나와 호포에는 푸나 바닷가에서 춤춘다. 근거 카드 ID: ab48ce7e-8055-59e7-9fa4-c26820ed52cb. 출처: 제1장 1–2쪽 춤 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "함께 춤",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "26b8c727-17c9-59ea-b0ed-c8aa84bed206",
+      "sourceCardId": "b50cfaee-1295-58b0-a193-e6475aaec7c9",
+      "targetCardId": "472f7365-1dd8-5f5c-bb36-6683a2e7e336",
+      "category": "structural",
+      "body": "파오아는 친구 로히아우가 손님을 맞도록 재촉한다. 근거 카드 ID: 472f7365-1dd8-5f5c-bb36-6683a2e7e336. 출처: 제2장 6쪽 회관 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "벗",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7302c448-2130-59c7-ab36-e777943980c0",
+      "sourceCardId": "fb21d6be-14b1-5add-9e22-ae4f055e67b2",
+      "targetCardId": "b50cfaee-1295-58b0-a193-e6475aaec7c9",
+      "category": "structural",
+      "body": "로히아우의 개는 주인의 무덤을 떠나지 않는다. 근거 카드 ID: fb21d6be-14b1-5add-9e22-ae4f055e67b2. 출처: 제3장 9쪽 무덤과 전갈 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "주인",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "40d816ee-e7c8-56cd-894f-9c04e9dc5584",
+      "sourceCardId": "69374788-16cb-5371-94fc-e2b2c273bc8b",
+      "targetCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "category": "structural",
+      "body": "파우오팔라에는 히이아카의 유모다. 근거 카드 ID: 69374788-16cb-5371-94fc-e2b2c273bc8b. 출처: 제4장 10–11쪽 전령 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "유모",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2fcc0726-a7e1-5ed0-940a-e78273de52eb",
+      "sourceCardId": "3ff5fb64-fe44-5b6f-a42a-d6db55d8ffc8",
+      "targetCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "category": "structural",
+      "body": "파우오팔라에는 히이아카의 요청으로 동반자가 된다. 근거 카드 ID: 3ff5fb64-fe44-5b6f-a42a-d6db55d8ffc8. 출처: 제6장 19쪽 동행 요청 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "여행 동행",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a8f507be-f963-53ea-bbbf-c547d2349a60",
+      "sourceCardId": "af2854fa-2380-51b4-8609-46359a7a93e7",
+      "targetCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "category": "structural",
+      "body": "와히네오마오는 히이아카의 도움을 받아 제물을 바친 뒤 동행한다. 근거 카드 ID: af2854fa-2380-51b4-8609-46359a7a93e7. 출처: 제7장 24–26쪽 봉헌과 동행 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "여행 동행",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8e2bfeb2-81e6-5cdc-9ed8-a9fa66e66b28",
+      "sourceCardId": "97af04fd-9f94-5700-a954-b1991d068d2b",
+      "targetCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "category": "structural",
+      "body": "파풀레후는 히이아카를 잔치에 초대하고 동행한다. 근거 카드 ID: 97af04fd-9f94-5700-a954-b1991d068d2b. 출처: 제8장 27–28쪽 잔치 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "여행 동행",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "06054302-cdfe-50d6-80b7-2e65ae611d5c",
+      "sourceCardId": "03f45d65-7e14-584f-8b78-b359424f4d43",
+      "targetCardId": "45b2e717-2c6c-577c-b212-ca919e4e1b74",
+      "category": "structural",
+      "body": "새는 파나에와를 위해 숲의 히이아카를 정탐한다. 근거 카드 ID: 03f45d65-7e14-584f-8b78-b359424f4d43. 출처: 제9장 30–31쪽 숲의 밤 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "정탐 수행",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "42888090-e4d1-51a1-aca2-2becb50c0f5f",
+      "sourceCardId": "df4596a8-348d-5c4c-a157-8ff3804240db",
+      "targetCardId": "45b2e717-2c6c-577c-b212-ca919e4e1b74",
+      "category": "structural",
+      "body": "케아니니와 이히칼로는 주인 파나에와에게 정찰 내용을 보고한다. 근거 카드 ID: df4596a8-348d-5c4c-a157-8ff3804240db. 출처: 제9장 32쪽 정찰 보고 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "정찰 보고",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "41d6a56f-b99b-5c2b-8708-3d20a3401286",
+      "sourceCardId": "323d7b17-85f6-5bb8-bbc4-5ca25c85f195",
+      "targetCardId": "af2854fa-2380-51b4-8609-46359a7a93e7",
+      "category": "structural",
+      "body": "푸나호아와 카이팔라오아는 딸 와히네오마오를 기다린다. 근거 카드 ID: 323d7b17-85f6-5bb8-bbc4-5ca25c85f195. 출처: Emerson, Pele and Hiiaka, 제13장, 55–56쪽 귀향 길 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "부모",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0ebdb5a5-292e-5719-b06c-4a7ac63c9542",
+      "sourceCardId": "1a1bc4a4-420c-5275-8955-207cc26d1ebd",
+      "targetCardId": "b50cfaee-1295-58b0-a193-e6475aaec7c9",
+      "category": "structural",
+      "body": "편집자는 카후아누이를 로히아우의 누나라고 설명한다. 근거 카드 ID: 1a1bc4a4-420c-5275-8955-207cc26d1ebd. 출처: Emerson 《Pele and Hiiaka》 22장 108–109쪽 두 번째 노래; 109쪽 주 12 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "누이",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f9fadd94-5088-5fbe-85ce-d2105d216324",
+      "sourceCardId": "f6db0011-ed3e-5475-b69f-131527731136",
+      "targetCardId": "1a1bc4a4-420c-5275-8955-207cc26d1ebd",
+      "category": "structural",
+      "body": "나코아올라는 카후아누이의 남편이다. 근거 카드 ID: f6db0011-ed3e-5475-b69f-131527731136. 출처: Pele and Hiiaka, 27장 153~154쪽 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "부부",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f035e810-0080-5eeb-9df7-30568856c225",
+      "sourceCardId": "b595092a-8374-5fba-bda7-dac81bc855b0",
+      "targetCardId": "b50cfaee-1295-58b0-a193-e6475aaec7c9",
+      "category": "structural",
+      "body": "서술자는 펠레울라와 로히아우가 예전에 연인이었다고 설명한다. 근거 카드 ID: b595092a-8374-5fba-bda7-dac81bc855b0. 출처: 제31장, 169–173쪽, 접대와 경기장 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "이전 연인",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "980ae432-6c8c-507f-af2c-c387eb8bf1ed",
+      "sourceCardId": "b595092a-8374-5fba-bda7-dac81bc855b0",
+      "targetCardId": "72c7b52f-8b99-5cde-b24b-6c48945b4598",
+      "category": "structural",
+      "body": "펠레울라는 카마누와이를 자신의 아버지라고 말한다. 근거 카드 ID: 72c7b52f-8b99-5cde-b24b-6c48945b4598. 출처: 제31장, 177쪽, 로히아우의 마지막 차례 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "딸과 아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2d4cf8d4-aff3-5e5c-a5d8-04ce7885973a",
+      "sourceCardId": "43e9cae6-b324-5f70-b5ce-0d9175ce3ea9",
+      "targetCardId": "b595092a-8374-5fba-bda7-dac81bc855b0",
+      "category": "structural",
+      "body": "아알라는 주인 펠레울라의 지시를 로히아우에게 전한다. 근거 카드 ID: 43e9cae6-b324-5f70-b5ce-0d9175ce3ea9. 출처: 제31장, 173쪽, 홀에서의 초대 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "사자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "35099a82-cf4b-570c-8414-f6df1e8d8dfc",
+      "sourceCardId": "c7d53428-9139-5a7e-9b24-0961ae0fe663",
+      "targetCardId": "18f16aba-e3e9-5220-8289-e84f62c99c02",
+      "category": "structural",
+      "body": "라아는 물떼새 콜레아를 로히아우에게 보낸다. 근거 카드 ID: 18f16aba-e3e9-5220-8289-e84f62c99c02. 출처: XXXVIII 새 사자 첫 시도, 236쪽 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "사자 파견",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6d20192d-c1b2-584d-8a6c-4938eefa95be",
+      "sourceCardId": "c7d53428-9139-5a7e-9b24-0961ae0fe663",
+      "targetCardId": "99b4ec61-3caa-57da-8bab-9289aadc9189",
+      "category": "structural",
+      "body": "라아가 보낸 울릴리는 로히아우의 영혼을 라아에게 데려온다. 근거 카드 ID: 99b4ec61-3caa-57da-8bab-9289aadc9189. 출처: XXXVIII 새 사자 두 번째 시도, 237쪽 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "사자 파견",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "766586bf-96f4-5ad2-9b1f-48581c8950f1",
+      "sourceCardId": "4adfa589-6600-5987-be6b-3ffc69dbc3c6",
+      "targetCardId": "b50cfaee-1295-58b0-a193-e6475aaec7c9",
+      "category": "structural",
+      "body": "카네밀로하이는 로히아우의 몸을 재구성하고 영혼을 넣어 살린다. 근거 카드 ID: 4adfa589-6600-5987-be6b-3ffc69dbc3c6. 출처: XXXVIII 항해와 소생, 237쪽 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "영혼 회복",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a9034914-513b-59ca-90f6-755266a7e666",
+      "sourceCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "targetCardId": "b50cfaee-1295-58b0-a193-e6475aaec7c9",
+      "category": "structural",
+      "body": "히이아카는 로히아우의 영혼과 대화하고 시신을 찾는다. 근거 카드 ID: a3797a69-2edd-572a-ba9d-95f6643ea913. 출처: Pele and Hiiaka, 24장 시작~134쪽 무덤 조사 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "시신 수색",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "007cce09-b2c9-5ca0-ae96-fd15bc863a20",
+      "sourceCardId": "c1cebc56-f6ca-55b4-91e4-b557228319a2",
+      "targetCardId": "455b0b53-39ef-5ab0-a7e6-13b36da2116a",
+      "category": "structural",
+      "body": "도입부는 쿠아이헤라니를 펠레가 태어난 땅으로 전한다. 근거 카드 ID: 455b0b53-39ef-5ab0-a7e6-13b36da2116a. 출처: 도입부 첫 문단 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "출생지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "761ec0fe-3504-55fd-82c0-070f0b624cba",
+      "sourceCardId": "c1cebc56-f6ca-55b4-91e4-b557228319a2",
+      "targetCardId": "5735d0dd-9d73-5377-af10-279455313abd",
+      "category": "structural",
+      "body": "펠레 일행은 호누아이아케아를 타고 고향을 떠난다. 근거 카드 ID: 5735d0dd-9d73-5377-af10-279455313abd. 출처: 도입부 고향 탈출 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "피난 카누",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e6fdc026-bc23-50b7-979f-192cb1a9ea73",
+      "sourceCardId": "8926a155-689c-5250-adbb-c75be13923e7",
+      "targetCardId": "f9f1b28c-b1c4-5424-bffb-ca0c74e3f60e",
+      "category": "structural",
+      "body": "하우이는 나마카오카하이와 함께 펠레를 쫓는다. 근거 카드 ID: f9f1b28c-b1c4-5424-bffb-ca0c74e3f60e. 출처: 도입부 할레아칼라 대결 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "추격 동행",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6b050037-1b83-52c1-853f-f54cc75dea9c",
+      "sourceCardId": "8e06b6e4-aac5-533f-a541-1adba5b0d724",
+      "targetCardId": "c1cebc56-f6ca-55b4-91e4-b557228319a2",
+      "category": "structural",
+      "body": "케오와히마카오카우아는 펠레가 오빠라고 부르는 친족이다. 근거 카드 ID: 8e06b6e4-aac5-533f-a541-1adba5b0d724. 출처: 제1장 3쪽 수면 명령 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "오빠",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f13939ae-17e0-5077-ac29-a3fa037717b6",
+      "sourceCardId": "b50cfaee-1295-58b0-a193-e6475aaec7c9",
+      "targetCardId": "c1cebc56-f6ca-55b4-91e4-b557228319a2",
+      "category": "structural",
+      "body": "로히아우는 낯선 펠레를 맞아 잔치를 베푼다. 근거 카드 ID: b50cfaee-1295-58b0-a193-e6475aaec7c9. 출처: 제2장 5–7쪽 환대 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "환대",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d48816fd-910a-5bd5-9000-71e4002d74c0",
+      "sourceCardId": "c1cebc56-f6ca-55b4-91e4-b557228319a2",
+      "targetCardId": "56adbdaf-b96e-5390-b9b0-313e50bd1f97",
+      "category": "structural",
+      "body": "포하카우는 펠레의 사촌이다. 근거 카드 ID: 56adbdaf-b96e-5390-b9b0-313e50bd1f97. 출처: 제3장 9쪽 마지막 문단 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "사촌",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f0c750d1-a41c-57b9-aa53-4ab1b78a9a6c",
+      "sourceCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "targetCardId": "39eb9428-502a-5099-86e9-ca60ea9b24af",
+      "category": "structural",
+      "body": "히이아카는 어부 파훌루를 노래로 불러 생선을 받는다. 근거 카드 ID: 39eb9428-502a-5099-86e9-ca60ea9b24af. 출처: 제8장 29쪽 해안 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "생선 받음",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3703cfc6-9ae5-51bc-ab28-9d3ccb73350f",
+      "sourceCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "targetCardId": "e5f226f8-6525-5e2d-b598-52e64d996fc3",
+      "category": "structural",
+      "body": "히이아카는 상어 신 마카우키우와 싸운다. 근거 카드 ID: e5f226f8-6525-5e2d-b598-52e64d996fc3. 출처: Emerson, Pele and Hiiaka, 제11장, 47–49쪽 수영 논쟁과 상어 출현 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "상어와 대결",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "08d7ade7-d987-59fb-93bd-33b710d380fe",
+      "sourceCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "targetCardId": "eda1f88c-f964-5922-a536-545b9694d157",
+      "category": "structural",
+      "body": "히이아카는 마히키 무리의 우두머리 모오라우를 겨냥한다. 근거 카드 ID: eda1f88c-f964-5922-a536-545b9694d157. 출처: Emerson, Pele and Hiiaka, 제12장, 51–54쪽 결투 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "마히키 대결",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6337aa1e-7c29-56f6-8afc-c796bb6cc7b6",
+      "sourceCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "targetCardId": "89abe12d-23fb-51e3-b1e9-80e3af0e7e62",
+      "category": "structural",
+      "body": "라우미히는 히이아카를 감시하다가 그녀에게 죽는다. 근거 카드 ID: 89abe12d-23fb-51e3-b1e9-80e3af0e7e62. 출처: Emerson, Pele and Hiiaka, 제12장, 52쪽 밤 정찰 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "정찰자와 대결",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "87916b52-45cd-5f4b-8396-c42a4821ed06",
+      "sourceCardId": "cc8b9d90-3d89-52ab-bc6a-df55c4ca4f99",
+      "targetCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "category": "structural",
+      "body": "호노카네는 히이아카와 동행인을 집 잔치에 초대한다. 근거 카드 ID: cc8b9d90-3d89-52ab-bc6a-df55c4ca4f99. 출처: Emerson, Pele and Hiiaka, 제14장, 61–63쪽 코할라 체류 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "잔치 초대",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c4933557-bc4f-5ba4-b6be-3077cdc00d2d",
+      "sourceCardId": "77190861-3a10-5a62-a975-dffb589dea1f",
+      "targetCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "category": "structural",
+      "body": "피이케아누이는 히이아카의 승선을 거부하려 한다. 근거 카드 ID: 77190861-3a10-5a62-a975-dffb589dea1f. 출처: Emerson, Pele and Hiiaka, 제15장, 63–66쪽 카누 항해 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "승선 거부",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5734307b-73e2-569b-b875-3d5ab807b44f",
+      "sourceCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "targetCardId": "55d8cad5-b80a-52a9-a22b-3b0842cbf747",
+      "category": "structural",
+      "body": "히이아카는 마나마나이아칼루에아가 영이라고 판단한다. 근거 카드 ID: 55d8cad5-b80a-52a9-a22b-3b0842cbf747. 출처: Emerson, Pele and Hiiaka, 제16장, 69–73쪽 해변 장면 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "영의 정체 판단",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "271593dd-314c-5842-b59b-15239be73d50",
+      "sourceCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "targetCardId": "f2fa9d78-16ad-5b95-9c8f-2fbd20e55c20",
+      "category": "structural",
+      "body": "키키푸아는 히이아카에게 쫓겨 죽는다. 근거 카드 ID: f2fa9d78-16ad-5b95-9c8f-2fbd20e55c20. 출처: Emerson, Pele and Hiiaka, 제18장, 84–85쪽 절벽 대결 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "키키푸아와 대결",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8de1c32b-6425-5aed-862b-83fc3143514b",
+      "sourceCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "targetCardId": "0030a4f4-c322-5e59-a223-5a81514b5f3a",
+      "category": "structural",
+      "body": "모콜리이는 히이아카에게 죽는다. 근거 카드 ID: 0030a4f4-c322-5e59-a223-5a81514b5f3a. 출처: Emerson 《Pele and Hiiaka》 20장 91쪽 모콜리이와의 조우 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "모콜리이와 대결",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "14b29c48-13c9-5e93-ba64-90a36628e2c2",
+      "sourceCardId": "3ab20d4e-c4bc-5646-81f9-a4fd31220dde",
+      "targetCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "category": "structural",
+      "body": "카우히는 히이아카의 조상인 쿠푸아로 묘사된다. 근거 카드 ID: 3ab20d4e-c4bc-5646-81f9-a4fd31220dde. 출처: Emerson 《Pele and Hiiaka》 20장 91–96쪽 칼리우와아 조우와 대화 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "조상",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "be1202ce-05c3-5277-852b-90d85d2da444",
+      "sourceCardId": "bb71b3cd-7333-5dee-bec7-1cb94ae13bc5",
+      "targetCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "category": "structural",
+      "body": "카우아이의 바위는 히이아카에게 판자와 나무토막을 준다. 근거 카드 ID: bb71b3cd-7333-5dee-bec7-1cb94ae13bc5. 출처: Emerson 《Pele and Hiiaka》 22장 105–106쪽 바위와의 대화 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "카누 재료 제공",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0491af68-7111-5c37-ac88-a15e54f6613b",
+      "sourceCardId": "7f17d0f0-e366-50e7-ad7d-01a1d8f2a1a9",
+      "targetCardId": "6f251a83-5dc3-5c46-9479-eeb697dd427d",
+      "category": "structural",
+      "body": "와일루아누이아호아노는 말라에하아코아의 아내다. 근거 카드 ID: 6f251a83-5dc3-5c46-9479-eeb697dd427d. 출처: Emerson 《Pele and Hiiaka》 23장 109–112쪽 도착 및 잔치 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "부부",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2402ba5b-9225-5867-bd67-d3dda0f45e24",
+      "sourceCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "targetCardId": "5a84b56d-9604-5ec0-97f0-72f951384712",
+      "category": "structural",
+      "body": "히이아카가 노래로 위협하자 로히아우의 시신을 숨긴 두 여인은 죽는다. 근거 카드 ID: 5a84b56d-9604-5ec0-97f0-72f951384712. 출처: Pele and Hiiaka, 24장 134~136쪽; 138쪽 주 1 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "시신 탈환",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0dd56003-8be1-54f1-bca1-a88d4639429c",
+      "sourceCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "targetCardId": "0dad9e75-5742-5201-a831-3637f120ec52",
+      "category": "structural",
+      "body": "히이아카는 꽃과 마일레의 레이를 바치는 기도에서 라카를 부른다. 근거 카드 ID: 0dad9e75-5742-5201-a831-3637f120ec52. 출처: Pele and Hiiaka, 25장 142~143쪽 및 주 24 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "회복 기도",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "920eb77b-edf3-5638-81aa-918d1040c315",
+      "sourceCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "targetCardId": "080fb14c-7069-5ac6-9eb5-967455dc3062",
+      "category": "structural",
+      "body": "히이아카는 치유 기도에서 카네카폴레이를 부른다. 근거 카드 ID: 080fb14c-7069-5ac6-9eb5-967455dc3062. 출처: Pele and Hiiaka, 25장 141~142쪽 및 주 23 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "치유 기도",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1ce3d638-28dc-50c4-9eaa-a9f018df0a9d",
+      "sourceCardId": "b50cfaee-1295-58b0-a193-e6475aaec7c9",
+      "targetCardId": "28cedce1-1cab-50f9-a10f-2c994733a577",
+      "category": "structural",
+      "body": "로히아우는 파오아에게 남아 대리 통치하라고 한다. 근거 카드 ID: 28cedce1-1cab-50f9-a10f-2c994733a577. 출처: Pele and Hiiaka, 28장 156쪽 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "대리 통치 위임",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a5dbb851-82f7-5041-baab-c2852d49639a",
+      "sourceCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "targetCardId": "27e9bc8d-dd52-5ffc-854d-b843fe7fd3cb",
+      "category": "structural",
+      "body": "히이아카는 친가 쪽 조상인 두 상어에게 바다에서 물러나는 벌을 준다. 근거 카드 ID: 27e9bc8d-dd52-5ffc-854d-b843fe7fd3cb. 출처: Pele and Hiiaka, 29장 160~162쪽 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "조상과 제재",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "994ffdb9-9d4d-5924-8dbc-f17b4390d336",
+      "sourceCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "targetCardId": "c2f0adc1-8366-55b1-93b4-a96ce3702a2d",
+      "category": "structural",
+      "body": "호포에는 히이아카가 사랑하는 벗으로 불에 휩쓸린 뒤 바위로 묘사된다. 근거 카드 ID: c2f0adc1-8366-55b1-93b4-a96ce3702a2d. 출처: Pele and Hiiaka, 30장 162~163쪽 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "벗 호포에",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "da1ccb8d-9b02-5a6f-891a-c02dd448dd35",
+      "sourceCardId": "b595092a-8374-5fba-bda7-dac81bc855b0",
+      "targetCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "category": "structural",
+      "body": "펠레울라는 히이아카 일행을 자기 집에 초대한다. 근거 카드 ID: b595092a-8374-5fba-bda7-dac81bc855b0. 출처: 제31장, 169–173쪽, 접대와 경기장 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "집으로 초대",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f93a0243-0149-5484-9701-ef187b437322",
+      "sourceCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "targetCardId": "94dbd97b-13af-5f8e-bb5b-b9ec98bd8b68",
+      "category": "structural",
+      "body": "히이아카는 펠레가 만든 동족 이히히라우아케아에게 위로를 건넨다. 근거 카드 ID: 94dbd97b-13af-5f8e-bb5b-b9ec98bd8b68. 출처: 제32장, 187쪽, 어부 사건 직후 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "동족 위로",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "02cbf250-2862-585e-81b9-0525655dcdc7",
+      "sourceCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "targetCardId": "f8948639-73ae-5647-b97c-7c6adef48f22",
+      "category": "structural",
+      "body": "히이아카는 펠레의 창조물 노노울라를 알아보고 위로한다. 근거 카드 ID: f8948639-73ae-5647-b97c-7c6adef48f22. 출처: 제32장, 187쪽, 동족을 만나는 장면 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "동족 위로",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "502b7453-9c0e-5417-8bae-9606721bad22",
+      "sourceCardId": "f9ca3397-580d-5d07-8c94-7d9ac7b87bf3",
+      "targetCardId": "c1cebc56-f6ca-55b4-91e4-b557228319a2",
+      "category": "structural",
+      "body": "쿠풀루풀루는 펠레의 명령에 저항하고 추방을 감수한다. 근거 카드 ID: f9ca3397-580d-5d07-8c94-7d9ac7b87bf3. 출처: 제34장, 201–202·205–206·212쪽, 반항과 노래 및 주 20 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "명령에 저항",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e71fbd94-4096-5f72-b895-4f2ee065651d",
+      "sourceCardId": "a6894b67-9ace-59db-b0e3-8d6fd18cf0ce",
+      "targetCardId": "c1cebc56-f6ca-55b4-91e4-b557228319a2",
+      "category": "structural",
+      "body": "쿠모쿠할리이는 로히아우를 해치라는 펠레의 명령에 반대한다. 근거 카드 ID: a6894b67-9ace-59db-b0e3-8d6fd18cf0ce. 출처: 제34장, 201–202쪽, 신들의 반항 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "명령에 저항",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c9c485d1-db4b-5335-9bea-cf8fb01e8229",
+      "sourceCardId": "9489c4af-9a39-5b04-84aa-6b0ea42eb8bc",
+      "targetCardId": "c1cebc56-f6ca-55b4-91e4-b557228319a2",
+      "category": "structural",
+      "body": "쿠알라나와오는 펠레의 명령에 반대하여 추방된다. 근거 카드 ID: 9489c4af-9a39-5b04-84aa-6b0ea42eb8bc. 출처: 제34장, 201–202쪽, 신들의 반항 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "명령에 저항",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "967a05bd-16da-508c-be5f-da3509271aa5",
+      "sourceCardId": "cb95c841-0728-54d1-b91d-3c7dda3dcc7a",
+      "targetCardId": "c1cebc56-f6ca-55b4-91e4-b557228319a2",
+      "category": "structural",
+      "body": "쿠파아이케에는 로히아우 공격에 반대하여 추방된다. 근거 카드 ID: cb95c841-0728-54d1-b91d-3c7dda3dcc7a. 출처: 제34장, 201–202쪽, 신들의 반항 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "명령에 저항",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "49c08633-b8ab-5e0c-bb65-a1628088de8a",
+      "sourceCardId": "553eb208-7913-5932-91b6-c5d94838b369",
+      "targetCardId": "c1cebc56-f6ca-55b4-91e4-b557228319a2",
+      "category": "structural",
+      "body": "쿠마우나는 펠레에게 끝까지 반대한다. 근거 카드 ID: 553eb208-7913-5932-91b6-c5d94838b369. 출처: 제34장, 202·212쪽, 추방 명단과 주 9 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "명령에 저항",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8d5111e5-988f-5a6b-94a3-c72fc35fb3f3",
+      "sourceCardId": "c1cebc56-f6ca-55b4-91e4-b557228319a2",
+      "targetCardId": "2a6b2004-6911-5b7a-a869-28958ba56c12",
+      "category": "structural",
+      "body": "편집자 주석은 카호아리이를 펠레의 친족으로 설명한다. 근거 카드 ID: 2a6b2004-6911-5b7a-a869-28958ba56c12. 출처: 제34장, 203–204·212쪽, 노래와 주 18 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "친족",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d6b77e5c-d5b0-54c1-ab2f-a47aff3a8283",
+      "sourceCardId": "8e0ffe30-2001-5afe-a1f6-32f6048ecdce",
+      "targetCardId": "a3797a69-2edd-572a-ba9d-95f6643ea913",
+      "category": "structural",
+      "body": "카네는 와히네오마오에게 말을 넣어 히이아카를 만류한다. 근거 카드 ID: 8e0ffe30-2001-5afe-a1f6-32f6048ecdce. 출처: 제35장, 214–215쪽, 대홍수 직전 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "만류의 계기",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "95bc78cd-7bba-5072-9bc5-b529d2177a0f",
+      "sourceCardId": "472f7365-1dd8-5f5c-bb36-6683a2e7e336",
+      "targetCardId": "07d8636b-9ed0-5f4e-9a86-9131fbc6fa9f",
+      "category": "structural",
+      "body": "파오아는 저승에 있는 히이아카에게 노래로 자신을 알린다. 근거 카드 ID: 07d8636b-9ed0-5f4e-9a86-9131fbc6fa9f. 출처: XXXVI 두 애가 뒤 산문과 파오아의 노래, 219–225쪽 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "이름을 알림",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "85b485b8-749d-50ef-90cd-5720f9f3c419",
+      "sourceCardId": "c1cebc56-f6ca-55b4-91e4-b557228319a2",
+      "targetCardId": "35726c84-8cd4-5ede-af45-33393af83ba9",
+      "category": "structural",
+      "body": "편집자 주는 쿠쿠에나를 펠레의 자매로 풀이한다. 근거 카드 ID: 35726c84-8cd4-5ede-af45-33393af83ba9. 출처: XXXVI 노래와 편집 주 16, 221쪽 부근 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "자매",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5326a37c-0bbd-53d7-a44c-88c80b0087aa",
+      "sourceCardId": "4adfa589-6600-5987-be6b-3ffc69dbc3c6",
+      "targetCardId": "b601168d-4604-5dd3-be8b-a92f76df6590",
+      "category": "structural",
+      "body": "카네밀로하이는 조개 모양 레호 카누로 카히키에서 하와이로 항해한다. 근거 카드 ID: b601168d-4604-5dd3-be8b-a92f76df6590. 출처: XXXVIII 카네밀로하이 항해, 237쪽 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "항해 카누",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2fecb0ca-dde8-532f-9a9b-d92343052833",
+      "sourceCardId": "4adfa589-6600-5987-be6b-3ffc69dbc3c6",
+      "targetCardId": "d4d7ddc3-b9d8-56d1-b0e7-1d67bfdcf1d5",
+      "category": "structural",
+      "body": "카네밀로하이는 포획한 로히아우의 영혼을 박에 넣는다. 근거 카드 ID: d4d7ddc3-b9d8-56d1-b0e7-1d67bfdcf1d5. 출처: XXXVIII 항해 장면 및 편집 주 1, 237쪽 https://www.gutenberg.org/cache/epub/60279/pg60279-images.html. 영어 편집·번역본 기준이며 원자료·권리는 미확인.",
+      "label": "영혼 보관",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ]
+}

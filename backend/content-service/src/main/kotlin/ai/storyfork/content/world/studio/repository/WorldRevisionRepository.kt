@@ -5,6 +5,7 @@ import java.util.UUID
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface WorldRevisionRepository : JpaRepository<WorldRevision, UUID> {
+    fun findAllByWorldId(worldId: UUID): List<WorldRevision>
     fun findByIdAndWorldId(id: UUID, worldId: UUID): WorldRevision?
     fun findFirstByWorldIdOrderByRevisionNoDesc(worldId: UUID): WorldRevision?
     fun findAllByWorldIdAndSealedTrueOrderByRevisionNoDesc(worldId: UUID): List<WorldRevision>

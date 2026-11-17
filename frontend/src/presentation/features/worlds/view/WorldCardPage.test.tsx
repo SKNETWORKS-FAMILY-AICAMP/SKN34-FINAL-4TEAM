@@ -64,25 +64,24 @@ it('목차와 접이식 문단은 내용이 있는 문단만 연속 번호로 �
   const [relations, links, same] = sections()
   within(lead()!).getByText('기억에 항로를 적는 마지막 항해사. 일곱 번째 섬의 항로를 혼자 기억한다고 한다.')
   expect(screen.queryByText(/개요/)).toBeNull() // 본문에 없는 '개요' 문단을 지어 붙이지 않는다
-  expect(items(relations)).toEqual(['조석신 하엘 · 숭배', '견습 항해사 미라 · 스승-제자']) // 설정집 순서, 라벨이 관계
+  expect(items(relations)).toEqual(['조석신 하엘 · 숭배 · 방향 미상', '견습 항해사 미라 · 스승-제자 · 방향 미상']) // 설정집 순서, 라벨이 관계
   expect(within(relations as HTMLElement).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([cardPath(WORLD, 1), cardPath(WORLD, 3)])
-  expect(items(links)).toEqual(['사건 일곱 번째 섬의 실종 · 목격'])
+  expect(items(links)).toEqual(['사건 일곱 번째 섬의 실종 · 목격 · 방향 미상'])
   expect(items(same)).toEqual(['조석신 하엘', '견습 항해사 미라'])
 })
 
-it('인물이 아닌 카드는 정보 표에 연결 수를 보이고 연관과 이 카드를 가리키는 설정을 나눠 보인다', async () => {
+it('인물이 아닌 카드는 방향 미상 연결을 중립적인 연관 설정으로 보인다', async () => {
   await open(4)
-  expect(heads()).toEqual(['1. 연관 설정', '2. 이 카드를 가리키는 설정'])
-  const [links, backlinks] = sections()
-  expect(items(links)).toEqual(['기타 우주관 · 물때의 달 · 물때에 맞춰 열림'])
-  expect(items(backlinks)).toEqual(['인물 견습 항해사 미라 · 머무는 곳'])
+  expect(heads()).toEqual(['1. 연관 설정'])
+  const [links] = sections()
+  expect(items(links)).toEqual(['인물 견습 항해사 미라 · 머무는 곳 · 방향 미상', '기타 우주관 · 물때의 달 · 물때에 맞춰 열림 · 방향 미상'])
   expect(rows(screen.getByRole('table', { name: '새벽항' }))).toEqual({ keys: ['유형', '연결', '세계관'], values: ['장소', '2개', '달무리 군도'] })
 })
 
 it('인물의 정보 표는 이어진 조직을 소속으로 보인다', async () => {
   await renderAt(cardPath('silent-orbit', 5)) // 교신사 하린 → 관제 잔류단(소속)
   const table = screen.getByRole('table', { name: '교신사 하린' })
-  expect(rows(table)).toEqual({ keys: ['유형', '소속', '관계', '세계관'], values: ['인물', '관제 잔류단 · 소속', '2개', '침묵 궤도'] })
+  expect(rows(table)).toEqual({ keys: ['유형', '소속', '관계', '세계관'], values: ['인물', '관제 잔류단 · 소속 · 방향 미상', '2개', '침묵 궤도'] })
   expect(within(table).getByRole('link', { name: '관제 잔류단' }).getAttribute('href')).toBe(cardPath('silent-orbit', 2))
 })
 
@@ -212,7 +211,7 @@ it('목차는 본문 마크다운의 ## 제목이고 그 뒤에 연관 설정 �
   expect(items(trait)).toEqual(['차분함', '끈질김'])
   expect(trait.querySelector('li strong')?.textContent).toBe('차분함') // 마크다운으로 그려진다
   expect(past.querySelector('h5')?.textContent).toBe('어린 시절') // 본문 제목은 문단 제목(h2)보다 낮은 단계다
-  expect(items(links)).toEqual(['장소 온실 · 거점']) // 유형 칩 + 대상 카드 · 연관 라벨
+  expect(items(links)).toEqual(['장소 온실 · 거점 · 방향 미상']) // 유형 칩 + 대상 카드 · 연관 라벨
   expect(document.querySelectorAll('h1')).toHaveLength(1)
 })
 

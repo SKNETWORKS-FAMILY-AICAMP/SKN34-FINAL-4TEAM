@@ -1,0 +1,491 @@
+{
+  "world_id": "japanese_mythology",
+  "world_id_meaning": "기존 worldId 참조용 라벨",
+  "id_namespace": "3a1d491a-59d7-5a43-92f8-dfdcd342dd79",
+  "id_rule": "UUIDv5(namespace, batch_id:unit_id:candidate_key); 후보 ID일 뿐 적재나 세계관 배정 아님",
+  "scope_note": "각 구간 상태는 입력 조사자의 자기보고이며, 문헌 완전 독해·의미 전수·독립 감수·중복 검토 또는 권리 해결을 뜻하지 않는다.",
+  "rights_note": "출처 전사·번역·공동체·지역별 재사용 및 상업 이용권은 확인되지 않았으며, 조사 가능이나 공개 검토는 상업적 배포 허락이 아니다.",
+  "works": [
+    {
+      "work_id": "japan-nihon2",
+      "world_id": "japanese_mythology",
+      "title": "日本書紀 神代下",
+      "target_scope": "巻第二 main narrative and each alternative account",
+      "edition_language_attribution": "Classical Chinese; Wikisource transcription, oldid and underlying edition unverified",
+      "prior_investigation_grade": "A",
+      "source_url": "https://zh.wikisource.org/zh-hant/日本書紀/卷第二",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Page links site license CC BY-SA 4.0; scope of that notice versus original work, transcription, quotations and images, attribution requirements and jurisdiction not resolved.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_section_boundaries_verified",
+        "reason": "Volume II prose paragraphs bounded, including separately labelled 一書 paragraphs; print edition not checked."
+      },
+      "scope_status": "complete_local_chapter_boundary_verified",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": "9e702e816d6b9f39d4a7c672b57ecc6608afd7a51df43da796592e51c9d3f306",
+      "units": [
+        {
+          "unit_id": "japan-nihon2--paragraph-01",
+          "label": "Page paragraph 01 (main account)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 42204,
+            "byte_end_exclusive": 52816,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "4305e1e0aa6711f53f2e436fcb075154e3a4eaea9b29469b91df300dee672eef",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-13",
+              "unit_id": "japan-nihon2--paragraph-01",
+              "status": "read",
+              "read_scope": "해당 HTML 문단 전체의 한문 본문과 내부 일설을 실독",
+              "reason": null,
+              "candidate_count": 10
+            }
+          ],
+          "actual_candidates": 10
+        },
+        {
+          "unit_id": "japan-nihon2--paragraph-02",
+          "label": "Page paragraph 02 (一書)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 52816,
+            "byte_end_exclusive": 57600,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "d00a03df2e7711d4d6402baa5fe653f434b46017a5c12a45f18eb5f51f0bb346",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-13",
+              "unit_id": "japan-nihon2--paragraph-02",
+              "status": "read",
+              "read_scope": "해당 HTML 문단 전체의 한문 본문과 내부 일설을 실독",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "japan-nihon2--paragraph-03",
+          "label": "Page paragraph 03 (一書)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 57600,
+            "byte_end_exclusive": 62006,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "6c191fed00b39266f5a491b73f7cb889b02f35af3cc7123d391e92701659fa67",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-13",
+              "unit_id": "japan-nihon2--paragraph-03",
+              "status": "read",
+              "read_scope": "해당 HTML 문단 전체의 한문 본문과 내부 일설을 실독",
+              "reason": null,
+              "candidate_count": 9
+            }
+          ],
+          "actual_candidates": 9
+        },
+        {
+          "unit_id": "japan-nihon2--paragraph-04",
+          "label": "Page paragraph 04 (一書)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 62006,
+            "byte_end_exclusive": 62428,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "8ef4e408d2d9397f0e384d26afd6d6ac2ebf44ea0c2567931e90bd8c7ba85b8f",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-13",
+              "unit_id": "japan-nihon2--paragraph-04",
+              "status": "read",
+              "read_scope": "해당 HTML 문단 전체의 한문 본문과 내부 일설을 실독",
+              "reason": null,
+              "candidate_count": 2
+            }
+          ],
+          "actual_candidates": 2
+        },
+        {
+          "unit_id": "japan-nihon2--paragraph-05",
+          "label": "Page paragraph 05 (一書)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 62428,
+            "byte_end_exclusive": 63318,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "bb5edeb53ecb801c8a6f83c120b5b9bc7b2ace60084e97bd80f16a3e32688f56",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-13",
+              "unit_id": "japan-nihon2--paragraph-05",
+              "status": "read",
+              "read_scope": "해당 HTML 문단 전체의 한문 본문과 내부 일설을 실독",
+              "reason": null,
+              "candidate_count": 2
+            }
+          ],
+          "actual_candidates": 2
+        },
+        {
+          "unit_id": "japan-nihon2--paragraph-06",
+          "label": "Page paragraph 06 (一書)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 63318,
+            "byte_end_exclusive": 64799,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "5ec76cd480579730c6d7a792e5bb6328932c7f42f9b6b15c57ad23016dded26a",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-13",
+              "unit_id": "japan-nihon2--paragraph-06",
+              "status": "read",
+              "read_scope": "해당 HTML 문단 전체의 한문 본문과 내부 일설을 실독",
+              "reason": null,
+              "candidate_count": 1
+            }
+          ],
+          "actual_candidates": 1
+        },
+        {
+          "unit_id": "japan-nihon2--paragraph-07",
+          "label": "Page paragraph 07 (一書)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 64799,
+            "byte_end_exclusive": 66814,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "8ffda30032e8b36dc5b0f3916d916403c0472fd462b69cd8a7ae43cfc5b0e613",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-13",
+              "unit_id": "japan-nihon2--paragraph-07",
+              "status": "read",
+              "read_scope": "해당 HTML 문단 전체의 한문 본문과 내부 일설을 실독",
+              "reason": null,
+              "candidate_count": 3
+            }
+          ],
+          "actual_candidates": 3
+        },
+        {
+          "unit_id": "japan-nihon2--paragraph-08",
+          "label": "Page paragraph 08 (一書)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 66814,
+            "byte_end_exclusive": 67251,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "318f8a9a4dfdc00790a277f9a8cf55b1c2b7b9523f04846b003f6376ceda561e",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-13",
+              "unit_id": "japan-nihon2--paragraph-08",
+              "status": "read",
+              "read_scope": "해당 HTML 문단 전체의 한문 본문과 내부 일설을 실독",
+              "reason": null,
+              "candidate_count": 1
+            }
+          ],
+          "actual_candidates": 1
+        },
+        {
+          "unit_id": "japan-nihon2--paragraph-09",
+          "label": "Page paragraph 09 (一書)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 67251,
+            "byte_end_exclusive": 67574,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "d5598a7dbba6fdf6d1052f3b6896659c9a504188c939b8eb54f7f7d9c07c3c73",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-13",
+              "unit_id": "japan-nihon2--paragraph-09",
+              "status": "read",
+              "read_scope": "해당 HTML 문단 전체의 한문 본문과 내부 일설을 실독",
+              "reason": null,
+              "candidate_count": 1
+            }
+          ],
+          "actual_candidates": 1
+        },
+        {
+          "unit_id": "japan-nihon2--paragraph-10",
+          "label": "Page paragraph 10 (main account)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 67574,
+            "byte_end_exclusive": 70885,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "efa8b40fa3e84bd95d374a8df5e28d4ab74b1ab2cb3e04f8fdacd533c8015ca5",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-13",
+              "unit_id": "japan-nihon2--paragraph-10",
+              "status": "read",
+              "read_scope": "해당 HTML 문단 전체의 한문 본문과 내부 일설을 실독",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "japan-nihon2--paragraph-11",
+          "label": "Page paragraph 11 (一書)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 70885,
+            "byte_end_exclusive": 73737,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "bc2bbbbabd0550f41fa16165ef1428f0117c7a29e7f9cf5156a91dff47f4b6ef",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-13",
+              "unit_id": "japan-nihon2--paragraph-11",
+              "status": "read",
+              "read_scope": "해당 HTML 문단 전체의 한문 본문과 내부 일설을 실독",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "japan-nihon2--paragraph-12",
+          "label": "Page paragraph 12 (一書)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 73737,
+            "byte_end_exclusive": 75800,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "edf2b044f2bf3597d73ad9738185fc92a78b1171db0ba2bf171bb56e66d2d343",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-13",
+              "unit_id": "japan-nihon2--paragraph-12",
+              "status": "read",
+              "read_scope": "해당 HTML 문단 전체의 한문 본문과 내부 일설을 실독",
+              "reason": null,
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "japan-nihon2--paragraph-13",
+          "label": "Page paragraph 13 (一書)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 75800,
+            "byte_end_exclusive": 79140,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "7b69a6507e98c5fb801fbcddbf7a5e9d70c59b82b222000c23d0c346251e1a72",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-13",
+              "unit_id": "japan-nihon2--paragraph-13",
+              "status": "read",
+              "read_scope": "해당 HTML 문단 전체의 한문 본문과 내부 일설을 실독",
+              "reason": null,
+              "candidate_count": 5
+            }
+          ],
+          "actual_candidates": 5
+        },
+        {
+          "unit_id": "japan-nihon2--paragraph-14",
+          "label": "Page paragraph 14 (一書)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 79140,
+            "byte_end_exclusive": 82058,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "1d0cf71d6e73fb7ac5083518ddb8c79755008a90889a7f538c6c2ae41342dde8",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-14",
+              "unit_id": "japan-nihon2--paragraph-14",
+              "status": "read",
+              "read_scope": "Page paragraph 14 (一書)의 지정 바이트 전체 본문; HTML 장식과 본문을 구분",
+              "reason": null,
+              "candidate_count": 10
+            }
+          ],
+          "actual_candidates": 10
+        },
+        {
+          "unit_id": "japan-nihon2--paragraph-15",
+          "label": "Page paragraph 15 (main account)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 82058,
+            "byte_end_exclusive": 82303,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "a93276a5ed5454deb5aa3365199d89280244ae24a57ad3e92919321801a3c918",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-14",
+              "unit_id": "japan-nihon2--paragraph-15",
+              "status": "read",
+              "read_scope": "Page paragraph 15 (main account)의 지정 바이트 전체 본문; HTML 장식과 본문을 구분",
+              "reason": null,
+              "candidate_count": 2
+            }
+          ],
+          "actual_candidates": 2
+        },
+        {
+          "unit_id": "japan-nihon2--paragraph-16",
+          "label": "Page paragraph 16 (一書)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 82303,
+            "byte_end_exclusive": 82527,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "ac6a7e7399c7cf17468b1d74885aec564f983e5c5b5b63617438e303f884ddb9",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-14",
+              "unit_id": "japan-nihon2--paragraph-16",
+              "status": "read",
+              "read_scope": "Page paragraph 16 (一書)의 지정 바이트 전체 본문; HTML 장식과 본문을 구분",
+              "reason": null,
+              "candidate_count": 2
+            }
+          ],
+          "actual_candidates": 2
+        },
+        {
+          "unit_id": "japan-nihon2--paragraph-17",
+          "label": "Page paragraph 17 (一書)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 82527,
+            "byte_end_exclusive": 82652,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "6f2784e6aaee46fad634ca037803e32cd643123abe47ab79f2fff541e44e20c9",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-14",
+              "unit_id": "japan-nihon2--paragraph-17",
+              "status": "read",
+              "read_scope": "Page paragraph 17 (一書)의 지정 바이트 전체 본문; HTML 장식과 본문을 구분",
+              "reason": null,
+              "candidate_count": 1
+            }
+          ],
+          "actual_candidates": 1
+        },
+        {
+          "unit_id": "japan-nihon2--paragraph-18",
+          "label": "Page paragraph 18 (一書)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 82652,
+            "byte_end_exclusive": 82762,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "16f860beb776897085d153f2f5f2d09706b90c9dc07443e0caa72556a7a171fd",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-14",
+              "unit_id": "japan-nihon2--paragraph-18",
+              "status": "read",
+              "read_scope": "Page paragraph 18 (一書)의 지정 바이트 전체 본문; HTML 장식과 본문을 구분",
+              "reason": null,
+              "candidate_count": 1
+            }
+          ],
+          "actual_candidates": 1
+        },
+        {
+          "unit_id": "japan-nihon2--paragraph-19",
+          "label": "Page paragraph 19 (一書)",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 82762,
+            "byte_end_exclusive": 82864,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "1c1a15c806b6fc3336e0127ae594fd4f21a2b4537a7ba97c3002a3297b369b57",
+            "note": "HTML paragraph boundary; retain alternative account markers and distinguish them from the main narrative; first paragraph contains additional internal distinctions."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-14",
+              "unit_id": "japan-nihon2--paragraph-19",
+              "status": "read",
+              "read_scope": "Page paragraph 19 (一書)의 지정 바이트 전체 본문; HTML 장식과 본문을 구분",
+              "reason": null,
+              "candidate_count": 1
+            }
+          ],
+          "actual_candidates": 1
+        }
+      ]
+    }
+  ]
+}

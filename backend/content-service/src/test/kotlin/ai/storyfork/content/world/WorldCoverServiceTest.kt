@@ -7,10 +7,13 @@ import ai.storyfork.content.attachment.client.dto.AttachmentObjectResult
 import ai.storyfork.content.attachment.domain.AttachmentFailure
 import ai.storyfork.content.world.domain.WorldCoverFile
 import ai.storyfork.content.world.domain.WorldNotFound
+import ai.storyfork.content.world.domain.WorldConflict
 import ai.storyfork.content.world.service.WorldCoverService
 import ai.storyfork.content.world.service.dto.WorldCoverResponse
 import ai.storyfork.content.world.studio.entity.StudioWorld
 import ai.storyfork.content.world.studio.repository.StudioWorldRepository
+import ai.storyfork.content.world.studio.repository.ExpandedSeedProgressRepository
+import ai.storyfork.content.world.studio.entity.ExpandedSeedProgress
 import java.time.Instant
 import java.util.Optional
 import java.util.UUID
@@ -27,10 +30,11 @@ import org.springframework.transaction.support.SimpleTransactionStatus
 class WorldCoverServiceTest {
     private val worlds = mock(StudioWorldRepository::class.java)
     private val storage = mock(AttachmentStorageClient::class.java)
+    private val expandedSeeds = mock(ExpandedSeedProgressRepository::class.java)
     private val manager = mock(PlatformTransactionManager::class.java).also {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
-    private val service = WorldCoverService(worlds, storage, manager)
+    private val service = WorldCoverService(worlds, storage, expandedSeeds, manager)
     private val id = UUID.randomUUID()
     private val owner = UUID.randomUUID()
     private val png = WorldCoverFile(byteArrayOf(1, 2, 3), "image/png")
@@ -41,6 +45,14 @@ class WorldCoverServiceTest {
     private fun world(key: String? = null, type: String? = null) = StudioWorld(id, owner, coverObjectKey = key, coverContentType = type).also {
         `when`(worlds.lockOwned(id, owner)).thenReturn(it)
         `when`(worlds.findById(id)).thenReturn(Optional.of(it))
+    }
+
+    @Test fun `active expansion rejects cover changes before object upload`() {
+        world()
+        `when`(expandedSeeds.findById(id)).thenReturn(Optional.of(ExpandedSeedProgress(id,"hash")))
+        assertThrows(WorldConflict::class.java) { service.put(id,owner,png) }
+        assertThrows(WorldConflict::class.java) { service.delete(id,owner) }
+        verifyNoInteractions(storage)
     }
 
     @Test fun `put stores the new object first and only then points the world at it`() {

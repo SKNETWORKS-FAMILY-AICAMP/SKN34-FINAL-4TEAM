@@ -6,6 +6,7 @@ import type { PublicWorld } from '../../../../domain/entities/publicWorld'
 import type { PublicWorldUseCase } from '../../../../domain/usecases/PublicWorldUseCase'
 import { useAsyncData } from '../../../shared/useAsyncData'
 import { parseBookSort, type BookSort } from '../../../shared/worldBoard'
+import { pageItems } from '../../../shared/pageItems'
 import { ALL_CHIP, WORLD_CHIPS, genreCode } from '../../../shared/worldGenres'
 import { buildWorldAtlas, highlightIds, liveRank, rankByRecent, type AtlasNode } from '../worldAtlas'
 import {
@@ -91,10 +92,12 @@ export function useWorldBookViewModel(world: PublicWorld) {
   const counts = useMemo(() => kindCounts(world), [world])
   const kind = parseBookKind(params.get('type'), counts.map((c) => c.kind))
   const rows = useMemo(() => bookRows(world, { kind, query, sort }), [world, kind, query, sort])
+  const [page, setPage] = useState(0)
+  const paged = pageItems(rows, page, 50)
   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set())
-  const visible = rows.map((row) => row.cardId)
+  const visible = paged.items.map((row) => row.cardId)
   return {
-    counts, total: world.cards.length, kind, query, setQuery, sort, selectSort: (value: string) => setSort(parseBookSort(value)), rows,
+    counts, total: world.cards.length, kind, query, setQuery: (value: string) => { setQuery(value); setPage(0) }, sort, selectSort: (value: string) => { setSort(parseBookSort(value)); setPage(0) }, rows, paged, setPage,
     picked, allVisiblePicked: visible.length > 0 && visible.every((id) => picked.has(id)),
     pick: (cardId: string, on: boolean) => setPicked((before) => selectVisible(before, [cardId], on)),
     pickVisible: (on: boolean) => setPicked((before) => selectVisible(before, visible, on)),

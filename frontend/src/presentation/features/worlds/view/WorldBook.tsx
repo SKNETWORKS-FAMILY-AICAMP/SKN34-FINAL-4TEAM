@@ -4,6 +4,7 @@ import { Go } from '../../../shared/Go'
 import { PublicCardImage } from '../../../shared/PublicCardImage'
 import { KindChip } from '../../../shared/KindChip'
 import { BOOK_SORTS } from '../../../shared/worldBoard'
+import { PageControls } from '../../../shared/PageControls'
 import { genreLabel } from '../../../shared/worldGenres'
 import { useWorldImport } from '../viewmodel/useWorldImport'
 import { useWorldBookViewModel } from '../viewmodel/useWorldsViewModel'
@@ -15,7 +16,7 @@ import { ImportOutcomeNotice, WorldAddMenu } from './WorldImportMenu'
  * 화면 읽기 프로그램에는 대괄호 대신 "관계 2개"·"연결 2개"로 읽힌다. `pick`이 있으면(로그인한 회원) 맨 앞에 가져올 설정을 고르는 체크박스 칸이 붙는다.
  * 대표 이미지(`imageId`)가 있는 카드는 제목 앞에 작은 썸네일이 붙는다(읽지 못하면 감춘다).
  */
-function Row({ worldId, row, imageId, pick }: { worldId: string; row: BookRow; imageId?: string | null; pick?: { checked: boolean; onChange: (on: boolean) => void } }) {
+function Row({ worldId, row, imageId, pick, unavailable }: { worldId: string; row: BookRow; imageId?: string | null; pick?: { checked: boolean; onChange: (on: boolean) => void }; unavailable: boolean }) {
   return (
     <tr>
       {pick && <td className="col-pick"><label className="worlds-pick"><input type="checkbox" checked={pick.checked} onChange={(e) => pick.onChange(e.target.checked)} /><span className="sr-only">{row.title} 선택</span></label></td>}
@@ -24,10 +25,10 @@ function Row({ worldId, row, imageId, pick }: { worldId: string; row: BookRow; i
       <td className="col-title">
         {imageId && <PublicCardImage className="board-thumb" src={cardImageSrc(worldId, imageId)} title={row.title} />}
         <Go to={cardPath(worldId, row.cardId)}>{row.title}</Go>
-        {row.badge > 0 && <span className="worlds-badge"><span aria-hidden="true">[{row.badge}]</span><span className="sr-only">{row.kind === '인물' ? '관계' : '연결'} {row.badge}개</span></span>}
+        {!unavailable && row.badge > 0 && <span className="worlds-badge"><span aria-hidden="true">[{row.badge}]</span><span className="sr-only">{row.kind === '인물' ? '관계' : '연결'} {row.badge}개</span></span>}
       </td>
       <td className="col-sum">{row.text}</td>
-      <td className="col-num">{row.connections}</td>
+      <td className="col-num">{unavailable ? '–' : row.connections}</td>
     </tr>
   )
 }
@@ -50,6 +51,7 @@ export function WorldBook({ world }: { world: PublicWorld }) {
   return (
     <div className="calm">
       <p className="muted small worlds-book-line">{`${genreLabel(world.genre)} · 작가 ${world.authorNickname} · 설정 카드 ${world.cards.length}개${derived ? ` · 파생·조합된 세계관 ${derived}개` : ''}`}</p>
+      {world.relationshipStatus === 'unavailable' && <p role="status">관계를 불러오지 못해 연결 수를 확인할 수 없어요.</p>}
       <div className="worlds-board">
         <nav className="worlds-cats" aria-label="설정 분류">
           <ul>
@@ -92,10 +94,11 @@ export function WorldBook({ world }: { world: PublicWorld }) {
             </thead>
             <tbody>
               {vm.rows.length
-                ? vm.rows.map((row) => <Row key={row.cardId} worldId={world.id} row={row} imageId={imageOf.get(row.cardId)} pick={member ? { checked: vm.picked.has(row.cardId), onChange: (on) => vm.pick(row.cardId, on) } : undefined} />)
+                ? vm.paged.items.map((row) => <Row key={row.cardId} worldId={world.id} row={row} imageId={imageOf.get(row.cardId)} unavailable={world.relationshipStatus === 'unavailable'} pick={member ? { checked: vm.picked.has(row.cardId), onChange: (on) => vm.pick(row.cardId, on) } : undefined} />)
                 : <tr><td colSpan={member ? 6 : 5} className="muted">조건에 맞는 설정이 없어요.</td></tr>}
             </tbody>
           </table>
+          <PageControls page={vm.paged.page} pages={vm.paged.pages} onPage={vm.setPage} />
         </div>
       </div>
     </div>

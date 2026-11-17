@@ -36,6 +36,20 @@ it('대형 세계관 변경은 같은 회차 기준의 변경 카드만 보낸�
  expect(body.relationships).toEqual([]);expect(new TextEncoder().encode(raw).length).toBeLessThan(2_000_000)
  expect(saved.settings).toHaveLength(1001);expect(saved.settings[0].item.title).toBe('변경')
 })
+it('템플릿 형식의 카드 만 장과 관계 천 개 이상을 원문 그대로 읽는다',async()=>{
+ const base=wire(), cards=Array.from({length:10000},(_,i)=>{
+  const item={...a.item,id:crypto.randomUUID(),title:`설정 ${i}`,text:`# 원문 ${i}\n출처: 자료`}
+  return {...base.cards[0],id:item.id,title:item.title,body:item.text,semanticMetadata:{studio:{...a,templateOrder:i,item}}}
+ })
+ const relationships=Array.from({length:1001},(_,i)=>{
+  const item={...relation.item,id:crypto.randomUUID(),subjectId:cards[i].id,targetId:cards[i+1].id}
+  return {...base.relationships[0],id:item.id,sourceCardId:item.subjectId,targetCardId:item.targetId,semanticMetadata:{studio:{...relation,item}}}
+ })
+ const loaded=await new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json({...base,cards,relationships}))).read(id)
+ expect(loaded.settings).toHaveLength(11001)
+ expect(loaded.settings[9999].item.text).toBe('# 원문 9999\n출처: 자료')
+ expect(loaded.settings[11000].item.targetId).toBe(cards[1001].id)
+}, 20000)
 it('조회 기준이 없거나 revision 또는 회차가 다르면 저장하지 않는다',async()=>{
  const fetcher=vi.fn().mockImplementation(async()=>Response.json(wire()))
  const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id,undefined,2)
@@ -126,12 +140,20 @@ it('orders template cards by their preserved template order rather than UUID',as
  const body=JSON.parse(fetcher.mock.calls[1][1].body)
  expect(body.cards).toEqual([])
 })
-it('reads all real template resource cards through the HTTP contract',async()=>{
- const templates: {worldId:string;name:string;description:string;cards:{id:string;title:string;body:string;cardType:string}[]}[]=JSON.parse(readFileSync(new URL('../../../../backend/content-service/src/main/resources/genre-templates.json',import.meta.url),'utf8'))
+it('reads real template cards with GenreTemplateRepair payloads and soul metadata',async()=>{
+ const templates: {worldId:string;name:string;description:string;cards:{id:string;title:string;body:string;cardType:string;soul?:string|null}[]}[]=JSON.parse(readFileSync(new URL('../../../../backend/content-service/src/main/resources/genre-templates.json',import.meta.url),'utf8'))
  for(const t of templates){
-  const response={...wire(),worldId:t.worldId,name:t.name,description:t.description,relationships:[],cards:t.cards.map(c=>({...c,areaCode:'basic',classification:'',aliases:[],tags:[],semanticMetadata:{},visibility:'private',lifecycle:'active'}))}
+  const response={...wire(),worldId:t.worldId,name:t.name,description:t.description,relationships:[],cards:t.cards.map((c,index)=>{
+   const entity=!['rule','event'].includes(c.cardType),areaCode=c.cardType==='event'?'history':'basic'
+   const item={id:c.id,kind:entity?'entity':c.cardType,title:c.title,text:c.body,category:areaCode,topics:[],entityType:entity?c.cardType:null,
+    subjectId:null,targetId:null,predicate:null,polarity:'asserted',relatedIds:[],condition:'',timeText:'',afterId:null,orderEvidence:[],evidence:[],origin:'author_input',authorText:c.body,decision:'approved'}
+   return {id:c.id,title:c.title,body:c.body,cardType:c.cardType,areaCode,classification:'',aliases:[],tags:[],semanticMetadata:{studio:{userCategory:'',tags:[],aliases:[],templateOrder:index,item},...(c.cardType==='character'&&c.soul?{characterDocs:{soul:c.soul,goal:'',episodes:{}}}:{})},visibility:'public',lifecycle:'active'}
+  })}
   const result=await new HttpWorldStudioRepository(vi.fn().mockImplementation(async()=>Response.json(response))).read(t.worldId)
   expect(result.settings.map(s=>s.item.text)).toEqual(t.cards.map(c=>c.body))
+  expect(result.settings.map(s=>s.templateOrder)).toEqual(t.cards.map((_,i)=>i))
+  expect(result.settings.map(s=>s.visibility)).toEqual(t.cards.map(()=> 'public'))
+  for(let i=0;i<t.cards.length;i++)if(t.cards[i].cardType==='character'&&t.cards[i].soul)expect(result.settings[i].characterDocs?.soul).toBe(t.cards[i].soul)
  }
 })
 it('rejects malformed studio metadata instead of silently replacing it',async()=>{

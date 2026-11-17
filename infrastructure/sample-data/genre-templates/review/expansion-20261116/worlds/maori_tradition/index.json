@@ -1,0 +1,46 @@
+{
+  "world_id": "maori_tradition",
+  "world_id_meaning": "신규 문화권 연구용 라벨, 실제 world 또는 DB ID 아님",
+  "id_namespace": "85b5059a-22e3-569a-a435-8d59e3dbe7fd",
+  "id_rule": "UUIDv5(namespace, batch_id:unit_id:candidate_key); 후보 ID일 뿐 적재나 세계관 배정 아님",
+  "scope_note": "각 구간 상태는 입력 조사자의 자기보고이며, 문헌 완전 독해·의미 전수·독립 감수·중복 검토 또는 권리 해결을 뜻하지 않는다.",
+  "rights_note": "출처 전사·번역·공동체·지역별 재사용 및 상업 이용권은 확인되지 않았으며, 조사 가능이나 공개 검토는 상업적 배포 허락이 아니다.",
+  "works": [
+    {
+      "work_id": "maori-maui",
+      "world_id": "maori_tradition",
+      "title": "Māui and Mahuika",
+      "target_scope": "George Grey 1885 second edition pp.27–30 excerpt only",
+      "edition_language_attribution": "George Grey, Polynesian Mythology, 2nd ed. 1885; English; iwi and recorder unverified",
+      "prior_investigation_grade": "A",
+      "source_url": "https://teara.govt.nz/sites/default/files/d-3802-enz_0.pdf",
+      "other_recorded_urls": [
+        "https://teara.govt.nz/en/document/3802/maui"
+      ],
+      "rights": {
+        "status": "unverified",
+        "notes": "PDF All rights reserved per previous investigation; underlying 1885 work rights not established",
+        "evidence_url": "https://teara.govt.nz/sites/default/files/d-3802-enz_0.pdf",
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "blocked",
+        "reason": "robots HTTP 403"
+      },
+      "scope_status": "incomplete",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": null,
+      "units": [
+        {
+          "unit_id": "maori-maui--pages-27-30",
+          "label": "1885 pp.27–30 excerpt",
+          "status": "blocked",
+          "reason": "Prior investigation read Te Ara PDF; this retrieval stopped because robots.txt returned 403; file not acquired.",
+          "input_boundary": null,
+          "coverage": [],
+          "actual_candidates": 0
+        }
+      ]
+    }
+  ]
+}

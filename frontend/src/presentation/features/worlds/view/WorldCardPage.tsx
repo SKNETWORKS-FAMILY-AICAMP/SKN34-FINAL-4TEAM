@@ -1,4 +1,4 @@
-import { Fragment, useId, type CSSProperties, type ReactNode } from 'react'
+import { useId, useState, type CSSProperties, type ReactNode } from 'react'
 import { useParams } from 'react-router'
 
 import type { PublicWorld } from '../../../../domain/entities/publicWorld'
@@ -12,6 +12,8 @@ import { useScreenId } from '../../../shared/screenIds'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { CARD_COLORS } from '../../../shared/worldBoard'
+import { PageControls } from '../../../shared/PageControls'
+import { pageItems } from '../../../shared/pageItems'
 import { useAppSelector } from '../../../../app/store'
 import { useWorldImport } from '../viewmodel/useWorldImport'
 import { useWorldCardViewModel } from '../viewmodel/useWorldsViewModel'
@@ -22,20 +24,22 @@ import '../../reading/view/publicWiki.css'
 import './worlds.css'
 
 /** 다른 카드 페이지로 가는 링크와 그 연관의 라벨(`제목 · 라벨`) */
-const CardLink = ({ worldId, r }: { worldId: string; r: CardRef }) => <><Go to={cardPath(worldId, r.cardId)}>{r.title}</Go>{r.label && ` · ${r.label}`}</>
+const CardLink = ({ worldId, r }: { worldId: string; r: CardRef }) => <><Go to={cardPath(worldId, r.cardId)}>{r.title}</Go>{r.label && ` · ${r.label}`}{r.category && ` · ${r.category === 'emotional' ? '감정 관계' : '구조 관계'}`}{r.direction !== undefined && ` · ${r.direction === 'directed' ? `단방향: ${r.sourceFirst ? `이 설정 → ${r.title}` : `${r.title} → 이 설정`}` : r.direction === 'symmetric' ? '대칭 관계' : '방향 미상'}`}{r.polarity === 'denied' && ' · 부정된 관계'}{r.polarity === 'asserted' && ' · 확인된 관계'}{r.sourceFirst !== undefined && r.direction !== 'directed' && ` · 기록 순서: ${r.sourceFirst ? `이 설정 → ${r.title}` : `${r.title} → 이 설정`}`}{r.body && <p className="world-prose" style={{ whiteSpace: 'pre-wrap' }}>{r.body}</p>}</>
 
 /** 카드 목록. 묶음이 섞인 목록(연관·가리키는 설정)은 항목마다 유형 칩을 단다. */
 function CardList({ worldId, refs, withType }: { worldId: string; refs: readonly CardRef[]; withType: boolean }) {
+  const [page, setPage] = useState(0)
+  const paged = pageItems(refs, page, 50)
   return (
-    <ul>{refs.map((r) => (
-      <li key={r.cardId}>{withType && <><KindChip kind={r.kind} label={r.type} />{' '}</>}<CardLink worldId={worldId} r={r} /></li>
-    ))}</ul>
+    <><ul>{paged.items.map((r, i) => (
+      <li key={r.relationId ?? `${r.cardId}:${i}`}>{withType && <><KindChip kind={r.kind} label={r.type} />{' '}</>}<CardLink worldId={worldId} r={r} /></li>
+    ))}</ul><PageControls page={paged.page} pages={paged.pages} onPage={setPage} /></>
   )
 }
 
 /** 나무위키 정보 상자(오른쪽): 유형 색 띠 아래 카드 이름, 대표 이미지가 있으면 그 이미지(읽지 못하면 감춘다), 맨 위에 유형 칩, 별칭(쉼표로)이 있으면 이어서. 인물은 소속(이어진 조직)·관계 수, 그 밖은 연결 수, 태그(칩)가 있으면 그 뒤에 보인다. 응답에 있는 값만 쓰고 비어 있으면 그 행은 없다. */
 function CardInfoBox({ world, page }: { world: PublicWorld; page: CardPage }) {
-  const { card, affiliations, relations, links, backlinks } = page
+  const { card, affiliations, relations, links, backlinks, additionalRelations } = page
   return (
     <table className="nw-info" style={{ '--cat': CARD_COLORS[card.kind] } as CSSProperties}>
       <caption>{card.title}</caption>
@@ -45,10 +49,10 @@ function CardInfoBox({ world, page }: { world: PublicWorld; page: CardPage }) {
         {card.aliases.length > 0 && <InfoRow k="별칭">{card.aliases.join(', ')}</InfoRow>}
         {card.kind === '인물' ? (
           <>
-            {affiliations.length > 0 && <InfoRow k="소속">{affiliations.map((r, i) => <Fragment key={r.cardId}>{i > 0 && ', '}<CardLink worldId={world.id} r={r} /></Fragment>)}</InfoRow>}
-            <InfoRow k="관계">{relations.length}개</InfoRow>
+            {affiliations.length > 0 && <InfoRow k="소속"><CardList worldId={world.id} refs={affiliations} withType={false} /></InfoRow>}
+            <InfoRow k="관계">{world.relationshipStatus === 'unavailable' ? '불러오지 못함' : `${relations.length + additionalRelations.filter((r) => r.kind === '인물').length}개`}</InfoRow>
           </>
-        ) : <InfoRow k="연결">{links.length + backlinks.length}개</InfoRow>}
+        ) : <InfoRow k="연결">{world.relationshipStatus === 'unavailable' ? '불러오지 못함' : `${links.length + backlinks.length + additionalRelations.length}개`}</InfoRow>}
         {card.tags.length > 0 && <InfoRow k="태그"><ul className="worlds-tags">{card.tags.map((tag) => <li key={tag} className="chip">{tag}</li>)}</ul></InfoRow>}
         <InfoRow k="세계관"><WorldLink w={world} /></InfoRow>
       </tbody>
@@ -68,6 +72,7 @@ function sectionsOf(page: CardPage, worldId: string): { lead: string; sections: 
     ['relations', '관계', page.relations, false],
     ['links', '연관 설정', page.links, true],
     ['backlinks', '이 카드를 가리키는 설정', page.backlinks, true],
+    ['additional', '같은 설정 사이의 다른 관계', page.additionalRelations, true],
     ['same', '같은 유형의 다른 설정', page.sameType, false],
   ] as const
   const parts = splitCardSections(page.card.text)
@@ -157,6 +162,8 @@ export function WorldCardPage() {
         ) : (
           <>
             {world.demo && <DemoNotice />}
+            {world.relationshipStatus === 'unavailable' && <p role="status">관계를 불러오지 못했어요. 연결 정보를 확인하려면 잠시 뒤 다시 열어 주세요.</p>}
+            {page.additionalRelations.some((r) => r.direction !== 'directed') && <p className="small muted">관계의 기록 순서는 관계의 방향이나 대칭 여부를 뜻하지 않아요.</p>}
             <nav className="worlds-crumbs" aria-label="현재 위치">
               <ol>
                 <li><Go to={`/worlds/${world.id}`}>{world.name}</Go></li>

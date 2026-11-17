@@ -1,0 +1,236 @@
+{
+  "genre": "egyptian_mythology",
+  "worldId": "c1817611-1c16-5eb0-b39f-9cffecd0cbfd",
+  "relationships": [
+    {
+      "id": "223fe43b-a783-5cf5-ac4a-9f105dfb93b3",
+      "sourceCardId": "276f3548-68ae-5daa-ac71-c944db14c476",
+      "targetCardId": "66883521-f166-5bbd-a388-6f083c0e6575",
+      "category": "structural",
+      "body": "이시스는 라에게 비밀 이름을 요구하고 독을 물리친다. 근거 카드 ID: 276f3548-68ae-5daa-ac71-c944db14c476. 출처:  https://www.gutenberg.org/cache/epub/9411/pg9411-images.html.",
+      "label": "이름 요구와 치유",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f83dc740-0c91-5817-a87c-e989fefca252",
+      "sourceCardId": "276f3548-68ae-5daa-ac71-c944db14c476",
+      "targetCardId": "abb0e8e7-12be-54b4-80ad-60a941eaff51",
+      "category": "structural",
+      "body": "호루스는 이시스의 아들이다. 근거 카드 ID: abb0e8e7-12be-54b4-80ad-60a941eaff51. 출처:  https://www.gutenberg.org/cache/epub/9411/pg9411-images.html.",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "130ff533-b4c6-52e4-9782-558d77ec6ec7",
+      "sourceCardId": "276f3548-68ae-5daa-ac71-c944db14c476",
+      "targetCardId": "cbda461a-9b8c-5975-89d6-99773dd75d20",
+      "category": "structural",
+      "body": "이시스는 라의 침과 흙으로 뱀을 빚었다. 근거 카드 ID: cbda461a-9b8c-5975-89d6-99773dd75d20. 출처:  https://www.gutenberg.org/cache/epub/9411/pg9411-images.html.",
+      "label": "뱀 제작",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c3506377-7cb5-5ec8-88f7-970a1bad2882",
+      "sourceCardId": "cbda461a-9b8c-5975-89d6-99773dd75d20",
+      "targetCardId": "66883521-f166-5bbd-a388-6f083c0e6575",
+      "category": "structural",
+      "body": "이시스가 만든 뱀은 라를 물었다. 근거 카드 ID: cbda461a-9b8c-5975-89d6-99773dd75d20. 출처:  https://www.gutenberg.org/cache/epub/9411/pg9411-images.html.",
+      "label": "독니 공격",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5d4bafae-8352-51a6-bca9-2b9e31197689",
+      "sourceCardId": "276f3548-68ae-5daa-ac71-c944db14c476",
+      "targetCardId": "e1c21692-2f18-5608-912d-c14d4559c3e7",
+      "category": "structural",
+      "body": "라가 이름이 이시스에게 옮겨가도록 허락한다. 근거 카드 ID: e1c21692-2f18-5608-912d-c14d4559c3e7. 출처:  https://www.gutenberg.org/cache/epub/9411/pg9411-images.html.",
+      "label": "비밀 이름 획득",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f20b1824-979f-55ad-a983-88f7f33feb6d",
+      "sourceCardId": "66883521-f166-5bbd-a388-6f083c0e6575",
+      "targetCardId": "e1c21692-2f18-5608-912d-c14d4559c3e7",
+      "category": "structural",
+      "body": "라의 부모는 라의 이름을 몸속에 감추었다고 전한다. 근거 카드 ID: e1c21692-2f18-5608-912d-c14d4559c3e7. 출처:  https://www.gutenberg.org/cache/epub/9411/pg9411-images.html.",
+      "label": "비밀 이름",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f5961a0a-906f-58ab-963e-b5a064a5cea9",
+      "sourceCardId": "276f3548-68ae-5daa-ac71-c944db14c476",
+      "targetCardId": "0f8816f9-4ca3-5156-9fcc-364113b020c3",
+      "category": "structural",
+      "body": "이시스는 권능의 말을 구사한다. 근거 카드 ID: 0f8816f9-4ca3-5156-9fcc-364113b020c3. 출처:  https://www.gutenberg.org/cache/epub/9411/pg9411-images.html.",
+      "label": "권능의 말",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6020d4dc-6be1-5c83-8059-9d9437a02faf",
+      "sourceCardId": "66883521-f166-5bbd-a388-6f083c0e6575",
+      "targetCardId": "6e50d0a5-ddfa-50b3-9ee6-278e63e77063",
+      "category": "structural",
+      "body": "라가 날마다 하늘에 들어가 왕좌에 자리한다. 근거 카드 ID: 6e50d0a5-ddfa-50b3-9ee6-278e63e77063. 출처:  https://www.gutenberg.org/cache/epub/9411/pg9411-images.html.",
+      "label": "왕좌",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "33bf03b0-1046-54cd-9f91-11081bd7d988",
+      "sourceCardId": "66883521-f166-5bbd-a388-6f083c0e6575",
+      "targetCardId": "a3e75569-b9e3-5cbf-b8c5-e783a6771b53",
+      "category": "structural",
+      "body": "라가 신들로부터 몸을 감추자 배 안의 왕좌가 빈다. 근거 카드 ID: a3e75569-b9e3-5cbf-b8c5-e783a6771b53. 출처:  https://www.gutenberg.org/cache/epub/9411/pg9411-images.html.",
+      "label": "배의 왕좌",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ffc670b4-5cdc-5c28-bbf9-279a101305c0",
+      "sourceCardId": "66883521-f166-5bbd-a388-6f083c0e6575",
+      "targetCardId": "0aa25e31-a6b9-5928-96b1-7bf1886211b7",
+      "category": "structural",
+      "body": "라가 날마다 다니던 길에서 뱀에게 물린다. 근거 카드 ID: 0aa25e31-a6b9-5928-96b1-7bf1886211b7. 출처:  https://www.gutenberg.org/cache/epub/9411/pg9411-images.html.",
+      "label": "뱀에게 물림",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5c264444-8057-5e5a-91e3-3323e2001c64",
+      "sourceCardId": "276f3548-68ae-5daa-ac71-c944db14c476",
+      "targetCardId": "fb893d22-2a49-5c43-8517-a4268dacbcf6",
+      "category": "structural",
+      "body": "이시스가 치유의 조건으로 이름을 요구해 라에게서 넘겨받는다. 근거 카드 ID: fb893d22-2a49-5c43-8517-a4268dacbcf6. 출처:  https://www.gutenberg.org/cache/epub/9411/pg9411-images.html.",
+      "label": "비밀 이름 획득",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1ead98ee-93b4-5564-80df-78e54aed28be",
+      "sourceCardId": "66883521-f166-5bbd-a388-6f083c0e6575",
+      "targetCardId": "b5ca18fc-edb8-5032-a463-c3c287e8662b",
+      "category": "structural",
+      "body": "라는 자기 지체에서 생겨난 자식 신들을 부른다. 근거 카드 ID: b5ca18fc-edb8-5032-a463-c3c287e8662b. 출처:  https://www.gutenberg.org/cache/epub/9411/pg9411-images.html.",
+      "label": "자식 신들을 부름",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c5336d3d-8693-5a22-873b-2d965b6c5d87",
+      "sourceCardId": "66883521-f166-5bbd-a388-6f083c0e6575",
+      "targetCardId": "7727008d-052f-5667-ba56-109b8f3ea578",
+      "category": "structural",
+      "body": "라는 창조 행적과 하루의 세 호칭을 열거한다. 근거 카드 ID: 7727008d-052f-5667-ba56-109b8f3ea578. 출처:  https://www.gutenberg.org/cache/epub/9411/pg9411-images.html.",
+      "label": "창조와 호칭",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ebf71e3d-3793-5cd6-be3e-c7c6af489945",
+      "sourceCardId": "276f3548-68ae-5daa-ac71-c944db14c476",
+      "targetCardId": "12232856-67fe-50c3-acbd-b165423ac435",
+      "category": "structural",
+      "body": "이시스는 호루스에게 위대한 신이 두 눈을 주겠다고 맹세해야 한다고 말한다. 근거 카드 ID: 12232856-67fe-50c3-acbd-b165423ac435. 출처:  https://www.gutenberg.org/cache/epub/9411/pg9411-images.html.",
+      "label": "두 눈의 맹세 요구",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "60eb74d6-36ab-5a50-b696-d405740a9cac",
+      "sourceCardId": "66883521-f166-5bbd-a388-6f083c0e6575",
+      "targetCardId": "8154b8b5-e0c0-5c84-bd2d-c3e8e6f15253",
+      "category": "structural",
+      "body": "라는 두 땅을 살피며 날마다 같은 길을 간다. 근거 카드 ID: 8154b8b5-e0c0-5c84-bd2d-c3e8e6f15253. 출처:  https://www.gutenberg.org/cache/epub/9411/pg9411-images.html.",
+      "label": "일상의 길",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b245ea30-249e-5750-972f-96eea4e48487",
+      "sourceCardId": "2c6be98c-025f-508b-9fd7-1341fdc1b6eb",
+      "targetCardId": "7fb843bd-b983-58f7-bf6f-8c0d34c7514f",
+      "category": "structural",
+      "body": "우나스 장송 주문 213에서 왕은 오시리스의 왕좌에 앉는다. 근거 카드 ID: 2c6be98c-025f-508b-9fd7-1341fdc1b6eb. 출처:  https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s213.",
+      "label": "왕좌에 앉음",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "12a503e5-1a1c-561a-a998-055d10c30612",
+      "sourceCardId": "2c6be98c-025f-508b-9fd7-1341fdc1b6eb",
+      "targetCardId": "e6f1bdc7-9389-52c1-a18f-6add6280edce",
+      "category": "structural",
+      "body": "주문 252에서 두아트의 신들이 도착한 우나스를 본다. 근거 카드 ID: 2c6be98c-025f-508b-9fd7-1341fdc1b6eb. 출처:  https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s213. 해당 주문 위치: https://theosislibrary.com/library/verified-pyramid-texts-unas-antechamber-west-gable#s252",
+      "label": "두아트 도착",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d0829c7d-2cb4-5b20-bef0-3f168a3525ae",
+      "sourceCardId": "2020ad75-a085-5847-8081-8f6a9132842a",
+      "targetCardId": "f5856e71-99d1-57d6-8d46-262786c87020",
+      "category": "structural",
+      "body": "주문 219는 세트를 오시리스의 형제로 부른다. 근거 카드 ID: f5856e71-99d1-57d6-8d46-262786c87020. 출처:  https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s219.",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b38aeea4-0eb0-5ed9-8a1d-1962ab518a4d",
+      "sourceCardId": "2020ad75-a085-5847-8081-8f6a9132842a",
+      "targetCardId": "38ce8bbd-109a-5a29-8340-62c334ac8048",
+      "category": "structural",
+      "body": "주문 219는 토트를 오시리스의 형제로 호명한다. 근거 카드 ID: 38ce8bbd-109a-5a29-8340-62c334ac8048. 출처:  https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-north-wall-register-1#s23. 해당 주문 위치: https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s219",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "487450b1-1ae8-51f4-9eb9-de9176f0cf91",
+      "sourceCardId": "2020ad75-a085-5847-8081-8f6a9132842a",
+      "targetCardId": "2c6be98c-025f-508b-9fd7-1341fdc1b6eb",
+      "category": "structural",
+      "body": "주문 219는 오시리스와 우나스의 생명을 나란히 호명한다. 근거 카드 ID: 2020ad75-a085-5847-8081-8f6a9132842a. 출처:  https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall.",
+      "label": "생명을 나란히 호명",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    }
+  ],
+  "reviewedCardIds": [
+    "0aa25e31-a6b9-5928-96b1-7bf1886211b7",
+    "0f8816f9-4ca3-5156-9fcc-364113b020c3",
+    "12232856-67fe-50c3-acbd-b165423ac435",
+    "2020ad75-a085-5847-8081-8f6a9132842a",
+    "21d243c9-7517-5011-8043-854ca8e42b97",
+    "276f3548-68ae-5daa-ac71-c944db14c476",
+    "286156d3-5e62-599d-abad-718fea5529a1",
+    "2c6be98c-025f-508b-9fd7-1341fdc1b6eb",
+    "38ce8bbd-109a-5a29-8340-62c334ac8048",
+    "5cd76435-40b4-5940-8a7d-fb1c9833c76b",
+    "66883521-f166-5bbd-a388-6f083c0e6575",
+    "6e50d0a5-ddfa-50b3-9ee6-278e63e77063",
+    "7727008d-052f-5667-ba56-109b8f3ea578",
+    "7a5fe4b1-7a12-5f14-b589-2dbb07cf062f",
+    "7fb843bd-b983-58f7-bf6f-8c0d34c7514f",
+    "8154b8b5-e0c0-5c84-bd2d-c3e8e6f15253",
+    "8d5d5216-e9de-5c1d-a8ff-0aaa079252db",
+    "a3e75569-b9e3-5cbf-b8c5-e783a6771b53",
+    "abb0e8e7-12be-54b4-80ad-60a941eaff51",
+    "b5ca18fc-edb8-5032-a463-c3c287e8662b",
+    "cbda461a-9b8c-5975-89d6-99773dd75d20",
+    "e1c21692-2f18-5608-912d-c14d4559c3e7",
+    "e6f1bdc7-9389-52c1-a18f-6add6280edce",
+    "f5856e71-99d1-57d6-8d46-262786c87020",
+    "fb893d22-2a49-5c43-8517-a4268dacbcf6"
+  ],
+  "ambiguousCardIds": [
+    "5cd76435-40b4-5940-8a7d-fb1c9833c76b"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "genre": "game_fantasy",
+  "worldId": "0942bc5d-0aa2-5c59-807f-fa1825735e29",
+  "relationships": [
+    {
+      "id": "6be43b78-b663-586e-9d41-3c0bd259fccc",
+      "sourceCardId": "c586bc87-2e5c-5270-807a-9f48a57c0d88",
+      "targetCardId": "ab6876b5-a932-5ad4-9415-f2e80ba8751a",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 카르테온은 현실 귀환을 우선하는 종결자들을 이끈다. 근거 카드 ID: c586bc87-2e5c-5270-807a-9f48a57c0d88",
+      "label": "지도",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3225464a-6cdc-5bfb-9667-da2d7489b7ff",
+      "sourceCardId": "bcf60498-35df-51ab-a629-d62ca3320582",
+      "targetCardId": "f5c275c3-9b03-5800-b2b9-3b6f0eeee48d",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 에드란은 아르세인 왕국의 실질적인 통치자다. 근거 카드 ID: bcf60498-35df-51ab-a629-d62ca3320582",
+      "label": "통치",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "14a965c0-09c6-538b-b152-a9fc6d0c5578",
+      "sourceCardId": "2942e7ee-de42-50f1-9353-f337643ebbf3",
+      "targetCardId": "645d3bff-4afb-5cd9-826d-153e7d9a7020",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 모르칸은 무명왕의 묘역을 지키는 기사다. 근거 카드 ID: 645d3bff-4afb-5cd9-826d-153e7d9a7020",
+      "label": "묘역 수호",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2fb349bd-0fdd-5a74-9b01-4b32502448e2",
+      "sourceCardId": "15c4956f-148d-545e-8aee-10cbae53a4ad",
+      "targetCardId": "33e7defc-f379-5750-9c30-550a1b9fb479",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 한시우는 리넨에 처음 접속해 서비스 종료까지 머물렀다. 근거 카드 ID: 33e7defc-f379-5750-9c30-550a1b9fb479",
+      "label": "접속과 체류",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ]
+}

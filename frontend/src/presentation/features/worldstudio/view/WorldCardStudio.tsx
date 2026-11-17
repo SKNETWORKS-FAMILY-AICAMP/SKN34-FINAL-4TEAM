@@ -16,6 +16,8 @@ import { setCardVisibility } from '../viewmodel/cardVisibility'
 import { importedSource } from '../../../shared/importCards'
 import { kinds, labelOf, settingLinks } from '../viewmodel/settingBoard'
 import { useCardBoard } from '../viewmodel/useCardBoard'
+import { PageControls } from '../../../shared/PageControls'
+import { pageItems } from '../../../shared/pageItems'
 import { useCharacterDocs } from '../viewmodel/useCharacterDocs'
 import type { useWorldRevisions } from '../viewmodel/useWorldRevisions'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
@@ -69,6 +71,8 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
     nameField.current?.focus()
   }, [item.id])
   const legacy = world.settings.filter((s) => ['relation', 'review', 'note'].includes(cardTypeOf(s.item)))
+  const [legacyPage, setLegacyPage] = useState(0)
+  const legacyItems = pageItems(legacy, legacyPage, 50)
   const links = settingLinks(world.settings, item.id)
   const docs = useCharacterDocs(vm, setting) // 편집 중인 글: 인물 카드는 고른 문서, 그 밖은 카드 본문
   const over = docs.text.length > BODY_MAX
@@ -118,7 +122,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
             </div>
             <div className="world-rail-tools">
               <label className="sr-only" htmlFor={`${listId}-q`}>설정 검색</label>
-              <input id={`${listId}-q`} type="search" className="inp" placeholder="설정 검색" value={vm.cardQuery} onChange={(e) => vm.setCardQuery(e.target.value)} />
+              <input id={`${listId}-q`} type="search" className="inp" placeholder="설정 검색" value={vm.cardQuery} onChange={(e) => { vm.setCardQuery(e.target.value); board.setPage(0) }} />
               <div className="world-rail-kinds" role="group" aria-label="설정 분류">
                 <button type="button" aria-pressed={!board.kind} onClick={() => board.pickKind()}>전체</button>
                 {board.counts.map(({ kind, count }) => <button key={kind} type="button" aria-pressed={board.kind === kind} onClick={() => board.pickKind(kind)}>{kind} {count}</button>)}
@@ -126,10 +130,12 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
             </div>
             <div className="writing-rail-split">
               <nav id={listId} className="seps writing-episodes" aria-label="설정 카드 목록" style={{ flexBasis: `${split}%` }}>
-                {board.rows.map((row) => rail(row.cardId, row.title, row.type))}
-                {legacy.map((s) => rail(s.item.id, s.item.title || '이름 없는 설정', labelOf(s)))}
+                {board.paged.items.map((row) => rail(row.cardId, row.title, row.type))}
+                {legacyItems.items.map((s) => rail(s.item.id, s.item.title || '이름 없는 설정', labelOf(s)))}
                 {!board.rows.length && !legacy.length && <p className="small muted world-rail-empty">조건에 맞는 설정이 없어요.</p>}
               </nav>
+              <PageControls page={board.paged.page} pages={board.paged.pages} onPage={board.setPage} />
+              <PageControls page={legacyItems.page} pages={legacyItems.pages} onPage={setLegacyPage} />
               <ResizeSeparator label="설정 카드 목록과 버전 그래프 크기 조절" controls={listId} value={split} min={20} max={80} onChange={setSplit} />
               <section className="writing-graph" aria-label="버전 그래프">
                 <h2>버전 그래프</h2>

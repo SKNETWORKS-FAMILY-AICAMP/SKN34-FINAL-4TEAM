@@ -92,18 +92,20 @@ export default function WorldGraphCanvas({ data, mode, summary, onOpen }: { data
   // 관계 라벨은 선 한가운데에 얹고, 선이 글자를 가르지 않게 뒤를 어두운 테두리로 비운다.
   const paintLinkLabel = (link: DetailLink, ctx: CanvasRenderingContext2D, scale: number) => {
     const { source: a, target: b, label } = link
-    if (!label || typeof a !== 'object' || typeof b !== 'object') return
-    const x = ((a.x ?? 0) + (b.x ?? 0)) / 2
-    const y = ((a.y ?? 0) + (b.y ?? 0)) / 2
+    if (link.kind !== 'link' || typeof a !== 'object' || typeof b !== 'object') return
+    const text = [label, link.category === 'emotional' ? '감정' : link.category === 'structural' ? '구조' : '', link.direction === 'directed' ? '단방향' : link.direction === 'symmetric' ? '대칭' : '방향 미상', link.polarity === 'denied' ? '부정' : ''].filter(Boolean).join(' · ')
+    const dx = (b.x ?? 0) - (a.x ?? 0), dy = (b.y ?? 0) - (a.y ?? 0)
+    const x = ((a.x ?? 0) + (b.x ?? 0)) / 2 - dy * (link.curve ?? 0) / 2
+    const y = ((a.y ?? 0) + (b.y ?? 0)) / 2 + dx * (link.curve ?? 0) / 2
     ctx.font = `700 ${(compact ? 10.5 : 11.5) / scale}px ${CANVAS_FONT}`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.lineJoin = 'round'
     ctx.lineWidth = 4 / scale
     ctx.strokeStyle = 'rgba(8,14,27,.95)'
-    ctx.strokeText(label, x, y)
+    ctx.strokeText(text, x, y)
     ctx.fillStyle = '#FFD98A'
-    ctx.fillText(label, x, y)
+    ctx.fillText(text, x, y)
   }
 
   return (
@@ -122,7 +124,9 @@ export default function WorldGraphCanvas({ data, mode, summary, onOpen }: { data
             }}
             linkColor={(l) => (touches(l) ? 'rgba(234,240,255,.95)' : l.kind === 'world' ? 'rgba(160,178,210,.2)' : 'rgba(160,178,210,.6)')}
             linkWidth={(l) => (l.kind === 'world' ? 0.8 : 1.6) + (touches(l) ? 0.8 : 0)}
-            linkCanvasObject={paintLinkLabel} linkCanvasObjectMode={(l) => (mode === 'people' && l.label ? 'after' : undefined)}
+            linkCurvature={(l) => l.curve ?? 0}
+            linkDirectionalArrowLength={(l) => l.kind === 'link' && l.direction === 'directed' ? 5 : 0} linkDirectionalArrowRelPos={0.9}
+            linkCanvasObject={paintLinkLabel} linkCanvasObjectMode={(l) => (l.kind === 'link' ? 'after' : undefined)}
             enableZoomInteraction={(e) => e.ctrlKey || e.metaKey} {...pointer.graphProps}
             onNodeDragEnd={(n) => { n.fx = n.x; n.fy = n.y }}
             onEngineStop={onEngineStop}

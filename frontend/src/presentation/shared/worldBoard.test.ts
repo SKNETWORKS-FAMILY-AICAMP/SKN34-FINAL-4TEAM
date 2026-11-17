@@ -1,4 +1,11 @@
 import { describe, expect, it } from 'vitest'
+import { pageItems } from './pageItems'
+
+it('만 장도 마지막 페이지까지 고르고 줄어든 결과의 페이지를 보정한다', () => {
+  const items = Array.from({ length: 10000 }, (_, i) => i)
+  expect(pageItems(items, 199, 50)).toEqual({ items: items.slice(9950), page: 199, pages: 200 })
+  expect(pageItems(items.slice(0, 51), 199, 50)).toEqual({ items: [50], page: 1, pages: 2 })
+})
 
 import {
   BOOK_SORTS, CARD_COLORS, CARD_KIND, boardEmptyKinds, boardKindCounts, boardRows, parseBookSort, type BoardEntry, type CardKind,

@@ -17,6 +17,48 @@ SPEC.loader.exec_module(ci)
 
 
 class SelectionTest(unittest.TestCase):
+    def test_expanded_data_paths_select_configuration_without_unrelated_services(self):
+        paths = [
+            'infrastructure/sample-data/genre-templates/expanded_generate.py',
+            'infrastructure/sample-data/genre-templates/expanded_test.py',
+            'infrastructure/sample-data/genre-templates/build_traditions.py',
+            'infrastructure/sample-data/genre-templates/review/README.md',
+            'infrastructure/sample-data/genre-templates/review/full-history/usa/cards-001.json',
+            'infrastructure/sample-data/genre-templates/expanded-relations/merge.py',
+            'infrastructure/sample-data/genre-templates/expanded-relations/worlds/usa--batch.json',
+        ]
+        for path in paths:
+            with self.subTest(path=path):
+                plan = ci.select([path])
+                self.assertEqual(([], [], [], True), (plan['unit'], plan['integration'], plan['system'], plan['infra']))
+
+    def test_expanded_runtime_data_preserves_content_selection_and_adds_configuration(self):
+        for path in ['backend/content-service/src/main/resources/genre-templates.json',
+                     'backend/content-service/src/main/resources/sample-worlds-expanded/manifest.json',
+                     'backend/content-service/src/main/resources/sample-worlds-expanded/world-001.json']:
+            with self.subTest(path=path):
+                baseline = ci.select(['backend/content-service/src/main/resources/application.yaml'])
+                baseline['infra'] = True
+                self.assertEqual(baseline, ci.select([path]))
+
+    def test_expanded_paths_union_with_other_changes_and_unknown_fallback(self):
+        sample = 'infrastructure/sample-data/genre-templates/review/full-myth/a/cards-001.json'
+        frontend = 'frontend/src/example.test.ts'
+        expected = ci.select([frontend])
+        expected['infra'] = True
+        self.assertEqual(expected, ci.select([sample, frontend]))
+        unknown = 'unregistered-runtime/config.toml'
+        self.assertEqual(ci.select([unknown]), ci.select([sample, unknown]))
+        self.assertEqual(set(ci.SERVICES), {row['service'] for row in ci.select([sample, unknown])['unit']})
+        unknown_sample = 'infrastructure/sample-data/genre-templates/expanded_unregistered.py'
+        self.assertEqual(set(ci.SERVICES), {row['service'] for row in ci.select([unknown_sample])['unit']})
+
+    def test_configuration_runs_expanded_data_and_relation_unit_tests(self):
+        workflow = (ci.ROOT / '.github/workflows/ci.yml').read_text()
+        block = workflow.split('\n  configuration:\n', 1)[1].split('\n  unit:\n', 1)[0]
+        self.assertIn('python3 -I -m unittest discover -s infrastructure/sample-data/genre-templates -p expanded_test.py -v', block)
+        self.assertIn('python3 -I -m unittest discover -s infrastructure/sample-data/genre-templates/expanded-relations -p test_merge.py -v', block)
+
     def test_docs_only_has_no_runtime_jobs(self):
         plan = ci.select(["README.md", "frontend/AGENTS.md", "docs/design/design.md"])
         self.assertEqual([], plan["unit"])

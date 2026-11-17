@@ -38,6 +38,7 @@
 .relationship-service-form>*+*{margin-top:24px;padding-top:24px;border-top:1px solid var(--line2)}.relationship-service-form h4{margin:0;font-size:15px}
 .relationship-add,.relationship-list{display:grid;gap:12px;align-content:start}.relationship-pair{min-width:0}.relationship-add .field{margin-bottom:0}.relationship-actions{display:flex;flex-wrap:wrap;gap:8px}
 .relationship-table{width:100%;table-layout:fixed}.relationship-table :is(th,td){padding:8px 6px;text-align:left;vertical-align:middle;font-size:13px;overflow-wrap:anywhere}.relationship-table th{font-size:12px}
+.relationship-card-link{padding:0;border:0;background:none;color:var(--pri-ink);font:inherit;text-align:left;text-decoration:underline;cursor:pointer;overflow-wrap:anywhere}
 .relationship-table :is(th,td):last-child{width:126px;text-align:right}.relationship-row-actions{white-space:nowrap}.relationship-row-actions .btn+.btn{margin-left:6px}.relationship-row-actions .relationship-remove{margin-top:0}
 @container relationship-editor (max-width:950px){.relationship-service-layout{grid-template-columns:minmax(0,1fr)}.relationship-service-form{max-height:none}}
 @media(max-width:600px){.relationship-service-form{padding:12px}}

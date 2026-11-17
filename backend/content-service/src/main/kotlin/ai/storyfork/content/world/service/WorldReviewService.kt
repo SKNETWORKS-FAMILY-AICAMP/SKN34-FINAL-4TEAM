@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service
 class WorldReviewService(private val studio: WorldStudioService, private val ai: InitialWorldExtractionClient) {
     fun review(worldId: UUID, owner: UUID, consent: Boolean?): WorldReviewResponse {
         if (consent != true) throw ContentFailure(422, "OpenAI 전송과 API 비용에 동의해 주세요.", "AI_CONSENT_REQUIRED")
-        val draft = studio.draft(worldId, owner)
+        val draft = studio.draftForReview(worldId, owner)
         val input = WorldReviewInput.fromDraft(draft)
         val total = draft.cards.count { it.lifecycle == "active" }
         // 보낼 카드가 없으면 AI를 부르지 않는다. 모델을 쓰지 않았으니 model은 비운다.
