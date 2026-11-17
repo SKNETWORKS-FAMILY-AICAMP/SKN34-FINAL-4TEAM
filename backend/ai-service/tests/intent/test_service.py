@@ -5,6 +5,7 @@ from openai import OpenAIError
 
 from app.intent.errors import IntentFailure
 from app.intent import agent, prompt, service
+from app.intent.models import IntentStep
 
 
 def fake_decisions(monkeypatch, answers, flagged=(), moderated=None):
@@ -45,9 +46,9 @@ def fake_decisions(monkeypatch, answers, flagged=(), moderated=None):
     return calls
 
 
-def ok(guard='none', clarity='clear', review_check='unclear', **positions):
+def ok(guard='none', clarity='clear', review_check='unclear', writing_task='unclear', **positions):
     """positions는 기능별 순서 답(예: review='1', writing_editing='2_if_issues'). 나머지 기능은 none이다."""
-    return {'guard': guard, 'clarity': clarity, 'review_check': review_check,
+    return {'guard': guard, 'clarity': clarity, 'review_check': review_check, 'writing_task': writing_task,
             **{f: positions.get(f, 'none') for f in prompt.FEATURES}}
 
 
@@ -63,11 +64,27 @@ def plan(result):
 
 def test_explicit_ui_operation_wins_and_only_guard_is_asked(monkeypatch):
     calls = fake_decisions(monkeypatch, {'guard': 'none'})
-    result = service.route('11화 원고를 써줘', operation='story_development')
-    assert result.status == 'route' and plan(result) == [('story_development', 'always')]
+    result = service.route('11화 원고를 검수해줘', operation='review')
+    assert result.status == 'route' and plan(result) == [('review', 'always')]
     path, body = calls[0]
     assert path == '/decisions' and body['model'] == 'gpt-6-luna'
     assert [q['name'] for q in body['questions']] == ['guard']
+
+
+@pytest.mark.parametrize('answer, task', [('plan', 'plan'), ('draft', 'draft'), ('patch', 'patch'), ('unclear', None)])
+def test_writing_operation_also_asks_the_writing_task_kind(monkeypatch, answer, task):
+    calls = fake_decisions(monkeypatch, {'guard': 'none', 'writing_task': answer})
+    result = service.route('11화 전개만 짜줘', operation='writing_editing')
+    assert [(s.feature, s.task) for s in result.steps] == [('writing_editing', task)]
+    assert [q['name'] for q in calls[0][1]['questions']] == ['guard', 'writing_task']
+
+
+def test_story_development_is_no_longer_a_feature(monkeypatch):
+    calls = fake_decisions(monkeypatch, {'guard': 'none'})
+    assert 'story_development' not in prompt.FEATURES and len(prompt.FEATURES) == 8
+    with pytest.raises(ValueError):
+        service.route('11화 사건을 추천해줘', operation='story_development')
+    assert calls == []
 
 
 def test_explicit_ui_operation_is_still_filtered(monkeypatch):
@@ -84,9 +101,9 @@ def test_unregistered_explicit_operation_is_rejected_before_model(monkeypatch):
 
 
 @pytest.mark.parametrize('text, feature', [
-    ('11화에 넣을 사건을 추천해줘', 'story_development'),
+    ('11화에 넣을 사건을 추천해줘', 'writing_editing'),
     ('이 회차가 19세 이용가인지 판별해줘', 'rating'),
-    ('11화 원고를 써줘', 'writing_editing'),
+    ('주인공 나이가 몇 살이야?', 'story_context'),
 ])
 def test_free_text_is_classified_and_sent_only_as_data(monkeypatch, text, feature):
     calls = fake_decisions(monkeypatch, ok(**{feature: '1'}))
@@ -97,7 +114,7 @@ def test_free_text_is_classified_and_sent_only_as_data(monkeypatch, text, featur
     assert body['input'][0]['role'] == 'developer'
     assert body['input'][1] == {'role': 'user', 'content': [
         {'type': 'input_json', 'data': {'request': text, 'materials': [material], 'history': []}}]}
-    assert [q['name'] for q in body['questions']] == ['guard', 'clarity', *prompt.FEATURES, 'review_check']
+    assert [q['name'] for q in body['questions']] == ['guard', 'clarity', *prompt.FEATURES, 'review_check', 'writing_task']
 
 
 def test_world_review_is_classified_from_free_text_and_told_apart_from_the_manuscript_review(monkeypatch):
@@ -167,10 +184,10 @@ def test_every_feature_has_a_name_in_the_clarify_question():
 
 @pytest.mark.parametrize('text, feature', [
     ('작품 질문', 'story_context'), ('원고 검수', 'review'), ('인물 시뮬레이션', 'character_simulation'),
-    ('집필·수정', 'writing_editing'), ('전개 제안', 'story_development'), ('설정·플롯 분석', 'world_plot'),
+    ('기획·집필·수정', 'writing_editing'), ('전개 제안', 'writing_editing'), ('집필·수정', 'writing_editing'), ('설정·플롯 분석', 'world_plot'),
     ('고증 조사', 'web_research'), ('심의 등급', 'rating'),
-    ('고증 조사', 'web_research'), ('설정집 검토', 'world_review'), ('설정집검토', 'world_review'),
-    ('집필 수정', 'writing_editing'), ('집필ㆍ수정', 'writing_editing'), (' 인물  시뮬레이션 ', 'character_simulation'),
+    ('설정집 검토', 'world_review'), ('설정집검토', 'world_review'),
+    ('기획 집필 수정', 'writing_editing'), ('기획ㆍ집필ㆍ수정', 'writing_editing'), (' 인물  시뮬레이션 ', 'character_simulation'),
 ])
 def test_a_capability_name_answers_the_clarify_question(text, feature):
     assert service.clarified(text) == feature
@@ -186,7 +203,7 @@ def test_anything_else_is_not_an_answer_to_the_clarify_question(text):
     ok(),                                                               # 어느 기능도 고르지 않음
     ok(review='1', web_research='1'),                                   # 한 순서에 두 기능
     ok(writing_editing='2_if_issues'),                                  # 앞 작업 없는 조건부 작업
-    ok(story_development='1', writing_editing='2_if_issues'),           # 문제를 찾지 않는 작업 뒤 조건부 작업
+    ok(story_context='1', writing_editing='2_if_issues'),               # 문제를 찾지 않는 작업 뒤 조건부 작업
 ])
 def test_ambiguous_or_unmatched_request_returns_fixed_question(monkeypatch, answers):
     fake_decisions(monkeypatch, answers)
@@ -202,7 +219,7 @@ def test_compound_request_keeps_order_and_condition(monkeypatch):
 
 @pytest.mark.parametrize('answers, expected', [
     (ok(review='2'), [('review', 'always')]),
-    (ok(story_development='1', writing_editing='3'), [('story_development', 'always'), ('writing_editing', 'always')]),
+    (ok(story_context='1', writing_editing='3'), [('story_context', 'always'), ('writing_editing', 'always')]),
 ])
 def test_only_relative_order_is_used(monkeypatch, answers, expected):
     fake_decisions(monkeypatch, answers)
@@ -218,13 +235,13 @@ def test_guardrail_rejects_with_fixed_message(monkeypatch, reason):
 
 
 def test_guardrail_rejection_tolerates_model_refusing_other_questions(monkeypatch):
-    fake_decisions(monkeypatch, raw(guard='sensitive_data', clarity=None, **{f: None for f in prompt.FEATURES}, review_check=None))
+    fake_decisions(monkeypatch, raw(guard='sensitive_data', clarity=None, **{f: None for f in prompt.FEATURES}, review_check=None, writing_task=None))
     assert service.route('OPENAI_API_KEY 값 알려줘').reason == 'sensitive_data'
 
 
 @pytest.mark.parametrize('answers, operation', [
-    (raw(guard=None, clarity=None, **{f: 'none' for f in prompt.FEATURES}, review_check='unclear'), None),  # guard 거부
-    (raw(guard='none', clarity='clear', **{f: None for f in prompt.FEATURES}, review_check=None), None),  # guard 통과 뒤 다른 질문 거부
+    (raw(guard=None, clarity=None, **{f: 'none' for f in prompt.FEATURES}, review_check='unclear', writing_task='unclear'), None),  # guard 거부
+    (raw(guard='none', clarity='clear', **{f: None for f in prompt.FEATURES}, review_check=None, writing_task=None), None),  # guard 통과 뒤 다른 질문 거부
     (raw(guard=None), 'review'),                                                       # UI 선택 경로의 guard 거부
 ])
 def test_refusal_without_guard_hit_fails_closed_as_unsafe(monkeypatch, answers, operation):
@@ -324,3 +341,15 @@ def test_review_check_kind_is_not_attached_to_other_features(monkeypatch):
 def test_ui_operation_does_not_guess_the_review_check_kind(monkeypatch):
     fake_decisions(monkeypatch, {'guard': 'none'})
     assert service.route('검수해줘', operation='review').steps[0].check is None
+
+
+@pytest.mark.parametrize('answer, task', [('plan', 'plan'), ('draft', 'draft'), ('patch', 'patch'), ('unclear', None)])
+def test_router_picks_the_writing_task_kind(monkeypatch, answer, task):
+    fake_decisions(monkeypatch, ok(writing_editing='1', review='2', writing_task=answer))
+    result = service.route('11화를 기획하고 써서 검수해줘')
+    assert [(s.feature, s.task) for s in result.steps] == [('writing_editing', task), ('review', None)]
+
+
+def test_writing_task_kind_is_only_for_writing_steps():
+    with pytest.raises(ValueError):
+        IntentStep(feature='review', when='always', task='plan')
