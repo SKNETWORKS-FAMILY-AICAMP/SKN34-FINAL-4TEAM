@@ -1,4 +1,4 @@
-import {useId} from 'react'
+import {useEffect,useId,useRef} from 'react'
 import type {WorldRevision} from '../../../../domain/entities/studioWorld'
 import type {useWorldRevisions} from '../viewmodel/useWorldRevisions'
 import type {useWorldStudioViewModel} from '../viewmodel/useWorldStudioViewModel'
@@ -10,14 +10,17 @@ type Revisions=ReturnType<typeof useWorldRevisions>
  */
 function RestoreRevision({studio,vm,detail}:{studio:Studio;vm:Revisions;detail:WorldRevision}){
  const reason=useId()
+ // 되돌리는 동안 버튼이 잠겨 초점이 body로 빠지므로, 끝나면 누른 버튼으로 돌려놓는다.
+ const button=useRef<HTMLButtonElement>(null),refocus=useRef(false)
+ useEffect(()=>{if(!vm.busy&&refocus.current){refocus.current=false;button.current?.focus()}},[vm.busy])
  const why=studio.dirty||studio.relationDirty?'저장하지 않은 변경이 있어 되돌릴 수 없어요. 먼저 세계관을 저장하세요.':vm.pending?'확정 결과를 확인하기 전에는 되돌릴 수 없어요.':vm.aiPending?'AI 요청 결과를 확인하기 전에는 되돌릴 수 없어요.':''
  const restore=()=>{
   const kept=new Set(detail.cards.filter(c=>c.card.lifecycle==='active').map(c=>c.card.id))
   const gone=(studio.saved?.settings??[]).filter(s=>s.item.kind!=='relation'&&!kept.has(s.item.id)).length
   const vanish=gone?`지금 초안에서 사라지는 설정 카드 ${gone}개는 삭제 상태가 돼요.`:'사라지는 설정 카드는 없어요.'
-  if(window.confirm(`확정 버전 ${detail.revisionNo}의 카드로 초안을 되돌릴까요?\n- ${vanish}\n- 관계는 그대로예요. 이 버전의 관계로 바꾸지 않아요.\n- 텍스트 복원은 과거 이미지까지 보장하지 않아요.\n- 새 확정 버전은 만들지 않아요. 마음에 들면 '확정 버전 남기기'로 직접 남기세요.`))void vm.restore(detail.revisionId,detail.revisionNo)
+  if(window.confirm(`확정 버전 ${detail.revisionNo}의 카드로 초안을 되돌릴까요?\n- ${vanish}\n- 관계는 그대로예요. 이 버전의 관계로 바꾸지 않아요.\n- 텍스트 복원은 과거 이미지까지 보장하지 않아요.\n- 새 확정 버전은 만들지 않아요. 마음에 들면 '확정 버전 남기기'로 직접 남기세요.`)){refocus.current=true;void vm.restore(detail.revisionId,detail.revisionNo)}
  }
- return <div className="initial-actions"><button type="button" className="btn" disabled={vm.busy||!!why} aria-describedby={why?reason:undefined} onClick={restore}>이 버전으로 초안 되돌리기</button>{why&&<p id={reason} role="status" className="small muted">{why}</p>}</div>
+ return <div className="initial-actions"><button ref={button} type="button" className="btn" disabled={vm.busy||!!why} aria-describedby={why?reason:undefined} onClick={restore}>이 버전으로 초안 되돌리기</button>{why&&<p id={reason} role="status" className="small muted">{why}</p>}</div>
 }
 /** 확정 버전 시트의 내용. 목록·상세 상태(`revisions`)는 편집 화면의 버전 그래프와 같은 훅 하나를 나눠 쓴다. */
 export function WorldRevisions({studio,revisions:vm}:{studio:Studio;revisions:Revisions}){

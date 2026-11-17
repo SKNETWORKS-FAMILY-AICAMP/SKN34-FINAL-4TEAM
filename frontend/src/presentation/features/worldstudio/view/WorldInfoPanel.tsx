@@ -84,7 +84,7 @@ export function WorldInfoPanel({ vm, world, onClose }: { vm: VM; world: StudioWo
         </div>
         {vm.supportsDelete && (
           <div className="world-delete" role="group" aria-label="세계관 삭제">
-            <button type="button" className="btn sm" disabled={!!vm.linkedWorkId} aria-describedby={deleteId} onClick={remove}>세계관 삭제</button>
+            <button type="button" className="btn sm ep-danger" disabled={!!vm.linkedWorkId} aria-describedby={deleteId} onClick={remove}>세계관 삭제</button>
             <p id={deleteId} className="small muted">{vm.linkedWorkId ? '연결된 소설이 있어 삭제할 수 없어요. 작품 관리에서 연결을 해제한 뒤 삭제하세요.' : '삭제하면 내 세계관 목록과 공개 화면에서 사라져요.'}</p>
           </div>
         )}
