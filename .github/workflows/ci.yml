@@ -317,6 +317,16 @@ jobs:
           for _ in $(seq 60); do curl -fsS http://127.0.0.1:19087/minio/health/live >/dev/null && break; sleep 1; done
           curl -fsS http://127.0.0.1:19087/minio/health/live >/dev/null
           docker exec "$POSTGRES_ID" createdb -U content_test attachment_test
+      - name: Set up uv for Content acceptance provider
+        if: ${{ matrix.service == 'content' }}
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - name: Start fixture-only AI for initial world HTTP acceptance
+        if: ${{ matrix.service == 'content' }}
+        run: |
+          uv sync --locked --extra dev --project backend/ai-service
+          backend/ai-service/.venv/bin/python docs/verification/two-path-qa/provider_server.py > "$RUNNER_TEMP/initial-build-provider.log" 2>&1 &
+          echo "MANUSCRIPT_QA_AI_URL=http://127.0.0.1:8769" >> "$GITHUB_ENV"
+          curl --retry 30 --retry-delay 2 --retry-all-errors --fail --silent --show-error http://127.0.0.1:8769/qa/status
       - name: JUnit Content Spring HTTP and fresh PostgreSQL integration tests
         if: ${{ matrix.service == 'content' }}
         working-directory: backend/content-service

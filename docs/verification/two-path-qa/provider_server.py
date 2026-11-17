@@ -10,6 +10,9 @@ sys.meta_path[:]=[f for f in sys.meta_path if '__editable__' not in getattr(f,'_
 from fastapi import FastAPI
 from app.preprocessing import service
 from app.preprocessing.router import router
+from app.initial_world.router import router as initial_router
+from app.initial_world import service as initial_service
+from manual_provider import propose
 import uvicorn
 
 data=json.loads((root/'backend/ai-service/tests/preprocessing/fixtures/ten-episodes.json').read_text(encoding='utf-8'))
@@ -31,6 +34,12 @@ service.agent.resolve=lambda rows:{'links':[l for l in data['resolution']['links
 os.environ['INTERNAL_TOKEN']='qa-token'
 os.environ.pop('OPENAI_API_KEY',None)
 app=FastAPI();app.include_router(router)
+initial_service.agent.propose=propose
+app.include_router(initial_router)
+
+@app.get('/qa/status')
+def status():
+    return {'mode':'fixed-fixture-only','paidModelCalls':False,'directCandidates':True,'manuscriptEpisodes':[4,10],'incrementalUpdate':False}
 @app.get('/qa/calls')
 def read_calls():
     return calls
