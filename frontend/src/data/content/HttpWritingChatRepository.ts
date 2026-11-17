@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import type { CharacterSimulation } from '../../domain/entities/characterSimulation'
-import type { ChatEvent, ChatHistory, ChatMessageInput, ChatReply, ChatReview, ChatSession, ChatStep } from '../../domain/entities/writingChat'
+import type { ChatEvent, ChatHistory, ChatMessageInput, ChatRating, ChatReply, ChatReview, ChatSession, ChatStep } from '../../domain/entities/writingChat'
 import type { WritingChatRepository } from '../../domain/repositories/WritingChatRepository'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, protectedRequest } from '../api/auth'
@@ -32,6 +32,7 @@ const BAD_SIMULATION = '인물 시뮬레이션 결과 형식을 확인할 수 �
 
 const stepFields = {
   when: z.enum(['always', 'if_issues_found']).optional(),
+  task: z.enum(['plan', 'draft', 'patch']).nullish(),
   status: z.enum(['completed', 'failed', 'not_started', 'skipped']),
   error: z.string().nullish(),
   approval: z.enum(['approved', 'declined']).nullish(),
@@ -46,10 +47,22 @@ const review: z.ZodType<ChatReview> = z.object({
   })),
 })
 const BAD_REVIEW = '원고 검수 결과 형식을 확인할 수 없어요.'
+// 심의 등급 단계 결과. AI RatingResponse 중 화면이 쓰는 값만 계약의 열거값으로 받는다.
+const ratingVerdict = z.enum(['adult', 'general', 'needsReview'])
+const rating: z.ZodType<ChatRating> = z.object({
+  verdict: ratingVerdict, prohibited: z.boolean(),
+  episodes: z.array(z.object({
+    episode: z.number().int(), verdict: ratingVerdict.nullable(), prohibited: z.boolean(), error: z.string().nullable(),
+    assessments: z.array(z.object({ criterion: z.string(), level: z.number().int(), quotes: z.array(z.string()), rationale: z.string() })),
+  })),
+})
+const BAD_RATING = '심의 등급 결과 형식을 확인할 수 없어요.'
+// 전개 기획(#387)의 계획. 기획 결과(plans)와 바로 쓴 원고가 쓴 계획(plan)이 같은 모양이다.
+const beatPlan = z.object({ title: z.string(), beats: z.array(z.string()) })
 
 // 시뮬레이션·검수 단계는 결과가 객체가 아니어도(문자열·배열·숫자) 이 단계만 실패로 바꿔야 해서 결과를 transform이 따로 검증한다.
 // 결과를 객체로 먼저 검사하면 그 실패가 transform 앞에서 응답 전체의 형식 오류가 된다.
-const typedStep = <T,>(feature: string, schema: z.ZodType<T>, key: 'simulation' | 'review', bad: string) =>
+const typedStep = <T,>(feature: string, schema: z.ZodType<T>, key: 'simulation' | 'review' | 'rating', bad: string) =>
   z.object({ feature: z.literal(feature), ...stepFields, result: z.unknown() }).transform((raw): ChatStep => {
     const { result, ...rest } = raw
     // 완료됐다는 단계는 결과가 있어야 한다. 아직 시작 전·서버가 실패로 보낸 결과 없는 단계는 그대로 둔다.
@@ -60,7 +73,7 @@ const typedStep = <T,>(feature: string, schema: z.ZodType<T>, key: 'simulation' 
     return { ...rest, status: 'failed', error: (raw.status === 'failed' && raw.error) || bad }
   })
 const step: z.ZodType<ChatStep> = z.union([typedStep('character_simulation', simulation, 'simulation', BAD_SIMULATION),
-  typedStep('review', review, 'review', BAD_REVIEW), z.object({
+  typedStep('review', review, 'review', BAD_REVIEW), typedStep('rating', rating, 'rating', BAD_RATING), z.object({
   feature: z.string(),
   ...stepFields,
   result: z.looseObject({
@@ -70,6 +83,9 @@ const step: z.ZodType<ChatStep> = z.union([typedStep('character_simulation', sim
     before: z.string().optional(),
     after: z.string().optional(),
     findings: z.array(z.object({ text: z.string(), verdict: z.string(), sourceUrls: z.array(z.string()) })).optional(),
+    plans: z.array(beatPlan).optional(),
+    notes: z.array(z.string()).optional(),
+    plan: beatPlan.nullish(),
   }).nullish(),
 })])
 const reply: z.ZodType<ChatReply> = z.object({

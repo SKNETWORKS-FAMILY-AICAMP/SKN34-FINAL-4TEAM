@@ -11,8 +11,8 @@ import type { CharacterSimulation } from '../../../../domain/entities/characterS
 import type { ChatEvent, ChatReply, ChatStep } from '../../../../domain/entities/writingChat'
 import { WritingStudio } from './WritingStudio'
 
-const { sessions, history, send, open, list, owned, readWorld } = vi.hoisted(() => ({
-  sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), list: vi.fn(), owned: vi.fn(), readWorld: vi.fn(),
+const { sessions, history, send, open, list, owned, readWorld, inherited } = vi.hoisted(() => ({
+  sessions: vi.fn(), history: vi.fn(), send: vi.fn(), open: vi.fn(), list: vi.fn(), owned: vi.fn(), readWorld: vi.fn(), inherited: vi.fn(),
 }))
 type TestEpisode = { number: number; draft: { title: string; body?: string; revision?: number }; versions: unknown[]; inherited: boolean; hasDraft?: boolean; publishedVersionId: string | null; checkpoints: unknown[]; publicationStatus?: string }
 const model = vi.hoisted(() => ({
@@ -36,7 +36,8 @@ vi.mock('../../../../app/appContainer', async () => {
   const chat = new WritingChatUseCase({ sessions, history, send, open } as never)
   const plans = { list, references: async () => ({ episodes: [], characters: [], places: [] }) }
   const worlds = { list: owned, read: readWorld }
-  return { appContainer: { resolve: (key: string) => (key === 'writingChatUseCase' ? chat : key === 'storyPlanUseCase' ? plans : key === 'worldStudioUseCase' ? worlds : {}) } }
+  const episodes = { inheritedWorld: inherited }  // 시작 양식은 연결한 세계관이 없을 때만 Fork가 이어받는 세계관을 묻는다. 의존 배열에 들어가므로 늘 같은 객체다.
+  return { appContainer: { resolve: (key: string) => (key === 'writingChatUseCase' ? chat : key === 'storyPlanUseCase' ? plans : key === 'worldStudioUseCase' ? worlds : key === 'episodeUseCase' ? episodes : {}) } }
 })
 
 const store: { reply: ChatReply | null } = { reply: null }
@@ -62,6 +63,7 @@ beforeEach(() => {
   store.reply = null
   sessions.mockResolvedValue([])
   list.mockResolvedValue([])
+  inherited.mockResolvedValue(null)
   // 이 작품(work-id)에 연결된 세계관과 그 인물 카드가 시작 양식의 인물 후보다.
   owned.mockResolvedValue([{ id: 'world-1', linkedWorkId: 'work-id', settings: [] }])
   readWorld.mockResolvedValue({ id: 'world-1', settings: [{ item: { id: 'c1', title: '카엘', kind: 'entity', entityType: 'character' }, userCategory: '', tags: [] }] })

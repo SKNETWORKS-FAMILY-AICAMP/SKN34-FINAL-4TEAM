@@ -159,6 +159,7 @@ const summaries = z.array(
     description: z.string(),
     draftRevision: revision,
     relationshipStatus: z.enum(['current', 'incomplete', 'migration_required']),
+    cardCount: z.number().int().nonnegative().default(0),
     visibility: visibility.default('private'),
     genre: genre.default(null),
     hasCover: z.boolean().default(false),
@@ -346,6 +347,20 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
       catch(error){if(error instanceof Error&&error.cause==='WORLD_WRITE_REJECTED')localStorage.removeItem(storageKey);throw error}
     },true)
   }
+  /** 확정 버전의 카드로 초안의 카드만 되돌린다. 응답은 되돌린 초안이다(화면이 곧 다시 읽어 저장 기준을 정한다). 거절(없는 버전 404·낡은 초안 409·관계가 이어진 설정 409)은 서버의 이유를 그대로 알린다. */
+  async restoreRevision(id: string, revisionId: string, expected: number, signal?: AbortSignal): Promise<StudioWorld> {
+    this.checkSession()
+    uuid.parse(id)
+    uuid.parse(revisionId)
+    const body = JSON.stringify({ expectedDraftRevision: expected })
+    return world(await this.request('/' + id + '/revisions/' + revisionId + '/restore', draft, 'POST', body, signal), id)
+  }
+  /** 세계관을 지운다(204, 본문 없음). 연결된 소설이 있으면 409, 남의 세계관·이미 지운 세계관은 404이며 서버의 이유를 그대로 알린다. */
+  async deleteStudio(id: string, signal?: AbortSignal): Promise<void> {
+    this.checkSession()
+    uuid.parse(id)
+    await this.request('/' + id, z.undefined(), 'DELETE', undefined, signal)
+  }
   async listStudio(signal?: AbortSignal): Promise<StudioWorld[]> {
     this.checkSession()
     const rows = await this.request('', summaries, 'GET', undefined, signal)
@@ -358,6 +373,7 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
       genre: r.genre,
       hasCover: r.hasCover,
       linkedWorkId: r.linkedWorkId,
+      cardCount: r.cardCount,
       settings: [],
       analysis: null,
       relationshipStatus: r.relationshipStatus,

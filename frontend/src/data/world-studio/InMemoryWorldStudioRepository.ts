@@ -16,6 +16,7 @@ export class InMemoryWorldStudioRepository implements WorldStudioRepository {
   const saved=structuredClone({...world,settings,version:world.version+1,visibility:previous.visibility,genre:previous.genre}) // 공개 설정은 초안 저장과 별개라 편집본의 값이 아니라 저장된 값을 유지한다
   this.worlds.set(saved.id,saved);return structuredClone(saved)
  }
+ async deleteStudio(id:string){await this.read(id);this.worlds.delete(id)}
  async setPublication(id:string,{visibility,genre}:WorldPublicationInput):Promise<WorldPublication>{
   const world=await this.read(id)
   this.worlds.set(id,structuredClone({...world,visibility,genre}))

@@ -12,6 +12,13 @@ export type ReviewFinding = {
 }
 /** 원고 검수(#59) 단계의 검증된 결과. 검수한 초안의 회차·판본과 확인하지 못한 부분(gaps)을 함께 둔다. */
 export type ChatReview = { check: ReviewCheck; episode: number; revision: number; findings: ReviewFinding[]; gaps: string[] }
+export type RatingVerdict = 'adult' | 'general' | 'needsReview'
+/** 심의 등급 판별 단계의 검증된 결과. 판정은 제안이며 작품 등급을 바꾸지 않는다. 회차 verdict가 null이면 그 회차는 판별 실패(error)다. */
+export type ChatRating = {
+  verdict: RatingVerdict; prohibited: boolean
+  episodes: { episode: number; verdict: RatingVerdict | null; prohibited: boolean; error: string | null
+    assessments: { criterion: string; level: number; quotes: string[]; rationale: string }[] }[]
+}
 export type ChatStepResult = {
   claims?: { text: string }[]
   gaps?: string[]
@@ -19,17 +26,27 @@ export type ChatStepResult = {
   before?: string
   after?: string
   findings?: { text: string; verdict: string; sourceUrls: string[] }[]
+  /** 전개 기획(#387)의 계획 대안과 참고. 원고가 아니라 반영하지 않는다. */
+  plans?: BeatPlan[]
+  notes?: string[]
+  /** 계획 없이 바로 쓴 원고(text)가 스스로 정해 쓴 계획 */
+  plan?: BeatPlan | null
 }
+export type BeatPlan = { title: string; beats: string[] }
 export type ChatStep = {
   feature: ChatFeature
   /** if_issues_found는 직전 검수에서 확정 지적이 있을 때만 고치는 조건부 수정이다(#370). skipped는 고칠 것이 없어 건너뛴 단계(error가 이유)다. */
   when?: 'always' | 'if_issues_found'
+  /** writing_editing 단계에 Router가 정한 작업 종류(#387). patch(선택 구간 수정)는 채팅에서 입력을 채울 수 없다. */
+  task?: 'plan' | 'draft' | 'patch' | null
   status: 'completed' | 'failed' | 'not_started' | 'skipped'
   result?: ChatStepResult | null
   /** character_simulation 단계의 검증된 결과(#58). 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
   simulation?: CharacterSimulation | null
   /** review 단계의 검증된 결과. 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
   review?: ChatReview | null
+  /** rating 단계의 검증된 결과. 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
+  rating?: ChatRating | null
   error?: string | null
   approval?: 'approved' | 'declined' | null
   applied?: { episode: number; revision: number } | null
@@ -106,7 +123,7 @@ export function cleanScene(scene: SceneAction): SceneAction {
   }
 }
 
-export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '집필·수정', web_research: '고증 조사', character_simulation: '인물 시뮬레이션', review: '원고 검수' }
+export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '기획·집필·수정', web_research: '고증 조사', character_simulation: '인물 시뮬레이션', review: '원고 검수', rating: '심의 등급' }
 export const reviewCheckLabel: Record<ReviewCheck, string> = { mechanical: '맞춤법·표기', semantic: '설정·개연성', both: '설정·개연성 + 맞춤법·표기' }
 const reviewStatus: Record<ReviewFinding['status'], string> = { confirmed: '확정', suspected: '의심', undeterminable: '판단 불가' }
 const reviewCategory: Record<string, string> = {
@@ -121,6 +138,22 @@ function reviewText({ check, episode, findings, gaps }: ChatReview): string {
     `${reviewStatus[f.status]} · ${reviewCategory[f.category] ?? f.category} · "${f.quote}"${f.start === null ? ' (여러 곳)' : ''}`,
     `이유: ${f.reason}`, ...(f.suggestion ? [`제안: ${f.suggestion}`] : []),
   ].join('\n')), ...gaps.map((g) => `확인 못 함: ${g}`)].join('\n\n')
+}
+
+const ratingVerdict: Record<RatingVerdict, string> = { adult: '19세 이용가', general: '전체 이용가', needsReview: '작가 검토 필요' }
+// needsReview는 AI가 다시 판정하지 않고 작가가 근거를 보고 정한다(#439).
+const AUTHOR_REVIEW = 'AI가 등급을 정하지 않았어요. 아래 근거를 보고 작가님이 직접 판단해 주세요.'
+const ratingCriterion: Record<string, string> = {
+  sexual: '선정성', violence: '폭력성', crime: '범죄', drug: '약물', gambling: '사행성', language: '언어', other: '기타 유해',
+}
+
+// 판정을 좌우한 수준 2 이상 항목만 근거와 함께 보인다.
+function ratingText({ verdict, prohibited, episodes }: ChatRating): string {
+  return [`판정 제안: ${ratingVerdict[verdict]}${prohibited ? ' · 금지 표현 의심(운영 검토 대상)' : ''}${verdict === 'needsReview' ? `\n${AUTHOR_REVIEW}` : ''}`,
+    ...episodes.map((e) => (e.verdict === null ? `${e.episode}화: 판별 실패 · ${e.error ?? ''}` : [`${e.episode}화: ${ratingVerdict[e.verdict]}`,
+      ...e.assessments.filter((a) => a.level >= 2).map((a) =>
+        `${ratingCriterion[a.criterion] ?? a.criterion} 수준 ${a.level} · ${a.rationale}${a.quotes.length ? ` · "${a.quotes[0]}"` : ''}`),
+    ].join('\n')))].join('\n\n')
 }
 
 /**
@@ -145,17 +178,23 @@ export function stepText(step: ChatStep): string {
   if (step.status === 'skipped') return `건너뜀: ${step.error ?? '할 일이 없어 건너뛰었어요.'}`
   if (step.simulation) return sceneSummary(step.simulation)
   if (step.review) return reviewText(step.review)
+  if (step.rating) return ratingText(step.rating)
   const r = step.result
   if (step.status !== 'completed' || !r) return ''
   if (r.claims) return [...r.claims.map((c) => c.text), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '근거를 찾지 못했어요.'
   if (r.findings) return [...r.findings.map((f) => `${researchVerdict[f.verdict] ?? researchVerdict.unverified} · ${f.text}${f.sourceUrls.length ? ` (${f.sourceUrls.join(', ')})` : ''}`), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '조사 결과가 없어요.'
   if (r.after !== undefined) return `수정 전: ${r.before ?? ''}\n수정 후: ${r.after}`
+  if (r.plans) return [...r.plans.map((p, i) => [`계획 ${i + 1}. ${p.title}`, ...p.beats.map((b, j) => `  ${j + 1}) ${b}`)].join('\n')),
+    ...(r.notes ?? []).map((n) => `참고: ${n}`)].join('\n')
   return r.text ?? ''
 }
+
+/** 바로 쓴 원고가 정해 쓴 계획 한 줄. 반영 미리보기(stepText)에는 넣지 않는다. */
+const usedPlan = (step: ChatStep) => (step.result?.plan ? `\n사용한 계획: ${step.result.plan.title} — ${step.result.plan.beats.join(' / ')}` : '')
 
 /** 턴 응답 전체를 말풍선 하나의 글로. 실행하지 않은 턴은 안내 문구만, 실행한 턴은 단계별 결과를 계획 순서로 잇는다. */
 export function replyText(reply: ChatReply): string {
   const steps = reply.steps.filter((s) => s.status !== 'not_started')
-    .map((s) => `[${featureLabel[s.feature] ?? s.feature}] ${stepText(s)}${s.applied ? `\n→ ${s.applied.episode}화 초안에 반영했어요.` : s.approval === 'declined' ? '\n→ 반영하지 않았어요.' : ''}`)
+    .map((s) => `[${featureLabel[s.feature] ?? s.feature}] ${stepText(s)}${s.status === 'completed' ? usedPlan(s) : ''}${s.applied ? `\n→ ${s.applied.episode}화 초안에 반영했어요.` : s.approval === 'declined' ? '\n→ 반영하지 않았어요.' : ''}`)
   return [reply.message, ...steps].filter(Boolean).join('\n\n') || '응답 내용이 없어요.'
 }

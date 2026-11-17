@@ -1,6 +1,9 @@
 package ai.storyfork.content.work
 
 import ai.storyfork.content._common.exception.ContentFailure
+import ai.storyfork.content.fork.entity.ForkWorldReferenceEntity
+import ai.storyfork.content.fork.repository.ForkWorldReferenceRepository
+import ai.storyfork.content.fork.service.dto.SourceResponse
 import ai.storyfork.content.publication.service.PublicationService
 import ai.storyfork.content.publication.service.dto.PublishedEpisodeListResponse
 import ai.storyfork.content.publication.service.dto.PublishedEpisodeResponse
@@ -11,6 +14,7 @@ import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
 import ai.storyfork.content.work.service.dto.WorkWorldLinkResponse
 import ai.storyfork.content.world.service.PublicWorldService
+import ai.storyfork.content.world.service.dto.InheritedWorldResponse
 import ai.storyfork.content.world.service.dto.ReaderWorldCardsResponse
 import ai.storyfork.content.world.service.dto.WorldCoverImage
 import ai.storyfork.content.world.studio.entity.StudioWorld
@@ -39,10 +43,11 @@ class WorkWorldServiceTest {
     private val publication = mock(PublicationService::class.java)
     private val studios = mock(StudioWorldRepository::class.java)
     private val publicWorlds = mock(PublicWorldService::class.java)
+    private val references = mock(ForkWorldReferenceRepository::class.java)
     private val manager = mock(PlatformTransactionManager::class.java).also {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
-    private val service = WorkWorldService(access, works, publication, studios, publicWorlds, TransactionTemplate(manager))
+    private val service = WorkWorldService(access, works, publication, studios, publicWorlds, references, TransactionTemplate(manager))
     private val row = WorkEntity(id = "work", ownerId = owner, title = "작품", revision = 4)
 
     /** 요청자가 가진 세계관과 작품 행이다. */
@@ -84,6 +89,14 @@ class WorkWorldServiceTest {
         `when`(studios.findById(world)).thenReturn(Optional.of(StudioWorld(world, UUID.randomUUID())))
 
         listOf(world, UUID.randomUUID()).forEach { assertEquals(404, failure { service.link("work", owner, it) }.status) }
+
+        verifyNoInteractions(access, works)
+    }
+
+    @Test fun `a deleted world cannot be linked and is 404 before the work is touched`() {
+        `when`(studios.findById(world)).thenReturn(Optional.of(StudioWorld(world, UUID.fromString(owner), deletedAt = java.time.Instant.now())))
+
+        assertEquals(404, failure { service.link("work", owner, world) }.status)
 
         verifyNoInteractions(access, works)
     }
@@ -222,5 +235,65 @@ class WorkWorldServiceTest {
         listOf("0", "-1", "x", "1.5").forEach { assertEquals(422, failure { service.readerCardImage("work", UUID.randomUUID(), it) }.status) }
 
         verifyNoInteractions(access, works, publication, publicWorlds)
+    }
+
+    // ---- Fork가 원작 세계관을 읽기 전용으로 이어받는다(DEC-32·37, #365) ----
+
+    private val author = UUID.randomUUID().toString()
+    private val sourceWorld = UUID.randomUUID()
+    private val fork = WorkEntity(id = "fork", ownerId = owner, title = "분기", revision = 1)
+    private val original = WorkEntity(id = "original", ownerId = author, title = "원작", revision = 1).also { it.worldStudioId = sourceWorld }
+    private val basis2 = SourceResponse("original", "원작", 2, 1, "")
+
+    /** 2화 기준 Fork의 소유자 읽기다. [status]가 null이면 추종 기록이 없고, [source]가 null이면 Fork가 아니다. */
+    private fun forking(status: String? = "following", source: SourceResponse? = basis2) {
+        `when`(access.own("fork", owner)).thenReturn(WorkAccessResult("fork", owner, "분기", "", 1, "legacy-world", "private", false, false, source))
+        `when`(works.findById("fork")).thenReturn(Optional.of(fork))
+        `when`(works.findById("original")).thenReturn(Optional.of(original))
+        `when`(references.findById("fork")).thenReturn(Optional.ofNullable(status?.let { ForkWorldReferenceEntity("fork", "legacy-world", it) }))
+    }
+    private fun nothing() = InheritedWorldResponse("fork", null, 0)
+
+    @Test fun `a following fork without a world of its own inherits the original's world capped at its basis episode`() {
+        forking()
+        val atBasis = InheritedWorldResponse("fork", sourceWorld, 2)
+        val atFirst = InheritedWorldResponse("fork", sourceWorld, 1)
+        `when`(publicWorlds.inheritedWorld("fork", sourceWorld, 2)).thenReturn(atBasis)
+        `when`(publicWorlds.inheritedWorld("fork", sourceWorld, 1)).thenReturn(atFirst)
+
+        assertSame(atBasis, service.inheritedWorld("fork", owner, null))
+        // 요청한 상한이 기준 회차(2화)보다 크면 기준 회차까지만, 작으면 그 회차까지만 읽는다. Fork의 자기 회차 설정은 원작 세계관에 없다.
+        assertSame(atBasis, service.inheritedWorld("fork", owner, "9"))
+        assertSame(atFirst, service.inheritedWorld("fork", owner, "1"))
+    }
+
+    @Test fun `a fork with its own world, one that is no longer following, a work that is no fork or an original without a world inherits nothing`() {
+        forking()
+        fork.worldStudioId = UUID.randomUUID()  // 자기 세계관이 있으면 그것이 우선이다
+        assertEquals(nothing(), service.inheritedWorld("fork", owner, null))
+        fork.worldStudioId = null
+        forking("independent")  // 독립한 Fork
+        assertEquals(nothing(), service.inheritedWorld("fork", owner, null))
+        forking(null)  // 추종 기록이 없는 Fork
+        assertEquals(nothing(), service.inheritedWorld("fork", owner, null))
+        forking(source = null)  // Fork가 아닌 작품
+        assertEquals(nothing(), service.inheritedWorld("fork", owner, null))
+        forking(source = SourceResponse("original", "원작", 2, 1, "", deleted = true))  // 삭제된 원작
+        assertEquals(nothing(), service.inheritedWorld("fork", owner, null))
+        forking()
+        original.worldStudioId = null  // 세계관이 연결되지 않은 원작
+        assertEquals(nothing(), service.inheritedWorld("fork", owner, null))
+
+        verifyNoInteractions(publicWorlds)
+    }
+
+    @Test fun `someone else's fork is a 404 and nothing is read, and a bad upto is a 422 before any lookup`() {
+        `when`(access.own("fork", owner)).thenThrow(ContentFailure(404, "작품을 찾을 수 없어요."))
+        assertEquals(404, failure { service.inheritedWorld("fork", owner, null) }.status)
+        verifyNoInteractions(works, references, publicWorlds)
+
+        reset(access)
+        listOf("0", "-1", "x", "1.5").forEach { assertEquals(422, failure { service.inheritedWorld("fork", owner, it) }.status) }
+        verifyNoInteractions(access, works, references, publicWorlds)
     }
 }

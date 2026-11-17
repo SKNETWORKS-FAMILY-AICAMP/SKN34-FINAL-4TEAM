@@ -47,4 +47,7 @@ export type History = { versions: Version[]; proposals: Proposal[]; publicationH
 export type EpisodeCheckpoint = {versionId:string;publishedAt:string;active:boolean}
 export type WritingEpisode = {publicationStatus?:'draft'|'published'|'suspended';hasDraft?:boolean;number:number;draft:Draft;versions:Version[];publishedVersionId:string|null;inherited:boolean;updatedAt:string|null;checkpointStatus:string;checkpoints:EpisodeCheckpoint[]}
 
+/** Fork가 자기 세계관 없이 이어받는 원작 세계관의 카드(읽기 전용, #365). 서버가 공개 카드·Fork 기준 회차로 이미 거른 값이며 시뮬레이션 시작 양식의 인물 후보로 쓴다. */
+export type InheritedCard = { id: string; title: string; cardType: string; aliases: string[] }
+export type InheritedWorld = { upto: number; cards: InheritedCard[] }
 export type EpisodeOrderScope = {number:number;candidateNumbers:number[];reasons:string[];executable:false}

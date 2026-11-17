@@ -1,5 +1,5 @@
 import type { PublicationSchedule, PublicationScheduleInput, PublicationScheduleRevision } from '../entities/publicationSchedule'
-import type {WorkRegistration,WorkTaxonomy,WorkTagSuggestion,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext,WorldCheckpoint,WorldCheckpointSummary} from '../entities/content'
+import type {WorkRegistration,WorkTaxonomy,WorkTagSuggestion,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext,WorldCheckpoint,WorldCheckpointSummary,InheritedWorld} from '../entities/content'
 import type { EpisodeWorldBasis, EpisodeWorldBasisChoice, WorldBasisCard, WorldBasisVersion } from '../entities/episodeWorldBasis'
 import type { ManuscriptQaAnswer, StoryQaInput } from '../entities/content'
 
@@ -26,6 +26,8 @@ export interface EpisodeRepository {
   deleteWork(id: string, signal?: AbortSignal): Promise<void>
   /** 작품과 내 세계관의 1:1 연결(DEC-46). worldId가 null이면 해제한다. */
   linkWorldStudio(workId: string, worldId: string | null, signal?: AbortSignal): Promise<{ workId: string; worldId: string | null }>
+  /** Fork가 자기 세계관 없이 이어받는 원작 세계관(읽기 전용, #365). 상한은 Fork 기준 회차이며 `upto`가 더 작으면 그 회차까지다. 이어받는 것이 없으면 null이다. */
+  inheritedWorld(workId: string, upto?: number, signal?: AbortSignal): Promise<InheritedWorld | null>
   save(id: string, draft: Draft): Promise<Draft>
   publish(id: string, revision: number, rightsConfirmed: boolean, allowFork: boolean, allowForkPublication?: boolean, versionId?: string): Promise<Work>
   history(id: string,signal?:AbortSignal): Promise<History>

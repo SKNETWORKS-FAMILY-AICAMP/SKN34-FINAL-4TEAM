@@ -94,15 +94,17 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
   const needs = reply.missingInputs
   // 조건부 수정(#370)은 새 원고 계획이 아니라 직전 검수의 확정 지적 중 고칠 하나를 고른다. 번호는 검수 결과 findings 순서다.
   const fixing = reply.steps.some((s) => s.feature === 'writing_editing' && s.when === 'if_issues_found')
+  // 선택 구간 수정(#387 task=patch)은 고칠 구간을 채팅에서 고를 수 없어 새 원고 계획 칸을 띄우지 않는다.
+  const patching = !fixing && reply.steps.some((s) => s.feature === 'writing_editing' && s.task === 'patch')
   const reviewed = reply.steps.find((s) => s.feature === 'review')
   const confirmed = (reviewed?.review?.findings ?? [])
     .flatMap((f, i) => (f.status === 'confirmed' ? [{ ...f, index: i }] : []))
-  const filled = needs.every((f) => (f === 'web_research' ? question.trim() : f === 'writing_editing' ? (fixing ? fix !== null : plan.trim()) : f === 'review' ? check : false))
+  const filled = needs.every((f) => (f === 'web_research' ? question.trim() : f === 'writing_editing' ? (fixing ? fix !== null : !patching && plan.trim()) : f === 'review' ? check : false))
   const inputs: ChatStepInputs = {
     ...(needs.includes('web_research') ? { web_research: { question: question.trim() } } : {}),
     ...(needs.includes('review') && check ? { review: { check } } : {}),
     ...(needs.includes('writing_editing') && fixing && fix !== null ? { writing_editing: { fix } } : {}),
-    ...(needs.includes('writing_editing') && !fixing && episode ? { writing_editing: { draft: { episodeNumber: episode, plan: plan.trim() } } } : {}),
+    ...(needs.includes('writing_editing') && !fixing && !patching && episode ? { writing_editing: { draft: { episodeNumber: episode, plan: plan.trim() } } } : {}),
   }
   return <form className="chat-hitl" aria-labelledby={`${id}-t`} onSubmit={(e) => { e.preventDefault(); if (filled) onResume(true, inputs) }}>
     <h3 id={`${id}-t`}>작업에 필요한 내용을 알려 주세요</h3>
@@ -119,7 +121,7 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
         "{f.quote}" — {f.reason}
       </label>)}
     </fieldset>}
-    {needs.includes('writing_editing') && !fixing && <label className="chat-field">쓸 장면 계획{episode ? ` · ${episode}화` : ''}
+    {needs.includes('writing_editing') && !fixing && !patching && <label className="chat-field">쓸 장면 계획{episode ? ` · ${episode}화` : ''}
       <textarea rows={3} value={plan} maxLength={4000} onChange={(e) => setPlan(e.target.value)} placeholder="예: 선장이 항구에 도착해 옛 동료와 마주친다." />
     </label>}
     {needs.includes('review') && <fieldset className="chat-choice">
@@ -129,7 +131,7 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
         {reviewCheckLabel[c]}{c === 'semantic' && <span className="chat-note"> (연결된 세계관 설정과 대조)</span>}
       </label>)}
     </fieldset>}
-    {needs.some((f) => f !== 'web_research' && f !== 'writing_editing' && f !== 'review') && <p className="chat-note">이 단계의 입력은 아직 화면에서 채울 수 없어요. 취소한 뒤 다른 요청으로 보내 주세요.</p>}
+    {(patching || needs.some((f) => f !== 'web_research' && f !== 'writing_editing' && f !== 'review')) && <p className="chat-note">이 단계의 입력은 아직 화면에서 채울 수 없어요. 취소한 뒤 다른 요청으로 보내 주세요.</p>}
     <div className="chat-hitl-actions">
       <button type="submit" className="btn sm pri" disabled={pending || !filled}>이어서 실행</button>
       <button type="button" className="btn sm" disabled={pending} onClick={() => onResume(false)}>취소</button>

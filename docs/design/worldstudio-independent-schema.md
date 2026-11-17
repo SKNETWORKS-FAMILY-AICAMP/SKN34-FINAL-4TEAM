@@ -75,7 +75,7 @@ RETURN id, startNode(e).id AS source, endNode(e).id AS target, e.payload
 
 ### 범위 밖
 
-관계 이력 복원 API, 세계관 전체 restore, 같은 회차 정정 이력, 회차 재배치, 인물 자체의 회차별 상태(카드 값).
+관계 이력 복원 API, 관계를 포함한 세계관 전체 restore(카드만 초안으로 되돌리기는 [아래](#확정-버전으로-카드-되돌리기와-세계관-삭제-2026-11-17)가 지원한다), 같은 회차 정정 이력, 회차 재배치, 인물 자체의 회차별 상태(카드 값).
 
 ## 현재 관계 MVP 계약 — #132
 
@@ -115,10 +115,12 @@ nginx/Vite의 `/api/v1/world-studios` exact 및 하위 경로는 Content:8081로
 | `PUT /{id}/draft` | 기본 upsert, `replace=true`면 전체 교체. 본문 `episode`(선택, 생략하면 최신 회차) 시점의 관계로 저장하고 관계 삭제도 이 요청으로 반영(종료 연결) |
 | `POST /{id}/revisions` | 기존 카드·설정의 불변 revision 저장. 관계 snapshot 없음 |
 | `GET /{id}/revisions/{revisionId}` | 기존 카드 revision 조회. `relationships=null`, `relationshipStatus=not_recorded` |
+| `POST /{id}/revisions/{revisionId}/restore` | 확정 버전의 **카드만** 초안으로 되돌린다(본문 `expectedDraftRevision`, 응답은 되돌린 초안). 관계·이름·새 확정 버전은 그대로([규칙](#확정-버전으로-카드-되돌리기와-세계관-삭제-2026-11-17), 2026-11-17) |
+| `DELETE /{id}` | 세계관 소프트 삭제(204, V9). 연결된 소설이 있으면 409 `WORLD_LINKED`([규칙](#확정-버전으로-카드-되돌리기와-세계관-삭제-2026-11-17), 2026-11-17) |
 | `PUT /{id}/publication` | 세계관 단위 공개 범위(`private`/`public`)·장르 설정(V6, [DEC-45](decisions.md)). 카드·관계·revision은 바꾸지 않는다 |
 | `PUT·DELETE·GET /{id}/cover` | 세계관 표지(PNG·JPEG·WebP 5MB 이하 multipart `file`) 저장·교체·삭제·소유자 읽기(V7). 바이트는 객체 저장소, DB에는 키·형식만 두며 카드·관계·revision은 바꾸지 않는다 |
 
-공개 조회는 소유자 API가 아니라 비로그인 읽기 전용 `GET /api/v1/public/world-studios`·`/{id}`가 맡는다. 공개이고 저장 버전이 있는 세계관만 마지막 저장 버전의 공개 카드(`visibility=public`, DEC-46)와 그 카드끼리의 Neo4j 현재 관계를 보이며(관계 이력 API는 여전히 없다) 참조 이용·Fork는 없다([계약](public-world-contract.md)). 설정 가져오기는 화면이 이 공개 API로 읽은 카드를 내 세계관 초안에 복사해 `PUT /{id}/draft`로 저장하는 것이라 전용 API가 없다. 소유자 응답(`GET /`의 요약과 `GET /{id}`·`PUT /{id}/draft`·`POST /`의 초안 응답)에는 이 세계관에 연결된 소설 `linkedWorkId`가 붙는다(1:1, 정본은 Content `work.world_studio_id`, 같은 계약). 공개 표지는 같은 기준일 때만 `GET /api/v1/public/world-studios/{id}/cover`로 읽는다. 이 경로의 nginx/Vite 라우팅도 Content:8081이다.
+공개 조회는 소유자 API가 아니라 비로그인 읽기 전용 `GET /api/v1/public/world-studios`·`/{id}`가 맡는다. 공개이고 저장 버전이 있는 세계관만 마지막 저장 버전의 공개 카드(`visibility=public`, DEC-46)와 그 카드끼리의 Neo4j 현재 관계를 보이며(관계 이력 API는 여전히 없다) 참조 이용·Fork는 없다([계약](public-world-contract.md)). 상세에는 이 세계관에 연결된 소설이 공개 작품일 때만 그 최소 정보(`linkedWork`, #329)가 붙는다(같은 계약). 설정 가져오기는 화면이 이 공개 API로 읽은 카드를 내 세계관 초안에 복사해 `PUT /{id}/draft`로 저장하는 것이라 전용 API가 없다. 소유자 응답(`GET /`의 요약과 `GET /{id}`·`PUT /{id}/draft`·`POST /`의 초안 응답)에는 이 세계관에 연결된 소설 `linkedWorkId`가 붙는다(1:1, 정본은 Content `work.world_studio_id`, 같은 계약). 공개 표지는 같은 기준일 때만 `GET /api/v1/public/world-studios/{id}/cover`로 읽는다. 이 경로의 nginx/Vite 라우팅도 Content:8081이다.
 
 기존 관계 편집·관계도는 서버가 확인한 현재 draft를 사용한다. UI의 저장 버튼은 현재 draft PUT이며 카드 revision POST·공개·발행을 자동 실행하지 않는다. AI 후보는 연결하지 않았다. 이탈 시 요청을 취소하고 늦은 응답 설치를 막는다. 지원하는 `semanticMetadata.studio`가 없거나 현재 UI 모델과 불일치하는 서버 응답은 임의 변환/빈 데이터로 대체하지 않고 실패한다. 카드 `semanticMetadata` 최상위의 `revealFromEpisode`·`importedFrom`(DEC-46, 독자 공개 회차와 가져오기 출처)은 `studio` 밖에 따로 두며 모양이 어긋나면 그 값만 버리고 로드는 계속한다([계약](public-world-contract.md)). 기존 데이터 호환 import는 별도 승인 대상이다.
 
@@ -132,8 +134,25 @@ nginx/Vite의 `/api/v1/world-studios` exact 및 하위 경로는 Content:8081로
 | `WORLD_WRITE_REJECTED` | 409 | 확정 비적용이며 pending이 없으므로 최신 조회 후 수정 가능 |
 | `WORLD_CONFLICT` | 409 | 요청 충돌, 비적용을 보장하지 않으므로 같은 body/key 보존 |
 | `RELATIONSHIP_HISTORY_UNSUPPORTED` | 409 | 관계를 포함한 과거 세계관 전체 복원 미지원 |
+| `WORLD_RESTORE_BLOCKED` | 409 | 확정 버전으로 되돌리면 사라질 설정에 현재 관계가 이어져 있음(설정 이름을 알린다) |
+| `WORLD_LINKED` | 409 | 연결된 소설이 있어 세계관을 삭제할 수 없음 |
 
-현재 관계를 과거 revision에 끼워 넣지 않는다. 기존 전체 restore Service는 소유권 검사 뒤 명시적으로 차단하며 restore/history HTTP API를 새로 추가하지 않는다. 회차 시점 관계 조회는 DEC-51로 지원하지만 과거 값으로 되돌리는 복원과 관계까지 포함한 체크포인트/Fork는 미지원이다. 원고·인물·설정의 기존 버전 데이터와 관계 없는 버전 기능은 유지한다.
+현재 관계를 과거 revision에 끼워 넣지 않는다. 확정 버전 복원은 **카드만 초안으로** 되돌리며(아래 절, 2026-11-17 사용자 결정) 관계는 과거 값으로 되돌리지 않는다. 회차 시점 관계 조회는 DEC-51로 지원하지만 관계를 과거 값으로 되돌리는 복원과 관계까지 포함한 체크포인트/Fork는 미지원이다(`RELATIONSHIP_HISTORY_UNSUPPORTED`는 Q&A 문맥의 과거 관계 요청에 쓴다). 원고·인물·설정의 기존 버전 데이터와 관계 없는 버전 기능은 유지한다.
+
+### 확정 버전으로 카드 되돌리기와 세계관 삭제 (2026-11-17)
+
+2026-11-17 사용자 결정으로 기존에 차단하던 `restore`를 아래 의미로 구현하고 세계관 삭제를 더한다(새 DEC 번호는 아직 없다).
+
+**확정 버전으로 카드 되돌리기** — `POST /api/v1/world-studios/{id}/revisions/{revisionId}/restore`, 본문 `{ "expectedDraftRevision": n }`, 응답은 되돌린 초안(기존 초안 응답, 관계는 최신 회차).
+
+- 소유자만 한다. 없는 버전·확정(`sealed`)되지 않은 버전·다른 세계관의 버전·남의 세계관은 404, 낡은 `expectedDraftRevision`은 409 `WORLD_CONFLICT`다. `save`처럼 관계 저장 미완료(503)·미확인 AI 적용이 있으면 하지 않는다.
+- **카드만, 초안으로**: 초안의 카드 집합이 그 버전의 카드(내용·공개 범위·`semanticMetadata` 그대로, 그 버전에서 삭제 상태였던 카드는 삭제 상태 그대로)가 된다. 그 버전에 없던 현재 활성 카드는 내용을 둔 채 `removed`가 되고 이미 삭제된 카드는 그대로다. 세계관 이름·설명·공개 설정·표지와 관계(Neo4j)는 바꾸지 않는다.
+- **새 확정 버전은 만들지 않는다.** 작가가 기존 `확정 버전 남기기`(`POST /{id}/revisions`)로 직접 남긴다. restore는 행을 만들지 않으므로 `restored_from_*` 칼럼(`world_revision`·`setting_card_version`)에는 쓰지 않고, 초안 revision을 한 번 올리며 초안의 기준 확정 버전(`base_world_revision_id`, 응답 `baseWorldRevisionId`)만 되돌린 버전으로 바꾼다. 확정 버전의 `currentRevisionId`는 그대로다.
+- **관계 끝점 보호**: 사라질 카드가 **현재(최신 회차) 관계의 끝점**이면 아무것도 바꾸지 않고 409 `WORLD_RESTORE_BLOCKED`(사라질 설정 이름 5개까지 + 나머지 개수)로 거절한다. 작가가 관계부터 정리한 뒤 다시 시도한다. Neo4j는 PG transaction 밖에서 읽고, 쓰기(PG 한 transaction) 직전에 초안 revision과 관계 token이 그대로인지 다시 확인한다.
+- 텍스트 복원은 과거 이미지까지 보장하지 않는다(DEC-39). 이미지는 바뀌지 않는 행이라 되돌린 카드가 가리키던 이미지는 그대로 남아 있다.
+- 화면: 확정 버전 시트에서 연 버전의 `이 버전으로 초안 되돌리기`. 확인 창이 사라지는 설정 카드 수·"관계는 그대로"·이미지 안내를 보이고, 저장하지 않은 변경·미확인 확정/AI 요청이 있으면 이유와 함께 잠근다. 성공하면 서버 초안을 다시 읽어 화면에 반영하고 서버 거절 이유는 그대로 보인다.
+
+**세계관 삭제** — `DELETE /api/v1/world-studios/{id}` → 204. WorldStudio `V9__world_soft_delete.sql`이 `worldstudio.world.deleted_at timestamptz`(NULL 허용)만 더한다. 규칙은 [공개 세계관 계약](public-world-contract.md#세계관-삭제-2026-11-17-사용자-결정)이 정한다: 소프트 삭제(데이터 보존), 소유자·공개 조회 모두 없는 것으로 다룸, 연결된 소설이 있으면 409 `WORLD_LINKED`.
 
 ### 설정과 검증 경계
 

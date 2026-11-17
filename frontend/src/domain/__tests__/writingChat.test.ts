@@ -57,7 +57,21 @@ describe('replyText', () => {
       { feature: 'writing_editing', status: 'completed', result: { text: '초안' }, applied: { episode: 2, revision: 5 } },
       { feature: 'web_research', status: 'failed', error: '검색 실패' },
     ] }))
-    expect(text).toBe('작업 중 실패가 있어요.\n\n[집필·수정] 초안\n→ 2화 초안에 반영했어요.\n\n[고증 조사] 실패: 검색 실패')
+    expect(text).toBe('작업 중 실패가 있어요.\n\n[기획·집필·수정] 초안\n→ 2화 초안에 반영했어요.\n\n[고증 조사] 실패: 검색 실패')
+  })
+
+  it('기획 결과는 계획마다 비트를 번호로 잇고 참고를 덧붙인다(원고가 아니다)', () => {
+    const step = { feature: 'writing_editing', status: 'completed' as const, result: {
+      plans: [{ title: '항구의 밤', beats: ['선장이 도착한다.', '카이가 배를 숨긴다.'] }, { title: '추격', beats: ['서윤이 쫓는다.'] }],
+      notes: ['10화의 약속은 확정 사건'] } }
+    expect(stepText(step)).toBe('계획 1. 항구의 밤\n  1) 선장이 도착한다.\n  2) 카이가 배를 숨긴다.\n계획 2. 추격\n  1) 서윤이 쫓는다.\n참고: 10화의 약속은 확정 사건')
+  })
+
+  it('계획 없이 바로 쓴 원고는 반영할 본문만 단계 글로 두고, 말풍선에 사용한 계획을 덧붙인다', () => {
+    const step = { feature: 'writing_editing', status: 'completed' as const, result: {
+      text: '선장은 항구에 내렸다.', plan: { title: '항구의 밤', beats: ['선장이 도착한다.'] } } }
+    expect(stepText(step)).toBe('선장은 항구에 내렸다.')
+    expect(replyText(reply({ steps: [step] }))).toBe('[기획·집필·수정] 선장은 항구에 내렸다.\n사용한 계획: 항구의 밤 — 선장이 도착한다.')
   })
 })
 
@@ -191,6 +205,28 @@ describe('원고 검수 결과 글(#59)', () => {
   it('건너뛴 조건부 수정은 실패가 아니라 건너뛴 이유로 보인다(#370)', () => {
     expect(stepText({ feature: 'writing_editing', status: 'skipped', error: '검수에서 고칠 문제를 찾지 못해 수정하지 않았어요.' }))
       .toBe('건너뜀: 검수에서 고칠 문제를 찾지 못해 수정하지 않았어요.')
+  })
+
+  it('심의 등급은 제안이라고 밝히고 회차 판정과 수준 2 이상 근거, 판별 실패를 보인다', () => {
+    const rating = { verdict: 'adult' as const, prohibited: true, episodes: [
+      { episode: 3, verdict: 'adult' as const, prohibited: true, error: null, assessments: [
+        { criterion: 'sexual', level: 3, quotes: ['구절'], rationale: '노골적 묘사' },
+        { criterion: 'language', level: 1, quotes: [], rationale: '욕설 한 번' }] },
+      { episode: 4, verdict: null, prohibited: false, error: '심의 판별 모델 응답을 확인할 수 없습니다.', assessments: [] }] }
+    const text = replyText({ status: 'completed', missingInputs: [], steps: [{ feature: 'rating', status: 'completed', rating }] })
+    expect(text).toMatch(/^\[심의 등급\] 판정 제안: 19세 이용가 · 금지 표현 의심\(운영 검토 대상\)/)
+    expect(text).toContain('3화: 19세 이용가\n선정성 수준 3 · 노골적 묘사 · "구절"')
+    expect(text).not.toContain('욕설 한 번')
+    expect(text).toContain('4화: 판별 실패 · 심의 판별 모델 응답을 확인할 수 없습니다.')
+  })
+
+  it('검토가 필요한 판정은 AI가 정하지 않고 작가에게 근거를 보고 직접 판단하도록 넘긴다(#439)', () => {
+    const rating = { verdict: 'needsReview' as const, prohibited: false, episodes: [
+      { episode: 3, verdict: 'needsReview' as const, prohibited: false, error: null, assessments: [
+        { criterion: 'violence', level: 2, quotes: ['칼을 휘둘렀다'], rationale: '짧은 부상 묘사' }] }] }
+    const text = stepText({ feature: 'rating', status: 'completed', rating })
+    expect(text).toMatch(/^판정 제안: 작가 검토 필요\nAI가 등급을 정하지 않았어요\. 아래 근거를 보고 작가님이 직접 판단해 주세요\./)
+    expect(text).toContain('3화: 작가 검토 필요\n폭력성 수준 2 · 짧은 부상 묘사 · "칼을 휘둘렀다"')
   })
 
   it('두 검수를 함께 돌린 결과는 두 검수 이름을 제목에 붙인다(#369)', () => {
