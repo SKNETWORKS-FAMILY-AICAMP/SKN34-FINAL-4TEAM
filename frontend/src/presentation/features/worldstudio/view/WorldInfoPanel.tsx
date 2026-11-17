@@ -23,6 +23,7 @@ export function WorldInfoPanel({ vm, world, onClose }: { vm: VM; world: StudioWo
   const [coverProblem, setCoverProblem] = useState('')
   const first = useRef<HTMLInputElement>(null)
   const lockId = useId()
+  const deleteId = useId()
   useEffect(() => { first.current?.focus() }, [])
   const infoChanged = name.trim() !== world.name || description !== world.description
   const publicationChanged = publication.visibility !== vm.publication.visibility || publication.genre !== vm.publication.genre
@@ -41,6 +42,10 @@ export function WorldInfoPanel({ vm, world, onClose }: { vm: VM; world: StudioWo
     const problem = worldCoverError(file)
     setCoverProblem(problem ?? '')
     setCover(problem ? undefined : file)
+  }
+  // 세계관 삭제: 서버는 소프트 삭제라 목록·공개에서만 사라진다. 연결된 소설이 있으면 서버도 거절하지만 버튼부터 이유와 함께 잠근다.
+  const remove = () => {
+    if (window.confirm(`'${world.name}' 세계관을 삭제할까요?\n내 세계관 목록에서 사라져요. 공개한 세계관이면 공개 화면에서도 사라져요.`)) void vm.deleteWorld()
   }
   return (
     <form
@@ -77,6 +82,12 @@ export function WorldInfoPanel({ vm, world, onClose }: { vm: VM; world: StudioWo
           {vm.coverAction && <p role="status" className="small muted">{vm.coverAction === 'upload' ? '표지를 올리고 있어요…' : '표지를 지우고 있어요…'}</p>}
           {vm.cover.error && <p className="small muted">{vm.cover.error}</p>}
         </div>
+        {vm.supportsDelete && (
+          <div className="world-delete" role="group" aria-label="세계관 삭제">
+            <button type="button" className="btn sm ep-danger" disabled={!!vm.linkedWorkId} aria-describedby={deleteId} onClick={remove}>세계관 삭제</button>
+            <p id={deleteId} className="small muted">{vm.linkedWorkId ? '연결된 소설이 있어 삭제할 수 없어요. 작품 관리에서 연결을 해제한 뒤 삭제하세요.' : '삭제하면 내 세계관 목록과 공개 화면에서 사라져요.'}</p>
+          </div>
+        )}
         {locked && <p id={lockId} role="status" className="small muted">작성 중인 변경을 먼저 저장하세요.</p>}
         <div className="ep-edit-actions">
           <button className="btn pri sm" disabled={!canSave} aria-describedby={locked ? lockId : undefined}>{vm.saveState === 'saving' ? '저장 중…' : '저장'}</button>

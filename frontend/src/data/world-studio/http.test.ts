@@ -684,3 +684,37 @@ it('still rejects a relation whose endpoint is neither an active nor a deleted c
  const fetcher=vi.fn().mockResolvedValue(Response.json({...value,relationships:value.relationships.map(r=>r.id===goneRelation.item.id?{...r,targetCardId:crypto.randomUUID()}:r)}))
  await expect(new HttpWorldStudioRepository(fetcher).read(id,undefined,2)).rejects.toThrow('응답')
 })
+it('puts the draft cards back to a confirmed version with the draft revision it saw and installs the draft the server answers',async()=>{
+ const fetcher=vi.fn().mockResolvedValue(Response.json({...wire(5),baseWorldRevisionId:revisionId}))
+ const restored=await new HttpWorldStudioRepository(fetcher).restoreRevision(id,revisionId,4)
+ const [url,init]=fetcher.mock.calls[0]
+ expect([url,init.method]).toEqual([`/api/v1/world-studios/${id}/revisions/${revisionId}/restore`,'POST'])
+ expect(JSON.parse(init.body)).toEqual({expectedDraftRevision:4})
+ expect(init.headers).toEqual(expect.objectContaining({Authorization:'Bearer studio-bearer','X-CSRF-TOKEN':'studio-csrf'}))
+ expect([restored.version,restored.settings.map(s=>s.item.title)]).toEqual([5,['가','나','신뢰와 경계']])
+})
+it('reports the server reason when a restore is refused and reports no restore for another world or a malformed answer',async()=>{
+ const blocked={code:'WORLD_RESTORE_BLOCKED',detail:'이 버전으로 되돌리면 사라지는 설정에 이어진 관계가 있어요: 나. 관계를 먼저 지운 뒤 다시 시도하세요.'}
+ await expect(new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json(blocked,{status:409}))).restoreRevision(id,revisionId,4)).rejects.toThrow('관계를 먼저 지운 뒤 다시 시도하세요.')
+ await expect(new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json({...wire(5),worldId:crypto.randomUUID()}))).restoreRevision(id,revisionId,4)).rejects.toThrow('응답')
+ await expect(new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json({ok:true}))).restoreRevision(id,revisionId,4)).rejects.toThrow('응답')
+})
+it('deletes the world with CSRF and accepts the 204 without a body',async()=>{
+ const fetcher=vi.fn().mockResolvedValue(new Response(null,{status:204}))
+ await expect(new HttpWorldStudioRepository(fetcher).deleteStudio(id)).resolves.toBeUndefined()
+ const [url,init]=fetcher.mock.calls[0]
+ expect([url,init.method]).toEqual([`/api/v1/world-studios/${id}`,'DELETE'])
+ expect(init.headers).toEqual(expect.objectContaining({Authorization:'Bearer studio-bearer','X-CSRF-TOKEN':'studio-csrf'}))
+})
+it('reports the server reason when a delete is refused instead of reporting a deletion',async()=>{
+ const linked={code:'WORLD_LINKED',detail:'연결된 소설이 있어 세계관을 삭제할 수 없어요. 작품 관리에서 연결을 해제한 뒤 삭제하세요.'}
+ await expect(new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json(linked,{status:409}))).deleteStudio(id)).rejects.toThrow('작품 관리에서 연결을 해제한 뒤 삭제하세요.')
+ await expect(new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json({code:'WORLD_NOT_FOUND',detail:'세계관을 찾을 수 없습니다.'},{status:404}))).deleteStudio(id)).rejects.toThrow('세계관을 찾을 수 없습니다.')
+})
+it('rejects a restore or a delete for an id that is not a UUID before sending anything',async()=>{
+ const fetcher=vi.fn(),repo=new HttpWorldStudioRepository(fetcher)
+ await expect(repo.restoreRevision('x',revisionId,1)).rejects.toThrow()
+ await expect(repo.restoreRevision(id,'x',1)).rejects.toThrow()
+ await expect(repo.deleteStudio('x')).rejects.toThrow()
+ expect(fetcher).not.toHaveBeenCalled()
+})

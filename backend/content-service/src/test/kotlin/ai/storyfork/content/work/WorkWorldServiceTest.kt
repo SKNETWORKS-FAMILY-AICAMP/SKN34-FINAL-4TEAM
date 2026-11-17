@@ -93,6 +93,14 @@ class WorkWorldServiceTest {
         verifyNoInteractions(access, works)
     }
 
+    @Test fun `a deleted world cannot be linked and is 404 before the work is touched`() {
+        `when`(studios.findById(world)).thenReturn(Optional.of(StudioWorld(world, UUID.fromString(owner), deletedAt = java.time.Instant.now())))
+
+        assertEquals(404, failure { service.link("work", owner, world) }.status)
+
+        verifyNoInteractions(access, works)
+    }
+
     @Test fun `a work that is not the caller's is 404 and nothing is saved`() {
         owned()
         `when`(access.own("work", owner)).thenThrow(ContentFailure(404, "작품을 찾을 수 없어요."))

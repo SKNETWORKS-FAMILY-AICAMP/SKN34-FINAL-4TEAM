@@ -2,6 +2,7 @@ package ai.storyfork.content.world.service
 
 import ai.storyfork.content.world.domain.WorldConflict
 import ai.storyfork.content.world.domain.WorldNotFound
+import ai.storyfork.content.world.domain.WorldRestoreBlocked
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.domain.cardImageId
 import ai.storyfork.content.world.domain.isListed
@@ -41,7 +42,7 @@ class WorldStudioService(
     private fun ready(state:WorldRelationshipState) { if(!state.completed) throw WorldStudioFailure.incomplete() }
 
     fun list(subject:UUID):List<WorldStudioSummaryResponse> = tx {
-        worlds.findAllByOwnerSubjectOrderByCreatedAtDesc(subject).map { world ->
+        worlds.findAllByOwnerSubjectAndDeletedAtIsNullOrderByCreatedAtDesc(subject).map { world ->
             val draft=draft(world.id);val state=states.findById(world.id).orElse(null)
             WorldStudioSummaryResponse(world.id,draft.name,draft.description,draft.draftRevision,
                 if(state==null) "migration_required" else if(!state.completed) "incomplete" else "current",world.visibility,world.genre,world.coverObjectKey!=null,
@@ -284,10 +285,49 @@ class WorldStudioService(
         owned(worldId, subject)
         sealedRevision(worldId, revisionId).summary()
     }
-    fun restore(worldId:UUID,subject:UUID,request:RestoreWorldRequest):WorldRevisionResponse {
-        tx { owned(worldId,subject) }
-        throw WorldStudioFailure.history()
+    /**
+     * 확정 버전 [revisionId]의 카드로 초안의 카드만 되돌린다(2026-11-17 사용자 결정). 카드 집합이 그 버전의 카드(내용·공개 범위·semanticMetadata 그대로)가 되고,
+     * 그 버전에 없던 현재 활성 카드는 `removed`가 된다. 세계관 이름·설명·공개 설정·관계(Neo4j)는 그대로이고 새 확정 버전도 만들지 않는다(작가가 [save]로 남긴다).
+     * 사라질 카드가 현재 관계의 끝점이면 아무것도 바꾸지 않고 [WorldRestoreBlocked]로 거절한다. 관계는 Neo4j라 PG transaction 밖에서 읽고,
+     * 쓰기 직전에 초안 revision과 관계 token이 그대로인지 다시 본다.
+     */
+    fun restore(worldId:UUID,subject:UUID,revisionId:UUID,request:RestoreWorldRequest):WorldDraftResponse {
+        val plan=tx {
+            owned(worldId,subject);val state=state(worldId);ready(state);guardApplication(worldId,null)
+            sealedRevision(worldId,revisionId);expected(draft(worldId),request.expectedDraftRevision)
+            val target=cardVersions.findAllById(revisionCards.findAllByIdRevisionId(revisionId).map { it.versionId }).associateBy { it.cardId }
+            val current=cardDrafts.findAllByWorldId(worldId)
+            val changes=target.mapValues { fields(payload(it.key,it.value.fields)) }.toMutableMap()
+            // 그 버전에 없는 활성 카드는 내용을 두고 삭제 상태로만 바꾼다. 이미 삭제된 카드는 그대로 둔다.
+            current.filter { it.cardId !in target && it.fields.lifecycle=="active" }.forEach { changes[it.cardId]=fields(payload(it.cardId,it.fields).copy(lifecycle="removed")) }
+            RestorePlan(state.graphVersion,changes,current.filter { it.fields.lifecycle=="active" && changes.getValue(it.cardId).lifecycle!="active" }.associate { it.cardId to it.fields.title })
+        }
+        val stored=graph.read(worldId)
+        if(stored.worldId!=worldId || stored.version!=plan.graphVersion) throw WorldStudioFailure.mismatch()
+        val blocked=plan.vanishing.filterKeys { id -> stored.relationships.any { it.sourceCardId==id || it.targetCardId==id } }
+        if(blocked.isNotEmpty()) throw WorldRestoreBlocked(blocked.values.toList())
+        tx {
+            owned(worldId,subject);val state=state(worldId);ready(state);val draft=draft(worldId)
+            expected(draft,request.expectedDraftRevision)
+            if(state.graphVersion!=plan.graphVersion) throw WorldConflict()
+            val rows=cardDrafts.findAllByWorldId(worldId).associateBy { it.cardId }
+            plan.changes.forEach { (id,changed) -> rows.getValue(id).let { it.fields=changed;it.updatedAt=Instant.now() } }
+            draft.baseWorldRevisionId=revisionId;draft.draftRevision=Math.incrementExact(draft.draftRevision);draft.updatedAt=Instant.now()
+        }
+        return draft(worldId,subject)
     }
+
+    /**
+     * 소유자가 세계관을 지운다(소프트 삭제, 2026-11-17 사용자 결정). 행·초안·확정 버전·이미지·관계는 그대로 두고 [StudioWorld.deletedAt]만 찍어 소유자·공개 조회에서 모두 없는 것으로 만든다.
+     * 연결된 소설이 있으면([linked], 정본은 Content의 work.world_studio_id라 호출자가 먼저 읽어 넘긴다) 거절한다. 남의 세계관은 404다.
+     */
+    fun delete(worldId:UUID,subject:UUID,linked:Boolean) { tx {
+        val world=owned(worldId,subject)
+        if(linked) throw WorldStudioFailure.linked()
+        world.deletedAt=Instant.now()
+    } }
+
+    private class RestorePlan(val graphVersion:Long,val changes:Map<UUID,CardFields>,val vanishing:Map<UUID,String>)
 
     private data class EditPlan(val draft:WorldDraftResponse,val duplicate:Boolean,val graphVersion:Long)
     private fun readDraft(world:StudioWorld,state:WorldRelationshipState):WorldDraftResponse {

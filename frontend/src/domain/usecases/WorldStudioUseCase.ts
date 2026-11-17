@@ -6,6 +6,7 @@ export class WorldStudioUseCase {
  constructor(repository:WorldStudioRepository){this.repository=repository}
  get supportsRevisions(){return !!this.repository.confirm}
  get supportsCover(){return !!this.repository.setCover}
+ get supportsDelete(){return !!this.repository.deleteStudio}
  get supportsCardImages(){return !!this.repository.uploadCardImage}
  /** 관계를 회차 시점으로 읽고 쓰는 저장소인지(DEC-51). 메모리 데모는 아니다. */
  get supportsRelationEpisodes(){return !!this.repository.relationEpisodes}
@@ -17,6 +18,8 @@ export class WorldStudioUseCase {
  revisions(id:string,signal?:AbortSignal){if(!this.repository.revisions)throw new Error('데모에서는 확정 버전을 지원하지 않습니다.');return this.repository.revisions(id,signal)}
  revision(id:string,revision:string,signal?:AbortSignal){if(!this.repository.revision)throw new Error('데모에서는 확정 버전을 지원하지 않습니다.');return this.repository.revision(id,revision,signal)}
  confirm(id:string,expected:number,signal?:AbortSignal){if(!this.repository.confirm)throw new Error('데모에서는 확정 버전을 지원하지 않습니다.');return this.repository.confirm(id,expected,signal)}
+ restoreRevision(id:string,revision:string,expected:number,signal?:AbortSignal){if(!this.repository.restoreRevision)throw new Error('데모에서는 확정 버전 되돌리기를 지원하지 않습니다.');return this.repository.restoreRevision(id,revision,expected,signal)}
+ deleteWorld(id:string,signal?:AbortSignal){if(!this.repository.deleteStudio)throw new Error('데모에서는 세계관 삭제를 지원하지 않습니다.');return this.repository.deleteStudio(id,signal)}
  pendingConfirmation(id:string){return this.repository.pendingConfirmation?.(id)??null}
  acknowledgeConfirmation(id:string){this.repository.acknowledgeConfirmation?.(id)}
  list(signal?:AbortSignal){return this.repository.listStudio(signal)}
