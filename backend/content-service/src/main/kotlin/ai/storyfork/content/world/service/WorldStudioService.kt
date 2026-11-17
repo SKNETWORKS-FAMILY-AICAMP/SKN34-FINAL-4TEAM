@@ -45,7 +45,9 @@ class WorldStudioService(
         worlds.findAllByOwnerSubjectOrderByCreatedAtDesc(subject).map { world ->
             val draft=draft(world.id);val state=states.findById(world.id).orElse(null)
             WorldStudioSummaryResponse(world.id,draft.name,draft.description,draft.draftRevision,
-                if(state==null) "migration_required" else if(!state.completed) "incomplete" else "current",world.visibility,world.genre,world.coverObjectKey!=null)
+                if(state==null) "migration_required" else if(!state.completed) "incomplete" else "current",world.visibility,world.genre,world.coverObjectKey!=null,
+                // ponytail: 세계관마다 count 1회(N+1). 내 세계관 수가 수백 개가 되면 world_id별 group by 한 번으로 바꾼다.
+                cardCount=cardDrafts.countByWorldIdAndFieldsLifecycle(world.id,"active"))
         }
     }
 

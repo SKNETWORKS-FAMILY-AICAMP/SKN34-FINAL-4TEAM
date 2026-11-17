@@ -17,7 +17,7 @@
 - **초안 저장과 확정 버전은 다르다.** 이 문서의 '저장 버전'은 소유자가 명시적으로 확정한 `world_revision`(`POST /{id}/revisions`, 세계관의 `current_revision_id`)이다. 화면의 '저장'(`PUT /{id}/draft`)은 초안 저장이라 공개 화면에 반영되지 않으며, 공개 목록·상세의 노출은 **확정 버전(current revision) 기준**이다. 목록과 상세는 모두 확정(`sealed`)된 현재 버전만 보인다.
 - 파생·조합(세계관 복사)과 남의 세계관을 참조·추종하는 이용은 없다(DEC-35 유지). 세계관 이용은 참조 연결 없이 공개 카드를 카드 단위로 내 세계관에 복사하는 **설정 가져오기**로 하고(2026-11-12 사용자 결정: 공개 세계관의 공개 카드는 로그인한 누구나 가져올 수 있고 출처를 자동으로 표시한다), 세계관과 소설은 1:1로 연결한다(DEC-46). 아래 '세계관-소설 1:1 연결'·'독자 설정 위키'·'설정 가져오기와 카드 메타데이터' 절이 계약이다. 공개 세계관 응답에는 연결된 소설이 없다.
 - **설정 카드는 카드 단위로 공개·비공개를 정하며 기본은 비공개다**(`setting_card_*.visibility`, DEC-46, 2026-11-12 사용자 결정). 공개 세계관에서도 **삭제되지 않았고(`lifecycle=active`) 공개(`visibility=public`)인 카드만** 보이고, 관계는 양 끝 카드가 모두 그런 카드일 때만 보인다. 목록의 `cardCount`·`relationshipCount`도 같은 기준이다. 공개 카드가 하나도 없는 공개 세계관도 목록·상세에는 그대로 나온다(카드 0개).
-- **세계관 표지는 소유자가 직접 올린 이미지(PNG·JPEG·WebP, 5MB 이하)만 쓴다**(2026-11-12 사용자 결정). AI 표지 생성은 준비 중이라 이 계약에 없다. 표지가 없으면 화면이 기존 자동 생성 표지를 쓴다. 공개 표지의 노출 기준은 상세와 같다(공개이고 확정 버전이 있을 때).
+- **세계관 표지는 소유자가 직접 올린 이미지(PNG·JPEG·WebP, 5MB 이하)만 쓴다**(2026-11-12 사용자 결정). AI 표지 생성은 준비 중이라 이 계약에 없다. 표지가 없으면 화면이 기본 표지(`/default-work-cover.svg`)를 쓴다. 공개 표지의 노출 기준은 상세와 같다(공개이고 확정 버전이 있을 때).
 
 장르 코드(소유자가 공개할 때 고른다, 미지정은 `null`):
 
@@ -75,6 +75,7 @@ WorldCoverResponse  = { "worldId", "hasCover": true }
 - 표지 교체는 **새 객체 저장 → DB 갱신 → 이전 객체 삭제** 순서다. 새 객체 저장이 실패하면 DB와 이전 객체는 그대로이고(503), 이전 객체 삭제가 실패하면 로그만 남기고 성공으로 답한다. 삭제는 DB 참조를 먼저 지우고 객체를 그 다음에 지운다. 객체 저장소 오류는 고정 문구의 503 그대로 전한다.
 - 소유자 표지 읽기는 `Cache-Control: private, no-store`·`X-Content-Type-Options: nosniff`이다. 소유자 화면은 Bearer가 필요해 인증 fetch → Blob → objectURL(해제 포함)로 읽는다.
 - 기존 `GET /api/v1/world-studios`(내 목록) 요약과 `GET /api/v1/world-studios/{id}` 응답에 `visibility`, `genre`, `hasCover`(표지가 있는지) 필드가 **추가**됐다(기존 필드는 그대로).
+- 내 목록 요약에는 `cardCount`(초안의 활성 설정 카드 수, 삭제한 카드·관계 제외, 옛 응답은 0)도 있다. 요약은 카드를 싣지 않으므로 서재 '내가 만드는 세계관'의 `설정 N개`는 이 값으로 그린다.
 
 ## 공개 API (비로그인 허용 `GET`)
 
@@ -99,7 +100,7 @@ PublicWorld        = { "id", "name", "description", "genre", "authorNickname", "
 - 관계 저장소가 현재 상태를 보증하지 못하면(미전환·미완료·조회 실패·토큰 불일치) 카드는 그대로 두고 `relationships: []`, `relationshipStatus: "unavailable"`로 200을 돌려준다(500이 아니다). 정상이면 `"current"`다.
 - 작가 닉네임은 저장하지 않고 응답마다 `CoreNicknameService`로 회원 ID 묶음을 한 번 조회해 채운다. Core에 없으면 `탈퇴한 회원`이고, Core 호출 실패는 대체 이름 없이 503/504/502로 그대로 전한다.
 - 상세의 `id`가 UUID 형식이 아니면 400, 형식이 맞는데 없으면 404다.
-- 표지 응답의 `Content-Type`은 저장한 형식(`image/png`·`image/jpeg`·`image/webp`)이고 `Cache-Control: private, no-store`·`X-Content-Type-Options: nosniff`이다(기존 작품 공개 표지와 같은 관례). 화면은 `hasCover`가 `true`일 때만 `<img src="/api/v1/public/world-studios/{id}/cover">`로 직접 읽고, `false`이면 기존 자동 생성 표지를 쓴다. `id`가 UUID 형식이 아니면 400이다.
+- 표지 응답의 `Content-Type`은 저장한 형식(`image/png`·`image/jpeg`·`image/webp`)이고 `Cache-Control: private, no-store`·`X-Content-Type-Options: nosniff`이다(기존 작품 공개 표지와 같은 관례). 화면은 `hasCover`가 `true`일 때만 `<img src="/api/v1/public/world-studios/{id}/cover">`로 직접 읽고, `false`이면 기본 표지(`/default-work-cover.svg`)를 쓴다. `id`가 UUID 형식이 아니면 400이다.
 
 ### 라우팅·보안
 
@@ -134,7 +135,7 @@ WorkWorldLinkResponse = { "workId": "<작품 id>", "worldId": "<uuid>" | null }
 - 같은 세계관을 다시 연결해도 200이다(멱등). 작품이 다른 세계관에 연결돼 있었으면 새 세계관으로 바뀐다. `worldId: null`(본문 `{}` 포함)은 해제이며 연결이 없어도 200이다.
 - 연결·해제는 작품 `revision`을 올리지 않는다. **작품을 소프트 삭제하면 연결도 해제한다**(보이지 않는 삭제 작품이 UNIQUE를 쥐고 있으면 그 세계관을 다시 연결할 수 없다).
 - 소유자 응답이 서로를 알린다. 소유자 작품 응답(`GET /api/v1/works`·`/{id}` 등 `WorkResponse`를 주는 소유자 경로)에 `worldStudioId`(연결이 없으면 `null`)가, 소유자 세계관 응답(`GET /api/v1/world-studios`의 요약과 `GET /{id}`·`PUT /{id}/draft`·`POST`의 초안 응답)에 `linkedWorkId`(없으면 `null`)가 **추가**됐다(기존 필드는 그대로). 공개 작품 응답(`/api/v1/public/works…`)의 `worldStudioId`는 항상 `null`이다.
-- 화면: 작품 관리(`/content?work=<id>`)의 세계관·설정집 탭 `세계관 연결`에서 다른 소설에 연결되지 않은 내 세계관을 골라 연결하고 `연결 해제`(확인 뒤)로 푼다. 세계관 관리 화면(`/worldstudio/:id`) 헤더의 `소설 연결하기`는 세계관에 연결되지 않은 내 소설을 골라 같은 API로 연결하며(초안 저장과 별개로 바로 적용) 연결되면 같은 자리가 그 작품 관리(`/content?work=<id>`)로 가는 `소설 작성하기`로 바뀐다. 그 시트의 `새 소설 만들기`는 작품 만들기(`/content`)로 갈 뿐이라 만든 소설은 자동으로 연결되지 않는다. 해제는 작품 관리 화면에서만 한다. 두 화면 모두 실패는 서버 문구를 그대로 보인다.
+- 화면: 작품 관리(`/content?work=<id>`)의 세계관·설정집 탭 `세계관 연결`에서 다른 소설에 연결되지 않은 내 세계관을 골라(드롭다운 기본값은 `선택 안 함`이고 고르기 전에는 `세계관 연결` 버튼이 잠긴다) 연결하고 `연결 해제`(확인 뒤)로 푼다. 세계관 관리 화면(`/worldstudio/:id`) 헤더의 `소설 연결하기`는 세계관에 연결되지 않은 내 소설을 골라 같은 API로 연결하며(초안 저장과 별개로 바로 적용) 연결되면 같은 자리가 그 작품 관리(`/content?work=<id>`)로 가는 `소설 작성하기`로 바뀐다. 그 시트의 `새 소설 만들기`는 작품 만들기(`/content`)로 갈 뿐이라 만든 소설은 자동으로 연결되지 않는다. 해제는 작품 관리 화면에서만 한다. 두 화면 모두 실패는 서버 문구를 그대로 보인다.
 
 ## 독자 설정 위키 (DEC-46)
 

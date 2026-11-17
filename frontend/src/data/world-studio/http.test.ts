@@ -352,6 +352,8 @@ it('reads hasCover of the world and of each summary, defaulting an older respons
  const row=(worldId:string,extra={})=>({worldId,name:'세계관',description:'',draftRevision:1,relationshipStatus:'current',...extra})
  fetcher.mockImplementation(async()=>Response.json([row(id,{hasCover:true}),row(other)]))
  expect((await repo.listStudio()).map(w=>[w.id,w.hasCover])).toEqual([[id,true],[other,false]])
+ fetcher.mockImplementation(async()=>Response.json([row(id,{cardCount:4}),row(other)]))
+ expect((await repo.listStudio()).map(w=>[w.id,w.cardCount])).toEqual([[id,4],[other,0]])
  fetcher.mockImplementation(async()=>Response.json({...wire(),hasCover:'yes'}))
  await expect(repo.read(id)).rejects.toThrow('응답')
 })

@@ -64,7 +64,7 @@ export function WorkPage() {
       {vm.bandAmb && <Amb t={w.theme} lite band />}
       <main className="wrap" id="main" tabIndex={-1}>
         <section className="whero">
-          <div className="cover"><CoverOf w={w} k="big" /></div>
+          <div className="cover"><CoverOf w={w} /></div>
           <div>
             <span className="g">{w.genre}</span>{w.auto?.on && <span className="chip ok" style={{ marginLeft: 8 }}>🤖 AI 자율 연재 중</span>}{sv.days && <span className="g wsched">{sv.days}</span>}{sv.badge && <span className={`chip ${sv.badge === '연재 중' ? 'ok' : sv.badge === '휴재' ? 'wait' : ''}`} style={{ marginLeft: 8 }}>{sv.badge}</span>}
             <h1>{w.title}</h1><div className="by">{w.by}</div>{p && <div className="by" style={{ marginTop: 6 }}>“{w.dir}”</div>}
