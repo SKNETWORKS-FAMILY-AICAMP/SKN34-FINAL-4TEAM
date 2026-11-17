@@ -15,7 +15,7 @@ export function useManuscriptBuild(workId:string,worldId:string|null|undefined,u
   finally{if(active.current===controller){active.current=null;setBusy(false)}}
  },[useCase,workId,worldId,consent])
  // 최초 조회만 자동 실행한다. 화면 진입/업로드/새로고침으로 POST하지 않는다.
- useEffect(()=>{void run('read');return()=>{active.current?.abort();active.current=null}},[workId,useCase]) // eslint-disable-line react-hooks/exhaustive-deps
+ useEffect(()=>{setJob(null);setConsent(false);setReady(false);void run('read');return()=>{active.current?.abort();active.current=null}},[workId,useCase]) // eslint-disable-line react-hooks/exhaustive-deps
  useEffect(()=>{
   if(busy||error||!job||!['queued','running','loading'].includes(job.status))return
   const timer=setTimeout(()=>void run('read'),2000);return()=>clearTimeout(timer)

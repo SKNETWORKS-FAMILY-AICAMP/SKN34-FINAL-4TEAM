@@ -331,6 +331,16 @@ jobs:
         if: ${{ matrix.service == 'content' }}
         working-directory: backend/content-service
         run: ./gradlew integrationTest --no-daemon
+      - name: Preserve initial world acceptance evidence
+        if: ${{ always() && matrix.service == 'content' }}
+        run: python3 infrastructure/ci/ci.py reports initial-build-evidence backend/content-service/build/qa backend/content-service/build/test-results/integrationTest
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: ${{ always() && matrix.service == 'content' }}
+        with:
+          name: initial-world-http-db-evidence
+          path: initial-build-evidence/
+          retention-days: 7
+          if-no-files-found: ignore
       - name: JUnit Operations service-auth HTTP and PostgreSQL CRUD integration tests
         if: ${{ matrix.service == 'operations' }}
         working-directory: backend/operations-service

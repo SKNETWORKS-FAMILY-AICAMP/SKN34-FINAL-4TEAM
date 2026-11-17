@@ -4,6 +4,18 @@ import {MemoryRouter} from 'react-router'
 import {afterEach,it,expect,vi} from 'vitest'
 import {ManuscriptBuildPanel} from './ManuscriptBuildPanel'
 afterEach(cleanup)
+it('다른 작품으로 이동하면 이전 결과와 시작 동의를 지우고 새 조회를 기다린다',async()=>{
+ const api={read:vi.fn().mockResolvedValueOnce(null).mockImplementationOnce(()=>new Promise(()=>{})),start:vi.fn(),resume:vi.fn()}
+ const view=render(<MemoryRouter><ManuscriptBuildPanel work={{id:crypto.randomUUID(),worldStudioId:null,episodes:[]}} useCase={api as never}/></MemoryRouter>)
+ await waitFor(()=>expect(api.read).toHaveBeenCalledTimes(1))
+ fireEvent.click(screen.getByRole('checkbox'))
+ await waitFor(()=>expect((screen.getByRole('button',{name:'세계관 만들기'}) as HTMLButtonElement).disabled).toBe(false))
+ view.rerender(<MemoryRouter><ManuscriptBuildPanel work={{id:crypto.randomUUID(),worldStudioId:null,episodes:[]}} useCase={api as never}/></MemoryRouter>)
+ await waitFor(()=>expect(api.read).toHaveBeenCalledTimes(2))
+ expect((screen.getByRole('checkbox') as HTMLInputElement).checked).toBe(false)
+ expect((screen.getByRole('button',{name:'세계관 만들기'}) as HTMLButtonElement).disabled).toBe(true)
+ expect(api.start).not.toHaveBeenCalled()
+})
 const work={id:crypto.randomUUID(),worldStudioId:null,episodes:[{number:1}]} as never
 const job={jobId:crypto.randomUUID(),worldId:crypto.randomUUID(),status:'running',completedEpisodes:0,totalEpisodes:4,executionToken:crypto.randomUUID(),failureCode:null,receipts:[]}
 it('화면 진입과 업로드만으로 시작하지 않으며 동의 후 명시적으로 접수한다',async()=>{
