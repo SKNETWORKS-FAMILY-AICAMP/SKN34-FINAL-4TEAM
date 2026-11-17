@@ -14,7 +14,7 @@ const world = (extra: Record<string, unknown> = {}) => ({
     { id: 'c-2', title: '새벽항', text: '오래된 항구', cardType: 'location', aliases: [], tags: [], imageId: null },
   ],
   relationships: [{ id: 'r-1', sourceCardId: 'c-1', targetCardId: 'c-2', label: '수호' }],
-  relationshipStatus: 'current', ...extra,
+  relationshipStatus: 'current', linkedWork: null, ...extra,
 })
 const respond = (body: unknown, status = 200) => vi.fn(async (_url: RequestInfo | URL, _init?: RequestInit) => Response.json(body, { status }))
 const FORMAT = '서버 응답 형식을 확인할 수 없어요.'
@@ -91,6 +91,17 @@ describe('공개 세계관 상세 읽기', () => {
     const { hasCover: _kept, ...withoutField } = world() // 필드가 없던 옛 응답
     expect((await new HttpPublicWorldRepository(respond(withoutField)).get('w-1'))?.hasCover).toBe(false)
     await expect(new HttpPublicWorldRepository(respond(world({ hasCover: 1 }))).get('w-1')).rejects.toThrow(FORMAT)
+  })
+
+  it('연결된 공개 소설(linkedWork)을 그대로 읽고, 없거나 null이면 연결 없음(null)으로 읽으며, 모양이 어긋나면 던진다', async () => {
+    const linkedWork = { id: 'work-1', title: '달무리 항해기', authorNickname: '달무리', hasCover: true }
+    expect((await new HttpPublicWorldRepository(respond(world({ linkedWork }))).get('w-1'))?.linkedWork).toEqual(linkedWork)
+    expect((await new HttpPublicWorldRepository(respond(world({ linkedWork: null }))).get('w-1'))?.linkedWork).toBeNull()
+    const { linkedWork: _kept, ...withoutField } = world() // 필드가 없던 옛 응답
+    expect((await new HttpPublicWorldRepository(respond(withoutField)).get('w-1'))?.linkedWork).toBeNull()
+    for (const bad of [{ ...linkedWork, title: undefined }, { ...linkedWork, hasCover: 'yes' }, { ...linkedWork, id: '' }, 'work-1']) {
+      await expect(new HttpPublicWorldRepository(respond(world({ linkedWork: bad }))).get('w-1')).rejects.toThrow(FORMAT)
+    }
   })
 
   it('카드의 imageId를 그대로 읽고, 필드가 없거나 null이면 이미지 없음(null)으로 읽으며, 문자열이 아니면 던진다', async () => {

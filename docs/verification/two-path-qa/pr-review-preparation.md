@@ -2,6 +2,7 @@
 
 대상: [#455](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/455), `feat/initial-world-build` → `develop`.
 2026-11-17 `cb7e93cf3e3f44dda0ebc748c5cf443127bc2b9c`를 일반 merge로 반영했다. 충돌 표시는 없었으며 WorldStudioService·단위 테스트·HTTP 어댑터 테스트의 자동 병합 내용을 확인했다. 팀원 표지·공개 세계관 변경을 유지한다.
+진행 중 develop이 `3421d9a1ac43753422bc6049561a4a9abd4f52b9`로 갱신돼 다시 일반 merge했다. #438 심의 등급 Router와 #447 공개 세계관 연결 소설 표시를 유지하며, AI main.py에는 rating/preprocessing Router가 함께 등록된다. 이 기준에서도 기존 V1~V8 변경·V9 번호 충돌은 없다.
 
 ## 이번 보완
 

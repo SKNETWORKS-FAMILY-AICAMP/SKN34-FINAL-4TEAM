@@ -299,4 +299,24 @@ describe('원고 검수 단계 결과(#59)', () => {
     expect(step).toMatchObject({ status: 'failed', error: '원고 검수 결과 형식을 확인할 수 없어요.' })
     expect(step.review).toBeUndefined()
   })
+
+  const assessment = { criterion: 'violence', level: 3, quotes: ['칼로 손가락을 잘랐다.'], rationale: '잔혹한 신체 훼손' }
+  const rating = (extra: Record<string, unknown> = {}) => ({
+    workId: 'w1', verdict: 'adult', prohibited: false, episodes: [{
+      episode: 3, revision: 4, verdict: 'adult', prohibited: false, error: null, signals: { profanityCount: 0 }, assessments: [assessment],
+      model: 'm', providerResponseId: 'r', usage: null,
+    }], ...extra,
+  })
+
+  it('심의 등급 판정과 회차별 항목 평가를 읽는다', async () => {
+    const step = await run({ feature: 'rating', status: 'completed', result: rating() })
+    expect(step.rating).toEqual({ verdict: 'adult', prohibited: false,
+      episodes: [{ episode: 3, verdict: 'adult', prohibited: false, error: null, assessments: [assessment] }] })
+  })
+
+  it('판정 값이 계약에 없으면 가짜 판정 없이 단계 실패로 알린다', async () => {
+    const step = await run({ feature: 'rating', status: 'completed', result: rating({ verdict: 'teen' }) })
+    expect(step).toMatchObject({ status: 'failed', error: '심의 등급 결과 형식을 확인할 수 없어요.' })
+    expect(step.rating).toBeUndefined()
+  })
 })
