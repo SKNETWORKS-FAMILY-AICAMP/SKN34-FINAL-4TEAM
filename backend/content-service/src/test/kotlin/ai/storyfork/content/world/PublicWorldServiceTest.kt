@@ -4,8 +4,13 @@ import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.attachment.client.AttachmentStorageClient
 import ai.storyfork.content.attachment.client.dto.AttachmentObjectResult
 import ai.storyfork.content.attachment.domain.AttachmentFailure
+import ai.storyfork.content.attachment.repository.ContentImageRepository
 import ai.storyfork.content.auth.client.exception.CoreAuthException
 import ai.storyfork.content.auth.service.CoreNicknameService
+import ai.storyfork.content.work.entity.WorkEntity
+import ai.storyfork.content.work.repository.WorkRepository
+import ai.storyfork.content.work.service.WorkAccessService
+import ai.storyfork.content.work.service.dto.WorkAccessResult
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
 import ai.storyfork.content.world.service.PublicWorldService
@@ -37,10 +42,13 @@ class PublicWorldServiceTest {
     private val graph = mock(Neo4jRelationshipRepository::class.java)
     private val nicknames = mock(CoreNicknameService::class.java)
     private val storage = mock(AttachmentStorageClient::class.java)
+    private val works = mock(WorkRepository::class.java)
+    private val access = mock(WorkAccessService::class.java)
+    private val workImages = mock(ContentImageRepository::class.java)
     private val manager = mock(PlatformTransactionManager::class.java).also {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
-    private val service = PublicWorldService(worlds, revisions, revisionCards, cardVersions, images, states, graph, nicknames, storage, manager)
+    private val service = PublicWorldService(worlds, revisions, revisionCards, cardVersions, images, states, graph, nicknames, storage, works, access, workImages, manager)
     private val published = Instant.parse("2026-11-11T01:02:03Z")
 
     /**
@@ -206,7 +214,7 @@ class PublicWorldServiceTest {
         listOf(hidden.id, draftOnly.id, UUID.randomUUID()).forEach {
             assertEquals(404, assertThrows(ContentFailure::class.java) { service.detail(it) }.status)
         }
-        verifyNoInteractions(graph, nicknames, cardVersions)
+        verifyNoInteractions(graph, nicknames, cardVersions, works, access, workImages)
     }
 
     private fun assertCardsWithoutRelations(s: Seed) {
@@ -258,6 +266,7 @@ class PublicWorldServiceTest {
             PublicWorldSummaryResponse(y.id, "둘", "둘 설명", null, "탈퇴한 회원", 2, 0, "2026-11-11T01:02:03Z"),
         ), 0, 24, 30), page)
         verify(nicknames, times(1)).nicknames(listOf(x.owner.toString(), y.owner.toString()))
+        verifyNoInteractions(works, access, workImages) // 연결된 소설은 상세에만 싣는다(#329)
     }
 
     @Test fun `list hides a world whose current revision is not sealed like detail does and asks Core only for the shown authors`() {
@@ -299,6 +308,69 @@ class PublicWorldServiceTest {
             assertEquals(422, assertThrows(ContentFailure::class.java) { service.list(genre, page, size) }.status)
         }
         verifyNoInteractions(worlds, nicknames, graph)
+    }
+
+    /** [seed]의 세계관에 연결된 소설 하나(`work.world_studio_id`)와 그 접근 결과다. 공개 판정은 [WorkAccessResult.publiclyVisible]이 하므로 공개 범위·제한·삭제 값으로 만든다. */
+    private fun linkWork(
+        seed: Seed, owner: String = UUID.randomUUID().toString(), visibility: String = "public", restricted: Boolean = false, deleted: Boolean = false, cover: Boolean = false,
+    ): String {
+        val workId = UUID.randomUUID().toString()
+        `when`(works.findAllByWorldStudioIdIn(listOf(seed.id))).thenReturn(listOf(WorkEntity(id = workId, ownerId = owner, title = "연결된 소설", worldStudioId = seed.id)))
+        `when`(access.get(workId)).thenReturn(WorkAccessResult(workId, owner, "연결된 소설", "", 1, "legacy-world", visibility, false, false, null, restricted, deleted))
+        `when`(workImages.countByWorkIdAndEpisodeNo(workId, 0)).thenReturn(if (cover) 1L else 0L)
+        return workId
+    }
+
+    @Test fun `detail carries the minimal info of the public work linked to the world, with its author from the same single Core lookup`() {
+        val s = Seed()
+        val workOwner = UUID.randomUUID().toString()
+        val workId = linkWork(s, workOwner, cover = true)
+        `when`(nicknames.nicknames(listOf(s.owner.toString(), workOwner))).thenReturn(mapOf(s.owner.toString() to "세계관 작가", workOwner to "소설 작가"))
+        val result = service.detail(s.id)
+        assertEquals(PublicWorldLinkedWorkResponse(workId, "연결된 소설", "소설 작가", true), result.linkedWork)
+        assertEquals("세계관 작가", result.authorNickname)
+        verify(nicknames, times(1)).nicknames(listOf(s.owner.toString(), workOwner))
+        verifyNoMoreInteractions(nicknames)
+    }
+
+    @Test fun `the owner who wrote the linked work is asked of Core once, and a work without a stored cover says so`() {
+        val s = Seed()
+        val workId = linkWork(s, s.owner.toString())
+        `when`(nicknames.nicknames(listOf(s.owner.toString()))).thenReturn(mapOf(s.owner.toString() to "작가"))
+        assertEquals(PublicWorldLinkedWorkResponse(workId, "연결된 소설", "작가", false), service.detail(s.id).linkedWork)
+        verify(nicknames, times(1)).nicknames(listOf(s.owner.toString()))
+        verifyNoMoreInteractions(nicknames)
+    }
+
+    @Test fun `a linked work whose author Core no longer knows is shown with the withdrawn member name`() {
+        val s = Seed()
+        val workOwner = UUID.randomUUID().toString()
+        linkWork(s, workOwner)
+        `when`(nicknames.nicknames(listOf(s.owner.toString(), workOwner))).thenReturn(mapOf(s.owner.toString() to "세계관 작가"))
+        assertEquals("탈퇴한 회원", service.detail(s.id).linkedWork!!.authorNickname)
+    }
+
+    @Test fun `a private, restricted or deleted linked work is not revealed and its author is not looked up`() {
+        listOf(Triple("private", false, false), Triple("public", true, false), Triple("public", false, true)).forEach { (visibility, restricted, deleted) ->
+            val s = Seed()
+            linkWork(s, visibility = visibility, restricted = restricted, deleted = deleted, cover = true)
+            `when`(nicknames.nicknames(listOf(s.owner.toString()))).thenReturn(mapOf(s.owner.toString() to "작가"))
+            val result = service.detail(s.id)
+            assertNull(result.linkedWork, "${visibility}/${restricted}/${deleted}")
+            assertEquals("작가", result.authorNickname)
+            verify(nicknames).nicknames(listOf(s.owner.toString()))
+        }
+        verifyNoMoreInteractions(nicknames)
+        verifyNoInteractions(workImages)
+    }
+
+    @Test fun `a world with no linked work has none and Core is asked only for the world's author`() {
+        val s = Seed()
+        `when`(nicknames.nicknames(listOf(s.owner.toString()))).thenReturn(mapOf(s.owner.toString() to "작가"))
+        assertNull(service.detail(s.id).linkedWork)
+        verify(nicknames, times(1)).nicknames(listOf(s.owner.toString()))
+        verifyNoMoreInteractions(nicknames)
+        verifyNoInteractions(access, workImages)
     }
 
     @Test fun `hasCover tells the list and the detail whether a cover is stored`() {
