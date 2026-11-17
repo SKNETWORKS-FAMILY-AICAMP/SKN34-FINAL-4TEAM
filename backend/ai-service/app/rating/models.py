@@ -5,7 +5,7 @@
 
 from typing import Annotated, Literal, get_args
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 Criterion = Literal['sexual', 'violence', 'crime', 'drug', 'gambling', 'language', 'other']
 Level = Literal[0, 1, 2, 3]  # 0 없음 · 1 암시·생략 · 2 묘사 · 3 노골·지속
@@ -27,6 +27,7 @@ class RatingRequest(BaseModel):
 
 class Assessment(BaseModel):
     """판별 항목 하나의 평가. quotes는 초안에서 그대로 옮긴 구절이며 수준 2 이상이면 하나 이상이다."""
+    model_config = ConfigDict(extra='forbid')  # OpenAI strict 구조화 출력은 additionalProperties=false 스키마만 받는다
     criterion: Criterion
     level: Level
     quotes: list[str]
@@ -41,6 +42,7 @@ class Assessment(BaseModel):
 
 class RatingResult(BaseModel):
     """모델 structured output. 모든 판별 항목을 한 번씩 평가하고, 성인 이용가로도 허용되지 않는 표현이면 prohibited다."""
+    model_config = ConfigDict(extra='forbid')
     prohibited: bool
     assessments: list[Assessment]
 
@@ -74,6 +76,7 @@ class EpisodeRating(BaseModel):
     episode: int
     revision: int
     verdict: Verdict | None
+    signals: dict[str, int]  # 모델에 참고로 보낸 규칙 신호(profanityCount: 비속어 어근 출현 수)
     prohibited: bool = False
     assessments: list[Assessment] = []
     error: str | None = None

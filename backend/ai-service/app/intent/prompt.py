@@ -9,6 +9,7 @@ FEATURES = {
     'story_development': '다음 사건·전개·콘티·아이디어를 제안받는다(문장 집필은 아님)',
     'world_plot': '설정·플롯을 새로 바꾸려 할 때 그 변경이 어디에 영향을 주고 무엇과 충돌하는지 분석한다(현재 원고의 설정 오류 검수는 review)',
     'web_research': '역사·과학·지리 같은 현실 사실과 고증이 맞는지 웹 출처로 확인한다',
+    'rating': '이 회차 원고가 19세 이용가(청소년 이용불가)로 분류될 내용인지 심의 기준으로 판별한다',
 }
 # 조건부 단계(if_issues_found)는 문제·충돌·불일치를 찾아내는 기능 뒤에만 올 수 있다.
 FINDING_FEATURES = {'review', 'web_research', 'world_plot'}
@@ -25,7 +26,7 @@ GUARDS = {
 # 작가에게 보이는 기능 이름. CLARIFY_MESSAGE의 보기이며 작가가 이 이름으로 답하면 그 기능으로 확정한다(service.clarified).
 CAPABILITY_NAMES = {'story_context': '작품 질문', 'review': '원고 검수', 'character_simulation': '인물 시뮬레이션',
                     'writing_editing': '집필·수정', 'story_development': '전개 제안', 'world_plot': '설정·플롯 분석',
-                    'web_research': '고증 조사'}
+                    'web_research': '고증 조사', 'rating': '심의 등급'}
 CAPABILITIES = ', '.join(CAPABILITY_NAMES.values())
 REJECT_MESSAGES = {
     'greeting': f'안녕하세요. {CAPABILITIES} 중 필요한 작업을 말씀해 주세요.',

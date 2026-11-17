@@ -1,6 +1,6 @@
 """업무 Agent 공통 실행(#373): LangChain `create_agent` + 커스텀 미들웨어로 모델 호출 1회를 실행한다.
 
-Story Context Q&A·Writing·웹 조사·Review가 같은 방식으로 쓴다. 모델은 `ChatOpenAI`(Responses API, store=False, 자동 재시도 없음)이고
+Story Context Q&A·Writing·웹 조사·Review·Rating이 같은 방식으로 쓴다. 모델은 `ChatOpenAI`(Responses API, store=False, 자동 재시도 없음)이고
 구조화 출력은 제공사 strict JSON schema(ProviderStrategy)다. `ModelCallMiddleware`(AgentMiddleware 상속)가 모델 호출을 Langfuse
 generation으로 감싸 모델·사용량·출력을 남기고, 제공사 오류·불완전(토큰 한도로 잘린) 응답·스키마 위반을 기능의 고정 실패 문구로 바꾼다.
 호출 한도는 라이브러리 ModelCallLimitMiddleware가 지킨다(업무 Agent는 모델 호출 1회). 실패를 fallback·재시도로 숨기지 않는다.

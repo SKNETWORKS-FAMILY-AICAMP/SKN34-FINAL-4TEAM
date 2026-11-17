@@ -31,7 +31,7 @@ def test_user_bearer_reaches_content_mcp(monkeypatch):
 
     router.rate(request(), 'rating-token', 'Bearer user')
 
-    assert seen == ['Bearer user']
+    assert seen == ['Bearer user'] * 3  # episode_read, world_studio_list, world_studio_read
 
 
 @pytest.mark.parametrize('failure', [ContentMcpFailure(404, '회차를 찾을 수 없어요.'), RatingFailure(422, '판별할 초안이 없어요.')])
