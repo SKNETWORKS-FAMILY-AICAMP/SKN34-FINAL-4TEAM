@@ -189,8 +189,8 @@ export function stepText(step: ChatStep): string {
   return r.text ?? ''
 }
 
-/** 기획 결과에서 한 안을 골라 이어 쓰는 방법(#441 previousPlans). */
-export const PLAN_PICK_HINT = "원하는 안을 '계획 2로 써줘'처럼 말하면 그 계획으로 써요."
+/** 기획 결과에서 한 안을 골라 이어 쓰는 방법. 서버 previousPlans는 최근 5턴 중 가장 최근 기획 결과만 받는다(#441). */
+export const PLAN_PICK_HINT = "가장 최근 기획한 안 중 하나를 '계획 1로 써줘'처럼 말하면 그 계획으로 써요."
 
 /** 바로 쓴 원고가 정해 쓴 계획 한 줄. 반영 본문(stepText)과 섞지 않도록 따로 보인다. */
 export const usedPlan = (step: ChatStep) => (step.result?.plan ? `사용한 계획: ${step.result.plan.title} — ${step.result.plan.beats.join(' / ')}` : '')

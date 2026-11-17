@@ -79,12 +79,13 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
   const [check, setCheck] = useState<ReviewCheck | null>(null)
   const [fix, setFix] = useState<number | null>(null)
   const draft = reply.steps.find((s) => s.feature === 'writing_editing' && s.status === 'completed')
+  const planLine = draft ? usedPlan(draft) : ''
   if (reply.awaitingApproval === 'character_simulation' || reply.awaitingScene === 'character_simulation') return <SceneWait reply={reply} onOpenStage={onOpenStage} />
   if (reply.awaitingApproval) {
     return <section className="chat-hitl" aria-labelledby={`${id}-t`}>
       <h3 id={`${id}-t`}>{reply.approvalEpisode ? `${reply.approvalEpisode}화 초안에 반영할까요?` : '이 제안을 초안에 반영할까요?'}</h3>
       {draft && <div className="chat-hitl-preview" tabIndex={0} aria-label="반영할 내용">{stepText(draft)}</div>}
-      {draft && usedPlan(draft) && <p className="chat-note">{usedPlan(draft)}</p>}
+      {planLine && <p className="chat-note">{planLine}</p>}
       <p className="chat-note">반영하면 작업 중인 초안만 바뀌고 발행되지 않아요. 반영하지 않아도 제안은 대화에 남아요.</p>
       <div className="chat-hitl-actions">
         <button type="button" className="btn sm pri" disabled={pending} onClick={() => onResume(true)}>초안에 반영</button>
