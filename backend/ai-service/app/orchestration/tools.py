@@ -74,6 +74,26 @@ UNSUPPORTED_MESSAGE = ('요청에 아직 실행할 수 없는 작업이 있어 �
                        '작품 질문, 원고 검수, 설정집 검토, 기획·집필·수정, 고증 조사, 인물 시뮬레이션은 각각 요청할 수 있어요.')
 
 
+def _check(inputs: dict, check: str | None) -> str | None:
+    """Review 검사 종류. 작가가 보낸 검사 종류가 메인 에이전트의 check보다 우선한다."""
+    return (inputs.get('review') or {}).get('check') or check
+
+
+# 작가 입력을 기다리는 조건(turn, inputs, scope, 도구 인자). 도구 안 needs와 병렬 묶음 검사(waits)가 같은 조건을 쓴다.
+# ask_writing·ask_character_simulation은 항상 단독이라 묶음 검사에 필요 없다.
+WAITS = {
+    'ask_story_qa': lambda turn, inputs, scope, args: 'story_context' not in inputs and not scope,
+    'ask_review': lambda turn, inputs, scope, args: bool(turn.get('target')) and not _check(inputs, args.get('check')),
+    'ask_web_research': lambda turn, inputs, scope, args: 'web_research' not in inputs,
+}
+
+
+def waits(call: dict, state: dict, turn: dict) -> bool:
+    """병렬 묶음 검사(#474): 이 호출을 지금 실행하면 작가 입력을 기다리는가."""
+    wait = WAITS.get(call['name'])
+    return bool(wait and wait(turn, state.get('inputs') or {}, state.get('retrievalScope'), call['args']))
+
+
 class Skipped(Exception):
     """조건부 수정이 고칠 확정 지적이 없어 실행하지 않는다. 메시지가 작가에게 보일 이유다."""
 
@@ -138,11 +158,13 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
 
     needs(inputs, scope)가 참이면 작가 입력을 기다린다(대화가 없으면 needs_input, 거절이면 cancelled). needs·call이 올리는 기능 실패는
     단계 failed, Skipped는 skipped다. interrupt는 추적 span 밖에서 걸어 대기를 실패로 남기지 않는다.
+    단계는 자기 것 하나만 덧붙이고(steps reducer) inputs·retrievalScope는 입력을 받았을 때만 쓴다. 병렬 묶음의 도구는 입력을 기다리지
+    않으므로(#474) 같은 키를 동시에 쓰지 않는다.
     """
     turn, steps = runtime.context, list(runtime.state.get('steps', []))
     step = {'feature': feature, 'when': when, 'status': 'not_started', **({'task': task_kind} if task_kind else {})}
     inputs, scope = dict(runtime.state.get('inputs', {})), runtime.state.get('retrievalScope')
-    name = CAPABILITY_NAMES[feature]
+    name, answered = CAPABILITY_NAMES[feature], {}
     try:
         while needs(inputs, scope):
             if not turn.get('scope'):  # 대화가 없으면 체크포인트가 없어 멈췄다 이어갈 수 없다.
@@ -154,6 +176,7 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
             inputs.update(answer['inputs'])
             # Content가 resume마다 새로 서명한 조회 토큰을 쓴다. 저장된 토큰은 만료·Content 재시작으로 무효일 수 있다.
             scope = answer.get('scope') or scope
+            answered = {'inputs': inputs, 'retrievalScope': scope}
         runtime.stream_writer({'started': feature})
         with tracing.observe(f'step.{feature}', as_type='agent', trace_context=trace(turn)):
             step.update(status='completed', result=call(inputs, scope).model_dump(mode='json'))
@@ -161,8 +184,8 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
         step.update(status='skipped', error=str(skip))
     except FAILURES as error:
         step.update(status='failed', error=str(error))
-    return _reply(runtime, feature, _summary(step), {'steps': [*steps, step], 'inputs': inputs, 'retrievalScope': scope},
-                  failed=step['status'] == 'failed', artifact=step.get('result'))
+    return _reply(runtime, feature, _summary(step), {'steps': [step], **answered}, failed=step['status'] == 'failed',
+                  artifact=step.get('result'))
 
 
 def _target(turn: dict, failure: type[Exception], message: str) -> dict:
@@ -190,7 +213,7 @@ def ask_story_qa(request: Request, runtime: ToolRuntime) -> Command:
         return QaStepResult(claims=answered.claims, gaps=gaps + answered.gaps, coverage=coverage,
                             sources=[e for e in data['excerpts'] if e['id'] in cited])
 
-    return _ask(runtime, 'story_context', answer, needs=lambda inputs, scope: 'story_context' not in inputs and not scope)
+    return _ask(runtime, 'story_context', answer, needs=lambda inputs, scope: WAITS['ask_story_qa'](turn, inputs, scope, {}))
 
 
 @tool
@@ -200,13 +223,12 @@ def ask_review(request: Request, runtime: ToolRuntime, check: Literal['mechanica
     check는 mechanical(맞춤법·표기), semantic(설정·개연성), both 중 요청에서 알 수 있는 것이며 모르면 비운다(작가가 고른다).
     """
     turn = runtime.context
-    kind = lambda inputs: (inputs.get('review') or {}).get('check') or check  # noqa: E731 작가가 보낸 검사 종류가 우선한다
 
     def run(inputs, scope):
         target = _target(turn, ReviewFailure, NO_REVIEW_TARGET)
-        return review.review(ReviewRequest(workId=target['workId'], episode=target['episode'], check=kind(inputs)))
+        return review.review(ReviewRequest(workId=target['workId'], episode=target['episode'], check=_check(inputs, check)))
 
-    return _ask(runtime, 'review', run, needs=lambda inputs, scope: bool(turn.get('target')) and not kind(inputs))
+    return _ask(runtime, 'review', run, needs=lambda inputs, scope: WAITS['ask_review'](turn, inputs, scope, {'check': check}))
 
 
 @tool
@@ -233,7 +255,7 @@ def ask_rating(request: Request, runtime: ToolRuntime) -> Command:
 def ask_web_research(runtime: ToolRuntime) -> Command:
     """고증 조사(웹): 작가가 동의한 질문·맥락만 웹에서 확인한다. 외부 전송이라 작업 지시를 받지 않는다."""
     return _ask(runtime, 'web_research', lambda inputs, scope: research.research(ResearchRequest.model_validate(inputs['web_research'])),
-                needs=lambda inputs, scope: 'web_research' not in inputs)
+                needs=lambda inputs, scope: WAITS['ask_web_research'](runtime.context, inputs, scope, {}))
 
 
 @tool
@@ -338,7 +360,7 @@ def ask_character_simulation(request: Request, runtime: ToolRuntime) -> Command:
     """인물 시뮬레이션: 작가가 명시적으로 요청한 가상 장면의 계획(모드·전제·비트·인물)을 세운다. 장면은 이 턴의 도구 호출이 끝난 뒤
     작가와 턴마다 진행되므로 이 도구 뒤에는 다른 도구를 부를 수 없다. request는 시뮬레이션할 상황이다.
     """
-    turn, steps = runtime.context, list(runtime.state.get('steps', []))
+    turn = runtime.context
     step = {'feature': 'character_simulation', 'when': 'always', 'status': 'not_started'}
     try:
         with tracing.observe('step.character_simulation.plan', as_type='agent', trace_context=trace(turn)):
@@ -348,7 +370,7 @@ def ask_character_simulation(request: Request, runtime: ToolRuntime) -> Command:
                 drafted = simulation.plan(request, history(turn), turn.get('target'))
     except FAILURES as error:
         step.update(status='failed', error=str(error))
-        return _reply(runtime, 'character_simulation', _summary(step), {'steps': [*steps, step]}, failed=True)
+        return _reply(runtime, 'character_simulation', _summary(step), {'steps': [step]}, failed=True)
     if gaps := drafted.gaps():
         asked = ', '.join(GAP_LABELS[g] for g in gaps)
         message = f'시뮬레이션을 시작하려면 {asked}을(를) 알려 주세요.'
@@ -356,4 +378,4 @@ def ask_character_simulation(request: Request, runtime: ToolRuntime) -> Command:
     plan = drafted.model_dump(mode='json')
     content = json.dumps({'feature': 'character_simulation', 'status': 'planned', 'mode': plan['mode'],
                           'characters': len(plan['characterIds'])}, ensure_ascii=False)
-    return _reply(runtime, 'character_simulation', content, {'steps': [*steps, step], 'simulationPlan': plan})
+    return _reply(runtime, 'character_simulation', content, {'steps': [step], 'simulationPlan': plan})

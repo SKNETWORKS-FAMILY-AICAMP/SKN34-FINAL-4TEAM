@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import threading
 from uuid import uuid4
 
 import pytest
@@ -16,7 +17,7 @@ from app.review.models import Finding as ReviewFinding, ReviewResponse
 from app.research.errors import ResearchFailure
 from app.story_qa.errors import StoryQaFailure
 
-from .stubs import PATCH, QA, REVIEW, WEB, Step, fake_agents, fake_main, plan
+from .stubs import PATCH, QA, REVIEW, WEB, Step, fake_agents, fake_main, fake_scene, plan
 
 TARGET = {'workId': 'w1', 'episode': 3}
 
@@ -126,10 +127,10 @@ def test_the_last_allowed_model_call_has_no_tools_so_it_can_only_answer(monkeypa
     assert (result.status, result.message) == ('completed', '종합 답변')
 
 
-def test_tools_are_bound_without_parallel_calls_and_the_model_has_no_retries_or_storage(monkeypatch):
+def test_tools_are_bound_with_parallel_calls_and_the_model_has_no_retries_or_storage(monkeypatch):
     calls = fake_agents(monkeypatch, plan('story_context'))
     run(inputs={'story_context': QA})
-    assert calls.main[0]['settings']['parallel_tool_calls'] is False
+    assert calls.main[0]['settings']['parallel_tool_calls'] is True
     init = calls.main.init
     assert (init['model'], init['use_responses_api'], init['store'], init['max_retries']) == ('test-model', True, False, 0)
 
@@ -383,6 +384,82 @@ def test_a_missing_model_setting_fails_the_turn_without_running_anything(monkeyp
     result = run(inputs={'story_context': QA})
     assert (result.status, result.message, result.steps) == ('failed', service.MODEL_UNSET_MESSAGE, [])
     assert names(calls) == [] and calls.main == []
+
+
+# 병렬 호출(#474)
+
+
+def sent(calls, name):
+    """마지막 메인 모델 호출이 받은 그 도구의 첫 ToolMessage."""
+    return next(m for m in tool_messages(calls) if m.name == name)
+
+
+def together(monkeypatch, *names):
+    """names의 업무 서비스가 서로 기다려야 끝나게 한다. 순차로 돌면 Barrier가 시간 초과로 깨진다."""
+    barrier = threading.Barrier(len(names), timeout=5)
+    for owner, attr in names:
+        real = getattr(owner, attr)
+        monkeypatch.setattr(owner, attr, lambda *args, real=real: (barrier.wait(), real(*args))[1])
+
+
+def test_independent_lookups_in_one_model_turn_run_concurrently_in_call_order(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(['web_research', 'story_context']))
+    together(monkeypatch, (tools.research, 'research'), (tools.story_qa, 'answer'))
+    result = run(inputs={'story_context': QA, 'web_research': WEB})
+    assert [(s.feature, s.status) for s in result.steps] == [('web_research', 'completed'), ('story_context', 'completed')]
+    assert len(calls.main) == 2 and (result.status, result.message) == ('completed', '종합 답변')  # 묶음 한 번 + 종합
+
+
+@pytest.mark.parametrize('solo', [Step('writing_editing', task='plan'), Step('character_simulation')])
+def test_writing_and_simulation_in_a_batch_are_refused_and_run_alone_next(monkeypatch, solo):
+    calls = fake_agents(monkeypatch, plan(['rating', solo], solo))
+    fake_scene(monkeypatch)
+    result = run('요청', target=TARGET)
+    refused = sent(calls, tools.TOOL_NAMES[solo.feature])
+    assert (refused.status, refused.content.startswith('[순차]')) == ('error', True)
+    assert [s.feature for s in result.steps] == ['rating', solo.feature]  # 거부는 기능당 1회를 쓰지 않는다
+
+
+def test_a_dependent_fix_in_the_same_batch_as_its_review_waits_for_the_review(monkeypatch):
+    fix = Step('writing_editing', task='patch', fix=0)
+    calls = fake_agents(monkeypatch, plan([Step('review', check='mechanical'), fix], fix))
+    reviewed(monkeypatch, finding('서윤은 웃엇다.'))
+    result = run(target=TARGET)
+    assert [(s.feature, s.status) for s in result.steps] == [('review', 'completed'), ('writing_editing', 'completed')]
+    assert names(calls).count('patch') == 1 and len(calls.main) == 3
+
+
+def test_a_call_missing_author_input_in_a_batch_is_deferred_then_waits_alone(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(['story_context', 'web_research'], 'web_research'))
+    thread = str(uuid4())
+    waiting = turn(thread, inputs={'story_context': QA})
+    assert sent(calls, 'ask_web_research').content.startswith('[순차]')
+    assert (waiting.status, waiting.missingInputs) == ('waiting', ['web_research'])
+    done = resume(thread, approved=True, inputs={'web_research': WEB})
+    assert [(s.feature, s.status) for s in done.steps] == [('story_context', 'completed'), ('web_research', 'completed')]
+    assert names(calls).count('web_research') == 1
+
+
+def test_a_batch_where_nothing_can_run_together_still_runs_its_first_call_alone(monkeypatch):
+    # 둘 다 작가 입력이 빠졌다. 모두 미루면 모델이 같은 묶음을 반복해 아무것도 못 한다.
+    calls = fake_agents(monkeypatch, plan([Step('review'), 'web_research']))
+    waiting = turn(str(uuid4()), target=TARGET)
+    assert (waiting.status, waiting.missingInputs) == ('waiting', ['review'])
+    assert len(calls.main) == 1
+
+
+def test_a_failure_in_a_batch_keeps_the_finished_sibling_and_closes_the_tools(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(['story_context', 'web_research'], 'rating'), fail={'web_research': ResearchFailure(503, '웹 검색에 실패했습니다.')})
+    result = run(target=TARGET, inputs={'story_context': QA, 'web_research': WEB})
+    assert [(s.feature, s.status) for s in result.steps] == [('story_context', 'completed'), ('web_research', 'failed')]
+    assert result.status == 'failed' and exposed(calls)[-1] == [] and 'rating' not in names(calls)
+
+
+def test_each_call_in_a_batch_counts_toward_the_three_calls_per_turn(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(['story_context', 'web_research', 'rating', 'world_review']))
+    result = run(target=TARGET, inputs={'story_context': QA, 'web_research': WEB})
+    assert [s.feature for s in result.steps] == ['story_context', 'web_research', 'rating']
+    assert 'world_review' not in names(calls) and sent(calls, 'ask_world_review').status == 'error'
 
 
 def test_the_patch_summary_names_the_changed_passage_so_the_answer_cannot_claim_more(monkeypatch):
