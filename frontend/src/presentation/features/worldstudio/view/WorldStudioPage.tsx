@@ -3,10 +3,8 @@ import { useEffect, useId, useRef, useState } from 'react'
 
 import { relationLabel } from '../../../../domain/entities/studioRelations'
 import type { StudioWorld } from '../../../../domain/entities/studioWorld'
-import type { Theme } from '../../../../domain/entities/work'
 import { cardLibraryRows, writingIssueLabel } from '../../../../domain/entities/worldStudioWriting'
-import { Art } from '../../../shared/art'
-import { rng } from '../../../shared/format'
+import { coverSrc } from '../../../shared/cover'
 import { Go } from '../../../shared/Go'
 import { BackChev } from '../../../shared/icons'
 import { useScreenId } from '../../../shared/screenIds'
@@ -40,7 +38,6 @@ type VM = ReturnType<typeof useWorldStudioViewModel>
 /** `집필 메모 추가`: 새 메모를 초안에 더하고 그 편집 화면을 연다. 관리 모드는 보기 전환 줄의 `AI 검토` 옆에, 그 줄이 없는 작성 모드(마법사)는 헤더 행동 줄에 둔다. */
 const NoteButton = ({ vm }: { vm: VM }) => <button type="button" className="btn sm" onClick={() => { const id = vm.addCard('note'); if (id) vm.editCard(id) }}>집필 메모 추가</button>
 const steps = [['info', '기본 정보'], ['cards', '설정 카드'], ['relations', '관계 연결 (선택)'], ['review', '검토·저장']] as const
-const themes: Theme[] = ['hanji', 'star', 'neon']
 
 /**
  * 세계관 관리·작성 화면. 두 화면이다.
@@ -97,7 +94,7 @@ export function WorldStudioPage() {
 }
 
 /**
- * 공개 세계관 상세 헤더와 같은 모양: 표지(올린 표지가 있으면 그 이미지, 없으면 생성 표지 아트), 이름, 칩(설정 수·저장 버전·공개 범위·장르·저장 상태), 소개. 이름·소개·수는 저장한 세계관 기준이다.
+ * 공개 세계관 상세 헤더와 같은 모양: 표지(올린 표지가 있으면 그 이미지, 없으면 기본 표지), 이름, 칩(설정 수·저장 버전·공개 범위·장르·저장 상태), 소개. 이름·소개·수는 저장한 세계관 기준이다.
  * 관리 모드에서는 제목 옆 '편집'이 세계관 정보 편집 패널(이름·설명·공개 범위·장르·표지)을 그 자리에 연다. 저장하지 않은 수정이 있으면 편집이 잠기고 저장 상태는 보기 전환 줄의 저장 영역이 보인다.
  * 헤더에는 공개 범위·장르 칩만 있고, 공개 목록에 나올 때(공개 + 확정 버전)만 공개 화면 링크가, 공개인데 확정 버전이 없을 때는 그 안내가 보인다.
  * 공개 세계관인데 공개로 둔 설정이 없으면 그 경고와 `전체 공개`를, 그 아래에는 연결된 소설을 알리는 상태 줄(정보만)을 보인다.
@@ -108,7 +105,6 @@ function WorldHeader({ vm, world, infoOpen, setInfoOpen }: { vm: VM; world: Stud
   const saved = vm.saved ?? world
   const manage = vm.mode === 'manage'
   const { visibility, genre } = vm.publication
-  const theme = themes[Math.floor(rng(saved.id)() * themes.length)]
   const state = vm.saveState === 'saving' ? { tone: 'wait', text: '저장 중' }
     : vm.saveState === 'failed' ? { tone: 'wait', text: '저장 실패 · 입력은 유지돼요' }
     : vm.dirty ? { tone: 'wait', text: '작성 중 · 미저장' }
@@ -136,7 +132,7 @@ function WorldHeader({ vm, world, infoOpen, setInfoOpen }: { vm: VM; world: Stud
   return (
     <section className="whero ep-hero world-manage-hero">
       <div className="ep-hero-cover">
-        <div className="cov">{vm.cover.url ? <img src={vm.cover.url} alt="세계관 표지" /> : <Art theme={theme} w={300} h={400} seed={saved.id} />}<div className="tg"><span className="tag dk">{visibility === 'public' ? '공개' : '비공개'}</span></div></div>
+        <div className="cov"><img src={coverSrc(vm.cover.url)} alt={vm.cover.url ? '세계관 표지' : '기본 세계관 표지'} /><div className="tg"><span className="tag dk">{visibility === 'public' ? '공개' : '비공개'}</span></div></div>
       </div>
       <div className="ep-hero-main">
         <div className="ep-title-row">

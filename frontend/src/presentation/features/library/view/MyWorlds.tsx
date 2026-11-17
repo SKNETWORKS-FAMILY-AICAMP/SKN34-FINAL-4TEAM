@@ -2,8 +2,14 @@ import { useState } from 'react'
 import { Go } from '../../../shared/Go'
 import { paginate } from '../../../shared/paginate'
 import { Pager } from '../../../shared/Pager'
-import { useMyWorlds } from '../viewmodel/useMyWorlds'
+import { useMyWorldCover, useMyWorlds } from '../viewmodel/useMyWorlds'
 import './server-writing.css'
+
+/** 세계관 카드의 3:4 표지 썸네일. 올린 표지가 있으면 그 표지, 없으면 기본 표지다. */
+function Cover({ id, hasCover }: { id: string; hasCover: boolean }) {
+  const src = useMyWorldCover(id, hasCover)
+  return <div className="th">{src && <img className="cimg" src={src} alt="" />}</div>
+}
 
 /** 서재의 '내가 만드는 세계관' 탭. 집필 중인 작품과 같은 가로 카드이고 `.server-writing` 스타일을 함께 쓴다. */
 export function MyWorlds() {
@@ -18,10 +24,9 @@ export function MyWorlds() {
         : !vm.worlds.length ? <p className="note2">아직 만든 세계관이 없어요.</p>
         : <>
           <div className="list">{view.items.map(world => <article className="li" key={world.id}>
-            {/* ponytail: 세계관 표지는 API 연결은 후속이라 지금은 기본 표지만 둔다. */}
-            <div className="th"><img className="cimg" src="/default-work-cover.svg" alt="" /></div>
+            <Cover id={world.id} hasCover={!!world.hasCover} />
             <div className="server-writing-content"><h3>{world.name}</h3>
-              <div className="m">설정 {world.settings.length}개 · 버전 {world.version}</div>
+              <div className="m">설정 {world.cardCount ?? world.settings.length}개 · 버전 {world.version}</div>
             </div>
             <div className="acts">
               <Go className="btn sm" to={`/worldstudio/${world.id}`} aria-label={`${world.name} 관리하기`}>관리하기</Go>

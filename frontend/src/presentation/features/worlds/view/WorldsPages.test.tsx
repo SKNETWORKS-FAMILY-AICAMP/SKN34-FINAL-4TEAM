@@ -457,17 +457,17 @@ const deferred = <T,>() => {
 
 const coverSrc = (root: ParentNode = document) => Array.from(root.querySelectorAll('.cov img'), (img) => img.getAttribute('src'))
 
-it('hasCover인 서버 세계관은 목록 카드가 공개 cover 주소의 이미지를 쓰고 없는 세계관은 자동 생성 표지를 쓴다', async () => {
+it('hasCover인 서버 세계관은 목록 카드가 공개 cover 주소의 이미지를 쓰고 없는 세계관은 기본 표지를 쓴다', async () => {
   vi.spyOn(useCase(), 'list').mockResolvedValue(serverPage([server('a', { hasCover: true }), server('b')]))
   await renderAt('/worlds')
   await screen.findByText('지도 캔버스')
-  expect(new Set(coverSrc())).toEqual(new Set(['/api/v1/public/world-studios/a/cover']))
+  expect(new Set(coverSrc())).toEqual(new Set(['/api/v1/public/world-studios/a/cover', '/default-work-cover.svg']))
   const b = screen.getAllByRole('heading', { level: 3, name: 'b 세계' })[0].closest('a')!
-  expect(b.querySelector('.cov svg')).not.toBeNull() // 표지가 없으면 기존 자동 생성 표지
-  expect(b.querySelector('.cov img')).toBeNull()
+  expect(b.querySelector('.cov svg')).toBeNull() // 표지가 없어도 테마·장르 그림을 표지 대신 쓰지 않는다
+  expect(coverSrc(b)).toEqual(['/default-work-cover.svg'])
 })
 
-it('서버 세계관의 개요는 계보 없이 장르·작가·설정 카드만 보이고 표지는 공개 cover 이미지이거나 자동 생성 표지다', async () => {
+it('서버 세계관의 개요는 계보 없이 장르·작가·설정 카드만 보이고 표지는 공개 cover 이미지이거나 기본 표지다', async () => {
   vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ hasCover: true }))
   await renderAt('/worlds/sw?tab=overview')
   const info = within(screen.getByRole('table', { name: '서버 세계' }))
@@ -479,8 +479,8 @@ it('서버 세계관의 개요는 계보 없이 장르·작가·설정 카드만
   cleanup()
   vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld())
   await renderAt('/worlds/sw?tab=overview')
-  expect(coverSrc(screen.getByRole('tabpanel'))).toEqual([])
-  expect(document.querySelector('.nw-cover .cov svg')).not.toBeNull()
+  expect(coverSrc(screen.getByRole('tabpanel'))).toEqual(['/default-work-cover.svg'])
+  expect(document.querySelector('.nw-cover .cov svg')).toBeNull()
 })
 
 it('설명을 쓰지 않은 세계관의 개요는 빈 문단 대신 설명이 없다고 알린다', async () => {
