@@ -25,7 +25,7 @@ export type PublicWorldSummary = {
   relationshipCount: number
   /** ISO-8601. 목록은 이 값의 최신 순이다. */
   publishedAt: string
-  /** 소유자가 올린 표지가 있는지. 있으면 공개 cover 주소(`/api/v1/public/world-studios/{id}/cover`)가 이미지를 주고, 없거나 값이 없으면(데모) 자동 생성 표지를 쓴다. */
+  /** 소유자가 올린 표지가 있는지. 있으면 공개 cover 주소(`/api/v1/public/world-studios/{id}/cover`)가 이미지를 주고, 없거나 값이 없으면(데모) 기본 표지를 쓴다. */
   hasCover?: boolean
   /** 데모 전용: 파생 원본 세계관 id */
   derivedFrom?: string

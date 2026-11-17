@@ -127,7 +127,7 @@ export function OverviewView({ vm }: { vm: VM }) {
             )
             : (
               <p className='note2'>
-                표지 이미지를 올리지 않으면 장르 분위기 그림이 표지로 쓰여요.
+                표지 이미지를 올리지 않으면 기본 표지가 쓰여요.
               </p>
             )}
         </div>

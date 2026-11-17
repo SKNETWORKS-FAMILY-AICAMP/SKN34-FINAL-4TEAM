@@ -1,8 +1,7 @@
 import type { PublicWorldGenre } from '../../domain/entities/publicWorld'
-import type { Theme } from '../../domain/entities/work'
 
 /*
- * 공개 세계관 화면의 장르: 서버 장르 코드(`PublicWorldGenre`)와 화면 라벨·칩·표지 테마. 서버는 코드만 주고(미지정은 null) 라벨·색은 화면이 정한다.
+ * 공개 세계관 화면의 장르: 서버 장르 코드(`PublicWorldGenre`)와 화면 라벨·칩. 서버는 코드만 주고(미지정은 null) 라벨은 화면이 정한다.
  */
 
 export const WORLD_GENRES = ['판타지', 'SF', '무협', '로맨스', '현대', '고전', '미스터리'] as const
@@ -26,12 +25,3 @@ export const WORLD_CHIPS: readonly { label: string; genre: string }[] = [
   { label: ALL_CHIP, genre: ALL_CHIP },
   ...WORLD_GENRES.map((genre) => ({ label: `${GENRE_EMOJI[genre]} ${genre}`, genre })),
 ]
-
-const GENRE_THEME: Record<GenreLabel, Theme> = { 판타지: 'star', SF: 'neon', 무협: 'hanji', 로맨스: 'star', 현대: 'neon', 고전: 'hanji', 미스터리: 'neon', 미지정: 'neon' }
-/** 홈 시드 작품의 히어로 배경과 같은 세 색 */
-const THEME_BG: Record<Theme, string> = { hanji: '#E6D6B8', star: '#232A63', neon: '#0F3A40' }
-/** 표지 아트·히어로 배경은 홈 작품과 같은 세 테마를 장르에 맞춰 쓴다. 한지 테마만 밝은 면이라 히어로 글자색을 어둡게 한다. */
-export const worldLook = (genre: PublicWorldGenre | null) => {
-  const theme = GENRE_THEME[genreLabel(genre)]
-  return { theme, bg: THEME_BG[theme], lite: theme === 'hanji' }
-}
