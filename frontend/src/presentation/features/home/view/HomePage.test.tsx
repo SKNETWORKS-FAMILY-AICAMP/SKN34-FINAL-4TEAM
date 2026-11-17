@@ -34,6 +34,19 @@ beforeEach(() => {
 })
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers() })
 
+describe('홈 Hero 슬라이드 배경', () => {
+  it('배경은 테마 그림이 아니라 그 슬라이드의 표지 이미지(표지가 없으면 기본 표지)를 흐리게 깐다', () => {
+    const withCover = { ...works[0], coverImg: '/uploaded-cover.png' }
+    const plain = { ...works[1], coverImg: undefined }
+    render(<Carousel list={[withCover, plain]} />)
+    const slides = Array.from(document.querySelectorAll('.slide'))
+    expect(slides.map((s) => [s.querySelector('.bgart img')?.getAttribute('src'), s.querySelector('.cv img')?.getAttribute('src')]))
+      .toEqual([['/uploaded-cover.png', '/uploaded-cover.png'], ['/default-work-cover.svg', '/default-work-cover.svg']])
+    expect(document.querySelector('.slide .bgart svg')).toBeNull()
+    expect(slides.some((s) => s.classList.contains('lite') || (s as HTMLElement).style.background)).toBe(false) // 테마 색·밝은 글자 모드를 쓰지 않는다
+  })
+})
+
 describe('홈 Hero 자동 넘김과 접근성', () => {
   it('4.5초마다 넘기고, 포커스가 들어오면 떠난 뒤에도 명시적으로 재생하기 전까지 정지한다', () => {
     render(<Carousel />)
