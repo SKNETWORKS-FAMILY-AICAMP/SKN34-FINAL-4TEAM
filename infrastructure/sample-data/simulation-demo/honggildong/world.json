@@ -34,7 +34,7 @@
       "tags": [
         "서자"
       ],
-      "visibility": "private",
+      "visibility": "public",
       "revealFromEpisode": 1,
       "body": "재상 홍문의 서자. 어려서부터 비범하지만 시비의 아들이라 아버지를 아버지라, 형을 형이라 부르지 못한다. 큰 뜻을 품고 칼춤으로 울분을 달랜다.",
       "characterDocs": {
@@ -72,7 +72,7 @@
       "tags": [
         "재상"
       ],
-      "visibility": "private",
+      "visibility": "public",
       "revealFromEpisode": 1,
       "body": "세종 때 이조판서에 오른 재상. 청렴강직으로 명망이 높다. 청룡이 입으로 드는 꿈을 꾼 뒤 길동을 얻는다.",
       "characterDocs": {
@@ -102,7 +102,7 @@
       "tags": [
         "시비"
       ],
-      "visibility": "private",
+      "visibility": "public",
       "revealFromEpisode": 1,
       "body": "홍문 집의 시비이자 길동의 어머니. 천한 신분이지만 성품과 행실이 곧다.",
       "characterDocs": {
@@ -130,7 +130,7 @@
       "tags": [
         "첩"
       ],
-      "visibility": "private",
+      "visibility": "public",
       "revealFromEpisode": 1,
       "body": "곡산 출신 기생으로 홍문의 총첩이 된 곡산모. 길동이 사랑받는 것을 시기한다.",
       "characterDocs": {
@@ -157,7 +157,7 @@
       "tags": [
         "동대문"
       ],
-      "visibility": "private",
+      "visibility": "public",
       "revealFromEpisode": 1,
       "body": "동대문 밖에서 관상을 봐 주는 여인.",
       "characterDocs": {
@@ -186,7 +186,7 @@
       "tags": [
         "홍씨 집안"
       ],
-      "visibility": "private",
+      "visibility": "public",
       "revealFromEpisode": 2,
       "body": "홍문의 맏아들이자 길동의 이복형. 점잖고 효성스럽다.",
       "characterDocs": {
@@ -217,7 +217,7 @@
       "tags": [
         "자객"
       ],
-      "visibility": "private",
+      "visibility": "public",
       "revealFromEpisode": 2,
       "body": "초낭이 불러들인 자객. 돈을 받고 길동을 해치러 온다.",
       "characterDocs": {
@@ -242,7 +242,7 @@
       "tags": [
         "포도청"
       ],
-      "visibility": "private",
+      "visibility": "public",
       "revealFromEpisode": 5,
       "body": "포도대장. 군사 천 명을 받아 홍길동을 잡으러 나선다.",
       "characterDocs": {
@@ -267,7 +267,7 @@
       "tags": [
         "낙천현"
       ],
-      "visibility": "private",
+      "visibility": "public",
       "revealFromEpisode": 7,
       "body": "낙천현 부자 백용의 딸. 재주가 많고 아름답다.",
       "characterDocs": {
@@ -297,7 +297,7 @@
       "tags": [
         "조정"
       ],
-      "visibility": "private",
+      "visibility": "public",
       "revealFromEpisode": 4,
       "body": "세종 임금. 홍길동의 소동에 근심하며 그를 잡으려 한다.",
       "characterDocs": {

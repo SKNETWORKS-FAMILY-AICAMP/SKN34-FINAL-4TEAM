@@ -47,7 +47,7 @@
       "tags": [
         "서자"
       ],
-      "visibility": "private",
+      "visibility": "public",
       "revealFromEpisode": 1,
       "body": "재상 홍문의 서자. 어머니 춘섬의 아버지가 머나먼 남쪽 바다 너머에서 온 흑인이라, 그 외할아버지를 닮은 얼굴과 피부빛을 지녔다. 서자라는 신분에 더해 외모와 혈통을 두고도 수군거림과 낯선 시선을 받으며 자랐고, 그래서 말을 아끼고 사실을 정확히 짚는 버릇과 스스로를 증명하려는 마음이 생겼다. 아버지를 아버지라, 형을 형이라 부르지 못한다.",
       "characterDocs": {
@@ -79,7 +79,7 @@
       "tags": [
         "재상"
       ],
-      "visibility": "private",
+      "visibility": "public",
       "revealFromEpisode": 1,
       "body": "세종 때 이조판서에 오른 재상. 청렴강직으로 명망이 높다. 청룡이 입으로 드는 꿈을 꾼 뒤 길동을 얻는다.",
       "characterDocs": {
@@ -106,7 +106,7 @@
       "tags": [
         "시비"
       ],
-      "visibility": "private",
+      "visibility": "public",
       "revealFromEpisode": 1,
       "body": "홍문 집의 시비이자 길동의 어머니. 천한 신분이지만 성품과 행실이 곧다. 그녀의 아버지는 명나라 사신단의 배를 타고 머나먼 남쪽 바다 너머에서 온 흑인으로, 한양에서 배 만드는 목수로 살았다.",
       "characterDocs": {
@@ -131,7 +131,7 @@
       "tags": [
         "첩"
       ],
-      "visibility": "private",
+      "visibility": "public",
       "revealFromEpisode": 1,
       "body": "곡산 출신 기생으로 홍문의 총첩이 된 곡산모. 길동이 사랑받는 것을 시기한다.",
       "characterDocs": {
@@ -158,7 +158,7 @@
       "tags": [
         "동대문"
       ],
-      "visibility": "private",
+      "visibility": "public",
       "revealFromEpisode": 1,
       "body": "동대문 밖에서 관상을 봐 주는 여인.",
       "characterDocs": {
@@ -187,7 +187,7 @@
       "tags": [
         "홍씨 집안"
       ],
-      "visibility": "private",
+      "visibility": "public",
       "revealFromEpisode": 2,
       "body": "홍문의 맏아들이자 길동의 이복형. 점잖고 효성스럽다.",
       "characterDocs": {
@@ -213,7 +213,7 @@
       "tags": [
         "자객"
       ],
-      "visibility": "private",
+      "visibility": "public",
       "revealFromEpisode": 2,
       "body": "초낭이 불러들인 자객. 돈을 받고 길동을 해치러 온다.",
       "characterDocs": {

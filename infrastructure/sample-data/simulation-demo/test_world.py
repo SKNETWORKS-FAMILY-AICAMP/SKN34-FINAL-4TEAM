@@ -129,11 +129,15 @@ class WorldChecks:
         if self.dataset.dir == HERE:  # 첫 브리프의 규모(인물 3~4·사건 3~4·물건 1~2·장소·규칙 2~4)
             self.assertTrue(count("character") <= 4 and count("event") <= 4 and count("object") <= 2 and count("location", "rule") <= 4)
         self.assertEqual(len(self.world["cards"]), len(self.cards))  # key 중복 없음
+        # Fork를 허용한 원작과 그 Fork는 인물 카드를 공개한다: Fork 자기 회차의 시뮬레이션은 원작의 공개 카드만 이어받는다(#365).
+        inheritable = bool(self.world["work"].get("allowFork") or self.world["work"].get("fork"))
         for card in self.world["cards"]:
             if card["cardType"] in ("location", "rule") and not is_narrator(card):
                 self.assertEqual("public", card["visibility"], card["key"])  # 누구나 아는 세계 설정
-            if card["cardType"] in ("character", "event"):
+            if card["cardType"] == "event" or (card["cardType"] == "character" and not inheritable):
                 self.assertEqual("private", card["visibility"], card["key"])  # 지식은 관계로만 퍼진다
+            if card["cardType"] == "character" and inheritable and not is_narrator(card):
+                self.assertEqual("public", card["visibility"], card["key"])  # Fork가 이어받는 인물(#365)
 
     def test_cards_follow_server_limits(self):
         self.assertEqual(len({c["title"] for c in self.world["cards"]}), len(self.world["cards"]))
@@ -575,7 +579,7 @@ class FakeStack:
     def __init__(self, linked=None, owner=OWNER):
         self.owner, self.worlds, self.counter = owner, {}, 0
         self.works = {STARLIGHT_ID: self.work(STARLIGHT_ID, "별빛 서약의 탑", owner, worldStudioId=linked)}  # 이미 있는 샘플 작품
-        self.puts, self.calls, self.fail_put = [], [], None
+        self.puts, self.calls, self.fail_put, self.seals = [], [], None, []
         self.id_owner = {}  # 카드·관계 id → 세계관. 서버(worldstudio V1)의 id는 세계관과 무관한 전역 기본키다
         self.plans, self.plan_posts, self.fail_plan = {}, [], None  # 작품 id → 계획 목록, 받은 POST 본문, n번째 POST를 실패시킨다
 
@@ -620,6 +624,8 @@ class FakeStack:
             return 200, self.draft(wid, None)
         if route.startswith("/api/v1/world-studios/"):
             wid = parts[4]
+            if parts[5:] == ["revisions"]:
+                return self.seal(wid, body)
             if method == "GET":
                 return 200, self.draft(wid, int(query.split("=")[1]) if query else None)
             return self.put(wid, body)
@@ -728,8 +734,16 @@ class FakeStack:
             seen = [e for e in history if episode is None or e <= episode]
             if seen:
                 rels.append(history[max(seen)])
-        return {"worldId": world["id"], "draftRevision": world["revision"], "cards": list(world["cards"].values()),
-                "relationships": rels}
+        return {"worldId": world["id"], "draftRevision": world["revision"], "currentRevisionId": world.get("current"),
+                "cards": list(world["cards"].values()), "relationships": rels}
+
+    def seal(self, wid, body):  # 확정 버전: 저장된 초안을 봉인하고 draftRevision을 올린다
+        world = self.worlds[wid]
+        if body["expectedDraftRevision"] != world["revision"]:
+            return 409, {"detail": "draftRevision이 달라요"}
+        self.seals.append(body)
+        world["current"], world["revision"] = self.new_id(), world["revision"] + 1
+        return 200, {"revisionId": world["current"]}
 
     def put(self, wid, body):
         world = self.worlds[wid]
@@ -767,7 +781,7 @@ class SeedFlowTest(unittest.TestCase):
         self.assertTrue(all(not b["cards"] for b in fake.puts[1:]))
         self.assertTrue(all(b["replace"] is False for b in fake.puts))
         self.assertEqual(WORLD["world"]["id"], fake.linked)
-        self.assertEqual(len(episodes), fake.world["revision"])
+        self.assertEqual(len(episodes) + 1, fake.world["revision"])  # 회차 저장 + 확정 버전 1개
         for ep, n in counts.items():
             self.assertEqual(len(seed.relations_at(WORLD, ep)), n, ep)
         self.assertLess(counts[1], counts[2])
@@ -806,9 +820,17 @@ class SeedFlowTest(unittest.TestCase):
         self.assertIsNone(fake.linked)
         fake.fail_put = None
         counts = self.run_seed(fake)
-        self.assertEqual(len(seed.episodes(WORLD)), fake.world["revision"])
+        self.assertEqual(len(seed.episodes(WORLD)) + 1, fake.world["revision"])  # 회차 저장 + 확정 버전 1개
         self.assertEqual(WORLD["world"]["id"], fake.linked)
         self.assertEqual(len(seed.relations_at(WORLD, 3)), counts[3])
+
+    def test_seals_a_confirmed_version_once_so_readers_and_forks_can_see_it(self):
+        fake = FakeStack()
+        self.run_seed(fake)
+        self.assertEqual(1, len(fake.seals))
+        self.assertIsNotNone(fake.world["current"])
+        self.run_seed(fake)  # 바뀐 것이 없으면 새 확정 버전을 만들지 않는다
+        self.assertEqual(1, len(fake.seals))
 
     def test_refuses_to_overwrite_another_world_link(self):
         fake = FakeStack(linked=OTHER_WORLD)

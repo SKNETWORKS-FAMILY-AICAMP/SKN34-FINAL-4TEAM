@@ -2,7 +2,7 @@
 """시연 세계관(world.json)을 로컬 스택의 공개 진입점으로 적재한다(표준 라이브러리만).
 
 흐름: Core 로그인 → (새 작품이면) 작품 생성·회차 원고 저장·발행, (Fork면) 원작의 기준 회차에서 Fork 생성·자기 원고 발행
-→ 세계관 생성(고정 id, 멱등) → 회차 오름차순으로 초안 저장(카드는 첫 저장, 관계는 회차별 `episode`) → 작품에 연결
+→ 세계관 생성(고정 id, 멱등) → 회차 오름차순으로 초안 저장(카드는 첫 저장, 관계는 회차별 `episode`) → 확정 버전(바뀌었을 때) → 작품에 연결
 → (`plans.json`이 있으면) 플롯 1개와 장면 계획 생성(시뮬레이션 흐름 모드의 비트).
 같은 id·key·제목으로 다시 실행해도 중복이 생기지 않는다(이미 같은 값이면 건너뛴다).
 이미 다른 세계관이 연결된 작품은 덮어쓰지 않고 이유를 알린 뒤 실패한다.
@@ -230,6 +230,7 @@ def seed(call, world, owner=None, log=lambda *_: None, base=HERE):
     _ok(call("POST", "/api/v1/world-studios", {"id": wid, "name": name, "description": description}), "세계관 생성")
     scope = scope_of(world)
     cards = [card_payload(card, scope) for card in world["cards"]]
+    saved = False
     for episode in episodes(world):
         draft = _ok(call("GET", f"/api/v1/world-studios/{wid}?episode={episode}"), f"{episode}화 시점 조회")
         have_cards = {c["id"]: c for c in draft["cards"]}
@@ -245,6 +246,13 @@ def seed(call, world, owner=None, log=lambda *_: None, base=HERE):
         digest = hashlib.sha256(json.dumps(body, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()[:16]
         _ok(call("PUT", f"/api/v1/world-studios/{wid}/draft", {**body, "key": f"simulation-demo-{episode}-{digest}"}), f"{episode}화 저장")
         log(f"{episode}화: 카드 {len(new_cards)}개·관계 {len(new_relations)}개 저장")
+        saved = True
+    # 독자 설정 위키·Fork 이어받기(#365)는 확정 버전만 읽으므로, 바뀐 것이 있거나 확정 버전이 없으면 하나 남긴다.
+    draft = _ok(call("GET", f"/api/v1/world-studios/{wid}"), "초안 확인")
+    if saved or not draft.get("currentRevisionId"):
+        _ok(call("POST", f"/api/v1/world-studios/{wid}/revisions",
+                 {"expectedDraftRevision": draft["draftRevision"], "key": f"simulation-demo-seal-{wid}-{draft['draftRevision']}"}), "확정 버전")
+        log("확정 버전을 남겼어요")
     if linked != wid:
         _ok(call("PUT", f"/api/v1/works/{work}/world-studio", {"worldId": wid}), "작품 연결")
         log("작품에 연결했어요")
