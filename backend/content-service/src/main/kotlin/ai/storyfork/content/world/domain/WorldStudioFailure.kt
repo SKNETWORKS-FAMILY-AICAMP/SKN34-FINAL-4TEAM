@@ -10,7 +10,8 @@ class WorldStudioFailure(val reason:Reason):RuntimeException(reason.code) {
         REJECTED("WORLD_WRITE_REJECTED","이 저장 요청은 반영되지 않았습니다. 입력을 보존하고 최신 상태를 다시 조회한 뒤 수정하여 저장하세요."),
         MISMATCH("RELATIONSHIP_VERSION_MISMATCH","요청한 세계관과 관계 상태가 일치하지 않습니다. 입력을 보존하고 저장 상태를 확인하세요."),
         UNAVAILABLE("RELATIONSHIP_STORE_UNAVAILABLE","관계 저장소에 연결하지 못했습니다. 저장 완료로 처리하지 않았습니다. 같은 입력으로 다시 시도하세요."),
-        HISTORY("RELATIONSHIP_HISTORY_UNSUPPORTED","현재 MVP는 관계 이력을 저장하지 않아 과거 세계관 전체 복원을 지원하지 않습니다. 인물·설정 버전은 보존됩니다.")
+        HISTORY("RELATIONSHIP_HISTORY_UNSUPPORTED","현재 MVP는 관계 이력을 저장하지 않아 과거 세계관 전체 복원을 지원하지 않습니다. 인물·설정 버전은 보존됩니다."),
+        LINKED("WORLD_LINKED","연결된 소설이 있어 세계관을 삭제할 수 없어요. 작품 관리에서 연결을 해제한 뒤 삭제하세요.")
     }
     companion object {
         fun migration()=WorldStudioFailure(Reason.MIGRATION)
@@ -19,5 +20,6 @@ class WorldStudioFailure(val reason:Reason):RuntimeException(reason.code) {
         fun mismatch()=WorldStudioFailure(Reason.MISMATCH)
         fun unavailable()=WorldStudioFailure(Reason.UNAVAILABLE)
         fun history()=WorldStudioFailure(Reason.HISTORY)
+        fun linked()=WorldStudioFailure(Reason.LINKED)
     }
 }

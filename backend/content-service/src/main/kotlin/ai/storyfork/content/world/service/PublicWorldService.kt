@@ -144,7 +144,7 @@ class PublicWorldService(
 
     /** 상세와 표지가 같이 쓰는 공개 기준이다: 공개이고 확정(sealed)된 현재 버전이 있는 세계관. 아니면 404다. 읽기 트랜잭션 안에서 부른다. */
     private fun listedWorld(id: UUID): Pair<StudioWorld, WorldRevision> {
-        val world = worlds.findById(id).orElse(null)?.takeIf { isListed(it.visibility, it.currentRevisionId) } ?: throw notFound()
+        val world = worlds.findById(id).orElse(null)?.takeIf { it.deletedAt == null && isListed(it.visibility, it.currentRevisionId) } ?: throw notFound()
         val revision = revisions.findByIdAndWorldId(world.currentRevisionId ?: throw notFound(), id)?.takeIf { it.sealed } ?: throw notFound()
         return world to revision
     }

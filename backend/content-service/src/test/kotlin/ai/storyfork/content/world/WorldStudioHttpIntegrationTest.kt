@@ -89,4 +89,54 @@ class WorldStudioHttpIntegrationTest {
             }
         }
     }
+    @Test fun `the owner puts the draft cards back to a confirmed version over HTTP without a new revision and nobody else can`() {
+        WorldStudioPostgresFixture("coexist").use { db ->
+            db.studio().migrate()
+            SpringApplicationBuilder(ContentServiceApplication::class.java,Auth::class.java).run(
+                "--server.port=0",
+                "--DATABASE_URL=${db.url}","--DATABASE_USER=${System.getenv("TEST_WORLDSTUDIO_DATABASE_USER")}",
+                "--DATABASE_PASSWORD=${System.getenv("TEST_WORLDSTUDIO_DATABASE_PASSWORD")}",
+                "--CONTENT_CORE_AUTH_TOKEN=content-test-service-credential-at-least-32").use { ctx ->
+                val client=HttpClient.newHttpClient();val mapper=ctx.getBean(JsonMapper::class.java)
+                val core=ctx.getBean(CoreAuthClient::class.java);val owner=UUID.randomUUID();val other=UUID.randomUUID()
+                for(id in listOf(owner,other)) `when`(core.verify("Bearer $id")).thenReturn(VerifiedMemberResponse(id))
+                val base="http://127.0.0.1:${ctx.environment.getProperty("local.server.port")}/api/v1/world-studios"
+                fun send(path:String="",actor:UUID?=owner,method:String="GET",body:Any?=null):HttpResponse<String> {
+                    val request=HttpRequest.newBuilder(URI.create(base+path)).header("Content-Type","application/json").header("Authorization","Bearer $actor")
+                    if(method!="GET")request.header("Cookie",CsrfFixture.cookie).header("X-CSRF-TOKEN",CsrfFixture.token())
+                    request.method(method,if(body==null)HttpRequest.BodyPublishers.noBody() else HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body)))
+                    return client.send(request.build(),HttpResponse.BodyHandlers.ofString())
+                }
+                val create=CreateWorldRequest("되돌릴 세계관")
+                assertEquals(200,send(method="POST",body=create).statusCode())
+                val a=CardPayload(UUID.randomUUID(),"가람","확정 당시 내용","character","basic",visibility="public")
+                val b=a.copy(id=UUID.randomUUID(),title="나래",visibility="private")
+                assertEquals(200,send("/${create.id}/draft",method="PUT",body=EditWorldDraftRequest(0,create.name,"",listOf(a),key="restore-e1")).statusCode())
+                val sealed=send("/${create.id}/revisions",method="POST",body=SaveWorldRequest(1,"restore-save"));assertEquals(200,sealed.statusCode())
+                val revisionId=mapper.readTree(sealed.body()).path("revisionId").asString()
+                // 확정 뒤 초안의 카드를 고치고 카드를 더한다(저장이 초안 revision을 올려 다음은 2다).
+                assertEquals(200,send("/${create.id}/draft",method="PUT",body=EditWorldDraftRequest(2,create.name,"",listOf(a.copy(body="고친 내용"),b),key="restore-e2")).statusCode())
+                val restore="/${create.id}/revisions/$revisionId/restore"
+                // 남의 세계관·모르는 버전은 404, 낡은 초안 revision은 409이고 아무것도 바뀌지 않는다.
+                assertEquals(404,send(restore,other,"POST",RestoreWorldRequest(3)).statusCode())
+                assertEquals(404,send("/${create.id}/revisions/${UUID.randomUUID()}/restore",method="POST",body=RestoreWorldRequest(3)).statusCode())
+                val stale=send(restore,method="POST",body=RestoreWorldRequest(2))
+                assertEquals(409,stale.statusCode());assertEquals("WORLD_CONFLICT",mapper.readTree(stale.body()).path("code").asText())
+                assertEquals(3,mapper.readTree(send("/${create.id}").body()).path("draftRevision").asInt())
+                // 되돌리면 그 버전의 카드가 초안이 되고 그 버전에 없던 카드는 삭제 상태가 된다. 새 확정 버전은 만들지 않는다.
+                val restored=send(restore,method="POST",body=RestoreWorldRequest(3));assertEquals(200,restored.statusCode())
+                val view=mapper.readTree(restored.body());val cards=view.path("cards").values().associateBy { it.path("id").asString() }
+                assertEquals(4,view.path("draftRevision").asInt())
+                assertEquals("확정 당시 내용",cards.getValue(a.id.toString()).path("body").asString());assertEquals("removed",cards.getValue(b.id.toString()).path("lifecycle").asString())
+                assertEquals(1,mapper.readTree(send("/${create.id}/revisions").body()).size())
+                // 사라질 설정에 현재 관계가 이어져 있으면 409 WORLD_RESTORE_BLOCKED로 거절하고 설정 이름을 알린다.
+                val relation=RelationshipPayload(UUID.randomUUID(),a.id,b.id,"structural","동료 관계",label="동료")
+                assertEquals(200,send("/${create.id}/draft",method="PUT",body=EditWorldDraftRequest(4,create.name,"",listOf(b),listOf(relation),"restore-e3")).statusCode())
+                val blocked=send(restore,method="POST",body=RestoreWorldRequest(5))
+                assertEquals(409,blocked.statusCode());assertEquals("WORLD_RESTORE_BLOCKED",mapper.readTree(blocked.body()).path("code").asText())
+                assertTrue(mapper.readTree(blocked.body()).path("detail").asString().contains("나래"))
+                assertEquals(5,mapper.readTree(send("/${create.id}").body()).path("draftRevision").asInt())
+            }
+        }
+    }
 }

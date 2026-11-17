@@ -27,12 +27,12 @@ class WorkWorldService(
     @Qualifier("contentTransactions") private val transaction: TransactionTemplate,
 ) {
     /**
-     * 요청자 [owner]의 작품에 요청자의 세계관을 연결한다. [worldId]가 null이면 해제한다. 작품이든 세계관이든 없거나 남의 것이면 404다.
+     * 요청자 [owner]의 작품에 요청자의 세계관을 연결한다. [worldId]가 null이면 해제한다. 작품이든 세계관이든 없거나 남의 것이면(지운 세계관 포함) 404다.
      * 그 세계관이 이미 다른 작품에 연결돼 있으면 409 `WORLD_ALREADY_LINKED`이며, 판정은 UNIQUE 제약이 한다(동시 요청도 같은 답이다).
      * 같은 세계관을 다시 연결해도 결과가 같고 작품 revision은 올리지 않는다.
      */
     fun link(workId: String, owner: String, worldId: UUID?): WorkWorldLinkResponse {
-        if (worldId != null && studios.findById(worldId).orElse(null)?.ownerSubject?.toString() != owner) throw ContentFailure(404, "세계관을 찾을 수 없어요.")
+        if (worldId != null && studios.findById(worldId).orElse(null)?.takeIf { it.deletedAt == null }?.ownerSubject?.toString() != owner) throw ContentFailure(404, "세계관을 찾을 수 없어요.")
         try {
             transaction.executeWithoutResult {
                 access.own(workId, owner)
