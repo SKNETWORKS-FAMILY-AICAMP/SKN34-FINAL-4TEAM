@@ -109,6 +109,30 @@ it('저장된 대화에서 끝난 장면은 카드 없이 말풍선 한 줄 요�
   expect(screen.queryByText('카엘이 문을 열었다.')).toBeNull()
 })
 
+it('함께 시작한 단계는 다른 단계의 결과가 먼저 와도 끝날 때까지 진행 중으로 보인다(#474 병렬 호출)', async () => {
+  openThread([])
+  let emit!: (event: ChatEvent) => void
+  send.mockImplementation(async (_work: string, _thread: string, _input: unknown, onEvent: (event: ChatEvent) => void) => {
+    emit = onEvent
+    await new Promise<void>(() => {})
+  })
+  renderChat()
+  await screen.findByText('새 대화', { selector: 'h3' })
+  fireEvent.click(screen.getByRole('checkbox'))
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '등급 보고 설정집도 검토해줘' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  const run = async (event: ChatEvent) => { await act(async () => { emit(event) }) }
+  await run({ type: 'plan', steps: [{ feature: 'rating', status: 'not_started' }, { feature: 'world_review', status: 'not_started' }] })
+  await run({ type: 'started', feature: 'rating' })
+  await run({ type: 'started', feature: 'world_review' })
+  const progress = screen.getByRole('status', { name: 'AI 진행 상황' })
+  const states = () => within(progress).getAllByText(/./, { selector: '.chat-step-state' }).map((e) => e.textContent)
+  expect(states()).toEqual(['진행 중', '진행 중'])
+  await run({ type: 'step', step: { feature: 'world_review', status: 'failed', error: '검토 실패' } })
+  expect(states()).toEqual(['진행 중', '실패'])
+})
+
 it('진행 중 step이 올 때마다 진행 표시는 상태 알림 안에 단계만 보이고 장면 한 줄은 그 밖에서 턴 수만 늘어난다', async () => {
   openThread([])
   let emit!: (event: ChatEvent) => void
