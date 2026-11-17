@@ -16,7 +16,7 @@ def checked_output(data: Input, proposed: Output) -> Output:
         raise SuggestionFailure(502, '장르 후보의 개수나 중복이 규칙을 벗어났습니다.')
     if not set(genres) <= set(data.allowedGenres):
         raise SuggestionFailure(502, '승인 목록에 없는 장르 후보가 있습니다.')
-    if not all(HASHTAG.match(tag) for tag in hashtags):
+    if not all(HASHTAG.fullmatch(tag) for tag in hashtags):
         raise SuggestionFailure(502, '키워드 후보의 형식이 규칙을 벗어났습니다.')
     if len(hashtags) > data.maxHashtags or len(set(hashtags)) != len(hashtags) or set(hashtags) & set(data.allowedGenres):
         raise SuggestionFailure(502, '키워드 후보의 개수·중복·장르 반복이 규칙을 벗어났습니다.')
