@@ -38,7 +38,7 @@ function Progress({ live, onOpenStage }: { live: LiveTurn; onOpenStage?: () => v
     <div className="chat-msg assistant">
       <span className="chat-avatar" aria-hidden="true"><SparkIcon size={16} /></span>
       <div className="chat-bubble chat-progress" role="status" aria-label="AI 진행 상황">
-        <p className="chat-progress-title">{live.steps.length ? '작업을 순서대로 실행하고 있어요' : '요청을 살펴보고 있어요'}<span className="chat-dots" aria-hidden="true"><i /><i /><i /></span></p>
+        <p className="chat-progress-title">{live.steps.length ? '작업을 실행하고 있어요' : '요청을 살펴보고 있어요'}<span className="chat-dots" aria-hidden="true"><i /><i /><i /></span></p>
         {!!live.steps.length && <ol className="chat-steps">{live.steps.map((step, i) => {
           const state = stepState(step, live.running)
           // 장면 카드가 그리는 단계는 한 줄 요약을 되풀이하지 않는다. 실패 사유는 그대로 보인다.
