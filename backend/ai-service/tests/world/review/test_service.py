@@ -3,9 +3,9 @@ import json
 import pytest
 
 from app.content_mcp.errors import ContentMcpFailure
-from app.world_review import service
-from app.world_review.errors import WorldReviewFailure
-from app.world_review.models import MAX_CARD_CHARS, MAX_CARDS, WorldReviewResult
+from app.world.review import service
+from app.world.errors import WorldReviewFailure
+from app.world.review.models import MAX_CARD_CHARS, MAX_CARDS, WorldReviewResult
 
 from .stubs import REL, card, fake_agent, fake_openai, finding, fix, request
 

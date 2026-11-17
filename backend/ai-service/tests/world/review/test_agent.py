@@ -3,9 +3,9 @@ import json
 import pytest
 from openai import OpenAIError
 
-from app.world_review import agent
-from app.world_review.errors import WorldReviewFailure
-from app.world_review.models import WorldReviewResult
+from app.world.review import agent
+from app.world.errors import WorldReviewFailure
+from app.world.review.models import WorldReviewResult
 
 from .stubs import fake_openai, finding, fix, request
 

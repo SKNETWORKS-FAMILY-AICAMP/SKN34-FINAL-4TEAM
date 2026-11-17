@@ -1,9 +1,9 @@
 """설정집 검토 모델 호출 1회: 구조화 출력으로 지적 목록을 받는다(create_agent + 공통 미들웨어, app/agent_runtime.py)."""
 
 from app import agent_runtime
-from app.world_review.errors import WorldReviewFailure
-from app.world_review.models import WorldReviewRequest, WorldReviewResult
-from app.world_review.prompt import INSTRUCTIONS
+from app.world.errors import WorldReviewFailure
+from app.world.review.models import WorldReviewRequest, WorldReviewResult
+from app.world.review.prompt import INSTRUCTIONS
 
 
 def review(data: WorldReviewRequest) -> tuple[WorldReviewResult, dict]:

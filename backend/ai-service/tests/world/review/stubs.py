@@ -1,7 +1,7 @@
 from fake_chat import fake_chat
 
-from app.world_review import service
-from app.world_review.models import Finding, Fix, WorldReviewRequest, WorldReviewResult
+from app.world.review import service
+from app.world.review.models import Finding, Fix, WorldReviewRequest, WorldReviewResult
 
 REL = {'id': 'rel-1', 'sourceCardId': 'seoyun', 'targetCardId': 'war', 'label': '겪음', 'polarity': 'asserted'}
 WORLD = {

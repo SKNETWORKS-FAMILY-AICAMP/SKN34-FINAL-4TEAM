@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.world_review.models import MAX_CARD_CHARS, MAX_CARDS, Finding, Fix, WorldReviewRequest
+from app.world.review.models import MAX_CARD_CHARS, MAX_CARDS, Finding, Fix, WorldReviewRequest
 
 from .stubs import WORLD, card, request
 

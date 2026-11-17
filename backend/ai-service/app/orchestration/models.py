@@ -11,7 +11,7 @@ from app.research.models import ResearchRequest, ResearchResponse
 from app.retrieval.models import Coverage, RetrievalScope
 from app.review.models import ReviewResponse, Scope
 from app.simulation.models import SceneAction, SimulationPlan, SimulationResult
-from app.world_review.models import WorldReviewResponse
+from app.world.review.models import WorldReviewResponse
 from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse
 
 

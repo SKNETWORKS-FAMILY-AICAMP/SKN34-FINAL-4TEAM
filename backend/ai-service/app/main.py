@@ -9,7 +9,7 @@ from app.orchestration.router import router as orchestration_router
 from app.research.router import router as research_router
 from app.review.router import router as review_router
 from app.work_tags.router import router as work_tags_router
-from app.world_review.router import router as world_review_router
+from app.world.router import router as world_review_router
 from app.writing.router import router as writing_router
 
 

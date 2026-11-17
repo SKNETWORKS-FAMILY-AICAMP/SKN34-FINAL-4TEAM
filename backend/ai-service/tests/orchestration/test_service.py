@@ -19,9 +19,9 @@ from app.review.models import Finding as ReviewFinding, ReviewResponse
 from app.simulation import scene_agent
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import SimulationPlan
-from app.world_review import service as world_review
-from app.world_review.errors import WorldReviewFailure
-from app.world_review.models import Finding as WorldFinding, WorldReviewResult
+from app.world.review import service as world_review
+from app.world.errors import WorldReviewFailure
+from app.world.review.models import Finding as WorldFinding, WorldReviewResult
 
 from .stubs import (CLOSING, COVERAGE, DRAFT, FORM, LINE, OPENING, PATCH, QA, REVIEW, SCENE_TEXT, SCOPE, WEB, WORLD_REVIEW_REQUEST,
                     fake_agents, fake_scene, plan)

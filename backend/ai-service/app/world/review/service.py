@@ -7,9 +7,9 @@ HTTP 경로(router)와 오케스트레이션의 world_review 단계가 같은 re
 
 from app import tracing
 from app.content_mcp import service as content_mcp
-from app.world_review import agent
-from app.world_review.errors import WorldReviewFailure
-from app.world_review.models import (MAX_CARD_CHARS, MAX_CARDS, Finding, Fix, Relationship, RequestCard, WorldReviewRequest,
+from app.world.review import agent
+from app.world.errors import WorldReviewFailure
+from app.world.review.models import (MAX_CARD_CHARS, MAX_CARDS, Finding, Fix, Relationship, RequestCard, WorldReviewRequest,
                                      WorldReviewResponse)
 
 MAX_MESSAGE = 300

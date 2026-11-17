@@ -1,8 +1,8 @@
 import pytest
 from fastapi import HTTPException
 
-from app.world_review import router
-from app.world_review.errors import WorldReviewFailure
+from app.world import router
+from app.world.errors import WorldReviewFailure
 
 from .stubs import fake_agent, finding, request
 

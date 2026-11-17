@@ -3,9 +3,9 @@
 from fastapi import APIRouter, Header, HTTPException
 
 from app.internal_auth import require_internal_token
-from app.world_review import service
-from app.world_review.errors import WorldReviewFailure
-from app.world_review.models import WorldReviewRequest, WorldReviewResponse
+from app.world.review import service
+from app.world.errors import WorldReviewFailure
+from app.world.review.models import WorldReviewRequest, WorldReviewResponse
 
 router = APIRouter()
 

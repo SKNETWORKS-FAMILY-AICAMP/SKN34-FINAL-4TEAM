@@ -28,7 +28,7 @@ interrupt로 작가 승인을 기다린다. 승인 resume이면 그 요청의 �
 끝까지 가지 못해 이어 갈 수 없는 장면(첫 턴 실패)은 부분 결과와 함께 failed다.
 
 설정집 검토(world_review): 단계 입력이 없다. target의 작품에 연결된 세계관을 작가 권한(Content MCP)으로 읽어 HTTP 경로(POST /internal/v1/world-reviews)와
-같은 app/world_review service 함수로 검토하고 지적·수정안을 단계 결과로 돌려준다. 제안일 뿐이라 승인 단계가 없고 조건부 수정과도 이어지지 않는다.
+같은 app/world/review service 함수로 검토하고 지적·수정안을 단계 결과로 돌려준다. 제안일 뿐이라 승인 단계가 없고 조건부 수정과도 이어지지 않는다.
 
 대화 세션 CRUD(#331): 대화용 테이블 없이 체크포인터만 쓴다. 실행마다 checkpoint metadata에 scope를 남겨 목록을 거르고,
 턴마다 최종 응답을 turns에 남겨 이력을 다시 그린다. 메시지 수정·삭제는 그 턴 직전의 완료 checkpoint에서 갈라져 나간다
@@ -78,8 +78,8 @@ from app.simulation.errors import SimulationFailure
 from app.simulation.models import GAP_LABELS, Scene, SimulationPlan
 from app.simulation.scene_agent import scene_agent, turn as simulation_turn
 from app.simulation.service import SceneContext
-from app.world_review import service as world_review
-from app.world_review.errors import WorldReviewFailure
+from app.world.review import service as world_review
+from app.world.errors import WorldReviewFailure
 from app.writing import agent as writing
 from app.writing.errors import WritingFailure
 from app.writing.models import DraftRequest, PatchRequest

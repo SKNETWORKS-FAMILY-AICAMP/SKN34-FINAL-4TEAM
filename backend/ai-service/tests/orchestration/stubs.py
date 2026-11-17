@@ -9,7 +9,7 @@ from app.retrieval.models import RetrievalResult
 from app.review.models import Finding as ReviewFinding, ReviewResponse
 from app.simulation import agent, director
 from app.simulation.models import Action, Check, CheckItem, Decision, Narration, SimulationPlan, SimulationResult, Turn, Verdict
-from app.world_review.models import Finding as WorldFinding, Fix, WorldReviewRequest, WorldReviewResponse
+from app.world.review.models import Finding as WorldFinding, Fix, WorldReviewRequest, WorldReviewResponse
 from app.writing.models import DraftResponse, PatchResponse
 
 QA = {'question': '길드 규칙은?', 'excerpts': [{'id': 'a', 'episode': 4, 'quote': '길드는 밤에 문을 닫는다.'}]}

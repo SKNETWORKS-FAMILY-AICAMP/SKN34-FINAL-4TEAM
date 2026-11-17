@@ -3,7 +3,7 @@ from pydantic import ValidationError
 
 from app.orchestration.models import OrchestrationRequest, StepResult, WritingInput
 from app.simulation.models import SimulationPlan, SimulationResult
-from app.world_review.models import WorldReviewResponse
+from app.world.review.models import WorldReviewResponse
 
 from .stubs import DRAFT, PATCH, SCENE, WORLD_REVIEW
 
