@@ -2,6 +2,7 @@
 import { act, cleanup, renderHook } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { useWritingViewModel } from './useWritingViewModel'
+import { SessionExpired } from '../../../../domain/repositories/ProfileRepository'
 
 afterEach(()=>{cleanup();vi.useRealTimers()})
 it('inserts an uploaded immutable image reference at the cursor and keeps it through a saved version',async()=>{
@@ -524,4 +525,15 @@ it('does not replace the typing in another episode when a late aiApplied call fr
   expect(result.current.draft.body).toBe('3화에서 새로 쓴 문장')
   // 목록의 4화 초안은 AI가 이어 쓴 내용으로 갱신돼, 나중에 4화를 열면 보인다.
   expect(result.current.episodes.find((e) => e.number === 4)?.draft.body).toBe('AI가 이어 쓴 넷째')
+})
+
+it.each([
+  ['로그인이 풀려 목록을 못 불러오면 로그인 안내 표시를 켠다',new SessionExpired('서버 인증이 필요합니다. 로그인한 뒤 다시 시도해 주세요.'),true],
+  ['다른 오류는 로그인 안내를 켜지 않는다',new Error('목록 조회 실패'),false],
+])('%s',async(_name,failure,expected)=>{
+  const api={setPublicationVisibility:vi.fn(),history:vi.fn(),writingList:vi.fn().mockRejectedValue(failure),createEpisode:vi.fn(),writeEpisode:vi.fn(),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn(),deleteEpisode:vi.fn()}
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  expect(result.current.error).toBe(failure.message)
+  expect(result.current.expired).toBe(expected)
 })
