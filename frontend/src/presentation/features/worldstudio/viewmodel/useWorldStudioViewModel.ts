@@ -1,7 +1,7 @@
 import { cardLibraryRows, type WritingIssue, worldSealIssues, worldWritingIssues } from '../../../../domain/entities/worldStudioWriting'
 import { initialWorldStudioFlow, legacyTabTarget, type ManageView, NEW_WORLD_QUERY, parseManageView, type StudioStep, studioMode, worldStudioFlow } from './worldStudioFlow'
 import { listingOf, needsPublicConfirm, PUBLIC_CONFIRM, publicationNotice } from './worldPublication'
-import { useWorldCoverImage } from './useWorldCoverImage'
+import { useWorldCoverImage } from '../../../shared/useWorldCoverImage'
 import { useCardImages } from './useCardImages'
 import { worldStudioStorage } from './worldStudioStorage'
 import { useWorldReview } from './useWorldReview'
@@ -522,7 +522,7 @@ export function useWorldStudioViewModel(
     /** 서버에 저장된 공개 범위·장르(값이 없으면 비공개·미지정) */
     publication,
     publishing,
-    /** 올린 표지 이미지(소유자 인증 읽기 → 객체 주소). 표지가 없거나 읽는 중·실패면 `url`이 비어 자동 생성 표지를 쓴다. */
+    /** 올린 표지 이미지(소유자 인증 읽기 → 객체 주소). 표지가 없거나 읽는 중·실패면 `url`이 비어 기본 표지를 쓴다. */
     cover,
     /** 표지 저장소가 있는지. 서버 저장소가 없는 데모(메모리)는 표지 올리기를 지원하지 않는다. */
     supportsCover: useCase.supportsCover,
@@ -592,7 +592,7 @@ export function useWorldStudioViewModel(
           if (current === generation.current) {
             setSaved((w) => (w && w.id === saved.id ? { ...w, hasCover: !!file } : w))
             setCoverRevision((revision) => revision + 1)
-            setMessage(file ? '표지를 올렸어요.' : '표지를 지웠어요. 자동으로 만든 표지를 써요.')
+            setMessage(file ? '표지를 올렸어요.' : '표지를 지웠어요. 기본 표지를 써요.')
             done = true
           }
         } finally {

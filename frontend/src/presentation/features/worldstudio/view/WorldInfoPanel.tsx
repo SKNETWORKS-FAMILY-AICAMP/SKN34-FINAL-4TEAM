@@ -72,12 +72,12 @@ export function WorldInfoPanel({ vm, world, onClose }: { vm: VM; world: StudioWo
             </label>
             <AiCoverButton />
             {vm.supportsCover && world.hasCover && (
-              <button type="button" className="btn sm" onClick={() => { if (window.confirm('표지를 삭제할까요? 자동으로 만든 표지로 돌아가요.')) void vm.setCover(null) }}>표지 삭제</button>
+              <button type="button" className="btn sm" onClick={() => { if (window.confirm('표지를 삭제할까요? 기본 표지로 돌아가요.')) void vm.setCover(null) }}>표지 삭제</button>
             )}
           </div>
           {cover
             ? <div className="ep-file-chosen"><span>{`선택한 파일: ${cover.name}`}</span></div>
-            : <p className="small muted">{vm.supportsCover ? 'PNG·JPEG·WebP, 5 MiB 이하. 올리지 않으면 자동으로 만든 표지를 써요. 공개 목록에는 확정 버전을 남긴 공개 세계관의 표지로 보여요.' : '데모에서는 표지 업로드를 지원하지 않아요.'}</p>}
+            : <p className="small muted">{vm.supportsCover ? 'PNG·JPEG·WebP, 5 MiB 이하. 올리지 않으면 기본 표지를 써요. 공개 목록에는 확정 버전을 남긴 공개 세계관의 표지로 보여요.' : '데모에서는 표지 업로드를 지원하지 않아요.'}</p>}
           {coverProblem && <p role="alert" className="small">{coverProblem}</p>}
           {vm.coverAction && <p role="status" className="small muted">{vm.coverAction === 'upload' ? '표지를 올리고 있어요…' : '표지를 지우고 있어요…'}</p>}
           {vm.cover.error && <p className="small muted">{vm.cover.error}</p>}

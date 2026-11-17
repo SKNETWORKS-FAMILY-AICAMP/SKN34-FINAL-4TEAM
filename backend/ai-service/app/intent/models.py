@@ -16,11 +16,14 @@ class IntentStep(BaseModel):
     feature: Feature
     when: Literal['always', 'if_issues_found']
     check: Literal['mechanical', 'semantic', 'both'] | None = None  # review 단계만. Router가 검수 종류를 알아낸 경우(#369)
+    task: Literal['plan', 'draft', 'patch'] | None = None  # writing_editing 단계만. Router가 집필 작업 종류를 알아낸 경우(#387)
 
     @model_validator(mode='after')
-    def review_only(self):
+    def own_feature_only(self):
         if self.check and self.feature != 'review':
             raise ValueError('검수 종류는 review 단계에만 붙습니다.')
+        if self.task and self.feature != 'writing_editing':
+            raise ValueError('집필 작업 종류는 writing_editing 단계에만 붙습니다.')
         return self
 
 

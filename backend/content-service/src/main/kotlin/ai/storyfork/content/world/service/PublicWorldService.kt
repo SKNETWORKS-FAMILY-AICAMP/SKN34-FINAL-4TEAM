@@ -2,8 +2,12 @@ package ai.storyfork.content.world.service
 
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.attachment.client.AttachmentStorageClient
+import ai.storyfork.content.attachment.repository.ContentImageRepository
 import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.auth.service.WITHDRAWN_MEMBER_NAME
+import ai.storyfork.content.work.repository.WorkRepository
+import ai.storyfork.content.work.service.WorkAccessService
+import ai.storyfork.content.work.service.dto.WorkAccessResult
 import ai.storyfork.content.world.domain.WORLD_GENRES
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.domain.cardImageId
@@ -27,7 +31,8 @@ import org.springframework.transaction.support.TransactionTemplate
 /**
  * 공개 세계관의 비로그인 읽기 전용 조회다. 마지막 저장 버전의 공개 카드(삭제되지 않았고 소유자가 공개로 바꾼 카드, DEC-46)와
  * 그 카드끼리의 Neo4j 현재 관계만 보여 주며 비공개·초안뿐인·없는 세계관은 모두 404로 숨긴다. 공개 카드가 하나도 없는 공개 세계관은 카드 없이 그대로 나온다.
- * PostgreSQL은 읽기 전용 짧은 트랜잭션이고 Neo4j·Core·객체 저장소(표지) 호출은 그 밖이다.
+ * 상세에는 연결된 소설이 공개 작품일 때만 그 최소 정보를 싣는다(#329).
+ * PostgreSQL은 읽기 전용 짧은 트랜잭션이고 Neo4j·Core·객체 저장소(표지)·작품(Content 트랜잭션) 호출은 그 밖이다.
  */
 @Service
 class PublicWorldService(
@@ -35,6 +40,7 @@ class PublicWorldService(
     private val revisionCards: WorldRevisionCardRepository, private val cardVersions: SettingCardVersionRepository, private val images: SettingCardImageRepository,
     private val states: WorldRelationshipStateRepository, private val graph: Neo4jRelationshipRepository,
     private val nicknames: CoreNicknameService, private val storage: AttachmentStorageClient,
+    private val works: WorkRepository, private val workAccess: WorkAccessService, private val workImages: ContentImageRepository,
     @Qualifier("worldStudioTransactionManager") manager: PlatformTransactionManager,
 ) {
     private val transaction = TransactionTemplate(manager).apply { isReadOnly = true }
@@ -63,27 +69,34 @@ class PublicWorldService(
         // 확정(sealed)되지 않은 현재 버전은 상세처럼 숨긴다(FK는 버전의 존재·소속만 보장한다).
         // ponytail: total은 쿼리 기준이라 이때 items보다 클 수 있다. currentRevisionId는 확정 뒤에만 정해져 지금은 생기지 않으며, 생기면 목록 쿼리에 sealed 조건을 둔다.
         val shown = found.page.content.filter { it.currentRevisionId in found.revisions }
-        val names = authors(shown.map { it.ownerSubject }.distinct())
+        val names = authors(shown.map { it.ownerSubject.toString() }.distinct())
         // ponytail: 세계관마다 Neo4j를 한 번씩 읽는다(한 쪽 최대 100번). 느려지면 한 쿼리로 묶는 배치 조회를 둔다.
         val items = shown.map { world ->
             val revision = found.revisions.getValue(requireNotNull(world.currentRevisionId))
             val cardIds = found.cardIds[revision.id].orEmpty().toSet()
-            PublicWorldSummaryResponse(world.id, revision.name, revision.description, world.genre, names.getValue(world.ownerSubject),
+            PublicWorldSummaryResponse(world.id, revision.name, revision.description, world.genre, names.getValue(world.ownerSubject.toString()),
                 cardIds.size, currentRelationships(world.id, found.states[world.id], cardIds)?.size ?: 0, world.published(), world.coverObjectKey != null)
         }
         return PublicWorldPageResponse(items, request.pageNumber, request.pageSize, found.page.totalElements)
     }
 
-    /** 공개 세계관의 마지막 저장 버전에 있는 공개 카드와 그 카드끼리의 현재 관계를 돌려준다. 공개가 아니거나 저장 버전이 없거나 없으면 404다. */
+    /**
+     * 공개 세계관의 마지막 저장 버전에 있는 공개 카드와 그 카드끼리의 현재 관계를 돌려준다. 공개가 아니거나 저장 버전이 없거나 없으면 404다.
+     * 이 세계관에 연결된 소설(1:1, DEC-46)은 **공개 작품일 때만** 최소 정보로 싣고, 비공개·제한·삭제 작품이거나 연결이 없으면 null이다(#329).
+     */
     fun detail(id: UUID): PublicWorldResponse {
         val seen = tx { snapshot(id) }
-        val author = authors(listOf(seen.world.ownerSubject)).getValue(seen.world.ownerSubject)
+        // 연결의 정본은 작품 쪽(Content 트랜잭션)이라 WorldStudio 읽기 트랜잭션을 닫은 뒤 따로 읽는다. 소설 작가명은 세계관 작가와 같은 Core 조회 한 번에 채운다.
+        val work = linkedPublicWork(id)
+        val owner = seen.world.ownerSubject.toString()
+        val names = authors(listOfNotNull(owner, work?.ownerId).distinct())
         val relations = currentRelationships(id, seen.state, seen.cards.map { it.cardId }.toSet())
-        return PublicWorldResponse(id, seen.revision.name, seen.revision.description, seen.world.genre, author, seen.world.published(), seen.revision.revisionNo,
+        return PublicWorldResponse(id, seen.revision.name, seen.revision.description, seen.world.genre, names.getValue(owner), seen.world.published(), seen.revision.revisionNo,
             seen.cards.map { PublicWorldCardResponse(it.cardId, it.fields.title, it.fields.body, it.fields.cardType, it.fields.aliases.toList(), it.fields.tags.toList(), cardImageId(it.fields.semanticMetadata)) },
             // 양 끝이 공개 카드인 관계만 남았으므로 끝점은 비어 있지 않다.
             relations.orEmpty().map { PublicWorldRelationshipResponse(it.id, it.sourceCardId!!, it.targetCardId!!, it.label) },
-            if (relations == null) "unavailable" else "current", seen.world.coverObjectKey != null)
+            if (relations == null) "unavailable" else "current", seen.world.coverObjectKey != null,
+            work?.let { PublicWorldLinkedWorkResponse(it.id, it.title, names.getValue(it.ownerId), workImages.countByWorkIdAndEpisodeNo(it.id, 0) > 0) })
     }
 
     /** 공개 세계관의 표지 이미지다. 상세와 같은 기준(공개·확정 버전)이며 비공개·확정 버전 없음·표지 없음·없는 세계관은 404이고, 객체 저장소 실패는 그 상태 그대로다. */
@@ -164,10 +177,17 @@ class PublicWorldService(
         } catch (_: WorldStudioFailure) { null }
     }
 
+    /**
+     * 세계관 [worldId]에 연결된 소설(`work.world_studio_id`)의 접근 결과다. 공개 작품([WorkAccessResult.publiclyVisible])일 때만이고, 연결이 없거나 비공개·제한·삭제 작품이면 null이라 그 존재를 드러내지 않는다.
+     * 작품은 Content 트랜잭션이라 WorldStudio 읽기 트랜잭션([tx]) 밖에서 부른다.
+     */
+    private fun linkedPublicWork(worldId: UUID): WorkAccessResult? =
+        works.findAllByWorldStudioIdIn(listOf(worldId)).firstOrNull()?.let { workAccess.get(it.id) }?.takeIf { it.publiclyVisible() }
+
     /** 작가 표시명은 저장하지 않고 Core에서 한 번에 조회한다. Core에 없으면 탈퇴한 회원이고, 호출 실패는 대체 이름 없이 그대로 전파한다. */
-    private fun authors(owners: List<UUID>): Map<UUID, String> {
-        val found = nicknames.nicknames(owners.map { it.toString() })
-        return owners.associateWith { found[it.toString()] ?: WITHDRAWN_MEMBER_NAME }
+    private fun authors(owners: List<String>): Map<String, String> {
+        val found = nicknames.nicknames(owners)
+        return owners.associateWith { found[it] ?: WITHDRAWN_MEMBER_NAME }
     }
 
     private fun StudioWorld.published() = requireNotNull(publishedAt) { "공개 세계관에는 공개 시각이 있다." }.toString()

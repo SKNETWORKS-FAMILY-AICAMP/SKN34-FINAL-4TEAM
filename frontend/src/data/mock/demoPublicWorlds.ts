@@ -5,10 +5,10 @@ import type { CardType } from '../../domain/entities/studioCards'
  * 메모리 데모(`--mode mockup`·테스트)의 공개 세계관 데이터 26개. `InMemoryPublicWorldRepository`가 서버 공개 세계관 API와 같은 모양으로 바꿔 돌려준다.
  * 실제 모드는 이 데이터를 쓰지 않는다(Content `GET /api/v1/public/world-studios`, `HttpPublicWorldRepository`).
  *
- * ponytail: 서버에 파생·조합(`world_lineage`)이 없고(설정 가져오기가 대신한다, DEC-46) 공개 세계관 응답이 연결된 소설을 주지 않아 계보(`derivedFrom`·`combinedFrom`)와 작품(`works`)은 이 데모에만 있다.
+ * ponytail: 서버에 파생·조합(`world_lineage`)이 없고(설정 가져오기가 대신한다, DEC-46) 계보(`derivedFrom`·`combinedFrom`)는 이 데모에만 있고, 작품(`works`)은 실제 작품이 아닌 데모 표시용이다(실제 모드는 서버가 연결된 공개 소설 `linkedWork`를 준다).
  * 한계: 새로고침해도 같은 목록이고 내 세계관·서버 저장과 이어지지 않는다. 읽기 전용이며 이용·복사·작품 연결은 없다. 서버에는 공개 시각만 있어
- * 데모는 배열 뒤쪽일수록 최근에 공개됐다고 본다(목록은 최근 공개 순). 표지는 장르별 테마 아트라 서버 값이 아니다.
- * 서버 계보·작품이 생기면 계약에 필드를 더하고 이 파일의 `derivedFrom`·`combinedFrom`·`works`를 그 응답으로 바꾼다.
+ * 데모는 배열 뒤쪽일수록 최근에 공개됐다고 본다(목록은 최근 공개 순). 표지는 `hasCover`가 없어 기본 표지다.
+ * 서버 계보가 생기면 계약에 필드를 더하고 이 파일의 `derivedFrom`·`combinedFrom`을 그 응답으로 바꾼다.
  * 노드가 수백 개를 넘으면 서버가 장르·최근 공개 순으로 줄여 보낸다.
  */
 

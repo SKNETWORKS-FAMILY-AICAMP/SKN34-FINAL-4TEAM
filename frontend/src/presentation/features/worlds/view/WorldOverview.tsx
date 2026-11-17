@@ -27,7 +27,7 @@ export function WorldOverview({ world }: { world: PublicWorld }) {
           <table className="nw-info" style={{ '--cat': GENRE_COLORS[genre] } as CSSProperties}>
             <caption>{world.name}</caption>
             <tbody>
-              <tr><td colSpan={2} className="nw-cover"><WorldCover w={world} k="b" /></td></tr>
+              <tr><td colSpan={2} className="nw-cover"><WorldCover w={world} /></td></tr>
               <InfoRow k="장르">{genre}</InfoRow>
               <InfoRow k="작가">{world.authorNickname}</InfoRow>
               <InfoRow k="설정 카드">{world.cards.length}개</InfoRow>
