@@ -21,7 +21,7 @@ export function MyWorlds() {
             {/* ponytail: 세계관 표지는 API 연결은 후속이라 지금은 기본 표지만 둔다. */}
             <div className="th"><img className="cimg" src="/default-work-cover.svg" alt="" /></div>
             <div className="server-writing-content"><h3>{world.name}</h3>
-              <div className="m">설정 {world.settings.length}개 · 버전 {world.version}</div>
+              <div className="m">설정 {world.cardCount ?? world.settings.length}개 · 버전 {world.version}</div>
             </div>
             <div className="acts">
               <Go className="btn sm" to={`/worldstudio/${world.id}`} aria-label={`${world.name} 관리하기`}>관리하기</Go>
