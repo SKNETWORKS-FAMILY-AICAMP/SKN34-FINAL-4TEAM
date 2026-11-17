@@ -77,6 +77,7 @@ class WorldStudioServiceTest {
     @Test fun `manuscript receipt completes with draft and retries before reading changed graph`() {
         owned()
         val job=ManuscriptBuildJob(workId="work",worldId=world,ownerSubject=actor,requestKey="build",requestHash="a".repeat(64),manifest=emptyMap(),status="loading")
+        job.status="unknown";job.failureCode="LOAD_RESULT_UNCONFIRMED"
         val request=EditWorldDraftRequest(2,"편집본","",key="reserved")
         @Suppress("UNCHECKED_CAST")
         val json=mapper.readValue(mapper.writeValueAsBytes(request),Map::class.java) as Map<String,Any?>
@@ -93,6 +94,7 @@ class WorldStudioServiceTest {
         val receipt=service.editManuscriptAddition(world,actor,step.id)
         assertEquals(3L,(receipt["draftRevision"] as Number).toLong())
         assertEquals("applied",step.status);assertEquals("completed",job.status)
+        assertNull(job.failureCode)
         assertTrue(state.completed);assertEquals(3L,draft.draftRevision)
         clearInvocations(graph)
         draft.draftRevision=20;state.graphVersion=21

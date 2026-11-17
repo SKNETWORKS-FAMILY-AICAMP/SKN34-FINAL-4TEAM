@@ -305,7 +305,9 @@ class WorldStudioService(
                         "cardIds" to request.cards.map { it.id },"relationshipIds" to request.relationships.map { it.id })),Map::class.java) as Map<String,Any?>
                     step.receipt=receipt;buildSteps.flush()
                     val steps=buildSteps.findAllByJobIdOrderBySequence(job.id)
-                    if(steps.isNotEmpty() && steps.all { it.status=="applied" }) job.status="completed" else job.status="loading"
+                    if(steps.isNotEmpty() && steps.all { it.status=="applied" }) {
+                        job.status="completed";job.failureCode=null
+                    } else job.status="loading"
                     buildJobs.flush()
                 }
                 states.flush()
