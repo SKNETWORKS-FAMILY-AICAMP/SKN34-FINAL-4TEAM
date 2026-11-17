@@ -191,7 +191,7 @@
 <tr><td>작품 유형 선택·저장</td><td>✅</td></tr>
 <tr><td>승인 장르 1~2개 선택·저장</td><td>✅</td></tr>
 <tr><td>해시태그 0~10개 검증·저장</td><td>✅</td></tr>
-<tr><td>AI 장르·키워드 추천 <small>(작가 본인 작품의 제목·소개·발행 회차 앞 3개로 후보만 받고 저장은 기존 작품 수정 API가 함, <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/372">#372</a>)</small></td><td>❌ <small>(부분: <code>POST /api/v1/works/{id}/tag-suggestions</code> 소스 구현, 응답 <code>{genres, hashtags}</code>, 오류 404 소유자 아님·409 발행 회차 없음·502 AI 결과 오류·503 AI 사용 불가·504 시간 초과, 로컬 단위 테스트 통과, hosted CI 통합 미확인, 화면 없음)</small></td></tr>
+<tr><td>AI 장르·키워드 추천 <small>(작가 본인 작품의 제목·소개·발행 회차 앞 3개로 후보만 받고 저장은 기존 작품 수정 API가 함, <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/372">#372</a>)</small></td><td>❌ <small>(부분: <code>POST /api/v1/works/{id}/tag-suggestions</code> 소스 구현, 응답 <code>{genres, hashtags}</code>, 오류 404 소유자 아님·409 발행 회차 없음·502 AI 결과 오류·503 AI 사용 불가·504 시간 초과, 로컬 단위 테스트 통과, hosted CI 통합 미확인, 화면: 작품 정보 수정 폼의 "AI로 장르·해시태그 추천 받기" 버튼 추가, CI 확인 전)</small></td></tr>
 <tr><td>작품 등록 권리 확인·기록</td><td>✅</td></tr>
 <tr><td>작품 상세 조회</td><td>✅ <small>(#366: 소개 없는 원작·출처 불완전 Fork의 소개 줄 숨김 소스 구현, 로컬 단위 54개·CI 통과)</small></td></tr>
 <tr><td>내 작품 목록 조회</td><td>✅</td></tr>

@@ -160,11 +160,11 @@ export function useEpisodeViewModel(
       }),
     /** 저장된 제목·소개와 발행 회차로 장르·해시태그 후보를 받는다(#372). 저장은 하지 않으며, 실패 사유는 화면 위 오류로 알리고 null을 돌려준다. */
     suggestTags: async () => {
-      const found: { value: WorkTagSuggestion | null } = { value: null }
+      let found = null as WorkTagSuggestion | null
       await run(async () => {
-        if (active) found.value = await useCase.suggestWorkTags(active.id)
+        if (active) found = await useCase.suggestWorkTags(active.id)
       })
-      return found.value
+      return found
     },
     policy: (allowFork: boolean, allowForkPublication: boolean) =>
       run(async () => {

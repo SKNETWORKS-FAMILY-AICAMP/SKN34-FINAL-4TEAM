@@ -88,7 +88,7 @@ export function WorkOverview({ work: w, locked, busy, nextNo, coverRevision, onM
             </span>
           </div>
           {editing === 'info'
-            ? <InfoForm key={w.revision} work={w} locked={locked} onSave={onSaveInfo} onSuggest={onSuggestTags} onClose={close} />
+            ? <InfoForm key={w.revision} work={w} locked={locked} onSave={onSaveInfo} onSuggest={onSuggestTags} busy={busy} onClose={close} />
             : w.summary
             ? <p className='sum'>{w.summary}</p>
             : <p className='sum ep-muted'>당신의 이야기를 한 문장씩 채워 보세요.</p>}
@@ -167,7 +167,7 @@ export function WorkOverview({ work: w, locked, busy, nextNo, coverRevision, onM
 const sameList = (a: string[], b: string[] = []) => a.length === b.length && a.every((v, i) => v === b[i])
 
 /** 처음 받은 작품 값을 상태로 복사한다. 작품이 다시 읽혀 revision이 바뀌면 호출 측이 key로 새로 만들어 최신 서버 값에서 다시 시작한다. */
-function InfoForm({ work, locked, onSave, onSuggest, onClose }: { work: Work; locked: boolean; onSave: Props['onSaveInfo']; onSuggest: Props['onSuggestTags']; onClose: () => void }) {
+function InfoForm({ work, locked, busy, onSave, onSuggest, onClose }: { work: Work; locked: boolean; busy: boolean; onSave: Props['onSaveInfo']; onSuggest: Props['onSuggestTags']; onClose: () => void }) {
   const [title, setTitle] = useState(work.title)
   const [summary, setSummary] = useState(work.summary)
   const [genre1, setGenre1] = useState(work.genres?.[0] ?? '')
@@ -181,9 +181,10 @@ function InfoForm({ work, locked, onSave, onSuggest, onClose }: { work: Work; lo
   const tags = parseHashtags(hashtags)
   const taxonomy: WorkTaxonomy = { ...(sameList(genres, work.genres) ? {} : { genres }), ...(sameList(tags, work.hashtags) ? {} : { hashtags: tags }) }
   const changed = title.trim() !== work.title || summary.trim() !== work.summary || Object.keys(taxonomy).length > 0
-  // 추천 후보는 눌러서 입력에 담기만 한다. 저장은 아래 저장 버튼이 하며, 장르는 최대 2개·해시태그는 최대 10개를 넘기지 않는다.
-  const pickGenre = (g: string) => { if (g === genre1 || g === genre2) return; if (!genre1) setGenre1(g); else setGenre2(g) }
-  const addTag = (t: string) => { if (tags.includes(t) || tags.length >= 10) return; setHashtags([...tags, t].map((x) => `#${x}`).join(', ')) }
+  // 추천 후보는 눌러서 입력에 담기만 한다. 저장은 아래 저장 버튼이 한다. 이미 고른 값이거나 한도(장르 2개·해시태그 10개)가 찬 뒤에는 버튼을 막아 눌러도 반응 없는 상태를 만들지 않는다.
+  const genreFull = !!genre1 && !!genre2
+  const pickGenre = (g: string) => { if (!genre1) setGenre1(g); else setGenre2(g) }
+  const addTag = (t: string) => setHashtags([...tags, t].map((x) => `#${x}`).join(', '))
   return (
     <form
       className='ep-edit'
@@ -203,12 +204,12 @@ function InfoForm({ work, locked, onSave, onSuggest, onClose }: { work: Work; lo
         </label>
         <TaxonomyFields genre1={genre1} genre2={genre2} hashtags={hashtags} onGenre1={setGenre1} onGenre2={setGenre2} onHashtags={setHashtags} />
         <div className='ep-suggest'>
-          <button type='button' className='btn sm' onClick={async () => { const found = await onSuggest(); if (found) setSuggestion(found) }}>AI로 장르·해시태그 추천 받기</button>
+          <button type='button' className='btn sm' onClick={async () => { const found = await onSuggest(); if (found) setSuggestion(found) }}>{busy ? '추천 받는 중…' : 'AI로 장르·해시태그 추천 받기'}</button>
           <small className='ep-optional'>저장된 제목·소개와 발행 회차를 바탕으로 추천해요. 고른 값은 저장해야 반영돼요.</small>
           {suggestion && (
             <div role='group' aria-label='AI 추천 후보'>
-              <div>장르 {suggestion.genres.map((g) => <button type='button' key={g} className='btn sm' aria-pressed={g === genre1 || g === genre2} onClick={() => pickGenre(g)}>{g}</button>)}</div>
-              <div>해시태그 {suggestion.hashtags.map((t) => <button type='button' key={t} className='btn sm' aria-pressed={tags.includes(t)} onClick={() => addTag(t)}>#{t}</button>)}</div>
+              <div>장르 {suggestion.genres.map((g) => <button type='button' key={g} className='btn sm' disabled={g === genre1 || g === genre2 || genreFull} onClick={() => pickGenre(g)}>{g}</button>)}</div>
+              <div>해시태그 {suggestion.hashtags.map((t) => <button type='button' key={t} className='btn sm' disabled={tags.includes(t) || tags.length >= 10} onClick={() => addTag(t)}>#{t}</button>)}</div>
             </div>
           )}
         </div>
