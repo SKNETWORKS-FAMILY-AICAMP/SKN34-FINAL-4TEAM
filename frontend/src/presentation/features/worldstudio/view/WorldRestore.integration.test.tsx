@@ -80,6 +80,7 @@ it('확정 버전 시트에서 되돌리면 서버가 바꾼 초안을 다시 �
   expect(String(ask.mock.calls[0][0])).toContain('사라지는 설정 카드 1개') // 다온
   await waitFor(() => expect(restoreRevision).toHaveBeenCalledExactlyOnceWith('qa', 'r1', 3, expect.any(AbortSignal)))
   expect(await sheet.findByText(/확정 버전 1의 카드로 초안을 되돌렸어요/)).toBeTruthy()
+  await waitFor(() => expect(document.activeElement).toBe(sheet.getByRole('button', { name: '이 버전으로 초안 되돌리기' })))
   expect(read.mock.calls.length).toBeGreaterThanOrEqual(2) // 처음 읽기 + 되돌린 뒤 다시 읽기
   fireEvent.click(sheet.getByRole('button', { name: '닫기' }))
   expect(await screen.findByRole('button', { name: /가람 확정/ })).toBeTruthy()
