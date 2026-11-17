@@ -696,7 +696,7 @@ class WorldStudioServiceTest {
     @Test fun `owner summaries count only the active draft cards`() {
         owned()
         val entity=StudioWorld(world,actor)
-        `when`(worlds.findAllByOwnerSubjectOrderByCreatedAtDesc(actor)).thenReturn(listOf(entity))
+        `when`(worlds.findAllByOwnerSubjectAndDeletedAtIsNullOrderByCreatedAtDesc(actor)).thenReturn(listOf(entity))
         `when`(cardDrafts.countByWorldIdAndFieldsLifecycle(world,"active")).thenReturn(3L)
         assertEquals(3L,service.list(actor).single().cardCount)
         assertEquals(0L,WorldStudioSummaryResponse(world,"n","d",0,"current").cardCount)
