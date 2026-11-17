@@ -40,6 +40,19 @@ it('shows the saved approval episode even when a different episode is open', asy
   expect(await screen.findByRole('heading', { name: '1화 초안에 반영할까요?' })).toBeTruthy()
 })
 
+it('바로 쓴 원고의 승인 카드는 반영할 본문과 따로 사용한 계획을 보인다(#458)', async () => {
+  sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [{
+    request: '다음 화를 기획하고 써줘',
+    reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 2, steps: [{
+      feature: 'writing_editing', status: 'completed', result: { text: '선장은 항구에 내렸다.', plan: { title: '항구의 밤', beats: ['선장이 도착한다.'] } } }] },
+  }] })
+  render(<WritingChat workId="w" basis={{ episode: 2, episodeVersionId: 'v2' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByRole('heading', { name: '2화 초안에 반영할까요?' })
+  expect(screen.getByLabelText('반영할 내용').textContent).toBe('선장은 항구에 내렸다.')
+  expect(screen.getByText('사용한 계획: 항구의 밤 — 선장이 도착한다.')).toBeTruthy()
+})
+
 // ── 인물 시뮬레이션 장면(#58): 대본·승인은 집필실 무대가 맡고, 채팅에는 상태 한 줄과 무대 열기만 남는다 ──
 const turn = (index: number, name: string, prose: string): CharacterSimulation['turns'][number] => ({
   index, kind: 'character', pov: 'omniscient', characterId: `c${index}`, characterName: name, prose, editedByAuthor: false,
