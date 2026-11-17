@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { appContainer } from '../../../../app/appContainer'
-import type { History, Work, WorkRegistration, WorkTaxonomy } from '../../../../domain/entities/content'
+import type { History, Work, WorkRegistration, WorkTagSuggestion, WorkTaxonomy } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { type MediaUseCase, validateMediaFile } from '../../../../domain/usecases/MediaUseCase'
 
@@ -158,6 +158,14 @@ export function useEpisodeViewModel(
         install(await useCase.updateWork(active.id, title, summary, active.revision, undefined, taxonomy))
         setNotice('작품 정보를 저장했어요.')
       }),
+    /** 저장된 제목·소개와 발행 회차로 장르·해시태그 후보를 받는다(#372). 저장은 하지 않으며, 실패 사유는 화면 위 오류로 알리고 null을 돌려준다. */
+    suggestTags: async () => {
+      let found = null as WorkTagSuggestion | null
+      await run(async () => {
+        if (active) found = await useCase.suggestWorkTags(active.id)
+      })
+      return found
+    },
     policy: (allowFork: boolean, allowForkPublication: boolean) =>
       run(async () => {
         if (!active) return

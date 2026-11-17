@@ -59,6 +59,7 @@ export class EpisodeUseCase {
     }
     return this.repository.create(title.trim(),summary.trim(),signal,registration)
   }
+  suggestWorkTags(id: string, signal?: AbortSignal) { return this.repository.suggestWorkTags(id,signal) }
   updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal, taxonomy?: WorkTaxonomy) {
     if (!title.trim() || title.length>120 || summary.length>2000) return Promise.reject(new Error('작품 제목은 120자, 소개는 2,000자 이내로 입력해 주세요.'))
     const invalid = taxonomy && taxonomyError(taxonomy)

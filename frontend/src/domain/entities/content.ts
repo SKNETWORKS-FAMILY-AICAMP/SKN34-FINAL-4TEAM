@@ -6,6 +6,8 @@ export type WorkCreationType = 'ORIGINAL' | 'EXTERNAL_DERIVATIVE'
 export type WorkRegistration = { creationType: WorkCreationType; genres: string[]; hashtags: string[]; rightsConfirmed: boolean }
 /** 작품 정보 수정에 함께 보내는 장르·해시태그다. 주지 않은 쪽은 서버가 그대로 두고, 빈 배열은 비우기다. 규칙은 등록과 같다. */
 export type WorkTaxonomy = Partial<Pick<WorkRegistration, 'genres' | 'hashtags'>>
+/** 장르·해시태그 AI 추천 후보(#372). 저장하지 않으며 작가가 고른 값만 작품 정보 수정으로 저장한다. */
+export type WorkTagSuggestion = { genres: string[]; hashtags: string[] }
 /** 해시태그 입력을 쉼표로 나누고 앞뒤 공백·앞의 #·빈 값·중복을 뺀다('천재 주인공'처럼 태그 안 공백은 유지). 개수 검증은 EpisodeUseCase가 한다. */
 export const parseHashtags = (raw: string) => [...new Set(raw.split(',').map((t) => t.trim().replace(/^#+/, '').trim()).filter(Boolean))]
 /** 히어로 칩에 쓰는 작품 종류다. 분기 작품은 서버가 유형을 ORIGINAL로 내려 줘도 '분기 작품'이고, 유형이 없으면 빈 문자열이다. */
