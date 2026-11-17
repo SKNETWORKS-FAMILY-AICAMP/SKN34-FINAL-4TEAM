@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ai.storyfork.content.world.ManuscriptBuildInputTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-17T05:21:34.072Z" hostname="659d155de055" time="0.161">
+  <properties/>
+  <testcase name="source hash and UTF16 evidence keep exact raw text()" classname="ai.storyfork.content.world.ManuscriptBuildInputTest" time="0.078"/>
+  <testcase name="first build does not accept duplicate episode or empty source set()" classname="ai.storyfork.content.world.ManuscriptBuildInputTest" time="0.019"/>
+  <testcase name="fixed manifest requires exactly the complete saved episode set()" classname="ai.storyfork.content.world.ManuscriptBuildInputTest" time="0.048"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

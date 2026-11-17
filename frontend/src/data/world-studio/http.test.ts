@@ -682,3 +682,29 @@ it('still rejects a relation whose endpoint is neither an active nor a deleted c
  const fetcher=vi.fn().mockResolvedValue(Response.json({...value,relationships:value.relationships.map(r=>r.id===goneRelation.item.id?{...r,targetCardId:crypto.randomUUID()}:r)}))
  await expect(new HttpWorldStudioRepository(fetcher).read(id,undefined,2)).rejects.toThrow('응답')
 })
+it('실제 원고 적재 응답의 별칭 문서 근거와 회차 관계를 편집 저장 재조회한다',async()=>{
+ const response=JSON.parse(readFileSync(new URL('../../../../backend/content-service/src/test/resources/initial-build/manuscript-draft.json',import.meta.url),'utf8'))
+ let current=response
+ const fetcher=vi.fn(async(_path:unknown,init?:RequestInit)=>{
+  if(init?.method==='PUT'){
+   const body=JSON.parse(String(init.body))
+   current={...current,draftRevision:current.draftRevision+1,cards:current.cards.map((c:{id:string})=>body.cards.find((r:{id:string})=>r.id===c.id)??c)}
+  }
+  return Response.json(current)
+ })
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(response.worldId,undefined,1)
+ const hero=loaded.settings.find(s=>s.item.title==='길동')!
+ expect(hero.aliases).toContain('홍길동')
+ const {authorEdit}=await import('../../domain/entities/studioWorld')
+ const saved=await repo.saveStudio({...loaded,settings:loaded.settings.map(s=>s.item.id===hero.item.id?authorEdit(s,{text:s.item.text+'\n작가 수정'}):s)},undefined,1)
+ const roundtrip=await repo.read(response.worldId,undefined,1)
+ expect(roundtrip.settings).toEqual(saved.settings)
+ const original=response.cards.find((c:{id:string})=>c.id===hero.item.id),card=current.cards.find((c:{id:string})=>c.id===hero.item.id)
+ expect(card.semanticMetadata.manuscriptBuild).toEqual(original.semanticMetadata.manuscriptBuild)
+ expect(card.semanticMetadata.characterDocs).toEqual(original.semanticMetadata.characterDocs)
+ expect(card.semanticMetadata.studio.item.origin).toBe('author_addition')
+ expect(card.semanticMetadata.studio.item.evidence).toEqual([])
+ expect(card.visibility).toBe('private')
+ expect(card.semanticMetadata).not.toHaveProperty('revealFromEpisode')
+ expect(current.relationships).toEqual(response.relationships)
+})

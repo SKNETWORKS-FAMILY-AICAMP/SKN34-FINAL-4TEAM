@@ -1,3 +1,4 @@
+import {ManuscriptBuildPanel} from './ManuscriptBuildPanel'
 import { useId, useRef, useState } from 'react'
 import { publicationActionLabel, type Version, type Work } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
@@ -90,6 +91,7 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
       </nav>
       {tab === 'world' && (
         <>
+          {!mockup && <ManuscriptBuildPanel key={w.id} work={w} />}
           <LinkedWorldPanel work={w} busy={locked} onLink={vm.linkWorld} error={vm.origin === 'link' ? vm.error : ''} notice={vm.origin === 'link' ? vm.notice : ''} />
           <WorldPanel workId={w.id} useCase={useCase} />
         </>
@@ -186,6 +188,7 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
           <Pager page={view.page} pages={view.pages} onPage={(next) => { setPage(next); episodeList.current?.scrollIntoView?.({ block: 'start' }) }} />
           <div className='ep-list-foot'>
             <Go to={`/studio/${w.id}`} className='btn pri'>새 회차 집필하기</Go>
+            {!mockup && <button type='button' className='btn' disabled={locked} onClick={()=>setTab('world')}>원고로 세계관 만들기</button>}
             {!mockup && <button type="button" className="btn" disabled={locked}
               onClick={() => setBulkImportOpen(true)}>회차 파일 일괄 업로드</button>}
           </div>

@@ -458,7 +458,8 @@ class InitialWorldAnalysisPostgresTest {
         val studio=WorldStudioService(ctx.getBean(StudioWorldRepository::class.java),ctx.getBean(WorldDraftRepository::class.java),
             ctx.getBean(SettingCardRepository::class.java),ctx.getBean(SettingCardDraftRepository::class.java),ctx.getBean(SettingCardVersionRepository::class.java),
             ctx.getBean(WorldRevisionRepository::class.java),ctx.getBean(WorldRevisionCardRepository::class.java),ctx.getBean(WorldSaveRequestRepository::class.java),
-            ctx.getBean(WorldRelationshipStateRepository::class.java),ctx.getBean(InitialWorldApplicationRepository::class.java),ctx.getBean(SettingCardImageRepository::class.java),graph,manager,mapper)
+            ctx.getBean(WorldRelationshipStateRepository::class.java),ctx.getBean(InitialWorldApplicationRepository::class.java),ctx.getBean(SettingCardImageRepository::class.java),graph,manager,mapper,
+            ctx.getBean(ManuscriptBuildJobRepository::class.java),ctx.getBean(ManuscriptBuildLoadStepRepository::class.java))
         return InitialWorldApplicationService(studio,ctx.getBean(InitialWorldAnalysisService::class.java),ctx.getBean(StudioWorldRepository::class.java),
             ctx.getBean(InitialWorldAnalysisRepository::class.java),ctx.getBean(InitialWorldCandidateRepository::class.java),
             ctx.getBean(InitialWorldApplicationRepository::class.java),ctx.getBean(InitialWorldApplicationItemRepository::class.java),mapper,

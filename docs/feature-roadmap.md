@@ -860,3 +860,11 @@ Draft·미병합: 최신 승인 검증·UUID/payload 예약, replace:false 추�
 - WorldStudio 8단계: 명시적 확정 버전 생성·목록·읽기 전용 상세 UI(Draft, 미병합). 과거 관계/복원/발행은 제외.
 
 - WorldStudio 9-A: 소유자용 확정 설정 내부 Context 구성·출처/의미 메타데이터 보존. Draft PR 검증 중이며 공개 API·전체 집필 Context·회차/Fork/MCP·과거 관계는 미연결. [계약](design/worldstudio-confirmed-context.md).
+
+### 원고 기반 최초 세계관 구축 — 로컬 통합 검증
+
+- [x] 명시적 접수·고정 원문 snapshot·V9 job/result/load_step·Content의 기존 부분 추가 저장 연결(미커밋 작업).
+- [x] 제공사 대역 기반 4화 실제 HTTP → PostgreSQL/Neo4j → 작가 명시적 확정 수용 검증.
+- [x] 관리 화면 시작/상태/동일 작업 재개와 기존 작업실 연결. 격리 QA의 실로그인·4화 브라우저 편집/확정/재로그인, 실패 후 Content 프로세스 재시작·재개 확인([근거](verification/two-path-qa/browser-qa.md)). 실행 중 강제 종료/실배포/실모델 검증은 별도.
+- [ ] 실행 활성화 및 실모델 품질 평가. 기본 비활성 유지, 유료 호출 없음.
+- 10화 및 장애 확대 결과는 [현재 검증 기록](verification/two-path-qa/final-connection.md) 참조. 20~30화 성능은 후속, 100화 이상은 이번 범위 제외.

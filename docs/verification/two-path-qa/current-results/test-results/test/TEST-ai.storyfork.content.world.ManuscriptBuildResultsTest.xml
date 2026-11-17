@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ai.storyfork.content.world.ManuscriptBuildResultsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-17T05:50:18.870Z" hostname="9cb58bc2282a" time="0.027">
+  <properties/>
+  <testcase name="retry selects only missing episodes and combines preserved success()" classname="ai.storyfork.content.world.ManuscriptBuildResultsTest" time="0.004"/>
+  <testcase name="missing duplicate foreign and mismatching results cannot finish()" classname="ai.storyfork.content.world.ManuscriptBuildResultsTest" time="0.009"/>
+  <testcase name="evidence mismatch and UTF16 surrogate splitting cannot be persisted()" classname="ai.storyfork.content.world.ManuscriptBuildResultsTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -4,6 +4,8 @@
 
 상태: **결정·실행 계약 기록. Celery·전처리 코드·MCP 전처리 도구는 미구현([#343](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/343)).**
 
+> 2026-11-17 사용자 정정: #344·#351·#428과 Celery/LangGraph는 참고 구현이며 필수 의존성이 아니다. 최신 develop의 저장 경계를 우선한다. 최초 구축의 영속 기록은 [초기 구축 저장 계약](initial-build-storage-contract.md)에 따라 보완 중이며 자동 실행 완료를 의미하지 않는다.
+
 ## 목적
 
 작가가 등록한 회차 원고(최소 100화~2,000화 규모)에서 사건·인물·설정을 뽑아 세계관과 회차별 상태로 정리한다.
@@ -58,10 +60,14 @@
 | `preprocessing_progress` | `jobId`, `stage`(`extracting/resolving/organizing/loading`), `done`, `total`, `failedEpisodes[]`, `failed`(선택, 고정 사유 문구) | 갱신된 작업 상태 |
 | `preprocessing_load` | `jobId`, `cards[]`, `relations[]` | 적재 결과(카드 수·관계 수), 작업 `completed` |
 
-`cards[]` 항목: `key`(작업 안 정식 ID), `cardType`(`character/location/organization/object/event`), `title`, `aliases[]`, `body`(마크다운, 인물은 `IDENTITY.md`), `revealFromEpisode`(첫 등장 회차), 인물만 `characterDocs{soul, goal, episodes{"NN": 글}}`(`memory` 키는 쓰지 않음, 이야기 시작 전 기억은 `episodes{"00"}`)(DEC-47, 문서마다 3,000자 이하). 사건 카드 본문은 회차 번호와 참여 인물을 적는다.
+`cards[]` 항목: `key`(작업 안 정식 ID), `cardType`(`character/location/organization/object/event`), `title`, `aliases[]`, `body`(마크다운, 인물은 `IDENTITY.md`), `firstAppearanceEpisode`(첫 등장 회차이며 독자 공개 회차가 아님), 인물만 `characterDocs{soul, goal, episodes{"NN": 글}}`(`memory` 키는 쓰지 않음, 이야기 시작 전 기억은 `episodes{"00"}`)(DEC-47, 문서마다 3,000자 이하). 사건 카드 본문은 회차 번호와 참여 인물을 적는다.
 `relations[]` 항목: `fromKey`, `toKey`, `label`, `fromEpisode`, `ended`(선택). Content가 DEC-51 회차별 관계로 변환해 `fromEpisode` 시점마다 기록한다. 카드 공개 여부는 기본 비공개(DEC-46) 그대로다.
 
 ## 관련
 
 - [#122](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/122) 원고 기반 설정 추출, [#124](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/124) 회차별 세계관 스냅샷.
 - 품질 확인(추출·정체 정리 정확도)은 Celery 없이 스크립트로 먼저 한다(메밀꽃 S01~S04, 4회차).
+
+## 자동 적재 공개 정책 (2026-11-17 확인)
+
+최초 일괄 세계관 구축만 대상으로 한다. 첫 등장 회차는 `semanticMetadata.manuscriptBuild.firstAppearanceEpisode`에 보존하며, 자동 생성 카드는 `visibility=private`로 저장하고 `semanticMetadata.revealFromEpisode`는 설정하지 않는다. 독자 공개 회차는 작가가 직접 지정한다. 기존 작가 데이터는 변경하지 않는다. 초안 적재·작가의 확정 버전 생성·독자 공개·작품 발행은 별도다. 이전 LoadPayload의 `revealFromEpisode=첫 등장` 의미를 그대로 공개 필드에 연결하지 않는다. 기존 작업실 브랜치의 DTO 변경은 별도 보존되어 있으며 이 문서 수정만으로 소비자 연결이 완료된 것은 아니다.

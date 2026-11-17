@@ -69,6 +69,8 @@ export type AppCradle = {
   publicWorldUseCase: import('../../domain/usecases/PublicWorldUseCase').PublicWorldUseCase
   mediaUseCase: import('../../domain/usecases/MediaUseCase').MediaUseCase
   mediaRepository: import('../../domain/repositories/MediaRepository').MediaRepository
+  manuscriptBuildRepository: import('../../domain/repositories/ManuscriptBuildRepository').ManuscriptBuildRepository
+  manuscriptBuildUseCase: import('../../domain/usecases/ManuscriptBuildUseCase').ManuscriptBuildUseCase
   manuscriptUseCase: import('../../domain/usecases/ManuscriptUseCase').ManuscriptUseCase
   manuscriptRepository: import('../../domain/repositories/ManuscriptRepository').ManuscriptRepository
   episodeUseCase: EpisodeUseCase

@@ -11,6 +11,7 @@ from app.review.router import router as review_router
 from app.work_tags.router import router as work_tags_router
 from app.world_review.router import router as world_review_router
 from app.writing.router import router as writing_router
+from app.preprocessing.router import router as manuscript_build_router
 
 
 def create_app() -> FastAPI:
@@ -31,4 +32,5 @@ def create_app() -> FastAPI:
     application.include_router(work_tags_router)
     application.include_router(world_review_router)
     application.include_router(writing_router)
+    application.include_router(manuscript_build_router)
     return application
