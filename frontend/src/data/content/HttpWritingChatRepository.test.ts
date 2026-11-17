@@ -158,6 +158,18 @@ describe('인물 시뮬레이션 단계 결과(#58)', () => {
     expect(events[0]).toEqual({ type: 'step', step: { feature: 'story_context', status: 'completed', result: { claims: [{ text: '밤에 닫는다' }] } } })
   })
 
+  it('전개 기획 결과(plans·notes)와 바로 쓴 원고의 계획(plan)을 읽고, 계획 모양이 어긋나면 형식 오류로 알린다', async () => {
+    const done = 'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'
+    const planned = { plans: [{ title: '항구의 밤', beats: ['선장이 도착한다.'] }], notes: ['확정 사건'] }
+    expect((await run(stepEvent({ feature: 'writing_editing', status: 'completed', result: planned }), done))[0])
+      .toEqual({ type: 'step', step: { feature: 'writing_editing', status: 'completed', result: planned } })
+    const written = { text: '본문', plan: { title: '항구의 밤', beats: ['선장이 도착한다.'] } }
+    expect((await run(stepEvent({ feature: 'writing_editing', status: 'completed', result: written }), done))[0])
+      .toEqual({ type: 'step', step: { feature: 'writing_editing', status: 'completed', result: written } })
+    expect((await run(stepEvent({ feature: 'writing_editing', status: 'completed', result: { plans: [{ title: 1 }] } }), done))[0])
+      .toEqual({ type: 'error', message: '서버 응답 형식을 확인할 수 없어요.' })
+  })
+
   it('저장된 대화에서도 결과가 객체가 아닌 시뮬레이션 단계 하나만 실패로 읽고 같은 응답의 다른 단계와 승인 회차는 살린다', async () => {
     const fetcher = vi.fn().mockResolvedValue(Response.json({ threadId: 't1', title: '대화', turns: [{ request: '시뮬레이션', reply: {
       status: 'waiting', missingInputs: [], awaitingApproval: 'character_simulation', approvalEpisode: 3,
