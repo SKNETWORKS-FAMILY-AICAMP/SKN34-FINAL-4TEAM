@@ -18,7 +18,7 @@
 ## 실행 경로
 
 1. **검토 요청(소설 연결 없이)**: 화면 → Content `POST /api/v1/world-studios/{worldId}/reviews` → AI `POST /internal/v1/world-reviews` → 결과 그대로 응답.
-2. **집필 채팅(소설이 연결된 경우)**: 오케스트레이션 그래프에 `world_review` 기능(노드)을 등록한다. `operation:'world_review'`이면 의도 분류를 건너뛰고, 자유 입력("설정에 오류 없는지 봐줘")은 Intent Router가 이 기능으로 분류한다. 노드는 Content MCP `world_studio_read`(작가 토큰)로 연결 세계관을 읽어 **1과 같은 `app/world_review` 서비스 함수**를 부르고 지적을 채팅 답으로 돌려준다(승인 단계 없음).
+2. **집필 채팅(소설이 연결된 경우)**: 메인 에이전트의 `ask_world_review` 도구로 부른다(#473). `operation:'world_review'`이면 Decision Guard가 가드레일만 판정하고, 자유 입력("설정에 오류 없는지 봐줘")은 Decision Guard가 이 기능을 판정한다. 도구는 Content MCP `world_studio_read`(작가 토큰)로 연결 세계관을 읽어 **1과 같은 `app/world_review` 서비스 함수**를 부르고 지적을 채팅 답으로 돌려준다(승인 단계 없음).
 
 ## Content 공개 API
 

@@ -7,7 +7,7 @@
 | 항목 | 결정 |
 |---|---|
 | 목표 | 세계관 정본에서 **인물이 기준 회차까지 아는 것만** 찾는 기억 추론(NovelBrain) 위에서, 인물별로 격리된 에이전트와 나레이터가 턴을 이어 가는 시뮬레이션을 집필실 무대에서 실시간으로 보여 주고, 결과를 웹소설 장면(나레이션 지문 + 독백 + `"대사"`)으로 이어 붙여 작가 승인 시 회차 원고에 저장한다. |
-| 진입 | 집필실 [시뮬레이션] 버튼으로 시작한다(아래 '버튼 진입'). 채팅 자유 입력도 Intent Router의 `character_simulation`으로 같은 실행 단계에 들어온다. 화면은 집필실 중앙의 **무대 패널**이고 채팅에는 상태 한 줄만 남는다(아래 '무대'). Router는 이번 요청만으로 먼저 분류하고 되묻기일 때만 이전 요청을 붙인다(집필 요청이 섞이면 시뮬레이션 요청이 집필로 끌려갔다). |
+| 진입 | 집필실 [시뮬레이션] 버튼으로 시작한다(아래 '버튼 진입'). 채팅 자유 입력은 Decision Guard가 명시적 시뮬레이션 요청(`character_simulation`)으로 판정하면 메인 에이전트의 `ask_character_simulation` 도구가 계획을 세우고 같은 장면 실행(`scene` 노드)에 들어온다(#473). 화면은 집필실 중앙의 **무대 패널**이고 채팅에는 상태 한 줄만 남는다(아래 '무대'). Decision Guard는 이번 요청만으로 먼저 판정하고 고른 기능이 없을 때만 이전 요청을 붙인다(집필 요청이 섞이면 시뮬레이션 요청이 집필로 끌려갔다). |
 | 모드 | **IF 모드**: 메인 에이전트와 정한 "만약 ~했다면?" 전제 하나만 강제, 인물은 자유. **흐름 모드**: 메인 에이전트와 정한 비트(장면·사건 순서)를 따른다. 흐름 모드는 메인 에이전트 단독 집필에서 생기는 오류를 인물 격리로 해결하는 장치다. |
 | 인물 입력 | DEC-47 인물 문서. `IDENTITY.md`(카드 본문)·`SOUL.md`(말투·사고)·`GOAL.md`(목표)·`memory/NN회차.md` 중 **기준 회차 이하**만. 다른 인물의 문서·비공개 생각은 넣지 않는다. |
 | 모델 | 인물 행동·나레이션·독백·검사·요약은 OpenAI `gpt-6-luna`(DEC-28, 기존 `OPENAI_MODEL` 설정), 연출 결정은 OpenAI Decisions(`gpt-6-luna`)다. |
@@ -199,7 +199,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 - Content `WritingAiRequest.simulation`: `mode`·길이·개수를 검증하고 `operation`이 `character_simulation`인 새 요청에서만 받는다(아니면 422, 권한 확인 전에 거절). 값은 그대로 AI에 넘긴다.
 - 근거 회차와 반영 회차(#58): 요청의 `episode`·`episodeVersionId`는 **근거 회차**다. 발행된 판본이어야 하고 Q&A 조회 범위와 세계관의 지식 상한(기준 회차)을 정한다. 작가가 발행 전 초안을 열어 두면 화면은 마지막 발행 회차를 근거로 보낸다. 승인 뒤 결과를 쓸 **반영 회차**는 선택 필드 `targetEpisode`(없으면 `episode`와 같다)이며 작가가 연 회차를 보낸다. Content는 새 요청에서만 `targetEpisode >= episode`이고 그 작품의 활성 회차(발행 전 초안도 가능)인지 확인하고 어긋나면 422다(이어가기에서는 무시한다). AI에는 `target {workId, episode: 반영 회차, baseEpisode?: 근거 회차}`로 넘기며 `baseEpisode`는 둘이 다를 때만 온다. AI는 승인 반영과 승인 질문의 `approvalEpisode`에 `target.episode`를, 시뮬레이션이 세계관을 읽는 기준 회차에 `target.baseEpisode ?? target.episode`를 쓴다. 화면은 무대의 승인 문구("N화 초안 끝에")를 반영 회차로 보이고 근거와 다르면 시작 양식에 "근거: M화까지 / 반영: N화 초안"을 보인다. 새로 고친 뒤 승인 대기 장면이 복원되면 집필실은 `approvalEpisode`로 편집기를 그 회차에 맞춘다. 장면 대기(`awaitingScene`) 응답에는 `approvalEpisode`가 없어(승인 질문에만 싣는다) 그 복원에서는 서버가 반영 회차를 알려 주지 않고, 집필실이 열린 회차를 따라 바꿔 둔 주소의 `?ep=n`이 편집기 회차를 정한다.
 - AI `OrchestrationRequest.simulation`: `SimulationPlan`과 같은 한도(전제 500자, 비트 8개×200자, 인물 6명×100자, 모르는 필드 거절)로 검증하고 `operation`이 `character_simulation`인 새 요청에서만 받는다(아니면 422).
-  있으면 `simulation_plan`이 계획 모델을 부르지 않고 이 값을 계획으로 쓰되, 인물 id가 연결 세계관의 활성 인물 카드인지와 모드별 필수값(IF 전제, 흐름 비트 1개 이상)을 확인한다. 어긋나면 되묻지 않고 단계 `failed`와 이유로 끝낸다.
+  있으면 `ask_character_simulation`이 계획 모델을 부르지 않고 이 값을 계획으로 쓰되, 인물 id가 연결 세계관의 활성 인물 카드인지와 모드별 필수값(IF 전제, 흐름 비트 1개 이상)을 확인한다. 어긋나면 되묻지 않고 단계 `failed`와 이유로 끝낸다.
 
 ## Fork 이어받기 (#365)
 
