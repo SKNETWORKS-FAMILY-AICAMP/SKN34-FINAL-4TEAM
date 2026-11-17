@@ -59,7 +59,7 @@ class RatingResult(BaseModel):
         return [q for a in self.assessments if a.level >= 2 or (self.prohibited and a.criterion == 'sexual') for q in a.quotes]
 
     def verdict(self) -> Verdict:
-        """문턱값(2026-11-17 사용자 결정, F-ADULT-01 확정 전 초안): 금지 표현이나 수준 3은 19세, 최고 수준 2는 검토, 그 외 전체."""
+        """문턱값(2026-11-17 사용자 결정, F-ADULT-01 확정 전 초안): 금지 표현이나 수준 3은 19세, 최고 수준 2는 검토(AI가 다시 판정하지 않고 작가가 정한다, #439), 그 외 전체."""
         top = max(a.level for a in self.assessments)
         if self.prohibited or top == 3:
             return 'adult'

@@ -132,14 +132,16 @@ function reviewText({ check, episode, findings, gaps }: ChatReview): string {
   ].join('\n')), ...gaps.map((g) => `확인 못 함: ${g}`)].join('\n\n')
 }
 
-const ratingVerdict: Record<RatingVerdict, string> = { adult: '19세 이용가', general: '전체 이용가', needsReview: '사람 검토 필요' }
+const ratingVerdict: Record<RatingVerdict, string> = { adult: '19세 이용가', general: '전체 이용가', needsReview: '작가 검토 필요' }
+// needsReview는 AI가 다시 판정하지 않고 작가가 근거를 보고 정한다(#439).
+const AUTHOR_REVIEW = 'AI가 등급을 정하지 않았어요. 아래 근거를 보고 작가님이 직접 판단해 주세요.'
 const ratingCriterion: Record<string, string> = {
   sexual: '선정성', violence: '폭력성', crime: '범죄', drug: '약물', gambling: '사행성', language: '언어', other: '기타 유해',
 }
 
 // 판정을 좌우한 수준 2 이상 항목만 근거와 함께 보인다.
 function ratingText({ verdict, prohibited, episodes }: ChatRating): string {
-  return [`판정 제안: ${ratingVerdict[verdict]}${prohibited ? ' · 금지 표현 의심(운영 검토 대상)' : ''}`,
+  return [`판정 제안: ${ratingVerdict[verdict]}${prohibited ? ' · 금지 표현 의심(운영 검토 대상)' : ''}${verdict === 'needsReview' ? `\n${AUTHOR_REVIEW}` : ''}`,
     ...episodes.map((e) => (e.verdict === null ? `${e.episode}화: 판별 실패 · ${e.error ?? ''}` : [`${e.episode}화: ${ratingVerdict[e.verdict]}`,
       ...e.assessments.filter((a) => a.level >= 2).map((a) =>
         `${ratingCriterion[a.criterion] ?? a.criterion} 수준 ${a.level} · ${a.rationale}${a.quotes.length ? ` · "${a.quotes[0]}"` : ''}`),
