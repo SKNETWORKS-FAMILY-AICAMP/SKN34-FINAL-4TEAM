@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { parseHashtags, workKindLabel } from '../entities/content'
+import { canAddSuggestedTag, canPickSuggestedGenre, parseHashtags, workKindLabel } from '../entities/content'
 
 describe('작품 등록 입력', () => {
   it('분기 작품은 서버가 내려 준 작품 유형이 ORIGINAL이어도 원작이 아니라 분기 작품으로 표시한다', () => {
@@ -16,5 +16,15 @@ describe('작품 등록 입력', () => {
     expect(parseHashtags(' #회귀, 성장 ,#회귀,,#복수 ')).toEqual(['회귀', '성장', '복수'])
     expect(parseHashtags('#천재 주인공, #성장')).toEqual(['천재 주인공', '성장'])
     expect(parseHashtags('   ')).toEqual([])
+  })
+
+  it('AI 추천 후보는 이미 고른 값이 아니고 한도(장르 2개·해시태그 10개) 안일 때만 담는다', () => {
+    expect(canPickSuggestedGenre(['판타지', ''], '무협')).toBe(true)
+    expect(canPickSuggestedGenre(['판타지', ''], '판타지')).toBe(false)
+    expect(canPickSuggestedGenre(['', '무협'], '판타지')).toBe(true)
+    expect(canPickSuggestedGenre(['판타지', '무협'], '로맨스')).toBe(false)
+    expect(canAddSuggestedTag(['회귀'], '성장')).toBe(true)
+    expect(canAddSuggestedTag(['회귀'], '회귀')).toBe(false)
+    expect(canAddSuggestedTag(Array.from({ length: 10 }, (_, i) => `t${i}`), '성장')).toBe(false)
   })
 })
