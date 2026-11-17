@@ -13,6 +13,23 @@ class InitialWorldAdditionTest {
     private val fixture=mapper.readTree(requireNotNull(javaClass.getResource("/initial-world-contract/honggildong.json")).readText())["valid"]
     private val input=mapper.treeToValue(fixture["input"],InitialWorldInput::class.java)
     private val output=InitialWorldOutputValidation.parse(input,mapper.writeValueAsString(fixture["output"]))
+    @Test fun `approved additions count only active cards against ten thousand`() {
+        val candidate=output.candidates.first { it.type!="relation" }
+        val decision=InitialWorldDecisionRecord(UUID.randomUUID(),candidate.localRef,1,"approved",candidate)
+        val additionId=UUID.randomUUID()
+        val cards=(1..9999).map { CardPayload(UUID.randomUUID(),"기존","원문","other","basic") }
+        val removed=CardPayload(UUID.randomUUID(),"삭제","원문","other","basic",lifecycle="removed")
+        val draft=WorldDraftResponse(input.worldId,1,null,null,"원본","",cards+removed,emptyList())
+        fun build(value:WorldDraftResponse)=InitialWorldAdditionMapper.build(input.analysisId,UUID.randomUUID(),value,listOf(decision),mapOf(decision.candidateId to additionId))
+        assertEquals(additionId,assertDoesNotThrow<EditWorldDraftRequest> { build(draft) }.cards.single().id)
+        val full=draft.copy(cards=cards+removed.copy(lifecycle="active"))
+        val error=assertThrows(IllegalArgumentException::class.java) { build(full) }
+        assertEquals("설정 카드는 10,000개까지 저장할 수 있습니다.",error.message)
+        assertEquals("원문",full.cards.first().body)
+        assertThrows(IllegalArgumentException::class.java) {
+            InitialWorldAdditionMapper.build(input.analysisId,UUID.randomUUID(),draft,listOf(decision),mapOf(decision.candidateId to cards.first().id))
+        }
+    }
     @Test fun `seven approved kinds append existing references without generating entity copies`() {
         val decisions=output.candidates.map { InitialWorldDecisionRecord(UUID.randomUUID(),it.localRef,1,"approved",it) }
         val ids=decisions.associate { it.candidateId to UUID.randomUUID() }

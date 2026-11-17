@@ -29,8 +29,8 @@ class StoryPlanMigrationPostgresTest {
             fun migrations() = Flyway.configure().dataSource(source).schemas(schema).defaultSchema(schema)
                 .locations(*ContentPersistenceConfig.MIGRATION_LOCATIONS).table("content_schema_history")
             val initial=migrations().let { if(version>0) it.target(version.toString()) else it }.load()
-            // 32는 마이그레이션 개수다(V24가 결번이고 V32~V35는 다른 열린 PR 몫이라 최댓값은 37). target 10·11은 결번보다 낮아 개수가 곧 버전이다.
-            assertEquals(if(version>0) version else 32,initial.migrate().migrationsExecuted)
+            // 33은 마이그레이션 개수다(V24가 결번이고 V32~V35는 다른 열린 PR 몫이라 최댓값은 38). target 10·11은 결번보다 낮아 개수가 곧 버전이다.
+            assertEquals(if(version>0) version else 33,initial.migrate().migrationsExecuted)
             val checksums=jdbc.queryForList("SELECT version,checksum FROM content_schema_history ORDER BY installed_rank")
             jdbc.update("INSERT INTO member(id) VALUES ('owner')")
             jdbc.update("INSERT INTO work(id,owner_id,title,description,origin_kind,revision) VALUES ('w','owner','삭제 작품','','original',0),('other','owner','보존 작품','','original',0)")
@@ -38,6 +38,7 @@ class StoryPlanMigrationPostgresTest {
                 ('plot','w','plot',NULL,'현재 계획','',1,now(),NULL),
                 ('removed','w','scene','plot','논리 삭제 장면','',2,now(),now()),
                 ('scene','w','scene','plot','현재 장면','',1,now(),NULL),
+                ('scene2','w','scene','plot','다음 장면','',1,now()+interval '1 second',NULL),
                 ('kept','other','plot',NULL,'보존 계획','',1,now(),NULL),
                 ('kept-scene','other','scene','kept','보존 장면','',1,now(),NULL)""")
             for(table in listOf("story_plan_character","story_plan_place")) {
@@ -46,9 +47,11 @@ class StoryPlanMigrationPostgresTest {
             if(version==10) assertThrows(DataIntegrityViolationException::class.java) { jdbc.update("DELETE FROM work WHERE id='w'") }
 
             val upgraded=migrations().load()
-            assertEquals(if(version>0) 32-version else 0,upgraded.migrate().migrationsExecuted)
+            assertEquals(if(version>0) 33-version else 0,upgraded.migrate().migrationsExecuted)
             assertEquals(checksums,jdbc.queryForList("SELECT version,checksum FROM content_schema_history ORDER BY installed_rank").take(checksums.size))
-            assertEquals(5,jdbc.queryForObject("SELECT count(*) FROM story_plan",Int::class.java))
+            assertEquals(6,jdbc.queryForObject("SELECT count(*) FROM story_plan",Int::class.java))
+            if(version>0) assertEquals(listOf(0,1),jdbc.queryForList("SELECT position FROM story_plan WHERE id IN ('scene','scene2') ORDER BY created_at,id",Int::class.java))
+            assertThrows(DataIntegrityViolationException::class.java) { jdbc.update("UPDATE story_plan SET position=-1 WHERE id='scene'") }
             for(table in listOf("story_plan_character","story_plan_place")) {
                 source.connection.use { connection ->
                     connection.autoCommit=false

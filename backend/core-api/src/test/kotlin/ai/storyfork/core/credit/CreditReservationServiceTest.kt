@@ -1,6 +1,7 @@
 package ai.storyfork.core.credit
 
 import ai.storyfork.core.credit.entity.CreditLedgerEntryEntity
+import ai.storyfork.core.credit.domain.ReservationClosedException
 import ai.storyfork.core.credit.entity.CreditReservationEntity
 import ai.storyfork.core.credit.repository.CreditGrantRepository
 import ai.storyfork.core.credit.repository.CreditLedgerEntryRepository
@@ -73,6 +74,15 @@ class CreditReservationServiceTest {
         assertThrows(NoSuchElementException::class.java) { service.settle(me, "job-1", BigDecimal("1"), now) }
         assertThrows(NoSuchElementException::class.java) { service.release(me, "job-1", now) }
         assertThrows(NoSuchElementException::class.java) { service.release(me, "missing", now) }
+    }
+
+    @Test
+    fun `reserving again with a closed reservations key is rejected instead of returning it as success`() {
+        for (closed in listOf(reservation("SETTLED", BigDecimal("4")), reservation("RELEASED"))) {
+            `when`(reservations.findByOperationKey("job-1")).thenReturn(closed)
+            assertThrows(ReservationClosedException::class.java) { service.reserve(me, BigDecimal("10"), "job-1", now) }
+        }
+        verifyNoInteractions(lines)
     }
 
     @Test

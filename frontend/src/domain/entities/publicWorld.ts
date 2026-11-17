@@ -10,7 +10,8 @@ import type { CardType } from './studioCards'
 export const PUBLIC_WORLD_GENRES = ['fantasy', 'sf', 'wuxia', 'romance', 'modern', 'classic', 'mystery'] as const
 export type PublicWorldGenre = (typeof PUBLIC_WORLD_GENRES)[number]
 
-export type PublicWorldCard = { id: string; title: string; text: string; cardType: CardType; aliases: string[]; tags: string[] }
+/** `imageId`는 카드 대표 이미지(#401)다. 있으면 공개 주소(`/api/v1/public/world-studios/{id}/card-images/{imageId}`)가 이미지를 주고, 없거나 null이면(데모 포함) 이미지 없는 카드다. */
+export type PublicWorldCard = { id: string; title: string; text: string; cardType: CardType; aliases: string[]; tags: string[]; imageId?: string | null }
 /** 현재 관계(Neo4j) 한 줄. 양 끝 카드는 같은 응답의 `cards`에 있다. `label`은 화면에 그대로 보인다. */
 export type PublicWorldRelationship = { id: string; sourceCardId: string; targetCardId: string; label: string }
 

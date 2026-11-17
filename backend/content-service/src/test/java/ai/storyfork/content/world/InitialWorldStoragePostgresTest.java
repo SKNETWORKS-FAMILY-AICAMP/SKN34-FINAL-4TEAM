@@ -8,10 +8,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DATABASE_URL", matches=".+")
 class InitialWorldStoragePostgresTest {
-    @Test void sequentialV1ThroughV7PreservesExistingWorldCardAndAnalysis() throws Exception {
+    @Test void sequentialV1ThroughV8PreservesExistingWorldCardAndAnalysis() throws Exception {
         try(var db=new WorldStudioPostgresFixture("independent")) {
             String world=id(), card=id(), analysis=id();
-            for(int version=1;version<=7;version++) {
+            for(int version=1;version<=8;version++) {
                 var flyway=org.flywaydb.core.Flyway.configure().configuration(db.studio().getConfiguration())
                     .target(Integer.toString(version)).load();
                 assertEquals(1,flyway.migrate().migrationsExecuted);
@@ -50,6 +50,18 @@ class InitialWorldStoragePostgresTest {
                         sql(c,"UPDATE worldstudio.world SET cover_object_key='world-covers/a',cover_content_type='image/webp' WHERE id='"+world+"'");
                         c.rollback();
                     }
+                    if(version>=8) {
+                        // 카드 이미지 표는 비어 있고, 이 세계관에 매인 행만 받으며 형식은 PNG·JPEG·WebP뿐이고 객체 키는 하나에 한 행이다.
+                        assertEquals(List.of("0"),rows(c,"SELECT count(*) FROM worldstudio.setting_card_image"));
+                        String image=id();
+                        String insert="INSERT INTO worldstudio.setting_card_image(id,world_id,object_key,content_type) VALUES ('";
+                        c.setAutoCommit(false);
+                        rejects(c,"23503",insert+image+"','"+id()+"','world-card-images/"+image+"','image/png')");
+                        rejects(c,"23514",insert+image+"','"+world+"','world-card-images/"+image+"','image/gif')");
+                        sql(c,insert+image+"','"+world+"','world-card-images/"+image+"','image/webp')");
+                        rejects(c,"23505",insert+id()+"','"+world+"','world-card-images/"+image+"','image/png')");
+                        c.rollback();
+                    }
                 }
             }
             assertEquals(0,db.studio().migrate().migrationsExecuted);
@@ -65,7 +77,7 @@ class InitialWorldStoragePostgresTest {
                 sql(c,"INSERT INTO worldstudio.world(id,owner_subject) VALUES ('"+w+"','"+id()+"'),('"+other+"','"+id()+"')");
                 sql(c,"INSERT INTO worldstudio.world_draft(world_id,name,description) VALUES ('"+w+"','홍길동전','원문 보존')");
             }
-            assertEquals(5,db.studio().migrate().migrationsExecuted);
+            assertEquals(6,db.studio().migrate().migrationsExecuted);
             db.studio().validate();
             assertEquals(0,db.studio().migrate().migrationsExecuted);
             try(var c=db.connect()) {
@@ -127,7 +139,7 @@ class InitialWorldStoragePostgresTest {
                 sql(c,"INSERT INTO worldstudio.initial_candidate(id,world_id,analysis_id,local_ref,content) VALUES ('"+candidate+"','"+w+"','"+a+"','old','"+content+"')");
                 sql(c,"INSERT INTO worldstudio.initial_decision(id,world_id,analysis_id,candidate_id,sequence,action,state,actor_id,content) VALUES ('"+decision+"','"+w+"','"+a+"','"+candidate+"',1,'approve','approved','"+id()+"','"+content+"')");
             }
-            assertEquals(3,db.studio().migrate().migrationsExecuted);
+            assertEquals(4,db.studio().migrate().migrationsExecuted);
             db.studio().validate();
             try(var c=db.connect()) {
                 assertEquals(List.of(decision),rows(c,"SELECT id FROM worldstudio.initial_decision WHERE request_key IS NULL AND request_hash IS NULL AND comment IS NULL AND sequence=1 AND state='approved'"));

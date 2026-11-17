@@ -28,6 +28,13 @@ it('고른 공개 카드만 새 id의 설정으로 복사하고 제목·본문·
   expect(cards.every((s) => s.item.authorText === s.item.text && s.item.origin === 'author_addition' && s.item.decision === 'approved')).toBe(true) // 작가가 직접 쓴 카드와 같은 모양
 })
 
+it('원본 카드의 이미지(imageId)는 복사하지 않는다: 다른 세계관의 이미지 id는 초안 저장이 거절하므로 이미지 없는 카드로 가져온다', () => {
+  const world = source({ cards: [{ ...publicCard('a', '가람'), imageId: 'image-of-source-world' }, publicCard('b', '나래')] })
+  const { cards } = importCards(world, pick('a', 'b'), false)
+  expect(cards.map((s) => 'imageId' in s)).toEqual([false, false])
+  expect(JSON.stringify(cards)).not.toContain('image-of-source-world')
+})
+
 it('카드 유형 여덟 가지를 그대로 옮긴다(사건은 역사 영역)', () => {
   const world = source({ cards: cardTypes.map((type) => publicCard(type.id, type.label, type.id)), relationships: [] })
   const { cards } = importCards(world, pick(...cardTypes.map((type) => type.id)), false)
@@ -85,10 +92,10 @@ it('가져온 카드와 관계를 초안 끝에 더하고 관계는 기존 관�
   expect(draft).toHaveLength(1) // 받은 초안은 그대로다
 })
 
-it('서버 한도(설정 카드 1,000개)를 넘기면 더하지 않고 몇 개까지 가져올 수 있는지 알린다', () => {
-  const draft = Array.from({ length: 999 }, (_, n) => mine(`인물 ${n}`))
+it('활성 카드 10,000개 한도를 넘기면 더하지 않고 몇 개까지 가져올 수 있는지 알린다', () => {
+  const draft = Array.from({ length: 9999 }, (_, n) => mine(`인물 ${n}`))
   const one = importCards(source(), pick('a'), false), two = importCards(source(), pick('a', 'b'), false)
-  expect(appendImported(draft, one)).toHaveLength(1000)
-  expect(() => appendImported(draft, two)).toThrow('설정 카드는 1,000개까지 저장할 수 있어요. 지금은 1개까지 가져올 수 있어요.')
-  expect(() => appendImported([...draft, mine('마지막')], one)).toThrow('설정 카드는 1,000개까지 저장할 수 있어요. 더 가져오려면 설정을 먼저 정리해 주세요.')
+  expect(appendImported(draft, one)).toHaveLength(10000)
+  expect(() => appendImported(draft, two)).toThrow('설정 카드는 10,000개까지 저장할 수 있어요. 지금은 1개까지 가져올 수 있어요.')
+  expect(() => appendImported([...draft, mine('마지막')], one)).toThrow('설정 카드는 10,000개까지 저장할 수 있어요. 더 가져오려면 설정을 먼저 정리해 주세요.')
 })

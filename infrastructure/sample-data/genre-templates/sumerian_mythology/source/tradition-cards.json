@@ -1,0 +1,1010 @@
+{
+  "genre": "sumerian_mythology",
+  "name": "수메르 전승: 구데아 원통과 별도 신화",
+  "scope": "구데아 원통 A·B를 바탕으로 한 설정 카드다. 별도 전승 카드는 ETCSL의 《이난나의 저승 하강》과 《엔키와 닌후르상가》를 추가하며 수메르 전승 전체를 대표하지 않는다.",
+  "sources": [
+    {
+      "title": "Thureau-Dangin 1905, 구데아 원통 A·B, 135–199쪽",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft"
+    },
+    {
+      "title": "ETCSL 수메르어 복합 전사",
+      "url": "https://etcsl.orinst.ox.ac.uk/section1/c141.htm"
+    },
+    {
+      "title": "ETCSL 수메르어 복합 전사",
+      "url": "https://etcsl.orinst.ox.ac.uk/section1/c111.htm"
+    },
+    {
+      "title": "ETCSL 이난나의 저승 하강 영역",
+      "url": "https://etcsl.orinst.ox.ac.uk/section1/tr141.htm"
+    },
+    {
+      "title": "ETCSL 엔키와 닌후르상가 영역",
+      "url": "https://etcsl.orinst.ox.ac.uk/section1/tr111.htm"
+    }
+  ],
+  "cards": [
+    {
+      "key": "gudea",
+      "title": "구데아",
+      "cardType": "character",
+      "body": "라가시의 파테시이며 신전 건립의 주체다. 꿈의 뜻을 여신에게 묻고 닌기르수의 명령을 받아 에닌누를 짓는다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-i"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxx"
+        }
+      ],
+      "soul": "꿈을 이해하지 못하자 여신에게 해석을 청한다. 말투: 기도에서 신전 건립을 충실히 수행하고 싶다는 뜻을 밝힌다.\n\n출전: https://archive.org/details/lesinscriptionsd00thuruoft\n별도 대조: ETCSL 구데아 원통 영역 https://etcsl.orinst.ox.ac.uk/section2/tr217.htm"
+    },
+    {
+      "key": "ningirsu",
+      "title": "닌기르수",
+      "cardType": "character",
+      "body": "꿈에서 거대한 신의 모습으로 나타나 자신의 신전을 지으라고 명한다. 완공된 에닌누에 들어가 제물을 받는 이 작품의 중심 신이다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-v"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xvii"
+        }
+      ],
+      "soul": "꿈에서 자신의 신전 건립을 구데아에게 요구한다. 말투: 꿈속 명령의 상세 어조는 미확인.\n\n출전: https://archive.org/details/lesinscriptionsd00thuruoft\n별도 대조: ETCSL 구데아 원통 영역 https://etcsl.orinst.ox.ac.uk/section2/tr217.htm"
+    },
+    {
+      "key": "nina",
+      "title": "니나",
+      "cardType": "character",
+      "body": "구데아가 꿈의 뜻을 묻는 여신이다. 꿈속의 거대한 사내를 닌기르수로 풀이하고 다른 인물과 신물의 뜻도 알려 준다. 저본의 오래된 신명 읽기를 따른다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-iv"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-v"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-vi"
+        }
+      ],
+      "soul": "꿈에 나타난 신물과 인물을 하나씩 풀이해 구데아에게 알려 준다. 말투: 상징의 뜻을 차례로 설명한다. 이 저본의 니나를 별도 ETCSL 번역은 난셰로 표기한다.\n\n출전: https://archive.org/details/lesinscriptionsd00thuruoft\n별도 대조: ETCSL 구데아 원통 영역 https://etcsl.orinst.ox.ac.uk/section2/tr217.htm"
+    },
+    {
+      "key": "gatumdug",
+      "title": "가툼두그",
+      "cardType": "character",
+      "body": "구데아가 자신의 아버지이자 어머니라고 부르는 여신이다. 라가시를 세운 어머니로 칭송받으며 길을 떠나는 구데아는 그 보호 정령들의 동행을 청한다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-iii"
+        }
+      ],
+      "soul": "구데아가 부모로 부르며 보호를 청하는 여신이다. 기도의 내용을 본인의 발언이나 사고로 바꾸지 않는다. 말투 미확인.\n\n출전: https://archive.org/details/lesinscriptionsd00thuruoft\n별도 대조: ETCSL 구데아 원통 영역 https://etcsl.orinst.ox.ac.uk/section2/tr217.htm"
+    },
+    {
+      "key": "ningishzida",
+      "title": "닌기시지다",
+      "cardType": "character",
+      "body": "꿈속에서 땅에서 솟은 해로 풀이되는 구데아의 신이다. 신전의 기단을 짓는 존재로도 나타나며 끝부분에서 구데아의 신으로 다시 불린다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-v"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxx"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xxiii"
+        }
+      ],
+      "soul": "구데아의 신으로서 봉헌 장면에서 친족 관계가 언급된다. 해당 대목의 개인적 기질과 말투는 미확인.\n\n출전: https://archive.org/details/lesinscriptionsd00thuruoft\n별도 대조: ETCSL 구데아 원통 영역 https://etcsl.orinst.ox.ac.uk/section2/tr217.htm"
+    },
+    {
+      "key": "nisaba",
+      "title": "니사바",
+      "cardType": "character",
+      "body": "갈대 붓과 별의 판을 든 꿈속 여인이다. 니나는 이 여인이 자신의 자매 니사바이며 신전 건축의 별을 알려 주는 존재라고 풀이한다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-v"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-vi"
+        }
+      ],
+      "soul": "꿈속에서 별의 판을 살피며 신전 건립에 알맞은 별을 알린다. 개인적 성향과 말투는 미확인.\n\n출전: https://archive.org/details/lesinscriptionsd00thuruoft\n별도 대조: ETCSL 구데아 원통 영역 https://etcsl.orinst.ox.ac.uk/section2/tr217.htm"
+    },
+    {
+      "key": "nindub",
+      "title": "닌두브",
+      "cardType": "character",
+      "body": "청금석 판을 들고 신전 설계도를 마련하는 꿈속 인물이다. 니나의 해몽에서 이름이 밝혀진다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-v"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-vi"
+        }
+      ],
+      "soul": "꿈속에서 청금석 판에 신전 설계도를 그린다고 해석된다. 직접 대화와 기질은 미확인.\n\n출전: https://archive.org/details/lesinscriptionsd00thuruoft\n별도 대조: ETCSL 구데아 원통 영역 https://etcsl.orinst.ox.ac.uk/section2/tr217.htm"
+    },
+    {
+      "key": "bau",
+      "title": "바우",
+      "cardType": "character",
+      "body": "닌기르수와 함께 신전의 순수한 잠자리에 자리하고 큰 제물을 먹는 어머니 여신이다. 이 작품의 신전 봉헌 장면에 참여한다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xvii"
+        }
+      ],
+      "soul": "ETCSL 번역에서 신전의 벽돌에 기름을 뿌린다. 봉헌 장면의 성격과 발화 방식은 미확인.\n\n출전: https://archive.org/details/lesinscriptionsd00thuruoft\n별도 대조: ETCSL 구데아 원통 영역 https://etcsl.orinst.ox.ac.uk/section2/tr217.htm"
+    },
+    {
+      "key": "anunnaki",
+      "title": "아눈나키",
+      "cardType": "organization",
+      "body": "새 신전에 자리하는 신들의 집단이다. 구데아는 그들에게 곁에서 기도해 달라고 청하며 신전의 뒷면은 이들의 심판 자리에 비유된다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-i"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-ii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxvii"
+        }
+      ]
+    },
+    {
+      "key": "eninnu",
+      "title": "에닌누",
+      "cardType": "location",
+      "body": "닌기르수를 위해 건립하고 봉헌하는 신전이다. 벽돌과 기단에서 창고·악기·정원에 이르기까지 그 구조와 시설이 묘사된다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-v"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxviii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxx"
+        }
+      ]
+    },
+    {
+      "key": "lagash",
+      "title": "라가시",
+      "cardType": "location",
+      "body": "구데아가 다스리는 도시이며 가툼두그가 세운 곳으로 칭송된다. 봉헌 뒤 번영과 정의가 도시 전체로 이어진다고 노래한다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-iii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xviii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xix"
+        }
+      ]
+    },
+    {
+      "key": "dream-command",
+      "title": "신전 건립의 꿈",
+      "cardType": "event",
+      "body": "구데아는 거대한 신과 별의 판을 든 여인, 설계도를 마련하는 사내, 벽돌 틀을 꿈에서 본다. 스스로 뜻을 알지 못하여 니나에게 해몽을 요청한다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-iv"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-v"
+        }
+      ]
+    },
+    {
+      "key": "dream-interpretation",
+      "title": "니나의 해몽",
+      "cardType": "event",
+      "body": "니나는 꿈의 인물과 사물들을 하나씩 풀이한다. 신전 건립 명령, 건축의 별, 설계도, 거룩한 벽돌, 구데아 자신의 모습이 연결된다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-v"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-vi"
+        }
+      ]
+    },
+    {
+      "key": "destiny-brick",
+      "title": "운명의 벽돌과 틀",
+      "cardType": "object",
+      "body": "꿈속 순수한 받침과 틀 안에 놓인 벽돌이다. 니나는 이를 에닌누의 거룩한 벽돌로 풀이하며 후반부에는 신전 벽돌의 좋은 운명을 축원한다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-vi"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xx"
+        }
+      ]
+    },
+    {
+      "key": "ushumgalkalamma",
+      "title": "우슘갈칼람마",
+      "cardType": "object",
+      "body": "닌기르수가 사랑하는 수금이다. 구데아는 신에게 가져갈 선물로 마련하고 봉헌의 음악에도 다시 등장한다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-vi"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-vii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xv"
+        }
+      ]
+    },
+    {
+      "key": "divine-chariot",
+      "title": "닌기르수에게 바치는 전차",
+      "cardType": "object",
+      "body": "니나는 구데아에게 전차를 완성하고 당나귀를 매어 금속과 돌로 꾸미라고 지시한다. 구데아는 목재를 꺼내 이 일을 수행한다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-vi"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-vii"
+        }
+      ]
+    },
+    {
+      "key": "seven-stelae",
+      "title": "일곱 비석",
+      "cardType": "object",
+      "body": "신전에 세운 일곱 비석이다. 저본은 그것들이 왕이 의논한 것에 들어맞았다고 말한다. 개별 비석의 문구를 임의로 덧붙이지 않는다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxix"
+        }
+      ]
+    },
+    {
+      "key": "protective-spirits",
+      "title": "우툭쿠와 라마수",
+      "cardType": "character",
+      "body": "구데아가 가툼두그에게 길의 보호를 청할 때 부르는 선한 수호 존재들이다. 하나는 앞서 가고 다른 하나는 발걸음을 따르도록 청한다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-iii"
+        }
+      ],
+      "soul": "구데아는 가툼두그에게 친절한 수호자가 앞서고 보호자가 길에서 함께하기를 빈다. 두 존재의 말투와 의도는 미확인.\n\n출전: https://archive.org/details/lesinscriptionsd00thuruoft\n별도 대조: ETCSL 구데아 원통 영역 https://etcsl.orinst.ox.ac.uk/section2/tr217.htm"
+    },
+    {
+      "key": "temple-radiance",
+      "title": "신전의 광채",
+      "cardType": "ability",
+      "body": "찬가는 에닌누의 광채가 나라들을 망토처럼 덮는다고 노래한다. 산·하늘·맹수 같은 비유로 장엄함과 두려움을 표현하는 문학적 묘사다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxvii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxix"
+        }
+      ]
+    },
+    {
+      "key": "temple-stores",
+      "title": "신전의 창고와 시설",
+      "cardType": "location",
+      "body": "곡물과 가축, 향신료, 보석·금속, 전차를 둔 공간과 수금 주랑, 저수조, 정원이 열거된다. 이 작품이 그리는 신전은 제의와 물자의 중심이다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxviii"
+        }
+      ]
+    },
+    {
+      "key": "temple-completion",
+      "title": "에닌누의 완공",
+      "cardType": "event",
+      "body": "닌기시지다가 기단을 짓고 구데아가 테멘을 고정한 신전을 찬양한다. 원통 A는 건립을 영화롭게 해 달라는 닌기르수에 대한 청원으로 끝난다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxx"
+        }
+      ]
+    },
+    {
+      "key": "seven-day-festival",
+      "title": "입성 뒤 이레의 변화",
+      "cardType": "event",
+      "body": "왕이 신전에 들어간 뒤 이레 동안 종과 주인이 나란히 가고 강한 이와 낮은 이가 함께 눕는다고 노래한다. 이를 영구적인 노예제 폐지로 확대 해석하지 않는다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xvii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xviii"
+        }
+      ]
+    },
+    {
+      "key": "justice-vow",
+      "title": "고아와 과부를 해치지 않는 질서",
+      "cardType": "rule",
+      "body": "봉헌의 찬가는 고아와 과부에게 해를 끼치지 않는 질서와 불의를 짓밟는 태양신을 말한다. 해당 행의 여러 단어는 저본의 보충 읽기다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xviii"
+        }
+      ]
+    },
+    {
+      "key": "final-dedication",
+      "title": "마지막 축원과 봉헌",
+      "cardType": "event",
+      "body": "구데아의 장수를 빌고 에닌누가 닌기르수의 위엄을 나라들에 알린다고 찬양한다. 원통 B는 다 지은 신전을 영화롭게 하라는 봉헌문으로 끝난다.\n\n출전: 구데아 원통 A·B, Thureau-Dangin 1905. [저본](https://archive.org/details/lesinscriptionsd00thuruoft).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xxiv"
+        }
+      ]
+    },
+    {
+      "key": "enlil-decree",
+      "title": "엔릴의 호의와 범람수의 회복",
+      "cardType": "character",
+      "body": "엔릴의 호의와 신전 건립의 명령은 물과 풍요의 회복에 연결된다. 닌기르수에게 내려진 권위와 구데아가 실행하는 건립의 역할을 구별한다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: a:i,a:xi,b:xiii.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-i"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xi"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xiii"
+        }
+      ],
+      "soul": "엔릴의 마음은 기쁨으로 넘치며 신전 건립을 결정한다. 말투: ETCSL 번역에서는 신전과 구데아의 임무를 선언한다.\n\n출전: https://archive.org/details/lesinscriptionsd00thuruoft\n별도 대조: ETCSL 구데아 원통 영역 https://etcsl.orinst.ox.ac.uk/section2/tr217.htm"
+    },
+    {
+      "key": "baga-pilgrimage",
+      "title": "바가와 니나의 물길을 찾은 순례",
+      "cardType": "event",
+      "body": "구데아는 꿈의 뜻을 알기 위해 배로 이동하고 신들에게 제물을 바친다. 가툼두그에게 자신을 돌봐 달라고 청하는 관계는 신전의 설계에 앞선 보호의 요청이다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: a:ii-iii.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-ii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-iii"
+        }
+      ]
+    },
+    {
+      "key": "dream-images",
+      "title": "임기그·해·갈대와 별의 서판",
+      "cardType": "object",
+      "body": "꿈속의 거인과 새, 해, 여신의 갈대와 별의 서판, 신전의 도면을 해몽하여 각각의 신과 임무를 알아낸다. 꿈의 형상은 해석 뒤 건립 지시로 바뀐다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: a:iv-vi.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-iv"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-v"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-vi"
+        }
+      ]
+    },
+    {
+      "key": "gift-preparation",
+      "title": "전차와 악기를 준비하는 구데아",
+      "cardType": "event",
+      "body": "해몽에서 요구된 선물을 실제로 만들고 갖추는 단계다. 신의 명령을 들었다는 사실과 그 물건을 준비해 바치는 행동을 구별한다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: a:vii.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-vii"
+        }
+      ]
+    },
+    {
+      "key": "sugalamt",
+      "title": "수갈람트와 기도의 재판 장소",
+      "cardType": "location",
+      "body": "향과 기도, 신전의 위엄과 수호 형상이 배치되는 문맥에서 나타나는 장소다. 재판·입구·수호의 기능은 각 열의 실제 표현을 따르며 현대 법정 평면으로 재구성하지 않는다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: a:viii,a:xxii,a:xxvi.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-viii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxvi"
+        }
+      ]
+    },
+    {
+      "key": "second-dream",
+      "title": "두 번째 꿈과 건립의 약속",
+      "cardType": "event",
+      "body": "닌기르수는 신전의 이름과 위세, 무기와 절기, 완공 뒤의 풍요를 말한다. 예고된 혜택과 뒤에 시행되는 봉헌 의례는 시간상 구분된다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: a:ix-xi.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-ix"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-x"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xi"
+        }
+      ]
+    },
+    {
+      "key": "purification-labor",
+      "title": "건립 전 정결과 폭력의 중지",
+      "cardType": "rule",
+      "body": "좋은 징조를 확인하고 도시를 정결하게 하며 다툼과 폭력을 멈춘다. 일꾼과 가족, 부정한 행위에 관한 조치는 건립 기간의 의례적 질서로 제시된다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: a:xii-xiv.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xiii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xiv"
+        }
+      ]
+    },
+    {
+      "key": "resource-network",
+      "title": "산림·채석장·금속의 조달망",
+      "cardType": "location",
+      "body": "엘람과 수사, 마간과 멜루하, 삼나무 숲과 돌 산, 역청과 금속의 산지가 자재 조달에 연결된다. 저본의 지명을 보존하며 불확실한 옛 지명을 현대 국경과 단정적으로 일치시키지 않는다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: a:xv-xvii.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xv"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xvi"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xvii"
+        }
+      ]
+    },
+    {
+      "key": "craft-workers",
+      "title": "장인과 건립 인력",
+      "cardType": "organization",
+      "body": "석공과 금속을 다루는 사람들, 여러 지역의 인력이 신전 건립에 모인다. 신의 설계와 보호를 노래하면서도 인간의 운반·가공 노동을 함께 기록한다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: a:xvi-xvii.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xvi"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xvii"
+        }
+      ]
+    },
+    {
+      "key": "brick-rite",
+      "title": "벽돌을 빚고 운반하는 의례",
+      "cardType": "event",
+      "body": "구데아는 씻고 제물을 바친 뒤 틀과 흙을 준비하고 벽돌을 만든다. 신들의 인도와 햇빛의 축복, 벽돌을 들고 가는 행위가 건립의 출발을 신성하게 한다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: a:xviii-xix.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xviii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xix"
+        }
+      ]
+    },
+    {
+      "key": "enki-foundations",
+      "title": "엔키와 기초·테멘의 고정",
+      "cardType": "character",
+      "body": "엔키는 건립 계획과 기초의 고정, 정결과 신탁의 맥락에 등장한다. 니나의 예언, 가툼두그의 벽돌, 바우의 기름 등 다른 신들의 기여와 구별한다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: a:xvii,a:xx,b:iv.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xvii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xx"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-iv"
+        }
+      ],
+      "soul": "ETCSL 번역에서 신전의 설계를 바로잡는 역할을 맡는다. 본인 발언과 성향은 이 구절에서 미확인.\n\n출전: https://archive.org/details/lesinscriptionsd00thuruoft\n별도 대조: ETCSL 구데아 원통 영역 https://etcsl.orinst.ox.ac.uk/section2/tr217.htm"
+    },
+    {
+      "key": "seven-blessings",
+      "title": "일곱 축복과 신전의 비유",
+      "cardType": "rule",
+      "body": "신전의 단계와 위엄을 여러 축복과 비유로 노래한다. 배·새·짐승·하늘·새벽의 비유를 모두 실제 건축 재료나 방의 이름으로 바꾸지 않는다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: a:xx-xxii.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xx"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxi"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxii"
+        }
+      ]
+    },
+    {
+      "key": "stonework-basins",
+      "title": "돌을 모으는 시간과 물그릇",
+      "cardType": "event",
+      "body": "돌을 모아 다듬는 기간과 세우는 기간을 다르게 서술하고 비석과 물그릇을 배치한다. 찬가가 강조하는 신속한 완성과 앞선 준비 노동을 혼동하지 않는다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: a:xxiii-xxiv.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxiii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxiv"
+        }
+      ]
+    },
+    {
+      "key": "gate-guardians",
+      "title": "문지기의 영웅과 용·사자 형상",
+      "cardType": "organization",
+      "body": "여섯 머리 짐승을 쓰러뜨리는 영웅, 일곱 영웅과 여러 용·사자·표범 형상이 신전의 입구와 구조에 놓인다. 수호 형상과 신전 자체를 묘사하는 동물 비유는 구별한다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: a:xxv-xxvii.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxv"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxvi"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxvii"
+        }
+      ]
+    },
+    {
+      "key": "temple-sound-water",
+      "title": "신전의 악기·물·정원",
+      "cardType": "location",
+      "body": "곡물과 고기, 향료와 보물의 저장소뿐 아니라 악기, 물그릇, 정원과 새의 자리도 신전의 구성에 포함된다. 창고의 나열만으로 신전의 생활과 의례 공간을 대체하지 않는다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: a:xxviii-xxix.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxviii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-a-xxix"
+        }
+      ]
+    },
+    {
+      "key": "inviting-gods",
+      "title": "옛 신전에서 새 신전으로의 초청",
+      "cardType": "event",
+      "body": "구데아는 필요한 것을 갖추고 아눈나키에게 기도하며 닌기르수와 바우에게 새 거처로 옮기기를 청한다. 건물이 완성되었다는 사건과 신이 들어오는 사건은 별개다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: b:i-ii.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-i"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-ii"
+        }
+      ]
+    },
+    {
+      "key": "eridu-procession",
+      "title": "에리두에서 돌아오는 신과 입성 준비",
+      "cardType": "event",
+      "body": "새해의 정해진 날에 닌기르수가 에리두에서 돌아오고 음식·음료·향과 정결 의례가 준비된다. 신들의 각기 다른 봉사와 도시의 침묵이 새벽의 입성을 맞는다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: b:iii-iv.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-iii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-iv"
+        }
+      ]
+    },
+    {
+      "key": "sacred-bedchamber",
+      "title": "바우의 침실과 풍요의 결합",
+      "cardType": "location",
+      "body": "바우와 닌기르수의 침실, 왕의 왕좌와 쉬는 장소를 구별한다. 신들의 결합과 안식은 제물과 풍요, 뒤따르는 축제 질서에 연결된다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: b:v,b:xvi-xvii.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-v"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xvi"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xvii"
+        }
+      ]
+    },
+    {
+      "key": "galalim-dunsaga",
+      "title": "갈라림과 둔사가",
+      "cardType": "character",
+      "body": "갈라림은 왕의 판단과 홀에 관련된 임무를, 둔사가는 씻는 물과 정결한 시중의 임무를 맡는다. 둘 다 닌기르수 주변의 직무를 수행하지만 이름과 친족 호칭, 맡은 일을 서로 바꾸지 않는다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: b:vi-vii.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-vi"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-vii"
+        }
+      ],
+      "soul": "갈라림은 판단과 홀, 둔사가는 씻는 물과 시중에 관련된다. 각자의 성격과 말투는 원전 확인 필요.\n\n출전: https://archive.org/details/lesinscriptionsd00thuruoft"
+    },
+    {
+      "key": "war-commanders",
+      "title": "루갈쿠르두브와 전투의 보좌자들",
+      "cardType": "organization",
+      "body": "무기를 들고 문을 지키며 전투를 지휘하는 신들과 왕의 조언을 맡는 신들이 임명된다. 저본에서 읽히지 않는 이름 부분은 새 이름으로 보충하지 않는다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: b:vii-viii.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-vii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-viii"
+        }
+      ]
+    },
+    {
+      "key": "chamber-messengers",
+      "title": "사칸사바르와 우루지",
+      "cardType": "character",
+      "body": "왕에게 말을 전하는 시종과 정결한 물·곡식, 쉬는 방에 관한 시중의 임무가 나뉜다. 신전의 봉사는 전쟁뿐 아니라 일상적인 전달과 정돈도 포함한다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: b:ix.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-ix"
+        }
+      ],
+      "soul": "사칸사바르와 우루지의 전달·시중 역할을 구별한다. 개별 기질과 말투는 원전 확인 필요.\n\n출전: https://archive.org/details/lesinscriptionsd00thuruoft"
+    },
+    {
+      "key": "herd-music-officials",
+      "title": "가축과 악사를 맡은 이들",
+      "cardType": "organization",
+      "body": "엔시군의 나귀, 엔루림의 가축과 젖, 악사와 찬양가의 임무를 구별한다. 우슘갈칼람마라는 이름이 악기와 악사 문맥에 나타난다고 해서 두 용례를 검증 없이 하나의 물건으로 합치지 않는다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: b:x-xi.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-x"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xi"
+        }
+      ]
+    },
+    {
+      "key": "bau-daughters",
+      "title": "바우의 일곱 딸",
+      "cardType": "organization",
+      "body": "자자루·임파에·우르에눈타에아·헤기르눈나·헤사가·구우르무·자아르무가 일곱 딸로 열거된다. 신전의 봉사 조직에서 여성 신들의 집단을 남성 관원 명단에 흡수하지 않는다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: b:xi.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xi"
+        }
+      ]
+    },
+    {
+      "key": "guedin-management",
+      "title": "구에딘의 농경·어업과 관리",
+      "cardType": "location",
+      "body": "경작지와 수로·곡식, 물고기와 가축을 담당하는 임무들이 신전에 배속된다. 구에딘의 관리자와 요새화된 도시를 세우는 역할은 서로 다른 직무다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: b:xi-xii.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xi"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xii"
+        }
+      ]
+    },
+    {
+      "key": "weapons-insignia",
+      "title": "신에게 바친 무기와 왕권 표장",
+      "cardType": "object",
+      "body": "전차·나귀와 머리 여럿 달린 무기, 칼과 활·화살·화살통, 돌과 금속의 그릇·침대를 갖춘다. 무기·가축·의례용 기물을 모두 하나의 마법 무기로 합치지 않는다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: b:xiii-xiv.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xiii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xiv"
+        }
+      ]
+    },
+    {
+      "key": "provisioning-system",
+      "title": "기근을 막는 저장과 생산의 체계",
+      "cardType": "rule",
+      "body": "물고기·수로·곡물창고와 가축·젖·일하는 짐승, 방앗간과 시종·악사가 신전의 생활을 유지한다. 풍요의 찬양은 구체적인 생산과 보급의 항목에 기대고 있다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: b:xv-xvi.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xv"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xvi"
+        }
+      ]
+    },
+    {
+      "key": "festival-reversal",
+      "title": "축제의 신분 역전과 약자 보호",
+      "cardType": "rule",
+      "body": "이레 동안 종과 주인, 약한 이와 강한 이의 관계가 평소와 달라지고 고아·과부 보호와 좋은 말이 강조된다. 이 한정된 축제 장면을 사회 전체의 영구적 평등 제도로 단정하지 않는다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: b:xvii-xviii.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xvii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xviii"
+        }
+      ]
+    },
+    {
+      "key": "final-blessings",
+      "title": "신들의 자리와 결락된 축복",
+      "cardType": "event",
+      "body": "신들의 자리와 운명의 벽돌, 수메르의 양 떼와 안전을 비는 축원이 이어진다. 물리적 결락과 1905년 판독의 빈칸은 설정으로 메우지 않고 근거의 한계로 보존한다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: b:xix-xxii.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xix"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xx"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xxi"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xxii"
+        }
+      ]
+    },
+    {
+      "key": "ninsun-lineage",
+      "title": "닌순과 구데아의 신성한 친족 관계",
+      "cardType": "character",
+      "body": "마지막 봉헌에서 닌기시지다와 닌순이 구데아의 신성한 관계를 설명한다. 앞서 가툼두그를 어머니·아버지라 부른 기도와 결합해 하나의 확정된 생물학적 가계도로 만들지 않는다.\n\n출전: [구데아 원통 A·B](https://archive.org/details/lesinscriptionsd00thuruoft). 본문 범위: b:xxiii-xxiv.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xxiii"
+        },
+        {
+          "document": "sources.md",
+          "section": "gudea-b-xxiv"
+        }
+      ],
+      "soul": "봉헌 연설에서 닌순은 자식을 사랑하는 어머니로 불린다. 이는 연설 속 묘사이며 닌순 자신의 말투는 미확인.\n\n출전: https://archive.org/details/lesinscriptionsd00thuruoft\n별도 대조: ETCSL 구데아 원통 영역 https://etcsl.orinst.ox.ac.uk/section2/tr217.htm"
+    },
+    {
+      "key": "inana-descent",
+      "title": "이난나의 저승 하강",
+      "cardType": "event",
+      "body": "《이난나의 저승 하강》에서 이난나는 하늘과 땅을 떠나 저승으로 간다. 저승 문에서 언니 에레시키갈의 죽은 남편을 위한 장례 의례에 참석하러 왔다고 밝힌다. 구데아 원통과는 다른 작품이다.\n\n출전: [ETCSL c.1.4.1, 1–5, 73–89](https://etcsl.orinst.ox.ac.uk/section1/c141.htm).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "inana-descent",
+          "excerpt_sha256": "fb4ceb8d140a2d679ddba3324cbd3642741e36640a760830e587532be544dfd1"
+        }
+      ]
+    },
+    {
+      "key": "ereshkigal-ganzer",
+      "title": "에레시키갈과 간제르",
+      "cardType": "character",
+      "body": "이난나의 언니 에레시키갈은 간제르 궁전과 저승의 문지기 네티에게 명령한다. 그녀는 일곱 문을 잠그고 하나씩 열어 들어온 이난나의 옷과 장신구를 벗기게 한다.\n\n출전: [ETCSL c.1.4.1, 90–128](https://etcsl.orinst.ox.ac.uk/section1/c141.htm).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "ereshkigal-ganzer",
+          "excerpt_sha256": "7f28f4896225dbfd1d41caa2931e72468903631c4ce5e589b9461fb3b920d9b9"
+        }
+      ],
+      "soul": "동생의 도착을 듣고 놀라 입술을 깨문 뒤 문을 차례로 열고 옷을 벗기라고 지시한다. 말투: 문지기에게 절차를 분명히 명령한다.\n\n출전: https://etcsl.orinst.ox.ac.uk/section1/c141.htm · ETCSL 영역 https://etcsl.orinst.ox.ac.uk/section1/tr141.htm"
+    },
+    {
+      "key": "inana-lapis-rod-variant",
+      "title": "청금석 측량 막대와 문에서의 이설",
+      "cardType": "object",
+      "body": "이난나는 청금석 측량 막대와 줄을 지니고 내려간다. ETCSL 복합 전사의 154–158행에서는 여섯째 문에서 벗겨지지만, 129A–B행의 한 필사본 추가 구절은 첫째 문에서 벗겨졌다고도 전사한다. 해당 단편의 현재 CDLI 판독은 보존 상태가 불완전하다. 이 차이는 해당 증거에 한정한다.\n\n출전: [ETCSL c.1.4.1, 25, 129A–B, 154–158; 번역 https://etcsl.orinst.ox.ac.uk/section1/tr141.htm](https://etcsl.orinst.ox.ac.uk/section1/c141.htm).\n\n- [ETCSL 《이난나의 저승 강하》 129A–B, 154–158행](https://etcsl.orinst.ox.ac.uk/section1/c141.htm): 복합 전사는 여섯째 문에서 막대를 빼앗기는 장면과 한 필사본의 첫째 문 추가 구절을 구분한다.\n- [CDLI P346462 앞면 1′–3′](https://cdli.earth/artifacts/346462): 우르의 파손된 점토판은 첫째 문 부근에 막대와 줄이 등장하지만 현행 번역은 이를 쥔 것으로 읽는다. 첫째 문에서의 박탈은 이 판독만으로 확정할 수 없다.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "inana-lapis-rod-variant",
+          "excerpt_sha256": "b96723624381c647da054f945ddf7d7dd9afc406560302d6ac211656e551114d"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "inana-lapis-cdli-witness",
+          "excerpt_sha256": "6e5845153b9b90a5247bd9cb213a26c0a49b1f085ee3bfaae19fcf59e3c8f8cf"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "inana-lapis-sixth-gate",
+          "excerpt_sha256": "147a92fd95e74d8811d0990bb81c4f120af264fc9b75740d5104b194898476c5"
+        }
+      ]
+    },
+    {
+      "key": "underworld-gates",
+      "title": "간제르의 일곱 문",
+      "cardType": "location",
+      "body": "《이난나의 저승 하강》에서 간제르의 일곱 문은 차례로 열리고, 이난나는 각 문에서 몸에 지닌 것들을 빼앗긴다. 문지기는 그것을 저승의 관례라고 설명한다.\n\n출전: [ETCSL c.1.4.1, 114–163](https://etcsl.orinst.ox.ac.uk/section1/c141.htm).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "underworld-gates",
+          "excerpt_sha256": "7f28f4896225dbfd1d41caa2931e72468903631c4ce5e589b9461fb3b920d9b9"
+        }
+      ]
+    },
+    {
+      "key": "dilmun-enki-ninhursanga",
+      "title": "엔키와 닌후르상가의 딜문",
+      "cardType": "location",
+      "body": "《엔키와 닌후르상가》의 첫머리는 딜문을 깨끗하고 때 묻지 않은 땅으로 묘사한다. 동물과 질병이 아직 평소처럼 행동하지 않는 모습도 노래하지만 그곳에는 물이 부족해 닌시키라가 엔키에게 호소한다. 구데아 원통과는 별개의 작품이다.\n\n출전: [ETCSL c.1.1.1, 1–4, 11–39; 번역 https://etcsl.orinst.ox.ac.uk/section1/tr111.htm](https://etcsl.orinst.ox.ac.uk/section1/c111.htm).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "dilmun-enki-ninhursanga",
+          "excerpt_sha256": "548e6e546b0e35cda66b21937d5b19e09b91fb303eb19ac0623b75601f3140b2"
+        }
+      ]
+    },
+    {
+      "key": "ninshubur-aid",
+      "title": "닌슈부르의 구원 요청",
+      "cardType": "character",
+      "body": "《이난나의 저승 하강》에서 이난나의 시종 닌슈부르는 구원을 위해 신들의 집을 찾아가라는 지시를 받는다. 이난나는 엔키가 생명의 풀과 물을 안다고 말하며, 이후 구출되어 돌아온다.\n\n출전: [ETCSL c.1.4.1, 26–67, 273–281; 번역 https://etcsl.orinst.ox.ac.uk/section1/tr141.htm](https://etcsl.orinst.ox.ac.uk/section1/c141.htm).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "ninshubur-aid",
+          "excerpt_sha256": "b3788559ab8fe2d84d771ffb76054095ce4484ae5157bdb53859d471a026c652"
+        }
+      ],
+      "soul": "주인의 지시를 잊지 않고 신들을 찾아 거듭 도움을 청한다. 말투: 귀한 금속과 보석의 비유를 써서 애절하게 호소한다.\n\n출전: https://etcsl.orinst.ox.ac.uk/section1/tr141.htm · ETCSL 영역 https://etcsl.orinst.ox.ac.uk/section1/tr141.htm"
+    }
+  ],
+  "narrative": "sources.md"
+}

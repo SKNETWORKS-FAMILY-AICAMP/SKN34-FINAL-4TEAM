@@ -58,7 +58,7 @@
 | `preprocessing_progress` | `jobId`, `stage`(`extracting/resolving/organizing/loading`), `done`, `total`, `failedEpisodes[]`, `failed`(선택, 고정 사유 문구) | 갱신된 작업 상태 |
 | `preprocessing_load` | `jobId`, `cards[]`, `relations[]` | 적재 결과(카드 수·관계 수), 작업 `completed` |
 
-`cards[]` 항목: `key`(작업 안 정식 ID), `cardType`(`character/location/organization/object/event`), `title`, `aliases[]`, `body`(마크다운, 인물은 `IDENTITY.md`), `revealFromEpisode`(첫 등장 회차), 인물만 `characterDocs{soul, memory, episodes{"NN": 글}}`(DEC-47, 문서마다 3,000자 이하). 사건 카드 본문은 회차 번호와 참여 인물을 적는다.
+`cards[]` 항목: `key`(작업 안 정식 ID), `cardType`(`character/location/organization/object/event`), `title`, `aliases[]`, `body`(마크다운, 인물은 `IDENTITY.md`), `revealFromEpisode`(첫 등장 회차), 인물만 `characterDocs{soul, goal, episodes{"NN": 글}}`(`memory` 키는 쓰지 않음, 이야기 시작 전 기억은 `episodes{"00"}`)(DEC-47, 문서마다 3,000자 이하). 사건 카드 본문은 회차 번호와 참여 인물을 적는다.
 `relations[]` 항목: `fromKey`, `toKey`, `label`, `fromEpisode`, `ended`(선택). Content가 DEC-51 회차별 관계로 변환해 `fromEpisode` 시점마다 기록한다. 카드 공개 여부는 기본 비공개(DEC-46) 그대로다.
 
 ## 관련

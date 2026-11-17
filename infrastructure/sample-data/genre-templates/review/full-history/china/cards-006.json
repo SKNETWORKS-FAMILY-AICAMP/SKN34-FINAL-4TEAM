@@ -1,0 +1,1201 @@
+[
+  {
+    "id": "d30229a2-da4f-57ce-8643-62e2db126c01",
+    "title": "베이징–한커우 철도 계획",
+    "body": "원문은 베이징–한커우 철도를 이른바 벨기에계 기업 연합과 추진하기로 했다고 서술한다. 완공 사실이 아니라 당시 합의된 계획으로 제시된다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16069–16072행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "object",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "object-peking-hankow-railway",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16069,
+          "end": 16072
+        }
+      ]
+    }
+  },
+  {
+    "id": "ab18bfdc-4322-5aad-a62d-3c0a8946a43d",
+    "title": "베이징–항저우 철도 구상",
+    "body": "톈진을 거쳐 항저우까지 이어지고 나중에 광저우까지 연장할 철도 구상이다. 콜쿤은 대운하를 따른 주요 교역로와 다수의 도시·마을을 근거로 이 노선을 높게 평가했다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16073–16082행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "object",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "object-peking-hangzhou-railway-plan",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16073,
+          "end": 16082
+        }
+      ]
+    }
+  },
+  {
+    "id": "b3a5f9a6-7a21-5cdd-ad9b-90f8456bd759",
+    "title": "중국 제국우정국",
+    "body": "원문에 따르면 1897년 2월 2일 로버트 하트의 관리 아래 개설되었으며 그 후 중국이 만국우편연합에 가입했다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16112–16114행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "organization-imperial-chinese-post-office",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16112,
+          "end": 16114
+        }
+      ]
+    }
+  },
+  {
+    "id": "ea58ba5b-e904-5e69-bcbf-4e84d964d0fc",
+    "title": "로버트 하트",
+    "body": "원문은 로버트 하트 경을 1897년 개설된 중국 제국우정국의 관리자로 밝힌다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16112–16114행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "character-robert-hart",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16112,
+          "end": 16114
+        }
+      ]
+    },
+    "review_duplicate_candidates": {
+      "same_candidate_key": [
+        "23f8ee2d-5ae6-56af-86a8-a5ce7bf11116",
+        "f7a2d0ed-5fb5-51da-8342-dc3c280adab8"
+      ],
+      "same_title_and_cardType": [
+        "23f8ee2d-5ae6-56af-86a8-a5ce7bf11116",
+        "f7a2d0ed-5fb5-51da-8342-dc3c280adab8"
+      ]
+    }
+  },
+  {
+    "id": "29c207f7-28dc-5f21-9c50-71be49108cd4",
+    "title": "만국우편연합",
+    "body": "원문은 중국이 1897년 제국우정국 개설 이후 우편연합에 가입했다고 적는다. 가입의 정확한 날짜는 이 구간에 제시되지 않는다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16112–16114행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "organization-universal-postal-union",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16112,
+          "end": 16114
+        }
+      ]
+    }
+  },
+  {
+    "id": "a2cc87bd-243c-550c-8d1e-b5d110986993",
+    "title": "민간 우편 배달",
+    "body": "원문은 중국에서 관영 우편이 우차와 파발로 운영되는 한편 다수의 민간 배달인이 활동했다고 설명한다. 홍콩과 해협식민지에서는 관영 우편 사용과 관련해 입법이 이루어졌다고 서술한다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16100–16111행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "rule-private-postal-couriers",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16100,
+          "end": 16111
+        }
+      ]
+    }
+  },
+  {
+    "id": "36e7c99f-c3a2-5237-880d-c588b93abee9",
+    "title": "중국–시베리아 전신 연결",
+    "body": "원문에 따르면 1892년 후반 중국과 러시아 전신 당국이 아무르 계곡의 중국·시베리아 전신선을 연결해 베이징과 유럽 사이의 러시아 경유 육상 통신이 가능해졌다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16095–16099행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "object",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "object-chinese-siberian-telegraph-link",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16095,
+          "end": 16099
+        }
+      ]
+    }
+  },
+  {
+    "id": "3d2df840-c8c2-5c48-a031-9a6388204393",
+    "title": "콜쿤",
+    "body": "콜쿤(Colquhoun)은 원문에서 중국 철도와 통상을 논한 관찰자로 등장한다. 그는 버마와 중국 서남부를 연결하는 철도를 주장하고 쓰촨을 영국의 상업·정치 목표로 보았다. 이는 그의 제국주의적 정책 주장이다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 15992–16000, 16116–16117, 16131–16143행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "character-archibald-colquhoun",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 15992,
+          "end": 16000
+        },
+        {
+          "start": 16116,
+          "end": 16117
+        },
+        {
+          "start": 16131,
+          "end": 16143
+        }
+      ]
+    }
+  },
+  {
+    "id": "cc438b0d-6523-5f96-a020-5150714fa0b8",
+    "title": "리히트호펜",
+    "body": "리히트호펜(Richthofen)은 원문에서 대운하의 수계 구조를 설명한 인물이며, 하미·란저우·시안을 경유하는 중국과 유럽의 미래 연결을 예상한 것으로 소개된다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 15950–15956, 16050–16057행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "character-ferdinand-von-richthofen",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 15950,
+          "end": 15956
+        },
+        {
+          "start": 16050,
+          "end": 16057
+        }
+      ]
+    }
+  },
+  {
+    "id": "d2922dda-185f-589a-8948-12e0ba0ddce5",
+    "title": "쓰촨",
+    "body": "원문은 쓰촨을 양쯔강 항행 한계가 놓인 지역으로 소개하고 비단·밀랍·담배·곡물과 광물자원을 열거한다. 당시 외부 상품은 계절을 타고 어려운 항로로 들어왔으며 주민들은 수입 원료로 제품을 만들어 윈난과 구이저우 서부로 수출했다고 서술한다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16140–16161행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "location-sichuan",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16140,
+          "end": 16161
+        }
+      ]
+    }
+  },
+  {
+    "id": "fade4403-9fee-5cd4-9548-1ec440ae4756",
+    "title": "양쯔강 상류",
+    "body": "원문은 충칭과 수이푸(Suifoo)까지의 항행 개선을 논하며 상류의 실질적 장악이 영국의 중국 내 영향력에 중요하다는 견해를 제시한다. 이는 당시 영국 측 관점이지 중립적인 정책 결론이 아니다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16155–16161, 16190–16200행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "location-upper-yangtze",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16155,
+          "end": 16161
+        },
+        {
+          "start": 16190,
+          "end": 16200
+        }
+      ]
+    }
+  },
+  {
+    "id": "60d1754f-0f54-52cc-ba5b-050b17999471",
+    "title": "서강",
+    "body": "서강(Sikiang)은 홍콩과 중국 서남부를 잇는 자연 교역로로 소개된다. 원문은 과세와 통행증 제도의 집행 문제로 일부 무역이 다른 경로로 옮겨갔다고 설명한다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16163–16176행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "location-west-river",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16163,
+          "end": 16176
+        }
+      ]
+    }
+  },
+  {
+    "id": "29c4edbe-a31e-5388-b89c-f096d2c22449",
+    "title": "통행증 제도",
+    "body": "원문은 중국 남부 통상에 부과되는 세금과 관련해 통행증 제도를 논한다. 프랑스가 멍쯔 경유에서 이를 실제로 시행하도록 요구했으며 영국도 조약상 권리를 주장해야 한다는 것이 저자의 주장이다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16163–16170, 16190–16195행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "rule-transit-pass-system",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16163,
+          "end": 16170
+        },
+        {
+          "start": 16190,
+          "end": 16195
+        }
+      ]
+    }
+  },
+  {
+    "id": "240883df-67a4-555f-ab39-309d824941a5",
+    "title": "베이하이–난닝–윈난 교역로",
+    "body": "원문은 서강 교역에 장애가 생기면서 베이하이(Pakhoi)와 난닝을 거치는 길로 무역이 옮겨갔다고 쓴다. 콜쿤은 서강 전 구간이 열리지 않으면 이 경로가 중국 남부·서남부 교역을 지배할 것이라고 전망했다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16163–16176행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "location-pakhoi-nanning-yunnan-route",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16163,
+          "end": 16176
+        }
+      ]
+    }
+  },
+  {
+    "id": "90ca09e8-0bb3-5378-b6c1-6b2d0762b8a6",
+    "title": "멍쯔 경유 통킹 교역로",
+    "body": "원문에 따르면 프랑스가 멍쯔(Mengtse)를 지나는 통행증 제도의 실효적 시행을 주장했고 영국 상품이 홍콩에서 프랑스령을 거쳐 이 경로로 운송되었다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16163–16170행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "location-mengtse-trade-route",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16163,
+          "end": 16170
+        }
+      ]
+    }
+  },
+  {
+    "id": "7f099287-d08a-5c12-b1b1-95a922a1dfd7",
+    "title": "버마–윈난 철도 구상",
+    "body": "콜쿤이 버마와 중국 서남부의 철도 연결을 주장했으며 원문은 버마–다리–윈난푸를 비롯해 윈난푸와 난닝·수이푸를 잇는 연결을 제안한다. 당시 정책 구상이지 완공된 철도라는 뜻은 아니다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16131–16139, 16178–16189행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "object",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "object-burma-yunnan-railway-plan",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16131,
+          "end": 16139
+        },
+        {
+          "start": 16178,
+          "end": 16189
+        }
+      ]
+    }
+  },
+  {
+    "id": "260035ca-3fd4-5501-9569-0c0e4196fc58",
+    "title": "윈난",
+    "body": "윈난은 버마로부터 중국 서남부에 이르는 육상 접근로로 제시된다. 원문은 윈난푸를 버마·난닝·양쯔강 상류와 연결하는 철도 구상을 나열한다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16116–16125, 16178–16189행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "location-yunnan",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16116,
+          "end": 16125
+        },
+        {
+          "start": 16178,
+          "end": 16189
+        }
+      ]
+    },
+    "review_duplicate_candidates": {
+      "same_candidate_key": [
+        "a2efcf7c-4d7d-5f94-ac29-847aaa8e8085",
+        "13598c09-8366-5ed2-95db-30e71d05b5c1"
+      ]
+    }
+  },
+  {
+    "id": "6797dd73-aafb-5293-9b97-5c8c7adfee21",
+    "title": "충칭",
+    "body": "충칭은 양쯔강 연안의 통상 거점으로 전신선이 이어져 있었고, 저자는 증기 항행을 개선하여 충칭을 넘어 수이푸까지 운항할 필요를 논했다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16095–16096, 16155–16161, 16220–16221행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "location-chongqing",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16095,
+          "end": 16096
+        },
+        {
+          "start": 16155,
+          "end": 16161
+        },
+        {
+          "start": 16220,
+          "end": 16221
+        }
+      ]
+    }
+  },
+  {
+    "id": "10e09540-6537-593a-ad70-c1963365ac0f",
+    "title": "수이푸",
+    "body": "수이푸(Suifoo)는 원문에서 양쯔강 상류의 항행 한계이자 윈난푸에서 연결할 철도와 증기선 운항의 목표 지점으로 제시된다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16155–16161, 16183–16189행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "location-suifoo",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16155,
+          "end": 16161
+        },
+        {
+          "start": 16183,
+          "end": 16189
+        }
+      ]
+    }
+  },
+  {
+    "id": "80508009-7764-53a6-86f4-07c6f1dcd3f6",
+    "title": "조약항 통상",
+    "body": "원문은 영국인이 영업할 수 있는 중국의 항구가 한때 18곳에 제한되어 있었다고 쓰고, 이후 내륙 도시와 서강·남부 지역의 추가 개항지를 열거한다. 세부 목록 및 최근 개항의 일부는 당시 원문의 보고에 따른다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16218–16228행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "rule-treaty-port-commerce",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16218,
+          "end": 16228
+        }
+      ]
+    }
+  },
+  {
+    "id": "13cad7d5-a4f1-537b-8fa2-110460cbe633",
+    "title": "1896년 중국 대외무역 집계",
+    "body": "콜쿤을 인용한 원문은 1896년 중국 수출입 총액을 총계 기준 5,727만 4천 파운드로 제시하고, 외국 국기 선박의 운송 비중 중 영국이 82.04%였다고 쓴다. 당시 집계 방식과 수치의 정확성은 별도 검증이 필요하다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16202–16215행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "event-1896-china-foreign-trade",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16202,
+          "end": 16215
+        }
+      ]
+    }
+  },
+  {
+    "id": "3f056685-a983-5fdb-8263-7ea94c1febee",
+    "title": "미국산 면직물",
+    "body": "원문은 1897년 미국의 대중국 면직물 수출액을 748만 5천 달러로 제시하며, 이를 미국의 중국 수출에서 중요한 품목으로 설명한다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16244–16252, 16259–16263행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "object",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "object-american-cotton-cloth",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16244,
+          "end": 16252
+        },
+        {
+          "start": 16259,
+          "end": 16263
+        }
+      ]
+    }
+  },
+  {
+    "id": "cfbab29f-d9e2-59ab-a0cb-8da64fe92704",
+    "title": "미국산 등유",
+    "body": "원문은 미국산 등유가 중국 수출에서 면직물 다음으로 중요했으며, 대중국 수출액이 1888년 146만 6천 달러에서 1897년 449만 8천 달러로 늘었다고 주장한다. 러시아산 기름을 주요 경쟁품으로 든다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16249–16258행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "object",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "object-american-kerosene",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16249,
+          "end": 16258
+        }
+      ]
+    }
+  },
+  {
+    "id": "7a06e89c-dcb9-54de-b08f-b8a1e2c5fc9d",
+    "title": "카시니 협정 의혹",
+    "body": "원문은 러시아와 중국 사이의 군사동맹·만주 철도·뤼순과 다롄 항구 사용을 포함하는 협정을 주장한다. 동시에 중국은 북만주 철도 이외의 합의를 부인했고 러시아는 상하이 신문에 실린 이른바 카시니 협정본의 정확성을 부인했다고 밝힌다. 이 주장은 확정된 협정 내용으로 취급할 수 없다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16311–16324행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "event-cassini-convention-allegation",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16311,
+          "end": 16324
+        }
+      ]
+    }
+  },
+  {
+    "id": "900fb073-8e1a-535f-a740-6b681fea4b8a",
+    "title": "북만주 철도",
+    "body": "원문은 중국이 러시아와의 다른 합의는 부인하면서 북만주 철도에 관한 합의는 인정했다고 전한다. 본문은 그 밖의 군사적 약속을 둘러싼 주장과 부인을 구분한다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16317–16324행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "object",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "object-manchurian-railway",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16317,
+          "end": 16324
+        }
+      ]
+    }
+  },
+  {
+    "id": "5c01ccc3-d694-53a8-af99-98c8997816ff",
+    "title": "뤼순항",
+    "body": "원문은 뤼순(Port Arthur)을 중국 비용으로 요새화하고 러시아가 사용할 수 있게 하는 내용이 중러 간 합의에 포함되었다고 주장한다. 같은 문단에서 중국은 북만주 철도 외 합의를 부인했다고 하므로 해당 내용은 의혹으로 남는다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16317–16324행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "location-port-arthur",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16317,
+          "end": 16324
+        }
+      ]
+    },
+    "review_duplicate_candidates": {
+      "same_candidate_key": [
+        "1bc5c6b0-12b7-5eae-9595-5e302103c919"
+      ]
+    }
+  },
+  {
+    "id": "70b24fe8-8752-53ad-a75f-80393d87b968",
+    "title": "다롄만",
+    "body": "원문은 다롄만(Talienwan)을 뤼순과 함께 러시아의 이용 및 요새화 대상이라고 주장한다. 다만 같은 대목에서 중국 측의 다른 합의 부인을 전하므로 확정된 약속으로 볼 수 없다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16317–16324행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "location-talientwan",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16317,
+          "end": 16324
+        }
+      ]
+    }
+  },
+  {
+    "id": "4cbe6029-42d6-5e69-a72d-9584c0e1d317",
+    "title": "자오저우만",
+    "body": "원문은 독일의 자오저우(Kiao Chou) 점령과 러시아의 이해관계를 연결해 해석하고, 나중에 다른 항구와 교환될 가능성까지 추측한다. 이는 저자의 지정학적 추론이다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16325–16332행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "location",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "location-kiaochou",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16325,
+          "end": 16332
+        }
+      ]
+    }
+  },
+  {
+    "id": "c3d6cbcd-6968-5156-b0b6-a01ffddc4133",
+    "title": "메도스",
+    "body": "메도스(Meadows)는 원문에서 1850년 무렵부터 러시아의 중국 진출을 경고한 필자로 소개된다. 중국이 러시아에 정복되면 세계 질서에 위협이 된다는 그의 전망은 당시의 예측이다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16334–16348, 16349–16365행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "character-meadows",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16334,
+          "end": 16348
+        },
+        {
+          "start": 16349,
+          "end": 16365
+        }
+      ]
+    }
+  },
+  {
+    "id": "43957208-8d8c-5e45-a28e-090fbee01448",
+    "title": "미치",
+    "body": "미치(Michie)는 원문에서 시베리아 육로에 관한 책을 쓴 관찰자로 등장한다. 중국과 러시아의 관계를 설명하면서 민족적 성격을 일반화했으며, 중국 사회와 정부의 상태에 관해 의견을 제시했다. 그의 인종적 일반화는 사실로 받아들일 수 없다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16367–16380, 16468–16480행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "character-michie",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16367,
+          "end": 16380
+        },
+        {
+          "start": 16468,
+          "end": 16480
+        }
+      ]
+    }
+  },
+  {
+    "id": "53151f5d-d519-5aa7-ba8d-51f2afa94716",
+    "title": "록하트",
+    "body": "록하트(Lockhart)는 중국에 오래 체류한 선교사로 소개되며 약 40년 전 러시아의 중국 진출에 관해 논했다고 서술된다. 원문은 그의 글을 통해 영국과 프랑스의 1860년 요구에 대한 러시아의 태도를 논하지만, 확실한 지원 규모를 알 수 없다는 인용도 함께 전한다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16405–16407, 16420–16427행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "character-lockhart",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16405,
+          "end": 16407
+        },
+        {
+          "start": 16420,
+          "end": 16427
+        }
+      ]
+    }
+  },
+  {
+    "id": "9ed22a5a-9507-59fb-b66d-0356bf589c88",
+    "title": "프르제발스키",
+    "body": "프르제발스키(Prjevalski)는 통킹 원정과 관련해 중국군의 전투력을 부정적으로 평가한 인물로 제시된다. 원문은 다른 군사 평론가들의 상반된 견해도 함께 소개하며, 그의 평가는 인종적 편견을 포함한 의견이다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16483–16501행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "character-prjevalski",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16483,
+          "end": 16501
+        }
+      ]
+    }
+  },
+  {
+    "id": "251cf0f3-648c-5903-98ef-1f98322d2d20",
+    "title": "윙그로브 쿡",
+    "body": "원문은 윙그로브 쿡(Wingrove Cooke)을 1857~1858년 연합군에 동행한 타임스 통신원으로 소개하고 중국 병사의 용기와 인내를 높이 평가한 사람 가운데 한 명으로 든다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16495–16501행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "character-wingrove-cooke",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16495,
+          "end": 16501
+        }
+      ]
+    }
+  },
+  {
+    "id": "8db46497-af02-5f8c-b4a5-4aa37e4dfc02",
+    "title": "데스케라크 드 로튀르 백작",
+    "body": "원문은 데스케라크 드 로튀르(d’Escayrac de Lauture) 백작을 1859~1860년 베이징의 포로 가운데 한 사람으로 소개하며 중국 병사의 용기와 인내를 높이 평가한 사람으로 든다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16495–16501행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "character-descayrac-de-lauture",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16495,
+          "end": 16501
+        }
+      ]
+    }
+  },
+  {
+    "id": "5c76219a-26d0-54ee-9735-ccf7850e478d",
+    "title": "찰스 고든",
+    "body": "원문은 중국에서 활동한 고든을 중국 병사의 용기와 인내를 높이 평가한 인물로 언급한다. 뒤이어 고든의 상승군 경험자가 병사들의 능력에 관해 한 평가를 소개한다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16495–16503행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "character-charles-george-gordon",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16495,
+          "end": 16503
+        }
+      ]
+    }
+  },
+  {
+    "id": "4f9f5142-0f19-55c8-91ff-957815626f96",
+    "title": "울즐리 경",
+    "body": "원문은 울즐리 경(Lord Wolseley)을 중국 병사의 용기와 인내를 높이 평가한 군사 관련 인물 가운데 한 사람으로 언급한다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16495–16501행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "character-garnet-wolseley",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16495,
+          "end": 16501
+        }
+      ]
+    }
+  },
+  {
+    "id": "dae952d0-691d-59a4-825b-63ab718886af",
+    "title": "상승군",
+    "body": "원문은 고든의 상승군(Ever-Victorious Army)에서 경험을 쌓은 익명의 인물이 중국 병사의 훈련과 지휘에 따른 능력을 평가했다고 소개한다. 병사에 대한 인종적 일반화는 그 인용자의 견해로 한정된다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16500–16508행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "organization-ever-victorious-army",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16500,
+          "end": 16508
+        }
+      ]
+    },
+    "review_duplicate_candidates": {
+      "same_candidate_key": [
+        "4b548905-a624-5e93-8d3e-a1a0651ca258",
+        "8d86b3de-810d-512f-9ea6-11211599a12d"
+      ]
+    }
+  },
+  {
+    "id": "0fc7897f-8e2d-5cbe-8525-060d7d0bf7be",
+    "title": "통킹 원정",
+    "body": "원문은 통킹 전쟁에서 중국군의 실적을 두고 평가가 엇갈렸다고 서술한다. 콜쿤은 중국 측의 장비·보급·조직·지휘 부족을 원인으로 들었지만 이는 그의 해석이다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16483–16486, 16515–16526행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "event-tonkin-campaign",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16483,
+          "end": 16486
+        },
+        {
+          "start": 16515,
+          "end": 16526
+        }
+      ]
+    }
+  },
+  {
+    "id": "d0219c71-58a7-535f-a32e-72d7f3663c9f",
+    "title": "청일전쟁",
+    "body": "원문은 청일전쟁 당시 중국군이 일본군에 비해 훈련·보급·지휘가 부족했다고 평가하며 통킹 전쟁과 비교한다. 이는 군사적 잠재력에 관한 당시 관찰자들의 상반된 주장 속에서 제시된다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16520–16532행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "event-sino-japanese-war",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16520,
+          "end": 16532
+        }
+      ]
+    },
+    "review_duplicate_candidates": {
+      "same_title_and_cardType": [
+        "0dcc8ee1-9b97-5781-bf39-3e5237275f63"
+      ]
+    }
+  },
+  {
+    "id": "f90b3cd3-19c5-5bf5-9563-086426709120",
+    "title": "태평군",
+    "body": "원문은 중국 남부 출신 병사에 대한 저평가를 반박하면서 태평군의 뛰어난 전투원들이 광둥 출신이었다고 언급한다. 이는 저자가 제시한 군사적 평가다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16541–16544행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "organization-taiping-army",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16541,
+          "end": 16544
+        }
+      ]
+    },
+    "review_duplicate_candidates": {
+      "same_title_and_cardType": [
+        "5ccb3ba6-66bf-507f-aa11-134df53ba290",
+        "5484a257-e441-55de-baf4-75db9bff2221",
+        "2d5a3b32-5d78-5abe-a079-bc01b832fbf3"
+      ]
+    }
+  },
+  {
+    "id": "8f91b35a-4320-5385-a4da-dd086b20b9a0",
+    "title": "러시아의 중앙아시아 도시 공성",
+    "body": "원문은 러시아군이 중앙아시아에서 참호를 파는 공성에서 개방된 성벽 등반, 나아가 포격으로 뚫은 틈을 돌격하는 전술로 옮겨갔다고 서술한다. 타슈켄트·호잔트·우라타파를 예로 들지만 각 전투의 날짜나 세부 경과는 이 구간에 없다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16549–16557행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "event",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "event-russian-central-asian-sieges",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16549,
+          "end": 16557
+        }
+      ]
+    }
+  },
+  {
+    "id": "4a25205a-c24a-5a50-8b3b-d0291e2a911f",
+    "title": "니카라과 운하 구상",
+    "body": "원문은 니카라과 운하가 앞으로 건설되면 미국 대서양 연안과 중국·동아시아의 교통이 가까워질 것이라고 전망했다. 이 대목은 계획에 대한 예측이지 운하의 완공을 기록한 것이 아니다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16236–16243행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "object",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "object-nicaragua-canal-plan",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16236,
+          "end": 16243
+        }
+      ]
+    }
+  },
+  {
+    "id": "0e15e64f-686c-51cf-9384-c9a9348dd945",
+    "title": "비숍 부인",
+    "body": "원문은 비숍 부인(Mrs. Bishop)의 평가를 빌려 쓰촨의 규모·인구·교역·생산물 때문에 이 지역을 제국에 비길 만한 성이라고 소개한다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16140–16145행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "character-isabella-bishop",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16140,
+          "end": 16145
+        }
+      ]
+    }
+  },
+  {
+    "id": "3ebbf26f-0d1e-5a83-9f60-61433a09d47e",
+    "title": "본",
+    "body": "본(Bourne)은 원문에서 인도산 실이 기계방적 비용 절감뿐 아니라 면섬유의 저렴한 생산을 이유로 쓰촨의 면화 재배를 밀어낸다고 관찰한 인물로 등장한다.\n\n출처: Demetrius Charles Boulger, 《China》, Mayo W. Hazeltine 보충편 「The Future of China」, Project Gutenberg 전자판 #6708, 16147–16151행, https://www.gutenberg.org/ebooks/6708",
+    "cardType": "character",
+    "provenance": {
+      "segment": "refill-china-supplement-future",
+      "candidate_key": "character-bourne",
+      "input_file": "미게시-임시자료:history/refill-china-supplement-future.json",
+      "input_sha256": "bfed72c845f74328f75e9e64e7bc09e9c9f9c5890e21e26f117e4fa4632ad5a4",
+      "source_commit": "912082039edef6ad87161eee86dee284193d65e1",
+      "source_path": "docs/research/history-textbooks/china/source-en.txt",
+      "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "source_url": "https://www.gutenberg.org/ebooks/6708",
+      "source_units": [
+        "china:supplement-future"
+      ],
+      "lines": [
+        {
+          "start": 16147,
+          "end": 16151
+        }
+      ]
+    }
+  }
+]

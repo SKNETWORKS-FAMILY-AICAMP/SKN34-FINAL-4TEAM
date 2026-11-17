@@ -25,6 +25,8 @@ export const cardPath = (worldId: string, cardId: string | number) => `/worlds/$
 /** 설정집 게시판의 '보이는 설정 모두 선택': 켜면 보이는 줄을 앞서 고른 것에 더하고, 끄면 보이는 줄만 선택에서 뺀다(필터에 가려진 선택은 남는다). */
 export const selectVisible = (selected: ReadonlySet<string>, visible: readonly string[], on: boolean): Set<string> =>
   new Set(on ? [...selected, ...visible] : [...selected].filter((id) => !visible.includes(id)))
+/** 공개 카드 대표 이미지 주소(#401): 서버는 공개 세계관의 확정 버전에서 공개·활성 카드가 가리키는 이미지만 준다. */
+export const cardImageSrc = (worldId: string, imageId: string) => `/api/v1/public/world-studios/${encodeURIComponent(worldId)}/card-images/${encodeURIComponent(imageId)}`
 /** 설정집 탭 주소. `kind`를 주면 그 유형 칩이 골라진 채로 열린다(`?type=`). */
 export const bookPath = (worldId: string, kind?: CardKind) => `/worlds/${worldId}?${new URLSearchParams({ tab: 'book', ...(kind ? { type: kind } : {}) })}`
 
@@ -104,8 +106,8 @@ const cardRef = (world: PublicWorld, i: number, label?: string): CardRef => {
 const bookOrder = (world: PublicWorld) => KINDS.flatMap((kind) => world.cards.flatMap((c, i) => (CARD_KIND[c.cardType] === kind ? [i] : [])))
 
 export type CardPage = {
-  /** `text`는 마크다운 원문 그대로다(화면이 `## 제목` 문단으로 나눠 그린다). */
-  card: CardRef & { text: string; aliases: string[]; tags: string[] }
+  /** `text`는 마크다운 원문 그대로다(화면이 `#`·`##`·`###` 제목 문단으로 나눠 그린다). `imageId`는 대표 이미지가 있을 때만 있다. */
+  card: CardRef & { text: string; aliases: string[]; tags: string[]; imageId?: string }
   /** 인물의 소속: 어느 쪽이 썼든 이어진 조직 카드. 인물이 아니면 빈 목록이다. */
   affiliations: CardRef[]
   /** 인물 카드가 다른 인물과 맺은 관계(`label`이 관계). 인물이 아닌 카드는 빈 목록이다. */
@@ -137,7 +139,7 @@ function pageAt(world: PublicWorld, me: number): CardPage {
   const refs = (list: typeof touching) => list.map(({ i, label }) => cardRef(world, i, label))
   const at = order.indexOf(me)
   return {
-    card: { ...cardRef(world, me), text: world.cards[me].text, aliases: world.cards[me].aliases, tags: world.cards[me].tags },
+    card: { ...cardRef(world, me), text: world.cards[me].text, aliases: world.cards[me].aliases, tags: world.cards[me].tags, ...(world.cards[me].imageId ? { imageId: world.cards[me].imageId } : {}) },
     affiliations: refs(touching.filter(({ i }) => person && world.cards[i].cardType === 'organization')),
     relations: refs(touching.filter(({ i }) => inPerson(i))),
     links: refs(touching.filter(({ i, out }) => out && !inPerson(i))),

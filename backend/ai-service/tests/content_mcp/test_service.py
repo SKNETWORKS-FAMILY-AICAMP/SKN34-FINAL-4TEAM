@@ -36,12 +36,13 @@ def test_approved_patch_replaces_only_the_selection_with_user_token(monkeypatch)
         'title': '3화', 'body': '그는 차갑게 웃었다. 바람이 불었다.', 'revision': 7, 'authorNote': '메모'}}
 
 
-@pytest.mark.parametrize('body', ['바람이 불었다.', '그는 웃었다. 그는 웃었다.'])
-def test_patch_whose_selection_is_gone_or_ambiguous_writes_nothing(monkeypatch, body):
+@pytest.mark.parametrize('body, before', [('바람이 불었다.', '그는 웃었다.'), ('그는 웃었다. 그는 웃었다.', '그는 웃었다.'),
+                                          ('하하하', '하하')])  # 겹쳐 두 곳인 선택도 모호하다(#390)
+def test_patch_whose_selection_is_gone_or_ambiguous_writes_nothing(monkeypatch, body, before):
     episode = {**EPISODE, 'draft': {**EPISODE['draft'], 'body': body}}
     calls = content(monkeypatch, {'episode_read': (False, json.dumps(episode))})
     with pytest.raises(ContentMcpFailure) as error:
-        service.apply_writing('work', 3, {'before': '그는 웃었다.', 'after': 'x'})
+        service.apply_writing('work', 3, {'before': before, 'after': 'x'})
     assert error.value.status == 409
     assert [c[2] for c in calls] == ['episode_read']
 

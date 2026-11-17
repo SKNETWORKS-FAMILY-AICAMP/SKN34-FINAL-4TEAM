@@ -1,0 +1,1894 @@
+{
+  "genre": "greco_roman_mythology",
+  "name": "그리스·로마 신화와 전승",
+  "scope": "헤시오도스 《신통기》 관련 카드에 호메로스 서사시·찬가, 아폴로도로스 신화집, 베르길리우스 서사시의 선별 전승을 추가한다. 작품별 차이를 보존하며 모든 그리스·로마 전승의 망라를 주장하지 않는다.",
+  "sources": [
+    {
+      "title": "헤시오도스 《신통기》: 1914년 공개 영어 저본",
+      "url": "https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "title": "휴 G. 에벌린화이트 생몰년과 1914년 판본 서지",
+      "url": "https://onlinebooks.library.upenn.edu/webbin/book/lookupname?key=Evelyn-White%2C+Hugh+G.+%28Hugh+Gerard%29%2C+1884-1924"
+    },
+    {
+      "title": "호메로스 《일리아스》 고대어 판본 (Perseus Digital Library)",
+      "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml"
+    },
+    {
+      "title": "호메로스 《오디세이아》 고대어 판본 (Perseus Digital Library)",
+      "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml"
+    },
+    {
+      "title": "아폴로도로스 《요약》 고대어 판본 (Perseus Digital Library)",
+      "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml"
+    },
+    {
+      "title": "아폴로도로스 《도서관》 고대어 판본 (Perseus Digital Library)",
+      "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml"
+    },
+    {
+      "title": "호메로스 찬가 《데메테르에게》 고대어 판본 (Perseus Digital Library)",
+      "url": "https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0013/tlg002/tlg0013.tlg002.perseus-grc2.xml"
+    },
+    {
+      "title": "베르길리우스 《아이네이스》 고대어 판본 (Perseus Digital Library)",
+      "url": "https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml"
+    }
+  ],
+  "cards": [
+    {
+      "key": "creation",
+      "title": "카오스와 신들의 계보",
+      "cardType": "event",
+      "body": "카오스가 먼저 생기고 가이아·타르타로스·에로스가 뒤따른다. 카오스에게서 에레보스와 밤, 밤과 에레보스의 결합에서 아이테르와 낮이 태어난다. 가이아는 자신을 덮는 우라노스, 님프들의 거처인 산들, 결합 없이 폰토스를 낳는다. 이어 우라노스와 티탄 세대를 낳으며 계보가 뻗는다. 카오스를 모든 신의 직접 부모로 만들지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p008"
+        }
+      ]
+    },
+    {
+      "key": "titans",
+      "title": "티탄 신족",
+      "cardType": "organization",
+      "body": "가이아와 우라노스의 자녀 명단에는 오케아노스·코이오스·크리오스·히페리온·이아페토스·테이아·레아·테미스·므네모시네·포이베·테튀스·크로노스가 나온다. 우라노스는 반역한 아들들을 티탄이라 부르며 보복을 예고한다. 제우스와 싸운 티탄들은 패해 갇히지만, 이 앞선 세대의 모든 인물을 한 적대 진영으로 합치지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p052"
+        }
+      ]
+    },
+    {
+      "key": "olympians",
+      "title": "올림포스의 신들",
+      "cardType": "organization",
+      "body": "제우스의 권위를 중심으로 올림포스에 모인 불사신들이다. 티탄들과의 싸움 뒤 제우스를 왕으로 세우고 각자의 명예를 나누어 받는다. 작품은 신들의 출생과 권능을 이어 서술하며, 고정된 열두 신의 명단을 제시하지 않는다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p065"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p071"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p072"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p073"
+        }
+      ]
+    },
+    {
+      "key": "zeus",
+      "title": "제우스",
+      "cardType": "character",
+      "body": "레아가 숨겨 낳고 가이아가 기른 크로노스의 아들이다. 아버지가 삼킨 자식들을 되찾고 키클롭스의 무기를 얻으며, 티탄들과의 싸움을 끝낸 뒤 신들의 왕으로 추대된다. 신들의 몫과 명예를 배분하는 권한을 갖는다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p036"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p037"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p065"
+        }
+      ],
+      "soul": "권한을 나누고 프로메테우스의 속임수에 분노한다. 말투: 제물 분배를 꾸짖는 직접 화법이 나온다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "hera",
+      "title": "헤라",
+      "cardType": "character",
+      "body": "크로노스와 레아의 딸이자 제우스의 아내다. 제우스와 결합해 헤베·아레스·에일레이티이아를 낳으며, 남편과 다툰 뒤에는 그와의 결합 없이 헤파이스토스를 낳는다. 이 작품에 없는 트로이 전쟁의 편들기나 부부 일화를 보태지 않는다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p036"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p072"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p073"
+        }
+      ],
+      "soul": "제우스에게 화가 나 히드라와 사자를 기른다. 남편과 다툰 뒤 헤파이스토스를 낳는 대목은 별도 장면이다. 말투 미확인.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "poseidon",
+      "title": "포세이돈",
+      "cardType": "character",
+      "body": "땅을 떠받치며 뒤흔드는 신으로 불린다. 암피트리테와의 사이에 바다 깊은 곳을 차지하는 트리톤을 낳고, 티탄들이 갇힌 곳에 청동 문을 설치한다. 바다의 통치와 지하 경계 모두에 관여하지만 다른 서사시의 제비뽑기 이야기는 이 자료의 근거가 아니다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p052"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p075"
+        }
+      ],
+      "soul": "티탄이 갇힌 곳의 청동 문을 세우는 행위로 묘사된다. 해당 구절만으로 대화 습관이나 성격은 알 수 없다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "athena",
+      "title": "아테나",
+      "cardType": "character",
+      "body": "메티스가 낳을 운명의 딸이며, 제우스가 메티스를 삼킨 뒤 자기 머리에서 낳는 여신이다. 트리토게네이아라는 이름으로도 불리고 전투와 군대의 지휘를 즐긴다. 929a–929t의 별도 이문은 본문과 구분하여 읽는다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p066"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p073"
+        }
+      ],
+      "soul": "전투와 군대 지휘를 즐기고 헤라클레스가 히드라를 이길 계책을 제공한다. 해당 구절의 직접 말투는 미확인.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "apollo",
+      "title": "아폴론",
+      "cardType": "character",
+      "body": "아이기스를 든 제우스와 레토의 아들이다. 무사들과 함께 땅 위 가수와 수금 연주자의 근원으로 제시된다. 다른 작품에 있는 신탁소 창건이나 괴물 퇴치 이야기는 포함하지 않는다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p071"
+        }
+      ],
+      "soul": "가수와 수금 연주자의 근원으로 제시된다. 이 계보의 역할만으로 성격이나 대사를 만들어내지 않는다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "artemis",
+      "title": "아르테미스",
+      "cardType": "character",
+      "body": "제우스와 레토에게서 아폴론과 함께 태어난, 화살을 좋아하는 여신이다. 무사들의 첫 찬양에도 등장한다. 이 작품이 말하지 않는 사냥 일화나 인간에 대한 형벌을 설정으로 덧붙이지 않는다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p071"
+        }
+      ],
+      "soul": "시인은 그를 화살을 좋아하는 여신이라 부른다. 본인의 대화 방식은 해당 계보에서 드러나지 않는다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "aphrodite",
+      "title": "아프로디테",
+      "cardType": "character",
+      "body": "잘린 우라노스의 생식기 둘레에 생긴 바다 거품에서 자라난 여신이다. 키테라와 키프로스를 거쳐 신들의 모임에 들어가고 에로스와 히메로스가 따른다. 속삭임·미소·매혹·사랑이 처음부터 배정된 몫이다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p017"
+        }
+      ],
+      "soul": "속삭임과 미소, 사랑과 매혹이 그녀의 몫으로 묘사된다. 시인의 목록을 아프로디테가 직접 한 말로 옮기지 않는다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "hermes",
+      "title": "헤르메스",
+      "cardType": "character",
+      "body": "제우스와 아틀라스의 딸 마이아 사이에서 태어난 불사신들의 전령이다. 헤카테의 권능을 설명하는 대목에서는 가축을 늘리는 일에도 함께 관여한다. 소 도둑질이나 리라 발명 일화는 이 작품의 본문에 없다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p035"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p077"
+        }
+      ],
+      "soul": "불사신들의 전령이자 헤카테와 가축을 늘리는 데 관여하는 존재다. 이 구절에 근거한 개인적 화법은 미확인.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "demeter",
+      "title": "데메테르",
+      "cardType": "character",
+      "body": "레아와 크로노스의 딸이며, 제우스와의 사이에서 페르세포네를 낳는다. 크레테의 세 번 간 밭에서 이아시온과 결합하여 부를 주는 플루토스를 낳는 계보도 서술된다. 딸을 찾아다니는 긴 여정은 이 작품의 내용이 아니다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p036"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p069"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p085"
+        }
+      ],
+      "soul": "계보에서 페르세포네와 플루토스의 어머니로 등장한다. 이 작품의 해당 구절만으로 상실의 심정이나 말투를 만들지 않는다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "hades-persephone",
+      "title": "하데스와 페르세포네",
+      "cardType": "character",
+      "body": "하데스는 크로노스와 레아의 아들로 땅 아래에 살며, 페르세포네와 함께 울림 큰 저택의 주인으로 등장한다. 제우스가 페르세포네를 그에게 주었다는 출생·납치 계보가 나온다. 저택 앞의 개는 들어오는 이를 반기고 나가려는 이를 잡아먹는다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p036"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p058"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p069"
+        }
+      ],
+      "soul": "하데스는 시에서 무자비한 마음을 가졌다고 묘사된다. 페르세포네의 성격은 이 장면만으로 단정하지 않으며 두 사람의 말투는 미확인.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "heracles",
+      "title": "헤라클레스",
+      "cardType": "character",
+      "body": "제우스와 알크메네의 아들이다. 게리오네스·히드라·네메아 사자를 쓰러뜨리고, 프로메테우스의 간을 먹는 독수리를 죽인다. 고난을 마친 뒤 올림포스에서 헤베와 혼인하지만, 작품은 열두 과업 전체를 순서대로 서술하지 않는다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p026"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p038"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p079"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p082"
+        }
+      ],
+      "soul": "게리오네스와 히드라를 무찌르고 독수리를 죽여 프로메테우스를 풀어준다. 각 행위의 동기와 말투는 이 구절에서 확장하지 않는다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "perseus",
+      "title": "페르세우스",
+      "cardType": "character",
+      "body": "메두사의 머리를 베는 영웅으로 등장한다. 그 절단에서 크리사오르와 페가소스가 솟아난다. 출생부터 귀환까지의 모험이나 다른 신들이 준 장비는 이 작품에 서술되지 않는다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p024"
+        }
+      ],
+      "soul": "메두사의 목을 베는 짧은 행위로 등장한다. 긴 모험의 성격이나 말투는 이 대목만으로 알 수 없다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "odysseus",
+      "title": "오디세우스",
+      "cardType": "character",
+      "body": "작품 끝의 신과 인간 사이 자손 목록에 등장한다. 키르케에게서는 아그리오스·라티노스·텔레고노스, 칼립소에게서는 나우시토오스·나우시노오스를 얻는다. 귀향의 항해와 이타케 이야기를 재구성한 자료가 아니다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p092"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p093"
+        }
+      ],
+      "soul": "이 카드의 신통기에서는 자녀들의 계보에 등장한다. 귀향 서사에서 알려진 꾀나 말투를 이 구절의 근거로 내세우지 않는다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "olympus",
+      "title": "올림포스",
+      "cardType": "location",
+      "body": "눈 덮인 봉우리와 불사신들의 집들이 있는 장소다. 무사들의 노래가 울리고 제우스가 신들의 몫과 명예를 정하는 거점으로 제시된다. 티탄 전쟁에서는 크로노스와 레아에게서 태어난 신들의 진영이 놓인다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p047"
+        }
+      ]
+    },
+    {
+      "key": "underworld",
+      "title": "명계와 타르타로스",
+      "cardType": "location",
+      "body": "타르타로스는 청동 모루가 땅에서 아흐레 밤낮 떨어져 열흘째 닿는 깊이에 비유되며 청동 울타리와 세 겹 밤, 대지와 바다의 뿌리로 둘러싸인다. 제우스의 명령으로 티탄들이 갇히고 포세이돈의 청동 문과 백수거인 파수꾼이 지킨다. 근원과 끝들이 놓인 큰 심연은 바람에 휩쓸려 한 해가 지나도 바닥에 못 닿는 곳으로도 묘사된다. 밤·잠·죽음과 하데스·페르세포네의 거처가 이어지고, 다시 저절로 생긴 청동 문턱과 카오스 건너 티탄의 장소를 말한다. 여러 묘사의 거리·배치를 하나의 정밀 지도처럼 보정하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p052"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p053"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p054"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p057"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p058"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p061"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p062"
+        }
+      ]
+    },
+    {
+      "key": "delphi",
+      "title": "피토와 제우스의 돌",
+      "cardType": "location",
+      "body": "크로노스가 마지막에 삼켰다가 맨 먼저 토한 돌을 제우스가 파르나소스 아래 피토에 세운다. 인간들에게 표징과 경이가 되는 장소다. 기존 장소 키를 유지하되 신탁소 건립에 관한 다른 작품의 내용을 제거했다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p037"
+        }
+      ]
+    },
+    {
+      "key": "thunderbolt",
+      "title": "제우스의 천둥과 벼락",
+      "cardType": "object",
+      "body": "키클롭스가 만든 벼락과 천둥은 해방의 보답으로 제우스에게 주어진다. 티탄 전쟁에서 제우스는 이를 거듭 던져 땅·바다·하늘을 흔들고 태운다. 단순한 왕권의 장식이 아니라 작품 속 전투의 무기다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p037"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p051"
+        }
+      ]
+    },
+    {
+      "key": "gorgon-head",
+      "title": "메두사의 잘린 머리",
+      "cardType": "object",
+      "body": "페르세우스가 메두사의 머리를 벨 때 크리사오르와 페가소스가 태어난다. 이 카드의 근거는 절단과 탄생 장면이며, 머리의 석화 능력이나 아테나의 방패에 붙이는 후일담은 이 작품에서 확인되지 않는다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p024"
+        }
+      ]
+    },
+    {
+      "key": "titanomachy",
+      "title": "티타노마키아",
+      "cardType": "event",
+      "body": "오트리스의 티탄들과 올림포스의 신들이 십 년 동안 승부 없이 싸운다. 풀려난 백수거인들이 제우스 편에 서고, 제우스의 벼락과 거인들이 던지는 바위가 승부를 결정한다. 패한 티탄들은 타르타로스에 결박된다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p047"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p048"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p049"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p050"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p051"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p052"
+        }
+      ]
+    },
+    {
+      "key": "persephone-return",
+      "title": "페르세포네의 납치",
+      "cardType": "event",
+      "body": "데메테르와 제우스의 딸 페르세포네를 아이도네우스가 어머니에게서 데려가며, 제우스가 그에게 딸을 주었다고 서술된다. 기존 사건 키는 보존하지만 이 작품에 없는 석류·계절별 귀환 조건은 카드에서 제외했다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p069"
+        }
+      ]
+    },
+    {
+      "key": "styx-oath",
+      "title": "스틱스의 맹세",
+      "cardType": "rule",
+      "body": "스틱스는 먼저 제우스를 지지한 대가로 신들의 맹세가 된다. 신이 스틱스의 물로 거짓 맹세를 하면 한 해 동안 숨과 목소리 없이 누워 신들의 음식을 먹지 못하고, 이어 아홉 해 동안 모임과 잔치에서 배제된다. 열째 해에 다시 합류한다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p033"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p059"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p060"
+        }
+      ]
+    },
+    {
+      "key": "roman-tradition",
+      "title": "아이네아스",
+      "cardType": "character",
+      "body": "아프로디테와 안키세스 사이에서 이다산의 봉우리들에 태어난 자식으로 기록된다. 기존 아이네아스 대상 키는 보존하지만, 트로이 탈출·이탈리아 정착·로마의 미래는 다른 작품의 서사이므로 이 카드에 넣지 않는다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p091"
+        }
+      ],
+      "soul": "신통기에서는 아프로디테와 안키세스의 아들로 언급된다. 계보만으로 인물의 사고와 말투는 확인할 수 없다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "muses",
+      "title": "무사 여신들과 헤시오도스의 노래",
+      "cardType": "organization",
+      "body": "제우스와 므네모시네가 아홉 밤을 함께한 뒤 태어난 클레이오·에우테르페·탈레이아·멜포메네·테르프시코레·에라토·폴리힘니아·우라니아·칼리오페이다. 헬리콘에서 신들을 찬양하고 양치기 헤시오도스에게 월계수 지팡이와 신성한 목소리를 주어 과거와 미래 및 신들의 계보를 노래하게 한다. 참 같은 거짓과 진실을 모두 말할 수 있다고 선언한다. 칼리오페는 군주들을 보살피며 여신들의 언변 선물은 올바른 판결과 분쟁 해결에 이어진다. 가수의 노래는 슬픔을 잊게 한다고 화자는 찬양한다. 작품은 신들의 기원을 청하는 호출에서 시작해 여신과 인간의 자손 명단을 거쳐 여인들의 노래를 청하며 끝난다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p002"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p003"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p004"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p005"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p006"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p007"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p070"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p084"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p094"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p095"
+        }
+      ]
+    },
+    {
+      "key": "hecate",
+      "title": "헤카테",
+      "cardType": "character",
+      "body": "아스테리아와 페르세스의 외동딸이다. 제우스는 앞선 신들 사이의 몫을 빼앗지 않고 땅·바다·하늘의 명예를 인정한다. 기도를 받아 명예와 부를 주고, 재판·집회·전투·경기·기마에서 원하는 이를 돕는다. 어부에게 잡힐 물고기를 늘리거나 빼앗고, 헤르메스와 가축을 늘리거나 줄일 수 있으며 어린것들의 양육자이다. 작품은 도움의 선택권을 강조하지 모든 청원을 자동으로 이루는 주문을 제시하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p035"
+        }
+      ],
+      "soul": "원하는 사람을 돕고 재판·경기·바다에서 명예와 이익을 주거나 거둘 수 있다. 말투: 시인의 설명이며 직접 발언은 미확인.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "prometheus",
+      "title": "프로메테우스",
+      "cardType": "character",
+      "body": "이아페토스와 클리메네의 꾀 많은 아들이다. 메코네의 제물 분배에서 제우스에게 맞서고 인간에게 불을 가져오지만 결박과 독수리의 형벌을 겪는다. 불의 대가로 인간들에게 여자가 만들어지는 대목은 시의 적대적인 여성관을 담은 화자의 서술이다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p038"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p041"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p043"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p045"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p046"
+        }
+      ],
+      "soul": "제물의 몫을 속임수로 나누고 인간에게 불을 훔쳐 준다. 말투: 웃으면서 제우스에게 몫을 고르라고 하되 계략을 감춘다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "typhoeus",
+      "title": "튀포에우스",
+      "cardType": "character",
+      "body": "가이아와 타르타로스 사이에서 태어난 위협적인 막내다. 수많은 뱀 머리와 불꽃, 여러 짐승의 소리를 지니고 제우스와 싸우다가 타르타로스에 던져진다. 인간에게 해로운 돌풍들은 그에게서 나온다고 설명된다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p063"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p064"
+        }
+      ],
+      "soul": "제우스와 맞서며 다양한 짐승 소리를 낸다. 그 소리를 인간의 언어나 특정 성격으로 단정하지 않는다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "cronos",
+      "title": "크로노스의 왕권과 몰락",
+      "cardType": "event",
+      "body": "가이아의 계략에 따라 우라노스에게 맞선 크로노스는 자신도 아들에게 패할까 두려워 태어나는 자식들을 삼킨다. 레아의 속임수로 제우스 대신 돌을 삼키고, 성장한 아들에게 굴복하여 삼킨 것들을 토해 낸다.\n\n출전: [헤시오도스 《신통기》 한국어 중역의 저본](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26). 행 범위는 출전 위치 자료를 참고한다.",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p013"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p014"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p018"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p036"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p037"
+        }
+      ]
+    },
+    {
+      "key": "helicon_pieria",
+      "title": "헬리콘과 피에리아의 노래 터",
+      "cardType": "location",
+      "body": "무사들이 춤추는 헬리콘에는 짙푸른 샘과 제우스의 제단이 있고, 페르메소스·말의 샘·올메이오스에서 몸을 씻는다. 피에리아는 므네모시네가 아홉 딸을 낳는 곳으로 제시된다. 올림포스 봉우리 가까운 무사들의 집과 춤터 곁에는 카리테스와 히메로스가 산다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p001"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p005"
+        }
+      ]
+    },
+    {
+      "key": "gaia_uranus",
+      "title": "가이아와 우라노스의 생성·갈등",
+      "cardType": "character",
+      "body": "가이아는 카오스 다음에 생긴 대지이며 자신과 같은 크기의 하늘 우라노스, 산들과 폰토스를 낳고 우라노스와 여러 신족의 부모가 된다. 자식을 가이아 안에 가두는 우라노스 때문에 고통받아 낫을 만들고 크로노스에게 반격을 권한다. 잘린 우라노스에게서 떨어진 피를 받아 에리니에스·기간테스·멜리아이를 낳는다. 사건의 폭력과 계보를 다른 창조담으로 바꾸지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p011"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p012"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p015"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p016"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p017"
+        }
+      ],
+      "soul": "가이아는 자식들을 숨긴 우라노스에게 괴로워하며 아들들에게 반격을 권한다. 말투: 가이아는 자식들에게 아버지의 행위를 꾸짖으며 협력을 요청한다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "eros_himeros",
+      "title": "에로스와 히메로스",
+      "cardType": "character",
+      "body": "에로스는 태초에 나타나 신과 인간의 팔다리 힘, 마음과 슬기를 굴복시키는 존재이다. 아프로디테가 생겨 신들의 모임으로 갈 때 동행하며 히메로스가 뒤따른다. 히메로스는 욕망으로 풀이되고 무사들의 거처 곁에도 산다. 이 시의 에로스를 다른 작품의 특정 부모에게서 난 자식으로 바꾸지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p008"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p017"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p005"
+        }
+      ],
+      "soul": "에로스는 마음과 슬기를 굴복시키고 히메로스는 아프로디테를 따른다. 의인화된 힘과 직접 대화는 구별하며 말투는 미확인.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "cyclopes",
+      "title": "천둥을 만드는 키클롭스",
+      "cardType": "organization",
+      "body": "브론테스·스테로페스·아르게스는 이마 가운데 둥근 눈 하나를 가진 가이아의 자녀들이다. 힘·위력·솜씨가 뛰어나 제우스에게 천둥을 주고 벼락을 만든다. 제우스가 풀어 준 아버지의 형제들이 무기를 선물하는 해방의 보답 대목과 연결된다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p009"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p037"
+        }
+      ]
+    },
+    {
+      "key": "hundred_handed",
+      "title": "코토스·브리아레오스·기에스",
+      "cardType": "organization",
+      "body": "가이아와 우라노스의 세 아들은 각각 팔 백 개와 머리 쉰 개를 지니며 아버지의 미움으로 지하에 결박된다. 가이아의 권고로 제우스 일행이 풀어 주고 넥타르·암브로시아로 기운을 회복시킨다. 코토스는 은혜를 기억하며 싸움을 돕겠다고 답한다. 바위 삼백 개를 던져 티탄들을 쓰러뜨리고 포로의 파수꾼이 된다. 뒤에는 코토스와 기에스의 오케아노스 바닥 거처, 브리아레오스와 포세이돈의 딸 키모폴레이아의 혼인이 언급된다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p010"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p047"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p048"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p049"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p050"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p052"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p062"
+        }
+      ]
+    },
+    {
+      "key": "night_descendants",
+      "title": "밤의 자녀와 운명·고통의 계보",
+      "cardType": "organization",
+      "body": "밤은 모로스·케르·타나토스·히프노스와 꿈들의 종족, 모모스·오이지스·헤스페리데스, 모이라이와 케레스 및 클로토·라케시스·아트로포스, 네메시스·아파테·필로테스·게라스·에리스를 낳는다. 이 대목의 운명 여신들은 출생 때 선악의 몫을 주고 잘못을 추적하여 벌한다. 에리스에게서는 노고·망각·굶주림·고통, 싸움·전투·살인·학살, 다툼·거짓말·논쟁·무법·파멸과 거짓 맹세를 벌하는 호르코스가 나온다. 후반 테미스의 자녀로 나오는 모이라이 계보와 차이를 지우지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p020"
+        }
+      ]
+    },
+    {
+      "key": "sea_first_children",
+      "title": "폰토스와 바다 신족의 첫 계보",
+      "cardType": "organization",
+      "body": "폰토스의 맏이 네레우스는 참되고 온화하며 공정하여 노인이라 불린다. 폰토스와 가이아에게서 타우마스·포르키스·케토·에우리비아도 태어난다. 타우마스와 엘렉트라의 자녀는 이리스와 하르피이아들이다. 포르키스와 케토의 괴물 계보, 에우리비아와 크리오스의 자녀 계보로 이어지는 바다 쪽 혈연의 시작이다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p021"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p031"
+        }
+      ]
+    },
+    {
+      "key": "nereids",
+      "title": "네레우스와 도리스의 쉰 딸",
+      "cardType": "organization",
+      "body": "네레우스와 오케아노스의 딸 도리스에게서 태어난 바다 여신들이다. 플로토·에우크란테·사오·암피트리테·에우도라·테티스·갈레네·글라우케·키모토에·스페오·토에·할리에·파시테아·에라토·에우니케·멜리테·에울리메네·아가우에·도토·프로토·페루사·디나메네·니사이아·악타이아·프로토메데이아·도리스·파노페아·갈라테이아·히포토에·히포노에·키모도케·키마톨레게·키모·에이오네·알리메데·글라우코노메·폰토포레아·레아고레·에우아고레·라오메데이아·폴리노에·아우토노에·리시아나사·에우아르네·프사마테·메니페·네소·에우폼페·테미스토·프로노에·네메르테스가 번역 명단에 나온다. 본문은 이를 쉰 딸이라 부르며 키모도케·키마톨레게·암피트리테가 물결과 돌풍을 잠재운다고 말한다. 명단의 이름 수와 본문의 수사 표현을 임의로 교정하지 않으며 테티스를 오케아노스의 아내 테튀스와 합치지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p022"
+        }
+      ]
+    },
+    {
+      "key": "iris_harpies",
+      "title": "이리스와 하르피이아 자매",
+      "cardType": "character",
+      "body": "타우마스와 오케아노스의 딸 엘렉트라의 자녀들이다. 이리스는 날쌘 전령으로 바다를 건너 스틱스에게 가며 제우스의 명령으로 맹세의 물을 황금 주전자에 담아 온다. 하르피이아 아엘로와 오키페테스는 긴 머리와 빠른 날개로 바람과 새를 따라 시간처럼 재빨리 날아간다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p023"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p059"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p060"
+        }
+      ],
+      "soul": "이리스는 명령을 수행하는 전령이고 하르피이아 자매는 바람처럼 빠르다. 셋의 기질이나 말투를 한 인물로 합치지 않는다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "graiai_gorgons",
+      "title": "그라이아이와 고르곤 자매",
+      "cardType": "organization",
+      "body": "포르키스와 케토는 태어날 때부터 백발인 펨프레도·에니오라는 그라이아이와 스테노·에우리알레·메두사라는 고르곤들을 낳는다. 고르곤들은 오케아노스 너머 밤 쪽 변방의 헤스페리데스 가까이 산다. 메두사만 죽을 운명이고 두 자매는 늙지도 죽지도 않는다. 이 작품에는 공유하는 눈이나 메두사의 석화 능력 설명이 없다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p024"
+        }
+      ]
+    },
+    {
+      "key": "pegasus_chrysaor",
+      "title": "메두사에게서 솟은 페가소스와 크리사오르",
+      "cardType": "character",
+      "body": "메두사의 목이 잘릴 때 말 페가소스와 황금 칼을 든 크리사오르가 솟는다. 페가소스는 오케아노스의 샘 근처 출생에서 이름을 얻고 제우스의 집으로 날아가 천둥과 번개를 운반하며 벨레로폰과 키마이라를 죽인다. 크리사오르는 칼리로에와 결합하여 게리오네스를 낳는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p026"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p087"
+        }
+      ],
+      "soul": "페가소스는 제우스에게 번개를 나르고, 크리사오르는 황금 칼을 든 존재로 등장한다. 두 존재의 말투는 미확인.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "geryon_herd",
+      "title": "에리테이아의 게리오네스와 소 떼",
+      "cardType": "event",
+      "body": "크리사오르와 칼리로에의 아들 게리오네스는 머리가 셋이며 매우 강한 존재로 묘사된다. 헤라클레스가 바다에 둘러싸인 에리테이아에서 소를 얻으려고 그를 죽이고 티린스로 몰아간다. 같은 여정에서 개 오르토스와 소치기 에우리티온도 오케아노스 너머 우리에서 죽임을 당한다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p024"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p087"
+        }
+      ]
+    },
+    {
+      "key": "echidna",
+      "title": "아리마 땅밑의 에키드나",
+      "cardType": "character",
+      "body": "반은 빛나는 눈과 고운 볼의 님프이고 반은 얼룩진 거대한 뱀인 불사·불로의 존재이다. 신들이 집으로 정한 외딴 바위 아래 동굴에서 날고기를 먹으며 아리마 땅밑을 지킨다. 사람들은 티파온과 결합했다고 말하며, 괴물 자녀들의 계보가 이어진다. 이 대목의 ‘여신’ 등 대명사와 다른 판본의 부모 설명을 무리하게 통일하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p025"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p026"
+        }
+      ],
+      "soul": "외딴 동굴에 살며 날고기를 먹고 아리마를 지킨다고 시가 말한다. 성격과 말투에 관한 직접 근거는 없다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "monster_brood",
+      "title": "에키드나 계보의 괴물들",
+      "cardType": "organization",
+      "body": "에키드나의 자녀로 오르토스, 머리 쉰 개에 청동 같은 목소리로 날고기를 먹는 케르베로스, 헤라가 기른 레르나의 히드라가 나온다. 헤라클레스와 이올라오스가 아테나의 계책으로 히드라를 죽인다. 키마이라는 사자·염소·뱀의 세 머리와 불뿜는 숨결을 지니며 페가소스와 벨레로폰에게 죽는다. 에키드나와 오르토스에게서 카드모스 백성의 재앙인 스핑크스와 네메아 사자가 나오고, 헤라가 기른 사자는 트레토스·아페사스에서 사람을 잡아먹다 헤라클레스에게 패한다. 케르베로스의 머리 수를 널리 알려진 다른 수로 고치지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p026"
+        }
+      ]
+    },
+    {
+      "key": "golden_apples",
+      "title": "헤스페리데스와 뱀이 지키는 황금 사과",
+      "cardType": "object",
+      "body": "밤의 딸들 헤스페리데스는 오케아노스 너머에서 황금 사과와 나무들을 지킨다. 포르키스와 케토의 막내 뱀도 땅끝 은밀한 곳의 황금 사과를 지킨다. 그 앞 땅끝에는 아틀라스가 하늘을 떠받친다. 작품에 없는 사과 획득 과업이나 뱀의 별도 이름을 보충하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p027"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p038"
+        }
+      ]
+    },
+    {
+      "key": "oceanus_rivers",
+      "title": "오케아노스·테튀스의 강들",
+      "cardType": "organization",
+      "body": "오케아노스와 테튀스의 강 자녀로 닐로스·알페이오스·에리다노스·스트리몬·마이안드로스·이스트로스·파시스·레소스·아켈로오스·네소스·로디오스·할리아크몬·헵타포로스·그라니코스·아이세포스·시모에이스·페네이오스·헤르모스·카이코스·상가리오스·라돈·파르테니오스·에우에노스·아르데스코스·스카만드로스가 열거된다. 본문은 딸들만큼 많은 강들이 있으며 인간은 거주지의 강을 안다고 말한다. 후반에는 오케아노스의 아홉 물줄기가 땅과 바다를 돌고 열 번째 몫이 스틱스라고 서술한다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p028"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p029"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p060"
+        }
+      ]
+    },
+    {
+      "key": "oceanids",
+      "title": "삼천 오케아노스의 딸들",
+      "cardType": "organization",
+      "body": "테튀스와 오케아노스의 딸들은 아폴론 및 강들과 함께 젊은이를 보살피라는 제우스의 일을 맡고 땅과 물을 돌본다. 열거된 맏딸들은 페이토·아드메테·이안테·엘렉트라·도리스·프림노·우라니아·히포·클리메네·로데이아·칼리로에·제욱소·클리티에·이디이아·파시토에·플렉사우라·갈락사우라·디오네·멜로보시스·토에·폴리도라·케르케이스·플루토·페르세이스·이아네이라·아카스테·크산테·페트라이아·메네스토·에우로페·메티스·에우리노메·텔레스토·크리세이스·아시아·칼립소·에우도라·티케·암피로·오키로에·스틱스이다. 본문은 이 밖에도 많아 전체가 삼천이라고 말한다. 다른 계보의 동명 인물과 임의로 동일시하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p029"
+        }
+      ]
+    },
+    {
+      "key": "sun_moon_dawn",
+      "title": "헬리오스·셀레네·에오스",
+      "cardType": "character",
+      "body": "테이아와 히페리온은 태양 헬리오스, 달 셀레네, 새벽 에오스를 낳는다. 에오스는 땅과 하늘의 신들을 비추고 아스트라이오스와 바람과 별들을 낳는다. 헬리오스의 자녀와 에오스가 인간과 낳은 영웅들은 작품 후반에도 이어진다. 파에톤은 이 작품에서 에오스와 케팔로스의 아들이며 다른 태양 수레 이야기를 붙이지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p030"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p032"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p083"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p088"
+        }
+      ],
+      "soul": "에오스는 땅과 하늘의 신들을 비춘다. 헬리오스·셀레네·에오스 각각의 성격과 말투는 이 계보에서 확인되지 않는다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "eurybia_children",
+      "title": "에우리비아·크리오스의 세 아들",
+      "cardType": "organization",
+      "body": "에우리비아와 크리오스의 자녀는 아스트라이오스·팔라스·페르세스이다. 아스트라이오스는 에오스와 바람·별들의 부모가 되고, 팔라스는 스틱스와 경쟁·승리·힘·폭력의 부모가 되며, 지혜로운 페르세스는 아스테리아와 헤카테의 부모가 된다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p031"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p032"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p033"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p035"
+        }
+      ]
+    },
+    {
+      "key": "winds_stars",
+      "title": "새벽의 바람·별과 파괴적인 돌풍",
+      "cardType": "event",
+      "body": "에오스와 아스트라이오스에게서 제피로스·보레아스·노토스가 태어나고, 이어 에리게네이아가 새벽별 에오스포로스와 별들을 낳는다. 후반에서 세 바람은 인간에게 복이 되는 신이 보낸 바람으로 분류된다. 튀포에우스에게서 나오는 다른 돌풍들은 배와 선원을 해치고 들판을 먼지로 망가뜨리는 것으로 대비된다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p032"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p064"
+        }
+      ]
+    },
+    {
+      "key": "styx_children",
+      "title": "스틱스와 제우스 곁의 네 자녀",
+      "cardType": "organization",
+      "body": "스틱스와 팔라스의 자녀는 경쟁 젤로스, 승리 니케, 힘 크라토스, 폭력 비아이다. 스틱스가 아버지의 권고에 따라 자녀들과 가장 먼저 제우스의 동맹 요청에 응하자 제우스는 여신을 신들의 맹세로 삼고 자녀들을 영원한 동거자로 정한다. 이들에게 제우스와 별개인 집이나 길은 없다고 작품은 말한다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p033"
+        }
+      ]
+    },
+    {
+      "key": "leto_asteria",
+      "title": "레토·아스테리아의 계보",
+      "cardType": "character",
+      "body": "포이베와 코이오스에게서 온화하고 친절한 레토와 아스테리아가 태어난다. 레토는 제우스와 아폴론·아르테미스를 낳고, 아스테리아는 페르세스와 헤카테를 낳는다. 작품 밖의 섬으로 변신하는 일화나 추격담은 이 계보에 덧붙이지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p034"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p035"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p071"
+        }
+      ],
+      "soul": "시인은 레토를 늘 온화하고 친절하다고 묘사한다. 아스테리아에게 같은 성격을 옮기지 않으며 두 사람의 말투는 미확인.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "rhea_hidden_zeus",
+      "title": "레아의 슬픔과 크레테의 숨겨진 제우스",
+      "cardType": "event",
+      "body": "레아와 크로노스의 자녀는 헤스티아·데메테르·헤라·하데스·포세이돈·제우스이다. 아들에게 패한다는 예언 때문에 크로노스가 자녀들을 삼키자 레아는 부모에게 도움을 청한다. 크레테에서 제우스를 낳고 가이아가 밤에 안아 아이가이온산 동굴에 숨겨 키운다. 크로노스에게는 포대기에 싼 돌을 주고, 자란 제우스는 삼킨 자녀들을 토하게 한다. 돌을 피토에 세우고 갇힌 친족을 풀어 주는 왕권 교체로 이어진다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p036"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p037"
+        }
+      ]
+    },
+    {
+      "key": "iapetus_sons",
+      "title": "이아페토스와 클리메네의 네 아들",
+      "cardType": "organization",
+      "body": "아틀라스·메노이티오스·프로메테우스·에피메테우스는 이아페토스와 오케아노스의 딸 클리메네의 자녀들이다. 난폭한 메노이티오스는 벼락으로 에레보스에 내려가고, 아틀라스는 땅끝에서 머리와 두 팔로 하늘을 떠받친다. 프로메테우스는 결박과 간을 먹는 독수리의 형벌 뒤 헤라클레스에게 구해진다. 에피메테우스는 제우스가 만든 여자를 처음 받아들여 인간에게 해를 끼친 인물로 화자가 평가한다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p038"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p055"
+        }
+      ]
+    },
+    {
+      "key": "mekone_sacrifice",
+      "title": "메코네의 소 분배와 흰 뼈 제사",
+      "cardType": "event",
+      "body": "신과 인간이 다투던 메코네에서 프로메테우스는 소의 살·내장을 위로 덮고 흰 뼈를 지방으로 싸서 두 몫을 만든다. 제우스는 불공평한 분배를 지적하고 선택하라는 말을 듣는다. 화자는 제우스가 속임수를 알아본 채 지방을 집어 들어 뼈를 보고 분노했다고 말하며, 인간이 제단에서 뼈를 태우는 관습의 유래로 설명한다. 제우스가 전혀 모르고 속았다고 바꾸지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p038"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p039"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p040"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p041"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p042"
+        }
+      ]
+    },
+    {
+      "key": "stolen_fire",
+      "title": "속 빈 회향 줄기의 불",
+      "cardType": "object",
+      "body": "제우스가 인간에게 불을 주지 않자 프로메테우스는 속 빈 회향 줄기 안에 불빛을 숨겨 훔쳐 온다. 인간 사이의 불을 본 제우스의 분노와 대가가 뒤따른다. 화자는 프로메테우스도 제우스의 뜻과 형벌을 피할 수 없었다고 결론짓는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p043"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p046"
+        }
+      ]
+    },
+    {
+      "key": "fashioned_woman",
+      "title": "불의 대가로 빚어진 여자와 화자의 논평",
+      "cardType": "event",
+      "body": "제우스의 뜻으로 절름발이 장인이 흙에서 처녀를 만들고 아테나가 옷·너울·꽃관을 입히며, 장인이 동물들을 새긴 황금 관도 마련한다. 신과 인간에게 보여 준 여자를 화자는 ‘아름다운 악’과 여성 종족의 시작으로 말한다. 뒤의 꿀벌·수벌 비유, 혼인과 독신·노년·상속·자녀에 관한 비관적 평가는 작품 화자의 여성 적대적 논평이지 실제 성별 특성이나 정당한 윤리 규칙으로 제시하지 않는다. 이 작품에서 이름을 말하지 않은 여자를 다른 작품의 세부 일화로 완성하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p043"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p044"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p045"
+        }
+      ]
+    },
+    {
+      "key": "night_day_gate",
+      "title": "밤과 낮이 교대하는 청동 문턱",
+      "cardType": "rule",
+      "body": "어두운 밤의 집 앞에는 아틀라스가 하늘을 받치고 있다. 밤과 낮은 청동 문턱을 오가며 인사하고 한쪽이 들어가면 다른 쪽이 나온다. 집에 둘이 동시에 머물지 않으며 하나는 빛을, 다른 하나는 잠을 지닌다고 시는 공간화하여 설명한다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p055"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p056"
+        }
+      ]
+    },
+    {
+      "key": "sleep_death",
+      "title": "히프노스와 타나토스",
+      "cardType": "character",
+      "body": "밤의 자녀인 잠과 죽음은 태양빛이 닿지 않는 곳에 산다. 잠은 땅과 바다를 평화롭게 다니며 사람에게 친절하지만, 죽음은 쇠의 심장과 청동 같은 무자비한 정신으로 붙잡은 인간을 놓지 않는다. 이는 시의 의인화된 대비이다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p019"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p057"
+        }
+      ],
+      "soul": "잠은 인간에게 친절하고 평화롭게 다니지만 죽음은 붙잡은 인간을 놓지 않는 무자비한 존재로 대비된다. 둘의 말투는 미확인.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "metis",
+      "title": "삼켜진 메티스와 왕권의 예언",
+      "cardType": "character",
+      "body": "제우스의 첫 아내인 메티스는 가장 지혜롭고 아테나를 임신한다. 아버지와 맞먹는 딸 뒤 신과 인간의 왕이 될 아들을 낳을 운명이므로, 제우스는 가이아·우라노스의 권고로 속여 삼키고 자기 안에서 선악을 궁리하게 한다. 별도 이문 929a–t는 벼락보다 강한 출생의 두려움, 트리토 강가의 아테나 출생과 메티스의 무기 제작을 전한다. 결손과 대명사의 불확실성을 남기고 이문을 주 본문과 한 사건 순서로 강제 통합하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p066"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p074"
+        }
+      ],
+      "soul": "가장 지혜로운 신으로 묘사되며 삼켜진 뒤에도 제우스 안에서 선악을 궁리한다. 직접 발언이나 말투는 미확인.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "themis_horai_fates",
+      "title": "테미스의 호라이와 모이라이",
+      "cardType": "organization",
+      "body": "제우스와 테미스에게서 인간의 일을 돌보는 호라이인 에우노미아·디케·에이레네와 선악의 몫을 주는 모이라이인 클로토·라케시스·아트로포스가 나온다. 앞부분에서 모이라이를 밤의 자녀로 열거하는 계보도 있으므로 하나를 지우거나 임의의 양육·재탄생 설명으로 맞추지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p067"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p019"
+        }
+      ]
+    },
+    {
+      "key": "charites",
+      "title": "세 카리테스와 아글라이아의 혼인",
+      "cardType": "organization",
+      "body": "제우스와 오케아노스의 딸 에우리노메에게서 아글라이아·에우프로시네·탈레이아가 태어난다. 우아함의 여신들의 눈길에서 팔다리 힘을 풀어 놓는 사랑이 흐른다. 막내 아글라이아는 헤파이스토스의 아내가 된다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p068"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p080"
+        }
+      ]
+    },
+    {
+      "key": "hephaestus",
+      "title": "헤파이스토스의 출생과 기술",
+      "cardType": "character",
+      "body": "헤라는 제우스와 다툰 뒤 그와 결합하지 않고 헤파이스토스를 낳으며, 그는 신들 가운데 뛰어난 기술자로 묘사된다. 불의 대가로 처녀를 만들고 살아 있는 듯한 생물을 새긴 황금 관을 만드는 절름발이 장인의 대목이 있다. 카리테스 막내 아글라이아와 혼인한다. 별도 이문의 반복되는 출생 구절을 새로운 두 번째 탄생으로 세지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p043"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p073"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p074"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p080"
+        }
+      ],
+      "soul": "기술이 뛰어나 살아 있는 듯한 생물 무늬를 관에 만든다. 솜씨에 대한 서술만으로 대화의 성향을 확정하지 않는다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "ares_family",
+      "title": "아레스와 공포·두려움",
+      "cardType": "character",
+      "body": "제우스와 헤라의 자녀 아레스는 도시를 약탈하고 방패를 꿰뚫는 전쟁신으로 불린다. 아프로디테와 공포·두려움 및 하르모니아를 낳는다. 공포와 두려움은 아레스의 도움으로 전투 대오를 무너뜨리는 신들로 묘사된다. 헤베와 에일레이티이아도 제우스·헤라의 자녀 명단에 함께 나온다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p072"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p076"
+        }
+      ],
+      "soul": "아레스는 전쟁과 도시 약탈에 연결되고 공포·두려움은 함께 전열을 무너뜨린다. 각자의 말투는 해당 계보에서 미확인.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "triton",
+      "title": "바다의 황금 집에 사는 트리톤",
+      "cardType": "character",
+      "body": "암피트리테와 땅을 흔드는 신의 아들로 널리 다스리는 무서운 신이다. 바다 깊은 곳에서 어머니와 아버지와 함께 황금 집에 산다. 소라 나팔 등 본문 밖의 도상은 추가하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p075"
+        }
+      ],
+      "soul": "시인은 바다 깊은 곳의 트리톤을 무서운 신이라 부른다. 화자의 묘사와 트리톤 자신의 사고·말투를 구별한다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "dionysus_ariadne",
+      "title": "디오니소스·세멜레·아리아드네",
+      "cardType": "character",
+      "body": "제우스와 카드모스의 딸 세멜레에게서 디오니소스가 태어난다. 죽을 여인이 불멸의 아들을 낳았으며 이제 둘 다 신이라고 작품은 말한다. 디오니소스는 미노스의 딸 아리아드네와 혼인하고 제우스는 그녀를 죽지도 늙지도 않게 한다. 테세우스와 관련된 다른 작품의 이야기는 보충하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p078"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p081"
+        }
+      ],
+      "soul": "출생과 혼인의 계보만 제시되므로 디오니소스·세멜레·아리아드네의 말투와 기질은 확인되지 않는다.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "harmonia_cadmus",
+      "title": "하르모니아와 카드모스의 자녀",
+      "cardType": "organization",
+      "body": "아레스와 아프로디테의 딸 하르모니아는 카드모스의 아내가 된다. 테바이에서 이노·세멜레·아가우에·아우토노에·폴리도로스를 낳으며, 아우토노에는 아리스타이오스의 아내라고 덧붙인다. 이 명단을 다른 작품의 비극 전체로 확장하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p076"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p086"
+        }
+      ]
+    },
+    {
+      "key": "helios_lineage",
+      "title": "헬리오스에서 메데이아까지의 계보",
+      "cardType": "organization",
+      "body": "헬리오스와 오케아노스의 딸 페르세이스는 키르케와 아이에테스를 낳는다. 아이에테스와 오케아노스의 딸 이디이아에게서 메데이아가 태어난다. 후반에는 키르케와 오디세우스의 자녀, 아이에테스의 딸과 이아손의 혼인이 이어진다. 이 계보에 등장하는 아프로디테의 힘과 신들의 뜻은 작품의 설명으로 남긴다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p083"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p089"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p092"
+        }
+      ]
+    },
+    {
+      "key": "ploutos",
+      "title": "재산을 베푸는 플루토스",
+      "cardType": "character",
+      "body": "데메테르와 이아시온이 크레테의 세 번 간 밭에서 결합하여 낳은 신이다. 육지와 바다를 다니며 자신을 만나거나 손에 넣는 사람에게 재산을 베풀어 부유하게 한다고 작품은 말한다. 명계의 신 하데스와 이름이 비슷하다고 동일시하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p085"
+        }
+      ],
+      "soul": "육지와 바다를 다니며 만나는 이에게 부를 주는 존재로 그려진다. 말투나 베푸는 이유는 해당 대목에서 미확인.\n\n출전: https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26"
+    },
+    {
+      "key": "eos_hero_children",
+      "title": "에오스의 인간과의 자녀들",
+      "cardType": "organization",
+      "body": "에오스와 티토노스에게서 아이티오피아인의 왕 멤논과 에마티온이 태어나고, 에오스와 케팔로스에게서 파에톤이 태어난다. 어린 파에톤을 아프로디테가 데려가 밤에 자기 신전을 지키는 신성한 정령으로 삼는다. 다른 작품의 태양 수레 추락을 이 파에톤의 행적으로 붙이지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p088"
+        }
+      ]
+    },
+    {
+      "key": "jason_medea",
+      "title": "이아손의 귀환과 메데이오스",
+      "cardType": "event",
+      "body": "아이손의 아들 이아손은 펠리아스가 부과한 고된 일들을 끝내고 아이에테스의 딸을 빠른 배로 이올코스에 데려와 아내로 삼는다. 계보 앞부분은 그 딸 메데이아를 밝힌다. 둘의 아들 메데이오스는 필리라의 아들 케이론이 산에서 기른다. 황금 양털이나 후일의 살해 등 본문이 서술하지 않은 모험은 덧붙이지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p083"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p089"
+        }
+      ]
+    },
+    {
+      "key": "nereid_mortal_children",
+      "title": "프사마테·테티스와 인간의 자손",
+      "cardType": "organization",
+      "body": "네레우스의 딸 프사마테는 아이아코스와 포코스를 낳고, 은빛 신의 테티스는 펠레우스와 아킬레우스를 낳는다. 아킬레우스는 사자의 심장을 지닌 인간의 파괴자로 불린다. 출생 명단을 트로이 전쟁 전체의 사건 카드로 확장하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p090"
+        }
+      ]
+    },
+    {
+      "key": "island_descendants",
+      "title": "키르케·칼립소와 오디세우스의 자손",
+      "cardType": "organization",
+      "body": "키르케는 오디세우스와 아그리오스·라티노스·텔레고노스를 낳으며 이들이 먼 성스러운 섬들 깊숙이서 티레니아인들을 다스렸다고 작품은 전한다. 칼립소와 오디세우스의 자녀는 나우시토오스·나우시노오스이다. 이 출생 계보를 다른 서사시의 귀향 및 후계 계보로 교정하지 않는다.\n\n출전: [선택 저본의 해당 본문](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "sources.md",
+          "section": "theogony-p092"
+        },
+        {
+          "document": "sources.md",
+          "section": "theogony-p093"
+        }
+      ]
+    },
+    {
+      "key": "cosmic_domains",
+      "title": "세 형제의 영역과 공동의 대지",
+      "cardType": "rule",
+      "body": "《일리아스》에서 포세이돈은 제우스·하데스와 제비를 뽑아 바다를 얻고, 하데스는 어둠, 제우스는 하늘을 얻었다고 말한다. 대지와 높은 올림포스는 공동으로 남는다. 이는 신들의 권역을 대립 없는 완전한 분할로 묘사하지 않는 포세이돈 자신의 설명이다.\n\n출전: [호메로스 《일리아스》 15.187–193](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-cosmic-domains",
+          "excerpt_sha256": "352ab6fa0a07336caae851ec9b8a701429aef3cad64c0da616144a1914c66258"
+        }
+      ]
+    },
+    {
+      "key": "giants_war",
+      "title": "기간테스와 신들의 전쟁",
+      "cardType": "event",
+      "body": "《도서관》에서 가이아는 티탄들 때문에 분노하여 우라노스에게서 기간테스를 낳는다. 이들은 티탄과 별개의 집단이다. 알키오네우스는 태어난 땅에서 불사였으므로 아테나의 조언을 받은 헤라클레스가 그를 경계 밖으로 끌어낸다. 헤라클레스와 신들의 협력이 승부를 좌우한다.\n\n출전: [아폴로도로스 《도서관》 1.6.1](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-giants-war",
+          "excerpt_sha256": "900c26a2a8ff4aea5c216686d3376dfaad81d90369f545eaf6e1884d079b5dd0"
+        }
+      ]
+    },
+    {
+      "key": "demeter_mysteries",
+      "title": "데메테르의 상실과 엘레우시스 의례",
+      "cardType": "event",
+      "body": "《데메테르 찬가》에서 딸을 잃은 데메테르가 곡식을 자라지 못하게 하자 제우스는 귀환을 명한다. 하데스가 준 석류 씨를 먹은 페르세포네는 해마다 일부를 지하에서 보내고 나머지를 어머니와 지낸다. 데메테르는 엘레우시스의 지도자들에게 거룩한 의례를 가르친다. 의례의 비밀을 임의로 복원하지 않는다. 《신통기》 912–914행은 납치를 전하나 이 귀환 조건을 말하지 않는다.\n\n출전: [호메로스 찬가 《데메테르에게》 2.305–344, 360–374, 398–403, 470–482](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0013/tlg002/tlg0013.tlg002.perseus-grc2.xml). 비교: [헤시오도스 《신통기》 912–914행](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-demeter-mysteries",
+          "excerpt_sha256": "1c47462eac894d1ca5bbf920ad909642578b0a47a14582bcee674b30e45c2604"
+        }
+      ]
+    },
+    {
+      "key": "zeus_hospitality",
+      "title": "제우스와 손님을 맞는 의무",
+      "cardType": "rule",
+      "body": "《오디세이아》에서 돼지치기 에우마이오스는 신분을 모르는 나그네에게 먹을 것을 내어주며, 낯선 이와 가난한 이는 제우스에게서 온다고 설명한다. 손님을 맞는 행위가 신의 보호와 연결되지만, 이 장면을 모든 그리스 도시의 단일 법전으로 취급하지 않는다.\n\n출전: [호메로스 《오디세이아》 14.56–58](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-zeus-hospitality",
+          "excerpt_sha256": "83bdc7571d9727d37b1b73a2b145243c2bc98a823ea786ddb0eee873c17419ed"
+        }
+      ]
+    },
+    {
+      "key": "judgment_paris",
+      "title": "파리스의 심판과 세 여신",
+      "cardType": "event",
+      "body": "《요약》에서 불화는 헤라·아테나·아프로디테 사이에 아름다움을 겨루는 사과를 던지고, 제우스는 헤르메스에게 세 여신을 이데산의 파리스에게 이끌게 한다. 헤라는 왕권, 아테나는 전쟁의 승리, 아프로디테는 헬레네와의 혼인을 약속한다. 파리스가 아프로디테를 택하면서 인간의 선택과 신들의 경쟁이 전쟁의 배경이 된다.\n\n출전: [아폴로도로스 《요약》 3.2](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-judgment-paris",
+          "excerpt_sha256": "571ff47bd6fc25ba9d6591aa78489ab8d3ea5c5d71ef31538352593179c58bec"
+        }
+      ]
+    },
+    {
+      "key": "helen_versions",
+      "title": "헬레네의 트로이행과 이집트 이설",
+      "cardType": "character",
+      "body": "《요약》 3.3–4는 파리스가 메넬라오스의 환대를 받은 뒤 헬레네를 설득하여 함께 떠나고 트로이에 도착했다고 한다. 같은 작품 3.5는 다른 이들이 전한 이야기로, 진짜 헬레네는 헤르메스가 이집트 왕 프로테우스에게 맡기고 파리스는 구름으로 만든 그녀의 모습을 트로이로 가져갔다고 구분한다. 어느 쪽을 단일 정본으로 합치지 않는다.\n\n출전: [아폴로도로스 《요약》 3.5](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).\n\n- [호메로스 《일리아스》 3.161–180](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml): 프리아모스는 트로이 성벽에서 헬레네를 불러 그리스 장수들을 묻는다.\n- [아폴로도로스 《요약》 3.5](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml): 다른 이들의 이야기에서는 진짜 헬레네가 이집트에 있고 트로이에는 구름으로 만든 모습만 간다.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-helen-versions",
+          "excerpt_sha256": "d3fe7aae74b2d06b22707c110dd1dc7dbf225b331896121aafb0bae65c7d76b0"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "supp-helen-iliad",
+          "excerpt_sha256": "1a0ba09adc1d4790ba7b3d96edf3f87c9cc4d2ca8e73620697875929fef23b5b"
+        }
+      ],
+      "soul": "아폴로도로스는 파리스에게 설득되어 떠난 이야기와 이집트에 남았다는 이설을 구별한다. 이 짧은 인용에서 헬레네의 말투는 미확인.\n\n출전: https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml · https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml"
+    },
+    {
+      "key": "aulis_omen",
+      "title": "아울리스의 뱀과 전쟁의 길이",
+      "cardType": "event",
+      "body": "《요약》에서 아울리스의 제사 때 뱀이 참새 새끼 여덟과 어미를 먹고 돌로 변한다. 예언자 칼카스는 이를 트로이가 열 해 만에 함락될 징조로 풀이한다. 징조는 군대의 기대와 대기 시간을 설명하는 예언이며, 그 자체가 전쟁 전체의 연대기는 아니다.\n\n출전: [아폴로도로스 《요약》 3.15](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-aulis-omen",
+          "excerpt_sha256": "ee0eade2f4f56daec7d1f40553923dc6683f1654d2c85ee451625b02e9d45cc0"
+        }
+      ]
+    },
+    {
+      "key": "iphigenia_aulis",
+      "title": "이피게네이아와 아르테미스의 제단",
+      "cardType": "event",
+      "body": "《요약》에서 아르테미스의 노여움으로 함대가 아울리스에 묶인다. 칼카스는 아가멤논의 딸을 바쳐야 한다고 말하고, 아가멤논은 혼인을 구실로 이피게네이아를 부른다. 제단에서 아르테미스는 그녀를 빼내 타우리인의 사제로 삼고 대신 사슴을 놓는다. 같은 절은 불사로 만들었다는 다른 전언도 덧붙인다.\n\n출전: [아폴로도로스 《요약》 3.21–22](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-iphigenia-aulis",
+          "excerpt_sha256": "770ad339d49d61130e6982c9fa6b1bc1b418f44b857d46fe7e8e4d2b006f3cc4"
+        }
+      ]
+    },
+    {
+      "key": "achilles_wrath",
+      "title": "아킬레우스의 분노와 전쟁",
+      "cardType": "character",
+      "body": "《일리아스》는 펠레우스의 아들 아킬레우스의 분노와 아가멤논과의 불화로 시작한다. 전리품을 둘러싼 갈등은 그가 전투에서 물러나는 계기가 되고 아카이아 군대에 큰 손실을 부른다. 이 서사시는 전쟁 전체가 아니라 그 말기의 제한된 기간을 다룬다.\n\n출전: [호메로스 《일리아스》 1.1–7, 101–305, 430–492](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-achilles-wrath",
+          "excerpt_sha256": "4e2c3d1f5f8ba9133643c5fde66a222429d5bcd0c3e296c9c366fea54002d02b"
+        }
+      ],
+      "soul": "일리아스의 첫머리는 아킬레우스의 분노를 노래한다. 보충 발췌는 분노의 존재를 보여 주며 직접 말투는 장면 추가 확인 필요.\n\n출전: https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml"
+    },
+    {
+      "key": "hector_family",
+      "title": "헥토르와 트로이의 가족",
+      "cardType": "character",
+      "body": "《일리아스》에서 헥토르는 트로이의 방어자이자 안드로마케의 남편, 어린 아들의 아버지다. 안드로마케는 가족을 잃은 자신의 의지처가 헥토르라며 성벽 안에 머물기를 청하고, 헥토르는 가족의 미래를 걱정하면서도 전투로 돌아간다. 영웅의 명예와 가족의 생존이 충돌한다.\n\n출전: [호메로스 《일리아스》 6.429–465](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-hector-family",
+          "excerpt_sha256": "6bdfd0d1d91dc38f4718978cd1fe12d5e8399a7242f66bbc4b6c1ec2d3dceb5c"
+        }
+      ],
+      "soul": "안드로마케의 호소를 듣고 가족의 앞날을 걱정하면서도 전투로 돌아간다. 말투: 가족과 명예를 함께 언급하는 대화 장면은 원전 추가 확인 필요.\n\n출전: https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml"
+    },
+    {
+      "key": "achilles_shield",
+      "title": "아킬레우스의 방패와 세계상",
+      "cardType": "object",
+      "body": "《일리아스》에서 테티스의 부탁을 받은 헤파이스토스가 아킬레우스의 새 방패를 만든다. 방패에는 땅·하늘·바다와 천체, 평화와 전쟁을 겪는 도시, 경작과 춤 등 여러 장면이 담긴다. 무구가 전쟁 바깥의 인간 생활과 우주의 질서까지 비추는 물건이 된다.\n\n출전: [호메로스 《일리아스》 18.478–608](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-achilles-shield",
+          "excerpt_sha256": "9e83f59a4530602e40915d4bfbf0feecc4c6097921bef2458c8a041bc3be5365"
+        }
+      ]
+    },
+    {
+      "key": "priam_ransom",
+      "title": "프리아모스의 간청과 헥토르의 장례",
+      "cardType": "event",
+      "body": "《일리아스》에서 트로이의 늙은 왕 프리아모스는 아킬레우스의 진영에 가서 아들의 시신을 돌려달라며 그의 아버지를 생각해 달라고 청한다. 두 사람은 각자의 상실을 슬퍼하고 시신은 돌려받는다. 작품은 트로이 함락이 아니라 헥토르의 장례로 끝난다.\n\n출전: [호메로스 《일리아스》 24.503–512, 589–601, 696–697, 785–804](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-priam-ransom",
+          "excerpt_sha256": "fd705a7cd6214a799312917e9f31d25e1b72f13a7d2ed01d8e234aef5635253e"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "supp-priam-ransom",
+          "excerpt_sha256": "bfb802f31004d2e96bd10fa1ff568226c95c8ec39f89d2ecd6f88abd3c15e50c"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "supp-priam-ransom",
+          "excerpt_sha256": "542fe973a59073d365441a3e705acaa65ff0ef77c04c2c6840691f148f14314f"
+        }
+      ]
+    },
+    {
+      "key": "trojan_horse",
+      "title": "목마와 트로이의 함락",
+      "cardType": "event",
+      "body": "《요약》에서 오디세우스가 목마를 고안하고 에페이오스가 이데산의 목재로 속이 빈 말을 만든다. 무장한 자들이 안에 숨고 나머지는 테네도스에 숨어 있다가 밤에 돌아온다. 카산드라와 라오콘은 경고하지만 트로이인 다수는 신에게 바친 물건으로 여긴다. 《요약》은 탑승자를 50명이라 하면서 《작은 일리아스》 저자는 3,000명이라 했다는 이설도 전한다.\n\n출전: [아폴로도로스 《요약》 5.14–17](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).\n\n- [아폴로도로스 《요약》 5.14](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml): 오디세우스가 목마를 고안하고 에페이오스가 만들며 탑승자 수의 이견을 전한다.\n- [호메로스 《오디세이아》 8.492–495](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml): 에페이오스가 아테나의 도움으로 말을 만들고 오디세우스가 병사들을 채워 성에 들인다. 이 대목은 병사 수를 밝히지 않는다.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-trojan-horse",
+          "excerpt_sha256": "c29b7674194607546a5300794cd0bcb246d90e1815111ca7d728387c480ff9c8"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "supp-horse-odyssey",
+          "excerpt_sha256": "73080a488e926ade0982fb8b6da3afb9260e91eab6a366d51225144aa8335285"
+        }
+      ]
+    },
+    {
+      "key": "laocoon_variants",
+      "title": "라오콘과 바다뱀의 이설",
+      "cardType": "event",
+      "body": "《요약》 5.17–18에서 라오콘은 목마에 무장 병력이 숨어 있다고 경고하고, 아폴론이 보낸 뱀 둘은 그의 아들들을 먹는다. 《아이네이스》 2.199–227에서는 뱀들이 두 아들을 먼저 휘감고 구하러 온 라오콘까지 죽인다. 인물의 역할은 이어지지만 희생자와 사건의 묘사는 두 작품에서 다르다.\n\n출전: [아폴로도로스 《요약》 5.18](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml). 비교: [베르길리우스 《아이네이스》 2.199–227](https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml).\n\n- [아폴로도로스 《요약》 5.18](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml): 아폴론이 보낸 뱀들이 라오콘의 아들들을 먹는다고 전한다.\n- [베르길리우스 《아이네이스》 2.212–227](https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml): 뱀이 두 아들을 공격한 뒤 구하러 온 라오콘도 휘감는다.",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-laocoon-variants",
+          "excerpt_sha256": "2a53c991b35a8b45f4f2dd2270d56ab4fd9ec91510ea550a3343a5b3c77e833c"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "supp-laocoon-aeneid",
+          "excerpt_sha256": "1b668265d4c87930a4cf01a614dd974f5bf61344d939e4e6156fb9ad9cdf3ea3"
+        }
+      ]
+    },
+    {
+      "key": "troy_sack",
+      "title": "트로이의 파괴와 살아남은 이들",
+      "cardType": "event",
+      "body": "《요약》에서 목마에 숨은 병사들이 밤에 문을 열어 돌아온 그리스군을 들이고 도시는 약탈당한다. 네오프톨레모스는 제우스의 제단으로 피한 프리아모스를 죽인다. 아이네아스는 아버지 앙키세스를 업고 도망치며, 그리스군은 그 효심을 보고 놓아준다. 승리의 장면은 성소 침범과 가족의 탈출을 함께 담는다.\n\n출전: [아폴로도로스 《요약》 5.20–21](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-troy-sack",
+          "excerpt_sha256": "713825f5eba16d93dfdaa36b8d7b20e9dedb910e5027aa23cfac4b8e747ca507"
+        }
+      ]
+    },
+    {
+      "key": "trojan_palladium",
+      "title": "카산드라와 아테나의 신상",
+      "cardType": "object",
+      "body": "《요약》에서 카산드라는 아테나의 목상에 매달리지만 로크리스의 아이아스에게 폭행당한다. 작품은 그 신상이 하늘을 향해 보게 되었다고 전한다. 신상과 성소는 피난의 장소이나 함락의 폭력은 그 경계마저 침범한다.\n\n출전: [아폴로도로스 《요약》 5.22](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg002/tlg0548.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-trojan-palladium",
+          "excerpt_sha256": "2b015c008aedc2609225bdc896255f45ff49080821baaa9e37a96c5ba2760b35"
+        }
+      ]
+    },
+    {
+      "key": "heracles_labours",
+      "title": "헤라클레스의 열두 과업",
+      "cardType": "event",
+      "body": "《도서관》 2.5.1–12에서 에우리스테우스는 헤라클레스에게 네메아 사자, 레르나 히드라, 케리네이아 암사슴, 에리만토스 멧돼지, 아우게이아스의 외양간, 스튐팔로스의 새, 크레타 황소, 디오메데스의 말, 히폴리테의 허리띠, 게리온의 소, 헤스페리데스의 사과, 케르베로스를 차례로 요구한다. 히드라와 외양간은 인정받지 못해 두 과업이 더해진다.\n\n출전: [아폴로도로스 《도서관》 2.5.1–12](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-heracles-labours",
+          "excerpt_sha256": "16f92be69ad84b861dcb6ec550f8620842f315247de17e07f6454141b0da0ba0"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "supp-heracles-labours",
+          "excerpt_sha256": "f5857ea9bf5dd5782ac5d9ba36aef9dce2c18c4a46c54145af0362a2c3252242"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "supp-heracles-labours",
+          "excerpt_sha256": "91a2eac23ddb5abfbaa1a2343b8945e1c25935701c353e75ad44198fcc92c998"
+        }
+      ]
+    },
+    {
+      "key": "hippolyta_belt",
+      "title": "히폴리테의 허리띠",
+      "cardType": "object",
+      "body": "《도서관》에서 아마존의 여왕 히폴리테는 아레스의 허리띠를 지니며 이는 그녀의 우두머리 지위를 나타낸다. 에우리스테우스의 딸이 그것을 원하여 헤라클레스가 이를 가져오라는 명령을 받는다. 이 신물은 단순한 장식이 아니라 지위와 관계를 드러낸다.\n\n출전: [아폴로도로스 《도서관》 2.5.9](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-hippolyta-belt",
+          "excerpt_sha256": "dbab2fb85ffdf8fffb3a7ddf425cca552912cc5f6602411db2c5e253d9edc9bf"
+        }
+      ]
+    },
+    {
+      "key": "cerberus_variants",
+      "title": "케르베로스의 머리 수와 명계행",
+      "cardType": "character",
+      "body": "《도서관》 2.5.12의 케르베로스는 개 머리 셋과 뱀 꼬리를 지닌다. 헤라클레스는 정화와 입문을 거쳐 타이나론에서 명계로 내려가 이를 데려오라는 과업을 수행한다. 반면 《신통기》 310–312행은 케르베로스에게 머리 쉰 개가 있다고 한다. 두 수치는 작품별로 보존한다.\n\n출전: [아폴로도로스 《도서관》 2.5.12](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml). 비교: [헤시오도스 《신통기》 310–312행](https://www.gutenberg.org/files/348/348-h/348-h.htm#chap26).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-cerberus-variants",
+          "excerpt_sha256": "982b70e5f55cd9fff7d13308882f559fac518692389bdd4302cfd0d82090abf0"
+        }
+      ],
+      "soul": "아폴로도로스의 묘사는 머리 셋인 개다. 신통기의 쉰 머리 전승을 따로 보존한다. 말투와 생각은 미확인.\n\n출전: https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml"
+    },
+    {
+      "key": "cretan_bull_variants",
+      "title": "크레타 황소의 서로 다른 출신",
+      "cardType": "character",
+      "body": "《도서관》은 크레타 황소를 두고 아쿠실라오스는 제우스를 위해 에우로페를 태워 건넌 황소라 했고, 다른 이들은 포세이돈이 바다에서 보낸 황소라 했다고 구별한다. 후자의 이야기에서 미노스가 아름다운 황소 대신 다른 것을 제물로 바치자 신은 황소를 사납게 만든다. 약속과 희생의 위반이 괴물의 등장과 연결된다.\n\n출전: [아폴로도로스 《도서관》 2.5.7](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-cretan-bull-variants",
+          "excerpt_sha256": "1747c515be09da3e682b644516a22c0b249eee7c7a419edd227c8bac7801ea7b"
+        }
+      ],
+      "soul": "아폴로도로스가 전하는 황소의 출신은 서로 다른 주장이다. 포세이돈에게 사나워졌다는 이설을 선천적 성격으로 단정하지 않는다. 말투 미확인.\n\n출전: https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0548/tlg001/tlg0548.tlg001.perseus-grc2.xml"
+    },
+    {
+      "key": "ody_cyclops",
+      "title": "오디세우스와 폴리페모스",
+      "cardType": "event",
+      "body": "《오디세이아》에서 오디세우스는 외눈박이 폴리페모스에게 붙잡혀 동료들을 잃는다. 포도주와 거짓 이름을 이용해 거인을 눈멀게 하고 양 떼 아래에 매달려 탈출한다. 뒤에 자신의 이름을 밝히자 포세이돈의 아들인 폴리페모스가 아버지에게 귀향을 어렵게 해 달라고 빈다.\n\n출전: [호메로스 《오디세이아》 9.187–505](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-ody-cyclops",
+          "excerpt_sha256": "d0db5b32d320ebebf2ed3dec01a319834e4dd3359ccf000987a62c382c7cb99e"
+        }
+      ]
+    },
+    {
+      "key": "moly_hermes",
+      "title": "헤르메스의 몰뤼와 키르케",
+      "cardType": "object",
+      "body": "《오디세이아》에서 키르케가 오디세우스의 동료들을 돼지로 바꾸자 헤르메스가 오디세우스에게 약초 몰뤼를 준다. 신이 보여준 약초는 뿌리가 검고 꽃이 젖처럼 희며 키르케의 약물에 맞설 수 있게 한다. 이는 신의 도움과 위험한 변신이 얽힌 귀향의 한 대목이다.\n\n출전: [호메로스 《오디세이아》 10.210–347](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-moly-hermes",
+          "excerpt_sha256": "de9db524d8ac6acb3b4f9d67f47837dcb28334c15636688e7e9506a83321144d"
+        }
+      ]
+    },
+    {
+      "key": "necromancy",
+      "title": "오디세우스의 죽은 자 소환",
+      "cardType": "rule",
+      "body": "《오디세이아》에서 오디세우스는 키르케의 지시에 따라 구덩이를 파고 제물을 바쳐 죽은 이들의 혼을 불러낸다. 피가 흐르자 망자들이 모여들고 예언자 테이레시아스가 귀향에 필요한 경고를 전한다. 이는 특정 서사 속 의례로, 명계의 모든 지역과 절차를 하나로 고정하지 않는다.\n\n출전: [호메로스 《오디세이아》 11.23–50](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-necromancy",
+          "excerpt_sha256": "867dfdee5c70224a4fdf666619c59b9780c013c9ecd34af9d047938bf77e7d23"
+        }
+      ]
+    },
+    {
+      "key": "sirens",
+      "title": "세이렌의 노래와 돛대",
+      "cardType": "event",
+      "body": "《오디세이아》에서 키르케는 노래로 지나가는 사람을 홀리는 세이렌을 경고한다. 오디세우스는 동료들의 귀를 밀랍으로 막고 자신은 돛대에 묶여 노래를 듣는다. 풀어 달라는 자신의 몸짓에도 동료들은 결박을 더 조인다. 지식의 유혹과 생존을 위한 사전 약속이 함께 나타난다.\n\n출전: [호메로스 《오디세이아》 12.39–54, 165–200](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-sirens",
+          "excerpt_sha256": "68371e237849156b01aa999739250912474b739a59a600586522f301caf63414"
+        }
+      ]
+    },
+    {
+      "key": "ithaca_bed",
+      "title": "이타케의 침상과 귀향의 증거",
+      "cardType": "object",
+      "body": "《오디세이아》에서 페넬로페는 돌아온 남자를 시험하기 위해 침상을 옮기라고 말한다. 오디세우스는 살아 있는 올리브나무를 중심으로 자신이 만든 침상이 움직일 수 없다고 답한다. 두 사람만 아는 침상의 구조가 오랜 이별 끝의 재인과 혼인 관계 회복을 증명한다.\n\n출전: [호메로스 《오디세이아》 23.181–206](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg002/tlg0012.tlg002.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-ithaca-bed",
+          "excerpt_sha256": "30b11b3bf98fd52b13fcc0120f0c064229d16511dfda59aba33706a73a814340"
+        }
+      ]
+    },
+    {
+      "key": "aeneas_rome",
+      "title": "아이네아스의 이탈리아 항해",
+      "cardType": "character",
+      "body": "《아이네이스》는 트로이에서 이탈리아 해안으로 운명에 따라 떠밀린 아이네아스의 고난을 노래한다. 유노의 분노와 항해의 시련을 겪는 그의 여정은 라티움에 신들을 정착시키는 일과 로마인의 먼 기원에 연결된다. 이것은 로마 서사시의 관점이며 《신통기》의 출생 계보와 같은 작품이 아니다.\n\n출전: [베르길리우스 《아이네이스》 1.1–7](https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-aeneas-rome",
+          "excerpt_sha256": "cc985508c1f0f3bc2fc331929476ae466bbc0c68c5a67dc291924265746ca709"
+        }
+      ],
+      "soul": "아이네이스 첫머리는 이탈리아로 떠밀린 아이네아스의 고난을 노래한다. 짧은 발췌만으로 그의 직접 말투는 확인되지 않는다.\n\n출전: https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml"
+    },
+    {
+      "key": "golden_bough",
+      "title": "황금 가지와 아이네아스의 명계 입구",
+      "cardType": "object",
+      "body": "《아이네이스》에서 쿠마이의 시빌라는 아이네아스가 지하 세계의 여왕에게 바칠 황금 가지를 먼저 찾아야 한다고 알려준다. 가지는 운명이 부르는 이의 손에는 쉽게 꺾이고 첫 가지를 딴 뒤 다른 가지가 돋는다. 명계행에 필요한 선물인 동시에 허락의 표지다.\n\n출전: [베르길리우스 《아이네이스》 6.136–148](https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-golden-bough",
+          "excerpt_sha256": "34f53b2033ecf25952760ecc858088528552b9f689bf91d5047ffb34eff2ce7c"
+        }
+      ]
+    },
+    {
+      "key": "underworld_acheron",
+      "title": "아케론·카론과 죽은 자의 건넘",
+      "cardType": "location",
+      "body": "《아이네이스》 6권에서 아이네아스와 시빌라는 아케론의 물가에 이른다. 카론은 많은 죽은 자들을 배에 태우지만 장례를 치르지 못한 이들은 강가에서 기다린다. 이 로마 서사시의 명계 지형과 통과 조건은 《신통기》의 타르타로스 묘사와 각각의 출전으로 읽는다.\n\n출전: [베르길리우스 《아이네이스》 6.295–330](https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-underworld-acheron",
+          "excerpt_sha256": "d6aae2234b46dba660ef3019679718f240dfb1c731f887f09fed2a08fca2d1d0"
+        }
+      ]
+    },
+    {
+      "key": "dido_underworld",
+      "title": "디도와 명계의 재회",
+      "cardType": "character",
+      "body": "《아이네이스》에서 아이네아스는 명계의 슬픔의 들에서 상처 입은 디도를 만난다. 그는 자신이 뜻을 거슬러 떠났다고 말하지만 디도는 시선을 피하고 남편 쉬카이오스가 있는 숲으로 돌아간다. 귀향과 건국의 이야기에는 버려진 사람의 고통과 침묵이 남는다.\n\n출전: [베르길리우스 《아이네이스》 6.450–476](https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-dido-underworld",
+          "excerpt_sha256": "068d9c9857950f14d9d82e7c3b171a4cebb438b1d0d595687c314e511e0be010"
+        }
+      ],
+      "soul": "아이네아스를 피하고 쉬카이오스에게 돌아가는 장면의 침묵은 고통의 맥락에서 읽는다. 보충 발췌만으로 말투의 일반화는 어렵다.\n\n출전: https://github.com/PerseusDL/canonical-latinLit/blob/master/data/phi0690/phi003/phi0690.phi003.perseus-lat2.xml"
+    },
+    {
+      "key": "trojan-war-achilles-hector",
+      "title": "트로이 전쟁과 아킬레우스·헥토르의 결투",
+      "cardType": "event",
+      "body": "《일리아스》에서 트로이 전쟁 중 아킬레우스는 아가멤논과 다투고 전투에서 물러나며 아카이아군은 큰 피해를 입는다. 파트로클로스가 헥토르에게 죽은 뒤 아킬레우스는 돌아와 트로이 성벽 밖에서 헥토르를 추격한다. 아테나는 데이포보스의 모습으로 헥토르를 속이고, 두 영웅이 싸운 끝에 아킬레우스의 창이 헥토르를 쓰러뜨린다. 전쟁 전체가 이 결투에서 끝나는 것은 아니다.\n\n출전: [호메로스 《일리아스》 1.1–7, 16.818–863, 22.131–330](https://github.com/PerseusDL/canonical-greekLit/blob/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-grc2.xml).",
+      "narrative_refs": [
+        {
+          "document": "supplementary.md",
+          "section": "supp-achilles-wrath",
+          "excerpt_sha256": "4e2c3d1f5f8ba9133643c5fde66a222429d5bcd0c3e296c9c366fea54002d02b"
+        },
+        {
+          "document": "supplementary.md",
+          "section": "supp-troy-war-duel",
+          "excerpt_sha256": "b37f0da504a9c4451b598263d81087712c2381cc972a1214558bd7e3f9100b7e"
+        }
+      ]
+    }
+  ],
+  "narrative": "sources.md"
+}

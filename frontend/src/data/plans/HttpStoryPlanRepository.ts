@@ -8,6 +8,7 @@ import { csrf } from '../api/csrf'
 const plan = z.object({
   id: z.string(), workId: z.string(), kind: z.enum(['plot', 'scene']), parentId: z.string().nullable(),
   title: z.string(), content: z.string(), episodeNumber: z.number().int().positive().nullable(), episodeMissing: z.boolean(),
+  position: z.number().int().nonnegative().optional(),
   characterIds: z.array(z.string()), placeIds: z.array(z.string()), revision: z.number().int().nonnegative(),
 })
 

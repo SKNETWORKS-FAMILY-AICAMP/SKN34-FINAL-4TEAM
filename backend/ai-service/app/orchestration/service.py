@@ -27,6 +27,9 @@ interrupt로 작가 승인을 기다린다. 승인 resume이면 그 요청의 �
 장면이 끝나면 apply 노드가 승인을 기다리며, 승인 대기 중의 장면 조작(edit·redo·next)은 이 노드로 되돌려 이어 간다.
 끝까지 가지 못해 이어 갈 수 없는 장면(첫 턴 실패)은 부분 결과와 함께 failed다.
 
+설정집 검토(world_review): 단계 입력이 없다. target의 작품에 연결된 세계관을 작가 권한(Content MCP)으로 읽어 HTTP 경로(POST /internal/v1/world-reviews)와
+같은 app/world_review service 함수로 검토하고 지적·수정안을 단계 결과로 돌려준다. 제안일 뿐이라 승인 단계가 없고 조건부 수정과도 이어지지 않는다.
+
 대화 세션 CRUD(#331): 대화용 테이블 없이 체크포인터만 쓴다. 실행마다 checkpoint metadata에 scope를 남겨 목록을 거르고,
 턴마다 최종 응답을 turns에 남겨 이력을 다시 그린다. 메시지 수정·삭제는 그 턴 직전의 완료 checkpoint에서 갈라져 나간다
 (옛 갈래 checkpoint는 남지만 최신 상태가 아니라 보이지 않는다). scope가 다른 대화는 없는 대화로 본다.
@@ -78,6 +81,8 @@ from app.simulation.errors import SimulationFailure
 from app.simulation.models import GAP_LABELS, Scene, SimulationPlan
 from app.simulation.scene_agent import scene_agent, turn as simulation_turn
 from app.simulation.service import SceneContext
+from app.world_review import service as world_review
+from app.world_review.errors import WorldReviewFailure
 from app.writing import agent as writing
 from app.writing.errors import WritingFailure
 from app.writing.models import DraftRequest, PatchRequest
@@ -124,6 +129,12 @@ def _rating(state: dict):
     if not target:
         raise RatingFailure(422, NO_RATING_TARGET)
     return rating.rate(RatingRequest(workId=target['workId'], episodes=[target['episode']]))
+def _world_review(state: dict):
+    """설정집 검토. 단계 입력이 없고 검토할 세계관은 Content가 확인한 작품(target)에 연결된 세계관이다. HTTP 경로와 같은 service 함수를 쓴다."""
+    target = state.get('target')
+    if not target:
+        raise WorldReviewFailure(422, NO_WORLD_REVIEW_TARGET)
+    return world_review.review(world_review.linked_request(target['workId']))
 
 
 # 한 번 호출하고 끝나는 업무 Agent. 입력은 StepInputs의 같은 이름 필드(JSON)다.
@@ -134,10 +145,13 @@ CALLS = {
     'web_research': lambda data, state: research.research(ResearchRequest.model_validate(data)),
     'review': _review,
     'rating': lambda data, state: _rating(state),
+    'world_review': lambda data, state: _world_review(state),
 }
-NO_INPUT = ('character_simulation', 'rating')  # 단계 입력 없이 실행하는 기능(시뮬레이션은 simulation_plan, Rating은 target을 쓴다)
+# 단계 입력 없이 실행하는 기능(시뮬레이션은 simulation_plan, 설정집 검토는 target의 연결 세계관, Rating은 target 회차를 쓴다)
+NO_INPUT = ('character_simulation', 'world_review', 'rating')
 NO_REVIEW_TARGET = '검수할 작품과 회차를 확인할 수 없어요.'
 NO_RATING_TARGET = '심의 등급을 판별할 작품과 회차를 확인할 수 없어요.'
+NO_WORLD_REVIEW_TARGET = '검토할 작품을 확인할 수 없어요.'
 NO_ISSUES = '검수에서 고칠 문제를 찾지 못해 수정하지 않았어요.'
 ONLY_SUSPECTED = '확정된 문제가 없어 자동으로 고치지 않았어요. 의심 지적은 고칠 구간을 골라 집필·수정을 따로 요청해 주세요.'
 PICK_NEEDED = '확정된 문제가 여러 곳이라 자동으로 고치지 않았어요. 고칠 구간을 골라 집필·수정을 따로 요청해 주세요.'
@@ -149,11 +163,11 @@ FEATURES = (*CALLS, 'character_simulation')
 # shortcut: 최근 5턴만 넘기고 요약하지 않는다. 긴 대화의 앞부분 지칭이 필요해지면 요약을 검토한다.
 HISTORY_TURNS = 5
 FAILURES = (StoryQaFailure, WritingFailure, ResearchFailure, RetrievalFailure, SimulationFailure, ContentMcpFailure, ReviewFailure,
-            RatingFailure)
+            WorldReviewFailure, RatingFailure)
 LIMIT_MESSAGE = '시뮬레이션이 호출 한도를 넘어 멈췄어요.'
 APPROVABLE = ('writing_editing', 'character_simulation')  # 결과를 작가가 승인하면 초안에 반영하는 단계
 UNSUPPORTED_MESSAGE = ('요청에 아직 실행할 수 없는 작업이 있어 아무 작업도 실행하지 않았어요. '
-                       '작품 질문, 원고 검수, 집필·수정, 고증 조사, 인물 시뮬레이션은 각각 요청할 수 있어요.')
+                       '작품 질문, 원고 검수, 설정집 검토, 집필·수정, 고증 조사, 인물 시뮬레이션은 각각 요청할 수 있어요.')
 NEEDS_INPUT_MESSAGE = '작업에 필요한 자료가 빠져 있어 아무 작업도 실행하지 않았어요.'
 WAITING_MESSAGE = '작업에 필요한 자료를 기다리고 있어요. 자료를 보내거나 취소하면 이어서 진행해요.'
 APPROVAL_MESSAGES = {'writing_editing': 'Writing 결과를 원고 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.',
@@ -306,7 +320,7 @@ def gate(state: State) -> State:
     값을 돌려받아 여러 번 기다려도 같은 결과가 된다.
     """
     inputs, scope = dict(state['inputs']), state.get('retrievalScope')
-    # 시뮬레이션·Rating은 단계 입력이 없다(NO_INPUT). Q&A는 scope가 있으면 입력 없이 Retrieval로 근거를 받는다.
+    # 시뮬레이션·설정집 검토·Rating은 단계 입력이 없다(NO_INPUT). Q&A는 scope가 있으면 입력 없이 Retrieval로 근거를 받는다.
     # 조건부 수정은 입력이 없다(Review 결과로 만든다).
     while missing := [s['feature'] for s in state['steps'] if s['feature'] not in inputs and s['when'] == 'always'
                       and s['feature'] not in NO_INPUT and not (s['feature'] == 'story_context' and scope)]:
@@ -409,9 +423,9 @@ def _review_fix(state: State, data: dict | None) -> dict | None:
         body, revision = draft['body'], draft['revision']
     except (LookupError, TypeError):
         raise ContentMcpFailure(502, BAD_DRAFT) from None
-    if revision != review['revision'] or not isinstance(body, str) or body.count(chosen['quote']) != 1:
+    at = content_mcp.place(body, chosen['quote']) if isinstance(body, str) else None
+    if revision != review['revision'] or at is None:
         raise ContentMcpFailure(409, DRAFT_CHANGED)
-    at = body.index(chosen['quote'])
     # shortcut: 허용 문맥(context) 없이 지적의 이유·제안만 지시로 보낸다. 설정을 고쳐 써야 하는 수정이 약하면 Semantic 근거 설정을 context로 넘긴다.
     return {'patch': {'selection': chosen['quote'], 'instruction': f"{chosen['reason']} 제안: {chosen['suggestion']}"[:2000],
                       'precedingText': body[:at][-2000:], 'followingText': body[at + len(chosen['quote']):][:2000]}}

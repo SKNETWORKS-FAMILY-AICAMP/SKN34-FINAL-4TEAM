@@ -15,6 +15,7 @@ class StoryPlanEntity(
     @field:Column(name="episode_id") var episodeId: String? = null,
     @field:Column(name="episode_number") var episodeNumber: Int? = null,
     var revision: Int = 0,
+    var position: Int = 0,
     @field:Column(name="created_at") var createdAt: Instant = Instant.now(),
     @field:Column(name="deleted_at") var deletedAt: Instant? = null,
     @field:ElementCollection

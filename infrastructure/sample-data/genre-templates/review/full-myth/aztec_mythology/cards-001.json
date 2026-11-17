@@ -1,0 +1,701 @@
+[
+  {
+    "id": "d3b714a0-697c-5e1f-aad0-3dfce093447a",
+    "title": "아미미클리",
+    "body": "아티틀라우아카 사람들이 이주 때 지닌 신이다. 문헌은 믹스코아틀의 막대기를 신으로 삼고 그를 기억하는 물건으로 간직했다고 설명한다. 기존 migrant_peoples_gods 카드와 내용이 겹친다. 출전: https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS (10장, 92쪽, 1882년 판본의 대체 OCR).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "aztec-mythology",
+      "candidate_key": "amimicli",
+      "input_path": "미게시-임시자료:myth/aztec-mythology.json",
+      "input_sha256": "4fd2675ea9bc2fc8ff97404d295eaf10ce96ca359fd580fcf551a7f4f365046e",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "16세기 익명 「그림으로 전한 멕시코인들의 역사」 1882년 게재본의 Academia OCR 대체 열람이라는 입력 작성자의 보고; INAH 영인과 판본 동일성은 독립적으로 확인하지 못함",
+      "scope": "「그림으로 전한 멕시코인들의 역사」 1882년 게재본 85–106쪽. INAH 영인 https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330 접근 불가로 같은 판본의 Academia 22쪽 OCR을 부분 열람. source/supplementary.md가 없어 지정 보충 구간은 확인되지 않음. 독립 대상이 이름만 언급되거나 OCR이 훼손된 경우 카드화하지 않음. 기존 72장과의 중복 후보는 각 카드에 명시.",
+      "evidence": [
+        {
+          "unit": "10장 쿨루아칸 출발 집단",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "location": "10장, 92쪽, Academia OCR",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "10장 쿨루아칸 출발 집단",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 2
+        }
+      ],
+      "evidence_limit": "발췌는 입력 작성자의 확인 기록이며 본문 모든 사실을 입증하기에 충분한지 미검증. OCR 철자와 영인 및 맥락을 대조해야 한다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "migrant_peoples_gods",
+          "title": "이주 집단들이 지닌 신들",
+          "cardType": "organization",
+          "basis": "기존 카드의 서술에 동일 인물 또는 사건이 언급되어 내용이 겹칠 가능성. 단독 카드와 집합 카드의 동일성은 미확정."
+        },
+        {
+          "runtime": "genre-templates.json",
+          "genre": "aztec_mythology",
+          "id": "5c1ff687-d48f-5de7-b540-a485121741f9",
+          "title": "이주 집단들이 지닌 신들",
+          "basis": "제목 완전 일치 또는 본문 이름 문자열 일치; 동일성 미확정"
+        },
+        {
+          "runtime": "genre-templates-v2.json",
+          "genre": "aztec_mythology",
+          "id": "5c1ff687-d48f-5de7-b540-a485121741f9",
+          "title": "이주 집단들이 지닌 신들",
+          "basis": "제목 완전 일치 또는 본문 이름 문자열 일치; 동일성 미확정"
+        }
+      ],
+      "additional_review": []
+    }
+  },
+  {
+    "id": "6c16f05a-4dab-531f-9e5f-bfb1177f6284",
+    "title": "오코토클리",
+    "body": "타쿠바·쿨루아칸·아스카푸살코의 테파네카가 이주할 때 지녔다고 기록된 불의 신이다. 이 문헌은 전쟁 포로를 불에 던지는 제사와 연결한다. 기존 migrant_peoples_gods 카드와 내용이 겹친다. 출전: https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS (10장, 92쪽, 1882년 판본의 대체 OCR).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "aztec-mythology",
+      "candidate_key": "ocotocli",
+      "input_path": "미게시-임시자료:myth/aztec-mythology.json",
+      "input_sha256": "4fd2675ea9bc2fc8ff97404d295eaf10ce96ca359fd580fcf551a7f4f365046e",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "16세기 익명 「그림으로 전한 멕시코인들의 역사」 1882년 게재본의 Academia OCR 대체 열람이라는 입력 작성자의 보고; INAH 영인과 판본 동일성은 독립적으로 확인하지 못함",
+      "scope": "「그림으로 전한 멕시코인들의 역사」 1882년 게재본 85–106쪽. INAH 영인 https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330 접근 불가로 같은 판본의 Academia 22쪽 OCR을 부분 열람. source/supplementary.md가 없어 지정 보충 구간은 확인되지 않음. 독립 대상이 이름만 언급되거나 OCR이 훼손된 경우 카드화하지 않음. 기존 72장과의 중복 후보는 각 카드에 명시.",
+      "evidence": [
+        {
+          "unit": "10장 쿨루아칸 출발 집단",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "location": "10장, 92쪽, Academia OCR",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "10장 쿨루아칸 출발 집단",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA92&output=html_text",
+          "location": "Google Books 접근성 OCR, 92쪽 (1882년판으로 입력 작업자가 보고; INAH 영인과 동일성 미검증)",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존",
+          "verification": "통합 작업자가 Google Books 표시 OCR을 직접 열어 문자열과 주변 문맥을 확인함; OCR 철자·판본 동일성 및 재사용 권리는 미확인"
+        },
+        {
+          "unit": "10장 쿨루아칸 출발 집단",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA92&output=html_text",
+          "location": "Google Books 접근성 OCR, 92쪽 (1882년판으로 입력 작업자가 보고; INAH 영인과 동일성 미검증)",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존",
+          "verification": "통합 작업자가 Google Books 표시 OCR을 직접 열어 문자열과 주변 문맥을 확인함; OCR 철자·판본 동일성 및 재사용 권리는 미확인"
+        },
+        {
+          "unit": "10장 쿨루아칸 출발 집단",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA92&output=html_text",
+          "location": "Google Books 접근성 OCR, 92쪽 (1882년판으로 입력 작업자가 보고; INAH 영인과 동일성 미검증)",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존",
+          "verification": "통합 작업자가 Google Books 표시 OCR을 직접 열어 문자열과 주변 문맥을 확인함; OCR 철자·판본 동일성 및 재사용 권리는 미확인"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "10장 쿨루아칸 출발 집단",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 2
+        }
+      ],
+      "evidence_limit": "발췌는 입력 작성자의 확인 기록이며 본문 모든 사실을 입증하기에 충분한지 미검증. OCR 철자와 영인 및 맥락을 대조해야 한다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "migrant_peoples_gods",
+          "title": "이주 집단들이 지닌 신들",
+          "cardType": "organization",
+          "basis": "기존 카드의 서술에 동일 인물 또는 사건이 언급되어 내용이 겹칠 가능성. 단독 카드와 집합 카드의 동일성은 미확정."
+        }
+      ],
+      "additional_review": [
+        "기존 카드는 오코테쿠틀리라 표기하므로 오코토클리와의 이름 및 동일성을 확인해야 한다."
+      ],
+      "evidence_review": {
+        "status": "OCR 직접 대조; 영인·판본 동일성 및 재사용 권리 미확인",
+        "checked_source": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA92&output=html_text",
+        "checked_page": "92",
+        "finding": "Google Books OCR에서 세 집단·불의 신·전쟁 포로의 불 제사 서술을 직접 확인했다. 신의 이름은 기존 Academia 발췌의 ocotocli와 달리 ocotecli로 나타나며 OCR과 판본별 표기·동일성을 영인과 대조해야 한다.",
+        "input_preservation": "기존 입력 후보의 ID·본문·기존 evidence를 보존하고 직접 확인한 발췌를 추가함"
+      }
+    }
+  },
+  {
+    "id": "ff4ef8db-5b84-5d8e-aa07-a7d8df316de5",
+    "title": "틀라우이스칼 포통기",
+    "body": "숨팡고 근처에서 이주민을 만난 치치메카 지도자다. 전쟁에서 잡은 치치메카 한 사람을 우칠로비에게 제사하고 머리를 막대기에 꽂았다고 기록된다. 기존 migration_northern_stops 카드와 내용이 겹친다. 출전: https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS (11장, 94쪽, 1882년 판본의 대체 OCR).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "aztec-mythology",
+      "candidate_key": "tla-vizcal-potongui",
+      "input_path": "미게시-임시자료:myth/aztec-mythology.json",
+      "input_sha256": "4fd2675ea9bc2fc8ff97404d295eaf10ce96ca359fd580fcf551a7f4f365046e",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "16세기 익명 「그림으로 전한 멕시코인들의 역사」 1882년 게재본의 Academia OCR 대체 열람이라는 입력 작성자의 보고; INAH 영인과 판본 동일성은 독립적으로 확인하지 못함",
+      "scope": "「그림으로 전한 멕시코인들의 역사」 1882년 게재본 85–106쪽. INAH 영인 https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330 접근 불가로 같은 판본의 Academia 22쪽 OCR을 부분 열람. source/supplementary.md가 없어 지정 보충 구간은 확인되지 않음. 독립 대상이 이름만 언급되거나 OCR이 훼손된 경우 카드화하지 않음. 기존 72장과의 중복 후보는 각 카드에 명시.",
+      "evidence": [
+        {
+          "unit": "11장 이주 경로",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "location": "11장, 94쪽, Academia OCR",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "11장 이주 경로",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA94&output=html_text",
+          "location": "Google Books 접근성 OCR, 94쪽 (1882년판으로 입력 작업자가 보고; INAH 영인과 동일성 미검증)",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존",
+          "verification": "통합 작업자가 Google Books 표시 OCR을 직접 열어 문자열과 주변 문맥을 확인함; OCR 철자·판본 동일성 및 재사용 권리는 미확인"
+        },
+        {
+          "unit": "11장 이주 경로",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA94&output=html_text",
+          "location": "Google Books 접근성 OCR, 94쪽 (1882년판으로 입력 작업자가 보고; INAH 영인과 동일성 미검증)",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존",
+          "verification": "통합 작업자가 Google Books 표시 OCR을 직접 열어 문자열과 주변 문맥을 확인함; OCR 철자·판본 동일성 및 재사용 권리는 미확인"
+        },
+        {
+          "unit": "11장 이주 경로",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA94&output=html_text",
+          "location": "Google Books 접근성 OCR, 94쪽 (1882년판으로 입력 작업자가 보고; INAH 영인과 동일성 미검증)",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존",
+          "verification": "통합 작업자가 Google Books 표시 OCR을 직접 열어 문자열과 주변 문맥을 확인함; OCR 철자·판본 동일성 및 재사용 권리는 미확인"
+        },
+        {
+          "unit": "11장 이주 경로",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA94&output=html_text",
+          "location": "Google Books 접근성 OCR, 94쪽 (1882년판으로 입력 작업자가 보고; INAH 영인과 동일성 미검증)",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존",
+          "verification": "통합 작업자가 Google Books 표시 OCR을 직접 열어 문자열과 주변 문맥을 확인함; OCR 철자·판본 동일성 및 재사용 권리는 미확인"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "11장 이주 경로",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "unavailable",
+          "reason": "INAH 원본 서버 연결 거부; Academia의 동일 1882년 22쪽 복제 OCR은 일부만 열람되거나 문자가 심하게 손상되어 이 장의 전수 실독을 확인할 수 없음. 확인한 부분의 후보만 포함.",
+          "cards": 2
+        }
+      ],
+      "evidence_limit": "발췌는 입력 작성자의 확인 기록이며 본문 모든 사실을 입증하기에 충분한지 미검증. OCR 철자와 영인 및 맥락을 대조해야 한다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "migration_northern_stops",
+          "title": "툴라에서 네포푸알코까지의 정거장",
+          "cardType": "location",
+          "basis": "기존 카드의 서술에 동일 인물 또는 사건이 언급되어 내용이 겹칠 가능성. 단독 카드와 집합 카드의 동일성은 미확정."
+        },
+        {
+          "runtime": "genre-templates.json",
+          "genre": "aztec_mythology",
+          "id": "91c3ff50-7afe-5f5c-a070-6c5d462cdb68",
+          "title": "툴라에서 네포푸알코까지의 정거장",
+          "basis": "제목 완전 일치 또는 본문 이름 문자열 일치; 동일성 미확정"
+        },
+        {
+          "runtime": "genre-templates.json",
+          "genre": "aztec_mythology",
+          "id": "4db02db7-d663-52e7-9cb8-81d5cf82c3f0",
+          "title": "차풀테펙의 지도자와 위칠리우틀",
+          "basis": "제목 완전 일치 또는 본문 이름 문자열 일치; 동일성 미확정"
+        },
+        {
+          "runtime": "genre-templates-v2.json",
+          "genre": "aztec_mythology",
+          "id": "91c3ff50-7afe-5f5c-a070-6c5d462cdb68",
+          "title": "툴라에서 네포푸알코까지의 정거장",
+          "basis": "제목 완전 일치 또는 본문 이름 문자열 일치; 동일성 미확정"
+        },
+        {
+          "runtime": "genre-templates-v2.json",
+          "genre": "aztec_mythology",
+          "id": "4db02db7-d663-52e7-9cb8-81d5cf82c3f0",
+          "title": "차풀테펙의 지도자와 위칠리우틀",
+          "basis": "제목 완전 일치 또는 본문 이름 문자열 일치; 동일성 미확정"
+        }
+      ],
+      "additional_review": [
+        "기존 카드의 포로 제사 서술과 관계·행위 주체의 일치 여부를 원문에서 재확인해야 한다."
+      ],
+      "evidence_review": {
+        "status": "OCR 직접 대조; 영인·판본 동일성 및 재사용 권리 미확인",
+        "checked_source": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA94&output=html_text",
+        "checked_page": "94",
+        "finding": "Google Books OCR에서 숨팡고 부근 만남, 전쟁 포로의 제사와 머리를 막대기에 꽂은 서술을 직접 확인했다. 해당 인물의 칭호는 OCR에서 yn teul chichimeca로 보여 지도자라는 지위 및 철자 해석은 영인 대조 전까지 미검증이다.",
+        "input_preservation": "기존 입력 후보의 ID·본문·기존 evidence를 보존하고 직접 확인한 발췌를 추가함"
+      }
+    }
+  },
+  {
+    "id": "600f1bc2-51d4-5f55-9ed1-3bd7d15e535b",
+    "title": "테키푸율",
+    "body": "툴라의 우칠로비 신전을 맡은 사람으로, 종이 깃발로 죽음을 예고받고 제사 돌 위로 가는 툴라 원주민들을 죽였다고 기록된다. 서술자의 악마 해석은 인물의 독립적 사실로 취급하지 않는다. 기존 tula_massacre 카드와 내용이 겹친다. 출전: https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS (11장, 94쪽, 1882년 판본의 대체 OCR).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "aztec-mythology",
+      "candidate_key": "tequipuyul",
+      "input_path": "미게시-임시자료:myth/aztec-mythology.json",
+      "input_sha256": "4fd2675ea9bc2fc8ff97404d295eaf10ce96ca359fd580fcf551a7f4f365046e",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "16세기 익명 「그림으로 전한 멕시코인들의 역사」 1882년 게재본의 Academia OCR 대체 열람이라는 입력 작성자의 보고; INAH 영인과 판본 동일성은 독립적으로 확인하지 못함",
+      "scope": "「그림으로 전한 멕시코인들의 역사」 1882년 게재본 85–106쪽. INAH 영인 https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330 접근 불가로 같은 판본의 Academia 22쪽 OCR을 부분 열람. source/supplementary.md가 없어 지정 보충 구간은 확인되지 않음. 독립 대상이 이름만 언급되거나 OCR이 훼손된 경우 카드화하지 않음. 기존 72장과의 중복 후보는 각 카드에 명시.",
+      "evidence": [
+        {
+          "unit": "11장 이주 경로",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "location": "11장, 94쪽, Academia OCR",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "11장 이주 경로",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "unavailable",
+          "reason": "INAH 원본 서버 연결 거부; Academia의 동일 1882년 22쪽 복제 OCR은 일부만 열람되거나 문자가 심하게 손상되어 이 장의 전수 실독을 확인할 수 없음. 확인한 부분의 후보만 포함.",
+          "cards": 2
+        }
+      ],
+      "evidence_limit": "발췌는 입력 작성자의 확인 기록이며 본문 모든 사실을 입증하기에 충분한지 미검증. OCR 철자와 영인 및 맥락을 대조해야 한다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "tula_massacre",
+          "title": "툴라의 울음·종이 깃발과 제사",
+          "cardType": "event",
+          "basis": "기존 카드의 서술에 동일 인물 또는 사건이 언급되어 내용이 겹칠 가능성. 단독 카드와 집합 카드의 동일성은 미확정."
+        }
+      ],
+      "additional_review": [
+        "기존 카드는 테키푸이울로 표기하므로 OCR과 표기 차이를 확인해야 한다."
+      ]
+    }
+  },
+  {
+    "id": "7e90f5f6-8f54-5d13-ac8e-887fef634e3f",
+    "title": "일란쿠에이틀의 통치",
+    "body": "일란쿠에이틀은 메시카를 지배한 유력 여성으로, 남편 아카마피치에게 메시카에 가라고 권한다. 이 서술은 그가 아내의 생전에는 군주가 아닌 유력자였고 아내가 죽은 뒤 군주가 되었다고 적는다. 기존 ilancueitl 카드와 중복 여부를 확인해야 한다. 출전: https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS (무번호 정착 장 및 연대기, 98쪽, 1882년 판본의 대체 OCR).",
+    "cardType": "event",
+    "provenance": {
+      "segment": "aztec-mythology",
+      "candidate_key": "illancueitl-leadership",
+      "input_path": "미게시-임시자료:myth/aztec-mythology.json",
+      "input_sha256": "4fd2675ea9bc2fc8ff97404d295eaf10ce96ca359fd580fcf551a7f4f365046e",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "16세기 익명 「그림으로 전한 멕시코인들의 역사」 1882년 게재본의 Academia OCR 대체 열람이라는 입력 작성자의 보고; INAH 영인과 판본 동일성은 독립적으로 확인하지 못함",
+      "scope": "「그림으로 전한 멕시코인들의 역사」 1882년 게재본 85–106쪽. INAH 영인 https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330 접근 불가로 같은 판본의 Academia 22쪽 OCR을 부분 열람. source/supplementary.md가 없어 지정 보충 구간은 확인되지 않음. 독립 대상이 이름만 언급되거나 OCR이 훼손된 경우 카드화하지 않음. 기존 72장과의 중복 후보는 각 카드에 명시.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "location": "무번호 정착 장 및 연대기, 98쪽, Academia OCR",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "unavailable",
+          "reason": "INAH 원본 서버 연결 거부; Academia의 동일 1882년 22쪽 복제 OCR은 일부만 열람되거나 문자가 심하게 손상되어 이 장의 전수 실독을 확인할 수 없음. 확인한 부분의 후보만 포함.",
+          "cards": 3
+        }
+      ],
+      "evidence_limit": "발췌는 입력 작성자의 확인 기록이며 본문 모든 사실을 입증하기에 충분한지 미검증. OCR 철자와 영인 및 맥락을 대조해야 한다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "ilancueitl",
+          "title": "일란쿠에이틀",
+          "cardType": "character",
+          "basis": "기존 카드의 서술에 동일 인물 또는 사건이 언급되어 내용이 겹칠 가능성. 단독 카드와 집합 카드의 동일성은 미확정."
+        }
+      ],
+      "additional_review": []
+    }
+  },
+  {
+    "id": "6596820c-4642-5f8d-ae50-563f60a96ac6",
+    "title": "토톨라요",
+    "body": "아스카푸살코의 유력자로, 마스틀라토가 멕시코와 싸우라고 지시한 뒤 창건 108년에 멕시코와의 화평을 추진한다. 멕시코 측은 아스카푸살코 군주의 죽음을 조건으로 내세웠다고 기록된다. 기존 maxtla_revolt 카드와 내용이 겹칠 수 있다. 출전: https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS (무번호 연대기, 99–100쪽, 1882년 판본의 대체 OCR).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "aztec-mythology",
+      "candidate_key": "totolayo",
+      "input_path": "미게시-임시자료:myth/aztec-mythology.json",
+      "input_sha256": "4fd2675ea9bc2fc8ff97404d295eaf10ce96ca359fd580fcf551a7f4f365046e",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "16세기 익명 「그림으로 전한 멕시코인들의 역사」 1882년 게재본의 Academia OCR 대체 열람이라는 입력 작성자의 보고; INAH 영인과 판본 동일성은 독립적으로 확인하지 못함",
+      "scope": "「그림으로 전한 멕시코인들의 역사」 1882년 게재본 85–106쪽. INAH 영인 https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330 접근 불가로 같은 판본의 Academia 22쪽 OCR을 부분 열람. source/supplementary.md가 없어 지정 보충 구간은 확인되지 않음. 독립 대상이 이름만 언급되거나 OCR이 훼손된 경우 카드화하지 않음. 기존 72장과의 중복 후보는 각 카드에 명시.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "location": "무번호 연대기, 99–100쪽, Academia OCR",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "unavailable",
+          "reason": "INAH 원본 서버 연결 거부; Academia의 동일 1882년 22쪽 복제 OCR은 일부만 열람되거나 문자가 심하게 손상되어 이 장의 전수 실독을 확인할 수 없음. 확인한 부분의 후보만 포함.",
+          "cards": 3
+        }
+      ],
+      "evidence_limit": "발췌는 입력 작성자의 확인 기록이며 본문 모든 사실을 입증하기에 충분한지 미검증. OCR 철자와 영인 및 맥락을 대조해야 한다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "maxtla_revolt",
+          "title": "마스틀라토의 연합과 이스코아시의 집권",
+          "cardType": "event",
+          "basis": "기존 카드의 서술에 동일 인물 또는 사건이 언급되어 내용이 겹칠 가능성. 단독 카드와 집합 카드의 동일성은 미확정."
+        },
+        {
+          "runtime": "genre-templates.json",
+          "genre": "aztec_mythology",
+          "id": "35c109b7-6198-501a-b9ff-51bdd2fc020b",
+          "title": "마스틀라토의 연합과 이스코아시의 집권",
+          "basis": "제목 완전 일치 또는 본문 이름 문자열 일치; 동일성 미확정"
+        },
+        {
+          "runtime": "genre-templates-v2.json",
+          "genre": "aztec_mythology",
+          "id": "35c109b7-6198-501a-b9ff-51bdd2fc020b",
+          "title": "마스틀라토의 연합과 이스코아시의 집권",
+          "basis": "제목 완전 일치 또는 본문 이름 문자열 일치; 동일성 미확정"
+        }
+      ],
+      "additional_review": []
+    }
+  },
+  {
+    "id": "0d492012-a894-5162-977a-2920ef6e6221",
+    "title": "실로트 이스타크",
+    "body": "아닐 믹스틀리의 딸로, 아스카푸살코 군주의 형제와 결혼했다가 남편이 죽은 뒤 그 군주의 아내가 된다. 소치밀코에서 아나나칼트와 관계를 맺었다가 세 군주의 명령으로 함께 돌에 맞아 죽었다고 기록된다. 기존 judicial_cases 카드와 내용이 겹칠 수 있다. 출전: https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS (무번호 연대기·재판 사례, 103쪽, 1882년 판본의 대체 OCR).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "aztec-mythology",
+      "candidate_key": "xilot-iztac",
+      "input_path": "미게시-임시자료:myth/aztec-mythology.json",
+      "input_sha256": "4fd2675ea9bc2fc8ff97404d295eaf10ce96ca359fd580fcf551a7f4f365046e",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "16세기 익명 「그림으로 전한 멕시코인들의 역사」 1882년 게재본의 Academia OCR 대체 열람이라는 입력 작성자의 보고; INAH 영인과 판본 동일성은 독립적으로 확인하지 못함",
+      "scope": "「그림으로 전한 멕시코인들의 역사」 1882년 게재본 85–106쪽. INAH 영인 https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330 접근 불가로 같은 판본의 Academia 22쪽 OCR을 부분 열람. source/supplementary.md가 없어 지정 보충 구간은 확인되지 않음. 독립 대상이 이름만 언급되거나 OCR이 훼손된 경우 카드화하지 않음. 기존 72장과의 중복 후보는 각 카드에 명시.",
+      "evidence": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "location": "무번호 연대기·재판 사례, 103쪽, Academia OCR",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "unavailable",
+          "reason": "INAH 원본 서버 연결 거부; Academia의 동일 1882년 22쪽 복제 OCR은 일부만 열람되거나 문자가 심하게 손상되어 이 장의 전수 실독을 확인할 수 없음. 확인한 부분의 후보만 포함.",
+          "cards": 3
+        }
+      ],
+      "evidence_limit": "발췌는 입력 작성자의 확인 기록이며 본문 모든 사실을 입증하기에 충분한지 미검증. OCR 철자와 영인 및 맥락을 대조해야 한다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "judicial-cases",
+          "title": "군주 시대별 재판 사례",
+          "cardType": "event",
+          "basis": "기존 카드의 서술에 동일 인물 또는 사건이 언급되어 내용이 겹칠 가능성. 단독 카드와 집합 카드의 동일성은 미확정."
+        }
+      ],
+      "additional_review": [
+        "기존 카드의 실로트 이스탁과 표기 차이 및 관계·판결의 세부 사실을 재확인해야 한다."
+      ]
+    }
+  },
+  {
+    "id": "a03f700f-b181-58ce-ab2d-30267f5a24db",
+    "title": "이스코쿠틀",
+    "body": "토치밀코 군주 계보의 첫 인물이다. 툴라에서 아틀리스코로 와 군주로 받아들여지고, 뒤에 수크테오티틀과 우에페우칸에 정착하여 그곳에서 죽는다. 아내 치말마시도 툴라 출신이다. 기존 tochimilco 카드와 내용이 겹친다. 출전: https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS (토치밀코 군주 계보, 105쪽, 1882년 판본의 대체 OCR).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "aztec-mythology",
+      "candidate_key": "yzcocutl",
+      "input_path": "미게시-임시자료:myth/aztec-mythology.json",
+      "input_sha256": "4fd2675ea9bc2fc8ff97404d295eaf10ce96ca359fd580fcf551a7f4f365046e",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "16세기 익명 「그림으로 전한 멕시코인들의 역사」 1882년 게재본의 Academia OCR 대체 열람이라는 입력 작성자의 보고; INAH 영인과 판본 동일성은 독립적으로 확인하지 못함",
+      "scope": "「그림으로 전한 멕시코인들의 역사」 1882년 게재본 85–106쪽. INAH 영인 https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330 접근 불가로 같은 판본의 Academia 22쪽 OCR을 부분 열람. source/supplementary.md가 없어 지정 보충 구간은 확인되지 않음. 독립 대상이 이름만 언급되거나 OCR이 훼손된 경우 카드화하지 않음. 기존 72장과의 중복 후보는 각 카드에 명시.",
+      "evidence": [
+        {
+          "unit": "토치밀코 군주들의 계보",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "location": "토치밀코 군주 계보, 105쪽, Academia OCR",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "토치밀코 군주들의 계보",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 5
+        }
+      ],
+      "evidence_limit": "발췌는 입력 작성자의 확인 기록이며 본문 모든 사실을 입증하기에 충분한지 미검증. OCR 철자와 영인 및 맥락을 대조해야 한다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "tochimilco",
+          "title": "토치밀코 군주들의 계보",
+          "cardType": "organization",
+          "basis": "기존 카드의 서술에 동일 인물 또는 사건이 언급되어 내용이 겹칠 가능성. 단독 카드와 집합 카드의 동일성은 미확정."
+        },
+        {
+          "runtime": "genre-templates.json",
+          "genre": "aztec_mythology",
+          "id": "aee1ca95-ad8f-5452-971e-567ae9fa16ca",
+          "title": "토치밀코 군주들의 계보",
+          "basis": "제목 완전 일치 또는 본문 이름 문자열 일치; 동일성 미확정"
+        },
+        {
+          "runtime": "genre-templates-v2.json",
+          "genre": "aztec_mythology",
+          "id": "aee1ca95-ad8f-5452-971e-567ae9fa16ca",
+          "title": "토치밀코 군주들의 계보",
+          "basis": "제목 완전 일치 또는 본문 이름 문자열 일치; 동일성 미확정"
+        }
+      ],
+      "additional_review": []
+    }
+  },
+  {
+    "id": "90314d5d-e29c-5244-a4a9-4898dba76244",
+    "title": "토날테미틀",
+    "body": "이스코쿠틀의 아들로 아버지가 죽은 뒤 군주가 된다. 아내 살팔로시는 페틀라우카 출신이라고 기록된다. 기존 tochimilco 카드와 내용이 겹친다. 출전: https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS (토치밀코 군주 계보, 105쪽, 1882년 판본의 대체 OCR).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "aztec-mythology",
+      "candidate_key": "tonaltemitl",
+      "input_path": "미게시-임시자료:myth/aztec-mythology.json",
+      "input_sha256": "4fd2675ea9bc2fc8ff97404d295eaf10ce96ca359fd580fcf551a7f4f365046e",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "16세기 익명 「그림으로 전한 멕시코인들의 역사」 1882년 게재본의 Academia OCR 대체 열람이라는 입력 작성자의 보고; INAH 영인과 판본 동일성은 독립적으로 확인하지 못함",
+      "scope": "「그림으로 전한 멕시코인들의 역사」 1882년 게재본 85–106쪽. INAH 영인 https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330 접근 불가로 같은 판본의 Academia 22쪽 OCR을 부분 열람. source/supplementary.md가 없어 지정 보충 구간은 확인되지 않음. 독립 대상이 이름만 언급되거나 OCR이 훼손된 경우 카드화하지 않음. 기존 72장과의 중복 후보는 각 카드에 명시.",
+      "evidence": [
+        {
+          "unit": "토치밀코 군주들의 계보",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "location": "토치밀코 군주 계보, 105쪽, Academia OCR",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "토치밀코 군주들의 계보",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 5
+        }
+      ],
+      "evidence_limit": "발췌는 입력 작성자의 확인 기록이며 본문 모든 사실을 입증하기에 충분한지 미검증. OCR 철자와 영인 및 맥락을 대조해야 한다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "tochimilco",
+          "title": "토치밀코 군주들의 계보",
+          "cardType": "organization",
+          "basis": "기존 카드의 서술에 동일 인물 또는 사건이 언급되어 내용이 겹칠 가능성. 단독 카드와 집합 카드의 동일성은 미확정."
+        },
+        {
+          "runtime": "genre-templates.json",
+          "genre": "aztec_mythology",
+          "id": "aee1ca95-ad8f-5452-971e-567ae9fa16ca",
+          "title": "토치밀코 군주들의 계보",
+          "basis": "제목 완전 일치 또는 본문 이름 문자열 일치; 동일성 미확정"
+        },
+        {
+          "runtime": "genre-templates-v2.json",
+          "genre": "aztec_mythology",
+          "id": "aee1ca95-ad8f-5452-971e-567ae9fa16ca",
+          "title": "토치밀코 군주들의 계보",
+          "basis": "제목 완전 일치 또는 본문 이름 문자열 일치; 동일성 미확정"
+        }
+      ],
+      "additional_review": []
+    }
+  },
+  {
+    "id": "f31b3657-58c9-5670-8d44-5c48727d3134",
+    "title": "신틀라윌시",
+    "body": "토날테미틀 뒤에 아버지의 군주 자리를 이었다. 코요아칸 출신 아내 테야카판시와 자녀가 있었으나 자녀는 군주 자리를 잇지 않았다고 기록된다. 기존 tochimilco 카드와 내용이 겹친다. 출전: https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS (토치밀코 군주 계보, 105쪽, 1882년 판본의 대체 OCR).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "aztec-mythology",
+      "candidate_key": "cintlaviltzi",
+      "input_path": "미게시-임시자료:myth/aztec-mythology.json",
+      "input_sha256": "4fd2675ea9bc2fc8ff97404d295eaf10ce96ca359fd580fcf551a7f4f365046e",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "16세기 익명 「그림으로 전한 멕시코인들의 역사」 1882년 게재본의 Academia OCR 대체 열람이라는 입력 작성자의 보고; INAH 영인과 판본 동일성은 독립적으로 확인하지 못함",
+      "scope": "「그림으로 전한 멕시코인들의 역사」 1882년 게재본 85–106쪽. INAH 영인 https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330 접근 불가로 같은 판본의 Academia 22쪽 OCR을 부분 열람. source/supplementary.md가 없어 지정 보충 구간은 확인되지 않음. 독립 대상이 이름만 언급되거나 OCR이 훼손된 경우 카드화하지 않음. 기존 72장과의 중복 후보는 각 카드에 명시.",
+      "evidence": [
+        {
+          "unit": "토치밀코 군주들의 계보",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "location": "토치밀코 군주 계보, 105쪽, Academia OCR",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "토치밀코 군주들의 계보",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 5
+        }
+      ],
+      "evidence_limit": "발췌는 입력 작성자의 확인 기록이며 본문 모든 사실을 입증하기에 충분한지 미검증. OCR 철자와 영인 및 맥락을 대조해야 한다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "tochimilco",
+          "title": "토치밀코 군주들의 계보",
+          "cardType": "organization",
+          "basis": "기존 카드의 서술에 동일 인물 또는 사건이 언급되어 내용이 겹칠 가능성. 단독 카드와 집합 카드의 동일성은 미확정."
+        },
+        {
+          "runtime": "genre-templates.json",
+          "genre": "aztec_mythology",
+          "id": "aee1ca95-ad8f-5452-971e-567ae9fa16ca",
+          "title": "토치밀코 군주들의 계보",
+          "basis": "제목 완전 일치 또는 본문 이름 문자열 일치; 동일성 미확정"
+        },
+        {
+          "runtime": "genre-templates-v2.json",
+          "genre": "aztec_mythology",
+          "id": "aee1ca95-ad8f-5452-971e-567ae9fa16ca",
+          "title": "토치밀코 군주들의 계보",
+          "basis": "제목 완전 일치 또는 본문 이름 문자열 일치; 동일성 미확정"
+        }
+      ],
+      "additional_review": []
+    }
+  },
+  {
+    "id": "47a031c9-20d3-5b78-a174-c69446e6ed99",
+    "title": "콰필리",
+    "body": "토치밀코 계보에서 앞선 시우아코아시의 손자로 군주가 된다. 생전에 아들 믹스코아시에게 마을의 일부를 다스리게 했고 이들의 시대에 그리스도교인들이 왔다고 기록된다. 기존 tochimilco 카드와 내용이 겹친다. 출전: https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS (토치밀코 군주 계보, 105–106쪽, 1882년 판본의 대체 OCR).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "aztec-mythology",
+      "candidate_key": "cuapili",
+      "input_path": "미게시-임시자료:myth/aztec-mythology.json",
+      "input_sha256": "4fd2675ea9bc2fc8ff97404d295eaf10ce96ca359fd580fcf551a7f4f365046e",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "16세기 익명 「그림으로 전한 멕시코인들의 역사」 1882년 게재본의 Academia OCR 대체 열람이라는 입력 작성자의 보고; INAH 영인과 판본 동일성은 독립적으로 확인하지 못함",
+      "scope": "「그림으로 전한 멕시코인들의 역사」 1882년 게재본 85–106쪽. INAH 영인 https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330 접근 불가로 같은 판본의 Academia 22쪽 OCR을 부분 열람. source/supplementary.md가 없어 지정 보충 구간은 확인되지 않음. 독립 대상이 이름만 언급되거나 OCR이 훼손된 경우 카드화하지 않음. 기존 72장과의 중복 후보는 각 카드에 명시.",
+      "evidence": [
+        {
+          "unit": "토치밀코 군주들의 계보",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "location": "토치밀코 군주 계보, 105–106쪽, Academia OCR",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "토치밀코 군주들의 계보",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 5
+        }
+      ],
+      "evidence_limit": "발췌는 입력 작성자의 확인 기록이며 본문 모든 사실을 입증하기에 충분한지 미검증. OCR 철자와 영인 및 맥락을 대조해야 한다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "tochimilco",
+          "title": "토치밀코 군주들의 계보",
+          "cardType": "organization",
+          "basis": "기존 카드의 서술에 동일 인물 또는 사건이 언급되어 내용이 겹칠 가능성. 단독 카드와 집합 카드의 동일성은 미확정."
+        },
+        {
+          "runtime": "genre-templates.json",
+          "genre": "aztec_mythology",
+          "id": "aee1ca95-ad8f-5452-971e-567ae9fa16ca",
+          "title": "토치밀코 군주들의 계보",
+          "basis": "제목 완전 일치 또는 본문 이름 문자열 일치; 동일성 미확정"
+        },
+        {
+          "runtime": "genre-templates-v2.json",
+          "genre": "aztec_mythology",
+          "id": "aee1ca95-ad8f-5452-971e-567ae9fa16ca",
+          "title": "토치밀코 군주들의 계보",
+          "basis": "제목 완전 일치 또는 본문 이름 문자열 일치; 동일성 미확정"
+        }
+      ],
+      "additional_review": []
+    }
+  },
+  {
+    "id": "5ddb1440-0ca5-52be-a673-9a0cae002554",
+    "title": "토치밀코의 돈 미겔",
+    "body": "콰필리와 믹스코아시 다음에 돈 후안과 함께 통치한 인물이다. 문헌은 콰필리의 조카이고 그리스도교인에게 화평하게 나왔으며, 후작이 마을 동의로 군주 자리를 주었다고 설명한다. 기존 tochimilco 카드와 내용이 겹친다. 출전: https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS (토치밀코 군주 계보, 106쪽, 1882년 판본의 대체 OCR).",
+    "cardType": "character",
+    "provenance": {
+      "segment": "aztec-mythology",
+      "candidate_key": "don-miguel-tochimilco",
+      "input_path": "미게시-임시자료:myth/aztec-mythology.json",
+      "input_sha256": "4fd2675ea9bc2fc8ff97404d295eaf10ce96ca359fd580fcf551a7f4f365046e",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "16세기 익명 「그림으로 전한 멕시코인들의 역사」 1882년 게재본의 Academia OCR 대체 열람이라는 입력 작성자의 보고; INAH 영인과 판본 동일성은 독립적으로 확인하지 못함",
+      "scope": "「그림으로 전한 멕시코인들의 역사」 1882년 게재본 85–106쪽. INAH 영인 https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330 접근 불가로 같은 판본의 Academia 22쪽 OCR을 부분 열람. source/supplementary.md가 없어 지정 보충 구간은 확인되지 않음. 독립 대상이 이름만 언급되거나 OCR이 훼손된 경우 카드화하지 않음. 기존 72장과의 중복 후보는 각 카드에 명시.",
+      "evidence": [
+        {
+          "unit": "토치밀코 군주들의 계보",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "location": "토치밀코 군주 계보, 106쪽, Academia OCR",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "unit_statuses": [
+        {
+          "unit": "토치밀코 군주들의 계보",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 5
+        }
+      ],
+      "evidence_limit": "발췌는 입력 작성자의 확인 기록이며 본문 모든 사실을 입증하기에 충분한지 미검증. OCR 철자와 영인 및 맥락을 대조해야 한다.",
+      "translation": "한국어 요약·번역은 비공식 검토 후보이며 검증되지 않았다.",
+      "duplicate_candidates": [
+        {
+          "source_key": "tochimilco",
+          "title": "토치밀코 군주들의 계보",
+          "cardType": "organization",
+          "basis": "기존 카드의 서술에 동일 인물 또는 사건이 언급되어 내용이 겹칠 가능성. 단독 카드와 집합 카드의 동일성은 미확정."
+        }
+      ],
+      "additional_review": []
+    }
+  }
+]

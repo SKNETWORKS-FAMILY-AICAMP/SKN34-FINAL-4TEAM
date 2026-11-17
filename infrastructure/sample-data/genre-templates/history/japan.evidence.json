@@ -1,0 +1,988 @@
+{
+  "schemaVersion": 1,
+  "country": "Japan",
+  "genre": "japan_history",
+  "worldId": "8c3a276f-dda5-5b5d-89da-55221ee3d710",
+  "worldName": "일본 역사 사료 세계 — Murray 『Japan』(1896) 연구 초안",
+  "artifactPurpose": "source-grounded research only; not imported into service",
+  "generatedAtUTC": "2026-11-13T18:04:57.334Z",
+  "historicalEndpoint": "1889 constitution promulgation and prospective 1890 Diet convocation; publication in 1896 is not a continuous narrative endpoint",
+  "source": {
+    "title": "Japan",
+    "author": "David Murray",
+    "edition": "Third Edition, 1896",
+    "projectGutenbergId": 29798,
+    "file": "docs/research/history-textbooks/japan/source-en.txt",
+    "bytes": 663800,
+    "sha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+    "originalSourceUrl": "https://www.gutenberg.org/ebooks/29798",
+    "sourceUrlStatus": "Preserved provenance only; no network retrieval performed in this task"
+  },
+  "idPolicy": {
+    "algorithm": "UUID v5 (SHA-1)",
+    "namespace": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+    "nameBase": "STORYFORK/history-source-world/japan/murray-1896/v1",
+    "worldNameInput": "STORYFORK/history-source-world/japan/murray-1896/v1",
+    "cardNameInput": "STORYFORK/history-source-world/japan/murray-1896/v1/card/{semanticKey}"
+  },
+  "reviewStatus": {
+    "originalExcerptCorrespondence": "Selected excerpts directly read and compared for every card",
+    "modernHistoricalVerification": "pending for all substantive cards",
+    "fullBookHistoricalReview": "not performed",
+    "fullTranslationReview": "not performed",
+    "scanOrJapaneseChineseOriginalCollation": "not performed",
+    "newModernAcquisition": "none",
+    "claimScope": "source-attributed summaries with explicitly labelled editorial cautions; not independent historical truth"
+  },
+  "scope": {
+    "worlds": 1,
+    "cards": 24,
+    "substantiveCards": 21,
+    "sourceOrReviewOtherCards": 3,
+    "missing": "20th–21st centuries and many topics/voices absent from or unselected in the source"
+  },
+  "biasPolicy": "Do not adopt colonial, racial, religious, civilizational hierarchy or imperial-divinity assertions as present truth. Preserve uncertainty and do not invent fictional details.",
+  "lineAndHashConvention": "1-based inclusive TXT lines; split CRLF/LF; excerpt is joined with LF without appended final LF; SHA-256 hashes UTF-8 excerpt bytes. Whole-file SHA-256 uses unchanged raw bytes.",
+  "baselineFiles": {
+    "docs/research/history-textbooks/japan/01-main-prose.ko.draft.md": "9573c559b8865274a3470fb54d6e99d17d91f959eaa1b9d9a64791a1edd6483b",
+    "docs/research/history-textbooks/japan/01-translation.qa.md": "946b39b5c76d69295fd69e5ab5547ea33309cdcd205a845df0c4c803a7d56223",
+    "docs/research/history-textbooks/japan/01-worldbuilding-candidate.ko.md": "a8e404de6c0cf527cdc062d0c32f745200a7773856f7c184b0f2f9577faa916c",
+    "docs/research/history-textbooks/japan/02-main-prose.ko.draft.md": "ddd1520bdc886169bc8a802303d585cba119686340d8511fa8075cdd852e6076",
+    "docs/research/history-textbooks/japan/02-translation.qa.md": "a458784e01e1fc47b916e4c7584f9fead3f03181c41a135d1a50f6532f072264",
+    "docs/research/history-textbooks/japan/02-worldbuilding-candidate.ko.draft.md": "a8e32426ae81c7e23e47f22c5a84475f45d576724407c76986edfcf22aed2480",
+    "docs/research/history-textbooks/japan/03-main-prose.ko.draft.md": "6dc3107bc04c2dd9551c843374a92f2838cf88e30eb5f6720de76b8fdfb78d90",
+    "docs/research/history-textbooks/japan/03-translation.qa.md": "83e5a53eafd1a8ab662c7d8f8d4848b4b2504e1f69b0ea9d29a17582b2149ceb",
+    "docs/research/history-textbooks/japan/04-main-prose.ko.draft.md": "a5706bb5833de775a1ffe977436c52ce1030b701efe39ad98b84bad9056f8a9c",
+    "docs/research/history-textbooks/japan/04-translation.qa.md": "84e4a7fe0ed9b0fe55a6ae83acac8b6fff6db578a3ae01a8beef1aa470be53f3",
+    "docs/research/history-textbooks/japan/05-main-prose.ko.draft.md": "5b1841f0a18df628b12548b76c1bf7ee404b0d45e50ae0933e5cfb96219bd30e",
+    "docs/research/history-textbooks/japan/05-translation.qa.md": "789e62efaea3817639b0a999593f4ee267415758aef729279d74a141db83b690",
+    "docs/research/history-textbooks/japan/06-main-prose.ko.draft.md": "6eeef1666ebab9ae5d7480df7417708b4f2a05aa38d6b12b65688d2dec15f587",
+    "docs/research/history-textbooks/japan/06-translation.qa.md": "81fdea2652405d9715f72ff3ecc7a707d57fcbd7d51601c2414271e4f89857bd",
+    "docs/research/history-textbooks/japan/07-main-prose.ko.draft.md": "7c73f01b33534a99208d484178d65e5453320a97336d7c12d26c3c5ac7e72881",
+    "docs/research/history-textbooks/japan/07-translation.qa.md": "8ca820e7bfc9f764af12970b79ba883d81d541c9869d33cf2bcdcad25f947a10",
+    "docs/research/history-textbooks/japan/08-main-prose.ko.draft.md": "66d3a1a870102f5fbbb2fd371fb27ad91a9dd2b8902f1a08eadf7e36c96319b4",
+    "docs/research/history-textbooks/japan/08-translation.qa.md": "102fdfe090cb76d53df3e6faf68e8ca5becbb89569909ffef03c6d44f8ca5eab",
+    "docs/research/history-textbooks/japan/09-main-prose.ko.draft.md": "88e15c843d1d44f9d89e5280dccf970c3380f9314ef360adc17720365ac6bd61",
+    "docs/research/history-textbooks/japan/09-translation.qa.md": "92023d4360e5d43309389d25c6ee38d6e7ee7bf1922989648ae28e74e12efba8",
+    "docs/research/history-textbooks/japan/10-main-prose.ko.draft.md": "3c4ac54a81f5002747c9ad05d8aa18b4ace36a579350dbaf4dde69945bba9d78",
+    "docs/research/history-textbooks/japan/10-translation.qa.md": "890737379f7161dde6c516ac14ac18b805ac3f8b1126b4809c7621542ca0dec9",
+    "docs/research/history-textbooks/japan/11-main-prose.ko.draft.md": "461be896a1390455a3efed11750b38f6efe049c0fd7e28d5dded87164217d468",
+    "docs/research/history-textbooks/japan/11-translation.qa.md": "7195e376ff7fdcb12223139e71965ae64e9e9640df35dbf493e219e63546395e",
+    "docs/research/history-textbooks/japan/12-main-prose.ko.draft.md": "95c1359903181ed6abe7db61d41f097e696010f16d8472a5ae567f9b916ea403",
+    "docs/research/history-textbooks/japan/12-translation.qa.md": "b41372c9f1dd7bb46521cd21f50f628c87ae257640dca46dc71bc104bd5aee20",
+    "docs/research/history-textbooks/japan/13-main-prose.ko.draft.md": "18f23a895832f2af41f5d47f18544b5bfa34ed2475fbf93dddeaedbeeadce0fe",
+    "docs/research/history-textbooks/japan/13-translation.qa.md": "f49afa4e146773b837380405b65b4ec9563795d470460808eccbb363dcd504c1",
+    "docs/research/history-textbooks/japan/14-main-prose.ko.draft.md": "02d75bbaa239075f5d04b98faa481b1c14219c46d1b88cca69c81f247986ceec",
+    "docs/research/history-textbooks/japan/14-translation.qa.md": "a3ed8ca3653a3a4e6a69a75cb601ab4c8ba946c6219a033a677834745034a4b1",
+    "docs/research/history-textbooks/japan/15-main-prose.ko.draft.md": "1b12792ba2b63ffd65a0b6c33adc354b81198c9b563e08d4ffad1051ba2ce264",
+    "docs/research/history-textbooks/japan/15-translation.qa.md": "1dfd960ccf392fe18f62634c29e17d40e5d1a60a0fc85fd7403dfa38f83c5b8a",
+    "docs/research/history-textbooks/japan/appendix-01-03-translation.qa.md": "d654cefa0edbaa3983979c4553e67aedfc4d0f0b6acd24f9ca6f7109618c6b98",
+    "docs/research/history-textbooks/japan/appendix-01.ko.draft.md": "00a961864f13cc69fb9e1715180e75d13be984400ea91a04794917b4170ee31d",
+    "docs/research/history-textbooks/japan/appendix-02.ko.draft.md": "6d7fc9c90a01fffc95d992982e4ede9aae1b8b9572e03c73ee4c8e5192a73893",
+    "docs/research/history-textbooks/japan/appendix-03.ko.draft.md": "d6127ccf8d5e6783cdddc696a14334bbed1b2235e1e321214309358f098eef5b",
+    "docs/research/history-textbooks/japan/appendix-04.ko.draft.md": "83bf3a8d0d016f9161f7e7276a3de10e55527f2763ef3db525724c93b2e87597",
+    "docs/research/history-textbooks/japan/frontmatter-manifest.json": "4ff2fa735b3f2f7c2dbb675157c85e8289b50482541ad3e22b446ed34a5e5be2",
+    "docs/research/history-textbooks/japan/frontmatter-translation.qa.md": "3ee725d7de991b2e02751f789eab454ff24c631a14030a4d15b4c48154defbbe",
+    "docs/research/history-textbooks/japan/frontmatter.ko.draft.md": "af06a70671017dc30950ebdee0e10426e71f1c64595d1663006794cb7fbf88a9",
+    "docs/research/history-textbooks/japan/japan-15-chapters-and-appendices.ko.draft.md": "84412f8c6246f8d2e5822fd18bd3c9cce79f03f39cf0dc08a9c8ab900875579b",
+    "docs/research/history-textbooks/japan/preface.ko.draft.md": "14cc62e5507f5b6db9895463b0865fc703d78cdba96a6d3f3409cebc72e3d0cf",
+    "docs/research/history-textbooks/japan/README.partial-ko.md": "738887e82e48f0c5baa96c10e8c8aac4b9c6994acc75f759d5cab3a5e01095e7",
+    "docs/research/history-textbooks/japan/review-sample-10-blocks.ko.md": "0f3ab4f89ecee34dc140140cb4bf1a0483c86ea934a5052915f160be2c904919",
+    "docs/research/history-textbooks/japan/source-en.txt": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+    "docs/research/history-textbooks/japan/translation-manifest.json": "b272fb2b28fa9f1bfcbb5428310db1b0fb33dcd5d05cf4e890a0e31dfe259e08",
+    "backend/content-service/src/main/resources/genre-templates.json": "e2488085f8ac19d57b6869debd7e8690b63ec97078708128e9e93358d6dc6c0f"
+  },
+  "cards": [
+    {
+      "cardId": "ec036a29-f4dc-54cb-b3e8-5bbd8daf5849",
+      "semanticKey": "source-scope",
+      "title": "01. 일본 사료 세계의 출처와 범위",
+      "cardType": "other",
+      "period": "고대 전승부터 1889년 헌법 공포·1890년 의회 소집 예고까지",
+      "sourceChapter": "표제면·서문·제XV장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 31,
+          "lineEnd": 57,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "a8f2c7f572d96e22ef8855c77950fc74cf405059c6f01f69d0f07ad9ead594ea",
+          "excerpt": "                                  Japan\n\n                                    By\n\n                        David Murray, Ph.D., LL.D.\n\n            Late Advisor to the Japanese Minister of Education\n\n                              Third Edition\n\n                                  London\n\n                             T. Fisher Unwin\n\n                            Paternoster Square\n\n                      New York: G. P. Putnam’s Sons\n\n                                   1896\n\n                    Copyright by T. Fisher Unwin, 1894\n\n                           (For Great Britain)\n\n                  Copyright by G. P. Putnam’s Sons, 1894\n\n                    (For the United States of America"
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 96,
+          "lineEnd": 120,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "f09916e39172b9ce385b194073e43ad9342ca2be61f747139f79263b093aa62d",
+          "excerpt": "It is the object of this book to trace the story of Japan from its\nbeginnings to the establishment of constitutional government. Concerned as\nthis story is with the period of vague and legendary antiquity as well as\nwith the disorders of mediæval time and with centuries of seclusion, it is\nplain that it is not an easy task to present a trustworthy and connected\naccount of the momentous changes through which the empire has been called\nto pass. It would be impossible to state in detail the sources from which\nI have derived the material for this work. I place first and as most\nimportant a residence of several years in Japan, during which I became\nfamiliar with the character of the Japanese people and with the traditions\nand events of their history. Most of the works treating of Japan during\nand prior to the period of her seclusion, as well as the more recent\nworks, I have had occasion to consult. They will be found referred to in\nthe following pages. Beyond all others, however, I desire to acknowledge\nmy obligations to the _Transactions of the Asiatic Society of Japan_. A\nlist of the contributors to these transactions would include such names as\nSatow, Aston, Chamberlain, McClatchie, Gubbins, Geerts, Milne, Whitney,\nWigmore and others, whose investigations have made possible a reasonably\ncomplete knowledge of Japan. The _Transactions of the German Asiatic\nSociety_ are scarcely less noteworthy than those of her sister society. To\nthese invaluable sources of information are to be added Chamberlain’s\n_Things Japanese_, Rein’s _Japan_ and the _Industries of Japan_, Griffis’\n_Mikado’s Empire_, Mounsey’s _Satsuma Rebellion_, Dening’s _Life of\nHideyoshi_, the published papers of Professor E. S. Morse, and the two\nhandbooks prepared successively by Mr. Satow and Mr. Chamberlain."
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 8564,
+          "lineEnd": 8574,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "08a573b2e3b26b73e1a02ba3c9026e6e8ac119ef1887ff69e2a94806531e92af",
+          "excerpt": "In further pursuance of the plan of constitutional government, the\nemperor, on February 11, 1889, at his palace, promulgated a\nconstitution(340) for his people. In the presence of his cabinet and court\nhe took a solemn oath to govern under its limitations and powers. This\nconstitution contains seven chapters consisting of one hundred and eleven\narticles: Chapter I. The Emperor; II. Rights and Duties of Subjects; III.\nThe Imperial Diet; IV. The Ministers of State and Privy Council; V. The\nJudicature; VI. Finance; VII. Supplementary Rules. The emperor also\nannounced that the imperial diet would be convoked in the twenty-third\nyear of _Meiji_ (1890), and that the constitution would go into effect at\nthe date of its assembling."
+        }
+      ],
+      "claimTreatment": "bibliographic or editorial review statement anchored in quoted original excerpts",
+      "uncertainty": "국가 전체를 연결하는 단일 사료 세계지만 모든 시대·집단·주제를 빠짐없이 대표하는 통사가 아니다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "47e028dc-2272-5cf8-91a8-70cdba8e3ec3",
+      "semanticKey": "archipelago",
+      "title": "02. 일본 열도와 바닷길",
+      "cardType": "location",
+      "period": "제1장이 설명하는 저술 당시 지리",
+      "sourceChapter": "제I장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 173,
+          "lineEnd": 183,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "072fd94c4216db4d41a5885f81af8b92715ce959bc232866c60f0d37265a0479",
+          "excerpt": "The islands composing the empire of Japan are situated in the northwestern\npart of the Pacific ocean. They are part of the long line of volcanic\nislands stretching from the peninsula of Kamtschatka on the north to\nFormosa on the south. The direction in which they lie is northeast and\nsouthwest, and in a general way they are parallel to the continent.\n\nThe latitude of the most northern point of Yezo is 45° 35’, and the\nlatitude of the most southern point of Kyūshū is 31°. The longitude of the\nmost eastern point of Yezo is 146° 17’, and the longitude of the most\nwestern point of Kyūshū is 130° 31’. The four principal islands therefore\nextend through 14° 35’ of latitude and 15° 46’ of longitude."
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 193,
+          "lineEnd": 235,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "f3039adaa30a2d9f1cdb6f34fcd7fbb295b05ca22db994df911bdefc8ad87cbc",
+          "excerpt": "The empire consists of four large islands and not less than three thousand\nsmall ones. Some of these small islands are large enough to constitute\ndistinct provinces, but the greater part are too small to have a separate\npolitical existence, and are attached for administrative purposes to the\nparts of the large islands opposite to which they lie. The principal\nisland is situated between Yezo on the north and Kyūshū on the south.\n\nFrom Omasaki, the northern extremity at the Tsugaru straits, to Tōkyō, the\ncapital, the island runs nearly north and south a distance of about 590\nmiles, and from Tōkyō to the Shimonoseki straits the greatest extension of\nthe island is nearly east and west, a distance of about 540 miles. That\nis, measuring in the direction of the greatest extension, the island is\nabout 1130 miles long. The width of the island is nowhere greater than two\nhundred miles and for much of its length not more than one hundred miles.\n\nAmong the Japanese this island has no separate name.(3) It is often called\nby them Hondo(4) which may be translated Main island. By this translated\nname the principal island will be designated in these pages. The term\nNippon or more frequently Dai Nippon (Great Nippon) is used by them to\ndesignate the entire empire, and it is not to be understood as restricted\nto the principal island.\n\nThe second largest island is Yezo, lying northeast from the Main island\nand separated from it by the Tsugaru straits. Its longest line is from\nCape Shiretoko at its northeast extremity to Cape Shira-kami on Tsugaru\nstraits, about 350 miles; and from its northern point, Cape Soya on the La\nPerouse straits to Yerimosaki, it measures about 270 miles. The centre of\nthe island is an elevated peak, from which rivers flow in all directions\nto the ocean. Hakodate the principal port is situated on Tsugaru straits\nand possesses one of the most commodious harbors of the empire.\n\nThe third in size of the great islands of Japan is Kyūshū, a name meaning\nnine provinces, referring to the manner in which it was divided in early\ntimes. It lies south from the western extremity of the Main island. Its\ngreatest extension is from north to south, being about 200 miles. Its\nwidth from east to west varies from sixty to ninety miles. Its temperature\nand products partake of a tropical character.\n\nTo the east of Kyūshū lies Shikoku (meaning four provinces) which is the\nfourth of the great islands of Japan. It is about one half as large as\nKyūshū, which in climate and productions it much resembles. It is south of\nthe western extension of the Main island and is nearly parallel to it. Its\nlength is about 170 miles."
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "지리 명칭과 정치적 영유권을 구별한다. 원저의 제국 영토 범위를 현재의 경계 주장으로 옮기지 않는다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "b48962a4-83ce-5da3-a034-8ed49705ff66",
+      "semanticKey": "ancient-chronicles",
+      "title": "03. 『고사기』와 『일본기』의 전승",
+      "cardType": "object",
+      "period": "고대 전승과 8세기 기록 편찬에 관한 원저의 설명",
+      "sourceChapter": "제III장·제VI장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 838,
+          "lineEnd": 876,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "2d961fbc12380c5338cba884c112237b8c7472713e667c7e41b94f6b0d14c3b3",
+          "excerpt": "The art of writing and printing was not introduced into Japan until A.D.\n284, when it was brought from China. Up to that time therefore no written\naccounts existed or could exist of the early history of the country. Oral\ntradition was the only agency by which a knowledge of the events of that\nepoch could be preserved and transmitted. That such a method of preserving\nhistory(28) is uncertain and questionable no one can doubt. We may expect\nto find therefore in the accounts which have come down to us of those\ncenturies which transpired before written records were introduced, much\nthat is contradictory and unintelligible, and much out of which the truth\ncan be gleaned only by the most painstaking research.\n\nThe oldest book of Japanese history which has come down to us is called\n_Kojiki_,(29) or _Records of Ancient __ Matters_. This work was undertaken\nby the direction of the Emperor Temmu (A.D. 673-686), who became impressed\nwith the necessity of collecting the ancient traditions which were still\nextant, and preserving them in a permanent record. Before the work was\nended the emperor died, and for twenty-five years the collected traditions\nwere preserved in the memory of Hiyeda-no-are. At the end of that time the\nEmpress Gemmyō superintended its completion, and it was finally presented\nto the Court in A.D. 711. By a comparison of this work with _Nihongi_, or\n_Chronicles of Japan_, which was completed A.D. 720, only nine years after\nthe other, we are convinced that the era of Chinese classicism had not yet\nfallen upon the country. The style of the older book is a purer Japanese,\nand imparts to us the traditions of Japanese history uncolored by Chinese\nphilosophical ideas and classic pedantry which shortly after overwhelmed\nJapanese literature. But in many particulars these two works, almost\nequally ancient, supplement and explain each other. The events given in\nthe two are in most respects the same, the principal difference being that\nthe _Chronicles_ is much more tinctured with Chinese philosophy, and the\nmyths concerning the creation especially show the influence of that dual\nsystem which had been introduced to give a philosophical aspect to the\nJapanese cosmogony.\n\nThe _Kojiki_(30) has been translated into English, to which have been\nadded a valuable introduction and notes. The _Nihongi_ (_Chronicles of\nJapan_) has never been translated entire into English, but has been used\nby scholars in connection with the _Kojiki_. Among the Japanese it has\nalways been more highly esteemed than the _Kojiki_, perhaps because of its\nmore learned and classical style."
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 2901,
+          "lineEnd": 2906,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "6bba7c8c975543208007a8f74caddb4a13d1e7c3537664686e6a3ac62e10dc37",
+          "excerpt": "is shown by the census of temples which was made in the reign of the\nEmpress Jito (A.D. 690-702) and which gave the number as 545. The\npublication of the _Kojiki_ in A.D. 712, and of the _Nihongi_ eight years\nlater, has already been referred to at the close of the preceding chapter.\nThese works are still looked upon as the foundations of Japanese\nliterature and the highest authorities of Japanese history."
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "전승 내용·편찬사·근대 저자의 해석을 분리한다. 문자 도입 연도 등 주변의 단정은 현대 검증 없이 사실 카드로 확장하지 않는다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "bb44af25-582d-526b-99db-8dd5090352d6",
+      "semanticKey": "shotoku",
+      "title": "04. 쇼토쿠 태자와 불교 후원",
+      "cardType": "character",
+      "period": "원저가 서술하는 6세기 말–7세기 초",
+      "sourceChapter": "제V장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 2559,
+          "lineEnd": 2607,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "ba17f5971a5bf0025c1e8b441033d3d7e9448b1fad63f00be6e0276ef93df3b0",
+          "excerpt": "The thirty-third sovereign was the Empress Suiko, who was the sister of\nthe Emperor Yōmei. Her coronation took place A.D. 593. Her reign was\nchiefly remarkable for the active influence of Umaydo-no-Ōji (A.D.\n572-622), who was the second son of the Emperor Yōmei, and who was made\ncrown prince under the empress, and aided her in the administration of the\npolitical affairs of the government. This prince is better known by his\nposthumous title of Shōtoku Taishi (great teacher of the divine virtue),\nand is held in great reverence as the principal founder and promoter of\nBuddhism in Japan. His name has been linked with many legends, which are\nstill current after the lapse of fourteen hundred years. It is said that\nas soon as he was born he was able to speak, and was in all respects a\nvery clever boy. His memory was wonderfully acute. He had Napoleon the\nGreat’s talent of attending to several things at the same time. He could\nhear the appeals of eight persons at once, and give to each a proper\nanswer. From this circumstance he sometimes went by the name of\nYatsumimi-no-Ōji, that is, Prince of Eight Ears.\n\nThe prince threw the whole influence of the government in favor of\nBuddhism. Many temples were built in different central districts for the\nconvenience of the new religion. Under his influence the officers of the\ngovernment rivalled each other in founding temples and maintaining them at\ntheir own expense. He took as his teacher a priest who had recently come\nfrom Korea, and from him for the first time learned the five Buddhist\ncommandments:\n\n      1. Against stealing.\n      2. Against lying.\n      3. Against intemperance.\n      4. Against murder.\n      5. Against adultery.\n\nHe gave command to an artificer in copper to make large images of Buddha\nfor each of the officers in the government. The king of Koma in Korea\nhearing of this great undertaking sent a contribution of three hundred\n_ryō_ of gold. The images were finished in due time and an imposing\nreligious ceremonial was held in honor of the event. Many of the principal\ntemples of Buddhism in different parts of Japan take their origin from the\ntime of Shōtoku Taishi, and no single character in history is so\nintimately connected with the development of Buddhism.\n\nIt was not only as a religious reformer, however, that he deserves to be\nremembered. He was a a most painstaking and enlightened ruler. He\nstudiously gathered from the Chinese the elements and methods of\ngovernment and adapted them to his own country.(86) From his time the\nstudy of Chinese literature became the essential culture of the active\nminds of Japan.\n\nShōtoku Taishi died A.D. 622, having been the principal officer of the\ngovernment for twenty-nine years."
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "인물의 세부 연대·관직·사원 창건 귀속은 독립 검증 대기다. 초인적 능력을 실제 설정으로 만들지 않는다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "09bf22fa-59b6-5472-83f5-4decb4204b9f",
+      "semanticKey": "continental-administration",
+      "title": "05. 대륙 학문과 관제의 도입",
+      "cardType": "rule",
+      "period": "고대 조정의 관제·대외 교류",
+      "sourceChapter": "제V장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 2703,
+          "lineEnd": 2742,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "480bf4d0630be6694fcc4bfe5644d66f83323851f2c556ac0a81f5253ab6883c",
+          "excerpt": "The great reverence felt for Chinese culture led to the introduction at an\nearly date of the Chinese system of official rank. The system remained in\nforce down to the restoration in 1868. The officers were _Daijō-daijin_\n(Prime-Minister), _Sa-daijin_ (Minister of the Left), _U-daijin_ (Minister\nof the Right), together with eight boards,(90) charged with the various\nduties of administration. These boards were divided into sections, and the\nvarious departments of the government were respectively performed by them.\nIn this way the administration became thoroughly bureaucratic, in\nimitation of the Chinese empire, to which the Japanese at this time looked\nup with the most complete reverence.\n\nIn addition to these official boards, six official ranks were also\nintroduced from China. These ranks were designated, first, virtue; second,\nhumanity; third, propriety; fourth, truth; fifth, righteousness, and\nsixth, wisdom. Each of these ranks(91) was divided into two orders termed\nrespectively the Greater and the Lesser. Thus there were twelve\ndistinctions in this system. It was introduced in the reign of the Empress\nSuiko, A.D. 604, and is generally attributed to the Regent Shōtoku, who\nwas a great admirer of the continental civilization. It existed in this\nform until the time of the Emperor Kōtoku, when, A.D. 649, it was extended\nto nineteen distinctions. These were not given to the individual in\nrecognition of talent, but to families to be by them transmitted to their\nposterity as hereditary rank.\n\nFor many years during this period of active intercourse with China and\nKorea, Dazaifu, situated on the west coast of Kyūshū, north of the present\nsituation of Nagasaki, was the recognized port where strangers were\nreceived. This city was the seat of a vice-royalty, having control over\nthe nine provinces of Kyūshū. The office of vice-governor was considered a\nplace of honorable banishment to which distinguished men who were\ndistasteful at court could be sent.\n\nThese continental influences continued for many years and indeed have\nnever ceased. There has always existed a class of scholars who looked upon\nChinese learning as the supreme pinnacle to which the human mind could\nattain. This was especially true of the admirers of Confucius and\nConfucianism. Although it was not until a much later period that the\nculture of a Chinese philosophy attained its highest mark, yet even in the\nearly arrangement of the studies in the university we see the wide\ninfluence which the writings of the Chinese classics exerted."
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "관제의 도입 시점·세습성·다자이후의 항구 표현은 원저의 주장이다. 각 시대 제도가 동일하게 지속되었다고 확정하지 않는다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "f66ebed7-1fb0-54fa-a7c1-41c859729d03",
+      "semanticKey": "nara-kyoto",
+      "title": "06. 나라와 교토의 조정",
+      "cardType": "location",
+      "period": "원저의 710년 나라·794년 교토 천도 서술",
+      "sourceChapter": "제VI장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 2908,
+          "lineEnd": 2934,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "2b50213040dc2846e0c67546745258e72f8166a6964c3a84cf44523923d8cb9f",
+          "excerpt": "In the reign of the Empress Gemmyō (A.D. 710) the imperial residence was\nfixed at Nara. Up to this time the custom(100) derived from antiquity had\nprevailed of changing the residence on the accession of each new emperor.\nBut the court continued at Nara for a period of seventy-five years running\nthrough seven reigns; and in consequence Nara has always been looked upon\nwith peculiar reverence, and is the seat of several of the most notable\nBuddhist and Shintō temples(101) and structures. It is here that\nKasuga-no-miya was founded in A.D. 767 and dedicated to the honor of the\nancestor of the Fujiwara family. Here also is Tō-dai-ji a Buddhist temple\nfamed for containing the bronze statue of Great Buddha. This colossal idol\nwas constructed in A.D. 736 under the Emperor Shōmu, during the time that\nthe imperial court resided at Nara. The height of the image is fifty-three\nfeet, being seven feet higher than the Daibutsu at Kamakura. The temple\nwas built over the image and in A.D. 1180 was destroyed by a fire which\nmelted the head of the image. This was replaced. The temple was burned\nagain A.D. 1567, from which time the image has remained as the Japanese\nsay “a wet god.”\n\nIn A.D. 794(102) during the reign of the Emperor Kwammu (A.D. 782-806) the\ncapital was removed to Kyōto on the banks of the Kamogawa. The situation\nand the environs are lovely, and justify the affectionate reverence with\nwhich it has ever been regarded. Here were built the palaces and offices\nfor the emperor and his court. It was officially called Miyako, that is,\nresidence of the sovereign. It continued to be occupied as the capital\nuntil A.D. 1868, when the court was moved to Tōkyō. At this time the name\nof the city was changed to Saikyō, which means western capital, in\ndistinction from Tōkyō, which means eastern capital."
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "여러 시기의 도시와 건축을 하나의 변하지 않는 풍경으로 합치지 않는다. 현재 관광 정보나 유산 상태를 설명하는 카드가 아니다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "18905cae-0dd1-5df8-ab16-0fa26dac903b",
+      "semanticKey": "fujiwara",
+      "title": "07. 후지와라 가문과 궁정 권력",
+      "cardType": "organization",
+      "period": "원저의 고대·중세 궁정 정치 설명",
+      "sourceChapter": "제VI장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 2952,
+          "lineEnd": 2978,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "9594e9852666608f6a021ec93b5a0fc7b9cfe57095972205f1e69fd53c1e0e18",
+          "excerpt": "The employment of a Fujiwara in this expedition was probably purely\nperfunctory. So far as we know, this family, which had by this time risen\nto a position of great influence, was in no respect military, and the\nappointment of Umakai as chief of the forces sent against the Ainos was\ndue to the political prominence of his family. For many centuries the\nrelations of the Fujiwara family to the imperial house was most intimate.\nIndeed the late Viscount Mori,(104) in his introduction to _Education in\nJapan_, speaks of this relation as a “proprietorship.” “The throne for a\ntime became virtually the property of one family, who exclusively\ncontrolled it.” This family was that of Fujiwara,(105) to which reference\nhas already been made. The founder of this house, Kamatari, was a man of\ngreat talent and administrative ability, and his immediate successors were\nworthy of their ancestor’s fame, and in succession filled the office of\n_daijin._ In this way the office came to be regarded as hereditary in the\nFujiwara family. The office of _kuambaku_, also from about A.D. 880,\nbecame hereditary in the Fujiwara house. Owing to the great age and\nprominence of the family, it became customary to marry the emperors and\nprinces of the imperial house to ladies taken from it, so that after a\ntime the mothers and wives of the princes of the imperial house were\nwithout exception descendants of the Fujiwara, and the offices of the\ncourt were in the hands of this family. In this condition of things the\nabdication of emperors, before they had reigned long enough to learn the\nduties of their position, became the common practice. This vicious custom\nwas encouraged by the Fujiwara, because it placed greater authority in\ntheir hands, and left them to conduct the administration without\ntroublesome interference. The Emperor Seiwa (A.D. 859-880) commenced to\nreign when he was nine years of age, and abdicated when he was"
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "가문 전체에 고정된 성격을 부여하지 않는다. 원저의 ‘항상’, ‘예외 없이’ 같은 일반화를 확정 사실로 재사용하지 않는다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "8be4dc73-428b-577e-b60a-2dc6921dbd62",
+      "semanticKey": "yoritomo-kamakura",
+      "title": "08. 미나모토노 요리토모와 가마쿠라",
+      "cardType": "character",
+      "period": "12세기 말의 무사정부 형성에 관한 원저 서술",
+      "sourceChapter": "제VI장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 3398,
+          "lineEnd": 3457,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "e01fdbc42f4e64e8091e0d0849255a8d5cb8ce4177b2539ae415f1b351ca2c7d",
+          "excerpt": "The way was now clear for Yoritomo to establish a system of government\nwhich should secure to him and his family the fruits of his long contest.\nIn A.D. 1190, he went up to the capital to pay his respects to the Emperor\nGo-Toba as well as to the veteran retired Emperor Go-Shirakawa. The latter\nwas now in his sixty-sixth year, and had held his place through five\nsuccessive reigns, and was now the friend and patron of the new\ngovernment. He died, however, only two years later. Yoritomo knew the\neffect produced by a magnificent display, and therefore made his progress\nto the capital with all the pomp and circumstance which he could command.\nThe festivities were kept up for a month, and the court and its\nsurroundings were deeply impressed with a sense of the power and\nirresistible authority of the head of the Minamoto clan.\n\nYoritomo did not, however, choose to establish himself at Kyōto amid the\natmosphere of effeminacy which surrounded the court. After his official\nvisit, during which every honor and rank which could be bestowed by the\nemperor were showered upon his head and all his family and friends, he\nreturned to his own chosen seat at Kamakura. Here he busied himself in\nperfecting a system which, while it would perpetuate his own power, would\nalso build up a firm national government.\n\nHis first step, A.D. 1184, was to establish a council at which affairs of\nstate were discussed, and which furnished a medium through which the\nadministration might be conducted. The president of this council was\nŌye-no-Hiromoto.(123) Its jurisdiction pertained at first to the\nKwantō—that is, to the part of the country east of the Hakoné barrier.\nThis region was more completely under the control of the Minamoto, and\ntherefore could be more easily and surely submitted to administrative\nmethods. He also established a criminal tribunal to take cognizance of\nrobberies and other crimes which, during the lawless and violent\ndisturbances in the country, had largely prevailed.\n\nBut the step, which was destined to produce the most far-reaching results,\nconsisted in his obtaining from the emperor the appointment of five of his\nown family as governors of provinces, promising on his part to supervise\ntheir actions and to be responsible for the due performance of their duty.\nUp to this time the governors and vice-governors of provinces had always\nbeen appointed from civil life and were taken from the families\nsurrounding the imperial court. He also was authorized to send into each\nprovince a military man, who was to reside there, to aid the governor in\nmilitary affairs. Naturally, the military man, being the more active,\ngradually absorbed much of the power formerly exercised by the governor.\nThese military men were under the authority of Yoritomo and formed the\nbeginning of that feudal system which was destined to prevail so long in\nJapan. He also received from the court, shortly after his visit to Kyōto,\nthe title of _sei-i-tai-shōgun_, which was the highest military title\nwhich had ever been bestowed on a subject. This is the title which, down\nto A.D. 1868, was borne by the real rulers of Japan. The possession of the\npower implied by this title enabled Yoritomo to introduce responsible\ngovernment into the almost ungoverned districts of the empire, and to give\nto Japan for the first time in many centuries a semblance of peace.\n\nThere were also many minor matters of administration which Yoritomo, in\nthe few remaining years of his life, put in order. He obtained from the\nemperor permission to levy a tax on the agricultural products of the\ncountry, from which he defrayed the expenses of the military government.\nHe established tribunals for the hearing and determining of causes, and\nthus secured justice in the ordinary affairs of life. He forbade the\npriests and monks in the great Buddhist monasteries, who had become\npowerful and arrogant, to bear arms, or to harbor those bearing arms."
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 3464,
+          "lineEnd": 3474,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "e7611ceb7a4296e0cb3e4b19db5992b92563618a2f73d73cd217aefe5a12448b",
+          "excerpt": "In all these administrative reforms Yoritomo was careful always to secure\nthe assent and authority of the imperial court.(124) In no case did he\nassume or exercise independent authority. In this way was introduced at\nthis time that system of dual government which continued until the\nresignation of the Tokugawa Shōgun in 1868. After his first visit to\nKyōto, in A.D. 1190, Yoritomo devoted the remaining years of his life to\nthe confirmation of his power and the encouragement of the arts of peace.\nIn A.D. 1195 he made a second magnificent visit to Kyōto and remained four\nmonths. It is because of these peaceful results, which followed the long\ninternecine struggles, that the Japanese regard Yoritomo as one of their\nmost eminent and notable men. Under the influence of his court Kamakura"
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "원저의 연대와 기관 명칭을 현행 학설의 확정치로 보지 않는다. 가마쿠라 체제 성립을 단일 날짜로 단정하지 않는다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "8dad1cc0-4bf2-5e5e-b844-7ed1eab050b2",
+      "semanticKey": "mongol-invasion",
+      "title": "09. 원의 침공과 호조 정권",
+      "cardType": "event",
+      "period": "원저가 집중하는 1281년 침공",
+      "sourceChapter": "제VII장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 3594,
+          "lineEnd": 3618,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "74de4e8831751aa9aa9d2670f333a963e4d4d57f0bbe3a8c76a78d071b1d75c7",
+          "excerpt": "Occasionally, in the midst of this corruption and inefficiency, an event\noccurs which stirs up the national enthusiasm and makes us feel that there\nis still left an element of heroism which will ultimately redeem the\nnation from impending ruin. Such was the Mongolian invasion of Japan in\nA.D. 1281. According to accounts given by Marco Polo, who evidently\nnarrates the exaggerated gossip of the Chinese court,(127) Kublai Khan had\nat this time conquered the Sung dynasty in China and reigned with\nunexampled magnificence. He had heard of the wealth of Japan and deemed it\nan easy matter to add this island empire to his immense dominions. His\nfirst step was to despatch an embassy to the Japanese court to demand the\nsubjection of the country to his authority. This embassy was referred to\nKamakura, whence it was indignantly dismissed. Finally he sent an invading\nforce in a large number of Chinese and Korean vessels who took possession\nof Tsushima, an island belonging to Japan and lying midway between Korea\nand Japan. Trusting to the effects of this success a new embassy was sent,\nwhich was brought before the Hōjō regent at Kamakura. The spot on the\nseashore is still pointed out where these imperious ambassadors were put\nto death, and thus a denial which could not be misunderstood was given to\nthe demands of the Grand Khan. A great invading force, which the Japanese\nput at a hundred thousand men, was immediately sent in more than three\nhundred vessels, who landed upon the island of Kyūshū. This army was met\nand defeated(128) by Tokimune, and, a timely typhoon coming to their aid,\nthe fleet of vessels was completely destroyed. Thus the only serious\nattempt at the invasion of Japan which has ever been made was completely\nfrustrated."
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "1274년·1281년의 구별, 사절 처리 시점과 전투 단계는 현대 자료 검증이 필요하다. ‘유일한 침공’이라는 원저의 현재형을 현대까지 연장하지 않는다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "6408f014-4a8f-5fc9-a7fe-638fd1c1c482",
+      "semanticKey": "ashikaga-culture",
+      "title": "10. 아시카가 정권과 교토의 문화",
+      "cardType": "organization",
+      "period": "14–15세기 아시카가 쇼군에 관한 원저 서술",
+      "sourceChapter": "제VII장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 3774,
+          "lineEnd": 3810,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "f3e838b703ba524b58309b2176d448357d5d5f828ef7165d39c12e99b366fbed",
+          "excerpt": "into the usual insignificance. Some of the Ashikaga shōguns, however, were\nmen of uncommon ability and their services to their country deserve to be\ngratefully remembered. A number of them were men of culture and evinced\ntheir love of elegance and refinement by the palaces which they built in\nKyōto. Ashikaga Yoshimitsu was shōgun from A.D. 1368 to 1393, and at the\nlatter date retired in favor of his young son Yoshimotsu, but lived in\nofficial retirement in Kyōto till A.D. 1409. He built the palace now known\nas the Buddhist monastery Kinkakuji.(133) Its name is derived from\n_kinkaku_ (golden pavilion) which Yoshimitsu erected. The whole palace was\nbequeathed by him to the Zen sect of Buddhists and is still one of the\nsights best worth seeing in Kyōto.\n\nYoshimitsu has been visited by much obloquy because he accepted from the\nChinese government the title of King of Japan, and pledged himself to the\npayment of one thousand ounces of gold as a yearly tribute. It is said in\nexplanation of this tribute that it was to compensate for damages done by\nJapanese pirates to Chinese shipping. But it was probably negotiated for\nthe purpose of securing an ambitious title on the one hand and on the\nother making a troublesome neighbor a tributary kingdom.\n\nAnother building which takes its origin from the Ashikaga is the Tō-ji-in.\nIt was founded by Ashikaga Taka-uji and contains carved and lacquered\nwooden figures of the Ashikaga shōguns which are believed in most cases to\nbe contemporary portraits.(134)\n\nAnother of the notable Ashikaga shōguns was Yoshimasa, who held the office\nfrom A.D. 1443-1473. He retired at the latter date, and lived as retired\nshōgun until A.D. 1490. In this interval of seclusion he cultivated the\narts, and posed as the patron of literature and painting. That curious\ncustom called _cha-no-yu_, or tea ceremonies,(135) is usually adjudged to\nhim as its originator, but it is most probable that he only adopted and\nrefined it until it became the fashionable craze which has come down to\nmodern times. These ceremonies and his other modes of amusement were\nconducted in a palace which he had built called _gin-kaku_ (silver\npavilion). Yoshimasa left this palace to the monks of Shō-koku-ji, with\ndirections that it should be converted into a monastery, and in that\ncapacity it still serves at the present time."
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 3812,
+          "lineEnd": 3823,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "770d9c98dd67a51039ca474ec2ac895294678f6d995641b0828f7f76c5f69636",
+          "excerpt": "The period of the two imperial dynasties lasted until A.D. 1392, when a\nproposition was made by the Shōgun Yoshimitsu to the then reigning emperor\nof the south, that the rivalry should be healed. It was agreed that\nGo-Kameyama of the southern dynasty should come to Kyōto and surrender the\ninsignia to Go-Komatsu, the ruling emperor of the northern dynasty. This\nwas duly accomplished, and Go-Kameyama, having handed over the insignia to\nGo-Komatsu, took the position of retired emperor. Thus the long rivalry\nbetween the northern and southern dynasties was ended, and Go-Komatsu\nstands as the ninety-ninth in the official list of emperors. In that list,\nhowever, none of the other emperors(136) of the northern dynasty appear,\nthey being regarded as pretenders, and in no case entitled to the dignity\nof divine rulers of Japan."
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "쇼군 계보·재임 연도 및 건물의 현존 상태는 독립 검증 대기다. 원저의 정통성 판단을 세계의 절대 규칙으로 만들지 않는다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "c33877b8-f28f-544e-b579-e410aee3cf4d",
+      "semanticKey": "nobunaga-kyoto",
+      "title": "11. 오다 노부나가의 교토 진출",
+      "cardType": "character",
+      "period": "16세기 중후반의 영토 확대와 1568년 교토 진출",
+      "sourceChapter": "제VIII장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 4145,
+          "lineEnd": 4196,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "41bf071a48b2fa7bf5eb059057bea7fa64fabfc3d6d2819a9dc6c5e9e1b99084",
+          "excerpt": "The holdings which Ota Nobunaga inherited from his father consisted only\nof four small properties in the province of Owari. Acting according to the\nfashion of the times he gradually extended his authority, until by A.D.\n1559 we find him supreme in Owari with his chief castle at Kiyosu near to\nthe city of Nagoya. His leading retainers and generals were Shibata\nGenroku and Sakuma Yemon, to whom must be added Hideyoshi,(153) who\ngradually and rapidly rose from obscurity to be the main reliance of his\nprince. Nobunaga was a skilful general, and whenever an interval occurred\nin his expeditions against his hostile neighbors he employed the time in\ncarefully drilling his troops, and preparing them for their next\nmovements. He found in Hideyoshi an incomparable strategist, whose plans,\nartifices, and intrigues were original and effective, and were worth more\nto his master than thousands of troops.\n\nIt was not difficult in those days to find excuses to invade neighboring\ndomains, and hence we find Nobunaga, as soon as he had made himself master\nof Owari, on one pretext or another making himself also master of the\nprovinces of Mino, Ōmi, and Isé. Before this was accomplished, however, we\nsee plain indications both on the part of Nobunaga and his retainers that\nthe ultimate aim in view was the subjugation of the whole country, and the\nestablishment of a government like that of Yoritomo.\n\nAt this time (A.D. 1567) the affairs of the Ashikaga shōguns, who ruled in\nthe name of the emperor, were in a state of great confusion. Yoshiteru,\nthe shōgun, had been assassinated by one of his retainers, Miyoshi\nYoshitsugu. The younger brother of Yoshiteru was Yoshiaki, who desired to\nsucceed, but this did not comport with the designs of the assassins.\nAccordingly after making several unsuccessful applications for military\naid he finally applied to Nobunaga. This was exactly the kind of alliance\nthat Nobunaga wanted to justify his schemes of national conquest. With his\nown candidate in the office of shōgun, he could proceed without impediment\nto reduce all the princes of the empire to his supreme authority. He\ntherefore undertook to see Yoshiaki established as shōgun, and for this\npurpose marched a large army into Kyōto. Yoshiaki was installed as shōgun\nin A.D. 1568, and at his suggestion the emperor conferred on Nobunaga the\ntitle of Fuku-shōgun(154) or vice-shōgun. This was Nobunaga’s first\ndealings with the imperial capital, and the presence of his large army\ncreated a panic among the inactive and peaceful citizens.\n\nHe appointed Hideyoshi as commander-in-chief of the army at the capital,\nwho with a sagacity and energy that belonged to his character set himself\nto inspire confidence and to overcome the prejudice which everywhere\nprevailed against the new order of things. Kyōto had suffered so much from\nfires and warlike attacks, and still more by poverty and neglect, that it\nwas now in a lamentable condition. To have somebody, therefore, with the\npower and spirit to accomplish his ends, undertake to repair some of the\nwastes, and put in order what had long run to ruin, was an unexpected and\nagreeable surprise. The palaces of the emperor and the shōgun were\nrepaired and made suitable as habitations for the heads of the nation.\nStreets and bridges, temples and grounds were everywhere put in order.\nKyōto for the first time in many centuries had the benefit of a good and\nstrong government."
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "원저가 부여한 관직·칭호와 정비 사업의 귀속을 별도 검증한다. 다른 세력·주민의 시점이 충분히 포함된 설명은 아니다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "a9bf8b42-2fad-5368-9293-eb0e8ab049b7",
+      "semanticKey": "hideyoshi-korea",
+      "title": "12. 도요토미 히데요시의 조선 침공",
+      "cardType": "event",
+      "period": "1592–1598년 전쟁에 관한 일본 원저의 서술",
+      "sourceChapter": "제IX장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 4848,
+          "lineEnd": 4869,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "35765d71587bf554be257aca566dcf249055418dc50de412f2b9faf22bbdb96c",
+          "excerpt": "Konishi’s division arrived in Korea April 13, A.D. 1592, and captured the\nsmall town of Fusan, which had been the port at which the Japanese had for\ngenerations maintained a trading post. After the arrival of Katō the two\ndivisions marched towards the capital, reducing without difficulty the\ncastles that lay in their way. The greatest terror prevailed among the\ninhabitants, and the court, with King Riyen at its head, resolved to flee\ninto the province bordering on China. The armies reached the capital and\nthen set out northward. The dissensions between the commanders had by this\ntime reached such a point that they determined to separate. Katō traversed\nthe northeastern provinces and in his course captured many Koreans of\nrank.\n\nKonishi marched to the north and found the king at Pingshang on the\nborders of the river Taitong-Kiang. Here he was joined by Kuroda Noritaka,\nwhom the Jesuit fathers named Condera(181) Combiendono, and by Yoshitoshi\nthe prince of Tsushima, who had marched with their forces by a different\nroute. An effort at negotiations at this point met with no success. The\nking continued his flight northward to Ichiu, a fortified town on the\nborders of China. After he left a sharp contest took place between the\nbesiegers and defenders, which resulted in the abandonment of the town and\nits capture by the Japanese. The stores of grain which had been collected\nby the Koreans were captured with the town."
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 4993,
+          "lineEnd": 5026,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "87f533c858d58249be16ec83bd19334eb0d5201ddd066df947c8d3469f6839fa",
+          "excerpt": "The death of Taikō Sama occurred on the day equivalent to the 18th of\nSeptember, A.D. 1598, and on his death-bed he seems to have been troubled\nwith the thought of the veteran warriors who were uselessly wearing out\ntheir lives in Korea. In his last moments he opened his eyes and exclaimed\nearnestly: “Let not the spirits of the hundred thousand troops I have sent\nto Korea become disembodied in a foreign land.”(186) Ieyasu, on whom\ndevolved the military responsibility after the Taikō’s death, and who had\nnever sympathized with his wishes and aims regarding Korea, did not delay\nthe complete withdrawal of the troops which still remained in Korea.\n\nThus ended a chapter in the history of Japan, on which her best friends\ncan look back with neither pride nor satisfaction. This war was begun\nwithout any sufficient provocation, and its results did nothing to advance\nthe glory of Japan or its soldiers. The great soldier who planned it and\npushed it on with relentless energy gained nothing from it except\nvexation. Much of the time during which the war lasted he sat in his\ntemporary palace at Nagoya in Hizen, waiting eagerly for news from his\narmies. Instead of tidings of victories and triumphs and rich conquests,\nhe was obliged too often to hear of the dissensions of his generals, the\nstarving and miseries of his soldiers, and the curses and hatred of a\nruined and unhappy country. All that he had to show for his expenditure of\nmen and money were several _saké_ tubs of pickled ears and noses with\nwhich to form a mound in the temple of Daibutsu, and the recollection of\nan investiture by the emperor of China, which could only bring to him pain\nand humiliation.\n\nThe only beneficial results to Japan that can be traced to all this was\nthe introduction into different provinces of some of the skilled artisans\nof Korea. The prince of Satsuma, Shimazu Yoshihiro, in A.D. 1598, brought\nhome with him when he returned from the Korean war seventeen families of\nKorean potters,(187) who were settled in his province. They have lived\nthere ever since, and in many ways still retain the marks of their\nnationality. It is to them that Satsuma _faïence_ owes its exquisite\nbeauty and its world-wide reputation."
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "일본 측 서술 하나로 조선 전쟁사를 완결하지 않는다. 숫자·장수의 의도·철수 경위를 확정하지 않으며 전쟁 피해를 발전의 대가로 정당화하지 않는다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "71edcf83-7deb-5646-9213-417fa1ab4c17",
+      "semanticKey": "sekigahara",
+      "title": "13. 세키가하라와 도쿠가와의 집권",
+      "cardType": "event",
+      "period": "1600년 전투와 1603년 쇼군 임명에 관한 원저 서술",
+      "sourceChapter": "제X장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 5186,
+          "lineEnd": 5205,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "623d052bd21699af6825a74030bc02750d33194299892674db3199e25f76fa80",
+          "excerpt": "The armies met at Sekigahara,(194) a little village on the Nakasendō,\nOctober, A.D. 1600. One place on the neighboring hill is still pointed out\nwhence Ieyasu witnessed the battle and issued his orders. Both sides\nfought with determined bravery, and the battle lasted the whole day.\nCannon and other firearms were to some extent made use of, but the\nold-fashioned weapons, the sword and the spear, were the terrible means by\nwhich the victory was decided. For a long time the battle raged without\neither party obtaining a decisive advantage. Notwithstanding his\ninferiority in numbers Ieyasu was completely victorious. The carnage was\ndreadful. The number of the confederate army said to have been killed was\n40,000.(195) This seems like an impossible exaggeration, and the Japanese\nannalists are, like those of other nations, given to heightened\nstatements. But that the loss of life on both sides was very great there\ncan be no doubt.\n\nTwo ghastly mounds called Kubi-zuka, or head piles, are still shown where\nthe heads of the decapitated confederates were buried. This battle must\nalways stand with that at Dan-no-ura between the Minamoto and Taira\nfamilies, as one of the decisive battles in the history of Japan. By it\nwas settled the fate of the country for two hundred and fifty years."
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 5285,
+          "lineEnd": 5293,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "c4e578a409746d5ebb8e35da53cb89bf2e9c3daa7357685085b9cce5add9190b",
+          "excerpt": "In pursuance of this plan, he sent his son Hidetada to the emperor to make\na full report of everything that had been done in the settlement of the\naffairs of the country. The emperor was graciously pleased to approve his\nacts and to bestow upon him, A.D. 1603, the hereditary title of\nSei-i-tai-shōgun. This was the title borne by Yoritomo when he was the\nreal ruler of the country. Since that time there had been a long line of\nshōguns, the last of whom was Ashikaga Yoshiaki, whom Nobunaga deposed in\n1573, and who had died 1597. With this new appointment began a line of\nTokugawa shōguns that ended only with the restoration in 1868."
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "전투 날짜 변환·병력·사상자·정권 성립 단계는 독립 검증 대기다. 후대의 지속 기간을 전투 참가자가 알고 있던 미래로 쓰지 않는다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "7c933802-f90f-5368-9512-1be855c89503",
+      "semanticKey": "edo-capital",
+      "title": "14. 에도와 교토의 두 중심",
+      "cardType": "location",
+      "period": "도쿠가와 초기의 통치 거점",
+      "sourceChapter": "제X장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 5295,
+          "lineEnd": 5328,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "3cfa0ccbacf029f4e9aae32996aaa29514da97f44a647faf9b5307fa3186c129",
+          "excerpt": "Ieyasu’s most radical change in the system of government consisted in the\nestablishment of the seat of his executive department at Yedo. Since A.D.\n794 Kyōto had been the capital where successive emperors had reigned, and\nwhere Nobunaga and Hideyoshi exercised executive control. Kamakura had\nbeen the seat of Yoritomo and his successors. But Ieyasu saw advantages in\nestablishing himself in a new field, to which the traditions of idleness\nand effeminacy had not attached themselves, and where the associations of\nhis own warlike career would act as a stimulus to his contemporaries and\nsuccessors. He remained at Fushimi until necessary repairs could be made\nto the Castle of Yedo(200) and the roads between it and the capital put in\norder. The place which henceforth was to be the principal capital of the\ncountry first comes into notice, as we have before mentioned, as a castle\nbuilt by Ōta Dōkwan in A.D. 1456. He had been placed here by the\nauthorities of Kamakura to watch the movements of the restless princes of\nthe north. Recognizing the strength and convenience of the high grounds on\nthe border of Yedo bay, he built a castle which, through many\ntransformations and enlargements, finally developed into the great feudal\ncapital of the Tokugawa shōguns. It was here that Ieyasu, after the fall\nof Odawara, by the advice of Hideyoshi,(201) established himself for the\ngovernment of the provinces of the Kwantō which had been given to him.\n\nAnd it was without doubt this earlier experience which led him to select\nYedo as the centre of his feudal government. The reputation which this\neastern region bore for roughness and want of culture, as compared with\nthe capital of the emperor at Kyōto, seemed to him an advantage rather\nthan an objection. He could here build up a system of government free from\nthe faults and weaknesses which had become inseparable from the old seats\nof power. After the repairs and enlargements had been completed he took up\nhis residence there. Besides this castle, Ieyasu had for his private\nresidence, especially after his retirement from the shōgunate, an\nestablishment at Sumpu, now called Shizuoka. Here he was visited by\nEnglish and Dutch envoys in reference to the terms of allowing trade, and\nhere, after the manner of his country, he maintained his hold upon the\nadministration of affairs, notwithstanding his formal retirement."
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "현대 도쿄 전체를 당시 에도성 도시와 동일시하지 않는다. 건축 연도·교통망·은거 후 권한의 세부는 별도 검증 대상이다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "c9ddab16-4dd4-5a65-86d8-535493223c09",
+      "semanticKey": "daimyo-administration",
+      "title": "15. 다이묘의 지방 행정",
+      "cardType": "rule",
+      "period": "원저가 설명하는 봉건적 지방 통치",
+      "sourceChapter": "제XII장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 6141,
+          "lineEnd": 6169,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "7bd9f809219cfe3b40d94b8595b1e9750f02cdbb731e51e6c11d64045c3c84cb",
+          "excerpt": "Without undertaking to give a detailed account of the feudal system as\nmodified and established by Ieyasu, it will be sufficient to give the\nclasses of daimyōs as they continued to exist under the Tokugawa\nshōgunate.(231) It must be understood that feudalism existed in Japan\nbefore the time of Ieyasu. It can be traced to the period when Yoritomo\nobtained from the emperor permission to send into each province a _shiugo_\nwho should be a military man, and should act as protector of the _kokushū_\nor governor, who was always a civilian appointed by the emperor. These\nmilitary protectors were provided with troops, for the pay of whom\nYoritomo got permission from the emperor to levy a tax. Being active men,\nand having troops under their command, they gradually absorbed the entire\nauthority, and probably in most cases displaced the _kokushū_, who only\nrepresented the powerless government at Kyōto. Under the disturbed times\nwhich followed the fall of the house of Yoritomo these _shiugo_ became the\nhereditary military governors of the provinces, and usurped not only the\nfunctions but the name of _kokushū_. They became a class of feudal barons\nwho, during the interval when no central authority controlled them,\ngoverned each one his own province on his own responsibility. Even after\nthe establishment of a central authority, and continuously down to the\nabolition of feudalism, the government of the people was in the hands of\nthe daimyō of each province. The assessment of taxes, the construction of\nroads and bridges, the maintenance of education, the punishment of crime,\nthe collection of debts, the enforcement of contracts, and indeed the\nwhole circle of what was denominated law were in the hands of the local\ngovernment. In truth, in Japan as in other feudal countries there was\nscarcely such a thing as law in existence. The customs that prevailed, the\ncommon-sense decisions of a magistrate, the final determinations of the\ndaimyō, were authoritative in every community. And in all these each\nprovince was in a great degree a law unto itself."
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "법제사·번별 규정·신분별 적용은 현대 검증 대기다. 특정 지역의 관행을 일본 전체의 보편 법률로 확장하지 않는다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "0166da26-e720-5414-b209-7f7159fd2ad0",
+      "semanticKey": "samurai-swords",
+      "title": "16. 무사의 칼과 신분 표지",
+      "cardType": "object",
+      "period": "도쿠가와기 무사에 관한 원저의 설명",
+      "sourceChapter": "제XII장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 6230,
+          "lineEnd": 6237,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "98135c08b3f09ba477cd9189f32b73355de8c1eb82ef839109152389f4d50cea",
+          "excerpt": "encouraged them in this feeling of superciliousness. The people were\ndivided into four classes, arranged in the following order: _samurai_,\nfarmers, artisans, and merchants. And in his _Legacy_ Ieyasu thus\nexpresses himself(235): “The _samurai_ are masters of the four classes.\nFarmers, artisans, and merchants may not behave in a rude manner towards\n_samurai_ ... and a _samurai_ is not to be interfered with in cutting down\na fellow who has behaved to him in a manner other than is expected.” Again\nhe says(236): “A girded sword is the living soul of a _samurai_.”"
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 6265,
+          "lineEnd": 6280,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "905ecff2986b070b6005577b24525de037f11cec485ff3918f45b93518c2ff12",
+          "excerpt": "The _samurai_ had the privilege of carrying two swords; the principal one\n(_katana_) was about four feet long, nearly straight, but slightly curved\ntoward the point, the blade thick and ground to a keen though blunt edge.\nIt was carried in a scabbard thrust through the _obi_ or belt on the left\nside, with the edge uppermost. Besides the _katana_ the _samurai_ carried\nalso a short sword about nine and a half inches long, called _wakizashi_.\nThe blade of the sword was fastened to the hilt by a pin of wood and could\nbe readily detached. On the part of the blade inserted in the hilt, the\nmaker’s name was always inscribed, and it was a special matter of pride\nwhen he was one of the famous sword-smiths of Japan. The most noted makers\nwere Munechika, Masamune, Yoshimitsu, and Muramasa, who ranged from the\ntenth down through the fourteenth century. The quality of the Japanese\nsword has been a matter of national pride, and the feats which have been\naccomplished by it seem almost beyond belief. To cleave at one blow three\nhuman bodies laid one upon another; to cut through a pile of copper coins\nwithout nicking the edge, were common tests which were often tried.(237)"
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "칼 규격·신분제·살상권의 법적 요건과 실제 적용은 별도 검증한다. 원저의 사농공상 도식을 모든 생활 관계의 완전한 설명으로 보지 않는다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "801ef782-7578-5d4f-bb6d-af7529383c2e",
+      "semanticKey": "shimabara",
+      "title": "17. 시마바라 봉기와 종교 박해",
+      "cardType": "event",
+      "period": "1637–1638년 봉기에 관한 원저의 설명",
+      "sourceChapter": "제XI장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 5781,
+          "lineEnd": 5809,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "22a10f726c96032492a2985156f67ab7465b3c065565b5b962e6d9f0f8975822",
+          "excerpt": "Without following the entire series of events which resulted in the\nextirpation of Christianity, it will be sufficient to give a brief\nnarrative of the closing act in this fearful tragedy. It is just, however,\nto explain that the Shimabara rebellion was not due to the Christians\nalone, but that other causes contributed to and perhaps originated it. In\nview, however, of the cruel persecutions to which the Christians were\nsubjected, it is not surprising that they should have been driven to\nengage in such a rebellion as that in Arima.(216) The wonder rather is\nthat they were not often and in many places impelled to take up arms\nagainst the inhumanities of their rulers. The explanation of this absence\nof resistance will be found in the scattered condition of the Christian\ncommunities. Nowhere, unless it might be in Nagasaki, was the number of\nconverts collected in one place at all considerable. They were everywhere\noverawed by the organized power of the government, and the experience of\nthose who joined in this Arima insurrection did not encourage a repetition\nof its horrors.\n\nThe beginning of the revolt is traced to the misgovernment of the daimyō\nof Arima. The original daimyō had been transferred by the shōgun to\nanother province, and when he removed from Arima he left nearly all his\nold retainers behind him. The newly instituted daimyō, on the contrary,\nwho came to occupy the vacated province brought with him a full complement\nof his own followers. To make room for these new retainers the old ones\nwere displaced placed from their dwellings and holdings, and compelled to\nbecome farmers or to take up any other occupation which they could find.\nLike the _samurai_ of other parts of Japan who had been unaccustomed to\nany calling except that of arms, these displaced retainers proved very\nunsuccessful farmers, and were of course very much dissatisfied with the\nnew course of things. The daimyō was a cruel and inconsiderate man, who"
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 5831,
+          "lineEnd": 5853,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "4af60bb4f9ecc8dfdff747c3d549052f18bea6202105bac9dee74e83c16b58d0",
+          "excerpt": "1637. The excitement was intense, and in a few days it is said that eight\nthousand three hundred men and one thousand women were assembled at this\nvillage. They chose as their chief Shirō Tokisada, the son of the head man\nof the village of Hara, who proposed to march immediately upon Nagasaki\nand open negotiations with foreign nations, and if possible obtain from\nthem the help of troops. He was an enthusiast and without experience in\nwar. The leading spirit in the insurrection seems to have been a\n_rônin_(217) named Ashizuka, who recommended that the insurgents should\ncross over to Shimabara. But Shirō and his enthusiastic followers resolved\nto attack the castle of Tomioka situated on the north-west coast of\nAmakusa. They were, however, unable to make any impression upon it, and\nwere obliged to withdraw. Ashizuka and a few followers succeeded in\nbreaking into the castle of Shimabara and seizing the arms and ammunition\nand provisions which were stored there. The government rice stores were\nseized both on the mainland and on the island of Amakusa. All the\ninsurgents, including men, women, and children, then gathered into a\ndeserted castle at Hara, which was capable of holding 40,000 to 50,000\npersons. It was supposed to be impregnable, and was put in order and\nprovisioned for a long siege. The number gathered here is estimated by the\nJapanese writers at 40,200, but this number without doubt is an\nexaggeration.\n\nThe local rulers finding themselves unable to cope with the rebellion, and"
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 5900,
+          "lineEnd": 5937,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "7b0935f12f94b78a9510db5320e17fc4338e7357b2f149a18270c7b8abfe1af4",
+          "excerpt": "widening of the breach between the Dutch and the Portuguese. On the 11th\nof January, 1638, the besiegers applied to the Dutch at Hirado for a\nsupply of gunpowder, which request was complied with, and at the same time\nan apology was tendered that no larger quantity could be sent. Again, on\nthe 15th of February a request for cannon to be used in the siege was\nreceived, and the guns were sent. Mr. Koeckebacker says: “We gave the\nlargest and most uniform guns in our possession.”(218) Finally, on the\n19th of February, Mr. Koeckebacker was asked to send one of the Dutch\nships(219) then at Hirado to the assistance of the besiegers. The _de Ryp_\nwas accordingly sent, and Mr. Koeckebacker himself accompanied her. The\nguns which had been first sent were mounted as a land battery, and the\nguns of the _de Ryp_ from her anchorage in the bay were trained on the\ncastle. It was a new experience for the Japanese to see cannon used in the\nsiege of a castle, but the effect was much less than had been expected. No\npracticable breach was made, and the final result seemed as far off as\never. “During the fifteen days from the 24th of February to the 12th of\nMarch, there were thrown into the camp of the enemy four hundred and\ntwenty-six cannon balls from the twenty guns of the ship _de Ryp_.”(220)\n\nIn the meantime the Japanese officers began to feel that it was not a\ndignified proceeding to call upon a foreign nation to help them to put\ndown a local rebellion. Even the insurgents had shot an arrow into the\nimperial camp to which a letter was attached, deriding them for calling\nfor assistance when there were so many courageous soldiers in Japan.\nWhatever may have been the cause, the Dutch received notice on the 12th of\nMarch that their ship was no longer required, and accordingly they\nreturned to Hirado. The castle was taken by assault on the 12th of April,\n1638, after a siege which had lasted one hundred and two days, and about\nseven months from the breaking out of the rebellion. By special orders\nfrom Yedo the insurgents captured in the castle were to the last man,\nwoman, and child put to death.(221) The father of Shirō, the young leader,\nwas crucified, and Shirō himself was decapitated, and his head exposed for\nseven days on the great pier at Nagasaki. The daimyō, whose misgovernment\nhad brought on this rebellion in Amakusa, was stripped of most of his\nterritories, and he was so intensely hated in what remained to him that he\ncommitted _hara-kiri_. The daimyō of Arima, whose misconduct and neglect\nhad driven the _samurai_ farmers into their fatal rising, was also\npermitted to take his own life."
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 5961,
+          "lineEnd": 5969,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "80a4b785ffcb7c031766b9f0b82126aa557d4847760f4dc6f76f6341864f135e",
+          "excerpt": "This frightful termination to the rebellion, followed as it was by severe\nand persistent measures against Christians everywhere, was apparently the\ndeath-blow to the church in the empire. No further efforts were made,\neither by the daimyōs of provinces or by the heads of the church, to make\nopen headway against the determined efforts of the government. Whatever\nwas done was in secret, and every means was tried on the part of those who\nstill clung to the Christian belief, and especially of those who were\nstill daring enough to try to minister to them, to conceal their locality\nand their identity.(223)"
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "성 함락 날짜는 같은 장의 인용과 서술 사이에서도 대조가 필요하다. 잔혹한 수치나 처형 서술을 독립 확인된 통계로 쓰지 않는다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "a51e0120-4ae5-525c-83eb-f934a015f67b",
+      "semanticKey": "dejima-trade",
+      "title": "18. 나가사키 데지마와 제한된 교역",
+      "cardType": "location",
+      "period": "원저가 서술하는 17–19세기 대외 교류",
+      "sourceChapter": "제XIII장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 6720,
+          "lineEnd": 6750,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "d9dfce61853f70cca568ef8d43205aacbffd71b916ff1532423412f7863ffce5",
+          "excerpt": "The most potent cause which led to the breaking down of the Tokugawa\nShōgunate, was the attitude which the empire had assumed toward foreign\nnations. There were other causes which co-operated with this, but none\nwhich were capable of such far-reaching and revolutionary effects. We have\nseen that this attitude was due to the fears entertained concerning the\ndesigns of the Portuguese and the Spanish. These fears may have been\nunfounded, but they were none the less real and operative. Such fears may\nhave been stimulated by the Dutch, who had no reason to deal tenderly with\nthe fanatical enemies of the independence and religion of their country.\nThe spirit of trade with large profits was at the bottom of the great\nenterprises which were sent out from Europe to the East and West Indies\nduring the seventeenth century.\n\nThe rivalry between the Dutch and Portuguese resulted in the banishment of\nthe latter, and the establishment of the Dutch at Nagasaki in 1640. They\noccupied the little artificial island of Deshima, about three acres in\nextent, where were erected their houses, their offices and stores, and\nwhere for more than two hundred years their trade was conducted. And this,\ntogether with a like limited arrangement with the Chinese, was the sole\nforeign intercourse allowed with Japan.\n\nIt is plain now that this seclusion was a great mistake. It would have\nbeen of inestimable value to this enterprising and progressive people, to\nhave kept in the race for improvement with the other nations of the world.\nThey would not at this late day be compelled, under a dreadful strain of\nresources, to provide themselves with the modern appliances of\ncivilization. Long since they would have tried the experiments with which\nthey are now engaged, and would have found a way through the intricacies\nof politics to a free and stable government. To Ieyasu and his successors\nthe way of safety seemed to be, to shut themselves up and sternly deny\nadmittance to the outside world, while they continued to work out their"
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "데지마와 중국 무역만으로 전체 대외 관계를 설명하지 않는다. 저자의 진보·문명 서열과 현대 연구를 구별한다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "55c1f12f-4f42-5586-bf39-153d6f11aa99",
+      "semanticKey": "perry-treaty",
+      "title": "19. 페리의 함대와 가나가와 조약",
+      "cardType": "event",
+      "period": "1854년 재방문과 조약 교섭",
+      "sourceChapter": "제XIII장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 7017,
+          "lineEnd": 7069,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "ddcaaf86a1dd295724080a9cecb54772582f5ccac7c7ed6e04b503cae42160ee",
+          "excerpt": "On the 13th of February, 1854, he made his appearance a second time in\nYedo bay with a fleet of seven ships, viz., three steam frigates and four\nsloops-of-war. Three additional vessels were to join, and did join, the\nfleet in Yedo bay. So that when the fleet was all mustered there were ten\nfully armed vessels, comprising such an array as had never before appeared\nin Japanese waters.\n\nAfter some haggling about the place where the negotiations should be\nconducted, it was finally settled that the place of meeting should be at\nKanagawa, near the village (now the city) of Yokohama. Here after much\ndeliberation and discussion, proposals and amendments, banquets and\npresents, a treaty was agreed upon. The signing and exchange took place on\nthe 31st of March, 1854. It was immediately sent to Washington for\nratification.\n\nAs this was the first formal treaty(271) made with any western country we\ngive a synopsis of its provisions.\n\nArt. I. Peace and amity to exist between the two countries.\n\nArt. II. The port of Shimoda to be opened immediately and the port of\nHakodate to be opened in one year, and American ships to be supplied with\nnecessary provisions in them.\n\nArt. III. Shipwrecked persons of either nation to be cared for, and\nexpenses to be refunded.\n\nArt. IV. Shipwrecked and other persons not to be imprisoned but to be\namenable to just laws.\n\nArt. V. Americans at Shimoda and Hakodate not to be subject to\nconfinement; free to go about within defined limits.\n\nArt. VI. Further deliberation to be held between the parties to settle\nconcerning trade and matters requiring to be arranged.\n\nArt. VII. Trade in open ports to be subject to such regulations as the\nJapanese government shall establish.\n\nArt. VIII. Wood, water, provisions, coal, etc., to be procured only\nthrough appointed Japanese officers.\n\nArt. IX. If at any future day privileges in addition to those here\nenumerated are granted to any other nation, the same to be allowed to\nAmericans.\n\nArt. X. Ships of the United States not to resort to other ports than\nShimoda and Hakodate except in stress of weather.\n\nArt. XI. Consuls or agents of the United States to reside at Shimoda.\n\nArt. XII. The ratification of this treaty to be exchanged within eighteen\nmonths."
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "원문 조약문·번역·조인 날짜와 각 조항의 적용을 독립 검증하지 않았다. 외교적 강제를 단순한 친선 서사로 덮지 않는다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "618879fa-d162-5c52-aaf9-a1f052722c60",
+      "semanticKey": "restoration",
+      "title": "20. 쇼군의 권력 반환과 1868년 궁정 재편",
+      "cardType": "event",
+      "period": "1867–1868년 정권 전환",
+      "sourceChapter": "제XIV장·제XV장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 7913,
+          "lineEnd": 7921,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "ad83fd86b611e3344c21288a47be2079f4e48722714251e9c0b1a70d2be53e04",
+          "excerpt": "The daimyō of Tosa, who was a man of liberal sentiments and of great\npenetration, addressed a letter to the shōgun in October, 1867, in which\nhe frankly says: “The cause [of our trouble] lies in the fact that the\nadministration proceeds from two centres, causing the empire’s eyes and\nears to be turned in two different directions. The march of events has\nbrought about a revolution, and the old system can no longer be persevered\nin. You should restore the governing power into the hands of the sovereign\nand so lay a foundation on which Japan may take its stand as the equal of\nother countries.”(310)"
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 7928,
+          "lineEnd": 7944,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "41fa2779c231ed6370ea2aaa1b7ef758f515280bf2fbf1c76cf5323b73f60302",
+          "excerpt": "The shōgun being deeply impressed with the wisdom of this advice drew up a\ndocument addressed to his vassals, asking their opinion of the\nadvisability of his resignation. Among other things he says: “It appears\nto me that the laws cannot be maintained in face of the daily extension of\nour foreign relations, unless the government be conducted by one head, and\nI propose therefore to surrender the whole governing power into the hands\nof the imperial court. This is the best I can do for the interests of the\nempire.”(311) According to this announced resolution, on the 19th of\nNovember, 1867, the shōgun resigned into the hands of the emperor his\nauthority. This surrender was accepted, and thus a dynasty which had\nlasted from 1603 came to an end. That this surrender might be declined and\nthe power still continue to be held by the Tokugawa, was perhaps the hope\nand wish of the last shōgun. But it was not to be. The powerful clans who\nfor years had labored for the destruction of the Tokugawa primacy were\nready to undertake the responsibility of a new government. And although\nthe change was not to be effected without a struggle, yet from this point\nmay be counted to begin the new period of the restoration."
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 7953,
+          "lineEnd": 7988,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "9bdeb5af8409b62dad79ecbbd66a34ce45853a8deb67c6e86ca3c8bc5b66e1b4",
+          "excerpt": "The resignation of the shōgun was accepted by the emperor, on the\nunderstanding that a conference of the daimyōs was to be called and its\nopinion taken in reference to the subsequent conduct of affairs. In the\nmeantime the ex-shōgun, under the command of the emperor, was to continue\nthe administration, particularly of those interests which concerned the\nforeign powers. But the allied western daimyōs feared the effect of\nleaving the administration in the hands of their enemies. The possession\nof the person of the emperor was always reckoned an important advantage.\nEspecially was this the case when the emperor was only a boy, whose\ninfluence in the affairs of the government could have little weight. They\nresolved, therefore, to take measures which would definitely ensure the\ntermination of the shōgun’s power, and secure for themselves the result\nfor which they had been so long laboring.\n\nOn January 3, 1868, by a so-called order of the emperor,(312) but really\nby the agreement of the allied daimyōs, the troops of the Aizu clan, who\nwere in charge of the palace gates, were dismissed from their duty, and\ntheir place assumed by troops of the clans of Satsuma, Tosa, Aki, Owari,\nand Echizen. The _kugés_ who surrounded the court and who were favorable\nto the Tokugawa party were discharged and forbidden to enter its\nprecincts. The vacant places were filled by adherents of the new order of\nthings. The offices of _kwambaku_ and _shōgun_ were by imperial edict\nabolished. A provisional plan of administration was adopted and persons of\nadequate rank appointed to conduct the several departments. “A decree was\nissued announcing that the government of the country was henceforth solely\nin the hands of the imperial court.”(313)\n\nOne of the first acts of the new government was to recall the daimyō of\nChōshū, who had been expelled from Kyōto, in 1863, and to invite back the\n_kugés_ who had been exiled and deprived of their revenues and honors. The\nsentence of confiscation which had been pronounced upon them was abrogated\nand they were restored to their former privileges. One of them, Sanjo\nSaneyoshi, as prime minister spent the remainder of his life in reviving\nthe ancient and original form of government. The Chōshū troops who had\nbeen driven out of the capital in 1863, were recalled and given a share\nwith the loyal clans in guarding the palace of the emperor."
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "날짜의 달력 변환, 칙령과 번 간 합의의 관계, 이후 전쟁은 별도 검증한다. 이 카드는 원저의 정권 교체 설명이지 보신전쟁 전체가 아니다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "d3a802f6-34a8-5cf9-b925-196eebf25054",
+      "semanticKey": "meiji-domains",
+      "title": "21. 번의 영지 반환과 현 체제로의 이동",
+      "cardType": "event",
+      "period": "1869–1871년 중앙집권화에 관한 원저 서술",
+      "sourceChapter": "제XV장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 8330,
+          "lineEnd": 8372,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "cf4654c409bceddcdb43c3c5ecf890908d4720b240cb56ab2d5db27fac1fc1c4",
+          "excerpt": "The most notable circumstance in this series of events was the\npresentation to the emperor of an elaborate memorial signed by the daimyōs\nof Chōshū, Satsuma, Tosa, Hizen, Kaga, and others, offering him the lists\nof their possessions and men. This memorial(329) appeared in the official\ngazette March 5, 1869. Its preparation is attributed to Kido Takayoshi,\nand bears supreme evidence to his learning and statesmanship. With lofty\neloquence the memorial exclaims: “The place where we live is the emperor’s\nland, and the food which we eat is grown by the emperor’s men. How can we\nmake it our own? We now reverently offer up the lists of our possessions\nand men, with the prayer that the emperor will take good measures for\nrewarding those to whom reward is due and taking from those to whom\npunishment is due. Let the imperial orders be issued for altering and\nremodelling the territories of the various classes.... This is now the\nmost urgent duty of the emperor, as it is that of his servants and\nchildren.”\n\nThe example thus set by the most powerful and influential daimyōs was\nfollowed rapidly by others. Two hundred and forty-one(330) of the daimyōs\nunited in asking the emperor to take back their hereditary territories.\nAnd in the end only a small number remained who had not so petitioned.\nPrince Azuki in his memorial says: “1. Let them restore the territories\nwhich they have received from the emperor and return to a constitutional\nand undivided country. 2. Let them abandon their titles and under the name\nof _kwazoku_ (persons of honor) receive such properties as may serve for\ntheir wants. 3. Let the officers of the clans abandoning that title, call\nthemselves officers of the emperor, receiving property equal to that which\nthey have hitherto held.”\n\nIn response to these memorials a decree(331) was issued by the emperor\nAugust 7, 1869, announcing the abolition of the daimiates, and the\nrestoration of their revenues to the imperial treasury. It was also\ndecreed that the ranks of court nobles (_kugés_) and of daimyōs be\nabolished and the single rank of _kwazoku_ be substituted.\n\nThus at one stroke the whole institution of feudalism which had flourished\nfrom the time of Yoritomo was cut away. The government made provision for\nthe administration by creating prefectures (_ken_) to take the place of\ndaimiates. This was done in 1871. At first the daimyōs were appointed\ngovernors of the prefectures. But it was soon found that these hereditary\nprinces were as a class utterly unfit for the chief executive offices of\ntheir old provinces. Hence, one by one other competent persons were\nappointed to vacancies, until it came to be understood that competence and\nfitness were to be the requisite qualifications for such appointments."
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 8374,
+          "lineEnd": 8400,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "e30808981c0a456fe8d29bb73f478fb5a9ff5be3cbb138fd477b66415cd05e76",
+          "excerpt": "The financial questions involved in the suppression of the feudal system\nwere serious and difficult. When the daimyōs surrendered their fiefs, they\ndid so with the understanding that they themselves should “receive such\nproperties as may serve their wants,”(332) and that the emperor should\ntake “measures for rewarding those to whom reward is due.”(333) It was\ndecided that each ex-daimyō, and each of the suzerains that were dependent\non him, should receive one tenth of the amount of their income from their\nfiefs. The ex-daimyōs received this amount free of any claims upon them\nfor the support of the non-productive _samurai_, who formed the standing\narmies of each clan. The central government assumed all the payments to\nthe _samurai_ for services of whatever kind. This heavy charge of the\ngovernment was met by borrowing $165,000,000,(334) which was added to the\nnational debt. With this sum they undertook to capitalize the pensions,\nwhich was finally accomplished by a compulsory enactment. Each claimant\nreceived from the government interest-bearing bonds for the amount of his\nincome reckoned at from five to fourteen years’ purchase according to its\nsum. Thus to the great relief of the country the matter of pensions was\ndisposed of.\n\nTo many of the _samurai_ this summary settlement had unfortunate results.\nThe lump sums which they received were often soon consumed, and they were\nleft penniless and helpless. The traditions under which they had been\ntrained led them to look down upon labor and trade with disdain, and\nrendered them unfit to enter successfully on the careers of modern life.\nIn many cases worry and disappointment, and in others poverty and want,\nhave been the sequels which have closely followed the poor and obsolete\n_samurai._"
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "판적봉환·폐번치현·급부 정리의 구분과 연대는 현대 검증 대기다. 무사층의 빈곤을 성격 탓으로 돌리는 원저의 평가를 채택하지 않는다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "c6355c47-6b86-5945-948a-64b8052ad6dc",
+      "semanticKey": "meiji-constitution",
+      "title": "22. 입헌정부를 향한 논의와 서사의 종점",
+      "cardType": "rule",
+      "period": "1878년 지방의회·1889년 헌법·1890년 의회 소집 예고",
+      "sourceChapter": "제XV장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 8544,
+          "lineEnd": 8574,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "a91eb568f22757c6c3f127e95e54dba5fab4e51516b355679f0998877cf65f57",
+          "excerpt": "What followed these important events must be told in a summary manner.\nThere was a powerful and growing party in the empire, who looked forward\nto a modification of the absolute form of government to which they had\nreturned in 1868. This party was particularly aggressive in the province\nof Tosa. They recalled to themselves and others the solemn pledge which\nthe emperor had given to his people in his charter oath,(339) when he\nannounced that “a deliberative assembly shall be formed, and all measures\ndecided by public opinion.”\n\nThe ruling minds in the government feared that the people were too\ninexperienced and too unaccustomed to deciding and acting for themselves\nto be entrusted with the grave duty of constitutional government. As a\npreparation for so important a step local assemblies were authorized and\nestablished in 1878. Matters referring to the government of each _fu_ and\n_ken_ were to be discussed, and to a certain extent decided in these\nassemblies. It was believed that the experience gained in such bodies\nwould go far towards preparing men for service in an imperial legislative\nbody. The expectations founded on these local assemblies were realized and\nin a fair degree they continued to fulfil their purpose.\n\nIn further pursuance of the plan of constitutional government, the\nemperor, on February 11, 1889, at his palace, promulgated a\nconstitution(340) for his people. In the presence of his cabinet and court\nhe took a solemn oath to govern under its limitations and powers. This\nconstitution contains seven chapters consisting of one hundred and eleven\narticles: Chapter I. The Emperor; II. Rights and Duties of Subjects; III.\nThe Imperial Diet; IV. The Ministers of State and Privy Council; V. The\nJudicature; VI. Finance; VII. Supplementary Rules. The emperor also\nannounced that the imperial diet would be convoked in the twenty-third\nyear of _Meiji_ (1890), and that the constitution would go into effect at\nthe date of its assembling."
+        }
+      ],
+      "claimTreatment": "attributed author summary; not independently verified",
+      "uncertainty": "이후 의회 운영·전쟁·제국주의 팽창·전후와 현대는 이 사료 세계 밖이다. 기존 오류 표시는 새 독립 현대사 검증 완료를 뜻하지 않는다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "existingLocalReview": [
+        {
+          "file": "docs/research/history-textbooks/japan/15-translation.qa.md",
+          "lineStart": 19,
+          "lineEnd": 19,
+          "sourceFileSha256": "1dfd960ccf392fe18f62634c29e17d40e5d1a60a0fc85fd7403dfa38f83c5b8a",
+          "excerptSha256": "fc2ddc6f3f0f27db0a1fafdca3c3892b3ee1dcb4e288beeac214ada6cf7d047a",
+          "excerpt": "- 원문의 영문 수사111을 본문에서 숫자111로 옮겼고7장 구조도 유지했다. 오류가 발견되어도 본문을76으로 치환하지 않았다."
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/15-translation.qa.md",
+          "lineStart": 25,
+          "lineEnd": 29,
+          "sourceFileSha256": "1dfd960ccf392fe18f62634c29e17d40e5d1a60a0fc85fd7403dfa38f83c5b8a",
+          "excerptSha256": "1131290ff57184f656ec5919a9f323b1518cd1ad665ad2322e7d0bf56917dc7a",
+          "excerpt": "### Q01. 헌법 조항 수: B63\n\n원문은7장111개 조항이라고 한다. 일본 국립국회도서관이 제공하는 메이지헌법 원문은 제I장1–17조, 제II장18–32조, 제III장33–54조, 제IV장55–56조, 제V장57–61조, 제VI장62–72조, 제VII장73–76조로 끝나는 **7장76조**다. 111은 이 자료와 명백히 불일치한다. 원문·번역 본문은 그대로 보존했다.\n\n근거: [국립국회도서관, The Constitution of the Empire of Japan](https://www.ndl.go.jp/constitution/e/etc/c02.html)."
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "a4650e68-6028-5a60-be00-86f222a9169b",
+      "semanticKey": "source-bias",
+      "title": "23. 원저의 제국주의 관점과 편향",
+      "cardType": "other",
+      "period": "19세기 말 저자의 역사 해석",
+      "sourceChapter": "제XV장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 8412,
+          "lineEnd": 8433,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "a4532a6b536bec14472322fb4c89f051657082deaab2f2b79223b6829021cb65",
+          "excerpt": "Several international events deserve notice here. A number of Ryūkyū\nislanders (vassals of Japan) had been shipwrecked on Formosa and some\nkilled by the semi-savage inhabitants. To punish this cruelty, and to\ninsure a more humane treatment in the future, the Japanese government sent\nan expedition under General Saigō Tsugumichi. They made short work of the\ninhuman tribes and enforced upon them the lesson of civility. China, who\nclaimed a sovereignty over this island, acknowledged the service Japan had\nrendered, and agreed to pay an indemnity for the expenses of the\nexpedition.\n\nThe long-pending dispute between Russia and Japan concerning the boundary\nin Saghalien was settled in 1875 by a treaty(335) which exchanged the\nJapanese claims in Saghalien for the Kurile islands (Chishima).\n\nAn unexpected attack by the Koreans upon a Japanese steamer asking coal\nand provisions awakened an intense excitement in Japan. An expedition\nafter the pattern of Commodore Perry’s, under the command of General\nKuroda Kiyotaka, was despatched in January, 1876, to come to an\nunderstanding with the Koreans. The negotiations were entirely successful,\nand a treaty(336) of amity and commerce was concluded, and thus another of\nthe secluded kingdoms of the East had been brought into the comity of\nnations. Then outbreaks of this kind in Saga, in Higo, in Akizuki, and in"
+        }
+      ],
+      "claimTreatment": "bibliographic or editorial review statement anchored in quoted original excerpts",
+      "uncertainty": "저자의 편향을 주석 한 줄로 면책한 뒤 본문을 사실처럼 사용하지 않는다. 당사자 사료와 현대 연구를 확보하기 전에는 상호 검증 미완료 상태를 유지한다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    },
+    {
+      "cardId": "2b354d59-bb5e-5515-8eeb-63270e9c12e8",
+      "semanticKey": "review-status",
+      "title": "24. 카드 대조 완료 범위와 남은 검증",
+      "cardType": "other",
+      "period": "이번 연구 초안의 검수 상태",
+      "sourceChapter": "서문·제III장·제VI장·제XV장",
+      "sourceRanges": [
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 96,
+          "lineEnd": 120,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "f09916e39172b9ce385b194073e43ad9342ca2be61f747139f79263b093aa62d",
+          "excerpt": "It is the object of this book to trace the story of Japan from its\nbeginnings to the establishment of constitutional government. Concerned as\nthis story is with the period of vague and legendary antiquity as well as\nwith the disorders of mediæval time and with centuries of seclusion, it is\nplain that it is not an easy task to present a trustworthy and connected\naccount of the momentous changes through which the empire has been called\nto pass. It would be impossible to state in detail the sources from which\nI have derived the material for this work. I place first and as most\nimportant a residence of several years in Japan, during which I became\nfamiliar with the character of the Japanese people and with the traditions\nand events of their history. Most of the works treating of Japan during\nand prior to the period of her seclusion, as well as the more recent\nworks, I have had occasion to consult. They will be found referred to in\nthe following pages. Beyond all others, however, I desire to acknowledge\nmy obligations to the _Transactions of the Asiatic Society of Japan_. A\nlist of the contributors to these transactions would include such names as\nSatow, Aston, Chamberlain, McClatchie, Gubbins, Geerts, Milne, Whitney,\nWigmore and others, whose investigations have made possible a reasonably\ncomplete knowledge of Japan. The _Transactions of the German Asiatic\nSociety_ are scarcely less noteworthy than those of her sister society. To\nthese invaluable sources of information are to be added Chamberlain’s\n_Things Japanese_, Rein’s _Japan_ and the _Industries of Japan_, Griffis’\n_Mikado’s Empire_, Mounsey’s _Satsuma Rebellion_, Dening’s _Life of\nHideyoshi_, the published papers of Professor E. S. Morse, and the two\nhandbooks prepared successively by Mr. Satow and Mr. Chamberlain."
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 849,
+          "lineEnd": 869,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "6f26708c69bebc6cc9e895da1919b53a871a1c4d6d9ae04219c288d9badcb993",
+          "excerpt": "The oldest book of Japanese history which has come down to us is called\n_Kojiki_,(29) or _Records of Ancient __ Matters_. This work was undertaken\nby the direction of the Emperor Temmu (A.D. 673-686), who became impressed\nwith the necessity of collecting the ancient traditions which were still\nextant, and preserving them in a permanent record. Before the work was\nended the emperor died, and for twenty-five years the collected traditions\nwere preserved in the memory of Hiyeda-no-are. At the end of that time the\nEmpress Gemmyō superintended its completion, and it was finally presented\nto the Court in A.D. 711. By a comparison of this work with _Nihongi_, or\n_Chronicles of Japan_, which was completed A.D. 720, only nine years after\nthe other, we are convinced that the era of Chinese classicism had not yet\nfallen upon the country. The style of the older book is a purer Japanese,\nand imparts to us the traditions of Japanese history uncolored by Chinese\nphilosophical ideas and classic pedantry which shortly after overwhelmed\nJapanese literature. But in many particulars these two works, almost\nequally ancient, supplement and explain each other. The events given in\nthe two are in most respects the same, the principal difference being that\nthe _Chronicles_ is much more tinctured with Chinese philosophy, and the\nmyths concerning the creation especially show the influence of that dual\nsystem which had been introduced to give a philosophical aspect to the\nJapanese cosmogony."
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 2901,
+          "lineEnd": 2906,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "6bba7c8c975543208007a8f74caddb4a13d1e7c3537664686e6a3ac62e10dc37",
+          "excerpt": "is shown by the census of temples which was made in the reign of the\nEmpress Jito (A.D. 690-702) and which gave the number as 545. The\npublication of the _Kojiki_ in A.D. 712, and of the _Nihongi_ eight years\nlater, has already been referred to at the close of the preceding chapter.\nThese works are still looked upon as the foundations of Japanese\nliterature and the highest authorities of Japanese history."
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/source-en.txt",
+          "lineStart": 8564,
+          "lineEnd": 8574,
+          "sourceFileSha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+          "excerptSha256": "08a573b2e3b26b73e1a02ba3c9026e6e8ac119ef1887ff69e2a94806531e92af",
+          "excerpt": "In further pursuance of the plan of constitutional government, the\nemperor, on February 11, 1889, at his palace, promulgated a\nconstitution(340) for his people. In the presence of his cabinet and court\nhe took a solemn oath to govern under its limitations and powers. This\nconstitution contains seven chapters consisting of one hundred and eleven\narticles: Chapter I. The Emperor; II. Rights and Duties of Subjects; III.\nThe Imperial Diet; IV. The Ministers of State and Privy Council; V. The\nJudicature; VI. Finance; VII. Supplementary Rules. The emperor also\nannounced that the imperial diet would be convoked in the twenty-third\nyear of _Meiji_ (1890), and that the constitution would go into effect at\nthe date of its assembling."
+        }
+      ],
+      "claimTreatment": "bibliographic or editorial review statement anchored in quoted original excerpts",
+      "uncertainty": "카드 선정은 표본적이다. 빠진 주제와 원저 이후의 역사는 빈칸으로 남기며 허구·현대 사실로 메우지 않는다.",
+      "modernVerification": "pending",
+      "sourceCorrespondenceReview": "direct excerpt comparison completed",
+      "koreanDraftUse": "Relevant existing Korean chapter drafts consulted for terminology/context; original TXT excerpts remain evidentiary source",
+      "existingLocalReview": [
+        {
+          "file": "docs/research/history-textbooks/japan/15-translation.qa.md",
+          "lineStart": 19,
+          "lineEnd": 19,
+          "sourceFileSha256": "1dfd960ccf392fe18f62634c29e17d40e5d1a60a0fc85fd7403dfa38f83c5b8a",
+          "excerptSha256": "fc2ddc6f3f0f27db0a1fafdca3c3892b3ee1dcb4e288beeac214ada6cf7d047a",
+          "excerpt": "- 원문의 영문 수사111을 본문에서 숫자111로 옮겼고7장 구조도 유지했다. 오류가 발견되어도 본문을76으로 치환하지 않았다."
+        },
+        {
+          "file": "docs/research/history-textbooks/japan/15-translation.qa.md",
+          "lineStart": 25,
+          "lineEnd": 29,
+          "sourceFileSha256": "1dfd960ccf392fe18f62634c29e17d40e5d1a60a0fc85fd7403dfa38f83c5b8a",
+          "excerptSha256": "1131290ff57184f656ec5919a9f323b1518cd1ad665ad2322e7d0bf56917dc7a",
+          "excerpt": "### Q01. 헌법 조항 수: B63\n\n원문은7장111개 조항이라고 한다. 일본 국립국회도서관이 제공하는 메이지헌법 원문은 제I장1–17조, 제II장18–32조, 제III장33–54조, 제IV장55–56조, 제V장57–61조, 제VI장62–72조, 제VII장73–76조로 끝나는 **7장76조**다. 111은 이 자료와 명백히 불일치한다. 원문·번역 본문은 그대로 보존했다.\n\n근거: [국립국회도서관, The Constitution of the Empire of Japan](https://www.ndl.go.jp/constitution/e/etc/c02.html)."
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "Japan · Project Gutenberg 29798",
+          "url": "https://www.gutenberg.org/ebooks/29798"
+        }
+      ]
+    }
+  ],
+  "validation": {
+    "worldSchemaKeysMatchExisting": true,
+    "cardSchemaKeysMatchExisting": true,
+    "allIdsUUID5": true,
+    "duplicateIds": 0,
+    "allCardsEvidenceLinked": true,
+    "allSourceAndExcerptHashesRechecked": true,
+    "replacementCharacters": 0,
+    "serviceImportPerformed": false,
+    "gitCommitOrPushPerformed": false,
+    "existingInputFilesUnchanged": true,
+    "allCardBodiesIncludeSourceBibliographyAndVerifiedPgLinks": true,
+    "sourceLinkUpdateScope": "Citation line only; historical prose, card IDs and original evidence excerpts unchanged; links matched existing acquired-source provenance without new network acquisition",
+    "sourceLinkUpdatedAtUtc": "2026-11-13T18:10:41.499Z"
+  }
+}

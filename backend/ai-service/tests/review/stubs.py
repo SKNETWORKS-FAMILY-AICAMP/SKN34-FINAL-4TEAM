@@ -8,7 +8,7 @@ WORLD = {
     'worldId': 'world-1',
     'cards': [
         {'id': 'seoyun', 'cardType': 'character', 'title': '서윤', 'body': '29세. 10년 전 고향을 떠났다.',
-         'semanticMetadata': {'characterDocs': {'soul': '말수가 적다.', 'memory': '', 'episodes': {'2': '편지를 받았다.', '5': '비밀을 안다.'}}}},
+         'semanticMetadata': {'characterDocs': {'soul': '말수가 적다.', 'goal': '', 'episodes': {'2': '편지를 받았다.', '5': '비밀을 안다.'}}}},
         {'id': 'secret', 'cardType': 'event', 'title': '숨은 결말', 'body': '7화에 밝혀진다.',
          'semanticMetadata': {'revealFromEpisode': 7}},
     ],

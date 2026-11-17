@@ -116,7 +116,7 @@ describe('계획 화면 · CI 통합', () => {
     await setupDeletion(count)
     fireEvent.click(askSceneDelete(index).dialog.getByRole('button', { name: '삭제' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: new RegExp(next) })))
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByText(next).closest('button')))
   })
 
   it('마지막 플롯 삭제 후 플롯 추가로 복귀하고 취소 시에는 원래 버튼으로 복귀한다', async () => {
@@ -181,7 +181,7 @@ describe('계획 화면 · CI 통합', () => {
     fireEvent.click(screen.getByLabelText('별빛 탑'))
     fireEvent.click(screen.getByRole('button', { name: '저장' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    fireEvent.click(screen.getByRole('button', { name: /탑에 도착하다/ }))
+    fireEvent.click(screen.getByText('탑에 도착하다').closest('button')!)
     const dialog = await screen.findByRole('dialog', { name: '장면 계획 수정' })
     expect(within(dialog).getByLabelText('리안')).toHaveProperty('checked', true)
     fireEvent.change(within(dialog).getByLabelText('장면 제목'), { target: { value: '다시 도착하다' } })

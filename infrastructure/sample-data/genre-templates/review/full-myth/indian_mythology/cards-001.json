@@ -1,0 +1,1879 @@
+[
+  {
+    "id": "c07c96de-f610-5705-920d-1fd6f8694537",
+    "title": "비마",
+    "body": "두료다나는 판다바 군대가 비마의 보호를 받는다고 말한다. 전사 비마를 그 자신의 편을 지키는 인물로만 기록한다. 출전: 텔랑 역 《바가바드기타》 1장 1.10절, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81668.html.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "india-gita-1",
+      "candidate_key": "gita-bhima",
+      "input_path": "미게시-임시자료:myth/india-gita-1.json",
+      "input_sha256": "c4a7ce10a6fcea0db5144edbf2f5f8dda247c3abdb4dc31289906fd0239d3b81",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "K. T. Telang 1882년 영어 번역 《바가바드기타》 제1–9장, Wisdom Library 전사 본문 전체. 기존 인도 전승은 18장과 지정 리그베다 찬가만을 포함하며 인도 전승 전체의 선집이 아니다. 별도의 인쇄본 PDF를 내려받았으나 이 작업의 본문 실독과 카드 증거는 전사본을 기준으로 함. 번역은 1882년 간행; 웹 전사 편집 및 소재별 권리 상태는 별도 확인하지 않음.",
+      "evidence": [
+        {
+          "unit": "gita-1",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81668.html",
+          "location": "1장 1.10절",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81668.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": []
+  },
+  {
+    "id": "16b26479-5258-53cb-9da3-e43108883c68",
+    "title": "유디슈티라",
+    "body": "전장에 나온 쿤티의 아들이자 왕으로, 아난타비자야라는 소라를 분다. 소라 자체는 기존 전장의 소라 나팔 카드와 겹친다. 출전: 텔랑 역 《바가바드기타》 1장 1.16절, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81668.html.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "india-gita-1",
+      "candidate_key": "gita-yudhishthira",
+      "input_path": "미게시-임시자료:myth/india-gita-1.json",
+      "input_sha256": "c4a7ce10a6fcea0db5144edbf2f5f8dda247c3abdb4dc31289906fd0239d3b81",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "K. T. Telang 1882년 영어 번역 《바가바드기타》 제1–9장, Wisdom Library 전사 본문 전체. 기존 인도 전승은 18장과 지정 리그베다 찬가만을 포함하며 인도 전승 전체의 선집이 아니다. 별도의 인쇄본 PDF를 내려받았으나 이 작업의 본문 실독과 카드 증거는 전사본을 기준으로 함. 번역은 1882년 간행; 웹 전사 편집 및 소재별 권리 상태는 별도 확인하지 않음.",
+      "evidence": [
+        {
+          "unit": "gita-1",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81668.html",
+          "location": "1장 1.16절",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81668.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "conchs",
+        "runtime_card_id": "99e5e0ec-f09e-54ad-a49f-c4fda7afd36c",
+        "title": "전장의 소라 나팔들"
+      }
+    ]
+  },
+  {
+    "id": "dc23597d-b932-59bb-9596-6ae0d5bcbb30",
+    "title": "아르주나 전차의 원숭이 깃발",
+    "body": "산자야는 판두의 아들 아르주나를 원숭이 표식을 깃발로 삼은 사람이라고 묘사한다. 표식의 유래나 원숭이의 정체는 이 대목에 없다. 출전: 텔랑 역 《바가바드기타》 1장 1.20절, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81668.html.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "india-gita-1",
+      "candidate_key": "gita-monkey-standard",
+      "input_path": "미게시-임시자료:myth/india-gita-1.json",
+      "input_sha256": "c4a7ce10a6fcea0db5144edbf2f5f8dda247c3abdb4dc31289906fd0239d3b81",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "K. T. Telang 1882년 영어 번역 《바가바드기타》 제1–9장, Wisdom Library 전사 본문 전체. 기존 인도 전승은 18장과 지정 리그베다 찬가만을 포함하며 인도 전승 전체의 선집이 아니다. 별도의 인쇄본 PDF를 내려받았으나 이 작업의 본문 실독과 카드 증거는 전사본을 기준으로 함. 번역은 1882년 간행; 웹 전사 편집 및 소재별 권리 상태는 별도 확인하지 않음.",
+      "evidence": [
+        {
+          "unit": "gita-1",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81668.html",
+          "location": "1장 1.20절",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81668.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": []
+  },
+  {
+    "id": "3c2da0cb-242c-5bc2-8c4f-3f3e4f895289",
+    "title": "집착에서 판단 상실까지",
+    "body": "크리슈나는 감각 대상을 생각하면 집착과 욕망이 생기고, 분노와 혼란 및 기억과 이성의 상실로 이어진다고 설명한다. 기존의 안정된 마음 및 욕망과 분노 카드와 관련된다. 출전: 텔랑 역 《바가바드기타》 2장 2.62–63절, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81669.html.",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "india-gita-1",
+      "candidate_key": "gita-attachment-anger-chain",
+      "input_path": "미게시-임시자료:myth/india-gita-1.json",
+      "input_sha256": "c4a7ce10a6fcea0db5144edbf2f5f8dda247c3abdb4dc31289906fd0239d3b81",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "K. T. Telang 1882년 영어 번역 《바가바드기타》 제1–9장, Wisdom Library 전사 본문 전체. 기존 인도 전승은 18장과 지정 리그베다 찬가만을 포함하며 인도 전승 전체의 선집이 아니다. 별도의 인쇄본 PDF를 내려받았으나 이 작업의 본문 실독과 카드 증거는 전사본을 기준으로 함. 번역은 1882년 간행; 웹 전사 편집 및 소재별 권리 상태는 별도 확인하지 않음.",
+      "evidence": [
+        {
+          "unit": "gita-2",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81669.html",
+          "location": "2장 2.62–63절",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81669.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "steady_mind",
+        "runtime_card_id": "1bafbea4-6dbe-5d61-bf7e-d5e9f29335a6",
+        "title": "안정된 마음과 감각의 거둠"
+      },
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "desire_enemy",
+        "runtime_card_id": "0a5f912a-82b7-5a31-8e1a-05ca1b722a2c",
+        "title": "욕망과 분노라는 적"
+      }
+    ]
+  },
+  {
+    "id": "c5766b40-5757-58ed-be19-c0b1474d5d36",
+    "title": "자나카",
+    "body": "크리슈나는 자나카와 다른 이들이 행위로 완성을 추구했다는 사례를 들어 아르주나에게 행동을 권한다. 자나카의 다른 전기는 이 본문에서 덧붙이지 않는다. 출전: 텔랑 역 《바가바드기타》 3장 3.20절, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81670.html.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "india-gita-1",
+      "candidate_key": "gita-janaka",
+      "input_path": "미게시-임시자료:myth/india-gita-1.json",
+      "input_sha256": "c4a7ce10a6fcea0db5144edbf2f5f8dda247c3abdb4dc31289906fd0239d3b81",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "K. T. Telang 1882년 영어 번역 《바가바드기타》 제1–9장, Wisdom Library 전사 본문 전체. 기존 인도 전승은 18장과 지정 리그베다 찬가만을 포함하며 인도 전승 전체의 선집이 아니다. 별도의 인쇄본 PDF를 내려받았으나 이 작업의 본문 실독과 카드 증거는 전사본을 기준으로 함. 번역은 1882년 간행; 웹 전사 편집 및 소재별 권리 상태는 별도 확인하지 않음.",
+      "evidence": [
+        {
+          "unit": "gita-3",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81670.html",
+          "location": "3장 3.20절",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81670.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "example_and_world_order",
+        "runtime_card_id": "f64494d6-51e5-57fe-b598-f2a6c9dce290",
+        "title": "모범을 보이는 행위와 세계의 유지"
+      }
+    ]
+  },
+  {
+    "id": "a4b47beb-f704-5c68-a0f8-b9526a1f270f",
+    "title": "자기 의무와 남의 의무",
+    "body": "크리슈나는 자기 의무가 서툴더라도 남의 의무를 잘 수행하는 것보다 낫다고 말한다. 이는 작품 속 계급·의무 논의이며 기존 계급별 의무 카드와 중복 가능성이 있다. 출전: 텔랑 역 《바가바드기타》 3장 3.35절, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81670.html.",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "india-gita-1",
+      "candidate_key": "gita-own-duty",
+      "input_path": "미게시-임시자료:myth/india-gita-1.json",
+      "input_sha256": "c4a7ce10a6fcea0db5144edbf2f5f8dda247c3abdb4dc31289906fd0239d3b81",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "K. T. Telang 1882년 영어 번역 《바가바드기타》 제1–9장, Wisdom Library 전사 본문 전체. 기존 인도 전승은 18장과 지정 리그베다 찬가만을 포함하며 인도 전승 전체의 선집이 아니다. 별도의 인쇄본 PDF를 내려받았으나 이 작업의 본문 실독과 카드 증거는 전사본을 기준으로 함. 번역은 1882년 간행; 웹 전사 편집 및 소재별 권리 상태는 별도 확인하지 않음.",
+      "evidence": [
+        {
+          "unit": "gita-3",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81670.html",
+          "location": "3장 3.35절",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81670.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "assigned_duties",
+        "runtime_card_id": "c922955b-ea54-52da-b10d-56bc733f28ec",
+        "title": "계급별 의무에 관한 가르침"
+      }
+    ]
+  },
+  {
+    "id": "4008b02d-833e-54d4-abb3-fec2831798b4",
+    "title": "질문과 봉사로 배우는 앎",
+    "body": "크리슈나는 진리를 보는 지식인에게 예를 갖추고 질문하며 봉사하여 앎을 배우라고 말한다. 제4장의 앎과 제사에 관한 기존 카드와 연결된다. 출전: 텔랑 역 《바가바드기타》 4장 4.34절, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81671.html.",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "india-gita-1",
+      "candidate_key": "gita-instruction-by-question",
+      "input_path": "미게시-임시자료:myth/india-gita-1.json",
+      "input_sha256": "c4a7ce10a6fcea0db5144edbf2f5f8dda247c3abdb4dc31289906fd0239d3b81",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "K. T. Telang 1882년 영어 번역 《바가바드기타》 제1–9장, Wisdom Library 전사 본문 전체. 기존 인도 전승은 18장과 지정 리그베다 찬가만을 포함하며 인도 전승 전체의 선집이 아니다. 별도의 인쇄본 PDF를 내려받았으나 이 작업의 본문 실독과 카드 증거는 전사본을 기준으로 함. 번역은 1882년 간행; 웹 전사 편집 및 소재별 권리 상태는 별도 확인하지 않음.",
+      "evidence": [
+        {
+          "unit": "gita-4",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81671.html",
+          "location": "4장 4.34절",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81671.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "knowledge_sacrifice",
+        "runtime_card_id": "8c4861a1-cc46-521a-a559-af0940d36686",
+        "title": "앎의 제사와 앎의 불"
+      }
+    ]
+  },
+  {
+    "id": "e9278792-d935-5ac6-8137-5f6cf4615c9b",
+    "title": "아홉 문을 가진 도시",
+    "body": "크리슈나는 몸을 지닌 자아가 마음으로 행위를 버리고 아홉 문을 가진 도시에 머문다고 말한다. 이는 몸을 도시로 표현한 비유로 제시된다. 출전: 텔랑 역 《바가바드기타》 5장 5.13절, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81672.html.",
+    "cardType": "other",
+    "provenance": {
+      "segment": "india-gita-1",
+      "candidate_key": "gita-city-nine-gates",
+      "input_path": "미게시-임시자료:myth/india-gita-1.json",
+      "input_sha256": "c4a7ce10a6fcea0db5144edbf2f5f8dda247c3abdb4dc31289906fd0239d3b81",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "K. T. Telang 1882년 영어 번역 《바가바드기타》 제1–9장, Wisdom Library 전사 본문 전체. 기존 인도 전승은 18장과 지정 리그베다 찬가만을 포함하며 인도 전승 전체의 선집이 아니다. 별도의 인쇄본 PDF를 내려받았으나 이 작업의 본문 실독과 카드 증거는 전사본을 기준으로 함. 번역은 1882년 간행; 웹 전사 편집 및 소재별 권리 상태는 별도 확인하지 않음.",
+      "evidence": [
+        {
+          "unit": "gita-5",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81672.html",
+          "location": "5장 5.13절",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81672.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": []
+  },
+  {
+    "id": "0a69d8af-b81d-5036-91c4-5a28749eb093",
+    "title": "남의 고통을 자기와 견주기",
+    "body": "크리슈나는 다른 모든 존재의 즐거움과 고통을 자기 것에 견주어 평등하게 보는 수행자를 가장 뛰어나다고 말한다. 기존의 차별 없이 보는 지혜 카드와 관련되나 이 절의 비유 기준을 따로 보존한다. 출전: 텔랑 역 《바가바드기타》 6장 6.32절, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81673.html.",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "india-gita-1",
+      "candidate_key": "gita-comparing-pain",
+      "input_path": "미게시-임시자료:myth/india-gita-1.json",
+      "input_sha256": "c4a7ce10a6fcea0db5144edbf2f5f8dda247c3abdb4dc31289906fd0239d3b81",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "K. T. Telang 1882년 영어 번역 《바가바드기타》 제1–9장, Wisdom Library 전사 본문 전체. 기존 인도 전승은 18장과 지정 리그베다 찬가만을 포함하며 인도 전승 전체의 선집이 아니다. 별도의 인쇄본 PDF를 내려받았으나 이 작업의 본문 실독과 카드 증거는 전사본을 기준으로 함. 번역은 1882년 간행; 웹 전사 편집 및 소재별 권리 상태는 별도 확인하지 않음.",
+      "evidence": [
+        {
+          "unit": "gita-6",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81673.html",
+          "location": "6장 6.32절",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81673.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "equal_vision",
+        "runtime_card_id": "76fc86f6-f20e-59ff-8c39-80b43d60b09b",
+        "title": "차별 없이 보는 지혜"
+      }
+    ]
+  },
+  {
+    "id": "c75e4a5a-8bdb-5b3c-b122-731c2db599f1",
+    "title": "다른 신에 대한 믿음과 열매",
+    "body": "크리슈나는 신도들이 바라는 신의 형상에 대한 믿음을 자신이 굳게 해 준다고 말한다. 신들을 섬기는 이의 열매는 유한하며 신들에게 가고, 자신을 섬기는 이는 자신에게 온다고 구별한다. 출전: 텔랑 역 《바가바드기타》 7장 7.21–23절, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81674.html.",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "india-gita-1",
+      "candidate_key": "gita-other-deities-faith",
+      "input_path": "미게시-임시자료:myth/india-gita-1.json",
+      "input_sha256": "c4a7ce10a6fcea0db5144edbf2f5f8dda247c3abdb4dc31289906fd0239d3b81",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "K. T. Telang 1882년 영어 번역 《바가바드기타》 제1–9장, Wisdom Library 전사 본문 전체. 기존 인도 전승은 18장과 지정 리그베다 찬가만을 포함하며 인도 전승 전체의 선집이 아니다. 별도의 인쇄본 PDF를 내려받았으나 이 작업의 본문 실독과 카드 증거는 전사본을 기준으로 함. 번역은 1882년 간행; 웹 전사 편집 및 소재별 권리 상태는 별도 확인하지 않음.",
+      "evidence": [
+        {
+          "unit": "gita-7",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81674.html",
+          "location": "7장 7.21–23절",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81674.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "related_candidate_review_not_identity",
+        "candidate_id": "7e33f171-cb8b-5ae9-a3ee-beccf0d9f53c",
+        "candidate_key": "gita-destinations-of-worship"
+      }
+    ]
+  },
+  {
+    "id": "44206cdc-76ea-5412-9702-cddc9d2d6018",
+    "title": "옴을 되뇌며 떠나는 수행자",
+    "body": "크리슈나는 옴을 되뇌고 자신을 명상하며 몸을 떠나는 수행자가 최고의 목적지에 이른다고 말한다. 기존 마지막 순간의 기억과 옴·타드·사트 카드와 중복 가능성이 있다. 출전: 텔랑 역 《바가바드기타》 8장 8.13절, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81675.html.",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "india-gita-1",
+      "candidate_key": "gita-om-final-meditation",
+      "input_path": "미게시-임시자료:myth/india-gita-1.json",
+      "input_sha256": "c4a7ce10a6fcea0db5144edbf2f5f8dda247c3abdb4dc31289906fd0239d3b81",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "K. T. Telang 1882년 영어 번역 《바가바드기타》 제1–9장, Wisdom Library 전사 본문 전체. 기존 인도 전승은 18장과 지정 리그베다 찬가만을 포함하며 인도 전승 전체의 선집이 아니다. 별도의 인쇄본 PDF를 내려받았으나 이 작업의 본문 실독과 카드 증거는 전사본을 기준으로 함. 번역은 1882년 간행; 웹 전사 편집 및 소재별 권리 상태는 별도 확인하지 않음.",
+      "evidence": [
+        {
+          "unit": "gita-8",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81675.html",
+          "location": "8장 8.13절",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81675.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "final_remembrance",
+        "runtime_card_id": "72a1cf28-e5bb-5ca4-9112-7db9a6be152b",
+        "title": "떠나는 순간의 기억"
+      },
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "om_tad_sat",
+        "runtime_card_id": "a23edc87-52ce-5fcc-8804-149ad3496f76",
+        "title": "옴·타드·사트"
+      },
+      {
+        "kind": "related_candidate_review_not_identity",
+        "candidate_id": "fe051d97-fa98-5faa-b838-fcec9c62a5ed",
+        "candidate_key": "unfaithful-action-asat"
+      }
+    ]
+  },
+  {
+    "id": "76b1a2fe-b1e0-5778-8554-9a4e6fd87709",
+    "title": "칼파가 끝나고 시작될 때",
+    "body": "크리슈나는 칼파가 끝나면 모든 존재가 자신의 자연으로 들어가고 다음 칼파가 시작되면 다시 내보낸다고 말한다. 기존 브라흐마의 낮과 밤 카드의 주기와 비교할 수 있으나 두 주기의 동일성을 본문 밖에서 단정하지 않는다. 출전: 텔랑 역 《바가바드기타》 9장 9.7–8절, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81676.html.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "india-gita-1",
+      "candidate_key": "gita-kalpa-return",
+      "input_path": "미게시-임시자료:myth/india-gita-1.json",
+      "input_sha256": "c4a7ce10a6fcea0db5144edbf2f5f8dda247c3abdb4dc31289906fd0239d3b81",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "K. T. Telang 1882년 영어 번역 《바가바드기타》 제1–9장, Wisdom Library 전사 본문 전체. 기존 인도 전승은 18장과 지정 리그베다 찬가만을 포함하며 인도 전승 전체의 선집이 아니다. 별도의 인쇄본 PDF를 내려받았으나 이 작업의 본문 실독과 카드 증거는 전사본을 기준으로 함. 번역은 1882년 간행; 웹 전사 편집 및 소재별 권리 상태는 별도 확인하지 않음.",
+      "evidence": [
+        {
+          "unit": "gita-9",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81676.html",
+          "location": "9장 9.7–8절",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81676.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "brahma_day",
+        "runtime_card_id": "64ed51d2-49e7-5c80-9299-f7929ecb6c29",
+        "title": "브라흐마의 낮과 밤"
+      }
+    ]
+  },
+  {
+    "id": "692bfd57-4dc4-5fda-8845-a02a9e4a111d",
+    "title": "소마와 천상의 일시적 체류",
+    "body": "크리슈나는 소마를 마시고 제사하여 천상을 구하는 이들이 신들의 즐거움을 누리지만 공덕이 다하면 인간 세계로 돌아온다고 말한다. 보상과 귀환은 이 가르침의 서술이다. 출전: 텔랑 역 《바가바드기타》 9장 9.20–21절, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81676.html.",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "india-gita-1",
+      "candidate_key": "gita-soma-heaven-return",
+      "input_path": "미게시-임시자료:myth/india-gita-1.json",
+      "input_sha256": "c4a7ce10a6fcea0db5144edbf2f5f8dda247c3abdb4dc31289906fd0239d3b81",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "K. T. Telang 1882년 영어 번역 《바가바드기타》 제1–9장, Wisdom Library 전사 본문 전체. 기존 인도 전승은 18장과 지정 리그베다 찬가만을 포함하며 인도 전승 전체의 선집이 아니다. 별도의 인쇄본 PDF를 내려받았으나 이 작업의 본문 실독과 카드 증거는 전사본을 기준으로 함. 번역은 1882년 간행; 웹 전사 편집 및 소재별 권리 상태는 별도 확인하지 않음.",
+      "evidence": [
+        {
+          "unit": "gita-9",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81676.html",
+          "location": "9장 9.20–21절",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81676.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "related_candidate_review_not_identity",
+        "candidate_id": "d53287c5-0f2a-531f-856c-80cca6cef51c",
+        "candidate_key": "rigveda-soma-pressed"
+      }
+    ]
+  },
+  {
+    "id": "7e33f171-cb8b-5ae9-a3ee-beccf0d9f53c",
+    "title": "숭배 대상에 따른 도착처",
+    "body": "크리슈나는 신에게 서원한 이는 신에게, 조상에게 서원한 이는 조상에게, 부타를 섬기는 이는 부타에게, 자신을 섬기는 이는 자신에게 간다고 말한다. 제7장의 신 숭배에 대한 설명과 관련된다. 출전: 텔랑 역 《바가바드기타》 9장 9.25절, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81676.html.",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "india-gita-1",
+      "candidate_key": "gita-destinations-of-worship",
+      "input_path": "미게시-임시자료:myth/india-gita-1.json",
+      "input_sha256": "c4a7ce10a6fcea0db5144edbf2f5f8dda247c3abdb4dc31289906fd0239d3b81",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "K. T. Telang 1882년 영어 번역 《바가바드기타》 제1–9장, Wisdom Library 전사 본문 전체. 기존 인도 전승은 18장과 지정 리그베다 찬가만을 포함하며 인도 전승 전체의 선집이 아니다. 별도의 인쇄본 PDF를 내려받았으나 이 작업의 본문 실독과 카드 증거는 전사본을 기준으로 함. 번역은 1882년 간행; 웹 전사 편집 및 소재별 권리 상태는 별도 확인하지 않음.",
+      "evidence": [
+        {
+          "unit": "gita-9",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81676.html",
+          "location": "9장 9.25절",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81676.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "related_candidate_review_not_identity",
+        "candidate_id": "c75e4a5a-8bdb-5b3c-b122-731c2db599f1",
+        "candidate_key": "gita-other-deities-faith"
+      }
+    ]
+  },
+  {
+    "id": "2a224006-c02a-59f9-988c-0bc15b31fc9a",
+    "title": "일곱 대현자와 네 고대 마누",
+    "body": "크리슈나는 일곱 대현자와 네 고대 마누가 자신의 마음에서 태어났고 그들의 후손이 세상 사람이라고 말한다. 텔랑의 주석은 이를 네 고대인과 마누들로 달리 해석할 수 있다고 밝힌다.\n\n출전: 《바가바드기타》 10.6, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+    "cardType": "other",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "seven-sages-and-four-manus",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-10",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "location": "10.6",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "gita-10",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "location": "10.6 텔랑 주석 4",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        },
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": []
+  },
+  {
+    "id": "4df2bd11-b95d-58e8-9c61-d41441efda97",
+    "title": "신성한 현자 나라다",
+    "body": "아르주나는 나라다를 크리슈나를 영원한 존재라고 부른 신성한 현자 중 하나로 든다. 크리슈나는 신성한 현자들 가운데 자신을 나라다에 빗댄다.\n\n출전: 《바가바드기타》 10.13, 26, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+    "cardType": "character",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "narada-divine-sage",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-10",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "location": "10.13, 26",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "gita-10",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "location": "10.13",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        },
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "divine_emanations",
+        "runtime_card_id": "a28e58d7-f44a-5f19-9a4c-bda041ff9eef",
+        "title": "신성한 발현의 목록"
+      }
+    ]
+  },
+  {
+    "id": "a3a85a9e-6ab6-5888-b1ea-c4d3db5f10df",
+    "title": "높은 산 메루",
+    "body": "크리슈나는 높은 봉우리의 산들 가운데 자신을 메루에 빗댄다. 이 장의 언급은 신성한 발현의 예시다.\n\n출전: 《바가바드기타》 10.23, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+    "cardType": "location",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "meru-mountain",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-10",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "location": "10.23",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "divine_emanations",
+        "runtime_card_id": "a28e58d7-f44a-5f19-9a4c-bda041ff9eef",
+        "title": "신성한 발현의 목록"
+      }
+    ]
+  },
+  {
+    "id": "bd632181-2fd2-5d23-be2f-900a7ddfc539",
+    "title": "궁정 사제 브리하스파티",
+    "body": "크리슈나는 궁정 사제들 가운데 수장인 브리하스파티를 자신의 발현으로 제시한다.\n\n출전: 《바가바드기타》 10.24, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+    "cardType": "character",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "brihaspati-priest",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-10",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "location": "10.24",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "divine_emanations",
+        "runtime_card_id": "a28e58d7-f44a-5f19-9a4c-bda041ff9eef",
+        "title": "신성한 발현의 목록"
+      }
+    ]
+  },
+  {
+    "id": "3eb4e59a-bc6a-551d-90bb-9da0734e6d88",
+    "title": "자파 제사",
+    "body": "크리슈나는 제사들 가운데 자파 제사를 자신의 발현으로 꼽는다. 텔랑의 주석은 자파를 말 없는 명상으로 설명한다.\n\n출전: 《바가바드기타》 10.25, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "japa-sacrifice",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-10",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "location": "10.25",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "gita-10",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "location": "10.25 텔랑 주석 21",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        },
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "divine_emanations",
+        "runtime_card_id": "a28e58d7-f44a-5f19-9a4c-bda041ff9eef",
+        "title": "신성한 발현의 목록"
+      }
+    ]
+  },
+  {
+    "id": "d5eae5f0-ebde-5c51-847c-b0efbead0065",
+    "title": "감로를 얻는 과정에서 나온 말 우차이슈라바스",
+    "body": "우차이슈라바스는 감로를 얻기 위한 노력에서 나온 말로, 크리슈나가 말들 가운데 자신의 발현으로 든다.\n\n출전: 《바가바드기타》 10.27, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+    "cardType": "character",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "uccaisravas-horse",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-10",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "location": "10.27",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "divine_emanations",
+        "runtime_card_id": "a28e58d7-f44a-5f19-9a4c-bda041ff9eef",
+        "title": "신성한 발현의 목록"
+      },
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "amrita",
+        "runtime_card_id": "deb30e15-58a0-5099-ab81-c81c43a95cd3",
+        "title": "암리타와 감로의 언급"
+      }
+    ]
+  },
+  {
+    "id": "4019957f-47c7-5a3b-98a0-b431c3596333",
+    "title": "소원을 주는 소",
+    "body": "크리슈나는 소들 가운데 소원을 주는 소를 자신의 발현으로 든다. 텔랑의 이 구절은 소의 고유 이름을 제시하지 않는다.\n\n출전: 《바가바드기타》 10.28, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+    "cardType": "character",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "wish-giving-cow",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-10",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "location": "10.28",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "divine_emanations",
+        "runtime_card_id": "a28e58d7-f44a-5f19-9a4c-bda041ff9eef",
+        "title": "신성한 발현의 목록"
+      }
+    ]
+  },
+  {
+    "id": "e3192c27-850c-567b-ac25-02adbecec328",
+    "title": "뱀 바수키",
+    "body": "크리슈나는 뱀들 가운데 바수키를 자신의 발현으로 제시한다. 여기서는 발현 목록 이상의 이야기를 덧붙이지 않는다.\n\n출전: 《바가바드기타》 10.28, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+    "cardType": "character",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "vasuki-serpent",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-10",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "location": "10.28",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "divine_emanations",
+        "runtime_card_id": "a28e58d7-f44a-5f19-9a4c-bda041ff9eef",
+        "title": "신성한 발현의 목록"
+      }
+    ]
+  },
+  {
+    "id": "ea215206-65ce-5294-a1e1-9ab1d79e85cc",
+    "title": "강 자흐나비",
+    "body": "크리슈나는 흐르는 강들 가운데 자흐나비를 자신의 발현으로 든다. 텔랑의 주석은 자흐나비를 갠지스강으로 풀이한다.\n\n출전: 《바가바드기타》 10.31, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+    "cardType": "location",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "jahnavi-river",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-10",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "location": "10.31",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "gita-10",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "location": "10.31 텔랑 주석 34",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        },
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "divine_emanations",
+        "runtime_card_id": "a28e58d7-f44a-5f19-9a4c-bda041ff9eef",
+        "title": "신성한 발현의 목록"
+      }
+    ]
+  },
+  {
+    "id": "10aefa9b-a533-5909-8f09-f4f497ba8fe3",
+    "title": "연꽃 자리에 앉은 브라흐마",
+    "body": "아르주나는 크리슈나의 우주적 몸 안에서 신들과 여러 존재 무리, 연꽃 자리에 앉은 주 브라흐마, 현자와 천상의 뱀들을 본다고 말한다.\n\n출전: 《바가바드기타》 11.15, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81678.html",
+    "cardType": "character",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "brahman-lotus-seat",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-11",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81678.html",
+          "location": "11.15",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81678.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "universal_vision",
+        "runtime_card_id": "7baa0b6e-f078-56d1-a2f2-e5567871dd17",
+        "title": "우주적 모습의 현시"
+      }
+    ]
+  },
+  {
+    "id": "8adad85b-ecdb-58f8-94c0-f5403b28a4f4",
+    "title": "크리슈나가 지목한 전사 자야드라타",
+    "body": "우주적 모습 속 크리슈나는 드로나·비슈마·카르나와 함께 자야드라타를 자신이 이미 죽인 전사로 지목하고 아르주나에게 싸우라고 말한다. 이는 전투 전의 발언으로 기록한다.\n\n출전: 《바가바드기타》 11.34, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81678.html",
+    "cardType": "character",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "jayadratha-warrior",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-11",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81678.html",
+          "location": "11.34",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "gita-11",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81678.html",
+          "location": "11.34",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81678.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        },
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81678.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "destroyer_form",
+        "runtime_card_id": "b4b91814-13c8-5f47-b341-75143df5d57f",
+        "title": "죽음과 파괴자의 모습"
+      }
+    ]
+  },
+  {
+    "id": "ed7279a6-90ec-58a4-95c7-e00e511b13b3",
+    "title": "크리슈나가 지목한 전사 카르나",
+    "body": "크리슈나는 카르나를 드로나·비슈마·자야드라타와 함께 자신이 이미 죽인 전사로 지목하고 아르주나에게 전투를 권한다.\n\n출전: 《바가바드기타》 11.34, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81678.html",
+    "cardType": "character",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "karna-warrior",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-11",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81678.html",
+          "location": "11.34",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "gita-11",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81678.html",
+          "location": "11.34",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81678.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        },
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81678.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "destroyer_form",
+        "runtime_card_id": "b4b91814-13c8-5f47-b341-75143df5d57f",
+        "title": "죽음과 파괴자의 모습"
+      }
+    ]
+  },
+  {
+    "id": "fc673fda-882c-58e8-ada9-29f7c93d1472",
+    "title": "보이지 않는 불멸자에 대한 수행",
+    "body": "크리슈나는 자신에게 마음을 고정한 신자를 가장 헌신적이라고 평하면서, 감각을 억제하고 모든 존재의 이익을 바라는 가운데 형언할 수 없는 불멸자를 명상하는 이들도 자신에게 이른다고 말한다. 몸을 지닌 이에게 비현현의 목표는 더 어렵다고 덧붙인다.\n\n출전: 《바가바드기타》 12.1–5, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81679.html",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "unmanifest-devotion",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-12",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81679.html",
+          "location": "12.1–5",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81679.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "dear_devotee",
+        "runtime_card_id": "9babdd19-3370-5978-af12-b6a775f75a9b",
+        "title": "사랑스러운 신자의 특징"
+      },
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "graded_devotion",
+        "runtime_card_id": "553b3e44-cc09-50fa-b989-8de8f3ffa3e9",
+        "title": "가능한 수행으로 이어지는 단계"
+      }
+    ]
+  },
+  {
+    "id": "9d5a38a7-1a8d-5185-b7ea-b5eb1c134647",
+    "title": "자연과 영의 결합 및 재생",
+    "body": "크리슈나는 자연과 영이 모두 시작이 없다고 말한다. 자연에서 나온 성질들과 영의 결합이 좋거나 나쁜 태중에 태어나는 원인이며, 자연과 영을 성질과 함께 아는 이는 다시 태어나지 않는다고 설명한다. 기존 카드 중복 가능: 크셰트라와 크셰트라즈냐.\n\n출전: 《바가바드기타》 13.19–23, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81680.html",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "nature-spirit-rebirth",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-13",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81680.html",
+          "location": "13.19–23",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "gita-13",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81680.html",
+          "location": "13.19",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "gita-13",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81680.html",
+          "location": "13.23",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81680.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        },
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81680.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        },
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81680.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "field_and_knower",
+        "runtime_card_id": "0cf73177-14eb-533e-8c75-2ca8e800fe38",
+        "title": "크셰트라와 크셰트라즈냐"
+      }
+    ]
+  },
+  {
+    "id": "8ae2cff2-6712-596f-ba47-8e843e19d259",
+    "title": "자아를 보고 죽음을 건너는 여러 길",
+    "body": "자아를 명상으로 보는 사람도, 상키야 요가나 행위 요가로 보는 사람도 있다. 스스로 알지 못해도 남에게 듣고 그 가르침에 전념하는 이들 역시 죽음을 건넌다고 말한다.\n\n출전: 《바가바드기타》 13.24–25, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81680.html",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "paths-to-cross-death",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-13",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81680.html",
+          "location": "13.24–25",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81680.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": []
+  },
+  {
+    "id": "fab2788d-dd7e-503b-a2e4-1ea4a1fecbeb",
+    "title": "큰 브라흐만이라는 태와 씨",
+    "body": "크리슈나는 큰 브라흐만을 자신이 씨를 넣는 태에 비유하며 거기서 모든 존재가 태어난다고 말한다. 모든 태에서 생기는 몸에 대해 큰 브라흐만을 어머니의 태로, 자신을 씨를 주는 아버지로 설명한다.\n\n출전: 《바가바드기타》 14.3–4, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81681.html",
+    "cardType": "other",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "great-brahman-womb",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-14",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81681.html",
+          "location": "14.3–4",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81681.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": []
+  },
+  {
+    "id": "0d13cdf1-83d4-5aa2-83a6-6d09ced0c9be",
+    "title": "죽음 때 우세한 성질과 다음 태어남",
+    "body": "죽을 때 선함이 우세하면 높은 것을 아는 이들의 청정한 세계에 이르고, 격정이 우세하면 행위에 집착하는 사람들 사이에 태어나며, 어둠이 우세하면 무지한 자들의 태에 태어난다고 설명한다. 기존 카드 중복 가능: 선함·격정·어둠의 세 성질.\n\n출전: 《바가바드기타》 14.14–15, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81681.html",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "qualities-at-death",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-14",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81681.html",
+          "location": "14.14–15",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81681.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "three_qualities",
+        "runtime_card_id": "412ec1ec-941d-5173-a4a8-0c93c370bffa",
+        "title": "선함·격정·어둠의 세 성질"
+      }
+    ]
+  },
+  {
+    "id": "aaa1552f-79a7-578b-ad22-9eaf8e995a94",
+    "title": "해와 달과 불이 비추지 않는 거처",
+    "body": "거꾸로 선 나무를 집착하지 않는 무기로 벤 뒤 되돌아오지 않는 자리를 찾으라고 한다. 크리슈나는 그 최고 거처를 해·달·불이 비추지 않으며 그곳에 이른 자는 돌아오지 않는 곳으로 묘사한다. 기존 카드 중복 가능: 거꾸로 선 아슈바타 나무.\n\n출전: 《바가바드기타》 15.4–6, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81682.html",
+    "cardType": "location",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "supreme-abode-without-light",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-15",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81682.html",
+          "location": "15.4–6",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81682.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "inverted_asvattha",
+        "runtime_card_id": "7258d3aa-0394-5aa5-a151-bc429ca12a6d",
+        "title": "거꾸로 선 아슈바타 나무"
+      }
+    ]
+  },
+  {
+    "id": "88649e2d-e8ba-53a2-b935-1d6535afa5a6",
+    "title": "몸속에서 음식을 소화하는 신성한 불",
+    "body": "크리슈나는 자신이 모든 생물의 몸에 머무는 불이 되어 오르고 내리는 생기와 결합하여 네 종류의 음식을 소화한다고 말한다.\n\n출전: 《바가바드기타》 15.14, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81682.html",
+    "cardType": "ability",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "divine-fire-of-digestion",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-15",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81682.html",
+          "location": "15.14",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81682.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": []
+  },
+  {
+    "id": "da277018-749f-52d5-9410-3496af9c84f1",
+    "title": "해·달·불의 빛과 식물의 양육",
+    "body": "크리슈나는 세상을 비추는 해와 달과 불의 광채를 자신의 것이라고 말한다. 또 땅에 들어가 존재들을 지탱하고 즙이 많은 달이 되어 모든 식물을 기른다고 설명한다.\n\n출전: 《바가바드기타》 15.12–13, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81682.html",
+    "cardType": "ability",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "divine-light-and-nourishment",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-15",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81682.html",
+          "location": "15.12–13",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81682.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": []
+  },
+  {
+    "id": "65542fa5-da8b-5829-a116-6577a77bf741",
+    "title": "악신과 같은 자질과 거듭되는 출생",
+    "body": "크리슈나는 자신과 타인 안에 있는 그를 미워하는 잔혹한 자들을 악신과 같은 태에 계속 떨어뜨린다고 말한다. 그들은 태어날 때마다 미혹되어 그에게 이르지 못하고 더 낮은 상태로 내려간다. 기존 카드 중복 가능: 신과 같은 자질과 악신과 같은 자질.\n\n출전: 《바가바드기타》 16.19–20, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81683.html",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "demoniac-rebirth",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-16",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81683.html",
+          "location": "16.19–20",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81683.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "godlike_and_demonic",
+        "runtime_card_id": "59912649-c05e-5ff5-a2b6-0c5e107436c4",
+        "title": "신과 같은 자질과 악신과 같은 자질"
+      }
+    ]
+  },
+  {
+    "id": "305de751-1696-5c88-9321-f2e16415da0a",
+    "title": "할 일과 하지 않을 일의 경전 기준",
+    "body": "크리슈나는 경전의 규정을 버리고 욕망에 따라 행동하면 완성이나 행복, 지극한 목표에 이르지 못한다고 말한다. 무엇을 하고 하지 말아야 할지 분별할 때 경전을 기준으로 삼으라고 권한다.\n\n출전: 《바가바드기타》 16.23–24, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81683.html",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "scripture-authority-action",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-16",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81683.html",
+          "location": "16.23–24",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81683.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "godlike_and_demonic",
+        "runtime_card_id": "59912649-c05e-5ff5-a2b6-0c5e107436c4",
+        "title": "신과 같은 자질과 악신과 같은 자질"
+      }
+    ]
+  },
+  {
+    "id": "fe051d97-fa98-5faa-b838-fcec9c62a5ed",
+    "title": "믿음 없는 행위와 아사트",
+    "body": "믿음 없이 바치는 제물, 베풂, 고행과 다른 행위는 아사트라 불리며 현세와 사후 모두 무가치하다고 크리슈나는 말한다. 기존 카드 중복 가능: 옴·타드·사트.\n\n출전: 《바가바드기타》 17.28, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81684.html",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "unfaithful-action-asat",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-17",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81684.html",
+          "location": "17.28",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81684.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "om_tad_sat",
+        "runtime_card_id": "a23edc87-52ce-5fcc-8804-149ad3496f76",
+        "title": "옴·타드·사트"
+      },
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "faith_and_practice",
+        "runtime_card_id": "5b424636-5816-5d6d-91fd-bdca3c13e359",
+        "title": "믿음·음식·제사·고행·베풂의 분류"
+      },
+      {
+        "kind": "related_candidate_review_not_identity",
+        "candidate_id": "44206cdc-76ea-5412-9702-cddc9d2d6018",
+        "candidate_key": "gita-om-final-meditation"
+      }
+    ]
+  },
+  {
+    "id": "2dacc388-01f9-528e-82a8-d4f25b3ea87c",
+    "title": "제사의 세 가지 성질",
+    "body": "제17장은 경전 규정에 따라 열매를 원하지 않고 행하는 제사를 선한 것으로, 열매를 기대하거나 과시하는 제사를 격정적인 것으로, 규정을 어기고 음식·만트라·사례·믿음이 없는 제사를 어두운 것으로 나눈다. 기존 카드 중복 가능: 믿음·음식·제사·고행·베풂의 분류.\n\n출전: 《바가바드기타》 17.11–13, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81684.html",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "threefold-sacrifice",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-17",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81684.html",
+          "location": "17.11–13",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "gita-17",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81684.html",
+          "location": "17.11",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "gita-17",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81684.html",
+          "location": "17.13",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81684.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        },
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81684.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        },
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81684.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "faith_and_practice",
+        "runtime_card_id": "5b424636-5816-5d6d-91fd-bdca3c13e359",
+        "title": "믿음·음식·제사·고행·베풂의 분류"
+      }
+    ]
+  },
+  {
+    "id": "abac1f62-5316-5bf6-bc4b-89f17e30425b",
+    "title": "행위를 촉발하는 세 요소와 행위의 세 요소",
+    "body": "크리슈나는 지식·알 대상·아는 자를 행위를 촉발하는 세 요소로, 도구·행위·행위자를 행위의 세 요소로 구별한다. 기존 카드 중복 가능: 행위의 다섯 원인.\n\n출전: 《바가바드기타》 18.18, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81685.html",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "three-motives-and-components",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-18",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81685.html",
+          "location": "18.18",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81685.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "five_causes",
+        "runtime_card_id": "7460c878-d35f-5238-b904-9cbb5149aa2a",
+        "title": "행위의 다섯 원인"
+      }
+    ]
+  },
+  {
+    "id": "b7e5db73-73db-5ae6-975e-9e506e591f5d",
+    "title": "존재들을 움직이는 마음속의 주",
+    "body": "크리슈나는 아르주나가 싸우지 않겠다고 결심해도 본성에서 비롯된 자기 의무에 묶여 행동하게 된다고 말한다. 주가 모든 존재의 마음에 자리하여 그들을 기계에 올라탄 것처럼 미혹으로 움직인다는 비유가 이어진다. 기존 카드 중복 가능: 마지막 피난처와 숙고의 권고.\n\n출전: 《바가바드기타》 18.59–61, https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81685.html",
+    "cardType": "other",
+    "provenance": {
+      "segment": "india-gita-2",
+      "candidate_key": "lord-turning-beings",
+      "input_path": "미게시-임시자료:myth/india-gita-2.json",
+      "input_sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "evidence": [
+        {
+          "unit": "gita-18",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81685.html",
+          "location": "18.59–61",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81685.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": []
+  },
+  {
+    "id": "d8c6a445-49fe-5208-acd9-50499aead8cd",
+    "title": "브리트라: 인드라가 쓰러뜨린 뱀",
+    "body": "《리그베다》 1.32에서 브리트라는 인드라의 바즈라에 쓰러진 존재다. 2절의 산에 누운 뱀과 물이 풀리는 장면, 5절의 이름을 함께 읽는다. 기존 격파 사건 카드와 연결되므로 중복을 검토한다. 출전: https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm 1.32.2, 5.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "india-rigveda",
+      "candidate_key": "rigveda-vritra-being",
+      "input_path": "미게시-임시자료:myth/india-rigveda.json",
+      "input_sha256": "e35ae830bd552bc3aabc6f9b604af4665894964c44604642553d42448b3f50a6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "supplementary.md가 지정한 리그베다 1.1.1–2, 1.32.1–5·11, 10.90.6–15, 10.129.1·6–7(GRETIL Aufrecht 1877 제2판 전사)과 바가바드기타 8.1의 베전트 1922년 제4판 및 텔랑 1882년판 전사 비교만. 전체 찬가나 인도 전승 전체의 전수가 아니다. GRETIL은 참고용으로 제공되며 저작권·사용 조건은 원본 파일을 따르므로 전문 재배포 권한은 확인하지 않았다. 베전트 지정 oldid는 접근하지 못해 현재 전사를 사용했으며 지정 revision의 내용 일치 여부는 확인하지 못했다.",
+      "evidence": [
+        {
+          "unit": "rigveda-selected",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm",
+          "location": "1.32.5",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "rigveda-selected",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm",
+          "location": "1.32.2",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm",
+          "edition": "GRETIL 산스크리트 전사, Aufrecht 1877 제2판"
+        },
+        {
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm",
+          "edition": "GRETIL 산스크리트 전사, Aufrecht 1877 제2판"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "rigveda-vritra",
+        "runtime_card_id": "6f45bc04-9eed-5411-b0d9-24a9fc48cad6",
+        "title": "리그베다의 브리트라 격파"
+      }
+    ]
+  },
+  {
+    "id": "bc78c7b6-18ed-506a-b942-9cc2a5b0a742",
+    "title": "트바슈트리: 바즈라를 만든 존재",
+    "body": "《리그베다》 1.32.2에서 트바슈트리는 인드라를 위해 바즈라를 깎아 만든다. 기존 바즈라 카드와 같은 구절이지만 제작자라는 별도 대상이며 중복을 검토한다. 출전: https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm 1.32.2.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "india-rigveda",
+      "candidate_key": "rigveda-tvastr-smith",
+      "input_path": "미게시-임시자료:myth/india-rigveda.json",
+      "input_sha256": "e35ae830bd552bc3aabc6f9b604af4665894964c44604642553d42448b3f50a6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "supplementary.md가 지정한 리그베다 1.1.1–2, 1.32.1–5·11, 10.90.6–15, 10.129.1·6–7(GRETIL Aufrecht 1877 제2판 전사)과 바가바드기타 8.1의 베전트 1922년 제4판 및 텔랑 1882년판 전사 비교만. 전체 찬가나 인도 전승 전체의 전수가 아니다. GRETIL은 참고용으로 제공되며 저작권·사용 조건은 원본 파일을 따르므로 전문 재배포 권한은 확인하지 않았다. 베전트 지정 oldid는 접근하지 못해 현재 전사를 사용했으며 지정 revision의 내용 일치 여부는 확인하지 못했다.",
+      "evidence": [
+        {
+          "unit": "rigveda-selected",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm",
+          "location": "1.32.2",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm",
+          "edition": "GRETIL 산스크리트 전사, Aufrecht 1877 제2판"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "rigveda-tvastr-vajra",
+        "runtime_card_id": "b1c4fb26-ff44-5a7c-b9f1-9425c78b29dc",
+        "title": "트바슈트리가 만든 바즈라"
+      }
+    ]
+  },
+  {
+    "id": "d53287c5-0f2a-531f-856c-80cca6cef51c",
+    "title": "압착한 소마",
+    "body": "《리그베다》 1.32.3은 인드라가 소마를 택하여 압착한 것을 마신 뒤 바즈라를 잡는다고 노래한다. 이 구절의 음료로 한정한다. 출전: https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm 1.32.3.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "india-rigveda",
+      "candidate_key": "rigveda-soma-pressed",
+      "input_path": "미게시-임시자료:myth/india-rigveda.json",
+      "input_sha256": "e35ae830bd552bc3aabc6f9b604af4665894964c44604642553d42448b3f50a6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "supplementary.md가 지정한 리그베다 1.1.1–2, 1.32.1–5·11, 10.90.6–15, 10.129.1·6–7(GRETIL Aufrecht 1877 제2판 전사)과 바가바드기타 8.1의 베전트 1922년 제4판 및 텔랑 1882년판 전사 비교만. 전체 찬가나 인도 전승 전체의 전수가 아니다. GRETIL은 참고용으로 제공되며 저작권·사용 조건은 원본 파일을 따르므로 전문 재배포 권한은 확인하지 않았다. 베전트 지정 oldid는 접근하지 못해 현재 전사를 사용했으며 지정 revision의 내용 일치 여부는 확인하지 못했다.",
+      "evidence": [
+        {
+          "unit": "rigveda-selected",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm",
+          "location": "1.32.3",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm",
+          "edition": "GRETIL 산스크리트 전사, Aufrecht 1877 제2판"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "rigveda-tvastr-vajra",
+        "runtime_card_id": "b1c4fb26-ff44-5a7c-b9f1-9425c78b29dc",
+        "title": "트바슈트리가 만든 바즈라"
+      },
+      {
+        "kind": "related_candidate_review_not_identity",
+        "candidate_id": "692bfd57-4dc4-5fda-8845-a02a9e4a111d",
+        "candidate_key": "gita-soma-heaven-return"
+      }
+    ]
+  },
+  {
+    "id": "e02e7ce6-1459-5b28-b51d-b3ba686d1f4b",
+    "title": "푸루샤: 제물로 바쳐진 존재",
+    "body": "《리그베다》 10.90.6–7, 15에서 신들은 푸루샤를 제물로 삼고 제사풀 위에 놓아 의례를 행하며 제물로 묶는다. 기존 푸루샤 제사 사건 카드와 중복 가능성이 있다. 출전: https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm 10.90.6–7, 15.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "india-rigveda",
+      "candidate_key": "rigveda-purusha-being",
+      "input_path": "미게시-임시자료:myth/india-rigveda.json",
+      "input_sha256": "e35ae830bd552bc3aabc6f9b604af4665894964c44604642553d42448b3f50a6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "supplementary.md가 지정한 리그베다 1.1.1–2, 1.32.1–5·11, 10.90.6–15, 10.129.1·6–7(GRETIL Aufrecht 1877 제2판 전사)과 바가바드기타 8.1의 베전트 1922년 제4판 및 텔랑 1882년판 전사 비교만. 전체 찬가나 인도 전승 전체의 전수가 아니다. GRETIL은 참고용으로 제공되며 저작권·사용 조건은 원본 파일을 따르므로 전문 재배포 권한은 확인하지 않았다. 베전트 지정 oldid는 접근하지 못해 현재 전사를 사용했으며 지정 revision의 내용 일치 여부는 확인하지 못했다.",
+      "evidence": [
+        {
+          "unit": "rigveda-selected",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "location": "10.90.6",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "rigveda-selected",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "location": "10.90.15",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "rigveda-selected",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "location": "10.90.7",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "edition": "GRETIL 산스크리트 전사, Aufrecht 1877 제2판"
+        },
+        {
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "edition": "GRETIL 산스크리트 전사, Aufrecht 1877 제2판"
+        },
+        {
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "edition": "GRETIL 산스크리트 전사, Aufrecht 1877 제2판"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "rigveda-purusha",
+        "runtime_card_id": "f15907f5-31bd-517a-8c68-98e35dd83205",
+        "title": "푸루샤와 제사의 세계"
+      }
+    ]
+  },
+  {
+    "id": "c9a36279-de43-50d9-b84b-3204a91bcbc7",
+    "title": "푸루샤 제사의 계절과 제구",
+    "body": "《리그베다》 10.90.6은 봄을 제사의 버터, 여름을 장작, 가을을 제물에 비긴다. 15절은 둘레 나무 일곱과 땔나무 스물하나를 말한다. 기존 푸루샤 제사 사건의 세부이므로 중복을 검토한다. 출전: https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm 10.90.6, 15.",
+    "cardType": "other",
+    "provenance": {
+      "segment": "india-rigveda",
+      "candidate_key": "rigveda-sacrifice-seasons",
+      "input_path": "미게시-임시자료:myth/india-rigveda.json",
+      "input_sha256": "e35ae830bd552bc3aabc6f9b604af4665894964c44604642553d42448b3f50a6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "supplementary.md가 지정한 리그베다 1.1.1–2, 1.32.1–5·11, 10.90.6–15, 10.129.1·6–7(GRETIL Aufrecht 1877 제2판 전사)과 바가바드기타 8.1의 베전트 1922년 제4판 및 텔랑 1882년판 전사 비교만. 전체 찬가나 인도 전승 전체의 전수가 아니다. GRETIL은 참고용으로 제공되며 저작권·사용 조건은 원본 파일을 따르므로 전문 재배포 권한은 확인하지 않았다. 베전트 지정 oldid는 접근하지 못해 현재 전사를 사용했으며 지정 revision의 내용 일치 여부는 확인하지 못했다.",
+      "evidence": [
+        {
+          "unit": "rigveda-selected",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "location": "10.90.6",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "rigveda-selected",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "location": "10.90.15",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "edition": "GRETIL 산스크리트 전사, Aufrecht 1877 제2판"
+        },
+        {
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "edition": "GRETIL 산스크리트 전사, Aufrecht 1877 제2판"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "rigveda-purusha",
+        "runtime_card_id": "f15907f5-31bd-517a-8c68-98e35dd83205",
+        "title": "푸루샤와 제사의 세계"
+      }
+    ]
+  },
+  {
+    "id": "fda7295e-c3f1-5bbc-8d6c-81229ad9e903",
+    "title": "푸루샤 제사에서 나온 동물",
+    "body": "《리그베다》 10.90.8, 10은 그 제사에서 공중과 숲과 마을의 동물, 말과 소, 염소와 양이 나왔다고 노래한다. 기존 제사 사건과 중복 가능성이 있다. 출전: https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm 10.90.8, 10.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "india-rigveda",
+      "candidate_key": "rigveda-sacrifice-animals",
+      "input_path": "미게시-임시자료:myth/india-rigveda.json",
+      "input_sha256": "e35ae830bd552bc3aabc6f9b604af4665894964c44604642553d42448b3f50a6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "supplementary.md가 지정한 리그베다 1.1.1–2, 1.32.1–5·11, 10.90.6–15, 10.129.1·6–7(GRETIL Aufrecht 1877 제2판 전사)과 바가바드기타 8.1의 베전트 1922년 제4판 및 텔랑 1882년판 전사 비교만. 전체 찬가나 인도 전승 전체의 전수가 아니다. GRETIL은 참고용으로 제공되며 저작권·사용 조건은 원본 파일을 따르므로 전문 재배포 권한은 확인하지 않았다. 베전트 지정 oldid는 접근하지 못해 현재 전사를 사용했으며 지정 revision의 내용 일치 여부는 확인하지 못했다.",
+      "evidence": [
+        {
+          "unit": "rigveda-selected",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "location": "10.90.8",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "rigveda-selected",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "location": "10.90.10",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "rigveda-selected",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "location": "10.90.10",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "edition": "GRETIL 산스크리트 전사, Aufrecht 1877 제2판"
+        },
+        {
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "edition": "GRETIL 산스크리트 전사, Aufrecht 1877 제2판"
+        },
+        {
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "edition": "GRETIL 산스크리트 전사, Aufrecht 1877 제2판"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "rigveda-purusha",
+        "runtime_card_id": "f15907f5-31bd-517a-8c68-98e35dd83205",
+        "title": "푸루샤와 제사의 세계"
+      }
+    ]
+  },
+  {
+    "id": "343270b1-ca15-5a01-a545-757fbfa69801",
+    "title": "푸루샤 제사에서 나온 찬가와 제문",
+    "body": "《리그베다》 10.90.9는 그 제사에서 리치 찬구와 사만 노래, 운율과 야주스 제문이 생겨났다고 노래한다. 기존 푸루샤 제사 사건 카드와 중복 가능성이 있다. 출전: https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm 10.90.9.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "india-rigveda",
+      "candidate_key": "rigveda-sacrifice-vedic-verse",
+      "input_path": "미게시-임시자료:myth/india-rigveda.json",
+      "input_sha256": "e35ae830bd552bc3aabc6f9b604af4665894964c44604642553d42448b3f50a6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "supplementary.md가 지정한 리그베다 1.1.1–2, 1.32.1–5·11, 10.90.6–15, 10.129.1·6–7(GRETIL Aufrecht 1877 제2판 전사)과 바가바드기타 8.1의 베전트 1922년 제4판 및 텔랑 1882년판 전사 비교만. 전체 찬가나 인도 전승 전체의 전수가 아니다. GRETIL은 참고용으로 제공되며 저작권·사용 조건은 원본 파일을 따르므로 전문 재배포 권한은 확인하지 않았다. 베전트 지정 oldid는 접근하지 못해 현재 전사를 사용했으며 지정 revision의 내용 일치 여부는 확인하지 못했다.",
+      "evidence": [
+        {
+          "unit": "rigveda-selected",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "location": "10.90.9",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "edition": "GRETIL 산스크리트 전사, Aufrecht 1877 제2판"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "rigveda-purusha",
+        "runtime_card_id": "f15907f5-31bd-517a-8c68-98e35dd83205",
+        "title": "푸루샤와 제사의 세계"
+      }
+    ]
+  },
+  {
+    "id": "09e9c69d-0106-54a2-987a-5917b6022fed",
+    "title": "제8장의 아디다이바 질문: 두 번역 대조",
+    "body": "베전트 1922년 제4판 전사 8.1은 아르주나가 아디다이바를 묻는 질문을 싣고 이를 Shining Ones에 대한 앎으로 옮긴다. 텔랑 1882년 번역의 전사본 질문에는 해당 질문이 없지만 답에서는 아디다이바타를 설명한다. 전사·번역 차이를 산스크리트 원문 이본으로 단정하지 않는다. 기존 용어 카드와 중복 가능성이 있다. 출전: https://en.wikisource.org/wiki/Bhagavad-Gita_(Besant_4th)/Discourse_8 8.1; https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81675.html 8.1–4.",
+    "cardType": "other",
+    "provenance": {
+      "segment": "india-rigveda",
+      "candidate_key": "gita-8-adhidaiva-question-variant",
+      "input_path": "미게시-임시자료:myth/india-rigveda.json",
+      "input_sha256": "e35ae830bd552bc3aabc6f9b604af4665894964c44604642553d42448b3f50a6",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "scope": "supplementary.md가 지정한 리그베다 1.1.1–2, 1.32.1–5·11, 10.90.6–15, 10.129.1·6–7(GRETIL Aufrecht 1877 제2판 전사)과 바가바드기타 8.1의 베전트 1922년 제4판 및 텔랑 1882년판 전사 비교만. 전체 찬가나 인도 전승 전체의 전수가 아니다. GRETIL은 참고용으로 제공되며 저작권·사용 조건은 원본 파일을 따르므로 전문 재배포 권한은 확인하지 않았다. 베전트 지정 oldid는 접근하지 못해 현재 전사를 사용했으며 지정 revision의 내용 일치 여부는 확인하지 못했다.",
+      "evidence": [
+        {
+          "unit": "gita-8-variant",
+          "url": "https://en.wikisource.org/wiki/Bhagavad-Gita_(Besant_4th)/Discourse_8",
+          "location": "8.1 및 각주 5",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "gita-8-variant",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81675.html",
+          "location": "8.1–4, 질문과 답",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "evidence_editions": [
+        {
+          "url": "https://en.wikisource.org/wiki/Bhagavad-Gita_(Besant_4th)/Discourse_8",
+          "edition": "Annie Besant 1922년 제4판, 현재 Wikisource 전사; 지정 oldid와 일치 미확인"
+        },
+        {
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81675.html",
+          "edition": "K. T. Telang 1882년 영어 번역, Wisdom Library 전사"
+        }
+      ]
+    },
+    "duplicate_review": [
+      {
+        "kind": "existing_indian_source_related_or_possible_duplicate",
+        "source_key": "adhyatma_and_related_terms",
+        "runtime_card_id": "3a161627-9648-5e46-bad8-d5d82fbff611",
+        "title": "아디야트마·아디부타·아디다이바·아디야즈냐"
+      }
+    ]
+  }
+]

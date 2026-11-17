@@ -98,6 +98,10 @@
 .worlds .nw { max-width: none; }
 /* 이 화면은 고정 상단바(Gnb) 아래라 전역 scroll-padding-top이 이미 목차 이동 여백을 준다. 상단바가 따로 없는 독자 위키용 80px을 더하지 않는다. */
 .worlds :is(.nw-doc, .nw-sec > summary, .nw-toc) { scroll-margin-top: 8px; }
+/* 카드 본문 ##·### 문단 제목: 1단계(h2, 24px)보다 한 단계씩 작게, 하위 문단은 안으로 들여 쓴다. */
+.worlds .nw-sec .nw-sec { margin-left: 14px; }
+.worlds .nw-sec > summary h3 { font-size: 20px; font-weight: 800; }
+.worlds .nw-sec > summary h4 { font-size: 17px; font-weight: 800; }
 .nw-info .nw-cover { padding: 12px; }
 .nw-info .worlds-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .nw-cover .cov { width: min(180px, 100%); margin: 0 auto; }

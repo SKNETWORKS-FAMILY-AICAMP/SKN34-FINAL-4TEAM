@@ -131,7 +131,7 @@ it('keeps the typed name on the creation screen if creation fails and retries wi
 
 it('protects an unapplied relationship draft without blocking preserved step navigation',async()=>{
  const router=await show(undefined,false,true),confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
- fireEvent.click(manageTab('인물 관계도'))
+ fireEvent.click(manageTab('관계도'))
  const source=screen.getByRole<HTMLSelectElement>('combobox',{name:'관계 주체'}),target=screen.getByRole<HTMLSelectElement>('combobox',{name:'관계 대상'})
  fireEvent.change(source,{target:{value:within(source).getByRole<HTMLOptionElement>('option',{name:'가람'}).value}})
  fireEvent.change(target,{target:{value:within(target).getByRole<HTMLOptionElement>('option',{name:'나래'}).value}})
@@ -139,7 +139,7 @@ it('protects an unapplied relationship draft without blocking preserved step nav
  fireEvent.change(screen.getByRole('combobox',{name:'실제 관계 1'}),{target:{value:'미적용 관계 원문'}})
  await screen.findByText('관계 입력 미적용')
  const event=new Event('beforeunload',{cancelable:true});window.dispatchEvent(event);expect(event.defaultPrevented).toBe(true)
- fireEvent.click(manageTab('설정집'));fireEvent.click(manageTab('인물 관계도')) // 탭 이동은 같은 화면이라 미적용 입력을 지키며 이탈 확인을 하지 않는다
+ fireEvent.click(manageTab('설정집'));fireEvent.click(manageTab('관계도')) // 탭 이동은 같은 화면이라 미적용 입력을 지키며 이탈 확인을 하지 않는다
  expect(confirm).not.toHaveBeenCalled()
  expect(screen.getByRole<HTMLInputElement>('combobox',{name:'실제 관계 1'}).value).toBe('미적용 관계 원문')
  fireEvent.click(screen.getByText('링크 이동'))

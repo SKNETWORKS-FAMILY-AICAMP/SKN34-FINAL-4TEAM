@@ -7,11 +7,16 @@ import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
 import ai.storyfork.content.world.studio.entity.*
 import ai.storyfork.content.world.studio.repository.*
 import ai.storyfork.content.world.service.WorldStudioService
+import ai.storyfork.content.world.service.GenreTemplateRepair
+import ai.storyfork.content.world.service.GenreTemplateSeeder
+import ai.storyfork.content.world.service.GenreTemplate
+import ai.storyfork.content.world.service.GenreTemplateCard
 import ai.storyfork.content.world.service.dto.*
 import java.util.Optional
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.*
 import org.springframework.transaction.PlatformTransactionManager
@@ -29,12 +34,13 @@ class WorldStudioServiceTest {
     private val revisionCards=mock(WorldRevisionCardRepository::class.java)
     private val requests=mock(WorldSaveRequestRepository::class.java)
     private val states=mock(WorldRelationshipStateRepository::class.java)
+    private val images=mock(SettingCardImageRepository::class.java)
     private val graph=mock(Neo4jRelationshipRepository::class.java)
     private val manager=mock(PlatformTransactionManager::class.java).also {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
     private val mapper=JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
-    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,mock(InitialWorldApplicationRepository::class.java),graph,manager,mapper)
+    private val service=WorldStudioService(worlds,drafts,cards,cardDrafts,cardVersions,revisions,revisionCards,requests,states,mock(InitialWorldApplicationRepository::class.java),images,graph,manager,mapper)
     private val world=UUID.randomUUID()
     private val actor=UUID.randomUUID()
     private val draft=WorldDraft(worldId=world,name="편집본",draftRevision=2)
@@ -44,6 +50,148 @@ class WorldStudioServiceTest {
         `when`(drafts.findById(world)).thenReturn(Optional.of(draft))
         `when`(states.findById(world)).thenReturn(if(marker) Optional.of(state) else Optional.empty())
         `when`(graph.read(world)).thenAnswer { RelationshipStateResult(world,state.graphVersion,state.requestKey,state.requestHash,emptyList()) }
+    }
+    @Test fun `soul repair persists through real edit and save after graph interruption`() {
+        val owner = GenreTemplateSeeder.TEMPLATE_OWNER
+        val oldCard = GenreTemplateCard(UUID.randomUUID(), "이전 카드", "이전 본문", "other")
+        val character = GenreTemplateCard(UUID.randomUUID(), "인물", "인물의 정체성", "character")
+        val setting = GenreTemplateCard(UUID.randomUUID(), "장소", "장소의 본문", "location")
+        val legacy = GenreTemplate("test", world, "세계", "설명", listOf(oldCard))
+        val baseline = legacy.copy(cards = listOf(character, setting))
+        val target = baseline.copy(cards = listOf(character.copy(soul = "차분하게 말한다"), setting))
+        val previousId = UUID.randomUUID()
+        val baselineId = UUID.randomUUID()
+        val studioWorld = StudioWorld(world, owner, baselineId)
+        draft.name = baseline.name; draft.description = baseline.description
+        draft.draftRevision = 4; draft.baseWorldRevisionId = baselineId
+        state.graphVersion = 2; state.completed = true
+        val oldPayload = CardPayload(oldCard.id, oldCard.title, oldCard.body, oldCard.cardType, "basic", visibility = "public")
+        val baselinePayload = GenreTemplateRepair.payloads(baseline) + oldPayload.copy(lifecycle = "removed")
+        fun fields(card: CardPayload) = CardFields(card.title, card.body, card.cardType, card.areaCode, card.classification,
+            card.aliases, card.tags, card.semanticMetadata, card.visibility, card.lifecycle)
+        val stored = baselinePayload.associate { it.id to SettingCardDraft(it.id, world, fields(it)) }.toMutableMap()
+        val first = WorldRevision(previousId, world, 1, legacy.name, legacy.description, sealed = true)
+        val second = WorldRevision(baselineId, world, 2, baseline.name, baseline.description, previousId, sealed = true)
+        val storedRevisions = mutableMapOf(previousId to first, baselineId to second)
+        val firstVersions = listOf(SettingCardVersion(cardId = oldCard.id, worldId = world, versionNo = 1, fields = fields(oldPayload)))
+        val secondVersions = baselinePayload.map { SettingCardVersion(cardId = it.id, worldId = world,
+            versionNo = if (it.id == oldCard.id) 2 else 1, fields = fields(it)) }
+        val storedVersions = (firstVersions + secondVersions).associateBy { it.id }.toMutableMap()
+        val manifests = mutableMapOf(
+            previousId to firstVersions.map { WorldRevisionCard(RevisionCardKey(previousId, it.cardId), world, it.id) },
+            baselineId to secondVersions.map { WorldRevisionCard(RevisionCardKey(baselineId, it.cardId), world, it.id) },
+        )
+        `when`(worlds.lockOwned(world, owner)).thenReturn(studioWorld)
+        `when`(drafts.findById(world)).thenReturn(Optional.of(draft))
+        `when`(states.findById(world)).thenReturn(Optional.of(state))
+        `when`(cardDrafts.findAllByWorldId(world)).thenAnswer { stored.values.toList() }
+        `when`(cardDrafts.findById(anyUUID())).thenAnswer { Optional.ofNullable(stored[it.arguments[0] as UUID]) }
+        `when`(cardDrafts.save(any())).thenAnswer { (it.arguments[0] as SettingCardDraft).also { value -> stored[value.cardId] = value } }
+        `when`(cards.findById(anyUUID())).thenAnswer { Optional.of(SettingCard(it.arguments[0] as UUID, world)) }
+        `when`(revisions.findByIdAndWorldId(anyUUID(), anyUUID())).thenAnswer { storedRevisions[it.arguments[0] as UUID] }
+        `when`(revisions.findFirstByWorldIdOrderByRevisionNoDesc(world)).thenReturn(second)
+        `when`(revisions.saveAndFlush(any())).thenAnswer { (it.arguments[0] as WorldRevision).also { value -> storedRevisions[value.id] = value } }
+        `when`(cardVersions.findAllById(any<Iterable<UUID>>())).thenAnswer { (it.arguments[0] as Iterable<UUID>).map { id -> storedVersions.getValue(id) } }
+        `when`(cardVersions.versionNumbers(world)).thenReturn(listOf(arrayOf(oldCard.id, 2L), arrayOf(character.id, 1L), arrayOf(setting.id, 1L)))
+        `when`(cardVersions.saveAll(any<Iterable<SettingCardVersion>>())).thenAnswer {
+            (it.arguments[0] as Iterable<SettingCardVersion>).toList().also { values -> values.forEach { value -> storedVersions[value.id] = value } }
+        }
+        `when`(revisionCards.findAllByIdRevisionId(anyUUID())).thenAnswer { manifests[it.arguments[0] as UUID].orEmpty() }
+        `when`(revisionCards.saveAll(any<Iterable<WorldRevisionCard>>())).thenAnswer {
+            (it.arguments[0] as Iterable<WorldRevisionCard>).toList().also { values -> manifests[values.first().id.revisionId] = values }
+        }
+        var graphVersion = 2L
+        var interrupted = true
+        `when`(graph.read(world)).thenAnswer { RelationshipStateResult(world, graphVersion, state.requestKey, state.requestHash, emptyList()) }
+        doAnswer {
+            if (interrupted) { interrupted = false; throw WorldStudioFailure.unavailable() }
+            graphVersion = 3
+            RelationshipStateResult(world, graphVersion, it.arguments[2] as String, it.arguments[3] as String, emptyList())
+        }.`when`(graph).replace(anyUUID(), anyLong(), anyString(), anyString(), anyList(), anyEpisode())
+        val repair = GenreTemplateRepair(service)
+        assertThrows(WorldStudioFailure::class.java) { repair.repairSoul(legacy, baseline, target) }
+        assertFalse(state.completed)
+        assertEquals(4L, draft.draftRevision)
+        assertEquals(baselineId, studioWorld.currentRevisionId)
+        assertEquals(baselinePayload.toSet(), service.revision(world, owner, baselineId).cards.map { it.card }.toSet())
+        val pendingHash = state.requestHash
+        repair.repairSoul(legacy, baseline, target)
+        assertTrue(state.completed)
+        assertEquals(pendingHash, state.requestHash)
+        val result = service.draft(world, owner)
+        val saved = service.revision(world, owner, studioWorld.currentRevisionId!!)
+        val expectedDocs = mapOf("soul" to "차분하게 말한다", "goal" to "", "episodes" to emptyMap<String, String>())
+        assertEquals(6L, result.draftRevision)
+        assertEquals(3L, saved.revisionNo)
+        assertEquals(baselineId, saved.parentRevisionId)
+        assertEquals(result.cards.toSet(), saved.cards.map { it.card }.toSet())
+        assertEquals((GenreTemplateRepair.soulPayloads(target) + oldPayload.copy(lifecycle = "removed")).toSet(), result.cards.toSet())
+        assertEquals(setOf(character.id, setting.id, oldCard.id), result.cards.map { it.id }.toSet())
+        assertEquals(2L, saved.cards.single { it.card.id == character.id }.versionNo)
+        assertEquals(3L, saved.cards.single { it.card.id == oldCard.id }.versionNo)
+        assertEquals(expectedDocs, result.cards.single { it.id == character.id }.semanticMetadata["characterDocs"])
+        assertEquals(expectedDocs, saved.cards.single { it.card.id == character.id }.card.semanticMetadata["characterDocs"])
+        assertEquals(character.body, result.cards.single { it.id == character.id }.body)
+        assertEquals(oldPayload.copy(lifecycle = "removed"), result.cards.single { it.id == oldCard.id })
+        assertEquals(oldPayload.copy(lifecycle = "removed"), saved.cards.single { it.card.id == oldCard.id }.card)
+        assertEquals(oldPayload, service.revision(world, owner, previousId).cards.single().card)
+        assertEquals(baselinePayload.toSet(), service.revision(world, owner, baselineId).cards.map { it.card }.toSet())
+        repair.repairSoul(legacy, baseline, target)
+        verify(graph, times(2)).replace(anyUUID(), anyLong(), anyString(), anyString(), anyList(), anyEpisode())
+    }
+    @Test fun `template repair replaces old active cards while retaining their history and retrying`() {
+        val seeder = GenreTemplateSeeder(mock(WorldStudioService::class.java), mapper)
+        val legacy = seeder.loadLegacy().first().copy(worldId = world)
+        val target = seeder.load().first().copy(worldId = world)
+        val owner = GenreTemplateSeeder.TEMPLATE_OWNER
+        val revisionId = UUID.randomUUID()
+        val studioWorld = StudioWorld(world, owner, revisionId)
+        draft.name = legacy.name; draft.description = legacy.description; draft.baseWorldRevisionId = revisionId
+        val stored = legacy.cards.associate { c -> c.id to SettingCardDraft(c.id, world,
+            CardFields(c.title, c.body, c.cardType, "basic", visibility = "public")) }.toMutableMap()
+        `when`(worlds.lockOwned(world, owner)).thenReturn(studioWorld)
+        `when`(drafts.findById(world)).thenReturn(Optional.of(draft))
+        `when`(states.findById(world)).thenReturn(Optional.of(state))
+        `when`(cardDrafts.findAllByWorldId(world)).thenAnswer { stored.values.toList() }
+        `when`(cardDrafts.findById(anyUUID())).thenAnswer { Optional.ofNullable(stored[it.arguments[0] as UUID]) }
+        `when`(cardDrafts.save(any())).thenAnswer { val c = it.arguments[0] as SettingCardDraft; stored[c.cardId] = c; c }
+        `when`(cards.findById(anyUUID())).thenReturn(Optional.empty())
+        `when`(cards.saveAndFlush(any())).thenAnswer { it.arguments[0] }
+        `when`(graph.read(world)).thenAnswer { RelationshipStateResult(world, state.graphVersion, state.requestKey, state.requestHash, emptyList()) }
+        doAnswer { RelationshipStateResult(world, 4, it.arguments[2] as String, it.arguments[3] as String, emptyList()) }
+            .`when`(graph).replace(anyUUID(), anyLong(), anyString(), anyString(), anyList(), anyEpisode())
+        val previous = WorldRevision(revisionId, world, 1, legacy.name, legacy.description, sealed = true)
+        val previousVersions = legacy.cards.map { SettingCardVersion(cardId = it.id, worldId = world, versionNo = 1,
+            fields = CardFields(it.title, it.body, it.cardType, "basic", visibility = "public")) }
+        var next: WorldRevision? = null
+        var versions = emptyList<SettingCardVersion>()
+        var manifest = emptyList<WorldRevisionCard>()
+        `when`(revisions.findFirstByWorldIdOrderByRevisionNoDesc(world)).thenReturn(previous)
+        `when`(revisions.saveAndFlush(any())).thenAnswer { (it.arguments[0] as WorldRevision).also { value -> next = value } }
+        `when`(revisions.findByIdAndWorldId(anyUUID(), anyUUID())).thenAnswer { next?.takeIf { revision -> revision.id == it.arguments[0] } }
+        `when`(cardVersions.saveAll(any<Iterable<SettingCardVersion>>())).thenAnswer { (it.arguments[0] as Iterable<SettingCardVersion>).toList().also { value -> versions = value } }
+        `when`(revisionCards.saveAll(any<Iterable<WorldRevisionCard>>())).thenAnswer { (it.arguments[0] as Iterable<WorldRevisionCard>).toList().also { value -> manifest = value } }
+        `when`(revisionCards.findAllByIdRevisionId(anyUUID())).thenAnswer { manifest }
+        `when`(cardVersions.findAllById(any<Iterable<UUID>>())).thenAnswer { versions }
+        val realService = spy(service)
+        val key = "genre-template-${legacy.genre}-repair-v2"
+        doThrow(WorldStudioFailure.unavailable()).doCallRealMethod()
+            .`when`(realService).save(world, owner, SaveWorldRequest(3, key))
+
+        assertThrows(WorldStudioFailure::class.java) { GenreTemplateRepair(realService).repair(legacy, target) }
+        assertEquals(target.cards.map { it.id }.toSet(), stored.values.filter { it.fields.lifecycle == "active" }.map { it.cardId }.toSet())
+        assertEquals(legacy.cards.map { it.id }.toSet(), stored.values.filter { it.fields.lifecycle == "removed" }.map { it.cardId }.toSet())
+        assertEquals(revisionId, studioWorld.currentRevisionId)
+        assertEquals(revisionId, draft.baseWorldRevisionId)
+        verifyNoInteractions(revisions, revisionCards, cardVersions)
+        GenreTemplateRepair(realService).repair(legacy, target)
+        verify(realService, times(2)).save(world, owner, SaveWorldRequest(3, key))
+        assertEquals(revisionId, next!!.parentRevisionId)
+        assertEquals(next!!.id, studioWorld.currentRevisionId)
+        assertTrue(previous.sealed)
+        assertEquals(legacy.cards.map { it.body }, previousVersions.map { it.fields.body })
+        assertEquals(legacy.cards.map { it.id }.toSet(), versions.filter { it.fields.lifecycle == "removed" }.map { it.cardId }.toSet())
+        assertEquals(target.cards.map { it.id }.toSet(), versions.filter { it.fields.lifecycle == "active" }.map { it.cardId }.toSet())
     }
     @Test fun `unowned world fails before reading draft or Neo4j`() {
         assertThrows(WorldNotFound::class.java) { service.draft(world,actor) }
@@ -81,6 +229,56 @@ class WorldStudioServiceTest {
         verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
         assertEquals(2L,draft.draftRevision)
     }
+    // --- 설정 카드 대표 이미지(#401): 카드 semanticMetadata.imageId는 이 세계관이 올린 이미지만 가리킬 수 있다 ---
+    private fun withImage(image:Any?)=CardPayload(UUID.randomUUID(),"인물","원문","character","basic",semanticMetadata=mapOf("imageId" to image))
+    private fun worldsImage(image:UUID,owner:UUID=world)=SettingCardImage(image,owner,"world-card-images/${image}","image/png")
+    @Test fun `a card image id that is not a UUID is an input error before anything is read or prepared`() {
+        owned()
+        for(bad in listOf("","x","1-1-1-1-1",42,true,mapOf("id" to "x"))) {
+            assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(withImage(bad)),key="bad-image")) }
+        }
+        verifyNoInteractions(images)
+        assertTrue(state.completed);verify(states,never()).flush()
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+    }
+    @Test fun `an image of another world or an unknown image is an input error and the previous draft stays`() {
+        owned()
+        val mine=UUID.randomUUID();val foreign=UUID.randomUUID();val unknown=UUID.randomUUID()
+        `when`(images.findAllById(any())).thenReturn(listOf(worldsImage(mine),worldsImage(foreign,owner=UUID.randomUUID())))
+        for(other in listOf(foreign,unknown)) {
+            assertThrows(IllegalArgumentException::class.java) {
+                service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(withImage(mine.toString()),withImage(other.toString())),key="other-image"))
+            }
+        }
+        assertTrue(state.completed);verify(states,never()).flush()
+        verify(cards,never()).saveAndFlush(any());verify(cardDrafts,never()).save(any())
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        assertEquals(2L,draft.draftRevision);assertEquals("편집본",draft.name)
+    }
+    @Test fun `an image of this world is saved with the card`() {
+        owned()
+        val image=UUID.randomUUID()
+        `when`(images.findAllById(any())).thenReturn(listOf(worldsImage(image)))
+        doAnswer { RelationshipStateResult(world,4,state.requestKey,state.requestHash,emptyList()) }.`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        val saved=service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(withImage(image.toString())),key="with-image"))
+        val row=ArgumentCaptor.forClass(SettingCardDraft::class.java)
+        verify(cardDrafts).save(row.capture() ?: SettingCardDraft(UUID(0,0),world,CardFields()))
+        assertEquals(mapOf<String,Any?>("imageId" to image.toString()),row.value.fields.semanticMetadata)
+        assertEquals(3L,saved.draftRevision)
+    }
+    @Test fun `a null image id is no image and never asks the image table`() {
+        owned()
+        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())).thenThrow(WorldStudioFailure.unavailable())
+        // 입력 검증을 통과해 그래프 저장까지 갔다는 뜻이다(입력 오류가 아니다).
+        assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(withImage(null)),key="null-image")) }
+        verifyNoInteractions(images)
+    }
+    @Test fun `a card without an image id never asks the image table`() {
+        owned()
+        `when`(graph.replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())).thenThrow(WorldStudioFailure.unavailable())
+        assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(CardPayload(UUID.randomUUID(),"인물","원문","character","basic")),key="plain")) }
+        verifyNoInteractions(images)
+    }
     @Test fun `graph failure leaves a retriable receipt and does not change PostgreSQL draft content`() {
         owned()
         val request=EditWorldDraftRequest(2,"저장할 이름","",key="retry",replace=true)
@@ -98,6 +296,35 @@ class WorldStudioServiceTest {
         assertEquals("저장할 이름",saved.name)
         assertEquals(saved,service.edit(world,actor,request))
         assertEquals(3L,draft.draftRevision)
+    }
+    @Test fun `large upsert changes only requested cards after a graph failure and retry`() {
+        owned()
+        val original=(1..10000).map { cardDraft(UUID.randomUUID()) }
+        val unchanged=original.drop(2)
+        val oldTime=java.time.Instant.parse("2020-01-01T00:00:00Z")
+        original.forEach { it.updatedAt=oldTime }
+        val oldFields=unchanged.map { it.fields }
+        val stored=original.associateBy { it.cardId }.toMutableMap()
+        `when`(cardDrafts.findAllByWorldId(world)).thenAnswer { stored.values.toList() }
+        `when`(cardDrafts.findById(anyUUID())).thenAnswer { Optional.ofNullable(stored[it.arguments[0] as UUID]) }
+        `when`(cardDrafts.save(any())).thenAnswer { (it.arguments[0] as SettingCardDraft).also { card -> stored[card.cardId]=card } }
+        `when`(cards.findById(anyUUID())).thenAnswer { Optional.ofNullable(stored[it.arguments[0] as UUID]?.let { card -> SettingCard(card.cardId,world) }) }
+        var interrupted=true
+        doAnswer {
+            if(interrupted) { interrupted=false;throw WorldStudioFailure.unavailable() }
+            RelationshipStateResult(world,4,state.requestKey,state.requestHash,emptyList())
+        }.`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        val newId=UUID.randomUUID()
+        val changes=listOf(payload(original[0].cardId).copy(body="수정"),payload(original[1].cardId,"removed"),payload(newId))
+        val request=EditWorldDraftRequest(2,"x","",changes,key="large-upsert")
+        assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,request) }
+        assertEquals(oldTime,original[0].updatedAt);assertFalse(state.completed);assertFalse(stored.containsKey(newId))
+        assertEquals(3L,service.edit(world,actor,request).draftRevision)
+        assertEquals("수정",stored.getValue(original[0].cardId).fields.body)
+        assertEquals("removed",stored.getValue(original[1].cardId).fields.lifecycle)
+        assertEquals("원문",stored.getValue(newId).fields.body)
+        assertTrue(unchanged.all { it.updatedAt==oldTime });assertEquals(oldFields,unchanged.map { it.fields })
+        verify(cardDrafts,times(3)).findById(anyUUID())
     }
     @Test fun `definite foreign graph identity rejection releases only its receipt without changing the current draft`() {
         owned()
@@ -395,6 +622,26 @@ class WorldStudioServiceTest {
         `when`(graph.read(world,episode)).thenAnswer { RelationshipStateResult(world,state.graphVersion,state.requestKey,state.requestHash,relations.toList()) }
     }
 
+    @Test fun `relationship replacement at the limit is validated before graph preparation`() {
+        owned()
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(cardDraft(cardA),cardDraft(cardB)))
+        val existing=(1..1000).map { RelationshipPayload(UUID.randomUUID(),cardA,cardB,"structural","관계") }
+        val added=RelationshipPayload(UUID.randomUUID(),cardA,cardB,"emotional","새 관계")
+        var graphRelations=existing
+        `when`(graph.read(world,null)).thenAnswer { RelationshipStateResult(world,state.graphVersion,state.requestKey,state.requestHash,graphRelations) }
+        assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",relationships=listOf(added),key="over")) }
+        assertTrue(state.completed);assertEquals("previous",state.requestKey);assertEquals(2L,draft.draftRevision)
+        verify(states,never()).flush();verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        doAnswer {
+            @Suppress("UNCHECKED_CAST")
+            graphRelations=it.arguments[4] as List<RelationshipPayload>
+            RelationshipStateResult(world,4,state.requestKey,state.requestHash,graphRelations)
+        }.`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        val updates=listOf(existing.first().copy(lifecycle="removed",sourceCardId=null,targetCardId=null),added)
+        val saved=assertDoesNotThrow<WorldDraftResponse> { service.edit(world,actor,EditWorldDraftRequest(2,"x","",relationships=updates,key="swap")) }
+        assertEquals(existing.drop(1)+added,saved.relationships)
+        verify(graph,times(1)).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+    }
     @Test fun `the owner reads the relations as of an episode`() {
         owned()
         `when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(cardDraft(cardA),cardDraft(cardB)))
@@ -490,6 +737,38 @@ class WorldStudioServiceTest {
 
     // --- 이번 요청이 삭제하는 카드에 이어진 관계(#341) ---
     private fun payload(id:UUID,lifecycle:String="active")=CardPayload(id,"카드","원문","character","basic",lifecycle=lifecycle)
+    @Test fun `active card total allows ten thousand after upserts and removals`() {
+        owned()
+        val existing=(1..9999).map { cardDraft(UUID.randomUUID()) }
+        val removed=cardDraft(UUID.randomUUID(),"removed")
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(existing+removed)
+        graphKeeps()
+        val added=payload(UUID.randomUUID())
+        val saved=assertDoesNotThrow<WorldDraftResponse> { service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(added),key="ten-thousand")) }
+        assertEquals(3L,saved.draftRevision)
+        draft.draftRevision=2;state.graphVersion=3
+        val tenThousand=existing+cardDraft(added.id)+removed
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(tenThousand)
+        val updates=listOf(payload(existing[0].cardId).copy(title="수정"),payload(existing[1].cardId,"removed"),payload(removed.cardId))
+        assertEquals(3L,service.edit(world,actor,EditWorldDraftRequest(2,"x","",updates,key="update-at-limit")).draftRevision)
+    }
+    @Test fun `active card total rejects ten thousand and one before preparing any writes`() {
+        owned()
+        val existing=(1..10000).map { cardDraft(UUID.randomUUID()) }
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(existing)
+        val error=assertThrows(IllegalArgumentException::class.java) {
+            service.edit(world,actor,EditWorldDraftRequest(2,"변경","",listOf(payload(UUID.randomUUID())),key="over-limit"))
+        }
+        assertEquals("설정 카드는 10,000개까지 저장할 수 있습니다.",error.message)
+        nothingPrepared();assertEquals("previous",state.requestKey);assertEquals("previous",state.requestHash)
+    }
+    @Test fun `a single request still rejects one thousand and one cards and duplicate ids`() {
+        val one=payload(UUID.randomUUID())
+        val tooMany=(1..1001).map { payload(UUID.randomUUID()) }
+        assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",tooMany,key="too-many")) }
+        assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(one,one),key="duplicate")) }
+        verifyNoInteractions(worlds,graph)
+    }
     /** A·B·C가 모두 활성이고 B에 이어진 관계(keptToRemoved)와 살아 있는 관계(live)가 최신(3화 시점도 같다)에 있다. */
     private fun relationOnB() { owned();`when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(cardDraft(cardA),cardDraft(cardB),cardDraft(cardC)));at(3,keptToRemoved,live);at(null,keptToRemoved,live) }
     /** 저장소가 [kept]만 남긴 결과를 돌려주게 하고, 저장소로 보낸 인자를 쌓아 돌려준다. */

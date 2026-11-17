@@ -3,6 +3,7 @@ package ai.storyfork.content.world.service
 import ai.storyfork.content.world.domain.WorldConflict
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldStudioFailure
+import ai.storyfork.content.world.domain.cardImageId
 import ai.storyfork.content.world.domain.isListed
 import ai.storyfork.content.world.domain.validEpisode
 import ai.storyfork.content.world.domain.worldGenre
@@ -28,7 +29,7 @@ class WorldStudioService(
     private val cards:SettingCardRepository,private val cardDrafts:SettingCardDraftRepository,
     private val cardVersions:SettingCardVersionRepository,private val revisions:WorldRevisionRepository,
     private val revisionCards:WorldRevisionCardRepository,private val requests:WorldSaveRequestRepository,
-    private val states:WorldRelationshipStateRepository,private val applications:InitialWorldApplicationRepository,private val graph:Neo4jRelationshipRepository,
+    private val states:WorldRelationshipStateRepository,private val applications:InitialWorldApplicationRepository,private val images:SettingCardImageRepository,private val graph:Neo4jRelationshipRepository,
     @Qualifier("worldStudioTransactionManager") manager:PlatformTransactionManager,private val mapper:JsonMapper,
 ) {
     private val transaction=TransactionTemplate(manager)
@@ -132,7 +133,7 @@ class WorldStudioService(
         validateName(request.name,request.description);validateKey(request.key);validEpisode(request.episode)
         require(request.expectedDraftRevision>=0 && request.cards.size<=1000)
         require(request.cards.map { it.id }.distinct().size==request.cards.size) { "중복된 카드입니다." }
-        request.cards.forEach { validate(it,false) }
+        request.cards.forEach { validate(it,false);require(it.semanticMetadata["imageId"]==null || cardImageId(it.semanticMetadata)!=null) { "카드 이미지 ID를 확인하세요." } }
         require(mapper.writeValueAsBytes(request).size<=2_000_000) { "세계관 입력 크기를 확인하세요." }
     }
 
@@ -145,7 +146,7 @@ class WorldStudioService(
         validateEditRequest(request)
         val hash=hash("edit",worldId,request)
         val loaded=tx {
-            val world=owned(worldId,subject);guardApplication(worldId,applicationId)
+            val world=owned(worldId,subject);guardApplication(worldId,applicationId);requireCardImages(worldId,request.cards)
             val state=state(worldId);val draft=draft(worldId)
             val same=state.requestKey==request.key && state.expectedDraftRevision==request.expectedDraftRevision
             if(same && state.requestHash!=hash) throw WorldConflict()
@@ -165,7 +166,7 @@ class WorldStudioService(
         if(loaded.duplicate) return draft(worldId,subject,request.episode)
         val mergedCards=mergeCards(loaded.draft.cards,request)
         val known=mergedCards.filter { it.lifecycle=="active" }.map { it.id }.toSet()
-        require(known.size<=1000) { "설정 카드는 1,000개까지 저장할 수 있습니다." }
+        require(known.size<=10000) { "설정 카드는 10,000개까지 저장할 수 있습니다." }
         val current=graph.read(worldId,request.episode)
         val alreadyApplied=current.version==Math.incrementExact(loaded.graphVersion) && current.key==request.key && current.hash==hash
         if(current.worldId!=worldId || (!alreadyApplied && current.version!=loaded.graphVersion)) throw WorldStudioFailure.mismatch()
@@ -218,7 +219,7 @@ class WorldStudioService(
             if(state.requestKey!=request.key || state.requestHash!=hash) throw WorldConflict()
             if(!state.completed) {
                 expected(draft,request.expectedDraftRevision)
-                (if(applicationId==null) mergedCards else request.cards).forEach { card ->
+                (if(applicationId==null && request.replace) mergedCards else request.cards).forEach { card ->
                     val existing=cardDrafts.findById(card.id).orElse(null)
                     if(existing==null) cardDrafts.save(SettingCardDraft(cardId=card.id,worldId=worldId,fields=fields(card)))
                     else { existing.fields=fields(card);existing.updatedAt=Instant.now() }
@@ -307,6 +308,12 @@ class WorldStudioService(
     private fun mergeCards(current:List<CardPayload>,request:EditWorldDraftRequest):List<CardPayload> {
         val updates=request.cards.associateBy { it.id }
         return (current.map { updates[it.id] ?: if(request.replace) it.copy(lifecycle="removed") else it }.associateBy { it.id }+updates).values.toList()
+    }
+    /** 카드가 가리키는 대표 이미지(#401)는 모두 이 세계관이 올린 것이어야 한다. 다른 세계관의 이미지·없는 ID는 입력 오류이며 아무것도 저장하기 전에 던져 이전 초안이 그대로 남는다. */
+    private fun requireCardImages(worldId:UUID,cards:List<CardPayload>) {
+        val wanted=cards.mapNotNull { cardImageId(it.semanticMetadata) }.toSet()
+        if(wanted.isEmpty()) return
+        require(images.findAllById(wanted).filter { it.worldId==worldId }.map { it.id }.toSet()==wanted) { "카드 이미지를 확인하세요." }
     }
     private fun validateName(name:String,description:String) {
         require(name.isNotBlank() && name.length<=100 && description.length<=20000) { "세계관 이름과 설명의 길이를 확인하세요." }

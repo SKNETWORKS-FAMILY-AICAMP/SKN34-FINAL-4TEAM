@@ -34,13 +34,13 @@ def test_item_episode_reads_the_source_chapter_of_each_item_kind():
     assert item_episode('card:c-harry#ep03', LOOKUP) == 3
     assert item_episode('relation:r-x', LOOKUP) == 4
     assert item_episode('card:c-harry#identity', LOOKUP) is None
-    assert item_episode('card:c-harry#memory', LOOKUP) is None
+    assert item_episode('card:c-harry#goal', LOOKUP) is None
     assert item_episode('relation:unknown', LOOKUP) is None
 
 
 def test_foreign_memory_flags_other_characters_private_documents_only():
-    assert foreign_memory('card:c-ron#ep03', 'c-harry') and foreign_memory('card:c-ron#soul', 'c-harry')
-    assert not foreign_memory('card:c-harry#ep03', 'c-harry')
+    assert foreign_memory('card:c-ron#ep03', 'c-harry') and foreign_memory('card:c-ron#soul', 'c-harry') and foreign_memory('card:c-ron#goal', 'c-harry')
+    assert not foreign_memory('card:c-harry#ep03', 'c-harry') and not foreign_memory('card:c-harry#goal', 'c-harry')
     assert not foreign_memory('card:c-ron#identity', 'c-harry') and not foreign_memory('card:e-abc', 'c-harry')
 
 

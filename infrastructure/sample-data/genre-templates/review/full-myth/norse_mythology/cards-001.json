@@ -1,0 +1,4857 @@
+[
+  {
+    "id": "4de16083-0297-5f65-bad0-1f24591989fd",
+    "title": "해",
+    "body": "달의 누이인 해는 남쪽에서 하늘 가장자리로 오른손을 내밀지만 아직 자기 집이 어디인지 모른다. 기존 천체 질서 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제5연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.5.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-sun",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-05",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.5",
+          "location": "《볼루스파》 벨로스 번역 제5연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "6f1b4687-1a79-50ae-96e2-0efbc55a3874",
+          "title": "해와 달의 자리와 시간의 이름",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "6b977aa7-02a0-5d7e-9d8c-43793e30d2e0",
+    "title": "달",
+    "body": "해의 형제인 달은 아직 자기의 힘이 무엇인지 알지 못한다. 기존 천체 질서 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제5연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.5.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-moon",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-05",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.5",
+          "location": "《볼루스파》 벨로스 번역 제5연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "6f1b4687-1a79-50ae-96e2-0efbc55a3874",
+          "title": "해와 달의 자리와 시간의 이름",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "f0f72c7a-e732-552c-bb15-7cbdf837dded",
+    "title": "모트소그니르",
+    "body": "난쟁이들 가운데 가장 힘센 존재로 만들어졌으며, 다음가는 이는 두린이다. 기존 난쟁이 종족 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제10연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.10.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-motsognir",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-10",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.10",
+          "location": "《볼루스파》 벨로스 번역 제10연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "ddf66394-92cb-569f-9f9c-a79f7d93fecf",
+          "title": "난쟁이의 탄생과 이름 명단",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "ddf66394-92cb-569f-9f9c-a79f7d93fecf",
+          "title": "난쟁이의 탄생과 이름 명단",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "ddf66394-92cb-569f-9f9c-a79f7d93fecf",
+          "title": "난쟁이의 탄생과 이름 명단",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-voluspa",
+          "key": "voluspa-durin",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "afba3868-75c2-56ea-b524-e86a52cf5143",
+    "title": "두린",
+    "body": "난쟁이 가운데 모트소그니르 다음가는 존재다. 난쟁이들은 그의 말에 따라 땅속에서 사람을 닮은 형상들을 만든다. 기존 난쟁이 종족 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제10연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.10.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-durin",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-10",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.10",
+          "location": "《볼루스파》 벨로스 번역 제10연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "ddf66394-92cb-569f-9f9c-a79f7d93fecf",
+          "title": "난쟁이의 탄생과 이름 명단",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-voluspa",
+          "key": "voluspa-motsognir",
+          "reason": [
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "da7782ac-755b-54c2-a069-a06a144dbd96",
+    "title": "드발린의 난쟁이 무리 이동",
+    "body": "드발린의 무리에서 로파르에 이르는 난쟁이들은 바위를 떠나 젖은 땅을 지나 모래 들판에서 살 곳을 찾는다. 기존 난쟁이 종족 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제14연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.14.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-dvalin-company",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-14",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.14",
+          "location": "《볼루스파》 벨로스 번역 제14연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "ddf66394-92cb-569f-9f9c-a79f7d93fecf",
+          "title": "난쟁이의 탄생과 이름 명단",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "2b93bd30-dc18-5e1c-b8aa-b9d7f0b33689",
+    "title": "미미르",
+    "body": "미미르는 샘에 숨겨진 오딘의 담보에서 아침마다 벌꿀술을 마신다. 종말 때 오딘은 밈의 머리에 귀를 기울이는데, 이 시는 머리가 생긴 경위를 설명하지 않는다. 기존 미미르의 샘 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제29연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.29; 제47연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.47.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-mimir",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-29",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.29",
+          "location": "《볼루스파》 벨로스 번역 제29연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "voluspa-47",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.47",
+          "location": "《볼루스파》 벨로스 번역 제47연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "46b7211c-7373-5179-98f1-b56b679f42fe",
+          "title": "오딘",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "8e833fb6-16da-5d63-abf4-1e01dbd28b2c",
+          "title": "미미르의 샘과 오딘의 담보",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "b5bf997d-a051-5809-aae7-121ede0c6cee",
+          "title": "이그드라실 세 뿌리: 산문의 배치",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "46b7211c-7373-5179-98f1-b56b679f42fe",
+          "title": "오딘",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "8e833fb6-16da-5d63-abf4-1e01dbd28b2c",
+          "title": "미미르의 샘과 오딘의 담보",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "b5bf997d-a051-5809-aae7-121ede0c6cee",
+          "title": "이그드라실 세 뿌리: 산문의 배치",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "46b7211c-7373-5179-98f1-b56b679f42fe",
+          "title": "오딘",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "6158f0ed-353c-57f3-8764-30e1b3be36da",
+          "title": "이그드라실",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "18568856-17df-55ab-a49b-b1729e303ea2",
+          "title": "신들의 운명과 세계의 몰락",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "8e833fb6-16da-5d63-abf4-1e01dbd28b2c",
+          "title": "미미르의 샘과 오딘의 담보",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "mimir-horn",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "90aa1c78-eadc-5861-8ae7-ac57a0e41a88",
+    "title": "회드르",
+    "body": "회드르는 겨우살이 가지에서 나온 해로운 화살을 던질 인물로 예언되며, 새 땅에서는 발드르와 함께 흐롭트의 전당에 산다. 기존 발드르의 죽음과 복수·새 땅 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제33연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.33; 제62연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.62.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-hodr",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-33",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.33",
+          "location": "《볼루스파》 벨로스 번역 제33연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "voluspa-62",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.62",
+          "location": "《볼루스파》 벨로스 번역 제62연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "acae503e-9190-59f8-8017-841777faadd2",
+          "title": "발드르",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "2ce879bc-69eb-5fe6-a846-be127a0f3d84",
+          "title": "발드르의 죽음과 복수",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "c3bfd25d-9c67-5d75-9892-56337d0b64c3",
+          "title": "종말 뒤의 새로운 땅",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "dd450c91-44f9-5fdb-a990-c17f117ada08",
+          "title": "회드르와 발드르의 어린 복수자",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "6627a137-3b24-5409-a380-4c4448575eeb",
+          "title": "발드르의 맹세와 겨우살이",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "1f188b2f-607e-54eb-8523-52d8aa342032",
+          "title": "라그나로크 뒤의 신들과 망치",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "acae503e-9190-59f8-8017-841777faadd2",
+          "title": "발드르",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "2ce879bc-69eb-5fe6-a846-be127a0f3d84",
+          "title": "발드르의 죽음과 복수",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "c3bfd25d-9c67-5d75-9892-56337d0b64c3",
+          "title": "종말 뒤의 새로운 땅",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "dd450c91-44f9-5fdb-a990-c17f117ada08",
+          "title": "회드르와 발드르의 어린 복수자",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "6627a137-3b24-5409-a380-4c4448575eeb",
+          "title": "발드르의 맹세와 겨우살이",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "1f188b2f-607e-54eb-8523-52d8aa342032",
+          "title": "라그나로크 뒤의 신들과 망치",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "acae503e-9190-59f8-8017-841777faadd2",
+          "title": "발드르",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "2ce879bc-69eb-5fe6-a846-be127a0f3d84",
+          "title": "발드르의 죽음과 복수",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "c3bfd25d-9c67-5d75-9892-56337d0b64c3",
+          "title": "종말 뒤의 새로운 땅",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "dd450c91-44f9-5fdb-a990-c17f117ada08",
+          "title": "회드르와 발드르의 어린 복수자",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-voluspa",
+          "key": "voluspa-mistletoe-shaft",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "segment": "norse-voluspa",
+          "key": "voluspa-hropt-battle-hall",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "4575c0f2-bfb0-53d3-ad44-f218a041d647",
+    "title": "겨우살이 화살",
+    "body": "높은 들판에 자란 겨우살이의 가냘픈 가지에서 회드르가 던질 해로운 화살이 나온다. 제작 경위는 이 시에서 밝히지 않는다. 기존 발드르의 죽음 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제32연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.32; 제33연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.33.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-mistletoe-shaft",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-32",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.32",
+          "location": "《볼루스파》 벨로스 번역 제32연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "voluspa-33",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.33",
+          "location": "《볼루스파》 벨로스 번역 제33연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "acae503e-9190-59f8-8017-841777faadd2",
+          "title": "발드르",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "2ce879bc-69eb-5fe6-a846-be127a0f3d84",
+          "title": "발드르의 죽음과 복수",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "dd450c91-44f9-5fdb-a990-c17f117ada08",
+          "title": "회드르와 발드르의 어린 복수자",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-voluspa",
+          "key": "voluspa-hodr",
+          "reason": [
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "83ec7a39-bb04-55e4-80ae-efac5d6a3b01",
+    "title": "오콜니르의 거인 브리미르",
+    "body": "거인 브리미르는 오콜니르에 맥주 전당을 둔다. 제9연의 브리미르와 동일한지 이 구절만으로 단정하지 않는다. 기존 북쪽 전당 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제37연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.37.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-brimir-beer",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-37",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.37",
+          "location": "《볼루스파》 벨로스 번역 제37연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "3a8bea66-05c7-54a6-87c8-4722732a43b1",
+          "title": "니다벨리르와 오콜니르의 전당",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "4fa61b18-b43a-52fc-91ea-c9c0091c59e2",
+    "title": "철의 숲의 늙은 거인",
+    "body": "동쪽 철의 숲에 앉아 펜리르의 자손들을 낳은 늙은 여자 거인이다. 그 자손 가운데 하나는 해를 훔치리라고 예언된다. 기존 철의 숲 징조 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제40연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.40.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-ironwood-giantess",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-40",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.40",
+          "location": "《볼루스파》 벨로스 번역 제40연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "b4be78a3-6dac-5f1f-87c4-3ea44a2552a1",
+          "title": "펜리르와 풀려나는 늑대",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "c9301998-6584-567d-9359-dbef0aa438cb",
+          "title": "철의 숲 자손과 어두워지는 해",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "38c35f65-bba9-5f63-8314-b4612f309457",
+    "title": "해를 훔칠 펜리르의 자손",
+    "body": "철의 숲 거인의 자손 가운데 괴물의 모습으로 해를 하늘에서 훔칠 존재가 있다. 이 연은 그 이름을 말하지 않는다. 기존 철의 숲 징조 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제40연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.40.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-sun-stealing-offspring",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-40",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.40",
+          "location": "《볼루스파》 벨로스 번역 제40연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "b4be78a3-6dac-5f1f-87c4-3ea44a2552a1",
+          "title": "펜리르와 풀려나는 늑대",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "c9301998-6584-567d-9359-dbef0aa438cb",
+          "title": "철의 숲 자손과 어두워지는 해",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "2899b13c-5bd5-5b8c-b988-35a1c4cec9eb",
+    "title": "에그데르",
+    "body": "거인들의 파수꾼인 에그데르는 언덕에 앉아 하프를 연주한다. 그 위 숲에서는 붉은 수탉 퍌라르가 운다. 기존 종말의 닭 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제42연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.42.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-eggther",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-42",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.42",
+          "location": "《볼루스파》 벨로스 번역 제42연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "89ac9d81-56fb-5aa7-a592-92820748ac31",
+          "title": "에그데르와 세 곳의 수탉",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "89ac9d81-56fb-5aa7-a592-92820748ac31",
+          "title": "에그데르와 세 곳의 수탉",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "89ac9d81-56fb-5aa7-a592-92820748ac31",
+          "title": "에그데르와 세 곳의 수탉",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-voluspa",
+          "key": "voluspa-fjalar-cock",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장",
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "f0361776-0ff5-5777-ab7f-34d3d5db672b",
+    "title": "수탉 퍌라르",
+    "body": "거인들의 파수꾼 에그데르 위쪽 새들의 숲에서 우는 붉은 수탉이다. 난쟁이 명단의 같은 이름과 동일 존재로 단정하지 않는다. 기존 종말의 닭 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제42연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.42.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-fjalar-cock",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-42",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.42",
+          "location": "《볼루스파》 벨로스 번역 제42연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "89ac9d81-56fb-5aa7-a592-92820748ac31",
+          "title": "에그데르와 세 곳의 수탉",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "89ac9d81-56fb-5aa7-a592-92820748ac31",
+          "title": "에그데르와 세 곳의 수탉",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "89ac9d81-56fb-5aa7-a592-92820748ac31",
+          "title": "에그데르와 세 곳의 수탉",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-voluspa",
+          "key": "voluspa-eggther",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장",
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "055a5692-4536-5b4f-b509-d88a6c96162a",
+    "title": "굴린캄비",
+    "body": "신들을 향해 울어 오딘 전당의 영웅들을 깨우는 수탉이다. 기존 종말의 닭 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제43연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.43.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-gollinkambi",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-43",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.43",
+          "location": "《볼루스파》 벨로스 번역 제43연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "2789e4fc-2db9-54a3-827c-8e4449e7ce17",
+          "title": "발할라",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "89ac9d81-56fb-5aa7-a592-92820748ac31",
+          "title": "에그데르와 세 곳의 수탉",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "2789e4fc-2db9-54a3-827c-8e4449e7ce17",
+          "title": "발할라",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "89ac9d81-56fb-5aa7-a592-92820748ac31",
+          "title": "에그데르와 세 곳의 수탉",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "2789e4fc-2db9-54a3-827c-8e4449e7ce17",
+          "title": "발할라",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "8b8dd936-0798-5711-904a-b097072e6e35",
+          "title": "헬의 길과 문",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "89ac9d81-56fb-5aa7-a592-92820748ac31",
+          "title": "에그데르와 세 곳의 수탉",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "ceb6e5e1-6fee-5b7e-992d-c01c2cab0112",
+    "title": "헬의 빗장 앞 수탉",
+    "body": "땅 아래 헬의 빗장 앞에서 우는 녹슨 듯 붉은 새다. 시는 이 새의 이름을 밝히지 않는다. 기존 종말의 닭 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제43연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.43.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-hel-cock",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-43",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.43",
+          "location": "《볼루스파》 벨로스 번역 제43연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "2789e4fc-2db9-54a3-827c-8e4449e7ce17",
+          "title": "발할라",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "8b8dd936-0798-5711-904a-b097072e6e35",
+          "title": "헬의 길과 문",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "89ac9d81-56fb-5aa7-a592-92820748ac31",
+          "title": "에그데르와 세 곳의 수탉",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "18e68f70-0c36-563f-8ea6-aeaf82f27baa",
+    "title": "흘린",
+    "body": "오딘이 늑대와 싸우러 갈 때 또 다른 슬픔을 겪는다고 예언되는 존재다. 이 연 자체는 흘린의 정체를 설명하지 않는다. 기존 종말 전투 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제53연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.53.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-hlin",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-53",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.53",
+          "location": "《볼루스파》 벨로스 번역 제53연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "46b7211c-7373-5179-98f1-b56b679f42fe",
+          "title": "오딘",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "15c67869-3973-5a97-840c-701e543ad1de",
+          "title": "벨리를 죽인 이와 프레이르",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "93d63689-e0e2-575c-8019-4231862efa7a",
+          "title": "수르트",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "5bf35b0c-547a-593f-ab1a-96129eebe79e",
+          "title": "펜살리르에서 우는 프리그",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "fbad09ac-c4a4-597d-a740-c03986618778",
+          "title": "라그나로크의 전투와 세계의 종말",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "3243d309-d56d-5396-a7c7-f02233f6c5e7",
+    "title": "흐롭트의 전투 전당",
+    "body": "다시 솟은 땅을 묘사하는 부분에서 발드르와 회드르가 함께 거주하는 전당이다. 기존 세계의 재생 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제62연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.62.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-hropt-battle-hall",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-62",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.62",
+          "location": "《볼루스파》 벨로스 번역 제62연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "acae503e-9190-59f8-8017-841777faadd2",
+          "title": "발드르",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "c3bfd25d-9c67-5d75-9892-56337d0b64c3",
+          "title": "종말 뒤의 새로운 땅",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "dd450c91-44f9-5fdb-a990-c17f117ada08",
+          "title": "회드르와 발드르의 어린 복수자",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-voluspa",
+          "key": "voluspa-hodr",
+          "reason": [
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "28075f82-654f-55f2-936b-0d51cb43e77d",
+    "title": "니다푤",
+    "body": "마지막 연에서 용 니드호그가 날아오는 곳이다. 그 용은 날개에 사람들의 시체를 싣고 있다. 기존 니드호그 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제66연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.66.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-nithafjoll",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-66",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.66",
+          "location": "《볼루스파》 벨로스 번역 제66연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "b4438a30-c2ca-5f68-8e84-d4944fc43a7c",
+          "title": "니드호그",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "b4438a30-c2ca-5f68-8e84-d4944fc43a7c",
+          "title": "니드호그",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "c3bfd25d-9c67-5d75-9892-56337d0b64c3",
+          "title": "종말 뒤의 새로운 땅",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "fed65744-b100-5ab4-903a-005bce6be8a9",
+          "title": "예언하는 무녀",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "b4438a30-c2ca-5f68-8e84-d4944fc43a7c",
+          "title": "니드호그",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "02d2afdd-fa9f-58f5-93c4-368b1d53468d",
+    "title": "회니르의 예언 지팡이",
+    "body": "새 땅에 관한 장면에서 회니르가 얻는 예언의 지팡이다. 나머지 빈 구절을 다른 전승으로 메우지 않는다. 기존 회니르와 로두르 카드와 중복 가능.\n\n출전: 《볼루스파》 벨로스 영어판 제63연 https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.63.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "norse-voluspa",
+      "candidate_key": "voluspa-hoenir-wand",
+      "input_file": "미게시-임시자료:myth/norse-voluspa.json",
+      "input_sha256": "9a78e71eca9df070a95acd264b66572e252caa9ddb93a73fe35f5c5d1aeb7de0",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "헨리 애덤스 벨로스 영역본(1923)",
+      "evidence": [
+        {
+          "unit": "voluspa-63",
+          "url": "https://www.gutenberg.org/files/73533/73533-h/73533-h.htm#lg1.1.63",
+          "location": "《볼루스파》 벨로스 번역 제63연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "1c28c0c7-e360-5b4c-9515-0ab52967f29b",
+          "title": "빈드헤임과 종말 뒤의 거주자",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "1c28c0c7-e360-5b4c-9515-0ab52967f29b",
+          "title": "빈드헤임과 종말 뒤의 거주자",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "78fe3050-53e1-5491-af3a-ab37b721e74f",
+          "title": "회니르와 로두르",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "1c28c0c7-e360-5b4c-9515-0ab52967f29b",
+          "title": "빈드헤임과 종말 뒤의 거주자",
+          "reason": [
+            "동일 볼루스파 연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "1ed92326-f68b-54af-826a-ba4694d83459",
+    "title": "엘리바가르의 독물과 서리",
+    "body": "강들의 독기가 굳어 얼음이 되고 그 위에 쌓인 서리가 긴눙가가프를 채운다. 출전: 《길피의 속임수》 5장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "elivagar",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 5장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "5장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "a539ed8d-bf5b-5f4c-87fe-d66484e0a095",
+          "title": "이미르와 태초의 혈통",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "7a6e0baf-3c6e-5644-a236-03fcef647aec",
+    "title": "아우둠라",
+    "body": "서리가 녹아 생긴 암소로 네 젖줄에서 흐른 젖으로 이미르를 먹이고 소금기 있는 서리 돌을 핥는다. 출전: 《길피의 속임수》 6장, https://www.heimskringla.no/wiki/Gylfaginning. 기존 norse-ymir-origins 카드와 중복 가능.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "audhumla",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 6장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "6장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "a539ed8d-bf5b-5f4c-87fe-d66484e0a095",
+          "title": "이미르와 태초의 혈통",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "a539ed8d-bf5b-5f4c-87fe-d66484e0a095",
+          "title": "이미르와 태초의 혈통",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "tradition-cards.json",
+          "genre": "norse_mythology",
+          "key": "norse-ymir-origins",
+          "id": "a539ed8d-bf5b-5f4c-87fe-d66484e0a095",
+          "title": "이미르와 태초의 혈통",
+          "reason": [
+            "입력 후보의 명시적 중복 언급"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "a539ed8d-bf5b-5f4c-87fe-d66484e0a095",
+          "title": "이미르와 태초의 혈통",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "buri",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "4b90ab4f-632a-5eba-8d39-ec9b405ae428",
+    "title": "부리",
+    "body": "아우둠라가 핥은 돌에서 사흘에 걸쳐 나타난 이로 보르의 아버지다. 기존 이미르 혈통 카드와 중복 가능. 출전: 《길피의 속임수》 6장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "buri",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 6장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "6장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "a539ed8d-bf5b-5f4c-87fe-d66484e0a095",
+          "title": "이미르와 태초의 혈통",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "audhumla",
+          "reason": [
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "447d15df-4897-58c3-a295-21a6a83fe04e",
+    "title": "베스틀라",
+    "body": "거인 뵐소른의 딸이자 보르의 아내로 오딘·빌리·베의 어머니다. 출전: 《길피의 속임수》 6장, https://www.heimskringla.no/wiki/Gylfaginning. 기존 norse-ymir-origins 카드와 중복 가능.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "bestla",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 6장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "6장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "a539ed8d-bf5b-5f4c-87fe-d66484e0a095",
+          "title": "이미르와 태초의 혈통",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "a539ed8d-bf5b-5f4c-87fe-d66484e0a095",
+          "title": "이미르와 태초의 혈통",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "tradition-cards.json",
+          "genre": "norse_mythology",
+          "key": "norse-ymir-origins",
+          "id": "a539ed8d-bf5b-5f4c-87fe-d66484e0a095",
+          "title": "이미르와 태초의 혈통",
+          "reason": [
+            "입력 후보의 명시적 중복 언급"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "a539ed8d-bf5b-5f4c-87fe-d66484e0a095",
+          "title": "이미르와 태초의 혈통",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "914ff5e6-1265-59c3-82c7-bcfdc7b0ea8a",
+    "title": "베르겔미르",
+    "body": "이미르가 살해될 때 피에 잠긴 서리거인들 가운데 아내와 함께 루드르에 올라 살아남아 후손을 남긴다. 출전: 《길피의 속임수》 7장, https://www.heimskringla.no/wiki/Gylfaginning. 기존 norse-ymir-origins 카드와 중복 가능.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "bergelmir",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 7장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "7장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "a539ed8d-bf5b-5f4c-87fe-d66484e0a095",
+          "title": "이미르와 태초의 혈통",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "b5bf997d-a051-5809-aae7-121ede0c6cee",
+          "title": "이그드라실 세 뿌리: 산문의 배치",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "a539ed8d-bf5b-5f4c-87fe-d66484e0a095",
+          "title": "이미르와 태초의 혈통",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "b5bf997d-a051-5809-aae7-121ede0c6cee",
+          "title": "이그드라실 세 뿌리: 산문의 배치",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "tradition-cards.json",
+          "genre": "norse_mythology",
+          "key": "norse-ymir-origins",
+          "id": "a539ed8d-bf5b-5f4c-87fe-d66484e0a095",
+          "title": "이미르와 태초의 혈통",
+          "reason": [
+            "입력 후보의 명시적 중복 언급"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "a539ed8d-bf5b-5f4c-87fe-d66484e0a095",
+          "title": "이미르와 태초의 혈통",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "hvergelmir",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "50d4362d-536f-59ae-8da5-7669fc9484ef",
+    "title": "하늘 네 귀퉁이의 난쟁이",
+    "body": "보르의 아들들은 이미르의 두개골로 하늘을 만들고 네 귀퉁이 밑에 아우스트리·베스트리·노르드리·수드리를 세운다. 출전: 《길피의 속임수》 8장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "organization",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "sky-support-dwarfs",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 8장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "8장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "d9b6262a-baee-54f7-b6fd-b60c85fdd97d",
+          "title": "이미르의 몸으로 만든 세계",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "b75580dc-70ae-516a-81d5-03cf770b0651",
+    "title": "흘리드스캴프",
+    "body": "오딘이 높은 자리에 앉아 모든 세계와 사람들의 행위를 바라볼 수 있는 곳이다. 출전: 《길피의 속임수》 9장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "hlidskjalf",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 9장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "9장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "d9b6262a-baee-54f7-b6fd-b60c85fdd97d",
+          "title": "이미르의 몸으로 만든 세계",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "5b106a66-a0a1-56b3-81db-abec07519534",
+          "title": "아스가르드와 신들의 전당",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "1b37b3cd-c29d-54c5-842c-45cdd3993982",
+          "title": "아홉 세계와 이름의 범위",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "d223d0b6-f035-556e-9e73-4b0dfb2da51e",
+    "title": "글라드스헤임",
+    "body": "이더볼에 세운 건물로 알포드르의 높은 자리와 열두 신의 자리가 있으며 안팎이 금처럼 빛난다. 기존 아스가르드 전당 카드와 중복 가능. 출전: 《길피의 속임수》 14장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "gladsheim",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 14장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "14장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "5b106a66-a0a1-56b3-81db-abec07519534",
+          "title": "아스가르드와 신들의 전당",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "5b106a66-a0a1-56b3-81db-abec07519534",
+          "title": "아스가르드와 신들의 전당",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "5b106a66-a0a1-56b3-81db-abec07519534",
+          "title": "아스가르드와 신들의 전당",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "5df150bb-258d-5e1f-bd5f-a64784d85ee1",
+    "title": "빙골프",
+    "body": "신들이 만든 아름다운 또 다른 전당으로 여신들이 소유한 성소다. 기존 아스가르드 전당 카드와 중복 가능. 출전: 《길피의 속임수》 14장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "vingolf",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 14장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "14장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "5b106a66-a0a1-56b3-81db-abec07519534",
+          "title": "아스가르드와 신들의 전당",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "5b106a66-a0a1-56b3-81db-abec07519534",
+          "title": "아스가르드와 신들의 전당",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "5b106a66-a0a1-56b3-81db-abec07519534",
+          "title": "아스가르드와 신들의 전당",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "be41986d-0307-56da-95bb-c99c91210a7e",
+    "title": "미미르의 음료 뿔",
+    "body": "길피의 속임수에서 미미르는 자신의 지혜의 샘물을 걀라르호른이라는 뿔로 마신다. 같은 이름의 헤임달의 경적과 문맥을 구별한다. 출전: 《길피의 속임수》 15장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "mimir-horn",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 15장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "15장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "e1b8da5d-9e94-5105-a624-3f51f4d60d34",
+          "title": "비프로스트와 하늘길",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "b5bf997d-a051-5809-aae7-121ede0c6cee",
+          "title": "이그드라실 세 뿌리: 산문의 배치",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "480210ad-380d-56b4-9d62-8c10f30a9eb6",
+          "title": "노른과 운명의 차이",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-voluspa",
+          "key": "voluspa-mimir",
+          "reason": [
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "9c006351-93f0-5148-bffc-4b48662bcf85",
+    "title": "슬레이프니르",
+    "body": "오딘의 여덟 다리 말이며 신들이 우르드의 샘 법정으로 갈 때 타는 말들 가운데 가장 뛰어나다. 출전: 《길피의 속임수》 15장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "sleipnir",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 15장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "15장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "81694496-eb28-5b41-9535-bfd4c6c1ff54",
+          "title": "성벽 장인과 신들의 맹세",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "81694496-eb28-5b41-9535-bfd4c6c1ff54",
+          "title": "성벽 장인과 신들의 맹세",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "e1b8da5d-9e94-5105-a624-3f51f4d60d34",
+          "title": "비프로스트와 하늘길",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "b5bf997d-a051-5809-aae7-121ede0c6cee",
+          "title": "이그드라실 세 뿌리: 산문의 배치",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "480210ad-380d-56b4-9d62-8c10f30a9eb6",
+          "title": "노른과 운명의 차이",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "sleipnir-birth",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "segment": "norse-supplement",
+          "key": "hermod",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "ef8d342e-93cf-55d8-a359-f19331dfe2a6",
+    "title": "비프로스트의 붉은 불",
+    "body": "무지개의 붉은 부분은 불이며 이 불이 서리거인과 산거인이 하늘로 올라오는 것을 막는다고 설명한다. 기존 비프로스트 카드와 중복 가능. 출전: 《길피의 속임수》 15장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "bifrost-fire",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 15장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "15장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "e1b8da5d-9e94-5105-a624-3f51f4d60d34",
+          "title": "비프로스트와 하늘길",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "b5bf997d-a051-5809-aae7-121ede0c6cee",
+          "title": "이그드라실 세 뿌리: 산문의 배치",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "480210ad-380d-56b4-9d62-8c10f30a9eb6",
+          "title": "노른과 운명의 차이",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "78ceae08-3b98-5f10-b73b-d0be1e26a0eb",
+    "title": "스카디와 스림헤임",
+    "body": "스카디는 거인 티아치의 딸로 산의 스림헤임을 원한다. 바닷가를 선호하는 뇨르드와 교대로 머물기로 하나 산으로 돌아가 스키와 활로 사냥한다. 출전: 《길피의 속임수》 23장, https://www.heimskringla.no/wiki/Gylfaginning. 기존 norse-vanir-hostages 카드와 중복 가능.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "skadi-thrymheim",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 23장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "23장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "tradition-cards.json",
+          "genre": "norse_mythology",
+          "key": "norse-vanir-hostages",
+          "id": "7b6404a1-3450-5d90-b12d-890fe2f5910b",
+          "title": "바니르의 인질과 뇨르드",
+          "reason": [
+            "입력 후보의 명시적 중복 언급"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "7b6404a1-3450-5d90-b12d-890fe2f5910b",
+          "title": "바니르의 인질과 뇨르드",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "1b37b3cd-c29d-54c5-842c-45cdd3993982",
+          "title": "아홉 세계와 이름의 범위",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "1b02eb0e-710f-52a7-9485-32d2b35b3719",
+    "title": "노아툰",
+    "body": "뇨르드가 거주하고 산보다 선호하는 바닷가 가까운 곳이다. 스카디와 뇨르드는 이곳과 스림헤임에서 각각 아홉 밤을 보내기로 한다. 출전: 《길피의 속임수》 23장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "noatun",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 23장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "23장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "7b6404a1-3450-5d90-b12d-890fe2f5910b",
+          "title": "바니르의 인질과 뇨르드",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "1b37b3cd-c29d-54c5-842c-45cdd3993982",
+          "title": "아홉 세계와 이름의 범위",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "470ec576-a6b0-5f50-9349-90bbafcab87e",
+    "title": "폴크방그르",
+    "body": "프레이야가 소유한 하늘의 거처로, 전사자 절반을 고른다는 설명과 연결된다. 기존 프레이야 영역 카드와 중복 가능. 출전: 《길피의 속임수》 24장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "folkvangr",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 24장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "24장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "1215890e-8e7f-579a-9b7a-fa10e8e0a46f",
+          "title": "프레이르와 프레이야의 영역",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "c88b2ee6-7b48-589f-bbbf-13852a605f1f",
+          "title": "발할라의 전사자들과 양식",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "ca6f6586-62c5-5643-8cdb-4593fe896bd0",
+    "title": "세스룸니르",
+    "body": "프레이야의 크고 아름다운 전당이다. 기존 프레이야 영역 카드와 중복 가능. 출전: 《길피의 속임수》 24장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "sessrumnir",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 24장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "24장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "1215890e-8e7f-579a-9b7a-fa10e8e0a46f",
+          "title": "프레이르와 프레이야의 영역",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "c88b2ee6-7b48-589f-bbbf-13852a605f1f",
+          "title": "발할라의 전사자들과 양식",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "4c51d6f7-380a-5f68-a645-9da9cf6bf3f2",
+    "title": "브라기",
+    "body": "지혜와 언변과 시로 이름난 신이며 이둔의 남편이다. 기존 이둔과 브라기 카드와 중복 가능. 출전: 《길피의 속임수》 26장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "bragi",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 26장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "26장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "d2f82d31-2c6b-59f0-b86b-3475bf43f287",
+          "title": "이둔의 사과와 브라기",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "d2f82d31-2c6b-59f0-b86b-3475bf43f287",
+          "title": "이둔의 사과와 브라기",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "d2f82d31-2c6b-59f0-b86b-3475bf43f287",
+          "title": "이둔의 사과와 브라기",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "feb5487b-996d-52cb-a211-7d3b4bd75f87",
+    "title": "헤임달의 아홉 어머니",
+    "body": "헤임달은 아홉 자매에게서 아들로 태어났다고 설명한다. 그 자매들의 이름은 이 대목에 없다. 출전: 《길피의 속임수》 27장, https://www.heimskringla.no/wiki/Gylfaginning. 기존 heimdall 카드와 중복 가능.",
+    "cardType": "other",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "heimdall-mothers",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 27장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "27장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "tradition-cards.json",
+          "genre": "norse_mythology",
+          "key": "heimdall",
+          "id": "dc602eb4-f57a-56ab-b682-ea59c5a98500",
+          "title": "헤임달과 걀라르호른",
+          "reason": [
+            "입력 후보의 명시적 중복 언급"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "e1b8da5d-9e94-5105-a624-3f51f4d60d34",
+          "title": "비프로스트와 하늘길",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "be0a6123-4c5a-58a2-9036-b5c4afc9bbe9",
+    "title": "엘류드니르",
+    "body": "헬의 전당이며 접시는 훈그르, 칼은 술트르로 불린다. 기존 헬 카드와 중복 가능. 출전: 《길피의 속임수》 34장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "hel-hall",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 34장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "34장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "188f912e-a349-516e-aa92-5508471099c9",
+          "title": "티르와 펜리르의 결박",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "699b18b1-705a-58aa-a712-49d9e2d8eac7",
+          "title": "글레이프니르의 여섯 재료",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "2db4773a-46f2-59b2-b1a0-94b1f78062aa",
+          "title": "헬과 로키의 세 자녀",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "1b37b3cd-c29d-54c5-842c-45cdd3993982",
+          "title": "아홉 세계와 이름의 범위",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "c5cd6147-bfe9-5109-b760-232bf57d82ba",
+    "title": "링그비 섬과 암스바르트니르",
+    "body": "신들이 암스바르트니르 호수의 링그비 섬에서 펜리르에게 글레이프니르를 보여 주고 그를 결박한다. 출전: 《길피의 속임수》 34장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "lyngvi",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 34장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "34장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "188f912e-a349-516e-aa92-5508471099c9",
+          "title": "티르와 펜리르의 결박",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "699b18b1-705a-58aa-a712-49d9e2d8eac7",
+          "title": "글레이프니르의 여섯 재료",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "2db4773a-46f2-59b2-b1a0-94b1f78062aa",
+          "title": "헬과 로키의 세 자녀",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "1b37b3cd-c29d-54c5-842c-45cdd3993982",
+          "title": "아홉 세계와 이름의 범위",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "8f59b858-6510-5453-9298-00be12c5e5cf",
+    "title": "펜리르 결박의 고정구",
+    "body": "신들은 글레이프니르의 끈 겔갸를 판석 교들에 통과시키고 돌 스비티를 고정 말뚝으로 사용한다. 출전: 《길피의 속임수》 34장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "fenrir-anchors",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 34장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "34장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "188f912e-a349-516e-aa92-5508471099c9",
+          "title": "티르와 펜리르의 결박",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "699b18b1-705a-58aa-a712-49d9e2d8eac7",
+          "title": "글레이프니르의 여섯 재료",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "2db4773a-46f2-59b2-b1a0-94b1f78062aa",
+          "title": "헬과 로키의 세 자녀",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "1b37b3cd-c29d-54c5-842c-45cdd3993982",
+          "title": "아홉 세계와 이름의 범위",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "f244899c-9469-5939-aa96-e43233f8d4c4",
+    "title": "반 강",
+    "body": "결박된 펜리르의 입에 칼이 꽂히고 흘러내리는 침이 반이라는 강을 이룬다. 출전: 《길피의 속임수》 34장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "van-river",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 34장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "34장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "188f912e-a349-516e-aa92-5508471099c9",
+          "title": "티르와 펜리르의 결박",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "699b18b1-705a-58aa-a712-49d9e2d8eac7",
+          "title": "글레이프니르의 여섯 재료",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "2db4773a-46f2-59b2-b1a0-94b1f78062aa",
+          "title": "헬과 로키의 세 자녀",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "1b37b3cd-c29d-54c5-842c-45cdd3993982",
+          "title": "아홉 세계와 이름의 범위",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "42482f70-df29-53c8-a4c9-7cafe24793f1",
+    "title": "새흐림니르",
+    "body": "발할라의 멧돼지로 날마다 삶아지지만 저녁이면 온전해져 많은 전사자들에게 고기가 끊이지 않는다. 기존 발할라 양식 카드와 중복 가능. 출전: 《길피의 속임수》 38장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "saehrimnir",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 38장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "38장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "c88b2ee6-7b48-589f-bbbf-13852a605f1f",
+          "title": "발할라의 전사자들과 양식",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "andhrimnir",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "segment": "norse-supplement",
+          "key": "eldhrimnir",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "49967157-f44b-5d00-b7ad-1e140ce906e9",
+    "title": "게리와 프레키",
+    "body": "오딘의 두 늑대로 오딘의 식탁에 놓인 음식을 먹는다. 오딘은 포도주로 살고 따로 음식을 필요로 하지 않는다고 한다. 출전: 《길피의 속임수》 38장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "geri-freki",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 38장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "38장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "c88b2ee6-7b48-589f-bbbf-13852a605f1f",
+          "title": "발할라의 전사자들과 양식",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "5c0ba7c0-7cdd-55dc-af8a-1768f5828cfc",
+    "title": "후긴과 무닌",
+    "body": "오딘의 두 까마귀로 날마다 온 세계를 날아다닌 뒤 돌아와 보고 들은 소식을 전한다. 출전: 《길피의 속임수》 38장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "hugin-munin",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 38장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "38장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "c88b2ee6-7b48-589f-bbbf-13852a605f1f",
+          "title": "발할라의 전사자들과 양식",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "80d8eb82-bee7-57d4-9f05-961a90e7184c",
+    "title": "에인헤랴르의 하루",
+    "body": "전사자들은 날마다 무장해 서로 싸워 쓰러뜨리는 놀이를 하고 식사 때 발할라로 돌아가 함께 마신다. 기존 발할라 카드와 중복 가능. 출전: 《길피의 속임수》 41장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "einherjar-training",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 41장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "41장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "c88b2ee6-7b48-589f-bbbf-13852a605f1f",
+          "title": "발할라의 전사자들과 양식",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "f06002d4-348b-528a-8b6a-0f69aa418178",
+    "title": "스바딜파리",
+    "body": "성벽 장인의 말로 밤마다 큰 돌을 운반하고 주인보다 두 배의 공을 세운다. 암말을 따라 달아나 공사가 지연된다. 출전: 《길피의 속임수》 42장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "svadilfari",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 42장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "42장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "81694496-eb28-5b41-9535-bfd4c6c1ff54",
+          "title": "성벽 장인과 신들의 맹세",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "81694496-eb28-5b41-9535-bfd4c6c1ff54",
+          "title": "성벽 장인과 신들의 맹세",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "81694496-eb28-5b41-9535-bfd4c6c1ff54",
+          "title": "성벽 장인과 신들의 맹세",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "sleipnir-birth",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "563c0a79-2f01-5c1e-bc7d-0e4755e75a15",
+    "title": "슬레이프니르의 탄생",
+    "body": "장인의 말 스바딜파리에게 다가갔던 로키는 나중에 회색의 다리 여덟 달린 망아지를 낳는다. 출전: 《길피의 속임수》 42장, https://www.heimskringla.no/wiki/Gylfaginning. 기존 norse-holy-oath 카드와 중복 가능.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "sleipnir-birth",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 42장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "42장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "tradition-cards.json",
+          "genre": "norse_mythology",
+          "key": "norse-holy-oath",
+          "id": "81694496-eb28-5b41-9535-bfd4c6c1ff54",
+          "title": "성벽 장인과 신들의 맹세",
+          "reason": [
+            "입력 후보의 명시적 중복 언급"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "81694496-eb28-5b41-9535-bfd4c6c1ff54",
+          "title": "성벽 장인과 신들의 맹세",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "sleipnir",
+          "reason": [
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "segment": "norse-supplement",
+          "key": "svadilfari",
+          "reason": [
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "862f8318-916e-5d54-9a06-294fde103cf4",
+    "title": "히민흐료드르",
+    "body": "히미르의 소 떼 가운데 가장 큰 황소로 토르가 머리를 떼어 미드가르드 뱀을 낚는 미끼로 쓴다. 출전: 《길피의 속임수》 48장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "himinhrjodr",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 48장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "48장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "107f00a0-768e-5736-b2b6-1a799c8ff1f5",
+          "title": "토르의 뱀 낚시: 산문과 전해지는 말",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "bf12d271-682b-53da-9d55-8cbf77abafab",
+    "title": "흐링호르니",
+    "body": "발드르의 배로 신들이 발드르의 장례 화장터로 삼으려 했으나 밀어내지 못해 히로킨을 부른다. 출전: 《길피의 속임수》 49장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "hringhorni",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 49장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "49장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "6627a137-3b24-5409-a380-4c4448575eeb",
+          "title": "발드르의 맹세와 겨우살이",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "hyrrokkin",
+          "reason": [
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "5de886e5-54ea-5b22-b7c4-04a93373a841",
+    "title": "히로킨",
+    "body": "늑대를 타고 뱀을 고삐로 삼아 온 거인 여인으로 발드르의 배를 한 번에 밀어낸다. 출전: 《길피의 속임수》 49장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "hyrrokkin",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 49장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "49장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "6627a137-3b24-5409-a380-4c4448575eeb",
+          "title": "발드르의 맹세와 겨우살이",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "hringhorni",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "fe2e152d-8c78-5c1f-9e22-77e7748dff53",
+    "title": "난나",
+    "body": "발드르의 아내이자 네프의 딸로 남편의 시신을 보고 슬픔에 죽어 함께 화장된다. 출전: 《길피의 속임수》 49장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "nanna",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 49장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "49장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "6627a137-3b24-5409-a380-4c4448575eeb",
+          "title": "발드르의 맹세와 겨우살이",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "ca09b5e3-3444-59bd-b23d-e249acbd3bcf",
+    "title": "헤르모드의 헬 방문",
+    "body": "오딘의 아들 헤르모드는 프리그의 요청에 응해 슬레이프니르를 타고 헬에 가 발드르의 석방을 청한다. 출전: 《길피의 속임수》 49장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "hermod",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 49장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "49장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "6627a137-3b24-5409-a380-4c4448575eeb",
+          "title": "발드르의 맹세와 겨우살이",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "sleipnir",
+          "reason": [
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "ded0c47c-dcfe-568c-9f09-c803aa1f2ec4",
+    "title": "모드구드",
+    "body": "황금으로 덮인 걀라르 다리를 지키는 처녀로, 헤르모드에게 발드르가 다리를 건넜으며 헬로 가는 길이 북쪽 아래라고 알려 준다. 출전: 《길피의 속임수》 49장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "modgud",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 49장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "49장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "6627a137-3b24-5409-a380-4c4448575eeb",
+          "title": "발드르의 맹세와 겨우살이",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "gjallarbru",
+          "reason": [
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "697b2f1c-1213-5b24-9f04-87d4826ed618",
+    "title": "발드르 귀환의 조건",
+    "body": "헬은 살아 있거나 죽은 모든 것이 발드르를 위해 울면 그가 돌아갈 수 있다고 말한다. 거인 여인 퇴크는 울기를 거절한다. 출전: 《길피의 속임수》 49장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "hel-return-condition",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 49장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "49장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "6627a137-3b24-5409-a380-4c4448575eeb",
+          "title": "발드르의 맹세와 겨우살이",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "44a9387c-6edb-5c9e-9e87-433f123a963a",
+    "title": "퇴크의 거절",
+    "body": "동굴에 앉은 거인 여인은 발드르를 위해 울기를 거부한다. 서술자는 이 여인이 로키였다고 사람들이 추정한다고 전한다. 출전: 《길피의 속임수》 49장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "thokk",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 49장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "49장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "6627a137-3b24-5409-a380-4c4448575eeb",
+          "title": "발드르의 맹세와 겨우살이",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "56fd14fc-27d2-516c-a798-478aaa3b964e",
+    "title": "비그리드 들판",
+    "body": "종말에 무스펠의 무리와 늑대·뱀·로키·서리거인들이 이르는 전장으로 사방이 백 라스타라고 한다. 출전: 《길피의 속임수》 51장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "vigrid-field",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 51장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "51장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "516cd9f8-637d-5708-a4e8-7e694e414cb1",
+          "title": "핌불베트르와 종말의 싸움",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "d55f97f7-07b4-524a-a473-9e712c80c957",
+    "title": "비다르의 신발",
+    "body": "비다르는 사람들이 신발의 발끝과 뒤꿈치에서 잘라 버린 가죽 조각으로 오래 모아 만든 신발을 신고 늑대의 아래턱을 밟는다. 출전: 《길피의 속임수》 51장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "vidar-shoe",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 51장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "51장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "516cd9f8-637d-5708-a4e8-7e694e414cb1",
+          "title": "핌불베트르와 종말의 싸움",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "9bed5264-d4db-5426-9e05-74e936b87a7d",
+    "title": "리프와 레이브스라시르",
+    "body": "두 사람은 수르트의 불길 속에서 호드미미스 숲에 숨어 아침 이슬을 먹고, 그들에게서 다시 세상을 채울 사람들이 생겨난다. 출전: 《길피의 속임수》 53장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "lif-leifthrasir",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 53장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "53장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "1f188b2f-607e-54eb-8523-52d8aa342032",
+          "title": "라그나로크 뒤의 신들과 망치",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "hoddmimis-holt",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장",
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "4224a909-8de4-5544-b788-d265a3473121",
+    "title": "해의 딸",
+    "body": "해가 늑대에게 삼켜지기 전에 딸을 낳고, 신들이 죽은 뒤 그 딸이 어머니의 길을 따른다. 출전: 《길피의 속임수》 53장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "sun-daughter",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 53장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "53장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "1f188b2f-607e-54eb-8523-52d8aa342032",
+          "title": "라그나로크 뒤의 신들과 망치",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "0aa1e24e-7090-55d9-9e59-abb25d33b8a5",
+    "title": "시프의 황금 머리카락",
+    "body": "로키가 시프의 머리카락을 자른 뒤 이발디의 아들들이 금으로 만든 대체 머리카락이다. 머리에 닿으면 살에 붙어 자란다. 출전: 《시어법》 43장, https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "sif-golden-hair",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "시어법 43장",
+          "url": "https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l",
+          "location": "43장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "0795ccaa-0685-5373-89e5-4fd82de90467",
+          "title": "묠니르의 제작과 성질",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "45820560-967b-5dac-9234-795eb94b6ce4",
+          "title": "궁니르와 이발디의 아들들",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "b86d50b8-c246-573a-b98e-9204ee18dc15",
+    "title": "스키드블라드니르",
+    "body": "이발디의 아들들이 만든 프레이르의 배로 돛을 올리면 순풍을 얻고 천처럼 접어 주머니에 넣을 수 있다. 출전: 《시어법》 43장, https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l. 기존 norse-gungnir-forge 카드와 중복 가능.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "skidbladnir",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "시어법 43장",
+          "url": "https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l",
+          "location": "43장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "45820560-967b-5dac-9234-795eb94b6ce4",
+          "title": "궁니르와 이발디의 아들들",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "45820560-967b-5dac-9234-795eb94b6ce4",
+          "title": "궁니르와 이발디의 아들들",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "tradition-cards.json",
+          "genre": "norse_mythology",
+          "key": "norse-gungnir-forge",
+          "id": "45820560-967b-5dac-9234-795eb94b6ce4",
+          "title": "궁니르와 이발디의 아들들",
+          "reason": [
+            "입력 후보의 명시적 중복 언급"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "0795ccaa-0685-5373-89e5-4fd82de90467",
+          "title": "묠니르의 제작과 성질",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "45820560-967b-5dac-9234-795eb94b6ce4",
+          "title": "궁니르와 이발디의 아들들",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "64391343-dcdb-5bd7-bc6f-ad0c2505e2c2",
+    "title": "황금 털 멧돼지",
+    "body": "신드리가 만든 멧돼지로 바다와 하늘을 말보다 빠르게 달리고 황금 털이 어둠을 비춘다. 출전: 《시어법》 43장, https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l. 기존 norse-mjolnir-forge 카드와 중복 가능.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "gullinbursti",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "시어법 43장",
+          "url": "https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l",
+          "location": "43장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "tradition-cards.json",
+          "genre": "norse_mythology",
+          "key": "norse-mjolnir-forge",
+          "id": "0795ccaa-0685-5373-89e5-4fd82de90467",
+          "title": "묠니르의 제작과 성질",
+          "reason": [
+            "입력 후보의 명시적 중복 언급"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "0795ccaa-0685-5373-89e5-4fd82de90467",
+          "title": "묠니르의 제작과 성질",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "45820560-967b-5dac-9234-795eb94b6ce4",
+          "title": "궁니르와 이발디의 아들들",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "sindri",
+          "reason": [
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "a47fc327-47a4-5eac-a14d-75b0147d2628",
+    "title": "드라우프니르",
+    "body": "신드리가 만든 오딘의 금반지로 아홉 밤마다 같은 무게의 금반지 여덟 개가 떨어진다. 출전: 《시어법》 43장, https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "draupnir-ring",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "시어법 43장",
+          "url": "https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l",
+          "location": "43장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "ddf66394-92cb-569f-9f9c-a79f7d93fecf",
+          "title": "난쟁이의 탄생과 이름 명단",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "ddf66394-92cb-569f-9f9c-a79f7d93fecf",
+          "title": "난쟁이의 탄생과 이름 명단",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "0795ccaa-0685-5373-89e5-4fd82de90467",
+          "title": "묠니르의 제작과 성질",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "45820560-967b-5dac-9234-795eb94b6ce4",
+          "title": "궁니르와 이발디의 아들들",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "sindri",
+          "reason": [
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "750b259b-d534-5702-aefa-28e4487f8780",
+    "title": "로키의 신발",
+    "body": "머리를 건 내기에서 진 로키가 붙잡히려 할 때 신은 신발로 하늘과 바다를 달려 멀리 도망친다. 출전: 《시어법》 43장, https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "loki-shoes",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "시어법 43장",
+          "url": "https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l",
+          "location": "43장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "0795ccaa-0685-5373-89e5-4fd82de90467",
+          "title": "묠니르의 제작과 성질",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "45820560-967b-5dac-9234-795eb94b6ce4",
+          "title": "궁니르와 이발디의 아들들",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "e9a73da9-5d51-5c9c-9a6d-586b088d79ad",
+    "title": "바르타리",
+    "body": "브로크가 로키의 입술을 꿰매는 데 쓴 가죽 끈의 이름이다. 출전: 《시어법》 43장, https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "vartari",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "시어법 43장",
+          "url": "https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l",
+          "location": "43장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "0795ccaa-0685-5373-89e5-4fd82de90467",
+          "title": "묠니르의 제작과 성질",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "45820560-967b-5dac-9234-795eb94b6ce4",
+          "title": "궁니르와 이발디의 아들들",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "brokkr",
+          "reason": [
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "3ec3708a-854a-5add-a738-d4e7b739a545",
+    "title": "지나친 제물에 관한 격언",
+    "body": "하바말 화자는 지나치게 제물을 바치느니 청하지 않는 편이 낫고 지나치게 희생하느니 보내지 않는 편이 낫다고 말한다. 출전: 《하바말》 145연, https://www.heimskringla.no/wiki/H%C3%A1vam%C3%A1l.",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "havamal-offering-limit",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "하바말 145연",
+          "url": "https://www.heimskringla.no/wiki/H%C3%A1vam%C3%A1l",
+          "location": "145연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "14e798ff-a4ee-595c-9f3e-c6a3cb68f951",
+          "title": "제물과 룬을 묻는 말",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "5daadeda-de12-5565-8152-e2ceda595f28",
+    "title": "바르의 손을 통한 혼인 축성",
+    "body": "트림은 묠니르를 신부의 무릎에 놓고 바르의 손으로 둘의 혼인을 축성하라고 말한다. 기존 혼례 카드와 중복 가능. 출전: 《트림의 노래》 30연, https://www.heimskringla.no/wiki/%C3%9Erymskvi%C3%B0a.",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "var-wedding",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "트림의 노래 30연",
+          "url": "https://www.heimskringla.no/wiki/%C3%9Erymskvi%C3%B0a",
+          "location": "30연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "9426a65d-6fe1-540e-958d-9861277c704f",
+          "title": "묠니르를 되찾은 혼례",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "9bbb7f44-3a8a-56b5-8b4e-ef1eaf938d1c",
+    "title": "트림의 누이",
+    "body": "신부값을 요구했던 늙은 거인의 누이는 토르가 망치를 되찾은 뒤 망치에 맞아 죽는다. 출전: 《트림의 노래》 32연, https://www.heimskringla.no/wiki/%C3%9Erymskvi%C3%B0a.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "thrym-sister",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "트림의 노래 32연",
+          "url": "https://www.heimskringla.no/wiki/%C3%9Erymskvi%C3%B0a",
+          "location": "32연",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "9426a65d-6fe1-540e-958d-9861277c704f",
+          "title": "묠니르를 되찾은 혼례",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": []
+    }
+  },
+  {
+    "id": "d533aabf-a06d-5c49-abf8-d470bc4af473",
+    "title": "헤임달의 파수",
+    "body": "비프로스트를 지키는 헤임달은 밤낮 백 라스타를 보고 풀이 자라는 소리와 양털이 자라는 소리까지 듣는다고 한다. 출전: 《길피의 속임수》 27장, https://www.heimskringla.no/wiki/Gylfaginning. 기존 heimdall 카드와 중복 가능.",
+    "cardType": "ability",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "heimdall-senses",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 27장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "27장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "tradition-cards.json",
+          "genre": "norse_mythology",
+          "key": "heimdall",
+          "id": "dc602eb4-f57a-56ab-b682-ea59c5a98500",
+          "title": "헤임달과 걀라르호른",
+          "reason": [
+            "입력 후보의 명시적 중복 언급"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "e1b8da5d-9e94-5105-a624-3f51f4d60d34",
+          "title": "비프로스트와 하늘길",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "fb392512-c375-5d2a-9a97-f5b32b489119",
+    "title": "레딩과 드로미",
+    "body": "신들이 펜리르의 힘을 시험한다며 차례로 채운 두 결박이다. 늑대는 둘을 모두 부순다. 기존 펜리르 결박 카드와 중복 가능. 출전: 《길피의 속임수》 34장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "laeding-dromi",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 34장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "34장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "188f912e-a349-516e-aa92-5508471099c9",
+          "title": "티르와 펜리르의 결박",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "699b18b1-705a-58aa-a712-49d9e2d8eac7",
+          "title": "글레이프니르의 여섯 재료",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "2db4773a-46f2-59b2-b1a0-94b1f78062aa",
+          "title": "헬과 로키의 세 자녀",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "1b37b3cd-c29d-54c5-842c-45cdd3993982",
+          "title": "아홉 세계와 이름의 범위",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "61694694-b30a-5080-98f7-12dfa71a7191",
+    "title": "흐베르겔미르",
+    "body": "이그드라실의 니플헤임 쪽 뿌리 밑에 있는 샘으로 니드호그가 그 뿌리를 밑에서 갉는다. 출전: 《길피의 속임수》 15장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "hvergelmir",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 15장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "15장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "b5bf997d-a051-5809-aae7-121ede0c6cee",
+          "title": "이그드라실 세 뿌리: 산문의 배치",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "b5bf997d-a051-5809-aae7-121ede0c6cee",
+          "title": "이그드라실 세 뿌리: 산문의 배치",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "e1b8da5d-9e94-5105-a624-3f51f4d60d34",
+          "title": "비프로스트와 하늘길",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "b5bf997d-a051-5809-aae7-121ede0c6cee",
+          "title": "이그드라실 세 뿌리: 산문의 배치",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "480210ad-380d-56b4-9d62-8c10f30a9eb6",
+          "title": "노른과 운명의 차이",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "bergelmir",
+          "reason": [
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "e857fc14-3ac4-50ce-9e5e-f05dd68e64d8",
+    "title": "히민뵤르그",
+    "body": "헤임달이 비프로스트 가까이에 살면서 거인들에게서 다리를 지키는 곳이다. 출전: 《길피의 속임수》 27장, https://www.heimskringla.no/wiki/Gylfaginning. 기존 norse-bifrost 카드와 중복 가능.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "himinbjorg",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 27장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "27장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "tradition-cards.json",
+          "genre": "norse_mythology",
+          "key": "norse-bifrost",
+          "id": "e1b8da5d-9e94-5105-a624-3f51f4d60d34",
+          "title": "비프로스트와 하늘길",
+          "reason": [
+            "입력 후보의 명시적 중복 언급"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "e1b8da5d-9e94-5105-a624-3f51f4d60d34",
+          "title": "비프로스트와 하늘길",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "cfd6a5d4-4ea6-5ccb-b1d9-f7369383589b",
+    "title": "앙그르보다",
+    "body": "요툰헤임의 거인 여인으로 로키와의 사이에서 펜리르·요르문간드르·헬을 낳는다. 기존 헬과 로키 자녀 카드와 중복 가능. 출전: 《길피의 속임수》 34장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "angrboda",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 34장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "34장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "2db4773a-46f2-59b2-b1a0-94b1f78062aa",
+          "title": "헬과 로키의 세 자녀",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "2db4773a-46f2-59b2-b1a0-94b1f78062aa",
+          "title": "헬과 로키의 세 자녀",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "188f912e-a349-516e-aa92-5508471099c9",
+          "title": "티르와 펜리르의 결박",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "699b18b1-705a-58aa-a712-49d9e2d8eac7",
+          "title": "글레이프니르의 여섯 재료",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "2db4773a-46f2-59b2-b1a0-94b1f78062aa",
+          "title": "헬과 로키의 세 자녀",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "1b37b3cd-c29d-54c5-842c-45cdd3993982",
+          "title": "아홉 세계와 이름의 범위",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "6b94a97b-d6ca-56d3-b2ee-05f1f29aa527",
+    "title": "걀라르 다리",
+    "body": "걀 강 위에 걸쳐 있고 빛나는 금으로 덮인 다리로 헤르모드가 헬로 가는 길에 건넌다. 출전: 《길피의 속임수》 49장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "gjallarbru",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 49장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "49장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "6627a137-3b24-5409-a380-4c4448575eeb",
+          "title": "발드르의 맹세와 겨우살이",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "modgud",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "1b934a98-d8fc-5d2b-9e98-3e4908d6e18b",
+    "title": "호드미미스 숲",
+    "body": "리프와 레이브스라시르가 수르트의 불을 피해 숨어 인류를 다시 이어 가는 숲이다. 출전: 《길피의 속임수》 53장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "hoddmimis-holt",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 53장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "53장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "1f188b2f-607e-54eb-8523-52d8aa342032",
+          "title": "라그나로크 뒤의 신들과 망치",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "lif-leifthrasir",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장",
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "7c8400cd-ece7-5cd6-9aa2-ddb759a3da9b",
+    "title": "로키의 머리 내기",
+    "body": "로키는 브로크에게 형제가 같은 수준의 세 보물을 만들지 못할 것이라며 자기 머리를 걸고, 망치가 가장 뛰어나다는 판정으로 내기에서 진다. 출전: 《시어법》 43장, https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "loki-head-wager",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "시어법 43장",
+          "url": "https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l",
+          "location": "43장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "0795ccaa-0685-5373-89e5-4fd82de90467",
+          "title": "묠니르의 제작과 성질",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "45820560-967b-5dac-9234-795eb94b6ce4",
+          "title": "궁니르와 이발디의 아들들",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "brokkr",
+          "reason": [
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "02d8629d-51cc-53a8-91b6-1ce55f5db115",
+    "title": "묠니르의 짧은 자루",
+    "body": "망치는 던지면 빗나가지 않고 다시 손에 돌아오며 크기를 줄일 수 있지만 자루가 짧다는 결점이 있다. 기존 묠니르 카드와 중복 가능. 출전: 《시어법》 43장, https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "mjolnir-short-handle",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "시어법 43장",
+          "url": "https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l",
+          "location": "43장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "0795ccaa-0685-5373-89e5-4fd82de90467",
+          "title": "묠니르의 제작과 성질",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "45820560-967b-5dac-9234-795eb94b6ce4",
+          "title": "궁니르와 이발디의 아들들",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "8fe67398-8e16-5a77-85e6-077dc9cfc51d",
+    "title": "안드흐림니르",
+    "body": "발할라의 요리사로 새흐림니르를 삶아 전사자들을 먹인다. 기존 발할라 양식 카드와 중복 가능. 출전: 《길피의 속임수》 38장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "andhrimnir",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 38장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "38장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "c88b2ee6-7b48-589f-bbbf-13852a605f1f",
+          "title": "발할라의 전사자들과 양식",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "saehrimnir",
+          "reason": [
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "segment": "norse-supplement",
+          "key": "eldhrimnir",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "10d07195-ea31-51c6-b3b1-eb216e909219",
+    "title": "엘드흐림니르",
+    "body": "요리사 안드흐림니르가 새흐림니르를 삶는 솥이다. 기존 발할라 양식 카드와 중복 가능. 출전: 《길피의 속임수》 38장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "eldhrimnir",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 38장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "38장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "c88b2ee6-7b48-589f-bbbf-13852a605f1f",
+          "title": "발할라의 전사자들과 양식",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "saehrimnir",
+          "reason": [
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "segment": "norse-supplement",
+          "key": "andhrimnir",
+          "reason": [
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  },
+  {
+    "id": "116123fb-2535-510e-aa08-4b7b6f04fe76",
+    "title": "신드리",
+    "body": "난쟁이 대장장이로 멧돼지와 반지와 망치를 만들며 형제 브로크가 풀무를 분다. 출전: 《시어법》 43장, https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "sindri",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "시어법 43장",
+          "url": "https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l",
+          "location": "43장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "3a8bea66-05c7-54a6-87c8-4722732a43b1",
+          "title": "니다벨리르와 오콜니르의 전당",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "0795ccaa-0685-5373-89e5-4fd82de90467",
+          "title": "묠니르의 제작과 성질",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "3a8bea66-05c7-54a6-87c8-4722732a43b1",
+          "title": "니다벨리르와 오콜니르의 전당",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "0795ccaa-0685-5373-89e5-4fd82de90467",
+          "title": "묠니르의 제작과 성질",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "0795ccaa-0685-5373-89e5-4fd82de90467",
+          "title": "묠니르의 제작과 성질",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "45820560-967b-5dac-9234-795eb94b6ce4",
+          "title": "궁니르와 이발디의 아들들",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "gullinbursti",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "segment": "norse-supplement",
+          "key": "draupnir-ring",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "segment": "norse-supplement",
+          "key": "brokkr",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장",
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "a8450737-9360-50c1-9bd4-93eca5e51a40",
+    "title": "브로크",
+    "body": "난쟁이 신드리의 형제로, 로키와 내기를 하고 풀무를 불어 완성된 세 보물을 신들에게 바친다. 출전: 《시어법》 43장, https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "brokkr",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "시어법 43장",
+          "url": "https://www.heimskringla.no/wiki/Sk%C3%A1ldskaparm%C3%A1l",
+          "location": "43장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "0795ccaa-0685-5373-89e5-4fd82de90467",
+          "title": "묠니르의 제작과 성질",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates-v2.json",
+          "genre": "norse_mythology",
+          "id": "0795ccaa-0685-5373-89e5-4fd82de90467",
+          "title": "묠니르의 제작과 성질",
+          "reason": [
+            "후보 제목이 기존 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "0795ccaa-0685-5373-89e5-4fd82de90467",
+          "title": "묠니르의 제작과 성질",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        },
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "45820560-967b-5dac-9234-795eb94b6ce4",
+          "title": "궁니르와 이발디의 아들들",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [
+        {
+          "segment": "norse-supplement",
+          "key": "vartari",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "segment": "norse-supplement",
+          "key": "loki-head-wager",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장"
+          ]
+        },
+        {
+          "segment": "norse-supplement",
+          "key": "sindri",
+          "reason": [
+            "후보 제목이 다른 후보 제목 또는 본문에 등장",
+            "다른 후보 제목이 후보 제목 또는 본문에 등장"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "8c204979-df4a-55ea-a1f2-a2a4762e718f",
+    "title": "나글파르의 재료와 손발톱",
+    "body": "《길피의 속임수》에서 나글파르는 죽은 사람의 손발톱으로 만들어진다. 화자는 죽은 이의 손발톱을 깎지 않으면 신과 사람들이 완성을 늦추고 싶어 하는 배의 재료가 늘어난다고 경고한다. 기존 나글파르 카드와 중복 가능. 출전: 《길피의 속임수》 51장, https://www.heimskringla.no/wiki/Gylfaginning.",
+    "cardType": "rule",
+    "provenance": {
+      "segment": "norse-supplement",
+      "candidate_key": "naglfar-nails",
+      "input_file": "미게시-임시자료:myth/norse-supplement.json",
+      "input_sha256": "6cafbb8493d016b700611220bd3b8565d202f2d2808f1cdf07e82d8e92813a3c",
+      "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Heimskringla 공개 고대 노르드어 전사; 전사의 판본·재사용 조건 미확인",
+      "evidence": [
+        {
+          "unit": "길피의 속임수 51장",
+          "url": "https://www.heimskringla.no/wiki/Gylfaginning",
+          "location": "51장",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "입력 추출자의 한국어 요약; 공인 번역 아님",
+      "evidence_review": "발췌가 요약 전체를 입증하는지는 미검증; 원문 맥락 대조 필요"
+    },
+    "duplicate_review": {
+      "status": "검토 필요; 병합하지 않음",
+      "existing_candidates": [
+        {
+          "variant": "genre-templates.json",
+          "genre": "norse_mythology",
+          "id": "516cd9f8-637d-5708-a4e8-7e694e414cb1",
+          "title": "핌불베트르와 종말의 싸움",
+          "reason": [
+            "동일 보충 출전의 장·연에 연결된 기존 카드; 대상 일치 별도 검토"
+          ]
+        }
+      ],
+      "input_candidates": [],
+      "input_warning": "입력에서 기존 카드와의 중복 가능성을 언급함; 본문 참조를 확인할 것"
+    }
+  }
+]

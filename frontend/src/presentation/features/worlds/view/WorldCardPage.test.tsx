@@ -34,7 +34,9 @@ const renderAt = async (path: string) => {
 const open = (cardId: number) => renderAt(cardPath(WORLD, cardId))
 const items = (section: Element) => within(section as HTMLElement).getAllByRole('listitem').map((li) => li.textContent)
 const sections = () => Array.from(document.querySelectorAll('details.nw-sec'))
-const heads = () => sections().map((d) => d.querySelector('h2')?.textContent)
+const heads = () => sections().map((d) => d.querySelector(':scope > summary')?.textContent)
+/** `##` 앞 첫머리 글: 제목·번호 없이 목차 아래에 그린다(개요 문단을 지어 붙이지 않는다). */
+const lead = () => document.querySelector<HTMLElement>('article.nw .nw-lead')
 const rows = (table: HTMLElement) => ({
   keys: within(table).getAllByRole('rowheader').map((e) => e.textContent),
   values: within(table).getAllByRole('cell').map((e) => e.textContent),
@@ -56,11 +58,12 @@ it('카드 한 장이 빵부스러기·분류 상자·문서 제목·정보 표�
 it('목차와 접이식 문단은 내용이 있는 문단만 연속 번호로 그리고 각 문단은 대상 카드 페이지로 가는 링크를 둔다', async () => {
   await open(2)
   const toc = within(screen.getByRole('navigation', { name: '목차' })).getAllByRole('link').map((a) => a.textContent)
-  expect(toc).toEqual(['1. 개요', '2. 관계', '3. 연관 설정', '4. 같은 유형의 다른 설정']) // 이 카드를 가리키는 설정이 없어 번호가 건너뛰지 않는다
+  expect(toc).toEqual(['1. 관계', '2. 연관 설정', '3. 같은 유형의 다른 설정']) // 이 카드를 가리키는 설정이 없어 번호가 건너뛰지 않는다
   expect(heads()).toEqual(toc)
   expect(sections().every((d) => (d as HTMLDetailsElement).open)).toBe(true)
-  const [overview, relations, links, same] = sections()
-  within(overview as HTMLElement).getByText('기억에 항로를 적는 마지막 항해사. 일곱 번째 섬의 항로를 혼자 기억한다고 한다.')
+  const [relations, links, same] = sections()
+  within(lead()!).getByText('기억에 항로를 적는 마지막 항해사. 일곱 번째 섬의 항로를 혼자 기억한다고 한다.')
+  expect(screen.queryByText(/개요/)).toBeNull() // 본문에 없는 '개요' 문단을 지어 붙이지 않는다
   expect(items(relations)).toEqual(['조석신 하엘 · 숭배', '견습 항해사 미라 · 스승-제자']) // 설정집 순서, 라벨이 관계
   expect(within(relations as HTMLElement).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([cardPath(WORLD, 1), cardPath(WORLD, 3)])
   expect(items(links)).toEqual(['사건 일곱 번째 섬의 실종 · 목격'])
@@ -69,8 +72,8 @@ it('목차와 접이식 문단은 내용이 있는 문단만 연속 번호로 �
 
 it('인물이 아닌 카드는 정보 표에 연결 수를 보이고 연관과 이 카드를 가리키는 설정을 나눠 보인다', async () => {
   await open(4)
-  expect(heads()).toEqual(['1. 개요', '2. 연관 설정', '3. 이 카드를 가리키는 설정'])
-  const [, links, backlinks] = sections()
+  expect(heads()).toEqual(['1. 연관 설정', '2. 이 카드를 가리키는 설정'])
+  const [links, backlinks] = sections()
   expect(items(links)).toEqual(['기타 우주관 · 물때의 달 · 물때에 맞춰 열림'])
   expect(items(backlinks)).toEqual(['인물 견습 항해사 미라 · 머무는 곳'])
   expect(rows(screen.getByRole('table', { name: '새벽항' }))).toEqual({ keys: ['유형', '연결', '세계관'], values: ['장소', '2개', '달무리 군도'] })
@@ -119,15 +122,15 @@ it('목차 링크는 기본 이동을 막고 그 문단으로 스크롤·포커�
   await open(2)
   const toc = within(screen.getByRole('navigation', { name: '목차' }))
   const summary = (n: number) => sections()[n].querySelector('summary')
-  expect(fireEvent.click(toc.getByRole('link', { name: '3. 연관 설정' }))).toBe(false) // preventDefault
+  expect(fireEvent.click(toc.getByRole('link', { name: '2. 연관 설정' }))).toBe(false) // preventDefault
   expect(scrollIntoView).toHaveBeenLastCalledWith({ behavior: 'smooth', block: 'start' })
-  expect(scrollIntoView.mock.contexts.at(-1)).toBe(summary(2))
-  expect(document.activeElement).toBe(summary(2))
+  expect(scrollIntoView.mock.contexts.at(-1)).toBe(summary(1))
+  expect(document.activeElement).toBe(summary(1))
   Object.defineProperty(window, 'matchMedia', { configurable: true, value: () => ({ matches: true }) })
   try {
-    fireEvent.click(toc.getByRole('link', { name: '2. 관계' }))
+    fireEvent.click(toc.getByRole('link', { name: '1. 관계' }))
     expect(scrollIntoView).toHaveBeenLastCalledWith({ behavior: 'auto', block: 'start' })
-    expect(document.activeElement).toBe(summary(1))
+    expect(document.activeElement).toBe(summary(0))
   } finally {
     Reflect.deleteProperty(window, 'matchMedia')
   }
@@ -159,8 +162,8 @@ it('서버 카드는 카드 id로 찾고 데모 안내 없이 연결·이전·�
   const get = vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld())
   await renderAt(cardPath('sw', 'c-uuid-1'))
   expect(screen.queryByText(/데모/)).toBeNull()
-  expect(heads()).toEqual(['1. 개요', '2. 연관 설정'])
-  expect(within(sections()[1] as HTMLElement).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([cardPath('sw', 'c-uuid-2')])
+  expect(heads()).toEqual(['1. 연관 설정'])
+  expect(within(sections()[0] as HTMLElement).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([cardPath('sw', 'c-uuid-2')])
   const nav = within(screen.getByRole('navigation', { name: '이전·다음 설정' }))
   expect(nav.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([cardPath('sw', 'c-uuid-2')])
   fireEvent.click(nav.getByRole('link', { name: /다음 설정/ }))
@@ -198,14 +201,14 @@ const marked = (text: string, extra: Partial<PublicWorld['cards'][number]> = {})
   ],
 })
 
-it('본문의 ## 제목마다 번호 문단이 되어 목차에 나오고 그 뒤에 연관 설정 문단이 이어진다', async () => {
+it('목차는 본문 마크다운의 ## 제목이고 그 뒤에 연관 설정 문단이 이어지며 첫머리 글은 제목 없이 그린다', async () => {
   vi.spyOn(useCase(), 'get').mockResolvedValue(marked('교신사다.\n\n## 성격\n- **차분함**\n- 끈질김\n\n## 과거\n#### 어린 시절\n온실에서 자랐다.'))
   await renderAt(cardPath('sw', 'c-uuid-1'))
   const toc = within(screen.getByRole('navigation', { name: '목차' })).getAllByRole('link').map((a) => a.textContent)
-  expect(toc).toEqual(['1. 개요', '2. 성격', '3. 과거', '4. 연관 설정'])
+  expect(toc).toEqual(['1. 성격', '2. 과거', '3. 연관 설정'])
   expect(heads()).toEqual(toc)
-  const [overview, trait, past, links] = sections()
-  within(overview as HTMLElement).getByText('교신사다.')
+  const [trait, past, links] = sections()
+  within(lead()!).getByText('교신사다.')
   expect(items(trait)).toEqual(['차분함', '끈질김'])
   expect(trait.querySelector('li strong')?.textContent).toBe('차분함') // 마크다운으로 그려진다
   expect(past.querySelector('h5')?.textContent).toBe('어린 시절') // 본문 제목은 문단 제목(h2)보다 낮은 단계다
@@ -213,12 +216,27 @@ it('본문의 ## 제목마다 번호 문단이 되어 목차에 나오고 그 �
   expect(document.querySelectorAll('h1')).toHaveLength(1)
 })
 
-it('## 줄이 없는 본문은 개요 한 문단으로 마크다운을 그린다', async () => {
+it('#·##·### 제목은 겹친 번호의 목차와 안에 든 접이식 문단이 되고 상위를 접으면 하위도 함께 접힌다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(marked('교신사다.\n\n# 인물\n## 성격\n차분하다.\n### 말버릇\n음…\n## 과거\n#### 어린 시절\n자랐다.'))
+  await renderAt(cardPath('sw', 'c-uuid-1'))
+  const toc = screen.getByRole('navigation', { name: '목차' })
+  expect(within(toc).getAllByRole('link').map((a) => a.textContent)).toEqual(['1. 인물', '1.1. 성격', '1.1.1. 말버릇', '1.2. 과거', '2. 연관 설정'])
+  expect(toc.querySelectorAll('ol ol ol li')).toHaveLength(1) // 말버릇이 세 번째 단계 목록에 든다
+  expect(heads()).toEqual(['1. 인물', '1.1. 성격', '1.1.1. 말버릇', '1.2. 과거', '2. 연관 설정'])
+  const [person, trait, habit, past] = sections()
+  expect([person, trait, habit].map((d) => d.querySelector(':scope > summary > *')?.tagName)).toEqual(['H2', 'H3', 'H4'])
+  expect(person.contains(trait) && trait.contains(habit) && person.contains(past)).toBe(true) // 하위 문단은 상위 문단 안에 있다
+  expect(past.querySelector('.nw-doc h5')?.textContent).toBe('어린 시절') // #### 이하는 목차가 아니라 본문 소제목이다
+  within(lead()!).getByText('교신사다.')
+})
+
+it('## 줄이 없는 본문은 개요 문단 없이 첫머리 글로 마크다운을 그리고 목차에 넣지 않는다', async () => {
   vi.spyOn(useCase(), 'get').mockResolvedValue(marked('**성격**: 차분함\n\n- 항해사'))
   await renderAt(cardPath('sw', 'c-uuid-1'))
-  expect(heads()).toEqual(['1. 개요', '2. 연관 설정'])
-  expect(sections()[0].querySelector('p strong')?.textContent).toBe('성격')
-  expect(items(sections()[0])).toEqual(['항해사'])
+  expect(heads()).toEqual(['1. 연관 설정'])
+  expect(within(screen.getByRole('navigation', { name: '목차' })).getAllByRole('link').map((a) => a.textContent)).toEqual(['1. 연관 설정'])
+  expect(lead()!.querySelector('p strong')?.textContent).toBe('성격')
+  expect(items(lead()!)).toEqual(['항해사'])
 })
 
 it('정보 상자에 별칭은 쉼표로, 태그는 칩으로 보이고 값이 없으면 그 행이 없다', async () => {
@@ -239,4 +257,27 @@ it('본문의 원시 HTML은 요소로 그리지 않고 글자로 보인다', as
   const article = document.querySelector('article.nw')!
   expect(article.querySelector('script, img')).toBeNull()
   expect(article.textContent).toContain('<script>window.x = 1</script>')
+})
+
+// ── 카드 대표 이미지(#401): 공개 이미지 주소를 <img>로 직접 읽고, 읽지 못하면 감춘다 ──
+it('이미지가 있는 카드는 정보 상자 맨 위에 공개 카드 이미지 주소의 이미지를 보이고(대체 글은 카드 제목 이미지) 읽지 못하면 감춘다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(marked('교신사', { imageId: 'img 1' }))
+  await renderAt(cardPath('sw', 'c-uuid-1'))
+  const info = screen.getByRole('table', { name: '하린' })
+  const image = within(info).getByRole('img', { name: '하린 이미지' })
+  expect(image.getAttribute('src')).toBe('/api/v1/public/world-studios/sw/card-images/img%201')
+  expect(info.querySelector('tbody tr:first-child')?.contains(image)).toBe(true) // 유형 행보다 위
+  fireEvent.error(image)
+  expect(within(info).queryByRole('img')).toBeNull()
+  expect(within(info).getByText('유형')).toBeTruthy() // 이미지를 감춰도 정보 상자의 행은 그대로다
+})
+
+it('이미지가 없는 카드(imageId가 null이거나 없음)의 정보 상자에는 이미지가 없다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(marked('교신사', { imageId: null }))
+  await renderAt(cardPath('sw', 'c-uuid-1'))
+  expect(screen.queryByRole('img')).toBeNull()
+  cleanup()
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld())
+  await renderAt(cardPath('sw', 'c-uuid-2'))
+  expect(screen.queryByRole('img')).toBeNull()
 })

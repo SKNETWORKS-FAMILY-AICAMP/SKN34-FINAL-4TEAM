@@ -17,7 +17,7 @@ function deleteBlocker(active:WritingEpisode|null,episodes:WritingEpisode[]) {
   return [kept&&`${kept}이 있는 회차는 삭제할 수 없어요.`,active.number<last&&`마지막 회차(${last}화)만 삭제할 수 있어요.`].filter(Boolean).join(' ')
 }
 /** initialEpisode(주소의 ?ep=n)는 처음 목록을 읽을 때 열 회차다. 목록에 없으면 첫 회차를 연다. */
-export function useWritingViewModel(id:string, api:WritingApi=appContainer.resolve('episodeUseCase'), media:Pick<MediaUseCase,'upload'>=appContainer.resolve('mediaUseCase'), initialEpisode?:number) {
+export function useWritingViewModel(id:string, api:WritingApi=appContainer.resolve('episodeUseCase'), media:Pick<MediaUseCase,'upload'>=appContainer.resolve('mediaUseCase'), initialEpisode?:number, confirmPlanLeave?:()=>boolean) {
   const [episodes,setEpisodes]=useState<WritingEpisode[]>([])
   const [active,setActive]=useState<WritingEpisode|null>(null)
   const [draft,setDraft]=useState<Draft>({title:'',body:'',revision:0})
@@ -114,7 +114,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     if(autosave.current)void run(async()=>{},false)
     return true
   }
-  const mayLeave=()=>!inFlight()&&(!dirty||window.confirm('저장하지 않은 입력을 버리고 이동할까요?'))
+  const mayLeave=()=>!inFlight()&&(confirmPlanLeave?.()??true)&&(!dirty||window.confirm('저장하지 않은 입력을 버리고 이동할까요?'))
   // 삭제가 서버에 확정되면 true다. 뒤이은 목록 재조회가 실패해도 true라서 화면이 사라진 버튼 대신 초점을 옮길 수 있다.
   const remove=async(whole:boolean)=>{
     if(!active||active.inherited||inFlight())return false
