@@ -816,6 +816,14 @@ it('세계관 없는 주소(/worldstudio)는 새 세계관 만들기 화면이�
   expect(document.querySelector('.ep-create')).toBeNull() // 만든 뒤에는 만들기 화면이 사라진다
 })
 
+it('새 세계관 만들기의 표지 자리도 테마 그림이 아니라 기본 표지이고 올리지 않으면 기본 표지를 쓴다고 알린다', async () => {
+  await show(undefined, '/worldstudio')
+  const tile = document.querySelector('.ep-create .cov')
+  expect(tile?.querySelector('svg')).toBeNull()
+  expect(tile?.querySelector('img')?.getAttribute('src')).toBe('/default-work-cover.svg')
+  expect(screen.getByText('표지는 만든 뒤에 올릴 수 있어요. 올리지 않으면 기본 표지를 써요.')).toBeTruthy()
+})
+
 // ── 새 세계관 만들기 화면은 세계관 없는 주소(/worldstudio)에만 있다 ─────────────────────────
 /** 만들기 화면의 조각: 숨겨서라도 DOM에 남아 있으면 안 된다(RTL의 역할 질의는 숨은 요소를 건너뛰므로 DOM·텍스트로 본다). */
 const createScreenParts = () => [document.querySelector('.ep-create'), document.querySelector('.world-library-list'), screen.queryByText(/한 줄의 설정에서 시작해/), screen.queryByText('정하고'), screen.queryByText('세계관 만들기')]
@@ -1509,6 +1517,7 @@ const png = (name = 'cover.png', type = 'image/png', size = 4) => new File([new 
 const coverGroup = () => within(infoForm().getByRole('group', { name: '표지' }))
 const pickCover = (file: File) => fireEvent.change(coverGroup().getByLabelText('이미지 선택'), { target: { files: [file] } })
 const headerCover = () => headerOf().queryByRole('img', { name: '세계관 표지' })
+const defaultCover = () => headerOf().queryByRole('img', { name: '기본 세계관 표지' })
 
 it('올린 표지가 있는 세계관은 헤더 표지가 인증 읽기로 받은 이미지이고, 화면을 떠나면 객체 주소를 해제한다', async () => {
   const { readCover } = await show(undefined, '/worldstudio/qa', { hasCover: true })
@@ -1520,19 +1529,21 @@ it('올린 표지가 있는 세계관은 헤더 표지가 인증 읽기로 받�
   expect(objectUrls.revokeObjectURL).toHaveBeenCalledWith('blob:cover-1')
 })
 
-it('올린 표지가 없으면 읽지 않고 자동 생성 표지를 보인다', async () => {
+it('올린 표지가 없으면 읽지 않고 기본 표지를 보인다', async () => {
   const { readCover } = await showWorld()
   expect(readCover).not.toHaveBeenCalled()
   expect(headerCover()).toBeNull()
-  expect(document.querySelector('.world-manage-hero .cov svg')).not.toBeNull()
+  expect(defaultCover()?.getAttribute('src')).toBe('/default-work-cover.svg')
+  expect(document.querySelector('.world-manage-hero .cov svg')).toBeNull() // 테마·장르 그림을 표지 대신 쓰지 않는다
 })
 
-it('표지를 읽지 못하면 자동 생성 표지를 두고 패널에서 이유를 알린다', async () => {
+it('표지를 읽지 못하면 기본 표지를 두고 패널에서 이유를 알린다', async () => {
   const readCover = vi.fn(async () => { throw new Error('표지를 불러오지 못했어요.') })
   await show(undefined, '/worldstudio/qa', { hasCover: true, readCover })
   await waitFor(() => expect(readCover).toHaveBeenCalled())
   expect(headerCover()).toBeNull()
-  expect(document.querySelector('.world-manage-hero .cov svg')).not.toBeNull()
+  expect(defaultCover()?.getAttribute('src')).toBe('/default-work-cover.svg')
+  expect(document.querySelector('.world-manage-hero .cov svg')).toBeNull()
   openInfoEdit()
   expect(await coverGroup().findByText('표지를 불러오지 못했어요.')).toBeTruthy()
 })
@@ -1636,7 +1647,7 @@ it('형식·크기가 맞지 않는 파일은 고르는 순간 이유를 알리�
   expect(setCover).not.toHaveBeenCalled()
 })
 
-it('표지를 지우면 확인한 뒤 바로 지우고 자동 생성 표지로 돌아간다(거절하면 아무것도 하지 않는다)', async () => {
+it('표지를 지우면 확인한 뒤 바로 지우고 기본 표지로 돌아간다(거절하면 아무것도 하지 않는다)', async () => {
   const { removeCover } = await show(undefined, '/worldstudio/qa', { hasCover: true })
   await waitFor(() => expect(headerCover()).toBeTruthy())
   openInfoEdit()
@@ -1647,9 +1658,10 @@ it('표지를 지우면 확인한 뒤 바로 지우고 자동 생성 표지로 �
   confirm.mockReturnValue(true)
   fireEvent.click(coverGroup().getByRole('button', { name: '표지 삭제' }))
   await waitFor(() => expect(removeCover).toHaveBeenCalledWith('qa', expect.any(AbortSignal)))
-  expect(await screen.findByText('표지를 지웠어요. 자동으로 만든 표지를 써요.')).toBeTruthy()
+  expect(await screen.findByText('표지를 지웠어요. 기본 표지를 써요.')).toBeTruthy()
   await waitFor(() => expect(headerCover()).toBeNull())
-  expect(document.querySelector('.world-manage-hero .cov svg')).not.toBeNull()
+  expect(defaultCover()?.getAttribute('src')).toBe('/default-work-cover.svg')
+  expect(document.querySelector('.world-manage-hero .cov svg')).toBeNull()
   expect(coverGroup().queryByRole('button', { name: '표지 삭제' })).toBeNull()
 })
 

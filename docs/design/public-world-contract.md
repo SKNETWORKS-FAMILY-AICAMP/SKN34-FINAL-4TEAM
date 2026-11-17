@@ -17,7 +17,7 @@
 - **초안 저장과 확정 버전은 다르다.** 이 문서의 '저장 버전'은 소유자가 명시적으로 확정한 `world_revision`(`POST /{id}/revisions`, 세계관의 `current_revision_id`)이다. 화면의 '저장'(`PUT /{id}/draft`)은 초안 저장이라 공개 화면에 반영되지 않으며, 공개 목록·상세의 노출은 **확정 버전(current revision) 기준**이다. 목록과 상세는 모두 확정(`sealed`)된 현재 버전만 보인다.
 - 파생·조합(세계관 복사)과 남의 세계관을 참조·추종하는 이용은 없다(DEC-35 유지). 세계관 이용은 참조 연결 없이 공개 카드를 카드 단위로 내 세계관에 복사하는 **설정 가져오기**로 하고(2026-11-12 사용자 결정: 공개 세계관의 공개 카드는 로그인한 누구나 가져올 수 있고 출처를 자동으로 표시한다), 세계관과 소설은 1:1로 연결한다(DEC-46). 아래 '세계관-소설 1:1 연결'·'독자 설정 위키'·'설정 가져오기와 카드 메타데이터' 절이 계약이다. 공개 세계관 응답에는 연결된 소설이 없다.
 - **설정 카드는 카드 단위로 공개·비공개를 정하며 기본은 비공개다**(`setting_card_*.visibility`, DEC-46, 2026-11-12 사용자 결정). 공개 세계관에서도 **삭제되지 않았고(`lifecycle=active`) 공개(`visibility=public`)인 카드만** 보이고, 관계는 양 끝 카드가 모두 그런 카드일 때만 보인다. 목록의 `cardCount`·`relationshipCount`도 같은 기준이다. 공개 카드가 하나도 없는 공개 세계관도 목록·상세에는 그대로 나온다(카드 0개).
-- **세계관 표지는 소유자가 직접 올린 이미지(PNG·JPEG·WebP, 5MB 이하)만 쓴다**(2026-11-12 사용자 결정). AI 표지 생성은 준비 중이라 이 계약에 없다. 표지가 없으면 화면이 기존 자동 생성 표지를 쓴다. 공개 표지의 노출 기준은 상세와 같다(공개이고 확정 버전이 있을 때).
+- **세계관 표지는 소유자가 직접 올린 이미지(PNG·JPEG·WebP, 5MB 이하)만 쓴다**(2026-11-12 사용자 결정). AI 표지 생성은 준비 중이라 이 계약에 없다. 표지가 없으면 화면이 기본 표지(`/default-work-cover.svg`)를 쓴다. 공개 표지의 노출 기준은 상세와 같다(공개이고 확정 버전이 있을 때).
 
 장르 코드(소유자가 공개할 때 고른다, 미지정은 `null`):
 
@@ -100,7 +100,7 @@ PublicWorld        = { "id", "name", "description", "genre", "authorNickname", "
 - 관계 저장소가 현재 상태를 보증하지 못하면(미전환·미완료·조회 실패·토큰 불일치) 카드는 그대로 두고 `relationships: []`, `relationshipStatus: "unavailable"`로 200을 돌려준다(500이 아니다). 정상이면 `"current"`다.
 - 작가 닉네임은 저장하지 않고 응답마다 `CoreNicknameService`로 회원 ID 묶음을 한 번 조회해 채운다. Core에 없으면 `탈퇴한 회원`이고, Core 호출 실패는 대체 이름 없이 503/504/502로 그대로 전한다.
 - 상세의 `id`가 UUID 형식이 아니면 400, 형식이 맞는데 없으면 404다.
-- 표지 응답의 `Content-Type`은 저장한 형식(`image/png`·`image/jpeg`·`image/webp`)이고 `Cache-Control: private, no-store`·`X-Content-Type-Options: nosniff`이다(기존 작품 공개 표지와 같은 관례). 화면은 `hasCover`가 `true`일 때만 `<img src="/api/v1/public/world-studios/{id}/cover">`로 직접 읽고, `false`이면 기존 자동 생성 표지를 쓴다. `id`가 UUID 형식이 아니면 400이다.
+- 표지 응답의 `Content-Type`은 저장한 형식(`image/png`·`image/jpeg`·`image/webp`)이고 `Cache-Control: private, no-store`·`X-Content-Type-Options: nosniff`이다(기존 작품 공개 표지와 같은 관례). 화면은 `hasCover`가 `true`일 때만 `<img src="/api/v1/public/world-studios/{id}/cover">`로 직접 읽고, `false`이면 기본 표지(`/default-work-cover.svg`)를 쓴다. `id`가 UUID 형식이 아니면 400이다.
 
 ### 라우팅·보안
 

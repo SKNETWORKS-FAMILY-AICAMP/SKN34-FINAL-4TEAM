@@ -21,7 +21,7 @@ export function QuickJump() {
       <ul id="ql" role={hasList ? 'listbox' : undefined} aria-label={hasList ? '이동할 곳' : undefined}>
         {hasList ? vm.list.map((x, i) => (
           <li key={x.k + x.label + x.go} id={`qo${i}`} role="option" aria-selected={i === vm.sel} className={i === vm.sel ? 'on' : ''} onClick={() => vm.go(i)}>
-            <div className="th">{'w' in x && x.w && <CoverOf w={x.w} k="q" />}</div><div><b>{x.label}</b><small>{x.sub}</small></div><span className="chip">{x.k}</span>
+            <div className="th">{'w' in x && x.w && <CoverOf w={x.w} />}</div><div><b>{x.label}</b><small>{x.sub}</small></div><span className="chip">{x.k}</span>
           </li>
         )) : <li style={{ display: 'block', color: 'var(--sub)' }}>검색 결과가 없어요.</li>}
       </ul>
