@@ -26,7 +26,13 @@ export type ChatStepResult = {
   before?: string
   after?: string
   findings?: { text: string; verdict: string; sourceUrls: string[] }[]
+  /** 전개 기획(#387)의 계획 대안과 참고. 원고가 아니라 반영하지 않는다. */
+  plans?: BeatPlan[]
+  notes?: string[]
+  /** 계획 없이 바로 쓴 원고(text)가 스스로 정해 쓴 계획 */
+  plan?: BeatPlan | null
 }
+export type BeatPlan = { title: string; beats: string[] }
 export type ChatStep = {
   feature: ChatFeature
   /** if_issues_found는 직전 검수에서 확정 지적이 있을 때만 고치는 조건부 수정이다(#370). skipped는 고칠 것이 없어 건너뛴 단계(error가 이유)다. */
@@ -115,7 +121,7 @@ export function cleanScene(scene: SceneAction): SceneAction {
   }
 }
 
-export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '집필·수정', web_research: '고증 조사', character_simulation: '인물 시뮬레이션', review: '원고 검수', rating: '심의 등급' }
+export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '기획·집필·수정', web_research: '고증 조사', character_simulation: '인물 시뮬레이션', review: '원고 검수', rating: '심의 등급' }
 export const reviewCheckLabel: Record<ReviewCheck, string> = { mechanical: '맞춤법·표기', semantic: '설정·개연성', both: '설정·개연성 + 맞춤법·표기' }
 const reviewStatus: Record<ReviewFinding['status'], string> = { confirmed: '확정', suspected: '의심', undeterminable: '판단 불가' }
 const reviewCategory: Record<string, string> = {
@@ -176,12 +182,17 @@ export function stepText(step: ChatStep): string {
   if (r.claims) return [...r.claims.map((c) => c.text), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '근거를 찾지 못했어요.'
   if (r.findings) return [...r.findings.map((f) => `${researchVerdict[f.verdict] ?? researchVerdict.unverified} · ${f.text}${f.sourceUrls.length ? ` (${f.sourceUrls.join(', ')})` : ''}`), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '조사 결과가 없어요.'
   if (r.after !== undefined) return `수정 전: ${r.before ?? ''}\n수정 후: ${r.after}`
+  if (r.plans) return [...r.plans.map((p, i) => [`계획 ${i + 1}. ${p.title}`, ...p.beats.map((b, j) => `  ${j + 1}) ${b}`)].join('\n')),
+    ...(r.notes ?? []).map((n) => `참고: ${n}`)].join('\n')
   return r.text ?? ''
 }
+
+/** 바로 쓴 원고가 정해 쓴 계획 한 줄. 반영 미리보기(stepText)에는 넣지 않는다. */
+const usedPlan = (step: ChatStep) => (step.result?.plan ? `\n사용한 계획: ${step.result.plan.title} — ${step.result.plan.beats.join(' / ')}` : '')
 
 /** 턴 응답 전체를 말풍선 하나의 글로. 실행하지 않은 턴은 안내 문구만, 실행한 턴은 단계별 결과를 계획 순서로 잇는다. */
 export function replyText(reply: ChatReply): string {
   const steps = reply.steps.filter((s) => s.status !== 'not_started')
-    .map((s) => `[${featureLabel[s.feature] ?? s.feature}] ${stepText(s)}${s.applied ? `\n→ ${s.applied.episode}화 초안에 반영했어요.` : s.approval === 'declined' ? '\n→ 반영하지 않았어요.' : ''}`)
+    .map((s) => `[${featureLabel[s.feature] ?? s.feature}] ${stepText(s)}${s.status === 'completed' ? usedPlan(s) : ''}${s.applied ? `\n→ ${s.applied.episode}화 초안에 반영했어요.` : s.approval === 'declined' ? '\n→ 반영하지 않았어요.' : ''}`)
   return [reply.message, ...steps].filter(Boolean).join('\n\n') || '응답 내용이 없어요.'
 }

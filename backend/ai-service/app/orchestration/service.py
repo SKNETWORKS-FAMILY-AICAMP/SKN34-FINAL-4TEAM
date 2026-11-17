@@ -35,6 +35,7 @@ interrupt로 작가 승인을 기다린다. 승인 resume이면 그 요청의 �
 (옛 갈래 checkpoint는 남지만 최신 상태가 아니라 보이지 않는다). scope가 다른 대화는 없는 대화로 본다.
 """
 
+import json
 import operator
 import os
 from collections.abc import AsyncIterator
@@ -85,7 +86,7 @@ from app.world_review import service as world_review
 from app.world_review.errors import WorldReviewFailure
 from app.writing import agent as writing
 from app.writing.errors import WritingFailure
-from app.writing.models import DraftRequest, PatchRequest
+from app.writing.models import DraftRequest, PatchRequest, PlanRequest
 
 
 
@@ -106,13 +107,36 @@ def _story_context(data: dict | None, state: dict) -> QaStepResult:
                         sources=[e for e in data['excerpts'] if e['id'] in cited])
 
 
-def _writing(data: dict):
-    """새 원고 또는 부분 수정. 검수 지적 번호(fix)는 Review 뒤 조건부 수정에서만 patch로 바뀌어 온다."""
-    if 'draft' in data:
-        return writing.draft(DraftRequest.model_validate(data['draft']))
-    if 'patch' not in data:
+def _writing(data: dict | None, state: dict):
+    """전개 기획·새 원고·부분 수정(#387). 검수 지적 번호(fix)는 Review 뒤 조건부 수정에서만 patch로 바뀌어 온다.
+
+    작가가 준 입력이 우선한다. 입력이 없으면 Router가 정한 작업 종류로 요청 문장을 기획하거나(plan), 계획 하나를 정해 바로 쓴다(draft).
+    """
+    if data and 'patch' in data:
+        return writing.patch(PatchRequest.model_validate(data['patch']))
+    if data and 'draft' in data:
+        draft = DraftRequest.model_validate(data['draft'])
+        if state.get('target') and not draft.context:
+            draft.context = _allowed_context(state['target'], draft.plan)
+        return writing.draft(draft)
+    task = next(s.get('task') for s in state['steps'] if s['feature'] == 'writing_editing')
+    if data or task not in ('plan', 'draft'):
         raise WritingFailure(422, BAD_FIX)
-    return writing.patch(PatchRequest.model_validate(data['patch']))
+    if not (target := state.get('target')):
+        raise WritingFailure(422, NO_WRITING_TARGET)
+    request = _task(state)[:2000]
+    planned = PlanRequest(episodeNumber=target['episode'], request=request, context=_allowed_context(target, request))
+    return writing.plan(planned) if task == 'plan' else writing.plan_and_draft(planned)
+
+
+def _allowed_context(target: dict, query: str) -> str:
+    """Content가 근거 회차까지 허용한 설정·원문 발췌(작가 권한). Retrieval이 아니라 Content가 고른 문맥이며 한도(60,000자)도 Content가 지킨다."""
+    found = content_mcp.call('work_context_read', {'id': target['workId'], 'episode': target.get('baseEpisode') or target['episode'],
+                                                   'query': query[:200]})
+    context = json.dumps(found, ensure_ascii=False, separators=(',', ':'))
+    if len(context) > 60000:  # Content는 Jackson 직렬화 길이로 잰다. 여기 직렬화가 더 길면 모델 입력 한도를 넘는다.
+        raise WritingFailure(422, CONTEXT_TOO_LONG)
+    return context
 
 
 def _review(data: dict, state: dict):
@@ -141,7 +165,7 @@ def _world_review(state: dict):
 # Q&A만 대화 기록·Retrieval을 쓴다. 웹 조사는 외부 전송이라 작가가 고른 질문·맥락 외에는 보내지 않는다.
 CALLS = {
     'story_context': _story_context,
-    'writing_editing': lambda data, state: _writing(data),
+    'writing_editing': _writing,
     'web_research': lambda data, state: research.research(ResearchRequest.model_validate(data)),
     'review': _review,
     'rating': lambda data, state: _rating(state),
@@ -152,6 +176,8 @@ NO_INPUT = ('character_simulation', 'world_review', 'rating')
 NO_REVIEW_TARGET = '검수할 작품과 회차를 확인할 수 없어요.'
 NO_RATING_TARGET = '심의 등급을 판별할 작품과 회차를 확인할 수 없어요.'
 NO_WORLD_REVIEW_TARGET = '검토할 작품을 확인할 수 없어요.'
+NO_WRITING_TARGET = '기획하거나 쓸 작품과 회차를 확인할 수 없어요.'
+CONTEXT_TOO_LONG = '허용 문맥이 너무 길어요. 기준 회차나 원고 분량을 줄여 주세요.'
 NO_ISSUES = '검수에서 고칠 문제를 찾지 못해 수정하지 않았어요.'
 ONLY_SUSPECTED = '확정된 문제가 없어 자동으로 고치지 않았어요. 의심 지적은 고칠 구간을 골라 집필·수정을 따로 요청해 주세요.'
 PICK_NEEDED = '확정된 문제가 여러 곳이라 자동으로 고치지 않았어요. 고칠 구간을 골라 집필·수정을 따로 요청해 주세요.'
@@ -167,7 +193,7 @@ FAILURES = (StoryQaFailure, WritingFailure, ResearchFailure, RetrievalFailure, S
 LIMIT_MESSAGE = '시뮬레이션이 호출 한도를 넘어 멈췄어요.'
 APPROVABLE = ('writing_editing', 'character_simulation')  # 결과를 작가가 승인하면 초안에 반영하는 단계
 UNSUPPORTED_MESSAGE = ('요청에 아직 실행할 수 없는 작업이 있어 아무 작업도 실행하지 않았어요. '
-                       '작품 질문, 원고 검수, 설정집 검토, 집필·수정, 고증 조사, 인물 시뮬레이션은 각각 요청할 수 있어요.')
+                       '작품 질문, 원고 검수, 설정집 검토, 기획·집필·수정, 고증 조사, 인물 시뮬레이션은 각각 요청할 수 있어요.')
 NEEDS_INPUT_MESSAGE = '작업에 필요한 자료가 빠져 있어 아무 작업도 실행하지 않았어요.'
 WAITING_MESSAGE = '작업에 필요한 자료를 기다리고 있어요. 자료를 보내거나 취소하면 이어서 진행해요.'
 APPROVAL_MESSAGES = {'writing_editing': 'Writing 결과를 원고 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.',
@@ -279,7 +305,7 @@ def plan(state: State) -> State:
         span.update(metadata={'status': routed.status, 'steps': [[s.feature, s.when] for s in routed.steps]})
     if routed.status != 'route':
         return {'status': routed.status, 'message': routed.message, 'steps': []}
-    steps = [{'feature': s.feature, 'when': s.when, 'status': 'not_started'} for s in routed.steps]
+    steps = [{'feature': s.feature, 'when': s.when, 'status': 'not_started', **({'task': s.task} if s.task else {})} for s in routed.steps]
     # 조건부 단계는 Review 바로 뒤의 집필·수정만 실행한다(#370). 웹 조사·World & Plot 뒤의 조건부 수정은 Finding 연결 계약이 없어 미지원이다.
     unsupported = [s.feature for i, s in enumerate(routed.steps) if s.feature not in FEATURES or (
         s.when != 'always' and not (i > 0 and s.feature == 'writing_editing' and routed.steps[i - 1].feature == 'review'))]
@@ -321,9 +347,10 @@ def gate(state: State) -> State:
     """
     inputs, scope = dict(state['inputs']), state.get('retrievalScope')
     # 시뮬레이션·설정집 검토·Rating은 단계 입력이 없다(NO_INPUT). Q&A는 scope가 있으면 입력 없이 Retrieval로 근거를 받는다.
-    # 조건부 수정은 입력이 없다(Review 결과로 만든다).
+    # 조건부 수정은 입력이 없다(Review 결과로 만든다). 기획·바로 집필은 요청 문장과 반영 대상으로 실행한다(#387).
     while missing := [s['feature'] for s in state['steps'] if s['feature'] not in inputs and s['when'] == 'always'
-                      and s['feature'] not in NO_INPUT and not (s['feature'] == 'story_context' and scope)]:
+                      and s['feature'] not in NO_INPUT and not (s['feature'] == 'story_context' and scope)
+                      and s.get('task') not in ('plan', 'draft')]:
         if not state.get('scope'):  # 대화가 없으면 체크포인트가 없어 멈췄다 이어갈 수 없다.
             return {'status': 'needs_input', 'message': NEEDS_INPUT_MESSAGE, 'missingInputs': missing}
         answer = interrupt({'steps': state['steps'], 'missingInputs': missing})
@@ -465,8 +492,9 @@ def _pending(state: State) -> dict | None:
     """대화 안의 반영 대상이 있을 때, 작가의 답을 아직 못 받은 완료된 결과(Writing·시뮬레이션 장면)의 첫 단계."""
     if not (state.get('scope') and state.get('target')):
         return None
+    # 기획 결과(plans)는 원고가 아니라 반영하지 않는다.
     return next((s for s in state['steps'] if s['feature'] in APPROVABLE and s['status'] == 'completed'
-                 and 'approval' not in s), None)
+                 and 'approval' not in s and 'plans' not in s['result']), None)
 
 
 def finish(state: State) -> State:

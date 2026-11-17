@@ -57,7 +57,21 @@ describe('replyText', () => {
       { feature: 'writing_editing', status: 'completed', result: { text: '초안' }, applied: { episode: 2, revision: 5 } },
       { feature: 'web_research', status: 'failed', error: '검색 실패' },
     ] }))
-    expect(text).toBe('작업 중 실패가 있어요.\n\n[집필·수정] 초안\n→ 2화 초안에 반영했어요.\n\n[고증 조사] 실패: 검색 실패')
+    expect(text).toBe('작업 중 실패가 있어요.\n\n[기획·집필·수정] 초안\n→ 2화 초안에 반영했어요.\n\n[고증 조사] 실패: 검색 실패')
+  })
+
+  it('기획 결과는 계획마다 비트를 번호로 잇고 참고를 덧붙인다(원고가 아니다)', () => {
+    const step = { feature: 'writing_editing', status: 'completed' as const, result: {
+      plans: [{ title: '항구의 밤', beats: ['선장이 도착한다.', '카이가 배를 숨긴다.'] }, { title: '추격', beats: ['서윤이 쫓는다.'] }],
+      notes: ['10화의 약속은 확정 사건'] } }
+    expect(stepText(step)).toBe('계획 1. 항구의 밤\n  1) 선장이 도착한다.\n  2) 카이가 배를 숨긴다.\n계획 2. 추격\n  1) 서윤이 쫓는다.\n참고: 10화의 약속은 확정 사건')
+  })
+
+  it('계획 없이 바로 쓴 원고는 반영할 본문만 단계 글로 두고, 말풍선에 사용한 계획을 덧붙인다', () => {
+    const step = { feature: 'writing_editing', status: 'completed' as const, result: {
+      text: '선장은 항구에 내렸다.', plan: { title: '항구의 밤', beats: ['선장이 도착한다.'] } } }
+    expect(stepText(step)).toBe('선장은 항구에 내렸다.')
+    expect(replyText(reply({ steps: [step] }))).toBe('[기획·집필·수정] 선장은 항구에 내렸다.\n사용한 계획: 항구의 밤 — 선장이 도착한다.')
   })
 })
 

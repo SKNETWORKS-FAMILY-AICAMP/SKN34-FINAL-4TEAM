@@ -1,6 +1,6 @@
-"""새 원고·부분 수정 내부 API 계약."""
+"""전개 기획·새 원고·부분 수정 계약."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class DraftRequest(BaseModel):
@@ -8,6 +8,27 @@ class DraftRequest(BaseModel):
     plan: str = Field(min_length=1, max_length=4000)
     # Content의 허용 문맥 JSON(작성 중 초안 ≤40,000자 포함). 기존 이어쓰기 문맥 한도와 같다.
     context: str = Field(default='', max_length=60000)
+
+
+class PlanRequest(BaseModel):
+    """전개 기획(#387). request는 작가 요청 문장이며 그 안의 콘티·조건을 계획에 따른다."""
+    episodeNumber: int = Field(ge=1)
+    request: str = Field(min_length=1, max_length=2000)
+    single: bool = False  # 바로 집필이면 계획 하나만, 기획만이면 대안 1~3개
+    context: str = Field(default='', max_length=60000)
+
+
+class BeatPlan(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    title: str
+    beats: list[str]  # 장면·사건 순서
+
+
+class PlanOutput(BaseModel):
+    """모델 구조화 출력. 개수 한도는 strict 스키마가 표현하지 못해 agent.plan이 확인한다."""
+    model_config = ConfigDict(extra='forbid')
+    plans: list[BeatPlan]
+    notes: list[str]  # 확정·예정 사건 구분, 근거 부족 같은 참고
 
 
 class PatchRequest(BaseModel):
@@ -25,6 +46,13 @@ class Usage(BaseModel):
 
 class DraftResponse(BaseModel):
     text: str
+    model: str
+    providerResponseId: str
+    usage: Usage | None
+    plan: BeatPlan | None = None  # 계획 없이 바로 집필한 경우 스스로 정해 쓴 계획
+
+
+class PlanResponse(PlanOutput):
     model: str
     providerResponseId: str
     usage: Usage | None

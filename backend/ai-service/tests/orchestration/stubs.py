@@ -11,7 +11,7 @@ from app.review.models import Finding as ReviewFinding, ReviewResponse
 from app.simulation import agent, director
 from app.simulation.models import Action, Check, CheckItem, Decision, Narration, SimulationPlan, SimulationResult, Turn, Verdict
 from app.world_review.models import Finding as WorldFinding, Fix, WorldReviewRequest, WorldReviewResponse
-from app.writing.models import DraftResponse, PatchResponse
+from app.writing.models import BeatPlan, DraftResponse, PatchResponse, PlanResponse
 
 QA = {'question': '길드 규칙은?', 'excerpts': [{'id': 'a', 'episode': 4, 'quote': '길드는 밤에 문을 닫는다.'}]}
 DRAFT = {'draft': {'episodeNumber': 11, 'plan': '선장이 항구에 도착한다.'}}
@@ -49,10 +49,14 @@ FOUND = RetrievalResult(status='found', excerpts=QA['excerpts'], gaps=[{'code': 
                         coverage=COVERAGE, steps=[{'provider': 'elasticsearch', 'ms': 5, 'hits': 2}])
 
 
+BEAT = BeatPlan(title='항구의 밤', beats=['선장이 항구에 도착한다.', '카이가 배를 숨긴다.'])
+CONTEXT = {'title': '작품', 'settings': [{'title': '항구', 'body': '밤에 닫힌다'}], 'draft': ''}
+
+
 def plan(*steps, status='route', **extra):
-    """Intent Router 결과 대역. steps는 feature 또는 (feature, when)."""
-    items = [IntentStep(feature=s, when='always') if isinstance(s, str) else IntentStep(feature=s[0], when=s[1])
-             for s in steps]
+    """Intent Router 결과 대역. steps는 feature, (feature, when) 또는 IntentStep."""
+    items = [s if isinstance(s, IntentStep) else IntentStep(feature=s, when='always') if isinstance(s, str)
+             else IntentStep(feature=s[0], when=s[1]) for s in steps]
     return IntentResult(status=status, steps=items, **extra)
 
 
@@ -77,6 +81,11 @@ def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None):
         claims=[Claim(text='밤에 닫는다', kind='confirmed', sourceIds=['a'])], gaps=[])))
     monkeypatch.setattr(service.writing, 'draft', recorded('draft', DraftResponse(
         text='선장은 항구에 내렸다.', model='m', providerResponseId='r', usage=None)))
+    monkeypatch.setattr(service.writing, 'plan', recorded('writing_plan', PlanResponse(
+        plans=[BEAT], notes=['10화의 약속은 확정 사건'], model='m', providerResponseId='r', usage=None)))
+    monkeypatch.setattr(service.writing, 'plan_and_draft', recorded('plan_and_draft', DraftResponse(
+        text='선장은 항구에 내렸다.', model='m', providerResponseId='r', usage=None, plan=BEAT)))
+    monkeypatch.setattr(service.content_mcp, 'call', recorded('mcp', lambda tool, args: CONTEXT))
     monkeypatch.setattr(service.writing, 'patch', recorded('patch', PatchResponse(
         before='그는 웃었다.', after='그는 차갑게 웃었다.', model='m', providerResponseId='r', usage=None)))
     monkeypatch.setattr(service.simulation, 'plan', recorded(
