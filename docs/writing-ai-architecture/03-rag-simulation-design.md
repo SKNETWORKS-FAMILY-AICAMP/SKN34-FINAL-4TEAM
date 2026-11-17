@@ -130,7 +130,7 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 
 #### 기준 문서
 
-- `youth-protection.md`: 「청소년 보호법」 제9조 청소년유해매체물 심의 기준과 간행물 유해성 심의 항목을 판별 항목(criterion) 여섯 개로 **요약**한 것이다. 조문 원문이 아니다.
+- `youth-protection.md`: 「청소년 보호법」 제9조 청소년유해매체물 심의 기준과 간행물 유해성 심의 항목을 판별 항목(criterion) 일곱 개와 수준(0 없음·1 암시·생략·2 묘사·3 노골·지속)의 **평가표로 요약**한 것이다. 조문 원문이 아니며 시행령 별표·간행물윤리위원회 심의 세부기준 원문은 아직 반영하지 않았다. 금지 표현(미성년자로 보이는 인물의 성적 묘사)도 정의한다.
   F-ADULT-01의 등급 기준은 아직 팀이 확정하지 않았다. 이 문서는 사용자 요청(법령·심의 규정 기반 판별)에 따른 **판별용 초안 기준**이며 팀 확정 전까지 제품 등급 정책으로 쓰지 않는다.
   간행물윤리위원회 심의 규정 원문·최신 개정은 [국가법령정보센터](https://www.law.go.kr)와 [간행물윤리위원회](https://www.kpipa.or.kr)에서 확인해 보완한다.
 - 플랫폼별 금칙어·수위 가이드라인은 공식 원문을 확인한 팀이 `<플랫폼>.md`로 추가한다. 원문을 확인하지 않은 기준을 추측해 넣지 않는다.
@@ -143,11 +143,14 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 POST /internal/v1/ratings {workId, episodes[1..10]}
   → router: X-Internal-Token 검증, X-User-Authorization을 Content MCP 컨텍스트에 설정
   → service: 회차마다 Content MCP episode_read(작가 권한) → 초안 본문·revision (모델 호출 전에 전부 읽음)
-  → agent.rate: 회차마다 OpenAI responses.parse 1회(지시문 + 기준 문서, 입력은 초안 본문)
-  → models: adult와 근거 유무 불변식
-  → service: 근거 구절이 그 회차 초안에 그대로 있는지 대조, 작품 판정 = 회차 판정 중 하나라도 19세
+  → agent.rate: 회차마다 OpenAI responses.parse 1회(지시문 + 기준 문서, 입력은 초안 본문) → 항목별 수준·근거·prohibited
+  → models: 일곱 항목을 한 번씩 평가했는지, 수준 2 이상에 근거 구절이 있는지
+  → service: 근거 구절이 그 회차 초안에 있는지 대조(공백·둥근 따옴표만 같게 봄, 4자 이상),
+             회차 판정 = 문턱값(models.verdict), 묶음 판정 = 하나라도 adult면 adult, 전부 general이면 general, 그 외 needsReview
 ```
 
+- 모델은 등급을 정하지 않고 항목별 수준만 평가하며, 등급은 코드가 문턱값으로 계산한다. 모든 항목을 매번 평가하게 해서 전체 이용가 판정도 항목별 근거가 남는다.
+- 문턱값(2026-11-17 사용자 결정, F-ADULT-01 확정 전 초안): `prohibited`이거나 어느 항목이든 수준 3이면 `adult`, 최고 수준이 2면 `needsReview`(사람 검토), 모두 1 이하면 `general`.
 - 회차별로 따로 판별한다. 여러 회차 원고를 한 호출에 넣으면 입력이 길어지고 어느 회차 근거인지 섞인다.
 - 세계관·Retrieval·Simulation은 부르지 않는다. 판별 근거는 원고 표현이다.
 - 한 회차라도 초안이 비었거나 Content가 거절하면 모델을 부르기 전에 전체 요청이 실패한다.
@@ -157,17 +160,18 @@ POST /internal/v1/ratings {workId, episodes[1..10]}
 | 항목 | 내용 |
 |---|---|
 | 요청 | `workId`(1–100자), `episodes`(1 이상 서로 다른 회차 번호 1–10개) |
-| 회차 결과 | `episode`, `revision`, `adult`, `reasons[] {criterion, quote, explanation}`, `model`, `providerResponseId`, `usage` |
-| 작품 결과 | `workId`, `adult`(회차 중 하나라도 `adult`), `episodes[]` |
-| criterion | `sexual`(선정성)·`violence`(폭력성)·`crime`(범죄·반사회성)·`drug`(약물)·`gambling`(사행성)·`language`(언어) |
-| 불변식 | `adult`가 참이면 근거가 하나 이상, 거짓이면 근거가 없다(models). `quote`는 그 회차 초안에 그대로 있어야 한다(service). 어긋나면 고치지 않고 502 |
-| 오류 | 내부 토큰 불일치 403, Content 거절은 상태 유지(401·403·404·409·422), 빈 초안 422, 모델 미설정·호출 실패 503, 응답 형식·불변식·근거 위반 502 |
+| 회차 결과 | `episode`, `revision`, `verdict`(`adult`·`general`·`needsReview`, 판별 실패면 null), `prohibited`, `assessments[] {criterion, level, quotes[], rationale}`, `error`(판별 실패 이유), `model`, `providerResponseId`, `usage` |
+| 묶음 결과 | `workId`, `verdict`(요청한 회차만 본 판정), `prohibited`(회차 중 하나라도), `episodes[]` |
+| criterion | `sexual`(선정성)·`violence`(폭력성)·`crime`(범죄·반사회성)·`drug`(약물)·`gambling`(사행성)·`language`(언어)·`other`(그 밖의 명백한 유해) |
+| 불변식 | 일곱 항목을 한 번씩 평가하고 수준 2 이상이면 근거 구절이 있으며, `prohibited`이면 `sexual` 항목에 근거 구절이 있다(models). 판정을 좌우하는 이 구절들은 그 회차 초안에 있어야 한다(service, 수준 0·1 구절은 대조하지 않음). 어긋나면 고치지 않고 그 회차만 `verdict: null`·`error`이며 묶음 판정은 `general`이 될 수 없다 |
+| 오류 | 내부 토큰 불일치 403, Content 거절은 상태 유지(401·403·404·409·422), 빈 초안 422, 모델 미설정·호출 실패 503(요청 전체). 응답 형식·불완전 응답·근거 위반은 그 회차만 판별 실패이고, 한 회차도 판별하지 못하면 502 |
 
 ### 한계와 남은 일
 
 - Intent Router·오케스트레이션 연결, 작가 화면·작품 등급 필드 연결이 없다. 판정 결과를 작품 등급으로 저장할지는 F-ADULT-01 정책 결정 후 Content가 정한다.
 - 기준 문서는 법령 요약 하나뿐이고 플랫폼별 가이드라인은 비어 있다.
-- 불법 콘텐츠(아동·청소년 대상 성적 묘사 등)의 차단은 이 Agent 범위 밖이며 운영 모더레이션([UC-20](../usecase-spec/UC-20.md))이 맡는다. `adult: true`는 성인 이용가로 허용된다는 뜻이 아니다.
+- 불법 콘텐츠(아동·청소년 대상 성적 묘사 등)의 차단은 이 Agent 범위 밖이며 운영 모더레이션([UC-20](../usecase-spec/UC-20.md))이 맡는다. Agent는 `prohibited`로 표시만 한다. `verdict: adult`는 성인 이용가로 허용된다는 뜻이 아니다.
+- 한 회차 본문만 보므로 인물이 미성년자인지는 본문에 드러날 때만 안다. 세계관 인물 나이·제목·작가 메모 전달, 비속어 빈도 규칙, `needsReview` 재판정, 공통 실행 틀(`agent_runtime`) 전환·병렬 호출은 후속이다.
 - 회차 판별은 순차 호출이라 10개 회차면 최대 약 20분(호출당 timeout 120초)이 걸릴 수 있다. 호출자는 회차 수를 줄이거나 timeout을 맞춘다. 동시 호출은 추적 span 연결을 함께 설계할 때 검토한다.
 - 고정 모델 응답 단위 테스트만 있으며 실제 OpenAI 판별 품질은 측정하지 않았다.
 

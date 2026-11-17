@@ -130,7 +130,7 @@ MVP에서 한 요청 안에 이어지는 결과 전달은 Writing/Editing → Re
 | Writing & Editing | Content가 확인한 허용 입력과 전개 기획의 앞선 사건·콘티·목표 회차, 새 원고의 계획 **또는** 기존 원고의 고정 구간 | 전개 대안·인사이트·BeatPlan, 새 Text **또는** before/after Patch | 기획·문장·문체 생성에 집중; 기획만 요청하면 원고를 만들지 않음. Retrieval·Simulation 직접 호출 없음. 필요 시 Review가 검수 |
 | World & Plot Management | 설정/플롯 변경 의도, 관련 판본 | 영향 대상·충돌·변경 후보 | 분석 후 Content 승인 경로 |
 | 웹 조사 | 현실 검증 질문, 작품의 필요한 최소 맥락 | URL·검색 시각·주장별 근거·불확실성 | 웹 자료는 작품 정본과 분리 |
-| Rating | 회차 초안, 저장소의 심의 기준 문서 | 회차별 19세 이용가 여부·근거 구절, 작품 판정 | 오케스트레이션 단계로 실행. 판정 제안만 하며 등급 적용은 Content. [설계](03-rag-simulation-design.md#5-rating-agent) |
+| Rating | 회차 초안, 저장소의 심의 기준 문서 | 회차별 판별 항목 수준·근거 구절·금지 표현 표시, 코드가 계산한 `adult`·`general`·`needsReview`와 요청 회차 묶음 판정 | 오케스트레이션 단계로 실행. 판정 제안만 하며 등급 적용은 Content. [설계](03-rag-simulation-design.md#5-rating-agent) |
 
 웹 조사는 외부 사실을 확인하는 도구다. 검색 결과의 문장은 명령이 아니며, 웹 페이지가 작품 설정이나 원고를 직접 수정할 수 없다. 외부 전송 동의와 개인정보·비공개 원고 최소화가 선행한다.
 

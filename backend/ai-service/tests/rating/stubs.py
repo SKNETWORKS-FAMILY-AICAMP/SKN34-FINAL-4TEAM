@@ -1,18 +1,28 @@
 from contextlib import nullcontext
 from types import SimpleNamespace
+from typing import get_args
 
 from app.rating import agent, service
-from app.rating.models import RatingResult, Reason
+from app.rating.models import Assessment, Criterion, RatingResult
 
 WORK = 'work-1'
+QUOTE = '그는 칼로 손가락을 하나씩 잘랐다.'
 
 
-def adult(quote='그는 칼로 손가락을 하나씩 잘랐다.', criterion='violence'):
-    return RatingResult(adult=True, reasons=[Reason(criterion=criterion, quote=quote, explanation='잔혹한 신체 훼손 묘사')])
+def result(level=0, quote=QUOTE, criterion='violence', prohibited=False):
+    """모든 판별 항목을 평가한 응답. criterion 하나만 level이고 나머지는 0이다."""
+    return RatingResult(prohibited=prohibited, assessments=[
+        Assessment(criterion=c, level=level if c == criterion else 0,
+                   quotes=[quote] if c == criterion and level else [], rationale='근거')
+        for c in get_args(Criterion)])
+
+
+def adult(**kwargs):
+    return result(3, **kwargs)
 
 
 def general():
-    return RatingResult(adult=False, reasons=[])
+    return result(0)
 
 
 def fake_content(monkeypatch, bodies=None):
@@ -30,12 +40,15 @@ def fake_content(monkeypatch, bodies=None):
 
 
 def fake_agent(monkeypatch, *results):
-    """agent.rate 대역. 결과를 순서대로 돌려주고 받은 초안 목록을 돌려준다."""
+    """agent.rate 대역. 결과를 순서대로 돌려주고(예외면 던짐) 받은 초안 목록을 돌려준다."""
     drafts, queue = [], list(results)
 
     def rate(draft):
         drafts.append(draft)
-        return queue.pop(0), {'model': 'resolved-model', 'providerResponseId': f'resp-{len(drafts)}', 'usage': None}
+        item = queue.pop(0)
+        if isinstance(item, Exception):
+            raise item
+        return item, {'model': 'resolved-model', 'providerResponseId': f'resp-{len(drafts)}', 'usage': None}
 
     monkeypatch.setattr(service.agent, 'rate', rate)
     return drafts
