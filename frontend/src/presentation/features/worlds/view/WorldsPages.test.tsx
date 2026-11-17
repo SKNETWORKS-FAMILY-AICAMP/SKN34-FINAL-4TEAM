@@ -586,18 +586,43 @@ it('전체 수가 불러온 수보다 크면 최근 공개 순 앞쪽만 보인�
   within(screen.getByRole('heading', { name: '세계관 모아 보기' }).closest('section')!).getByText('최근 공개 2개 · 전체 40개')
 })
 
-it('서버 세계관 상세는 데모 안내·한 줄 소개 없이 보이고 작품 선반은 준비 중 안내를 보이며 파생·조합 선반은 없다', async () => {
-  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld())
+it('서버 세계관 상세는 데모 안내·한 줄 소개 없이 보이고 연결된 공개 소설이 없으면 작품 선반이 빈 상태 안내를 보이며 파생·조합 선반은 없다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ linkedWork: null }))
   await renderAt('/worlds/sw')
   expect(screen.queryByText(/데모/)).toBeNull()
   expect(document.querySelector('.worlds-head')?.textContent).toBe('서버 세계작가 서버 작가 · 읽기 전용')
   expect(screen.getByRole('tab', { name: '설정 그래프' }).getAttribute('aria-selected')).toBe('true')
-  // 소설-세계관 연결은 생겼지만(DEC-46) 공개 세계관 API가 연결된 소설을 주지 않아 표시만 준비 중이다.
-  within(sectionOf('이 세계관을 쓴 작품')).getByText('연결된 소설 표시 준비 중')
+  // 연결이 없거나 연결된 소설이 공개가 아니면 서버가 linkedWork를 null로 알린다(DEC-46, #329). 준비 중이라고 하지 않는다.
+  const works = within(sectionOf('이 세계관을 쓴 작품'))
+  works.getByText('이 세계관으로 공개된 소설이 아직 없어요')
+  expect(works.queryAllByRole('link')).toEqual([])
+  expect(screen.queryByText(/준비 중/)).toBeNull()
   // 파생·조합은 서버에 없고(설정 가져오기가 대신한다, DEC-46) 준비 중이라고도 하지 않는다.
   expect(screen.queryByRole('heading', { level: 2, name: '연결된 세계관' })).toBeNull()
   expect(screen.queryByText(/파생·조합/)).toBeNull()
   expect(screen.queryByText('아직 이 세계관으로 쓴 작품이 없어요')).toBeNull()
+})
+
+it('서버가 연결된 공개 소설을 주면 작품 선반에 소설 카드(제목·작가·공개 표지)를 보이고 누르면 그 작품 상세로 이동하며 데모 표시는 없다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ linkedWork: { id: 'work-1', title: '연결된 소설', authorNickname: '소설 작가', hasCover: true } }))
+  await renderAt('/worlds/sw')
+  const shelf = sectionOf('이 세계관을 쓴 작품')
+  const works = within(shelf)
+  const link = works.getByRole('link', { name: /연결된 소설/ })
+  expect(works.getAllByRole('link')).toHaveLength(1)
+  expect(link.getAttribute('href')).toBe('/work/work-1')
+  expect([link.querySelector('h3')?.textContent, link.querySelector('small')?.textContent]).toEqual(['연결된 소설', '소설 작가'])
+  expect(coverSrc(shelf)).toEqual(['/api/v1/public/works/work-1/cover/content']) // 공개 표지가 있으면 기존 공개 작품 표지 주소
+  expect(works.queryByText('데모 작품')).toBeNull()
+  expect(works.queryByText(/준비 중|공개된 소설이 아직 없어요/)).toBeNull()
+})
+
+it('연결된 공개 소설에 표지가 없으면 소설 카드는 기본 작품 표지를 쓴다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ linkedWork: { id: 'work-2', title: '표지 없는 소설', authorNickname: '작가', hasCover: false } }))
+  await renderAt('/worlds/sw?tab=book') // 선반은 어느 탭이든 탭 영역 아래에 있다
+  const shelf = sectionOf('이 세계관을 쓴 작품')
+  expect(coverSrc(shelf)).toEqual(['/default-work-cover.svg'])
+  expect(within(shelf).getByRole('link', { name: /표지 없는 소설/ }).getAttribute('href')).toBe('/work/work-2')
 })
 
 it('서버 세계관의 설정집 한 줄 요약은 파생·조합 없이 장르·작가·설정 카드 수만 보이고 카드 링크는 카드 id를 쓴다', async () => {

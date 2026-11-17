@@ -15,7 +15,7 @@
 - 비공개로 바꾸면 즉시 공개 목록·상세에서 제외한다(상세는 404).
 - 저장 버전(revision)이 하나도 없는 세계관은 공개로 설정돼 있어도 목록·상세에 나오지 않는다(초안은 공개하지 않는다).
 - **초안 저장과 확정 버전은 다르다.** 이 문서의 '저장 버전'은 소유자가 명시적으로 확정한 `world_revision`(`POST /{id}/revisions`, 세계관의 `current_revision_id`)이다. 화면의 '저장'(`PUT /{id}/draft`)은 초안 저장이라 공개 화면에 반영되지 않으며, 공개 목록·상세의 노출은 **확정 버전(current revision) 기준**이다. 목록과 상세는 모두 확정(`sealed`)된 현재 버전만 보인다.
-- 파생·조합(세계관 복사)과 남의 세계관을 참조·추종하는 이용은 없다(DEC-35 유지). 세계관 이용은 참조 연결 없이 공개 카드를 카드 단위로 내 세계관에 복사하는 **설정 가져오기**로 하고(2026-11-12 사용자 결정: 공개 세계관의 공개 카드는 로그인한 누구나 가져올 수 있고 출처를 자동으로 표시한다), 세계관과 소설은 1:1로 연결한다(DEC-46). 아래 '세계관-소설 1:1 연결'·'독자 설정 위키'·'설정 가져오기와 카드 메타데이터' 절이 계약이다. 공개 세계관 응답에는 연결된 소설이 없다.
+- 파생·조합(세계관 복사)과 남의 세계관을 참조·추종하는 이용은 없다(DEC-35 유지). 세계관 이용은 참조 연결 없이 공개 카드를 카드 단위로 내 세계관에 복사하는 **설정 가져오기**로 하고(2026-11-12 사용자 결정: 공개 세계관의 공개 카드는 로그인한 누구나 가져올 수 있고 출처를 자동으로 표시한다), 세계관과 소설은 1:1로 연결한다(DEC-46). 아래 '세계관-소설 1:1 연결'·'독자 설정 위키'·'설정 가져오기와 카드 메타데이터' 절이 계약이다. 공개 세계관 **상세** 응답은 연결된 소설이 **공개 작품일 때만** 그 최소 정보(`linkedWork`)를 싣고, 비공개·제한·삭제 작품이거나 연결이 없으면 `null`로 소설의 존재를 드러내지 않는다(#329, 사용자 결정, 아래 '공개 API').
 - **설정 카드는 카드 단위로 공개·비공개를 정하며 기본은 비공개다**(`setting_card_*.visibility`, DEC-46, 2026-11-12 사용자 결정). 공개 세계관에서도 **삭제되지 않았고(`lifecycle=active`) 공개(`visibility=public`)인 카드만** 보이고, 관계는 양 끝 카드가 모두 그런 카드일 때만 보인다. 목록의 `cardCount`·`relationshipCount`도 같은 기준이다. 공개 카드가 하나도 없는 공개 세계관도 목록·상세에는 그대로 나온다(카드 0개).
 - **세계관 표지는 소유자가 직접 올린 이미지(PNG·JPEG·WebP, 5MB 이하)만 쓴다**(2026-11-12 사용자 결정). AI 표지 생성은 준비 중이라 이 계약에 없다. 표지가 없으면 화면이 기존 자동 생성 표지를 쓴다. 공개 표지의 노출 기준은 상세와 같다(공개이고 확정 버전이 있을 때).
 
@@ -85,7 +85,8 @@ PublicWorldSummary = { "id", "name", "description", "genre": code | null, "autho
 PublicWorld        = { "id", "name", "description", "genre", "authorNickname", "publishedAt", "revisionNo",
                        "cards": [ { "id", "title", "text", "cardType", "aliases": [..], "tags": [..] } ],
                        "relationships": [ { "id", "sourceCardId", "targetCardId", "label" } ],
-                       "relationshipStatus": "current" | "unavailable", "hasCover": boolean }
+                       "relationshipStatus": "current" | "unavailable", "hasCover": boolean,
+                       "linkedWork": { "id": "<작품 id>", "title", "authorNickname", "hasCover": boolean } | null }
 ```
 
 | 메서드·경로 | 동작 |
@@ -98,6 +99,8 @@ PublicWorld        = { "id", "name", "description", "genre", "authorNickname", "
 - `relationships`는 Neo4j **현재** 관계 중 **양 끝 카드가 위 `cards`에 있는 것**만이다. 저장하지 않은 새 카드나 삭제된 카드·비공개 카드를 가리키는 관계는 나오지 않는다. `label`은 기존 관계 필드의 표시 라벨이다.
 - 관계 저장소가 현재 상태를 보증하지 못하면(미전환·미완료·조회 실패·토큰 불일치) 카드는 그대로 두고 `relationships: []`, `relationshipStatus: "unavailable"`로 200을 돌려준다(500이 아니다). 정상이면 `"current"`다.
 - 작가 닉네임은 저장하지 않고 응답마다 `CoreNicknameService`로 회원 ID 묶음을 한 번 조회해 채운다. Core에 없으면 `탈퇴한 회원`이고, Core 호출 실패는 대체 이름 없이 503/504/502로 그대로 전한다.
+- `linkedWork`는 이 세계관에 연결된 소설(`work.world_studio_id`, 1:1, DEC-46)의 최소 정보(작품 id·제목·작가 닉네임·표지 유무)이며 **연결된 소설이 공개 작품일 때만** 채운다(#329). 공개 판정은 Content의 기존 공개 술어(`WorkAccessResult.publiclyVisible()`: 공개 범위가 `public`이고 제한·삭제가 아닌 작품)를 그대로 쓰고, 비공개·제한·삭제 작품이거나 연결이 없으면 `null`이라 소설의 존재 자체를 드러내지 않는다. 목록(`PublicWorldSummary`)에는 싣지 않는다. 소설 작가 닉네임은 위 세계관 작가와 **같은 `CoreNicknameService` 조회 한 번**에 묶어 채우고(Core에 없으면 `탈퇴한 회원`, 실패는 위와 같이 그대로), 연결된 소설이 없거나 공개가 아니면 그 작가는 조회하지 않는다. 404인 세계관은 연결을 읽지 않는다.
+- `linkedWork.hasCover`는 작품 표지(회차 0 이미지)가 있는지다. `true`이면 화면이 기존 공개 작품 표지 `GET /api/v1/public/works/{id}/cover/content`를 `<img>`로 직접 읽고, `false`이면 기본 작품 표지(`/default-work-cover.svg`)를 쓴다. 화면은 '이 세계관을 쓴 작품' 선반에 그 소설을 책 카드 하나로 보이고 누르면 작품 상세(`/work/{id}`)로 이동하며, `null`이면 '이 세계관으로 공개된 소설이 아직 없어요'를 보인다(`--mode mockup` 데모는 서버 값이 아니라 데모 작품을 링크 없이 보인다).
 - 상세의 `id`가 UUID 형식이 아니면 400, 형식이 맞는데 없으면 404다.
 - 표지 응답의 `Content-Type`은 저장한 형식(`image/png`·`image/jpeg`·`image/webp`)이고 `Cache-Control: private, no-store`·`X-Content-Type-Options: nosniff`이다(기존 작품 공개 표지와 같은 관례). 화면은 `hasCover`가 `true`일 때만 `<img src="/api/v1/public/world-studios/{id}/cover">`로 직접 읽고, `false`이면 기존 자동 생성 표지를 쓴다. `id`가 UUID 형식이 아니면 400이다.
 
@@ -242,7 +245,7 @@ nginx `location ^~ /api/v1/world-studios/`의 `client_max_body_size 6m`이 이�
 
 ## 한계
 
-- 참조·추종 이용·세계관 Fork·파생·조합은 없다(DEC-35). 공개 세계관 응답에는 연결된 소설과 '가져간 세계관 수'가 없다.
+- 참조·추종 이용·세계관 Fork·파생·조합은 없다(DEC-35). 공개 세계관 응답에는 '가져간 세계관 수'가 없고, 연결된 소설은 상세에만 공개 작품 하나의 최소 정보(`linkedWork`)로 있다(목록에는 없고 비공개 소설의 존재는 알리지 않는다).
 - 관계는 현재 상태 하나뿐이다. 과거 관계·이력·시점별 조회는 없다([#132 계약](worldstudio-independent-schema.md#현재-관계-mvp-계약--132)). 마지막 저장 버전의 카드와 **현재** 관계를 합쳐 보이므로, 저장 이후 관계만 바뀌었다면 두 시점이 섞일 수 있다.
 - 카드 이미지는 `imageId`로 가리키는 대표 이미지 한 장뿐이다(본문 삽입·AI 생성·여러 장·첨부 없음, #401). 공개 세계관 응답은 공개 카드만 담고 카드의 `visibility`·독자 공개 회차 값은 싣지 않는다. 세계관 표지는 소유자 업로드 한 장뿐이고 AI 생성·크롭·여러 장·대체 텍스트는 없다.
 - 표지의 WebP는 디코딩하지 않고 RIFF 구조만 확인한다(JDK가 읽지 못한다). 교체·삭제 중 DB 갱신이 실패하면 새 객체가, 이전 객체 삭제가 실패하면 이전 객체가 객체 저장소에 남을 수 있고 정리하지 않는다(운영자 몫, 보상 트랜잭션 없음).
@@ -257,6 +260,6 @@ nginx `location ^~ /api/v1/world-studios/`의 `client_max_body_size 6m`이 이�
 
 ## 검증 상태
 
-- 로컬 단위 테스트(`./gradlew unitTest`, JDK 21): 공개 노출 판정·장르/공개 범위 검증·카드 공개 판정·관계 필터·독자 공개 회차 판정·`upto`·페이지 검증(`PublicWorldRulesTest`), 공개 서비스의 공개 카드 필터와 독자 카드 조회(`PublicWorldServiceTest`), 연결·해제·409·독자 설정 위키의 기준 회차와 빈 응답·404·422(`WorkWorldServiceTest`), 연결·위키 경로와 소유자 세계관 응답의 `linkedWorkId`(`WorkWorldControllerTest`), 작품 삭제 시 연결 해제(`WorkDeleteServiceTest`), 소유자 응답에만 나오는 `worldStudioId`(`WorkSearchServiceTest`), 템플릿 카드 공개(`GenreTemplateSeederTest`), V37 SQL과 전역 버전 목록(`ContentBoundaryTest`), 소유자 PUT·목록·상세 필드(`WorldStudioServiceTest`), 표지 검증(`WorldCoverRulesTest`: 형식·크기·바이트 시그니처·저장소 실패 변환), 소유자 표지 서비스(`WorldCoverServiceTest`: 저장→DB→이전 객체 삭제 순서와 실패 처리), 표지 컨트롤러 바인딩(`WorldCoverControllerTest`).
+- 로컬 단위 테스트(`./gradlew unitTest`, JDK 21): 공개 노출 판정·장르/공개 범위 검증·카드 공개 판정·관계 필터·독자 공개 회차 판정·`upto`·페이지 검증(`PublicWorldRulesTest`), 공개 서비스의 공개 카드 필터와 독자 카드 조회(`PublicWorldServiceTest`), 연결·해제·409·독자 설정 위키의 기준 회차와 빈 응답·404·422(`WorkWorldServiceTest`), 연결·위키 경로와 소유자 세계관 응답의 `linkedWorkId`(`WorkWorldControllerTest`), 작품 삭제 시 연결 해제(`WorkDeleteServiceTest`), 소유자 응답에만 나오는 `worldStudioId`(`WorkSearchServiceTest`), 템플릿 카드 공개(`GenreTemplateSeederTest`), V37 SQL과 전역 버전 목록(`ContentBoundaryTest`), 소유자 PUT·목록·상세 필드(`WorldStudioServiceTest`), 표지 검증(`WorldCoverRulesTest`: 형식·크기·바이트 시그니처·저장소 실패 변환), 소유자 표지 서비스(`WorldCoverServiceTest`: 저장→DB→이전 객체 삭제 순서와 실패 처리), 표지 컨트롤러 바인딩(`WorldCoverControllerTest`), 공개 상세의 연결된 소설(공개 작품이면 최소 정보를 싣고 작가는 세계관 작가와 같은 Core 조회 한 번, 비공개·제한·삭제·연결 없음은 `null`이며 작가·표지를 조회하지 않음, 목록은 읽지 않음, `PublicWorldServiceTest`).
 - 새 `@Query` 3개(`StudioWorldRepository.listed`·`listedByGenre`, `WorldRevisionCardRepository.publicCardIds`: DEC-46에서 공개 카드 조건을 더해 `activeCardIds`에서 개명)는 DB 없이 H2로 구문·매핑·정렬·필터·count를 확인했고, 파생 쿼리 `WorkRepository.findAllByWorldStudioIdIn`은 이름 해석(PartTree)과 `work.world_studio_id`의 nullable `uuid` 매핑을 확인했다. 컬럼 타입 일치(`ddl-auto=validate`)와 실제 PostgreSQL 결과는 CI가 확인한다.
-- **hosted CI 대기(로컬 미실행)**: `PublicWorldHttpIntegrationTest`(공개 목록·상세, 비공개 제외, 비로그인 접근, 소유자 PUT 404/422/401/403, 관계 `unavailable`), `WorldCoverHttpIntegrationTest`(소유자 표지 PUT·GET·DELETE의 401/403/404/422, 공개 표지의 노출 기준, 교체 시 이전 객체 삭제, `hasCover`)와 V7까지 세는 `InitialWorldStoragePostgresTest`·`WorldStudioFlywayPostgresTest`·`WorldStudioMigrationPostgresTest`·`WorldStudioHistoryPostgresTest`. DEC-46 몫으로 `PublicWorldHttpIntegrationTest`에 비공개 카드와 그 관계가 상세·목록 수에서 빠지는지를 더했고, 새 `WorkWorldHttpIntegrationTest`(연결 401/403/404/400/200·멱등·409 `WORLD_ALREADY_LINKED`·해제·작품 삭제 시 해제, 소유자 응답의 `worldStudioId`·`linkedWorkId`, 독자 설정 위키의 공개 전 작품·확정 버전 없음·발행 회차 상한·`upto` 422·없는 작품 404·관계 필터·`unavailable`)와 Content 전역 V37을 세는 `ContentMigrationTest`·`StoryPlanMigrationPostgresTest`·`AttachmentMigrationLocationTest`도 **작성만 했고 로컬에서 실행하지 않았다**.
+- **hosted CI 대기(로컬 미실행)**: `PublicWorldHttpIntegrationTest`(공개 목록·상세, 비공개 제외, 비로그인 접근, 소유자 PUT 404/422/401/403, 관계 `unavailable`), `WorldCoverHttpIntegrationTest`(소유자 표지 PUT·GET·DELETE의 401/403/404/422, 공개 표지의 노출 기준, 교체 시 이전 객체 삭제, `hasCover`)와 V7까지 세는 `InitialWorldStoragePostgresTest`·`WorldStudioFlywayPostgresTest`·`WorldStudioMigrationPostgresTest`·`WorldStudioHistoryPostgresTest`. DEC-46 몫으로 `PublicWorldHttpIntegrationTest`에 비공개 카드와 그 관계가 상세·목록 수에서 빠지는지를 더했고, 새 `WorkWorldHttpIntegrationTest`(연결 401/403/404/400/200·멱등·409 `WORLD_ALREADY_LINKED`·해제·작품 삭제 시 해제, 소유자 응답의 `worldStudioId`·`linkedWorkId`, 독자 설정 위키의 공개 전 작품·확정 버전 없음·발행 회차 상한·`upto` 422·없는 작품 404·관계 필터·`unavailable`)와 Content 전역 V37을 세는 `ContentMigrationTest`·`StoryPlanMigrationPostgresTest`·`AttachmentMigrationLocationTest`도 **작성만 했고 로컬에서 실행하지 않았다**. #329로 `WorkWorldHttpIntegrationTest`에 공개 세계관 상세의 `linkedWork`(공개 소설 표시·발행 전 소설 `null`·연결 해제 `null`·재연결·목록 응답에 없음) 단언도 더했고 마찬가지로 작성만 했다.

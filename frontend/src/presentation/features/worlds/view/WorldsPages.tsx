@@ -271,19 +271,29 @@ function Shelf({ title, empty, children }: { title: string; empty?: string; chil
 }
 
 /**
- * 이 세계관을 쓴 작품(데모). 소설-세계관 연결은 있지만(DEC-46) 공개 세계관 API가 연결된 소설을 주지 않아(`works`가 없는 실제 모드) '연결된 소설 표시 준비 중' 안내만 보이고,
- * 데모는 실제 작품이 아니라 링크하지 않고(가짜 이동 금지) 표지에 '데모 작품'을 단다.
+ * 이 세계관을 쓴 작품. 실제 모드는 서버가 준 연결된 공개 소설(`linkedWork`, DEC-46 1:1) 하나를 책 카드로 보이고 누르면 그 작품 상세(`/work/:id`)로 간다.
+ * 서버는 소설이 공개 작품일 때만 주므로(연결 없음·비공개·제한·삭제는 null) 없으면 빈 상태 안내다. 표지는 소설의 공개 표지(`hasCover`)이거나 기본 작품 표지다.
+ * 데모(`works`)는 실제 작품이 아니라 링크하지 않고(가짜 이동 금지) 표지에 '데모 작품'을 단다.
  */
 function WorldWorks({ world }: { world: PublicWorld }) {
+  const linked = world.linkedWork
   return (
-    <Shelf title="이 세계관을 쓴 작품" empty={world.works ? '아직 이 세계관으로 쓴 작품이 없어요' : '연결된 소설 표시 준비 중'}>
-      {(world.works ?? []).map((work, i) => (
-        <div key={work.title} className="bk">
-          <WorldCover w={{ id: `${world.id}-work${i}`, genre: work.genre }} k="w" badge="데모 작품" />
-          <h3 className="hk">{work.title}</h3>
-          <small>{work.author} · {work.episodes}화</small>
-        </div>
-      ))}
+    <Shelf title="이 세계관을 쓴 작품" empty={world.works ? '아직 이 세계관으로 쓴 작품이 없어요' : '이 세계관으로 공개된 소설이 아직 없어요'}>
+      {linked
+        ? [(
+          <Go key={linked.id} to={`/work/${linked.id}`} className="bk prox">
+            <div className="cov"><img src={linked.hasCover ? `/api/v1/public/works/${linked.id}/cover/content` : '/default-work-cover.svg'} alt="" loading="lazy" /></div>
+            <h3 className="hk">{linked.title}</h3>
+            <small>{linked.authorNickname}</small>
+          </Go>
+        )]
+        : (world.works ?? []).map((work, i) => (
+          <div key={work.title} className="bk">
+            <WorldCover w={{ id: `${world.id}-work${i}`, genre: work.genre }} k="w" badge="데모 작품" />
+            <h3 className="hk">{work.title}</h3>
+            <small>{work.author} · {work.episodes}화</small>
+          </div>
+        ))}
     </Shelf>
   )
 }
@@ -305,7 +315,7 @@ function ConnectedWorlds({ lineage }: { lineage?: PublicWorldLineage }) {
  * 개요 탭(`WorldOverview`)이 세계관 설명과 정보 상자(표지·장르·작가·설정 카드 수·데모의 파생·조합 출처)를 보인다.
  * 설정 가져오기(DEC-46)는 헤더에 두지 않는다: 로그인한 회원은 설정집 게시판에서 고른 설정을, 설정 카드 페이지에서 그 카드를 내 세계관 초안에 바로 더한다(`WorldAddMenu`).
  * 설정집은 카테고리별 설정 카드 게시판이고, 그래프의 카드·인물 노드를 누르면 그 설정 카드의 페이지(`/worlds/:id/cards/:cardId`)로 이동한다.
- * 관계를 불러오지 못했으면(`relationshipStatus: unavailable`) 인물관계도 탭이 빈 그래프와 구분해 알린다. 어느 탭이든 탭 영역 아래에 '이 세계관을 쓴 작품' 선반(공개 API가 연결된 소설을 주지 않는 실제 모드는 표시 준비 중 안내)과
+ * 관계를 불러오지 못했으면(`relationshipStatus: unavailable`) 인물관계도 탭이 빈 그래프와 구분해 알린다. 어느 탭이든 탭 영역 아래에 '이 세계관을 쓴 작품' 선반(실제 모드는 서버가 준 연결된 공개 소설, 없으면 빈 상태 안내)과
  * 데모의 '연결된 세계관' 선반이 있다. 불러오는 중·실패(다시 시도)·비공개·없는 세계관(찾을 수 없음)을 따로 그린다.
  */
 export function WorldDetailPage() {
