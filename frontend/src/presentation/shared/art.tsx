@@ -1,13 +1,14 @@
 import { memo, type ReactNode } from 'react'
 
 import type { Theme, Work } from '../../domain/entities/work'
+import { coverSrc } from './cover'
 import { kfmt, rng } from './format'
 
 /**
- * 목업 art(): 테마별 인라인 SVG 표지 (외부 이미지 없음).
- * 표지 하나가 60~100개 노드라, 같은 값으로 다시 그려 달라는 요청(홈은 히어로 자동 넘김으로 4.5초마다 전체가 다시 그려진다)은 건너뛴다. 속성이 모두 원시값이라 얕은 비교로 충분하다.
+ * 목업 art(): 테마별 인라인 SVG 그림 (외부 이미지 없음). 작품 상세 띠·홈 히어로 배경·로그인 그림 같은 장식에만 쓰고 표지로는 쓰지 않는다(표지는 `cover.ts`의 규칙).
+ * 그림 하나가 60~100개 노드라, 같은 값으로 다시 그려 달라는 요청(홈은 히어로 자동 넘김으로 4.5초마다 전체가 다시 그려진다)은 건너뛴다. 속성이 모두 원시값이라 얕은 비교로 충분하다.
  */
-export const Art = memo(function Art({ theme, w, h, seed, title = '' }: { theme: Theme; w: number; h: number; seed: string; title?: string }) {
+export const Art = memo(function Art({ theme, w, h, seed }: { theme: Theme; w: number; h: number; seed: string }) {
   const r = rng(seed + theme)
   const id = 'a' + Math.floor(r() * 1e9)
   const els: ReactNode[] = []
@@ -28,10 +29,6 @@ export const Art = memo(function Art({ theme, w, h, seed, title = '' }: { theme:
       els.push(<path key={'m' + i} d={`${d} L${w} ${h} Z`} fill={c} opacity={o} />)
     }
     for (let k = 0; k < 5; k++) els.push(<path key={'b' + k} d={`M${w * (0.1 + r() * 0.3)} ${h * (0.18 + r() * 0.1)} q12 -6 24 0 q12 6 24 0`} stroke="#7A6A55" strokeWidth="1.2" fill="none" opacity=".45" />)
-    if (title) {
-      els.push(<rect key="tb" x={w - 58} y={h * 0.08} width="38" height={title.length * 30 + 20} fill="#F7F0E2" stroke="#3B352E" strokeWidth="2" />)
-      ;[...title].forEach((c, i) => els.push(<text key={'t' + i} x={w - 39} y={h * 0.08 + 38 + i * 30} fontFamily="serif" fontSize="24" fontWeight="700" fill="#2A241D" textAnchor="middle">{c}</text>))
-    }
   } else if (theme === 'star') {
     els.push(
       <defs key="d">
@@ -67,19 +64,19 @@ export const Art = memo(function Art({ theme, w, h, seed, title = '' }: { theme:
   return <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">{els}</svg>
 })
 
-export function CoverOf({ w, k = '' }: { w: Work; k?: string }) {
-  if (w.coverImg) return <img className="cimg" src={w.coverImg} alt="" />
-  return <Art theme={w.theme} w={300} h={400} seed={w.id + k} title={w.theme === 'hanji' && !w.parent && w.hanja ? w.hanja : ''} />
+/** 작품 표지: 올린 표지(`coverImg`, 데모 작품만 가짐)가 있으면 그 표지, 없으면 기본 표지. 서버 작품은 목록·상세 응답에 표지 유무가 없어 늘 기본 표지다. */
+export function CoverOf({ w }: { w: Work }) {
+  return <img className="cimg" src={coverSrc(w.coverImg)} alt="" />
 }
 
 const TAGS: Record<string, [string, string]> = { up: ['tag', 'UP'], new: ['tag new', '신작'], free: ['tag free', '무료'], if: ['tag if', '포크'] }
 export const Tags = ({ w }: { w: Work }) => <>{w.tags.map((t) => TAGS[t] && <span key={t} className={TAGS[t][0]}>{TAGS[t][1]}</span>)}</>
 
 /** 목업 cov(): 표지 + 태그 + 좋아요 수 */
-export function Cov({ w, k = '', likes = false }: { w: Work; k?: string; likes?: boolean }) {
+export function Cov({ w, likes = false }: { w: Work; likes?: boolean }) {
   return (
     <div className="cov">
-      <CoverOf w={w} k={k} />
+      <CoverOf w={w} />
       <div className="tg"><Tags w={w} /></div>
       {likes && w.statisticsSupported !== false && <span className="lk">♥ {kfmt(w.likes)}</span>}
     </div>

@@ -59,3 +59,14 @@ it('does not read or save relations per episode, so the demo locks the relation 
  const repository:WorldStudioRepository=new InMemoryWorldStudioRepository()
  expect(repository.relationEpisodes).toBeUndefined()
 })
+it('deletes a world from memory so the list and a read no longer have it, and reports a world it does not have',async()=>{
+ const repo=new InMemoryWorldStudioRepository(),world=await repo.create('세계',''),keep=await repo.create('남길 세계','')
+ await expect(repo.deleteStudio(world.id)).resolves.toBeUndefined()
+ expect((await repo.listStudio()).map(w=>w.id)).toEqual([keep.id])
+ await expect(repo.read(world.id)).rejects.toThrow(/찾을 수 없습니다/)
+ await expect(repo.deleteStudio(world.id)).rejects.toThrow(/찾을 수 없습니다/)
+})
+it('has no confirmed versions to restore: the demo does not read, confirm or restore revisions',()=>{
+ const repository:WorldStudioRepository=new InMemoryWorldStudioRepository()
+ expect([repository.revisions,repository.confirm,repository.restoreRevision]).toEqual([undefined,undefined,undefined])
+})

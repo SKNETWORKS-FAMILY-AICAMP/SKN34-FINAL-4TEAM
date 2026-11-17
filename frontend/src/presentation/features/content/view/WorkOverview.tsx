@@ -1,5 +1,5 @@
 import { type RefObject, useEffect, useRef, useState } from 'react'
-import { parseHashtags, workKindLabel, type Work, type WorkTaxonomy } from '../../../../domain/entities/content'
+import { canAddSuggestedTag, canPickSuggestedGenre, parseHashtags, workKindLabel, type Work, type WorkTagSuggestion, type WorkTaxonomy } from '../../../../domain/entities/content'
 import type { MediaTarget } from '../../../../domain/entities/media'
 import { AiCoverButton } from '../../../shared/AiCoverButton'
 import { Go } from '../../../shared/Go'
@@ -21,6 +21,8 @@ type Props = {
   onMediaBusy: (busy: boolean) => void
   /** taxonomy에는 서버 값과 달라진 장르·해시태그만 담긴다(없으면 서버가 유지한다). */
   onSaveInfo: (title: string, summary: string, taxonomy: WorkTaxonomy) => Promise<boolean>
+  /** 저장된 제목·소개와 발행 회차로 장르·해시태그 후보를 받는다. 실패하면 null이며 사유는 화면 위 알림이 보인다. */
+  onSuggestTags: () => Promise<WorkTagSuggestion | null>
   onSavePolicy: (allowFork: boolean, allowForkPublication: boolean) => Promise<boolean>
   onStopFork: () => Promise<boolean>
   onDeleteFork: () => Promise<boolean>
@@ -35,7 +37,7 @@ type Props = {
  * 원고 작성은 이 화면이 아니라 집필실(`/studio/{id}`)에서 하므로 히어로의 '회차 작성하기'가 그리로 보낸다.
  * 작품이 바뀌면 호출 측이 key로 새로 만든다.
  */
-export function WorkOverview({ work: w, locked, busy, nextNo, coverRevision, onMediaBusy, onSaveInfo, onSavePolicy, onStopFork, onDeleteFork }: Props) {
+export function WorkOverview({ work: w, locked, busy, nextNo, coverRevision, onMediaBusy, onSaveInfo, onSuggestTags, onSavePolicy, onStopFork, onDeleteFork }: Props) {
   const [editing, setEditing] = useState<Section | null>(null)
   const infoButton = useRef<HTMLButtonElement>(null)
   const coverButton = useRef<HTMLButtonElement>(null)
@@ -86,7 +88,7 @@ export function WorkOverview({ work: w, locked, busy, nextNo, coverRevision, onM
             </span>
           </div>
           {editing === 'info'
-            ? <InfoForm key={w.revision} work={w} locked={locked} onSave={onSaveInfo} onClose={close} />
+            ? <InfoForm key={w.revision} work={w} locked={locked} onSave={onSaveInfo} onSuggest={onSuggestTags} onClose={close} />
             : w.summary
             ? <p className='sum'>{w.summary}</p>
             : <p className='sum ep-muted'>당신의 이야기를 한 문장씩 채워 보세요.</p>}
@@ -165,12 +167,13 @@ export function WorkOverview({ work: w, locked, busy, nextNo, coverRevision, onM
 const sameList = (a: string[], b: string[] = []) => a.length === b.length && a.every((v, i) => v === b[i])
 
 /** 처음 받은 작품 값을 상태로 복사한다. 작품이 다시 읽혀 revision이 바뀌면 호출 측이 key로 새로 만들어 최신 서버 값에서 다시 시작한다. */
-function InfoForm({ work, locked, onSave, onClose }: { work: Work; locked: boolean; onSave: Props['onSaveInfo']; onClose: () => void }) {
+function InfoForm({ work, locked, onSave, onSuggest, onClose }: { work: Work; locked: boolean; onSave: Props['onSaveInfo']; onSuggest: Props['onSuggestTags']; onClose: () => void }) {
   const [title, setTitle] = useState(work.title)
   const [summary, setSummary] = useState(work.summary)
   const [genre1, setGenre1] = useState(work.genres?.[0] ?? '')
   const [genre2, setGenre2] = useState(work.genres?.[1] ?? '')
   const [hashtags, setHashtags] = useState((work.hashtags ?? []).map((t) => `#${t}`).join(', '))
+  const [suggestion, setSuggestion] = useState<WorkTagSuggestion | null>(null)
   const first = useRef<HTMLInputElement>(null)
   useEffect(() => { first.current?.focus() }, [])
   // 장르·해시태그는 서버 값과 달라진 쪽만 보낸다(생략하면 서버가 유지). 장르가 없던 옛 작품도 제목만 고쳐 저장할 수 있다.
@@ -178,6 +181,25 @@ function InfoForm({ work, locked, onSave, onClose }: { work: Work; locked: boole
   const tags = parseHashtags(hashtags)
   const taxonomy: WorkTaxonomy = { ...(sameList(genres, work.genres) ? {} : { genres }), ...(sameList(tags, work.hashtags) ? {} : { hashtags: tags }) }
   const changed = title.trim() !== work.title || summary.trim() !== work.summary || Object.keys(taxonomy).length > 0
+  // 추천 후보는 눌러서 입력에 담기만 한다. 저장은 아래 저장 버튼이 한다. 담을 수 없는 후보(이미 고름·한도 참)는 버튼을 막는다(규칙은 domain).
+  const pickGenre = (g: string) => { if (!genre1) setGenre1(g); else setGenre2(g) }
+  const addTag = (t: string) => setHashtags([...tags, t].map((x) => `#${x}`).join(', '))
+  // 요청 중에는 fieldset이 잠겨 초점이 body로 떨어지므로, 추천을 누른 경우에만 잠금이 풀린 뒤 추천 버튼으로 돌려준다.
+  const [asking, setAsking] = useState(false)
+  const suggestButton = useRef<HTMLButtonElement>(null)
+  const refocus = useRef(false)
+  useEffect(() => {
+    if (asking || locked || !refocus.current) return
+    refocus.current = false
+    if (document.activeElement === document.body) suggestButton.current?.focus()
+  }, [asking, locked])
+  const suggest = async () => {
+    refocus.current = true
+    setAsking(true)
+    const found = await onSuggest()
+    setAsking(false)
+    if (found) setSuggestion(found)
+  }
   return (
     <form
       className='ep-edit'
@@ -196,6 +218,16 @@ function InfoForm({ work, locked, onSave, onClose }: { work: Work; locked: boole
           <textarea value={summary} onChange={(e) => setSummary(e.target.value)} maxLength={2000} rows={4} />
         </label>
         <TaxonomyFields genre1={genre1} genre2={genre2} hashtags={hashtags} onGenre1={setGenre1} onGenre2={setGenre2} onHashtags={setHashtags} />
+        <div className='ep-suggest'>
+          <button ref={suggestButton} type='button' className='btn sm' onClick={() => void suggest()}>{asking ? '추천 받는 중…' : 'AI로 장르·해시태그 추천 받기'}</button>
+          <small className='ep-optional'>저장된 제목·소개와 발행 회차를 바탕으로 추천해요. 고른 값은 저장해야 반영돼요.</small>
+          {suggestion && (
+            <div role='group' aria-label='AI 추천 후보'>
+              <div>장르 {suggestion.genres.map((g) => <button type='button' key={g} className='btn sm' disabled={!canPickSuggestedGenre([genre1, genre2], g)} onClick={() => pickGenre(g)}>{g}</button>)}</div>
+              <div>해시태그 {suggestion.hashtags.map((t) => <button type='button' key={t} className='btn sm' disabled={!canAddSuggestedTag(tags, t)} onClick={() => addTag(t)}>#{t}</button>)}</div>
+            </div>
+          )}
+        </div>
         <div className='ep-edit-actions'>
           <button className='btn pri sm' disabled={!changed || !title.trim()}>저장</button>
           <button type='button' className='btn sm' onClick={onClose}>취소</button>

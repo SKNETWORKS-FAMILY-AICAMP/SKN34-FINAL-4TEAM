@@ -10,6 +10,7 @@ import ai.storyfork.content.world.service.WorldCoverService
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.dto.CreateWorldRequest
 import ai.storyfork.content.world.service.dto.EditWorldDraftRequest
+import ai.storyfork.content.world.service.dto.InheritedWorldResponse
 import ai.storyfork.content.world.service.dto.ReaderWorldCardsResponse
 import ai.storyfork.content.world.service.dto.WorldDraftResponse
 import ai.storyfork.content.world.service.dto.WorldStudioSummaryResponse
@@ -46,11 +47,19 @@ class WorkWorldControllerTest {
         assertSame(cards, works.readerCards("work", "3"))
     }
 
+    @Test fun `the inherited world is read for the signed-in member with upto as sent`() {
+        val inherited = InheritedWorldResponse("fork", world, 2)
+        `when`(links.inheritedWorld("fork", owner.toString(), "2")).thenReturn(inherited)
+
+        assertSame(inherited, works.inheritedWorld("fork", principal, "2"))
+    }
+
     @Test fun `routes are the contract paths in the package the content error handler covers`() {
         fun method(name: String) = WorkWorldController::class.java.methods.first { it.name == name }
         assertEquals(listOf("/api/v1"), AnnotatedElementUtils.findMergedAnnotation(WorkWorldController::class.java, RequestMapping::class.java)!!.value.toList())
         assertEquals(listOf("/works/{id}/world-studio"), AnnotatedElementUtils.findMergedAnnotation(method("link"), PutMapping::class.java)!!.value.toList())
         assertEquals(listOf("/public/works/{id}/world-cards"), AnnotatedElementUtils.findMergedAnnotation(method("readerCards"), GetMapping::class.java)!!.value.toList())
+        assertEquals(listOf("/works/{id}/inherited-world"), AnnotatedElementUtils.findMergedAnnotation(method("inheritedWorld"), GetMapping::class.java)!!.value.toList())
         // 404·409(WORLD_ALREADY_LINKED)·422가 500이 아니라 {detail, code} JSON으로 나가려면 이 패키지여야 한다.
         assertTrue(WorkWorldController::class.java.packageName in AnnotatedElementUtils.findMergedAnnotation(ContentExceptionHandler::class.java, RestControllerAdvice::class.java)!!.basePackages)
     }

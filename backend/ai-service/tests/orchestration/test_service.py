@@ -10,7 +10,8 @@ from app.intent.models import IntentResult, IntentStep
 from app.intent.prompt import CLARIFY_MESSAGE
 from app.story_qa.errors import StoryQaFailure
 from app.orchestration import service
-from app.orchestration.models import OrchestrationRequest
+from app.orchestration.models import ChatTurn, OrchestrationRequest
+from app.rating.errors import RatingFailure
 from app.research.errors import ResearchFailure
 
 from app.retrieval.errors import RetrievalFailure, RetrievalUnavailable
@@ -23,8 +24,8 @@ from app.world_review import service as world_review
 from app.world_review.errors import WorldReviewFailure
 from app.world_review.models import Finding as WorldFinding, WorldReviewResult
 
-from .stubs import (CLOSING, COVERAGE, DRAFT, FORM, LINE, OPENING, PATCH, QA, REVIEW, SCENE_TEXT, SCOPE, WEB, WORLD_REVIEW_REQUEST,
-                    fake_agents, fake_scene, plan)
+from .stubs import (BEAT, CLOSING, CONTEXT, COVERAGE, DRAFT, FORM, LINE, OPENING, PATCH, QA, REVIEW, SCENE_TEXT, SCOPE, WEB,
+                    WORLD_REVIEW_REQUEST, fake_agents, fake_scene, plan)
 
 REAL_WORLD_REVIEW = (world_review.linked_request, world_review.review)  # fake_agents가 바꾸기 전의 실제 함수
 
@@ -55,7 +56,6 @@ def test_router_receives_request_operation_and_materials(monkeypatch):
 
 
 @pytest.mark.parametrize('steps, unsupported', [
-    (['story_development', 'writing_editing'], ['story_development']),
     (['world_plot'], ['world_plot']),
     (['web_research', ('writing_editing', 'if_issues_found')], ['writing_editing']),
 ])
@@ -379,6 +379,32 @@ def test_review_without_a_target_fails_the_step_without_a_model_call(monkeypatch
     calls = fake_agents(monkeypatch, plan('review'))
     result = run('검수해줘', inputs={'review': REVIEW})
     assert result.status == 'failed' and result.steps[0].error == service.NO_REVIEW_TARGET
+    assert names(calls) == ['route']
+
+
+def test_rating_rates_the_target_draft_without_inputs_or_approval(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('rating'))
+    applied = writer(monkeypatch)
+    # 대화 안이어도 단계 입력을 묻지 않는다. 판별 대상은 Content가 확인한 반영 대상 회차다.
+    result = write_turn(str(uuid4()), request='이 회차 19세 이용가인지 봐줘', target=TARGET)
+    assert result.status == 'completed' and result.awaitingApproval is None and result.missingInputs == []
+    [(_, (data,), _)] = [c for c in calls if c[0] == 'rating']
+    assert (data.workId, data.episodes) == ('work', [3])
+    assert (result.steps[0].feature, result.steps[0].result.verdict) == ('rating', 'general')
+    assert applied == []  # 판정은 제안이라 승인·반영을 묻지 않는다
+
+
+def test_rating_failure_fails_only_the_step(monkeypatch):
+    fake_agents(monkeypatch, plan('rating'), fail={'rating': RatingFailure(503, '심의 판별 모델 호출에 실패했습니다.')})
+    result = run('19세 이용가인지 봐줘', target=TARGET)
+    assert result.status == 'failed'
+    assert (result.steps[0].status, result.steps[0].error) == ('failed', '심의 판별 모델 호출에 실패했습니다.')
+
+
+def test_rating_without_a_target_fails_the_step_without_a_model_call(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('rating'))
+    result = run('19세 이용가인지 봐줘')
+    assert result.status == 'failed' and result.steps[0].error == service.NO_RATING_TARGET
     assert names(calls) == ['route']
 
 
@@ -1409,8 +1435,8 @@ def test_a_capability_name_is_ordinary_text_unless_the_router_just_asked(monkeyp
     fake_agents(monkeypatch, plan('story_context'))
     chat(thread, request='카이의 목표는?', inputs={'story_context': QA})
     calls = fake_agents(monkeypatch, plan('writing_editing'))
-    chat(thread, request='집필·수정', inputs={'writing_editing': PATCH})
-    assert calls[0][1] == ('집필·수정', None, [], ['카이의 목표는?'])
+    chat(thread, request='기획·집필·수정', inputs={'writing_editing': PATCH})
+    assert calls[0][1] == ('기획·집필·수정', None, [], ['카이의 목표는?'])
 
 
 def test_a_simulation_clarify_is_not_a_router_clarify(monkeypatch):
@@ -1418,8 +1444,8 @@ def test_a_simulation_clarify_is_not_a_router_clarify(monkeypatch):
     fake_agents(monkeypatch, plan('character_simulation'), drafted=SimulationPlan(mode='flow', beats=['성문 대면']))
     assert write_turn(thread, request='장면 시뮬레이션', scope=SCOPE, target=TARGET).status == 'clarify'
     calls = fake_agents(monkeypatch, plan('writing_editing'))
-    write_turn(thread, request='집필·수정', target=TARGET, inputs={'writing_editing': PATCH})
-    assert calls[0][1] == ('집필·수정', None, [], ['장면 시뮬레이션'])
+    write_turn(thread, request='기획·집필·수정', target=TARGET, inputs={'writing_editing': PATCH})
+    assert calls[0][1] == ('기획·집필·수정', None, [], ['장면 시뮬레이션'])
 
 
 def test_an_explicit_operation_wins_over_a_clarify_answer(monkeypatch):
@@ -1427,8 +1453,8 @@ def test_an_explicit_operation_wins_over_a_clarify_answer(monkeypatch):
     fake_agents(monkeypatch, CLARIFY)
     chat(thread, request=VAGUE)
     calls = fake_agents(monkeypatch, plan('story_context'))
-    chat(thread, request='집필·수정', operation='story_context', inputs={'story_context': QA})
-    assert calls[0][1] == ('집필·수정', 'story_context', [], [VAGUE])
+    chat(thread, request='기획·집필·수정', operation='story_context', inputs={'story_context': QA})
+    assert calls[0][1] == ('기획·집필·수정', 'story_context', [], [VAGUE])
 
 
 def test_cancelling_the_finding_pick_runs_no_edit(monkeypatch):
@@ -1457,3 +1483,88 @@ def test_finding_pick_without_a_review_fails_the_edit_without_a_model_call(monke
     result = run('고쳐줘', inputs={'writing_editing': {'fix': 0}})
     assert result.status == 'failed' and result.steps[0].error == service.BAD_FIX
     assert names(calls) == ['route']
+
+
+
+def writing_step(task):
+    return IntentStep(feature='writing_editing', when='always', task=task)
+
+
+def test_plan_only_returns_beat_plans_with_allowed_context_and_never_asks_to_write(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(writing_step('plan')))
+    applied = writer(monkeypatch)
+    result = write_turn(str(uuid4()), request='11화 전개만 짜줘', target={**TARGET, 'episode': 5, 'baseEpisode': 3})
+    assert result.status == 'completed' and result.awaitingApproval is None
+    assert result.steps[0].result.plans[0].title == BEAT.title
+    assert names(calls) == ['route', 'mcp', 'writing_plan'] and applied == []
+    # 허용 문맥은 Content가 근거 회차(지식 상한)까지 확인한 것이다. 반영 회차 5화를 기획한다.
+    assert calls[1][1] == ('work_context_read', {'id': 'work', 'episode': 3, 'query': '11화 전개만 짜줘'})
+    sent = calls[2][1][0]
+    assert (sent.episodeNumber, sent.request) == (5, '11화 전개만 짜줘') and json.loads(sent.context) == CONTEXT
+
+
+def test_draft_without_a_plan_plans_and_writes_in_one_step_then_waits_for_approval(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(writing_step('draft'), 'review'))
+    applied = writer(monkeypatch)
+    result = write_turn(str(uuid4()), request='11화를 기획하고 써서 검수해줘', target=TARGET, inputs={'review': REVIEW})
+    assert (result.status, result.awaitingApproval) == ('waiting', 'writing_editing')
+    assert [s.feature for s in result.steps] == ['writing_editing', 'review']
+    assert result.steps[0].result.plan == BEAT and names(calls) == ['route', 'mcp', 'plan_and_draft'] and applied == []
+
+
+def test_author_plan_still_wins_and_gets_the_allowed_context(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(writing_step('draft')))
+    run('써줘', target=TARGET, inputs={'writing_editing': DRAFT})
+    assert names(calls) == ['route', 'mcp', 'draft'] and json.loads(calls[2][1][0].context) == CONTEXT
+
+
+def test_planning_without_a_target_fails_the_step(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(writing_step('plan')))
+    result = run('전개 짜줘')
+    assert result.status == 'failed' and result.steps[0].error == service.NO_WRITING_TARGET
+    assert names(calls) == ['route']
+
+
+def test_patch_task_without_selection_still_waits_for_input(monkeypatch):
+    fake_agents(monkeypatch, plan(writing_step('patch')))
+    result = chat(str(uuid4()), target=TARGET)
+    assert (result.status, result.missingInputs) == ('waiting', ['writing_editing'])
+
+
+def test_a_reply_recorded_before_story_development_was_merged_still_loads():
+    # #387 전 대화의 응답에는 story_development 단계가 남아 있다. 이력을 다시 읽을 때 형식 오류가 되면 안 된다.
+    old = {'status': 'unsupported', 'message': service.UNSUPPORTED_MESSAGE, 'unsupported': ['story_development'],
+           'steps': [{'feature': 'story_development', 'when': 'always', 'status': 'not_started'}]}
+    assert ChatTurn(request='11화 사건을 추천해줘', reply=old).reply.unsupported == ['story_development']
+
+
+def test_allowed_context_over_the_limit_fails_the_step_instead_of_breaking_the_run(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(writing_step('plan')))
+    monkeypatch.setattr(service.content_mcp, 'call', lambda tool, args: {'draft': '가' * 60001})
+    result = write_turn(str(uuid4()), request='전개 짜줘', target=TARGET)
+    assert result.status == 'failed' and result.steps[0].error == service.CONTEXT_TOO_LONG
+    assert 'writing_plan' not in names(calls)
+
+
+def test_waiting_patch_step_carries_its_task_so_the_screen_does_not_ask_for_a_plan(monkeypatch):
+    fake_agents(monkeypatch, plan(writing_step('patch')))
+    result = chat(str(uuid4()), target=TARGET)
+    assert [(s.feature, s.task) for s in result.steps] == [('writing_editing', 'patch')]
+
+
+def test_a_follow_up_writing_turn_gets_the_latest_plan_alternatives_of_the_conversation(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan(writing_step('plan')))
+    write_turn(thread, request='다음 화 전개를 두 가지 안으로 짜줘', target=TARGET)
+    fake_agents(monkeypatch, plan('story_context'))
+    write_turn(thread, request='길드 규칙은?', inputs={'story_context': QA})  # 사이에 다른 작업이 있어도 가장 최근 기획을 쓴다
+    calls = fake_agents(monkeypatch, plan(writing_step('draft')))
+    write_turn(thread, request='그 중 첫 번째 안으로 바로 써줘', target=TARGET)
+    sent = next(args[0] for name, args, _ in calls if name == 'plan_and_draft')
+    assert sent.previousPlans == [BEAT]
+
+
+def test_the_first_planning_turn_has_no_previous_plans(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(writing_step('plan')))
+    write_turn(str(uuid4()), request='전개 짜줘', target=TARGET)
+    assert next(args[0] for name, args, _ in calls if name == 'writing_plan').previousPlans == []

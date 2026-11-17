@@ -15,6 +15,7 @@
   `sample/V16`은 CSV에서 생성한 개발 샘플 행이며 직접 편집하지 않는다. 샘플 변경은 다음 번호의 새 마이그레이션으로 한다.
   `db/migration/content`·root 직하 SQL을 다시 만들지 않는다. Auth·첨부·WorldStudio SQL 이력은 보존하고 자동 repair/reset하지 않는다.
 - WorldStudio는 `contentDataSource`를 재사용하고 시작 시 전용 schema(`world_studio_schema_history`)를 migrate한 뒤 전용 EntityManager/TransactionManager로 validate한다. 별도 DB·분산 transaction을 추가하지 않는다.
+- 세계관 삭제는 소프트 삭제(WorldStudio V9 `world.deleted_at`)다. `StudioWorldRepository`의 `lockOwned`·내 목록·`listed`·`listedByGenre` 쿼리와 `PublicWorldService.listedWorld`·`readerSnapshot`, `WorldCoverService.read`·`WorldCardImageService.read`, `WorkWorldService.link`의 `findById` 확인이 `deletedAt`을 거르므로 새 조회·쿼리도 같은 조건을 둔다. 연결된 소설(`work.world_studio_id`)이 있으면 409 `WORLD_LINKED`이며 컨트롤러가 연결을 먼저 읽어 `WorldStudioService.delete`에 넘긴다(두 트랜잭션을 겹치지 않는다). 확정 버전 되돌리기(`WorldStudioService.restore`)는 초안의 카드만 되돌리고 관계·새 확정 버전은 건드리지 않으며, 사라질 카드가 현재 관계의 끝점이면 409 `WORLD_RESTORE_BLOCKED`다. [계약](../../docs/design/worldstudio-independent-schema.md#확정-버전으로-카드-되돌리기와-세계관-삭제-2026-11-17)
 - 장르 템플릿 세계관은 SQL 마이그레이션이 아니라 `GenreTemplateSeeder`가 서버 시작 시 `WorldStudioService`(create → edit → save)로
   Core `auth/V8` 운영 관리자(`GenreTemplateSeeder.TEMPLATE_OWNER`, 임시 할당) 소유 WorldStudio 세계관으로 적재한다. 리소스는 `genre-templates.json`이며
   소유자 한계(공개 비밀번호·소유자 불일치·타 사용자 미노출)를 포함한 [설계](../../docs/design/worldstudio-independent-schema.md#플랫폼-장르-템플릿-세계관)를 따른다.
@@ -22,7 +23,8 @@
 - 확장 역사·전승 후보는 별도 `ExpandedTemplateSeeder`의 기본 꺼진 `app.worldstudio.expanded-seed-enabled`로 보호하며 #425의 권리·감수 선행조건을 확인하기 전에는 켜지 않는다. 플래그가 꺼져도 이미 시작한 미완료 marker는 같은 입력·hash로만 재개한다. 없는 세계관은 비공개 생성해 카드·관계 청크를 전부 기록하고 마지막 확정과 공개를 같은 PG 트랜잭션에서 처리한다. 기존 26종과 저장 완료된 역사 7종은 원본 검사를 통과할 때만 확장하며 옛 카드와 공개 선택을 보존한다. 미완료 중 공개 관계는 unavailable이고 사용자 쓰기·AI 검토는 충돌로 보류한다. 과거 미완료 역사 요청은 보류한다.
 - 설정 카드는 기본 비공개다. 공개 세계관 조회는 공개 카드와 그 카드끼리의 관계만, 독자 설정 위키(`GET /api/v1/public/works/{id}/world-cards`)는
   카드의 독자 공개 회차(`semanticMetadata.revealFromEpisode`)가 발행된 회차 안인 카드만 서버에서 걸러 보낸다. 두 기준은 서로 별개이며 화면에서 거르게 두지 않는다(DEC-46).
-- 세계관과 소설은 1:1이다. 연결의 정본은 `work.world_studio_id`(UNIQUE) 하나이고 `WorkWorldService`가 맡는다. Content와 WorldStudio 트랜잭션은 겹치지 않게 차례로 연다.
+- 세계관과 소설은 1:1이다. 연결의 정본은 `work.world_studio_id`(UNIQUE) 하나이고 `WorkWorldService`가 맡는다. Content와 WorldStudio 트랜잭션은 겹치지 않게 차례로 연다. 공개 세계관 상세(`PublicWorldService.detail`)는 연결된 소설이 공개 작품(`WorkAccessResult.publiclyVisible()`)일 때만 그 최소 정보(`linkedWork`)를 싣고 그 밖은 `null`로 존재를 숨기며, 소설 작가명은 세계관 작가와 같은 `CoreNicknameService` 조회 한 번에 묶는다(목록은 바꾸지 않는다, #329).
+- 자기 세계관을 연결하지 않은 `following` Fork는 원작 세계관을 읽기 전용으로 이어받는다(#365). `WorkWorldService.inheritedWorld` 한 곳이 조건·상한 회차(Fork 기준 회차)를 정하고 `PublicWorldService.inheritedWorld`가 확정 버전의 **공개 카드**(독자 공개 회차 이하)와 그 카드끼리의 그 시점 관계만 거른다. 인물 문서·관계 본문 같은 작가용 값은 싣지 않는다. REST `GET /api/v1/works/{id}/inherited-world`·MCP `work_inherited_world`·`QaScopeService`가 같은 결과를 쓰며 원작 작가 권한으로 초안을 읽지 않는다. [계약](../../docs/design/public-world-contract.md#fork가-이어받는-원작-세계관-dec-3237-365)
 - MCP 창구(`ai.storyfork.content.mcp`, `/mcp`)는 기존 Service 함수만 호출하는 어댑터다. 공개 도구는 인증 없이, 사용자 도구는 전달된 Bearer를 기존 필터로 검증한 회원 UUID로 호출하며 도구 인자로 회원 ID를 받지 않는다. [계약](../../docs/design/content-mcp-contract.md)
 - 로컬은 이 디렉터리에서 `./gradlew unitTest --tests 'ai.storyfork.content.<대상 클래스>' --no-daemon`으로 순수 단위만 실행한다.
   Spring/HTTP/DB/Flyway 검사는 CI `integrationTest`에서 실행한다.

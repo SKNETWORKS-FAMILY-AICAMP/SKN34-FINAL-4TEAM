@@ -13,6 +13,7 @@ import ai.storyfork.content.world.studio.entity.SettingCardImage
 import ai.storyfork.content.world.studio.entity.StudioWorld
 import ai.storyfork.content.world.studio.repository.SettingCardImageRepository
 import ai.storyfork.content.world.studio.repository.StudioWorldRepository
+import java.time.Instant
 import java.util.Optional
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
@@ -93,6 +94,12 @@ class WorldCardImageServiceTest {
         owned()
         assertThrows(WorldNotFound::class.java) { service.put(id, UUID.randomUUID(), png) }
         assertThrows(WorldNotFound::class.java) { service.read(id, UUID.randomUUID(), UUID.randomUUID()) }
+        verifyNoInteractions(storage, images)
+    }
+
+    @Test fun `a deleted world's card image is a 404 for its owner and neither the row nor the object is read`() {
+        owned().deletedAt = Instant.now()
+        assertThrows(WorldNotFound::class.java) { service.read(id, owner, UUID.randomUUID()) }
         verifyNoInteractions(storage, images)
     }
 

@@ -4,7 +4,7 @@ from app.review import service
 from app.review.errors import ReviewFailure
 from app.review.models import ReviewRequest, ReviewResult
 
-from .stubs import WORK, WORLD, fake_agent, fake_content, finding
+from .stubs import NO_INHERITED, WORK, WORLD, fake_agent, fake_content, finding
 
 
 def mechanical():
@@ -127,6 +127,18 @@ def test_semantic_with_malformed_world_read_is_502(monkeypatch, world):
     with pytest.raises(ReviewFailure) as error:
         service.review(semantic())
     assert (error.value.status, str(error.value)) == (502, service.BAD_CONTENT)
+
+
+def test_semantic_of_a_fork_without_a_world_of_its_own_uses_the_inherited_original_world(monkeypatch):
+    inherited = {**NO_INHERITED, 'worldId': 'world-1', 'upto': 3, 'cards': [{**WORLD['cards'][0], 'semanticMetadata': {'revealFromEpisode': 1}}]}
+    calls = fake_content(monkeypatch, linked='other-work', inherited=inherited)
+    seen = fake_agent(monkeypatch, finding(category='setting', refs=['card:seoyun']))
+
+    service.review(semantic())
+
+    assert calls[-1] == ('work_inherited_world', {'id': WORK, 'upto': '3'})
+    assert 'world_studio_read' not in [tool for tool, _ in calls]
+    assert [s['ref'] for s in seen['settings']] == ['card:seoyun']
 
 
 def test_semantic_without_linked_world_is_409(monkeypatch):

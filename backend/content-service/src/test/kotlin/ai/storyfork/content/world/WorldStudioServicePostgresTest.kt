@@ -130,6 +130,9 @@ class WorldStudioServicePostgresTest {
                 ctx.getBean(WorldRelationshipStateRepository::class.java),ctx.getBean(ExpandedSeedProgressRepository::class.java),ctx.getBean(Neo4jRelationshipRepository::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.auth.service.CoreNicknameService::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.attachment.client.AttachmentStorageClient::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.work.repository.WorkRepository::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.work.service.WorkAccessService::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.attachment.repository.ContentImageRepository::class.java),
                 ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java))
             val visible=publicService.detail(id)
             assertEquals(setOf(first.id,second.id),visible.cards.map { it.id }.toSet())
@@ -406,6 +409,9 @@ class WorldStudioServicePostgresTest {
                 ctx.getBean(WorldRelationshipStateRepository::class.java),ctx.getBean(ExpandedSeedProgressRepository::class.java),graph,
                 org.mockito.Mockito.mock(ai.storyfork.content.auth.service.CoreNicknameService::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.attachment.client.AttachmentStorageClient::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.work.repository.WorkRepository::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.work.service.WorkAccessService::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.attachment.repository.ContentImageRepository::class.java),
                 ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java))
             val view=publicView(ctx.getBean(Neo4jRelationshipRepository::class.java))
             Executors.newSingleThreadExecutor().use { pool ->
@@ -447,6 +453,9 @@ class WorldStudioServicePostgresTest {
                 ctx.getBean(WorldRelationshipStateRepository::class.java),ctx.getBean(ExpandedSeedProgressRepository::class.java),ctx.getBean(Neo4jRelationshipRepository::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.auth.service.CoreNicknameService::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.attachment.client.AttachmentStorageClient::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.work.repository.WorkRepository::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.work.service.WorkAccessService::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.attachment.repository.ContentImageRepository::class.java),
                 ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java))
             assertEquals(36,manifest.worlds.size)
             assertEquals(16461,manifest.worlds.sumOf { world -> world.chunks.sumOf { name ->
@@ -509,6 +518,9 @@ class WorldStudioServicePostgresTest {
                 ctx.getBean(WorldRelationshipStateRepository::class.java),ctx.getBean(ExpandedSeedProgressRepository::class.java),ctx.getBean(Neo4jRelationshipRepository::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.auth.service.CoreNicknameService::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.attachment.client.AttachmentStorageClient::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.work.repository.WorkRepository::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.work.service.WorkAccessService::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.attachment.repository.ContentImageRepository::class.java),
                 ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java))
             val published=publicService.detail(id)
             assertEquals(cards.map { it.id }.toSet(),published.cards.map { it.id }.toSet())
@@ -736,7 +748,7 @@ class WorldStudioServicePostgresTest {
                 assertEquals("symmetric",changed.relationships.single().direction)
                 val removed=service.edit(create.id,actor,EditWorldDraftRequest(changed.draftRevision,changed.name,"",changed.cards,emptyList(),"delete",true))
                 assertTrue(removed.relationships.isEmpty());assertEquals(original,service.revision(create.id,actor,first).cards.single { it.card.id==card }.card)
-                assertEquals("RELATIONSHIP_HISTORY_UNSUPPORTED",assertThrows(WorldStudioFailure::class.java) { service.restore(create.id,actor,RestoreWorldRequest(removed.draftRevision,"restore",first)) }.code)
+                assertThrows(WorldNotFound::class.java) { service.restore(create.id,actor,UUID.randomUUID(),RestoreWorldRequest(removed.draftRevision)) }
                 // Card revision commit failures still roll back pointer, manifest and request atomically within PostgreSQL.
                 db.connect().use { c -> WorldStudioPostgresFixture.sql(c,"""CREATE FUNCTION worldstudio.qa_fail_commit() RETURNS trigger LANGUAGE plpgsql AS ${'$'}${'$'} BEGIN IF NEW.request_key='fail-late' THEN RAISE EXCEPTION 'synthetic late failure' USING ERRCODE='23514'; END IF; RETURN NULL; END; ${'$'}${'$'};
                     CREATE CONSTRAINT TRIGGER qa_fail_commit AFTER INSERT ON worldstudio.world_save_request DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION worldstudio.qa_fail_commit();""") }

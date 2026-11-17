@@ -25,6 +25,7 @@ import ai.storyfork.content.work.service.dto.WorkListResponse
 import ai.storyfork.content.work.service.dto.WorkRankingResponse
 import ai.storyfork.content.work.service.dto.WorkResponse
 import ai.storyfork.content.work.service.dto.WorkWorldLinkResponse
+import ai.storyfork.content.world.service.dto.InheritedWorldResponse
 import ai.storyfork.content.world.service.dto.ReaderWorldCardsResponse
 import ai.storyfork.content.world.service.dto.WorldResponse
 import io.modelcontextprotocol.common.McpTransportContext
@@ -172,6 +173,17 @@ class WorkMcpTools(
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "이 회차까지 독자에게 공개된 카드만(1 이상, 생략하면 마지막 발행 회차)", required = false) upto: String?,
     ): ReaderWorldCardsResponse = mcpTool { worldLinks.readerCards(id, upto) }
+
+    @McpTool(
+        name = "work_inherited_world",
+        description = "Fork가 자기 세계관 없이 이어받는 원작 세계관(GET /api/v1/works/{id}/inherited-world). Fork 소유자만 읽을 수 있고 Fork 기준 회차(upto가 더 작으면 그 회차)까지 독자 공개된 공개 카드와 그 카드끼리의 그 시점 관계만 돌려준다. 이어받는 세계관이 없으면 worldId가 null이고, 남의 작품은 404, upto 값 오류는 422다.",
+        annotations = McpTool.McpAnnotations(readOnlyHint = true),
+    )
+    fun inheritedWorld(
+        context: McpTransportContext,
+        @McpToolParam(description = "Fork 작품 ID") id: String,
+        @McpToolParam(description = "이 회차까지만(1 이상, 생략하면 Fork 기준 회차)", required = false) upto: String?,
+    ): InheritedWorldResponse = mcpTool { worldLinks.inheritedWorld(id, context.requireCaller().memberId, upto) }
 
     @McpTool(
         name = "work_notice_public_list",

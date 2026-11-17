@@ -304,9 +304,9 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                         const label = relationLabel(s.item), full = `${name(s.item.subjectId)} · ${label} · ${name(s.item.targetId)}`
                         return (
                           <tr key={s.item.id} aria-describedby={readOnly(s) ? readOnlyReason : undefined}>
-                            <td>{s.item.subjectId && peopleById.has(s.item.subjectId) ? <button type='button' className='relationship-card-link' onClick={() => { if (studio.confirmRelationDiscard()) studio.editCard(s.item.subjectId!) }}>{name(s.item.subjectId)}</button> : name(s.item.subjectId)}</td>
+                            <td>{!readOnly(s) && s.item.subjectId && peopleById.has(s.item.subjectId) ? <button type='button' className='relationship-card-link' onClick={() => { if (studio.confirmRelationDiscard()) studio.editCard(s.item.subjectId!) }}>{name(s.item.subjectId)}</button> : name(s.item.subjectId)}</td>
                             <td>{label}</td>
-                            <td>{s.item.targetId && peopleById.has(s.item.targetId) ? <button type='button' className='relationship-card-link' onClick={() => { if (studio.confirmRelationDiscard()) studio.editCard(s.item.targetId!) }}>{name(s.item.targetId)}</button> : name(s.item.targetId)}</td>
+                            <td>{!readOnly(s) && s.item.targetId && peopleById.has(s.item.targetId) ? <button type='button' className='relationship-card-link' onClick={() => { if (studio.confirmRelationDiscard()) studio.editCard(s.item.targetId!) }}>{name(s.item.targetId)}</button> : name(s.item.targetId)}</td>
                             <td className='relationship-row-actions'>
                               {readOnly(s)
                                 ? <span className='small muted'>읽기 전용</span>

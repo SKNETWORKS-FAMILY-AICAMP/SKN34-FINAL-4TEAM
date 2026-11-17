@@ -14,6 +14,7 @@ import ai.storyfork.content.world.studio.entity.StudioWorld
 import ai.storyfork.content.world.studio.repository.StudioWorldRepository
 import ai.storyfork.content.world.studio.repository.ExpandedSeedProgressRepository
 import ai.storyfork.content.world.studio.entity.ExpandedSeedProgress
+import java.time.Instant
 import java.util.Optional
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
@@ -98,6 +99,12 @@ class WorldCoverServiceTest {
         world()
         assertThrows(WorldNotFound::class.java) { service.put(id, UUID.randomUUID(), png) }
         assertThrows(WorldNotFound::class.java) { service.read(id, UUID.randomUUID()) }
+        verifyNoInteractions(storage)
+    }
+
+    @Test fun `a deleted world's cover is a 404 for its owner and the object is never read`() {
+        world("world-covers/old", "image/png").deletedAt = Instant.now()
+        assertThrows(WorldNotFound::class.java) { service.read(id, owner) }
         verifyNoInteractions(storage)
     }
 
