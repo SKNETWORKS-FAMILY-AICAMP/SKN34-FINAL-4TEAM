@@ -63,6 +63,9 @@ from app.story_qa.errors import StoryQaFailure
 from app.story_qa.models import AnswerRequest
 from app.orchestration.models import (ChatHistory, ChatSession, ChatTurn, OrchestrationRequest, OrchestrationResponse,
                                       QaStepResult, Resume)
+from app.rating import service as rating
+from app.rating.errors import RatingFailure
+from app.rating.models import RatingRequest
 from app.research import service as research
 from app.research.errors import ResearchFailure
 from app.research.models import ResearchRequest
@@ -120,6 +123,12 @@ def _review(data: dict, state: dict):
     return review.review(ReviewRequest(workId=target['workId'], episode=target['episode'], check=data['check']))
 
 
+def _rating(state: dict):
+    """심의 등급 판별. 단계 입력이 없고, 판별할 초안은 Content가 확인한 반영 대상(target) 회차 하나다. 결과는 제안이라 승인·반영이 없다."""
+    target = state.get('target')
+    if not target:
+        raise RatingFailure(422, NO_RATING_TARGET)
+    return rating.rate(RatingRequest(workId=target['workId'], episodes=[target['episode']]))
 def _world_review(state: dict):
     """설정집 검토. 단계 입력이 없고 검토할 세계관은 Content가 확인한 작품(target)에 연결된 세계관이다. HTTP 경로와 같은 service 함수를 쓴다."""
     target = state.get('target')
@@ -135,9 +144,13 @@ CALLS = {
     'writing_editing': lambda data, state: _writing(data),
     'web_research': lambda data, state: research.research(ResearchRequest.model_validate(data)),
     'review': _review,
+    'rating': lambda data, state: _rating(state),
     'world_review': lambda data, state: _world_review(state),
 }
+# 단계 입력 없이 실행하는 기능(시뮬레이션은 simulation_plan, 설정집 검토는 target의 연결 세계관, Rating은 target 회차를 쓴다)
+NO_INPUT = ('character_simulation', 'world_review', 'rating')
 NO_REVIEW_TARGET = '검수할 작품과 회차를 확인할 수 없어요.'
+NO_RATING_TARGET = '심의 등급을 판별할 작품과 회차를 확인할 수 없어요.'
 NO_WORLD_REVIEW_TARGET = '검토할 작품을 확인할 수 없어요.'
 NO_ISSUES = '검수에서 고칠 문제를 찾지 못해 수정하지 않았어요.'
 ONLY_SUSPECTED = '확정된 문제가 없어 자동으로 고치지 않았어요. 의심 지적은 고칠 구간을 골라 집필·수정을 따로 요청해 주세요.'
@@ -150,7 +163,7 @@ FEATURES = (*CALLS, 'character_simulation')
 # shortcut: 최근 5턴만 넘기고 요약하지 않는다. 긴 대화의 앞부분 지칭이 필요해지면 요약을 검토한다.
 HISTORY_TURNS = 5
 FAILURES = (StoryQaFailure, WritingFailure, ResearchFailure, RetrievalFailure, SimulationFailure, ContentMcpFailure, ReviewFailure,
-            WorldReviewFailure)
+            WorldReviewFailure, RatingFailure)
 LIMIT_MESSAGE = '시뮬레이션이 호출 한도를 넘어 멈췄어요.'
 APPROVABLE = ('writing_editing', 'character_simulation')  # 결과를 작가가 승인하면 초안에 반영하는 단계
 UNSUPPORTED_MESSAGE = ('요청에 아직 실행할 수 없는 작업이 있어 아무 작업도 실행하지 않았어요. '
@@ -307,10 +320,10 @@ def gate(state: State) -> State:
     값을 돌려받아 여러 번 기다려도 같은 결과가 된다.
     """
     inputs, scope = dict(state['inputs']), state.get('retrievalScope')
-    # 시뮬레이션은 단계 입력이 없다(simulation_plan이 계획을 정한다). 설정집 검토도 입력 없이 target의 연결 세계관을 읽는다.
-    # Q&A는 scope가 있으면 입력 없이 Retrieval로 근거를 받는다. 조건부 수정은 입력이 없다(Review 결과로 만든다).
+    # 시뮬레이션·설정집 검토·Rating은 단계 입력이 없다(NO_INPUT). Q&A는 scope가 있으면 입력 없이 Retrieval로 근거를 받는다.
+    # 조건부 수정은 입력이 없다(Review 결과로 만든다).
     while missing := [s['feature'] for s in state['steps'] if s['feature'] not in inputs and s['when'] == 'always'
-                      and s['feature'] not in ('character_simulation', 'world_review') and not (s['feature'] == 'story_context' and scope)]:
+                      and s['feature'] not in NO_INPUT and not (s['feature'] == 'story_context' and scope)]:
         if not state.get('scope'):  # 대화가 없으면 체크포인트가 없어 멈췄다 이어갈 수 없다.
             return {'status': 'needs_input', 'message': NEEDS_INPUT_MESSAGE, 'missingInputs': missing}
         answer = interrupt({'steps': state['steps'], 'missingInputs': missing})

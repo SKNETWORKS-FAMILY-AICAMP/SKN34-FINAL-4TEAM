@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.intent.models import Feature
 from app.story_qa.models import AnswerRequest, AnswerResponse, Excerpt
+from app.rating.models import RatingResponse
 from app.research.models import ResearchRequest, ResearchResponse
 from app.retrieval.models import Coverage, RetrievalScope
 from app.review.models import ReviewResponse, Scope
@@ -123,7 +124,7 @@ class StepResult(BaseModel):
     when: Literal['always', 'if_issues_found']
     # 끝까지 가지 못한 시뮬레이션 장면은 부분 result와 함께 failed다. skipped는 조건부 수정이 고칠 확정 지적이 없어 건너뛴 단계다(#370).
     status: Literal['completed', 'failed', 'not_started', 'skipped']
-    result: QaStepResult | DraftResponse | PatchResponse | ResearchResponse | SimulationResult | ReviewResponse | WorldReviewResponse | None = None
+    result: QaStepResult | DraftResponse | PatchResponse | ResearchResponse | SimulationResult | ReviewResponse | WorldReviewResponse | RatingResponse | None = None
     error: str | None = None  # 실패 사유, skipped면 건너뛴 이유
     approval: Literal['approved', 'declined'] | None = None  # Writing 결과·시뮬레이션 장면 반영에 대한 작가의 답
     applied: AppliedDraft | None = None

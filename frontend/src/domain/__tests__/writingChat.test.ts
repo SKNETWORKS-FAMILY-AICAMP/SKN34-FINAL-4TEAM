@@ -193,6 +193,28 @@ describe('원고 검수 결과 글(#59)', () => {
       .toBe('건너뜀: 검수에서 고칠 문제를 찾지 못해 수정하지 않았어요.')
   })
 
+  it('심의 등급은 제안이라고 밝히고 회차 판정과 수준 2 이상 근거, 판별 실패를 보인다', () => {
+    const rating = { verdict: 'adult' as const, prohibited: true, episodes: [
+      { episode: 3, verdict: 'adult' as const, prohibited: true, error: null, assessments: [
+        { criterion: 'sexual', level: 3, quotes: ['구절'], rationale: '노골적 묘사' },
+        { criterion: 'language', level: 1, quotes: [], rationale: '욕설 한 번' }] },
+      { episode: 4, verdict: null, prohibited: false, error: '심의 판별 모델 응답을 확인할 수 없습니다.', assessments: [] }] }
+    const text = replyText({ status: 'completed', missingInputs: [], steps: [{ feature: 'rating', status: 'completed', rating }] })
+    expect(text).toMatch(/^\[심의 등급\] 판정 제안: 19세 이용가 · 금지 표현 의심\(운영 검토 대상\)/)
+    expect(text).toContain('3화: 19세 이용가\n선정성 수준 3 · 노골적 묘사 · "구절"')
+    expect(text).not.toContain('욕설 한 번')
+    expect(text).toContain('4화: 판별 실패 · 심의 판별 모델 응답을 확인할 수 없습니다.')
+  })
+
+  it('검토가 필요한 판정은 AI가 정하지 않고 작가에게 근거를 보고 직접 판단하도록 넘긴다(#439)', () => {
+    const rating = { verdict: 'needsReview' as const, prohibited: false, episodes: [
+      { episode: 3, verdict: 'needsReview' as const, prohibited: false, error: null, assessments: [
+        { criterion: 'violence', level: 2, quotes: ['칼을 휘둘렀다'], rationale: '짧은 부상 묘사' }] }] }
+    const text = stepText({ feature: 'rating', status: 'completed', rating })
+    expect(text).toMatch(/^판정 제안: 작가 검토 필요\nAI가 등급을 정하지 않았어요\. 아래 근거를 보고 작가님이 직접 판단해 주세요\./)
+    expect(text).toContain('3화: 작가 검토 필요\n폭력성 수준 2 · 짧은 부상 묘사 · "칼을 휘둘렀다"')
+  })
+
   it('두 검수를 함께 돌린 결과는 두 검수 이름을 제목에 붙인다(#369)', () => {
     expect(stepText({ ...step([]), review: { ...step([]).review, check: 'both' } })).toBe('3화 초안 설정·개연성 + 맞춤법·표기 검수: 찾은 문제가 없어요.')
   })

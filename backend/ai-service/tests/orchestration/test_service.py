@@ -11,6 +11,7 @@ from app.intent.prompt import CLARIFY_MESSAGE
 from app.story_qa.errors import StoryQaFailure
 from app.orchestration import service
 from app.orchestration.models import OrchestrationRequest
+from app.rating.errors import RatingFailure
 from app.research.errors import ResearchFailure
 
 from app.retrieval.errors import RetrievalFailure, RetrievalUnavailable
@@ -379,6 +380,32 @@ def test_review_without_a_target_fails_the_step_without_a_model_call(monkeypatch
     calls = fake_agents(monkeypatch, plan('review'))
     result = run('검수해줘', inputs={'review': REVIEW})
     assert result.status == 'failed' and result.steps[0].error == service.NO_REVIEW_TARGET
+    assert names(calls) == ['route']
+
+
+def test_rating_rates_the_target_draft_without_inputs_or_approval(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('rating'))
+    applied = writer(monkeypatch)
+    # 대화 안이어도 단계 입력을 묻지 않는다. 판별 대상은 Content가 확인한 반영 대상 회차다.
+    result = write_turn(str(uuid4()), request='이 회차 19세 이용가인지 봐줘', target=TARGET)
+    assert result.status == 'completed' and result.awaitingApproval is None and result.missingInputs == []
+    [(_, (data,), _)] = [c for c in calls if c[0] == 'rating']
+    assert (data.workId, data.episodes) == ('work', [3])
+    assert (result.steps[0].feature, result.steps[0].result.verdict) == ('rating', 'general')
+    assert applied == []  # 판정은 제안이라 승인·반영을 묻지 않는다
+
+
+def test_rating_failure_fails_only_the_step(monkeypatch):
+    fake_agents(monkeypatch, plan('rating'), fail={'rating': RatingFailure(503, '심의 판별 모델 호출에 실패했습니다.')})
+    result = run('19세 이용가인지 봐줘', target=TARGET)
+    assert result.status == 'failed'
+    assert (result.steps[0].status, result.steps[0].error) == ('failed', '심의 판별 모델 호출에 실패했습니다.')
+
+
+def test_rating_without_a_target_fails_the_step_without_a_model_call(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('rating'))
+    result = run('19세 이용가인지 봐줘')
+    assert result.status == 'failed' and result.steps[0].error == service.NO_RATING_TARGET
     assert names(calls) == ['route']
 
 
