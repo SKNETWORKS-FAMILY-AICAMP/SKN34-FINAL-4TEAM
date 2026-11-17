@@ -34,6 +34,9 @@ export function useEpisodeViewModel(
   const alive = useRef(true)
   const inFlight = useRef(false)
   const request = useRef<AbortController | null>(null)
+  /** 추천 요청은 작품이 바뀌거나 화면을 떠나면 취소한다(만들기 요청과 수명이 달라 따로 둔다). */
+  const suggestRequest = useRef<AbortController | null>(null)
+  useEffect(() => () => suggestRequest.current?.abort(), [workId])
   const active = works.find((w) => w.id === workId) ?? null
   /** 이력은 불러온 작품에서만 보인다(다른 작품으로 바뀌면 사라진다). 이 화면의 저장은 이력 내용을 바꾸지 않으므로 저장해도 남고, 탭을 다시 누르면 새로 읽는다. */
   const history = loaded && loaded.id === active?.id ? loaded.history : null
@@ -162,7 +165,16 @@ export function useEpisodeViewModel(
     suggestTags: async () => {
       let found = null as WorkTagSuggestion | null
       await run(async () => {
-        if (active) found = await useCase.suggestWorkTags(active.id)
+        if (!active) return
+        const controller = new AbortController()
+        suggestRequest.current = controller
+        try {
+          const result = await useCase.suggestWorkTags(active.id, controller.signal)
+          if (!controller.signal.aborted) found = result
+        } catch (e) {
+          // 취소된 요청은 다른 작품·이탈한 화면의 것이라 오류로 알리지 않는다.
+          if (!controller.signal.aborted) throw e
+        }
       })
       return found
     },
