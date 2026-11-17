@@ -6,17 +6,24 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.intent.models import Feature
+
+# 저장된 응답의 기능 이름. #387 전 대화 기록에는 Writing & Editing으로 합쳐진 story_development가 남아 있다.
+RecordedFeature = Feature | Literal['story_development']
 from app.story_qa.models import AnswerRequest, AnswerResponse, Excerpt
+from app.rating.models import RatingResponse
 from app.research.models import ResearchRequest, ResearchResponse
 from app.retrieval.models import Coverage, RetrievalScope
 from app.review.models import ReviewResponse, Scope
 from app.simulation.models import SceneAction, SimulationPlan, SimulationResult
 from app.world.review.models import WorldReviewResponse
-from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse
+from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse, PlanResponse
 
 
 class WritingInput(BaseModel):
-    """Writing & Editing은 한 기능이며 새 원고(draft)·선택 구간 수정(patch)·조건부 수정에서 고른 검수 지적 번호(fix) 중 하나만 받는다."""
+    """Writing & Editing은 한 기능이며 새 원고(draft)·선택 구간 수정(patch)·조건부 수정에서 고른 검수 지적 번호(fix) 중 하나만 받는다.
+
+    전개 기획과 계획 없는 바로 집필은 입력 없이 요청 문장과 반영 대상(target)으로 실행한다(#387).
+    """
     model_config = ConfigDict(extra='forbid')
     draft: DraftRequest | None = None
     patch: PatchRequest | None = None
@@ -119,11 +126,12 @@ class AppliedDraft(BaseModel):
 
 
 class StepResult(BaseModel):
-    feature: Feature
+    feature: RecordedFeature
     when: Literal['always', 'if_issues_found']
+    task: Literal['plan', 'draft', 'patch'] | None = None  # Writing & Editing 단계에 Router가 정한 작업 종류(#387)
     # 끝까지 가지 못한 시뮬레이션 장면은 부분 result와 함께 failed다. skipped는 조건부 수정이 고칠 확정 지적이 없어 건너뛴 단계다(#370).
     status: Literal['completed', 'failed', 'not_started', 'skipped']
-    result: QaStepResult | DraftResponse | PatchResponse | ResearchResponse | SimulationResult | ReviewResponse | WorldReviewResponse | None = None
+    result: QaStepResult | PlanResponse | DraftResponse | PatchResponse | ResearchResponse | SimulationResult | ReviewResponse | WorldReviewResponse | RatingResponse | None = None
     error: str | None = None  # 실패 사유, skipped면 건너뛴 이유
     approval: Literal['approved', 'declined'] | None = None  # Writing 결과·시뮬레이션 장면 반영에 대한 작가의 답
     applied: AppliedDraft | None = None
@@ -140,7 +148,7 @@ class OrchestrationResponse(BaseModel):
     message: str | None = None
     steps: list[StepResult] = []
     missingInputs: list[Feature] = []
-    unsupported: list[Feature] = []
+    unsupported: list[RecordedFeature] = []
     awaitingApproval: Feature | None = None
     awaitingScene: Feature | None = None  # 시뮬레이션 장면이 턴 사이에서 작가의 조작(resume.scene)을 기다린다
     approvalEpisode: int | None = None

@@ -404,3 +404,41 @@ describe('작품과 세계관 연결(DEC-46)', () => {
     await expect(new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).linkWorldStudio('w', worldId)).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
   })
 })
+
+describe('Fork가 이어받는 원작 세계관(#365)', () => {
+  const worldId = '22222222-2222-4222-8222-222222222222'
+  const card = (id: string, title: string, cardType = 'character') => ({
+    id, title, body: '본문', cardType, areaCode: 'basic', classification: '', aliases: ['검은 기사'], tags: [], semanticMetadata: { revealFromEpisode: 1 }, visibility: 'public', lifecycle: 'active',
+  })
+  const answer = (extra: object = {}) => ({
+    workId: 'fork', worldId, upto: 2, cards: [card('c1', '카엘'), card('p1', '성문', 'location')], relationships: [], relationshipStatus: 'current', relationshipVersion: 7, ...extra,
+  })
+
+  it('소유자 인증으로 읽고 upto를 그대로 보내며 시작 양식에 필요한 카드 필드만 돌려준다', async () => {
+    const fetcher = vi.fn().mockImplementation(async () => Response.json(answer()))
+    const inherited = await new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).inheritedWorld('fork 1', 4)
+    const [url, request] = fetcher.mock.calls[0]
+    expect(url).toBe('/api/v1/works/fork%201/inherited-world?upto=4')
+    expect(request.method).toBe('GET')
+    expect(request.headers).toEqual(expect.objectContaining({ Authorization: 'Bearer content-bearer' }))
+    expect(inherited).toEqual({ upto: 2, cards: [{ id: 'c1', title: '카엘', cardType: 'character', aliases: ['검은 기사'] }, { id: 'p1', title: '성문', cardType: 'location', aliases: ['검은 기사'] }] })
+  })
+
+  it('upto를 모르면 쿼리를 붙이지 않는다(서버가 Fork 기준 회차로 읽는다)', async () => {
+    const fetcher = vi.fn().mockImplementation(async () => Response.json(answer()))
+    await new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).inheritedWorld('fork')
+    expect(fetcher.mock.calls[0][0]).toBe('/api/v1/works/fork/inherited-world')
+  })
+
+  it('이어받는 세계관이 없으면(worldId null) 없음이다', async () => {
+    const fetcher = vi.fn().mockImplementation(async () => Response.json(answer({ worldId: null, upto: 0, cards: [] })))
+    expect(await new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).inheritedWorld('fork', 4)).toBeNull()
+  })
+
+  it('서버가 거절하거나 응답 모양이 어긋나면 없음으로 바꾸지 않고 실패한다', async () => {
+    const refused = vi.fn().mockImplementation(async () => Response.json({ detail: '작품을 찾을 수 없어요.' }, { status: 404 }))
+    await expect(new EpisodeUseCase(new HttpEpisodeRepository(refused)).inheritedWorld('fork', 4)).rejects.toThrow('작품을 찾을 수 없어요.')
+    const broken = vi.fn().mockImplementation(async () => Response.json(answer({ cards: [{ id: 'c1' }] })))
+    await expect(new EpisodeUseCase(new HttpEpisodeRepository(broken)).inheritedWorld('fork', 4)).rejects.toThrow('서버 응답 형식을 확인할 수 없어요.')
+  })
+})

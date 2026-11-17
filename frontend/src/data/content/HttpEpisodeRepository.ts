@@ -57,6 +57,11 @@ const readingWorldCards = z.object({
   relationships: z.array(z.object({ id: cardId, sourceCardId: cardId, targetCardId: cardId, label: z.string() })),
   relationshipStatus: z.enum(['current', 'unavailable']).default('current'),
 })
+/** Fork가 이어받는 원작 세계관(#365): 시작 양식이 쓰는 카드 필드만 읽는다. 이어받는 세계관이 없으면 worldId가 null이다. */
+const inheritedWorld = z.object({
+  worldId: z.uuid().nullable(), upto: z.number().int().nonnegative(),
+  cards: z.array(z.object({ id: cardId, title: z.string(), cardType: z.string(), aliases: z.array(z.string()) })),
+})
 const publicationSchedule = z.object({
   id: z.string().min(1),
   versionId: z.string().min(1),
@@ -179,6 +184,7 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
   }
   list(signal?: AbortSignal) { return this.request('/works', z.array(work), 'GET', undefined, signal) }
   create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration) { return this.request('/works',work,'POST',registration?{title,summary,...registration}:{title,summary},signal) }
+  suggestWorkTags(id: string, signal?: AbortSignal) { return this.request(`/works/${id}/tag-suggestions`,z.object({genres:z.array(z.string()),hashtags:z.array(z.string())}),'POST',undefined,signal) }
   /** 장르·해시태그는 주었을 때만 본문에 싣는다(생략하면 서버가 유지하고, 빈 배열은 비운다). */
   updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal, taxonomy?: WorkTaxonomy) { return this.request(`/works/${id}`,work,'PUT',{title,summary,revision,...taxonomy},signal) }
   stopForkPublication(id: string, signal?: AbortSignal) { return this.request(`/works/${id}/fork-publication`,z.undefined(),'DELETE',undefined,signal) }
@@ -186,6 +192,11 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
   /** 작품과 내 세계관의 1:1 연결(DEC-46). worldId가 null이면 해제한다. 남의 것·없는 것은 404, 이미 다른 작품에 연결된 세계관은 409이며 서버 detail을 그대로 알린다. */
   linkWorldStudio(workId: string, worldId: string | null, signal?: AbortSignal) {
     return this.request(`/works/${encodeURIComponent(workId)}/world-studio`, z.object({ workId: z.string(), worldId: z.uuid().nullable() }), 'PUT', { worldId }, signal)
+  }
+  /** Fork 소유자가 자기 세계관 없이 이어받는 원작 세계관(읽기 전용, #365). 이어받는 세계관이 없으면 null이고, 서버 거절·형식 오류는 없음으로 바꾸지 않고 그대로 던진다. */
+  async inheritedWorld(workId: string, upto?: number, signal?: AbortSignal) {
+    const world = await this.request(`/works/${encodeURIComponent(workId)}/inherited-world${upto === undefined ? '' : `?upto=${upto}`}`, inheritedWorld, 'GET', undefined, signal)
+    return world.worldId ? { upto: world.upto, cards: world.cards } : null
   }
   save(id: string, value: Draft) { return this.request(`/works/${id}/draft`,draft,'PUT',value) }
   publish(id: string, revision: number, rightsConfirmed: boolean, allowFork: boolean, allowForkPublication = false, versionId?: string) { return this.request(`/works/${id}/publish`,work,'POST',{revision,rightsConfirmed,allowFork,allowForkPublication,versionId}) }

@@ -191,7 +191,7 @@
 <tr><td>작품 유형 선택·저장</td><td>✅</td></tr>
 <tr><td>승인 장르 1~2개 선택·저장</td><td>✅</td></tr>
 <tr><td>해시태그 0~10개 검증·저장</td><td>✅</td></tr>
-<tr><td>AI 장르·키워드 추천 <small>(작가 본인 작품의 제목·소개·발행 회차 앞 3개로 후보만 받고 저장은 기존 작품 수정 API가 함, <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/372">#372</a>)</small></td><td>❌ <small>(부분: <code>POST /api/v1/works/{id}/tag-suggestions</code> 소스 구현, 응답 <code>{genres, hashtags}</code>, 오류 404 소유자 아님·409 발행 회차 없음·502 AI 결과 오류·503 AI 사용 불가·504 시간 초과, 로컬 단위 테스트 통과, hosted CI 통합 미확인, 화면 없음)</small></td></tr>
+<tr><td>AI 장르·키워드 추천 <small>(작가 본인 작품의 제목·소개·발행 회차 앞 3개로 후보만 받고 저장은 기존 작품 수정 API가 함, <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/372">#372</a>)</small></td><td>❌ <small>(부분: <code>POST /api/v1/works/{id}/tag-suggestions</code> 소스 구현, 응답 <code>{genres, hashtags}</code>, 오류 404 소유자 아님·409 발행 회차 없음·502 AI 결과 오류·503 AI 사용 불가·504 시간 초과, 로컬 단위 테스트 통과, hosted CI 통합 미확인, 화면: 작품 정보 수정 폼의 "AI로 장르·해시태그 추천 받기" 버튼 추가, CI 확인 전)</small></td></tr>
 <tr><td>작품 등록 권리 확인·기록</td><td>✅</td></tr>
 <tr><td>작품 상세 조회</td><td>✅ <small>(#366: 소개 없는 원작·출처 불완전 Fork의 소개 줄 숨김 소스 구현, 로컬 단위 54개·CI 통과)</small></td></tr>
 <tr><td>내 작품 목록 조회</td><td>✅</td></tr>
@@ -471,7 +471,7 @@
 <tr><td rowspan="15">AI 집필 지원</td><td rowspan="15">27 대화·제안 관리</td><td>발행 원고 벡터 색인·동기화</td><td>✅ <a href="writing-ai-architecture/07-retrieval-contract-and-mocks.md#원고-벡터-인덱스-v1">로컬 검증</a></td><td rowspan="15"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/57">#57</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/56">#56</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/62">#62</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/60">#60</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/55">#55</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/48">#48</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/76">PR #76</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/86">PR #86</a></td></tr>
 <tr><td>발행 원고·설정·현재 관계 Q&A와 출처·근거 부족 표시</td><td>❌ <a href="writing-ai-architecture/07-retrieval-contract-and-mocks.md#설정관계-로컬-실모델-검증">구현 · 로컬 실모델 검증</a></td></tr>
 <tr><td>허용 문맥 미리보기</td><td>❌</td></tr>
-<tr><td>이어쓰기 요청</td><td>❌</td></tr>
+<tr><td>이어쓰기 요청</td><td>❌ <small>(부분: #387 집필 채팅에서 전개 기획(계획 대안, 원고 없음)과 계획 하나를 정해 바로 쓰는 원고 제안·반영 승인 소스 구현, 로컬 단위 테스트 통과, 로컬 실모델 브라우저 e2e 확인. 이전 턴의 계획 대안을 골라 쓰기 소스 구현, hosted CI 미확인)</small></td></tr>
 <tr><td>부분 수정 요청</td><td>❌ <small>(Content·AI API와 승인 반영 구현 · 화면 미연결 · 통합 테스트 CI 대기)</small></td></tr>
 <tr><td>AI 대화 요청</td><td>✅ <small>(#331: 집필실·세계관 채팅이 Content SSE 중계로 AI 오케스트레이션에 연결 · 세션·메시지 CRUD는 LangGraph 체크포인터만 사용 · 초안 반영 승인·고증 질문·장면 계획 입력을 HITL 카드로 받음 · 발행 회차가 있어야 사용 · 크레딧 차감·첨부·선택 구간 수정 입력은 범위 밖)</small></td></tr>
 <tr><td>대화 목록 조회</td><td>❌</td></tr>

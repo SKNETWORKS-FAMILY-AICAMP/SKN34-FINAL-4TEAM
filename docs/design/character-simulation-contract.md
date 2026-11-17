@@ -27,7 +27,7 @@
 
 - 실행 순서와 평가 표가 같다. 단계별 누적 점수와 함께 방식별 단독 점수를 평가에 낸다.
 - 위치: `backend/ai-service/app/novelbrain/`. 순수 함수(`ppr`·`bm25_rank`·`rrf`·`filter_for_character`)와 한 번의 조회 함수 `recall(...)`로 둔다. 평가 스크립트도 같은 순수 함수를 import한다.
-- 데이터 출처(AI는 DB에 직접 접속하지 않는다): 카드·관계·인물 문서는 Content MCP `world_studio_read(id, episode)`(작가 토큰, 소유자만), 원고 발췌는 기존 Retrieval 도구(`scopeToken`). 세계관 ID는 Content MCP의 작품·회차 세계관 조회 도구로 찾는다. Content 서버 변경은 필요할 때만 하며, 하면 이 문서에 추가한다.
+- 데이터 출처(AI는 DB에 직접 접속하지 않는다): 카드·관계·인물 문서는 Content MCP `world_studio_read(id, episode)`(작가 토큰, 소유자만), 원고 발췌는 기존 Retrieval 도구(`scopeToken`). 세계관 ID는 Content MCP의 작품·회차 세계관 조회 도구로 찾는다. 작품에 연결한 세계관이 없는 Fork는 원작 세계관을 읽기 전용으로 이어받아 `world_studio_read` 대신 MCP `work_inherited_world`로 읽는다([Fork 이어받기](#fork-이어받기-365)). Content 서버 변경은 필요할 때만 하며, 하면 이 문서에 추가한다.
   회차를 지정한 조회(`world_studio_read(id, episode)`)가 409(회차별 관계로 이전되지 않은 기존 세계관)를 돌려주면 시뮬레이션은 회차를 생략해 최신 관계로 다시 조회하지 않는다. 기준 회차와 다른 관계로 검색을 진행하지 않으려는 것이며, 그 Content 메시지 그대로 단계를 `failed`로 끝낸다(대체 조회·notice 없음).
 
 ### `recall` 인터페이스
@@ -194,12 +194,25 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 
 시연 진입은 집필실의 **[시뮬레이션] 버튼**이다. 채팅 자유 입력의 Router 분류는 건드리지 않는다. 버튼은 Router의 모델 분류를 거치지 않고 `operation`으로 기능을 직접 지정해, 모호한 문장이 되묻기로 끝나 시연이 끊기는 일을 피한다(가드레일은 기존 operation 경로대로 거친다).
 
-- 시작 양식(무대 패널): **IF**는 전제 한 줄("만약 ~했다면")과 참여 인물(연결 세계관의 인물 카드, 1~6명)이다. **흐름**은 이 작품의 장면 계획(`story_plan`, `kind=scene`) 중 열린 회차(`episode_number`)가 같은 것들을 순서대로 비트로 쓰고(`제목: 내용`을 200자로 자름, 최대 8개), 참여 인물은 그 계획들의 `characters` 합집합이다(양식에서 고칠 수 있다). 그 회차의 장면 계획이 없으면 안내하고 비트를 직접 입력하게 한다.
+- 시작 양식(무대 패널): **IF**는 전제 한 줄("만약 ~했다면")과 참여 인물(연결 세계관의 인물 카드, 연결한 세계관이 없는 Fork는 이어받은 원작 세계관의 공개 인물 카드, 1~6명)이다. **흐름**은 이 작품의 장면 계획(`story_plan`, `kind=scene`) 중 열린 회차(`episode_number`)가 같은 것들을 순서대로 비트로 쓰고(`제목: 내용`을 200자로 자름, 최대 8개), 참여 인물은 그 계획들의 `characters` 합집합이다(양식에서 고칠 수 있다). 그 회차의 장면 계획이 없으면 안내하고 비트를 직접 입력하게 한다.
 - 시작은 채팅 메시지다: `operation: 'character_simulation'`, `request`(요약 문장, 예 "흐름 모드 시뮬레이션: 장면 계획 3개"), `simulation: {mode: 'if'|'flow', premise?: ≤500자, beats?: ≤8개 × ≤200자, characterIds: 1~6개 × ≤100자}`.
 - Content `WritingAiRequest.simulation`: `mode`·길이·개수를 검증하고 `operation`이 `character_simulation`인 새 요청에서만 받는다(아니면 422, 권한 확인 전에 거절). 값은 그대로 AI에 넘긴다.
 - 근거 회차와 반영 회차(#58): 요청의 `episode`·`episodeVersionId`는 **근거 회차**다. 발행된 판본이어야 하고 Q&A 조회 범위와 세계관의 지식 상한(기준 회차)을 정한다. 작가가 발행 전 초안을 열어 두면 화면은 마지막 발행 회차를 근거로 보낸다. 승인 뒤 결과를 쓸 **반영 회차**는 선택 필드 `targetEpisode`(없으면 `episode`와 같다)이며 작가가 연 회차를 보낸다. Content는 새 요청에서만 `targetEpisode >= episode`이고 그 작품의 활성 회차(발행 전 초안도 가능)인지 확인하고 어긋나면 422다(이어가기에서는 무시한다). AI에는 `target {workId, episode: 반영 회차, baseEpisode?: 근거 회차}`로 넘기며 `baseEpisode`는 둘이 다를 때만 온다. AI는 승인 반영과 승인 질문의 `approvalEpisode`에 `target.episode`를, 시뮬레이션이 세계관을 읽는 기준 회차에 `target.baseEpisode ?? target.episode`를 쓴다. 화면은 무대의 승인 문구("N화 초안 끝에")를 반영 회차로 보이고 근거와 다르면 시작 양식에 "근거: M화까지 / 반영: N화 초안"을 보인다. 새로 고친 뒤 승인 대기 장면이 복원되면 집필실은 `approvalEpisode`로 편집기를 그 회차에 맞춘다. 장면 대기(`awaitingScene`) 응답에는 `approvalEpisode`가 없어(승인 질문에만 싣는다) 그 복원에서는 서버가 반영 회차를 알려 주지 않고, 집필실이 열린 회차를 따라 바꿔 둔 주소의 `?ep=n`이 편집기 회차를 정한다.
 - AI `OrchestrationRequest.simulation`: `SimulationPlan`과 같은 한도(전제 500자, 비트 8개×200자, 인물 6명×100자, 모르는 필드 거절)로 검증하고 `operation`이 `character_simulation`인 새 요청에서만 받는다(아니면 422).
   있으면 `simulation_plan`이 계획 모델을 부르지 않고 이 값을 계획으로 쓰되, 인물 id가 연결 세계관의 활성 인물 카드인지와 모드별 필수값(IF 전제, 흐름 비트 1개 이상)을 확인한다. 어긋나면 되묻지 않고 단계 `failed`와 이유로 끝낸다.
+
+## Fork 이어받기 (#365)
+
+연결한 세계관이 없는 Fork의 자기 회차도 시뮬레이션을 시작할 수 있다. Fork는 원작 세계관을 기준 회차까지 **읽기 전용으로 이어받는다**(DEC-32·37의 1단계, 최초 수정 시 독립·원본 변경 알림은 범위 밖). 규칙의 정본은 [공개 세계관 계약](public-world-contract.md#fork가-이어받는-원작-세계관-dec-3237-365)이고 시뮬레이션 쪽 요점은 다음과 같다.
+
+| 항목 | 규칙 |
+|---|---|
+| 읽는 길 | `simulation.service.read_world`가 `world_studio_list`에 이 작품에 연결된 세계관이 없을 때만 MCP `work_inherited_world(id, upto=<근거 회차>)`를 부른다. 연결된 세계관이 있으면 그것이 우선이고 이어받은 세계관은 묻지 않는다. 이어받는 것이 없으면(`worldId: null`) 기존처럼 409 `NO_LINKED_WORLD`다. |
+| 카드 집합 | 원작 세계관 확정 버전의 공개 카드(`visibility=public`) 중 독자 공개 회차가 상한 이하인 것만이다. 상한은 Fork 기준 회차(요청 근거 회차가 더 작으면 그 회차). 비공개 카드·기준 회차 뒤 공개 카드는 문맥·대본·후보 어디에도 들어가지 않는다. |
+| 관계 | 그 카드끼리의 상한 회차 시점 관계만이다. 읽을 수 없으면(`relationshipStatus: unavailable`) 관계 없이 진행하지 않고 단계를 `failed`로 끝낸다(503). |
+| 인물 문서 | `SOUL.md`·`GOAL.md`·`memory/NN회차.md`는 작가용이라 이어받지 않는다. 이어받은 인물은 `IDENTITY.md`(카드 본문)만으로 시뮬레이션한다. |
+| 한 곳의 집합 | 시작 양식의 `characterIds` 검증(`plan_from_form`)·`load_world`의 장면 입력·원고 검수(`review`의 `_world`)가 모두 같은 `read`를 쓴다. 화면의 후보도 같은 Content 계산(`GET /api/v1/works/{id}/inherited-world`)이다. |
+| 화면 | 시작 양식은 내 세계관 목록에 이 작품 연결이 없을 때 이어받은 세계관을 읽어 인물 후보를 만들고(`연결된 세계관이 없어요`로 잠기지 않음) "원작 세계관에서 N화까지 공개된 인물을 이어받았어요(읽기 전용)."를 알린다. 이어받은 세계관에 공개 인물 카드가 없으면 그 사유로, 읽지 못하면 연결 없음으로 바꾸지 않고 불러오기 실패와 `다시 불러오기`로 알린다. |
 
 ## 평가
 

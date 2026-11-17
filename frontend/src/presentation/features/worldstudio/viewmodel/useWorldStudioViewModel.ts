@@ -1,7 +1,7 @@
 import { cardLibraryRows, type WritingIssue, worldSealIssues, worldWritingIssues } from '../../../../domain/entities/worldStudioWriting'
 import { initialWorldStudioFlow, legacyTabTarget, type ManageView, NEW_WORLD_QUERY, parseManageView, type StudioStep, studioMode, worldStudioFlow } from './worldStudioFlow'
 import { listingOf, needsPublicConfirm, PUBLIC_CONFIRM, publicationNotice } from './worldPublication'
-import { useWorldCoverImage } from './useWorldCoverImage'
+import { useWorldCoverImage } from '../../../shared/useWorldCoverImage'
 import { useCardImages } from './useCardImages'
 import { worldStudioStorage } from './worldStudioStorage'
 import { useWorldReview } from './useWorldReview'
@@ -522,10 +522,23 @@ export function useWorldStudioViewModel(
     /** 서버에 저장된 공개 범위·장르(값이 없으면 비공개·미지정) */
     publication,
     publishing,
-    /** 올린 표지 이미지(소유자 인증 읽기 → 객체 주소). 표지가 없거나 읽는 중·실패면 `url`이 비어 자동 생성 표지를 쓴다. */
+    /** 올린 표지 이미지(소유자 인증 읽기 → 객체 주소). 표지가 없거나 읽는 중·실패면 `url`이 비어 기본 표지를 쓴다. */
     cover,
     /** 표지 저장소가 있는지. 서버 저장소가 없는 데모(메모리)는 표지 올리기를 지원하지 않는다. */
     supportsCover: useCase.supportsCover,
+    /** 세계관 삭제 저장소가 있는지(서버·메모리 데모는 있고 일부 대역은 없다). */
+    supportsDelete: useCase.supportsDelete,
+    /** 세계관을 지운다(서버는 소프트 삭제). 성공하면 내 세계관 목록으로 가고, 거절(연결된 소설 등)은 서버의 이유를 오류로 알리며 이동하지 않는다. */
+    deleteWorld: () =>
+      perform(async (signal) => {
+        if (!saved) return
+        const current = generation.current
+        await useCase.deleteWorld(saved.id, signal)
+        if (generation.current === current) {
+          leaveGuard?.allowNextNavigation()
+          navigate('/lib?tab=worlds')
+        }
+      }),
     /** 표지를 올리거나 지우는 중인 동작(없으면 null). */
     coverAction,
     /** 설정 카드 대표 이미지(소유자 인증 읽기 → 객체 주소). 게시판·레일·편집 화면이 같은 이미지를 한 번만 읽고, `supported`가 false인 데모(메모리)는 이미지 올리기를 지원하지 않는다. */
@@ -579,7 +592,7 @@ export function useWorldStudioViewModel(
           if (current === generation.current) {
             setSaved((w) => (w && w.id === saved.id ? { ...w, hasCover: !!file } : w))
             setCoverRevision((revision) => revision + 1)
-            setMessage(file ? '표지를 올렸어요.' : '표지를 지웠어요. 자동으로 만든 표지를 써요.')
+            setMessage(file ? '표지를 올렸어요.' : '표지를 지웠어요. 기본 표지를 써요.')
             done = true
           }
         } finally {

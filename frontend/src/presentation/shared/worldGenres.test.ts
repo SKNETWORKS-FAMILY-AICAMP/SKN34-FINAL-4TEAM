@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { PUBLIC_WORLD_GENRES } from '../../domain/entities/publicWorld'
-import { ALL_CHIP, UNSET_GENRE, WORLD_CHIPS, WORLD_GENRES, genreCode, genreLabel, worldLook } from './worldGenres'
+import { ALL_CHIP, UNSET_GENRE, WORLD_CHIPS, WORLD_GENRES, genreCode, genreLabel } from './worldGenres'
 
 describe('장르 라벨 ↔ 서버 코드', () => {
   it('일곱 장르 라벨이 서버 장르 코드와 일대일로 이어지고 서로 되돌려진다', () => {
@@ -30,16 +30,6 @@ describe('WORLD_CHIPS', () => {
     for (const c of WORLD_CHIPS.slice(1)) {
       expect(c.label.endsWith(` ${c.genre}`), c.label).toBe(true)
       expect(c.label.codePointAt(0), c.label).toBeGreaterThan(0x2000) // 이모지로 시작한다
-    }
-  })
-})
-
-describe('worldLook', () => {
-  it('모든 장르에 표지 테마와 배경색이 있고 한지 테마만 밝은 면이다', () => {
-    for (const genre of [...PUBLIC_WORLD_GENRES, null]) {
-      const { theme, bg, lite } = worldLook(genre)
-      expect(bg, String(genre)).toMatch(/^#[0-9A-F]{6}$/i)
-      expect(lite, String(genre)).toBe(theme === 'hanji')
     }
   })
 })

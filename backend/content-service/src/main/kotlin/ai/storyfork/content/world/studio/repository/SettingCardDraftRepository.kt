@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param
 
 interface SettingCardDraftRepository : JpaRepository<SettingCardDraft, UUID> {
     fun findAllByWorldId(worldId: UUID): List<SettingCardDraft>
+    fun countByWorldIdAndFieldsLifecycle(worldId: UUID, lifecycle: String): Long
     @Modifying(clearAutomatically=true,flushAutomatically=true)
     @Query("delete from SettingCardDraft d where d.worldId=:world")
     fun deleteWorldDrafts(@Param("world") world: UUID)

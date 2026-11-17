@@ -52,7 +52,7 @@ Web / 모바일 클라이언트
 - 각 서비스는 자기 테이블만 쓰고 자기 Flyway migration·이력을 소유한다. 다른 서비스 DB를 직접 UPDATE하거나 교차 소유 JPA Entity/트랜잭션에 의존하지 않는다. 공유 DB 사용은 분산 호출의 원자성을 보장하지 않는다.
 - 사용자가 개발용 Content fresh 이력 재작성을 승인했다. Content는 7개 업무 leaf의 전역 V1~V9/`content_schema_history`를 사용하며 통합 `db/migration/content`와 legacy importer를 제거했다. 과거 Content 이력과 호환되지 않는다. Auth·첨부·독립 WorldStudio SQL 바이트/이력은 유지한다. 정확한 대상·보존 범위·복구·중단 시간을 승인하기 전 실제 DB/volume 삭제나 자동 repair/clean은 하지 않는다.
 - 운영 결정 → 제한 적용, AI 결과 → 크레딧 정산, 업무 성공 → 알림 전달은 서비스 간 부분 실패가 가능하다. 안정적인 작업/사건 ID·멱등성·대기/실패 상태·재시도·복구 계약을 정한다. 일반 `@Transactional`이 HTTP 상대 서비스까지 롤백한다고 표현하지 않는다.
-- PostgreSQL 원문·기존 인물/설정/원고 버전, 설정 기본 비공개와 Fork 추종/독립 목표는 유지한다. #132 최신 결정의 관계만 MVP 예외로 Neo4j 현재 상태 하나를 정본으로 둔다. PG에는 UUID·CAS/요청 메타데이터만 보관하고 관계 내용·이력을 이중 저장하지 않는다. PG prepare → Neo4j CAS → PG finalization의 미완료/재시도 계약이며 관계 과거 조회·전체 restore는 미지원이다. 기존 SQL·데이터와 관계 없는 버전 기능은 보존하고 실제 이관·운영 복구/백업은 별도 대기다([현재 계약](worldstudio-independent-schema.md#현재-관계-mvp-계약--132)).
+- PostgreSQL 원문·기존 인물/설정/원고 버전, 설정 기본 비공개와 Fork 추종/독립 목표는 유지한다. #132 최신 결정의 관계만 MVP 예외로 Neo4j 현재 상태 하나를 정본으로 둔다. PG에는 UUID·CAS/요청 메타데이터만 보관하고 관계 내용·이력을 이중 저장하지 않는다. PG prepare → Neo4j CAS → PG finalization의 미완료/재시도 계약이며 관계 과거 조회·관계를 포함한 전체 restore는 미지원이다(카드만 초안으로 되돌리기는 2026-11-17 사용자 결정으로 지원). 기존 SQL·데이터와 관계 없는 버전 기능은 보존하고 실제 이관·운영 복구/백업은 별도 대기다([현재 계약](worldstudio-independent-schema.md#현재-관계-mvp-계약--132)).
 
 ## 5. Starter·실행 기반
 

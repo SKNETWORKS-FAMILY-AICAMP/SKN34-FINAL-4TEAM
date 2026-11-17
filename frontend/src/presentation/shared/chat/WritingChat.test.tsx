@@ -188,6 +188,16 @@ it('집필 입력 대기는 근거 회차가 아니라 열린(반영) 회차의 
   })
 })
 
+it('부분 수정(task=patch) 입력 대기는 새 원고 계획 칸을 띄우지 않고, 채팅에서 채울 수 없다고 알린다', async () => {
+  openThread([{ request: '3문단 말투만 고쳐 줘', reply: { status: 'waiting', missingInputs: ['writing_editing'], awaitingApproval: null,
+    steps: [{ feature: 'writing_editing', status: 'not_started', task: 'patch' }] } }])
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  const form = (await screen.findByRole('heading', { name: '작업에 필요한 내용을 알려 주세요' })).closest('form') as HTMLElement
+  expect(within(form).queryByLabelText(/쓸 장면 계획/)).toBeNull()
+  expect(within(form).getByText(/화면에서 채울 수 없어요/)).toBeTruthy()
+  expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
+})
+
 it('원고 검수 입력 대기는 검수 종류를 골라야 이어서 실행하고, 고른 종류를 단계 입력으로 보낸다', async () => {
   openThread([{ request: '검수해 줘', reply: { status: 'waiting', steps: [], missingInputs: ['review'], awaitingApproval: null } }])
   send.mockResolvedValue(undefined)

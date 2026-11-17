@@ -14,13 +14,13 @@ POST 요청은 expectedDraftRevision/key다. 계정/세계관별로 localStorage
 
 ## 과거 버전
 
-목록은 revisionNo 내림차순이다. 상세는 saved card의 title/body/aliases/tags를 읽기 전용으로 표시한다. relationships=null/relationshipStatus=not_recorded만 허용하며 현재 Neo4j 관계를 합성하지 않는다. 복원 API/버튼은 제공하지 않는다. UUID/hash/draftRevision을 작가 기본 화면에 노출하지 않는다.
+목록은 revisionNo 내림차순이다. 상세는 saved card의 title/body/aliases/tags를 읽기 전용으로 표시한다. relationships=null/relationshipStatus=not_recorded만 허용하며 현재 Neo4j 관계를 합성하지 않는다. 복원은 2026-11-17에 더했다: 연 버전의 `이 버전으로 초안 되돌리기`가 카드만 초안으로 되돌린다(관계·이름·새 확정 버전은 그대로, [규칙](worldstudio-independent-schema.md#확정-버전으로-카드-되돌리기와-세계관-삭제-2026-11-17)). UUID/hash/draftRevision을 작가 기본 화면에 노출하지 않는다.
 
 ## 검증 및 한계
 
 TDD HTTP 저장소의 미구현 메서드 실패 후 구현, 저장 응답 유실·재생성·키 보존·과거 관계 거부·stale 409 단위 검사. React 통합은 명시적 확정/초안 저장 분리, 미저장 차단, 재조회 실패 시 미확인 유지. 격리 HTTP 시스템에 AI 적용 후 최초 확정/같은 key 재전송/초안 수정/두 번째 확정/과거 버전 불변/재로그인/목록·상세/stale 검증을 추가한다.
 
-실제 개발 DB·유료 모델·Neo4j 이력·Fork·MCP·복원 구현은 제외한다. 로컬 단위 검사 외 통합/시스템/빌드는 격리 CI에서 수행한다. 배포 서버에서의 실제 동작은 별도 검증이다.
+실제 개발 DB·유료 모델·Neo4j 이력·Fork·MCP는 제외한다(복원은 위 절대로 따로 구현했다). 로컬 단위 검사 외 통합/시스템/빌드는 격리 CI에서 수행한다. 배포 서버에서의 실제 동작은 별도 검증이다.
 
 ## 확정 재조회 경합 보완
 

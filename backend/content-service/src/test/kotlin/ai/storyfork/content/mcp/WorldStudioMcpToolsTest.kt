@@ -414,7 +414,7 @@ class WorldStudioMcpToolsTest {
         TransactionSystemException("tx 원고 본문 일부") to listOf("HTTP 503 WORLD_WRITE_UNCONFIRMED", "저장 완료를 확인하지 못했습니다. 입력을 보존하고 동일 요청으로 다시 시도하세요."),
         IllegalStateException("원고 본문 일부") to listOf("HTTP 500", "요청을 처리하지 못했어요."),
     ) + Reason.entries.map { reason ->
-        val status = mapOf(Reason.MIGRATION to 409, Reason.REJECTED to 409, Reason.MISMATCH to 409, Reason.HISTORY to 409, Reason.INCOMPLETE to 503, Reason.UNAVAILABLE to 503).getValue(reason)
+        val status = mapOf(Reason.MIGRATION to 409, Reason.REJECTED to 409, Reason.MISMATCH to 409, Reason.HISTORY to 409, Reason.LINKED to 409, Reason.INCOMPLETE to 503, Reason.UNAVAILABLE to 503).getValue(reason)
         WorldStudioFailure(reason) to listOf("HTTP $status ${reason.code}", reason.detail)
     } + (ContentFailure(404, "작품을 찾을 수 없어요.") to listOf("HTTP 404", "작품을 찾을 수 없어요."))
 
