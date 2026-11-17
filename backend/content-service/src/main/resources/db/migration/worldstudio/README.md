@@ -12,6 +12,10 @@
 
 > **V8(설정 카드 대표 이미지, #401):** additive `CREATE TABLE worldstudio.setting_card_image`(`id`·`world_id`(FK)·`object_key`(UNIQUE)·`content_type`(png/jpeg/webp CHECK)·`created_at`)와 `world_id` 인덱스만 더한다. 이미지 바이트는 이 DB가 아니라 첨부와 같은 객체 저장소(`world-card-images/<id>`)에 두고, 카드가 쓰는 이미지는 칼럼 없이 카드 `semanticMetadata`의 최상위 `imageId`에 둔다. 올린 이미지는 바뀌거나 지우지 않는다(교체는 새 이미지). 기존 행·기존 SQL 이력·체크섬은 바꾸지 않는다. 적용 개수는 V1~V8의 8건이고 표는 19개다. [공개 세계관 계약](../../../../../../../../docs/design/public-world-contract.md).
 
+> **V9(세계관 소프트 삭제, 2026-11-17):** additive `ALTER TABLE worldstudio.world ADD COLUMN deleted_at timestamptz`(NULL 허용) 하나만 더한다. 기존 행은 모두 삭제되지 않은 채 남고 다른 데이터·기존 SQL 이력·체크섬은 바꾸지 않는다. 삭제된 세계관은 소유자·공개 조회에서 모두 없는 것으로 다루되 행·초안·버전·이미지·관계는 지우지 않는다. 적용 개수는 V1~V9의 9건이다. [공개 세계관 계약](../../../../../../../../docs/design/public-world-contract.md#세계관-삭제-2026-11-17-사용자-결정).
+
+> **restore(2026-11-17):** 아래 V1 당시의 restore 설명(새 version/revision 생성)은 역사적 기록이다. 실제 구현은 확정 버전의 카드만 초안으로 되돌리며 관계·새 확정 버전은 만들지 않는다([계약](../../../../../../../../docs/design/worldstudio-independent-schema.md#확정-버전으로-카드-되돌리기와-세계관-삭제-2026-11-17)).
+
 ## 실행 계약
 
 > **Core→Content 추출 후 현재 계약:** 명시 main은 Content 이미지의 `ai.storyfork.content.world.migration.WorldStudioMigration`이며 기존 같은 DB를 `DATABASE_URL/USER/PASSWORD`로 받는다. 서버는 `contentDataSource`와 studio-only EntityManager/TransactionManager로 validate만 하며 Auth를 스캔하지 않는다. CD는 fresh 전환 승인 후 ingress/구 writer 중지 → opt-in migration → 새 앱 시작 순서이며 실패 시 ingress를 멈춘 채 자동 rollback하지 않는다. 로컬은 선택 순수 `unitTest`만 허용하고 아래 PostgreSQL/통합 명령은 hosted CI 전용이다. **아래 Core 패키지·기본 persistence unit·통합 로컬 실행 설명은 추출 전 기록으로 사용하지 않는다.** 최신 [Content 안내](../../../../../../README.md)와 [배포 계약](../../../../../../../../docs/deployment/worldstudio-v1-rollout.md)을 우선한다.

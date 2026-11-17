@@ -124,6 +124,15 @@ class PublicWorldServiceTest {
         `when`(states.findAllById(seeds.map { it.id })).thenReturn(seeds.map { it.state })
     }
 
+    @Test fun `a deleted world is not found for detail cover and card image even though it is public and saved`() {
+        val s = Seed(cover = true, pictures = true)
+        s.world.deletedAt = Instant.now()
+        listOf({ service.detail(s.id) }, { service.cover(s.id) }, { service.cardImage(s.id, s.firstImage) }).forEach { read ->
+            assertEquals(404, assertThrows(ContentFailure::class.java) { read() }.status)
+        }
+        verifyNoInteractions(graph, storage)
+    }
+
     @Test fun `detail returns the last saved revision, active cards only, and current relations between those cards`() {
         val s = Seed()
         `when`(nicknames.nicknames(listOf(s.owner.toString()))).thenReturn(mapOf(s.owner.toString() to "작가"))
@@ -193,6 +202,14 @@ class PublicWorldServiceTest {
             assertEquals(ReaderWorldCardsResponse("work", world, upto), service.readerCards("work", world, upto))
         }
         verifyNoInteractions(graph)
+    }
+
+    @Test fun `reader cards of a deleted world are empty like a missing one and its card images are 404 without reading Neo4j or storage`() {
+        val s = Seed(pictures = true)
+        s.world.deletedAt = Instant.now()
+        assertEquals(ReaderWorldCardsResponse("work", s.id, 2), service.readerCards("work", s.id, 2))
+        assertEquals(404, assertThrows(ContentFailure::class.java) { service.readerCardImage(s.id, 2, s.firstImage) }.status)
+        verifyNoInteractions(graph, storage)
     }
 
     @Test fun `reader cards stay and the relations say unavailable when the relation store cannot vouch for the current state`() {

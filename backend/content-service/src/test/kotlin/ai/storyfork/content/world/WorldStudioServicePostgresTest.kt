@@ -129,7 +129,7 @@ class WorldStudioServicePostgresTest {
                 assertEquals("symmetric",changed.relationships.single().direction)
                 val removed=service.edit(create.id,actor,EditWorldDraftRequest(changed.draftRevision,changed.name,"",changed.cards,emptyList(),"delete",true))
                 assertTrue(removed.relationships.isEmpty());assertEquals(original,service.revision(create.id,actor,first).cards.single { it.card.id==card }.card)
-                assertEquals("RELATIONSHIP_HISTORY_UNSUPPORTED",assertThrows(WorldStudioFailure::class.java) { service.restore(create.id,actor,RestoreWorldRequest(removed.draftRevision,"restore",first)) }.code)
+                assertThrows(WorldNotFound::class.java) { service.restore(create.id,actor,UUID.randomUUID(),RestoreWorldRequest(removed.draftRevision)) }
                 // Card revision commit failures still roll back pointer, manifest and request atomically within PostgreSQL.
                 db.connect().use { c -> WorldStudioPostgresFixture.sql(c,"""CREATE FUNCTION worldstudio.qa_fail_commit() RETURNS trigger LANGUAGE plpgsql AS ${'$'}${'$'} BEGIN IF NEW.request_key='fail-late' THEN RAISE EXCEPTION 'synthetic late failure' USING ERRCODE='23514'; END IF; RETURN NULL; END; ${'$'}${'$'};
                     CREATE CONSTRAINT TRIGGER qa_fail_commit AFTER INSERT ON worldstudio.world_save_request DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION worldstudio.qa_fail_commit();""") }

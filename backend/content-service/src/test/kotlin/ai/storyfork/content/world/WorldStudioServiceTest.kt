@@ -2,6 +2,7 @@ package ai.storyfork.content.world
 
 import ai.storyfork.content.world.domain.WorldConflict
 import ai.storyfork.content.world.domain.WorldNotFound
+import ai.storyfork.content.world.domain.WorldRestoreBlocked
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
 import ai.storyfork.content.world.studio.entity.*
@@ -411,11 +412,99 @@ class WorldStudioServiceTest {
         ordered.verify(manager).commit(any())
         ordered.verify(graph).read(world)
     }
-    @Test fun `whole world restore is explicitly unsupported rather than restoring current relations as history`() {
+    // --- 확정 버전으로 카드 되돌리기(2026-11-17): 카드만 초안으로, 관계·새 확정 버전 없음 ---
+    private val revisionId=UUID.randomUUID();private val cardD=UUID.randomUUID();private val cardE=UUID.randomUUID()
+    private fun fieldsOf(title:String,body:String="본문",visibility:String="private",lifecycle:String="active",meta:Map<String,Any?> = emptyMap())=
+        CardFields(title=title,body=body,cardType="character",areaCode="basic",visibility=visibility,lifecycle=lifecycle,semanticMetadata=meta)
+    /**
+     * 확정 버전 R의 카드는 A(내용이 달라짐)·B(지금은 삭제 상태)·E(같음)이고, 지금 초안은 A·B(삭제)·C(R에 없던 활성 카드)·D(R에 없고 이미 삭제)·E다.
+     * 초안 행은 같은 객체를 돌려줘 서비스가 바꾼 값을 그대로 읽을 수 있다.
+     */
+    private fun restoring():List<SettingCardDraft> {
         owned()
-        val failure=assertThrows(WorldStudioFailure::class.java) { service.restore(world,actor,RestoreWorldRequest(2,"restore",UUID.randomUUID())) }
-        assertEquals("RELATIONSHIP_HISTORY_UNSUPPORTED",failure.code)
-        verifyNoInteractions(graph,cardVersions,revisionCards,requests)
+        val rows=listOf(SettingCardDraft(cardA,world,fieldsOf("가람 수정","수정한 내용")),SettingCardDraft(cardB,world,fieldsOf("나래 삭제됨",lifecycle="removed")),
+            SettingCardDraft(cardC,world,fieldsOf("다온")),SettingCardDraft(cardD,world,fieldsOf("지난 삭제",lifecycle="removed")),SettingCardDraft(cardE,world,fieldsOf("이든","같음")))
+        val versions=listOf(SettingCardVersion(cardId=cardA,worldId=world,versionNo=1,fields=fieldsOf("가람 확정","확정 당시 내용","public",meta=mapOf("revealFromEpisode" to 2))),
+            SettingCardVersion(cardId=cardB,worldId=world,versionNo=1,fields=fieldsOf("나래 확정")),SettingCardVersion(cardId=cardE,worldId=world,versionNo=1,fields=fieldsOf("이든","같음")))
+        `when`(revisions.findByIdAndWorldId(revisionId,world)).thenReturn(WorldRevision(revisionId,world,3,"확정 이름","확정 설명",sealed=true))
+        `when`(revisionCards.findAllByIdRevisionId(revisionId)).thenReturn(versions.map { WorldRevisionCard(RevisionCardKey(revisionId,it.cardId),world,it.id) })
+        `when`(cardVersions.findAllById(any<Iterable<UUID>>())).thenAnswer { ids -> versions.filter { it.id in (ids.arguments[0] as Iterable<*>) } }
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(rows)
+        return rows
+    }
+    private fun restore(expected:Long=2)=service.restore(world,actor,revisionId,RestoreWorldRequest(expected))
+    private fun untouched(rows:List<SettingCardDraft>) {
+        assertEquals(2L,draft.draftRevision);assertNull(draft.baseWorldRevisionId)
+        assertEquals(listOf("가람 수정","나래 삭제됨","다온","지난 삭제","이든"),rows.map { it.fields.title });assertEquals("active",rows[2].fields.lifecycle)
+        verify(cardDrafts,never()).save(any());verify(cardDrafts,never()).flush()
+    }
+
+    @Test fun `restore puts the confirmed version's cards in the draft and removes the cards it lacks without touching name relations or revisions`() {
+        val rows=restoring();val relation=RelationshipPayload(UUID.randomUUID(),cardA,cardE,"structural",label="동료");at(null,relation)
+        val result=restore()
+        fun row(id:UUID)=rows.single { it.cardId==id }.fields
+        // 그 버전의 카드는 내용·공개 범위·semanticMetadata 그대로, 지워졌던 카드는 다시 활성이다.
+        assertEquals(listOf("가람 확정","확정 당시 내용","public",mapOf("revealFromEpisode" to 2),"active"),row(cardA).let { listOf(it.title,it.body,it.visibility,it.semanticMetadata,it.lifecycle) })
+        assertEquals(listOf("나래 확정","active"),row(cardB).let { listOf(it.title,it.lifecycle) })
+        assertEquals(listOf("이든","같음","active"),row(cardE).let { listOf(it.title,it.body,it.lifecycle) })
+        // 그 버전에 없던 활성 카드는 내용을 둔 채 삭제 상태가 되고, 이미 삭제된 카드는 그대로다.
+        assertEquals(listOf("다온","removed"),row(cardC).let { listOf(it.title,it.lifecycle) })
+        assertEquals(listOf("지난 삭제","removed"),row(cardD).let { listOf(it.title,it.lifecycle) })
+        // 초안 revision만 오르고 이름·설명은 그대로이며 초안의 기준 확정 버전은 되돌린 버전이다.
+        assertEquals(3L,draft.draftRevision);assertEquals(revisionId,draft.baseWorldRevisionId);assertEquals("편집본",draft.name)
+        // 응답은 기존 초안 응답이고 관계는 현재 그대로다. 관계 쓰기·새 확정 버전·요청 기록은 없다.
+        assertEquals(3L,result.draftRevision);assertEquals(listOf(relation),result.relationships);assertEquals(5,result.cards.size);assertEquals(3L,state.graphVersion)
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        verify(revisions,never()).saveAndFlush(any());verify(cardVersions,never()).saveAll(any<Iterable<SettingCardVersion>>());verifyNoInteractions(requests)
+    }
+    @Test fun `restore is refused and changes nothing while a current relation still ends on a card the version lacks`() {
+        val rows=restoring();at(null,RelationshipPayload(UUID.randomUUID(),cardA,cardC,"structural",label="동료"))
+        assertEquals(listOf("다온"),assertThrows(WorldRestoreBlocked::class.java) { restore() }.titles)
+        untouched(rows)
+    }
+    @Test fun `restore against a stale draft revision is a conflict before Neo4j is read`() {
+        val rows=restoring()
+        assertThrows(WorldConflict::class.java) { restore(1) }
+        untouched(rows);verify(graph,never()).read(anyUUID(),anyEpisode())
+    }
+    @Test fun `restore of a revision that is missing or not sealed is not found`() {
+        val rows=restoring();val unsealed=UUID.randomUUID()
+        `when`(revisions.findByIdAndWorldId(unsealed,world)).thenReturn(WorldRevision(unsealed,world,4,"봉인 전","",sealed=false))
+        for(id in listOf(UUID.randomUUID(),unsealed)) assertThrows(WorldNotFound::class.java) { service.restore(world,actor,id,RestoreWorldRequest(2)) }
+        untouched(rows)
+    }
+    @Test fun `only the owner can restore and a foreign caller reads nothing`() {
+        restoring()
+        assertThrows(WorldNotFound::class.java) { service.restore(world,UUID.randomUUID(),revisionId,RestoreWorldRequest(2)) }
+        verifyNoInteractions(graph,revisionCards,cardVersions);verify(revisions,never()).findByIdAndWorldId(anyUUID(),anyUUID())
+    }
+    @Test fun `restore waits for an unfinished relation write the way a confirmed save does`() {
+        val rows=restoring();state.completed=false
+        assertEquals("RELATIONSHIP_WRITE_INCOMPLETE",assertThrows(WorldStudioFailure::class.java) { restore() }.code)
+        untouched(rows)
+    }
+    @Test fun `restore does nothing when Neo4j holds another relation state than the draft`() {
+        val rows=restoring();`when`(graph.read(world,null)).thenReturn(RelationshipStateResult(world,4,"other","other",emptyList()))
+        assertEquals("RELATIONSHIP_VERSION_MISMATCH",assertThrows(WorldStudioFailure::class.java) { restore() }.code)
+        untouched(rows)
+    }
+
+    // --- 세계관 삭제(2026-11-17): 소프트 삭제, 연결된 소설이 있으면 거절 ---
+    @Test fun `delete only marks the world deleted and removes no row`() {
+        val entity=StudioWorld(world,actor);`when`(worlds.lockOwned(world,actor)).thenReturn(entity)
+        service.delete(world,actor,linked=false)
+        assertNotNull(entity.deletedAt)
+        verify(worlds).lockOwned(world,actor);verifyNoMoreInteractions(worlds);verifyNoInteractions(drafts,cardDrafts,cardVersions,revisions,revisionCards,states,graph)
+    }
+    @Test fun `delete is refused with WORLD_LINKED while a novel is connected and the world stays`() {
+        val entity=StudioWorld(world,actor);`when`(worlds.lockOwned(world,actor)).thenReturn(entity)
+        val failure=assertThrows(WorldStudioFailure::class.java) { service.delete(world,actor,linked=true) }
+        assertEquals(WorldStudioFailure.Reason.LINKED,failure.reason);assertEquals("WORLD_LINKED",failure.code);assertNull(entity.deletedAt)
+    }
+    @Test fun `only the owner can delete`() {
+        val entity=StudioWorld(world,actor);`when`(worlds.lockOwned(world,actor)).thenReturn(entity)
+        assertThrows(WorldNotFound::class.java) { service.delete(world,UUID.randomUUID(),linked=false) }
+        assertNull(entity.deletedAt)
     }
     @Test fun `new card identities are reserved before graph writes so another world cannot capture a pending id`() {
         owned()
@@ -596,7 +685,7 @@ class WorldStudioServiceTest {
         owned()
         val entity=StudioWorld(world,actor,visibility="public",genre="sf",publishedAt=java.time.Instant.now())
         `when`(worlds.lockOwned(world,actor)).thenReturn(entity)
-        `when`(worlds.findAllByOwnerSubjectOrderByCreatedAtDesc(actor)).thenReturn(listOf(entity))
+        `when`(worlds.findAllByOwnerSubjectAndDeletedAtIsNullOrderByCreatedAtDesc(actor)).thenReturn(listOf(entity))
         val summary=service.list(actor).single()
         assertEquals("public",summary.visibility);assertEquals("sf",summary.genre)
         val detail=service.draft(world,actor)
@@ -617,7 +706,7 @@ class WorldStudioServiceTest {
         owned()
         val entity=StudioWorld(world,actor,coverObjectKey="world-covers/a",coverContentType="image/png")
         `when`(worlds.lockOwned(world,actor)).thenReturn(entity)
-        `when`(worlds.findAllByOwnerSubjectOrderByCreatedAtDesc(actor)).thenReturn(listOf(entity))
+        `when`(worlds.findAllByOwnerSubjectAndDeletedAtIsNullOrderByCreatedAtDesc(actor)).thenReturn(listOf(entity))
         assertTrue(service.list(actor).single().hasCover)
         assertTrue(service.draft(world,actor).hasCover)
         entity.coverObjectKey=null;entity.coverContentType=null

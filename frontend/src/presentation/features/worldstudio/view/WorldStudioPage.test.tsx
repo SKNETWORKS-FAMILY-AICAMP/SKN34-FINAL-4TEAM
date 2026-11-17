@@ -37,7 +37,7 @@ vi.mock('../viewmodel/useWorldRevisions', () => ({ useWorldRevisions: () => revi
 vi.mock('../../../shared/LazyMarkdownEditor', () => import('../../../../test/markdownEditorFake'))
 const noRevisions = (): Revisions => ({
   rows: [], detail: null, busy: false, error: '', message: '', pending: false, aiPending: false, superseded: null, supported: true,
-  open: vi.fn(async () => undefined), refresh: vi.fn(async () => undefined), confirm: vi.fn(async () => undefined), acknowledgeSuperseded: vi.fn(async () => undefined),
+  open: vi.fn(async () => undefined), refresh: vi.fn(async () => undefined), confirm: vi.fn(async () => undefined), acknowledgeSuperseded: vi.fn(async () => undefined), restore: vi.fn(async () => undefined),
 })
 const revision = (revisionNo: number, name: string): WorldRevisionSummary => ({ worldId: 'qa', revisionId: `r${revisionNo}`, revisionNo, name, createdAt: `2026-11-0${revisionNo}T09:00:00Z` })
 const revisionDetail = (revisionNo: number, name: string): WorldRevision => ({
@@ -99,6 +99,10 @@ type Fixture = {
   linkedWorkId?: string
   /** 관계를 회차 시점으로 읽고 쓰는 서버 저장소(DEC-51, 없으면 회차를 모르는 데모) */
   relationEpisodes?: true
+  /** 세계관 삭제(소프트 삭제) 저장소 */
+  deleteStudio?: NonNullable<WorldStudioRepository['deleteStudio']>
+  /** 삭제 저장소가 없는 대역 */
+  demoDelete?: true
 }
 const published = (worldId: string, change: WorldPublicationInput, listed = true): WorldPublication => ({ worldId, ...change, publishedAt: change.visibility === 'public' ? '2026-11-12T00:00:00Z' : null, listed })
 
@@ -127,6 +131,7 @@ function mount(settings: StudioSetting[] = [person('가람', '기존 내용')], 
   const readCover = vi.fn(fixture.readCover ?? (async () => new Blob(['png'], { type: 'image/png' })))
   const uploadCardImage = vi.fn(fixture.uploadCardImage ?? (async () => CARD_IMAGE))
   const readCardImage = vi.fn(fixture.readCardImage ?? (async () => new Blob(['png'], { type: 'image/png' })))
+  const deleteStudio = vi.fn(fixture.deleteStudio ?? (async () => undefined))
   useCase = new WorldStudioUseCase({
     listStudio: async () => [world],
     read: fixture.read ?? (async () => structuredClone(world)),
@@ -135,6 +140,7 @@ function mount(settings: StudioSetting[] = [person('가람', '기존 내용')], 
     setPublication,
     ...(fixture.demoCover ? {} : { setCover, removeCover, readCover }),
     ...(fixture.demoCardImage ? {} : { uploadCardImage, readCardImage }),
+    ...(fixture.demoDelete ? {} : { deleteStudio }),
     ...(fixture.relationEpisodes ? { relationEpisodes: true as const } : {}),
   })
   render(
@@ -146,7 +152,7 @@ function mount(settings: StudioSetting[] = [person('가람', '기존 내용')], 
       </MemoryRouter>
     </Provider>,
   )
-  return { create, setPublication, saveStudio, setCover, removeCover, readCover, uploadCardImage, readCardImage }
+  return { create, setPublication, saveStudio, setCover, removeCover, readCover, uploadCardImage, readCardImage, deleteStudio }
 }
 /** `/worldstudio/qa`(저장한 세계관 관리)나 `/worldstudio`(새 세계관 만들기)를 열고 제목이 나올 때까지 기다린다. */
 async function show(settings?: StudioSetting[], path: string | string[] = '/worldstudio/qa', fixture: Fixture = {}) {
@@ -1663,6 +1669,75 @@ it('표지를 지우면 확인한 뒤 바로 지우고 기본 표지로 돌아�
   expect(defaultCover()?.getAttribute('src')).toBe('/default-work-cover.svg')
   expect(document.querySelector('.world-manage-hero .cov svg')).toBeNull()
   expect(coverGroup().queryByRole('button', { name: '표지 삭제' })).toBeNull()
+})
+
+// ── 세계관 삭제(정보 편집 패널) ───────────────────────────────────────────────────────────────────────────
+const deleteButton = () => infoForm().getByRole<HTMLButtonElement>('button', { name: '세계관 삭제' })
+
+it('정보 편집 패널의 세계관 삭제는 이름을 보이며 확인하고, 지우면 내 세계관 목록으로 간다(거절하면 아무것도 하지 않는다)', async () => {
+  const { deleteStudio } = await showWorld()
+  openInfoEdit()
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  fireEvent.click(deleteButton())
+  expect(confirm).toHaveBeenCalledOnce()
+  expect(String(confirm.mock.calls[0][0])).toContain('검증 세계')
+  expect(String(confirm.mock.calls[0][0])).toContain('목록에서 사라져요')
+  expect(deleteStudio).not.toHaveBeenCalled()
+  expect(where()).toBe('/worldstudio/qa')
+  confirm.mockReturnValue(true)
+  fireEvent.click(deleteButton())
+  await waitFor(() => expect(deleteStudio).toHaveBeenCalledExactlyOnceWith('qa', expect.any(AbortSignal)))
+  await waitFor(() => expect(where()).toBe('/lib?tab=worlds'))
+})
+
+it('서버가 삭제를 거절하면(연결된 소설 등) 그 이유를 그대로 알리고 이동하지 않으며 패널은 열려 있다', async () => {
+  const reason = '연결된 소설이 있어 세계관을 삭제할 수 없어요. 작품 관리에서 연결을 해제한 뒤 삭제하세요.'
+  const { deleteStudio } = await show(undefined, '/worldstudio/qa', { deleteStudio: async () => { throw new Error(reason) } })
+  openInfoEdit()
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  fireEvent.click(deleteButton())
+  expect((await screen.findByText(reason)).getAttribute('role')).toBe('alert')
+  expect(deleteStudio).toHaveBeenCalledOnce()
+  expect(where()).toBe('/worldstudio/qa')
+  expect(screen.getByRole('form', { name: '세계관 정보 편집' })).toBeTruthy()
+})
+
+it('연결된 소설이 있으면 삭제 버튼을 이유와 함께 잠그고 확인도 서버 호출도 하지 않는다', async () => {
+  const { deleteStudio } = await show(undefined, '/worldstudio/qa', { linkedWorkId: 'work-1' })
+  openInfoEdit()
+  expect(deleteButton().disabled).toBe(true)
+  const reason = infoForm().getByText(/작품 관리에서 연결을 해제한 뒤 삭제하세요/)
+  expect(deleteButton().getAttribute('aria-describedby')).toBe(reason.id)
+  const confirm = vi.spyOn(window, 'confirm')
+  fireEvent.click(deleteButton())
+  expect(confirm).not.toHaveBeenCalled()
+  expect(deleteStudio).not.toHaveBeenCalled()
+})
+
+it('연결된 소설이 없으면 삭제 버튼은 열려 있고 목록에서 사라진다고 미리 알린다', async () => {
+  await showWorld()
+  openInfoEdit()
+  expect(deleteButton().disabled).toBe(false)
+  expect(infoForm().getByText(/내 세계관 목록과 공개 화면에서 사라져요/)).toBeTruthy()
+})
+
+it('삭제 저장소가 없는 데모 대역에는 삭제 버튼이 없다', async () => {
+  await show(undefined, '/worldstudio/qa', { demoDelete: true })
+  openInfoEdit()
+  expect(infoForm().queryByRole('button', { name: '세계관 삭제' })).toBeNull()
+})
+
+it('삭제하는 동안은 패널 전체가 잠겨 다시 누를 수 없다', async () => {
+  let finish: () => void = () => undefined
+  const { deleteStudio } = await show(undefined, '/worldstudio/qa', { deleteStudio: () => new Promise<void>((resolve) => { finish = resolve }) })
+  openInfoEdit()
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  fireEvent.click(deleteButton())
+  await waitFor(() => expect(deleteButton().closest('fieldset')?.disabled).toBe(true)) // 패널 fieldset이 잠기면 안의 버튼도 잠긴다
+  fireEvent.click(deleteButton())
+  expect(deleteStudio).toHaveBeenCalledOnce()
+  finish()
+  await waitFor(() => expect(where()).toBe('/lib?tab=worlds'))
 })
 
 it('이름·공개 설정·표지를 함께 바꾸면 이름·설명 → 공개 설정 → 표지 순으로 한 번씩 보내고 모두 되면 닫는다', async () => {

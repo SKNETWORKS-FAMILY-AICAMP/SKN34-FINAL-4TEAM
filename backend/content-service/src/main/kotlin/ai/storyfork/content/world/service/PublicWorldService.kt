@@ -165,9 +165,9 @@ class PublicWorldService(
         return WorldCoverImage(coverStorage { storage.read(image.objectKey).bytes }, image.contentType)
     }
 
-    /** [upto]화 기준으로 독자에게 보이는 카드(독자 공개 회차와 함께)와 관계 상태다. 확정 버전이 없으면 비어 있다. 읽기 트랜잭션 안에서 부른다. */
+    /** [upto]화 기준으로 독자에게 보이는 카드(독자 공개 회차와 함께)와 관계 상태다. 확정 버전이 없거나 지운 세계관이면 비어 있다. 읽기 트랜잭션 안에서 부른다. */
     private fun readerSnapshot(worldId: UUID, upto: Int): ReaderSnapshot {
-        val revision = worlds.findById(worldId).orElse(null)?.currentRevisionId?.let { revisions.findByIdAndWorldId(it, worldId) }?.takeIf { it.sealed }
+        val revision = worlds.findById(worldId).orElse(null)?.takeIf { it.deletedAt == null }?.currentRevisionId?.let { revisions.findByIdAndWorldId(it, worldId) }?.takeIf { it.sealed }
             ?: return ReaderSnapshot(emptyList(), null)
         return ReaderSnapshot(cardVersions.findAllById(revisionCards.findAllByIdRevisionId(revision.id).map { it.versionId })
             .mapNotNull { card -> readerCardEpisode(card.fields.lifecycle, card.fields.semanticMetadata, upto)?.let { card to it } }
@@ -176,7 +176,7 @@ class PublicWorldService(
 
     /** 상세와 표지가 같이 쓰는 공개 기준이다: 공개이고 확정(sealed)된 현재 버전이 있는 세계관. 아니면 404다. 읽기 트랜잭션 안에서 부른다. */
     private fun listedWorld(id: UUID): Pair<StudioWorld, WorldRevision> {
-        val world = worlds.findById(id).orElse(null)?.takeIf { isListed(it.visibility, it.currentRevisionId) } ?: throw notFound()
+        val world = worlds.findById(id).orElse(null)?.takeIf { it.deletedAt == null && isListed(it.visibility, it.currentRevisionId) } ?: throw notFound()
         val revision = revisions.findByIdAndWorldId(world.currentRevisionId ?: throw notFound(), id)?.takeIf { it.sealed } ?: throw notFound()
         return world to revision
     }
