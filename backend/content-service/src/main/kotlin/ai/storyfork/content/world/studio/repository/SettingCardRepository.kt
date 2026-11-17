@@ -5,4 +5,5 @@ import java.util.UUID
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface SettingCardRepository : JpaRepository<SettingCard, UUID> {
+    fun findAllByWorldId(worldId: UUID): List<SettingCard>
 }

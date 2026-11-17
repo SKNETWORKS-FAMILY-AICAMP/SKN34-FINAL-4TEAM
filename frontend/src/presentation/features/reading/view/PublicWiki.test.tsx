@@ -136,10 +136,28 @@ describe('연결된 세계관의 설정 카드로 채운 설정 위키 (DEC-46)'
   it('관계는 양 끝 문서 모두에서 상대 문서로 가는 연결과 라벨로 보이고 라벨이 없으면 이름만 보인다', () => {
     const panel = showLinked()
     const rel = (doc: HTMLElement) => doc.querySelector('.nw-rel')?.textContent
-    expect(rel(docOf(panel, /리안$/))).toBe('연결 별빛 탑 (머무는 곳)')
-    expect(rel(docOf(panel, /별빛 탑$/))).toBe('연결 리안 (머무는 곳), 봉인 규칙')
-    expect(rel(docOf(panel, /봉인 규칙$/))).toBe('연결 별빛 탑')
+    expect(rel(docOf(panel, /리안$/))).toBe('연결 별빛 탑 (머무는 곳) · 방향 미상')
+    expect(rel(docOf(panel, /별빛 탑$/))).toBe('연결 리안 (머무는 곳) · 방향 미상, 봉인 규칙 · 방향 미상')
+    expect(rel(docOf(panel, /봉인 규칙$/))).toBe('연결 별빛 탑 · 방향 미상')
     within(docOf(panel, /봉인 규칙$/)).getByRole('link', { name: '별빛 탑' })
     expect(within(panel).queryByText(/연결을 불러오지 못했어요/)).toBeNull()
+  })
+  it('양 끝 문서에서 단방향·대칭·부정·본문과 기존 관계의 방향 미상을 구별한다', () => {
+    const rels: ReaderWorldCards['relationships'] = [
+      { id: 'a', sourceCardId: 'rian', targetCardId: 'tower', label: '관계', direction: 'directed', polarity: 'denied', body: '근거\n원문' },
+      { id: 'b', sourceCardId: 'tower', targetCardId: 'rian', label: '관계', direction: 'symmetric', polarity: 'asserted' },
+      { id: 'c', sourceCardId: 'rian', targetCardId: 'tower', label: '관계' },
+    ]
+    const panel = render(<MemoryRouter><PublicWikiArticle work={{ ...mapReadingWork(record), wiki: worldCardWiki({ workId: record.id, upto: 2, cards, relationships: rels }) }} upto={2} /></MemoryRouter>).container
+    const rian = docOf(panel, /리안$/), tower = docOf(panel, /별빛 탑$/)
+    expect(rian.textContent).toContain('단방향: 이 설정 → 별빛 탑')
+    expect(tower.textContent).toContain('단방향: 리안 → 이 설정')
+    for (const item of [rian, tower]) {
+      expect(item.textContent).toContain('대칭 관계')
+      expect(item.textContent).toContain('부정된 관계')
+      expect(item.textContent).toContain('근거\n원문')
+      expect(item.textContent).toContain('방향 미상')
+    }
+    expect(within(rian).getAllByRole('link', { name: '별빛 탑' })).toHaveLength(3)
   })
 })

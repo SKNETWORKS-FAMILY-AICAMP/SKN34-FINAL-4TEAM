@@ -1,0 +1,2066 @@
+{
+  "genre": "france_history",
+  "worldId": "67907b53-fdd0-5771-8d78-0f317a0f71b9",
+  "relationships": [
+    {
+      "id": "cf1c3856-6abc-590d-a827-afec1fc807b7",
+      "sourceCardId": "a4a3d2da-ff4d-5478-aec8-b5f588813c39",
+      "targetCardId": "bbebdc28-bbad-5514-a65f-bbfbb80b246c",
+      "category": "structural",
+      "body": "로베르 2세와 베르타는 혼인했다. 출처: france:1:CHAPTER I., 228–256행, https://www.gutenberg.org/ebooks/17287",
+      "label": "혼인",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "dff2ad9c-5d7d-5977-9ca4-67c706b93f89",
+      "sourceCardId": "9dd824b0-dc3b-5f8a-ac34-7ba41d92d849",
+      "targetCardId": "a4a3d2da-ff4d-5478-aec8-b5f588813c39",
+      "category": "structural",
+      "body": "콩스탕스는 로베르 2세의 왕비였다. 출처: france:1:CHAPTER I., 249–258행, https://www.gutenberg.org/ebooks/17287",
+      "label": "왕비",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9a738e3a-305a-5077-a3fd-5689a2a2f8d5",
+      "sourceCardId": "9dd824b0-dc3b-5f8a-ac34-7ba41d92d849",
+      "targetCardId": "54cb422d-c63b-5667-92b1-6bc2f03247d2",
+      "category": "structural",
+      "body": "콩스탕스는 앙리 1세의 어머니였다. 출처: france:1:CHAPTER I., 256–263행, https://www.gutenberg.org/ebooks/17287",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8a0a2f7d-12b8-5e80-b145-91e733d98742",
+      "sourceCardId": "393e6dbd-5b33-5f28-a9bd-f9d7c01dcea0",
+      "targetCardId": "84263058-cb23-52be-8d4e-7625d9aa8750",
+      "category": "structural",
+      "body": "필리프 1세와 베르트라드는 혼인했다. 출처: france:1:CHAPTER I., 268–275행, https://www.gutenberg.org/ebooks/17287",
+      "label": "혼인",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "37e4208f-c87a-5f47-8798-808c0f14a9a5",
+      "sourceCardId": "3c918a89-c422-5131-a53a-77a17cc835e9",
+      "targetCardId": "119c06a2-4b12-5d4c-9b70-39adfeb90691",
+      "category": "structural",
+      "body": "은자 피에르는 교황 우르바노 2세에게 성지 탈환을 주장했다. 출처: france:1:CHAPTER I., 282–287행, https://www.gutenberg.org/ebooks/17287",
+      "label": "성지 탈환 건의",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "dc05eaa1-6495-5fda-9579-ead22c64bab2",
+      "sourceCardId": "7c410d53-8055-5521-be90-5fd0feea43a3",
+      "targetCardId": "109aedc0-95b6-5b8e-91d7-3b06fb746441",
+      "category": "structural",
+      "body": "쉬제르는 루이 6세가 귀족의 폭력을 억제하도록 도왔다. 출처: france:1:CHAPTER I., 312–320행, https://www.gutenberg.org/ebooks/17287",
+      "label": "통치 지원",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fa1eee97-298d-5eda-ab34-53a3379864bd",
+      "sourceCardId": "3a3654eb-12b5-5ffc-824e-d24fd8e60ad8",
+      "targetCardId": "4ff78372-4070-541e-9658-7a7a707b85f8",
+      "category": "structural",
+      "body": "루이 7세와 엘레오노르는 혼인했으나 이후 혼인을 해소했다. 출처: france:1:CHAPTER I., 327–352행, https://www.gutenberg.org/ebooks/17287",
+      "label": "혼인",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "83743726-92e9-5ca8-87b8-1e9d06f20f15",
+      "sourceCardId": "4ff78372-4070-541e-9658-7a7a707b85f8",
+      "targetCardId": "d9185ef1-9140-56a3-8f1b-9b02308527b6",
+      "category": "structural",
+      "body": "엘레오노르는 잉글랜드 왕 헨리 2세와 재혼했다. 출처: france:1:CHAPTER I., 344–350행, https://www.gutenberg.org/ebooks/17287",
+      "label": "혼인",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "eb9546f6-7ad0-500e-81d4-3d83f33f3929",
+      "sourceCardId": "98ebf365-85e9-5e05-a94d-070412673e06",
+      "targetCardId": "3a3654eb-12b5-5ffc-824e-d24fd8e60ad8",
+      "category": "structural",
+      "body": "베르나르는 루이 7세에게 제2차 십자군 참여를 촉구했다. 출처: france:1:CHAPTER I., 331–336행, https://www.gutenberg.org/ebooks/17287",
+      "label": "십자군 참여 촉구",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4fb923d9-06d0-5659-9777-56eed84354be",
+      "sourceCardId": "98ebf365-85e9-5e05-a94d-070412673e06",
+      "targetCardId": "e866f48c-c377-5af4-86fb-9af203ea796f",
+      "category": "structural",
+      "body": "베르나르와 아벨라르는 논쟁했다. 출처: france:1:CHAPTER I., 331–335행, https://www.gutenberg.org/ebooks/17287",
+      "label": "논쟁",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "92437602-6cfd-5e77-876b-0f20b2302d9d",
+      "sourceCardId": "3a3654eb-12b5-5ffc-824e-d24fd8e60ad8",
+      "targetCardId": "7a7d7efd-22e0-5fba-b8f1-2995ee55b9fe",
+      "category": "structural",
+      "body": "루이 7세는 필리프 2세의 아버지였다. 출처: france:1:CHAPTER I., 366–405행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2905230f-9a41-594d-8092-84abf43bcd62",
+      "sourceCardId": "41840bc8-0934-570c-a838-ecdd61dfff3f",
+      "targetCardId": "75ffa4d2-f1dc-59e9-868d-e0bff6991b25",
+      "category": "structural",
+      "body": "루이 8세와 블랑슈는 혼인했다. 출처: france:1:CHAPTER I., 412–422행, https://www.gutenberg.org/ebooks/17287",
+      "label": "혼인",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4e13cde9-89db-5f44-bcc5-12c443bc973c",
+      "sourceCardId": "75ffa4d2-f1dc-59e9-868d-e0bff6991b25",
+      "targetCardId": "cdb1d978-77b1-57e5-a1ee-cbdcb21658ea",
+      "category": "structural",
+      "body": "블랑슈는 어린 루이 9세를 대신해 정사를 처리했다. 출처: france:1:CHAPTER I., 445–450행, https://www.gutenberg.org/ebooks/17287",
+      "label": "섭정",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0d6c28fc-1f75-54ad-8843-c2b8a980d025",
+      "sourceCardId": "255b76aa-f512-5097-b210-4f2792cca216",
+      "targetCardId": "cdb1d978-77b1-57e5-a1ee-cbdcb21658ea",
+      "category": "structural",
+      "body": "앙주의 샤를은 루이 9세의 동생이었다. 출처: france:1:CHAPTER I., 494–501행, https://www.gutenberg.org/ebooks/17287",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0dba3b5a-c4c7-572b-94b9-56db9eb71a5e",
+      "sourceCardId": "a7a0e04c-cccf-59ec-a962-565f13aa992f",
+      "targetCardId": "cdb1d978-77b1-57e5-a1ee-cbdcb21658ea",
+      "category": "structural",
+      "body": "아르투아 백작 로베르는 루이 9세의 동생이었다. 출처: france:1:CHAPTER I., 520–526행, https://www.gutenberg.org/ebooks/17287",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5b5a34c5-c7b1-5532-9194-37d55c6bd278",
+      "sourceCardId": "f08c6633-d21a-571a-a96c-8e73c4f94e08",
+      "targetCardId": "ddd05a4f-73db-5372-995a-4efab538d304",
+      "category": "structural",
+      "body": "필리프 4세는 플랑드르 백작 기를 투옥했다고 원저는 전한다. 출처: france:1:CHAPTER I., 553–560행, https://www.gutenberg.org/ebooks/17287",
+      "label": "투옥",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c3af4fb2-0655-5783-a7e3-aad72e6ec150",
+      "sourceCardId": "030e667c-7233-591a-a605-7cd12397f057",
+      "targetCardId": "f08c6633-d21a-571a-a96c-8e73c4f94e08",
+      "category": "structural",
+      "body": "보니파시오 8세는 필리프 4세의 정책을 비판하고 파문했다고 원저는 전한다. 출처: france:1:CHAPTER I., 558–570행, https://www.gutenberg.org/ebooks/17287",
+      "label": "비판과 파문",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5b847b80-33e8-5c10-84a8-2f5b22a3443e",
+      "sourceCardId": "f08c6633-d21a-571a-a96c-8e73c4f94e08",
+      "targetCardId": "21c8554a-74e3-5fc8-a597-f85a30148941",
+      "category": "structural",
+      "body": "필리프 4세는 노가레를 아나니에 보냈다. 출처: france:1:CHAPTER I., 562–570행, https://www.gutenberg.org/ebooks/17287",
+      "label": "사절 파견",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bd5b8ada-ce6f-5dc7-9025-397401f31a52",
+      "sourceCardId": "f08c6633-d21a-571a-a96c-8e73c4f94e08",
+      "targetCardId": "4483a4df-9e37-5316-8624-c29d18d2f804",
+      "category": "structural",
+      "body": "필리프 4세는 클레멘스 5세의 교황 선출을 지원했다. 출처: france:1:CHAPTER I., 573–595행, https://www.gutenberg.org/ebooks/17287",
+      "label": "교황 선출 지원",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6f86b337-76a9-5b15-82d3-17d054b241ba",
+      "sourceCardId": "f08c6633-d21a-571a-a96c-8e73c4f94e08",
+      "targetCardId": "2278f7ee-ceb9-53cb-b67e-f636098b1925",
+      "category": "structural",
+      "body": "필리프 4세는 루이 10세의 아버지였다. 출처: france:1:CHAPTER I., 611–622행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4fcbcbc4-b678-5e9c-bafe-06cc1b421d85",
+      "sourceCardId": "2278f7ee-ceb9-53cb-b67e-f636098b1925",
+      "targetCardId": "2a6c6f7c-bd17-5e82-a31b-e1a3151561b6",
+      "category": "structural",
+      "body": "루이 10세와 필리프 5세는 형제였다. 출처: france:1:CHAPTER I., 611–620행, https://www.gutenberg.org/ebooks/17287",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "69d65ae1-e1b3-5027-8842-1d55995abfe4",
+      "sourceCardId": "f08c6633-d21a-571a-a96c-8e73c4f94e08",
+      "targetCardId": "8881ac29-9513-5b42-9236-2869a0c1e9a8",
+      "category": "structural",
+      "body": "필리프 4세는 샤를 4세의 아버지였다. 출처: france:1:CHAPTER I., 611–620행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7bc00277-e3d4-5258-9d14-ab12111606fc",
+      "sourceCardId": "2278f7ee-ceb9-53cb-b67e-f636098b1925",
+      "targetCardId": "1f14531d-afe8-522e-bab1-295e0db147ef",
+      "category": "structural",
+      "body": "루이 10세는 나바르의 잔의 아버지였다. 출처: france:1:CHAPTER I., 620–623행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "479b1b7d-a945-5dea-a799-966c81ffc029",
+      "sourceCardId": "f08c6633-d21a-571a-a96c-8e73c4f94e08",
+      "targetCardId": "3f4aa083-a861-54b7-925d-59ef06189825",
+      "category": "structural",
+      "body": "필리프 4세는 필리프 6세의 삼촌이었다. 출처: france:2:CHAPTER II., 633–643행, https://www.gutenberg.org/ebooks/17287",
+      "label": "삼촌",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "80b6b039-c734-5afe-8b4c-1a4c24feb27a",
+      "sourceCardId": "f08c6633-d21a-571a-a96c-8e73c4f94e08",
+      "targetCardId": "ae1ef666-3390-52b1-8a9e-ee1dd8abca74",
+      "category": "structural",
+      "body": "필리프 4세는 에드워드 3세의 외조부였다. 출처: france:2:CHAPTER II., 633–653행, https://www.gutenberg.org/ebooks/17287",
+      "label": "외조부",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "809c4499-5f6e-59f3-bbd5-7da4c7aa51fc",
+      "sourceCardId": "ba172401-1f88-57a4-885c-3f931af7405f",
+      "targetCardId": "ae1ef666-3390-52b1-8a9e-ee1dd8abca74",
+      "category": "structural",
+      "body": "야코프 판 아르테벨데는 에드워드 3세에게 플랑드르 시민의 지원을 요청했다. 출처: france:2:CHAPTER II., 649–653행, https://www.gutenberg.org/ebooks/17287",
+      "label": "지원 요청",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b46c9ec6-8de6-5e83-996e-c3a0ce0499dc",
+      "sourceCardId": "ae1ef666-3390-52b1-8a9e-ee1dd8abca74",
+      "targetCardId": "20f2f525-8a74-573b-8369-6b11fca637f0",
+      "category": "structural",
+      "body": "에드워드 3세는 브르타뉴의 장 드 몽포르를 지지했다. 출처: france:2:CHAPTER II., 653–657행, https://www.gutenberg.org/ebooks/17287",
+      "label": "계승권 지지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3a4f5d76-2e5e-5861-8b68-a5bd9057836b",
+      "sourceCardId": "1f14531d-afe8-522e-bab1-295e0db147ef",
+      "targetCardId": "b259e191-4cd5-5c13-906f-3f69cc61e411",
+      "category": "structural",
+      "body": "나바르의 잔은 악왕 샤를의 어머니였다. 출처: france:2:CHAPTER II., 660–664행, https://www.gutenberg.org/ebooks/17287",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "356bb223-44e6-5f4d-b7e6-9f4db1cab1ad",
+      "sourceCardId": "f90a3f7a-97ce-5884-a497-68ef59944e5a",
+      "targetCardId": "ae1ef666-3390-52b1-8a9e-ee1dd8abca74",
+      "category": "structural",
+      "body": "아르쿠르는 에드워드 3세를 노르망디로 불러들였다. 출처: france:2:CHAPTER II., 664–669행, https://www.gutenberg.org/ebooks/17287",
+      "label": "초청",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8f265a07-8efa-5adc-93b3-a7632a1203dc",
+      "sourceCardId": "2062e549-9ca3-5b5f-8fc2-4588eda353fb",
+      "targetCardId": "f0e3ef63-eae9-5e76-9653-58545840d4ef",
+      "category": "structural",
+      "body": "장 2세는 샤를 5세의 아버지였다. 출처: france:2:CHAPTER II., 728–743행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "abd395c1-54ed-5f64-82bc-9d09ed629988",
+      "sourceCardId": "679d3142-357e-5466-8e6d-742e20209d8e",
+      "targetCardId": "1bdfe909-e9d2-5598-8598-78106bdbaa88",
+      "category": "structural",
+      "body": "흑태자 에드워드는 나바레테 전투에서 뒤 게클랭을 이겼다. 출처: france:2:CHAPTER II., 757–761행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 승리",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5de15248-a0e1-5f23-9ca1-82715d59a961",
+      "sourceCardId": "11a0bff0-001b-5bb5-925c-5754a604cfed",
+      "targetCardId": "e9692f33-466b-55c3-8b2e-d665e45e6d16",
+      "category": "structural",
+      "body": "용담공 필리프는 샤를 6세의 삼촌이었다. 출처: france:2:CHAPTER II., 791–812행, https://www.gutenberg.org/ebooks/17287",
+      "label": "삼촌",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d9e8f7a9-d1f9-515c-bac6-759e76331782",
+      "sourceCardId": "11a0bff0-001b-5bb5-925c-5754a604cfed",
+      "targetCardId": "344a0b07-e13f-5e68-9b75-344f82c3b281",
+      "category": "structural",
+      "body": "용담공 필리프와 마르그리트는 혼인했다. 출처: france:2:CHAPTER II., 796–811행, https://www.gutenberg.org/ebooks/17287",
+      "label": "혼인",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bbae128f-7d44-5d3e-a380-7e3d8d15f377",
+      "sourceCardId": "ba172401-1f88-57a4-885c-3f931af7405f",
+      "targetCardId": "277c0fb0-85ae-5127-85ec-fdc673fe744c",
+      "category": "structural",
+      "body": "야코프 판 아르테벨데는 필리프 판 아르테벨데의 아버지였다. 출처: france:2:CHAPTER II., 803–810행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1728cb48-93cb-5f3e-b643-fcc6515fd837",
+      "sourceCardId": "4067cd5d-b561-5aee-839e-a778a5076af0",
+      "targetCardId": "e9692f33-466b-55c3-8b2e-d665e45e6d16",
+      "category": "structural",
+      "body": "이자보는 샤를 6세의 왕비였다. 출처: france:2:CHAPTER II., 830–836행, https://www.gutenberg.org/ebooks/17287",
+      "label": "왕비",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "466b6b44-8b3a-5f94-91fb-b44fb3ac1da3",
+      "sourceCardId": "d8cd95de-833c-5a30-b0fc-df8cd3b9ecd6",
+      "targetCardId": "e9692f33-466b-55c3-8b2e-d665e45e6d16",
+      "category": "structural",
+      "body": "오를레앙 공작 루이는 샤를 6세의 동생이었다. 출처: france:2:CHAPTER II., 833–845행, https://www.gutenberg.org/ebooks/17287",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "741f1b11-a8ec-51a6-b490-4c0a2c41d038",
+      "sourceCardId": "cbeb71c5-21b5-5d68-8f0d-91d679f2f2de",
+      "targetCardId": "d8cd95de-833c-5a30-b0fc-df8cd3b9ecd6",
+      "category": "structural",
+      "body": "공포공 장은 오를레앙 공작 루이의 살해를 지시했다. 출처: france:2:CHAPTER II., 840–851행, https://www.gutenberg.org/ebooks/17287",
+      "label": "살해 지시",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6fb5b4e5-2f61-5d80-a512-45f65b5472d3",
+      "sourceCardId": "11a0bff0-001b-5bb5-925c-5754a604cfed",
+      "targetCardId": "cbeb71c5-21b5-5d68-8f0d-91d679f2f2de",
+      "category": "structural",
+      "body": "용담공 필리프는 공포공 장의 아버지였다. 출처: france:2:CHAPTER II., 840–851행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4b1fc2ba-c8cb-520d-9ef5-c3e3e0b1b8d1",
+      "sourceCardId": "a9b11a63-e857-5055-883f-5cec213946df",
+      "targetCardId": "cbeb71c5-21b5-5d68-8f0d-91d679f2f2de",
+      "category": "structural",
+      "body": "원저는 뒤샤텔이 몽트로 회담에서 공포공 장을 살해했다고 전한다. 출처: france:2:CHAPTER II., 880–895행, https://www.gutenberg.org/ebooks/17287",
+      "label": "살해",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9b4412b8-5722-594e-8814-9e2b8d4f8faa",
+      "sourceCardId": "cbeb71c5-21b5-5d68-8f0d-91d679f2f2de",
+      "targetCardId": "76ea317c-5638-5cad-8086-4c4958fdb4f0",
+      "category": "structural",
+      "body": "공포공 장은 선량공 필리프의 아버지였다. 출처: france:2:CHAPTER II., 894–903행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "dac6cbb1-7872-5677-b079-f1638b88512b",
+      "sourceCardId": "76ea317c-5638-5cad-8086-4c4958fdb4f0",
+      "targetCardId": "ee7b04a9-905d-5059-b2d4-216b9e0c787a",
+      "category": "structural",
+      "body": "선량공 필리프는 헨리 5세와 동맹했다. 출처: france:2:CHAPTER II., 894–903행, https://www.gutenberg.org/ebooks/17287",
+      "label": "동맹",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "cd341617-8cc0-53c7-8792-e29900efa6f3",
+      "sourceCardId": "e9692f33-466b-55c3-8b2e-d665e45e6d16",
+      "targetCardId": "510c69d8-f114-5472-8870-742dd768ac5b",
+      "category": "structural",
+      "body": "샤를 6세는 카트린의 아버지였다. 출처: france:2:CHAPTER II., 899–902행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9394e486-312d-579d-88f0-0f8cfb29c773",
+      "sourceCardId": "510c69d8-f114-5472-8870-742dd768ac5b",
+      "targetCardId": "ee7b04a9-905d-5059-b2d4-216b9e0c787a",
+      "category": "structural",
+      "body": "카트린과 헨리 5세는 혼인했다. 출처: france:2:CHAPTER II., 899–902행, https://www.gutenberg.org/ebooks/17287",
+      "label": "혼인",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "cd8c30a7-11ec-5d5f-8bfe-2aa5496f9d55",
+      "sourceCardId": "15043a12-f476-58ab-95d3-195708f37455",
+      "targetCardId": "ee7b04a9-905d-5059-b2d4-216b9e0c787a",
+      "category": "structural",
+      "body": "베드퍼드 공작 존은 헨리 5세의 동생이었다. 출처: france:2:CHAPTER II., 909–918행, https://www.gutenberg.org/ebooks/17287",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "53993fd5-3085-5cb7-bdc4-b8b4bf340fc2",
+      "sourceCardId": "b26339cd-02c2-5d93-974c-a2680a26ea28",
+      "targetCardId": "50466dbe-e5ea-5a5a-9e92-3644ca4fb706",
+      "category": "structural",
+      "body": "잔 다르크는 샤를 7세의 랭스 대관을 도왔다. 출처: france:2:CHAPTER II., 909–927행, https://www.gutenberg.org/ebooks/17287",
+      "label": "대관 지원",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9c856c9a-d1a9-5ca5-a2de-7b6f9d30efc5",
+      "sourceCardId": "22a21d33-c000-5698-9f27-2008174e11f1",
+      "targetCardId": "b26339cd-02c2-5d93-974c-a2680a26ea28",
+      "category": "structural",
+      "body": "뤽상부르의 장은 잔 다르크를 포로로 잡았다. 출처: france:2:CHAPTER II., 930–935행, https://www.gutenberg.org/ebooks/17287",
+      "label": "포획",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "25376efe-a384-54b4-9b0a-918e742bdd7a",
+      "sourceCardId": "b466c42f-a587-5038-9d83-b91802016984",
+      "targetCardId": "50466dbe-e5ea-5a5a-9e92-3644ca4fb706",
+      "category": "structural",
+      "body": "자크 쾨르는 샤를 7세에게 군대 장비를 위한 자금을 빌려주었다. 출처: france:2:CHAPTER II., 948–952행, https://www.gutenberg.org/ebooks/17287",
+      "label": "자금 대여",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f302ec38-12f4-5923-bc8a-56c75ac68f34",
+      "sourceCardId": "249a05b0-586f-5a7d-877b-733b63ec378c",
+      "targetCardId": "252edcce-fee4-556c-9c11-b324c325ff8a",
+      "category": "structural",
+      "body": "에드워드 4세와 루이 11세는 피키니에서 회담했다. 출처: france:3:CHAPTER III., 1092–1108행, https://www.gutenberg.org/ebooks/17287",
+      "label": "회담",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9b8734bb-24fc-5099-8a80-1e0ae82deb16",
+      "sourceCardId": "deb11b60-41d5-5640-b79d-5530b113eaa0",
+      "targetCardId": "7bd56169-43a6-56c2-8362-7e30f0949ef9",
+      "category": "structural",
+      "body": "용담공 샤를은 부르고뉴의 마리의 아버지였다. 출처: france:3:CHAPTER III., 1126–1134행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9305bb70-3d98-5280-a844-b72fe02c1fa1",
+      "sourceCardId": "7bd56169-43a6-56c2-8362-7e30f0949ef9",
+      "targetCardId": "37c88dab-7c37-5d7c-b4ff-7ceca06af044",
+      "category": "structural",
+      "body": "부르고뉴의 마리와 막시밀리안은 혼인했다. 출처: france:3:CHAPTER III., 1126–1134행, https://www.gutenberg.org/ebooks/17287",
+      "label": "혼인",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "513d67b3-f11f-5b53-81a6-291b40121c79",
+      "sourceCardId": "9ac46239-6c3c-5607-a842-a553438b95a7",
+      "targetCardId": "252edcce-fee4-556c-9c11-b324c325ff8a",
+      "category": "structural",
+      "body": "올리비에 르 댕은 루이 11세의 조언자였다. 출처: france:3:CHAPTER III., 1137–1148행, https://www.gutenberg.org/ebooks/17287",
+      "label": "조언자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8dc25a46-ce0c-5a57-aff0-2cc96c14c6fd",
+      "sourceCardId": "c7fbba54-131c-580b-adfe-ffc649ddd7da",
+      "targetCardId": "252edcce-fee4-556c-9c11-b324c325ff8a",
+      "category": "structural",
+      "body": "보주의 안은 루이 11세의 딸이었다. 출처: france:3:CHAPTER III., 1178–1183행, https://www.gutenberg.org/ebooks/17287",
+      "label": "딸",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c16770b4-0d94-5e87-946c-8ae819970c03",
+      "sourceCardId": "c7fbba54-131c-580b-adfe-ffc649ddd7da",
+      "targetCardId": "f7694b17-1eb9-5279-8cf8-d8c2d5383fce",
+      "category": "structural",
+      "body": "보주의 안과 샤를 8세는 남매였다. 출처: france:3:CHAPTER III., 1178–1183행, https://www.gutenberg.org/ebooks/17287",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "602017b7-ce00-525e-aacb-c57f05913bd7",
+      "sourceCardId": "7f68b467-b686-530d-954b-0f2292b77d38",
+      "targetCardId": "f7694b17-1eb9-5279-8cf8-d8c2d5383fce",
+      "category": "structural",
+      "body": "브르타뉴의 안과 샤를 8세는 혼인했다. 출처: france:3:CHAPTER III., 1178–1183행, https://www.gutenberg.org/ebooks/17287",
+      "label": "혼인",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9652ef1b-8c3e-5580-81ba-6bdc57155e3e",
+      "sourceCardId": "493e918b-17eb-5b53-860b-688cd96b5f8a",
+      "targetCardId": "f7694b17-1eb9-5279-8cf8-d8c2d5383fce",
+      "category": "structural",
+      "body": "루도비코 스포르차는 샤를 8세에게 나폴리 왕위 권리를 주장하도록 설득했다고 원저는 전한다. 출처: france:4:CHAPTER IV., 1200–1206행, https://www.gutenberg.org/ebooks/17287",
+      "label": "원정 설득",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e6cc336f-3394-5b76-bb45-e29ea408ff0d",
+      "sourceCardId": "e3ec1c5a-63c2-55b9-a371-39e38e287623",
+      "targetCardId": "f7694b17-1eb9-5279-8cf8-d8c2d5383fce",
+      "category": "structural",
+      "body": "루이 12세와 샤를 8세는 사촌이었다. 출처: france:4:CHAPTER IV., 1223–1233행, https://www.gutenberg.org/ebooks/17287",
+      "label": "사촌",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "dfe610ef-7cb6-550c-8a37-fba619fc9404",
+      "sourceCardId": "894aa889-28fb-50e3-b0bc-98b78ea2357a",
+      "targetCardId": "e3ec1c5a-63c2-55b9-a371-39e38e287623",
+      "category": "structural",
+      "body": "발렌티나 비스콘티는 루이 12세의 할머니였다. 출처: france:4:CHAPTER IV., 1223–1229행, https://www.gutenberg.org/ebooks/17287",
+      "label": "할머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "84d50dc4-8bdb-5de5-be9f-da5256f71c6f",
+      "sourceCardId": "cebfbb8c-c62d-59bf-9a9e-50927d9eceea",
+      "targetCardId": "891979c9-c158-58ea-a15e-48ac3322475c",
+      "category": "structural",
+      "body": "헨리 8세와 메리 튜더는 남매였다. 출처: france:4:CHAPTER IV., 1261–1264행, https://www.gutenberg.org/ebooks/17287",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e6012573-23d1-5454-99fd-d118339aa02d",
+      "sourceCardId": "891979c9-c158-58ea-a15e-48ac3322475c",
+      "targetCardId": "e3ec1c5a-63c2-55b9-a371-39e38e287623",
+      "category": "structural",
+      "body": "메리 튜더는 루이 12세와 혼인했다. 출처: france:4:CHAPTER IV., 1261–1264행, https://www.gutenberg.org/ebooks/17287",
+      "label": "혼인",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ddd11261-ca88-5ba7-8995-b69a1df2aed7",
+      "sourceCardId": "e3ec1c5a-63c2-55b9-a371-39e38e287623",
+      "targetCardId": "53bdbc78-f481-580c-bb1d-ab59b16a5562",
+      "category": "structural",
+      "body": "루이 12세는 클로드의 아버지였다. 출처: france:4:CHAPTER IV., 1274–1278행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "39a852ca-76c0-52fc-9ffc-d6d3df84df74",
+      "sourceCardId": "7f68b467-b686-530d-954b-0f2292b77d38",
+      "targetCardId": "53bdbc78-f481-580c-bb1d-ab59b16a5562",
+      "category": "structural",
+      "body": "브르타뉴의 안은 클로드의 어머니였다. 출처: france:4:CHAPTER IV., 1274–1278행, https://www.gutenberg.org/ebooks/17287",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3346f818-9d0c-58fb-b646-957cf66c6846",
+      "sourceCardId": "53bdbc78-f481-580c-bb1d-ab59b16a5562",
+      "targetCardId": "5d8f918e-70d6-5326-8a80-06f622e2d550",
+      "category": "structural",
+      "body": "클로드와 프랑수아 1세는 혼인했다. 출처: france:4:CHAPTER IV., 1274–1288행, https://www.gutenberg.org/ebooks/17287",
+      "label": "혼인",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "12b9583f-c5ce-5a96-a680-7508af1c68fd",
+      "sourceCardId": "5d8f918e-70d6-5326-8a80-06f622e2d550",
+      "targetCardId": "171e6ac4-4738-5686-8884-869174c8e15e",
+      "category": "structural",
+      "body": "프랑수아 1세와 레오 10세는 볼로냐에서 정교협약을 맺었다. 출처: france:4:CHAPTER IV., 1288–1291행, https://www.gutenberg.org/ebooks/17287",
+      "label": "정교협약",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "07756f94-fb76-5fa6-804e-c63ee4ee417e",
+      "sourceCardId": "7bd56169-43a6-56c2-8362-7e30f0949ef9",
+      "targetCardId": "1d1ecfc6-5981-5556-b50d-2818d95399b9",
+      "category": "structural",
+      "body": "부르고뉴의 마리는 카를 5세의 할머니였다. 출처: france:4:CHAPTER IV., 1309–1318행, https://www.gutenberg.org/ebooks/17287",
+      "label": "할머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1ee677d0-4407-5950-99c4-c57e343d7225",
+      "sourceCardId": "37c88dab-7c37-5d7c-b4ff-7ceca06af044",
+      "targetCardId": "1d1ecfc6-5981-5556-b50d-2818d95399b9",
+      "category": "structural",
+      "body": "막시밀리안은 카를 5세의 할아버지였다. 출처: france:4:CHAPTER IV., 1309–1318행, https://www.gutenberg.org/ebooks/17287",
+      "label": "할아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "df6e8840-2ebb-52c7-a23d-37ccafbcb412",
+      "sourceCardId": "e983acc9-ee1e-505c-a362-2e2f96c2f770",
+      "targetCardId": "554d456e-578a-5e57-8b59-b86175509552",
+      "category": "structural",
+      "body": "페르난도는 카스티야의 후아나의 아버지였다. 출처: france:4:CHAPTER IV., 1310–1315행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "97d78e1e-18b5-56d9-9b49-0cd7e3b8457f",
+      "sourceCardId": "554d456e-578a-5e57-8b59-b86175509552",
+      "targetCardId": "1d1ecfc6-5981-5556-b50d-2818d95399b9",
+      "category": "structural",
+      "body": "후아나는 카를 5세의 어머니였다. 출처: france:4:CHAPTER IV., 1310–1315행, https://www.gutenberg.org/ebooks/17287",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ce30d562-0c82-56e5-beb9-2fd2fe77c623",
+      "sourceCardId": "5d8f918e-70d6-5326-8a80-06f622e2d550",
+      "targetCardId": "106fe322-942f-5189-8da3-91d0a4fb1326",
+      "category": "structural",
+      "body": "프랑수아 1세는 앙리 2세의 아버지였다. 출처: france:4:CHAPTER IV., 1377–1385행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6e39e49a-da42-558f-9b61-aa849cbc8d72",
+      "sourceCardId": "698d5c4b-4987-5381-8827-066bd1fa1674",
+      "targetCardId": "106fe322-942f-5189-8da3-91d0a4fb1326",
+      "category": "structural",
+      "body": "바오로 4세는 앙리 2세에게 이탈리아 원정을 촉구했다고 원저는 전한다. 출처: france:4:CHAPTER IV., 1390–1393행, https://www.gutenberg.org/ebooks/17287",
+      "label": "원정 촉구",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4107812c-f9eb-53a7-8251-bdb9151fe6c0",
+      "sourceCardId": "106fe322-942f-5189-8da3-91d0a4fb1326",
+      "targetCardId": "f00403c3-5f25-54b3-ac10-106c992efdaf",
+      "category": "structural",
+      "body": "앙리 2세는 프랑수아 2세의 아버지였다. 출처: france:5:CHAPTER V., 1420–1436행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "dbf052e0-9bfe-5e1b-b67a-6bd403535150",
+      "sourceCardId": "9afead62-bb4f-5855-8d7f-e69a089658a2",
+      "targetCardId": "21514ced-ded3-5604-875f-b614a16a236c",
+      "category": "structural",
+      "body": "앙투안 드 부르봉과 잔 달브레는 혼인했다. 출처: france:5:CHAPTER V., 1426–1433행, 1509–1512행, https://www.gutenberg.org/ebooks/17287",
+      "label": "혼인",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "238005be-09f9-54d1-b7df-4dbb5c7f570a",
+      "sourceCardId": "9afead62-bb4f-5855-8d7f-e69a089658a2",
+      "targetCardId": "7bbe11c3-5c2f-555c-978e-cbf27c4f496d",
+      "category": "structural",
+      "body": "앙투안과 루이 드 콩데는 형제였다. 출처: france:5:CHAPTER V., 1431–1438행, 1477–1481행, 1522–1524행, https://www.gutenberg.org/ebooks/17287",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "78e29234-0f32-5b6f-acb5-28e294ab50cb",
+      "sourceCardId": "f00403c3-5f25-54b3-ac10-106c992efdaf",
+      "targetCardId": "277c044a-34d2-5119-a2dd-675647610a0e",
+      "category": "structural",
+      "body": "프랑수아 2세와 샤를 9세는 형제였다. 출처: france:5:CHAPTER V., 1485–1490행, 1586–1592행, https://www.gutenberg.org/ebooks/17287",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "84bdd959-1f70-5d89-82c4-8b168a93ad37",
+      "sourceCardId": "f39ea20e-fbe8-5e95-9093-27988ab5ce49",
+      "targetCardId": "56cd7c40-3328-544e-b63a-41e11d50e169",
+      "category": "structural",
+      "body": "앙리 3세와 알랑송 공 프랑수아는 형제였다. 출처: france:5:CHAPTER V., 1606–1613행, https://www.gutenberg.org/ebooks/17287",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5b57fdc0-3a6e-526a-b6b3-b58bdc4423c8",
+      "sourceCardId": "f39ea20e-fbe8-5e95-9093-27988ab5ce49",
+      "targetCardId": "c3685f86-f7e0-5915-aa32-27524c3fbad0",
+      "category": "structural",
+      "body": "앙리 3세는 기즈 공 앙리의 살해를 명령했다. 출처: france:5:CHAPTER V., 1524–1528행, 1560–1572행, 1617–1623행, https://www.gutenberg.org/ebooks/17287",
+      "label": "살해 지시",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e8ef02c3-73f3-54be-84fb-e1e5fd73c3b6",
+      "sourceCardId": "013ee899-2bb6-5d65-b2d0-e5366d3958b5",
+      "targetCardId": "f39ea20e-fbe8-5e95-9093-27988ab5ce49",
+      "category": "structural",
+      "body": "자크 클레망은 앙리 3세를 살해했다. 출처: france:5:CHAPTER V., 1621–1626행, https://www.gutenberg.org/ebooks/17287",
+      "label": "살해",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "aacea950-5c63-5f88-be4d-1bbfb6fbb08d",
+      "sourceCardId": "6a175917-3e9c-539d-a34a-cdaff0a82fe5",
+      "targetCardId": "ecbe8712-a3b0-5398-8b41-44d86899d804",
+      "category": "structural",
+      "body": "쉴리는 앙리 4세의 고문이었다. 출처: france:5:CHAPTER V., 1645–1650행, 1679–1685행, https://www.gutenberg.org/ebooks/17287",
+      "label": "고문",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b6415e04-9cc2-5e6f-8fea-8f82fe96d6c0",
+      "sourceCardId": "ea8b1fec-4905-5ef9-a295-79ce8ac005fe",
+      "targetCardId": "ecbe8712-a3b0-5398-8b41-44d86899d804",
+      "category": "structural",
+      "body": "마리 드 메디시스는 앙리 4세의 왕비였다. 출처: france:5:CHAPTER V., 1704–1710행, 1719–1720행, https://www.gutenberg.org/ebooks/17287",
+      "label": "왕비",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "65ddb07a-1809-5ec5-b42f-ec68d426d416",
+      "sourceCardId": "65464174-c848-569c-b65c-d3244ae6143a",
+      "targetCardId": "ecbe8712-a3b0-5398-8b41-44d86899d804",
+      "category": "structural",
+      "body": "라바야크는 앙리 4세를 살해했다. 출처: france:5:CHAPTER V., 1706–1712행, https://www.gutenberg.org/ebooks/17287",
+      "label": "살해",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "33ab947b-bcbe-5d56-85e2-d0715d3cad4c",
+      "sourceCardId": "ecbe8712-a3b0-5398-8b41-44d86899d804",
+      "targetCardId": "da30e2cd-6540-5361-b22d-3aa8437120e5",
+      "category": "structural",
+      "body": "앙리 4세는 루이 13세의 아버지였다. 출처: france:5:CHAPTER V., 1719–1725행, 1755–1773행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a253601a-4441-5fee-bdf0-f6d7d4cd1877",
+      "sourceCardId": "ea8b1fec-4905-5ef9-a295-79ce8ac005fe",
+      "targetCardId": "da30e2cd-6540-5361-b22d-3aa8437120e5",
+      "category": "structural",
+      "body": "마리 드 메디시스는 루이 13세의 어머니였다. 출처: france:5:CHAPTER V., 1719–1725행, 1755–1773행, https://www.gutenberg.org/ebooks/17287",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bb82c5cb-e31c-5c50-bd29-ebd5700f237c",
+      "sourceCardId": "da30e2cd-6540-5361-b22d-3aa8437120e5",
+      "targetCardId": "b09ea789-8a47-5628-bd13-9ee92e6dda91",
+      "category": "structural",
+      "body": "루이 13세는 콘치니의 체포를 명령했다. 출처: france:5:CHAPTER V., 1719–1726행, 1755–1762행, https://www.gutenberg.org/ebooks/17287",
+      "label": "체포 명령",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b85fefa9-d247-5c6d-8758-52d30613f609",
+      "sourceCardId": "da30e2cd-6540-5361-b22d-3aa8437120e5",
+      "targetCardId": "b3c26208-30d4-5bba-9202-5113776d36b6",
+      "category": "structural",
+      "body": "루이 13세와 가스통은 형제였다. 출처: france:6:CHAPTER VI., 1804–1809행, https://www.gutenberg.org/ebooks/17287",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "dd325c9f-42f9-5e5a-8126-10c81dbf65ce",
+      "sourceCardId": "1e71683d-97b3-5e9a-82f5-a3d684962b72",
+      "targetCardId": "56a70332-bca1-5de8-a85f-e70dd9cfc60b",
+      "category": "structural",
+      "body": "리슐리외는 마자랭을 후계자로 추천했다. 출처: france:6:CHAPTER VI., 1847–1849행, 1863–1867행, 1880–1893행, https://www.gutenberg.org/ebooks/17287",
+      "label": "후계자 추천",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "47993997-e4c6-57d3-a152-5496d7c826e9",
+      "sourceCardId": "9742f55e-3b84-582a-9f08-2f5f19fe7bb4",
+      "targetCardId": "da30e2cd-6540-5361-b22d-3aa8437120e5",
+      "category": "structural",
+      "body": "안 도트리슈는 루이 13세의 왕비였다. 출처: france:6:CHAPTER VI., 1863–1867행, 1880–1883행, https://www.gutenberg.org/ebooks/17287",
+      "label": "왕비",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7b0ce542-c130-5f9f-9672-904e5a841d38",
+      "sourceCardId": "da30e2cd-6540-5361-b22d-3aa8437120e5",
+      "targetCardId": "af27a36f-fb9b-5c86-83db-2661f03cb850",
+      "category": "structural",
+      "body": "루이 13세는 루이 14세의 아버지였다. 출처: france:6:CHAPTER VI., 1863–1867행, 1931–1943행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bd7154ac-6632-51bb-b413-e83e2d4b0e8d",
+      "sourceCardId": "9742f55e-3b84-582a-9f08-2f5f19fe7bb4",
+      "targetCardId": "af27a36f-fb9b-5c86-83db-2661f03cb850",
+      "category": "structural",
+      "body": "안 도트리슈는 루이 14세의 어머니였다. 출처: france:6:CHAPTER VI., 1863–1867행, 1931–1943행, https://www.gutenberg.org/ebooks/17287",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b1cb1d32-a68d-504e-b9c4-b5f7232a684b",
+      "sourceCardId": "9742f55e-3b84-582a-9f08-2f5f19fe7bb4",
+      "targetCardId": "56a70332-bca1-5de8-a85f-e70dd9cfc60b",
+      "category": "structural",
+      "body": "안 도트리슈는 마자랭을 신임했다. 출처: france:6:CHAPTER VI., 1847–1849행, 1863–1867행, 1880–1893행, https://www.gutenberg.org/ebooks/17287",
+      "label": "신임",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5ccae058-6100-5bef-aa31-752ef8f03ad8",
+      "sourceCardId": "e26947e1-9111-52eb-ae96-38ba86d640b8",
+      "targetCardId": "6663e167-ed38-59e7-bfd0-364d7d7036b8",
+      "category": "structural",
+      "body": "생시랑 수도원장은 얀센의 제자였다. 출처: france:6:CHAPTER VI., 1990–1998행, https://www.gutenberg.org/ebooks/17287",
+      "label": "제자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6577048b-3967-5e26-9804-0a985d1dd7c1",
+      "sourceCardId": "a5476005-5792-5c89-b1b0-3c378329c0a2",
+      "targetCardId": "af27a36f-fb9b-5c86-83db-2661f03cb850",
+      "category": "structural",
+      "body": "마리 테레즈는 루이 14세의 왕비였다. 출처: france:6:CHAPTER VI., 2006–2011행, https://www.gutenberg.org/ebooks/17287",
+      "label": "왕비",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5ae772de-ed29-5033-97ba-9767483c5955",
+      "sourceCardId": "af27a36f-fb9b-5c86-83db-2661f03cb850",
+      "targetCardId": "bf1261b9-2b4f-522a-a581-f6ed9dbb1134",
+      "category": "structural",
+      "body": "루이 14세는 펠리페 5세의 할아버지였다. 출처: france:6:CHAPTER VI., 2063–2076행, https://www.gutenberg.org/ebooks/17287",
+      "label": "할아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5f553c14-83cb-5586-bfea-6dd43d730306",
+      "sourceCardId": "ae49a24d-d3b1-574f-a482-479576b4f47e",
+      "targetCardId": "8868b4bf-bd20-5569-9e74-4dca32f81d98",
+      "category": "structural",
+      "body": "말버러와 외젠은 블레넘 전투에서 함께 싸웠다. 출처: france:6:CHAPTER VI., 2074–2085행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 협력",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2422aa78-e15b-5f9b-a370-87e036b69e65",
+      "sourceCardId": "af27a36f-fb9b-5c86-83db-2661f03cb850",
+      "targetCardId": "722845be-6f5e-5fb4-9553-08fd003ca3f7",
+      "category": "structural",
+      "body": "루이 14세는 루이 15세의 증조부였다. 출처: france:6:CHAPTER VI., 2113–2121행, 2137–2142행, https://www.gutenberg.org/ebooks/17287",
+      "label": "증조부",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3c36bb3d-6d59-5f2d-81d4-2f12e51c4411",
+      "sourceCardId": "af27a36f-fb9b-5c86-83db-2661f03cb850",
+      "targetCardId": "26b69916-399b-5432-8e28-f9aaa2b70f71",
+      "category": "structural",
+      "body": "루이 14세는 오를레앙 공 필리프 2세의 삼촌이었다. 출처: france:6:CHAPTER VI., 2113–2126행, 2136–2138행, https://www.gutenberg.org/ebooks/17287",
+      "label": "삼촌",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "37e80e4f-31f2-5548-8fc2-0c4fe5ad3be4",
+      "sourceCardId": "26b69916-399b-5432-8e28-f9aaa2b70f71",
+      "targetCardId": "722845be-6f5e-5fb4-9553-08fd003ca3f7",
+      "category": "structural",
+      "body": "오를레앙 공 필리프 2세는 루이 15세의 섭정이었다. 출처: france:6:CHAPTER VI., 2113–2126행, 2136–2138행, https://www.gutenberg.org/ebooks/17287",
+      "label": "섭정",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "221755c6-39ca-59c8-abd0-e1b47754bc42",
+      "sourceCardId": "7bff1382-fb51-5eb7-9b88-30baf45392bd",
+      "targetCardId": "722845be-6f5e-5fb4-9553-08fd003ca3f7",
+      "category": "structural",
+      "body": "스타니스와프는 루이 15세의 장인이었다. 출처: france:6:CHAPTER VI., 2145–2151행, https://www.gutenberg.org/ebooks/17287",
+      "label": "장인",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "21fd1f3d-6912-5c1a-86ce-561a178c49de",
+      "sourceCardId": "a7480a0b-7949-574b-9d9a-87b095a016b4",
+      "targetCardId": "d6703a5d-e47a-5939-ad23-a416c2fb7dfd",
+      "category": "structural",
+      "body": "카를 6세는 마리아 테레지아의 아버지였다. 출처: france:6:CHAPTER VI., 2151–2163행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2b27a219-adb4-5fbb-87ad-e24894f1ec2f",
+      "sourceCardId": "49077ff8-0c8f-51f7-9cc8-824a3d4ecc71",
+      "targetCardId": "d6703a5d-e47a-5939-ad23-a416c2fb7dfd",
+      "category": "structural",
+      "body": "프리드리히 2세는 마리아 테레지아의 세습 영토 권리에 반대했다. 출처: france:6:CHAPTER VI., 2157–2163행, 2180–2184행, https://www.gutenberg.org/ebooks/17287",
+      "label": "상속 반대",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "68ddfdb6-9d61-5e16-9529-37441b16a013",
+      "sourceCardId": "e57f9db7-278b-577d-8f9a-926eda8a3d00",
+      "targetCardId": "3deebc48-cee9-57ad-b93c-c1a33f76ec23",
+      "category": "structural",
+      "body": "원저에 따르면 모레파는 네케르의 해임을 이끌었다. 출처: france:7:CHAPTER VII., 2271–2276행, https://www.gutenberg.org/ebooks/17287",
+      "label": "해임 주도",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "555efe40-a0b1-5bb8-91be-cfb7a5b17bf5",
+      "sourceCardId": "b45376fc-05a0-5b21-ac60-01f874e8ac4b",
+      "targetCardId": "2b02c148-dd0e-5b42-8577-f971a8808935",
+      "category": "structural",
+      "body": "원저에 따르면 로베스피에르는 당통을 고발했다. 출처: france:7:CHAPTER VII., 2374–2378행, 2395–2397행, https://www.gutenberg.org/ebooks/17287",
+      "label": "고발",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "96ebad02-ea30-5d42-8fa8-05f9f62fbec5",
+      "sourceCardId": "c6d2a5d5-b269-5485-b8ee-8353845bae11",
+      "targetCardId": "1fcfba31-2ee9-5a21-bae7-1095c7c14945",
+      "category": "structural",
+      "body": "샤를로트 코르데는 장폴 마라를 암살했다. 출처: france:7:CHAPTER VII., 2386–2389행, https://www.gutenberg.org/ebooks/17287",
+      "label": "암살",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "37605f64-84d6-5ccd-b5b4-3cddd83669bf",
+      "sourceCardId": "f695dcdd-3b7c-54a1-8c5c-001d2ba68c10",
+      "targetCardId": "22583e2f-c85b-5b60-b938-7c3976d41943",
+      "category": "structural",
+      "body": "시드니 스미스는 나폴레옹에 맞서 아크레를 방어했다. 출처: france:7:CHAPTER VII., 2441–2445행, https://www.gutenberg.org/ebooks/17287",
+      "label": "원정 저지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3f7008c3-db61-52ed-a28a-6e64069c9559",
+      "sourceCardId": "7c4a324f-d9ba-5721-a684-446424b9857d",
+      "targetCardId": "22583e2f-c85b-5b60-b938-7c3976d41943",
+      "category": "structural",
+      "body": "조제프와 나폴레옹 보나파르트는 형제였다. 출처: france:7:CHAPTER VII., 2478–2482행, https://www.gutenberg.org/ebooks/17287",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f65147fd-f425-5e85-992f-591a2a62aca3",
+      "sourceCardId": "0ed6d367-5e87-5892-9f28-a309b9d4ba1d",
+      "targetCardId": "90561ca3-e21d-58c4-9fed-585b063cb42d",
+      "category": "structural",
+      "body": "루이 16세와 루이 18세는 형제였다. 출처: france:8:CHAPTER VIII., 2547–2562행, https://www.gutenberg.org/ebooks/17287",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a9bd89b6-4079-508d-aadd-093ea494c4ef",
+      "sourceCardId": "0ed6d367-5e87-5892-9f28-a309b9d4ba1d",
+      "targetCardId": "c036c73e-e1ad-5abe-952e-0d3ef4f774d1",
+      "category": "structural",
+      "body": "루이 16세는 루이 17세의 아버지였다. 출처: france:8:CHAPTER VIII., 2547–2551행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7fb7187a-441d-5c75-95d1-6c928188ccf6",
+      "sourceCardId": "90561ca3-e21d-58c4-9fed-585b063cb42d",
+      "targetCardId": "36f8cbc0-d403-5de9-b1f1-d6b0293db9b9",
+      "category": "structural",
+      "body": "루이 18세와 샤를 10세는 형제였다. 출처: france:8:CHAPTER VIII., 2561–2567행, https://www.gutenberg.org/ebooks/17287",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fd91eab3-56d8-5943-944e-8bf53a20ccb3",
+      "sourceCardId": "36f8cbc0-d403-5de9-b1f1-d6b0293db9b9",
+      "targetCardId": "94fcae8a-4237-5336-9ddf-30da009ee258",
+      "category": "structural",
+      "body": "샤를 10세는 샹보르 백작 앙리의 할아버지였다. 출처: france:8:CHAPTER VIII., 2562–2567행, 2612–2617행, https://www.gutenberg.org/ebooks/17287",
+      "label": "할아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7cf7208d-a76e-5b8b-b124-23125eb125f3",
+      "sourceCardId": "8a6cbbbf-5df7-5020-93d0-d73db1f8af43",
+      "targetCardId": "94fcae8a-4237-5336-9ddf-30da009ee258",
+      "category": "structural",
+      "body": "베리 공은 샹보르 백작 앙리의 아버지였다. 출처: france:8:CHAPTER VIII., 2564–2567행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2b767b81-9993-5cc3-b38c-2f64b18b8721",
+      "sourceCardId": "d3846b35-eccc-5a87-8393-4307121b720d",
+      "targetCardId": "e5faefe7-bc43-59b9-8d43-c21d892de293",
+      "category": "structural",
+      "body": "필리프 에갈리테는 루이 필리프의 아버지였다. 출처: france:8:CHAPTER VIII., 2570–2575행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "41d05140-5de2-54f0-947f-996917ab6a34",
+      "sourceCardId": "e5faefe7-bc43-59b9-8d43-c21d892de293",
+      "targetCardId": "a84d02e9-dd7c-5084-a247-c314431edd13",
+      "category": "structural",
+      "body": "루이 필리프는 페르디낭 필리프의 아버지였다. 출처: france:8:CHAPTER VIII., 2596–2600행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "447bf3c2-d54c-544f-a18b-9caadcc68423",
+      "sourceCardId": "e5faefe7-bc43-59b9-8d43-c21d892de293",
+      "targetCardId": "b4289006-2d9f-58f1-9556-495244a3ea78",
+      "category": "structural",
+      "body": "루이 필리프는 몽팡시에 공 앙투안의 아버지였다. 출처: france:8:CHAPTER VIII., 2600–2605행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9ee1588a-fbe5-5265-8c23-c6851b3c503b",
+      "sourceCardId": "b4289006-2d9f-58f1-9556-495244a3ea78",
+      "targetCardId": "e7444a9b-b753-585e-a84b-0e0a22146ec0",
+      "category": "structural",
+      "body": "몽팡시에 공 앙투안과 루이즈 페르난다는 혼인했다. 출처: france:8:CHAPTER VIII., 2600–2605행, https://www.gutenberg.org/ebooks/17287",
+      "label": "혼인",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8c2fd265-69f1-5c6d-a86f-958a5788957e",
+      "sourceCardId": "22583e2f-c85b-5b60-b938-7c3976d41943",
+      "targetCardId": "ea6ac6fe-0373-5158-a82a-2056e5a4dbe6",
+      "category": "structural",
+      "body": "나폴레옹 보나파르트는 나폴레옹 3세의 삼촌이었다. 출처: france:8:CHAPTER VIII., 2629–2638행, 2641–2643행, https://www.gutenberg.org/ebooks/17287",
+      "label": "삼촌",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a3f7be5c-3644-54f8-b6b5-65aa0b1131fc",
+      "sourceCardId": "ea6ac6fe-0373-5158-a82a-2056e5a4dbe6",
+      "targetCardId": "2b7ed11d-e48f-5eda-be5b-d2e91f387d8f",
+      "category": "structural",
+      "body": "나폴레옹 3세와 비토리오 에마누엘레 2세는 오스트리아군에 함께 맞섰다. 출처: france:8:CHAPTER VIII., 2655–2661행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전쟁 협력",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0d704445-b284-5c97-90da-65039e25385e",
+      "sourceCardId": "dc0536b1-cc9d-5ca8-aaf0-145331357a49",
+      "targetCardId": "ea6ac6fe-0373-5158-a82a-2056e5a4dbe6",
+      "category": "structural",
+      "body": "외제니는 나폴레옹 3세의 황후였다. 출처: france:8:CHAPTER VIII., 2675–2679행, https://www.gutenberg.org/ebooks/17287",
+      "label": "황후",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4aba409b-b1ec-5969-8c6f-62fe6b74826c",
+      "sourceCardId": "e520c11c-84bb-5456-867a-c252a3d296a3",
+      "targetCardId": "f00403c3-5f25-54b3-ac10-106c992efdaf",
+      "category": "structural",
+      "body": "스코틀랜드 여왕 메리는 프랑수아 2세의 왕비였다. 출처: france:5:CHAPTER V., 1433–1436행, https://www.gutenberg.org/ebooks/17287",
+      "label": "왕비",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b0bc504f-4910-50b0-90af-821146fd22a5",
+      "sourceCardId": "d6703a5d-e47a-5939-ad23-a416c2fb7dfd",
+      "targetCardId": "458afe8d-73c3-528c-8171-cdda773d7b79",
+      "category": "structural",
+      "body": "마리아 테레지아와 로렌 공 프란츠는 혼인했다. 출처: france:6:CHAPTER VI., 2151–2154행, https://www.gutenberg.org/ebooks/17287",
+      "label": "혼인",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d681f5cb-6f0b-5910-876f-51cba9ba1d46",
+      "sourceCardId": "b6c468ab-d07d-5efd-9955-ae2d16c0320d",
+      "targetCardId": "d6703a5d-e47a-5939-ad23-a416c2fb7dfd",
+      "category": "structural",
+      "body": "원저에 따르면 조지 2세는 마리아 테레지아의 상속을 지지했다. 출처: france:6:CHAPTER VI., 2161–2165행, https://www.gutenberg.org/ebooks/17287",
+      "label": "지지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e830fe3d-d8d7-5ef6-a926-f52853fe77f8",
+      "sourceCardId": "d350f86c-123f-5a8c-9364-eed9f330cc4c",
+      "targetCardId": "3165cfea-2951-5532-97a7-f94f5bf4f664",
+      "category": "structural",
+      "body": "로베르 강건공은 파리를 방어했다고 원저는 서술한다. 출처: france:1:CHAPTER I., 170–176행, https://www.gutenberg.org/ebooks/17287",
+      "label": "방어",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c954bb6d-7d9c-5368-bba0-ec32475f4d54",
+      "sourceCardId": "b9b0d081-6ec3-5384-9b9d-e68d92a5b24a",
+      "targetCardId": "6fbb55d6-91aa-5f04-8aab-4cdc2c7be982",
+      "category": "structural",
+      "body": "부용의 고드프루아는 제1차 십자군을 이끌었다고 원저는 서술한다. 출처: france:1:CHAPTER I., 291–297행, https://www.gutenberg.org/ebooks/17287",
+      "label": "지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1e95aae2-cf7e-59f8-802c-68a3d19d0db0",
+      "sourceCardId": "3a3654eb-12b5-5ffc-824e-d24fd8e60ad8",
+      "targetCardId": "08b5227c-792c-58f7-86c8-23ef7f03ef93",
+      "category": "structural",
+      "body": "루이 7세는 제2차 십자군에 참가했다. 출처: france:1:CHAPTER I., 327–352행, https://www.gutenberg.org/ebooks/17287",
+      "label": "참가",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "92ab609f-5680-52cb-a612-065635e3fdef",
+      "sourceCardId": "4ff78372-4070-541e-9658-7a7a707b85f8",
+      "targetCardId": "08b5227c-792c-58f7-86c8-23ef7f03ef93",
+      "category": "structural",
+      "body": "엘레오노르는 제2차 십자군에서 루이 7세와 동행했다. 출처: france:1:CHAPTER I., 327–347행, https://www.gutenberg.org/ebooks/17287",
+      "label": "동행",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4f9db525-bc3b-5508-ad6a-8507391685fe",
+      "sourceCardId": "ea48ae04-f056-5031-8c6d-47b194575692",
+      "targetCardId": "a011a7b5-080b-5949-b8a0-12e2e4681c26",
+      "category": "structural",
+      "body": "시몽 드 몽포르는 알비파 십자군을 이끌었다. 출처: france:1:CHAPTER I., 434–444행, https://www.gutenberg.org/ebooks/17287",
+      "label": "지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a811e205-5c68-548a-8e8b-5aa17a28b741",
+      "sourceCardId": "cdb1d978-77b1-57e5-a1ee-cbdcb21658ea",
+      "targetCardId": "2e9f232c-e007-5fe2-83d1-e68ad037bc9c",
+      "category": "structural",
+      "body": "루이 9세는 성물을 보관하기 위해 생트샤펠을 세웠다고 원저는 서술한다. 출처: france:1:CHAPTER I., 503–510행, https://www.gutenberg.org/ebooks/17287",
+      "label": "건립",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "adb6fe74-51e4-580c-9f6b-70a05b648080",
+      "sourceCardId": "cdb1d978-77b1-57e5-a1ee-cbdcb21658ea",
+      "targetCardId": "13e62ef8-3fc7-5c82-a832-96d0d640e4a6",
+      "category": "structural",
+      "body": "루이 9세는 이집트 원정에서 군대를 이끌었다. 출처: france:1:CHAPTER I., 513–532행, https://www.gutenberg.org/ebooks/17287",
+      "label": "원정 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "df3fdc54-8648-5d7e-9bc6-13d17814e6a7",
+      "sourceCardId": "a7a0e04c-cccf-59ec-a962-565f13aa992f",
+      "targetCardId": "13e62ef8-3fc7-5c82-a832-96d0d640e4a6",
+      "category": "structural",
+      "body": "원저는 로베르가 루이 9세의 원정 중 만수라 전투에서 전사했다고 전한다. 출처: france:1:CHAPTER I., 520–526행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 참가",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8a559418-8dc6-5dc1-a724-8f3ffbd252ad",
+      "sourceCardId": "cdb1d978-77b1-57e5-a1ee-cbdcb21658ea",
+      "targetCardId": "9d56aa88-d8f0-5786-b518-baf4ce864f23",
+      "category": "structural",
+      "body": "루이 9세는 튀니스 원정을 이끌었다. 출처: france:1:CHAPTER I., 532–540행, https://www.gutenberg.org/ebooks/17287",
+      "label": "원정 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "71a3bd8b-1879-5960-963b-98636cc53207",
+      "sourceCardId": "ae1ef666-3390-52b1-8a9e-ee1dd8abca74",
+      "targetCardId": "2374c908-e489-5824-b069-398ded365ed2",
+      "category": "structural",
+      "body": "에드워드 3세의 선전포고로 장기간의 전쟁이 시작되었다. 출처: france:2:CHAPTER II., 633–657행, https://www.gutenberg.org/ebooks/17287",
+      "label": "선전포고",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8e1228d2-eedd-5db1-84f3-cd821c2c3d59",
+      "sourceCardId": "ae1ef666-3390-52b1-8a9e-ee1dd8abca74",
+      "targetCardId": "f4bd938c-6c51-5dbc-878a-a90729fbc85a",
+      "category": "structural",
+      "body": "에드워드 3세는 슬로이스에서 프랑스 함대에 승리했다. 출처: france:2:CHAPTER II., 649–653행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 승리",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2fe2ba28-0c5d-5037-9eac-b00f83ea4134",
+      "sourceCardId": "ae1ef666-3390-52b1-8a9e-ee1dd8abca74",
+      "targetCardId": "b0d4b1b0-80bf-5d80-9923-f2d31b57cbc9",
+      "category": "structural",
+      "body": "에드워드 3세의 군대는 크레시에서 필리프 6세의 군대에 승리했다. 출처: france:2:CHAPTER II., 668–675행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 승리",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "69537fda-7c2e-5220-8ff9-7b0ea3ee1319",
+      "sourceCardId": "3f4aa083-a861-54b7-925d-59ef06189825",
+      "targetCardId": "b0d4b1b0-80bf-5d80-9923-f2d31b57cbc9",
+      "category": "structural",
+      "body": "필리프 6세는 크레시에서 에드워드 3세를 저지하려다 패했다. 출처: france:2:CHAPTER II., 668–675행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 패배",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "752574a8-8c85-5d73-8e57-5e6a27e83d8e",
+      "sourceCardId": "ae1ef666-3390-52b1-8a9e-ee1dd8abca74",
+      "targetCardId": "97015efe-063a-51bb-a4a9-a8e9177f1f00",
+      "category": "structural",
+      "body": "에드워드 3세는 칼레를 봉쇄해 항복을 받았다고 원저는 서술한다. 출처: france:2:CHAPTER II., 674–682행, https://www.gutenberg.org/ebooks/17287",
+      "label": "포위",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7fde1168-5eaa-5c8f-9fd3-78b7cb0fdff5",
+      "sourceCardId": "2062e549-9ca3-5b5f-8fc2-4588eda353fb",
+      "targetCardId": "a918a40c-7205-56b7-b6f9-ba175034c53f",
+      "category": "structural",
+      "body": "장 2세는 푸아티에 전투에서 포로가 되었다. 출처: france:2:CHAPTER II., 687–692행, https://www.gutenberg.org/ebooks/17287",
+      "label": "포로",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "69907fe2-98ce-515d-b783-9e8b794cb8b4",
+      "sourceCardId": "37c8a08b-8598-56f8-8ebd-aaca858c0d72",
+      "targetCardId": "3a55fe60-f59f-5f11-b8c5-f6b6624c3507",
+      "category": "structural",
+      "body": "에티엔 마르셀은 파리 시민의 조세 개혁 시도를 이끌었다. 출처: france:2:CHAPTER II., 709–724행, https://www.gutenberg.org/ebooks/17287",
+      "label": "지도",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "23f442e1-cb9f-5dfd-b2c3-f3603749f7a9",
+      "sourceCardId": "b259e191-4cd5-5c13-906f-3f69cc61e411",
+      "targetCardId": "93ea0280-4bcd-533e-bbe3-8163df2057cf",
+      "category": "structural",
+      "body": "나바르의 샤를은 코슈렐에서 패하고 프랑스와 평화를 맺었다. 출처: france:2:CHAPTER II., 740–743행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 패배",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6e5e1cbe-7fb0-52d4-8c73-08ae8d30f901",
+      "sourceCardId": "679d3142-357e-5466-8e6d-742e20209d8e",
+      "targetCardId": "6948a10b-6b2b-5d6f-af51-a397cb4ac2f9",
+      "category": "structural",
+      "body": "아키텐 주민은 흑태자의 화로세에 프랑스 왕에게 항소했다. 출처: france:2:CHAPTER II., 764–773행, https://www.gutenberg.org/ebooks/17287",
+      "label": "조세 부과",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "cac0e456-2ae5-52fb-9f3e-d067f670a39f",
+      "sourceCardId": "277c0fb0-85ae-5127-85ec-fdc673fe744c",
+      "targetCardId": "373530e7-20ae-5c4c-b8ce-b36b20e37600",
+      "category": "structural",
+      "body": "필리프 판 아르테벨데는 로세베크 전투에서 패배했다. 출처: france:2:CHAPTER II., 803–810행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 패배",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9a2249fe-dddd-5cc9-892a-1ca5314d0b59",
+      "sourceCardId": "ef5e02b7-36a3-5daa-b4b2-5cea4c88ffee",
+      "targetCardId": "3b4f04f3-7878-5d6f-8828-d448568e2fda",
+      "category": "structural",
+      "body": "베르나르는 오를레앙 공작 자녀의 대의를 지지했고 그의 이름이 당파 명칭이 되었다. 출처: france:2:CHAPTER II., 846–857행, https://www.gutenberg.org/ebooks/17287",
+      "label": "대의 지지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "63785f5c-7d66-5111-afd5-570b357b79dd",
+      "sourceCardId": "f04b534e-0e4f-5431-8ca2-5d6eb3ef6274",
+      "targetCardId": "cbeb71c5-21b5-5d68-8f0d-91d679f2f2de",
+      "category": "structural",
+      "body": "공포공 장은 파리 도살업자 길드의 지지를 받았다. 출처: france:2:CHAPTER II., 840–851행, https://www.gutenberg.org/ebooks/17287",
+      "label": "지지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "741316da-7cb2-52e6-bf62-95005679e408",
+      "sourceCardId": "ef5e02b7-36a3-5daa-b4b2-5cea4c88ffee",
+      "targetCardId": "e3ab62ec-f37c-53c1-b6ff-908468f6075a",
+      "category": "structural",
+      "body": "베르나르는 1418년 파리 학살에서 죽었다. 출처: france:2:CHAPTER II., 877–886행, https://www.gutenberg.org/ebooks/17287",
+      "label": "사망",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b4ee98d1-81de-57c2-b22c-8b08d80566c6",
+      "sourceCardId": "a9b11a63-e857-5055-883f-5cec213946df",
+      "targetCardId": "e3ab62ec-f37c-53c1-b6ff-908468f6075a",
+      "category": "structural",
+      "body": "뒤샤텔은 1418년 파리 학살에서 도팽을 데리고 탈출했다. 출처: france:2:CHAPTER II., 880–895행, https://www.gutenberg.org/ebooks/17287",
+      "label": "도팽 구출",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a69c8704-9a30-5589-a93d-3ded6674f036",
+      "sourceCardId": "cbeb71c5-21b5-5d68-8f0d-91d679f2f2de",
+      "targetCardId": "5c166da5-b419-5df0-a6fc-4fe223f005ab",
+      "category": "structural",
+      "body": "공포공 장은 몽트로 회담에서 살해되었다고 원저는 서술한다. 출처: france:2:CHAPTER II., 889–898행, https://www.gutenberg.org/ebooks/17287",
+      "label": "살해당함",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "060cd1a7-8cdb-58b7-ac48-e4c3e505decd",
+      "sourceCardId": "ee7b04a9-905d-5059-b2d4-216b9e0c787a",
+      "targetCardId": "dcbafaf5-546c-58cf-86b1-0529b22c34ba",
+      "category": "structural",
+      "body": "헨리 5세의 군대는 아쟁쿠르에서 프랑스 귀족군을 격파했다. 출처: france:2:CHAPTER II., 860–870행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 승리",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "080646a3-7b33-5087-b0db-722eb8db024d",
+      "sourceCardId": "ee7b04a9-905d-5059-b2d4-216b9e0c787a",
+      "targetCardId": "4441f458-1f2f-5bc3-851c-3a557f3ea152",
+      "category": "structural",
+      "body": "트루아 조약에서 헨리 5세가 프랑스 섭정과 왕위 계승자로 인정되었다. 출처: france:2:CHAPTER II., 889–904행, https://www.gutenberg.org/ebooks/17287",
+      "label": "계승자로 인정",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bad92b36-55d6-5dcb-84a2-d59ab8856565",
+      "sourceCardId": "510c69d8-f114-5472-8870-742dd768ac5b",
+      "targetCardId": "4441f458-1f2f-5bc3-851c-3a557f3ea152",
+      "category": "structural",
+      "body": "트루아 조약과 함께 카트린은 헨리 5세와 혼인했다. 출처: france:2:CHAPTER II., 889–904행, https://www.gutenberg.org/ebooks/17287",
+      "label": "혼인",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ccc33b3a-4510-5a22-8e6a-2857a4b526c8",
+      "sourceCardId": "b26339cd-02c2-5d93-974c-a2680a26ea28",
+      "targetCardId": "ccac737f-8813-5080-ae90-290f321a8c84",
+      "category": "structural",
+      "body": "잔 다르크는 군대와 함께 오를레앙을 구원했다. 출처: france:2:CHAPTER II., 917–927행, https://www.gutenberg.org/ebooks/17287",
+      "label": "구원",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "416b5864-acb0-582e-a358-291115d92f8a",
+      "sourceCardId": "b26339cd-02c2-5d93-974c-a2680a26ea28",
+      "targetCardId": "bc4ff2b6-e77f-5c05-8876-78fe5687ab09",
+      "category": "structural",
+      "body": "잔 다르크는 부르고뉴 측에 포획된 뒤 루앙에서 재판받았다. 출처: france:2:CHAPTER II., 930–940행, https://www.gutenberg.org/ebooks/17287",
+      "label": "포획·재판을 받음",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fde1bd7f-cefc-558f-9d46-8c9e633527a6",
+      "sourceCardId": "22a21d33-c000-5698-9f27-2008174e11f1",
+      "targetCardId": "bc4ff2b6-e77f-5c05-8876-78fe5687ab09",
+      "category": "structural",
+      "body": "뤽상부르의 장은 콩피에뉴에서 잔 다르크를 포로로 잡았다. 출처: france:2:CHAPTER II., 930–935행, https://www.gutenberg.org/ebooks/17287",
+      "label": "포획",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f8e0ab74-8844-5831-bd5a-19535e01916b",
+      "sourceCardId": "96d1c740-7aec-54b0-b865-ba8ef27f23bd",
+      "targetCardId": "ecee23f4-860f-579a-a2c6-62efb39c2d64",
+      "category": "structural",
+      "body": "탈보트는 카스티용 전투에서 전사했다고 원저는 서술한다. 출처: france:2:CHAPTER II., 964–968행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전사",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4bad0c91-5d1a-5de9-b52a-76c8865d8f71",
+      "sourceCardId": "144b33ea-7746-5951-9bff-a3f5052c5d52",
+      "targetCardId": "252edcce-fee4-556c-9c11-b324c325ff8a",
+      "category": "structural",
+      "body": "공익동맹은 루이 11세에 반대한 귀족들의 연합이었다. 출처: france:3:CHAPTER III., 1055–1066행, https://www.gutenberg.org/ebooks/17287",
+      "label": "반대",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9210d96c-db40-58cf-9b68-386075b13146",
+      "sourceCardId": "252edcce-fee4-556c-9c11-b324c325ff8a",
+      "targetCardId": "1ea90b9a-8c84-57c1-86a9-0c7e276e4748",
+      "category": "structural",
+      "body": "원저에 따르면 루이 11세는 몽레리에서 샤를에게 패했다. 출처: france:3:CHAPTER III., 1059–1065행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 패배",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6a9506bf-0447-5d7e-b95d-9d0b5ab9610a",
+      "sourceCardId": "deb11b60-41d5-5640-b79d-5530b113eaa0",
+      "targetCardId": "1ea90b9a-8c84-57c1-86a9-0c7e276e4748",
+      "category": "structural",
+      "body": "샤를은 몽레리에서 루이 11세를 이겼다고 원저는 서술한다. 출처: france:3:CHAPTER III., 1059–1065행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 승리",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e21d3f66-01c7-52b8-af64-a34a21731309",
+      "sourceCardId": "deb11b60-41d5-5640-b79d-5530b113eaa0",
+      "targetCardId": "0e6c7878-e2ce-51e8-a1e6-ae8cdf975e70",
+      "category": "structural",
+      "body": "부르고뉴 공작 샤를은 낭시 전투에서 전사했다. 출처: france:3:CHAPTER III., 1121–1127행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전사",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5396bd7b-ed2a-5145-9480-dfa37d6387a3",
+      "sourceCardId": "cd8b4625-5786-5d72-8321-88bb51ef090d",
+      "targetCardId": "0e6c7878-e2ce-51e8-a1e6-ae8cdf975e70",
+      "category": "structural",
+      "body": "로렌의 르네는 스위스군과 낭시의 부르고뉴 포위군을 공격했다. 출처: france:3:CHAPTER III., 1121–1127행, https://www.gutenberg.org/ebooks/17287",
+      "label": "공격 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5745afd7-1fb2-5835-b448-70f81260f405",
+      "sourceCardId": "f7694b17-1eb9-5279-8cf8-d8c2d5383fce",
+      "targetCardId": "1a67e554-fd35-55de-bbbc-e5b46a7c4513",
+      "category": "structural",
+      "body": "샤를 8세는 나폴리 왕위 주장을 내세워 이탈리아를 침공했다. 출처: france:4:CHAPTER IV., 1197–1219행, https://www.gutenberg.org/ebooks/17287",
+      "label": "침공",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f2719a18-37bc-5efb-8446-55f4ece7d0bb",
+      "sourceCardId": "f7694b17-1eb9-5279-8cf8-d8c2d5383fce",
+      "targetCardId": "fc2f442c-5a4a-5fe5-a669-056703f75081",
+      "category": "structural",
+      "body": "샤를 8세는 귀국 중 포르노보에서 이탈리아 연합군과 싸웠다. 출처: france:4:CHAPTER IV., 1211–1216행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 참가",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4bd4f440-0961-5772-b95c-361293cfe005",
+      "sourceCardId": "b58302ba-0e88-533f-b2a9-851c56b4ad80",
+      "targetCardId": "4d1cc3e6-3120-566f-8ef8-b23c3206d898",
+      "category": "structural",
+      "body": "교황 율리오 2세는 프랑스 견제를 위한 신성동맹을 결성했다. 출처: france:4:CHAPTER IV., 1245–1250행, https://www.gutenberg.org/ebooks/17287",
+      "label": "결성",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9587516f-1e7d-5c7b-b6d0-9594a63a483a",
+      "sourceCardId": "4f9a893e-444d-589d-9b00-dccab9013719",
+      "targetCardId": "8db7bdaa-641f-5b10-9a41-1a4cbb528b3c",
+      "category": "structural",
+      "body": "가스통 드 푸아는 라벤나에서 프랑스군을 지휘하고 전사했다. 출처: france:4:CHAPTER IV., 1251–1254행, https://www.gutenberg.org/ebooks/17287",
+      "label": "지휘와 전사",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "78505fc7-98db-57f8-b72a-4aff186eda6a",
+      "sourceCardId": "5d8f918e-70d6-5326-8a80-06f622e2d550",
+      "targetCardId": "d9631497-a67f-55b5-9866-9a458ad0b578",
+      "category": "structural",
+      "body": "프랑수아 1세는 마리냐노에서 스위스 용병군을 격파했다. 출처: france:4:CHAPTER IV., 1281–1288행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 승리",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "dc31f837-57ef-532a-8c3d-b9ed20265bee",
+      "sourceCardId": "171e6ac4-4738-5686-8884-869174c8e15e",
+      "targetCardId": "4a4ef055-f728-5ba9-b3ef-3f3dfbbfecb9",
+      "category": "structural",
+      "body": "교황 레오 10세는 프랑수아 1세와 볼로냐 정교협약을 맺었다. 출처: france:4:CHAPTER IV., 1288–1291행, https://www.gutenberg.org/ebooks/17287",
+      "label": "협약 체결",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "beff5ce1-a4dd-5eba-a1ee-d2ea34ace6e5",
+      "sourceCardId": "5d8f918e-70d6-5326-8a80-06f622e2d550",
+      "targetCardId": "4a4ef055-f728-5ba9-b3ef-3f3dfbbfecb9",
+      "category": "structural",
+      "body": "프랑수아 1세는 레오 10세와 볼로냐 정교협약을 맺었다. 출처: france:4:CHAPTER IV., 1288–1292행, https://www.gutenberg.org/ebooks/17287",
+      "label": "협약 체결",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d58d8907-9880-5663-85ef-bfeea56778de",
+      "sourceCardId": "5d8f918e-70d6-5326-8a80-06f622e2d550",
+      "targetCardId": "93b1b509-0a9d-59a4-9c89-eeb34c551247",
+      "category": "structural",
+      "body": "블루아 궁전은 프랑수아 1세의 궁전 중 하나다. 출처: france:4:CHAPTER IV., 1293–1299행, https://www.gutenberg.org/ebooks/17287",
+      "label": "궁전",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2d3ef2a9-178d-5f01-859b-65a25139139a",
+      "sourceCardId": "5d8f918e-70d6-5326-8a80-06f622e2d550",
+      "targetCardId": "4bfc1f46-7c22-59c6-92ea-95de22e9ea97",
+      "category": "structural",
+      "body": "프랑수아 1세는 파비아 전투에서 패해 마드리드로 끌려갔다. 출처: france:4:CHAPTER IV., 1330–1337행, https://www.gutenberg.org/ebooks/17287",
+      "label": "패배와 포로",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "61cb727c-3d82-5f27-b110-ebf4e21a8e3c",
+      "sourceCardId": "106fe322-942f-5189-8da3-91d0a4fb1326",
+      "targetCardId": "be331e60-e7b5-54bf-a487-7740411b9810",
+      "category": "structural",
+      "body": "앙리 2세는 독일 제후들과 연합해 메스를 점령했다. 출처: france:4:CHAPTER IV., 1377–1387행, https://www.gutenberg.org/ebooks/17287",
+      "label": "점령",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "83fad57e-9256-50f9-aeb1-57f866a806f0",
+      "sourceCardId": "7bbe11c3-5c2f-555c-978e-cbf27c4f496d",
+      "targetCardId": "eaa578c0-4a2f-5ae6-a034-62bc26da8357",
+      "category": "structural",
+      "body": "루이 드 콩데는 위그노 측을 이끌었다. 출처: france:5:CHAPTER V., 1431–1438행, 1477–1481행, 1522–1524행, https://www.gutenberg.org/ebooks/17287",
+      "label": "지도",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c627b187-8ee1-5fdd-bb22-d2c927b51502",
+      "sourceCardId": "a95097b5-f681-5ab7-a4b0-9f473d610cdc",
+      "targetCardId": "f39ea20e-fbe8-5e95-9093-27988ab5ce49",
+      "category": "structural",
+      "body": "기즈 암살 후 가톨릭 동맹은 앙리 3세에 맞섰다. 출처: france:5:CHAPTER V., 1595–1613행, 1618–1626행, https://www.gutenberg.org/ebooks/17287",
+      "label": "반대",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d1e68bf1-8f91-54af-b14f-1c05a7f296b3",
+      "sourceCardId": "c3685f86-f7e0-5915-aa32-27524c3fbad0",
+      "targetCardId": "a95097b5-f681-5ab7-a4b0-9f473d610cdc",
+      "category": "structural",
+      "body": "기즈 공 앙리는 프랑스 가톨릭 동맹을 이끌었다. 출처: france:5:CHAPTER V., 1524–1528행, 1560–1572행, 1617–1623행, https://www.gutenberg.org/ebooks/17287",
+      "label": "지도",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7b7b043c-b4a5-5ff9-ac18-038e9d770f2d",
+      "sourceCardId": "ecbe8712-a3b0-5398-8b41-44d86899d804",
+      "targetCardId": "2c7d3cfc-533a-51f0-89d0-42e7e1f4e148",
+      "category": "structural",
+      "body": "앙리 4세는 이브리에서 가톨릭 동맹군을 격파했다. 출처: france:5:CHAPTER V., 1629–1635행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 승리",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d97c843b-f7d5-5b89-a006-b97d1d615da4",
+      "sourceCardId": "ecbe8712-a3b0-5398-8b41-44d86899d804",
+      "targetCardId": "67cde7c5-4002-56b5-9218-85795dcdbab1",
+      "category": "structural",
+      "body": "앙리 4세는 낭트 칙령을 내렸다. 출처: france:5:CHAPTER V., 1660–1666행, https://www.gutenberg.org/ebooks/17287",
+      "label": "칙령 발포",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "378ce53b-83e7-5867-a6c4-e608ab0587a0",
+      "sourceCardId": "9329a57c-7c9b-5194-ac30-cb72bc29fa9c",
+      "targetCardId": "15005108-de43-5d09-93a3-6f71b5eeb97b",
+      "category": "structural",
+      "body": "원저는 뱅상 드 폴이 자선 수녀회를 설립했다고 서술한다. 출처: france:5:CHAPTER V., 1690–1696행, https://www.gutenberg.org/ebooks/17287",
+      "label": "설립",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f3147bc7-54a3-52f2-9dc8-0725395b02b3",
+      "sourceCardId": "65464174-c848-569c-b65c-d3244ae6143a",
+      "targetCardId": "997d5633-0102-5942-9158-1cb146ab4029",
+      "category": "structural",
+      "body": "라바야크는 앙리 4세를 암살했다. 출처: france:5:CHAPTER V., 1704–1712행, https://www.gutenberg.org/ebooks/17287",
+      "label": "암살",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "830bf44e-459a-5b06-b58b-5aa8120af227",
+      "sourceCardId": "1e71683d-97b3-5e9a-82f5-a3d684962b72",
+      "targetCardId": "3ed080d4-ff21-5a97-86e9-a206da5b6612",
+      "category": "structural",
+      "body": "리슐리외는 라로셸을 포위했다. 출처: france:5:CHAPTER V., 1769–1779행, https://www.gutenberg.org/ebooks/17287",
+      "label": "포위",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "25f97d98-4e4b-5884-ae3b-a4d78a340031",
+      "sourceCardId": "a1ba30fd-823f-5bbe-bdd9-ac93344824a0",
+      "targetCardId": "3ed080d4-ff21-5a97-86e9-a206da5b6612",
+      "category": "structural",
+      "body": "로앙 공 앙리는 라로셸을 방어하다 항복했다. 출처: france:5:CHAPTER V., 1774–1779행, https://www.gutenberg.org/ebooks/17287",
+      "label": "방어",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0498f2dd-d7f0-5c5f-84be-0a5a1eaff35c",
+      "sourceCardId": "7dbe9360-daa0-5040-acdf-61f515d231d6",
+      "targetCardId": "e1831c4d-805b-5b15-b7d8-977ab3a0bcf6",
+      "category": "structural",
+      "body": "앙기앵 공 시절의 대콩데는 로크루아에서 프랑스군을 지휘했다. 출처: france:6:CHAPTER VI., 1849–1853행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "07421c27-aca4-5db9-b577-62e020dda83b",
+      "sourceCardId": "37f69905-d352-5976-8504-e0d4e468f462",
+      "targetCardId": "2f1e6c28-4874-5eb2-bdfc-a6afb8cc8c3d",
+      "category": "structural",
+      "body": "파스칼은 얀센주의 논쟁 속에서 프로방시알을 썼다. 출처: france:6:CHAPTER VI., 1921–1925행, https://www.gutenberg.org/ebooks/17287",
+      "label": "저술",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ab5bab09-828b-57c1-9654-d586167dc4d0",
+      "sourceCardId": "af27a36f-fb9b-5c86-83db-2661f03cb850",
+      "targetCardId": "8a62c256-7fdf-5304-9924-8517da79ad45",
+      "category": "structural",
+      "body": "루이 14세는 낭트 칙령을 폐지했다. 출처: france:6:CHAPTER VI., 2031–2047행, https://www.gutenberg.org/ebooks/17287",
+      "label": "칙령 폐지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "538aab9f-e223-5606-9e21-0e57dae62e66",
+      "sourceCardId": "a8672185-7557-5282-992b-26e6ff41728e",
+      "targetCardId": "417cf906-be72-5884-b176-837edb6189fa",
+      "category": "structural",
+      "body": "장 카발리에는 세벤에서 위그노 저항을 이끌었다. 출처: france:6:CHAPTER VI., 2036–2039행, https://www.gutenberg.org/ebooks/17287",
+      "label": "저항 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9370ff8e-d952-55e2-ae44-a8e5fadcd20a",
+      "sourceCardId": "ae49a24d-d3b1-574f-a482-479576b4f47e",
+      "targetCardId": "1e24481f-479a-5f59-a7e4-4c0f465aee1f",
+      "category": "structural",
+      "body": "말버러의 잉글랜드군은 블레넘에서 동맹군을 격파했다. 출처: france:6:CHAPTER VI., 2074–2079행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7c97eb0c-85b5-51ac-911e-f85300de3bd3",
+      "sourceCardId": "8868b4bf-bd20-5569-9e74-4dca32f81d98",
+      "targetCardId": "1e24481f-479a-5f59-a7e4-4c0f465aee1f",
+      "category": "structural",
+      "body": "외젠의 오스트리아군은 블레넘에서 동맹군을 격파했다. 출처: france:6:CHAPTER VI., 2074–2079행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9a53d4db-c57e-591d-871d-f4f3889d8c3e",
+      "sourceCardId": "722845be-6f5e-5fb4-9553-08fd003ca3f7",
+      "targetCardId": "8052aa96-a434-5bfb-ba40-ce3233983182",
+      "category": "structural",
+      "body": "루이 15세는 퐁트누아 전투 때 프랑스군에 합류했다. 출처: france:6:CHAPTER VI., 2161–2166행, https://www.gutenberg.org/ebooks/17287",
+      "label": "군대 합류",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "37efd2d8-ae24-5119-91e3-1fab0ed7ff61",
+      "sourceCardId": "0ed6d367-5e87-5892-9f28-a309b9d4ba1d",
+      "targetCardId": "9967e0c6-fc3e-56d7-be99-8e54452f7c1b",
+      "category": "structural",
+      "body": "루이 16세는 삼부회를 소집했다. 출처: france:7:CHAPTER VII., 2253–2271행, 2282–2285행, 2379–2383행, https://www.gutenberg.org/ebooks/17287",
+      "label": "소집",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "dbcd85ea-cc5a-53c9-8882-8b051bc9de54",
+      "sourceCardId": "6d9d180b-e803-536b-9d86-ff4cb2e3bf46",
+      "targetCardId": "9967e0c6-fc3e-56d7-be99-8e54452f7c1b",
+      "category": "structural",
+      "body": "미라보는 1789년 삼부회 대표였다. 출처: france:7:CHAPTER VII., 2291–2296행, https://www.gutenberg.org/ebooks/17287",
+      "label": "대표",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b296b396-ea5b-5503-af61-26508dc070cc",
+      "sourceCardId": "cd55c1f5-47c5-5fa6-9584-720e283ee7a6",
+      "targetCardId": "a5bc0961-cf7c-5f80-af0b-f147defd786c",
+      "category": "structural",
+      "body": "라파예트는 프랑스 국민방위군을 지휘했다. 출처: france:7:CHAPTER VII., 2306–2310행, https://www.gutenberg.org/ebooks/17287",
+      "label": "지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a86bbc49-4d0b-520a-b7ea-634e76649320",
+      "sourceCardId": "b45376fc-05a0-5b21-ac60-01f874e8ac4b",
+      "targetCardId": "0a780929-163f-5e93-a2f5-d7c1441201cd",
+      "category": "structural",
+      "body": "로베스피에르는 국민공회의 산악파에 속했다. 출처: france:7:CHAPTER VII., 2374–2383행, https://www.gutenberg.org/ebooks/17287",
+      "label": "구성원",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9f90bbf0-6d20-573e-a074-d9a2e47bd191",
+      "sourceCardId": "2b02c148-dd0e-5b42-8577-f971a8808935",
+      "targetCardId": "0a780929-163f-5e93-a2f5-d7c1441201cd",
+      "category": "structural",
+      "body": "당통은 국민공회의 산악파에 속했다. 출처: france:7:CHAPTER VII., 2374–2383행, https://www.gutenberg.org/ebooks/17287",
+      "label": "구성원",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ca28f869-e1d4-5702-b060-91e541a6ecf5",
+      "sourceCardId": "1fcfba31-2ee9-5a21-bae7-1095c7c14945",
+      "targetCardId": "0a780929-163f-5e93-a2f5-d7c1441201cd",
+      "category": "structural",
+      "body": "마라는 국민공회의 산악파에 속했다. 출처: france:7:CHAPTER VII., 2374–2383행, https://www.gutenberg.org/ebooks/17287",
+      "label": "구성원",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "247b2a32-4449-5f6f-ad30-a2a9fc717e38",
+      "sourceCardId": "9defe6e6-f864-5e4a-a18c-487df7578389",
+      "targetCardId": "f70e9ad9-1282-5562-8e2a-0195f5f4cfed",
+      "category": "structural",
+      "body": "콜로 데르부아는 공안위원회 위원이었다. 출처: france:7:CHAPTER VII., 2402–2409행, https://www.gutenberg.org/ebooks/17287",
+      "label": "위원",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "79b4a893-8087-54f9-8f94-558958b5f661",
+      "sourceCardId": "22583e2f-c85b-5b60-b938-7c3976d41943",
+      "targetCardId": "6482ab3c-5d34-52c2-990a-b688a1b16967",
+      "category": "structural",
+      "body": "나폴레옹은 이집트 원정을 이끌었다. 출처: france:7:CHAPTER VII., 2439–2445행, https://www.gutenberg.org/ebooks/17287",
+      "label": "원정 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "63be1ef0-2f1c-5efc-9944-38adcc51dc8e",
+      "sourceCardId": "32234767-4c5f-5ef6-b9e2-69d77fded722",
+      "targetCardId": "a814760a-3658-54d0-947d-afd6ba8099d9",
+      "category": "structural",
+      "body": "넬슨은 트라팔가에서 프랑스와 스페인 함대를 격파했다. 출처: france:7:CHAPTER VII., 2474–2478행, https://www.gutenberg.org/ebooks/17287",
+      "label": "함대 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "43b6c285-df89-55a6-866e-ab90ca7d3b06",
+      "sourceCardId": "7c4a324f-d9ba-5721-a684-446424b9857d",
+      "targetCardId": "115dec5a-f10f-5b88-8c2e-d057f63ab648",
+      "category": "structural",
+      "body": "조제프는 나폴레옹이 스페인 왕실을 장악한 뒤 스페인 왕이 되었다. 출처: france:7:CHAPTER VII., 2478–2483행, https://www.gutenberg.org/ebooks/17287",
+      "label": "스페인 왕위",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "71df8082-3532-57df-9f66-732aef0c9559",
+      "sourceCardId": "99267fd5-d0be-5e0d-b9b9-ca696496b2c9",
+      "targetCardId": "115dec5a-f10f-5b88-8c2e-d057f63ab648",
+      "category": "structural",
+      "body": "웰링턴은 반도 전쟁에서 영국군을 지휘했다. 출처: france:7:CHAPTER VII., 2478–2483행, https://www.gutenberg.org/ebooks/17287",
+      "label": "영국군 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "76a7a7f0-d8c1-5a2a-8511-cf254160e0df",
+      "sourceCardId": "22583e2f-c85b-5b60-b938-7c3976d41943",
+      "targetCardId": "5f61d15b-3041-565d-8808-022c9bb5249f",
+      "category": "structural",
+      "body": "나폴레옹은 러시아 원정에서 군대를 이끌었다. 출처: france:7:CHAPTER VII., 2483–2492행, https://www.gutenberg.org/ebooks/17287",
+      "label": "원정 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "add3d0b4-6062-5600-8546-86c99a751101",
+      "sourceCardId": "22583e2f-c85b-5b60-b938-7c3976d41943",
+      "targetCardId": "406f4bef-d901-5103-8efb-fb9033f5fe9b",
+      "category": "structural",
+      "body": "나폴레옹은 라이프치히에서 연합군에 패했다. 출처: france:7:CHAPTER VII., 2493–2497행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 패배",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "08d0e722-029c-50d2-ac03-da0a95e3ad3c",
+      "sourceCardId": "22583e2f-c85b-5b60-b938-7c3976d41943",
+      "targetCardId": "7ed28e5b-c4db-5367-ae64-fb3e686f992e",
+      "category": "structural",
+      "body": "나폴레옹은 1814년 퇴위한 뒤 엘바로 보내졌다. 출처: france:7:CHAPTER VII., 2497–2503행, https://www.gutenberg.org/ebooks/17287",
+      "label": "퇴위",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4affdbe7-7c55-52a7-a29a-3e9d4af9dd91",
+      "sourceCardId": "22583e2f-c85b-5b60-b938-7c3976d41943",
+      "targetCardId": "ce4086e0-06d7-5134-80cb-58e2c1f809fe",
+      "category": "structural",
+      "body": "나폴레옹은 1814년 퇴위 뒤 엘바섬으로 보내졌다. 출처: france:7:CHAPTER VII., 2501–2503행, https://www.gutenberg.org/ebooks/17287",
+      "label": "유배",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8a148d52-39b7-5097-9a98-d7862444e3d8",
+      "sourceCardId": "22583e2f-c85b-5b60-b938-7c3976d41943",
+      "targetCardId": "2de0220a-59cf-5871-ab22-649dec43694d",
+      "category": "structural",
+      "body": "나폴레옹은 프랑스에 법전을 남겼다. 출처: france:7:CHAPTER VII., 2503–2508행, https://www.gutenberg.org/ebooks/17287",
+      "label": "법전",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "82893210-8944-58d9-af44-8b218150c4d1",
+      "sourceCardId": "22583e2f-c85b-5b60-b938-7c3976d41943",
+      "targetCardId": "157e7c2e-d0f0-578d-9297-b6e026133fe8",
+      "category": "structural",
+      "body": "나폴레옹은 1815년 엘바를 탈출해 군대의 환영을 받았다. 출처: france:8:CHAPTER VIII., 2551–2558행, https://www.gutenberg.org/ebooks/17287",
+      "label": "엘바 탈출",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3970d279-2ddb-5310-87d8-418620c461a9",
+      "sourceCardId": "22583e2f-c85b-5b60-b938-7c3976d41943",
+      "targetCardId": "3f317f5c-c02a-59b5-ba73-7d16ec73dc24",
+      "category": "structural",
+      "body": "나폴레옹은 워털루에서 잉글랜드와 프로이센 군대에 패했다. 출처: france:8:CHAPTER VIII., 2553–2558행, https://www.gutenberg.org/ebooks/17287",
+      "label": "전투 패배",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4b369f81-92ea-5c61-8f76-2f9deeff1f02",
+      "sourceCardId": "22583e2f-c85b-5b60-b938-7c3976d41943",
+      "targetCardId": "701b7d98-a076-54ae-a856-04733121d2e3",
+      "category": "structural",
+      "body": "나폴레옹은 워털루 이후 세인트헬레나로 유배되었다. 출처: france:8:CHAPTER VIII., 2555–2558행, https://www.gutenberg.org/ebooks/17287",
+      "label": "유배",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b1f6f2be-e392-50d8-ac9d-d6273fb5d901",
+      "sourceCardId": "36f8cbc0-d403-5de9-b1f1-d6b0293db9b9",
+      "targetCardId": "64def08b-ad65-51d7-9677-8d8f3a348ac5",
+      "category": "structural",
+      "body": "샤를 10세는 7월 혁명으로 망명했다. 출처: france:8:CHAPTER VIII., 2561–2567행, https://www.gutenberg.org/ebooks/17287",
+      "label": "망명",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e5b11e8d-1e28-5876-98d6-fd5e579b2d6a",
+      "sourceCardId": "ea6ac6fe-0373-5158-a82a-2056e5a4dbe6",
+      "targetCardId": "505277bf-d9cb-53e1-bc67-e2cc2a2dc0a2",
+      "category": "structural",
+      "body": "루이 나폴레옹은 군대의 도움으로 대의원회를 해산했다. 출처: france:8:CHAPTER VIII., 2631–2638행, https://www.gutenberg.org/ebooks/17287",
+      "label": "쿠데타",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "988904d5-a517-5847-9499-622432e883e8",
+      "sourceCardId": "ea6ac6fe-0373-5158-a82a-2056e5a4dbe6",
+      "targetCardId": "2319fd20-c044-50de-bfd2-77cc2cef957c",
+      "category": "structural",
+      "body": "루이 나폴레옹은 나폴레옹 3세로 황제 칭호를 취했다. 출처: france:8:CHAPTER VIII., 2641–2650행, https://www.gutenberg.org/ebooks/17287",
+      "label": "제정 수립",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0b49d657-1808-5dcd-9f79-611c8e3518bf",
+      "sourceCardId": "ea6ac6fe-0373-5158-a82a-2056e5a4dbe6",
+      "targetCardId": "87b38b5b-2158-5025-9923-73107c21887f",
+      "category": "structural",
+      "body": "나폴레옹 3세는 스당에서 포로로 항복했다. 출처: france:8:CHAPTER VIII., 2673–2679행, https://www.gutenberg.org/ebooks/17287",
+      "label": "항복",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "29bb099b-5a39-5408-952b-1c1d86c8ad3e",
+      "sourceCardId": "ea6ac6fe-0373-5158-a82a-2056e5a4dbe6",
+      "targetCardId": "f0597776-e1b5-5ff7-9475-8aca286d8577",
+      "category": "structural",
+      "body": "나폴레옹 3세는 사르데냐 왕과 함께 오스트리아 세력을 공격했다. 출처: france:8:CHAPTER VIII., 2655–2661행, https://www.gutenberg.org/ebooks/17287",
+      "label": "참전",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b49364b1-2e8d-5677-b5b0-15410a0ee3f0",
+      "sourceCardId": "2b7ed11d-e48f-5eda-be5b-d2e91f387d8f",
+      "targetCardId": "f0597776-e1b5-5ff7-9475-8aca286d8577",
+      "category": "structural",
+      "body": "비토리오 에마누엘레 2세는 나폴레옹 3세와 함께 오스트리아군에 맞섰다. 출처: france:8:CHAPTER VIII., 2655–2661행, https://www.gutenberg.org/ebooks/17287",
+      "label": "참전",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3c41a7c9-221b-5538-bdaa-3700a0bc110f",
+      "sourceCardId": "4483a4df-9e37-5316-8624-c29d18d2f804",
+      "targetCardId": "9dda02bb-22a5-54a2-b7eb-1056f7d19bc6",
+      "category": "structural",
+      "body": "클레멘스 5세가 아비뇽에 머문 뒤 교황 궁정이 그곳에 남았다고 원저는 서술한다. 출처: france:1:CHAPTER I., 590–598행, https://www.gutenberg.org/ebooks/17287",
+      "label": "아비뇽 거주",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ]
+}

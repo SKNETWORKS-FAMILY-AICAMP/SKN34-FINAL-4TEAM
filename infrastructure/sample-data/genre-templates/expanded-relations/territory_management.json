@@ -1,0 +1,86 @@
+{
+  "genre": "territory_management",
+  "worldId": "5f75d486-b70e-5399-83f5-c49a5a784603",
+  "relationships": [
+    {
+      "id": "39e46ff0-3324-580d-9344-16809eeb1139",
+      "sourceCardId": "2cdd45a4-a0ef-5aad-a6c6-940be16141bb",
+      "targetCardId": "fb09330a-1284-5371-a2d0-0e3a39cd6d72",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 한지원은 에드릭의 몸에서 깨어났다. 근거 카드 ID: 2cdd45a4-a0ef-5aad-a6c6-940be16141bb",
+      "label": "빙의",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a38eb9d1-fb3b-51d9-8cda-6b7f6d2f224d",
+      "sourceCardId": "f8c8d492-ea95-548b-b301-e9758129d7fe",
+      "targetCardId": "fb09330a-1284-5371-a2d0-0e3a39cd6d72",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 전임 로웰 영주는 에드릭의 아버지다. 근거 카드 ID: f8c8d492-ea95-548b-b301-e9758129d7fe",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "800c35d0-0224-559e-a828-ead4610044db",
+      "sourceCardId": "db4b0009-8603-51e7-8e17-be5394cfd89d",
+      "targetCardId": "f8c8d492-ea95-548b-b301-e9758129d7fe",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 오스본은 전임 영주 때부터 영지를 관리했다. 근거 카드 ID: db4b0009-8603-51e7-8e17-be5394cfd89d",
+      "label": "집사",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3774c937-0011-5402-9670-ab62fa6253b5",
+      "sourceCardId": "90ccba4a-eebc-53ec-8905-b57037440bc1",
+      "targetCardId": "b97384d4-a6ac-58d7-94e6-293882c4f8ee",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 실바는 숲 공동체의 치유사다. 근거 카드 ID: 90ccba4a-eebc-53ec-8905-b57037440bc1",
+      "label": "공동체 치유사",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1ddc7509-c5c8-5021-9fb8-9efee8d91554",
+      "sourceCardId": "d9c45bc8-8527-5fb3-bdc2-a7444d40a261",
+      "targetCardId": "c7f06208-0c49-5f05-8c62-b1af638f56fc",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 로사는 백로 평야의 큰 마을을 대표한다. 근거 카드 ID: d9c45bc8-8527-5fb3-bdc2-a7444d40a261",
+      "label": "마을 대표",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f3b7936a-d3cd-5adc-9724-e246ac78bc96",
+      "sourceCardId": "60f0d868-b800-50ff-b540-f7eee0218de7",
+      "targetCardId": "5a9dbe29-870c-59cb-8c0b-878b9e6f3fec",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 벨른 자작은 남문 고개와 인근 시장에 영향력을 가진다. 근거 카드 ID: 5a9dbe29-870c-59cb-8c0b-878b9e6f3fec",
+      "label": "영향력",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "dc2e9b57-6955-516d-8aa5-f79c07609f43",
+      "sourceCardId": "fb09330a-1284-5371-a2d0-0e3a39cd6d72",
+      "targetCardId": "17472d84-a73a-53fc-9663-7c21ef172c2b",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 원래 에드릭은 영지를 떠나려다 숲길에서 습격당했다. 근거 카드 ID: 17472d84-a73a-53fc-9663-7c21ef172c2b",
+      "label": "습격 당사자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6ae989ed-d42e-5dda-b2eb-57526f009b15",
+      "sourceCardId": "2cdd45a4-a0ef-5aad-a6c6-940be16141bb",
+      "targetCardId": "17472d84-a73a-53fc-9663-7c21ef172c2b",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 한지원은 원래 에드릭의 숲길 습격 이후 그 몸에서 깨어났다. 근거 카드 ID: 17472d84-a73a-53fc-9663-7c21ef172c2b",
+      "label": "빙의 시점",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ]
+}

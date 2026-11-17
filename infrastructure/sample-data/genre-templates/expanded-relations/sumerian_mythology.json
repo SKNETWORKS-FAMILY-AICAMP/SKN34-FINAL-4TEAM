@@ -1,0 +1,436 @@
+{
+  "genre": "sumerian_mythology",
+  "worldId": "41adfa23-2e60-5b04-885a-994cf2478a18",
+  "relationships": [
+    {
+      "id": "81e60d2b-acf3-5fb3-9e2c-62ce529256ee",
+      "sourceCardId": "f7510fe1-d03b-5942-8450-fa4bddce90c9",
+      "targetCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "category": "structural",
+      "body": "구데아는 닌기르수의 명령을 받아 에닌누를 짓는다. 근거 카드 ID: 5cf1aba6-1fd3-531e-a363-a39af66f8730. 출처:  https://archive.org/details/lesinscriptionsd00thuruoft.",
+      "label": "신전 건립 명령",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7058db00-dae8-5c8d-aa70-a8e70bf0a8db",
+      "sourceCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "targetCardId": "d08911fe-5c4f-528e-9cf8-b6457a6719e2",
+      "category": "structural",
+      "body": "구데아는 니나에게 꿈의 뜻을 묻는다. 근거 카드 ID: d08911fe-5c4f-528e-9cf8-b6457a6719e2. 출처:  https://archive.org/details/lesinscriptionsd00thuruoft.",
+      "label": "꿈 해석 요청",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f742edf9-63cb-539b-95e4-4e847bce6a26",
+      "sourceCardId": "d08911fe-5c4f-528e-9cf8-b6457a6719e2",
+      "targetCardId": "1b7dddf1-df29-5e7c-b32f-48f95540fc36",
+      "category": "structural",
+      "body": "니나는 꿈속 여인을 자신의 자매 니사바로 풀이한다. 근거 카드 ID: 1b7dddf1-df29-5e7c-b32f-48f95540fc36. 출처:  https://archive.org/details/lesinscriptionsd00thuruoft.",
+      "label": "자매",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "642622fc-8109-5c84-a6a8-81628b843492",
+      "sourceCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "targetCardId": "2cc0fed3-005c-544c-a41a-6965e8598058",
+      "category": "structural",
+      "body": "구데아는 가툼두그에게 보호 정령의 동행을 청한다. 근거 카드 ID: 2cc0fed3-005c-544c-a41a-6965e8598058. 출처:  https://archive.org/details/lesinscriptionsd00thuruoft.",
+      "label": "보호 요청",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "05a27ba4-e6e0-5114-837b-5513dd77fe46",
+      "sourceCardId": "7c967fc6-d716-52f7-bc12-f3f251fba3c1",
+      "targetCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "category": "structural",
+      "body": "닌기시지다는 구데아의 신으로 불린다. 근거 카드 ID: 7c967fc6-d716-52f7-bc12-f3f251fba3c1. 출처:  https://archive.org/details/lesinscriptionsd00thuruoft.",
+      "label": "구데아의 신",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5b259a94-b994-56b8-b4b4-4c88c155443f",
+      "sourceCardId": "f7510fe1-d03b-5942-8450-fa4bddce90c9",
+      "targetCardId": "0ea98b20-fadf-5593-a82d-a15dd2c8ea6b",
+      "category": "structural",
+      "body": "바우는 닌기르수와 신전의 잠자리에 자리한다. 근거 카드 ID: 0ea98b20-fadf-5593-a82d-a15dd2c8ea6b. 출처:  https://archive.org/details/lesinscriptionsd00thuruoft.",
+      "label": "신전 잠자리",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "11f8e505-cdd4-5903-81b5-d1da87b4156c",
+      "sourceCardId": "d37603da-1c30-5a4f-90db-5a1d422f8959",
+      "targetCardId": "7f8534eb-3c6f-5a8a-b90b-e4be508542f0",
+      "category": "structural",
+      "body": "에레시키갈은 저승 문지기 네티에게 문을 지키도록 명령한다. 근거 카드 ID: d37603da-1c30-5a4f-90db-5a1d422f8959. 출처:  https://etcsl.orinst.ox.ac.uk/section1/c141.htm.",
+      "label": "수문장에게 명령",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1bd1c22d-c292-580f-b7ae-a2fe04f978f3",
+      "sourceCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "targetCardId": "6c86feeb-2d36-5fb5-ae84-95b25eb3cafb",
+      "category": "structural",
+      "body": "구데아는 수나귀 피리그카세파다를 닌기르수의 전차에 바친다. 근거 카드 ID: 6c86feeb-2d36-5fb5-ae84-95b25eb3cafb. 출처:  https://etcsl.orinst.ox.ac.uk/section2/tr217.htm.",
+      "label": "전차에 바침",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e15c922a-80a8-5d4f-994c-daadad1f9bda",
+      "sourceCardId": "acb73012-69f0-52e8-bbbe-25fd2a7d8424",
+      "targetCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "category": "structural",
+      "body": "닌시키르는 구데아에게 신전 건설용 목재를 보낸다. 근거 카드 ID: acb73012-69f0-52e8-bbbe-25fd2a7d8424. 출처:  https://etcsl.orinst.ox.ac.uk/section2/tr217.htm.",
+      "label": "목재 조달",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d073eb19-ba22-50ab-a777-e9567de11a3f",
+      "sourceCardId": "bbdf6ad2-f8f3-58b4-ad3c-c5514a0e671e",
+      "targetCardId": "c9b30669-dae3-57f2-9895-7b1f11a2544e",
+      "category": "structural",
+      "body": "쿠르가라와 갈라투라는 이난나의 시신을 돌려받기 위해 함께 청한다. 근거 카드 ID: c9b30669-dae3-57f2-9895-7b1f11a2544e. 출처:  https://etcsl.orinst.ox.ac.uk/section1/tr141.htm.",
+      "label": "구출 협력",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bee87389-27a8-5c65-91cc-426d38a69f5e",
+      "sourceCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "targetCardId": "d13396fc-d357-568e-b7cc-e233c6cb3eed",
+      "category": "structural",
+      "body": "구데아는 에닌누를 지었다. 근거 카드 ID: 5cf1aba6-1fd3-531e-a363-a39af66f8730. 출처:  https://archive.org/details/lesinscriptionsd00thuruoft.",
+      "label": "신전 건립",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bad0a97d-8dee-52e9-bbab-10c2d5bd3ec0",
+      "sourceCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "targetCardId": "e1c306d1-9bd3-5e31-b3ef-79efee6297a7",
+      "category": "structural",
+      "body": "라가시는 구데아가 다스리는 도시다. 근거 카드 ID: e1c306d1-9bd3-5e31-b3ef-79efee6297a7. 출처:  https://archive.org/details/lesinscriptionsd00thuruoft.",
+      "label": "도시 통치",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "dfce4fc6-4710-5dc0-ab63-bf3e4b206174",
+      "sourceCardId": "2cc0fed3-005c-544c-a41a-6965e8598058",
+      "targetCardId": "e1c306d1-9bd3-5e31-b3ef-79efee6297a7",
+      "category": "structural",
+      "body": "라가시는 가툼두그가 세운 도시로 칭송된다. 근거 카드 ID: e1c306d1-9bd3-5e31-b3ef-79efee6297a7. 출처:  https://archive.org/details/lesinscriptionsd00thuruoft.",
+      "label": "도시 창건",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1adaf6bf-1a00-5a03-a77a-7e9952966c8d",
+      "sourceCardId": "f7510fe1-d03b-5942-8450-fa4bddce90c9",
+      "targetCardId": "9ffd5cb6-fb4e-54a8-b6f6-5c97cc20a3a5",
+      "category": "structural",
+      "body": "우슘갈칼람마는 닌기르수가 사랑하는 수금이다. 근거 카드 ID: 9ffd5cb6-fb4e-54a8-b6f6-5c97cc20a3a5. 출처:  https://archive.org/details/lesinscriptionsd00thuruoft.",
+      "label": "사랑하는 수금",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "54b861cc-34dd-515a-a0d2-796dbdec6139",
+      "sourceCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "targetCardId": "177c761a-e596-5598-908a-f2b5d496f710",
+      "category": "structural",
+      "body": "구데아는 니나의 지시에 따라 전차를 완성한다. 근거 카드 ID: 177c761a-e596-5598-908a-f2b5d496f710. 출처:  https://archive.org/details/lesinscriptionsd00thuruoft.",
+      "label": "전차 제작",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "416118e1-1e02-5b2a-ba5e-169271c8586e",
+      "sourceCardId": "f7510fe1-d03b-5942-8450-fa4bddce90c9",
+      "targetCardId": "5ea60c5d-cd78-5116-b597-d90444bb2a45",
+      "category": "structural",
+      "body": "닌기르수는 샤루르로 땅들을 제압한다고 말한다. 근거 카드 ID: 5ea60c5d-cd78-5116-b597-d90444bb2a45. 출처:  https://etcsl.orinst.ox.ac.uk/section2/tr217.htm.",
+      "label": "무기",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a55de1e1-d057-502c-b397-34496805ec2d",
+      "sourceCardId": "f7510fe1-d03b-5942-8450-fa4bddce90c9",
+      "targetCardId": "e1979ca4-460e-52ab-a1ca-14b10733a817",
+      "category": "structural",
+      "body": "티라슈 신전은 닌기르수가 세운 곳이다. 근거 카드 ID: e1979ca4-460e-52ab-a1ca-14b10733a817. 출처:  https://etcsl.orinst.ox.ac.uk/section2/tr217.htm.",
+      "label": "신전 건립",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c6504eff-ce95-5deb-8a98-7a74fca0072c",
+      "sourceCardId": "f7510fe1-d03b-5942-8450-fa4bddce90c9",
+      "targetCardId": "120b8db9-3f69-5269-a0c9-082b6d856720",
+      "category": "structural",
+      "body": "에후슈는 닌기르수가 지었다고 말하는 신전이다. 근거 카드 ID: 120b8db9-3f69-5269-a0c9-082b6d856720. 출처:  https://etcsl.orinst.ox.ac.uk/section2/tr217.htm.",
+      "label": "신전 건립",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "85157fe9-a825-55cc-a4ba-4e6eb79a9518",
+      "sourceCardId": "f7510fe1-d03b-5942-8450-fa4bddce90c9",
+      "targetCardId": "a5e2b7ae-5ce9-53b0-9876-05dab52d83b6",
+      "category": "structural",
+      "body": "닌기르수는 에바바르에서 명령하고 도시의 소송을 판단한다. 근거 카드 ID: a5e2b7ae-5ce9-53b0-9876-05dab52d83b6. 출처:  https://etcsl.orinst.ox.ac.uk/section2/tr217.htm.",
+      "label": "재판 장소",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "78372704-8480-5655-b30f-e78a9516bfd5",
+      "sourceCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "targetCardId": "97045a84-8f2a-5ff3-9e89-39d9253ffb8d",
+      "category": "structural",
+      "body": "구데아는 꿈을 꾸고 니나에게 해몽을 요청한다. 근거 카드 ID: 97045a84-8f2a-5ff3-9e89-39d9253ffb8d. 출처:  https://archive.org/details/lesinscriptionsd00thuruoft.",
+      "label": "꿈과 해몽",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bfe80ee0-acdf-5647-bcf6-7c9e0aafa5b3",
+      "sourceCardId": "5a8c009b-cc60-5b61-8b92-34867646714f",
+      "targetCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "category": "structural",
+      "body": "니사바는 구데아의 이해력을 열어 준 신으로 묘사된다. 근거 카드 ID: 5a8c009b-cc60-5b61-8b92-34867646714f. 출처:  https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad..",
+      "label": "이해력",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "50a2de1f-c940-53dc-b198-cf2a431eb744",
+      "sourceCardId": "eef34282-6acc-5824-bb7f-63799fd1d1dc",
+      "targetCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "category": "structural",
+      "body": "루갈쿠르두브는 벽돌 주형 의례에서 구데아 앞을 간다. 근거 카드 ID: eef34282-6acc-5824-bb7f-63799fd1d1dc. 출처:  https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad..",
+      "label": "의례 인도",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fb020777-0e64-5e7c-8a4b-9efb09d283ce",
+      "sourceCardId": "29869ce8-fb97-5d3d-a3f2-ace7d78f204a",
+      "targetCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "category": "structural",
+      "body": "갈알림은 벽돌 주형 의례에서 구데아 뒤를 따른다. 근거 카드 ID: 29869ce8-fb97-5d3d-a3f2-ace7d78f204a. 출처:  https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad..",
+      "label": "의례 동행",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d032b68f-6320-5eec-b800-fbf801dc58d8",
+      "sourceCardId": "4600081f-4bfe-5749-acc7-d96b526516bd",
+      "targetCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "category": "structural",
+      "body": "닌기시지다는 의례 중 구데아의 손을 잡는다. 근거 카드 ID: 4600081f-4bfe-5749-acc7-d96b526516bd. 출처:  https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad..",
+      "label": "의례 인도",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0026ef05-d643-5b76-b481-9ad3a184453f",
+      "sourceCardId": "0ea98b20-fadf-5593-a82d-a15dd2c8ea6b",
+      "targetCardId": "4a7707cd-12d2-5cd3-b962-c615991bfc2f",
+      "category": "structural",
+      "body": "바우의 일곱 딸이 신전 봉사 조직에 열거된다. 근거 카드 ID: 4a7707cd-12d2-5cd3-b962-c615991bfc2f. 출처:  https://archive.org/details/lesinscriptionsd00thuruoft.",
+      "label": "일곱 딸",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "55c2a84f-845a-5551-855a-c244ff725e76",
+      "sourceCardId": "94c25b0f-8001-5350-ba34-d1bfa5bac19c",
+      "targetCardId": "f7510fe1-d03b-5942-8450-fa4bddce90c9",
+      "category": "structural",
+      "body": "킨다지드는 닌기르수의 침실을 담당한다. 근거 카드 ID: 94c25b0f-8001-5350-ba34-d1bfa5bac19c. 출처:  https://etcsl.orinst.ox.ac.uk/section2/tr217.htm.",
+      "label": "침실 봉사",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fc902860-4da6-5500-9cc1-43f4c85c0b8f",
+      "sourceCardId": "a14a47ba-c9a5-51e7-9ccf-f84e601b99b1",
+      "targetCardId": "f7510fe1-d03b-5942-8450-fa4bddce90c9",
+      "category": "structural",
+      "body": "라마의 어업 관리가 닌기르수에게 어업 산출을 보고한다. 근거 카드 ID: a14a47ba-c9a5-51e7-9ccf-f84e601b99b1. 출처:  https://etcsl.orinst.ox.ac.uk/section2/tr217.htm.",
+      "label": "어업 보고",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "07eb79dc-a77b-5c96-8a97-9a887551c4c9",
+      "sourceCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "targetCardId": "bd83b7e7-5613-567d-a7ad-88aa97409965",
+      "category": "structural",
+      "body": "누워 있는 구데아에게 신이 다시 나타나 신전 건설을 예고한다. 근거 카드 ID: bd83b7e7-5613-567d-a7ad-88aa97409965. 출처:  https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad.",
+      "label": "두 번째 신탁",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "13750d50-9814-59e3-b648-30541464bc97",
+      "sourceCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "targetCardId": "ebd9ee39-1d92-59c3-aa19-c29f4a10f778",
+      "category": "structural",
+      "body": "구데아는 틀 상자에서 벽돌을 가리키는 점괘를 얻는다. 근거 카드 ID: ebd9ee39-1d92-59c3-aa19-c29f4a10f778. 출처:  https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad.",
+      "label": "벽돌 점괘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7717d7c4-1c81-5561-9114-a324fdd44263",
+      "sourceCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "targetCardId": "dc38f45d-9af1-5038-b767-e99a0df1e244",
+      "category": "structural",
+      "body": "구데아는 삼나무 산으로 가 나무를 벤다. 근거 카드 ID: dc38f45d-9af1-5038-b767-e99a0df1e244. 출처:  https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad.",
+      "label": "삼나무 산행",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "23c1d22a-7dce-515c-9086-7cd04dcf20c3",
+      "sourceCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "targetCardId": "1346b907-9c8a-543d-a27e-8d26249c5cc0",
+      "category": "structural",
+      "body": "구데아는 벽돌을 햇빛에 놓는다. 근거 카드 ID: 1346b907-9c8a-543d-a27e-8d26249c5cc0. 출처:  https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad..",
+      "label": "벽돌 의례",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "592bd8fc-df2c-500b-970a-5f887548ed86",
+      "sourceCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "targetCardId": "be177783-5594-5833-b248-41b0da203bc6",
+      "category": "structural",
+      "body": "구데아는 라가시에 사르바투 나무를 심는다. 근거 카드 ID: be177783-5594-5833-b248-41b0da203bc6. 출처:  https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad..",
+      "label": "나무 심기",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1ba38cc8-0469-50ee-88df-439c48c9fb11",
+      "sourceCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "targetCardId": "a0c87292-00ab-5fa5-b3e0-7d016ab76b4d",
+      "category": "structural",
+      "body": "구데아는 전투의 문에 여섯 머리 산양을 죽이는 영웅을 머물게 한다. 근거 카드 ID: a0c87292-00ab-5fa5-b3e0-7d016ab76b4d. 출처:  https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad..",
+      "label": "수호 영웅 배치",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bf0fed22-5db3-5b23-8b39-cd7c436c255e",
+      "sourceCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "targetCardId": "787f5e9e-ac77-582a-b379-68eb3212df39",
+      "category": "structural",
+      "body": "구데아는 수갈람의 문에 좋은 용을 머물게 한다. 근거 카드 ID: 787f5e9e-ac77-582a-b379-68eb3212df39. 출처:  https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad..",
+      "label": "용 배치",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a5a78718-66ad-5162-9409-291528ddb611",
+      "sourceCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "targetCardId": "eeade5c6-4bfc-5a6c-89f0-946f9cf4f759",
+      "category": "structural",
+      "body": "구데아는 도시 앞에 일곱 영웅을 머물게 한다. 근거 카드 ID: eeade5c6-4bfc-5a6c-89f0-946f9cf4f759. 출처:  https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad..",
+      "label": "영웅 배치",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5e7d864a-c2f4-5f02-814c-b9e96f7de609",
+      "sourceCardId": "acbc9035-0d1f-5b2a-a529-ccddcd78bc8b",
+      "targetCardId": "6eb239b1-4699-554a-ac5c-fb3f3524fee4",
+      "category": "structural",
+      "body": "루갈쿠르둡은 일곱 머리의 전투용 곤봉을 들도록 임무를 받는다. 근거 카드 ID: 6eb239b1-4699-554a-ac5c-fb3f3524fee4. 출처:  https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=183.",
+      "label": "전투 곤봉",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e4c8d16f-3439-5159-ac55-a49eecb2a31a",
+      "sourceCardId": "4edb2a45-951a-5e2a-ba2e-8f75b919e83a",
+      "targetCardId": "f7510fe1-d03b-5942-8450-fa4bddce90c9",
+      "category": "structural",
+      "body": "사칸샤바르는 닌기르수에게 올바른 말들을 전달하는 시종이다. 근거 카드 ID: 4edb2a45-951a-5e2a-ba2e-8f75b919e83a. 출처:  https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=185.",
+      "label": "시종",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "59942e26-3530-54f5-b3f6-d19e688950d2",
+      "sourceCardId": "eab3fca6-800e-5870-b34d-bb75812a76cd",
+      "targetCardId": "f7510fe1-d03b-5942-8450-fa4bddce90c9",
+      "category": "structural",
+      "body": "우리지는 닌기르수의 침실을 돌보는 시종이다. 근거 카드 ID: eab3fca6-800e-5870-b34d-bb75812a76cd. 출처:  https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=185.",
+      "label": "시종",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7c2a3781-fe8b-5b19-8c43-065237f3be84",
+      "sourceCardId": "9e3307bd-871a-5340-8b99-90b10e33cc39",
+      "targetCardId": "f7510fe1-d03b-5942-8450-fa4bddce90c9",
+      "category": "structural",
+      "body": "엔시그눈은 닌기르수의 나귀지기다. 근거 카드 ID: 9e3307bd-871a-5340-8b99-90b10e33cc39. 출처:  https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=185.",
+      "label": "나귀지기",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c55772c1-8e1e-5f2a-bd61-27bc02897b46",
+      "sourceCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "targetCardId": "6e117f20-b300-582e-9e74-ddde56b73720",
+      "category": "structural",
+      "body": "구데아는 닌기르수에게 쿠르무감 전차를 바쳤다. 근거 카드 ID: 6e117f20-b300-582e-9e74-ddde56b73720. 출처:  https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=189.",
+      "label": "전차 봉헌",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ead3e28b-274c-50b1-b55a-bcbb02f3e3d3",
+      "sourceCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "targetCardId": "e1f7ae02-4707-5db9-9c02-6cd8d5c71de2",
+      "category": "structural",
+      "body": "구데아가 바친 쿠르무감 전차에 우드구두그두그가 딸린다. 근거 카드 ID: e1f7ae02-4707-5db9-9c02-6cd8d5c71de2. 출처:  https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=189.",
+      "label": "나귀 봉헌",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c7435eed-9767-5019-b02b-048e355876a8",
+      "sourceCardId": "5cf1aba6-1fd3-531e-a363-a39af66f8730",
+      "targetCardId": "a9e01261-99aa-575b-9e80-0b79fda9181d",
+      "category": "structural",
+      "body": "구데아는 닌기르수에게 아홉 표식의 검을 봉헌했다. 근거 카드 ID: a9e01261-99aa-575b-9e80-0b79fda9181d. 출처:  https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=191.",
+      "label": "무기 봉헌",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fd74774b-d255-576e-b7b9-c7ae1f770c0d",
+      "sourceCardId": "2cc0fed3-005c-544c-a41a-6965e8598058",
+      "targetCardId": "1f3adabf-567b-57f9-bc74-c6ff78917344",
+      "category": "structural",
+      "body": "가툼두그는 아침저녁으로 신전 벽돌을 만든다. 근거 카드 ID: 1f3adabf-567b-57f9-bc74-c6ff78917344. 출처:  https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=161..",
+      "label": "벽돌 제작",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ]
+}

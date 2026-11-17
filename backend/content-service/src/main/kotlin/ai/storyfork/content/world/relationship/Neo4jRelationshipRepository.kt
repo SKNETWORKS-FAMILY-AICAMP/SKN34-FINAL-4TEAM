@@ -35,6 +35,13 @@ class Neo4jRelationshipRepository(private val driver:Driver,private val mapper:J
         driver.session(SessionConfig.forDatabase(database)).use { session -> session.executeRead({ tx -> view(worldId,load(tx,worldId),episode) },timeout) }
     }
 
+    /** 토큰과 최신 관계를 과거 회차 연결 유무와 같은 그래프 스냅샷에서 읽는다. */
+    fun readWithHistory(worldId:UUID):Pair<RelationshipStateResult,Boolean> = access {
+        driver.session(SessionConfig.forDatabase(database)).use { session -> session.executeRead({ tx ->
+            val stored=load(tx,worldId);view(worldId,stored,null) to stored.edges.isNotEmpty()
+        },timeout) }
+    }
+
     /**
      * [rows]는 저장 회차 시점의 관계 전체다. 저장 회차는 [episode], 없으면 이 세계관의 마지막 연결 회차(연결이 없으면 1화)이며 그 시점 값과 비교해
      * 바뀐 관계만 그 회차의 연결로 쓰고 빠진 관계는 종료 연결을 쓴다. 저장 회차보다 뒤 회차의 연결은 건드리지 않는다.

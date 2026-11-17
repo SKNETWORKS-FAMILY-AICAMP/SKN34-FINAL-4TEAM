@@ -1,0 +1,506 @@
+{
+  "genre": "japanese_mythology",
+  "worldId": "3a1d491a-59d7-5a43-92f8-dfdcd342dd79",
+  "relationships": [
+    {
+      "id": "d4925b04-9337-5832-8363-e02cd8478960",
+      "sourceCardId": "ed51016b-f6ed-5c45-b1eb-1af949450a2e",
+      "targetCardId": "c9c07343-f5a5-5421-9fd4-38b16c77171c",
+      "category": "structural",
+      "body": "《고사기》에서 이자나기와 이자나미는 부부로 함께 섬과 신들을 낳는다. 근거 카드 ID: c9c07343-f5a5-5421-9fd4-38b16c77171c. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_7 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_9",
+      "label": "혼인",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7611831f-1dcf-5df1-852b-f490c55527ee",
+      "sourceCardId": "ed51016b-f6ed-5c45-b1eb-1af949450a2e",
+      "targetCardId": "7b8c3876-79b8-5300-9212-f3e1cb61ed23",
+      "category": "structural",
+      "body": "《고사기》에서 이자나기는 이자나미와 오노고로섬을 만든다. 근거 카드 ID: ed51016b-f6ed-5c45-b1eb-1af949450a2e. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_3 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_9 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_10",
+      "label": "섬 생성",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b1212372-9e19-5606-a71d-67dd6dfeda6d",
+      "sourceCardId": "ed51016b-f6ed-5c45-b1eb-1af949450a2e",
+      "targetCardId": "4d3f01eb-271b-5aa0-bd40-35911ed1c1db",
+      "category": "structural",
+      "body": "《고사기》에서 아마테라스는 이자나기의 왼눈에서 태어난다. 근거 카드 ID: cbf67bea-ba4b-5985-bb56-bdf08d0ba97d. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_10 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_11",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "56d243f4-e7b4-5797-bbcc-8202b2a7c784",
+      "sourceCardId": "ed51016b-f6ed-5c45-b1eb-1af949450a2e",
+      "targetCardId": "4e155829-7855-5a8b-9a28-60bacbda55cd",
+      "category": "structural",
+      "body": "《고사기》에서 쓰쿠요미는 이자나기의 오른눈에서 태어난다. 근거 카드 ID: 4e155829-7855-5a8b-9a28-60bacbda55cd. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_10 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_11",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e6514404-d6ab-5a81-b3e5-4e1b28753289",
+      "sourceCardId": "ed51016b-f6ed-5c45-b1eb-1af949450a2e",
+      "targetCardId": "64e2b5a1-a614-5d23-927e-ca76cc3eda61",
+      "category": "structural",
+      "body": "《고사기》에서 스사노오는 이자나기의 코에서 태어난다. 근거 카드 ID: cbf67bea-ba4b-5985-bb56-bdf08d0ba97d. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_10 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_11",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "23415c5a-9d37-5dbd-bfe4-62b02ebdc553",
+      "sourceCardId": "4d3f01eb-271b-5aa0-bd40-35911ed1c1db",
+      "targetCardId": "bd438b53-f182-5ae3-ab51-b0312de4a13d",
+      "category": "structural",
+      "body": "《고사기》에서 아마테라스는 높은 하늘벌을 맡는다. 근거 카드 ID: 4d3f01eb-271b-5aa0-bd40-35911ed1c1db. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_11 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_16 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_33",
+      "label": "통치",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "852f4ee9-ce28-5625-bea0-9130534e1529",
+      "sourceCardId": "64e2b5a1-a614-5d23-927e-ca76cc3eda61",
+      "targetCardId": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+      "category": "structural",
+      "body": "《고사기》에서 스사노오는 뿌리나라에서 오쿠니누시를 시험한다. 근거 카드 ID: e29f1d3e-9ade-593a-8891-8366e00084bc. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)",
+      "label": "시험",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d4a080c7-0495-555f-ad1f-b10416909bb4",
+      "sourceCardId": "c7851fa1-7bd2-5768-83c0-1749c4380475",
+      "targetCardId": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+      "category": "structural",
+      "body": "《고사기》에서 스쿠나비코나는 오쿠니누시와 나라 만들기에 참여한다. 근거 카드 ID: c7851fa1-7bd2-5768-83c0-1749c4380475. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)",
+      "label": "나라 만들기",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4c22cab9-1874-5f75-9907-cae24322a4ce",
+      "sourceCardId": "db8c2d61-2dbc-5ff3-a1d0-d0717a1a40d2",
+      "targetCardId": "3f2a27b1-3ad2-509a-a0c1-69a13c575583",
+      "category": "structural",
+      "body": "《고사기》에서 야마토타케루는 나무칼 계략으로 이즈모의 용사를 죽인다. 근거 카드 ID: 3f2a27b1-3ad2-509a-a0c1-69a13c575583. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)",
+      "label": "이즈모 대결",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bde5947f-1b4f-5f43-b25b-6f7ac992a3d4",
+      "sourceCardId": "ac41f236-d6ed-5006-a4d4-4451c99c570c",
+      "targetCardId": "52a3683e-f20d-5357-89bc-f10c47bd98a8",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 아시나즈치와 테나즈치는 부부다. 근거 카드 ID: 52a3683e-f20d-5357-89bc-f10c47bd98a8. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_18",
+      "label": "부부",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4bf3606c-7789-52a8-a37b-a5d6c31e8957",
+      "sourceCardId": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+      "targetCardId": "f92f4c0c-7630-5d11-9ddb-5818ec43b58f",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 오쿠니누시의 조언으로 이나바의 토끼가 회복한다. 근거 카드 ID: f92f4c0c-7630-5d11-9ddb-5818ec43b58f. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_21",
+      "label": "조언",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "906a844f-df0a-59fa-a88f-a22bc8f0c34d",
+      "sourceCardId": "23f10328-d571-56cd-bd96-e9f7d0767d11",
+      "targetCardId": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 야카미히메는 구혼자들 중 오쿠니누시를 선택한다. 근거 카드 ID: 23f10328-d571-56cd-bd96-e9f7d0767d11. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_21 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_22 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_23",
+      "label": "선택",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3ea9e171-5d54-5e85-9fbe-d1e1e0e5d18e",
+      "sourceCardId": "c2247f22-dc18-5172-a499-03a360e35f41",
+      "targetCardId": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 키사가이히메는 오쿠니누시를 되살리는 일을 맡는다. 근거 카드 ID: c2247f22-dc18-5172-a499-03a360e35f41. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_22",
+      "label": "소생",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5f596886-2dc5-5255-b808-cf60ea734952",
+      "sourceCardId": "b67d8370-9daf-5b40-bb28-a8ebe8e6cc51",
+      "targetCardId": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 우무기히메는 키사가이히메와 오쿠니누시를 되살린다. 근거 카드 ID: b67d8370-9daf-5b40-bb28-a8ebe8e6cc51. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_22",
+      "label": "소생",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fa019afa-e5f5-579f-a2c2-dde775a99169",
+      "sourceCardId": "c594db5a-9300-559e-978b-792bbec8698a",
+      "targetCardId": "64e2b5a1-a614-5d23-927e-ca76cc3eda61",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 스세리비메는 스사노오의 딸이다. 근거 카드 ID: c594db5a-9300-559e-978b-792bbec8698a. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_23",
+      "label": "딸",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a5218f23-41ee-55ae-be9e-b64c26267850",
+      "sourceCardId": "c594db5a-9300-559e-978b-792bbec8698a",
+      "targetCardId": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 스세리비메는 오쿠니누시의 배우자이며 시련에서 남편을 돕는다. 근거 카드 ID: c594db5a-9300-559e-978b-792bbec8698a. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_23",
+      "label": "배우자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "72948a0c-1d7f-5f2e-9434-9f600087cce4",
+      "sourceCardId": "9bb21889-e515-53c2-aa6d-9c2fdff51c5d",
+      "targetCardId": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 쥐는 불에 둘러싸인 오쿠니누시에게 피신처를 알려준다. 근거 카드 ID: 9bb21889-e515-53c2-aa6d-9c2fdff51c5d. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_23",
+      "label": "도움",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8759d49d-c1dc-50dd-b32b-24b499ec7bc6",
+      "sourceCardId": "e7e923d6-2518-5894-9b75-72a261e2a3a7",
+      "targetCardId": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 사자 아메노호히는 오쿠니누시와 가까워진다. 근거 카드 ID: e7e923d6-2518-5894-9b75-72a261e2a3a7. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_30",
+      "label": "가까워짐",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "035226f1-33c8-56c2-bfcd-7376efe9a6b6",
+      "sourceCardId": "49da93bd-8b6c-5c3e-b992-3222a50d718a",
+      "targetCardId": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 고토시로누시는 오쿠니누시의 아들이다. 근거 카드 ID: 49da93bd-8b6c-5c3e-b992-3222a50d718a. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_32",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "81854ff4-8bdb-5c33-ba56-3e7f4009b3c8",
+      "sourceCardId": "9442e22c-7860-59f0-82a1-d4f8e031a406",
+      "targetCardId": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 다케미나카타는 오쿠니누시의 아들이다. 근거 카드 ID: 9442e22c-7860-59f0-82a1-d4f8e031a406. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_32",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e0b72ec6-1132-574a-9824-87d69f7f4848",
+      "sourceCardId": "69688cd3-716d-5e94-bc5c-0cb84b2c5568",
+      "targetCardId": "1ce0b4b3-b18e-5e64-8f0a-b3d0a46d162f",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 아지시키타카히코네는 오쿠니누시의 자녀로 기록된다. 근거 카드 ID: 69688cd3-716d-5e94-bc5c-0cb84b2c5568. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_31 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_26",
+      "label": "자녀",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7991e874-96d5-57c8-b8a1-36850bba81a1",
+      "sourceCardId": "2619d95c-fcfc-57bf-b271-a8b526ee9dfb",
+      "targetCardId": "30ef5026-28d3-5285-b8b5-79e1302718ce",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 아메노사구메는 아메노와카히코에게 꿩 나키메를 쏘라고 권한다. 근거 카드 ID: 2619d95c-fcfc-57bf-b271-a8b526ee9dfb. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_31",
+      "label": "살해 권고 대상",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2c0da4b8-fb49-5357-a708-f8bc4e8b72e0",
+      "sourceCardId": "48b7f3d2-7789-50a0-9f81-4f63c65b844d",
+      "targetCardId": "660acfb9-a08c-508b-8def-e02b3cac519b",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 아카루히메는 아메노히보코의 모욕을 받고 떠난다. 근거 카드 ID: 660acfb9-a08c-508b-8def-e02b3cac519b. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_114",
+      "label": "모욕",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2ac2868b-e857-5ca9-bc2b-e221af778015",
+      "sourceCardId": "c9c07343-f5a5-5421-9fd4-38b16c77171c",
+      "targetCardId": "e33069cc-f3f2-5303-bc76-0ecbdeaf3650",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 이자나미는 요모쓰시코메에게 이자나기 추격을 명한다. 근거 카드 ID: e33069cc-f3f2-5303-bc76-0ecbdeaf3650. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_9",
+      "label": "추격 명령",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c27e6268-327a-5fcd-b9a1-d04f8c1cae2a",
+      "sourceCardId": "e33069cc-f3f2-5303-bc76-0ecbdeaf3650",
+      "targetCardId": "ed51016b-f6ed-5c45-b1eb-1af949450a2e",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 요모쓰시코메는 이자나기를 추격한다. 근거 카드 ID: e33069cc-f3f2-5303-bc76-0ecbdeaf3650. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_9",
+      "label": "추격",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "64b27a04-404d-5e72-bea8-f7ada4678d6e",
+      "sourceCardId": "ed51016b-f6ed-5c45-b1eb-1af949450a2e",
+      "targetCardId": "c381ac02-60a1-57d2-b900-2150ae354475",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 히루코는 이자나기와 이자나미의 첫 결합에서 태어난다. 근거 카드 ID: c381ac02-60a1-57d2-b900-2150ae354475. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_4",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "00bcda2d-cf3a-5522-9b44-551d49937a9a",
+      "sourceCardId": "c9c07343-f5a5-5421-9fd4-38b16c77171c",
+      "targetCardId": "c381ac02-60a1-57d2-b900-2150ae354475",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 히루코는 이자나기와 이자나미의 첫 결합에서 태어난다. 근거 카드 ID: c381ac02-60a1-57d2-b900-2150ae354475. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_4",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e8f6526f-42b3-574f-8867-ce06aa2676db",
+      "sourceCardId": "ed51016b-f6ed-5c45-b1eb-1af949450a2e",
+      "targetCardId": "de468505-a7be-5931-9d65-89df13577eb1",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 오야마쓰미는 이자나기와 이자나미 사이에서 태어난다. 근거 카드 ID: de468505-a7be-5931-9d65-89df13577eb1. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_6 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_37",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "88e0f6d5-d109-5d22-98a9-7493d05c2b7e",
+      "sourceCardId": "c9c07343-f5a5-5421-9fd4-38b16c77171c",
+      "targetCardId": "de468505-a7be-5931-9d65-89df13577eb1",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 오야마쓰미는 이자나기와 이자나미 사이에서 태어난다. 근거 카드 ID: de468505-a7be-5931-9d65-89df13577eb1. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_6 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_37",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "68900701-f60e-5aa3-9986-9d3afad5469a",
+      "sourceCardId": "1b66f398-c300-5740-82ef-c12101d34ca7",
+      "targetCardId": "0d592006-1c30-5cc5-ae75-97560a3f61ce",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 해삼은 아메노우즈메의 질문에 답하지 않아 입이 갈라진다. 근거 카드 ID: 1b66f398-c300-5740-82ef-c12101d34ca7. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_36",
+      "label": "응답 거부",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b4b20af6-e918-5442-b206-3d73b7a6d28a",
+      "sourceCardId": "cfc3adaf-80da-5428-a2bc-549802430e34",
+      "targetCardId": "4d3f01eb-271b-5aa0-bd40-35911ed1c1db",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 다키리비메는 아마테라스가 내뿜은 안개에서 나온다. 근거 카드 ID: cfc3adaf-80da-5428-a2bc-549802430e34. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_13 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_14",
+      "label": "출생",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c9e6e803-3524-57d2-8caf-6f403cd70a58",
+      "sourceCardId": "7d0baa1f-6e59-5a84-a769-19600661b0c0",
+      "targetCardId": "4d3f01eb-271b-5aa0-bd40-35911ed1c1db",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 이치키시마히메는 아마테라스가 스사노오의 칼에서 낳은 여신이다. 근거 카드 ID: 7d0baa1f-6e59-5a84-a769-19600661b0c0. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_13 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_14",
+      "label": "출생",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ef71a0f5-72e7-5e44-8360-e7acf7f3db2e",
+      "sourceCardId": "bf6c1739-e0dd-543b-9025-896ba8ecb147",
+      "targetCardId": "4d3f01eb-271b-5aa0-bd40-35911ed1c1db",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 다기쓰히메는 아마테라스가 스사노오의 칼에서 낳은 여신이다. 근거 카드 ID: bf6c1739-e0dd-543b-9025-896ba8ecb147. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_13 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_14",
+      "label": "출생",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0315f5e4-6701-5797-aa6d-b4dbc67878bf",
+      "sourceCardId": "b897c640-7df8-5ae4-946a-0c751f48e214",
+      "targetCardId": "4d3f01eb-271b-5aa0-bd40-35911ed1c1db",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 아메노타지카라오는 아마테라스의 손을 잡아 바위집에서 끌어낸다. 근거 카드 ID: b897c640-7df8-5ae4-946a-0c751f48e214. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_16",
+      "label": "구출",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "492222a2-1558-59f1-81d0-9bd56786f233",
+      "sourceCardId": "64e2b5a1-a614-5d23-927e-ca76cc3eda61",
+      "targetCardId": "243d0c67-55ea-567c-be65-414052ea99a0",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 오게쓰히메는 스사노오에게 음식을 바쳤다가 죽임을 당한다. 근거 카드 ID: 243d0c67-55ea-567c-be65-414052ea99a0. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_17",
+      "label": "살해",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c39682cf-1fda-53ba-927c-9a8bd2fe2441",
+      "sourceCardId": "a39db54a-6216-5473-84ed-76a9a5bf9d18",
+      "targetCardId": "c0706989-7642-508e-b163-efe76ef61f54",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 다기시미미는 진무 사후 이스케요리히메와 결혼한다. 근거 카드 ID: a39db54a-6216-5473-84ed-76a9a5bf9d18. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_52",
+      "label": "혼인",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "43187b9f-b021-5664-99f2-6bba69d251dd",
+      "sourceCardId": "b6784974-1b4d-5a84-a337-59f5470f5731",
+      "targetCardId": "3f4363fc-27fd-54d4-b04d-655f91770331",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 소녀는 오호비코 앞에서 목숨을 노리는 자들을 암시하는 노래를 부른다. 근거 카드 ID: b6784974-1b4d-5a84-a337-59f5470f5731. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_66",
+      "label": "경고",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f2076f35-1f51-5900-874e-2b55dcb4c6d8",
+      "sourceCardId": "481b9fb7-5384-5bd3-be10-38f21045ca6e",
+      "targetCardId": "ac6ccde3-69df-5414-81a2-d09a91ed359c",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 호무치와케는 어머니 사호비메가 낳은 아들이다. 근거 카드 ID: 481b9fb7-5384-5bd3-be10-38f21045ca6e. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_72",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "97283645-41ed-58f9-a522-60dadff34645",
+      "sourceCardId": "a066117d-b536-5363-b12d-0976854c9338",
+      "targetCardId": "db8c2d61-2dbc-5ff3-a1d0-d0717a1a40d2",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 오호우스는 야마토타케루의 형이다. 근거 카드 ID: a066117d-b536-5363-b12d-0976854c9338. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_77",
+      "label": "형",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "29685a9e-d88c-5108-a9c4-3aca46229fc8",
+      "sourceCardId": "53222e29-4799-54a3-b9c3-3480eab0fd1f",
+      "targetCardId": "db8c2d61-2dbc-5ff3-a1d0-d0717a1a40d2",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 야마토히메는 야마토타케루의 고모로 옷과 칼과 주머니를 준다. 근거 카드 ID: 53222e29-4799-54a3-b9c3-3480eab0fd1f. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_80 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_82",
+      "label": "고모",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b6ee416a-c424-5194-b4aa-3f70ec77c3cc",
+      "sourceCardId": "db8c2d61-2dbc-5ff3-a1d0-d0717a1a40d2",
+      "targetCardId": "edca7566-c510-5a23-9576-62558b449369",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 아시가라 고개의 신은 야마토타케루가 던진 산나물에 맞아 죽는다. 근거 카드 ID: edca7566-c510-5a23-9576-62558b449369. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_85",
+      "label": "살해",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "188f7784-5c61-5d00-878a-386036567325",
+      "sourceCardId": "27268669-0771-5ff1-ab64-545dcb20dad5",
+      "targetCardId": "db8c2d61-2dbc-5ff3-a1d0-d0717a1a40d2",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 미야즈히메는 야마토타케루와 혼인을 약속한다. 근거 카드 ID: 27268669-0771-5ff1-ab64-545dcb20dad5. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_87",
+      "label": "혼인 약속",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "be8203e5-2431-57e9-bf32-fdfb38c6f30f",
+      "sourceCardId": "d4257eb3-3ff3-54c6-8b17-ee2e1b49db30",
+      "targetCardId": "db8c2d61-2dbc-5ff3-a1d0-d0717a1a40d2",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 이부키산의 신은 야마토타케루 앞에 흰 멧돼지로 나타나 얼음비를 내린다. 근거 카드 ID: d4257eb3-3ff3-54c6-8b17-ee2e1b49db30. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_88",
+      "label": "대결",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5918ce27-3ae3-5dc7-ace3-b3e9ea6028bc",
+      "sourceCardId": "0d96df88-630b-5580-9211-fa1b22be24ab",
+      "targetCardId": "db8c2d61-2dbc-5ff3-a1d0-d0717a1a40d2",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 나나쓰카하기는 야마토타케루를 따라다닌 수행원이다. 근거 카드 ID: 0d96df88-630b-5580-9211-fa1b22be24ab. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_91",
+      "label": "수행원",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b996fa92-2383-58b5-a264-39f88e97656a",
+      "sourceCardId": "9cd25a00-0880-5263-a846-ece913ccdee4",
+      "targetCardId": "f658f265-0869-5432-bb30-6a7d765ecbaa",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 이즈시의 여신은 봄 산 안개의 청년과 혼인한다. 근거 카드 ID: 9cd25a00-0880-5263-a846-ece913ccdee4. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_116",
+      "label": "혼인",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1223ad7f-3931-5a2d-ac74-202d9060dcb8",
+      "sourceCardId": "fa2275a2-147e-5085-b251-dc8ea0e62cba",
+      "targetCardId": "f658f265-0869-5432-bb30-6a7d765ecbaa",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 가을 산 단풍의 청년은 봄 산 안개의 청년의 형이다. 근거 카드 ID: fa2275a2-147e-5085-b251-dc8ea0e62cba. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_116",
+      "label": "형",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e9d8ff3a-4797-56bd-b158-0b163a41c9db",
+      "sourceCardId": "26642325-a10c-54bb-89c8-16507f179be2",
+      "targetCardId": "86b07a5a-8d00-510d-9ef6-e679b4beb820",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 메도리와 하야부사와케는 혼인하고 함께 달아난다. 근거 카드 ID: 26642325-a10c-54bb-89c8-16507f179be2. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_126",
+      "label": "혼인",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "02f31e77-c409-55df-8d53-0de14b9fca18",
+      "sourceCardId": "e80281f0-3a7e-5f5c-ac29-9c881b6bf67c",
+      "targetCardId": "01249a7f-6adb-5857-9758-03a5ade7213a",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 누리노미는 야마시로에 머문 이와노히메를 집에 받아들인다. 근거 카드 ID: e80281f0-3a7e-5f5c-ac29-9c881b6bf67c. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_124 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_123",
+      "label": "보호",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ca28dad9-6739-5040-af74-a1a20c84cb14",
+      "sourceCardId": "63ce2716-8567-57e0-855a-5ac583a67306",
+      "targetCardId": "2d3a8fed-7ef4-5d2e-85e1-c97a88c3ce4d",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 쓰부라의 대신은 마요와를 숨기고 보호했으나 포위 끝에 그를 죽이고 스스로 목숨을 끊는다. 근거 카드 ID: 63ce2716-8567-57e0-855a-5ac583a67306. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_147",
+      "label": "보호",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c3a0a268-2225-5663-a8c3-15897c96f561",
+      "sourceCardId": "cf9393ec-ed6b-5080-814e-c9f98aa93ba0",
+      "targetCardId": "5bf67b1c-246e-5ea1-9abe-deed7241c566",
+      "category": "structural",
+      "body": "《고사기》 체임벌린판에서 오케는 워케의 형이며 동생에게 왕위를 양보한다. 근거 카드 ID: cf9393ec-ed6b-5080-814e-c9f98aa93ba0. 출처: https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_166 | https://en.wikisource.org/wiki/Kojiki_(Chamberlain,_1882)/Section_149",
+      "label": "형",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ]
+}

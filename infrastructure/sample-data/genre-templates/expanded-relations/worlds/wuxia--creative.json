@@ -1,0 +1,161 @@
+{
+  "genre": "wuxia",
+  "worldId": "4fe1e070-e9f4-5d85-8923-c34da0b276e5",
+  "reviewedCardIds": [
+    "7560e562-d3ed-5b45-a1cf-80a480517051",
+    "5c3d0fbc-7318-5fb6-8ec0-71422144322f",
+    "acf7ff55-aa17-53a2-a093-6849b8107fda",
+    "93abdecc-6c50-5e57-9ab4-3618c077772f",
+    "57bdad86-8adb-5a48-8a53-e9f9a2e9fb39",
+    "4ac04b54-41b3-5e54-b232-2802c3d51263",
+    "3730639f-39ad-5f63-927c-7b830e911178",
+    "78c079b2-5488-519a-a8e8-4a3f9ae5745c",
+    "7cf16c0b-0a8a-5732-bee8-e5e9ac04b8b5",
+    "2f83ccb6-e766-52cc-9f27-b6031ba82888",
+    "568992d1-b843-506d-80ea-083d14fb6289",
+    "2f5cbe89-cf94-5164-8027-fe8df403f57f",
+    "1cd66220-759a-5e37-8bc9-afb3f9b6a39c",
+    "bd0665f1-05f4-592d-8f86-4ffe692cd5d5",
+    "9e35f6c9-690a-502f-992e-2bf55a457a19",
+    "0c7e15ca-b57d-5e27-9f68-011bb16386b2",
+    "89885f9a-1e88-58b6-884b-41ec4887cc61",
+    "0e68b838-b474-5d57-a973-25d7135c36d3",
+    "2fe6f535-a1c8-5b71-bdcc-992cf29d231f",
+    "caeff1a5-af2f-5762-8349-e93f1d8eeeb5",
+    "09d9989d-e566-59e7-82ea-79d9320df243",
+    "b4cec573-a838-52ae-be98-a4eaddd9c6aa",
+    "32e64c80-09ef-58f0-af47-7c8219f85dd3",
+    "b70991d2-e81f-509e-b429-6386f5f01162",
+    "031e9104-eb98-56db-b7a1-a725662eec20",
+    "97e40a17-9a05-59dd-955a-0e1da196e706",
+    "14314914-e138-5779-b3cd-003b6a562ed2",
+    "f3f2bf17-411f-50bd-baec-684fdad49872",
+    "21f8d416-2716-5ab7-ad37-98142d0ecdef",
+    "9c74e58f-3570-5917-852d-6ff49c19a82c",
+    "01c145cc-8bd1-58a1-acd1-fea6a21e51ae",
+    "66ac1422-9d4d-5009-b9dc-0e562a11d104",
+    "91719448-29ad-5480-8be2-af327c5fe26f",
+    "2fcff55e-2aa4-5ed1-9a92-c83209000290",
+    "d20faacf-2830-5ea2-8f08-b6c9711cd2d8",
+    "498a7885-3aad-5e73-bf10-09893b03c78d",
+    "a68d4851-a062-50d2-96a4-3725f15e3063",
+    "3f5b3ea9-b1d8-5fad-8488-cc7b90e49c09",
+    "20788b93-ffae-5617-bbbc-fd0b7166cce1",
+    "a9431257-9501-5267-8de5-05b89dc7d52c"
+  ],
+  "ambiguousCardIds": [
+    "4ac04b54-41b3-5e54-b232-2802c3d51263"
+  ],
+  "relationships": [
+    {
+      "id": "02a61141-b763-5b59-89db-865d9a44e9fd",
+      "sourceCardId": "5c3d0fbc-7318-5fb6-8ec0-71422144322f",
+      "targetCardId": "7560e562-d3ed-5b45-a1cf-80a480517051",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 남궁진은 남궁현의 아버지다. 근거 카드 ID: 5c3d0fbc-7318-5fb6-8ec0-71422144322f",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6574ec44-46c6-568a-b84f-44e579db5c5a",
+      "sourceCardId": "93abdecc-6c50-5e57-9ab4-3618c077772f",
+      "targetCardId": "7560e562-d3ed-5b45-a1cf-80a480517051",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 남궁연은 남궁현의 누나다. 근거 카드 ID: 93abdecc-6c50-5e57-9ab4-3618c077772f",
+      "label": "누나",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "831972b9-0d42-51e1-ad3a-53063e49afb4",
+      "sourceCardId": "57bdad86-8adb-5a48-8a53-e9f9a2e9fb39",
+      "targetCardId": "7560e562-d3ed-5b45-a1cf-80a480517051",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 장복은 남궁현을 모시는 시종이다. 근거 카드 ID: 57bdad86-8adb-5a48-8a53-e9f9a2e9fb39",
+      "label": "시종",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c720188d-169f-5e07-afc2-4dd966b2a9a2",
+      "sourceCardId": "2f83ccb6-e766-52cc-9f27-b6031ba82888",
+      "targetCardId": "5c3d0fbc-7318-5fb6-8ec0-71422144322f",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 남궁기수와 남궁진은 사촌이다. 근거 카드 ID: 2f83ccb6-e766-52cc-9f27-b6031ba82888",
+      "label": "사촌",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8185f25f-4471-5b81-a14b-1245a269ab69",
+      "sourceCardId": "2f83ccb6-e766-52cc-9f27-b6031ba82888",
+      "targetCardId": "2f5cbe89-cf94-5164-8027-fe8df403f57f",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 남궁기수는 백리무극 측에 가문의 장부와 운송 정보를 넘겼다. 근거 카드 ID: 2f83ccb6-e766-52cc-9f27-b6031ba82888",
+      "label": "측에 정보 제공",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "da721e6c-64d6-560b-befc-9936d0b10b48",
+      "sourceCardId": "2f83ccb6-e766-52cc-9f27-b6031ba82888",
+      "targetCardId": "b4cec573-a838-52ae-be98-a4eaddd9c6aa",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 남궁기수가 재경각의 실무를 책임진다. 근거 카드 ID: b4cec573-a838-52ae-be98-a4eaddd9c6aa",
+      "label": "실무 책임",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5569b0a2-9074-5030-935f-6212b4e15579",
+      "sourceCardId": "7560e562-d3ed-5b45-a1cf-80a480517051",
+      "targetCardId": "2fe6f535-a1c8-5b71-bdcc-992cf29d231f",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 남궁현은 남궁세가의 셋째 공자다. 근거 카드 ID: 7560e562-d3ed-5b45-a1cf-80a480517051",
+      "label": "가문 소속",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5b44dc17-5386-50bf-bf78-c513a97993ae",
+      "sourceCardId": "5c3d0fbc-7318-5fb6-8ec0-71422144322f",
+      "targetCardId": "2fe6f535-a1c8-5b71-bdcc-992cf29d231f",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 남궁진은 남궁세가의 가주다. 근거 카드 ID: 5c3d0fbc-7318-5fb6-8ec0-71422144322f",
+      "label": "가주",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "481ab678-4786-506c-907b-afae5eea7546",
+      "sourceCardId": "acf7ff55-aa17-53a2-a093-6849b8107fda",
+      "targetCardId": "2fe6f535-a1c8-5b71-bdcc-992cf29d231f",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 남궁서진은 남궁세가의 장남이자 후계자다. 근거 카드 ID: acf7ff55-aa17-53a2-a093-6849b8107fda",
+      "label": "후계자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3dc0ab28-035b-5144-b505-3cbf18fc7e10",
+      "sourceCardId": "2f5cbe89-cf94-5164-8027-fe8df403f57f",
+      "targetCardId": "b70991d2-e81f-509e-b429-6386f5f01162",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 백리무극은 무림맹의 수장이다. 근거 카드 ID: 2f5cbe89-cf94-5164-8027-fe8df403f57f",
+      "label": "맹주",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7699e528-9bd2-526d-990c-4f70cbaeabfa",
+      "sourceCardId": "7560e562-d3ed-5b45-a1cf-80a480517051",
+      "targetCardId": "a9431257-9501-5267-8de5-05b89dc7d52c",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 전생의 멸문에서 남궁현은 형과 시종이 만든 퇴로로 살아남았다. 근거 카드 ID: a9431257-9501-5267-8de5-05b89dc7d52c",
+      "label": "전생 생존",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ]
+}

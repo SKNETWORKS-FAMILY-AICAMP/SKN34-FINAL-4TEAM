@@ -10,7 +10,7 @@
 
 ## 확정 정책 (2026-11-11 사용자 결정)
 
-- 공개 범위는 **세계관 단위** `visibility: private | public`이며 기본은 `private`다.
+- 공개 범위는 **세계관 단위** `visibility: private | public`이며 일반 세계관의 기본은 `private`다. 신규 플랫폼 샘플 템플릿은 세계관과 카드를 공개로 생성한다.
 - 공개된 세계관은 **비로그인 포함 누구나** 읽기 전용으로 본다: 이름·설명·장르·작가 닉네임 + **마지막 저장 버전(`world_revision`)의 공개 설정 카드** + **그 카드끼리의 현재 관계(Neo4j 현재 상태)**. 어떤 카드가 공개 카드인지는 아래 카드 단위 공개 항목이 정한다.
 - 비공개로 바꾸면 즉시 공개 목록·상세에서 제외한다(상세는 404).
 - 저장 버전(revision)이 하나도 없는 세계관은 공개로 설정돼 있어도 목록·상세에 나오지 않는다(초안은 공개하지 않는다).
@@ -95,8 +95,8 @@ PublicWorld        = { "id", "name", "description", "genre", "authorNickname", "
 | `GET /api/v1/public/world-studios/{id}/cover` | 상세와 같은 기준(공개이고 확정 버전이 있는 세계관)일 때만 표지 이미지 바이트를 반환한다. 비공개·확정 버전 없음·표지 없음·없는 세계관은 404 |
 
 - `cards`는 마지막 `world_revision`의 카드 버전 중 공개 카드(`lifecycle=active`·`visibility=public`)의 내용이다. `id`는 카드 논리 ID로 관계의 양 끝이 가리키고, `cardType`은 기존 WorldStudio 카드 유형 코드(`character`·`location`·`organization`·`ability`·`object`·`rule`·`event`·`other`) 그대로다(프론트의 기존 라벨 매핑을 쓴다).
-- `relationships`는 Neo4j **현재** 관계 중 **양 끝 카드가 위 `cards`에 있는 것**만이다. 저장하지 않은 새 카드나 삭제된 카드·비공개 카드를 가리키는 관계는 나오지 않는다. `label`은 기존 관계 필드의 표시 라벨이다.
-- 관계 저장소가 현재 상태를 보증하지 못하면(미전환·미완료·조회 실패·토큰 불일치) 카드는 그대로 두고 `relationships: []`, `relationshipStatus: "unavailable"`로 200을 돌려준다(500이 아니다). 정상이면 `"current"`다.
+- `relationships`는 Neo4j **현재** 관계 중 **양 끝 카드가 위 `cards`에 있는 것**만이다. 저장하지 않은 새 카드나 삭제된 카드·비공개 카드를 가리키는 관계는 나오지 않는다. `label`·`body`와 `category`·`direction`·`polarity`를 함께 반환하며, 없는 방향과 극성은 null 그대로다.
+- 관계 저장소가 현재 상태를 보증하지 못하면(미전환·미완료·조회 실패·토큰 불일치·확장 적재 중) 카드는 그대로 두고 `relationships: []`, `relationshipStatus: "unavailable"`로 200을 돌려준다(500이 아니다). 정상이면 `"current"`다. 목록의 관계 수는 이때 0이 아닌 `null`이다.
 - 작가 닉네임은 저장하지 않고 응답마다 `CoreNicknameService`로 회원 ID 묶음을 한 번 조회해 채운다. Core에 없으면 `탈퇴한 회원`이고, Core 호출 실패는 대체 이름 없이 503/504/502로 그대로 전한다.
 - 상세의 `id`가 UUID 형식이 아니면 400, 형식이 맞는데 없으면 404다.
 - 표지 응답의 `Content-Type`은 저장한 형식(`image/png`·`image/jpeg`·`image/webp`)이고 `Cache-Control: private, no-store`·`X-Content-Type-Options: nosniff`이다(기존 작품 공개 표지와 같은 관례). 화면은 `hasCover`가 `true`일 때만 `<img src="/api/v1/public/world-studios/{id}/cover">`로 직접 읽고, `false`이면 기존 자동 생성 표지를 쓴다. `id`가 UUID 형식이 아니면 400이다.
@@ -156,7 +156,7 @@ ReaderWorldCards = { "workId", "worldId": "<uuid>" | null, "upto": <적용된 �
 - 작품이 없거나 삭제됐으면 404다. 작품이 **공개가 아니면**(비공개·제한) 연결 여부를 알리지 않고 `worldId: null`·`upto: 0`·빈 목록 200을 준다. 공개 작품인데 연결된 세계관이 없으면 `worldId: null`·빈 목록 200이고, 연결은 있는데 확정 버전(sealed 현재 revision)이 없으면 `worldId`는 채우고 빈 목록 200이다(초안은 독자에게 보이지 않는다).
 - **카드**는 연결된 세계관의 확정 버전에 있는 카드 중 삭제되지 않았고(`lifecycle=active`) 독자 공개 회차(`revealFromEpisode`, 아래 절)가 기준 회차 이하인 것이다. 응답의 `revealFromEpisode`가 그 회차이고 카드는 `id` 순이다. `text`는 마크다운 문자열, `cardType`은 공개 세계관과 같은 카드 유형 코드다.
 - 독자 공개는 **카드의 `visibility`·세계관의 공개 범위와 별개**다([F-RGT-01](../requirements.md#f-rgt-01): 세계관 공개·항목 이용자 노출·독자 공개는 별개 개념). 비공개 카드라도 독자 공개 회차가 있으면 독자에게 보이고, 공개 카드라도 독자 공개 회차가 없으면 보이지 않는다. 세계관이 비공개여도 연결된 소설이 공개이면 같다.
-- **관계**는 Neo4j 관계를 기준 회차(`upto`) 시점으로 본 것(관계마다 그 회차 이하의 가장 최근 연결, 종료된 것은 제외, [DEC-51](worldstudio-independent-schema.md#회차별-관계--dec-51)) 중 양 끝이 위 `cards`에 있는 것만이고 `label`만 준다. 그래서 아직 공개되지 않은 회차에서 생긴 관계는 보이지 않는다. 관계 저장소가 현재 상태를 보증하지 못하면 카드는 그대로 두고 `relationships: []`·`relationshipStatus: "unavailable"`이다(공개 세계관 상세와 같은 이유). 보일 카드가 없으면 관계 저장소를 읽지 않고 `"current"`다.
+- **관계**는 Neo4j 관계를 기준 회차(`upto`) 시점으로 본 것(관계마다 그 회차 이하의 가장 최근 연결, 종료된 것은 제외, [DEC-51](worldstudio-independent-schema.md#회차별-관계--dec-51)) 중 양 끝이 위 `cards`에 있는 것만이며 `label`·`body`·`category`·`direction`·`polarity`를 준다. 그래서 아직 공개되지 않은 회차에서 생긴 관계는 보이지 않는다. 관계 저장소가 현재 상태를 보증하지 못하면 카드는 그대로 두고 `relationships: []`·`relationshipStatus: "unavailable"`이다. 보일 카드가 없어도 확장 적재 중에는 `"unavailable"`이며 그 밖에는 그래프를 읽지 않고 `"current"`다.
 - 화면: 독자 설정 위키(`/work/:id/wiki`, 회차 화면에서는 `?upto=n`)가 이 API를 Bearer 없이 읽어 `worldId`가 있으면 카드를 유형별 문서로 보이고(본문 마크다운, 정보 상자에 별칭·태그·'N화부터', 관계는 양 끝 문서의 연결), `null`이면 기존 작품 설정 위키를 그대로 보인다. `unavailable`은 빈 연결과 구분해 알리고 조회 실패는 빈 위키로 바꾸지 않는다.
 
 ## 설정 가져오기와 카드 메타데이터 (DEC-46)
@@ -173,7 +173,7 @@ ReaderWorldCards = { "workId", "worldId": "<uuid>" | null, "upto": <적용된 �
 - 서버는 세 키를 **저장할 때 검사하지 않고 그대로 저장·반환**한다. `revealFromEpisode`는 읽을 때 닫힌 쪽으로 판정한다: 1 이상의 정수인 JSON 숫자(`3.0` 포함)일 때만 독자 공개 회차로 읽고, 없거나 문자열·소수·0·음수·int 범위 밖이면 독자에게 숨긴다. `importedFrom`은 서버가 읽지 않는 표시용 값이고 **클라이언트가 적는 값이라 서버가 출처를 보증하지 않는다**. `characterDocs`는 인물 카드에만 화면이 적는 값이다(IDENTITY.md는 카드 본문 `body`): 공개 API의 카드 응답은 제목·본문·유형·별칭·태그뿐이라 이 문서는 공개 세계관·독자 설정 위키에 나가지 않는다. `episodes`의 키는 0 이상의 정수, 문서마다 3,000자 이하(화면 검증)이고 전부 비어 있으면 키를 넣지 않으며, 읽을 때 모양이 어긋난 값은 통째로 버리고 세계관 로드는 계속한다. 가져온 카드에는 따라오지 않는다(본문만 복사).
 - 카드의 `visibility`는 기존 카드 필드(`private`|`public`) 그대로이며 초안 저장이 값을 검사한다(그 밖의 값은 422 `WORLD_INPUT_INVALID`). 소유자 API는 카드마다 저장한 `visibility`를 그대로 돌려준다.
 - 화면 흐름(로그인한 회원에게만 보이는 진입점 셋): 공개 세계관 화면의 ① 설정집 게시판의 줄 선택(`보이는 설정 모두 선택` 포함) 뒤 `선택한 설정 가져오기 (N)`과 ② 설정 카드 페이지의 `이 설정 가져오기`는 이동 없이 고른 설정만 고른 내 세계관의 **초안에 바로 추가·저장**한다: 대상의 최신 초안을 읽어(`GET /api/v1/world-studios/{id}`) 새 카드를 끝에 붙이고 초안 저장을 보내며, 관계는 함께 오지 않고 진행·결과·실패 사유와 `다시 시도`를 그 자리에 보인다. ③ 내 세계관 관리 화면 게시판의 `다른 세계관에서 가져오기`는 가져오기 시트를 열며 공개 세계관 목록(대상 세계관 자신은 제외, 공개 설정이 0개인 세계관은 고를 수 없음) → 그 세계관의 공개 설정 체크 → `같이 가져온 카드 사이 관계 포함`(기본 꺼짐) 순서다. 공개 세계관 상세 헤더에서 이 시트로 이동하던 `내 세계관으로 가져오기`와 그 주소(`/worldstudio/<대상>?import=<원본>`)는 2026-11-12에 없앴다(사용자 결정).
-- 가져온 카드는 초안 끝에 **새 카드 id·비공개·독자 공개 회차 없음**으로 더해지고 제목·본문·유형·별칭·태그만 옮긴다. 관계는 양 끝을 모두 가져온 것만 옮기며, 공개 상세가 `label`만 주므로 원본의 양 끝 순서를 지킨 사용자 정의 방향 관계로 넣는다. 관계를 불러오지 못한 응답(`relationshipStatus: unavailable`)이면 관계 포함을 고를 수 없고, 활성 카드 1,000개 한도를 넘기면 아무것도 더하지 않고 이유를 보인다. 화면은 가져온 카드에 `가져옴`과 `참고: {worldName} 세계관 · {authorNickname}`를 보인다.
+- 가져온 카드는 초안 끝에 **새 카드 id·비공개·독자 공개 회차 없음**으로 더해지고 제목·본문·유형·별칭·태그만 옮긴다. 관계는 양 끝을 모두 가져온 것만 옮긴다. 기존 가져오기 화면은 양 끝 순서와 `label`을 쓰며, 새로 공개한 방향·본문·극성의 가져오기 반영은 화면 작업에서 별도로 확인한다. 관계를 불러오지 못한 응답(`relationshipStatus: unavailable`)이면 관계 포함을 고를 수 없고, 활성 카드 1,000개 한도를 넘기면 아무것도 더하지 않고 이유를 보인다. 화면은 가져온 카드에 `가져옴`과 `참고: {worldName} 세계관 · {authorNickname}`를 보인다.
 
 ## 설정 카드 대표 이미지 (#401, 2026-11-16 사용자 결정)
 
@@ -235,10 +235,10 @@ nginx `location ^~ /api/v1/world-studios/`의 `client_max_body_size 6m`이 이�
 - **이름·설명은 마지막 저장 버전의 값**이다. 저장하지 않은 초안의 이름·설명·카드·관계 수정은 다음 저장 전까지 공개 화면에 반영되지 않는다.
 - **삭제로 표시된 카드**(`lifecycle=removed`)와 **비공개 카드**(`visibility=private`)는 마지막 저장 버전에 남아 있어도 `cards`·`cardCount`에서 뺀다(`isPublicCard`, 목록은 쿼리 `WorldRevisionCardRepository.publicCardIds`). 삭제 카드를 빼는 것은 소유자 화면과 같은 기준이다.
 - 관계는 `label`만 공개한다. 관계 설명(`body`)·유형·방향·극성·메타데이터는 응답에 없다.
-- 목록의 `relationshipCount`는 상세의 `relationships`와 같은 기준(양 끝이 공개 카드인 현재 관계)이다. 관계 저장소가 불확실한 세계관은 목록 전체를 실패시키지 않고 **0**으로 둔다. 정확한 상태는 상세의 `relationshipStatus`를 본다.
+- 목록의 `relationshipCount`는 상세의 `relationships`와 같은 기준(양 끝이 공개 카드인 현재 관계)이다. 관계 저장소가 불확실한 세계관은 목록 전체를 실패시키지 않고 **null**로 둔다. 정확한 상태는 상세의 `relationshipStatus`를 본다.
 - `page`는 0부터, `size`는 1~100이고 기본 `0`·`24`다. 음수·범위 밖·숫자가 아닌 `page`·`size`와 알 수 없는 `genre`는 422이며, 빈 `genre`(`?genre=`)는 전체로 읽는다.
 - 오류 본문: 소유자 PUT은 기존 WorldStudio 오류(`WORLD_INPUT_INVALID`·`WORLD_NOT_FOUND`)와 같고, 공개 API는 Content 공통 `{ "detail": … }`다.
-- `GenreTemplateSeeder`가 넣는 장르 템플릿의 **카드는 공개(`visibility=public`)**다(카드의 기본이 비공개라 그대로 두면 세계관을 공개해도 카드가 보이지 않는다). **세계관 자체는 계속 비공개**라 공개하려면 소유자(템플릿 운영 관리자)가 이 API를 써야 한다. 이 변경 전에 이미 적재된 세계관은 다시 넣지 않아 카드가 비공개인 채다: `setting_card_version`은 불변(UPDATE·DELETE 거절)이라 값을 고칠 수 없고, 소유자가 초안의 카드를 공개로 저장한 뒤 새 확정 버전을 남기거나 PostgreSQL·Neo4j를 함께 초기화해 다시 적재해야 한다.
+- `GenreTemplateSeeder`는 신규 템플릿의 세계관과 카드를 공개로 생성하고 확정 저장한다. 확정 전에는 노출되지 않으며, 공개 API는 봉인된 현재 버전의 활성 공개 카드만 반환한다. 기존 템플릿은 고정 입력·확정 이력·빈 관계 등 원본 판정을 통과하면 한 번 공개하며 세계관별 marker가 이후 비공개 선택을 보존한다. 일시 장애·미완료 요청이나 동결 리소스 누락은 판정을 보류하고 재시도하며, 그 사이 소유자의 명시적 선택은 다음 판정에서 보존한다. 과거 공개 해제나 장르·표지를 바꿨다가 현재 기본값으로 되돌린 이력은 구별할 수 없으나 현재 원본과 일치하면 1회 공개하는 것으로 사용자가 결정했다. 기존 비공개 카드 revision도 바꾸지 않으며 소유자가 카드를 공개로 바꾸고 새 확정 버전을 남겨야 보인다. 생성 실패 재시도와 소유자의 공개 해제는 [템플릿 계약](worldstudio-independent-schema.md#플랫폼-장르-템플릿-세계관)을 따른다.
 
 ## 한계
 

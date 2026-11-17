@@ -155,6 +155,24 @@ async function show(settings?: StudioSetting[], path: string | string[] = '/worl
   return opened
 }
 const showWorld = () => show()
+it('대형 설정집에서 쪽마다 선택한 카드를 유지하고 마지막 카드를 연다', async () => {
+  await show(Array.from({ length: 101 }, (_, i) => person(`설정 ${i}`)))
+  const table = () => within(screen.getByRole('table', { name: '설정 카드 목록' }))
+  expect(table().getAllByRole('row')).toHaveLength(51)
+  fireEvent.click(table().getByRole('checkbox', { name: '보이는 설정 모두 선택' }))
+  fireEvent.click(screen.getByRole('button', { name: '다음' }))
+  expect(screen.getByText('현재 페이지 0개 선택 · 다른 페이지·필터 50개 선택')).toBeTruthy()
+  fireEvent.click(table().getByRole('checkbox', { name: '설정 50 선택' }))
+  expect(screen.getByText('현재 페이지 1개 선택 · 다른 페이지·필터 50개 선택')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '현재 페이지 선택 공개' }))
+  expect(table().getByRole('row', { name: /설정 50/ }).textContent).toContain('공개')
+  fireEvent.click(screen.getByRole('button', { name: '이전' }))
+  expect(table().getByRole('row', { name: /설정 0/ }).textContent).toContain('비공개')
+  expect(table().getByRole<HTMLInputElement>('checkbox', { name: '설정 0 선택' }).checked).toBe(true)
+  fireEvent.change(screen.getByRole('searchbox', { name: '설정 검색' }), { target: { value: '설정 100' } })
+  fireEvent.click(table().getByRole('button', { name: '설정 100 인물' }))
+  expect(screen.getByRole('region', { name: '선택한 설정 편집' })).toBeTruthy()
+})
 /** 새 세계관 만들기 직후의 마법사(작성 모드): 주소에 `?new=1`이 붙고 저장 버전은 0이다. */
 const wizard = (fixture: Fixture = {}) => show(undefined, '/worldstudio/qa?new=1', { version: 0, ...fixture })
 /** 설정집 게시판의 행(제목 버튼, 이름 + 분류)을 눌러 그 카드의 편집 패널을 연다. 고르기 전에는 패널이 없다. */
@@ -284,6 +302,24 @@ it('4단계 내비는 지금 단계만 aria-current=step이고 단계 이름·�
   expect(steps.getAllByRole('button').filter((b) => b.getAttribute('aria-current') === 'step')).toEqual([steps.getByRole('button', { name: '설정 카드' })])
   expect(steps.getByRole('button', { name: '기본 정보' }).closest('li')!.getAttribute('data-state')).toBe('done')
   expect(steps.getByRole('button', { name: '관계 연결 (선택)' }).closest('li')!.getAttribute('data-state')).toBe('next')
+})
+it('작성 검토는 열 때만 렌더하고 카드와 관계를 각각 페이지로 보여 준다', async () => {
+  const cards = Array.from({ length: 101 }, (_, i) => person(`설정 ${i}`))
+  let settings = cards
+  for (let i = 0; i < 51; i++) settings = friends(settings, cards[i], cards[i + 1])
+  await show(settings, '/worldstudio/qa?new=1', { version: 0 })
+  expect(document.querySelector('.world-review')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '검토·저장' }))
+  const review = within(screen.getByRole('region', { name: '세계관 검토' }))
+  expect(review.getByText('설정 카드 101개')).toBeTruthy()
+  expect(review.getByText('관계 51개')).toBeTruthy()
+  expect(review.getByRole('heading', { name: '설정 0', level: 5 })).toBeTruthy()
+  expect(review.queryByRole('heading', { name: '설정 100', level: 5 })).toBeNull()
+  const controls = review.getAllByRole('navigation', { name: '페이지 이동' })
+  fireEvent.change(within(controls[0]).getByRole('combobox', { name: /페이지/ }), { target: { value: '2' } })
+  expect(review.getByRole('heading', { name: '설정 100', level: 5 })).toBeTruthy()
+  fireEvent.click(within(controls[1]).getByRole('button', { name: '다음' }))
+  expect(review.getByRole('heading', { name: '설정 50 → 설정 51', level: 5 })).toBeTruthy()
 })
 
 it('설정 카드 단계는 공개 설정집과 같은 분류 메뉴·검색·정렬·게시판 표로 카드를 보이고 행을 누르면 목록 대신 그 카드의 편집 화면이 열린다', async () => {
@@ -1782,21 +1818,21 @@ it('설정 카드는 기본 비공개이고 편집 화면의 이 설정 공개�
 
 it('게시판에서 고른 설정만 선택 공개·선택 비공개로 바꾸고 전체 공개는 모든 설정 카드를 공개로 바꾼다', async () => {
   await show([person('가람'), person('나래'), place('항구')])
-  const [publish, hide, all] = ['선택 공개', '선택 비공개', '전체 공개'].map((name) => bulk().getByRole<HTMLButtonElement>('button', { name }))
+  const [publish, hide, all] = ['현재 페이지 선택 공개', '현재 페이지 선택 비공개', '전체 공개'].map((name) => bulk().getByRole<HTMLButtonElement>('button', { name }))
   expect([publish.disabled, hide.disabled, all.disabled]).toEqual([true, true, false]) // 고른 것이 없으면 선택 동작은 잠긴다
   fireEvent.click(boardTable().getByRole('checkbox', { name: '가람 선택' }))
   fireEvent.click(boardTable().getByRole('checkbox', { name: '항구 선택' }))
-  expect(bulk().getByRole('status').textContent).toBe('2개 선택')
+  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 2개 선택')
   fireEvent.click(publish)
   expect(visibilityOf()).toEqual(['공개', '비공개', '공개'])
-  expect(bulk().getByRole('status').textContent).toBe('설정 2개를 공개로 뒀어요.') // 바꾸면 고른 것을 풀고 한 일을 알린다
+  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 설정 2개를 공개로 뒀어요.') // 바꾸면 고른 것을 풀고 한 일을 알린다
   expect(boardTable().getAllByRole<HTMLInputElement>('checkbox').filter((box) => box.checked)).toEqual([])
   expect(saveBar().getByText('저장하지 않은 변경 있음')).toBeTruthy()
   fireEvent.click(boardTable().getByRole('checkbox', { name: '보이는 설정 모두 선택' }))
-  expect(bulk().getByRole('status').textContent).toBe('3개 선택')
+  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 3개 선택')
   fireEvent.click(hide)
   expect(visibilityOf()).toEqual(['비공개', '비공개', '비공개'])
-  expect(bulk().getByRole('status').textContent).toBe('설정 3개를 비공개로 뒀어요.')
+  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 설정 3개를 비공개로 뒀어요.')
   fireEvent.click(all)
   expect(visibilityOf()).toEqual(['공개', '공개', '공개'])
   expect(bulk().getByRole('status').textContent).toBe('모든 설정을 공개로 뒀어요.')
@@ -1807,8 +1843,8 @@ it('고른 설정은 지금 보이는 줄에서만 세어, 검색으로 가려�
   await show([person('가람', '북부'), person('나래', '남부')])
   fireEvent.click(boardTable().getByRole('checkbox', { name: '보이는 설정 모두 선택' }))
   fireEvent.change(screen.getByRole('searchbox', { name: '설정 검색' }), { target: { value: '북부' } })
-  expect(bulk().getByRole('status').textContent).toBe('1개 선택')
-  fireEvent.click(bulk().getByRole('button', { name: '선택 공개' }))
+  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 1개 선택 · 다른 페이지·필터 1개 선택')
+  fireEvent.click(bulk().getByRole('button', { name: '현재 페이지 선택 공개' }))
   fireEvent.change(screen.getByRole('searchbox', { name: '설정 검색' }), { target: { value: '' } })
   expect(visibilityOf()).toEqual(['공개', '비공개'])
 })
@@ -2237,7 +2273,7 @@ it('일괄 변경 뒤에는 잠긴 버튼 대신 표 머리의 모두 선택으�
   expect([head().checked, head().indeterminate]).toEqual([false, false])
   fireEvent.click(boardTable().getByRole('checkbox', { name: '가람 선택' }))
   expect([head().checked, head().indeterminate]).toEqual([false, true])
-  const publish = bulk().getByRole<HTMLButtonElement>('button', { name: '선택 공개' })
+  const publish = bulk().getByRole<HTMLButtonElement>('button', { name: '현재 페이지 선택 공개' })
   publish.focus()
   fireEvent.click(publish)
   expect(publish.disabled).toBe(true) // 고른 것이 풀려 누른 버튼은 잠긴다
@@ -2245,7 +2281,7 @@ it('일괄 변경 뒤에는 잠긴 버튼 대신 표 머리의 모두 선택으�
   expect([head().checked, head().indeterminate]).toEqual([false, false])
   fireEvent.click(head())
   expect([head().checked, head().indeterminate]).toEqual([true, false])
-  expect(bulk().getByRole('status').textContent).toBe('2개 선택') // 다시 고르면 결과 문구 대신 고른 수를 보인다
+  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 2개 선택') // 다시 고르면 결과 문구 대신 고른 수를 보인다
   const all = bulk().getByRole<HTMLButtonElement>('button', { name: '전체 공개' })
   all.focus()
   fireEvent.click(all)
@@ -2255,7 +2291,7 @@ it('일괄 변경 뒤에는 잠긴 버튼 대신 표 머리의 모두 선택으�
   openCard('가람 인물') // 그 뒤 초안이 달라지면(다른 수정·저장) 결과 문구는 낡은 말이라 보이지 않는다
   fireEvent.click(editor().getByRole('switch', { name: '이 설정 공개' }))
   backToBoard()
-  expect(bulk().getByRole('status').textContent).toBe('2개 선택')
+  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 2개 선택')
 })
 
 it('글자 수는 입력할 때마다 읽히지 않고 3,000자를 넘는 순간에만 상태로 알린다', async () => {

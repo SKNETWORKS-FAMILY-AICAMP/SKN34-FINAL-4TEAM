@@ -12,8 +12,8 @@ class RelationshipInputHelperTest {
     private val first=RelationshipPayload(UUID.randomUUID(),a,b,"structural","오랜 친구",label="friend_of",direction="symmetric",polarity="asserted")
     private val second=RelationshipPayload(UUID.randomUUID(),b,a,"emotional","경계한다",label="wary_of",direction="directed",polarity="denied")
 
-    @Test fun `removing and adding a relationship at the limit keeps one thousand active`() {
-        val current=(1..1000).map { first.copy(id=UUID.randomUUID()) }
+    @Test fun `removing and adding a relationship at the limit keeps ten thousand active`() {
+        val current=(1..10000).map { first.copy(id=UUID.randomUUID()) }
         val added=second.copy(id=UUID.randomUUID())
         val updates=listOf(current.first().copy(lifecycle="removed",sourceCardId=null,targetCardId=null),added)
         val result=assertDoesNotThrow<List<RelationshipPayload>> { RelationshipInputHelper.merge(current,updates,false,setOf(a,b)) }
@@ -21,7 +21,10 @@ class RelationshipInputHelperTest {
         assertThrows(IllegalArgumentException::class.java) { RelationshipInputHelper.merge(current,listOf(added),false,setOf(a,b)) }
         assertEquals(current.first().copy(body="변경"),RelationshipInputHelper.merge(current,listOf(current.first().copy(body="변경")),false,setOf(a,b)).first())
         assertEquals(listOf(added),RelationshipInputHelper.merge(current,updates,true,setOf(a,b)))
-        assertEquals(1000,current.size)
+        assertEquals(10000,current.size)
+        assertDoesNotThrow { RelationshipInputHelper.validateSnapshot(current,setOf(a,b)) }
+        assertThrows(IllegalArgumentException::class.java) { RelationshipInputHelper.validateSnapshot(current + current.first(),setOf(a,b)) }
+        assertThrows(IllegalArgumentException::class.java) { RelationshipInputHelper.validateSnapshot(current,setOf(a)) }
     }
     @Test fun `request limit and removed payload validation cannot be bypassed`() {
         val updates=(1..1001).map { first.copy(id=UUID.randomUUID(),lifecycle="removed",sourceCardId=null,targetCardId=null) }

@@ -18,7 +18,8 @@
 - 장르 템플릿 세계관은 SQL 마이그레이션이 아니라 `GenreTemplateSeeder`가 서버 시작 시 `WorldStudioService`(create → edit → save)로
   Core `auth/V8` 운영 관리자(`GenreTemplateSeeder.TEMPLATE_OWNER`, 임시 할당) 소유 WorldStudio 세계관으로 적재한다. 리소스는 `genre-templates.json`이며
   소유자 한계(공개 비밀번호·소유자 불일치·타 사용자 미노출)를 포함한 [설계](../../docs/design/worldstudio-independent-schema.md#플랫폼-장르-템플릿-세계관)를 따른다.
-  템플릿 카드는 공개(`visibility=public`)로 넣고 세계관 자체의 공개 범위는 건드리지 않는다(DEC-46).
+  새 템플릿은 세계관과 카드를 공개(`visibility=public`)로 생성한다. 기존 템플릿은 고정 입력·이력·관계가 모두 원본인 경우 한 번만 공개하고 세계관별 marker로 이후 비공개 선택을 보존한다(DEC-45·46).
+- 확장 역사·전승 후보는 별도 `ExpandedTemplateSeeder`의 기본 꺼진 `app.worldstudio.expanded-seed-enabled`로 보호하며 #425의 권리·감수 선행조건을 확인하기 전에는 켜지 않는다. 플래그가 꺼져도 이미 시작한 미완료 marker는 같은 입력·hash로만 재개한다. 없는 세계관은 비공개 생성해 카드·관계 청크를 전부 기록하고 마지막 확정과 공개를 같은 PG 트랜잭션에서 처리한다. 기존 26종과 저장 완료된 역사 7종은 원본 검사를 통과할 때만 확장하며 옛 카드와 공개 선택을 보존한다. 미완료 중 공개 관계는 unavailable이고 사용자 쓰기·AI 검토는 충돌로 보류한다. 과거 미완료 역사 요청은 보류한다.
 - 설정 카드는 기본 비공개다. 공개 세계관 조회는 공개 카드와 그 카드끼리의 관계만, 독자 설정 위키(`GET /api/v1/public/works/{id}/world-cards`)는
   카드의 독자 공개 회차(`semanticMetadata.revealFromEpisode`)가 발행된 회차 안인 카드만 서버에서 걸러 보낸다. 두 기준은 서로 별개이며 화면에서 거르게 두지 않는다(DEC-46).
 - 세계관과 소설은 1:1이다. 연결의 정본은 `work.world_studio_id`(UNIQUE) 하나이고 `WorkWorldService`가 맡는다. Content와 WorldStudio 트랜잭션은 겹치지 않게 차례로 연다.

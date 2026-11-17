@@ -1,0 +1,76 @@
+{
+  "world_id": "indian_mythology",
+  "world_id_meaning": "기존 worldId 참조용 라벨",
+  "id_namespace": "54591714-aae0-5694-8da9-2b73a64cc53f",
+  "id_rule": "UUIDv5(namespace, batch_id:unit_id:candidate_key); 후보 ID일 뿐 적재나 세계관 배정 아님",
+  "scope_note": "각 구간 상태는 입력 조사자의 자기보고이며, 문헌 완전 독해·의미 전수·독립 감수·중복 검토 또는 권리 해결을 뜻하지 않는다.",
+  "rights_note": "출처 전사·번역·공동체·지역별 재사용 및 상업 이용권은 확인되지 않았으며, 조사 가능이나 공개 검토는 상업적 배포 허락이 아니다.",
+  "works": [
+    {
+      "work_id": "india-ramayana",
+      "world_id": "indian_mythology",
+      "title": "Valmiki Ramayana Sundara Kanda",
+      "target_scope": "book 5 chapter 1; remaining selected chapters not yet specified",
+      "edition_language_attribution": "Sanskrit; Sacred Texts transcription; underlying edition unverified",
+      "prior_investigation_grade": "A",
+      "source_url": "https://sacred-texts.com/hin/rys/rys5001.htm",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Original work, transcription, translation, images and jurisdiction separately unverified; access is not redistribution permission.",
+        "evidence_url": null,
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_partial",
+        "reason": "Saved chapter 1 table bounded; other chapters are not acquired."
+      },
+      "scope_status": "partial_chapter1_bounded",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": "3f2ba988afed6aeff12a0e921e45e426ed08683aaa0662805874036c9b5593e5",
+      "units": [
+        {
+          "unit_id": "india-ramayana--book5-chapter1",
+          "label": "Book 5 chapter 1",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 191436,
+            "byte_end_exclusive": 257914,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "efe3c04d6b2b4821cfbc31c483f20061688f6af88cefd7a54693daebd98becc5",
+            "note": "HTML table contains transliteration and Devanagari; script variants must not be double-counted."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-13",
+              "unit_id": "india-ramayana--book5-chapter1",
+              "status": "partial",
+              "read_scope": "제5권 1장 1–70절 로마자 전사만 실독",
+              "reason": "71절 이후 미독 및 산스크리트어 번역 감수 미완료",
+              "candidate_count": 4
+            },
+            {
+              "batch_id": "supplement-01",
+              "unit_id": "india-ramayana--book5-chapter1",
+              "status": "partial",
+              "read_scope": "기존: 인쇄 1–70절 로마자 전사 실독. 추가: 인쇄 71–190절 로마자 전사 전체를 순서대로 확인; 같은 표의 데바나가리는 동일 텍스트로 중복 계산하지 않음.",
+              "reason": "로마자 전사 해석과 정확한 번역·판본은 전문가 감수 미완료; 해당 언어의 의미 완전 실독이나 전수 추출은 주장하지 않음.",
+              "candidate_count": 5
+            }
+          ],
+          "actual_candidates": 9
+        },
+        {
+          "unit_id": "india-ramayana--other-chapters",
+          "label": "Other selected chapters in book 5",
+          "status": "blocked",
+          "reason": "Chapter selection, exact edition and text boundaries not yet decided.",
+          "input_boundary": null,
+          "coverage": [],
+          "actual_candidates": 0
+        }
+      ]
+    }
+  ]
+}

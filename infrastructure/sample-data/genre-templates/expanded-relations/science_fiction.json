@@ -1,0 +1,86 @@
+{
+  "genre": "science_fiction",
+  "worldId": "568970f1-b862-5dd4-bfbb-adea96e17a26",
+  "relationships": [
+    {
+      "id": "e4aec123-4058-5503-a60f-b20dace04fb6",
+      "sourceCardId": "3139aaa5-0922-57ed-a31d-f9dcf69f945a",
+      "targetCardId": "633386d1-4f60-5392-8101-6b68f58ae16e",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 니코는 이안의 정비 일을 케스트렐에서 보조했다. 근거 카드 ID: 3139aaa5-0922-57ed-a31d-f9dcf69f945a",
+      "label": "견습 기술자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4cc3403b-919e-5791-9903-6dbda04442c0",
+      "sourceCardId": "2a4e4273-0b31-57aa-bbb2-1d841ce9cf9f",
+      "targetCardId": "633386d1-4f60-5392-8101-6b68f58ae16e",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 한서윤은 이안을 데리고 시설에서 탈출해 케스트렐에서 길렀다. 근거 카드 ID: 2a4e4273-0b31-57aa-bbb2-1d841ce9cf9f",
+      "label": "양어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "37193a6c-9df0-5e18-9ae4-b7cb5c356bdc",
+      "sourceCardId": "fc33122b-3581-5529-a479-6bb1424ede38",
+      "targetCardId": "633386d1-4f60-5392-8101-6b68f58ae16e",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 이안 세르반의 유전자 자료가 이안 서의 생성에 사용되었다. 근거 카드 ID: fc33122b-3581-5529-a479-6bb1424ede38",
+      "label": "유전자 자료 제공",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6bc940c1-dfed-5878-baae-4050297a9765",
+      "sourceCardId": "633386d1-4f60-5392-8101-6b68f58ae16e",
+      "targetCardId": "e6496c2d-f736-5374-bcc5-a088a024e7fc",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 이안의 작업장은 케스트렐 정거장에 있다. 근거 카드 ID: e6496c2d-f736-5374-bcc5-a088a024e7fc",
+      "label": "작업 장소",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "eceea1aa-c45c-5656-aa3b-eab2418f748a",
+      "sourceCardId": "2b3a7d42-eee4-5d58-914e-3914637993f1",
+      "targetCardId": "eea896e8-31f2-528a-ac49-4f7ee9541366",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 도마 리는 과거 베스퍼의 연구 시설에서 일했다. 근거 카드 ID: 2b3a7d42-eee4-5d58-914e-3914637993f1",
+      "label": "과거 근무",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "80dc50b4-11ac-534f-95e4-bf97907f6b02",
+      "sourceCardId": "06a917cd-c05d-52ec-bca3-5e4909aa9b2c",
+      "targetCardId": "eea896e8-31f2-528a-ac49-4f7ee9541366",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 셀레네 워드는 베스퍼의 전략연구 총괄이다. 근거 카드 ID: 06a917cd-c05d-52ec-bca3-5e4909aa9b2c",
+      "label": "연구 총괄",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "301a496c-cd90-5169-8f5d-4cb0ae419656",
+      "sourceCardId": "272b6638-d578-58b9-a439-504e995e5e2a",
+      "targetCardId": "fdc3e09a-159e-5284-bc49-000b7644bcaa",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 관리자 0은 백색회수단을 총괄한다. 근거 카드 ID: 272b6638-d578-58b9-a439-504e995e5e2a",
+      "label": "총괄",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7eaab597-b69e-5ca4-bf09-f3d11f30610d",
+      "sourceCardId": "a0a6e3d3-354e-5385-8c93-b7977f3de095",
+      "targetCardId": "cf2b979d-9efa-56f8-a488-2dbfcf1eaf96",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 아드리안 볼크는 제국의 제독이다. 근거 카드 ID: a0a6e3d3-354e-5385-8c93-b7977f3de095",
+      "label": "제독",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ]
+}

@@ -5,4 +5,5 @@ import ai.storyfork.content.world.studio.entity.WorldSaveKey
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface WorldSaveRequestRepository : JpaRepository<WorldSaveRequest, WorldSaveKey> {
+    fun findAllByIdWorldId(worldId: java.util.UUID): List<WorldSaveRequest>
 }

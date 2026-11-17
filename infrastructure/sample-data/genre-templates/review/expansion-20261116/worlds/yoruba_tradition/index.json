@@ -1,0 +1,47 @@
+{
+  "world_id": "yoruba_tradition",
+  "world_id_meaning": "신규 문화권 연구용 라벨, 실제 world 또는 DB ID 아님",
+  "id_namespace": "094b89b3-f0ab-5a47-8f9a-0a4bd3a63bd1",
+  "id_rule": "UUIDv5(namespace, batch_id:unit_id:candidate_key); 후보 ID일 뿐 적재나 세계관 배정 아님",
+  "scope_note": "각 구간 상태는 입력 조사자의 자기보고이며, 문헌 완전 독해·의미 전수·독립 감수·중복 검토 또는 권리 해결을 뜻하지 않는다.",
+  "rights_note": "출처 전사·번역·공동체·지역별 재사용 및 상업 이용권은 확인되지 않았으며, 조사 가능이나 공개 검토는 상업적 배포 허락이 아니다.",
+  "works": [
+    {
+      "work_id": "yoruba-cowries",
+      "world_id": "yoruba_tradition",
+      "title": "Sixteen Cowries",
+      "target_scope": "Nigerian ẹ̀rìndínlógún passage not yet identified",
+      "edition_language_attribution": "William Bascom 1980; Yoruba and English; 16-cowrie divination distinct from Ifá",
+      "prior_investigation_grade": "B",
+      "source_url": "https://iupress.org/9780253013675/sixteen-cowries/",
+      "other_recorded_urls": [
+        "https://www.jstor.org/stable/j.ctt16xwcgx",
+        "https://ich.unesco.org/en/RL/ifa-divination-system-00146"
+      ],
+      "rights": {
+        "status": "unverified",
+        "notes": "Original work, transcription, translation, images and jurisdiction separately unverified; access is not redistribution permission.",
+        "evidence_url": null,
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "blocked_or_body_unconfirmed",
+        "reason": "Previous investigation reported bibliographic-only, body unread, or blocked; no bypass attempted; URL retained for follow-up"
+      },
+      "scope_status": "incomplete",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": null,
+      "units": [
+        {
+          "unit_id": "yoruba-cowries--scope-pending",
+          "label": "Nigerian ẹ̀rìndínlógún passage not yet identified",
+          "status": "blocked",
+          "reason": "Body bounds, complete scope and section boundaries not yet validated",
+          "input_boundary": null,
+          "coverage": [],
+          "actual_candidates": 0
+        }
+      ]
+    }
+  ]
+}

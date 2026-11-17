@@ -9,6 +9,7 @@ import java.util.UUID
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.event.EventListener
+import org.springframework.core.annotation.Order
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Component
 import tools.jackson.databind.json.JsonMapper
@@ -26,6 +27,7 @@ class GenreTemplateSeeder(private val service: WorldStudioService, private val m
     private val log = LoggerFactory.getLogger(GenreTemplateSeeder::class.java)
 
     @EventListener(ApplicationReadyEvent::class)
+    @Order(0)
     fun seed() {
         // 리소스를 못 읽어도 ApplicationReadyEvent 예외로 서버 기동이 실패하지 않게 로그만 남기고 돌아온다.
         val templates = try { loadLegacy() }
@@ -33,9 +35,18 @@ class GenreTemplateSeeder(private val service: WorldStudioService, private val m
         val frozen = try { loadV2().associateBy { it.worldId } }
             catch (e: Exception) { log.error("템플릿 보완 리소스 읽기 실패", e); null }
         val updated = frozen.orEmpty()
-        val current = try { load().associateBy { it.worldId } }
-            catch (e: Exception) { log.error("최신 템플릿 리소스 읽기 실패", e); emptyMap() }
+        val loadedCurrent = try { load().associateBy { it.worldId } }
+            catch (e: Exception) { log.error("최신 템플릿 리소스 읽기 실패", e); null }
+        val current = loadedCurrent.orEmpty()
         val legacyIds = templates.map { it.worldId }.toSet()
+        val legacyById = templates.associateBy { it.worldId }
+        if (frozen != null && loadedCurrent != null) for (id in legacyIds + updated.keys + current.keys) {
+            if ((id in legacyIds && id !in updated) || (id in updated && id !in current)) {
+                log.error("템플릿 공개 판정 보류 world={}: 동결 리소스 누락",id);continue
+            }
+            try { service.publishPristineTemplate(legacyById[id], updated[id], current[id]) }
+            catch (e: Exception) { log.error("기존 템플릿 공개 판정 실패 world={}: {}: {}", id, e.javaClass.simpleName, e.message) }
+        }
         for (template in templates) {
             try { seedGenre(template) }
             catch (e: Exception) { log.error("장르 템플릿 적재 실패 genre={}: {}: {}", template.genre, e.javaClass.simpleName, e.message) }
@@ -48,7 +59,6 @@ class GenreTemplateSeeder(private val service: WorldStudioService, private val m
             try { seedGenre(template, legacy = false) }
             catch (e: Exception) { log.error("신화 템플릿 적재 실패 genre={}: {}: {}", template.genre, e.javaClass.simpleName, e.message) }
         }
-        val legacyById = templates.associateBy { it.worldId }
         for (baseline in updated.values) {
             val target = current[baseline.worldId]
             if (target == null) { log.error("SOUL 템플릿 누락 genre={}", baseline.genre); continue }
@@ -73,11 +83,11 @@ class GenreTemplateSeeder(private val service: WorldStudioService, private val m
     private fun seedGenre(template: GenreTemplate, legacy: Boolean = true, soul: Boolean = false) {
         val key = "genre-template-${template.genre}"
         // create: 같은 id·같은 입력이면 기존 세계관을 돌려준다. 앞선 edit가 미완료로 남은 세계관은 INCOMPLETE라 아래 edit 재시도로 이어 간다.
-        val world = try { service.create(TEMPLATE_OWNER, CreateWorldRequest(template.name, template.description, template.worldId)) }
+        val world = try { service.createTemplate(CreateWorldRequest(template.name, template.description, template.worldId)) }
             catch (e: WorldStudioFailure) { if (e.reason == WorldStudioFailure.Reason.INCOMPLETE) null else throw e }
         // save가 draft revision을 올려 같은 edit의 중복 판정이 깨지므로, 저장까지 끝난 세계관은 다시 edit하지 않는다.
         if (world?.currentRevisionId != null) return
-        // 카드의 기본은 비공개라(DEC-46) 템플릿 카드는 공개로 넣는다. 세계관 자체의 공개 범위는 건드리지 않는다(소유자가 따로 공개한다).
+        // 템플릿 카드와 새 템플릿 세계관은 공개다. 기존 세계관은 위의 별도 원본 판정에서만 공개한다.
         val cards = if (legacy) template.cards.map { CardPayload(it.id, it.title, it.body, it.cardType, "basic", visibility = "public") }
             else if (soul) GenreTemplateRepair.soulPayloads(template) else GenreTemplateRepair.payloads(template)
         val edited = service.edit(template.worldId, TEMPLATE_OWNER, EditWorldDraftRequest(0, template.name, template.description, cards, key = key))
@@ -91,7 +101,7 @@ class GenreTemplateSeeder(private val service: WorldStudioService, private val m
          * ① V8 샘플 관리자 비밀번호가 마이그레이션 주석에 공개돼 있어 그 계정으로 로그인하면 누구나 템플릿을 수정·삭제할 수 있다.
          *   실제 운영 계정·공개 템플릿 조회가 생기면 소유자를 바꾼다.
          * ② V8은 `ON CONFLICT (email) DO NOTHING`이라 기존 DB에 admin@example.test가 다른 id로 있으면 이 UUID가 실제 로그인 계정과 다를 수 있다.
-         * ③ 다른 사용자에게는 여전히 보이지 않는다(가져오기·공개는 후속).
+         * ③ 기존 비공개 템플릿은 소유자가 공개하기 전까지 다른 사용자에게 보이지 않는다.
          * 소유자를 바꿔도 이미 적재된 세계관은 새 소유자로 옮겨지지 않는다(고정 worldId의 create가 소유자 불일치로 거절되어 장르별 오류 로그만 남는다).
          */
         val TEMPLATE_OWNER: UUID = UUID.fromString("5f0c2c7e-8a51-4d6b-9a39-1f4f2b6d0a01")

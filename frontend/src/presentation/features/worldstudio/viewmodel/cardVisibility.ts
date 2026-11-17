@@ -8,6 +8,7 @@ import { cardLibraryRows } from '../../../../domain/entities/worldStudioWriting'
 
 /** 공개 화면에 보일 수 있는 설정 수: 공개로 둔 카드다(관계 행은 카드가 아니다). */
 export const publicCardCount = (settings: readonly StudioSetting[]) => settings.filter((s) => s.item.kind !== 'relation' && s.visibility === 'public').length
+export const visibleSelection = (rows: readonly { cardId: string }[], selected: ReadonlySet<string>) => rows.filter((row) => selected.has(row.cardId)).map((row) => row.cardId)
 
 /**
  * 고른 카드의 공개 범위를 바꾼 설정 목록. 비공개는 값을 지운다(없으면 비공개). 관계 행과 이미 그 값인 카드는 그대로 두고,

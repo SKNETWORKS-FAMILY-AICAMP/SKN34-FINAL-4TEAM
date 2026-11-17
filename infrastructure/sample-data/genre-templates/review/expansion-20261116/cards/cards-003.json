@@ -1,0 +1,3030 @@
+[
+  {
+    "id": "9666da14-c795-500b-9359-e67f1cdd8b6c",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-v",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "basalt",
+    "title": "사라진 현무암 석재",
+    "cardType": "object",
+    "body": "피슬리는 밤에 다른 석재와 달리 네모나고 어두운 돌을 발견해 꿈의 탑을 떠올린다. 다음 날 일행은 모래가 옮겨간 뒤 그것을 찾지 못한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 V절, HTML의 br로 나눈 텍스트 조각 34번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b75bb47c-8749-561e-8652-b9fc9920fe0b",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-vi",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "gale",
+    "title": "맑은 하늘 아래의 돌풍",
+    "cardType": "event",
+    "body": "캠프 사람들은 새벽의 갑작스러운 강풍을 목격했다. 매켄지는 일부 광부의 두려움을 지하 석실에 관한 지역 이야기로 설명한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 VI절, HTML의 br로 나눈 텍스트 조각 4번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "지역 주민 발화는 허구 속 매켄지의 간접 전언이며 인종적 편견을 포함; 실제 구술 전승으로 입증되지 않음",
+      "화자는 야간 탐사의 실재 여부와 환각 가능성을 열어 둠"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "22642b93-573f-5321-a16f-5bd05e643ca1",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-vi",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "covered",
+    "title": "모래에 가려진 발견 장소",
+    "cardType": "event",
+    "body": "화자가 귀환한 뒤 윙게이트가 비행기로 살폈으나 화자가 발견했다고 말한 것은 보이지 않았다. 모래가 흔적을 가렸다는 설명도 화자의 해석이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 VI절, HTML의 br로 나눈 텍스트 조각 8번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자는 야간 탐사의 실재 여부와 환각 가능성을 열어 둠"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "223b009e-eee8-55fb-aafd-fa125e4da3e9",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-vi",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "corridor",
+    "title": "모래 밑에 드러난 거석 복도",
+    "cardType": "location",
+    "body": "피슬리는 밤에 서로 이어지는 곡선 무늬를 지닌 돌무더기를 보고 옛 위치에 남은 복도라고 추정한다. 이후 체험 전체는 꿈이나 환각일 가능성을 스스로 남긴다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 VI절, HTML의 br로 나눈 텍스트 조각 13번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자는 야간 탐사의 실재 여부와 환각 가능성을 열어 둠"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "61ea598c-48ad-5b89-b78f-c4bf07c6b4be",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-vi",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "air",
+    "title": "돌무더기 아래의 찬 기류",
+    "cardType": "other",
+    "body": "화자는 돌무더기 가운데서 서늘한 공기가 올라오는 것을 느끼고 큰 빈 공간이 아래에 있다고 추정해 돌을 치운다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 VI절, HTML의 br로 나눈 텍스트 조각 17번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자는 야간 탐사의 실재 여부와 환각 가능성을 열어 둠"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "cdb0ed41-a7ae-5940-ba74-2cf62bdcc2ef",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-vi",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "sggha",
+    "title": "스그하",
+    "cardType": "character",
+    "body": "피슬리가 회상한 꿈에서 남극 별머리 식물성 육식 종족 출신 포로 정신으로 탑 벽에 그림을 새겼다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 VI절, HTML의 br로 나눈 텍스트 조각 28번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자는 야간 탐사의 실재 여부와 환각 가능성을 열어 둠"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1668b489-0d41-5b3c-b95c-f6340af2bbfe",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-vi",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "trans-plutonian",
+    "title": "명왕성 바깥 행성의 포로",
+    "cardType": "character",
+    "body": "피슬리의 꿈에서 1800만 년 후 명왕성 너머 행성 내부에 사는 반가소성 존재의 정신이 포로들의 방에 진흙 물건을 두었다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 VI절, HTML의 br로 나눈 텍스트 조각 28번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자는 야간 탐사의 실재 여부와 환각 가능성을 열어 둠"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "160b2cbb-a6e2-575e-ad53-3cea90d9cbb4",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-vi",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "lock",
+    "title": "기록보관소 서가의 복잡한 잠금",
+    "cardType": "object",
+    "body": "피슬리는 꿈에서 자기 기록을 넣어 둔 서가를 여는 손잡이의 회전과 압력 순서를 기억한다고 믿는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 VI절, HTML의 br로 나눈 텍스트 조각 30번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자는 야간 탐사의 실재 여부와 환각 가능성을 열어 둠"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "faf9a335-80bb-56ed-a235-9af0c2063501",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-vii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "crypt",
+    "title": "현무암 탑 아래의 원형 지하실",
+    "cardType": "location",
+    "body": "피슬리는 환각일 수 있는 탐사 중 장식 없는 검은 원형 석실에 이른다. 꿈에서 봉인되고 지켜지던 아래 구멍은 열려 있고 습한 바람이 나온다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 VII절, HTML의 br로 나눈 텍스트 조각 7번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 cthulhu-sot--section-ii / towers와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함",
+      "같은 작품 cthulhu-sot--section-ii / ruins와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자는 야간 탐사의 실재 여부와 환각 가능성을 열어 둠"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8d7e5f02-3b6a-50c7-aec7-710d54f1da1c",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-vii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "entrance",
+    "title": "지하 기록보관소 입구",
+    "cardType": "location",
+    "body": "피슬리는 환각일 수도 있는 체험에서 곡선 기호가 빽빽한 원형 지하실과 여러 방향의 아치를 발견하고 보관소로 알아본다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 VII절, HTML의 br로 나눈 텍스트 조각 10번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 cthulhu-sot--section-iii / archive와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함",
+      "같은 작품 cthulhu-sot--section-iv / archives와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자는 야간 탐사의 실재 여부와 환각 가능성을 열어 둠"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f62a6b0f-1a7a-56ba-ab75-74ce327b1193",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-vii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "shelves",
+    "title": "흔들려 열린 금속 서가",
+    "cardType": "object",
+    "body": "화자의 체험에서 보관소의 금속 서가 문 일부는 열리거나 구부러졌고 바닥에는 상자가 떨어져 있다. 그가 보는 곳은 환각일 가능성이 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 VII절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 cthulhu-sot--section-ii / parallel와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함",
+      "같은 작품 cthulhu-sot--section-iv / cases와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자는 야간 탐사의 실재 여부와 환각 가능성을 열어 둠"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d66bd425-2409-5e4c-8a35-b466b1cb8150",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-vii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "asteroid",
+    "title": "소행성 출신 포로의 책",
+    "cardType": "object",
+    "body": "피슬리는 낯선 문자로 쓰인 질긴 책을 금속 상자에서 꺼내고 꿈에서 알던 소행성 출신 정신의 언어라고 여긴다. 발견의 현실성은 불확실하다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 VII절, HTML의 br로 나눈 텍스트 조각 13번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자는 야간 탐사의 실재 여부와 환각 가능성을 열어 둠"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ad6e98be-6c6f-55d1-b3e6-ffb8b512a761",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-vii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "open-door",
+    "title": "열려 있는 지하 함정문",
+    "cardType": "object",
+    "body": "피슬리가 보관소 최하층에서 본 함정문은 열려 있으며 축축하고 찬 바람이 나온다. 그는 과거 꿈에서 경비되던 문을 떠올린다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 VII절, HTML의 br로 나눈 텍스트 조각 16번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 cthulhu-sot--section-ii / trapdoors와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자는 야간 탐사의 실재 여부와 환각 가능성을 열어 둠"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ff7e3c11-cfee-5c92-be0b-f161f8f12cda",
+    "batch_id": "batch-04",
+    "unit_id": "cthulhu-sot--section-vii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "prints",
+    "title": "먼지 속 다섯 갈래 흔적",
+    "cardType": "other",
+    "body": "화자는 바닥 먼지에서 둥근 자국 다섯 개로 이뤄진 희미한 흔적이 왕복한 것 같다고 느낀다. 착시나 우연일 수 있다고 명시한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "《The Shadow out of Time》 VII절, HTML의 br로 나눈 텍스트 조각 18번(절 제목을 1번으로 계산)",
+    "edition": "H. P. Lovecraft, The Shadow out of Time, 영어 웹 전사; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 cthulhu-sot--section-iv / tracks와 내용·대상이 겹칠 가능성; 근거와 범위를 비교해야 함"
+    ],
+    "uncertainties": [
+      "웹 전사의 저본 판본과 이용 권리 미확인",
+      "화자는 야간 탐사의 실재 여부와 환각 가능성을 열어 둠"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8e845db1-9d6d-5ae4-9305-89c2671aa4c9",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-sot--section-viii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "archive-lock",
+    "title": "기억으로 연 서고 자물쇠",
+    "cardType": "object",
+    "body": "화자는 손에 남은 기억의 리듬으로 상형문자가 새겨진 높은 서가의 복잡한 자물쇠를 열었다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "The Shadow out of Time · Section VIII · 단위 내 문단 조각 3 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9f553222-3ab0-5e9b-a641-f9e3e33e9bcf",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-sot--section-viii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "metal-case",
+    "title": "서고의 금속 보관함",
+    "cardType": "object",
+    "body": "회색 보관함에는 곡선 수학 문양과 걸쇠가 있고 책이 들어 있다. 화자는 이를 등에 걸어 서가에서 내려온다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "The Shadow out of Time · Section VIII · 단위 내 문단 조각 4 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ce734d96-fd73-5ff1-a201-966c17701dd5",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-sot--section-viii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "english-manuscript",
+    "title": "화자의 필체로 쓰인 책",
+    "cardType": "object",
+    "body": "화자가 본 오래된 책의 바랜 셀룰로오스 종이에는 상형문자가 아니라 자신의 필체로 쓴 영어가 있었다. 그는 책을 가져오지 못해 실제 경험인지 의심한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "The Shadow out of Time · Section VIII · 단위 내 문단 조각 29 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9da0d6cf-c45b-5f0a-8e4e-0ed4921c4d93",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-sot--section-viii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "basalt-crypt",
+    "title": "검은 현무암 지하 묘실",
+    "cardType": "location",
+    "body": "도시보다 오래된 현무암 묘실은 아래쪽의 열린 심연에서 찬 바람이 올라오는 곳으로, 화자는 귀환길에 이를 두려워한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "The Shadow out of Time · Section VIII · 단위 내 문단 조각 10 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fe048511-8fa2-508b-996d-a36d89c72148",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-sot--section-viii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "whistling-wind",
+    "title": "심연의 휘파람과 바람",
+    "cardType": "event",
+    "body": "잔해가 무너진 뒤 화자는 앞쪽 심연에서 휘파람을 듣고 거센 바람에 쫓겼다고 회상한다. 첫 소리는 상상이었을 수 있다고 구별한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "The Shadow out of Time · Section VIII · 단위 내 문단 조각 15 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2cd4edb3-bb4a-5877-9bb9-d31b80a9d052",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-sot--section-viii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "delirium-abyss",
+    "title": "의식이 흐려진 지하 환영",
+    "cardType": "location",
+    "body": "화자는 추락한 뒤 떠다니는 공포와 창 없는 현무암 탑의 도시를 보았다고 하나, 이 부분을 섬망 속 환영으로 분류한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "The Shadow out of Time · Section VIII · 단위 내 문단 조각 21 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "bc7e0db0-82d3-582c-b5c3-e885477e2cc4",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-sot--section-viii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "great-race-vision",
+    "title": "위대한 종족 도시의 환영",
+    "cardType": "organization",
+    "body": "화자는 비인간적 원뿔형 몸으로 위대한 종족과 사로잡힌 정신이 책을 나르는 도시를 본다. 깨어난 뒤 이 환영의 현실성은 불확실하다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "The Shadow out of Time · Section VIII · 단위 내 문단 조각 23 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "022f157d-e005-52ed-87d7-fbc07d84bd62",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-sot--section-viii",
+    "work_id": "cthulhu-sot",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "unproved-escape",
+    "title": "증거 없는 탈출",
+    "cardType": "event",
+    "body": "화자는 사막에서 손전등과 보관함 없이 깨어나며 지하 회랑도 발견되지 않았기에 경험이 꿈이었을 가능성을 남긴다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+    "source_location": "The Shadow out of Time · Section VIII · 단위 내 문단 조각 28 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "dd324463-7a06-5d01-8127-53670345f305",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "sunset-city",
+    "title": "석양의 도시",
+    "cardType": "location",
+    "body": "카터가 세 차례 꿈에서 높은 난간 너머로 본 도시다. 대리석 다리와 분수, 북쪽 언덕의 붉은 지붕을 보지만 거리로 내려가지 못한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 1 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "80866d52-e30d-54a6-91ea-239bb688db27",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "kadath",
+    "title": "미지의 카다스",
+    "cardType": "location",
+    "body": "차가운 황야의 구름 위에 꿈의 신들이 머무르는 곳으로, 카터는 그곳의 오닉스 성에 가기로 결심한다. 실제 위치는 사제들도 모른다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 3 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "151fd55a-a036-542b-ab0f-923414e27397",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "dream-priests",
+    "title": "나시트와 카만타",
+    "cardType": "character",
+    "body": "불꽃의 동굴 사원에서 카터를 만나는 두 수염 난 사제다. 카다스 탐색과 다른 꿈 세계를 오가는 위험을 경고한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 5 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fd4c05fb-2ca6-5994-b151-1f94c956f935",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "azathoth",
+    "title": "아자토스",
+    "cardType": "character",
+    "body": "사제들은 질서 있는 우주 밖 무한의 중심에 악마 술탄 아자토스가 있으며 북과 피리 소리가 그를 둘러싼다고 경고한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 5 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "178735ae-3fa4-5171-a2b6-2778d780f1a6",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "other-gods",
+    "title": "바깥의 다른 신들",
+    "cardType": "organization",
+    "body": "사제들의 설명에서 장님이고 말과 정신이 없는 거대한 다른 신들이 아자토스 주위에서 춤춘다. 냐를라토텝은 그들의 영혼이자 전령이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 5 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dq--chunk-02 / larvae: 동일 대상 또는 관련 사건 가능; 병합 미결정"
+    ],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "70fc8771-d1aa-5524-b8ae-149665a1d362",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "dream-steps",
+    "title": "깊은 잠으로 가는 계단",
+    "cardType": "location",
+    "body": "불꽃의 동굴에 이르는 일흔 계단 아래로 칠백 계단을 내려가면 깊은 잠의 문과 마법의 숲이 이어진다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 6 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2d029122-a1a7-56e1-a395-0c3b0a8cb60b",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "zoogs",
+    "title": "주그",
+    "cardType": "other",
+    "body": "마법의 숲 굴과 나무에 사는 작고 갈색인 존재들로 펄럭이는 언어를 쓴다. 버섯을 주로 먹지만 꿈꾸는 자들이 숲에서 사라진다는 소문도 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 7 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dq--chunk-04 / zoog-cat-war: 동일 대상 또는 관련 사건 가능; 병합 미결정",
+      "다른 단위 cthulhu-dq--chunk-04 / zoog-tribute: 동일 대상 또는 관련 사건 가능; 병합 미결정"
+    ],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "db06049f-a314-5e81-839a-27a263c2e953",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "moon-tree-wine",
+    "title": "달나무 수액주",
+    "cardType": "object",
+    "body": "주그의 현자들은 달에서 떨어진 씨앗으로 자란 나무의 발효 수액을 카터에게 대접하고 한 병을 준다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 9 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0f6f7a81-ae8e-5822-9b4c-e75ab6d5d4a1",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "pnakotic-manuscripts",
+    "title": "프나코투스 사본",
+    "cardType": "object",
+    "body": "늙은 주그는 울타르에 남은 사본이 신들에 관해 말하며, 깨어 있는 인간들의 북방 왕국에서 꿈의 땅으로 옮겨졌다고 전한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 10 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "68e948fe-8c0c-51c7-88d8-b5cafc4f6558",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "forest-trapdoor",
+    "title": "숲의 고리 달린 석판",
+    "cardType": "object",
+    "body": "죽은 나무와 두꺼운 버섯 근처의 큰 석판에는 거대한 쇠고리가 있다고 한다. 주그들은 오래된 석환을 떠올리며 이곳을 피한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 11 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dq--chunk-04 / trapdoor-escape: 동일 대상 또는 관련 사건 가능; 병합 미결정"
+    ],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7e702123-0b72-5146-9beb-7afb4b8e7271",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "ulthar-cat-law",
+    "title": "울타르의 고양이 보호법",
+    "cardType": "rule",
+    "body": "울타르의 오래된 법은 사람이 고양이를 죽이는 것을 금한다. 이 도시는 고양이가 유난히 많다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 13 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "425ab4ff-21b3-58ed-a253-ce4062938d8a",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "skai-bridge",
+    "title": "스카이 강의 석교",
+    "cardType": "location",
+    "body": "니르와 울타르 사이의 큰 돌다리다. 서술에 따르면 1300년 전 다리를 만들 때 사람을 살아 있는 채 중앙 교각에 봉했다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 13 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1193cdb7-eeb1-5a16-a257-9060a34daa21",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "atal",
+    "title": "사제 아탈",
+    "cardType": "character",
+    "body": "울타르의 원로 사제는 삼백 년이 넘었으며 금지된 산 하테그클라에 올랐다 살아 돌아왔다. 신과 바깥의 수호자들에 대해 카터에게 경고한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 14 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "56675919-5b7d-50be-93f1-6fa7f852bca7",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "barzai",
+    "title": "현자 바르자이",
+    "cardType": "character",
+    "body": "아탈에 따르면 함께 하테그클라에 오른 바르자이는 신들의 춤을 보려다 비명을 지르며 하늘로 끌려갔다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 14 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "34c79b99-a9c9-51c1-bfbf-74a348c491a9",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "ngranek-face-report",
+    "title": "느그라네크의 신상 전언",
+    "cardType": "object",
+    "body": "술에 취한 아탈은 오리아브섬 느그라네크 산의 암벽에 신들이 자신들의 얼굴을 본떠 새겼다는 여행자들의 말을 전한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 16 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dq--chunk-03 / ngranek-face: 동일 대상 또는 관련 사건 가능; 병합 미결정"
+    ],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0b42325a-d478-5114-98de-d8e1ad7f5657",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "god-descendants",
+    "title": "신의 후손에 대한 카터의 추론",
+    "cardType": "rule",
+    "body": "카터는 젊은 신들이 인간 여성과 혼인한다는 믿음과 석상의 특징을 이용해 신의 혈통이 짙은 마을에서 카다스를 찾으려 한다. 이는 그의 추론이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 17 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2b764b30-8134-5925-814d-5e6e91bf59d3",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "dylath-leen",
+    "title": "딜라스린 항구",
+    "cardType": "location",
+    "body": "울타르에서 스카이 강을 따라 남쪽 바다로 가면 검은 노 젓는 배들이 루비를 싣고 드나드는 큰 항구가 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 19 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "058b36ad-0f06-5ddd-b784-c216415d38a7",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "black-galleys",
+    "title": "검은 갤리선의 거래",
+    "cardType": "organization",
+    "body": "노 젓는 자를 보여 주지 않는 검은 배들이 희귀한 루비를 팔고 금과 파르그의 노예들을 사간다. 원문의 인종적 표현은 화자의 편견으로 남긴다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 24 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "32bb8f2b-d4dd-5c24-a923-377a6c4a1ba8",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "ruby-wine",
+    "title": "루비 술병과 납치",
+    "cardType": "event",
+    "body": "검은 배의 상인이 조각한 루비 병에서 술을 건네자 한 모금 마신 카터는 정신을 잃고 배 위에서 깨어난다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 27 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1429d32d-abbd-5372-b13d-709f4e5d063b",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "leng-priest-rumor",
+    "title": "렝의 가면 쓴 대사제 전언",
+    "cardType": "character",
+    "body": "딜라스린의 한 상인이 얼음 고원 렝과 거래하고, 노란 비단 가면을 쓴 외로운 대사제와도 거래했다는 소문이 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 25 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "83012ac4-0d8d-52aa-bc53-7b8073010ab8",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-02",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "west-pillars",
+    "title": "서쪽의 현무암 기둥과 폭포",
+    "cardType": "location",
+    "body": "두 기둥 너머 꿈의 바다는 깊은 폭포로 떨어져 우주로 향한다. 소박한 사람들의 카투리아 전승과 꿈꾸는 자들의 지식은 서로 다르다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 2 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d0fd3b7e-d6e5-565e-b241-6829dc3f9f8b",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-02",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "agents-inference",
+    "title": "상인들의 목적에 대한 추론",
+    "cardType": "event",
+    "body": "카터는 상인들이 자신의 신 탐색을 막고 냐를라토텝에게 자신을 넘기려 한다고 추론하지만 그들의 목적을 듣지는 못한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 3 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "35f812df-8ef1-5c47-a2e4-e12298043419",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-02",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "larvae",
+    "title": "다른 신들의 유충",
+    "cardType": "other",
+    "body": "갤리선이 폭포를 넘어 우주를 지날 때 카터는 장님이고 정신이 없는 검은 형체들을 본다. 서술은 이들을 다른 신들의 유충이라 부른다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 5 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dq--chunk-01 / other-gods: 동일 대상 또는 관련 사건 가능; 병합 미결정"
+    ],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "03af8cab-9464-50d3-996f-69f76940f788",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-02",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "moon-toad-things",
+    "title": "달의 두꺼비 같은 존재들",
+    "cardType": "other",
+    "body": "달 뒷면 항구에 회백색으로 몸을 늘이고 줄일 수 있는 눈 없는 존재들이 산다. 짧은 분홍 촉수를 지녔고 짐을 옮기며 선박을 운항한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 9 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "aa6d811a-089d-5871-87fe-9077379bc427",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-02",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "moon-slave-trade",
+    "title": "달 항구의 노예 거래",
+    "cardType": "event",
+    "body": "카터는 두꺼비 같은 존재들이 인간에 가까운 노예를 무역·조리·조타에 쓰고 다른 이들을 상자에 싣는 장면을 본다. 파르그 사람들의 운명은 모른다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 10 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e3460148-5d56-5c9f-bf6f-2e8a8a78ec93",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-02",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "moon-cats",
+    "title": "달 뒷면의 지구 고양이",
+    "cardType": "other",
+    "body": "지구의 고양이들은 높은 지붕에서 달 뒷면으로 뛰어가 산을 누비며, 잡혀 온 카터를 구하려 무리를 이룬다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 14 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9f7aeafe-5c60-5550-a4bf-7cf8a4041689",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-02",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "cat-general",
+    "title": "울타르 고양이 장군",
+    "cardType": "character",
+    "body": "카터가 울타르에서 친절히 대했던 새끼 고양이의 할아버지다. 달에서 포로 카터를 알아보고 군대를 이끌어 구한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 18 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6474bb0c-9205-5a39-9826-fc55a8b56dfc",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-02",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "saturn-cats",
+    "title": "토성의 고양이",
+    "cardType": "other",
+    "body": "고양이 군대의 감시병은 지구 고양이가 두려워하는 크고 특이한 토성 고양이를 경계한다. 이들은 달의 두꺼비 같은 존재들과 동맹이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 19 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "df2d806e-454d-509e-97a2-6b97cf94e3c6",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-02",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "cat-space-leap",
+    "title": "고양이들의 우주 도약",
+    "cardType": "ability",
+    "body": "고양이들은 카터를 대열 가운데 넣고 함께 달에서 딜라스린의 지붕으로 도약한다. 장군은 그에게 몸을 맡기고 함께 뛰라고 가르친다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 20 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ac521fa5-4f13-50f8-ba75-7602406f04fb",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-02",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "sunken-city",
+    "title": "남쪽 바다의 침몰 도시",
+    "cardType": "location",
+    "body": "오리아브로 가는 바닷길 아래 오래된 도시의 신전과 거리, 수초 덮인 벽이 보인다. 선원들은 이 근처에서 배들이 실종되었다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 23 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a9c18177-3965-52be-8409-635690818f68",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-02",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "sunken-bound-sailor",
+    "title": "물속 수도원과 묶인 선원",
+    "cardType": "event",
+    "body": "카터는 해저 언덕의 네모난 건물 안뜰 기둥에 오리아브 선원이 거꾸로 묶여 있고 눈이 없음을 망원경으로 본다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 25 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "811d596a-d400-537c-bfb3-3eee712bf963",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-02",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "baharna",
+    "title": "오리아브의 바하르나",
+    "cardType": "location",
+    "body": "오리아브섬 항구는 돌 계단과 테라스가 겹친 도시다. 도시 아래 수로가 내륙 야스 호수와 이어지고 두 등대가 입항을 맞는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 26 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c57d883b-2b9b-58ad-88d2-456d865e3171",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-02",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "yath-ruins",
+    "title": "야스 호숫가 무명 유적",
+    "cardType": "location",
+    "body": "야스 호수 건너편에는 이름을 잊은 원시 도시의 광대한 흙벽돌 유적이 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 26 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "667efbe7-b174-59b7-b05e-2391084341c5",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-02",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "zebra-death",
+    "title": "유적에서 죽은 얼룩말",
+    "cardType": "event",
+    "body": "야스 유적에서 묶어 둔 얼룩말이 밤사이 피를 빨린 채 죽고 반짝이는 물건들이 사라진다. 진흙에는 큰 물갈퀴 발자국이 남아 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 30 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4a5a6760-eec8-5127-b7f7-569acca65306",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-02",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "night-gaunt-rumor",
+    "title": "실종된 용암 채집꾼",
+    "cardType": "event",
+    "body": "높은 곳에 간 채집꾼은 돌아오지 않고 터번만 발견된다. 동료들은 나이트건트를 의심하지만 얼룩말 사건과의 연관은 부정한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 31 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dq--chunk-03 / night-gaunts: 동일 대상 또는 관련 사건 가능; 병합 미결정"
+    ],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f1ad7ac0-5bf5-5f4f-ab27-50cd712653ff",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-03",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "hill-exiles",
+    "title": "느그라네크 산의 이주민",
+    "cardType": "organization",
+    "body": "산의 마을에서는 밤마다 사람이 사라져 주민들이 바하르나로 이주했다. 후손들은 용암으로 상을 만드는 기술을 이어 간다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 2 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8fc96253-00e9-5588-b97c-878cca368b55",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-03",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "voonith",
+    "title": "부니스",
+    "cardType": "other",
+    "body": "카터는 감춰진 못가에서 울부짖는 양서성 부니스 소리를 듣지만 이 짐승이 느그라네크 경사면에 접근하지 않는다고 전해 들었다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 4 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "62cb3a92-423c-5a34-8cc4-46689e4cecd6",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-03",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "ngranek-face",
+    "title": "느그라네크의 거대한 얼굴",
+    "cardType": "object",
+    "body": "카터는 산 남쪽 높은 절벽에서 길고 좁은 눈, 긴 귓불, 가는 코와 뾰족한 턱을 가진 거대한 바위 얼굴을 발견한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 11 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dq--chunk-01 / ngranek-face-report: 동일 대상 또는 관련 사건 가능; 병합 미결정"
+    ],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a87dd657-8141-547e-b8ba-5bcaff5cb036",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-03",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "north-traders-inference",
+    "title": "북쪽 상인과 석상의 닮음",
+    "cardType": "event",
+    "body": "카터는 얼굴이 셀레파이스에 오닉스를 팔러 오던 북쪽 선원들을 닮았다며 그들을 신의 자손으로 추론한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 12 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c36f54b3-eff8-5f05-8fdd-b927f4f26eb2",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-03",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "night-gaunts",
+    "title": "나이트건트",
+    "cardType": "other",
+    "body": "말과 얼굴이 없는 검고 매끄러운 날개 달린 존재들이다. 붙잡은 카터를 조용히 날라가며 몸부림치거나 소리칠 때 간지럽힌다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 16 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dq--chunk-02 / night-gaunt-rumor: 동일 대상 또는 관련 사건 가능; 병합 미결정"
+    ],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "53f45afd-680d-57af-87c3-9270f6ce3f59",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-03",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "pnath",
+    "title": "프나스 골짜기",
+    "cardType": "location",
+    "body": "지하의 어두운 골짜기는 구울들이 던진 뼈가 쌓인 곳으로, 보이지 않는 거대한 볼이 그 사이를 기어 다닌다고 전해진다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 18 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6e27ad26-d80e-5295-b49a-e4ada88f9eb3",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-03",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "bhole",
+    "title": "볼",
+    "cardType": "other",
+    "body": "카터가 사다리를 오를 때 끈적하고 꿈틀거리는 긴 몸이 스친다. 어둠에만 살기 때문에 이 존재의 외형은 보지 못한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 21 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ec7d0389-ddec-578f-a01e-9fa05bfa47a9",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-03",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "pickman",
+    "title": "리처드 업턴 피크먼",
+    "cardType": "character",
+    "body": "보스턴의 화가였던 피크먼은 지금 구울이 되어 지하에 살며 영어를 조금 기억한다. 카터에게 지하에서 벗어날 길을 조언한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 24 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2d411e2f-d4a0-520d-ad24-c2fd155cd881",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-03",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "wamps",
+    "title": "왐프",
+    "cardType": "other",
+    "body": "피크먼에 따르면 물갈퀴 발의 왐프들은 죽은 도시에서 태어나 위쪽 꿈의 땅 묘지를 차지하며, 깨어 있는 세계의 구울은 그곳에 가지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 24 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "24ef5bfb-174a-50e0-9421-65e5df0d8294",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-03",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "gugs",
+    "title": "구그",
+    "cardType": "other",
+    "body": "털이 많고 거대한 구그는 숲의 석환에서 제사를 지냈다가 지하로 추방되었다고 한다. 신들의 저주 때문에 숲으로 통하는 석문을 열지 못한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 25 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dq--chunk-04 / gug-sentry: 동일 대상 또는 관련 사건 가능; 병합 미결정"
+    ],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ce8086b2-f517-5ed7-aea3-670ef0b9e3a6",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-03",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "ghasts",
+    "title": "가스트",
+    "cardType": "other",
+    "body": "진의 지하 묘실에 사는 가스트는 긴 뒷다리로 뛰며 서로 잡아먹기도 한다. 진짜 빛에서는 죽지만 지하의 잿빛 어둠은 몇 시간 견딘다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 28 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fdb77469-05ad-5ad5-b229-b299ad4cdefc",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-03",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "sarkomand",
+    "title": "사르코만드의 지하 관문",
+    "cardType": "location",
+    "body": "렝 아래 골짜기의 버려진 도시 사르코만드에는 날개 달린 섬록암 사자들이 지키는 검은 계단이 지하로 이어진다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 26 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "70fe36a2-51a2-5ed1-b7d3-6c97db1d08ba",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-03",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "tower-koth",
+    "title": "코스의 표식이 있는 탑",
+    "cardType": "location",
+    "body": "구그 도시 중앙에 코스의 표식이 붙은 탑이 있으며 숲의 석문까지 오르는 계단이 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 27 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dq--chunk-04 / trapdoor-escape: 동일 대상 또는 관련 사건 가능; 병합 미결정"
+    ],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "273afad5-19d5-573f-8df8-beba48cc80cd",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "gug-sentry",
+    "title": "구그 보초의 모습",
+    "cardType": "other",
+    "body": "진의 동굴에서 나온 구그 보초는 털 난 팔이 짧은 두 팔로 갈라지고 세로로 벌어지는 큰 입과 돌출된 눈을 가졌다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 3 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dq--chunk-03 / gugs: 동일 대상 또는 관련 사건 가능; 병합 미결정"
+    ],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ffb34aea-a401-5073-a0cc-c91a3568f48f",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "ghoul-tombstone",
+    "title": "구울들의 묘비 무기",
+    "cardType": "event",
+    "body": "구울 안내자 셋은 탑 계단의 가스트를 가져온 묘비로 내리쳐 막고 카터를 위로 인도한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 7 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2f891bbf-b6f4-5c2a-acae-6485821b9d76",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "trapdoor-escape",
+    "title": "숲의 석문 탈출",
+    "cardType": "event",
+    "body": "카터와 구울들은 함께 석문을 들어 묘비로 괴고 빠져나온다. 신들의 저주로 구그는 문을 넘어 나오지 못한다고 한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 10 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dq--chunk-01 / forest-trapdoor: 동일 대상 또는 관련 사건 가능; 병합 미결정",
+      "다른 단위 cthulhu-dq--chunk-03 / tower-koth: 동일 대상 또는 관련 사건 가능; 병합 미결정"
+    ],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "595ebfa5-c805-5a1e-9918-7ab14df3c716",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "zoog-cat-war",
+    "title": "주그의 고양이 기습 계획",
+    "cardType": "event",
+    "body": "주그 의회가 울타르에서 사라진 동족에 대한 보복으로 고양이들을 기습하려 한다. 이를 엿들은 카터는 고양이들에게 경고한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 13 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dq--chunk-01 / zoogs: 동일 대상 또는 관련 사건 가능; 병합 미결정"
+    ],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "37dd122b-0282-51f8-815b-4a10bf99204b",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "zoog-tribute",
+    "title": "고양이와 주그의 강화 조건",
+    "cardType": "rule",
+    "body": "고양이들은 선제 포위 뒤 주그에게 해마다 새를 바치게 하고 귀족 가문의 어린 주그 열둘을 인질로 받는다. 주그는 자유 부족으로 남는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 16 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "다른 단위 cthulhu-dq--chunk-01 / zoogs: 동일 대상 또는 관련 사건 가능; 병합 미결정"
+    ],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "95bea3b5-9d00-5590-a230-fc6c59880b44",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "cat-passwords",
+    "title": "고양이들의 암호",
+    "cardType": "object",
+    "body": "노장 고양이는 카터에게 꿈의 땅 고양이들 사이에서 유용한 암호를 알려주고 셀레파이스의 고양이 우두머리에게 추천한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 18 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e491ed30-9c78-5f55-a596-a29c36fdcc1b",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "kiran-temple",
+    "title": "키란의 오우크라노스 신전",
+    "cardType": "location",
+    "body": "벽옥으로 지은 강가 신전은 일곱 첨탑과 은밀한 수로를 갖는다. 일렉바드 왕이 해마다 와서 기도하며, 신전과 사제는 오직 그만 들어가거나 보았다고 한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 20 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "553f921c-71b2-5078-8342-92a518a388ac",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "river-predator",
+    "title": "오우크라노스의 육식 물고기",
+    "cardType": "other",
+    "body": "물고기가 햇빛에 비늘을 보여 물가의 새를 유인한 뒤 커다란 입으로 부리를 문다. 카터가 직접 지켜본 광경이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 21 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8c0eb62c-736a-5163-b4ef-413c4b56a359",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "thran",
+    "title": "트란",
+    "cardType": "location",
+    "body": "오우크라노스 강가에 선 도시는 오래된 설화석고 성벽과 백 개의 문, 황금 첨탑을 가졌다. 강 쪽에는 대리석 부두가 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 22 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "329bb9bc-a4aa-5817-ab48-cf224c173cce",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "thran-entry",
+    "title": "트란의 입성 시험",
+    "cardType": "rule",
+    "body": "트란 남문 보초는 카터에게 믿기 어려운 꿈 세 가지를 말하게 하여 꿈꾸는 자의 자격을 확인한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 23 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c080b34c-d382-5dfd-848f-ca6d7998f641",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "inganok",
+    "title": "잉가노크",
+    "cardType": "location",
+    "body": "셀레파이스에서 오닉스를 파는 북방 선원들의 고향인 차갑고 어스름한 땅이다. 렝과 가까울 수 있다는 말은 선원들도 확정하지 못한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 25 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "dc442365-b94d-5be7-aa7f-b0c82bfdd1cb",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "kled-palaces",
+    "title": "클레드 밀림의 궁전",
+    "cardType": "location",
+    "body": "클레드 밀림에는 이름 잊힌 왕국의 상아 궁전들이 남아 있다. 서술은 고대 존재들의 주문과 수호자들이 궁전을 보존한다고 전한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 26 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "36ca0dc4-1e59-598c-92a7-cdf835e5cda9",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "hlanith",
+    "title": "흘라니스",
+    "cardType": "location",
+    "body": "세레네리안 바다의 큰 교역 도시로 거친 화강암 성벽과 목재 부두, 뛰어난 장인들의 산물이 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 27 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7e468148-836d-5fc5-9e27-f2118cf55194",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "celephais",
+    "title": "셀레파이스",
+    "cardType": "location",
+    "body": "오오스나르가이에 있는 항구 도시다. 아란 산과 나라크사 강, 청동 조각을 세운 대리석 성벽이 보인다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 28 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f63c48d3-4211-52d2-8b4c-7ec66e5f1a3a",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "celephais-time",
+    "title": "셀레파이스의 멈춘 시간",
+    "cardType": "rule",
+    "body": "서술에 따르면 셀레파이스에서는 시간이 훼손하거나 파괴하지 못해 신전과 사제들이 만 년 전과 그대로다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 29 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c4d99168-dd18-5531-af79-c8e7c47736dd",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "serannian",
+    "title": "구름 도시 세라니안",
+    "cardType": "location",
+    "body": "바다와 하늘이 만나는 곳 너머 허공의 대리석 구름 도시로, 그곳에서 온 갤리선들이 셀레파이스 항구에 정박한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 29 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "randolph-carter",
+    "title": "랜돌프 카터의 탐색",
+    "cardType": "character",
+    "body": "꿈꾸는 자 카터는 세 번 보고도 닿지 못한 석양의 도시를 되찾기 위해 꿈의 신들에게 묻고 카다스를 향한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 1 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e3e43a4a-01d1-5dfc-a9a1-ee74deaae04f",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "nyarlathotep",
+    "title": "냐를라토텝",
+    "cardType": "character",
+    "body": "불꽃 동굴의 사제들은 냐를라토텝을 바깥의 다른 신들의 영혼과 전령인 기어가는 혼돈으로 소개한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 5 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "10ac7a26-1378-5bf4-a24a-98b64c87f44a",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "enchanted-wood",
+    "title": "마법의 숲",
+    "cardType": "location",
+    "body": "인광 버섯과 거대한 참나무가 늘어선 꿈의 숲이다. 주그들이 굴과 나무에 살고 숲의 두 곳은 인간의 땅과 맞닿는다고 한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 7 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2672b2b6-13a4-5174-8bdd-4ac9d9e14a52",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "kuranes",
+    "title": "쿠라네스",
+    "cardType": "character",
+    "body": "셀레파이스의 왕 쿠라네스는 한 해의 절반을 그곳에서 다스린다. 카터가 깨어 있을 때 다른 이름으로 알았던 꿈꾸는 자다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 7 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b767254d-4ad3-55c0-96a5-d6abdf46e224",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "stone-circle",
+    "title": "숲속의 거석환",
+    "cardType": "location",
+    "body": "이끼 낀 거석환은 과거 오래된 존재들의 춤과 희생 제의가 있었다는 흔적으로 묘사된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 8 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fc58bff7-f37a-5d50-a1e2-2e5b8f52746d",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "earth-gods",
+    "title": "대지의 신들과 바깥의 수호자",
+    "cardType": "organization",
+    "body": "아탈은 대지의 신들이 이 세계의 꿈의 땅에서만 약하게 다스리지만 외부의 다른 신들의 보호를 받는다고 설명한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 14 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "653126eb-0a16-5e29-80dc-406abca76be2",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-01",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "olathoe-fall",
+    "title": "올라토에의 함락 전언",
+    "cardType": "event",
+    "body": "늙은 주그는 털이 많은 식인 그노프케들이 북방 도시 올라토에를 무너뜨리고 로마르의 영웅들을 죽였을 때 사본이 꿈의 땅으로 옮겨졌다고 전한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 10 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5b4cd52e-2435-5927-88c1-a4b2d58bb6a6",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-02",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "moon-port",
+    "title": "달 뒷면의 회색 항구",
+    "cardType": "location",
+    "body": "기름 같은 바닷가에 창 없는 잿빛 탑이 기울어 선 도시다. 주변에는 숲의 달나무와 비슷한 나무들이 자란다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 8 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a4d06efe-8146-5955-85a5-ed4e9d9cf7be",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-02",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "dylath-warning",
+    "title": "검은 배에 관한 경고",
+    "cardType": "event",
+    "body": "카터는 고양이들과 달에서 돌아온 뒤 항구 사람들에게 거래를 끊으라고 말한다. 많은 사람이 믿지만 보석상들은 값진 루비 때문에 확약하지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 21 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f1fafa7a-d21d-5c7e-9ded-6226d67406b0",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-03",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "ghouls",
+    "title": "지하의 구울",
+    "cardType": "other",
+    "body": "구울들은 개를 닮은 얼굴과 구부정한 몸을 지니며 묘지와 지하 통로를 드나든다. 이들은 카터에게 밧줄 사다리를 내려 프나스에서 끌어올린다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 22 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f10a91f6-cb44-5f2f-ba65-ad44e991cab4",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-03",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "ghoul-language",
+    "title": "구울의 말",
+    "cardType": "ability",
+    "body": "화가 피크먼은 과거 카터에게 구울의 끽끽거리는 언어 일부를 가르쳤다. 카터는 이를 써서 도움을 청하고 지하에서 대화한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 19 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e5fbcc9a-85e9-55c6-93dc-a95e9ead9fa1",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-03",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "zin-vaults",
+    "title": "진의 지하 묘실",
+    "cardType": "location",
+    "body": "구그 도시 묘지 근처 거대한 동굴이 진의 묘실로 이어진다. 구그는 이곳에서 가스트를 사냥하고 가스트는 구그나 구울을 공격한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 28 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d94bff97-5c00-5033-867c-17443ab4ac6d",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "kitten-officer",
+    "title": "울타르 새끼 고양이 장교",
+    "cardType": "character",
+    "body": "카터가 울타르 여관에서 우유를 주었던 새끼 고양이는 시간이 흘러 군대의 부관이 되었다. 달에서 카터를 구한 노장 고양이의 손자다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 14 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7f008671-2aad-5330-ad64-1ac0fe8d25de",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "ouk-river-god",
+    "title": "오우크라노스의 강 신",
+    "cardType": "character",
+    "body": "일렉바드 왕이 젊을 때 강가 오두막에서 살던 시절 노래해 주었다고 전해지는 신이다. 왕은 해마다 벽옥 신전으로 와 기도한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 20 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fede4f57-1c5c-5fb1-a017-554ca3007a48",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "buopoths",
+    "title": "부오포스",
+    "cardType": "other",
+    "body": "카터는 예전 꿈에서 강 건너 숲의 부오포스들이 물을 마시러 조심스럽게 나오는 모습을 보았으나 이번에는 보지 못한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 21 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f215be36-f4b6-52d3-ace2-0a8473177e85",
+    "batch_id": "batch-05",
+    "unit_id": "cthulhu-dq--chunk-04",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "nath-horthath-temple",
+    "title": "나스호르타스의 신전",
+    "cardType": "location",
+    "body": "셀레파이스의 청록색 신전에는 난초를 두른 사제 80명이 있다. 서술은 그들이 만 년 전 신전을 지은 이들과 같다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 29 (문단 시작 이미지 구분, 첫 빈 조각 포함)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 꿈·전언·화자의 추론은 현실의 사실로 단정하지 않음",
+      "원문 전사 저본 및 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b2110f20-5a54-597d-bd85-f9f949b3b370",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-desert",
+    "title": "잉가녹 북쪽 사막",
+    "cardType": "location",
+    "body": "토라보니아 선원은 사람이 사는 지역 북쪽에 두려운 사막이 있다고 한다. 렝으로 이어진다는 말과 이름 없는 파수꾼은 그의 추측과 소문이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 1 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "13ed2f44-540c-5b01-afd5-e498dba3f038",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-priest",
+    "title": "셀레파이스의 대사제",
+    "cardType": "character",
+    "body": "대사제는 위대한 신들이 변덕스럽고 외부의 다른 신들이 보호하므로 카다스를 찾지 말라고 경고한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 2 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "68d57235-8d31-5af9-b204-6d69f9913498",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-other-gods",
+    "title": "외부의 다른 신들",
+    "cardType": "other",
+    "body": "대사제에 따르면 다른 신들은 위대한 신들을 보호하며 기어다니는 혼돈 나이알라토텝은 그들의 영혼이자 전령이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 2 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-08/chunk-08-other-gods와 관련, 원문 맥락 대조 필요",
+      "기존 source/tradition-cards.json great-old-ones 및 old-ones-usage: 용어는 유사하나 동일 집단 여부 불명"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "106a2a82-8643-5b64-b2a5-4e279c0eed6f",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-cat-chief",
+    "title": "셀레파이스 고양이 우두머리",
+    "cardType": "character",
+    "body": "시장의 늙은 고양이는 울타르 고양이 장군의 소개를 듣고 잉가녹에 관한 고양이들의 이야기를 카터에게 전한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 3 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a123b5bc-2a8d-583f-8910-3f56f1ebe979",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-cats-avoid",
+    "title": "잉가녹을 피하는 고양이",
+    "cardType": "rule",
+    "body": "고양이들은 견디기 어려운 그림자와 외부 공간의 기운 때문에 잉가녹행 배에 오르지 않는다. 그림자의 원인은 불명이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 4 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "85b6df4e-701e-5ef9-9c32-4db6bf057b3d",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-kuranes",
+    "title": "쿠라네스 왕",
+    "cardType": "character",
+    "body": "셀레파이스와 하늘의 세란니안을 다스리던 꿈꾸는 왕이다. 깨어 있는 몸이 죽은 뒤 꿈속에 어린 시절 영국을 재현하며 고향을 그리워한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 5 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1530db39-e6a7-5797-b776-fde4f0597326",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-dream-england",
+    "title": "쿠라네스의 꿈속 영국 마을",
+    "cardType": "location",
+    "body": "셀레파이스 동쪽에 꿈으로 만든 해안 들판과 영국풍 장원, 어촌, 수도원이 있다. 수도원 묘석에는 조상들의 이름을 새겼다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 5 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a74b76ad-c432-5f3d-ac1f-b024c29dfd6c",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-void-journey",
+    "title": "쿠라네스의 공허 여행",
+    "cardType": "event",
+    "body": "쿠라네스는 별 너머 궁극의 공허를 다녀왔고 제정신으로 돌아온 유일한 인물이라는 소문이 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 7 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a3f72d0b-b933-5996-b8e3-c7b5bc370c83",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-sngac",
+    "title": "보랏빛 기체 스응악",
+    "cardType": "character",
+    "body": "형태가 없는 우주 지역에서 쿠라네스에게 나이알라토텝과 중앙의 공허에 관해 경고한 보랏빛 기체다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 8 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-09/chunk-09-sngac와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "33512af2-da21-5e2b-86c1-b7eaada2164c",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-azathoth",
+    "title": "아자토스와 중앙의 공허",
+    "cardType": "other",
+    "body": "쿠라네스는 스응악이 중앙의 공허에 다가가지 말라고 경고했다고 말한다. 그 설명에서 악마 술탄 아자토스는 어둠 속에서 허기지게 갉아먹는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 8 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-09/chunk-09-azathoth와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0b3a3ab5-cefe-5967-8289-cc07b230f254",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-ship",
+    "title": "잉가녹의 검은 무역선",
+    "cardType": "object",
+    "body": "티크 목재에 흑단 장식과 금 세공을 한 배다. 카터는 오닉스 광부라고 말하고 선실을 얻어 잉가녹으로 간다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 12 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e745cdd8-2e61-5dab-b5cb-3bbc62e2c743",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-quarry",
+    "title": "잉가녹의 버려진 거대 채석장",
+    "cardType": "location",
+    "body": "북쪽 사막 가까이에 거대한 돌을 파낸 흔적이 있다. 선원들은 누가 돌을 채굴해 어디에 썼는지 모르며 접근을 피한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 14 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-06/chunk-06-quarry와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8ba06805-d0a9-5934-910d-17e9e2b04767",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-rock",
+    "title": "밤에 울부짖는 바위섬",
+    "cardType": "location",
+    "body": "잉가녹 항로의 이름 없는 바위에서 밤마다 끊임없는 울음이 들린다. 선원들은 가까이 대지 않고 기도한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 15 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-07/chunk-07-rock와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e8e5cf7f-3ed4-54c6-9c01-68522fa52cf0",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-inganok",
+    "title": "잉가녹의 오닉스 도시",
+    "cardType": "location",
+    "body": "회색 구름이 드리운 황혼의 항구도시로 현무암 부두와 검은 오닉스 건물, 금 장식과 신의 얼굴이 새겨진 성문을 갖는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 16 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "12c6c7d1-406a-5f30-9d22-da447987a85e",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-temple",
+    "title": "잉가녹의 옛 신들 신전",
+    "cardType": "location",
+    "body": "도시 한가운데 열여섯 면의 탑과 납작한 돔, 뾰족한 종루가 솟아 있다. 선원들은 이를 옛 신들의 신전이라 부른다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 16 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c0cd66fa-fab5-5d62-acad-e5e03941ab80",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-rites",
+    "title": "잉가녹 신전의 종과 의식",
+    "cardType": "rule",
+    "body": "신전 종소리에 뿔피리·비올·성가가 응답하고 돔의 삼각대에 불이 치솟는다. 사제와 주민은 오래된 두루마리에 적힌 위대한 신들의 리듬을 지킨다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 17 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a7cd3e29-0854-5bde-b259-bd2b3f603444",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-merchant",
+    "title": "렝과 거래한다는 상인",
+    "cardType": "character",
+    "body": "카터가 딜라스린에서 만난 상인이 잉가녹에 나타난다. 선원들은 그가 야크 대상과 샨타크 알을 가져왔다고 말하며, 렝의 대사제와 거래했다는 말은 소문이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 19 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-06/chunk-06-merchant와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "976f283a-6c6e-595b-b44e-700b14279b3b",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-procession",
+    "title": "일곱 문을 지나는 가면 사제 행렬",
+    "cardType": "event",
+    "body": "종이 울리면 가면과 두건을 쓴 검은 사제 일곱 행렬이 김 나는 금 그릇을 들고 문 쪽 숙소로 이동한다. 지하 통로와 비인간 정체는 소문이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 21 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "21449b29-3a91-5c7e-a980-0b7d8be163aa",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-veiled-king",
+    "title": "베일 쓴 왕",
+    "cardType": "character",
+    "body": "잉가녹에서 신전에 들어갈 수 있는 유일한 존재로 소개된다. 높은 언덕에 다수의 돔을 가진 궁전을 둔다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 22 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "21ce4546-df34-5c40-b5f2-15d4f3f87169",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-palace",
+    "title": "베일 쓴 왕의 궁전",
+    "cardType": "location",
+    "body": "오닉스 테라스와 열주, 꽃나무와 발광하는 물고기가 있는 궁전 정원이다. 방문객은 궁전 안에 들어갈 수 없고 중앙 돔의 샨타크 조상은 소문이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 23 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b7bd0982-d21e-5369-9d0d-7eea6a0b3c6a",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-05",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-05-urg",
+    "title": "우르그와 채석장 길",
+    "cardType": "location",
+    "body": "광부와 상인이 쉬는 돔형 마을이다. 대상로는 셀라른 쪽 서쪽으로 꺾이고 채석장 길은 북쪽으로 이어진다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 26 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f90a47f6-828b-5e7d-915e-f9cb47866f5e",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-06",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-06-quarry",
+    "title": "잉가녹의 거대 채석장 실견",
+    "cardType": "location",
+    "body": "카터는 깎아낸 네모난 흔적이 남은 거대한 오닉스 채석장을 본다. 그 규모가 인간의 채석장이 아니라는 판단은 서술의 추정이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-06의 문단 4 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-05/chunk-05-quarry와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b8cb05c4-1e34-51f7-88c8-62e53312f900",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-06",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-06-mountains",
+    "title": "쌍두상으로 깎인 산들",
+    "cardType": "location",
+    "body": "북쪽 사막의 오닉스 산들이 개 또는 늑대 같은 쌍두 거상으로 깎여 반원을 이루며 오른손을 들어 보인다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-06의 문단 8 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-08/chunk-08-mountains와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7a7b9fd2-0ced-56ab-985c-75f84bc9bae3",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-06",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-06-shantak",
+    "title": "샨타크 새",
+    "cardType": "other",
+    "body": "코끼리보다 크고 말 머리를 한 날개 달린 존재다. 깃털 대신 미끄러운 비늘이 있고 상인과 의사소통하며 탈것으로 쓰인다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-06의 문단 9 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7f89f98f-ce6f-5f18-a0fb-3cb21bdf34fa",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-06",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-06-merchant",
+    "title": "카터를 붙잡은 상인",
+    "cardType": "character",
+    "body": "상인은 야크를 타고 샨타크 무리를 이끌어 카터를 붙잡고 새에 태운다. 카터는 그가 외부 세력의 대리인이라 추측한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-06의 문단 9 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-05/chunk-05-merchant와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "50362603-5337-5b24-9371-f6256aaa6e91",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-06",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-06-leng",
+    "title": "렝 고원",
+    "cardType": "location",
+    "body": "황량한 고원에 드문 불빛과 화강암 오두막, 돌 마을이 보이고 피리와 타악기 소리가 들린다. 카터는 소리로 이곳을 렝이라 알아본다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-06의 문단 12 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7fe88475-5f2e-5c77-bd1f-b6d969c8431d",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-06",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-06-leng-folk",
+    "title": "렝의 뿔과 발굽을 가진 주민",
+    "cardType": "other",
+    "body": "카터는 춤추는 주민의 뿔과 털, 넓은 입을 보고 딜라스린 검은 배의 상인들과 같은 종족이라 알아본다. 그들이 달의 존재들에게 예속돼 있음을 떠올린다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-06의 문단 14 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8f51ad9e-0efa-5a61-8409-2d378f4a2e1c",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-06",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-06-monastery",
+    "title": "렝의 창 없는 수도원",
+    "cardType": "location",
+    "body": "바람 부는 고원의 돌 건물 주위에 선돌이 둘러서 있다. 카터는 전설 속 노란 비단 가면 대사제가 사는 수도원이라 짐작한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-06의 문단 15 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a05417f1-10d0-505f-a63a-e8869fd3ec5e",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-06",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-06-frescoes",
+    "title": "수도원의 렝 벽화",
+    "cardType": "object",
+    "body": "어두운 미로 복도 벽에 오래된 장면들이 그려져 있다. 카터는 벽화를 렝의 역사로 해석한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-06의 문단 17 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "aad383d5-f278-5f25-8ba4-342b54c28e3f",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-06",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-06-spider-war",
+    "title": "렝 주민과 보랏빛 거미의 전쟁 벽화",
+    "cardType": "event",
+    "body": "벽화에는 렝 주민이 이웃 골짜기의 부푼 보랏빛 거미와 전쟁하는 장면이 나온다. 실제 역사라기보다 카터가 읽은 그림의 내용이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-06의 문단 18 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b3eb4c49-c057-5821-b808-71795282d889",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-06",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-06-moon-landing",
+    "title": "달의 검은 배가 도착한 벽화",
+    "cardType": "event",
+    "body": "벽화는 달의 검은 배가 오고 렝 주민이 달의 존재에게 복종하는 장면을 그린다. 카터는 바다의 바위섬이 그들의 주둔지라고 해석한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-06의 문단 18 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "84210bf2-3f4a-5db5-86fe-f20fad087cb1",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-06",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-06-sarkomand-fresco",
+    "title": "벽화 속 사르코만드",
+    "cardType": "location",
+    "body": "벽화의 오래된 항구 수도는 스핑크스 성문 여섯과 중앙 광장, 지하 계단을 지키는 날개 달린 사자 한 쌍이 특징이다. 카터는 전설과 대조해 사르코만드라 판단한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-06의 문단 19 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-06/chunk-06-sarkomand와 관련, 원문 맥락 대조 필요",
+      "동일 구간의 chunk-06-sarkomand-ruins와 사르코만드 관련; 벽화와 폐허의 관찰 구분"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b228168c-df19-5481-a5bb-a11367868439",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-06",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-06-nightgaunt",
+    "title": "나이트건트와 산꼭대기 동굴",
+    "cardType": "other",
+    "body": "벽화에 그려진 박쥐 날개와 뿔, 꼬리를 가진 얼굴 없는 나이트건트들이 산 정상 동굴에 산다. 샨타크가 그들을 두려워하며 이들은 노덴스를 주인으로 둔다고 서술된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-06의 문단 20 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-07/chunk-07-nightgaunt와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7f99008b-3473-503d-95da-e768d735c3af",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-06",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-06-high-priest",
+    "title": "묘사할 수 없는 대사제",
+    "cardType": "character",
+    "body": "렝 수도원 지하의 금빛 왕좌에 노란 비단 옷과 가면을 쓴 채 앉아 상인의 손짓에 상아 피리로 응답한다. 드러난 회백색 앞발을 본 카터는 정체를 알아차린다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-06의 문단 21 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7bcb0a04-0f94-5da3-8a97-3ac549b62f8c",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-06",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-06-pit",
+    "title": "수도원 지하의 구덩이",
+    "cardType": "location",
+    "body": "여섯 제단에 둘러싸인 원형 구덩이다. 소문에는 구그가 가스트를 사냥하는 진의 납골당까지 닿는다 하며 카터는 상인을 이곳에 밀어 넣는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-06의 문단 23 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "95c91223-738f-5dce-8ea0-9d0fc45aaf58",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-06",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-06-sarkomand-ruins",
+    "title": "폐허가 된 사르코만드",
+    "cardType": "location",
+    "body": "카터가 지하 통로에서 빠져나온 폐허에는 무너진 기둥과 옛 정원 길, 거대한 날개 달린 섬록암 사자 둘이 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-06의 문단 26 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-06/chunk-06-sarkomand와 관련, 원문 맥락 대조 필요",
+      "동일 구간의 chunk-06-sarkomand-fresco와 사르코만드 관련; 벽화와 폐허의 관찰 구분"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5f4c4297-f649-5d0d-b82d-e3c801405fdf",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-06",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-06-captured-ghouls",
+    "title": "사르코만드에서 붙잡힌 구울 셋",
+    "cardType": "event",
+    "body": "달의 존재와 그들의 노예들이 부두 모닥불 옆에서 구울 셋을 결박하고 고문한다. 카터는 자신을 도왔던 구울들이라고 알아본다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-06의 문단 29 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d0f87dfc-99a8-5f4f-bdc6-0957eaef4349",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-07",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-07-password",
+    "title": "구울과 나이트건트의 협정과 암호",
+    "cardType": "rule",
+    "body": "카터는 나이트건트와 구울이 엄숙한 협정을 맺었다고 알고 있으며, 픽먼에게 나이트건트가 알아듣는 암호를 배웠다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-07의 문단 1 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2539368e-e146-51ea-9ce1-53a451a85804",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-07",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-07-nightgaunt",
+    "title": "암호에 응답하는 나이트건트",
+    "cardType": "ability",
+    "body": "카터가 암호를 내자 나이트건트들은 간지럼을 멈추고 그를 편히 옮긴다. 말은 못하지만 구조 요청을 이해한 듯 서둘러 이동한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-07의 문단 4 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-06/chunk-06-nightgaunt와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6da195fd-01ee-530b-aab0-6db6759a91b5",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-07",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-07-pickman",
+    "title": "구울이 된 화가 픽먼",
+    "cardType": "character",
+    "body": "한때 보스턴 화가 리처드 픽먼이었던 구울은 카터의 설명을 듣고 다른 우두머리들과 구조를 논의한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-07의 문단 5 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "bbb0964b-c39f-5c23-9f19-fec10d3452ad",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-07",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-07-army",
+    "title": "구울과 나이트건트 연합",
+    "cardType": "organization",
+    "body": "픽먼에 따르면 나이트건트는 구울의 선봉이자 전투용 탈것이다. 두 나이트건트가 한 구울을 날라 구조대가 사르코만드로 향한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-07의 문단 6 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-08/chunk-08-army와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "dff2adaf-7d30-5a81-8e68-5397effdb245",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-07",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-07-rescue",
+    "title": "사르코만드 구울 구조",
+    "cardType": "event",
+    "body": "구울과 나이트건트가 달의 존재와 렝 주민을 급습해 포로 셋을 구한다. 카터의 요청으로 검은 배는 침몰시키지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-07의 문단 8 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a0f85a8c-701e-5466-a82c-d3aa9c91ceb0",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-07",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-07-wine",
+    "title": "루비 병의 달 포도주",
+    "cardType": "object",
+    "body": "검은 배 상인들이 구울에게 루비 병의 포도주를 건네고 구울들은 이후 배에서 포로로 깨어난다. 뒤에 동료들에게 마시지 말라고 경고한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-07의 문단 10 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "548feb7d-693d-597c-828d-1f8512f02703",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-07",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-07-rowing",
+    "title": "검은 배를 젓는 구울들",
+    "cardType": "event",
+    "body": "나이트건트가 바다 위 비행을 꺼리자 카터는 구울들에게 노 젓는 법을 가르친다. 연습 뒤 배에 나이트건트를 싣고 바위섬으로 향한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-07의 문단 11 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "edd4dcac-6391-5f3e-9d3b-d7fea1a580f7",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-07",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-07-rock",
+    "title": "달의 존재들이 점거한 바위섬 항구",
+    "cardType": "location",
+    "body": "남쪽의 좁은 수로 안에 항구와 석조 부두가 있고 절벽에 깎은 마을과 높은 곳으로 감기는 길이 있다. 달의 존재들과 노예들이 짐을 다룬다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-07의 문단 13 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [
+      "같은 작품 후보 cthulhu-dq--chunk-05/chunk-05-rock와 관련, 원문 맥락 대조 필요"
+    ],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ccedb725-68ed-54b4-836a-7581780c0b07",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-07",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-07-raid",
+    "title": "바위섬 기습 계획",
+    "cardType": "event",
+    "body": "구울들은 검은 배로 부두에 접근해 나이트건트를 풀어놓고 철수한다. 우두머리들은 나이트건트의 귀소 본능이 바다 공포를 이길 것이라 기대한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-07의 문단 14 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "31d142f4-0687-5333-b724-d2f04c4e1796",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-07",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-07-idols",
+    "title": "바위섬의 루비 우상",
+    "cardType": "object",
+    "body": "섬의 방에서 지구에 없는 존재를 묘사한 큰 루비 우상이 발견된다. 카터는 그중 다섯 개를 부순다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-07의 문단 18 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0dbbb842-421b-5a6a-8de0-ea4d6065dba8",
+    "batch_id": "batch-06",
+    "unit_id": "cthulhu-dq--chunk-07",
+    "work_id": "cthulhu-dq",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "chunk-07-rock-temple",
+    "title": "바위섬의 지하 신전과 청동문",
+    "cardType": "location",
+    "body": "신전 뒤 통로는 천장이 조각된 돔 홀과 깊은 우물로 이어진다. 카터는 멀리 청동문을 본 듯하지만 두려워 접근하지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+    "source_location": "The Dream-Quest of Unknown Kadath, 배정 chunk-07의 문단 19 (원작 장 구분 아님)",
+    "edition": "H. P. Lovecraft; H. P. Lovecraft Archive 영어 웹 전사본; 저본 판본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "작품 속 꿈과 화자의 서술이며 저본 판본 및 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  }
+]

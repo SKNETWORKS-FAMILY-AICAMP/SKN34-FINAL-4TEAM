@@ -11,7 +11,7 @@ data class PublicationResponse(val worldId: UUID, val visibility: String, val ge
 /** 공개 목록 한 줄. 이름·설명은 마지막 저장 버전, 카드·관계 수는 그 버전의 공개 카드와 그 카드끼리의 현재 관계 기준이고, [hasCover]면 `/{id}/cover`로 표지를 읽는다. */
 data class PublicWorldSummaryResponse(
     val id: UUID, val name: String, val description: String, val genre: String?, val authorNickname: String,
-    val cardCount: Int, val relationshipCount: Int, val publishedAt: String, val hasCover: Boolean = false,
+    val cardCount: Int, val relationshipCount: Int?, val publishedAt: String, val hasCover: Boolean = false,
 )
 
 data class PublicWorldPageResponse(val items: List<PublicWorldSummaryResponse>, val page: Int, val size: Int, val total: Long)
@@ -19,7 +19,8 @@ data class PublicWorldPageResponse(val items: List<PublicWorldSummaryResponse>, 
 /** 공개 설정 카드. [id]는 카드 논리 ID이며 관계의 양 끝이 가리킨다. [imageId]가 있으면 `/{세계관}/card-images/{imageId}`로 대표 이미지를 읽는다(#401, 없으면 null). */
 data class PublicWorldCardResponse(val id: UUID, val title: String, val text: String, val cardType: String, val aliases: List<String>, val tags: List<String>, val imageId: UUID? = null)
 
-data class PublicWorldRelationshipResponse(val id: UUID, val sourceCardId: UUID, val targetCardId: UUID, val label: String)
+data class PublicWorldRelationshipResponse(val id: UUID, val sourceCardId: UUID, val targetCardId: UUID, val label: String,
+    val category: String? = null, val body: String = "", val direction: String? = null, val polarity: String? = null)
 
 /** 공개 세계관 상세. [relationshipStatus]가 unavailable이면 관계 저장소가 현재 상태를 보증하지 못해 [relationships]를 비운 것이다. [hasCover]면 `/{id}/cover`로 표지를 읽는다. */
 data class PublicWorldResponse(

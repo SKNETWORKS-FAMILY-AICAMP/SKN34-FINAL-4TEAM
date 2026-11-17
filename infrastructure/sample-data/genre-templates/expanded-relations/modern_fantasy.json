@@ -1,0 +1,136 @@
+{
+  "genre": "modern_fantasy",
+  "worldId": "6e7238c5-6da9-5b21-bd5c-74a12c7953a0",
+  "relationships": [
+    {
+      "id": "1a968d9f-36bc-5c28-b19a-f1bb27a5b52a",
+      "sourceCardId": "b71c2206-314e-596c-8738-b3fd2aca913b",
+      "targetCardId": "696aa949-d8c3-5fd9-9799-3eea611e8f4a",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 강미정은 강도윤의 어머니이며 아들의 안전을 걱정한다. 근거 카드 ID: b71c2206-314e-596c-8738-b3fd2aca913b",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "63d13ca8-ceab-5680-9d70-c127ae12bd6d",
+      "sourceCardId": "ab5af4fd-e8e5-54a9-b077-f471be3109dc",
+      "targetCardId": "696aa949-d8c3-5fd9-9799-3eea611e8f4a",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 강유나는 강도윤의 여동생이다. 근거 카드 ID: ab5af4fd-e8e5-54a9-b077-f471be3109dc",
+      "label": "여동생",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9b266d00-572b-5c77-bf33-78120ed38cfb",
+      "sourceCardId": "183411e5-2300-5d70-9970-08133018f2de",
+      "targetCardId": "696aa949-d8c3-5fd9-9799-3eea611e8f4a",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 강성호는 강도윤의 아버지다. 근거 카드 ID: 183411e5-2300-5d70-9970-08133018f2de",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "facb8928-cb14-507d-bfcc-2464628736c1",
+      "sourceCardId": "b5f6da5b-5655-509c-b195-00f072d8badb",
+      "targetCardId": "696aa949-d8c3-5fd9-9799-3eea611e8f4a",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 임태식은 도윤에게 정보를 검증하는 중요성을 가르친다. 근거 카드 ID: b5f6da5b-5655-509c-b195-00f072d8badb",
+      "label": "정보 검증 지도",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "aba64c25-5a2a-59bc-ada9-296eeaa8dc02",
+      "sourceCardId": "d10b628d-ac8e-59c9-a684-4712379c95cf",
+      "targetCardId": "696aa949-d8c3-5fd9-9799-3eea611e8f4a",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 윤세진은 도윤의 생환 경위를 의심하며 조사한다. 근거 카드 ID: d10b628d-ac8e-59c9-a684-4712379c95cf",
+      "label": "생환 경위 조사",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c7ebf8ba-fe91-5402-8f75-20da52d122ce",
+      "sourceCardId": "855fdde1-7454-5ab3-90c7-f1efde7ae7e7",
+      "targetCardId": "54e217d1-0d58-52ff-8f5e-8dce6a73afff",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 서해린은 한울길드 소속 헌터다. 근거 카드 ID: 855fdde1-7454-5ab3-90c7-f1efde7ae7e7",
+      "label": "소속",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "65dabb1e-b31b-5878-b35c-4f7c8a73ceec",
+      "sourceCardId": "d10b628d-ac8e-59c9-a684-4712379c95cf",
+      "targetCardId": "95202189-2d3a-505f-8fd0-de3d3b20abb1",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 윤세진은 헌터 관리청의 조사관이다. 근거 카드 ID: d10b628d-ac8e-59c9-a684-4712379c95cf",
+      "label": "소속 조사관",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "053f8452-9c87-5465-98a3-eb97d1356cf3",
+      "sourceCardId": "95af9f1c-58be-5dfd-a3f3-56555680362d",
+      "targetCardId": "2c2466e0-45ec-5d04-aad4-0e1654a9d83a",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 민도혁은 청명길드 공략사업본부장이다. 근거 카드 ID: 95af9f1c-58be-5dfd-a3f3-56555680362d",
+      "label": "본부장",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a27df74c-696f-57a8-8a0d-ee86671d9e92",
+      "sourceCardId": "c80cf342-e7bb-567a-9c67-e95cf24a360f",
+      "targetCardId": "2c2466e0-45ec-5d04-aad4-0e1654a9d83a",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 백진석은 청명길드 대표다. 근거 카드 ID: c80cf342-e7bb-567a-9c67-e95cf24a360f",
+      "label": "대표",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0dd2d5d7-2427-5cf1-92c8-76d444f2f0fd",
+      "sourceCardId": "696aa949-d8c3-5fd9-9799-3eea611e8f4a",
+      "targetCardId": "9867e287-7200-581d-b6c0-19288db2e355",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 도윤은 수도권 측정센터에서 여러 차례 등급을 측정받았다. 근거 카드 ID: 9867e287-7200-581d-b6c0-19288db2e355",
+      "label": "등급 측정",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0a28baa7-2e65-5f1c-a3de-4630e45910f8",
+      "sourceCardId": "696aa949-d8c3-5fd9-9799-3eea611e8f4a",
+      "targetCardId": "230e8d74-235c-558d-9990-7266b7f45908",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 도윤이 시스템을 얻은 던전은 폐쇄구역 17번지에서 발생했다. 근거 카드 ID: 230e8d74-235c-558d-9990-7266b7f45908",
+      "label": "시스템 획득 장소",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5497ef83-b28d-5c03-b3ff-e45b93986c94",
+      "sourceCardId": "183411e5-2300-5d70-9970-08133018f2de",
+      "targetCardId": "750447fd-e294-564d-b4a4-c64ae7f1da3f",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 강성호는 과거 대형 게이트 재난에서 실종되었다. 근거 카드 ID: 750447fd-e294-564d-b4a4-c64ae7f1da3f",
+      "label": "실종",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9b4fa8fc-ef20-5f7a-8130-95d6ab67b227",
+      "sourceCardId": "b71c2206-314e-596c-8738-b3fd2aca913b",
+      "targetCardId": "750447fd-e294-564d-b4a4-c64ae7f1da3f",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 강미정은 과거 대형 게이트 재난에서 마력 오염에 노출되었다. 근거 카드 ID: 750447fd-e294-564d-b4a4-c64ae7f1da3f",
+      "label": "오염 노출",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ]
+}

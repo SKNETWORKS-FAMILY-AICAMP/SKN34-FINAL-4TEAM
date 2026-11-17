@@ -21,4 +21,5 @@ class StudioWorld(
     @Column(name="cover_object_key", columnDefinition="text") var coverObjectKey: String? = null,
     /** 표지 이미지 형식(image/png·image/jpeg·image/webp). 업로드 바이트의 시그니처가 정한다. */
     @Column(name="cover_content_type", columnDefinition="text") var coverContentType: String? = null,
+    @Column(name="owner_metadata_version", nullable=false) var ownerMetadataVersion: Long = 0,
 )

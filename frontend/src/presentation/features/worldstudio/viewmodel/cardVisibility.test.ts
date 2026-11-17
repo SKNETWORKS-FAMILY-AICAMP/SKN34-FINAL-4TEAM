@@ -2,7 +2,14 @@ import { expect, it } from 'vitest'
 
 import { putRelation } from '../../../../domain/entities/studioRelations'
 import { newSetting, type StudioSetting } from '../../../../domain/entities/studioWorld'
-import { publicCardCount, publishAllCards, setCardVisibility } from './cardVisibility'
+import { publicCardCount, publishAllCards, setCardVisibility, visibleSelection } from './cardVisibility'
+
+it('현재 페이지에 보이는 선택만 일괄 변경한다', () => {
+  const [a, b, c] = [card('가'), card('나'), card('다')]
+  const chosen = visibleSelection([{ cardId: b.item.id }, { cardId: c.item.id }], ids(a, b))
+  expect(chosen).toEqual([b.item.id])
+  expect(setCardVisibility([a, b, c], new Set(chosen), 'public').map((row) => row.visibility)).toEqual([undefined, 'public', undefined])
+})
 
 const card = (title: string, visibility?: StudioSetting['visibility']): StudioSetting => {
   const row = newSetting('people')

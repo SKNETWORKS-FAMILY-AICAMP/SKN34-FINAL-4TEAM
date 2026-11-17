@@ -1,0 +1,246 @@
+{
+  "genre": "korean_mythology_fables",
+  "worldId": "8cbc622b-8b29-514e-889f-1bbd542cff41",
+  "relationships": [
+    {
+      "id": "dea01665-a92d-584b-83b8-a19909c33d07",
+      "sourceCardId": "41cfab89-2e8b-5737-b316-d80c9eb4be5f",
+      "targetCardId": "f17c6f80-f5cf-5cc0-af21-a6cd18539fe5",
+      "category": "structural",
+      "body": "해부루는 금와를 거두어 태자로 삼아 기른다. 근거 카드 ID: 41cfab89-2e8b-5737-b316-d80c9eb4be5f. 출처: https://db.history.go.kr/id/mudg_005_0010_0010",
+      "label": "양육",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d27b0f7d-43a9-545b-969c-57effa23cbce",
+      "sourceCardId": "64e4a45d-ad50-5f7b-9f4f-69560854a7da",
+      "targetCardId": "44971d7d-3e91-507a-b33e-44849414e731",
+      "category": "structural",
+      "body": "하백은 유화의 아버지다. 근거 카드 ID: 64e4a45d-ad50-5f7b-9f4f-69560854a7da. 출처: https://db.history.go.kr/id/mudg_005_0010_0010",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bfe9a00f-ecd3-5a82-8f47-956a7d7f4097",
+      "sourceCardId": "3adadd7f-faba-571e-b673-6768907eda65",
+      "targetCardId": "44971d7d-3e91-507a-b33e-44849414e731",
+      "category": "structural",
+      "body": "해모수와 유화는 인연을 맺었고 유화는 해모수의 아내로 불린다. 근거 카드 ID: dff8d139-d3cf-5e62-b5ef-3debe0066239. 출처: https://db.history.go.kr/id/mudg_005_0010_0010",
+      "label": "혼인",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3c7598e9-1376-5ce1-84a6-69bb25a3de42",
+      "sourceCardId": "44971d7d-3e91-507a-b33e-44849414e731",
+      "targetCardId": "c1a57539-2561-5b28-90e3-090ac516e8ec",
+      "category": "structural",
+      "body": "유화는 주몽을 낳고 그의 출발을 돕는다. 근거 카드 ID: 44971d7d-3e91-507a-b33e-44849414e731. 출처: https://db.history.go.kr/id/mudg_005_0010_0010",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f4d58c14-b71b-55a3-971b-b95653bbe7a9",
+      "sourceCardId": "f17c6f80-f5cf-5cc0-af21-a6cd18539fe5",
+      "targetCardId": "44971d7d-3e91-507a-b33e-44849414e731",
+      "category": "structural",
+      "body": "금와는 유화를 별궁에 둔다. 근거 카드 ID: f17c6f80-f5cf-5cc0-af21-a6cd18539fe5. 출처: https://db.history.go.kr/id/mudg_005_0010_0010",
+      "label": "별궁에 둠",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "38d25367-a37c-5914-973a-73919ee0d1dd",
+      "sourceCardId": "f17c6f80-f5cf-5cc0-af21-a6cd18539fe5",
+      "targetCardId": "c1a57539-2561-5b28-90e3-090ac516e8ec",
+      "category": "structural",
+      "body": "금와는 주몽에게 말을 기르는 일을 맡긴다. 근거 카드 ID: f17c6f80-f5cf-5cc0-af21-a6cd18539fe5. 출처: https://db.history.go.kr/id/mudg_005_0010_0010",
+      "label": "말 사육 명령",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6b7ace5a-c9ba-5a31-a94d-7df5840b9581",
+      "sourceCardId": "baaee4c3-a39c-5f1c-94f8-fc81a4a8545e",
+      "targetCardId": "f17c6f80-f5cf-5cc0-af21-a6cd18539fe5",
+      "category": "structural",
+      "body": "대소는 금와의 태자다. 근거 카드 ID: baaee4c3-a39c-5f1c-94f8-fc81a4a8545e. 출처: https://db.history.go.kr/id/mudg_005_0010_0010",
+      "label": "태자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f82be2a3-1c95-5b20-86dc-67e4f56afdaf",
+      "sourceCardId": "baaee4c3-a39c-5f1c-94f8-fc81a4a8545e",
+      "targetCardId": "c1a57539-2561-5b28-90e3-090ac516e8ec",
+      "category": "structural",
+      "body": "대소는 주몽을 위협으로 여겨 금와에게 대책을 말한다. 근거 카드 ID: baaee4c3-a39c-5f1c-94f8-fc81a4a8545e. 출처: https://db.history.go.kr/id/mudg_005_0010_0010",
+      "label": "경계",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e819a908-af33-51c9-9652-92c7b80afb71",
+      "sourceCardId": "c2c98578-ba01-5d79-a901-04379b313c17",
+      "targetCardId": "c1a57539-2561-5b28-90e3-090ac516e8ec",
+      "category": "structural",
+      "body": "송양은 주몽과 경쟁하다 홍수 뒤 항복한다. 근거 카드 ID: c2c98578-ba01-5d79-a901-04379b313c17. 출처: https://db.history.go.kr/id/mudg_005_0010_0010",
+      "label": "경쟁",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "89798da7-1377-59c9-81df-864407927e95",
+      "sourceCardId": "ea853517-e1bf-5622-a053-718308c127dc",
+      "targetCardId": "41cfab89-2e8b-5737-b316-d80c9eb4be5f",
+      "category": "structural",
+      "body": "아란불은 해부루에게 가섭원으로 옮길 것을 권한다. 근거 카드 ID: ea853517-e1bf-5622-a053-718308c127dc. 출처: https://db.history.go.kr/id/mudg_005_0010_0010",
+      "label": "권고",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b0f8b6e5-3a28-54ae-9331-350a06f57786",
+      "sourceCardId": "e2dd9a19-8be1-5b4b-bf84-7f882bddc468",
+      "targetCardId": "f17c6f80-f5cf-5cc0-af21-a6cd18539fe5",
+      "category": "structural",
+      "body": "어부 강력부추는 어살의 물고기 도난을 금와에게 보고한다. 근거 카드 ID: e2dd9a19-8be1-5b4b-bf84-7f882bddc468. 출처: https://db.history.go.kr/id/mudg_005_0010_0010",
+      "label": "보고",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "33ff8573-8332-5c05-86ee-bcd8efeac3ec",
+      "sourceCardId": "a06de0ff-6874-51ff-8597-484dd3967810",
+      "targetCardId": "c1a57539-2561-5b28-90e3-090ac516e8ec",
+      "category": "structural",
+      "body": "오이·마리·협보는 남행 전 주몽이 사귄 세 벗이다. 근거 카드 ID: a06de0ff-6874-51ff-8597-484dd3967810. 출처: https://db.history.go.kr/id/mudg_005_0010_0010",
+      "label": "벗",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f1c87959-59a7-5194-9fef-8d1725f7f48f",
+      "sourceCardId": "626b622e-14e5-570e-a408-48a204618d68",
+      "targetCardId": "c1a57539-2561-5b28-90e3-090ac516e8ec",
+      "category": "structural",
+      "body": "부분노는 주몽의 새 나라를 위해 비류의 북을 가져온다. 근거 카드 ID: 626b622e-14e5-570e-a408-48a204618d68. 출처: https://db.history.go.kr/id/mudg_005_0010_0010",
+      "label": "도움",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "eec7322b-ce7a-5ad4-9216-8245b912cd5e",
+      "sourceCardId": "aaad7067-f165-53dc-a91c-215cf183e6ec",
+      "targetCardId": "5d8cb34f-d7f6-58b6-a7ca-2eebdb6ad278",
+      "category": "structural",
+      "body": "고기 인용에서 환인은 환웅에게 천부인 세 개를 준 아버지다. 근거 카드 ID: aaad7067-f165-53dc-a91c-215cf183e6ec. 출처: https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8033d88b-3236-5e89-bb26-12d47c63ef1d",
+      "sourceCardId": "9c56b7e4-0205-5782-9b24-2dea1798ebe0",
+      "targetCardId": "5d8cb34f-d7f6-58b6-a7ca-2eebdb6ad278",
+      "category": "structural",
+      "body": "고기 인용에서 웅녀는 환웅과 혼인한다. 근거 카드 ID: 9c56b7e4-0205-5782-9b24-2dea1798ebe0. 출처: https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020",
+      "label": "혼인",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "681523fc-fb4d-5b39-baee-0562c411c86b",
+      "sourceCardId": "9c56b7e4-0205-5782-9b24-2dea1798ebe0",
+      "targetCardId": "7bdd1009-d54a-5140-8317-ebfa107a1ceb",
+      "category": "structural",
+      "body": "고기 인용에서 웅녀는 환웅과의 사이에서 단군왕검을 낳는다. 근거 카드 ID: 9c56b7e4-0205-5782-9b24-2dea1798ebe0. 출처: https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "981b51d0-cd91-5e97-9348-bff2fe2f2c04",
+      "sourceCardId": "5d8cb34f-d7f6-58b6-a7ca-2eebdb6ad278",
+      "targetCardId": "7bdd1009-d54a-5140-8317-ebfa107a1ceb",
+      "category": "structural",
+      "body": "고기 인용에서 환웅은 웅녀와의 사이에서 단군왕검을 낳는다. 근거 카드 ID: 9c56b7e4-0205-5782-9b24-2dea1798ebe0. 출처: https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f809d90d-1fde-535b-b8ae-375e6fa89ad1",
+      "sourceCardId": "5d8cb34f-d7f6-58b6-a7ca-2eebdb6ad278",
+      "targetCardId": "618190d5-f2d2-5411-9904-0fcc42f1ae4a",
+      "category": "structural",
+      "body": "환웅은 아버지에게 천부인 세 개를 받는다. 근거 카드 ID: 5d8cb34f-d7f6-58b6-a7ca-2eebdb6ad278. 출처: https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020",
+      "label": "수령",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6e2a57fb-50a9-5268-be3d-9418e4379588",
+      "sourceCardId": "5d8cb34f-d7f6-58b6-a7ca-2eebdb6ad278",
+      "targetCardId": "4b5605c6-9dea-5fb5-a59f-8df6b592fa4c",
+      "category": "structural",
+      "body": "환웅은 풍백·우사·운사를 거느린다. 근거 카드 ID: 4b5605c6-9dea-5fb5-a59f-8df6b592fa4c. 출처: https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020",
+      "label": "거느림",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "54de3368-1e2d-58a6-8ec5-5a4be41d902d",
+      "sourceCardId": "7bdd1009-d54a-5140-8317-ebfa107a1ceb",
+      "targetCardId": "467792f8-8bda-508a-bd53-c03b064a450b",
+      "category": "structural",
+      "body": "고기 인용에서 단군은 아사달로 도읍을 옮긴다. 근거 카드 ID: 467792f8-8bda-508a-bd53-c03b064a450b. 출처: https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020",
+      "label": "도읍",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "48ac7bae-a6f1-5b00-a666-96017ee81888",
+      "sourceCardId": "7bdd1009-d54a-5140-8317-ebfa107a1ceb",
+      "targetCardId": "840fa9ce-2aee-57d9-b083-de165cfc1223",
+      "category": "structural",
+      "body": "고기 인용에서 단군왕검은 평양성에 도읍을 정한다. 근거 카드 ID: 840fa9ce-2aee-57d9-b083-de165cfc1223. 출처: https://db.history.go.kr/ancient/level.do?levelId=sy_001_0020_0020_0020",
+      "label": "도읍",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4c31f860-d485-5d4a-a451-30effa73cce8",
+      "sourceCardId": "ff1c6b28-5027-5155-9d2c-fa2d39963a28",
+      "targetCardId": "23ee7dab-8b69-5ee6-9342-cf482132daca",
+      "category": "structural",
+      "body": "곽사자는 남복 차림의 공주를 알아보고 조심해 다녀오라고 말한다. 근거 카드 ID: ff1c6b28-5027-5155-9d2c-fa2d39963a28. 출처: Transcribed record, artificial line-boundary chunk 01 · 첫 밭 이후 사자의 출현 https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696 판본: Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계. 이용 권리: 미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음.",
+      "label": "조언",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b3bf6457-5448-50a2-8afb-cdcb8428e3a6",
+      "sourceCardId": "93877e79-6d39-5bea-bff7-010b927ef0c2",
+      "targetCardId": "9bee356b-7f23-5529-b4aa-da717dceff5b",
+      "category": "structural",
+      "body": "남복 차림의 버르떼기는 동수재를 만난다. 근거 카드 ID: 93877e79-6d39-5bea-bff7-010b927ef0c2. 출처: Transcribed record, artificial line-boundary chunk 02 · 첫 만남과 목욕 장면 https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696 판본: Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계. 이용 권리: 미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음.",
+      "label": "만남",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "38c5d6ac-edd2-574f-b8ea-849570c16c0b",
+      "sourceCardId": "9bee356b-7f23-5529-b4aa-da717dceff5b",
+      "targetCardId": "e1724b60-9668-5ca2-b983-3a60b53313b0",
+      "category": "structural",
+      "body": "동수재는 곽사자에게 공주를 안내하라고 한다. 근거 카드 ID: e1724b60-9668-5ca2-b983-3a60b53313b0. 출처: Transcribed record, artificial line-boundary chunk 02 · 돌문 출발과 약물 획득 뒤 작별 https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696 판본: Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계. 이용 권리: 미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음.",
+      "label": "안내 요청",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ]
+}

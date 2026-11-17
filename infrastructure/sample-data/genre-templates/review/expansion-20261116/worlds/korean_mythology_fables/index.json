@@ -1,0 +1,377 @@
+{
+  "world_id": "korean_mythology_fables",
+  "world_id_meaning": "기존 worldId 참조용 라벨",
+  "id_namespace": "8cbc622b-8b29-514e-889f-1bbd542cff41",
+  "id_rule": "UUIDv5(namespace, batch_id:unit_id:candidate_key); 후보 ID일 뿐 적재나 세계관 배정 아님",
+  "scope_note": "각 구간 상태는 입력 조사자의 자기보고이며, 문헌 완전 독해·의미 전수·독립 감수·중복 검토 또는 권리 해결을 뜻하지 않는다.",
+  "rights_note": "출처 전사·번역·공동체·지역별 재사용 및 상업 이용권은 확인되지 않았으며, 조사 가능이나 공개 검토는 상업적 배포 허락이 아니다.",
+  "works": [
+    {
+      "work_id": "korean-bari",
+      "world_id": "korean_mythology_fables",
+      "title": "바리떼기",
+      "target_scope": "1981-07-10 강원 양양 현북면 지경숙 채록 무가 전체; 구연 범위 및 음원 미대조",
+      "edition_language_attribution": "Korean; 지경숙 구연, 조사자 김선풍·김기현·이경주·최돈국·최영환; 한국구비문학대계",
+      "prior_investigation_grade": "A",
+      "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.1_7696",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Original work, transcription, translation, images and jurisdiction separately unverified; access is not redistribution permission.",
+        "evidence_url": null,
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "transcription_record_body_read",
+        "reason": "Local HTML <pre> transcription record bounded; audio and full performance not checked."
+      },
+      "scope_status": "partial_transcription_record_bounded_audio_unverified",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked. Transcribed record is a particular ritual performance with later ritual material, not a universal Bari narrative; preserve its context.",
+      "input_file_sha256": "bc469785ad032ec16dc805d62f6fe15f5963dc88aba3389f1b83429d5c15c583",
+      "units": [
+        {
+          "unit_id": "korean-bari--record-01",
+          "label": "Transcribed record, artificial line-boundary chunk 01",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 54681,
+            "byte_end_exclusive": 70570,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "f52b82551b98741e958b96587d1c1bec5bad6f6aac62cf251cb3254287d40884",
+            "note": "Raw institutional record including metadata, editorial context, and transcription; line cuts are artificial and may interrupt a spoken passage."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-08",
+              "unit_id": "korean-bari--record-01",
+              "status": "read",
+              "read_scope": "배정 raw 바이트 슬라이스 전체를 UTF-8로 디코드하고 HTML 태그와 본문을 구분하여 읽음",
+              "reason": null,
+              "candidate_count": 13
+            }
+          ],
+          "actual_candidates": 13
+        },
+        {
+          "unit_id": "korean-bari--record-02",
+          "label": "Transcribed record, artificial line-boundary chunk 02",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 70570,
+            "byte_end_exclusive": 85571,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "ffd8924425ec8009d4a411eb54e036586e54fd90fde1f0a43c4113439568d182",
+            "note": "Raw institutional record including metadata, editorial context, and transcription; line cuts are artificial and may interrupt a spoken passage."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-08",
+              "unit_id": "korean-bari--record-02",
+              "status": "read",
+              "read_scope": "배정 raw 바이트 슬라이스 전체를 UTF-8로 디코드하고 HTML 태그와 본문을 구분하여 읽음",
+              "reason": null,
+              "candidate_count": 11
+            }
+          ],
+          "actual_candidates": 11
+        },
+        {
+          "unit_id": "korean-bari--record-03",
+          "label": "Transcribed record, artificial line-boundary chunk 03",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 85571,
+            "byte_end_exclusive": 100584,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "5831faf905b4b9dfd3612fdf7396589c6175caea41c683d6a090015b7b7d5eea",
+            "note": "Raw institutional record including metadata, editorial context, and transcription; line cuts are artificial and may interrupt a spoken passage."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-08",
+              "unit_id": "korean-bari--record-03",
+              "status": "read",
+              "read_scope": "배정 raw 바이트 슬라이스 전체를 UTF-8로 디코드하고 HTML 태그와 본문을 구분하여 읽음",
+              "reason": null,
+              "candidate_count": 8
+            }
+          ],
+          "actual_candidates": 8
+        },
+        {
+          "unit_id": "korean-bari--record-04",
+          "label": "Transcribed record, artificial line-boundary chunk 04",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 100584,
+            "byte_end_exclusive": 111955,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "ebf92a9d8803738657bfc8e30d760bba185ec2d34154ab0b9a2bcc56fcba2e5a",
+            "note": "Raw institutional record including metadata, editorial context, and transcription; line cuts are artificial and may interrupt a spoken passage."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-08",
+              "unit_id": "korean-bari--record-04",
+              "status": "read",
+              "read_scope": "배정 raw 바이트 슬라이스 전체를 UTF-8로 디코드하고 HTML 태그와 본문을 구분하여 읽음",
+              "reason": "구연의 실제 망자 천도·가족 애도 부분이며 개인 사연을 허구 설정 후보로 전환할 근거가 없어 0건.",
+              "candidate_count": 0
+            }
+          ],
+          "actual_candidates": 0
+        },
+        {
+          "unit_id": "korean-bari--audio-comparison",
+          "label": "Audio and completeness of performance",
+          "status": "blocked",
+          "reason": "Compare transcript to complete recording and ritual scope; rights, cultural sensitivities and personal data review needed.",
+          "input_boundary": null,
+          "coverage": [],
+          "actual_candidates": 0
+        }
+      ]
+    },
+    {
+      "work_id": "korean-chogong",
+      "world_id": "korean_mythology_fables",
+      "title": "초공본풀이",
+      "target_scope": "2011-04-15 제주 애월 상가리 이승순 심방 채록 전 구간; 음원 미대조",
+      "edition_language_attribution": "Korean/Jeju; 이승순 심방 구연, 조사자 강정식·강소전·송정희; 2011-04-15 한국구비문학대계",
+      "prior_investigation_grade": "A",
+      "source_url": "https://kdp.aks.ac.kr/inde/gubi?id=POKS.GUBI.GUBI.2_14549",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Original work, transcription, translation, images and jurisdiction separately unverified; access is not redistribution permission.",
+        "evidence_url": null,
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "transcription_record_body_read",
+        "reason": "Local HTML <pre> transcription record bounded; audio and full performance not checked."
+      },
+      "scope_status": "partial_transcription_record_bounded_audio_unverified",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked. Institutional record includes synopsis, ritual performance and named living persons; privacy and ritual context require review.",
+      "input_file_sha256": "089d72ab13270cdf6b422598abe086de88fab91ca25f765c2f449127571f289e",
+      "units": [
+        {
+          "unit_id": "korean-chogong--record-01",
+          "label": "Transcribed record, artificial line-boundary chunk 01",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 55720,
+            "byte_end_exclusive": 70773,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "fa90ced2ca7030286830da9e8e29707143dbcc1fd31a2db3de624cf5abcc2ed2",
+            "note": "Raw institutional record including metadata, editorial context, and transcription; line cuts are artificial and may interrupt a spoken passage."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-09",
+              "unit_id": "korean-chogong--record-01",
+              "status": "partial",
+              "read_scope": "기록 메타데이터·편집 줄거리와 의례 시작 일부",
+              "reason": "출력이 잘려 중간 이후를 모두 확인하지 못함; 편집 줄거리만으로 후보 생성하지 않음",
+              "candidate_count": 0
+            },
+            {
+              "batch_id": "supplement-01",
+              "unit_id": "korean-chogong--record-01",
+              "status": "read",
+              "read_scope": "기존: 메타데이터·편집 줄거리·의례 시작 일부. 추가: 원전 바이트 [55720,70773) 전부를 나누어 확인; 메타데이터·편집 줄거리와 의례 구연 구별.",
+              "reason": "실제 의례·참여자 내용과 편집 줄거리는 설정 후보로 삼지 않음; 음원 미대조.",
+              "candidate_count": 0
+            }
+          ],
+          "actual_candidates": 0
+        },
+        {
+          "unit_id": "korean-chogong--record-02",
+          "label": "Transcribed record, artificial line-boundary chunk 02",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 70773,
+            "byte_end_exclusive": 86038,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "0fa39e0f26cd2946fed67122680bb6dee2d159b1d520bb609d51615928338e4e",
+            "note": "Raw institutional record including metadata, editorial context, and transcription; line cuts are artificial and may interrupt a spoken passage."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-09",
+              "unit_id": "korean-chogong--record-02",
+              "status": "partial",
+              "read_scope": "신청 말미와 본풀이의 양친·작명·내기 등 출력된 일부",
+              "reason": "출력 중간이 잘려 불공 및 출생 대목을 모두 확인하지 못함",
+              "candidate_count": 2
+            },
+            {
+              "batch_id": "supplement-01",
+              "unit_id": "korean-chogong--record-02",
+              "status": "read",
+              "read_scope": "기존: 신청 말미와 양친·작명·내기 등 일부. 추가: 원전 바이트 [70773,86038) 전부 나누어 확인, 불공과 출생 대목 포함.",
+              "reason": "인공 경계로 구연 앞뒤가 이어짐; 음원 미대조.",
+              "candidate_count": 2
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "korean-chogong--record-03",
+          "label": "Transcribed record, artificial line-boundary chunk 03",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 86038,
+            "byte_end_exclusive": 101056,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "e997a4fddb1e922ff59d2a1f30e4140b879c69bb973209b14c090f9bcb3d4b4e",
+            "note": "Raw institutional record including metadata, editorial context, and transcription; line cuts are artificial and may interrupt a spoken passage."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-09",
+              "unit_id": "korean-chogong--record-03",
+              "status": "partial",
+              "read_scope": "문을 여는 장면부터 여정·낟알 시험 시작까지 출력된 부분",
+              "reason": "출력 끝이 잘려 낟알 시험 끝부분을 모두 확인하지 못함",
+              "candidate_count": 3
+            },
+            {
+              "batch_id": "supplement-01",
+              "unit_id": "korean-chogong--record-03",
+              "status": "read",
+              "read_scope": "기존: 문을 여는 장면부터 여정·낟알 시험 시작까지 일부. 추가: 원전 바이트 [86038,101056) 전부 나누어 확인; 시험 결과는 다음 구간.",
+              "reason": "경계 끝은 시험 도중; 낟알 시험 결과는 이 구간 밖.",
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 7
+        },
+        {
+          "unit_id": "korean-chogong--record-04",
+          "label": "Transcribed record, artificial line-boundary chunk 04",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 101056,
+            "byte_end_exclusive": 116200,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "fc7395000ef3d63df1daeca369f4018826e779b8943ee68e17daa7a902369ed0",
+            "note": "Raw institutional record including metadata, editorial context, and transcription; line cuts are artificial and may interrupt a spoken passage."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-09",
+              "unit_id": "korean-chogong--record-04",
+              "status": "read",
+              "read_scope": "본풀이 새 도움부터 과거·편지 시작",
+              "reason": null,
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "korean-chogong--record-05",
+          "label": "Transcribed record, artificial line-boundary chunk 05",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 116200,
+            "byte_end_exclusive": 131298,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "8849a440bae6a51c8dfe338794549a2685eaaaabfaa047573a57c64ff06dfadf",
+            "note": "Raw institutional record including metadata, editorial context, and transcription; line cuts are artificial and may interrupt a spoken passage."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-09",
+              "unit_id": "korean-chogong--record-05",
+              "status": "read",
+              "read_scope": "본풀이 편지부터 유정승 딸의 첫 굿 준비 및 일부한잔 시작",
+              "reason": null,
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "korean-chogong--record-06",
+          "label": "Transcribed record, artificial line-boundary chunk 06",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 131298,
+            "byte_end_exclusive": 148490,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "28fe04997e163df28ca4387213649ea3517c7137ae4f13e62b699c5dada91a99",
+            "note": "Raw institutional record including metadata, editorial context, and transcription; line cuts are artificial and may interrupt a spoken passage."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-09",
+              "unit_id": "korean-chogong--record-06",
+              "status": "read",
+              "read_scope": "일부한잔 나머지, 비념, 주잔넘김, 산받음, 제차마끔 전사",
+              "reason": "실제 참여자의 사연과 의례 대화로서 허구 설정 후보로 추출하지 않음",
+              "candidate_count": 0
+            }
+          ],
+          "actual_candidates": 0
+        },
+        {
+          "unit_id": "korean-chogong--audio-comparison",
+          "label": "Audio and completeness of performance",
+          "status": "blocked",
+          "reason": "Compare transcript to complete recording and ritual scope; rights, cultural sensitivities and personal data review needed.",
+          "input_boundary": null,
+          "coverage": [],
+          "actual_candidates": 0
+        }
+      ]
+    },
+    {
+      "work_id": "korean-garak",
+      "world_id": "korean_mythology_fables",
+      "title": "가락국기: 수로왕 탄생",
+      "target_scope": "삼국유사 권2 기이 가락국기 수로왕 탄생 해당 부분",
+      "edition_language_attribution": "Classical Chinese and modern Korean; 국사편찬위원회; exact edition/editor unverified",
+      "prior_investigation_grade": "A",
+      "source_url": "https://db.history.go.kr/id/sy_002r_0010_0230_0010",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Original work, transcription, translation, images and jurisdiction separately unverified; access is not redistribution permission.",
+        "evidence_url": null,
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "blocked",
+        "reason": "robots.txt disallows request"
+      },
+      "scope_status": "incomplete",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": null,
+      "units": [
+        {
+          "unit_id": "korean-garak--scope-pending",
+          "label": "삼국유사 권2 기이 가락국기 수로왕 탄생 해당 부분",
+          "status": "blocked",
+          "reason": "Body bounds, complete scope and section boundaries not yet validated",
+          "input_boundary": null,
+          "coverage": [],
+          "actual_candidates": 0
+        }
+      ]
+    }
+  ],
+  "special_note": "전사된 무가 본풀이와 편집 줄거리 및 실제 의례·참여자를 구분한다. 음원과 의례 맥락의 독립 대조는 미완료다."
+}

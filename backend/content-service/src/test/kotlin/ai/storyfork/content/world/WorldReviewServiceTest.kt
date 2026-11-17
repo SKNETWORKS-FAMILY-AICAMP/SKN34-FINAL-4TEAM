@@ -5,6 +5,7 @@ import ai.storyfork.content.world.client.InitialWorldCallFailure
 import ai.storyfork.content.world.client.InitialWorldExtractionClient
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldStudioFailure
+import ai.storyfork.content.world.domain.WorldConflict
 import ai.storyfork.content.world.service.WorldReviewInput
 import ai.storyfork.content.world.service.WorldReviewService
 import ai.storyfork.content.world.service.WorldStudioService
@@ -31,7 +32,7 @@ class WorldReviewServiceTest {
 
     private fun saved(vararg cards: CardPayload): WorldDraftResponse {
         val draft = WorldDraftResponse(world, 12, null, null, "세계", "설명", cards.toList(), emptyList())
-        `when`(studio.draft(world, owner)).thenReturn(draft)
+        `when`(studio.draftForReview(world, owner)).thenReturn(draft)
         return draft
     }
 
@@ -84,10 +85,19 @@ class WorldReviewServiceTest {
     }
 
     @Test fun `a world the caller cannot read is never sent to the AI`() {
-        doThrow(WorldNotFound()).`when`(studio).draft(world, owner)
+        doThrow(WorldNotFound()).`when`(studio).draftForReview(world, owner)
         assertThrows<WorldNotFound> { service.review(world, owner, true) }
-        doThrow(WorldStudioFailure.incomplete()).`when`(studio).draft(world, owner)
+        doThrow(WorldStudioFailure.incomplete()).`when`(studio).draftForReview(world, owner)
         assertEquals("RELATIONSHIP_WRITE_INCOMPLETE", assertThrows<WorldStudioFailure> { service.review(world, owner, true) }.code)
         verifyNoInteractions(ai)
+    }
+    @Test fun `unfinished expansion blocks AI and completed expansion can be reviewed`() {
+        val draft=WorldDraftResponse(world,12,null,null,"세계","설명",listOf(hero),emptyList())
+        doThrow(WorldConflict()).doReturn(draft).`when`(studio).draftForReview(world,owner)
+        `when`(ai.review(WorldReviewInput.fromDraft(draft))).thenReturn(oneFinding)
+        assertThrows<WorldConflict> { service.review(world,owner,true) }
+        verifyNoInteractions(ai)
+        assertEquals(1,service.review(world,owner,true).reviewedCards)
+        verify(ai).review(WorldReviewInput.fromDraft(draft))
     }
 }

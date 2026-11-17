@@ -1,0 +1,390 @@
+{
+  "worlds": [
+    {
+      "genre": "wuxia",
+      "worldId": "4fe1e070-e9f4-5d85-8923-c34da0b276e5",
+      "name": "회귀한 망나니 소공자 설정집",
+      "description": "무협 창작 샘플; 기본 템플릿과 확장 설정은 별도 보존. 실제 저자 인증·발행 기록이 아님.",
+      "chunks": [
+        "wuxia-001-c6a97b5f886fa901d42ad6a9aee3cc13ca7273bb3faef76804af475868006627.json",
+        "wuxia-002-be7b927ef6bd8736b47a980615f10348d83bde6e27707611584efab2c34dc562.json"
+      ]
+    },
+    {
+      "genre": "romance_fantasy",
+      "worldId": "b96f7f39-02ea-5b33-bcc8-d5234df4b815",
+      "name": "악녀는 북부 대공과 계약한다 설정집",
+      "description": "로맨스 판타지 창작 샘플; 기본 템플릿과 확장 설정은 별도 보존. 실제 저자 인증·발행 기록이 아님.",
+      "chunks": [
+        "romance_fantasy-001-058f2e248aa0ac646614f920350c33b9a2eadb3e7f1b409cf79703dc430c33ad.json",
+        "romance_fantasy-002-1d272671a569ad5bd391837a73e37d11d71af4456267bb340e4c30a11d670463.json"
+      ]
+    },
+    {
+      "genre": "modern_fantasy",
+      "worldId": "6e7238c5-6da9-5b21-bd5c-74a12c7953a0",
+      "name": "나만 보이는 EX급 성장창 설정집",
+      "description": "현대 판타지 창작 샘플; 기본 템플릿과 확장 설정은 별도 보존. 실제 저자 인증·발행 기록이 아님.",
+      "chunks": [
+        "modern_fantasy-001-62d01e9f6e49d10ee1d7032c9445b61e1e633af5614aba3767299efb066b5184.json",
+        "modern_fantasy-002-5274cfd1b8c425e78c2709e2ae1a6c7e3749c27c250e2cd85013c77c02ce2bf3.json"
+      ]
+    },
+    {
+      "genre": "science_fiction",
+      "worldId": "568970f1-b862-5dd4-bfbb-adea96e17a26",
+      "name": "폐함의 함장이 된 정비공 설정집",
+      "description": "SF 창작 샘플; 기본 템플릿과 확장 설정은 별도 보존. 실제 저자 인증·발행 기록이 아님.",
+      "chunks": [
+        "science_fiction-001-e319d44afe6a5ece18a87c02eddb32458529f7d29b8e237772d8bfff84642204.json",
+        "science_fiction-002-e6a37cdeb8eb842ac0ea797320eb9861df978a18bfd60aa40e705ec156119baf.json"
+      ]
+    },
+    {
+      "genre": "alternate_history",
+      "worldId": "c5d42f50-d2e6-5e25-8a2e-99e68e23ff05",
+      "name": "눈 떠 보니 몰락 예정 왕자 설정집",
+      "description": "대체역사 창작 샘플; 기본 템플릿과 확장 설정은 별도 보존. 실제 저자 인증·발행 기록이 아님.",
+      "chunks": [
+        "alternate_history-001-732d8672903c095f8737b6182dcb57ccb78ae7553291dedee5939442c4fbc3d0.json",
+        "alternate_history-002-53a8da5cf1ce33c90a13773bc10f69f2cc96594268701788e7939526bdf3481a.json"
+      ]
+    },
+    {
+      "genre": "game_fantasy",
+      "worldId": "0942bc5d-0aa2-5c59-807f-fa1825735e29",
+      "name": "서비스 종료한 게임의 유일한 공략자 설정집",
+      "description": "게임 판타지 창작 샘플; 기본 템플릿과 확장 설정은 별도 보존. 실제 저자 인증·발행 기록이 아님.",
+      "chunks": [
+        "game_fantasy-001-275eb5c3e14c2d492e7afd15453f835386a1d14df935c4dbc834beae7c0d35c8.json",
+        "game_fantasy-002-3a2dbed20d5ae7b83456f3002239782087a5a12d8f371676599f9550ba0fe97a.json"
+      ]
+    },
+    {
+      "genre": "fusion_fantasy",
+      "worldId": "2d5fd476-d31d-5b35-9e58-e7451014a81a",
+      "name": "무림에서 돌아온 마법 아카데미의 낙제생 설정집",
+      "description": "퓨전 판타지 창작 샘플; 기본 템플릿과 확장 설정은 별도 보존. 실제 저자 인증·발행 기록이 아님.",
+      "chunks": [
+        "fusion_fantasy-001-27c8398f37c4aa7d8cf8596a10332a152aec684d6c4d4b7b2f421b7564601f56.json",
+        "fusion_fantasy-002-a155874afa0201ea6820ce6bc9d6e77d5c3a547bd84208a19286f34506d71248.json"
+      ]
+    },
+    {
+      "genre": "territory_management",
+      "worldId": "5f75d486-b70e-5399-83f5-c49a5a784603",
+      "name": "망나니 영주는 황무지에 도시를 세운다 설정집",
+      "description": "영지물 창작 샘플; 기본 템플릿과 확장 설정은 별도 보존. 실제 저자 인증·발행 기록이 아님.",
+      "chunks": [
+        "territory_management-001-cddb4b11d2a5e9d21e176b857a2fc7212154cb4df28ec8b137c12b4901ff9066.json",
+        "territory_management-002-144e048f6bb76b1fcf1f1fea2e3a232a2853914bcc2418d5f3da624db5df7398.json"
+      ]
+    },
+    {
+      "genre": "apocalypse",
+      "worldId": "3cf7aea1-14ed-58af-9f2e-74f13d171cad",
+      "name": "멸망 30일 전, 마지막 생존자가 돌아왔다 설정집",
+      "description": "아포칼립스 창작 샘플; 기본 템플릿과 확장 설정은 별도 보존. 실제 저자 인증·발행 기록이 아님.",
+      "chunks": [
+        "apocalypse-001-e22742c0c6db600cf7de85d7a9738babe575d2d87a9049c99496123ecf4e356f.json",
+        "apocalypse-002-87ce2c9cecfe30fe9bd3235bdfa0585a40abe1b2cdd13edec9be06f0999a7066.json"
+      ]
+    },
+    {
+      "genre": "sports_fantasy",
+      "worldId": "1625407b-9bf9-5946-88c2-ca911a6e1466",
+      "name": "방출된 유망주가 미래의 축구를 안다 설정집",
+      "description": "스포츠 판타지 창작 샘플; 기본 템플릿과 확장 설정은 별도 보존. 실제 저자 인증·발행 기록이 아님.",
+      "chunks": [
+        "sports_fantasy-001-57542991408a6dd681ac11b48a1a304ac7407423a94ff4296402c41faf35ca58.json",
+        "sports_fantasy-002-3daaf2027ee72d816c3de120cb789577239e5a9864654a8d6df5bebdf788ecf1.json"
+      ]
+    },
+    {
+      "genre": "entertainment",
+      "worldId": "2d96298b-88e4-5737-8efe-a85ee2e2fffe",
+      "name": "추락한 천재 배우가 회귀했다 설정집",
+      "description": "연예계물 창작 샘플; 기본 템플릿과 확장 설정은 별도 보존. 실제 저자 인증·발행 기록이 아님.",
+      "chunks": [
+        "entertainment-001-f75f12e4928f78bfd5839f3c05a17f1de0948369f3877f2e0b09d1c99cf45b1d.json",
+        "entertainment-002-d728adc9e329c7b122121270a1c101bacfc532a0b80b1e4d9f761d6643c4b315.json"
+      ]
+    },
+    {
+      "genre": "sumerian_mythology",
+      "worldId": "41adfa23-2e60-5b04-885a-994cf2478a18",
+      "name": "수메르 전승: 구데아 원통과 별도 신화",
+      "description": "구데아 원통 A·B를 바탕으로 한 설정 카드다. 별도 전승 카드는 ETCSL의 《이난나의 저승 하강》과 《엔키와 닌후르상가》를 추가하며 수메르 전승 전체를 대표하지 않는다.",
+      "chunks": [
+        "sumerian_mythology-001-94e062d52715c8e4f23aeb42592ed3a4fd9bf68bba8dc24247896a09646bf044.json",
+        "sumerian_mythology-002-c3eb853a86bbb6aed63e03506deafe76ff27fe3df7fd5d1ed576e20698f73be9.json"
+      ]
+    },
+    {
+      "genre": "cthulhu_mythos",
+      "worldId": "79fceb31-e918-5605-bfd3-a5123daf799f",
+      "name": "크툴루 신화 · 러브크래프트의 선택된 작품",
+      "description": "《크툴루의 부름》과 《던위치의 공포》, 《다곤》, 《우주에서 온 색채》, 《인스머스의 그림자》에서 직접 확인한 일부 항목. 전체 신화 백과가 아니며 증언·꿈·작중 문헌·화자의 추론과 후대 분류를 구분한다.",
+      "chunks": [
+        "cthulhu_mythos-001-98b8837f142bf4a35a9dd40791920bd60084df491286363c620440fb755bae04.json",
+        "cthulhu_mythos-002-af5a3d06e495ce61ebde490a6c66aa5bab711f75eb84b0183f2a8abac2cef535.json",
+        "cthulhu_mythos-003-524f9fdaf962acbdf90f62b6f2516b71fb67eaf3fe3ef9c7954acf4edf018ab1.json"
+      ]
+    },
+    {
+      "genre": "norse_mythology",
+      "worldId": "cb459e34-c38c-56f4-af2d-7bfdb3321b88",
+      "name": "북유럽 신화: 에다 전승",
+      "description": "《볼루스파》 벨로스 영어판 66연을 비롯해, 《산문 에다》의 「길피의 속임수」·「시어법」 및 《시 에다》의 「그림니르의 말」·「하바말」·「트림의 노래」·「히미르의 노래」에서 확인한 일부 전승을 출전별로 요약한다. 북유럽 신화 전체나 에다 전체의 완역·완전한 전승 목록이 아니다.",
+      "chunks": [
+        "norse_mythology-001-b813a482a1402825fe001e8718bdda8714c71b261752c69c3841398a2523a966.json",
+        "norse_mythology-002-4916a5e57496029814705dd78fc47a4537793632094758cd43b08ae636c9ffe8.json"
+      ]
+    },
+    {
+      "genre": "greco_roman_mythology",
+      "worldId": "7c081689-8b1f-53b7-856f-78b779bbe289",
+      "name": "그리스·로마 신화와 전승",
+      "description": "헤시오도스 《신통기》 관련 카드에 호메로스 서사시·찬가, 아폴로도로스 신화집, 베르길리우스 서사시의 선별 전승을 추가한다. 작품별 차이를 보존하며 모든 그리스·로마 전승의 망라를 주장하지 않는다.",
+      "chunks": [
+        "greco_roman_mythology-001-4536efb85f193410e97053db35143e06d3927fc51debb13bd4fd064ec90ca3d0.json",
+        "greco_roman_mythology-002-1a2cfb78c95c3e435f1319192966b524a8fd43b21bbbc881e9ad5b79cea097fd.json"
+      ]
+    },
+    {
+      "genre": "germanic_folklore",
+      "worldId": "278f30fb-e7cf-54b0-b007-38266319945f",
+      "name": "게르만 설화 · 홀레 부인",
+      "description": "그림 형제의 「홀레 부인」(1857년 제7판) 한 작품을 바탕으로 한 세계관 카드. 다른 동화나 고대 게르만·북유럽 신화의 설정을 합치지 않으며, 원판의 헤센 지방 각주를 본문과 구분한다.",
+      "chunks": [
+        "germanic_folklore-001-20e7e39c92b79bcaaa8c4cb7656e82df439f85e85e400f3d86c6a529f0242e2c.json",
+        "germanic_folklore-002-3c3d7948ce883892f06cdc48a2db6701025e98308c3554310094634f9baaf8fe.json"
+      ]
+    },
+    {
+      "genre": "chinese_folklore",
+      "worldId": "d691ae17-7f67-5377-8868-3f5202ecd65f",
+      "name": "중국 고대 신화·설화: 천문과 별도 전승",
+      "description": "카드는 《천문》의 물음과 별도로 《태평어람》에 인용된 《삼오력기》·《열자》·《풍속통》 및 《회남자》 권6 남명훈의 대표 전승을 수록한다. 서로 다른 출전의 서사를 단일 연표로 합치지 않는다.",
+      "chunks": [
+        "chinese_folklore-001-9d6ee1b224b939e976005ebf49b0fa6c3eeaf50b56d26bd7f7171d2d2f82c602.json",
+        "chinese_folklore-002-2482aafbe2760d10c506da2fdea47779108442c0eddb003f23cd5b7e7bd47991.json"
+      ]
+    },
+    {
+      "genre": "japanese_mythology",
+      "worldId": "3a1d491a-59d7-5a43-92f8-dfdcd342dd79",
+      "name": "일본 신화: 고사기와 일본서기",
+      "description": "카드는 체임벌린 영어판 《고사기》와 별도로 《일본서기》 권1 본문과 일서의 대표 사례를 추가하며 각 서술의 차이를 구분한다. 역사적 왕권 서사와 현재의 종교 실천을 하나의 체계로 일반화하지 않는다.",
+      "chunks": [
+        "japanese_mythology-001-4ac3e3626aa976e18a47e40eeb0548ad36fa34519a596fed47b0cb4f191150de.json",
+        "japanese_mythology-002-9bf07978a8e248cd53dce4f8bb1e9b9032305a404fc28a7af9671da9458ad500.json"
+      ]
+    },
+    {
+      "genre": "korean_mythology_fables",
+      "worldId": "8cbc622b-8b29-514e-889f-1bbd542cff41",
+      "name": "한국 신화 · 동명왕편과 고조선 전승",
+      "description": "카드는 이규보 「동명왕편」과 별도로 《삼국유사》 권1 고조선의 「고기」 인용을 대표 예시로 보완한다. 주몽과 단군의 전승을 통합 계보로 만들지 않으며, 바리공주와 제주 본풀이는 직접 확인한 구술 원문을 확보하지 못해 수록하지 않는다.",
+      "chunks": [
+        "korean_mythology_fables-001-1edb2caeab71ef0978f15149b428664a32a7265b1d19a7496cfca4c657ee2844.json",
+        "korean_mythology_fables-002-87e095398007fc273f0c4a5b7209915c3119f06aa0619285a672d497021da3e2.json"
+      ]
+    },
+    {
+      "genre": "egyptian_mythology",
+      "worldId": "c1817611-1c16-5eb0-b39f-9cffecd0cbfd",
+      "name": "이집트 전승: 라와 이시스 및 피라미드 문서",
+      "description": "버지 1912년 「라와 이시스의 전설」에 근거한 카드다. 별도 전승 카드는 우나스 피라미드 문서의 장송 주문 23·213·219·252를 추가하며 이집트 전승 전체를 대표하지 않는다.",
+      "chunks": [
+        "egyptian_mythology-001-49ab59d04c93ebc6051384ac8d44d29b8f58eb147bd9be4662c3d5bbb06d7a8a.json",
+        "egyptian_mythology-002-bf07186085ffc0be06a00f626765305e21a25012a94952f9a497b14ae1df02fa.json"
+      ]
+    },
+    {
+      "genre": "indian_mythology",
+      "worldId": "54591714-aae0-5694-8da9-2b73a64cc53f",
+      "name": "인도 전승: 바가바드기타와 리그베다",
+      "description": "텔랑 1882년판 《바가바드기타》 1–18장에 근거한 카드다. 별도 전승 카드는 《리그베다》 1.1·1.32·10.90·10.129를 추가하며 인도 전승 전체의 선집이 아니다.",
+      "chunks": [
+        "indian_mythology-001-2ac082388611f9b9d1f74d738235af04b7ea7652ec82cc4a5dee508df4845a30.json",
+        "indian_mythology-002-fcdb046c74e849884ce25b7315b2bdbfbe98d53d2164209997b8fadffeee6d58.json"
+      ]
+    },
+    {
+      "genre": "celtic_mythology",
+      "worldId": "9a085473-158b-5a61-ae38-df7843dc3dcb",
+      "name": "켈트 전승 · 브란의 항해",
+      "description": "《브란의 항해》 한 작품의 1895년 마이어 영역본에 근거한 설정 카드. 이세계 노래·항해·귀환을 구분하며 기독교적 층위와 교감 판본의 불확실성도 보존한다.",
+      "chunks": [
+        "celtic_mythology-001-831449618a76d5a686a1811ff25b354bd33346994b4c6ad6029dabdb5012e121.json",
+        "celtic_mythology-002-2a55d4c9637f53f7b090fbf5943256d8fc059d3d9e0655b5e33a10a921165fbe.json"
+      ]
+    },
+    {
+      "genre": "slavic_mythology",
+      "worldId": "78cc7495-2652-50f4-941b-cbf0e4203811",
+      "name": "슬라브 민담 · 마리야 모레브나",
+      "description": "매그너스의 『러시아 민담집』에 실린 「마리야 모레브나」 한 작품에 근거한 세계관 카드. 중세 루스 신앙, 다른 민담, 몸 밖의 알에 생명을 숨긴 다른 코셰이 판본을 합치지 않는다.",
+      "chunks": [
+        "slavic_mythology-001-2fe4aa2b482ddcd608ff15994170a3401498d25ff85b11a45ae079c74d1e1146.json",
+        "slavic_mythology-002-44926955be7a490db69a47e2938049c3091119ae531d1b38f3c1dae19181b056.json"
+      ]
+    },
+    {
+      "genre": "maya_mythology",
+      "worldId": "c5bc8992-b7cb-5ddf-9033-74d707ceda41",
+      "name": "마야 전승: 키체의 포폴 부",
+      "description": "키체의 《포폴 부》 브라쇠르 1861년 프랑스어판의 머리말·45장·세 왕가 계보·맺음말을 범위로 설정을 정리한다. 창세·영웅담뿐 아니라 민족 이동과 왕권의 역사까지 포함하며, 저본 자체의 결락 한 곳은 명시한다.",
+      "chunks": [
+        "maya_mythology-001-26c0b35526384d59bb8d1fbd5e00b1368672a147e74815a271df44ba6214045f.json",
+        "maya_mythology-002-28a3d3f13bdfb316f122750dac8dde38516098c95a8977d937a9afaff0f3c89e.json"
+      ]
+    },
+    {
+      "genre": "aztec_mythology",
+      "worldId": "b91abcca-af8b-5460-bf33-4bf5bf668e04",
+      "name": "아즈텍 신화 · 그림으로 전한 멕시코인들의 역사",
+      "description": "16세기 익명 문헌 「그림으로 전한 멕시코인들의 역사」 한 작품의 1882년 게재본을 바탕으로 설정을 정리한다. 창조와 태양, 이주와 왕조, 스페인 정복, 하늘과 법, 토치밀코 계보, 달력과 제복까지 포함하며 다른 문헌의 신화를 덧붙이지 않는다.",
+      "chunks": [
+        "aztec_mythology-001-80debc52c5c88d9dcdeb20a2db8b7577a3630e4b8d3b6f84e893759acdc5f7e2.json",
+        "aztec_mythology-002-441c9dc49a72f17e0a3a383867277d9bbab0f7f32026bd637fe607c9e1d7e0c9.json"
+      ]
+    },
+    {
+      "genre": "journey_to_the_west",
+      "worldId": "3866acbf-f549-5d55-95e2-0e4246a5e8d7",
+      "name": "서유기 · 백회본",
+      "description": "현행 위키문헌 100회본 《서유기》 한 작품을 바탕으로 정리한 인물·장소·도구·능력·사건 자료. 청대에 삽입된 진광예 일화를 제9회에 두는 현행 배열을 따르며 1592년 초판 자체의 번역으로 표기하지 않는다. 역사적 현장의 여행 기록 및 중국 종교 전체와 구별한다.",
+      "chunks": [
+        "journey_to_the_west-001-a55453f3b659438d7680f4a8d0c643d731e46e727a1c4e20cd837ff681e0a355.json",
+        "journey_to_the_west-002-d359278399c38dd2e78c77cc884690082ff82f2a3a3353a8ac2fa714e2fdcc3b.json",
+        "journey_to_the_west-003-64798b953e5342aed9c118b270d3e8ff6b56231066121b00dd213886a063580c.json"
+      ]
+    },
+    {
+      "genre": "china_history",
+      "worldId": "d3c3b3bc-1ee5-5361-82bd-d2679a258a02",
+      "name": "중국 역사",
+      "description": "역사 자료에서 추출한 검토 후보. 역사 감수와 원전·요약의 재배포 권리는 미확인.",
+      "chunks": [
+        "china_history-001-fda585168883a3ede54745aa323270e65a46d1613a53b51a455ea7861137354e.json",
+        "china_history-002-737dcfdf2ec3aa1794b5f706346d20915c53540e981e61d19307326b2bc6feec.json",
+        "china_history-003-da487e931015fbb7f3121b2115f87a383ce27116f32e018b7fc62ac32d5fa224.json",
+        "china_history-004-33aaf2fe1613b8ee0fa7627792275a6a114b15e5c8743cdce48cc5409e83eec9.json",
+        "china_history-005-e2710cfbf6c2c67522e9699f580257073e77b30be73004f62e2a1bcb2db43096.json"
+      ]
+    },
+    {
+      "genre": "england_history",
+      "worldId": "c1af4125-5423-5633-a5da-822b4753df94",
+      "name": "잉글랜드 역사",
+      "description": "역사 자료에서 추출한 검토 후보. 역사 감수와 원전·요약의 재배포 권리는 미확인.",
+      "chunks": [
+        "england_history-001-0857723699b354273ba71c37a43f4c7ed2f9cbf099de02aaf9492973b585ce8f.json",
+        "england_history-002-056359f04cb313b26272dfe37b35862b24b362ceee2e3b69568e8885ba402610.json",
+        "england_history-003-ef2e1bb89e2e5b30c2b0aa0f0fe0996cea98b55035a04b1f813ec94475602f8e.json",
+        "england_history-004-e6695ceba1fb0dda8a21590ffdf40df3cb9def36c5bf582c87d90030682c1534.json",
+        "england_history-005-a04065019c75ccf094ca011f2031d933270dd5b5b222f9f8e5880cae7d96abd1.json",
+        "england_history-006-8dea1139f534473475591abaef933bac9892028e007ffc2f45a64d013f4024e6.json",
+        "england_history-007-5f98701fe15bd74d55af46fb9f824c745c35133561b3b5759a9921f58168259f.json",
+        "england_history-008-66cf77261f521ff9643a4d4555e2f27d6d2ae8e0d80424d645386756fc05de52.json",
+        "england_history-009-4f51ff9d62d12c50eb3c641ff0e9af3e2200735d6bc259a128b0df058338f567.json",
+        "england_history-010-d57c4a2f39f2cadbaba096dc21aec2d7ed3c663037f6d08e7ff11e18ba85eea7.json"
+      ]
+    },
+    {
+      "genre": "france_history",
+      "worldId": "67907b53-fdd0-5771-8d78-0f317a0f71b9",
+      "name": "프랑스 역사",
+      "description": "역사 자료에서 추출한 검토 후보. 역사 감수와 원전·요약의 재배포 권리는 미확인.",
+      "chunks": [
+        "france_history-001-89f82745829740f910ec23dd9f0fe457fb58616f462693124c9169bf6c5d93fc.json",
+        "france_history-002-fbf2e3b0af13e43313df4790def5079ff1e425aa154aaa79fb34b875411aa738.json"
+      ]
+    },
+    {
+      "genre": "italy_history",
+      "worldId": "936b9d62-a1de-59a2-b8e0-1d52327464de",
+      "name": "이탈리아 역사",
+      "description": "역사 자료에서 추출한 검토 후보. 역사 감수와 원전·요약의 재배포 권리는 미확인.",
+      "chunks": [
+        "italy_history-001-c1f84ab208703dab0dedbc692d8b558f4443efdf53ee36c8c36559b015a9b80c.json",
+        "italy_history-002-a60187a8afce94f3c5d0cee44e9a61163e2e882cf2b7ae78770aea183352908d.json",
+        "italy_history-003-c67cd60f605025991e1027d27e5684c9e92ba4a22476b4756bd35287bc060f9e.json",
+        "italy_history-004-7487e36eb5c391f67ec53a9e175472f931f0335f7e40a12d8128d53e7454e2ea.json"
+      ]
+    },
+    {
+      "genre": "japan_history",
+      "worldId": "8c3a276f-dda5-5b5d-89da-55221ee3d710",
+      "name": "일본 역사",
+      "description": "역사 자료에서 추출한 검토 후보. 역사 감수와 원전·요약의 재배포 권리는 미확인.",
+      "chunks": [
+        "japan_history-001-48c60755d08948965846a4e837777fc3ae861a509237b39a30eecab4260998d6.json",
+        "japan_history-002-3ac8d3c9a030d5f2fa58de3aa91336ed91e286ed3297b7fc235f4e580e93b687.json",
+        "japan_history-003-6d12ad107fe5b283e27b6b1d21b78a8596478e8cf330688064b89f7033e81c56.json"
+      ]
+    },
+    {
+      "genre": "korea_history",
+      "worldId": "b08b14fa-dc75-5e3b-8067-148fb6346c72",
+      "name": "한국 역사",
+      "description": "역사 자료에서 추출한 검토 후보. 역사 감수와 원전·요약의 재배포 권리는 미확인.",
+      "chunks": [
+        "korea_history-001-060e60fba6c16185f9331d1081e502de35e70700c1dacc4fb97f09ff05c2c73b.json",
+        "korea_history-002-0a816a3ce300e142de5a4bab60c52bbb915cae999aedac27216b9b1a68beb809.json",
+        "korea_history-003-2f421cf264eff607a33e5efae298a361c8228af28d239317869312f3dba937a4.json",
+        "korea_history-004-63792e637c6973ff01ec4c567458ded394fea60c73156655c146215d6570bd9f.json",
+        "korea_history-005-765ffed66d1f667ed033e5b1fdead33477f59360c3047e7bfbe2a6305908075d.json"
+      ]
+    },
+    {
+      "genre": "usa_history",
+      "worldId": "caa0b0e9-0305-566e-82ee-650f43aa464e",
+      "name": "미국 역사",
+      "description": "역사 자료에서 추출한 검토 후보. 역사 감수와 원전·요약의 재배포 권리는 미확인.",
+      "chunks": [
+        "usa_history-001-55d828235c238fb010306827eaa8cf7e150786c242775c4949240990a6229ce7.json",
+        "usa_history-002-f86657fc092fb6a3418e3e268a493f41afa2f67a7c885b782287758d5b14415a.json",
+        "usa_history-003-3a3119cdfd5fe528d6220f089c1307fd4ad471119bfb9be2f37e81fd07aa9885.json",
+        "usa_history-004-8190c2b60ed448347c41c48adcd48642be3799dba3561009bac76807bf47665f.json",
+        "usa_history-005-362a48c19f0096d24c0f4c40f27a2340689fb987b98fa0fa767df443b92dff71.json",
+        "usa_history-006-b7f67008144a093c958108d5bb84501f86aa9cf1cfe2ae891bfa5b17a14964ed.json",
+        "usa_history-007-dab943a927782d3ecdcc3bba1e5c786103891158bd702e19f521d921045f0513.json",
+        "usa_history-008-2d4db4bb9b025f359664ecff1d8a214d82684f50bbd2ba9dbe63f3219b609759.json",
+        "usa_history-009-2926b9e4b169cd88e4cb309a45e4312e82ce84f010d9e44b46e4d1ee2f0752ee.json",
+        "usa_history-010-e5631333ca9030417f9cf3ed84b22ac609c1afdc15222b44d0999729baadab7a.json"
+      ]
+    },
+    {
+      "genre": "hawaiian_tradition",
+      "worldId": "6082fbff-0610-5bf7-bd76-6b3bfc3a12c2",
+      "name": "하와이 전승",
+      "description": "전승 자료에서 추출한 검토 후보. 판본·전승의 차이와 재배포 권리는 미확인.",
+      "chunks": [
+        "hawaiian_tradition-001-49cf6669169ad45878cc067b532e508368a8adfb7388fd554145927430b49fe0.json",
+        "hawaiian_tradition-002-a050c95de47f336b01730ab851b67a38a95eae098ac076e7a6b04cdba65c8390.json"
+      ]
+    },
+    {
+      "genre": "inca_tradition",
+      "worldId": "48aa45ea-04fe-5f12-9ef9-f3b5b1c25913",
+      "name": "잉카 전승",
+      "description": "전승 자료에서 추출한 검토 후보. 판본·전승의 차이와 재배포 권리는 미확인.",
+      "chunks": [
+        "inca_tradition-001-ed176f4d9d2374168326e347dc5a779fab11a2e1e86b181be2bbd25362bec459.json"
+      ]
+    },
+    {
+      "genre": "persian_tradition",
+      "worldId": "fb223030-63fb-5c7a-83a9-abdc5960e963",
+      "name": "페르시아 전승",
+      "description": "전승 자료에서 추출한 검토 후보. 판본·전승의 차이와 재배포 권리는 미확인.",
+      "chunks": [
+        "persian_tradition-001-53f445c74f7bbaf85e6df411b15c76e841e4163635010510e75f95a2d21107a1.json",
+        "persian_tradition-002-e8bade23684776b529ededd775103e63bfc3a16b80844fad40d942668f1243a7.json"
+      ]
+    }
+  ]
+}

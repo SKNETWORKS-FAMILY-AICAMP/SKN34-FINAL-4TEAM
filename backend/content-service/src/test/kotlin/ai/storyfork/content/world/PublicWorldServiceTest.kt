@@ -34,13 +34,14 @@ class PublicWorldServiceTest {
     private val cardVersions = mock(SettingCardVersionRepository::class.java)
     private val images = mock(SettingCardImageRepository::class.java)
     private val states = mock(WorldRelationshipStateRepository::class.java)
+    private val expandedSeeds = mock(ExpandedSeedProgressRepository::class.java)
     private val graph = mock(Neo4jRelationshipRepository::class.java)
     private val nicknames = mock(CoreNicknameService::class.java)
     private val storage = mock(AttachmentStorageClient::class.java)
     private val manager = mock(PlatformTransactionManager::class.java).also {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
-    private val service = PublicWorldService(worlds, revisions, revisionCards, cardVersions, images, states, graph, nicknames, storage, manager)
+    private val service = PublicWorldService(worlds, revisions, revisionCards, cardVersions, images, states, expandedSeeds, graph, nicknames, storage, manager)
     private val published = Instant.parse("2026-11-11T01:02:03Z")
 
     /**
@@ -129,7 +130,7 @@ class PublicWorldServiceTest {
         assertEquals(3L, result.revisionNo)
         assertEquals(listOf(s.first.cardId, s.second.cardId).sortedBy { it.toString() }, result.cards.map { it.id })
         assertEquals(PublicWorldCardResponse(s.first.cardId, "첫 인물", "첫 인물 본문", "character", listOf("별칭"), listOf("태그")), result.cards.single { it.id == s.first.cardId })
-        assertEquals(listOf(PublicWorldRelationshipResponse(s.relations[0].id, s.first.cardId, s.second.cardId, "동료")), result.relationships)
+        assertEquals(listOf(PublicWorldRelationshipResponse(s.relations[0].id, s.first.cardId, s.second.cardId, "동료",category="structural")), result.relationships)
         assertEquals("current", result.relationshipStatus)
     }
 
@@ -154,7 +155,7 @@ class PublicWorldServiceTest {
         val s = Seed(visibility = "private")
         assertEquals(ReaderWorldCardsResponse("work", s.id, 2,
             listOf(readerCard(s.first, 1), readerCard(s.hidden, 2)).sortedBy { it.id.toString() },
-            listOf(PublicWorldRelationshipResponse(s.relations[3].id, s.first.cardId, s.hidden.cardId, "비공개 쪽")), "current"),
+            listOf(PublicWorldRelationshipResponse(s.relations[3].id, s.first.cardId, s.hidden.cardId, "비공개 쪽",category="structural")), "current"),
             service.readerCards("work", s.id, 2))
         // 1화 기준이면 2화부터 공개되는 카드와 그 카드에 닿는 관계가 아직 없다.
         val early = service.readerCards("work", s.id, 1)
@@ -216,6 +217,51 @@ class PublicWorldServiceTest {
         assertEquals(2, result.cards.size)
     }
 
+    @Test fun `incomplete expansion hides relations while keeping confirmed cards in detail list and wiki`() {
+        val s=Seed()
+        `when`(expandedSeeds.findById(s.id)).thenReturn(Optional.of(ExpandedSeedProgress(s.id,"hash")))
+        assertCardsWithoutRelations(s)
+        assertEquals("unavailable",service.readerCards("work",s.id,2).relationshipStatus)
+        stubPage(listOf(s),PageRequest.of(0,24),1)
+        assertNull(service.list(null,null,null).items.single().relationshipCount)
+        verify(graph,never()).read(s.id,null)
+        verify(graph,never()).read(s.id,2)
+    }
+
+    @Test fun `expansion beginning during graph read makes the result unavailable`() {
+        val s=Seed()
+        `when`(expandedSeeds.findById(s.id)).thenReturn(Optional.empty(),Optional.of(ExpandedSeedProgress(s.id,"hash")))
+        assertCardsWithoutRelations(s)
+    }
+    @Test fun `new confirmed revision during graph read makes the old snapshot unavailable`() {
+        val s=Seed()
+        `when`(graph.read(s.id,null)).thenAnswer {
+            s.world.currentRevisionId=UUID.randomUUID()
+            RelationshipStateResult(s.id,3,"key","hash",s.relations)
+        }
+        assertCardsWithoutRelations(s)
+    }
+    @Test fun `changed graph token during read makes the old snapshot unavailable`() {
+        val s=Seed()
+        `when`(graph.read(s.id,null)).thenAnswer {
+            s.state.graphVersion=4
+            RelationshipStateResult(s.id,3,"key","hash",s.relations)
+        }
+        assertCardsWithoutRelations(s)
+    }
+
+    @Test fun `public detail and reader wiki retain relation direction polarity and evidence`() {
+        val s=Seed()
+        val edge=s.relations.first().copy(targetCardId=s.hidden.cardId,body="원전 근거",direction="directed",polarity="denied")
+        graphReads(s.id) { it.thenReturn(RelationshipStateResult(s.id,3,"key","hash",listOf(edge))) }
+        val publicEdge=edge.copy(targetCardId=s.second.cardId)
+        `when`(graph.read(s.id,null)).thenReturn(RelationshipStateResult(s.id,3,"key","hash",listOf(publicEdge)))
+        val detail=service.detail(s.id).relationships.single()
+        val wiki=service.readerCards("work",s.id,2).relationships.single()
+        assertEquals("directed",detail.direction);assertEquals("denied",detail.polarity);assertEquals("원전 근거",detail.body)
+        assertEquals("directed",wiki.direction);assertEquals("denied",wiki.polarity);assertEquals("원전 근거",wiki.body)
+    }
+
     @Test fun `unmigrated and pending worlds keep their cards, say unavailable and never read Neo4j`() {
         val unmigrated = Seed()
         `when`(states.findById(unmigrated.id)).thenReturn(Optional.empty())
@@ -255,7 +301,7 @@ class PublicWorldServiceTest {
         val page = service.list(null, null, null)
         assertEquals(PublicWorldPageResponse(listOf(
             PublicWorldSummaryResponse(x.id, "하나", "하나 설명", "fantasy", "작가 하나", 2, 1, "2026-11-11T01:02:03Z"),
-            PublicWorldSummaryResponse(y.id, "둘", "둘 설명", null, "탈퇴한 회원", 2, 0, "2026-11-11T01:02:03Z"),
+            PublicWorldSummaryResponse(y.id, "둘", "둘 설명", null, "탈퇴한 회원", 2, null, "2026-11-11T01:02:03Z"),
         ), 0, 24, 30), page)
         verify(nicknames, times(1)).nicknames(listOf(x.owner.toString(), y.owner.toString()))
     }
@@ -280,6 +326,7 @@ class PublicWorldServiceTest {
         assertEquals(10, page.size)
         assertEquals(11L, page.total)
         verify(worlds).listedByGenre("sf", PageRequest.of(1, 10))
+        verify(worlds).findById(s.id)
         verifyNoMoreInteractions(worlds)
 
         val all = Seed()

@@ -12,8 +12,8 @@ export type PublicWorldGenre = (typeof PUBLIC_WORLD_GENRES)[number]
 
 /** `imageId`는 카드 대표 이미지(#401)다. 있으면 공개 주소(`/api/v1/public/world-studios/{id}/card-images/{imageId}`)가 이미지를 주고, 없거나 null이면(데모 포함) 이미지 없는 카드다. */
 export type PublicWorldCard = { id: string; title: string; text: string; cardType: CardType; aliases: string[]; tags: string[]; imageId?: string | null }
-/** 현재 관계(Neo4j) 한 줄. 양 끝 카드는 같은 응답의 `cards`에 있다. `label`은 화면에 그대로 보인다. */
-export type PublicWorldRelationship = { id: string; sourceCardId: string; targetCardId: string; label: string }
+/** 현재 관계(Neo4j) 한 줄. 양 끝 카드는 같은 응답의 `cards`에 있고 선택적 속성이 없으면 값을 알 수 없다. */
+export type PublicWorldRelationship = { id: string; sourceCardId: string; targetCardId: string; label: string; category?: 'structural' | 'emotional' | null; direction?: 'directed' | 'symmetric' | null; body?: string | null; polarity?: 'asserted' | 'denied' | null }
 
 export type PublicWorldSummary = {
   id: string
@@ -22,7 +22,7 @@ export type PublicWorldSummary = {
   genre: PublicWorldGenre | null
   authorNickname: string
   cardCount: number
-  relationshipCount: number
+  relationshipCount: number | null
   /** ISO-8601. 목록은 이 값의 최신 순이다. */
   publishedAt: string
   /** 소유자가 올린 표지가 있는지. 있으면 공개 cover 주소(`/api/v1/public/world-studios/{id}/cover`)가 이미지를 주고, 없거나 값이 없으면(데모) 자동 생성 표지를 쓴다. */

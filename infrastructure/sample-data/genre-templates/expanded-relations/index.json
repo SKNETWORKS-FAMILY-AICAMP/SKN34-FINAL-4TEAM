@@ -1,0 +1,223 @@
+{
+  "notice": "검토용 후보. 구조 검사만 수행했으며 원문·사실·권리·전수 감수를 보증하지 않음.",
+  "totals": {
+    "input": 16461,
+    "processed": 16461,
+    "unlinked": 11384,
+    "ambiguous": 5143,
+    "relations": 4216,
+    "remaining": 5143
+  },
+  "worlds": [
+    {
+      "genre": "alternate_history",
+      "worldId": "c5d42f50-d2e6-5e25-8a2e-99e68e23ff05",
+      "file": "alternate_history.json",
+      "relations": 9
+    },
+    {
+      "genre": "apocalypse",
+      "worldId": "3cf7aea1-14ed-58af-9f2e-74f13d171cad",
+      "file": "apocalypse.json",
+      "relations": 11
+    },
+    {
+      "genre": "aztec_mythology",
+      "worldId": "b91abcca-af8b-5460-bf33-4bf5bf668e04",
+      "file": "aztec_mythology.json",
+      "relations": 29
+    },
+    {
+      "genre": "celtic_mythology",
+      "worldId": "9a085473-158b-5a61-ae38-df7843dc3dcb",
+      "file": "celtic_mythology.json",
+      "relations": 10
+    },
+    {
+      "genre": "china_history",
+      "worldId": "d3c3b3bc-1ee5-5361-82bd-d2679a258a02",
+      "file": "china_history.json",
+      "relations": 386
+    },
+    {
+      "genre": "chinese_folklore",
+      "worldId": "d691ae17-7f67-5377-8868-3f5202ecd65f",
+      "file": "chinese_folklore.json",
+      "relations": 2
+    },
+    {
+      "genre": "cthulhu_mythos",
+      "worldId": "79fceb31-e918-5605-bfd3-a5123daf799f",
+      "file": "cthulhu_mythos.json",
+      "relations": 109
+    },
+    {
+      "genre": "egyptian_mythology",
+      "worldId": "c1817611-1c16-5eb0-b39f-9cffecd0cbfd",
+      "file": "egyptian_mythology.json",
+      "relations": 20
+    },
+    {
+      "genre": "england_history",
+      "worldId": "c1af4125-5423-5633-a5da-822b4753df94",
+      "file": "england_history.json",
+      "relations": 1489
+    },
+    {
+      "genre": "entertainment",
+      "worldId": "2d96298b-88e4-5737-8efe-a85ee2e2fffe",
+      "file": "entertainment.json",
+      "relations": 13
+    },
+    {
+      "genre": "france_history",
+      "worldId": "67907b53-fdd0-5771-8d78-0f317a0f71b9",
+      "file": "france_history.json",
+      "relations": 206
+    },
+    {
+      "genre": "fusion_fantasy",
+      "worldId": "2d5fd476-d31d-5b35-9e58-e7451014a81a",
+      "file": "fusion_fantasy.json",
+      "relations": 16
+    },
+    {
+      "genre": "game_fantasy",
+      "worldId": "0942bc5d-0aa2-5c59-807f-fa1825735e29",
+      "file": "game_fantasy.json",
+      "relations": 4
+    },
+    {
+      "genre": "germanic_folklore",
+      "worldId": "278f30fb-e7cf-54b0-b007-38266319945f",
+      "file": "germanic_folklore.json",
+      "relations": 10
+    },
+    {
+      "genre": "greco_roman_mythology",
+      "worldId": "7c081689-8b1f-53b7-856f-78b779bbe289",
+      "file": "greco_roman_mythology.json",
+      "relations": 114
+    },
+    {
+      "genre": "hawaiian_tradition",
+      "worldId": "6082fbff-0610-5bf7-bd76-6b3bfc3a12c2",
+      "file": "hawaiian_tradition.json",
+      "relations": 63
+    },
+    {
+      "genre": "indian_mythology",
+      "worldId": "54591714-aae0-5694-8da9-2b73a64cc53f",
+      "file": "indian_mythology.json",
+      "relations": 14
+    },
+    {
+      "genre": "italy_history",
+      "worldId": "936b9d62-a1de-59a2-b8e0-1d52327464de",
+      "file": "italy_history.json",
+      "relations": 232
+    },
+    {
+      "genre": "japan_history",
+      "worldId": "8c3a276f-dda5-5b5d-89da-55221ee3d710",
+      "file": "japan_history.json",
+      "relations": 198
+    },
+    {
+      "genre": "japanese_mythology",
+      "worldId": "3a1d491a-59d7-5a43-92f8-dfdcd342dd79",
+      "file": "japanese_mythology.json",
+      "relations": 50
+    },
+    {
+      "genre": "journey_to_the_west",
+      "worldId": "3866acbf-f549-5d55-95e2-0e4246a5e8d7",
+      "file": "journey_to_the_west.json",
+      "relations": 77
+    },
+    {
+      "genre": "korea_history",
+      "worldId": "b08b14fa-dc75-5e3b-8067-148fb6346c72",
+      "file": "korea_history.json",
+      "relations": 302
+    },
+    {
+      "genre": "korean_mythology_fables",
+      "worldId": "8cbc622b-8b29-514e-889f-1bbd542cff41",
+      "file": "korean_mythology_fables.json",
+      "relations": 24
+    },
+    {
+      "genre": "maya_mythology",
+      "worldId": "c5bc8992-b7cb-5ddf-9033-74d707ceda41",
+      "file": "maya_mythology.json",
+      "relations": 44
+    },
+    {
+      "genre": "modern_fantasy",
+      "worldId": "6e7238c5-6da9-5b21-bd5c-74a12c7953a0",
+      "file": "modern_fantasy.json",
+      "relations": 13
+    },
+    {
+      "genre": "norse_mythology",
+      "worldId": "cb459e34-c38c-56f4-af2d-7bfdb3321b88",
+      "file": "norse_mythology.json",
+      "relations": 52
+    },
+    {
+      "genre": "persian_tradition",
+      "worldId": "fb223030-63fb-5c7a-83a9-abdc5960e963",
+      "file": "persian_tradition.json",
+      "relations": 2
+    },
+    {
+      "genre": "romance_fantasy",
+      "worldId": "b96f7f39-02ea-5b33-bcc8-d5234df4b815",
+      "file": "romance_fantasy.json",
+      "relations": 11
+    },
+    {
+      "genre": "science_fiction",
+      "worldId": "568970f1-b862-5dd4-bfbb-adea96e17a26",
+      "file": "science_fiction.json",
+      "relations": 8
+    },
+    {
+      "genre": "slavic_mythology",
+      "worldId": "78cc7495-2652-50f4-941b-cbf0e4203811",
+      "file": "slavic_mythology.json",
+      "relations": 22
+    },
+    {
+      "genre": "sports_fantasy",
+      "worldId": "1625407b-9bf9-5946-88c2-ca911a6e1466",
+      "file": "sports_fantasy.json",
+      "relations": 11
+    },
+    {
+      "genre": "sumerian_mythology",
+      "worldId": "41adfa23-2e60-5b04-885a-994cf2478a18",
+      "file": "sumerian_mythology.json",
+      "relations": 43
+    },
+    {
+      "genre": "territory_management",
+      "worldId": "5f75d486-b70e-5399-83f5-c49a5a784603",
+      "file": "territory_management.json",
+      "relations": 8
+    },
+    {
+      "genre": "usa_history",
+      "worldId": "caa0b0e9-0305-566e-82ee-650f43aa464e",
+      "file": "usa_history.json",
+      "relations": 603
+    },
+    {
+      "genre": "wuxia",
+      "worldId": "4fe1e070-e9f4-5d85-8923-c34da0b276e5",
+      "file": "wuxia.json",
+      "relations": 11
+    }
+  ]
+}

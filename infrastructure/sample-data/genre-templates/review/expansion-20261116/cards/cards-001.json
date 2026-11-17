@@ -1,0 +1,3160 @@
+[
+  {
+    "id": "a3473fc9-9f1c-5156-8ea8-23a8f0fd3ba2",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "warning",
+    "title": "남극 재탐사에 대한 경고",
+    "cardType": "event",
+    "body": "화자는 빙하를 녹이고 천공하려는 후속 탐사를 막기 위해 숨긴 사진과 자신이 겪은 일을 공개하려 한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 1 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "28472a8c-abc8-5ed0-af4b-e01901612832",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "expedition",
+    "title": "미스캐토닉 대학 남극 탐사대",
+    "cardType": "organization",
+    "body": "지질학자인 화자가 이끈 탐사대는 남극 심층 암석과 토양을 채취하려 했다. 파보디의 이동식 시추 장비와 항공기를 활용한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 3 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e23c8669-c2b9-5498-babe-bf73e2fdfa8b",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "pabodie-drill",
+    "title": "파보디의 휴대용 시추기",
+    "cardType": "object",
+    "body": "공학 교수 파보디의 장치는 경량 합금과 접이식 부품을 이용해 다양한 경도의 암층에 구멍을 뚫고 개 썰매로 운반할 수 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 3 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "04c246f1-1ba4-564c-8333-c75c79439ccb",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "ice-melter",
+    "title": "전극식 얼음 융해 장치",
+    "cardType": "object",
+    "body": "파보디는 여러 구멍에 구리 전극을 넣고 발전기로 전류를 흘려 제한된 얼음을 녹이는 방안을 고안했다. 해당 탐사에서 시험적 사용 가능성만 언급되며 실제 사용 여부는 불확실하다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 5 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인",
+      "원문은 시험적으로만 실행 가능했다는 취지이며 실제 사용 여부는 확인되지 않았다."
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "981395f0-19aa-5f49-998d-38a894ec1059",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "faculty",
+    "title": "탐사대의 네 교수",
+    "cardType": "organization",
+    "body": "탐사대에는 지질학자인 화자와 공학자 파보디, 생물학자 레이크, 물리학자이자 기상학자 애트우드가 속하며 학생과 정비사가 동행한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 6 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e72617a5-50e4-5e74-87ef-cc271ca83002",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "foundation",
+    "title": "너새니얼 더비 픽먼 재단",
+    "cardType": "organization",
+    "body": "이 재단은 특별 기부금과 함께 탐사대를 후원해 장비와 준비를 가능하게 했다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 6 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5cb7e833-88ac-598b-a148-4fcea35fd9ec",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "ships",
+    "title": "아컴호와 미스캐토닉호",
+    "cardType": "object",
+    "body": "보강된 옛 포경선 두 척은 탐험대의 수송과 해상 거점이다. 더글러스가 아컴호와 해상 인원을 지휘하고 토르핀센이 미스캐토닉호를 맡는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 6과 7 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "cd6bdd1f-2d57-54ec-a582-feab5982154a",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "leng",
+    "title": "네크로노미콘의 렝 고원",
+    "cardType": "location",
+    "body": "화자는 남극 산악 풍경을 보며 대학 도서관에서 읽은 네크로노미콘에 나오는 불길한 렝 고원의 묘사를 떠올린다. 이 절은 고원의 실제 위치를 확정하지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 9 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "885587ee-0634-53d1-b590-0dcfc320aeaa",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "necronomicon",
+    "title": "화자가 읽은 네크로노미콘",
+    "cardType": "object",
+    "body": "화자가 대학 도서관에서 읽은 압둘 알하즈레드의 책으로 렝 고원에 대한 묘사가 담겨 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 9 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "source:necronomicon — 같은 책의 다른 출전; 내용은 이 절에 한정",
+      "source:miskatonic-library — 같은 대학 도서관일 가능성"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c4a7023f-c9a3-50f5-a144-c39628112c78",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "danforth",
+    "title": "댄포스",
+    "cardType": "character",
+    "body": "미스캐토닉 대학의 젊은 대학원생으로 기이한 문학을 즐겨 읽는다. 에레버스의 용암을 보고 포의 시와 연결한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 10 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e114594d-3f5b-53cb-a076-f6d018f03363",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "ross-camp",
+    "title": "로스섬 임시 기지와 무선망",
+    "cardType": "location",
+    "body": "탐사대는 에레버스 기슭에 상륙해 장비를 내리지만 본부는 아컴호에 둔다. 휴대 무전기로 배와 통신해 외부로 보고한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 17 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6c8b3abe-88c8-57ec-a943-b38e62ef9d67",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "barrier-cache",
+    "title": "빙벽 위 보급 기지",
+    "cardType": "location",
+    "body": "빙벽 위에 세운 반영구 기지는 연료와 식량 등을 보관하며, 비상용 다섯 번째 비행기와 인력이 남는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 18 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1ad21dcc-1e03-583a-8c51-d656217b308b",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "southern-base",
+    "title": "비어드모어 너머 남부 기지",
+    "cardType": "location",
+    "body": "탐사대는 빙하 위 남위 86도 7분에 남부 기지를 설치하고 얼음 융해와 폭파를 병행해 지질 표본을 채취한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 20 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ba5b990b-fc05-5164-807d-2ca85fe2af06",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "triangular-marks",
+    "title": "고대 점판암의 삼각형 줄무늬 흔적",
+    "cardType": "object",
+    "body": "레이크는 세 점의 점판암 조각을 맞춰 약 1피트 크기의 줄무늬 삼각형 흔적을 확인한다. 화자는 퇴적암의 물결 흔적일 수 있다고 본다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 21 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-ii/fowler-marks (파울러가 찾은 삼각형 흔적): 같은 대상 또는 사건의 다른 절·관찰, 동일성 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b8867413-e273-52c1-b562-3e0c9694e7b9",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "lake-hypothesis",
+    "title": "레이크의 선캄브리아 생물 가설",
+    "cardType": "other",
+    "body": "레이크는 고대 암석의 삼각형 흔적이 당시 알려진 생명사와 양립하기 어려운 크고 진화한 미지 생물의 자국이라고 주장해 서쪽 탐사를 고집한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 24 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2a3e7475-7ef5-5af3-9c5a-0deaa3fd7f3f",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "west-party",
+    "title": "레이크의 북서 분견대",
+    "cardType": "organization",
+    "body": "레이크는 서쪽의 더 많은 흔적을 찾기 위해 비행기와 기계 대부분을 데리고 출발한다. 화자와 파보디는 남부 기지에 남는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 1 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0c9d4001-3eb5-56db-974c-75f3fba3e83f",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "mountains",
+    "title": "레이크가 보고한 거대 산맥",
+    "cardType": "location",
+    "body": "레이크는 북서쪽에서 수평선까지 뻗은 거대한 눈 없는 산맥을 발견한다. 처음 의심한 화산 분화구는 이후 지층으로 정정하고 최고봉을 약 3만~3만4천 피트로 측정한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 5 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7cb70ca3-9306-5d5d-81e7-34ae654327ac",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "mountain-structures",
+    "title": "산맥의 각진 구조와 동굴 입구",
+    "cardType": "location",
+    "body": "레이크는 봉우리의 정육면체와 수직 성벽 같은 돌 구조, 네모나 반원형의 동굴 입구를 보고한다. 바람은 통로와 동굴을 지나며 피리처럼 운다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 7 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-iv/mountain-openings (규칙적인 산악 동굴 입구): 같은 대상 또는 사건의 다른 절·관찰, 동일성 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "df285136-cd4f-5616-8df6-5e9170417024",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "cavern-discovery",
+    "title": "시추로 드러난 화석 동굴",
+    "cardType": "event",
+    "body": "게드니가 이끄는 시추조가 석회암을 뚫고 빈 공간에 닿자 폭파로 입구를 열었다. 동굴에는 여러 시대의 동물 유해가 쌓여 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 13 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-ii/fossil-cave (석회암 동굴의 화석 퇴적물): 같은 대상 또는 사건의 다른 절·관찰, 동일성 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f2fc5a66-ebec-58e7-9038-a43c8b33b4ea",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "fossil-cave",
+    "title": "석회암 동굴의 화석 퇴적물",
+    "cardType": "location",
+    "body": "종유석과 석순이 있는 얕고 넓은 동굴에 서로 다른 지질시대의 껍데기와 뼈가 뒤섞여 있다. 공기 흐름은 더 넓은 지하계의 존재를 시사한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 14 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-ii/cavern-discovery (시추로 드러난 화석 동굴): 같은 대상 또는 사건의 다른 절·관찰, 동일성 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "97797206-bec2-5ab6-9769-26cba53b069f",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "fossil-continuity",
+    "title": "레이크가 추론한 고대 생물의 지속",
+    "cardType": "other",
+    "body": "동굴에서 오래된 생물군의 잔해가 젊은 층과 함께 발견되자 화자는 이 지역에서 오래된 생물군이 오랫동안 존속했을 것이라고 추론한다. 동굴 폐쇄 이후는 추측하기 어렵다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 16 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d8a28f62-f883-587e-89ac-868cd6cb8ec9",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "fowler-marks",
+    "title": "파울러가 찾은 삼각형 흔적",
+    "cardType": "object",
+    "body": "파울러는 더 젊은 암석 조각에서 비슷한 줄무늬 삼각형 자국을 찾는다. 레이크는 원생물이 오랜 기간 큰 형태 변화 없이 존속했다고 해석한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 18 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-i/triangular-marks (고대 점판암의 삼각형 줄무늬 흔적): 같은 대상 또는 사건의 다른 절·관찰, 동일성 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a0c41245-2d48-5eea-b929-b262d564ec2e",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "marked-bones",
+    "title": "구멍과 절단 흔적이 난 뼈",
+    "cardType": "object",
+    "body": "레이크는 동굴의 일부 동물 뼈에서 곧게 뚫린 구멍과 베인 상처, 절단면을 발견하고 알려진 포식자의 흔적으로 설명하기 어렵다고 보고한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 19 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5a790d2f-55b7-53b3-90e0-e45cca3d4293",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "soapstone",
+    "title": "점 무늬가 있는 별 모양 동석",
+    "cardType": "object",
+    "body": "레이크는 녹색을 띤 오각 별 모양 동석 조각을 발견한다. 가운데 함몰과 규칙적인 점 무늬가 있으며 개들이 불안해한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 20 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-vi/interior-objects (석화된 문과 동석 조각): 같은 대상 또는 사건의 다른 절·관찰, 동일성 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c3e46597-5a92-5537-a650-b894d1525a8a",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "first-specimen",
+    "title": "처음 발견한 통 모양 표본",
+    "cardType": "other",
+    "body": "동굴에서 오렌도르프와 왓킨스가 낯선 통 모양의 표본을 발견한다. 단단하지만 일부 유연하며 다섯 능선과 접힌 날개 같은 구조를 지녔다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 21 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-ii/fourteen-specimens (동굴의 생물 표본 열네 구): 같은 대상 또는 사건의 다른 절·관찰, 동일성 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1baa91d4-e8d5-54e7-992f-1b86001dfb5e",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "fourteen-specimens",
+    "title": "동굴의 생물 표본 열네 구",
+    "cardType": "event",
+    "body": "처음 발견한 표본에 이어 열세 구가 더 발견되고 그중 여덟 구가 완전한 형태로 보존된다. 탐사대는 표본을 개들로부터 떼어 캠프로 옮긴다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 22 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-ii/first-specimen (처음 발견한 통 모양 표본): 같은 대상 또는 사건의 다른 절·관찰, 동일성 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e10190b3-9835-57e3-a9d6-83d42055081b",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-anatomy",
+    "title": "다섯 능선 생물의 외형",
+    "cardType": "other",
+    "body": "레이크는 표본을 다섯 능선의 몸통, 접힌 막질 날개, 끝에서 여러 촉수로 갈라지는 다섯 팔로 묘사한다. 별 모양 머리에는 눈과 입으로 추정되는 기관이 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 23 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5cd23759-29a7-5951-8d90-cdd6a06b4870",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-feet",
+    "title": "삼각형 발판과 암석 자국",
+    "cardType": "other",
+    "body": "레이크는 표본 아래쪽 다섯 팔의 끝에 있는 막질 삼각 발판이 고대 암석의 자국을 남긴 이동기관이라고 판단한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 25 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "53c51e9e-786d-57e0-9fa7-cabd25b6bc9a",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-myth",
+    "title": "레이크가 연결한 태고의 존재 전승",
+    "cardType": "other",
+    "body": "레이크는 표본과 네크로노미콘의 엘더 싱 전승이 닮았다고 보고 지구 생명 창조 이야기를 언급한다. 이는 전승과 유사성에 대한 추정이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 27 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "source:great-old-ones — 별에서 온 존재에 관한 교단 전승과 유사하나 동일성 미확정",
+      "source:old-ones-usage — 명칭의 다른 용례"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6774d9d3-a04f-5d7a-804f-48ee10a1403c",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "dissection",
+    "title": "레이크의 현장 해부",
+    "cardType": "event",
+    "body": "레이크는 온전한 표본의 질긴 조직을 자르기 어려워 더 심하게 손상된 표본을 해부한다. 따뜻한 천막에서 자극적인 냄새가 나는 짙은 녹색 액체가 나온다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 30 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "616c6bdd-d1cb-5219-93f7-b1ed6fb7e080",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-respiration",
+    "title": "표본의 복수 호흡기관 추정",
+    "cardType": "ability",
+    "body": "레이크는 해부를 통해 산소 호흡과 공기 저장, 아가미와 피부 구멍을 통한 호흡 가능성을 추정한다. 오랜 무호흡 휴면도 가능할지 모른다고 생각한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 32 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b0ed05c3-81f7-5e72-877f-12b875047c1c",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-piping",
+    "title": "피리 소리 같은 발성 추정",
+    "cardType": "ability",
+    "body": "레이크는 발성기관으로 보이는 구조가 복잡한 음절보다 넓은 음역의 피리 소리를 낼 가능성이 높다고 추정한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 32 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-iv/wind-music (산악 동굴 사이의 바람 소리): 같은 대상 또는 사건의 다른 절·관찰, 동일성 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7d44a946-5cf1-57ae-97f7-6d9a9f80a654",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-spores",
+    "title": "날개 끝의 포자 번식 추정",
+    "cardType": "ability",
+    "body": "레이크는 날개 끝의 포자낭과 엽상체 단계를 근거로 이 표본이 양치식물처럼 포자로 번식한다고 해석한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 33 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c89577b7-f51b-59ce-9592-971b19101a6d",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-name",
+    "title": "레이크가 붙인 엘더 원 명칭",
+    "cardType": "other",
+    "body": "레이크는 표본에 정확한 이름을 붙이기 어렵다고 보면서도 임시로 전설에서 따온 엘더 원이라는 이름을 농담처럼 사용한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 35 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "source:old-ones-usage — 다른 작품의 용어와 명칭이 비슷하나 동일성 미확정"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8fabbb5b-e06b-5f59-968e-4c9ae03f651c",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "sun-thaw",
+    "title": "햇빛에 풀리는 표본 조직",
+    "cardType": "event",
+    "body": "레이크는 태양열 때문에 표본 일부의 머리 돌기와 관이 펴지는 모습을 보고 햇볕을 피하도록 덮는다. 개들의 적대적 반응도 계속된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 36 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e0b11053-9f15-5f2d-8b34-18d35c6a2248",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "lost-radio",
+    "title": "레이크 기지와 무선 두절",
+    "cardType": "event",
+    "body": "폭풍이 거세진 뒤 약속한 시간부터 레이크와 연락이 닿지 않는다. 남부 기지와 아컴호가 반복해서 호출한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness III절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 1 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "38d10019-5a7c-5a3f-82c4-b3ae2b523c0f",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "rescue-flight",
+    "title": "레이크 기지로 향한 구조 비행",
+    "cardType": "event",
+    "body": "1월 25일 화자는 셔먼의 예비 비행기에 열 명과 개, 썰매를 태워 레이크의 기지로 출발한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness III절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 5 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a39cc124-d651-51d2-ac22-c91d5db6df86",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "dyer-trauma",
+    "title": "지질학자 화자의 충격",
+    "cardType": "character",
+    "body": "54세의 지질학자 화자는 구조 비행 이후 자연에 대한 종전의 안정된 인식이 깨졌다고 회고한다. 자신과 댄포스가 특히 큰 영향을 받았다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness III절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 6 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "de7640c9-9d34-50c3-841c-91acf2edbe07",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "pnakotic",
+    "title": "프나코틱 수고에 관한 화자의 연상",
+    "cardType": "object",
+    "body": "화자는 산맥의 풍경에서 렝과 프나코틱 수고를 연상한다. 일부 신비주의자가 수고의 빙하기 이전 기원을 주장한다고 전하지만 이를 입증하지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness III절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 8 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0bf85ea5-7f9b-57ac-8d2f-5b24bcebe0d2",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "tsathoggua",
+    "title": "차토구아와 숭배자에 관한 전언",
+    "cardType": "other",
+    "body": "화자는 차토구아의 숭배자들이 인간과 이질적이었을 것이라는 일부 신비주의자의 주장과 렝 전승을 떠올린다. 이 절은 존재의 정체를 확인하지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness III절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 8 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "88b8fe92-1535-5a78-a9d5-5ddba53aa10f",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "mirage",
+    "title": "구조대가 본 거석 도시의 신기루",
+    "cardType": "event",
+    "body": "구조 비행 중 얼음 안개 위에 탑과 벽이 얽힌 낯선 도시가 나타났다 사라진다. 화자는 이를 극지의 신기루로 서술한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness III절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 9 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-v/mirage-source (도시 신기루의 원인에 대한 추론): 같은 대상 또는 사건의 다른 절·관찰, 동일성 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3eae87ae-67df-558d-88ce-cd72489cdf8a",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "camp-public-report",
+    "title": "레이크 기지 참사의 공개 발표",
+    "cardType": "event",
+    "body": "구조대는 11명이 죽고 게드니가 실종됐다고 알리면서 강풍이 희생자를 훼손했다고 발표한다. 화자는 이 발표에서 일부 사실과 의혹을 감췄다고 인정한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness III절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 12 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-iv/salted-remains (기지에서 발견된 소금과 절개된 시신): 같은 대상 또는 사건의 다른 절·관찰, 동일성 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a40f2ba4-d6bf-551e-b2ac-c4a4ee533ee5",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "storm-camp",
+    "title": "폭풍 뒤의 파손된 기지",
+    "cardType": "location",
+    "body": "폭풍은 항공기 격납 시설과 시추탑을 부수고 흔적을 지웠다. 구조대는 오각형 동석과 이상한 상처가 난 화석 뼈 일부를 수습한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness III절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 13 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "97722a61-bd42-5de5-8b07-0f2ae9352f26",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "cave-sealed",
+    "title": "동굴 입구의 봉쇄",
+    "cardType": "event",
+    "body": "구조대는 부서진 시추 및 융해 기계를 사용해 레이크가 연 동굴 입구를 막는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness III절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 14 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "573cbb0d-b861-5ed4-9ec8-526ac5bb6da8",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "snow-graves",
+    "title": "여섯 개의 오각형 눈무덤",
+    "cardType": "event",
+    "body": "구조대는 손상된 표본 여섯 구가 점 무늬가 찍힌 오각형 눈무덤 아래 세워져 묻힌 것을 찾는다. 온전했던 여덟 구는 보이지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness III절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 16 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-iv/graves (표본 여섯 구의 무덤 조사): 같은 대상 또는 사건의 다른 절·관찰, 동일성 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "37675e0b-4a4c-5a25-8c05-f30eb69b8ee2",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "danforth-secret",
+    "title": "댄포스가 말하지 않는 목격",
+    "cardType": "other",
+    "body": "댄포스는 산맥 너머 비행에서 자신만 보았다고 생각하는 것을 화자에게도 말하지 않는다. 화자는 그 경험이 실제인지 확정하지 못한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness III절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 17 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ec9eb06a-19a3-5e02-a984-89ab5c5ab985",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "plateau",
+    "title": "산맥 너머 초고원",
+    "cardType": "location",
+    "body": "화자와 댄포스가 보고한 산맥 너머 지역은 약 2만 피트 높이의 넓은 고원이며 얇은 빙층을 뚫고 기묘한 암석이 솟아 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness III절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 18 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "97de3bd3-b1e3-5d7a-a58b-3f0761623990",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "concealment",
+    "title": "탐사대가 감춘 표본과 사진",
+    "cardType": "event",
+    "body": "생존자들은 표본의 일부와 동석, 상처 난 뼈의 사진을 공개하지 않고 산맥 너머의 사진과 자료도 숨긴다. 후속 탐사 계획이 생기자 화자는 침묵을 깨려 한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness III절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 23 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d730037f-2bdb-52a9-a1bc-c85fa35b14cf",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iv",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "dog-corral",
+    "title": "무너진 개 울타리",
+    "cardType": "location",
+    "body": "기지의 임시 눈 울타리는 안쪽에서 부서진 듯 보이며 개들은 모두 죽거나 하나가 실종됐다. 화자는 돌풍과 표본의 냄새를 가능한 원인으로 추정한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness IV절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 3 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "aa2719ad-454b-57c6-aa72-091d82372ec4",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iv",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "salted-remains",
+    "title": "기지에서 발견된 소금과 절개된 시신",
+    "cardType": "event",
+    "body": "인간과 개의 시신 일부에서 조직이 도려내졌고 주변에 보급품에서 꺼낸 소금이 흩어져 있었다. 화자는 이를 관찰하고 게드니의 책임은 아니라고 판단한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness IV절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 4 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-iii/camp-public-report (레이크 기지 참사의 공개 발표): 같은 대상 또는 사건의 다른 절·관찰, 동일성 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "600dd153-2527-5d12-8121-50aa64c182ff",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iv",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "lab-remains",
+    "title": "해부 천막에서 발견된 유해",
+    "cardType": "event",
+    "body": "해부대 주위에서 인간과 개 한 구씩의 해부된 유해가 발견된다. 레이크의 도구와 난로가 사라졌고 화자는 인간 희생자의 이름을 밝히지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness IV절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 5 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "659e7038-67d8-5cd7-8ba2-27d8e29d9f2e",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iv",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "missing-material",
+    "title": "기지에서 사라진 물자",
+    "cardType": "object",
+    "body": "게드니와 개 한 마리, 온전한 표본 여덟 구와 썰매 세 대, 책과 장비, 식량과 의복 등이 사라졌다. 기계와 통조림에는 서투른 조작의 흔적이 남는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness IV절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 6 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1b85d55b-dd80-5394-b743-42e6fafccde2",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iv",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "graves",
+    "title": "표본 여섯 구의 무덤 조사",
+    "cardType": "event",
+    "body": "구조대가 오각형 눈무덤을 열어 여섯 손상된 표본을 발견한다. 점 무늬와 녹색 동석의 유사성을 살피지만 누가 묻었는지는 모른다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness IV절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 7 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-iii/snow-graves (여섯 개의 오각형 눈무덤): 같은 대상 또는 사건의 다른 절·관찰, 동일성 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7ae354d4-93a4-5a63-adbe-48be270e4d79",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iv",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "gedney",
+    "title": "실종된 게드니",
+    "cardType": "character",
+    "body": "게드니는 레이크 분견대의 일원으로 동굴 발견을 알렸고 참사 후 실종됐다. 사람들은 한때 그에게 의심을 돌리지만 화자는 그 책임을 부인한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness IV절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 8 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "651c1aa0-277b-5ce6-82df-d03b8b2672fd",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iv",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "mountain-pass",
+    "title": "산맥을 넘는 고개",
+    "cardType": "location",
+    "body": "화자와 댄포스는 가벼워진 비행기로 기지에서 보이는 약 2만3천~2만4천 피트 고개를 향한다. 기지 자체도 약 1만2천 피트 높이에 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness IV절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 11 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "665e031e-0e40-579e-aa53-f842d76a4440",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iv",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "mountain-openings",
+    "title": "규칙적인 산악 동굴 입구",
+    "cardType": "location",
+    "body": "산비탈의 많은 동굴 입구는 네모나 반원처럼 보이고 주변 암면도 매끈하다. 댄포스는 풍화 자국이 동석의 점 무늬와 닮았다고 생각한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness IV절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 15 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-ii/mountain-structures (산맥의 각진 구조와 동굴 입구): 같은 대상 또는 사건의 다른 절·관찰, 동일성 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9156bc88-a52b-5ed1-bdc7-b56b8c737b29",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iv",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "wind-music",
+    "title": "산악 동굴 사이의 바람 소리",
+    "cardType": "other",
+    "body": "화자는 바람이 고개와 동굴을 지나며 넓은 음역의 피리 소리처럼 들린다고 묘사한다. 악의가 있다는 느낌은 그의 심리적 인상이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness IV절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 17 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-ii/elder-piping (피리 소리 같은 발성 추정): 같은 대상 또는 사건의 다른 절·관찰, 동일성 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fbe117a4-fe5e-5ded-85fe-4704b9094647",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-v",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "city-discovery",
+    "title": "산맥 너머 고대 도시의 발견",
+    "cardType": "event",
+    "body": "고개를 넘은 두 탐험가는 얇은 얼음층 위로 무수한 정연한 석조 구조물이 드러난 고원을 본다. 처음에는 자연 풍화나 신기루일 가능성도 생각한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness V절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 1 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8af1a0b0-4b63-5814-8def-d54c27d7f2f0",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-v",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "mirage-source",
+    "title": "도시 신기루의 원인에 대한 추론",
+    "cardType": "other",
+    "body": "화자는 앞서 본 신기루가 실제 고대 도시의 상을 얼음 먼지층이 반사해 만든 것이라고 추론한다. 그 상은 원형보다 왜곡되고 과장됐다고 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness V절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 3 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-iii/mirage (구조대가 본 거석 도시의 신기루): 같은 대상 또는 사건의 다른 절·관찰, 동일성 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d70c72d4-92eb-5067-907f-90794579c8af",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-v",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "city-architecture",
+    "title": "고대 도시의 거대 석조 건축",
+    "cardType": "location",
+    "body": "도시는 거대한 판암·편암·사암 블록과 기반암에 새긴 건물로 구성된다. 원뿔과 피라미드, 원통, 정육면체, 오각형 평면과 아치가 뒤섞인다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness V절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 6 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "115e178b-d610-569e-b940-a662471a6cfd",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-v",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "bridges",
+    "title": "얼음 속 석조 공중다리",
+    "cardType": "object",
+    "body": "석탑들은 다양한 높이의 석조 다리로 연결돼 있고 일부는 투명한 빙층 속에서 보존된다. 노출된 벽에는 사라진 다리의 흔적도 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness V절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 7 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5f429af3-513c-5f89-b2ef-2fe02a76f220",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-v",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "river-canyon",
+    "title": "도시를 가로질렀을 옛 강길",
+    "cardType": "location",
+    "body": "건물이 없는 넓은 띠가 도시 내부에서 산기슭의 갈라진 틈으로 이어진다. 탐험가들은 옛 강이 흘러 지하 심연으로 들어간 자리라고 추정한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness V절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 8 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "35ed4591-9dd2-565d-b548-40b85ad0b3d0",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-v",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "star-squares",
+    "title": "별 모양 광장과 언덕 기념물",
+    "cardType": "location",
+    "body": "고대 도시에는 별 모양의 빈 공간들이 있고, 한 언덕에는 암반을 깎아 만든 원뿔형 기념물이 남아 있다. 화자는 빈 공간을 광장으로 추정한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness V절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 12 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "28be8c9b-7d3b-5925-ad0a-43f8f08d4ea3",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-v",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "star-rampart",
+    "title": "오각형 외곽 성벽",
+    "cardType": "location",
+    "body": "도시 외곽에는 끝에서 끝까지 약 300피트인 오각형 성벽이 남아 있다. 사암 블록을 쌓았으며 대칭적인 아치형 창과 거의 지워진 실내 부조가 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness V절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 16 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "55f2d0ad-4cce-5a0f-acfa-4b4e8bc5baae",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-v",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "danforth-marks",
+    "title": "도시에서 댄포스가 의심한 흔적과 소리",
+    "cardType": "event",
+    "body": "댄포스는 골목에서 희미한 바닥 흔적과 바람과 비슷하지만 다른 둔탁한 피리 소리를 감지했다고 말한다. 화자는 당시 소리를 상상의 산물로 여긴다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness V절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 22 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4a2b4165-70a2-5b43-8abd-ae6d67133ce7",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-v",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "petrified-shutters",
+    "title": "석화된 나무 덧창",
+    "cardType": "object",
+    "body": "도시 건물의 덧창 일부는 석화되어 남았고 재질에는 중생대와 제3기의 나무가 포함된 것으로 화자가 판단한다. 금속 경첩과 고정구는 사라졌다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness V절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 24 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "69b7ac6a-8b36-57e1-b61d-d9d02f018ea0",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-v",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "cone-hall",
+    "title": "오각 능선 원뿔의 조각된 대실",
+    "cardType": "location",
+    "body": "꼭대기가 보존된 거대한 다섯 능선 원뿔 내부에 벽 전체를 띠 모양 조각으로 장식한 방이 있다. 창에서 바닥까지 약 20피트여서 진입에 밧줄이 필요하다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness V절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 25 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b6b5bcca-51cc-5765-beab-f47e21a4d1ec",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-v",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "terraced-building",
+    "title": "탐험가가 들어간 계단식 건물",
+    "cardType": "location",
+    "body": "두 탐험가는 옛 공중다리 끝의 아치로 연결된 직사각형 계단식 건물에 진입한다. 내부는 큰 판석 바닥과 조각 벽이 있는 긴 복도다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness V절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 26 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0d24d556-6082-5759-80f7-b3807a58ef6a",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-v",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "paper-trail",
+    "title": "종이 조각을 이용한 길 표시",
+    "cardType": "rule",
+    "body": "탐험가들은 실내 미로에서 돌아오는 길을 찾기 위해 종이 조각을 떨어뜨린다. 바람이 불거나 종이가 떨어지면 바위에 표식을 새길 계획이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness V절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 28 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3d51ffa4-c512-56b6-b4bd-555e404f3403",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-v",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "desertion",
+    "title": "도시의 계획적 이탈 가설",
+    "cardType": "other",
+    "body": "닫힌 덧창과 빙하에 잠긴 상태를 본 화자는 주민들이 얼음이 오기 전 도시를 의도적으로 떠났을 가능성을 제시한다. 이때 빙층의 형성과 이탈 이유는 확정하지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness V절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 29 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "dec62e4d-0d01-58c4-96d8-e8769514f363",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-vi",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "interior",
+    "title": "미로 같은 건물의 내부",
+    "cardType": "location",
+    "body": "건물 내부는 불규칙한 층과 방으로 이루어지며 계단 대신 가로 홈이 있는 가파른 돌 경사로가 층을 잇는다. 하층은 다른 건물의 통로로 연결된 듯하다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness VI절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 2 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1bdfcc80-6f6d-5e37-9b32-7f5045cdb4d5",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-vi",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "mural-bands",
+    "title": "건물 벽의 연속 부조",
+    "cardType": "object",
+    "body": "실내 벽에는 폭 약 3피트의 그림 띠와 기하학 무늬 띠가 바닥부터 천장까지 번갈아 배치된다. 일부에는 점 무늬가 새겨진 매끈한 구획이 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness VI절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 3 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "745daf67-1502-55f6-b8cf-a925f19250dc",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-vi",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "mural-perspective",
+    "title": "다섯을 바탕으로 한 부조의 기법",
+    "cardType": "other",
+    "body": "기하학 무늬는 다섯을 바탕으로 곡선과 각을 배열한다. 화자는 그림이 단면과 평면 윤곽을 나란히 두는 독특한 관점을 지녔다고 분석한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness VI절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 4 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0678277a-377e-56f6-b89f-cafea67b0669",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-vi",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "dot-inscriptions",
+    "title": "점 무늬 명문에 대한 추정",
+    "cardType": "object",
+    "body": "부조 사이의 매끈한 구획에는 일정하게 배열된 점들이 파여 있다. 화자는 이를 미지의 언어와 문자로 추정하지만 해독했다고 말하지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness VI절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 5 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6f3eb0a1-5493-58ee-8e35-32851eb8c408",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-vi",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "mural-maps",
+    "title": "지도와 천문 도표 벽화",
+    "cardType": "object",
+    "body": "일부 방의 벽에는 확대된 지도와 천문 도표, 과학 도안이 있다. 화자는 이것들이 그림 부조에서 해석한 내용을 뒷받침한다고 생각한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness VI절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 6 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "433d3826-6633-56df-984a-0a0b9de1f909",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-vi",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "interior-objects",
+    "title": "석화된 문과 동석 조각",
+    "cardType": "object",
+    "body": "큰 출입구에는 석화된 나무 문이 일부 남아 있으며 빈 벽감 중에는 녹색 동석 조각이 남은 곳도 있다. 화자는 벽의 일부 구멍이 옛 난방이나 조명 시설과 관련됐다고 추정한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness VI절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 7 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-ii/soapstone (점 무늬가 있는 별 모양 동석): 같은 대상 또는 사건의 다른 절·관찰, 동일성 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "874c370f-f9ed-54ae-9af7-68612138ce07",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-vi",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "empty-rooms",
+    "title": "비어 있는 방과 깨끗한 하층",
+    "cardType": "location",
+    "body": "이동 가능한 가구가 사라진 실내는 위쪽에 잔해가 많지만 하층 일부는 먼지만 있거나 갓 쓸어낸 듯 깨끗하다. 안뜰 빛은 상층에 들어오나 빙층 아래는 어둡다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness VI절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 8 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f52584e5-0391-5ebf-8af4-e843b6b51de2",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-vi",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "builders",
+    "title": "부조를 통해 추정한 도시 건설자",
+    "cardType": "other",
+    "body": "화자와 댄포스는 정교한 부조를 보고 레이크의 표본과 닮은 존재들이 도시를 지었다고 결론짓는다. 화자는 별에서 왔다는 신화적 해석도 덧붙인다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness VI절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 11 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "source:great-old-ones — 다른 전승과 유사하나 동일성 미확정",
+      "source:old-ones-usage — 동일 명칭의 다른 작품 용례"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d2d14b48-0122-5336-9a60-d2e7b46395f1",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-vi",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "old-building",
+    "title": "암반을 깎은 오래된 주거 건물",
+    "cardType": "location",
+    "body": "두 사람은 빙하 아래 다리를 지나 암반을 파서 만든 건물에 이르고 화자는 그 부조를 4천만~5천만 년 전의 것으로 추정한다. 이 절에서 방문한 주거 건물 중 가장 오래됐다고 판단한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness VI절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 12 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e57d7ba7-ac11-51b1-9ab4-1497847c6520",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-vi",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "cosmic-carvings",
+    "title": "별 너머 기원을 묘사한 조각",
+    "cardType": "object",
+    "body": "조각은 별머리 존재들이 다른 행성과 은하, 우주에 살았다는 이야기를 담고 있다. 화자는 지구 이전 부분을 그들 자신의 신화로 해석할 수 있다고 인정한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness VI절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 13 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b9c693a5-7c59-5281-bba0-200f777391bc",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-vi",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "education-cavern",
+    "title": "지하의 지도와 도표 공간",
+    "cardType": "location",
+    "body": "옛 지면 아래 큰 공동의 벽에 지도와 도표가 집중되어 있다. 화자는 약 200피트 정사각형에 높이 60피트인 이곳을 교육 장소였을 가능성이 높다고 추정한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness VI절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 14 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ffad57ec-95de-5c86-ab04-7dd13e7cf27f",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-vi",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "partial-interpretation",
+    "title": "조각 해석의 불완전성",
+    "cardType": "rule",
+    "body": "화자는 자신과 댄포스가 얻은 것은 간략한 윤곽이며 많은 부분은 나중에 사진과 스케치를 연구해 추론했다고 밝힌다. 여러 방의 그림은 순서가 뒤섞이고 서로 다른 버전도 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness VI절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 15 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "765c6bd7-8ac1-5121-898f-b54ba46f32a9",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "pabodie",
+    "title": "프랭크 H. 파보디",
+    "cardType": "character",
+    "body": "미스캐토닉 대학 공학 교수로 가볍게 운반할 수 있는 혁신적 시추 장치를 고안한다. 남극 탐사대의 네 교수 중 한 명이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 3 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-i/faculty: 관련 인물·대상 또는 사건, 동일성 및 범위 검토",
+      "cthulhu-mm--section-i/pabodie-drill: 관련 인물·대상 또는 사건, 동일성 및 범위 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3d97d1ba-4179-5b34-84c1-1276950238bf",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "lake",
+    "title": "레이크 교수",
+    "cardType": "character",
+    "body": "미스캐토닉 대학 생물학자로 탐사대의 네 교수 중 한 명이다. 고대 암석 흔적에 이끌려 서쪽 탐사를 추진한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 6 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-i/faculty: 관련 인물·대상 또는 사건, 동일성 및 범위 검토",
+      "cthulhu-mm--section-i/lake-hypothesis: 관련 인물·대상 또는 사건, 동일성 및 범위 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a736021a-7560-5f56-9144-16f021e74be7",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "atwood",
+    "title": "애트우드 교수",
+    "cardType": "character",
+    "body": "미스캐토닉 대학 물리학 교수이자 기상학자로 남극 탐사대에 참여한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 6 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-i/faculty: 관련 인물·대상 또는 사건, 동일성 및 범위 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "bb5d559a-fa8c-544c-ad31-02a2bf05672d",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "douglas",
+    "title": "J. B. 더글러스 선장",
+    "cardType": "character",
+    "body": "남극 해역에 익숙한 포경선 선장으로 아컴호와 해상 인원을 지휘한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 7 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-i/ships: 관련 인물·대상 또는 사건, 동일성 및 범위 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "dfe49fdc-3c87-5dd4-97df-d228ca1d8a0c",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "starkweather-moore",
+    "title": "스타크웨더-무어 후속 탐사대",
+    "cardType": "organization",
+    "body": "화자가 귀환한 뒤 계획된 남극 탐사대로 파보디가 고안한 얼음 융해 방법을 이용하려 한다. 화자는 위험을 이유로 출발을 저지하려 한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 5 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-i/warning: 관련 인물·대상 또는 사건, 동일성 및 범위 검토",
+      "cthulhu-mm--section-iii/concealment: 관련 인물·대상 또는 사건, 동일성 및 범위 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e90bda88-dc45-5799-b421-9c175cdcc55c",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-i",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "gedney-i",
+    "title": "산악 등반에 참여한 게드니",
+    "cardType": "character",
+    "body": "대학원생 게드니는 파보디와 캐럴과 함께 난센산에 오른다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 20 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-iv/gedney: 관련 인물·대상 또는 사건, 동일성 및 범위 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2314d6fc-2b88-5865-ad00-68fc82d3257a",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "lake-camp",
+    "title": "거대 산맥 기슭의 레이크 기지",
+    "cardType": "location",
+    "body": "비행기가 불시착한 기슭에 설치한 기지로 높은 산기슭에서 5마일 이상 떨어져 있다. 레이크는 강풍을 우려한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 8 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-iii/storm-camp: 관련 인물·대상 또는 사건, 동일성 및 범위 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b04ddf5b-c05d-5bbe-a784-dd82be720db7",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-head",
+    "title": "표본의 별 모양 머리",
+    "cardType": "other",
+    "body": "표본의 다섯 갈래 머리에는 섬모와 눈으로 추정되는 공 모양 끝, 치아 같은 돌기가 있는 입으로 추정되는 주머니들이 있다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 24 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-ii/elder-anatomy: 관련 인물·대상 또는 사건, 동일성 및 범위 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d158bbc9-4081-5df7-8557-3084e2d1003f",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-nerves",
+    "title": "표본의 신경계와 감각",
+    "cardType": "other",
+    "body": "레이크는 다섯 갈래 뇌와 복잡한 신경절, 섬모와 연결된 감각기관을 보고 기존 생물의 다섯 감각보다 많을 수 있다고 추정한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 33 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-ii/elder-anatomy: 관련 인물·대상 또는 사건, 동일성 및 범위 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2b631f6a-4394-5a50-bb3d-b23497f2270d",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-ii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "green-fluid",
+    "title": "해부 표본의 녹색 체액",
+    "cardType": "object",
+    "body": "레이크가 표본을 해부하자 데워진 조직에서 자극적 냄새가 나는 짙은 녹색 액체가 나오고 멀리 떨어진 개들이 짖는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 31 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-ii/dissection: 관련 인물·대상 또는 사건, 동일성 및 범위 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c572df27-03d1-5299-b302-5a8d089bfd51",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "sherman",
+    "title": "셔먼과 예비 비행기",
+    "cardType": "character",
+    "body": "빙벽 보급 기지의 셔먼은 통신을 담당하며 구조 요청을 받자 예비 비행기와 선원 둘을 이끌고 남부 기지로 간다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness III절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 3 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-i/barrier-cache: 관련 인물·대상 또는 사건, 동일성 및 범위 검토",
+      "cthulhu-mm--section-iii/rescue-flight: 관련 인물·대상 또는 사건, 동일성 및 범위 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d51fd00a-598e-50a8-8b24-c3640de10925",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "mctighe",
+    "title": "맥타이그",
+    "cardType": "character",
+    "body": "무전 담당 맥타이그는 레이크 기지와 연락을 시도하고 구조 비행을 조종한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness III절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 5 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-iii/lost-radio: 관련 인물·대상 또는 사건, 동일성 및 범위 검토",
+      "cthulhu-mm--section-iii/rescue-flight: 관련 인물·대상 또는 사건, 동일성 및 범위 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4856709f-dc0a-55e8-a616-bbd655462f7c",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "missing-eight",
+    "title": "사라진 온전한 표본 여덟 구",
+    "cardType": "event",
+    "body": "레이크가 보고한 온전한 표본 여덟 구는 구조대가 기지를 조사했을 때 보이지 않는다. 구조대는 이를 공개 발표에서 명확히 말하지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness III절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 16 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-ii/fourteen-specimens: 관련 인물·대상 또는 사건, 동일성 및 범위 검토",
+      "cthulhu-mm--section-iv/missing-material: 관련 인물·대상 또는 사건, 동일성 및 범위 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "6ccc41c8-0b41-58b1-a84a-8da539fe365c",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iv",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "missing-dog",
+    "title": "실종된 개 한 마리",
+    "cardType": "event",
+    "body": "파괴된 기지에서 구조대는 개 사체를 조사한 뒤 한 마리가 사라졌음을 확인한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness IV절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 1 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-iv/dog-corral: 관련 인물·대상 또는 사건, 동일성 및 범위 검토",
+      "cthulhu-mm--section-iv/missing-material: 관련 인물·대상 또는 사건, 동일성 및 범위 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3527aad0-e49c-5ea0-b640-f7eee21276fa",
+    "batch_id": "batch-01",
+    "unit_id": "cthulhu-mm--section-iv",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "gedney-cleared",
+    "title": "게드니에 대한 화자의 판단",
+    "cardType": "other",
+    "body": "화자는 기지의 잔혹한 사태를 조사한 뒤 당시 실종된 게드니가 책임자가 아니라고 단정한다. 이는 그와 댄포스의 관찰을 바탕으로 한 판단이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness IV절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 4 (I절 인용시는 행별로 셈)",
+    "edition": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+    "possible_duplicates": [
+      "cthulhu-mm--section-iv/gedney: 관련 인물·대상 또는 사건, 동일성 및 범위 검토"
+    ],
+    "uncertainties": [
+      "소설 속 화자와 등장인물의 관찰·추론·전승을 구별해야 함",
+      "원문 전사 저본 및 지역별 이용 권리 미확인"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fe7d1ba2-24d8-5082-9325-2cac2c7c5e9f",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-vii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-arrival",
+    "title": "별머리 존재의 지구 도래",
+    "cardType": "event",
+    "body": "화자가 해독한 조각에는 별머리 존재들이 생명 없는 초기 지구에 우주에서 와 막질 날개로 별 사이를 건넌 이야기가 나온다. 조각이 신화일 가능성은 화자도 열어 둔다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VII · 본문 1번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1ea98009-adf9-5a20-b42d-d5fb98aa0086",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-vii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-sea-warfare",
+    "title": "해저 도시와 미지의 에너지 병기",
+    "cardType": "other",
+    "body": "조각 속 존재들은 해저 도시를 짓고 원리가 알려지지 않은 에너지를 이용하는 장치로 적과 싸웠다. 화자는 이들의 기계 문명이 감정적 불만 때문에 축소됐다고 추정한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VII · 본문 1번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "30f9b92b-1e71-5f76-af6d-3851cff53a64",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-vii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-life-creation",
+    "title": "옛 존재의 생명 제작",
+    "cardType": "ability",
+    "body": "화자가 읽은 조각에서 옛 존재는 해저에서 재료와 오랜 방법으로 처음엔 식량, 나중에는 다른 생명을 만든다. 관리 범위를 벗어난 세포들이 진화했다는 해석도 제시된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VII · 본문 2번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9fba646a-c912-5f93-a26c-1d5563337111",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-vii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "shoggoth-origin",
+    "title": "해저 노동체 쇼고스",
+    "cardType": "other",
+    "body": "조각에 따르면 옛 존재가 만든 다세포 원형질 덩어리는 최면 암시에 따라 임시 기관을 만들어 무거운 일을 수행한다. 화자는 이를 네크로노미콘의 쇼고스와 동일시한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VII · 본문 2번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "기존 review shoggoth-dream: 꿈속 쇼고스와 명칭 및 대상이 겹칠 가능성",
+      "cthulhu-mm--section-vii/shoggoth-rebellion (쇼고스 재복종 전쟁): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-viii/abyss-shoggoths (지하 도시의 쇼고스와 소리): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-viii/land-shoggoths (추위 속 육지 노동 쇼고스): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-xi/shoggoth-pursuit (터널의 쇼고스 추격): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d20ca60c-9efa-5f7e-bc21-87ef197f014d",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-vii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "undersea-cities",
+    "title": "쇼고스가 지은 해저 도시",
+    "cardType": "location",
+    "body": "옛 존재의 작은 해저 도시가 쇼고스의 힘으로 거대한 돌 미로로 확장됐다고 부조는 전한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VII · 본문 3번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "929d68e0-c60c-5bc4-84c7-ad11b9086f91",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-vii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-senses",
+    "title": "옛 존재의 감각과 이동",
+    "cardType": "ability",
+    "body": "화자는 부조에서 머리 촉수 끝의 눈과 머리 섬모의 빛을 보완하는 감각, 헤엄과 위족 및 접힌 날개를 이용한 이동을 읽는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VII · 본문 4번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "782a4bb4-975a-58a1-a618-6575349ee513",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-vii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-graves",
+    "title": "다섯 갈래 표식 무덤",
+    "cardType": "rule",
+    "body": "조각에서 옛 존재는 죽은 동족을 세워 묻고 글자를 새긴 오각형 봉분으로 덮는다. 화자와 댄포스는 이를 보고 탐사대의 발견을 떠올린다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VII · 본문 5번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-mm--section-xi/four-bodies (지하 터널의 머리 없는 네 구): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7139730e-8b3f-5457-8907-6a6692a6e250",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-vii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-spores",
+    "title": "옛 존재의 포자 번식",
+    "cardType": "rule",
+    "body": "조각에 따르면 옛 존재는 포자로 번식하고 오래 살기 때문에 새로운 지역을 개척할 때를 제외하면 대규모 번식을 장려하지 않았다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VII · 본문 5번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "706bbe8d-3714-5b37-81a3-55d3ab8f92d7",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-vii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-cold",
+    "title": "옛 존재와 추위",
+    "cardType": "rule",
+    "body": "옛 존재는 일반적인 추위에 잘 견디지만 대빙하기의 육지에서는 난방을 사용했고 결국 해저로 돌아간 듯하다. 화자는 우주 비행을 돕던 화학 처리법은 잊혔다고 전한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VII · 본문 6번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b1405c11-a14c-5e72-9b28-568edc0176a8",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-vii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-households",
+    "title": "옛 존재의 공동 주거",
+    "cardType": "other",
+    "body": "화자는 짝짓지 않는 존재들이 혈연 가족 대신 공간 활용과 정신적 친화성을 바탕으로 큰 가구를 이뤘다고 조각에서 추론한다. 가구는 방 중앙에 놓고 서서 쉰다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VII · 본문 7번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8113a30e-0039-5b9f-83da-559bf42737ac",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-vii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-money",
+    "title": "오각형 조각 화폐",
+    "cardType": "object",
+    "body": "부조에는 글자가 새겨진 작고 납작한 오각형 물건이 거래의 화폐로 쓰인다. 탐사대가 발견한 작은 녹색 활석 조각이 같은 것이라는 연결은 화자의 추측이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VII · 본문 8번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "0a439bc9-6dc7-5925-9178-672846158b93",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-vii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-map",
+    "title": "옛 존재의 지질 시대 지도",
+    "cardType": "object",
+    "body": "조각 지도들은 초기 해저 도시의 확산과 남극 육지의 분열을 그리고 후기 지도로 갈수록 도시가 남쪽으로 물러나는 양상을 보인다. 연대는 소설 속 추론이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VII · 본문 10번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "1c7ff78f-9d9e-5541-bdc0-f04344de70b0",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-vii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "cthulhu-war",
+    "title": "크툴루 권속과 옛 존재의 전쟁",
+    "cardType": "event",
+    "body": "화자는 육지에 내려온 문어형 존재를 전설의 크툴루 권속에 비정하고 부조에서 전쟁과 영토 분할을 읽는다. 외계 기원과 동일시는 해석이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VII · 본문 11번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "기존 source/runtime cthulhu 및 great-old-ones: 관련 명칭이나 동일 존재 여부는 별도 판단"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e5219aae-ec17-52b3-bb2b-df8569c7283a",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-vii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "rlyeh-sinking",
+    "title": "태평양 르뤼에의 침몰",
+    "cardType": "event",
+    "body": "화자의 조각 해독에서는 태평양 육지가 돌 도시 르뤼에 및 문어형 존재들과 함께 가라앉는다. 별도 작품의 전승과 일치 여부는 판단하지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VII · 본문 11번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "기존 source/runtime rlyeh 및 review rlyeh-portal: 같은 르뤼에의 다른 출처 서술과 겹칠 가능성"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "689e30fb-c129-5106-8317-8942abb7218e",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-vii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "shoggoth-rebellion",
+    "title": "쇼고스 재복종 전쟁",
+    "cardType": "event",
+    "body": "조각에 따르면 분열로 번식하고 자율성을 얻은 쇼고스가 반항했고 옛 존재는 분자 교란 무기로 재복종시켰다. 희생자는 머리가 없고 점액이 묻었다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VII · 본문 14번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-mm--section-vii/shoggoth-origin (해저 노동체 쇼고스): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-viii/abyss-shoggoths (지하 도시의 쇼고스와 소리): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-viii/land-shoggoths (추위 속 육지 노동 쇼고스): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-xi/shoggoth-pursuit (터널의 쇼고스 추격): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f5f519f6-50a7-55d2-abe6-dcd2545fd746",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-vii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "migo-invasion",
+    "title": "균류와 갑각류를 닮은 침입자",
+    "cardType": "event",
+    "body": "화자는 조각의 침입자를 전설 속 미고와 동일시한다. 조각 해석에 따르면 그들은 육지 북부에서 옛 존재들을 몰아냈으나 바다까지는 침범하지 못했다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VII · 본문 15번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-i/flood-creatures (홍수 속 분홍빛 형체의 증언): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-wid--section-i/winged-folklore (산속 날개 달린 존재의 전설): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-wid--section-i/nepal-comparison (히말라야 미고와의 비교): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2407efd6-7022-5043-a716-ccae38e046ea",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-vii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "sacred-stones",
+    "title": "첫 해저 도시의 성석",
+    "cardType": "object",
+    "body": "화자는 마지막 대도시의 조각에서 남극 최초 해저 도시의 신성한 돌들이 지각 융기로 드러나 새 도시에 보존됐다고 읽는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VII · 본문 19번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "97d198bf-8a1f-54cd-984b-de2a79ffa47c",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-viii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "forbidden-peaks",
+    "title": "서쪽의 금지된 산맥",
+    "cardType": "location",
+    "body": "후기 조각은 도시 서쪽에 높은 산맥이 솟고 주변 도시들이 버려졌다고 그린다. 일부 옛 존재가 산에 기도했지만 가까이 가지 않았다는 것이 화자의 해독이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VIII · 본문 3번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-mm--section-viii/kadath (차가운 황무지의 카다스 추정): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-xii/violet-peaks (멀리 보인 보랏빛 서쪽 산맥): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "b28e5126-8539-5b7e-abbe-1e17a90f8944",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-viii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "kadath",
+    "title": "차가운 황무지의 카다스 추정",
+    "cardType": "other",
+    "body": "화자는 서쪽 산맥을 고대 문헌의 카다스와 연결해 생각한다. 해당 동일시는 화자의 추측이며 산 너머의 실체가 검증된 것은 아니다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VIII · 본문 5번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-mm--section-viii/forbidden-peaks (서쪽의 금지된 산맥): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-xii/violet-peaks (멀리 보인 보랏빛 서쪽 산맥): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fb1bdde0-4d9d-5892-b05f-b32f1cfad5d4",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-viii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "temple-caves",
+    "title": "산중 사원과 동굴망",
+    "cardType": "location",
+    "body": "조각에 따르면 산맥의 주요 사원에 동굴이 부속되었고 지하수가 석회암을 파내 산과 평원 아래 연결된 동굴을 만들었다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VIII · 본문 6번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "88237c61-bfd3-52bd-b686-faeeb9ecf7f5",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-viii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "buried-river",
+    "title": "지하로 사라진 강",
+    "cardType": "location",
+    "body": "화자가 읽은 조각과 지형 해석에서는 서쪽 산에서 흘러온 강이 석회암 동굴로 빠져 옛 해안 방향 강바닥을 말렸다. 옛 존재는 강이 지하로 드는 지점을 장식했다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VIII · 본문 7번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f6a7d8f3-2b12-5e50-8eb6-b44fea76a002",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-viii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "river-object",
+    "title": "강에서 내려온 보이지 않는 물체",
+    "cardType": "other",
+    "body": "조각에는 옛 존재들이 서쪽 산맥에서 강을 따라 떠내려온 무엇을 보고 물러서는 장면이 되풀이되지만 그 대상은 그림에 나타나지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VIII · 본문 8번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e5090b8b-d943-5b23-accd-d8cee95de240",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-viii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "cold-exodus",
+    "title": "혹한과 남극 도시의 이주",
+    "cardType": "event",
+    "body": "후기 조각은 난방과 방한복, 해안 해저 도시와 지하 바다로 향하는 이주를 그린다. 정확한 시기와 도시가 비워진 연대는 화자의 추측이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VIII · 본문 11번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "01f81902-8112-5a20-9669-d215d08c83ee",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-viii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "abyss-city",
+    "title": "지하 바다의 도시",
+    "cardType": "location",
+    "body": "조각에서는 옛 존재가 지하 바다 밑에 불용성 암석을 사용해 도시를 세우고 발광 생물과 쇼고스를 들여온다. 지열이 물을 살기 좋게 유지했다는 설명은 화자의 추론이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VIII · 본문 14번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-mm--section-ix/abyss-approach (지하 심연으로 가는 길): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-x/hemisphere-gate (반구형 심연 입구): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "fe7e3403-a971-59c5-9f89-c1da51107165",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-viii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "abyss-shoggoths",
+    "title": "지하 도시의 쇼고스와 소리",
+    "cardType": "other",
+    "body": "후기 부조에는 지하 도시에서 기른 거대한 쇼고스가 빠르게 명령을 수행하고 주인의 음악 같은 소리를 흉내 내는 모습이 나타난다. 통제 상태 평가는 화자의 해석이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VIII · 본문 15번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "기존 review shoggoth-dream: 같은 이름이나 맥락이 다름",
+      "cthulhu-mm--section-vii/shoggoth-origin (해저 노동체 쇼고스): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-vii/shoggoth-rebellion (쇼고스 재복종 전쟁): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-viii/land-shoggoths (추위 속 육지 노동 쇼고스): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-xi/shoggoth-pursuit (터널의 쇼고스 추격): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "4d6a39cf-1e29-5e20-a37a-b6e8b0b1424c",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-viii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "land-shoggoths",
+    "title": "추위 속 육지 노동 쇼고스",
+    "cardType": "event",
+    "body": "화자가 읽은 마지막 조각에 따르면 추위로 가축이 죽자 옛 존재는 전에는 꺼렸던 쇼고스의 육지 적응을 시도했다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VIII · 본문 17번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "기존 review shoggoth-dream: 같은 이름이나 맥락이 다름",
+      "cthulhu-mm--section-vii/shoggoth-origin (해저 노동체 쇼고스): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-vii/shoggoth-rebellion (쇼고스 재복종 전쟁): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-viii/abyss-shoggoths (지하 도시의 쇼고스와 소리): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-xi/shoggoth-pursuit (터널의 쇼고스 추격): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c2b86d65-9dd2-548c-9105-90bd7f15e687",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-viii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "lake-eight",
+    "title": "레이크 표본 여덟 구의 실종",
+    "cardType": "event",
+    "body": "화자는 파괴된 레이크 야영지에서 완전한 표본 여덟 구가 사라진 일과 옛 존재의 강인함을 연결해 의심하지만 여기서는 원인을 확정하지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section VIII · 본문 20번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "16278e5a-bf65-565b-a694-3bfe781e143a",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-ix",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "abyss-approach",
+    "title": "지하 심연으로 가는 길",
+    "cardType": "location",
+    "body": "탐험가들은 조각을 바탕으로 대도시에서 급경사의 터널을 지나 지하 바다 위 절벽과 해안으로 갈 수 있다고 추정한다. 규모는 그림에서 계산한 값이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section IX · 본문 1번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-mm--section-viii/abyss-city (지하 바다의 도시): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-x/hemisphere-gate (반구형 심연 입구): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d319eb97-9627-5342-a475-e6a7528d2a5a",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-ix",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "blocked-fivepoint",
+    "title": "막힌 오각형 건물 입구",
+    "cardType": "location",
+    "body": "지도상 첫 터널은 오각형 건물 지하에 있으나 실제 접근로가 붕괴와 얼음 균열로 막혀 있어 탐험가들은 다른 입구를 찾는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section IX · 본문 3번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3c10344b-7be6-5a78-b9d2-741fbe84f4e2",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-ix",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "gasoline-crypt",
+    "title": "지하 납골실의 임시 야영 흔적",
+    "cardType": "location",
+    "body": "막힌 통로 옆 조각실에서 탐험가들은 레이크 야영지 물품과 휘발유, 사용한 성냥 및 먹물과 종이를 발견한다. 최근 다른 이들이 머물렀다고 판단한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section IX · 본문 12번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "358e90f4-93e6-5ef9-9e14-fccbd94bc95e",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-ix",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "sketches",
+    "title": "발견된 점문자와 도시 약도",
+    "cardType": "object",
+    "body": "구겨진 종이에 점 무리와 도심 약도가 있다. 화자는 약도가 자신들과 다른 조각을 보고 그려졌고 솜씨가 옛 존재의 전성기 기법과 닮았다고 판단한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section IX · 본문 14번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "3af9923f-5e5f-5811-9a0a-acd177630ac2",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-ix",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "cylinder-tower",
+    "title": "원형 광장의 원통형 탑",
+    "cardType": "location",
+    "body": "탐험가들이 약도를 따라 도착한 지름 약 200피트의 원형 공간에는 벽을 따라 거대한 돌나선 경사로와 오래된 부조가 있다. 조각은 원래 이 탑이 높은 첨탑을 가졌다고 보여 준다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section IX · 본문 19번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-mm--section-xii/tower-exit (나선 경사로를 통한 귀환): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "c9426fdd-7d78-5c98-b192-f593848287b0",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-ix",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "lake-sledges",
+    "title": "원통 탑 안의 세 썰매",
+    "cardType": "object",
+    "body": "탑 안에 레이크의 썰매 세 대와 연료·기구·책 등 장비가 묶여 있다. 조심스럽게 포장된 게드니와 개의 시신도 발견된다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section IX · 본문 23번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-mm--section-ix/gedney-remains (게드니와 개의 시신 발견): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f5e611f3-e89b-5414-ad88-e455be2f3d9e",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-ix",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "gedney-remains",
+    "title": "게드니와 개의 시신 발견",
+    "cardType": "event",
+    "body": "탐험가들은 썰매의 덮개 아래 상처에 반창고를 붙여 보존한 게드니와 실종된 개의 얼어붙은 시신을 발견한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section IX · 본문 23번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-mm--section-ix/lake-sledges (원통 탑 안의 세 썰매): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "87adc484-bee3-5dcb-b66a-fc63dee19159",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-x",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "blind-penguins",
+    "title": "눈먼 거대 흰 펭귄",
+    "cardType": "other",
+    "body": "폐허 통로에서 약 6피트의 흰 펭귄 세 마리를 만난다. 화자는 눈이 퇴화한 이들이 부조에 나타난 새의 후손이며 따뜻한 지하에 산다고 추정한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section X · 본문 5번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "a1f44662-0e09-5c00-97d3-f2c94ab62cb6",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-x",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "hemisphere-gate",
+    "title": "반구형 심연 입구",
+    "cardType": "location",
+    "body": "천구를 닮은 조각으로 덮인 지하 반구형 홀 한쪽에 커다란 아치가 열려 있고 그 뒤로 지하 심연으로 내려가는 터널이 이어진다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section X · 본문 8번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-mm--section-viii/abyss-city (지하 바다의 도시): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-ix/abyss-approach (지하 심연으로 가는 길): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "bd4994dc-cf25-5ff3-8a7a-661914ee5ff8",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-x",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "descending-tunnel",
+    "title": "더워지는 지하 터널",
+    "cardType": "location",
+    "body": "돌로 된 터널은 안쪽에서 암반으로 이어지고 점차 따뜻해진다. 급한 구간에는 바닥 홈이 있으며 옆으로 작은 갱도가 갈라진다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section X · 본문 10번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "2b22e668-9b04-5e38-b672-43742f410f5d",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-x",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "polished-cavern",
+    "title": "매끈한 바닥의 교차 동굴",
+    "cardType": "location",
+    "body": "터널 도중 여러 갱도가 모이는 타원형 동굴은 암벽 사이를 허물어 넓힌 듯하며 바닥에 먼지나 잔해가 거의 없다. 화자는 악취의 원인을 아직 모른다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section X · 본문 12번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "8b5364f3-bfef-5046-b59e-112a20025005",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-x",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "palimpsest",
+    "title": "터널 벽의 덧새김",
+    "cardType": "object",
+    "body": "동굴 너머의 투박한 나선과 각도 무늬는 기존 옛 존재의 오각 전통을 닮았다. 댄포스는 이전 장식을 지우고 다시 새긴 것이라고 추측한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section X · 본문 14번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "7d432afd-209d-5c94-b852-3cd2ca30076c",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-x",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "abandoned-furs",
+    "title": "버려진 모피와 천",
+    "cardType": "object",
+    "body": "따뜻해지는 터널에 레이크 야영지에서 가져온 모피와 천이 잘린 채 버려져 있다. 탐험가들은 절단 형태를 자세히 살피지 않는다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section X · 본문 11번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e40e0f9b-a31d-5845-93ca-f402f816c0e3",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-xi",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "four-bodies",
+    "title": "지하 터널의 머리 없는 네 구",
+    "cardType": "event",
+    "body": "탐험가들은 머리가 뜯긴 옛 존재 네 구와 녹색 체액을 발견한다. 시신의 검은 점액이 과거 부조 속 쇼고스 희생자와 닮았다는 것이 두 사람의 판단이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section XI · 본문 6번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-mm--section-vii/elder-graves (다섯 갈래 표식 무덤): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "08b8b879-6cef-573c-9e48-62ed044ec575",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-xi",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "black-slime-dots",
+    "title": "시신과 벽의 검은 점액",
+    "cardType": "object",
+    "body": "머리 없는 시신에는 검고 무지갯빛인 점액이 붙어 있고 벽에는 점무리 모양으로 덜 묻어 있다. 화자는 그것을 어떤 메시지로 의심하나 뜻은 모른다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section XI · 본문 8번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "baeaac0f-9bf0-5065-9d61-7dc1ef8f0f84",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-xi",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "elder-homecoming",
+    "title": "옛 존재의 비극적 귀환 추론",
+    "cardType": "event",
+    "body": "화자는 발견된 존재들이 깨어나 얼음산을 넘어 폐허에서 동족의 조각을 읽고 지하로 갔다고 상상하며 레이크 일행과의 충돌도 방어였을 수 있다고 헤아린다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section XI · 본문 9번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d931d533-e2a0-5e22-8f1c-f4a908af55e0",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-xi",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "tekeli-li",
+    "title": "터널을 울린 테켈리리",
+    "cardType": "other",
+    "body": "달아나는 탐험가들은 안개 뒤에서 넓은 음역의 소리를 듣고 포의 소설 속 외침과 비슷한 테켈리리로 받아들인다. 둘의 공통 독서가 해석에 영향을 줬다고 화자는 인정한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section XI · 본문 12번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "f94f83d9-eba4-5b89-83eb-6522fa142cf2",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-xi",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "shoggoth-pursuit",
+    "title": "터널의 쇼고스 추격",
+    "cardType": "event",
+    "body": "둘이 돌아본 순간 희미한 발광과 수많은 임시 눈을 지닌 검은 원형질 덩어리가 터널을 채우며 따라온다. 화자는 그 소리가 옛 주인의 목소리를 흉내 낸 것이라 생각한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section XI · 본문 22번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "기존 review shoggoth-dream: 같은 이름의 존재와 겹칠 가능성",
+      "cthulhu-mm--section-vii/shoggoth-origin (해저 노동체 쇼고스): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-vii/shoggoth-rebellion (쇼고스 재복종 전쟁): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-viii/abyss-shoggoths (지하 도시의 쇼고스와 소리): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-viii/land-shoggoths (추위 속 육지 노동 쇼고스): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "ec0da712-6581-5915-bdff-06f488bfc348",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-xi",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "mist-escape",
+    "title": "안개와 펭귄 사이의 탈출",
+    "cardType": "event",
+    "body": "탐험가들은 불빛을 낮추고 펭귄과 안개가 뒤엉킨 갈림길을 지나 탈출한다. 화자는 추격자가 다른 갱도로 들어갔다고 추론한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section XI · 본문 17번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "9d81ef96-c632-5f47-8d35-34b4feb53d28",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-xii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "tower-exit",
+    "title": "나선 경사로를 통한 귀환",
+    "cardType": "event",
+    "body": "화자와 댄포스는 추격 뒤 원형 탑의 나선 경사로를 올라 폐허 밖의 비행기로 돌아간다. 지하에서의 귀환 기억은 단편적이다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section XII · 본문 1번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-mm--section-ix/cylinder-tower (원형 광장의 원통형 탑): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "dce93d65-fe7a-50fb-9c66-5e8063cecaf3",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-xii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "violet-peaks",
+    "title": "멀리 보인 보랏빛 서쪽 산맥",
+    "cardType": "location",
+    "body": "두 사람은 도시 너머 먼 수평선에 뾰족한 보랏빛 산맥을 본다. 화자는 도시의 조각과 카다스 전설에 비추어 그것을 금지된 산맥이라 해석한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section XII · 본문 5번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-mm--section-viii/forbidden-peaks (서쪽의 금지된 산맥): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정",
+      "cthulhu-mm--section-viii/kadath (차가운 황무지의 카다스 추정): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "e9eea066-21cf-5c4d-afc5-4c3d3789662c",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-xii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "danforth-flight",
+    "title": "댄포스의 비행 중 비명",
+    "cardType": "event",
+    "body": "산길을 넘을 때 댄포스가 비명을 지르고 조종이 흔들리자 화자가 비행기를 바로잡는다. 두 사람은 탐험의 일부를 비밀로 하기로 한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section XII · 본문 9번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "d43c23a5-bef8-5102-b76e-c4f1beb9d142",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-xii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "danforth-mirage",
+    "title": "댄포스가 암시한 신기루",
+    "cardType": "other",
+    "body": "댄포스는 서쪽 산 너머를 구름 사이로 보았다고 암시하지만 정확한 내용을 밝히지 않는다. 화자는 그 경험이 앞선 충격과 신기루에 따른 착각일 가능성을 든다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section XII · 본문 11번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "abb76c14-151a-55f9-b934-f8ff36237357",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-mm--section-xii",
+    "work_id": "cthulhu-mm",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "library-necronomicon",
+    "title": "대학에 잠긴 네크로노미콘",
+    "cardType": "object",
+    "body": "댄포스는 대학 도서관에 잠긴 벌레 먹은 네크로노미콘 사본을 끝까지 읽은 드문 사람으로 소개된다. 그가 이후 중얼거린 이름들은 실제 목격의 증거가 아니다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+    "source_location": "At the Mountains of Madness Section XII · 본문 12번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "기존 source/runtime necronomicon, necronomicon-versions, miskatonic-library: 같은 책 및 대학 소장본과 겹칠 가능성"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "조각 해독과 화자의 추측은 독립 검증된 연표가 아님"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "27b386a3-7732-5e99-b6e9-676fa1c869c9",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-wid--section-i",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "narrator-inference",
+    "title": "에이클리 농가 사건의 불확실한 추론",
+    "cardType": "event",
+    "body": "화자는 밤에 에이클리 농가를 달아났으나 마지막에 시각적 공포를 직접 보지는 못했다고 밝힌다. 에이클리의 실종과 기계의 부재만으로 자신의 추론을 증명할 수 없다고 인정한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "The Whisperer in Darkness Section I · 본문 1번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-i/akeley-farm (에이클리의 농가): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "소설 화자의 민속 요약과 인종적 편견을 실제 지역·원주민 전승의 사실로 간주하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  },
+  {
+    "id": "5fe13bdf-05d0-5d7e-9eaf-675a21c3e162",
+    "batch_id": "batch-02",
+    "unit_id": "cthulhu-wid--section-i",
+    "work_id": "cthulhu-wid",
+    "world_id": "cthulhu_mythos",
+    "candidate_key": "akeley-farm",
+    "title": "에이클리의 농가",
+    "cardType": "location",
+    "body": "버몬트의 외딴 농가에는 안팎의 탄흔이 있었지만 조사자들은 별다른 이상이나 손님과 기계의 흔적을 찾지 못했다고 화자는 말한다.",
+    "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+    "source_location": "The Whisperer in Darkness Section I · 본문 1번째 문단 (절 제목 제외)",
+    "edition": "H. P. Lovecraft, 영어 웹 전사본; 기초 저본 미확인",
+    "possible_duplicates": [
+      "cthulhu-wid--section-i/narrator-inference (에이클리 농가 사건의 불확실한 추론): 연관 대상 또는 서술이 겹칠 가능성; 동일 여부 미확정"
+    ],
+    "uncertainties": [
+      "판본의 기초 저본과 재배포·상업 이용 권리 미확인",
+      "소설 화자의 민속 요약과 인종적 편견을 실제 지역·원주민 전승의 사실로 간주하지 않음"
+    ],
+    "rights_status": "미확인; 본 후보의 조사 가능은 재배포·상업적 사용 허락을 의미하지 않음"
+  }
+]
