@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 
-import { WORLD_COVER_TYPES } from '../../../../domain/entities/studioWorld'
-import type { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCase'
+import { WORLD_COVER_TYPES } from '../../domain/entities/studioWorld'
+import type { WorldStudioUseCase } from '../../domain/usecases/WorldStudioUseCase'
 
 /**
  * 소유자 화면의 세계관 표지: 인증이 필요한 읽기(Bearer)로 받은 이미지를 객체 주소로 바꿔 돌려준다(공개 화면은 공개 cover 주소를 `<img>`로 직접 쓴다).
- * 표지가 없거나(`enabled` false) 읽는 중·실패면 `url`이 비어 화면이 자동 생성 표지를 쓴다. `revision`이 바뀌면(올림·교체) 다시 읽고, 바뀌거나 사라질 때 이전 객체 주소를 해제한다.
+ * 표지가 없거나(`enabled` false) 읽는 중·실패면 `url`이 비어 화면이 기본 표지를 쓴다. `revision`이 바뀌면(올림·교체) 다시 읽고, 바뀌거나 사라질 때 이전 객체 주소를 해제한다.
  */
 export function useWorldCoverImage(useCase: Pick<WorldStudioUseCase, 'cover'>, worldId: string | undefined, enabled: boolean, revision: number) {
   const [state, setState] = useState({ url: '', error: '' })
