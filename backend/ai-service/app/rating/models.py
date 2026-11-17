@@ -50,7 +50,7 @@ class RatingResult(BaseModel):
     def _every_criterion_once(self):
         if sorted(a.criterion for a in self.assessments) != sorted(get_args(Criterion)):
             raise ValueError('판별 항목마다 한 번씩 평가해야 합니다.')
-        if self.prohibited and not self.evidence():
+        if self.prohibited and not any(a.quotes for a in self.assessments if a.criterion == 'sexual'):
             raise ValueError('금지 표현에는 sexual 항목의 근거 구절이 필요합니다.')
         return self
 
