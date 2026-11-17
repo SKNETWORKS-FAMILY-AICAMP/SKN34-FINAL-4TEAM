@@ -114,7 +114,7 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 ## 5. Rating Agent
 
 **Rating Agent**는 집필 AI 여섯 업무 Agent([02](02-ai-architecture.md#여섯-업무-agent와-공통-simulation의-경계)) 중 하나다. 작가의 회차 초안이 **19세 이용가로 분류할 내용인지 아닌지만** 판별한다.
-오케스트레이션의 한 단계로 실행한다. 현재 구현은 단독 내부 API(`backend/ai-service/app/rating/`, `feat/age-rating-agent` 브랜치)이며 Intent Router 분류와 오케스트레이션 연결은 #386에서 한다.
+오케스트레이션의 한 단계(`rating`)로 실행한다(`backend/ai-service/app/rating/`, `feat/age-rating-agent` 브랜치). Intent Router가 심의 등급 판별 요청을 `rating`으로 분류하고(되묻기 보기 `심의 등급`), 단계 입력 없이 Content가 확인한 반영 대상(`target`) 회차 하나를 판별한다. `target`이 없으면 단계 실패이고, 결과는 제안이라 승인·반영(`apply`)을 묻지 않는다. 단독 내부 API `POST /internal/v1/ratings`(회차 1–10개)도 그대로 있다.
 15세·12세 같은 세부 등급, 자동 등급 설정·숨김·발행 차단은 하지 않는다. 결과는 판정 제안이며 작품 등급의 정본·적용은 Content가 소유한다
 ([F-ADULT-01](../requirements.md#f-adult-01): 등급 기준·연령 확인·자동 조치는 미정).
 
@@ -130,9 +130,12 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 
 #### 기준 문서
 
-- `youth-protection.md`: 「청소년 보호법」 제9조 청소년유해매체물 심의 기준과 간행물 유해성 심의 항목을 판별 항목(criterion) 여섯 개로 **요약**한 것이다. 조문 원문이 아니다.
-  F-ADULT-01의 등급 기준은 아직 팀이 확정하지 않았다. 이 문서는 사용자 요청(법령·심의 규정 기반 판별)에 따른 **판별용 초안 기준**이며 팀 확정 전까지 제품 등급 정책으로 쓰지 않는다.
-  간행물윤리위원회 심의 규정 원문·최신 개정은 [국가법령정보센터](https://www.law.go.kr)와 [간행물윤리위원회](https://www.kpipa.or.kr)에서 확인해 보완한다.
+- `youth-protection.md`: 판별 항목(criterion) 일곱 개와 수준(0 없음·1 암시·생략·2 묘사·3 별표 2 해당)의 평가표다(#440, 2026-11-17 원문 확인).
+  「청소년 보호법」 제9조 제1항 6개 호·제2항은 원문 그대로 싣고, 수준 3은 「청소년 보호법 시행령」 [별표 2] 개별 심의 기준 가~하 원문을 항목별로 나눠 싣는다.
+  간행물윤리위원회 청소년유해간행물 심의기준(제3조)도 같은 가~하를 둔다. 별표 2 일반 심의 기준의 "연속물은 개별 회분 대상"이 회차별 판별의 근거다.
+  수준 0–2 정의와 수준 2 표현, 금지 표현(미성년자로 보이는 인물의 성적 묘사, 별표 2 라목은 조장만 다룸)은 팀 초안이다.
+  F-ADULT-01의 등급 기준은 아직 팀이 확정하지 않았으므로 이 평가표는 **판별용 기준**이며 제품 등급 정책으로 쓰지 않는다.
+  확인한 원문: [별표 2 파일(국가법령정보센터)](https://www.law.go.kr/LSW/flDownload.do?flSeq=28750089), [간행물윤리위원회 심의 안내](https://e.kpipa.or.kr/kpec/deliberation/kpec_deliberate_target.do), 법 제9조(국가법령정보센터 「청소년 보호법」). 별표 2 파일에는 개정일 표기가 없어 개정 시 다시 대조한다.
 - 플랫폼별 금칙어·수위 가이드라인은 공식 원문을 확인한 팀이 `<플랫폼>.md`로 추가한다. 원문을 확인하지 않은 기준을 추측해 넣지 않는다.
 - 기준 폴더에는 모델에 보낼 문서만 둔다. 폴더의 모든 `.md`가 지시문에 들어가며, 하나도 없으면 앱 시작이 실패한다.
 - Docker 이미지는 `app/` 폴더를 그대로 복사해 실행하므로 기준 문서가 함께 들어간다. wheel 패키지 데이터에는 포함하지 않았다.
@@ -142,14 +145,23 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 ```text
 POST /internal/v1/ratings {workId, episodes[1..10]}
   → router: X-Internal-Token 검증, X-User-Authorization을 Content MCP 컨텍스트에 설정
-  → service: 회차마다 Content MCP episode_read(작가 권한) → 초안 본문·revision (모델 호출 전에 전부 읽음)
-  → agent.rate: 회차마다 OpenAI responses.parse 1회(지시문 + 기준 문서, 입력은 초안 본문)
-  → models: adult와 근거 유무 불변식
-  → service: 근거 구절이 그 회차 초안에 그대로 있는지 대조, 작품 판정 = 회차 판정 중 하나라도 19세
+  → service: 회차마다 Content MCP episode_read(작가 권한) → 제목·작가 메모·초안 본문·revision (모델 호출 전에 전부 읽음)
+             연결 세계관이 있으면 world_studio_list → world_studio_read(가장 늦은 회차 시점) 1회 → 인물 카드(그 회차까지 공개된 것만)
+             비속어 어근 빈도(profanityCount, 규칙 신호)
+  → agent.rate: 회차마다 agent_runtime.run(create_agent + 공통 미들웨어) 1회, 회차끼리 스레드로 동시 호출
+             (지시문 + 기준 문서, 입력은 {title, authorNote, draft, characters, signals}) → 항목별 수준·근거·prohibited
+  → models: 일곱 항목을 한 번씩 평가했는지, 수준 2 이상에 근거 구절이 있는지
+  → service: 근거 구절이 그 회차 초안에 있는지 대조(공백·둥근 따옴표만 같게 봄, 4자 이상),
+             회차 판정 = 문턱값(models.verdict), 묶음 판정 = 하나라도 adult면 adult, 전부 general이면 general, 그 외 needsReview
 ```
 
+- `needsReview`는 작가 검토로 넘긴다(#439, 2026-11-17 사용자 결정). AI는 재호출·상위 모델로 다시 판정하지 않고, 채팅은 "작가 검토 필요"와 수준 2 이상 근거를 보여 작가가 직접 판단하게 한다. 운영자 검토 대기열로 접수하지 않는다.
+
+- 모델은 등급을 정하지 않고 항목별 수준만 평가하며, 등급은 코드가 문턱값으로 계산한다. 모든 항목을 매번 평가하게 해서 전체 이용가 판정도 항목별 근거가 남는다.
+- 문턱값(2026-11-17 사용자 결정, F-ADULT-01 확정 전 초안): `prohibited`이거나 어느 항목이든 수준 3이면 `adult`, 최고 수준이 2면 `needsReview`(사람 검토), 모두 1 이하면 `general`.
 - 회차별로 따로 판별한다. 여러 회차 원고를 한 호출에 넣으면 입력이 길어지고 어느 회차 근거인지 섞인다.
-- 세계관·Retrieval·Simulation은 부르지 않는다. 판별 근거는 원고 표현이다.
+- 판별 근거는 원고 표현이다. 인물 카드는 등장인물이 미성년자인지 판단하는 데만 쓰고 근거 구절은 초안에서만 인정한다. 세계관이 연결되지 않은 작품은 인물 없이 판별한다(Review와 달리 실패하지 않음). Retrieval·Simulation은 부르지 않는다.
+- 비속어 빈도는 서로 겹치지 않는 고정 어근 목록의 부분 문자열 수다. 등급을 직접 정하지 않고 `language` 평가의 참고값으로 모델에 보내며 회차 결과(`signals`)에도 남긴다. 변형 표기(ㅅㅂ 등)는 세지 않는다.
 - 한 회차라도 초안이 비었거나 Content가 거절하면 모델을 부르기 전에 전체 요청이 실패한다.
 
 ### 계약
@@ -157,18 +169,19 @@ POST /internal/v1/ratings {workId, episodes[1..10]}
 | 항목 | 내용 |
 |---|---|
 | 요청 | `workId`(1–100자), `episodes`(1 이상 서로 다른 회차 번호 1–10개) |
-| 회차 결과 | `episode`, `revision`, `adult`, `reasons[] {criterion, quote, explanation}`, `model`, `providerResponseId`, `usage` |
-| 작품 결과 | `workId`, `adult`(회차 중 하나라도 `adult`), `episodes[]` |
-| criterion | `sexual`(선정성)·`violence`(폭력성)·`crime`(범죄·반사회성)·`drug`(약물)·`gambling`(사행성)·`language`(언어) |
-| 불변식 | `adult`가 참이면 근거가 하나 이상, 거짓이면 근거가 없다(models). `quote`는 그 회차 초안에 그대로 있어야 한다(service). 어긋나면 고치지 않고 502 |
-| 오류 | 내부 토큰 불일치 403, Content 거절은 상태 유지(401·403·404·409·422), 빈 초안 422, 모델 미설정·호출 실패 503, 응답 형식·불변식·근거 위반 502 |
+| 회차 결과 | `episode`, `revision`, `verdict`(`adult`·`general`·`needsReview`, 판별 실패면 null), `prohibited`, `assessments[] {criterion, level, quotes[], rationale}`, `error`(판별 실패 이유), `signals {profanityCount}`, `model`, `providerResponseId`, `usage` |
+| 묶음 결과 | `workId`, `verdict`(요청한 회차만 본 판정), `prohibited`(회차 중 하나라도), `episodes[]` |
+| criterion | `sexual`(선정성)·`violence`(폭력성)·`crime`(범죄·반사회성)·`drug`(약물)·`gambling`(사행성)·`language`(언어)·`other`(그 밖의 명백한 유해) |
+| 불변식 | 일곱 항목을 한 번씩 평가하고 수준 2 이상이면 근거 구절이 있으며, `prohibited`이면 `sexual` 항목에 근거 구절이 있다(models). 판정을 좌우하는 이 구절들은 그 회차 초안에 있어야 한다(service, 수준 0·1 구절은 대조하지 않음). 어긋나면 고치지 않고 그 회차만 `verdict: null`·`error`이며 묶음 판정은 `general`이 될 수 없다 |
+| 오류 | 내부 토큰 불일치 403, Content 거절은 상태 유지(401·403·404·409·422), 빈 초안 422, 모델 미설정·호출 실패 503(요청 전체). 응답 형식·불완전 응답·근거 위반은 그 회차만 판별 실패이고, 한 회차도 판별하지 못하면 502 |
 
 ### 한계와 남은 일
 
-- Intent Router·오케스트레이션 연결, 작가 화면·작품 등급 필드 연결이 없다. 판정 결과를 작품 등급으로 저장할지는 F-ADULT-01 정책 결정 후 Content가 정한다.
-- 기준 문서는 법령 요약 하나뿐이고 플랫폼별 가이드라인은 비어 있다.
-- 불법 콘텐츠(아동·청소년 대상 성적 묘사 등)의 차단은 이 Agent 범위 밖이며 운영 모더레이션([UC-20](../usecase-spec/UC-20.md))이 맡는다. `adult: true`는 성인 이용가로 허용된다는 뜻이 아니다.
-- 회차 판별은 순차 호출이라 10개 회차면 최대 약 20분(호출당 timeout 120초)이 걸릴 수 있다. 호출자는 회차 수를 줄이거나 timeout을 맞춘다. 동시 호출은 추적 span 연결을 함께 설계할 때 검토한다.
+- 집필 AI 채팅은 판정을 말풍선 글(판정·회차별 수준 2 이상 근거·판별 실패)로만 보인다. 작품 등급 필드 연결은 없으며, 판정 결과를 작품 등급으로 저장할지는 F-ADULT-01 정책 결정 후 Content가 정한다. 채팅 단계는 반영 대상 회차 하나만 판별한다.
+- 기준 문서는 법 제9조·시행령 별표 2 원문 기반 평가표 하나뿐이고 플랫폼별 가이드라인은 비어 있다. 수준 0–2 경계는 팀 초안이다.
+- 불법 콘텐츠(아동·청소년 대상 성적 묘사 등)의 차단은 이 Agent 범위 밖이며 운영 모더레이션([UC-20](../usecase-spec/UC-20.md))이 맡는다. Agent는 `prohibited`로 표시만 한다. `verdict: adult`는 성인 이용가로 허용된다는 뜻이 아니다.
+- 인물 나이는 카드 본문(IDENTITY)에 적힌 만큼만 안다. 구조화된 나이 필드는 없다.
+- 회차 판별은 동시에 부르므로(최대 10개) 한 요청이 OpenAI 호출을 동시에 최대 10개 만든다. 한 회차의 503은 다른 회차 결과까지 버리고 요청 전체를 실패시킨다.
 - 고정 모델 응답 단위 테스트만 있으며 실제 OpenAI 판별 품질은 측정하지 않았다.
 
 ## 6. World & Plot Management

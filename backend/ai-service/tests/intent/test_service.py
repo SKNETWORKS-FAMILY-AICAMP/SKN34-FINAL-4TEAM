@@ -85,6 +85,7 @@ def test_unregistered_explicit_operation_is_rejected_before_model(monkeypatch):
 
 @pytest.mark.parametrize('text, feature', [
     ('11화에 넣을 사건을 추천해줘', 'story_development'),
+    ('이 회차가 19세 이용가인지 판별해줘', 'rating'),
     ('11화 원고를 써줘', 'writing_editing'),
 ])
 def test_free_text_is_classified_and_sent_only_as_data(monkeypatch, text, feature):
@@ -167,6 +168,7 @@ def test_every_feature_has_a_name_in_the_clarify_question():
 @pytest.mark.parametrize('text, feature', [
     ('작품 질문', 'story_context'), ('원고 검수', 'review'), ('인물 시뮬레이션', 'character_simulation'),
     ('집필·수정', 'writing_editing'), ('전개 제안', 'story_development'), ('설정·플롯 분석', 'world_plot'),
+    ('고증 조사', 'web_research'), ('심의 등급', 'rating'),
     ('고증 조사', 'web_research'), ('설정집 검토', 'world_review'), ('설정집검토', 'world_review'),
     ('집필 수정', 'writing_editing'), ('집필ㆍ수정', 'writing_editing'), (' 인물  시뮬레이션 ', 'character_simulation'),
 ])

@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from app.intent.models import IntentResult, IntentStep
 from app.story_qa.models import AnswerResponse, Claim
 from app.orchestration import service
+from app.rating.models import EpisodeRating, RatingResponse
 from app.research.models import Finding, ResearchResponse
 from app.retrieval.models import RetrievalResult
 from app.review.models import Finding as ReviewFinding, ReviewResponse
@@ -87,6 +88,9 @@ def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None):
         workId=data.workId, episode=data.episode, revision=4, check=data.check, gaps=[], model='m', providerResponseId='r', usage=None,
         findings=[ReviewFinding(category='spelling', quote='웃엇다', reason='맞춤법', status='confirmed', evidenceRefs=[],
                                 suggestion='웃었다', start=3, end=6)])))
+    monkeypatch.setattr(service.rating, 'rate', recorded('rating', lambda data: RatingResponse(
+        workId=data.workId, verdict='general', prohibited=False,
+        episodes=[EpisodeRating(episode=n, revision=4, verdict='general', signals={'profanityCount': 0}) for n in data.episodes])))
     monkeypatch.setattr(service.world_review, 'linked_request', recorded('world_review_read', lambda work_id: WORLD_REVIEW_REQUEST))
     monkeypatch.setattr(service.world_review, 'review', recorded('world_review', WORLD_REVIEW))
     return calls

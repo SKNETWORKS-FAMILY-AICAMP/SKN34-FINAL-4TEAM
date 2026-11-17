@@ -604,6 +604,15 @@ class WorldStudioServiceTest {
         assertEquals("private",WorldStudioSummaryResponse(world,"n","d",0,"current").visibility)
     }
 
+    @Test fun `owner summaries count only the active draft cards`() {
+        owned()
+        val entity=StudioWorld(world,actor)
+        `when`(worlds.findAllByOwnerSubjectOrderByCreatedAtDesc(actor)).thenReturn(listOf(entity))
+        `when`(cardDrafts.countByWorldIdAndFieldsLifecycle(world,"active")).thenReturn(3L)
+        assertEquals(3L,service.list(actor).single().cardCount)
+        assertEquals(0L,WorldStudioSummaryResponse(world,"n","d",0,"current").cardCount)
+    }
+
     @Test fun `owner summaries and the world detail say whether a cover is stored`() {
         owned()
         val entity=StudioWorld(world,actor,coverObjectKey="world-covers/a",coverContentType="image/png")

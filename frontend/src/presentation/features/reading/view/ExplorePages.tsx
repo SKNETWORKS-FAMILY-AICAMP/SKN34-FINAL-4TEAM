@@ -188,7 +188,7 @@ export function IfsPage() {
         {vm.groups && (vm.groups.length ? vm.groups.map(({ o, label, forkList, forks }) => (
           <section key={o.id} className="ifg">
             <div className="o">
-              <Go className="th" to={`/work/${o.id}`} aria-label={`${o.title} 원작`}><Cov w={o} k="s" /></Go>
+              <Go className="th" to={`/work/${o.id}`} aria-label={`${o.title} 원작`}><Cov w={o} /></Go>
               <b>{o.title}</b><small className="muted">{label}</small>
               {forkList.length > 0 && <Go className="btn sm pri" to={`/fork/${o.id}?at=${forkList[0]}`}>✎ 나도 포크하기</Go>}
             </div>

@@ -12,6 +12,13 @@ export type ReviewFinding = {
 }
 /** 원고 검수(#59) 단계의 검증된 결과. 검수한 초안의 회차·판본과 확인하지 못한 부분(gaps)을 함께 둔다. */
 export type ChatReview = { check: ReviewCheck; episode: number; revision: number; findings: ReviewFinding[]; gaps: string[] }
+export type RatingVerdict = 'adult' | 'general' | 'needsReview'
+/** 심의 등급 판별 단계의 검증된 결과. 판정은 제안이며 작품 등급을 바꾸지 않는다. 회차 verdict가 null이면 그 회차는 판별 실패(error)다. */
+export type ChatRating = {
+  verdict: RatingVerdict; prohibited: boolean
+  episodes: { episode: number; verdict: RatingVerdict | null; prohibited: boolean; error: string | null
+    assessments: { criterion: string; level: number; quotes: string[]; rationale: string }[] }[]
+}
 export type ChatStepResult = {
   claims?: { text: string }[]
   gaps?: string[]
@@ -30,6 +37,8 @@ export type ChatStep = {
   simulation?: CharacterSimulation | null
   /** review 단계의 검증된 결과. 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
   review?: ChatReview | null
+  /** rating 단계의 검증된 결과. 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
+  rating?: ChatRating | null
   error?: string | null
   approval?: 'approved' | 'declined' | null
   applied?: { episode: number; revision: number } | null
@@ -106,7 +115,7 @@ export function cleanScene(scene: SceneAction): SceneAction {
   }
 }
 
-export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '집필·수정', web_research: '고증 조사', character_simulation: '인물 시뮬레이션', review: '원고 검수' }
+export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '집필·수정', web_research: '고증 조사', character_simulation: '인물 시뮬레이션', review: '원고 검수', rating: '심의 등급' }
 export const reviewCheckLabel: Record<ReviewCheck, string> = { mechanical: '맞춤법·표기', semantic: '설정·개연성', both: '설정·개연성 + 맞춤법·표기' }
 const reviewStatus: Record<ReviewFinding['status'], string> = { confirmed: '확정', suspected: '의심', undeterminable: '판단 불가' }
 const reviewCategory: Record<string, string> = {
@@ -121,6 +130,22 @@ function reviewText({ check, episode, findings, gaps }: ChatReview): string {
     `${reviewStatus[f.status]} · ${reviewCategory[f.category] ?? f.category} · "${f.quote}"${f.start === null ? ' (여러 곳)' : ''}`,
     `이유: ${f.reason}`, ...(f.suggestion ? [`제안: ${f.suggestion}`] : []),
   ].join('\n')), ...gaps.map((g) => `확인 못 함: ${g}`)].join('\n\n')
+}
+
+const ratingVerdict: Record<RatingVerdict, string> = { adult: '19세 이용가', general: '전체 이용가', needsReview: '작가 검토 필요' }
+// needsReview는 AI가 다시 판정하지 않고 작가가 근거를 보고 정한다(#439).
+const AUTHOR_REVIEW = 'AI가 등급을 정하지 않았어요. 아래 근거를 보고 작가님이 직접 판단해 주세요.'
+const ratingCriterion: Record<string, string> = {
+  sexual: '선정성', violence: '폭력성', crime: '범죄', drug: '약물', gambling: '사행성', language: '언어', other: '기타 유해',
+}
+
+// 판정을 좌우한 수준 2 이상 항목만 근거와 함께 보인다.
+function ratingText({ verdict, prohibited, episodes }: ChatRating): string {
+  return [`판정 제안: ${ratingVerdict[verdict]}${prohibited ? ' · 금지 표현 의심(운영 검토 대상)' : ''}${verdict === 'needsReview' ? `\n${AUTHOR_REVIEW}` : ''}`,
+    ...episodes.map((e) => (e.verdict === null ? `${e.episode}화: 판별 실패 · ${e.error ?? ''}` : [`${e.episode}화: ${ratingVerdict[e.verdict]}`,
+      ...e.assessments.filter((a) => a.level >= 2).map((a) =>
+        `${ratingCriterion[a.criterion] ?? a.criterion} 수준 ${a.level} · ${a.rationale}${a.quotes.length ? ` · "${a.quotes[0]}"` : ''}`),
+    ].join('\n')))].join('\n\n')
 }
 
 /**
@@ -145,6 +170,7 @@ export function stepText(step: ChatStep): string {
   if (step.status === 'skipped') return `건너뜀: ${step.error ?? '할 일이 없어 건너뛰었어요.'}`
   if (step.simulation) return sceneSummary(step.simulation)
   if (step.review) return reviewText(step.review)
+  if (step.rating) return ratingText(step.rating)
   const r = step.result
   if (step.status !== 'completed' || !r) return ''
   if (r.claims) return [...r.claims.map((c) => c.text), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '근거를 찾지 못했어요.'

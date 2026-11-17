@@ -21,11 +21,18 @@ data class PublicWorldCardResponse(val id: UUID, val title: String, val text: St
 
 data class PublicWorldRelationshipResponse(val id: UUID, val sourceCardId: UUID, val targetCardId: UUID, val label: String)
 
-/** 공개 세계관 상세. [relationshipStatus]가 unavailable이면 관계 저장소가 현재 상태를 보증하지 못해 [relationships]를 비운 것이다. [hasCover]면 `/{id}/cover`로 표지를 읽는다. */
+/** 세계관에 연결된 공개 소설의 최소 정보(#329)다. [id]는 작품 ID이고 [hasCover]면 `/api/v1/public/works/{id}/cover/content`로 표지를 읽는다. */
+data class PublicWorldLinkedWorkResponse(val id: String, val title: String, val authorNickname: String, val hasCover: Boolean)
+
+/**
+ * 공개 세계관 상세. [relationshipStatus]가 unavailable이면 관계 저장소가 현재 상태를 보증하지 못해 [relationships]를 비운 것이다. [hasCover]면 `/{id}/cover`로 표지를 읽는다.
+ * [linkedWork]는 이 세계관에 연결된 소설(1:1, DEC-46)이 **공개 작품일 때만** 채우고, 비공개·제한·삭제 작품이거나 연결이 없으면 null이다(존재를 드러내지 않는다, #329).
+ */
 data class PublicWorldResponse(
     val id: UUID, val name: String, val description: String, val genre: String?, val authorNickname: String,
     val publishedAt: String, val revisionNo: Long, val cards: List<PublicWorldCardResponse>,
     val relationships: List<PublicWorldRelationshipResponse>, val relationshipStatus: String, val hasCover: Boolean = false,
+    val linkedWork: PublicWorldLinkedWorkResponse? = null,
 )
 
 /** 독자 설정 위키의 카드. [revealFromEpisode]화부터 연결된 소설의 독자에게 보인다. [imageId]가 있으면 `/public/works/{작품}/world-card-images/{imageId}?upto=N`로 대표 이미지를 읽는다(#401, 없으면 null). */
