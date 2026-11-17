@@ -26,7 +26,7 @@ export function MyWorlds() {
           <div className="list">{view.items.map(world => <article className="li" key={world.id}>
             <Cover id={world.id} hasCover={!!world.hasCover} />
             <div className="server-writing-content"><h3>{world.name}</h3>
-              <div className="m">설정 {world.settings.length}개 · 버전 {world.version}</div>
+              <div className="m">설정 {world.cardCount ?? world.settings.length}개 · 버전 {world.version}</div>
             </div>
             <div className="acts">
               <Go className="btn sm" to={`/worldstudio/${world.id}`} aria-label={`${world.name} 관리하기`}>관리하기</Go>
