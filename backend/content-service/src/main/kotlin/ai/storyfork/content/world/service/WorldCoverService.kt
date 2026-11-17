@@ -60,9 +60,9 @@ class WorldCoverService(
         return previous
     }
 
-    /** 소유자에게 저장된 표지를 돌려준다. 남의 세계관은 404(WorldNotFound), 표지가 없으면 404(ContentFailure)다. */
+    /** 소유자에게 저장된 표지를 돌려준다. 남의·지운 세계관은 404(WorldNotFound), 표지가 없으면 404(ContentFailure)다. */
     fun read(worldId: UUID, subject: UUID): WorldCoverImage {
-        val world = tx { worlds.findById(worldId).orElse(null)?.takeIf { it.ownerSubject == subject } ?: throw WorldNotFound() }
+        val world = tx { worlds.findById(worldId).orElse(null)?.takeIf { it.ownerSubject == subject && it.deletedAt == null } ?: throw WorldNotFound() }
         val key = world.coverObjectKey
         val type = world.coverContentType
         if (key == null || type == null) throw ContentFailure(404, "세계관 표지를 찾을 수 없습니다.")

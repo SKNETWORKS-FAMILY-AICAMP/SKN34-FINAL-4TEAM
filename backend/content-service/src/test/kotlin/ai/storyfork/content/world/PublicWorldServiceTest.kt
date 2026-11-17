@@ -196,6 +196,14 @@ class PublicWorldServiceTest {
         verifyNoInteractions(graph)
     }
 
+    @Test fun `reader cards of a deleted world are empty like a missing one and its card images are 404 without reading Neo4j or storage`() {
+        val s = Seed(pictures = true)
+        s.world.deletedAt = Instant.now()
+        assertEquals(ReaderWorldCardsResponse("work", s.id, 2), service.readerCards("work", s.id, 2))
+        assertEquals(404, assertThrows(ContentFailure::class.java) { service.readerCardImage(s.id, 2, s.firstImage) }.status)
+        verifyNoInteractions(graph, storage)
+    }
+
     @Test fun `reader cards stay and the relations say unavailable when the relation store cannot vouch for the current state`() {
         val pending = Seed()
         pending.state.completed = false

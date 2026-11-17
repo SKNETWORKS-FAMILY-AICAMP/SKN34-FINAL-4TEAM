@@ -133,9 +133,9 @@ class PublicWorldService(
         return WorldCoverImage(coverStorage { storage.read(image.objectKey).bytes }, image.contentType)
     }
 
-    /** [upto]화 기준으로 독자에게 보이는 카드(독자 공개 회차와 함께)와 관계 상태다. 확정 버전이 없으면 비어 있다. 읽기 트랜잭션 안에서 부른다. */
+    /** [upto]화 기준으로 독자에게 보이는 카드(독자 공개 회차와 함께)와 관계 상태다. 확정 버전이 없거나 지운 세계관이면 비어 있다. 읽기 트랜잭션 안에서 부른다. */
     private fun readerSnapshot(worldId: UUID, upto: Int): ReaderSnapshot {
-        val revision = worlds.findById(worldId).orElse(null)?.currentRevisionId?.let { revisions.findByIdAndWorldId(it, worldId) }?.takeIf { it.sealed }
+        val revision = worlds.findById(worldId).orElse(null)?.takeIf { it.deletedAt == null }?.currentRevisionId?.let { revisions.findByIdAndWorldId(it, worldId) }?.takeIf { it.sealed }
             ?: return ReaderSnapshot(emptyList(), null)
         return ReaderSnapshot(cardVersions.findAllById(revisionCards.findAllByIdRevisionId(revision.id).map { it.versionId })
             .mapNotNull { card -> readerCardEpisode(card.fields.lifecycle, card.fields.semanticMetadata, upto)?.let { card to it } }

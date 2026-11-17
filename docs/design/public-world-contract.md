@@ -284,7 +284,7 @@ ALTER TABLE worldstudio.world ADD COLUMN deleted_at timestamptz;
 |---|---|
 | `DELETE /api/v1/world-studios/{id}` | 소유자만. 204(본문 없음). 연결된 소설이 있으면 409 `WORLD_LINKED`, 비소유자·없는·이미 삭제된 세계관은 404 |
 
-공개 조회는 `StudioWorldRepository`의 `lockOwned`·`listed`·`listedByGenre` 쿼리와 `PublicWorldService.listedWorld`·`WorkWorldService.link`의 `findById` 확인이 `deleted_at`을 거른다. 새 조회를 더할 때도 같은 조건을 둔다.
+공개 조회는 `StudioWorldRepository`의 `lockOwned`·`listed`·`listedByGenre` 쿼리와 `PublicWorldService.listedWorld`·`readerSnapshot`, `WorldCoverService.read`·`WorldCardImageService.read`(소유자 읽기), `WorkWorldService.link`의 `findById` 확인이 `deleted_at`을 거른다(독자 설정 위키는 지운 세계관이면 카드 0, 이미지는 404). 새 조회를 더할 때도 같은 조건을 둔다.
 
 ### 화면
 
