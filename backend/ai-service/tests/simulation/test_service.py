@@ -10,7 +10,7 @@ from app.simulation import prompt, service
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import CheckItem, Decision, Note, PlanDraft, SceneAction, SimulationPlan, Trail, Turn, Verdict
 
-from .stubs import (EPISODE, GATE, KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, REL, SHADOW, TARGET, WORLD, card, context, fake_content,
+from .stubs import (EPISODE, GATE, INHERITED, KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, REL, SHADOW, TARGET, WORLD, card, context, fake_content,
                     fake_novelbrain, recalled, text)
 
 STYLE, PERSONA, REMOVED = (f'00000000-0000-0000-0000-0000000000{n}' for n in ('a1', 'a2', 'ff'))
@@ -45,12 +45,45 @@ def test_a_409_from_the_episode_scoped_world_read_fails_as_it_is_and_is_never_re
     assert [(tool, args.get('episode')) for tool, args in calls] == [('world_studio_list', None), ('world_studio_read', str(EPISODE))]  # 회차를 생략한 재조회가 없다
 
 
-def test_work_without_a_linked_world_fails_explicitly_without_reading_any_world(monkeypatch):
+def test_work_without_a_linked_world_or_an_inherited_one_fails_explicitly_without_reading_any_world(monkeypatch):
     calls = fake_content(monkeypatch, worlds=[{'worldId': WORLD, 'linkedWorkId': None}, {'worldId': 'o', 'linkedWorkId': 'x'}])
     with pytest.raises(SimulationFailure) as error:
         service.read_world('work', EPISODE)
     assert error.value.status == 409
-    assert [tool for tool, _ in calls] == ['world_studio_list']
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'work_inherited_world']  # 소유자 읽기(world_studio_read)로는 읽지 않는다
+
+
+def test_a_fork_without_a_world_of_its_own_reads_the_original_world_it_inherits_up_to_the_base_episode(monkeypatch):
+    calls = fake_content(monkeypatch, worlds=[], inherited=INHERITED)
+    assert service.read_world('work', EPISODE) == INHERITED
+    assert calls == [('world_studio_list', {}), ('work_inherited_world', {'id': 'work', 'upto': '3'})]
+
+
+def test_a_world_linked_to_the_work_wins_over_the_inherited_one(monkeypatch):
+    calls = fake_content(monkeypatch, inherited=INHERITED)
+    assert service.read_world('work', EPISODE) == READ
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read']
+
+
+def test_inherited_world_failing_to_vouch_for_its_relations_stops_the_run_instead_of_continuing_without_them(monkeypatch):
+    fake_content(monkeypatch, worlds=[], inherited={**INHERITED, 'relationshipStatus': 'unavailable'})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.load_world(TARGET, '요청', None)
+    assert error.value.status == 503
+
+
+def test_inherited_characters_are_the_candidates_for_the_start_form_and_carry_no_author_only_docs(monkeypatch):
+    fake_content(monkeypatch, worlds=[], inherited=INHERITED)
+    world = service.load_world(TARGET, '요청', None)
+    assert set(world.characters) == {KAEL, LINA}
+    assert all(not c.soul and not c.goal and not c.episodes for c in world.characters.values())
+    assert [r.id for r in world.snapshot.relations] == [REL]
+    # 시작 양식 검증도 같은 집합이다: 이어받지 않은 카드·모르는 id는 거절한다.
+    assert service.plan_from_form(PLAN_IF, TARGET) == PLAN_IF
+    for other in (SHADOW, GATE, '00000000-0000-0000-0000-0000000000ee'):
+        with pytest.raises(SimulationFailure) as error:
+            service.plan_from_form(SimulationPlan(mode='if', premise='만약 ~했다면', characterIds=[KAEL, other]), TARGET)
+        assert error.value.status == 422
 
 
 def test_load_world_reads_the_linked_world_and_retrieves_excerpts_for_the_request_without_filtering_them(monkeypatch):

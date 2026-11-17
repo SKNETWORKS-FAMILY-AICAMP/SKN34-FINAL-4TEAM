@@ -1,3 +1,4 @@
+import type { InheritedCard } from './content'
 import { cardTypeOf } from './studioCards'
 import { scenePlans, type StoryPlan } from './storyPlan'
 import type { StudioSetting } from './studioWorld'
@@ -162,14 +163,24 @@ export type SimulationCharacter = { id: string; name: string; aliases: string[] 
 
 // 제목이 '나레이터'로 시작하는 카드(나레이터 — 작품명)는 인물이 아니라 서술 문체 지침이다. 서버(simulation/service.py NARRATOR_CARD)와 같은 규칙: NFC → trim → 시작 일치.
 const isNarratorCard = (title: string) => title.normalize('NFC').trim().startsWith('나레이터')
+// 인물 후보 규칙(연결 세계관과 이어받은 세계관이 함께 쓴다): 인물 카드이고 이름이 있고 나레이터 카드가 아니다.
+const isCandidate = (cardType: string, title: string) => cardType === 'character' && !!title.trim() && !isNarratorCard(title)
 
 /**
  * 연결 세계관의 인물 카드. 서버는 simulation.characterIds를 연결 WorldStudio의 활성 인물 카드 id로 검증하므로
  * 레거시 설정집이나 장면 계획의 인물 id가 아니라 이 카드 id를 쓴다. 이름 없는 카드는 고를 수 없어 빼고, 나레이터 카드도 서버가 스냅샷에서 빼므로 뺀다.
  */
 export const worldCharacters = (settings: StudioSetting[]): SimulationCharacter[] =>
-  settings.filter((setting) => cardTypeOf(setting.item) === 'character' && setting.item.title.trim() && !isNarratorCard(setting.item.title))
+  settings.filter((setting) => isCandidate(cardTypeOf(setting.item), setting.item.title))
     .map((setting) => ({ id: setting.item.id, name: setting.item.title.trim(), aliases: setting.aliases ?? [] }))
+
+/**
+ * Fork가 이어받은 원작 세계관의 인물 후보(#365). 서버가 공개 카드·Fork 기준 회차로 이미 거른 카드에서 [worldCharacters]와 같은 규칙으로 고른다.
+ * 서버는 같은 카드 집합으로 characterIds를 검증하므로 이 카드 id를 그대로 보낸다.
+ */
+export const inheritedCharacters = (cards: InheritedCard[]): SimulationCharacter[] =>
+  cards.filter((card) => isCandidate(card.cardType, card.title))
+    .map((card) => ({ id: card.id, name: card.title.trim(), aliases: card.aliases }))
 
 /**
  * 흐름 모드가 미리 고르는 참여 인물: 비트 문장(제목·내용)에 이름이나 별칭이 나오는 인물 카드를 목록 순서대로 6명까지.

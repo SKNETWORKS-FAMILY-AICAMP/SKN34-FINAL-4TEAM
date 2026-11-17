@@ -44,6 +44,7 @@ AI가 사용자가 프론트에서 할 수 있는 세계관·작품·회차 작�
 | `work_public_read` (공개) | `GET /api/v1/public/works/{id}` |
 | `work_link_world_studio` | `PUT /api/v1/works/{id}/world-studio` |
 | `work_public_world_cards` (공개) | `GET /api/v1/public/works/{id}/world-cards` |
+| `work_inherited_world` | `GET /api/v1/works/{id}/inherited-world` |
 | `work_notice_public_list` (공개) | `GET /api/v1/public/works/{id}/notices` |
 | `work_notice_create` | `POST /api/v1/works/{id}/notices` |
 | `work_notice_update` | `PUT /api/v1/works/{id}/notices/{noticeId}` |
