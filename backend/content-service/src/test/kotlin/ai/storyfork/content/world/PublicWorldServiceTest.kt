@@ -225,6 +225,60 @@ class PublicWorldServiceTest {
         }
     }
 
+    /** Fork가 이어받는 카드: 작가용 메타데이터(`studio`·인물 문서·이미지)는 없고 독자 공개 회차만 남는다. */
+    private fun inheritedCard(card: SettingCardVersion, from: Int) = CardPayload(card.cardId, card.fields.title, card.fields.body, "character", "basic",
+        aliases = listOf("별칭"), tags = listOf("태그"), semanticMetadata = mapOf("revealFromEpisode" to from), visibility = "public")
+
+    @Test fun `an inherited world is the public active cards revealed by the basis episode, without author-only values`() {
+        val s = Seed(visibility = "private")
+        // 비공개 카드(hidden)는 독자 공개 회차(2화)가 있어도 빠진다(독자 위키와 달리). 공개 카드(second)는 독자 공개 회차가 없으면 독자 위키처럼 빠진다.
+        assertEquals(InheritedWorldResponse("fork", s.id, 2, listOf(inheritedCard(s.first, 1)), emptyList(), "current", 3), service.inheritedWorld("fork", s.id, 2))
+        assertEquals(listOf(s.first.cardId), service.inheritedWorld("fork", s.id, 1).cards.map { it.id })
+        verifyNoInteractions(nicknames)
+    }
+
+    @Test fun `inherited relations are the ones between inherited cards as of the basis episode, without the author's relation text`() {
+        val s = Seed()
+        val ally = SettingCardVersion(cardId = UUID.randomUUID(), worldId = s.id, versionNo = 1, fields = CardFields(title = "동료", body = "동료 본문",
+            cardType = "character", visibility = "public", semanticMetadata = mapOf("studio" to "작가용", "revealFromEpisode" to 1)))
+        val all = s.versions + ally
+        `when`(revisionCards.findAllByIdRevisionId(s.revisionId)).thenReturn(all.map { WorldRevisionCard(RevisionCardKey(s.revisionId, it.cardId), s.id, it.id) })
+        `when`(cardVersions.findAllById(all.map { it.id })).thenReturn(all)
+        val denied = RelationshipPayload(UUID.randomUUID(), s.first.cardId, ally.cardId, "emotional", body = "작가만 아는 사정", label = "스승",
+            direction = "directed", polarity = "denied", semanticMetadata = mapOf("memo" to "작가용"))
+        graphReads(s.id) { it.thenReturn(RelationshipStateResult(s.id, 3, "key", "hash", s.relations + denied)) }
+
+        val inherited = service.inheritedWorld("fork", s.id, 2)
+
+        // 이어받은 카드(첫 인물·동료)끼리의 관계만 남는다: 둘째·삭제·비공개 카드나 저장 버전에 없는 카드에 닿는 관계는 빠진다.
+        // 방향·부정 여부는 관계의 뜻을 바꾸므로 남기고, 작가가 관계에 적은 본문·메모는 싣지 않는다.
+        assertEquals(listOf(denied.copy(body = "", semanticMetadata = emptyMap())), inherited.relationships)
+        assertEquals("current", inherited.relationshipStatus)
+        verify(graph).read(s.id, 2)
+        verify(graph, never()).read(s.id, null)
+    }
+
+    @Test fun `inherited cards stay and the relations say unavailable when the relation store cannot vouch for the basis episode`() {
+        val pending = Seed().also { it.state.completed = false }
+        val failing = Seed().also { s -> graphReads(s.id) { it.thenThrow(WorldStudioFailure.unavailable()) } }
+        listOf(pending, failing).forEach { s ->
+            val result = service.inheritedWorld("fork", s.id, 2)
+            assertEquals(listOf(s.first.cardId), result.cards.map { it.id })
+            assertTrue(result.relationships.isEmpty())
+            assertEquals("unavailable", result.relationshipStatus)
+        }
+    }
+
+    @Test fun `an inherited world is empty without reading Neo4j when the world has no sealed revision, is unknown or has no public revealed card`() {
+        val draftOnly = Seed(saved = false)
+        val unsealed = Seed().also { it.revision.sealed = false }
+        val allPrivate = Seed(cards = "private")
+        listOf(draftOnly.id, unsealed.id, UUID.randomUUID(), allPrivate.id).forEach { world ->
+            assertEquals(InheritedWorldResponse("fork", world, 2), service.inheritedWorld("fork", world, 2))
+        }
+        verifyNoInteractions(graph)
+    }
+
     @Test fun `detail is 404 for private, never-saved and unknown worlds without touching Core or Neo4j`() {
         val hidden = Seed(visibility = "private")
         val draftOnly = Seed(saved = false)

@@ -111,7 +111,7 @@ PublicWorld        = { "id", "name", "description", "genre", "authorNickname", "
 - Content `ContentSecurityConfig`에서 `GET /api/v1/public/world-studios`와 `/api/v1/public/world-studios/**`를 `permitAll`로 연다. 다른 메서드는 기존대로 거부한다.
 - 공개 진입점의 라우팅은 `public/world-studios`(정확 경로와 하위 경로)를 Content(8081)로 보낸다. `frontend/nginx.conf`·`frontend/vite.config.ts` 프록시와 CI·개발용 `infrastructure/nginx.dev.conf`에 이미 반영돼 있고, 정적 검사 `infrastructure/ci/test_ci.py`의 `test_public_world_studio_routes_go_to_content`가 고정한다.
 - 소유자 표지 업로드(최대 5MB multipart)를 위해 nginx `location ^~ /api/v1/world-studios/`에 `client_max_body_size 6m;`를 둔다(`proxy_pass` 다음 줄이며 `frontend/nginx.conf`·`infrastructure/nginx.dev.conf` 둘 다). nginx 기본값은 1MB라 이 설정이 없으면 1MB를 넘는 표지를 nginx가 413으로 막는다. 공개 `GET`은 본문이 없어 `public/` 위치는 그대로다. Vite 개발 프록시는 본문 크기를 제한하지 않고 Content의 multipart 한도(50MB)는 표지 5MB보다 넉넉하다.
-- 연결 `PUT /api/v1/works/{id}/world-studio`와 독자 설정 위키 `GET /api/v1/public/works/{id}/world-cards`(아래 두 절)는 새 location 없이 기존 `/api/v1/works/`·`/api/v1/public/works/` 접두 규칙으로 Content에 간다(`frontend/nginx.conf`·`infrastructure/nginx.dev.conf`·`frontend/vite.config.ts` 변경 없음). 독자 설정 위키는 `ContentSecurityConfig`의 기존 `GET /api/v1/public/works/**` `permitAll`로 비로그인에 열려 있다. 정적 검사 `infrastructure/ci/test_ci.py`의 `test_work_world_link_and_reader_wiki_routes_go_to_content`가 고정한다.
+- 연결 `PUT /api/v1/works/{id}/world-studio`, Fork 이어받기 `GET /api/v1/works/{id}/inherited-world`와 독자 설정 위키 `GET /api/v1/public/works/{id}/world-cards`(아래 세 절)는 새 location 없이 기존 `/api/v1/works/`·`/api/v1/public/works/` 접두 규칙으로 Content에 간다(`frontend/nginx.conf`·`infrastructure/nginx.dev.conf`·`frontend/vite.config.ts` 변경 없음). 독자 설정 위키는 `ContentSecurityConfig`의 기존 `GET /api/v1/public/works/**` `permitAll`로 비로그인에 열려 있다. 정적 검사 `infrastructure/ci/test_ci.py`의 `test_work_world_link_and_reader_wiki_routes_go_to_content`가 고정한다.
 
 ## 세계관-소설 1:1 연결 (DEC-46)
 
@@ -163,6 +163,33 @@ ReaderWorldCards = { "workId", "worldId": "<uuid>" | null, "upto": <적용된 �
 - 독자 공개는 **카드의 `visibility`·세계관의 공개 범위와 별개**다([F-RGT-01](../requirements.md#f-rgt-01): 세계관 공개·항목 이용자 노출·독자 공개는 별개 개념). 비공개 카드라도 독자 공개 회차가 있으면 독자에게 보이고, 공개 카드라도 독자 공개 회차가 없으면 보이지 않는다. 세계관이 비공개여도 연결된 소설이 공개이면 같다.
 - **관계**는 Neo4j 관계를 기준 회차(`upto`) 시점으로 본 것(관계마다 그 회차 이하의 가장 최근 연결, 종료된 것은 제외, [DEC-51](worldstudio-independent-schema.md#회차별-관계--dec-51)) 중 양 끝이 위 `cards`에 있는 것만이고 `label`만 준다. 그래서 아직 공개되지 않은 회차에서 생긴 관계는 보이지 않는다. 관계 저장소가 현재 상태를 보증하지 못하면 카드는 그대로 두고 `relationships: []`·`relationshipStatus: "unavailable"`이다(공개 세계관 상세와 같은 이유). 보일 카드가 없으면 관계 저장소를 읽지 않고 `"current"`다.
 - 화면: 독자 설정 위키(`/work/:id/wiki`, 회차 화면에서는 `?upto=n`)가 이 API를 Bearer 없이 읽어 `worldId`가 있으면 카드를 유형별 문서로 보이고(본문 마크다운, 정보 상자에 별칭·태그·'N화부터', 관계는 양 끝 문서의 연결), `null`이면 기존 작품 설정 위키를 그대로 보인다. `unavailable`은 빈 연결과 구분해 알리고 조회 실패는 빈 위키로 바꾸지 않는다.
+
+## Fork가 이어받는 원작 세계관 (DEC-32·37, #365)
+
+Fork는 자기에게 연결한 세계관이 없으면 원작 세계관을 **읽기 전용**으로 이어받아 시뮬레이션·원고 검수가 읽는다(1단계: 읽기만 이어받기. 최초 수정 시 세계관 독립·원본 변경 알림은 범위 밖). 소유하지 않은 세계관이라 `world_studio_read`·`GET /api/v1/world-studios/{id}`(소유자만)로는 읽을 수 없어 전용 읽기를 둔다.
+
+```text
+InheritedWorld = { "workId": "<Fork>", "worldId": "<원작 세계관 uuid>" | null, "upto": <적용된 상한 회차>,
+                   "cards": [ { "id", "title", "body", "cardType", "areaCode", "classification", "aliases": [..], "tags": [..],
+                                "semanticMetadata": { "revealFromEpisode": n }, "visibility": "public", "lifecycle": "active" } ],
+                   "relationships": [ { "id", "sourceCardId", "targetCardId", "category", "label", "direction", "polarity", "body": "", "semanticMetadata": {}, "lifecycle": "active" } ],
+                   "relationshipStatus": "current" | "unavailable", "relationshipVersion": <graph token> }
+```
+
+| 메서드·경로 | 동작 |
+|---|---|
+| `GET /api/v1/works/{id}/inherited-world?upto=N` | Fork **소유자**만(Bearer). 200 + `InheritedWorld`. 남의 작품·없는 작품 404, `upto` 값 오류 422(1 이상의 정수, 어떤 조회보다 먼저) |
+| MCP `work_inherited_world(id, upto?)` | 같은 Service 함수(`WorkWorldService.inheritedWorld`). AI의 `read_world`·원고 검수가 작가 Bearer로 부른다 |
+
+- **이어받는 조건**: Fork에 자기 연결 세계관(`work.world_studio_id`)이 없고, `ForkWorldReference.status=following`이고, 삭제되지 않은 원작에 세계관이 연결돼 있을 때다. 하나라도 아니면(자기 세계관이 우선·독립한 Fork·추종 기록 없음·Fork가 아닌 작품·원작에 세계관 없음) `worldId: null`·`upto: 0`·빈 목록 200이고 화면·AI는 기존 '연결된 세계관 없음'으로 다룬다.
+- **상한 회차** `upto`는 Fork 기준 회차(`source.episode`)이고 요청 `upto`가 더 작으면 그 회차다(생략하면 기준 회차). Fork의 자기 회차 내용은 원작 세계관에 없으므로 기준 회차를 넘기지 않는다.
+- **카드**는 원작 세계관의 **확정 버전** 카드 중 `visibility=public`·`lifecycle=active`이고 독자 공개 회차(`revealFromEpisode`)가 `upto` 이하인 것만이다. 독자 설정 위키와 같은 기준에 **공개 카드만** 더한 것이라 더 좁다: 비공개 카드는 독자 공개 회차가 있어도 이어받지 않고, 공개 카드라도 독자 공개 회차가 없으면 위키처럼 제외한다. 확정 버전이 없으면(초안만) 빈 목록이다. 카드는 `id` 순이다.
+- **관계**는 그 카드끼리의 `upto`화 시점 관계(DEC-51)만이다. 방향·긍정/부정(`polarity`)은 관계의 뜻이라 남기고, 작가가 관계에 적은 본문(`body`)·메모는 비운다. 관계 저장소가 그 시점 상태를 보증하지 못하면 카드는 두고 `relationships: []`·`relationshipStatus: "unavailable"`이며, AI는 관계 없이 진행하지 않고 실패로 끝낸다(`world_studio_read`가 관계 저장 미완료에 503으로 답하는 것과 같다). 보일 카드가 없으면 관계 저장소를 읽지 않는다.
+- **싣지 않는 것**: 카드 메타데이터는 `revealFromEpisode`만이다. 인물 문서 `SOUL.md`·`GOAL.md`·`memory/NN회차.md`(`characterDocs`, 작가용), 가져온 출처, 이미지는 없다. 이어받은 인물은 `IDENTITY.md`(카드 본문)만 가진다.
+- 원작의 현재 확정 버전을 매번 읽으므로 `following` 동안 원작의 변경(기준 회차 이하에 영향을 주는 것)을 따라간다(DEC-37). `independent` 전환(최초 수정 시 독립)은 아직 없어 모든 Fork가 `following`이다.
+- 같은 계산을 `QaScopeService`가 쓴다: 관계 질문의 범위(`QaScope.world`)는 자기 회차에 연결한 세계관이 없을 때 이어받은 세계관의 `worldId`·`relationshipVersion`을 쓰고, 현재 관계 근거(`currentRelationships`)는 이어받은 관계만이다(원작 작가 권한으로 초안을 읽지 않는다). 상속 회차(원작 기준 이하)는 기존대로 원작 작가가 그 회차에 연결한 세계관을 쓴다.
+- 화면: 집필실 시뮬레이션 시작 양식이 내 세계관 목록에 이 작품에 연결된 세계관이 없을 때 이 API를 `upto=<여는 회차>`로 읽어 인물 카드(`cardType=character`, 나레이터 카드 제외)를 후보로 쓴다. 후보와 서버 검증이 같은 카드 집합이다([시뮬레이션 계약](character-simulation-contract.md#fork-이어받기-365)).
+- 한계: Fork 생성 미리보기(공개된 세계관 규칙·인물 수)는 아직 레거시 설정 이력 기준이다(후속). `SOUL.md`가 없는 이어받은 인물은 말투 근거가 약하다.
 
 ## 설정 가져오기와 카드 메타데이터 (DEC-46)
 

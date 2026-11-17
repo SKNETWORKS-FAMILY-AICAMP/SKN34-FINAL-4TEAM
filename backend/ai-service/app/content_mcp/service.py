@@ -68,6 +68,22 @@ def apply_writing(work_id: str, number: int, result: dict) -> dict:
     return {'episode': number, 'revision': revision}
 
 
+def inherited_world(work_id: str, episode: int) -> dict | None:
+    """연결한 세계관이 없는 Fork가 이어받는 원작 세계관(읽기 전용, #365)을 `world_studio_read` 응답 모양으로 읽는다. 이어받는 것이 없으면 None이다.
+
+    Content가 공개 카드와 그 카드끼리의 관계만, 지식 상한은 Fork 기준 회차(`episode`가 더 작으면 그 회차)로 걸러 준다. 인물 문서(SOUL·GOAL·회차 기억)는 작가용이라 없다.
+    관계를 읽을 수 없으면(`unavailable`) 관계 없이 진행하지 않고 실패한다(`world_studio_read`가 관계 저장 미완료에 503으로 답하는 것과 같다).
+    """
+    read = call('work_inherited_world', {'id': work_id, 'upto': str(episode)})
+    if not isinstance(read, dict):
+        raise ContentMcpFailure(502, 'Content MCP 결과를 확인할 수 없습니다.')
+    if read.get('worldId') is None:
+        return None
+    if read.get('relationshipStatus') != 'current':
+        raise ContentMcpFailure(503, '원작 세계관의 관계를 읽을 수 없어요.')
+    return read
+
+
 def call(tool: str, arguments: dict) -> dict:
     """도구 하나를 호출하고 JSON 결과를 돌려준다. 도구 오류는 Content의 상태·detail을 유지한다."""
     base, authorization = os.environ.get('CONTENT_SERVICE_BASE_URL'), AUTHORIZATION.get()
