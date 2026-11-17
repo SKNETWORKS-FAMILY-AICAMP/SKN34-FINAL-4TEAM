@@ -158,6 +158,19 @@ class AuthConcurrencyIntegrationTest {
     }
 
     @Test
+    fun `reusing a rotated refresh token revokes the replacement and every other session`() {
+        val email = member()
+        val first = requireNotNull(sessions.login(LoginRequest(email, "test-password"), "Device A"))
+        val other = requireNotNull(sessions.login(LoginRequest(email, "test-password"), "Device B"))
+        val replacement = requireNotNull(sessions.refresh(first.refreshToken)).refreshToken
+
+        assertNull(sessions.refresh(first.refreshToken))
+
+        assertNull(sessions.refresh(replacement))
+        assertNull(sessions.refresh(other.refreshToken))
+    }
+
+    @Test
     fun `logout waits for rotation and revokes the replacement refresh token`() {
         val token = requireNotNull(sessions.login(LoginRequest(member(), "test-password"), "Device")).refreshToken
         val pool = Executors.newSingleThreadExecutor()
