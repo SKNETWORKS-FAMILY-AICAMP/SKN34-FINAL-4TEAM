@@ -20,7 +20,10 @@ def finding(quote='서윤은 웃엇다.', category='spelling', status='confirmed
     return DraftFinding(category=category, quote=quote, reason='이유', status=status, evidenceRefs=list(refs), suggestion='고친 문장')
 
 
-def fake_content(monkeypatch, body='비가 왔다. 서윤은 웃엇다.', world=WORLD, linked=WORK):
+NO_INHERITED = {'workId': WORK, 'worldId': None, 'upto': 0, 'cards': [], 'relationships': [], 'relationshipStatus': 'current', 'relationshipVersion': 0}
+
+
+def fake_content(monkeypatch, body='비가 왔다. 서윤은 웃엇다.', world=WORLD, linked=WORK, inherited=NO_INHERITED):
     """Content MCP 대역. 호출한 도구 이름과 인자 목록을 돌려준다."""
     calls = []
 
@@ -32,6 +35,8 @@ def fake_content(monkeypatch, body='비가 왔다. 서윤은 웃엇다.', world=
             return [{'worldId': 'world-1', 'linkedWorkId': linked}]
         if tool == 'world_studio_read':
             return world
+        if tool == 'work_inherited_world':
+            return inherited
         raise AssertionError(tool)
 
     monkeypatch.setattr(service.content_mcp, 'call', call)

@@ -113,6 +113,25 @@ class PublicWorldService(
     }
 
     /**
+     * Fork [workId]가 이어받는 원작 세계관 [worldId]의 카드와 관계다(읽기 전용, #365). [readerCards]와 같은 기준(확정된 현재 버전의 카드 중 독자 공개 회차가 [upto] 이하)에
+     * 공개 카드(`visibility=public`)만 더 고르고, 관계는 그 카드끼리의 [upto]화 시점(DEC-51) 것만 남긴다. 비공개 카드는 독자 공개 회차가 있어도 이어받지 않는다.
+     * 인물 문서·카드 메타데이터·관계 본문 같은 작가용 값은 싣지 않는다. 방향·부정 여부는 관계의 뜻이라 남긴다. 작품·Fork 여부는 호출자([ai.storyfork.content.work.service.WorkWorldService])가 먼저 정한다.
+     */
+    fun inheritedWorld(workId: String, worldId: UUID, upto: Int): InheritedWorldResponse {
+        val seen = tx { readerSnapshot(worldId, upto) }
+        val cards = seen.cards.filter { (card, _) -> isPublicCard(card.fields.lifecycle, card.fields.visibility) }
+        if (cards.isEmpty()) return InheritedWorldResponse(workId, worldId, upto)
+        val relations = currentRelationships(worldId, seen.state, cards.map { it.first.cardId }.toSet(), upto)
+        return InheritedWorldResponse(workId, worldId, upto,
+            cards.map { (card, from) ->
+                CardPayload(card.cardId, card.fields.title, card.fields.body, card.fields.cardType, card.fields.areaCode, card.fields.classification,
+                    card.fields.aliases.toList(), card.fields.tags.toList(), mapOf("revealFromEpisode" to from), "public", "active")
+            },
+            relations.orEmpty().map { it.copy(body = "", semanticMetadata = emptyMap()) },
+            if (relations == null) "unavailable" else "current", seen.state?.graphVersion ?: 0)
+    }
+
+    /**
      * 공개 세계관 [id]의 설정 카드 이미지다(#401). 상세와 같은 기준(공개·확정 버전)이고, 그 확정 버전의 공개·활성 카드 중 하나가 [imageId]로 가리키는 이미지일 때만 돌려준다.
      * 그 밖(비공개·확정 버전 없음·비공개 카드·삭제 카드·초안에만 있는 참조·없는 이미지)은 404다.
      */

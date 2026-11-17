@@ -9,10 +9,12 @@ import ai.storyfork.content.context.service.dto.QaWorldRef
 import ai.storyfork.content.episode.repository.EpisodeRepository
 import ai.storyfork.content.publication.service.PublicationService
 import ai.storyfork.content.work.service.WorkAccessService
+import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.service.WorldStudioService
+import ai.storyfork.content.world.service.dto.InheritedWorldResponse
 import ai.storyfork.content.world.service.dto.WorldDraftResponse
 import java.util.UUID
 import org.springframework.stereotype.Service
@@ -24,6 +26,7 @@ class QaScopeService(
     private val publication: PublicationService,
     private val episodes: EpisodeRepository,
     private val worlds: WorldStudioService,
+    private val workWorlds: WorkWorldService,
 ) {
     /** [owner]는 Core가 검증한 Principal 이름(회원 UUID)이며 null이면 공개 독자다. */
     fun resolve(workId: String, owner: String?, request: QaScopeRequest): QaScope {
@@ -51,9 +54,16 @@ class QaScopeService(
         // 상속 회차는 Fork 정책으로 허용된 원작 회차이므로, 원작 작가가 그 회차에 연결한 세계관을 원작 작가 소유로 확인해 읽는다.
         val (episodeWork, worldOwner) = if (inherited) checkNotNull(work.source).workId.let { it to access.get(it).ownerId } else work.id to requester
         val worldId = episodes.findByWorkIdAndSequence(episodeWork, basis)?.basisWorldId
+        if (worldId != null) return QaWorldRef(worldId, worldDraft(worldId, worldOwner).relationshipVersion)
+        // 연결한 세계관이 없는 Fork의 자기 회차는 원작 세계관을 읽기 전용으로 이어받는다(#365). 상속 회차는 원작 작가의 연결만 쓴다.
+        val fromOriginal = if (inherited) null else inheritedWorld(work.id, requester)
+        return fromOriginal?.let { QaWorldRef(checkNotNull(it.worldId), it.relationshipVersion) }
             ?: throw ContentFailure(422, "기준 회차에 연결된 세계관이 없어 관계를 확인할 수 없어요.", "WORLD_LINK_REQUIRED")
-        return QaWorldRef(worldId, worldDraft(worldId, worldOwner).relationshipVersion)
     }
+
+    /** 연결한 세계관이 없는 Fork의 자기 회차가 이어받는 원작 세계관이다. 원작 작가 권한이 아니라 공개 카드·Fork 기준 회차로 걸러진 값만이며, 없으면 null이다. */
+    private fun inheritedWorld(workId: String, owner: String): InheritedWorldResponse? =
+        workWorlds.inheritedWorld(workId, owner, null).takeIf { it.worldId != null }
 
     internal fun currentRelationships(scope: QaScope, owner: String): WorldDraftResponse? {
         val episode = publication.publishedEpisodes(scope.workId).items.find {
@@ -61,7 +71,10 @@ class QaScopeService(
         } ?: throw ContentFailure(409, "기준 회차 판본이 변경됐어요.")
         // 상속으로 원작 작가의 현재 세계관을 사용할 권한이 생기지 않는다.
         if (episode.inherited) return null
-        val worldId = episodes.findByWorkIdAndSequence(scope.workId, scope.episode)?.basisWorldId ?: return null
+        val worldId = episodes.findByWorkIdAndSequence(scope.workId, scope.episode)?.basisWorldId
+            ?: return inheritedWorld(scope.workId, owner)?.let {
+                WorldDraftResponse(checkNotNull(it.worldId), 0, null, null, "", "", it.cards, it.relationships, it.relationshipVersion)
+            }
         return worldDraft(worldId, owner)
     }
 

@@ -4,6 +4,7 @@ import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.work.service.dto.WorkWorldLinkRequest
 import ai.storyfork.content.work.service.dto.WorkWorldLinkResponse
 import ai.storyfork.content.world.controller.coverImage
+import ai.storyfork.content.world.service.dto.InheritedWorldResponse
 import ai.storyfork.content.world.service.dto.ReaderWorldCardsResponse
 import java.security.Principal
 import java.util.UUID
@@ -28,6 +29,15 @@ class WorkWorldController(private val service: WorkWorldService) {
      */
     @GetMapping("/public/works/{id}/world-cards")
     fun readerCards(@PathVariable id: String, @RequestParam(required = false) upto: String?): ReaderWorldCardsResponse = service.readerCards(id, upto)
+
+    /**
+     * Fork 소유자가 자기 세계관 없이 이어받는 원작 세계관(읽기 전용, DEC-32·37, #365)이다. 지식 상한은 Fork 기준 회차이고 `upto`(1 이상)가 더 작으면 그 회차까지다.
+     * 공개 카드와 그 카드끼리의 그 시점 관계만 준다. 이어받는 세계관이 없으면(자기 세계관이 있거나 독립한 Fork·Fork가 아닌 작품·원작에 세계관이 없음) `worldId`가 null인 200,
+     * 남의 작품은 404, `upto` 값 오류는 422다.
+     */
+    @GetMapping("/works/{id}/inherited-world")
+    fun inheritedWorld(@PathVariable id: String, principal: Principal, @RequestParam(required = false) upto: String?): InheritedWorldResponse =
+        service.inheritedWorld(id, principal.name, upto)
 
     /**
      * 독자 설정 위키 카드의 이미지를 캐시 없이 반환한다(#401). 익명 조회를 허용한다. `world-cards?upto=N`과 같은 기준으로 보이는 카드 중 하나가 `imageId`로 가리키는 이미지일 때만이며,

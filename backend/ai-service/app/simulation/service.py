@@ -55,15 +55,18 @@ class WorldLink(BaseModel):
 
 
 def read_world(work_id: str, episode: int) -> dict:
-    """작품에 연결된 세계관을 기준 회차 시점으로 읽는다. 연결이 없으면 실패한다(대체 세계관을 찾지 않는다)."""
+    """작품에 연결된 세계관을 기준 회차 시점으로 읽는다. 연결이 없으면 Fork가 이어받는 원작 세계관(읽기 전용, 공개 카드·Fork 기준 회차까지, #365)을 읽고,
+    그것도 없으면 실패한다(대체 세계관을 찾지 않는다). 시작 양식의 인물 검증·장면 입력이 모두 이 한 곳의 카드 집합을 쓴다."""
     try:
         worlds = TypeAdapter(list[WorldLink]).validate_python(content_mcp.call('world_studio_list', {}))
     except ValidationError:
         raise SimulationFailure(502, BAD_WORLD) from None
     linked = next((w.worldId for w in worlds if w.linkedWorkId == work_id), None)
-    if linked is None:
+    if linked is not None:
+        return content_mcp.call('world_studio_read', {'id': linked, 'episode': str(episode)})
+    if (inherited := content_mcp.inherited_world(work_id, episode)) is None:
         raise SimulationFailure(409, NO_LINKED_WORLD)
-    return content_mcp.call('world_studio_read', {'id': linked, 'episode': str(episode)})
+    return inherited
 
 
 def plan(request: str, history: list[str], target: dict | None) -> SimulationPlan:

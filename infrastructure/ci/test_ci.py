@@ -529,7 +529,7 @@ class ConfigurationTest(unittest.TestCase):
     def test_work_world_link_and_reader_wiki_routes_go_to_content(self):
         # DEC-46: 연결 PUT /api/v1/works/{id}/world-studio와 독자 설정 위키 GET /api/v1/public/works/{id}/world-cards는
         # 새 location 없이 기존 works 접두로 Content에 간다(더 긴 접두나 정규식 location이 가로채지 않는다).
-        routes = ['/api/v1/works/work-id/world-studio', '/api/v1/public/works/work-id/world-cards']
+        routes = ['/api/v1/works/work-id/world-studio', '/api/v1/works/work-id/inherited-world', '/api/v1/public/works/work-id/world-cards']
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
             text = (ci.ROOT / path).read_text()
             self.assertNotRegex(text, r'location\s+~')

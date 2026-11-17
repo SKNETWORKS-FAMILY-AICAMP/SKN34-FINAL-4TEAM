@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { beatCharacterIds, characterNames, checkSummary, cleanSimulation, modeLabel, monologueOwner, planBeats, povLabel, sceneLine, sceneProse, sceneRows, sceneSummary, simulationIssue, simulationSummary, statusLabel, stopReasonText, worldCharacters, type CharacterSimulation, type SimulationCharacter, type SimulationStart, type SimulationTurn } from '../entities/characterSimulation'
+import { beatCharacterIds, characterNames, checkSummary, cleanSimulation, modeLabel, monologueOwner, inheritedCharacters, planBeats, povLabel, sceneLine, sceneProse, sceneRows, sceneSummary, simulationIssue, simulationSummary, statusLabel, stopReasonText, worldCharacters, type CharacterSimulation, type SimulationCharacter, type SimulationStart, type SimulationTurn } from '../entities/characterSimulation'
 import type { StudioSetting } from '../entities/studioWorld'
 
 const turn = (index: number, prose: string, checks: SimulationTurn['checks'] = []): SimulationTurn =>
@@ -191,6 +191,16 @@ describe('연결 세계관의 인물 카드(시작 양식 후보)', () => {
     expect(worldCharacters([
       card('c1', ' 카엘 ', 'character', ['검은 기사']), card('p1', '성문', 'location'), card('c2', '리안', 'character'), rule, card('c3', '   ', 'character'),
     ])).toEqual([{ id: 'c1', name: '카엘', aliases: ['검은 기사'] }, { id: 'c2', name: '리안', aliases: [] }])
+  })
+
+  // Fork 자기 회차는 연결 세계관이 없어도 원작 세계관을 읽기 전용으로 이어받는다(#365). 서버가 공개 카드·기준 회차로 이미 거른 카드를 준다.
+  it('이어받은 카드에서 인물 카드만 id·이름·별칭으로 고르고, 장소·이름 없는 카드와 나레이터 카드는 뺀다(연결 세계관 후보와 같은 규칙)', () => {
+    expect(inheritedCharacters([
+      { id: 'c1', title: ' 카엘 ', cardType: 'character', aliases: ['검은 기사'] }, { id: 'p1', title: '성문', cardType: 'location', aliases: [] },
+      { id: 'c2', title: '   ', cardType: 'character', aliases: [] }, { id: 'n1', title: '나레이터 — 홍길동전', cardType: 'character', aliases: [] },
+      { id: 'c3', title: '리안', cardType: 'character', aliases: [] },
+    ])).toEqual([{ id: 'c1', name: '카엘', aliases: ['검은 기사'] }, { id: 'c3', name: '리안', aliases: [] }])
+    expect(inheritedCharacters([])).toEqual([])
   })
 
   it('인물 카드가 없으면 후보가 없다', () => {

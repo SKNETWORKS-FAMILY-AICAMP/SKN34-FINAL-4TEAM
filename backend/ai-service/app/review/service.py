@@ -71,15 +71,17 @@ def _locate(body: str, found) -> Finding:
 
 
 def _world(work_id: str, episode: int) -> WorldSnapshot:
-    """작품에 연결된 세계관을 그 회차 시점 관계로 읽는다. 연결이 없으면 대체 세계관을 찾지 않고 실패한다."""
+    """작품에 연결된 세계관을 그 회차 시점 관계로 읽는다. 연결이 없으면 Fork가 이어받는 원작 세계관(읽기 전용, #365)을 읽고, 그것도 없으면 대체 세계관을 찾지 않고 실패한다."""
     try:
         linked = next((w['worldId'] for w in content_mcp.call('world_studio_list', {}) if w.get('linkedWorkId') == work_id), None)
     except (LookupError, TypeError, AttributeError):
         raise ReviewFailure(502, BAD_CONTENT) from None
-    if linked is None:
+    if linked is not None:
+        read = content_mcp.call('world_studio_read', {'id': linked, 'episode': str(episode)})
+    elif (read := content_mcp.inherited_world(work_id, episode)) is None:
         raise ReviewFailure(409, NO_LINKED_WORLD)
     try:
-        return world_snapshot(content_mcp.call('world_studio_read', {'id': linked, 'episode': str(episode)}), episode)
+        return world_snapshot(read, episode)
     except ValueError:
         raise ReviewFailure(502, BAD_CONTENT) from None
 

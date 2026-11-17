@@ -22,6 +22,7 @@
 - 설정 카드는 기본 비공개다. 공개 세계관 조회는 공개 카드와 그 카드끼리의 관계만, 독자 설정 위키(`GET /api/v1/public/works/{id}/world-cards`)는
   카드의 독자 공개 회차(`semanticMetadata.revealFromEpisode`)가 발행된 회차 안인 카드만 서버에서 걸러 보낸다. 두 기준은 서로 별개이며 화면에서 거르게 두지 않는다(DEC-46).
 - 세계관과 소설은 1:1이다. 연결의 정본은 `work.world_studio_id`(UNIQUE) 하나이고 `WorkWorldService`가 맡는다. Content와 WorldStudio 트랜잭션은 겹치지 않게 차례로 연다.
+- 자기 세계관을 연결하지 않은 `following` Fork는 원작 세계관을 읽기 전용으로 이어받는다(#365). `WorkWorldService.inheritedWorld` 한 곳이 조건·상한 회차(Fork 기준 회차)를 정하고 `PublicWorldService.inheritedWorld`가 확정 버전의 **공개 카드**(독자 공개 회차 이하)와 그 카드끼리의 그 시점 관계만 거른다. 인물 문서·관계 본문 같은 작가용 값은 싣지 않는다. REST `GET /api/v1/works/{id}/inherited-world`·MCP `work_inherited_world`·`QaScopeService`가 같은 결과를 쓰며 원작 작가 권한으로 초안을 읽지 않는다. [계약](../../docs/design/public-world-contract.md#fork가-이어받는-원작-세계관-dec-3237-365)
 - MCP 창구(`ai.storyfork.content.mcp`, `/mcp`)는 기존 Service 함수만 호출하는 어댑터다. 공개 도구는 인증 없이, 사용자 도구는 전달된 Bearer를 기존 필터로 검증한 회원 UUID로 호출하며 도구 인자로 회원 ID를 받지 않는다. [계약](../../docs/design/content-mcp-contract.md)
 - 로컬은 이 디렉터리에서 `./gradlew unitTest --tests 'ai.storyfork.content.<대상 클래스>' --no-daemon`으로 순수 단위만 실행한다.
   Spring/HTTP/DB/Flyway 검사는 CI `integrationTest`에서 실행한다.

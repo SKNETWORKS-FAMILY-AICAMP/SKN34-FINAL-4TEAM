@@ -103,3 +103,28 @@ def test_valid_json_with_incomplete_draft_is_rejected_before_writing(monkeypatch
 
     assert error.value.status == 502
     assert [call[2] for call in calls] == ['episode_read']
+
+
+def inherited(**fields):
+    return False, json.dumps({'workId': 'fork', 'worldId': '00000000-0000-0000-0000-000000000001', 'upto': 2, 'cards': [], 'relationships': [],
+                              'relationshipStatus': 'current', 'relationshipVersion': 3, **fields})
+
+
+def test_inherited_world_reads_the_originals_world_with_the_user_token_up_to_the_episode(monkeypatch):
+    calls = content(monkeypatch, {'work_inherited_world': inherited(cards=[{'id': 'kael'}])})
+    read = service.inherited_world('fork', 4)
+    assert [c[1:] for c in calls] == [('Bearer user', 'work_inherited_world', {'id': 'fork', 'upto': '4'})]
+    assert read['cards'] == [{'id': 'kael'}] and read['worldId'] == '00000000-0000-0000-0000-000000000001'
+
+
+def test_inherited_world_is_none_when_the_work_inherits_nothing(monkeypatch):
+    content(monkeypatch, {'work_inherited_world': inherited(worldId=None)})
+    assert service.inherited_world('fork', 4) is None
+
+
+@pytest.mark.parametrize('reply', [inherited(relationshipStatus='unavailable'), (False, '[]')])
+def test_inherited_world_with_unreadable_relations_or_a_bad_reply_fails_instead_of_running_without_relations(monkeypatch, reply):
+    content(monkeypatch, {'work_inherited_world': reply})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.inherited_world('fork', 4)
+    assert error.value.status in (502, 503)

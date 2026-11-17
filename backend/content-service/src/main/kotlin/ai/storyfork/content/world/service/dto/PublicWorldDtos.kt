@@ -32,6 +32,17 @@ data class PublicWorldResponse(
 data class ReaderWorldCardResponse(val id: UUID, val title: String, val text: String, val cardType: String, val aliases: List<String>, val tags: List<String>, val revealFromEpisode: Int, val imageId: UUID? = null)
 
 /**
+ * Fork [workId]가 자기 세계관 없이 이어받는 원작 세계관이다(읽기 전용, DEC-32·37, #365). [upto]화까지 독자 공개된 공개 카드와 그 카드끼리의 [upto]화 시점 관계만 담는다.
+ * 모양은 `world_studio_read`의 카드·관계와 같지만 작가용 값(인물 문서·가져온 출처·이미지·카드 메타데이터, 관계 본문·메모)은 비운다.
+ * 이어받는 세계관이 없으면 [worldId]는 null이다. [relationshipStatus]가 unavailable이면 관계 저장소가 그 시점 상태를 보증하지 못해 [relationships]를 비운 것이다.
+ * [relationshipVersion]은 그때 관계 graph token이다.
+ */
+data class InheritedWorldResponse(
+    val workId: String, val worldId: UUID?, val upto: Int, val cards: List<CardPayload> = emptyList(),
+    val relationships: List<RelationshipPayload> = emptyList(), val relationshipStatus: String = "current", val relationshipVersion: Long = 0,
+)
+
+/**
  * 소설 [workId]의 독자에게 [upto]화 기준으로 보이는 설정 카드와 그 카드끼리의 현재 관계다(DEC-46). 연결된 세계관이 없으면 [worldId]는 null이다.
  * [relationshipStatus]가 unavailable이면 관계 저장소가 현재 상태를 보증하지 못해 [relationships]를 비운 것이다.
  */

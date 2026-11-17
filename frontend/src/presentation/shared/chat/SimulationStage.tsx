@@ -73,7 +73,10 @@ function StartFields({ stage, data, planEpisode, plotLink, startBlocker = '' }: 
         </li>)}</ul>
         : data.linked
           ? <p className="chat-note">이 작품에 연결된 세계관에 인물 카드가 없어요. 세계관에 인물을 먼저 만들어 주세요.</p>
-          : <><p>연결된 세계관이 없어요.</p><p className="chat-note">작품 관리의 세계관 연결에서 이 작품에 세계관을 연결해 주세요.</p></>}
+          : data.inheritedUpto !== null
+            ? <p className="chat-note">이어받은 원작 세계관에 공개된 인물 카드가 없어요. 작품 관리의 세계관 연결에서 내 세계관을 연결해 인물을 만들어 주세요.</p>
+            : <><p>연결된 세계관이 없어요.</p><p className="chat-note">작품 관리의 세계관 연결에서 이 작품에 세계관을 연결해 주세요.</p></>}
+      {data.inheritedUpto !== null && data.characters.length > 0 && <p className="chat-note">원작 세계관에서 {data.inheritedUpto}화까지 공개된 인물을 이어받았어요(읽기 전용).</p>}
       <p className="chat-note">{ids.length}명 선택</p>
     </fieldset>
     {problem && !problem.missing && <p className="stage-reason" role="status">{problem.text}</p>}
