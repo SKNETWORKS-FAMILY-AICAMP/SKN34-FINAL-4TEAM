@@ -1544,3 +1544,9 @@ def test_allowed_context_over_the_limit_fails_the_step_instead_of_breaking_the_r
     result = write_turn(str(uuid4()), request='전개 짜줘', target=TARGET)
     assert result.status == 'failed' and result.steps[0].error == service.CONTEXT_TOO_LONG
     assert 'writing_plan' not in names(calls)
+
+
+def test_waiting_patch_step_carries_its_task_so_the_screen_does_not_ask_for_a_plan(monkeypatch):
+    fake_agents(monkeypatch, plan(writing_step('patch')))
+    result = chat(str(uuid4()), target=TARGET)
+    assert [(s.feature, s.task) for s in result.steps] == [('writing_editing', 'patch')]

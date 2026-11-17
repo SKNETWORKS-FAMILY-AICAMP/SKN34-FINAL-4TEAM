@@ -121,4 +121,6 @@ def test_plan_and_draft_fit_in_the_content_relay_read_timeout(monkeypatch):
     # 바로 집필은 한 단계 안에서 두 번 부르므로 두 timeout 합이 Content 중계 읽기 한도(3분)보다 짧아야 한다.
     seen = fake_openai(monkeypatch, text=plan_json(('a', ['1'])))
     agent.plan(PlanRequest(episodeNumber=1, request='전개 짜줘'))
-    assert seen['init']['timeout'] + 120 < 180
+    planning = seen['init']['timeout']
+    agent.draft(DraftRequest(episodeNumber=1, plan='계획'))
+    assert planning + seen['init']['timeout'] < 180

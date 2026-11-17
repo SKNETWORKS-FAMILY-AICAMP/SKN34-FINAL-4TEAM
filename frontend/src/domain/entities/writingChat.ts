@@ -37,6 +37,8 @@ export type ChatStep = {
   feature: ChatFeature
   /** if_issues_found는 직전 검수에서 확정 지적이 있을 때만 고치는 조건부 수정이다(#370). skipped는 고칠 것이 없어 건너뛴 단계(error가 이유)다. */
   when?: 'always' | 'if_issues_found'
+  /** writing_editing 단계에 Router가 정한 작업 종류(#387). patch(선택 구간 수정)는 채팅에서 입력을 채울 수 없다. */
+  task?: 'plan' | 'draft' | 'patch' | null
   status: 'completed' | 'failed' | 'not_started' | 'skipped'
   result?: ChatStepResult | null
   /** character_simulation 단계의 검증된 결과(#58). 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */

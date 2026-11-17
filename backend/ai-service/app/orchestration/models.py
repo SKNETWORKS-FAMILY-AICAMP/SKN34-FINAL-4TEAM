@@ -128,6 +128,7 @@ class AppliedDraft(BaseModel):
 class StepResult(BaseModel):
     feature: RecordedFeature
     when: Literal['always', 'if_issues_found']
+    task: Literal['plan', 'draft', 'patch'] | None = None  # Writing & Editing 단계에 Router가 정한 작업 종류(#387)
     # 끝까지 가지 못한 시뮬레이션 장면은 부분 result와 함께 failed다. skipped는 조건부 수정이 고칠 확정 지적이 없어 건너뛴 단계다(#370).
     status: Literal['completed', 'failed', 'not_started', 'skipped']
     result: QaStepResult | PlanResponse | DraftResponse | PatchResponse | ResearchResponse | SimulationResult | ReviewResponse | WorldReviewResponse | RatingResponse | None = None

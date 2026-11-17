@@ -16,7 +16,8 @@ from app.intent.prompt import (CAPABILITY_ALIASES, CAPABILITY_NAMES, CLARIFY_MES
                                REJECT_MESSAGES, ROUTE_QUESTIONS, WRITING_TASK_QUESTION)
 
 _PLAIN = re.compile(r'[\s·ㆍ・]')  # 보기 이름을 알아볼 때 공백·가운뎃점(· ㆍ ・) 차이는 무시한다
-_BY_NAME = {_PLAIN.sub('', name): feature for name, feature in {**{n: f for f, n in CAPABILITY_NAMES.items()}, **CAPABILITY_ALIASES}.items()}
+_BY_NAME = {_PLAIN.sub('', name): feature for feature, name in CAPABILITY_NAMES.items()}
+_BY_NAME.update({_PLAIN.sub('', name): feature for name, feature in CAPABILITY_ALIASES.items()})
 
 
 def clarified(request: str) -> str | None:

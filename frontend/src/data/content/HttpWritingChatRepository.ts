@@ -32,6 +32,7 @@ const BAD_SIMULATION = '인물 시뮬레이션 결과 형식을 확인할 수 �
 
 const stepFields = {
   when: z.enum(['always', 'if_issues_found']).optional(),
+  task: z.enum(['plan', 'draft', 'patch']).nullish(),
   status: z.enum(['completed', 'failed', 'not_started', 'skipped']),
   error: z.string().nullish(),
   approval: z.enum(['approved', 'declined']).nullish(),
