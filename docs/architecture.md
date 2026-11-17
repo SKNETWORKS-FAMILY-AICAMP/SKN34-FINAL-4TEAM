@@ -2,7 +2,7 @@
 
 [메인 README](../README.md) · [문서 목록](README.md)
 
-> **현재 소스 상태:** Core는 Auth·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio 코드/테스트를 소유한다. nginx/Vite의 works와 world-studios exact·하위 경로는 Content:8081, 나머지 `/api`는 Core:8080으로 간다. #132의 관계 정본은 Neo4j 하나이며 DEC-51로 회차별 연결로 기록·조회한다(서버·MCP 소스 구현). 관계 이력 복원·과거 snapshot·전체 세계관 복원은 지원하지 않는다. 아래 WorldStudio 절은 현재 계약으로 갱신했다. 같은 기존 DB에서 writer/migration만 분리했고 Content 초기 SQL은 승인된 fresh 7개 업무 leaf/전역 V1~V9로 재작성했다. Auth·첨부·독립 Studio SQL은 보존한다. Operations는 loopback 8082의 독립 공지·이벤트·문의/답변 CRUD와 전용 서비스 토큰 인증, operations schema/Flyway/JPA 설정을 소스 구현했고, 신고·회원·관리자·고객지원 문의는 회원 Bearer API로 프런트·Core·Content와 연결했다. hosted CI·실제 DB 전환·게시/배포는 대기다. 현재 정본은 [서비스 경계](design/service-boundaries.md)와 [이관 계약](design/content-service-migration-contract.md)이다. **아래 본문은 분리 전 구현의 역사적 설명으로, Core 소유·JSONB importer·통합 migration 경로·세 이미지 안내를 현재 실행 지침으로 사용하지 않는다.**
+> **현재 소스 상태:** Core는 Auth·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio 코드/테스트를 소유한다. nginx/Vite의 works와 world-studios exact·하위 경로는 Content:8081, 나머지 `/api`는 Core:8080으로 간다. #132의 관계 정본은 Neo4j 하나이며 DEC-51로 회차별 연결로 기록·조회한다(서버·MCP 소스 구현). 관계 이력 복원·과거 snapshot·관계를 포함한 전체 세계관 복원은 지원하지 않는다(카드만 초안으로 되돌리기는 2026-11-17 사용자 결정으로 지원). 아래 WorldStudio 절은 현재 계약으로 갱신했다. 같은 기존 DB에서 writer/migration만 분리했고 Content 초기 SQL은 승인된 fresh 7개 업무 leaf/전역 V1~V9로 재작성했다. Auth·첨부·독립 Studio SQL은 보존한다. Operations는 loopback 8082의 독립 공지·이벤트·문의/답변 CRUD와 전용 서비스 토큰 인증, operations schema/Flyway/JPA 설정을 소스 구현했고, 신고·회원·관리자·고객지원 문의는 회원 Bearer API로 프런트·Core·Content와 연결했다. hosted CI·실제 DB 전환·게시/배포는 대기다. 현재 정본은 [서비스 경계](design/service-boundaries.md)와 [이관 계약](design/content-service-migration-contract.md)이다. **아래 본문은 분리 전 구현의 역사적 설명으로, Core 소유·JSONB importer·통합 migration 경로·세 이미지 안내를 현재 실행 지침으로 사용하지 않는다.**
 
 ## 운영 서비스의 현재 범위
 
@@ -88,7 +88,7 @@ Health 연결 불가는 503, timeout은 504, 잘못된 응답과 예상하지 �
 
 기존 `worldstudio` V1의 12개 테이블·SQL·데이터를 보존하고 V2로 관계 내용 없는 `relationship_state`를 추가한다. PG는 카드 원문/버전·소유권·UUID와 요청 상태만, Neo4j는 현재 관계 내용만 소유한다. 짧은 PG prepare → PG 밖 Neo4j CAS → 짧은 PG finalization 순서이며 분산 원자성을 가정하지 않는다. graph token은 이력 버전이 아니다. pending은 원래 key/입력으로만 재시도하며 탭을 잃은 뒤 자동 복구할 수 없다. 미전환·미완료·불일치는 빈 관계 성공으로 대체하지 않는다.
 
-관계 변경 이력·과거 snapshot·시점 조회·복원은 최신 사용자 결정으로 제외했다(DEC-27·33의 관계만의 MVP 예외). 기존 카드 revision은 `relationships=null` / `not_recorded`이고 전체 세계관 restore는 명시적 미지원이다. 기존 인물·설정·원고 버전과 과거 SQL/데이터는 유지한다.
+관계 변경 이력·과거 snapshot·시점 조회·복원은 최신 사용자 결정으로 제외했다(DEC-27·33의 관계만의 MVP 예외). 기존 카드 revision은 `relationships=null` / `not_recorded`이고 관계를 포함한 전체 세계관 restore는 명시적 미지원이다(확정 버전의 카드만 초안으로 되돌리는 restore는 2026-11-17 사용자 결정으로 지원하며 관계는 그대로 둔다, [계약](design/worldstudio-independent-schema.md#확정-버전으로-카드-되돌리기와-세계관-삭제-2026-11-17)). 기존 인물·설정·원고 버전과 과거 SQL/데이터는 유지한다.
 
 서버는 Content DataSource와 studio-only EntityManager/TransactionManager로 validate만 한다. 명시 migration main은 Content 이미지에 있으며 실제 DB 적용·기존 관계 변환은 별도 승인 대상이다. opt-in Neo4j profile과 격리 CI 서비스는 소스에 연결했지만 실제 이관·hosted CI·배포·브라우저 검증은 대기다. API·설정·실패/재시도 한계는 [현재 계약](design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132), 기존 배포 승인은 [배포 실행 계약](deployment/worldstudio-v1-rollout.md)을 따른다.
 

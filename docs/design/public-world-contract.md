@@ -62,6 +62,7 @@ WorldCoverResponse  = { "worldId", "hasCover": true }
 
 | 메서드·경로 | 동작 |
 |---|---|
+| `DELETE /api/v1/world-studios/{id}` | 소유자만 세계관을 소프트 삭제한다(204). 연결된 소설이 있으면 409 `WORLD_LINKED`. 규칙은 아래 [세계관 삭제](#세계관-삭제-2026-11-17-사용자-결정) |
 | `PUT /api/v1/world-studios/{id}/publication` | 소유자만 공개 범위·장르를 바꾼다. 소유자가 아니면 404(기존 관례), 값 오류는 422 `WORLD_INPUT_INVALID`. 200 + `PublicationResponse` |
 | `PUT /api/v1/world-studios/{id}/cover` | 소유자만 표지를 저장·교체한다. multipart `file`(PNG·JPEG·WebP, 5MB 이하). 200 + `WorldCoverResponse`, 비소유자 404, 값 오류 422 `WORLD_INPUT_INVALID` |
 | `DELETE /api/v1/world-studios/{id}/cover` | 소유자만 표지를 지운다. 204(표지가 없어도 204), 비소유자 404 |
@@ -260,3 +261,31 @@ nginx `location ^~ /api/v1/world-studios/`의 `client_max_body_size 6m`이 이�
 - 로컬 단위 테스트(`./gradlew unitTest`, JDK 21): 공개 노출 판정·장르/공개 범위 검증·카드 공개 판정·관계 필터·독자 공개 회차 판정·`upto`·페이지 검증(`PublicWorldRulesTest`), 공개 서비스의 공개 카드 필터와 독자 카드 조회(`PublicWorldServiceTest`), 연결·해제·409·독자 설정 위키의 기준 회차와 빈 응답·404·422(`WorkWorldServiceTest`), 연결·위키 경로와 소유자 세계관 응답의 `linkedWorkId`(`WorkWorldControllerTest`), 작품 삭제 시 연결 해제(`WorkDeleteServiceTest`), 소유자 응답에만 나오는 `worldStudioId`(`WorkSearchServiceTest`), 템플릿 카드 공개(`GenreTemplateSeederTest`), V37 SQL과 전역 버전 목록(`ContentBoundaryTest`), 소유자 PUT·목록·상세 필드(`WorldStudioServiceTest`), 표지 검증(`WorldCoverRulesTest`: 형식·크기·바이트 시그니처·저장소 실패 변환), 소유자 표지 서비스(`WorldCoverServiceTest`: 저장→DB→이전 객체 삭제 순서와 실패 처리), 표지 컨트롤러 바인딩(`WorldCoverControllerTest`).
 - 새 `@Query` 3개(`StudioWorldRepository.listed`·`listedByGenre`, `WorldRevisionCardRepository.publicCardIds`: DEC-46에서 공개 카드 조건을 더해 `activeCardIds`에서 개명)는 DB 없이 H2로 구문·매핑·정렬·필터·count를 확인했고, 파생 쿼리 `WorkRepository.findAllByWorldStudioIdIn`은 이름 해석(PartTree)과 `work.world_studio_id`의 nullable `uuid` 매핑을 확인했다. 컬럼 타입 일치(`ddl-auto=validate`)와 실제 PostgreSQL 결과는 CI가 확인한다.
 - **hosted CI 대기(로컬 미실행)**: `PublicWorldHttpIntegrationTest`(공개 목록·상세, 비공개 제외, 비로그인 접근, 소유자 PUT 404/422/401/403, 관계 `unavailable`), `WorldCoverHttpIntegrationTest`(소유자 표지 PUT·GET·DELETE의 401/403/404/422, 공개 표지의 노출 기준, 교체 시 이전 객체 삭제, `hasCover`)와 V7까지 세는 `InitialWorldStoragePostgresTest`·`WorldStudioFlywayPostgresTest`·`WorldStudioMigrationPostgresTest`·`WorldStudioHistoryPostgresTest`. DEC-46 몫으로 `PublicWorldHttpIntegrationTest`에 비공개 카드와 그 관계가 상세·목록 수에서 빠지는지를 더했고, 새 `WorkWorldHttpIntegrationTest`(연결 401/403/404/400/200·멱등·409 `WORLD_ALREADY_LINKED`·해제·작품 삭제 시 해제, 소유자 응답의 `worldStudioId`·`linkedWorkId`, 독자 설정 위키의 공개 전 작품·확정 버전 없음·발행 회차 상한·`upto` 422·없는 작품 404·관계 필터·`unavailable`)와 Content 전역 V37을 세는 `ContentMigrationTest`·`StoryPlanMigrationPostgresTest`·`AttachmentMigrationLocationTest`도 **작성만 했고 로컬에서 실행하지 않았다**.
+
+## 세계관 삭제 (2026-11-17 사용자 결정)
+
+- 소유자가 세계관을 삭제하면 **소프트 삭제**다: 행·초안·확정 버전·카드 버전·이미지·표지·Neo4j 관계는 지우지 않고 `worldstudio.world.deleted_at`만 찍는다. 되살리는 API는 없다(데이터 보존).
+- 삭제된 세계관은 소유자에게도 없는 것이다. 내 목록(`GET /api/v1/world-studios`)에서 빠지고, 소유자 상세·초안 저장·확정 버전·공개 설정·표지·카드 이미지·AI 분석 등 `/{id}` 아래 소유자 API는 모두 404(`WORLD_NOT_FOUND`)다. 공개 목록·상세·표지·카드 이미지(`/api/v1/public/world-studios…`)도 404이고 목록의 `total`에도 세지 않는다. 같은 UUID로 다시 만들 수도 없다(소유자 검사에서 404).
+- **연결된 소설(`work.world_studio_id`)이 있으면 삭제할 수 없다**: 409 `WORLD_LINKED`("작품 관리에서 연결을 해제한 뒤 삭제하세요"). 정본이 Content 쪽이라 컨트롤러가 연결을 먼저 읽어 서비스에 넘기고, 서비스는 소유 확인(404) 뒤에 거절한다. 삭제된 세계관은 새 소설에 연결할 수 없다(404). 그래서 독자 설정 위키(`/public/works/{id}/world-cards`)가 가리키는 세계관은 삭제되지 않는다.
+- 소유자가 아니면 404다. 장르 템플릿 세계관은 운영 관리자 소유라 같은 검사로 남이 지울 수 없다. 서버 시작 시 시더는 삭제된 템플릿을 다시 만들지 않고 오류 로그만 남긴다.
+- ponytail: 연결 확인과 삭제 사이(서로 다른 transaction)에 다른 요청이 소설을 연결하는 경합 구간은 막지 않는다(데모 범위). 삭제 뒤 정리(GC)도 없다.
+
+### 저장 (V9)
+
+WorldStudio 전용 마이그레이션 `V9__world_soft_delete.sql`(V8 다음 번호). 기존 행은 모두 삭제되지 않은 채 남고 다른 데이터는 바꾸지 않는다.
+
+```sql
+ALTER TABLE worldstudio.world ADD COLUMN deleted_at timestamptz;
+```
+
+### 소유자 API (인증·CSRF, 기존 `/api/v1/world-studios` 규칙)
+
+| 메서드·경로 | 동작 |
+|---|---|
+| `DELETE /api/v1/world-studios/{id}` | 소유자만. 204(본문 없음). 연결된 소설이 있으면 409 `WORLD_LINKED`, 비소유자·없는·이미 삭제된 세계관은 404 |
+
+공개 조회는 `StudioWorldRepository`의 `lockOwned`·`listed`·`listedByGenre` 쿼리와 `PublicWorldService.listedWorld`·`WorkWorldService.link`의 `findById` 확인이 `deleted_at`을 거른다. 새 조회를 더할 때도 같은 조건을 둔다.
+
+### 화면
+
+- 세계관 관리 헤더의 정보 편집 패널에 `세계관 삭제`가 있다. 누르면 세계관 이름을 보이며 "목록에서 사라져요"를 확인하고, 지우면 `/lib?tab=worlds`로 이동한다. 연결된 소설이 있으면 버튼을 이유와 함께 잠그고, 서버가 거절해도(409 등) 그 이유를 그대로 보인다. 서버가 없는 데모(`mockup`)는 메모리에서 지운다.
