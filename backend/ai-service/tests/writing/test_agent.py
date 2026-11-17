@@ -124,3 +124,12 @@ def test_plan_and_draft_fit_in_the_content_relay_read_timeout(monkeypatch):
     planning = seen['init']['timeout']
     agent.draft(DraftRequest(episodeNumber=1, plan='계획'))
     assert planning + seen['init']['timeout'] < 180
+
+
+def test_plan_sees_the_previous_plan_alternatives_so_the_author_can_pick_one(monkeypatch):
+    seen = fake_openai(monkeypatch, text=plan_json(('추격', ['서윤이 쫓는다.'])))
+    agent.plan(PlanRequest(episodeNumber=11, request='두 번째 안으로 써줘', single=True,
+                           previousPlans=[BeatPlan(title='편지의 비밀', beats=['편지를 찾는다.']), BeatPlan(title='추격', beats=['서윤이 쫓는다.'])]))
+    sent = seen['messages'][-1].content
+    assert '편지의 비밀' in sent and '추격' in sent
+    assert 'previousPlans' in seen['messages'][0].content  # 지시가 이전 계획의 쓰임을 설명한다

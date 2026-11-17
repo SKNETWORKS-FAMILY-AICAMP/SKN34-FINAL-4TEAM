@@ -125,8 +125,18 @@ def _writing(data: dict | None, state: dict):
     if not (target := state.get('target')):
         raise WritingFailure(422, NO_WRITING_TARGET)
     request = _task(state)[:2000]
-    planned = PlanRequest(episodeNumber=target['episode'], request=request, context=_allowed_context(target, request))
+    planned = PlanRequest(episodeNumber=target['episode'], request=request, context=_allowed_context(target, request),
+                          previousPlans=_previous_plans(state))
     return writing.plan(planned) if task == 'plan' else writing.plan_and_draft(planned)
+
+
+def _previous_plans(state: dict) -> list[dict]:
+    """최근 HISTORY_TURNS턴 중 가장 최근의 기획 결과(계획 대안). 없으면 빈 목록."""
+    for turn in reversed(_previous(state)[-HISTORY_TURNS:]):
+        for step in (turn.get('reply') or {}).get('steps', []):
+            if step['feature'] == 'writing_editing' and step['status'] == 'completed' and 'plans' in (step.get('result') or {}):
+                return step['result']['plans']
+    return []
 
 
 def _allowed_context(target: dict, query: str) -> str:

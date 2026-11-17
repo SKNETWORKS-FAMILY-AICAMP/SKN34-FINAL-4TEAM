@@ -1550,3 +1550,21 @@ def test_waiting_patch_step_carries_its_task_so_the_screen_does_not_ask_for_a_pl
     fake_agents(monkeypatch, plan(writing_step('patch')))
     result = chat(str(uuid4()), target=TARGET)
     assert [(s.feature, s.task) for s in result.steps] == [('writing_editing', 'patch')]
+
+
+def test_a_follow_up_writing_turn_gets_the_latest_plan_alternatives_of_the_conversation(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan(writing_step('plan')))
+    write_turn(thread, request='다음 화 전개를 두 가지 안으로 짜줘', target=TARGET)
+    fake_agents(monkeypatch, plan('story_context'))
+    write_turn(thread, request='길드 규칙은?', inputs={'story_context': QA})  # 사이에 다른 작업이 있어도 가장 최근 기획을 쓴다
+    calls = fake_agents(monkeypatch, plan(writing_step('draft')))
+    write_turn(thread, request='그 중 첫 번째 안으로 바로 써줘', target=TARGET)
+    sent = next(args[0] for name, args, _ in calls if name == 'plan_and_draft')
+    assert sent.previousPlans == [BEAT]
+
+
+def test_the_first_planning_turn_has_no_previous_plans(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(writing_step('plan')))
+    write_turn(str(uuid4()), request='전개 짜줘', target=TARGET)
+    assert next(args[0] for name, args, _ in calls if name == 'writing_plan').previousPlans == []

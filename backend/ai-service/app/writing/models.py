@@ -16,12 +16,17 @@ class PlanRequest(BaseModel):
     request: str = Field(min_length=1, max_length=2000)
     single: bool = False  # 바로 집필이면 계획 하나만, 기획만이면 대안 1~3개
     context: str = Field(default='', max_length=60000)
+    # 같은 대화의 가장 최근 기획 결과. "첫 번째 안으로" 같은 지칭을 풀 때만 쓴다(대화 기록 전체는 보내지 않는다).
+    previousPlans: list['BeatPlan'] = Field(default=[], max_length=3)
 
 
 class BeatPlan(BaseModel):
     model_config = ConfigDict(extra='forbid')
     title: str
     beats: list[str]  # 장면·사건 순서
+
+
+PlanRequest.model_rebuild()
 
 
 class PlanOutput(BaseModel):
