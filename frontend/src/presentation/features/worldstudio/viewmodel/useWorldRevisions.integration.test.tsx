@@ -16,7 +16,7 @@ const frozen:WorldRevision={worldId:world.id,revisionId:crypto.randomUUID(),revi
 function setup(dirty=false,reload=vi.fn<()=>Promise<StudioWorld>>(async()=>({...world,version:3,currentRevisionId:frozen.revisionId}))){
  let pending:{expectedDraftRevision:number;key:string}|null=null
  let rows:WorldRevisionSummary[]=[]
- const repo:WorldStudioRepository={listStudio:vi.fn(),read:vi.fn(),create:vi.fn(),saveStudio:vi.fn(),setPublication:vi.fn(),revisions:vi.fn(async()=>rows),revision:vi.fn(async()=>frozen),confirm:vi.fn(async()=>{pending={key:'same',expectedDraftRevision:2};rows=[{worldId:world.id,revisionId:frozen.revisionId,revisionNo:1,name:'확정',createdAt:'2026-11-11T00:00:00Z'}];return frozen}),pendingConfirmation:()=>pending,acknowledgeConfirmation:vi.fn(()=>{pending=null})}
+ const repo:WorldStudioRepository={listStudio:vi.fn(),read:vi.fn(),create:vi.fn(),saveStudio:vi.fn(),setPublication:vi.fn(),revisions:vi.fn(async()=>rows),revision:vi.fn(async()=>frozen),confirm:vi.fn(async()=>{pending={key:'same',expectedDraftRevision:2};rows=[{worldId:world.id,revisionId:frozen.revisionId,revisionNo:1,name:'확정',createdAt:'2026-11-11T00:00:00Z'}];return frozen}),restoreRevision:vi.fn(async()=>({...world,version:3})),pendingConfirmation:()=>pending,acknowledgeConfirmation:vi.fn(()=>{pending=null})}
  const uc=new WorldStudioUseCase(repo),lock=vi.fn(),store=createAppStore({role:'user',memberId:'owner'})
  const wrapper=({children}:{children:ReactNode})=><Provider store={store}>{children}</Provider>
  type Props={isDirty?:boolean;id?:string;active?:boolean;saved?:StudioWorld}
@@ -155,4 +155,36 @@ it('rechecks the request after asynchronous verification before deleting any rec
  await act(()=>v.result.current.acknowledgeSuperseded())
  expect(v.repo.acknowledgeConfirmation).not.toHaveBeenCalled()
  expect(v.result.current.superseded).toBeNull()
+})
+
+it('restores the confirmed cards into the draft with the draft revision it saw, then reads the server draft again and says what stayed',async()=>{
+ const {result,repo,reload}=setup();await waitFor(()=>expect(result.current.busy).toBe(false))
+ await act(()=>result.current.restore(frozen.revisionId,1))
+ expect(repo.restoreRevision).toHaveBeenCalledWith(world.id,frozen.revisionId,2,expect.any(AbortSignal))
+ expect(reload).toHaveBeenCalledTimes(1)
+ expect(vi.mocked(repo.restoreRevision!).mock.invocationCallOrder[0]).toBeLessThan(reload.mock.invocationCallOrder[0])
+ expect(repo.confirm).not.toHaveBeenCalled();expect(repo.saveStudio).not.toHaveBeenCalled() // 새 확정 버전도 초안 저장도 하지 않는다
+ expect(result.current.message).toContain('확정 버전 1의 카드로 초안을 되돌렸어요');expect(result.current.message).toContain('관계는 그대로')
+ expect(result.current.error).toBe('')
+})
+it('blocks a restore with unsaved input and sends nothing',async()=>{
+ const {result,repo,reload}=setup(true);await waitFor(()=>expect(result.current.busy).toBe(false));await act(()=>result.current.restore(frozen.revisionId,1))
+ expect(repo.restoreRevision).not.toHaveBeenCalled();expect(reload).not.toHaveBeenCalled();expect(result.current.error).toContain('먼저 저장')
+})
+it('shows the server reason as it is and neither reads the draft again nor claims success when a restore is refused',async()=>{
+ const {result,repo,reload}=setup();await waitFor(()=>expect(result.current.busy).toBe(false))
+ const reason='이 버전으로 되돌리면 사라지는 설정에 이어진 관계가 있어요: 나. 관계를 먼저 지운 뒤 다시 시도하세요.'
+ vi.mocked(repo.restoreRevision!).mockRejectedValue(new Error(reason))
+ await act(()=>result.current.restore(frozen.revisionId,1))
+ expect(result.current.error).toBe(reason);expect(result.current.message).toBe('');expect(reload).not.toHaveBeenCalled()
+})
+it('does not claim a restore when the draft cannot be read again afterwards',async()=>{
+ const {result}=setup(false,vi.fn(async()=>{throw new Error('재조회 실패')}));await waitFor(()=>expect(result.current.busy).toBe(false))
+ await act(()=>result.current.restore(frozen.revisionId,1))
+ expect(result.current.error).toBe('재조회 실패');expect(result.current.message).toBe('')
+})
+it('ignores a second restore click while one is running',async()=>{
+ const {result,repo}=setup();await waitFor(()=>expect(result.current.busy).toBe(false))
+ await act(()=>Promise.all([result.current.restore(frozen.revisionId,1),result.current.restore(frozen.revisionId,1)]))
+ expect(repo.restoreRevision).toHaveBeenCalledTimes(1)
 })

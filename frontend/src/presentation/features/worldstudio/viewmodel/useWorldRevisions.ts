@@ -52,6 +52,14 @@ export function useWorldRevisions(world:string,active:boolean,saved:StudioWorld|
   return {verified,data,current}
  }
  return {rows,detail,busy,error,message,pending,aiPending,superseded,supported:useCase.supportsRevisions,
+  /** 확정 버전의 카드로 초안을 되돌린다(관계·이름·새 확정 버전은 그대로). 저장된 초안에서만 하며, 성공하면 서버 초안을 다시 읽어 화면에 반영한다. 서버가 거절하면 그 이유를 그대로 알린다. */
+  restore:(id:string,no:number)=>run(async signal=>{
+   checkInput()
+   await useCase.restoreRevision(world,id,saved!.version,signal)
+   signal.throwIfAborted()
+   await reload()
+   setMessage(`확정 버전 ${no}의 카드로 초안을 되돌렸어요. 관계는 그대로예요. 마음에 들면 '확정 버전 남기기'로 새 버전을 남기세요.`)
+  }),
   open:(id:string)=>run(async signal=>{const value=await useCase.revision(world,id,signal);if(!signal.aborted)setDetail(value)}),
   refresh:()=>run(async signal=>{if(dirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.');await reload();const data=await useCase.revisions(world,signal);if(!signal.aborted)setRows(data)}),
   confirm:(recover=false)=>run(async signal=>{
