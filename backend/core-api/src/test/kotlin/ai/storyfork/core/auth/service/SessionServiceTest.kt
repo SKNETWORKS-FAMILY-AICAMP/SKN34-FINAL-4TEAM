@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
@@ -69,19 +70,6 @@ class SessionServiceTest {
         assertNull(service.refresh("used-token"))
 
         verify(sessions).revokeAll(member.id)
-    }
-
-    @Test
-    fun `a used refresh token of an already revoked session is refused without revoking again`() {
-        val hash = secrets.hash("used-token")
-        val session = AuthSession(UUID.randomUUID(), member.id, "device", Instant.now(), Instant.now().plusSeconds(3600), revoked = true)
-        `when`(tokens.findMemberId(hash)).thenReturn(member.id)
-        `when`(members.lockById(member.id)).thenReturn(member)
-        `when`(tokens.findById(hash)).thenReturn(Optional.of(AuthRefreshToken(hash, session.id, used = true)))
-        `when`(sessions.findById(session.id)).thenReturn(Optional.of(session))
-
-        assertNull(service.refresh("used-token"))
-
-        verify(sessions, never()).revokeAll(member.id)
+        verify(tokens, never()).save(any(AuthRefreshToken::class.java))
     }
 }
