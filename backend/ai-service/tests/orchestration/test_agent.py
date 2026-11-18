@@ -165,6 +165,14 @@ def test_a_main_model_failure_before_any_step_does_not_point_at_results_below(mo
     assert '아래' not in result.message
 
 
+def test_a_main_model_failure_with_only_failed_steps_does_not_point_at_results_below(monkeypatch):
+    fake_agents(monkeypatch, plan('story_context'))
+    fake_main(monkeypatch, ('ask_story_qa', {'request': '가' * 2001}), answer=OpenAIError('down'))
+    result = run(inputs={'story_context': QA})
+    assert [s.status for s in result.steps] == ['failed']
+    assert (result.status, result.message) == ('failed', agent.MAIN_FAILED_NOTHING_MESSAGE)
+
+
 def traced(monkeypatch) -> list[dict]:
     """메인 모델 추적(main_agent)에 남은 update 값들."""
     updates = []

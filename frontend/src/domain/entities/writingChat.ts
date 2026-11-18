@@ -209,6 +209,16 @@ export const usedPlan = (step: ChatStep) => (step.result?.plan ? `${PLAN_LABEL}:
  */
 export function replyText(reply: ChatReply): string {
   const steps = reply.steps.filter((s) => s.status !== 'not_started')
-    .map((s) => `[${featureLabel[s.feature] ?? s.feature}] ${stepText(s)}${s.status === 'completed' && usedPlan(s) ? `\n${usedPlan(s)}` : ''}${s.applied ? `\n→ ${s.applied.episode}화 초안에 반영했어요.` : s.approval === 'declined' ? '\n→ 반영하지 않았어요.' : ''}`)
+    .map((s) => [`${stepLabel(s)} ${stepText(s)}`, s.status === 'completed' && usedPlan(s), appliedLine(s)].filter(Boolean).join('\n'))
   return steps.join('\n\n') || (reply.message ? '' : '응답 내용이 없어요.')
 }
+
+const stepLabel = (s: ChatStep) => `[${featureLabel[s.feature] ?? s.feature}]`
+const appliedLine = (s: ChatStep) => (s.applied ? `→ ${s.applied.episode}화 초안에 반영했어요.` : s.approval === 'declined' ? '→ 반영하지 않았어요.' : '')
+
+/**
+ * 실패 단계와 승인 결과(반영함·반영 안 함) 줄만. 종합 답변은 승인 전에 쓰여 승인·Content 반영 뒤에 달라진 이 결과를 말하지 못하므로
+ * 화면은 단계별 결과를 접어도 이 줄은 접지 않는다. 문구는 replyText와 같다.
+ */
+export const replyOutcome = (reply: ChatReply): string[] =>
+  reply.steps.flatMap((s) => [s.status === 'failed' ? `${stepLabel(s)} ${stepText(s)}` : '', appliedLine(s)].filter(Boolean))
