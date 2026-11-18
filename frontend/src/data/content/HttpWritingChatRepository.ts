@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import type { CharacterSimulation } from '../../domain/entities/characterSimulation'
-import type { ChatEvent, ChatHistory, ChatMessageInput, ChatRating, ChatReply, ChatReview, ChatSession, ChatStep } from '../../domain/entities/writingChat'
+import type { ChatEvent, ChatHistory, ChatMessageInput, ChatRating, ChatReply, ChatReview, ChatSession, ChatStep, ChatWorldReview } from '../../domain/entities/writingChat'
 import type { WritingChatRepository } from '../../domain/repositories/WritingChatRepository'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, protectedRequest } from '../api/auth'
@@ -47,6 +47,11 @@ const review: z.ZodType<ChatReview> = z.object({
   })),
 })
 const BAD_REVIEW = '원고 검수 결과 형식을 확인할 수 없어요.'
+// 설정집 검토 단계 결과. 웹 조사와 같은 findings 키라 따로 검증하지 않으면 웹 조사 모양으로 읽혀 응답 전체가 형식 오류가 된다.
+const worldReview: z.ZodType<ChatWorldReview> = z.object({
+  findings: z.array(z.object({ kind: z.enum(['contradiction', 'doc_role', 'missing_info', 'other']), message: z.string() })),
+})
+const BAD_WORLD_REVIEW = '설정집 검토 결과 형식을 확인할 수 없어요.'
 // 심의 등급 단계 결과. AI RatingResponse 중 화면이 쓰는 값만 계약의 열거값으로 받는다.
 const ratingVerdict = z.enum(['adult', 'general', 'needsReview'])
 const rating: z.ZodType<ChatRating> = z.object({
@@ -62,7 +67,7 @@ const beatPlan = z.object({ title: z.string(), beats: z.array(z.string()) })
 
 // 시뮬레이션·검수 단계는 결과가 객체가 아니어도(문자열·배열·숫자) 이 단계만 실패로 바꿔야 해서 결과를 transform이 따로 검증한다.
 // 결과를 객체로 먼저 검사하면 그 실패가 transform 앞에서 응답 전체의 형식 오류가 된다.
-const typedStep = <T,>(feature: string, schema: z.ZodType<T>, key: 'simulation' | 'review' | 'rating', bad: string) =>
+const typedStep = <T,>(feature: string, schema: z.ZodType<T>, key: 'simulation' | 'review' | 'rating' | 'worldReview', bad: string) =>
   z.object({ feature: z.literal(feature), ...stepFields, result: z.unknown() }).transform((raw): ChatStep => {
     const { result, ...rest } = raw
     // 완료됐다는 단계는 결과가 있어야 한다. 아직 시작 전·서버가 실패로 보낸 결과 없는 단계는 그대로 둔다.
@@ -73,7 +78,8 @@ const typedStep = <T,>(feature: string, schema: z.ZodType<T>, key: 'simulation' 
     return { ...rest, status: 'failed', error: (raw.status === 'failed' && raw.error) || bad }
   })
 const step: z.ZodType<ChatStep> = z.union([typedStep('character_simulation', simulation, 'simulation', BAD_SIMULATION),
-  typedStep('review', review, 'review', BAD_REVIEW), typedStep('rating', rating, 'rating', BAD_RATING), z.object({
+  typedStep('review', review, 'review', BAD_REVIEW), typedStep('rating', rating, 'rating', BAD_RATING),
+  typedStep('world_review', worldReview, 'worldReview', BAD_WORLD_REVIEW), z.object({
   feature: z.string(),
   ...stepFields,
   result: z.looseObject({
