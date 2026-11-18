@@ -21,6 +21,7 @@ R = str(uuid5(NAMESPACE_URL, 'relation'))
 BANNED_LABELS = {'살해', '전투', '공격', '저술', '지휘', '통치', '건국', '설립', '항복', '교전', '지지', '참여'}
 SYMMETRIC_LABELS = {'형제', '자매', '남매', '배우자', '동맹', '친구', '사촌', '적수', '교전 상대', '라이벌'}
 KINSHIP = re.compile(r'(?P<subject>\S+)는\s+(?P<object>\S+)의\s+(?P<role>아들|딸|아버지|어머니)(?:이다|였다|다)')
+KINSHIP_INVERSES = {'아들': {'아버지', '어머니'}, '딸': {'아버지', '어머니'}, '아버지': {'아들', '딸'}, '어머니': {'아들', '딸'}}
 
 
 def relation(**changes):
@@ -69,16 +70,12 @@ class MergeTest(unittest.TestCase):
                     obj = {card_id for card_id, title in names.items() if title == match['object']}
                     if not subject or not obj:
                         continue
-                    if match['role'] in {'아들', '딸'}:
-                        expected = {(obj_id, subject_id, match['role']) for subject_id in subject for obj_id in obj}
-                        expected |= {(subject_id, obj_id, None) for subject_id in subject for obj_id in obj}
-                        self.assertTrue((edge['sourceCardId'], edge['targetCardId'], edge['label']) in expected or
-                                        (edge['sourceCardId'], edge['targetCardId'], None) in expected and edge['label'] in {'아버지', '어머니'})
-                    else:
-                        expected = {(obj_id, subject_id, match['role']) for subject_id in subject for obj_id in obj}
-                        expected |= {(subject_id, obj_id, None) for subject_id in subject for obj_id in obj}
-                        self.assertTrue((edge['sourceCardId'], edge['targetCardId'], edge['label']) in expected or
-                                        (edge['sourceCardId'], edge['targetCardId'], None) in expected and edge['label'] in {'아들', '딸'})
+                    forward = any((edge['sourceCardId'], edge['targetCardId'], edge['label']) == (obj_id, subject_id, match['role'])
+                                  for subject_id in subject for obj_id in obj)
+                    backward = edge['label'] in KINSHIP_INVERSES[match['role']] and any(
+                        (edge['sourceCardId'], edge['targetCardId']) == (subject_id, obj_id)
+                        for subject_id in subject for obj_id in obj)
+                    self.assertTrue(forward or backward)
 
     def test_coverage_output_is_compact_and_reproducible(self):
         self.write('test--a.json', relationships=[relation()], reviewedCardIds=[A, B], ambiguousCardIds=[C])
