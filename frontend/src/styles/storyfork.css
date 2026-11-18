@@ -73,6 +73,8 @@ html:has(.gnb){scroll-padding-top:72px}
 @media (max-width:600px){.gnb .in{gap:8px}.nav{gap:0}.nav :is(button,a){padding:0 9px;gap:4px}.nav .lf{display:none}.nav .ls{display:inline}.ifg{grid-template-columns:1fr}.rk{grid-template-columns:30px 48px minmax(0,1fr);gap:10px}.rk .st{display:none}.rk .th{width:48px}}
 .search{margin-left:auto;display:flex;align-items:center;gap:8px;height:42px;min-width:260px;padding:0 8px 0 16px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);color:var(--sub);font-size:14px;transition:border-color .15s,box-shadow .15s}
 .search:hover{border-color:var(--pri);box-shadow:0 0 0 4px var(--pri-soft)}.search kbd{margin-left:auto;font:600 11px var(--ui);color:var(--sub);background:var(--muted-bg);border-radius:6px;padding:3px 6px}
+.search .ls{display:none}
+@media (max-width:1100px){.search .lf{display:none}.search .ls{display:inline}}
 .thm{width:40px;height:40px;border-radius:50%;border:1px solid var(--line2);background:var(--surface);font-size:16px;display:grid;place-items:center;color:var(--ink)}
 .avatar{width:38px;height:38px;border-radius:50%;background:conic-gradient(var(--pri),var(--acc),var(--pri));padding:2px}.avatar span{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:var(--ink);color:var(--bg);font-weight:900;font-size:14px;border:2px solid var(--bg)}
 main{padding:32px 0 72px}
@@ -250,6 +252,7 @@ body:has(.rnav,.studio-chat-toggle) #top{bottom:142px}
 .qk input{width:100%;border:0;border-bottom:1px solid var(--line);padding:20px 22px;font-size:17px;outline:none;background:transparent}
 .qk ul{list-style:none;margin:0;padding:8px;max-height:52vh;max-height:52dvh;overflow:auto;overscroll-behavior:contain}.qk li{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 12px;border-radius:14px;cursor:pointer}.qk li.on,.qk li:hover{background:var(--muted-bg)}.qk li.on{outline:2px solid var(--pri);outline-offset:-2px}
 .qk li .th{width:40px;height:52px;border-radius:7px;overflow:hidden}.qk li .th svg{width:100%;height:100%;display:block}.qk li small{display:block;color:var(--sub);font-size:12.5px}.qk .ft{display:flex;gap:14px;padding:10px 20px;border-top:1px solid var(--line);font-size:12px;color:var(--faint)}
+.qk .note{margin:0;padding:2px 20px 10px;font-size:12.5px;color:var(--sub)}
 /* 포크 */
 .fork{max-width:720px;margin:0 auto;padding:30px 24px 80px}.fork h1{font-family:var(--tfont);font-size:34px;letter-spacing:-.03em}.fork .lead{color:var(--tsub);margin:6px 0 28px}.newwork-page{max-width:920px}
 @media(max-width:760px){.newwork-info-grid{grid-template-columns:minmax(0,1fr)}}

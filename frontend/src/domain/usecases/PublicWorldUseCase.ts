@@ -28,14 +28,17 @@ export class PublicWorldUseCase {
     return { ...first, items: [...items.values()] }
   }
 
-  /** `/search` 세계관 탭: 검색어에 맞는 세계관 한 쪽. 다음 쪽은 `page`로 이어 받는다(`list`처럼 여러 쪽을 이어 붙이지 않는다). 검색어가 비면 전체 목록이다. */
-  searchWorlds({ q, page }: { q: string; page: number }, signal?: AbortSignal): Promise<PublicWorldPage> {
-    return this.repository.list({ q, page, size: PUBLIC_WORLD_PAGE_SIZE }, signal)
+  /**
+   * `/search` 세계관 탭·전체 탭 묶음·빠른 이동: 검색어에 맞는 세계관 한 쪽(`size` 기본 24, 전체 탭은 6·빠른 이동은 3). 번호 쪽은 `page`(0부터)로 읽는다(`list`처럼 여러 쪽을 이어 붙이지 않는다).
+   * 검색어가 비면 전체 목록이다.
+   */
+  searchWorlds({ q, page, size = PUBLIC_WORLD_PAGE_SIZE }: { q: string; page: number; size?: number }, signal?: AbortSignal): Promise<PublicWorldPage> {
+    return this.repository.list({ q, page, size }, signal)
   }
 
-  /** `/search` 설정 카드 탭: 검색어에 맞는 카드 한 쪽(검색어는 비면 안 된다). */
-  searchCards({ q, page }: { q: string; page: number }, signal?: AbortSignal): Promise<PublicWorldCardPage> {
-    return this.repository.searchCards({ q, page, size: PUBLIC_WORLD_PAGE_SIZE }, signal)
+  /** `/search` 설정 카드 탭·전체 탭 묶음·빠른 이동: 검색어에 맞는 카드 한 쪽(검색어는 비면 안 된다, `size` 기본 24). */
+  searchCards({ q, page, size = PUBLIC_WORLD_PAGE_SIZE }: { q: string; page: number; size?: number }, signal?: AbortSignal): Promise<PublicWorldCardPage> {
+    return this.repository.searchCards({ q, page, size }, signal)
   }
 
   /** 비공개·없는 세계관은 undefined다(화면은 "찾을 수 없는 세계관"). 실패는 던진다. */

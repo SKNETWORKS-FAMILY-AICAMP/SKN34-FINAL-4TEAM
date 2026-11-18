@@ -49,12 +49,6 @@ export type PublicWorldCardHit = { worldId: string; worldName: string; cardId: s
 export type PublicWorldCardPage = { items: PublicWorldCardHit[]; page: number; size: number; total: number }
 
 /**
- * 검색 결과 '더 보기'가 남았는지: 서버가 이 쪽까지 준 수(`page * size + items.length`)가 `total`보다 적으면 더 있다.
- * 쪽이 비어 돌아오면 읽는 사이 목록이 줄어든 것이라 `total`이 남았어도 멈춘다(빈 쪽을 끝없이 요청하지 않는다).
- */
-export const hasMorePages = ({ items, page, size, total }: { items: readonly unknown[]; page: number; size: number; total: number }) => items.length > 0 && page * size + items.length < total
-
-/**
  * 데모 전용: 한 세계관의 유효한 원본(파생 하나 → 조합 원본들, 적힌 순서). `known`(목록에 있는 세계관 id)에 없는 id와 자기 자신은 버리고 조합 안의 중복 원본은 한 번만 센다.
  * 지도(presentation)의 링크와 메모리 저장소의 계보가 같은 규칙을 쓰도록 한 곳에 둔다.
  */

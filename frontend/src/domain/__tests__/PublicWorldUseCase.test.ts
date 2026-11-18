@@ -119,4 +119,15 @@ describe('공개 세계관·설정 카드 검색 (#505)', () => {
     repo.searchCards.mockRejectedValueOnce(new Error('offline'))
     await expect(new PublicWorldUseCase(repo).searchCards({ q: '하엘', page: 0 })).rejects.toThrow('offline')
   })
+
+  it('쪽 크기를 줄 수 있고(전체 탭 묶음 6개·빠른 이동 3개) 주지 않으면 24개다', async () => {
+    const repo = server(0)
+    const useCase = new PublicWorldUseCase(repo)
+    await useCase.searchWorlds({ q: '달', page: 0, size: 3 })
+    await useCase.searchCards({ q: '달', page: 2, size: 6 })
+    expect(repo.list).toHaveBeenLastCalledWith({ q: '달', page: 0, size: 3 }, undefined)
+    expect(repo.searchCards).toHaveBeenLastCalledWith({ q: '달', page: 2, size: 6 }, undefined)
+    await useCase.searchWorlds({ q: '달', page: 0 })
+    expect(repo.list).toHaveBeenLastCalledWith({ q: '달', page: 0, size: PUBLIC_WORLD_PAGE_SIZE }, undefined)
+  })
 })

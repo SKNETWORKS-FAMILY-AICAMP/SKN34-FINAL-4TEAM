@@ -23,3 +23,6 @@
   .libtabs.search-tabs { gap: 2px; }
   .libtabs.search-tabs a { padding: 0 8px; }
 }
+
+/* 전체 탭의 묶음(작품·세계관·설정 카드·캐릭터챗) 사이 간격. 묶음 제목 줄(.sec-h)과 더 보기 링크(.more)는 전역 규칙이다. */
+.search-group { margin-top: 32px; }

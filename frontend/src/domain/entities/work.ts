@@ -233,9 +233,14 @@ export const SEARCH_FIELDS = [['all', '전체'], ['title', '제목'], ['author',
 export const SEARCH_SORTS = [['latest', '최신 순'], ['like', '인기 순'], ['view', '조회 순']] as const
 export type SearchField = (typeof SEARCH_FIELDS)[number][0]
 export type SearchSort = (typeof SEARCH_SORTS)[number][0]
-/** /search의 대상 탭(주소 쿼리 type, #505): 작품이 기본이고 캐릭터챗은 검색 없이 목록(/chat)으로 안내한다. */
-export const SEARCH_TABS = [['work', '작품'], ['world', '세계관'], ['card', '설정 카드'], ['chat', '캐릭터챗']] as const
+/** /search의 대상 탭(주소 쿼리 type, #505): 전체는 작품·세계관·설정 카드를 묶음별로 몇 개씩 보이고, 캐릭터챗은 검색 없이 목록(/chat)으로 안내한다. */
+export const SEARCH_TABS = [['all', '전체'], ['work', '작품'], ['world', '세계관'], ['card', '설정 카드'], ['chat', '캐릭터챗']] as const
 export type SearchTab = (typeof SEARCH_TABS)[number][0]
+/**
+ * 주소의 type으로 탭을 정한다. type이 없거나 모르는 값이면 전체 탭이다. 단 범위(f)·정렬(sort)이 주소에 있으면(탭이 생기기 전의 작품 검색 링크)
+ * 작품 탭으로 본다(`legacyWorkLink`). type이 탭 값이면 항상 그 탭이다.
+ */
+export const searchTabOf = (type: string | null, legacyWorkLink: boolean): SearchTab => SEARCH_TABS.find(([key]) => key === type)?.[0] ?? (legacyWorkLink ? 'work' : 'all')
 
 /**
  * 기간별 랭킹(기능표 45)의 범위 탭·기준·기간으로, /rank 주소 쿼리 t·kind·period가 받는 값이다. 항목은 [값, 라벨, …]이며
