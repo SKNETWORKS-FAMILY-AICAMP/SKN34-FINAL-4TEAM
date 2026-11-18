@@ -105,6 +105,15 @@ export function useWorldStudioViewModel(
   const [relationDirty, setRelationDirty] = useState(false)
   // 편집 중인 카드는 주소의 card이고, 초안에 없는 카드(새로고침으로 사라진 미저장 카드·지운 카드)면 없는 것으로 본다.
   const selected = editing?.settings.some((row) => row.item.id === cardParam) ? cardParam : ''
+  // 불러온 초안에 없는 카드를 가리키는 card는 주소에서 지운다(기록은 쌓지 않는다). 두면 새로고침으로 사라진 미저장 카드의 id가 남아, 카드 삭제의 history back이 그 옛 기록에 착지할 때마다 설정집 화면인데 주소에는 없는 카드가 붙는다(#470).
+  useEffect(() => {
+    if (!editing || !cardParam || selected) return
+    setParams((current) => {
+      const next = new URLSearchParams(current)
+      next.delete('card')
+      return next
+    }, { replace: true })
+  }, [editing, cardParam, selected, setParams])
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(restoring)
