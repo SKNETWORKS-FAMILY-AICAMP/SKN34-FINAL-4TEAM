@@ -10,7 +10,7 @@ from app.simulation.models import PlanDraft, SimulationPlan
 from .stubs import (EPISODE, GATE, KAEL, LINA, READ, TARGET, action, card, fake_content, fake_novelbrain, narration, relation, run_auto,
                     speech, staged, text, verdict)
 
-MASK, BODY, MASK2, I1, I2, REL_KM, REL_BL = (f'00000000-0000-0000-0000-{n:012d}' for n in (101, 102, 103, 104, 105, 106, 107))
+MASK, BODY, MASK2, I1, I2, REL_KM, REL_BL, VOICE = (f'00000000-0000-0000-0000-{n:012d}' for n in (101, 102, 103, 104, 105, 106, 107, 108))
 
 
 def identity(id, source, target, polarity='asserted', direction='directed'):
@@ -43,7 +43,7 @@ def view(monkeypatch, read=DUAL, plan=PLAN, actor=MASK):
 
 # --- 읽기: 「동일 인물」만 최신 시점으로 한 번 더 -----------------------------------------------------------------------
 
-def test_identity_is_read_once_more_at_the_latest_episode_and_everything_else_stays_at_the_base_episode(monkeypatch):
+def test_identity_is_read_once_more_at_the_latest_episode_and_kept_apart_from_the_base_episode_relations(monkeypatch):
     base = world(identity('old-identity', MASK, BODY))                       # 기준 회차(3화)까지 이어 둔 것
     latest = world(identity(I2, MASK2, BODY), relation('later', KAEL, LINA, '뒤 회차 관계', ''))   # 최신: 달라진 identity와 뒤 회차에만 있는 관계
     calls = []
@@ -56,10 +56,39 @@ def test_identity_is_read_once_more_at_the_latest_episode_and_everything_else_st
 
     monkeypatch.setattr(service.content_mcp, 'call', call)
     read = service.read_world('work', EPISODE)
-    ids = [r['id'] for r in read['relationships']]
-    assert 'old-identity' not in ids and I2 in ids and 'later' not in ids
-    assert [r['id'] for r in read['relationships'] if r['category'] != 'identity'] == [r['id'] for r in base['relationships'] if r['category'] != 'identity']
+    # 스냅샷이 읽는 관계는 기준 회차 시점 그대로다(뒤 회차의 관계도 최신 identity도 섞이지 않는다). 최신 identity는 따로 identity에 담긴다.
+    assert read['relationships'] == base['relationships']
+    assert [r['id'] for r in read['identity']] == [I2]
     assert [(tool, args.get('episode')) for tool, args in calls] == [('world_studio_list', None), ('world_studio_read', str(EPISODE)), ('world_studio_read', None)]
+
+
+def test_the_narrator_and_recall_see_only_the_base_episode_relations_while_the_latest_identity_only_groups_the_cards(monkeypatch):
+    # 카드가 둘뿐이라 정체 관계가 있으면 나레이터 조회(상위 8개) 안에 반드시 들어온다.
+    small = {**READ, 'cards': PEOPLE}
+    base, latest = {**small, 'relationships': []}, {**small, 'relationships': [identity(I1, MASK, BODY)]}   # 기준 회차(3화)에는 없고 최신 시점에만 있다
+    solo = SimulationPlan(mode='if', premise='IF-PREMISE 승상이 홍길동을 부른다면?', characterIds=[MASK])
+
+    def call(tool, arguments):
+        if tool == 'world_studio_list':
+            return [{'worldId': base['worldId'], 'linkedWorkId': 'work'}]
+        return base if arguments.get('episode') else latest
+
+    monkeypatch.setattr(service.content_mcp, 'call', call)
+    loaded = service.load_world(TARGET, '요청', None)
+    assert loaded.bodies == {MASK: BODY}                                     # 한 사람으로 묶는 데는 쓴다
+    assert not [r for r in loaded.snapshot.relations if r.category == 'identity']   # 조회용 스냅샷에는 기준 회차 시점 관계뿐이다
+    asked, extra, _ = service.narrator_view(solo, loaded, service.new_scene(solo))  # 전지적 나레이터도 기준 회차 뒤의 정체를 읽지 못한다
+    assert f'relation:{I1}' not in text(asked) + text(extra) and '동일 인물' not in text(asked) + text(extra)
+
+
+def test_a_fork_groups_the_cards_by_the_identity_of_the_inherited_world_it_reads_only_once(monkeypatch):
+    from .stubs import INHERITED
+    inherited = {**INHERITED, 'relationships': [*INHERITED['relationships'], identity(I1, KAEL, LINA)]}
+    calls = fake_content(monkeypatch, worlds=[], inherited=inherited)
+    read = service.read_world('work', EPISODE)
+    assert [r['id'] for r in read['identity']] == [I1] and read['relationships'] == inherited['relationships']
+    assert service.load_world(TARGET, '요청', None).bodies == {KAEL: LINA}
+    assert [tool for tool, _ in calls].count('work_inherited_world') == 2 and 'world_studio_read' not in [tool for tool, _ in calls]
 
 
 def test_a_fork_reads_the_inherited_world_only_once(monkeypatch):
@@ -67,6 +96,14 @@ def test_a_fork_reads_the_inherited_world_only_once(monkeypatch):
     calls = fake_content(monkeypatch, worlds=[], inherited=INHERITED)
     service.read_world('work', EPISODE)
     assert [tool for tool, _ in calls] == ['world_studio_list', 'work_inherited_world']
+
+
+def test_an_identity_relation_that_touches_a_narrator_style_card_is_ignored_instead_of_failing_the_world(monkeypatch):
+    # 제목이 '나레이터'로 시작하는 카드는 유형과 상관없이 문체 지침이라 인물이 아니다: 거기 닿는 identity는 없던 것으로 보고 세계관을 409로 막지 않는다.
+    voice = card(VOICE, '나레이터 문체', 'NARRATOR-STYLE 담담한 3인칭')
+    fake_content(monkeypatch, read=world(identity(I1, VOICE, BODY), identity(I2, MASK, BODY), people=[*PEOPLE, voice]))
+    loaded = service.load_world(TARGET, '요청', None)
+    assert loaded.bodies == {MASK: BODY} and VOICE not in loaded.characters   # 나레이터 카드에 닿은 것만 빠지고 나머지 묶음은 그대로다
 
 
 # --- 고른 카드의 이름으로, 본체의 문서로 ------------------------------------------------------------------------------------

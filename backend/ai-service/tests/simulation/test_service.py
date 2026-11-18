@@ -25,7 +25,7 @@ COVERAGE = {'expected': [], 'withVerifiedExcerpt': [], 'withoutVerifiedExcerpt':
 def test_world_is_the_one_linked_to_the_work_and_is_read_at_the_base_episode(monkeypatch):
     calls = fake_content(monkeypatch, worlds=[{'worldId': 'other', 'linkedWorkId': 'x'},
                                               {'worldId': WORLD, 'linkedWorkId': 'work'}])
-    assert service.read_world('work', EPISODE) == READ
+    assert service.read_world('work', EPISODE) == {**READ, 'identity': []}
     # 기준 회차 시점으로 읽고, 「동일 인물」만 최신 시점으로 한 번 더 읽는다(회차 없이).
     assert calls == [('world_studio_list', {}), ('world_studio_read', {'id': WORLD, 'episode': '3'}), ('world_studio_read', {'id': WORLD})]
 
@@ -56,13 +56,13 @@ def test_work_without_a_linked_world_or_an_inherited_one_fails_explicitly_withou
 
 def test_a_fork_without_a_world_of_its_own_reads_the_original_world_it_inherits_up_to_the_base_episode(monkeypatch):
     calls = fake_content(monkeypatch, worlds=[], inherited=INHERITED)
-    assert service.read_world('work', EPISODE) == INHERITED
+    assert service.read_world('work', EPISODE) == {**INHERITED, 'identity': []}
     assert calls == [('world_studio_list', {}), ('work_inherited_world', {'id': 'work', 'upto': '3'})]
 
 
 def test_a_world_linked_to_the_work_wins_over_the_inherited_one(monkeypatch):
     calls = fake_content(monkeypatch, inherited=INHERITED)
-    assert service.read_world('work', EPISODE) == READ
+    assert service.read_world('work', EPISODE) == {**READ, 'identity': []}
     assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read', 'world_studio_read']
 
 
