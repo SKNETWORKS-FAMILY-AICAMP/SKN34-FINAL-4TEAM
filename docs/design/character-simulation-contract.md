@@ -41,11 +41,11 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 - `RecallResult.items[]`: `{ref, source: graph|manuscript|bm25, text, rank, score}`, `RecallResult.gaps[]`: 확인할 수 없어 제외한 항목.
 - 필터 단계에서 지식 출처·시점을 확인할 수 없는 항목은 결과에서 빼고 `gaps`에 남긴다. 사실로 채우지 않는다(설계 §3).
 - 구현 규칙(2026-11-14 확정): ref는 `card:<id>`·`card:<id>#identity|soul|goal|ep<NN>`·`relation:<id>`·`manuscript:<발췌id>`다. 0단계는 PPR 점수, 1단계부터 RRF 합산이다.
-- 관계 문서의 문장은 'A → B 「관계명」 = B는 A의 관계명'(DEC-54)으로 읽히게 쓴다: 방향 있는 관계는 `A의 관계명: B`(부정이면 끝에 `아님`)이고, 대칭·방향 미상은 `A ↔ B: 관계명`(NovelBrain은 방향 미상을 `—`)이다. 모델 입력 `known`의 관계 문서(시뮬레이션 `_relations`)와 NovelBrain의 현재 관계 근거가 같은 읽기를 쓴다(예전 `A → B: 관계명`은 'A가 B의 관계명'으로도 읽혀 UI와 반대일 수 있었다).
+- 관계 문서의 문장은 'A → B 「관계명」 = B는 A의 관계명'(DEC-54)으로 읽히게 쓴다: 방향 있는 관계는 `A의 관계명: B`(관계명이 없으면 `A → B`), 대칭은 `A ↔ B: 관계명`, 방향 미상은 `A — B: 관계명`이고 부정이면 끝에 `아님`을 붙인다(`A의 관계명: B 아님`). 모델 입력 `known`의 관계 문서(시뮬레이션 `_relations`, 설명이 있으면 뒤에 ` — 설명`)와 NovelBrain의 현재 관계 근거가 `novelbrain.relation_text` 한 함수를 써서 같은 읽기를 쓴다(예전 `A → B: 관계명`은 'A가 B의 관계명'으로도 읽혀 UI와 반대일 수 있었고, 시뮬레이션은 방향 미상을 `↔`로, NovelBrain은 `—`로 달리 적었다).
   인물 필터는 다른 인물의 SOUL·GOAL·회차 기억, 자기 기준 회차 뒤 기억, `revealFromEpisode`가 기준 회차 뒤인 카드를 조용히 뺀다.
   확인할 수 없는 것은 `gaps`로 남긴다: 관계로 연결되지 않은 인물·사건·물건 카드, 그 인물이 끝점이 아닌 관계, 상대 카드가 미공개이거나 스냅샷에 없는 관계,
   인물 이름이 나오지 않는 원고 발췌, Retrieval의 원고 아닌 발췌(`relationship_current_not_episode`·`setting_via_retrieval`), 형식을 알 수 없는 ref.
-  부정(`polarity=denied`) 관계는 '연결'로 치지 않고 PPR 간선에서도 빼며, 관계 항목에는 `카엘 ↛ 리라 (아님): 스승`처럼 부정임을 드러낸다.
+  부정(`polarity=denied`) 관계는 '연결'로 치지 않고 PPR 간선에서도 빼며, 관계 항목에는 `카엘의 스승: 리라 아님`처럼 부정임을 드러낸다.
   `revealFromEpisode`가 없는 카드('작가 전용')는 허용한다: 독자에게만 숨고 인물 지식에는 시점 제한이 없다(독자 노출 기준이지 인물 지식 기준이 아니며, 막으면 대부분의 세계 설정이 빠진다. DEC-53에서도 그대로다). 인물에게도 숨기려면 카드의 공개 회차를 정한다. 공개 값만 있던 기존 카드는 유효 공개 회차가 1이라 어느 기준 회차에서도 허용이다.
   `world.episode`가 기준 회차보다 늦으면 ValueError다. `GOAL.md`는 회차 표시가 없어 자기 인물이면 항상 허용한다. 옛 `MEMORY.md`(`characterDocs.memory`)는 `00회차`로 옮겨 읽는다(DEC-47).
 

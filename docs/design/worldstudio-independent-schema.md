@@ -60,14 +60,16 @@ RETURN id, startNode(e).id AS source, endNode(e).id AS target, e.payload
 
 ### 관계별 회차 — DEC-54 2단계
 
-**상태: 설계 확정(2026-11-18 사용자 결정, [#519](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/519)). 구현 상태는 이 절 끝의 '구현 결과'.** 한 저장 요청 안에서 관계마다 다른 회차에 기록하고, 공개 응답에 회차까지의 변화를 싣는다. 저장 모델(`RELATED` 연결)은 그대로다.
+**상태: 설계 확정(2026-11-18 사용자 결정, [#519](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/519)). 서버·MCP는 소스 구현·로컬 단위 테스트 통과(아래 '구현'), 실제 Neo4j를 거치는 hosted CI 통합 테스트는 미확인이다. 관계 편집 화면의 'N화부터' 입력은 이 계약을 쓰는 별도 화면 작업이다.** 한 저장 요청 안에서 관계마다 다른 회차에 기록하고, 공개 응답에 회차까지의 변화를 싣는다. 저장 모델(`RELATED` 연결)은 그대로다.
 
 - **요청**: `PUT /api/v1/world-studios/{id}/draft` 본문과 MCP `world_studio_edit_draft`에 선택 필드 `relationshipEpisodes`(관계 id → 1 이상의 정수 회차 순번)를 더한다. 값은 그 관계의 'N화부터'이며 그 관계의 보낸 내용을 `fromEpisode=N` 연결로 쓴다. 같은 요청의 `relationships`에 있는 활성 관계의 id여야 하고, 모르는 id·삭제(`lifecycle=removed`)하는 관계·1 미만이거나 정수가 아닌 값은 422 `WORLD_INPUT_INVALID`다. 요청 단위 `episode`(없으면 마지막 연결 회차, 기존 규칙 그대로)는 항목에 회차가 없는 관계와 삭제·종료(`replace=true`에서 생략 포함)의 회차로 쓴다. 필드를 보내지 않으면 지금과 같다(비어 있으면 직렬화하지 않아 요청 hash도 그대로다).
 - **저장 규칙**: 관계마다 그 관계의 회차(N) 시점 값과 비교한다. 같으면 쓰지 않고 다르면(새 관계 포함) N화 연결로 쓴다. 같은 관계·같은 회차는 덮어쓰고(정정 이력 없음) N화보다 뒤의 연결은 건드리지 않는다. 회차를 준 관계는 '새로 쓰는 관계'로 보아 양 끝이 활성 카드여야 한다(N화 시점 값과 같아도 마찬가지이며 화면은 바뀐 행에만 회차를 보낸다). 다른 세계관 id 차단·CAS·재시도 규칙은 그대로다.
 - **「동일 인물」·카드 삭제**: 새로 쓰거나 바꾸는 identity는 자기 회차(`relationshipEpisodes`) 또는 요청 `episode`가 있어야 한다. 끝내는 identity(삭제·생략)는 종전대로 요청 `episode`가 있어야 한다. 카드 삭제는 요청 단위 `episode`를 생략한 편집에서만 하며 관계별 회차는 이 규칙을 바꾸지 않는다. 사슬·순환 검사는 관계별 회차를 반영한 저장 결과의 최신 회차 시점 identity 전체로 한다.
-- **응답**: 소유자 초안(`GET …?episode=N`·저장 응답·MCP `world_studio_read`)은 `relationshipEpisodes`(관계 id → 그 시점 관계가 시작된 회차, 곧 그 관계의 가장 최근 연결의 `fromEpisode`)를 더한다. `relationships`는 그대로다.
+- **응답**: 소유자 초안(`GET …?episode=N`·저장 응답·MCP `world_studio_read`)은 `relationshipEpisodes`(관계 id → 그 시점 관계가 시작된 회차, 곧 그 관계의 가장 최근 연결의 `fromEpisode`, 항상 있고 비어 있을 수 있다)를 더한다. `relationships`는 그대로다.
 - **회차 이력(공개 응답)**: 공개 세계관 상세와 독자 설정 위키의 `relationships[]`마다 `history`: `[{ episode, label, body }]`(회차 오름차순)를 더한다. 기준 회차 이하에서 그 관계의 마지막 종료 연결 뒤(종료가 없으면 처음)부터의 활성 연결마다 한 건이고, 한 번도 바뀐 적 없으면(연결이 하나뿐이면) 빈 목록이다. 마지막 건이 기준 회차 시점의 `label`·`body`다. **기준 회차 뒤의 연결은 담지 않는다**(서버가 거른다). `body`의 본문 링크는 관계 `body`와 같은 치환 함수를 거친다. Fork 이어받기 응답은 관계 본문을 비워 보내므로 이력도 없다.
-- **한계**: 같은 회차 정정의 이력은 남지 않는다. 한 관계를 처음 기록한 회차를 나중에 옮기는 일(연결을 지우고 다른 회차에 쓰기)과 관계 삭제를 관계별 회차로 하는 일은 지원하지 않는다(종료는 요청 단위 `episode`에서 한다).
+- **구현**: 요청 모델 `EditWorldDraftRequest.relationshipEpisodes`(`Map<UUID, Int>`, 비면 `@JsonInclude(NON_EMPTY)`로 직렬화하지 않는다)·소유자 응답 `WorldDraftResponse.relationshipEpisodes`·공개 응답 `PublicWorldRelationshipResponse.history`(`RelationChangeResponse{episode, label, body}`)다. `WorldStudioService.edit`은 요청에 관계별 회차가 있으면 `Neo4jRelationshipRepository.replaceWithEpisodes`·`readAfterWithEpisodes`를, 없으면 이전 경로(`replace`·`readAfter`, 두 함수는 관계별 회차가 없는 같은 일이라 빈 맵으로 위 둘을 부른다)를 쓴다. 저장소는 관계마다 자기 회차 시점의 값과 비교해(`episodeEdges`) 바뀐 연결만 회차별로 묶어 한 트랜잭션에서 지우고 쓰며, 시점 읽기 `read(worldId, 회차)`가 `RelationshipStateResult.episodes`(관계 id → 시작 회차)와 `history`(`relationHistory`: 마지막 종료 연결 뒤부터 기준 회차 이하의 활성 연결, 연결이 하나뿐이면 없음)를 함께 돌려준다. 기준 회차 뒤의 연결은 저장소가 이력에 넣지 않고, 공개 경로는 모두 기준 회차로 읽는다(`PublicWorldService`가 상세·독자 설정 위키 응답에만 `history`를 싣고 `body`는 관계 `body`와 같은 `hideCardLinks`로 치환하며 Fork 이어받기·목록에는 싣지 않는다).
+- **검증**: Content 단위 테스트(`RelationshipEpisodesTest`·`Neo4jRelationshipRepositoryTest`·`WorldStudioServiceTest`·`IdentityRelationshipTest`·`PublicWorldServiceTest`)가 순수 규칙·이력(기준 회차 뒤 연결 제외, 종료 뒤 다시 이음), 회차별 쓰기·재시도·요청 검증(모르는 id·삭제 관계·1 미만, 회차를 준 관계는 활성 카드 필요, 「동일 인물」·카드 삭제 규칙), 공개 응답의 이력과 링크 치환을 확인한다(대역 드라이버라 실제 Cypher는 아니다).
+- **한계**: 같은 회차 정정의 이력은 남지 않는다. 한 관계를 처음 기록한 회차를 나중에 옮기는 일(연결을 지우고 다른 회차에 쓰기)과 관계 삭제를 관계별 회차로 하는 일은 지원하지 않는다(종료는 요청 단위 `episode`에서 한다). 이력은 label·body만 담아 분류·방향·극성이 바뀐 변화도 같은 이름의 연속 건으로 남는다(화면은 관계명이 같은 연속 건을 한 줄에서 합친다).
 
 ### 구현 결과
 
