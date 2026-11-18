@@ -51,8 +51,6 @@ BANNED = ("깜둥", "검둥", "흑형", "니그")
 is_narrator = lambda card: card["title"].startswith("나레이터")  # noqa: E731
 # 별칭에 두지 않는 일반 호칭·관직·역할어와 성씨만 쓴 지칭(여러 사람에게 통한다). 상황 호칭은 관계 본문·SOUL 호칭 규칙에 둔다.
 GENERIC_TITLES = {"대감", "승상", "재상", "상서", "한림", "감사", "어머니", "맏아들", "장자", "여자", "자객", "공주", "소저", "왕", "전하", "상", "대사", "노승", "포도대장", "용녀", "진씨", "정씨", "가씨"}
-# 성+생처럼 이름만 줄이거나 붙인 지칭이라 카드에 없는 새 정보가 없는 별칭: 카드가 보인 뒤에 원고에서 처음 쓰여도 둔다((데이터셋 디렉터리, 인물 key, 별칭)).
-PLAIN_ALIASES = {("guunmong", "yangsoyu", "양생")}
 
 
 class Manuscript:
@@ -284,9 +282,21 @@ class WorldChecks:
                         if end in self.characters and end not in holders:
                             self.assertLessEqual(learned.get(end, math.inf), rel["from"], f"{rel['key']}@{rel['from']}")
 
-    def test_aliases_are_names_the_manuscript_uses_for_that_character_alone(self):
-        """별칭은 회차 구분 없이 카드가 보이는 순간 독자 위키에 모두 나간다. 그래서 그 인물만 가리키는 고유한 이름만 두고, 일반 호칭은 관계·SOUL 호칭에, 나중에 생기는 이름(관직·봉작·가명)은
-        그 회차의 관계·memory 문서에 둔다. 별칭은 원고에 쓰인 이름이어야 하고, 카드가 보이는 회차(공개 회차와 제목이 원고에 처음 나오는 회차 중 늦은 쪽)까지는 나와 있어야 한다."""
+    def test_aliases_are_unique_names_not_generic_titles(self):
+        """별칭에는 그 인물만 가리키는 고유한 이름만 둔다: 일반 호칭·관직·역할어와 성씨만 쓴 지칭은 빼고(상황 호칭은 관계 본문·SOUL 호칭 규칙에 둔다), 다른 인물의 이름·별칭과 겹치지 않는다.
+        원고가 파일이 아닌 데이터셋도 본다."""
+        for key, card in self.characters.items():
+            for alias in card["aliases"]:
+                with self.subTest(card=key, alias=alias):
+                    self.assertNotIn(alias, GENERIC_TITLES, "여러 사람에게 통하는 일반 호칭")
+                    for other_key, other in self.characters.items():
+                        if other_key != key:
+                            self.assertNotIn(alias, [other["title"], *other["aliases"]], f"{other_key}와 겹친다")
+                            self.assertNotIn(alias, other["title"], f"{other_key}의 제목에 들어 있다")
+
+    def test_aliases_are_names_the_manuscript_already_uses_when_the_card_shows(self):
+        """별칭은 회차 구분 없이 카드가 보이는 순간 독자 위키에 모두 나간다. 그래서 원고에 쓰인 이름이어야 하고, 카드가 보이는 회차(공개 회차와 제목이 원고에 처음 나오는 회차 중 늦은 쪽)까지는 나와 있어야 한다.
+        나중 회차에 생기는 이름(관직·봉작·가명 등)은 별칭에서 빼고 그 회차의 관계·memory 문서에 둔다."""
         manuscripts = list(self.dataset.manuscripts)
         fork = self.world["work"].get("fork")
         if fork:  # Fork의 기준 회차까지의 원고는 원작 것이다
@@ -299,15 +309,9 @@ class WorldChecks:
             visible_from = max(card.get("revealFromEpisode", 1), first(card["title"]) or 1)
             for alias in card["aliases"]:
                 with self.subTest(card=key, alias=alias):
-                    self.assertNotIn(alias, GENERIC_TITLES, "여러 사람에게 통하는 일반 호칭")
                     at = first(alias)
                     self.assertIsNotNone(at, "원고에 쓰이지 않은 표기")
-                    if (self.dataset.dir.name, key, alias) not in PLAIN_ALIASES:
-                        self.assertLessEqual(at, visible_from, f"카드가 {visible_from}화에 보이는데 {at}화에서 처음 쓰이는 이름")
-                    for other_key, other in self.characters.items():
-                        if other_key != key:
-                            self.assertNotIn(alias, [other["title"], *other["aliases"]], f"{other_key}와 겹친다")
-                            self.assertNotIn(alias, other["title"], f"{other_key}의 제목에 들어 있다")
+                    self.assertLessEqual(at, visible_from, f"카드가 {visible_from}화에 보이는데 {at}화에서 처음 쓰이는 이름")
 
     def test_relations_a_reader_can_see_carry_no_secret_the_readers_do_not_know(self):
         """독자 설정 위키는 양 끝 카드에 revealFromEpisode가 있으면 그 관계(label·body)를 카드의 공개 범위와 상관없이 그대로 보인다(DEC-46).
