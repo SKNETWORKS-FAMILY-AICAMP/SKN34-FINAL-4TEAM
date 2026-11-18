@@ -17,6 +17,7 @@ import hashlib
 import http.cookiejar
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -46,6 +47,7 @@ RELATION_FIELDS = ("sourceCardId", "targetCardId", "category", "body", "label", 
 # WorldStudio 카드 id는 422라 지금은 보내지 않는다. 등장 인물은 장면 본문에 이름으로 적고, plans.json의 characters·places에는 카드 key를 둔다.
 # ponytail: 서버가 카드 id를 받게 되면 True로 바꾼다(그 밖에 바꿀 곳이 없다).
 SEND_PLAN_REFS = False
+CARD_LINK = re.compile(r"\[([^\]]+)\]\(card:([^)]+)\)")
 
 
 class SeedError(Exception):
@@ -62,6 +64,11 @@ def card_id(key, scope=""):
     return str(uuid.uuid5(NAMESPACE, "card:" + scope + key))
 
 
+def resolve_card_links(body, scope, card_keys):
+    return CARD_LINK.sub(lambda match: f"[{match.group(1)}](card:{card_id(match.group(2), scope)})"
+                         if match.group(2) in card_keys else match.group(0), body)
+
+
 def relation_id(key, scope=""):
     return str(uuid.uuid5(NAMESPACE, "relation:" + scope + key))
 
@@ -75,17 +82,17 @@ def _item(**fields):
     return item
 
 
-def card_payload(card, scope=""):
+def card_payload(card, scope="", card_keys=()):
     """world.json 카드 → `PUT /draft`의 CardPayload. 인물 문서(DEC-47: soul·goal·episodes)·독자 공개 회차는 semanticMetadata 최상위 키다."""
     kind, entity_type = KINDS[card["cardType"]]
-    cid = card_id(card["key"], scope)
-    item = _item(id=cid, kind=kind, entityType=entity_type, title=card["title"], text=card["body"], category=card["areaCode"],
+    cid, body = card_id(card["key"], scope), resolve_card_links(card["body"], scope, card_keys)
+    item = _item(id=cid, kind=kind, entityType=entity_type, title=card["title"], text=body, category=card["areaCode"],
                  timeText=card.get("timeText", ""))
     meta = {"studio": {"userCategory": card["classification"], "tags": card["tags"], "aliases": card["aliases"], "item": item}}
     for key in ("revealFromEpisode", "characterDocs"):
         if key in card:
             meta[key] = card[key]
-    return {"id": cid, "title": card["title"], "body": card["body"], "cardType": card["cardType"], "areaCode": card["areaCode"],
+    return {"id": cid, "title": card["title"], "body": body, "cardType": card["cardType"], "areaCode": card["areaCode"],
             "classification": card["classification"], "aliases": card["aliases"], "tags": card["tags"],
             "semanticMetadata": meta, "visibility": card["visibility"], "lifecycle": "active"}
 
@@ -244,7 +251,8 @@ def seed(call, world, owner=None, log=lambda *_: None, base=HERE):
     linked = row.get("worldStudioId")
     _ok(call("POST", "/api/v1/world-studios", {"id": wid, "name": name, "description": description}), "세계관 생성")
     scope = scope_of(world)
-    cards = [card_payload(card, scope) for card in world["cards"]]
+    card_keys = {card["key"] for card in world["cards"]}
+    cards = [card_payload(card, scope, card_keys) for card in world["cards"]]
     for episode in episodes(world):
         draft = _ok(call("GET", f"/api/v1/world-studios/{wid}?episode={episode}"), f"{episode}화 시점 조회")
         have_cards = {c["id"]: c for c in draft["cards"]}
