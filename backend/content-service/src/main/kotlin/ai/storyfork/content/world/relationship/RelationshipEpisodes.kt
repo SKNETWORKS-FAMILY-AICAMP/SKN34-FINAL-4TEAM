@@ -52,13 +52,13 @@ internal fun edgesAfterSave(edges:List<RelationEdge>,rows:List<RelationEdge>,epi
  * [upto]화 시점(null이면 최신)에 있는 관계마다의 변화다(DEC-54): 그 시점의 연결과 보내는 카드·받는 카드가 같은 연속한 활성 연결을 회차 오름차순으로 담는다.
  * 마지막 종료 연결 앞이나 끝점이 달랐던 연결(같은 관계 id가 다른 카드로 옮겨지기 전의 옛 관계, 지금은 보이지 않는 카드일 수 있다)은 담지 않으므로
  * 이력의 모든 항목이 지금 보이는 두 카드 사이의 것이다. [upto] 뒤의 연결도 담지 않는다(공개 응답이 뒤 회차를 알리지 않게 서버가 거른다).
- * 그 시점에 끝나 있는 관계와 연결이 하나뿐(바뀐 적 없는) 관계는 없다. 같은 회차에 연결이 둘이면 뒤의 것만 남긴다.
+ * 그 시점에 끝나 있는 관계와 연결이 하나뿐(바뀐 적 없는) 관계는 없다. 같은 회차에 연결이 둘이면 뒤의 것만 남기고 그 뒤에 구간을 잡는다.
  */
 internal fun relationHistory(edges:List<RelationEdge>,upto:Int?):Map<UUID,List<RelationEdge>> =
     edges.filter { upto==null || it.fromEpisode<=upto }.groupBy { it.relationId }.mapNotNull { (id,all) ->
-        val sorted=all.sortedBy { it.fromEpisode }
-        val tip=sorted.last()
+        val perEpisode=all.sortedBy { it.fromEpisode }.groupBy { it.fromEpisode }.map { it.value.last() }
+        val tip=perEpisode.last()
         if(tip.ended) return@mapNotNull null
-        val run=sorted.takeLastWhile { !it.ended && it.source==tip.source && it.target==tip.target }.groupBy { it.fromEpisode }.map { it.value.last() }
+        val run=perEpisode.takeLastWhile { !it.ended && it.source==tip.source && it.target==tip.target }
         if(run.size>=2) id to run else null
     }.toMap()

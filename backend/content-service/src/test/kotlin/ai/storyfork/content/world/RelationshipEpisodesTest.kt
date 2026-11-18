@@ -152,4 +152,9 @@ class RelationshipEpisodesTest {
         assertEquals(listOf(3,4),relationHistory(edges,null)[friend]!!.map { it.fromEpisode })
         assertNull(relationHistory(edges,2)[friend])
     }
+    @Test fun `a stale duplicate of an earlier episode does not cut the history, the later connection of that episode wins`() {
+        // 같은 관계·같은 회차의 연결이 둘인 손상된 그래프(2화 a→c, a→b)에서도 회차마다 뒤의 연결만 남긴 뒤 구간을 잡는다: 1화 a→b부터 이어진다.
+        val edges=listOf(edge(friend,1,"p1"),edge(friend,2,"stale",a,c),edge(friend,2,"p2"),edge(friend,3,"p3"))
+        assertEquals(listOf("p1","p2","p3"),relationHistory(edges,null)[friend]!!.map { it.payload })
+    }
 }
