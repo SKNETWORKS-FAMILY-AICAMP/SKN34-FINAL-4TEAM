@@ -34,7 +34,7 @@ MODEL_CALLS = 5  # 메인 모델 호출 상한(턴당). 마지막 호출은 도�
 TOOL_CALLS = 3  # 서브 에이전트 호출 상한(턴당). 기능마다 1회다.
 FAILED = 'main_failed'  # 메인 모델 실패로 끝낸 마지막 메시지 이름
 MAIN_FAILED_MESSAGE = '답변을 정리하지 못했어요. 완료한 작업의 결과는 아래에 있어요.'
-MAIN_FAILED_NOTHING_MESSAGE = '요청을 처리하지 못했어요. 잠시 뒤 다시 시도해 주세요.'  # 끝낸 단계가 없을 때
+MAIN_FAILED_NOTHING_MESSAGE = '요청을 처리하지 못했어요. 잠시 뒤 다시 시도해 주세요.'  # 완료한 단계가 없을 때
 BAD_ARGUMENTS = '작업 지시가 형식에 맞지 않아 실행하지 않았어요.'  # 도구 인자 검증 실패(예: request 2,000자 초과)
 TOOLS = {feature: getattr(tools, name) for feature, name in tools.TOOL_NAMES.items()}
 # 한 모델 턴에 함께 실행할 수 있는 조회형 도구(#474). 서로의 결과를 쓰지 않는다. ask_writing·ask_character_simulation은 항상 단독이다.
@@ -148,7 +148,8 @@ class MainModelMiddleware(AgentMiddleware):
     """메인 모델 호출 하나를 추적하고, 쓸 수 없는 응답은 고정 실패 메시지로 끝낸다. 실패를 성공으로 바꾸지 않는다(status=failed)."""
 
     async def awrap_model_call(self, request, handler):
-        text = MAIN_FAILED_MESSAGE if request.state.get('steps') else MAIN_FAILED_NOTHING_MESSAGE
+        done = any(s['status'] == 'completed' for s in request.state.get('steps') or [])
+        text = MAIN_FAILED_MESSAGE if done else MAIN_FAILED_NOTHING_MESSAGE
         failed = ModelResponse(result=[AIMessage(content=text, name=FAILED)])
         with tracing.observe('main_agent', as_type='generation', model=request.model.model_name,
                              trace_context=tools.trace(request.runtime.context)) as generation:
