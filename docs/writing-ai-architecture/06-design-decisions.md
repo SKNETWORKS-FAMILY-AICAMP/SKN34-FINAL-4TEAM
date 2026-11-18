@@ -13,7 +13,7 @@
 | 범위 판정과 기능 할당 | 2026-11-17 사용자 결정, #473 구현: Intent Router를 없애고 **Decision Guard**(OpenAI Decisions `gpt-6-luna`)가 턴당 1회 서비스 범위(`guard`)와 필요한 기능(기능별 yes/no)을 판정한다. 판정된 기능의 서브 에이전트만 메인 에이전트에 노출한다 | 참고 프로젝트(SKN34-4th-5Team)의 JEV 가드 역할이다. 판정은 1차 필터이며 실행·권한을 부여하지 않는다. 순서·조건·검사 종류는 메인 에이전트가 정하고 코드가 검증한다. 공통 입력 가드레일 미들웨어와 Decisions 응답 검증은 그대로 쓴다. 전환 전에는 Decisions Router가 기능 순서를 분류했다. |
 | 답변 표시 | 2026-11-17 사용자 결정, #473 구현: 메인 에이전트가 이번 턴 서브 에이전트 결과로 최종 답변을 종합하고, Python은 원본 결과를 단계별로 함께 반환 | 2026-11-12의 "결과 종합 모델 호출 없음"을 대체한다. 종합은 표시용이며 결과에 없는 사실을 만들지 않고 원고 본문을 다시 쓰지 않는다. 출처·판본·실패와 실제 후보 보관·승인·적용 상태를 구분한다. 메인 모델 호출만큼 비용·지연이 는다(턴당 최대 5회). |
 | 업무 Agent | Story Context / Q&A·Manuscript Review(원고 검수)·World(`check` 설정 충돌 검사·`enrich` 설정 보강·`impact` 변경 영향 분석)·Writing & Editing(플롯 포함)·Research(`web`·`platform`)·Rating의 여섯(2026-11-19 사용자 결정: 대상으로 Agent를, 하는 일로 task를 나눈다. World Review→World, Web Research→Research, World & Plot→World `impact`. 코드 반영은 #545·#546·#547·#291, 이전 일곱 구성은 2026-11-18). 원고 검수 Agent의 이름은 Manuscript Review(2026-11-18 사용자 결정, 코드 이름 변경은 #499) | 설정집 검토는 Decision Guard 기능·`ask_world_review` 도구·`app/world_review/`를 따로 가져 원고 검수와 단위가 다르다. 계약은 [설정집 검토](../design/world-review-contract.md). 이전의 3역할 통합안은 미채택([이력](08-agent-consolidation-proposal.md)) |
-| 집필 도구 경계 | Writing & Editing은 Retrieval·Simulation 직접 호출 없이 기획·문장·문체 생성에 집중 | Content가 허용 입력을 전달한다(2026-11-12 사용자 결정). 생성 결과의 Manuscript Review는 승인·반영 뒤 새 요청으로 받는다. 같은 턴 결과 전달은 후속이다(2026-11-18 사용자 결정). |
+| 집필 도구 경계 | Writing & Editing은 Retrieval·Simulation 직접 호출 없이 기획·문장·문체 생성에 집중 | Content가 허용 입력을 전달한다(2026-11-12 사용자 결정). 같은 턴의 완료된 Text·Patch를 Manuscript Review가 집필 후보로 검수할 수 있다(#520). |
 | 검수 | Mechanical과 Semantic 분리, Simulation은 사용자 명시 요청 때만 실행 | 맞춤법과 서사 판단의 근거·오류 유형이 다르다. |
 | 집필과 기획 | Writing & Editing이 전개 기획 BeatPlan, 새 Text, 기존 Patch를 맡음(2026-11-16 사용자 결정, #387) | 계획을 원고 정본처럼 저장하지 않는다. 기획만 요청하면 원고를 만들지 않는다. 기획 → 집필은 한 단계 안에서 처리한다. |
 | 심의 등급 | 업무 Agent 중 **Rating**이 회차 초안의 19세 이용가 여부만 판별(#386). 기준은 저장소 마크다운을 프롬프트에 주입 | MCP·파일 도구 없이 기존 structured output 구조를 따른다. 오케스트레이션 단계로 연결한다. 판정은 제안이며 등급 적용은 Content(F-ADULT-01 미정). 등급은 항목별 수준을 코드 문턱값으로 계산하고, `needsReview`는 AI가 다시 판정하지 않고 작가 검토로 넘긴다(#439). 수준 3 기준은 시행령 별표 2 원문(#440). [설계](03-rag-simulation-design.md#5-rating-agent) |
@@ -32,7 +32,7 @@
 |---|---|
 | 단계별 입력 | Python이 등록된 연결 규칙으로 매핑하고 Content가 각 대상·판본·권한을 확인한다. 입력 출처나 대상이 모호하면 사용자에게 확인한다. |
 | 실행 순서 | 최대 세 단계·기능당 한 번(메인 에이전트가 순서를 정하고, 코드가 서브 에이전트 호출 턴당 3회·기능당 1회와 메인 모델 호출 턴당 5회를 지킨다, #473). 집필 연결은 Manuscript Review → 조건부 Editing과 Writing/Editing → Manuscript Review를 지원한다(#520). 기획 → 집필은 Writing & Editing 한 단계 안에서 처리한다(#387). 대상·입력·동의가 각각 확인된 독립 조회형 작업(Q&A·웹 조사·Rating·설정집 검토·Manuscript Review)은 한 모델 턴에 병렬로 실행하고, Writing·시뮬레이션과 입력이 빠진 호출, 앞 결과가 필요한 호출은 순차로 실행한다(#474). |
-| 실패와 표시 | 실패·시간 초과 후 새 단계를 시작하지 않는다. 완료 결과는 보존하고, 실행하지 않은 단계와 이유를 호출 순서로 표시한다. 조건이 거짓이어서 건너뛴 단계는 실패와 구분한다. |
+| 실패와 표시 | 실패·시간 초과 후 새 단계를 막는다. Writing 실패 뒤 판정에 포함된 미실행 Manuscript Review는 저장 초안으로 검수할 수 있다. 완료 결과는 보존하고, 실행하지 않은 단계와 이유를 호출 순서로 표시한다. 조건이 거짓이어서 건너뛴 단계는 실패와 구분한다. |
 | 필수 입력 | 사용자 요청이 요구한 결과는 모두 확인한다. 하나라도 없거나 검증되지 않으면 그 결과에 의존하는 작업을 시작하지 않는다. |
 | BeatPlan | 바로 집필하라는 요청에는 Writing & Editing이 집필용 BeatPlan 하나를 정해 같은 단계에서 원고로 이어 쓴다. 사용자가 비교·직접 선택을 요청하면 기획 결과를 표시한 뒤 새 집필 요청에서 선택을 받는다. |
 

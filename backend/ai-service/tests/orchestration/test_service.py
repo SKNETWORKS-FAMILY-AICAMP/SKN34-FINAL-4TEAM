@@ -1594,17 +1594,22 @@ def test_failed_candidate_review_does_not_let_approval_apply_against_a_newer_dra
 
 def test_failed_writing_allows_only_the_planned_review_of_the_saved_draft(monkeypatch):
     from app.writing.errors import WritingFailure
+    from tests.manuscript_review.stubs import fake_agent
 
+    real_review = tools.manuscript_review.review
     check = Step('manuscript_review', check='mechanical')
     calls = fake_agents(monkeypatch, plan('writing_editing', [check, 'story_context']),
                         fail={'plan_and_draft': WritingFailure(503, '집필 실패')})
+    monkeypatch.setattr(tools.manuscript_review, 'review', real_review)
+    seen = fake_agent(monkeypatch)
     monkeypatch.setattr(tools.content_mcp, 'call', lambda tool, args: {'draft': {'title': '3화', 'body': '원문', 'revision': 4}}
                         if tool == 'episode_read' else CONTEXT)
     response = run('쓰고 검수해 줘', target=TARGET, scope=SCOPE)
     assert response.status == 'failed'
     assert [(s.feature, s.status) for s in response.steps] == [('writing_editing', 'failed'), ('manuscript_review', 'completed')]
     assert calls.main[1]['tools'] == ['ask_manuscript_review']
-    assert names(calls) == ['judge', 'plan_and_draft', 'manuscript_review']
+    assert seen['draft'] == '원문' and response.steps[1].result.candidate is None
+    assert names(calls) == ['judge', 'plan_and_draft']
 
 
 def test_author_plan_still_wins_and_gets_the_allowed_context(monkeypatch):

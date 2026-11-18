@@ -178,7 +178,7 @@ flowchart TD
 
 1. **범위:** 모든 서브 에이전트는 Content가 Core 인증 뒤 확정한 사용자·작품/Fork·`target`·기준 회차/판본·`scope`만 쓴다. 필요한 Content 확인이 실패하거나 대상·판본이 맞지 않으면 그 도구는 실패다.
 2. **노출·한도:** 판정에 없는 도구, 기능당 2회째 호출, 턴당 4회째 호출은 실행 직전에 막는다.
-3. **실패 뒤 정지:** 서브 에이전트가 실패하거나 시간 초과되면 그 턴에서 새 서브 에이전트 호출을 막고 메인 에이전트는 도구 없이 종합만 한다. 완료한 결과는 보존한다. 병렬 묶음에서 함께 시작한 호출은 취소하지 않고 끝까지 실행해 보존한다(#474).
+3. **실패 뒤 정지:** 서브 에이전트가 실패하거나 시간 초과되면 그 턴에서 새 서브 에이전트 호출을 막는다. Writing 실패 뒤에는 판정에 포함된 미실행 Manuscript Review만 저장 초안을 검수할 수 있다. 완료한 결과는 보존한다. 병렬 묶음에서 함께 시작한 호출은 취소하지 않고 끝까지 실행해 보존한다(#474).
 4. **집필 도구 경계:** Writing & Editing 서브 에이전트에는 Retrieval·Simulation이 없다. 허용 문맥은 지금처럼 Content MCP `work_context_read`로 받는다.
 5. **조건부 수정:** `ask_writing(task=patch, fix=n)`은 이번 턴 `ask_manuscript_review` 결과가 상태에 있을 때만 받는다. 고른 지적이 확정이고 구절이 한 곳이며 초안 revision이 검수 때와 같아야 한다([조건부 수정](#조건부-수정-if_issues_found)). 메인 에이전트의 판단만으로 수정 입력을 만들지 않는다.
 6. **시뮬레이션:** Decision Guard가 명시적 요청으로 판정했거나 UI에서 고른 턴에만 노출한다.
@@ -226,7 +226,7 @@ flowchart TD
 
 - `POST /internal/v1/orchestrations` `{request, operation?, materials?, inputs}` → `main_agent` 노드가 메인 에이전트를 실행한다(Decision Guard 판정 → 판정 기능의 `ask_*` 도구 → 종합 답변). 시뮬레이션 계획이 있으면 `scene`, 승인할 결과가 있으면 `apply`를 거쳐 `finish`로 끝낸다. `inputs`는 Content가 권한·판본을 확인해 기능별로 채운 각 내부 API의 요청 DTO다(`story_context`, `writing_editing.draft|patch`, `web_research`, `manuscript_review {check: mechanical|semantic|both}`). Writing & Editing의 전개 기획·계획 없는 바로 집필(`ask_writing(task=plan|draft)`)은 입력 없이 메인 에이전트의 작업 지시와 `target`으로 실행한다([계약](03-rag-simulation-design.md#4-writing--editing-agent), #387). Manuscript Review는 검사 종류만 입력으로 받는다. `target` 반영 회차의 저장된 초안 또는 같은 턴의 집필 후보를 검수하며, `target`이 없으면 단계 실패다. 검사 종류는 메인 에이전트가 요청에서 알아내면 `ask_manuscript_review(check)`로 넘기고, 작가가 보낸 `inputs.manuscript_review`가 있으면 그것이 우선한다. 정하지 못하면(`check` 없음) 대화에서는 아래 HITL로 작가가 고른다(맞춤법·표기 / 설정·개연성). `both`는 두 검수를 병렬로 돌려 Semantic → Mechanical 순서로 합친다. 검수 결과는 제안이라 승인·반영(`apply`)을 묻지 않는다. Rating은 단계 입력이 없고 `target`의 반영 회차 하나를 판별하며(`target`이 없으면 단계 실패), 판정도 제안이라 승인·반영을 묻지 않는다.
 - 판정이 거절이면 `rejected`, 고른 기능이 없으면 `clarify`와 고정 문구를 돌려준다. 미구현 기능(World & Plot)이 하나라도 판정되면 `unsupported`이며 아무 Agent도 실행하지 않는다(축소 실행 금지). 도구 입력이 빠지면 대화 없는 요청은 `needs_input`(빠진 기능은 `missingInputs`, 앞서 끝난 단계는 보존)으로 끝내고, 대화 안에서는 아래 HITL로 멈춘다. 조건부 수정은 이번 턴 Manuscript Review 결과의 확정 지적만 고친다(#370, 아래 조건부 수정).
-- 코드가 검증해 넘기는 연결은 Manuscript Review → 조건부 수정뿐이며 그 밖의 도구는 자기 입력으로만 실행한다(“MVP · 순차”). 기능 실패는 그 단계의 `failed`와 고정 메시지로 남기고 새 도구 호출을 막으며, 완료한 결과는 보존한다. 단계는 호출 순서의 원본 결과이고 `message`는 메인 에이전트의 종합 답변이다.
+- 코드가 검증해 넘기는 연결은 Manuscript Review → 조건부 수정과 Writing/Editing → Manuscript Review다(“MVP · 순차”). 기능 실패는 그 단계의 `failed`로 남기고, 완료 결과를 보존한다. 새 도구 호출은 [실패 뒤 정지](#코드가-지키는-실행-경계) 규칙을 따른다. 단계는 호출 순서의 원본 결과이고 `message`는 메인 에이전트의 종합 답변이다.
 - #499 이전 체크포인트의 `review` 단계는 기록 그대로 읽고, 입력을 기다리던 검수도 재개할 수 있다. 요청의 옛 `operation: "review"`와 `inputs.review`는 AI 서비스가 판정·실행 전에 새 이름으로 변환한다.
 - `POST /internal/v1/orchestrations/stream`은 같은 그래프를 노드 단위로 흘리는 SSE다. 이벤트는 `plan`(판정 기능) → 도구마다 `started`(실제로 실행할 기능)·`step`(그 단계의 결과·실패) → `done`(위 응답과 같은 최종 결과)이다. 응답 헤더를 보낸 뒤라 판정 실패는 `error` 이벤트 하나로 알리고 끝낸다. 내부 인증은 스트림 전에 검사한다. Agent의 모델 호출은 스트리밍하지 않아 단계 결과는 완성본 단위로 온다.
 - 공통 Retrieval: 요청에 Content가 서명한 `scope {scopeToken}`이 있으면 Q&A 단계가 `inputs.story_context` 없이 Content 내부 검색 API로 근거를 받는다([계약](07-retrieval-contract-and-mocks.md#공통-retrieval-도구-오케스트레이션-2026-11-12-사용자-결정)). 그래서 Q&A는 입력 대기 없이 실행된다. resume의 `scope`로 Content가 새로 서명한 토큰이 오면 저장된 토큰을 바꾼다. 작가용 진입점은 Content `POST /api/v1/works/{id}/writing-ai/orchestrations`다. 결과에는 인용 근거(`sources`)와 `coverage`가 붙는다.

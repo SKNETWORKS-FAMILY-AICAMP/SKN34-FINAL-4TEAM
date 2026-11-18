@@ -146,7 +146,7 @@ function reviewText({ check, episode, revision, findings, gaps, candidate }: Cha
   if (!findings.length && !gaps.length) return `${title}: 찾은 문제가 없어요.`
   return [title, ...findings.map((f) => [
     `${reviewStatus[f.status]} · ${reviewCategory[f.category] ?? f.category} · "${f.quote}"${f.start === null ? ' (여러 곳)' : ''}`,
-    ...(candidate && f.start !== null ? [`후보 위치 ${f.start}–${f.end}`] : []),
+    ...(candidate && f.start !== null && f.end !== null ? [`후보 위치 ${f.start}–${f.end}`] : []),
     `이유: ${f.reason}`, ...(f.suggestion ? [`제안: ${f.suggestion}`] : []),
   ].join('\n')), ...gaps.map((g) => `확인 못 함: ${g}`)].join('\n\n')
 }

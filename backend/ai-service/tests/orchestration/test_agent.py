@@ -484,6 +484,16 @@ def test_writing_and_simulation_in_a_batch_are_refused_and_run_alone_next(monkey
     assert [s.feature for s in result.steps] == ['rating', solo.feature]  # 거부는 기능당 1회를 쓰지 않는다
 
 
+def test_writing_and_review_wait_for_an_earlier_tool_in_the_same_batch(monkeypatch):
+    review = Step('manuscript_review', check='mechanical')
+    calls = fake_agents(monkeypatch, plan(['story_context', 'writing_editing', review], 'writing_editing', review))
+    result = run(target=TARGET, inputs={'story_context': QA})
+
+    assert result.status == 'completed'
+    assert [s.feature for s in result.steps] == ['story_context', 'writing_editing', 'manuscript_review']
+    assert names(calls) == ['judge', 'story_context', 'mcp', 'mcp', 'plan_and_draft', 'manuscript_review']
+
+
 def test_a_dependent_fix_in_the_same_batch_as_its_review_waits_for_the_review(monkeypatch):
     fix = Step('writing_editing', task='patch', fix=0)
     calls = fake_agents(monkeypatch, plan([Step('manuscript_review', check='mechanical'), fix], fix))

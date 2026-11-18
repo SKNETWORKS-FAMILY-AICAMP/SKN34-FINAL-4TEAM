@@ -109,7 +109,7 @@ class DynamicToolMiddleware(AgentMiddleware):
             writing = next((i for i, c in enumerate(run) if c['name'] == 'ask_writing'), len(run))
             review = next((i for i, c in enumerate(run) if c['name'] == 'ask_manuscript_review'), -1)
             if writing < review:  # 같은 묶음에서도 집필을 먼저 요청했다면 뒤 검수에 후보가 필요하다.
-                run = [run[writing]]
+                run = run[:1]
             else:
                 run = [c for c in run if c['name'] in PARALLEL and not tools.waits(c, state, runtime.context)] or run[:1]
         refused = [_blocked(c) if c['name'] not in allowed else _deferred(c) for c in calls if c not in run]
