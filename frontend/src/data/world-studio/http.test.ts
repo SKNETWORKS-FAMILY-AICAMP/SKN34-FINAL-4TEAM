@@ -2,7 +2,7 @@ import {afterEach,beforeEach,expect,it,vi} from 'vitest'
 import '../../test/testLocks'
 import {login} from '../api/auth'
 import {HttpWorldStudioRepository} from './HttpWorldStudioRepository'
-import {newSetting,type StudioWorld} from '../../domain/entities/studioWorld'
+import {cardRevealEpisode,newSetting,type StudioWorld} from '../../domain/entities/studioWorld'
 import {readFileSync} from 'node:fs'
 
 const id=crypto.randomUUID()
@@ -577,6 +577,21 @@ it('sends old reveal/visibility combinations back exactly as read (DEC-53 comput
   expect(numbered).toEqual({...a,revealFromEpisode:3})
   const sentNumbered=(await savedBody([numbered,b,relation])).cards[0]
   expect([sentNumbered.visibility,sentNumbered.semanticMetadata.revealFromEpisode]).toEqual(['private',3])
+})
+it.each([['3'],[0],[-1],[1.5],[2147483648]])('reads a public card whose reveal value (%j) is unusable as author-only like the server, so one save never opens it from episode 1',async(revealFromEpisode)=>{
+  // 서버는 키가 있는데 값이 잘못되면 작가 전용으로 닫는다(visibility로 열지 않는다). 화면도 같게 읽고, 저장하면 비공개로 맞춘다.
+  const fetcher=vi.fn().mockImplementation(async()=>Response.json(wireWith({visibility:'public',semanticMetadata:{studio:a,revealFromEpisode}})))
+  const [row]=(await new HttpWorldStudioRepository(fetcher).read(id)).settings
+  expect(Object.keys(row)).not.toContain('visibility')
+  expect(Object.keys(row)).not.toContain('revealFromEpisode')
+  expect(cardRevealEpisode(row)).toBeUndefined()
+  const sent=(await savedBody([row,b,relation])).cards[0]
+  expect([sent.visibility,sent.semanticMetadata.revealFromEpisode]).toEqual(['private',undefined])
+})
+it('treats a null reveal value as no value: a public card with it still reads as shown from episode 1',async()=>{
+  const fetcher=vi.fn().mockImplementation(async()=>Response.json(wireWith({visibility:'public',semanticMetadata:{studio:a,revealFromEpisode:null}})))
+  const [row]=(await new HttpWorldStudioRepository(fetcher).read(id)).settings
+  expect([row.visibility,cardRevealEpisode(row)]).toEqual(['public',1])
 })
 
 // ── 인물 문서(SOUL.md·GOAL.md·회차별 기억): 인물 카드 semanticMetadata의 최상위 키 characterDocs. IDENTITY.md는 카드 본문(body)이다 ───
