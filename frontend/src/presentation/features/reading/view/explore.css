@@ -6,7 +6,8 @@
 /* 카드 안 보조 메뉴(#507): 신고처럼 부차 행동은 카드 위 오른쪽 모서리에 떠 있는 더보기 버튼 하나가 연다.
  * 카드 밖에 따로 붙지 않아 카드 높이가 같고, 터치 영역은 44px이다. */
 .rg-item { position: relative; }
-.rg-item .rg-more { position: absolute; top: 4px; right: 4px; }
+/* 마우스가 다가가면 카드 링크가 .prox.near(z-index 2)로 떠올라 버튼을 덮으므로 그보다 위에 둔다. */
+.rg-item .rg-more { position: absolute; top: 4px; right: 4px; z-index: 3; }
 .rg-more .pop-menu-btn { width: 44px; height: 44px; border-radius: 50%; color: var(--sub); }
 .rg-more .pop-menu-btn:hover, .rg-more .pop-menu-btn[aria-expanded="true"] { background: var(--muted-bg); color: var(--ink); }
 .rg-more .pop-menu-list { top: calc(100% + 4px); right: 0; }

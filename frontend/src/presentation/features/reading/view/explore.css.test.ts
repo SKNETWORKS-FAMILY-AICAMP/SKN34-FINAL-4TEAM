@@ -19,6 +19,13 @@ describe('검색·랭킹 카드의 더보기 메뉴 (#507)', () => {
     expect(rule(css, '.rg-item')).toMatch(/position:\s*relative/)
     expect(rule(css, '.rg-item .rg-more')).toMatch(/position:\s*absolute/)
   })
+
+  it('마우스가 다가가면 카드 링크(.prox.near, z-index 2)가 떠올라도 메뉴 버튼이 그 위에 남아 눌린다', () => {
+    const near = Number(read('../../../../styles/storyfork.css').match(/\.prox\.near\{z-index:(\d+)/)?.[1])
+    const menu = Number(rule(read('./explore.css'), '.rg-item .rg-more').match(/z-index:\s*(\d+)/)?.[1])
+    expect(near).toBeGreaterThan(0)
+    expect(menu).toBeGreaterThan(near)
+  })
 })
 
 describe('검색 대상 탭 줄 (#505)', () => {
