@@ -41,6 +41,7 @@ def recall(world: WorldSnapshot, character_id: str | None, episode: int, query: 
 - `RecallResult.items[]`: `{ref, source: graph|manuscript|bm25, text, rank, score}`, `RecallResult.gaps[]`: 확인할 수 없어 제외한 항목.
 - 필터 단계에서 지식 출처·시점을 확인할 수 없는 항목은 결과에서 빼고 `gaps`에 남긴다. 사실로 채우지 않는다(설계 §3).
 - 구현 규칙(2026-11-14 확정): ref는 `card:<id>`·`card:<id>#identity|soul|goal|ep<NN>`·`relation:<id>`·`manuscript:<발췌id>`다. 0단계는 PPR 점수, 1단계부터 RRF 합산이다.
+- 관계 문서의 문장은 'A → B 「관계명」 = B는 A의 관계명'(DEC-54)으로 읽히게 쓴다: 방향 있는 관계는 `A의 관계명: B`(부정이면 끝에 `아님`)이고, 대칭·방향 미상은 `A ↔ B: 관계명`(NovelBrain은 방향 미상을 `—`)이다. 모델 입력 `known`의 관계 문서(시뮬레이션 `_relations`)와 NovelBrain의 현재 관계 근거가 같은 읽기를 쓴다(예전 `A → B: 관계명`은 'A가 B의 관계명'으로도 읽혀 UI와 반대일 수 있었다).
   인물 필터는 다른 인물의 SOUL·GOAL·회차 기억, 자기 기준 회차 뒤 기억, `revealFromEpisode`가 기준 회차 뒤인 카드를 조용히 뺀다.
   확인할 수 없는 것은 `gaps`로 남긴다: 관계로 연결되지 않은 인물·사건·물건 카드, 그 인물이 끝점이 아닌 관계, 상대 카드가 미공개이거나 스냅샷에 없는 관계,
   인물 이름이 나오지 않는 원고 발췌, Retrieval의 원고 아닌 발췌(`relationship_current_not_episode`·`setting_via_retrieval`), 형식을 알 수 없는 ref.
