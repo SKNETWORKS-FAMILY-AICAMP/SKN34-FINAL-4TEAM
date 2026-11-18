@@ -122,6 +122,18 @@ it('저장된 대화에서 끝난 장면은 카드 없이 말풍선 한 줄 요�
   expect(screen.queryByText('카엘이 문을 열었다.')).toBeNull()
 })
 
+it('종합 답변이 있는 말풍선도 승인 뒤 반영 결과와 실패 단계는 접힌 단계별 결과 밖에 보인다', async () => {
+  openThread([{ request: '이어 써줘', reply: { status: 'failed', message: '**답변**이에요.', missingInputs: [], steps: [
+    { feature: 'writing_editing', status: 'completed', result: { text: '초안' }, applied: { episode: 3, revision: 5 } },
+    { feature: 'web_research', status: 'failed', error: '검색 실패' },
+  ] } }])
+  renderChat()
+  const details = (await screen.findByText('단계별 결과 보기')).closest('details') as HTMLElement
+  const applied = screen.getAllByText('→ 3화 초안에 반영했어요.').find((e) => !details.contains(e))
+  const failed = screen.getAllByText('[고증 조사] 실패: 검색 실패').find((e) => !details.contains(e))
+  expect(applied && failed).toBeTruthy()
+})
+
 it('함께 시작한 단계는 다른 단계의 결과가 먼저 와도 끝날 때까지 진행 중으로 보인다(#474 병렬 호출)', async () => {
   openThread([])
   let emit!: (event: ChatEvent) => void

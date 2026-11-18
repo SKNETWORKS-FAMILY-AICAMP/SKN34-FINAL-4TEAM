@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 
 import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
-import { featureLabel, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck } from '../../../domain/entities/writingChat'
+import { featureLabel, replyOutcome, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck } from '../../../domain/entities/writingChat'
 import type { ChatMessage } from '../../../domain/entities/chat'
 import { ComposeIcon, MoreIcon, SparkIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
@@ -184,7 +184,11 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage }: { vm:
   const stepDetails = (m: ChatMessage) => {
     const reply = m.format === 'markdown' ? shown[Number(m.id.slice(1))]?.reply : undefined
     const text = reply ? replyText(reply) : ''
-    return text ? <details className="chat-step-details"><summary>단계별 결과 보기</summary><p>{text}</p></details> : null
+    const outcome = reply ? replyOutcome(reply) : []
+    return text ? <>
+      {outcome.map((line, i) => <p key={i} className="chat-note">{line}</p>)}
+      <details className="chat-step-details"><summary>단계별 결과 보기</summary><p>{text}</p></details>
+    </> : null
   }
   if (live) messages.push({ id: 'live', role: 'user', text: live.request })
   const actions = (m: ChatMessage) => {
