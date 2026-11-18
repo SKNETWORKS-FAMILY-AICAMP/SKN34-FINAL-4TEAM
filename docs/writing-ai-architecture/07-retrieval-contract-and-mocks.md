@@ -106,21 +106,19 @@ Elasticsearch 9.5.6의 `storyfork-manuscript-v1-dev-sample`에 원고 표본 26�
 
 초기 매핑 평가에서는 `storyfork-manuscript-v1`을 빈 상태로 만들었다. 다음 검증에서 Content의 첫 대조로 개발 PostgreSQL의 발행본 32회차(작품 11개, 그중 Fork 7개)에서 청크 134개를 적재했다. 같은 판본 ID를 공유하는 원작과 두 Fork를 각각 검색하고 PostgreSQL 원문 해시와 UTF-16 위치를 대조했다. 검증 DB에서 최초 발행, 판본 교체, 공개 중단, 재발행, 회차 삭제, 원작 삭제 후 상속 회차 제외를 확인했다.
 
-## 작품 Q&A API
+## 작품 Q&A API (제거, #525)
 
-- 작가는 `POST /api/v1/works/{id}/context/qa`를 사용하고, 독서 화면은 `POST /api/v1/public/works/{id}/context/qa`를 사용한다. 두 경로는 회원 인증·CSRF·요청별 OpenAI 전송 및 API 비용 동의를 요구한다. 공개 독서 경로는 로그인한 작가도 공개 독자 범위를 적용한다.
-- 요청은 `episode`, `episodeVersionId`, `question`(500자 이하), `consent`, `target`이다. 대상은 `manuscript`(기본값), `setting`, `relationship` 중 하나다. 독서 화면의 **작품에 질문하기**에는 발행 원고와 공개 설정이 있고, 집필실의 발행 회차에는 저장된 설정과 현재 인물 관계도 있다.
-- 발행 원고는 허용 회차·판본 쌍을 kNN의 사전 필터에 넣고, 상위 8개 후보를 PostgreSQL의 현재 발행 회차 ID·판본·본문 해시·UTF-16 범위와 대조한다. 설정은 공개 Wiki와 같은 읽기 투영을 재사용한다. 독자는 기준 회차에 공개된 설정 본문과 공개 속성·지식을 쓸 수 있다. 작가는 자신의 확정 설정 본문을 비공개 여부와 관계없이 읽을 수 있다. 원작을 따라가는 Fork의 설정은 상속된 공개 범위를 적용한다.
-- 현재 관계는 작가 소유의 회차 연결 세계관에서 Neo4j가 반환한 활성 관계를 사용한다. 양 끝 카드의 이름과 관계 방향·라벨·설명을 근거로 쓴다. 관계 시점과 과거 관계는 모델이 `gaps`로 설명한다. 공개 경로의 현재 관계 요청은 403이다.
-- 응답의 `sources[].kind`는 발행 원고·설정·현재 관계를 구분한다. 설정에는 설정 ID와 판본, 현재 관계에는 세계관 ID·관계 ID·현재 그래프 토큰이 들어간다. `claims`에는 확인·추론과 출처 ID를 담고, `gaps`에는 답할 근거가 부족한 부분을 담는다. `coverage`의 회차별 검색 범위는 원고 질문에 적용한다.
-- 설정·관계는 제목과 근거의 문자 일치로 정렬해 최대 8건을 보낸다. 근거가 없으면 모델을 호출하지 않고 `insufficient`를 반환한다. 저장소 또는 모델 연결 장애는 503, 미등록 출처를 인용한 모델 응답은 502, 답변 도중 발행 범위나 확인한 근거가 바뀌면 409를 반환한다.
+작가 집필실과 독서 화면의 **작품에 질문하기** 패널(`StoryQaPanel`)과 그 전용 API(`POST /api/v1/works/{id}/context/qa`, `POST /api/v1/public/works/{id}/context/qa`), Content의 답변 생성 경로(`ManuscriptQaService.ask`·`ManuscriptQaClient`)와 AI의 `POST /internal/v1/manuscript/qa`를 제거했다(2026-11-18 사용자 결정, #525). 이 화면은 집필 AI 대화 Q&A와 같은 Story Q&A 에이전트를 쓰면서도 설정 근거로 작품 설정 문서, 관계로 Neo4j 최신 관계를 써서 WorldStudio 기준(#490)과 출처가 달랐다. 작품 질문은 집필 AI 대화(`ask_story_qa`)로만 한다. 독자용 작품 Q&A는 없다.
+
+남은 것은 아래 공통 Retrieval 도구가 쓰는 Content 검색(`ManuscriptQaService.retrieveForAi`: 범위 확정 → 임베딩 → Elasticsearch → PostgreSQL 원문 재대조)이다. 검색 설정:
+
 - `MANUSCRIPT_INDEX_ENABLED=true`와 Content DB에 맞는 `MANUSCRIPT_INDEX_NAME`을 사용한다. 위에서 준비한 로컬 DB의 인덱스는 `storyfork-manuscript-v1-local`이다. AI Service에는 로컬 E5와 `OPENAI_API_KEY`, Structured Outputs를 지원하는 `OPENAI_MODEL`을 설정한다. [실행 안내](../../infrastructure/README.md#네이티브-자동-적재) · [로컬 compose 스택에서 켜기](../../infrastructure/README.md#로컬-compose-스택에서-켜기-475)(compose용 `MANUSCRIPT_INDEX_NAME`을 네이티브와 나눈다) · [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses)
 
 ### 공통 Retrieval 도구 (오케스트레이션, 2026-11-12 사용자 결정)
 
 AI가 DB에 직접 접속하지 않고 Content API를 호출하는 방식이다. Flyway 마이그레이션과 원고 색인 동기화·시드 코드는 그대로 Content에 둔다.
 
-- Content `POST /internal/v1/ai/qa/retrieval` `{scopeToken, question}` → `{status: found|insufficient, sources, excerpts, gaps, coverage, steps}`. 위 Q&A API와 같은 `ManuscriptQaService.retrieve`(범위 확정 → 임베딩 → Elasticsearch → PostgreSQL 원문 재대조, 또는 설정·Neo4j 현재 관계)를 쓰고 모델은 부르지 않는다. `steps`는 공급자별(`embedding`·`elasticsearch`·`postgres_verify`·`postgres_settings`·`neo4j`) 소요 ms·결과 수다.
+- Content `POST /internal/v1/ai/qa/retrieval` `{scopeToken, question}` → `{status: found|insufficient, sources, excerpts, gaps, coverage, steps}`. `ManuscriptQaService.retrieve`(범위 확정 → 임베딩 → Elasticsearch → PostgreSQL 원문 재대조, 또는 설정·Neo4j 현재 관계)를 쓰고 모델은 부르지 않는다. `steps`는 공급자별(`embedding`·`elasticsearch`·`postgres_verify`·`postgres_settings`·`neo4j`) 소요 ms·결과 수다.
 - 인증은 `/internal/v1/ai/**` 전용 보안 체인의 `X-Internal-Token`(`INTERNAL_TOKEN`, 32자 이상)이다. 조회 키(작품·작가·회차·판본·대상)는 Content가 인증 뒤 `QaScopeGrants`로 HMAC 서명해 발급한 `scopeToken`(1시간 만료)에서만 읽는다. AI는 토큰을 되돌려 줄 뿐이라 `INTERNAL_TOKEN`만으로 다른 작가를 지정할 수 없다. 서명이 틀리거나 만료되면 403이다. Content가 그 값으로 `QaScopeService` 권한·범위를 다시 확정한다. 서명 키는 프로세스마다 새로 만들어 Content 재시작·다중 인스턴스에서는 발급한 토큰이 무효다. 독자 관계 질문 거절도 같다. 외부 전송 동의는 아래 Content 공개 경로가 확인하고 이 내부 경로는 확인하지 않는다.
 - 토큰 발급은 Content 공개 경로 `POST /api/v1/works/{id}/writing-ai/orchestrations` `{request | resume{approved}, threadId?, operation?, episode, episodeVersionId, targetEpisode?, target, consent}`가 한다(`episode`·`episodeVersionId`는 근거 회차, 선택 `targetEpisode`는 승인 뒤 쓸 반영 회차로 없으면 `episode`와 같다). 회원 인증(Principal)·동의·작품 범위를 확인한 뒤 작가 본인으로 토큰을 발급하고, 대화를 `user:<작가>/work:<작품>` scope에 묶어 AI 오케스트레이션을 부른다. 응답은 `{threadId, result}`이며 result는 AI 응답 그대로다. resume 때도 새 토큰을 보내 AI가 저장된 토큰을 바꾸므로 1시간 만료·Content 재시작 뒤에도 이어 실행할 수 있다. 집필실 채팅은 같은 `WritingAiService`로 동의·범위를 확인하고 토큰을 발급하는 SSE 경로 `/api/v1/works/{id}/chat/sessions/{threadId}/messages`를 쓴다([대화 세션](02-ai-architecture.md#유지되는-실행-계약)). Content는 아직 콘티·선택 구간 입력을 보내지 않는다. 웹 조사의 질문·동의는 입력 대기 뒤 resume으로 받는다.
 - AI `app/retrieval/service.retrieve`가 이 API를 호출한다. 오케스트레이션 요청에 Content가 확인한 `scope`가 있으면 Q&A 단계가 발췌 입력 없이 Retrieval로 근거를 받고, 근거가 없으면 모델을 부르지 않고 gaps만 돌려준다. Writing & Editing은 호출하지 않는다.
@@ -142,20 +140,20 @@ AI가 DB에 직접 접속하지 않고 Content API를 호출하는 방식이다.
 
 - 공용 함수: 세계관 읽기는 `content_mcp.linked_world(workId, episode)`, 거르기는 `novelbrain.service.episode_settings`다. Review와 Q&A가 같은 함수를 쓴다. 거르기는 독자 공개 회차(`revealFromEpisode`)가 근거 회차 이하인 카드, 그 회차까지의 인물 기억, 양 끝 카드가 모두 남은 관계만 남긴다.
 - 근거 회차는 `target.baseEpisode`, 없으면 `target.episode`다. 관계는 그 회차 시점이다(DEC-51). `target`이 없으면 Q&A 단계가 실패한다.
-- 발췌 id는 `card:<id>`·`relation:<id>`, kind는 `setting`·`relationship`, episode는 근거 회차다. Content 경로의 현재 관계 id(`relationship:<id>`)와 구분되며, 지시문은 `card:`·`relation:` 발췌를 기준 회차 시점으로, `relationship:` 발췌를 현재 관계로 다룬다.
+- 발췌 id는 `card:<id>`·`relation:<id>`, kind는 `setting`·`relationship`, episode는 근거 회차다. 지시문은 설정·관계 발췌를 기준 회차 시점의 세계관으로 다룬다(작품 Q&A 화면을 지운 뒤 현재 관계 `relationship:` 발췌가 모델에 갈 경로는 없다, #525).
 - 시연 규모라 공개 카드·관계를 모두 보낸다. 8건이 넘으면 질문과 `novelbrain` BM25로 8건을 고른다. 카드 인용은 2,000자까지다(`shortcut:` 주석). 그래서 Q&A 입력 한도를 발췌 16건(원고 8 + 세계관 8)·인용 2,000자로 넓혔다. Content가 보내는 원고·설정 발췌는 계속 256자·8건 이하다.
 - Retrieval 결과는 원고 발췌(`kind=manuscript`)만 쓴다. scopeToken의 질문 대상이 `setting`·`relationship`이어도 옛 설정 문서·현재 관계는 섞지 않는다(결정 1). Content가 원고 검색을 쓸 수 없다고(503 `RetrievalUnavailable`) 답하면 그 문구를 gap으로 남기고 세계관 근거로만 답한다. 그 밖의 Retrieval 오류는 단계 실패다. 세계관 읽기는 `world_read` 추적 span에 고른 카드·관계의 참조만 남긴다.
 - 세계관이 없거나 쓸 카드가 없으면 gaps로 알리고, 원고와 세계관 모두 근거가 없으면 모델을 부르지 않는다. MCP 호출·형식 오류는 빈 근거로 바꾸지 않고 단계 실패다. MCP 도구와 인자는 Python이 고정해 호출하고 모델에 노출하지 않으며 읽기 도구만 쓴다.
 - 실모델 확인(2026-11-18, 로컬 집필실 채팅 브라우저 e2e, 개발 샘플 작품 '별빛 서약의 탑'(WorldStudio 카드 15장, 발행 3화), 근거 회차 2화, 모델 호출은 Decision Guard·메인 에이전트·Q&A): 설정 질문 '카엘은 어떤 사람이야?'는 카엘·리안·오르벤 카드와 관계 하나(`card:`·`relation:`)를 인용해 답하고 나이·외모는 gaps로 남겼다. 관계 질문 '리안과 오르벤은 어떤 관계야?'는 리안 카드와 원고 발췌로 스승·제자 관계를 답했다. 3화 공개 카드(세라핀·재의 사절 도착·마법 금지 규칙)는 2화 근거에서 빠졌다(Langfuse `world_read` 참조로 확인). 카드 15장이라 BM25로 8건을 골랐다. 컨테이너를 새로 띄운 직후 첫 질문은 Content 원고 검색이 E5 모델을 처음 읽느라 20초를 넘겨 Retrieval 시간 초과로 실패했고, 다음 질문부터는 정상이었다.
-- 한계: 인물 문서(SOUL·GOAL)는 회차 범위가 없어 그 안에 적은 뒤 회차 정보(예: 3화에 등장하는 인물의 호칭)가 근거로 쓰일 수 있다(Review와 같다). 작품 Q&A 화면(Content `/context/qa`, 독자·작가 공통)은 여전히 작품 설정 문서와 최신 관계를 쓴다. Rating·설정집 검토·시뮬레이션의 세계관 읽기는 아직 각자 코드에 있다.
+- 한계: 인물 문서(SOUL·GOAL)는 회차 범위가 없어 그 안에 적은 뒤 회차 정보(예: 3화에 등장하는 인물의 호칭)가 근거로 쓰일 수 있다(Review와 같다). Rating·설정집 검토·시뮬레이션의 세계관 읽기는 아직 각자 코드에 있다.
 
-### 로컬 실모델 검증 (2026-11-11)
+### 로컬 실모델 검증 (2026-11-11, 제거 전 작품 Q&A 화면 기록)
 
 `gpt-5.6-luna`로 로그인한 독서 화면에서 공개 개발 샘플 질문을 세 번 제출했다. 원작 `starlight` 2화와 Fork `seal` 2화에서 카엘이 허락한 일을 묻자 각각 서고 열람을 답했고, 같은 상속 판본 `ec9e6883-0c2d-3b95-9976-b5fbaf6688bc`의 2화 원문을 표시했다. 동일 질문을 API에서 각각 한 번 재현해 두 응답 모두 200 `answered`이며 각 `workId`·`episodeId`가 PostgreSQL의 해당 작품과 회차에 일치하고 인용 청크 ID가 서로 다른 것을 확인했다. Fork의 `sourceWorkId`는 원작을 가리켰다.
 
 Fork에서 카엘의 생년월일을 묻자 화면에 “확인된 원고 근거로 답하기 어려워요.”와 **근거가 부족한 부분**이 표시됐다. 모델은 제공된 발췌에서 생년월일을 확인할 수 없다고 설명했다. 확인 범위는 개발 샘플 원작과 Fork의 이 세 사례다.
 
-### 설정·관계 로컬 실모델 검증
+### 설정·관계 로컬 실모델 검증 (제거 전 작품 Q&A 화면 기록)
 
 `gpt-6-luna`로 합성 개발 작품의 1화 발행본을 기준으로 검증했다. Neo4j에서 라온과 모루의 관계를 수정한 뒤 작가 답변이 현재 역할인 ‘기록 안내자’와 그래프 토큰 `3`을 인용했다. 같은 질문의 공개 API는 403, 비소유 회원의 작가 API는 404였다.
 

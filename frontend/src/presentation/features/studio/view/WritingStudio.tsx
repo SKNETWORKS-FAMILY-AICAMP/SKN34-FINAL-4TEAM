@@ -28,7 +28,6 @@ import { VersionComparison } from './VersionComparison'
 import { SettingHistoryPanel } from './SettingHistoryPanel'
 import { CheckpointPanel } from './CheckpointPanel'
 import { PublicationSchedulePanel } from './PublicationSchedulePanel'
-import { StoryQaPanel } from '../../../shared/storyContext/StoryQaPanel'
 import { versionGraphRows } from '../../../../domain/entities/versionGraph'
 import { SimulationStage } from '../../../shared/chat/SimulationStage'
 import { useSimulationStageViewModel } from '../../../shared/chat/useSimulationStageViewModel'
@@ -304,8 +303,6 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
               </div>
               <div className="writing-group"><ManuscriptExportPanel workId={id} episode={active.number} inherited={active.inherited} disabled={vm.busy||vm.dirty}/></div>
               {!active.inherited&&import.meta.env.MODE!=='mockup'&&<div className="writing-group"><EpisodeWorldBasisControl key={active.number} workId={id} number={active.number}/></div>}
-              {active.publishedVersionId&&import.meta.env.MODE!=='mockup'&&<div className="writing-group"><StoryQaPanel
-                key={`${id}/${active.number}/${active.publishedVersionId}`} workId={id} episode={active.number} versionId={active.publishedVersionId} owner/></div>}
               <Group title="회차 관리">
                 <div className="writing-actions">
                   {!active.inherited&&active.publishedVersionId&&<button className="btn sm" disabled={vm.busy||vm.dirty} onClick={async()=>{if(await vm.changeVisibility(false,false))setRights(false)}}>회차 공개 중단</button>}

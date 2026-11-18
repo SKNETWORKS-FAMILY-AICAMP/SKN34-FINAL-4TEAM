@@ -21,18 +21,9 @@ internal class ManuscriptQaService(
     private val embeddings: ManuscriptEmbeddingClient,
     private val episodes: EpisodeCurrentRepository,
     private val versions: EpisodeVersionRepository,
-    private val answers: ManuscriptQaClient,
     private val worlds: WorldService,
     private val grants: QaScopeGrants,
 ) {
-    fun ask(workId: String, owner: String?, request: ManuscriptQaRequest): ManuscriptQaResponse {
-        checkContent(request.consent, message="OpenAI 전송과 API 비용에 동의해 주세요.")
-        val question = request.question.trim()
-        val found = retrieve(workId, owner, question, request.target, request.episode, request.episodeVersionId)
-        if (found.sources.isEmpty()) return ManuscriptQaResponse("insufficient", emptyList(), emptyList(), found.gaps, found.coverage)
-        return answer(question, found.sources, found.gaps, found.coverage, found.recheck)
-    }
-
     /**
      * AI 오케스트레이션의 Retrieval 도구(`/internal/v1/ai/qa/retrieval`)가 쓰는 검색·재대조 결과.
      * 조회 키는 Content가 서명해 발급한 scopeToken에서만 읽고, 범위·권한은 그 값으로 다시 확정한다. 모델은 호출하지 않는다.
@@ -45,7 +36,7 @@ internal class ManuscriptQaService(
     }
 
     private class Retrieved(val sources: List<QaCitation>, val gaps: List<QaGap>, val coverage: QaCoverage,
-                            val steps: List<QaRetrievalStep>, val recheck: () -> Unit)
+                            val steps: List<QaRetrievalStep>)
 
     private fun retrieve(workId: String, owner: String?, question: String, target: String, episode: Int,
                          episodeVersionId: String): Retrieved {
@@ -63,17 +54,15 @@ internal class ManuscriptQaService(
         }
 
         if (target != "manuscript") {
-            fun evidence() = if (relationship) relationships(scope, checkNotNull(owner)) else settings(scope, owner, question)
-            val sources = step(if (relationship) "neo4j" else "postgres_settings", { it.size }) { evidence() }.rankedFor(question)
+            val sources = step(if (relationship) "neo4j" else "postgres_settings", { it.size }) {
+                if (relationship) relationships(scope, checkNotNull(owner)) else settings(scope, owner, question)
+            }.rankedFor(question)
             val coverage = QaCoverage(emptyList(), emptyList(), emptyList())
             val missing = if (relationship) "연결된 내 세계관에서 확인할 수 있는 현재 관계가 없어요."
                 else "이 회차의 열람 범위에서 확인할 수 있는 설정이 없어요."
-            if (sources.isEmpty()) return Retrieved(emptyList(), listOf(QaGap("NO_EVIDENCE", missing)), coverage, steps) {}
+            if (sources.isEmpty()) return Retrieved(emptyList(), listOf(QaGap("NO_EVIDENCE", missing)), coverage, steps)
             requireCurrent()
-            return Retrieved(sources, emptyList(), coverage, steps) {
-                requireCurrent()
-                checkContent(evidence().rankedFor(question) == sources, 409, "설정 또는 현재 관계가 변경됐어요. 다시 질문해 주세요.")
-            }
+            return Retrieved(sources, emptyList(), coverage, steps)
         }
 
         val hits = try {
@@ -96,33 +85,7 @@ internal class ManuscriptQaService(
             if (coverage.withoutVerifiedExcerpt.isNotEmpty()) add(QaGap("LIMITED_COVERAGE", "일부 회차에서는 확인된 검색 근거를 찾지 못했어요."))
             if (verified.isEmpty()) add(QaGap("NO_EVIDENCE", "질문에 답할 수 있는 원고 근거를 확인하지 못했어요."))
         }
-        if (verified.isEmpty()) return Retrieved(emptyList(), gaps, coverage, steps) {}
-
-        return Retrieved(verified, gaps, coverage, steps) {
-            requireCurrent()
-            checkContent(verify(scope, hits) == verified, 409, "공개 원고가 변경됐어요. 최신 회차에서 다시 질문해 주세요.")
-        }
-    }
-
-    private fun answer(question: String, sources: List<QaCitation>, gaps: List<QaGap>, coverage: QaCoverage,
-                       recheck: () -> Unit): ManuscriptQaResponse {
-        val draft = answers.answer(question, sources.map { QaExcerpt(it.id, it.episode, it.quote, it.kind, it.title()) })
-        recheck()
-        val sourceIds = sources.map { it.id }.toSet()
-        checkContent(draft.claims.all { claim ->
-            claim.text.isNotBlank() && claim.kind in setOf("confirmed", "inferred") &&
-                claim.sourceIds.isNotEmpty() && claim.sourceIds.all { it in sourceIds }
-        }, 502, "Q&A 답변의 출처를 확인할 수 없어요.")
-        val unknowns = draft.gaps.filter { it.isNotBlank() }.map { QaGap("INSUFFICIENT_EVIDENCE", it) }
-            .ifEmpty { if (draft.claims.isEmpty()) listOf(QaGap("NO_ANSWER", "확인한 발췌만으로는 질문에 답하기 어려워요.")) else emptyList() }
-        val allGaps = gaps + unknowns
-        val cited = draft.claims.flatMap { it.sourceIds }.toSet()
-        val status = when {
-            draft.claims.isEmpty() -> "insufficient"
-            allGaps.isNotEmpty() -> "partial"
-            else -> "answered"
-        }
-        return ManuscriptQaResponse(status, draft.claims, sources.filter { it.id in cited }, allGaps, coverage)
+        return Retrieved(verified, gaps, coverage, steps)
     }
 
     private fun settings(scope: QaScope, owner: String?, question: String): List<QaSettingSource> =

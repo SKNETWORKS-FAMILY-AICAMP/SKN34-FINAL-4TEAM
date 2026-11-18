@@ -2,19 +2,9 @@ package ai.storyfork.content.context.service.dto
 
 import ai.storyfork.content.manuscript.client.dto.QaExcerpt
 import java.util.UUID
-import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
-data class ManuscriptQaRequest(
-    @field:Min(1) val episode: Int,
-    @field:NotBlank @field:Size(max=100) val episodeVersionId: String,
-    @field:NotBlank @field:Size(max=500) val question: String,
-    val consent: Boolean = false,
-    val target: String = "manuscript",
-)
-
-data class QaClaim(val text: String, val kind: String, val sourceIds: List<String>)
 sealed interface QaCitation {
     val kind: String
     val id: String
@@ -63,8 +53,4 @@ data class QaRetrievalStep(val provider: String, val ms: Long, val hits: Int)
 internal data class QaRetrievalResponse(
     val status: String, val sources: List<QaCitation>, val excerpts: List<QaExcerpt>,
     val gaps: List<QaGap>, val coverage: QaCoverage, val steps: List<QaRetrievalStep>,
-)
-data class ManuscriptQaResponse(
-    val status: String, val claims: List<QaClaim>, val sources: List<QaCitation>,
-    val gaps: List<QaGap>, val coverage: QaCoverage,
 )
