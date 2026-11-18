@@ -59,8 +59,9 @@ it('유형과 상태를 함께 골라 해당 제보와 작가의 처리 기록�
   await screen.findByRole('heading', { name: '독자 제보 2' })
   const reply = card('r1').getByLabelText(/작가 답변/) as HTMLTextAreaElement
   fireEvent.change(reply, { target: { value: '확인하고 있습니다' } })
+  card('r1').getByRole('button', { name: '상태 변경 · 구운몽 2화' })
   fireEvent.change(screen.getByLabelText('제보 유형'), { target: { value: 'story' } })
-  expect(screen.queryByRole('button', { name: /상태 변경.*독자A/ })).toBeNull()
+  expect(card('r1').queryByRole('button', { name: '상태 변경 · 구운몽 2화' })).toBeNull()
   card('r2').getByText(/작가봄/)
   fireEvent.change(screen.getByLabelText('제보 상태'), { target: { value: 'unchecked' } })
   screen.getByText('조건에 맞는 제보가 없어요.')
