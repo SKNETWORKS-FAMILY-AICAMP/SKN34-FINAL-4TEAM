@@ -6,9 +6,6 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.intent.models import Feature
-
-# 저장된 응답의 기능 이름. #387 전 대화 기록에는 Writing & Editing으로 합쳐진 story_development가 남아 있다.
-RecordedFeature = Feature | Literal['story_development']
 from app.story_qa.models import AnswerRequest, AnswerResponse, Excerpt
 from app.rating.models import RatingResponse
 from app.research.models import ResearchRequest, ResearchResponse
@@ -17,6 +14,9 @@ from app.review.models import ReviewResponse, Scope
 from app.simulation.models import SceneAction, SimulationPlan, SimulationResult
 from app.world_review.models import WorldReviewResponse
 from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse, PlanResponse
+
+# 저장된 응답의 기능 이름. #387 전 대화 기록에는 Writing & Editing으로 합쳐진 story_development가 남아 있다.
+RecordedFeature = Feature | Literal['story_development']
 
 
 class WritingInput(BaseModel):
@@ -99,7 +99,7 @@ class OrchestrationRequest(BaseModel):
     inputs: StepInputs = StepInputs()
     fromTurn: int | None = Field(default=None, ge=0)  # 있으면 그 턴부터 지우고 이 request로 다시 실행한다(메시지 수정).
     # [시뮬레이션] 버튼의 시작 양식(계약 '버튼 진입'). character_simulation 새 요청에서만 받고 길이·개수 한도는 SimulationPlan이 지킨다.
-    # 그래프의 simulation_plan이 이 값을 계획으로 쓰는 연결은 아직 없다(실행 구조 확정 뒤).
+    # ask_character_simulation이 모델 없이 이 값을 계획으로 쓰고 연결 세계관으로 확인한다.
     simulation: SimulationPlan | None = None
 
     @model_validator(mode='after')
@@ -128,7 +128,7 @@ class AppliedDraft(BaseModel):
 class StepResult(BaseModel):
     feature: RecordedFeature
     when: Literal['always', 'if_issues_found']
-    task: Literal['plan', 'draft', 'patch'] | None = None  # Writing & Editing 단계에 Router가 정한 작업 종류(#387)
+    task: Literal['plan', 'draft', 'patch'] | None = None  # Writing & Editing 단계에 메인 에이전트가 정한 작업 종류(#387·#473)
     # 끝까지 가지 못한 시뮬레이션 장면은 부분 result와 함께 failed다. skipped는 조건부 수정이 고칠 확정 지적이 없어 건너뛴 단계다(#370).
     status: Literal['completed', 'failed', 'not_started', 'skipped']
     result: QaStepResult | PlanResponse | DraftResponse | PatchResponse | ResearchResponse | SimulationResult | ReviewResponse | WorldReviewResponse | RatingResponse | None = None
@@ -138,7 +138,9 @@ class StepResult(BaseModel):
 
 
 class OrchestrationResponse(BaseModel):
-    """steps는 계획 순서다. clarify·rejected·unsupported·needs_input·cancelled면 아무 Agent도 실행하지 않았다.
+    """steps는 메인 에이전트가 서브 에이전트를 부른 순서다. message는 메인 에이전트의 종합 답변이거나 실행하지 않은 턴의 고정 문구다.
+
+    rejected·unsupported와 고정 확인 질문의 clarify면 아무 Agent도 실행하지 않았다. needs_input·cancelled는 그 앞에서 끝낸 단계만 있다.
 
     waiting은 대화 안에서 멈춘 상태이며 같은 conversation의 resume으로 이어간다. 입력 대기면 missingInputs,
     Writing 결과·시뮬레이션 장면 반영 승인 대기면 awaitingApproval, 시뮬레이션 장면의 턴 사이 대기면 awaitingScene이 있다.

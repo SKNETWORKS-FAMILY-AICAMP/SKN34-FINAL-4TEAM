@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { appContainer } from '../../../../app/appContainer'
-import { planStartBlocker, type PlanInput, type PlanReferences, type StoryPlan } from '../../../../domain/entities/storyPlan'
-import type { StoryPlanUseCase } from '../../../../domain/usecases/StoryPlanUseCase'
+import { appContainer } from '../../../app/appContainer'
+import { planStartBlocker, type PlanInput, type PlanReferences, type StoryPlan } from '../../../domain/entities/storyPlan'
+import type { StoryPlanUseCase } from '../../../domain/usecases/StoryPlanUseCase'
 
 type Editor = { value: PlanInput; initial: PlanInput; previous?: StoryPlan }
 const empty = (parentId: string | null): PlanInput => ({ kind: parentId ? 'scene' : 'plot', parentId, title: '', content: '', episodeNumber: null, characterIds: [], placeIds: [] })

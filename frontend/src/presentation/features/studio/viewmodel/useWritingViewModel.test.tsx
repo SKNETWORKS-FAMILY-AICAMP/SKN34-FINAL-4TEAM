@@ -5,6 +5,34 @@ import { useWritingViewModel } from './useWritingViewModel'
 import { SessionExpired } from '../../../../domain/repositories/ProfileRepository'
 
 afterEach(()=>{cleanup();vi.useRealTimers()})
+it.each(['deleteDraft','deleteEpisode'] as const)('%s는 계획 이탈을 거절하면 삭제하지 않는다',async action=>{
+  const api=deletionApi([row(1)])
+  const confirmPlanLeave=vi.fn(()=>false)
+  const {result}=renderHook(()=>useWritingViewModel('w',api,undefined,undefined,confirmPlanLeave))
+  await act(async()=>{})
+  await act(async()=>{expect(await result.current[action]()).toBe(false)})
+  expect(confirmPlanLeave).toHaveBeenCalledOnce()
+  expect(api[action]).not.toHaveBeenCalled()
+  expect(result.current.active?.number).toBe(1)
+})
+
+it('저장 실패 후 새 회차를 만들면 이전 회차의 저장 오류를 지운다',async()=>{
+  const api=deletionApi([row(1)])
+  api.writeEpisode.mockRejectedValue(new Error('저장 실패'))
+  api.createEpisode.mockResolvedValue(row(2))
+  const confirm=vi.spyOn(window,'confirm').mockReturnValue(true)
+  try {
+    const {result}=renderHook(()=>useWritingViewModel('w',api))
+    await act(async()=>{})
+    act(()=>result.current.edit({body:'미저장 입력'}))
+    await act(async()=>{await result.current.save()})
+    expect(result.current.saveError).toBe('저장 실패')
+    await act(async()=>{await result.current.create('2화')})
+    expect(result.current.active?.number).toBe(2)
+    expect(result.current.saveError).toBe('')
+  } finally {confirm.mockRestore()}
+})
+
 it('inserts an uploaded immutable image reference at the cursor and keeps it through a saved version',async()=>{
  const id='b142427a-cd9d-4fdc-a40d-c9e553d87d30';const imageId='e25ffb25-8128-48c0-8d66-e1d56831cd56'
  const episode={number:1,draft:{title:'1화',body:'앞뒤',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[]}
@@ -115,6 +143,89 @@ it.each([
 
 const row=(number:number,patch:Record<string,unknown>={})=>({number,draft:{title:`${number}화`,body:'기존',revision:4},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[],...patch})
 const deletionApi=(rows:ReturnType<typeof row>[])=>({setPublicationVisibility:vi.fn(),history:vi.fn(),writingList:vi.fn().mockResolvedValue(rows),createEpisode:vi.fn(),writeEpisode:vi.fn(),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn().mockResolvedValue(undefined),deleteEpisode:vi.fn().mockResolvedValue(undefined)})
+
+it('없는 회차 주소는 다른 원고를 열지 않고 목록에서 선택하게 한다',async()=>{
+  const api=deletionApi([row(1),row(2)])
+  const {result}=renderHook(()=>useWritingViewModel('w',api,undefined,9))
+  await act(async()=>{})
+  expect(result.current.active).toBeNull()
+  expect(result.current.error).toContain('요청한 회차가 없어요')
+  act(()=>{result.current.select(result.current.episodes[1])})
+  expect(result.current.active?.number).toBe(2)
+  expect(result.current.error).toBe('')
+})
+
+// 정상으로 읽은 빈 목록은 오류가 아니다. 오류를 내면 화면이 레일·'새 회차' 버튼까지 숨겨 첫 회차를 만들 길이 막힌다.
+it('회차가 하나도 없는 작품을 ?ep=n으로 열어도 오류 없이 첫 회차를 만들 수 있게 둔다',async()=>{
+  const api=deletionApi([])
+  const {result}=renderHook(()=>useWritingViewModel('w',api,undefined,3))
+  await act(async()=>{})
+  expect(result.current.ready).toBe(true)
+  expect(result.current.error).toBe('')
+  expect(result.current.active).toBeNull()
+  expect(result.current.episodes).toEqual([])
+})
+
+it('자동 저장 진행과 네트워크 실패를 표시하고 새 시트에서 옛 완료 안내를 비운다',async()=>{
+  vi.useFakeTimers()
+  const episode=row(1)
+  const api=deletionApi([episode])
+  let fail:(e:Error)=>void=()=>{}
+  api.writeEpisode.mockImplementationOnce(()=>new Promise((_resolve,reject)=>{fail=reject})).mockResolvedValue({...episode,updatedAt:'2026-11-16T06:00:00Z'})
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'입력'}))
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  expect(result.current.saving).toBe(true)
+  await act(async()=>{fail(new TypeError('Failed to fetch'))})
+  expect(result.current.saving).toBe(false)
+  expect(result.current.saveError).toContain('서버에 연결하지 못했어요')
+  expect(result.current.draft.body).toBe('입력')
+  await act(async()=>{await result.current.save()})
+  expect(result.current.saveError).toBe('')
+  expect(result.current.notice).not.toBe('')
+  act(()=>result.current.clearNotice())
+  expect(result.current.notice).toBe('')
+})
+
+it.each(['edit','retry'] as const)('자동 저장 실패 후 %s로 초안만 다시 저장한다',async action=>{
+  vi.useFakeTimers()
+  const episode=row(1)
+  const api=deletionApi([episode])
+  api.writeEpisode.mockRejectedValueOnce(new Error('오프라인')).mockImplementation(async(_id,_number,draft)=>({...episode,draft:{...draft,revision:5}}))
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'잃으면 안 되는 입력'}))
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  expect(result.current.error).toBe('오프라인')
+  expect(result.current.draft.body).toBe('잃으면 안 되는 입력')
+  await act(async()=>{await vi.advanceTimersByTimeAsync(10000)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(1)
+  await act(async()=>{if(action==='edit')result.current.edit({body:'계속 쓴 입력'});else result.current.retrySave()})
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(2)
+  expect(api.writeEpisode.mock.calls.every(call=>call[3]===false)).toBe(true)
+  expect(result.current.dirty).toBe(false)
+  expect(result.current.error).toBe('')
+})
+
+it('자동 저장을 기다리며 입력한 글은 이전 요청 실패 후에도 저장된다',async()=>{
+  vi.useFakeTimers()
+  const episode=row(1)
+  const api=deletionApi([episode])
+  let reject:(e:Error)=>void=()=>{}
+  api.writeEpisode.mockImplementationOnce(()=>new Promise((_resolve,rejectSave)=>{reject=rejectSave})).mockImplementation(async(_id,_number,draft)=>({...episode,draft:{...draft,revision:5}}))
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'전송한 입력'}))
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  act(()=>result.current.edit({body:'요청 중 추가 입력'}))
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000);reject(new Error('연결 끊김'))})
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(2)
+  expect(result.current.draft.body).toBe('요청 중 추가 입력')
+  expect(result.current.dirty).toBe(false)
+})
 
 it.each([
   ['the last episode without versions has nothing to explain',[row(1)],''],
@@ -355,7 +466,7 @@ it('autosaves note-only edits and preserves notes typed while saving', async () 
   expect(result.current.dirty).toBe(true)
 })
 
-it('opens the episode named by the entry number once and falls back to the first episode when it is missing', async () => {
+it('opens the episode named by the entry number once and leaves a missing episode unselected', async () => {
   const first={number:1,draft:{title:'1화',body:'첫 원고',revision:0},versions:[],publishedVersionId:null,inherited:false,updatedAt:null,checkpointStatus:'content_only',checkpoints:[]}
   const second={...first,number:2,draft:{title:'2화',body:'둘째 원고',revision:3}}
   const api={setPublicationVisibility:vi.fn(),history:vi.fn(),writingList:vi.fn().mockResolvedValue([first,second]),createEpisode:vi.fn(),writeEpisode:vi.fn(),restoreEpisode:vi.fn(),publishEpisode:vi.fn(),orderScope:vi.fn(),deleteDraft:vi.fn(),deleteEpisode:vi.fn()}
@@ -370,7 +481,7 @@ it('opens the episode named by the entry number once and falls back to the first
   expect(named.result.current.active?.number).toBe(1)
   const missing=renderHook(()=>useWritingViewModel('w',api,undefined,9))
   await act(async()=>{})
-  expect(missing.result.current.active?.number).toBe(1)
+  expect(missing.result.current.active).toBeNull()
   const plain=renderHook(()=>useWritingViewModel('w',api))
   await act(async()=>{})
   expect(plain.result.current.active?.number).toBe(1)
@@ -536,4 +647,76 @@ it.each([
   await act(async()=>{})
   expect(result.current.error).toBe(failure.message)
   expect(result.current.expired).toBe(expected)
+})
+
+it.each(['autosave', 'version'])('%s 도중 로그인이 만료되면 입력을 유지하고 재로그인을 안내한다', async (kind) => {
+  vi.useFakeTimers()
+  const { api } = quietApi()
+  const failure = new SessionExpired('로그인한 뒤 다시 저장해 주세요.')
+  api.writeEpisode.mockReset().mockRejectedValue(failure)
+  const { result } = renderHook(() => useWritingViewModel('w', api))
+  await act(async () => {})
+  act(() => result.current.edit({ body: '계속 쓰던 원고' }))
+  await act(async () => {
+    if (kind === 'autosave') await vi.advanceTimersByTimeAsync(2000)
+    else await result.current.save()
+  })
+  expect(result.current.saveError).toBe(failure.message)
+  expect(result.current.draft.body).toBe('계속 쓰던 원고')
+  expect(result.current.expired).toBe(true)
+})
+
+
+// ── 사용자가 누른 요청의 실패 안내는 자동 저장이 지우지 않는다 ──
+it.each([
+  ['오류',new Error('버전 저장에 실패했어요.'),false],
+  ['로그인 만료',new SessionExpired('로그인한 뒤 다시 저장해 주세요.'),true],
+] as const)('누른 버전 저장이 실패(%s)하면 2초 뒤 자동 저장이 그 안내를 지우거나 같은 입력을 다시 저장하지 않는다',async(_name,failure,expired)=>{
+  vi.useFakeTimers()
+  const episode=row(1)
+  const api=deletionApi([episode])
+  api.writeEpisode.mockRejectedValueOnce(failure).mockImplementation(async(_id,_number,draft)=>({...episode,draft:{...draft,revision:5}}))
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'미저장 입력'}))
+  await act(async()=>{expect(await result.current.save()).toBe(false)})
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(1)
+  expect(result.current.error).toBe(failure.message)
+  expect(result.current.saveError).toBe(failure.message)
+  expect(result.current.expired).toBe(expired)
+  expect(result.current.dirty).toBe(true)
+})
+
+it.each(['edit','retry'] as const)('누른 버전 저장이 실패한 뒤에도 %s로 초안만 다시 저장한다',async action=>{
+  vi.useFakeTimers()
+  const episode=row(1)
+  const api=deletionApi([episode])
+  api.writeEpisode.mockRejectedValueOnce(new Error('버전 저장에 실패했어요.')).mockImplementation(async(_id,_number,draft)=>({...episode,draft:{...draft,revision:5}}))
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'미저장 입력'}))
+  await act(async()=>{await result.current.save()})
+  await act(async()=>{if(action==='edit')result.current.edit({body:'계속 쓴 입력'});else result.current.retrySave()})
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(2)
+  expect(api.writeEpisode).toHaveBeenLastCalledWith('w',1,{title:'1화',body:action==='edit'?'계속 쓴 입력':'미저장 입력',revision:4},false,expect.any(AbortSignal))
+  expect(result.current.dirty).toBe(false)
+  expect(result.current.error).toBe('')
+})
+
+// '서버에 연결하지 못했어요'는 요청이 TypeError로 실패했을 때만 붙인다. 응답을 반영하다 난 코드 오류까지 연결 문제로 바꾸면 원인을 가린다.
+it('저장 응답을 반영하다 난 TypeError는 연결 오류 안내로 바꾸지 않는다',async()=>{
+  const api=deletionApi([row(1)])
+  let reads=0
+  const response=row(1)
+  // 응답을 반영하는 첫 줄(put)에서 draft를 읽을 때만 코드 오류가 난다. 그 뒤 렌더는 정상 초안을 읽는다.
+  Object.defineProperty(response,'draft',{get(){if(reads++===0)throw new TypeError('응답 반영 중 코드 오류');return {title:'1화',body:'입력',revision:5}}})
+  api.writeEpisode.mockResolvedValue(response)
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'입력'}))
+  await act(async()=>{expect(await result.current.save()).toBe(false)})
+  expect(result.current.saveError).toBe('응답 반영 중 코드 오류')
+  expect(result.current.error).toBe('응답 반영 중 코드 오류')
 })

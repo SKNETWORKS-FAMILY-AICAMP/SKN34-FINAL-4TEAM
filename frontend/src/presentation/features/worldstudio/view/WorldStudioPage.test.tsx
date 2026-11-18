@@ -476,6 +476,42 @@ it('주소의 card가 있으면 그 카드의 편집 화면이 바로 열리고(
   expect(screen.queryByRole('region', { name: '선택한 설정 편집' })).toBeNull()
 })
 
+// #470: 새로고침으로 미저장 카드가 사라져도 주소의 card는 남는다. 그대로 두면 카드를 더하고 지울 때 history back이 그 옛 기록에 착지해 설정집 화면인데 주소에는 없는 카드가 남는다.
+it('주소의 card가 초안에 없는 카드(새로고침으로 사라진 미저장 카드)를 가리키면 불러온 뒤 기록을 쌓지 않고 주소에서 지운다(#470)', async () => {
+  mount(undefined, ['/before', '/worldstudio/qa?new=1&card=gone'], { version: 0 })
+  await screen.findByRole('heading', { name: '검증 세계', level: 1 })
+  await waitFor(() => expect(where()).toBe('/worldstudio/qa?new=1')) // 마법사 표시 같은 다른 쿼리는 그대로
+  browserBack()
+  expect(where()).toBe('/before') // 지우면서 새 기록을 쌓지 않았다(replace)
+})
+
+it('새로고침 뒤 카드를 여러 개 더하고 편집 화면에서 지워도 주소에 없는 card가 남지 않고 단계를 옮겨도 다시 나타나지 않는다(#470)', async () => {
+  mount(undefined, ['/worldstudio/qa?new=1&card=gone'], { version: 0 }) // 미저장 카드가 새로고침으로 사라진 뒤: 주소에만 남은 옛 card
+  await screen.findByRole('heading', { name: '검증 세계', level: 1 })
+  const steps = () => within(screen.getByRole('navigation', { name: '세계관 작성 단계' }))
+  fireEvent.click(steps().getByRole('button', { name: '설정 카드' }))
+  addSetting('인물')
+  addSetting('장소')
+  addSetting('사건')
+  expect(where()).toMatch(/^\/worldstudio\/qa\?new=1&card=[0-9a-f-]{36}$/)
+  fireEvent.click(editor().getByRole('button', { name: '카드 삭제' }))
+  fireEvent.click(within(screen.getByRole('region', { name: '설정 삭제 확인' })).getByRole('button', { name: '설정과 연결 삭제' }))
+  expect(screen.getByRole('table', { name: '설정 카드 목록' })).toBeTruthy() // 설정집 화면으로 돌아왔다
+  expect(where()).toBe('/worldstudio/qa?new=1') // 주소도 card 없이 설정집 화면을 가리킨다
+  fireEvent.click(steps().getByRole('button', { name: '검토·저장' }))
+  expect(where()).toBe('/worldstudio/qa?new=1')
+  fireEvent.click(steps().getByRole('button', { name: '설정 카드' }))
+  expect(where()).toBe('/worldstudio/qa?new=1')
+})
+
+it('이미 없는 카드의 card가 붙은 기록으로 돌아가도(뒤로·앞으로 가기) 설정집 화면이고 주소에서 card를 지운다(#470)', async () => {
+  mount(undefined, ['/worldstudio/qa?card=gone', '/worldstudio/qa'])
+  await screen.findByRole('heading', { name: '검증 세계', level: 1 })
+  browserBack() // 지운 카드의 편집 화면이던 기록
+  await waitFor(() => expect(where()).toBe('/worldstudio/qa'))
+  expect(screen.getByRole('table', { name: '설정 카드 목록' })).toBeTruthy()
+})
+
 it('유형과 관계없이 카드를 지울 수 있다: 이어진 관계 수를 확인한 뒤 설정집으로 돌아가 되돌리기를 보이고, 저장해야 서버에 반영된다', async () => {
   const [garam, harbor] = [person('가람'), place('항구')]
   const { saveStudio } = await show(friends([garam, harbor], garam, harbor))
@@ -3190,6 +3226,22 @@ it('이미지가 없는 카드는 제목 아래 줄에 이미지 추가만 두�
   expect(tile.contains(input)).toBe(true)
   expect(tile.contains(document.getElementById(input.getAttribute('aria-describedby') ?? ''))).toBe(true)
   expect(imageGroup().queryByRole('button')).toBeNull() // 바꾸기·빼기 같은 버튼 줄은 이미지가 있을 때만 있다
+})
+
+// #466: Chromium은 fieldset의 직접 자식 목록이 바뀌면(인물 ↔ 그 밖의 문서 구조·편집기 교체) 같은 fieldset 안의 컨테이너 쿼리 컨테이너(.world-card-header) 하위를 레이아웃에서 빼 머리가 0×0이 된다(카드를 하나 걸러 하나씩).
+// jsdom은 레이아웃을 계산하지 못해 그 구조 계약을 본다: 편집 화면 fieldset의 직접 자식은 legend와 내용 래퍼 하나뿐이고, 카드를 옮기거나 유형을 바꿔도 같은 노드다.
+it('편집 화면 fieldset의 직접 자식은 legend와 내용 래퍼 하나뿐이고 카드를 옮기거나 유형을 바꿔도 그대로다(머리 컨테이너 보호, #466)', async () => {
+  await show([person('가람', '본문'), place('항구')])
+  openCard('가람 인물')
+  const fields = screen.getByRole('group', { name: '설정 카드 작성' })
+  const children = () => Array.from(fields.children)
+  const [legend, body] = children()
+  expect([children().length, legend.tagName, body.tagName]).toEqual([2, 'LEGEND', 'DIV'])
+  expect(body.querySelector('.world-card-header')).toBeTruthy() // 머리 컨테이너·편집기·공개 범위 모두 래퍼 안이다
+  fireEvent.click(rail().getByRole('button', { name: '항구 장소' })) // 인물 → 장소: 인물 문서 탭 줄이 사라지고 편집기가 바뀐다
+  expect(children()).toEqual([legend, body])
+  fireEvent.change(editor().getByRole('combobox', { name: '유형' }), { target: { value: 'character' } }) // 같은 카드의 유형 변경(장소 → 인물)
+  expect(children()).toEqual([legend, body])
 })
 
 it('파일을 고르면 곧바로 올리고(올리는 동안 알림·잠금) 올라가면 미리보기와 바꾸기·빼기가 나오며, 저장 전 수정이 되고 초점은 바꾸기로 간다', async () => {

@@ -9,6 +9,7 @@ import { createFixtureDb } from '../../../../data/mock/fixtureDb'
 import { InMemoryReadingRecordRepository, InMemoryWorkRepository } from '../../../../data/mock/InMemoryRepositories'
 import { asValue } from 'awilix/browser'
 import { StudioPage } from './StudioPage'
+import { RestoreContext } from '../../../shared/session/restoreContext'
 
 // This file uses its own container; production and other tests keep their repositories.
 vi.mock('../../../../app/appContainer', async () => {
@@ -24,6 +25,16 @@ beforeEach(() => {
   Range.prototype.getBoundingClientRect = () => new DOMRect() // jsdom에는 없음
 })
 afterEach(() => { cleanup(); document.title = 'STORYFORK' })
+
+it('실제 집필실은 새로고침의 로그인 복구가 끝나기 전에 원고를 요청하지 않는다', () => {
+  render(<Provider store={createAppStore({ role: null })}>
+    <RestoreContext value={true}><MemoryRouter initialEntries={['/studio/ba084057-8d94-3da5-86f0-ab54ce5703b0?ep=4']}>
+      <Routes><Route path="/studio/:id" element={<StudioPage />} /></Routes>
+    </MemoryRouter></RestoreContext>
+  </Provider>)
+  expect(screen.getByRole('status').textContent).toBe('로그인 상태를 확인하고 있어요.')
+  expect(screen.queryByRole('heading', { name: '집필실' })).toBeNull()
+})
 
 const renderStudio = (path: string) => render(
   <Provider store={createAppStore({ role: 'user' })}>

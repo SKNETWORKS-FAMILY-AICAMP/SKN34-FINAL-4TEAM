@@ -68,14 +68,7 @@
       "areaCode": "basic",
       "title": "홍문",
       "classification": "인물",
-      "aliases": [
-        "대감",
-        "홍승상",
-        "홍 승상",
-        "승상",
-        "홍모",
-        "재상"
-      ],
+      "aliases": [],
       "tags": [
         "재상"
       ],
@@ -99,10 +92,7 @@
       "areaCode": "basic",
       "title": "춘섬",
       "classification": "인물",
-      "aliases": [
-        "길동의 어머니",
-        "어머니"
-      ],
+      "aliases": [],
       "tags": [
         "시비"
       ],
@@ -151,10 +141,7 @@
       "areaCode": "basic",
       "title": "관상녀",
       "classification": "인물",
-      "aliases": [
-        "여자",
-        "관상 보는 여자"
-      ],
+      "aliases": [],
       "tags": [
         "동대문"
       ],
@@ -178,12 +165,7 @@
       "areaCode": "basic",
       "title": "길현",
       "classification": "인물",
-      "aliases": [
-        "맏아들",
-        "장자",
-        "경상감사",
-        "감사"
-      ],
+      "aliases": [],
       "tags": [
         "홍씨 집안"
       ],
@@ -206,10 +188,7 @@
       "areaCode": "basic",
       "title": "특재",
       "classification": "인물",
-      "aliases": [
-        "특자",
-        "자객"
-      ],
+      "aliases": [],
       "tags": [
         "자객"
       ],
@@ -811,7 +790,7 @@
       "target": "ev-03-2",
       "predicate": "custom_relation_directed",
       "label": "참여",
-      "body": "길동에게 붙잡혀 자신의 죄와 초낭의 지시를 털어놓았다."
+      "body": "길동에게 붙잡혀 추궁을 받고 자신의 죄를 털어놓았다."
     },
     {
       "key": "teukjae-choran-bbd5",

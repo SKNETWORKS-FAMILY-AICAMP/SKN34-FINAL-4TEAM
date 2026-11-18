@@ -14,7 +14,9 @@ const work: Work = {
 }
 
 function open(api: object) {
-  return renderHook(() => useEpisodeViewModel('w1', api as unknown as EpisodeUseCase, { upload: vi.fn() }))
+  // 초안 목록 조회는 이 테스트의 관심사가 아니라 빈 목록을 기본으로 둔다(대역 객체는 렌더 밖에서 한 번만 만든다).
+  const useCase = { writingList: vi.fn().mockResolvedValue([]), ...api }
+  return renderHook(() => useEpisodeViewModel('w1', useCase as unknown as EpisodeUseCase, { upload: vi.fn() }))
 }
 
 it('추천을 받으면 열린 작품 id로 요청하고 후보를 돌려준다 (작품은 저장하지 않는다)', async () => {

@@ -1,6 +1,6 @@
-"""Intent Router 모델 호출(#55·#373): LangChain `create_agent` 위에서 OpenAI Decisions(`gpt-6-luna`)를 1회 부르고 답을 검증한다.
+"""Decision Guard 모델 호출(#55·#373·#473): LangChain `create_agent` 위에서 OpenAI Decisions(`gpt-6-luna`)를 1회 부르고 답을 검증한다.
 
-분류(질문·선택지·검증)는 그대로이고, 입력 가드레일 미들웨어(LangChain 기본 미들웨어 상속)가 Decisions보다 먼저 작가 요청만 거른다.
+질문(guard + 기능별 yes/no)은 service가 정하고 선택지·누락·중복·refusal 검증은 여기서 한다. 입력 가드레일 미들웨어(LangChain 기본 미들웨어 상속)가 Decisions보다 먼저 작가 요청만 거른다.
 - `SensitiveDataGuard`(PIIMiddleware): 요청에 이메일·카드번호·API 키가 있으면 어떤 모델도 부르지 않고 sensitive_data로 거절한다(외부 전송 방지).
 - `ModerationGuard`(OpenAIModerationMiddleware): OpenAI moderation이 BLOCKED 범주를 걸면 unsafe로 거절한다. 폭력·성 묘사 같은
   창작 범주는 소설에 흔해 막지 않고 Decisions의 guard 질문이 판단한다.

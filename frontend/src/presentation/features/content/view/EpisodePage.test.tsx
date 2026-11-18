@@ -38,10 +38,13 @@ const fillRegistration = () => {
   fireEvent.click(screen.getByLabelText('이 작품을 등록할 권리가 있음을 확인합니다.'))
 }
 
-/** 같은 경로가 여러 번 읽혀도 호출마다 새 Response를 돌려주는 Content API 대역. 정의하지 않은 요청은 실패한다. */
+/**
+ * 같은 경로가 여러 번 읽혀도 호출마다 새 Response를 돌려주는 Content API 대역. 정의하지 않은 요청은 실패한다.
+ * 작품 관리가 열 때마다 읽는 소유자 회차 목록(GET /works/{id}/episodes)만은 기본으로 빈 목록이다(정의하면 그것을 쓴다). 이 기본이 없으면 읽기 실패가 조용히 화면에 그려진다.
+ */
 const contentApi = (routes: Record<string, () => Response | Promise<Response>>) => vi.fn<typeof fetch>(async (input, init) => {
   const route = `${init?.method ?? 'GET'} ${String(input)}`
-  const make = routes[route]
+  const make = routes[route] ?? (/^GET \/api\/v1\/works\/[^/]+\/episodes$/.test(route) ? () => Response.json([]) : undefined)
   if (!make) throw new Error(`대역에 없는 요청: ${route}`)
   return make()
 })
@@ -61,6 +64,12 @@ const stubCover = (onUpload?: (path: string, init: RequestInit) => Response) => 
 
 const owned = { id: 'w', title: '옛 제목', summary: '옛 소개', visibility: 'private', allowFork: false, allowForkPublication: false, revision: 0, source: null, episodes: [], draft: { title: '회차', body: '초안', revision: 0 }, creationType: 'ORIGINAL', genres: ['판타지', 'SF'], hashtags: ['회귀', '성장'] }
 const episode = (number: number) => ({ number, version: 1, title: `${number}화 제목`, body: `${number}화 본문`, inherited: false })
+/** 소유자 회차 조회(GET /works/{id}/episodes)의 한 줄. 기본은 발행 전 초안이다. */
+const writingRow = (number: number, extra: object = {}) => ({
+  number, draft: { title: `${number}화 초안`, body: '', revision: 0 }, publicationStatus: 'draft', hasDraft: true,
+  versions: [], publishedVersionId: null, inherited: false, updatedAt: null, checkpointStatus: 'none', checkpoints: [], ...extra,
+})
+const heroStats = () => document.querySelector('.ep-hero .stats')!.textContent
 const myFork = { ...owned, title: '내 포크', summary: '소개', visibility: 'public', revision: 4, draft: { ...owned.draft, revision: 4 }, source: { workId: 'o', title: '원작', episode: 2, version: 7, direction: '다른 결말' } }
 const STOP_CONFIRM = '포크 작품의 공개를 중단할까요? 발행된 회차와 원고는 보존돼요. 대기 중인 예약 발행은 취소되고, 원작이 공개를 허용하지 않으면 다시 공개할 수 없어요.'
 const AREAS = ['작품 정보 편집', '표지 편집', '분기 정책 편집']
@@ -78,7 +87,65 @@ const coverReply = (path: string) => Response.json({ id: '33333333-3333-4333-833
 
 // ── 작품 만들기 (/content) ─────────────────────────────────────────────
 
-it('creates a private work through the API and opens its management page', async () => {
+it('shows both editable drafts and the empty publication status of a public work', async () => {
+  const rows = ['첫 장면', '둘째 장면'].map((title, i) => ({
+    number: i + 1, draft: { title, body: '', revision: 0 }, publicationStatus: 'draft',
+    hasDraft: true, versions: [], publishedVersionId: null, inherited: false,
+    updatedAt: null, checkpointStatus: 'none', checkpoints: [],
+  }))
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([{ ...owned, visibility: 'public' }]),
+    'GET /api/v1/works/w/episodes': () => Response.json(rows),
+  }))
+  expect(await screen.findByText('공개 회차 없음')).toBeTruthy()
+  for (const ep of rows) {
+    expect((await screen.findByRole('link', { name: `${ep.number}화 · ${ep.draft.title}` })).getAttribute('href')).toBe(`/studio/w?ep=${ep.number}`)
+  }
+  expect(heroStats()).toContain('작성 중인 초안 2개')
+  // 목록 제목도 히어로와 같은 말('초안')이다.
+  expect(screen.getByRole('heading', { name: '작성 중인 초안' })).toBeTruthy()
+})
+
+it('does not count a suspended episode as a draft in progress', async () => {
+  stubCover()
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([{ ...owned, visibility: 'public' }]),
+    'GET /api/v1/works/w/episodes': () => Response.json([writingRow(1), writingRow(2, { publicationStatus: 'suspended' })]),
+  }))
+  await waitFor(() => expect(heroStats()).toContain('작성 중인 초안 1개'))
+  expect(screen.getByRole('link', { name: '1화 · 1화 초안' })).toBeTruthy()
+  expect(screen.queryByRole('link', { name: '2화 · 2화 초안' })).toBeNull()
+})
+
+it('keeps a place for the draft count while drafts load and fills it in when they arrive', async () => {
+  stubCover()
+  let finish!: (res: Response) => void
+  const pending = new Promise<Response>((resolve) => { finish = resolve })
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([{ ...owned, visibility: 'public' }]),
+    'GET /api/v1/works/w/episodes': () => pending,
+  }))
+  // 읽는 동안에도 자리를 잡아 두어, 읽고 나서 끼어들며 아래 화면을 밀지 않는다.
+  expect(heroStats()).toContain('작성 중인 초안 …')
+  finish(Response.json([writingRow(1), writingRow(2)]))
+  await waitFor(() => expect(heroStats()).toContain('작성 중인 초안 2개'))
+  expect(heroStats()).not.toContain('…')
+})
+
+it('tells the drafts could not be read in an alert box and does not pretend to count them', async () => {
+  stubCover()
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([owned]),
+    'GET /api/v1/works/w/episodes': () => Response.json({ detail: '서버 오류' }, { status: 500 }),
+  }))
+  const alert = await screen.findByText('초안 목록을 불러오지 못했어요.')
+  expect(alert.getAttribute('role')).toBe('alert')
+  expect(alert.classList.contains('ep-alert')).toBe(true)
+  // 못 읽은 것을 읽는 중처럼 '…'로 두지도, 0개로 채우지도 않는다.
+  expect(heroStats()).not.toContain('작성 중인 초안')
+})
+
+it('creates a private work through the API and opens its writing studio', async () => {
   const calls = vi.fn().mockResolvedValueOnce(new Response('[]')).mockResolvedValueOnce(new Response(JSON.stringify({ id: 'w1', title: '별의 기록', summary: '', visibility: 'private', allowFork: false, revision: 0, source: null, episodes: [], draft: { title: '새 회차', body: '', revision: 0 } })))
   render(<><EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(calls))} /><Where /></>)
   await screen.findByText('새 작품 만들기')
@@ -88,9 +155,7 @@ it('creates a private work through the API and opens its management page', async
   fireEvent.change(screen.getByLabelText('두 번째 장르'), { target: { value: 'SF' } })
   fireEvent.change(screen.getByLabelText('해시태그'), { target: { value: '#회귀, 성장' } })
   fireEvent.click(screen.getByRole('button', { name: '작품 만들기' }))
-  await screen.findByRole('heading', { level: 1, name: '별의 기록' })
-  // 만든 작품의 관리 화면 주소로 바뀐다.
-  expect(screen.getByText('위치 /content?work=w1')).toBeTruthy()
+  await screen.findByText('위치 /studio/w1')
   expect(calls.mock.calls[1][0]).toBe('/api/v1/works')
   expect(JSON.parse(calls.mock.calls[1][1].body)).toEqual({ title: '별의 기록', summary: '', creationType: 'EXTERNAL_DERIVATIVE', genres: ['판타지', 'SF'], hashtags: ['회귀', '성장'], rightsConfirmed: true })
 })
@@ -98,24 +163,24 @@ it('creates a private work through the API and opens its management page', async
 it('does not reuse the previous cover when creating another work', async () => {
   const first = { id: '11111111-1111-4111-8111-111111111111', title: '첫 작품', summary: '', visibility: 'private', allowFork: false, revision: 0, source: null, episodes: [], draft: { title: '새 회차', body: '', revision: 0 } }
   const second = { ...first, id: '22222222-2222-4222-8222-222222222222', title: '두 번째 작품' }
-  const calls = vi.fn().mockResolvedValueOnce(new Response('[]')).mockResolvedValueOnce(Response.json(first)).mockResolvedValueOnce(Response.json(second))
+  const calls = vi.fn().mockResolvedValueOnce(new Response('[]')).mockResolvedValueOnce(Response.json(first)).mockResolvedValueOnce(Response.json([first])).mockResolvedValueOnce(Response.json(second))
   const uploads = vi.fn(async (path: string, init: RequestInit) => {
     expect((init.body as FormData).get('file')).toBeInstanceOf(File)
     return Response.json({ id: '33333333-3333-4333-8333-333333333333', filename: 'first.png', mediaType: 'image/png', kind: 'IMAGE', byteSize: 3, createdAt: '2026-11-03T00:00:00Z', url: `${path}/content` })
   })
   vi.stubGlobal('fetch', vi.fn(async (path: string, init?: RequestInit) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'content-csrf' }) : init?.method === 'PUT' ? uploads(path, init) : new Response(null, { status: 404 })))
   stubPreviewUrl()
-  const router = createMemoryRouter([{ path: '/content', element: <EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(calls))} /> }], { initialEntries: ['/content'] })
+  const router = createMemoryRouter([{ path: '/content', element: <EpisodePage useCase={new EpisodeUseCase(new HttpEpisodeRepository(calls))} /> }, { path: '/studio/:id', element: <Where/> }], { initialEntries: ['/content'] })
   renderIn(<RouterProvider router={router} useTransitions={false} />)
   await screen.findByText('새 작품 만들기')
   fireEvent.change(screen.getByLabelText('작품 제목'), { target: { value: first.title } })
   fireEvent.change(screen.getByLabelText('표지 이미지 선택'), { target: { files: [new File(['png'], 'first.png', { type: 'image/png' })] } })
   fillRegistration()
   fireEvent.click(screen.getByRole('button', { name: '작품 만들기' }))
-  await screen.findByText('비공개 작품과 표지를 저장했어요.')
+  await waitFor(() => expect(router.state.location.pathname).toBe(`/studio/${first.id}`))
   expect(uploads).toHaveBeenCalledTimes(1)
   expect(uploads.mock.calls[0][0]).toBe(`/api/v1/works/${first.id}/cover`)
-  expect(router.state.location.search).toBe(`?work=${first.id}`)
+  expect(router.state.location.search).toBe('')
   // 서재의 '＋ 새 소설 쓰기'로 /content에 다시 들어온 것과 같다.
   await act(async () => { await router.navigate('/content') })
   fireEvent.change(screen.getByLabelText('작품 제목'), { target: { value: second.title } })
@@ -123,9 +188,8 @@ it('does not reuse the previous cover when creating another work', async () => {
   expect((screen.getByLabelText('이 작품을 등록할 권리가 있음을 확인합니다.') as HTMLInputElement).checked).toBe(false)
   fillRegistration()
   fireEvent.click(screen.getByRole('button', { name: '작품 만들기' }))
-  await screen.findByRole('heading', { name: second.title })
+  await waitFor(() => expect(router.state.location.pathname).toBe(`/studio/${second.id}`))
   expect(uploads).toHaveBeenCalledTimes(1)
-  expect(screen.getByText('비공개 작품을 만들었어요. 첫 회차를 작성해 보세요.')).toBeTruthy()
 })
 
 it('shows the default cover in the cover slot of the creation screen', async () => {
@@ -570,8 +634,8 @@ it('has no manuscript tab: the tabs are the episodes, world, fork, received feed
   stubCover()
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
   const nav = screen.getByRole('navigation', { name: '작품 메뉴' })
-  expect(within(nav).getAllByRole('button').map((b) => b.textContent)).toEqual(['회차 · 0', '세계관·설정집', '이야기 분기', '받은 피드백', '저장·AI·발행 이력'])
-  expect(within(nav).getByRole('button', { name: '회차 · 0' }).getAttribute('aria-current')).toBe('page')
+  expect(within(nav).getAllByRole('button').map((b) => b.textContent)).toEqual(['공개 회차 · 0', '세계관·설정집', '이야기 분기', '받은 피드백', '저장·AI·발행 이력'])
+  expect(within(nav).getByRole('button', { name: '공개 회차 · 0' }).getAttribute('aria-current')).toBe('page')
   // 공개한 회차가 없어도 안내 문구와 아래쪽 '새 회차 집필하기'는 남는다.
   expect(screen.getByText('아직 공개한 회차가 없어요. 첫 회차를 작성해 보세요.')).toBeTruthy()
   expect(screen.getByRole('link', { name: '새 회차 집필하기' }).getAttribute('href')).toBe('/studio/w')
@@ -584,7 +648,7 @@ it('has no manuscript tab: the tabs are the episodes, world, fork, received feed
 
 it('links to the studio instead of offering manuscript editing or AI continuation, even when there is no writing episode', async () => {
   stubCover()
-  const w = { ...owned, title: '회차 삭제됨', draft: { title: '새 회차', body: '', revision: 4 }, hasWritingEpisode: false }
+  const w = { ...owned, title: '회차 삭제됨', draft: { title: '새 회차', body: '', revision: 4 } }
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([w]) }), '회차 삭제됨')
   expect(screen.getByRole('link', { name: '회차 작성하기' }).getAttribute('href')).toBe('/studio/w')
   expect(screen.queryByRole('button', { name: '원고 저장' })).toBeNull()
@@ -645,7 +709,7 @@ it('tells a private work is not public yet and marks inherited episodes as read-
 it('keeps the public lead for a public work and says nothing about inherited episodes when there are none', async () => {
   stubCover()
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([{ ...owned, visibility: 'public', episodes: [episode(1)] }]) }))
-  expect(screen.getByText('공개된 회차만 표시해요. 작성 중인 초안은 포함되지 않아요.')).toBeTruthy()
+  expect(screen.getByText('아래 목록은 독자가 볼 수 있는 발행본이에요.')).toBeTruthy()
   expect(screen.queryByText('아직 독자에게 공개하지 않은 작품이에요.')).toBeNull()
   expect(screen.queryByText(/이어받은 회차/)).toBeNull()
   expect(screen.queryByText('원작 회차')).toBeNull()
@@ -718,9 +782,11 @@ it('links and unlinks my world from the world tab and shows the server reason wh
 
 it('lists saved versions, AI requests and publications read-only while restore and publish-target actions stay in the studio', async () => {
   stubCover()
-  const version = { id: 'v1', episode: 1, title: '첫 화', body: '저장된 원고', revision: 1, savedAt: '2026-11-02T00:00:00Z' }
+  // revision(편집 번호)과 저장 순번이 다르게 두어, 화면이 순번('저장 버전 1')을 쓰는지 가른다.
+  const version = { id: 'v1', episode: 1, title: '첫 화', body: '저장된 원고', revision: 7, savedAt: '2026-11-02T00:00:00Z' }
   await openWork(contentApi({
     'GET /api/v1/works': () => Response.json([owned]),
+    'GET /api/v1/works/w/episodes': () => Response.json([writingRow(1, { versions: [version] })]),
     'GET /api/v1/works/w/history': () => Response.json({ versions: [version], proposals: [], publicationHistory: [] }),
   }))
   fireEvent.click(screen.getByRole('button', { name: '저장·AI·발행 이력' }))
@@ -783,7 +849,7 @@ it('stops the publication of a fork after asking, keeps the fork and reads it ag
   expect(screen.getByRole('heading', { level: 1, name: '내 포크' })).toBeTruthy()
   expect(screen.getByText('비공개 작품')).toBeTruthy()
   expect(fetcher.mock.calls.some(([input, init]) => String(input) === '/api/v1/works/w/fork-publication' && init?.method === 'DELETE')).toBe(true)
-  expect(fetcher.mock.calls.filter(([, init]) => (init?.method ?? 'GET') === 'GET')).toHaveLength(2)
+  expect(fetcher.mock.calls.filter(([path, init]) => path === '/api/v1/works' && (init?.method ?? 'GET') === 'GET')).toHaveLength(2)
 })
 
 it('links back to a live original and only explains a deleted one, and offers no stop button for a private fork', async () => {
@@ -913,10 +979,12 @@ it('brings the top alert into view when a request without its own place fails, s
 
 it('keeps saved manuscript bodies out of the history tab until each version is opened', async () => {
   stubCover()
-  const version = { id: 'v1', episode: 1, title: '첫 화', body: '저장된 원고', revision: 1, savedAt: '2026-11-02T00:00:00Z' }
+  const version = { id: 'v1', episode: 1, title: '첫 화', body: '저장된 원고', revision: 7, savedAt: '2026-11-02T00:00:00Z' }
+  const second = { ...version, id: 'v2', revision: 8, body: '둘째 저장본' }
   await openWork(contentApi({
     'GET /api/v1/works': () => Response.json([owned]),
-    'GET /api/v1/works/w/history': () => Response.json({ versions: [version, { ...version, id: 'v2', revision: 2, body: '둘째 저장본' }], proposals: [], publicationHistory: [] }),
+    'GET /api/v1/works/w/episodes': () => Response.json([writingRow(1, { versions: [version, second] })]),
+    'GET /api/v1/works/w/history': () => Response.json({ versions: [version, second], proposals: [], publicationHistory: [] }),
   }))
   fireEvent.click(screen.getByRole('button', { name: '저장·AI·발행 이력' }))
   const title = await screen.findByRole('heading', { name: '1화 · 저장 버전 1 · 첫 화' })

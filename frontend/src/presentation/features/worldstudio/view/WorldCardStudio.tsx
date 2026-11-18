@@ -151,79 +151,82 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
             <WorldCardFindings key={item.id} vm={vm} cardId={item.id} onOpenCard={(id) => { setConfirm(''); focusName.current = true; vm.editCard(id) }} onApplied={docs.reload} />
             <fieldset className="world-fields" disabled={vm.busy}>
               <legend className="sr-only">설정 카드 작성</legend>
-              <div className="world-card-header">
-                <div className="world-card-head">
-                  <input ref={nameField} className="et writing-title" aria-label="설정 이름" required value={item.title} maxLength={200} placeholder="이 설정의 이름은 무엇인가요?" onChange={(e) => vm.update(item.id, { title: e.target.value })} />
-                  <div className="world-card-meta">
-                    <label className="field world-type">유형
-                      <select className="inp" value={cardTypeOf(item)} onChange={(e) => vm.changeCardType(item.id, e.target.value as CardType)}>
-                        {cardTypes.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
-                        {['relation', 'review', 'note'].includes(cardTypeOf(item)) && <option value={cardTypeOf(item)}>{kinds[item.kind]} · 기존 의미 유지</option>}
-                      </select>
-                    </label>
-                    {setting.importedFrom && <p className="small muted world-card-source"><span className="chip">가져옴</span>{importedSource(setting.importedFrom)}</p>}
-                  </div>
-                  <CardImageControl vm={vm} cardId={item.id} title={item.title} imageId={setting.imageId} portrait={portrait} />
-                </div>
-              </div>
-              {docs.orphaned && <p role="status" className="small world-doc-orphaned">인물이 아닌 설정에는 SOUL.md·GOAL.md·회차별 기억을 저장하지 않아요. 유형을 인물로 되돌리면 이어 쓸 수 있고, 이대로 저장하면 사라져요.</p>}
-              {docs.person ? <CharacterDocs docs={docs}>{bodyEditor}</CharacterDocs> : bodyEditor}
-              {docs.doc === 'identity' && <p className="small muted world-card-help"># · ## · ### 제목은 공개 페이지 목차에 나와요.</p>}
-              {item.kind !== 'relation' && (
-                <section className="world-card-reach" aria-label="공개 범위">
-                  <h4>공개 범위</h4>
-                  <label className="world-consent">
-                    <input type="checkbox" role="switch" checked={setting.visibility === 'public'} aria-describedby={`${listId}-public`} onChange={(e) => vm.patch({ settings: setCardVisibility(world.settings, new Set([item.id]), e.target.checked ? 'public' : 'private') })} />
-                    이 설정 공개
-                  </label>
-                  <p id={`${listId}-public`} className="small muted">세계관을 공개하면 누구나 이 설정을 볼 수 있고, 로그인한 사람은 자기 세계관으로 가져갈 수 있어요.</p>
-                  <label className="world-reveal">
-                    독자 공개
-                    <input type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="off" className="inp" disabled={!vm.linkedWorkId} aria-invalid={revealError} aria-describedby={`${revealError ? `${listId}-reveal-error ` : ''}${listId}-reveal`} value={setting.revealFromEpisode ?? ''} onChange={(e) => vm.update(item.id, {}, { revealFromEpisode: revealEpisodeInput(e.target.value) })} />
-                    화부터
-                  </label>
-                  {revealError && <p id={`${listId}-reveal-error`} role="alert" className="small world-field-error">{REVEAL_EPISODE_ERROR}</p>}
-                  <p id={`${listId}-reveal`} className="small muted">{vm.linkedWorkId ? '연결된 소설의 독자 설정 위키에 이 회차부터 보여요. 비워 두면 독자에게 보이지 않아요.' : demo ? '데모에서는 소설 연결을 지원하지 않아 설정할 수 없어요.' : '소설을 연결하면 설정할 수 있어요.'}</p>
-                  <p className="small muted">저장한 뒤 ‘확정 버전 남기기’를 해야 공개 세계관 화면과 독자 설정 위키에 반영돼요.</p>
-                </section>
-              )}
-              {cardTypeOf(item) === 'character' && <button className="btn sm world-relation-link" type="button" onClick={() => vm.openRelations(item.id)}>관계 연결로 이동</button>}
-              <section className="world-card-links" aria-label="연관 설정">
-                <h4>연관 설정·관계 <span className="small muted">읽기 전용</span></h4>
-                {links.length
-                  ? <ul>{links.map((l) => <li key={`${l.id}:${l.label}`}><button type="button" className="world-card-link" onClick={() => { setConfirm(''); focusName.current = true; vm.editCard(l.id) }}>{l.title} <small>{l.label}</small></button></li>)}</ul>
-                  : <p className="small muted">이어진 설정이 없어요. 인물은 관계 연결에서 서로 이을 수 있어요.</p>}
-              </section>
-              <details className="world-additional" key={item.id}>
-                <summary>상세 설정 · 선택</summary>
-                <label className="field">설정 영역
-                  <select className="inp" value={item.category} onChange={(e) => vm.changeArea(item.id, e.target.value as SettingItem['category'])}>
-                    {settingAreas.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
-                  </select>
-                </label>
-                <label className="field">태그 (쉼표로 구분)<input className="inp" value={setting.tags.join(',')} onChange={(e) => vm.update(item.id, {}, { tags: e.target.value.split(',') })} onBlur={() => { const tags = studioLabelCleanup(setting.tags); if (tags) vm.update(item.id, {}, { tags }) }} /></label>
-                <label className="field">별칭<input className="inp" aria-describedby={`${listId}-alias`} value={setting.aliases?.join(',') ?? ''} onChange={(e) => vm.update(item.id, {}, { aliases: e.target.value.split(',') })} onBlur={() => { const aliases = studioLabelCleanup(setting.aliases); if (aliases) vm.update(item.id, {}, { aliases }) }} /></label>
-                <p id={`${listId}-alias`} className="small muted">별칭은 쉼표로 구분하며 저장 시 다른 카드 정보와 함께 서버에 보존해요.</p>
-                <label className="field">내 분류<input className="inp" value={setting.userCategory} maxLength={50} onChange={(e) => vm.update(item.id, {}, { userCategory: e.target.value })} /></label>
-                {item.kind === 'event' && <label className="field">사건 시점<input className="inp" value={item.timeText} onChange={(e) => vm.update(item.id, { timeText: e.target.value })} /></label>}
-                {item.kind === 'relation' && (
-                  <>
-                    <label className="field">기존 관계 유형
-                      <select className="inp" value={item.predicate ?? 'trusts'} onChange={(e) => vm.update(item.id, { predicate: e.target.value })}>
-                        {Object.entries(relationDefinitions).map(([id, r]) => <option key={id} value={id}>{r.label}</option>)}
-                      </select>
-                    </label>
-                    {(['subjectId', 'targetId'] as const).map((key, i) => (
-                      <label className="field" key={key}>{i ? '관계 대상' : '관계 주체'}
-                        <select className="inp" value={item[key] ?? ''} onChange={(e) => vm.update(item.id, { [key]: e.target.value || null })}>
-                          <option value="">선택하세요</option>
-                          {world.settings.filter((s) => s.item.kind === 'entity').map((s) => <option key={s.item.id} value={s.item.id}>{s.item.title}</option>)}
+              {/* Chromium: fieldset의 직접 자식이 바뀌면(인물 ↔ 그 밖의 문서 구조, 편집기 교체) 같은 fieldset 안 컨테이너 쿼리 컨테이너(.world-card-header)의 하위가 레이아웃에서 빠져 머리가 0×0이 된다(#466). 내용은 이 래퍼 하나 안에서만 바뀌게 하고 래퍼에 key를 주지 않는다. */}
+              <div>
+                <div className="world-card-header">
+                  <div className="world-card-head">
+                    <input ref={nameField} className="et writing-title" aria-label="설정 이름" required value={item.title} maxLength={200} placeholder="이 설정의 이름은 무엇인가요?" onChange={(e) => vm.update(item.id, { title: e.target.value })} />
+                    <div className="world-card-meta">
+                      <label className="field world-type">유형
+                        <select className="inp" value={cardTypeOf(item)} onChange={(e) => vm.changeCardType(item.id, e.target.value as CardType)}>
+                          {cardTypes.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+                          {['relation', 'review', 'note'].includes(cardTypeOf(item)) && <option value={cardTypeOf(item)}>{kinds[item.kind]} · 기존 의미 유지</option>}
                         </select>
                       </label>
-                    ))}
-                  </>
+                      {setting.importedFrom && <p className="small muted world-card-source"><span className="chip">가져옴</span>{importedSource(setting.importedFrom)}</p>}
+                    </div>
+                    <CardImageControl vm={vm} cardId={item.id} title={item.title} imageId={setting.imageId} portrait={portrait} />
+                  </div>
+                </div>
+                {docs.orphaned && <p role="status" className="small world-doc-orphaned">인물이 아닌 설정에는 SOUL.md·GOAL.md·회차별 기억을 저장하지 않아요. 유형을 인물로 되돌리면 이어 쓸 수 있고, 이대로 저장하면 사라져요.</p>}
+                {docs.person ? <CharacterDocs docs={docs}>{bodyEditor}</CharacterDocs> : bodyEditor}
+                {docs.doc === 'identity' && <p className="small muted world-card-help"># · ## · ### 제목은 공개 페이지 목차에 나와요.</p>}
+                {item.kind !== 'relation' && (
+                  <section className="world-card-reach" aria-label="공개 범위">
+                    <h4>공개 범위</h4>
+                    <label className="world-consent">
+                      <input type="checkbox" role="switch" checked={setting.visibility === 'public'} aria-describedby={`${listId}-public`} onChange={(e) => vm.patch({ settings: setCardVisibility(world.settings, new Set([item.id]), e.target.checked ? 'public' : 'private') })} />
+                      이 설정 공개
+                    </label>
+                    <p id={`${listId}-public`} className="small muted">세계관을 공개하면 누구나 이 설정을 볼 수 있고, 로그인한 사람은 자기 세계관으로 가져갈 수 있어요.</p>
+                    <label className="world-reveal">
+                      독자 공개
+                      <input type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="off" className="inp" disabled={!vm.linkedWorkId} aria-invalid={revealError} aria-describedby={`${revealError ? `${listId}-reveal-error ` : ''}${listId}-reveal`} value={setting.revealFromEpisode ?? ''} onChange={(e) => vm.update(item.id, {}, { revealFromEpisode: revealEpisodeInput(e.target.value) })} />
+                      화부터
+                    </label>
+                    {revealError && <p id={`${listId}-reveal-error`} role="alert" className="small world-field-error">{REVEAL_EPISODE_ERROR}</p>}
+                    <p id={`${listId}-reveal`} className="small muted">{vm.linkedWorkId ? '연결된 소설의 독자 설정 위키에 이 회차부터 보여요. 비워 두면 독자에게 보이지 않아요.' : demo ? '데모에서는 소설 연결을 지원하지 않아 설정할 수 없어요.' : '소설을 연결하면 설정할 수 있어요.'}</p>
+                    <p className="small muted">저장한 뒤 ‘확정 버전 남기기’를 해야 공개 세계관 화면과 독자 설정 위키에 반영돼요.</p>
+                  </section>
                 )}
-              </details>
+                {cardTypeOf(item) === 'character' && <button className="btn sm world-relation-link" type="button" onClick={() => vm.openRelations(item.id)}>관계 연결로 이동</button>}
+                <section className="world-card-links" aria-label="연관 설정">
+                  <h4>연관 설정·관계 <span className="small muted">읽기 전용</span></h4>
+                  {links.length
+                    ? <ul>{links.map((l) => <li key={`${l.id}:${l.label}`}><button type="button" className="world-card-link" onClick={() => { setConfirm(''); focusName.current = true; vm.editCard(l.id) }}>{l.title} <small>{l.label}</small></button></li>)}</ul>
+                    : <p className="small muted">이어진 설정이 없어요. 인물은 관계 연결에서 서로 이을 수 있어요.</p>}
+                </section>
+                <details className="world-additional" key={item.id}>
+                  <summary>상세 설정 · 선택</summary>
+                  <label className="field">설정 영역
+                    <select className="inp" value={item.category} onChange={(e) => vm.changeArea(item.id, e.target.value as SettingItem['category'])}>
+                      {settingAreas.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
+                    </select>
+                  </label>
+                  <label className="field">태그 (쉼표로 구분)<input className="inp" value={setting.tags.join(',')} onChange={(e) => vm.update(item.id, {}, { tags: e.target.value.split(',') })} onBlur={() => { const tags = studioLabelCleanup(setting.tags); if (tags) vm.update(item.id, {}, { tags }) }} /></label>
+                  <label className="field">별칭<input className="inp" aria-describedby={`${listId}-alias`} value={setting.aliases?.join(',') ?? ''} onChange={(e) => vm.update(item.id, {}, { aliases: e.target.value.split(',') })} onBlur={() => { const aliases = studioLabelCleanup(setting.aliases); if (aliases) vm.update(item.id, {}, { aliases }) }} /></label>
+                  <p id={`${listId}-alias`} className="small muted">별칭은 쉼표로 구분하며 저장 시 다른 카드 정보와 함께 서버에 보존해요.</p>
+                  <label className="field">내 분류<input className="inp" value={setting.userCategory} maxLength={50} onChange={(e) => vm.update(item.id, {}, { userCategory: e.target.value })} /></label>
+                  {item.kind === 'event' && <label className="field">사건 시점<input className="inp" value={item.timeText} onChange={(e) => vm.update(item.id, { timeText: e.target.value })} /></label>}
+                  {item.kind === 'relation' && (
+                    <>
+                      <label className="field">기존 관계 유형
+                        <select className="inp" value={item.predicate ?? 'trusts'} onChange={(e) => vm.update(item.id, { predicate: e.target.value })}>
+                          {Object.entries(relationDefinitions).map(([id, r]) => <option key={id} value={id}>{r.label}</option>)}
+                        </select>
+                      </label>
+                      {(['subjectId', 'targetId'] as const).map((key, i) => (
+                        <label className="field" key={key}>{i ? '관계 대상' : '관계 주체'}
+                          <select className="inp" value={item[key] ?? ''} onChange={(e) => vm.update(item.id, { [key]: e.target.value || null })}>
+                            <option value="">선택하세요</option>
+                            {world.settings.filter((s) => s.item.kind === 'entity').map((s) => <option key={s.item.id} value={s.item.id}>{s.item.title}</option>)}
+                          </select>
+                        </label>
+                      ))}
+                    </>
+                  )}
+                </details>
+              </div>
             </fieldset>
             {deletion && <CardDeletionConfirm deletion={deletion} onDelete={() => { if (vm.deleteCard(item.id)) setConfirm('') }} onCancel={() => setConfirm('')} />}
             <footer className="writing-foot">
