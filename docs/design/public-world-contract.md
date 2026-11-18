@@ -356,6 +356,7 @@ nginx `location ^~ /api/v1/world-studios/`의 `client_max_body_size 6m`이 이�
 
 ## 구현 선택 (계약이 정하지 않은 부분)
 
+- **공개 세계관 상세 UX**: `/worlds/:id`의 탭은 개요·설정집·인물관계도·설정 그래프 순서이고 `tab`이 없거나 알 수 없으면 개요를 보인다. 두 그래프는 응답의 모든 노드·관계선을 한 캔버스에 두며, `설정 찾기`는 최대 8개 후보를 키보드로 고르고 선택한 노드와 이웃·관계만 강조한다. 개요는 설명·유형별 설정 수 링크·관계 수 기준 주요 설정·세 탭 둘러보기와 기존 정보 상자를 응답의 카드·관계만으로 구성한다.
 - **이름·설명은 마지막 저장 버전의 값**이다. 저장하지 않은 초안의 이름·설명·카드·관계 수정은 다음 저장 전까지 공개 화면에 반영되지 않는다.
 - **삭제로 표시된 카드**(`lifecycle=removed`)와 **작가 전용·기준 회차 뒤 카드**(유효 공개 회차가 없거나 기준 회차보다 큼, DEC-53)는 마지막 저장 버전에 남아 있어도 `cards`·`cardCount`에서 뺀다. 공개 세계관 조회는 `PublicWorldService.shownAt`이 유효 공개 회차 판정(`shownCardEpisode`)으로 거르고, 목록은 쿼리 `WorldRevisionCardRepository.cardVersionsOf`가 준 카드 버전을 같은 함수로 센다(DEC-53). 목록의 세계관별 기준 회차는 페이지 전체에 연결 작품 조회 한 번과 공개 작품의 마지막 발행 회차 쿼리(`WorkRepository.lastPublishedOfPublicWorks`) 한 번으로 센다. 삭제 카드를 빼는 것은 소유자 화면과 같은 기준이다.
 - 관계는 `label`·`body`·`category`·`direction`·`polarity`를 공개하고 메타데이터는 응답에 없다(응답 필드는 위 '공개 API'와 같다).
