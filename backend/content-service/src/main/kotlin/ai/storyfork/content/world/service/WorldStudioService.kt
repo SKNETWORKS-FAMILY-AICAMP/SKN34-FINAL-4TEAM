@@ -73,12 +73,12 @@ class WorldStudioService(
     internal fun createTemplate(request:CreateWorldRequest,genre:String?=null):WorldDraftResponse =
         create(GenreTemplateSeeder.TEMPLATE_OWNER,request,true,genre)
 
-    /** 템플릿 시더만 null인 공개 장르를 채운다. 공개·표지 선택과 적재 marker·이력은 바꾸지 않는다. */
+    /** 템플릿 시더만 소유자 선택 전의 null 공개 장르를 채운다. 공개·표지 선택과 적재 marker·이력은 바꾸지 않는다. */
     internal fun fillTemplateGenre(worldId:UUID,genre:String?) {
         val mapped=worldGenre(genre) ?: return
         tx<Unit> {
             val world=worlds.lockOwned(worldId,GenreTemplateSeeder.TEMPLATE_OWNER)
-            if(world!=null && world.genre==null) world.genre=mapped
+            if(world!=null && world.genre==null && world.ownerMetadataVersion==0L) world.genre=mapped
         }
     }
 

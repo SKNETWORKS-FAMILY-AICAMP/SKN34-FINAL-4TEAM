@@ -72,6 +72,17 @@ class WorldStudioServiceTest {
         assertEquals("sf", entity.genre)
         verifyNoInteractions(templatePublications, expandedSeeds, drafts, states, requests, revisions, graph)
     }
+    @Test fun `template genre backfill does not fill a world after its publication changes`() {
+        val owner = GenreTemplateSeeder.TEMPLATE_OWNER
+        val entity = StudioWorld(world, owner, ownerMetadataVersion = 1)
+        `when`(worlds.lockOwned(world, owner)).thenReturn(entity)
+
+        service.fillTemplateGenre(world, "fantasy")
+
+        assertNull(entity.genre)
+        assertEquals(1L, entity.ownerMetadataVersion)
+        verifyNoInteractions(templatePublications, expandedSeeds, drafts, states, requests, revisions, graph)
+    }
     @Test fun `active expansion rejects ordinary edits saves and publication`() {
         owned()
         `when`(expandedSeeds.findById(world)).thenReturn(Optional.of(ExpandedSeedProgress(world,"hash")))
