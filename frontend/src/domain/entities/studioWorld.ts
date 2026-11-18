@@ -8,6 +8,8 @@ export type SettingItem = {
  polarity: 'asserted'|'denied'; relatedIds: string[]; condition: string; timeText: string; afterId: string|null
  orderEvidence: {sourceId:string;quote:string}[]; evidence: {sourceId:string;quote:string}[]
  origin: 'extraction'|'correction'|'author_addition'|'author_input'; authorText: string|null; decision: 'pending'|'approved'|'rejected'|'held'
+ /** 관계 행의 'N화부터'(DEC-54 2단계): 이 관계의 내용이 보이기 시작하는 회차(연결된 소설의 회차 순번, 1 이상의 정수). 서버가 준 그 관계의 시작 회차(응답의 `relationshipEpisodes`)를 읽어 두고, 작가가 고치면 바뀐 행만 저장 요청의 `relationshipEpisodes`로 보낸다. 서버에 저장하는 관계 본문에는 넣지 않는다. 관계가 아닌 행과, 시작 회차를 아직 모르는 새 관계(소설을 연결하지 않은 세계관은 1화)에는 없다. */
+ fromEpisode?: number
 }
 /** 설정 카드 단위 공개(DEC-46). 세계관 단위 공개([WorldVisibility])와 다르다. */
 export type CardVisibility = 'private'|'public'
@@ -42,6 +44,14 @@ export const cardRevealEpisode=({revealFromEpisode:n,visibility}:Pick<StudioSett
 /** 독자 공개 회차가 잘못됐는지: 값이 있는데 1 이상의 정수가 아니다. 저장 전 확인([worldWritingIssues])과 저장 검증(WorldStudioUseCase.save)이 같은 규칙·문구를 쓴다. */
 export const REVEAL_EPISODE_ERROR='독자 공개 회차는 1 이상의 정수로 입력해 주세요.'
 export const invalidReveal=({revealFromEpisode:n}:Pick<StudioSetting,'revealFromEpisode'>)=>n!==undefined&&!(Number.isInteger(n)&&n>=1)
+/**
+ * 관계의 N화부터(`fromEpisode`)가 잘못됐는지: 값이 있는데 1 이상의 정수가 아니다. 값이 없는 것은 여기서 거르지 않는다(소설을 연결하지 않은 세계관은 1화이고,
+ * 연결한 세계관의 새로 쓰거나 바꾼 관계만 값이 필요해 `lacksRelationFrom`을 저장 전 확인([worldWritingIssues])·관계 편집 패널·저장소가 따로 본다). 입력 칸·저장 전 확인·저장 검증이 같은 문구를 쓴다.
+ */
+export const RELATION_FROM_ERROR='관계가 몇 화부터인지 1 이상의 정수로 입력해 주세요.'
+export const invalidRelationFrom=({fromEpisode:n}:Pick<SettingItem,'fromEpisode'>)=>n!==undefined&&!(Number.isInteger(n)&&n>=1)
+/** 관계의 N화부터가 비었거나 잘못됐는지(소설을 연결한 세계관에서 새로 쓰거나 바꾼 관계에 필요한 값이 없다). */
+export const lacksRelationFrom=(item:Pick<SettingItem,'fromEpisode'>)=>item.fromEpisode===undefined||invalidRelationFrom(item)
 /** 관계 기준 회차(DEC-51, 연결된 소설의 회차 순번): 값이 있으면 1 이상의 정수여야 하고, 없으면(`null`) 최신 회차다. 조회·저장 검증(`invalidRelationEpisode`)과 입력 칸(`relationEpisodeInput`)이 같은 규칙·문구를 쓴다. */
 export const RELATION_EPISODE_ERROR='관계 기준 회차는 1 이상의 정수로 입력해 주세요.'
 export const invalidRelationEpisode=(n:number)=>!(Number.isInteger(n)&&n>=1)

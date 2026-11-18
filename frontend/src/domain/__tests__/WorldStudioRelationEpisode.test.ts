@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { DELETED_CARD_NAME, isDeletedCard, putRelation } from '../entities/studioRelations'
-import { newSetting, RELATION_EPISODE_ERROR, relationEpisodeInput, type StudioWorld } from '../entities/studioWorld'
+import { invalidRelationFrom, newSetting, RELATION_EPISODE_ERROR, RELATION_FROM_ERROR, relationEpisodeInput, type StudioWorld } from '../entities/studioWorld'
 import type { WorldStudioRepository } from '../repositories/WorldStudioRepository'
 import { WorldStudioUseCase } from '../usecases/WorldStudioUseCase'
 
@@ -81,5 +81,31 @@ describe('삭제된 설정을 끝점으로 하는 지난 회차 관계', () => {
 
   it('화면에 보일 이름은 삭제된 설정이다', () => {
     expect(DELETED_CARD_NAME).toBe('삭제된 설정')
+  })
+})
+
+describe('관계마다의 N화부터(fromEpisode, DEC-54 2단계)', () => {
+  const person = (title: string) => ({ ...newSetting('people'), item: { ...newSetting('people').item, title } })
+  const [a, b] = [person('가람'), person('나래')]
+  const rows = putRelation([a, b], { subjectId: a.item.id, targetId: b.item.id, predicate: 'friend_of', polarity: 'asserted' })
+  const withFrom = (fromEpisode: number | undefined): StudioWorld => ({
+    id: 'w', name: '세계', description: '', version: 1, linkedWorkId: 'work-1', analysis: null,
+    settings: rows.map((row) => (row.item.kind === 'relation' ? { ...row, item: { ...row.item, fromEpisode } } : row)),
+  })
+
+  it('값이 있는데 1 이상의 정수가 아니면 잘못이고, 값이 없는 것은 여기서 거르지 않는다', () => {
+    for (const n of [0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) expect(invalidRelationFrom({ fromEpisode: n }), String(n)).toBe(true)
+    for (const n of [undefined, 1, 7]) expect(invalidRelationFrom({ fromEpisode: n }), String(n)).toBe(false)
+    expect(RELATION_FROM_ERROR).toBe('관계가 몇 화부터인지 1 이상의 정수로 입력해 주세요.')
+  })
+
+  it('저장은 잘못된 N화부터를 저장소에 닿기 전에 같은 문구로 거절하고, 값이 없거나 올바르면 그대로 넘긴다', async () => {
+    const repository = { listStudio: vi.fn(), read: vi.fn(), create: vi.fn(), saveStudio: vi.fn(async (saved: StudioWorld) => saved), setPublication: vi.fn(), relationEpisodes: true as const }
+    const cases = new WorldStudioUseCase(repository as unknown as WorldStudioRepository)
+    for (const n of [0, -2, 2.5, Number.NaN]) await expect(cases.save(withFrom(n)), String(n)).rejects.toThrow(RELATION_FROM_ERROR)
+    expect(repository.saveStudio).not.toHaveBeenCalled()
+    await cases.save(withFrom(undefined))
+    await cases.save(withFrom(3))
+    expect(repository.saveStudio).toHaveBeenCalledTimes(2)
   })
 })

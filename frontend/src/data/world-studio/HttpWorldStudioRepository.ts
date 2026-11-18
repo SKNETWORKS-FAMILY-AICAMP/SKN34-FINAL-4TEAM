@@ -2,7 +2,7 @@ import { z } from 'zod'
 import type { WorldStudioRepository } from '../../domain/repositories/WorldStudioRepository'
 import { PUBLIC_WORLD_GENRES } from '../../domain/entities/publicWorld'
 import { isEpisodeKey, migrateCharacterDocs, storedCharacterDocs } from '../../domain/entities/characterDocs'
-import { newSetting, type StudioSetting, type StudioWorld, type WorldPublication, type WorldPublicationInput } from '../../domain/entities/studioWorld'
+import { invalidRelationFrom, newSetting, RELATION_FROM_ERROR, type StudioSetting, type StudioWorld, type WorldPublication, type WorldPublicationInput } from '../../domain/entities/studioWorld'
 import { cardTypeOf } from '../../domain/entities/studioCards'
 import { relationDefinitions } from '../../domain/entities/studioRelations'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
@@ -81,9 +81,10 @@ const importedFrom = z.object({ worldId: z.string(), worldName: z.string(), auth
 const characterDocs = z.object({ soul: z.string(), goal: z.string().optional(), memory: z.string().optional(), episodes: z.record(z.string().refine(isEpisodeKey), z.string()) }).transform(migrateCharacterDocs)
 // 카드 공개·독자 공개 회차·가져온 출처·인물 문서·대표 이미지는 행 필드가 정본이라 `studio` 안에 넣지 않는다. 회차·출처·문서·이미지는 최상위 키로 쓰고 값이 없으면(문서는 전부 비었거나 인물이 아니면) 키도 넣지 않는다.
 function metadataOf(row:StudioSetting) {
-  const {serverMetadata,visibility:_,revealFromEpisode:reveal,importedFrom:source,characterDocs:_docs,imageId:image,...view}=row
+  // 관계의 N화부터(`fromEpisode`)도 서버가 연결의 회차로 따로 가지므로(요청의 relationshipEpisodes) 관계 본문(`studio.item`)에는 넣지 않는다.
+  const {serverMetadata,visibility:_,revealFromEpisode:reveal,importedFrom:source,characterDocs:_docs,imageId:image,item:{fromEpisode:_from,...item},...view}=row
   const docs=storedCharacterDocs(row)
-  return {...serverMetadata,studio:view,...(reveal!==undefined&&{revealFromEpisode:reveal}),...(source&&{importedFrom:source}),...(docs&&{characterDocs:docs}),...(image&&{imageId:image})}
+  return {...serverMetadata,studio:{...view,item},...(reveal!==undefined&&{revealFromEpisode:reveal}),...(source&&{importedFrom:source}),...(docs&&{characterDocs:docs}),...(image&&{imageId:image})}
 }
 // A 6-B addition is a wire card/relation, not a complete legacy StudioSetting.
 function setting(m:z.infer<typeof metadata>, fields:Partial<StudioSetting['item']>, labels:Pick<StudioSetting,'userCategory'|'tags'|'aliases'>):StudioSetting {
@@ -151,6 +152,8 @@ const draft = z.object({
   genre: genre.default(null),
   hasCover: z.boolean().default(false),
   linkedWorkId,
+  // 관계 id → 그 시점 관계가 시작된 회차(가장 최근 연결의 'N화부터', DEC-54 2단계). 이 필드가 없던 서버 응답은 빈 객체로 읽는다.
+  relationshipEpisodes: z.record(uuid, z.number().int().min(1).max(2147483647)).default({}),
 })
 const summaries = z.array(
   z.object({
@@ -243,7 +246,8 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
       r.sourceCardId !== null && !ids.has(r.sourceCardId) ||
       r.targetCardId !== null && !ids.has(r.targetCardId)
     ) throw invalid()
-    settings.push(row)
+    const from = value.relationshipEpisodes[r.id]
+    settings.push(from === undefined ? row : { ...row, item: { ...row.item, fromEpisode: from } })
   }
   if (new Set(settings.map((s) => s.item.id)).size !== settings.length) throw invalid()
   return {
@@ -494,12 +498,22 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
       const removed=baseline.settings.filter(row=>!after.has(row.item.id) || (row.item.kind==='relation')!==(after.get(row.item.id)?.item.kind==='relation'))
       const cards=[...changed.filter(row=>row.item.kind!=='relation').map(row=>({row,lifecycle:'active'})),...removed.filter(row=>row.item.kind!=='relation').map(row=>({row,lifecycle:'removed'}))]
       const relationships=[...changed.filter(row=>row.item.kind==='relation').map(row=>relationship(row)),...removed.filter(row=>row.item.kind==='relation').map(row=>({...relationship(row),lifecycle:'removed'}))]
-      // 「동일 인물」은 회차가 정하는 정체 공개라 새로 쓰거나 바꾸거나 끝내는 저장은 회차가 있어야 한다(서버도 422). 소설을 연결하지 않은 세계관은 1화뿐이라 1로 보낸다(#485).
+      // 「동일 인물」은 회차가 정하는 정체 공개라 새로 쓰거나 바꾸거나 끝내는 저장은 회차가 있어야 한다(서버도 422): 새로 쓰거나 바꾸는 것은 자기 N화부터가, 끝내는 것은 요청 회차가 정한다. 소설을 연결하지 않은 세계관은 1화뿐이라 요청 회차를 1로 보낸다(#485).
       const identityTouched=relationships.some(r=>r.category==='identity')
+      // 새로 쓰거나 바꾸는 「동일 인물」은 자기 N화부터가 회차를 정하고(아래 timed), 끝내는 것(삭제)은 요청 회차가 정한다(DEC-54 2단계).
+      const identityEnded=relationships.some(r=>r.category==='identity'&&r.lifecycle==='removed')
       const savedAt=episode ?? (identityTouched && !baseline.linkedWorkId ? 1 : undefined)
-      // 설정을 지우는 저장은 회차를 지정할 수 없는데(서버 422) 「동일 인물」을 새로 쓰거나 바꾸거나 끝내는 저장은 회차가 있어야 한다(미연결 세계관은 1). 관계와 상관없는 설정 삭제도 같은 저장에 담을 수 없다.
+      // 설정을 지우는 저장은 회차를 지정할 수 없는데(서버 422) 「동일 인물」을 끝내는 저장은 요청 회차가 있어야 한다(미연결 세계관은 1). 관계와 상관없는 설정 삭제도 같은 저장에 담을 수 없다.
+      // ponytail: 새로 쓰거나 바꾸는 「동일 인물」은 자기 N화부터로 회차가 정해져 연결된 세계관에서는 설정 삭제와 함께 보내도 서버가 받지만, 기존 규칙대로 나눠 저장하게 한다(필요하면 풀기).
       if(identityTouched && cards.some(c=>c.lifecycle==='removed'))throw new Error('「동일 인물」 관계를 새로 쓰거나 바꾸거나 끝내는 저장은 설정 삭제와 함께 보낼 수 없어요. 한쪽을 먼저 저장한 뒤 나머지를 저장해 주세요(이어진 「동일 인물」이 있는 설정은 관계를 먼저 지우세요). 입력은 보존했어요.',{cause:'WORLD_WRITE_REJECTED'})
-      if(identityTouched && savedAt===undefined)throw new Error('「동일 인물」 관계를 새로 쓰거나 바꾸거나 끝내려면 관계 기준 회차를 정해야 해요. 입력을 보존하고 회차를 정해 주세요.',{cause:'WORLD_WRITE_REJECTED'})
+      if(identityEnded && savedAt===undefined)throw new Error('「동일 인물」 관계를 끝내려면 끝낼 회차를 정해야 해요. 관계도 위 "관계 기준" 칸에서 회차를 정한 뒤 다시 저장해 주세요. 입력은 보존했어요.',{cause:'WORLD_WRITE_REJECTED'})
+      // 관계마다의 N화부터: 바뀐 관계만 자기 회차로 기록한다. 소설을 연결한 세계관은 회차가 필수이고, 연결하지 않은 세계관은 1화 하나뿐이다(이미 있는 관계는 자기 시작 회차를 지킨다).
+      const timed:Record<string,number>={}
+      for(const row of changed.filter(r=>r.item.kind==='relation')){
+        const from=row.item.fromEpisode ?? (baseline.linkedWorkId ? undefined : 1)
+        if(from===undefined || invalidRelationFrom(row.item))throw new Error(`‘${row.item.title}’ 관계: ${RELATION_FROM_ERROR} 입력은 보존했어요.`,{cause:'WORLD_WRITE_REJECTED'})
+        timed[row.item.id]=from
+      }
       if(cards.length>1000 || relationships.length>1000)throw new Error('한 번에 저장할 수 있는 변경 한도를 넘었어요. 입력을 보존하고 변경을 줄여 주세요.',{cause:'WORLD_WRITE_REJECTED'})
       body=JSON.stringify({
         expectedDraftRevision: value.version,
@@ -522,6 +536,7 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
           lifecycle,
         })),
         relationships,
+        ...(Object.keys(timed).length>0&&{relationshipEpisodes:timed}),
       })
       // 서버 재직렬화의 null 필드와 UTF-16 이스케이프에 여유를 둔다.
       const size=new TextEncoder().encode(body.replace(/[\uD800-\uDFFF]/g,c=>`\\u${c.charCodeAt(0).toString(16).padStart(4,'0')}`)).length

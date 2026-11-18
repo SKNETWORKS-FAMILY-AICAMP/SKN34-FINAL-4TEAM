@@ -2,7 +2,7 @@ import {afterEach,beforeEach,expect,it,vi} from 'vitest'
 import '../../test/testLocks'
 import {login} from '../api/auth'
 import {HttpWorldStudioRepository} from './HttpWorldStudioRepository'
-import {cardRevealEpisode,newSetting,type StudioWorld} from '../../domain/entities/studioWorld'
+import {cardRevealEpisode,newSetting,RELATION_FROM_ERROR,type StudioWorld} from '../../domain/entities/studioWorld'
 import {readFileSync} from 'node:fs'
 
 const id=crypto.randomUUID()
@@ -785,7 +785,7 @@ it('소설을 연결하지 않은 세계관의 「동일 인물」 저장은 1�
   expect(JSON.parse(fetcher.mock.calls[1][1].body).episode).toBe(1)
   const linked=vi.fn().mockResolvedValueOnce(Response.json({...wire(),linkedWorkId:'work-1'}))
   const second=new HttpWorldStudioRepository(linked),loadedLinked=await second.read(id)
-  await expect(second.saveStudio({...loadedLinked,settings:[...loadedLinked.settings,identityRow()]})).rejects.toThrow('회차')
+  await expect(second.saveStudio({...loadedLinked,settings:[...loadedLinked.settings,identityRow()]})).rejects.toThrow(RELATION_FROM_ERROR)
   expect(linked).toHaveBeenCalledTimes(1) // 읽기뿐이다: 저장 요청은 나가지 않았다
 })
 it('「동일 인물」을 끝내는 저장도 회차가 필요하다: 미연결은 1화로, 연결된 세계관은 회차를 정한 뒤에만 보낸다',async()=>{
@@ -824,4 +824,77 @@ it('「동일 인물」과 상관없는 설정 삭제는 회차 없이 그대로
   await repo.saveStudio({...loaded,settings:loaded.settings.filter(r=>r.item.id!==c.item.id)})
   const body=JSON.parse(fetcher.mock.calls[1][1].body)
   expect(body.episode).toBeUndefined();expect(body.cards).toMatchObject([{id:c.item.id,lifecycle:'removed'}])
+})
+
+// ── 관계마다의 N화부터(DEC-54 2단계): 응답 relationshipEpisodes → 행의 fromEpisode, 바뀐 관계만 저장 요청의 relationshipEpisodes ───
+const reply=(version:number,episodes:Record<string,number>,extra:object={})=>Response.json({...wire(version),relationshipEpisodes:episodes,...extra})
+const sent=(fetcher:ReturnType<typeof vi.fn>,call=1)=>JSON.parse(fetcher.mock.calls[call][1].body)
+/** 그 관계 행(relation)의 내용·N화부터를 바꾼 세계관. */
+const edited=(world:StudioWorld,patch:object)=>({...world,settings:world.settings.map(s=>s.item.id===relation.item.id?{...s,item:{...s.item,...patch}}:s)})
+const LINKED={linkedWorkId:'work-1'}
+it('reads the start episode of each relation into its row and rejects an unusable one',async()=>{
+ const loaded=await new HttpWorldStudioRepository(vi.fn().mockResolvedValue(reply(2,{[relation.item.id]:3}))).read(id)
+ expect(loaded.settings.map(s=>s.item.fromEpisode)).toEqual([undefined,undefined,3])
+ for(const bad of [{[relation.item.id]:0},{[relation.item.id]:1.5},{'not-a-uuid':2}])
+  await expect(new HttpWorldStudioRepository(vi.fn().mockResolvedValue(reply(2,bad))).read(id)).rejects.toThrow('응답')
+})
+it('sends the N화부터 of a changed relation as relationshipEpisodes and nothing for an unchanged or removed one',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(reply(2,{[relation.item.id]:3},LINKED)).mockResolvedValueOnce(reply(3,{[relation.item.id]:3},LINKED))
+  .mockResolvedValueOnce(reply(4,{[relation.item.id]:3},LINKED)).mockResolvedValueOnce(reply(5,{[relation.item.id]:6},LINKED)).mockResolvedValueOnce(reply(6,{},LINKED))
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id)
+ const first=await repo.saveStudio(loaded)
+ expect(sent(fetcher)).not.toHaveProperty('relationshipEpisodes') // 바뀐 관계가 없으면 보내지 않는다
+ const second=await repo.saveStudio(edited(first,{text:'고친 글'}))
+ expect(sent(fetcher,2).relationshipEpisodes).toEqual({[relation.item.id]:3}) // 회차를 건드리지 않은 수정은 그 관계의 시작 회차 기록을 고친다
+ const third=await repo.saveStudio(edited(second,{text:'6화에 바뀐 글',fromEpisode:6}))
+ expect(sent(fetcher,3).relationshipEpisodes).toEqual({[relation.item.id]:6})
+ await repo.saveStudio({...third,settings:third.settings.filter(s=>s.item.id!==relation.item.id)})
+ expect(sent(fetcher,4).relationships).toMatchObject([{id:relation.item.id,lifecycle:'removed'}])
+ expect(sent(fetcher,4)).not.toHaveProperty('relationshipEpisodes') // 끝내는 관계의 회차는 요청의 회차가 정한다
+})
+it('keeps the N화부터 out of the relation payload the server stores',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(reply(2,{[relation.item.id]:3},LINKED)).mockResolvedValueOnce(reply(3,{[relation.item.id]:5},LINKED))
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id)
+ await repo.saveStudio(edited(loaded,{text:'고친 글',fromEpisode:5}))
+ const [sentRelation]=sent(fetcher).relationships
+ expect(sentRelation.semanticMetadata.studio.item).not.toHaveProperty('fromEpisode')
+ expect(sentRelation.semanticMetadata.studio.item).toMatchObject({id:relation.item.id,text:'고친 글'})
+})
+it('refuses a new or changed relation without N화부터 in a linked world before sending, and writes one in an unlinked world at 1화',async()=>{
+ const added={...relation,item:{...relation.item,id:crypto.randomUUID(),title:'새 관계',text:'새 관계 글'}}
+ const linked=vi.fn().mockResolvedValueOnce(reply(2,{[relation.item.id]:3},LINKED))
+ const first=new HttpWorldStudioRepository(linked),loadedLinked=await first.read(id)
+ await expect(first.saveStudio({...loadedLinked,settings:[...loadedLinked.settings,added]})).rejects.toThrow(RELATION_FROM_ERROR)
+ await expect(first.saveStudio(edited(loadedLinked,{fromEpisode:undefined,text:'고친 글'}))).rejects.toThrow(RELATION_FROM_ERROR)
+ expect(linked).toHaveBeenCalledTimes(1) // 읽기뿐이다: 저장 요청은 나가지 않았다
+ const unlinked=vi.fn().mockResolvedValueOnce(reply(2,{[relation.item.id]:3})).mockResolvedValueOnce(reply(3,{[relation.item.id]:3}))
+ const second=new HttpWorldStudioRepository(unlinked),loaded=await second.read(id)
+ await second.saveStudio({...edited(loaded,{text:'고친 글'}),settings:[...edited(loaded,{text:'고친 글'}).settings,added]})
+ expect(sent(unlinked).relationshipEpisodes).toEqual({[relation.item.id]:3,[added.item.id]:1}) // 소설이 없는 세계관은 1화 하나뿐이고 이미 있는 관계는 자기 시작 회차를 지킨다
+})
+it('keeps the viewed episode as the request episode while each relation carries its own N화부터',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(reply(2,{[relation.item.id]:3},LINKED)).mockResolvedValueOnce(reply(3,{[relation.item.id]:4},LINKED))
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id,undefined,4)
+ await repo.saveStudio(edited(loaded,{text:'4화에 바뀐 글',fromEpisode:4}),undefined,4)
+ expect(sent(fetcher)).toMatchObject({episode:4,relationshipEpisodes:{[relation.item.id]:4}})
+})
+it('writes a 「동일 인물」 with its own N화부터 in a linked world without asking for a viewed episode, but ending one still needs it',async()=>{
+ const row={...identityRow(),item:{...identityRow().item,fromEpisode:4}}
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json({...wire(),...LINKED})).mockResolvedValueOnce(Response.json({...wire(3),...LINKED,relationships:[identityWire(row)],relationshipEpisodes:{[row.item.id]:4}}))
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id)
+ const saved=await repo.saveStudio({...loaded,settings:[...loaded.settings,row]})
+ const body=sent(fetcher)
+ expect(body).not.toHaveProperty('episode')
+ expect(body).toMatchObject({relationshipEpisodes:{[row.item.id]:4},relationships:[{category:'identity',lifecycle:'active'}]})
+ expect(saved.settings.find(s=>s.item.id===row.item.id)?.item.fromEpisode).toBe(4)
+ await expect(repo.saveStudio({...saved,settings:saved.settings.filter(s=>s.item.id!==row.item.id&&s.item.id!==relation.item.id)})).rejects.toThrow('회차')
+})
+it('retries an ambiguous save with the exact relationshipEpisodes and refuses to change the N화부터 while it is pending',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(reply(2,{[relation.item.id]:3},LINKED)).mockRejectedValueOnce(new TypeError('network')).mockResolvedValueOnce(reply(3,{[relation.item.id]:5},LINKED))
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id),world=edited(loaded,{text:'고친 글',fromEpisode:5})
+ await expect(repo.saveStudio(world)).rejects.toThrow('network')
+ await expect(repo.saveStudio(edited(loaded,{text:'고친 글',fromEpisode:6}))).rejects.toThrow('같은 입력')
+ await repo.saveStudio(world)
+ expect(fetcher.mock.calls[2][1].body).toBe(fetcher.mock.calls[1][1].body)
+ expect(sent(fetcher,2).relationshipEpisodes).toEqual({[relation.item.id]:5})
 })

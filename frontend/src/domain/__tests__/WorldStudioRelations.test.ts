@@ -288,3 +288,24 @@ it('reads which card is the body of an other-name card from the asserted identit
  rows=rows.map(s=>s.item.predicate==='identity_of'?{...s,item:{...s.item,polarity:'denied' as const}}:s)
  expect(identityBodies(rows).size).toBe(0)                      // 부정은 이은 것이 아니다
 })
+
+it('carries the N화부터 of each relation: new rows and edited rows take the typed episode, an unchanged episode leaves the row alone, and a missing one never clears it',()=>{
+ const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
+ const base=putRelation([a,b],{subjectId:a.item.id,targetId:b.item.id,predicate:'custom_relation_directed',polarity:'asserted',text:'경계한다'})
+ const rows=base.map(s=>s.item.kind==='relation'?{...s,item:{...s.item,fromEpisode:2}}:s)
+ const old=rows[2].item
+ // 새 관계는 적은 회차를 그대로 가진다.
+ const added=applyRelationChanges(rows,[{subjectId:b.item.id,targetId:a.item.id,predicate:'custom_emotion',polarity:'asserted',text:'믿는다',fromEpisode:4}],[])
+ expect(added.at(-1)?.item.fromEpisode).toBe(4)
+ // 그대로 둔 관계(회차도 같음)는 행을 바꾸지 않는다.
+ expect(applyRelationChanges(rows,[{...old,baseline:old}],[])[2]).toBe(rows[2])
+ // 설명은 그대로이고 회차만 옮기면 그 행이 바뀐다(같은 관계 id).
+ const moved=applyRelationChanges(rows,[{...old,fromEpisode:5,baseline:old}],[])[2]
+ expect([moved.item.id,moved.item.fromEpisode,moved.item.text]).toEqual([old.id,5,'경계한다'])
+ // 회차가 없는 입력(소설을 연결하지 않은 세계관의 숨긴 칸)은 이미 있는 회차를 지우지 않는다.
+ const {fromEpisode:_,...noEpisode}=old
+ expect(applyRelationChanges(rows,[{...noEpisode,text:'보호한다',baseline:old}],[])[2].item).toMatchObject({text:'보호한다',fromEpisode:2})
+ // 패널을 연 뒤 다른 곳에서 회차가 바뀌었으면 입력을 덮어쓰지 않고 거절한다.
+ const elsewhere=rows.map(s=>s.item.id===old.id?{...s,item:{...s.item,fromEpisode:7}}:s)
+ expect(()=>applyRelationChanges(elsewhere,[{...old,text:'보호한다',baseline:old}],[])).toThrow(/다른 곳에서/)
+})

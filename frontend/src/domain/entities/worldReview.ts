@@ -47,7 +47,7 @@ export type OrderIssue = { cardId: string; source: 'body' | 'relation'; relation
 /**
  * 공개 순서 점검([계약](../../../../docs/design/world-review-contract.md#공개-순서-규칙--dec-53)): 모델 없이 저장 전 초안에서 계산한다. 카드 C의 본문(링크 글자 포함, 링크의 id는 뺀다)과 C를 끝점으로 하는 관계의 label·body에
  * 다른 카드 D의 제목·별칭이 나오고 D의 유효 공개 회차가 그 글이 독자에게 보이기 시작하는 회차보다 늦으면 알린다. 작가 전용 D는 가장 늦은 회차로 본다.
- * C가 작가 전용이면 독자에게 보이지 않으므로 점검하지 않고, 관계 문구는 두 끝 카드 가운데 늦은 회차부터 보이는 것으로 본다(관계의 기록 회차는 초안에 없어 쓰지 않는다).
+ * C가 작가 전용이면 독자에게 보이지 않으므로 점검하지 않고, 관계 문구는 두 끝 카드와 관계의 기록 회차(`fromEpisode`, DEC-54 2단계: 없으면 1화) 가운데 가장 늦은 회차부터 보이는 것으로 본다.
  * 부분 문자열 일치라 짧은 이름은 잘못 잡힐 수 있다. 같은 글에서 같은 카드는 한 번만(제목이 별칭보다 먼저) 알린다.
  * ponytail: 카드 수의 제곱 번 includes를 한다(수백 장은 문제없다). 천 장을 넘어 입력이 밀리면 본문이 바뀐 카드만 다시 센다.
  */
@@ -71,7 +71,7 @@ export function publicationOrderIssues(settings: readonly StudioSetting[]): Orde
   for (const { item } of settings) {
     const [subject, target] = [item.subjectId, item.targetId].map((id) => (id ? from.get(id) : undefined))
     if (item.kind !== 'relation' || subject === undefined || target === undefined) continue
-    const visibleFrom = Math.max(subject, target)
+    const visibleFrom = Math.max(subject, target, item.fromEpisode ?? 1)
     scan(stripCardLinks(`${item.title}\n${item.text}`), visibleFrom, (name, named) => { for (const cardId of [item.subjectId!, item.targetId!]) issues.push({ cardId, source: 'relation', relationId: item.id, name, named, visibleFrom }) })
   }
   return issues

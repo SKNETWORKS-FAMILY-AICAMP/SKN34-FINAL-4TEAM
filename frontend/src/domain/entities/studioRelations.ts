@@ -11,7 +11,7 @@ export const relationDefinitions:Record<string,{label:string;group:'fact'|'emoti
  trusts:{label:'신뢰',group:'emotion'}, wary_of:{label:'경계',group:'emotion'}, likes:{label:'호감',group:'emotion'}, hostile_to:{label:'적대',group:'emotion'},
  member_of:{label:'소속',group:'other'}, leads:{label:'이끎',group:'other'}, can_use:{label:'사용 가능',group:'other'}, located_in:{label:'위치',group:'other'},
 }
-export type RelationInput=Pick<SettingItem,'subjectId'|'targetId'|'predicate'|'polarity'> & Partial<Pick<SettingItem,'id'|'title'|'text'>>
+export type RelationInput=Pick<SettingItem,'subjectId'|'targetId'|'predicate'|'polarity'> & Partial<Pick<SettingItem,'id'|'title'|'text'|'fromEpisode'>>
 export const isFreeRelation=(predicate:string|null|undefined)=>['custom_relation','custom_relation_directed','custom_emotion','preserved_emotion_symmetric'].includes(predicate??'')
 export function relationLabel(item:Pick<SettingItem,'predicate'|'polarity'>&Partial<Pick<SettingItem,'text'>>) {
  return ((isFreeRelation(item.predicate)?item.text:undefined)??relationDefinitions[item.predicate??'']?.label??item.predicate??'관계')+(item.polarity==='denied'?' 아님':'')
@@ -91,7 +91,7 @@ export function applyRelationChanges(settings:StudioSetting[],changes:(RelationI
  for(const {id,baseline} of changes) {
   if(!baseline)continue
   const current=settings.find(s=>s.item.id===id)?.item
-  if(!current||current.kind!=='relation'||(['subjectId','targetId','predicate','polarity','title','text'] as const).some(key=>current[key]!==baseline[key]))throw new Error('다른 곳에서 관계가 변경되어 적용하지 못했습니다. 입력은 유지됩니다. 필요한 내용을 복사한 뒤 취소하고 관계를 다시 열어 주세요.')
+  if(!current||current.kind!=='relation'||(['subjectId','targetId','predicate','polarity','title','text','fromEpisode'] as const).some(key=>current[key]!==baseline[key]))throw new Error('다른 곳에서 관계가 변경되어 적용하지 못했습니다. 입력은 유지됩니다. 필요한 내용을 복사한 뒤 취소하고 관계를 다시 열어 주세요.')
  }
  const ids=changes.flatMap(c=>c.id?[c.id]:[])
  if(new Set(ids).size!==ids.length||ids.some(id=>removedIds.includes(id)))throw new Error('같은 관계의 수정과 삭제를 중복 적용할 수 없습니다.')
@@ -101,7 +101,7 @@ export function applyRelationChanges(settings:StudioSetting[],changes:(RelationI
  for(const change of changes.filter(c=>c.id)) {
   const before=next.find(s=>s.item.id===change.id)
   if(before?.item.kind!=='relation')throw new Error('수정할 관계를 찾을 수 없습니다.')
-  const patch:Partial<SettingItem>={subjectId:change.subjectId,targetId:change.targetId,predicate:change.predicate,polarity:change.polarity,...(change.title!==undefined?{title:change.title.trim()?change.title:generatedDescription(change,next).slice(0,200)}:{}),...(change.text!==undefined?{text:change.text}:{})}
+  const patch:Partial<SettingItem>={subjectId:change.subjectId,targetId:change.targetId,predicate:change.predicate,polarity:change.polarity,...(change.title!==undefined?{title:change.title.trim()?change.title:generatedDescription(change,next).slice(0,200)}:{}),...(change.text!==undefined?{text:change.text}:{}),...(change.fromEpisode!==undefined?{fromEpisode:change.fromEpisode}:{})}
   if(Object.entries(patch).every(([key,value])=>before.item[key as keyof SettingItem]===value))continue
   next=editStudioSetting(next,change.id!,patch);editedIds.push(change.id!)
  }

@@ -1,4 +1,4 @@
-import type { StudioSetting } from './studioWorld'
+import { lacksRelationFrom, type StudioSetting } from './studioWorld'
 import { isFreeRelation, relationDefinitions, type RelationInput } from './studioRelations'
 
 export type RelationGroup = 'fact' | 'emotion' | 'identity'
@@ -104,11 +104,14 @@ export function relationDirectionPatch(
   }
 }
 
+/** 적용할 행인지: 이미 있는 관계이거나 설명을 적었거나 「동일 인물」이다(비어 있는 새 행은 조용히 건너뛴다). */
+const applies = (row: RelationDraftRow) => !!row.value.id || !!row.value.text?.trim() || row.group === 'identity'
+
 export function relationDraftChanges(
   rows: RelationDraftRow[],
 ): (RelationInput & { baseline?: RelationInput })[] {
   return rows
-    .filter((row) => row.value.id || row.value.text?.trim() || row.group === 'identity')
+    .filter(applies)
     .map((row) => row.baseline ? { ...row.value, baseline: row.baseline } : row.value)
 }
 
@@ -139,7 +142,7 @@ export function hasRelationDraftChanges(
 /** 일부만 작성한 새 행을 적용 과정에서 조용히 버리지 않습니다. */
 export function hasIncompleteRelationDraft(initial: RelationDraftRow[], rows: RelationDraftRow[]): boolean {
   return rows.some((row) => {
-    if (row.value.id || row.value.text?.trim() || row.group === 'identity') return false
+    if (applies(row)) return false
     const original = initial.find((candidate) => candidate.key === row.key)
     return !original || comparable(original.value) !== comparable(row.value)
   })
@@ -151,13 +154,17 @@ export function identityBodyPatch(bodyId: string, source: string, target: string
 }
 
 /**
- * 「동일 인물」을 새로 쓰거나 바꾸거나 끝내는 적용인지(처음 [initial]에서 [rows]·[removed]로). 그런 저장은 관계 기준 회차가 있어야 한다(서버도 회차 없는 저장을 422로 거절한다).
- * 그대로 둔 행은 회차를 다시 정하지 않아도 된다.
+ * 소설을 연결한 세계관에서 적용할 행의 'N화부터'가 비었거나 1 이상의 정수가 아닌지(DEC-54 2단계). 새로 쓰거나 바꾸는 관계는 자기 회차를 정해야 저장돼 입력 칸과 '편집본에 적용'이 같은 규칙을 쓴다.
+ * 기존 관계는 서버가 준 시작 회차가 채워져 있다.
  */
-export function identityNeedsEpisode(initial: RelationDraftRow[], rows: RelationDraftRow[], removed: string[]): boolean {
-  return rows.some((row) => row.group === 'identity' && (!row.baseline || comparable(row.baseline) !== comparable(row.value))) ||
-    initial.some((row) => row.group === 'identity' && !!row.value.id && removed.includes(row.value.id))
-}
+export const relationFromInvalid = (row: RelationDraftRow): boolean => applies(row) && lacksRelationFrom(row.value)
+
+/**
+ * 「동일 인물」을 끝내는(지우는) 적용인지(처음 [initial]에서 [removed]로). 새로 쓰거나 바꾸는 「동일 인물」은 자기 N화부터가 회차를 정하지만, 끝내는 회차는 관계 행에 없고 요청의 회차(이 회차 시점으로 보기)가 정한다.
+ * 서버도 끝내는 「동일 인물」은 요청 회차 없이는 422로 거절한다.
+ */
+export const endsIdentity = (initial: RelationDraftRow[], removed: string[]): boolean =>
+  initial.some((row) => row.group === 'identity' && !!row.value.id && removed.includes(row.value.id))
 
 /** 카드가 '작가 전용'(공개 회차도 없고 공개 카드도 아님)인지. 본체가 작가 전용이면 인물 지식에 시점 제한이 없어 다른 인물이 본체를 알 수 있다(DEC-53). */
 export const isAuthorOnly = (setting: Pick<StudioSetting, 'revealFromEpisode' | 'visibility'> | undefined): boolean =>

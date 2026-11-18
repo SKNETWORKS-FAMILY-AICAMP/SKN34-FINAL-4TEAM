@@ -84,7 +84,7 @@ export function useWorldStudioViewModel(
   const [relationWorld, setRelationWorld] = useState('')
   const [relationRequest, setRelationRequest] = useState<{ id: string; seq: number } | null>(null)
   const [relationKey, setRelationKey] = useState(0)
-  const [episode, setEpisode] = useState<number | null>(null) // 관계 기준 회차(DEC-51). null이면 최신 회차이고, 읽기·저장이 이 회차 시점의 관계를 쓴다.
+  const [episode, setEpisode] = useState<number | null>(null) // 관계 기준 회차(DEC-51, '이 회차 시점으로 보기'). null이면 최신 회차이고, 읽기가 이 회차 시점의 관계를 쓴다. 저장은 바뀐 관계마다의 N화부터(`fromEpisode`)로 기록하고, 삭제한 관계만 이 회차에서 끝난다.
   const returnCard = useRef('')
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'failed'>('idle')
   const [worlds, setWorlds] = useState<StudioWorld[]>([])
@@ -164,6 +164,11 @@ export function useWorldStudioViewModel(
   const closeCard = () => {
     if (selected && cameFromBoard(location.state)) navigate(-1)
     else editParams((query) => query.delete('card'))
+  }
+  /** 관계도 보기를 열고 그 관계의 편집 패널을 연다(관계 편집기가 이 요청을 받아 두 설정을 고르고 그 행에 초점을 둔다). */
+  const editRelation = (id: string) => {
+    setRelationRequest((previous) => ({ id, seq: (previous?.seq ?? 0) + 1 }))
+    goStep('relations')
   }
   const generation = useRef(0)
   const mutation = useRef<AbortController | null>(null)
@@ -256,7 +261,7 @@ export function useWorldStudioViewModel(
       setError(e instanceof Error ? e.message : '관계를 변경하지 못했어요.')
     }
   }
-  const writingIssues = editing ? worldWritingIssues(editing) : []
+  const writingIssues = editing ? worldWritingIssues(editing, saved ?? undefined) : []
   // 이름·설명 인라인 저장은 초안 전체를 저장하므로, 저장하지 않은 수정이나 저장 전 확인 항목이 있으면 그 변경이 검사 없이 함께 저장된다 → 먼저 저장하게 막는다.
   const infoLocked = dirty || writingIssues.length > 0
   // 저장할 수 있는지: 바뀐 것이 있거나 한 번도 저장한 적 없는 세계관(첫 저장)이고, 저장 전 확인 항목이 없다.
@@ -268,6 +273,14 @@ export function useWorldStudioViewModel(
     : dirty || relationDirty ? '저장하지 않은 변경이 있어 회차를 바꿀 수 없어요. 먼저 세계관을 저장하세요.' : ''
   // 설정 삭제는 카드 변경이라 회차 시점이 아니라 최신 저장에서만 받는다(서버도 회차를 지정한 저장의 카드 삭제를 422로 거절한다).
   const deleteLock = episode === null ? '' : '설정 삭제는 최신 회차에서 할 수 있어요.'
+  // 관계마다 'N화부터'를 정하는 세계관인지(DEC-54 2단계): 소설을 연결한 서버 세계관이다. 연결하지 않았거나 데모(메모리)면 칸을 숨기고 1화로 저장한다.
+  const relationFrom = useCase.supportsRelationEpisodes && !!saved?.linkedWorkId
+  // 회차를 고른 채 저장할 때 삭제한 관계는 그 회차에서 끝나는 것으로 기록된다(바꾼 관계는 자기 N화부터가 정한다).
+  const endedRelations = (() => {
+    if (episode === null || !saved || !editing) return 0
+    const kept = new Set(editing.settings.map((s) => s.item.id))
+    return saved.settings.filter((s) => s.item.kind === 'relation' && !kept.has(s.item.id)).length
+  })()
   const publication: WorldPublicationInput = { visibility: saved?.visibility ?? 'private', genre: saved?.genre ?? null }
   const demo = import.meta.env.MODE === 'mockup'
   const listing = listingOf(saved, demo)
@@ -328,18 +341,15 @@ export function useWorldStudioViewModel(
       returnCard.current = id
       goStep('relations')
     },
-    editRelation: (id: string) => {
-      setRelationRequest((previous) => ({ id, seq: (previous?.seq ?? 0) + 1 }))
-      goStep('relations')
-    },
+    editRelation,
     returnToCard: () => {
       if (returnCard.current) editCard(returnCard.current)
       else goStep('cards')
     },
     cardRows: cardLibraryRows(editing?.settings ?? [], cardFilter, cardQuery),
     writingIssues,
-    /** 저장 전 확인 사유가 가리키는 곳을 연다: 설정의 문제면 그 설정의 편집 화면, 세계관 자체의 문제(이름)면 기본 정보 단계다. */
-    openIssue: (issue: WritingIssue) => (issue.id ? editCard(issue.id) : goStep('info')),
+    /** 저장 전 확인 사유가 가리키는 곳을 연다: 설정의 문제면 그 설정의 편집 화면, 관계의 문제면 그 관계의 편집 패널, 세계관 자체의 문제(이름)면 기본 정보 단계다. */
+    openIssue: (issue: WritingIssue) => (issue.step === 'relations' ? editRelation(issue.id!) : issue.id ? editCard(issue.id) : goStep('info')),
     sealIssues: saved ? worldSealIssues(saved) : [],
     worlds,
     saved,
@@ -394,12 +404,14 @@ export function useWorldStudioViewModel(
     },
     /** 관계 기준 회차(DEC-51, 연결된 소설의 회차 순번). null이면 최신 회차다. */
     episode,
-    /** 「동일 인물」(#485)을 기록할 회차: 소설을 연결한 세계관은 정한 관계 기준 회차(정하지 않았으면 null), 연결하지 않은 세계관은 1화 하나뿐이라 1이다. */
+    /** 「동일 인물」(#485)을 끝낼 회차: 새로 쓰거나 바꾸는 것은 관계 행의 N화부터가 정하고, 끝내는(삭제하는) 것은 정한 관계 기준 회차가 정한다(정하지 않았으면 null, 연결하지 않은 세계관은 1화 하나뿐이라 1). */
     identityEpisode: episode ?? (saved?.linkedWorkId ? null : 1),
+    /** 관계 편집 행이 'N화부터' 칸을 받는지(소설을 연결한 서버 세계관, DEC-54 2단계). 아니면 칸을 숨기고 1화로 저장한다. */
+    relationFrom,
     /** 회차를 바꿀 수 없는 이유(데모·소설 미연결·AI 후보 검토·확정 버전 요청 중·저장하지 않은 변경), 바꿀 수 있으면 빈 글이다. */
     episodeLock,
-    /** 지난 회차를 연 채 저장하면 관계가 어느 회차로 기록되는지(최신 회차면 빈 글). 저장 영역과 검토·저장 단계가 보인다. */
-    episodeSaveNote: episode === null ? '' : `관계는 ${episode}화 기준으로 저장돼요.`,
+    /** 지난 회차를 연 채 관계를 삭제했을 때, 삭제한 관계가 어느 회차에서 끝나는지(없으면 빈 글). 저장 영역과 검토·저장 단계가 보인다. */
+    episodeSaveNote: endedRelations ? `삭제한 관계 ${endedRelations}개는 ${episode}화에서 끝나는 것으로 저장돼요.` : '',
     /** 설정 삭제를 막는 이유(회차를 고른 동안), 삭제할 수 있으면 빈 글이다. 삭제 진입점들이 잠그고 이 글을 보인다. */
     deleteLock,
     /** 그 회차 시점의 관계로 초안을 다시 읽는다(null이면 최신). 읽지 못하면 이전 회차 그대로 오류를 보이고, 잠겨 있거나 같은 회차면 읽지 않는다. */

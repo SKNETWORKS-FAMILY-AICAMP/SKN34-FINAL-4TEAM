@@ -1,8 +1,42 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef } from 'react'
+import type { RelationDraftRow } from '../../../../domain/entities/relationDraft'
 import { isFreeRelation, relationLabel } from '../../../../domain/entities/studioRelations'
+import { RELATION_FROM_ERROR } from '../../../../domain/entities/studioWorld'
 import { useRelationPairViewModel } from '../viewmodel/useRelationPairViewModel'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 type VM = ReturnType<typeof useWorldStudioViewModel>
+type Pair = ReturnType<typeof useRelationPairViewModel>
+
+/**
+ * 관계 행의 'N화부터' 칸(DEC-54 2단계, 소설을 연결한 세계관만). 이 관계의 내용이 보이기 시작하는 회차이고 적용하려면 1 이상의 정수가 있어야 한다. 기존 관계는 서버가 준 시작 회차가 채워져 있다.
+ * 잘못된 값은 칸을 `aria-invalid`로 두고 이유를 칸의 설명(`aria-describedby`)으로 잇는다. 공개 회차 입력처럼 숫자만 받는다.
+ */
+function FromEpisode({ field, row, vm }: { field: string; row: RelationDraftRow; vm: Pair }) {
+  const id = useId(), invalid = vm.fromInvalid(row)
+  return (
+    <>
+      <label className='relationship-from'>
+        {field} 시작 회차
+        <input
+          type='text'
+          inputMode='numeric'
+          pattern='[0-9]*'
+          autoComplete='off'
+          className='inp'
+          aria-invalid={invalid}
+          aria-describedby={`${invalid ? `${id}-error ` : ''}${id}-help`}
+          value={row.value.fromEpisode ?? ''}
+          onChange={(e) => vm.writeFrom(row, e.target.value)}
+        />
+        화부터
+      </label>
+      {invalid && <p id={`${id}-error`} className='small world-field-error'>{RELATION_FROM_ERROR}</p>}
+      <p id={`${id}-help`} className='small muted'>
+        이 내용이 이 회차부터 보여요. 같은 회차에 다시 저장하면 그 회차의 기록을 고쳐요.
+      </p>
+    </>
+  )
+}
 
 export function RelationPairEditor(
   { studio, source, target, focusRequest, onClose, onDirty }: {
@@ -17,7 +51,11 @@ export function RelationPairEditor(
   const focusedRow = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!focusRequest) return
-    const frame = requestAnimationFrame(() => focusedRow.current?.querySelector<HTMLElement>('input,textarea,select')?.focus())
+    // 고칠 칸(잘못된 N화부터)이 있으면 그 칸에, 없으면 행의 첫 칸에 초점을 둔다.
+    const frame = requestAnimationFrame(() => {
+      const row = focusedRow.current
+      ;(row?.querySelector<HTMLElement>('[aria-invalid="true"]') ?? row?.querySelector<HTMLElement>('input,textarea,select'))?.focus()
+    })
     return () => cancelAnimationFrame(frame)
   }, [focusRequest])
   const name = (id: string | null) =>
@@ -65,6 +103,7 @@ export function RelationPairEditor(
               {r.value.id && !isFreeRelation(r.value.predicate) && (
                 <p className='small muted'>기존 관계: {relationLabel(r.value)}</p>
               )}
+              {studio.relationFrom && <FromEpisode field={field} row={r} vm={vm} />}
               {kind === 'fact' && (
                 <>
                   <label className='field'>
@@ -153,7 +192,7 @@ export function RelationPairEditor(
       </section>
     )
   }
-  // 같은 사람의 다른 이름 카드(주체) → 본체 카드(대상). 인물 카드끼리만, 회차를 정해야 적용돼요(#485).
+  // 같은 사람의 다른 이름 카드(주체) → 본체 카드(대상). 인물 카드끼리만 잇고, 소설을 연결한 세계관은 행마다 N화부터를 정해야 적용돼요(#485, DEC-54).
   const identity = () => {
     const visible = rows.filter((r) => r.group === 'identity')
     return (
@@ -174,6 +213,10 @@ export function RelationPairEditor(
                 </select>
               </label>
               <p className='small'>{name(r.value.subjectId)}은(는) {name(r.value.targetId)}의 다른 이름이에요.</p>
+              {studio.relationFrom && <FromEpisode field={field} row={r} vm={vm} />}
+              {studio.relationFrom && !vm.fromInvalid(r) && r.value.fromEpisode !== undefined && (
+                <p className='small'>{r.value.fromEpisode}화부터 독자에게 정체가 드러나요.</p>
+              )}
               {vm.bodyAuthorOnly(r) && (
                 <p className='small muted'>
                   {name(r.value.targetId)}은(는) '작가 전용' 카드예요. 인물 지식에는 시점 제한이 없어 다른 인물이 본체를 알 수 있어요. 공개 회차를 정하면 그 회차 전에는 알지 못해요.
@@ -189,11 +232,11 @@ export function RelationPairEditor(
         {!visible.length && !vm.identityAllowed && <p className='small muted'>인물 카드끼리만 「동일 인물」로 이을 수 있어요.</p>}
         {!!visible.length && (
           <p className='small muted'>
-            {studio.identityEpisode === null
-              ? '관계 기준 회차를 정해야 적용돼요. 이 패널을 닫고 위의 "관계 기준" 칸에서 회차를 정한 뒤 다시 열어 주세요.'
-              : studio.episode === null
+            {!studio.relationFrom
               ? '소설을 연결하지 않은 세계관이라 1화 기준으로 기록돼요.'
-              : `${studio.identityEpisode}화부터 독자에게 정체가 드러나요. 세계관을 저장하면 이 회차의 관계로 기록돼요.`}
+              : studio.identityEpisode === null
+              ? '「동일 인물」을 지우려면(끝내려면) 이 패널을 닫고 위의 "관계 기준" 칸에서 끝낼 회차를 정한 뒤 다시 열어 주세요.'
+              : `「동일 인물」을 지우면 ${studio.identityEpisode}화에서 끝나요.`}
           </p>
         )}
       </section>

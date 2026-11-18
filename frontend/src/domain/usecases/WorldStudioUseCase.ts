@@ -1,5 +1,5 @@
 import {characterDocIssues} from '../entities/characterDocs'
-import {cardImageError,invalidRelationEpisode,invalidReveal,RELATION_EPISODE_ERROR,REVEAL_EPISODE_ERROR,worldCoverError,type StudioWorld,type WorldPublicationInput} from '../entities/studioWorld'
+import {cardImageError,invalidRelationEpisode,invalidRelationFrom,invalidReveal,RELATION_EPISODE_ERROR,RELATION_FROM_ERROR,REVEAL_EPISODE_ERROR,worldCoverError,type StudioWorld,type WorldPublicationInput} from '../entities/studioWorld'
 import type {WorldStudioRepository} from '../repositories/WorldStudioRepository'
 export class WorldStudioUseCase {
  private readonly repository:WorldStudioRepository
@@ -60,6 +60,7 @@ export class WorldStudioUseCase {
   if(world.settings.some(s=>!s.item.title.trim()||s.item.title.length>200||s.item.text.length>3000))throw new Error('설정 이름과 설명의 길이를 확인해 주세요.')
   if(world.settings.some(s=>s.item.kind==='relation'&&(!s.item.subjectId?.trim()||!s.item.targetId?.trim())))throw new Error('관계 주체와 대상을 선택해 주세요.')
   if(world.settings.some(invalidReveal))throw new Error(REVEAL_EPISODE_ERROR)
+  if(world.settings.some(s=>invalidRelationFrom(s.item)))throw new Error(RELATION_FROM_ERROR)
   return this.repository.saveStudio(world,signal,episode)
  }
 }
