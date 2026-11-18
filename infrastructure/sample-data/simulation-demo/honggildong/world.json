@@ -61,14 +61,7 @@
       "areaCode": "basic",
       "title": "홍문",
       "classification": "인물",
-      "aliases": [
-        "대감",
-        "홍승상",
-        "홍 승상",
-        "승상",
-        "홍모",
-        "재상"
-      ],
+      "aliases": [],
       "tags": [
         "재상"
       ],
@@ -95,10 +88,7 @@
       "areaCode": "basic",
       "title": "춘섬",
       "classification": "인물",
-      "aliases": [
-        "길동의 어머니",
-        "어머니"
-      ],
+      "aliases": [],
       "tags": [
         "시비"
       ],
@@ -150,10 +140,7 @@
       "areaCode": "basic",
       "title": "관상녀",
       "classification": "인물",
-      "aliases": [
-        "여자",
-        "관상 보는 여자"
-      ],
+      "aliases": [],
       "tags": [
         "동대문"
       ],
@@ -177,12 +164,7 @@
       "areaCode": "basic",
       "title": "길현",
       "classification": "인물",
-      "aliases": [
-        "맏아들",
-        "장자",
-        "경상감사",
-        "감사"
-      ],
+      "aliases": [],
       "tags": [
         "홍씨 집안"
       ],
@@ -210,10 +192,7 @@
       "areaCode": "basic",
       "title": "특재",
       "classification": "인물",
-      "aliases": [
-        "특자",
-        "자객"
-      ],
+      "aliases": [],
       "tags": [
         "자객"
       ],
@@ -236,9 +215,7 @@
       "areaCode": "basic",
       "title": "이업",
       "classification": "인물",
-      "aliases": [
-        "포도대장"
-      ],
+      "aliases": [],
       "tags": [
         "포도청"
       ],
@@ -261,8 +238,7 @@
       "title": "백씨",
       "classification": "인물",
       "aliases": [
-        "백소저",
-        "백용의 딸"
+        "백소저"
       ],
       "tags": [
         "낙천현"
@@ -289,10 +265,7 @@
       "title": "임금",
       "classification": "인물",
       "aliases": [
-        "왕",
-        "세종대왕",
-        "전하",
-        "상"
+        "세종대왕"
       ],
       "tags": [
         "조정"
@@ -1206,7 +1179,7 @@
       "target": "ev-02-3",
       "predicate": "custom_relation_directed",
       "label": "참여",
-      "body": "갑작스러운 풍운에 휩쓸려 길동 앞에 끌려왔고 초낭의 지시였다고 말했다."
+      "body": "갑작스러운 풍운에 휩쓸려 길동 앞에 끌려왔고 추궁을 받자 사실을 털어놓았다."
     },
     {
       "key": "homun-ev-02-1",
@@ -1251,7 +1224,7 @@
       "target": "ev-02-3",
       "predicate": "custom_relation_directed",
       "label": "참여",
-      "body": "비수를 들고 길동을 습격했으나 술법에 패하고 초낭의 지시를 실토한 뒤 죽었다."
+      "body": "비수를 들고 길동을 습격했으나 술법에 패하고 추궁을 받아 사실을 털어놓은 뒤 죽었다."
     },
     {
       "key": "choran-ev-03-1",

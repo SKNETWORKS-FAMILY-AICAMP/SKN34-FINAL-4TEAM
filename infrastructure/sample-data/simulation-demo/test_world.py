@@ -49,6 +49,10 @@ GENRES = {"판타지", "현대판타지", "무협", "선협", "퓨전", "로맨�
 BANNED = ("깜둥", "검둥", "흑형", "니그")
 # 나레이션 문체는 세계관에서 제목이 `나레이터`로 시작하는 카드(유형 무관)의 본문을 지침으로 쓴다
 is_narrator = lambda card: card["title"].startswith("나레이터")  # noqa: E731
+# 별칭에 두지 않는 일반 호칭·관직·역할어와 성씨만 쓴 지칭(여러 사람에게 통한다). 상황 호칭은 관계 본문·SOUL 호칭 규칙에 둔다.
+GENERIC_TITLES = {"대감", "승상", "재상", "상서", "한림", "감사", "어머니", "맏아들", "장자", "여자", "자객", "공주", "소저", "왕", "전하", "상", "대사", "노승", "포도대장", "용녀", "진씨", "정씨", "가씨"}
+# 성+생처럼 이름만 줄이거나 붙인 지칭이라 카드에 없는 새 정보가 없는 별칭: 카드가 보인 뒤에 원고에서 처음 쓰여도 둔다((데이터셋 디렉터리, 인물 key, 별칭)).
+PLAIN_ALIASES = {("guunmong", "yangsoyu", "양생")}
 
 
 class Manuscript:
@@ -279,6 +283,42 @@ class WorldChecks:
                     for end in (rel["source"], rel["target"]):
                         if end in self.characters and end not in holders:
                             self.assertLessEqual(learned.get(end, math.inf), rel["from"], f"{rel['key']}@{rel['from']}")
+
+    def test_aliases_are_names_the_manuscript_uses_for_that_character_alone(self):
+        """별칭은 회차 구분 없이 카드가 보이는 순간 독자 위키에 모두 나간다. 그래서 그 인물만 가리키는 고유한 이름만 두고, 일반 호칭은 관계·SOUL 호칭에, 나중에 생기는 이름(관직·봉작·가명)은
+        그 회차의 관계·memory 문서에 둔다. 별칭은 원고에 쓰인 이름이어야 하고, 카드가 보이는 회차(공개 회차와 제목이 원고에 처음 나오는 회차 중 늦은 쪽)까지는 나와 있어야 한다."""
+        manuscripts = list(self.dataset.manuscripts)
+        fork = self.world["work"].get("fork")
+        if fork:  # Fork의 기준 회차까지의 원고는 원작 것이다
+            source = Dataset((self.dataset.dir / fork["sourceDir"]).resolve())
+            manuscripts = [m for m in source.manuscripts if m.number <= fork["episode"]] + manuscripts
+        if not manuscripts:
+            self.skipTest("원고 파일이 없는 데이터셋")
+        first = lambda text: next((m.number for m in sorted(manuscripts, key=lambda m: m.number) if text in m.title + m.body), None)  # noqa: E731
+        for key, card in self.characters.items():
+            visible_from = max(card.get("revealFromEpisode", 1), first(card["title"]) or 1)
+            for alias in card["aliases"]:
+                with self.subTest(card=key, alias=alias):
+                    self.assertNotIn(alias, GENERIC_TITLES, "여러 사람에게 통하는 일반 호칭")
+                    at = first(alias)
+                    self.assertIsNotNone(at, "원고에 쓰이지 않은 표기")
+                    if (self.dataset.dir.name, key, alias) not in PLAIN_ALIASES:
+                        self.assertLessEqual(at, visible_from, f"카드가 {visible_from}화에 보이는데 {at}화에서 처음 쓰이는 이름")
+                    for other_key, other in self.characters.items():
+                        if other_key != key:
+                            self.assertNotIn(alias, [other["title"], *other["aliases"]], f"{other_key}와 겹친다")
+                            self.assertNotIn(alias, other["title"], f"{other_key}의 제목에 들어 있다")
+
+    def test_relations_a_reader_can_see_carry_no_secret_the_readers_do_not_know(self):
+        """독자 설정 위키는 양 끝 카드에 revealFromEpisode가 있으면 그 관계(label·body)를 카드의 공개 범위와 상관없이 그대로 보인다(DEC-46).
+        그래서 그런 관계에는 독자가 아직 모르는 비밀(readersKnow가 아닌 secrets) 문구를 쓰지 않는다. 비밀은 보유자의 memory 문서에 두고 관계에는 겉으로 드러난 사실만 쓴다."""
+        for rel in self.rels:
+            if not all("revealFromEpisode" in self.cards[end] for end in (rel["source"], rel["target"])):
+                continue
+            for secret in self.world["secrets"]:
+                with self.subTest(relation=f"{rel['key']}@{rel['from']}", phrase=secret["phrase"]):
+                    if not secret.get("readersKnow"):
+                        self.assertNotIn(secret["phrase"], rel["label"] + " " + rel["body"])
 
     def test_card_payloads_match_server_and_ui_contract(self):
         ids = set()
