@@ -102,3 +102,13 @@ it('편집 화면 레일의 썸네일은 왼쪽에 띄워 제목·상태 줄이 
   expect(rule((s) => s === '.world-card-studio .writing-episode .board-thumb')?.body).toMatch(/float:\s*left/)
   expect(writingCss).not.toContain('board-thumb')
 })
+
+it('연관 설정 목록의 줄은 제목과 문구가 한 줄에 안 들어가면 문구를 다음 줄로 내려 줄바꿈하고, 줄어들지 않는 문구가 제목 칸을 글자 하나 폭으로 짜부러뜨리거나 줄 밖으로 넘치게 하지 않는다 (#485 QA)', () => {
+  // 자유 관계의 문구는 관계 본문 전체(최대 3,000자)라 길 수 있다. 예전 규칙은 문구를 flex:none으로 고정해 줄이 넘치고, 남은 폭이 없는 제목은 overflow-wrap:anywhere 때문에 한 글자씩 쌓였다.
+  const row = rule((s) => s === '.world-card-link')?.body ?? ''
+  expect(row).toMatch(/flex-wrap:\s*wrap/)
+  expect(row).toMatch(/overflow-wrap:\s*anywhere/)
+  const label = rule((s) => s === '.world-card-link small')?.body ?? ''
+  expect(label).not.toMatch(/flex:\s*none/)
+  expect(label).toMatch(/min-width:\s*0/)
+})

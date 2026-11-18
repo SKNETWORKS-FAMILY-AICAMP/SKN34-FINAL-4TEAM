@@ -4,6 +4,7 @@ import {putRelation} from '../../../../domain/entities/studioRelations'
 import {cardTypePatch,type CardType} from '../../../../domain/entities/studioCards'
 import {mapConnectionLabel,type MapNode} from './useWorldMapViewModel'
 import {buildCharacterMap,buildSettingRelationshipMap,cardTypeCounts,hideCardTypes,toggleHiddenType,mapNeighbors} from './characterMap'
+import {settingBoardEntries} from './settingBoard'
 it('선택한 카드의 다른 페이지 이웃과 관계를 유지한다',()=>{
  const cards=Array.from({length:101},(_,i)=>{const s=newSetting('people');s.item.title=`설정 ${i}`;return s})
  const rows=putRelation(cards,{subjectId:cards[0].item.id,targetId:cards[100].item.id,predicate:'custom_relation_directed',polarity:'asserted',text:'동료'})
@@ -133,4 +134,14 @@ it('유형 버튼은 하나씩 켜고 끄되, 보이는 유형이 하나뿐이�
  expect(none.size).toBe(0)
  const stale=new Set<CardType>(['organization']) // 그래프에 이미 없는 유형이 숨김 집합에 남아 있어도 보이는 유형은 인물 하나뿐이다
  expect(toggleHiddenType(stale,'character',['character'])).toBe(stale)
+})
+
+it('관계도 카드의 요약(노드 text)은 설정집 게시판 요약과 같이 본문의 링크·마크다운 기호를 글자만 남겨 정리한다 (#485 QA)',()=>{
+ const a=newSetting('people'),b=newSetting('people')
+ a.item.title='가람';b.item.title='나래'
+ a.item.text='# 가람\n[나래](card:3f95a1c2-0b6d-4c1e-9a77-5e0d2c8b1a10)와 **오랜** 친구.'
+ const board=settingBoardEntries([a,b]).find(e=>e.cardId===a.item.id)!.text // 게시판이 보이는 요약
+ expect(board).toBe('가람 나래와 오랜 친구.')
+ expect(buildSettingRelationshipMap([a,b]).nodes[0].text).toBe(board)
+ expect(buildCharacterMap([a,b]).nodes[0].text).toBe(board)
 })
