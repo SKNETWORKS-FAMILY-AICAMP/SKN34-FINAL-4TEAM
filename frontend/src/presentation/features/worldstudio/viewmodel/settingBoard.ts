@@ -52,9 +52,9 @@ export function settingLinks(settings: StudioSetting[], id: string): SettingLink
   return links
 }
 
-/** 요약 열의 한 줄 글과 본문 링크의 대상 id. 본문을 훑는 일은 카드마다 한 번만 하고, 본문이 바뀐 카드만 다시 한다(초안을 고칠 때마다 모든 카드를 다시 훑지 않는다). */
+/** 요약 열의 한 줄 글과 본문 링크의 대상 id. 본문을 훑는 일은 카드마다 한 번만 하고, 본문이 바뀐 카드만 다시 한다(초안을 고칠 때마다 모든 카드를 다시 훑지 않는다). 관계도 카드(`buildWorldMap`)도 같은 요약을 쓴다. */
 const summaries = new WeakMap<SettingItem, { source: string; plain: string; links: string[] }>()
-function summaryOf(item: SettingItem) {
+export function summaryOf(item: SettingItem) {
   let cached = summaries.get(item)
   if (cached?.source !== item.text) summaries.set(item, cached = { source: item.text, plain: plainCardText(item.text), links: cardLinks(item.text).map((link) => link.id) })
   return cached

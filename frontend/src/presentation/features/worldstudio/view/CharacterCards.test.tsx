@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup,fireEvent,render,screen } from '@testing-library/react'
+import { act,cleanup,fireEvent,render,renderHook,screen } from '@testing-library/react'
 import { afterEach,expect,it,vi } from 'vitest'
 import { newSetting } from '../../../../domain/entities/studioWorld'
 import { useWorldMapViewModel } from '../viewmodel/useWorldMapViewModel'
@@ -61,4 +61,16 @@ it('상대를 고르는 중에도 카드 본문을 누르면 onPick이 불리고
  expect(onPick).toHaveBeenCalledOnce();expect(onPick).toHaveBeenCalledWith(b.item.id)
  fireEvent.pointerDown(card,{clientX:30,clientY:30});fireEvent.pointerMove(card,{clientX:110,clientY:70});fireEvent.pointerUp(card,{clientX:110,clientY:70})
  expect(card.style.transform).toBe(before);expect(onPick).toHaveBeenCalledOnce()
+})
+it('카드 요약과 말풍선(title)은 본문의 링크 원문 대신 링크 글자만 보이고, 검색도 보이는 요약에 맞춘다 (#485 QA)',()=>{
+ const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
+ a.item.text='[나래](card:3f95a1c2-0b6d-4c1e-9a77-5e0d2c8b1a10)의 오랜 벗'
+ function Harness(){const vm=useWorldMapViewModel([a,b],buildCharacterMap);return <CharacterCards vm={vm} editing={{busy:false,selectedRelations:[],targetSource:null,onSelect:vi.fn(),onConnect:vi.fn(),onRelation:vi.fn()}}/>}
+ render(<Harness/>)
+ const summary=screen.getByText('나래의 오랜 벗')
+ expect(summary.getAttribute('title')).toBe('나래의 오랜 벗')
+ expect(document.body.textContent).not.toContain('card:')
+ const {result}=renderHook(()=>useWorldMapViewModel([a,b],buildCharacterMap))
+ act(()=>result.current.setQuery('3f95a1c2'));expect(result.current.results).toEqual([]) // 링크 주소 조각은 화면에 없으니 찾히지 않는다
+ act(()=>result.current.setQuery('오랜 벗'));expect(result.current.results.map(n=>n.id)).toEqual([a.item.id])
 })
