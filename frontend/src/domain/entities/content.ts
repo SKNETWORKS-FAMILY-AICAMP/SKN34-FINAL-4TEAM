@@ -53,5 +53,7 @@ export type WritingEpisode = {publicationStatus?:'draft'|'published'|'suspended'
 
 /** Fork가 자기 세계관 없이 이어받는 원작 세계관의 카드(읽기 전용, #365). 서버가 공개 카드·Fork 기준 회차로 이미 거른 값이며 시뮬레이션 시작 양식의 인물 후보로 쓴다. */
 export type InheritedCard = { id: string; title: string; cardType: string; aliases: string[] }
-export type InheritedWorld = { upto: number; cards: InheritedCard[] }
+/** 이어받은 세계관에서 「동일 인물」로 이은 카드 쌍(다른 이름 카드 → 본체 카드, 부정 제외). 시작 양식이 같은 사람의 두 카드를 함께 고르지 못하게 하는 데 쓴다(#485). */
+export type InheritedIdentity = { sourceCardId: string; targetCardId: string }
+export type InheritedWorld = { upto: number; cards: InheritedCard[]; identity?: InheritedIdentity[] }
 export type EpisodeOrderScope = {number:number;candidateNumbers:number[];reasons:string[];executable:false}

@@ -19,7 +19,7 @@ export function useSimulationSetupViewModel(workId: string, episode: number | nu
     const linked = owned.find((world) => world.linkedWorkId === workId)
     // 상한은 지금 여는 회차다. 서버가 Fork 기준 회차를 넘지 않게 자르고 AI 요청의 근거 회차도 같은 규칙으로 잘려, 후보와 서버 검증이 같은 카드 집합이 된다.
     const inherited = linked ? null : await episodes.inheritedWorld(workId, episode ?? undefined, signal)
-    const characters = linked ? worldCharacters((await worlds.read(linked.id, signal)).settings) : inherited ? inheritedCharacters(inherited.cards) : []
+    const characters = linked ? worldCharacters((await worlds.read(linked.id, signal)).settings) : inherited ? inheritedCharacters(inherited.cards, inherited.identity) : []
     const beats = planBeats(list, episode)
     return { plansVersion, linked: !!linked, inheritedUpto: inherited?.upto ?? null, characters, beats, characterIds: beatCharacterIds(beats, characters) }
   }, [plans, worlds, episodes, workId, episode], [plansVersion])

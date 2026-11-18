@@ -218,6 +218,18 @@ describe('연결 세계관의 인물 카드(시작 양식 후보)', () => {
     expect(worldCharacters([...cards, link('r3', 'mask', 'body', 'denied')]).every((c) => c.person === undefined)).toBe(true) // 부정은 이은 것이 아니다
   })
 
+  it('이어받은 세계관의 「동일 인물」 쌍으로도 다른 이름 카드의 후보에 본체 카드 id를 달아 같은 사람을 함께 고르지 못하게 한다', () => {
+    const cards = [
+      { id: 'k1', title: '승상', cardType: 'character', aliases: [] }, { id: 'k2', title: '홍길동', cardType: 'character', aliases: [] },
+      { id: 'k3', title: '리안', cardType: 'character', aliases: [] },
+    ]
+    const candidates = inheritedCharacters(cards, [{ sourceCardId: 'k1', targetCardId: 'k2' }])
+    expect(candidates.map((c) => [c.id, c.person])).toEqual([['k1', 'k2'], ['k2', undefined], ['k3', undefined]])
+    expect(samePersonChosen(candidates, ['k2'], candidates[0])).toBe(true)
+    expect(samePersonChosen(candidates, ['k2'], candidates[2])).toBe(false)
+    expect(inheritedCharacters(cards).every((c) => c.person === undefined)).toBe(true) // 이어받은 관계를 모르면 묶지 않는다
+  })
+
   it('인물 카드가 없으면 후보가 없다', () => {
     expect(worldCharacters([])).toEqual([])
     expect(worldCharacters([card('p1', '성문', 'location')])).toEqual([])

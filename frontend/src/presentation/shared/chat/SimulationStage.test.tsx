@@ -351,6 +351,20 @@ it('연결된 세계관에 인물 카드가 없으면 알리고 시작을 잠근
   expect(startButton().disabled).toBe(true)
 })
 
+it('「동일 인물」로 이어진 두 카드는 하나를 고르면 다른 하나를 고를 수 없고 이유를 알리며, 고른 것을 풀면 다시 고를 수 있다', async () => {
+  const link = { item: { id: 'r1', kind: 'relation', predicate: 'identity_of', subjectId: 'm1', targetId: 'b1', polarity: 'asserted', title: '', entityType: null }, userCategory: '', tags: [] } as unknown as StudioSetting
+  readWorld.mockResolvedValue(world([card('m1', '승상'), card('b1', '홍길동'), card('c2', '리안'), link]))
+  setup()
+  await openForm()
+  pick('승상')
+  const body = box().getByRole('checkbox', { name: /홍길동/ }) as HTMLInputElement
+  expect(body.disabled).toBe(true)
+  box().getByText('같은 인물을 이미 골랐어요')
+  expect((box().getByRole('checkbox', { name: '리안' }) as HTMLInputElement).disabled).toBe(false)
+  pick('승상')
+  expect(body.disabled).toBe(false)
+})
+
 it('나레이터 카드뿐인 세계관은 인물 카드가 없는 것과 같이 알리고 시작을 잠근다', async () => {
   readWorld.mockResolvedValue(world([card('n1', '나레이터 — 흑길동전')]))
   setup()
@@ -381,6 +395,18 @@ it('연결된 세계관이 없는 Fork는 이어받은 공개 인물 카드가 �
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
   expect(inputs()[0]).toMatchObject({ simulation: { mode: 'if', premise: PREMISE, characterIds: ['k2'] } })
   serve()
+})
+
+it('Fork가 이어받은 원작 세계관의 「동일 인물」로도 같은 사람의 두 카드를 함께 고르지 못한다', async () => {
+  owned.mockResolvedValue([summary('world-free', null)])
+  inherited.mockResolvedValue({ worldId: 'origin-world', upto: 2, cards: [originCard('k1', '승상'), originCard('k2', '홍길동'), originCard('k3', '리안')], identity: [{ sourceCardId: 'k1', targetCardId: 'k2' }] })
+  setup()
+  await openForm()
+  pick('홍길동')
+  const mask = box().getByRole('checkbox', { name: /승상/ }) as HTMLInputElement
+  expect(mask.disabled).toBe(true)
+  box().getByText('같은 인물을 이미 골랐어요')
+  expect((box().getByRole('checkbox', { name: '리안' }) as HTMLInputElement).disabled).toBe(false)
 })
 
 it('자기 세계관이 연결돼 있으면 그것이 우선이라 이어받은 세계관을 묻지 않는다', async () => {

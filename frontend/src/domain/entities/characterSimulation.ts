@@ -1,4 +1,4 @@
-import type { InheritedCard } from './content'
+import type { InheritedCard, InheritedIdentity } from './content'
 import { cardTypeOf } from './studioCards'
 import { identityBodies } from './studioRelations'
 import { scenePlans, type StoryPlan } from './storyPlan'
@@ -185,11 +185,13 @@ export const samePersonChosen = (characters: SimulationCharacter[], ids: string[
 
 /**
  * Fork가 이어받은 원작 세계관의 인물 후보(#365). 서버가 공개 카드·Fork 기준 회차로 이미 거른 카드에서 [worldCharacters]와 같은 규칙으로 고른다.
- * 서버는 같은 카드 집합으로 characterIds를 검증하므로 이 카드 id를 그대로 보낸다.
+ * 서버는 같은 카드 집합으로 characterIds를 검증하므로 이 카드 id를 그대로 보낸다. 이어받은 세계관의 「동일 인물」 쌍([identity])으로 다른 이름 카드에 본체 카드 id를 단다(#485).
  */
-export const inheritedCharacters = (cards: InheritedCard[]): SimulationCharacter[] =>
-  cards.filter((card) => isCandidate(card.cardType, card.title))
-    .map((card) => ({ id: card.id, name: card.title.trim(), aliases: card.aliases }))
+export const inheritedCharacters = (cards: InheritedCard[], identity: InheritedIdentity[] = []): SimulationCharacter[] => {
+  const bodies = new Map(identity.map(({ sourceCardId, targetCardId }) => [sourceCardId, targetCardId]))
+  return cards.filter((card) => isCandidate(card.cardType, card.title))
+    .map((card) => ({ id: card.id, name: card.title.trim(), aliases: card.aliases, ...(bodies.has(card.id) && { person: bodies.get(card.id) }) }))
+}
 
 /**
  * 흐름 모드가 미리 고르는 참여 인물: 비트 문장(제목·내용)에 이름이나 별칭이 나오는 인물 카드를 목록 순서대로 6명까지.
