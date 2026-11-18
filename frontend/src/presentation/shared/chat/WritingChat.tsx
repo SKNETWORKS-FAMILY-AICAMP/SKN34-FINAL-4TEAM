@@ -11,8 +11,8 @@ import { useWritingChatViewModel, type ChatViewModel, type LiveTurn } from './us
 const stateLabel = { done: '완료', run: '진행 중', wait: '대기', stop: '멈춤', fail: '실패', skip: '건너뜀' } as const
 // 시뮬레이션 단계는 서버의 단계 상태가 아니라 장면 상태로 보인다: 진행 중 step은 완료로 오고, 멈춘 장면을 완료로 꾸미면 안 된다.
 const simState = { running: 'run', paused: 'run', completed: 'done', stopped: 'stop', failed: 'fail' } as const
-const stepState = (step: ChatStep, running: string | null) =>
-  step.status === 'failed' ? 'fail' : step.status === 'skipped' ? 'skip' : step.simulation ? simState[step.simulation.status] : step.status === 'completed' ? 'done' : step.feature === running ? 'run' : 'wait'
+const stepState = (step: ChatStep, running: string[]) =>
+  step.status === 'failed' ? 'fail' : step.status === 'skipped' ? 'skip' : step.simulation ? simState[step.simulation.status] : step.status === 'completed' ? 'done' : running.includes(step.feature) ? 'run' : 'wait'
 /** 인물 시뮬레이션(#58) 입력 예시. 누르면 입력창에 글만 채운다. */
 const simulationExamples = ['IF 시뮬레이션: "만약 ~했다면?"', '흐름 시뮬레이션: 비트를 적어 요청']
 
@@ -38,7 +38,7 @@ function Progress({ live, onOpenStage }: { live: LiveTurn; onOpenStage?: () => v
     <div className="chat-msg assistant">
       <span className="chat-avatar" aria-hidden="true"><SparkIcon size={16} /></span>
       <div className="chat-bubble chat-progress" role="status" aria-label="AI 진행 상황">
-        <p className="chat-progress-title">{live.steps.length ? '작업을 순서대로 실행하고 있어요' : '요청을 살펴보고 있어요'}<span className="chat-dots" aria-hidden="true"><i /><i /><i /></span></p>
+        <p className="chat-progress-title">{live.steps.length ? '작업을 실행하고 있어요' : '요청을 살펴보고 있어요'}<span className="chat-dots" aria-hidden="true"><i /><i /><i /></span></p>
         {!!live.steps.length && <ol className="chat-steps">{live.steps.map((step, i) => {
           const state = stepState(step, live.running)
           // 장면 카드가 그리는 단계는 한 줄 요약을 되풀이하지 않는다. 실패 사유는 그대로 보인다.

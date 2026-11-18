@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 from uuid import uuid4
 
 import pytest
@@ -107,6 +108,30 @@ def test_stream_stops_starting_steps_after_failure(monkeypatch):
     assert [name for name, _ in events] == ['plan', 'started', 'step', 'done']
     assert events[2][1]['error'] == 'Q&A 모델 응답을 확인할 수 없습니다.'
     assert events[-1][1]['status'] == 'failed'
+
+
+def slow_qa(monkeypatch, seconds=0.3):
+    real = tools.story_qa.answer
+    monkeypatch.setattr(tools.story_qa, 'answer', lambda data: (time.sleep(seconds), real(data))[1])
+
+
+def test_stream_of_a_batch_sends_steps_as_they_finish_and_done_in_call_order(monkeypatch):
+    fake_agents(monkeypatch, plan(['story_context', 'web_research']))
+    slow_qa(monkeypatch)
+    events = stream(inputs={'story_context': QA, 'web_research': WEB})
+    assert [name for name, _ in events] == ['plan', 'started', 'started', 'step', 'step', 'done']
+    assert [data['feature'] for name, data in events if name == 'step'] == ['web_research', 'story_context']  # 먼저 끝난 결과가 먼저
+    assert [s['feature'] for s in events[-1][1]['steps']] == ['story_context', 'web_research']  # 모델이 부른 순서
+
+
+def test_batched_steps_are_overlapping_spans_of_the_same_trace(monkeypatch, spans):
+    fake_agents(monkeypatch, plan(['story_context', 'web_research']))
+    slow_qa(monkeypatch)
+    run(inputs={'story_context': QA, 'web_research': WEB})
+    found = {s.name: s for s in spans()}
+    qa, web, root = found['step.story_context'], found['step.web_research'], found['writing_ai.orchestration']
+    assert qa.parent.span_id == web.parent.span_id == root.context.span_id
+    assert web.start_time < qa.end_time and qa.start_time < web.end_time
 
 
 def test_stream_without_execution_ends_with_done_status(monkeypatch):

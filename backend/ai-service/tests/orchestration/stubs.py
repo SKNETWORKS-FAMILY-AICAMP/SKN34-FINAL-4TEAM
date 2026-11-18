@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from typing import Any, NamedTuple
 
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
+from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
 
 from app.intent import service as intent
@@ -83,20 +83,27 @@ def call(step: Step) -> tuple[str, dict]:
     return service.TOOL_NAMES.get(step.feature, f'ask_{step.feature}'), {'check': step.check} if step.check else {}
 
 
+def _step(s) -> Step:
+    return s if isinstance(s, Step) else Step(s) if isinstance(s, str) else Step(*s)
+
+
 def plan(*steps, status='route', reason=None, capabilities=None):
-    """Decision Guard 판정과 메인 에이전트가 순서대로 부를 도구. steps는 feature, (feature, when) 또는 Step이다.
+    """Decision Guard 판정과 메인 에이전트가 순서대로 부를 도구. steps는 feature, (feature, when), Step 또는
+    한 모델 턴에 함께 부르는 묶음 list(#474)다.
 
     status=rejected면 거절(reason), clarify면 고른 기능 없음이다. capabilities로 판정 기능을 따로 정하면 steps는 호출 순서만 뜻한다.
     """
-    items = [s if isinstance(s, Step) else Step(s) if isinstance(s, str) else Step(*s) for s in steps]
+    turns = [[_step(x) for x in s] if isinstance(s, list) else _step(s) for s in steps]
+    items = [i for t in turns for i in (t if isinstance(t, list) else [t])]
     if status == 'rejected':
         return Planned(DecisionResult(allowed=False, reason=reason), [])
     features = capabilities if capabilities is not None else [] if status == 'clarify' else list(dict.fromkeys(i.feature for i in items))
-    return Planned(DecisionResult(allowed=True, capabilities=features), [call(i) for i in items])
+    return Planned(DecisionResult(allowed=True, capabilities=features), [[call(i) for i in t] if isinstance(t, list) else call(t) for t in turns])
 
 
 class FakeMain(BaseChatModel):
-    """메인 에이전트 모델 대역. 이번 턴 ToolMessage 수만큼 대본을 진행해 다음 도구를 부르고, 대본이 끝나면 answer로 종합한다.
+    """메인 에이전트 모델 대역. 이번 턴 도구를 부른 모델 응답 수만큼 대본을 진행해 다음 도구(list면 한 응답의 병렬 묶음)를 부르고,
+    대본이 끝나면 answer로 종합한다.
 
     resume으로 다시 불려도 같은 메시지면 같은 답을 낸다. 호출마다 노출된 도구 이름과 받은 메시지를 seen에 남긴다.
     """
@@ -115,15 +122,14 @@ class FakeMain(BaseChatModel):
     def _generate(self, messages, stop=None, run_manager=None, tools=None, settings=None, **kwargs) -> ChatResult:
         self.seen.append({'tools': tools or [], 'settings': settings or kwargs, 'messages': messages})
         last = max(i for i, m in enumerate(messages) if isinstance(m, HumanMessage))
-        done = sum(isinstance(m, ToolMessage) for m in messages[last:])
+        done = sum(isinstance(m, AIMessage) and bool(m.tool_calls) for m in messages[last:])
         meta = {'status': 'completed', 'model_name': 'resolved-main', 'id': f'resp-{len(self.seen)}'}
         usage = {'input_tokens': 20, 'output_tokens': 5, 'total_tokens': 25}
         if done < len(self.script) and tools:
-            name, args = self.script[done]
-            if name != 'ask_web_research':
-                args = {'request': messages[last].text, **args}
-            message = AIMessage(content='', tool_calls=[{'name': name, 'args': args, 'id': f'call-{done}'}], response_metadata=meta,
-                                usage_metadata=usage)
+            batch = self.script[done] if isinstance(self.script[done], list) else [self.script[done]]
+            calls = [{'name': name, 'args': args if name == 'ask_web_research' else {'request': messages[last].text, **args},
+                      'id': f'call-{done}-{i}'} for i, (name, args) in enumerate(batch)]
+            message = AIMessage(content='', tool_calls=calls, response_metadata=meta, usage_metadata=usage)
         elif isinstance(self.answer, Exception):
             raise self.answer
         else:
