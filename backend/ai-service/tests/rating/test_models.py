@@ -34,9 +34,13 @@ def test_result_must_assess_every_criterion_once_with_quotes_from_level_two(asse
         RatingResult.model_validate({'prohibited': False, 'assessments': assessments})
 
 
-def test_prohibited_needs_a_sexual_quote():
+@pytest.mark.parametrize('assessments', [
+    rows(),
+    rows(violence={'level': 2, 'quotes': ['구절']}),  # 다른 항목의 구절은 sexual 근거가 아니다(#456)
+])
+def test_prohibited_needs_a_sexual_quote(assessments):
     with pytest.raises(ValidationError):
-        RatingResult.model_validate({'prohibited': True, 'assessments': rows()})
+        RatingResult.model_validate({'prohibited': True, 'assessments': assessments})
 
 
 @pytest.mark.parametrize('level, prohibited, verdict', [
