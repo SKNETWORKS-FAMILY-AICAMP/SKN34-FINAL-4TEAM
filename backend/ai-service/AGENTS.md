@@ -26,7 +26,7 @@
 
 - 허용 문맥과 작업 범위로만 조회하고 정본 수정·권한·승인·과금을 확정하지 않는다. 결과는 제안으로 반환한다.
 - 콘텐츠 생성의 기준 버전·조회 범위·제안 저장과 채택은 Content가 소유한다. Content 조회·작업 도구는 Content MCP 창구(DEC-49)를 호출한 사용자의 토큰으로만 쓰고, 모델이 제시한 식별자는 인가 근거로 사용하지 않는다.
-- 설정 카드 본문 링크(`[글자](card:<uuid>)`, DEC-53)는 Content MCP 응답을 스냅샷·요청으로 바꾸는 곳(`novelbrain.world_snapshot`, `world_review`의 채팅 경로)에서 `app/card_links.strip_card_links`로 모두 글자로 벗긴다. 모델 입력과 BM25에 카드 id가 섞이지 않게 하는 입력 경계라, 스냅샷을 두고 응답 원본에서 카드·관계 본문을 따로 읽지 않는다([링크 규칙](../../docs/design/worldstudio-independent-schema.md#카드-본문-링크--dec-53)).
+- 설정 카드 본문 링크(`[글자](card:<uuid>)`, DEC-53)는 Content MCP 응답을 스냅샷·요청으로 바꾸는 곳(`novelbrain.world_snapshot`, `world_review`의 채팅 경로)에서 `app/card_links.strip_card_links`로 모두 글자로 벗기고 링크가 아닌 모양에 남은 `card:<uuid>`도 지운다. 모델 입력과 BM25에 카드 id가 섞이지 않게 하는 입력 경계라, 스냅샷을 두고 응답 원본에서 카드·관계 본문을 따로 읽지 않는다([링크 규칙](../../docs/design/worldstudio-independent-schema.md#카드-본문-링크--dec-53)).
 - 실행용 상태·색인은 해당 기능의 설계 계약을 따른다. 실행 완료·제안 채택·원고 반영·과금 확정은 각각 소유 서비스가 검증한다.
 - 캐릭터별 허용 기억·관찰 정보를 분리하고 다른 인물의 비밀이나 미래 사건을 누출하지 않는다.
 - 피드백 유형은 독자가 고르며 AI로 분류하지 않는다(BR-15). 오류 수정도 수정안까지만 생성한다.

@@ -1,5 +1,6 @@
 package ai.storyfork.content.world.service
 
+import ai.storyfork.content.world.domain.stripCardLinks
 import ai.storyfork.content.world.service.dto.WorldDraftResponse
 import java.security.MessageDigest
 import java.util.UUID
@@ -9,7 +10,11 @@ data class InitialWorldSource(val sourceId: String, val ownerId: UUID, val field
 data class InitialWorldEntity(val cardId: UUID, val entityType: String, val name: String, val aliases: List<String>)
 data class InitialWorldEvidence(val sourceId: String, val start: Long, val end: Long, val quote: String, val quoteHash: String)
 
-/** 저장된 세계관 입력. 소유자와 실제 저장소 조회는 호출 서비스가 확인한다. */
+/**
+ * 저장된 세계관 입력. 소유자와 실제 저장소 조회는 호출 서비스가 확인한다.
+ * 카드 본문 출처는 설정 링크(`[글자](card:<uuid>)`, DEC-53)를 글자로 벗긴 글이다(모델 입력에 카드 id가 섞이지 않게). 출처 해시·근거 구간은 그 글 기준이고,
+ * [validateAgainst]가 같은 규칙으로 저장 초안에서 다시 만들어 견주므로 정합이 깨지지 않는다.
+ */
 data class InitialWorldInput(
     val schemaVersion: String, val analysisId: UUID, val worldId: UUID, val basis: InitialWorldBasis,
     val sources: List<InitialWorldSource>, val entities: List<InitialWorldEntity>,
@@ -82,7 +87,7 @@ data class InitialWorldInput(
             draft.cards.filter { it.lifecycle == "active" }.forEach { card ->
                 require(card.title.length <= 200 && card.body.length <= 3000) { "카드 원문이 너무 깁니다." }
                 sources += source(card.id, "title", card.title)
-                sources += source(card.id, "body", card.body)
+                sources += source(card.id, "body", stripCardLinks(card.body))
                 if (card.cardType in ENTITY_TYPES) {
                     require(card.title.isNotEmpty() && card.aliases.size <= 100 && card.aliases.all { it.length <= 200 }) { "엔터티 이름이나 별칭이 올바르지 않습니다." }
                     card.aliases.forEach(::requireUnicode)

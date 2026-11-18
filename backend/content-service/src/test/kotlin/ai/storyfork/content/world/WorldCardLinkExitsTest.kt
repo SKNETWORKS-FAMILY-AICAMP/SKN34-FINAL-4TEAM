@@ -93,12 +93,12 @@ class WorldCardLinkExitsTest {
         semanticMetadata = reveal?.let { mapOf<String, Any?>("revealFromEpisode" to it) } ?: emptyMap(), visibility = "private"))
 
     private val cards = listOf(
-        card(a, "갑", 1, "[을](card:$b) [작가](card:$authorOnly) [뒤](card:$late) [없는](card:$gone) [대문자](card:$upper) `[코드](card:$authorOnly)`"),
+        card(a, "갑", 1, "[을](card:$b) [작가](card:$authorOnly) [뒤](card:$late) [없는](card:$gone) [대문자](card:$upper) `[코드](card:$authorOnly)` <card:$authorOnly> [꺾쇠](<card:$authorOnly>) [제목](card:$authorOnly \"t\") [[겹]](card:$authorOnly) <card:$late>"),
         card(b, "을", 1, "[갑](card:$a)"),
         card(authorOnly, "작가 전용", null, "숨은 카드 [갑](card:$a)"),
         card(late, "뒤", 5, "5화에 공개"),
     )
-    private val relation = RelationshipPayload(UUID.randomUUID(), a, b, "structural", label = "동료", body = "[을](card:$b)과 [작가](card:$authorOnly)와 [뒤](card:$late)")
+    private val relation = RelationshipPayload(UUID.randomUUID(), a, b, "structural", label = "동료", body = "[을](card:$b)과 [작가](card:$authorOnly)와 [뒤](card:$late) <card:$authorOnly>")
     private val hiddenEnd = RelationshipPayload(UUID.randomUUID(), authorOnly, a, "structural", label = "숨은 관계", body = "")
 
     init {
@@ -135,8 +135,8 @@ class WorldCardLinkExitsTest {
     }
 
     /** 기준 회차 [basis]에서 보이는 카드는 갑·을(1화)과, 5화 이상이면 뒤다. 작가 전용·없는 id는 어느 기준에서도 숨는다. */
-    private fun expectedA(basis: Int) = "[을](card:$b) 작가 ${if (basis >= 5) "[뒤](card:$late)" else "뒤"} 없는 대문자 `코드`"
-    private fun expectedRelation(basis: Int) = "[을](card:$b)과 작가와 ${if (basis >= 5) "[뒤](card:$late)" else "뒤"}"
+    private fun expectedA(basis: Int) = "[을](card:$b) 작가 ${if (basis >= 5) "[뒤](card:$late)" else "뒤"} 없는 대문자 `코드` <> [꺾쇠](<>) [제목]( \"t\") [[겹]]() ${if (basis >= 5) "<card:$late>" else "<>"}"
+    private fun expectedRelation(basis: Int) = "[을](card:$b)과 작가와 ${if (basis >= 5) "[뒤](card:$late)" else "뒤"} <>"
 
     /** 응답 전체(글자 그대로)에 숨은 카드의 id가 없다. 대문자로 쓴 id도 없다. */
     private fun assertNoHiddenId(exit: String, dump: String, basis: Int) {
