@@ -1,3 +1,4 @@
+import { Go } from '../../../shared/Go'
 import { SuggestionDiff, SuggestionStatusChip } from '../../../shared/editSuggestion/SuggestionParts'
 import { useMyEditSuggestionsViewModel } from '../viewmodel/useMyEditSuggestionsViewModel'
 
@@ -25,8 +26,9 @@ export function MyEditSuggestions() {
             <SuggestionDiff before={s.beforeText} after={s.afterText} />
             {s.editedText && <div className="small">작가가 고친 문장: {s.editedText}</div>}
             {s.reason && <div className="small muted">사유: {s.reason}</div>}
+            {s.status === 'held' && <div className="a">작가가 판단을 보류했어요. 원고에는 아직 반영되지 않았어요.</div>}
             {s.status === 'rejected' && <div className="a">작가가 거절했어요{s.decisionReason ? ` · ${s.decisionReason}` : ''}</div>}
-            {s.status === 'approved' && s.applyResult === 'applied' && <div className="a">작가가 승인해 초안에 반영했어요. 독자에게는 작가가 발행해야 보여요.</div>}
+            {s.status === 'approved' && s.applyResult === 'applied' && <div className="a">{s.published ? <>현재 공개된 회차에 반영됐어요. <Go to={`/read/${s.workId}/${s.episodeNumber}`} aria-label={`회차 보기 · ${s.workTitle} ${s.episodeNumber}화`}>회차 보기</Go></> : '작가가 승인해 초안에 반영했어요. 독자에게는 작가가 발행해야 보여요.'}</div>}
             {s.status === 'approved' && s.applyResult === 'failed' && <div className="a">작가가 승인했지만 아직 초안에 반영되지 않았어요. 작가가 직접 고칠 수 있어요.</div>}
           </div>
         ))}</div>

@@ -223,8 +223,8 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
       JSON.stringify(row.tags) !== JSON.stringify(c.tags) ||
       JSON.stringify(row.aliases ?? []) !== JSON.stringify(c.aliases)
     ) throw invalid()
-    // 키가 있는데(null은 없는 것) 값이 잘못됐으면 서버는 작가 전용으로 닫으므로(옛 `visibility`로 열지 않는다) 화면도 같게 읽고, 저장하면 비공개로 맞춘다.
-    const stored = m.revealFromEpisode, episode = revealFromEpisode.safeParse(stored), closed = stored != null && !episode.success
+    // 키가 있는데(JSON null 포함) 값이 잘못됐으면 서버는 작가 전용으로 닫으므로(옛 `visibility`로 열지 않는다) 화면도 같게 읽고, 저장하면 비공개로 맞춘다. 키가 없을 때만 옛 공개 카드다.
+    const stored = m.revealFromEpisode, episode = revealFromEpisode.safeParse(stored), closed = stored !== undefined && !episode.success
     const from = importedFrom.safeParse(source), docs = characterDocs.safeParse(written), picture = uuid.safeParse(image)
     return {...row,...(c.visibility==='public'&&!closed&&{visibility:c.visibility}),...(episode.success&&{revealFromEpisode:episode.data}),...(from.success&&{importedFrom:from.data}),
       ...(docs.success&&c.cardType==='character'&&{characterDocs:docs.data}),...(picture.success&&{imageId:picture.data})}

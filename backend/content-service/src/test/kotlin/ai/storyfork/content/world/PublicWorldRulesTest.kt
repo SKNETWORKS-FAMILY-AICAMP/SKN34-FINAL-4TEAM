@@ -101,8 +101,8 @@ class PublicWorldRulesTest {
         listOf<Any?>("3", 2.5, 0, -1, true).forEach {
             assertNull(shownCardEpisode("active", "public", mapOf("revealFromEpisode" to it), 10), it.toString())
         }
-        // null은 값이 없는 것과 같다.
-        assertEquals(1, shownCardEpisode("active", "public", mapOf("revealFromEpisode" to null), 10))
+        // 키가 있으면 JSON null도 읽을 수 없는 값이라 작가 전용이다. 키가 없을 때만 옛 공개 카드의 1화 규칙이다(DEC-53 계약: '키가 없고 visibility=public이면 1').
+        assertNull(shownCardEpisode("active", "public", mapOf("revealFromEpisode" to null), 10))
         assertNull(shownCardEpisode("active", "private", mapOf("revealFromEpisode" to null), 10))
     }
 

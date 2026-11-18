@@ -3,6 +3,7 @@ package ai.storyfork.content.editsuggestion.service
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content._common.exception.checkContent
 import ai.storyfork.content._common.helper.contentId
+import ai.storyfork.content._common.helper.episodeId
 import ai.storyfork.content._common.helper.episodeVersionId
 import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.auth.service.WITHDRAWN_MEMBER_NAME
@@ -15,6 +16,7 @@ import ai.storyfork.content.editsuggestion.service.dto.*
 import ai.storyfork.content.episode.repository.EpisodeCurrentRepository
 import ai.storyfork.content.episode.service.EpisodeService
 import ai.storyfork.content.episode.service.dto.DraftRequest
+import ai.storyfork.content.episode_version.domain.publishedLineage
 import ai.storyfork.content.episode_version.repository.EpisodeVersionRepository
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
 import ai.storyfork.content.work.entity.WorkEntity
@@ -123,6 +125,7 @@ class EditSuggestionService(
         checkContent(EditSuggestionRules.canHold(row.status),409,STATE_CONFLICT)
         row.status=EditSuggestionRules.HELD
         row.updatedAt=now()
+        row.decidedAt=row.updatedAt
         return one(row,owner)
     }
 
@@ -193,11 +196,11 @@ class EditSuggestionService(
     /** 승인 결과를 기록한다. 승인한 시각은 처음 승인한 때를 유지해 재시도가 바꾸지 않는다. */
     private fun settle(row: EditSuggestionEntity, result: String, failure: String?, appliedVersion: String?) {
         val at=now()
+        if (row.status != EditSuggestionRules.APPROVED) row.decidedAt=at
         row.status=EditSuggestionRules.APPROVED
         row.applyResult=result
         row.applyFailure=failure
         row.appliedVersionId=appliedVersion
-        row.decidedAt=row.decidedAt ?: at
         row.updatedAt=at
     }
 
@@ -250,13 +253,20 @@ class EditSuggestionService(
     private fun respond(rows: List<EditSuggestionEntity>, viewer: String, byWork: Map<String, WorkEntity> = worksOf(rows)): List<SuggestionResponse> {
         if(rows.isEmpty()) return emptyList()
         // 제안자 표시명은 Core 닉네임이다. 제안자 ID를 모아 한 번만 조회하고 Core에 없는 회원은 탈퇴한 회원으로 보인다.
-        val names=nicknames.nicknames(rows.map {it.proposerId})
+        val names=nicknames.nicknames(rows.map {it.proposerId} + rows.filter {it.status != "pending"}.map {byWork.getValue(it.workId).ownerId})
+        val ids=rows.filter {it.appliedVersionId != null}.map {episodeId(it.workId,it.episodeNumber)}.distinct()
+        val lineage=if (ids.isEmpty()) emptySet() else {
+            val links=versions.savedLinks(ids).groupBy {it.episodeId}
+            current.findAllById(ids).flatMap { publishedLineage(links[it.id].orEmpty(),it.publishedVersionId) }.toSet()
+        }
         return rows.map {row ->
             val work=byWork.getValue(row.workId)
             val scope=EditScopePolicy.check(row.beforeText,row.editedText ?: row.afterText)
             SuggestionResponse(row.id,row.workId,work.title,row.episodeNumber,row.publishedVersionId,row.source,names[row.proposerId] ?: WITHDRAWN_MEMBER_NAME,
                 row.beforeText,row.afterText,row.editedText,row.reason,row.status,row.decisionReason,row.applyResult,row.applyFailure,row.appliedVersionId,
-                scope.scope,scope.reasons,row.proposerId==viewer,work.ownerId==viewer,row.createdAt,row.updatedAt)
+                scope.scope,scope.reasons,row.proposerId==viewer,work.ownerId==viewer,row.createdAt,row.updatedAt,
+                row.appliedVersionId in lineage, if (row.status==EditSuggestionRules.APPROVED) row.updatedAt else row.decidedAt,
+                if(row.status=="pending") null else names[work.ownerId] ?: WITHDRAWN_MEMBER_NAME)
         }
     }
 }
