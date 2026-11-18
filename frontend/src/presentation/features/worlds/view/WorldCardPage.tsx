@@ -2,7 +2,7 @@ import { useId, useState, type CSSProperties, type ReactNode } from 'react'
 import { useParams } from 'react-router'
 
 import type { PublicWorld } from '../../../../domain/entities/publicWorld'
-import { CardMarkdown } from '../../../shared/CardMarkdown'
+import { CardMarkdown, type CardLinkRender } from '../../../shared/CardMarkdown'
 import { PublicCardImage } from '../../../shared/PublicCardImage'
 import { numberCardSections, splitCardSections } from '../../../shared/cardSections'
 import { Go } from '../../../shared/Go'
@@ -65,9 +65,9 @@ type Section = { id: string; no: string; depth: number; title: string; body: Rea
 /**
  * 문단: 본문(마크다운)의 `#`·`##`·`###` 제목마다 한 문단(단계대로 `1`·`1.1`·`1.1.1`, 하위 문단은 상위 문단 안) → 관계(인물) → 연관 설정 → 이 카드를 가리키는 설정 → 같은 유형의 다른 설정(최상위 번호를 이어 받음).
  * 목차는 이 문단들이고 본문 쪽은 작가가 쓴 제목 그대로다. 첫 제목 앞의 글은 제목 없는 첫머리(`lead`)라 목차·번호에 넣지 않는다(개요를 지어 붙이지 않는다).
- * `####` 이하는 문단 본문 안의 소제목이다. 내용이 없는 연결 문단은 빠진다. 본문을 어떻게 나누는지는 독자 설정 위키와 같은 `splitCardSections`가 정한다.
+ * `####` 이하는 문단 본문 안의 소제목이다. 내용이 없는 연결 문단은 빠진다. 본문을 어떻게 나누는지는 독자 설정 위키와 같은 `splitCardSections`가 정한다. 본문의 설정 링크는 [cardLink]로 그린다.
  */
-function sectionsOf(page: CardPage, worldId: string): { lead: string; sections: Section[] } {
+function sectionsOf(page: CardPage, worldId: string, cardLink: CardLinkRender): { lead: string; sections: Section[] } {
   const lists = [
     ['relations', '관계', page.relations, false],
     ['links', '연관 설정', page.links, true],
@@ -79,7 +79,7 @@ function sectionsOf(page: CardPage, worldId: string): { lead: string; sections: 
   const text = numberCardSections(parts)
   const top = text.filter((s) => s.depth === 1).length
   const flat: Section[] = [
-    ...text.map(({ title, body, no, depth }, i) => ({ id: `text-${i}`, no, depth, title, body: body && <CardMarkdown text={body} />, children: [] })),
+    ...text.map(({ title, body, no, depth }, i) => ({ id: `text-${i}`, no, depth, title, body: body && <CardMarkdown text={body} cardLink={cardLink} />, children: [] })),
     ...lists.filter(([, , refs]) => refs.length > 0).map(([id, title, refs, withType], i) => ({ id, no: String(top + i + 1), depth: 1, title, body: <CardList worldId={worldId} refs={refs} withType={withType} />, children: [] })),
   ]
   // 단계(depth)대로 앞 문단의 하위로 넣는다. 번호를 매길 때 단계가 한 칸씩만 깊어지므로 부모는 늘 바로 앞 단계다.
@@ -140,7 +140,10 @@ export function WorldCardPage() {
   const { id, cardId } = useParams()
   const { world, page, isLoading, isError, retry } = useWorldCardViewModel(id, cardId)
   const heading = useId()
-  const { lead, sections } = world && page ? sectionsOf(page, world.id) : { lead: '', sections: [] }
+  // 본문의 설정 링크는 응답에 있는(서버가 보이는 카드로만 남긴) 카드의 페이지로 간다. 응답에 없는 카드는 글자만 보인다.
+  const shown = new Set(world?.cards.map((c) => c.id))
+  const cardLink: CardLinkRender = (cardId, label) => (world && shown.has(cardId) ? <Go to={cardPath(world.id, cardId)}>{label}</Go> : undefined)
+  const { lead, sections } = world && page ? sectionsOf(page, world.id, cardLink) : { lead: '', sections: [] }
   useScreenId('W04')
   useDocumentTitle(world && page ? `${page.card.title} · ${world.name}` : world ? '찾을 수 없는 설정' : isLoading || isError ? '세계관' : '찾을 수 없는 세계관')
   return (
@@ -181,7 +184,7 @@ export function WorldCardPage() {
                   <b>목차</b>
                   <TocList sections={sections} />
                 </nav>}
-                {lead && <div className="nw-doc nw-lead"><CardMarkdown text={lead} /></div>}
+                {lead && <div className="nw-doc nw-lead"><CardMarkdown text={lead} cardLink={cardLink} /></div>}
                 {sections.map((s) => <SectionView key={s.id} s={s} />)}
               </article>
               <nav className="worlds-cardnav" aria-label="이전·다음 설정">

@@ -136,6 +136,22 @@ class ManuscriptQaTest {
     }
 
     @Test
+    fun `relationship evidence carries card links as plain text to the model and the citation`() {
+        val owner = UUID.randomUUID().toString()
+        val from = CardPayload(UUID.randomUUID(), "리안", "카드 비공개 본문", "character", "")
+        val to = from.copy(id = UUID.randomUUID(), title = "카엘")
+        val edge = RelationshipPayload(UUID.randomUUID(), from.id, to.id, null, label = "동맹", body = "[승상](card:${UUID.randomUUID()})과 맺었다", direction = "directed")
+        val graph = WorldDraftResponse(UUID.randomUUID(), 7, null, null, "세계", "", listOf(from, to), listOf(edge), relationshipVersion = 3)
+        `when`(scopeService.resolve("fork", owner, scopeRequest)).thenReturn(scope)
+        `when`(scopeService.currentRelationships(scope, owner)).thenReturn(graph)
+        val id = "relationship:${edge.id}"
+        val excerpt = QaExcerpt(id, 2, "동맹\n승상과 맺었다", "relationship", "리안 → 카엘")
+        `when`(answers.answer(request.question, listOf(excerpt))).thenReturn(ManuscriptQaResult(listOf(QaClaim("리안과 카엘은 동맹이에요.", "confirmed", listOf(id))), emptyList()))
+        val source = service.ask("fork", owner, request.copy(target = "relationship")).sources.single() as QaRelationshipSource
+        assertEquals("동맹\n승상과 맺었다", source.quote)
+    }
+
+    @Test
     fun `ai retrieval returns verified excerpts and step metrics without calling the model or consent`() {
         prepare(hit, hit.copy(id="foreign", workId="other"))
         val result = service.retrieveForAi(QaRetrievalRequest(grants.issue(QaScopeGrant("fork", null, 2, "r2")), request.question))

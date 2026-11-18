@@ -27,6 +27,7 @@ import { CardImageControl, CardThumb } from './WorldCardImage'
 import { CharacterDocs } from './CharacterDocs'
 import { NewCardMenu } from './NewCardMenu'
 import { WorldCardFindings } from './WorldCardFindings'
+import { WorldCardOrder } from './WorldCardOrder'
 import { WorldChat } from './WorldChat'
 import { WorldSaveBar } from './WorldSaveBar'
 
@@ -49,6 +50,8 @@ const BODY_MAX = 3000
  *   바꾸면 `revealFromEpisode`만 정하고 `visibility`는 회차가 있으면 public, 없으면 지워 맞춘다(`setCardReveal`). 건드리지 않은 카드는 다시 쓰지 않는다(옛 공개 카드는 1화로 보인다).
  *   초안 값이라 저장과 확정 버전을 거쳐야 반영된다. 다른 세계관에서 가져온 카드는 유형 옆에 `가져옴`과 출처를 보인다.
  *   마지막 설정집 AI 검토가 이 카드에 지적을 남겼으면 편집기 맨 위에 'AI 검토 의견'(`WorldCardFindings`)이 보이고, 수정안을 `초안에 반영`하면 편집기를 지금 초안의 글로 다시 만든다(`docs.reload`).
+ *   이 카드의 글에 더 늦게 공개되는 카드의 이름이 나오면 그 아래에 '공개 순서 확인'(`WorldCardOrder`, DEC-53)이 어느 글에 어떤 이름이 나오는지 알린다(모델 없이 초안에서 계산하며 저장·확정을 막지 않는다).
+ *   카드 본문(인물은 IDENTITY.md) 편집기에는 `설정 링크` 버튼이 있어 같은 세계관 카드를 이름·별칭으로 찾아 `[글자](card:<id>)`를 커서 위치에 넣고, 미리보기의 링크를 누르면 그 카드의 편집 화면으로 간다. 연관 설정 목록에는 본문 링크로 이어진 카드도 들어간다.
  * - 오른쪽: AI 채팅(전송은 연결 전이라 '준비 중').
  * 삭제는 초안 변경이라 확인(함께 지워질 관계 수)을 거친 뒤 설정집으로 돌아가고 되돌릴 수 있으며, 세계관 저장으로 서버에 반영한다.
  * 관계 기준 회차를 고른 동안(`vm.deleteLock`)은 삭제가 최신 저장에서만 되므로 하단 삭제와 레일 ⋮ 삭제를 잠그고 이유를 하단에 보인다(잠긴 메뉴 항목의 설명도 같은 글).
@@ -75,6 +78,10 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
   const [legacyPage, setLegacyPage] = useState(0)
   const legacyItems = pageItems(legacy, legacyPage, 50)
   const links = settingLinks(world.settings, item.id)
+  // 설정 링크(DEC-53)로 고를 수 있는 같은 세계관의 카드(편집 중인 카드와 카드가 아닌 기존 항목은 뺀다)와 이 카드에서 나온 공개 순서 경고
+  const linkChoices = world.settings.flatMap((s) => (s.item.id !== item.id && cardTypes.some((t) => t.id === cardTypeOf(s.item)) ? [{ id: s.item.id, title: s.item.title || '이름 없는 설정', type: labelOf(s), aliases: s.aliases }] : []))
+  const orderIssues = board.orderIssues.filter((issue) => issue.cardId === item.id)
+  const openLinked = (id: string) => { setConfirm(''); focusName.current = true; vm.editCard(id) }
   const identityBody = identityBodyOf(world.settings, item.id) // 이 카드가 「동일 인물」의 다른 이름 카드면 그 본체 카드(#485)
   const docs = useCharacterDocs(vm, setting) // 편집 중인 글: 인물 카드는 고른 문서, 그 밖은 카드 본문
   const over = docs.text.length > BODY_MAX
@@ -88,7 +95,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
   const bodyEditor = (
     <div className="world-card-editor" inert={vm.busy}>
       <Suspense fallback={<div className="world-card-editor-loading" aria-live="polite">편집기를 불러오고 있어요.</div>}>
-        <LazyMarkdownEditor key={docs.editorKey} label={docs.person ? docs.name : '설정 본문'} initialValue={docs.text} placeholder={docs.person ? undefined : '어떤 인물인가요? 무엇이 중요한 장소인가요? 떠오르는 내용을 자유롭게 적어 보세요.'} onChange={docs.write} />
+        <LazyMarkdownEditor key={docs.editorKey} label={docs.person ? docs.name : '설정 본문'} initialValue={docs.text} placeholder={docs.person ? undefined : '어떤 인물인가요? 무엇이 중요한 장소인가요? 떠오르는 내용을 자유롭게 적어 보세요.'} onChange={docs.write} cardLinks={docs.doc === 'identity' ? { cards: linkChoices, open: openLinked } : undefined} />
       </Suspense>
     </div>
   )
@@ -154,7 +161,8 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
             </div>
           </div>
           <div className="editor writing-editor" role="region" aria-label="선택한 설정 편집">
-            <WorldCardFindings key={item.id} vm={vm} cardId={item.id} onOpenCard={(id) => { setConfirm(''); focusName.current = true; vm.editCard(id) }} onApplied={docs.reload} />
+            <WorldCardFindings key={item.id} vm={vm} cardId={item.id} onOpenCard={openLinked} onApplied={docs.reload} />
+            <WorldCardOrder issues={orderIssues} relationTitle={(id) => world.settings.find((s) => s.item.id === id)?.item.title || '이름 없는 관계'} onOpenCard={openLinked} />
             <fieldset className="world-fields" disabled={vm.busy}>
               <legend className="sr-only">설정 카드 작성</legend>
               {/* Chromium: fieldset의 직접 자식이 바뀌면(인물 ↔ 그 밖의 문서 구조, 편집기 교체) 같은 fieldset 안 컨테이너 쿼리 컨테이너(.world-card-header)의 하위가 레이아웃에서 빠져 머리가 0×0이 된다(#466). 내용은 이 래퍼 하나 안에서만 바뀌게 하고 래퍼에 key를 주지 않는다. */}
@@ -207,7 +215,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
                 <section className="world-card-links" aria-label="연관 설정">
                   <h4>연관 설정·관계 <span className="small muted">읽기 전용</span></h4>
                   {links.length
-                    ? <ul>{links.map((l) => <li key={`${l.id}:${l.label}`}><button type="button" className="world-card-link" onClick={() => { setConfirm(''); focusName.current = true; vm.editCard(l.id) }}>{l.title} <small>{l.label}</small></button></li>)}</ul>
+                    ? <ul>{links.map((l) => <li key={`${l.id}:${l.label}`}><button type="button" className="world-card-link" onClick={() => openLinked(l.id)}>{l.title} <small>{l.label}</small></button></li>)}</ul>
                     : <p className="small muted">이어진 설정이 없어요. 인물은 관계 연결에서 서로 이을 수 있어요.</p>}
                 </section>
                 <details className="world-additional" key={item.id}>

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { characterDocText } from '../entities/characterDocs'
 import { newSetting, type CharacterDocs, type SettingItem, type StudioSetting } from '../entities/studioWorld'
 import {
-  applyReviewFix, cardFindings, cardStatuses, REVIEW_FIX_BLOCKED, reviewClock, reviewFixName, reviewFixState, reviewPartialNote, reviewSummary, unlinkedCardIds,
+  applyReviewFix, cardFindings, cardStatuses, publicationOrderIssues, REVIEW_FIX_BLOCKED, reviewClock, reviewFixName, reviewFixState, reviewPartialNote, reviewSummary, unlinkedCardIds,
   type ReviewFinding, type ReviewFix, type WorldReview,
 } from '../entities/worldReview'
 
@@ -66,9 +66,9 @@ describe('게시판 상태 집계', () => {
     const castle = place('성')
     const settings = [empty, full, war, castle, link(full, war)]
     const status = cardStatuses(settings, [finding([castle.item.id]), finding([castle.item.id, full.item.id])])
-    expect(status.get(empty.item.id)).toEqual({ cleanup: true, unlinked: false, opinions: 0 })
-    expect(status.get(castle.item.id)).toEqual({ cleanup: false, unlinked: false, opinions: 2 })
-    expect(status.get(full.item.id)).toEqual({ cleanup: false, unlinked: false, opinions: 1 })
+    expect(status.get(empty.item.id)).toEqual({ cleanup: true, unlinked: false, opinions: 0, order: false })
+    expect(status.get(castle.item.id)).toEqual({ cleanup: false, unlinked: false, opinions: 2, order: false })
+    expect(status.get(full.item.id)).toEqual({ cleanup: false, unlinked: false, opinions: 1, order: false })
     expect(status.has(war.item.id)).toBe(false)
     expect(cardStatuses([...settings, event('고립된 사건')], []).size).toBe(2)
   })
@@ -188,5 +188,76 @@ describe('검토 요약 문구', () => {
   it('보낸 카드가 전체보다 적을 때만 그 사실을 알린다', () => {
     expect(reviewPartialNote(review())).toBe('')
     expect(reviewPartialNote(review({ reviewedCards: 300, totalCards: 412 }))).toBe('카드 412장 중 300장만 검토했어요. 한 번에 보낼 수 있는 분량을 넘은 카드는 검토하지 못했어요.')
+  })
+})
+
+describe('공개 순서 점검: 이른 카드의 글에 늦은 카드의 이름이 나오면 알린다 (DEC-53)', () => {
+  const pub = (n: number, row: StudioSetting): StudioSetting => ({ ...row, revealFromEpisode: n })
+  const text = (title: string, body: string, extra: Partial<StudioSetting> = {}) => card('people', title, { text: body }, extra)
+  const named = (row: StudioSetting, from?: number) => ({ cardId: row.item.id, title: row.item.title, ...(from !== undefined && { from }) })
+
+  it('N화부터 공개하는 카드의 본문에 더 늦게 공개되는 카드의 제목이 나오면 본문 경고다', () => {
+    const lian = pub(1, text('리안', '리안은 승상과 오랜 벗이다.'))
+    const minister = pub(5, text('승상', '궁정의 어른'))
+    expect(publicationOrderIssues([lian, minister])).toEqual([{ cardId: lian.item.id, source: 'body', name: '승상', named: named(minister, 5), visibleFrom: 1 }])
+  })
+
+  it('이름의 카드가 같거나 더 이른 회차에 공개되면 경고하지 않는다', () => {
+    const lian = pub(3, text('리안', '승상과 황제를 안다.'))
+    expect(publicationOrderIssues([lian, pub(3, text('승상', '')), pub(1, text('황제', ''))])).toEqual([])
+  })
+
+  it('작가 전용 카드의 제목·별칭이 공개 카드의 글에 나와도 경고한다(작가 전용은 가장 늦은 회차로 본다)', () => {
+    const lian = pub(2, text('리안', '실은 흑막이다.'))
+    const secret = text('흑막', '', { aliases: ['그림자', ' '] })
+    expect(publicationOrderIssues([lian, secret])).toEqual([{ cardId: lian.item.id, source: 'body', name: '흑막', named: named(secret), visibleFrom: 2 }])
+    const alias = pub(2, text('리안', '그림자가 드리웠다.'))
+    expect(publicationOrderIssues([alias, secret]).map((i) => [i.name, i.named.from])).toEqual([['그림자', undefined]])
+  })
+
+  it('작가 전용 카드의 글은 독자에게 보이지 않으므로 점검하지 않고, 옛 공개 카드(회차 없음)는 1화로 본다', () => {
+    const closed = text('리안', '승상을 안다.')
+    const minister = pub(5, text('승상', ''))
+    expect(publicationOrderIssues([closed, minister])).toEqual([])
+    const legacy = text('리안', '승상을 안다.', { visibility: 'public' })
+    expect(publicationOrderIssues([legacy, minister]).map((i) => i.visibleFrom)).toEqual([1])
+  })
+
+  it('링크 글자는 글로 보고 링크의 id는 이름으로 치지 않으며 자기 이름은 경고하지 않는다', () => {
+    const minister = pub(5, text('승상', ''))
+    const hex = text('aaaa', '') // 작가 전용. 링크 id의 16진수와 같은 글자
+    const lian = pub(1, text('리안', `[승상](card:${minister.item.id}) 과 [갑](card:aaaaaaaa-2222-3333-4444-555555555555), 리안`))
+    expect(publicationOrderIssues([lian, minister, hex]).map((i) => i.name)).toEqual(['승상'])
+  })
+
+  it('이름이 빈 카드는 건너뛰고 한 글에서 같은 카드는 한 번만 알린다(제목이 먼저)', () => {
+    const lian = pub(1, text('리안', '승상 재상 승상'))
+    const minister = pub(4, text('승상', '', { aliases: ['재상'] }))
+    expect(publicationOrderIssues([lian, minister, text('', '')]).map((i) => i.name)).toEqual(['승상'])
+  })
+
+  it('관계의 label·body는 두 끝 카드 가운데 늦은 회차부터 보이는 글로 보고 끝점 카드마다 알린다', () => {
+    const [a, b] = [pub(1, text('리안', '')), pub(3, text('카엘', ''))]
+    const emperor = pub(5, text('황제', ''))
+    const relation = link(a, b, { title: '동료', text: '황제와도 아는 사이' })
+    const issues = publicationOrderIssues([a, b, emperor, relation])
+    expect(issues).toEqual([a, b].map((end) => ({ cardId: end.item.id, source: 'relation', relationId: relation.item.id, name: '황제', named: named(emperor, 5), visibleFrom: 3 })))
+    // label(title)도 본다.
+    expect(publicationOrderIssues([a, b, emperor, link(a, b, { title: '황제의 사람', text: '' })]).map((i) => i.name)).toEqual(['황제', '황제'])
+    // 이름의 카드가 관계가 보이는 회차 이하면 괜찮다.
+    expect(publicationOrderIssues([a, b, pub(3, text('황제', '')), relation])).toEqual([])
+  })
+
+  it('끝점 하나라도 작가 전용이면 그 관계는 독자에게 보이지 않아 점검하지 않는다', () => {
+    const [a, b] = [pub(1, text('리안', '')), text('카엘', '')]
+    expect(publicationOrderIssues([a, b, pub(9, text('황제', '')), link(a, b, { text: '황제를 안다' })])).toEqual([])
+  })
+
+  it('게시판 상태는 경고가 있는 카드에 order를 켜고, 경고만 있어도 상태가 있는 카드다', () => {
+    const hall = pub(1, card('places', '궁궐', { text: '승상이 산다.' }))
+    const minister = pub(5, card('places', '승상'))
+    const status = cardStatuses([hall, minister], [])
+    expect(status.get(hall.item.id)).toEqual({ cleanup: false, unlinked: false, opinions: 0, order: true })
+    expect(status.has(minister.item.id)).toBe(false)
   })
 })

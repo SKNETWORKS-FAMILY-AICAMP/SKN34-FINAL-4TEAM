@@ -6,6 +6,7 @@ HTTP 경로(router)와 오케스트레이션의 world_review 단계가 같은 re
 """
 
 from app import tracing
+from app.card_links import strip_card_links
 from app.content_mcp import service as content_mcp
 from app.world_review import agent
 from app.world_review.errors import WorldReviewFailure
@@ -65,6 +66,15 @@ def linked_request(work_id: str) -> WorldReviewRequest:
         raise WorldReviewFailure(502, BAD_CONTENT) from None
 
 
+def _plain(card: RequestCard) -> RequestCard:
+    """본문·인물 문서의 본문 링크(DEC-53)를 글자로 벗긴 카드. 모델 입력에 카드 id가 섞이지 않고 글자 수 한도도 벗긴 길이로 센다."""
+    docs = card.characterDocs
+    if docs:
+        docs = docs.model_copy(update={'soul': strip_card_links(docs.soul), 'goal': strip_card_links(docs.goal),
+                                       'episodes': {n: strip_card_links(text) for n, text in docs.episodes.items()}})
+    return card.model_copy(update={'body': strip_card_links(card.body), 'characterDocs': docs})
+
+
 def _request(read: dict) -> WorldReviewRequest:
     """world_studio_read 응답의 활성 카드·관계. 삭제된(lifecycle=removed) 것과 보내지 않는 카드에 이어진 관계는 뺀다."""
     cards = []
@@ -73,7 +83,7 @@ def _request(read: dict) -> WorldReviewRequest:
             docs = (c.get('semanticMetadata') or {}).get('characterDocs') if c['cardType'] == 'character' else None
             cards.append(RequestCard(id=c['id'], cardType=c['cardType'], areaCode=c['areaCode'], title=c['title'], body=c['body'],
                                      characterDocs=docs))
-    cards = [c for c in cards if c.chars() <= MAX_CARD_CHARS][:MAX_CARDS]
+    cards = [c for c in map(_plain, cards) if c.chars() <= MAX_CARD_CHARS][:MAX_CARDS]
     ids = {c.id for c in cards}
     relationships = []
     for r in read.get('relationships') or []:

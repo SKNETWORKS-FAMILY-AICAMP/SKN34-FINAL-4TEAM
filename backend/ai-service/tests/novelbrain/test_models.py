@@ -48,6 +48,19 @@ def test_world_snapshot_reads_relation_polarity_and_body(polarity, expected):
     assert [(r.polarity, r.body) for r in snapshot.relations] == [(expected, '어린 시절 검술을 가르쳤다')]
 
 
+def test_world_snapshot_turns_card_links_into_plain_text_in_cards_character_docs_and_relation_bodies():
+    # 모델 입력·BM25에 카드 id가 섞이지 않게 대상이 있든 없든 글자만 남긴다(DEC-53, 링크 검증 표는 tests/test_card_links.py).
+    link = '[승상](card:aaaaaaaa-2222-3333-4444-555555555555)'
+    docs = {'soul': f'말투 {link}', 'goal': f'목표 {link}', 'episodes': {'1': f'기억 {link}'}}
+
+    snapshot = world_snapshot(read([card('kael', '카엘', f'앞 {link} 뒤', meta={'characterDocs': docs}), card('lira', '리라')],
+                                   [relation('r1', 'kael', 'lira', '스승', body=f'관계 {link}')]), 1)
+
+    kael = snapshot.cards[0]
+    assert (kael.text, kael.soul, kael.goal, kael.episodes) == ('앞 승상 뒤', '말투 승상', '목표 승상', {1: '기억 승상'})
+    assert snapshot.relations[0].body == '관계 승상'
+
+
 def test_world_snapshot_relation_without_polarity_or_body_uses_the_defaults():
     bare = relation('r1', 'kael', 'lira')
     del bare['polarity'], bare['body']

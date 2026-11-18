@@ -435,17 +435,14 @@ def _private(card: Card) -> list[dict]:
     return [{**_doc(*d), 'owner': card.title} for d in docs if d[2].strip()]
 
 
-def _relations(snapshot: WorldSnapshot, read: dict, person: set[str]) -> list[dict]:
+def _relations(snapshot: WorldSnapshot, person: set[str]) -> list[dict]:
     """기준 회차 시점의 관계 중 그 사람의 카드(「동일 인물」이면 이어진 카드들)가 끝점인 것(삭제·끝점 없는 관계는 스냅샷이 이미 뺐다).
     같은 사람의 두 카드 사이의 관계(identity)는 관계 문서가 아니라 한 사람이라는 뜻이라 넣지 않는다.
 
     상대 카드가 기준 회차에 아직 공개되지 않았으면 뺀다. 관계 문장에 상대 제목이 드러나기 때문이며 recall의 인물 필터와 같은 규칙이다.
-
-    ponytail: WorldSnapshot의 관계에는 설명(body)과 부정(polarity=denied)이 없어 응답 원본에서 id로 찾아 읽는다.
-    스냅샷에 두 필드가 생기면 이 조회를 지운다.
+    설명(body)과 부정 여부는 스냅샷의 것이다: 응답 원본이 아니라 스냅샷에서 읽어야 본문 링크(DEC-53)가 글자로 벗겨진 채 인물 입력에 든다.
     """
     cards = {c.id: c for c in snapshot.cards}
-    raw = {r.get('id'): r for r in read.get('relationships') or []}
     items = []
     for r in snapshot.relations:
         mine = {r.source, r.target} & person
@@ -454,10 +451,9 @@ def _relations(snapshot: WorldSnapshot, read: dict, person: set[str]) -> list[di
         other = cards[r.target if r.source in mine else r.source]
         if other.revealFromEpisode is not None and other.revealFromEpisode > snapshot.episode:
             continue
-        extra = raw.get(r.id) or {}
         arrow = '→' if r.direction == 'directed' else '↔'
-        said = f'{cards[r.source].title} {arrow} {cards[r.target].title}: {r.label}{" 아님" if extra.get("polarity") == "denied" else ""}'
-        items.append(_doc(f'relation:{r.id}', '관계', f'{said} — {extra["body"]}' if extra.get('body') else said))
+        said = f'{cards[r.source].title} {arrow} {cards[r.target].title}: {r.label}{" 아님" if r.polarity == "denied" else ""}'
+        items.append(_doc(f'relation:{r.id}', '관계', f'{said} — {r.body}' if r.body else said))
     return items
 
 
@@ -485,7 +481,7 @@ def character_view(plan: SimulationPlan, world: World, scene: Scene, actor: Card
     # 자기 관계는 같은 사람(「동일 인물」: 본체와 그 다른 이름들)의 모든 카드가 끝점인 관계를 합친 것이다. 이름은 고른 카드의 것만 쓴다(self·present).
     # ponytail: recall은 고른 카드 기준이라 다른 쪽 카드에만 이어진 사건·물건 카드의 본문은 Gap으로 남는다(관계 문장은 위에서 합쳐 넣는다). 필요하면 filter_for_character에 같은 사람의 id 집합을 넘긴다.
     body = world.bodies.get(actor.id, actor.id)
-    mine = [*own, *_relations(world.snapshot, world.read, {body, *(i for i, b in world.bodies.items() if b == body)})]
+    mine = [*own, *_relations(world.snapshot, {body, *(i for i, b in world.bodies.items() if b == body)})]
     taken = {d['ref'] for d in mine}
     known = [*mine, *({'ref': i.ref, 'label': f'조회({i.source})', 'text': i.text} for i in recalled.items if i.ref not in taken)]
     cast = [world.characters[i] for i in plan.characterIds]

@@ -99,3 +99,21 @@ it('활성 카드 10,000개 한도를 넘기면 더하지 않고 몇 개까지 �
   expect(() => appendImported(draft, two)).toThrow('설정 카드는 10,000개까지 저장할 수 있어요. 지금은 1개까지 가져올 수 있어요.')
   expect(() => appendImported([...draft, mine('마지막')], one)).toThrow('설정 카드는 10,000개까지 저장할 수 있어요. 더 가져오려면 설정을 먼저 정리해 주세요.')
 })
+
+it('본문 링크는 같이 가져온 카드끼리만 새 카드 id로 다시 잇고 나머지는 글자로 바꾼다(관계를 가져오지 않아도 같다)', () => {
+  const [a, b, c] = ['aaaaaaaa-2222-3333-4444-555555555555', 'bbbbbbbb-2222-3333-4444-555555555555', 'cccccccc-2222-3333-4444-555555555555']
+  const world = source({
+    cards: [
+      { ...publicCard(a, '가람'), text: `나래([나래](card:${b.toUpperCase()}))와 [항구](card:${c}), [없는](card:99999999-2222-3333-4444-555555555555)` },
+      { ...publicCard(b, '나래'), text: `[가람](card:${a})` },
+      publicCard(c, '항구', 'location'),
+    ],
+    relationships: [],
+  })
+  const { cards } = importCards(world, pick(a, b), false)
+  const [first, second] = cards.map((s) => s.item.id)
+  expect(cards.map((s) => s.item.text)).toEqual([
+    `나래([나래](card:${second}))와 항구, 없는`, // 같이 가져온 나래만 새 id로 잇고, 가져오지 않은 항구와 없는 카드는 글자로
+    `[가람](card:${first})`,
+  ])
+})

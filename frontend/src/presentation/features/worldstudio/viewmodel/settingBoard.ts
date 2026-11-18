@@ -1,3 +1,4 @@
+import { cardLinks } from '../../../../domain/entities/cardLinks'
 import { cardTypeOf, cardTypes } from '../../../../domain/entities/studioCards'
 import { relationLabel } from '../../../../domain/entities/studioRelations'
 import type { SettingItem, StudioSetting } from '../../../../domain/entities/studioWorld'
@@ -21,8 +22,8 @@ const boardType = (s: StudioSetting) => cardTypes.find((t) => t.id === cardTypeO
 type SettingLink = { id: string; title: string; label: string; via: 'relation' | 'link' }
 
 /**
- * 카드 한 장에 이어진 카드: 관계 설정(주체·대상 어느 쪽이든)이 먼저, 이어서 관련 설정(`relatedIds`, 어느 쪽이 썼든)과 사건 순서(`afterId`)다. 쓴 순서를 지킨다.
- * 없는 카드·자기 자신·카드가 아닌 항목은 버린다. 같은 카드가 관계 둘로 이어지면 두 번 나온다(관계마다 이름이 다르다).
+ * 카드 한 장에 이어진 카드: 관계 설정(주체·대상 어느 쪽이든)이 먼저, 이어서 관련 설정(`relatedIds`, 어느 쪽이 썼든)과 사건 순서(`afterId`), 본문 링크(DEC-53: 이 카드 본문이 건 것은 `본문 링크`, 다른 카드 본문이 이 카드를 가리킨 것은 `본문에서 가리킴`)다. 쓴 순서를 지킨다.
+ * 없는 카드·자기 자신·카드가 아닌 항목은 버린다. 같은 카드가 관계 둘로 이어지면 두 번 나온다(관계마다 이름이 다르다). 본문 링크는 같은 카드를 여러 번 걸어도 한 번이다.
  */
 export function settingLinks(settings: StudioSetting[], id: string): SettingLink[] {
   const cards = new Map(settings.filter(boardType).map((s) => [s.item.id, s.item]))
@@ -41,25 +42,27 @@ export function settingLinks(settings: StudioSetting[], id: string): SettingLink
     if (item.id === id) {
       for (const other of item.relatedIds) add(other, '관련 설정', 'link')
       add(item.afterId, '앞선 사건', 'link')
+      for (const target of summaryOf(item).links) add(target, '본문 링크', 'link')
     } else {
       if (item.relatedIds.includes(id)) add(item.id, '관련 설정', 'link')
       if (item.afterId === id) add(item.id, '이후 사건', 'link')
+      if (summaryOf(item).links.includes(id)) add(item.id, '본문에서 가리킴', 'link')
     }
   }
   return links
 }
 
-/** 요약 열의 한 줄 글. 본문에서 기호를 벗기는 일은 카드마다 한 번만 하고, 본문이 바뀐 카드만 다시 한다(초안을 고칠 때마다 모든 카드를 다시 벗기지 않는다). */
-const summaries = new WeakMap<SettingItem, { source: string; plain: string }>()
+/** 요약 열의 한 줄 글과 본문 링크의 대상 id. 본문을 훑는 일은 카드마다 한 번만 하고, 본문이 바뀐 카드만 다시 한다(초안을 고칠 때마다 모든 카드를 다시 훑지 않는다). */
+const summaries = new WeakMap<SettingItem, { source: string; plain: string; links: string[] }>()
 function summaryOf(item: SettingItem) {
   let cached = summaries.get(item)
-  if (cached?.source !== item.text) summaries.set(item, cached = { source: item.text, plain: plainCardText(item.text) })
-  return cached.plain
+  if (cached?.source !== item.text) summaries.set(item, cached = { source: item.text, plain: plainCardText(item.text), links: cardLinks(item.text).map((link) => link.id) })
+  return cached
 }
 
 /**
  * 설정 카드를 게시판 줄의 원자료로. 연결 수는 이어진 카드 수, 제목 옆 수는 인물이면 관계로 이어진 상대 수이고 그 밖은 연결 수다(공개 설정집과 같은 규칙).
- * 이어진 카드는 `settingLinks`와 같은 규칙(관계의 양 끝, 관련 설정·사건 순서의 양쪽)으로 세되, 카드마다 `settingLinks`를 부르지 않고 한 번 훑어 모은다:
+ * 이어진 카드는 `settingLinks`와 같은 규칙(관계의 양 끝, 관련 설정·사건 순서·본문 링크의 양쪽)으로 세되, 카드마다 `settingLinks`를 부르지 않고 한 번 훑어 모은다:
  * 입력할 때마다 다시 계산하는 값이라 카드 수의 제곱으로 걸리면(1,000장에 150ms쯤) 타자가 밀린다.
  */
 export function settingBoardEntries(settings: StudioSetting[]): BoardEntry[] {
@@ -81,10 +84,11 @@ export function settingBoardEntries(settings: StudioSetting[]): BoardEntry[] {
   for (const { item } of cards) {
     for (const other of item.relatedIds) link(item.id, other, [linked])
     link(item.id, item.afterId, [linked])
+    for (const target of summaryOf(item).links) link(item.id, target, [linked])
   }
   return cards.map(({ item, type }) => {
     const connections = linked.get(item.id)?.size ?? 0
     const kind = CARD_KIND[type.id]
-    return { cardId: item.id, title: item.title || '이름 없는 설정', text: summaryOf(item), type: type.label, kind, connections, badge: kind === '인물' ? related.get(item.id)?.size ?? 0 : connections }
+    return { cardId: item.id, title: item.title || '이름 없는 설정', text: summaryOf(item).plain, type: type.label, kind, connections, badge: kind === '인물' ? related.get(item.id)?.size ?? 0 : connections }
   })
 }

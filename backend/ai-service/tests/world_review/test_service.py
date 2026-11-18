@@ -154,6 +154,18 @@ def test_linked_request_reads_the_latest_world_of_the_work_without_an_episode(mo
         ('rel-1', 'seoyun', 'war', '겪음', 'asserted'), ('rel-4', 'war', 'seoyun', '원수', 'denied')]
 
 
+def test_linked_request_sends_card_links_as_plain_text_in_the_body_and_the_character_documents(monkeypatch):
+    # 채팅 경로의 AI 입력 경계: 모델 입력에 카드 id가 섞이지 않게 대상이 있든 없든 글자만 보낸다(DEC-53).
+    link = '[승상](card:aaaaaaaa-2222-3333-4444-555555555555)'
+    docs = {'characterDocs': {'soul': f'말투 {link}', 'goal': f'목표 {link}', 'episodes': {'0': f'기억 {link}'}}}
+    fake_content(monkeypatch, read([payload('seoyun', 'character', f'앞 {link} 뒤', meta=docs), payload('war', 'event', f'{link}')]))
+
+    cards = service.linked_request('work-1').cards
+
+    assert [c.body for c in cards] == ['앞 승상 뒤', '승상']
+    assert cards[0].characterDocs.model_dump() == {'soul': '말투 승상', 'goal': '목표 승상', 'episodes': {0: '기억 승상'}}
+
+
 def test_linked_request_does_not_send_cards_over_the_limits(monkeypatch):
     cards = [payload(f'c{i}') for i in range(MAX_CARDS + 5)]
     cards[1] = payload('long', body='가' * (MAX_CARD_CHARS + 1))
