@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import type { PublicWorld, PublicWorldPage, PublicWorldSummary } from '../entities/publicWorld'
-import type { PublicWorldQuery, PublicWorldRepository } from '../repositories/PublicWorldRepository'
+import type { PublicWorld, PublicWorldCardHit, PublicWorldCardPage, PublicWorldPage, PublicWorldSummary } from '../entities/publicWorld'
+import type { PublicWorldCardQuery, PublicWorldQuery, PublicWorldRepository } from '../repositories/PublicWorldRepository'
 import { PUBLIC_WORLD_MAX_PAGES, PUBLIC_WORLD_PAGE_SIZE, PublicWorldUseCase } from '../usecases/PublicWorldUseCase'
 
 const summary = (n: number): PublicWorldSummary => ({
@@ -16,7 +16,8 @@ const server = (total: number, serverSize = PUBLIC_WORLD_PAGE_SIZE) => {
     return { items: all.slice(page * used, page * used + used), page, size: used, total }
   })
   const get = vi.fn(async (): Promise<PublicWorld | undefined> => undefined)
-  return { list, get } satisfies PublicWorldRepository
+  const searchCards = vi.fn(async ({ page, size }: PublicWorldCardQuery, _signal?: AbortSignal): Promise<PublicWorldCardPage> => ({ items: [], page, size, total: 0 }))
+  return { list, get, searchCards } satisfies PublicWorldRepository
 }
 
 describe('공개 세계관 목록', () => {
@@ -59,7 +60,7 @@ describe('공개 세계관 목록', () => {
   })
 
   it('중간 쪽이 비어 돌아오면(그 사이 목록이 줄어듦) 더 요청하지 않고 거기서 멈춘다', async () => {
-    const repo = { list: vi.fn(async ({ page }: PublicWorldQuery): Promise<PublicWorldPage> => ({ items: page === 0 ? [summary(0)] : [], page, size: 1, total: 99 })), get: vi.fn() } satisfies PublicWorldRepository
+    const repo = { list: vi.fn(async ({ page }: PublicWorldQuery): Promise<PublicWorldPage> => ({ items: page === 0 ? [summary(0)] : [], page, size: 1, total: 99 })), get: vi.fn(), searchCards: vi.fn() } satisfies PublicWorldRepository
     const { items } = await new PublicWorldUseCase(repo).list()
     expect(repo.list).toHaveBeenCalledTimes(2)
     expect(items.map((w) => w.id)).toEqual(['w0'])
@@ -67,7 +68,7 @@ describe('공개 세계관 목록', () => {
 
   it('쪽을 읽는 사이 목록이 밀려 같은 세계관이 두 쪽에 나오면 처음 나온 하나만 남긴다', async () => {
     const pages = [[summary(0), summary(1)], [summary(1), summary(2)]]
-    const repo = { list: vi.fn(async ({ page }: PublicWorldQuery): Promise<PublicWorldPage> => ({ items: pages[page] ?? [], page, size: 2, total: 4 })), get: vi.fn() } satisfies PublicWorldRepository
+    const repo = { list: vi.fn(async ({ page }: PublicWorldQuery): Promise<PublicWorldPage> => ({ items: pages[page] ?? [], page, size: 2, total: 4 })), get: vi.fn(), searchCards: vi.fn() } satisfies PublicWorldRepository
     const { items } = await new PublicWorldUseCase(repo).list()
     expect(items.map((w) => w.id)).toEqual(['w0', 'w1', 'w2'])
   })
@@ -85,11 +86,37 @@ describe('공개 세계관 목록', () => {
 describe('공개 세계관 상세', () => {
   it('저장소 결과를 그대로 돌려주고 비공개·없는 세계관(undefined)도 그대로 알린다', async () => {
     const world = { id: 'w1' } as PublicWorld
-    const repo = { list: vi.fn(), get: vi.fn(async (id: string) => (id === 'w1' ? world : undefined)) } satisfies PublicWorldRepository
+    const repo = { list: vi.fn(), get: vi.fn(async (id: string) => (id === 'w1' ? world : undefined)), searchCards: vi.fn() } satisfies PublicWorldRepository
     const signal = new AbortController().signal
     const useCase = new PublicWorldUseCase(repo)
     expect(await useCase.get('w1', signal)).toBe(world)
     expect(repo.get).toHaveBeenCalledWith('w1', signal)
     expect(await useCase.get('없음')).toBeUndefined()
+  })
+})
+
+describe('공개 세계관·설정 카드 검색 (#505)', () => {
+  const hit: PublicWorldCardHit = { worldId: 'w1', worldName: '달무리 군도', cardId: 'c1', title: '조석신 하엘', cardType: 'character', aliases: ['하엘'], tags: ['신'], imageId: null }
+
+  it('세계관 검색은 검색어·쪽을 그대로 싣고 쪽 크기 24로 한 쪽만 읽는다(list처럼 쪽을 이어 붙이지 않는다)', async () => {
+    const repo = server(60)
+    const signal = new AbortController().signal
+    const page = await new PublicWorldUseCase(repo).searchWorlds({ q: '달무리', page: 1 }, signal)
+    expect(repo.list).toHaveBeenCalledTimes(1)
+    expect(repo.list).toHaveBeenCalledWith({ q: '달무리', page: 1, size: PUBLIC_WORLD_PAGE_SIZE }, signal)
+    expect(page.items.map((w) => w.id)).toEqual(Array.from({ length: PUBLIC_WORLD_PAGE_SIZE }, (_, n) => `w${PUBLIC_WORLD_PAGE_SIZE + n}`))
+    expect(page.total).toBe(60)
+  })
+
+  it('설정 카드 검색도 한 쪽만 읽고 취소 신호를 넘기며 저장소 실패를 숨기지 않는다', async () => {
+    const repo = server(0)
+    repo.searchCards.mockResolvedValueOnce({ items: [hit], page: 2, size: PUBLIC_WORLD_PAGE_SIZE, total: 49 })
+    const signal = new AbortController().signal
+    const page = await new PublicWorldUseCase(repo).searchCards({ q: '하엘', page: 2 }, signal)
+    expect(repo.searchCards).toHaveBeenCalledTimes(1)
+    expect(repo.searchCards).toHaveBeenCalledWith({ q: '하엘', page: 2, size: PUBLIC_WORLD_PAGE_SIZE }, signal)
+    expect(page).toEqual({ items: [hit], page: 2, size: PUBLIC_WORLD_PAGE_SIZE, total: 49 })
+    repo.searchCards.mockRejectedValueOnce(new Error('offline'))
+    await expect(new PublicWorldUseCase(repo).searchCards({ q: '하엘', page: 0 })).rejects.toThrow('offline')
   })
 })

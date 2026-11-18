@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '../fixtureApp'
 
-import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { appContainer } from '../../app/appContainer'
@@ -163,5 +163,193 @@ describe('해시태그 모아보기 (U29)', () => {
     fireEvent.click(screen.getByRole('link', { name: '#활빈당1' }))
     await screen.findByRole('heading', { name: '#활빈당' })
     expect(titles()).toEqual(['홍길동전'])
+  })
+})
+
+describe('세계관·설정 카드 검색 (#505)', () => {
+  // 한 파일의 fixture 컨테이너는 테스트 사이에 공유되므로 spyOn은 매번 되돌린다(renderApp이 작품 검색 스텁을 다시 건다).
+  afterEach(() => { vi.restoreAllMocks() })
+  const publicWorlds = () => appContainer.resolve('publicWorldRepository')
+  const workSearch = () => vi.mocked(appContainer.resolve('workSearchRepository').search)
+  const worldNames = () => [...document.querySelectorAll('.grid6 .hk')].map((h) => h.textContent)
+  const cardRows = () => [...document.querySelectorAll('.worlds-board-table tbody tr')].map((tr) => [...tr.querySelectorAll('td')].map((td) => td.textContent))
+  // 앱 전체 렌더에는 브라우저 인증 안내 같은 전역 alert가 따로 있어 결과 영역(main) 안에서만 찾는다.
+  const main = () => within(screen.getByRole('main'))
+  const tabLinks = async () => [...(await screen.findByRole('navigation', { name: '검색 대상' })).querySelectorAll('a')]
+  const cardHit = (n: number) => ({ worldId: 'w', worldName: '세계', cardId: `c${n}`, title: `카드 ${String(n).padStart(2, '0')}`, cardType: 'other' as const, aliases: [], tags: [], imageId: null })
+
+  it('탭은 작품(기본)·세계관·설정 카드·캐릭터챗이고 주소 type이 선택을 정하며 검색어는 탭 링크에 이어진다', async () => {
+    renderApp('/search?q=달무리')
+    const q = encodeURIComponent('달무리')
+    const links = await tabLinks()
+    expect(links.map((a) => a.textContent)).toEqual(['작품', '세계관', '설정 카드', '캐릭터챗'])
+    expect(links.map((a) => a.getAttribute('href'))).toEqual([`/search?q=${q}`, `/search?q=${q}&type=world`, `/search?q=${q}&type=card`, `/search?q=${q}&type=chat`])
+    expect(links.map((a) => a.getAttribute('aria-current'))).toEqual(['true', null, null, null])
+    cleanup()
+    renderApp('/search?type=card')
+    expect((await tabLinks()).map((a) => [a.getAttribute('href'), a.getAttribute('aria-current')])).toEqual([['/search', null], ['/search?type=world', null], ['/search?type=card', 'true'], ['/search?type=chat', null]])
+    cleanup()
+    renderApp('/search?type=zzz') // 모르는 값은 작품이다
+    expect((await tabLinks()).map((a) => a.getAttribute('aria-current'))).toEqual(['true', null, null, null])
+  })
+
+  it('범위·정렬 도구는 작품 탭에만 있고 세계관·설정 카드 탭은 검색어 입력만 둔다', async () => {
+    renderApp('/search?type=world')
+    expect((await screen.findByLabelText('검색어')).getAttribute('placeholder')).toBe('세계관 이름·설명·작가로 찾기')
+    expect(screen.queryByRole('group', { name: '검색 범위' })).toBeNull()
+    expect(screen.queryByRole('group', { name: '정렬' })).toBeNull()
+    cleanup()
+    renderApp('/search?type=card')
+    expect((await screen.findByLabelText('검색어')).getAttribute('placeholder')).toBe('설정 카드 제목·별칭·태그로 찾기')
+    expect(screen.queryByRole('group', { name: '검색 범위' })).toBeNull()
+    cleanup()
+    renderApp('/search')
+    await screen.findByRole('group', { name: '검색 범위' })
+    screen.getByRole('group', { name: '정렬' })
+  })
+
+  it('세계관 탭은 검색어에 맞는 공개 세계관을 /worlds/:id 카드로 보이고 작품 검색은 부르지 않는다', async () => {
+    renderApp('/search?type=world&q=항해')
+    await screen.findByRole('heading', { name: '‘항해’ 검색 결과' })
+    const card = (await screen.findByRole('heading', { level: 3, name: '달무리 군도' })).closest('a')!
+    expect(card.getAttribute('href')).toBe('/worlds/moonhalo-isles')
+    expect(worldNames()).toEqual(['달무리 군도'])
+    screen.getByText('1개')
+    expect(workSearch()).not.toHaveBeenCalled()
+  })
+
+  it('검색어 없이 세계관 탭을 열면 공개 세계관 전체를 24개씩 보이고 더 보기로 나머지를 이어 붙인다', async () => {
+    renderApp('/search?type=world')
+    await screen.findByText('26개')
+    await waitFor(() => expect(worldNames()).toHaveLength(24))
+    fireEvent.click(screen.getByRole('button', { name: '더 보기' }))
+    await waitFor(() => expect(worldNames()).toHaveLength(26))
+    expect(new Set(worldNames()).size).toBe(26)
+    expect(screen.queryByRole('button', { name: '더 보기' })).toBeNull()
+  })
+
+  it('맞는 세계관이 없으면 0개와 결과 없음 안내를 보인다', async () => {
+    renderApp('/search?type=world&q=없는세계관')
+    await screen.findByText('검색 결과가 없어요. 다른 검색어로 찾아 보세요.')
+    screen.getByText('0개')
+  })
+
+  it('세계관 조회가 실패하면 빈 결과가 아니라 오류 안내를 보이고 다시 불러오면 결과를 보인다', async () => {
+    const list = vi.spyOn(publicWorlds(), 'list').mockRejectedValue(new Error('offline'))
+    renderApp('/search?type=world&q=항해')
+    expect((await main().findByRole('alert')).textContent).toBe('세계관을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')
+    expect(screen.queryByText('0개')).toBeNull()
+    expect(screen.queryByText('검색 결과가 없어요. 다른 검색어로 찾아 보세요.')).toBeNull()
+    list.mockRestore()
+    fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
+    await screen.findByRole('heading', { level: 3, name: '달무리 군도' })
+    expect(main().queryByRole('alert')).toBeNull()
+  })
+
+  it('검색어를 바꾸면 진행 중인 더 보기 요청을 취소하고 늦게 온 응답은 새 목록에 붙이지 않는다', async () => {
+    const repo = publicWorlds()
+    const original = repo.list.bind(repo)
+    const held: AbortSignal[] = []
+    let release: () => void = () => {}
+    const late = new Promise<void>((done) => { release = done })
+    vi.spyOn(repo, 'list').mockImplementation(async (query, signal) => {
+      if (query.page === 1) { held.push(signal!); await late } // 다음 쪽 요청만 붙잡아 둔다
+      return original(query, signal)
+    })
+    renderApp('/search?type=world')
+    fireEvent.click(await screen.findByRole('button', { name: '더 보기' }))
+    await waitFor(() => expect(held).toHaveLength(1))
+    expect(held[0].aborted).toBe(false)
+    fireEvent.change(screen.getByLabelText('검색어'), { target: { value: '항해' } })
+    fireEvent.click(screen.getByRole('button', { name: '검색' }))
+    await waitFor(() => expect(worldNames()).toEqual(['달무리 군도']))
+    expect(held[0].aborted).toBe(true)
+    await act(async () => { release(); await late })
+    expect(worldNames()).toEqual(['달무리 군도'])
+  })
+
+  it('설정 카드 탭은 제목에 맞는 공개 카드를 세계관 최근 공개 순 표로 보이고 카드·세계관 링크를 단다', async () => {
+    renderApp('/search?type=card&q=하엘')
+    await screen.findByRole('heading', { name: '‘하엘’ 검색 결과' })
+    await screen.findByRole('link', { name: '조석신 하엘' })
+    expect(cardRows()).toEqual([['인물', '항법사 하엘라', '별물결 정거장', ''], ['인물', '조석신 하엘', '달무리 군도', '']])
+    expect(screen.getByRole('link', { name: '조석신 하엘' }).getAttribute('href')).toBe('/worlds/moonhalo-isles/cards/1')
+    expect(screen.getByRole('link', { name: '달무리 군도' }).getAttribute('href')).toBe('/worlds/moonhalo-isles')
+    screen.getByText('2개')
+    expect(workSearch()).not.toHaveBeenCalled()
+  })
+
+  it('설정 카드 탭은 검색어가 없으면 요청 없이 안내하고 검색어를 넣으면 찾는다', async () => {
+    const searchCards = vi.spyOn(publicWorlds(), 'searchCards')
+    renderApp('/search?type=card')
+    await screen.findByText('검색어를 입력하면 공개 세계관의 설정 카드를 찾아요.')
+    expect(searchCards).not.toHaveBeenCalled()
+    fireEvent.change(screen.getByLabelText('검색어'), { target: { value: '서진' } })
+    fireEvent.click(screen.getByRole('button', { name: '검색' }))
+    await waitFor(() => expect(cardRows().map((row) => row[1])).toEqual(['통신사 서진', '검객 서진', '당직의 서진']))
+    expect(searchCards).toHaveBeenCalledWith({ q: '서진', page: 0, size: 24 }, expect.any(AbortSignal))
+    expect(screen.queryByText('검색어를 입력하면 공개 세계관의 설정 카드를 찾아요.')).toBeNull()
+  })
+
+  it('대표 이미지가 있는 카드는 제목 앞에 공개 이미지 썸네일을 붙이고 읽지 못하면 감추며 별칭·태그를 보인다', async () => {
+    const hit = { worldId: 'moonhalo-isles', worldName: '달무리 군도', cardId: '1', title: '조석신 하엘', cardType: 'character' as const, aliases: ['하엘님'], tags: ['신'], imageId: 'img-1' }
+    vi.spyOn(publicWorlds(), 'searchCards').mockResolvedValue({ items: [hit, { ...hit, cardId: '4', title: '새벽항', cardType: 'location', aliases: [], tags: [], imageId: null }], page: 0, size: 24, total: 2 })
+    renderApp('/search?type=card&q=하엘')
+    const image = await screen.findByRole('img', { name: '조석신 하엘 이미지' })
+    expect(image.getAttribute('src')).toBe('/api/v1/public/world-studios/moonhalo-isles/card-images/img-1')
+    expect(screen.queryByRole('img', { name: '새벽항 이미지' })).toBeNull()
+    expect(cardRows().map((row) => row[3])).toEqual(['하엘님 · #신', ''])
+    fireEvent.error(image)
+    expect(screen.queryByRole('img', { name: '조석신 하엘 이미지' })).toBeNull()
+  })
+
+  it('설정 카드 탭도 받은 수가 total보다 적으면 더 보기로 다음 쪽을 이어 붙이고 total에 닿으면 버튼이 사라진다', async () => {
+    const searchCards = vi.spyOn(publicWorlds(), 'searchCards').mockImplementation(async ({ page, size }) => ({ items: Array.from({ length: page === 0 ? size : 6 }, (_, i) => cardHit(page * size + i)), page, size, total: size + 6 }))
+    renderApp('/search?type=card&q=카드')
+    await screen.findByText('30개')
+    await waitFor(() => expect(cardRows()).toHaveLength(24))
+    fireEvent.click(screen.getByRole('button', { name: '더 보기' }))
+    await waitFor(() => expect(cardRows()).toHaveLength(30))
+    expect(searchCards).toHaveBeenLastCalledWith({ q: '카드', page: 1, size: 24 }, expect.any(AbortSignal))
+    expect(screen.queryByRole('button', { name: '더 보기' })).toBeNull()
+  })
+
+  it('설정 카드 더 보기가 실패하면 보인 카드는 그대로 두고 버튼 곁에 실패를 알리며 다시 시도로 이어 받는다', async () => {
+    let offline = true
+    vi.spyOn(publicWorlds(), 'searchCards').mockImplementation(async ({ page, size }) => {
+      if (page === 1 && offline) throw new Error('offline')
+      return { items: Array.from({ length: page === 0 ? size : 2 }, (_, i) => cardHit(page * size + i)), page, size, total: size + 2 }
+    })
+    renderApp('/search?type=card&q=카드')
+    fireEvent.click(await screen.findByRole('button', { name: '더 보기' }))
+    expect((await main().findByRole('alert')).textContent).toBe('설정 카드를 더 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')
+    expect(cardRows()).toHaveLength(24)
+    offline = false
+    fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+    await waitFor(() => expect(cardRows()).toHaveLength(26))
+    expect(main().queryByRole('alert')).toBeNull()
+  })
+
+  it('캐릭터챗 탭은 검색하지 않고 안내 한 줄과 /chat 목록 링크만 보인다', async () => {
+    const list = vi.spyOn(publicWorlds(), 'list')
+    const searchCards = vi.spyOn(publicWorlds(), 'searchCards')
+    renderApp('/search?type=chat&q=하린')
+    await screen.findByText('캐릭터챗은 검색하지 않고 목록에서 골라요.')
+    expect(screen.getByRole('link', { name: '캐릭터챗 목록 보기' }).getAttribute('href')).toBe('/chat')
+    expect(screen.queryByLabelText('검색어')).toBeNull()
+    expect([workSearch().mock.calls.length, list.mock.calls.length, searchCards.mock.calls.length]).toEqual([0, 0, 0])
+  })
+
+  it('탭을 옮겨도 검색어가 입력칸에 남고 검색을 제출해도 고른 탭이 유지된다', async () => {
+    renderApp('/search?q=항해')
+    const tabs = within(await screen.findByRole('navigation', { name: '검색 대상' }))
+    fireEvent.click(tabs.getByRole('link', { name: '세계관' }))
+    await screen.findByRole('heading', { level: 3, name: '달무리 군도' })
+    expect((screen.getByLabelText('검색어') as HTMLInputElement).value).toBe('항해')
+    expect(tabs.getByRole('link', { name: '세계관' }).getAttribute('aria-current')).toBe('true')
+    fireEvent.change(screen.getByLabelText('검색어'), { target: { value: '야시' } })
+    fireEvent.click(screen.getByRole('button', { name: '검색' }))
+    await waitFor(() => expect(worldNames()).toEqual(['야시의 연인', '인경 뒤의 도깨비 장터']))
+    expect(tabs.getByRole('link', { name: '세계관' }).getAttribute('aria-current')).toBe('true')
   })
 })

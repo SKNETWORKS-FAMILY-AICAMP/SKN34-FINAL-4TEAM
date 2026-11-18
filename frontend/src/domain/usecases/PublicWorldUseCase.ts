@@ -1,4 +1,4 @@
-import type { PublicWorld, PublicWorldGenre, PublicWorldPage } from '../entities/publicWorld'
+import type { PublicWorld, PublicWorldCardPage, PublicWorldGenre, PublicWorldPage } from '../entities/publicWorld'
 import type { PublicWorldRepository } from '../repositories/PublicWorldRepository'
 
 export const PUBLIC_WORLD_PAGE_SIZE = 24
@@ -26,6 +26,16 @@ export class PublicWorldUseCase {
       for (const w of last.items) if (!items.has(w.id)) items.set(w.id, w)
     }
     return { ...first, items: [...items.values()] }
+  }
+
+  /** `/search` 세계관 탭: 검색어에 맞는 세계관 한 쪽. 다음 쪽은 `page`로 이어 받는다(`list`처럼 여러 쪽을 이어 붙이지 않는다). 검색어가 비면 전체 목록이다. */
+  searchWorlds({ q, page }: { q: string; page: number }, signal?: AbortSignal): Promise<PublicWorldPage> {
+    return this.repository.list({ q, page, size: PUBLIC_WORLD_PAGE_SIZE }, signal)
+  }
+
+  /** `/search` 설정 카드 탭: 검색어에 맞는 카드 한 쪽(검색어는 비면 안 된다). */
+  searchCards({ q, page }: { q: string; page: number }, signal?: AbortSignal): Promise<PublicWorldCardPage> {
+    return this.repository.searchCards({ q, page, size: PUBLIC_WORLD_PAGE_SIZE }, signal)
   }
 
   /** 비공개·없는 세계관은 undefined다(화면은 "찾을 수 없는 세계관"). 실패는 던진다. */

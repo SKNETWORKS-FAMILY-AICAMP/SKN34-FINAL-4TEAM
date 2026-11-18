@@ -1,7 +1,7 @@
-import { Fragment } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import { Navigate, useParams } from 'react-router'
 
-import { epsOf, RANKING_KINDS, RANKING_PERIODS, RANKING_TYPES, rankingUsesPeriod, SEARCH_FIELDS, SEARCH_SORTS, sortsOf, type Work } from '../../../../domain/entities/work'
+import { epsOf, RANKING_KINDS, RANKING_PERIODS, RANKING_TYPES, rankingUsesPeriod, SEARCH_FIELDS, SEARCH_SORTS, SEARCH_TABS, sortsOf, type SearchTab, type Work } from '../../../../domain/entities/work'
 import { CoverOf, Cov } from '../../../shared/art'
 import { ago, asOf, kfmt, qs } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
@@ -9,6 +9,7 @@ import { ContentLoadState } from '../../../shared/ContentLoadState'
 import { Crown } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
+import { CardHits, WorldHits } from '../../worlds/view/WorldSearchResults'
 import { useIfsViewModel, useRankViewModel, useSearchViewModel, useTagViewModel } from '../viewmodel/useExploreViewModel'
 import { ReportSheet } from './Sheets'
 
@@ -17,34 +18,36 @@ type St = Record<string, string>
 /** 선택한 정렬·범위·탭은 색(.on)뿐 아니라 aria-current로도 알립니다. */
 const selected = (on: boolean) => ({ className: on ? 'on' : '', 'aria-current': on ? ('true' as const) : undefined })
 
-/** 목업 listTools(base, st, withQ) */
-function ListTools({ base, st, onSubmit }: { base: string; st: St; onSubmit: (q: string) => void }) {
+/** 목업 listTools(base, st, withQ). 범위·정렬(`filters`)은 작품 탭에만 있고 다른 탭은 검색어 입력만 둡니다. */
+function ListTools({ base, st, onSubmit, placeholder, filters }: { base: string; st: St; onSubmit: (q: string) => void; placeholder: string; filters: boolean }) {
   return (
     <div className="ltools">
       <form className="lq" key={st.q} onSubmit={(e) => { e.preventDefault(); onSubmit(new FormData(e.currentTarget).get('q')?.toString() ?? '') }}>
         <span aria-hidden="true">🔍</span>
-        <input name="q" defaultValue={st.q} placeholder="제목·작가·태그·장르로 찾기" aria-label="검색어" />
+        <input name="q" defaultValue={st.q} placeholder={placeholder} aria-label="검색어" />
         <button className="btn sm pri" type="submit">검색</button>
       </form>
-      <div className="lrow">
-        <div className="sortt" role="group" aria-label="검색 범위">{SEARCH_FIELDS.map(([k, l]) => <Go key={k} {...selected(st.f === k)} to={qs(base, { ...st, f: k })}>{l}</Go>)}</div>
-        <div className="sortt" role="group" aria-label="정렬">{SEARCH_SORTS.map(([k, l]) => <Go key={k} {...selected(st.sort === k)} to={qs(base, { ...st, sort: k })}>{l}</Go>)}</div>
-      </div>
+      {filters && (
+        <div className="lrow">
+          <div className="sortt" role="group" aria-label="검색 범위">{SEARCH_FIELDS.map(([k, l]) => <Go key={k} {...selected(st.f === k)} to={qs(base, { ...st, f: k })}>{l}</Go>)}</div>
+          <div className="sortt" role="group" aria-label="정렬">{SEARCH_SORTS.map(([k, l]) => <Go key={k} {...selected(st.sort === k)} to={qs(base, { ...st, sort: k })}>{l}</Go>)}</div>
+        </div>
+      )}
     </div>
   )
 }
 
-/** 서버 조회 실패는 빈 목록·0편으로 숨기지 않고 안내와 다시 불러오기로 보입니다. */
-const LoadError = ({ retry }: { retry: () => void }) => (
-  <div className="rp muted"><p role="alert">소설을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p><button type="button" className="btn sm" onClick={retry}>다시 불러오기</button></div>
+/** 서버 조회 실패는 빈 목록·0편으로 숨기지 않고 안내와 다시 불러오기로 보입니다. `what`은 조사까지 붙인 목록 이름입니다(소설을·세계관을·설정 카드를). */
+const LoadError = ({ retry, what = '소설을' }: { retry: () => void; what?: string }) => (
+  <div className="rp muted"><p role="alert">{what} 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p><button type="button" className="btn sm" onClick={retry}>다시 불러오기</button></div>
 )
 
 /** 서버 페이지를 이어 붙이는 버튼(마지막 페이지면 없음). 실패해도 이미 보인 목록은 두고 이 버튼 곁에서 다시 시도하게 합니다. */
-function LoadMore({ hasMore, loading, failed, load }: { hasMore: boolean; loading: boolean; failed: boolean; load: () => void }) {
+function LoadMore({ hasMore, loading, failed, load, what = '소설을' }: { hasMore: boolean; loading: boolean; failed: boolean; load: () => void; what?: string }) {
   if (!hasMore) return null
   return (
     <div style={{ display: 'grid', justifyItems: 'center', gap: 8, marginTop: 24 }}>
-      {failed && <p role="alert" className="muted small">소설을 더 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p>}
+      {failed && <p role="alert" className="muted small">{what} 더 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p>}
       <button type="button" className="btn" disabled={loading} onClick={load}>{loading ? '불러오는 중…' : failed ? '다시 시도' : '더 보기'}</button>
     </div>
   )
@@ -76,23 +79,67 @@ export function WCard({ w, i, ranked, updated, popular, onReport }: { w: Work; i
   )
 }
 
-/** 목업 searchPage(): U36 */
+/** 탭마다 머리말(검색어가 없을 때)·입력 안내가 다르다. 작품 탭은 기존 '소설 검색'·안내 그대로다. 캐릭터챗은 검색 입력이 없다. */
+const NOUN: Record<SearchTab, string> = { work: '소설', world: '세계관', card: '설정 카드', chat: '캐릭터챗' }
+const PLACEHOLDER = { work: '제목·작가·태그·장르로 찾기', world: '세계관 이름·설명·작가로 찾기', card: '설정 카드 제목·별칭·태그로 찾기' } as const
+
+/** 머리말 옆 결과 수. 작품은 총 개수를 몰라 더 받을 수 있는 동안은 불러온 개수까지만 알리고, 세계관·설정 카드는 서버가 센 전체 수(total)다. */
+function countLabel(vm: ReturnType<typeof useSearchViewModel>) {
+  if (vm.tab === 'work') return vm.list && !vm.isError ? `${vm.list.length}편${vm.more.hasMore ? ' 이상' : ''}` : null
+  const r = vm.tab === 'world' ? vm.worlds : vm.tab === 'card' ? vm.cards : null
+  return r?.list && !r.isError ? `${r.total}개` : null
+}
+
+/** 세계관·설정 카드 탭 본문: 불러오는 중·실패(다시 불러오기)·결과 없음을 실제 결과대로 보이고, 이어 받을 쪽이 있으면 더 보기를 붙입니다. `what`은 조사까지 붙인 목록 이름입니다. */
+function Results<T>({ r, what, children }: {
+  r: { list: T[] | undefined; isError: boolean; retry: () => void; more: { hasMore: boolean; loading: boolean; failed: boolean; load: () => void } }
+  what: string; children: (items: T[]) => ReactNode
+}) {
+  return (
+    <div style={{ marginTop: 20 }}>
+      {r.isError ? <LoadError what={what} retry={r.retry} />
+        : !r.list ? <div className="rp muted" role="status">{what} 불러오고 있어요…</div>
+        : r.list.length ? <>{children(r.list)}<LoadMore {...r.more} what={what} /></>
+        : <div className="rp muted">검색 결과가 없어요. 다른 검색어로 찾아 보세요.</div>}
+    </div>
+  )
+}
+
+/**
+ * 목업 searchPage(): U36. 대상 탭(작품·세계관·설정 카드·캐릭터챗, 주소 `?type=`)을 머리말 아래에 두고 검색어는 탭을 옮겨도 이어 갑니다.
+ * 범위·정렬은 작품 탭에만 있습니다. 캐릭터챗은 검색하지 않고 목록(/chat) 링크만 보입니다.
+ */
 export function SearchPage() {
   const vm = useSearchViewModel()
   useDocumentTitle('검색')
   const L = vm.list ?? []
+  const count = countLabel(vm)
   return (
     <>
       <Gnb />
       <main className="wrap" id="main" tabIndex={-1}>
-        {/* 총 개수는 서버가 주지 않으니 더 받을 수 있는 동안은 불러온 개수까지만 알립니다. */}
-        <div className="sec-h"><h1>{vm.st.q ? `‘${vm.st.q}’ 검색 결과` : '소설 검색'}</h1>{vm.list && !vm.isError && <span className="muted small">{L.length}편{vm.more.hasMore && ' 이상'}</span>}</div>
-        <ListTools base="/search" st={vm.st} onSubmit={vm.submit} />
-        {!vm.list && !vm.isError && <ContentLoadState failed={false} retry={vm.retry}/>}
-        <div className="rgrid" style={{ marginTop: 20 }}>
-          {vm.isError ? <LoadError retry={vm.retry} /> : vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} onReport={vm.canReport(w) ? vm.setReporting : undefined} />) : <div className="rp muted">검색 결과가 없어요. 다른 검색어나 범위로 찾아 보세요.</div>)}
-        </div>
-        <LoadMore {...vm.more} />
+        <div className="sec-h" style={{ marginBottom: 0 }}><h1>{vm.st.q ? `‘${vm.st.q}’ 검색 결과` : `${NOUN[vm.tab]} 검색`}</h1>{count && <span className="muted small">{count}</span>}</div>
+        <nav className="libtabs" aria-label="검색 대상">{SEARCH_TABS.map(([k, l]) => <Go key={k} to={qs('/search', { q: vm.st.q, type: k === 'work' ? undefined : k })} {...selected(vm.tab === k)}>{l}</Go>)}</nav>
+        {vm.tab !== 'chat' && <ListTools base="/search" st={vm.st} onSubmit={vm.submit} placeholder={PLACEHOLDER[vm.tab]} filters={vm.tab === 'work'} />}
+        {vm.tab === 'work' && (
+          <>
+            {!vm.list && !vm.isError && <ContentLoadState failed={false} retry={vm.retry}/>}
+            <div className="rgrid" style={{ marginTop: 20 }}>
+              {vm.isError ? <LoadError retry={vm.retry} /> : vm.list && (L.length ? L.map((w, i) => <WCard key={w.id} w={w} i={i} onReport={vm.canReport(w) ? vm.setReporting : undefined} />) : <div className="rp muted">검색 결과가 없어요. 다른 검색어나 범위로 찾아 보세요.</div>)}
+            </div>
+            <LoadMore {...vm.more} />
+          </>
+        )}
+        {vm.tab === 'world' && <Results r={vm.worlds} what="세계관을">{(worlds) => <WorldHits worlds={worlds} />}</Results>}
+        {vm.tab === 'card' && (vm.cards.needsQuery
+          ? <div className="rp muted" style={{ marginTop: 20 }}>검색어를 입력하면 공개 세계관의 설정 카드를 찾아요.</div>
+          : <Results r={vm.cards} what="설정 카드를">{(hits) => <CardHits hits={hits} />}</Results>)}
+        {vm.tab === 'chat' && (
+          <div className="rp muted" style={{ marginTop: 20 }}>
+            <p>캐릭터챗은 검색하지 않고 목록에서 골라요.</p>
+            <Go to="/chat" className="btn sm">캐릭터챗 목록 보기</Go>
+          </div>
+        )}
       </main>
       <Footer />
       {vm.reporting && <ReportSheet work={vm.reporting} onClose={() => vm.setReporting(null)} />}

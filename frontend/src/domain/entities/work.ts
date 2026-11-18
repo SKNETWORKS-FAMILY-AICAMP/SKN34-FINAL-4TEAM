@@ -233,6 +233,9 @@ export const SEARCH_FIELDS = [['all', '전체'], ['title', '제목'], ['author',
 export const SEARCH_SORTS = [['latest', '최신 순'], ['like', '인기 순'], ['view', '조회 순']] as const
 export type SearchField = (typeof SEARCH_FIELDS)[number][0]
 export type SearchSort = (typeof SEARCH_SORTS)[number][0]
+/** /search의 대상 탭(주소 쿼리 type, #505): 작품이 기본이고 캐릭터챗은 검색 없이 목록(/chat)으로 안내한다. */
+export const SEARCH_TABS = [['work', '작품'], ['world', '세계관'], ['card', '설정 카드'], ['chat', '캐릭터챗']] as const
+export type SearchTab = (typeof SEARCH_TABS)[number][0]
 
 /**
  * 기간별 랭킹(기능표 45)의 범위 탭·기준·기간으로, /rank 주소 쿼리 t·kind·period가 받는 값이다. 항목은 [값, 라벨, …]이며
