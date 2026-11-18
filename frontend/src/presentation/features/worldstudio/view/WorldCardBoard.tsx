@@ -1,13 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 
 import { cardTypeOf } from '../../../../domain/entities/studioCards'
-import type { CardVisibility, StudioSetting } from '../../../../domain/entities/studioWorld'
+import { cardRevealEpisode, invalidReveal, REVEAL_EPISODE_ERROR, type StudioSetting } from '../../../../domain/entities/studioWorld'
+import { revealEpisodeInput } from '../../../../domain/entities/worldStudioWriting'
 import type { CardStatus } from '../../../../domain/entities/worldReview'
 import { KindChip } from '../../../shared/KindChip'
 import { BOOK_SORTS, type BoardRow } from '../../../shared/worldBoard'
 import { PageControls } from '../../../shared/PageControls'
 import { pageItems } from '../../../shared/pageItems'
-import { publishAllCards, setCardVisibility, visibleSelection } from '../viewmodel/cardVisibility'
+import { publishAllCards, revealLabel, setCardReveal, visibleSelection } from '../viewmodel/cardVisibility'
 import { importedSource } from '../../../shared/importCards'
 import { labelOf } from '../viewmodel/settingBoard'
 import { useCardBoard } from '../viewmodel/useCardBoard'
@@ -21,13 +22,13 @@ type VM = ReturnType<typeof useWorldStudioViewModel>
 
 /**
  * 게시판 한 줄. 제목 버튼이 편집 화면을 여는 주 컨트롤이다(줄 전체를 누르게 하지 않는다). 제목 옆 `[n]`은 공개 설정집과 같은 관계·연결 수다.
- * 맨 앞 체크박스는 공개 범위를 한 번에 바꿀 카드를 고르고, `공개` 칸은 그 카드의 공개 범위다. 다른 세계관에서 가져온 카드는 `가져옴`과 출처를 제목 아래에 보인다.
+ * 맨 앞 체크박스는 공개 설정을 한 번에 바꿀 카드를 고르고, `공개` 칸은 그 카드의 공개 설정이다(`N화부터`·`작가 전용`, 소설이 연결되지 않은 세계관의 1화는 `공개`, DEC-53). 다른 세계관에서 가져온 카드는 `가져옴`과 출처를 제목 아래에 보인다.
  * 보완 상태는 제목 옆에 알린다(알리기만 하고 이 표시 때문에 저장·확정이 막히지는 않는다): 인물 문서(IDENTITY.md·SOUL.md·GOAL.md) 가운데 비어 있는 것이 있으면 `정리 필요`,
  * 사건·사물이 어느 인물과도 승인된 관계로 이어지지 않았으면 `연결 필요`, 마지막 AI 검토가 남긴 지적이 있으면 `AI 의견 N`(누르면 그 카드의 편집 화면에서 지적을 본다)이다.
  * 본문이 좁으면 번호·분류·요약·연결 칸이 숨는다(world-studio.css의 컨테이너 규칙). 그때 분류와 요약을 잃지 않도록 제목 아래 한 줄(`.world-row-sub`)에도 두고, 넓은 본문에서는 CSS가 그 줄을 숨긴다.
  */
-function Row({ row, setting, status, images, picked, onPick, onOpen }: { row: BoardRow; setting?: StudioSetting; status?: CardStatus; images: CardImages; picked: boolean; onPick: (id: string, on: boolean) => void; onOpen: (id: string) => void }) {
-  const isPublic = setting?.visibility === 'public'
+function Row({ row, setting, status, images, picked, linked, onPick, onOpen }: { row: BoardRow; setting?: StudioSetting; status?: CardStatus; images: CardImages; picked: boolean; linked: boolean; onPick: (id: string, on: boolean) => void; onOpen: (id: string) => void }) {
+  const reveal = setting && cardRevealEpisode(setting)
   return (
     <tr>
       <td className="col-pick"><label className="world-pick"><input type="checkbox" checked={picked} onChange={(e) => onPick(row.cardId, e.target.checked)} /><span className="sr-only">{row.title} 선택</span></label></td>
@@ -44,7 +45,7 @@ function Row({ row, setting, status, images, picked, onPick, onOpen }: { row: Bo
         <span className="world-row-sub"><KindChip kind={row.kind} label={row.type} />{row.text && <span>{row.text}</span>}</span>
       </td>
       <td className="col-sum">{row.text}</td>
-      <td className="col-vis" data-public={isPublic}>{isPublic ? '공개' : '비공개'}</td>
+      <td className="col-vis" data-public={reveal !== undefined}>{revealLabel(reveal, linked)}</td>
       <td className="col-num">{row.connections}</td>
     </tr>
   )
@@ -53,7 +54,8 @@ function Row({ row, setting, status, images, picked, onPick, onOpen }: { row: Bo
 /**
  * 설정집 게시판(관리 모드의 설정집 보기, 작성 모드의 설정 카드 단계). 공개 설정집과 같은 게시판으로, 왼쪽 분류 메뉴 + 오른쪽 검색·정렬·결과 수·`다른 세계관에서 가져오기`·`+ 새 설정`을 둔 도구줄 아래 표(선택·번호·분류·제목[연결 수]·요약·공개·연결)다.
  * 내용 편집은 여기서 하지 않는다: 행의 제목을 누르거나 새 설정을 만들면 집필실 같은 편집 화면(`WorldCardStudio`, 주소 `?card=`)이 열리고, 삭제도 거기서 한다. 편집 화면에서 돌아오면 그 카드의 행에 초점이 간다.
- * 설정 카드는 기본 비공개이고(DEC-46) 공개 범위만은 게시판에서 한 번에 바꾼다: 행을 골라 `선택 공개`·`선택 비공개`, 또는 `전체 공개`. 초안 변경이라 저장과 확정 버전을 거쳐야 공개 화면에 반영된다.
+ * 설정 카드는 기본 작가 전용이고(DEC-53) 공개 설정만은 게시판에서 한 번에 바꾼다: 행을 골라 `선택 공개`·`선택 비공개`, 또는 `전체 공개`. 소설이 연결된 세계관이면 회차를 한 번 입력받아(기본 1화) 고른 카드 모두에 같은 'N화부터 공개'를 정하고,
+ * 연결되지 않은 세계관은 `공개`(1화)다. 초안 변경이라 저장과 확정 버전을 거쳐야 공개 화면에 반영된다.
  * 바꾸면 한 일을 상태 문구로 알리고(`설정 N개를 공개로 뒀어요.`), 고른 것이 풀리거나 모두 공개가 돼 누른 버튼이 잠기므로 초점은 표 머리의 `보이는 설정 모두 선택`으로 옮긴다. 일부만 고른 동안 그 체크박스는 중간 상태다.
  * `다른 세계관에서 가져오기`는 가져오기 시트(`WorldImportSheet`)를 연다(닫히면 시트가 초점을 이 버튼으로 돌려준다).
  * 카드가 하나도 없으면 안내는 표 안 한 줄뿐이다. 카드가 아닌 기존 항목(관계·메모·분류 확인)은 표 아래 접힌 목록에서 열 수 있다.
@@ -77,17 +79,23 @@ export function WorldCardBoard({ vm }: { vm: VM }) {
     setSelected(next)
   }
   const pick = (id: string, on: boolean) => select((current) => new Set(on ? [...current, id] : [...current].filter((other) => other !== id)))
-  const change = (visibility: CardVisibility) => {
-    const next = setCardVisibility(world.settings, new Set(picked), visibility)
+  // 일괄 공개의 회차: 소설이 연결된 세계관은 한 번 입력받고(기본 1화), 연결되지 않은 세계관은 '공개'(1화)다. 쓸 수 없는 값이면 공개 버튼이 잠긴다.
+  const linked = !!vm.linkedWorkId
+  const episodeId = useId()
+  const [episodeText, setEpisodeText] = useState('1')
+  const typed = linked ? revealEpisodeInput(episodeText) : 1
+  const episode = typed !== undefined && !invalidReveal({ revealFromEpisode: typed }) ? typed : undefined
+  const change = (on: boolean) => {
+    const next = setCardReveal(world.settings, new Set(picked), on ? episode : undefined)
     if (next !== world.settings) vm.patch({ settings: next })
-    setDone({ text: `현재 페이지 설정 ${picked.length}개를 ${visibility === 'public' ? '공개' : '비공개'}로 뒀어요.`, settings: next })
+    setDone({ text: `현재 페이지 설정 ${picked.length}개를 ${on ? (linked ? `${episode}화부터 공개` : '공개') : '비공개'}로 뒀어요.`, settings: next })
     setSelected((current) => { const next = new Set(current); for (const id of picked) next.delete(id); return next })
     head.current?.focus()
   }
-  const allPublic = publishAllCards(world.settings)
+  const allPublic = episode === undefined ? world.settings : publishAllCards(world.settings, episode)
   const publishAll = () => {
     vm.patch({ settings: allPublic })
-    setDone({ text: '모든 설정을 공개로 뒀어요.', settings: allPublic })
+    setDone({ text: linked ? `모든 설정을 ${episode}화부터 공개로 뒀어요.` : '모든 설정을 공개로 뒀어요.', settings: allPublic })
     head.current?.focus()
   }
   // 일부만 고른 상태는 속성이 없어 DOM에 직접 표시한다.
@@ -152,12 +160,22 @@ export function WorldCardBoard({ vm }: { vm: VM }) {
               <NewCardMenu vm={vm} className="world-new-menu" trigger={<><span aria-hidden="true">+</span> 새 설정</>} before={board.reset} />
             </div>
             <div className="world-bulk" role="group" aria-label="공개 범위 한 번에 바꾸기">
-              <p className="small muted">공개로 둔 설정만 공개 세계관에 보여요. 저장한 뒤 ‘확정 버전 남기기’를 해야 반영돼요.</p>
+              <p className="small muted">{linked ? '고른 설정 모두에 같은 N화부터 공개를 정해요. 작가 전용으로 두면 독자와 공개 세계관에 보이지 않아요.' : '공개로 둔 설정만 공개 세계관에 보여요.'} 저장한 뒤 ‘확정 버전 남기기’를 해야 반영돼요.</p>
               <p className="small muted">선택 공개·비공개는 현재 페이지에 보이는 선택만 바꿔요. 다른 페이지나 필터에 가려진 선택은 유지돼요.</p>
               <span className="small" role="status">{done?.settings === world.settings ? done.text : selectionText}</span>
               {done?.settings === world.settings && <span className="small">{selectionText}</span>}
-              <button type="button" className="btn sm" disabled={!picked.length} onClick={() => change('public')}>현재 페이지 선택 공개</button>
-              <button type="button" className="btn sm" disabled={!picked.length} onClick={() => change('private')}>현재 페이지 선택 비공개</button>
+              {linked && (
+                <>
+                  <label className="world-reveal">
+                    일괄 공개 회차
+                    <input type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="off" className="inp" aria-invalid={episode === undefined} aria-describedby={episode === undefined ? `${episodeId}-error` : undefined} value={episodeText} onChange={(e) => setEpisodeText(e.target.value.replace(/\D/g, ''))} />
+                    화부터 공개
+                  </label>
+                  {episode === undefined && <p id={`${episodeId}-error`} role="alert" className="small world-field-error">{REVEAL_EPISODE_ERROR}</p>}
+                </>
+              )}
+              <button type="button" className="btn sm" disabled={!picked.length || episode === undefined} onClick={() => change(true)}>현재 페이지 선택 공개</button>
+              <button type="button" className="btn sm" disabled={!picked.length} onClick={() => change(false)}>현재 페이지 선택 비공개</button>
               <button type="button" className="btn sm" disabled={allPublic === world.settings} onClick={publishAll}>전체 공개</button>
             </div>
             <div className="world-board-scroll">
@@ -171,7 +189,7 @@ export function WorldCardBoard({ vm }: { vm: VM }) {
                   </tr>
                 </thead>
                 <tbody ref={table}>
-                  {board.paged.items.map((row) => <Row key={row.cardId} row={row} setting={byId.get(row.cardId)} status={board.statuses.get(row.cardId)} images={vm.cardImages} picked={selected.has(row.cardId)} onPick={pick} onOpen={vm.editCard} />)}
+                  {board.paged.items.map((row) => <Row key={row.cardId} row={row} setting={byId.get(row.cardId)} status={board.statuses.get(row.cardId)} images={vm.cardImages} picked={selected.has(row.cardId)} linked={linked} onPick={pick} onOpen={vm.editCard} />)}
                   {!board.rows.length && <tr><td colSpan={7} className="muted">{board.total ? '조건에 맞는 설정이 없어요.' : '설정을 추가해 시작해 보세요.'}</td></tr>}
                 </tbody>
               </table>

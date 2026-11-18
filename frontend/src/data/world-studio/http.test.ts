@@ -564,6 +564,20 @@ it('treats the row as the source of truth: a cleared reveal episode or import so
  expect(Object.keys(sent.semanticMetadata).sort()).toEqual(['kept','studio'])
  expect((await savedBody([{...row,revealFromEpisode:5},b,relation])).cards[0].semanticMetadata.revealFromEpisode).toBe(5)
 })
+it('sends old reveal/visibility combinations back exactly as read (DEC-53 computes them on read), never rewriting a card the author did not touch',async()=>{
+  // 옛 공개 카드(공개 + 회차 없음)는 읽을 때 1화로 계산하므로 회차 값을 만들어 쓰지 않고 그대로 다시 보낸다.
+  const oldPublic=vi.fn().mockImplementation(async()=>Response.json(wireWith({visibility:'public',semanticMetadata:{studio:a}})))
+  const [legacy]=(await new HttpWorldStudioRepository(oldPublic).read(id)).settings
+  expect(legacy).toEqual({...a,visibility:'public'})
+  const sentPublic=(await savedBody([legacy,b,relation])).cards[0]
+  expect([sentPublic.visibility,Object.keys(sentPublic.semanticMetadata)]).toEqual(['public',['studio']])
+  // 비공개 + 회차 N도 읽은 그대로다: 회차 값만 행에 올라오고 visibility는 새 화면이 만지기 전에는 맞춰 쓰지 않는다.
+  const revealOnly=vi.fn().mockImplementation(async()=>Response.json(wireWith({visibility:'private',semanticMetadata:{studio:a,revealFromEpisode:3}})))
+  const [numbered]=(await new HttpWorldStudioRepository(revealOnly).read(id)).settings
+  expect(numbered).toEqual({...a,revealFromEpisode:3})
+  const sentNumbered=(await savedBody([numbered,b,relation])).cards[0]
+  expect([sentNumbered.visibility,sentNumbered.semanticMetadata.revealFromEpisode]).toEqual(['private',3])
+})
 
 // ── 인물 문서(SOUL.md·GOAL.md·회차별 기억): 인물 카드 semanticMetadata의 최상위 키 characterDocs. IDENTITY.md는 카드 본문(body)이다 ───
 const docs={soul:'말수가 적다',goal:'스승의 원수를 찾는다',episodes:{0:'프롤로그의 기억',3:'스승을 잃었다'}}
