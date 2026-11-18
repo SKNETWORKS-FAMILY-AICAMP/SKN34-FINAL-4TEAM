@@ -117,6 +117,19 @@ describe('연결된 세계관의 설정 카드로 채운 설정 위키 (DEC-46)'
     expect(panel.querySelector('input, textarea, select, button, [contenteditable]')).toBeNull()
   })
 
+  it('본문의 설정 링크(DEC-53)는 위키에 있는 카드의 문서로 건너가는 링크이고 위키에 없는 카드(서버가 거른 카드)는 글자만 보인다', () => {
+    const [tower, gone] = ['aaaaaaaa-2222-3333-4444-555555555555', 'bbbbbbbb-2222-3333-4444-555555555555']
+    const panel = showLinked([
+      card(tower, { title: '별빛 탑', cardType: 'location', text: '봉인을 지킨다.' }),
+      card('rian', { title: '리안', text: `[별빛 탑](card:${tower})과 [사라진 곳](card:${gone})` }),
+    ])
+    const rian = docOf(panel, /리안$/)
+    expect(within(rian).getByRole('link', { name: '별빛 탑' }).getAttribute('href')).toBe(`#doc-${tower}`)
+    expect(within(rian).queryByRole('link', { name: '사라진 곳' })).toBeNull()
+    expect(rian.textContent).toContain('별빛 탑과 사라진 곳')
+    expect(panel.textContent).not.toContain('card:') // 어느 쪽도 주소가 글자로 남지 않는다
+  })
+
   it('이미지가 있는 카드는 정보 상자 맨 위에 독자 설정 위키 이미지 주소(같은 기준 회차)의 이미지를 보이고 없는 카드에는 없으며 읽지 못하면 감춘다', () => {
     const panel = showLinked(cards.map((c) => (c.id === 'rian' ? { ...c, imageId: 'image 1' } : c)))
     const rian = docOf(panel, /리안$/)

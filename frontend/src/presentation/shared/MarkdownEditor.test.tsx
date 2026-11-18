@@ -219,3 +219,86 @@ it('테마가 바뀌면 편집기를 다시 만들지 않고 어두운 테마 �
   expect(ui().classList.contains('toastui-editor-dark')).toBe(false)
   expect(made.editors).toHaveLength(1)
 })
+
+// ── 설정 링크(DEC-53): 도구 줄 버튼·검색 패널·미리보기 링크 이동 ──
+const [LA, LB] = ['aaaaaaaa-2222-3333-4444-555555555555', 'bbbbbbbb-2222-3333-4444-555555555555']
+const linkCards = [{ id: LA, title: '리안', type: '인물', aliases: ['견습 서약사'] }, { id: LB, title: '별빛 탑', type: '장소' }]
+const linkButton = () => within(group()).getByRole('button', { name: '설정 링크' })
+const dialog = () => screen.getByRole('dialog', { name: '설정 링크 넣기' })
+const picks = () => within(dialog()).getAllByRole('listitem').map((li) => li.textContent)
+
+it('설정 링크를 주지 않으면 도구 줄에 그 버튼도 미리보기 링크 처리도 없다', () => {
+  render(draw())
+  expect(within(group()).queryByRole('button', { name: '설정 링크' })).toBeNull()
+})
+
+it('설정 링크를 주면 도구 줄 끝에 설정 링크 버튼이 생기고 누르면 같은 세계관 설정을 이름·별칭으로 찾는 패널이 열려 검색 칸에 초점이 간다', () => {
+  render(draw({ cardLinks: { cards: linkCards, open: vi.fn() } }))
+  expect(made.options[0].toolbarItems).toEqual([['heading', 'bold', 'italic', 'strike'], ['ul', 'ol', 'quote'], ['table', 'link', expect.objectContaining({ name: 'cardLink', tooltip: '설정 링크' })]])
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(linkButton().getAttribute('aria-expanded')).toBe('false')
+  fireEvent.click(linkButton())
+  expect(document.activeElement).toBe(within(dialog()).getByRole('searchbox'))
+  expect(linkButton().getAttribute('aria-expanded')).toBe('true')
+  expect(picks()).toEqual(['리안인물', '별빛 탑장소'])
+  fireEvent.change(within(dialog()).getByRole('searchbox'), { target: { value: ' 서약 ' } }) // 별칭으로도 찾고 앞뒤 공백은 무시한다
+  expect(picks()).toEqual(['리안인물'])
+  fireEvent.change(within(dialog()).getByRole('searchbox'), { target: { value: '없는 이름' } })
+  expect(screen.queryAllByRole('listitem')).toHaveLength(0)
+  within(dialog()).getByText('맞는 설정이 없어요.')
+})
+
+it('고른 설정은 선택한 글자를 링크 글자로, 선택이 없으면 그 설정의 제목으로 커서 위치에 넣고 onChange로 알린 뒤 패널을 닫고 편집기로 초점을 돌린다', () => {
+  const onChange = vi.fn()
+  render(draw({ initialValue: '소개 글', onChange, cardLinks: { cards: linkCards, open: vi.fn() } }))
+  act(() => { made.editors[0].setSelection([1, 1], [1, 3]) }) // '소개'
+  fireEvent.click(linkButton())
+  fireEvent.click(within(dialog()).getByRole('button', { name: /^리안/ }))
+  expect(onChange).toHaveBeenLastCalledWith(`[소개](card:${LA}) 글`)
+  expect(screen.queryByRole('dialog')).toBeNull()
+  act(() => { made.editors[0].moveCursorToEnd(false) })
+  fireEvent.click(linkButton())
+  fireEvent.click(within(dialog()).getByRole('button', { name: /^별빛 탑/ }))
+  expect(onChange).toHaveBeenLastCalledWith(`[소개](card:${LA}) 글[별빛 탑](card:${LB})`)
+})
+
+it('Esc는 패널을 닫고 초점을 설정 링크 버튼으로 돌려주며, 한글 조합 중의 Esc는 패널을 닫지 않는다', () => {
+  render(draw({ cardLinks: { cards: linkCards, open: vi.fn() } }))
+  fireEvent.click(linkButton())
+  const search = within(dialog()).getByRole('searchbox')
+  fireEvent.keyDown(search, { key: 'Escape', isComposing: true })
+  expect(screen.queryByRole('dialog')).not.toBeNull()
+  fireEvent.keyDown(search, { key: 'Escape' })
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(document.activeElement).toBe(linkButton())
+  fireEvent.click(linkButton())
+  fireEvent.click(within(dialog()).getByRole('button', { name: '닫기' }))
+  expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+it('미리보기의 설정 링크는 같은 화면 안 주소와 data 속성으로 그려 눌러서 그 카드를 열고, 목록에 없는 카드는 열지 않는다', () => {
+  const open = vi.fn()
+  render(draw({ cardLinks: { cards: linkCards, open } }))
+  const { link } = made.options[0].customHTMLRenderer as { link: (node: unknown, context: unknown) => unknown }
+  const tag = { type: 'openTag', tagName: 'a', attributes: { href: `card:${LA}`, target: '_blank', rel: 'noopener noreferrer' } }
+  // Toast의 sanitizer는 card: 주소를 지우므로 해시 주소로 바꾸고 새 탭으로 열지 않는다. 설정 링크가 아닌 링크와 닫는 토큰은 그대로다.
+  expect(link({ destination: `card:${LA.toUpperCase()}`}, { entering: true, origin: () => tag })).toEqual({ ...tag, attributes: { href: `#card-${LA}`, 'data-card-link': LA } })
+  const external = { ...tag, attributes: { href: 'https://example.test/a', target: '_blank' } }
+  expect(link({ destination: 'https://example.test/a' }, { entering: true, origin: () => external })).toBe(external)
+  const close = { type: 'closeTag', tagName: 'a' }
+  expect(link({ destination: `card:${LA}`}, { entering: false, origin: () => close })).toBe(close)
+  // 미리보기에 그려진 링크를 흉내 내 누른다.
+  const anchor = (id: string) => {
+    const a = document.createElement('a')
+    a.href = `#card-${id}`
+    a.dataset.cardLink = id
+    a.textContent = '링크'
+    group().appendChild(a)
+    return a
+  }
+  expect(fireEvent.click(anchor(LA))).toBe(false) // 해시 이동 같은 기본 동작을 막았다
+  expect(open).toHaveBeenCalledTimes(1)
+  expect(open).toHaveBeenCalledWith(LA)
+  fireEvent.click(anchor('cccccccc-2222-3333-4444-555555555555'))
+  expect(open).toHaveBeenCalledTimes(1) // 이 세계관에 없는 카드는 열지 않는다
+})

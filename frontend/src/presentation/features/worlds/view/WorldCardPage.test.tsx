@@ -200,6 +200,26 @@ const marked = (text: string, extra: Partial<PublicWorld['cards'][number]> = {})
   ],
 })
 
+it('본문의 설정 링크(DEC-53)는 응답에 있는 카드의 페이지로 가는 링크가 되고 응답에 없는 카드는 글자만 보이며, 가리킨 카드의 페이지에는 본문 링크로 가리킨 카드가 들어간다', async () => {
+  const [a, b, gone] = ['aaaaaaaa-2222-3333-4444-555555555555', 'bbbbbbbb-2222-3333-4444-555555555555', 'cccccccc-2222-3333-4444-555555555555']
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({
+    cards: [
+      { id: a, title: '하린', text: `[온실](card:${b})에서 [사라진 곳](card:${gone})을 본다.`, cardType: 'character', aliases: [], tags: [] },
+      { id: b, title: '온실', text: '식물 구역', cardType: 'location', aliases: [], tags: [] },
+    ],
+    relationships: [],
+  }))
+  await renderAt(cardPath('sw', a))
+  const link = within(lead()!).getByRole('link', { name: '온실' })
+  expect(link.getAttribute('href')).toBe(cardPath('sw', b))
+  expect(within(lead()!).queryByRole('link', { name: '사라진 곳' })).toBeNull() // 응답에 없는 카드는 글자만
+  expect(lead()!.textContent).toBe('온실에서 사라진 곳을 본다.')
+  fireEvent.click(link)
+  await screen.findByRole('heading', { level: 1, name: '온실' })
+  expect(heads()).toEqual(['1. 이 카드를 가리키는 설정'])
+  expect(items(sections()[0])).toEqual(['인물 하린 · 본문 링크'])
+})
+
 it('목차는 본문 마크다운의 ## 제목이고 그 뒤에 연관 설정 문단이 이어지며 첫머리 글은 제목 없이 그린다', async () => {
   vi.spyOn(useCase(), 'get').mockResolvedValue(marked('교신사다.\n\n## 성격\n- **차분함**\n- 끈질김\n\n## 과거\n#### 어린 시절\n온실에서 자랐다.'))
   await renderAt(cardPath('sw', 'c-uuid-1'))

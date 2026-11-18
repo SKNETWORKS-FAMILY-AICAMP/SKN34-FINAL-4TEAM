@@ -1,3 +1,4 @@
+import { cardLinkMarkdown, replaceCardLinks } from '../../domain/entities/cardLinks'
 import type { PublicWorld, PublicWorldSummary } from '../../domain/entities/publicWorld'
 import { cardTypePatch } from '../../domain/entities/studioCards'
 import { applyRelationChanges, type RelationInput } from '../../domain/entities/studioRelations'
@@ -23,21 +24,24 @@ export const importableWorlds = (worlds: readonly PublicWorldSummary[], targetWo
 /**
  * 고른 공개 카드를 새 id의 설정으로 복사한다: 제목·본문·유형·별칭·태그를 지키고 출처(원본 세계관·작가·확정 버전·원본 카드)를 기록하며,
  * 비공개·독자 공개 회차 없음으로 시작한다(작가가 직접 쓴 카드와 같은 모양이라 그대로 고칠 수 있다).
+ * 본문 링크(`[글자](card:<id>)`, DEC-53)는 같이 가져온 카드끼리만 새 카드 id로 다시 잇고 나머지는 글자로 바꾼다(원본 세계관의 id를 내 초안에 남기지 않는다).
  * `withRelations`이면 양 끝을 모두 가져온 관계만 새 카드 id로 이어 넘긴다. 같은 두 카드의 같은 이름 관계는 한 번만, 자기 자신을 잇는 관계는 버린다.
  * ponytail: 공개 상세는 관계의 이름(label)만 준다. 방향·종류·부정 여부를 알 수 없어 원본의 양 끝 순서를 지킨 '직접 쓴 방향 관계'로 옮긴다. 공개 API가 방향·종류를 주게 되면 그대로 옮긴다.
  */
 export function importCards(source: PublicWorld, selectedIds: ReadonlySet<string>, withRelations: boolean): ImportedSettings {
   const picked = source.cards.filter((card) => selectedIds.has(card.id))
-  const cards = picked.map((card): StudioSetting => {
-    const base = newSetting()
+  const fresh = picked.map(() => newSetting()) // 새 id를 먼저 정한다: 본문 링크가 같이 가져온 카드의 새 id를 가리켜야 한다.
+  const copied = new Map(picked.map((card, i) => [card.id, fresh[i].item.id]))
+  const cards = picked.map((card, i): StudioSetting => {
+    const base = fresh[i]
+    const text = replaceCardLinks(card.text, ({ text: label, id }) => (copied.has(id) ? cardLinkMarkdown(copied.get(id)!, label) : label))
     return {
-      ...authorEdit(base, { ...cardTypePatch(base.item, card.cardType, []), title: card.title, text: card.text }),
+      ...authorEdit(base, { ...cardTypePatch(base.item, card.cardType, []), title: card.title, text }),
       tags: [...card.tags], aliases: [...card.aliases],
       importedFrom: { worldId: source.id, worldName: source.name, authorNickname: source.authorNickname, revisionNo: source.revisionNo, cardId: card.id },
     }
   })
   if (!withRelations) return { cards, relations: [] }
-  const copied = new Map(picked.map((card, i) => [card.id, cards[i].item.id]))
   const seen = new Set<string>()
   const relations = source.relationships.flatMap((relation): RelationInput[] => {
     const subjectId = copied.get(relation.sourceCardId), targetId = copied.get(relation.targetCardId), label = relation.label.trim()

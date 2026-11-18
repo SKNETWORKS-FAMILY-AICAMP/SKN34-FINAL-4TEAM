@@ -40,6 +40,18 @@ it('링크는 새 탭에서 열고 안전하지 않은 주소는 링크로 만�
   expect(document.body.textContent).toContain('나쁨')
 })
 
+it('설정 링크(card:)는 갈 곳을 알려 주면 그 링크로 그리고, 아니면(갈 곳이 없는 카드 포함) 글자만 보인다', () => {
+  const [known, gone] = ['aaaaaaaa-2222-3333-4444-555555555555', 'bbbbbbbb-2222-3333-4444-555555555555']
+  const text = `[승상](card:${known}) 과 [없는](card:${gone}) 과 [외부](https://example.test/a)`
+  const plain = draw(text)
+  expect(Array.from(plain.querySelectorAll('a'), (a) => a.textContent)).toEqual(['외부']) // card: 주소는 링크가 되지 않는다
+  expect(plain.textContent).toBe('승상 과 없는 과 외부')
+  cleanup()
+  const root = render(<CardMarkdown text={text} cardLink={(card, label) => (card === known ? <a href={`#/cards/${card}`}>{label}</a> : undefined)} />).container
+  expect(Array.from(root.querySelectorAll('a'), (a) => [a.textContent, a.getAttribute('href'), a.getAttribute('target')])).toEqual([['승상', `#/cards/${known}`, null], ['외부', 'https://example.test/a', '_blank']])
+  expect(root.textContent).toBe('승상 과 없는 과 외부')
+})
+
 it('이미지는 불러오지 않고 대체 글자만 보인다', () => {
   const root = draw('앞 ![달무리 지도](https://example.test/map.png) 뒤')
   expect(root.querySelector('img')).toBeNull()

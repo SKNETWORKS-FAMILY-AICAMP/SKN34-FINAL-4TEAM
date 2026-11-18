@@ -13,3 +13,19 @@
 .markdown-editor .ProseMirror:focus-visible, .markdown-editor .tab-item:focus-visible { outline: 2px solid var(--pri); outline-offset: -2px; }
 /* 편집기를 키보드로 벗어나는 방법 한 줄(MarkdownEditor가 편집기 바로 아래에 그린다) */
 .markdown-editor-hint { margin: 6px 0 0; }
+
+/* 설정 링크(DEC-53): 도구 줄 끝의 글자 버튼과 편집기 위의 검색 패널. Toast 도구 줄 버튼(32px)과 같은 높이다. */
+.markdown-editor .card-link-button { height: 32px; padding: 0 10px; border: 0; background: transparent; color: inherit; font: inherit; font-size: 13px; cursor: pointer; }
+.markdown-editor .card-link-button:hover, .markdown-editor .card-link-button[aria-expanded='true'] { background: color-mix(in srgb, currentColor 10%, transparent); }
+.markdown-editor .card-link-button:focus-visible { outline: 2px solid var(--pri); outline-offset: -2px; }
+.card-link-picker { display: grid; gap: 8px; margin: 0 0 8px; padding: 12px 14px; border: 1px solid var(--tline); border-radius: 10px; background: color-mix(in srgb, var(--tacc) 6%, var(--surface)); }
+.card-link-picker h4 { margin: 0; font-size: 14px; }
+.card-link-picker label { display: grid; gap: 4px; font-size: 13px; }
+.card-link-picker p { margin: 0; }
+.card-link-picker ul { display: grid; gap: 2px; max-height: 220px; margin: 0; padding: 0; overflow: auto; list-style: none; }
+.card-link-picker li button { display: flex; gap: 8px; align-items: baseline; width: 100%; min-height: 36px; padding: 6px 8px; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.card-link-picker li button:hover { background: color-mix(in srgb, var(--tacc) 12%, transparent); }
+.card-link-picker li button small { color: var(--tsub); }
+.card-link-picker li button:focus-visible, .card-link-picker input:focus-visible { outline: 2px solid var(--pri); outline-offset: 1px; }
+.card-link-picker > .btn { justify-self: start; }
+@media (pointer: coarse) { .card-link-picker li button, .markdown-editor .card-link-button { min-height: 44px; } }
