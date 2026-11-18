@@ -82,8 +82,10 @@ class GenreTemplateSeeder(private val service: WorldStudioService, private val m
 
     private fun seedGenre(template: GenreTemplate, legacy: Boolean = true, soul: Boolean = false) {
         val key = "genre-template-${template.genre}"
+        val genre = mappedWorldGenre(template.genre)
+        service.fillTemplateGenre(template.worldId, genre)
         // create: 같은 id·같은 입력이면 기존 세계관을 돌려준다. 앞선 edit가 미완료로 남은 세계관은 INCOMPLETE라 아래 edit 재시도로 이어 간다.
-        val world = try { service.createTemplate(CreateWorldRequest(template.name, template.description, template.worldId)) }
+        val world = try { service.createTemplate(CreateWorldRequest(template.name, template.description, template.worldId), genre) }
             catch (e: WorldStudioFailure) { if (e.reason == WorldStudioFailure.Reason.INCOMPLETE) null else throw e }
         // save가 draft revision을 올려 같은 edit의 중복 판정이 깨지므로, 저장까지 끝난 세계관은 다시 edit하지 않는다.
         if (world?.currentRevisionId != null) return
@@ -95,6 +97,25 @@ class GenreTemplateSeeder(private val service: WorldStudioService, private val m
     }
 
     companion object {
+        private val TEMPLATE_WORLD_GENRES = mapOf(
+            "wuxia" to "wuxia", "romance_fantasy" to "romance",
+            "modern_fantasy" to "fantasy", "game_fantasy" to "fantasy", "fusion_fantasy" to "fantasy",
+            "territory_management" to "fantasy", "sports_fantasy" to "fantasy",
+            "science_fiction" to "sf", "apocalypse" to "sf", "entertainment" to "modern",
+            "cthulhu_mythos" to "mystery",
+            "alternate_history" to "classic", "sumerian_mythology" to "classic", "norse_mythology" to "classic",
+            "greco_roman_mythology" to "classic", "germanic_folklore" to "classic", "chinese_folklore" to "classic",
+            "japanese_mythology" to "classic", "korean_mythology_fables" to "classic", "egyptian_mythology" to "classic",
+            "indian_mythology" to "classic", "celtic_mythology" to "classic", "slavic_mythology" to "classic",
+            "maya_mythology" to "classic", "aztec_mythology" to "classic", "hawaiian_tradition" to "classic",
+            "inca_tradition" to "classic", "persian_tradition" to "classic", "journey_to_the_west" to "classic",
+            "england_history" to "classic", "usa_history" to "classic", "china_history" to "classic",
+            "korea_history" to "classic", "japan_history" to "classic", "france_history" to "classic", "italy_history" to "classic",
+        )
+
+        /** 템플릿 키를 공개 세계관의 고정 장르 코드로 바꾼다. 알 수 없는 키는 미지정(null)으로 둔다. */
+        internal fun mappedWorldGenre(templateGenre: String): String? = TEMPLATE_WORLD_GENRES[templateGenre]
+
         /**
          * 템플릿 세계관 소유자: Core auth V8 운영 관리자(admin@example.test, operator=true)의 회원 UUID. 운영자로 로그인하면 세계관 목록에 보인다.
          * 임시 할당이며 한계는 다음과 같다.

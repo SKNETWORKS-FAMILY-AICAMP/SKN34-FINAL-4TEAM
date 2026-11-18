@@ -126,6 +126,8 @@ class ExpandedTemplateSeeder(private val service:WorldStudioService,private val 
     }
 
     internal fun seedWorld(world:ExpandedWorld,chunks:List<ExpandedChunk>,legacy:GenreTemplate?=null,baseline:GenreTemplate?=null,current:GenreTemplate?=null,historical:HistoricalFingerprint?=null) {
+        val genre=GenreTemplateSeeder.mappedWorldGenre(world.genre)
+        service.fillTemplateGenre(world.worldId,genre)
         if(historical!=null) {
             require(historical.worldId==world.worldId && historical.genre==world.genre)
             val originalIds=historical.cards.map { it.id }.toSet()
@@ -144,7 +146,7 @@ class ExpandedTemplateSeeder(private val service:WorldStudioService,private val 
             .joinToString("") { "%02x".format(it) }
         val start=if(historical!=null) service.startHistoricalExpanded(CreateWorldRequest(world.name,world.description,world.worldId),inputHash,historical)
             else if(baseline!=null || current!=null || legacy!=null) service.startPristineExpanded(inputHash,legacy,baseline,current)
-            else service.startExpanded(CreateWorldRequest(world.name,world.description,world.worldId),inputHash)
+        else service.startExpanded(CreateWorldRequest(world.name,world.description,world.worldId),inputHash,genre)
         if(start==null) { log.warn("확장 샘플 보류 world={}: 기존 세계관",world.worldId);return }
         if(start<0) return
         require(start<=requests.size)

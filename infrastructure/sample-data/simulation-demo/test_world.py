@@ -90,6 +90,12 @@ class Dataset:
 
 
 DATASET_DIRS = [HERE, *sorted(p.parent for p in HERE.glob("*/world.json"))]
+DATASET_WORLD_GENRES = {
+    HERE: "fantasy",
+    HERE / "guunmong": "classic",
+    HERE / "honggildong": "classic",
+    HERE / "heukgildong-fork": "classic",
+}
 
 
 class WorldChecks:
@@ -665,6 +671,13 @@ class IdsDoNotRepeatAcrossDatasets(unittest.TestCase):
         self.assertEqual("", seed.scope_of({"work": {"id": STARLIGHT_ID}, "world": {"id": "w3"}}))  # 이미 적재된 id는 그대로
 
 
+class DemoWorldGenreContractTest(unittest.TestCase):
+    def test_each_demo_world_declares_the_genre_used_by_public_worlds(self):
+        self.assertEqual(DATASET_WORLD_GENRES, {
+            directory: Dataset(directory).world["world"].get("genre") for directory in DATASET_DIRS
+        })
+
+
 STARLIGHT = Dataset(HERE)
 WORLD, CARDS = STARLIGHT.world, STARLIGHT.cards
 OWNER = "11111111-1111-4111-8111-111111111111"
@@ -719,10 +732,13 @@ class FakeStack:
             return self.create_work(body)
         if route == "/api/v1/world-studios":
             wid = body["id"]
-            self.worlds.setdefault(wid, {"id": wid, "revision": 0, "cards": {}, "edges": {}, "current": None, "revisions": {}})
+            self.worlds.setdefault(wid, {"id": wid, "revision": 0, "cards": {}, "edges": {}, "current": None, "revisions": {},
+                                         "visibility": "private", "genre": None})
             return 200, self.draft(wid, None)
         if route.startswith("/api/v1/world-studios/"):
             wid = parts[4]
+            if parts[5:6] == ["publication"]:
+                return self.publication(wid, body)
             if parts[5:6] == ["revisions"]:
                 return self.revisions(wid, method, parts[6:], body)
             if method == "GET":
@@ -834,7 +850,14 @@ class FakeStack:
             if seen:
                 rels.append(history[max(seen)])
         return {"worldId": world["id"], "draftRevision": world["revision"], "currentRevisionId": world["current"],
-                "cards": list(world["cards"].values()), "relationships": rels}
+                "cards": list(world["cards"].values()), "relationships": rels, "visibility": world["visibility"], "genre": world["genre"]}
+
+    def publication(self, wid, body):
+        world = self.worlds[wid]
+        if body["visibility"] not in ("private", "public"):
+            return 422, {"detail": "공개 범위를 확인하세요"}
+        world["visibility"], world["genre"] = body["visibility"], body["genre"]
+        return 200, {"worldId": wid, "visibility": world["visibility"], "genre": world["genre"]}
 
     def revisions(self, wid, method, rest, body):
         """WorldStudioService.save·revision의 핵심: 낡은 draftRevision은 409, 확정하면 그때의 카드가 남고 draftRevision이 하나 오른다."""
@@ -919,6 +942,16 @@ class SeedFlowTest(unittest.TestCase):
         self.run_seed(fake)
         self.assertEqual(before[:3], (len(fake.puts), fake.world["revision"], len(fake.world["cards"])))
         self.assertNotIn(("PUT", f"/api/v1/works/{STARLIGHT_ID}/world-studio"), fake.calls[before[3]:])
+
+    def test_sets_world_genre_through_publication_without_changing_visibility_or_repeating(self):
+        fake = FakeStack()
+        self.run_seed(fake)
+        publication = ("PUT", f"/api/v1/world-studios/{WORLD['world']['id']}/publication")
+        self.assertIn(publication, fake.calls)
+        self.assertEqual(("private", "fantasy"), (fake.world["visibility"], fake.world["genre"]))
+        before = len(fake.calls)
+        self.run_seed(fake)
+        self.assertNotIn(publication, fake.calls[before:])
 
     def test_first_run_confirms_the_saved_draft_once_after_every_episode_and_before_linking(self):
         fake = FakeStack()
@@ -1030,7 +1063,7 @@ def write_dataset(root, name, title, episodes, **work):
     cards.append(dict(key="ev", cardType="event", areaCode="history", title="만남", classification="사건", aliases=[], tags=[], visibility="private", body="두 사람이 만났다."))
     rels = [dict(key="a-ev", source="a", target="ev", predicate="custom_relation_directed", label="참여", body="가인이 만났다.", **{"from": 1}),
             dict(key="b-ev", source="b", target="ev", predicate="custom_relation_directed", label="목격", body="나리가 보았다.", **{"from": 2})]
-    world = {"world": {"id": str(uuid.uuid5(uuid.NAMESPACE_URL, name)), "name": title + " 세계관", "description": "시험용"},
+    world = {"world": {"id": str(uuid.uuid5(uuid.NAMESPACE_URL, name)), "name": title + " 세계관", "description": "시험용", "genre": "fantasy"},
              "work": {"title": title, "summary": "시험용 작품", **work}, "cards": cards, "relationships": rels, "secrets": []}
     (directory / "world.json").write_text(json.dumps(world, ensure_ascii=False), encoding="utf-8")
     return directory

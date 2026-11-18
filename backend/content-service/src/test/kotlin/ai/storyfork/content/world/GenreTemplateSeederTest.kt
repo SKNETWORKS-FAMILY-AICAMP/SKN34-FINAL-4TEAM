@@ -61,6 +61,7 @@ class GenreTemplateSeederTest {
     }
 
     private fun create(t: GenreTemplate) = CreateWorldRequest(t.name, t.description, t.worldId)
+    private fun mappedGenre(t: GenreTemplate) = GenreTemplateSeeder.mappedWorldGenre(t.genre)
     /** 템플릿 카드는 공개로 넣는다(DEC-46: 카드의 기본은 비공개라, 비공개로 넣으면 템플릿 세계관을 공개해도 카드가 보이지 않는다). */
     private fun edit(t: GenreTemplate) = EditWorldDraftRequest(0, t.name, t.description,
         (if (t in legacy) t.cards.map { CardPayload(it.id, it.title, it.body, it.cardType, "basic", visibility = "public") }
@@ -80,7 +81,7 @@ class GenreTemplateSeederTest {
     /** 아직 아무것도 적재되지 않은 서비스: create는 새 draft(0), edit는 draft(1)를 돌려준다. */
     private fun fresh(t: GenreTemplate) {
         `when`(service.draft(t.worldId, owner)).thenReturn(draft(t, 5, UUID.randomUUID()))
-        `when`(service.createTemplate(create(t))).thenReturn(draft(t))
+        `when`(service.createTemplate(create(t), mappedGenre(t))).thenReturn(draft(t))
         `when`(service.edit(t.worldId, owner, edit(t))).thenReturn(draft(t, 1))
         `when`(service.save(t.worldId, owner, save(t, 1))).thenReturn(revision(t))
     }
@@ -93,20 +94,21 @@ class GenreTemplateSeederTest {
         seeder.seed()
         val order = inOrder(service)
         templates.filter { it.worldId in frozenIds }.forEach { t ->
-            order.verify(service).createTemplate(create(t))
+            order.verify(service).createTemplate(create(t), mappedGenre(t))
             order.verify(service).edit(t.worldId, owner, edit(t))
             order.verify(service).save(t.worldId, owner, save(t, 1))
             if (t in legacy) order.verify(service).draft(t.worldId, owner)
         }
         templates.filter { it.worldId in frozenIds }.forEach { t -> order.verify(service).draft(t.worldId, owner) }
         templates.filter { it.worldId !in frozenIds }.forEach { t ->
-            order.verify(service).createTemplate(create(t))
+            order.verify(service).createTemplate(create(t), mappedGenre(t))
             order.verify(service).edit(t.worldId, owner, edit(t))
             order.verify(service).save(t.worldId, owner, save(t, 1))
         }
         val frozen=seeder.loadV2()
         templates.forEach { t -> verify(service).publishPristineTemplate(legacy.find { it.worldId==t.worldId },
             frozen.find { it.worldId==t.worldId },current.find { it.worldId==t.worldId }) }
+        templates.forEach { t -> verify(service).fillTemplateGenre(t.worldId, mappedGenre(t)) }
         verifyNoMoreInteractions(service)
     }
 
@@ -171,7 +173,7 @@ class GenreTemplateSeederTest {
         for (t in frozen) {
             val old = oldById[t.worldId]
             val initial = old ?: t
-            `when`(service.createTemplate(create(initial))).thenReturn(draft(initial, 2, UUID.randomUUID()))
+            `when`(service.createTemplate(create(initial), mappedGenre(initial))).thenReturn(draft(initial, 2, UUID.randomUUID()))
             val baseCards = GenreTemplateRepair.payloads(t)
             val removed = old?.cards.orEmpty().filter { c -> baseCards.none { it.id == c.id } }.map {
                 CardPayload(it.id, it.title, it.body, it.cardType, "basic", visibility = "public", lifecycle = "removed")
@@ -208,7 +210,7 @@ class GenreTemplateSeederTest {
         templates.forEach(::fresh)
         val (user, completed, pending) = legacy.take(3)
         for (old in listOf(user, completed, pending)) {
-            `when`(service.createTemplate(create(old))).thenReturn(draft(old, 2, UUID.randomUUID()))
+            `when`(service.createTemplate(create(old), mappedGenre(old))).thenReturn(draft(old, 2, UUID.randomUUID()))
         }
         val userCards = edit(user).cards.mapIndexed { i, card -> if (i == 0) card.copy(body = "사용자 변경") else card }
         `when`(service.draft(user.worldId, owner)).thenReturn(savedDraft(user, 2, userCards))
@@ -228,7 +230,7 @@ class GenreTemplateSeederTest {
         templates.forEach(::fresh)
         val down = templates[0]
         val rejected = templates[4]
-        doThrow(WorldStudioFailure.unavailable()).`when`(service).createTemplate(create(down))
+        doThrow(WorldStudioFailure.unavailable()).`when`(service).createTemplate(create(down), mappedGenre(down))
         doThrow(IllegalArgumentException("카드 오류")).`when`(service).edit(rejected.worldId, owner, edit(rejected))
         assertDoesNotThrow { seeder.seed() }
         verify(service, never()).edit(down.worldId, owner, edit(down))
@@ -246,7 +248,7 @@ class GenreTemplateSeederTest {
     @Test fun `an already saved world is not edited again`() {
         templates.forEach(::fresh)
         val done = templates[1]
-        `when`(service.createTemplate(create(done))).thenReturn(draft(done, 2, UUID.randomUUID()))
+        `when`(service.createTemplate(create(done), mappedGenre(done))).thenReturn(draft(done, 2, UUID.randomUUID()))
         seeder.seed()
         verify(service, never()).edit(done.worldId, owner, edit(done))
         verify(service, never()).save(done.worldId, owner, save(done, 1))
@@ -256,9 +258,9 @@ class GenreTemplateSeederTest {
     @Test fun `restarts leave a saved sample private after its owner unpublishes it`() {
         templates.forEach(::fresh)
         val done = templates.first()
-        `when`(service.createTemplate(create(done))).thenReturn(draft(done, 2, UUID.randomUUID()).copy(visibility = "private"))
+        `when`(service.createTemplate(create(done), mappedGenre(done))).thenReturn(draft(done, 2, UUID.randomUUID()).copy(visibility = "private"))
         repeat(2) { seeder.seed() }
-        verify(service, times(2)).createTemplate(create(done))
+        verify(service, times(2)).createTemplate(create(done), mappedGenre(done))
         verify(service, never()).publication(org.mockito.ArgumentMatchers.any(UUID::class.java) ?: UUID(0, 0),
             org.mockito.ArgumentMatchers.any(UUID::class.java) ?: UUID(0, 0), org.mockito.ArgumentMatchers.any(PublicationRequest::class.java) ?: PublicationRequest())
         verify(service, never()).edit(done.worldId, owner, edit(done))
@@ -278,7 +280,7 @@ class GenreTemplateSeederTest {
         doThrow(IllegalStateException("스냅샷 오류")).`when`(broken).loadV2()
         broken.seed()
         legacy.forEach { verify(service).save(it.worldId, owner, save(it, 1)) }
-        (templates - legacy).forEach { verify(service, never()).createTemplate(create(it)) }
+        (templates - legacy).forEach { verify(service, never()).createTemplate(create(it), mappedGenre(it)) }
     }
 
     @Test fun `unreadable frozen resources defer publication and retry after recovery`() {
@@ -312,7 +314,7 @@ class GenreTemplateSeederTest {
     @Test fun `restart after edit but before save re-sends the same edit and saves the draft it returns`() {
         templates.forEach(::fresh)
         val half = templates[2]
-        `when`(service.createTemplate(create(half))).thenReturn(draft(half, 1))
+        `when`(service.createTemplate(create(half), mappedGenre(half))).thenReturn(draft(half, 1))
         seeder.seed()
         verify(service).edit(half.worldId, owner, edit(half))
         verify(service).save(half.worldId, owner, save(half, 1))
@@ -321,7 +323,7 @@ class GenreTemplateSeederTest {
     @Test fun `a world whose earlier edit is still pending resumes from edit instead of being stuck`() {
         templates.forEach(::fresh)
         val pending = templates[3]
-        doThrow(WorldStudioFailure.incomplete()).`when`(service).createTemplate(create(pending))
+        doThrow(WorldStudioFailure.incomplete()).`when`(service).createTemplate(create(pending), mappedGenre(pending))
         seeder.seed()
         verify(service).edit(pending.worldId, owner, edit(pending))
         verify(service).save(pending.worldId, owner, save(pending, 1))
