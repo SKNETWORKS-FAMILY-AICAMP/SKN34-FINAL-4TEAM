@@ -60,7 +60,7 @@ export function WorldInfoPanel({ vm, world, onClose }: { vm: VM; world: StudioWo
         <fieldset className="world-publish world-compact">
           <legend className="sr-only">공개 설정</legend>
           <PublishFields value={publication} onChange={(change) => setPublication((current) => ({ ...current, ...change }))} />
-          <p className="small muted">저장을 누르면 적용돼요. 공개한 세계관에는 공개로 둔 설정 카드와 그 사이의 인물 관계만 확정 버전 기준으로 보여요.</p>
+          <p className="small muted">저장을 누르면 적용돼요. 공개한 세계관에는 연결된 소설이 발행한 회차까지(소설이 없으면 1화까지) 공개된 설정 카드와 그 사이의 인물 관계만 확정 버전 기준으로 보여요.</p>
           <PublicCardsNotice vm={vm} visibility={publication.visibility} />
         </fieldset>
         <div className="world-cover-edit" role="group" aria-label="표지">

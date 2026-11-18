@@ -1277,9 +1277,9 @@ it('공개로 바꾸면 한 번 확인한 뒤 공개 설정을 보내고 칩·�
   expect(confirm).not.toHaveBeenCalled() // 고르는 것만으로는 묻지도 보내지도 않는다
   expect(setPublication).not.toHaveBeenCalled()
   savePanel()
-  expect(await screen.findByText('공개했어요. 누구나 공개로 둔 설정 카드와 그 사이의 인물 관계를 볼 수 있어요.')).toBeTruthy()
+  expect(await screen.findByText('공개했어요. 누구나 연결된 소설이 발행한 회차까지(소설이 없으면 1화까지) 공개된 설정 카드와 그 사이의 인물 관계를 볼 수 있어요.')).toBeTruthy()
   expect(confirm).toHaveBeenCalledOnce()
-  expect(confirm).toHaveBeenCalledWith(expect.stringContaining('공개하면 누구나 공개로 둔 설정 카드와 그 사이의 인물 관계를 볼 수 있고'))
+  expect(confirm).toHaveBeenCalledWith(expect.stringContaining('공개하면 누구나 연결된 소설이 발행한 회차까지(소설이 없으면 1화까지) 공개된 설정 카드와 그 사이의 인물 관계를 볼 수 있고'))
   expect(setPublication).toHaveBeenCalledWith('qa', { visibility: 'public', genre: null }, expect.any(AbortSignal))
   expect(headerOf().getByText('공개', { selector: '.chip' })).toBeTruthy()
   expect(screen.getByRole('link', { name: '공개 화면 보기' }).getAttribute('href')).toBe('/worlds/qa')

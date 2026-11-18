@@ -1,7 +1,7 @@
 import type { StudioWorld, WorldPublication, WorldVisibility } from '../../../../domain/entities/studioWorld'
 
-/** 공개 세계관에는 확정 버전의 공개 카드와 그 사이의 관계만 보이고, 로그인한 사람은 그 카드를 자기 세계관으로 가져갈 수 있다(DEC-46). */
-export const PUBLIC_CONFIRM = '공개하면 누구나 공개로 둔 설정 카드와 그 사이의 인물 관계를 볼 수 있고, 로그인한 사람은 자기 세계관으로 가져갈 수 있어요. 공개할까요?'
+/** 공개 세계관에는 확정 버전에서 기준 회차(연결된 소설의 발행된 마지막 회차, 소설이 없으면 1화)까지 공개된 카드와 그 사이의 관계만 보이고, 로그인한 사람은 그 카드를 자기 세계관으로 가져갈 수 있다(DEC-46·53). */
+export const PUBLIC_CONFIRM = '공개하면 누구나 연결된 소설이 발행한 회차까지(소설이 없으면 1화까지) 공개된 설정 카드와 그 사이의 인물 관계를 볼 수 있고, 로그인한 사람은 자기 세계관으로 가져갈 수 있어요. 공개할까요?'
 
 /** 공개로 설정했지만 확정 버전이 없는 세계관에 보이는 안내. 저장된 상태에서 계산하므로 확정 버전을 남기면 저절로 사라진다. */
 export const UNLISTED_HINT = '공개로 설정했지만 아직 확정 버전이 없어 공개 목록에는 나오지 않아요. 저장한 뒤 ‘확정 버전 남기기’로 확정 버전을 한 번 남기면 나타나요.'
@@ -24,5 +24,5 @@ export function publicationNotice(result: WorldPublication, demo: boolean) {
   if (result.visibility === 'private') return '비공개로 바꿨어요. 이제 나만 볼 수 있어요.'
   if (demo) return '공개로 설정했어요 (데모). 이 화면의 메모리에만 있어서 공개 목록에는 나타나지 않고, 새로고침하면 초기화돼요.'
   if (!result.listed) return '공개로 설정했어요.'
-  return '공개했어요. 누구나 공개로 둔 설정 카드와 그 사이의 인물 관계를 볼 수 있어요.'
+  return '공개했어요. 누구나 연결된 소설이 발행한 회차까지(소설이 없으면 1화까지) 공개된 설정 카드와 그 사이의 인물 관계를 볼 수 있어요.'
 }

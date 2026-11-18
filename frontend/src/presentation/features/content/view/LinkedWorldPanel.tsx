@@ -37,7 +37,7 @@ export function LinkedWorldPanel({ work, busy, onLink, error, notice, worlds = a
   return (
     <section className='tcard ep-card' aria-label='세계관 연결'>
       <h2>세계관 연결</h2>
-      <p className='ep-muted'>세계관 하나는 소설 하나에만 연결돼요. 독자 설정 위키는 연결한 세계관의 확정 버전에서 독자 공개 회차를 정한 설정 카드를 보여 줘요.</p>
+      <p className='ep-muted'>세계관 하나는 소설 하나에만 연결돼요. 독자 설정 위키는 연결한 세계관의 확정 버전에서 발행된 마지막 회차까지 공개된 설정 카드를 보여 줘요.</p>
       {linked
         ? (
           <>
