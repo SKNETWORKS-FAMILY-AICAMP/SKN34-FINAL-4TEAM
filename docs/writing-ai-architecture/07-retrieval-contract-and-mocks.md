@@ -144,6 +144,7 @@ AI가 DB에 직접 접속하지 않고 Content API를 호출하는 방식이다.
 - 근거 회차는 `target.baseEpisode`, 없으면 `target.episode`다. 관계는 그 회차 시점이다(DEC-51). `target`이 없으면 Q&A 단계가 실패한다.
 - 발췌 id는 `card:<id>`·`relation:<id>`, kind는 `setting`·`relationship`, episode는 근거 회차다. Content 경로의 현재 관계 id(`relationship:<id>`)와 구분되며, 지시문은 `card:`·`relation:` 발췌를 기준 회차 시점으로, `relationship:` 발췌를 현재 관계로 다룬다.
 - 시연 규모라 공개 카드·관계를 모두 보낸다. 8건이 넘으면 질문과 `novelbrain` BM25로 8건을 고른다. 카드 인용은 2,000자까지다(`shortcut:` 주석). 그래서 Q&A 입력 한도를 발췌 16건(원고 8 + 세계관 8)·인용 2,000자로 넓혔다. Content가 보내는 원고·설정 발췌는 계속 256자·8건 이하다.
+- Retrieval 결과는 원고 발췌(`kind=manuscript`)만 쓴다. scopeToken의 질문 대상이 `setting`·`relationship`이어도 옛 설정 문서·현재 관계는 섞지 않는다(결정 1). Content가 원고 검색을 쓸 수 없다고(503 `RetrievalUnavailable`) 답하면 그 문구를 gap으로 남기고 세계관 근거로만 답한다. 그 밖의 Retrieval 오류는 단계 실패다. 세계관 읽기는 `world_read` 추적 span에 고른 카드·관계의 참조만 남긴다.
 - 세계관이 없거나 쓸 카드가 없으면 gaps로 알리고, 원고와 세계관 모두 근거가 없으면 모델을 부르지 않는다. MCP 호출·형식 오류는 빈 근거로 바꾸지 않고 단계 실패다. MCP 도구와 인자는 Python이 고정해 호출하고 모델에 노출하지 않으며 읽기 도구만 쓴다.
 - 한계: 작품 Q&A 화면(Content `/context/qa`, 독자·작가 공통)은 여전히 작품 설정 문서와 최신 관계를 쓴다. Rating·설정집 검토·시뮬레이션의 세계관 읽기는 아직 각자 코드에 있다.
 

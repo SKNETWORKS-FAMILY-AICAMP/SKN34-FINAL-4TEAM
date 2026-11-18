@@ -199,3 +199,11 @@ def test_malformed_world_read_is_502_not_a_missing_world(monkeypatch, world, fai
     with pytest.raises(failure) as error:
         service.world_excerpts(WORK, 3, '길드')
     assert error.value.status == 502
+
+
+def test_world_read_is_traced_with_references_but_no_card_text(monkeypatch, spans):
+    fake_world(monkeypatch)
+    service.world_excerpts(WORK, 3, '길드')
+    traced = attrs(next(s for s in spans() if s.name == 'world_read'))
+    assert [e['id'] for e in traced['langfuse.observation.output']] == ['card:seoyun', 'card:guild', 'relation:r1']
+    assert '29세 기록관.' not in json.dumps(traced, ensure_ascii=False)

@@ -115,19 +115,22 @@ def world_excerpts(work_id: str, episode: int, question: str) -> tuple[list[Exce
     Review와 같은 공용 읽기·거르기를 쓴다. 세계관이 없거나 쓸 근거가 없으면 빈 발췌와 이유(gaps)이고, 읽기 실패는 숨기지 않고 올린다.
     MCP 도구·인자는 Content가 확인한 작품·회차로 여기서 고정하며 모델에 도구를 노출하지 않는다. AI는 설정·관계를 쓰지 않는다.
     """
-    if (read := content_mcp.linked_world(work_id, episode)) is None:
-        return [], [NO_WORLD]
-    try:
-        world = world_snapshot(read, episode)
-    except ValueError:
-        raise StoryQaFailure(502, BAD_WORLD) from None
-    settings = [s for s in episode_settings(world, episode) if s['text'].strip()]
-    if len(settings) > WORLD_EXCERPTS:
-        by_ref = {s['ref']: s for s in settings}
-        ranked = bm25_rank(question, [(s['ref'], f"{s['title']}\n{s['text']}") for s in settings])
-        settings = [by_ref[ref] for ref, _ in ranked[:WORLD_EXCERPTS]]
-    if not settings:
-        return [], [NO_SETTINGS]
-    # shortcut: 긴 카드는 앞 QUOTE_LIMIT자만 보낸다. 긴 카드 뒷부분 누락이 보이면 문단 단위로 고른다.
-    return [Excerpt(id=s['ref'], episode=episode, quote=s['text'][:QUOTE_LIMIT], title=s['title'][:256],
-                    kind='relationship' if s['type'] == 'relation' else 'setting') for s in settings], []
+    # 추적에는 고른 카드·관계의 참조만 남기고 본문은 넣지 않는다(tracing.excerpts).
+    with tracing.observe('world_read', as_type='retriever', metadata={'provider': 'content_mcp', 'episode': episode}) as span:
+        if (read := content_mcp.linked_world(work_id, episode)) is None:
+            span.update(metadata={'gaps': ['NO_WORLD']})
+            return [], [NO_WORLD]
+        try:
+            world = world_snapshot(read, episode)
+        except ValueError:
+            raise StoryQaFailure(502, BAD_WORLD) from None
+        settings = [s for s in episode_settings(world, episode) if s['text'].strip()]
+        if len(settings) > WORLD_EXCERPTS:
+            by_ref = {s['ref']: s for s in settings}
+            ranked = bm25_rank(question, [(s['ref'], f"{s['title']}\n{s['text']}") for s in settings])
+            settings = [by_ref[ref] for ref, _ in ranked[:WORLD_EXCERPTS]]
+        # shortcut: 긴 카드는 앞 QUOTE_LIMIT자만 보낸다. 긴 카드 뒷부분 누락이 보이면 문단 단위로 고른다.
+        excerpts = [Excerpt(id=s['ref'], episode=episode, quote=s['text'][:QUOTE_LIMIT], title=s['title'][:256],
+                            kind='relationship' if s['type'] == 'relation' else 'setting') for s in settings]
+        span.update(output=tracing.excerpts(excerpts), metadata={'gaps': [] if excerpts else ['NO_SETTINGS']})
+        return excerpts, [] if excerpts else [NO_SETTINGS]

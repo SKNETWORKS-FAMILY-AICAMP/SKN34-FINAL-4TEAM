@@ -33,7 +33,7 @@ from app.research import service as research
 from app.research.errors import ResearchFailure
 from app.research.models import ResearchRequest
 from app.retrieval import service as retrieval
-from app.retrieval.errors import RetrievalFailure
+from app.retrieval.errors import RetrievalFailure, RetrievalUnavailable
 from app.retrieval.models import RetrievalScope
 from app.manuscript_review import service as manuscript_review
 from app.manuscript_review.errors import ReviewFailure
@@ -207,10 +207,15 @@ def ask_story_qa(request: Request, runtime: ToolRuntime) -> Command:
             # 발췌가 없으면 원고는 공통 Retrieval(Content 내부 검색), 설정·관계는 Content MCP로 기준 회차 시점의 세계관을 읽는다(#490).
             # 둘 다 근거가 없으면 모델을 부르지 않는다.
             target = _target(turn, StoryQaFailure, NO_QA_TARGET)
-            found = retrieval.retrieve(RetrievalScope.model_validate(scope), request)
+            try:
+                found = retrieval.retrieve(RetrievalScope.model_validate(scope), request)
+                # 설정·관계 정본은 WorldStudio 하나라(#490 결정 1) Retrieval에서는 원고 발췌만 쓴다(옛 설정 문서·현재 관계 제외).
+                manuscript, gaps, coverage = [e for e in found.excerpts if e.kind == 'manuscript'], [g.detail for g in found.gaps], found.coverage
+            except RetrievalUnavailable as error:  # Content가 원고 검색을 쓸 수 없다고 답하면 세계관 근거로만 답하고 이유를 gap으로 알린다
+                manuscript, gaps = [], [str(error)]
             world, world_gaps = story_qa.world_excerpts(target['workId'], target.get('baseEpisode') or target['episode'], request[:500])
-            gaps, coverage = [g.detail for g in found.gaps] + world_gaps, found.coverage
-            if not (excerpts := [e.model_dump() for e in [*found.excerpts, *world]]):
+            gaps += world_gaps
+            if not (excerpts := [e.model_dump() for e in [*manuscript, *world]]):
                 return QaStepResult(claims=[], gaps=gaps, coverage=coverage)
             data = {'question': request[:500], 'excerpts': excerpts}
         qa = [t['qa'] for t in previous(turn) if t['qa']][-HISTORY_TURNS:]

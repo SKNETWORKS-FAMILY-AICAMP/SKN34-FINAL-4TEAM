@@ -128,6 +128,9 @@ def test_stream_of_a_batch_sends_steps_as_they_finish_and_done_in_call_order(mon
 def test_batched_steps_are_overlapping_spans_of_the_same_trace(monkeypatch, spans):
     fake_agents(monkeypatch, plan(['story_context', 'web_research']))
     slow_qa(monkeypatch)
+    # 웹 조사도 시간이 걸려야 두 단계가 겹친다. 즉시 끝나면 Q&A 스레드가 늦게 시작할 때 겹치지 않아 흔들린다.
+    web = tools.research.research
+    monkeypatch.setattr(tools.research, 'research', lambda data: (time.sleep(0.3), web(data))[1])
     run(inputs={'story_context': QA, 'web_research': WEB})
     found = {s.name: s for s in spans()}
     qa, web, root = found['step.story_context'], found['step.web_research'], found['writing_ai.orchestration']
@@ -337,6 +340,26 @@ def test_insufficient_evidence_answers_with_gaps_without_model(monkeypatch):
     assert 'story_context' not in names(calls)
     qa = result.steps[0].result
     assert (result.status, qa.claims, qa.gaps) == ('completed', [], ['근거를 확인하지 못했어요.', story_qa.NO_WORLD])
+
+
+def test_qa_uses_only_manuscript_excerpts_from_retrieval_so_worldstudio_stays_the_one_settings_source(monkeypatch):
+    legacy = RetrievalResult(status='found', coverage=COVERAGE, steps=[], gaps=[], excerpts=[
+        {'id': 'a', 'episode': 3, 'quote': '길드는 밤에 문을 닫는다.'},
+        {'id': 'setting:s1', 'episode': 3, 'quote': '옛 설정 문서', 'kind': 'setting'},
+        {'id': 'relationship:r1', 'episode': 3, 'quote': '현재 관계', 'kind': 'relationship'}])
+    calls = fake_agents(monkeypatch, plan('story_context'), retrieved=legacy)
+    linked_world(monkeypatch, calls)
+    run('길드 규칙은?', scope=SCOPE, target=TARGET)
+    assert [e.id for e in calls[-1][1][0].excerpts] == ['a', 'card:k']
+
+
+def test_manuscript_search_unavailable_is_a_gap_and_the_world_still_answers(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'), fail={'retrieval': RetrievalUnavailable(503, '원고 Q&A를 사용할 수 없어요.')})
+    linked_world(monkeypatch, calls)
+    result = run('카엘은 누구?', scope=SCOPE, target=TARGET)
+    qa = result.steps[0]
+    assert qa.status == 'completed' and [e.id for e in calls[-1][1][0].excerpts] == ['card:k']
+    assert qa.result.gaps == ['원고 Q&A를 사용할 수 없어요.'] and qa.result.coverage is None
 
 
 def test_world_read_failure_fails_the_qa_step(monkeypatch):
