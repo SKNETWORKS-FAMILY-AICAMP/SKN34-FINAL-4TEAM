@@ -18,6 +18,7 @@ import org.springframework.test.web.client.match.MockRestRequestMatchers.request
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import org.springframework.web.client.RestClient
+import org.springframework.web.client.RestClientResponseException
 import tools.jackson.databind.json.JsonMapper
 
 /** 메모리 안의 가짜 HTTP(MockRestServiceServer)로 검색 색인 클라이언트의 요청·응답 모양만 검증한다. 실제 Elasticsearch는 쓰지 않는다(CI 통합 단계에서만 실행). */
@@ -36,6 +37,10 @@ class SearchElasticsearchIntegrationTest {
 
     private fun expectMapping(body: String = mapping()) =
         server.expect(requestTo("${url}/_mapping")).andExpect(method(HttpMethod.GET)).andRespond(withSuccess(body, MediaType.APPLICATION_JSON))
+
+    /** 두 인스턴스가 동시에 시작해 늦은 쪽의 생성이 받는 Elasticsearch 응답이다. */
+    private fun alreadyExists() = withStatus(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON)
+        .body("""{"error":{"type":"resource_already_exists_exception","reason":"index [storyfork-search-v1] already exists"},"status":400}""")
 
     private fun expectBulk(body: String, response: String) =
         server.expect(requestTo("${url}/_bulk?refresh=wait_for")).andExpect(method(HttpMethod.POST)).andExpect(content().string(body))
@@ -68,6 +73,41 @@ class SearchElasticsearchIntegrationTest {
         assertThrows(IllegalStateException::class.java) { index.ensureIndex(definition) }
     }
 
+    @Test fun `losing the creation race to another instance goes on to verify the index it created`() {
+        server.expect(requestTo(url)).andExpect(method(HttpMethod.HEAD)).andRespond(withStatus(HttpStatus.NOT_FOUND))
+        server.expect(requestTo(url)).andExpect(method(HttpMethod.PUT)).andRespond(alreadyExists())
+        expectMapping()
+
+        index.ensureIndex(definition)
+
+        server.verify()
+    }
+
+    @Test fun `losing the race to an index with another mapping still fails the start`() {
+        server.expect(requestTo(url)).andExpect(method(HttpMethod.HEAD)).andRespond(withStatus(HttpStatus.NOT_FOUND))
+        server.expect(requestTo(url)).andExpect(method(HttpMethod.PUT)).andRespond(alreadyExists())
+        expectMapping(mapping(type = "keyword"))
+
+        assertThrows(IllegalStateException::class.java) { index.ensureIndex(definition) }
+    }
+
+    @Test fun `any other creation error fails the start as it is and never looks at the mapping`() {
+        listOf(
+            withStatus(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON)
+                .body("""{"error":{"type":"illegal_argument_exception","reason":"bad settings"},"status":400}"""),
+            withStatus(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body("not json"),
+            withStatus(HttpStatus.INTERNAL_SERVER_ERROR),
+        ).forEach { response ->
+            server.reset()
+            server.expect(requestTo(url)).andExpect(method(HttpMethod.HEAD)).andRespond(withStatus(HttpStatus.NOT_FOUND))
+            server.expect(requestTo(url)).andExpect(method(HttpMethod.PUT)).andRespond(response)
+
+            assertThrows(RestClientResponseException::class.java) { index.ensureIndex(definition) }
+
+            server.verify()
+        }
+    }
+
     @Test fun `an index whose shards were not allocated is not a success`() {
         server.expect(requestTo(url)).andExpect(method(HttpMethod.HEAD)).andRespond(withStatus(HttpStatus.NOT_FOUND))
         server.expect(requestTo(url)).andExpect(method(HttpMethod.PUT))
@@ -86,8 +126,7 @@ class SearchElasticsearchIntegrationTest {
         server.verify()
     }
 
-    @Test fun `the hash scan reads every page of a point in time and closes it`() {
-        expectMapping()
+    @Test fun `the hash scan reads every page of a point in time and closes it, without re-checking the mapping`() {
         server.expect(requestTo("${url}/_pit?keep_alive=1m")).andExpect(method(HttpMethod.POST))
             .andRespond(withSuccess("""{"id":"pit-1"}""", MediaType.APPLICATION_JSON))
         server.expect(requestTo("http://es/_search?allow_partial_search_results=false")).andExpect(method(HttpMethod.POST))
@@ -101,6 +140,30 @@ class SearchElasticsearchIntegrationTest {
             .andRespond(withSuccess("""{"succeeded":true}""", MediaType.APPLICATION_JSON))
 
         assertEquals(mapOf("work:w1" to "h1", "card:c1" to "h2"), index.hashes())
+        server.verify()
+    }
+
+    @Test fun `a failed point-in-time close is only logged, the scanned hashes are still returned`() {
+        server.expect(requestTo("${url}/_pit?keep_alive=1m")).andExpect(method(HttpMethod.POST))
+            .andRespond(withSuccess("""{"id":"pit-1"}""", MediaType.APPLICATION_JSON))
+        server.expect(requestTo("http://es/_search?allow_partial_search_results=false")).andExpect(method(HttpMethod.POST))
+            .andRespond(withSuccess("""{"pit_id":"pit-1","timed_out":false,"hits":{"hits":[]}}""", MediaType.APPLICATION_JSON))
+        server.expect(requestTo("http://es/_pit")).andExpect(method(HttpMethod.DELETE)).andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
+
+        assertEquals(emptyMap<String, String>(), index.hashes())
+        server.verify()
+    }
+
+    @Test fun `a failed scan keeps its own error even when closing the point in time fails too`() {
+        server.expect(requestTo("${url}/_pit?keep_alive=1m")).andExpect(method(HttpMethod.POST))
+            .andRespond(withSuccess("""{"id":"pit-1"}""", MediaType.APPLICATION_JSON))
+        server.expect(requestTo("http://es/_search?allow_partial_search_results=false")).andExpect(method(HttpMethod.POST))
+            .andRespond(withSuccess("""{"pit_id":"pit-1","timed_out":true,"hits":{"hits":[]}}""", MediaType.APPLICATION_JSON))
+        server.expect(requestTo("http://es/_pit")).andExpect(method(HttpMethod.DELETE)).andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
+
+        val failure = assertThrows(IllegalStateException::class.java) { index.hashes() }
+
+        assertEquals("Incomplete search index scan", failure.message)
         server.verify()
     }
 

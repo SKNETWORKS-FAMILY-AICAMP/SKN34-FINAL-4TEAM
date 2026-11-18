@@ -3,6 +3,9 @@ package ai.storyfork.content.search.domain
 import ai.storyfork.content._common.helper.contentKey
 import java.util.UUID
 import tools.jackson.databind.JsonNode
+import tools.jackson.databind.json.JsonMapper
+
+private val hashMapper = JsonMapper.builder().build()
 
 /** 색인 문서 종류다. [code]는 색인의 `kind` 값이고 문서 키(`종류:ID`)의 앞부분이다. */
 enum class SearchKind(val code: String) { WORK("work"), WORLD("world"), CARD("card") }
@@ -37,10 +40,13 @@ fun parseHits(response: JsonNode, kind: SearchKind): List<SearchHit> {
     return hits.toList().map { SearchHit(it.path("_id").asString().removePrefix(kind.code + ":"), it.path("_source").path("world_id").asString(null)) }
 }
 
-/** 색인 문서 하나다. 키는 `종류:ID`이고 [hash]가 같으면 내용이 같다(주기 대조가 바뀐 문서만 다시 쓴다). */
+/**
+ * 색인 문서 하나다. 키는 `종류:ID`이고 [hash]가 같으면 내용이 같다(주기 대조가 바뀐 문서만 다시 쓴다).
+ * 해시 입력은 필드를 키 순서로 JSON으로 쓴 것이라 필드·목록 경계가 보존된다(`["a","b"]`와 `["a, b"]`는 다른 문서다).
+ */
 data class SearchDocument(val kind: SearchKind, val id: String, val fields: Map<String, Any>) {
     val key: String get() = kind.code + ":" + id
-    val hash: String get() = contentKey(kind.code, id, fields.toSortedMap().toString())
+    val hash: String = contentKey(kind.code, id, hashMapper.writeValueAsString(fields.toSortedMap()))
 
     /** 색인에 쓰는 문서 본문이다: 검색하는 값에 종류와 내용 해시가 더해진다. */
     fun source(): Map<String, Any> = buildMap {

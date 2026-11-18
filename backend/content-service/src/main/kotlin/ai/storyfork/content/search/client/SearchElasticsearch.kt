@@ -5,9 +5,12 @@ import ai.storyfork.content.search.domain.SearchHit
 import ai.storyfork.content.search.domain.SearchKind
 import ai.storyfork.content.search.domain.candidateRequest
 import ai.storyfork.content.search.domain.parseHits
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.web.client.RestClient
+import org.springframework.web.client.RestClientResponseException
+import tools.jackson.core.JacksonException
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 
@@ -21,6 +24,8 @@ internal val SEARCH_WILDCARD_FIELDS = listOf("title", "name", "description", "au
  * 실패는 호출 결과를 성공으로 바꾸지 않고 [org.springframework.web.client.RestClientException]·[IllegalStateException]으로 알린다.
  */
 class SearchElasticsearch(private val http: RestClient, private val mapper: JsonMapper) {
+    private val log = LoggerFactory.getLogger(SearchElasticsearch::class.java)
+
     /** 인덱스가 없을 때만 v1 정의로 만들고 매핑을 검증한다. 기존 인덱스는 바꾸거나 지우지 않는다. */
     fun ensureIndex(definition: String) {
         val exists = http.head().uri("/$INDEX").exchange { _, response ->
@@ -31,9 +36,14 @@ class SearchElasticsearch(private val http: RestClient, private val mapper: Json
             }
         }
         if (!exists) {
-            val created = json(http.put().uri("/$INDEX").contentType(MediaType.APPLICATION_JSON).body(definition))
-            // 디스크 워터마크 등으로 샤드를 배정하지 못하면 인덱스는 생겨도 쓸 수 없다.
-            check(created.path("acknowledged").asBoolean(false) && created.path("shards_acknowledged").asBoolean(false)) { "Search index shards were not allocated" }
+            try {
+                val created = json(http.put().uri("/$INDEX").contentType(MediaType.APPLICATION_JSON).body(definition))
+                // 디스크 워터마크 등으로 샤드를 배정하지 못하면 인덱스는 생겨도 쓸 수 없다.
+                check(created.path("acknowledged").asBoolean(false) && created.path("shards_acknowledged").asBoolean(false)) { "Search index shards were not allocated" }
+            } catch (error: RestClientResponseException) {
+                // 두 인스턴스가 동시에 시작해 둘 다 인덱스가 없다고 보면 늦은 쪽 생성이 '이미 있음'으로 실패한다. 그 오류일 때만 먼저 만들어진 인덱스의 매핑 검증으로 넘어가고, 다른 생성 오류는 그대로 던진다.
+                if (!alreadyExists(error)) throw error
+            }
         }
         verifyMapping()
     }
@@ -45,7 +55,6 @@ class SearchElasticsearch(private val http: RestClient, private val mapper: Json
 
     /** 색인에 있는 모든 문서의 키 → 내용 해시다. 주기 대조가 바뀐 문서와 사라진 문서를 가린다. */
     fun hashes(): Map<String, String> {
-        verifyMapping()
         var pit = json(http.post().uri("/$INDEX/_pit?keep_alive=1m")).path("id").asString()
         check(pit.isNotBlank()) { "Missing Elasticsearch PIT ID" }
         val hashes = mutableMapOf<String, String>()
@@ -73,7 +82,12 @@ class SearchElasticsearch(private val http: RestClient, private val mapper: Json
                 check(after.isArray && !after.isEmpty) { "Missing search scan cursor" }
             }
         } finally {
-            http.method(HttpMethod.DELETE).uri("/_pit").contentType(MediaType.APPLICATION_JSON).body(mapOf("id" to pit)).retrieve().toBodilessEntity()
+            // PIT는 keep_alive(1분)가 지나면 저절로 닫히므로, 닫기 실패는 읽은 결과나 읽다 난 원래 예외를 가리지 않게 로그만 남긴다.
+            try {
+                http.method(HttpMethod.DELETE).uri("/_pit").contentType(MediaType.APPLICATION_JSON).body(mapOf("id" to pit)).retrieve().toBodilessEntity()
+            } catch (error: RuntimeException) {
+                log.warn("search index PIT close failed: {}", error.toString())
+            }
         }
     }
 
@@ -87,6 +101,13 @@ class SearchElasticsearch(private val http: RestClient, private val mapper: Json
             appendLine(mapper.writeValueAsString(it.source()))
         }
     })
+
+    private fun alreadyExists(error: RestClientResponseException): Boolean =
+        try {
+            mapper.readTree(error.responseBodyAsString).path("error").path("type").asString() == "resource_already_exists_exception"
+        } catch (_: JacksonException) {
+            false
+        }
 
     private fun verifyMapping() {
         val mapping = json(http.get().uri("/$INDEX/_mapping")).path(INDEX).path("mappings")

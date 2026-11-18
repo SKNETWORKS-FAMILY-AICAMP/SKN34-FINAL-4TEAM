@@ -39,6 +39,16 @@ class SearchDocumentTest {
         assertNotEquals(base.hash, worldDocument(UUID.randomUUID(), "세계", "설명", "작가").hash)
     }
 
+    @Test fun `the hash keeps list and field boundaries, so different values never collide`() {
+        // 목록 경계: ["a", "b"]와 ["a, b"]는 다른 문서다(목록을 문자열로 이어 붙인 표현은 둘을 같게 만든다).
+        assertNotEquals(cardDocument(cardId, worldId, "인물", listOf("a", "b"), emptyList()).hash, cardDocument(cardId, worldId, "인물", listOf("a, b"), emptyList()).hash)
+        // 필드 경계: 같은 글자가 이웃 필드로 옮겨 가도, 같은 값이 다른 필드에 있어도 다른 문서다.
+        assertNotEquals(worldDocument(worldId, "ab", "c", "작가").hash, worldDocument(worldId, "a", "bc", "작가").hash)
+        assertNotEquals(cardDocument(cardId, worldId, "인물", listOf("x"), emptyList()).hash, cardDocument(cardId, worldId, "인물", emptyList(), listOf("x")).hash)
+        // 값이 같으면 같다.
+        assertEquals(cardDocument(cardId, worldId, "인물", listOf("a", "b"), listOf("t")).hash, cardDocument(cardId, worldId, "인물", listOf("a", "b"), listOf("t")).hash)
+    }
+
     @Test fun `the indexed source adds kind and hash to the fields`() {
         val doc = worldDocument(worldId, "세계", "설명", "작가")
         assertEquals(mapOf("kind" to "world", "name" to "세계", "description" to "설명", "author" to "작가", "hash" to doc.hash), doc.source())

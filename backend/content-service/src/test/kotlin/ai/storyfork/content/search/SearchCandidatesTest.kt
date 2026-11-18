@@ -29,7 +29,7 @@ class SearchCandidatesTest {
     }
 
     @Test fun `a missing or blank work query asks the index nothing`() {
-        listOf(null, "", "  ").forEach { assertNull(on.works(it, SearchField.ALL)) }
+        listOf(null, "", "  ", "\t\n").forEach { assertNull(on.works(it, SearchField.ALL)) }
         verifyNoInteractions(index)
     }
 

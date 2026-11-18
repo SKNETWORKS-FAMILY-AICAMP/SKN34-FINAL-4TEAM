@@ -5,6 +5,7 @@ import ai.storyfork.content.search.client.SearchElasticsearch
 import ai.storyfork.content.search.domain.SearchHit
 import ai.storyfork.content.search.domain.SearchKind
 import ai.storyfork.content.work.domain.SearchField
+import ai.storyfork.content.world.domain.searchTerm
 import java.util.UUID
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -28,7 +29,7 @@ class SearchCandidates(private val index: SearchElasticsearch?) {
      * ([ai.storyfork.content.work.domain.matchesSearch])과 같다.
      */
     fun works(q: String?, field: SearchField): Set<String>? {
-        val term = q?.trim().orEmpty().ifEmpty { return null }
+        val term = searchTerm(q) ?: return null
         val tag = term.trimStart('#')
         val fields = when (field) {
             SearchField.TITLE -> mapOf("title" to term)

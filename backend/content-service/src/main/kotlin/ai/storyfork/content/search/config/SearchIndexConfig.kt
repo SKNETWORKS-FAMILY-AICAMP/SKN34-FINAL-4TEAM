@@ -16,7 +16,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.ClassPathResource
+import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
+import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.client.RestClient
 import tools.jackson.databind.json.JsonMapper
 
@@ -40,6 +42,7 @@ internal class SearchIndexConfig {
 
     @Bean
     fun searchIndexJob(
-        @Qualifier("contentDataSource") dataSource: DataSource, index: SearchElasticsearch, works: WorkService, worlds: PublicWorldService,
-    ) = SearchIndexJob(dataSource, works, worlds, SearchIndexSync(index))
+        @Qualifier("contentDataSource") dataSource: DataSource, @Qualifier("contentTransactions") transactions: TransactionTemplate,
+        index: SearchElasticsearch, works: WorkService, worlds: PublicWorldService,
+    ) = SearchIndexJob(JdbcClient.create(dataSource), transactions, works, worlds, SearchIndexSync(index))
 }
