@@ -137,7 +137,7 @@
       "category": "structural",
       "body": "창작 세계관의 허구 설정: 백무진이 천마와 싸웠고 그 천마는 실제로 죽었다.",
       "label": "교전 상대",
-      "direction": "directed",
+      "direction": "symmetric",
       "polarity": "asserted",
       "semanticMetadata": {
         "evidence": {

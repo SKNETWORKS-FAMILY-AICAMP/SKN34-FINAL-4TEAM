@@ -1353,7 +1353,7 @@
       "category": "structural",
       "body": "도서관에서 헤라클레스는 알퀴오네우스에게 화살을 쏘고 팔레네 밖으로 끌어낸다.",
       "label": "교전 상대",
-      "direction": "directed",
+      "direction": "symmetric",
       "polarity": "asserted",
       "semanticMetadata": {
         "evidence": {

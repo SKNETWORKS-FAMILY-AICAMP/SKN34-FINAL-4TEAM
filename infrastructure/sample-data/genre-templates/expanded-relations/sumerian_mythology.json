@@ -569,7 +569,7 @@
       "category": "structural",
       "body": "루갈쿠르둡은 일곱 머리의 전투용 곤봉을 들도록 임무를 받는다.",
       "label": "교전 상대",
-      "direction": "directed",
+      "direction": "symmetric",
       "polarity": "asserted",
       "semanticMetadata": {
         "evidence": {

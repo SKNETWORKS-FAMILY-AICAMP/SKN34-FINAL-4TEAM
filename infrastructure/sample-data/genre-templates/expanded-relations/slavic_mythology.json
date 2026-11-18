@@ -233,7 +233,7 @@
       "category": "structural",
       "body": "이반의 준마는 마지막 싸움에서 코셰이의 머리를 걷어찬다.",
       "label": "적수",
-      "direction": "directed",
+      "direction": "symmetric",
       "polarity": "asserted",
       "semanticMetadata": {
         "evidence": {
