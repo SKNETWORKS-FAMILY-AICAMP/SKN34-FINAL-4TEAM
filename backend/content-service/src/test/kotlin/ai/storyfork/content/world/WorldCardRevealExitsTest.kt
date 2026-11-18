@@ -27,6 +27,7 @@ import ai.storyfork.content.work.service.dto.WorkAccessResult
 import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
 import ai.storyfork.content.world.service.InitialWorldAnalysisService
 import ai.storyfork.content.world.service.InitialWorldApplicationService
+import ai.storyfork.content.search.service.SearchCandidates
 import ai.storyfork.content.world.service.PublicWorldService
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.dto.RelationshipPayload
@@ -83,7 +84,7 @@ class WorldCardRevealExitsTest {
     private val manager = mock(PlatformTransactionManager::class.java).also {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
-    private val publicWorlds = PublicWorldService(worlds, revisions, revisionCards, cardVersions, images, states, expandedSeeds, graph, nicknames, storage, works, access, workImages, publication, manager)
+    private val publicWorlds = PublicWorldService(worlds, revisions, revisionCards, cardVersions, images, states, expandedSeeds, graph, nicknames, storage, works, access, workImages, publication, SearchCandidates(null), manager)
     private val workWorlds = WorkWorldService(access, works, publication, studios, publicWorlds, references, TransactionTemplate(manager))
     private val specs = SyncMcpAnnotationProviders.statelessToolSpecifications(listOf<Any>(
         WorkMcpTools(mock(WorkService::class.java), workWorlds, mock(WorkNoticeService::class.java), mock(ForkService::class.java), mock(ContextService::class.java), mock(ProposalService::class.java)),
@@ -206,7 +207,7 @@ class WorldCardRevealExitsTest {
             // Fork 이어받기: 상한은 Fork 기준 회차이고 더 큰 요청도 그 안이다.
             listOf(null, Int.MAX_VALUE.toString()).forEach { assertSeen("Fork upto=${it}", inherited(it), basis) }
             // 목록의 카드·관계 수는 상세와 같은 집합이다.
-            val item = publicWorlds.list(null, null, null).items.single()
+            val item = publicWorlds.list(null, null, null, null).items.single()
             assertEquals(shownTitles.getValue(basis).size, item.cardCount, "목록 카드 수 @${basis}")
             assertEquals(shownLabels.getValue(basis).size, item.relationshipCount, "목록 관계 수 @${basis}")
             // 이미지 두 경로.
@@ -233,7 +234,7 @@ class WorldCardRevealExitsTest {
         // 연결된 소설이 없으면 기준 회차는 1이다: 공개+없음만 보이고 3화 공개 카드는 숨는다.
         assertEquals(setOf("공개만"), detail().titles)
         assertEquals(setOf("공개만"), openImages { publicWorlds.cardImage(worldId, it) })
-        assertEquals(1, publicWorlds.list(null, null, null).items.single().cardCount)
+        assertEquals(1, publicWorlds.list(null, null, null, null).items.single().cardCount)
         // 3화까지 발행하면 3화 공개 카드가 보이고, 마지막 회차의 공개를 중단하면 다시 숨는다.
         link(published = n)
         assertSeen("공개 상세 3화 발행", detail(), n)
@@ -241,7 +242,7 @@ class WorldCardRevealExitsTest {
         link(published = n - 1)
         assertSeen("공개 상세 발행 중단", detail(), n - 1)
         assertSeen("위키 발행 중단", wiki(), n - 1)
-        assertEquals(shownTitles.getValue(n - 1).size, publicWorlds.list(null, null, null).items.single().cardCount)
+        assertEquals(shownTitles.getValue(n - 1).size, publicWorlds.list(null, null, null, null).items.single().cardCount)
         // 발행한 회차가 없거나 공개 작품이 아니면 아무 카드도 보이지 않는다.
         link(published = 0)
         assertTrue(detail().titles.isEmpty())

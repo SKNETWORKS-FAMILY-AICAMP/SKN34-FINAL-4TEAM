@@ -6,6 +6,7 @@ import ai.storyfork.content.attachment.repository.ContentImageRepository
 import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.auth.service.WITHDRAWN_MEMBER_NAME
 import ai.storyfork.content.publication.service.PublicationService
+import ai.storyfork.content.search.service.SearchCandidates
 import ai.storyfork.content.work.repository.WorkRepository
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
@@ -15,7 +16,10 @@ import ai.storyfork.content.world.domain.cardImageId
 import ai.storyfork.content.world.domain.coverStorage
 import ai.storyfork.content.world.domain.hideCardLinks
 import ai.storyfork.content.world.domain.isListed
+import ai.storyfork.content.world.domain.matchesCard
+import ai.storyfork.content.world.domain.matchesWorld
 import ai.storyfork.content.world.domain.publicWorldPage
+import ai.storyfork.content.world.domain.searchTerm
 import ai.storyfork.content.world.domain.shownCardEpisode
 import ai.storyfork.content.world.domain.visibleRelationships
 import ai.storyfork.content.world.relationship.Neo4jRelationshipRepository
@@ -25,6 +29,9 @@ import ai.storyfork.content.world.studio.repository.*
 import java.util.UUID
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
@@ -34,6 +41,7 @@ import org.springframework.transaction.support.TransactionTemplate
  * 그 카드끼리의 기준 회차 시점 Neo4j 관계만 보여 주며 비공개·초안뿐인·없는 세계관은 모두 404로 숨긴다. 보일 카드가 하나도 없는 공개 세계관은 카드 없이 그대로 나온다.
  * 기준 회차(DEC-53)는 연결된 소설이 공개 작품이면 발행된 마지막 회차, 공개 작품이 아니면 0, 연결이 없으면 1이다.
  * 상세에는 연결된 소설이 공개 작품일 때만 그 최소 정보를 싣는다(#329).
+ * 검색(#505): [list]의 q와 [cards]는 같은 공개 기준으로 전체(색인이 켜져 있으면 [SearchCandidates]의 후보)를 읽어 메모리에서 거르고, 색인 호출은 읽기 트랜잭션 밖이다.
  * PostgreSQL은 읽기 전용 짧은 트랜잭션이고 Neo4j·Core·객체 저장소(표지)·작품(Content 트랜잭션) 호출은 그 밖이다.
  */
 @Service
@@ -43,6 +51,7 @@ class PublicWorldService(
     private val states: WorldRelationshipStateRepository, private val expandedSeeds: ExpandedSeedProgressRepository, private val graph: Neo4jRelationshipRepository,
     private val nicknames: CoreNicknameService, private val storage: AttachmentStorageClient,
     private val works: WorkRepository, private val workAccess: WorkAccessService, private val workImages: ContentImageRepository, private val publication: PublicationService,
+    private val search: SearchCandidates,
     @Qualifier("worldStudioTransactionManager") manager: PlatformTransactionManager,
 ) {
     private val transaction = TransactionTemplate(manager).apply { isReadOnly = true }
@@ -58,13 +67,20 @@ class PublicWorldService(
     private class Listing(val page: Page<StudioWorld>, val revisions: Map<UUID, WorldRevision>, val cards: Map<UUID, List<SettingCardVersion>>, val states: Map<UUID, WorldRelationshipState>)
     /** 기준 회차에 양 끝이 보이는 관계와, 그 관계마다 기준 회차까지의 변화다(DEC-54 2단계, 저장소가 기준 회차 뒤의 변화는 담아 주지 않는다). */
     private class Visible(val rows: List<RelationshipPayload>, val history: Map<UUID, List<RelationshipChange>>)
+    /** q로 거른 세계관의 한 페이지와, 거르려고 전체 작가를 한 번에 조회한 닉네임이다(페이지 항목이 그대로 쓴다). */
+    private class Matched(val page: Page<StudioWorld>, val names: Map<String, String>)
 
-    /** 공개이고 확정된 현재 버전이 있는 세계관만(상세와 같은 기준) 최근 공개순으로 돌려준다. genre가 없거나 비어 있으면 전체다. 값 오류는 422다. */
-    fun list(genre: String?, page: String?, size: String?): PublicWorldPageResponse {
+    /**
+     * 공개이고 확정된 현재 버전이 있는 세계관만(상세와 같은 기준) 최근 공개순으로 돌려준다. genre가 없거나 비어 있으면 전체다. 값 오류는 422다.
+     * [q]가 있으면(앞뒤 공백을 자르며 공백뿐이면 없는 것과 같다) 확정 버전의 이름·설명이나 작가 닉네임에 대소문자 무시로 들어 있는 세계관만 거른 뒤 페이지를 자르고 total도 거른 수다(#505).
+     */
+    fun list(genre: String?, q: String?, page: String?, size: String?): PublicWorldPageResponse {
         val code = genre?.takeIf { it.isNotBlank() }?.also { if (it !in WORLD_GENRES) throw ContentFailure(422, "genre 값을 확인해 주세요.") }
         val request = publicWorldPage(page, size)
+        // q가 있으면 공개 세계관 전체(색인이 켜져 있으면 그 후보)에서 거른 한 페이지다. 페이지의 카드·관계 수는 아래에서 그 한 페이지만 센다. q가 없으면 쿼리가 페이지를 자른다.
+        val matched = searchTerm(q)?.let { matchingWorlds(code, it, request) }
         val found = tx {
-            val worldPage = if (code == null) worlds.listed(request) else worlds.listedByGenre(code, request)
+            val worldPage = matched?.page ?: if (code == null) worlds.listed(request) else worlds.listedByGenre(code, request)
             if (worldPage.content.isEmpty()) Listing(worldPage, emptyMap(), emptyMap(), emptyMap())
             else {
                 val revisionIds = worldPage.content.mapNotNull { it.currentRevisionId }
@@ -76,7 +92,7 @@ class PublicWorldService(
         // 확정(sealed)되지 않은 현재 버전은 상세처럼 숨긴다(FK는 버전의 존재·소속만 보장한다).
         // ponytail: total은 쿼리 기준이라 이때 items보다 클 수 있다. currentRevisionId는 확정 뒤에만 정해져 지금은 생기지 않으며, 생기면 목록 쿼리에 sealed 조건을 둔다.
         val shown = found.page.content.filter { it.currentRevisionId in found.revisions }
-        val names = authors(shown.map { it.ownerSubject.toString() }.distinct())
+        val names = matched?.names ?: authors(shown.map { it.ownerSubject.toString() }.distinct())
         // 기준 회차는 페이지 전체에 쿼리 둘로 센다. ponytail: Neo4j는 세계관마다 한 번씩 읽는다(한 쪽 최대 100번). 느려지면 한 쿼리로 묶는 배치 조회를 둔다.
         val bases = basisEpisodes(shown.map { it.id })
         val items = shown.map { world ->
@@ -88,6 +104,71 @@ class PublicWorldService(
                 cardIds.size, currentRelationships(world.id, found.states[world.id], revision.id, cardIds, basis)?.rows?.size, world.published(), world.coverObjectKey != null)
         }
         return PublicWorldPageResponse(items, request.pageNumber, request.pageSize, found.page.totalElements)
+    }
+
+    /**
+     * 공개 세계관(목록과 같은 기준)의 설정 카드 중 **상세와 같은 기준 회차([shownAt])로 독자에게 보이는 카드**에서 제목·별칭·태그(본문 제외)에 [q]가 대소문자 무시로 들어 있는 것을
+     * 세계관 최근 공개순 → 카드 제목순으로 돌려준다(#505). [q]가 없거나 공백이면 422다. 색인이 켜져 있으면 그 후보 세계관만 읽고 보이는지 판정은 같다. 작가 닉네임은 쓰지 않아 Core를 부르지 않는다.
+     * ponytail: 공개 세계관 전체를 읽어 메모리에서 거른 뒤 자른다(시연 규모). 세계관·카드가 늘면 SQL 조건과 색인으로 옮긴다.
+     */
+    fun cards(q: String?, page: String?, size: String?): PublicWorldCardSearchResponse {
+        val term = searchTerm(q) ?: throw ContentFailure(422, "q 값을 확인해 주세요.")
+        val request = publicWorldPage(page, size)
+        val candidates = search.cardWorlds(term) // 색인 호출은 읽기 트랜잭션 밖이다
+        val listed = tx { listedAll(null, candidates) }
+        val shown = shownCards(listed)
+        val hits = listed.flatMap { (world, revision) ->
+            shown.getValue(world.id).filter { matchesCard(it.fields.title, it.fields.aliases, it.fields.tags, term) }
+                .sortedWith(compareBy({ it.fields.title }, { it.cardId.toString() }))
+                .map { PublicWorldCardSearchItem(world.id, revision.name, it.cardId, it.fields.title, it.fields.cardType, it.fields.aliases.toList(), it.fields.tags.toList(), cardImageId(it.fields.semanticMetadata)) }
+        }
+        return PublicWorldCardSearchResponse(hits.drop(request.offset.toInt()).take(request.pageSize), request.pageNumber, request.pageSize, hits.size.toLong())
+    }
+
+    /**
+     * 검색 색인이 맞출 공개 세계관 전체와 그 세계관의 보이는 카드(상세와 같은 기준 회차)다. 작가 닉네임은 Core에서 한 번에 조회한다.
+     * 목록 검색·[cards]와 같은 읽기라 색인에는 검색이 보여 줄 수 있는 것만 들어간다.
+     */
+    fun searchEntries(): List<PublicWorldSearchEntry> {
+        val listed = tx { listedAll(null, null) }
+        val names = authors(listed.map { it.first.ownerSubject.toString() }.distinct())
+        val shown = shownCards(listed)
+        return listed.map { (world, revision) ->
+            PublicWorldSearchEntry(world.id, revision.name, revision.description, names.getValue(world.ownerSubject.toString()),
+                shown.getValue(world.id).map { PublicWorldSearchCard(it.cardId, it.fields.title, it.fields.aliases.toList(), it.fields.tags.toList()) })
+        }
+    }
+
+    /**
+     * 공개 세계관 전체(색인이 켜져 있으면 그 후보)에서 확정 버전의 이름·설명이나 작가 닉네임에 [term]이 들어 있는 것만 최근 공개순으로 모아 [request] 구간을 자른다. total은 거른 수다.
+     * ponytail: 전체를 읽어 메모리에서 거른다(시연 규모, 작가 닉네임 조회도 전체 대상). 세계관이 늘면 SQL 조건과 색인으로 옮긴다.
+     */
+    private fun matchingWorlds(code: String?, term: String, request: PageRequest): Matched {
+        val candidates = search.worlds(term) // 색인 호출은 읽기 트랜잭션 밖이다
+        val listed = tx { listedAll(code, candidates) }
+        val names = authors(listed.map { it.first.ownerSubject.toString() }.distinct())
+        val hits = listed.filter { (world, revision) -> matchesWorld(revision.name, revision.description, names.getValue(world.ownerSubject.toString()), term) }.map { it.first }
+        return Matched(PageImpl(hits.drop(request.offset.toInt()).take(request.pageSize), request, hits.size.toLong()), names)
+    }
+
+    /**
+     * 공개 세계관 전체(장르 [code]가 있으면 그 장르)를 최근 공개순으로, 확정(sealed)된 현재 버전과 함께 돌려준다. 목록 쿼리를 자르지 않고(unpaged) 읽어 공개·삭제 조건이 [list]와 같다.
+     * [only]가 있으면(색인이 찾은 후보) 그 세계관만 읽고 같은 조건·순서로 거른다. 읽기 트랜잭션 안에서 부른다.
+     */
+    private fun listedAll(code: String?, only: Set<UUID>?): List<Pair<StudioWorld, WorldRevision>> {
+        val rows = if (only == null) (if (code == null) worlds.listed(Pageable.unpaged()) else worlds.listedByGenre(code, Pageable.unpaged())).content
+        else worlds.findAllById(only).filter { it.deletedAt == null && isListed(it.visibility, it.currentRevisionId) && (code == null || it.genre == code) }
+            .sortedWith(compareByDescending<StudioWorld> { it.publishedAt }.thenBy { it.id })
+        val sealed = revisions.findAllById(rows.mapNotNull { it.currentRevisionId }).filter { it.sealed }.associateBy { it.id }
+        return rows.mapNotNull { world -> sealed[world.currentRevisionId]?.let { world to it } }
+    }
+
+    /** [listed] 세계관마다 기준 회차(DEC-53)에 보이는 카드다([shownAt], 상세와 같은 함수). 카드는 읽기 트랜잭션에서 한 번에 읽고 기준 회차는 Content 쿼리 둘로 센다(트랜잭션 밖). */
+    private fun shownCards(listed: List<Pair<StudioWorld, WorldRevision>>): Map<UUID, List<SettingCardVersion>> {
+        if (listed.isEmpty()) return emptyMap()
+        val rows = tx { revisionCards.cardVersionsOf(listed.map { it.second.id }) }.groupBy({ it[0] as UUID }, { it[1] as SettingCardVersion })
+        val bases = basisEpisodes(listed.map { it.first.id })
+        return listed.associate { (world, revision) -> world.id to shownAt(rows[revision.id].orEmpty(), bases.getValue(world.id)).map { it.first } }
     }
 
     /**

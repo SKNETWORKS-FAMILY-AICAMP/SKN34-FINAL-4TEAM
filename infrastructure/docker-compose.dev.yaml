@@ -130,6 +130,9 @@ services:
       # 발행 원고 자동 색인·검색. 임베딩은 ai-service 이미지의 고정 리비전 E5 모델이 만든다.
       MANUSCRIPT_INDEX_ENABLED: "true"
       MANUSCRIPT_INDEX_URL: http://elasticsearch:9200
+      # 작품·세계관·설정 카드 검색어 후보를 같은 Elasticsearch가 찾는다(#505). 켜져 있는데 색인 호출이 실패하면 검색은 DB로 대신하지 않고 503이다.
+      SEARCH_INDEX_ENABLED: "true"
+      SEARCH_INDEX_URL: http://elasticsearch:9200
       APP_CORS_ALLOWED_ORIGIN: ${APP_CORS_ALLOWED_ORIGIN:-http://127.0.0.1:${CD_WEB_PORT:?Provision a free loopback port}}
 
   operations-service:

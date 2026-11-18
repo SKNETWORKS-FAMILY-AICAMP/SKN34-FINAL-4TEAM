@@ -124,7 +124,7 @@ class WorldStudioMcpTools(
         @McpToolParam(description = "장르 코드(fantasy|sf|wuxia|romance|modern|classic|mystery). 생략하면 전체", required = false) genre: String?,
         @McpToolParam(description = "쪽 번호(0부터)", required = false) page: String?,
         @McpToolParam(description = "쪽 크기(1~100, 기본 24)", required = false) size: String?,
-    ): PublicWorldPageResponse = mcpTool { publicWorlds.list(genre, page, size) }
+    ): PublicWorldPageResponse = mcpTool { publicWorlds.list(genre, null, page, size) }
 
     @McpTool(
         name = "world_studio_public_read",

@@ -134,6 +134,7 @@ class WorldStudioServicePostgresTest {
                 org.mockito.Mockito.mock(ai.storyfork.content.work.service.WorkAccessService::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.attachment.repository.ContentImageRepository::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.publication.service.PublicationService::class.java),
+                ai.storyfork.content.search.service.SearchCandidates(null),
                 ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java))
             val visible=publicService.detail(id)
             assertEquals(setOf(first.id,second.id),visible.cards.map { it.id }.toSet())
@@ -414,6 +415,7 @@ class WorldStudioServicePostgresTest {
                 org.mockito.Mockito.mock(ai.storyfork.content.work.service.WorkAccessService::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.attachment.repository.ContentImageRepository::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.publication.service.PublicationService::class.java),
+                ai.storyfork.content.search.service.SearchCandidates(null),
                 ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java))
             val view=publicView(ctx.getBean(Neo4jRelationshipRepository::class.java))
             Executors.newSingleThreadExecutor().use { pool ->
@@ -424,7 +426,7 @@ class WorldStudioServicePostgresTest {
                     val pending=view.detail(id)
                     assertEquals("unavailable",pending.relationshipStatus);assertTrue(pending.relationships.isEmpty())
                     assertEquals(setOf(a.id,b.id),pending.cards.map { it.id }.toSet())
-                    assertNull(view.list(null,null,"100").items.single { it.id==id }.relationshipCount)
+                    assertNull(view.list(null,null,null,"100").items.single { it.id==id }.relationshipCount)
                     assertEquals("unavailable",view.readerCards("work",id,1).relationshipStatus)
                     assertThrows(WorldConflict::class.java) { service.edit(id,owner,EditWorldDraftRequest(old.draftRevision,base.name,base.description,key="author-edit")) }
                     assertThrows(WorldConflict::class.java) { service.save(id,owner,SaveWorldRequest(old.draftRevision,"author-save")) }
@@ -459,6 +461,7 @@ class WorldStudioServicePostgresTest {
                 org.mockito.Mockito.mock(ai.storyfork.content.work.service.WorkAccessService::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.attachment.repository.ContentImageRepository::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.publication.service.PublicationService::class.java),
+                ai.storyfork.content.search.service.SearchCandidates(null),
                 ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java))
             assertEquals(36,manifest.worlds.size)
             assertEquals(16461,manifest.worlds.sumOf { world -> world.chunks.sumOf { name ->
@@ -525,6 +528,7 @@ class WorldStudioServicePostgresTest {
                 org.mockito.Mockito.mock(ai.storyfork.content.work.service.WorkAccessService::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.attachment.repository.ContentImageRepository::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.publication.service.PublicationService::class.java),
+                ai.storyfork.content.search.service.SearchCandidates(null),
                 ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java))
             val published=publicService.detail(id)
             assertEquals(cards.map { it.id }.toSet(),published.cards.map { it.id }.toSet())

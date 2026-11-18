@@ -334,7 +334,7 @@ export class ReadingUseCase {
     }))
   }
 
-  /** 목업 quick(): 빠른 이동 후보 (소설·인물·회차). 집필실에서는 탭 이동·인물을 앞에 둡니다. */
+  /** 목업 quick(): 빠른 이동(소설·세계관·설정 카드·캐릭터챗 검색)의 작품 쪽 후보로 공개 소설과 그 인물·회차를 담습니다. 세계관·설정 카드 후보는 `useQuickViewModel`이 `PublicWorldUseCase`로 따로 찾아 뒤에 붙이고, 캐릭터챗은 후보 없이 Enter의 전체 탭(/search?q=)이 목록으로 안내합니다. 집필실에서는 탭 이동·인물을 앞에 둡니다. */
   async getQuickItems(role: Role, studio?: { id: string; ep: string | null }) {
     const works = await this.workRepository.listWorks()
     const items: { k: string; w?: Work; label: string; sub: string; go: string }[] = []

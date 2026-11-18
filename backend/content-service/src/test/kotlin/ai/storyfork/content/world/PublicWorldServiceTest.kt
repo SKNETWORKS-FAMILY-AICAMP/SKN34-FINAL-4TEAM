@@ -10,6 +10,7 @@ import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.publication.service.PublicationService
 import ai.storyfork.content.publication.service.dto.PublishedEpisodeListResponse
 import ai.storyfork.content.publication.service.dto.PublishedEpisodeResponse
+import ai.storyfork.content.search.service.SearchCandidates
 import ai.storyfork.content.work.entity.WorkEntity
 import ai.storyfork.content.work.repository.WorkRepository
 import ai.storyfork.content.work.service.WorkAccessService
@@ -27,11 +28,13 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyCollection
+import org.mockito.ArgumentMatchers.anyIterable
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.*
 import org.mockito.stubbing.OngoingStubbing
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.SimpleTransactionStatus
 
@@ -51,10 +54,12 @@ class PublicWorldServiceTest {
     private val access = mock(WorkAccessService::class.java)
     private val workImages = mock(ContentImageRepository::class.java)
     private val publication = mock(PublicationService::class.java)
+    // 색인이 없는 경로(null)가 기본이다. Mockito 기본값은 빈 Set이라 그대로 두면 "색인이 아무것도 못 찾음"으로 읽힌다.
+    private val search = mock(SearchCandidates::class.java) { null }
     private val manager = mock(PlatformTransactionManager::class.java).also {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
-    private val service = PublicWorldService(worlds, revisions, revisionCards, cardVersions, images, states, expandedSeeds, graph, nicknames, storage, works, access, workImages, publication, manager)
+    private val service = PublicWorldService(worlds, revisions, revisionCards, cardVersions, images, states, expandedSeeds, graph, nicknames, storage, works, access, workImages, publication, search, manager)
     private val published = Instant.parse("2026-11-11T01:02:03Z")
 
     /**
@@ -194,7 +199,7 @@ class PublicWorldServiceTest {
         val s=Seed();val reads=mutableListOf<String>()
         graphReads(s.id) { it.thenAnswer { RelationshipStateResult(s.id,3,"key","hash",s.relations,history={ reads+="history";emptyMap() }) } }
         stubPage(listOf(s),PageRequest.of(0,24),1)
-        service.list(null,null,null);service.inheritedWorld("fork",s.id,2)
+        service.list(null,null,null,null);service.inheritedWorld("fork",s.id,2)
         assertEquals(emptyList<String>(),reads) // 관계 수만 세는 목록과 관계 본문을 비워 보내는 Fork 이어받기는 이력의 payload를 풀지 않는다
         service.detail(s.id);service.readerCards("work",s.id,2)
         assertEquals(2,reads.size)
@@ -206,12 +211,12 @@ class PublicWorldServiceTest {
         val detail=service.detail(s.id)
         assertEquals("unavailable",detail.relationshipStatus);assertTrue(detail.relationships.isEmpty())
         assertEquals("unavailable",service.readerCards("work",s.id,2).relationshipStatus)
-        assertEquals(1,service.list(null,null,null).items.single().relationshipCount)
+        assertEquals(1,service.list(null,null,null,null).items.single().relationshipCount)
     }
     @Test fun `a public world whose cards are all author-only is still listed and readable, with no card and no relation`() {
         val s = Seed(cards = "private", revealed = false)
         stubPage(listOf(s), PageRequest.of(0, 24), 1)
-        val item = service.list(null, null, null).items.single()
+        val item = service.list(null, null, null, null).items.single()
         assertEquals(s.id, item.id)
         assertEquals(0, item.cardCount)
         assertEquals(0, item.relationshipCount)
@@ -369,7 +374,7 @@ class PublicWorldServiceTest {
         assertCardsWithoutRelations(s)
         assertEquals("unavailable",service.readerCards("work",s.id,2).relationshipStatus)
         stubPage(listOf(s),PageRequest.of(0,24),1)
-        assertNull(service.list(null,null,null).items.single().relationshipCount)
+        assertNull(service.list(null, null, null, null).items.single().relationshipCount)
         verify(graph,never()).read(s.id,null)
         verify(graph,never()).read(s.id,2)
     }
@@ -444,7 +449,7 @@ class PublicWorldServiceTest {
         `when`(graph.read(y.id, 1)).thenThrow(WorldStudioFailure.unavailable())
         stubPage(listOf(x, y), PageRequest.of(0, 24), 30)
         `when`(nicknames.nicknames(listOf(x.owner.toString(), y.owner.toString()))).thenReturn(mapOf(x.owner.toString() to "작가 하나"))
-        val page = service.list(null, null, null)
+        val page = service.list(null, null, null, null)
         assertEquals(PublicWorldPageResponse(listOf(
             PublicWorldSummaryResponse(x.id, "하나", "하나 설명", "fantasy", "작가 하나", 2, 1, "2026-11-11T01:02:03Z"),
             PublicWorldSummaryResponse(y.id, "둘", "둘 설명", null, "탈퇴한 회원", 2, null, "2026-11-11T01:02:03Z"),
@@ -458,7 +463,7 @@ class PublicWorldServiceTest {
         val unsealed = Seed(name = "확정 전 세계").also { it.revision.sealed = false }
         stubPage(listOf(shown, unsealed), PageRequest.of(0, 24), 2)
         `when`(nicknames.nicknames(listOf(shown.owner.toString()))).thenReturn(mapOf(shown.owner.toString() to "작가"))
-        assertEquals(listOf(shown.id), service.list(null, null, null).items.map { it.id })
+        assertEquals(listOf(shown.id), service.list(null, null, null, null).items.map { it.id })
         verify(nicknames).nicknames(listOf(shown.owner.toString()))
         verifyNoMoreInteractions(nicknames)
         assertEquals(404, assertThrows(ContentFailure::class.java) { service.detail(unsealed.id) }.status)
@@ -467,7 +472,7 @@ class PublicWorldServiceTest {
     @Test fun `list filters by genre and window, and a blank genre means all`() {
         val s = Seed(genre = "sf")
         stubPage(listOf(s), PageRequest.of(1, 10), 11, genre = "sf")
-        val page = service.list("sf", "1", "10")
+        val page = service.list("sf", null, "1", "10")
         assertEquals(listOf(s.id), page.items.map { it.id })
         assertEquals(1, page.page)
         assertEquals(10, page.size)
@@ -478,21 +483,21 @@ class PublicWorldServiceTest {
 
         val all = Seed()
         stubPage(listOf(all), PageRequest.of(0, 24), 1)
-        assertEquals(listOf(all.id), service.list("", null, null).items.map { it.id })
+        assertEquals(listOf(all.id), service.list("", null, null, null).items.map { it.id })
         verify(worlds).listed(PageRequest.of(0, 24))
     }
 
     @Test fun `an empty page skips every follow-up lookup`() {
         `when`(worlds.listed(PageRequest.of(2, 24))).thenReturn(PageImpl(emptyList(), PageRequest.of(2, 24), 5))
-        assertEquals(PublicWorldPageResponse(emptyList(), 2, 24, 5), service.list(null, "2", null))
+        assertEquals(PublicWorldPageResponse(emptyList(), 2, 24, 5), service.list(null, null, "2", null))
         verifyNoInteractions(revisions, revisionCards, states, graph)
     }
 
     @Test fun `list rejects an unknown genre and bad paging with 422 before any query`() {
         listOf(Triple("romcom", null, null), Triple(null, "-1", null), Triple(null, null, "101")).forEach { (genre, page, size) ->
-            assertEquals(422, assertThrows(ContentFailure::class.java) { service.list(genre, page, size) }.status)
+            assertEquals(422, assertThrows(ContentFailure::class.java) { service.list(genre, "달빛", page, size) }.status)
         }
-        verifyNoInteractions(worlds, nicknames, graph)
+        verifyNoInteractions(worlds, nicknames, graph, search)
     }
 
     /** [seed]의 세계관에 연결된 소설 하나(`work.world_studio_id`)와 그 접근 결과다. 공개 판정은 [WorkAccessResult.publiclyVisible]이 하므로 공개 범위·제한·삭제 값으로 만든다. */
@@ -564,7 +569,7 @@ class PublicWorldServiceTest {
         val withCover = Seed(name = "표지 있음", cover = true)
         val without = Seed(name = "표지 없음")
         stubPage(listOf(withCover, without), PageRequest.of(0, 24), 2)
-        assertEquals(listOf(true, false), service.list(null, null, null).items.map { it.hasCover })
+        assertEquals(listOf(true, false), service.list(null, null, null, null).items.map { it.hasCover })
         assertTrue(service.detail(withCover.id).hasCover)
         assertFalse(service.detail(without.id).hasCover)
     }
@@ -603,7 +608,7 @@ class PublicWorldServiceTest {
         `when`(works.findAllByWorldStudioIdIn(seeds.map { it.id })).thenReturn(workOf.values.toList())
         `when`(works.lastPublishedOfPublicWorks(workOf.values.map { it.id })).thenReturn(listOf(arrayOf<Any>(workOf.getValue(published).id, 3), arrayOf<Any>(workOf.getValue(nothingYet).id, 0)))
         stubPage(seeds, PageRequest.of(0, 24), 5)
-        val items = service.list(null, null, null).items
+        val items = service.list(null, null, null, null).items
         // 미연결은 1화 기준(첫 인물·둘째 인물, 관계 1), 3화까지 발행한 공개 작품은 공개 회차 2화인 비공개 인물과 그 관계까지, 공개 작품이 아니거나 발행 전이면 기준 0이라 카드·관계가 없다.
         assertEquals(listOf(2, 3, 0, 0, 2), items.map { it.cardCount })
         assertEquals(listOf(1, 2, 0, 0, 1), items.map { it.relationshipCount })
@@ -717,4 +722,196 @@ class PublicWorldServiceTest {
         verify(storage, never()).read(anyString())
         verifyNoInteractions(graph)
     }
+    // --- 세계관·설정 카드 검색(#505) ---
+
+    /** q 검색은 목록 쿼리를 자르지 않고(unpaged) 전체를 읽는다. 페이지로 자른 쪽의 카드·관계 조회는 요청한 ID만 골라 [seeds]에서 돌려준다. */
+    private fun stubLookups(seeds: List<Seed>) {
+        `when`(revisions.findAllById(anyIterable<UUID>())).thenAnswer { call ->
+            val ids = call.getArgument<Iterable<UUID>>(0).toSet()
+            seeds.filter { it.revisionId in ids }.map { it.revision }
+        }
+        `when`(revisionCards.cardVersionsOf(anyCollection<UUID>())).thenAnswer { call ->
+            val ids = call.getArgument<Collection<UUID>>(0).toSet()
+            seeds.filter { it.revisionId in ids }.flatMap { it.cardRows }
+        }
+        `when`(states.findAllById(anyIterable<UUID>())).thenAnswer { call ->
+            val ids = call.getArgument<Iterable<UUID>>(0).toSet()
+            seeds.filter { it.id in ids }.map { it.state }
+        }
+    }
+
+    private fun stubAll(seeds: List<Seed>, genre: String? = null) {
+        val all = PageImpl(seeds.map { it.world })
+        if (genre == null) `when`(worlds.listed(Pageable.unpaged())).thenReturn(all) else `when`(worlds.listedByGenre(genre, Pageable.unpaged())).thenReturn(all)
+        stubLookups(seeds)
+    }
+
+    private fun stubNames(names: Map<UUID, String>) {
+        `when`(nicknames.nicknames(anyCollection<String>())).thenAnswer { call ->
+            val ids = call.getArgument<Collection<String>>(0).toSet()
+            names.filterKeys { it.toString() in ids }.mapKeys { it.key.toString() }
+        }
+    }
+
+    private fun cardItem(s: Seed, card: SettingCardVersion) =
+        PublicWorldCardSearchItem(s.id, s.revision.name, card.cardId, card.fields.title, "character", listOf("별칭"), listOf("태그"), null)
+
+    @Test fun `list with q keeps worlds whose saved name, description or author contain it ignoring case, then pages the matches and counts them`() {
+        val moon = Seed(name = "Moonlight 세계")
+        val star = Seed(name = "별빛 세계")
+        val dusk = Seed(name = "황혼 세계")
+        stubAll(listOf(moon, star, dusk)) // 최근 공개순으로 이미 정렬돼 있다
+        stubNames(mapOf(moon.owner to "작가 하나", star.owner to "달빛 지기", dusk.owner to "작가 셋"))
+
+        // 이름: 대소문자와 앞뒤 공백을 무시하고, 한 줄은 목록과 같은 모양이다.
+        assertEquals(PublicWorldSummaryResponse(moon.id, "Moonlight 세계", "Moonlight 세계 설명", "fantasy", "작가 하나", 2, 1, "2026-11-11T01:02:03Z"),
+            service.list(null, "  MOONLIGHT ", null, null).items.single())
+        // 작가 닉네임
+        assertEquals(listOf(star.id), service.list(null, "달빛", null, null).items.map { it.id })
+        // 설명(저장 버전의 "<이름> 설명")은 셋 모두에게 있다. 두 개씩 자른 둘째 쪽은 하나이고 total은 거른 수다.
+        val second = service.list(null, "설명", "1", "2")
+        assertEquals(listOf(dusk.id), second.items.map { it.id })
+        assertEquals(1, second.page)
+        assertEquals(2, second.size)
+        assertEquals(3L, second.total)
+        assertEquals(PublicWorldPageResponse(emptyList(), 0, 24, 0), service.list(null, "없는검색어", null, null))
+        // 목록 쿼리를 자르지 않고 읽었고, 자르는 쿼리는 부르지 않았다.
+        verify(worlds, times(4)).listed(Pageable.unpaged())
+        verify(worlds, never()).listed(PageRequest.of(0, 24))
+    }
+
+    @Test fun `list with q and genre reads only that genre, and a blank q is the plain paged query as before`() {
+        val sf = Seed(name = "별 세계", genre = "sf")
+        stubAll(listOf(sf), genre = "sf")
+        assertEquals(listOf(sf.id), service.list("sf", "별", null, null).items.map { it.id })
+        verify(worlds).listedByGenre("sf", Pageable.unpaged())
+        verify(worlds, never()).listed(Pageable.unpaged())
+
+        val plain = Seed()
+        stubPage(listOf(plain), PageRequest.of(0, 24), 1)
+        assertEquals(listOf(plain.id), service.list(null, "  ", null, null).items.map { it.id })
+        verify(worlds).listed(PageRequest.of(0, 24))
+        verify(worlds, never()).listed(Pageable.unpaged())
+    }
+
+    @Test fun `list with q hides a world whose current revision is not sealed and asks Core once for every listed author`() {
+        val shown = Seed(name = "확정된 달빛")
+        val other = Seed(name = "다른 세계")
+        val unsealed = Seed(name = "확정 전 달빛").also { it.revision.sealed = false }
+        stubAll(listOf(shown, other, unsealed))
+        stubNames(mapOf(shown.owner to "작가"))
+
+        assertEquals(listOf(shown.id), service.list(null, "달빛", null, null).items.map { it.id })
+
+        // 확정되지 않은 세계관의 작가는 묻지 않고, 한 페이지 항목의 작가명은 거를 때 받은 이름을 그대로 쓴다(두 번째 조회 없음).
+        verify(nicknames, times(1)).nicknames(listOf(shown.owner.toString(), other.owner.toString()))
+        verifyNoMoreInteractions(nicknames)
+    }
+
+    @Test fun `card search finds the shown cards by title, alias or tag but never by body, ordered by world then card title, without asking Core`() {
+        val a = Seed(name = "첫 세계")
+        val b = Seed(name = "둘째 세계")
+        val unsealed = Seed(name = "확정 전").also { it.revision.sealed = false }
+        stubAll(listOf(a, b, unsealed))
+        // 기준 회차 1: 첫·둘째 인물만 보인다(2화부터 공개·작가 전용·삭제 카드는 안 보인다). 제목·별칭·태그 어느 쪽으로 찾아도 같은 카드이고 본문('본문')으로는 찾지 않는다.
+        val expected = listOf(a, b).flatMap { s -> listOf(s.second, s.first).map { cardItem(s, it) } } // 세계관 순서 → 카드 제목순('둘째 인물' < '첫 인물')
+        listOf("인물", "별칭", "태그").forEach { q ->
+            val result = service.cards(q, null, null)
+            assertEquals(expected, result.items, q)
+            assertEquals(4L, result.total, q)
+        }
+        assertEquals(PublicWorldCardSearchResponse(emptyList(), 0, 24, 0), service.cards("본문", null, null))
+        verifyNoInteractions(nicknames)
+    }
+
+    @Test fun `card search pages the matches and counts them`() {
+        val a = Seed()
+        stubAll(listOf(a))
+        val page = service.cards("인물", "1", "1")
+        assertEquals(listOf(cardItem(a, a.first)), page.items)
+        assertEquals(1, page.page)
+        assertEquals(1, page.size)
+        assertEquals(2L, page.total)
+        assertEquals(PublicWorldCardSearchResponse(emptyList(), 5, 1, 2), service.cards("인물", "5", "1"))
+    }
+
+    @Test fun `card search shows exactly the cards the detail shows at the same basis episode`() {
+        val s = Seed()
+        stubAll(listOf(s))
+        val workId = linkWork(s, published = listOf(1, 2, 3))
+        `when`(works.lastPublishedOfPublicWorks(listOf(workId))).thenReturn(listOf(arrayOf<Any>(workId, 3)))
+
+        val shown = service.detail(s.id).cards.map { it.id }.toSet()
+        val found = service.cards("인물", null, null).items.map { it.cardId }.toSet()
+
+        // 연결된 공개 소설이 3화까지 발행했으므로 2화부터 공개인 '비공개 인물'도 보인다. 작가 전용·삭제 카드는 어느 쪽에도 없다.
+        assertEquals(setOf(s.first.cardId, s.second.cardId, s.hidden.cardId), shown)
+        assertEquals(shown, found)
+    }
+
+    @Test fun `card search needs a query and valid paging, answered with 422 before any query`() {
+        listOf(Triple(null, null, null), Triple("", null, null), Triple("  \t", null, null), Triple("a", "-1", null), Triple("a", null, "101"), Triple("a", "x", null)).forEach { (q, page, size) ->
+            assertEquals(422, assertThrows(ContentFailure::class.java) { service.cards(q, page, size) }.status, "[$q][$page][$size]")
+        }
+        verifyNoInteractions(worlds, nicknames, graph, search)
+    }
+
+    @Test fun `with an index, world search reads only the candidates and still applies the public rule, the saved name and the order`() {
+        val older = Seed(name = "달빛 옛 세계").also { it.world.publishedAt = published.minusSeconds(60) }
+        val newer = Seed(name = "달빛 새 세계")
+        val privateOne = Seed(name = "달빛 비공개", visibility = "private")
+        val gone = Seed(name = "달빛 삭제").also { it.world.deletedAt = Instant.now() }
+        val draftOnly = Seed(name = "달빛 초안", saved = false)
+        val stale = Seed(name = "이제는 다른 이름") // 색인이 늦어 아직 옛 이름으로 후보에 남았다
+        val all = listOf(older, newer, privateOne, gone, draftOnly, stale)
+        val candidates = all.map { it.id }.toSet()
+        `when`(search.worlds("달빛")).thenReturn(candidates)
+        `when`(worlds.findAllById(candidates)).thenReturn(all.map { it.world })
+        stubLookups(all)
+        stubNames(all.associate { it.owner to "작가" })
+
+        val result = service.list(null, "달빛", null, null)
+
+        assertEquals(listOf(newer.id, older.id), result.items.map { it.id }) // 최근 공개순
+        assertEquals(2L, result.total)
+        verify(worlds, never()).listed(Pageable.unpaged())
+        verify(worlds, never()).listed(PageRequest.of(0, 24))
+    }
+
+    @Test fun `with an index, card search reads the card versions of the candidate worlds only, and the basis episode rule still hides cards`() {
+        val a = Seed(name = "후보 세계")
+        val b = Seed(name = "후보 아님")
+        stubLookups(listOf(a, b))
+        `when`(search.cardWorlds("인물")).thenReturn(setOf(a.id))
+        `when`(worlds.findAllById(setOf(a.id))).thenReturn(listOf(a.world))
+
+        val items = service.cards("인물", null, null).items
+
+        // 색인이 2화부터 공개·작가 전용·삭제 카드까지 갖고 있어도 상세와 같은 기준 회차 규칙이 뺀다.
+        assertEquals(listOf(a.second.cardId, a.first.cardId), items.map { it.cardId })
+        verify(revisionCards).cardVersionsOf(listOf(a.revisionId))
+        verify(worlds, never()).listed(Pageable.unpaged())
+    }
+
+    @Test fun `an index failure is a 503 for both searches and never turns into a database read`() {
+        `when`(search.worlds("x")).thenThrow(ContentFailure(503, "검색을 완료할 수 없어요."))
+        `when`(search.cardWorlds("x")).thenThrow(ContentFailure(503, "검색을 완료할 수 없어요."))
+        assertEquals(503, assertThrows(ContentFailure::class.java) { service.list(null, "x", null, null) }.status)
+        assertEquals(503, assertThrows(ContentFailure::class.java) { service.cards("x", null, null) }.status)
+        verifyNoInteractions(worlds)
+    }
+
+    @Test fun `the index feed is every listed world with its shown cards and author, read by the same rules as the search`() {
+        val a = Seed(name = "첫 세계")
+        val unsealed = Seed(name = "확정 전").also { it.revision.sealed = false }
+        stubAll(listOf(a, unsealed))
+        stubNames(mapOf(a.owner to "작가"))
+
+        assertEquals(listOf(PublicWorldSearchEntry(a.id, "첫 세계", "첫 세계 설명", "작가", listOf(
+            PublicWorldSearchCard(a.first.cardId, "첫 인물", listOf("별칭"), listOf("태그")),
+            PublicWorldSearchCard(a.second.cardId, "둘째 인물", listOf("별칭"), listOf("태그")),
+        ))), service.searchEntries())
+        verify(nicknames, times(1)).nicknames(listOf(a.owner.toString()))
+    }
+
 }

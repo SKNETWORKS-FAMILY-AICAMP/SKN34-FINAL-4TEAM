@@ -10,7 +10,7 @@ export function QuickJump() {
   return (
     <Sheet sid="U03" label="빠른 이동" panelClass="qk" onClose={vm.close}>
       <input id="qi" data-autofocus role="combobox" aria-expanded={hasList} aria-controls="ql" aria-autocomplete="list" aria-activedescendant={hasList ? `qo${vm.sel}` : undefined}
-        aria-label="소설·인물·회차 검색" placeholder="소설·인물·회차 검색 (Enter: 전체 결과 보기)" value={vm.q}
+        aria-label="소설·세계관·설정 카드·캐릭터챗 검색" placeholder="소설·세계관·설정 카드·캐릭터챗 검색 (Enter: 전체 결과 보기)" value={vm.q}
         onChange={(e) => vm.setQuery(e.target.value)}
         onKeyDown={(e) => {
           // Safari는 조합 확정 Enter를 isComposing=false, keyCode=229로 보낸다
@@ -25,6 +25,7 @@ export function QuickJump() {
           </li>
         )) : <li style={{ display: 'block', color: 'var(--sub)' }}>검색 결과가 없어요.</li>}
       </ul>
+      {vm.failed && <p className="note" role="status">세계관·설정 카드를 불러오지 못했어요</p>}
       <div className="ft"><span>↑↓ 이동</span><span>Enter 열기</span><span>Esc 닫기</span></div>
     </Sheet>
   )

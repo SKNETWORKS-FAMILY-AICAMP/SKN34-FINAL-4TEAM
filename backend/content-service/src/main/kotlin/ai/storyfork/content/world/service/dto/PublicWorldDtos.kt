@@ -16,6 +16,22 @@ data class PublicWorldSummaryResponse(
 
 data class PublicWorldPageResponse(val items: List<PublicWorldSummaryResponse>, val page: Int, val size: Int, val total: Long)
 
+/**
+ * 설정 카드 검색(#505) 결과 한 줄. 상세와 같은 기준 회차에 독자에게 보이는 카드만 나오며 [worldId]·[worldName]은 그 카드가 든 공개 세계관이다.
+ * [imageId]가 있으면 `/{worldId}/card-images/{imageId}`로 대표 이미지를 읽는다(없으면 null).
+ */
+data class PublicWorldCardSearchItem(
+    val worldId: UUID, val worldName: String, val cardId: UUID, val title: String, val cardType: String,
+    val aliases: List<String>, val tags: List<String>, val imageId: UUID?,
+)
+
+data class PublicWorldCardSearchResponse(val items: List<PublicWorldCardSearchItem>, val page: Int, val size: Int, val total: Long)
+
+/** 검색 색인이 맞출 공개 세계관 하나: 이름·설명·작가 닉네임과 상세와 같은 기준 회차에 보이는 카드다. */
+data class PublicWorldSearchEntry(val worldId: UUID, val name: String, val description: String, val author: String, val cards: List<PublicWorldSearchCard>)
+
+data class PublicWorldSearchCard(val cardId: UUID, val title: String, val aliases: List<String>, val tags: List<String>)
+
 /** 공개 설정 카드. [id]는 카드 논리 ID이며 관계의 양 끝이 가리킨다. [imageId]가 있으면 `/{세계관}/card-images/{imageId}`로 대표 이미지를 읽는다(#401, 없으면 null). */
 data class PublicWorldCardResponse(val id: UUID, val title: String, val text: String, val cardType: String, val aliases: List<String>, val tags: List<String>, val imageId: UUID? = null)
 
