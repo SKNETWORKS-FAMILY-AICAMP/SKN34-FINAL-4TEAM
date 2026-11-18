@@ -4,6 +4,7 @@ import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.relationship.RelationEdge
 import ai.storyfork.content.world.relationship.edgesAfterSave
 import ai.storyfork.content.world.relationship.episodeEdges
+import ai.storyfork.content.world.relationship.relationHistory
 import ai.storyfork.content.world.relationship.relationsAsOf
 import ai.storyfork.content.world.relationship.saveEpisode
 import java.util.UUID
@@ -13,7 +14,7 @@ import org.junit.jupiter.api.Test
 /** DEC-51 회차별 연결의 순수 규칙이다. Neo4j 없이 시점 선택·저장 회차·변경분 계산을 확인한다. */
 class RelationshipEpisodesTest {
     private val a=UUID.randomUUID();private val b=UUID.randomUUID();private val c=UUID.randomUUID()
-    private val friend=UUID.randomUUID();private val rival=UUID.randomUUID()
+    private val friend=UUID.randomUUID();private val rival=UUID.randomUUID();private val stay=UUID.randomUUID()
 
     private fun edge(id:UUID,from:Int,payload:String="p$from",source:UUID=a,target:UUID=b)=RelationEdge(id,from,false,source,target,payload)
     private fun ended(id:UUID,from:Int,source:UUID=a,target:UUID=b)=RelationEdge(id,from,true,source,target,null)
@@ -101,5 +102,42 @@ class RelationshipEpisodesTest {
         val edges=listOf(edge(friend,1),edge(friend,6,"back"))
         val after=relationsAsOf(edgesAfterSave(edges,emptyList(),3),null)
         assertEquals(listOf(edge(friend,6,"back")),after)
+    }
+
+    @Test fun `a row with its own episode is compared with the relation as of that episode and written at it`() {
+        val edges=listOf(edge(friend,1,"early"),edge(friend,3,"later"))
+        assertTrue(episodeEdges(edges,listOf(edge(friend,2,"early")),5).isEmpty()) // 2화 시점의 값과 같으면 쓰지 않는다
+        assertEquals(listOf(edge(friend,2,"new")),episodeEdges(edges,listOf(edge(friend,2,"new")),5)) // 다르면 2화 연결로 쓰고 3화 연결은 건드리지 않는다
+    }
+    @Test fun `rows are written at their own episode while left out relations end at the saved one`() {
+        val edges=listOf(edge(friend,1),edge(rival,1,source=b,target=c),edge(stay,1,"stay",a,c))
+        val written=episodeEdges(edges,listOf(edge(friend,7,"changed"),edge(rival,4,"changed",source=b,target=c)),4)
+        assertEquals(setOf(edge(friend,7,"changed"),edge(rival,4,"changed",source=b,target=c),ended(stay,4,source=a,target=c)),written.toSet())
+    }
+    @Test fun `a relation first written at a later episode is new for the earlier episodes`() {
+        val brandNew=UUID.randomUUID()
+        assertEquals(listOf(edge(brandNew,6,"new",a,c)),episodeEdges(listOf(edge(friend,1)),listOf(edge(friend,3,"p1"),edge(brandNew,6,"new",a,c)),3))
+    }
+    @Test fun `after a save with per-relation episodes only the same relation in the same episode is overwritten`() {
+        val edges=listOf(edge(friend,1,"a"),edge(friend,3,"b"),edge(friend,6,"c"))
+        assertEquals(setOf(edge(friend,1,"a"),edge(friend,3,"b2"),edge(friend,6,"c")),edgesAfterSave(edges,listOf(edge(friend,3,"b2")),null).toSet())
+        assertEquals(edges.toSet(),edgesAfterSave(edges,listOf(edge(friend,3,"b")),null).toSet()) // 3화 시점과 같은 값이면 그대로다
+    }
+
+    // --- 회차 이력(DEC-54): 공개 응답이 담는 기준 회차까지의 변화 ---
+    @Test fun `history lists the changes up to the episode, only for relations that changed, and never what comes after`() {
+        val edges=listOf(edge(friend,1,"a"),edge(friend,3,"b"),edge(friend,8,"c"),edge(rival,2,"x",b,c))
+        assertEquals(listOf(edge(friend,1,"a"),edge(friend,3,"b")),relationHistory(edges,4)[friend])
+        assertEquals(listOf(1,3,8),relationHistory(edges,null)[friend]!!.map { it.fromEpisode })
+        assertNull(relationHistory(edges,2)[friend]) // 연결이 하나뿐이면 바뀐 적이 없다
+        assertNull(relationHistory(edges,null)[rival])
+        assertEquals(listOf(1,3),relationHistory(edges,5)[friend]!!.map { it.fromEpisode }) // 기준 회차(5화) 뒤의 8화 연결은 담지 않는다
+    }
+    @Test fun `history restarts after an ending and leaves out relations that are ended at the episode`() {
+        val edges=listOf(edge(friend,1,"a"),edge(friend,3,"b"),ended(friend,5),edge(friend,8,"c"),edge(friend,9,"d"))
+        assertEquals(listOf(1,3),relationHistory(edges,4)[friend]!!.map { it.fromEpisode })
+        assertNull(relationHistory(edges,6)[friend]) // 5화에 끝난 관계는 그 시점에 없다
+        assertNull(relationHistory(edges,8)[friend]) // 다시 이은 뒤 연결이 하나뿐이다
+        assertEquals(listOf(8,9),relationHistory(edges,null)[friend]!!.map { it.fromEpisode })
     }
 }

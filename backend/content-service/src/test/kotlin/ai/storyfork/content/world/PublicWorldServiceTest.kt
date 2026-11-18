@@ -161,6 +161,35 @@ class PublicWorldServiceTest {
         assertEquals("current", result.relationshipStatus)
     }
 
+    /**
+     * 첫 인물과 둘째 인물을 잇는 관계가 1화에 '경계'로 시작해 2화에 '동료'로 바뀌었다. 저장소는 읽은 기준 회차까지의 변화만 담아 주므로 이력은 2화 이상으로 읽을 때만 있다
+     * (1화로 읽으면 아직 한 번도 바뀌지 않은 관계다). 2화 설명의 링크는 2화부터 공개되는 카드(비공개 인물)와 끝까지 작가 전용인 카드를 가리킨다.
+     */
+    private fun Seed.changedRelation() {
+        val changes=mapOf(relations[0].id to listOf(RelationshipChange(1,"경계","초반"),
+            RelationshipChange(2,"동료","중반 [비공개 인물](card:${hidden.cardId}) [작가 전용 인물](card:${authorOnly.cardId})")))
+        graphReads(id) { it.thenReturn(RelationshipStateResult(id,3,"key","hash",relations)) }
+        `when`(graph.read(id,2)).thenReturn(RelationshipStateResult(id,3,"key","hash",relations,history=changes))
+    }
+    @Test fun `a relation's history reaches the reader wiki and the public detail, and card links in it are hidden like in the relation body`() {
+        val reader=Seed(visibility="private");reader.changedRelation()
+        val answer=service.readerCards("work",reader.id,2).relationships
+        assertEquals(listOf(RelationChangeResponse(1,"경계","초반"),
+            RelationChangeResponse(2,"동료","중반 [비공개 인물](card:${reader.hidden.cardId}) 작가 전용 인물")),answer.single { it.id==reader.relations[0].id }.history) // 2화에는 보이는 카드의 링크만 남는다
+        // 공개 세계관 상세는 연결된 공개 소설의 마지막 발행 회차(2화)가 기준이다.
+        val open=Seed();open.changedRelation();linkWork(open,published=listOf(1,2))
+        val detail=service.detail(open.id).relationships.single { it.id==open.relations[0].id }
+        assertEquals(listOf(1,2),detail.history.map { it.episode })
+        assertEquals("중반 [비공개 인물](card:${open.hidden.cardId}) 작가 전용 인물",detail.history.last().body)
+    }
+    @Test fun `a relation that has not changed up to the basis episode has no history, and the changes are never read from a later episode`() {
+        val s=Seed();s.changedRelation()
+        // 연결이 없는 세계관의 기준 회차는 1화라 2화의 변화를 읽지 않는다: 이력은 비고 저장소도 1화로만 읽는다.
+        val relation=service.detail(s.id).relationships.single { it.id==s.relations[0].id }
+        assertTrue(relation.history.isEmpty())
+        verify(graph).read(s.id,1);verify(graph,never()).read(s.id,2)
+        assertTrue(service.readerCards("work",s.id,1).relationships.all { it.history.isEmpty() })
+    }
     @Test fun `a public world whose cards are all author-only is still listed and readable, with no card and no relation`() {
         val s = Seed(cards = "private", revealed = false)
         stubPage(listOf(s), PageRequest.of(0, 24), 1)

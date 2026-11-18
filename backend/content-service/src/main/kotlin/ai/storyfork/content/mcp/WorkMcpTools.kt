@@ -166,7 +166,7 @@ class WorkMcpTools(
 
     @McpTool(
         name = "work_public_world_cards",
-        description = "공개 작품의 독자 설정 위키(GET /api/v1/public/works/{id}/world-cards). 인증이 필요 없다. 유효 공개 회차(공개 회차 값, 없고 공개면 1화)가 upto 이하인 카드와 그 카드끼리의 그 시점 관계만 돌려주고, 없는 작품은 404, upto 값 오류는 422다.",
+        description = "공개 작품의 독자 설정 위키(GET /api/v1/public/works/{id}/world-cards). 인증이 필요 없다. 유효 공개 회차(공개 회차 값, 없고 공개면 1화)가 upto 이하인 카드와 그 카드끼리의 그 시점 관계(관계마다 upto화까지의 변화 history 포함)만 돌려주고, 없는 작품은 404, upto 값 오류는 422다.",
         annotations = McpTool.McpAnnotations(readOnlyHint = true),
     )
     fun publicWorldCards(

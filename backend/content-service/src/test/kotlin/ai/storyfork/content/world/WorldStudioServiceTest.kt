@@ -1306,4 +1306,78 @@ class WorldStudioServiceTest {
         doReturn(applied).`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
         assertEquals(3L,service.edit(world,actor,request).draftRevision)
     }
+
+    // --- 관계별 회차(DEC-54 2단계) ---
+    private fun anyTimed():Map<UUID,Int> = anyMap<UUID,Int>() ?: emptyMap()
+    private fun timedReplace(vararg kept:RelationshipPayload):MutableList<List<Any?>> {
+        val sent=mutableListOf<List<Any?>>()
+        doAnswer { sent+=it.arguments.toList();RelationshipStateResult(world,4,state.requestKey,state.requestHash,kept.toList()) }
+            .`when`(graph).replaceWithEpisodes(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode(),anyTimed())
+        return sent
+    }
+    private fun neverWritten() {
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        verify(graph,never()).replaceWithEpisodes(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode(),anyTimed())
+    }
+
+    @Test fun `relations with their own episodes are saved through the episode-aware write and keep the request episode`() {
+        owned()
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(cardDraft(cardA),cardDraft(cardB),cardDraft(cardC)))
+        val timed=RelationshipPayload(UUID.randomUUID(),cardA,cardB,"structural","6화부터의 관계")
+        val plain=RelationshipPayload(UUID.randomUUID(),cardA,cardC,"structural","요청 회차의 관계")
+        at(3);val sent=timedReplace(timed,plain)
+        val saved=service.edit(world,actor,EditWorldDraftRequest(2,"x","",relationships=listOf(timed,plain),key="own-episodes",episode=3,relationshipEpisodes=mapOf(timed.id to 6)))
+        assertEquals(3,sent.single()[5]);assertEquals(mapOf(timed.id to 6),sent.single()[6]);assertEquals(listOf(timed,plain),sent.single()[4])
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+        assertEquals(3L,saved.draftRevision)
+    }
+    @Test fun `an edit without relationship episodes keeps using the plain write`() {
+        owned();val sent=graphKeeps()
+        service.edit(world,actor,EditWorldDraftRequest(2,"x","",key="no-episodes"))
+        assertEquals(1,sent.size)
+        verify(graph,never()).replaceWithEpisodes(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode(),anyTimed())
+    }
+    @Test fun `relationship episodes must name active relations of the request and be 1 or more`() {
+        owned();at(3)
+        val relation=RelationshipPayload(UUID.randomUUID(),cardA,cardB,"structural","관계")
+        for(episodes in listOf(mapOf(UUID.randomUUID() to 2),mapOf(relation.id to 0),mapOf(relation.id to -3)))
+            assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",relationships=listOf(relation),key="bad-episodes",relationshipEpisodes=episodes)) }
+        // 삭제하는 관계에는 관계별 회차를 줄 수 없다: 삭제는 요청의 회차에서 끝난다.
+        assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",relationships=listOf(relation.copy(lifecycle="removed")),key="removed-episode",relationshipEpisodes=mapOf(relation.id to 2))) }
+        assertTrue(state.completed);verify(states,never()).flush();neverWritten()
+    }
+    @Test fun `a relation given its own episode counts as newly written even when it equals the stored value`() {
+        owned();removedCardB();at(3,keptToRemoved,live)
+        // 그대로 둔 관계는 삭제한 카드가 끝점이어도 통과하지만(위 규칙) 자기 회차를 준 관계는 새로 쓰는 관계라 양 끝이 활성 카드여야 한다.
+        assertThrows(IllegalArgumentException::class.java) { service.edit(world,actor,EditWorldDraftRequest(2,"x","",relationships=listOf(keptToRemoved),key="timed-same",episode=3,relationshipEpisodes=mapOf(keptToRemoved.id to 2))) }
+        assertTrue(state.completed);verify(states,never()).flush();neverWritten()
+    }
+    @Test fun `retrying an acknowledged edit that carried relationship episodes returns the stored state and writes nothing new`() {
+        relationOnB()
+        val timed=live.copy(body="6화부터 바뀐 내용")
+        val request=EditWorldDraftRequest(2,"x","",relationships=listOf(timed),key="retry-timed",episode=3,relationshipEpisodes=mapOf(timed.id to 6))
+        `when`(graph.replaceWithEpisodes(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode(),anyTimed())).thenThrow(WorldStudioFailure.unavailable())
+        assertThrows(WorldStudioFailure::class.java) { service.edit(world,actor,request) }
+        // Neo4j는 썼지만 응답을 잃었다: 그 회차 관계에 요청이 이미 들어 있고, 다시 보낸 요청의 관계별 회차는 새로 쓸 것이 없어 활성 카드 확인을 다시 하지 않는다.
+        val applied=RelationshipStateResult(world,4,state.requestKey,state.requestHash,listOf(keptToRemoved,timed))
+        `when`(graph.read(world,3)).thenReturn(applied)
+        doReturn(applied).`when`(graph).replaceWithEpisodes(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode(),anyTimed())
+        assertEquals(3L,service.edit(world,actor,request).draftRevision)
+        verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
+    }
+
+    @Test fun `the draft answer tells when each relation started`() {
+        owned()
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(cardDraft(cardA),cardDraft(cardB)))
+        val relation=RelationshipPayload(UUID.randomUUID(),cardA,cardB,"structural","관계")
+        `when`(graph.read(world,3)).thenReturn(RelationshipStateResult(world,state.graphVersion,state.requestKey,state.requestHash,listOf(relation),mapOf(relation.id to 2)))
+        assertEquals(mapOf(relation.id to 2),service.draft(world,actor,3).relationshipEpisodes)
+        assertTrue(service.draft(world,actor).relationshipEpisodes.isEmpty())
+    }
+    @Test fun `the request JSON carries relationshipEpisodes only when there are some`() {
+        val relation=UUID.randomUUID()
+        assertFalse(mapper.writeValueAsString(EditWorldDraftRequest(2,"x","")).contains("relationshipEpisodes")) // 요청 hash가 옛 요청과 같다
+        val json=mapper.writeValueAsString(EditWorldDraftRequest(2,"x","",relationshipEpisodes=mapOf(relation to 3)))
+        assertEquals(mapOf(relation to 3),mapper.readValue(json,EditWorldDraftRequest::class.java).relationshipEpisodes)
+    }
 }

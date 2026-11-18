@@ -56,6 +56,8 @@ class PublicWorldService(
         val shown = cards.map { it.first.cardId }.toSet()
     }
     private class Listing(val page: Page<StudioWorld>, val revisions: Map<UUID, WorldRevision>, val cards: Map<UUID, List<SettingCardVersion>>, val states: Map<UUID, WorldRelationshipState>)
+    /** 기준 회차에 양 끝이 보이는 관계와, 그 관계마다 기준 회차까지의 변화다(DEC-54 2단계, 저장소가 기준 회차 뒤의 변화는 담아 주지 않는다). */
+    private class Visible(val rows: List<RelationshipPayload>, val history: Map<UUID, List<RelationshipChange>>)
 
     /** 공개이고 확정된 현재 버전이 있는 세계관만(상세와 같은 기준) 최근 공개순으로 돌려준다. genre가 없거나 비어 있으면 전체다. 값 오류는 422다. */
     fun list(genre: String?, page: String?, size: String?): PublicWorldPageResponse {
@@ -83,7 +85,7 @@ class PublicWorldService(
             val basis = bases.getValue(world.id)
             val cardIds = shownAt(found.cards[revision.id].orEmpty(), basis).map { it.first.cardId }.toSet()
             PublicWorldSummaryResponse(world.id, revision.name, revision.description, world.genre, names.getValue(world.ownerSubject.toString()),
-                cardIds.size, currentRelationships(world.id, found.states[world.id], revision.id, cardIds, basis)?.size, world.published(), world.coverObjectKey != null)
+                cardIds.size, currentRelationships(world.id, found.states[world.id], revision.id, cardIds, basis)?.rows?.size, world.published(), world.coverObjectKey != null)
         }
         return PublicWorldPageResponse(items, request.pageNumber, request.pageSize, found.page.totalElements)
     }
@@ -106,7 +108,7 @@ class PublicWorldService(
         return PublicWorldResponse(id, seen.revision.name, seen.revision.description, seen.world.genre, names.getValue(owner), seen.world.published(), seen.revision.revisionNo,
             cards.map { PublicWorldCardResponse(it.cardId, it.fields.title, hideCardLinks(it.fields.body, shown), it.fields.cardType, it.fields.aliases.toList(), it.fields.tags.toList(), cardImageId(it.fields.semanticMetadata)) },
             // 양 끝이 보이는 카드인 관계만 남았으므로 끝점은 비어 있지 않다.
-            relations.orEmpty().map { publicRelationship(it, shown) },
+            publicRelationships(relations, shown),
             if (relations == null) "unavailable" else "current", seen.world.coverObjectKey != null,
             work?.let { PublicWorldLinkedWorkResponse(it.id, it.title, names.getValue(it.ownerId), workImages.countByWorkIdAndEpisodeNo(it.id, 0) > 0) })
     }
@@ -134,7 +136,7 @@ class PublicWorldService(
         return ReaderWorldCardsResponse(workId, worldId, upto,
             seen.cards.map { (card, from) -> ReaderWorldCardResponse(card.cardId, card.fields.title, hideCardLinks(card.fields.body, seen.shown), card.fields.cardType, card.fields.aliases.toList(), card.fields.tags.toList(), from, cardImageId(card.fields.semanticMetadata)) },
             // 양 끝이 독자에게 보이는 카드인 관계만 남았으므로 끝점은 비어 있지 않다.
-            relations.orEmpty().map { publicRelationship(it, seen.shown) },
+            publicRelationships(relations, seen.shown),
             if (relations == null) "unavailable" else "current")
     }
 
@@ -152,7 +154,7 @@ class PublicWorldService(
                 CardPayload(card.cardId, card.fields.title, hideCardLinks(card.fields.body, seen.shown), card.fields.cardType, card.fields.areaCode, card.fields.classification,
                     card.fields.aliases.toList(), card.fields.tags.toList(), mapOf("revealFromEpisode" to from), "public", "active")
             },
-            relations.orEmpty().map { it.copy(body = "", semanticMetadata = emptyMap()) },
+            relations?.rows.orEmpty().map { it.copy(body = "", semanticMetadata = emptyMap()) },
             if (relations == null) "unavailable" else "current", seen.state?.graphVersion ?: 0)
     }
 
@@ -207,11 +209,15 @@ class PublicWorldService(
     /** Neo4j 관계 중 [episode]화 시점(null이면 최신)의 것으로 양 끝이 [cardIds](보이는 카드)에 있는 것이다. 미전환·미완료·토큰 불일치·조회 실패는 null이며 호출자가 unavailable로 알린다. */
     private fun expansionPending(worldId:UUID)=expandedSeeds.findById(worldId).orElse(null)?.completed==false
 
-    /** 관계 본문의 링크도 카드 본문과 같은 함수로 치환한다([shown]은 응답에 실리는 보이는 카드). */
-    private fun publicRelationship(it:RelationshipPayload, shown:Set<UUID>)=PublicWorldRelationshipResponse(it.id,it.sourceCardId!!,it.targetCardId!!,
-        it.label,it.category,hideCardLinks(it.body,shown),it.direction,it.polarity)
+    /** 관계 본문과 회차 이력의 본문 링크도 카드 본문과 같은 함수로 치환한다([shown]은 응답에 실리는 보이는 카드). 양 끝이 보이는 카드인 관계만 남았으므로 끝점은 비어 있지 않다. */
+    private fun publicRelationships(relations: Visible?, shown: Set<UUID>) = relations?.let { found ->
+        found.rows.map {
+            PublicWorldRelationshipResponse(it.id, it.sourceCardId!!, it.targetCardId!!, it.label, it.category, hideCardLinks(it.body, shown), it.direction, it.polarity,
+                found.history[it.id].orEmpty().map { change -> RelationChangeResponse(change.episode, change.label, hideCardLinks(change.body, shown)) })
+        }
+    }.orEmpty()
 
-    private fun currentRelationships(worldId: UUID, state: WorldRelationshipState?, revisionId:UUID, cardIds: Set<UUID>, episode: Int? = null): List<RelationshipPayload>? {
+    private fun currentRelationships(worldId: UUID, state: WorldRelationshipState?, revisionId:UUID, cardIds: Set<UUID>, episode: Int? = null): Visible? {
         if (state == null || !state.completed) return null
         val version=state.graphVersion;val key=state.requestKey;val hash=state.requestHash
         if(tx { expansionPending(worldId) }) return null
@@ -223,7 +229,7 @@ class PublicWorldService(
                 !expansionPending(worldId) && worlds.findById(worldId).orElse(null)?.currentRevisionId==revisionId &&
                     latest!=null && latest.completed && latest.graphVersion==version && latest.requestKey==key && latest.requestHash==hash
             }
-            if(valid) visibleRelationships(stored.relationships,cardIds) else null
+            if(valid) Visible(visibleRelationships(stored.relationships,cardIds),stored.history) else null
         } catch (_: WorldStudioFailure) { null }
     }
 

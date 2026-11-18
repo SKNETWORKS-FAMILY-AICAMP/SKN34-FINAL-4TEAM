@@ -24,25 +24,38 @@ internal fun relationsAsOf(edges:List<RelationEdge>,upto:Int?):List<RelationEdge
 internal fun saveEpisode(edges:List<RelationEdge>,episode:Int?):Int = episode ?: edges.maxOfOrNull { it.fromEpisode } ?: 1
 
 /**
- * [current](저장 회차 시점의 관계)와 [rows](그 시점이어야 할 관계 전체)를 비교해 [episode]화에 새로 쓸 연결만 돌려준다.
- * 새로 생겼거나 끝점·내용이 바뀐 관계는 활성 연결로, rows에서 빠진 관계는 옛 끝점을 가진 종료 연결로 쓰며 그대로인 관계는 쓰지 않는다.
+ * [rows](그 시점이어야 할 관계 전체)를 [edges](이 세계관의 모든 연결)와 비교해 새로 쓸 연결만 돌려준다. [episode]는 저장 회차다.
+ * 관계마다 그 행의 회차([RelationEdge.fromEpisode], 자기 회차가 없으면 저장 회차)의 시점 값과 비교한다: 새로 생겼거나 끝점·내용이 바뀐 관계는 그 회차의 활성 연결로 쓰고
+ * (같은 관계·같은 회차는 덮어쓴다) 그대로인 관계는 쓰지 않는다. rows에서 빠진 관계는 저장 회차에 옛 끝점을 가진 종료 연결로 쓴다(DEC-54: 종료는 관계별 회차를 따로 두지 않는다).
  */
-internal fun episodeEdges(current:List<RelationEdge>,rows:List<RelationEdge>,episode:Int):List<RelationEdge> {
-    val now=current.associateBy { it.relationId }
-    val changed=rows.filter { row -> now[row.relationId]?.let { it.source==row.source && it.target==row.target && it.payload==row.payload } != true }
+internal fun episodeEdges(edges:List<RelationEdge>,rows:List<RelationEdge>,episode:Int):List<RelationEdge> {
+    val asOf=mutableMapOf<Int,Map<UUID,RelationEdge>>()
+    fun at(e:Int)=asOf.getOrPut(e) { relationsAsOf(edges,e).associateBy { it.relationId } }
+    val changed=rows.filter { row -> at(row.fromEpisode)[row.relationId]?.let { it.source==row.source && it.target==row.target && it.payload==row.payload } != true }
     val wanted=rows.map { it.relationId }.toSet()
-    val ended=current.filter { it.relationId !in wanted }.map { it.copy(ended=true,payload=null) }
-    return (changed+ended).map { it.copy(fromEpisode=episode) }
+    val ended=at(episode).values.filter { it.relationId !in wanted }.map { it.copy(ended=true,payload=null,fromEpisode=episode) }
+    return changed+ended
 }
 
 /**
  * [rows](저장 회차 시점이어야 할 관계 전체)를 [episode]화(없으면 마지막 연결 회차)에 저장한 뒤의 연결 전체다. 쓰지 않고 저장과 같은 규칙으로 계산만 한다:
- * 바뀐 관계만 그 회차의 연결로 쓰고 빠진 관계는 종료 연결을 쓰며 같은 관계·같은 회차의 옛 연결은 덮어쓴다. 저장 회차보다 뒤 회차의 연결은 그대로라
+ * 바뀐 관계만 자기 회차의 연결로 쓰고 빠진 관계는 종료 연결을 쓰며 같은 관계·같은 회차의 옛 연결은 덮어쓴다. 저장 회차보다 뒤 회차의 연결은 그대로라
  * 최신 시점([relationsAsOf]에 null)은 그것이 정한다. 저장하기 전에 저장 결과의 최신 시점을 검사하는 데 쓴다(「동일 인물」의 사슬·순환, #485).
  */
 internal fun edgesAfterSave(edges:List<RelationEdge>,rows:List<RelationEdge>,episode:Int?):List<RelationEdge> {
-    val at=saveEpisode(edges,episode)
-    val changes=episodeEdges(relationsAsOf(edges,at),rows,at)
-    val rewritten=changes.map { it.relationId }.toSet()
-    return edges.filterNot { it.fromEpisode==at && it.relationId in rewritten }+changes
+    val changes=episodeEdges(edges,rows,saveEpisode(edges,episode))
+    val rewritten=changes.map { it.relationId to it.fromEpisode }.toSet()
+    return edges.filterNot { (it.relationId to it.fromEpisode) in rewritten }+changes
 }
+
+/**
+ * [upto]화 시점(null이면 최신)에 있는 관계마다의 변화다(DEC-54): 그 관계의 마지막 종료 연결 뒤(종료가 없으면 처음)부터 [upto] 이하의 활성 연결을 회차 오름차순으로 담는다.
+ * [upto] 뒤의 연결은 담지 않는다(공개 응답이 뒤 회차를 알리지 않게 서버가 거른다). 그 시점에 끝나 있는 관계와 연결이 하나뿐(바뀐 적 없는) 관계는 없다. 같은 회차에 연결이 둘이면 뒤의 것만 남긴다.
+ */
+internal fun relationHistory(edges:List<RelationEdge>,upto:Int?):Map<UUID,List<RelationEdge>> =
+    edges.filter { upto==null || it.fromEpisode<=upto }.groupBy { it.relationId }.mapNotNull { (id,all) ->
+        val sorted=all.sortedBy { it.fromEpisode }
+        if(sorted.last().ended) return@mapNotNull null
+        val run=sorted.takeLastWhile { !it.ended }.groupBy { it.fromEpisode }.map { it.value.last() }
+        if(run.size>=2) id to run else null
+    }.toMap()
