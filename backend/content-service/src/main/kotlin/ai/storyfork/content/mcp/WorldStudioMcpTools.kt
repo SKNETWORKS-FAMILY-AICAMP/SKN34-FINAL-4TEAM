@@ -128,7 +128,7 @@ class WorldStudioMcpTools(
 
     @McpTool(
         name = "world_studio_public_read",
-        description = "공개 세계관 하나를 조회한다(GET /api/v1/public/world-studios/{id}). 인증이 필요 없고 마지막 확정 버전의 공개 카드와 그 카드끼리의 현재 관계만 돌려주며 비공개·확정 버전 없음·없는 세계관은 404다.",
+        description = "공개 세계관 하나를 조회한다(GET /api/v1/public/world-studios/{id}). 인증이 필요 없고 마지막 확정 버전에서 기준 회차(연결된 공개 소설의 발행된 마지막 회차, 연결이 없으면 1화) 이하로 공개된 카드와 그 카드끼리의 그 시점 관계만 돌려주며 비공개·확정 버전 없음·없는 세계관은 404다.",
         annotations = McpTool.McpAnnotations(readOnlyHint = true),
     )
     fun publicRead(@McpToolParam(description = "세계관 ID(UUID)") id: String): PublicWorldResponse = mcpTool { publicWorlds.detail(uuidArg(id)) }

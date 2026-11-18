@@ -18,7 +18,7 @@ class PublicWorldController(private val service: PublicWorldService) {
     fun list(@RequestParam(required = false) genre: String?, @RequestParam(required = false) page: String?, @RequestParam(required = false) size: String?): PublicWorldPageResponse =
         service.list(genre, page, size)
 
-    /** 마지막 저장 버전의 공개 카드와 그 카드끼리의 현재 관계를 반환한다. 비공개·저장 버전 없음·없는 세계관은 404이고 관계 저장소가 불확실하면 `relationshipStatus=unavailable`로 카드만 준다. */
+    /** 마지막 저장 버전에서 기준 회차 이하로 공개된 카드와 그 카드끼리의 기준 회차 시점 관계를 반환한다(DEC-53). 비공개·저장 버전 없음·없는 세계관은 404이고 관계 저장소가 불확실하면 `relationshipStatus=unavailable`로 카드만 준다. */
     @GetMapping("/{id}")
     fun read(@PathVariable id: UUID): PublicWorldResponse = service.detail(id)
 

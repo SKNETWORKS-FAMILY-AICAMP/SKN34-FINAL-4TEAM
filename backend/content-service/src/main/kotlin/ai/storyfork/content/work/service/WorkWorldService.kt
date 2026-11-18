@@ -68,7 +68,7 @@ class WorkWorldService(
      * Fork [workId]가 자기 세계관 없이 이어받는 원작 세계관이다(읽기 전용, DEC-32·37, #365). 요청자 [owner]의 Fork여야 하며 아니면 404, [upto] 값 오류는 어떤 조회보다 먼저 422다.
      * 이어받는 조건은 Fork에 자기 연결 세계관이 없고, 추종(`following`) 중이며, 삭제되지 않은 원작에 세계관이 연결돼 있을 때다. 하나라도 아니면 [InheritedWorldResponse.worldId]가 null이다
      * (자기 세계관이 우선이고 독립한 Fork는 이어받지 않는다). 지식 상한은 Fork 기준 회차이며 [upto]가 더 작으면 그 회차까지다(Fork의 자기 회차 내용은 원작 세계관에 없다).
-     * 카드·관계는 [PublicWorldService.inheritedWorld]가 공개 카드·상한 회차로 거른다.
+     * 카드·관계는 [PublicWorldService.inheritedWorld]가 유효 공개 회차·상한 회차로 거른다.
      */
     fun inheritedWorld(workId: String, owner: String, upto: String?): InheritedWorldResponse {
         val requested = readerUpto(upto)
