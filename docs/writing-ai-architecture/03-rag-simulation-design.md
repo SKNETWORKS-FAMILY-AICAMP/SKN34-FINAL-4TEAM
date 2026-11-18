@@ -156,7 +156,7 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 POST /internal/v1/ratings {workId, episodes[1..10]}
   → router: X-Internal-Token 검증, X-User-Authorization을 Content MCP 컨텍스트에 설정
   → service: 회차마다 Content MCP episode_read(작가 권한) → 제목·작가 메모·초안 본문·revision (모델 호출 전에 전부 읽음)
-             연결 세계관이 있으면 world_studio_list → world_studio_read(가장 늦은 회차 시점) 1회 → 인물 카드(그 회차까지 공개된 것만)
+             content_mcp.linked_world(가장 늦은 회차 시점: 연결 세계관 → 없으면 Fork 상속 원작 세계관) → 인물 카드(그 회차까지 공개된 것만)
              비속어 어근 빈도(profanityCount, 규칙 신호)
   → agent.rate: 회차마다 agent_runtime.run(create_agent + 공통 미들웨어) 1회, 회차끼리 스레드로 동시 호출
              (지시문 + 기준 문서, 입력은 {title, authorNote, draft, characters, signals}) → 항목별 수준·근거·prohibited
@@ -171,7 +171,7 @@ POST /internal/v1/ratings {workId, episodes[1..10]}
 - 문턱값(2026-11-17 사용자 결정, F-ADULT-01 확정 전 초안): `prohibited`이거나 어느 항목이든 수준 3이면 `adult`, 최고 수준이 2면 `needsReview`(사람 검토), 모두 1 이하면 `general`.
 - 근거 구절은 초안의 연속된 한 구간을 그대로 복사하게 지시한다. 대명사를 이름으로 바꾸거나 주어를 보태거나 떨어진 문장을 잇지 않고, 누가 한 일인지 같은 맥락은 `rationale`에 쓴다(#509: "그는"을 인물 이름으로 바꾼 인용 때문에 회차 판별이 실패했다). 대조 검사는 완화하지 않는다.
 - 회차별로 따로 판별한다. 여러 회차 원고를 한 호출에 넣으면 입력이 길어지고 어느 회차 근거인지 섞인다.
-- 판별 근거는 원고 표현이다. 인물 카드는 등장인물이 미성년자인지 판단하는 데만 쓰고 근거 구절은 초안에서만 인정한다. 세계관이 연결되지 않은 작품은 인물 없이 판별한다(Manuscript Review와 달리 실패하지 않음). Retrieval·Simulation은 부르지 않는다.
+- 판별 근거는 원고 표현이다. 인물 카드는 등장인물이 미성년자인지 판단하는 데만 쓰고 근거 구절은 초안에서만 인정한다. 세계관 선택은 Review·Q&A와 같은 `content_mcp.linked_world`다(#524, 2026-11-18 사용자 결정): 연결 세계관이 없는 Fork는 원작의 공개 인물 카드(Fork 기준 회차까지, 인물 문서 없음)로 미성년 여부를 본다. 연결·상속 세계관이 모두 없으면 인물 없이 판별한다(Manuscript Review와 달리 실패하지 않음). Retrieval·Simulation은 부르지 않는다.
 - 비속어 빈도는 서로 겹치지 않는 고정 어근 목록의 부분 문자열 수다. 등급을 직접 정하지 않고 `language` 평가의 참고값으로 모델에 보내며 회차 결과(`signals`)에도 남긴다. 변형 표기(ㅅㅂ 등)는 세지 않는다.
 - 한 회차라도 초안이 비었거나 Content가 거절하면 모델을 부르기 전에 전체 요청이 실패한다.
 

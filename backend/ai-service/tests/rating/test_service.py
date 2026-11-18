@@ -5,7 +5,7 @@ from app.rating.errors import RatingFailure
 from app.rating.models import RatingRequest
 from app.rating.prompt import INSTRUCTIONS
 
-from .stubs import WORK, adult, fake_agent, fake_content, general, result
+from .stubs import NO_INHERITED, WORK, adult, fake_agent, fake_content, general, result
 
 
 def request(*episodes):
@@ -47,6 +47,19 @@ def test_unlinked_work_is_rated_without_characters(monkeypatch):
     seen = fake_agent(monkeypatch, general())
     assert service.rate(request(1)).verdict == 'general'
     assert seen[0]['characters'] == []
+
+
+def test_fork_without_its_own_world_uses_the_inherited_original_characters(monkeypatch):
+    # #524: Review·Q&A와 같은 세계관 선택(content_mcp.linked_world). 원작의 공개 인물 카드로 미성년 여부를 본다.
+    inherited = {**NO_INHERITED, 'worldId': 'world-1', 'upto': 2, 'cards': [
+        {'id': 'hana', 'cardType': 'character', 'title': '하나', 'body': '열여섯 살 학생.'},
+        {'id': 'gate', 'cardType': 'location', 'title': '성문', 'body': '북쪽 문.'}]}
+    calls = fake_content(monkeypatch, linked='other-work', inherited=inherited)
+    seen = fake_agent(monkeypatch, general(), general())
+    service.rate(request(1, 2))
+    assert ('work_inherited_world', {'id': WORK, 'upto': '2'}) in calls
+    assert 'world_studio_read' not in [tool for tool, _ in calls]
+    assert [c['ref'] for c in seen[0]['characters']] == ['card:hana']
 
 
 def test_profanity_count_is_a_rule_signal_returned_with_the_rating(monkeypatch):
