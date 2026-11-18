@@ -138,3 +138,40 @@ CREATE INDEX work_view_viewed_at ON work_view (viewed_at);
 - 요청마다 조회·좋아요·발행 기록을 기간 안에서 다시 센다(캐시·배치 없음). 작품·조회가 늘면 집계 테이블이나 캐시로 옮긴다.
 - 좋아요 취소는 하드 삭제라 기간 안 좋아요 수는 "지금 남아 있는 좋아요 중 그 기간에 누른 것"이다.
 - 익명 조회는 기록하지 않으므로(위 결정) 조회 기준 순위에 들어가지 않는다.
+
+## 세계관·설정 카드 검색 (#505)
+
+2026-11-18 사용자 결정: `/search`가 작품뿐 아니라 공개 세계관·설정 카드를 찾고, 캐릭터챗 목록으로 이어 준다.
+공개 기준은 [공개 세계관 계약](public-world-contract.md)과 같다. 검색이 따로 판정하지 않고 상세와 같은 함수로 거른다.
+
+### 결정
+
+- **세계관**: 공개 세계관 목록에 선택 `q`를 더한다. 확정 버전의 이름·설명과 작가 Core 닉네임에서 trim 후 대소문자 무시 부분 일치로 찾는다.
+  `q`가 없거나 공백이면 지금 목록과 같다. `genre`와 함께 쓸 수 있다. 정렬은 그대로 최근 공개순이다.
+- **설정 카드**: 공개 세계관(목록과 같은 기준: 공개·확정 버전·삭제 안 됨)의 확정 버전 카드 중 **상세(`PublicWorldService.detail`)와 같은 기준 회차로
+  독자에게 보이는 카드만** 찾는다(DEC-46, #485 DEC-53이 들어오면 같은 함수를 따라간다). 찾는 곳은 제목·별칭·태그이고 본문은 뺀다(작품 검색처럼 본문 제외).
+  정렬은 세계관 최근 공개순 → 카드 제목 순. `q`는 필수(공백뿐이면 422)다.
+- **캐릭터챗**: 서버가 없고 대화 응답이 데모라 검색 결과에 섞지 않는다. 탭은 캐릭터챗 목록(`/chat`)으로 가는 안내만 둔다.
+
+### 공개 API
+
+| 메서드·경로 | 인증 | 동작 |
+|---|---|---|
+| `GET /api/v1/public/world-studios?q=&genre=&page=&size=` | 익명 | 기존 응답(`PublicWorldPageResponse`) 그대로. `q`가 있으면 위 규칙으로 거른 뒤 페이지를 자르고 `total`도 거른 수다 |
+| `GET /api/v1/public/world-studios/cards?q=&page=&size=` | 익명 | `{items:[{worldId, worldName, cardId, title, cardType, aliases, tags, imageId}], page, size, total}`. `page` 0부터, `size` 1~100(기본 24). `q` 없음·공백, 음수 page, 범위 밖 size, 숫자 아닌 값은 422 |
+
+리터럴 `/cards`는 `/{id}`(UUID)보다 먼저 매칭된다. 기존 `GET /public/world-studios/**` 익명 허용·nginx·Vite 라우팅 아래라 Security·라우팅 변경이 없다.
+카드 이미지는 기존 공개 `…/{worldId}/card-images/{imageId}`로 읽는다.
+
+### Frontend
+
+- `/search?type=work|world|card|chat`(기본 `work`). 범위·정렬 도구(`ListTools`)는 작품 탭에만 보이고 검색어 `q`는 탭을 바꿔도 유지한다.
+- 세계관 탭은 `PublicWorldUseCase`의 목록에 `q`를 실어 읽고 결과 카드는 `/worlds/:id`로 간다. 설정 카드 탭은 새 조회로 읽고 `/worlds/:worldId/cards/:cardId`로 간다.
+  둘 다 '더 보기'로 이어 붙이고(`total`이 있어 받은 수 < total이면 더 있음), 불러오는 중·실패(다시 시도)·결과 없음을 실제 결과대로 그린다.
+- 캐릭터챗 탭은 결과 없이 `/chat` 목록 링크와 안내 한 줄이다.
+- `--mode mockup`은 `InMemoryPublicWorldRepository`가 같은 규칙(이름·설명·작가 / 공개 카드의 제목·별칭·태그)으로 답한다.
+
+### ponytail 한계
+
+- `q`가 있는 세계관 검색과 카드 검색은 공개 세계관 전체를 읽어 메모리에서 거른 뒤 자른다(시연 규모, 작가 닉네임 조회도 전체 대상).
+  세계관·카드가 늘면 SQL 조건과 색인으로 옮긴다.
