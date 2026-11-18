@@ -1,8 +1,8 @@
-# 7개 필수 기능 설계
+# 집필 AI 기능별 설계
 
-설정집 검토(`world_review`)는 이 문서 밖의 [설정집 검토 계약](../design/world-review-contract.md)을 따른다.
+일곱 업무 Agent 중 설정집 검토(`world_review`, 2026-11-18 사용자 결정으로 업무 Agent에 추가)는 이 문서 밖의 [설정집 검토 계약](../design/world-review-contract.md)을 따른다. 나머지 업무 Agent와 공통 인물 시뮬레이션은 아래 절이다.
 
-모든 기능은 Content가 검증한 작품/Fork·판본·공개 범위에서 시작한다. 여섯 업무 Agent는 각자의 역할과 입출력을 가지며 생성·판단에 `gpt-6-luna`를 사용하는 목표다. 역할마다 서버나 전용 모델 인스턴스를 추가하지 않는다. 공통 도구는 필요한 작업에서만 호출하고 실제 RAG 공급자는 기능이 필요할 때 연결한다. [전체 구조](02-ai-architecture.md) · [검색 계약](07-retrieval-contract-and-mocks.md)
+모든 기능은 Content가 검증한 작품/Fork·판본·공개 범위에서 시작한다. 일곱 업무 Agent는 각자의 역할과 입출력을 가지며 생성·판단에 `gpt-6-luna`를 사용하는 목표다. 역할마다 서버나 전용 모델 인스턴스를 추가하지 않는다. 공통 도구는 필요한 작업에서만 호출하고 실제 RAG 공급자는 기능이 필요할 때 연결한다. [전체 구조](02-ai-architecture.md) · [검색 계약](07-retrieval-contract-and-mocks.md)
 
 #473(2026-11-17 사용자 결정)부터 아래 업무 Agent와 인물 시뮬레이션은 메인 에이전트의 `ask_*` 서브 에이전트 도구로 호출되며, 각 기능의 입출력·검증·실패 계약은 바뀌지 않는다. 아래 '현재 구현'에 적힌 Router 분류(검사 종류, Writing `task`, `rating` 분류)는 전환 전 기록이다. 지금은 Decision Guard가 필요한 기능을 판정하고, 메인 에이전트가 도구 인자(`check`·`task`·`fix`)를 정하며, 정하지 못한 입력은 입력 대기로 작가가 고른다. 시뮬레이션 도구는 계획까지만 하고 장면은 바깥 `scene` 노드가 쓴다. [메인 에이전트 오케스트레이션](02-ai-architecture.md#메인-에이전트-오케스트레이션-473)
 
@@ -108,7 +108,7 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 
 - 전개 기획 `writing.agent.plan(PlanRequest{episodeNumber, request(≤2000자, 작가 요청), single, context, previousPlans(≤3, 직전 기획 결과)})`: strict 구조화 출력 `plans[{title, beats[]}]`·`notes[]`. `single=false`(기획만)면 대안 1~3개, `true`(바로 집필)면 1개이고 계획마다 비트 1~12개다. 한도를 벗어나면 502이며 잘린 계획을 결과로 돌려주지 않는다. 계획은 저장하지 않는다.
 - 바로 집필 `plan_and_draft`: 같은 단계 안에서 `plan(single=true)` → 그 계획(제목 + 번호 비트, ≤4000자)으로 `draft`. 응답은 `DraftResponse`에 쓴 계획 `plan`을 더한다. 사용량·응답 id는 원고 호출의 값이다.
-- 오케스트레이션: 메인 에이전트가 `ask_writing(task=plan|draft|patch)`로 작업 종류를 정한다. 작가가 준 `draft`·`patch` 입력이 있으면 그것을 쓰고, 없으면 `task=plan|draft`는 단계 입력 없이(입력 대기 없음) 메인 에이전트의 작업 지시(`request`)와 반영 대상(`target`)으로 실행한다. `target`이 없으면 단계 실패다. 허용 문맥은 오케스트레이션이 작가 권한으로 Content MCP `work_context_read(workId, 근거 회차, query=요청 앞 200자)`를 읽어 JSON으로 넘긴다(Retrieval 검색이 아니라 Content가 근거 회차까지 고른 설정·원문 발췌이며 60,000자 한도도 Content가 지킨다). 작가가 계획을 준 draft도 `context`가 비어 있으면 같은 문맥을 받는다. 기획 결과(`plans`)는 원고가 아니라 반영 승인(`apply`)을 묻지 않고 Content MCP에 쓰지 않는다. 이번 턴 Review 결과가 있는 `task=patch`는 [조건부 수정](02-ai-architecture.md#조건부-수정-if_issues_found)이다. 그 밖의 `task=patch`는 선택 구간 입력 대기다. 응답 단계에도 `task`를 남겨, 화면은 `patch` 대기에서 새 원고 계획 칸 대신 채팅에서 채울 수 없다는 안내를 보인다(선택 구간 입력 화면은 범위 밖). 예전 대화 기록의 `story_development` 단계는 응답 모델이 그대로 읽는다.
+- 오케스트레이션: 메인 에이전트가 `ask_writing(task=plan|draft|patch)`로 작업 종류를 정한다. 작가가 준 `draft`·`patch` 입력이 있으면 그것을 쓰고, 없으면 `task=plan|draft`는 단계 입력 없이(입력 대기 없음) 메인 에이전트의 작업 지시(`request`)와 반영 대상(`target`)으로 실행한다. `target`이 없으면 단계 실패다. 허용 문맥은 오케스트레이션이 작가 권한으로 Content MCP `work_context_read(workId, 근거 회차, query=요청 앞 200자)`를 읽어 JSON으로 넘긴다(Retrieval 검색이 아니라 Content가 근거 회차까지 고른 설정·원문 발췌이며 60,000자 한도도 Content가 지킨다). 작가가 계획을 준 draft도 `context`가 비어 있으면 같은 문맥을 받는다. 기획 결과(`plans`)는 원고가 아니라 반영 승인(`apply`)을 묻지 않고 Content MCP에 쓰지 않는다. 이번 턴 Review 결과가 있는 `task=patch`는 [조건부 수정](02-ai-architecture.md#조건부-수정-if_issues_found)이다. 그 밖의 `task=patch`는 선택 구간 입력 대기다. 응답 단계에도 `task`를 남긴다. 지금 화면은 `patch` 대기에서 새 원고 계획 칸 대신 채팅에서 채울 수 없다는 안내를 보인다. 목표는 채팅 카드에서 구간을 고르는 것이다([채팅 구간 입력](02-ai-architecture.md#입력-대기와-승인-hitl), 2026-11-18 사용자 결정, 미구현). 예전 대화 기록의 `story_development` 단계는 응답 모델이 그대로 읽는다.
 - 실모델 브라우저 e2e(2026-11-17, `gpt-6-luna`, Aside, 로컬 스택, 개발용 작품 4화 초안): "다음 화 전개를 두 가지 안으로 짜줘. 원고는 쓰지 마."는 `writing_editing`·`task=plan` 한 단계로 계획 2안(비트 6개씩)과 참고를 돌려줬고 승인 카드·원고 본문은 없었다. "첫 번째 안으로 다음 화를 기획하고 바로 원고까지 써줘."는 약 36초에 계획 하나(비트 8개)와 그 계획을 따른 원고로 4화 반영 승인 대기가 됐고, 거절하자 초안은 바뀌지 않았다. 이 e2e 뒤 사용자 결정(2026-11-17)으로 기획·바로 집필 단계가 같은 대화 최근 5턴 중 가장 최근 기획 결과를 `previousPlans`로 받아, 지칭한 계획을 그대로 따른다(대화 기록 전체는 보내지 않는다). 실모델 확인(같은 날, 컨테이너에서 Writing 직접 호출, 개발용 요약 문맥): 두 안 기획 뒤 "그 중 두 번째 안으로 바로 원고까지 써줘."는 두 번째 계획의 제목·비트를 그대로 쓴 원고를 약 12초에 만들었다. 이 변경의 브라우저 e2e는 Aside 사용량 한도로 하지 못했다. 같은 시각 컨테이너의 OpenAI 연결 오류(`APIConnectionError`)가 간헐적으로 나 Router 실패로 끝난 요청이 있었다(재시도 시 정상 분류). 이 e2e들은 #473 전환 전 Router 구조에서 확인했다.
 - 화면(#458): 바로 집필 승인 카드는 반영할 본문과 따로 `사용한 계획`(제목·비트) 한 줄을 보여, 작가가 어떤 계획으로 쓴 원고인지 보고 반영을 정한다(반영 본문에는 계획을 섞지 않는다). 기획 결과 글 끝에는 "가장 최근 기획한 안 중 하나를 '계획 1로 써줘'처럼 말하면 그 계획으로 써요." 안내를 붙인다(previousPlans는 가장 최근 기획 결과만 받는다).
 
@@ -123,7 +123,7 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 
 ## 5. Rating Agent
 
-**Rating Agent**는 집필 AI 여섯 업무 Agent([02](02-ai-architecture.md#여섯-업무-agent와-공통-simulation의-경계)) 중 하나다. 작가의 회차 초안이 **19세 이용가로 분류할 내용인지 아닌지만** 판별한다.
+**Rating Agent**는 집필 AI 일곱 업무 Agent([02](02-ai-architecture.md#일곱-업무-agent와-공통-simulation의-경계)) 중 하나다. 작가의 회차 초안이 **19세 이용가로 분류할 내용인지 아닌지만** 판별한다.
 오케스트레이션의 한 단계(`rating`)로 실행한다(`backend/ai-service/app/rating/`). Decision Guard가 심의 등급 판별 요청을 `rating`으로 판정하면(되묻기 보기 `심의 등급`) 메인 에이전트가 `ask_rating`을 부르고, 단계 입력 없이 Content가 확인한 반영 대상(`target`) 회차 하나를 판별한다. `target`이 없으면 단계 실패이고, 결과는 제안이라 승인·반영(`apply`)을 묻지 않는다. 단독 내부 API `POST /internal/v1/ratings`(회차 1–10개)도 그대로 있다.
 15세·12세 같은 세부 등급, 자동 등급 설정·숨김·발행 차단은 하지 않는다. 결과는 판정 제안이며 작품 등급의 정본·적용은 Content가 소유한다
 ([F-ADULT-01](../requirements.md#f-adult-01): 등급 기준·연령 확인·자동 조치는 미정).

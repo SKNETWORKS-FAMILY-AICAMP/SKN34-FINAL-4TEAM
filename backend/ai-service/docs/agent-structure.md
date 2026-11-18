@@ -23,7 +23,7 @@
 - `app/novelbrain/service.py`: 인물 시뮬레이션의 기억 추론 라이브러리입니다(HTTP 경계가 없어 router 없음). 세계관 스냅샷(Content MCP `world_studio_read`)과 Retrieval 원고 발췌를 받아 그래프 PPR → 원고 → BM25·RRF → 인물 시점 필터 순으로 `recall`합니다. 인물 시점 필터는 `stage=3`이고 `character_id`가 있을 때만 적용되며, 필터 없는 결과(`character_id=None`)는 전지적 나레이터용이라 인물 문맥에 그대로 넘기지 않습니다. 모델을 부르지 않습니다. [계약](../../../docs/design/character-simulation-contract.md#novelbrain--차례로-쌓는-4단계)
 - 생성은 Content의 [`ProposalService`](../../content-service/src/main/kotlin/ai/storyfork/content/proposal/service/ProposalService.kt)가 [`GenerationClient`](../../content-service/src/main/kotlin/ai/storyfork/content/proposal/client/GenerationClient.kt)를 통해 요청합니다. Content는 권한·기준 버전·문맥을 확인하고 DB 트랜잭션 밖에서 생성 API를 호출합니다. 응답을 받으면 기준을 다시 확인해 제안을 저장하며, 채택과 원고 반영은 별도 요청으로 처리합니다. Core의 AI 호출은 Health 확인 경로입니다.
 
-[최신 설계](../../../docs/design/design.md)의 집필 AI 여섯 Agent와 시뮬레이션 행동·요약 목표 모델은 OpenAI `gpt-6-luna`로 결정됐습니다. 그 밖의 모델·제공사·에이전트 프레임워크는 미정입니다. 집필 AI 복합 실행만 사용자 요청으로 LangGraph를 씁니다. 업무 Agent(Q&A·Writing·웹 조사·Review)와 메인 에이전트는 LangChain `create_agent`(`langchain-openai`)로, 이어쓰기·초기 세계관·Decision Guard·시뮬레이션 모델 호출은 `openai` SDK로 실행합니다. 남아 있는 `openai-agents` 의존성을 전체 기술 선정 완료로 해석하지 않습니다.
+[최신 설계](../../../docs/design/design.md)의 집필 AI 일곱 업무 Agent와 시뮬레이션 행동·요약 목표 모델은 OpenAI `gpt-6-luna`로 결정됐습니다. 그 밖의 모델·제공사·에이전트 프레임워크는 미정입니다. 집필 AI 복합 실행만 사용자 요청으로 LangGraph를 씁니다. 업무 Agent(Q&A·Writing·웹 조사·Review)와 메인 에이전트는 LangChain `create_agent`(`langchain-openai`)로, 이어쓰기·초기 세계관·Decision Guard·시뮬레이션 모델 호출은 `openai` SDK로 실행합니다. 남아 있는 `openai-agents` 의존성을 전체 기술 선정 완료로 해석하지 않습니다.
 
 ## 기능 패키지 구조
 
