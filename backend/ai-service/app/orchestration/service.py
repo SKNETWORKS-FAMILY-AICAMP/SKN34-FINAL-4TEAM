@@ -163,6 +163,8 @@ def _rating(state: dict):
     if not target:
         raise RatingFailure(422, NO_RATING_TARGET)
     return rating.rate(RatingRequest(workId=target['workId'], episodes=[target['episode']]))
+
+
 def _world_review(state: dict):
     """설정집 검토. 단계 입력이 없고 검토할 세계관은 Content가 확인한 작품(target)에 연결된 세계관이다. HTTP 경로와 같은 service 함수를 쓴다."""
     target = state.get('target')
