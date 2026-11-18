@@ -1,12 +1,13 @@
-import { Fragment, useId, type CSSProperties, type ReactNode } from 'react'
+import { Fragment, useId, type CSSProperties } from 'react'
 
 import { LINE, WCATS, type Doc, type WikiCat } from '../../../../domain/entities/wiki'
 import type { Work } from '../../../../domain/entities/work'
-import { CardMarkdown } from '../../../shared/CardMarkdown'
+import { CardMarkdown, type CardLinkRender } from '../../../shared/CardMarkdown'
 import { PublicCardImage } from '../../../shared/PublicCardImage'
 import { splitCardSections } from '../../../shared/cardSections'
 import { Go } from '../../../shared/Go'
 import { Jump } from '../../../shared/Jump'
+import { relationAnchor, relationNote } from '../../../shared/relationParagraph'
 import './publicWiki.css'
 
 const docAnchor = (d: Pick<Doc, 'id'>) => 'doc-' + d.id
@@ -32,36 +33,55 @@ function InfoBox({ doc, cat }: { doc: Doc; cat: WikiCat }) {
  * 문서 본문. 연결된 세계관의 설정 카드(마크다운)는 공개 카드 페이지와 같은 규칙(`splitCardSections`)으로 `#`·`##`·`###` 제목 문단을 나눠 문서 제목(h3) 아래 소제목(h4)으로 그리고,
  * 첫머리 글(첫 제목 앞, 제목 없음)에는 소제목을 달지 않는다. 기존 작품 위키 문서는 글자 그대로 둔다.
  */
-function DocBody({ doc, docs }: { doc: Doc; docs: Doc[] }) {
+function DocBody({ doc, cardLink }: { doc: Doc; cardLink: CardLinkRender }) {
   if (!doc.body) return <p className="nw-empty">아직 설명이 공개되지 않았어요.</p>
   if (!doc.markdown) return <p>{doc.body}</p>
-  // 본문의 설정 링크(DEC-53)는 같은 위키 안 그 카드의 문서로 건너가고, 위키에 없는 카드(서버가 거른 카드)는 글자만 보인다.
-  const cardLink = (id: string, label: ReactNode) => (docs.some((d) => d.id === id) ? <Jump to={docAnchor({ id })}>{label}</Jump> : undefined)
   return splitCardSections(doc.body).map(({ title, body }, i) => (
     <Fragment key={i}>{title && <h4>{title}</h4>}<CardMarkdown text={body} cardLink={cardLink} /></Fragment>
   ))
 }
 
-/** 문서 한 건. 서버가 기준 회차까지 공개한 항목만 주므로 거르지 않는다. 연결·등장 인물은 같은 위키의 문서로 건너가는 링크가 된다(연결의 라벨이 비면 이름만). */
+/**
+ * 문서 한 건. 서버가 기준 회차까지 공개한 항목만 주므로 거르지 않는다. 등장 인물은 같은 위키의 문서로 건너가는 링크가 된다.
+ * 연결된 세계관의 관계(DEC-54)는 `상대 — 관계명` 소제목(h4)과 관계 설명(마크다운) 문단으로 보이고(보내는 쪽, 대칭·미상은 양쪽), 단방향의 받는 쪽은 '이 설정을 가리키는 관계' 줄에 `상대(관계명)` 링크로만 보인다:
+ * 그 링크는 보내는 쪽 문서의 문단(관계 id 앵커)으로 이동해 초점을 옮기고 짧게 강조한다. 기존 작품 위키의 연결은 '연결' 줄(상대 이름과 라벨)이다.
+ */
 function Article({ doc, cat, no, docs }: { doc: Doc; cat: WikiCat; no: string; docs: Doc[] }) {
   const byName = (n: string) => docs.find((d) => d.t === n)
-  const links = (doc.links ?? []).flatMap((l) => { const to = docs.find((d) => d.id === l.to); return to ? [{ ...l, to }] : [] })
+  const linked = (doc.links ?? []).flatMap((l) => { const to = docs.find((d) => d.id === l.to); return to ? [{ ...l, to }] : [] })
+  const relations = linked.flatMap(({ to, k, relation }) => (relation ? [{ to, k, relation }] : []))
+  const paragraphs = relations.filter(({ relation }) => relation.paragraph)
+  const received = relations.filter(({ relation }) => !relation.paragraph)
+  const plain = linked.filter(({ relation }) => !relation)
+  // 본문과 관계 설명의 설정 링크(DEC-53)는 같은 위키 안 그 카드의 문서로 건너가고, 위키에 없는 카드(서버가 거른 카드)는 글자만 보인다.
+  const cardLink: CardLinkRender = (id, label) => (docs.some((d) => d.id === id) ? <Jump to={docAnchor({ id })}>{label}</Jump> : undefined)
   return (
     <div className="nw-doc" id={docAnchor(doc)} tabIndex={-1}>
       <h3><Jump to="nw-toc" className="nw-no" describedBy="nw-back">{no}</Jump> {doc.t}</h3>
       <InfoBox doc={doc} cat={cat} />
-      <DocBody doc={doc} docs={docs} />
+      <DocBody doc={doc} cardLink={cardLink} />
       {!!doc.knowledge?.length && (
         <><h4>알려진 사실</h4><ul>{doc.knowledge.map((k, i) => <li key={i}>{k.text}{k.publicAt != null && <small> ({k.publicAt}화 공개)</small>}</li>)}</ul></>
       )}
       {!!doc.who?.length && (
         <p className="nw-rel"><b>등장</b> {doc.who.map((n, i) => { const d = byName(n); return <span key={n}>{i > 0 && ', '}{d ? <Jump to={docAnchor(d)}>{n}</Jump> : n}</span> })}</p>
       )}
-      {links.length > 0 && (
-        <p className="nw-rel"><b>연결</b> {links.map(({ to, k, relation }, i) => relation?.category === 'identity'
-          // 「동일 인물」(다른 이름 카드 → 본체 카드): 다른 이름 쪽에는 정체로, 본체 쪽에는 다른 이름으로 보인다. 구조 관계·방향·부정 문구는 붙이지 않는다(#485).
-          ? <span key={i}>{i > 0 && ', '}동일 인물 · {relation.sourceFirst ? '정체' : '다른 이름'}: <Jump to={docAnchor(to)}>{to.t}</Jump></span>
-          : <span key={i}>{i > 0 && ', '}<Jump to={docAnchor(to)}>{to.t}</Jump>{k && ` (${k})`}{relation?.category && ` · ${relation.category === 'emotional' ? '감정 관계' : '구조 관계'}`}{relation && ` · ${relation.direction === 'directed' ? `단방향: ${relation.sourceFirst ? `이 설정 → ${to.t}` : `${to.t} → 이 설정`}` : relation.direction === 'symmetric' ? '대칭 관계' : '방향 미상'}`}{relation?.polarity === 'denied' && ' · 부정된 관계'}{relation?.polarity === 'asserted' && ' · 확인된 관계'}{relation?.body && <span style={{ whiteSpace: 'pre-wrap' }}>{` · ${relation.body}`}</span>}</span>)}</p>
+      {paragraphs.map(({ to, k, relation }) => {
+        const note = relationNote(relation)
+        return (
+          <div key={relation.id} className="nw-relsec" id={relationAnchor(doc.id, relation.id)} tabIndex={-1}>
+            <h4><Jump to={docAnchor(to)}>{to.t}</Jump>{k && ` — ${k}`}{note && <>{' '}<small>{note}</small></>}</h4>
+            {relation.body && <CardMarkdown text={relation.body} cardLink={cardLink} />}
+          </div>
+        )
+      })}
+      {received.length > 0 && (
+        <p className="nw-rel"><b>이 설정을 가리키는 관계</b> {received.map(({ to, k, relation }, i) => (
+          <span key={relation.id}>{i > 0 && ', '}<Jump to={relationAnchor(to.id, relation.id)} flash>{to.t}{k && `(${k})`}</Jump></span>
+        ))}</p>
+      )}
+      {plain.length > 0 && (
+        <p className="nw-rel"><b>연결</b> {plain.map(({ to, k }, i) => <span key={i}>{i > 0 && ', '}<Jump to={docAnchor(to)}>{to.t}</Jump>{k && ` (${k})`}</span>)}</p>
       )}
     </div>
   )

@@ -23,7 +23,7 @@
 .nw-sec > summary::before { content: '▾' / ''; width: 22px; font-size: 16px; color: var(--tsub); transition: transform .2s ease-out; }
 .nw-sec:not([open]) > summary::before { transform: rotate(-90deg); }
 .nw-sec > summary h2 { font-size: 24px; font-weight: 800; }
-.nw-doc, .nw-sec > summary, .nw-toc { scroll-margin-top: 80px; }
+.nw-doc, .nw-relsec, .nw-sec > summary, .nw-toc { scroll-margin-top: 80px; }
 .nw-doc { display: flow-root; padding: 20px 0 8px; }
 .nw-doc + .nw-doc { border-top: 1px dashed var(--tline); }
 .nw-doc h3 { margin: 0 0 12px; font-size: 19px; font-weight: 800; }
@@ -34,6 +34,9 @@
 /* 마크다운 본문(.card-md)은 마지막 문단의 아래 여백이 없어, 뒤에 소제목·연결 줄이 이어질 때만 문단 간격을 되돌린다(본문 하나뿐인 공개 카드 페이지는 그대로). */
 .nw-doc > .card-md:not(:last-child) { margin-bottom: 10px; }
 .nw-doc small, .nw-empty { color: var(--tsub); }
+/* 관계 문단(DEC-54): 독자 위키는 문서 안 소제목(h4) 문단(.nw-relsec), 카드 페이지는 하위 접이식 문단이다. 소제목 옆 부가 표시는 작은 글자이고, 받는 쪽 링크로 이동하면 jumpTo가 문단 배경을 잠깐 강조한다(문단 안쪽 여백이 강조 영역이다). */
+.nw-relsec { margin: 0 -8px; padding: 0 8px; border-radius: 6px; }
+.nw-relsec h4 small, .nw-sec > summary h3 small, .nw-sec > summary h4 small { font-size: 12px; font-weight: 600; color: var(--tsub); }
 .nw-rel { font-size: 14px; }
 .nw-rel b { margin-right: 6px; color: var(--tsub); }
 .nw-info { float: right; width: 300px; margin: 0 0 14px 24px; border-collapse: collapse; border: 1px solid var(--tline); font-size: 14px; }
