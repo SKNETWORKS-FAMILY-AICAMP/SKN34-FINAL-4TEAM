@@ -143,9 +143,20 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
       {tab === 'read' && (
         <>
           {vm.writing?.error && <p role="alert">{vm.writing.error}</p>}
-          {!!drafts?.length && <section><h2>작성 중인 회차</h2><ul>{drafts.map(e =>
-            <li key={e.number}><Go to={`/studio/${w.id}?ep=${e.number}`}>{e.number}화 · {e.draft.title}</Go></li>
-          )}</ul></section>}
+          {!!drafts?.length && (
+            <section className="ep-drafts">
+              <h2>작성 중인 회차</h2>
+              <ul role="list">
+                {drafts.map(e => (
+                  <li key={e.number}>
+                    <Go to={`/studio/${w.id}?ep=${e.number}`}>
+                      {e.number}화 · {e.draft.title}
+                    </Go>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           <div className='ep-notes'>
             <p>
               {w.visibility === 'public'
