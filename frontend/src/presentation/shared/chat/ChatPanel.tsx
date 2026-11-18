@@ -1,5 +1,6 @@
 import { useId, useRef, useState, type ReactNode } from 'react'
 import type { ChatAttachment, ChatMessage } from '../../../domain/entities/chat'
+import { CardMarkdown } from '../CardMarkdown'
 import { MicIcon, PlusIcon, SendIcon, SparkIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
 import './chat.css'
@@ -74,7 +75,7 @@ export function ChatPanel({ messages, onSend, busy = false, onAttach, disabledRe
         {m.role === 'assistant' && <span className="chat-avatar" aria-hidden="true"><SparkIcon size={16} /></span>}
         <div className="chat-bubble">
           <span className="chat-who sr-only">{who[m.role]}</span>
-          <p className="chat-text">{m.text}</p>
+          {m.format === 'markdown' ? <div className="chat-text chat-md"><CardMarkdown text={m.text} /></div> : <p className="chat-text">{m.text}</p>}
           {!!m.attachments?.length && <ul className="chat-chips" aria-label="첨부">{m.attachments.map(a => <li key={a.id} className="chip">{kindLabel[a.kind]} · {a.name}</li>)}</ul>}
           {renderCard?.(m)}
           {renderActions?.(m)}

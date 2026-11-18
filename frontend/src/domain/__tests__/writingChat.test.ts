@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { chatBasis, cleanScene, PLAN_PICK_HINT, replyText, stepText, type ChatReply, type ReviewFinding, type SceneAction } from '../entities/writingChat'
+import { chatBasis, cleanScene, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatReply, type ReviewFinding, type SceneAction } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -57,7 +57,14 @@ describe('replyText', () => {
       { feature: 'writing_editing', status: 'completed', result: { text: '초안' }, applied: { episode: 2, revision: 5 } },
       { feature: 'web_research', status: 'failed', error: '검색 실패' },
     ] }))
-    expect(text).toBe('작업 중 실패가 있어요.\n\n[기획·집필·수정] 초안\n→ 2화 초안에 반영했어요.\n\n[고증 조사] 실패: 검색 실패')
+    expect(text).toBe('[기획·집필·수정] 초안\n→ 2화 초안에 반영했어요.\n\n[고증 조사] 실패: 검색 실패')
+  })
+
+  it('종합 답변은 단계 글에 다시 넣지 않고(#492), 답변도 단계도 없을 때만 안내 문구를 쓴다', () => {
+    const steps = [{ feature: 'review', status: 'failed' as const, error: '검수 실패' }]
+    expect(replyText(reply({ message: '**검수**를 마치지 못했어요.', steps }))).toBe('[원고 검수] 실패: 검수 실패')
+    expect(replyText(reply({ message: '확인 질문이에요.' }))).toBe('')
+    expect(replyText(reply({}))).toBe('응답 내용이 없어요.')
   })
 
   it('기획 결과는 계획마다 비트를 번호로 잇고 참고를 덧붙인다(원고가 아니다)', () => {
@@ -73,6 +80,33 @@ describe('replyText', () => {
       text: '선장은 항구에 내렸다.', plan: { title: '항구의 밤', beats: ['선장이 도착한다.'] } } }
     expect(stepText(step)).toBe('선장은 항구에 내렸다.')
     expect(replyText(reply({ steps: [step] }))).toBe('[기획·집필·수정] 선장은 항구에 내렸다.\n사용한 계획: 항구의 밤 — 선장이 도착한다.')
+  })
+})
+
+describe('replyOutcome', () => {
+  const reply = (steps: ChatReply['steps']): ChatReply => ({ status: 'completed', steps, missingInputs: [], message: '종합 답변' })
+
+  it('실패 단계와 반영·거절 결과만 줄로 돌려주고 replyText와 같은 문구를 쓴다', () => {
+    const steps: ChatReply['steps'] = [
+      { feature: 'writing_editing', status: 'completed', result: { text: '초안' }, applied: { episode: 2, revision: 5 } },
+      { feature: 'character_simulation', status: 'completed', approval: 'declined' },
+      { feature: 'web_research', status: 'failed', error: '검색 실패' },
+    ]
+    const lines = replyOutcome(reply(steps))
+    expect(lines).toEqual(['→ 2화 초안에 반영했어요.', '→ 반영하지 않았어요.', '[고증 조사] 실패: 검색 실패'])
+    for (const line of lines) expect(replyText(reply(steps))).toContain(line)
+  })
+
+  it('Content 반영이 실패해 바뀐 단계는 실패 사유를 보인다', () => {
+    expect(replyOutcome(reply([{ feature: 'writing_editing', status: 'failed', error: '초안에서 고칠 문장을 찾을 수 없어요' }])))
+      .toEqual(['[기획·집필·수정] 실패: 초안에서 고칠 문장을 찾을 수 없어요'])
+  })
+
+  it('보일 결과가 없으면 비어 있다(완료만 한 단계·실행 전 단계)', () => {
+    expect(replyOutcome(reply([
+      { feature: 'story_context', status: 'completed', result: { claims: [{ text: '밤에 닫는다' }] } },
+      { feature: 'web_research', status: 'not_started' },
+    ]))).toEqual([])
   })
 })
 
@@ -237,10 +271,14 @@ describe('원고 검수 결과 글(#59)', () => {
 
 describe('설정집 검토 결과 글(#479)', () => {
   const step = (findings: { kind: 'contradiction' | 'doc_role' | 'missing_info' | 'other'; message: string }[]) =>
-    ({ feature: 'world_review', status: 'completed' as const, worldReview: { findings } })
+    ({ feature: 'world_review', status: 'completed' as const, worldReview: { reviewedCards: 2, findings } })
 
   it('지적이 없으면 웹 조사 문구가 아니라 검토 결과로 알린다', () => {
     expect(stepText(step([]))).toBe('검토에서 찾은 문제가 없어요.')
+  })
+
+  it('검토한 카드가 0장이면 문제가 없다고 하지 않고 카드가 없다고 알린다(#493)', () => {
+    expect(stepText({ ...step([]), worldReview: { reviewedCards: 0, findings: [] } })).toBe('검토할 설정 카드가 없어요.')
   })
 
   it('지적마다 종류와 메시지를 보이고, 단계 이름은 설정집 검토다', () => {
