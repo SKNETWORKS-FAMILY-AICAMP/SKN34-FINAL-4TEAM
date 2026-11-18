@@ -8,17 +8,24 @@ const card = (id: string, extra: Partial<ReaderWorldCard> = {}): ReaderWorldCard
 const relation = (sourceCardId: string, targetCardId: string, label = '') => ({ id: `${sourceCardId}-${targetCardId}-${label}`, sourceCardId, targetCardId, label })
 const wiki = (cards: ReaderWorldCard[], relationships: ReaderWorldCards['relationships'] = [], basis: Pick<ReaderWorldCards, 'workId' | 'upto'> = { workId: 'work-1', upto: 3 }) => worldCardWiki({ ...basis, cards, relationships })
 
-it('같은 라벨의 역방향·대칭 관계와 부정·본문을 양 끝 문서에 각각 보존한다', () => {
+it('같은 라벨의 역방향·대칭 관계와 부정·본문을 양 끝 문서에 관계 id와 함께 각각 보존한다', () => {
   const links = wiki([card('a'), card('b')], [
     { id: '1', sourceCardId: 'a', targetCardId: 'b', label: '동료', category: 'emotional', direction: 'directed', polarity: 'denied', body: '근거\n원문' },
     { id: '2', sourceCardId: 'b', targetCardId: 'a', label: '동료', direction: 'symmetric' },
     { id: '3', sourceCardId: 'b', targetCardId: 'a', label: '동료' },
   ]).docs.map((d) => d.links!)
   expect(links.map((items) => items.length)).toEqual([3, 3])
-  expect(links[0][0]).toMatchObject({ to: 'b', k: '동료', relation: { category: 'emotional', direction: 'directed', polarity: 'denied', body: '근거\n원문', sourceFirst: true } })
-  expect(links[1][0].relation?.sourceFirst).toBe(false)
-  expect(links[0][1].relation?.direction).toBe('symmetric')
+  expect(links[0][0]).toMatchObject({ to: 'b', k: '동료', relation: { id: '1', category: 'emotional', direction: 'directed', polarity: 'denied', body: '근거\n원문' } })
+  expect(links[1][0]).toMatchObject({ to: 'a', k: '동료', relation: { id: '1', direction: 'directed' } }) // 받는 쪽 문서도 같은 관계 id
+  expect(links[0][1].relation).toMatchObject({ id: '2', direction: 'symmetric' })
   expect(links[0][2].relation?.direction).toBeUndefined()
+})
+
+it('단방향 관계는 보내는 쪽 문서에만 문단(paragraph)이고 받는 쪽 문서에는 링크뿐이며 대칭·방향 없음·미상은 양쪽 문서가 문단이다', () => {
+  const paragraphs = (direction?: 'directed' | 'symmetric' | null) =>
+    wiki([card('a'), card('b')], [{ id: 'r', sourceCardId: 'a', targetCardId: 'b', label: '스승', direction }]).docs.map((d) => d.links![0].relation!.paragraph)
+  expect(paragraphs('directed')).toEqual([true, false])
+  for (const direction of ['symmetric', undefined, null] as const) expect(paragraphs(direction), String(direction)).toEqual([true, true])
 })
 
 it('카드 유형 순서(인물·장소·조직·능력·사물·규칙·사건·기타)의 분류와 공개 세계관과 같은 유형 색을 준다', () => {
@@ -60,8 +67,8 @@ it('관계는 양 끝 문서에서 연결하고 같은 상대·라벨도 관계�
   })
 })
 
-it('「동일 인물」 관계는 다른 이름 문서에서는 sourceFirst, 본체 문서에서는 반대로 분류 그대로 연결한다', () => {
-  const [mask, body] = wiki([card('mask'), card('body')], [{ id: 'i', sourceCardId: 'mask', targetCardId: 'body', label: '동일 인물', category: 'identity', direction: 'directed', polarity: 'asserted' }]).docs
-  expect(mask.links![0]).toMatchObject({ to: 'body', relation: { category: 'identity', direction: 'directed', sourceFirst: true } })
-  expect(body.links![0]).toMatchObject({ to: 'mask', relation: { category: 'identity', direction: 'directed', sourceFirst: false } })
+it('「동일 인물」은 다른 이름 문서에는 문단, 본체 문서에는 링크로만 붙고 관계명은 저장된 label과 상관없이 동일 인물이다', () => {
+  const [mask, body] = wiki([card('mask'), card('body')], [{ id: 'i', sourceCardId: 'mask', targetCardId: 'body', label: '승상 · 동일 인물 · 홍길동', category: 'identity', direction: 'directed', polarity: 'asserted' }]).docs
+  expect(mask.links![0]).toMatchObject({ to: 'body', k: '동일 인물', relation: { id: 'i', category: 'identity', paragraph: true } })
+  expect(body.links![0]).toMatchObject({ to: 'mask', k: '동일 인물', relation: { id: 'i', category: 'identity', paragraph: false } })
 })
