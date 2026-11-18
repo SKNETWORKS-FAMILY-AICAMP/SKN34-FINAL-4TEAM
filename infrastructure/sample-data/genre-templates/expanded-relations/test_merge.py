@@ -2,6 +2,7 @@ import importlib.util
 import contextlib
 import io
 import json
+import re
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -17,6 +18,9 @@ A = str(uuid5(NAMESPACE_URL, 'a'))
 B = str(uuid5(NAMESPACE_URL, 'b'))
 C = str(uuid5(NAMESPACE_URL, 'c'))
 R = str(uuid5(NAMESPACE_URL, 'relation'))
+BANNED_LABELS = {'살해', '전투', '공격', '저술', '지휘', '통치', '건국', '설립', '항복', '교전', '지지', '참여'}
+SYMMETRIC_LABELS = {'형제', '자매', '남매', '배우자', '동맹', '친구', '사촌', '적수', '교전 상대', '라이벌'}
+KINSHIP = re.compile(r'(?P<subject>\S+)는\s+(?P<object>\S+)의\s+(?P<role>아들|딸|아버지|어머니)(?:이다|였다|다)')
 
 
 def relation(**changes):
@@ -35,6 +39,46 @@ class MergeTest(unittest.TestCase):
 
     def write(self, name, **data):
         (self.root / 'worlds' / name).write_text(json.dumps({'genre': 'test', 'worldId': W, **data}), encoding='utf-8')
+
+    def test_checked_in_relations_follow_normalization_rules(self):
+        cards = {}
+        for world in merge.read(merge.MANIFEST)['worlds']:
+            cards[world['genre']] = {
+                card['id']: card['title']
+                for chunk in world['chunks']
+                for card in merge.read(merge.MANIFEST.parent / chunk)['cards']
+            }
+        for path in sorted(merge.HERE.glob('*.json')):
+            if path.name in {'coverage.json', 'index.json'}:
+                continue
+            data = merge.read(path)
+            for edge in data['relationships']:
+                with self.subTest(path=path.name, relation=edge['id']):
+                    names = cards[data['genre']]
+                    self.assertIn(edge['sourceCardId'], names)
+                    self.assertIn(edge['targetCardId'], names)
+                    self.assertNotIn(edge['label'], BANNED_LABELS)
+                    self.assertNotIn('근거 카드 ID', edge['body'])
+                    self.assertNotIn('http', edge['body'].lower())
+                    if edge['label'] in SYMMETRIC_LABELS:
+                        self.assertEqual('symmetric', edge['direction'])
+                    match = KINSHIP.search(edge['body'])
+                    if not match:
+                        continue
+                    subject = {card_id for card_id, title in names.items() if title == match['subject']}
+                    obj = {card_id for card_id, title in names.items() if title == match['object']}
+                    if not subject or not obj:
+                        continue
+                    if match['role'] in {'아들', '딸'}:
+                        expected = {(obj_id, subject_id, match['role']) for subject_id in subject for obj_id in obj}
+                        expected |= {(subject_id, obj_id, None) for subject_id in subject for obj_id in obj}
+                        self.assertTrue((edge['sourceCardId'], edge['targetCardId'], edge['label']) in expected or
+                                        (edge['sourceCardId'], edge['targetCardId'], None) in expected and edge['label'] in {'아버지', '어머니'})
+                    else:
+                        expected = {(obj_id, subject_id, match['role']) for subject_id in subject for obj_id in obj}
+                        expected |= {(subject_id, obj_id, None) for subject_id in subject for obj_id in obj}
+                        self.assertTrue((edge['sourceCardId'], edge['targetCardId'], edge['label']) in expected or
+                                        (edge['sourceCardId'], edge['targetCardId'], None) in expected and edge['label'] in {'아들', '딸'})
 
     def test_coverage_output_is_compact_and_reproducible(self):
         self.write('test--a.json', relationships=[relation()], reviewedCardIds=[A, B], ambiguousCardIds=[C])
@@ -80,6 +124,15 @@ class MergeTest(unittest.TestCase):
         worlds, _ = merge.collect(self.worlds, self.root / 'worlds')
         self.assertEqual(len(worlds['test']), 1)
         self.write('creative-test.json', relationships=[relation(body=f'가와 나는 형제이다. 근거 카드 ID: {uuid5(NAMESPACE_URL, "foreign")}')])
+        with self.assertRaises(ValueError): merge.collect(self.worlds, self.root / 'worlds')
+
+    def test_semantic_evidence_is_a_checked_location(self):
+        for evidence in ({'cardId': A, 'source': None}, {'cardId': None, 'source': '출처: 번역본 제1장'}):
+            with self.subTest(evidence=evidence):
+                self.write('semantic-test.json', relationships=[relation(body='가와 나는 형제이다.', semanticMetadata={'evidence': evidence})])
+                worlds, _ = merge.collect(self.worlds, self.root / 'worlds')
+                self.assertEqual(len(worlds['test']), 1)
+        self.write('semantic-test.json', relationships=[relation(body='가와 나는 형제이다.', semanticMetadata={'evidence': {'cardId': str(uuid5(NAMESPACE_URL, 'foreign')), 'source': None}})])
         with self.assertRaises(ValueError): merge.collect(self.worlds, self.root / 'worlds')
 
     def test_rejects_invalid_edges_and_duplicate_reversed_symmetric(self):
