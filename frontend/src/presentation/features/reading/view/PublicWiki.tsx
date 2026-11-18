@@ -1,4 +1,4 @@
-import { Fragment, useId, type CSSProperties } from 'react'
+import { Fragment, useId, type CSSProperties, type ReactNode } from 'react'
 
 import { LINE, WCATS, type Doc, type WikiCat } from '../../../../domain/entities/wiki'
 import type { Work } from '../../../../domain/entities/work'
@@ -9,7 +9,7 @@ import { Go } from '../../../shared/Go'
 import { Jump } from '../../../shared/Jump'
 import './publicWiki.css'
 
-const docAnchor = (d: Doc) => 'doc-' + d.id
+const docAnchor = (d: Pick<Doc, 'id'>) => 'doc-' + d.id
 
 /** 나무위키 정보 상자: 분류 색 띠 아래 이름, 연결된 세계관 카드는 대표 이미지(읽지 못하면 감춘다), 이어서 별칭·첫 등장·공개된 속성을 표로 보인다. */
 function InfoBox({ doc, cat }: { doc: Doc; cat: WikiCat }) {
@@ -32,11 +32,13 @@ function InfoBox({ doc, cat }: { doc: Doc; cat: WikiCat }) {
  * 문서 본문. 연결된 세계관의 설정 카드(마크다운)는 공개 카드 페이지와 같은 규칙(`splitCardSections`)으로 `#`·`##`·`###` 제목 문단을 나눠 문서 제목(h3) 아래 소제목(h4)으로 그리고,
  * 첫머리 글(첫 제목 앞, 제목 없음)에는 소제목을 달지 않는다. 기존 작품 위키 문서는 글자 그대로 둔다.
  */
-function DocBody({ doc }: { doc: Doc }) {
+function DocBody({ doc, docs }: { doc: Doc; docs: Doc[] }) {
   if (!doc.body) return <p className="nw-empty">아직 설명이 공개되지 않았어요.</p>
   if (!doc.markdown) return <p>{doc.body}</p>
+  // 본문의 설정 링크(DEC-53)는 같은 위키 안 그 카드의 문서로 건너가고, 위키에 없는 카드(서버가 거른 카드)는 글자만 보인다.
+  const cardLink = (id: string, label: ReactNode) => (docs.some((d) => d.id === id) ? <Jump to={docAnchor({ id })}>{label}</Jump> : undefined)
   return splitCardSections(doc.body).map(({ title, body }, i) => (
-    <Fragment key={i}>{title && <h4>{title}</h4>}<CardMarkdown text={body} /></Fragment>
+    <Fragment key={i}>{title && <h4>{title}</h4>}<CardMarkdown text={body} cardLink={cardLink} /></Fragment>
   ))
 }
 
@@ -48,7 +50,7 @@ function Article({ doc, cat, no, docs }: { doc: Doc; cat: WikiCat; no: string; d
     <div className="nw-doc" id={docAnchor(doc)} tabIndex={-1}>
       <h3><Jump to="nw-toc" className="nw-no" describedBy="nw-back">{no}</Jump> {doc.t}</h3>
       <InfoBox doc={doc} cat={cat} />
-      <DocBody doc={doc} />
+      <DocBody doc={doc} docs={docs} />
       {!!doc.knowledge?.length && (
         <><h4>알려진 사실</h4><ul>{doc.knowledge.map((k, i) => <li key={i}>{k.text}{k.publicAt != null && <small> ({k.publicAt}화 공개)</small>}</li>)}</ul></>
       )}
@@ -56,7 +58,10 @@ function Article({ doc, cat, no, docs }: { doc: Doc; cat: WikiCat; no: string; d
         <p className="nw-rel"><b>등장</b> {doc.who.map((n, i) => { const d = byName(n); return <span key={n}>{i > 0 && ', '}{d ? <Jump to={docAnchor(d)}>{n}</Jump> : n}</span> })}</p>
       )}
       {links.length > 0 && (
-        <p className="nw-rel"><b>연결</b> {links.map(({ to, k, relation }, i) => <span key={i}>{i > 0 && ', '}<Jump to={docAnchor(to)}>{to.t}</Jump>{k && ` (${k})`}{relation?.category && ` · ${relation.category === 'emotional' ? '감정 관계' : '구조 관계'}`}{relation && ` · ${relation.direction === 'directed' ? `단방향: ${relation.sourceFirst ? `이 설정 → ${to.t}` : `${to.t} → 이 설정`}` : relation.direction === 'symmetric' ? '대칭 관계' : '방향 미상'}`}{relation?.polarity === 'denied' && ' · 부정된 관계'}{relation?.polarity === 'asserted' && ' · 확인된 관계'}{relation?.body && <span style={{ whiteSpace: 'pre-wrap' }}>{` · ${relation.body}`}</span>}</span>)}</p>
+        <p className="nw-rel"><b>연결</b> {links.map(({ to, k, relation }, i) => relation?.category === 'identity'
+          // 「동일 인물」(다른 이름 카드 → 본체 카드): 다른 이름 쪽에는 정체로, 본체 쪽에는 다른 이름으로 보인다. 구조 관계·방향·부정 문구는 붙이지 않는다(#485).
+          ? <span key={i}>{i > 0 && ', '}동일 인물 · {relation.sourceFirst ? '정체' : '다른 이름'}: <Jump to={docAnchor(to)}>{to.t}</Jump></span>
+          : <span key={i}>{i > 0 && ', '}<Jump to={docAnchor(to)}>{to.t}</Jump>{k && ` (${k})`}{relation?.category && ` · ${relation.category === 'emotional' ? '감정 관계' : '구조 관계'}`}{relation && ` · ${relation.direction === 'directed' ? `단방향: ${relation.sourceFirst ? `이 설정 → ${to.t}` : `${to.t} → 이 설정`}` : relation.direction === 'symmetric' ? '대칭 관계' : '방향 미상'}`}{relation?.polarity === 'denied' && ' · 부정된 관계'}{relation?.polarity === 'asserted' && ' · 확인된 관계'}{relation?.body && <span style={{ whiteSpace: 'pre-wrap' }}>{` · ${relation.body}`}</span>}</span>)}</p>
       )}
     </div>
   )

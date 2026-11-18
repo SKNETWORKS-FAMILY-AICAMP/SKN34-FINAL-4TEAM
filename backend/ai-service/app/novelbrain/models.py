@@ -10,9 +10,13 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from app.card_links import strip_card_links
+
 # `episodes`의 키: 0 이상의 정수를 군더더기 없이 쓴 글자(`03`·`1.5`·`-1`은 아니다). 화면의 `isEpisodeKey`와 같다.
 _EPISODE_KEY = re.compile(r'0|[1-9][0-9]*')
 _DIRECTIONS = ('directed', 'symmetric')
+# 관계 유형: 구조·감정과, 같은 사람의 다른 이름 카드(source)에서 본체 카드(target)로 잇는 「동일 인물」(#485). 그 밖의 값은 모르는 유형(None)이다.
+_CATEGORIES = ('structural', 'emotional', 'identity')
 
 
 class Card(BaseModel):
@@ -33,6 +37,7 @@ class Relation(BaseModel):
     source: str
     target: str
     label: str
+    category: Literal['structural', 'emotional', 'identity'] | None = None
     direction: Literal['directed', 'symmetric'] | None = None
     polarity: Literal['asserted', 'denied'] = 'asserted'
     body: str = ''
@@ -89,7 +94,7 @@ def _docs(raw) -> tuple[str, str, dict[int, str]]:
         soul, goal, memory, episodes = raw.get('soul'), raw.get('goal', ''), raw.get('memory', ''), raw.get('episodes')
         if (isinstance(soul, str) and isinstance(goal, str) and isinstance(memory, str) and isinstance(episodes, dict)
                 and all(isinstance(k, str) and _EPISODE_KEY.fullmatch(k) and isinstance(v, str) for k, v in episodes.items())):
-            return soul, goal, with_memory(memory, {int(k): v for k, v in episodes.items()})
+            return strip_card_links(soul), strip_card_links(goal), with_memory(strip_card_links(memory), {int(k): strip_card_links(v) for k, v in episodes.items()})
     return '', '', {}
 
 
@@ -97,6 +102,7 @@ def world_snapshot(read: dict, episode: int) -> WorldSnapshot:
     """`world_studio_read(id, episode)` 응답(dict)을 스냅샷으로 바꾼다. `episode`는 관계를 읽은 회차다.
 
     삭제된(`lifecycle=removed`) 카드·관계, 끝점이 없거나 삭제된 카드인 관계는 뺀다. 읽을 수 없는 응답은 입력을 담지 않은 ValueError다.
+    카드 본문·인물 문서·관계 본문의 본문 링크(`[글자](card:<uuid>)`, DEC-53)는 대상이 있든 없든 글자로 벗긴다: 모델 입력과 BM25 색인에 카드 id가 섞이지 않는다.
     """
     try:
         cards = []
@@ -105,7 +111,7 @@ def world_snapshot(read: dict, episode: int) -> WorldSnapshot:
                 continue
             meta = c.get('semanticMetadata') or {}
             soul, goal, episodes = _docs(meta.get('characterDocs')) if c['cardType'] == 'character' else ('', '', {})
-            cards.append(Card(id=c['id'], cardType=c['cardType'], title=c['title'], text=c['body'], soul=soul, goal=goal,
+            cards.append(Card(id=c['id'], cardType=c['cardType'], title=c['title'], text=strip_card_links(c['body']), soul=soul, goal=goal,
                               episodes=episodes, revealFromEpisode=_reveal(meta.get('revealFromEpisode'))))
         ids = {c.id for c in cards}
         relations = []
@@ -113,10 +119,11 @@ def world_snapshot(read: dict, episode: int) -> WorldSnapshot:
             relation_id, source, target = r['id'], r.get('sourceCardId'), r.get('targetCardId')
             if r.get('lifecycle') == 'removed' or source not in ids or target not in ids:
                 continue
-            direction = r.get('direction')
+            direction, category = r.get('direction'), r.get('category')
             relations.append(Relation(id=relation_id, source=source, target=target, label=r.get('label') or '',
+                                      category=category if category in _CATEGORIES else None,
                                       direction=direction if direction in _DIRECTIONS else None,
-                                      polarity='denied' if r.get('polarity') == 'denied' else 'asserted', body=r.get('body') or ''))
+                                      polarity='denied' if r.get('polarity') == 'denied' else 'asserted', body=strip_card_links(r.get('body') or '')))
         return WorldSnapshot(worldId=read['worldId'], episode=episode, cards=cards, relations=relations)
     except (LookupError, TypeError, AttributeError, ValueError):
         raise ValueError('세계관 응답 형식을 확인할 수 없습니다.') from None

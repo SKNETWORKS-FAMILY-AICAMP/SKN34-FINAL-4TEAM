@@ -24,7 +24,7 @@ type VM = ReturnType<typeof useWorldStudioViewModel>
  * 게시판 한 줄. 제목 버튼이 편집 화면을 여는 주 컨트롤이다(줄 전체를 누르게 하지 않는다). 제목 옆 `[n]`은 공개 설정집과 같은 관계·연결 수다.
  * 맨 앞 체크박스는 공개 설정을 한 번에 바꿀 카드를 고르고, `공개` 칸은 그 카드의 공개 설정이다(`N화부터`·`작가 전용`, 소설이 연결되지 않은 세계관의 1화는 `공개`, DEC-53). 다른 세계관에서 가져온 카드는 `가져옴`과 출처를 제목 아래에 보인다.
  * 보완 상태는 제목 옆에 알린다(알리기만 하고 이 표시 때문에 저장·확정이 막히지는 않는다): 인물 문서(IDENTITY.md·SOUL.md·GOAL.md) 가운데 비어 있는 것이 있으면 `정리 필요`,
- * 사건·사물이 어느 인물과도 승인된 관계로 이어지지 않았으면 `연결 필요`, 마지막 AI 검토가 남긴 지적이 있으면 `AI 의견 N`(누르면 그 카드의 편집 화면에서 지적을 본다)이다.
+ * 사건·사물이 어느 인물과도 승인된 관계로 이어지지 않았으면 `연결 필요`, 이 카드의 글에 더 늦게 공개되는 카드의 이름이 나오면 `공개 순서 확인`(DEC-53, 누르면 편집 화면에서 어느 글인지 본다), 마지막 AI 검토가 남긴 지적이 있으면 `AI 의견 N`(누르면 그 카드의 편집 화면에서 지적을 본다)이다.
  * 본문이 좁으면 번호·분류·요약·연결 칸이 숨는다(world-studio.css의 컨테이너 규칙). 그때 분류와 요약을 잃지 않도록 제목 아래 한 줄(`.world-row-sub`)에도 두고, 넓은 본문에서는 CSS가 그 줄을 숨긴다.
  */
 function Row({ row, setting, status, images, picked, linked, onPick, onOpen }: { row: BoardRow; setting?: StudioSetting; status?: CardStatus; images: CardImages; picked: boolean; linked: boolean; onPick: (id: string, on: boolean) => void; onOpen: (id: string) => void }) {
@@ -40,6 +40,7 @@ function Row({ row, setting, status, images, picked, linked, onPick, onOpen }: {
         {row.badge > 0 && <span className="worlds-badge"><span aria-hidden="true">[{row.badge}]</span><span className="sr-only">{row.kind === '인물' ? '관계' : '연결'} {row.badge}개</span></span>}
         {status?.cleanup && <span className="worlds-badge world-todo">정리 필요</span>}
         {status?.unlinked && <span className="worlds-badge world-todo">연결 필요</span>}
+        {status?.order && <button type="button" className="worlds-badge world-todo world-opinion" aria-label={`${row.title} 공개 순서 확인 보기`} onClick={() => onOpen(row.cardId)}>공개 순서 확인</button>}
         {!!status?.opinions && <button type="button" className="worlds-badge world-todo world-opinion" aria-label={`${row.title} AI 의견 ${status.opinions}건 보기`} onClick={() => onOpen(row.cardId)}>AI 의견 {status.opinions}</button>}
         {setting?.importedFrom && <><span className="worlds-badge">가져옴</span><small className="world-imported-from">{importedSource(setting.importedFrom)}</small></>}
         <span className="world-row-sub"><KindChip kind={row.kind} label={row.type} />{row.text && <span>{row.text}</span>}</span>

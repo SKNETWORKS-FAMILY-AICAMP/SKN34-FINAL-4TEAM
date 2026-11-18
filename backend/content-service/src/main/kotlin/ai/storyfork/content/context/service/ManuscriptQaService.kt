@@ -9,6 +9,7 @@ import ai.storyfork.content.episode_version.repository.EpisodeVersionRepository
 import ai.storyfork.content.manuscript.client.*
 import ai.storyfork.content.manuscript.client.dto.*
 import ai.storyfork.content.manuscript.service.manuscriptHash
+import ai.storyfork.content.world.domain.stripCardLinks
 import ai.storyfork.content.world.service.WorldService
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestClientResponseException
@@ -147,7 +148,8 @@ internal class ManuscriptQaService(
                 else -> "—"
             }
             val title = "${from.title} $direction ${to.title}".evidenceText()
-            val quote = listOfNotNull(relation.label, relation.body, relation.category, relation.polarity)
+            // 관계 본문의 설정 링크(DEC-53)는 모델·인용에 카드 id가 섞이지 않게 글자로 벗겨 보낸다(AI 입력 경계).
+            val quote = listOfNotNull(relation.label, stripCardLinks(relation.body), relation.category, relation.polarity)
                 .filter { it.isNotBlank() }.joinToString("\n").evidenceText()
             if (quote.isBlank()) return@mapNotNull null
             QaRelationshipSource("relationship:${relation.id}", scope.workId, scope.sourceWorkId, scope.episode,

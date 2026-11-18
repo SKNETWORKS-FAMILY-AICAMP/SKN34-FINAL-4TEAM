@@ -432,6 +432,18 @@ class WorldStudioService(
         RelationshipInputHelper.validateSnapshot(relations,worldCards)
         // 이미 반영된 재시도는 relations가 current와 같아 새로 만들거나 바뀐 관계가 없다.
         RelationshipInputHelper.validateSnapshot(relations-current.relationships.toSet(),known)
+        // 「동일 인물」(#485): 새로 쓰거나 바꾸거나 끝내는 저장은 회차가 있어야 하고 인물 카드끼리 방향 있게 이어야 한다. 사슬·순환은 저장 결과의 최신 회차 시점으로 본다.
+        val written=(relations-current.relationships.toSet())+(current.relationships-relations.toSet())
+        val cardTypes=mergedCards.associate { it.id to it.cardType }
+        RelationshipInputHelper.validateIdentity(relations,written,cardTypes,request.episode)
+        // 인물이던 카드를 다른 유형으로 바꾸는 저장도 최신 시점을 본다: 저장 회차에 보이지 않는 뒤 회차 identity의 끝점일 수 있다.
+        val before=loaded.draft.cards.associate { it.id to it.cardType }
+        val retyped=request.cards.any { it.lifecycle=="active" && it.cardType!="character" && before[it.id]=="character" }
+        if(!alreadyApplied && (retyped || written.any { it.category=="identity" })) {
+            val after=graph.readAfter(worldId,relations,request.episode)
+            if(after.worldId!=worldId || after.version!=current.version) throw WorldStudioFailure.mismatch()
+            RelationshipInputHelper.validateIdentityLinks(after.relationships,cardTypes)
+        }
         // 이번 요청이 삭제하는 카드(원래 초안에서 활성이던 카드)는 회차를 생략한(최신) 편집에서만 지우고, 거기 이어진 관계는 함께 빼야 한다. 지난 회차에 이미 삭제된 카드의 관계는 그대로 둘 수 있고, 재시도는 새로 쓸 것이 없어 건너뛴다.
         val deleting=loaded.draft.cards.filter { it.lifecycle=="active" }.map { it.id }.toSet()-known
         if(!alreadyApplied && deleting.isNotEmpty()) {

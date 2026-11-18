@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { beatCharacterIds, characterNames, checkSummary, cleanSimulation, modeLabel, monologueOwner, inheritedCharacters, planBeats, povLabel, sceneLine, sceneProse, sceneRows, sceneSummary, simulationIssue, simulationSummary, statusLabel, stopReasonText, worldCharacters, type CharacterSimulation, type SimulationCharacter, type SimulationStart, type SimulationTurn } from '../entities/characterSimulation'
+import { beatCharacterIds, characterNames, checkSummary, cleanSimulation, modeLabel, monologueOwner, inheritedCharacters, planBeats, povLabel, sceneLine, sceneProse, sceneRows, sceneSummary, simulationIssue, samePersonChosen, simulationSummary, statusLabel, stopReasonText, worldCharacters, type CharacterSimulation, type SimulationCharacter, type SimulationStart, type SimulationTurn } from '../entities/characterSimulation'
 import type { StudioSetting } from '../entities/studioWorld'
 
 const turn = (index: number, prose: string, checks: SimulationTurn['checks'] = []): SimulationTurn =>
@@ -201,6 +201,33 @@ describe('연결 세계관의 인물 카드(시작 양식 후보)', () => {
       { id: 'c3', title: '리안', cardType: 'character', aliases: [] },
     ])).toEqual([{ id: 'c1', name: '카엘', aliases: ['검은 기사'] }, { id: 'c3', name: '리안', aliases: [] }])
     expect(inheritedCharacters([])).toEqual([])
+  })
+
+  // 「동일 인물」(#485): 다른 이름 카드는 본체와 한 사람이라 둘을 함께 고를 수 없다. 서버도 거절하지만 양식이 먼저 막는다.
+  it('다른 이름 카드의 후보에 본체 카드 id를 달고, 같은 사람의 다른 카드는 하나를 고른 뒤에는 고를 수 없다', () => {
+    const link = (id: string, subjectId: string, targetId: string, polarity = 'asserted') =>
+      ({ item: { id, kind: 'relation', predicate: 'identity_of', subjectId, targetId, polarity, title: '', entityType: null }, userCategory: '', tags: [] }) as unknown as StudioSetting
+    const cards = [card('mask', '승상', 'character'), card('body', '홍길동', 'character'), card('mask2', '재상', 'character'), card('other', '왕', 'character')]
+    const candidates = worldCharacters([...cards, link('r1', 'mask', 'body'), link('r2', 'mask2', 'body')])
+    expect(candidates.map((c) => [c.id, c.person])).toEqual([['mask', 'body'], ['body', undefined], ['mask2', 'body'], ['other', undefined]])
+    expect(samePersonChosen(candidates, ['mask'], candidates[1])).toBe(true)   // 본체
+    expect(samePersonChosen(candidates, ['mask'], candidates[2])).toBe(true)   // 같은 본체의 다른 가면
+    expect(samePersonChosen(candidates, ['mask'], candidates[3])).toBe(false)  // 다른 사람
+    expect(samePersonChosen(candidates, ['mask'], candidates[0])).toBe(false)  // 이미 고른 카드 자신은 풀 수 있다
+    expect(samePersonChosen(candidates, [], candidates[1])).toBe(false)
+    expect(worldCharacters([...cards, link('r3', 'mask', 'body', 'denied')]).every((c) => c.person === undefined)).toBe(true) // 부정은 이은 것이 아니다
+  })
+
+  it('이어받은 세계관의 「동일 인물」 쌍으로도 다른 이름 카드의 후보에 본체 카드 id를 달아 같은 사람을 함께 고르지 못하게 한다', () => {
+    const cards = [
+      { id: 'k1', title: '승상', cardType: 'character', aliases: [] }, { id: 'k2', title: '홍길동', cardType: 'character', aliases: [] },
+      { id: 'k3', title: '리안', cardType: 'character', aliases: [] },
+    ]
+    const candidates = inheritedCharacters(cards, [{ sourceCardId: 'k1', targetCardId: 'k2' }])
+    expect(candidates.map((c) => [c.id, c.person])).toEqual([['k1', 'k2'], ['k2', undefined], ['k3', undefined]])
+    expect(samePersonChosen(candidates, ['k2'], candidates[0])).toBe(true)
+    expect(samePersonChosen(candidates, ['k2'], candidates[2])).toBe(false)
+    expect(inheritedCharacters(cards).every((c) => c.person === undefined)).toBe(true) // 이어받은 관계를 모르면 묶지 않는다
   })
 
   it('인물 카드가 없으면 후보가 없다', () => {

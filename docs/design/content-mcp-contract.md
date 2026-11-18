@@ -117,7 +117,7 @@ AI가 사용자가 프론트에서 할 수 있는 세계관·작품·회차 작�
 
 `world_studio_read`·`world_studio_edit_draft`는 선택 인자 `episode`(관계의 회차 시점, 1 이상, 생략하면 최신 회차, [DEC-51](worldstudio-independent-schema.md#회차별-관계--dec-51))를 받는다. `world_studio_read`는 HTTP `?episode=`처럼 문자열로 받아 값 오류를 422로 낸다. 설정(카드) 삭제는 `episode`를 생략한 편집에서만 허용되며 지정하면 422다.
 
-공개·이어받기 도구(`work_public_world_cards`·`work_inherited_world`·`world_studio_public_read`·`world_studio_public_list`)는 화면과 같은 Service 함수라 DEC-53의 카드 집합(유효 공개 회차 ≤ 기준 회차)·관계 시점·본문 링크 치환을 그대로 따른다([공개 세계관 계약](public-world-contract.md#카드-공개-기준-일원화--dec-53)). `world_studio_read`·`world_studio_edit_draft`는 작가 범위(초안 전체)라 작가 전용 카드와 본문 링크 id를 그대로 주고받으며, 모델에 넘기기 전에 링크를 글자로 벗기는 일은 AI 쪽 입력 경계가 한다(ai-service `world_snapshot`). 「동일 인물」(`category: identity`)을 새로 쓰거나 바꾸는 `world_studio_edit_draft`는 `episode`를 지정해야 한다([규칙](worldstudio-independent-schema.md#동일-인물-관계--dec-53)).
+공개·이어받기 도구(`work_public_world_cards`·`work_inherited_world`·`world_studio_public_read`·`world_studio_public_list`)는 화면과 같은 Service 함수라 DEC-53의 카드 집합(유효 공개 회차 ≤ 기준 회차)·관계 시점·본문 링크 치환을 그대로 따른다([공개 세계관 계약](public-world-contract.md#카드-공개-기준-일원화--dec-53)). `world_studio_read`·`world_studio_edit_draft`는 작가 범위(초안 전체)라 작가 전용 카드와 본문 링크 id를 그대로 주고받으며, 모델에 넘기기 전에 링크를 글자로 벗기는 일은 AI 쪽 입력 경계가 한다(ai-service `world_snapshot`·`world_review` 채팅 경로). 「동일 인물」(`category: identity`)을 새로 쓰거나 바꾸거나 끝내는 `world_studio_edit_draft`는 `episode`를 지정해야 한다([규칙](worldstudio-independent-schema.md#동일-인물-관계--dec-53)).
 
 ## 오류 형식
 

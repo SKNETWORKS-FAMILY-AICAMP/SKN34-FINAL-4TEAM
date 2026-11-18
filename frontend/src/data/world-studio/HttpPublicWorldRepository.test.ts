@@ -84,7 +84,7 @@ describe('공개 세계관 목록 읽기 (공개 API, 인증 없음)', () => {
 describe('공개 세계관 상세 읽기', () => {
   it('관계 분류를 보존하고 이전 응답·null을 허용하며 잘못된 값은 거절한다', async () => {
     const relation = world().relationships[0]
-    for (const category of ['structural', 'emotional', null] as const) {
+    for (const category of ['structural', 'emotional', 'identity', null] as const) {
       const result = await new HttpPublicWorldRepository(respond(world({ relationships: [{ ...relation, category }] }))).get('w-1')
       expect(result?.relationships[0].category).toBe(category)
     }

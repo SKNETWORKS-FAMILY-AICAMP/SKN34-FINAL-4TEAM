@@ -40,6 +40,37 @@ it('링크는 새 탭에서 열고 안전하지 않은 주소는 링크로 만�
   expect(document.body.textContent).toContain('나쁨')
 })
 
+it('설정 링크(card:)는 갈 곳을 알려 주면 그 링크로 그리고, 아니면(갈 곳이 없는 카드 포함) 글자만 보인다', () => {
+  const [known, gone] = ['aaaaaaaa-2222-3333-4444-555555555555', 'bbbbbbbb-2222-3333-4444-555555555555']
+  const text = `[승상](card:${known}) 과 [없는](card:${gone}) 과 [외부](https://example.test/a)`
+  const plain = draw(text)
+  expect(Array.from(plain.querySelectorAll('a'), (a) => a.textContent)).toEqual(['외부']) // card: 주소는 링크가 되지 않는다
+  expect(plain.textContent).toBe('승상 과 없는 과 외부')
+  cleanup()
+  const root = render(<CardMarkdown text={text} cardLink={(card, label) => (card === known ? <a href={`#/cards/${card}`}>{label}</a> : undefined)} />).container
+  expect(Array.from(root.querySelectorAll('a'), (a) => [a.textContent, a.getAttribute('href'), a.getAttribute('target')])).toEqual([['승상', `#/cards/${known}`, null], ['외부', 'https://example.test/a', '_blank']])
+  expect(root.textContent).toBe('승상 과 없는 과 외부')
+})
+
+it('파서가 링크로 읽어도 정규식이 링크로 보지 않는 모양(대괄호 글자·줄바꿈 글자·<card:id>·꺾쇠 주소·제목이 붙은 링크)은 갈 곳을 알려 줘도 글자만 보인다', () => {
+  const id = 'aaaaaaaa-2222-3333-4444-555555555555'
+  const shapes = [`[[갑]](card:${id})`, `[줄\n바꿈](card:${id})`, `<card:${id}>`, `[괄호](<card:${id}>)`, `[제목](card:${id} "t")`]
+  const root = render(<CardMarkdown text={shapes.join('\n\n')} cardLink={(card, label) => <a href={`#/cards/${card}`}>{label}</a>} />).container
+  expect(root.querySelectorAll('a')).toHaveLength(0)
+  expect(root.textContent).toContain('괄호')
+  cleanup()
+  const ok = render(<CardMarkdown text={`[승상](card:${id})`} cardLink={(card, label) => <a href={`#/cards/${card}`}>{label}</a>} />).container // 인정된 링크는 그린다
+  expect(Array.from(ok.querySelectorAll('a'), (a) => a.getAttribute('href'))).toEqual([`#/cards/${id}`])
+})
+
+it('설정 링크는 줄 중간·인용·목록·표 안에서도 그 링크로 그린다(원문 위치로 판정해도 어긋나지 않는다)', () => {
+  const id = 'aaaaaaaa-2222-3333-4444-555555555555'
+  const link = (label: string) => `[${label}](card:${id})`
+  const text = [`앞 ${link('줄 중간')} 뒤`, `> 인용 ${link('인용글')}`, `- 목록 ${link('목록글')}`, `| 칸 |\n|---|\n| ${link('표 안')} |`].join('\n\n')
+  const root = render(<CardMarkdown text={text} cardLink={(card, label) => <a href={`#/cards/${card}`}>{label}</a>} />).container
+  expect(Array.from(root.querySelectorAll('a'), (a) => a.textContent)).toEqual(['줄 중간', '인용글', '목록글', '표 안'])
+})
+
 it('이미지는 불러오지 않고 대체 글자만 보인다', () => {
   const root = draw('앞 ![달무리 지도](https://example.test/map.png) 뒤')
   expect(root.querySelector('img')).toBeNull()

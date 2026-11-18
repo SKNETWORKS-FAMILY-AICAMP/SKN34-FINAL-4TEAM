@@ -339,6 +339,37 @@ describe('서버 카드 id(위치와 다른 id)로 이은 세계관', () => {
   })
 })
 
+describe('본문 링크(DEC-53)가 만드는 연결', () => {
+  const [O, M, H, X, GHOST] = ['aaaaaaaa-2222-3333-4444-555555555555', 'bbbbbbbb-2222-3333-4444-555555555555', 'cccccccc-2222-3333-4444-555555555555', 'dddddddd-2222-3333-4444-555555555555', 'eeeeeeee-2222-3333-4444-555555555555']
+  const link = (to: string, text = '글') => `[${text}](card:${to})`
+  const base = { aliases: [], tags: [] }
+  // 오르·미라는 관계로 이어졌고, 오르·미라·금기 본문이 새벽항을 가리키며, 새벽항 본문은 자기 자신·없는 카드를 가리키고 금기는 같은 카드를 두 번 건다.
+  const linked: PublicWorld = {
+    ...world([]),
+    cards: [
+      { ...base, id: O, title: '오르', text: link(H, '새벽항'), cardType: 'character' },
+      { ...base, id: M, title: '미라', text: `${link(H)} ${link(O.toUpperCase())}`, cardType: 'character' },
+      { ...base, id: H, title: '새벽항', text: `${link(H)} ${link(GHOST)}`, cardType: 'location' },
+      { ...base, id: X, title: '금기', text: `${link(H)} ${link(H)}`, cardType: 'rule' },
+    ],
+    relationships: [{ id: 'r', sourceCardId: O, targetCardId: M, label: '스승' }],
+  }
+
+  it('이 카드를 가리키는 설정에 본문으로 이 카드를 건 카드가 설정집 순서로 들어가고, 자기 자신·없는 카드·관계로 이미 이어진 카드·같은 카드를 여러 번 건 것은 한 번 또는 빠진다', () => {
+    expect(names(cardPage(linked, H)!.backlinks)).toEqual(['오르·본문 링크', '미라·본문 링크', '금기·본문 링크'])
+    expect(cardPage(linked, O)!.backlinks).toEqual([]) // 미라는 관계(스승)로 이미 이어져 그쪽이 보인다
+    expect(names(cardPage(linked, O)!.relations)).toEqual(['미라·스승'])
+    expect(cardPage(linked, M)!.backlinks).toEqual([])
+  })
+
+  it('본문 링크 연결도 게시판의 연결 수에 세어 카드 페이지의 연결과 같다(건 쪽은 세지 않는다)', () => {
+    const rows = Object.fromEntries(bookRows(linked).map((r) => [r.title, [r.connections, r.badge]]))
+    expect(rows).toEqual({ 오르: [1, 1], 미라: [1, 1], 새벽항: [3, 3], 금기: [0, 0] })
+    const pageOf = cardPage(linked, H)!
+    expect(pageOf.links.length + pageOf.backlinks.length + pageOf.additionalRelations.length).toBe(3)
+  })
+})
+
 describe('bookRows', () => {
   const titles = (w: PublicWorld, filter?: Parameters<typeof bookRows>[1]) => bookRows(w, filter).map((r) => r.title)
 

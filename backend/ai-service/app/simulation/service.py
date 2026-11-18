@@ -18,7 +18,7 @@ from pydantic import BaseModel, TypeAdapter, ValidationError
 from app.content_mcp import service as content_mcp
 from app.story_qa.models import Excerpt
 from app.novelbrain import service as novelbrain
-from app.novelbrain.models import Card, WorldSnapshot, world_snapshot
+from app.novelbrain.models import Card, Relation, WorldSnapshot, world_snapshot
 from app.retrieval import service as retrieval
 from app.retrieval.errors import RetrievalUnavailable
 from app.retrieval.models import RetrievalScope
@@ -46,6 +46,8 @@ BAD_VERDICT = '시뮬레이션 검사 모델 응답을 확인할 수 없습니�
 INVALID_PLAN = '시뮬레이션 계획이 완성되지 않았거나 세계관에 없는 인물이 있어요.'
 NOT_IN_WORLD = '연결된 세계관에 없는 인물이 있어요. 인물 카드를 다시 골라 주세요.'
 NO_EXCERPTS = '원고 발췌 검색을 쓸 수 없어 세계관 설정만으로 진행했어요.'
+SAME_PERSON = '같은 인물로 이어진 두 카드는 함께 고를 수 없어요. 다른 이름 카드와 본체 카드 중 하나만 골라 주세요.'
+BAD_IDENTITY = '「동일 인물」 관계를 확인할 수 없어 시뮬레이션을 실행할 수 없어요. 인물 카드끼리, 다른 이름 카드 하나에 본체 하나로 한 방향으로만 이어 주세요.'
 
 
 class WorldLink(BaseModel):
@@ -56,17 +58,31 @@ class WorldLink(BaseModel):
 
 def read_world(work_id: str, episode: int) -> dict:
     """작품에 연결된 세계관을 기준 회차 시점으로 읽는다. 연결이 없으면 Fork가 이어받는 원작 세계관(읽기 전용, 공개 카드·Fork 기준 회차까지, #365)을 읽고,
-    그것도 없으면 실패한다(대체 세계관을 찾지 않는다). 시작 양식의 인물 검증·장면 입력이 모두 이 한 곳의 카드 집합을 쓴다."""
+    그것도 없으면 실패한다(대체 세계관을 찾지 않는다). 시작 양식의 인물 검증·장면 입력이 모두 이 한 곳의 카드 집합을 쓴다.
+
+    「동일 인물」(identity) 관계만 최신 시점으로 한 번 더 읽어 `identity`로 덧붙인다(#485): 공개 회차 전에도 작가가 이어 둔 두 카드는 한 사람이라 기준 회차 시점으로는
+    묶지 못한다. `relationships`는 기준 회차 시점 그대로라 나레이터·recall이 읽는 스냅샷에는 기준 회차 뒤의 정체가 섞이지 않고, `identity`는 한 사람으로 묶는 데(`_bodies`)만 쓴다.
+    이어받은 세계관은 Content가 이미 Fork 기준 회차까지만 주므로 다시 읽지 않고 그 응답의 identity를 쓴다.
+    """
     try:
         worlds = TypeAdapter(list[WorldLink]).validate_python(content_mcp.call('world_studio_list', {}))
     except ValidationError:
         raise SimulationFailure(502, BAD_WORLD) from None
     linked = next((w.worldId for w in worlds if w.linkedWorkId == work_id), None)
     if linked is not None:
-        return content_mcp.call('world_studio_read', {'id': linked, 'episode': str(episode)})
+        read = content_mcp.call('world_studio_read', {'id': linked, 'episode': str(episode)})
+        return {**read, 'identity': _identity_of(content_mcp.call('world_studio_read', {'id': linked}))}
     if (inherited := content_mcp.inherited_world(work_id, episode)) is None:
         raise SimulationFailure(409, NO_LINKED_WORLD)
-    return inherited
+    return {**inherited, 'identity': _identity_of(inherited)}
+
+
+def _identity_of(read: dict) -> list:
+    """응답의 「동일 인물」 관계 원본. 읽을 수 없는 응답은 BAD_WORLD다."""
+    try:
+        return [r for r in read.get('relationships') or [] if r.get('category') == 'identity']
+    except (AttributeError, TypeError):
+        raise SimulationFailure(502, BAD_WORLD) from None
 
 
 def plan(request: str, history: list[str], target: dict | None) -> SimulationPlan:
@@ -76,7 +92,9 @@ def plan(request: str, history: list[str], target: dict | None) -> SimulationPla
     고치지 않고 실패한다.
     """
     work_id, episode = _target(target)
-    cast = [{'id': c.id, 'name': c.title} for c in _characters(_world(read_world(work_id, episode), episode)[0]).values()]
+    snapshot, _, identity = _world(read_world(work_id, episode), episode)
+    characters, bodies = _characters(snapshot, identity)
+    cast = [{'id': c.id, 'name': c.title} for c in characters.values()]
     if not cast:
         raise SimulationFailure(409, NO_CHARACTERS)
     try:
@@ -85,6 +103,7 @@ def plan(request: str, history: list[str], target: dict | None) -> SimulationPla
         raise SimulationFailure(502, BAD_PLAN) from None
     if not set(drafted.characterIds) <= {c['id'] for c in cast}:
         raise SimulationFailure(502, BAD_PLAN)
+    _one_person_each(drafted.characterIds, bodies)
     return drafted
 
 
@@ -96,8 +115,11 @@ def plan_from_form(form: SimulationPlan, target: dict | None) -> SimulationPlan:
     if gaps := form.gaps():
         raise SimulationFailure(422, f'시뮬레이션 설정에 {", ".join(GAP_LABELS[g] for g in gaps)}이(가) 빠졌어요.')
     work_id, episode = _target(target)
-    if not set(form.characterIds) <= set(_characters(_world(read_world(work_id, episode), episode)[0])):
+    snapshot, _, identity = _world(read_world(work_id, episode), episode)
+    characters, bodies = _characters(snapshot, identity)
+    if not set(form.characterIds) <= set(characters):
         raise SimulationFailure(422, NOT_IN_WORLD)
+    _one_person_each(form.characterIds, bodies)
     return form
 
 
@@ -116,6 +138,7 @@ class World:
     characters: dict[str, Card]
     manuscript: list[Excerpt]
     notice: str | None = None
+    bodies: dict[str, str] = field(default_factory=dict)  # 「동일 인물」: 다른 이름 카드 id → 본체 카드 id
 
 
 def load_world(target: dict | None, request: str, scope: dict | None) -> World:
@@ -128,14 +151,15 @@ def load_world(target: dict | None, request: str, scope: dict | None) -> World:
     """
     work_id, episode = _target(target)
     read = read_world(work_id, episode)
-    snapshot, style = _world(read, episode)
+    snapshot, style, identity = _world(read, episode)
     manuscript, notice = [], None
     if scope:
         try:
             manuscript = retrieval.retrieve(RetrievalScope.model_validate(scope), request).excerpts
         except RetrievalUnavailable:
             notice = NO_EXCERPTS
-    return World(episode, read, snapshot, style, _characters(snapshot), manuscript, notice)
+    characters, bodies = _characters(snapshot, identity)
+    return World(episode, read, snapshot, style, characters, manuscript, notice, bodies)
 
 
 @dataclass
@@ -167,13 +191,15 @@ class SceneContext:
         return [self.step(scene) if s['feature'] == 'character_simulation' else s for s in self.steps]
 
 
-def _world(read: dict, episode: int) -> tuple[WorldSnapshot, list[dict]]:
-    """세계관 스냅샷과 나레이터 문체 지침. 제목이 '나레이터'로 시작하는 카드는 유형과 상관없이 문체 지침이라 스냅샷에서 뺀다.
+def _world(read: dict, episode: int) -> tuple[WorldSnapshot, list[dict], list[Relation]]:
+    """세계관 스냅샷(기준 회차 시점 관계뿐)과 나레이터 문체 지침, 한 사람으로 묶는 데만 쓰는 최신 시점의 「동일 인물」 관계.
+    제목이 '나레이터'로 시작하는 카드는 유형과 상관없이 문체 지침이라 스냅샷에서 뺀다.
 
     인물 카드면 IDENTITY와 SOUL을 함께 지침으로 쓴다. 그래서 인물로 고를 수도 없고 인물의 입력에 들어가지도 않는다.
     """
     try:
         snapshot = world_snapshot(read, episode)
+        identity = world_snapshot({**read, 'relationships': read.get('identity') or []}, episode).relations
     except ValueError:
         raise SimulationFailure(502, BAD_WORLD) from None
     narrators = {c.id: c for c in snapshot.cards if unicodedata.normalize('NFC', c.title).strip().startswith(NARRATOR_CARD)}
@@ -181,7 +207,7 @@ def _world(read: dict, episode: int) -> tuple[WorldSnapshot, list[dict]]:
              for c in narrators.values()]
     rest = snapshot.model_copy(update={'cards': [c for c in snapshot.cards if c.id not in narrators],
                                        'relations': [r for r in snapshot.relations if not {r.source, r.target} & set(narrators)]})
-    return rest, style
+    return rest, style, identity
 
 
 def _visible(snapshot: WorldSnapshot, episode: int) -> WorldSnapshot:
@@ -199,9 +225,41 @@ def _target(target: dict | None) -> tuple[str, int]:
     return target['workId'], target.get('baseEpisode') or target['episode']
 
 
-def _characters(snapshot: WorldSnapshot) -> dict[str, Card]:
-    """활성 인물 카드. 삭제 카드·모양이 어긋난 characterDocs는 world_snapshot이 이미 걸러 냈다."""
-    return {c.id: c for c in snapshot.cards if c.cardType == 'character'}
+def _characters(snapshot: WorldSnapshot, identity: list[Relation]) -> tuple[dict[str, Card], dict[str, str]]:
+    """활성 인물 카드와 「동일 인물」(다른 이름 카드 id → 본체 카드 id). 삭제 카드·모양이 어긋난 characterDocs는 world_snapshot이 이미 걸러 냈다.
+
+    다른 이름 카드는 이름과 본문(IDENTITY)이 자기 것이고 SOUL·GOAL·회차 기억은 본체 카드의 것이다(#485). 그러니 작가가 어느 쪽을 골라도 그 카드의 이름으로,
+    본체의 문서로 연기한다. 관계를 기록하지 않은 두 카드는 두 사람이다.
+    """
+    people = {c.id: c for c in snapshot.cards if c.cardType == 'character'}
+    bodies = _bodies(identity, {c.id for c in snapshot.cards}, people)
+    return {i: c.model_copy(update=people[bodies[i]].model_dump(include={'soul', 'goal', 'episodes'})) if i in bodies else c
+            for i, c in people.items()}, bodies
+
+
+def _bodies(identity: list[Relation], known: set[str], people: dict[str, Card]) -> dict[str, str]:
+    """최신 시점의 「동일 인물」 관계(다른 이름 카드 → 본체 카드)로 묶는다. 부정(denied)은 이은 것이 아니고, 스냅샷에서 뺀 카드(나레이터 카드)에 닿는 관계는 없던 것으로 본다.
+
+    서버가 저장하지 않는 모양(인물이 아닌 카드, 방향 없음, 다른 이름 카드에 본체가 둘, 본체가 다시 다른 이름인 사슬·순환)이 오면 한 사람으로 묶을 수 없어
+    고쳐 쓰지 않고 실패한다. 서버는 저장 회차 시점만 확인하므로 뒤 회차에 이은 관계와의 충돌이 여기서 드러날 수 있다.
+    """
+    bodies: dict[str, str] = {}
+    for r in identity:
+        if r.category != 'identity' or r.polarity == 'denied' or not {r.source, r.target} <= known:
+            continue
+        if r.direction != 'directed' or not {r.source, r.target} <= set(people) or r.source in bodies:
+            raise SimulationFailure(409, BAD_IDENTITY)
+        bodies[r.source] = r.target
+    if any(body in bodies for body in bodies.values()):
+        raise SimulationFailure(409, BAD_IDENTITY)
+    return bodies
+
+
+def _one_person_each(ids: list[str], bodies: dict[str, str]) -> None:
+    """같은 사람의 카드를 두 장 고르면 거절한다(#485). 한 사람이 자기와 말하는 장면이 되기 때문이다."""
+    people = [bodies.get(i, i) for i in dict.fromkeys(ids)]
+    if len(set(people)) != len(people):
+        raise SimulationFailure(422, SAME_PERSON)
 
 
 # --- 장면 상태(순수 함수) ----------------------------------------------------------------------------------------------
@@ -217,6 +275,7 @@ def check_plan(plan: SimulationPlan, world: World) -> None:
     """계획이 끝까지 정해졌고 인물이 지금 세계관의 활성 인물 카드인지 확인한다. 세계관은 요청마다 다시 읽으므로 그 사이 바뀔 수 있다."""
     if plan.gaps() or not set(plan.characterIds) <= set(world.characters):
         raise SimulationFailure(422, INVALID_PLAN)
+    _one_person_each(plan.characterIds, world.bodies)
 
 
 def current_beat(result: SimulationResult) -> Beat | None:
@@ -353,10 +412,16 @@ def _memory_ref(card: Card, number: int) -> str:
     return f'card:{card.id}#ep{number:02d}'
 
 
-def _docs(card: Card, episode: int) -> tuple[list[dict], list[dict]]:
-    """그 인물의 문서를 (기준 회차 이하라 아는 것, 아직 오지 않은 회차라 모르는 미래 기억)으로 나눈다. 빈 문서는 뺀다."""
+def _docs(card: Card, episode: int, body: Card | None = None) -> tuple[list[dict], list[dict]]:
+    """그 인물의 문서를 (기준 회차 이하라 아는 것, 아직 오지 않은 회차라 모르는 미래 기억)으로 나눈다. 빈 문서는 뺀다.
+
+    [body]는 [card]가 가면 카드일 때의 본체 카드다(#485, 사용자 결정): 본체 IDENTITY에 가면 카드의 IDENTITY(그 이름으로 행세할 때의 모습)를 더한다.
+    본체 카드를 골랐으면 본체 문서만 쓴다. SOUL·GOAL·회차 기억은 [card]에 이미 본체의 것이 들어 있다(_characters).
+    """
     memories = sorted(card.episodes.items())
-    known = [(f'card:{card.id}#identity', '정체(IDENTITY)', card.text), (f'card:{card.id}#soul', '말투·사고(SOUL)', card.soul),
+    identity = ([(f'card:{body.id}#identity', '정체(IDENTITY)', body.text), (f'card:{card.id}#identity', '이 이름으로 행세할 때의 모습(IDENTITY)', card.text)]
+                if body else [(f'card:{card.id}#identity', '정체(IDENTITY)', card.text)])
+    known = [*identity, (f'card:{card.id}#soul', '말투·사고(SOUL)', card.soul),
              (f'card:{card.id}#goal', '목표(GOAL)', card.goal),
              *((_memory_ref(card, n), f'{n}회차 기억', t) for n, t in memories if n <= episode)]
     future = [(_memory_ref(card, n), f'{n}회차 기억', t) for n, t in memories if n > episode]
@@ -370,27 +435,25 @@ def _private(card: Card) -> list[dict]:
     return [{**_doc(*d), 'owner': card.title} for d in docs if d[2].strip()]
 
 
-def _relations(snapshot: WorldSnapshot, read: dict, character_id: str) -> list[dict]:
-    """기준 회차 시점의 관계 중 그 인물이 끝점인 것(삭제·끝점 없는 관계는 스냅샷이 이미 뺐다).
+def _relations(snapshot: WorldSnapshot, person: set[str]) -> list[dict]:
+    """기준 회차 시점의 관계 중 그 사람의 카드(「동일 인물」이면 이어진 카드들)가 끝점인 것(삭제·끝점 없는 관계는 스냅샷이 이미 뺐다).
+    같은 사람의 두 카드 사이의 관계(identity)는 관계 문서가 아니라 한 사람이라는 뜻이라 넣지 않는다.
 
     상대 카드가 기준 회차에 아직 공개되지 않았으면 뺀다. 관계 문장에 상대 제목이 드러나기 때문이며 recall의 인물 필터와 같은 규칙이다.
-
-    ponytail: WorldSnapshot의 관계에는 설명(body)과 부정(polarity=denied)이 없어 응답 원본에서 id로 찾아 읽는다.
-    스냅샷에 두 필드가 생기면 이 조회를 지운다.
+    설명(body)과 부정 여부는 스냅샷의 것이다: 응답 원본이 아니라 스냅샷에서 읽어야 본문 링크(DEC-53)가 글자로 벗겨진 채 인물 입력에 든다.
     """
     cards = {c.id: c for c in snapshot.cards}
-    raw = {r.get('id'): r for r in read.get('relationships') or []}
     items = []
     for r in snapshot.relations:
-        if character_id not in (r.source, r.target):
+        mine = {r.source, r.target} & person
+        if not mine or len(mine) == 2:
             continue
-        other = cards[r.target if r.source == character_id else r.source]
+        other = cards[r.target if r.source in mine else r.source]
         if other.revealFromEpisode is not None and other.revealFromEpisode > snapshot.episode:
             continue
-        extra = raw.get(r.id) or {}
         arrow = '→' if r.direction == 'directed' else '↔'
-        said = f'{cards[r.source].title} {arrow} {cards[r.target].title}: {r.label}{" 아님" if extra.get("polarity") == "denied" else ""}'
-        items.append(_doc(f'relation:{r.id}', '관계', f'{said} — {extra["body"]}' if extra.get('body') else said))
+        said = f'{cards[r.source].title} {arrow} {cards[r.target].title}: {r.label}{" 아님" if r.polarity == "denied" else ""}'
+        items.append(_doc(f'relation:{r.id}', '관계', f'{said} — {r.body}' if r.body else said))
     return items
 
 
@@ -414,8 +477,11 @@ def character_view(plan: SimulationPlan, world: World, scene: Scene, actor: Card
     """
     direction, seen = _direction(plan, current_beat(scene.result)), seen_lines(scene)
     recalled = novelbrain.recall(world.snapshot, actor.id, world.episode, _query(direction, seen), stage=3, manuscript=world.manuscript)
-    own, future = _docs(actor, world.episode)
-    mine = [*own, *_relations(world.snapshot, world.read, actor.id)]
+    own, future = _docs(actor, world.episode, world.characters.get(world.bodies.get(actor.id, '')))
+    # 자기 관계는 같은 사람(「동일 인물」: 본체와 그 다른 이름들)의 모든 카드가 끝점인 관계를 합친 것이다. 이름은 고른 카드의 것만 쓴다(self·present).
+    # ponytail: recall은 고른 카드 기준이라 다른 쪽 카드에만 이어진 사건·물건 카드의 본문은 Gap으로 남는다(관계 문장은 위에서 합쳐 넣는다). 필요하면 filter_for_character에 같은 사람의 id 집합을 넘긴다.
+    body = world.bodies.get(actor.id, actor.id)
+    mine = [*own, *_relations(world.snapshot, {body, *(i for i, b in world.bodies.items() if b == body)})]
     taken = {d['ref'] for d in mine}
     known = [*mine, *({'ref': i.ref, 'label': f'조회({i.source})', 'text': i.text} for i in recalled.items if i.ref not in taken)]
     cast = [world.characters[i] for i in plan.characterIds]

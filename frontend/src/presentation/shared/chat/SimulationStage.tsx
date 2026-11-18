@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type ReactNode, type Ref } from 'react'
 
 import {
-  beatLabel, checkKindLabel, checkSummary, evidenceLabel, monologueOwner, SIM_BEATS_MAX, SIM_CHARACTERS_MAX, SIM_PREMISE_MAX,
+  beatLabel, checkKindLabel, checkSummary, evidenceLabel, monologueOwner, samePersonChosen, SIM_BEATS_MAX, SIM_CHARACTERS_MAX, SIM_PREMISE_MAX,
   type CharacterSimulation, type SimulationStart, type SimulationTurn,
 } from '../../../domain/entities/characterSimulation'
 import { SCENE_NOTE_MAX, SCENE_TEXT_MAX } from '../../../domain/entities/writingChat'
@@ -68,8 +68,8 @@ function StartFields({ stage, data, planEpisode, plotLink, startBlocker = '' }: 
       <legend>참여 인물 (1~{SIM_CHARACTERS_MAX}명)</legend>
       {data.characters.length
         ? <ul className="stage-people">{data.characters.map((character) => <li key={character.id}>
-          <label><input type="checkbox" checked={ids.includes(character.id)} disabled={!ids.includes(character.id) && ids.length >= SIM_CHARACTERS_MAX}
-            onChange={() => toggle(character.id)} />{character.name}</label>
+          <label><input type="checkbox" checked={ids.includes(character.id)} disabled={(!ids.includes(character.id) && ids.length >= SIM_CHARACTERS_MAX) || samePersonChosen(data.characters, ids, character)}
+            onChange={() => toggle(character.id)} />{character.name}{samePersonChosen(data.characters, ids, character) && <small className="chat-note"> 같은 인물을 이미 골랐어요</small>}</label>
         </li>)}</ul>
         : data.linked
           ? <p className="chat-note">이 작품에 연결된 세계관에 인물 카드가 없어요. 세계관에 인물을 먼저 만들어 주세요.</p>

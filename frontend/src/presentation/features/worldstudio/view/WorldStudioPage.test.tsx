@@ -3497,3 +3497,41 @@ it('이미 이미지가 있는 카드의 안내는 화면에서는 숨기고 입
   const empty = document.getElementById(imageInput().getAttribute('aria-describedby') ?? '')!
   expect([empty.textContent, empty.classList.contains('sr-only'), !!empty.closest('.world-card-tile.empty')]).toEqual(['PNG·JPEG·WebP, 5 MiB 이하', false, true])
 })
+
+it('본문 편집기는 같은 세계관의 다른 카드를 설정 링크 대상으로 받고(편집 중인 카드는 뺀다) 고른 카드의 편집 화면을 열며, 인물의 SOUL 문서 편집기에는 설정 링크가 없다 (DEC-53)', async () => {
+  const [garam, narae, harbor] = [person('가람', '본문'), person('나래', '본문'), place('항구')]
+  narae.aliases = ['서약사']
+  await show([garam, narae, harbor])
+  fakeEditor.cardLinks.clear()
+  openCard('가람 인물')
+  expect(fakeEditor.cardLinks.get('IDENTITY.md')!.cards.map((c) => [c.title, c.type, c.aliases])).toEqual([['나래', '인물', ['서약사']], ['항구', '장소', undefined]])
+  pickDoc('SOUL.md 정리 필요')
+  expect(fakeEditor.cardLinks.get('SOUL.md')).toBeUndefined() // 설정 링크는 카드 본문(IDENTITY.md)에만 있다
+  pickDoc('IDENTITY.md')
+  act(() => fakeEditor.cardLinks.get('IDENTITY.md')!.open(harbor.item.id)) // 미리보기의 링크를 누른 것처럼
+  expect(editor().getByRole<HTMLInputElement>('textbox', { name: '설정 이름' }).value).toBe('항구')
+})
+
+it('이른 카드의 글에 더 늦게 공개되는 카드의 이름이 나오면 게시판에 공개 순서 확인이 뜨고 편집 화면이 어느 글에 어떤 이름인지 알리며 저장은 막지 않는다 (DEC-53)', async () => {
+  const hall = { ...place('궁궐'), revealFromEpisode: 1 }
+  hall.item.text = '승상이 사는 곳.'
+  const minister = { ...place('승상'), revealFromEpisode: 5 }
+  const { saveStudio } = await show([hall, minister])
+  expect(todos('궁궐')).toEqual(['공개 순서 확인'])
+  expect(todos('승상')).toEqual([])
+  openCard('궁궐 장소')
+  const panel = () => within(editor().getByRole('region', { name: '공개 순서 확인' }))
+  expect(panel().getByRole('listitem').textContent).toBe('본문에 ‘승상’이(가) 나와요. 승상 카드는 5화부터 공개인데 이 글은 1화부터 독자에게 보여요.')
+  fireEvent.change(editor().getByRole('textbox', { name: '설명' }), { target: { value: '승상이 사는 곳!' } }) // 이름이 그대로 있어 경고는 남는다
+  expect(panel().getByRole('listitem').textContent).toContain('‘승상’')
+  backToBoard()
+  expect(saveBar().getByRole<HTMLButtonElement>('button', { name: '세계관 저장' }).disabled).toBe(false) // 알리기만 하고 저장을 막지 않는다
+  saveWorld()
+  await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
+  openCard('궁궐 장소')
+  fireEvent.click(panel().getByRole('button', { name: '승상' })) // 이름이 나온 카드로 옮겨 간다
+  expect(editor().getByRole<HTMLInputElement>('textbox', { name: '설정 이름' }).value).toBe('승상')
+  expect(editor().queryByRole('region', { name: '공개 순서 확인' })).toBeNull() // 그 카드의 글에는 경고가 없다
+  fireEvent.change(editor().getByRole('textbox', { name: '설명' }), { target: { value: '승상은 궁궐에 산다.' } }) // 늦은 카드가 이른 카드의 이름을 말하는 것은 괜찮다
+  expect(editor().queryByRole('region', { name: '공개 순서 확인' })).toBeNull()
+})

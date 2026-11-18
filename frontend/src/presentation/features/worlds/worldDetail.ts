@@ -1,3 +1,4 @@
+import { cardLinks } from '../../../domain/entities/cardLinks'
 import type { PublicWorld, PublicWorldRelationship } from '../../../domain/entities/publicWorld'
 import { cardTypes, type CardType } from '../../../domain/entities/studioCards'
 import { plainCardText } from '../../shared/cardSections'
@@ -13,6 +14,7 @@ import { pageItems } from '../../shared/pageItems'
  * 공개 세계관 상세 API(`GET /api/v1/public/world-studios/{id}`)의 카드와 현재 관계(양 끝 카드 id)를 그래프·카드 페이지로 바꾼다. 카드 페이지 주소의 cardId는 카드 id다.
  * 관계 중 인물↔인물은 인물관계도(라벨이 관계)가, 그 밖은 설정 연관이 된다. 관계 상태가 `unavailable`이면 서버가 관계를 비워 주므로 연결이 없는 그래프가 된다(화면이 따로 알린다).
  * 단방향 관계만 쓴 쪽이 '연관', 반대쪽이 '가리키는 설정'이다. 대칭·미상은 양쪽 모두 '연관'이다. 같은 카드 쌍의 관계도 ID마다 보존한다.
+ * 카드 본문의 링크(`[글자](card:<uuid>)`, DEC-53)로 이 카드를 가리킨 카드도 '가리키는 설정'이다(서버가 보이는 카드로만 링크를 남기고, 화면이 받은 본문으로 계산한다).
  */
 
 export const DETAIL_TABS = [['graph', '설정 그래프'], ['people', '인물관계도'], ['book', '설정집'], ['overview', '개요']] as const
@@ -46,6 +48,28 @@ export function cardPairs(world: PublicWorld): CardPair[] {
     pairs.push({ id, a, b, label: label || undefined, ...(category !== undefined && { category }), ...(direction !== undefined && { direction }), ...(body !== undefined && { body }), ...(polarity !== undefined && { polarity }) })
   }
   return pairs
+}
+
+/**
+ * 본문 링크로 이어진 카드 쌍 `[건 카드, 가리킨 카드]`의 위치다. 응답 안의 카드끼리만 잇고(서버가 보이지 않는 대상의 링크는 글자로 바꿔 보냈다), 없는 대상·자기 자신·같은 카드를 여러 번 건 것은 한 번만 센다.
+ * 관계(`pairs`)로 이미 이어진 두 카드는 관계 쪽이 그 연결을 보이므로 뺀다(연결 수를 두 번 세지 않는다).
+ */
+function linkPairs(world: PublicWorld, pairs: readonly CardPair[]): [from: number, to: number][] {
+  const n = world.cards.length
+  const at = new Map(world.cards.map((c, i) => [c.id, i]))
+  const related = new Set(pairs.map(({ a, b }) => Math.min(a, b) * n + Math.max(a, b)))
+  const seen = new Set<number>()
+  const found: [number, number][] = []
+  world.cards.forEach(({ text }, from) => {
+    if (!text.includes('](card:')) return // 링크가 없는 본문은 훑지 않는다
+    for (const { id } of cardLinks(text)) {
+      const to = at.get(id)
+      if (to === undefined || to === from || related.has(Math.min(from, to) * n + Math.max(from, to)) || seen.has(from * n + to)) continue
+      seen.add(from * n + to)
+      found.push([from, to])
+    }
+  })
+  return found
 }
 
 type Pos = { x?: number; y?: number; vx?: number; vy?: number; fx?: number; fy?: number }
@@ -152,11 +176,15 @@ function pageAt(world: PublicWorld, me: number): CardPage {
   const person = kind === '인물'
   const inPerson = (i: number) => person && CARD_KIND[world.cards[i].cardType] === '인물'
   const first = new Set<number>()
-  const touching = cardPairs(world)
+  const pairs = cardPairs(world)
+  const touching = pairs
     .flatMap(({ id, a, b, label, category, direction, body, polarity }) => (a === me ? [{ id, i: b, label, category, direction, body, polarity, out: true }] : b === me ? [{ id, i: a, label, category, direction, body, polarity, out: false }] : []))
     .filter(({ i }) => { if (first.has(i)) return false; first.add(i); return true })
     .sort((x, y) => order.indexOf(x.i) - order.indexOf(y.i))
   const at = order.indexOf(me)
+  // 본문 링크로 이 카드를 가리킨 카드(관계로 이미 이어진 카드는 위 touching이 보인다)를 설정집 순서로
+  const rank = new Map(order.map((index, k) => [index, k]))
+  const linkedBy = linkPairs(world, pairs).filter(([, to]) => to === me).map(([from]) => from).sort((x, y) => rank.get(x)! - rank.get(y)!)
   const positions = new Map(world.cards.map((card, index) => [card.id, index]))
   const seen = new Set<number>(), duplicates = new Set<number>(), additionalRelations: CardRef[] = []
   for (const relation of world.relationships) {
@@ -172,7 +200,7 @@ function pageAt(world: PublicWorld, me: number): CardPage {
     affiliations: refs(touching.filter(({ i }) => person && world.cards[i].cardType === 'organization')),
     relations: refs(touching.filter(({ i }) => inPerson(i))),
     links: refs(touching.filter(({ i, out, direction }) => !inPerson(i) && (out || direction !== 'directed'))),
-    backlinks: refs(touching.filter(({ i, out, direction }) => !inPerson(i) && !out && direction === 'directed')),
+    backlinks: [...refs(touching.filter(({ i, out, direction }) => !inPerson(i) && !out && direction === 'directed')), ...linkedBy.map((i) => cardRef(world, i, '본문 링크'))],
     additionalRelations,
     sameType: order.filter((i) => i !== me && CARD_KIND[world.cards[i].cardType] === kind).map((i) => cardRef(world, i)),
     prev: at > 0 ? cardRef(world, order[at - 1]) : undefined,
@@ -198,10 +226,12 @@ export type BookRow = BoardRow
  */
 function bookEntries(world: PublicWorld): BoardEntry[] {
   const connections = new Uint32Array(world.cards.length), people = new Uint32Array(world.cards.length)
-  for (const { a, b } of cardPairs(world)) {
+  const pairs = cardPairs(world)
+  for (const { a, b } of pairs) {
     connections[a]++; connections[b]++
     if (world.cards[a].cardType === 'character' && world.cards[b].cardType === 'character') { people[a]++; people[b]++ }
   }
+  for (const [, to] of linkPairs(world, pairs)) connections[to]++ // 본문 링크: 가리킨 카드의 '이 카드를 가리키는 설정'이라 그 카드에만 센다
   return bookOrder(world).map((i) => {
     const { id, title, text, cardType } = world.cards[i]
     const kind = CARD_KIND[cardType]

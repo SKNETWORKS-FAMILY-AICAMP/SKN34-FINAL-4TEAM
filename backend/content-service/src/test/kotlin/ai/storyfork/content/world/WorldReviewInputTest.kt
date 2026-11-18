@@ -79,6 +79,17 @@ class WorldReviewInputTest {
         assertNull(request(card("규칙", type = "rule", meta = docs())).cards.single().characterDocs)
     }
 
+    @Test fun `card links in the body and in character documents are sent as plain text whether or not the target exists`() {
+        val link = "[승상](card:${UUID.randomUUID()})"
+        val sent = request(card("길동", "앞 $link 뒤 [없는](card:${UUID.randomUUID()})", "character",
+            docs(soul = "말투 $link", goal = "목표 $link", episodes = mapOf("0" to "기억 $link")))).cards.single()
+        assertEquals("앞 승상 뒤 없는", sent.body)
+        assertEquals(WorldReviewAiCharacterDocs("말투 승상", "목표 승상", mapOf("0" to "기억 승상")), sent.characterDocs)
+        // 링크의 id는 4,000자 한도에 들지 않는다: 글자로 벗긴 길이로 센다.
+        val long = card("링크로 길어진 카드", "가".repeat(3990) + "[가](card:${UUID.randomUUID()})")
+        assertEquals(listOf("링크로 길어진 카드"), request(long).cards.map { it.title })
+    }
+
     @Test fun `relationships keep only active ones between sent cards and read a missing polarity as asserted`() {
         val a = card("갑", type = "character")
         val b = card("을", type = "character")

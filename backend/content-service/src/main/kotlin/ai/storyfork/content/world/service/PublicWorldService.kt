@@ -14,6 +14,7 @@ import ai.storyfork.content.world.domain.WORLD_GENRES
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.domain.cardImageId
 import ai.storyfork.content.world.domain.coverStorage
+import ai.storyfork.content.world.domain.hideCardLinks
 import ai.storyfork.content.world.domain.isListed
 import ai.storyfork.content.world.domain.matchesCard
 import ai.storyfork.content.world.domain.matchesWorld
@@ -59,8 +60,10 @@ class PublicWorldService(
 
     /** [cards]는 확정 버전의 모든 카드 버전이다. 보일 카드는 기준 회차를 안 뒤 [shownAt]이 고른다. */
     private class Snapshot(val world: StudioWorld, val revision: WorldRevision, val cards: List<SettingCardVersion>, val state: WorldRelationshipState?)
-    /** 기준 회차에 보이는 카드와 그 유효 공개 회차의 쌍이다. */
-    private class ReaderSnapshot(val cards: List<Pair<SettingCardVersion, Int>>, val state: WorldRelationshipState?, val revisionId:UUID? = null)
+    /** 기준 회차에 보이는 카드와 그 유효 공개 회차의 쌍이다. [shown]은 그 카드들의 id로, 본문 링크의 대상이 보이는지 가린다. */
+    private class ReaderSnapshot(val cards: List<Pair<SettingCardVersion, Int>>, val state: WorldRelationshipState?, val revisionId:UUID? = null) {
+        val shown = cards.map { it.first.cardId }.toSet()
+    }
     private class Listing(val page: Page<StudioWorld>, val revisions: Map<UUID, WorldRevision>, val cards: Map<UUID, List<SettingCardVersion>>, val states: Map<UUID, WorldRelationshipState>)
     /** q로 거른 세계관의 한 페이지와, 거르려고 전체 작가를 한 번에 조회한 닉네임이다(페이지 항목이 그대로 쓴다). */
     private class Matched(val page: Page<StudioWorld>, val names: Map<String, String>)
@@ -177,13 +180,14 @@ class PublicWorldService(
         val work = linked?.takeIf { it.publiclyVisible() }
         val basis = basisEpisode(linked)
         val cards = shownAt(seen.cards, basis).map { it.first }
+        val shown = cards.map { it.cardId }.toSet()
         val owner = seen.world.ownerSubject.toString()
         val names = authors(listOfNotNull(owner, work?.ownerId).distinct())
-        val relations = currentRelationships(id, seen.state, seen.revision.id, cards.map { it.cardId }.toSet(), basis)
+        val relations = currentRelationships(id, seen.state, seen.revision.id, shown, basis)
         return PublicWorldResponse(id, seen.revision.name, seen.revision.description, seen.world.genre, names.getValue(owner), seen.world.published(), seen.revision.revisionNo,
-            cards.map { PublicWorldCardResponse(it.cardId, it.fields.title, it.fields.body, it.fields.cardType, it.fields.aliases.toList(), it.fields.tags.toList(), cardImageId(it.fields.semanticMetadata)) },
+            cards.map { PublicWorldCardResponse(it.cardId, it.fields.title, hideCardLinks(it.fields.body, shown), it.fields.cardType, it.fields.aliases.toList(), it.fields.tags.toList(), cardImageId(it.fields.semanticMetadata)) },
             // 양 끝이 보이는 카드인 관계만 남았으므로 끝점은 비어 있지 않다.
-            relations.orEmpty().map(::publicRelationship),
+            relations.orEmpty().map { publicRelationship(it, shown) },
             if (relations == null) "unavailable" else "current", seen.world.coverObjectKey != null,
             work?.let { PublicWorldLinkedWorkResponse(it.id, it.title, names.getValue(it.ownerId), workImages.countByWorkIdAndEpisodeNo(it.id, 0) > 0) })
     }
@@ -207,11 +211,11 @@ class PublicWorldService(
         if (seen.cards.isEmpty()) return ReaderWorldCardsResponse(workId, worldId, upto,
             relationshipStatus=if(seen.revisionId!=null && tx { expansionPending(worldId) }) "unavailable" else "current")
         // 독자에게 보이는 기준 회차까지의 관계만 읽는다(카드와 같은 기준이라 관계 스포일러도 막힌다, DEC-51).
-        val relations = currentRelationships(worldId, seen.state, requireNotNull(seen.revisionId), seen.cards.map { it.first.cardId }.toSet(), upto)
+        val relations = currentRelationships(worldId, seen.state, requireNotNull(seen.revisionId), seen.shown, upto)
         return ReaderWorldCardsResponse(workId, worldId, upto,
-            seen.cards.map { (card, from) -> ReaderWorldCardResponse(card.cardId, card.fields.title, card.fields.body, card.fields.cardType, card.fields.aliases.toList(), card.fields.tags.toList(), from, cardImageId(card.fields.semanticMetadata)) },
+            seen.cards.map { (card, from) -> ReaderWorldCardResponse(card.cardId, card.fields.title, hideCardLinks(card.fields.body, seen.shown), card.fields.cardType, card.fields.aliases.toList(), card.fields.tags.toList(), from, cardImageId(card.fields.semanticMetadata)) },
             // 양 끝이 독자에게 보이는 카드인 관계만 남았으므로 끝점은 비어 있지 않다.
-            relations.orEmpty().map(::publicRelationship),
+            relations.orEmpty().map { publicRelationship(it, seen.shown) },
             if (relations == null) "unavailable" else "current")
     }
 
@@ -223,10 +227,10 @@ class PublicWorldService(
     fun inheritedWorld(workId: String, worldId: UUID, upto: Int): InheritedWorldResponse {
         val seen = tx { readerSnapshot(worldId, upto) }
         if (seen.cards.isEmpty()) return InheritedWorldResponse(workId, worldId, upto)
-        val relations = currentRelationships(worldId, seen.state, requireNotNull(seen.revisionId), seen.cards.map { it.first.cardId }.toSet(), upto)
+        val relations = currentRelationships(worldId, seen.state, requireNotNull(seen.revisionId), seen.shown, upto)
         return InheritedWorldResponse(workId, worldId, upto,
             seen.cards.map { (card, from) ->
-                CardPayload(card.cardId, card.fields.title, card.fields.body, card.fields.cardType, card.fields.areaCode, card.fields.classification,
+                CardPayload(card.cardId, card.fields.title, hideCardLinks(card.fields.body, seen.shown), card.fields.cardType, card.fields.areaCode, card.fields.classification,
                     card.fields.aliases.toList(), card.fields.tags.toList(), mapOf("revealFromEpisode" to from), "public", "active")
             },
             relations.orEmpty().map { it.copy(body = "", semanticMetadata = emptyMap()) },
@@ -284,8 +288,9 @@ class PublicWorldService(
     /** Neo4j 관계 중 [episode]화 시점(null이면 최신)의 것으로 양 끝이 [cardIds](보이는 카드)에 있는 것이다. 미전환·미완료·토큰 불일치·조회 실패는 null이며 호출자가 unavailable로 알린다. */
     private fun expansionPending(worldId:UUID)=expandedSeeds.findById(worldId).orElse(null)?.completed==false
 
-    private fun publicRelationship(it:RelationshipPayload)=PublicWorldRelationshipResponse(it.id,it.sourceCardId!!,it.targetCardId!!,
-        it.label,it.category,it.body,it.direction,it.polarity)
+    /** 관계 본문의 링크도 카드 본문과 같은 함수로 치환한다([shown]은 응답에 실리는 보이는 카드). */
+    private fun publicRelationship(it:RelationshipPayload, shown:Set<UUID>)=PublicWorldRelationshipResponse(it.id,it.sourceCardId!!,it.targetCardId!!,
+        it.label,it.category,hideCardLinks(it.body,shown),it.direction,it.polarity)
 
     private fun currentRelationships(worldId: UUID, state: WorldRelationshipState?, revisionId:UUID, cardIds: Set<UUID>, episode: Int? = null): List<RelationshipPayload>? {
         if (state == null || !state.completed) return null

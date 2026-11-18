@@ -92,6 +92,10 @@ describe('plainCardText', () => {
     expect(plainCardText('```js\nconst a = 1\n```\n| 이름 | 나이 |\n| --- | :-: |\n| 하린 | 19 |')).toBe('const a = 1 이름 나이 하린 19')
   })
 
+  it('설정 링크(DEC-53)는 글자만 남겨 요약에 카드 id가 보이지 않는다', () => {
+    expect(plainCardText('앞 [승상](card:aaaaaaaa-2222-3333-4444-555555555555) 뒤 [갑](card:BBBBBBBB-2222-3333-4444-555555555555)')).toBe('앞 승상 뒤 갑')
+  })
+
   it('기호가 아닌 글자는 건드리지 않는다', () => {
     expect(plainCardText('2 * 3 = 6, snake_case_name, 1~3화, a|b, 100%')).toBe('2 * 3 = 6, snake_case_name, 1~3화, a|b, 100%')
     expect(plainCardText('  달을 끄는\n\n신  ')).toBe('달을 끄는 신')
