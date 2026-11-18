@@ -59,6 +59,8 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   useWritingPlanNavigation(vm.mayLeave,vm.dirty||plans.dirty,vm.busy||vm.saving||plans.busy)
   const editor=useRef<ManuscriptEditorHandle>(null)
   const main=useRef<HTMLElement>(null)
+  // 재시도를 누르면 버튼이 있던 오류 상자가 사라지므로, 눌렀을 때만 남아 있는 상단 저장 상태 줄이 초점을 이어받는다.
+  const statusLine=useRef<HTMLSpanElement>(null)
   // 좁은 화면(900px 이하)은 문서가 스크롤하고 상단 바가 화면 위에 붙어 있다. 버튼이 줄바꿈되면 높이가 달라지므로,
   // 본문 툴바가 그 바로 아래에 붙도록 실제 높이를 CSS 변수로 알린다(쓰는 곳은 writing.css의 --writing-toolbar-top).
   const bar=useRef<HTMLElement>(null)
@@ -167,6 +169,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const [deleting,setDeleting]=useState(0)
   const deleteWhenSelected=useEffectEvent(()=>void deleteActive())
   useEffect(()=>{if(deleting&&active?.number===deleting){setDeleting(0);deleteWhenSelected()}},[deleting,active?.number])
+  const canRetry=!!active&&!active.inherited&&vm.dirty
   const status=writingStatus({ready:vm.ready,busy:vm.busy,error:vm.error,dirty:vm.dirty,active:!!active,hasDraft:active?.hasDraft!==false,inherited:active?.inherited??false,saving:vm.saving,saveError:vm.saveError,savedAt:active?.updatedAt,version:active?.versions.length})
   const openVersions=()=>{setRights(false);setHistoryView('versions');setVersionsOpen(true)}
   const openSettingHistory=()=>{setHistoryView('settings');setVersionsOpen(true)}
@@ -180,7 +183,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         <Go className="back rback" to="/lib?tab=write"><BackChev />내가 쓰는 소설</Go>
         <h1 className="t">집필실</h1>
         {/* 완료 안내는 늘 있는 이 줄에 이어 적는다: 알림 문단이 생기고 사라지며 아래 3단을 밀지 않고, 스크린리더도 저장 상태와 함께 한 번만 읽는다. */}
-        <span className="st" role="status" aria-live="polite">{status}{vm.notice&&<span className="writing-notice"> · {vm.notice}</span>}</span>
+        <span ref={statusLine} tabIndex={-1} className="st" role="status" aria-live="polite">{status}{vm.notice&&<span className="writing-notice"> · {vm.notice}</span>}</span>
       </div>
       <div className="writing-bar writing-bar-end">
         <div className="svw writing-mode" role="group" aria-label="집필 모드">
@@ -202,7 +205,8 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         </PopMenu>
       </div>
     </header>
-    {vm.error&&<div className="ep-alert" role="alert">{vm.error} {active&&'저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.'} {active&&!active.inherited&&vm.dirty&&<button type="button" className="btn sm" disabled={vm.busy} onClick={vm.retrySave}>저장 다시 시도</button>}{vm.expired&&<> <Go to="/login">로그인</Go></>}</div>}
+    {/* 다시 시도할 입력이 있으면 복사 안내 대신 재시도 버튼을 둔다. 재시도는 버전이 아니라 초안만 저장하므로 버튼 이름에 대상을 적는다. 버튼과 로그인 링크는 한 묶음이다. */}
+    {vm.error&&<div className="ep-alert" role="alert">{vm.error} {active&&!canRetry&&'저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.'}{(canRetry||vm.expired)&&<span className="ep-alert-actions">{canRetry&&<button type="button" className="btn sm" disabled={vm.busy} onClick={()=>{vm.retrySave();statusLine.current?.focus()}}>초안 저장 다시 시도</button>}{vm.expired&&<Go to="/login">로그인</Go>}</span>}</div>}
     <main ref={main} id="main" tabIndex={-1} className="studio-workspace">{!vm.ready?<p className="writing-message">회차를 불러오고 있어요…</p>:vm.error&&!active&&!vm.episodes.length?null:<>
     <div className={`sgrid writing-grid${mode==='advanced'?' writing-with-plans':''}`}>
       <div className="writing-rail">

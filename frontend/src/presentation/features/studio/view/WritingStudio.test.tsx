@@ -16,6 +16,7 @@ const model = vi.hoisted(() => ({
   addImage: vi.fn().mockResolvedValue(true), orderLookup: null as null | { status: 'loading' } | { status: 'failed'; message: string } | { status: 'ready'; scope: { number: number; candidateNumbers: number[]; reasons: string[]; executable: false } },
   checkOrder: vi.fn(), deleteDraft: vi.fn(),
   edit: vi.fn(), save: vi.fn(), reload: vi.fn(), deleteEpisode: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true), clearNotice: vi.fn(),
+  retrySave: vi.fn(), expired: false,
   create: vi.fn().mockResolvedValue(true), select: vi.fn<(e: { number: number }) => boolean>(() => true),
   cancel: vi.fn(), loadPublicationHistory: vi.fn(), historyLoading: false, historyError: '', publicationHistory: null as null | unknown[],
   changeVisibility: vi.fn().mockResolvedValue(true),
@@ -42,7 +43,7 @@ const comparisonVersions = [
   { ...originalActive.versions[0], id: 'v2', body: '변경 원고' },
   { ...originalActive.versions[0], id: 'v3', body: '추가 원고' },
 ]
-afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllEnvs(); model.active = originalActive; model.draft = originalDraft; model.deleteBlocker = ''; model.orderLookup = null; model.episodes = []; model.busy = false; model.dirty = false; model.editingLocked = false; model.publicationHistory = null; model.error = ''; model.notice = ''; fakeEditor.suspend = false })
+afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllEnvs(); model.active = originalActive; model.draft = originalDraft; model.deleteBlocker = ''; model.orderLookup = null; model.episodes = []; model.busy = false; model.dirty = false; model.editingLocked = false; model.publicationHistory = null; model.error = ''; model.notice = ''; model.expired = false; fakeEditor.suspend = false })
 const Where = () => { const l = useLocation(); return <p hidden data-testid="where" data-nav={useNavigationType()}>{l.pathname + l.search}</p> }
 const where = () => screen.getByTestId('where').textContent
 const navigation = () => screen.getByTestId('where').dataset.nav
@@ -1194,6 +1195,54 @@ it('오류는 상단 바 바로 아래의 오류 상자로 알리고 원고를 �
   expect(alert.textContent?.trim()).toBe('동시 수정 충돌 저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.')
   expect(alert.className).toContain('ep-alert')
   expect(screen.getByRole('banner').nextElementSibling).toBe(alert)
+})
+
+// 다시 시도할 입력(미저장 변경)이 있으면 '복사해 보관' 안내와 재시도 버튼이 엇갈리지 않게 버튼만 보이고, 버튼 이름에서 버전이 아니라 초안을 저장한다는 것이 드러난다.
+it('다시 시도할 입력이 있으면 오류 상자는 복사 안내 대신 초안 저장 재시도 버튼을 보인다', () => {
+  model.error = '동시 수정 충돌'
+  model.dirty = true
+  renderStudio()
+  const alert = screen.getByRole('alert')
+  expect(alert.textContent?.trim()).toBe('동시 수정 충돌 초안 저장 다시 시도')
+  expect(within(alert).getByRole('button', { name: '초안 저장 다시 시도' })).toBeTruthy()
+})
+
+it('재시도 버튼과 로그인 링크는 한 묶음이라 넓은 오류 상자에서 양끝으로 흩어지지 않는다', () => {
+  model.error = '로그인한 뒤 다시 저장해 주세요.'
+  model.expired = true
+  model.dirty = true
+  renderStudio()
+  const alert = screen.getByRole('alert')
+  const retry = within(alert).getByRole('button', { name: '초안 저장 다시 시도' })
+  const login = within(alert).getByRole('link', { name: '로그인' })
+  expect(retry.parentElement).toBe(login.parentElement)
+  expect(retry.parentElement?.parentElement).toBe(alert)
+})
+
+// 재시도가 시작되면 오류 상자(와 그 안의 버튼)가 사라져 초점이 body로 떨어지던 문제: 눌렀을 때만 남아 있는 저장 상태 줄이 초점을 이어받는다.
+it('초안 저장 다시 시도를 누르면 사라질 오류 상자 대신 상단 저장 상태가 초점을 이어받는다', () => {
+  model.error = '오프라인'
+  model.dirty = true
+  model.retrySave.mockImplementationOnce(() => { model.error = '' })
+  const { rerender } = renderStudio()
+  const retry = screen.getByRole('button', { name: '초안 저장 다시 시도' })
+  retry.focus()
+  fireEvent.click(retry)
+  rerender(<WritingStudio id="work-id" />)
+  expect(model.retrySave).toHaveBeenCalledTimes(1)
+  expect(screen.queryByRole('alert')).toBeNull()
+  expect(document.activeElement).toBe(within(screen.getByRole('banner')).getByRole('status'))
+})
+
+it('재시도를 누르지 않았는데 오류 안내가 사라져도 초점을 저장 상태 줄로 가져오지 않는다', () => {
+  model.error = '오프라인'
+  model.dirty = true
+  const { rerender } = renderStudio()
+  const title = screen.getByRole('textbox', { name: '회차 제목' })
+  title.focus()
+  model.error = ''
+  rerender(<WritingStudio id="work-id" />)
+  expect(document.activeElement).toBe(title)
 })
 
 it('회차 설정 시트에서 보낸 요청의 실패와 완료는 시트 안에서도 알린다', () => {
