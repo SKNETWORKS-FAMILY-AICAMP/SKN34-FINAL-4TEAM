@@ -117,6 +117,25 @@ describe('로그인·라우트 보호 (L01, 목업 render() 보호 목록)', () 
     }
   })
 
+  it('캐릭터챗 목록은 비회원에게도 열려 로그인 안내 없이 목록을 보여 준다', async () => {
+    // #506: 대화는 회원 전용이지만 목록(/chat)은 누구나 본다. 목록은 공개 작품 목록과 메모리 독서 기록으로 만든다.
+    const { store } = renderApp('/chat')
+    await screen.findByRole('heading', { name: '캐릭터챗', level: 1 })
+    await screen.findByRole('navigation', { name: '작품 유형' })
+    expect(screen.getByRole('link', { name: /^성진 · / })).toBeTruthy()
+    expect(store.getState().session).toMatchObject({ role: null, next: null, loginMsg: '' })
+  })
+
+  it.each(['/chat/guunmong/' + encodeURIComponent('성진'), '/chat/guunmong'])('캐릭터챗 대화방 %s는 비회원을 안내와 함께 로그인으로 보내고, 로그인 뒤 그 대화방으로 돌려보낸다', async (path) => {
+    const { store } = renderApp(path)
+    await screen.findByRole('heading', { name: '로그인', level: 1 })
+    expect(screen.getByText('캐릭터챗은 로그인 후 이용할 수 있어요.')).toBeTruthy()
+    expect(store.getState().session.next).toBe(path)
+    submitLogin('reader@example.com')
+    await screen.findByRole('log', { name: /대화 기록/ })
+    expect(store.getState().session).toMatchObject({ role: 'user', next: null })
+  })
+
   it('관리자 화면은 관리자 로그인을 요구한다', async () => {
     const store = renderGuarded('/admin', createAppStore({ role: 'user' }))
     await screen.findByText('관리자 화면은 관리자 계정으로 로그인해야 볼 수 있어요.')
