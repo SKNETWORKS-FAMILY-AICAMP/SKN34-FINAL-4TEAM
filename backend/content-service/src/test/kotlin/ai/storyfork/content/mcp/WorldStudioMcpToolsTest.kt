@@ -235,8 +235,8 @@ class WorldStudioMcpToolsTest {
     }
 
     @Test fun `public world tools need no caller and forward their optional arguments unchanged`() {
-        `when`(publicWorlds.list(null, null, null)).thenReturn(PublicWorldPageResponse(emptyList(), 0, 24, 0))
-        `when`(publicWorlds.list("fantasy", "1", "10")).thenReturn(PublicWorldPageResponse(emptyList(), 1, 10, 0))
+        `when`(publicWorlds.list(null, null, null, null)).thenReturn(PublicWorldPageResponse(emptyList(), 0, 24, 0))
+        `when`(publicWorlds.list("fantasy", null, "1", "10")).thenReturn(PublicWorldPageResponse(emptyList(), 1, 10, 0))
         `when`(publicWorlds.detail(worldId)).thenReturn(
             PublicWorldResponse(worldId, "달빛 세계", "설명", "fantasy", "작가", "2026-11-13T00:00:00Z", 1, emptyList(), emptyList(), "current"))
 
@@ -249,14 +249,14 @@ class WorldStudioMcpToolsTest {
         assertTrue(page.text().contains("\"page\":1"), page.text())
         assertNotEquals(true, one.isError())
         assertTrue(one.text().contains("\"relationshipStatus\":\"current\""), one.text())
-        verify(publicWorlds).list(null, null, null)
-        verify(publicWorlds).list("fantasy", "1", "10")
+        verify(publicWorlds).list(null, null, null, null)
+        verify(publicWorlds).list("fantasy", null, "1", "10")
         verify(publicWorlds).detail(worldId)
     }
 
     @Test fun `public world tools turn ContentFailure into the HTTP status and detail`() {
         `when`(publicWorlds.detail(worldId)).thenThrow(ContentFailure(404, "세계관을 찾을 수 없습니다."))
-        `when`(publicWorlds.list("nope", null, null)).thenThrow(ContentFailure(422, "genre 값을 확인해 주세요."))
+        `when`(publicWorlds.list("nope", null, null, null)).thenThrow(ContentFailure(422, "genre 값을 확인해 주세요."))
 
         assertEquals(listOf("HTTP 404", "세계관을 찾을 수 없습니다."), call("world_studio_public_read", mapOf("id" to "$worldId")).text().lines())
         assertEquals(listOf("HTTP 422", "genre 값을 확인해 주세요."), call("world_studio_public_list", mapOf("genre" to "nope")).text().lines())

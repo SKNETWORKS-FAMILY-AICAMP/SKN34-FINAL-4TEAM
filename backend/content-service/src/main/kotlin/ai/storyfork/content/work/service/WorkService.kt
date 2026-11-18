@@ -18,6 +18,7 @@ import ai.storyfork.content.world.repository.*
 import ai.storyfork.content.work.domain.*
 import ai.storyfork.content.like.service.WorkLikeService
 import ai.storyfork.content.auth.service.CoreNicknameService
+import ai.storyfork.content.search.service.SearchCandidates
 import ai.storyfork.content.auth.service.WITHDRAWN_MEMBER_NAME
 import java.time.Instant
 
@@ -45,6 +46,7 @@ class WorkService(
     private val nicknames: CoreNicknameService,
     private val likeService: WorkLikeService,
     private val schedules: PublicationScheduleRepository,
+    private val search: SearchCandidates,
 ) {
 
     fun list(owner: String): WorkListResponse {
@@ -57,11 +59,13 @@ class WorkService(
     /**
      * 공개 작품 목록이다. q·f·sort·page·size를 모두 생략하면 기존처럼 작품 생성 최신순 전체이며, 잘못된 f·sort·page·size는 422다.
      * 찾은 작품의 좋아요를 먼저 한 번에 세어 채운 뒤(like 정렬이 쓴다) 정렬하고, page·size가 오면 정렬을 마친 결과에서 그 구간만 돌려준다.
+     * 검색 색인이 켜져 있으면(#505) q가 있을 때 색인이 찾은 후보 작품만 읽고, 공개 여부·일치·정렬·페이지·작가명은 DB가 그대로 정한다. 색인이 실패하면 DB로 대신하지 않고 503이다.
      */
     fun publicList(q: String?,f: String?,sort: String?,page: String? = null,size: String? = null): WorkListResponse {
         val field=queryOption(f,SearchField.ALL,"f");val order=queryOption(sort,WorkSort.LATEST,"sort");val window=workPage(page,size)
+        val candidates=search.works(q,field)
         val counts=viewService.counts()
-        val found=withLikes(publicWorks(counts).filter {matchesSearch(it.title,it.authorName,it.genres,it.hashtags,q,field)})
+        val found=withLikes(publicWorks(counts,candidates).filter {matchesSearch(it.title,it.authorName,it.genres,it.hashtags,q,field)})
         val newestFirst=found.map {it.id}
         val ordered=when(order) {
             WorkSort.LATEST->newestFirst
@@ -101,8 +105,11 @@ class WorkService(
         val items=views(shown,true).map {it.copy(views=counts[it.id]?.recent ?: 0,updatedAt=updated[it.id])}
         return WorkRankingResponse(withLikes(items),now,rankKind.name.lowercase(),rankPeriod.name.lowercase(),rankType.name.lowercase())
     }
-    private fun publicWorks(counts: Map<String,WorkViews>): List<WorkResponse> =
-        views(works.findAll().sortedByDescending {it.createdAt}.map {access.get(it.id)}.filter {it.publiclyVisible()},true)
+    /** 검색 색인이 맞출 공개 작품 전체다(제목·작가명·장르·해시태그를 쓴다). [publicList]의 DB 경로와 같은 읽기다. */
+    fun searchable(): List<WorkResponse> = publicWorks(emptyMap())
+    /** 공개 작품이다. [only]가 있으면(색인이 찾은 후보 ID) 그 작품만 읽고 공개 여부 판정은 같다. */
+    private fun publicWorks(counts: Map<String,WorkViews>,only: Collection<String>? = null): List<WorkResponse> =
+        views((if(only==null) works.findAll() else works.findAllById(only)).sortedByDescending {it.createdAt}.map {access.get(it.id)}.filter {it.publiclyVisible()},true)
             .map {it.copy(views=counts[it.id]?.recent ?: 0)}
     fun read(id: String,owner: String): WorkResponse = views(listOf(access.own(id,owner))).single()
     /** 공개 상세다. [member]가 있으면(Bearer가 온 요청) 그 회원의 좋아요 여부(liked)를 채우고 익명은 false다. */
