@@ -383,6 +383,21 @@ def view(monkeypatch, plan=PLAN_IF, actor=KAEL, scene=None, read=READ, manuscrip
     return world, service.character_view(plan, world, scene or service.new_scene(plan), world.characters[actor])
 
 
+def test_character_input_carries_card_links_as_plain_text_including_the_relation_sentences(monkeypatch):
+    # AI 입력 경계(DEC-53): 인물이 보는 카드 본문·관계 문장에 카드 id가 섞이지 않는다. 관계 문장은 스냅샷이 아니라 원본 응답에서도 읽던 곳이라 따로 확인한다.
+    link = '[승상](card:aaaaaaaa-2222-3333-4444-555555555555)'
+    world = {**READ,
+             'cards': [{**c, 'body': f'{c["body"]} {link}'} if c['id'] == KAEL else c for c in READ['cards']],
+             'relationships': [{**r, 'body': f'{r["body"]} {link}'} if r['id'] == REL else r for r in READ['relationships']]}
+    fake_novelbrain(monkeypatch)
+
+    _, (kael, _, _) = view(monkeypatch, read=world)
+
+    shown = text(kael)
+    assert 'KAEL-IDENTITY' in shown and '카엘은 리나를 경계한다 승상' in shown and 'KAEL-IDENTITY 북문을 지키는 기사 승상' in shown
+    assert '](card:' not in shown and 'aaaaaaaa-2222' not in shown  # 근거 ref(card:<id>#identity)는 입력의 내부 표기라 남는다
+
+
 def test_character_input_holds_only_that_characters_documents_up_to_the_base_episode(monkeypatch):
     fake_novelbrain(monkeypatch)
     scene = scene_of(PLAN_IF, ('narration', {'observed': '밤비가 성문 앞에 내리고 있다.'}), ('character', {'observed': '카엘이 북문 앞에서 막아섰다.'}))

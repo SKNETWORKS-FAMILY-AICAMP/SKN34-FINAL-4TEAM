@@ -370,16 +370,13 @@ def _private(card: Card) -> list[dict]:
     return [{**_doc(*d), 'owner': card.title} for d in docs if d[2].strip()]
 
 
-def _relations(snapshot: WorldSnapshot, read: dict, character_id: str) -> list[dict]:
+def _relations(snapshot: WorldSnapshot, character_id: str) -> list[dict]:
     """기준 회차 시점의 관계 중 그 인물이 끝점인 것(삭제·끝점 없는 관계는 스냅샷이 이미 뺐다).
 
     상대 카드가 기준 회차에 아직 공개되지 않았으면 뺀다. 관계 문장에 상대 제목이 드러나기 때문이며 recall의 인물 필터와 같은 규칙이다.
-
-    ponytail: WorldSnapshot의 관계에는 설명(body)과 부정(polarity=denied)이 없어 응답 원본에서 id로 찾아 읽는다.
-    스냅샷에 두 필드가 생기면 이 조회를 지운다.
+    설명(body)과 부정 여부는 스냅샷의 것이다: 응답 원본이 아니라 스냅샷에서 읽어야 본문 링크(DEC-53)가 글자로 벗겨진 채 인물 입력에 든다.
     """
     cards = {c.id: c for c in snapshot.cards}
-    raw = {r.get('id'): r for r in read.get('relationships') or []}
     items = []
     for r in snapshot.relations:
         if character_id not in (r.source, r.target):
@@ -387,10 +384,9 @@ def _relations(snapshot: WorldSnapshot, read: dict, character_id: str) -> list[d
         other = cards[r.target if r.source == character_id else r.source]
         if other.revealFromEpisode is not None and other.revealFromEpisode > snapshot.episode:
             continue
-        extra = raw.get(r.id) or {}
         arrow = '→' if r.direction == 'directed' else '↔'
-        said = f'{cards[r.source].title} {arrow} {cards[r.target].title}: {r.label}{" 아님" if extra.get("polarity") == "denied" else ""}'
-        items.append(_doc(f'relation:{r.id}', '관계', f'{said} — {extra["body"]}' if extra.get('body') else said))
+        said = f'{cards[r.source].title} {arrow} {cards[r.target].title}: {r.label}{" 아님" if r.polarity == "denied" else ""}'
+        items.append(_doc(f'relation:{r.id}', '관계', f'{said} — {r.body}' if r.body else said))
     return items
 
 
@@ -415,7 +411,7 @@ def character_view(plan: SimulationPlan, world: World, scene: Scene, actor: Card
     direction, seen = _direction(plan, current_beat(scene.result)), seen_lines(scene)
     recalled = novelbrain.recall(world.snapshot, actor.id, world.episode, _query(direction, seen), stage=3, manuscript=world.manuscript)
     own, future = _docs(actor, world.episode)
-    mine = [*own, *_relations(world.snapshot, world.read, actor.id)]
+    mine = [*own, *_relations(world.snapshot, actor.id)]
     taken = {d['ref'] for d in mine}
     known = [*mine, *({'ref': i.ref, 'label': f'조회({i.source})', 'text': i.text} for i in recalled.items if i.ref not in taken)]
     cast = [world.characters[i] for i in plan.characterIds]
