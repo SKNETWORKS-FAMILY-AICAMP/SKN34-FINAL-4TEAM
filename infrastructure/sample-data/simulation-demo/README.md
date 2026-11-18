@@ -74,6 +74,8 @@
 | 관계 수(`world_studio_read`의 `relationships`) | 16 | 21 | 31 | 31 | 32 |
 | 끝점이 인물인 관계: 리안 / 카엘 / 세라핀 / 오르벤 | 6 / 6 / 0 / 5 | 7 / 8 / 0 / 5 | 9 / 11 / 6 / 6 | 9 / 11 / 6 / 6 | 10 / 11 / 6 / 6 |
 
+이미 적재한 DB는 정리 전까지 1화 관계 수가 17로 나온다(`descent-library` 1화 기록이 남음, `replace:false` upsert).
+
 ## 회차별 지식 차이
 
 시연·평가의 정답표다. `–`는 아직 일어나지 않았거나 등장하지 않은 때다.
@@ -161,7 +163,7 @@ python3 infrastructure/sample-data/simulation-demo/seed.py guunmong --base-url h
 - 비밀번호는 환경변수(`STORYFORK_SEED_PASSWORD`) 또는 `--password`로 받고 출력하지 않는다. 오류 메시지에는 상태 코드와 서버가 준 `detail`만 담는다.
 - 끝에 회차별 관계 수를 출력하고 1화와 2화가 같으면 실패로 끝낸다. 직접 보려면 `GET /api/v1/world-studios/e29824ed-c503-55a7-ac48-721c125f1299?episode=N`(작가 토큰, MCP `world_studio_read`와 같다)의 `relationships` 길이가 표와 같아야 한다.
 - 모든 회차를 저장한 뒤 확정 버전을 한 번 남긴다. 독자 설정 위키(`GET /public/works/{id}/world-cards?upto=`)는 연결 세계관의 **확정 버전**에서 `revealFromEpisode`가 `upto` 이하인 카드를 주므로(세계관 공개와 무관, 회차 값이 판정, DEC-53), 확정 버전이 없으면 연결해도 위키가 빈다. 그래서 `revealFromEpisode`가 있는 카드는 `visibility`가 비공개여도 그 회차부터 위키에 나온다(별빛은 인물·사건·서한 카드도 값이 있어 함께 나온다). 독자에게 숨기려면 그 카드의 `revealFromEpisode`를 비우고 `visibility`도 비공개로 둔다(작가 전용). 확정이 서버 검사(설명·IDENTITY 등)로 거절되면 이유와 함께 실패하고 연결하지 않는다. 세계관 자체는 공개(`PUT /publication`)하지 않으므로 `/worlds` 목록에는 나오지 않는다(공개하면 `/worlds`·가져오기에도 연결된 소설의 발행된 마지막 회차까지 `revealFromEpisode`가 닿은 인물·사건·서한 카드가 보인다, DEC-53. Fork 이어받기는 세계관 공개와 무관하게 원작 세계관의 확정 버전에서 Fork 기준 회차까지만 같은 카드를 보이고 관계 본문은 싣지 않는다). AI가 `world_studio_read`로 읽는 것은 초안이다.
-- 적재는 upsert다. world.json에서 카드·관계를 지워도 서버에서는 지워지지 않는다(화면의 설정 삭제를 쓰거나 아래 복구 안내대로 다시 만든다). 별빛 `descent-library`를 1화에서 2화로 옮긴 변경도 이미 적재한 세계관을 다시 실행해 이전 1화 기록을 지우지는 않는다. 이 작업은 DB 삭제·재적재를 하지 않으므로, 기존 데이터 정리는 소유자 승인 뒤 별도 작업으로 한다.
+- 적재는 upsert다. world.json에서 카드·관계를 지워도 서버에서는 지워지지 않는다(화면의 설정 삭제를 쓰거나 아래 복구 안내대로 다시 만든다). 별빛 `descent-library`를 1화에서 2화로 옮긴 변경도 이미 적재한 세계관을 다시 실행해 이전 1화 기록을 지우지는 않는다. 이 작업은 DB 삭제·재적재를 하지 않으므로, 기존 데이터 정리는 소유자 승인 뒤 별도 작업으로 한다. 이미 적재한 DB는 정리 전까지 1화 관계 수가 17로 나온다(`descent-library` 1화 기록이 남음, `replace:false` upsert).
 
 ## 확인과 한계
 
