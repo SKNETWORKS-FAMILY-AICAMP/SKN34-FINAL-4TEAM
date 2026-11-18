@@ -806,8 +806,8 @@ const text = (n: number) => '가'.repeat(n)
 it('편집기 하단은 N / 40,000자와 함께 공개까지 남은 분량을 알려 주고 5,000자부터 공개 가능 분량이라고 한다', () => {
   model.draft = { ...originalDraft, body: text(2) }
   const view = renderStudio()
-  expect(footer().textContent).toContain('2 / 40,000자 · 공개까지 5,000자 중 4,998자 남음')
-  for (const [n, expected] of [[4999, '4,999 / 40,000자 · 공개까지 5,000자 중 1자 남음'], [5000, '5,000 / 40,000자 · 공개 가능 분량'], [40000, '40,000 / 40,000자 · 공개 가능 분량']] as const) {
+  expect(footer().textContent).toContain('2 / 40,000자 (공백 포함) · 공개까지 5,000자 중 4,998자 남음')
+  for (const [n, expected] of [[4999, '4,999 / 40,000자 (공백 포함) · 공개까지 5,000자 중 1자 남음'], [5000, '5,000 / 40,000자 (공백 포함) · 공개 가능 분량'], [40000, '40,000 / 40,000자 (공백 포함) · 공개 가능 분량']] as const) {
     model.draft = { ...originalDraft, body: text(n) }
     view.rerender(<WritingStudio id="work-id" />)
     expect(footer().textContent).toContain(expected)
