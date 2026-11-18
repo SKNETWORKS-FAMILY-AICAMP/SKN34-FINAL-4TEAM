@@ -197,6 +197,26 @@ class WorldStudioMcpToolsTest {
         verify(studio).edit(worldId, member, request)
     }
 
+    @Test fun `world_studio_edit_draft binds relationshipEpisodes as relation id to episode, forwards the same request DTO and tells the caller about it`() {
+        val lira = UUID.fromString("77777777-7777-7777-7777-777777777777")
+        val moon = UUID.fromString("88888888-8888-8888-8888-888888888888")
+        val relation = UUID.fromString("99999999-9999-9999-9999-999999999999")
+        val request = EditWorldDraftRequest(3, "달빛 세계", "", relationships = listOf(RelationshipPayload(relation, lira, moon, "structural", label = "남매")),
+            key = "edit-2", episode = 2, relationshipEpisodes = mapOf(relation to 5))
+        `when`(studio.edit(worldId, member, request)).thenReturn(draft())
+
+        val result = call("world_studio_edit_draft", mapOf("id" to "$worldId", "request" to mapOf(
+            "expectedDraftRevision" to 3, "name" to "달빛 세계", "description" to "", "key" to "edit-2", "episode" to 2,
+            "relationships" to listOf(mapOf("id" to "$relation", "sourceCardId" to "$lira", "targetCardId" to "$moon", "category" to "structural", "label" to "남매")),
+            "relationshipEpisodes" to mapOf("$relation" to 5))), signedIn())
+
+        assertNotEquals(true, result.isError(), result.text())
+        verify(studio).edit(worldId, member, request)
+        val schema = specs.single { it.tool().name() == "world_studio_edit_draft" }.tool().inputSchema().toString()
+        assertTrue("relationshipEpisodes" in schema, schema)
+    }
+
+
     @Test fun `world_studio_save_revision forwards the id the caller and the same request DTO`() {
         val saved = WorldRevisionResponse(worldId, revisionId, 1, "달빛 세계", "설명", null, null, emptyList(), null)
         `when`(studio.save(worldId, member, SaveWorldRequest(1, "save-1"))).thenReturn(saved)
