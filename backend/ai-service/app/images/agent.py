@@ -4,6 +4,7 @@ import os
 from openai import OpenAI
 from app import tracing
 from app.images.models import ImageInput
+from app.images.prompt import build_prompt
 
 def generate(data: ImageInput) -> bytes:
     """키는 실행 시 읽고 모델·규격은 접수 스냅샷을 쓴다."""
@@ -12,7 +13,7 @@ def generate(data: ImageInput) -> bytes:
             model_parameters={"quality":data.quality,"size":data.size},
             metadata={"purpose":data.purpose,"template_version":data.templateVersion}) as generation:
         response = client.images.generate(model=data.model, quality=data.quality,
-            size=data.size, prompt=data.prompt, n=1, output_format="png")
+            size=data.size, prompt=build_prompt(data), n=1, output_format="png")
         usage = getattr(response,"usage",None)
         generation.update(usage_details=usage and {"input":usage.input_tokens,"output":usage.output_tokens})
         if not response.data or not response.data[0].b64_json:

@@ -32,6 +32,7 @@ class ImageJobService(private val jobs:ImageJobRepository,private val client:Ima
  private fun key(id:UUID)="image-generations/$id.png"
  private fun response(j:ImageJob)=ImageResult(j.id,j.status,j.stage,if(j.status=="succeeded") "/api/v1/image-generations/${j.id}/content" else null,j.model,j.quality)
  private fun authorize(r:ImageRequest,owner:String) {
+  if(r.visualSettings.isNotEmpty() && r.purpose !in setOf("work_cover","world_cover")) throw ContentFailure(422,"고정 시각 설정은 표지 생성에서만 사용할 수 있어요.")
   r.workId?.let { id -> val work=access.own(id,owner)
    if(work.restricted) throw ContentFailure(403,"이 작품에서는 AI 생성을 사용할 수 없어요.")
    r.basisRevision?.let { access.requireRevision(work,it) }
@@ -50,7 +51,8 @@ class ImageJobService(private val jobs:ImageJobRepository,private val client:Ima
   } }
   existing()?.let { return it }
   authorize(r,owner)
-  val job=try { transaction { jobs.saveAndFlush(ImageJob(owner=owner,requestKey=requestKey,input=json,inputHash=hash)) } }
+  val version=if(r.purpose in setOf("work_cover","world_cover")) "cover-v2" else "v1"
+  val job=try { transaction { jobs.saveAndFlush(ImageJob(owner=owner,requestKey=requestKey,input=json,inputHash=hash,templateVersion=version)) } }
   catch(e:DataIntegrityViolationException) { return existing() ?: throw e }
   try { client.submit(job.id)
    transaction { locked(job.id).also { if(it.status=="accepted") { it.status="queued"; it.stage="waiting"; it.updatedAt=Instant.now() } }; true }
@@ -64,7 +66,7 @@ class ImageJobService(private val jobs:ImageJobRepository,private val client:Ima
  fun read(id:UUID,owner:String)=transaction { response(owned(id,owner)) }
  fun claim(id:UUID):ImageClaim=transaction {
   val job=locked(id)
-  if(!job.claim()) ImageClaim(false) else input(job).let { ImageClaim(true,ImageInput(it.purpose,it.prompt,job.model,job.quality,job.templateVersion)) }
+  if(!job.claim()) ImageClaim(false) else input(job).let { ImageClaim(true,ImageInput(it.purpose,it.prompt,job.model,job.quality,job.templateVersion,it.visualSettings)) }
  }
  fun progress(id:UUID,stage:String)=transaction {
   val job=locked(id)

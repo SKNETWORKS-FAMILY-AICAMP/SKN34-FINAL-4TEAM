@@ -16,11 +16,14 @@ import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.SimpleTransactionStatus
 import org.springframework.transaction.support.TransactionTemplate
 import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
+import ai.storyfork.content.imagegeneration.service.dto.ImageRequest
 class ImageJobServiceTest {
  private val jobs=mock(ImageJobRepository::class.java)
  private val storage=mock(AttachmentStorageClient::class.java)
  private val manager=mock(PlatformTransactionManager::class.java).also { `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() } }
- private val service=ImageJobService(jobs,mock(ImageJobClient::class.java),storage,mock(WorkAccessService::class.java),mock(WorldStudioService::class.java),JsonMapper.builder().build(),TransactionTemplate(manager))
+ private val mapper=JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
+ private val service=ImageJobService(jobs,mock(ImageJobClient::class.java),storage,mock(WorkAccessService::class.java),mock(WorldStudioService::class.java),mapper,TransactionTemplate(manager))
  @Test fun `another owner cannot see job or bytes`() {
   val id=UUID.randomUUID()
   `when`(jobs.lock(id)).thenReturn(ImageJob(id=id,owner="alice",status="succeeded"))
@@ -42,5 +45,37 @@ class ImageJobServiceTest {
   val id=UUID.randomUUID()
   `when`(jobs.lock(id)).thenReturn(ImageJob(id=id,status="succeeded"))
   assertEquals("succeeded",service.failed(id,"uploading").status)
+ }
+ @Test fun `cover inputs and version are frozen and changed settings conflict`() {
+  val owner=UUID.randomUUID().toString();val requestKey=UUID.randomUUID()
+  val request=mapper.readValue("""{"purpose":"work_cover","prompt":"새벽 항구","visualSettings":"황동 탑"}""",ImageRequest::class.java)
+  var saved:ImageJob?=null
+  `when`(jobs.findByOwnerAndRequestKey(owner,requestKey)).thenAnswer { saved }
+  `when`(jobs.saveAndFlush(any(ImageJob::class.java))).thenAnswer { invocation ->
+   (invocation.arguments[0] as ImageJob).also { saved=it;`when`(jobs.lock(it.id)).thenReturn(it) }
+  }
+  val accepted=service.submit(owner,requestKey,request)
+  val claimed=service.claim(accepted.jobId)
+  assertEquals("cover-v2",claimed.input?.templateVersion)
+  assertEquals("새벽 항구",claimed.input?.prompt)
+  assertEquals("황동 탑",mapper.readTree(mapper.writeValueAsString(claimed.input)).get("visualSettings").asText())
+  assertEquals(accepted.jobId,service.submit(owner,requestKey,request).jobId)
+  val changed=mapper.readValue("""{"purpose":"work_cover","prompt":"새벽 항구","visualSettings":"흰 석조 탑"}""",ImageRequest::class.java)
+  assertEquals(409,assertThrows(ContentFailure::class.java){service.submit(owner,requestKey,changed)}.status)
+ }
+ @Test fun `v1 request hashes and queued snapshots remain compatible`() {
+  val owner=UUID.randomUUID().toString();val requestKey=UUID.randomUUID()
+  val legacy="""{"purpose":"work_cover","prompt":"legacy scene","workId":null,"worldId":null,"basisRevision":null}"""
+  val hash=java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(legacy.toByteArray()))
+  val job=ImageJob(owner=owner,requestKey=requestKey,input=legacy,inputHash=hash,status="queued")
+  `when`(jobs.findByOwnerAndRequestKey(owner,requestKey)).thenReturn(job)
+  `when`(jobs.lock(job.id)).thenReturn(job)
+  assertEquals(job.id,service.submit(owner,requestKey,ImageRequest("work_cover","legacy scene")).jobId)
+  assertEquals("v1",service.claim(job.id).input?.templateVersion)
+  verify(jobs,never()).saveAndFlush(any(ImageJob::class.java))
+ }
+ @Test fun `fixed visual settings cannot be silently ignored for illustrations`() {
+  val request=mapper.readValue("""{"purpose":"illustration","prompt":"scene","workId":"a-work","visualSettings":"fixed"}""",ImageRequest::class.java)
+  assertEquals(422,assertThrows(ContentFailure::class.java){service.submit(UUID.randomUUID().toString(),UUID.randomUUID(),request)}.status)
  }
 }

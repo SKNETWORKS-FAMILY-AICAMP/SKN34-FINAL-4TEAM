@@ -4,18 +4,20 @@ import { authenticatedUserId } from '../../data/api/auth'
 import type { ImageJob, ImageRequest } from '../../domain/repositories/ImageGenerationRepository'
 
 /** 상태 조회만 재개한다. 화면을 닫아도 서버 생성 작업은 계속된다. */
-export function useImageGeneration(input: Omit<ImageRequest,'prompt'>) {
+export function useImageGeneration(input: Omit<ImageRequest,'prompt'|'visualSettings'>) {
  const useCase=appContainer.resolve('imageGenerationUseCase')
  const [prompt,setPrompt]=useState(''), [job,setJob]=useState<ImageJob>(), [error,setError]=useState(''), [busy,setBusy]=useState(false), [preview,setPreview]=useState('')
+ const [visualSettings,setVisualSettings]=useState('')
  const file=useRef<File | undefined>(undefined)
  const controller=useRef<AbortController | undefined>(undefined)
  const pollController=useRef<AbortController | undefined>(undefined)
- const pending=useRef<{key:string;prompt:string} | undefined>(undefined)
+ const pending=useRef<{key:string;prompt:string;visualSettings:string} | undefined>(undefined)
  const [refresh,setRefresh]=useState(0)
  const [pollRefresh,setPollRefresh]=useState(0)
  const [restoring,setRestoring]=useState(false)
  const [unresolved,setUnresolved]=useState(false)
  const storageKey=`image-generation:${authenticatedUserId()}:${input.purpose}:${input.workId ?? input.worldId ?? 'new'}`
+ useEffect(()=>{setPrompt('');setVisualSettings('');setError('')},[storageKey])
  useEffect(()=> {
   setJob(undefined);setPreview('');setBusy(false);setRestoring(false);setUnresolved(false);file.current=undefined;pending.current=undefined
   const saved=sessionStorage.getItem(storageKey)
@@ -66,14 +68,14 @@ export function useImageGeneration(input: Omit<ImageRequest,'prompt'>) {
   controller.current?.abort();const abort=new AbortController();controller.current=abort
   pollController.current?.abort()
   setBusy(true);setError('');setPreview('');file.current=undefined
-  if(!pending.current || pending.current.prompt!==prompt) pending.current={key:crypto.randomUUID(),prompt}
+  if(!pending.current || pending.current.prompt!==prompt || pending.current.visualSettings!==visualSettings) pending.current={key:crypto.randomUUID(),prompt,visualSettings}
   try {
    sessionStorage.setItem(storageKey+':request',pending.current.key)
-   const next=await useCase.submit({...input,prompt},pending.current.key,abort.signal)
+   const next=await useCase.submit({...input,prompt,...(['work_cover','world_cover'].includes(input.purpose)?{visualSettings}:{})},pending.current.key,abort.signal)
    if(abort.signal.aborted)return
    sessionStorage.setItem(storageKey,next.jobId);sessionStorage.removeItem(storageKey+':request');setJob(next);pending.current=undefined
   } catch { if(!abort.signal.aborted) { setError('접수하지 못했어요. 다시 누르면 같은 요청 키로 결과를 확인해요.');setPollRefresh(x=>x+1) } }
   finally { if(!abort.signal.aborted)setBusy(false) }
  }
- return {prompt,setPrompt,job,error,busy:busy||restoring||unresolved,preview,generate,retry:()=>{setError('');setRefresh(x=>x+1)},file:()=>file.current}
+ return {prompt,setPrompt,visualSettings,setVisualSettings,job,error,busy:busy||restoring||unresolved,preview,generate,retry:()=>{setError('');setRefresh(x=>x+1)},file:()=>file.current}
 }
