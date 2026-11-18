@@ -842,22 +842,63 @@ it('관계 기준 회차를 고른 동안에는 설정 삭제 진입점(인물 �
   expect(editor().getByRole<HTMLButtonElement>('button', { name: '카드 삭제' }).disabled).toBe(false)
   expect(editor().queryByText(reason)).toBeNull()
 })
-it('지난 회차를 연 채 저장하면 어느 회차로 기록되는지 저장 영역과 작성 모드의 검토·저장 단계가 알리고, 최신이면 알리지 않는다', async () => {
+it('지난 회차를 연 채 관계를 삭제하면 그 관계가 어느 회차에서 끝나는지 저장 영역과 작성 모드의 검토·저장 단계가 알리고, 삭제하지 않았거나 최신이면 알리지 않는다', async () => {
   const [garam, narae] = [person('가람'), person('나래')]
-  const note = '관계는 1화 기준으로 저장돼요.'
+  const note = '삭제한 관계 1개는 1화에서 끝나는 것으로 저장돼요.'
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  const removeRelation = () => fireEvent.click(screen.getByRole('button', { name: '가람 · 친구 · 나래 삭제' }))
   await show(friends([garam, narae], garam, narae), '/worldstudio/qa?view=people', { linkedWorkId: 'w1', relationEpisodes: true })
-  expect(saveBar().queryByText(note)).toBeNull()
   await pickEpisode(1)
+  expect(saveBar().queryByText(note)).toBeNull() // 회차를 골랐을 뿐 지우지 않았다
+  removeRelation()
   expect(saveBar().getByText(note)).toBeTruthy()
-  fireEvent.click(episodePicker().getByRole('button', { name: '최신으로' }))
-  await waitFor(() => expect(saveBar().queryByText(note)).toBeNull())
   cleanup()
-  await wizard({ linkedWorkId: 'w1', relationEpisodes: true })
+  await show(friends([garam, narae], garam, narae), '/worldstudio/qa?view=people', { linkedWorkId: 'w1', relationEpisodes: true })
+  removeRelation() // 최신 회차에서는 알릴 것이 없다
+  expect(saveBar().queryByText(/끝나는 것으로 저장돼요/)).toBeNull()
+  cleanup()
+  await show(friends([garam, narae], garam, narae), '/worldstudio/qa?new=1', { version: 0, linkedWorkId: 'w1', relationEpisodes: true })
   const steps = () => within(screen.getByRole('navigation', { name: '세계관 작성 단계' }))
   fireEvent.click(steps().getByRole('button', { name: '관계 연결 (선택)' }))
   await pickEpisode(1)
+  removeRelation()
   fireEvent.click(steps().getByRole('button', { name: '검토·저장' }))
   expect(within(screen.getByRole('region', { name: '세계관 검토' })).getByText(note)).toBeTruthy()
+})
+
+it('소설을 연결한 세계관은 관계 목록에 시작 회차를 보이고, 관계 편집 행의 N화부터를 적어 적용하면 그 회차가 저장 요청의 관계 행에 담긴다 (DEC-54 2단계)', async () => {
+  const [garam, narae] = [person('가람'), person('나래')]
+  const settings = friends([garam, narae], garam, narae).map((s) => (s.item.kind === 'relation' ? { ...s, item: { ...s.item, fromEpisode: 2 } } : s))
+  const { saveStudio } = await show(settings, '/worldstudio/qa?view=people', { linkedWorkId: 'w1', relationEpisodes: true })
+  const table = () => within(screen.getByRole('table', { name: '저장할 관계 목록' }))
+  expect(table().getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['주체', '관계', '대상', '시작 회차', '편집·삭제'])
+  expect([...table().getAllByRole('row')[1].querySelectorAll('td')].slice(0, 4).map((td) => td.textContent)).toEqual(['가람', '친구', '나래', '2화부터'])
+  fireEvent.click(table().getByRole('button', { name: '가람 · 친구 · 나래 편집' }))
+  fireEvent.change(screen.getByRole('textbox', { name: '실제 관계 1 시작 회차 화부터' }), { target: { value: '4' } })
+  fireEvent.click(screen.getByRole('button', { name: '편집본에 적용' }))
+  expect(table().getByText('4화부터')).toBeTruthy()
+  saveWorld()
+  await waitFor(() => expect(saveStudio).toHaveBeenCalledOnce())
+  expect(saveStudio.mock.calls[0][0].settings.find((s) => s.item.kind === 'relation')?.item.fromEpisode).toBe(4)
+  expect(saveStudio.mock.calls[0][2]).toBeUndefined() // 보는 회차(최신)가 아니라 관계마다의 N화부터가 기록 회차를 정한다
+})
+
+it('소설을 연결한 세계관에서 N화부터를 모르는 관계가 바뀌면(설정 이름을 바꿔 관계 이름이 따라 바뀜) 저장 전 확인이 그 관계를 가리켜 저장을 막고, 누르면 그 관계의 N화부터 칸으로 간다 (DEC-54 2단계)', async () => {
+  const [garam, narae] = [person('가람'), person('나래')]
+  await show(friends([garam, narae], garam, narae), '/worldstudio/qa', { linkedWorkId: 'w1', relationEpisodes: true })
+  openCard('가람 인물')
+  fireEvent.change(editor().getByRole('textbox', { name: '설정 이름' }), { target: { value: '가람이' } })
+  backToBoard()
+  const saveButton = () => saveBar().getByRole<HTMLButtonElement>('button', { name: '세계관 저장' })
+  const issue = saveBar().getByRole('button', { name: '‘가람이 · 친구 · 나래’: 관계가 몇 화부터인지 1 이상의 정수로 입력해 주세요.' })
+  expect(saveButton().disabled).toBe(true)
+  fireEvent.click(issue)
+  const field = await screen.findByRole<HTMLInputElement>('textbox', { name: '실제 관계 1 시작 회차 화부터' })
+  expect(field.getAttribute('aria-invalid')).toBe('true')
+  await waitFor(() => expect(document.activeElement).toBe(field)) // 고칠 칸으로 초점이 간다
+  fireEvent.change(field, { target: { value: '3' } })
+  fireEvent.click(screen.getByRole('button', { name: '편집본에 적용' }))
+  expect(saveButton().disabled).toBe(false)
 })
 
 it('관계 목록 표는 주체·관계·대상과 편집·삭제를 보이고 삭제는 확인한 뒤에만 편집본에서 지운다', async () => {
@@ -3536,16 +3577,24 @@ it('이른 카드의 글에 더 늦게 공개되는 카드의 이름이 나오�
   expect(editor().queryByRole('region', { name: '공개 순서 확인' })).toBeNull()
 })
 
-it('관계 문구의 공개 순서 확인은 관계를 처음 기록한 회차를 알 수 없어 두 설정이 공개되는 회차부터로 계산했다고 알리고 단정하지 않는다 (DEC-53)', async () => {
+it('관계 문구의 공개 순서 확인은 두 설정이 공개되는 회차와 관계를 기록한 회차(N화부터) 가운데 가장 늦은 회차부터 독자에게 보인다고 알린다 (DEC-53·54)', async () => {
   const [lian, kael] = [{ ...person('리안'), revealFromEpisode: 1 }, { ...person('카엘'), revealFromEpisode: 1 }]
   const seraphin = { ...person('세라핀'), revealFromEpisode: 3 }
   const secret = { ...person('검은 옷의 사내'), revealFromEpisode: undefined } // 작가 전용
-  const settings = putRelation([lian, kael, seraphin, secret], { subjectId: kael.item.id, targetId: lian.item.id, predicate: 'custom_relation_directed', polarity: 'asserted', title: '보호', text: '세라핀의 부탁으로 지킨다' })
-  await show(putRelation(settings, { subjectId: lian.item.id, targetId: kael.item.id, predicate: 'custom_relation_directed', polarity: 'asserted', title: '의심', text: '검은 옷의 사내를 닮았다' }))
+  const relate = (subject: StudioSetting, target: StudioSetting, title: string, text: string, fromEpisode?: number) =>
+    ({ subjectId: subject.item.id, targetId: target.item.id, predicate: 'custom_relation_directed', polarity: 'asserted' as const, title, text, fromEpisode })
+  let settings = putRelation([lian, kael, seraphin, secret], relate(kael, lian, '보호', '세라핀의 부탁으로 지킨다', 2)) // 2화에 기록: 세라핀(3화부터 공개)보다 이르다
+  settings = putRelation(settings, relate(lian, kael, '믿음', '세라핀이 보증했다', 3)) // 3화에 기록: 세라핀이 공개된 뒤라 괜찮다
+  settings = putRelation(settings, relate(lian, kael, '동행', '세라핀과 길을 떠난다')) // 기록 회차를 모르면 두 설정이 공개되는 1화부터다
+  settings = putRelation(settings, relate(kael, lian, '의심', '검은 옷의 사내를 닮았다', 4)) // 작가 전용 이름은 언제 기록해도 늦다
+  await show(putRelation(settings, { ...relate(lian, kael, '약속', '검은 옷의 사내와 만난다', 6), recordedFrom: 2 })) // 2화에 기록된 관계를 6화로 늦춰도 2화 연결이 남아 2화부터 보인다
   openCard('리안 인물')
   const items = within(editor().getByRole('region', { name: '공개 순서 확인' })).getAllByRole('listitem').map((li) => li.textContent)
   expect(items).toEqual([
-    '관계 ‘보호’의 글에 ‘세라핀’이(가) 나와요. 세라핀 카드는 3화부터 공개인데 이 관계가 두 설정이 공개되는 1화부터 보이면 이름이 먼저 드러나요(관계를 처음 기록한 회차는 알 수 없어요).',
-    '관계 ‘의심’의 글에 ‘검은 옷의 사내’이(가) 나와요. 검은 옷의 사내 카드는 작가 전용인데 이 관계가 두 설정이 공개되는 1화부터 보이면 이름이 먼저 드러나요(관계를 처음 기록한 회차는 알 수 없어요).',
+    '관계 ‘보호’의 글에 ‘세라핀’이(가) 나와요. 세라핀 카드는 3화부터 공개인데 이 글은 2화부터 독자에게 보여요.',
+    '관계 ‘동행’의 글에 ‘세라핀’이(가) 나와요. 세라핀 카드는 3화부터 공개인데 이 글은 1화부터 독자에게 보여요.',
+    '관계 ‘의심’의 글에 ‘검은 옷의 사내’이(가) 나와요. 검은 옷의 사내 카드는 작가 전용인데 이 글은 4화부터 독자에게 보여요.',
+    '관계 ‘약속’의 글에 ‘검은 옷의 사내’이(가) 나와요. 검은 옷의 사내 카드는 작가 전용인데 이 글은 2화부터 독자에게 보여요.',
   ])
+  expect(editor().queryByText(/알 수 없어요/)).toBeNull() // 관계를 처음 기록한 회차를 모른다는 단서는 더 이상 붙지 않는다
 })

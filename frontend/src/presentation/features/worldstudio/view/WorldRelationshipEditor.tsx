@@ -297,7 +297,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                   <table className='relationship-table world-compact'>
                     <caption className='sr-only'>저장할 관계 목록</caption>
                     <thead>
-                      <tr><th scope='col'>주체</th><th scope='col'>관계</th><th scope='col'>대상</th><th scope='col'><span className='sr-only'>편집·삭제</span></th></tr>
+                      <tr><th scope='col'>주체</th><th scope='col'>관계</th><th scope='col'>대상</th>{studio.relationFrom && <th scope='col'>시작 회차</th>}<th scope='col'><span className='sr-only'>편집·삭제</span></th></tr>
                     </thead>
                     <tbody>
                       {listedRelations.items.map((s) => {
@@ -307,6 +307,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
                             <td>{!readOnly(s) && s.item.subjectId && peopleById.has(s.item.subjectId) ? <button type='button' className='relationship-card-link' onClick={() => { if (studio.confirmRelationDiscard()) studio.editCard(s.item.subjectId!) }}>{name(s.item.subjectId)}</button> : name(s.item.subjectId)}</td>
                             <td>{label}</td>
                             <td>{!readOnly(s) && s.item.targetId && peopleById.has(s.item.targetId) ? <button type='button' className='relationship-card-link' onClick={() => { if (studio.confirmRelationDiscard()) studio.editCard(s.item.targetId!) }}>{name(s.item.targetId)}</button> : name(s.item.targetId)}</td>
+                            {studio.relationFrom && <td>{s.item.fromEpisode === undefined ? '—' : `${s.item.fromEpisode}화부터`}</td>}
                             <td className='relationship-row-actions'>
                               {readOnly(s)
                                 ? <span className='small muted'>읽기 전용</span>

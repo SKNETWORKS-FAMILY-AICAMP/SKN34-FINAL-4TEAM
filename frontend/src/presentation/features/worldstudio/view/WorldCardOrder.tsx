@@ -1,10 +1,7 @@
 import type { OrderIssue } from '../../../../domain/entities/worldReview'
 
-/** 경고 뒷부분. 본문은 그 카드가 보이는 회차부터 독자에게 보이지만, 관계는 기록 회차(DEC-51)를 초안도 서버 응답도 주지 않아 두 끝 설정이 공개되는 회차부터로 계산한 가정임을 밝힌다(더 늦게 기록한 관계면 해당하지 않는다). */
-const timing = ({ source, visibleFrom }: OrderIssue) =>
-  source === 'body'
-    ? `이 글은 ${visibleFrom}화부터 독자에게 보여요.`
-    : `이 관계가 두 설정이 공개되는 ${visibleFrom}화부터 보이면 이름이 먼저 드러나요(관계를 처음 기록한 회차는 알 수 없어요).`
+/** 경고 뒷부분. 본문은 그 카드가 보이는 회차부터, 관계는 두 끝 설정이 공개되는 회차와 관계를 기록한 회차(N화부터, DEC-54) 가운데 늦은 회차부터 독자에게 보인다. */
+const timing = ({ visibleFrom }: OrderIssue) => `이 글은 ${visibleFrom}화부터 독자에게 보여요.`
 
 /**
  * 편집 화면의 '공개 순서 확인'([계약](../../../../../../docs/design/world-review-contract.md#공개-순서-규칙--dec-53)): 이 카드의 글(본문·링크 글자, 이 카드를 끝점으로 하는 관계의 label·body)에

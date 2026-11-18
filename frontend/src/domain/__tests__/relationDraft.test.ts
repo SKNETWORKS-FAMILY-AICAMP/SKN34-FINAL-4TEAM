@@ -2,16 +2,18 @@ import { describe, expect, it } from 'vitest'
 
 import {
   createPairRelationDraft,
+  endsIdentity,
   hasRelationDraftChanges,
   hasIncompleteRelationDraft,
   identityBodyPatch,
-  identityNeedsEpisode,
   newRelationDraftRow,
   relationDirection,
   relationDirectionPatch,
   relationDraftChanges,
+  relationFromInvalid,
   relationTextPatch,
   removeRelationDraftRow,
+  type RelationGroup,
 } from '../entities/relationDraft'
 import {
   applyRelationChanges,
@@ -231,19 +233,44 @@ describe('동일 인물 draft rows', () => {
     expect(identityBodyPatch('b', 'a', 'b')).toEqual({ subjectId: 'a', targetId: 'b' })
   })
 
-  it('needs an episode for a new, changed or ended identity row but not for one left as it is', () => {
+  it('needs the viewed episode only to end an identity relation: writing or changing one carries its own N화부터', () => {
     const [a, b] = pair()
     const settings = putRelation([a, b], { subjectId: a.item.id, targetId: b.item.id, predicate: 'identity_of', polarity: 'asserted' })
     const initial = createPairRelationDraft(settings, a.item.id, b.item.id)
-    expect(identityNeedsEpisode(initial, initial, [])).toBe(false) // 그대로 둔 것은 회차를 다시 정하지 않아도 된다
-    const turned = initial.map((row) => row.group === 'identity' ? { ...row, value: { ...row.value, ...identityBodyPatch(a.item.id, a.item.id, b.item.id) } } : row)
-    expect(identityNeedsEpisode(initial, turned, [])).toBe(true) // 바꾸기
-    const start = createPairRelationDraft([], 'a', 'b')
-    expect(identityNeedsEpisode(start, [...start, newRelationDraftRow('identity', 'a', 'b')], [])).toBe(true) // 새로 쓰기
-    expect(identityNeedsEpisode(start, start, [])).toBe(false)
+    expect(endsIdentity(initial, [])).toBe(false) // 그대로 둔 것은 회차를 다시 정하지 않아도 된다
     const link = initial.find((row) => row.group === 'identity')!
-    expect(identityNeedsEpisode(initial, initial.filter((row) => row !== link), [link.value.id!])).toBe(true) // 끝내기
+    expect(endsIdentity(initial, [link.value.id!])).toBe(true) // 끝내기
     const other = initial.find((row) => row.group === 'fact')!
-    expect(identityNeedsEpisode(initial, initial.filter((row) => row !== other), [other.value.id ?? 'x'])).toBe(false) // 다른 관계를 지우는 것은 상관없다
+    expect(endsIdentity(initial, [other.value.id ?? 'x'])).toBe(false) // 다른 관계를 지우는 것은 상관없다
+    expect(endsIdentity(initial, ['other-relation'])).toBe(false)
+  })
+})
+
+describe('관계 행의 N화부터 검사', () => {
+  const made = (group: RelationGroup, patch: Partial<RelationInput> = {}) => {
+    const row = newRelationDraftRow(group, 'a', 'b')
+    return { ...row, value: { ...row.value, ...patch } }
+  }
+
+  it('적용할 행(기존 관계·설명을 적은 행·「동일 인물」)만 N화부터가 1 이상의 정수인지 본다', () => {
+    expect(relationFromInvalid(made('fact'))).toBe(false) // 비어 있는 새 행은 적용하지 않아 묻지 않는다
+    expect(relationFromInvalid(made('emotion'))).toBe(false)
+    expect(relationFromInvalid(made('fact', { text: '친구' }))).toBe(true) // 설명을 적었는데 N화부터가 없다
+    expect(relationFromInvalid(made('fact', { text: '친구', fromEpisode: 3 }))).toBe(false)
+    for (const fromEpisode of [0, -1, 1.5]) expect(relationFromInvalid(made('fact', { text: '친구', fromEpisode })), String(fromEpisode)).toBe(true)
+    expect(relationFromInvalid(made('identity'))).toBe(true) // 「동일 인물」은 설명 없이도 적용한다
+    expect(relationFromInvalid(made('identity', { fromEpisode: 2 }))).toBe(false)
+    expect(relationFromInvalid(made('emotion', { id: 'x', fromEpisode: 5 }))).toBe(false) // 기존 관계는 서버가 준 시작 회차가 채워져 있다
+    expect(relationFromInvalid(made('emotion', { id: 'x' }))).toBe(true)
+  })
+
+  it('기존 관계 행은 서버가 준 시작 회차를 값으로 가져오고, 열 때의 기준값(baseline)에도 남는다', () => {
+    const [a, b] = pair()
+    const settings = putRelation([a, b], { subjectId: a.item.id, targetId: b.item.id, predicate: 'friend_of', polarity: 'asserted' })
+    settings[2].item.fromEpisode = 3
+    const [fact] = createPairRelationDraft(settings, a.item.id, b.item.id)
+    expect(fact.value.fromEpisode).toBe(3)
+    expect(fact.baseline?.fromEpisode).toBe(3)
+    expect(hasRelationDraftChanges([fact], [{ ...fact, value: { ...fact.value, fromEpisode: 5 } }], [])).toBe(true) // 회차만 고쳐도 바뀐 입력이다
   })
 })

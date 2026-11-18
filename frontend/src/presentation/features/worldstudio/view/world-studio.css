@@ -190,7 +190,7 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-card-source{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0}
 .world-card-reach{display:grid;gap:6px;min-width:0;margin-block:20px;padding-top:16px;border-top:1px solid var(--tline)}.world-card-reach h4{margin:0 0 4px;font-size:14px}.world-card-reach p{margin:0;line-height:1.6}
 .world-card-reach .world-consent{align-items:center;min-height:44px;margin-block:0;font-weight:650}.world-card-reach input[type=checkbox]{width:18px;height:18px;accent-color:var(--pri)}
-.world-reveal{display:flex;align-items:center;gap:8px;margin-top:10px;font-weight:650}:is(.world-reveal,.world-doc-add,.relationship-episode) .inp{width:88px;min-height:44px;padding:8px 10px;font-variant-numeric:tabular-nums}:is(.world-reveal,.world-doc-add,.relationship-episode) .inp:disabled{opacity:.55;cursor:not-allowed}.world-reveal .inp[aria-invalid=true]{border-color:var(--danger)}
+.world-reveal{display:flex;align-items:center;gap:8px;margin-top:10px;font-weight:650}:is(.world-reveal,.world-doc-add,.relationship-episode,.relationship-from) .inp{width:88px;min-height:44px;padding:8px 10px;font-variant-numeric:tabular-nums}:is(.world-reveal,.world-doc-add,.relationship-episode) .inp:disabled{opacity:.55;cursor:not-allowed}.world-reveal .inp[aria-invalid=true]{border-color:var(--danger)}
 /* 입력 바로 아래의 오류 글(테두리 색만으로 알리지 않는다) */
 .world-card-reach .world-field-error{color:var(--danger);font-weight:650}
 /* 관계 기준 회차(DEC-51): 관계도 위의 한 줄. 관계 편집기가 다시 열려도 이 칸은 그대로라 키보드 초점이 남는다. 입력의 최소 높이·숫자 폭·잠긴 모양은 위 독자 공개 회차 입력과 같은 규칙(:is 묶음)이다.
@@ -258,3 +258,6 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-finding-actions{display:flex;flex-wrap:wrap;gap:8px}
 .world-findings .world-field-error{color:var(--danger);font-weight:650}
 @media (max-width:720px){.world-finding-diff{grid-template-columns:minmax(0,1fr)}}
+/* 관계 행의 N화부터(DEC-54 2단계): 위 공개 회차 입력과 같은 한 줄 라벨·숫자 폭이다(크기·숫자 폭은 위 :is 묶음). 위 관계 기준 회차 칸과 같이 .episode-app의 label(block)·입력(폭 100%) 규칙을 이기려고 .episode-app 아래로 다시 정한다(입력은 :not()까지 베낌). */
+.episode-app .relationship-from{display:inline-flex;align-items:center;gap:8px;margin-top:10px;font-weight:650}.episode-app .relationship-from input:not([type=checkbox]):not([type=radio]){width:88px;margin-top:0;padding:8px 10px}.relationship-from .inp[aria-invalid=true]{border-color:var(--danger)}.relationship-row .world-field-error{color:var(--danger);font-weight:650}
+.relationship-row .relationship-from-note{margin:0;color:var(--danger);font-weight:650}

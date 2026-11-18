@@ -9,7 +9,7 @@ import {SessionExpired} from '../../../../domain/repositories/ProfileRepository'
 import {useWorldStudioViewModel} from './useWorldStudioViewModel'
 import {WorldStudioUseCase} from '../../../../domain/usecases/WorldStudioUseCase'
 import {InMemoryWorldStudioRepository} from '../../../../data/world-studio/InMemoryWorldStudioRepository'
-import {newSetting} from '../../../../domain/entities/studioWorld'
+import {newSetting,RELATION_FROM_ERROR} from '../../../../domain/entities/studioWorld'
 import {putRelation} from '../../../../domain/entities/studioRelations'
 import {EpisodeWorldRepository} from '../../../../test/episodeWorldRepository'
 afterEach(cleanup)
@@ -183,4 +183,32 @@ it('refuses to delete a setting while an episode is chosen, keeps the draft unto
  act(()=>{deleted=result.current.deleteCard(person)})
  expect(deleted).toBe(true)
  expect(result.current.editing!.settings.some(s=>s.item.id===person)).toBe(false)
+})
+
+// ── 관계마다의 N화부터(DEC-54 2단계): 소설을 연결한 서버 세계관만 받고, 바뀐 관계에 없으면 저장 전 확인이 막는다 ───
+const relationRow=(vm:ReturnType<typeof useWorldStudioViewModel>)=>vm.editing!.settings.find(s=>s.item.kind==='relation')!.item
+it.each([[true,{}],[false,{linked:false}],[false,{supported:false}]] as const)('takes the N화부터 of a relation only in a linked server world (%s, %j)',async(expected,options)=>{
+ const {result}=await openEpisodeStudio(options)
+ expect(result.current.relationFrom).toBe(expected)
+})
+it('blocks saving a changed relation without N화부터, points to that relation, and lets go once it has one',async()=>{
+ const {result}=await openEpisodeStudio()
+ expect([result.current.writingIssues,result.current.canSave]).toEqual([[],false]) // 그대로인 관계는 N화부터가 없어도 막지 않는다
+ const row=relationRow(result.current)
+ act(()=>{result.current.applyRelations([{...row,text:'다시 만난 친구'}],[])})
+ expect(result.current.writingIssues).toEqual([{step:'relations',id:row.id,message:RELATION_FROM_ERROR}])
+ expect(result.current.canSave).toBe(false)
+ act(()=>result.current.openIssue(result.current.writingIssues[0]))
+ expect(result.current.relationRequest).toMatchObject({id:row.id})
+ expect(result.current.view).toBe('people') // 관계도 보기에서 그 관계의 편집 패널이 열린다
+ act(()=>{result.current.applyRelations([{...relationRow(result.current),fromEpisode:3}],[])})
+ expect([result.current.writingIssues,result.current.canSave]).toEqual([[],true])
+ await act(()=>result.current.save())
+ expect(relationRow(result.current)).toMatchObject({text:'다시 만난 친구',fromEpisode:3})
+})
+it('does not ask a world without a linked novel for the N화부터 of a relation',async()=>{
+ const {result}=await openEpisodeStudio({linked:false})
+ const row=relationRow(result.current)
+ act(()=>{result.current.applyRelations([{...row,text:'다시 만난 친구'}],[])})
+ expect([result.current.writingIssues,result.current.canSave]).toEqual([[],true])
 })
