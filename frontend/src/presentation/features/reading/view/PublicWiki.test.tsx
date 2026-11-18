@@ -2,7 +2,7 @@
 
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { ReadingWorkRecord, ReadingWorldRecord } from '../../../../data/content/HttpEpisodeRepository'
 import { mapReadingWork, withReadingWorld } from '../../../../data/content/readingWork'
@@ -10,7 +10,12 @@ import type { ReaderWorldCard, ReaderWorldCards } from '../../../../domain/entit
 import { worldCardWiki } from '../viewmodel/worldCardWiki'
 import { PublicWikiArticle } from './PublicWiki'
 
-afterEach(cleanup)
+// jsdom에는 scrollIntoView·animate가 없다
+const scrollIntoView = vi.fn()
+const animate = vi.fn()
+Element.prototype.scrollIntoView = scrollIntoView
+Element.prototype.animate = animate as never
+afterEach(() => { cleanup(); vi.clearAllMocks(); Reflect.deleteProperty(window, 'matchMedia') })
 
 const record: ReadingWorkRecord = {
   id: 'work-uuid', slug: null, title: '별빛 서약의 탑', summary: '소개', visibility: 'public', authorName: '윤서하', ownerId: 'owner-uuid',
@@ -97,7 +102,7 @@ describe('연결된 세계관의 설정 카드로 채운 설정 위키 (DEC-46)'
     { id: 'r1', sourceCardId: 'rian', targetCardId: 'tower', label: '머무는 곳' },
     { id: 'r2', sourceCardId: 'seal', targetCardId: 'tower', label: '' },
   ]
-  const showLinked = (list = cards) => render(<MemoryRouter><PublicWikiArticle work={{ ...mapReadingWork(record), wiki: worldCardWiki({ workId: record.id, upto: 2, cards: list, relationships }) }} upto={2} /></MemoryRouter>).container
+  const showLinked = (list = cards, rels = relationships) => render(<MemoryRouter><PublicWikiArticle work={{ ...mapReadingWork(record), wiki: worldCardWiki({ workId: record.id, upto: 2, cards: list, relationships: rels }) }} upto={2} /></MemoryRouter>).container
   const docOf = (panel: HTMLElement, name: RegExp) => within(panel).getByRole('heading', { name, level: 3 }).closest('.nw-doc') as HTMLElement
 
   it('카드 유형별로 묶어 본문 마크다운·별칭·태그·독자 공개 회차를 읽기 전용으로 보이고 본문의 `##` 문단은 문서 제목 아래 소제목이 된다', () => {
@@ -146,42 +151,86 @@ describe('연결된 세계관의 설정 카드로 채운 설정 위키 (DEC-46)'
     expect(showLinked(cards.map((c) => ({ ...c, imageId: null }))).querySelector('img')).toBeNull()
   })
 
-  it('관계는 양 끝 문서 모두에서 상대 문서로 가는 연결과 라벨로 보이고 라벨이 없으면 이름만 보인다', () => {
+  const relationHeads = (doc: HTMLElement) => [...doc.querySelectorAll('.nw-relsec h4')].map((h) => h.textContent)
+  const receivedLines = (doc: HTMLElement) => [...doc.querySelectorAll('.nw-rel')].map((p) => p.textContent)
+  const directed: ReaderWorldCards['relationships'] = [{ id: 'r1', sourceCardId: 'rian', targetCardId: 'tower', label: '머무는 곳', direction: 'directed' }]
+
+  it('방향이 없는 관계는 양 끝 문서에 상대 — 관계명 소제목 문단으로 보이고 소제목의 상대는 그 문서로 가는 링크이며 라벨이 없으면 이름만 보인다', () => {
     const panel = showLinked()
-    const rel = (doc: HTMLElement) => doc.querySelector('.nw-rel')?.textContent
-    expect(rel(docOf(panel, /리안$/))).toBe('연결 별빛 탑 (머무는 곳) · 방향 미상')
-    expect(rel(docOf(panel, /별빛 탑$/))).toBe('연결 리안 (머무는 곳) · 방향 미상, 봉인 규칙 · 방향 미상')
-    expect(rel(docOf(panel, /봉인 규칙$/))).toBe('연결 별빛 탑 · 방향 미상')
-    within(docOf(panel, /봉인 규칙$/)).getByRole('link', { name: '별빛 탑' })
+    expect(relationHeads(docOf(panel, /리안$/))).toEqual(['별빛 탑 — 머무는 곳 방향 미상'])
+    expect(relationHeads(docOf(panel, /별빛 탑$/))).toEqual(['리안 — 머무는 곳 방향 미상', '봉인 규칙 방향 미상'])
+    expect(relationHeads(docOf(panel, /봉인 규칙$/))).toEqual(['별빛 탑 방향 미상'])
+    expect(within(docOf(panel, /봉인 규칙$/)).getByRole('link', { name: '별빛 탑' }).getAttribute('href')).toBe('#doc-tower')
+    expect(panel.querySelector('.nw-rel')).toBeNull() // 연결 줄도 받는 쪽 링크 줄도 없다
     expect(within(panel).queryByText(/연결을 불러오지 못했어요/)).toBeNull()
   })
+
+  it('관계 설명은 마크다운으로 소제목 아래에 보이고 본문의 설정 링크는 위키의 그 카드 문서로 건너가며 위키에 없는 카드는 글자만 보인다', () => {
+    const [tower, gone] = ['aaaaaaaa-2222-3333-4444-555555555555', 'bbbbbbbb-2222-3333-4444-555555555555']
+    const panel = showLinked(
+      [card(tower, { title: '별빛 탑', cardType: 'location' }), card('rian', { title: '리안' })],
+      [{ id: 'r1', sourceCardId: 'rian', targetCardId: tower, label: '머무는 곳', direction: 'directed', body: `**밤마다** 찾는다. [별빛 탑](card:${tower})과 [사라진 곳](card:${gone})` }],
+    )
+    const section = docOf(panel, /리안$/).querySelector('.nw-relsec') as HTMLElement
+    expect(section.querySelector('strong')?.textContent).toBe('밤마다')
+    expect(within(section).getAllByRole('link', { name: '별빛 탑' }).map((a) => a.getAttribute('href'))).toEqual([`#doc-${tower}`, `#doc-${tower}`]) // 소제목의 상대와 본문 링크
+    expect(within(section).queryByRole('link', { name: '사라진 곳' })).toBeNull()
+    expect(section.textContent).toContain('밤마다 찾는다. 별빛 탑과 사라진 곳')
+    expect(panel.textContent).not.toContain('card:')
+  })
+
+  it('단방향 관계는 보내는 쪽 문서에만 문단이고 받는 쪽 문서에는 이 설정을 가리키는 관계 줄의 상대(관계명) 링크뿐이며 링크는 보내는 쪽 문단 앵커를 가리킨다', () => {
+    const panel = showLinked(cards, directed)
+    const [rian, tower] = [docOf(panel, /리안$/), docOf(panel, /별빛 탑$/)]
+    expect(relationHeads(rian)).toEqual(['별빛 탑 — 머무는 곳']) // 단방향·확인 표시는 적지 않는다
+    expect(rian.querySelector('.nw-rel')).toBeNull()
+    expect(rian.querySelector('.nw-relsec')?.id).toBe('rel-rian-r1')
+    expect(relationHeads(tower)).toEqual([])
+    expect(receivedLines(tower)).toEqual(['이 설정을 가리키는 관계 리안(머무는 곳)'])
+    expect(within(tower).getByRole('link', { name: '리안(머무는 곳)' }).getAttribute('href')).toBe('#rel-rian-r1')
+  })
+
   it('양 끝 문서에서 단방향·대칭·부정·본문과 기존 관계의 방향 미상을 구별한다', () => {
-    const rels: ReaderWorldCards['relationships'] = [
+    const panel = showLinked(cards, [
       { id: 'a', sourceCardId: 'rian', targetCardId: 'tower', label: '관계', direction: 'directed', polarity: 'denied', body: '근거\n원문' },
       { id: 'b', sourceCardId: 'tower', targetCardId: 'rian', label: '관계', direction: 'symmetric', polarity: 'asserted' },
       { id: 'c', sourceCardId: 'rian', targetCardId: 'tower', label: '관계' },
-    ]
-    const panel = render(<MemoryRouter><PublicWikiArticle work={{ ...mapReadingWork(record), wiki: worldCardWiki({ workId: record.id, upto: 2, cards, relationships: rels }) }} upto={2} /></MemoryRouter>).container
-    const rian = docOf(panel, /리안$/), tower = docOf(panel, /별빛 탑$/)
-    expect(rian.textContent).toContain('단방향: 이 설정 → 별빛 탑')
-    expect(tower.textContent).toContain('단방향: 리안 → 이 설정')
-    for (const item of [rian, tower]) {
-      expect(item.textContent).toContain('대칭 관계')
-      expect(item.textContent).toContain('부정된 관계')
-      expect(item.textContent).toContain('근거\n원문')
-      expect(item.textContent).toContain('방향 미상')
-    }
-    expect(within(rian).getAllByRole('link', { name: '별빛 탑' })).toHaveLength(3)
+    ])
+    const [rian, tower] = [docOf(panel, /리안$/), docOf(panel, /별빛 탑$/)]
+    expect(relationHeads(rian)).toEqual(['별빛 탑 — 관계 부정된 관계', '별빛 탑 — 관계 대칭 관계', '별빛 탑 — 관계 방향 미상'])
+    expect(relationHeads(tower)).toEqual(['리안 — 관계 대칭 관계', '리안 — 관계 방향 미상']) // 단방향(a)은 받는 쪽이라 문단이 없다
+    expect(receivedLines(tower)).toEqual(['이 설정을 가리키는 관계 리안(관계)'])
+    expect(rian.textContent).toContain('근거\n원문')
+    expect(tower.textContent).not.toContain('근거')
   })
 
-  it('「동일 인물」은 다른 이름 문서에는 정체로, 본체 문서에는 다른 이름으로 보이고 구조 관계·방향·부정 문구를 붙이지 않는다', () => {
+  it('「동일 인물」은 다른 이름 문서에는 본체 — 동일 인물 문단으로, 본체 문서에는 받는 쪽 링크로 보이고 종류·방향 표시나 옛 정체·다른 이름 표시를 붙이지 않는다', () => {
     const people = [card('mask', { title: '승상' }), card('body', { title: '홍길동' })]
-    const rels: ReaderWorldCards['relationships'] = [{ id: 'i', sourceCardId: 'mask', targetCardId: 'body', label: '승상 · 동일 인물 · 홍길동', category: 'identity', direction: 'directed', polarity: 'asserted', body: '' }]
-    const panel = render(<MemoryRouter><PublicWikiArticle work={{ ...mapReadingWork(record), wiki: worldCardWiki({ workId: record.id, upto: 2, cards: people, relationships: rels }) }} upto={2} /></MemoryRouter>).container
-    const mask = docOf(panel, /승상$/), body = docOf(panel, /홍길동$/)
-    expect(mask.querySelector('.nw-rel')?.textContent).toBe('연결 동일 인물 · 정체: 홍길동')
-    expect(body.querySelector('.nw-rel')?.textContent).toBe('연결 동일 인물 · 다른 이름: 승상')
-    within(mask).getByRole('link', { name: '홍길동' })
-    expect(panel.textContent).not.toMatch(/구조 관계|단방향|확인된 관계/)
+    const panel = showLinked(people, [{ id: 'i', sourceCardId: 'mask', targetCardId: 'body', label: '승상 · 동일 인물 · 홍길동', category: 'identity', direction: 'directed', polarity: 'asserted', body: '' }])
+    const [mask, body] = [docOf(panel, /승상$/), docOf(panel, /홍길동$/)]
+    expect(relationHeads(mask)).toEqual(['홍길동 — 동일 인물'])
+    expect(mask.querySelector('.nw-relsec p')).toBeNull() // 설명이 없으면 문단 본문도 없다
+    expect(relationHeads(body)).toEqual([])
+    expect(receivedLines(body)).toEqual(['이 설정을 가리키는 관계 승상(동일 인물)'])
+    expect(panel.textContent).not.toMatch(/구조 관계|단방향|확인된 관계|정체|다른 이름/)
+  })
+
+  it('받는 쪽 링크를 누르면 보내는 쪽 문서의 그 관계 문단으로 이동해 초점을 옮기고 짧게 강조하며 접힌 분류도 펼치고 움직임 줄이기면 고정 강조한다', () => {
+    const panel = showLinked(cards, directed)
+    const target = panel.querySelector<HTMLElement>('#rel-rian-r1')!
+    const group = target.closest('details') as HTMLDetailsElement
+    group.open = false
+    const link = within(docOf(panel, /별빛 탑$/)).getByRole('link', { name: '리안(머무는 곳)' })
+    expect(fireEvent.click(link)).toBe(false) // 기본 이동을 막는다
+    expect(group.open).toBe(true)
+    expect(scrollIntoView).toHaveBeenLastCalledWith({ behavior: 'smooth', block: 'start' })
+    expect(scrollIntoView.mock.contexts.at(-1)).toBe(target)
+    expect(document.activeElement).toBe(target)
+    expect(animate.mock.contexts).toEqual([target])
+    expect((animate.mock.calls[0][0] as { backgroundColor: string }[]).at(-1)?.backgroundColor).toBe('transparent') // 서서히 사라진다
+    Object.defineProperty(window, 'matchMedia', { configurable: true, value: () => ({ matches: true }) })
+    fireEvent.click(link)
+    const frames = animate.mock.calls.at(-1)![0] as { backgroundColor: string }[]
+    expect(frames[0].backgroundColor).toBe(frames[1].backgroundColor)
   })
 })

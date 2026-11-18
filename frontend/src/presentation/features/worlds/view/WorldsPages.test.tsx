@@ -462,7 +462,7 @@ it('공개 카드 관계는 실제 단방향·대칭·부정·본문과 이전 �
     { id: 'r3', sourceCardId: 'b', targetCardId: 'a', label: '동료' },
   ] }))
   await renderAt('/worlds/sw/cards/a')
-  expect(screen.getByText(/단방향: 이 설정 → 나/)).toBeTruthy()
+  expect([...document.querySelectorAll('details.nw-sec h3')].map((h) => h.textContent)).toEqual(['1.1. 나 — 동료 부정된 관계', '1.2. 나 — 동료 대칭 관계', '1.3. 나 — 동료 방향 미상']) // 단방향은 소제목만, 부가 표시는 부정·대칭·미상
   expect(screen.getByText(/부정된 관계/)).toBeTruthy()
   expect(screen.getByText('첫 줄 둘째 줄')).toBeTruthy()
   expect(screen.getByText(/대칭 관계/)).toBeTruthy()
@@ -502,14 +502,13 @@ it('페이지를 가로지르는 관계를 그래프 안내와 양쪽 카드 상
   expect(graph.props!.data.nodes.map((n) => n.name)).toEqual(['설정 100'])
   act(() => graph.props!.onOpen(graph.props!.data.nodes[0]))
   await screen.findByRole('heading', { level: 1, name: '설정 100' })
-  expect(screen.getByText(/스승/)).toBeTruthy()
-  expect(screen.getByText(/제자/)).toBeTruthy()
+  const relationHeads = () => [...document.querySelectorAll('details.nw-sec h3')].map((h) => h.textContent)
+  expect(relationHeads()).toEqual(['1.1. 설정 0 — 스승 방향 미상', '1.2. 설정 0 — 제자 방향 미상'])
   const relationSection = () => screen.getByRole('heading', { name: /^\d+\. 관계$/ }).closest('details')!
-  fireEvent.click(within(relationSection()).getByRole('link', { name: '설정 0' }))
+  fireEvent.click(within(relationSection()).getAllByRole('link', { name: '설정 0' })[0])
   await screen.findByRole('heading', { level: 1, name: '설정 0' })
-  expect(screen.getByText(/스승/)).toBeTruthy()
-  expect(screen.getByText(/제자/)).toBeTruthy()
-  expect(within(relationSection()).getByRole('link', { name: '설정 100' }).getAttribute('href')).toBe('/worlds/sw/cards/c-100')
+  expect(relationHeads()).toEqual(['1.1. 설정 100 — 스승 방향 미상', '1.2. 설정 100 — 제자 방향 미상'])
+  expect(within(relationSection()).getAllByRole('link', { name: '설정 100' }).map((a) => a.getAttribute('href'))).toEqual(['/worlds/sw/cards/c-100', '/worlds/sw/cards/c-100'])
 })
 it('다른 그래프 페이지의 두 카드 사이 여러 관계를 검색해 그래프에서 모두 본다', async () => {
   const cards = Array.from({ length: 101 }, (_, i) => card(`c-${i}`, `설정 ${i}`, 'character'))
@@ -541,22 +540,20 @@ it('같은 카드 사이 관계가 많으면 선 페이지를 넘겨 마지막 �
   expect(graph.props!.data.links.map((l) => l.id)).toEqual(['r20', 'r21'])
   expect(graphRegion.getByText('인물 2명 · 관계 22개')).toBeTruthy()
 })
-it('같은 라벨의 역순 관계는 상세에서 기록 순서를 구별하고 실제 방향이라고 단정하지 않는다', async () => {
+it('같은 라벨의 역순 관계도 방향이 없으면 관계마다 문단 하나씩 보이고 실제 방향이라고 단정하지 않는다', async () => {
   vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ cards: [card('a', '가', 'character'), card('b', '나', 'character')], relationships: [
     { id: 'r1', sourceCardId: 'a', targetCardId: 'b', label: '동료' }, { id: 'r2', sourceCardId: 'b', targetCardId: 'a', label: '동료' },
   ] }))
   await renderAt('/worlds/sw/cards/a')
-  expect(screen.getByText(/기록 순서는 관계의 방향이나 대칭 여부를 뜻하지 않아요/)).toBeTruthy()
-  expect(screen.getByText(/기록 순서: 이 설정 → 나/)).toBeTruthy()
-  expect(screen.getByText(/기록 순서: 나 → 이 설정/)).toBeTruthy()
+  expect([...document.querySelectorAll('details.nw-sec h3')].map((h) => h.textContent)).toEqual(['1.1. 나 — 동료 방향 미상', '1.2. 나 — 동료 방향 미상'])
 })
-it('대칭 또는 미상 관계는 저장된 끝점 순서만으로 가리키는 설정이라 표시하지 않는다', async () => {
+it('대칭 또는 미상 관계는 받는 쪽 카드에도 문단이고 저장된 끝점 순서만으로 이 설정을 가리키는 관계로 표시하지 않는다', async () => {
   vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ cards: [card('a', '가', 'location'), card('b', '나', 'location')], relationships: [
     { id: 'r1', sourceCardId: 'a', targetCardId: 'b', label: '연결', direction: 'symmetric' },
   ] }))
   await renderAt('/worlds/sw/cards/b')
-  expect(screen.getByRole('heading', { name: /연관 설정/ })).toBeTruthy()
-  expect(screen.queryByRole('heading', { name: /이 카드를 가리키는 설정/ })).toBeNull()
+  expect(screen.getByRole('heading', { name: '1. 관계' })).toBeTruthy()
+  expect(screen.queryByRole('heading', { name: /가리키는 관계/ })).toBeNull()
 })
 const deferred = <T,>() => {
   let resolve!: (value: T) => void
