@@ -393,7 +393,7 @@
       "category": "structural",
       "body": "훈 카메와 부쿱 카메는 함께 공놀이 형제를 불러 시험한다.",
       "label": "동료",
-      "direction": "directed",
+      "direction": "symmetric",
       "polarity": "asserted",
       "semanticMetadata": {
         "evidence": {

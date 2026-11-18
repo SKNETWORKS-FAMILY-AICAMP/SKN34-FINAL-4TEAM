@@ -1368,7 +1368,7 @@
       "targetCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
       "category": "structural",
       "body": "셀레파이스 고양이 우두머리는 카터에게 잉가녹에 관한 이야기를 전한다.",
-      "label": "전달 대상",
+      "label": "이야기 수신자",
       "direction": "directed",
       "polarity": "asserted",
       "semanticMetadata": {
@@ -1721,7 +1721,7 @@
       "category": "structural",
       "body": "아미티지는 분말에 드러난 형체가 윌버의 쌍둥이라고 설명한다.",
       "label": "쌍둥이",
-      "direction": "directed",
+      "direction": "symmetric",
       "polarity": "asserted",
       "semanticMetadata": {
         "evidence": {

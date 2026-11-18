@@ -504,7 +504,7 @@
       "targetCardId": "39eb9428-502a-5099-86e9-ca60ea9b24af",
       "category": "structural",
       "body": "히이아카는 어부 파훌루를 노래로 불러 생선을 받는다.",
-      "label": "수령 물건",
+      "label": "생선 제공자",
       "direction": "directed",
       "polarity": "asserted",
       "semanticMetadata": {

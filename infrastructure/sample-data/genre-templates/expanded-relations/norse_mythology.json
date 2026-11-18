@@ -232,7 +232,7 @@
       "targetCardId": "094a60cf-70d4-5d06-b9c2-034582eb09c0",
       "category": "structural",
       "body": "로카센나 후일담에서 시귄은 로키를 위해 그릇으로 독을 받는다.",
-      "label": "수령 물건",
+      "label": "보호 대상",
       "direction": "directed",
       "polarity": "asserted",
       "semanticMetadata": {
@@ -424,7 +424,7 @@
       "targetCardId": "9c006351-93f0-5148-bffc-4b48662bcf85",
       "category": "structural",
       "body": "길피의 속임수에서 슬레이프니르는 오딘의 여덟 다리 말이다.",
-      "label": "전달 대상",
+      "label": "탈것",
       "direction": "directed",
       "polarity": "asserted",
       "semanticMetadata": {

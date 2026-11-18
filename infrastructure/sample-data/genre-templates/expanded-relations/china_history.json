@@ -15,7 +15,7 @@
         }
       },
       "label": "공동 통치자",
-      "direction": "directed",
+      "direction": "symmetric",
       "polarity": "asserted"
     },
     {

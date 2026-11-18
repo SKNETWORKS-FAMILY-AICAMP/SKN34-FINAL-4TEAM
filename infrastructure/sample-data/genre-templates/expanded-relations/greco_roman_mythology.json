@@ -1480,7 +1480,7 @@
       "targetCardId": "3eab6f4c-bdf2-5505-9d91-8e1305335771",
       "category": "structural",
       "body": "오디세이아에서 에페이오스는 아테나와 함께 목마를 만든다.",
-      "label": "제작물",
+      "label": "제작 협력자",
       "direction": "directed",
       "polarity": "asserted",
       "semanticMetadata": {

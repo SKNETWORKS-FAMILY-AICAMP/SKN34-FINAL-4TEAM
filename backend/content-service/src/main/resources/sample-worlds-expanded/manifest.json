@@ -128,7 +128,7 @@
       "chunks": [
         "cthulhu_mythos-001-98b8837f142bf4a35a9dd40791920bd60084df491286363c620440fb755bae04.json",
         "cthulhu_mythos-002-af5a3d06e495ce61ebde490a6c66aa5bab711f75eb84b0183f2a8abac2cef535.json",
-        "cthulhu_mythos-003-4aa4566b62d5d086ef2fdb51ae91b69179c1eeac3b8ec38d5f5b2b0028efbabc.json"
+        "cthulhu_mythos-003-21f6d0ff3b94c8ec35d9ddcccaed7d439eb47a2816a2f0c57a3f52071899d25e.json"
       ]
     },
     {
@@ -138,7 +138,7 @@
       "description": "《볼루스파》 벨로스 영어판 66연을 비롯해, 《산문 에다》의 「길피의 속임수」·「시어법」 및 《시 에다》의 「그림니르의 말」·「하바말」·「트림의 노래」·「히미르의 노래」에서 확인한 일부 전승을 출전별로 요약한다. 북유럽 신화 전체나 에다 전체의 완역·완전한 전승 목록이 아니다.",
       "chunks": [
         "norse_mythology-001-b813a482a1402825fe001e8718bdda8714c71b261752c69c3841398a2523a966.json",
-        "norse_mythology-002-dd5f4c9d25b3428b00beb7168815adbf602410d0e86a6d7de4b3e812cf9ed312.json"
+        "norse_mythology-002-ee3d031e2c5fbb27595ae66f408a9c24278b301de82da40a05ec5ba97a3e57b0.json"
       ]
     },
     {
@@ -148,7 +148,7 @@
       "description": "헤시오도스 《신통기》 관련 카드에 호메로스 서사시·찬가, 아폴로도로스 신화집, 베르길리우스 서사시의 선별 전승을 추가한다. 작품별 차이를 보존하며 모든 그리스·로마 전승의 망라를 주장하지 않는다.",
       "chunks": [
         "greco_roman_mythology-001-4536efb85f193410e97053db35143e06d3927fc51debb13bd4fd064ec90ca3d0.json",
-        "greco_roman_mythology-002-9e2e6d2986ca8f9ddc62aac64ce71db1fad1b194e9ee5a81316d11c83cb68a7e.json"
+        "greco_roman_mythology-002-5e74f08e4a2e10c8eb6e73933cf1c0874794e253e9f968878310600acbc4f166.json"
       ]
     },
     {
@@ -178,7 +178,7 @@
       "description": "카드는 체임벌린 영어판 《고사기》와 별도로 《일본서기》 권1 본문과 일서의 대표 사례를 추가하며 각 서술의 차이를 구분한다. 역사적 왕권 서사와 현재의 종교 실천을 하나의 체계로 일반화하지 않는다.",
       "chunks": [
         "japanese_mythology-001-4ac3e3626aa976e18a47e40eeb0548ad36fa34519a596fed47b0cb4f191150de.json",
-        "japanese_mythology-002-d08e6ef0c20af790c86a44909d51309fc871b35cff5cb70da2506aa0d486cebe.json"
+        "japanese_mythology-002-daf4788b281b899d802a4606ca1030bbd5b24aa60b94fe6ffca4f28715270add.json"
       ]
     },
     {
@@ -238,7 +238,7 @@
       "description": "키체의 《포폴 부》 브라쇠르 1861년 프랑스어판의 머리말·45장·세 왕가 계보·맺음말을 범위로 설정을 정리한다. 창세·영웅담뿐 아니라 민족 이동과 왕권의 역사까지 포함하며, 저본 자체의 결락 한 곳은 명시한다.",
       "chunks": [
         "maya_mythology-001-26c0b35526384d59bb8d1fbd5e00b1368672a147e74815a271df44ba6214045f.json",
-        "maya_mythology-002-0b42ac32049c1c83d5d2442f3905db144e2e6ba3ed4907017e1c3e93754cc0d4.json"
+        "maya_mythology-002-a770b41913f725beb2aef0830ded35cf1015845c2d4014b2745c14ace03d9301.json"
       ]
     },
     {
@@ -272,7 +272,7 @@
         "china_history-002-737dcfdf2ec3aa1794b5f706346d20915c53540e981e61d19307326b2bc6feec.json",
         "china_history-003-da487e931015fbb7f3121b2115f87a383ce27116f32e018b7fc62ac32d5fa224.json",
         "china_history-004-33aaf2fe1613b8ee0fa7627792275a6a114b15e5c8743cdce48cc5409e83eec9.json",
-        "china_history-005-02273507239aa248209b662a925044529bf7b6cf1e329ea5886d4d8cc42a7485.json"
+        "china_history-005-0992fa781e0dcbcd13e75f9ee5a8b1bf525616ad337caf379647a9b73ab0e667.json"
       ]
     },
     {
@@ -288,8 +288,8 @@
         "england_history-005-a04065019c75ccf094ca011f2031d933270dd5b5b222f9f8e5880cae7d96abd1.json",
         "england_history-006-8dea1139f534473475591abaef933bac9892028e007ffc2f45a64d013f4024e6.json",
         "england_history-007-5f98701fe15bd74d55af46fb9f824c745c35133561b3b5759a9921f58168259f.json",
-        "england_history-008-5ccc6f41a3f78501bbbf9f67dde736b8a4f15742c9d9d73d41b4b2117ad62b72.json",
-        "england_history-009-15949a3a33c613922a18507b5928bdee0270b4b45791d00c579ebb9f2ed37ab3.json",
+        "england_history-008-f7923346709d7bcd078cea40ed3db91517130a388fa3b28235bcb58e39f6d8fd.json",
+        "england_history-009-cf2f57e7ec7066caae26ffc0f81ebe272feaed0dd5e3fa52ac40bbd4c04febae.json",
         "england_history-010-d3bf9493ff91090bcbfd86abd3e546bebb0fcdac66fb2cd3de64b2067c8894ef.json"
       ]
     },
@@ -364,7 +364,7 @@
       "description": "전승 자료에서 추출한 검토 후보. 판본·전승의 차이와 재배포 권리는 미확인.",
       "chunks": [
         "hawaiian_tradition-001-49cf6669169ad45878cc067b532e508368a8adfb7388fd554145927430b49fe0.json",
-        "hawaiian_tradition-002-0b86e1ef78c6ee8ddb0346a7ed6f6601f4d7a9dd898452f6732d459536a2d870.json"
+        "hawaiian_tradition-002-47855613238c190f3072648c2413fbd000324acd3d57183f9f4c7436c9cbfb86.json"
       ]
     },
     {
