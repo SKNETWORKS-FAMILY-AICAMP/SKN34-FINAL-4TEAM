@@ -149,6 +149,8 @@ class WorldCardRevealExitsTest {
         `when`(works.findById("work")).thenReturn(Optional.of(linkedWork))
         `when`(access.get("work")).thenReturn(WorkAccessResult("work", owner, "연결된 소설", "", 1, "legacy-world", visibility, false, false, null))
         `when`(publication.publishedEpisodes("work")).thenReturn(PublishedEpisodeListResponse((1..published).map { PublishedEpisodeResponse(it, 1, "v${it}", "${it}화", "본문") }))
+        // 공개 목록은 같은 값을 페이지 전체 쿼리로 읽는다: 공개 작품이면 [작품 id, 마지막 발행 회차] 행이 있고 아니면 행이 없다.
+        `when`(works.lastPublishedOfPublicWorks(listOf("work"))).thenReturn(if (visibility == "public") listOf(arrayOf<Any>("work", published)) else emptyList())
     }
 
     /** 원작 [linkedWork]의 [basisEpisode]화에서 갈라진 Fork가 자기 세계관 없이 원작 세계관을 이어받는 상태다. */

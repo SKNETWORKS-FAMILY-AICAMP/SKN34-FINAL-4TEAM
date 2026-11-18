@@ -72,11 +72,12 @@ class PublicWorldService(
         // ponytail: total은 쿼리 기준이라 이때 items보다 클 수 있다. currentRevisionId는 확정 뒤에만 정해져 지금은 생기지 않으며, 생기면 목록 쿼리에 sealed 조건을 둔다.
         val shown = found.page.content.filter { it.currentRevisionId in found.revisions }
         val names = authors(shown.map { it.ownerSubject.toString() }.distinct())
-        // ponytail: 세계관마다 연결 소설과 Neo4j를 한 번씩 읽는다(한 쪽 최대 100번). 느려지면 한 쿼리로 묶는 배치 조회를 둔다.
+        // 기준 회차는 페이지 전체에 쿼리 둘로 센다. ponytail: Neo4j는 세계관마다 한 번씩 읽는다(한 쪽 최대 100번). 느려지면 한 쿼리로 묶는 배치 조회를 둔다.
+        val bases = basisEpisodes(shown.map { it.id })
         val items = shown.map { world ->
             val revision = found.revisions.getValue(requireNotNull(world.currentRevisionId))
             // 카드·관계 수는 상세와 같은 기준 회차의 같은 카드 집합이다(DEC-53).
-            val basis = basisEpisode(linkedWork(world.id))
+            val basis = bases.getValue(world.id)
             val cardIds = shownAt(found.cards[revision.id].orEmpty(), basis).map { it.first.cardId }.toSet()
             PublicWorldSummaryResponse(world.id, revision.name, revision.description, world.genre, names.getValue(world.ownerSubject.toString()),
                 cardIds.size, currentRelationships(world.id, found.states[world.id], revision.id, cardIds, basis)?.size, world.published(), world.coverObjectKey != null)
@@ -226,7 +227,18 @@ class PublicWorldService(
         works.findAllByWorldStudioIdIn(listOf(worldId)).firstOrNull()?.let { workAccess.get(it.id) }
 
     /**
-     * 공개 세계관의 기준 회차(DEC-53)다: 연결된 소설 [linked]가 공개 작품([WorkAccessResult.publiclyVisible])이면 발행된 마지막 회차(없으면 0), 공개 작품이 아니면(비공개·제한·삭제) 0,
+     * [worldIds] 각각의 기준 회차를 목록 한 페이지 전체에 쿼리 둘로 센다([basisEpisode]와 같은 값): 연결된 작품 조회 하나와 그 가운데 공개 작품의 발행된 마지막 회차 조회 하나다.
+     * 연결된 소설이 공개 작품이면 발행된 마지막 회차(없으면 0), 공개 작품이 아니면 0, 연결이 없으면 1이다. 작품은 Content 트랜잭션이라 WorldStudio 읽기 트랜잭션 밖에서 부른다.
+     */
+    private fun basisEpisodes(worldIds: List<UUID>): Map<UUID, Int> {
+        if (worldIds.isEmpty()) return emptyMap()
+        val linked = works.findAllByWorldStudioIdIn(worldIds).associate { checkNotNull(it.worldStudioId) to it.id }
+        val published = if (linked.isEmpty()) emptyMap() else works.lastPublishedOfPublicWorks(linked.values.toList()).associate { it[0] as String to (it[1] as Number).toInt() }
+        return worldIds.associateWith { world -> linked[world]?.let { published[it] ?: 0 } ?: 1 }
+    }
+
+    /**
+     * 공개 세계관 하나의 기준 회차(DEC-53)다: 연결된 소설 [linked]가 공개 작품([WorkAccessResult.publiclyVisible])이면 발행된 마지막 회차(없으면 0), 공개 작품이 아니면(비공개·제한·삭제) 0,
      * 연결이 없으면 1이다. 독자 위키의 기준([ai.storyfork.content.work.service.WorkWorldService])과 같은 값이다. 발행을 중단하면 마지막 발행 회차가 내려가 보이던 카드가 다시 숨는다.
      */
     private fun basisEpisode(linked: WorkAccessResult?): Int = when {

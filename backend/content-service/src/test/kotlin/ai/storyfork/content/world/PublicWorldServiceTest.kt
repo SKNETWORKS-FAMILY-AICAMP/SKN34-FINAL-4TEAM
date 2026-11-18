@@ -26,6 +26,7 @@ import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyCollection
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.*
 import org.mockito.stubbing.OngoingStubbing
@@ -547,17 +548,26 @@ class PublicWorldServiceTest {
 
     // --- 공개 세계관의 기준 회차(DEC-53): 연결된 공개 소설의 발행된 마지막 회차, 연결이 없으면 1 ---
 
-    @Test fun `the public list counts the cards and relations at each world's own basis episode`() {
-        val unlinked = Seed(name = "미연결")
-        val linked = Seed(name = "연결됨")
-        linkWork(linked, published = listOf(1, 2, 3))
-        stubPage(listOf(unlinked, linked), PageRequest.of(0, 24), 2)
+    @Test fun `the public list reads the page's linked works and their last published episodes in two queries and counts each world at its own basis episode`() {
+        val seeds = listOf(Seed(name = "미연결"), Seed(name = "공개 소설 3화"), Seed(name = "비공개 소설"), Seed(name = "공개 소설 발행 전"), Seed(name = "미연결 둘째"))
+        val (unlinked, published, private, nothingYet, unlinkedToo) = seeds
+        // 연결된 소설 셋: 3화까지 발행한 공개 작품·공개 작품이 아닌 것·발행한 회차가 없는 공개 작품. 공개 작품만 마지막 발행 회차 쿼리에 행이 있다(발행이 없으면 0).
+        val workOf = listOf(published, private, nothingYet).associateWith { WorkEntity(id = "work-${it.id}", ownerId = "owner", title = "소설", worldStudioId = it.id) }
+        `when`(works.findAllByWorldStudioIdIn(seeds.map { it.id })).thenReturn(workOf.values.toList())
+        `when`(works.lastPublishedOfPublicWorks(workOf.values.map { it.id })).thenReturn(listOf(arrayOf<Any>(workOf.getValue(published).id, 3), arrayOf<Any>(workOf.getValue(nothingYet).id, 0)))
+        stubPage(seeds, PageRequest.of(0, 24), 5)
         val items = service.list(null, null, null).items
-        // 미연결은 1화 기준(첫 인물·둘째 인물, 관계 1), 연결된 소설은 3화 기준이라 공개 회차 2화인 비공개 인물과 그 관계까지 보인다.
-        assertEquals(listOf(2, 3), items.map { it.cardCount })
-        assertEquals(listOf(1, 2), items.map { it.relationshipCount })
+        // 미연결은 1화 기준(첫 인물·둘째 인물, 관계 1), 3화까지 발행한 공개 작품은 공개 회차 2화인 비공개 인물과 그 관계까지, 공개 작품이 아니거나 발행 전이면 기준 0이라 카드·관계가 없다.
+        assertEquals(listOf(2, 3, 0, 0, 2), items.map { it.cardCount })
+        assertEquals(listOf(1, 2, 0, 0, 1), items.map { it.relationshipCount })
         verify(graph).read(unlinked.id, 1)
-        verify(graph).read(linked.id, 3)
+        verify(graph).read(published.id, 3)
+        verify(graph).read(private.id, 0)
+        verify(graph).read(unlinkedToo.id, 1)
+        // 세계관이 몇 개든 연결 작품 조회 한 번과 공개 작품의 발행 회차 조회 한 번뿐이다. 작품 접근·발행 회차(본문 포함)를 세계관마다 읽지 않는다.
+        verify(works, times(1)).findAllByWorldStudioIdIn(anyCollection())
+        verify(works, times(1)).lastPublishedOfPublicWorks(anyCollection())
+        verifyNoInteractions(access, publication, workImages)
     }
 
     // --- 설정 카드 대표 이미지(#401) ---
