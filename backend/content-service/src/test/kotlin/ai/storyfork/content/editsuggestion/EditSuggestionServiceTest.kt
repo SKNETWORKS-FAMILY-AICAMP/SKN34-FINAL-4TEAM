@@ -1,6 +1,7 @@
 package ai.storyfork.content.editsuggestion
 
 import ai.storyfork.content._common.exception.ContentFailure
+import ai.storyfork.content._common.helper.episodeId
 import ai.storyfork.content._common.helper.episodeVersionId
 import ai.storyfork.content.auth.client.exception.CoreAuthException
 import ai.storyfork.content.auth.service.CoreNicknameService
@@ -15,6 +16,7 @@ import ai.storyfork.content.episode.service.EpisodeService
 import ai.storyfork.content.episode.service.dto.DraftRequest
 import ai.storyfork.content.episode.service.dto.DraftResponse
 import ai.storyfork.content.episode.service.dto.EpisodeResponse
+import ai.storyfork.content.episode_version.domain.VersionLink
 import ai.storyfork.content.episode_version.entity.EpisodeVersionEntity
 import ai.storyfork.content.episode_version.repository.EpisodeVersionRepository
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
@@ -412,6 +414,37 @@ class EditSuggestionServiceTest {
         assertEquals("전혀 다른 문장으로 바꿈", review.editedText)
     }
 
+    @Test fun `an approved suggestion is published only when its saved version is the current published version or one before it`() {
+        val episode = episodeId("work", 1)
+        // 저장본은 오래된 순으로 version-1 → version-2 → version-3이고 현재 발행본은 version-2다(version-3은 발행 뒤 저장한 초안).
+        `when`(versions.savedLinks(listOf(episode))).thenReturn(listOf(VersionLink(episode, "version-1", null), VersionLink(episode, "version-2", null), VersionLink(episode, "version-3", null)))
+        `when`(current.findAllById(listOf(episode))).thenReturn(listOf(EpisodeCurrentEntity(episode, "work", 1, "version-2")))
+        fun applied(id: String, version: String?) = row(id, status = "approved", applyResult = if (version == null) "failed" else "applied").also { it.appliedVersionId = version }
+        applied("older", "version-1"); applied("current", "version-2"); applied("draft", "version-3"); applied("failed", null)
+        row("waiting")
+
+        val items = service.inbox("owner").items
+
+        assertEquals(mapOf("older" to true, "current" to true, "draft" to false, "failed" to false, "waiting" to false), items.associate { it.id to it.published })
+    }
+
+    @Test fun `handledAt is the last judgement time and handlerName is the owner Core nickname once the owner has judged`() {
+        row("held", status = "held").also { it.decidedAt = t0.plusSeconds(1) }
+        row("rejected", status = "rejected").also { it.decidedAt = t0.plusSeconds(2) }
+        // 승인은 반영을 다시 시도하면 갱신 시각이 늦어지므로 판단 시각(decidedAt)이 아니라 갱신 시각을 처리 시각으로 본다.
+        row("approved", status = "approved", applyResult = "applied").also { it.decidedAt = t0.plusSeconds(3); it.updatedAt = t0.plusSeconds(9) }
+        row("pending")
+
+        val items = service.inbox("owner").items.associateBy { it.id }
+
+        assertEquals(mapOf<String, Any?>("held" to t0.plusSeconds(1), "rejected" to t0.plusSeconds(2), "approved" to t0.plusSeconds(9), "pending" to null), items.mapValues { it.value.handledAt })
+        assertEquals(mapOf<String, Any?>("held" to "owner-닉", "rejected" to "owner-닉", "approved" to "owner-닉", "pending" to null), items.mapValues { it.value.handlerName })
+        // 제안자와 작가의 표시명은 Core에 한 번에 묻는다.
+        assertEquals(1, asked.size)
+        withdrawn += "owner"
+        assertEquals("탈퇴한 회원", service.read("work", "held", "reader").handlerName)
+    }
+
     @Test fun `JSON field names follow the contract and a sparse request body falls back to defaults`() {
         val mapper = tools.jackson.databind.json.JsonMapper.builder().findAndAddModules().build()
         row()
@@ -419,7 +452,7 @@ class EditSuggestionServiceTest {
         val item = mapper.readTree(mapper.writeValueAsString(SuggestionListResponse(service.mine("reader").items))).path("items")[0]
 
         assertEquals(listOf("afterText", "appliedVersionId", "applyFailure", "applyResult", "beforeText", "createdAt", "decisionReason", "editedText", "episodeNumber", "id", "mine",
-            "owner", "proposerName", "publishedVersionId", "reason", "scope", "scopeReasons", "source", "status", "updatedAt", "workId", "workTitle").sorted(),
+            "handledAt", "handlerName", "owner", "proposerName", "published", "publishedVersionId", "reason", "scope", "scopeReasons", "source", "status", "updatedAt", "workId", "workTitle").sorted(),
             item.propertyNames().toList().sorted())
         assertTrue(item.path("editedText").isNull)
         assertEquals("2020-01-01T00:00:00Z", item.path("createdAt").asString())
@@ -549,7 +582,7 @@ class EditSuggestionServiceTest {
             assertEquals(409, failure { service.hold("work", "s1", "owner") }.status, "$status $result")
             assertEquals(status, saved.status)
         }
-        assertNull(saved.decidedAt)
+        assertEquals(saved.updatedAt, saved.decidedAt)
     }
 
     @Test fun `reject closes a pending or held suggestion with an optional trimmed reason`() {

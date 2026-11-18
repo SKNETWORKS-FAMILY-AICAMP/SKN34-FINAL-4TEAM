@@ -30,3 +30,5 @@
   Spring/HTTP/DB/Flyway 검사는 CI `integrationTest`에서 실행한다.
 
 - 플롯·장면 계획(#374)의 기존 POST/PUT은 선택적 `position`을 받는다. 장면 순서는 작품+회차 단위로 플롯을 가로지르며 `own` 잠금 아래 이웃 위치·revision을 함께 갱신한다. V38은 기존 생성순을 보존해 position을 채운다. [계약](../../docs/design/writing-plan-panel-contract.md).
+
+수정 제안 반영 상태는 현재 발행 버전과 복원 출처를 기준으로 계산한다. 독자 제보의 마지막 작가 처리 시각과 최초 확인 시각은 별도로 보관한다.

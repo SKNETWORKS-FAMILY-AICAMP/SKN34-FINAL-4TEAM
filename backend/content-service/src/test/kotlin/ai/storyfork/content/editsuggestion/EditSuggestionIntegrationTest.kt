@@ -165,6 +165,10 @@ class EditSuggestionIntegrationTest {
         assertEquals(listOf<Any?>("approved","applied",null,applied),row(sid))
         assertEquals(409,act(id,sid,owner,"approval").statusCode())
         assertEquals(versions+1,versionCount(id))
+        assertFalse(approved.path("published").asBoolean())
+        val writing=driver.writing(id,owner.toString(),1)
+        driver.publishEpisode(id,owner.toString(),1,PublishRequest(writing.draft.revision,true,true,true,writing.versions.last().id))
+        assertTrue(ok(detail(id,sid,reader)).path("published").asBoolean())
     }
 
     @Test fun `a sentence the owner already changed in the draft is recorded as a failed apply and a retry can still succeed`() {

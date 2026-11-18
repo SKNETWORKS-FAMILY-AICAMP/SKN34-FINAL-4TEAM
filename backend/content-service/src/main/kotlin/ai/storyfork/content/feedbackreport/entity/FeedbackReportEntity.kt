@@ -34,6 +34,7 @@ class FeedbackReportEntity(
     var status: String = "unchecked",
     @field:Column(name = "author_checked_at")
     var authorCheckedAt: Instant? = null,
+    @field:Column(name="handled_at") var handledAt: Instant? = null,
     @field:Column(name = "withdrawn_at")
     var withdrawnAt: Instant? = null,
     @field:Column(name = "created_at")

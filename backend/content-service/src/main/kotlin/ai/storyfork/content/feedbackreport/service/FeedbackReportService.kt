@@ -131,6 +131,7 @@ class FeedbackReportService(
         if(row.authorCheckedAt==null) {
             val now=now()
             row.authorCheckedAt=now
+            row.handledAt=now
             row.status=statusAfterCheck(row.status)
             row.updatedAt=now
         }
@@ -189,6 +190,7 @@ class FeedbackReportService(
     /** 작가의 답변·상태 변경은 제보를 본 것이라 확인 시각이 없으면 이번 수정 시각으로 기록한다(처음 기록은 바꾸지 않는다). */
     private fun touchByAuthor(row: FeedbackReportEntity) {
         touch(row)
+        row.handledAt=row.updatedAt
         row.authorCheckedAt=row.authorCheckedAt ?: row.updatedAt
     }
 
@@ -211,7 +213,7 @@ class FeedbackReportService(
             val view=reportView(row.visibility,mine,owner,all.any {it.isPublic})
             if(view==ReportView.HIDDEN) null else Shown(row,work,mine,owner,view,if(mine || owner) all else all.filter {it.isPublic})
         }
-        val names=nicknames.nicknames(shown.flatMap {s -> s.replies.map {it.authorId}+listOfNotNull(s.row.reporterId.takeIf {s.view==ReportView.FULL})})
+        val names=nicknames.nicknames(shown.filter {it.owner}.map {it.work.ownerId} + shown.flatMap {s -> s.replies.map {it.authorId}+listOfNotNull(s.row.reporterId.takeIf {s.view==ReportView.FULL})})
         return shown.map {s ->
             val row=s.row
             val full=s.view==ReportView.FULL
@@ -220,7 +222,9 @@ class FeedbackReportService(
                 if(full) names[row.reporterId] ?: WITHDRAWN_MEMBER_NAME else null,s.mine,s.owner,row.authorCheckedAt!=null,row.withdrawnAt!=null,
                 if(full) corrections[row.id].orEmpty().sortedBy {it.createdAt}.map {AmendmentResponse(it.action,it.body,it.createdAt)} else emptyList(),
                 s.replies.map {ReportReplyResponse(it.id,names[it.authorId] ?: WITHDRAWN_MEMBER_NAME,it.body,it.isPublic,it.createdAt)},
-                row.createdAt,row.updatedAt)
+                row.createdAt,row.updatedAt, row.handledAt.takeIf {s.owner},
+                if (s.owner && row.authorCheckedAt != null) names[s.work.ownerId] ?: WITHDRAWN_MEMBER_NAME else null,
+                row.authorCheckedAt.takeIf {s.owner})
         }
     }
 }

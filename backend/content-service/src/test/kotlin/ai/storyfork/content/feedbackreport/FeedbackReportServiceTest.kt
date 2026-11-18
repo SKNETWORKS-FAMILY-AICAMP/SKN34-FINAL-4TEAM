@@ -111,11 +111,11 @@ class FeedbackReportServiceTest {
     @Test fun `JSON field names follow the contract and sparse request bodies fall back to defaults`() {
         val mapper = tools.jackson.databind.json.JsonMapper.builder().findAndAddModules().build()
         val item = ReportResponse("r1", "work", "작품", 3, "version-3", "typo", "본문", null, "private", "unchecked", "닉", false, false, false, false,
-            listOf(AmendmentResponse("correct", "고침", t0)), listOf(ReportReplyResponse("p1", "작가", "답변", true, t0)), t0, t0)
+            listOf(AmendmentResponse("correct", "고침", t0)), listOf(ReportReplyResponse("p1", "작가", "답변", true, t0)), t0, t0, null, null, null)
 
         val json = mapper.readTree(mapper.writeValueAsString(ReportListResponse(listOf(item)))).path("items")[0]
 
-        assertEquals(listOf("amendments", "authorChecked", "body", "createdAt", "episodeNumber", "id", "kind", "mine", "owner", "publishedVersionId", "quote", "reporterName",
+        assertEquals(listOf("amendments", "authorChecked", "authorCheckedAt", "body", "createdAt", "episodeNumber", "handledAt", "handlerName", "id", "kind", "mine", "owner", "publishedVersionId", "quote", "reporterName",
             "responses", "status", "updatedAt", "visibility", "withdrawn", "workId", "workTitle"), json.propertyNames().toList().sorted())
         assertTrue(json.path("quote").isNull)
         assertEquals(listOf("action", "body", "createdAt"), json.path("amendments")[0].propertyNames().toList().sorted())
@@ -457,6 +457,29 @@ class FeedbackReportServiceTest {
             service.check("work", other.id, "author")
             assertEquals(listOf(status, true), listOf(other.status, other.authorCheckedAt != null))
         }
+    }
+
+    @Test fun `after the check an answer or a status change moves handledAt only and the first check time stays`() {
+        work(); val row = report("r1", status = "unchecked")
+        service.check("work", "r1", "author")
+        val first = row.authorCheckedAt
+        assertNotNull(first)
+        // 확인은 최초 확인과 마지막 처리를 같은 시각으로 남긴다.
+        assertEquals(first, row.handledAt)
+
+        val changed = service.setStatus("work", "r1", "author", StatusRequest("resolved"))
+
+        assertEquals(first, row.authorCheckedAt)
+        assertEquals(row.updatedAt, row.handledAt)
+        // 작가에게는 마지막 처리와 최초 확인 시각을 따로, 처리자를 Core 닉네임으로 준다.
+        assertEquals(listOf<Any?>(row.handledAt, first, "author-닉"), listOf(changed.handledAt, changed.authorCheckedAt, changed.handlerName))
+        val answered = service.answer("work", "r1", "author", ResponseRequest("답변"))
+        assertEquals(first, row.authorCheckedAt)
+        assertEquals(row.updatedAt, row.handledAt)
+        assertEquals(listOf(row.handledAt, first), listOf(answered.handledAt, answered.authorCheckedAt))
+        // 제보자에게는 작가의 처리 기록(시각·처리자)을 주지 않고 확인했는지만 알린다.
+        val mine = service.mine("reporter").items.single()
+        assertEquals(listOf<Any?>(null, null, null, true), listOf(mine.handledAt, mine.authorCheckedAt, mine.handlerName, mine.authorChecked))
     }
 
     @Test fun `an answer or a status change records the author check once even without a prior check`() {
