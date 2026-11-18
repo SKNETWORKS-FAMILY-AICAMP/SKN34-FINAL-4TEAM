@@ -49,6 +49,7 @@ const review: z.ZodType<ChatReview> = z.object({
 const BAD_REVIEW = '원고 검수 결과 형식을 확인할 수 없어요.'
 // 설정집 검토 단계 결과. 웹 조사와 같은 findings 키라 따로 검증하지 않으면 웹 조사 모양으로 읽혀 응답 전체가 형식 오류가 된다.
 const worldReview: z.ZodType<ChatWorldReview> = z.object({
+  reviewedCards: z.number().int().nonnegative(),
   findings: z.array(z.object({ kind: z.enum(['contradiction', 'doc_role', 'missing_info', 'other']), message: z.string() })),
 })
 const BAD_WORLD_REVIEW = '설정집 검토 결과 형식을 확인할 수 없어요.'

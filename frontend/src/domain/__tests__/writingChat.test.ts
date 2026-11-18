@@ -244,10 +244,14 @@ describe('원고 검수 결과 글(#59)', () => {
 
 describe('설정집 검토 결과 글(#479)', () => {
   const step = (findings: { kind: 'contradiction' | 'doc_role' | 'missing_info' | 'other'; message: string }[]) =>
-    ({ feature: 'world_review', status: 'completed' as const, worldReview: { findings } })
+    ({ feature: 'world_review', status: 'completed' as const, worldReview: { reviewedCards: 2, findings } })
 
   it('지적이 없으면 웹 조사 문구가 아니라 검토 결과로 알린다', () => {
     expect(stepText(step([]))).toBe('검토에서 찾은 문제가 없어요.')
+  })
+
+  it('검토한 카드가 0장이면 문제가 없다고 하지 않고 카드가 없다고 알린다(#493)', () => {
+    expect(stepText({ ...step([]), worldReview: { reviewedCards: 0, findings: [] } })).toBe('검토할 설정 카드가 없어요.')
   })
 
   it('지적마다 종류와 메시지를 보이고, 단계 이름은 설정집 검토다', () => {
