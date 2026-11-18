@@ -110,7 +110,7 @@ def collect(worlds, inputs):
         if not isinstance(batch['relationships'], list):
             raise ValueError(f'{path}: relationships는 배열이어야 함')
         for edge in batch['relationships']:
-            if set(edge) != FIELDS or not all(isinstance(edge[k], str) and edge[k].strip() for k in FIELDS):
+            if set(edge) - {'semanticMetadata'} != FIELDS or not all(isinstance(edge[k], str) and edge[k].strip() for k in FIELDS):
                 raise ValueError(f'{path}: 관계 필드가 잘못됨')
             try:
                 edge_id = UUID(edge['id'])
@@ -127,8 +127,12 @@ def collect(worlds, inputs):
             if len(edge['body'].encode('utf-16-le')) // 2 > 3000 or len(edge['label'].encode('utf-16-le')) // 2 > 200:
                 raise ValueError(f'{path}: 관계 내용 길이 오류')
             source_card = re.search(r'근거 카드 ID:\s*([0-9a-f-]{36})', edge['body'])
+            evidence = edge.get('semanticMetadata', {}).get('evidence', {}) if isinstance(edge.get('semanticMetadata', {}), dict) else {}
             card_location = source_card and source_card.group(1) in (source, target)
-            if not re.search(r'출처|출전|근거', edge['body']) or not (card_location or re.search(r'https?://\S+|(?:[\w.-]+/)+[\w.\-]+', edge['body'])):
+            evidence_location = isinstance(evidence, dict) and evidence.get('cardId') in (source, target)
+            evidence_source = isinstance(evidence, dict) and isinstance(evidence.get('source'), str) and re.search(r'https?://\S+|(?:[\w.-]+/)+[\w.\-]+', evidence['source'])
+            body_source = re.search(r'출처|출전|근거', edge['body']) and (card_location or re.search(r'https?://\S+|(?:[\w.-]+/)+[\w.\-]+', edge['body']))
+            if not (body_source or evidence_location or evidence_source):
                 raise ValueError(f'{path}: 출처와 URL 또는 위치 필요')
             endpoints = tuple(sorted((source, target))) if edge['direction'] == 'symmetric' else (source, target)
             semantic_key = (genre, endpoints, edge['category'], edge['label'], edge['direction'], edge['polarity'])

@@ -4,7 +4,7 @@ Core에 있던 작품·회차·원고 버전·발행·세계관·독립 WorldStu
 
 **소스 추출·연결과 운영 전환은 다릅니다.** fresh 콘텐츠 초기 스키마로 이력을 재작성했으므로 기존 Content history에 바로 배포할 수 없습니다. 실제 DB 초기화·데이터 이동·공용 DB 적용·이미지 게시·배포는 수행하지 않았으며 최신 head의 hosted `Required CI` 성공도 확인 대기입니다. 운영 서비스는 실행 골격 그대로입니다.
 
-확장 역사·전승 샘플의 최초 적재는 기본적으로 꺼져 있습니다(`app.worldstudio.expanded-seed-enabled=false`). #425의 원본 사용 제한·재배포 조건 확인과 독립 역사 감수 및 사실 검토, 관계 방향·근거에 대한 내용 검수를 마치기 전에는 켜지 않습니다. 없는 세계관과 엄격한 원본 검사를 통과한 기존 샘플만 대상으로 하며, 확장 중 공개 조회는 기존 확정 카드를 유지하고 관계를 unavailable로 표시합니다. PG·Neo4j 통합과 대량 처리 성능은 아직 검증되지 않았습니다.
+확장 역사·전승 샘플의 최초 적재는 기본 켬입니다(`app.worldstudio.expanded-seed-enabled=true`, 사용자 결정 2026-11-18, 시연용). 관계는 DEC-54 읽기 규칙으로 정규화합니다(#531). 원전 권리·독립 감수는 #425에서 계속하며, 이 기본값은 그 완료를 뜻하지 않습니다. 없는 세계관과 엄격한 원본 검사를 통과한 기존 샘플만 대상으로 하며, 확장 중 공개 조회는 기존 확정 카드를 유지하고 관계를 unavailable로 표시합니다. PG·Neo4j 통합과 대량 처리 성능은 아직 검증되지 않았습니다.
 
 ## 실행 기반과 책임
 
@@ -151,7 +151,7 @@ V19는 기존 V1~V18을 보존하고 `work_interest`(작품·회원이 기본키
 
 샘플 데이터는 [테이블별 UTF-8 CSV 정본에서 생성한 Flyway `db/migration/sample/V16`](../../infrastructure/sample-data/README.md)으로 서버 시작 시 적용됩니다. V15(샘플 이관 시점의 V10을 develop의 V10~V14 뒤로 옮긴 번호)는 샘플 행 없는 스키마 SQL로 유지하고 기존 Auth·Content V1~V9·첨부·WorldStudio migration 19개 바이트는 보존합니다. CSV 속성은 원문 근거가 있는 공개 시점만 부여하며 불확실한 값은 비공개입니다. rich 대상 편집/following Fork의 rich detach는 409로 보호하되 원작의 새 단순 설정 초안·확정은 기존 rich 상세를 바꾸지 않고 허용합니다. 실제 적용·hosted CI·브라우저 수용은 별도 확인 대기입니다.
 
-장르 예시 템플릿은 SQL이 아니라 서버 시작 시 `GenreTemplateSeeder`가 `WorldStudioService`로 Core 운영 관리자(`auth/V8`의 `admin@example.test`, `GenreTemplateSeeder.TEMPLATE_OWNER`) 소유 WorldStudio 세계관 26개(창작 11종 386장, 신화·고전 15종 868장)를 임시 할당합니다. 기존 인물 379명의 SOUL은 DEC-47 `characterDocs`에 본문과 분리하고 `goal`과 `episodes`는 비웁니다. 역사 연구 7종은 기존 시더에서 제외하며 확장 시더도 기본 꺼짐입니다. 확장을 켰을 때 저장 완료된 옛 역사 원본은 이력을 검증해 기존 카드와 공개 선택을 보존하고 후보를 추가하며, 과거 시드의 미완료 요청은 자동 복구하지 않고 보류합니다. 역사 설정집 후보 확인과 DB 반영은 별도입니다. 역사 원전·저작권·일부 인용은 검수 대기이며 출처와 이용 조건을 보존합니다. 새 템플릿은 카드와 세계관을 공개로 생성하며, 기존 세계관의 공개 선택은 동결 원본 판정과 1회 공개 marker 계약을 따릅니다. 공개된 샘플 관리자 비밀번호로 누구나 수정·삭제할 수 있습니다. 장르별 실패(Neo4j 장애 등)는 오류 로그만 남기고 서버는 계속 뜨며 다음 시작 때 다시 시도합니다. [설계](../../docs/design/worldstudio-independent-schema.md#플랫폼-장르-템플릿-세계관)·[템플릿 안내](../../infrastructure/sample-data/genre-templates/README.md)를 따릅니다.
+장르 예시 템플릿은 SQL이 아니라 서버 시작 시 `GenreTemplateSeeder`가 `WorldStudioService`로 Core 운영 관리자(`auth/V8`의 `admin@example.test`, `GenreTemplateSeeder.TEMPLATE_OWNER`) 소유 WorldStudio 세계관 26개(창작 11종 386장, 신화·고전 15종 868장)를 임시 할당합니다. 기존 인물 379명의 SOUL은 DEC-47 `characterDocs`에 본문과 분리하고 `goal`과 `episodes`는 비웁니다. 역사 연구 7종은 기존 시더에서 제외하며 확장 시더는 기본 켬입니다(사용자 결정 2026-11-18, 시연용). 관계는 DEC-54 읽기 규칙으로 정규화하고(#531), 원전 권리·독립 감수는 #425에서 계속합니다. 저장 완료된 옛 역사 원본은 이력을 검증해 기존 카드와 공개 선택을 보존하고 후보를 추가하며, 과거 시드의 미완료 요청은 자동 복구하지 않고 보류합니다. 역사 설정집 후보 확인과 DB 반영은 별도입니다. 역사 원전·저작권·일부 인용은 검수 대기이며 출처와 이용 조건을 보존합니다. 새 템플릿은 카드와 세계관을 공개로 생성하며, 기존 세계관의 공개 선택은 동결 원본 판정과 1회 공개 marker 계약을 따릅니다. 공개된 샘플 관리자 비밀번호로 누구나 수정·삭제할 수 있습니다. 장르별 실패(Neo4j 장애 등)는 오류 로그만 남기고 서버는 계속 뜨며 다음 시작 때 다시 시도합니다. [설계](../../docs/design/worldstudio-independent-schema.md#플랫폼-장르-템플릿-세계관)·[템플릿 안내](../../infrastructure/sample-data/genre-templates/README.md)를 따릅니다.
 
 Auth SQL은 Core의 `db/migration/auth`/`flyway_schema_history`에 원본 그대로 남습니다. 설정 첨부·이미지는 독립 leaf/history 및 바이트를 유지합니다. WorldStudio V1도 바이트/`worldstudio.world_studio_schema_history`를 유지하고 [명시 migration](src/main/resources/db/migration/worldstudio/README.md) 뒤에만 활성화합니다. 같은 `contentDataSource`를 사용하지만 studio-only EntityManager/TransactionManager이며 서버 시작은 `validate`만 합니다. 별도 WorldStudio DB/pool·Auth 스캔은 없습니다.
 

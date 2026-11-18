@@ -74,10 +74,10 @@ internal fun expandedRequests(world:ExpandedWorld,chunks:List<ExpandedChunk>,map
     return requests
 }
 
-/** Unreviewed research is inert unless explicitly enabled after #425 prerequisites are met. */
+/** 시연용으로 기본 켬(사용자 결정 2026-11-18). 원전 권리·독립 감수는 #425. */
 @Component
 class ExpandedTemplateSeeder(private val service:WorldStudioService,private val mapper:JsonMapper,
-    @Value("\${app.worldstudio.expanded-seed-enabled:false}") private val enabled:Boolean) {
+    @Value("\${app.worldstudio.expanded-seed-enabled:true}") private val enabled:Boolean) {
     private val log=LoggerFactory.getLogger(javaClass)
     internal fun seedHistorical(world:ExpandedWorld,chunks:List<ExpandedChunk>,original:HistoricalFingerprint) =
         seedWorld(world,chunks,historical=original)
