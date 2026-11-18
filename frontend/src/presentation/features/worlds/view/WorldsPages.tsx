@@ -12,7 +12,7 @@ import { CARD_COLORS } from '../../../shared/worldBoard'
 import { WORLD_GENRES, genreLabel } from '../../../shared/worldGenres'
 import { useWorldDetailViewModel, useWorldsViewModel } from '../viewmodel/useWorldsViewModel'
 import { GENRE_COLORS, LINEAGE_COLORS, atlasFeatures, type AtlasNode, type WorldAtlas } from '../worldAtlas'
-import { DETAIL_TABS, bookPath, detailEndpoint, type DetailGraph, type DetailNode, type DetailTab } from '../worldDetail'
+import { DETAIL_TABS, bookPath, detailEndpoint, graphHighlight, type DetailGraph, type DetailNode, type DetailTab } from '../worldDetail'
 import { WorldBook } from './WorldBook'
 import { WorldOverview } from './WorldOverview'
 import { DemoNotice, LoadFailed, WorldCard, WorldCover, WorldLoading } from './WorldParts'
@@ -258,6 +258,9 @@ function GraphCard({ title, mode, data, summary, stats, legend, onOpen, bookHref
     for (const group of pairs.values()) group.forEach((link, i) => curves.set(link, (detailEndpoint(link.source) < detailEndpoint(link.target) ? 1 : -1) * (i - (group.length - 1) / 2) * Math.min(0.4, 1 / Math.max(1, (group.length - 1) / 2))))
     return { nodes: data.nodes, links: data.links.map((link) => link.kind === 'link' ? { ...link, curve: curves.get(link) } : link) }
   }, [data])
+  const highlighted = useMemo(() => graphHighlight(graph, highlightId), [graph, highlightId])
+  const selected = highlightId ? graph.nodes.find((node) => node.id === highlightId) : undefined
+  const neighbors = selected ? graph.nodes.filter((node) => node.id !== selected.id && highlighted.nodes.has(node.id)) : []
   useEffect(() => {
     if (active >= 0) (results.current?.children[active] as HTMLElement | undefined)?.scrollIntoView({ block: 'nearest' })
   }, [active])
@@ -277,7 +280,10 @@ function GraphCard({ title, mode, data, summary, stats, legend, onOpen, bookHref
   const onSearchKey = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       event.preventDefault()
-      clearHighlight()
+      if (open) {
+        setOpen(false)
+        setActive(-1)
+      } else clearHighlight()
       return
     }
     if (!choices.length) return
@@ -320,6 +326,12 @@ function GraphCard({ title, mode, data, summary, stats, legend, onOpen, bookHref
         </ul>}
         {highlightId && <button type="button" className="btn sm" onClick={() => clearHighlight(true)}>강조 해제</button>}
       </div>
+      {selected && <div className="worlds-graph-highlight">
+        <p className="small muted" role="status">{selected.name}와 연결된 설정 {neighbors.length}개를 강조했어요.</p>
+        {neighbors.length > 0 && <ul aria-label={`${selected.name}와 연결된 설정`}>
+          {neighbors.map((node) => <li key={node.id}><Go to={node.to}>{node.name}</Go></li>)}
+        </ul>}
+      </div>}
       <p className="sr-only">그래프는 눈으로 훑어보는 용도예요. 같은 내용은 설정집 탭의 설정 카드에서 글로 읽을 수 있어요.</p>
     </section>
   )

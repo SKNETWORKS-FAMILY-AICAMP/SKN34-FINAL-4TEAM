@@ -24,6 +24,7 @@ export function WorldOverview({ world }: { world: PublicWorld }) {
   const combined = lineage?.combinedFrom ?? []
   const kinds = kindCounts(world)
   const featured = overviewCards(world)
+  const unavailable = world.relationshipStatus === 'unavailable'
   return (
     <div className="calm">
       <article className="tcard nw worlds-overview">
@@ -35,7 +36,7 @@ export function WorldOverview({ world }: { world: PublicWorld }) {
               <InfoRow k="장르">{genre}</InfoRow>
               <InfoRow k="작가">{world.authorNickname}</InfoRow>
               <InfoRow k="설정 카드">{world.cards.length}개</InfoRow>
-              <InfoRow k="관계 수">{relationshipCount(world)}개</InfoRow>
+              <InfoRow k="관계 수">{unavailable ? '불러오지 못함' : `${relationshipCount(world)}개`}</InfoRow>
               {lineage?.derivedFrom && <InfoRow k="파생 원본"><WorldLink w={lineage.derivedFrom} /></InfoRow>}
               {combined.length > 0 && <InfoRow k="조합 원본"><WorldLinks worlds={combined} sep=" + " /></InfoRow>}
               {children.length > 0 && <InfoRow k="파생·조합된 세계관">{children.length}개</InfoRow>}
@@ -50,11 +51,12 @@ export function WorldOverview({ world }: { world: PublicWorld }) {
           </section>
           <section className="worlds-overview-section" aria-labelledby="world-overview-featured">
             <h2 id="world-overview-featured">주요 인물·설정</h2>
+            {unavailable && <p className="muted">관계를 불러오지 못해 주요 설정은 설정집 순서로 보여요.</p>}
             {featured.length ? <div className="worlds-overview-featured">
               {featured.map((card) => <article key={card.cardId}>
                 <Go to={cardPath(world.id, card.cardId)}>{card.title}</Go>
                 {card.text && <p>{card.text}</p>}
-                <small>관계 {card.relationshipCount}개</small>
+                {!unavailable && <small>관계 {card.relationshipCount}개</small>}
               </article>)}
             </div> : <p className="muted">아직 공개된 설정 카드가 없어요.</p>}
           </section>

@@ -1,8 +1,8 @@
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import ForceGraph2D from 'react-force-graph-2d'
 
 import { CANVAS_FONT, aspectGravity } from '../worldAtlas'
-import { detailEndpoint, showsDetailLabel, type DetailGraph, type DetailLink, type DetailNode } from '../worldDetail'
+import { detailEndpoint, graphHighlight, LARGE_GRAPH, showsDetailLabel, type DetailGraph, type DetailLink, type DetailNode } from '../worldDetail'
 import { MapControls, useMapCanvas } from './useMapCanvas'
 import { useNodePointer } from './useNodePointer'
 import { useRelayout } from './useRelayout'
@@ -27,23 +27,17 @@ export default function WorldGraphCanvas({ data, mode, summary, highlightId, onO
   const canvas = useMapCanvas<DetailNode, DetailLink>()
   const { host, graph, width, reduced, paused } = canvas
   const forces = FORCES[mode]
-  const pointer = useNodePointer<DetailNode>((node, shown) => showsDetailLabel(node, data.nodes.length, shown), onOpen)
+  const scale = useRef(1)
+  const highlighted = graphHighlight(data, highlightId)
+  const highlightedNodes = highlighted.nodes
+  const highlightedLinks = highlighted.links
+  const labelShown = (node: DetailNode, shown?: string) => highlightedNodes.has(node.id) || showsDetailLabel(node, data.nodes.length, shown, scale.current)
+  const pointer = useNodePointer<DetailNode>(labelShown, onOpen)
   const hover = pointer.shown
   const [height, setHeight] = useState(460)
   const compact = width < 480
-  const large = data.nodes.length > 300
+  const large = data.nodes.length > LARGE_GRAPH
   const { replay, onEngineStop } = useRelayout(canvas, data.nodes, 48)
-  const highlightedNodes = new Set<string>()
-  const highlightedLinks = new Set<DetailLink>()
-  if (highlightId) {
-    highlightedNodes.add(highlightId)
-    for (const link of data.links) {
-      if (link.kind !== 'link' || (detailEndpoint(link.source) !== highlightId && detailEndpoint(link.target) !== highlightId)) continue
-      highlightedLinks.add(link)
-      highlightedNodes.add(detailEndpoint(link.source))
-      highlightedNodes.add(detailEndpoint(link.target))
-    }
-  }
 
   // 높이는 CSS(데스크톱 460px·모바일 340px)가 정하고 캔버스가 같은 값을 읽는다. 그리기 전에 맞춰 크기가 튀지 않는다.
   useLayoutEffect(() => setHeight(host.current?.clientHeight || 460), [host, width])
@@ -96,10 +90,11 @@ export default function WorldGraphCanvas({ data, mode, summary, highlightId, onO
   const paintLabels = (ctx: CanvasRenderingContext2D, scale: number) => {
     const limit = compact ? 10 : 18
     for (const node of data.nodes) {
-      if (highlightId ? !highlightedNodes.has(node.id) : !showsDetailLabel(node, data.nodes.length, hover, scale)) continue
+      if (!labelShown(node, hover)) continue
       const text = node.id === hover || node.name.length <= limit ? node.name : `${node.name.slice(0, limit - 1)}…`
       const x = node.x ?? 0
       const y = (node.y ?? 0) + (radiusOf(node) + 3) / scale
+      ctx.globalAlpha = !highlightId || highlightedNodes.has(node.id) ? 1 : 0.16
       ctx.font = `700 ${(node.kind === '세계관' ? 13 : compact ? 10.5 : 11.5) / scale}px ${CANVAS_FONT}`
       ctx.textAlign = 'center'
       ctx.textBaseline = 'top'
@@ -109,6 +104,7 @@ export default function WorldGraphCanvas({ data, mode, summary, highlightId, onO
       ctx.strokeText(text, x, y)
       ctx.fillStyle = '#EAF0FF'
       ctx.fillText(text, x, y)
+      ctx.globalAlpha = 1
     }
   }
 
@@ -150,6 +146,7 @@ export default function WorldGraphCanvas({ data, mode, summary, highlightId, onO
             linkCurvature={(l) => l.curve ?? 0}
             linkDirectionalArrowLength={(l) => l.kind === 'link' && l.direction === 'directed' ? 5 : 0} linkDirectionalArrowRelPos={0.9}
             linkCanvasObject={paintLinkLabel} linkCanvasObjectMode={(l) => (l.kind === 'link' ? 'after' : undefined)}
+            onZoom={({ k }) => { scale.current = k }}
             enableZoomInteraction={(e) => e.ctrlKey || e.metaKey} {...pointer.graphProps}
             onNodeDragEnd={(n) => { n.fx = n.x; n.fy = n.y }}
             onEngineStop={onEngineStop}

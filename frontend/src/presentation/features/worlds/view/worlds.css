@@ -101,6 +101,10 @@
 .worlds-graph-results { position: absolute; z-index: 2; top: calc(100% + 4px); left: 0; width: min(320px, 100%); max-height: 260px; margin: 0; padding: 4px; overflow-y: auto; border: 1px solid var(--line2); border-radius: 12px; background: var(--surface); box-shadow: var(--sh); list-style: none; }
 .worlds-graph-results li { padding: 9px 10px; border-radius: 8px; cursor: pointer; overflow-wrap: anywhere; }
 .worlds-graph-results li:hover, .worlds-graph-results li[aria-selected='true'] { background: var(--muted-bg); }
+.worlds-graph-highlight { margin-top: 10px; }
+.worlds-graph-highlight p { margin: 0; }
+.worlds-graph-highlight ul { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 6px 0 0; padding: 0; list-style: none; }
+.worlds-graph-highlight a { color: var(--pri-ink); font-size: 13.5px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 
 /* 개요 탭과 설정 카드 페이지: 나무위키 형식 스타일은 reading의 publicWiki.css(nw-*)를 그대로 쓰고 공개 세계관에 맞는 것만 조정한다. */
 .worlds .nw { max-width: none; }

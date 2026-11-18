@@ -7,7 +7,7 @@ import type { CardType } from '../../../domain/entities/studioCards'
 import { BOOK_SORTS, CARD_COLORS } from '../../shared/worldBoard'
 import { GENRE_COLORS } from './worldAtlas'
 import {
-  LABEL_ALL_MAX, bookPath, bookRows, buildCharacterGraph, buildSettingGraph, cardPage, cardPairs, cardPath, detailEndpoint, kindCounts, parseBookKind, parseDetailTab,
+  LABEL_ALL_MAX, LARGE_GRAPH, bookPath, bookRows, buildCharacterGraph, buildSettingGraph, cardPage, cardPairs, cardPath, detailEndpoint, kindCounts, parseBookKind, parseDetailTab,
   selectVisible, showsDetailLabel, type CardRef, type DetailGraph, type DetailNode,
 } from './worldDetail'
 
@@ -187,9 +187,10 @@ describe('showsDetailLabel', () => {
   })
 
   it('300개를 넘으면 확대했을 때만 일반 노드 이름을 그린다', () => {
-    expect(showsDetailLabel(node('인물'), 301, undefined, 1)).toBe(false)
-    expect(showsDetailLabel(node('인물'), 301, undefined, 1.5)).toBe(true)
-    expect(showsDetailLabel(node('세계관'), 301, undefined, 1)).toBe(true)
+    expect(LARGE_GRAPH).toBe(300)
+    expect(showsDetailLabel(node('인물'), LARGE_GRAPH + 1, undefined, 1)).toBe(false)
+    expect(showsDetailLabel(node('인물'), LARGE_GRAPH + 1, undefined, 1.5)).toBe(true)
+    expect(showsDetailLabel(node('세계관'), LARGE_GRAPH + 1, undefined, 1)).toBe(true)
   })
 })
 

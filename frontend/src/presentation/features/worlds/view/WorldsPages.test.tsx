@@ -317,6 +317,22 @@ it('개요는 유형별 설정집 링크·관계 많은 주요 카드 링크·�
   ])
 })
 
+it('관계를 못 불러온 개요는 관계 수를 0으로 쓰지 않고 주요 설정의 관계 수도 숨긴다', async () => {
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({
+    cards: [card('c-1', '온실', 'location'), card('c-2', '하린', 'character'), card('c-3', '도윤', 'character')],
+    relationships: [{ id: 'r1', sourceCardId: 'c-1', targetCardId: 'c-2', label: '관리' }, { id: 'r2', sourceCardId: 'c-1', targetCardId: 'c-3', label: '관리' }],
+    relationshipStatus: 'unavailable',
+  }))
+  await renderAt('/worlds/sw?tab=overview')
+  const panel = within(screen.getByRole('tabpanel'))
+  const info = within(panel.getByRole('table', { name: '서버 세계' }))
+  expect(within(info.getByRole('rowheader', { name: '관계 수' }).closest('tr')!).getByRole('cell').textContent).toBe('불러오지 못함')
+  const featured = within(panel.getByRole('region', { name: '주요 인물·설정' }))
+  featured.getByText('관계를 불러오지 못해 주요 설정은 설정집 순서로 보여요.')
+  expect(featured.queryByText('관계 0개')).toBeNull()
+  expect(featured.getAllByRole('link').map((link) => link.textContent)).toEqual(['하린', '도윤', '온실'])
+})
+
 it('개요의 정보 상자와 계보 줄은 출처에 따라 파생 원본·조합 원본 링크를 보인다', async () => {
   await renderAt('/worlds/tide-compass?tab=overview')
   const origin = within(screen.getByRole('table', { name: '조수의 나침반' }))
@@ -515,6 +531,16 @@ it('대형 공개 설정집은 페이지 이동 없이 101개 설정과 모든 �
   expect(screen.queryByRole('navigation', { name: '그래프 페이지 이동' })).toBeNull()
   expect(screen.queryByRole('navigation', { name: '설정 목록 페이지 이동' })).toBeNull()
 })
+it('대형 공개 설정집은 페이지를 이동하고 검색해 마지막 카드의 원문과 페이지 밖 관계를 연다', async () => {
+  const cards = Array.from({ length: 101 }, (_, i) => ({ ...card(`c-${i}`, `설정 ${i}`, 'character'), text: `# 원문 ${i}\n출처: 기록` }))
+  vi.spyOn(useCase(), 'get').mockResolvedValue(serverWorld({ cards, relationships: [{ id: 'r', sourceCardId: 'c-0', targetCardId: 'c-100', label: '인연' }] }))
+  await renderAt('/worlds/sw?tab=book')
+  expect(within(screen.getByRole('table', { name: '설정 카드 목록' })).getAllByRole('row')).toHaveLength(51)
+  fireEvent.change(screen.getByRole('searchbox', { name: '설정 카드 제목·본문 검색' }), { target: { value: '설정 100' } })
+  fireEvent.click(screen.getByRole('link', { name: '설정 100' }))
+  expect(await screen.findByText('출처: 기록')).toBeTruthy()
+  expect(within(screen.getByRole('heading', { name: /^\d+\. 관계$/ }).closest('details')!).getByRole('link', { name: '설정 0' })).toBeTruthy()
+})
 it('페이지를 가로지르던 관계도 그래프와 양쪽 카드 상세에서 모두 따라간다', async () => {
   const cards = Array.from({ length: 101 }, (_, i) => card(`c-${i}`, `설정 ${i}`, 'character'))
   const relationships = [
@@ -554,7 +580,13 @@ it('다른 그래프 페이지의 두 카드 사이 여러 관계를 설정 찾�
   expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' })
   fireEvent.keyDown(search, { key: 'Enter' })
   expect(graph.props!.highlightId).toBe('card:c-7')
+  fireEvent.focus(search)
+  expect(screen.getByRole('listbox', { name: '설정 찾기 결과' })).toBeTruthy()
   fireEvent.keyDown(search, { key: 'Escape' })
+  expect(screen.queryByRole('listbox', { name: '설정 찾기 결과' })).toBeNull()
+  expect([graph.props!.highlightId, (search as HTMLInputElement).value]).toEqual(['card:c-7', '설정 7'])
+  fireEvent.keyDown(search, { key: 'Escape' })
+  expect([graph.props!.highlightId, (search as HTMLInputElement).value]).toEqual([undefined, ''])
   fireEvent.change(search, { target: { value: '설정 0' } })
   expect(within(screen.getByRole('listbox', { name: '설정 찾기 결과' })).getAllByRole('option')).toHaveLength(1)
   fireEvent.blur(search, { relatedTarget: screen.getByRole('tab', { name: '설정 그래프' }) })
@@ -566,6 +598,9 @@ it('다른 그래프 페이지의 두 카드 사이 여러 관계를 설정 찾�
   expect(graph.props!.data.links.map((l) => [l.id, l.direction, l.category])).toEqual([['r1', 'directed', 'structural'], ['r2', 'directed', 'emotional']])
   expect(graph.props!.data.links.every((l) => l.curve !== 0)).toBe(true)
   expect(graph.props!.highlightId).toBe('card:c-0')
+  const highlighted = within(screen.getByRole('region', { name: '인물관계도' }))
+  expect(highlighted.getByRole('status').textContent).toBe('설정 0와 연결된 설정 1개를 강조했어요.')
+  expect(within(highlighted.getByRole('list', { name: '설정 0와 연결된 설정' })).getByRole('link', { name: '설정 100' }).getAttribute('href')).toBe(cardPath('sw', 'c-100'))
   const clear = screen.getByRole('button', { name: '강조 해제' })
   clear.focus()
   fireEvent.click(clear)

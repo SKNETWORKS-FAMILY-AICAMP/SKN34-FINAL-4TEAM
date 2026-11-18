@@ -85,6 +85,21 @@ export type DetailGraph = { nodes: DetailNode[]; links: DetailLink[] }
 
 export const detailEndpoint = (end: string | DetailNode) => (typeof end === 'string' ? end : end.id)
 
+/** 찾은 설정과 직접 관계인 노드·선. 중심으로 향하는 장식 선은 강조하지 않는다. */
+export function graphHighlight(graph: DetailGraph, nodeId?: string) {
+  const nodes = new Set<string>()
+  const links = new Set<DetailLink>()
+  if (!nodeId) return { nodes, links }
+  nodes.add(nodeId)
+  for (const link of graph.links) {
+    if (link.kind !== 'link' || (detailEndpoint(link.source) !== nodeId && detailEndpoint(link.target) !== nodeId)) continue
+    links.add(link)
+    nodes.add(detailEndpoint(link.source))
+    nodes.add(detailEndpoint(link.target))
+  }
+  return { nodes, links }
+}
+
 const cardNode = (world: PublicWorld, i: number): DetailNode => {
   const { id, title, cardType } = world.cards[i]
   const kind = CARD_KIND[cardType]
@@ -116,8 +131,10 @@ export function buildCharacterGraph(world: PublicWorld): DetailGraph {
 
 /** 이름을 늘 그려도 겹치지 않는 노드 수의 한계. */
 export const LABEL_ALL_MAX = 30
+/** 이 수를 넘으면 확대 전에는 일반 노드·관계 라벨을 생략한다. */
+export const LARGE_GRAPH = 300
 /** 300개를 넘는 그래프는 확대할 때만 일반 라벨을 그려 캔버스 그리기 비용을 낮춘다. */
-export const showsDetailLabel = (node: DetailNode, total: number, hover?: string, scale = 1) => node.kind === '세계관' || node.id === hover || (total > 300 ? scale >= 1.4 : total <= LABEL_ALL_MAX)
+export const showsDetailLabel = (node: DetailNode, total: number, hover?: string, scale = 1) => node.kind === '세계관' || node.id === hover || (total > LARGE_GRAPH ? scale >= 1.4 : total <= LABEL_ALL_MAX)
 
 export const typeLabel = (type: CardType) => cardTypes.find((t) => t.id === type)?.label ?? type
 
@@ -219,7 +236,7 @@ function bookEntries(world: PublicWorld): BoardEntry[] {
 /** 설정집 게시판의 줄들: 유형·검색어로 거른 카드를 정렬해 순번을 매긴다(필터·정렬 규칙은 shared의 `boardRows`). */
 export const bookRows = (world: PublicWorld, filter: Parameters<typeof boardRows>[1] = {}): BookRow[] => boardRows(bookEntries(world), filter)
 
-/** 개요의 주요 카드: 실제 관계 수가 많은 순, 동률은 설정집 순이다. 관계가 전혀 없으면 설정집 앞쪽 카드를 쓴다. 요약은 `bookRows`의 게시판과 같다. */
+/** 개요의 주요 카드: 실제 관계 수가 많은 순, 동률은 설정집 순이다. 관계가 없거나 불러오지 못했으면 설정집 앞쪽 카드를 쓴다. 요약은 `bookRows`의 게시판과 같다. */
 export type OverviewCard = BookRow & { relationshipCount: number }
 export function overviewCards(world: PublicWorld, limit = 6): OverviewCard[] {
   const counts = new Map(world.cards.map((card) => [card.id, 0]))
@@ -229,7 +246,7 @@ export function overviewCards(world: PublicWorld, limit = 6): OverviewCard[] {
     counts.set(target, counts.get(target)! + 1)
   }
   const cards = bookRows(world).map((row) => ({ ...row, relationshipCount: counts.get(row.cardId)! }))
-  return cards.some((card) => card.relationshipCount > 0)
+  return world.relationshipStatus !== 'unavailable' && cards.some((card) => card.relationshipCount > 0)
     ? cards.sort((a, b) => b.relationshipCount - a.relationshipCount || a.no - b.no).slice(0, limit)
     : cards.slice(0, limit)
 }
