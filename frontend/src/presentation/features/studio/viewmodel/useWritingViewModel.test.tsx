@@ -637,3 +637,20 @@ it.each([
   expect(result.current.error).toBe(failure.message)
   expect(result.current.expired).toBe(expected)
 })
+
+it.each(['autosave', 'version'])('%s 도중 로그인이 만료되면 입력을 유지하고 재로그인을 안내한다', async (kind) => {
+  vi.useFakeTimers()
+  const { api } = quietApi()
+  const failure = new SessionExpired('로그인한 뒤 다시 저장해 주세요.')
+  api.writeEpisode.mockReset().mockRejectedValue(failure)
+  const { result } = renderHook(() => useWritingViewModel('w', api))
+  await act(async () => {})
+  act(() => result.current.edit({ body: '계속 쓰던 원고' }))
+  await act(async () => {
+    if (kind === 'autosave') await vi.advanceTimersByTimeAsync(2000)
+    else await result.current.save()
+  })
+  expect(result.current.saveError).toBe(failure.message)
+  expect(result.current.draft.body).toBe('계속 쓰던 원고')
+  expect(result.current.expired).toBe(true)
+})

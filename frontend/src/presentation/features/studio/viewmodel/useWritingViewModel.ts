@@ -98,9 +98,11 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     // 자동 저장의 성공은 상단의 저장 상태('저장됨')가 알린다. 알림 문단은 사용자가 누른 버전 저장만 쓴다.
     if(version)setNotice('새 원고 버전을 저장했어요. 발행본은 그대로예요.')
     } catch(e) {
-      const message=e instanceof TypeError?'서버에 연결하지 못했어요. 연결을 확인하고 저장을 다시 시도해 주세요.':e instanceof Error?e.message:'저장에 실패했어요. 입력은 화면에 남아 있어요.'
-      if(!signal.aborted)setSaveError(message)
-      throw new Error(message)
+      const error = e instanceof TypeError
+        ? new Error('서버에 연결하지 못했어요. 연결을 확인하고 저장을 다시 시도해 주세요.')
+        : e
+      if (!signal.aborted) setSaveError(error instanceof Error ? error.message : '저장에 실패했어요. 입력은 화면에 남아 있어요.')
+      throw error
     } finally {if(!signal.aborted)setSaving(false)}
   }
   const save=()=>run(signal=>write(true,signal))
