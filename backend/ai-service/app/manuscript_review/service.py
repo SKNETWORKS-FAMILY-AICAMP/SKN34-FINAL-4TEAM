@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from app.content_mcp import service as content_mcp
 from app.novelbrain.models import WorldSnapshot, world_snapshot
+from app.novelbrain.service import episode_settings
 from app.manuscript_review import agent
 from app.manuscript_review.errors import ReviewFailure
 from app.manuscript_review.models import CATEGORIES, Finding, ReviewCandidate, ReviewRequest, ReviewResponse, SelectionRange
@@ -46,7 +47,7 @@ def _review(data: ReviewRequest, body: str, revision: int, candidate: ReviewCand
     if not body.strip():
         raise ReviewFailure(422, EMPTY_DRAFT)
     checks = ('semantic', 'mechanical') if data.check == 'both' else (data.check,)
-    settings = _settings(_world(data.workId, data.episode), data.episode) if 'semantic' in checks else []
+    settings = episode_settings(_world(data.workId, data.episode), data.episode) if 'semantic' in checks else []
     inputs = [(c, body, settings if c == 'semantic' else []) for c in checks]
     if len(inputs) == 1:
         results = [agent.review(*inputs[0])]
@@ -86,35 +87,13 @@ def _locate(body: str, found) -> Finding:
 
 
 def _world(work_id: str, episode: int) -> WorldSnapshot:
-    """작품에 연결된 세계관을 그 회차 시점 관계로 읽는다. 연결이 없으면 Fork가 이어받는 원작 세계관(읽기 전용, #365)을 읽고, 그것도 없으면 대체 세계관을 찾지 않고 실패한다."""
-    try:
-        linked = next((w['worldId'] for w in content_mcp.call('world_studio_list', {}) if w.get('linkedWorkId') == work_id), None)
-    except (LookupError, TypeError, AttributeError):
-        raise ReviewFailure(502, BAD_CONTENT) from None
-    if linked is not None:
-        read = content_mcp.call('world_studio_read', {'id': linked, 'episode': str(episode)})
-    elif (read := content_mcp.inherited_world(work_id, episode)) is None:
+    """작품에 연결된(없으면 Fork가 이어받는) 세계관을 그 회차 시점 관계로 읽는다. 둘 다 없으면 설정 검수를 할 수 없어 실패한다."""
+    if (read := content_mcp.linked_world(work_id, episode)) is None:
         raise ReviewFailure(409, NO_LINKED_WORLD)
     try:
         return world_snapshot(read, episode)
     except ValueError:
         raise ReviewFailure(502, BAD_CONTENT) from None
-
-
-def _settings(world: WorldSnapshot, episode: int) -> list[dict]:
-    """그 회차까지 공개된 카드(인물은 그 회차까지의 기억)와 두 끝이 모두 공개된 관계. 이후 회차 정보는 검수 근거가 아니다."""
-    cards = {c.id: c for c in world.cards if c.revealFromEpisode is None or c.revealFromEpisode <= episode}
-    settings = []
-    for c in cards.values():
-        memories = [f'{n}화: {t}' for n, t in sorted(c.episodes.items()) if n <= episode]
-        text = '\n\n'.join(t for t in (c.text, c.soul, c.goal, *memories) if t.strip())
-        settings.append({'ref': f'card:{c.id}', 'type': c.cardType, 'title': c.title, 'text': text})
-    for r in world.relations:
-        if r.source in cards and r.target in cards:
-            label = f'{r.label}(아님)' if r.polarity == 'denied' else r.label
-            settings.append({'ref': f'relation:{r.id}', 'type': 'relation',
-                             'title': f'{cards[r.source].title} → {cards[r.target].title}', 'text': f'{label}\n{r.body}'.strip()})
-    return settings
 
 
 def _utf16(text: str) -> int:

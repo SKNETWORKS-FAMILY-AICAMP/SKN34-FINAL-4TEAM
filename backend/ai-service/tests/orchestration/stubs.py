@@ -56,6 +56,8 @@ FOUND = RetrievalResult(status='found', excerpts=QA['excerpts'], gaps=[{'code': 
 
 
 BEAT = BeatPlan(title='항구의 밤', beats=['선장이 항구에 도착한다.', '카이가 배를 숨긴다.'])
+# Q&A가 읽는 세계관: 기본은 연결·이어받은 세계관이 없다. 그 밖의 도구는 CONTEXT(work_context_read)를 돌려준다.
+NO_WORLD = {'world_studio_list': [], 'work_inherited_world': {'worldId': None}}
 CONTEXT = {'title': '작품', 'settings': [{'title': '항구', 'body': '밤에 닫힌다'}], 'draft': ''}
 
 
@@ -183,8 +185,9 @@ def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None):
         plans=[BEAT], notes=['10화의 약속은 확정 사건'], model='m', providerResponseId='r', usage=None)))
     monkeypatch.setattr(service.writing, 'plan_and_draft', recorded('plan_and_draft', DraftResponse(
         text='선장은 항구에 내렸다.', model='m', providerResponseId='r', usage=None, plan=BEAT)))
+    episode = {'episode_read': {'draft': {'title': '3화', 'body': '그는 웃었다.', 'revision': 4}}}
     monkeypatch.setattr(service.content_mcp, 'call', recorded('mcp', lambda tool, args:
-                        {'draft': {'title': '3화', 'body': '그는 웃었다.', 'revision': 4}} if tool == 'episode_read' else CONTEXT))
+                        {**NO_WORLD, **episode}.get(tool, CONTEXT)))
     monkeypatch.setattr(service.writing, 'patch', recorded('patch', PatchResponse(
         before='그는 웃었다.', after='그는 차갑게 웃었다.', model='m', providerResponseId='r', usage=None)))
     monkeypatch.setattr(service.simulation, 'plan', recorded(

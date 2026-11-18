@@ -57,6 +57,7 @@ HISTORY_TURNS = 5
 FAILURES = (StoryQaFailure, WritingFailure, ResearchFailure, RetrievalFailure, SimulationFailure, ContentMcpFailure, ReviewFailure,
             WorldReviewFailure, RatingFailure)
 NO_REVIEW_TARGET = '검수할 작품과 회차를 확인할 수 없어요.'
+NO_QA_TARGET = '질문할 작품과 회차를 확인할 수 없어요.'
 NO_RATING_TARGET = '심의 등급을 판별할 작품과 회차를 확인할 수 없어요.'
 NO_WORLD_REVIEW_TARGET = '검토할 작품을 확인할 수 없어요.'
 NO_WRITING_TARGET = '기획하거나 쓸 작품과 회차를 확인할 수 없어요.'
@@ -197,17 +198,21 @@ def _target(turn: dict, failure: type[Exception], message: str) -> dict:
 
 @tool
 def ask_story_qa(request: Request, runtime: ToolRuntime) -> Command:
-    """작품 질문(Story Context / Q&A): 작품의 내용·설정·인물 관계를 Content가 허용한 근거로 답한다. request는 질문이다."""
+    """작품 질문(Story Context / Q&A): 작품의 원고·세계관 설정·인물 관계를 Content가 허용한 근거로 답한다. request는 질문이다."""
     turn = runtime.context
 
     def answer(inputs, scope):
         data, gaps, coverage = inputs.get('story_context'), [], None
-        if data is None:  # 발췌가 없으면 공통 Retrieval 도구로 Content가 확인한 근거를 받아 온다. 근거가 없으면 모델을 부르지 않는다.
+        if data is None:
+            # 발췌가 없으면 원고는 공통 Retrieval(Content 내부 검색), 설정·관계는 Content MCP로 기준 회차 시점의 세계관을 읽는다(#490).
+            # 둘 다 근거가 없으면 모델을 부르지 않는다.
+            target = _target(turn, StoryQaFailure, NO_QA_TARGET)
             found = retrieval.retrieve(RetrievalScope.model_validate(scope), request)
-            gaps, coverage = [g.detail for g in found.gaps], found.coverage
-            if not found.excerpts:
+            world, world_gaps = story_qa.world_excerpts(target['workId'], target.get('baseEpisode') or target['episode'], request[:500])
+            gaps, coverage = [g.detail for g in found.gaps] + world_gaps, found.coverage
+            if not (excerpts := [e.model_dump() for e in [*found.excerpts, *world]]):
                 return QaStepResult(claims=[], gaps=gaps, coverage=coverage)
-            data = {'question': request[:500], 'excerpts': [e.model_dump() for e in found.excerpts]}
+            data = {'question': request[:500], 'excerpts': excerpts}
         qa = [t['qa'] for t in previous(turn) if t['qa']][-HISTORY_TURNS:]
         answered = story_qa.answer(AnswerRequest.model_validate({**data, 'history': qa}))
         cited = {i for claim in answered.claims for i in claim.sourceIds}

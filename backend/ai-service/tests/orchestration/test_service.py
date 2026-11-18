@@ -8,6 +8,7 @@ import pytest
 from app.content_mcp.errors import ContentMcpFailure
 from app.intent.errors import IntentFailure
 from app.intent.prompt import CLARIFY_MESSAGE
+from app.story_qa import service as story_qa
 from app.story_qa.errors import StoryQaFailure
 from app.orchestration import service, tools
 from app.orchestration.models import ChatTurn, OrchestrationRequest
@@ -25,7 +26,7 @@ from app.world_review.errors import WorldReviewFailure
 from app.world_review.models import Finding as WorldFinding, WorldReviewResult
 
 from .stubs import (BEAT, CLOSING, CONTEXT, COVERAGE, DRAFT, FORM, LINE, OPENING, PATCH, QA, REVIEW, SCENE_TEXT, SCOPE, WEB,
-                    WORLD_REVIEW_REQUEST, Step, fake_agents, fake_scene, plan)
+                    WORLD, WORLD_REVIEW_REQUEST, Step, fake_agents, fake_scene, plan)
 
 REAL_WORLD_REVIEW = (world_review.linked_request, world_review.review)  # fake_agents가 바꾸기 전의 실제 함수
 
@@ -286,33 +287,77 @@ def test_resumed_steps_join_the_trace_of_the_waiting_turn(monkeypatch, spans):
     assert done.runId == waiting.runId == format(step.context.trace_id, '032x')
 
 
-def test_scope_lets_qa_retrieve_its_own_evidence_through_content(monkeypatch):
+def linked_world(monkeypatch, calls, read=WORLD, fail=None):
+    """Q&A가 읽을 연결 세계관 대역. 세계관 읽기도 'mcp'로 calls에 남긴다."""
+    def call(tool, args):
+        calls.append(('mcp', (tool, args), {}))
+        if fail:
+            raise fail
+        return {'world_studio_list': [{'worldId': 'w', 'linkedWorkId': TARGET['workId']}], 'world_studio_read': read}[tool]
+    monkeypatch.setattr(tools.content_mcp, 'call', call)
+
+
+def test_scope_lets_qa_retrieve_manuscript_and_read_world_settings(monkeypatch):
     calls = fake_agents(monkeypatch, plan('story_context'))
-    result = run('길드 규칙은?', scope=SCOPE)
-    assert result.status == 'completed' and names(calls) == ['judge', 'retrieval', 'story_context']
+    linked_world(monkeypatch, calls)
+    result = run('길드 규칙은?', scope=SCOPE, target=TARGET)
+    assert result.status == 'completed' and names(calls) == ['judge', 'retrieval', 'mcp', 'mcp', 'story_context']
     scope, question = calls[1][1]
-    assert (scope.scopeToken, question) == ('signed.token', '길드 규칙은?')
-    asked = calls[2][1][0]
-    assert asked.question == '길드 규칙은?' and [e.id for e in asked.excerpts] == ['a']
+    assert (scope.scopeToken, question) == ('signed.token', '길드 규칙은?')  # 원고 질문은 지금처럼 Retrieval
+    assert calls[3][1] == ('world_studio_read', {'id': 'w', 'episode': '3'})
+    asked = calls[4][1][0]
+    assert asked.question == '길드 규칙은?' and [(e.id, e.kind) for e in asked.excerpts] == [('a', 'manuscript'), ('card:k', 'setting')]
     qa = result.steps[0].result
     assert [s.id for s in qa.sources] == ['a'] and qa.coverage.expected[0].versionId == 'r4'
     assert qa.gaps == ['제외한 결과가 있어요.']
+
+
+def test_qa_reads_the_world_at_the_basis_episode_not_the_open_draft(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    linked_world(monkeypatch, calls)
+    run('길드 규칙은?', scope=SCOPE, target={**TARGET, 'episode': 5, 'baseEpisode': 2})
+    assert ('mcp', ('world_studio_read', {'id': 'w', 'episode': '2'}), {}) in calls
+
+
+def test_world_evidence_alone_is_enough_to_answer(monkeypatch):
+    empty = RetrievalResult(status='insufficient', excerpts=[], coverage=COVERAGE, steps=[],
+                            gaps=[{'code': 'NO_EVIDENCE', 'detail': '원고 근거를 확인하지 못했어요.'}])
+    calls = fake_agents(monkeypatch, plan('story_context'), retrieved=empty)
+    linked_world(monkeypatch, calls)
+    result = run('카엘은 누구?', scope=SCOPE, target=TARGET)
+    assert [e.id for e in calls[-1][1][0].excerpts] == ['card:k']
+    assert result.steps[0].result.gaps == ['원고 근거를 확인하지 못했어요.']
 
 
 def test_insufficient_evidence_answers_with_gaps_without_model(monkeypatch):
     empty = RetrievalResult(status='insufficient', excerpts=[], coverage=COVERAGE, steps=[],
                             gaps=[{'code': 'NO_EVIDENCE', 'detail': '근거를 확인하지 못했어요.'}])
     calls = fake_agents(monkeypatch, plan('story_context'), retrieved=empty)
-    result = run('길드 규칙은?', scope=SCOPE)
-    assert names(calls) == ['judge', 'retrieval']
+    result = run('길드 규칙은?', scope=SCOPE, target=TARGET)
+    assert 'story_context' not in names(calls)
     qa = result.steps[0].result
-    assert (result.status, qa.claims, qa.gaps) == ('completed', [], ['근거를 확인하지 못했어요.'])
+    assert (result.status, qa.claims, qa.gaps) == ('completed', [], ['근거를 확인하지 못했어요.', story_qa.NO_WORLD])
+
+
+def test_world_read_failure_fails_the_qa_step(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    linked_world(monkeypatch, calls, fail=ContentMcpFailure(503, 'Content MCP를 호출할 수 없습니다.'))
+    result = run(scope=SCOPE, target=TARGET)
+    assert [(s.status, s.error) for s in result.steps] == [('failed', 'Content MCP를 호출할 수 없습니다.')]
+    assert 'story_context' not in names(calls)
+
+
+def test_qa_without_target_fails_instead_of_skipping_the_world(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    result = run(scope=SCOPE)
+    assert [(s.status, s.error) for s in result.steps] == [('failed', tools.NO_QA_TARGET)]
+    assert names(calls) == ['judge']
 
 
 def test_retrieval_failure_fails_the_qa_step(monkeypatch):
     calls = fake_agents(monkeypatch, plan('story_context', 'web_research'),
                         fail={'retrieval': RetrievalFailure(409, '공개 원고 범위가 변경됐어요.')})
-    result = run(scope=SCOPE, inputs={'web_research': WEB})
+    result = run(scope=SCOPE, target=TARGET, inputs={'web_research': WEB})
     assert [(s.status, s.error) for s in result.steps] == [('failed', '공개 원고 범위가 변경됐어요.')]
     assert names(calls) == ['judge', 'retrieval']
 
@@ -337,7 +382,7 @@ def test_resume_uses_the_fresh_scope_token_from_content(monkeypatch):
     thread = str(uuid4())
     calls = fake_agents(monkeypatch, plan('web_research', 'story_context'))  # 웹 조사 입력을 기다린 뒤 Q&A가 검색한다
     conversation = {'threadId': thread, 'scope': 'user:1/work:1'}
-    run(conversation=conversation, scope={'scopeToken': 'old.token'})
+    run(conversation=conversation, scope={'scopeToken': 'old.token'}, target=TARGET)
     resumed = run(None, conversation=conversation, resume={
         'approved': True, 'inputs': {'web_research': WEB}, 'scope': {'scopeToken': 'fresh.token'}})
     assert resumed.status == 'completed'
@@ -1442,12 +1487,12 @@ def test_a_capability_name_answering_the_router_clarify_runs_the_earlier_request
 def test_the_clarified_request_does_not_leak_into_the_next_turn(monkeypatch):
     thread = str(uuid4())
     fake_agents(monkeypatch, CLARIFY)
-    write_turn(thread, request='길드 규칙은?', scope=SCOPE)
+    write_turn(thread, request='길드 규칙은?', scope=SCOPE, target=TARGET)
     calls = fake_agents(monkeypatch, plan('story_context'))
-    result = write_turn(thread, request='작품 질문', scope=SCOPE)
-    assert result.status == 'completed' and names(calls) == ['judge', 'retrieval', 'story_context']
-    assert calls[1][1][1] == '길드 규칙은?' and calls[2][1][0].question == '길드 규칙은?'
-    write_turn(thread, request='다른 질문은?', scope=SCOPE)
+    result = write_turn(thread, request='작품 질문', scope=SCOPE, target=TARGET)
+    assert result.status == 'completed' and names(calls) == ['judge', 'retrieval', 'mcp', 'mcp', 'story_context']
+    assert calls[1][1][1] == '길드 규칙은?' and calls[4][1][0].question == '길드 규칙은?'
+    write_turn(thread, request='다른 질문은?', scope=SCOPE, target=TARGET)
     assert [c[1][1] for c in calls if c[0] == 'retrieval'] == ['길드 규칙은?', '다른 질문은?']
     assert [c[1][3] for c in calls if c[0] == 'judge'][-1] == ['길드 규칙은?', '작품 질문']
 

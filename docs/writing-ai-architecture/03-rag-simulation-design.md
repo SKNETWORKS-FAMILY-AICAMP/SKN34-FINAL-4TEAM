@@ -15,7 +15,7 @@ Retrieval은 Writing & Editing을 제외한 업무 Agent가 필요할 때 재사
 
 ## 1. Story Context / Q&A
 
-작품 정보 조회와 질문 응답을 담당한다. 이름·나이·관계·특정 원문 같은 정확한 질문은 Content 정본과 Neo4j 관계에서 확인한다. 관계는 지금 Content 내부 검색 API가 주는 최신 관계이며 기준 회차 시점이 아니다. Manuscript Review처럼 Content MCP로 회차 시점 관계를 읽게 바꾸는 일은 #490이다. 서사적 이유·회차 간 연결은 허용 원고 검색과, 구축된 뒤에는 Wiki의 사건 경로를 쓴다. 답변은 주장별 출처·판본·확인/추론/불명 상태를 표시한다. 질문에 필요한 자료가 없으면 모른다고 답한다. 조회만으로 정본을 변경하지 않는다.
+작품 정보 조회와 질문 응답을 담당한다. 이름·나이·관계·특정 원문 같은 정확한 질문은 Content 정본과 Neo4j 관계에서 확인한다. 집필 AI 대화의 Q&A는 원고를 Content 내부 검색 API(Retrieval)로, 설정·관계를 Manuscript Review와 같은 Content MCP 세계관 읽기(기준 회차 시점의 WorldStudio 카드·관계)로 받는다([#490 근거 경로](07-retrieval-contract-and-mocks.md#qa-세계관-근거-490)). 작품 Q&A 화면(Content `/context/qa`)의 설정·관계는 아직 작품 설정 문서와 최신 관계다. 서사적 이유·회차 간 연결은 허용 원고 검색과, 구축된 뒤에는 Wiki의 사건 경로를 쓴다. 답변은 주장별 출처·판본·확인/추론/불명 상태를 표시한다. 질문에 필요한 자료가 없으면 모른다고 답한다. 조회만으로 정본을 변경하지 않는다.
 
 ## 2. Manuscript Review Agent
 

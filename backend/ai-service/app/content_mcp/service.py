@@ -2,7 +2,7 @@
 
 Stateless Streamable HTTP `{CONTENT_SERVICE_BASE_URL}/mcp`에 AI를 호출한 사용자의 Bearer를 그대로 보내고,
 인가·revision 충돌 판단은 Content Service가 한다. 토큰은 요청마다 `AUTHORIZATION` 컨텍스트로만 받고
-그래프 상태·체크포인트·추적에 넣지 않는다. 쓰기는 초안 수정(`episode_update_draft`)뿐이며 버전 저장·발행·삭제 도구는 부르지 않는다.
+그래프 상태·체크포인트·추적에 넣지 않는다. Review·Q&A·시뮬레이션은 같은 창구로 원고·세계관을 읽는다. 쓰기는 초안 수정(`episode_update_draft`)뿐이며 버전 저장·발행·삭제 도구는 부르지 않는다.
 """
 
 import asyncio
@@ -93,6 +93,22 @@ def inherited_world(work_id: str, episode: int) -> dict | None:
         return None
     if read.get('relationshipStatus') != 'current':
         raise ContentMcpFailure(503, '원작 세계관의 관계를 읽을 수 없어요.')
+    return read
+
+
+def linked_world(work_id: str, episode: int) -> dict | None:
+    """작품에 연결된 세계관을 그 회차 시점 관계로 읽는다(`world_studio_read(episode)`). 연결이 없으면 Fork가 이어받는 원작 세계관(#365)을 읽고,
+    그것도 없으면 None이다(대체 세계관을 찾지 않는다). Review·Q&A가 같은 세계관을 기준으로 쓰게 하는 한 곳이다.
+    """
+    try:
+        linked = next((w['worldId'] for w in call('world_studio_list', {}) if w.get('linkedWorkId') == work_id), None)
+    except (LookupError, TypeError, AttributeError):
+        raise ContentMcpFailure(502, 'Content MCP 결과를 확인할 수 없습니다.') from None
+    if linked is None:
+        return inherited_world(work_id, episode)
+    # None 등 dict가 아닌 응답을 '세계관 없음'으로 오인하지 않게 여기서 막는다(inherited_world와 같은 규칙).
+    if not isinstance(read := call('world_studio_read', {'id': linked, 'episode': str(episode)}), dict):
+        raise ContentMcpFailure(502, 'Content MCP 결과를 확인할 수 없습니다.')
     return read
 
 

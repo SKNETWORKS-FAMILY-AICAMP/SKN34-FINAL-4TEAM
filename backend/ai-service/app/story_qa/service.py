@@ -1,4 +1,4 @@
-"""원고 검색 v1용 E5-small 로컬 실행과 Q&A 답변의 인용 대조. 색인·검색 범위는 Content가 소유한다."""
+"""원고 검색 v1용 E5-small 로컬 실행, Q&A의 세계관 근거(Content MCP, #490)와 답변의 인용 대조. 원고 색인·검색 범위는 Content가 소유한다."""
 
 import hashlib
 import os
@@ -6,9 +6,12 @@ from functools import lru_cache
 from pathlib import Path
 
 from app import tracing
+from app.content_mcp import service as content_mcp
+from app.novelbrain.models import world_snapshot
+from app.novelbrain.service import bm25_rank, episode_settings
 from app.story_qa import agent
 from app.story_qa.errors import StoryQaFailure
-from app.story_qa.models import AnswerRequest, AnswerResponse, EmbeddingRequest, EmbeddingResponse
+from app.story_qa.models import QUOTE_LIMIT, AnswerRequest, AnswerResponse, EmbeddingRequest, EmbeddingResponse, Excerpt
 
 MODEL = 'intfloat/multilingual-e5-small'
 REVISION = '614241f622f53c4eeff9890bdc4f31cfecc418b3'
@@ -17,6 +20,11 @@ FILES = {
     ONNX_FILE: 'dd476dd0c2514e9b9be83aeb3853fac0763e0bdf4a71645407587d77c48a2d88',
     'tokenizer.json': '0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39',
 }
+NO_WORLD = '이 작품에 연결된 세계관이 없어 설정·관계는 확인하지 못했어요.'
+NO_SETTINGS = '기준 회차까지 공개된 세계관 설정·관계에서 질문에 쓸 근거를 찾지 못했어요.'
+BAD_WORLD = 'Content 세계관 응답을 확인할 수 없습니다.'
+# shortcut: 시연 규모라 공개 카드·관계를 모두 보내고 8건이 넘을 때만 질문과 BM25로 맞는 8건을 고른다. 세계관이 커져 누락이 잦으면 NovelBrain recall로 바꾼다.
+WORLD_EXCERPTS = 8
 
 
 class E5Encoder:
@@ -99,3 +107,27 @@ def answer(data: AnswerRequest) -> AnswerResponse:
                 raise StoryQaFailure(502, 'Q&A 답변의 출처를 확인할 수 없습니다.')
         qa.update(output=result.model_dump())
         return result
+
+
+def world_excerpts(work_id: str, episode: int, question: str) -> tuple[list[Excerpt], list[str]]:
+    """작품의 세계관(연결 → Fork 상속)을 기준 회차 시점으로 읽어 그 회차까지 공개된 카드·관계를 Q&A 발췌로 바꾼다. 발췌와 gaps를 돌려준다.
+
+    Review와 같은 공용 읽기·거르기를 쓴다. 세계관이 없거나 쓸 근거가 없으면 빈 발췌와 이유(gaps)이고, 읽기 실패는 숨기지 않고 올린다.
+    MCP 도구·인자는 Content가 확인한 작품·회차로 여기서 고정하며 모델에 도구를 노출하지 않는다. AI는 설정·관계를 쓰지 않는다.
+    """
+    if (read := content_mcp.linked_world(work_id, episode)) is None:
+        return [], [NO_WORLD]
+    try:
+        world = world_snapshot(read, episode)
+    except ValueError:
+        raise StoryQaFailure(502, BAD_WORLD) from None
+    settings = [s for s in episode_settings(world, episode) if s['text'].strip()]
+    if len(settings) > WORLD_EXCERPTS:
+        by_ref = {s['ref']: s for s in settings}
+        ranked = bm25_rank(question, [(s['ref'], f"{s['title']}\n{s['text']}") for s in settings])
+        settings = [by_ref[ref] for ref, _ in ranked[:WORLD_EXCERPTS]]
+    if not settings:
+        return [], [NO_SETTINGS]
+    # shortcut: 긴 카드는 앞 QUOTE_LIMIT자만 보낸다. 긴 카드 뒷부분 누락이 보이면 문단 단위로 고른다.
+    return [Excerpt(id=s['ref'], episode=episode, quote=s['text'][:QUOTE_LIMIT], title=s['title'][:256],
+                    kind='relationship' if s['type'] == 'relation' else 'setting') for s in settings], []

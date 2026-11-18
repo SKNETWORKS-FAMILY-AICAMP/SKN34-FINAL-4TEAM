@@ -126,6 +126,27 @@ AI가 DB에 직접 접속하지 않고 Content API를 호출하는 방식이다.
 - AI `app/retrieval/service.retrieve`가 이 API를 호출한다. 오케스트레이션 요청에 Content가 확인한 `scope`가 있으면 Q&A 단계가 발췌 입력 없이 Retrieval로 근거를 받고, 근거가 없으면 모델을 부르지 않고 gaps만 돌려준다. Writing & Editing은 호출하지 않는다.
 - 한계: 오케스트레이션 경로는 답변 생성 뒤 Content의 범위·근거 재확인(409)을 하지 않는다. 검색어는 메인 에이전트가 정한 `ask_story_qa(request)`의 앞 500자다. 메인 모델이 지칭을 풀어 적을 수 있지만 Content 쪽 검색어 재작성은 없다. Manuscript Review·Rating·시뮬레이션은 이 도구가 아니라 Content MCP로 원고·세계관을 읽는다. World & Plot이 생기면 목적별 조회를 정한다.
 
+### Q&A 세계관 근거 (#490)
+
+집필 AI 대화의 Q&A(`ask_story_qa`)는 원고와 설정·관계 근거를 따로 받는다. 원고는 위 Retrieval(내부 검색 API, scopeToken)을 그대로 쓰고, 설정·관계는 Manuscript Review·시뮬레이션과 같은 Content MCP 세계관 읽기로 받는다. 에이전트마다 다른 설정을 기준으로 답하거나 검수하지 않게 하려는 것이다.
+
+결정(2026-11-18 사용자 결정):
+
+1. **설정 정본은 WorldStudio 하나다.** Q&A는 Content 작품 설정 문서(`setting_*`, knownBy·회차 범위)를 읽지 않는다. 데이터는 옮기지 않는다. WorldStudio에서는 아는 인물이 관계 연결과 인물 회차 기억(DEC-47)으로, 공개 범위가 `revealFromEpisode`(DEC-46)로 표현된다.
+2. **초안을 근거로 쓴다.** Review와 같은 `world_studio_read` 초안이라 작가가 막 고친 설정이 바로 반영된다. 작가 전용 경로라 독자에게 초안이 보이지 않는다.
+3. **작품 연결 세계관을 읽는다.** `world_studio_list`의 `linkedWorkId`가 작품인 세계관을 읽고, 없으면 Fork가 이어받는 원작 세계관(`work_inherited_world`)을 읽는다. 그것도 없으면 대체 세계관을 찾지 않고 gaps로 알린다. 회차 기준 세계관(`episode_world_basis_read`)은 쓰지 않는다.
+4. **Writing(`work_context_read`)은 이 이슈에서 바꾸지 않는다.** 후속으로 맞춘다.
+5. **질문 종류를 나누지 않는다.** 집필실 채팅은 질문 대상을 보내지 않으므로(Content 기본값 `manuscript`) Q&A마다 원고 Retrieval과 세계관을 둘 다 근거로 넣고 모델이 골라 인용한다.
+
+동작:
+
+- 공용 함수: 세계관 읽기는 `content_mcp.linked_world(workId, episode)`, 거르기는 `novelbrain.service.episode_settings`다. Review와 Q&A가 같은 함수를 쓴다. 거르기는 독자 공개 회차(`revealFromEpisode`)가 근거 회차 이하인 카드, 그 회차까지의 인물 기억, 양 끝 카드가 모두 남은 관계만 남긴다.
+- 근거 회차는 `target.baseEpisode`, 없으면 `target.episode`다. 관계는 그 회차 시점이다(DEC-51). `target`이 없으면 Q&A 단계가 실패한다.
+- 발췌 id는 `card:<id>`·`relation:<id>`, kind는 `setting`·`relationship`, episode는 근거 회차다. Content 경로의 현재 관계 id(`relationship:<id>`)와 구분되며, 지시문은 `card:`·`relation:` 발췌를 기준 회차 시점으로, `relationship:` 발췌를 현재 관계로 다룬다.
+- 시연 규모라 공개 카드·관계를 모두 보낸다. 8건이 넘으면 질문과 `novelbrain` BM25로 8건을 고른다. 카드 인용은 2,000자까지다(`shortcut:` 주석). 그래서 Q&A 입력 한도를 발췌 16건(원고 8 + 세계관 8)·인용 2,000자로 넓혔다. Content가 보내는 원고·설정 발췌는 계속 256자·8건 이하다.
+- 세계관이 없거나 쓸 카드가 없으면 gaps로 알리고, 원고와 세계관 모두 근거가 없으면 모델을 부르지 않는다. MCP 호출·형식 오류는 빈 근거로 바꾸지 않고 단계 실패다. MCP 도구와 인자는 Python이 고정해 호출하고 모델에 노출하지 않으며 읽기 도구만 쓴다.
+- 한계: 작품 Q&A 화면(Content `/context/qa`, 독자·작가 공통)은 여전히 작품 설정 문서와 최신 관계를 쓴다. Rating·설정집 검토·시뮬레이션의 세계관 읽기는 아직 각자 코드에 있다.
+
 ### 로컬 실모델 검증 (2026-11-11)
 
 `gpt-5.6-luna`로 로그인한 독서 화면에서 공개 개발 샘플 질문을 세 번 제출했다. 원작 `starlight` 2화와 Fork `seal` 2화에서 카엘이 허락한 일을 묻자 각각 서고 열람을 답했고, 같은 상속 판본 `ec9e6883-0c2d-3b95-9976-b5fbaf6688bc`의 2화 원문을 표시했다. 동일 질문을 API에서 각각 한 번 재현해 두 응답 모두 200 `answered`이며 각 `workId`·`episodeId`가 PostgreSQL의 해당 작품과 회차에 일치하고 인용 청크 ID가 서로 다른 것을 확인했다. Fork의 `sourceWorkId`는 원작을 가리켰다.
