@@ -15,9 +15,7 @@
       "areaCode": "basic",
       "title": "리안",
       "classification": "인물",
-      "aliases": [
-        "견습 서약사"
-      ],
+      "aliases": [],
       "tags": [
         "주인공"
       ],
@@ -42,10 +40,7 @@
       "areaCode": "basic",
       "title": "카엘",
       "classification": "인물",
-      "aliases": [
-        "탑의 문지기",
-        "탑의 기사"
-      ],
+      "aliases": [],
       "tags": [
         "별빛 탑"
       ],
@@ -70,9 +65,7 @@
       "areaCode": "basic",
       "title": "세라핀",
       "classification": "인물",
-      "aliases": [
-        "재의 왕국 사절"
-      ],
+      "aliases": [],
       "tags": [
         "재의 왕국"
       ],
@@ -291,8 +284,8 @@
       "source": "kael",
       "target": "orben",
       "predicate": "custom_relation_directed",
-      "label": "맹세",
-      "body": "카엘은 석 달 전 밤 오르벤에게 때가 오기 전에는 제자에게 말하지 않겠다고 맹세했다. 오르벤을 '오르벤 님'이라 부른다."
+      "label": "존대",
+      "body": "카엘은 탑을 오가던 서약사 오르벤을 안다. 오르벤을 '오르벤 님'이라 부른다."
     },
     {
       "key": "kael-lian",
