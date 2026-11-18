@@ -1,5 +1,7 @@
 package ai.storyfork.content.world
 
+import ai.storyfork.content.search.service.SearchCandidates
+
 import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.attachment.client.AttachmentStorageClient
 import ai.storyfork.content.attachment.repository.ContentImageRepository
@@ -195,7 +197,7 @@ class IdentityRelationshipTest {
     private val publicStates=mock(WorldRelationshipStateRepository::class.java)
     private val publicService=PublicWorldService(publicWorlds,revisions,revisionCards,cardVersions,mock(SettingCardImageRepository::class.java),publicStates,
         mock(ExpandedSeedProgressRepository::class.java),publicGraph,mock(CoreNicknameService::class.java),storage,mock(WorkRepository::class.java),
-        mock(WorkAccessService::class.java),mock(ContentImageRepository::class.java),mock(PublicationService::class.java),manager)
+        mock(WorkAccessService::class.java),mock(ContentImageRepository::class.java),mock(PublicationService::class.java),SearchCandidates(null),manager)
     /** 가면 카드는 1화, 본체 카드는 [revealBody]화부터 독자에게 보인다. 둘 다 공개 카드이고 identity 관계 하나가 있다. */
     private fun sealed(revealBody:Int):Pair<UUID,RelationshipPayload> {
         val id=UUID.randomUUID();val revisionId=UUID.randomUUID()

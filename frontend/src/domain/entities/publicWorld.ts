@@ -41,6 +41,14 @@ export type PublicWorldSummary = {
 export type PublicWorldPage = { items: PublicWorldSummary[]; page: number; size: number; total: number; demo?: true }
 
 /**
+ * 설정 카드 검색 결과 한 줄(#505): 카드와 그 카드가 속한 공개 세계관. 본문은 없고(상세 페이지가 읽는다) 대표 이미지(`imageId`)가 있으면
+ * 공개 주소(`/api/v1/public/world-studios/{worldId}/card-images/{imageId}`)가 이미지를 준다.
+ */
+export type PublicWorldCardHit = { worldId: string; worldName: string; cardId: string; title: string; cardType: CardType; aliases: string[]; tags: string[]; imageId: string | null }
+/** `total`은 검색어에 맞는 전체 카드 수다. */
+export type PublicWorldCardPage = { items: PublicWorldCardHit[]; page: number; size: number; total: number }
+
+/**
  * 데모 전용: 한 세계관의 유효한 원본(파생 하나 → 조합 원본들, 적힌 순서). `known`(목록에 있는 세계관 id)에 없는 id와 자기 자신은 버리고 조합 안의 중복 원본은 한 번만 센다.
  * 지도(presentation)의 링크와 메모리 저장소의 계보가 같은 규칙을 쓰도록 한 곳에 둔다.
  */

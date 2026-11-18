@@ -5,7 +5,7 @@ import { coverSrc } from '../../../shared/cover'
 import { Go } from '../../../shared/Go'
 import { genreLabel } from '../../../shared/worldGenres'
 
-/** 공개 세계관 목록·상세·설정 카드 페이지가 함께 쓰는 작은 표시 조각: 데모 안내, 불러오는 중·실패, 표지, 세계관 링크, 정보 상자 행. 계보 줄은 개요 탭(`WorldOverview`)에 있다. */
+/** 공개 세계관 목록·상세·설정 카드 페이지(와 `/search` 세계관 탭)가 함께 쓰는 작은 표시 조각: 데모 안내, 불러오는 중·실패, 표지, 세계관 카드·링크, 정보 상자 행. 계보 줄은 개요 탭(`WorldOverview`)에 있다. */
 
 /** 메모리 데모(`--mode mockup`) 응답일 때만 그린다. 실제 모드에는 없다. */
 export const DemoNotice = () => <p className="muted small worlds-demo">데모 · 공개 세계관과 세계관 지도는 서버 연결 전이에요</p>
@@ -39,3 +39,10 @@ export function WorldCover({ w, badge }: { w: Pick<PublicWorldSummary, 'id' | 'g
 }
 
 export const WorldLink = ({ w }: { w: Pick<PublicWorldRef, 'id' | 'name'> }) => <Go to={`/worlds/${w.id}`}>{w.name}</Go>
+
+const meta = (w: Pick<PublicWorldRef, 'authorNickname' | 'cardCount'>) => `${w.authorNickname} · 설정 카드 ${w.cardCount}개`
+
+/** 홈 `BookCard`와 같은 책 카드. `badge`는 표지 오른쪽 아래 알약이다. */
+export const WorldCard = ({ w, badge }: { w: PublicWorldRef; badge?: string }) => (
+  <Go to={`/worlds/${w.id}`} className="bk prox"><WorldCover w={w} badge={badge} /><h3 className="hk">{w.name}</h3><small>{meta(w)}</small>{'relationshipCount' in w && w.relationshipCount === null && <small>관계 수 확인 불가</small>}</Go>
+)
