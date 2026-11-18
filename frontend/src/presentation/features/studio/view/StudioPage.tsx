@@ -1,6 +1,7 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router'
 
+import { RestoreContext } from '../../../shared/session/restoreContext'
 import { toast } from '../../../shared/events'
 import { Go } from '../../../shared/Go'
 import { BackChev } from '../../../shared/icons'
@@ -29,8 +30,11 @@ const VIEW_ID: Record<string, string> = { wiki: 'U38', overview: 'U38', narrativ
 export function StudioPage() {
   const { id = '' } = useParams()
   const [query] = useSearchParams()
-  // Server work IDs use the persisted writing flow(narrative는 플롯·장면 계획); 이름 경로는 서버 작품을 찾아 UUID로 보내고 없으면 명시적 데모입니다.
-  return /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? query.get('view') === 'narrative' ? <RequireRole><StoryPlanPage key={id} id={id}/></RequireRole> : <WritingStudio key={id} id={id} episode={Number(query.get('ep')) || undefined}/> : <NamedStudioRoute key={id} id={id}/>
+  const restoring = useContext(RestoreContext)
+  if (!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id)) return <NamedStudioRoute key={id} id={id}/>
+  if (query.get('view') === 'narrative') return <RequireRole><StoryPlanPage key={id} id={id}/></RequireRole>
+  if (restoring) return <p role="status">로그인 상태를 확인하고 있어요.</p>
+  return <WritingStudio key={id} id={id} episode={query.has('ep') ? Number(query.get('ep')) : undefined}/>
 }
 function NamedStudioRoute({id}:{id:string}) {
   const [query]=useSearchParams()

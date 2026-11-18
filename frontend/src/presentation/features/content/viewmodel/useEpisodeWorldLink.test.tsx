@@ -14,9 +14,10 @@ const work: Work = {
 }
 const WORLD = '0b0f6f0e-3a51-4d6b-9a39-1f4f2b6d0a01'
 
-/** api 대역은 렌더 밖에서 한 번만 만든다(훅이 api가 바뀌면 다시 조회한다). */
+/** api 대역은 렌더 밖에서 한 번만 만든다(훅이 api가 바뀌면 다시 조회한다). 초안 목록 조회는 이 테스트의 관심사가 아니라 빈 목록을 기본으로 둔다. */
 async function open(api: object) {
-  const hook = renderHook(() => useEpisodeViewModel('w1', api as unknown as EpisodeUseCase, { upload: vi.fn() }))
+  const useCase = { writingList: vi.fn().mockResolvedValue([]), ...api }
+  const hook = renderHook(() => useEpisodeViewModel('w1', useCase as unknown as EpisodeUseCase, { upload: vi.fn() }))
   await act(async () => {})
   return hook.result
 }

@@ -11,7 +11,7 @@
 | `SKN34-final-4Team_WBS.xlsx` | 일정·작업 분해 | 마지막 수정 2026-10-30 |
 | `SKN34-final-4Team_화면설계서.pdf` | 화면 구성·흐름 | |
 | `SKN34-final-4Team_시스템 구상도` (.pdf / .hwpx) | 시스템 구상도 | |
-| `SKN34-final-4Team_AI 시스템 아키텍처` (.pdf / .hwpx) | AI 시스템 아키텍처 | 설계 세부는 [writing-ai-architecture](../writing-ai-architecture/01-current-system-analysis.md) |
+| `SKN34-final-4Team_AI 시스템 아키텍처` (.pdf / .hwpx) | AI 시스템 아키텍처 | 설계 세부는 [writing-ai-architecture](../writing-ai-architecture/02-ai-architecture.md) |
 
 ## 중간발표 자료
 

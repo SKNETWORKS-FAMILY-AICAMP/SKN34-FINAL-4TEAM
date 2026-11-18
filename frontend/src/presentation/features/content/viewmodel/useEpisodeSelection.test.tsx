@@ -16,9 +16,11 @@ const first = work('w1', '첫 작품')
 const second = work('w2', '둘째 작품')
 const history: History = { versions: [], proposals: [], publicationHistory: [] }
 
-/** api 대역은 렌더 밖에서 한 번만 만든다. 열린 작품은 주소의 ?work= 값(workId)이고 바뀌면 rerender로 흉내 낸다. */
-const open = (api: object, id: string | null) =>
-  renderHook(({ workId }: { workId: string | null }) => useEpisodeViewModel(workId, api as unknown as EpisodeUseCase, { upload: vi.fn() }), { initialProps: { workId: id } })
+/** api 대역은 렌더 밖에서 한 번만 만든다(초안 목록 조회는 이 테스트의 관심사가 아니라 빈 목록을 기본으로 둔다). 열린 작품은 주소의 ?work= 값(workId)이고 바뀌면 rerender로 흉내 낸다. */
+const open = (api: object, id: string | null) => {
+  const useCase = { writingList: vi.fn().mockResolvedValue([]), ...api }
+  return renderHook(({ workId }: { workId: string | null }) => useEpisodeViewModel(workId, useCase as unknown as EpisodeUseCase, { upload: vi.fn() }), { initialProps: { workId: id } })
+}
 
 it('열린 작품은 주소의 workId로 정해지고 내 작품 목록에 없으면 비어 있다', async () => {
   const api = { list: vi.fn().mockResolvedValue([first, second]) }
@@ -77,11 +79,12 @@ it('작품을 만들면 새 작품의 id를 돌려주고, 입력이 잘못되면
   const api = { list: vi.fn().mockResolvedValue([]), create: vi.fn().mockResolvedValueOnce(created).mockRejectedValueOnce(new Error('작품 제목을 입력해 주세요.')) }
   const { result } = open(api, null)
   await act(async () => {})
-  let id: string | null = null
+  let id: Awaited<ReturnType<typeof result.current.create>> = null
   await act(async () => { id = await result.current.create('새 작품', '') })
-  expect(id).toBe('n1')
+  expect(id).toEqual({id:'n1',complete:true})
   expect(result.current.works.map((w) => w.id)).toEqual(['n1'])
-  expect(result.current.notice).toBe('비공개 작품을 만들었어요. 첫 회차를 작성해 보세요.')
+  // 만들면 곧바로 집필실로 이동하므로 성공 알림은 두지 않는다(표지만 실패한 경우의 오류 알림은 useEpisodeCover 테스트).
+  expect(result.current.notice).toBe('')
   await act(async () => { id = await result.current.create('', '') })
   expect(id).toBeNull()
   expect(result.current.error).toBe('작품 제목을 입력해 주세요.')

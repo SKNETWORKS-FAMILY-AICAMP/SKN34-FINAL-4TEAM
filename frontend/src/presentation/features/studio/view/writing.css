@@ -7,6 +7,10 @@
 .writing-message { margin: 16px 24px; }
 /* 오류 상자(공용 .ep-alert)는 상단 바 바로 아래에 둔다. 완료 안내는 상단 바의 저장 상태 줄에 이어 적어 이 자리를 쓰지 않는다. */
 .writing-studio > .ep-alert { margin: 12px 24px 0; }
+/* 재시도 버튼과 로그인 링크는 한 묶음으로 둔다: 공용 .ep-alert는 양끝 정렬이라 낱개로 두면 넓은 화면에서 가운데로 흩어진다. */
+.ep-alert-actions { display: flex; align-items: center; gap: 12px; }
+/* 좁은 화면의 공용 .ep-alert는 block이고 button에만 위 여백을 주므로 묶음 전체에 여백을 옮겨 버튼과 로그인 링크의 줄을 맞춘다. */
+@media (max-width: 650px) { .ep-alert .ep-alert-actions { margin-top: 10px; } .ep-alert .ep-alert-actions button { margin-top: 0; } }
 .writing-studio :is(.writing-rail, .writing-episodes, .writing-graph, .writing-editor) { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--tfg) 28%, transparent) transparent; }
 
 /* ── 상단 바: 왼쪽(돌아가기·제목·저장 상태) / 오른쪽(모드·버전 저장·버전 · 공개·더보기) ── */

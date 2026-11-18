@@ -13,9 +13,10 @@ const work: Work = {
   episodes: [], draft: { title: '새 회차', body: '', revision: 4 }, revision: 4,
 }
 
-/** api 대역은 렌더 밖에서 한 번만 만든다(훅이 api가 바뀌면 다시 조회한다). 열린 작품은 주소의 ?work= 값(workId)으로 정해진다. */
+/** api 대역은 렌더 밖에서 한 번만 만든다(훅이 api가 바뀌면 다시 조회한다). 열린 작품은 주소의 ?work= 값(workId)으로 정해진다. 초안 목록 조회는 이 테스트의 관심사가 아니라 빈 목록을 기본으로 둔다. */
 function open(api: object) {
-  return renderHook(() => useEpisodeViewModel('w1', api as unknown as EpisodeUseCase, { upload: vi.fn() }))
+  const useCase = { writingList: vi.fn().mockResolvedValue([]), ...api }
+  return renderHook(() => useEpisodeViewModel('w1', useCase as unknown as EpisodeUseCase, { upload: vi.fn() }))
 }
 
 it('작품 정보를 저장하면 현재 revision으로 서버에 수정하고 갱신된 작품을 보인다', async () => {

@@ -21,7 +21,7 @@ const model = vi.hoisted(() => ({
   draft: { title: '셋째', body: '원고', revision: 1 },
   busy: false, error: '', notice: '', ready: true, dirty: false, editingLocked: false, deleteBlocker: '', deleteBlockerOf: () => '',
   orderLookup: null, historyLoading: false, historyError: '', publicationHistory: null,
-  save: vi.fn(), reload: vi.fn(), mayLeave: vi.fn(() => true), edit: vi.fn(), create: vi.fn(), select: vi.fn(() => true), cancel: vi.fn(),
+  save: vi.fn(), reload: vi.fn(), mayLeave: vi.fn(() => true), edit: vi.fn(), create: vi.fn(), select: vi.fn(() => true), cancel: vi.fn(), clearNotice: vi.fn(),
   loadPublicationHistory: vi.fn(), addImage: vi.fn(), checkOrder: vi.fn(), deleteDraft: vi.fn(), deleteEpisode: vi.fn(), changeVisibility: vi.fn(),
   restore: vi.fn(), publish: vi.fn(), revertCheckpoint: vi.fn(), aiApplied: vi.fn(),
 }))
@@ -204,17 +204,20 @@ it('발행 전 초안 회차를 열고 시뮬레이션을 시작하면 근거는
 })
 
 it('계획 없음 안내는 미저장 원고를 유지하며 집필실 안 플롯 패널을 연다', async () => {
+  // 미저장 입력이 있어도 플롯 패널을 여는 데는 이탈 확인이 없어야 한다. model은 파일 전체가 공유하므로 끝나면 되돌린다.
   model.dirty = true
-  renderStudio()
-  fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
-  const stage = await screen.findByRole('region', { name: '인물 시뮬레이션 무대' })
-  fireEvent.click(await within(stage).findByRole('radio', { name: /흐름/ }))
-  const openPlans = within(stage).getByRole('button', { name: '플롯 패널 열기' })
-  model.mayLeave.mockReturnValue(false)
-  fireEvent.click(openPlans)
-  expect(model.mayLeave).not.toHaveBeenCalled()
-  expect(screen.getByRole('complementary', { name: '플롯과 장면 계획' })).toBeTruthy()
-  expect(screen.getByRole('textbox', { name: '회차 제목', hidden: true })).toHaveProperty('value', '셋째')
+  try {
+    renderStudio()
+    fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
+    const stage = await screen.findByRole('region', { name: '인물 시뮬레이션 무대' })
+    fireEvent.click(await within(stage).findByRole('radio', { name: /흐름/ }))
+    const button = within(stage).getByRole('button', { name: '플롯 패널 열기' })
+    model.mayLeave.mockReturnValue(false)
+    fireEvent.click(button)
+    expect(screen.getByRole('complementary', { name: '플롯과 장면 계획' })).toBeTruthy()
+    expect(model.mayLeave).not.toHaveBeenCalled()
+    expect((screen.getByRole('textbox', { name: '회차 제목', hidden: true }) as HTMLInputElement).value).toBe('셋째')
+  } finally { model.dirty = false }
 })
 
 it('작품에 편집할 회차가 없으면 시뮬레이션 버튼을 잠근다', () => {

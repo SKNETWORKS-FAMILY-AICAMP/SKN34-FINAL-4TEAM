@@ -18,7 +18,7 @@ flowchart LR
 
 ## 공통 입력과 출력
 
-공통 Retrieval 도구/서브그래프는 Writing & Editing을 제외한 업무 Agent가 필요할 때 호출하며, 아래 Scope와 결과 계약을 재사용한다. Writing & Editing에는 Content가 확인한 허용 입력을 직접 전달하고, 필요 시 Review가 검수한다. 별도 정본이 아니고 모든 공급자나 모델을 매번 호출하지 않는다. 단순 조회는 직접 실행할 수 있다. [공통 도구](03-rag-simulation-design.md#공통-서브그래프-도구)
+공통 Retrieval 도구/서브그래프는 Writing & Editing을 제외한 업무 Agent가 필요할 때 호출하며, 아래 Scope와 결과 계약을 재사용한다. Writing & Editing에는 Content가 확인한 허용 입력을 직접 전달하고, 필요 시 Manuscript Review가 검수한다. 별도 정본이 아니고 모든 공급자나 모델을 매번 호출하지 않는다. 단순 조회는 직접 실행할 수 있다. [공통 도구](03-rag-simulation-design.md#공통-서브그래프-도구)
 
 Scope에는 사용자 작업 참조, 대상 work/Fork, 기준 회차·판본 manifest, audience(owner/reader/character), 인물 ID, 목적, 만료가 들어간다. UI·모델이 만든 Scope를 신뢰하지 않는다. Query에는 작업 종류, 검색 문구 또는 ID, 허용 회차/문서, 결과·토큰 상한을 넣는다. 결과는 ok/partial/unavailable/unsupported/denied 중 하나이며 evidence, gaps, coverage를 반환한다. 정상 0건은 검색 장애와 다르다.
 
@@ -53,7 +53,7 @@ Coverage는 요청한 범위의 expected와 verified 판본, 누락·stale·삭�
 
 | 공급자 | 우선순위와 입력 | 검증·한계 |
 |---|---|---|
-| 현재 관계 Graph | 1단계. Content가 연결·소유권·현재 graph token을 확인한 WorldStudio 관계 | 현재 방향·라벨·양 끝 카드와 공개 범위만. 과거 회차 관계 복원은 unsupported. |
+| 현재 관계 Graph | 1단계. Content가 연결·소유권·현재 graph token을 확인한 WorldStudio 관계 | Q&A 내부 검색 API는 최신 방향·라벨·양 끝 카드와 공개 범위만 준다. 회차 시점 관계는 DEC-51로 WorldStudio가 제공하며, Manuscript Review·Rating·시뮬레이션은 Content MCP `world_studio_read(episode)`로 읽는다. Q&A 전환은 #490이다. |
 | 원고 Vector | 2단계. PostgreSQL 판본에서 만든 Elasticsearch 인덱스, work/Fork·revision 선필터 | chunk가 문서/권한 경계를 넘지 않는다. 검색 후 Content 원문·hash·span을 재검증한다. 색인 세대가 뒤처지면 stale. |
 | 회차 Wiki Graph | 후속. 회차/장면/사건/인물 지식/복선·회수/인과의 출처 있는 파생 그래프 | source revision·회차 coverage·삭제 전파가 확인된 경로만 사용. 관계 이력을 재구성하지 않는다. |
 | 템플릿 Vector | 후속. 작품과 분리된 장르/세계관 카탈로그 | 라이선스·공개 범위와 catalog revision을 확인한다. 추천 결과를 자동으로 작품에 반영하지 않는다. |
@@ -114,7 +114,7 @@ Elasticsearch 9.5.6의 `storyfork-manuscript-v1-dev-sample`에 원고 표본 26�
 - 현재 관계는 작가 소유의 회차 연결 세계관에서 Neo4j가 반환한 활성 관계를 사용한다. 양 끝 카드의 이름과 관계 방향·라벨·설명을 근거로 쓴다. 관계 시점과 과거 관계는 모델이 `gaps`로 설명한다. 공개 경로의 현재 관계 요청은 403이다.
 - 응답의 `sources[].kind`는 발행 원고·설정·현재 관계를 구분한다. 설정에는 설정 ID와 판본, 현재 관계에는 세계관 ID·관계 ID·현재 그래프 토큰이 들어간다. `claims`에는 확인·추론과 출처 ID를 담고, `gaps`에는 답할 근거가 부족한 부분을 담는다. `coverage`의 회차별 검색 범위는 원고 질문에 적용한다.
 - 설정·관계는 제목과 근거의 문자 일치로 정렬해 최대 8건을 보낸다. 근거가 없으면 모델을 호출하지 않고 `insufficient`를 반환한다. 저장소 또는 모델 연결 장애는 503, 미등록 출처를 인용한 모델 응답은 502, 답변 도중 발행 범위나 확인한 근거가 바뀌면 409를 반환한다.
-- `MANUSCRIPT_INDEX_ENABLED=true`와 Content DB에 맞는 `MANUSCRIPT_INDEX_NAME`을 사용한다. 위에서 준비한 로컬 DB의 인덱스는 `storyfork-manuscript-v1-local`이다. AI Service에는 로컬 E5와 `OPENAI_API_KEY`, Structured Outputs를 지원하는 `OPENAI_MODEL`을 설정한다. [실행 안내](../../infrastructure/README.md#네이티브-자동-적재) · [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses)
+- `MANUSCRIPT_INDEX_ENABLED=true`와 Content DB에 맞는 `MANUSCRIPT_INDEX_NAME`을 사용한다. 위에서 준비한 로컬 DB의 인덱스는 `storyfork-manuscript-v1-local`이다. AI Service에는 로컬 E5와 `OPENAI_API_KEY`, Structured Outputs를 지원하는 `OPENAI_MODEL`을 설정한다. [실행 안내](../../infrastructure/README.md#네이티브-자동-적재) · [로컬 compose 스택에서 켜기](../../infrastructure/README.md#로컬-compose-스택에서-켜기-475)(compose용 `MANUSCRIPT_INDEX_NAME`을 네이티브와 나눈다) · [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses)
 
 ### 공통 Retrieval 도구 (오케스트레이션, 2026-11-12 사용자 결정)
 
@@ -122,9 +122,9 @@ AI가 DB에 직접 접속하지 않고 Content API를 호출하는 방식이다.
 
 - Content `POST /internal/v1/ai/qa/retrieval` `{scopeToken, question}` → `{status: found|insufficient, sources, excerpts, gaps, coverage, steps}`. 위 Q&A API와 같은 `ManuscriptQaService.retrieve`(범위 확정 → 임베딩 → Elasticsearch → PostgreSQL 원문 재대조, 또는 설정·Neo4j 현재 관계)를 쓰고 모델은 부르지 않는다. `steps`는 공급자별(`embedding`·`elasticsearch`·`postgres_verify`·`postgres_settings`·`neo4j`) 소요 ms·결과 수다.
 - 인증은 `/internal/v1/ai/**` 전용 보안 체인의 `X-Internal-Token`(`INTERNAL_TOKEN`, 32자 이상)이다. 조회 키(작품·작가·회차·판본·대상)는 Content가 인증 뒤 `QaScopeGrants`로 HMAC 서명해 발급한 `scopeToken`(1시간 만료)에서만 읽는다. AI는 토큰을 되돌려 줄 뿐이라 `INTERNAL_TOKEN`만으로 다른 작가를 지정할 수 없다. 서명이 틀리거나 만료되면 403이다. Content가 그 값으로 `QaScopeService` 권한·범위를 다시 확정한다. 서명 키는 프로세스마다 새로 만들어 Content 재시작·다중 인스턴스에서는 발급한 토큰이 무효다. 독자 관계 질문 거절도 같다. 외부 전송 동의는 아래 Content 공개 경로가 확인하고 이 내부 경로는 확인하지 않는다.
-- 토큰 발급은 Content 공개 경로 `POST /api/v1/works/{id}/writing-ai/orchestrations` `{request | resume{approved}, threadId?, operation?, episode, episodeVersionId, targetEpisode?, target, consent}`가 한다(`episode`·`episodeVersionId`는 근거 회차, 선택 `targetEpisode`는 승인 뒤 쓸 반영 회차로 없으면 `episode`와 같다). 회원 인증(Principal)·동의·작품 범위를 확인한 뒤 작가 본인으로 토큰을 발급하고, 대화를 `user:<작가>/work:<작품>` scope에 묶어 AI 오케스트레이션을 부른다. 응답은 `{threadId, result}`이며 result는 AI 응답 그대로다. resume 때도 새 토큰을 보내 AI가 저장된 토큰을 바꾸므로 1시간 만료·Content 재시작 뒤에도 이어 실행할 수 있다. 아직 Writing 문맥·웹 조사 입력은 보내지 않아 그 단계는 `waiting`이 되며, 화면·SSE 프록시는 없다.
+- 토큰 발급은 Content 공개 경로 `POST /api/v1/works/{id}/writing-ai/orchestrations` `{request | resume{approved}, threadId?, operation?, episode, episodeVersionId, targetEpisode?, target, consent}`가 한다(`episode`·`episodeVersionId`는 근거 회차, 선택 `targetEpisode`는 승인 뒤 쓸 반영 회차로 없으면 `episode`와 같다). 회원 인증(Principal)·동의·작품 범위를 확인한 뒤 작가 본인으로 토큰을 발급하고, 대화를 `user:<작가>/work:<작품>` scope에 묶어 AI 오케스트레이션을 부른다. 응답은 `{threadId, result}`이며 result는 AI 응답 그대로다. resume 때도 새 토큰을 보내 AI가 저장된 토큰을 바꾸므로 1시간 만료·Content 재시작 뒤에도 이어 실행할 수 있다. 집필실 채팅은 같은 `WritingAiService`로 동의·범위를 확인하고 토큰을 발급하는 SSE 경로 `/api/v1/works/{id}/chat/sessions/{threadId}/messages`를 쓴다([대화 세션](02-ai-architecture.md#유지되는-실행-계약)). Content는 아직 콘티·선택 구간 입력을 보내지 않는다. 웹 조사의 질문·동의는 입력 대기 뒤 resume으로 받는다.
 - AI `app/retrieval/service.retrieve`가 이 API를 호출한다. 오케스트레이션 요청에 Content가 확인한 `scope`가 있으면 Q&A 단계가 발췌 입력 없이 Retrieval로 근거를 받고, 근거가 없으면 모델을 부르지 않고 gaps만 돌려준다. Writing & Editing은 호출하지 않는다.
-- 한계: 오케스트레이션 경로는 답변 생성 뒤 Content의 범위·근거 재확인(409)을 하지 않는다. 검색어는 이번 요청 문장 그대로이며 후속 질문 재작성이 없다. Review·World & Plot이 생기면 같은 도구에 목적별 조회를 더한다.
+- 한계: 오케스트레이션 경로는 답변 생성 뒤 Content의 범위·근거 재확인(409)을 하지 않는다. 검색어는 메인 에이전트가 정한 `ask_story_qa(request)`의 앞 500자다. 메인 모델이 지칭을 풀어 적을 수 있지만 Content 쪽 검색어 재작성은 없다. Manuscript Review·Rating·시뮬레이션은 이 도구가 아니라 Content MCP로 원고·세계관을 읽는다. World & Plot이 생기면 목적별 조회를 정한다.
 
 ### 로컬 실모델 검증 (2026-11-11)
 
