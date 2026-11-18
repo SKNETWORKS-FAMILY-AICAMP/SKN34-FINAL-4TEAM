@@ -860,3 +860,5 @@ Draft·미병합: 최신 승인 검증·UUID/payload 예약, replace:false 추�
 - WorldStudio 8단계: 명시적 확정 버전 생성·목록·읽기 전용 상세 UI(Draft, 미병합). 과거 관계/복원/발행은 제외.
 
 - WorldStudio 9-A: 소유자용 확정 설정 내부 Context 구성·출처/의미 메타데이터 보존. Draft PR 검증 중이며 공개 API·전체 집필 Context·회차/Fork/MCP·과거 관계는 미연결. [계약](design/worldstudio-confirmed-context.md).
+
+- #415 작품 생성 후 집필실 진입, 작성 중 초안 목록·공개 상태·버전과 글자 수 표시를 보완했다. #409는 단일 탭에서 첫 발행과 독자 조회가 모두 성공했다.

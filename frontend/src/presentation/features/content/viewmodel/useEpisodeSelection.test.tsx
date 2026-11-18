@@ -77,9 +77,9 @@ it('작품을 만들면 새 작품의 id를 돌려주고, 입력이 잘못되면
   const api = { list: vi.fn().mockResolvedValue([]), create: vi.fn().mockResolvedValueOnce(created).mockRejectedValueOnce(new Error('작품 제목을 입력해 주세요.')) }
   const { result } = open(api, null)
   await act(async () => {})
-  let id: string | null = null
+  let id: Awaited<ReturnType<typeof result.current.create>> = null
   await act(async () => { id = await result.current.create('새 작품', '') })
-  expect(id).toBe('n1')
+  expect(id).toEqual({id:'n1',complete:true})
   expect(result.current.works.map((w) => w.id)).toEqual(['n1'])
   expect(result.current.notice).toBe('비공개 작품을 만들었어요. 첫 회차를 작성해 보세요.')
   await act(async () => { id = await result.current.create('', '') })

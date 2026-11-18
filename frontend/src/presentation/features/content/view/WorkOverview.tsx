@@ -15,7 +15,7 @@ type Props = {
   locked: boolean
   busy: boolean
   /** 지금 작성 중인 회차 번호 */
-  nextNo: number
+  draftCount?: number
   /** 작품 생성 직후 표지 업로드가 끝나면 올라가, 표지 목록을 다시 읽게 한다. */
   coverRevision: number
   onMediaBusy: (busy: boolean) => void
@@ -37,7 +37,7 @@ type Props = {
  * 원고 작성은 이 화면이 아니라 집필실(`/studio/{id}`)에서 하므로 히어로의 '회차 작성하기'가 그리로 보낸다.
  * 작품이 바뀌면 호출 측이 key로 새로 만든다.
  */
-export function WorkOverview({ work: w, locked, busy, nextNo, coverRevision, onMediaBusy, onSaveInfo, onSuggestTags, onSavePolicy, onStopFork, onDeleteFork }: Props) {
+export function WorkOverview({ work: w, locked, busy, draftCount, coverRevision, onMediaBusy, onSaveInfo, onSuggestTags, onSavePolicy, onStopFork, onDeleteFork }: Props) {
   const [editing, setEditing] = useState<Section | null>(null)
   const infoButton = useRef<HTMLButtonElement>(null)
   const coverButton = useRef<HTMLButtonElement>(null)
@@ -84,7 +84,7 @@ export function WorkOverview({ work: w, locked, busy, nextNo, coverRevision, onM
             {!!w.genres?.length && <span className='g'>{w.genres.join(' · ')}</span>}
             {kind && <span className='chip'>{kind}</span>}
             <span className={'chip ' + (w.visibility === 'public' ? 'ok' : '')}>
-              {w.visibility === 'public' ? '공개 중' : '비공개 작품'}
+              {w.visibility === 'private' ? '비공개 작품' : w.episodes.length ? '공개 중' : '공개 회차 없음'}
             </span>
           </div>
           {editing === 'info'
@@ -95,7 +95,7 @@ export function WorkOverview({ work: w, locked, busy, nextNo, coverRevision, onM
           {!!w.hashtags?.length && <div className='hashes'>{w.hashtags.map((tag) => <span key={tag}>#{tag}</span>)}</div>}
           <div className='stats'>
             <span>공개 회차 <b>{w.episodes.length}</b>화</span>
-            {w.hasWritingEpisode !== false && <span>작성 중 <b>{nextNo}</b>화</span>}
+            {draftCount !== undefined && <span>작성 중인 초안 <b>{draftCount}</b>개</span>}
           </div>
           <div className='acts'>
             <Go to={`/studio/${w.id}`} className='btn pri'>회차 작성하기</Go>

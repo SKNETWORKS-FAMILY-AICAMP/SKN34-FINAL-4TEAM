@@ -60,9 +60,11 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
                 ready={vm.listed}
                 error={vm.origin === 'create' ? vm.error : ''}
                 onCreate={async (title, summary, cover, registration) => {
-                  const id = await vm.create(title, summary, cover, registration)
-                  // 만든 작품의 관리 화면으로 바꿔 보여 준다(뒤로 가기로 빈 생성 화면에 돌아오지 않게 replace).
-                  if (id) navigate(`/content?work=${encodeURIComponent(id)}`, { replace: true })
+                  const created = await vm.create(title, summary, cover, registration)
+                  if (created) {
+                    const id = encodeURIComponent(created.id)
+                    navigate(created.complete ? `/studio/${id}` : `/content?work=${id}`, { replace: true })
+                  }
                 }}
               />
             )

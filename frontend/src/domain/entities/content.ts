@@ -55,3 +55,9 @@ export type WritingEpisode = {publicationStatus?:'draft'|'published'|'suspended'
 export type InheritedCard = { id: string; title: string; cardType: string; aliases: string[] }
 export type InheritedWorld = { upto: number; cards: InheritedCard[] }
 export type EpisodeOrderScope = {number:number;candidateNumbers:number[];reasons:string[];executable:false}
+
+/** 집필실이 표시하는 회차별 저장 순번. 발행본의 편집 revision과 구분한다. */
+export function savedVersionLabel(versions: readonly {id: string}[], id: string) {
+  const index = versions.findIndex(version => version.id === id)
+  return index < 0 ? '저장 버전 미확인' : `저장 버전 ${index + 1}`
+}

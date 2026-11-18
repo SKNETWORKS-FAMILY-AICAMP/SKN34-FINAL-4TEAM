@@ -4,7 +4,7 @@ import { useWritingPlanNavigation } from '../viewmodel/useWritingPlanNavigation'
 import { Suspense,useEffect,useEffectEvent,useId,useRef,useState,type ReactNode } from 'react'
 import { useSearchParams } from 'react-router'
 import { useWritingViewModel } from '../viewmodel/useWritingViewModel'
-import { publicationActionLabel,type WritingEpisode } from '../../../../domain/entities/content'
+import { savedVersionLabel,publicationActionLabel,type WritingEpisode } from '../../../../domain/entities/content'
 import { useVersionComparisonViewModel } from '../viewmodel/useVersionComparisonViewModel'
 import './writing.css'
 // 오류 상자(.ep-alert)는 작품 관리 화면과 같은 공용 모양을 쓴다.
@@ -260,7 +260,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
               <LazyManuscriptEditor ref={editor} value={vm.draft.body} editable={!vm.editingLocked} busy={vm.busy} workId={id} number={active.number} onChange={body=>vm.edit({body})} onImage={(file,start,end)=>vm.addImage(file,start,end)}/>
             </Suspense>}
           <footer className="writing-foot">
-            <p className="small muted">{bodyLength(vm.draft.body).toLocaleString('ko-KR')} / {BODY_MAX.toLocaleString('ko-KR')}자{!active.inherited&&` · ${publishHint(vm.draft.body)}`} · {active.inherited?'원작 기준 버전을 보존한 원고예요.':'입력을 멈추면 2초 후 초안만 저장해요. 버전 저장과 공개는 각각 선택하세요.'}</p>
+            <p className="small muted">{bodyLength(vm.draft.body).toLocaleString('ko-KR')} / {BODY_MAX.toLocaleString('ko-KR')}자 (공백 포함){!active.inherited&&` · ${publishHint(vm.draft.body)}`} · {active.inherited?'원작 기준 버전을 보존한 원고예요.':'입력을 멈추면 2초 후 초안만 저장해요. 버전 저장과 공개는 각각 선택하세요.'}</p>
             <div className="writing-foot-actions">
               {vm.busy&&<button type="button" className="btn sm" onClick={vm.cancel}>진행 중 요청 취소</button>}
               <button ref={settingsButton} type="button" className="btn sm" aria-haspopup="dialog" onClick={()=>setSettingsOpen(true)}>회차 설정</button>
@@ -341,7 +341,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
               {vm.historyLoading?<p role="status">발행 이력을 불러오고 있어요…</p>:events&&<>
                 {!events.length&&<p>{historyEpisode===null?'아직 발행 이력이 없어요.':'이 회차의 발행 이력이 아직 없어요.'}</p>}
                 <ol>{events.map((event,i)=><li key={i}>
-                  {event.episode}화 · {publicationActionLabel[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')}<small> · 버전 {event.versionId}</small>
+                  {event.episode}화 · {publicationActionLabel[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')}<small> · {savedVersionLabel(vm.episodes.find(e=>e.number===event.episode)?.versions ?? [],event.versionId)}</small>
                 </li>)}</ol>
               </>}
             </>:historyView==='settings'?<SettingHistoryPanel key={id} workId={id}/>:!active?<p>회차를 선택해 주세요.</p>:historyView==='schedule'?(active.inherited?<p>원작 기준 회차는 예약 발행할 수 없어요.</p>:
