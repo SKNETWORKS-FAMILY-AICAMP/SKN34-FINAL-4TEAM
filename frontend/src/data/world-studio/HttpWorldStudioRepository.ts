@@ -81,8 +81,8 @@ const importedFrom = z.object({ worldId: z.string(), worldName: z.string(), auth
 const characterDocs = z.object({ soul: z.string(), goal: z.string().optional(), memory: z.string().optional(), episodes: z.record(z.string().refine(isEpisodeKey), z.string()) }).transform(migrateCharacterDocs)
 // 카드 공개·독자 공개 회차·가져온 출처·인물 문서·대표 이미지는 행 필드가 정본이라 `studio` 안에 넣지 않는다. 회차·출처·문서·이미지는 최상위 키로 쓰고 값이 없으면(문서는 전부 비었거나 인물이 아니면) 키도 넣지 않는다.
 function metadataOf(row:StudioSetting) {
-  // 관계의 N화부터(`fromEpisode`)도 서버가 연결의 회차로 따로 가지므로(요청의 relationshipEpisodes) 관계 본문(`studio.item`)에는 넣지 않는다.
-  const {serverMetadata,visibility:_,revealFromEpisode:reveal,importedFrom:source,characterDocs:_docs,imageId:image,item:{fromEpisode:_from,...item},...view}=row
+  // 관계의 N화부터(`fromEpisode`)와 읽은 그대로의 기록된 시작 회차(`recordedFrom`)도 서버가 연결의 회차로 따로 가지므로(요청의 relationshipEpisodes) 관계 본문(`studio.item`)에는 넣지 않는다.
+  const {serverMetadata,visibility:_,revealFromEpisode:reveal,importedFrom:source,characterDocs:_docs,imageId:image,item:{fromEpisode:_from,recordedFrom:_recorded,...item},...view}=row
   const docs=storedCharacterDocs(row)
   return {...serverMetadata,studio:{...view,item},...(reveal!==undefined&&{revealFromEpisode:reveal}),...(source&&{importedFrom:source}),...(docs&&{characterDocs:docs}),...(image&&{imageId:image})}
 }
@@ -247,7 +247,7 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
       r.targetCardId !== null && !ids.has(r.targetCardId)
     ) throw invalid()
     const from = value.relationshipEpisodes[r.id]
-    settings.push(from === undefined ? row : { ...row, item: { ...row.item, fromEpisode: from } })
+    settings.push(from === undefined ? row : { ...row, item: { ...row.item, fromEpisode: from, recordedFrom: from } })
   }
   if (new Set(settings.map((s) => s.item.id)).size !== settings.length) throw invalid()
   return {

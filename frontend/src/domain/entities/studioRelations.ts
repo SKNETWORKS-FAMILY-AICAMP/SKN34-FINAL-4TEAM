@@ -11,7 +11,7 @@ export const relationDefinitions:Record<string,{label:string;group:'fact'|'emoti
  trusts:{label:'신뢰',group:'emotion'}, wary_of:{label:'경계',group:'emotion'}, likes:{label:'호감',group:'emotion'}, hostile_to:{label:'적대',group:'emotion'},
  member_of:{label:'소속',group:'other'}, leads:{label:'이끎',group:'other'}, can_use:{label:'사용 가능',group:'other'}, located_in:{label:'위치',group:'other'},
 }
-export type RelationInput=Pick<SettingItem,'subjectId'|'targetId'|'predicate'|'polarity'> & Partial<Pick<SettingItem,'id'|'title'|'text'|'fromEpisode'>>
+export type RelationInput=Pick<SettingItem,'subjectId'|'targetId'|'predicate'|'polarity'> & Partial<Pick<SettingItem,'id'|'title'|'text'|'fromEpisode'|'recordedFrom'>>
 export const isFreeRelation=(predicate:string|null|undefined)=>['custom_relation','custom_relation_directed','custom_emotion','preserved_emotion_symmetric'].includes(predicate??'')
 export function relationLabel(item:Pick<SettingItem,'predicate'|'polarity'>&Partial<Pick<SettingItem,'text'>>) {
  return ((isFreeRelation(item.predicate)?item.text:undefined)??relationDefinitions[item.predicate??'']?.label??item.predicate??'관계')+(item.polarity==='denied'?' 아님':'')

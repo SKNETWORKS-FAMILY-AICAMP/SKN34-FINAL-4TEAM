@@ -274,6 +274,17 @@ describe('공개 순서 점검: 이른 카드의 글에 늦은 카드의 이름�
     expect(publicationOrderIssues([kael, lian, seraphine, guard(2)]).map((i) => i.visibleFrom)).toEqual([2, 2])
   })
 
+  it('이미 기록된 시작 회차(recordedFrom)보다 늦춘 N화부터는 기존 연결이 남아 독자에게 기록된 회차부터 보이므로 둘 중 이른 회차로 계산한다 (DEC-51·54)', () => {
+    const [a, b] = [pub(1, text('리안', '')), pub(1, text('카엘', ''))]
+    const minister = pub(4, text('승상', ''))
+    const moved = (fromEpisode: number, recordedFrom?: number) => link(a, b, { title: '동료', text: '승상과도 아는 사이', fromEpisode, ...(recordedFrom !== undefined && { recordedFrom }) })
+    const seen = (row: StudioSetting) => publicationOrderIssues([a, b, minister, row]).map((i) => i.visibleFrom)
+    expect(seen(moved(5, 3))).toEqual([3, 3]) // 3화에 기록된 관계를 5화로 늦춰도 3화 연결이 남아 3화부터 보인다: 승상(4화부터 공개)보다 이르다
+    expect(seen(moved(5))).toEqual([]) // 아직 기록하지 않은 새 관계는 입력한 5화부터다
+    expect(seen(moved(5, 5))).toEqual([]) // 기록된 회차와 같으면 그 회차다
+    expect(seen(moved(2, 3))).toEqual([2, 2]) // 앞당기면 입력한 회차부터다
+  })
+
   it('게시판 상태는 경고가 있는 카드에 order를 켜고, 경고만 있어도 상태가 있는 카드다', () => {
     const hall = pub(1, card('places', '궁궐', { text: '승상이 산다.' }))
     const minister = pub(5, card('places', '승상'))

@@ -260,3 +260,4 @@ html:has(.world-writing){scrollbar-gutter:stable}
 @media (max-width:720px){.world-finding-diff{grid-template-columns:minmax(0,1fr)}}
 /* 관계 행의 N화부터(DEC-54 2단계): 위 공개 회차 입력과 같은 한 줄 라벨·숫자 폭이다(크기·숫자 폭은 위 :is 묶음). 위 관계 기준 회차 칸과 같이 .episode-app의 label(block)·입력(폭 100%) 규칙을 이기려고 .episode-app 아래로 다시 정한다(입력은 :not()까지 베낌). */
 .episode-app .relationship-from{display:inline-flex;align-items:center;gap:8px;margin-top:10px;font-weight:650}.episode-app .relationship-from input:not([type=checkbox]):not([type=radio]){width:88px;margin-top:0;padding:8px 10px}.relationship-from .inp[aria-invalid=true]{border-color:var(--danger)}.relationship-row .world-field-error{color:var(--danger);font-weight:650}
+.relationship-row .relationship-from-note{margin:0;color:var(--danger);font-weight:650}

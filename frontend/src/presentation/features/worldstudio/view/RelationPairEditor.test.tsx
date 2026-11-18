@@ -163,4 +163,28 @@ describe('관계 행의 N화부터 입력 (DEC-54 2단계)', () => {
     expect(applied).toHaveLength(1)
     expect(applied[0][0].fromEpisode).toBeUndefined()
   })
+
+  it('이미 기록된 시작 회차보다 늦추면 독자에게는 기록된 회차부터 보인다고 칸 아래에서 알리고, 같거나 앞당기면 알리지 않는다', () => {
+    const [garam, narae] = pair()
+    const settings = putRelation([garam, narae], { subjectId: garam.item.id, targetId: narae.item.id, predicate: 'custom_relation_directed', polarity: 'asserted', text: '경계한다', fromEpisode: 3, recordedFrom: 3 })
+    open(settings, null)
+    const name = '실제 관계 1 시작 회차 화부터'
+    const note = '이미 3화부터 기록돼 있어 독자에게는 3화부터 보여요(늦추려면 관계를 끝내고 다시 만드세요)'
+    expect(screen.queryByText(note)).toBeNull()
+    typeFrom(name, '5')
+    const shown = screen.getByText(note)
+    expect(screen.getByRole<HTMLInputElement>('textbox', { name }).getAttribute('aria-describedby')?.split(' ')).toContain(shown.id) // 칸의 설명으로 읽힌다
+    expect(screen.getByRole<HTMLInputElement>('textbox', { name }).getAttribute('aria-invalid')).toBe('false') // 막는 오류가 아니라 알림이다
+    for (const value of ['3', '2']) {
+      typeFrom(name, value)
+      expect(screen.queryByText(note), value).toBeNull()
+    }
+  })
+
+  it('아직 기록하지 않은 새 관계에는 늦춘다는 안내가 없다', () => {
+    open(pair(), null)
+    fireEvent.change(screen.getByRole('combobox', { name: '실제 관계 1' }), { target: { value: '오랜 친구' } })
+    typeFrom('실제 관계 1 시작 회차 화부터', '9')
+    expect(screen.queryByText(/이미 .*화부터 기록돼 있어/)).toBeNull()
+  })
 })

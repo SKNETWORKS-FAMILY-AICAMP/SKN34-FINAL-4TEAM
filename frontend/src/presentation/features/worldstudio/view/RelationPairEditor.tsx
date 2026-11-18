@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef } from 'react'
 import type { RelationDraftRow } from '../../../../domain/entities/relationDraft'
 import { isFreeRelation, relationLabel } from '../../../../domain/entities/studioRelations'
-import { RELATION_FROM_ERROR } from '../../../../domain/entities/studioWorld'
+import { RELATION_FROM_ERROR, relationFromDelayedNote } from '../../../../domain/entities/studioWorld'
 import { useRelationPairViewModel } from '../viewmodel/useRelationPairViewModel'
 import type { useWorldStudioViewModel } from '../viewmodel/useWorldStudioViewModel'
 type VM = ReturnType<typeof useWorldStudioViewModel>
@@ -10,9 +10,10 @@ type Pair = ReturnType<typeof useRelationPairViewModel>
 /**
  * 관계 행의 'N화부터' 칸(DEC-54 2단계, 소설을 연결한 세계관만). 이 관계의 내용이 보이기 시작하는 회차이고 적용하려면 1 이상의 정수가 있어야 한다. 기존 관계는 서버가 준 시작 회차가 채워져 있다.
  * 잘못된 값은 칸을 `aria-invalid`로 두고 이유를 칸의 설명(`aria-describedby`)으로 잇는다. 공개 회차 입력처럼 숫자만 받는다.
+ * 이미 기록된 시작 회차보다 늦춘 값은 막지 않고, 서버가 기존 연결을 남겨 독자에게는 기록된 회차부터 보인다는 사실을 같은 방식으로 칸 아래에서 알린다.
  */
 function FromEpisode({ field, row, vm }: { field: string; row: RelationDraftRow; vm: Pair }) {
-  const id = useId(), invalid = vm.fromInvalid(row)
+  const id = useId(), invalid = vm.fromInvalid(row), delayed = vm.fromDelayed(row)
   return (
     <>
       <label className='relationship-from'>
@@ -24,15 +25,16 @@ function FromEpisode({ field, row, vm }: { field: string; row: RelationDraftRow;
           autoComplete='off'
           className='inp'
           aria-invalid={invalid}
-          aria-describedby={`${invalid ? `${id}-error ` : ''}${id}-help`}
+          aria-describedby={`${invalid ? `${id}-error ` : ''}${delayed !== undefined ? `${id}-delayed ` : ''}${id}-help`}
           value={row.value.fromEpisode ?? ''}
           onChange={(e) => vm.writeFrom(row, e.target.value)}
         />
         화부터
       </label>
       {invalid && <p id={`${id}-error`} className='small world-field-error'>{RELATION_FROM_ERROR}</p>}
+      {delayed !== undefined && <p id={`${id}-delayed`} role='status' className='small relationship-from-note'>{relationFromDelayedNote(delayed)}</p>}
       <p id={`${id}-help`} className='small muted'>
-        이 내용이 이 회차부터 보여요. 같은 회차에 다시 저장하면 그 회차의 기록을 고쳐요.
+        이 내용을 이 회차의 기록으로 저장해요. 같은 회차에 다시 저장하면 그 회차의 기록을 고쳐요.
       </p>
     </>
   )

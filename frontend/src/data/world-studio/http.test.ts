@@ -835,6 +835,7 @@ const LINKED={linkedWorkId:'work-1'}
 it('reads the start episode of each relation into its row and rejects an unusable one',async()=>{
  const loaded=await new HttpWorldStudioRepository(vi.fn().mockResolvedValue(reply(2,{[relation.item.id]:3}))).read(id)
  expect(loaded.settings.map(s=>s.item.fromEpisode)).toEqual([undefined,undefined,3])
+ expect(loaded.settings.map(s=>s.item.recordedFrom)).toEqual([undefined,undefined,3]) // 읽은 그대로의 기록된 시작 회차: 작가가 fromEpisode를 고쳐도 남는다
  for(const bad of [{[relation.item.id]:0},{[relation.item.id]:1.5},{'not-a-uuid':2}])
   await expect(new HttpWorldStudioRepository(vi.fn().mockResolvedValue(reply(2,bad))).read(id)).rejects.toThrow('응답')
 })
@@ -858,7 +859,15 @@ it('keeps the N화부터 out of the relation payload the server stores',async()=
  await repo.saveStudio(edited(loaded,{text:'고친 글',fromEpisode:5}))
  const [sentRelation]=sent(fetcher).relationships
  expect(sentRelation.semanticMetadata.studio.item).not.toHaveProperty('fromEpisode')
+ expect(sentRelation.semanticMetadata.studio.item).not.toHaveProperty('recordedFrom')
  expect(sentRelation.semanticMetadata.studio.item).toMatchObject({id:relation.item.id,text:'고친 글'})
+})
+it('sends a later N화부터 as typed even when only the episode moved, and the saved answer becomes the new recorded start',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(reply(2,{[relation.item.id]:3},LINKED)).mockResolvedValueOnce(reply(3,{[relation.item.id]:5},LINKED))
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id)
+ const saved=await repo.saveStudio(edited(loaded,{fromEpisode:5}))
+ expect(sent(fetcher).relationshipEpisodes).toEqual({[relation.item.id]:5})
+ expect(saved.settings.find(s=>s.item.id===relation.item.id)?.item).toMatchObject({fromEpisode:5,recordedFrom:5}) // 서버가 가장 최근 연결의 회차를 돌려준다
 })
 it('refuses a new or changed relation without N화부터 in a linked world before sending, and writes one in an unlinked world at 1화',async()=>{
  const added={...relation,item:{...relation.item,id:crypto.randomUUID(),title:'새 관계',text:'새 관계 글'}}

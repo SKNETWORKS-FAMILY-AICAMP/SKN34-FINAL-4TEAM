@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { DELETED_CARD_NAME, isDeletedCard, putRelation } from '../entities/studioRelations'
-import { invalidRelationFrom, newSetting, RELATION_EPISODE_ERROR, RELATION_FROM_ERROR, relationEpisodeInput, type StudioWorld } from '../entities/studioWorld'
+import { delayedRelationFrom, invalidRelationFrom, newSetting, RELATION_EPISODE_ERROR, RELATION_FROM_ERROR, relationEpisodeInput, relationFromDelayedNote, type StudioWorld } from '../entities/studioWorld'
 import type { WorldStudioRepository } from '../repositories/WorldStudioRepository'
 import { WorldStudioUseCase } from '../usecases/WorldStudioUseCase'
 
@@ -107,5 +107,11 @@ describe('관계마다의 N화부터(fromEpisode, DEC-54 2단계)', () => {
     await cases.save(withFrom(undefined))
     await cases.save(withFrom(3))
     expect(repository.saveStudio).toHaveBeenCalledTimes(2)
+  })
+
+  it('이미 기록된 시작 회차보다 늦춘 값만 늦춘 것이고, 안내는 기록된 회차부터 독자에게 보인다고 알린다', () => {
+    expect(delayedRelationFrom({ fromEpisode: 5, recordedFrom: 3 })).toBe(3)
+    for (const item of [{ fromEpisode: 3, recordedFrom: 3 }, { fromEpisode: 2, recordedFrom: 3 }, { fromEpisode: 5 }, { recordedFrom: 3 }, {}]) expect(delayedRelationFrom(item), JSON.stringify(item)).toBeUndefined()
+    expect(relationFromDelayedNote(3)).toBe('이미 3화부터 기록돼 있어 독자에게는 3화부터 보여요(늦추려면 관계를 끝내고 다시 만드세요)')
   })
 })

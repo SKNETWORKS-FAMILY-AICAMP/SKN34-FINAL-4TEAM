@@ -20,7 +20,7 @@ import {
 } from '../../../../domain/entities/relationDraft'
 import { cardTypeOf } from '../../../../domain/entities/studioCards'
 import type { RelationInput } from '../../../../domain/entities/studioRelations'
-import { RELATION_FROM_ERROR, type StudioSetting } from '../../../../domain/entities/studioWorld'
+import { delayedRelationFrom, RELATION_FROM_ERROR, type StudioSetting } from '../../../../domain/entities/studioWorld'
 import { revealEpisodeInput } from '../../../../domain/entities/worldStudioWriting'
 
 const IDENTITY_EPISODE_ERROR = '「동일 인물」을 끝내려면 끝낼 회차를 정해야 해요. 이 패널을 닫고 위의 "관계 기준" 칸에서 회차를 정한 뒤 다시 열어 주세요.'
@@ -83,6 +83,8 @@ export function useRelationPairViewModel(
     writeFrom: (row: RelationDraftRow, text: string) => change(row.key, { fromEpisode: revealEpisodeInput(text) }),
     /** 'N화부터'를 받는 세계관에서 이 행의 값이 비었거나 1 이상의 정수가 아닌지(적용할 행만). 입력 칸과 '편집본에 적용'이 같은 규칙이다. */
     fromInvalid: (row: RelationDraftRow) => studio.relationFrom && relationFromInvalid(row),
+    /** 'N화부터'를 이미 기록된 시작 회차보다 늦췄으면 그 기록된 회차(기존 연결이 남아 독자에게는 그 회차부터 보인다), 아니면 undefined다. */
+    fromDelayed: (row: RelationDraftRow) => (studio.relationFrom ? delayedRelationFrom(row.value) : undefined),
     /** 이 「동일 인물」의 본체 카드가 '작가 전용'인지(다른 인물이 본체를 알 수 있다고 경고한다). */
     bodyAuthorOnly: (row: RelationDraftRow) => isAuthorOnly(studio.editing!.settings.find((s) => s.item.id === row.value.targetId)),
     reverse: (row: RelationDraftRow) =>

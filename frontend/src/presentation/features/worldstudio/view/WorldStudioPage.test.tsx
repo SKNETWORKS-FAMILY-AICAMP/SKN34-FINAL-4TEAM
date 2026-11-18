@@ -3586,13 +3586,15 @@ it('관계 문구의 공개 순서 확인은 두 설정이 공개되는 회차�
   let settings = putRelation([lian, kael, seraphin, secret], relate(kael, lian, '보호', '세라핀의 부탁으로 지킨다', 2)) // 2화에 기록: 세라핀(3화부터 공개)보다 이르다
   settings = putRelation(settings, relate(lian, kael, '믿음', '세라핀이 보증했다', 3)) // 3화에 기록: 세라핀이 공개된 뒤라 괜찮다
   settings = putRelation(settings, relate(lian, kael, '동행', '세라핀과 길을 떠난다')) // 기록 회차를 모르면 두 설정이 공개되는 1화부터다
-  await show(putRelation(settings, relate(kael, lian, '의심', '검은 옷의 사내를 닮았다', 4))) // 작가 전용 이름은 언제 기록해도 늦다
+  settings = putRelation(settings, relate(kael, lian, '의심', '검은 옷의 사내를 닮았다', 4)) // 작가 전용 이름은 언제 기록해도 늦다
+  await show(putRelation(settings, { ...relate(lian, kael, '약속', '검은 옷의 사내와 만난다', 6), recordedFrom: 2 })) // 2화에 기록된 관계를 6화로 늦춰도 2화 연결이 남아 2화부터 보인다
   openCard('리안 인물')
   const items = within(editor().getByRole('region', { name: '공개 순서 확인' })).getAllByRole('listitem').map((li) => li.textContent)
   expect(items).toEqual([
     '관계 ‘보호’의 글에 ‘세라핀’이(가) 나와요. 세라핀 카드는 3화부터 공개인데 이 글은 2화부터 독자에게 보여요.',
     '관계 ‘동행’의 글에 ‘세라핀’이(가) 나와요. 세라핀 카드는 3화부터 공개인데 이 글은 1화부터 독자에게 보여요.',
     '관계 ‘의심’의 글에 ‘검은 옷의 사내’이(가) 나와요. 검은 옷의 사내 카드는 작가 전용인데 이 글은 4화부터 독자에게 보여요.',
+    '관계 ‘약속’의 글에 ‘검은 옷의 사내’이(가) 나와요. 검은 옷의 사내 카드는 작가 전용인데 이 글은 2화부터 독자에게 보여요.',
   ])
   expect(editor().queryByText(/알 수 없어요/)).toBeNull() // 관계를 처음 기록한 회차를 모른다는 단서는 더 이상 붙지 않는다
 })

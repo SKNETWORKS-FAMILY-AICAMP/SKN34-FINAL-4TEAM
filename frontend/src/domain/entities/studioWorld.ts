@@ -10,6 +10,8 @@ export type SettingItem = {
  origin: 'extraction'|'correction'|'author_addition'|'author_input'; authorText: string|null; decision: 'pending'|'approved'|'rejected'|'held'
  /** 관계 행의 'N화부터'(DEC-54 2단계): 이 관계의 내용이 보이기 시작하는 회차(연결된 소설의 회차 순번, 1 이상의 정수). 서버가 준 그 관계의 시작 회차(응답의 `relationshipEpisodes`)를 읽어 두고, 작가가 고치면 바뀐 행만 저장 요청의 `relationshipEpisodes`로 보낸다. 서버에 저장하는 관계 본문에는 넣지 않는다. 관계가 아닌 행과, 시작 회차를 아직 모르는 새 관계(소설을 연결하지 않은 세계관은 1화)에는 없다. */
  fromEpisode?: number
+ /** 서버가 준 그 관계의 기록된 시작 회차를 읽은 그대로 둔 값(`fromEpisode`와 같이 채우고 화면은 고치지 않는다). `fromEpisode`를 이보다 늦추면 서버는 그 회차 연결만 새로 쓰고 기존 연결은 남아(DEC-51) 독자에게는 이 회차부터 보인다. 서버에 아직 없는 새 관계에는 없다. 서버에 저장하는 관계 본문에는 넣지 않는다. */
+ recordedFrom?: number
 }
 /** 설정 카드 단위 공개(DEC-46). 세계관 단위 공개([WorldVisibility])와 다르다. */
 export type CardVisibility = 'private'|'public'
@@ -52,6 +54,9 @@ export const RELATION_FROM_ERROR='관계가 몇 화부터인지 1 이상의 정�
 export const invalidRelationFrom=({fromEpisode:n}:Pick<SettingItem,'fromEpisode'>)=>n!==undefined&&!(Number.isInteger(n)&&n>=1)
 /** 관계의 N화부터가 비었거나 잘못됐는지(소설을 연결한 세계관에서 새로 쓰거나 바꾼 관계에 필요한 값이 없다). */
 export const lacksRelationFrom=(item:Pick<SettingItem,'fromEpisode'>)=>item.fromEpisode===undefined||invalidRelationFrom(item)
+/** 이미 기록된 시작 회차(`recordedFrom`)보다 늦춘 N화부터면 그 기록된 회차, 아니면 undefined다. 늦춰도 기존 연결이 남아 독자에게는 기록된 회차부터 보이므로 입력 칸이 알리고 공개 순서 경고는 둘 중 이른 회차로 계산한다. */
+export const delayedRelationFrom=({fromEpisode:n,recordedFrom:m}:Pick<SettingItem,'fromEpisode'|'recordedFrom'>)=>n!==undefined&&m!==undefined&&n>m?m:undefined
+export const relationFromDelayedNote=(recorded:number)=>`이미 ${recorded}화부터 기록돼 있어 독자에게는 ${recorded}화부터 보여요(늦추려면 관계를 끝내고 다시 만드세요)`
 /** 관계 기준 회차(DEC-51, 연결된 소설의 회차 순번): 값이 있으면 1 이상의 정수여야 하고, 없으면(`null`) 최신 회차다. 조회·저장 검증(`invalidRelationEpisode`)과 입력 칸(`relationEpisodeInput`)이 같은 규칙·문구를 쓴다. */
 export const RELATION_EPISODE_ERROR='관계 기준 회차는 1 이상의 정수로 입력해 주세요.'
 export const invalidRelationEpisode=(n:number)=>!(Number.isInteger(n)&&n>=1)
