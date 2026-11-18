@@ -111,7 +111,7 @@ class FeedbackReportServiceTest {
     @Test fun `JSON field names follow the contract and sparse request bodies fall back to defaults`() {
         val mapper = tools.jackson.databind.json.JsonMapper.builder().findAndAddModules().build()
         val item = ReportResponse("r1", "work", "작품", 3, "version-3", "typo", "본문", null, "private", "unchecked", "닉", false, false, false, false,
-            listOf(AmendmentResponse("correct", "고침", t0)), listOf(ReportReplyResponse("p1", "작가", "답변", true, t0)), t0, t0)
+            listOf(AmendmentResponse("correct", "고침", t0)), listOf(ReportReplyResponse("p1", "작가", "답변", true, t0)), t0, t0, null, null, null)
 
         val json = mapper.readTree(mapper.writeValueAsString(ReportListResponse(listOf(item)))).path("items")[0]
 

@@ -2,9 +2,8 @@ package ai.storyfork.content.editsuggestion.service
 
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content._common.exception.checkContent
-import ai.storyfork.content.episode_version.domain.publishedLineage
-import ai.storyfork.content._common.helper.episodeId
 import ai.storyfork.content._common.helper.contentId
+import ai.storyfork.content._common.helper.episodeId
 import ai.storyfork.content._common.helper.episodeVersionId
 import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.auth.service.WITHDRAWN_MEMBER_NAME
@@ -17,6 +16,7 @@ import ai.storyfork.content.editsuggestion.service.dto.*
 import ai.storyfork.content.episode.repository.EpisodeCurrentRepository
 import ai.storyfork.content.episode.service.EpisodeService
 import ai.storyfork.content.episode.service.dto.DraftRequest
+import ai.storyfork.content.episode_version.domain.publishedLineage
 import ai.storyfork.content.episode_version.repository.EpisodeVersionRepository
 import ai.storyfork.content.episode_version.service.EpisodeVersionService
 import ai.storyfork.content.work.entity.WorkEntity
