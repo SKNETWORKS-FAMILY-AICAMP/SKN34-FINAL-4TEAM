@@ -3,6 +3,7 @@ import pytest
 from app.rating import service
 from app.rating.errors import RatingFailure
 from app.rating.models import RatingRequest
+from app.rating.prompt import INSTRUCTIONS
 
 from .stubs import WORK, adult, fake_agent, fake_content, general, result
 
@@ -100,6 +101,19 @@ def test_unverifiable_quote_fails_only_that_episode(monkeypatch, quote):
     assert rated.verdict == 'general'
     # 판별하지 못한 회차가 있으면 전체 이용가로 내리지 않는다.
     assert rating.verdict == 'needsReview'
+
+
+def test_quote_with_pronoun_replaced_by_name_is_not_in_draft(monkeypatch):
+    # #509: 모델이 '그는'을 '율도왕은'으로 바꿔 인용했다. 뜻이 같아도 원문 구간이 아니면 근거로 인정하지 않는다.
+    fake_content(monkeypatch, {1: '율도왕은 포위망을 벗어날 수 없음을 깨달았다. 그는 분노와 절망을 이기지 못하고 끝내 목숨을 끊었다.',
+                               2: '비가 왔다.'})
+    fake_agent(monkeypatch, adult(quote='율도왕은 분노와 절망을 이기지 못하고 끝내 목숨을 끊었다.'), general())
+    assert service.rate(request()).episodes[0].error == service.BAD_REASON
+
+
+def test_prompt_forbids_rewriting_quotes():
+    # #509: 대명사를 이름으로 바꾸거나 문장을 잇는 인용을 하지 않도록 지시한다.
+    assert '대명사를 이름으로 바꾸' in INSTRUCTIONS and '떨어진 문장을 잇지 않는다' in INSTRUCTIONS
 
 
 def test_unreadable_model_output_fails_only_that_episode(monkeypatch):
