@@ -179,9 +179,10 @@ CREATE INDEX work_view_viewed_at ON work_view (viewed_at);
 
 ### Frontend
 
-- `/search?type=work|world|card|chat`(기본 `work`). 범위·정렬 도구(`ListTools`)는 작품 탭에만 보이고 검색어 `q`는 탭을 바꿔도 유지한다.
+- `/search?type=all|work|world|card|chat`. 기본은 `all`(전체: 작품·세계관·설정 카드를 묶음별로 몇 개씩 보이고 묶음마다 해당 탭으로 가는 링크)이고, 주소에 `f`·`sort`가 있으면(기존 작품 검색 링크) `work`로 본다. 범위·정렬 도구(`ListTools`)는 작품 탭에만 보이고 검색어 `q`는 탭을 바꿔도 유지한다.
 - 세계관 탭은 `PublicWorldUseCase`의 목록에 `q`를 실어 읽고 결과 카드는 `/worlds/:id`로 간다. 설정 카드 탭은 새 조회로 읽고 `/worlds/:worldId/cards/:cardId`로 간다.
-  둘 다 '더 보기'로 이어 붙이고(`total`이 있어 받은 수 < total이면 더 있음), 불러오는 중·실패(다시 시도)·결과 없음을 실제 결과대로 그린다.
+  둘 다 `total` 기준 번호 페이지(쪽당 24, 주소 `page`는 1부터)로 넘기고, 불러오는 중·실패(다시 시도)·결과 없음을 실제 결과대로 그린다. 작품 탭은 총 개수가 없어 '더 보기'를 유지한다.
+- 빠른 이동(Ctrl/Cmd+K)은 검색어가 있으면 작품 후보와 함께 같은 공개 세계관 목록(`q`)·카드 검색을 몇 개씩 불러 보이고(입력 지연·이전 요청 취소, 실패한 묶음은 알림 한 줄), Enter의 '검색 결과 모두 보기'는 전체 탭으로 간다.
 - 캐릭터챗 탭은 결과 없이 `/chat` 목록 링크와 안내 한 줄이다.
 - `--mode mockup`은 `InMemoryPublicWorldRepository`가 같은 규칙(이름·설명·작가 / 공개 카드의 제목·별칭·태그)으로 답한다.
 
