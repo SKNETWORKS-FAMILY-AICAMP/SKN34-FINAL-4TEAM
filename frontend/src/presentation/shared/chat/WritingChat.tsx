@@ -176,8 +176,16 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage }: { vm:
   const shown = live?.editIndex !== undefined ? vm.turns.slice(0, live.editIndex) : live?.resumed ? vm.turns.slice(0, -1) : vm.turns
   const messages: ChatMessage[] = shown.flatMap((turn, i) => [
     { id: `u${i}`, role: 'user' as const, text: turn.request },
-    ...(turn.reply && turn.reply.status !== 'waiting' ? [{ id: `a${i}`, role: 'assistant' as const, text: replyText(turn.reply) }] : []),
+    ...(turn.reply && turn.reply.status !== 'waiting' ? [turn.reply.message
+      ? { id: `a${i}`, role: 'assistant' as const, text: turn.reply.message, format: 'markdown' as const }
+      : { id: `a${i}`, role: 'assistant' as const, text: replyText(turn.reply) }] : []),
   ])
+  // 종합 답변이 있는 말풍선은 단계별 결과를 접어 둔다(답변과 같은 내용이 두 번 보이지 않게, #492). 승인 카드·진행 표시는 그대로다.
+  const stepDetails = (m: ChatMessage) => {
+    const reply = m.format === 'markdown' ? shown[Number(m.id.slice(1))]?.reply : undefined
+    const text = reply ? replyText(reply) : ''
+    return text ? <details className="chat-step-details"><summary>단계별 결과 보기</summary><p>{text}</p></details> : null
+  }
   if (live) messages.push({ id: 'live', role: 'user', text: live.request })
   const actions = (m: ChatMessage) => {
     if (m.role !== 'user' || m.id === 'live') return null
@@ -228,7 +236,7 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage }: { vm:
       </>}
     </div>
     <ChatPanel messages={messages} onSend={vm.send} busy={vm.pending} disabledReason={vm.lockedReason}
-      emptyTitle={emptyTitle} emptyText={emptyText} suggestions={[...suggestions, ...simulationExamples]} renderActions={actions}
+      emptyTitle={emptyTitle} emptyText={emptyText} suggestions={[...suggestions, ...simulationExamples]} renderCard={stepDetails} renderActions={actions}
       after={live || vm.waiting || vm.error ? <>
         {live && <Progress live={live} onOpenStage={onOpenStage} />}
         {vm.waiting && <Waiting key={`${vm.threadId}-${vm.turns.length}`} reply={vm.waiting} episode={vm.targetEpisode} pending={vm.pending} onResume={(approved, inputs) => void vm.resume(approved, inputs)} onOpenStage={onOpenStage} />}

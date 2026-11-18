@@ -201,9 +201,12 @@ export const PLAN_PICK_HINT = "가장 최근 기획한 안 중 하나를 '계획
 /** 바로 쓴 원고가 정해 쓴 계획 한 줄. 반영 본문(stepText)과 섞지 않도록 따로 보인다. */
 export const usedPlan = (step: ChatStep) => (step.result?.plan ? `사용한 계획: ${step.result.plan.title} — ${step.result.plan.beats.join(' / ')}` : '')
 
-/** 턴 응답 전체를 말풍선 하나의 글로. 실행하지 않은 턴은 안내 문구만, 실행한 턴은 단계별 결과를 계획 순서로 잇는다. */
+/**
+ * 턴의 단계별 결과를 계획 순서로 이은 평문. 종합 답변(`reply.message`)은 넣지 않는다: 화면이 답변을 마크다운으로 그리고
+ * 이 글은 그 아래에 접어 둔다(같은 내용 두 번 보이기 방지, #492). 답변도 단계도 없을 때만 안내 문구다.
+ */
 export function replyText(reply: ChatReply): string {
   const steps = reply.steps.filter((s) => s.status !== 'not_started')
     .map((s) => `[${featureLabel[s.feature] ?? s.feature}] ${stepText(s)}${s.status === 'completed' && usedPlan(s) ? `\n${usedPlan(s)}` : ''}${s.applied ? `\n→ ${s.applied.episode}화 초안에 반영했어요.` : s.approval === 'declined' ? '\n→ 반영하지 않았어요.' : ''}`)
-  return [reply.message, ...steps].filter(Boolean).join('\n\n') || '응답 내용이 없어요.'
+  return steps.join('\n\n') || (reply.message ? '' : '응답 내용이 없어요.')
 }

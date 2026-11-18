@@ -57,7 +57,14 @@ describe('replyText', () => {
       { feature: 'writing_editing', status: 'completed', result: { text: '초안' }, applied: { episode: 2, revision: 5 } },
       { feature: 'web_research', status: 'failed', error: '검색 실패' },
     ] }))
-    expect(text).toBe('작업 중 실패가 있어요.\n\n[기획·집필·수정] 초안\n→ 2화 초안에 반영했어요.\n\n[고증 조사] 실패: 검색 실패')
+    expect(text).toBe('[기획·집필·수정] 초안\n→ 2화 초안에 반영했어요.\n\n[고증 조사] 실패: 검색 실패')
+  })
+
+  it('종합 답변은 단계 글에 다시 넣지 않고(#492), 답변도 단계도 없을 때만 안내 문구를 쓴다', () => {
+    const steps = [{ feature: 'review', status: 'failed' as const, error: '검수 실패' }]
+    expect(replyText(reply({ message: '**검수**를 마치지 못했어요.', steps }))).toBe('[원고 검수] 실패: 검수 실패')
+    expect(replyText(reply({ message: '확인 질문이에요.' }))).toBe('')
+    expect(replyText(reply({}))).toBe('응답 내용이 없어요.')
   })
 
   it('기획 결과는 계획마다 비트를 번호로 잇고 참고를 덧붙인다(원고가 아니다)', () => {
