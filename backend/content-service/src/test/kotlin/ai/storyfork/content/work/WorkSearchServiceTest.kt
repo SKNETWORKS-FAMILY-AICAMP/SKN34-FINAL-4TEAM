@@ -12,6 +12,8 @@ import ai.storyfork.content.publication.repository.*
 import ai.storyfork.content.publication.service.PublicationService
 import ai.storyfork.content.publication.service.dto.PublishedEpisodeListResponse
 import ai.storyfork.content.publication.service.dto.PublishedEpisodeResponse
+import ai.storyfork.content.search.service.SearchCandidates
+import ai.storyfork.content.work.domain.SearchField
 import ai.storyfork.content.work.domain.WorkViews
 import ai.storyfork.content.work.entity.*
 import ai.storyfork.content.work.repository.*
@@ -28,6 +30,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers
 import org.mockito.InjectMocks
 import org.mockito.Mock
+import org.mockito.Spy
 import org.mockito.Mockito.*
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
@@ -62,6 +65,8 @@ class WorkSearchServiceTest {
     @Mock lateinit var nicknames: CoreNicknameService
     @Mock lateinit var likeService: WorkLikeService
     @Mock lateinit var schedules: PublicationScheduleRepository
+    // 색인이 없는 경로(null)가 기본이다(실제 객체를 감시). 색인이 있는 경우는 각 테스트가 doReturn으로 정한다.
+    @Spy var search = SearchCandidates(null)
     @InjectMocks lateinit var service: WorkService
 
     private val start = Instant.parse("2026-11-01T00:00:00Z")
@@ -638,4 +643,52 @@ class WorkSearchServiceTest {
         assertEquals(1, asked.size)
         assertEquals(setOf("owner-w4", "owner-w3"), asked.single().toSet())
     }
+    // --- 검색 색인(#505): 색인은 후보 ID만 좁히고 공개·일치 판정은 DB가 그대로 한다 ---
+
+    @Test fun `an index narrows the works to its candidates while the database still decides public and match`() {
+        work("hit", "달빛 마법사", 1)
+        work("stale", "이제는 다른 제목", 2) // 색인이 늦어 아직 옛 제목으로 후보에 남았다
+        work("hidden", "달빛 비공개", 3, visible = "private") // 비공개로 바뀐 작품
+        work("other", "달빛 다른 작품", 4) // 후보 밖이라 읽지도 않는다
+        views()
+        doReturn(setOf("hit", "stale", "hidden")).`when`(search).works("달빛", SearchField.ALL)
+
+        assertEquals(listOf("hit"), service.publicList("달빛", null, null).items.map { it.id })
+
+        verify(works).findAllById(setOf("hit", "stale", "hidden"))
+        verify(works, never()).findAll()
+    }
+
+    @Test fun `an index failure is a 503 and never a database list`() {
+        work("a", "달빛", 1)
+        views()
+        doThrow(ContentFailure(503, "검색을 완료할 수 없어요.")).`when`(search).works("달빛", SearchField.ALL)
+
+        assertEquals(503, failure { service.publicList("달빛", null, null) }.status)
+
+        verify(works, never()).findAll()
+    }
+
+    @Test fun `a list without a query keeps reading every work and never reads the candidates`() {
+        work("a", "작품", 1)
+        views()
+
+        assertEquals(listOf("a"), service.publicList(null, null, null).items.map { it.id })
+
+        verify(works).findAll()
+        verify(works, never()).findAllById(ArgumentMatchers.anyIterable<String>())
+    }
+
+    @Test fun `the index feed is the public works with title, author and hashtags`() {
+        work("a", "작품 가", 1, tags = listOf("#마법", "학원"), author = "작가 가")
+        work("hidden", "비공개 작품", 2, visible = "private")
+        views()
+
+        val feed = service.searchable()
+
+        assertEquals(listOf("a"), feed.map { it.id })
+        assertEquals("작가 가", feed.single().authorName)
+        assertEquals(listOf("#마법", "학원"), feed.single().hashtags)
+    }
+
 }

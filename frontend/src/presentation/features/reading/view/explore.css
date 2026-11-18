@@ -1,0 +1,29 @@
+/*
+ * 검색·랭킹 카드(WCard)와 검색 화면(/search)의 탭 줄. 전역 storyfork.css는 @layer(base)라 PopMenu 같은 비레이어 CSS가 늘 이기므로
+ * 메뉴 배치(.pop-menu의 position)는 여기서 정한다.
+ */
+
+/* 카드 안 보조 메뉴(#507): 신고처럼 부차 행동은 카드 위 오른쪽 모서리에 떠 있는 더보기 버튼 하나가 연다.
+ * 카드 밖에 따로 붙지 않아 카드 높이가 같고, 터치 영역은 44px이다. */
+.rg-item { position: relative; }
+/* 마우스가 다가가면 카드 링크가 .prox.near(z-index 2)로 떠올라 버튼을 덮으므로 그보다 위에 둔다. */
+.rg-item .rg-more { position: absolute; top: 4px; right: 4px; z-index: 3; }
+.rg-more .pop-menu-btn { width: 44px; height: 44px; border-radius: 50%; color: var(--sub); }
+.rg-more .pop-menu-btn:hover, .rg-more .pop-menu-btn[aria-expanded="true"] { background: var(--muted-bg); color: var(--ink); }
+.rg-more .pop-menu-list { top: calc(100% + 4px); right: 0; }
+.rg-more [role="menuitem"] { gap: 8px; }
+/* 버튼이 덮는 장르·제목 첫 줄만 비워 글이 버튼 밑으로 들어가지 않게 한다. */
+.rg-item:has(> .rg-more) .ri > :is(.g, b) { padding-right: 40px; }
+
+/* 검색 대상 탭(작품·세계관·설정 카드·캐릭터챗)은 360px 폭에 다 들어가지 않을 수 있다. 이 줄만 좁은 화면에서 탭 간격·안쪽 여백을 줄이고,
+ * 그래도 넘치면 가로로 스크롤한다(탭은 줄바꿈·축소하지 않는다). 아래 padding-bottom은 선택한 탭 밑줄(margin-bottom: -1px)이 스크롤 영역에 잘리지 않게 한다. */
+.libtabs.search-tabs { overflow-x: auto; padding-bottom: 1px; scrollbar-width: none; }
+.libtabs.search-tabs::-webkit-scrollbar { display: none; }
+.libtabs.search-tabs a { flex: none; white-space: nowrap; }
+@media (max-width: 600px) {
+  .libtabs.search-tabs { gap: 2px; }
+  .libtabs.search-tabs a { padding: 0 8px; }
+}
+
+/* 전체 탭의 묶음(작품·세계관·설정 카드·캐릭터챗) 사이 간격. 묶음 제목 줄(.sec-h)과 더 보기 링크(.more)는 전역 규칙이다. */
+.search-group { margin-top: 32px; }

@@ -2,7 +2,7 @@ import { Component, lazy, Suspense, useId, useRef, useState, type KeyboardEvent,
 import { useParams } from 'react-router'
 
 import { useAppSelector } from '../../../../app/store'
-import type { PublicWorld, PublicWorldLineage, PublicWorldRef, PublicWorldSummary } from '../../../../domain/entities/publicWorld'
+import type { PublicWorld, PublicWorldLineage, PublicWorldSummary } from '../../../../domain/entities/publicWorld'
 import { coverSrc } from '../../../shared/cover'
 import { Go } from '../../../shared/Go'
 import { useScreenId } from '../../../shared/screenIds'
@@ -17,23 +17,17 @@ import { GENRE_COLORS, LINEAGE_COLORS, atlasFeatures, type AtlasNode, type World
 import { DETAIL_TABS, detailEndpoint, graphNeighbors, graphPage, type DetailGraph, type DetailNode, type DetailTab } from '../worldDetail'
 import { WorldBook } from './WorldBook'
 import { WorldOverview } from './WorldOverview'
-import { DemoNotice, LoadFailed, WorldCover, WorldLoading } from './WorldParts'
+import { DemoNotice, LoadFailed, WorldCard, WorldCover, WorldLoading } from './WorldParts'
 import './worlds.css'
 
 // react-force-graph(d3·canvas)는 지도·그래프를 볼 때만 내려받는다.
 const WorldAtlasCanvas = lazy(() => import('./WorldAtlasCanvas'))
 const WorldGraphCanvas = lazy(() => import('./WorldGraphCanvas'))
 
-const meta = (w: Pick<PublicWorldRef, 'authorNickname' | 'cardCount'>) => `${w.authorNickname} · 설정 카드 ${w.cardCount}개`
 // 홈 HomePage의 Chev·LEFT·RIGHT와 같은 화살표(홈 안에서만 쓰는 값이라 여기에 다시 둔다)
 const Chev = ({ d }: { d: string }) => <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d={d} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
 const LEFT = 'M15 5l-7 7 7 7'
 const RIGHT = 'M9 5l7 7-7 7'
-
-/** 홈 `BookCard`와 같은 책 카드. `badge`는 표지 오른쪽 아래 알약이다. */
-const WorldCard = ({ w, badge }: { w: PublicWorldRef; badge?: string }) => (
-  <Go to={`/worlds/${w.id}`} className="bk prox"><WorldCover w={w} badge={badge} /><h3 className="hk">{w.name}</h3><small>{meta(w)}</small>{'relationshipCount' in w && w.relationshipCount === null && <small>관계 수 확인 불가</small>}</Go>
-)
 
 /** 캔버스를 내려받거나 그리다 실패해도 이 화면의 나머지는 그대로 쓰게 한다. `message`는 그때 대신 보일 안내(찾을 다른 길)다. */
 class AtlasBoundary extends Component<{ children: ReactNode; message: string }, { failed: boolean }> {

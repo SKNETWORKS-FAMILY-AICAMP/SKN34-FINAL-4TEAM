@@ -145,6 +145,9 @@ services:
       MANUSCRIPT_INDEX_ENABLED: ${MANUSCRIPT_INDEX_ENABLED:-false}
       MANUSCRIPT_INDEX_URL: http://host.docker.internal:9200
       MANUSCRIPT_INDEX_NAME: ${MANUSCRIPT_INDEX_NAME:-storyfork-manuscript-v1}
+      # 작품·세계관·설정 카드 검색 색인(#505). 기본은 끄고(DB 검색 그대로), 켜면 원고 색인과 같은 Elasticsearch(호스트 9200)가 검색어 후보를 찾는다.
+      SEARCH_INDEX_ENABLED: ${SEARCH_INDEX_ENABLED:-false}
+      SEARCH_INDEX_URL: http://host.docker.internal:9200
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:

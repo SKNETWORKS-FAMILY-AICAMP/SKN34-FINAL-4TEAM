@@ -1,5 +1,7 @@
 package ai.storyfork.content.world
 
+import ai.storyfork.content.search.service.SearchCandidates
+
 import ai.storyfork.content.attachment.client.AttachmentStorageClient
 import ai.storyfork.content.attachment.repository.ContentImageRepository
 import ai.storyfork.content.auth.service.CoreNicknameService
@@ -73,7 +75,7 @@ class WorldCardLinkExitsTest {
         `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() }
     }
     private val publicWorlds = PublicWorldService(worlds, revisions, revisionCards, cardVersions, mock(SettingCardImageRepository::class.java), states, mock(ExpandedSeedProgressRepository::class.java), graph,
-        mock(CoreNicknameService::class.java), mock(AttachmentStorageClient::class.java), works, access, mock(ContentImageRepository::class.java), publication, manager)
+        mock(CoreNicknameService::class.java), mock(AttachmentStorageClient::class.java), works, access, mock(ContentImageRepository::class.java), publication, SearchCandidates(null), manager)
     private val workWorlds = WorkWorldService(access, works, publication, mock(StudioWorldRepository::class.java), publicWorlds, references, TransactionTemplate(manager))
     private val specs = SyncMcpAnnotationProviders.statelessToolSpecifications(listOf<Any>(
         WorkMcpTools(mock(WorkService::class.java), workWorlds, mock(WorkNoticeService::class.java), mock(ForkService::class.java), mock(ContextService::class.java), mock(ProposalService::class.java)),

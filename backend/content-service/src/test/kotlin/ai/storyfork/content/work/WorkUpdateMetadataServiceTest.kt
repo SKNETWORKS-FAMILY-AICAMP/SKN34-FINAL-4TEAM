@@ -8,6 +8,7 @@ import ai.storyfork.content.like.service.WorkLikeService
 import ai.storyfork.content.proposal.service.ProposalService
 import ai.storyfork.content.publication.repository.*
 import ai.storyfork.content.publication.service.PublicationService
+import ai.storyfork.content.search.service.SearchCandidates
 import ai.storyfork.content.publication.service.dto.*
 import ai.storyfork.content.work.entity.*
 import ai.storyfork.content.work.repository.*
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
+import org.mockito.Spy
 import org.mockito.Mockito.*
 import org.mockito.junit.jupiter.MockitoExtension
 import java.util.Optional
@@ -50,6 +52,8 @@ class WorkUpdateMetadataServiceTest {
     @Mock lateinit var nicknames: ai.storyfork.content.auth.service.CoreNicknameService
     @Mock lateinit var likeService: WorkLikeService
     @Mock lateinit var schedules: PublicationScheduleRepository
+    // 검색 색인이 없는 경로다(이 테스트는 검색을 보지 않는다).
+    @Spy var search = SearchCandidates(null)
     @InjectMocks lateinit var service: WorkService
 
     private val work=WorkAccessResult("w","owner","제목","소개",4,"world","private",false,false,null)

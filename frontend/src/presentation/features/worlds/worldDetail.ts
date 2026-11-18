@@ -135,7 +135,7 @@ export function buildCharacterGraph(world: PublicWorld): DetailGraph {
 export const LABEL_ALL_MAX = 30
 export const showsDetailLabel = (node: DetailNode, total: number, hover?: string) => total <= LABEL_ALL_MAX || node.kind === '세계관' || node.id === hover
 
-const typeLabel = (type: CardType) => cardTypes.find((t) => t.id === type)?.label ?? type
+export const typeLabel = (type: CardType) => cardTypes.find((t) => t.id === type)?.label ?? type
 
 /**
  * 다른 카드를 가리키는 값. `type`은 카드 자신의 유형 이름(능력·사물 …), `kind`는 묶음(색·범례·설정집 섹션)이고 `label`은 이어 준 관계의 관계명이다(「동일 인물」은 늘 '동일 인물').
