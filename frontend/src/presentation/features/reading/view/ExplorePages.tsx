@@ -1,16 +1,18 @@
-import { Fragment, type ReactNode } from 'react'
+import { Fragment, useState, type ReactNode } from 'react'
 import { Navigate, useParams } from 'react-router'
 
 import { epsOf, RANKING_KINDS, RANKING_PERIODS, RANKING_TYPES, rankingUsesPeriod, SEARCH_FIELDS, SEARCH_SORTS, SEARCH_TABS, sortsOf, type SearchTab, type Work } from '../../../../domain/entities/work'
 import { CoverOf, Cov } from '../../../shared/art'
 import { ago, asOf, kfmt, qs } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
+import { PopMenu } from '../../../shared/PopMenu'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
-import { Crown } from '../../../shared/icons'
+import { Crown, Flag, MoreVerticalIcon } from '../../../shared/icons'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { CardHits, WorldHits } from '../../worlds/view/WorldSearchResults'
 import { useIfsViewModel, useRankViewModel, useSearchViewModel, useTagViewModel } from '../viewmodel/useExploreViewModel'
+import './explore.css'
 import { ReportSheet } from './Sheets'
 
 type St = Record<string, string>
@@ -18,13 +20,20 @@ type St = Record<string, string>
 /** 선택한 정렬·범위·탭은 색(.on)뿐 아니라 aria-current로도 알립니다. */
 const selected = (on: boolean) => ({ className: on ? 'on' : '', 'aria-current': on ? ('true' as const) : undefined })
 
-/** 목업 listTools(base, st, withQ). 범위·정렬(`filters`)은 작품 탭에만 있고 다른 탭은 검색어 입력만 둡니다. */
+/**
+ * 목업 listTools(base, st, withQ). 범위·정렬(`filters`)은 작품 탭에만 있고 다른 탭은 검색어 입력만 둡니다.
+ * 입력칸은 주소의 검색어(`st.q`)를 따라가되 다시 그리지 않아(form에 key를 두지 않는다) 검색해도 키보드 초점이 남습니다.
+ */
 function ListTools({ base, st, onSubmit, placeholder, filters }: { base: string; st: St; onSubmit: (q: string) => void; placeholder: string; filters: boolean }) {
+  const [text, setText] = useState(st.q)
+  const [seen, setSeen] = useState(st.q)
+  // 주소의 검색어가 바뀌면(제출·뒤로 가기) 입력칸도 맞춘다. 주소가 그대로인 동안 제출하지 않은 글은 남는다.
+  if (seen !== st.q) { setSeen(st.q); setText(st.q) }
   return (
     <div className="ltools">
-      <form className="lq" key={st.q} onSubmit={(e) => { e.preventDefault(); onSubmit(new FormData(e.currentTarget).get('q')?.toString() ?? '') }}>
+      <form className="lq" onSubmit={(e) => { e.preventDefault(); onSubmit(text) }}>
         <span aria-hidden="true">🔍</span>
-        <input name="q" defaultValue={st.q} placeholder={placeholder} aria-label="검색어" />
+        <input name="q" value={text} onChange={(e) => setText(e.target.value)} placeholder={placeholder} aria-label="검색어" />
         <button className="btn sm pri" type="submit">검색</button>
       </form>
       {filters && (
@@ -56,9 +65,11 @@ function LoadMore({ hasMore, loading, failed, load, what = '소설을' }: { hasM
 /**
  * 목업 wcard(w, i, ranked). 서버 작품은 다른 통계를 감추지만, updated는 마지막 업데이트 시각이 순위 기준인 카드라 그 시각을,
  * popular는 좋아요 수가 순위 기준인 카드라 서버 값인 좋아요 수를 보입니다.
+ * 신고(`onReport`, 검색 결과 카드만)는 카드 위 오른쪽 모서리의 더보기 메뉴(#507)가 엽니다: 카드 밖에 따로 붙지 않아 카드 높이가 같고 버튼은 44px입니다.
  */
 export function WCard({ w, i, ranked, updated, popular, onReport }: { w: Work; i: number; ranked?: boolean; updated?: boolean; popular?: boolean; onReport?: (w: Work) => void }) {
   const stats = w.statisticsSupported !== false
+  const report = ranked ? undefined : onReport
   return (
     <div className="rg-item">
       <Go className={`rg prox ${ranked && i < 3 ? 'top3 t' + (i + 1) : ''}`} to={`/work/${w.id}`}>
@@ -74,13 +85,17 @@ export function WCard({ w, i, ranked, updated, popular, onReport }: { w: Work; i
           <span className="m">총 {epsOf(w).length}화 <i></i> 조회 {kfmt(w.views || 0)}{(stats || popular) && <> <i></i> ♥ {kfmt(w.likes || 0)}</>}{(stats || updated) && <> <i></i> {ago(w.upd || 0)}</>}</span>
         </div>
       </Go>
-      {!ranked && onReport && <button type="button" className="btn sm rg-report" aria-label={`${w.title} 소설 신고`} onClick={() => onReport(w)}><span aria-hidden="true">🚩</span> 소설 신고</button>}
+      {report && (
+        <PopMenu className="rg-more" label={`${w.title} 더보기`} icon={<MoreVerticalIcon />}>
+          <button type="button" role="menuitem" aria-label={`${w.title} 소설 신고`} onClick={() => report(w)}><Flag /> 소설 신고</button>
+        </PopMenu>
+      )}
     </div>
   )
 }
 
-/** 탭마다 머리말(검색어가 없을 때)·입력 안내가 다르다. 작품 탭은 기존 '소설 검색'·안내 그대로다. 캐릭터챗은 검색 입력이 없다. */
-const NOUN: Record<SearchTab, string> = { work: '소설', world: '세계관', card: '설정 카드', chat: '캐릭터챗' }
+/** 탭마다 머리말(검색어가 없을 때)·입력 안내가 다르다. 작품 탭은 기존 '소설 검색'·안내 그대로다. 캐릭터챗은 검색하지 않아 머리말이 늘 '캐릭터챗'이고 입력도 없다. */
+const NOUN: Record<Exclude<SearchTab, 'chat'>, string> = { work: '소설', world: '세계관', card: '설정 카드' }
 const PLACEHOLDER = { work: '제목·작가·태그·장르로 찾기', world: '세계관 이름·설명·작가로 찾기', card: '설정 카드 제목·별칭·태그로 찾기' } as const
 
 /** 머리말 옆 결과 수. 작품은 총 개수를 몰라 더 받을 수 있는 동안은 불러온 개수까지만 알리고, 세계관·설정 카드는 서버가 센 전체 수(total)다. */
@@ -118,8 +133,8 @@ export function SearchPage() {
     <>
       <Gnb />
       <main className="wrap" id="main" tabIndex={-1}>
-        <div className="sec-h" style={{ marginBottom: 0 }}><h1>{vm.st.q ? `‘${vm.st.q}’ 검색 결과` : `${NOUN[vm.tab]} 검색`}</h1>{count && <span className="muted small">{count}</span>}</div>
-        <nav className="libtabs" aria-label="검색 대상">{SEARCH_TABS.map(([k, l]) => <Go key={k} to={qs('/search', { q: vm.st.q, type: k === 'work' ? undefined : k })} {...selected(vm.tab === k)}>{l}</Go>)}</nav>
+        <div className="sec-h" style={{ marginBottom: 0 }}><h1>{vm.tab === 'chat' ? '캐릭터챗' : vm.st.q ? `‘${vm.st.q}’ 검색 결과` : `${NOUN[vm.tab]} 검색`}</h1>{count && <span className="muted small">{count}</span>}</div>
+        <nav className="libtabs search-tabs" aria-label="검색 대상">{SEARCH_TABS.map(([k, l]) => <Go key={k} to={vm.tabHref(k)} {...selected(vm.tab === k)}>{l}</Go>)}</nav>
         {vm.tab !== 'chat' && <ListTools base="/search" st={vm.st} onSubmit={vm.submit} placeholder={PLACEHOLDER[vm.tab]} filters={vm.tab === 'work'} />}
         {vm.tab === 'work' && (
           <>
@@ -136,7 +151,7 @@ export function SearchPage() {
           : <Results r={vm.cards} what="설정 카드를">{(hits) => <CardHits hits={hits} />}</Results>)}
         {vm.tab === 'chat' && (
           <div className="rp muted" style={{ marginTop: 20 }}>
-            <p>캐릭터챗은 검색하지 않고 목록에서 골라요.</p>
+            <p>목록은 누구나 볼 수 있고 대화는 로그인 후 할 수 있어요 · AI 응답은 데모</p>
             <Go to="/chat" className="btn sm">캐릭터챗 목록 보기</Go>
           </div>
         )}

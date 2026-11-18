@@ -52,7 +52,7 @@ async function loaded(path: string, first: Page) {
 it('더 보기는 page 1, 2…를 차례로 받아 이어 붙이고 마지막 페이지(hasMore false)에서 멈춘다', async () => {
   const { result, calls } = setup('/search?q=a&f=title&sort=like')
   await waitFor(() => expect(calls).toHaveLength(1))
-  expect(calls[0].query).toEqual({ q: 'a', f: 'title', sort: 'like' })
+  expect(calls[0].query).toEqual({ q: 'a', f: 'title', sort: 'like', page: 0 })
   expect(result.current.list).toBeUndefined()
   await act(async () => calls[0].response.resolve(page(['a1', 'a2'])))
   expect(ids(result.current.list)).toEqual(['a1', 'a2'])
@@ -131,7 +131,7 @@ it('검색어가 바뀌면 진행 중인 더 보기를 취소하고, 늦게 와�
   act(() => result.current.submit('b'))
   await waitFor(() => expect(calls).toHaveLength(3))
   expect(stale.signal?.aborted).toBe(true)
-  expect(calls[2].query).toEqual({ q: 'b', f: 'all', sort: 'latest' })
+  expect(calls[2].query).toEqual({ q: 'b', f: 'all', sort: 'latest', page: 0 })
   await act(async () => calls[2].response.resolve(page(['b1'], false)))
   await act(async () => stale.response.resolve(page(['a3'])))
   expect(ids(result.current.list)).toEqual(['b1'])

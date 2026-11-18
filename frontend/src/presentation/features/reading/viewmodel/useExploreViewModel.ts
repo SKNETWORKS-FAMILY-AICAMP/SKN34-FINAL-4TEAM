@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { appContainer } from '../../../../app/appContainer'
 import { useAppSelector } from '../../../../app/store'
 import { hasMorePages, type PublicWorldCardHit, type PublicWorldSummary } from '../../../../domain/entities/publicWorld'
-import { canReport, RANKING_KINDS, RANKING_PERIODS, RANKING_TYPES, rankingUsesPeriod, SEARCH_FIELDS, SEARCH_SORTS, SEARCH_TABS, type SearchField, type SearchSort, type Work } from '../../../../domain/entities/work'
+import { canReport, RANKING_KINDS, RANKING_PERIODS, RANKING_TYPES, rankingUsesPeriod, SEARCH_FIELDS, SEARCH_SORTS, SEARCH_TABS, type SearchField, type SearchSort, type SearchTab, type Work } from '../../../../domain/entities/work'
 import type { PublicWorldUseCase } from '../../../../domain/usecases/PublicWorldUseCase'
 import type { ReadingUseCase } from '../../../../domain/usecases/ReadingUseCase'
 import { qs } from '../../../shared/format'
@@ -17,7 +17,8 @@ const resolveWorlds = (): PublicWorldUseCase => appContainer.resolve('publicWorl
 /**
  * 목업 listTools 검색 form: 검색어만 바꾸고 범위·정렬은 주소에 있던 값을 유지합니다.
  * 서버가 지원하는 범위(전체·제목·작가·태그·장르)·정렬(최신·인기=like·조회)만 읽고, 옛 주소의 sort=pop처럼 목록에 없는 값은 기본값으로 봅니다.
- * 대상 탭(`type`: 작품·세계관·설정 카드·캐릭터챗)은 모르는 값이면 작품이고, 범위·정렬은 작품 탭의 것이라 다른 탭에서 제출하면 검색어와 탭만 이어 갑니다.
+ * 대상 탭(`type`: 작품·세계관·설정 카드·캐릭터챗)은 모르는 값이면 작품입니다. 범위·정렬은 작품 탭의 것이지만, 다른 탭을 거쳐 작품 탭으로 돌아와도 잃지 않도록
+ * 탭 링크(`tabHref`)와 검색 제출이 주소에 적힌 값을 그대로 이어 갑니다(다른 탭은 읽지 않고, 주소에 없으면 싣지 않습니다).
  */
 function useListQuery(base: string, defaultSort: SearchSort) {
   const [params] = useSearchParams()
@@ -26,15 +27,16 @@ function useListQuery(base: string, defaultSort: SearchSort) {
   const f = SEARCH_FIELDS.find(([k]) => k === Q('f'))?.[0] ?? 'all'
   const sort = SEARCH_SORTS.find(([k]) => k === Q('sort'))?.[0] ?? defaultSort
   const tab = SEARCH_TABS.find(([k]) => k === Q('type'))?.[0] ?? 'work'
-  return { st: { q: Q('q'), f, sort }, tab, submit: (q: string) => navigate(tab === 'work' ? qs(base, { q: q.trim(), f: Q('f'), sort: Q('sort') }) : qs(base, { q: q.trim(), type: tab })) }
+  const kept = { q: Q('q'), f: Q('f'), sort: Q('sort') } // 주소에 적힌 그대로의 조건(없으면 빈 값이라 qs가 뺀다)
+  const to = (target: SearchTab, q = kept.q) => qs(base, { ...kept, q, type: target === 'work' ? undefined : target })
+  return { st: { q: kept.q, f, sort }, tab, tabHref: to, submit: (q: string) => navigate(to(tab, q.trim())) }
 }
 
 /** 한 쪽 응답: 이어 붙일 항목과 그 뒤에 더 있는지. `total`은 서버가 전체 수를 알려 줄 때만 있다(작품 검색은 모른다). */
 type Paged<T> = { list: T[]; hasMore: boolean; total?: number }
-/** 쪽을 읽는 방법: 첫 쪽·다음 쪽 요청과 이어 붙일 때 겹침을 가르는 항목 키. */
+/** 쪽을 읽는 방법: `page`쪽 요청(0이 첫 쪽)과 이어 붙일 때 겹침을 가르는 항목 키. */
 type PageSource<T> = {
-  first: (signal: AbortSignal) => Promise<Paged<T>>
-  next: (page: number, signal: AbortSignal) => Promise<Paged<T>>
+  fetch: (page: number, signal: AbortSignal) => Promise<Paged<T>>
   key: (item: T) => string
 }
 /** '더 보기'로 이어 받은 페이지들. base는 이것이 붙은 첫 페이지라, 첫 페이지를 다시 받으면 저절로 버려집니다. */
@@ -47,7 +49,7 @@ type Extra<T> = { base: Paged<T>; items: T[]; page: number; hasMore: boolean; to
  * `enabled`가 아닌 탭의 목록은 요청하지 않습니다(`list`는 undefined). 작품·세계관·설정 카드 탭이 이 한 구현을 같이 씁니다.
  */
 function usePagedList<T>(source: PageSource<T>, enabled: boolean, deps: readonly unknown[]) {
-  const first = useAsyncData((signal) => (enabled ? source.first(signal) : Promise.resolve(undefined)), [...deps, enabled])
+  const first = useAsyncData((signal) => (enabled ? source.fetch(0, signal) : Promise.resolve(undefined)), [...deps, enabled])
   const base = first.data
   const [stored, setExtra] = useState<Extra<T>>()
   const extra = base && stored?.base === base ? stored : undefined
@@ -60,7 +62,7 @@ function usePagedList<T>(source: PageSource<T>, enabled: boolean, deps: readonly
     const prev = extra ?? { base, items: [], page: 1, hasMore: base.hasMore, total: base.total, state: 'idle' as const }
     const request = (pending.current = new AbortController())
     setExtra({ ...prev, state: 'loading' })
-    source.next(prev.page, request.signal).then(
+    source.fetch(prev.page, request.signal).then(
       (next) => {
         if (request.signal.aborted) return
         // 보는 사이 서버 목록이 밀려 겹친 항목은 다시 붙이지 않는다(key 중복 방지).
@@ -77,20 +79,17 @@ function usePagedList<T>(source: PageSource<T>, enabled: boolean, deps: readonly
 }
 
 const workSource = (readingUseCase: ReadingUseCase, query: { q: string; f: SearchField; sort: SearchSort }): PageSource<Work> => ({
-  first: () => readingUseCase.findWorks(query),
-  next: (page, signal) => readingUseCase.findWorks({ ...query, page }, signal),
+  fetch: (page, signal) => readingUseCase.findWorks({ ...query, page }, signal),
   key: (w) => w.id,
 })
 /** 세계관·설정 카드 검색 응답(`total`이 있는 쪽 응답)을 이어 붙이는 한 쪽으로 바꾼다. 더 있는지는 받은 수가 total보다 적은지다. */
 const toPaged = <T,>(answer: { items: T[]; page: number; size: number; total: number }): Paged<T> => ({ list: answer.items, hasMore: hasMorePages(answer), total: answer.total })
 const worldSource = (useCase: PublicWorldUseCase, q: string): PageSource<PublicWorldSummary> => ({
-  first: (signal) => useCase.searchWorlds({ q, page: 0 }, signal).then(toPaged),
-  next: (page, signal) => useCase.searchWorlds({ q, page }, signal).then(toPaged),
+  fetch: (page, signal) => useCase.searchWorlds({ q, page }, signal).then(toPaged),
   key: (w) => w.id,
 })
 const cardSource = (useCase: PublicWorldUseCase, q: string): PageSource<PublicWorldCardHit> => ({
-  first: (signal) => useCase.searchCards({ q, page: 0 }, signal).then(toPaged),
-  next: (page, signal) => useCase.searchCards({ q, page }, signal).then(toPaged),
+  fetch: (page, signal) => useCase.searchCards({ q, page }, signal).then(toPaged),
   key: (hit) => `${hit.worldId}/${hit.cardId}`,
 })
 
@@ -100,21 +99,24 @@ const cardSource = (useCase: PublicWorldUseCase, q: string): PageSource<PublicWo
  * 검색어가 비면 요청 없이 `needsQuery`로 알립니다. 캐릭터챗 탭은 검색하지 않습니다(화면이 목록 링크만 보입니다).
  */
 export function useSearchViewModel(readingUseCase = resolve(), publicWorldUseCase = resolveWorlds()) {
-  const { st, tab, submit } = useListQuery('/search', 'latest')
+  const { st, tab, tabHref, submit } = useListQuery('/search', 'latest')
   const q = st.q.trim()
   const works = usePagedList(workSource(readingUseCase, { q: st.q, f: st.f, sort: st.sort }), tab === 'work', [readingUseCase, st.q, st.f, st.sort])
   const worlds = usePagedList(worldSource(publicWorldUseCase, q), tab === 'world', [publicWorldUseCase, q])
   const cards = usePagedList(cardSource(publicWorldUseCase, q), tab === 'card' && q !== '', [publicWorldUseCase, q])
-  const [reporting, setReporting] = useState<Work | null>(null)
+  const [report, setReport] = useState<{ work: Work; scope: string } | null>(null)
+  const scope = [tab, st.q, st.f, st.sort].join('\n')
+  // 검색 조건(탭·검색어·범위·정렬)이 바뀌면(뒤로 가기 등) 열려 있던 신고 시트를 닫는다: 새 목록에 없는 작품의 시트가 남지 않게 한다.
+  if (report && report.scope !== scope) setReport(null)
   const memberId = useAppSelector((s) => s.session.memberId)
   useScreenId('U36')
   return {
-    st, tab, submit,
+    st, tab, tabHref, submit,
     list: works.list, isError: works.isError, retry: works.retry, more: works.more,
     worlds, cards: { ...cards, needsQuery: q === '' },
     /** 남의 공개 작품 카드에서만 신고 버튼을 보입니다. */
     canReport: (w: Work) => canReport(w, memberId),
-    reporting, setReporting,
+    reporting: report?.work ?? null, setReporting: (w: Work | null) => setReport(w && { work: w, scope }),
   }
 }
 

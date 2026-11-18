@@ -2,7 +2,7 @@
 import '../../../../test/fixtureApp'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
-import { MemoryRouter, Route, Routes } from 'react-router'
+import { Link, MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { appContainer } from '../../../../app/appContainer'
@@ -237,7 +237,7 @@ it('검색은 첫 20개를 보이고 더 보기로 다음 서버 페이지를 �
   renderAt('/search?q=소설&sort=like')
   // 총 개수를 모르니 더 보기가 남은 동안은 '20편'이 아니라 '20편 이상'이다.
   await screen.findByText('20편 이상')
-  expect(search).toHaveBeenLastCalledWith({ q: '소설', f: 'all', sort: 'like', page: 0, size: 20 }, undefined)
+  expect(search).toHaveBeenLastCalledWith({ q: '소설', f: 'all', sort: 'like', page: 0, size: 20 }, expect.any(AbortSignal))
   fireEvent.click(more())
   await screen.findByText('25편')
   expect(search).toHaveBeenLastCalledWith({ q: '소설', f: 'all', sort: 'like', page: 1, size: 20 }, expect.any(AbortSignal))
@@ -289,7 +289,7 @@ it('정렬을 바꾸면 이어 붙인 목록을 버리고 첫 페이지부터 �
   await screen.findByText('22편')
   fireEvent.click(screen.getByRole('link', { name: '인기 순' }))
   await waitFor(() => { expect(titles()).toHaveLength(20); expect(titles()[0]).toBe('like 소설 p0-0') })
-  expect(search).toHaveBeenLastCalledWith({ q: '', f: 'all', sort: 'like', page: 0, size: 20 }, undefined)
+  expect(search).toHaveBeenLastCalledWith({ q: '', f: 'all', sort: 'like', page: 0, size: 20 }, expect.any(AbortSignal))
   screen.getByText('20편 이상')
 })
 
@@ -300,4 +300,38 @@ it('랭킹 화면에는 정렬 선택지와 더 보기가 없고 서버 검색(�
   expect(screen.queryByRole('button', { name: '더 보기' })).toBeNull()
   expect(screen.queryByRole('group', { name: '정렬' })).toBeNull()
   expect(search).not.toHaveBeenCalled()
+})
+
+// 주소만 바꾸는 링크: 뒤로 가기처럼 폼 밖에서 검색 조건이 바뀌는 이동의 대역이다.
+function renderWithJump(path: string, to: string) {
+  return render(<Provider store={createAppStore()}><MemoryRouter initialEntries={[path]} useTransitions={false}>
+    <Routes><Route path="/search" element={<SearchPage />} /></Routes>
+    <Link to={to}>주소 바꾸기</Link>
+  </MemoryRouter></Provider>)
+}
+
+it('주소의 검색어가 바뀌면 같은 입력칸이 그 검색어를 보이고, 제출하지 않은 글은 주소가 같은 동안 남는다 (#505)', async () => {
+  renderWithJump('/search?q=구운몽', '/search?q=회색')
+  const input = (await screen.findByLabelText('검색어')) as HTMLInputElement
+  expect(input.value).toBe('구운몽')
+  fireEvent.change(input, { target: { value: '쓰던 글' } })
+  const world = within(screen.getByRole('navigation', { name: '검색 대상' })).getByRole('link', { name: '세계관' })
+  fireEvent.click(world)
+  await waitFor(() => expect(world.getAttribute('aria-current')).toBe('true'))
+  expect(screen.getByLabelText('검색어')).toBe(input)
+  expect(input.value).toBe('쓰던 글')
+  fireEvent.click(screen.getByRole('link', { name: '주소 바꾸기' }))
+  await screen.findByRole('heading', { name: '‘회색’ 검색 결과' })
+  expect(screen.getByLabelText('검색어')).toBe(input)
+  expect(input.value).toBe('회색')
+})
+
+it('주소의 검색 조건이 바뀌면(뒤로 가기 등) 열려 있던 소설 신고 시트를 닫는다 (#507)', async () => {
+  renderWithJump('/search?q=홍길동', '/search?q=회색')
+  fireEvent.click(await screen.findByRole('button', { name: '홍길동전 더보기' }))
+  fireEvent.click(screen.getByRole('menuitem', { name: '홍길동전 소설 신고' }))
+  screen.getByRole('dialog', { name: '소설 신고' })
+  fireEvent.click(screen.getByRole('link', { name: '주소 바꾸기' }))
+  await screen.findByRole('heading', { name: '‘회색’ 검색 결과' })
+  expect(screen.queryByRole('dialog', { name: '소설 신고' })).toBeNull()
 })

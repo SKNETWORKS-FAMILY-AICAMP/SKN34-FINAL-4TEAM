@@ -11,6 +11,11 @@ afterEach(cleanup)
 
 const sid = () => document.getElementById('sid')!.textContent
 const titles = () => [...document.querySelectorAll('.rgrid .ri b')].map((b) => b.textContent)
+/** 검색 카드의 소설 신고는 카드 안 더보기 메뉴(#507)로 연다. */
+const openReport = async (title: string) => {
+  fireEvent.click(await screen.findByRole('button', { name: `${title} 더보기` }))
+  fireEvent.click(screen.getByRole('menuitem', { name: `${title} 소설 신고` }))
+}
 
 describe('검색 결과 (U36)', () => {
   it('제목·작가·태그·장르 범위로 찾고 결과 수를 보여 준다', async () => {
@@ -65,22 +70,22 @@ describe('검색 결과 (U36)', () => {
     await waitFor(() => expect(titles()[0]).toBe('구운몽'))
   })
 
-  it('검색 카드에서 소설 신고 시트를 연다 (랭킹 카드에는 없다)', async () => {
+  it('검색 카드의 더보기 메뉴에서 소설 신고 시트를 연다 (랭킹 카드에는 메뉴가 없다)', async () => {
     renderApp('/search?q=홍길동')
-    fireEvent.click(await screen.findByRole('button', { name: '홍길동전 소설 신고' }))
+    await openReport('홍길동전')
     screen.getByRole('heading', { name: '🚩 소설 신고 · 홍길동전' })
     cleanup()
     renderApp('/rank')
     await screen.findByRole('heading', { name: '랭킹' })
     await waitFor(() => expect(titles().length).toBeGreaterThan(0))
-    expect(screen.queryByRole('button', { name: /소설 신고/ })).toBeNull()
+    expect(within(screen.getByRole('main')).queryByRole('button', { name: /더보기/ })).toBeNull()
   })
 
-  it('내 소설 카드에는 신고 버튼이 없고 남의 소설 카드에는 있다 (#196)', async () => {
+  it('내 소설 카드에는 신고 메뉴가 없고 남의 소설 카드에는 있다 (#196)', async () => {
     renderApp('/search?q=별빛')
-    await screen.findByRole('button', { name: '별빛 서약의 탑: 재의 왕관 소설 신고' })
+    await screen.findByRole('button', { name: '별빛 서약의 탑: 재의 왕관 더보기' })
     expect(titles()).toContain('별빛 서약의 탑')
-    expect(screen.queryByRole('button', { name: '별빛 서약의 탑 소설 신고' })).toBeNull()
+    expect(screen.queryByRole('button', { name: '별빛 서약의 탑 더보기' })).toBeNull()
   })
 
   it('서버(정본) 작품도 남의 공개 작품이면 신고 버튼이 보이고 운영 신고 폼으로 접수한다 (#196)', async () => {
@@ -89,7 +94,7 @@ describe('검색 결과 (U36)', () => {
     for (const work of works) work.canonical = true
     try {
       renderApp('/search?q=홍길동')
-      fireEvent.click(await screen.findByRole('button', { name: '홍길동전 소설 신고' }))
+      await openReport('홍길동전')
       const dialog = screen.getByRole('dialog', { name: '소설 신고' })
       fireEvent.change(within(dialog).getByLabelText('신고 사유'), { target: { value: '권리 확인 부탁' } })
       fireEvent.click(within(dialog).getByRole('button', { name: '신고 접수' }))
@@ -330,11 +335,12 @@ describe('세계관·설정 카드 검색 (#505)', () => {
     expect(main().queryByRole('alert')).toBeNull()
   })
 
-  it('캐릭터챗 탭은 검색하지 않고 안내 한 줄과 /chat 목록 링크만 보인다', async () => {
+  it('캐릭터챗 탭은 검색하지 않고 머리말은 검색어가 있어도 캐릭터챗이며 안내와 /chat 목록 링크만 보인다', async () => {
     const list = vi.spyOn(publicWorlds(), 'list')
     const searchCards = vi.spyOn(publicWorlds(), 'searchCards')
     renderApp('/search?type=chat&q=하린')
-    await screen.findByText('캐릭터챗은 검색하지 않고 목록에서 골라요.')
+    await screen.findByText('목록은 누구나 볼 수 있고 대화는 로그인 후 할 수 있어요 · AI 응답은 데모')
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('캐릭터챗')
     expect(screen.getByRole('link', { name: '캐릭터챗 목록 보기' }).getAttribute('href')).toBe('/chat')
     expect(screen.queryByLabelText('검색어')).toBeNull()
     expect([workSearch().mock.calls.length, list.mock.calls.length, searchCards.mock.calls.length]).toEqual([0, 0, 0])
@@ -351,5 +357,61 @@ describe('세계관·설정 카드 검색 (#505)', () => {
     fireEvent.click(screen.getByRole('button', { name: '검색' }))
     await waitFor(() => expect(worldNames()).toEqual(['야시의 연인', '인경 뒤의 도깨비 장터']))
     expect(tabs.getByRole('link', { name: '세계관' }).getAttribute('aria-current')).toBe('true')
+  })
+})
+
+describe('검색 화면 리뷰 반영 (#505·#507)', () => {
+  afterEach(() => { vi.restoreAllMocks() })
+  const q = encodeURIComponent('달무리')
+  const tabs = async () => within(await screen.findByRole('navigation', { name: '검색 대상' }))
+  const cardOf = (title: string) => [...document.querySelectorAll('.rgrid .ri b')].find((b) => b.textContent === title)!.closest('.rg-item')!
+
+  it('작품 탭의 범위·정렬은 다른 탭을 거쳐 작품 탭으로 돌아와도 유지된다', async () => {
+    renderApp(`/search?q=${q}&f=author&sort=like`)
+    const nav = await tabs()
+    expect(nav.getByRole('link', { name: '세계관' }).getAttribute('href')).toBe(`/search?q=${q}&f=author&sort=like&type=world`)
+    fireEvent.click(nav.getByRole('link', { name: '세계관' }))
+    await screen.findByRole('heading', { level: 3, name: '달무리 군도' })
+    // 다른 탭에서 검색해도 범위·정렬은 주소에 남아, 작품 탭 링크가 그대로 싣는다.
+    fireEvent.change(screen.getByLabelText('검색어'), { target: { value: '야시' } })
+    fireEvent.click(screen.getByRole('button', { name: '검색' }))
+    await waitFor(() => expect(nav.getByRole('link', { name: '작품' }).getAttribute('href')).toBe(`/search?q=${encodeURIComponent('야시')}&f=author&sort=like`))
+    fireEvent.click(nav.getByRole('link', { name: '작품' }))
+    const scope = await screen.findByRole('group', { name: '검색 범위' })
+    expect(within(scope).getByRole('link', { name: '작가' }).getAttribute('aria-current')).toBe('true')
+    expect(within(screen.getByRole('group', { name: '정렬' })).getByRole('link', { name: '인기 순' }).getAttribute('aria-current')).toBe('true')
+  })
+
+  it('신고 메뉴는 카드 안에 떠 있는 더보기 버튼 하나이고 카드 밖에 따로 붙는 신고 버튼은 없다 (#507)', async () => {
+    renderApp('/search?q=별빛')
+    const trigger = await screen.findByRole('button', { name: '별빛 서약의 탑: 재의 왕관 더보기' })
+    const card = trigger.closest('.rg-item')!
+    expect(trigger.getAttribute('aria-haspopup')).toBe('menu')
+    expect([...card.children].map((el) => (el.matches('a.rg') ? 'card' : el.matches('.pop-menu.rg-more') ? 'menu' : el.tagName))).toEqual(['card', 'menu'])
+    // 신고할 수 없는 내 소설 카드는 메뉴 없이 카드만이라 같은 모양이다.
+    expect([...cardOf('별빛 서약의 탑').children].map((el) => el.tagName)).toEqual(['A'])
+    expect(document.querySelector('.rg-report')).toBeNull()
+  })
+
+  it('Esc로 신고 시트를 닫으면 초점이 그 카드의 더보기 버튼으로 돌아온다', async () => {
+    renderApp('/search?q=홍길동')
+    const trigger = await screen.findByRole('button', { name: '홍길동전 더보기' })
+    await openReport('홍길동전')
+    screen.getByRole('dialog', { name: '소설 신고' })
+    fireEvent.keyDown(document, { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: '소설 신고' })).toBeNull())
+    expect(document.activeElement).toBe(trigger)
+  })
+
+  it('검색을 제출해도 입력칸을 다시 그리지 않아 키보드 초점이 남고 입력칸에는 제출한 검색어가 있다', async () => {
+    renderApp('/search?q=구운몽')
+    const input = (await screen.findByLabelText('검색어')) as HTMLInputElement
+    input.focus()
+    fireEvent.change(input, { target: { value: '회색' } })
+    fireEvent.submit(input.form!) // 입력칸에서 Enter와 같다
+    await screen.findByRole('heading', { name: '‘회색’ 검색 결과' })
+    expect(screen.getByLabelText('검색어')).toBe(input)
+    expect(document.activeElement).toBe(input)
+    expect(input.value).toBe('회색')
   })
 })
