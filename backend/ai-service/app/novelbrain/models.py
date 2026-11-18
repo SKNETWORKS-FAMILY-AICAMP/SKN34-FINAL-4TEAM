@@ -15,6 +15,8 @@ from app.card_links import strip_card_links
 # `episodes`의 키: 0 이상의 정수를 군더더기 없이 쓴 글자(`03`·`1.5`·`-1`은 아니다). 화면의 `isEpisodeKey`와 같다.
 _EPISODE_KEY = re.compile(r'0|[1-9][0-9]*')
 _DIRECTIONS = ('directed', 'symmetric')
+# 관계 유형: 구조·감정과, 같은 사람의 다른 이름 카드(source)에서 본체 카드(target)로 잇는 「동일 인물」(#485). 그 밖의 값은 모르는 유형(None)이다.
+_CATEGORIES = ('structural', 'emotional', 'identity')
 
 
 class Card(BaseModel):
@@ -35,6 +37,7 @@ class Relation(BaseModel):
     source: str
     target: str
     label: str
+    category: Literal['structural', 'emotional', 'identity'] | None = None
     direction: Literal['directed', 'symmetric'] | None = None
     polarity: Literal['asserted', 'denied'] = 'asserted'
     body: str = ''
@@ -116,8 +119,9 @@ def world_snapshot(read: dict, episode: int) -> WorldSnapshot:
             relation_id, source, target = r['id'], r.get('sourceCardId'), r.get('targetCardId')
             if r.get('lifecycle') == 'removed' or source not in ids or target not in ids:
                 continue
-            direction = r.get('direction')
+            direction, category = r.get('direction'), r.get('category')
             relations.append(Relation(id=relation_id, source=source, target=target, label=r.get('label') or '',
+                                      category=category if category in _CATEGORIES else None,
                                       direction=direction if direction in _DIRECTIONS else None,
                                       polarity='denied' if r.get('polarity') == 'denied' else 'asserted', body=strip_card_links(r.get('body') or '')))
         return WorldSnapshot(worldId=read['worldId'], episode=episode, cards=cards, relations=relations)

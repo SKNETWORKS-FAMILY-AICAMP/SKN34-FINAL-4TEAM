@@ -37,7 +37,7 @@ def test_world_snapshot_maps_cards_character_docs_and_relations():
         cards=[Card(id='kael', cardType='character', title='카엘', text='성문 수비대장', soul='말투는 건조하다.', goal='리라를 지킨다.',
                     episodes={1: '1화 기억', 12: '12화 기억'}, revealFromEpisode=2),
                Card(id='gate', cardType='location', title='성문', text='북쪽 성문')],
-        relations=[Relation(id='r1', source='kael', target='gate', label='근무지', direction='directed', body='설명')])
+        relations=[Relation(id='r1', source='kael', target='gate', label='근무지', category='structural', direction='directed', body='설명')])
 
 
 @pytest.mark.parametrize('polarity,expected', [('asserted', 'asserted'), ('denied', 'denied'), (None, 'asserted'), ('both', 'asserted')])
@@ -200,3 +200,12 @@ def test_world_snapshot_rejects_a_response_it_cannot_read_without_echoing_the_in
 def test_recall_models_only_accept_the_contract_vocabulary(build):
     with pytest.raises(ValidationError):
         build()
+
+
+@pytest.mark.parametrize('category,expected', [('structural', 'structural'), ('emotional', 'emotional'), ('identity', 'identity'), (None, None), ('other', None)])
+def test_world_snapshot_reads_the_relation_category_and_does_not_fail_on_an_unknown_one(category, expected):
+    link = {**relation('r1', 'kael', 'lira', '동일 인물', 'directed'), 'category': category}
+
+    snapshot = world_snapshot(read([card('kael', '카엘'), card('lira', '리라')], [link]), 1)
+
+    assert [r.category for r in snapshot.relations] == [expected]

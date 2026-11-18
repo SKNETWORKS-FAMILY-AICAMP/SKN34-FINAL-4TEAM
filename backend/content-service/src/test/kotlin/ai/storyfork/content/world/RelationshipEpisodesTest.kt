@@ -2,6 +2,7 @@ package ai.storyfork.content.world
 
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.relationship.RelationEdge
+import ai.storyfork.content.world.relationship.edgesAfterSave
 import ai.storyfork.content.world.relationship.episodeEdges
 import ai.storyfork.content.world.relationship.relationsAsOf
 import ai.storyfork.content.world.relationship.saveEpisode
@@ -77,5 +78,28 @@ class RelationshipEpisodesTest {
         val written=episodeEdges(current,listOf(edge(UUID.randomUUID(),9,"new"),edge(friend,9,"changed")),9)
         assertEquals(3,written.size)
         assertEquals(setOf(9),written.map { it.fromEpisode }.toSet())
+    }
+
+    // --- 저장한 뒤의 연결(쓰지 않고 계산): 「동일 인물」의 사슬·순환은 저장 결과의 최신 시점으로 본다(#485) ---
+    @Test fun `the latest view after a save at the latest episode is the saved list`() {
+        val edges=listOf(edge(friend,1,"old"),edge(rival,1,"keep",source=b,target=c))
+        val after=relationsAsOf(edgesAfterSave(edges,listOf(edge(friend,1,"new"),edge(rival,1,"keep",source=b,target=c)),null),null)
+        assertEquals(setOf(edge(friend,1,"new"),edge(rival,1,"keep",source=b,target=c)),after.toSet())
+    }
+    @Test fun `a save at an earlier episode does not change what a later connection already decides for the latest view`() {
+        val edges=listOf(edge(friend,1,"early"),edge(friend,5,"later",source=a,target=c),edge(rival,1,"x",source=b,target=c),ended(rival,5,source=b,target=c))
+        val after=relationsAsOf(edgesAfterSave(edges,listOf(edge(friend,2,"rewritten"),edge(rival,2,"rewritten",source=b,target=c)),2),null)
+        assertEquals(listOf(edge(friend,5,"later",source=a,target=c)),after) // 최신 시점은 5화 연결이 정한다: 친구는 옮겨진 채, 라이벌은 끝난 채다
+    }
+    @Test fun `a relation first written at an earlier episode shows in the latest view`() {
+        val brandNew=UUID.randomUUID()
+        val edges=listOf(edge(friend,1),edge(friend,5,"later",source=a,target=c))
+        val after=relationsAsOf(edgesAfterSave(edges,listOf(edge(friend,2,"p1"),edge(brandNew,2,"new",source=b,target=c)),2),null)
+        assertEquals(setOf(edge(friend,5,"later",source=a,target=c),edge(brandNew,2,"new",source=b,target=c)),after.toSet())
+    }
+    @Test fun `ending a relation at an earlier episode leaves it as it is when a later connection brought it back`() {
+        val edges=listOf(edge(friend,1),edge(friend,6,"back"))
+        val after=relationsAsOf(edgesAfterSave(edges,emptyList(),3),null)
+        assertEquals(listOf(edge(friend,6,"back")),after)
     }
 }

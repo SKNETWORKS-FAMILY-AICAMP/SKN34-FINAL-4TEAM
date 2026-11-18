@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 import { newSetting } from '../entities/studioWorld'
-import { assertNoNewRelationDuplicates, applyRelationChanges, editStudioSetting, putRelation, removeRelation, relationDefinitions, cardDeletionInfo, removeCard } from '../entities/studioRelations'
+import { assertNoNewRelationDuplicates, applyRelationChanges, editStudioSetting, putRelation, removeRelation, relationDefinitions, cardDeletionInfo, removeCard, identityBodies, identityBodyOf } from '../entities/studioRelations'
 
 it('keeps mutual facts separate from independent directed emotions and stable IDs',()=>{
  const a=newSetting('people'),b=newSetting('people');a.item.title='가람';b.item.title='나래'
@@ -240,4 +240,51 @@ it('allows unrelated single edits of legacy duplicates without changing ids or t
  expect(updated[2].item).toMatchObject({id:legacy[2].item.id,title:'고친 이름',text:'동료'})
  expect(updated[3]).toEqual(legacy[3])
  expect(legacy).toEqual(before)
+})
+
+it('links an other-name character to its body with a directed 동일 인물 relation named by the template',()=>{
+ const mask=newSetting('people'),body=newSetting('people');mask.item.title='승상';body.item.title='홍길동'
+ const rows=putRelation([mask,body],{subjectId:mask.item.id,targetId:body.item.id,predicate:'identity_of',polarity:'asserted'})
+ expect(relationDefinitions.identity_of).toEqual({label:'동일 인물',group:'identity'})
+ expect([rows[2].item.title,rows[2].item.text]).toEqual(['승상 · 동일 인물 · 홍길동','승상 · 동일 인물 · 홍길동'])
+})
+
+it('allows 동일 인물 only between two character cards',()=>{
+ const mask=newSetting('people'),place=newSetting('places')
+ for(const [from,to] of [[mask,place],[place,mask]])
+  expect(()=>putRelation([mask,place],{subjectId:from.item.id,targetId:to.item.id,predicate:'identity_of',polarity:'asserted'})).toThrow(/인물 카드끼리/)
+})
+
+it('rejects a chain, a cycle and a second body for one other name, but lets several other names share one body',()=>{
+ const [a,b,c]=['가','나','다'].map(title=>{const s=newSetting('people');s.item.title=title;return s})
+ const link=(from:typeof a,to:typeof a)=>({subjectId:from.item.id,targetId:to.item.id,predicate:'identity_of',polarity:'asserted' as const})
+ const rows=putRelation([a,b,c],link(a,b))
+ expect(()=>putRelation(rows,link(b,c))).toThrow(/사슬/)          // 본체가 다시 다른 카드의 다른 이름이다
+ expect(()=>putRelation(rows,link(c,a))).toThrow(/사슬/)          // 다른 이름 카드가 본체가 된다
+ expect(()=>putRelation(rows,link(b,a))).toThrow(/사슬|이미/)     // 서로가 서로의 다른 이름이다
+ expect(()=>putRelation(rows,link(a,c))).toThrow(/하나/)          // 한 카드에 본체가 둘이다
+ expect(()=>applyRelationChanges([a,b,c],[link(a,b),link(b,c)],[])).toThrow(/사슬/)
+ expect(putRelation(rows,link(c,b)).filter(s=>s.item.predicate==='identity_of')).toHaveLength(2)
+})
+
+it('keeps the 동일 인물 rules when relations are edited in a batch and the card type changes are not the editor\'s business',()=>{
+ const mask=newSetting('people'),body=newSetting('people'),other=newSetting('people')
+ let rows=putRelation([mask,body,other],{subjectId:mask.item.id,targetId:body.item.id,predicate:'identity_of',polarity:'asserted'})
+ const link=rows[3].item
+ // 같은 관계를 다른 본체로 바꾸는 것은 괜찮다(여전히 한 카드에 본체 하나).
+ rows=applyRelationChanges(rows,[{...link,targetId:other.item.id}],[])
+ expect(rows[3].item.targetId).toBe(other.item.id)
+ // 지우면 두 카드는 다시 두 사람이다.
+ expect(removeRelation(rows,link.id).some(s=>s.item.predicate==='identity_of')).toBe(false)
+})
+
+it('reads which card is the body of an other-name card from the asserted identity relations only',()=>{
+ const [mask,body,other]=['승상','홍길동','왕'].map(title=>{const s=newSetting('people');s.item.title=title;return s})
+ let rows=putRelation([mask,body,other],{subjectId:mask.item.id,targetId:body.item.id,predicate:'identity_of',polarity:'asserted'})
+ expect([...identityBodies(rows)]).toEqual([[mask.item.id,body.item.id]])
+ expect(identityBodyOf(rows,mask.item.id)?.item.title).toBe('홍길동')
+ expect(identityBodyOf(rows,body.item.id)).toBeUndefined()      // 본체는 다른 이름이 아니다
+ expect(identityBodyOf(rows,other.item.id)).toBeUndefined()     // 기록하지 않은 카드는 한 사람이 아니다
+ rows=rows.map(s=>s.item.predicate==='identity_of'?{...s,item:{...s.item,polarity:'denied' as const}}:s)
+ expect(identityBodies(rows).size).toBe(0)                      // 부정은 이은 것이 아니다
 })

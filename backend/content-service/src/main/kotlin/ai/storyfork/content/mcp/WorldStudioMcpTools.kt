@@ -73,7 +73,7 @@ class WorldStudioMcpTools(
     fun editDraft(
         context: McpTransportContext,
         @McpToolParam(description = "세계관 ID(UUID)") id: String,
-        @McpToolParam(description = "초안 입력: expectedDraftRevision·name·description·key(필수, 1~200바이트, 재시도 식별용)·replace(false면 보낸 카드·관계만 추가·갱신, true면 보내지 않은 것은 제거)·cards(최대 1000개; cardType=character|location|organization|ability|object|rule|event|other, areaCode=basic|space|history|society|culture|special|conflict, visibility=private|public, lifecycle=active|removed)·relationships(sourceCardId·targetCardId 둘 다 필요; category=structural|emotional, direction=directed|symmetric, polarity=asserted|denied)·episode(선택, 연결된 소설의 회차 순번 1 이상. relationships는 그 회차 시점의 관계이며 바뀐 것만 그 회차에 기록하고 생략하면 최신 회차)") request: EditWorldDraftRequest,
+        @McpToolParam(description = "초안 입력: expectedDraftRevision·name·description·key(필수, 1~200바이트, 재시도 식별용)·replace(false면 보낸 카드·관계만 추가·갱신, true면 보내지 않은 것은 제거)·cards(최대 1000개; cardType=character|location|organization|ability|object|rule|event|other, areaCode=basic|space|history|society|culture|special|conflict, visibility=private|public, lifecycle=active|removed)·relationships(sourceCardId·targetCardId 둘 다 필요; category=structural|emotional|identity, direction=directed|symmetric, polarity=asserted|denied. identity는 「동일 인물」로 sourceCardId=다른 이름 인물 카드·targetCardId=본체 인물 카드·direction=directed이고 episode가 필요하며 사슬·순환·한 카드에 본체 둘은 422)·episode(선택, 연결된 소설의 회차 순번 1 이상. relationships는 그 회차 시점의 관계이며 바뀐 것만 그 회차에 기록하고 생략하면 최신 회차)") request: EditWorldDraftRequest,
     ): WorldDraftResponse = studioTool { linked(studio.edit(uuidArg(id), context.callerUuid(), request)) }
 
     @McpTool(

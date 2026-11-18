@@ -2,7 +2,7 @@ import { Suspense, useEffect, useId, useRef, useState } from 'react'
 
 import { presentationPortrait } from '../../../../app/presentationPortraits'
 import { cardTypeOf, cardTypes, settingAreas, type CardType } from '../../../../domain/entities/studioCards'
-import { relationDefinitions } from '../../../../domain/entities/studioRelations'
+import { identityBodyOf, relationDefinitions } from '../../../../domain/entities/studioRelations'
 import { cardRevealEpisode, invalidReveal, REVEAL_EPISODE_ERROR, studioLabelCleanup, type SettingItem } from '../../../../domain/entities/studioWorld'
 import { revealEpisodeInput } from '../../../../domain/entities/worldStudioWriting'
 import { BackChev, ComposeIcon, MoreVerticalIcon } from '../../../shared/icons'
@@ -82,6 +82,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
   const linkChoices = world.settings.flatMap((s) => (s.item.id !== item.id && cardTypes.some((t) => t.id === cardTypeOf(s.item)) ? [{ id: s.item.id, title: s.item.title || '이름 없는 설정', type: labelOf(s), aliases: s.aliases }] : []))
   const orderIssues = board.orderIssues.filter((issue) => issue.cardId === item.id)
   const openLinked = (id: string) => { setConfirm(''); focusName.current = true; vm.editCard(id) }
+  const identityBody = identityBodyOf(world.settings, item.id) // 이 카드가 「동일 인물」의 다른 이름 카드면 그 본체 카드(#485)
   const docs = useCharacterDocs(vm, setting) // 편집 중인 글: 인물 카드는 고른 문서, 그 밖은 카드 본문
   const over = docs.text.length > BODY_MAX
   const revealError = invalidReveal(setting)
@@ -182,6 +183,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
                   </div>
                 </div>
                 {docs.orphaned && <p role="status" className="small world-doc-orphaned">인물이 아닌 설정에는 SOUL.md·GOAL.md·회차별 기억을 저장하지 않아요. 유형을 인물로 되돌리면 이어 쓸 수 있고, 이대로 저장하면 사라져요.</p>}
+                {docs.person && identityBody && <p className="small muted world-card-help">이 카드는 {identityBody.item.title}의 다른 이름이에요. 성격·목표·회차 기억은 본체 카드에 적어 주세요. 이 카드의 것은 시뮬레이션에서 읽지 않아요.</p>}
                 {docs.person ? <CharacterDocs docs={docs}>{bodyEditor}</CharacterDocs> : bodyEditor}
                 {docs.doc === 'identity' && <p className="small muted world-card-help"># · ## · ### 제목은 공개 페이지 목차에 나와요.</p>}
                 {item.kind !== 'relation' && (

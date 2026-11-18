@@ -8,7 +8,7 @@
 결정은 [DEC-45·DEC-46·DEC-53](decisions.md), 저장 구조·관계 정본·본문 링크·「동일 인물」은 [WorldStudio 설계](worldstudio-independent-schema.md)를 따른다.
 백엔드와 프론트엔드가 같은 계약을 쓰며, 서버 소스 구현은 끝났지만 **hosted CI의 통합 테스트는 아직 확인하지 않았다**.
 
-> **DEC-53(2026-11-18, #485)으로 카드 공개 기준을 하나로 일원화했다.** 이 문서에서 'DEC-53'으로 표시한 규칙 가운데 공개 기준 일원화(유효 공개 회차·기준 회차)는 **서버·화면 소스 구현·로컬 단위 테스트 통과**이고 hosted CI 통합·브라우저 육안 확인은 미확인이다(#485 2단계). 본문 링크의 공개 응답(서버 치환 함수 한 곳)은 **소스 구현·로컬 단위 테스트 통과**이고 hosted CI 통합 테스트·브라우저 육안 확인은 미확인이다(3단계). 「동일 인물」의 공개는 **설계만 확정했고 아직 구현하지 않았다**(4단계). DEC-46의 두 기준(카드 `visibility`: 공개 세계관·가져오기·Fork, `revealFromEpisode`: 독자 설정 위키)은 이 규칙으로 대체됐다.
+> **DEC-53(2026-11-18, #485)으로 카드 공개 기준을 하나로 일원화했다.** 이 문서에서 'DEC-53'으로 표시한 규칙 가운데 공개 기준 일원화(유효 공개 회차·기준 회차)는 **서버·화면 소스 구현·로컬 단위 테스트 통과**이고 hosted CI 통합·브라우저 육안 확인은 미확인이다(#485 2단계). 본문 링크의 공개 응답(서버 치환 함수 한 곳)은 **소스 구현·로컬 단위 테스트 통과**이고 hosted CI 통합 테스트·브라우저 육안 확인은 미확인이다(3단계). 「동일 인물」의 공개도 소스 구현까지 끝났고 같은 CI 확인 전이다(4단계: 서버는 기존 끝점 거르기 그대로, 화면은 관계 종류 표시). DEC-46의 두 기준(카드 `visibility`: 공개 세계관·가져오기·Fork, `revealFromEpisode`: 독자 설정 위키)은 이 규칙으로 대체됐다.
 
 ## 확정 정책 (2026-11-11 사용자 결정)
 
@@ -95,7 +95,7 @@ DB 값을 고치지 않는다. 확정 카드 버전은 UPDATE 금지 트리거�
 
 ### 「동일 인물」의 공개
 
-`category: identity` 관계도 다른 관계와 같은 규칙으로 보인다: 두 카드가 모두 보이고 관계의 기록 회차가 기준 회차 이하일 때만 나온다. 공개 화면의 관계 종류 표시(지금은 `emotional`이면 '감정 관계', 그 밖은 '구조 관계')에서 `identity`는 '동일 인물'로 보이게 한다. 관계의 `label`·`body`는 자유 글이라 서버가 거르지 못하고 공개 순서 규칙의 경고로만 줄인다.
+`category: identity` 관계도 다른 관계와 같은 규칙으로 보인다: 두 카드가 모두 보이고 관계의 기록 회차가 기준 회차 이하일 때만 나온다. 공개 화면의 관계 종류 표시는 `emotional`이면 '감정 관계', `identity`이면 '동일 인물', 그 밖은 '구조 관계'다(4단계 구현: 독자 설정 위키는 '동일 인물 · 정체: 상대'(다른 이름 카드 쪽)·'동일 인물 · 다른 이름: 상대'(본체 쪽)로 보이고 방향·부정 문구는 붙이지 않으며, 공개 세계관 카드 페이지·그래프는 종류 이름만 '동일 인물'이다). 관계의 `label`·`body`는 자유 글이라 서버가 거르지 못하고 공개 순서 규칙의 경고로만 줄인다.
 
 ## 저장
 
@@ -366,7 +366,7 @@ nginx `location ^~ /api/v1/world-studios/`의 `client_max_body_size 6m`이 이�
 - 로컬 단위 테스트(`./gradlew unitTest`, JDK 21): 공개 노출 판정·장르/공개 범위 검증·카드 공개 판정·관계 필터·독자 공개 회차 판정·`upto`·페이지 검증(`PublicWorldRulesTest`), 공개 서비스의 공개 카드 필터와 독자 카드 조회(`PublicWorldServiceTest`), 연결·해제·409·독자 설정 위키의 기준 회차와 빈 응답·404·422(`WorkWorldServiceTest`), 연결·위키 경로와 소유자 세계관 응답의 `linkedWorkId`(`WorkWorldControllerTest`), 작품 삭제 시 연결 해제(`WorkDeleteServiceTest`), 소유자 응답에만 나오는 `worldStudioId`(`WorkSearchServiceTest`), 템플릿 카드 공개(`GenreTemplateSeederTest`), V37 SQL과 전역 버전 목록(`ContentBoundaryTest`), 소유자 PUT·목록·상세 필드(`WorldStudioServiceTest`), 표지 검증(`WorldCoverRulesTest`: 형식·크기·바이트 시그니처·저장소 실패 변환), 소유자 표지 서비스(`WorldCoverServiceTest`: 저장→DB→이전 객체 삭제 순서와 실패 처리), 표지 컨트롤러 바인딩(`WorldCoverControllerTest`), 공개 상세의 연결된 소설(공개 작품이면 최소 정보를 싣고 작가는 세계관 작가와 같은 Core 조회 한 번, 비공개·제한·삭제·연결 없음은 `null`이며 작가·표지를 조회하지 않음, 목록은 읽지 않음, `PublicWorldServiceTest`).
 - 새 `@Query` 3개(`StudioWorldRepository.listed`·`listedByGenre`, `WorldRevisionCardRepository.publicCardIds`: DEC-46에서 공개 카드 조건을 더해 `activeCardIds`에서 개명)는 DB 없이 H2로 구문·매핑·정렬·필터·count를 확인했고, 파생 쿼리 `WorkRepository.findAllByWorldStudioIdIn`은 이름 해석(PartTree)과 `work.world_studio_id`의 nullable `uuid` 매핑을 확인했다. 컬럼 타입 일치(`ddl-auto=validate`)와 실제 PostgreSQL 결과는 CI가 확인한다.
 - **hosted CI 대기(로컬 미실행)**: `PublicWorldHttpIntegrationTest`(공개 목록·상세, 비공개 제외, 비로그인 접근, 소유자 PUT 404/422/401/403, 관계 `unavailable`), `WorldCoverHttpIntegrationTest`(소유자 표지 PUT·GET·DELETE의 401/403/404/422, 공개 표지의 노출 기준, 교체 시 이전 객체 삭제, `hasCover`)와 V7까지 세는 `InitialWorldStoragePostgresTest`·`WorldStudioFlywayPostgresTest`·`WorldStudioMigrationPostgresTest`·`WorldStudioHistoryPostgresTest`. DEC-46 몫으로 `PublicWorldHttpIntegrationTest`에 비공개 카드와 그 관계가 상세·목록 수에서 빠지는지를 더했고, 새 `WorkWorldHttpIntegrationTest`(연결 401/403/404/400/200·멱등·409 `WORLD_ALREADY_LINKED`·해제·작품 삭제 시 해제, 소유자 응답의 `worldStudioId`·`linkedWorkId`, 독자 설정 위키의 공개 전 작품·확정 버전 없음·발행 회차 상한·`upto` 422·없는 작품 404·관계 필터·`unavailable`)와 Content 전역 V37을 세는 `ContentMigrationTest`·`StoryPlanMigrationPostgresTest`·`AttachmentMigrationLocationTest`도 **작성만 했고 로컬에서 실행하지 않았다**. #329로 `WorkWorldHttpIntegrationTest`에 공개 세계관 상세의 `linkedWork`(공개 소설 표시·발행 전 소설 `null`·연결 해제 `null`·재연결·목록 응답에 없음) 단언도 더했고 마찬가지로 작성만 했다.
-- **DEC-53(2026-11-18)**: 2단계 공개 기준 일원화(유효 공개 회차 `shownCardEpisode`·기준 회차·목록 쿼리와 기준 회차 배치 쿼리·화면의 공개 입력 하나·일괄 공개 회차)는 소스 구현과 로컬 단위 테스트(규칙·서비스·출구 매트릭스·화면 순수 함수·어댑터)를 통과했고, hosted CI 통합 테스트·WorldStudioPage 렌더 테스트·브라우저 육안 확인은 미확인이다. 본문 링크 치환 함수(`hideCardLinks`)·가져오기의 링크 id 매핑·화면의 링크 이동과 백링크·공개 순서 점검(3단계)도 소스 구현과 로컬 단위 테스트(링크 검증 표·출구 매트릭스·화면 순수 함수)·링크 관련 렌더 테스트 5개 파일(jsdom)을 통과했고 hosted CI 통합·전체 렌더 레인·브라우저 육안 확인은 미확인이다. 「동일 인물」(4단계)은 아직 없고, 연결을 바꾸기 전에 새로 공개되거나 가려질 카드 수를 알리고 확인받는 화면(위 '연결·해제·공개 중단' 표)도 아직 없다.
+- **DEC-53(2026-11-18)**: 2단계 공개 기준 일원화(유효 공개 회차 `shownCardEpisode`·기준 회차·목록 쿼리와 기준 회차 배치 쿼리·화면의 공개 입력 하나·일괄 공개 회차)는 소스 구현과 로컬 단위 테스트(규칙·서비스·출구 매트릭스·화면 순수 함수·어댑터)를 통과했고, hosted CI 통합 테스트·WorldStudioPage 렌더 테스트·브라우저 육안 확인은 미확인이다. 본문 링크 치환 함수(`hideCardLinks`)·가져오기의 링크 id 매핑·화면의 링크 이동과 백링크·공개 순서 점검(3단계)도 소스 구현과 로컬 단위 테스트(링크 검증 표·출구 매트릭스·화면 순수 함수)·링크 관련 렌더 테스트 5개 파일(jsdom)을 통과했고 hosted CI 통합·전체 렌더 레인·브라우저 육안 확인은 미확인이다. 4단계 「동일 인물」(저장 규칙·시뮬레이션·관계 편집·공개 표시)도 소스 구현과 로컬 단위 테스트를 통과했고 같은 CI·육안 확인 전이다. 연결을 바꾸기 전에 새로 공개되거나 가려질 카드 수를 알리고 확인받는 화면(위 '연결·해제·공개 중단' 표)은 아직 없다.
 
 ## 세계관 삭제 (2026-11-17 사용자 결정)
 

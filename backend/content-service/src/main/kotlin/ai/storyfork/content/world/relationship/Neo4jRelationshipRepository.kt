@@ -35,6 +35,19 @@ class Neo4jRelationshipRepository(private val driver:Driver,private val mapper:J
         driver.session(SessionConfig.forDatabase(database)).use { session -> session.executeRead({ tx -> view(worldId,load(tx,worldId),episode) },timeout) }
     }
 
+    /**
+     * [rows]를 [episode]화(없으면 마지막 연결 회차)의 관계로 저장한 뒤 생길 **최신 회차 시점**의 관계다. 아무것도 쓰지 않고 저장과 같은 순수 함수([edgesAfterSave])로 계산한다.
+     * 「동일 인물」의 사슬·순환을 저장 결과의 최신 시점으로 검사하는 데 쓴다(#485). 토큰은 읽은 그래프의 것이라 호출자가 저장 기준과 맞는지 확인한다.
+     */
+    fun readAfter(worldId:UUID,rows:List<RelationshipPayload>,episode:Int?=null):RelationshipStateResult=access {
+        driver.session(SessionConfig.forDatabase(database)).use { session -> session.executeRead({ tx ->
+            val stored=load(tx,worldId)
+            // 끝이 빈 관계는 RelationshipInputHelper가 저장 전에 거절하므로 두 끝점은 항상 있다.
+            val wanted=rows.map { RelationEdge(it.id,0,false,requireNotNull(it.sourceCardId),requireNotNull(it.targetCardId),mapper.writeValueAsString(it)) }
+            view(worldId,Stored(stored.version,stored.key,stored.hash,edgesAfterSave(stored.edges,wanted,episode)),null)
+        },timeout) }
+    }
+
     /** 토큰과 최신 관계를 과거 회차 연결 유무와 같은 그래프 스냅샷에서 읽는다. */
     fun readWithHistory(worldId:UUID):Pair<RelationshipStateResult,Boolean> = access {
         driver.session(SessionConfig.forDatabase(database)).use { session -> session.executeRead({ tx ->

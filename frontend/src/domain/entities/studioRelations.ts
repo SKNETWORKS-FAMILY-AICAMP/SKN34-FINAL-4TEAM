@@ -1,7 +1,9 @@
 import {cardTypes,cardTypeOf} from './studioCards'
 import { authorEdit, newSetting, type SettingItem, type StudioSetting } from './studioWorld'
 
-export const relationDefinitions:Record<string,{label:string;group:'fact'|'emotion'|'other';symmetric?:boolean}>={
+export const relationDefinitions:Record<string,{label:string;group:'fact'|'emotion'|'other'|'identity';symmetric?:boolean}>={
+ // 같은 사람의 다른 이름 카드(주체) → 본체 카드(대상). 인물 카드끼리만, 사슬·순환 없이 잇고 회차를 정해 저장한다(#485).
+ identity_of:{label:'동일 인물',group:'identity'},
  preserved_emotion_symmetric:{label:'대칭 감정 · 읽기 전용',group:'emotion',symmetric:true},
  custom_relation:{label:'직접 쓴 관계',group:'fact',symmetric:true},custom_relation_directed:{label:'직접 쓴 방향 관계',group:'fact'},custom_emotion:{label:'직접 쓴 감정',group:'emotion'},
  friend_of:{label:'친구',group:'fact',symmetric:true}, sibling_of:{label:'남매·형제자매',group:'fact',symmetric:true},
@@ -47,11 +49,27 @@ export function assertNoNewRelationDuplicates(settings:StudioSetting[],baselineS
   throw new Error('같은 방향과 종류의 관계가 이미 있습니다. 기존 연결을 선택해 수정해 주세요.')
  }
 }
+/** 「동일 인물」로 이은 관계(다른 이름 카드 → 본체 카드). 부정(denied) 관계는 한 사람으로 묶는 데 쓰지 않는다(#485). */
+const identityLinks=(settings:StudioSetting[])=>settings.map(s=>s.item).filter(i=>i.kind==='relation'&&i.predicate==='identity_of'&&i.polarity!=='denied'&&i.subjectId&&i.targetId)
+/** 다른 이름 카드 id → 본체 카드 id. */
+export const identityBodies=(settings:StudioSetting[]):Map<string,string>=>new Map(identityLinks(settings).map(l=>[l.subjectId!,l.targetId!]))
+/** 이 카드가 다른 이름 카드면 그 본체 카드다. 본체이거나 기록하지 않은 카드는 undefined다. */
+export const identityBodyOf=(settings:StudioSetting[],id:string)=>{
+ const body=identityBodies(settings).get(id)
+ return body===undefined?undefined:settings.find(s=>s.item.kind!=='relation'&&s.item.id===body)
+}
+/** 「동일 인물」(다른 이름 → 본체)의 사슬·순환·본체 둘을 막는다. 서버도 같은 규칙으로 거절한다(#485). */
+export function assertIdentityLinks(settings:StudioSetting[]) {
+ const links=identityLinks(settings),others=links.map(l=>l.subjectId)
+ if(new Set(others).size!==others.length)throw new Error('다른 이름 카드의 본체는 하나여야 해요.')
+ if(links.some(l=>others.includes(l.targetId)))throw new Error('본체가 다시 다른 카드의 다른 이름일 수는 없어요(사슬·순환).')
+}
 function validateRelation(settings:StudioSetting[],input:RelationInput) {
  const people=settings.filter(s=>cardTypes.some(type=>type.id===cardTypeOf(s.item)))
  const source=people.find(s=>s.item.id===input.subjectId),target=people.find(s=>s.item.id===input.targetId)
  if(!source||!target||source===target)throw new Error('서로 다른 설정 카드 두 개를 선택해 주세요.')
  if(!relationDefinitions[input.predicate??''] || relationDefinitions[input.predicate??''].group==='other')throw new Error('구조 관계 또는 감정을 선택해 주세요.')
+ if(input.predicate==='identity_of'&&![source,target].every(s=>cardTypeOf(s.item)==='character'))throw new Error('「동일 인물」은 인물 카드끼리만 이을 수 있어요.')
  const existing=settings.find(s=>s.item.id===input.id)
  if(input.id&&(!existing||existing.item.kind!=='relation'))throw new Error('수정할 관계를 찾을 수 없습니다.')
  const generated=generatedDescription(input,settings)
@@ -66,6 +84,7 @@ export function putRelation(settings:StudioSetting[],input:RelationInput):Studio
   ?editStudioSetting(settings,existing.item.id,{...input,kind:'relation',entityType:null,title,text})
   :[...settings,authorEdit(newSetting(),{...input,kind:'relation',entityType:null,title,text})]
  assertNoNewRelationDuplicates(next,settings)
+ assertIdentityLinks(next)
  return next
 }
 export function applyRelationChanges(settings:StudioSetting[],changes:(RelationInput&{baseline?:RelationInput})[],removedIds:string[],baselineSettings:StudioSetting[]=settings) {
@@ -94,6 +113,7 @@ export function applyRelationChanges(settings:StudioSetting[],changes:(RelationI
  }
  // Compare the final batch against saved state so legacy duplicates survive.
  assertNoNewRelationDuplicates(next,baselineSettings)
+ assertIdentityLinks(next)
  if(next.some(s=>[s.item.subjectId,s.item.targetId,s.item.afterId,...s.item.relatedIds].some(id=>id!==null&&removedIds.includes(id))))throw new Error('다른 설정에서 참조하는 관계입니다. 연결을 먼저 정리해 주세요.')
  return next
 }

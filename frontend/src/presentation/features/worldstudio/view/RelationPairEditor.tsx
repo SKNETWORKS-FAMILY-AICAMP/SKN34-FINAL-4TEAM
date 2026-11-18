@@ -153,6 +153,52 @@ export function RelationPairEditor(
       </section>
     )
   }
+  // 같은 사람의 다른 이름 카드(주체) → 본체 카드(대상). 인물 카드끼리만, 회차를 정해야 적용돼요(#485).
+  const identity = () => {
+    const visible = rows.filter((r) => r.group === 'identity')
+    return (
+      <section className='relationship-group' key='identity'>
+        <h4>동일 인물</h4>
+        <p className='small muted'>
+          같은 사람인 두 카드를 이어요. 다른 이름 카드에서 본체 카드로 이어지고, 이 관계를 기록한 회차부터 독자에게 정체가 드러나요.
+        </p>
+        {visible.map((r, i) => {
+          const field = '동일 인물 ' + (i + 1)
+          return (
+            <div className='relationship-row' key={r.key}>
+              <label className='field'>
+                {field} 본체
+                <select className='inp' value={r.value.targetId ?? ''} onChange={(e) => vm.setBody(r, e.target.value)}>
+                  <option value={source}>{name(source)}</option>
+                  <option value={target}>{name(target)}</option>
+                </select>
+              </label>
+              <p className='small'>{name(r.value.subjectId)}은(는) {name(r.value.targetId)}의 다른 이름이에요.</p>
+              {vm.bodyAuthorOnly(r) && (
+                <p className='small muted'>
+                  {name(r.value.targetId)}은(는) '작가 전용' 카드예요. 인물 지식에는 시점 제한이 없어 다른 인물이 본체를 알 수 있어요. 공개 회차를 정하면 그 회차 전에는 알지 못해요.
+                </p>
+              )}
+              <button className='btn sm relationship-remove' type='button' onClick={() => vm.remove(r)}>{field} 삭제</button>
+            </div>
+          )
+        })}
+        {!visible.length && vm.identityAllowed && (
+          <button className='btn sm' type='button' onClick={() => vm.add('identity', source, target)}>동일 인물 추가</button>
+        )}
+        {!visible.length && !vm.identityAllowed && <p className='small muted'>인물 카드끼리만 「동일 인물」로 이을 수 있어요.</p>}
+        {!!visible.length && (
+          <p className='small muted'>
+            {studio.identityEpisode === null
+              ? '관계 기준 회차를 정해야 적용돼요. 이 패널을 닫고 위의 "관계 기준" 칸에서 회차를 정한 뒤 다시 열어 주세요.'
+              : studio.episode === null
+              ? '소설을 연결하지 않은 세계관이라 1화 기준으로 기록돼요.'
+              : `${studio.identityEpisode}화부터 독자에게 정체가 드러나요. 세계관을 저장하면 이 회차의 관계로 기록돼요.`}
+          </p>
+        )}
+      </section>
+    )
+  }
   return (
     <>
       <datalist id='relationship-examples'>
@@ -167,6 +213,7 @@ export function RelationPairEditor(
       {group('fact', source, target, '실제 관계')}
       {group('emotion', source, target, `${name(source)} → ${name(target)} 감정`)}
       {group('emotion', target, source, `${name(target)} → ${name(source)} 감정`)}
+      {identity()}
       {!!removed.length && (
         <p role='status'>
           관계 항목 {removed.length}개를 삭제할 예정이에요. 다른 관계와 감정은 유지돼요.
