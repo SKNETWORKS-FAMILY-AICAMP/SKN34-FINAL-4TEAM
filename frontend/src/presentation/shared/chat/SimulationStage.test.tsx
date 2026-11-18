@@ -236,7 +236,7 @@ it('흐름 양식은 열린 회차의 장면 계획을 순서대로 비트로 �
   setup((_input, emit) => { pauseAt(emit, scene([narrate(0)])) }, () => {})
   await openForm()
   fireEvent.click(box().getByRole('radio', { name: /흐름/ }))
-  expect(box().getByText(/4화의 장면 계획 2개를 순서대로 비트로 써요/)).toBeTruthy()
+  expect(box().getByText(/4화의 저장된 장면 계획 2개를 순서대로 써요/)).toBeTruthy()
   expect(within(box().getByRole('list', { name: '흐름 비트' })).getAllByRole('listitem').map((li) => li.textContent))
     .toEqual(['성문 대면: 카엘이 성문 앞에서 리안과 마주친다.', '협상: 두 사람이 조건을 흥정한다. 서연이 중재한다.'])
   expect(checkedPeople()).toEqual(['카엘', '리안', '서연']) // 다른 회차 계획의 도윤은 비트가 아니라 고르지 않는다.

@@ -42,10 +42,16 @@
 - 실제 화면·공유 DB 실행은 별도 요청 전에는 수행하지 않는다. 소스 구현과 hosted CI·실행 검증 완료를 구분한다.
 - 이 묶음은 기존 `feat/writing-plan-panel`의 구현을 재사용했다. 해당 브랜치의 화면 검증 결과를 현재 브랜치의 검증으로 간주하지 않는다. 계획 ViewModel은 `presentation/shared/plans`에 두어 집필실과 단독 계획 화면이 공유한다. Toast UI 3.2.2의 제거된 툴바 resize 콜백 보정도 기존 pnpm 패치를 재사용하며 설치에 `pnpm-workspace.yaml`과 `patches/`가 필요하다.
 
-### 현재 묶음 검증 기록 (#406 → #416 → #374)
+### 최초 묶음 검증 기록 (#406 → #416 → #374, 2026-11-16)
 
 - 프런트 순수 단위 69개 통과: `draftAutosave` 3개, `writingStatus`·`pickEpisode` 14개, `StoryPlan`·`characterSimulation`·`writingPlan`·`HttpStoryPlanRepository` 52개. 구현 전 정책/순서 회귀 실패를 확인한 뒤 통과시켰다.
 - Content `StoryPlanServiceTest`·`StoryPlanMcpToolsTest` 26개 통과. 순서 테스트를 먼저 추가하고 기존 구현의 `position` 계약 부재를 확인한 뒤 구현을 반영했다.
 - `pnpm exec tsc --noEmit -p tsconfig.app.json`, 패치 포함 `pnpm install --frozen-lockfile`, `git diff --check` 통과(pnpm 11.22.0).
 - React/Hook·Toast 키보드·DB 통합 회귀 테스트는 작성·갱신했으나 로컬 실행 금지 지침에 따라 실행하지 않았다. 키보드·패널 버튼 연결은 화면 연결 변경 예외이며, Hook 수정의 실제 Red/Green 실행과 End→Enter 연속 입력 재현, V38 적용 검증은 CI·별도 화면 검증에 남는다. 빌드·전체 테스트·공유 DB 변경도 실행하지 않았다.
 - CodeRabbit은 무료 리뷰 한도에 걸려 실행하지 못했다. 직접 검토에서 공용 ViewModel 경계, 저장 실패 뒤 회차 전환 상태, 계획 미저장 보호를 점검했다. 사용자 지시에 따라 이 브랜치는 커밋·fork push까지만 수행하며 PR은 만들지 않는다.
+
+### 사용자 요청 후 실사용 검증 (2026-11-18)
+
+- 사용자 요청으로 관련 React/Hook 테스트·실서버 빌드·격리 DB·브라우저 검증을 추가했다. 기존 디자인을 유지하면서 로그인 복구 전 원고 요청과 긴 문단의 End 위치를 보완했다. 실제 UUID 집필실도 공용 `RequireRole`로 세션 복구를 기다린다.
+- 실제 PostgreSQL에 V38 적용 성공, 회차 초안·저장 버전·장면 순서 저장 및 새로고침 복원을 확인했다. 원고 저장 실패 때 입력 보존 → 서버 복구 → 명시적 재시도 후 버전 수 유지도 확인했다.
+- 상세 테스트 결과, CodeRabbit·Impeccable 점검, 영상 방식과 미검증 항목은 [실사용 검증 기록](../verification/studio-editing-save-2026-11-18.md)에 남겼다. PR·병합·공유 DB 변경은 수행하지 않는다.

@@ -203,13 +203,13 @@
 <tr><td>회차 목록 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>회차 제목 수정</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>원고 본문 수정</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
-<tr><td>원고 초안 자동저장 — 실패 후 입력 보존·다음 편집/명시적 재시도(#406), 단위 검증·화면/Hook 검증 대기</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
+<tr><td>원고 초안 자동저장 — 실패 후 입력 보존·다음 편집/명시적 재시도(#406), 단위·Hook·격리 실서버 화면 검증 완료, hosted CI 대기</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a></td></tr>
 <tr><td>회차 순서 변경 가능 범위 확인 <small>(후보 조회)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/261">PR #261</a></td></tr>
 <tr><td>초안 삭제 요청 <small>(작업 초안만)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/261">PR #261</a></td></tr>
 <tr><td>회차 삭제 요청 <small>(참조 없는 마지막 회차 소프트 삭제)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/261">PR #261</a></td></tr>
 <tr><td rowspan="15">11 플롯·장면 계획 CRUD</td><td>플롯 생성</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/131">PR #131</a></td><td rowspan="15"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/61">#61</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/131">PR #131</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/140">#140</a></td></tr>
-<tr><td>집필실 고급 모드 플롯·장면 패널과 미저장 보호·최신 시뮬레이션 비트 연결</td><td>❌ <small>#374 소스 구현·로컬 단위 검증, hosted CI·화면 확인 대기</small></td></tr>
-<tr><td>회차별 장면 순서 영구 저장 <small>(기존 PUT position·V38)</small></td><td>❌ <small>#374 소스 구현·로컬 단위 검증, hosted CI·DB 적용 대기</small></td></tr>
+<tr><td>집필실 고급 모드 플롯·장면 패널과 미저장 보호·최신 시뮬레이션 비트 연결</td><td>❌ <small>#374 로컬 회귀·격리 실서버 저장/비트 표시 확인. 이탈 취소 실사용·AI 실행·hosted CI 대기 (<a href="verification/studio-editing-save-2026-11-18.md">검증</a>)</small></td></tr>
+<tr><td>회차별 장면 순서 영구 저장 <small>(기존 PUT position·V38)</small></td><td>❌ <small>#374 로컬 회귀·격리 DB V38·화면 저장/복원 확인, hosted CI·배포 DB 적용 대기</small></td></tr>
 <tr><td>플롯 상세 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/131">PR #131</a></td></tr>
 <tr><td>플롯 목록 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/131">PR #131</a></td></tr>
 <tr><td>플롯 수정</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/131">PR #131</a></td></tr>
@@ -708,7 +708,7 @@
 <tr><td>개발 환경에서만 화면 ID 표시·토글 제공 (일반 화면 테마 전환·인증 경로 제외 유지)</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/151">PR #151</a></td></tr>
 <tr><td rowspan="1">60 설정 문서 탐색</td><td>설정 본문·속성의 다른 문서 이름을 내부 링크로 탐색</td><td>❌</td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a></td></tr>
 <tr><td rowspan="4">63 원고 편집 보조</td><td>원고 글자 수 확인</td><td>❌</td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a></td></tr>
-<tr><td>데모 집필실에서 동작별 저장 표시 제어 <small>(실서버 #416: 저장 중·실패·시각·버전 표시, 없는 회차 안내, 시트 완료 안내 초기화, 인용 Enter·빠른 End 입력 보완. 순수 단위 통과, 화면/Hook·브라우저 검증 대기)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/189">PR #189</a></td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/6">#6</a></td></tr>
+<tr><td>데모 집필실에서 동작별 저장 표시 제어 <small>(실서버 #416: 저장 중·실패·시각·버전 표시, 없는 회차 안내, 시트 완료 안내 초기화, 인용 Enter·표시 줄 End·새로고침 세션 복구 보완. 단위·Hook·Chrome 실사용 검증 통과, hosted CI 대기)</small></td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/189">PR #189</a></td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/6">#6</a></td></tr>
 <tr><td>저장 표시 없이 AI 요청 입력을 데모 초안에 보존</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/189">PR #189</a></td></tr>
 <tr><td>원고 수정 후 재검사 전까지 설정 검사 무효 표시 유지</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/189">PR #189</a></td></tr>
 <tr><td rowspan="1">64 발행 전 검토</td><td>공개 확정 전 선택 저장 원고 미리보기 <small>(팀 공통 시트 연결, 로컬 구현·CI 대기)</small></td><td>❌</td><td rowspan="1"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/73">#73</a></td></tr>

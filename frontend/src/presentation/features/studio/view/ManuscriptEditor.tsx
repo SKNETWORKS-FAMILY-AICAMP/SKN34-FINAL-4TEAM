@@ -256,7 +256,13 @@ function Prose({ value, onChange, editable, busy = false, workId, number, onImag
         // 네이티브 End의 selectionchange를 기다리지 않는다. 서식 직후 End→Enter가 같은 틱에 와도
         // Enter가 이전 선택 범위를 삭제하지 않게 ProseMirror 커서를 먼저 확정한다.
         if (event.key === 'End') {
-          const end = view.state.selection.$to.end()
+          const selection = view.dom.ownerDocument.getSelection()
+          if (!selection?.modify) return false
+          view.focus()
+          // 화면에서 접힌 줄의 끝은 브라우저가 계산한다. 문단 끝으로 건너뛰지 않는다.
+          selection.modify('move', 'forward', 'lineboundary')
+          if (!selection.focusNode || !view.dom.contains(selection.focusNode)) return false
+          const end = view.posAtDOM(selection.focusNode, selection.focusOffset)
           view.dispatch(view.state.tr.setSelection(pmState.TextSelection.create(view.state.doc, end)))
           return true
         }

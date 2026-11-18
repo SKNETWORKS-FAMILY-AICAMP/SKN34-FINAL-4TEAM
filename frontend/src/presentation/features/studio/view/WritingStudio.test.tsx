@@ -1191,7 +1191,7 @@ it('오류는 상단 바 바로 아래의 오류 상자로 알리고 원고를 �
   model.error = '동시 수정 충돌'
   renderStudio()
   const alert = screen.getByRole('alert')
-  expect(alert.textContent).toBe('동시 수정 충돌 저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.')
+  expect(alert.textContent?.trim()).toBe('동시 수정 충돌 저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.')
   expect(alert.className).toContain('ep-alert')
   expect(screen.getByRole('banner').nextElementSibling).toBe(alert)
 })
