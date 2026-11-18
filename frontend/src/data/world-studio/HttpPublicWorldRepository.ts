@@ -11,6 +11,8 @@ const genre = z.enum(PUBLIC_WORLD_GENRES).nullable()
 const cardType: z.ZodType<CardType> = z.enum(['character', 'location', 'organization', 'ability', 'object', 'rule', 'event', 'other'])
 // 카드 대표 이미지 id(#401). 이 필드를 주기 전 응답과 이미지 없는 카드는 null이다.
 const imageId = z.string().min(1).nullable().default(null)
+// 관계의 회차 이력(DEC-54 2단계): 기준 회차까지의 변화. 이 필드를 주기 전 응답에는 없다(없는 대로 둔다).
+const relationHistory = z.array(z.object({ episode: z.number().int().positive(), label: z.string(), body: z.string() })).optional()
 // 연결된 공개 소설(#329). 이 필드를 주기 전 응답과 연결 없음·비공개 소설은 null이다.
 const linkedWork = z.object({ id, title: z.string(), authorNickname: z.string(), hasCover: z.boolean() }).nullable().default(null)
 
@@ -24,7 +26,7 @@ const cardPage: z.ZodType<PublicWorldCardPage> = z.object({ items: z.array(cardH
 const world: z.ZodType<PublicWorld> = z.object({
   id, name: z.string(), description: z.string(), genre, authorNickname: z.string(), publishedAt: instant, hasCover: z.boolean().default(false), revisionNo: z.number().int().positive(),
   cards: z.array(z.object({ id, title: z.string(), text: z.string(), cardType, aliases: z.array(z.string()), tags: z.array(z.string()), imageId })),
-  relationships: z.array(z.object({ id, sourceCardId: id, targetCardId: id, label: z.string(), category: z.enum(['structural', 'emotional', 'identity']).nullable().optional(), direction: z.enum(['directed', 'symmetric']).nullable().optional(), body: z.string().nullable().optional(), polarity: z.enum(['asserted', 'denied']).nullable().optional() })),
+  relationships: z.array(z.object({ id, sourceCardId: id, targetCardId: id, label: z.string(), category: z.enum(['structural', 'emotional', 'identity']).nullable().optional(), direction: z.enum(['directed', 'symmetric']).nullable().optional(), body: z.string().nullable().optional(), polarity: z.enum(['asserted', 'denied']).nullable().optional(), history: relationHistory })),
   relationshipStatus: z.enum(['current', 'unavailable']),
   linkedWork,
 })

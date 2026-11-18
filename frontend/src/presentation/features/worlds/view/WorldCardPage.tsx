@@ -9,7 +9,7 @@ import { Go } from '../../../shared/Go'
 import { Jump } from '../../../shared/Jump'
 import { jumpTo } from '../../../shared/jumpTo'
 import { KindChip } from '../../../shared/KindChip'
-import { relationAnchor, relationNote } from '../../../shared/relationParagraph'
+import { relationAnchor, relationHistoryLine, relationNote } from '../../../shared/relationParagraph'
 import { useScreenId } from '../../../shared/screenIds'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
@@ -88,11 +88,11 @@ function sectionsOf(page: CardPage, worldId: string, cardLink: CardLinkRender): 
     ...text.map(({ title, body, no, depth }, i) => ({ id: `nw-s-text-${i}`, no, depth, title, body: body && <CardMarkdown text={body} cardLink={cardLink} />, children: [] })),
     ...(hasRelations ? [{ id: 'nw-s-relations', no: String(top + 1), depth: 1, title: '관계', body: null, children: [] }] : []),
     ...page.relations.map((r, i): Section => {
-      const note = relationNote(r)
+      const note = relationNote(r), history = relationHistoryLine(r.category, r.history)
       return {
         id: relationAnchor(page.card.cardId, r.relationId), no: `${top + 1}.${i + 1}`, depth: 2, title: r.label ? `${r.title} — ${r.label}` : r.title,
         heading: <><Go to={cardPath(worldId, r.cardId)}>{r.title}</Go>{r.label && ` — ${r.label}`}{note && <>{' '}<small>{note}</small></>}</>,
-        body: r.body && <CardMarkdown text={r.body} cardLink={cardLink} />, children: [],
+        body: (history || r.body) && <>{history && <p className="nw-relhist">{history}</p>}{r.body && <CardMarkdown text={r.body} cardLink={cardLink} />}</>, children: [],
       }
     }),
     ...lists.filter(([, , refs]) => refs.length > 0).map(([id, title, refs, withType, toRelation], i) => ({ id: `nw-s-${id}`, no: String(top + (hasRelations ? 1 : 0) + i + 1), depth: 1, title, body: <CardList worldId={worldId} refs={refs} withType={withType} toRelation={toRelation} />, children: [] })),

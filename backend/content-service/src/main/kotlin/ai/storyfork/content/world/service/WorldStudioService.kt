@@ -351,7 +351,7 @@ class WorldStudioService(
             owned(worldId,subject);if(review) guardNoExpanded(worldId);val state=state(worldId);ready(state)
             if(state.graphVersion!=stored.version || draft(worldId).draftRevision!=loaded.draftRevision) throw WorldStudioFailure.mismatch()
         }
-        return loaded.copy(relationships=stored.relationships)
+        return loaded.copy(relationships=stored.relationships,relationshipEpisodes=stored.episodes)
     }
 
     internal fun draftForReview(worldId:UUID,subject:UUID):WorldDraftResponse = draft(worldId,subject,null,true)
@@ -381,6 +381,10 @@ class WorldStudioService(
 
     internal fun validateEditRequest(request:EditWorldDraftRequest) {
         validateName(request.name,request.description);validateKey(request.key);validEpisode(request.episode)
+        // 관계별 회차(DEC-54 2단계)는 이 요청에서 삭제하지 않는 관계에만, 1 이상의 정수로 정한다.
+        val active=request.relationships.filter { it.lifecycle=="active" }.map { it.id }.toSet()
+        require(request.relationshipEpisodes.keys.all { it in active }) { "관계별 회차는 이 요청에서 삭제하지 않는 관계에만 정할 수 있습니다." }
+        request.relationshipEpisodes.values.forEach { validEpisode(it) }
         require(request.expectedDraftRevision>=0 && request.cards.size<=1000)
         require(request.cards.map { it.id }.distinct().size==request.cards.size) { "중복된 카드입니다." }
         request.cards.forEach { validate(it,false);require(it.semanticMetadata["imageId"]==null || cardImageId(it.semanticMetadata)!=null) { "카드 이미지 ID를 확인하세요." } }
@@ -430,17 +434,20 @@ class WorldStudioService(
         val relations=if(alreadyApplied) current.relationships else RelationshipInputHelper.merge(current.relationships,request.relationships,request.replace,worldCards)
         // Even an acknowledged retry must still match the PostgreSQL card membership.
         RelationshipInputHelper.validateSnapshot(relations,worldCards)
-        // 이미 반영된 재시도는 relations가 current와 같아 새로 만들거나 바뀐 관계가 없다.
-        RelationshipInputHelper.validateSnapshot(relations-current.relationships.toSet(),known)
-        // 「동일 인물」(#485): 새로 쓰거나 바꾸거나 끝내는 저장은 회차가 있어야 하고 인물 카드끼리 방향 있게 이어야 한다. 사슬·순환은 저장 결과의 최신 회차 시점으로 본다.
-        val written=(relations-current.relationships.toSet())+(current.relationships-relations.toSet())
+        // 새로 만들거나 바뀐 관계다. 관계별 회차를 준 관계는 그 시점 값과 같아 보여도 새로 쓰는 관계로 본다. 이미 반영된 재시도는 relations가 current와 같아 새로 쓸 관계가 없다.
+        val timed=request.relationshipEpisodes
+        val asOf=current.relationships.toSet()
+        val changed=if(alreadyApplied) emptyList() else relations.filter { it !in asOf || it.id in timed }
+        RelationshipInputHelper.validateSnapshot(changed,known)
+        // 「동일 인물」(#485): 새로 쓰거나 바꾸거나 끝내는 저장은 회차(요청의 회차, 새로 쓰거나 바꾸는 관계는 자기 회차도 된다)가 있어야 하고 인물 카드끼리 방향 있게 이어야 한다. 사슬·순환은 저장 결과의 최신 회차 시점으로 본다.
+        val written=changed+(current.relationships-relations.toSet())
         val cardTypes=mergedCards.associate { it.id to it.cardType }
-        RelationshipInputHelper.validateIdentity(relations,written,cardTypes,request.episode)
+        RelationshipInputHelper.validateIdentity(relations,written,cardTypes,request.episode,timed.keys)
         // 인물이던 카드를 다른 유형으로 바꾸는 저장도 최신 시점을 본다: 저장 회차에 보이지 않는 뒤 회차 identity의 끝점일 수 있다.
         val before=loaded.draft.cards.associate { it.id to it.cardType }
         val retyped=request.cards.any { it.lifecycle=="active" && it.cardType!="character" && before[it.id]=="character" }
         if(!alreadyApplied && (retyped || written.any { it.category=="identity" })) {
-            val after=graph.readAfter(worldId,relations,request.episode)
+            val after=if(timed.isEmpty()) graph.readAfter(worldId,relations,request.episode) else graph.readAfterWithEpisodes(worldId,relations,request.episode,timed)
             if(after.worldId!=worldId || after.version!=current.version) throw WorldStudioFailure.mismatch()
             RelationshipInputHelper.validateIdentityLinks(after.relationships,cardTypes)
         }
@@ -467,7 +474,10 @@ class WorldStudioService(
             state.requestKey=request.key;state.requestHash=hash;state.expectedDraftRevision=request.expectedDraftRevision
             state.completed=false;states.flush()
         }
-        val stored=try { graph.replace(worldId,loaded.graphVersion,request.key,hash,relations,request.episode) }
+        val stored=try {
+            if(timed.isEmpty()) graph.replace(worldId,loaded.graphVersion,request.key,hash,relations,request.episode)
+            else graph.replaceWithEpisodes(worldId,loaded.graphVersion,request.key,hash,relations,request.episode,timed)
+        }
         catch(_:WorldNotFound) {
             // Only this callback rejection proves the graph transaction did not apply; transport/CAS failures stay pending.
             if(alreadyApplied) throw WorldStudioFailure.mismatch()

@@ -34,7 +34,7 @@ export const cardImageSrc = (worldId: string, imageId: string) => `/api/v1/publi
 /** 설정집 탭 주소. `kind`를 주면 그 유형 칩이 골라진 채로 열린다(`?type=`). */
 export const bookPath = (worldId: string, kind?: CardKind) => `/worlds/${worldId}?${new URLSearchParams({ tab: 'book', ...(kind ? { type: kind } : {}) })}`
 
-type RelationData = Pick<PublicWorldRelationship, 'category' | 'direction' | 'body' | 'polarity'>
+type RelationData = Pick<PublicWorldRelationship, 'category' | 'direction' | 'body' | 'polarity' | 'history'>
 type CardPair = { id: string; a: number; b: number; label?: string } & RelationData
 /**
  * 카드 위치 쌍으로 본 카드 연관. 양 끝 카드가 없는 관계·자기 참조는 버리고 각 관계 ID를 보존한다.
@@ -180,7 +180,7 @@ function pageAt(world: PublicWorld, me: number): CardPage {
     if (a === undefined || b === undefined || a === b || (a !== me && b !== me)) return []
     return [{ relation, other: a === me ? b : a, sends: a === me }]
   }).sort((x, y) => rank.get(x.other)! - rank.get(y.other)!)
-  const ref = ({ relation: r, other }: (typeof touching)[number]) => ({ ...cardRef(world, other, relationName(r.category, r.label) || undefined), relationId: r.id, category: r.category, direction: r.direction ?? null, body: r.body, polarity: r.polarity })
+  const ref = ({ relation: r, other }: (typeof touching)[number]) => ({ ...cardRef(world, other, relationName(r.category, r.label) || undefined), relationId: r.id, category: r.category, direction: r.direction ?? null, body: r.body, polarity: r.polarity, history: r.history })
   // 본문 링크로 이 카드를 가리킨 카드(관계로 이미 이어진 카드는 위 관계가 보인다)를 설정집 순서로
   const linkedBy = linkPairs(world, cardPairs(world)).filter(([, to]) => to === me).map(([from]) => from).sort((x, y) => rank.get(x)! - rank.get(y)!)
   const organizations = new Set<number>()

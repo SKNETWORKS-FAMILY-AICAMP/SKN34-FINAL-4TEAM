@@ -170,6 +170,18 @@ describe('연결된 세계관의 독자 공개 카드 (DEC-46)', () => {
     }
   })
 
+  it('관계 이력(history)을 읽고 이력이 없던 응답은 그대로 두며 모양이 어긋난 이력은 거절한다', async () => {
+    const history = [{ episode: 1, label: '경계', body: '' }, { episode: 3, label: '보호', body: '지킨다' }]
+    const relationship = { id: link, sourceCardId: rian, targetCardId: tower, label: '보호', history }
+    expect((await repositoryOf(served({ relationships: [relationship] })).repository.readWorldCards('work-uuid')).relationships[0]).toEqual(relationship)
+    expect((await repositoryOf(served({ relationships: [{ ...relationship, history: [] }] })).repository.readWorldCards('work-uuid')).relationships[0].history).toEqual([])
+    expect((await repositoryOf(served()).repository.readWorldCards('work-uuid')).relationships[0]).not.toHaveProperty('history')
+    for (const invalid of [[{ episode: 0, label: '경계', body: '' }], [{ episode: 1.5, label: '경계', body: '' }], [{ episode: 1, label: 3, body: '' }], [{ episode: 1, label: '경계' }], 'x']) {
+      await expect(repositoryOf(served({ relationships: [{ ...relationship, history: invalid }] })).repository.readWorldCards('work-uuid')).rejects.toThrow('서버 응답 형식')
+    }
+  })
+
+
   it('카드의 imageId는 서버가 준 대로(없으면 null) 읽고, 문자열이 아니면 빈 위키로 바꾸지 않고 실패한다', async () => {
     const [first, second] = cards
     const { imageId: _kept, ...withoutField } = second // 필드가 없던 옛 응답

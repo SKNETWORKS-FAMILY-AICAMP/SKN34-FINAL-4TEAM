@@ -21,7 +21,6 @@ from app.novelbrain.models import Card, Gap, RecallItem, RecallResult, Relation,
 _RUN = re.compile(r'[가-힣]+|[^\W_가-힣]+')
 _EPISODE_DOC = re.compile(r'ep([0-9]+)')
 _ARROWS = {'directed': '→', 'symmetric': '↔', None: '—'}
-_DENIED_ARROWS = {'directed': '↛', 'symmetric': '↮', None: '—'}
 # 이 종류의 다른 카드는 그 인물과 관계로 연결돼 있어야 인물이 아는 것으로 본다(장소·규칙·조직·능력·기타는 누구나 아는 정보).
 _LINKED_TYPES = ('character', 'event', 'object')
 _UNKNOWN, _NOT_LINKED = '출처를 확인할 수 없음', '연결된 관계가 없어 이 인물이 아는지 확인할 수 없음'
@@ -221,11 +220,17 @@ def _documents(cards: list[Card]) -> dict[str, tuple[str, str]]:
     return {ref: doc for ref, doc in docs.items() if doc[1].strip()}
 
 
-def _relation_text(r: Relation, cards: dict[str, Card]) -> str:
-    denied = r.polarity == 'denied'
-    arrow = (_DENIED_ARROWS if denied else _ARROWS)[r.direction]
-    line = f'{cards[r.source].title} {arrow} {cards[r.target].title}' + (' (아님)' if denied else '')
-    return f'{line}: {r.label}' if r.label else line
+def relation_text(r: Relation, cards: dict[str, Card]) -> str:
+    """관계 한 줄. 관계 'A → B 「관계명」'은 'B는 A의 관계명'으로 읽히게 쓴다(DEC-54, 화면과 같다).
+
+    방향 있는 관계는 'A의 관계명: B'이고, 대칭은 'A ↔ B: 관계명', 방향 미상은 'A — B: 관계명'이다(관계명이 없으면 'A → B'처럼 화살표만).
+    부정(denied)이면 끝에 '아님'을 붙인다. 시뮬레이션의 인물 입력(`known`)도 이 함수를 써서 같은 읽기를 한다.
+    """
+    a, b, denied = cards[r.source].title, cards[r.target].title, ' 아님' if r.polarity == 'denied' else ''
+    if r.direction == 'directed' and r.label:
+        return f'{a}의 {r.label}: {b}{denied}'
+    line = f'{a} {_ARROWS[r.direction]} {b}'
+    return (f'{line}: {r.label}' if r.label else line) + denied
 
 
 def _graph(world: WorldSnapshot, query: str) -> list[tuple[str, str, float]]:
@@ -239,7 +244,7 @@ def _graph(world: WorldSnapshot, query: str) -> list[tuple[str, str, float]]:
     for r in relations:
         score = (scores.get(r.source, 0) + scores.get(r.target, 0)) / 2
         if score > 0:
-            found.append((f'relation:{r.id}', _relation_text(r, cards), score))
+            found.append((f'relation:{r.id}', relation_text(r, cards), score))
     return sorted(found, key=lambda row: -row[2])
 
 

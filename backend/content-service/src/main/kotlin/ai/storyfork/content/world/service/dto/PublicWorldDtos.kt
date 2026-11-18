@@ -35,8 +35,10 @@ data class PublicWorldSearchCard(val cardId: UUID, val title: String, val aliase
 /** 공개 설정 카드. [id]는 카드 논리 ID이며 관계의 양 끝이 가리킨다. [imageId]가 있으면 `/{세계관}/card-images/{imageId}`로 대표 이미지를 읽는다(#401, 없으면 null). */
 data class PublicWorldCardResponse(val id: UUID, val title: String, val text: String, val cardType: String, val aliases: List<String>, val tags: List<String>, val imageId: UUID? = null)
 
+/** [history]는 기준 회차까지의 변화(회차 오름차순, 마지막이 기준 회차 시점의 값)이고 바뀐 적 없는 관계는 비어 있다. 기준 회차 뒤의 변화와 끝점이 달랐던 옛 연결은 담지 않는다. */
 data class PublicWorldRelationshipResponse(val id: UUID, val sourceCardId: UUID, val targetCardId: UUID, val label: String,
-    val category: String? = null, val body: String = "", val direction: String? = null, val polarity: String? = null)
+    val category: String? = null, val body: String = "", val direction: String? = null, val polarity: String? = null,
+    val history: List<RelationshipChange> = emptyList())
 
 /** 세계관에 연결된 공개 소설의 최소 정보(#329)다. [id]는 작품 ID이고 [hasCover]면 `/api/v1/public/works/{id}/cover/content`로 표지를 읽는다. */
 data class PublicWorldLinkedWorkResponse(val id: String, val title: String, val authorNickname: String, val hasCover: Boolean)

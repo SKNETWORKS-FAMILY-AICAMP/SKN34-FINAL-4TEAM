@@ -98,6 +98,27 @@ class IdentityRelationshipTest {
         owned();at(null)
         rejected(save(identity(),episode=null))
     }
+    private fun anyTimed():Map<UUID,Int> = anyMap<UUID,Int>() ?: emptyMap()
+    @Test fun `an identity relation may carry its own episode when the request has none`() {
+        owned();at(null)
+        val relation=identity();val sent=mutableListOf<List<Any?>>()
+        doAnswer { sent+=it.arguments.toList();RelationshipStateResult(world,4,state.requestKey,state.requestHash,listOf(relation)) }
+            .`when`(graph).replaceWithEpisodes(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode(),anyTimed())
+        `when`(graph.readAfterWithEpisodes(anyUUID(),anyList(),anyEpisode(),anyTimed())).thenAnswer { RelationshipStateResult(world,state.graphVersion,state.requestKey,state.requestHash,it.arguments[1] as List<RelationshipPayload>) }
+        val request=EditWorldDraftRequest(2,"x","",relationships=listOf(relation),key="identity-own",relationshipEpisodes=mapOf(relation.id to 3))
+        assertEquals(3L,service.edit(world,actor,request).draftRevision)
+        assertEquals(mapOf(relation.id to 3),sent.single()[6]);assertNull(sent.single()[5])
+        verify(graph).readAfterWithEpisodes(anyUUID(),anyList(),anyEpisode(),anyTimed()) // 사슬·순환 검사도 관계별 회차를 반영한 저장 결과로 한다
+    }
+    @Test fun `ending an identity relation still needs the request episode even when other relations carry episodes`() {
+        val existing=identity();owned();at(null,existing)
+        val unrelated=RelationshipPayload(UUID.randomUUID(),other,place,"structural",label="다른 관계")
+        assertThrows(IllegalArgumentException::class.java) {
+            service.edit(world,actor,EditWorldDraftRequest(2,"x","",relationships=listOf(existing.copy(lifecycle="removed"),unrelated),key="end-identity",relationshipEpisodes=mapOf(unrelated.id to 2)))
+        }
+        assertTrue(state.completed);verify(states,never()).flush()
+        verify(graph,never()).replaceWithEpisodes(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode(),anyTimed())
+    }
     @Test fun `an identity relation needs a directed relation between two character cards`() {
         owned();at(4)
         rejected(save(identity(mask,place)))

@@ -440,6 +440,7 @@ def _relations(snapshot: WorldSnapshot, person: set[str]) -> list[dict]:
     같은 사람의 두 카드 사이의 관계(identity)는 관계 문서가 아니라 한 사람이라는 뜻이라 넣지 않는다.
 
     상대 카드가 기준 회차에 아직 공개되지 않았으면 뺀다. 관계 문장에 상대 제목이 드러나기 때문이며 recall의 인물 필터와 같은 규칙이다.
+    문장은 'A → B 「관계명」 = B는 A의 관계명'으로 읽히게 쓴다(DEC-54): 방향 있는 관계는 'A의 관계명: B', 부정이면 끝에 '아님'(`novelbrain.relation_text`, 화면과 같은 읽기).
     설명(body)과 부정 여부는 스냅샷의 것이다: 응답 원본이 아니라 스냅샷에서 읽어야 본문 링크(DEC-53)가 글자로 벗겨진 채 인물 입력에 든다.
     """
     cards = {c.id: c for c in snapshot.cards}
@@ -451,8 +452,7 @@ def _relations(snapshot: WorldSnapshot, person: set[str]) -> list[dict]:
         other = cards[r.target if r.source in mine else r.source]
         if other.revealFromEpisode is not None and other.revealFromEpisode > snapshot.episode:
             continue
-        arrow = '→' if r.direction == 'directed' else '↔'
-        said = f'{cards[r.source].title} {arrow} {cards[r.target].title}: {r.label}{" 아님" if r.polarity == "denied" else ""}'
+        said = novelbrain.relation_text(r, cards)
         items.append(_doc(f'relation:{r.id}', '관계', f'{said} — {r.body}' if r.body else said))
     return items
 
