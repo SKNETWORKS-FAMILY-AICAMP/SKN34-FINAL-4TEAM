@@ -85,6 +85,8 @@ tasks.register('unitTest', Test) {
 
 tasks.register('integrationTest', Test) {
     systemProperty 'spring.test.context.cache.maxSize', '4'
+    // Shared Neo4j keeps fixed sample-world IDs across isolated PostgreSQL fixtures.
+    systemProperty 'app.worldstudio.expanded-seed-enabled', 'false'
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
     include integrationTestClasses
