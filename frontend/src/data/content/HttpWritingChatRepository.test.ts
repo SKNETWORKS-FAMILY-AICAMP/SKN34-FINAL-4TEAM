@@ -270,6 +270,28 @@ describe('시뮬레이션 무대(#58) 응답·요청', () => {
   })
 })
 
+describe('설정집 검토 단계 결과(#479)', () => {
+  const done = 'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'
+  const run = async (step: unknown) => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(`event: step\ndata: ${JSON.stringify(step)}\n\n`, done))).send('w1', 't1', input, (e) => events.push(e))
+    return events
+  }
+
+  it('지적이 있는 결과를 웹 조사 모양으로 읽지 않고 종류·메시지로 읽는다', async () => {
+    const events = await run({ feature: 'world_review', status: 'completed', result: { reviewedCards: 2, model: 'm',
+      findings: [{ cardIds: ['c1', 'c2'], kind: 'contradiction', message: '나이가 어긋나요.', fix: null }] } })
+    const step = events.flatMap((e) => (e.type === 'step' ? [e.step] : []))[0]
+    expect(step.worldReview).toEqual({ findings: [{ kind: 'contradiction', message: '나이가 어긋나요.' }] })
+    expect(stepText(step)).toBe('설정 충돌 · 나이가 어긋나요.')
+  })
+
+  it('형식이 어긋난 결과는 그 단계만 실패로 보인다', async () => {
+    const events = await run({ feature: 'world_review', status: 'completed', result: { findings: [{ kind: 'unknown' }] } })
+    expect(events.find((e) => e.type === 'step')).toMatchObject({ step: { feature: 'world_review', status: 'failed', error: '설정집 검토 결과 형식을 확인할 수 없어요.' } })
+  })
+})
+
 describe('원고 검수 단계 결과(#59)', () => {
   const finding = (extra: Record<string, unknown> = {}) => ({
     category: 'spelling', quote: '웃엇다', reason: '받침 오류', status: 'confirmed', evidenceRefs: [], suggestion: '웃었다', start: 3, end: 6, ...extra,

@@ -40,6 +40,19 @@ it('shows the saved approval episode even when a different episode is open', asy
   expect(await screen.findByRole('heading', { name: '1화 초안에 반영할까요?' })).toBeTruthy()
 })
 
+it('바로 쓴 원고의 승인 카드는 반영할 본문과 따로 사용한 계획을 보인다(#458)', async () => {
+  sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [{
+    request: '다음 화를 기획하고 써줘',
+    reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 2, steps: [{
+      feature: 'writing_editing', status: 'completed', result: { text: '선장은 항구에 내렸다.', plan: { title: '항구의 밤', beats: ['선장이 도착한다.'] } } }] },
+  }] })
+  render(<WritingChat workId="w" basis={{ episode: 2, episodeVersionId: 'v2' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByRole('heading', { name: '2화 초안에 반영할까요?' })
+  expect(screen.getByLabelText('반영할 내용').textContent).toBe('선장은 항구에 내렸다.')
+  expect(screen.getByText('사용한 계획: 항구의 밤 — 선장이 도착한다.')).toBeTruthy()
+})
+
 // ── 인물 시뮬레이션 장면(#58): 대본·승인은 집필실 무대가 맡고, 채팅에는 상태 한 줄과 무대 열기만 남는다 ──
 const turn = (index: number, name: string, prose: string): CharacterSimulation['turns'][number] => ({
   index, kind: 'character', pov: 'omniscient', characterId: `c${index}`, characterName: name, prose, editedByAuthor: false,
@@ -107,6 +120,30 @@ it('저장된 대화에서 끝난 장면은 카드 없이 말풍선 한 줄 요�
   expect(bubble.classList.contains('assistant')).toBe(true)
   expect(within(bubble).getByText(/→ 3화 초안에 반영했어요\./)).toBeTruthy()
   expect(screen.queryByText('카엘이 문을 열었다.')).toBeNull()
+})
+
+it('함께 시작한 단계는 다른 단계의 결과가 먼저 와도 끝날 때까지 진행 중으로 보인다(#474 병렬 호출)', async () => {
+  openThread([])
+  let emit!: (event: ChatEvent) => void
+  send.mockImplementation(async (_work: string, _thread: string, _input: unknown, onEvent: (event: ChatEvent) => void) => {
+    emit = onEvent
+    await new Promise<void>(() => {})
+  })
+  renderChat()
+  await screen.findByText('새 대화', { selector: 'h3' })
+  fireEvent.click(screen.getByRole('checkbox'))
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '등급 보고 설정집도 검토해줘' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  const run = async (event: ChatEvent) => { await act(async () => { emit(event) }) }
+  await run({ type: 'plan', steps: [{ feature: 'rating', status: 'not_started' }, { feature: 'world_review', status: 'not_started' }] })
+  await run({ type: 'started', feature: 'rating' })
+  await run({ type: 'started', feature: 'world_review' })
+  const progress = screen.getByRole('status', { name: 'AI 진행 상황' })
+  const states = () => within(progress).getAllByText(/./, { selector: '.chat-step-state' }).map((e) => e.textContent)
+  expect(states()).toEqual(['진행 중', '진행 중'])
+  await run({ type: 'step', step: { feature: 'world_review', status: 'failed', error: '검토 실패' } })
+  expect(states()).toEqual(['진행 중', '실패'])
 })
 
 it('진행 중 step이 올 때마다 진행 표시는 상태 알림 안에 단계만 보이고 장면 한 줄은 그 밖에서 턴 수만 늘어난다', async () => {

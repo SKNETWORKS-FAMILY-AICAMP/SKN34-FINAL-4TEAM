@@ -248,8 +248,32 @@ function Prose({ value, onChange, editable, busy = false, workId, number, onImag
       scrollMargin: { top: 72, right: 0, bottom: 96, left: 0 },
       // 계약에 없는 서식을 넣는 Toast 단축키는 받지 않는다: 취소선(Ctrl+S)·목록(Ctrl+U·O)·코드(Ctrl+Shift+C·P). 저장하려고 누른 Ctrl+S가 원고에 `~~`를 넣지 않게 한다.
       // 화면의 속성이 Toast의 단축키 플러그인보다 먼저 불리고, 받았다고 답하면 브라우저의 기본 동작(페이지 저장 창 등)도 막힌다. 한글 입력 중에는 key가 자모로 오므로 자판 자리(code)로 가린다.
-      handleKeyDown: (_view: View, event: KeyboardEvent) => (event.ctrlKey || event.metaKey) && !event.altKey
-        && (['KeyS', 'KeyU', 'KeyO'].includes(event.code) || (event.shiftKey && ['KeyC', 'KeyP'].includes(event.code))),
+      handleKeyDown: (_view: View, event: KeyboardEvent) => {
+        if (event.isComposing) return false
+        if ((event.ctrlKey || event.metaKey) && !event.altKey
+          && (['KeyS', 'KeyU', 'KeyO'].includes(event.code) || (event.shiftKey && ['KeyC', 'KeyP'].includes(event.code)))) return true
+        if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return false
+        // 네이티브 End의 selectionchange를 기다리지 않는다. 서식 직후 End→Enter가 같은 틱에 와도
+        // Enter가 이전 선택 범위를 삭제하지 않게 ProseMirror 커서를 먼저 확정한다.
+        if (event.key === 'End') {
+          const selection = view.dom.ownerDocument.getSelection()
+          if (!selection?.modify) return false
+          view.focus()
+          // 화면에서 접힌 줄의 끝은 브라우저가 계산한다. 문단 끝으로 건너뛰지 않는다.
+          selection.modify('move', 'forward', 'lineboundary')
+          if (!selection.focusNode || !view.dom.contains(selection.focusNode)) return false
+          const end = view.posAtDOM(selection.focusNode, selection.focusOffset)
+          view.dispatch(view.state.tr.setSelection(pmState.TextSelection.create(view.state.doc, end)))
+          return true
+        }
+        // 한 줄=한 문단 계약: 인용의 Enter도 일반 문단으로 이동한다(#416).
+        // Toast의 extendBlockQuote는 뒤쪽 글을 trim하고 > 를 덧붙이므로 사용하지 않는다.
+        if (event.key === 'Enter' && /^> ?/.test(view.state.selection.$from.parent.textContent)) {
+          editor.insertText('\n')
+          return true
+        }
+        return false
+      },
       dispatchTransaction: (tr: Transaction) => {
         if (!tr.docChanged) return pass.call(view, tr)
         const before = view.state.doc

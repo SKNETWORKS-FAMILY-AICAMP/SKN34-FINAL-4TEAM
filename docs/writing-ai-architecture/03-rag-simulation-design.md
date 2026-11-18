@@ -2,7 +2,7 @@
 
 모든 기능은 Content가 검증한 작품/Fork·판본·공개 범위에서 시작한다. 여섯 업무 Agent는 각자의 역할과 입출력을 가지며 생성·판단에 `gpt-6-luna`를 사용하는 목표다. 역할마다 서버나 전용 모델 인스턴스를 추가하지 않는다. 공통 도구는 필요한 작업에서만 호출하고 실제 RAG 공급자는 기능이 필요할 때 연결한다. [전체 구조](02-ai-architecture.md) · [검색 계약](07-retrieval-contract-and-mocks.md)
 
-목표 구조(2026-11-17 사용자 결정, 미구현)에서 아래 업무 Agent와 인물 시뮬레이션은 메인 에이전트의 `ask_*` 서브 에이전트 도구로 호출되며, 각 기능의 입출력·검증·실패 계약은 바뀌지 않는다. 아래 '현재 구현'에 적힌 Router 분류(검사 종류, Writing `task`, `rating` 분류)는 전환 전 코드다. 목표 구조에서는 Decision Guard가 필요한 기능을 판정하고, 메인 에이전트가 도구 인자(`check`·`task`·`fix`)를 정하며, 정하지 못한 입력은 지금처럼 입력 대기로 작가가 고른다. [메인 에이전트 오케스트레이션](02-ai-architecture.md#메인-에이전트-오케스트레이션-목표-미구현)
+#473(2026-11-17 사용자 결정)부터 아래 업무 Agent와 인물 시뮬레이션은 메인 에이전트의 `ask_*` 서브 에이전트 도구로 호출되며, 각 기능의 입출력·검증·실패 계약은 바뀌지 않는다. 아래 '현재 구현'에 적힌 Router 분류(검사 종류, Writing `task`, `rating` 분류)는 전환 전 기록이다. 지금은 Decision Guard가 필요한 기능을 판정하고, 메인 에이전트가 도구 인자(`check`·`task`·`fix`)를 정하며, 정하지 못한 입력은 입력 대기로 작가가 고른다. 시뮬레이션 도구는 계획까지만 하고 장면은 바깥 `scene` 노드가 쓴다. [메인 에이전트 오케스트레이션](02-ai-architecture.md#메인-에이전트-오케스트레이션-473)
 
 ## 공통 서브그래프 도구
 
@@ -108,6 +108,7 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 - 바로 집필 `plan_and_draft`: 같은 단계 안에서 `plan(single=true)` → 그 계획(제목 + 번호 비트, ≤4000자)으로 `draft`. 응답은 `DraftResponse`에 쓴 계획 `plan`을 더한다. 사용량·응답 id는 원고 호출의 값이다.
 - 오케스트레이션: Router가 단계에 `task`를 붙인다. 작가가 준 `draft`·`patch` 입력이 있으면 그것을 쓰고, 없으면 `task=plan|draft`는 단계 입력 없이(입력 대기 없음) 요청 문장과 반영 대상(`target`)으로 실행한다. `target`이 없으면 단계 실패다. 허용 문맥은 오케스트레이션이 작가 권한으로 Content MCP `work_context_read(workId, 근거 회차, query=요청 앞 200자)`를 읽어 JSON으로 넘긴다(Retrieval 검색이 아니라 Content가 근거 회차까지 고른 설정·원문 발췌이며 60,000자 한도도 Content가 지킨다). 작가가 계획을 준 draft도 `context`가 비어 있으면 같은 문맥을 받는다. 기획 결과(`plans`)는 원고가 아니라 반영 승인(`apply`)을 묻지 않고 Content MCP에 쓰지 않는다. `task=patch`이거나 종류를 모르면 지금처럼 입력 대기다. 응답 단계에도 `task`를 남겨, 화면은 `patch` 대기에서 새 원고 계획 칸 대신 채팅에서 채울 수 없다는 안내를 보인다(선택 구간 입력 화면은 범위 밖). 예전 대화 기록의 `story_development` 단계는 응답 모델이 그대로 읽는다.
 - 실모델 브라우저 e2e(2026-11-17, `gpt-6-luna`, Aside, 로컬 스택, 개발용 작품 4화 초안): "다음 화 전개를 두 가지 안으로 짜줘. 원고는 쓰지 마."는 `writing_editing`·`task=plan` 한 단계로 계획 2안(비트 6개씩)과 참고를 돌려줬고 승인 카드·원고 본문은 없었다. "첫 번째 안으로 다음 화를 기획하고 바로 원고까지 써줘."는 약 36초에 계획 하나(비트 8개)와 그 계획을 따른 원고로 4화 반영 승인 대기가 됐고, 거절하자 초안은 바뀌지 않았다. 이 e2e 뒤 사용자 결정(2026-11-17)으로 기획·바로 집필 단계가 같은 대화 최근 5턴 중 가장 최근 기획 결과를 `previousPlans`로 받아, 지칭한 계획을 그대로 따른다(대화 기록 전체는 보내지 않는다). 실모델 확인(같은 날, 컨테이너에서 Writing 직접 호출, 개발용 요약 문맥): 두 안 기획 뒤 "그 중 두 번째 안으로 바로 원고까지 써줘."는 두 번째 계획의 제목·비트를 그대로 쓴 원고를 약 12초에 만들었다. 이 변경의 브라우저 e2e는 Aside 사용량 한도로 하지 못했다. 같은 시각 컨테이너의 OpenAI 연결 오류(`APIConnectionError`)가 간헐적으로 나 Router 실패로 끝난 요청이 있었다(재시도 시 정상 분류).
+- 화면(#458): 바로 집필 승인 카드는 반영할 본문과 따로 `사용한 계획`(제목·비트) 한 줄을 보여, 작가가 어떤 계획으로 쓴 원고인지 보고 반영을 정한다(반영 본문에는 계획을 섞지 않는다). 기획 결과 글 끝에는 "가장 최근 기획한 안 중 하나를 '계획 1로 써줘'처럼 말하면 그 계획으로 써요." 안내를 붙인다(previousPlans는 가장 최근 기획 결과만 받는다).
 
 - `POST /internal/v1/writing/drafts`: 입력 `episodeNumber`, `plan`(≤4000자, BeatPlan/콘티), `context`(≤60000자, Content가 고른 허용 문맥 JSON. 기존 이어쓰기 한도와 같고 Content가 호출 전에 422로 막음). 문체·분량 요청은 `plan`에 담는다. 응답 `text`와 `model`·`providerResponseId`·`usage`.
 - `POST /internal/v1/writing/patches`: 입력 `selection`(≤5000자), `instruction`, 읽기 전용 `precedingText`·`followingText`(각 ≤2000자), `context`. 응답 `before`(=selection)·`after`와 같은 메타. 선택 구간의 교체 문장만 돌려주므로 선택 밖 문장은 AI 결과에 없다. 판본·원문 해시·span 검증과 적용은 Content가 한다.
@@ -158,7 +159,7 @@ POST /internal/v1/ratings {workId, episodes[1..10]}
   → agent.rate: 회차마다 agent_runtime.run(create_agent + 공통 미들웨어) 1회, 회차끼리 스레드로 동시 호출
              (지시문 + 기준 문서, 입력은 {title, authorNote, draft, characters, signals}) → 항목별 수준·근거·prohibited
   → models: 일곱 항목을 한 번씩 평가했는지, 수준 2 이상에 근거 구절이 있는지
-  → service: 근거 구절이 그 회차 초안에 있는지 대조(공백·둥근 따옴표만 같게 봄, 4자 이상),
+  → service: 근거 구절이 그 회차 초안에 있는지 대조(공백·둥근 따옴표·말줄임표만 같게 봄, 4자 이상),
              회차 판정 = 문턱값(models.verdict), 묶음 판정 = 하나라도 adult면 adult, 전부 general이면 general, 그 외 needsReview
 ```
 

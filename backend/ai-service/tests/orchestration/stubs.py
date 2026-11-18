@@ -1,9 +1,15 @@
 from datetime import datetime, timezone
 from types import SimpleNamespace
+from typing import Any, NamedTuple
 
-from app.intent.models import IntentResult, IntentStep
+from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.outputs import ChatGeneration, ChatResult
+
+from app.intent import service as intent
+from app.intent.models import DecisionResult
 from app.story_qa.models import AnswerResponse, Claim
-from app.orchestration import service
+from app.orchestration import agent as main_agent, tools as service
 from app.rating.models import EpisodeRating, RatingResponse
 from app.research.models import Finding, ResearchResponse
 from app.retrieval.models import RetrievalResult
@@ -53,19 +59,110 @@ BEAT = BeatPlan(title='항구의 밤', beats=['선장이 항구에 도착한다.
 CONTEXT = {'title': '작품', 'settings': [{'title': '항구', 'body': '밤에 닫힌다'}], 'draft': ''}
 
 
-def plan(*steps, status='route', **extra):
-    """Intent Router 결과 대역. steps는 feature, (feature, when) 또는 IntentStep."""
-    items = [s if isinstance(s, IntentStep) else IntentStep(feature=s, when='always') if isinstance(s, str)
-             else IntentStep(feature=s[0], when=s[1]) for s in steps]
-    return IntentResult(status=status, steps=items, **extra)
+class Step(NamedTuple):
+    """메인 에이전트 대역이 부를 서브 에이전트 하나. check·task·fix는 그 도구의 열거형 인자다."""
+    feature: str
+    when: str = 'always'
+    check: str | None = None
+    task: str | None = None
+    fix: int | None = None
+
+
+class Planned(NamedTuple):
+    decision: DecisionResult
+    calls: list[tuple[str, dict]]
+
+
+
+
+def call(step: Step) -> tuple[str, dict]:
+    """기능 단계를 메인 에이전트의 도구 호출로 바꾼다. 조건부 수정은 task=patch, 작업 종류가 없는 집필은 draft다."""
+    if step.feature == 'writing_editing':
+        task = 'patch' if step.when == 'if_issues_found' else step.task or 'draft'
+        return 'ask_writing', {'task': task, **({'fix': step.fix} if step.fix is not None else {})}
+    return service.TOOL_NAMES.get(step.feature, f'ask_{step.feature}'), {'check': step.check} if step.check else {}
+
+
+def _step(s) -> Step:
+    return s if isinstance(s, Step) else Step(s) if isinstance(s, str) else Step(*s)
+
+
+def plan(*steps, status='route', reason=None, capabilities=None):
+    """Decision Guard 판정과 메인 에이전트가 순서대로 부를 도구. steps는 feature, (feature, when), Step 또는
+    한 모델 턴에 함께 부르는 묶음 list(#474)다.
+
+    status=rejected면 거절(reason), clarify면 고른 기능 없음이다. capabilities로 판정 기능을 따로 정하면 steps는 호출 순서만 뜻한다.
+    """
+    turns = [[_step(x) for x in s] if isinstance(s, list) else _step(s) for s in steps]
+    items = [i for t in turns for i in (t if isinstance(t, list) else [t])]
+    if status == 'rejected':
+        return Planned(DecisionResult(allowed=False, reason=reason), [])
+    features = capabilities if capabilities is not None else [] if status == 'clarify' else list(dict.fromkeys(i.feature for i in items))
+    return Planned(DecisionResult(allowed=True, capabilities=features), [[call(i) for i in t] if isinstance(t, list) else call(t) for t in turns])
+
+
+class FakeMain(BaseChatModel):
+    """메인 에이전트 모델 대역. 이번 턴 도구를 부른 모델 응답 수만큼 대본을 진행해 다음 도구(list면 한 응답의 병렬 묶음)를 부르고,
+    대본이 끝나면 answer로 종합한다.
+
+    resume으로 다시 불려도 같은 메시지면 같은 답을 낸다. 호출마다 노출된 도구 이름과 받은 메시지를 seen에 남긴다.
+    """
+    script: list
+    answer: Any  # 종합 답변 또는 올릴 예외
+    seen: Any  # pydantic이 list를 복사하지 않게 Any로 둔다
+    model_name: str = 'test-main'
+
+    @property
+    def _llm_type(self) -> str:
+        return 'fake-main'
+
+    def bind_tools(self, tools, **kwargs):
+        return self.bind(tools=[t.name for t in tools], settings=kwargs)
+
+    def _generate(self, messages, stop=None, run_manager=None, tools=None, settings=None, **kwargs) -> ChatResult:
+        self.seen.append({'tools': tools or [], 'settings': settings or kwargs, 'messages': messages})
+        last = max(i for i, m in enumerate(messages) if isinstance(m, HumanMessage))
+        done = sum(isinstance(m, AIMessage) and bool(m.tool_calls) for m in messages[last:])
+        meta = {'status': 'completed', 'model_name': 'resolved-main', 'id': f'resp-{len(self.seen)}'}
+        usage = {'input_tokens': 20, 'output_tokens': 5, 'total_tokens': 25}
+        if done < len(self.script) and tools:
+            batch = self.script[done] if isinstance(self.script[done], list) else [self.script[done]]
+            calls = [{'name': name, 'args': args if name == 'ask_web_research' else {'request': messages[last].text, **args},
+                      'id': f'call-{done}-{i}'} for i, (name, args) in enumerate(batch)]
+            message = AIMessage(content='', tool_calls=calls, response_metadata=meta, usage_metadata=usage)
+        elif isinstance(self.answer, Exception):
+            raise self.answer
+        else:
+            message = AIMessage(content=self.answer, response_metadata=meta, usage_metadata=usage)
+        return ChatResult(generations=[ChatGeneration(message=message)])
+
+
+def fake_main(monkeypatch, *calls, answer='종합 답변'):
+    """메인 에이전트의 ChatOpenAI를 대역으로 바꾼다. calls는 (도구 이름, 인자) 순서다. 모델 호출 기록(Seen)을 돌려준다."""
+    seen = Seen()
+    monkeypatch.setenv('OPENAI_API_KEY', 'test-key')
+    monkeypatch.setenv('OPENAI_MODEL', 'test-model')
+
+    def chat(**kwargs):
+        seen.init = kwargs
+        return FakeMain(script=list(calls), answer=answer, seen=seen)
+
+    monkeypatch.setattr(main_agent, 'ChatOpenAI', chat)
+    return seen
+
+
+class Seen(list):
+    """메인 에이전트 모델 호출마다의 {tools, settings, messages}. init은 ChatOpenAI 생성자 인자다(모델을 만들면 채운다)."""
 
 
 def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None):
-    """Router와 구현된 업무 Agent 대역. 호출 기록 list를 돌려준다. fail은 {이름: 던질 예외}.
+    """Decision Guard·메인 에이전트 모델과 구현된 업무 Agent 대역. 호출 기록 list를 돌려준다. fail은 {이름: 던질 예외}.
+
+    routed는 plan(...)이다. 메인 에이전트 모델 호출 기록은 calls.main(도구 이름·메시지)에 있다.
 
     시뮬레이션은 계획 모델(sim_plan: drafted 또는 완성된 SIM)만 대역이다. 장면은 실제 장면 에이전트가 쓰므로 `fake_scene`으로 바깥 의존을 대신한다.
     """
-    calls, fail = [], fail or {}
+    calls, fail = Calls(), fail or {}
 
     def recorded(name, result):
         def call(*args, **kwargs):
@@ -75,7 +172,8 @@ def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None):
             return result(*args) if callable(result) else result
         return call
 
-    monkeypatch.setattr(service.intent, 'route', recorded('route', routed))
+    monkeypatch.setattr(intent, 'judge', recorded('judge', routed.decision))
+    seen = fake_main(monkeypatch, *routed.calls)
     monkeypatch.setattr(service.retrieval, 'retrieve', recorded('retrieval', retrieved))
     monkeypatch.setattr(service.story_qa, 'answer', recorded('story_context', AnswerResponse(
         claims=[Claim(text='밤에 닫는다', kind='confirmed', sourceIds=['a'])], gaps=[])))
@@ -102,7 +200,12 @@ def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None):
         episodes=[EpisodeRating(episode=n, revision=4, verdict='general', signals={'profanityCount': 0}) for n in data.episodes])))
     monkeypatch.setattr(service.world_review, 'linked_request', recorded('world_review_read', lambda work_id: WORLD_REVIEW_REQUEST))
     monkeypatch.setattr(service.world_review, 'review', recorded('world_review', WORLD_REVIEW))
+    calls.main = seen
     return calls
+
+
+class Calls(list):
+    """업무 Agent 호출 기록. main은 fake_agents가 채우는 메인 에이전트 모델 호출 기록(Seen)이다."""
 
 
 def fake_scene(monkeypatch, complete_after=2, fail=None, read=WORLD):

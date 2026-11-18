@@ -5,7 +5,8 @@ import type { SimulationStart } from '../../../domain/entities/characterSimulati
 import type { ChatBasis, ChatEvent, ChatFeature, ChatSendBody, ChatSession, ChatStep, ChatStepInputs, ChatTurn, SceneAction } from '../../../domain/entities/writingChat'
 
 /** 지금 흐르는 SSE 턴. 끝나면 이력을 다시 읽어 세이버에 저장된 내용으로 바꾼다. decision은 승인·거절 응답(장면 조작이 아닌 이어가기)이다. */
-export type LiveTurn = { request: string; steps: ChatStep[]; running: ChatFeature | null; editIndex?: number; resumed?: boolean; decision?: boolean }
+/** running: 시작(started)했지만 결과(step)가 아직 없는 기능들. 병렬 호출(#474)이면 둘 이상이다. */
+export type LiveTurn = { request: string; steps: ChatStep[]; running: ChatFeature[]; editIndex?: number; resumed?: boolean; decision?: boolean }
 
 const message = (error: unknown, fallback: string) => (error instanceof Error && error.message !== 'Request cancelled' ? error.message : fallback)
 
@@ -71,9 +72,9 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
 
   const apply = (event: ChatEvent) => setLive((turn) => {
     if (!turn) return turn
-    if (event.type === 'plan' || event.type === 'waiting') return { ...turn, steps: event.steps, running: null }
-    if (event.type === 'started') return { ...turn, running: event.feature }
-    if (event.type === 'step') return { ...turn, running: null, steps: turn.steps.map((s) => (s.feature === event.step.feature ? event.step : s)) }
+    if (event.type === 'plan' || event.type === 'waiting') return { ...turn, steps: event.steps, running: [] }
+    if (event.type === 'started') return { ...turn, running: [...turn.running, event.feature] }
+    if (event.type === 'step') return { ...turn, running: turn.running.filter((f) => f !== event.step.feature), steps: turn.steps.map((s) => (s.feature === event.step.feature ? event.step : s)) }
     return turn
   })
 
@@ -88,7 +89,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     const resumed = 'resume' in input
     // 이어가기는 멈춘 턴의 계획을 그대로 이어 보여 준다(같은 턴이 두 번 보이지 않게 화면이 그 턴을 감춘다).
     const decision = 'resume' in input && !input.resume.scene
-    setLive({ request, steps: resumed ? turns.at(-1)?.reply?.steps ?? [] : [], running: null, editIndex, resumed, decision })
+    setLive({ request, steps: resumed ? turns.at(-1)?.reply?.steps ?? [] : [], running: [], editIndex, resumed, decision })
     let ok = true
     let sceneWaits = false
     let id = threadId

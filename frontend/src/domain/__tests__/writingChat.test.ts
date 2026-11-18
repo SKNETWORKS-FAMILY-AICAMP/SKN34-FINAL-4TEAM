@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { chatBasis, cleanScene, replyText, stepText, type ChatReply, type ReviewFinding, type SceneAction } from '../entities/writingChat'
+import { chatBasis, cleanScene, PLAN_PICK_HINT, replyText, stepText, type ChatReply, type ReviewFinding, type SceneAction } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -64,7 +64,8 @@ describe('replyText', () => {
     const step = { feature: 'writing_editing', status: 'completed' as const, result: {
       plans: [{ title: '항구의 밤', beats: ['선장이 도착한다.', '카이가 배를 숨긴다.'] }, { title: '추격', beats: ['서윤이 쫓는다.'] }],
       notes: ['10화의 약속은 확정 사건'] } }
-    expect(stepText(step)).toBe('계획 1. 항구의 밤\n  1) 선장이 도착한다.\n  2) 카이가 배를 숨긴다.\n계획 2. 추격\n  1) 서윤이 쫓는다.\n참고: 10화의 약속은 확정 사건')
+    expect(stepText(step)).toBe('계획 1. 항구의 밤\n  1) 선장이 도착한다.\n  2) 카이가 배를 숨긴다.\n계획 2. 추격\n  1) 서윤이 쫓는다.\n참고: 10화의 약속은 확정 사건\n'
+      + PLAN_PICK_HINT)
   })
 
   it('계획 없이 바로 쓴 원고는 반영할 본문만 단계 글로 두고, 말풍선에 사용한 계획을 덧붙인다', () => {
@@ -231,5 +232,20 @@ describe('원고 검수 결과 글(#59)', () => {
 
   it('두 검수를 함께 돌린 결과는 두 검수 이름을 제목에 붙인다(#369)', () => {
     expect(stepText({ ...step([]), review: { ...step([]).review, check: 'both' } })).toBe('3화 초안 설정·개연성 + 맞춤법·표기 검수: 찾은 문제가 없어요.')
+  })
+})
+
+describe('설정집 검토 결과 글(#479)', () => {
+  const step = (findings: { kind: 'contradiction' | 'doc_role' | 'missing_info' | 'other'; message: string }[]) =>
+    ({ feature: 'world_review', status: 'completed' as const, worldReview: { findings } })
+
+  it('지적이 없으면 웹 조사 문구가 아니라 검토 결과로 알린다', () => {
+    expect(stepText(step([]))).toBe('검토에서 찾은 문제가 없어요.')
+  })
+
+  it('지적마다 종류와 메시지를 보이고, 단계 이름은 설정집 검토다', () => {
+    const reply: ChatReply = { status: 'completed', missingInputs: [], steps: [step([
+      { kind: 'contradiction', message: '두 카드의 나이가 어긋나요.' }, { kind: 'missing_info', message: '길드 위치가 없어요.' }])] }
+    expect(replyText(reply)).toBe('[설정집 검토] 설정 충돌 · 두 카드의 나이가 어긋나요.\n빠진 정보 · 길드 위치가 없어요.')
   })
 })
