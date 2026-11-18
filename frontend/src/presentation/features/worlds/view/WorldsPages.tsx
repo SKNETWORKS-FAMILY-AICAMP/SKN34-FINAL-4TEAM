@@ -267,9 +267,9 @@ function GraphCard({ title, mode, data, summary, stats, legend, onOpen, unavaila
       </div>
       <label>관계 볼 설정 검색 <input type="search" className="inp" value={query} onChange={(e) => { setQuery(e.target.value); setChoicePage(0) }} /></label>
       <div role="group" aria-label="관계 볼 설정">{choices.items.map((node) => <button type="button" className="btn sm" key={node.id} aria-pressed={anchor === node.id} onClick={() => { setAnchor(node.id); setNeighborPage(0); setEdgePage(0) }}>{node.name}</button>)}</div>
-      <PageControls page={choices.page} pages={choices.pages} onPage={setChoicePage} />
-      {anchorNode ? <><p className="small muted">{unavailable ? '연결 정보를 불러오지 못했어요.' : `${anchorNode.name}의 연결된 설정 ${neighbors.size}개를 보여요.`}</p><button className="btn sm" type="button" onClick={() => { setAnchor(''); setEdgePage(0) }}>전체 그래프로</button><PageControls page={neighborPages.page} pages={neighborPages.pages} onPage={(next) => { setNeighborPage(next); setEdgePage(0) }} /></> : <><PageControls page={paged.page} pages={paged.pages} onPage={(next) => { setPage(next); setEdgePage(0) }} />{paged.pages > 1 && <p className="small muted">설정을 검색해 선택하면 다른 페이지의 연결도 그래프로 볼 수 있어요.</p>}</>}
-      {edges.pages > 1 && <><p className="small muted">현재 카드의 연결을 페이지별로 보여요.</p><PageControls page={edges.page} pages={edges.pages} onPage={setEdgePage} /></>}
+      <PageControls label="설정 목록" page={choices.page} pages={choices.pages} onPage={setChoicePage} />
+      {anchorNode ? <><p className="small muted">{unavailable ? '연결 정보를 불러오지 못했어요.' : `${anchorNode.name}의 연결된 설정 ${neighbors.size}개를 보여요.`}</p><button className="btn sm" type="button" onClick={() => { setAnchor(''); setEdgePage(0) }}>전체 그래프로</button><PageControls label="그래프" page={neighborPages.page} pages={neighborPages.pages} onPage={(next) => { setNeighborPage(next); setEdgePage(0) }} /></> : <><PageControls label="그래프" page={paged.page} pages={paged.pages} onPage={(next) => { setPage(next); setEdgePage(0) }} />{paged.pages > 1 && <p className="small muted">설정을 검색해 선택하면 다른 페이지의 연결도 그래프로 볼 수 있어요.</p>}</>}
+      {edges.pages > 1 && <><p className="small muted">현재 카드의 연결을 페이지별로 보여요.</p><PageControls label="연결선" page={edges.page} pages={edges.pages} onPage={setEdgePage} /></>}
       <p className="sr-only">그래프는 눈으로 훑어보는 용도예요. 같은 내용은 설정집 탭의 설정 카드에서 글로 읽을 수 있어요.</p>
     </section>
   )

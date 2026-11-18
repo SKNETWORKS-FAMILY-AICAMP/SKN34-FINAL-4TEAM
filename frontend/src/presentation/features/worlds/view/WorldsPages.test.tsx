@@ -536,7 +536,7 @@ it('같은 카드 사이 관계가 많으면 선 페이지를 넘겨 마지막 �
   await screen.findByText('그래프 캔버스')
   expect(graph.props!.data.links).toHaveLength(20)
   const graphRegion = within(screen.getByRole('region', { name: '인물관계도' }))
-  fireEvent.click(within(graphRegion.getByRole('navigation', { name: '페이지 이동' })).getByRole('button', { name: '다음' }))
+  fireEvent.click(within(graphRegion.getByRole('navigation', { name: '연결선 페이지 이동' })).getByRole('button', { name: '다음' }))
   expect(graph.props!.data.links.map((l) => l.id)).toEqual(['r20', 'r21'])
   expect(graphRegion.getByText('인물 2명 · 관계 22개')).toBeTruthy()
 })
