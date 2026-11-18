@@ -28,7 +28,7 @@ Mechanical만 요청하면 Semantic과 Simulation을 실행하지 않는다. Sem
 
 ### 현재 구현 — MVP (#59)
 
-`backend/ai-service/app/manuscript_review/`의 내부 API `POST /internal/v1/manuscript-reviews {workId, episode, check: mechanical|semantic|both}`이고, 집필 AI 오케스트레이션의 `manuscript_review` 단계가 같은 service를 부른다(검사 종류는 단계 입력 `manuscript_review.check`, 대상은 Content가 확인한 `target` 반영 회차, 승인·반영 없음). 메인 에이전트가 요청에서 검사 종류를 알아내면 `ask_manuscript_review(check)`로 넘겨 묻지 않고, 모르면 집필실 채팅이 입력 대기에서 고르게 하며 지적을 상태·분류·구절·이유·제안으로 보인다. 단독 Content 공개 API는 없다.
+`backend/ai-service/app/manuscript_review/`의 내부 API `POST /internal/v1/manuscript-reviews {workId, episode, check: mechanical|semantic|both}`이고, 집필 AI 오케스트레이션의 `manuscript_review` 단계가 같은 service에서 저장된 초안이나 같은 턴의 집필 후보를 검수한다(검사 종류는 단계 입력 `manuscript_review.check`, 대상은 Content가 확인한 `target` 반영 회차, 승인·반영 없음). 메인 에이전트가 요청에서 검사 종류를 알아내면 `ask_manuscript_review(check)`로 넘겨 묻지 않고, 모르면 집필실 채팅이 입력 대기에서 고르게 하며 지적을 상태·분류·구절·이유·제안으로 보인다. 단독 Content 공개 API는 없다.
 
 1. Content가 전달한 작가 Bearer(`X-User-Authorization`)로 Content MCP `episode_read`를 불러 작성 중 초안 본문과 `revision`을 읽는다. 빈 초안은 모델 호출 없이 422다.
 2. `semantic`만 `world_studio_list`에서 작품에 연결된 세계관을 찾아 `world_studio_read(episode)`로 그 회차 시점 관계를 읽는다. 연결이 없으면 Fork가 이어받는 원작 세계관(`work_inherited_world`, 공개 카드·Fork 기준 회차까지 읽기 전용, [계약](../design/character-simulation-contract.md#fork-이어받기-365))을 읽고 그것도 없으면 409다. 그 회차까지 공개된 카드(`revealFromEpisode ≤ episode`, 인물 회차 기억도 그 회차까지)와 두 끝이 모두 공개된 관계만 `card:<id>`·`relation:<id>` 설정으로 보낸다. `mechanical`은 초안만 보낸다. 어느 쪽도 Simulation·Retrieval을 부르지 않는다.
@@ -100,7 +100,7 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 - **새 원고:** 목표 회차와 BeatPlan/콘티, 허용된 설정·직전 회차를 받아 새 소설 문장을 만든다. 출력은 생성 원문과 사용한 계획·근거다.
 - **기존 원고 수정:** 대상 문서 판본, 선택 구간, 원문 해시, 수정 지시를 받아 그 구간의 before/after Patch를 만든다. 선택 밖 문장은 유지한다.
 
-**생성 후보 검수 목표 계약:** Writing의 승인 전 결과는 정본 판본과 구분되는 고정 후보로 Manuscript Review에 전달한다. 후보 식별자 또는 불변 참조, 후보 내용, 원래 초안 revision과 선택 구간/원문 스냅샷을 함께 확인한다. Finding 위치는 정본이 아니라 해당 후보를 기준으로 표시한다. 검수 후 수정 요청은 검수한 후보를 입력으로 새 후보를 만들며 이전 후보를 덮어쓰지 않는다. Content는 최종 적용 전에 원래 초안 revision·구간/본문과 현재 권한을 다시 확인하고 충돌하면 적용하지 않는다. 이 연결과 후보 참조의 구체 API·보관 방식은 아직 구현되지 않았다.
+**생성 후보 검수(#520):** 같은 턴에 Writing/Editing 다음으로 Manuscript Review를 부르면, 집필 직전에 작가 권한으로 읽은 기준 초안과 완료된 Text/Patch를 사용한다. Text는 초안 뒤에 잇고 Patch는 원래 초안에서 유일한 선택 구간을 교체한다. 상태의 단계 결과를 그대로 사용하며 후보 전체를 검수한다. `revision`은 기준 초안 판본이고, `candidate.selection`은 Patch 전 원래 선택 범위(UTF-16 반열림 구간)이며 Text는 null이다. Finding의 위치는 검수한 후보 본문 기준이다. 기획만 완료했거나 Writing이 실패했다면 저장된 초안을 검수한다. 후보 검수 자체는 초안을 저장하지 않는다. Writing 결과 승인 시 초안이 기준 판본에서 바뀌었으면 409 충돌로 처리하고, 저장 직전에 판본이 바뀌면 기존 Content 저장 검증이 막는다. 후보 검수 후 다시 수정하는 반복 연결은 후속이다.
 
 세 작업 모두 기획·문장·문체 생성에 집중하며 Retrieval과 Simulation을 직접 호출하지 않는다. 기획도 Content가 전달한 허용 입력만 쓰고, Simulation은 명시적으로 요청한 실행의 결과를 사용자가 고른 경우에만 재료로 받는다. Content가 기준 판본·선택 구간을 확인하고 허용된 최소 입력을 전달하며, 사용자가 선택한 계획이나 시뮬레이션 결과도 집필 재료로 받을 수 있다. 필요 시 Manuscript Review가 생성 결과의 설정·연속성을 검수한다. 두 경로는 입력·출력·저장 검증이 다르다. 문체/말투 변경도 기존 원고 수정이다. 결과 표시와 실제 원고 저장을 분리하고, Content가 최신 판본·선택 범위·승인 영수증을 확인한 뒤에만 반영한다.
 

@@ -351,7 +351,7 @@ def writer(monkeypatch, fail=None):
     """Content MCP 초안 반영 대역. 호출마다 (작품, 회차, 결과, 그때의 사용자 토큰)을 남긴다."""
     applied = []
 
-    def apply_writing(work_id, number, result):
+    def apply_writing(work_id, number, result, *, expected_revision=None):
         applied.append((work_id, number, result, tools.content_mcp.AUTHORIZATION.get()))
         if fail:
             raise fail
@@ -1525,7 +1525,86 @@ def test_draft_without_a_plan_plans_and_writes_in_one_step_then_waits_for_approv
     result = write_turn(str(uuid4()), request='11화를 기획하고 써서 검수해줘', target=TARGET, inputs={'manuscript_review': REVIEW})
     assert (result.status, result.awaitingApproval) == ('waiting', 'writing_editing')
     assert [(s.feature, s.status) for s in result.steps] == [('writing_editing', 'completed'), ('manuscript_review', 'completed')]
-    assert result.steps[0].result.plan == BEAT and names(calls) == ['judge', 'mcp', 'plan_and_draft', 'manuscript_review'] and applied == []
+    assert result.steps[0].result.plan == BEAT and names(calls) == ['judge', 'mcp', 'mcp', 'plan_and_draft', 'manuscript_review'] and applied == []
+
+
+@pytest.mark.parametrize('task, text, selection', [
+    ('draft', '🧭 그는 웃었다.\n\n선장은 항구에 내렸다.', None),
+    ('patch', '🧭 그는 차갑게 웃었다.', {'start': 3, 'end': 10}),
+])
+def test_same_turn_review_checks_writing_candidate_and_approval_checks_its_revision(monkeypatch, task, text, selection):
+    from app.manuscript_review import service as review_service
+    from tests.manuscript_review.stubs import fake_agent, finding
+
+    real_review = review_service.review_candidate
+    check = Step('manuscript_review', check=None if task == 'draft' else 'mechanical')
+    fake_agents(monkeypatch, plan([writing_step(task), check], check))
+    monkeypatch.setattr(review_service, 'review_candidate', real_review)
+    quote = '항구에 내렸다.' if task == 'draft' else '차갑게 웃었다.'
+    seen = fake_agent(monkeypatch, finding(quote))
+    before = {'title': '3화', 'body': '🧭 그는 웃었다.', 'revision': 4}
+    mcp_calls = []
+
+    def content(tool, args):
+        mcp_calls.append(tool)
+        return CONTEXT if tool == 'work_context_read' else {'draft': dict(before)}
+
+    monkeypatch.setattr(tools.content_mcp, 'call', content)
+    thread = str(uuid4())
+    opened = write_turn(thread, request='집필한 후보를 맞춤법 검수해 줘', target=TARGET,
+                        inputs={'writing_editing': PATCH} if task == 'patch' else {})
+    if task == 'draft':
+        assert opened.status == 'waiting' and opened.missingInputs == ['manuscript_review']
+        before.update(body='검수 대기 중에 저장된 새 초안', revision=5)
+        opened = write_turn(thread, resume={'approved': True, 'inputs': {'manuscript_review': REVIEW}})
+    assert opened.status == 'waiting' and opened.awaitingApproval == 'writing_editing'
+    assert [s.feature for s in opened.steps] == ['writing_editing', 'manuscript_review']
+    assert seen['draft'] == text and mcp_calls.count('episode_read') == 1
+    review = opened.steps[1].result
+    assert review.revision == 4 and review.candidate.model_dump() == {'selection': selection}
+    found = review.findings[0]
+    assert found.start == len(text[:text.index(quote)].encode('utf-16-le')) // 2
+    assert 'episode_update_draft' not in mcp_calls
+
+    before['revision'] += 1
+    final = write_turn(thread, resume={'approved': True})
+    assert final.status == 'failed' and final.steps[0].applied is None
+    assert 'episode_update_draft' not in mcp_calls
+
+
+def test_failed_candidate_review_does_not_let_approval_apply_against_a_newer_draft(monkeypatch):
+    from app.manuscript_review.errors import ReviewFailure
+
+    fake_agents(monkeypatch, plan('writing_editing', Step('manuscript_review', check='mechanical')),
+                fail={'manuscript_review': ReviewFailure(503, '검수 실패')})
+    draft = {'title': '3화', 'body': '원래 초안', 'revision': 4}
+
+    def content(tool, args):
+        assert tool != 'episode_update_draft'
+        return CONTEXT if tool == 'work_context_read' else {'draft': dict(draft)}
+
+    monkeypatch.setattr(tools.content_mcp, 'call', content)
+    thread = str(uuid4())
+    waiting = write_turn(thread, request='쓰고 검수해 줘', target=TARGET)
+    assert waiting.awaitingApproval == 'writing_editing' and waiting.steps[1].status == 'failed'
+    draft['revision'] = 5
+    done = write_turn(thread, resume={'approved': True})
+    assert done.steps[0].status == 'failed' and done.steps[0].applied is None
+
+
+def test_failed_writing_allows_only_the_planned_review_of_the_saved_draft(monkeypatch):
+    from app.writing.errors import WritingFailure
+
+    check = Step('manuscript_review', check='mechanical')
+    calls = fake_agents(monkeypatch, plan('writing_editing', [check, 'story_context']),
+                        fail={'plan_and_draft': WritingFailure(503, '집필 실패')})
+    monkeypatch.setattr(tools.content_mcp, 'call', lambda tool, args: {'draft': {'title': '3화', 'body': '원문', 'revision': 4}}
+                        if tool == 'episode_read' else CONTEXT)
+    response = run('쓰고 검수해 줘', target=TARGET, scope=SCOPE)
+    assert response.status == 'failed'
+    assert [(s.feature, s.status) for s in response.steps] == [('writing_editing', 'failed'), ('manuscript_review', 'completed')]
+    assert calls.main[1]['tools'] == ['ask_manuscript_review']
+    assert names(calls) == ['judge', 'plan_and_draft', 'manuscript_review']
 
 
 def test_author_plan_still_wins_and_gets_the_allowed_context(monkeypatch):

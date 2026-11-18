@@ -401,7 +401,7 @@ def test_repeated_blocked_calls_still_end_within_the_model_call_limit(monkeypatc
 
 def applied(monkeypatch):
     done = []
-    monkeypatch.setattr(service.content_mcp, 'apply_writing', lambda work, episode, result: done.append(result) or {'episode': episode, 'revision': 5})
+    monkeypatch.setattr(service.content_mcp, 'apply_writing', lambda work, episode, result, *, expected_revision=None: done.append(result) or {'episode': episode, 'revision': 5})
     return done
 
 

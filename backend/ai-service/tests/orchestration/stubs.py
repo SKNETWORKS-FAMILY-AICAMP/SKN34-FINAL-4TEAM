@@ -183,7 +183,8 @@ def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None):
         plans=[BEAT], notes=['10화의 약속은 확정 사건'], model='m', providerResponseId='r', usage=None)))
     monkeypatch.setattr(service.writing, 'plan_and_draft', recorded('plan_and_draft', DraftResponse(
         text='선장은 항구에 내렸다.', model='m', providerResponseId='r', usage=None, plan=BEAT)))
-    monkeypatch.setattr(service.content_mcp, 'call', recorded('mcp', lambda tool, args: CONTEXT))
+    monkeypatch.setattr(service.content_mcp, 'call', recorded('mcp', lambda tool, args:
+                        {'draft': {'title': '3화', 'body': '그는 웃었다.', 'revision': 4}} if tool == 'episode_read' else CONTEXT))
     monkeypatch.setattr(service.writing, 'patch', recorded('patch', PatchResponse(
         before='그는 웃었다.', after='그는 차갑게 웃었다.', model='m', providerResponseId='r', usage=None)))
     monkeypatch.setattr(service.simulation, 'plan', recorded(
@@ -191,10 +192,12 @@ def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None):
     monkeypatch.setattr(service.research, 'research', recorded('web_research', ResearchResponse(
         findings=[Finding(text='약 15일', verdict='unverified', sourceUrls=[])], gaps=[],
         searchedAt=datetime(2026, 11, 12, tzinfo=timezone.utc))))
-    monkeypatch.setattr(service.manuscript_review, 'review', recorded('manuscript_review', lambda data: ReviewResponse(
+    review = recorded('manuscript_review', lambda data: ReviewResponse(
         workId=data.workId, episode=data.episode, revision=4, check=data.check, gaps=[], model='m', providerResponseId='r', usage=None,
         findings=[ReviewFinding(category='spelling', quote='웃엇다', reason='맞춤법', status='confirmed', evidenceRefs=[],
-                                suggestion='웃었다', start=3, end=6)])))
+                                suggestion='웃었다', start=3, end=6)]))
+    monkeypatch.setattr(service.manuscript_review, 'review', review)
+    monkeypatch.setattr(service.manuscript_review, 'review_candidate', lambda data, base, writing: review(data))
     monkeypatch.setattr(service.rating, 'rate', recorded('rating', lambda data: RatingResponse(
         workId=data.workId, verdict='general', prohibited=False,
         episodes=[EpisodeRating(episode=n, revision=4, verdict='general', signals={'profanityCount': 0}) for n in data.episodes])))

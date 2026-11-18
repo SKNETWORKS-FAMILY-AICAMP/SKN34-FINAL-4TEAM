@@ -38,7 +38,7 @@ class ReviewResult(BaseModel):
 
 
 class Finding(DraftFinding):
-    """위치는 초안 본문 안의 UTF-16 반열림 [start,end)다. 같은 구절이 여러 곳에 있으면 추측하지 않고 null이다."""
+    """위치는 검수 본문 안의 UTF-16 반열림 [start,end)다. 같은 구절이 여러 곳에 있으면 추측하지 않고 null이다."""
     start: int | None
     end: int | None
 
@@ -46,6 +46,16 @@ class Finding(DraftFinding):
 class Usage(BaseModel):
     inputTokens: int
     outputTokens: int
+
+
+class SelectionRange(BaseModel):
+    """부분 수정 전에 선택한 원래 초안의 UTF-16 범위다."""
+    start: int
+    end: int
+
+
+class ReviewCandidate(BaseModel):
+    selection: SelectionRange | None  # Text는 선택 구간이 없다.
 
 
 class ReviewResponse(BaseModel):
@@ -56,5 +66,6 @@ class ReviewResponse(BaseModel):
     findings: list[Finding]
     gaps: list[str]
     model: str
+    candidate: ReviewCandidate | None = Field(default=None, exclude_if=lambda value: value is None)
     providerResponseId: str  # both면 두 응답 ID를 Semantic, Mechanical 순서로 쉼표로 잇는다
     usage: Usage | None

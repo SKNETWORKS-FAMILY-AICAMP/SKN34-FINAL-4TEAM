@@ -330,6 +330,15 @@ describe('원고 검수 단계 결과(#59)', () => {
     })
   })
 
+it('승인 전 집필 후보와 원래 선택 구간을 검수 결과에 표시한다', async () => {
+    const candidate = { selection: { start: 9, end: 17 } }
+    const step = await run({ feature: 'manuscript_review', status: 'completed', result: review({ candidate }) })
+    expect(step.manuscriptReview?.candidate).toEqual(candidate)
+    expect(stepText(step)).toContain('승인 전 집필 후보')
+    expect(stepText(step)).toContain('기준 초안 판본 4')
+  })
+
+
   it('두 검수를 함께 돌린 결과(both)도 읽는다(#369)', async () => {
     const step = await run({ feature: 'manuscript_review', status: 'completed', result: review({ check: 'both' }) })
     expect(step.manuscriptReview?.check).toBe('both')

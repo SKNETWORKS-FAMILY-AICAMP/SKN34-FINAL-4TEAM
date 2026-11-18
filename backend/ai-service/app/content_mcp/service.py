@@ -46,19 +46,31 @@ def place(body: str, quote: str) -> int | None:
     return at if at >= 0 and body.find(quote, at + 1) < 0 else None
 
 
-def apply_writing(work_id: str, number: int, result: dict) -> dict:
-    """승인된 Text는 기존 초안 뒤에 잇고, Patch는 초안 안에 하나뿐인 선택 구간만 바꿔 저장한다."""
+def read_draft(work_id: str, number: int) -> Draft:
+    """작가 권한으로 최신 초안과 revision을 읽는다."""
     try:
-        draft = EpisodeReadResponse.model_validate(call('episode_read', {'id': work_id, 'number': number})).draft
+        return EpisodeReadResponse.model_validate(call('episode_read', {'id': work_id, 'number': number})).draft
     except ValidationError:
         raise ContentMcpFailure(502, 'Content 초안 응답을 확인할 수 없습니다.') from None
+
+
+def render_writing(body: str, result: dict) -> tuple[str, tuple[int, int] | None]:
+    """Text를 뒤에 잇거나 유일한 Patch 선택 구간을 바꾼다. Patch 위치는 원래 본문 기준이다."""
     if 'text' in result:
-        # 기존 초안을 덮어써 작가 원고를 잃지 않도록 뒤에 잇는다.
-        body = f"{draft.body}\n\n{result['text']}" if draft.body.strip() else result['text']
-    elif place(draft.body, result['before']) is not None:
-        body = draft.body.replace(result['before'], result['after'])
-    else:
+        return (f"{body}\n\n{result['text']}" if body.strip() else result['text']), None
+    before = result['before']
+    if (start := place(body, before)) is None:
         raise ContentMcpFailure(409, SELECTION_CHANGED)
+    end = start + len(before)
+    return body[:start] + result['after'] + body[end:], (start, end)
+
+
+def apply_writing(work_id: str, number: int, result: dict, *, expected_revision: int | None = None) -> dict:
+    """승인된 후보를 반영한다. 저장 직전의 revision 경쟁은 Content가 확인한다."""
+    draft = read_draft(work_id, number)
+    if expected_revision is not None and draft.revision != expected_revision:
+        raise ContentMcpFailure(409, '검수한 뒤 초안이 바뀌어 반영하지 않았어요. 다시 요청해 주세요.')
+    body, _ = render_writing(draft.body, result)
     saved = call('episode_update_draft', {'id': work_id, 'number': number, 'data': {
         'title': draft.title, 'body': body, 'revision': draft.revision, 'authorNote': draft.authorNote or ''}})
     try:

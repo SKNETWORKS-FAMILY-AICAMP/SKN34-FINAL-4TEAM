@@ -41,6 +41,7 @@ const stepFields = {
 // 원고 검수(#59) 단계 결과. AI ReviewResponse 중 화면이 쓰는 값만 계약의 열거값으로 받는다.
 const manuscriptReview: z.ZodType<ChatReview> = z.object({
   check: z.enum(['mechanical', 'semantic', 'both']), episode: z.number().int(), revision: z.number().int(), gaps: z.array(z.string()),
+  candidate: z.object({ selection: z.object({ start: z.number().int().nonnegative(), end: z.number().int().nonnegative() }).nullable() }).optional(),
   findings: z.array(z.object({
     category: z.string(), quote: z.string(), reason: z.string(), status: z.enum(['confirmed', 'suspected', 'undeterminable']),
     evidenceRefs: z.array(z.string()), suggestion: z.string(), start: z.number().int().nullable(), end: z.number().int().nullable(),

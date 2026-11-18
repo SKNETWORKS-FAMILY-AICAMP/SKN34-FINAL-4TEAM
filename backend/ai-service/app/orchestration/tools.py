@@ -136,7 +136,8 @@ def _writing_summary(r: dict) -> dict:
 
 SUMMARIES: dict[str, Callable[[dict], dict]] = {
     'story_context': lambda r: {'claims': [{k: c[k] for k in ('text', 'kind', 'sourceIds')} for c in r['claims']], 'gaps': r['gaps']},
-    'manuscript_review': lambda r: {'revision': r['revision'], 'gaps': r['gaps'], 'findings': [
+    'manuscript_review': lambda r: {'revision': r['revision'], 'basis': 'writing_candidate' if r.get('candidate') else 'saved_draft',
+                                    'gaps': r['gaps'], 'findings': [
         {'fix': i, 'status': f['status'], 'category': f['category'], 'quote': f['quote'], 'reason': f['reason']}
         for i, f in enumerate(r['findings'])]},
     'world_review': lambda r: {'findings': [{'kind': f['kind'], 'message': f['message']} for f in r['findings']]},
@@ -226,7 +227,11 @@ def ask_manuscript_review(request: Request, runtime: ToolRuntime, check: Literal
 
     def run(inputs, scope):
         target = _target(turn, ReviewFailure, NO_REVIEW_TARGET)
-        return manuscript_review.review(ReviewRequest(workId=target['workId'], episode=target['episode'], check=_check(inputs, check)))
+        data = ReviewRequest(workId=target['workId'], episode=target['episode'], check=_check(inputs, check))
+        if base := runtime.state.get('writingBase'):
+            written = next(s['result'] for s in runtime.state['steps'] if s['feature'] == 'writing_editing' and s['status'] == 'completed')
+            return manuscript_review.review_candidate(data, base, written)
+        return manuscript_review.review(data)
 
     return _ask(runtime, 'manuscript_review', run, needs=lambda inputs, scope: WAITS['ask_manuscript_review'](turn, inputs, scope, {'check': check}))
 
@@ -271,11 +276,18 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch'], runti
     if fixing:
         return _fix(runtime, reviewed, fix)
 
+    base = None
+
     def run(inputs, scope):
+        nonlocal base
         data = inputs.get('writing_editing') or {}
+        target = turn.get('target')
+        changes_draft = task != 'plan' or 'patch' in data or 'draft' in data
+        if target and changes_draft and reviewed is None and 'manuscript_review' in runtime.state['decision']['capabilities']:
+            draft = content_mcp.read_draft(target['workId'], target['episode'])
+            base = {'body': draft.body, 'revision': draft.revision}
         if 'patch' in data:
             return writing.patch(PatchRequest.model_validate(data['patch']))
-        target = turn.get('target')
         if 'draft' in data:
             draft = DraftRequest.model_validate(data['draft'])
             if target and not draft.context:
@@ -289,7 +301,10 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch'], runti
 
     # 부분 수정은 Content·작가가 주는 선택 구간이 있어야 한다. 기획·바로 집필은 요청과 반영 대상으로 실행한다(#387).
     needs = lambda inputs, scope: task == 'patch' and not {'patch', 'draft'} & set(inputs.get('writing_editing') or {})  # noqa: E731
-    return _ask(runtime, 'writing_editing', run, needs=needs, task_kind=task)
+    command = _ask(runtime, 'writing_editing', run, needs=needs, task_kind=task)
+    if base is not None and command.update['steps'][0]['status'] == 'completed':
+        command.update['writingBase'] = base
+    return command
 
 
 def _fix(runtime: ToolRuntime, reviewed: dict | None, fix: int | None) -> Command:
@@ -302,7 +317,7 @@ def _fix(runtime: ToolRuntime, reviewed: dict | None, fix: int | None) -> Comman
     pick = lambda inputs: (inputs.get('writing_editing') or {}).get('fix', fix)  # noqa: E731
 
     def needs(inputs, scope):
-        if reviewed is None:
+        if reviewed is None or reviewed['result'].get('candidate') is not None:
             raise WritingFailure(422, BAD_FIX)
         findings = reviewed['result']['findings']
         confirmed = [i for i, f in enumerate(findings) if f['status'] == 'confirmed']

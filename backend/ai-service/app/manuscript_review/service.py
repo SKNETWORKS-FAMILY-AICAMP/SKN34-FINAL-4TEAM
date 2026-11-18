@@ -12,7 +12,7 @@ from app.content_mcp import service as content_mcp
 from app.novelbrain.models import WorldSnapshot, world_snapshot
 from app.manuscript_review import agent
 from app.manuscript_review.errors import ReviewFailure
-from app.manuscript_review.models import CATEGORIES, Finding, ReviewRequest, ReviewResponse
+from app.manuscript_review.models import CATEGORIES, Finding, ReviewCandidate, ReviewRequest, ReviewResponse, SelectionRange
 
 EMPTY_DRAFT = '검수할 초안 본문이 없어요.'
 NO_LINKED_WORLD = '이 작품에 연결된 세계관이 없어 설정 검수를 할 수 없어요.'
@@ -28,6 +28,21 @@ def review(data: ReviewRequest) -> ReviewResponse:
         raise ReviewFailure(502, BAD_CONTENT) from None
     if not isinstance(body, str) or not isinstance(revision, int):
         raise ReviewFailure(502, BAD_CONTENT)
+    return _review(data, body, revision)
+
+
+def review_candidate(data: ReviewRequest, base: dict, writing: dict) -> ReviewResponse:
+    """이번 턴 집필 직전에 읽은 초안과 생성 결과로 검수용 본문을 만든다."""
+    original = base['body']
+    body, selection = content_mcp.render_writing(original, writing)
+    source_range = None
+    if selection is not None:
+        start, end = selection
+        source_range = SelectionRange(start=_utf16(original[:start]), end=_utf16(original[:end]))
+    return _review(data, body, base['revision'], ReviewCandidate(selection=source_range))
+
+
+def _review(data: ReviewRequest, body: str, revision: int, candidate: ReviewCandidate | None = None) -> ReviewResponse:
     if not body.strip():
         raise ReviewFailure(422, EMPTY_DRAFT)
     checks = ('semantic', 'mechanical') if data.check == 'both' else (data.check,)
@@ -48,7 +63,7 @@ def review(data: ReviewRequest) -> ReviewResponse:
     usage = None if None in usages else {k: sum(u[k] for u in usages) for k in ('inputTokens', 'outputTokens')}
     return ReviewResponse(workId=data.workId, episode=data.episode, revision=revision, check=data.check, findings=findings,
                           gaps=gaps, model=metas[0]['model'], providerResponseId=','.join(m['providerResponseId'] for m in metas),
-                          usage=usage)
+                          usage=usage, candidate=candidate)
 
 
 def _valid(check: str, body: str, found, refs: set[str]) -> bool:
