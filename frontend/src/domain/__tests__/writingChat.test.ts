@@ -234,3 +234,18 @@ describe('원고 검수 결과 글(#59)', () => {
     expect(stepText({ ...step([]), review: { ...step([]).review, check: 'both' } })).toBe('3화 초안 설정·개연성 + 맞춤법·표기 검수: 찾은 문제가 없어요.')
   })
 })
+
+describe('설정집 검토 결과 글(#479)', () => {
+  const step = (findings: { kind: 'contradiction' | 'doc_role' | 'missing_info' | 'other'; message: string }[]) =>
+    ({ feature: 'world_review', status: 'completed' as const, worldReview: { findings } })
+
+  it('지적이 없으면 웹 조사 문구가 아니라 검토 결과로 알린다', () => {
+    expect(stepText(step([]))).toBe('검토에서 찾은 문제가 없어요.')
+  })
+
+  it('지적마다 종류와 메시지를 보이고, 단계 이름은 설정집 검토다', () => {
+    const reply: ChatReply = { status: 'completed', missingInputs: [], steps: [step([
+      { kind: 'contradiction', message: '두 카드의 나이가 어긋나요.' }, { kind: 'missing_info', message: '길드 위치가 없어요.' }])] }
+    expect(replyText(reply)).toBe('[설정집 검토] 설정 충돌 · 두 카드의 나이가 어긋나요.\n빠진 정보 · 길드 위치가 없어요.')
+  })
+})

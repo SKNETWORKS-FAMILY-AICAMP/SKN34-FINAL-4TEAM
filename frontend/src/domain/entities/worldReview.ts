@@ -9,6 +9,7 @@ import type { StudioSetting } from './studioWorld'
  */
 
 export type ReviewFindingKind = 'contradiction' | 'doc_role' | 'missing_info' | 'other'
+export const FINDING_KINDS: Record<ReviewFindingKind, string> = { contradiction: '설정 충돌', doc_role: '인물 문서 역할', missing_info: '빠진 정보', other: '기타 의견' }
 /**
  * 지적마다 AI가 낼 수 있는 수정안: 카드 하나의 한 칸을 바꿀 **바꾼 뒤 전체 글**이다. `body`는 카드 본문(인물이면 IDENTITY.md), `soul`·`goal`·`episode`(회차 번호)는 인물 문서다.
  * AI가 카드를 직접 고치지 않는다: 작가가 `초안에 반영`을 눌러 승인한 것만 편집 초안에 들어가고, 세계관 저장으로 서버에 반영된다(DEC-36).
