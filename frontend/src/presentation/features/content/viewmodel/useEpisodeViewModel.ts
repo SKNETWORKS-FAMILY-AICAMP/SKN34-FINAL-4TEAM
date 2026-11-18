@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { appContainer } from '../../../../app/appContainer'
-import type { History, Work, WorkRegistration, WorkTagSuggestion, WorkTaxonomy } from '../../../../domain/entities/content'
+import type { WritingEpisode, History, Work, WorkRegistration, WorkTagSuggestion, WorkTaxonomy } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { type MediaUseCase, validateMediaFile } from '../../../../domain/usecases/MediaUseCase'
 
@@ -38,6 +38,21 @@ export function useEpisodeViewModel(
   const suggestRequest = useRef<AbortController | null>(null)
   useEffect(() => () => suggestRequest.current?.abort(), [workId])
   const active = works.find((w) => w.id === workId) ?? null
+  /** 소유자 회차 조회(작성 중인 초안·저장 버전 순번의 근거). 읽는 중이면 null이고, 읽지 못하면 rows 없이 error만 있다. */
+  const [writing, setWriting] = useState<{ id: string; rows?: WritingEpisode[]; error?: string } | null>(null)
+  /** 열린 작품이 같아도 다시 읽게 하는 신호. works가 바뀔 때마다 읽으면 작품 정보 저장 같은 일에도 무거운 목록을 다시 받으므로 `refresh`만 올린다. */
+  const [writingRefresh, setWritingRefresh] = useState(0)
+  const selectedId = active?.id
+  useEffect(() => {
+    if (!selectedId) return
+    const controller = new AbortController()
+    useCase.writingList(selectedId, controller.signal).then(rows => {
+      if (!controller.signal.aborted) setWriting({ id: selectedId, rows })
+    }).catch(() => {
+      if (!controller.signal.aborted) setWriting({ id: selectedId, error: '초안 목록을 불러오지 못했어요.' })
+    })
+    return () => controller.abort()
+  }, [selectedId, useCase, writingRefresh])
   /** 이력은 불러온 작품에서만 보인다(다른 작품으로 바뀌면 사라진다). 이 화면의 저장은 이력 내용을 바꾸지 않으므로 저장해도 남고, 탭을 다시 누르면 새로 읽는다. */
   const history = loaded && loaded.id === active?.id ? loaded.history : null
   const install = (w: Work) => setWorks((list) => [w, ...list.filter((x) => x.id !== w.id)])
@@ -45,6 +60,7 @@ export function useEpisodeViewModel(
   const refresh = async () => {
     const list = await useCase.list()
     setWorks(list)
+    setWritingRefresh((n) => n + 1)
     setListed(true)
     const w = list.find((x) => x.id === active?.id)
     if (w) install(w)
@@ -95,6 +111,7 @@ export function useEpisodeViewModel(
     }
   }
   return {
+    writing: writing?.id === selectedId ? writing : null,
     works,
     active,
     history,
@@ -105,10 +122,13 @@ export function useEpisodeViewModel(
     ready,
     listed,
     coverRevision,
-    /** 새 작품의 id를 돌려준다. 표지 저장만 실패해도 작품은 만들어졌으므로 id를 돌려주고(오류는 알림으로 남김), 화면을 떠났거나 생성 자체가 실패하면 null이다. */
+    /**
+     * 새 작품의 id와 표지까지 성공했는지(complete)를 돌려준다. 표지 저장만 실패해도 작품은 만들어졌으므로 id를 돌려주고(complete false, 오류는 알림으로 남김),
+     * 화면을 떠났거나 생성 자체가 실패하면 null이다. 성공하면 화면이 곧바로 집필실로 이동하므로 성공 알림은 두지 않는다.
+     */
     create: async (title: string, summary: string, cover?: File, registration?: WorkRegistration) => {
       let id = null as string | null
-      await run(async () => {
+      const complete = await run(async () => {
         if (cover) validateMediaFile(cover, true)
         const controller = new AbortController()
         request.current = controller
@@ -137,13 +157,8 @@ export function useEpisodeViewModel(
           if (controller.signal.aborted) return
           setCoverRevision((v) => v + 1)
         }
-        setNotice(
-          cover
-            ? '비공개 작품과 표지를 저장했어요.'
-            : '비공개 작품을 만들었어요. 첫 회차를 작성해 보세요.',
-        )
       }, 'create')
-      return alive.current ? id : null
+      return alive.current && id ? { id, complete } : null
     },
     reload: () =>
       run(async () => {

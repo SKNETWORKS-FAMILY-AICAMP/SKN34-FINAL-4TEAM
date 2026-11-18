@@ -60,9 +60,12 @@ export function EpisodePage({ useCase }: { useCase?: EpisodeUseCase }) {
                 ready={vm.listed}
                 error={vm.origin === 'create' ? vm.error : ''}
                 onCreate={async (title, summary, cover, registration) => {
-                  const id = await vm.create(title, summary, cover, registration)
-                  // 만든 작품의 관리 화면으로 바꿔 보여 준다(뒤로 가기로 빈 생성 화면에 돌아오지 않게 replace).
-                  if (id) navigate(`/content?work=${encodeURIComponent(id)}`, { replace: true })
+                  const created = await vm.create(title, summary, cover, registration)
+                  if (created) {
+                    const id = encodeURIComponent(created.id)
+                    // 표지까지 성공하면 바로 집필실로(성공 알림은 두지 않는다), 표지만 실패하면 관리 화면에서 오류를 알리고 표지를 다시 올리게 한다. replace라 뒤로 가기로 빈 생성 화면에 돌아오지 않는다.
+                    navigate(created.complete ? `/studio/${id}` : `/content?work=${id}`, { replace: true })
+                  }
                 }}
               />
             )
