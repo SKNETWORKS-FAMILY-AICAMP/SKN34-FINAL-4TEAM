@@ -169,13 +169,13 @@ class PublicWorldServiceTest {
         val changes=mapOf(relations[0].id to listOf(RelationshipChange(1,"경계","초반"),
             RelationshipChange(2,"동료","중반 [비공개 인물](card:${hidden.cardId}) [작가 전용 인물](card:${authorOnly.cardId})")))
         graphReads(id) { it.thenReturn(RelationshipStateResult(id,3,"key","hash",relations)) }
-        `when`(graph.read(id,2)).thenReturn(RelationshipStateResult(id,3,"key","hash",relations,history=changes))
+        `when`(graph.read(id,2)).thenReturn(RelationshipStateResult(id,3,"key","hash",relations,history={ changes }))
     }
     @Test fun `a relation's history reaches the reader wiki and the public detail, and card links in it are hidden like in the relation body`() {
         val reader=Seed(visibility="private");reader.changedRelation()
         val answer=service.readerCards("work",reader.id,2).relationships
-        assertEquals(listOf(RelationChangeResponse(1,"경계","초반"),
-            RelationChangeResponse(2,"동료","중반 [비공개 인물](card:${reader.hidden.cardId}) 작가 전용 인물")),answer.single { it.id==reader.relations[0].id }.history) // 2화에는 보이는 카드의 링크만 남는다
+        assertEquals(listOf(RelationshipChange(1,"경계","초반"),
+            RelationshipChange(2,"동료","중반 [비공개 인물](card:${reader.hidden.cardId}) 작가 전용 인물")),answer.single { it.id==reader.relations[0].id }.history) // 2화에는 보이는 카드의 링크만 남는다
         // 공개 세계관 상세는 연결된 공개 소설의 마지막 발행 회차(2화)가 기준이다.
         val open=Seed();open.changedRelation();linkWork(open,published=listOf(1,2))
         val detail=service.detail(open.id).relationships.single { it.id==open.relations[0].id }
@@ -189,6 +189,24 @@ class PublicWorldServiceTest {
         assertTrue(relation.history.isEmpty())
         verify(graph).read(s.id,1);verify(graph,never()).read(s.id,2)
         assertTrue(service.readerCards("work",s.id,1).relationships.all { it.history.isEmpty() })
+    }
+    @Test fun `only the public detail and the reader wiki read the relation history, the list and the inherited world never do`() {
+        val s=Seed();val reads=mutableListOf<String>()
+        graphReads(s.id) { it.thenAnswer { RelationshipStateResult(s.id,3,"key","hash",s.relations,history={ reads+="history";emptyMap() }) } }
+        stubPage(listOf(s),PageRequest.of(0,24),1)
+        service.list(null,null,null);service.inheritedWorld("fork",s.id,2)
+        assertEquals(emptyList<String>(),reads) // 관계 수만 세는 목록과 관계 본문을 비워 보내는 Fork 이어받기는 이력의 payload를 풀지 않는다
+        service.detail(s.id);service.readerCards("work",s.id,2)
+        assertEquals(2,reads.size)
+    }
+    @Test fun `a corrupt history makes the detail unavailable like any unreadable relation, while the list that never reads it still counts the relations`() {
+        val s=Seed()
+        graphReads(s.id) { it.thenAnswer { RelationshipStateResult(s.id,3,"key","hash",s.relations,history={ throw WorldStudioFailure.mismatch() }) } }
+        stubPage(listOf(s),PageRequest.of(0,24),1)
+        val detail=service.detail(s.id)
+        assertEquals("unavailable",detail.relationshipStatus);assertTrue(detail.relationships.isEmpty())
+        assertEquals("unavailable",service.readerCards("work",s.id,2).relationshipStatus)
+        assertEquals(1,service.list(null,null,null).items.single().relationshipCount)
     }
     @Test fun `a public world whose cards are all author-only is still listed and readable, with no card and no relation`() {
         val s = Seed(cards = "private", revealed = false)

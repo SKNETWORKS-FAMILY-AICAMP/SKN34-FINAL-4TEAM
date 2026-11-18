@@ -73,6 +73,24 @@ class Neo4jRelationshipRepositoryTest {
         assertFalse(steady.id in latest.history) // 바뀐 적 없는 관계는 이력이 없다
         assertTrue(repository.read(world,2).history.isEmpty())
     }
+    @Test fun `the history of a relation moved to other cards starts at the move, never at its earlier cards`() {
+        // 1화에는 a→c(c는 공개되지 않을 카드일 수 있다)의 '연인'이었다가 3화에 a→b로 옮겨졌다. 지금 두 카드의 이력에 옛 카드와의 연결과 그 body가 실리면 안 된다.
+        val id=UUID.randomUUID()
+        val lover=relation(a,c,"옛 카드와의 관계",id).copy(label="연인")
+        val friend=relation(a,b,"3화부터",id).copy(label="친구");val ally=friend.copy(label="동지",body="5화부터")
+        answer(stored(listOf(edge(lover,1),edge(friend,3),edge(ally,5))))
+        val atFive=repository.read(world,5)
+        assertEquals(mapOf(id to 5),atFive.episodes)
+        assertEquals(listOf(RelationshipChange(3,"친구","3화부터"),RelationshipChange(5,"동지","5화부터")),atFive.history.getValue(id))
+        assertFalse(id in repository.read(world,4).history) // 지금 끝점으로는 3화 연결 하나뿐이라 바뀐 적이 없다
+    }
+    @Test fun `reading the relations does not read the history payloads, asking for the history does`() {
+        val before=relation(body="옛 기록");val now=before.copy(body="지금")
+        answer(stored(listOf(edge(before,1).plus("payload" to "{ not json"),edge(now,3))))
+        val state=repository.read(world)
+        assertEquals(listOf(now),state.relationships);assertEquals(mapOf(now.id to 3),state.episodes) // 소유자 읽기·저장·목록은 이력을 풀지 않는다
+        assertEquals("RELATIONSHIP_VERSION_MISMATCH",assertThrows(WorldStudioFailure::class.java) { state.history }.code) // 이력을 읽을 때 손상이 불일치로 드러난다
+    }
     @Test fun `missing or corrupt current graph is an explicit failure not an empty success`() {
         answer(stored(emptyList(),count=1))
         assertEquals("RELATIONSHIP_VERSION_MISMATCH",assertThrows(WorldStudioFailure::class.java) { repository.read(world) }.code)

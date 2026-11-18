@@ -216,6 +216,17 @@ class WorldStudioMcpToolsTest {
         assertTrue("relationshipEpisodes" in schema, schema)
     }
 
+    @Test fun `world_studio_edit_draft hands a decimal or string relationship episode to the service as an invalid episode instead of rounding it`() {
+        val relation = UUID.fromString("99999999-9999-9999-9999-999999999999")
+        val request = EditWorldDraftRequest(3, "달빛 세계", "", key = "edit-3", relationshipEpisodes = mapOf(relation to 0)) // 0은 회차 검증이 거절한다(422)
+        `when`(studio.edit(worldId, member, request)).thenReturn(draft())
+
+        for (value in listOf<Any>(2.7, "3"))
+            call("world_studio_edit_draft", mapOf("id" to "$worldId", "request" to mapOf("expectedDraftRevision" to 3, "name" to "달빛 세계", "description" to "", "key" to "edit-3",
+                "relationshipEpisodes" to mapOf("$relation" to value))), signedIn())
+
+        verify(studio, times(2)).edit(worldId, member, request)
+    }
 
     @Test fun `world_studio_save_revision forwards the id the caller and the same request DTO`() {
         val saved = WorldRevisionResponse(worldId, revisionId, 1, "달빛 세계", "설명", null, null, emptyList(), null)

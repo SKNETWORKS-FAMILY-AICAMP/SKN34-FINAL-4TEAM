@@ -34,7 +34,7 @@ class Neo4jRelationshipRepository(private val driver:Driver,private val mapper:J
 
     /**
      * [episode]화 시점의 관계다. null이면 최신(관계마다 가장 최근 연결)이다. 그 시점 관계가 시작된 회차([RelationshipStateResult.episodes])와
-     * 관계마다 그 시점까지의 변화([RelationshipStateResult.history], [episode] 뒤의 변화는 담지 않는다)를 함께 돌려준다.
+     * 관계마다 그 시점까지의 변화([RelationshipStateResult.history], [episode] 뒤의 변화는 담지 않고 처음 읽을 때 계산한다)를 함께 돌려준다.
      */
     fun read(worldId:UUID,episode:Int?=null):RelationshipStateResult=access {
         driver.session(SessionConfig.forDatabase(database)).use { session -> session.executeRead({ tx -> view(worldId,load(tx,worldId),episode) },timeout) }
@@ -132,8 +132,9 @@ class Neo4jRelationshipRepository(private val driver:Driver,private val mapper:J
     private fun view(worldId:UUID,stored:Stored,episode:Int?):RelationshipStateResult {
         fun payload(edge:RelationEdge)=try { mapper.readValue(requireNotNull(edge.payload),RelationshipPayload::class.java) } catch(_:RuntimeException) { throw WorldStudioFailure.mismatch() }
         val tips=relationsAsOf(stored.edges,episode)
-        val history=relationHistory(stored.edges,episode).mapValues { (_,run) -> run.map { edge -> payload(edge).let { RelationshipChange(edge.fromEpisode,it.label,it.body) } } }
-        return RelationshipStateResult(worldId,stored.version,stored.key,stored.hash,tips.map(::payload).sortedBy { it.id.toString() },tips.associate { it.relationId to it.fromEpisode },history)
+        return RelationshipStateResult(worldId,stored.version,stored.key,stored.hash,tips.map(::payload).sortedBy { it.id.toString() },tips.associate { it.relationId to it.fromEpisode }) {
+            relationHistory(stored.edges,episode).mapValues { (_,run) -> run.map { edge -> payload(edge).let { RelationshipChange(edge.fromEpisode,it.label,it.body) } } }
+        }
     }
 
     /** 저장할 관계 [rows]의 연결이다: 관계마다 [episodes]의 자기 회차, 없으면 저장 회차 [at]에 쓴다. 끝이 빈 관계는 RelationshipInputHelper가 저장 전에 거절하므로 두 끝점은 항상 있다. */

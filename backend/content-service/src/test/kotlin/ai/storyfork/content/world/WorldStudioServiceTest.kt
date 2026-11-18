@@ -1380,4 +1380,15 @@ class WorldStudioServiceTest {
         val json=mapper.writeValueAsString(EditWorldDraftRequest(2,"x","",relationshipEpisodes=mapOf(relation to 3)))
         assertEquals(mapOf(relation to 3),mapper.readValue(json,EditWorldDraftRequest::class.java).relationshipEpisodes)
     }
+    @Test fun `a relationship episode must be a whole-number JSON value, any other value is an invalid episode`() {
+        val relation=RelationshipPayload(UUID.randomUUID(),cardA,cardB,"structural","관계")
+        fun request(value:String)=mapper.readValue("""{"expectedDraftRevision":2,"name":"x","description":"","key":"k","relationshipEpisodes":{"${relation.id}":$value}}""",
+            EditWorldDraftRequest::class.java).copy(relationships=listOf(relation))
+        assertEquals(mapOf(relation.id to 3),request("3").relationshipEpisodes)
+        service.validateEditRequest(request("3"))
+        // Jackson 기본은 2.7→2, 3.0→3, "3"→3으로 조용히 바꾸지만 소수·문자열·불리언·배열·객체는 정수가 아니라 1 미만과 같이 거절한다(422).
+        for(value in listOf("2.7","3.0","\"3\"","\"x\"","true","[3]","{}"))
+            assertThrows(IllegalArgumentException::class.java,{ service.validateEditRequest(request(value)) },value)
+        assertThrows(tools.jackson.databind.DatabindException::class.java) { request("null") } // null은 Kotlin 모듈이 본문 형식 오류(400)로 먼저 거절한다
+    }
 }

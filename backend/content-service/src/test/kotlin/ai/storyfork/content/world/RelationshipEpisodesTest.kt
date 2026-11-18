@@ -140,4 +140,16 @@ class RelationshipEpisodesTest {
         assertNull(relationHistory(edges,8)[friend]) // 다시 이은 뒤 연결이 하나뿐이다
         assertEquals(listOf(8,9),relationHistory(edges,null)[friend]!!.map { it.fromEpisode })
     }
+    @Test fun `history never reaches back past a connection with other cards`() {
+        // 1화에는 a→c였던 관계(c는 작가 전용 카드일 수 있다)가 3화에 a→b로 옮겨졌다. 지금 두 카드(a→b)의 이력에 1화의 옛 끝점 연결이 실리면 안 된다.
+        val edges=listOf(edge(friend,1,"lover",a,c),edge(friend,3,"friend"),edge(friend,5,"ally"))
+        assertEquals(listOf(3,5),relationHistory(edges,null)[friend]!!.map { it.fromEpisode })
+        assertNull(relationHistory(edges,4)[friend]) // 지금 끝점으로는 3화 연결 하나뿐이라 바뀐 적이 없다
+        assertEquals(listOf(1,2),relationHistory(listOf(edge(friend,1,"lover",a,c),edge(friend,2,"lover2",a,c),edge(friend,3,"friend")),2)[friend]!!.map { it.fromEpisode }) // 그 시점의 끝점이 같은 구간은 이력이다
+    }
+    @Test fun `swapping the two cards ends the history run too`() {
+        val edges=listOf(edge(friend,1,"p"),edge(friend,3,"q",b,a),edge(friend,4,"r",b,a))
+        assertEquals(listOf(3,4),relationHistory(edges,null)[friend]!!.map { it.fromEpisode })
+        assertNull(relationHistory(edges,2)[friend])
+    }
 }

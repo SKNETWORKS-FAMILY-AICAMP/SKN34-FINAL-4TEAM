@@ -104,7 +104,7 @@ class PublicWorldService(
         val shown = cards.map { it.cardId }.toSet()
         val owner = seen.world.ownerSubject.toString()
         val names = authors(listOfNotNull(owner, work?.ownerId).distinct())
-        val relations = currentRelationships(id, seen.state, seen.revision.id, shown, basis)
+        val relations = currentRelationships(id, seen.state, seen.revision.id, shown, basis, withHistory = true)
         return PublicWorldResponse(id, seen.revision.name, seen.revision.description, seen.world.genre, names.getValue(owner), seen.world.published(), seen.revision.revisionNo,
             cards.map { PublicWorldCardResponse(it.cardId, it.fields.title, hideCardLinks(it.fields.body, shown), it.fields.cardType, it.fields.aliases.toList(), it.fields.tags.toList(), cardImageId(it.fields.semanticMetadata)) },
             // 양 끝이 보이는 카드인 관계만 남았으므로 끝점은 비어 있지 않다.
@@ -132,7 +132,7 @@ class PublicWorldService(
         if (seen.cards.isEmpty()) return ReaderWorldCardsResponse(workId, worldId, upto,
             relationshipStatus=if(seen.revisionId!=null && tx { expansionPending(worldId) }) "unavailable" else "current")
         // 독자에게 보이는 기준 회차까지의 관계만 읽는다(카드와 같은 기준이라 관계 스포일러도 막힌다, DEC-51).
-        val relations = currentRelationships(worldId, seen.state, requireNotNull(seen.revisionId), seen.shown, upto)
+        val relations = currentRelationships(worldId, seen.state, requireNotNull(seen.revisionId), seen.shown, upto, withHistory = true)
         return ReaderWorldCardsResponse(workId, worldId, upto,
             seen.cards.map { (card, from) -> ReaderWorldCardResponse(card.cardId, card.fields.title, hideCardLinks(card.fields.body, seen.shown), card.fields.cardType, card.fields.aliases.toList(), card.fields.tags.toList(), from, cardImageId(card.fields.semanticMetadata)) },
             // 양 끝이 독자에게 보이는 카드인 관계만 남았으므로 끝점은 비어 있지 않다.
@@ -206,18 +206,21 @@ class PublicWorldService(
         return Snapshot(world, revision, cards, states.findById(id).orElse(null))
     }
 
-    /** Neo4j 관계 중 [episode]화 시점(null이면 최신)의 것으로 양 끝이 [cardIds](보이는 카드)에 있는 것이다. 미전환·미완료·토큰 불일치·조회 실패는 null이며 호출자가 unavailable로 알린다. */
     private fun expansionPending(worldId:UUID)=expandedSeeds.findById(worldId).orElse(null)?.completed==false
 
     /** 관계 본문과 회차 이력의 본문 링크도 카드 본문과 같은 함수로 치환한다([shown]은 응답에 실리는 보이는 카드). 양 끝이 보이는 카드인 관계만 남았으므로 끝점은 비어 있지 않다. */
     private fun publicRelationships(relations: Visible?, shown: Set<UUID>) = relations?.let { found ->
         found.rows.map {
             PublicWorldRelationshipResponse(it.id, it.sourceCardId!!, it.targetCardId!!, it.label, it.category, hideCardLinks(it.body, shown), it.direction, it.polarity,
-                found.history[it.id].orEmpty().map { change -> RelationChangeResponse(change.episode, change.label, hideCardLinks(change.body, shown)) })
+                found.history[it.id].orEmpty().map { change -> change.copy(body = hideCardLinks(change.body, shown)) })
         }
     }.orEmpty()
 
-    private fun currentRelationships(worldId: UUID, state: WorldRelationshipState?, revisionId:UUID, cardIds: Set<UUID>, episode: Int? = null): Visible? {
+    /**
+     * Neo4j 관계 중 [episode]화 시점(null이면 최신)의 것으로 양 끝이 [cardIds](보이는 카드)에 있는 것이다. 미전환·미완료·토큰 불일치·조회 실패는 null이며 호출자가 unavailable로 알린다.
+     * 회차 이력은 [withHistory]일 때만 읽는다(상세·독자 위키만 싣고 목록·Fork 이어받기는 풀지 않는다). 이력이 손상됐으면 그 읽기도 null이다.
+     */
+    private fun currentRelationships(worldId: UUID, state: WorldRelationshipState?, revisionId:UUID, cardIds: Set<UUID>, episode: Int? = null, withHistory: Boolean = false): Visible? {
         if (state == null || !state.completed) return null
         val version=state.graphVersion;val key=state.requestKey;val hash=state.requestHash
         if(tx { expansionPending(worldId) }) return null
@@ -229,7 +232,7 @@ class PublicWorldService(
                 !expansionPending(worldId) && worlds.findById(worldId).orElse(null)?.currentRevisionId==revisionId &&
                     latest!=null && latest.completed && latest.graphVersion==version && latest.requestKey==key && latest.requestHash==hash
             }
-            if(valid) Visible(visibleRelationships(stored.relationships,cardIds),stored.history) else null
+            if(valid) Visible(visibleRelationships(stored.relationships,cardIds),if(withHistory) stored.history else emptyMap()) else null
         } catch (_: WorldStudioFailure) { null }
     }
 
