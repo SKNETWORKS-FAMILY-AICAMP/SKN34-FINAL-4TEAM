@@ -58,7 +58,7 @@ const rating: z.ZodType<ChatRating> = z.object({
   verdict: ratingVerdict, prohibited: z.boolean(),
   episodes: z.array(z.object({
     episode: z.number().int(), verdict: ratingVerdict.nullable(), prohibited: z.boolean(), error: z.string().nullable(),
-    assessments: z.array(z.object({ criterion: z.string(), level: z.number().int(), quotes: z.array(z.string()), rationale: z.string() })),
+    assessments: z.array(z.object({ criterion: z.enum(['sexual', 'violence', 'crime', 'drug', 'gambling', 'language', 'other']), level: z.number().int().min(0).max(3), quotes: z.array(z.string()), rationale: z.string() })),
   })),
 })
 const BAD_RATING = '심의 등급 결과 형식을 확인할 수 없어요.'
