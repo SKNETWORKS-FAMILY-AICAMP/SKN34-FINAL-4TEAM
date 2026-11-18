@@ -740,3 +740,45 @@ it('rejects a restore or a delete for an id that is not a UUID before sending an
  await expect(repo.deleteStudio('x')).rejects.toThrow()
  expect(fetcher).not.toHaveBeenCalled()
 })
+
+const identityRow=()=>({...relation,item:{...relation.item,id:crypto.randomUUID(),title:'가 · 동일 인물 · 나',text:'가 · 동일 인물 · 나',predicate:'identity_of',polarity:'asserted' as const}})
+const identityWire=(row=identityRow())=>({id:row.item.id,sourceCardId:a.item.id,targetCardId:b.item.id,category:'identity',body:row.item.text,label:row.item.title,direction:'directed',polarity:'asserted',semanticMetadata:{studio:row},lifecycle:'active'})
+it('「동일 인물」 관계를 identity_of로 읽고 category identity·방향 있는 관계로 회차와 함께 다시 보낸다',async()=>{
+  const row=identityRow(),server={...wire(),relationships:[identityWire(row)]}
+  const fetcher=vi.fn().mockResolvedValueOnce(Response.json(server)).mockResolvedValueOnce(Response.json({...server,draftRevision:3}))
+  const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id,undefined,4)
+  expect(loaded.settings[2].item).toMatchObject({kind:'relation',predicate:'identity_of',subjectId:a.item.id,targetId:b.item.id,polarity:'asserted'})
+  const changed={...loaded,settings:loaded.settings.map((r,i)=>i===2?{...r,item:{...r.item,text:r.item.text+' 수정',title:r.item.title}}:r)}
+  await repo.saveStudio(changed,undefined,4)
+  const body=JSON.parse(fetcher.mock.calls[1][1].body)
+  expect(body.episode).toBe(4)
+  expect(body.relationships).toHaveLength(1);expect(body.relationships[0]).toMatchObject({category:'identity',direction:'directed',polarity:'asserted',sourceCardId:a.item.id,targetCardId:b.item.id})
+})
+it('소설을 연결하지 않은 세계관의 「동일 인물」 저장은 1화로 보내고, 연결된 세계관은 회차 없이는 보내지 않는다',async()=>{
+  const fetcher=vi.fn().mockResolvedValueOnce(Response.json(wire())).mockResolvedValue(Response.json({...wire(),draftRevision:3}))
+  const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id)
+  await repo.saveStudio({...loaded,settings:[...loaded.settings,identityRow()]})
+  expect(JSON.parse(fetcher.mock.calls[1][1].body).episode).toBe(1)
+  const linked=vi.fn().mockResolvedValueOnce(Response.json({...wire(),linkedWorkId:'work-1'}))
+  const second=new HttpWorldStudioRepository(linked),loadedLinked=await second.read(id)
+  await expect(second.saveStudio({...loadedLinked,settings:[...loadedLinked.settings,identityRow()]})).rejects.toThrow('회차')
+  expect(linked).toHaveBeenCalledTimes(1) // 읽기뿐이다: 저장 요청은 나가지 않았다
+})
+it('「동일 인물」을 끝내는 저장도 회차가 필요하다: 미연결은 1화로, 연결된 세계관은 회차를 정한 뒤에만 보낸다',async()=>{
+  const link=identityWire(),withLink={...wire(),relationships:[link]}
+  const ends=(loaded:StudioWorld)=>({...loaded,settings:loaded.settings.filter(r=>r.item.kind!=='relation')})
+  const unlinked=vi.fn().mockResolvedValueOnce(Response.json(withLink)).mockResolvedValue(Response.json({...withLink,draftRevision:3,relationships:[]}))
+  const first=new HttpWorldStudioRepository(unlinked)
+  await first.saveStudio(ends(await first.read(id)))
+  expect(JSON.parse(unlinked.mock.calls[1][1].body)).toMatchObject({episode:1,relationships:[{category:'identity',lifecycle:'removed'}]})
+  const linked=vi.fn().mockResolvedValueOnce(Response.json({...withLink,linkedWorkId:'work-1'}))
+  const second=new HttpWorldStudioRepository(linked)
+  await expect(second.saveStudio(ends(await second.read(id)))).rejects.toThrow('회차')
+  expect(linked).toHaveBeenCalledTimes(1)
+})
+it('「동일 인물」 관계가 이어진 설정을 그 관계와 함께 지우는 저장은 두 번에 나눠 하라고 알리고 보내지 않는다',async()=>{
+  const fetcher=vi.fn().mockResolvedValueOnce(Response.json({...wire(),relationships:[identityWire()]}))
+  const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id)
+  await expect(repo.saveStudio({...loaded,settings:loaded.settings.filter(r=>r.item.id!==a.item.id&&r.item.kind!=='relation')})).rejects.toThrow('먼저')
+  expect(fetcher).toHaveBeenCalledTimes(1)
+})

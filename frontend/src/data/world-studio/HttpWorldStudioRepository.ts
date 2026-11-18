@@ -128,7 +128,7 @@ const relation = z.object({
   id: uuid,
   sourceCardId: uuid.nullable(),
   targetCardId: uuid.nullable(),
-  category: z.enum(['structural', 'emotional']).nullable(),
+  category: z.enum(['structural', 'emotional', 'identity']).nullable(),
   body: z.string(),
   label: z.string(),
   direction: z.enum(['directed', 'symmetric']).nullable(),
@@ -183,7 +183,7 @@ function relationship(row: StudioSetting) {
     id: row.item.id,
     sourceCardId: row.item.subjectId,
     targetCardId: row.item.targetId,
-    category: definition ? definition.group === 'emotion' ? 'emotional' : 'structural' : null,
+    category: definition ? definition.group === 'emotion' ? 'emotional' : definition.group === 'identity' ? 'identity' : 'structural' : null,
     direction: definition ? definition.symmetric ? 'symmetric' : 'directed' : null,
     polarity: row.item.polarity,
     body: row.item.text,
@@ -230,7 +230,7 @@ function world(value: z.infer<typeof draft>, id: string): StudioWorld {
   for (const r of value.relationships) {
     const row = setting(r.semanticMetadata,{id:r.id,kind:'relation',title:r.label,text:r.body,
       subjectId:r.sourceCardId,targetId:r.targetCardId,polarity:r.polarity??'asserted',
-      predicate:r.category==='emotional'?(r.direction==='symmetric'?'preserved_emotion_symmetric':'custom_emotion'):r.direction==='symmetric'?'custom_relation':'custom_relation_directed'},
+      predicate:r.category==='identity'?'identity_of':r.category==='emotional'?(r.direction==='symmetric'?'preserved_emotion_symmetric':'custom_emotion'):r.direction==='symmetric'?'custom_relation':'custom_relation_directed'},
       {userCategory:'',tags:[],aliases:[]}), expected = relationship(row)
     if(r.semanticMetadata.studio.item.id!==r.id)throw invalid()
     if (
@@ -492,12 +492,18 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
       const removed=baseline.settings.filter(row=>!after.has(row.item.id) || (row.item.kind==='relation')!==(after.get(row.item.id)?.item.kind==='relation'))
       const cards=[...changed.filter(row=>row.item.kind!=='relation').map(row=>({row,lifecycle:'active'})),...removed.filter(row=>row.item.kind!=='relation').map(row=>({row,lifecycle:'removed'}))]
       const relationships=[...changed.filter(row=>row.item.kind==='relation').map(row=>relationship(row)),...removed.filter(row=>row.item.kind==='relation').map(row=>({...relationship(row),lifecycle:'removed'}))]
+      // 「동일 인물」은 회차가 정하는 정체 공개라 새로 쓰거나 바꾸거나 끝내는 저장은 회차가 있어야 한다(서버도 422). 소설을 연결하지 않은 세계관은 1화뿐이라 1로 보낸다(#485).
+      const identityTouched=relationships.some(r=>r.category==='identity')
+      const savedAt=episode ?? (identityTouched && !baseline.linkedWorkId ? 1 : undefined)
+      if(identityTouched && savedAt===undefined)throw new Error('「동일 인물」 관계를 새로 쓰거나 바꾸거나 끝내려면 관계 기준 회차를 정해야 해요. 입력을 보존하고 회차를 정해 주세요.',{cause:'WORLD_WRITE_REJECTED'})
+      // 설정을 지우는 저장은 회차를 지정할 수 없어(서버 422) 그 설정에 이어진 「동일 인물」을 끝내는 저장과 함께 보낼 수 없다.
+      if(identityTouched && relationships.some(r=>r.category==='identity' && r.lifecycle==='removed') && cards.some(c=>c.lifecycle==='removed'))throw new Error('「동일 인물」 관계가 이어진 설정은 먼저 관계를 지워 저장한 뒤에 지워 주세요. 입력을 보존했어요.',{cause:'WORLD_WRITE_REJECTED'})
       if(cards.length>1000 || relationships.length>1000)throw new Error('한 번에 저장할 수 있는 변경 한도를 넘었어요. 입력을 보존하고 변경을 줄여 주세요.',{cause:'WORLD_WRITE_REJECTED'})
       body=JSON.stringify({
         expectedDraftRevision: value.version,
         key: crypto.randomUUID(),
         replace: false,
-        episode,
+        episode: savedAt,
         name: value.name,
         description: value.description,
         cards: cards.map(({row,lifecycle}) => ({

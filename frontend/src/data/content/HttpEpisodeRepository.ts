@@ -54,7 +54,7 @@ const cardId = z.string().min(1)
 const readingWorldCards = z.object({
   workId: z.string(), worldId: z.string().min(1).nullable(), upto: z.number().int().nonnegative(),
   cards: z.array(z.object({ id: cardId, title: z.string(), text: z.string(), cardType: z.enum(cardTypes.map((type) => type.id)), aliases: z.array(z.string()), tags: z.array(z.string()), revealFromEpisode: z.number().int().positive(), imageId: z.string().min(1).nullable().default(null) })),
-  relationships: z.array(z.object({ id: cardId, sourceCardId: cardId, targetCardId: cardId, label: z.string(), category: z.enum(['structural', 'emotional']).nullable().optional(), direction: z.enum(['directed', 'symmetric']).nullable().optional(), body: z.string().nullable().optional(), polarity: z.enum(['asserted', 'denied']).nullable().optional() })),
+  relationships: z.array(z.object({ id: cardId, sourceCardId: cardId, targetCardId: cardId, label: z.string(), category: z.enum(['structural', 'emotional', 'identity']).nullable().optional(), direction: z.enum(['directed', 'symmetric']).nullable().optional(), body: z.string().nullable().optional(), polarity: z.enum(['asserted', 'denied']).nullable().optional() })),
   relationshipStatus: z.enum(['current', 'unavailable']).default('current'),
 })
 /** Fork가 이어받는 원작 세계관(#365): 시작 양식이 쓰는 카드 필드만 읽는다. 이어받는 세계관이 없으면 worldId가 null이다. */

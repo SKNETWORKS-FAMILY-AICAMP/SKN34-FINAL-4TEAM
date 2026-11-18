@@ -59,3 +59,9 @@ it('관계는 양 끝 문서에서 연결하고 같은 상대·라벨도 관계�
     c: [{ to: 'a', k: '' }],
   })
 })
+
+it('「동일 인물」 관계는 다른 이름 문서에서는 sourceFirst, 본체 문서에서는 반대로 분류 그대로 연결한다', () => {
+  const [mask, body] = wiki([card('mask'), card('body')], [{ id: 'i', sourceCardId: 'mask', targetCardId: 'body', label: '동일 인물', category: 'identity', direction: 'directed', polarity: 'asserted' }]).docs
+  expect(mask.links![0]).toMatchObject({ to: 'body', relation: { category: 'identity', direction: 'directed', sourceFirst: true } })
+  expect(body.links![0]).toMatchObject({ to: 'mask', relation: { category: 'identity', direction: 'directed', sourceFirst: false } })
+})

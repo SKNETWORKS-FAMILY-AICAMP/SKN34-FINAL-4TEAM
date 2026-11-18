@@ -56,7 +56,10 @@ function Article({ doc, cat, no, docs }: { doc: Doc; cat: WikiCat; no: string; d
         <p className="nw-rel"><b>등장</b> {doc.who.map((n, i) => { const d = byName(n); return <span key={n}>{i > 0 && ', '}{d ? <Jump to={docAnchor(d)}>{n}</Jump> : n}</span> })}</p>
       )}
       {links.length > 0 && (
-        <p className="nw-rel"><b>연결</b> {links.map(({ to, k, relation }, i) => <span key={i}>{i > 0 && ', '}<Jump to={docAnchor(to)}>{to.t}</Jump>{k && ` (${k})`}{relation?.category && ` · ${relation.category === 'emotional' ? '감정 관계' : '구조 관계'}`}{relation && ` · ${relation.direction === 'directed' ? `단방향: ${relation.sourceFirst ? `이 설정 → ${to.t}` : `${to.t} → 이 설정`}` : relation.direction === 'symmetric' ? '대칭 관계' : '방향 미상'}`}{relation?.polarity === 'denied' && ' · 부정된 관계'}{relation?.polarity === 'asserted' && ' · 확인된 관계'}{relation?.body && <span style={{ whiteSpace: 'pre-wrap' }}>{` · ${relation.body}`}</span>}</span>)}</p>
+        <p className="nw-rel"><b>연결</b> {links.map(({ to, k, relation }, i) => relation?.category === 'identity'
+          // 「동일 인물」(다른 이름 카드 → 본체 카드): 다른 이름 쪽에는 정체로, 본체 쪽에는 다른 이름으로 보인다. 구조 관계·방향·부정 문구는 붙이지 않는다(#485).
+          ? <span key={i}>{i > 0 && ', '}동일 인물 · {relation.sourceFirst ? '정체' : '다른 이름'}: <Jump to={docAnchor(to)}>{to.t}</Jump></span>
+          : <span key={i}>{i > 0 && ', '}<Jump to={docAnchor(to)}>{to.t}</Jump>{k && ` (${k})`}{relation?.category && ` · ${relation.category === 'emotional' ? '감정 관계' : '구조 관계'}`}{relation && ` · ${relation.direction === 'directed' ? `단방향: ${relation.sourceFirst ? `이 설정 → ${to.t}` : `${to.t} → 이 설정`}` : relation.direction === 'symmetric' ? '대칭 관계' : '방향 미상'}`}{relation?.polarity === 'denied' && ' · 부정된 관계'}{relation?.polarity === 'asserted' && ' · 확인된 관계'}{relation?.body && <span style={{ whiteSpace: 'pre-wrap' }}>{` · ${relation.body}`}</span>}</span>)}</p>
       )}
     </div>
   )

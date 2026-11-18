@@ -93,7 +93,7 @@ export default function WorldGraphCanvas({ data, mode, summary, onOpen }: { data
   const paintLinkLabel = (link: DetailLink, ctx: CanvasRenderingContext2D, scale: number) => {
     const { source: a, target: b, label } = link
     if (link.kind !== 'link' || typeof a !== 'object' || typeof b !== 'object') return
-    const text = [label, link.category === 'emotional' ? '감정' : link.category === 'structural' ? '구조' : '', link.direction === 'directed' ? '단방향' : link.direction === 'symmetric' ? '대칭' : '방향 미상', link.polarity === 'denied' ? '부정' : ''].filter(Boolean).join(' · ')
+    const text = [label, link.category === 'emotional' ? '감정' : link.category === 'structural' ? '구조' : link.category === 'identity' ? '동일 인물' : '', link.direction === 'directed' ? '단방향' : link.direction === 'symmetric' ? '대칭' : '방향 미상', link.polarity === 'denied' ? '부정' : ''].filter(Boolean).join(' · ')
     const dx = (b.x ?? 0) - (a.x ?? 0), dy = (b.y ?? 0) - (a.y ?? 0)
     const x = ((a.x ?? 0) + (b.x ?? 0)) / 2 - dy * (link.curve ?? 0) / 2
     const y = ((a.y ?? 0) + (b.y ?? 0)) / 2 + dx * (link.curve ?? 0) / 2
