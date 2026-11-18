@@ -49,3 +49,17 @@ it('답변하기는 누르기 쉬운 높이를 주는 전용 클래스를 쓴다
   await screen.findByRole('heading', { name: '독자 제보 1' })
   expect(card('r1').getByText('답변하기').closest('details')!.className).toBe('report-answer')
 })
+
+it('유형과 상태를 함께 골라 해당 제보와 작가의 처리 기록을 본다', async () => {
+  vi.spyOn(reports(), 'listInbox').mockResolvedValue([report(), report({
+    id: 'r2', kind: 'story', body: '장면 순서', status: 'checked', authorChecked: true,
+    handledAt: '2026-11-10T02:00:00Z', handlerName: '작가봄',
+  })])
+  open()
+  await screen.findByRole('heading', { name: '독자 제보 2' })
+  fireEvent.change(screen.getByLabelText('제보 유형'), { target: { value: 'story' } })
+  expect(screen.queryByText('오탈자가 있어요')).toBeNull()
+  card('r2').getByText(/작가봄/)
+  fireEvent.change(screen.getByLabelText('제보 상태'), { target: { value: 'unchecked' } })
+  screen.getByText('조건에 맞는 제보가 없어요.')
+})

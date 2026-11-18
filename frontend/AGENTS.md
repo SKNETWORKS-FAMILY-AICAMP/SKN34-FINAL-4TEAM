@@ -109,3 +109,5 @@ View 이벤트 → ViewModel handler → UseCase 메서드 호출
   `src/domain`, `src/data`의 대역 기반 테스트와 `src/index-html.test.js`가 단위 범위이고, React 렌더·Hook·App 조립은 CI 통합 계층이다.
 - UseCase 테스트는 Fake Repository, ViewModel 테스트는 Fake UseCase나 격리 컨테이너를 사용한다(운영 컨테이너를 바꾸지 않음).
 - 상세는 [Frontend README](README.md)를 본다.
+
+수정 제안의 발행 반영 표시는 서버가 확인한 현재 발행본 계보를 따르고, 초안에만 반영된 제안은 해당 회차 집필실로 연결한다.

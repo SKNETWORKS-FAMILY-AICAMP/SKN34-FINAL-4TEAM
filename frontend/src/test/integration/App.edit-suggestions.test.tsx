@@ -241,13 +241,24 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
     fireEvent.click(within(await card()).getByRole('button', { name: '승인하고 초안에 반영' }))
     await waitFor(() => expect(repo.approve).toHaveBeenCalledWith('w1', 's1'))
     const c = await card()
-    await within(c).findByText('초안에 반영됨 — 발행은 집필실에서')
+    await within(c).findByText('반영한 원고를 발행할까요?')
     within(c).getByText('승인됨 · 초안에 반영됨')
     expect(within(c).getByRole('status').textContent).toBe('승인했고 초안에 반영했어요 — 발행은 집필실에서 해 주세요.')
-    expect(within(c).getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w1')
+    expect(within(c).getByRole('link', { name: '집필실 열기' }).getAttribute('href')).toBe('/studio/w1?ep=3')
     expect(within(c).queryByRole('button', { name: '승인하고 초안에 반영' })).toBeNull()
     expect(toastText()).not.toContain('초안에 반영했어요')
     expect(repo.inbox.mock.calls.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('현재 발행본에 반영된 제안은 발행본으로 연결하고 처리자를 표시한다', async () => {
+    await open([suggestion({ status: 'approved', applyResult: 'applied', published: true, handlerName: '작가봄', handledAt: '2026-11-10T01:00:00Z' })])
+    const c = await card()
+    within(c).getByText('발행 반영됨')
+    within(c).getByText(/처리자 작가봄/)
+    expect(within(c).getByRole('link', { name: '발행본 보기' }).getAttribute('href')).toBe('/read/w1/3')
+    fireEvent.change(screen.getByLabelText('수정 제안 상태'), { target: { value: 'pending' } })
+    expect(screen.queryByText('발행 반영됨')).toBeNull()
+    screen.getByText('조건에 맞는 수정 제안이 없어요.')
   })
 
   it('반영 실패는 사유와 함께 승인됨·반영 실패로 보이고 반영 완료로 안내하지 않으며 다시 시도할 수 있다', async () => {
@@ -255,12 +266,12 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
     const c = await card()
     within(c).getByText('승인됨 · 반영 실패')
     expect(within(c).getByText(/반영 실패: 초안에서 고칠 문장을 찾을 수 없어요/).classList.contains('note')).toBe(true)
-    expect(within(c).queryByText(/초안에 반영됨 — 발행은 집필실에서/)).toBeNull()
+    expect(within(c).queryByText(/반영한 원고를 발행할까요/)).toBeNull()
     expect(within(c).getByRole('link', { name: '집필실에서 직접 고치기' }).getAttribute('href')).toBe('/studio/w1')
     expect(within(c).queryByRole('button', { name: '거절' })).toBeNull()
     fireEvent.click(within(c).getByRole('button', { name: '다시 반영 시도' }))
     await waitFor(() => expect(repo.approve).toHaveBeenCalledWith('w1', 's1'))
-    await within(await card()).findByText('초안에 반영됨 — 발행은 집필실에서')
+    await within(await card()).findByText('반영한 원고를 발행할까요?')
   })
 
   it('기준 발행본이 바뀌어 승인이 409로 거절되면 서버 안내를 보이고 목록을 다시 읽는다', async () => {
@@ -387,6 +398,7 @@ describe('내 서재의 내 수정 제안 (기능 24)', () => {
     within(rows[2] as HTMLElement).getByText('작가가 승인했지만 아직 초안에 반영되지 않았어요. 작가가 직접 고칠 수 있어요.')
     expect(list.textContent).not.toContain('내부 사유')
     within(rows[3] as HTMLElement).getByText('보류')
+    within(rows[3] as HTMLElement).getByText('작가가 판단을 보류했어요. 원고에는 아직 반영되지 않았어요.')
     expect(list.querySelectorAll('button')).toHaveLength(0)
   })
 

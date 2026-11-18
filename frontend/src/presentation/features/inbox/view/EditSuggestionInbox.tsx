@@ -52,8 +52,9 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
         </>
       )}
       {s.status === 'approved' && s.applyResult === 'applied' && (
-        <div className="rowend"><span className="chip ok">초안에 반영됨 — 발행은 집필실에서</span><Go to={`/studio/${s.workId}`} className="btn sm">집필실 열기</Go></div>
+        <div className="rowend">{s.published ? <Go to={`/read/${s.workId}/${s.episodeNumber}`}>발행본 보기</Go> : <><span>반영한 원고를 발행할까요?</span><Go to={`/studio/${s.workId}?ep=${s.episodeNumber}`} className="btn sm">집필실 열기</Go></>}</div>
       )}
+      {s.handlerName && <p className="small muted">처리자 {s.handlerName} · {s.handledAt ? new Date(s.handledAt).toLocaleString('ko-KR') : '처리 시각 기록 없음'}</p>}
       {retryable && (
         <>
           <p role="note" className="note">반영 실패: {s.applyFailure}</p>
@@ -81,6 +82,8 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
  */
 export function EditSuggestionInbox({ workId }: { workId?: string }) {
   const vm = useEditSuggestionInboxViewModel(workId)
+  const [status, setStatus] = useState('')
+  const visible = vm.items?.filter(item => !status || item.status === status)
   return (
     <section className="sec" aria-labelledby="edit-suggestions-h" aria-busy={!vm.items && !vm.isError}>
       <div className="sec-h"><h2 id="edit-suggestions-h">독자 수정 제안</h2><span className="muted small">독자가 보낸 문장 수정 제안</span></div>
@@ -92,7 +95,12 @@ export function EditSuggestionInbox({ workId }: { workId?: string }) {
       )}
       {!vm.items && !vm.isError && <p className="muted">수정 제안을 불러오고 있어요…</p>}
       {vm.items?.length === 0 && <p className="muted">{workId ? '이 작품에 받은 수정 제안이 없어요.' : '받은 수정 제안이 없어요.'}</p>}
-      {vm.items && vm.items.length > 0 && <div style={{ display: 'grid', gap: 12 }}>{vm.items.map((s) => <SuggestionCard key={s.id} s={s} vm={vm} />)}</div>}
+      {!!vm.items?.length && <label>수정 제안 상태 <select value={status} onChange={e=>setStatus(e.target.value)}>
+        <option value="">전체</option><option value="pending">검토 대기</option><option value="held">보류</option>
+        <option value="approved">승인</option><option value="rejected">거절</option>
+      </select></label>}
+      {!!vm.items?.length && !visible?.length && <p>조건에 맞는 수정 제안이 없어요.</p>}
+      {visible && visible.length > 0 && <div style={{ display: 'grid', gap: 12 }}>{visible.map((s) => <SuggestionCard key={s.id} s={s} vm={vm} />)}</div>}
     </section>
   )
 }

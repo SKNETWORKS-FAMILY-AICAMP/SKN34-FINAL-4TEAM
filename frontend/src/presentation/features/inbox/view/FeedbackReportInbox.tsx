@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 
-import { REPORT_RESPONSE_MAX, REPORT_STATUS_LABEL, SETTABLE_REPORT_STATUSES, type FeedbackReport } from '../../../../domain/entities/feedbackReport'
+import { REPORT_KIND_LABEL, REPORT_RESPONSE_MAX, REPORT_STATUS_LABEL, SETTABLE_REPORT_STATUSES, type FeedbackReport } from '../../../../domain/entities/feedbackReport'
 import { FeedbackReportCard } from '../../../shared/feedbackReports/FeedbackReportCard'
 import { Go } from '../../../shared/Go'
 import { useFeedbackReportInboxViewModel } from '../viewmodel/useFeedbackReportInboxViewModel'
@@ -25,6 +25,7 @@ function InboxReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
   const result = vm.notice?.key === r.id ? vm.notice : null
   return (
     <FeedbackReportCard report={r} showWork ref={card}>
+      {(r.handledAt || r.authorCheckedAt) && <p className="small muted">{r.handledAt ? '처리' : '최초 확인'} · {r.handlerName} · {new Date((r.handledAt ?? r.authorCheckedAt)!).toLocaleString('ko-KR')}</p>}
       <div className="acts" style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
         <Go to={`/read/${r.workId}/${r.episodeNumber}`} className="btn sm" aria-label={`회차 보기 · ${label}`}>회차 보기</Go>
         {unchecked && <button type="button" className="btn sm" aria-label={`확인했어요 · ${label}`} disabled={vm.busy} onClick={() => void vm.check(r).then(settle)}>확인했어요</button>}
@@ -61,6 +62,9 @@ function InboxReportRow({ r, vm }: { r: FeedbackReport; vm: Vm }) {
 export function FeedbackReportInbox({ workId }: { workId?: string }) {
   const vm = useFeedbackReportInboxViewModel(workId)
   const { reports } = vm
+  const [kind, setKind] = useState('')
+  const [status, setStatus] = useState('')
+  const visible = reports?.filter(r => (!kind || r.kind === kind) && (!status || r.status === status))
   return (
     // .panel 대신 .list 카드를 쓴다(데모 피드백 패널과 구분되고, 데모 패널의 aria-busy를 첫 .panel로 읽는 기존 테스트도 그대로 맞는다).
     // 다른 섹션과 같은 .sec/.sec-h 제목이다. 이 섹션은 화면의 첫 섹션이라 위쪽 간격(.sec의 margin-top)만 없앤다.
@@ -75,7 +79,12 @@ export function FeedbackReportInbox({ workId }: { workId?: string }) {
       )}
       {!reports && !vm.isError && <p className="muted">독자 제보를 불러오고 있어요…</p>}
       {reports?.length === 0 && <p className="muted">{workId ? '이 작품에 접수된 독자 제보가 없어요.' : '접수된 독자 제보가 없어요.'}</p>}
-      {!!reports?.length && <div className="list">{reports.map((r) => <InboxReportRow key={r.id} r={r} vm={vm} />)}</div>}
+      {!!reports?.length && <div className="rowend">
+        <label>제보 유형 <select value={kind} onChange={e=>setKind(e.target.value)}><option value="">전체</option>{Object.entries(REPORT_KIND_LABEL).map(([key, label])=><option key={key} value={key}>{label}</option>)}</select></label>
+        <label>제보 상태 <select value={status} onChange={e=>setStatus(e.target.value)}><option value="">전체</option>{Object.entries(REPORT_STATUS_LABEL).map(([key, label])=><option key={key} value={key}>{label}</option>)}</select></label>
+      </div>}
+      {!!reports?.length && !visible?.length && <p>조건에 맞는 제보가 없어요.</p>}
+      {!!visible?.length && <div className="list">{visible.map((r) => <InboxReportRow key={r.id} r={r} vm={vm} />)}</div>}
     </section>
   )
 }

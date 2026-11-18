@@ -115,7 +115,7 @@ class FeedbackReportServiceTest {
 
         val json = mapper.readTree(mapper.writeValueAsString(ReportListResponse(listOf(item)))).path("items")[0]
 
-        assertEquals(listOf("amendments", "authorChecked", "body", "createdAt", "episodeNumber", "id", "kind", "mine", "owner", "publishedVersionId", "quote", "reporterName",
+        assertEquals(listOf("amendments", "authorChecked", "authorCheckedAt", "body", "createdAt", "episodeNumber", "handledAt", "handlerName", "id", "kind", "mine", "owner", "publishedVersionId", "quote", "reporterName",
             "responses", "status", "updatedAt", "visibility", "withdrawn", "workId", "workTitle"), json.propertyNames().toList().sorted())
         assertTrue(json.path("quote").isNull)
         assertEquals(listOf("action", "body", "createdAt"), json.path("amendments")[0].propertyNames().toList().sorted())

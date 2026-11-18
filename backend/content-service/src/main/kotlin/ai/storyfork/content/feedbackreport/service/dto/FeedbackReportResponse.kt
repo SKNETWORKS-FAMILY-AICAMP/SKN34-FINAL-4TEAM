@@ -19,6 +19,7 @@ data class ReportResponse(
     val authorChecked: Boolean, val withdrawn: Boolean,
     val amendments: List<AmendmentResponse>, val responses: List<ReportReplyResponse>,
     val createdAt: Instant, val updatedAt: Instant,
+    val handledAt: Instant? = null, val handlerName: String? = null, val authorCheckedAt: Instant? = null,
 )
 
 /** 제보 목록이다. 최대 200개이며 페이지네이션은 없다. */

@@ -419,7 +419,7 @@ class EditSuggestionServiceTest {
         val item = mapper.readTree(mapper.writeValueAsString(SuggestionListResponse(service.mine("reader").items))).path("items")[0]
 
         assertEquals(listOf("afterText", "appliedVersionId", "applyFailure", "applyResult", "beforeText", "createdAt", "decisionReason", "editedText", "episodeNumber", "id", "mine",
-            "owner", "proposerName", "publishedVersionId", "reason", "scope", "scopeReasons", "source", "status", "updatedAt", "workId", "workTitle").sorted(),
+            "handledAt", "handlerName", "owner", "proposerName", "published", "publishedVersionId", "reason", "scope", "scopeReasons", "source", "status", "updatedAt", "workId", "workTitle").sorted(),
             item.propertyNames().toList().sorted())
         assertTrue(item.path("editedText").isNull)
         assertEquals("2020-01-01T00:00:00Z", item.path("createdAt").asString())
@@ -549,7 +549,7 @@ class EditSuggestionServiceTest {
             assertEquals(409, failure { service.hold("work", "s1", "owner") }.status, "$status $result")
             assertEquals(status, saved.status)
         }
-        assertNull(saved.decidedAt)
+        assertEquals(saved.updatedAt, saved.decidedAt)
     }
 
     @Test fun `reject closes a pending or held suggestion with an optional trimmed reason`() {
