@@ -203,17 +203,21 @@ it('발행 전 초안 회차를 열고 시뮬레이션을 시작하면 근거는
   expect(send.mock.calls[0][2]).toMatchObject({ episode: 3, episodeVersionId: 'v3', targetEpisode: 4, operation: 'character_simulation' })
 })
 
-it('장면 계획 없음 안내는 원고를 유지하며 집필실 안의 플롯 패널을 연다', async () => {
-  renderStudio()
-  fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
-  const stage = await screen.findByRole('region', { name: '인물 시뮬레이션 무대' })
-  fireEvent.click(await within(stage).findByRole('radio', { name: /흐름/ }))
-  const button = within(stage).getByRole('button', { name: '플롯 패널 열기' })
-  model.mayLeave.mockReturnValue(false)
-  fireEvent.click(button)
-  expect(screen.getByRole('complementary', { name: '플롯과 장면 계획' })).toBeTruthy()
-  expect(model.mayLeave).not.toHaveBeenCalled()
-  expect((screen.getByRole('textbox', { name: '회차 제목', hidden: true }) as HTMLInputElement).value).toBe('셋째')
+it('계획 없음 안내는 미저장 원고를 유지하며 집필실 안 플롯 패널을 연다', async () => {
+  // 미저장 입력이 있어도 플롯 패널을 여는 데는 이탈 확인이 없어야 한다. model은 파일 전체가 공유하므로 끝나면 되돌린다.
+  model.dirty = true
+  try {
+    renderStudio()
+    fireEvent.click(screen.getByRole('button', { name: '시뮬레이션' }))
+    const stage = await screen.findByRole('region', { name: '인물 시뮬레이션 무대' })
+    fireEvent.click(await within(stage).findByRole('radio', { name: /흐름/ }))
+    const button = within(stage).getByRole('button', { name: '플롯 패널 열기' })
+    model.mayLeave.mockReturnValue(false)
+    fireEvent.click(button)
+    expect(screen.getByRole('complementary', { name: '플롯과 장면 계획' })).toBeTruthy()
+    expect(model.mayLeave).not.toHaveBeenCalled()
+    expect((screen.getByRole('textbox', { name: '회차 제목', hidden: true }) as HTMLInputElement).value).toBe('셋째')
+  } finally { model.dirty = false }
 })
 
 it('작품에 편집할 회차가 없으면 시뮬레이션 버튼을 잠근다', () => {
