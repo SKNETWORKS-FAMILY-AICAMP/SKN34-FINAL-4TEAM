@@ -30,7 +30,7 @@ class SeederStartupOrderIntegrationTest {
         doAnswer { call ->
             val request=call.getArgument<CreateWorldRequest>(0);created+=request.id
             WorldDraftResponse(request.id,0,null,null,request.name,request.description,emptyList(),emptyList())
-        }.`when`(service).createTemplate(any() ?: CreateWorldRequest(""))
+        }.`when`(service).createTemplate(any() ?: CreateWorldRequest(""),anyString())
         doAnswer { call ->
             val id=call.getArgument<UUID>(0);val request=call.getArgument<EditWorldDraftRequest>(2)
             WorldDraftResponse(id,request.expectedDraftRevision+1,null,null,request.name,request.description,emptyList(),emptyList())
@@ -62,7 +62,8 @@ class SeederStartupOrderIntegrationTest {
         var attempts=0
         doAnswer { if(++attempts==1) throw IllegalStateException("시드 장애")
             WorldDraftResponse(initial.worldId,0,null,null,initial.name,initial.description,emptyList(),emptyList())
-        }.`when`(service).createTemplate(eq(CreateWorldRequest(initial.name,initial.description,initial.worldId)) ?: CreateWorldRequest(""))
+        }.`when`(service).createTemplate(eq(CreateWorldRequest(initial.name,initial.description,initial.worldId)) ?: CreateWorldRequest(""),
+            eq(GenreTemplateSeeder.mappedWorldGenre(initial.genre)) ?: "")
         doAnswer { call -> val request=call.getArgument<EditWorldDraftRequest>(2)
             WorldDraftResponse(initial.worldId,request.expectedDraftRevision+1,null,null,request.name,request.description,emptyList(),emptyList())
         }.`when`(service).edit(any(UUID::class.java) ?: UUID(0,0),any(UUID::class.java) ?: UUID(0,0),any() ?: EditWorldDraftRequest(0,"",""))

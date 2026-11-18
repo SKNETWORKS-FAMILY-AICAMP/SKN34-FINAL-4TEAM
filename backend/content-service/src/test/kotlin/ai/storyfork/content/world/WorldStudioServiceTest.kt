@@ -55,6 +55,34 @@ class WorldStudioServiceTest {
         `when`(states.findById(world)).thenReturn(if(marker) Optional.of(state) else Optional.empty())
         `when`(graph.read(world)).thenAnswer { RelationshipStateResult(world,state.graphVersion,state.requestKey,state.requestHash,emptyList()) }
     }
+    @Test fun `template genre backfill changes only a null owned world's genre`() {
+        val owner = GenreTemplateSeeder.TEMPLATE_OWNER
+        val entity = StudioWorld(world, owner, UUID.randomUUID(), visibility = "public", publishedAt = java.time.Instant.EPOCH)
+        `when`(worlds.lockOwned(world, owner)).thenReturn(entity)
+
+        service.fillTemplateGenre(world, "fantasy")
+
+        assertEquals("fantasy", entity.genre)
+        assertEquals("public", entity.visibility)
+        assertEquals(java.time.Instant.EPOCH, entity.publishedAt)
+        assertEquals(0L, entity.ownerMetadataVersion)
+        assertNotNull(entity.currentRevisionId)
+        entity.genre = "sf"
+        service.fillTemplateGenre(world, "fantasy")
+        assertEquals("sf", entity.genre)
+        verifyNoInteractions(templatePublications, expandedSeeds, drafts, states, requests, revisions, graph)
+    }
+    @Test fun `template genre backfill does not fill a world after its publication changes`() {
+        val owner = GenreTemplateSeeder.TEMPLATE_OWNER
+        val entity = StudioWorld(world, owner, ownerMetadataVersion = 1)
+        `when`(worlds.lockOwned(world, owner)).thenReturn(entity)
+
+        service.fillTemplateGenre(world, "fantasy")
+
+        assertNull(entity.genre)
+        assertEquals(1L, entity.ownerMetadataVersion)
+        verifyNoInteractions(templatePublications, expandedSeeds, drafts, states, requests, revisions, graph)
+    }
     @Test fun `active expansion rejects ordinary edits saves and publication`() {
         owned()
         `when`(expandedSeeds.findById(world)).thenReturn(Optional.of(ExpandedSeedProgress(world,"hash")))
@@ -99,13 +127,14 @@ class WorldStudioServiceTest {
         doAnswer { if(fail) { fail=false;throw WorldStudioFailure.unavailable() }
             RelationshipStateResult(world,0,it.arguments[2] as String,it.arguments[3] as String,emptyList())
         }.`when`(graph).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
-        assertNull(service.startExpanded(request,"digest"))
+        assertNull(service.startExpanded(request,"digest","sf"))
         verify(worlds,never()).saveAndFlush(any())
         entity=null
-        assertThrows(WorldStudioFailure::class.java) { service.startExpanded(request,"digest") }
+        assertThrows(WorldStudioFailure::class.java) { service.startExpanded(request,"digest","sf") }
         assertNotNull(marker)
-        assertEquals(0,service.startExpanded(request,"digest"))
-        assertThrows(WorldConflict::class.java) { service.startExpanded(request,"different") }
+        assertEquals("sf", entity!!.genre)
+        assertEquals(0,service.startExpanded(request,"digest","sf"))
+        assertThrows(WorldConflict::class.java) { service.startExpanded(request,"different","sf") }
         assertEquals(0,marker!!.nextChunk)
     }
     @Test fun `expanded chunk cannot overwrite a missing marker changed digest or owner choice`() {
@@ -144,8 +173,9 @@ class WorldStudioServiceTest {
             RelationshipStateResult(id, 0, it.arguments[2] as String, it.arguments[3] as String, emptyList())
         }.`when`(graph).replace(anyUUID(), anyLong(), anyString(), anyString(), anyList(), anyEpisode())
         `when`(graph.read(id)).thenAnswer { RelationshipStateResult(id, 0, storedState!!.requestKey, storedState!!.requestHash, emptyList()) }
-        assertThrows(WorldStudioFailure::class.java) { service.createTemplate(CreateWorldRequest(template.name, template.description, id)) }
+        assertThrows(WorldStudioFailure::class.java) { service.createTemplate(CreateWorldRequest(template.name, template.description, id), "wuxia") }
         assertEquals("public", storedWorld!!.visibility)
+        assertEquals("wuxia", storedWorld!!.genre)
         assertNotNull(storedWorld!!.publishedAt)
         verify(templatePublications).saveAndFlush(any())
         val hash = storedState!!.creationHash
@@ -153,12 +183,12 @@ class WorldStudioServiceTest {
         val originalHash = MessageDigest.getInstance("SHA-256").digest(mapper.writeValueAsBytes(listOf("create", id, request)))
             .joinToString("") { "%02x".format(it) }
         assertEquals(originalHash, hash)
-        assertEquals("public", service.createTemplate(CreateWorldRequest(template.name, template.description, id)).visibility)
+        assertEquals("public", service.createTemplate(CreateWorldRequest(template.name, template.description, id), "wuxia").visibility)
         assertEquals(hash, storedState!!.creationHash)
         storedWorld!!.currentRevisionId = UUID.randomUUID()
         storedWorld!!.visibility = "private"
         storedWorld!!.publishedAt = null
-        repeat(2) { assertEquals("private", service.createTemplate(CreateWorldRequest(template.name, template.description, id)).visibility) }
+        repeat(2) { assertEquals("private", service.createTemplate(CreateWorldRequest(template.name, template.description, id), "wuxia").visibility) }
         assertThrows(WorldConflict::class.java) { service.createTemplate(request.copy(description = "다른 입력")) }
         storedWorld = StudioWorld(id, UUID.randomUUID(), visibility = "private")
         assertThrows(WorldNotFound::class.java) { service.createTemplate(CreateWorldRequest(template.name, template.description, id)) }
@@ -441,6 +471,13 @@ class WorldStudioServiceTest {
         val f=pristineTemplateFixture();f.world.genre="fantasy"
         service.publishPristineTemplate(f.template,null,null)
         assertEquals("private",f.world.visibility);assertTrue(f.template.worldId in f.marked)
+    }
+    @Test fun `the mapped template genre remains pristine for publication`() {
+        val f=pristineTemplateFixture()
+        f.world.genre=GenreTemplateSeeder.mappedWorldGenre(f.template.genre)
+        service.publishPristineTemplate(f.template,null,null)
+        assertEquals("public",f.world.visibility)
+        assertTrue(f.template.worldId in f.marked)
     }
     @Test fun `mismatched original creation hash is excluded`() {
         val f=pristineTemplateFixture();val state=WorldRelationshipState(f.template.worldId,1,"wrong",f.state.requestKey,f.state.requestHash,0,true)

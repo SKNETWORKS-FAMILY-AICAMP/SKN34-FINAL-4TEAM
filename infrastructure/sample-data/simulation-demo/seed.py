@@ -205,6 +205,16 @@ def _confirm(call, wid, cards, log):
     log("확정 버전을 남겼어요")
 
 
+def _ensure_world_genre(call, wid, genre, log):
+    """현재 공개 범위는 그대로 두고, 공개 세계관 목록용 장르만 한 번 설정한다."""
+    draft = _ok(call("GET", f"/api/v1/world-studios/{wid}"), "세계관 공개 설정 조회")
+    if draft.get("genre") == genre:
+        return
+    _ok(call("PUT", f"/api/v1/world-studios/{wid}/publication",
+             {"visibility": draft["visibility"], "genre": genre}), "세계관 장르 설정")
+    log(f"세계관 장르: {genre}")
+
+
 def plan_payload(scene, parent, scope):
     """plans.json 장면 → `POST /story-plans` 본문(새 계획이라 revision 0). 인물·장소는 카드 key를 id로 바꿔 SEND_PLAN_REFS일 때만 보낸다."""
     ids = lambda keys: [card_id(key, scope) for key in keys] if SEND_PLAN_REFS else []  # noqa: E731
@@ -238,7 +248,7 @@ def _seed_plans(call, work, plans, scope, log):
 def seed(call, world, owner=None, log=lambda *_: None, base=HERE):
     """call(method, path, body) → (status, json)로 적재하고 회차별 관계 수 {회차: 수}를 돌려준다. base는 world.json이 있는 디렉터리다."""
     wid, spec = world["world"]["id"], world["work"]
-    name, description = world["world"]["name"], world["world"]["description"]
+    name, description, genre = world["world"]["name"], world["world"]["description"], world["world"]["genre"]
     if "id" in spec:  # 이미 있는 샘플 작품에 연결한다
         work = spec["id"]
         row = _ok(call("GET", f"/api/v1/works/{work}"), "작품 조회")
@@ -250,6 +260,7 @@ def seed(call, world, owner=None, log=lambda *_: None, base=HERE):
     _check_link(row, wid)
     linked = row.get("worldStudioId")
     _ok(call("POST", "/api/v1/world-studios", {"id": wid, "name": name, "description": description}), "세계관 생성")
+    _ensure_world_genre(call, wid, genre, log)
     scope = scope_of(world)
     card_keys = {card["key"] for card in world["cards"]}
     cards = [card_payload(card, scope, card_keys) for card in world["cards"]]

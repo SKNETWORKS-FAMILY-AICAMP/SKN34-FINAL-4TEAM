@@ -27,8 +27,32 @@ class ExpandedTemplateSeederTest {
         `when`(service.incompleteExpandedWorldIds()).thenReturn(setOf(pending.worldId))
         ExpandedTemplateSeeder(service,mapper,false).seed()
         val request=ai.storyfork.content.world.service.dto.CreateWorldRequest(pending.name,pending.description,pending.worldId)
-        verify(service).startExpanded(eq(request) ?: request,anyString())
+        verify(service).startExpanded(eq(request) ?: request,anyString(),eq("classic") ?: "classic")
         verify(service,never()).startPristineExpanded(anyString(),any(),any(),any(),eq(false))
+    }
+    @Test fun `new expanded world starts with its mapped public genre`() {
+        val service=mock(WorldStudioService::class.java)
+        val mapper=JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
+        val world=ExpandedWorld("science_fiction",UUID.randomUUID(),"세계","설명",listOf("one.json"))
+        val request=ai.storyfork.content.world.service.dto.CreateWorldRequest(world.name,world.description,world.worldId)
+        `when`(service.startExpanded(eq(request) ?: request,anyString(),eq("sf") ?: "sf")).thenReturn(-1)
+
+        ExpandedTemplateSeeder(service,mapper,true).seedWorld(world,listOf(ExpandedChunk(listOf(GenreTemplateCard(UUID.randomUUID(),"카드","본문","other")),emptyList())))
+
+        verify(service).startExpanded(eq(request) ?: request,anyString(),eq("sf") ?: "sf")
+        verify(service).fillTemplateGenre(world.worldId,"sf")
+    }
+    @Test fun `rejected expansion does not backfill genre`() {
+        val service=mock(WorldStudioService::class.java)
+        val mapper=JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
+        val world=ExpandedWorld("science_fiction",UUID.randomUUID(),"세계","설명",listOf("one.json"))
+        val request=ai.storyfork.content.world.service.dto.CreateWorldRequest(world.name,world.description,world.worldId)
+        `when`(service.startExpanded(eq(request) ?: request,anyString(),eq("sf") ?: "sf")).thenReturn(null)
+
+        ExpandedTemplateSeeder(service,mapper,true).seedWorld(world,listOf(ExpandedChunk(listOf(GenreTemplateCard(UUID.randomUUID(),"카드","본문","other")),emptyList())))
+
+        verify(service).startExpanded(eq(request) ?: request,anyString(),eq("sf") ?: "sf")
+        verify(service,never()).fillTemplateGenre(world.worldId,"sf")
     }
     @Test fun `cards are written before relations with stable order and optional souls`() {
         val world=ExpandedWorld("fixture",UUID.randomUUID(),"세계","설명",listOf("one.json","two.json"))
@@ -149,7 +173,7 @@ usa_history 96059da0b018e943c9e091552591bae7a7e57fa320fedc79faf6ea38ea09c9ca a93
         val chunks=listOf(ExpandedChunk(listOf(GenreTemplateCard(UUID.randomUUID(),"하나","본문","other")),emptyList()),
             ExpandedChunk(listOf(GenreTemplateCard(UUID.randomUUID(),"둘","본문","other")),emptyList()))
         var next=0;var failed=false;val seen=mutableListOf<Triple<String,Int,ai.storyfork.content.world.service.dto.EditWorldDraftRequest>>()
-        `when`(service.startExpanded(ArgumentMatchers.any() ?: ai.storyfork.content.world.service.dto.CreateWorldRequest(""),ArgumentMatchers.anyString())).thenAnswer { next }
+        `when`(service.startExpanded(ArgumentMatchers.any() ?: ai.storyfork.content.world.service.dto.CreateWorldRequest(""),ArgumentMatchers.anyString(),ArgumentMatchers.isNull<String>())).thenAnswer { next }
         doAnswer { call ->
             val index=call.getArgument<Int>(2);seen+=Triple(call.getArgument(1),index,call.getArgument(3))
             if(index==1 && !failed) { failed=true;throw IllegalStateException("중단") }

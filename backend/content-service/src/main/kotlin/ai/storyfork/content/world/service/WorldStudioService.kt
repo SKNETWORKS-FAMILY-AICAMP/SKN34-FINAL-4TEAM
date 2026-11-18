@@ -70,8 +70,17 @@ class WorldStudioService(
 
     fun create(subject:UUID,request:CreateWorldRequest):WorldDraftResponse = create(subject,request,false)
 
-    internal fun createTemplate(request:CreateWorldRequest):WorldDraftResponse =
-        create(GenreTemplateSeeder.TEMPLATE_OWNER,request,true)
+    internal fun createTemplate(request:CreateWorldRequest,genre:String?=null):WorldDraftResponse =
+        create(GenreTemplateSeeder.TEMPLATE_OWNER,request,true,genre)
+
+    /** 템플릿 시더만 소유자 선택 전의 null 공개 장르를 채운다. 공개·표지 선택과 적재 marker·이력은 바꾸지 않는다. */
+    internal fun fillTemplateGenre(worldId:UUID,genre:String?) {
+        val mapped=worldGenre(genre) ?: return
+        tx<Unit> {
+            val world=worlds.lockOwned(worldId,GenreTemplateSeeder.TEMPLATE_OWNER)
+            if(world!=null && world.genre==null && world.ownerMetadataVersion==0L) world.genre=mapped
+        }
+    }
 
     internal fun incompleteExpandedWorldIds():Set<UUID> = tx { expandedSeeds.findAllByCompletedFalse().map { it.worldId }.toSet() }
 
@@ -83,7 +92,7 @@ class WorldStudioService(
             val progress=expandedSeeds.findById(request.id).orElse(null)
             if(progress==null) 2 else if(progress.baseRevisionId==null && world.currentRevisionId==null) 0 else 1
         }
-        if(mode==0) return startExpanded(request,inputHash)
+        if(mode==0) return startExpanded(request,inputHash,GenreTemplateSeeder.mappedWorldGenre(original.genre))
         if(mode==1) return startPristineExpanded(inputHash,null,null,GenreTemplate(original.genre,original.worldId,"","",emptyList()),true)
         val snapshot=draft(original.worldId,GenreTemplateSeeder.TEMPLATE_OWNER)
         val byId=snapshot.cards.associateBy { it.id }
@@ -103,14 +112,15 @@ class WorldStudioService(
         return startPristineExpanded(inputHash,null,null,template,true)
     }
 
-    internal fun startExpanded(request:CreateWorldRequest,inputHash:String):Int? {
+    internal fun startExpanded(request:CreateWorldRequest,inputHash:String,genre:String?=null):Int? {
         validateName(request.name,request.description)
+        val mappedGenre=worldGenre(genre)
         val owner=GenreTemplateSeeder.TEMPLATE_OWNER
         val creationHash=hash("create",request.id,request)
         val next=tx {
             val existing=worlds.findById(request.id).orElse(null)
             if(existing==null) {
-                worlds.saveAndFlush(StudioWorld(id=request.id,ownerSubject=owner))
+                worlds.saveAndFlush(StudioWorld(id=request.id,ownerSubject=owner,genre=mappedGenre))
                 templatePublications.saveAndFlush(TemplatePublicationOnce(request.id))
                 expandedSeeds.saveAndFlush(ExpandedSeedProgress(request.id,inputHash))
                 drafts.saveAndFlush(WorldDraft(worldId=request.id,name=request.name,description=request.description))
@@ -120,6 +130,7 @@ class WorldStudioService(
                 val progress=expandedSeeds.findById(request.id).orElse(null) ?: return@tx -2
                 val world=owned(request.id,owner)
                 if(progress.inputHash!=inputHash || state(request.id).creationHash!=creationHash) throw WorldConflict()
+                if(world.genre==null && mappedGenre!=null) world.genre=mappedGenre
                 if(progress.completed) return@tx -1
                 if(world.ownerMetadataVersion!=0L || world.visibility!="private" || world.currentRevisionId!=null || draft(request.id).draftRevision!=progress.nextChunk.toLong()) throw WorldConflict()
                 progress.nextChunk
@@ -204,8 +215,9 @@ class WorldStudioService(
         return edit(worldId,GenreTemplateSeeder.TEMPLATE_OWNER,request,null,ExpandedWrite(inputHash,index))
     }
 
-    private fun create(subject:UUID,request:CreateWorldRequest,template:Boolean):WorldDraftResponse {
+    private fun create(subject:UUID,request:CreateWorldRequest,template:Boolean,genre:String?=null):WorldDraftResponse {
         validateName(request.name,request.description)
+        val mappedGenre=if(template) worldGenre(genre) else null
         val hash=hash("create",request.id,request);val key=request.id.toString()
         val complete=tx {
             val existing=worlds.findById(request.id).orElse(null)
@@ -214,9 +226,10 @@ class WorldStudioService(
                 val state=state(request.id)
                 if(state.creationHash!=hash) throw WorldConflict()
                 if(!state.completed && (state.requestKey!=key || state.requestHash!=hash)) throw WorldStudioFailure.incomplete()
+                if(template && existing.genre==null && mappedGenre!=null) existing.genre=mappedGenre
                 state.completed
             } else {
-                worlds.saveAndFlush(if(template) StudioWorld(id=request.id,ownerSubject=subject,visibility="public",publishedAt=Instant.now())
+                worlds.saveAndFlush(if(template) StudioWorld(id=request.id,ownerSubject=subject,visibility="public",genre=mappedGenre,publishedAt=Instant.now())
                     else StudioWorld(id=request.id,ownerSubject=subject))
                 if(template) templatePublications.saveAndFlush(TemplatePublicationOnce(request.id))
                 drafts.saveAndFlush(WorldDraft(worldId=request.id,name=request.name,description=request.description))
@@ -288,7 +301,7 @@ class WorldStudioService(
         legacy:GenreTemplate?,baseline:GenreTemplate?,current:GenreTemplate?,allowPublic:Boolean=false):Boolean {
         val first=legacy ?: baseline ?: current ?: return false
         if((world.visibility!="private" || world.publishedAt!=null) && !(allowPublic && world.visibility=="public" && world.publishedAt!=null)) return false
-        if(world.genre!=null || world.coverObjectKey!=null || world.coverContentType!=null || world.ownerMetadataVersion!=0L) return false
+        if((world.genre!=null && world.genre!=GenreTemplateSeeder.mappedWorldGenre(first.genre)) || world.coverObjectKey!=null || world.coverContentType!=null || world.ownerMetadataVersion!=0L) return false
         if(state.creationHash!=hash("create",world.id,CreateWorldRequest(first.name,first.description,world.id))) return false
         val initial=if(legacy!=null) legacy.cards.map { CardPayload(it.id,it.title,it.body,it.cardType,"basic",visibility="public") }
             else if(baseline!=null) GenreTemplateRepair.payloads(baseline) else GenreTemplateRepair.soulPayloads(first)

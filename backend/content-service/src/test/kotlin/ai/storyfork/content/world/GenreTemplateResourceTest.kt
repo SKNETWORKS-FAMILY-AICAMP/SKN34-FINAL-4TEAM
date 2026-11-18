@@ -2,11 +2,13 @@ package ai.storyfork.content.world
 
 import ai.storyfork.content.world.service.GenreTemplateSeeder
 import ai.storyfork.content.world.service.GenreTemplateRepair
+import ai.storyfork.content.world.service.ExpandedManifest
 import ai.storyfork.content.world.service.dto.EditWorldDraftRequest
 import ai.storyfork.content.world.service.WorldStudioService
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
+import org.springframework.core.io.ClassPathResource
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.KotlinModule
 
@@ -36,6 +38,16 @@ class GenreTemplateResourceTest {
     @Test fun `world and card ids are globally unique`() {
         val ids = templates.map { it.worldId } + cards.map { it.id }
         assertEquals(ids.size, ids.toSet().size)
+    }
+
+    @Test fun `every template resource genre has the decided public world genre`() {
+        val mapper = JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
+        val expanded = ClassPathResource("sample-worlds-expanded/manifest.json").inputStream.use {
+            mapper.readValue(it, ExpandedManifest::class.java)
+        }
+        val resourceGenres = (templates + seeder.loadLegacy() + seeder.loadV2()).map { it.genre }.toSet() + expanded.worlds.map { it.genre }
+        assertTrue(resourceGenres.all { GenreTemplateSeeder.mappedWorldGenre(it) != null }, resourceGenres.joinToString())
+        assertNull(GenreTemplateSeeder.mappedWorldGenre("unknown_template"))
     }
 
     @Test fun `every world and card fits the WorldStudioService limits`() {
