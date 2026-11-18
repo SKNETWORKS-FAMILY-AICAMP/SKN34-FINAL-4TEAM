@@ -24,6 +24,12 @@
 .chat-msg.system .chat-bubble { max-width: 100%; }
 .chat-text { margin: 0; padding: 10px 14px; border: 1px solid var(--tline); border-radius: 18px 18px 18px 4px; background: var(--chat-card, var(--tcard)); line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 .chat-msg.user .chat-text { border-color: var(--pri); border-radius: 18px 18px 4px 18px; background: var(--pri); color: var(--on-pri); }
+/* 마크다운 답변: 블록 사이 줄바꿈 글자가 빈 줄로 보이지 않게 한다(문단 안 줄바꿈은 CardMarkdown이 지킨다). */
+.chat-text.chat-md { white-space: normal; }
+.chat-step-details { padding-inline: 4px; color: var(--tsub); font-size: 12.5px; }
+.chat-step-details > summary { cursor: pointer; }
+.chat-step-details > summary:focus-visible { outline: 2px solid var(--tacc); outline-offset: 2px; border-radius: 4px; }
+.chat-step-details > p { margin: 6px 0 0; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
 .chat-msg.system .chat-text { padding: 4px 8px; border: 0; background: none; color: var(--tsub); font-size: 12.5px; text-align: center; }
 .chat-chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
 
@@ -111,6 +117,13 @@
 .chat-hitl h3 { margin: 0; font-size: 14.5px; font-weight: 800; line-height: 1.45; text-wrap: balance; }
 .chat-hitl-preview { max-height: 220px; overflow: auto; padding: 10px 12px; border: 1px solid var(--tline); border-radius: 12px; background: var(--chat-card, var(--tcard)); font-family: var(--story); line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
 .chat-hitl-preview:focus-visible { outline: 2px solid var(--tacc); outline-offset: 1px; }
+/* 사용한 계획 줄: 아래 면책 문구(.chat-note)와 구분하고, 계획이 길어도 버튼을 밀지 않게 높이를 묶는다. */
+.chat-plan { max-height: 96px; overflow: auto; margin: 0; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.chat-plan b { font-weight: 800; }
+/* 같은 턴에 끝난 다른 단계 결과(심의 등급 등). */
+.chat-hitl-others { display: grid; gap: 6px; max-height: 160px; overflow: auto; margin: 0; padding: 8px 10px; border: 1px solid var(--tline); border-radius: 12px; list-style: none; font-size: 13px; }
+.chat-hitl-others p { margin: 2px 0 0; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat-plan:focus-visible, .chat-hitl-others:focus-visible { outline: 2px solid var(--tacc); outline-offset: 1px; }
 .chat-hitl-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .chat-field { display: grid; gap: 4px; font-size: 13px; font-weight: 700; }
 .chat-field :is(input, textarea) { font-weight: 400; }

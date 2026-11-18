@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 
 import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
-import { featureLabel, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck } from '../../../domain/entities/writingChat'
+import { featureLabel, PLAN_LABEL, replyOutcome, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck } from '../../../domain/entities/writingChat'
 import type { ChatMessage } from '../../../domain/entities/chat'
 import { ComposeIcon, MoreIcon, SparkIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
@@ -80,12 +80,17 @@ function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
   const [fix, setFix] = useState<number | null>(null)
   const draft = reply.steps.find((s) => s.feature === 'writing_editing' && s.status === 'completed')
   const planLine = draft ? usedPlan(draft) : ''
+  // 같은 턴에 끝난 다른 단계(심의 등급 등). 승인을 기다리는 동안 대기 응답은 메시지 목록에 없어 여기서만 보인다(#493).
+  const others = reply.steps.filter((s) => s !== draft && (s.status === 'completed' || s.status === 'failed'))
   if (reply.awaitingApproval === 'character_simulation' || reply.awaitingScene === 'character_simulation') return <SceneWait reply={reply} onOpenStage={onOpenStage} />
   if (reply.awaitingApproval) {
     return <section className="chat-hitl" aria-labelledby={`${id}-t`}>
       <h3 id={`${id}-t`}>{reply.approvalEpisode ? `${reply.approvalEpisode}화 초안에 반영할까요?` : '이 제안을 초안에 반영할까요?'}</h3>
       {draft && <div className="chat-hitl-preview" tabIndex={0} aria-label="반영할 내용">{stepText(draft)}</div>}
-      {planLine && <p className="chat-note">{planLine}</p>}
+      {planLine && <p className="chat-plan" tabIndex={0}><b>{PLAN_LABEL}</b>{planLine.slice(PLAN_LABEL.length)}</p>}
+      {!!others.length && <ul className="chat-hitl-others" tabIndex={0} aria-label="같이 끝난 작업">{others.map((s, i) => <li key={`${s.feature}-${i}`}>
+        <span className="chat-step-name">{featureLabel[s.feature] ?? s.feature}</span><p>{stepText(s)}</p>
+      </li>)}</ul>}
       <p className="chat-note">반영하면 작업 중인 초안만 바뀌고 발행되지 않아요. 반영하지 않아도 제안은 대화에 남아요.</p>
       <div className="chat-hitl-actions">
         <button type="button" className="btn sm pri" disabled={pending} onClick={() => onResume(true)}>초안에 반영</button>
@@ -176,8 +181,20 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage }: { vm:
   const shown = live?.editIndex !== undefined ? vm.turns.slice(0, live.editIndex) : live?.resumed ? vm.turns.slice(0, -1) : vm.turns
   const messages: ChatMessage[] = shown.flatMap((turn, i) => [
     { id: `u${i}`, role: 'user' as const, text: turn.request },
-    ...(turn.reply && turn.reply.status !== 'waiting' ? [{ id: `a${i}`, role: 'assistant' as const, text: replyText(turn.reply) }] : []),
+    ...(turn.reply && turn.reply.status !== 'waiting' ? [turn.reply.message
+      ? { id: `a${i}`, role: 'assistant' as const, text: turn.reply.message, format: 'markdown' as const }
+      : { id: `a${i}`, role: 'assistant' as const, text: replyText(turn.reply) }] : []),
   ])
+  // 종합 답변이 있는 말풍선은 단계별 결과를 접어 둔다(답변과 같은 내용이 두 번 보이지 않게, #492). 승인 카드·진행 표시는 그대로다.
+  const stepDetails = (m: ChatMessage) => {
+    const reply = m.format === 'markdown' ? shown[Number(m.id.slice(1))]?.reply : undefined
+    const text = reply ? replyText(reply) : ''
+    const outcome = reply ? replyOutcome(reply) : []
+    return text ? <>
+      {outcome.map((line, i) => <p key={i} className="chat-note">{line}</p>)}
+      <details className="chat-step-details"><summary>단계별 결과 보기</summary><p>{text}</p></details>
+    </> : null
+  }
   if (live) messages.push({ id: 'live', role: 'user', text: live.request })
   const actions = (m: ChatMessage) => {
     if (m.role !== 'user' || m.id === 'live') return null
@@ -228,7 +245,7 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage }: { vm:
       </>}
     </div>
     <ChatPanel messages={messages} onSend={vm.send} busy={vm.pending} disabledReason={vm.lockedReason}
-      emptyTitle={emptyTitle} emptyText={emptyText} suggestions={[...suggestions, ...simulationExamples]} renderActions={actions}
+      emptyTitle={emptyTitle} emptyText={emptyText} suggestions={[...suggestions, ...simulationExamples]} renderCard={stepDetails} renderActions={actions}
       after={live || vm.waiting || vm.error ? <>
         {live && <Progress live={live} onOpenStage={onOpenStage} />}
         {vm.waiting && <Waiting key={`${vm.threadId}-${vm.turns.length}`} reply={vm.waiting} episode={vm.targetEpisode} pending={vm.pending} onResume={(approved, inputs) => void vm.resume(approved, inputs)} onOpenStage={onOpenStage} />}

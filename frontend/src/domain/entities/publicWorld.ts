@@ -14,8 +14,13 @@ export type PublicWorldGenre = (typeof PUBLIC_WORLD_GENRES)[number]
 export type PublicWorldCard = { id: string; title: string; text: string; cardType: CardType; aliases: string[]; tags: string[]; imageId?: string | null }
 /** 이 세계관에 연결된 소설(1:1, DEC-46)의 최소 정보. 서버는 그 소설이 공개 작품일 때만 준다. `hasCover`이면 공개 작품 표지 주소(`/api/v1/public/works/{id}/cover/content`)가 이미지를 준다. */
 export type PublicWorldLinkedWork = { id: string; title: string; authorNickname: string; hasCover: boolean }
-/** 현재 관계(Neo4j) 한 줄. 양 끝 카드는 같은 응답의 `cards`에 있고 선택적 속성이 없으면 값을 알 수 없다. */
-export type PublicWorldRelationship = { id: string; sourceCardId: string; targetCardId: string; label: string; category?: 'structural' | 'emotional' | 'identity' | null; direction?: 'directed' | 'symmetric' | null; body?: string | null; polarity?: 'asserted' | 'denied' | null }
+/** 관계가 `episode`화부터 `label`·`body`로 바뀌었다는 기록 한 건(DEC-54 2단계). */
+export type RelationChange = { episode: number; label: string; body: string }
+/**
+ * 현재 관계(Neo4j) 한 줄. 양 끝 카드는 같은 응답의 `cards`에 있고 선택적 속성이 없으면 값을 알 수 없다.
+ * `history`는 기준 회차까지의 변화(회차 오름차순, 마지막이 기준 회차 시점의 값)이고 바뀐 적이 없으면 비어 있다. 서버가 기준 회차 뒤의 변화는 담지 않으므로 화면은 거르지 않는다. 이 필드를 주기 전 응답·데모에는 없다.
+ */
+export type PublicWorldRelationship = { id: string; sourceCardId: string; targetCardId: string; label: string; category?: 'structural' | 'emotional' | 'identity' | null; direction?: 'directed' | 'symmetric' | null; body?: string | null; polarity?: 'asserted' | 'denied' | null; history?: RelationChange[] }
 
 export type PublicWorldSummary = {
   id: string

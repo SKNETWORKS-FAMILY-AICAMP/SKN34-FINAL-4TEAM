@@ -10,8 +10,8 @@ from app.simulation import prompt, service
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import CheckItem, Decision, Note, PlanDraft, SceneAction, SimulationPlan, Trail, Turn, Verdict
 
-from .stubs import (EPISODE, GATE, INHERITED, KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, REL, SHADOW, TARGET, WORLD, card, context, fake_content,
-                    fake_novelbrain, recalled, text)
+from .stubs import (EPISODE, GATE, INHERITED, KAEL, LINA, PLAN_FLOW, PLAN_IF, READ, REL, REL3, REL6, SHADOW, TARGET, WORLD, card, context, fake_content,
+                    fake_novelbrain, recalled, relation, text)
 
 STYLE, PERSONA, REMOVED = (f'00000000-0000-0000-0000-0000000000{n}' for n in ('a1', 'a2', 'ff'))
 PERSONA_CARD = card(PERSONA, '나레이터 페르소나', 'PERSONA-ID 오래된 이야기꾼', docs={'soul': 'PERSONA-SOUL 느릿한 말투', 'goal': '', 'episodes': {}})
@@ -398,6 +398,32 @@ def test_character_input_carries_card_links_as_plain_text_including_the_relation
     shown = text(kael)
     assert 'KAEL-IDENTITY' in shown and '카엘은 리나를 경계한다 승상' in shown and 'KAEL-IDENTITY 북문을 지키는 기사 승상' in shown
     assert '](card:' not in shown and 'aaaaaaaa-2222' not in shown  # 근거 ref(card:<id>#identity)는 입력의 내부 표기라 남는다
+
+
+def test_relation_sentences_in_the_character_input_read_as_the_target_is_the_sources_label(monkeypatch):
+    # 관계 'A → B 「관계명」'은 'B는 A의 관계명'으로 읽는다(DEC-54, 화면과 같다). 'A → B: 관계명'은 'A가 B의 관계명'으로도 읽혀 반대일 수 있었다.
+    fake_novelbrain(monkeypatch)
+    _, (kael, _, _) = view(monkeypatch)
+    known = {d['ref']: d['text'] for d in kael['known']}
+    assert known[f'relation:{REL}'] == '카엘의 경계: 리나 — 카엘은 리나를 경계한다'
+    assert known[f'relation:{REL6}'] == '카엘의 수호: 북문 — REL-KAEL-GATE 카엘은 북문을 지킨다'
+    assert known[f'relation:{REL3}'] == '카엘 ↔ 리나: 친구 아님'  # 대칭은 양쪽 화살표이고 부정은 끝에 '아님'이다
+
+
+@pytest.mark.parametrize('source,direction,polarity,label,expected', [
+    (KAEL, 'directed', 'asserted', '스승', '카엘의 스승: 리나'),
+    (LINA, 'directed', 'asserted', '스승', '리나의 스승: 카엘'),  # 읽는 쪽이 아니라 관계의 보내는 쪽(source) 기준이다
+    (KAEL, 'directed', 'denied', '스승', '카엘의 스승: 리나 아님'),
+    (KAEL, 'directed', 'asserted', '', '카엘 → 리나'),  # 관계명이 없으면 읽을 이름도 없어 화살표만 쓴다
+    (KAEL, 'symmetric', 'asserted', '동료', '카엘 ↔ 리나: 동료'),
+    (KAEL, 'symmetric', 'denied', '동료', '카엘 ↔ 리나: 동료 아님'),
+    (KAEL, None, 'asserted', '동료', '카엘 — 리나: 동료')])  # 방향을 모르면 줄표다(NovelBrain의 현재 관계 근거와 같은 문장)
+def test_relation_sentence_forms(monkeypatch, source, direction, polarity, label, expected):
+    target = LINA if source == KAEL else KAEL
+    fake_novelbrain(monkeypatch)
+    read = {**READ, 'relationships': [relation('00000000-0000-0000-0000-0000000000b1', source, target, label, '', direction, polarity)]}
+    _, (kael, _, _) = view(monkeypatch, read=read)
+    assert [d['text'] for d in kael['known'] if d['ref'].startswith('relation:')] == [expected]
 
 
 def test_character_input_holds_only_that_characters_documents_up_to_the_base_episode(monkeypatch):

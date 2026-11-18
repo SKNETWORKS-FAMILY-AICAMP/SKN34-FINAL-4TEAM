@@ -282,7 +282,7 @@ describe('설정집 검토 단계 결과(#479)', () => {
     const events = await run({ feature: 'world_review', status: 'completed', result: { reviewedCards: 2, model: 'm',
       findings: [{ cardIds: ['c1', 'c2'], kind: 'contradiction', message: '나이가 어긋나요.', fix: null }] } })
     const step = events.flatMap((e) => (e.type === 'step' ? [e.step] : []))[0]
-    expect(step.worldReview).toEqual({ findings: [{ kind: 'contradiction', message: '나이가 어긋나요.' }] })
+    expect(step.worldReview).toEqual({ reviewedCards: 2, findings: [{ kind: 'contradiction', message: '나이가 어긋나요.' }] })
     expect(stepText(step)).toBe('설정 충돌 · 나이가 어긋나요.')
   })
 

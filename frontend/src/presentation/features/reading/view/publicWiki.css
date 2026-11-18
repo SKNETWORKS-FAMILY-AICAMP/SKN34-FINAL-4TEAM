@@ -37,6 +37,7 @@
 /* 관계 문단(DEC-54): 독자 위키는 문서 안 소제목(h4) 문단(.nw-relsec), 카드 페이지는 하위 접이식 문단이다. 소제목 옆 부가 표시는 작은 글자이고, 받는 쪽 링크로 이동하면 jumpTo가 문단 배경을 잠깐 강조한다(문단 안쪽 여백이 강조 영역이다). */
 .nw-relsec { margin: 0 -8px; padding: 0 8px; border-radius: 6px; }
 .nw-relsec h4 small, .nw-sec > summary h3 small, .nw-sec > summary h4 small { font-size: 12px; font-weight: 600; color: var(--tsub); }
+.nw-relhist { margin: 2px 0 6px; font-size: 13px; color: var(--tsub); }
 .nw-rel { font-size: 14px; }
 .nw-rel b { margin-right: 6px; color: var(--tsub); }
 .nw-info { float: right; width: 300px; margin: 0 0 14px 24px; border-collapse: collapse; border: 1px solid var(--tline); font-size: 14px; }

@@ -50,7 +50,24 @@ it('바로 쓴 원고의 승인 카드는 반영할 본문과 따로 사용한 �
   render(<WritingChat workId="w" basis={{ episode: 2, episodeVersionId: 'v2' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
   await screen.findByRole('heading', { name: '2화 초안에 반영할까요?' })
   expect(screen.getByLabelText('반영할 내용').textContent).toBe('선장은 항구에 내렸다.')
-  expect(screen.getByText('사용한 계획: 항구의 밤 — 선장이 도착한다.')).toBeTruthy()
+  expect(document.querySelector('.chat-plan')?.textContent).toBe('사용한 계획: 항구의 밤 — 선장이 도착한다.')
+})
+
+it('승인 카드는 같은 턴에 끝난 다른 단계 결과도 짧게 보인다(#493)', async () => {
+  sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [{
+    request: '1화 심의 등급을 판정하고 다음 장면도 써줘',
+    reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 1, steps: [
+      { feature: 'rating', status: 'failed', error: '판별 실패' },
+      { feature: 'writing_editing', status: 'completed', result: { text: '선장은 항구에 내렸다.' } },
+    ] },
+  }] })
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v1' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByRole('heading', { name: '1화 초안에 반영할까요?' })
+  const others = screen.getByLabelText('같이 끝난 작업')
+  expect(within(others).getByText('심의 등급')).toBeTruthy()
+  expect(within(others).getByText('실패: 판별 실패')).toBeTruthy()
+  expect(within(others).queryByText('선장은 항구에 내렸다.')).toBeNull()
 })
 
 // ── 인물 시뮬레이션 장면(#58): 대본·승인은 집필실 무대가 맡고, 채팅에는 상태 한 줄과 무대 열기만 남는다 ──
@@ -120,6 +137,18 @@ it('저장된 대화에서 끝난 장면은 카드 없이 말풍선 한 줄 요�
   expect(bubble.classList.contains('assistant')).toBe(true)
   expect(within(bubble).getByText(/→ 3화 초안에 반영했어요\./)).toBeTruthy()
   expect(screen.queryByText('카엘이 문을 열었다.')).toBeNull()
+})
+
+it('종합 답변이 있는 말풍선도 승인 뒤 반영 결과와 실패 단계는 접힌 단계별 결과 밖에 보인다', async () => {
+  openThread([{ request: '이어 써줘', reply: { status: 'failed', message: '**답변**이에요.', missingInputs: [], steps: [
+    { feature: 'writing_editing', status: 'completed', result: { text: '초안' }, applied: { episode: 3, revision: 5 } },
+    { feature: 'web_research', status: 'failed', error: '검색 실패' },
+  ] } }])
+  renderChat()
+  const details = (await screen.findByText('단계별 결과 보기')).closest('details') as HTMLElement
+  const applied = screen.getAllByText('→ 3화 초안에 반영했어요.').find((e) => !details.contains(e))
+  const failed = screen.getAllByText('[고증 조사] 실패: 검색 실패').find((e) => !details.contains(e))
+  expect(applied && failed).toBeTruthy()
 })
 
 it('함께 시작한 단계는 다른 단계의 결과가 먼저 와도 끝날 때까지 진행 중으로 보인다(#474 병렬 호출)', async () => {

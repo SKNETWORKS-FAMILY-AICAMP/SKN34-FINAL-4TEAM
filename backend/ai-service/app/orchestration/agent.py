@@ -22,6 +22,7 @@ from langchain.agents.middleware import AgentMiddleware, AgentState, ModelCallLi
 from langchain.agents.middleware.types import ModelResponse
 from langchain_core.messages import AIMessage, ToolMessage
 from langchain_openai import ChatOpenAI
+from langgraph.types import Command
 from openai import OpenAIError
 
 from app import tracing
@@ -33,6 +34,8 @@ MODEL_CALLS = 5  # 메인 모델 호출 상한(턴당). 마지막 호출은 도�
 TOOL_CALLS = 3  # 서브 에이전트 호출 상한(턴당). 기능마다 1회다.
 FAILED = 'main_failed'  # 메인 모델 실패로 끝낸 마지막 메시지 이름
 MAIN_FAILED_MESSAGE = '답변을 정리하지 못했어요. 완료한 작업의 결과는 아래에 있어요.'
+MAIN_FAILED_NOTHING_MESSAGE = '요청을 처리하지 못했어요. 잠시 뒤 다시 시도해 주세요.'  # 완료한 단계가 없을 때
+BAD_ARGUMENTS = '작업 지시가 형식에 맞지 않아 실행하지 않았어요.'  # 도구 인자 검증 실패(예: request 2,000자 초과)
 TOOLS = {feature: getattr(tools, name) for feature, name in tools.TOOL_NAMES.items()}
 # 한 모델 턴에 함께 실행할 수 있는 조회형 도구(#474). 서로의 결과를 쓰지 않는다. ask_writing·ask_character_simulation은 항상 단독이다.
 PARALLEL = {'ask_story_qa', 'ask_web_research', 'ask_rating', 'ask_world_review', 'ask_review'}
@@ -108,7 +111,13 @@ class DynamicToolMiddleware(AgentMiddleware):
     async def awrap_tool_call(self, request, handler):
         if request.tool_call['name'] not in _allowed(request.state):
             return _blocked(request.tool_call)
-        return await handler(request)
+        result = await handler(request)
+        # 도구는 항상 Command로 답한다. 오류 ToolMessage만 왔다면 ToolNode가 인자 검증 실패를 돌려준 것이라 그 기능 단계를 실패로 남긴다.
+        if isinstance(result, ToolMessage) and result.status == 'error':
+            feature = next(f for f, t in TOOLS.items() if t.name == request.tool_call['name'])
+            step = {'feature': feature, 'when': 'always', 'status': 'failed', 'error': BAD_ARGUMENTS}
+            return Command(update={'steps': [step], 'messages': [result.model_copy(update={'content': tools._summary(step)})]})
+        return result
 
 
 def _blocked(call: dict) -> ToolMessage:
@@ -139,13 +148,17 @@ class MainModelMiddleware(AgentMiddleware):
     """메인 모델 호출 하나를 추적하고, 쓸 수 없는 응답은 고정 실패 메시지로 끝낸다. 실패를 성공으로 바꾸지 않는다(status=failed)."""
 
     async def awrap_model_call(self, request, handler):
-        failed = ModelResponse(result=[AIMessage(content=MAIN_FAILED_MESSAGE, name=FAILED)])
+        done = any(s['status'] == 'completed' for s in request.state.get('steps') or [])
+        text = MAIN_FAILED_MESSAGE if done else MAIN_FAILED_NOTHING_MESSAGE
+        failed = ModelResponse(result=[AIMessage(content=text, name=FAILED)])
         with tracing.observe('main_agent', as_type='generation', model=request.model.model_name,
                              trace_context=tools.trace(request.runtime.context)) as generation:
             try:
                 response = await handler(request)
-            except (OpenAIError, ValueError):
-                generation.update(level='ERROR', status_message=MAIN_FAILED_MESSAGE)
+            except (OpenAIError, ValueError) as error:
+                # langchain-openai는 응답 오류도 ValueError로 올려 둘 다 실패로 끝낸다. 제공사 오류가 아니면 원인이 가려지지 않게
+                # 예외 종류를 남긴다(메시지는 입력을 담을 수 있어 남기지 않는다).
+                generation.update(level='ERROR', status_message=MAIN_FAILED_MESSAGE if isinstance(error, OpenAIError) else type(error).__name__)
                 return failed
             message = response.result[-1]
             usage = message.usage_metadata

@@ -106,6 +106,17 @@ describe('공개 세계관 상세 읽기', () => {
     expect(found?.relationships[0]).toMatchObject({ body: '원문\n설명', polarity: 'denied' })
     for (const bad of [{ ...relationship, body: 1 }, { ...relationship, polarity: 'unknown' }]) await expect(new HttpPublicWorldRepository(respond(world({ relationships: [bad] }))).get('w-1')).rejects.toThrow(FORMAT)
   })
+  it('관계 이력(history)을 읽고 이력이 없던 응답은 그대로 두며 모양이 어긋난 이력은 거절한다', async () => {
+    const history = [{ episode: 1, label: '경계', body: '' }, { episode: 3, label: '보호', body: '지킨다' }]
+    const relationship = { ...world().relationships[0], history }
+    expect((await new HttpPublicWorldRepository(respond(world({ relationships: [relationship] }))).get('w-1'))?.relationships[0].history).toEqual(history)
+    expect((await new HttpPublicWorldRepository(respond(world({ relationships: [{ ...relationship, history: [] }] }))).get('w-1'))?.relationships[0].history).toEqual([])
+    expect((await new HttpPublicWorldRepository(respond(world())).get('w-1'))?.relationships[0]).not.toHaveProperty('history')
+    for (const bad of [[{ episode: 0, label: '경계', body: '' }], [{ episode: 2.5, label: '경계', body: '' }], [{ episode: 1, label: 1, body: '' }], 'x']) {
+      await expect(new HttpPublicWorldRepository(respond(world({ relationships: [{ ...relationship, history: bad }] }))).get('w-1')).rejects.toThrow(FORMAT)
+    }
+  })
+
   it('공개 카드 만 장과 관계 천 개 이상을 절삭 없이 읽는다', async () => {
     const cards = Array.from({ length: 10000 }, (_, i) => ({ id: `c-${i}`, title: `설정 ${i}`, text: `# 원문\n출처 ${i}`, cardType: 'character', aliases: [], tags: [] }))
     const relationships = Array.from({ length: 1001 }, (_, i) => ({ id: `r-${i}`, sourceCardId: `c-${i}`, targetCardId: `c-${i + 1}`, label: '관계' }))

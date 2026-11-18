@@ -29,10 +29,11 @@ object RelationshipInputHelper {
      * 「동일 인물」(identity, 다른 이름 카드 → 본체 카드)의 저장 규칙 중 이번 저장이 하는 일을 본다(#485). [relations]는 저장 회차 시점의 관계 전체, [written]은 이번 저장이
      * 새로 쓰거나 바꾸거나 끝내는 관계(바뀌기 전 값과 끝내는 관계 포함), [cardTypes]는 이 세계관 카드의 유형이다.
      * identity를 새로 쓰거나 바꾸거나 끝내는 저장은 저장 회차를 정해야 한다: 생략하면 마지막 관계 회차가 대입돼 이미 공개된 이중 신분이 그 순간 드러날 수 있다.
+     * 새로 쓰거나 바꾸는 identity는 저장 회차 [episode] 대신 자기 회차([own]: 관계별 'N화부터'를 정한 관계 id, DEC-54 2단계)여도 되고, 끝내는 identity는 [episode]가 있어야 한다(끝내는 관계는 [own]에 없다).
      * 모든 identity는 방향이 있고(directed) 양 끝이 인물 카드여야 한다(부정 관계도 같다). 사슬·순환은 [validateIdentityLinks]가 저장 결과의 최신 시점으로 본다.
      */
-    fun validateIdentity(relations:List<RelationshipPayload>,written:List<RelationshipPayload>,cardTypes:Map<UUID,String>,episode:Int?) {
-        require(episode!=null || written.none { it.category==IDENTITY }) { "「동일 인물」 관계를 새로 쓰거나 바꾸거나 끝내려면 저장 회차를 정해야 합니다." }
+    fun validateIdentity(relations:List<RelationshipPayload>,written:List<RelationshipPayload>,cardTypes:Map<UUID,String>,episode:Int?,own:Set<UUID> = emptySet()) {
+        require(episode!=null || written.none { it.category==IDENTITY && it.id !in own }) { "「동일 인물」 관계를 새로 쓰거나 바꾸거나 끝내려면 저장 회차를 정해야 합니다." }
         requireIdentityShape(relations,cardTypes)
     }
 
