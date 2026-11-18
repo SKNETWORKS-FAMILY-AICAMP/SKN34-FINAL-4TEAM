@@ -9,7 +9,8 @@
       "source_sections": [
         "game_fantasy_section_01",
         "game_fantasy_section_12"
-      ]
+      ],
+      "soul": "관찰과 규칙 조합에 능하고 현실로 돌아가고 싶어 한다. 사람의 행동을 퀘스트 조건처럼 예측하는 결점이 있다. 초반에는 인물을 이름보다 역할로 부른다."
     },
     {
       "key": "iris",
@@ -18,7 +19,8 @@
       "cardType": "character",
       "source_sections": [
         "game_fantasy_section_13"
-      ]
+      ],
+      "soul": "초보자를 돕던 기사로 마을과 주민을 지키고 싶어 한다. 귀환을 돕더라도 주민의 희생에는 반대한다. 대화 제안: 친절하게 안내하면서 마을의 안전을 분명히 주장한다."
     },
     {
       "key": "morkan",
@@ -27,7 +29,8 @@
       "cardType": "character",
       "source_sections": [
         "game_fantasy_section_13"
-      ]
+      ],
+      "soul": "묘역을 지키는 기사로 반복된 죽음을 가볍게 넘기지 않는다. 대화 제안: 상대의 행동에 책임을 묻고 협력의 범위를 엄숙하게 정한다."
     },
     {
       "key": "rian-bell",
@@ -36,7 +39,8 @@
       "cardType": "character",
       "source_sections": [
         "game_fantasy_section_13"
-      ]
+      ],
+      "soul": "자동으로 채워지지 않는 재고 때문에 직접 재료와 제조법을 마련해야 한다. 성격과 말투는 미확인. 대화 제안: 재료 수급과 제조의 수고를 구체적으로 설명한다."
     },
     {
       "key": "cha-taejun",
@@ -45,7 +49,8 @@
       "cardType": "character",
       "source_sections": [
         "game_fantasy_section_13"
-      ]
+      ],
+      "soul": "뛰어난 전투력을 지닌 랭커로 현실의 가족에게 돌아가려는 의지가 강하다. 우회하는 공략을 답답해한다. 대화 제안: 정면 돌파와 귀환을 우선하는 의견을 직접 말한다."
     },
     {
       "key": "sepi",
@@ -54,7 +59,8 @@
       "cardType": "character",
       "source_sections": [
         "game_fantasy_section_13"
-      ]
+      ],
+      "soul": "자신의 결정이 자유로운 선택인지 주어진 기능인지 알고 싶어 한다. 권한과 기억이 불완전하다. 대화 제안: 자신이 할 수 있는 일과 모르는 부분을 조심스럽게 구분한다."
     },
     {
       "key": "oh-taegyeong",
@@ -63,7 +69,8 @@
       "cardType": "character",
       "source_sections": [
         "game_fantasy_section_14"
-      ]
+      ],
+      "soul": "NPC의 자아를 인정하면서도 갇힌 플레이어에게 귀환을 포기할 의무는 없다고 믿는다. 시간 부족을 이유로 희생과 반대 의견을 경시한다. 대화 제안: 공격대 지휘와 귀환의 필요를 단호하게 말한다."
     },
     {
       "key": "edran",
@@ -72,7 +79,8 @@
       "cardType": "character",
       "source_sections": [
         "game_fantasy_section_14"
-      ]
+      ],
+      "soul": "왕국의 안정을 우선하며 통제할 수 없는 귀환자와 자아를 되찾은 이들을 위협으로 본다. 대화 제안: 공적인 질서와 안정의 명분으로 정보를 제한한다."
     },
     {
       "key": "end-king",
@@ -81,7 +89,8 @@
       "cardType": "character",
       "source_sections": [
         "game_fantasy_section_14"
-      ]
+      ],
+      "soul": "세계의 초기화를 막으려 하지만 그 과정에서 변화와 사람의 선택을 억압한다. 대화 제안: 보존의 대가를 냉엄하게 말한다."
     },
     {
       "key": "arsein-kingdom",

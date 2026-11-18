@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { appContainer } from '../../../../app/appContainer'
-import type { History, Work, WorkRegistration, WorkTaxonomy } from '../../../../domain/entities/content'
+import type { History, Work, WorkRegistration, WorkTagSuggestion, WorkTaxonomy } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { type MediaUseCase, validateMediaFile } from '../../../../domain/usecases/MediaUseCase'
 
@@ -34,6 +34,9 @@ export function useEpisodeViewModel(
   const alive = useRef(true)
   const inFlight = useRef(false)
   const request = useRef<AbortController | null>(null)
+  /** 추천 요청은 작품이 바뀌거나 화면을 떠나면 취소한다(만들기 요청과 수명이 달라 따로 둔다). */
+  const suggestRequest = useRef<AbortController | null>(null)
+  useEffect(() => () => suggestRequest.current?.abort(), [workId])
   const active = works.find((w) => w.id === workId) ?? null
   /** 이력은 불러온 작품에서만 보인다(다른 작품으로 바뀌면 사라진다). 이 화면의 저장은 이력 내용을 바꾸지 않으므로 저장해도 남고, 탭을 다시 누르면 새로 읽는다. */
   const history = loaded && loaded.id === active?.id ? loaded.history : null
@@ -158,6 +161,23 @@ export function useEpisodeViewModel(
         install(await useCase.updateWork(active.id, title, summary, active.revision, undefined, taxonomy))
         setNotice('작품 정보를 저장했어요.')
       }),
+    /** 저장된 제목·소개와 발행 회차로 장르·해시태그 후보를 받는다(#372). 저장은 하지 않으며, 실패 사유는 화면 위 오류로 알리고 null을 돌려준다. */
+    suggestTags: async () => {
+      let found = null as WorkTagSuggestion | null
+      await run(async () => {
+        if (!active) return
+        const controller = new AbortController()
+        suggestRequest.current = controller
+        try {
+          const result = await useCase.suggestWorkTags(active.id, controller.signal)
+          if (!controller.signal.aborted) found = result
+        } catch (e) {
+          // 취소된 요청은 다른 작품·이탈한 화면의 것이라 오류로 알리지 않는다.
+          if (!controller.signal.aborted) throw e
+        }
+      })
+      return found
+    },
     policy: (allowFork: boolean, allowForkPublication: boolean) =>
       run(async () => {
         if (!active) return

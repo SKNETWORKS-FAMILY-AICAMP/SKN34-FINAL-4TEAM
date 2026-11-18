@@ -1,0 +1,1096 @@
+{
+  "genre": "cthulhu_mythos",
+  "worldId": "79fceb31-e918-5605-bfd3-a5123daf799f",
+  "relationships": [
+    {
+      "id": "a8ad7a04-f9d8-5300-b797-7d9a063d6240",
+      "sourceCardId": "3853b013-2678-51c8-8730-8bfb340a164d",
+      "targetCardId": "93e2be7d-7ff8-5b1f-b5de-6243fdfcbb51",
+      "category": "structural",
+      "body": "앤젤은 서스턴의 종조부이며 서스턴은 그 연구 자료를 상속한다. 근거 카드 ID: 93e2be7d-7ff8-5b1f-b5de-6243fdfcbb51. 출처: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+      "label": "종조부",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "016324a2-348a-519f-a150-a94f09615041",
+      "sourceCardId": "900ebc68-c65a-5950-92f5-3a2ca5dc9f1f",
+      "targetCardId": "3853b013-2678-51c8-8730-8bfb340a164d",
+      "category": "structural",
+      "body": "윌콕스는 앤젤에게 점토 부조의 해독을 부탁하고 꿈을 보고한다. 근거 카드 ID: 900ebc68-c65a-5950-92f5-3a2ca5dc9f1f. 출처: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+      "label": "꿈 보고",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5faf297c-1209-54d0-87e1-26c53e0ac525",
+      "sourceCardId": "96288bb4-1baa-5a61-bae0-4364ce4da9a8",
+      "targetCardId": "900ebc68-c65a-5950-92f5-3a2ca5dc9f1f",
+      "category": "structural",
+      "body": "토비는 윌콕스의 열병을 진료하고 환자의 발언을 앤젤에게 전한다. 근거 카드 ID: 96288bb4-1baa-5a61-bae0-4364ce4da9a8. 출처: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+      "label": "진료",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7de5548e-6a80-54f6-a63a-0cefbad72c25",
+      "sourceCardId": "96288bb4-1baa-5a61-bae0-4364ce4da9a8",
+      "targetCardId": "3853b013-2678-51c8-8730-8bfb340a164d",
+      "category": "structural",
+      "body": "토비는 윌콕스의 발언을 앤젤에게 전한다. 근거 카드 ID: 96288bb4-1baa-5a61-bae0-4364ce4da9a8. 출처: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+      "label": "환자 발언 전달",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d9a5fa28-05b4-572a-a068-66dbefa72e4b",
+      "sourceCardId": "93e2be7d-7ff8-5b1f-b5de-6243fdfcbb51",
+      "targetCardId": "900ebc68-c65a-5950-92f5-3a2ca5dc9f1f",
+      "category": "structural",
+      "body": "서스턴은 윌콕스를 직접 면담한다. 근거 카드 ID: d403df37-12d2-5496-8866-df8d739fb9d2. 출처: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+      "label": "면담",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "568c68cc-6fd9-59cf-b5d3-da3e8b7ace70",
+      "sourceCardId": "93e2be7d-7ff8-5b1f-b5de-6243fdfcbb51",
+      "targetCardId": "eed0ebef-9454-55b2-a461-aeff64187155",
+      "category": "structural",
+      "body": "서스턴은 르그라스를 면담하며 르그라스가 응한다. 근거 카드 ID: eed0ebef-9454-55b2-a461-aeff64187155. 출처: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+      "label": "면담",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8f710902-5db8-5795-98f1-a08e5df057dc",
+      "sourceCardId": "eed0ebef-9454-55b2-a461-aeff64187155",
+      "targetCardId": "59821f14-639a-5bef-b88f-7722889f911c",
+      "category": "structural",
+      "body": "르그라스는 웹의 그린란드 증언과 의식문을 자신의 증거와 대조한다. 근거 카드 ID: eed0ebef-9454-55b2-a461-aeff64187155. 출처: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+      "label": "증거 비교",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "354eb358-cd68-50a2-b386-e0e1718952b7",
+      "sourceCardId": "4a6a8da8-c9fe-57af-bd23-86403afb34e8",
+      "targetCardId": "cab1eb9a-7587-5edc-8edf-d4b8cba1fdbc",
+      "category": "structural",
+      "body": "요한센의 기록에서 섬에 나타난 크툴루가 선원들을 추격하고 요한센은 배를 충돌시켜 달아난다. 근거 카드 ID: 4a6a8da8-c9fe-57af-bd23-86403afb34e8. 요한센의 충돌 근거 카드 ID: cab1eb9a-7587-5edc-8edf-d4b8cba1fdbc. 출처: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+      "label": "수기 속 추격",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "39d7332f-ebc9-52d5-bd29-cd69ece7ef04",
+      "sourceCardId": "8e5d6b46-9250-577b-af65-4088922aa57e",
+      "targetCardId": "4a6a8da8-c9fe-57af-bd23-86403afb34e8",
+      "category": "structural",
+      "body": "교단은 크툴루의 해방과 지배를 기다린다고 자처한다. 근거 카드 ID: 8e5d6b46-9250-577b-af65-4088922aa57e. 출처: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+      "label": "숭배",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "91a1e61e-4e7e-565a-b9cc-5b7f434663ac",
+      "sourceCardId": "900ebc68-c65a-5950-92f5-3a2ca5dc9f1f",
+      "targetCardId": "80351cf2-35ac-5654-92ae-636cf2798b28",
+      "category": "structural",
+      "body": "윌콕스는 꿈을 바탕으로 점토 부조를 만든다. 근거 카드 ID: 900ebc68-c65a-5950-92f5-3a2ca5dc9f1f. 출처: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+      "label": "제작",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3dd93aee-9087-5a7e-8bd9-e183ed0926f5",
+      "sourceCardId": "220532aa-2795-5782-9690-540e3a865016",
+      "targetCardId": "8ba145d7-9368-57ec-99bd-2ec6dcaa37d1",
+      "category": "structural",
+      "body": "보노는 1926년 파리 봄 살롱에 그림을 출품했다. 근거 카드 ID: 8ba145d7-9368-57ec-99bd-2ec6dcaa37d1. 출처: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+      "label": "출품",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4c92f81e-88b3-5041-98de-5732a6d3e91c",
+      "sourceCardId": "eed0ebef-9454-55b2-a461-aeff64187155",
+      "targetCardId": "e1ce241d-f490-5ee3-a6c0-4636ab6e8e49",
+      "category": "structural",
+      "body": "르그라스는 루이지애나 집회에서 석상을 압수해 학회에 가져온다. 근거 카드 ID: e1ce241d-f490-5ee3-a6c0-4636ab6e8e49. 출처: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+      "label": "석상 압수",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "508abbd6-26d8-5f93-a220-9ea7f1fd009c",
+      "sourceCardId": "eed0ebef-9454-55b2-a461-aeff64187155",
+      "targetCardId": "59821f14-639a-5bef-b88f-7722889f911c",
+      "category": "structural",
+      "body": "르그라스는 석상을 웹에게 빌려주고 웹이 죽은 뒤 돌려받는다. 근거 카드 ID: e1ce241d-f490-5ee3-a6c0-4636ab6e8e49. 출처: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+      "label": "석상 대여",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3d5b0892-f261-56df-8a5d-52f76d31b6e8",
+      "sourceCardId": "cab1eb9a-7587-5edc-8edf-d4b8cba1fdbc",
+      "targetCardId": "248af8b5-00f0-54de-8d68-a9351bc6b012",
+      "category": "structural",
+      "body": "요한센과 브라이든은 섬에서 보트로 함께 달아난다. 근거 카드 ID: 248af8b5-00f0-54de-8d68-a9351bc6b012. 출처: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+      "label": "섬에서 탈출",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4a33392f-e8d0-5336-973a-cd9607f3b581",
+      "sourceCardId": "cab1eb9a-7587-5edc-8edf-d4b8cba1fdbc",
+      "targetCardId": "f4d68b40-e884-57de-a05f-ef85a04dd63b",
+      "category": "structural",
+      "body": "요한센은 공개 조사에서 감춘 마지막 항해를 영어 수기로 남긴다. 근거 카드 ID: f4d68b40-e884-57de-a05f-ef85a04dd63b. 출처: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+      "label": "수기 작성",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4fab2fc3-6dc8-55ae-b5b3-0188de8baf3b",
+      "sourceCardId": "93e2be7d-7ff8-5b1f-b5de-6243fdfcbb51",
+      "targetCardId": "f4d68b40-e884-57de-a05f-ef85a04dd63b",
+      "category": "structural",
+      "body": "서스턴은 요한센의 미망인에게서 수기를 받는다. 근거 카드 ID: f4d68b40-e884-57de-a05f-ef85a04dd63b. 출처: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+      "label": "수기 입수",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d5bbb4da-d1a1-5857-b0e3-3834be5fe7e5",
+      "sourceCardId": "a559df8e-50b5-589a-ba55-112d88404812",
+      "targetCardId": "25f4e7eb-05ec-50fc-9027-456a8ffe1d0b",
+      "category": "structural",
+      "body": "카스트로는 이렘이 교단의 중심지라고 생각한다고 말한다. 근거 카드 ID: 25f4e7eb-05ec-50fc-9027-456a8ffe1d0b. 출처: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+      "label": "교단 중심지에 관한 주장",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3eafcd8f-3634-5313-a009-fb971f8972ed",
+      "sourceCardId": "1ba5d588-1a90-5ed9-b5e8-551a17dbbe6b",
+      "targetCardId": "2f700759-dd69-5f6c-b18e-109330bf03d7",
+      "category": "structural",
+      "body": "던위치의 공포에서 윌버는 네크로노미콘 영어본과 대학의 라틴어본을 비교하려 한다. 근거 카드 ID: 2f700759-dd69-5f6c-b18e-109330bf03d7. 출처: https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+      "label": "누락 대목 조사",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5afa6347-c8c4-556a-bd19-3adac8d9a65e",
+      "sourceCardId": "1ba5d588-1a90-5ed9-b5e8-551a17dbbe6b",
+      "targetCardId": "914f51cf-d10c-5fb8-b3ba-069749172532",
+      "category": "structural",
+      "body": "윌버는 대학 도서관에서 네크로노미콘의 특정 부분을 베낀다. 근거 카드 ID: 914f51cf-d10c-5fb8-b3ba-069749172532. 출처: https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+      "label": "도서관 방문",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ce54fed3-79b0-5a78-801a-ee4d34f2329d",
+      "sourceCardId": "cab1eb9a-7587-5edc-8edf-d4b8cba1fdbc",
+      "targetCardId": "d7796bc4-eb9a-558f-97e6-a9b2748e00ef",
+      "category": "structural",
+      "body": "요한센은 구조 당시 얼러트호에서 발견된 우상을 움켜쥐고 있었다. 근거 카드 ID: d7796bc4-eb9a-558f-97e6-a9b2748e00ef. 출처: https://www.hplovecraft.com/writings/texts/fiction/cc.aspx",
+      "label": "우상 소지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "68da86d0-9449-54b8-8430-3814abbb1bf3",
+      "sourceCardId": "7d1791c4-0763-5baf-bee9-362d15501f25",
+      "targetCardId": "1ba5d588-1a90-5ed9-b5e8-551a17dbbe6b",
+      "category": "structural",
+      "body": "라비니아는 윌버 웨이틀리의 어머니다. 근거 카드 ID: 7d1791c4-0763-5baf-bee9-362d15501f25. 출처: https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6ff7340e-be56-50e4-acf6-a4226f99dd2a",
+      "sourceCardId": "7c644b91-0d6d-519d-81b1-087bedb04837",
+      "targetCardId": "7d1791c4-0763-5baf-bee9-362d15501f25",
+      "category": "structural",
+      "body": "늙은 웨이틀리는 라비니아의 아버지다. 근거 카드 ID: 7c644b91-0d6d-519d-81b1-087bedb04837. 출처: https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3993c5c9-4742-5cee-9178-fd14726338fd",
+      "sourceCardId": "7c644b91-0d6d-519d-81b1-087bedb04837",
+      "targetCardId": "1ba5d588-1a90-5ed9-b5e8-551a17dbbe6b",
+      "category": "structural",
+      "body": "늙은 웨이틀리는 윌버의 외조부다. 근거 카드 ID: 7c644b91-0d6d-519d-81b1-087bedb04837. 출처: https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+      "label": "외조부",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ce43c196-da4a-5006-b356-edb5962f6844",
+      "sourceCardId": "4fa94bba-8616-56e1-9b08-b5f9e023df6b",
+      "targetCardId": "1ba5d588-1a90-5ed9-b5e8-551a17dbbe6b",
+      "category": "structural",
+      "body": "아미티지는 윌버가 네크로노미콘의 두 판을 대조하는 모습을 본다. 근거 카드 ID: 4fa94bba-8616-56e1-9b08-b5f9e023df6b. 출처: https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+      "label": "연구 관찰",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a08f6876-7537-5db2-8026-e0f1872258f6",
+      "sourceCardId": "49d98fdc-34dd-56df-b217-da72235403f1",
+      "targetCardId": "660d1953-c752-5986-b242-54a793c5704a",
+      "category": "structural",
+      "body": "내비는 네이험 가드너의 아내다. 근거 카드 ID: 660d1953-c752-5986-b242-54a793c5704a. 출처: https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+      "label": "부부",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a2004eff-2cb5-5375-9f04-3ba8b869483b",
+      "sourceCardId": "49d98fdc-34dd-56df-b217-da72235403f1",
+      "targetCardId": "bb47a46b-e8c1-5717-b0dd-89e35e18bb44",
+      "category": "structural",
+      "body": "네이험은 우물의 색채가 생명을 빨아들였다고 아미에게 말한다. 근거 카드 ID: 49d98fdc-34dd-56df-b217-da72235403f1. 출처: https://www.hplovecraft.com/writings/texts/fiction/cs.aspx",
+      "label": "임종의 주장",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c610d5aa-d62b-507c-b57f-997eea2bab62",
+      "sourceCardId": "eb407a91-8751-59e8-b0f3-9c697b38f5f7",
+      "targetCardId": "5f8094c4-d974-5583-841e-232b9ffb62b7",
+      "category": "structural",
+      "body": "자독에 따르면 맷 엘리엇은 오벳 선장의 일등항해사였다. 근거 카드 ID: eb407a91-8751-59e8-b0f3-9c697b38f5f7. 출처: https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+      "label": "일등항해사",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7f7b1535-010e-5a23-8411-a25dc20d2176",
+      "sourceCardId": "ffbcd3ec-92f0-52c4-a75f-ebce846e1709",
+      "targetCardId": "5f8094c4-d974-5583-841e-232b9ffb62b7",
+      "category": "structural",
+      "body": "자독의 재전언에서 왈라케아는 오벳에게 바다 존재와의 거래를 들려주고 물건을 건넸다. 근거 카드 ID: ffbcd3ec-92f0-52c4-a75f-ebce846e1709. 출처: https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+      "label": "거래와 물건 전달",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "73ba3810-2782-50c5-aa69-48df33c10b0a",
+      "sourceCardId": "220568cd-ac5b-58f3-9dc2-3d0dd04d0b11",
+      "targetCardId": "5f8094c4-d974-5583-841e-232b9ffb62b7",
+      "category": "structural",
+      "body": "자독에 따르면 바너버스 마시는 오벳의 손자다. 근거 카드 ID: 220568cd-ac5b-58f3-9dc2-3d0dd04d0b11. 출처: https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+      "label": "손자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "13d0c0ee-4f1e-53c7-8a07-ff5390a5aeb7",
+      "sourceCardId": "aab2c2e9-abe7-5066-9813-ecd28321503d",
+      "targetCardId": "5d6724e5-006c-5eab-bfc5-6fe5e2a3c0c7",
+      "category": "structural",
+      "body": "일라이자 오른은 인스머스 방문자인 화자의 외할머니다. 근거 카드 ID: aab2c2e9-abe7-5066-9813-ecd28321503d. 출처: https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+      "label": "외할머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "afbe8bd0-3686-591a-a522-15e9ba94bb17",
+      "sourceCardId": "19ddfca0-8f66-5092-8be9-ca7809eff11f",
+      "targetCardId": "5d6724e5-006c-5eab-bfc5-6fe5e2a3c0c7",
+      "category": "structural",
+      "body": "더글러스는 인스머스 방문자인 화자의 외삼촌이다. 근거 카드 ID: 19ddfca0-8f66-5092-8be9-ca7809eff11f. 출처: https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+      "label": "외삼촌",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "61a8079e-d5db-52a6-84f9-62da28dda5bf",
+      "sourceCardId": "2a11c1bb-c7fe-553c-8546-1fa19923e4ae",
+      "targetCardId": "5d6724e5-006c-5eab-bfc5-6fe5e2a3c0c7",
+      "category": "structural",
+      "body": "로런스는 인스머스 방문자인 화자의 사촌이다. 근거 카드 ID: 2a11c1bb-c7fe-553c-8546-1fa19923e4ae. 출처: https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+      "label": "사촌",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5bef6695-7b7c-53b0-8768-a6b0be41aa85",
+      "sourceCardId": "715c7f32-b7f0-5871-8623-5987792df5cc",
+      "targetCardId": "5d6724e5-006c-5eab-bfc5-6fe5e2a3c0c7",
+      "category": "structural",
+      "body": "애나 틸턴은 방문자인 화자에게 티아라를 보여 준다. 근거 카드 ID: 715c7f32-b7f0-5871-8623-5987792df5cc. 출처: https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+      "label": "티아라 소개",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5d582702-6016-5254-ab85-2640dadac4af",
+      "sourceCardId": "01806ea0-db69-5a4b-8b25-1c629bd96abc",
+      "targetCardId": "5f8094c4-d974-5583-841e-232b9ffb62b7",
+      "category": "structural",
+      "body": "자독은 오벳이 남태평양의 거래와 의식을 인스머스로 들여왔다고 전한다. 근거 카드 ID: 5f8094c4-d974-5583-841e-232b9ffb62b7. 출처: https://www.gutenberg.org/files/73181/73181-h/73181-h.htm",
+      "label": "증언",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "77ec4811-bfad-5def-ba90-61bb723af2d6",
+      "sourceCardId": "765c6bd7-8ac1-5121-898f-b54ba46f32a9",
+      "targetCardId": "e23c8669-c2b9-5498-babe-bf73e2fdfa8b",
+      "category": "structural",
+      "body": "파보디는 휴대용 시추 장치를 고안한다. 근거 카드 ID: 765c6bd7-8ac1-5121-898f-b54ba46f32a9. 출처: At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 3 (I절 인용시는 행별로 셈) https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+      "label": "시추기 고안",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c0ce6d7b-95ae-555e-b34d-1abf74640b7b",
+      "sourceCardId": "bb5d559a-fa8c-544c-ad31-02a2bf05672d",
+      "targetCardId": "5cb7e833-88ac-598b-a148-4fcea35fd9ec",
+      "category": "structural",
+      "body": "더글러스는 아컴호와 해상 인원을 지휘한다. 근거 카드 ID: 5cb7e833-88ac-598b-a148-4fcea35fd9ec. 출처: At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 6과 7 (I절 인용시는 행별로 셈) https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+      "label": "아컴호 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "29efb194-c815-51c7-83b7-cb6f28bf424a",
+      "sourceCardId": "3d97d1ba-4179-5b34-84c1-1276950238bf",
+      "targetCardId": "2a3e7475-7ef5-5af3-9c5a-0deaa3fd7f3f",
+      "category": "structural",
+      "body": "레이크는 비행기와 기계를 데리고 서쪽 탐사에 나선다. 근거 카드 ID: 2a3e7475-7ef5-5af3-9c5a-0deaa3fd7f3f. 출처: At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 1 (I절 인용시는 행별로 셈) https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+      "label": "분견대 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "387d77cb-9aa2-59bb-b6ad-65726823dcb0",
+      "sourceCardId": "3d97d1ba-4179-5b34-84c1-1276950238bf",
+      "targetCardId": "b8867413-e273-52c1-b562-3e0c9694e7b9",
+      "category": "structural",
+      "body": "레이크는 삼각형 흔적이 미지 생물의 자국이라고 주장한다. 근거 카드 ID: b8867413-e273-52c1-b562-3e0c9694e7b9. 출처: At the Mountains of Madness I절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 24 (I절 인용시는 행별로 셈) https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+      "label": "생물 가설",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "afacb56f-1def-5d56-8e22-ca67a7647371",
+      "sourceCardId": "3d97d1ba-4179-5b34-84c1-1276950238bf",
+      "targetCardId": "6774d9d3-a04f-5d7a-804f-48ee10a1403c",
+      "category": "structural",
+      "body": "레이크는 손상된 표본을 현장에서 해부한다. 근거 카드 ID: 6774d9d3-a04f-5d7a-804f-48ee10a1403c. 출처: At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 30 (I절 인용시는 행별로 셈) https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+      "label": "표본 해부",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "104cef86-d86e-5c8d-ac5c-cced46bfef23",
+      "sourceCardId": "3d97d1ba-4179-5b34-84c1-1276950238bf",
+      "targetCardId": "616c6bdd-d1cb-5219-93f7-b1ed6fb7e080",
+      "category": "structural",
+      "body": "레이크는 표본의 복수 호흡과 무호흡 휴면 가능성을 추정한다. 근거 카드 ID: 616c6bdd-d1cb-5219-93f7-b1ed6fb7e080. 출처: At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 32 (I절 인용시는 행별로 셈) https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+      "label": "호흡기관 추정",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "60f75a81-774d-5b38-9379-2d3253aced27",
+      "sourceCardId": "3d97d1ba-4179-5b34-84c1-1276950238bf",
+      "targetCardId": "c89577b7-f51b-59ce-9592-971b19101a6d",
+      "category": "structural",
+      "body": "레이크는 표본에 엘더 원이라는 임시 이름을 농담처럼 사용한다. 근거 카드 ID: c89577b7-f51b-59ce-9592-971b19101a6d. 출처: At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 35 (I절 인용시는 행별로 셈) https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+      "label": "임시 명칭",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d113fc1e-b99b-5397-883e-aa8130efe841",
+      "sourceCardId": "c4a7023f-c9a3-50f5-a144-c39628112c78",
+      "targetCardId": "37675e0b-4a4c-5a25-8c05-f30eb69b8ee2",
+      "category": "structural",
+      "body": "댄포스는 자신만 보았다고 생각하는 것을 화자에게도 말하지 않는다. 근거 카드 ID: 37675e0b-4a4c-5a25-8c05-f30eb69b8ee2. 출처: At the Mountains of Madness III절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 17 (I절 인용시는 행별로 셈) https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+      "label": "말하지 않은 목격",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ac792f78-02e0-5db2-bf22-f09a0877e03b",
+      "sourceCardId": "c4a7023f-c9a3-50f5-a144-c39628112c78",
+      "targetCardId": "55f2d0ad-4cce-5a0f-acfa-4b4e8bc5baae",
+      "category": "structural",
+      "body": "댄포스는 도시에서 바닥 흔적과 피리 같은 소리를 감지했다고 말한다. 근거 카드 ID: 55f2d0ad-4cce-5a0f-acfa-4b4e8bc5baae. 출처: At the Mountains of Madness V절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 22 (I절 인용시는 행별로 셈) https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+      "label": "흔적과 소리 보고",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b1c2f7fb-bac4-58b6-8603-df70332a25ea",
+      "sourceCardId": "c4a7023f-c9a3-50f5-a144-c39628112c78",
+      "targetCardId": "f52584e5-0391-5ebf-8af4-e843b6b51de2",
+      "category": "structural",
+      "body": "댄포스와 화자는 부조를 보고 레이크 표본과 닮은 존재가 도시를 지었다고 추론한다. 근거 카드 ID: f52584e5-0391-5ebf-8af4-e843b6b51de2. 출처: At the Mountains of Madness VI절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 11 (I절 인용시는 행별로 셈) https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+      "label": "도시 건설자 추론",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fef54d62-b6f7-5357-a4f2-74e15ed57aeb",
+      "sourceCardId": "3d97d1ba-4179-5b34-84c1-1276950238bf",
+      "targetCardId": "d158bbc9-4081-5df7-8557-3084e2d1003f",
+      "category": "structural",
+      "body": "레이크는 표본의 감각기관이 기존 생물의 다섯 감각보다 많을 수 있다고 추정한다. 근거 카드 ID: d158bbc9-4081-5df7-8557-3084e2d1003f. 출처: At the Mountains of Madness II절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 33 (I절 인용시는 행별로 셈) https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+      "label": "감각기관 추정",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "51e31bb0-e7b5-52e4-9a05-5d9193d606f1",
+      "sourceCardId": "d51fd00a-598e-50a8-8b24-c3640de10925",
+      "targetCardId": "38d10019-5a7c-5a3f-82c4-b3ae2b523c0f",
+      "category": "structural",
+      "body": "맥타이그는 레이크 기지 구조 비행을 조종한다. 근거 카드 ID: d51fd00a-598e-50a8-8b24-c3640de10925. 출처: At the Mountains of Madness III절, 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 5 (I절 인용시는 행별로 셈) https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+      "label": "구조 비행 조종",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "be55561d-ca97-5eee-909a-d8c69a74f03b",
+      "sourceCardId": "c4a7023f-c9a3-50f5-a144-c39628112c78",
+      "targetCardId": "e9eea066-21cf-5c4d-afc5-4c3d3789662c",
+      "category": "structural",
+      "body": "댄포스는 산길을 넘을 때 비명을 지르고 화자가 비행기를 바로잡는다. 근거 카드 ID: e9eea066-21cf-5c4d-afc5-4c3d3789662c. 출처: At the Mountains of Madness Section XII · 본문 9번째 문단 (절 제목 제외) https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+      "label": "비행 중 비명",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f6178669-3dd4-5d05-8e5c-e5de5d2a3f67",
+      "sourceCardId": "c4a7023f-c9a3-50f5-a144-c39628112c78",
+      "targetCardId": "abb76c14-151a-55f9-b934-f8ff36237357",
+      "category": "structural",
+      "body": "댄포스는 대학 도서관에 잠긴 네크로노미콘 사본을 끝까지 읽었다. 근거 카드 ID: abb76c14-151a-55f9-b934-f8ff36237357. 출처: At the Mountains of Madness Section XII · 본문 12번째 문단 (절 제목 제외) https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+      "label": "책 열람",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "48df5d90-ec00-5982-975d-eada704d8f67",
+      "sourceCardId": "1eac5d78-9aaa-5ca0-a05c-37d543548aff",
+      "targetCardId": "890d9734-2eb9-536b-974c-f01ca65e68d0",
+      "category": "structural",
+      "body": "애클리는 윌마스에게 숲의 현상을 알리는 편지를 보낸다. 근거 카드 ID: 1eac5d78-9aaa-5ca0-a05c-37d543548aff. 출처: 《The Whisperer in Darkness》 II절, 헨리 웬트워스 애클리 관련 대목 https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+      "label": "서신",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f5fab417-f01b-5d75-9424-b66c9bb067b2",
+      "sourceCardId": "1eac5d78-9aaa-5ca0-a05c-37d543548aff",
+      "targetCardId": "7de5fe8a-299d-570b-9034-57286324fe1f",
+      "category": "structural",
+      "body": "애클리는 농부 브라운이 외부 존재를 위해 감시할지도 모른다고 윌마스에게 경고한다. 근거 카드 ID: 7de5fe8a-299d-570b-9034-57286324fe1f. 출처: 《The Whisperer in Darkness》 II절, 월터 브라운에 대한 의심 관련 대목 https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+      "label": "감시 의심",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a2f452dc-d3e4-5339-acdf-277af4412590",
+      "sourceCardId": "1eac5d78-9aaa-5ca0-a05c-37d543548aff",
+      "targetCardId": "4dbe0288-611f-5a2d-83d7-0fffaeb0438f",
+      "category": "structural",
+      "body": "애클리는 라운드 힐 숲에서 검은 돌을 발견해 집으로 가져온다. 근거 카드 ID: 4dbe0288-611f-5a2d-83d7-0fffaeb0438f. 출처: 《The Whisperer in Darkness》 II절 제목 뒤 <br>로 나눈 비어 있지 않은 본문 구간 19(애클리의 돌 발견)와 33(윌마스의 사진 판독) https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+      "label": "돌 발견",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b609c04b-ad42-59e3-ac06-8712de146c41",
+      "sourceCardId": "1eac5d78-9aaa-5ca0-a05c-37d543548aff",
+      "targetCardId": "4333d135-bb89-5257-aabe-62571b02b07d",
+      "category": "structural",
+      "body": "애클리는 숲의 소리를 녹음했다고 전한다. 근거 카드 ID: 4333d135-bb89-5257-aabe-62571b02b07d. 출처: 《The Whisperer in Darkness》 II절, 숲의 소리를 담은 축음기 기록 관련 대목 https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+      "label": "녹음",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3f480830-bf1a-59ff-8f33-298276cf35f2",
+      "sourceCardId": "1eac5d78-9aaa-5ca0-a05c-37d543548aff",
+      "targetCardId": "ac709004-a936-5604-8fee-b3fc60451d86",
+      "category": "structural",
+      "body": "조지는 헨리 애클리의 아들이다. 근거 카드 ID: ac709004-a936-5604-8fee-b3fc60451d86. 출처: 《The Whisperer in Darkness》 IV절, 조지 구드이너프 애클리 관련 대목 https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+      "label": "부자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c06b391b-b747-548f-b754-0ac6938e00b5",
+      "sourceCardId": "6f6f520c-925e-5718-96fc-eff7095eb10c",
+      "targetCardId": "890d9734-2eb9-536b-974c-f01ca65e68d0",
+      "category": "structural",
+      "body": "노예스는 역에서 윌마스를 맞아 애클리의 집으로 데려간다. 근거 카드 ID: 6f6f520c-925e-5718-96fc-eff7095eb10c. 출처: 《The Whisperer in Darkness》 VI절, 노예스 관련 대목 https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+      "label": "농가로 안내",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3a122e52-e7d5-5a4e-a8b7-37e9a9d59a93",
+      "sourceCardId": "03dd74bb-a142-5715-8780-24bac29df65d",
+      "targetCardId": "6f6f520c-925e-5718-96fc-eff7095eb10c",
+      "category": "structural",
+      "body": "B-67 화자는 노예스가 오래된 협력자이자 녹음 속 목소리라고 주장한다. 근거 카드 ID: 982d897c-11ba-53b2-9e75-d8814951e4f4. 출처: 《The Whisperer in Darkness》 VII절, 녹음의 목소리와 노예스 관련 대목 https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+      "label": "협력자라는 주장",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1a195864-a17a-57d7-b94d-aab2d47eab60",
+      "sourceCardId": "1eac5d78-9aaa-5ca0-a05c-37d543548aff",
+      "targetCardId": "890d9734-2eb9-536b-974c-f01ca65e68d0",
+      "category": "structural",
+      "body": "애클리는 밤의 총격과 발자국, 개들의 죽음과 전화선 단절을 편지로 윌마스에게 보고한다. 근거 카드 ID: 5ae85883-2a9c-534f-a1e6-a47ed55fd408. 출처: 《The Whisperer in Darkness》 IV절, 애클리 농가의 밤 포위 관련 대목 https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+      "label": "포위 상황 보고",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "64d3f1b9-b43f-5cbd-85f1-33409cd2463d",
+      "sourceCardId": "c025e43a-9204-5852-abaa-7f2a5dd847e8",
+      "targetCardId": "9abefa66-0500-54f0-b374-717d578c7f1a",
+      "category": "structural",
+      "body": "너새니얼 피슬리의 아들 윙게이트는 아버지를 지지했다. 근거 카드 ID: 9abefa66-0500-54f0-b374-717d578c7f1a. 출처: 《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 4번(절 제목을 1번으로 계산) https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+      "label": "부자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5b6d150b-c5ae-5228-a023-f8f0a8ef529a",
+      "sourceCardId": "d3530946-3508-51b3-8b67-4d77f87f509b",
+      "targetCardId": "c025e43a-9204-5852-abaa-7f2a5dd847e8",
+      "category": "structural",
+      "body": "기억상실기의 낯선 인격은 피슬리의 몸으로 깨어났다. 근거 카드 ID: d3530946-3508-51b3-8b67-4d77f87f509b. 출처: 《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 9번(절 제목을 1번으로 계산) https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+      "label": "같은 신체",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "78cead59-1c65-5159-a02d-49804111b871",
+      "sourceCardId": "d3530946-3508-51b3-8b67-4d77f87f509b",
+      "targetCardId": "4ac1dcd6-2918-52e3-bb70-19786d9122ec",
+      "category": "structural",
+      "body": "기억상실기의 피슬리는 네크로노미콘에 주석을 남기며 검토했다. 근거 카드 ID: 4ac1dcd6-2918-52e3-bb70-19786d9122ec. 출처: 《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 18번(절 제목을 1번으로 계산) https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+      "label": "책 검토",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8b15c06f-ae11-51e7-a76d-1c351bf0ea73",
+      "sourceCardId": "d3530946-3508-51b3-8b67-4d77f87f509b",
+      "targetCardId": "cc68ce2d-e936-564f-b094-f188079e2da8",
+      "category": "structural",
+      "body": "기억상실기의 대체 인격은 막대와 거울의 장치를 조립해 집에 숨겼다. 근거 카드 ID: cc68ce2d-e936-564f-b094-f188079e2da8. 출처: 《The Shadow out of Time》 I절, HTML의 br로 나눈 텍스트 조각 19번(절 제목을 1번으로 계산) https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+      "label": "장치 조립",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6ffc4896-5df1-5b22-a8e3-8e1b37ea19e3",
+      "sourceCardId": "c025e43a-9204-5852-abaa-7f2a5dd847e8",
+      "targetCardId": "c5ffbc2b-cc62-5e6c-ad97-1fa87aed67bd",
+      "category": "structural",
+      "body": "피슬리는 꿈에서 철학자 이앙리와 대화한다. 근거 카드 ID: c5ffbc2b-cc62-5e6c-ad97-1fa87aed67bd. 출처: 《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산) https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+      "label": "꿈속 대화",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6a74c007-0133-5643-be10-c61291c91d72",
+      "sourceCardId": "c025e43a-9204-5852-abaa-7f2a5dd847e8",
+      "targetCardId": "312d62c6-8594-5348-a81b-c6282850a4df",
+      "category": "structural",
+      "body": "피슬리는 꿈에서 피렌체 수도사 바르톨로메오 코르시와 대화한다. 근거 카드 ID: 312d62c6-8594-5348-a81b-c6282850a4df. 출처: 《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산) https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+      "label": "꿈속 대화",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d109ccd0-599c-5b88-80d1-1f0998f3cc97",
+      "sourceCardId": "c025e43a-9204-5852-abaa-7f2a5dd847e8",
+      "targetCardId": "495351ab-0f8a-5075-b298-0d4f0ef7d2d7",
+      "category": "structural",
+      "body": "피슬리는 꿈에서 마술사 누그소스와 대화한다. 근거 카드 ID: 495351ab-0f8a-5075-b298-0d4f0ef7d2d7. 출처: 《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산) https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+      "label": "꿈속 대화",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ee481e3f-3010-55cf-be51-5f515cc5694b",
+      "sourceCardId": "27aac28c-2cd0-5db4-b634-a4794f98b2fe",
+      "targetCardId": "c025e43a-9204-5852-abaa-7f2a5dd847e8",
+      "category": "structural",
+      "body": "피슬리의 꿈에서 케프네스가 피슬리에게 니알라토텝의 비밀을 말한다. 근거 카드 ID: 27aac28c-2cd0-5db4-b634-a4794f98b2fe. 출처: 《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산) https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+      "label": "꿈속 비밀 전달",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f1df379c-1bdf-59f9-8c04-4d863807744a",
+      "sourceCardId": "c025e43a-9204-5852-abaa-7f2a5dd847e8",
+      "targetCardId": "cf2de0a7-2ffa-5179-a657-226cb67ad5c0",
+      "category": "structural",
+      "body": "피슬리는 꿈에서 제임스 우드빌과 대화한다. 근거 카드 ID: cf2de0a7-2ffa-5179-a657-226cb67ad5c0. 출처: 《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산) https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+      "label": "꿈속 대화",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c5becbd7-d03c-55b5-ac33-eca3bc10a033",
+      "sourceCardId": "c025e43a-9204-5852-abaa-7f2a5dd847e8",
+      "targetCardId": "1451e152-601d-57cf-a58f-d84a36b15273",
+      "category": "structural",
+      "body": "피슬리는 꿈에서 피에르루이 몽마니와 대화한다. 근거 카드 ID: 1451e152-601d-57cf-a58f-d84a36b15273. 출처: 《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산) https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+      "label": "꿈속 대화",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "32b1c42c-9a41-5c16-a796-6cfa96a99662",
+      "sourceCardId": "c025e43a-9204-5852-abaa-7f2a5dd847e8",
+      "targetCardId": "b0ba97c5-b37c-557a-b018-5f061183601f",
+      "category": "structural",
+      "body": "피슬리는 꿈에서 키메리아 족장 크롬야와 대화한다. 근거 카드 ID: b0ba97c5-b37c-557a-b018-5f061183601f. 출처: 《The Shadow out of Time》 IV절, HTML의 br로 나눈 텍스트 조각 12번(절 제목을 1번으로 계산) https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+      "label": "꿈속 대화",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6b5cba64-afeb-5450-ad57-c343102450e0",
+      "sourceCardId": "51a6be6f-7c80-58dc-80b2-8bc2ac85d612",
+      "targetCardId": "c025e43a-9204-5852-abaa-7f2a5dd847e8",
+      "category": "structural",
+      "body": "매켄지는 피슬리에게 사막 돌과 사진을 보내고 탐사를 제안한다. 근거 카드 ID: 51a6be6f-7c80-58dc-80b2-8bc2ac85d612. 출처: 《The Shadow out of Time》 V절, HTML의 br로 나눈 텍스트 조각 4번(절 제목을 1번으로 계산) https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+      "label": "탐사 제안",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "89ddbb16-84bb-5c99-8f4c-aebdcf952403",
+      "sourceCardId": "315e58ab-9a1a-5cb1-b359-8f904f69f6ef",
+      "targetCardId": "c025e43a-9204-5852-abaa-7f2a5dd847e8",
+      "category": "structural",
+      "body": "지질학 교수 다이어는 피슬리의 사막 탐사에 동행한다. 근거 카드 ID: 315e58ab-9a1a-5cb1-b359-8f904f69f6ef. 출처: 《The Shadow out of Time》 V절, HTML의 br로 나눈 텍스트 조각 26번(절 제목을 1번으로 계산) https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+      "label": "사막 탐사 동행",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b0ed668d-bc4b-5b32-beb6-33c452db2067",
+      "sourceCardId": "f7870264-489b-548b-9ba1-032d56589d14",
+      "targetCardId": "c025e43a-9204-5852-abaa-7f2a5dd847e8",
+      "category": "structural",
+      "body": "고대사 교수 애슐리는 피슬리의 탐사에 동행한다. 근거 카드 ID: f7870264-489b-548b-9ba1-032d56589d14. 출처: 《The Shadow out of Time》 V절, HTML의 br로 나눈 텍스트 조각 26번(절 제목을 1번으로 계산) https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+      "label": "사막 탐사 동행",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "38e4c2cf-cc6a-5832-b242-79bfc9d2c162",
+      "sourceCardId": "048988d2-4cfd-58e6-b7a2-398bc2b27a83",
+      "targetCardId": "c025e43a-9204-5852-abaa-7f2a5dd847e8",
+      "category": "structural",
+      "body": "인류학 교수 프리본은 피슬리의 사막 탐사에 동행한다. 근거 카드 ID: 048988d2-4cfd-58e6-b7a2-398bc2b27a83. 출처: 《The Shadow out of Time》 V절, HTML의 br로 나눈 텍스트 조각 26번(절 제목을 1번으로 계산) https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+      "label": "사막 탐사 동행",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "66625892-0c1e-5442-a395-7fb34ac3f1bf",
+      "sourceCardId": "9abefa66-0500-54f0-b374-717d578c7f1a",
+      "targetCardId": "c025e43a-9204-5852-abaa-7f2a5dd847e8",
+      "category": "structural",
+      "body": "윙게이트는 비행기로 화자가 발견했다고 말한 장소를 살폈지만 아무것도 보지 못했다. 근거 카드 ID: 22642b93-573f-5321-a16f-5bd05e643ca1. 출처: 《The Shadow out of Time》 VI절, HTML의 br로 나눈 텍스트 조각 8번(절 제목을 1번으로 계산) https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+      "label": "발견 장소 확인",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b5a8c89a-0049-59fa-bb18-8dd00c7001b6",
+      "sourceCardId": "151fd55a-a036-542b-ab0f-923414e27397",
+      "targetCardId": "fd4c05fb-2ca6-5994-b151-1f94c956f935",
+      "category": "structural",
+      "body": "꿈속 사제들은 카터에게 아자토스에 관해 경고한다. 근거 카드 ID: fd4c05fb-2ca6-5994-b151-1f94c956f935. 출처: The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 5 (문단 시작 이미지 구분, 첫 빈 조각 포함) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "카터에게 아자토스에 관해 경고",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9436dc22-4a2b-5f9c-a82d-d1847b769667",
+      "sourceCardId": "1193cdb7-eeb1-5a16-a257-9060a34daa21",
+      "targetCardId": "56675919-5b7d-50be-93f1-6fa7f852bca7",
+      "category": "structural",
+      "body": "아탈에 따르면 바르자이는 그와 함께 산에 올랐다가 하늘로 끌려갔다. 근거 카드 ID: 56675919-5b7d-50be-93f1-6fa7f852bca7. 출처: The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 14 (문단 시작 이미지 구분, 첫 빈 조각 포함) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "산행 전언",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a15decfe-24c2-5978-89f8-c6b7a053fc57",
+      "sourceCardId": "6474bb0c-9205-5a39-9826-fc55a8b56dfc",
+      "targetCardId": "03af8cab-9464-50d3-996f-69f76940f788",
+      "category": "structural",
+      "body": "토성의 고양이들은 달의 두꺼비 같은 존재들과 동맹이다. 근거 카드 ID: 6474bb0c-9205-5a39-9826-fc55a8b56dfc. 출처: The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 19 (문단 시작 이미지 구분, 첫 빈 조각 포함) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "동맹",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a7a4bea3-1933-5e21-8c69-cb35d9e4b4eb",
+      "sourceCardId": "ec7d0389-ddec-578f-a01e-9fa05bfa47a9",
+      "targetCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+      "category": "structural",
+      "body": "피크먼은 카터에게 지하에서 벗어날 길을 조언한다. 근거 카드 ID: ec7d0389-ddec-578f-a01e-9fa05bfa47a9. 출처: The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 24 (문단 시작 이미지 구분, 첫 빈 조각 포함) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "탈출 조언",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f47e1270-faa3-5a3b-9d9f-26abeba5adc5",
+      "sourceCardId": "c36f54b3-eff8-5f05-8fdd-b927f4f26eb2",
+      "targetCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+      "category": "structural",
+      "body": "나이트건트들은 붙잡은 카터를 날라간다. 근거 카드 ID: c36f54b3-eff8-5f05-8fdd-b927f4f26eb2. 출처: The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 16 (문단 시작 이미지 구분, 첫 빈 조각 포함) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "납치",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "14311d6f-8ca1-53ee-a4b0-1533a9eb1eb1",
+      "sourceCardId": "9f7aeafe-5c60-5550-a4bf-7cf8a4041689",
+      "targetCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+      "category": "structural",
+      "body": "울타르 고양이 장군은 달에서 포로 카터를 알아보고 군대를 이끌어 구한다. 근거 카드 ID: 9f7aeafe-5c60-5550-a4bf-7cf8a4041689. 출처: The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 02 · 단위 내 문단 조각 18 (문단 시작 이미지 구분, 첫 빈 조각 포함) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "구출",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8cddee0b-1c80-5342-97df-31c078f244f2",
+      "sourceCardId": "151fd55a-a036-542b-ab0f-923414e27397",
+      "targetCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+      "category": "structural",
+      "body": "불꽃의 동굴 사제 나시트와 카만타는 카터에게 카다스 탐색의 위험을 경고한다. 근거 카드 ID: 151fd55a-a036-542b-ab0f-923414e27397. 출처: The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 5 (문단 시작 이미지 구분, 첫 빈 조각 포함) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "경고",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "45b98f63-2d52-51d5-a974-be9ffdf97874",
+      "sourceCardId": "1193cdb7-eeb1-5a16-a257-9060a34daa21",
+      "targetCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+      "category": "structural",
+      "body": "아탈은 카터에게 신과 바깥의 수호자들에 관해 경고한다. 근거 카드 ID: 1193cdb7-eeb1-5a16-a257-9060a34daa21. 출처: The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 14 (문단 시작 이미지 구분, 첫 빈 조각 포함) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "경고",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6fd60c16-564a-5990-9c73-d33ad41033d8",
+      "sourceCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+      "targetCardId": "2672b2b6-13a4-5174-8bdd-4ac9d9e14a52",
+      "category": "structural",
+      "body": "카터는 꿈꾸는 자 쿠라네스를 깨어 있을 때 다른 이름으로 알았다. 근거 카드 ID: 2672b2b6-13a4-5174-8bdd-4ac9d9e14a52. 출처: The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 7 (문단 시작 이미지 구분, 첫 빈 조각 포함) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "아는 사이",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "141b9c20-a471-5418-8308-eb2fa8fd684d",
+      "sourceCardId": "e3e43a4a-01d1-5dfc-a9a1-ee74deaae04f",
+      "targetCardId": "178735ae-3fa4-5171-a2b6-2778d780f1a6",
+      "category": "structural",
+      "body": "사제들은 냐를라토텝을 다른 신들의 영혼이자 전령으로 소개한다. 근거 카드 ID: e3e43a4a-01d1-5dfc-a9a1-ee74deaae04f. 출처: The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 01 · 단위 내 문단 조각 5 (문단 시작 이미지 구분, 첫 빈 조각 포함) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "전령",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5858e4b1-b7d8-5211-8203-f907c49cd969",
+      "sourceCardId": "ec7d0389-ddec-578f-a01e-9fa05bfa47a9",
+      "targetCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+      "category": "structural",
+      "body": "피크먼은 과거 카터에게 구울 언어 일부를 가르쳤다. 근거 카드 ID: f10a91f6-cb44-5f2f-ba65-ad44e991cab4. 출처: The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 19 (문단 시작 이미지 구분, 첫 빈 조각 포함) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "구울 언어 교육",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c7da7613-a744-53cc-8736-df4178bad6ec",
+      "sourceCardId": "f1fafa7a-d21d-5c7e-9ded-6226d67406b0",
+      "targetCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+      "category": "structural",
+      "body": "지하의 구울들은 카터에게 사다리를 내려 끌어올린다. 근거 카드 ID: f1fafa7a-d21d-5c7e-9ded-6226d67406b0. 출처: The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 03 · 단위 내 문단 조각 22 (문단 시작 이미지 구분, 첫 빈 조각 포함) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "구출",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f88346dd-550a-5e73-96c2-dda1ce2eaddd",
+      "sourceCardId": "9f7aeafe-5c60-5550-a4bf-7cf8a4041689",
+      "targetCardId": "d94bff97-5c00-5033-867c-17443ab4ac6d",
+      "category": "structural",
+      "body": "울타르 새끼 고양이는 카터를 구한 노장 고양이의 손자다. 근거 카드 ID: d94bff97-5c00-5033-867c-17443ab4ac6d. 출처: The Dream-Quest of Unknown Kadath · Artificial paragraph chunk 04 · 단위 내 문단 조각 14 (문단 시작 이미지 구분, 첫 빈 조각 포함) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "조부와 손자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7028263d-0c79-5fe5-a3d6-1a96f6f6d8f9",
+      "sourceCardId": "106a2a82-8643-5b64-b2a5-4e279c0eed6f",
+      "targetCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+      "category": "structural",
+      "body": "셀레파이스 고양이 우두머리는 카터에게 잉가녹에 관한 이야기를 전한다. 근거 카드 ID: 106a2a82-8643-5b64-b2a5-4e279c0eed6f. 출처: The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 3 (원작 장 구분 아님) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "이야기 전달",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "88884a7e-f150-5fb7-96de-8a12056710a7",
+      "sourceCardId": "a3f72d0b-b933-5996-b8e3-c7b5bc370c83",
+      "targetCardId": "85b6df4e-701e-5ef9-9c32-4db6bf057b3d",
+      "category": "structural",
+      "body": "보랏빛 기체 스응악은 쿠라네스에게 중앙의 공허에 관해 경고했다. 근거 카드 ID: a3f72d0b-b933-5996-b8e3-c7b5bc370c83. 출처: The Dream-Quest of Unknown Kadath, 배정 chunk-05의 문단 8 (원작 장 구분 아님) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "경고",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "448a7a6a-afb0-5129-a19c-4f0b9dfd17f3",
+      "sourceCardId": "7f89f98f-ce6f-5f18-a0fb-3cb21bdf34fa",
+      "targetCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+      "category": "structural",
+      "body": "상인은 카터를 붙잡아 샨타크에 태운다. 근거 카드 ID: 7f89f98f-ce6f-5f18-a0fb-3cb21bdf34fa. 출처: The Dream-Quest of Unknown Kadath, 배정 chunk-06의 문단 9 (원작 장 구분 아님) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "포획",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bd2c25b6-b6d4-512b-ba2d-30b9546b9ab7",
+      "sourceCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+      "targetCardId": "7f89f98f-ce6f-5f18-a0fb-3cb21bdf34fa",
+      "category": "structural",
+      "body": "카터는 수도원 지하의 구덩이에 상인을 밀어 넣는다. 근거 카드 ID: 7bcb0a04-0f94-5da3-8a97-3ac549b62f8c. 출처: The Dream-Quest of Unknown Kadath, 배정 chunk-06의 문단 23 (원작 장 구분 아님) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "구덩이에 밀침",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f12765fd-5b28-5487-b758-e4b5a10e6062",
+      "sourceCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+      "targetCardId": "c36f54b3-eff8-5f05-8fdd-b927f4f26eb2",
+      "category": "structural",
+      "body": "카터가 암호를 내자 나이트건트들은 간지럼을 멈추고 그를 옮긴다. 근거 카드 ID: 2539368e-e146-51ea-9ce1-53a451a85804. 출처: The Dream-Quest of Unknown Kadath, 배정 chunk-07의 문단 4 (원작 장 구분 아님) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "암호 사용",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "57faa6c0-4ddd-5a8b-aaab-8dcd396a9be0",
+      "sourceCardId": "ec7d0389-ddec-578f-a01e-9fa05bfa47a9",
+      "targetCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+      "category": "structural",
+      "body": "카터는 픽먼에게 나이트건트가 알아듣는 암호를 배웠다. 근거 카드 ID: d0f87dfc-99a8-5f4f-bdc6-0957eaef4349. 출처: The Dream-Quest of Unknown Kadath, 배정 chunk-07의 문단 1 (원작 장 구분 아님) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "암호 교육",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2d51a337-e444-5698-8592-7f2c334dac0b",
+      "sourceCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+      "targetCardId": "f1fafa7a-d21d-5c7e-9ded-6226d67406b0",
+      "category": "structural",
+      "body": "카터는 구울들에게 노 젓는 법을 가르친다. 근거 카드 ID: 548feb7d-693d-597c-828d-1f8512f02703. 출처: The Dream-Quest of Unknown Kadath, 배정 chunk-07의 문단 11 (원작 장 구분 아님) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "노 젓기 교육",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2bc67ff1-b326-58bc-a718-a969df6f85ce",
+      "sourceCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+      "targetCardId": "ec7d0389-ddec-578f-a01e-9fa05bfa47a9",
+      "category": "structural",
+      "body": "카터와 픽먼은 구울들을 나누어 바위섬을 방어한다. 근거 카드 ID: b4de3ca5-32d7-5d8d-aa7b-c2097fa7b3ff. 출처: The Dream-Quest of Unknown Kadath, 배정 chunk-07의 문단 20 (원작 장 구분 아님) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "섬 방어",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e28c66ce-d8a7-5ddf-bf19-22f9ec8c23db",
+      "sourceCardId": "ec7d0389-ddec-578f-a01e-9fa05bfa47a9",
+      "targetCardId": "93dd702d-0803-5de2-8201-15a222b97ecc",
+      "category": "structural",
+      "body": "픽먼은 부상자를 죽여 먹는 관습을 말리고 동료들을 침상에 눕힌다. 근거 카드 ID: 93dd702d-0803-5de2-8201-15a222b97ecc. 출처: The Dream-Quest of Unknown Kadath, 배정 chunk-07의 문단 27 (원작 장 구분 아님) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "부상자 보호",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2958fcbb-c853-5ad2-8b3b-7f9964401b67",
+      "sourceCardId": "dbace013-692e-5d61-ba78-f4106f5cf11b",
+      "targetCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+      "category": "structural",
+      "body": "스응악은 공허에서 카터에게 길을 가리킨다. 근거 카드 ID: dbace013-692e-5d61-ba78-f4106f5cf11b. 출처: The Dream-Quest of Unknown Kadath, 배정 chunk-09의 문단 25 (원작 장 구분 아님) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "인도",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8542a229-2b3e-5f81-9d59-fee9e3eb1ee3",
+      "sourceCardId": "a00066af-145b-5112-8147-5b0b6fe62eff",
+      "targetCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+      "category": "structural",
+      "body": "노덴스는 먼 깊은 곳에서 카터를 인도한다. 근거 카드 ID: a00066af-145b-5112-8147-5b0b6fe62eff. 출처: The Dream-Quest of Unknown Kadath, 배정 chunk-09의 문단 26 (원작 장 구분 아님) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "인도",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "89951802-492d-5c07-9c6e-a8e3a22e11da",
+      "sourceCardId": "8ca61899-c865-596e-892a-de8351962bd2",
+      "targetCardId": "39c938ea-cf94-5db2-8d58-246d4cbee15e",
+      "category": "structural",
+      "body": "나이알라토텝은 친절한 안내로 카터를 파멸로 유인한다. 근거 카드 ID: 8ca61899-c865-596e-892a-de8351962bd2. 출처: The Dream-Quest of Unknown Kadath, 배정 chunk-09의 문단 13 (원작 장 구분 아님) https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "label": "기만적 안내",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "96df233a-32af-5ca5-aca6-54f8200298dd",
+      "sourceCardId": "6994ff6d-0b8d-5379-b928-9c6b7962d97e",
+      "targetCardId": "0a91d815-f25b-538e-90a5-35ff6d855e33",
+      "category": "structural",
+      "body": "마주레비치는 길먼에게 금속 십자가를 준다. 근거 카드 ID: ec48e955-51b4-52ff-ba09-5a71ef967231. 출처: 마녀의 집에서 꾼 꿈, Artificial paragraph chunk 02, 해당 구간 본문 29문단 (br 기준) https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+      "label": "십자가 전달",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6cb9aa9f-672a-52f2-b443-6a8a9f660f41",
+      "sourceCardId": "2080e8b6-1d85-54ed-96d4-354c5912f345",
+      "targetCardId": "0a91d815-f25b-538e-90a5-35ff6d855e33",
+      "category": "structural",
+      "body": "엘우드는 밤에 길먼의 방이 비어 있는 것을 두 번 발견한다. 근거 카드 ID: 2080e8b6-1d85-54ed-96d4-354c5912f345. 출처: 마녀의 집에서 꾼 꿈, Artificial paragraph chunk 01, 해당 구간 본문 22문단 (br 기준) https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+      "label": "빈 방 목격",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ea596fdf-55bc-58df-8f99-a5108a7d1bb0",
+      "sourceCardId": "59966555-c388-58bd-8f8b-b4accc368b75",
+      "targetCardId": "0a91d815-f25b-538e-90a5-35ff6d855e33",
+      "category": "structural",
+      "body": "길먼의 꿈에서 브라운 젠킨이 그의 손목을 문다. 근거 카드 ID: 20673a52-53e4-5ebb-b44f-4256d3947d5c. 출처: 마녀의 집에서 꾼 꿈, Artificial paragraph chunk 02, 해당 구간 본문 22문단 (br 기준) https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+      "label": "꿈속 물림",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "eec30963-64ea-52ed-87fb-f1f29101d0e8",
+      "sourceCardId": "b947f38e-21ee-5f83-b563-36777c6f9e4b",
+      "targetCardId": "8eb65bbe-122f-59c5-8a2a-1997fcd084dc",
+      "category": "structural",
+      "body": "아나스타샤는 실종된 아이의 어머니로 아이를 걱정했다. 근거 카드 ID: b947f38e-21ee-5f83-b563-36777c6f9e4b. 출처: 마녀의 집에서 꾼 꿈, Artificial paragraph chunk 03, 해당 구간 본문 10문단 (br 기준) https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+      "label": "실종된 아이의 어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d0a3b8c6-e70d-5471-bb9a-61340908a68d",
+      "sourceCardId": "7c644b91-0d6d-519d-81b1-087bedb04837",
+      "targetCardId": "1ba5d588-1a90-5ed9-b5e8-551a17dbbe6b",
+      "category": "structural",
+      "body": "늙은 웨이틀리는 윌버의 배움을 위해 낡은 책을 손자의 방에 모은다. 근거 카드 ID: 25e30e3d-829b-5434-a34c-c7207545ee59. 출처: 던위치의 공포, Section III, 해당 구간 본문 2문단 (br 기준) https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+      "label": "책 정리",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d9e62891-3ec2-58d2-95a3-831333cec74d",
+      "sourceCardId": "972207b0-ac82-5f37-aee2-ce77e5d9ea42",
+      "targetCardId": "1ba5d588-1a90-5ed9-b5e8-551a17dbbe6b",
+      "category": "structural",
+      "body": "도서관 경비견은 침입한 윌버에게 치명상을 입힌다. 근거 카드 ID: e6c9a35c-5891-5c18-b7f4-b6b0cc216b15. 출처: 던위치의 공포, Section VI, 해당 구간 본문 4문단 (br 기준) https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+      "label": "침입자 공격",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5020ae59-e6ad-5a62-b877-96802b3d3c98",
+      "sourceCardId": "4fa94bba-8616-56e1-9b08-b5f9e023df6b",
+      "targetCardId": "59c8d6f2-a06c-51b4-a628-09f64292567c",
+      "category": "structural",
+      "body": "아미티지는 죽어가는 윌버의 중얼거림을 기억에 의존해 회상한다. 근거 카드 ID: 59c8d6f2-a06c-51b4-a628-09f64292567c. 출처: 던위치의 공포, Section VI, 해당 구간 본문 8문단 (br 기준) https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+      "label": "임종 발언 회상",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ebe17fde-2e98-5b63-8b4f-7102c6f32971",
+      "sourceCardId": "4fa94bba-8616-56e1-9b08-b5f9e023df6b",
+      "targetCardId": "475e329c-de28-53a5-99e6-9109edd3b170",
+      "category": "structural",
+      "body": "아미티지는 윌버의 장부를 치환 방식으로 기록한 영어로 가정하고 해독한다. 근거 카드 ID: 475e329c-de28-53a5-99e6-9109edd3b170. 출처: 던위치의 공포, Section VIII, 해당 구간 본문 4문단 (br 기준) https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+      "label": "일지 해독",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "018824bb-dd63-58dd-b694-452f398ac23d",
+      "sourceCardId": "3c006706-6a43-5508-b55e-bfbddc4968f6",
+      "targetCardId": "a99333e9-33cf-58c4-aa6b-2f729bb5da3d",
+      "category": "structural",
+      "body": "주민들은 샐리가 보이지 않는 무게에 집이 무너진다고 외치는 소리를 전화로 듣는다. 근거 카드 ID: a99333e9-33cf-58c4-aa6b-2f729bb5da3d. 출처: Section IX · 주민의 전화 전달과 폐허 조사 https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+      "label": "전화 증언",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "aba6341d-5182-54aa-9e30-758c8aff5e67",
+      "sourceCardId": "4fa94bba-8616-56e1-9b08-b5f9e023df6b",
+      "targetCardId": "3ca53bc3-e514-5121-a9dc-6adaa32f3f1a",
+      "category": "structural",
+      "body": "아미티지는 커티스가 본 형체가 윌버의 쌍둥이라고 설명한다. 근거 카드 ID: 3ca53bc3-e514-5121-a9dc-6adaa32f3f1a. 출처: Section X · 커티스의 망원경 증언과 결말 https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+      "label": "쌍둥이 설명",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f4ac5f28-fe73-5880-8358-1bdb1ea52f8f",
+      "sourceCardId": "1ba5d588-1a90-5ed9-b5e8-551a17dbbe6b",
+      "targetCardId": "3ca53bc3-e514-5121-a9dc-6adaa32f3f1a",
+      "category": "structural",
+      "body": "아미티지는 분말에 드러난 형체가 윌버의 쌍둥이라고 설명한다. 근거 카드 ID: 3ca53bc3-e514-5121-a9dc-6adaa32f3f1a. 출처: Section X · 커티스의 망원경 증언과 결말 https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+      "label": "쌍둥이라는 설명",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6d0a9f96-594c-5e20-8e24-d4a6766b0d18",
+      "sourceCardId": "65e9c2d6-975b-5c09-9e7d-1324ed897380",
+      "targetCardId": "3ca53bc3-e514-5121-a9dc-6adaa32f3f1a",
+      "category": "structural",
+      "body": "커티스는 분말을 뿌린 순간 거대한 형체를 보았다고 말한다. 근거 카드 ID: 3ca53bc3-e514-5121-a9dc-6adaa32f3f1a. 출처: Section X · 커티스의 망원경 증언과 결말 https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+      "label": "목격 증언",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ]
+}

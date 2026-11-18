@@ -43,6 +43,13 @@ def select(paths, full=False):
         scopes["core"].update(features)
 
     for path in paths:
+        samples = 'infrastructure/sample-data/genre-templates/'
+        if path.startswith((samples + 'expanded-relations/', samples + 'review/')) or path in {
+            samples + 'expanded_generate.py', samples + 'expanded_test.py', samples + 'expanded_report.md',
+            samples + 'build_traditions.py', samples + 'test_traditions.py'
+        }:
+            infra = True
+            continue
         # 에이전트 지침·훅·스킬은 런타임과 무관하다(훅 테스트는 .agent-hooks에서 로컬 실행).
         if path.endswith(".md") or path.startswith(("docs/", "graphify-out/", ".agent-hooks/", ".agents/", ".claude/", ".codex/")) \
                 or path in {"LICENSE", ".gitignore", ".graphifyrc"}:
@@ -79,7 +86,8 @@ def select(paths, full=False):
                 scopes["web"].add("all")
                 scopes["ai"].add("all")
                 scenarios.update(SCENARIOS)
-            infra |= "Dockerfile" in path
+            infra |= ("Dockerfile" in path or path == 'backend/content-service/src/main/resources/genre-templates.json'
+                      or path.startswith('backend/content-service/src/main/resources/sample-worlds-expanded/'))
         elif path.startswith("backend/operations-service/"):
             scopes["operations"].add("all")
         elif path.startswith("backend/ai-service/"):

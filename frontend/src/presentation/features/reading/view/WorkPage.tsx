@@ -45,7 +45,6 @@ export function WorkPage() {
   const { work: w, parent: p, visible, last, read, liked, likes, forks, forkList } = d
   const first = visible.find(([e, i]) => !hiddenSourceEpisode(w, i + 1, e.p)) ?? visible[0]
   const start = last && visible.some(([e, i]) => i + 1 === last && !hiddenSourceEpisode(w, last, e.p)) ? last : (first?.[1] ?? 0) + 1
-  const sourceTitle = p?.title ?? w.parentTitle
   const sv = serialView(w)
   /** 탭 목록의 방향키·Home·End로 탭을 옮깁니다(끝에서는 돌아서 이어짐). 선택한 탭만 Tab 순서에 들어갑니다. */
   const moveTab = (e: KeyboardEvent) => {
@@ -65,11 +64,11 @@ export function WorkPage() {
       {vm.bandAmb && <Amb t={w.theme} lite band />}
       <main className="wrap" id="main" tabIndex={-1}>
         <section className="whero">
-          <div className="cover"><CoverOf w={w} k="big" /></div>
+          <div className="cover"><CoverOf w={w} /></div>
           <div>
             <span className="g">{w.genre}</span>{w.auto?.on && <span className="chip ok" style={{ marginLeft: 8 }}>🤖 AI 자율 연재 중</span>}{sv.days && <span className="g wsched">{sv.days}</span>}{sv.badge && <span className={`chip ${sv.badge === '연재 중' ? 'ok' : sv.badge === '휴재' ? 'wait' : ''}`} style={{ marginLeft: 8 }}>{sv.badge}</span>}
             <h1>{w.title}</h1><div className="by">{w.by}</div>{p && <div className="by" style={{ marginTop: 6 }}>“{w.dir}”</div>}
-            <p className="sum">{w.summary || '원작 「' + sourceTitle + '」의 ' + w.forkAt + '화 이후, 다른 길로 간 포크 소설.'}</p>
+            {d.summary && <p className="sum">{d.summary}</p>}
             <div className="hashes">{(w.hash || p?.hash || []).map((h) => <Go key={h} to={`/tag/${encodeURIComponent(h.replace(/^#/, ''))}`} title={`${h} 소설 모아 보기`}>{h}</Go>)}</div>
             <div className="stats">
               {(w.canonical || w.statisticsSupported!==false) && <span title="좋아요"><Like /><span className="sr-only">좋아요 </span><b id="lkc">{kfmt(likes)}</b></span>}

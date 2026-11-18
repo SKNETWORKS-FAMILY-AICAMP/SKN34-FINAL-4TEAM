@@ -76,3 +76,35 @@ it('저장 실패는 입력과 실행 잠금을 유지하고 성공한 재시도
   await waitFor(() => expect(screen.getByLabelText('시뮬레이션 잠금').textContent).toBe(''))
   expect((await api.list('starlight')).find(p => p.kind === 'scene')).toMatchObject({ title: '다시 만남', episodeNumber: 2 })
 })
+
+it('인라인 편집을 취소하면 편집을 연 버튼으로 초점이 돌아온다', async () => {
+  await setup()
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  fireEvent.click(screen.getByRole('button', { name: '취소' }))
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: '장면 계획 추가' })))
+})
+
+it('이동 저장 뒤 목록 재조회가 실패하면 저장 완료를 알리고 다시 불러올 때까지 순서 변경을 잠근다', async () => {
+  const api = await setup()
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(screen.getByLabelText('계획 갱신').textContent).toBe('1'))
+  fireEvent.click(screen.getByRole('button', { name: '장면 계획 추가' }))
+  fireEvent.change(screen.getByLabelText('장면 제목'), { target: { value: '두번째' } })
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(screen.getByLabelText('계획 갱신').textContent).toBe('2'))
+  vi.spyOn(api, 'list').mockRejectedValueOnce(new Error('목록 실패'))
+  fireEvent.click(screen.getByRole('button', { name: '두번째 위로 이동' }))
+  await screen.findByText('목록 실패')
+  expect(screen.getByText('장면 순서를 저장했어요.')).toBeTruthy()
+  expect(screen.getByRole('button', { name: '다시 만남 위로 이동' })).toHaveProperty('disabled', true)
+})
+
+it('편집한 장면이 현재 회차 목록에서 빠지면 장면 계획 추가로 초점을 돌린다', async () => {
+  await setup()
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(screen.getByLabelText('계획 갱신').textContent).toBe('1'))
+  fireEvent.click(screen.getByText('다시 만남').closest('button')!)
+  fireEvent.change(await screen.findByLabelText('연결 회차'), { target: { value: '' } })
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: '장면 계획 추가' })))
+})

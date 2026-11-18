@@ -15,6 +15,112 @@ beforeEach(async()=>{
  await login('writer@example.invalid','test-password')
 })
 afterEach(()=>vi.unstubAllGlobals())
+async function prepared(fetcher:typeof fetch,episode?:number,empty=false){
+ let priming=true
+ const repo=new HttpWorldStudioRepository((path,init)=>priming?Promise.resolve(Response.json(empty?{...wire(),cards:[],relationships:[]}:wire())):fetcher(path,init))
+ await repo.read(id,undefined,episode);priming=false
+ return repo
+}
+it('대형 세계관 변경은 같은 회차 기준의 변경 카드만 보낸다',async()=>{
+ const base=wire(),cards=Array.from({length:1001},(_,i)=>({...base.cards[0],id:crypto.randomUUID(),title:`카드 ${i}`,semanticMetadata:{}}))
+ const response={...base,cards,relationships:[]}
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json(response)).mockImplementationOnce(async(_path,init)=>{
+  const body=JSON.parse(String(init.body)),updates=new Map(body.cards.map((c:{id:string})=>[c.id,c]))
+  return Response.json({...response,draftRevision:3,cards:cards.map(c=>updates.get(c.id)??c)})
+ })
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id)
+ const changed={...loaded,settings:loaded.settings.map((s,i)=>i===0?{...s,item:{...s.item,title:'변경'}}:s)}
+ const saved=await repo.saveStudio(changed)
+ const raw=fetcher.mock.calls[1][1].body,body=JSON.parse(raw)
+ expect(body.replace).toBe(false);expect(body.cards).toHaveLength(1);expect(body.cards[0]).toMatchObject({id:cards[0].id,title:'변경',lifecycle:'active'})
+ expect(body.relationships).toEqual([]);expect(new TextEncoder().encode(raw).length).toBeLessThan(2_000_000)
+ expect(saved.settings).toHaveLength(1001);expect(saved.settings[0].item.title).toBe('변경')
+})
+it('템플릿 형식의 카드 만 장과 관계 천 개 이상을 원문 그대로 읽는다',async()=>{
+ const base=wire(), cards=Array.from({length:10000},(_,i)=>{
+  const item={...a.item,id:crypto.randomUUID(),title:`설정 ${i}`,text:`# 원문 ${i}\n출처: 자료`}
+  return {...base.cards[0],id:item.id,title:item.title,body:item.text,semanticMetadata:{studio:{...a,templateOrder:i,item}}}
+ })
+ const relationships=Array.from({length:1001},(_,i)=>{
+  const item={...relation.item,id:crypto.randomUUID(),subjectId:cards[i].id,targetId:cards[i+1].id}
+  return {...base.relationships[0],id:item.id,sourceCardId:item.subjectId,targetCardId:item.targetId,semanticMetadata:{studio:{...relation,item}}}
+ })
+ const loaded=await new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json({...base,cards,relationships}))).read(id)
+ expect(loaded.settings).toHaveLength(11001)
+ expect(loaded.settings[9999].item.text).toBe('# 원문 9999\n출처: 자료')
+ expect(loaded.settings[11000].item.targetId).toBe(cards[1001].id)
+}, 20000)
+it('조회 기준이 없거나 revision 또는 회차가 다르면 저장하지 않는다',async()=>{
+ const fetcher=vi.fn().mockImplementation(async()=>Response.json(wire()))
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id,undefined,2)
+ await expect(repo.saveStudio({...loaded,version:3},undefined,2)).rejects.toThrow('기준')
+ await expect(repo.saveStudio(loaded,undefined,3)).rejects.toThrow('기준')
+ expect(fetcher).toHaveBeenCalledTimes(1)
+})
+it('변경 없음과 삭제는 전체 교체 없이 명시적으로 보낸다',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json(wire())).mockResolvedValueOnce(Response.json(wire(3)))
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id)
+ await repo.saveStudio({...loaded,settings:loaded.settings.filter(s=>s.item.id!==b.item.id&&s.item.id!==relation.item.id)})
+ const body=JSON.parse(fetcher.mock.calls[1][1].body)
+ expect(body.replace).toBe(false);expect(body.cards).toHaveLength(1);expect(body.cards[0]).toMatchObject({id:b.item.id,lifecycle:'removed'})
+ expect(body.relationships).toHaveLength(1);expect(body.relationships[0]).toMatchObject({id:relation.item.id,lifecycle:'removed'})
+})
+it('요청 한도를 초과하는 변경은 전송 전에 거절한다',async()=>{
+ const fetcher=vi.fn().mockResolvedValue(Response.json({...wire(),cards:[],relationships:[]}))
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id)
+ const settings=Array.from({length:1001},()=>newSetting())
+ await expect(repo.saveStudio({...loaded,settings})).rejects.toThrow('한도')
+ expect(fetcher).toHaveBeenCalledTimes(1)
+})
+it('변경 없는 저장과 관계 수정은 각 차분만 보낸다',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json(wire())).mockResolvedValueOnce(Response.json(wire(3))).mockResolvedValueOnce(Response.json(wire(4)))
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id)
+ const saved=await repo.saveStudio(loaded)
+ expect(JSON.parse(fetcher.mock.calls[1][1].body)).toMatchObject({replace:false,cards:[],relationships:[]})
+ await repo.saveStudio({...saved,settings:saved.settings.map(s=>s.item.id===relation.item.id?{...s,item:{...s.item,text:'새 관계'}}:s)})
+ const body=JSON.parse(fetcher.mock.calls[2][1].body)
+ expect(body.cards).toEqual([]);expect(body.relationships).toHaveLength(1);expect(body.relationships[0]).toMatchObject({id:relation.item.id,body:'새 관계',lifecycle:'active'})
+})
+it('2MB를 넘는 변경은 전송 전에 거절하고 후속 저장을 잠그지 않는다',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json(wire())).mockResolvedValueOnce(Response.json(wire(3)))
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id)
+ const oversized={...loaded,settings:loaded.settings.map((s,i)=>i===0?{...s,item:{...s.item,text:'가'.repeat(700000)}}:s)}
+ await expect(repo.saveStudio(oversized)).rejects.toThrow('크기 한도')
+ expect(fetcher).toHaveBeenCalledTimes(1)
+ await repo.saveStudio(loaded)
+ expect(fetcher).toHaveBeenCalledTimes(2)
+})
+it('요청 크기 계산은 숫자를 서로게이트로 취급하지 않는다',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json(wire())).mockResolvedValueOnce(Response.json(wire(3)))
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id)
+ const changed={...loaded,settings:loaded.settings.map((s,i)=>i===0?{...s,item:{...s.item,text:'0'.repeat(990000)}}:s)}
+ await repo.saveStudio(changed)
+ const body=fetcher.mock.calls[1][1].body
+ expect(new TextEncoder().encode(body).length).toBeLessThan(1_999_000)
+ expect(fetcher).toHaveBeenCalledTimes(2)
+})
+it('서로게이트는 서버 이스케이프를 고려해 요청 전에 크기를 검사한다',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json(wire()))
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id)
+ const changed={...loaded,settings:loaded.settings.map((s,i)=>i===0?{...s,item:{...s.item,text:'😀'.repeat(100000)}}:s)}
+ await expect(repo.saveStudio(changed)).rejects.toThrow('크기 한도')
+ expect(fetcher).toHaveBeenCalledTimes(1)
+})
+it('조회 없이 저장하지 않는다',async()=>{
+ const fetcher=vi.fn(),repo=new HttpWorldStudioRepository(fetcher)
+ await expect(repo.saveStudio({id,name:'세계관',description:'설명',version:2,settings:[],analysis:null})).rejects.toThrow('기준')
+ expect(fetcher).not.toHaveBeenCalled()
+})
+it('응답 유실 후 새 revision을 읽어도 원래 차분과 key로 재시도한다',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json(wire())).mockRejectedValueOnce(new TypeError('network')).mockResolvedValueOnce(Response.json(wire(3))).mockResolvedValueOnce(Response.json(wire(3)))
+ const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id)
+ const changed={...loaded,settings:loaded.settings.map((s,i)=>i===0?{...s,item:{...s.item,title:'수정'}}:s)}
+ await expect(repo.saveStudio(changed)).rejects.toThrow('network')
+ await repo.read(id)
+ await expect(repo.saveStudio({...changed,name:'다른 입력'})).rejects.toThrow('같은 입력')
+ await repo.saveStudio(changed)
+ expect(fetcher.mock.calls[3][1].body).toBe(fetcher.mock.calls[1][1].body)
+})
 it('reads legacy canonical cards without studio metadata and keeps their text',async()=>{
  const response=wire();response.cards[0].semanticMetadata={} as typeof response.cards[0]['semanticMetadata']
  const repo=new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json(response)))
@@ -32,14 +138,22 @@ it('orders template cards by their preserved template order rather than UUID',as
  expect(loaded.settings.map(s=>s.item.id)).toEqual([b.item.id,a.item.id])
  await repo.saveStudio(loaded)
  const body=JSON.parse(fetcher.mock.calls[1][1].body)
- expect(body.cards.map((c:{semanticMetadata:{studio:{templateOrder:number}}})=>c.semanticMetadata.studio.templateOrder)).toEqual([2,10])
+ expect(body.cards).toEqual([])
 })
-it('reads all real template resource cards through the HTTP contract',async()=>{
- const templates: {worldId:string;name:string;description:string;cards:{id:string;title:string;body:string;cardType:string}[]}[]=JSON.parse(readFileSync(new URL('../../../../backend/content-service/src/main/resources/genre-templates.json',import.meta.url),'utf8'))
+it('reads real template cards with GenreTemplateRepair payloads and soul metadata',async()=>{
+ const templates: {worldId:string;name:string;description:string;cards:{id:string;title:string;body:string;cardType:string;soul?:string|null}[]}[]=JSON.parse(readFileSync(new URL('../../../../backend/content-service/src/main/resources/genre-templates.json',import.meta.url),'utf8'))
  for(const t of templates){
-  const response={...wire(),worldId:t.worldId,name:t.name,description:t.description,relationships:[],cards:t.cards.map(c=>({...c,areaCode:'basic',classification:'',aliases:[],tags:[],semanticMetadata:{},visibility:'private',lifecycle:'active'}))}
+  const response={...wire(),worldId:t.worldId,name:t.name,description:t.description,relationships:[],cards:t.cards.map((c,index)=>{
+   const entity=!['rule','event'].includes(c.cardType),areaCode=c.cardType==='event'?'history':'basic'
+   const item={id:c.id,kind:entity?'entity':c.cardType,title:c.title,text:c.body,category:areaCode,topics:[],entityType:entity?c.cardType:null,
+    subjectId:null,targetId:null,predicate:null,polarity:'asserted',relatedIds:[],condition:'',timeText:'',afterId:null,orderEvidence:[],evidence:[],origin:'author_input',authorText:c.body,decision:'approved'}
+   return {id:c.id,title:c.title,body:c.body,cardType:c.cardType,areaCode,classification:'',aliases:[],tags:[],semanticMetadata:{studio:{userCategory:'',tags:[],aliases:[],templateOrder:index,item},...(c.cardType==='character'&&c.soul?{characterDocs:{soul:c.soul,goal:'',episodes:{}}}:{})},visibility:'public',lifecycle:'active'}
+  })}
   const result=await new HttpWorldStudioRepository(vi.fn().mockImplementation(async()=>Response.json(response))).read(t.worldId)
   expect(result.settings.map(s=>s.item.text)).toEqual(t.cards.map(c=>c.body))
+  expect(result.settings.map(s=>s.templateOrder)).toEqual(t.cards.map((_,i)=>i))
+  expect(result.settings.map(s=>s.visibility)).toEqual(t.cards.map(()=> 'public'))
+  for(let i=0;i<t.cards.length;i++)if(t.cards[i].cardType==='character'&&t.cards[i].soul)expect(result.settings[i].characterDocs?.soul).toBe(t.cards[i].soul)
  }
 })
 it('rejects malformed studio metadata instead of silently replacing it',async()=>{
@@ -54,20 +168,20 @@ it('loads only an authenticated coherent current graph with lossless relation me
  expect(fetcher).toHaveBeenCalledWith(`/api/v1/world-studios/${id}`,expect.objectContaining({credentials:'same-origin',headers:expect.objectContaining({Authorization:'Bearer studio-bearer'})}))
  controller.abort();expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
 })
-it('saves current cards and relations separately with CSRF and full replacement deletion',async()=>{
+it('saves new cards and relations separately with CSRF and upsert',async()=>{
  const fetcher=vi.fn().mockResolvedValue(Response.json(wire(3)))
  const world:StudioWorld={id,name:'세계관',description:'설명',version:2,settings:[a,b,relation],analysis:null}
- const saved=await new HttpWorldStudioRepository(fetcher).saveStudio(world)
+ const repo=await prepared(fetcher,undefined,true),saved=await repo.saveStudio(world)
  const [url,init]=fetcher.mock.calls[0],body=JSON.parse(init.body)
  expect(url).toBe(`/api/v1/world-studios/${id}/draft`)
  expect(init.headers).toEqual(expect.objectContaining({Authorization:'Bearer studio-bearer','X-CSRF-TOKEN':'studio-csrf'}))
- expect(body).toMatchObject({expectedDraftRevision:2,replace:true,cards:expect.any(Array),relationships:[expect.objectContaining({id:relation.item.id,body:'원문 관계',direction:'directed',polarity:'denied'})]})
+ expect(body).toMatchObject({expectedDraftRevision:2,replace:false,cards:expect.any(Array),relationships:[expect.objectContaining({id:relation.item.id,body:'원문 관계',direction:'directed',polarity:'denied'})]})
  expect(body.cards).toHaveLength(2);expect(body.cards.some((c:{id:string})=>c.id===relation.item.id)).toBe(false)
  expect(saved.version).toBe(3)
 })
 it('retries the exact key and body after ambiguous failure and will not replace a pending input',async()=>{
  const fetcher=vi.fn().mockRejectedValueOnce(new TypeError('network')).mockResolvedValueOnce(Response.json(wire(3)))
- const repo=new HttpWorldStudioRepository(fetcher),world:StudioWorld={id,name:'세계관',description:'설명',version:2,settings:[a,b,relation],analysis:null}
+ const repo=await prepared(fetcher),world:StudioWorld={id,name:'세계관',description:'설명',version:2,settings:[a,b,relation],analysis:null}
  await expect(repo.saveStudio(world)).rejects.toThrow()
  await expect(repo.saveStudio({...world,name:'different'})).rejects.toThrow('같은 입력')
  await repo.saveStudio(world)
@@ -75,14 +189,14 @@ it('retries the exact key and body after ambiguous failure and will not replace 
 })
 it('allows corrected input after a definite validation rejection, but not after an ambiguous write',async()=>{
  const fetcher=vi.fn().mockResolvedValueOnce(Response.json({code:'WORLD_INPUT_INVALID',detail:'입력 검증 실패'},{status:422})).mockResolvedValueOnce(Response.json({...wire(3),name:'수정'}))
- const repo=new HttpWorldStudioRepository(fetcher),world:StudioWorld={id,name:'세계관',description:'설명',version:2,settings:[a,b,relation],analysis:null}
+ const repo=await prepared(fetcher),world:StudioWorld={id,name:'세계관',description:'설명',version:2,settings:[a,b,relation],analysis:null}
  await expect(repo.saveStudio(world)).rejects.toThrow('입력 검증 실패')
  expect((await repo.saveStudio({...world,name:'수정'})).name).toBe('수정')
  expect(JSON.parse(fetcher.mock.calls[1][1].body).key).not.toBe(JSON.parse(fetcher.mock.calls[0][1].body).key)
 })
 it('allows rereading and saving a fresh revision after an explicit no-write conflict',async()=>{
  const fetcher=vi.fn().mockResolvedValueOnce(Response.json({code:'WORLD_WRITE_REJECTED',detail:'저장되지 않았습니다. 최신 상태를 다시 조회하세요.'},{status:409})).mockResolvedValueOnce(Response.json(wire(3))).mockResolvedValueOnce(Response.json({...wire(4),name:'수정'}))
- const repo=new HttpWorldStudioRepository(fetcher),world:StudioWorld={id,name:'세계관',description:'설명',version:2,settings:[a,b,relation],analysis:null}
+ const repo=await prepared(fetcher),world:StudioWorld={id,name:'세계관',description:'설명',version:2,settings:[a,b,relation],analysis:null}
  await expect(repo.saveStudio(world)).rejects.toThrow('최신 상태')
  const fresh=await repo.read(id)
  expect((await repo.saveStudio({...fresh,name:'수정'})).version).toBe(4)
@@ -94,7 +208,7 @@ it.each([
  [503,'WORLD_WRITE_UNCONFIRMED'],[409,undefined],[503,'WORLD_WRITE_REJECTED'],
 ])('preserves the exact pending body for an ambiguous %s %s',async(status,code)=>{
  const fetcher=vi.fn().mockResolvedValueOnce(Response.json({code,detail:'저장 미확인'},{status})).mockResolvedValueOnce(Response.json(wire(3)))
- const repo=new HttpWorldStudioRepository(fetcher),world:StudioWorld={id,name:'세계관',description:'설명',version:2,settings:[a,b,relation],analysis:null}
+ const repo=await prepared(fetcher),world:StudioWorld={id,name:'세계관',description:'설명',version:2,settings:[a,b,relation],analysis:null}
  await expect(repo.saveStudio(world)).rejects.toThrow('저장 미확인')
  await expect(repo.saveStudio({...world,version:3,name:'다른 입력'})).rejects.toThrow('같은 입력')
  await repo.saveStudio(world)
@@ -103,7 +217,7 @@ it.each([
 it('propagates the caller cancellation signal to a mutation',async()=>{
  const fetcher=vi.fn().mockResolvedValue(Response.json(wire(3))),controller=new AbortController()
  const world:StudioWorld={id,name:'세계관',description:'설명',version:2,settings:[a,b,relation],analysis:null}
- await new HttpWorldStudioRepository(fetcher).saveStudio(world,controller.signal)
+ await (await prepared(fetcher)).saveStudio(world,controller.signal)
  controller.abort();expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
 })
 it('reuses the world UUID after a lost create response',async()=>{
@@ -128,19 +242,18 @@ it.each([401,403,409,503])('preserves explicit server errors (%s), never falls b
  await expect(repo.read(id)).rejects.toThrow()
 })
 
-it.each(['directed','symmetric'] as const)('reads 6-B partial metadata and preserves %s relations on full replacement',async direction=>{
+it.each(['directed','symmetric'] as const)('preserves 6-B partial metadata when editing %s relations',async direction=>{
  const generated=crypto.randomUUID(),analysisId=crypto.randomUUID(),candidateId=crypto.randomUUID()
  const preprocessing={semanticType:'goal',provenance:'ai_extraction',analysisId,candidateId,decisionSequence:2,basisDraftRevision:1,evidence:[{sourceId:'description',start:0,end:2,quote:'원문',quoteHash:'a'.repeat(64)}],condition:'조건',timeText:'미래',polarity:'asserted'}
  const server={...wire(),cards:[...wire().cards,{id:generated,title:'홍길동의 목표',body:'새 나라를 세우려 한다',cardType:'other',areaCode:'basic',classification:'',aliases:[],tags:[],semanticMetadata:{preprocessing,studio:{item:{id:generated,kind:'note',subjectId:a.item.id,relatedIds:[b.item.id]}}},visibility:'private',lifecycle:'active'}],relationships:[{...wire().relationships[0],direction,semanticMetadata:{preprocessing:{...preprocessing,semanticType:'relation'},studio:{item:{id:relation.item.id,kind:'note',subjectId:null,relatedIds:[]}}}}]}
- const fetcher=vi.fn().mockResolvedValueOnce(Response.json(server)).mockImplementationOnce(async(_url:string,init:RequestInit)=>{
-  const body=JSON.parse(String(init.body));return Response.json({...server,...body,draftRevision:3})
- })
+ const fetcher=vi.fn().mockResolvedValueOnce(Response.json(server)).mockResolvedValueOnce(Response.json({...server,draftRevision:3}))
  const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id)
  expect(loaded.settings[2].item).toMatchObject({kind:'fact',subjectId:a.item.id,relatedIds:[b.item.id]})
  expect(loaded.settings[3].item).toMatchObject({kind:'relation',predicate:direction==='directed'?'custom_emotion':'preserved_emotion_symmetric',subjectId:a.item.id,targetId:b.item.id,polarity:'denied'})
- const saved=await repo.saveStudio(loaded),body=JSON.parse(fetcher.mock.calls[1][1].body)
- expect(body.cards[2].semanticMetadata.preprocessing).toEqual(preprocessing)
- expect(body.relationships[0]).toMatchObject({category:'emotional',direction,polarity:'denied',body:'원문 관계'})
+ const changed={...loaded,settings:loaded.settings.map((row,i)=>i>=2?{...row,item:{...row.item,text:row.item.text+' 수정'}}:row)}
+ const saved=await repo.saveStudio(changed),body=JSON.parse(fetcher.mock.calls[1][1].body)
+ expect(body.cards).toHaveLength(1);expect(body.cards[0].semanticMetadata.preprocessing).toEqual(preprocessing)
+ expect(body.relationships).toHaveLength(1);expect(body.relationships[0]).toMatchObject({category:'emotional',direction,polarity:'denied',body:'원문 관계 수정'})
  expect(body.relationships[0].semanticMetadata.preprocessing).toEqual({...preprocessing,semanticType:'relation'})
  expect(saved.settings[2].item.kind).toBe('fact')
  expect(saved.settings.slice(0,2)).toEqual([a,b])
@@ -243,7 +356,7 @@ it('maps the publication of each summary in the list and defaults an older summa
 it('never sends the world publication with a draft save and keeps the one the server returns',async()=>{
  const fetcher=vi.fn().mockResolvedValue(Response.json({...wire(3),visibility:'public',genre:'mystery'}))
  const world:StudioWorld={id,name:'세계관',description:'설명',version:2,settings:[a,b,relation],analysis:null,visibility:'private',genre:null}
- const saved=await new HttpWorldStudioRepository(fetcher).saveStudio(world)
+ const saved=await (await prepared(fetcher)).saveStudio(world)
  const body=JSON.parse(fetcher.mock.calls[0][1].body)
  expect(body).not.toHaveProperty('visibility');expect(body).not.toHaveProperty('genre')
  expect(saved).toMatchObject({visibility:'public',genre:'mystery'})
@@ -261,6 +374,8 @@ it('reads hasCover of the world and of each summary, defaulting an older respons
  const row=(worldId:string,extra={})=>({worldId,name:'세계관',description:'',draftRevision:1,relationshipStatus:'current',...extra})
  fetcher.mockImplementation(async()=>Response.json([row(id,{hasCover:true}),row(other)]))
  expect((await repo.listStudio()).map(w=>[w.id,w.hasCover])).toEqual([[id,true],[other,false]])
+ fetcher.mockImplementation(async()=>Response.json([row(id,{cardCount:4}),row(other)]))
+ expect((await repo.listStudio()).map(w=>[w.id,w.cardCount])).toEqual([[id,4],[other,0]])
  fetcher.mockImplementation(async()=>Response.json({...wire(),hasCover:'yes'}))
  await expect(repo.read(id)).rejects.toThrow('응답')
 })
@@ -370,11 +485,11 @@ it('reads the top-level imageId of a card into the row and writes it back to the
  const loaded=await repo.read(id)
  expect(loaded.settings).toEqual([{...a,imageId:cardImageId},b,relation])
  expect(loaded.settings[0]).not.toHaveProperty('serverMetadata') // 행 필드가 정본이라 서버 메타데이터에 남기지 않는다
- await repo.saveStudio(loaded)
+ await repo.saveStudio({...loaded,settings:loaded.settings.map((s,i)=>i===0?{...s,item:{...s.item,text:'고침'}}:s)})
  const body=JSON.parse(fetcher.mock.calls[1][1].body)
  expect(body.cards[0].semanticMetadata).toMatchObject({imageId:cardImageId})
  expect(body.cards[0].semanticMetadata.studio).not.toHaveProperty('imageId') // studio 안이 아니라 최상위 키
- expect(body.cards[1].semanticMetadata).not.toHaveProperty('imageId')
+ expect(body.cards).toHaveLength(1)
 })
 it('does not resurrect a removed image: a row without imageId is written without the key even though the server had sent one',async()=>{
  const fetcher=vi.fn().mockResolvedValueOnce(Response.json(withCardImage())).mockResolvedValueOnce(Response.json(wire(3)))
@@ -389,7 +504,7 @@ it('drops a malformed imageId instead of failing the whole read, so the next sav
  const loaded=await repo.read(id)
  expect(loaded.settings[0]).not.toHaveProperty('imageId')
  await repo.saveStudio(loaded)
- expect(JSON.parse(fetcher.mock.calls[1][1].body).cards[0].semanticMetadata).not.toHaveProperty('imageId')
+ expect(JSON.parse(fetcher.mock.calls[1][1].body).cards).toEqual([])
 })
 
 // ── 세계관에 연결된 소설(DEC-46 1:1 연결, 서버 응답의 linkedWorkId) ───
@@ -416,7 +531,7 @@ const from={worldId:crypto.randomUUID(),worldName:'원본 세계',authorNickname
 const wireWith=(card:Record<string,unknown>,version=2)=>{const value=wire(version);return {...value,cards:[{...value.cards[0],...card},value.cards[1]]}}
 const savedBody=async(settings:StudioWorld['settings'])=>{
  const fetcher=vi.fn().mockImplementation(async()=>Response.json(wire(3)))
- await new HttpWorldStudioRepository(fetcher).saveStudio({id,name:'세계관',description:'설명',version:2,settings,analysis:null})
+ await (await prepared(fetcher,undefined,true)).saveStudio({id,name:'세계관',description:'설명',version:2,settings,analysis:null})
  return JSON.parse(fetcher.mock.calls[0][1].body) as {cards:{body:string;cardType:string;visibility:string;semanticMetadata:Record<string,unknown>&{studio:Record<string,unknown>}}[]}
 }
 it('saves each card visibility from its row and keeps the reader reveal episode and import source as top-level metadata, never inside studio',async()=>{
@@ -554,22 +669,22 @@ it('reads the relations of the given episode with ?episode= and keeps the plain 
 })
 it('sends the chosen episode in the draft save body and omits it for the latest episode',async()=>{
  const fetcher=vi.fn().mockImplementation(async()=>Response.json(wire(3)))
- const repo=new HttpWorldStudioRepository(fetcher)
- await repo.saveStudio(episodeWorld,undefined,2);await repo.saveStudio(episodeWorld)
+ const chosenRepo=await prepared(fetcher,2),latestRepo=await prepared(fetcher)
+ await chosenRepo.saveStudio(episodeWorld,undefined,2);await latestRepo.saveStudio(episodeWorld)
  const [chosen,latest]=fetcher.mock.calls.map(call=>JSON.parse(call[1].body))
- expect(chosen).toMatchObject({episode:2,replace:true,expectedDraftRevision:2})
+ expect(chosen).toMatchObject({episode:2,replace:false,expectedDraftRevision:2})
  expect(latest).not.toHaveProperty('episode')
 })
 it('retries an ambiguous save with the exact episode and refuses to change the episode while it is pending',async()=>{
  const fetcher=vi.fn().mockRejectedValueOnce(new TypeError('network')).mockResolvedValueOnce(Response.json(wire(3)))
- const repo=new HttpWorldStudioRepository(fetcher)
+ const repo=await prepared(fetcher,2)
  await expect(repo.saveStudio(episodeWorld,undefined,2)).rejects.toThrow()
  await expect(repo.saveStudio(episodeWorld,undefined,3)).rejects.toThrow('같은 입력')
  await expect(repo.saveStudio(episodeWorld)).rejects.toThrow('같은 입력')
  await repo.saveStudio(episodeWorld,undefined,2)
  expect(fetcher).toHaveBeenCalledTimes(2);expect(fetcher.mock.calls[1][1].body).toBe(fetcher.mock.calls[0][1].body)
 })
-it('reads a relation whose endpoint is a card deleted later, and sends it back unchanged on save without sending the deleted card',async()=>{
+it('reads a relation whose endpoint is a card deleted later, and leaves it unchanged on save',async()=>{
  const fetcher=vi.fn().mockImplementation(async()=>Response.json(wireWithGone()))
  const repo=new HttpWorldStudioRepository(fetcher),loaded=await repo.read(id,undefined,2)
  expect(loaded.settings.map(s=>s.item.id)).toEqual([a.item.id,b.item.id,relation.item.id,goneRelation.item.id]) // 삭제된 카드는 설정으로 읽지 않는다
@@ -577,8 +692,8 @@ it('reads a relation whose endpoint is a card deleted later, and sends it back u
  fetcher.mockImplementation(async()=>Response.json(wireWithGone(3)))
  await repo.saveStudio(loaded,undefined,2)
  const body=JSON.parse(fetcher.mock.calls[1][1].body)
- expect(body.cards.map((card:{id:string})=>card.id)).toEqual([a.item.id,b.item.id])
- expect(body.relationships.find((r:{id:string})=>r.id===goneRelation.item.id)).toMatchObject({sourceCardId:a.item.id,targetCardId:goneCard,label:goneRelation.item.title,body:goneRelation.item.text,lifecycle:'active'})
+ expect(body.cards).toEqual([])
+ expect(body.relationships).toEqual([])
 })
 it('keeps the titles of the deleted cards to name them in a past episode, and has none when nothing was deleted',async()=>{
  const gone=await new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json(wireWithGone()))).read(id,undefined,2)
@@ -590,4 +705,38 @@ it('still rejects a relation whose endpoint is neither an active nor a deleted c
  const value=wireWithGone()
  const fetcher=vi.fn().mockResolvedValue(Response.json({...value,relationships:value.relationships.map(r=>r.id===goneRelation.item.id?{...r,targetCardId:crypto.randomUUID()}:r)}))
  await expect(new HttpWorldStudioRepository(fetcher).read(id,undefined,2)).rejects.toThrow('응답')
+})
+it('puts the draft cards back to a confirmed version with the draft revision it saw and installs the draft the server answers',async()=>{
+ const fetcher=vi.fn().mockResolvedValue(Response.json({...wire(5),baseWorldRevisionId:revisionId}))
+ const restored=await new HttpWorldStudioRepository(fetcher).restoreRevision(id,revisionId,4)
+ const [url,init]=fetcher.mock.calls[0]
+ expect([url,init.method]).toEqual([`/api/v1/world-studios/${id}/revisions/${revisionId}/restore`,'POST'])
+ expect(JSON.parse(init.body)).toEqual({expectedDraftRevision:4})
+ expect(init.headers).toEqual(expect.objectContaining({Authorization:'Bearer studio-bearer','X-CSRF-TOKEN':'studio-csrf'}))
+ expect([restored.version,restored.settings.map(s=>s.item.title)]).toEqual([5,['가','나','신뢰와 경계']])
+})
+it('reports the server reason when a restore is refused and reports no restore for another world or a malformed answer',async()=>{
+ const blocked={code:'WORLD_RESTORE_BLOCKED',detail:'이 버전으로 되돌리면 사라지는 설정에 이어진 관계가 있어요: 나. 관계를 먼저 지운 뒤 다시 시도하세요.'}
+ await expect(new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json(blocked,{status:409}))).restoreRevision(id,revisionId,4)).rejects.toThrow('관계를 먼저 지운 뒤 다시 시도하세요.')
+ await expect(new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json({...wire(5),worldId:crypto.randomUUID()}))).restoreRevision(id,revisionId,4)).rejects.toThrow('응답')
+ await expect(new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json({ok:true}))).restoreRevision(id,revisionId,4)).rejects.toThrow('응답')
+})
+it('deletes the world with CSRF and accepts the 204 without a body',async()=>{
+ const fetcher=vi.fn().mockResolvedValue(new Response(null,{status:204}))
+ await expect(new HttpWorldStudioRepository(fetcher).deleteStudio(id)).resolves.toBeUndefined()
+ const [url,init]=fetcher.mock.calls[0]
+ expect([url,init.method]).toEqual([`/api/v1/world-studios/${id}`,'DELETE'])
+ expect(init.headers).toEqual(expect.objectContaining({Authorization:'Bearer studio-bearer','X-CSRF-TOKEN':'studio-csrf'}))
+})
+it('reports the server reason when a delete is refused instead of reporting a deletion',async()=>{
+ const linked={code:'WORLD_LINKED',detail:'연결된 소설이 있어 세계관을 삭제할 수 없어요. 작품 관리에서 연결을 해제한 뒤 삭제하세요.'}
+ await expect(new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json(linked,{status:409}))).deleteStudio(id)).rejects.toThrow('작품 관리에서 연결을 해제한 뒤 삭제하세요.')
+ await expect(new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json({code:'WORLD_NOT_FOUND',detail:'세계관을 찾을 수 없습니다.'},{status:404}))).deleteStudio(id)).rejects.toThrow('세계관을 찾을 수 없습니다.')
+})
+it('rejects a restore or a delete for an id that is not a UUID before sending anything',async()=>{
+ const fetcher=vi.fn(),repo=new HttpWorldStudioRepository(fetcher)
+ await expect(repo.restoreRevision('x',revisionId,1)).rejects.toThrow()
+ await expect(repo.restoreRevision(id,'x',1)).rejects.toThrow()
+ await expect(repo.deleteStudio('x')).rejects.toThrow()
+ expect(fetcher).not.toHaveBeenCalled()
 })

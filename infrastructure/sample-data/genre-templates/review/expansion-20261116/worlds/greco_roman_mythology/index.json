@@ -1,0 +1,491 @@
+{
+  "world_id": "greco_roman_mythology",
+  "world_id_meaning": "기존 worldId 참조용 라벨",
+  "id_namespace": "7c081689-8b1f-53b7-856f-78b779bbe289",
+  "id_rule": "UUIDv5(namespace, batch_id:unit_id:candidate_key); 후보 ID일 뿐 적재나 세계관 배정 아님",
+  "scope_note": "각 구간 상태는 입력 조사자의 자기보고이며, 문헌 완전 독해·의미 전수·독립 감수·중복 검토 또는 권리 해결을 뜻하지 않는다.",
+  "rights_note": "출처 전사·번역·공동체·지역별 재사용 및 상업 이용권은 확인되지 않았으며, 조사 가능이나 공개 검토는 상업적 배포 허락이 아니다.",
+  "works": [
+    {
+      "work_id": "greco-ovid1",
+      "world_id": "greco_roman_mythology",
+      "title": "Ovid Metamorphoses",
+      "target_scope": "Book I of Riley translation",
+      "edition_language_attribution": "Ovid; H. T. Riley English 1851 translation, 1893/1899 reprint used by Gutenberg",
+      "prior_investigation_grade": "A",
+      "source_url": "https://www.gutenberg.org/files/21765/21765-h/21765-h.htm",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Project Gutenberg page states eBook license conditions and distinguishes US rights from other countries; original edition, transcription, images and derivatives must be reviewed separately.",
+        "evidence_url": "https://www.gutenberg.org/policy/license.html",
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_section_boundaries_verified",
+        "reason": "English Riley Book I argument, 17 fables and notes bounded; Latin original and textual variants not compared."
+      },
+      "scope_status": "complete_local_book1_boundary_verified",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": "5ab9c90dee54d817ef5f6b9fe9f212c17af31c392a243cfc610c1c939c15e6af",
+      "units": [
+        {
+          "unit_id": "greco-ovid1--argument",
+          "label": "Book I title and argument",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 41302,
+            "byte_end_exclusive": 41950,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "c91f2587b7cba2a115465d2ed76e674a5e9804b37fb4f58e577659d501144d10",
+            "note": "Book I title and argument; editorial text, not Latin original."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-11",
+              "unit_id": "greco-ovid1--argument",
+              "status": "read",
+              "read_scope": "Book I title and argument 배정 raw byte 전체; 본문과 머리말·해설 구분",
+              "reason": "시적 화자의 집필 의도만 있어 독립 설정 후보 없음",
+              "candidate_count": 0
+            }
+          ],
+          "actual_candidates": 0
+        },
+        {
+          "unit_id": "greco-ovid1--fable-i",
+          "label": "Book I fable I",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 41950,
+            "byte_end_exclusive": 47070,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "0bd18a1eebfc2520f3d42cfc577bb404ae989f8e7aaed8dc262c5d8190d2697a",
+            "note": "Fable and adjacent Riley explanatory material; cross-referenced endnotes in separate unit."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-11",
+              "unit_id": "greco-ovid1--fable-i",
+              "status": "read",
+              "read_scope": "Book I fable I 배정 raw byte 전체; 본문과 머리말·해설 구분",
+              "reason": null,
+              "candidate_count": 3
+            }
+          ],
+          "actual_candidates": 3
+        },
+        {
+          "unit_id": "greco-ovid1--fable-ii",
+          "label": "Book I fable II",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 47070,
+            "byte_end_exclusive": 55011,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "d692e123f44cf20e9daf35a0092535543dcf8fae73116c0288cd4f6d3ade39b8",
+            "note": "Fable and adjacent Riley explanatory material; cross-referenced endnotes in separate unit."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-11",
+              "unit_id": "greco-ovid1--fable-ii",
+              "status": "read",
+              "read_scope": "Book I fable II 배정 raw byte 전체; 본문과 머리말·해설 구분",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "greco-ovid1--fable-iii",
+          "label": "Book I fable III",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 55011,
+            "byte_end_exclusive": 58458,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "3aefc62fab0d7825a9e2ba3a351f876a8d1bccff32a29b60a494bbec39575d65",
+            "note": "Fable and adjacent Riley explanatory material; cross-referenced endnotes in separate unit."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-11",
+              "unit_id": "greco-ovid1--fable-iii",
+              "status": "read",
+              "read_scope": "Book I fable III 배정 raw byte 전체; 본문과 머리말·해설 구분",
+              "reason": null,
+              "candidate_count": 2
+            }
+          ],
+          "actual_candidates": 2
+        },
+        {
+          "unit_id": "greco-ovid1--fable-iv",
+          "label": "Book I fable IV",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 58458,
+            "byte_end_exclusive": 63514,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "0b401334fc64ffb3f890b63de9031b9895e45d67f62e9c885abff9ae4de41523",
+            "note": "Fable and adjacent Riley explanatory material; cross-referenced endnotes in separate unit."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-11",
+              "unit_id": "greco-ovid1--fable-iv",
+              "status": "read",
+              "read_scope": "Book I fable IV 배정 raw byte 전체; 본문과 머리말·해설 구분",
+              "reason": null,
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "greco-ovid1--fable-v",
+          "label": "Book I fable V",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 63514,
+            "byte_end_exclusive": 65772,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "3757f40675ccf1f01f6201cd4360860e33c2654cfb0a7221e8e5e3a114bfc5c1",
+            "note": "Fable and adjacent Riley explanatory material; cross-referenced endnotes in separate unit."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-11",
+              "unit_id": "greco-ovid1--fable-v",
+              "status": "read",
+              "read_scope": "Book I fable V 배정 raw byte 전체; 본문과 머리말·해설 구분",
+              "reason": null,
+              "candidate_count": 2
+            }
+          ],
+          "actual_candidates": 2
+        },
+        {
+          "unit_id": "greco-ovid1--fable-vi",
+          "label": "Book I fable VI",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 65772,
+            "byte_end_exclusive": 72208,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "9edd9d47a01b84401119f0e4dc64dbcd0f1bc17754d7135bbf405e522f10e432",
+            "note": "Fable and adjacent Riley explanatory material; cross-referenced endnotes in separate unit."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-11",
+              "unit_id": "greco-ovid1--fable-vi",
+              "status": "read",
+              "read_scope": "Book I fable VI 배정 raw byte 전체; 본문과 머리말·해설 구분",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "greco-ovid1--fable-vii",
+          "label": "Book I fable VII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 72208,
+            "byte_end_exclusive": 77086,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "ff47ec0a6cc2d01e37352630b5aa777ab154821eb10d3806d78b918fc925220f",
+            "note": "Fable and adjacent Riley explanatory material; cross-referenced endnotes in separate unit."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-11",
+              "unit_id": "greco-ovid1--fable-vii",
+              "status": "read",
+              "read_scope": "Book I fable VII 배정 raw byte 전체; 본문과 머리말·해설 구분",
+              "reason": null,
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "greco-ovid1--fable-viii",
+          "label": "Book I fable VIII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 77086,
+            "byte_end_exclusive": 84950,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "301c6f5b42d71327024b67837970523e25efc03f2c60bdd197c992831a0350dc",
+            "note": "Fable and adjacent Riley explanatory material; cross-referenced endnotes in separate unit."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-11",
+              "unit_id": "greco-ovid1--fable-viii",
+              "status": "read",
+              "read_scope": "Book I fable VIII 배정 raw byte 전체; 본문과 머리말·해설 구분",
+              "reason": null,
+              "candidate_count": 7
+            }
+          ],
+          "actual_candidates": 7
+        },
+        {
+          "unit_id": "greco-ovid1--fable-ix",
+          "label": "Book I fable IX",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 84950,
+            "byte_end_exclusive": 90807,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "525516d4e0deefd65cbc6cd7f4263b16609377a2e5ae8c52f0a67d4dbb38c8ec",
+            "note": "Fable and adjacent Riley explanatory material; cross-referenced endnotes in separate unit."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-12",
+              "unit_id": "greco-ovid1--fable-ix",
+              "status": "read",
+              "read_scope": "Book I fable IX 영어 번역 본문과 인접 EXPLANATION 전체",
+              "reason": null,
+              "candidate_count": 5
+            }
+          ],
+          "actual_candidates": 5
+        },
+        {
+          "unit_id": "greco-ovid1--fable-x",
+          "label": "Book I fable X",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 90807,
+            "byte_end_exclusive": 96738,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "41f55deddc20aba56c3cc6254b463b1da95dabf7529cc4461a45fe64603fd1f1",
+            "note": "Fable and adjacent Riley explanatory material; cross-referenced endnotes in separate unit."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-12",
+              "unit_id": "greco-ovid1--fable-x",
+              "status": "read",
+              "read_scope": "Book I fable X 영어 번역 본문과 인접 EXPLANATION 전체",
+              "reason": null,
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "greco-ovid1--fable-xi",
+          "label": "Book I fable XI",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 96738,
+            "byte_end_exclusive": 101594,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "9d3f3a9adb60a56ecb08c7a39c74e777ff881e7e4c413b8b830720aa26b745d0",
+            "note": "Fable and adjacent Riley explanatory material; cross-referenced endnotes in separate unit."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-12",
+              "unit_id": "greco-ovid1--fable-xi",
+              "status": "read",
+              "read_scope": "Book I fable XI 영어 번역 본문과 인접 EXPLANATION 전체",
+              "reason": null,
+              "candidate_count": 3
+            }
+          ],
+          "actual_candidates": 3
+        },
+        {
+          "unit_id": "greco-ovid1--fable-xii",
+          "label": "Book I fable XII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 101594,
+            "byte_end_exclusive": 114600,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "eea9aabfac2c050c80cbe8cbc438fc22d7c309784a376b7b59808661398f6ff4",
+            "note": "Fable and adjacent Riley explanatory material; cross-referenced endnotes in separate unit."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-12",
+              "unit_id": "greco-ovid1--fable-xii",
+              "status": "read",
+              "read_scope": "Book I fable XII 영어 번역 본문과 인접 EXPLANATION 전체",
+              "reason": null,
+              "candidate_count": 9
+            }
+          ],
+          "actual_candidates": 9
+        },
+        {
+          "unit_id": "greco-ovid1--fable-xiii",
+          "label": "Book I fable XIII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 114600,
+            "byte_end_exclusive": 120039,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "57597fbf59853e1080634f182663d5b81be15b446e9e2a0be193fc4fc3fde6ef",
+            "note": "Fable and adjacent Riley explanatory material; cross-referenced endnotes in separate unit."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-12",
+              "unit_id": "greco-ovid1--fable-xiii",
+              "status": "read",
+              "read_scope": "Book I fable XIII 영어 번역 본문과 인접 EXPLANATION 전체",
+              "reason": null,
+              "candidate_count": 5
+            }
+          ],
+          "actual_candidates": 5
+        },
+        {
+          "unit_id": "greco-ovid1--fable-xiv",
+          "label": "Book I fable XIV",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 120039,
+            "byte_end_exclusive": 128744,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "7466a168995d70d4367757deadad25fe69ba5128704946f3fc4900b0095f1dd3",
+            "note": "Fable and adjacent Riley explanatory material; cross-referenced endnotes in separate unit."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-12",
+              "unit_id": "greco-ovid1--fable-xiv",
+              "status": "read",
+              "read_scope": "Book I fable XIV 영어 번역 본문과 인접 EXPLANATION 전체",
+              "reason": null,
+              "candidate_count": 7
+            }
+          ],
+          "actual_candidates": 7
+        },
+        {
+          "unit_id": "greco-ovid1--fable-xv",
+          "label": "Book I fable XV",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 128744,
+            "byte_end_exclusive": 132181,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "d8fccbe27bc0be17f497ec20670549411f7f4f6d8622775c8669e75fef22ce18",
+            "note": "Fable and adjacent Riley explanatory material; cross-referenced endnotes in separate unit."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-12",
+              "unit_id": "greco-ovid1--fable-xv",
+              "status": "read",
+              "read_scope": "Book I fable XV 영어 번역 본문과 인접 EXPLANATION 전체",
+              "reason": null,
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "greco-ovid1--fable-xvi",
+          "label": "Book I fable XVI",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 132181,
+            "byte_end_exclusive": 134602,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "b6e4e3c2d81eb0fc9ee023f1af8bcb49c47fda9213edca25411101e4ce860a7a",
+            "note": "Fable and adjacent Riley explanatory material; cross-referenced endnotes in separate unit."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-12",
+              "unit_id": "greco-ovid1--fable-xvi",
+              "status": "read",
+              "read_scope": "Book I fable XVI 영어 번역 본문과 인접 EXPLANATION 전체",
+              "reason": null,
+              "candidate_count": 2
+            }
+          ],
+          "actual_candidates": 2
+        },
+        {
+          "unit_id": "greco-ovid1--fable-xvii",
+          "label": "Book I fable XVII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 134602,
+            "byte_end_exclusive": 140443,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "b7d25468349f0631069fe198ab876fc1842989dd2d73259304becc2e2ee84bd6",
+            "note": "Fable and adjacent Riley explanatory material; cross-referenced endnotes in separate unit."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-12",
+              "unit_id": "greco-ovid1--fable-xvii",
+              "status": "read",
+              "read_scope": "Book I fable XVII 영어 번역 본문과 인접 EXPLANATION 전체",
+              "reason": null,
+              "candidate_count": 7
+            }
+          ],
+          "actual_candidates": 7
+        },
+        {
+          "unit_id": "greco-ovid1--endnotes",
+          "label": "Book I endnotes and transcriber supplementary notes",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 140443,
+            "byte_end_exclusive": 192197,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "344caaed886909fa9802e7bb3d4c4e89985b32b1549a0b262a74c6243a180ec5",
+            "note": "Contains footnotes and transcriber commentary; do not treat commentary as Ovid narrative."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-12",
+              "unit_id": "greco-ovid1--endnotes",
+              "status": "read",
+              "read_scope": "권말 주석 1–117 및 전사자 보충 주 A–C 전체",
+              "reason": null,
+              "candidate_count": 15
+            }
+          ],
+          "actual_candidates": 15
+        }
+      ]
+    }
+  ]
+}

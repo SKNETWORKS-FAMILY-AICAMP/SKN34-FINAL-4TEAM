@@ -1,0 +1,858 @@
+[
+  {
+    "id": "3f674ada-91e1-5c99-bb4e-f2f21d580fb7",
+    "title": "엔키가 정한 신전 설계",
+    "body": "구데아가 짓는 신전의 계획을 엔키가 정한 것으로 1905년 번역은 묘사한다. 출전: 인쇄 157쪽, A XVII열 17행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=157. 기존 수메르 카드·후보 중복 검토: enki-foundations. 기존 Scribd 후보 중복 검토: 없음.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-enki-plan",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XVII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=157",
+          "location": "인쇄 157쪽, A XVII열 17행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "enki-foundations",
+          "title": "엔키와 기초·테멘의 고정",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "e925e352-8c5e-566f-96ec-3f15180a81c6",
+    "title": "니사바의 수에 대한 지식",
+    "body": "신전의 계획을 세우는 구데아를 수의 뜻을 아는 니사바에 비유한다. 출전: 인쇄 161쪽, A XIX열 20–21행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=161. 기존 수메르 카드·후보 중복 검토: nisaba. 기존 Scribd 후보 중복 검토: nisaba-opens-understanding: 동일 인물의 다른 행위.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-nisaba-numbers",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XIX열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=161",
+          "location": "인쇄 161쪽, A XIX열 20–21행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "nisaba",
+          "title": "니사바",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "nisaba-opens-understanding",
+          "reason": "입력에 표시된 관련 후보; 동일성 및 차이 검토 필요"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "1f3adabf-567b-57f9-bc74-c6ff78917344",
+    "title": "가툼두그가 만드는 벽돌",
+    "body": "라가시의 어머니 가툼두그가 아침저녁으로 신전 벽돌을 만든다. 출전: 인쇄 161쪽, A XX열 17–18행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=161. 기존 수메르 카드·후보 중복 검토: gatumdug; enki-foundations. 기존 Scribd 후보 중복 검토: 없음.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-gatumdug-bricks",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XX열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=161",
+          "location": "인쇄 161쪽, A XX열 17–18행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "gatumdug",
+          "title": "가툼두그",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        },
+        {
+          "source_key": "enki-foundations",
+          "title": "엔키와 기초·테멘의 고정",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "72589ab7-4f3f-58cd-a508-34cd14a5cfde",
+    "title": "바우의 삼나무 기름 바르기",
+    "body": "아누의 맏딸 바우가 향기로운 삼나무 기름을 뿌린다. 프랑스어 대명사의 지시 대상은 이 짧은 구절만으로 확정하지 않는다. 동작은 161쪽 말미에서 시작해 163쪽 첫머리로 이어진다. 출전: 인쇄 163쪽, A XX열 19–20행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=163. 기존 수메르 카드·후보 중복 검토: bau; enki-foundations. 기존 Scribd 후보 중복 검토: 없음.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-bau-cedar-oil",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XX열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=163",
+          "location": "인쇄 163쪽, A XX열 19–20행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "bau",
+          "title": "바우",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        },
+        {
+          "source_key": "enki-foundations",
+          "title": "엔키와 기초·테멘의 고정",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "755d6337-86f5-5919-bb14-e0c3f7b46a81",
+    "title": "신전에 세운 라가루",
+    "body": "구데아가 신전에 대사제와 라가루를 세우고 그 규정을 정한다. 라가루의 구체적인 직무는 이 구절에 설명되지 않는다. 출전: 인쇄 163쪽, A XX열 21–22행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=163. 기존 수메르 카드·후보 중복 검토: 직접 대응 확인 못함. 기존 Scribd 후보 중복 검토: 없음.",
+    "cardType": "other",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-lagaru-priest",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XX열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=163",
+          "location": "인쇄 163쪽, A XX열 21–22행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "f145b3dd-348d-5c03-a6be-7d1e81be3b71",
+    "title": "심연의 테멘",
+    "body": "성전의 심연 테멘을 큰 타르쿨처럼 땅에 고정했다고 한다. 테멘의 구체적 형태는 단정하지 않는다. 출전: 인쇄 165쪽, A XXII열 11행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=165. 기존 수메르 카드·후보 중복 검토: enki-foundations. 기존 Scribd 후보 중복 검토: 없음.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-abyss-temen",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=165",
+          "location": "인쇄 165쪽, A XXII열 11행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "enki-foundations",
+          "title": "엔키와 기초·테멘의 고정",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "5dac8102-bc67-5a4a-a4ed-4c7b909079e5",
+    "title": "하늘의 테멘",
+    "body": "하늘의 테멘을 전사처럼 성전에 설치했다는 비유다. 출전: 인쇄 165쪽, A XXII열 14행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=165. 기존 수메르 카드·후보 중복 검토: enki-foundations. 기존 Scribd 후보 중복 검토: 없음.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-heaven-temen",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=165",
+          "location": "인쇄 165쪽, A XXII열 14행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "enki-foundations",
+          "title": "엔키와 기초·테멘의 고정",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "eb60ecfd-0f84-552d-804d-8c5d9b84db64",
+    "title": "판결의 장소 기르눈",
+    "body": "기르눈 성소는 판결의 장소로 불린다. 출전: 인쇄 165쪽, A XXII열 22–23행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=165. 기존 수메르 카드·후보 중복 검토: sugalamt: 재판 장소 묶음과 비교 필요. 기존 Scribd 후보 중복 검토: 없음.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-girnun-judgment",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=165",
+          "location": "인쇄 165쪽, A XXII열 22–23행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "sugalamt",
+          "title": "수갈람트와 기도의 재판 장소",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "fd2a1b3b-1b1f-5357-b1fd-2c7e900d2016",
+    "title": "산의 생물 무슈마후",
+    "body": "신전의 카안나를 산의 생물 무슈마후에 비유한다. 이 짧은 비유에 나타나지 않는 생김새나 능력은 정하지 않는다. 출전: 인쇄 165쪽, A XXII열 1행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=165. 기존 수메르 카드·후보 중복 검토: 직접 대응 확인 못함. 기존 Scribd 후보 중복 검토: 없음.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-musmahhu",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=165",
+          "location": "인쇄 165쪽, A XXII열 1행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "fa8e8bd8-8819-5c63-8df0-42257656a391",
+    "title": "해 뜨는 쪽의 엔릴 비석",
+    "body": "해 뜨는 쪽에 세운 비석은 엔릴이 순결한 마음으로 구데아를 택했다는 이름을 지닌다. 출전: 인쇄 167쪽, A XXIII열 19–24행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=167. 기존 수메르 카드·후보 중복 검토: seven-stelae. 기존 Scribd 후보 중복 검토: kasurra-enlil-stele: 다른 위치의 비석.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-sunrise-stele",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=167",
+          "location": "인쇄 167쪽, A XXIII열 19–24행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "seven-stelae",
+          "title": "일곱 비석",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "kasurra-enlil-stele",
+          "reason": "입력에 표시된 관련 후보; 동일성 및 차이 검토 필요"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "fa8c7782-3b3a-547e-b4d3-0a9b66c47efa",
+    "title": "수갈람 앞 왕좌 비석",
+    "body": "수갈람을 마주한 비석은 왕이 구데아의 왕좌를 굳혔다는 이름을 받는다. 출전: 인쇄 167쪽, A XXIII열 25–29행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=167. 기존 수메르 카드·후보 중복 검토: seven-stelae; sugalamt. 기존 Scribd 후보 중복 검토: kasurra-enlil-stele: 다른 비석.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-sugalam-stele",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=167",
+          "location": "인쇄 167쪽, A XXIII열 25–29행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "seven-stelae",
+          "title": "일곱 비석",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        },
+        {
+          "source_key": "sugalamt",
+          "title": "수갈람트와 기도의 재판 장소",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "kasurra-enlil-stele",
+          "reason": "입력에 표시된 관련 후보; 동일성 및 차이 검토 필요"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "1e99627e-0724-5515-a6e0-3f53e856d328",
+    "title": "신전의 기구누",
+    "body": "신전의 기구누는 순수한 곳에 세워진 심연에 비유된다. 기능은 이 구절에서 확정되지 않는다. 출전: 인쇄 167쪽, A XXIV열 20행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=167. 기존 수메르 카드·후보 중복 검토: 직접 대응 확인 못함. 기존 Scribd 후보 중복 검토: 없음.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-gigunu-sanctuary",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXIV열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=167",
+          "location": "인쇄 167쪽, A XXIV열 20행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "9491773f-6a45-51f2-b802-94cbfa9d87d5",
+    "title": "빛나는 아메르의 집",
+    "body": "성전에 있는 아메르의 집은 하늘과 땅에 자리한 청금석 산에 비유된다. 집의 용도는 해당 구절에 나오지 않는다. 출전: 인쇄 169쪽, A XXV열 12–13행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=169. 기존 수메르 카드·후보 중복 검토: temple-stores: 시설 묶음과 비교 필요. 기존 Scribd 후보 중복 검토: 없음.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-amer-building",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXV열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=169",
+          "location": "인쇄 169쪽, A XXV열 12–13행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "temple-stores",
+          "title": "신전의 창고와 시설",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "2670f62c-e198-5771-8728-c40d97b1326a",
+    "title": "실시르시르 신탁 장소",
+    "body": "실시르시르는 신탁의 장소라 불리며 하늘에 머무는 동료들이 배치된다. 출전: 인쇄 169쪽, A XXVI열 9–11행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=169. 기존 수메르 카드·후보 중복 검토: 직접 대응 확인 못함. 기존 Scribd 후보 중복 검토: 없음.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-silsirsir-oracles",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXVI열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=169",
+          "location": "인쇄 169쪽, A XXVI열 9–11행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "409ccc14-263d-53bd-9190-37e3cbe32b9c",
+    "title": "카수라 문의 사자",
+    "body": "카수라 문에 머물게 한 사자는 신들에게 두려움을 주는 존재라 불린다. 제의적 배치 서술을 실제 생물이라는 주장으로 바꾸지 않는다. 출전: 인쇄 169쪽, A XXVI열 6–8행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=169. 기존 수메르 카드·후보 중복 검토: gate-guardians. 기존 Scribd 후보 중복 검토: kasurra-enlil-stele: 같은 문에 놓인 별개 비석.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-kasurra-guardian-lion",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXVI열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=169",
+          "location": "인쇄 169쪽, A XXVI열 6–8행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "gate-guardians",
+          "title": "문지기의 영웅과 용·사자 형상",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "kasurra-enlil-stele",
+          "reason": "입력에 표시된 관련 후보; 동일성 및 차이 검토 필요"
+        }
+      ],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "acb87167-d292-546b-9eff-909b0f9fe5fc",
+    "title": "키르마후의 곡물",
+    "body": "키르마후에 구그갈과 시갈이라는 곡물이 쌓여 있다. 곡물의 현대 품종은 추정하지 않는다. 출전: 인쇄 173쪽, A XXVIII열 5–6행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=173. 기존 수메르 카드·후보 중복 검토: temple-stores. 기존 Scribd 후보 중복 검토: 없음.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-kirmahhu-grain",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXVIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=173",
+          "location": "인쇄 173쪽, A XXVIII열 5–6행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "temple-stores",
+          "title": "신전의 창고와 시설",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "acb1a4b2-b83d-5cc3-8a77-84e141e16f69",
+    "title": "기르파나의 식용 가축",
+    "body": "기르파나에는 먹을 소와 양이 있다고 기록된다. 출전: 인쇄 173쪽, A XXVIII열 7–8행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=173. 기존 수메르 카드·후보 중복 검토: temple-stores. 기존 Scribd 후보 중복 검토: 없음.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-girpana-provisions",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXVIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=173",
+          "location": "인쇄 173쪽, A XXVIII열 7–8행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "temple-stores",
+          "title": "신전의 창고와 시설",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "10545363-25cd-5ec2-9d18-ddd03107f6fd",
+    "title": "신전의 향료 집",
+    "body": "향료의 집은 물이 불어난 티그리스에 비유된다. 출전: 인쇄 173쪽, A XXVIII열 12–13행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=173. 기존 수메르 카드·후보 중복 검토: temple-stores; temple-sound-water. 기존 Scribd 후보 중복 검토: 없음.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-spice-house",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXVIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=173",
+          "location": "인쇄 173쪽, A XXVIII열 12–13행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "temple-stores",
+          "title": "신전의 창고와 시설",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        },
+        {
+          "source_key": "temple-sound-water",
+          "title": "신전의 악기·물·정원",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "974b7b4b-75d3-5d08-81b0-88e30f8ce35a",
+    "title": "신전의 보물고",
+    "body": "보물고에 보석과 은, 납이 있다고 한다. 출전: 인쇄 173쪽, A XXVIII열 14행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=173. 기존 수메르 카드·후보 중복 검토: temple-stores. 기존 Scribd 후보 중복 검토: 없음.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-temple-treasury",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXVIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=173",
+          "location": "인쇄 173쪽, A XXVIII열 14행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "temple-stores",
+          "title": "신전의 창고와 시설",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "e33c21dc-7cc6-55e3-9caa-e0bd2cb94350",
+    "title": "수금 현관과 앞뜰 의례",
+    "body": "수금 현관은 우는 황소에 비유되고, 앞뜰에서는 심벌즈 소리에 맞춘 신성한 기도가 언급된다. 출전: 인쇄 173쪽, A XXVIII열 17–18행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=173. 기존 수메르 카드·후보 중복 검토: temple-stores; temple-sound-water. 기존 Scribd 후보 중복 검토: 없음.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-lyre-portico",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXVIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=173",
+          "location": "인쇄 173쪽, A XXVIII열 17–18행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "temple-stores",
+          "title": "신전의 창고와 시설",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        },
+        {
+          "source_key": "temple-sound-water",
+          "title": "신전의 악기·물·정원",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "e780c904-1e5a-5961-8ab5-d777cea23967",
+    "title": "테라스의 납 저수조",
+    "body": "테라스의 납 저수조는 세상을 멀리 바라보는 빛에 비유된다. 출전: 인쇄 173쪽, A XXVIII열 21–22행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=173. 기존 수메르 카드·후보 중복 검토: stonework-basins; temple-sound-water. 기존 Scribd 후보 중복 검토: 없음.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-lead-reservoir",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXVIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=173",
+          "location": "인쇄 173쪽, A XXVIII열 21–22행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "stonework-basins",
+          "title": "돌을 모으는 시간과 물그릇",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        },
+        {
+          "source_key": "temple-sound-water",
+          "title": "신전의 악기·물·정원",
+          "reason": "입력에 표시된 관련 후보; 동일성과 범위 미확정"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  },
+  {
+    "id": "b9496be7-7048-5f96-bc15-c9250d295184",
+    "title": "엔릴의 에쿠르 축제",
+    "body": "에닌누의 빛나는 모습을 엔릴의 신전 에쿠르에서 축제가 열릴 때에 비유한다. 출전: 인쇄 173쪽, A XXIX열 13행, https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=173. 기존 수메르 카드·후보 중복 검토: 직접 대응 확인 못함. 기존 Scribd 후보 중복 검토: 없음.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "gap-sumer-a-scan2",
+      "candidate_key": "scan2-enkur-festival",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "Thureau-Dangin 1905 판의 전사와 프랑스어 번역 영인; 각 후보 판독은 추출자 자기보고",
+      "evidence": [
+        {
+          "unit": "1905년 구데아 원통 A XXIX열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=173",
+          "location": "인쇄 173쪽, A XXIX열 13행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "이 신규 후보의 근거와 본문 전체는 통합자가 독립 검증하지 않았다. 고대 원통의 결락, 프랑스어 미번역과 복원, OCR 판독 및 출처 재사용 권리를 검토해야 한다."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드 및 다른 판본 후보와 별도로 보존"
+    }
+  }
+]

@@ -1,0 +1,1733 @@
+{
+  "purpose": "#429 검토 전용 카드와 출처. 기존 시드 및 앱·DB 미적재, 중복 후보 삭제·합치기 없음.",
+  "manifest_sha256": "6840afdd3e9a58745a9e4edaedd7dc5b1cdcc2409d93cf902b63fe0bb2cc00de",
+  "batch_plan_sha256": "e3333d609a86647648af6973d05e46961f394c098d1259e46d6e037f43d53794",
+  "project_namespace_for_new_labels": "c62a8e33-1fb5-5ef4-aea1-a896a1ac84ea",
+  "id_rule": "기존 worldId가 있으면 namespace로 사용. 신규 연구용 라벨은 UUIDv5(고정 프로젝트 namespace, 라벨)로 임시 namespace 파생. 후보 UUIDv5 이름은 batch_id:unit_id:candidate_key. 신규 namespace는 DB ID가 아님.",
+  "counts": {
+    "raw_batch": 1335,
+    "supplement": 11,
+    "total": 1346,
+    "worlds_with_candidates": 13,
+    "works": 39,
+    "units": 203,
+    "blocked_units": 27,
+    "blocked_works": 15
+  },
+  "batch_files": [
+    {
+      "file": "batch-01.json",
+      "input_output_sha256": "bea18105af6ee43718f5828c8909637c2bf1d00a36ba7634682e8ffbfbd001cc",
+      "candidates": 97,
+      "limitations": [
+        "I–VI절의 지정된 로컬 HTML 구간만 읽었으며 작품 전 범위 완독이나 후보 전수 보장을 뜻하지 않는다.",
+        "H. P. Lovecraft Archive 영어 전사본이며 원저본·전사 권리 및 번역·상업적 이용 허락은 미확인이다. ready_local_research는 로컬 조사 가능만 뜻한다.",
+        "모든 카드는 임시 연구 후보이며 world_id는 앱·DB에 생성된 세계관이 아닌 문자열 라벨이다.",
+        "작품 속 화자의 불확실한 과학적 추론과 전설, 환상, 인종적 편견을 객관적 사실로 일반화하지 않는다.",
+        "evidence는 연구용 직접 발췌로 로컬 보존하며 공개본에서는 모두 제거한다.",
+        "기존 source 및 review 관련 후보와 이 배치 내부의 동일 대상을 대조했으며 다른 배치의 추출 결과와는 비교하지 못했다."
+      ],
+      "verification": {
+        "command": "Python: manifest/입력/절별 slice SHA-256, UTF-8 HTML 파싱과 구간별 근거 부분문자열, 결과 JSON 재독 및 필수 필드·길이·키·개수·출처 검사",
+        "result": "통과: 기록 저장 후 재독해 검사함; 독립 감수나 후보 전수 보장은 아님"
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-02.json",
+      "input_output_sha256": "e88021e293be0dd7727188fa2718c5cb746454087dee6d839d98a47a1a2e6697",
+      "candidates": 66,
+      "limitations": [
+        "배정된 광기의 산맥 VII–XII와 어둠 속의 속삭임 I만 실독했다. 다른 절과 저본 전 범위는 실독 또는 검증을 주장하지 않는다.",
+        "ready_local_research는 로컬 조사 가능만 뜻하며 재배포나 상업적 이용 허가가 아니다. 원문·웹 전사·한국어 요약의 권리는 별도 확인이 필요하다.",
+        "원문 직접 발췌는 비공개 evidence에 보존하고 공개 전 모든 직접 발췌를 제거해야 한다.",
+        "원문은 허구의 서술과 작중 전설을 포함한다. 화자의 편견과 소설 속 페너쿡 전승 주장은 실제 구술 자료의 검증으로 취급하지 않는다.",
+        "추출 후보이며 실제 앱이나 DB의 세계관이 아니다. 중복 목록은 보수적 검토 단서이고 독립 감수나 전수 보장은 없다."
+      ],
+      "verification": {
+        "command": "Python 표준 라이브러리로 매니페스트·전체 입력·각 슬라이스 SHA-256, 단위 범위·개수, 필수 필드·UTF-16 길이·유형·키·URL·원문 근거를 검증하고 저장 JSON을 다시 읽음",
+        "result": "7개 단위와 모든 필드 및 해시·근거·개수 검사 통과"
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-03.json",
+      "input_output_sha256": "d0988f95386f25c506de119c527f715b2666693a86572e8c60ecc611144a0883",
+      "candidates": 51,
+      "limitations": [
+        "II–VIII절의 지정된 로컬 바이트 구간만 실독했다. 다른 절 및 다른 판본의 완독을 주장하지 않는다.",
+        "웹 전사본의 저본과 판본을 독립 확인하지 않았다.",
+        "ready_local_research는 로컬 조사 가능을 뜻할 뿐 재배포나 상업 이용 허락이 아니다. 공개 전 권리·이용 조건을 별도 검토하고 evidence의 직접 발췌를 공개본에서 모두 제거해야 한다.",
+        "기록은 실제 앱이나 DB 세계관이 아닌 임시 추출 후보이며 world_id는 문자열 라벨이다.",
+        "서술자의 편견, 편지 발신자의 주장, 불확실한 기억과 꿈을 사실로 단정하지 않는다.",
+        "독립 감수나 후보 전수 보장을 수행하지 않았다."
+      ],
+      "verification": {
+        "command": "배정·해시·각 구간 근거 문자열·JSON 재독 및 스키마 자체 검사",
+        "result": "통과: 아래 재독 검사에서 unit, count, 필수 필드, UTF-16 길이, 카드 타입, 키 중복 및 URL 검증"
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-04.json",
+      "input_output_sha256": "84d36c7483dbcf6ac60d97e3f452c133d5d71e4787607f470f48b74f23219ba9",
+      "candidates": 100,
+      "limitations": [
+        "I~VII절의 로컬 웹 전사만 실독했다. VIII절과 다른 판본은 이 배치의 실독 범위가 아니다.",
+        "ready_local_research는 로컬 연구 가능 상태일 뿐 저작권, 재배포 또는 상업 이용 허락을 뜻하지 않는다.",
+        "꿈·신화·화자의 심리학적 가설 및 발굴 관찰을 구분하였으며 화자와 편지에 담긴 인종적 편견은 사실이나 실재 구술로 취급하지 않았다.",
+        "일부 기존 카드와 구간 간 중복을 표시했으나 독립 감수 또는 후보의 전수 완전성은 보장하지 않는다.",
+        "world_id는 임시 연구 라벨이고 앱·DB 세계관 생성이나 공개를 뜻하지 않는다.",
+        "evidence의 원문 발췌는 비공개 로컬 연구용이며 공개본에서 모두 제거해야 한다."
+      ],
+      "verification": {
+        "command": "Python 3: SHA-256, HTML br 기준 위치와 근거 문자열 대조, JSON 재독 및 unit·개수·UTF-16·키·필수 필드·타입 검사",
+        "result": "저장 후 재독 검증 통과"
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-05.json",
+      "input_output_sha256": "3926934b47b58074d63636a878ff413fb8e9a6698c65aa76a777cf80241f4fca",
+      "candidates": 88,
+      "limitations": [
+        "지정 바이트 구간만 실독했으며 작품 전체나 다른 판본의 완독을 주장하지 않음. 꿈의 추적은 인위적인 문단 단위이며 원작 장 구분이 아님.",
+        "후보는 비공개 임시 연구 자료이며 world_id는 문자열 라벨일 뿐 실제 세계관이나 DB 생성이 아님. ready_local_research는 재배포·상업적 이용 허가가 아님.",
+        "원문 저본과 전사 및 번역 권리는 미확인; 공개 전 별도 권리 확인과 evidence의 직접 발췌 전체 제거가 필요함.",
+        "서술 속 인종적 편견과 노예화 묘사는 객관적 분류로 재생산하지 않음. 이 배치는 실제 구술 자료를 포함하지 않음.",
+        "기존 source·runtime·review를 검색하고 의미가 겹치는 후보를 별도 단위 간에도 표시했으나 독립 감수나 전수 보장은 없음."
+      ],
+      "verification": {
+        "command": "저장 후 JSON 재독: manifest 및 입력·슬라이스 SHA-256, 배정 단위와 건수, 필수 필드, UTF-16 길이, 타입, 키·URL·원문 위치 검사",
+        "result": "manifest 및 전체 입력·모든 배정 슬라이스 SHA 일치, 모든 근거 검색어 문단 내 확인, JSON 재독 검사 통과"
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-06.json",
+      "input_output_sha256": "3520152f04be127f256b5aa4e8bae86164c17d1c120d2ca8efb23d2489ff4797",
+      "candidates": 75,
+      "limitations": [
+        "배정된 chunk-05~09만 실독했으며 작품 전체 완독이나 후보 전수·독립 감수는 주장하지 않는다.",
+        "ready_local_research는 로컬 조사 가능 상태일 뿐 저작권, 재배포 또는 상업 이용 허락이 아니다. 공개 전 로컬 원문 evidence 직접 발췌를 모두 제거하고 별도로 권리를 확인해야 한다.",
+        "영어 웹 전사본이며 인쇄 저본은 확인되지 않았다. 한국어 제목과 요약은 임시 연구용이다.",
+        "등장인물의 꿈·추측·전언·나이알라토텝의 기만과 화자의 인종적 편견은 객관적 세계 법칙으로 취급하지 않는다.",
+        "world_id는 임시 문자열 라벨이며 실제 앱 또는 DB에 세계관을 생성하지 않았다."
+      ],
+      "verification": {
+        "command": "SHA-256 및 저장 JSON 재읽기: 배정 unit, 상태·건수, 필수 필드·UTF-16 길이·유형·키·URL·문단·원문 근거 확인",
+        "result": "검증 완료"
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-07.json",
+      "input_output_sha256": "20ca9ed66f52dd37104c88b9fa1ce4f701097ef678a318fea8ec797cb8d787de",
+      "candidates": 77,
+      "limitations": [
+        "지정된 10개 바이트 구간의 비공개 로컬 추출 후보이며 실제 앱 또는 DB 세계관이 아니다. world_id는 문자열 라벨이다.",
+        "ready_local_research는 로컬 조사 가능 상태일 뿐 저작권, 전사·번역·재배포 또는 상업 이용 허락을 뜻하지 않는다.",
+        "영어 웹 전사이며 인쇄 저본과 번역 권리는 미확인이다. 던위치의 공포는 배정된 III·IV·VI·VII·VIII만 실독했으며 다른 절의 완독을 주장하지 않는다.",
+        "서사 속 꿈·전언·인물의 추측과 화자의 인종·민족적 편견을 객관적 설정과 분리했다. 독립 감수 및 후보 전수 보장은 수행하지 않았다.",
+        "evidence는 연구용 직접 발췌로 로컬에 보존하며 공개본에서는 모든 직접 발췌를 제거해야 한다."
+      ],
+      "verification": {
+        "command": "Python으로 매니페스트·입력 전체·슬라이스 SHA-256 재계산, 저장 JSON 재읽기 및 스키마·출처·문단·UTF-16·안정 키 검증",
+        "result": "성공: 할당 10개 각 1회, 읽음 10개, 후보 77개; SHA·필수값·URL·문단·발췌·글자수·키·단위별 개수 일치. 독립 감수·전수 보장은 아님."
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-08.json",
+      "input_output_sha256": "41132282eb841c7514644f9dca44898206ad195584836e3e726a97a304be666f",
+      "candidates": 55,
+      "limitations": [
+        "배정된 슬라이스만 실독했으며 작품 전체나 독립 감수·후보 전수성을 보증하지 않는다.",
+        "ready_local_research는 로컬 조사 가능 상태일 뿐 재배포 또는 상업 이용 허락을 뜻하지 않으며 각 저본·전사·지역별 권리는 미확인이다.",
+        "출력은 앱이나 DB의 세계관이 아닌 임시 비공개 로컬 연구 후보이며 world_id는 문자열 라벨이다. evidence의 직접 발췌는 공개 전 로컬에 보존하고 공개본에서는 전부 제거해야 한다.",
+        "바리 자료는 한 지역의 특정 구연이며 창·사설·조사자의 표기와 실제 굿의 애도·개인 사연을 구분한다. 구연·전사 이용과 지역 공동체의 민감성은 별도 검토한다.",
+        "러브크래프트 작품의 화자와 등장인물의 추정 및 인종적·외모적 편견을 사실로 확정하지 않는다."
+      ],
+      "verification": {
+        "command": "Python: manifest 및 각 전체 파일·슬라이스 SHA-256, UTF-8 HTML 본문 근거 부분 문자열, 할당 단위·필수 필드·UTF-16 길이·타입·안정 키·건수·URL 검사 후 저장 JSON 재검사",
+        "result": "검사 통과"
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-09.json",
+      "input_output_sha256": "5ed9e8e395fa82b75e53b31cf4680286c3cb578f00eaf6bf04e0d9dc25d8c947",
+      "candidates": 32,
+      "limitations": [
+        "ready_local_research는 로컬 연구 가능만 뜻하며 재배포·상업적 이용 허락이 아니다.",
+        "임시 추출 후보이며 world_id는 문자열 라벨이고 실제 앱·DB의 세계관 생성이 아니다.",
+        "독립 감수 및 전수 보장을 하지 않았고 전체 후보 추출과 기존 source/runtime/review 중복 대조는 미완료다.",
+        "초공본풀이 기록 01–03은 출력 절단으로 부분 실독했다. 04–06도 오디오와 대조하지 않았다. 실제 참여자의 민감한 사연은 카드화하지 않았다.",
+        "로카센나 배정 범위는 서두와 1–60연에 한정된다. 고노르드어 해석과 덴마크어 편집 주석은 별도 감수가 필요하다.",
+        "evidence는 비공개 로컬 연구에만 보존하며 공개본에서는 모든 직접 발췌를 제거해야 한다."
+      ],
+      "verification": {
+        "command": "Python 표준 라이브러리로 파일·슬라이스 SHA, 단위·개수·필수 필드·UTF-16 길이·타입·키·URL·발췌 포함 확인",
+        "result": "통과: 매니페스트 1개, 전체 입력 3개 및 슬라이스 14개 SHA, 배정 단위 14개, 후보 32개, 필수 필드·길이·타입·안정 키·URL·근거 포함. 위치의 의미와 후보 전수성 독립 감수는 미실시."
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-10.json",
+      "input_output_sha256": "53d2d3aa97620506f09955647bd355825abe03c12741a110b072cb99b81c03f5",
+      "candidates": 88,
+      "limitations": [
+        "ready_local_research는 로컬 조사 가능을 뜻하며 재배포·상업 이용 허락을 뜻하지 않는다. 공개 전 별도 권리 검토와 로컬 근거 보존, 공개본의 직접 발췌 전체 제거가 필요하다.",
+        "world_id는 실제 앱이나 DB 세계관이 아닌 임시 문자열 라벨이다.",
+        "배정된 구간만 읽었으며 작품 전체 또는 전승 전체의 완독·전수 추출이나 독립 감수를 보장하지 않는다.",
+        "산해경 본문과 곽박 주석, 북유럽 시의 화자 발언·예언과 편집자의 주해를 구분했다. 산해경의 고유명과 구두에 판독 불확실성이 있다.",
+        "독일 동화는 배정된 119–121쪽만 읽었으며 이후 이야기는 추측하지 않았다."
+      ],
+      "verification": {
+        "command": "Python 재읽기: manifest 및 전체 입력·구간 SHA-256, 배정 ID·상태·건수·필수 필드·UTF-16 길이·카드 타입·URL·4중 키와 근거 검사",
+        "result": "통과: 입력 파일 및 14개 슬라이스 SHA, 할당·건수·형식·근거와 안정 키"
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-11.json",
+      "input_output_sha256": "5ef4911123cd9c0d2e2546f815a0402472ab0adeb18925c645da8f67363f154c",
+      "candidates": 56,
+      "limitations": [
+        "배정된 원문 슬라이스만 읽었으며 다른 부의 완독이나 독립 감수·후보 전수를 보장하지 않음.",
+        "ready_local_research는 로컬 조사 가능만 뜻하며 재배포·상업 이용 허락이 아님. 세계관 ID는 임시 라벨이며 실제 앱·DB 세계관 생성이 아님.",
+        "공개 전 원문 직접 발췌 전체를 비공개 로컬에 보존하고 공개본에서 evidence를 모두 제거해야 함.",
+        "그림 1857 독일어 Wikisource 전사 및 라일리 영어 번역에 한정하며 다른 판본과 원어 대조는 미실시.",
+        "오비디우스의 우화 머리말·EXPLANATION은 편집자 해석이고 본문과 구분했으며 제1권 도입부는 시적 화자의 서술 의도이다.",
+        "중복은 관련 후보만 표시한 예비 검토로 동일성과 통합 여부는 미확정."
+      ],
+      "verification": {
+        "command": "출력 JSON 재독; 매니페스트·전체 입력·모든 슬라이스 SHA256, 배정 단위·카운트·필수 필드·UTF-16·타입·키·URL·근거 검사",
+        "result": "통과: 매니페스트·입력 2개·슬라이스 14개 해시, 배정 14개·단위별 개수, 필수 필드·UTF-16 길이·유형·안정 키·URL·근거 전사 확인; 독립 감수는 미실시"
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-12.json",
+      "input_output_sha256": "df9d919fe2fcb8c749fd6346770a7e14a3a192bf0993a57b595caa4b0543442e",
+      "candidates": 61,
+      "limitations": [
+        "로컬 연구용 임시 추출 후보이며 world_id는 문자열 라벨이다. 앱·DB 세계관을 생성하지 않는다.",
+        "ready_local_research는 조사 가능 상태일 뿐 재배포 또는 상업 이용 허락이 아니다. 권리와 지역별 이용 조건은 별도 검토가 필요하다.",
+        "제1권의 지정된 IX–XVII화와 권말 주석만 읽었다. 나머지 구간·라틴어 원문·다른 판본의 완독이나 독립 감수·전수 보장을 주장하지 않는다.",
+        "EXPLANATION 및 권말 주석은 번역자·편집자 해설과 이설이며 서사 본문이나 역사적 사실로 확정하지 않는다.",
+        "evidence는 로컬 연구용 원문 발췌이며 공개 전 원문 직접 발췌 전체를 로컬에 보존하고 공개본에서 모두 제거해야 한다.",
+        "기존 후보 비교는 일부 명칭 단서 기반으로 동일성 확정이 아니며 추가 확인이 필요하다."
+      ],
+      "verification": {
+        "command": "Python 표준 라이브러리로 저장 후 JSON을 다시 읽어 SHA·구간·개수·필드·UTF-16 길이·타입·안정 키·근거를 검증",
+        "result": "통과"
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-13.json",
+      "input_output_sha256": "2e6c965e4aa3d11d19d69df23cc049973564e04bc0f38856be162dfe208df18b",
+      "candidates": 60,
+      "limitations": [
+        "임시 추출 후보이며 실제 앱이나 DB 세계관이 아니다. world_id는 문자열 라벨이다.",
+        "ready_local_research는 로컬 조사 가능일 뿐 재배포 또는 상업 이용 허락을 의미하지 않는다. 원문 발췌는 비공개 연구용 evidence에만 보존하며 공개본에서 전부 제거해야 한다.",
+        "일본서기 권2의 배정된 13개 문단만 읽었고 다른 문단이나 판본을 완독하지 않았다. 일서와 괄호 내 이설을 분리하였으며 정치적 계보·관행의 유래 설명은 문헌의 주장이다.",
+        "라마야나 제5권 1장 71절 이후는 미독이다. 산스크리트 전사와 한문 해석은 독립 감수되지 않았고 후보 전수 보장은 없다.",
+        "기존 source 일부와 배치 내부 일부 유사 서사를 비교했으나 기존 runtime·review 전체 및 다른 배치와의 중복 비교는 미완료다.",
+        "현대 공동체의 전승과 편찬 문헌은 구분해야 하며 권리·지역·공동체 검토는 별도다."
+      ],
+      "verification": {
+        "command": "입력 SHA-256 및 출력 JSON 재독 후 coverage·개수·필드·UTF-16·형식·URL·증거·고유 키 검증",
+        "result": "아래 검증을 통과했으나 원문 미독 구간 및 독립 감수·중복 검토는 남음"
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-14.json",
+      "input_output_sha256": "06c1175e7954c1c8c09f96b22c9f9873f6186a0e520da4561500ec3931f9ea56",
+      "candidates": 47,
+      "limitations": [
+        "ready_local_research는 로컬 조사가 가능하다는 뜻이며 재배포·상업적 이용 허락이 아니다.",
+        "후보는 scratch의 임시 연구 자료이고 world_id는 문자열 라벨이며 실제 앱·DB 세계관이 아니다.",
+        "공개 전 직접 발췌는 비공개 로컬에 보존하고 공개본에서 모두 제거해야 한다.",
+        "지정된 일본서기 문단과 현장 전기 1권의 배정 구간만 읽었으며 다른 권이나 판본의 완독을 주장하지 않는다.",
+        "현장 전기의 초자연적 서술은 전기 저자 또는 등장인물의 주장이고 소설 서유기와 별도 출처다.",
+        "수메르어 전사 1–26행은 해석 검증이 필요한 부분 조사다. 독립 감수와 후보 전수 보장은 없다."
+      ],
+      "verification": {
+        "command": "Python: manifest·입력·slice SHA-256 확인, 근거 원문 대조, 결과 JSON 재독 및 스키마·범위·키·개수 검사",
+        "result": "통과: manifest 및 3개 입력·14개 슬라이스 SHA, 근거 위치와 47개 후보 필드·중복·길이·단위별 건수 검사; 수메르어 1개 구간은 부분 조사."
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-15.json",
+      "input_output_sha256": "f89e5eab5fc8f7e722623d31f436f7fad873c4208730b67308021076f82f0aa7",
+      "candidates": 71,
+      "limitations": [
+        "배정된 서문·도입부·제1–9장의 로컬 HTML 바이트만 읽었으며 전체 저본이나 다른 판본을 완독했다고 주장하지 않는다.",
+        "에머슨이 신문 연재·하와이인 면담 및 기고 자료를 편집한 영어판이다. 편집자 해설, 노래의 화자, 등장인물의 예감과 주장을 구분했다.",
+        "ready_local_research는 로컬 조사 가능만 뜻하며 재배포·상업적 사용 허락을 뜻하지 않는다. 권리와 관련 공동체의 이용 조건은 미확인이다.",
+        "후보는 앱이나 DB에 생성된 세계관이 아니며 world_id는 임시 문자열 라벨이다. 구술의 문화적 민감성과 판본·공동체별 차이는 별도 검토가 필요하다.",
+        "짧은 원문 근거는 비공개 로컬 연구용이며 공개본에서 모든 직접 발췌를 제거해야 한다. 독립 감수나 후보 전수 보장은 수행하지 않았다.",
+        "기존 저장소 source/runtime/review에서 관련 영문명과 한국어 명칭을 검색했으나 명백한 동일 후보를 확인하지 못했다. 다른 배치와 미검색 별칭의 중복은 후속 확인이 필요하다."
+      ],
+      "verification": {
+        "command": "Python: 매니페스트·원본·배정 구간 SHA-256과 근거 원문 포함 여부, 저장 후 JSON 필수 필드·coverage·개수·유형·UTF-16 길이·복합키·URL 재검사",
+        "result": "재검사 통과"
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-16.json",
+      "input_output_sha256": "181456e66bd241f4b21ac9c6d4e9b7ac93fa3f1ebfdc513042cee63ded8c023e",
+      "candidates": 62,
+      "limitations": [
+        "10–19장 영어 서사와 번역 노래 및 주석만 확인했다. 하와이어 원문 가사 독립 번역 및 전수 추출은 미완료이며 저본 전체를 읽었다는 주장이 아니다.",
+        "Emerson이 구술과 하와이어 자료를 편집한 영어판의 표현이다. 화자와 편집자의 판단·이설·인종적 편견을 사실이나 다른 지역 전승과 합치지 않는다.",
+        "이 후보는 임시 로컬 연구 자료이며 world_id는 문자열 라벨일 뿐 실제 앱·DB 세계관이 아니다.",
+        "로컬 조사 가능 여부는 재배포·상업 사용 허락이 아니다. 원전·전사·번역·원주민 구술 전통과 공동체 관련 권리 검토가 별도로 필요하다.",
+        "evidence는 비공개 연구용 직접 발췌다. 공개 전 직접 발췌 전체를 로컬에 보존하고 공개본에서 모두 제거한다.",
+        "기존 source/runtime/review의 유사 후보는 이름 검색만 했고 독립 감수 및 중복 전수 대조를 하지 않았다."
+      ],
+      "verification": {
+        "command": "manifest 및 입력·구간 SHA-256 확인; 출력 JSON 재독해 스키마·범위·개수·UTF-16·키·근거 대조",
+        "result": "통과: 검증은 구조·근거 문자열 일치만 확인하며 내용 전수·독립 감수를 의미하지 않음"
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-17.json",
+      "input_output_sha256": "a883184b1f76b59108327fbf9d4c723eb95997c0f4174cd55b1fb0e842176b34",
+      "candidates": 63,
+      "limitations": [
+        "ready_local_research는 로컬 조사 가능만 의미하며 재배포·상업적 이용 허락이 아니다.",
+        "후보와 world_id는 임시 연구 라벨이며 앱·DB에 세계관을 생성한 것이 아니다.",
+        "Emerson 1915 영어판 전사와 수록 하와이어 노래의 배정 20–23장만 읽었으며 하와이어 원전·다른 판본·구술 공동체는 독립 검증하지 않았다.",
+        "편집자의 번역과 주석에는 해석 및 당대 편견이 포함될 수 있으며 지역 전승을 단일 정본으로 합치지 않았다.",
+        "evidence는 비공개 연구용 직접 발췌이며 공개 전 모든 직접 발췌를 로컬 보존하고 공개본에서 제거해야 한다.",
+        "기존 저장소 source/runtime/review에서 하와이 관련 표기를 검색했으나 일치 항목을 찾지 못했으며 다른 단위 후보와의 중복은 통합 시 대조해야 한다.",
+        "독립 감수 및 전수 보장은 수행하지 않았다."
+      ],
+      "verification": {
+        "command": "Python SHA-256·UTF-8 디코딩·원문 증거 문자열 및 JSON 스키마, 단위 수·키·UTF-16 길이·출처 검증 후 저장본 재검증",
+        "result": "아래 저장본 재검증 통과"
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-18.json",
+      "input_output_sha256": "ae0a95fafe7d5482a340627171e521cada41085c7c16d3fbcfffdc18c95f43c6",
+      "candidates": 78,
+      "limitations": [
+        "본 결과는 24~30장 배정 구간의 영어 편집·번역본에 한정한 임시 추출 후보이며 실제 앱·DB 세계관이 아니다. world_id는 문자열 라벨이다.",
+        "실독한 범위 밖의 판본과 구술 원본을 확인하지 않았고 전체 저본 완독이나 독립 감수·전수 보장을 주장하지 않는다.",
+        "ready_local_research는 로컬 조사 가능 상태일 뿐 재배포 또는 상업적 이용 허락을 뜻하지 않으며 권리는 미확인이다.",
+        "편집자의 번역·주석과 서사 속 화자의 말, 이설을 구별했다. 편집자 선택 및 식민지 시대의 관점이 전승의 유일한 해석이 아니다.",
+        "연구용 evidence는 짧은 직접 발췌를 포함한다. 공개 전 원문 직접 발췌 전체를 로컬에 보존하고 공개본에서는 모두 제거해야 한다.",
+        "기존 source/runtime/review에서 관련 인물의 한국어·영어 표기를 검색했으나 관련 후보를 확인하지 못했다. 표기 변이로 인한 중복은 추가 확인이 필요하다."
+      ],
+      "verification": {
+        "command": "Python SHA-256 재검증 후 결과 JSON을 다시 읽어 배정 구간·상태·건수·필수 필드·UTF-16 길이·타입·키·URL 검사",
+        "result": "아래 원자적 저장 뒤 실제 파일 재검증 완료"
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-19.json",
+      "input_output_sha256": "266be2802331fecaa1670196bdaf4a8e4865b528d43f87ad820dec92e2efdf6e",
+      "candidates": 62,
+      "limitations": [
+        "제31–35장 로컬 HTML 경계만 실독했으며 다른 장이나 저본 전체의 완독은 주장하지 않는다.",
+        "Emerson 1915의 영어 편집·번역과 하와이어 노래 및 편집자 각주를 사용했다. 원 구술 자료, 전사 과정, 다른 판본과 공동체 해석은 독립 대조하지 않았다.",
+        "ready_local_research는 조사 가능 상태일 뿐 저작권·재배포·상업 이용 허락이 아니다. 공개 전 내부 evidence의 모든 원문 발췌를 제거하고 권리와 공동체 맥락을 따로 검토해야 한다.",
+        "후보는 앱이나 DB에 생성한 세계관이 아니며 world_id는 임시 문자열 라벨이다. 기존 source/runtime/review에서 관련 인물명·세계관 검색상 확인된 대응 카드는 없으나 독립 감수 및 전수 보장은 없다.",
+        "서술자의 성격 판단과 번역·주석, 별도 이설 및 환영을 사실이나 하나의 정본으로 단정하지 않는다."
+      ],
+      "verification": {
+        "command": "저장 JSON을 다시 읽어 manifest 및 입력·구간 SHA-256, 배정 단위 일치, 상태·건수, 필수 필드, 타입·UTF-16 길이·안정 키·원본 URL을 Python assert로 검사",
+        "result": "통과: 매니페스트·전체 입력·5개 슬라이스 SHA 일치, 배정 5개 단위 각각 1회, 후보 62건, 필수 필드·건수·타입·길이·키·URL 검사 통과"
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "batch-20.json",
+      "input_output_sha256": "0f86baa9a55c099aff71ba1e8d07ffd839f407d94afbd47f9931a6a01cc0a2b3",
+      "candidates": 46,
+      "limitations": [
+        "할당된 다섯 구간만 실독했으며 저본 전체나 다른 판본의 완독을 주장하지 않는다.",
+        "후보는 임시 로컬 추출 자료이고 world_id는 문자열 라벨이다. 앱이나 DB에 세계관을 생성하지 않았다.",
+        "ready_local_research는 접근 및 연구 가능만 뜻하며 재배포·상업적 이용 허락이 아니다. 원전·전사·번역·구술 및 공동체 관점의 별도 검토가 필요하다.",
+        "하와이 본문은 에머슨의 1915년 영어 편집판이며 하와이어 노래와 번역 및 편집자의 주해와 별도 전언을 구분했다. 구술 전승은 공동체와 문화적 맥락을 보존해야 한다.",
+        "잉카 자료는 옛 철자와 현대화 전사 및 사이트 설명을 병기한다. 본문 저자의 식민적 판단을 사실로 채택하지 않았다.",
+        "페르시아 구간은 제8절 원문만 읽었고, 베이트 번호는 HTML bn 식별자이다. 번역과 판독에 독립 감수는 받지 않았다.",
+        "유사 후보는 다른 단위와 중복 가능성을 기록했지만 전수 중복 확인이나 독립 감수를 보장하지 않는다. 공개 전 로컬 원문 근거는 보존하고 공개본에서는 모든 직접 발췌를 제거한다."
+      ],
+      "verification": {
+        "command": "Python: manifest·입력·슬라이스 SHA-256 검증 후 저장 JSON 재독 및 단위·필드·길이·유형·URL·키·개수 검사",
+        "result": "대상 5개 전체, 해시 및 구조 검사 통과"
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    },
+    {
+      "file": "supplement-01.json",
+      "input_output_sha256": "b1885a140337f0868d79ca537d36d5ced6eb811d9dc28194f7714ec5afea5714",
+      "candidates": 11,
+      "limitations": [
+        "모든 후보는 비공개 로컬 조사 자료이며 조사 가능은 재배포 또는 상업 이용 허락이 아니다. 직접 발췌 evidence는 공개본에서 제거해야 한다.",
+        "초공본풀이 구연자의 제주어 전사와 편집 줄거리, 의례·실제 인물 정보를 분리했다. 음원 대조 및 문화적 맥락 감수는 하지 않았다.",
+        "라마야나 전사는 판본 및 번역 정확성을 확인하지 못했다. 독립적 사람 감수와 완전 추출을 주장하지 않는다.",
+        "ETCSL 확인일 2026-11-16: https://etcsl.orinst.ox.ac.uk/robots.txt HTTP 404; https://etcsl.orinst.ox.ac.uk/ 온라인 열람 안내; https://etcsl.orinst.ox.ac.uk/edition2/credits.php 저작권 및 인용 안내. 로컬 보존 허락 미확인, 영어 번역 본문·해시 없음; 복합판과 개별 점토판을 혼동하지 않는다."
+      ],
+      "verification": {
+        "command": "저장 JSON 재독 후 manifest·원전 및 바이트 슬라이스 SHA-256, 단위·수량·키·필수 출처·UTF-16 및 evidence 원본 바이트 일치 검사",
+        "result": "아래 검사로 확인"
+      },
+      "file_note": "비공개 원본 배치 파일 식별자; 저장소 파일 아님"
+    }
+  ],
+  "worlds": [
+    {
+      "world_id": "aztec_mythology",
+      "index": "worlds/aztec_mythology/index.json",
+      "candidates": 0
+    },
+    {
+      "world_id": "celtic_mythology",
+      "index": "worlds/celtic_mythology/index.json",
+      "candidates": 0
+    },
+    {
+      "world_id": "chinese_folklore",
+      "index": "worlds/chinese_folklore/index.json",
+      "candidates": 37
+    },
+    {
+      "world_id": "cthulhu_mythos",
+      "index": "worlds/cthulhu_mythos/index.json",
+      "candidates": 577
+    },
+    {
+      "world_id": "egyptian_mythology",
+      "index": "worlds/egyptian_mythology/index.json",
+      "candidates": 0
+    },
+    {
+      "world_id": "finnish_karelian_tradition",
+      "index": "worlds/finnish_karelian_tradition/index.json",
+      "candidates": 0
+    },
+    {
+      "world_id": "germanic_folklore",
+      "index": "worlds/germanic_folklore/index.json",
+      "candidates": 31
+    },
+    {
+      "world_id": "greco_roman_mythology",
+      "index": "worlds/greco_roman_mythology/index.json",
+      "candidates": 95
+    },
+    {
+      "world_id": "hawaiian_tradition",
+      "index": "worlds/hawaiian_tradition/index.json",
+      "candidates": 370
+    },
+    {
+      "world_id": "huarochiri_tradition",
+      "index": "worlds/huarochiri_tradition/index.json",
+      "candidates": 0
+    },
+    {
+      "world_id": "ifugao_tradition",
+      "index": "worlds/ifugao_tradition/index.json",
+      "candidates": 0
+    },
+    {
+      "world_id": "inca_tradition",
+      "index": "worlds/inca_tradition/index.json",
+      "candidates": 6
+    },
+    {
+      "world_id": "indian_mythology",
+      "index": "worlds/indian_mythology/index.json",
+      "candidates": 9
+    },
+    {
+      "world_id": "japanese_mythology",
+      "index": "worlds/japanese_mythology/index.json",
+      "candidates": 73
+    },
+    {
+      "world_id": "journey_to_the_west",
+      "index": "worlds/journey_to_the_west/index.json",
+      "candidates": 30
+    },
+    {
+      "world_id": "korean_mythology_fables",
+      "index": "worlds/korean_mythology_fables/index.json",
+      "candidates": 51
+    },
+    {
+      "world_id": "manding_tradition",
+      "index": "worlds/manding_tradition/index.json",
+      "candidates": 0
+    },
+    {
+      "world_id": "maori_tradition",
+      "index": "worlds/maori_tradition/index.json",
+      "candidates": 0
+    },
+    {
+      "world_id": "maya_mythology",
+      "index": "worlds/maya_mythology/index.json",
+      "candidates": 0
+    },
+    {
+      "world_id": "norse_mythology",
+      "index": "worlds/norse_mythology/index.json",
+      "candidates": 54
+    },
+    {
+      "world_id": "persian_tradition",
+      "index": "worlds/persian_tradition/index.json",
+      "candidates": 6
+    },
+    {
+      "world_id": "slavic_mythology",
+      "index": "worlds/slavic_mythology/index.json",
+      "candidates": 7
+    },
+    {
+      "world_id": "sumerian_mythology",
+      "index": "worlds/sumerian_mythology/index.json",
+      "candidates": 0
+    },
+    {
+      "world_id": "tahitian_tradition",
+      "index": "worlds/tahitian_tradition/index.json",
+      "candidates": 0
+    },
+    {
+      "world_id": "yoruba_tradition",
+      "index": "worlds/yoruba_tradition/index.json",
+      "candidates": 0
+    }
+  ],
+  "disclosure": "원본 15개 부분 구간 중 한국 초공본풀이 3구간과 라마야나 로마자 전사 추가를 보충과 함께 기록했다. 수메르 영어 번역 본문은 미열람이며 하와이 10개 구간은 하와이어 원어 독립 대조가 미완료다. 보충의 라마야나와 수메르 부분 상태는 원본 상태와 별개다. read 자기보고는 전체 정확성이나 독립 감수가 아니다.",
+  "rights": "전사·번역·공동체 및 지역별 재사용·상업권 미확인. 상업적 배포 허락으로 해석 금지.",
+  "changes": [
+    {
+      "batch_id": "batch-01",
+      "unit_id": "cthulhu-mm--section-i",
+      "candidate_key": "ice-melter",
+      "changes": [
+        "body: 시험적 사용을 확정한 문장을 실제 사용 여부 불확실로 수정; 원문 조건법 판독, uncertainties 추가"
+      ]
+    },
+    {
+      "batch_id": "batch-01",
+      "unit_id": "cthulhu-mm--section-i",
+      "candidate_key": "ships",
+      "changes": [
+        "source_location: 포경선의 보강 설명이 있는 앞 구간 6과 선장 서술 구간 7 병기"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-ii",
+      "candidate_key": "henry-akeley",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 02458b4c8a1025120c45c15b21c848d4e8756fd1ef5cbf3a7919f6b956e29956"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-ii",
+      "candidate_key": "albert-wilmarth",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 b8495382a4501c066a6d98f6761beca471b44dcee0f37cc7c2d2744c4499b6e2"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-ii",
+      "candidate_key": "round-hill-black-stone",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 a7d9f987761e2a833fc06b8ac461efcfbc95fb3afa3b4198919c759a5b141f3c",
+        "source_location: 발견 및 사진 판독의 두 대목 명시",
+        "source_location: II절 제목 뒤 <br> 구분 비어 있지 않은 본문 구간 19(발견)와 33(사진 판독)을 원본 HTML에서 확인하여 명시"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-ii",
+      "candidate_key": "hill-mining-colony",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 947900f1796f835708a937ef923986dfa7f08f62c06acead4c9e3f26b86ef7bd"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-ii",
+      "candidate_key": "outer-winged-beings",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 6e11d0d83a0d01ed33b1a6c996ff8fdf6218cea9d638d538fbbcf3ce431c35ac"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-ii",
+      "candidate_key": "akeley-phonograph",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 51c86647fdce46da8a39cf565b21572eb2435856608a13fcb5556c134bcf2869"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-ii",
+      "candidate_key": "round-hill",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 742c2ecf2776ea3a415ff188fb78cb63672e8c5da9c7ed7b3593fb1680478dbb"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-ii",
+      "candidate_key": "dark-mountain-farm",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 c1f0c82c2349fe2fbfbf84ed6cd1a1d775bbddfc5ff72cc16172a2778d4b76ba"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-ii",
+      "candidate_key": "clawprint-photo",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 3ba90546ab14d016aa91a56c9e610835da09c7bccc6f594ffb23573934ce83c5"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-ii",
+      "candidate_key": "stone-circle-photo",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 91f4a1909107d69663d39c26cf387681d4a24d4d9f3510090d3ece2e340c79a8"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-ii",
+      "candidate_key": "wood-cave-photo",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 0675186cfca206597ce7073b98232f3e51bb9eb8353c6e0d3cf968c2f1357a93"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-ii",
+      "candidate_key": "walter-brown",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 4e1d8c608a1f166424f1da6ab0e76297bd0b10d22787a2ea6b7125b23452eece"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-ii",
+      "candidate_key": "necronomicon",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 406b1482d1174a46a551e812910f408f98466e956b83532624ba799f135abbcb"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-iii",
+      "candidate_key": "walter-brown",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 0ba6f3d4dd51fdd9cf9b5868d9a5e62c42b9d0f7c639d318a0d9d9f618f4a894"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-iii",
+      "candidate_key": "may-eve-recording",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 9186b6228018c34b942fa3d3f5bac412794b7473444fe4cd5d2a7e83e7667c97"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-iii",
+      "candidate_key": "shub-niggurath",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 59845954f046271ca28e562f8c776b95bec8d6033b407d4f4ad263588d50a15c"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-iii",
+      "candidate_key": "nyarlathotep",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 72bd99d1225b43a0a33ed17830d7fd8e620860f2fbbfcc174a8c934a3935a8c1"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-iii",
+      "candidate_key": "black-stone-lost",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 f552d645fb28419e056262916062935facb3b1f4a9fadb4a3cf1108f92fd9714"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-iii",
+      "candidate_key": "stanley-adams",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 4730e6aa13d90fbcf6a540d967902bf6d373ad947d69f4c2c2995a79209d5de2"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-iii",
+      "candidate_key": "human-outer-alliance",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 cd8d1e293f8ccec4c78254ac6dbdee18d7095c0a3576d19dd13d03afcc3aff3e"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-iv",
+      "candidate_key": "farmhouse-siege",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 f38e96fcff78c0c04a0dc49fafe18aeeb354fb5fdbaec8255b4e442034b63745"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-iv",
+      "candidate_key": "forged-telegram",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 064507440c6c63fc0f311ff10d7ce4a834037c5891144415fa73e16a6fc28d05"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-iv",
+      "candidate_key": "green-ichor",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 b12def64afdd404a8905fe49c48ec02108cea47bc001a4ade3a8379594b8fc6a"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-iv",
+      "candidate_key": "unphotographable-remains",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 58ead9217fd42d9131205259e315cac14f503ec6627bfde852a7ad4f5a6ee5e1"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-iv",
+      "candidate_key": "george-akeley",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 6fec04089a035dfd64692fd33f43c2e07358ac0f9ab17a911ace486bb26fb35d"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-iv",
+      "candidate_key": "transport-threat",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 1b8bd66f19c434f627229aad327048f8a4ae6b5968b48e0a3a0fcc8070a6c29e"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-v",
+      "candidate_key": "typed-invitation",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 876ab8493f2bfe22717d1f361123c47e4b933b0ec775075860c49c85fabfbf87"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-v",
+      "candidate_key": "outer-beings-fungoid",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 0a309226e99755020439c2a04a7687083c51f3152ac9ac23984d0f58a12a215f"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-v",
+      "candidate_key": "outer-telepathy",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 cdf4d92f936e5aefdede7465b14ddb259d5abf7c5749779cbd8d6c61e559f449"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-v",
+      "candidate_key": "yuggoth",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 713211d7d6d5fd4083a85201d95b8c6410e867eed58134d2f4a27b91708838ab"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-v",
+      "candidate_key": "hastur-yellow-sign-cult",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 9b7d0ced83a1a3bfee178c416b39fb5ed97d91438559ace91c636b51b3f4dcb6"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-vi",
+      "candidate_key": "noyes",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 a92fb89e7f6423f5d47b3f12603442c5f77a50a6086a23b13f8a8ee4bce0b780"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-vi",
+      "candidate_key": "akeley-farm",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 b6af94761661b9a25ce8de73cd8e34850f9b277dbc48852a83367ee5fbe388d6"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-vi",
+      "candidate_key": "fresh-clawprints",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 de0b4f38c3e409e24ed9a111432033a324be13ce4b9f0a977208d935d1107692"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-vi",
+      "candidate_key": "west-river",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 8225decfaaf451619565ea4a5022d48cc1118ae8f723a852e205afd51b57a892"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-vii",
+      "candidate_key": "masked-host",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 fc8eb2983ce90d7bfafd06aabb99b9bc8489935fa12d399212ab254ff697c512"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-vii",
+      "candidate_key": "yuggoth-cities",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 0fac4e5aa77db039441257728e8f37dcebee5f38f2f3c88d4007677e78131062"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-vii",
+      "candidate_key": "underground-worlds",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 8e944b920c1c60dc81f908e30a169de9e24c7a7872011a864d4c7e91ec36d2af"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-vii",
+      "candidate_key": "tsathoggua",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 bd6cbe5ac5fd3e46235f9ace5b4100d355e63f25f8092f7258cd56fead516c39"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-vii",
+      "candidate_key": "brain-cylinder",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 b8135e0fec2c413a80385e4dde024257f05dbea7584aa9ba6e5ac9e8340b35e9"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-vii",
+      "candidate_key": "faculty-machines",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 1487c2e6d1a31a3785253e41c8dc777c3f179c72fd2f5b43274eaf226a43d6ae"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-vii",
+      "candidate_key": "round-hill-outpost",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 4af9220a42bc44a99edbf794e71488b8ce0269b9d4d5826b065b8f2563a245a6"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-vii",
+      "candidate_key": "b67",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 bb4537ed61b6f397c3c0a091e0dbb1393cf1c5def41b43f3d0e2c3b397a0a67a"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-vii",
+      "candidate_key": "noyes-record-voice",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 17ef0834c61610b8fce8f8759ff32cae38c3f4f9c41d23b9384e7f3514b500a9"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-vii",
+      "candidate_key": "acrid-coffee",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 266a1a4f141a78e59462dbc4cbe20fb4abc011cd2440fbbf0e978a922eea7f9e"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-viii",
+      "candidate_key": "night-conference",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 df9165f5e65324382b590c85331766bdb94c5400efeafbf511c23d8cce47b291"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-viii",
+      "candidate_key": "akeley-cylinder",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 ff02b67969d03e079be568dba156ae627704a9bc3aa5f03af36be66014d57194"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-viii",
+      "candidate_key": "face-and-hands",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 af99e7b743393538c8a7af6835d07036417cf79e4d354929995ceac1802e4a17"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-viii",
+      "candidate_key": "noyes-sleeper",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 e84b452007d013af49b54f87a1e4d164e078e66a9de8cf71109eaf27220d2b0e"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-viii",
+      "candidate_key": "farm-investigation",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 835fc169f63ac444c6093acaecc4ce3d1f790e51c706ea2dc14854c9d0309bd3"
+      ]
+    },
+    {
+      "batch_id": "batch-03",
+      "unit_id": "cthulhu-wid--section-viii",
+      "candidate_key": "pluto-yuggoth",
+      "changes": [
+        "source_location: 직접 인용을 제거하고 절과 한국어 대상명 유지; 원래 위치 문자열 SHA-256 cd9f65662548a9684f9278f4194f14f48110aa3f7d20479988638373e06728cf"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "sunset-city",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 5016c2fa61cedacd668e245aea26498059d8a2fb44b8f075fd08a546e70a1ca5"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "kadath",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 845ca0bb7ffe9409186dc25c4b38f4f51d32c7cc817198d8278ce89d85da38ea"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "dream-priests",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 f54e4d3d7a57edd909bd28b2d7d5e5379e50906163c16533ffa8b8d56e8f6b83"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "azathoth",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 9c6a193fd8861b061fd7f1e6d877e6f2f2fd7a2b0c566736d0465f02fcb66aa3"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "other-gods",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 69b06c0f551a7f5a0a28bf0319bb0300189f63bc2cbdcb866682f616745c35e9"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "dream-steps",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 9382f01b26abab7b055fe39fd6f53940b283989bbeb5e67f994264def372163b"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "zoogs",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 9e833ea46c0d2d18f315fa98ec3312fb6d85f1d80c2fd5e9106289f9be2b7833"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "moon-tree-wine",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 fd0ce839adb559edb9df67bcf78e90ebd8c86f5441a25f3bcb010b1ce033a76d"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "pnakotic-manuscripts",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 b3bb5806c2e92df990a53f1ded569dac88850ed59d4397992c393372aeba8fd0"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "forest-trapdoor",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 ccafd11f179c6708db0e649b098d487f0190bd8d9a2b8f066a7042a073f66b47"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "ulthar-cat-law",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 76e24a67dcc3953d8a5e753ebc574dae18c9c45c9fec873ed26c4fd329a32728"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "skai-bridge",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 8af9f3be353cff2f78701334fac794f5b4f4d693d90d059fe15db1b72d10c8e6"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "atal",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 6e2d47918d2eb0192f20983eddf687074d27929a4f0ba9558cd50c433878faa1"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "barzai",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 8bf2a50343ae73de58a356a03e3813a89c679fff191d3151e7defeb057490169"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "ngranek-face-report",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 a3cf588a5d09c4fdd0bf6e0a90e7fb1cdc78559bbdbe60f2d90823f8285daa2c"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "god-descendants",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 7d39b2cf86253a2b6c54a1781afbedde3984faa23ab728ebe94775f4ef1c1102"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "dylath-leen",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 21917f954d1d2c4cc07fc7488895d829b956c5aaceb8ce1a7298d2254f9c4693"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "black-galleys",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 e5638fe5a5652abb7835c5d8567c2ed75f9ba2ab1d188d96cb0e7e4c6c16076c"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "ruby-wine",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 4a57e26655fc6b0c83a85e881c28d0d774560b3481f4e049369a86bdf2a78163"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "leng-priest-rumor",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 b86b8e765523d751d44d42bfededb5f679d9b6ed3df1fa0982e3e5c821b5f553"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-02",
+      "candidate_key": "west-pillars",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 fa7b66c1860f90087846691c4a6c3d61f6ba9fa8b8f95154ec146074cf816b60"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-02",
+      "candidate_key": "agents-inference",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 945c9e73fb853c8f98bc02861bcdfb9494247a27c1e25750e06e0cde187c65c6"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-02",
+      "candidate_key": "larvae",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 21584237090ce7c4676148a55432574daa8eba34413aed18611316a7073cc501"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-02",
+      "candidate_key": "moon-toad-things",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 7fa840970743a93667b4877cc0793b39a918edb19bcad18b8eb47c9524eb2862"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-02",
+      "candidate_key": "moon-slave-trade",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 eaa01ed61e1df4497ab7d9f6e1e3fd23d93fc1e4b1a61334468065ee6d9b4a48"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-02",
+      "candidate_key": "moon-cats",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 26d5efb41f17a6e58dac6a1289dc02c66185a503c33000d94fecf39bf9b3bd51"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-02",
+      "candidate_key": "cat-general",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 80fadb9664e3625f15fa6e3eee8a36caff66360f611fed65e23f7fcf676c26a1"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-02",
+      "candidate_key": "saturn-cats",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 a71a91e2b276ae7fb42b0de3c1176d109ddd4575475bd5e9fbf045f50d6e5f68"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-02",
+      "candidate_key": "cat-space-leap",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 ebc1fa43922e926cb74f0708ae73a930bb850b112f14ae237c121c386104bfde"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-02",
+      "candidate_key": "sunken-city",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 81cbc8a2ac044ecfdd62d968ff868360cad57a1843fb6696b8516b3b03c23a9e"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-02",
+      "candidate_key": "sunken-bound-sailor",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 0d2e1db2590df19ed6943d5245c5d3d28c219bf9fadf20d37e36a49ad0fd577f"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-02",
+      "candidate_key": "baharna",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 d8480dd29669024f5a54ca2fd4d79809c5210029e3963f44bd795549a129c877"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-02",
+      "candidate_key": "yath-ruins",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 f9327c576e321f0312835019c5a61fa773fb5a37fccc6e7167fec9d7ab3bb230"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-02",
+      "candidate_key": "zebra-death",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 9ca6eee3937c04c9e988c9b8e6949d4547922ad60a89cc9248a9f5681f7cd7c3"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-02",
+      "candidate_key": "night-gaunt-rumor",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 1e50237d5bf4d6128968acaead2a05fb3bab7998e4a62c009ce6bd8fe6a4096b"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-03",
+      "candidate_key": "hill-exiles",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 316a0fda38ba3be4d5e0bc3493aeeefdcfb04cdda8d1da12da1267c64edcf5dd"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-03",
+      "candidate_key": "voonith",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 359145b751550c12850ddd00622dfa138024daa513cb8ac5c1ca2bf069bef6be"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-03",
+      "candidate_key": "ngranek-face",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 94718d214642f6cf95818fd4fb3b9d3c5d1b6b05eb4ee4e3473a0e3df2f6aa88"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-03",
+      "candidate_key": "north-traders-inference",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 3eac65c0e3e7b260b9854f34bc08d434423204040a3ab53e0058321afb2e004e"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-03",
+      "candidate_key": "night-gaunts",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 53501e97c1a2a0a38eaf369cf73d6e3030d6f6495af92efc9613835c4ee42331"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-03",
+      "candidate_key": "pnath",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 5258753f96b3b2f0b1e762bd56f242d3de3e45258a4efd283d57d9f991c81252"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-03",
+      "candidate_key": "bhole",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 08f1e609674a31b1ada656642da5a0da3c19c14d299ac2cc24f03834cde6ebf2"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-03",
+      "candidate_key": "pickman",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 399fd3332128889f8899358f082c839c1ddf18f9c0f5ecda4721ab2ce479ac3d"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-03",
+      "candidate_key": "wamps",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 ab2f807b11e6583cc53305a7253d44fef075f4717253142daea2917953ec298d"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-03",
+      "candidate_key": "gugs",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 b355183b4c669be5ee77cba645969a81271a463007ed43711d8164ccf890b843"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-03",
+      "candidate_key": "ghasts",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 7a5d0828eaf914403122953d300f1cd22a0c70dc1462004594d38ed5edc7fc57"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-03",
+      "candidate_key": "sarkomand",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 49f20717b667179998304d5e06384c9b2ba263ecb018b504cfcb24b67648e3f5"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-03",
+      "candidate_key": "tower-koth",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 38c383dd69210e44b7cdaea8591f24ec32bc34be25b3d7cad3332529a08a8954"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "gug-sentry",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 5eb6795b5388f993dec2f74ee4d1a99ab7ae61c33853812ca16e1f3290b74b91"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "ghoul-tombstone",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 c10425dced65203c62b8419eddcaad35d63017ab75b12f5e6a3b639411f020ac"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "trapdoor-escape",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 c608be25fd221d52fff52a10065a2c29f1a3a25cb81af85b74d385a232a70e6f"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "zoog-cat-war",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 bd68d2ee2e8ef617c98e3caa7448be52e596256272b454cc7831b0cba79110b5"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "zoog-tribute",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 12fb38428954c867809f2407bcb4d2b75a6eea9ad7d108c7bae5c5c1250ed99f"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "cat-passwords",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 5044c0fe867d6d90d75d3ff98e819132a472a93c7ce603f938bf07b99d0eb91e"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "kiran-temple",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 ebe6b78bb0c7a6552ccfbfb63d4e6b5488ed146e05d2d8e346deb99657a7709a"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "river-predator",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 4c83cf187e20f426405c1de8c406c88e36e6c6fb431de2229df55035f7b5799a"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "thran",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 bae5918a74b60c67eb67653e577f657f4de135fc83a5ca601588f907f05fdcd5"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "thran-entry",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 9693b49eda7a370b9d38af3999960d39aa7b88a01ebeabdd277b5d6884219f10"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "inganok",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 d4ba9c1ccd5bc02552016416ec324c5e650b8a8bee3bfebee9faf6647b9415c7"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "kled-palaces",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 c896d32fe49191057d2f16a7eab49433bbb0a892195daee0963a3360e8b295f7"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "hlanith",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 43e71a6e1e8594c34a5de7cea7c17cae47a3717509842422e22a59de9e0a6f8a"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "celephais",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 c3e79bc16bea009bd908ecae4ae9e19c83b9cde9115622813e0a17d42b827fa1"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "celephais-time",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 1efa0af36bfb42ac3200369721b722c5f592757145156b14cd7372693f59fb3b"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "serannian",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 f7abed6270f10d55fbad63c114f29eda8e70fb9c1b79d9832adef2fae9d68f30"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "randolph-carter",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 b2254456465d0b1918065e8adecd1d0205999a4ea858986e0b6df3f569cc9e7e"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "nyarlathotep",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 55d9688954a4423be94c08afa58022fef05dbc792d18ba23853788d7bc6b00cf"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "enchanted-wood",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 cba6a3fc99a18d7e35570b34d93c82a36a69d4228e071c79ff1adf0d3a79e0ec"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "kuranes",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 e94575577bcb6791eba4ab1ed19463fc74b6c7923a7224f51ee2c8febdb5213d"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "stone-circle",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 f30e626522fbd5c780add2698208c88737ac02c31ab089c1313f30fb2785d25c"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "earth-gods",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 9e8cb7cb35d7d9006c78a8305cfd655e681f71ea04d88ecf2509dd96f4c6082e"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-01",
+      "candidate_key": "olathoe-fall",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 3eab114bcfb0a91bcdaa3bf1a7cd63dbfe513d8b89c1532c5f40a8ec978a764e"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-02",
+      "candidate_key": "moon-port",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 eba1f779c8342ffe7f6fb261c35a3cd30b77c52dee59712898e05a93beaf011a"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-02",
+      "candidate_key": "dylath-warning",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 d98337bd08f46f79f84f7de96c967deb5271df414330cf56746719508decb02a"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-03",
+      "candidate_key": "ghouls",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 d9214d5ecd927ae9854fb8babe651da2d11754779a745514e5c72d391ae989ab"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-03",
+      "candidate_key": "ghoul-language",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 5e236bb178955964d3fab14742b9a47e6a288df050955f27d30cf572f641a3a4"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-03",
+      "candidate_key": "zin-vaults",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 2f83f0841384324f90fe9ac64255e332ea888d51b5a4b6f867d89862398246e3"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "kitten-officer",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 057bd5051605cef98fdaa82067baf759b54580dd083964c78f4f56bea7fef4c8"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "ouk-river-god",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 3b90bed5cc889effc7781ede5320e36a12da2d54ec9e60ba557187af9d7da1d1"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "buopoths",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 90d34c545df08e5555632c0c7d2118e55918fb89aedcec03e7a38154b72d1f24"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-dq--chunk-04",
+      "candidate_key": "nath-horthath-temple",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·구간·문단 보존; 원래 위치 문자열 SHA-256 ee7abe64103bec7b49ac15777623221ffc2ab2fb6edfead7a6c5e0e66d06da64"
+      ]
+    },
+    {
+      "batch_id": "batch-09",
+      "unit_id": "korean-chogong--record-04",
+      "candidate_key": "bird",
+      "changes": [
+        "body: 새 이름과 한자 병기의 해석 단정 제외; source_location: record-03 앞 문맥 및 record-04 새 장면 병기; uncertainties 추가"
+      ]
+    },
+    {
+      "batch_id": "batch-10",
+      "unit_id": "chinese-shanhai15--volume-15",
+      "candidate_key": "luan",
+      "changes": [
+        "body: “우가 운우를 공격하고” 제외; 지명·대상 모호 및 곽박 주석의 다른 해석에 따른 독립 표본 점검, 기존 원문·주석 해석 불확실성 유지",
+        "source_location: 운우산 대목의 해당 구절에 붙은 곽박 주석 위치 추가; uncertainties: 본문 대상의 모호성과 주석의 벌목 풀이를 구분하고 독립 확인 필요 명시"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-sot--section-viii",
+      "candidate_key": "archive-lock",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·절·문단 보존; 원래 위치 문자열 SHA-256 0bf0f6767cffcdfd4874e5b9ee6b54174f731d0975fb871a15c7af43f7ca46a9"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-sot--section-viii",
+      "candidate_key": "metal-case",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·절·문단 보존; 원래 위치 문자열 SHA-256 56b26a80dece71712c8c65a3ff97dac352cb3d261afab58546674b822632f447"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-sot--section-viii",
+      "candidate_key": "english-manuscript",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·절·문단 보존; 원래 위치 문자열 SHA-256 68cba86f79a5693900dffb4743f3d06a629abb742c08bf47ce0b848c68800499"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-sot--section-viii",
+      "candidate_key": "basalt-crypt",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·절·문단 보존; 원래 위치 문자열 SHA-256 56f2f371832976343f2faa9c247ce6d056788776e98a888af6d913024109c2a7"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-sot--section-viii",
+      "candidate_key": "whistling-wind",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·절·문단 보존; 원래 위치 문자열 SHA-256 1f2a3ac476760b770343f9eb9863aa47dc7ec7a624d2917b653c999578f58481"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-sot--section-viii",
+      "candidate_key": "delirium-abyss",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·절·문단 보존; 원래 위치 문자열 SHA-256 e3b316d75a3a00d829002641ada13e36c52ac2688ff3abc6be3c15015e8ddefe"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-sot--section-viii",
+      "candidate_key": "great-race-vision",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·절·문단 보존; 원래 위치 문자열 SHA-256 1e154e20f28ab3edf7fc9dac401cea45657ef03624688080ecfe6f99fe4ef0c8"
+      ]
+    },
+    {
+      "batch_id": "batch-05",
+      "unit_id": "cthulhu-sot--section-viii",
+      "candidate_key": "unproved-escape",
+      "changes": [
+        "source_location: 말미 원문 구절 제거, 작품·절·문단 보존; 원래 위치 문자열 SHA-256 f7def9f20ad3b4b98f24be0664e54c0461b14c1b91f56cfbb1d45bb28cd7d1dc"
+      ]
+    },
+    {
+      "batch_id": "batch-08",
+      "unit_id": "korean-bari--record-03",
+      "candidate_key": "gwak-memo",
+      "changes": [
+        "body: 구연 전사와 15자 연속 일치한 부분을 직접 발췌 없이 한국어로 재서술; 수첩의 출처와 군졸의 발이 묶이는 사건 유지",
+        "source_location: 원전 record-02 말미 수첩 전달, record-03 첫머리 진언 안내와 군졸 대치 대목을 모두 명시"
+      ]
+    }
+  ],
+  "card_chunks": [
+    {
+      "file": "cards/cards-001.json",
+      "count": 150,
+      "first_ordinal": 1,
+      "last_ordinal": 150
+    },
+    {
+      "file": "cards/cards-002.json",
+      "count": 150,
+      "first_ordinal": 151,
+      "last_ordinal": 300
+    },
+    {
+      "file": "cards/cards-003.json",
+      "count": 150,
+      "first_ordinal": 301,
+      "last_ordinal": 450
+    },
+    {
+      "file": "cards/cards-004.json",
+      "count": 150,
+      "first_ordinal": 451,
+      "last_ordinal": 600
+    },
+    {
+      "file": "cards/cards-005.json",
+      "count": 150,
+      "first_ordinal": 601,
+      "last_ordinal": 750
+    },
+    {
+      "file": "cards/cards-006.json",
+      "count": 150,
+      "first_ordinal": 751,
+      "last_ordinal": 900
+    },
+    {
+      "file": "cards/cards-007.json",
+      "count": 150,
+      "first_ordinal": 901,
+      "last_ordinal": 1050
+    },
+    {
+      "file": "cards/cards-008.json",
+      "count": 150,
+      "first_ordinal": 1051,
+      "last_ordinal": 1200
+    },
+    {
+      "file": "cards/cards-009.json",
+      "count": 146,
+      "first_ordinal": 1201,
+      "last_ordinal": 1346
+    }
+  ]
+}

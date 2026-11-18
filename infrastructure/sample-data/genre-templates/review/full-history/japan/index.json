@@ -1,0 +1,671 @@
+{
+  "status": "검토용 후보 — 원문 대조·역사 감수·법률 검토 미완료",
+  "purpose": "연구 전용; 앱·서비스·DB 자동 적재 금지, 기존 연구 전용 상태 유지. 최초 반영에는 별도 #425 안전 계약, 권리·중복 검증과 사용자 승인 필요.",
+  "genre": "japan_history",
+  "worldId": "8c3a276f-dda5-5b5d-89da-55221ee3d710",
+  "world_name": "일본 역사 — Murray 『Japan』 연구 초안",
+  "baseline": {
+    "studio_path": "infrastructure/sample-data/genre-templates/history/studio/japan.world.json",
+    "studio_sha256": "402dd6b0437ec66aef102e1e4cac64fbef11465fe56e5023e7a1d941fa05fda2",
+    "studio_cards": 28,
+    "original_path": "infrastructure/sample-data/genre-templates/history/japan.world.json",
+    "original_sha256": "c4f2d80ff96de221c815bfcb169daf5fcab72684a2a3902efb82cbbba91b47b9",
+    "original_cards": 24,
+    "evidence_path": "infrastructure/sample-data/genre-templates/history/japan.evidence.json",
+    "evidence_sha256": "1a217ab1883aaafc03f58f5ac388f26f8745661f90bca43a572bbc06758c43b0",
+    "runtime_template_count": 26,
+    "comparison": "기존 26종 template의 setting_bible.sections 및 일본 기존/studio 카드를 제목·유형으로 비교하고 일본 기존 카드에는 제목 포함도 추가 표시; 의미상 유사한 모든 후보를 찾는 완전한 비교는 아님."
+  },
+  "source": {
+    "title": "Japan",
+    "author": "David Murray",
+    "edition": "제3판, 1896",
+    "url": "https://www.gutenberg.org/ebooks/29798",
+    "commit": "ea4a7c666a690c06fe4799cea4bc94d09cc84264",
+    "path": "docs/research/history-textbooks/japan/source-en.txt",
+    "expected_sha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+    "actual_git_blob_content_sha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e",
+    "source_line_count": 11130,
+    "source_text_reproduced": false
+  },
+  "manifest_path": "미게시-임시자료:history/manifest.json",
+  "manifest_sha256": "f3faa02f012e87678aad6cb004920343719ed797389a605ed2385517017547c1",
+  "inputs": [
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "japan",
+        "segment": "japan-1",
+        "commit": "ea4a7c666a690c06fe4799cea4bc94d09cc84264",
+        "path": "docs/research/history-textbooks/japan/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/29798",
+        "line_start": 149,
+        "line_end": 2788,
+        "chapters": [
+          "japan:1:CHAPTER I. THE JAPANESE ARCHIPELAGO.",
+          "japan:2:CHAPTER II. THE ORIGINAL AND SURVIVING RACES.",
+          "japan:3:CHAPTER III. MYTHS AND LEGENDS.",
+          "japan:4:CHAPTER IV. FOUNDING THE EMPIRE.",
+          "japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES."
+        ],
+        "heads": [
+          [
+            149,
+            "CHAPTER I. THE JAPANESE ARCHIPELAGO."
+          ],
+          [
+            587,
+            "CHAPTER II. THE ORIGINAL AND SURVIVING RACES."
+          ],
+          [
+            835,
+            "CHAPTER III. MYTHS AND LEGENDS."
+          ],
+          [
+            1290,
+            "CHAPTER IV. FOUNDING THE EMPIRE."
+          ],
+          [
+            1970,
+            "CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES."
+          ]
+        ],
+        "sha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e"
+      },
+      "input_file": "미게시-임시자료:history/japan-1.json",
+      "input_sha256": "cd06e20b947932c77b480dea0ab49c83ed001ba7d9dd6f10d25dc898e90ba927",
+      "candidate_count": 193,
+      "scope": {
+        "line_start": 149,
+        "line_end": 2788,
+        "chapters": [
+          "japan:1:CHAPTER I. THE JAPANESE ARCHIPELAGO.",
+          "japan:2:CHAPTER II. THE ORIGINAL AND SURVIVING RACES.",
+          "japan:3:CHAPTER III. MYTHS AND LEGENDS.",
+          "japan:4:CHAPTER IV. FOUNDING THE EMPIRE.",
+          "japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES."
+        ]
+      },
+      "coverage_worker_self_report": [
+        {
+          "unit": "japan:1:CHAPTER I. THE JAPANESE ARCHIPELAGO.",
+          "line_start": 149,
+          "line_end": 586,
+          "status": "read",
+          "cards": 39,
+          "note": "본문 전체 확인. 그림 설명은 제외; 저자의 인종적 서술과 전승은 주장으로 표기."
+        },
+        {
+          "unit": "japan:2:CHAPTER II. THE ORIGINAL AND SURVIVING RACES.",
+          "line_start": 587,
+          "line_end": 834,
+          "status": "read",
+          "cards": 6,
+          "note": "본문 전체 확인. 그림 설명은 제외; 저자의 인종적 서술과 전승은 주장으로 표기."
+        },
+        {
+          "unit": "japan:3:CHAPTER III. MYTHS AND LEGENDS.",
+          "line_start": 835,
+          "line_end": 1289,
+          "status": "read",
+          "cards": 36,
+          "note": "본문 전체 확인. 그림 설명은 제외; 저자의 인종적 서술과 전승은 주장으로 표기. 고지키 완성 연도는 원저 제3장의 711년과 제5장의 712년이 서로 다름."
+        },
+        {
+          "unit": "japan:4:CHAPTER IV. FOUNDING THE EMPIRE.",
+          "line_start": 1290,
+          "line_end": 1969,
+          "status": "read",
+          "cards": 55,
+          "note": "본문 전체 확인. 그림 설명 제외; 초대 군주 연대와 한반도 정복 및 기원에 관한 원저 서술은 전승·저자 주장으로 구분."
+        },
+        {
+          "unit": "japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES.",
+          "line_start": 1970,
+          "line_end": 2788,
+          "status": "read",
+          "cards": 57,
+          "note": "본문 전체 확인. 그림 설명 제외; 초대 군주 연대와 한반도 정복 및 기원에 관한 원저 서술은 전승·저자 주장으로 구분. 고지키 완성 연도는 원저 제3장의 711년과 제5장의 712년이 서로 다름."
+        }
+      ],
+      "coverage_gaps": [],
+      "coverage_overlaps": [],
+      "not_read_intervals": []
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "japan",
+        "segment": "japan-2",
+        "commit": "ea4a7c666a690c06fe4799cea4bc94d09cc84264",
+        "path": "docs/research/history-textbooks/japan/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/29798",
+        "line_start": 2789,
+        "line_end": 5403,
+        "chapters": [
+          "japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN.",
+          "japan:7:CHAPTER VII. EMPEROR AND SHŌGUN.",
+          "japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA.",
+          "japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI.",
+          "japan:10:CHAPTER X. THE FOUNDING OF THE TOKUGAWA SHŌGUNATE."
+        ],
+        "heads": [
+          [
+            2789,
+            "CHAPTER VI. THE MIDDLE AGES OF JAPAN."
+          ],
+          [
+            3493,
+            "CHAPTER VII. EMPEROR AND SHŌGUN."
+          ],
+          [
+            3877,
+            "CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA."
+          ],
+          [
+            4374,
+            "CHAPTER IX. TOYOTOMI HIDEYOSHI."
+          ],
+          [
+            5082,
+            "CHAPTER X. THE FOUNDING OF THE TOKUGAWA SHŌGUNATE."
+          ]
+        ],
+        "sha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e"
+      },
+      "input_file": "미게시-임시자료:history/japan-2.json",
+      "input_sha256": "8dda6b292f06af6f519ce82d4fdcfd32b1d506f82ec8af126d270e047d83a45b",
+      "candidate_count": 214,
+      "scope": {
+        "line_start": 2789,
+        "line_end": 5403,
+        "chapters": [
+          "japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN.",
+          "japan:7:CHAPTER VII. EMPEROR AND SHŌGUN.",
+          "japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA.",
+          "japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI.",
+          "japan:10:CHAPTER X. THE FOUNDING OF THE TOKUGAWA SHŌGUNATE."
+        ]
+      },
+      "coverage_worker_self_report": [
+        {
+          "unit": "japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN.",
+          "line_start": 2789,
+          "line_end": 3492,
+          "status": "read",
+          "cards": 64,
+          "note": "본문 전체를 읽음. 삽화 설명은 제외; 저자의 가치판단과 전승은 구분함."
+        },
+        {
+          "unit": "japan:7:CHAPTER VII. EMPEROR AND SHŌGUN.",
+          "line_start": 3493,
+          "line_end": 3876,
+          "status": "read",
+          "cards": 39,
+          "note": "본문 전체를 읽음. 인용문과 전승은 사건 서술과 구분하고 저자의 충의·정통론은 평가로 표시함."
+        },
+        {
+          "unit": "japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA.",
+          "line_start": 3877,
+          "line_end": 4373,
+          "status": "read",
+          "cards": 46,
+          "note": "본문 전체를 읽음. 삽화·제3자 원문 인용은 제외하고 핀투의 주장 및 저자의 추정은 분리함."
+        },
+        {
+          "unit": "japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI.",
+          "line_start": 4374,
+          "line_end": 5081,
+          "status": "read",
+          "cards": 45,
+          "note": "본문 전체를 읽음. 외부 사료 전문·삽화 설명 제외; 원저의 날짜·처형 방식·병력 수와 제국주의 시대 판단은 확정 사실로 취급하지 않음."
+        },
+        {
+          "unit": "japan:10:CHAPTER X. THE FOUNDING OF THE TOKUGAWA SHŌGUNATE.",
+          "line_start": 5082,
+          "line_end": 5403,
+          "status": "read",
+          "cards": 20,
+          "note": "본문 전체를 읽음. 국서 전문과 삽화 설명은 본문 대상에서 제외하고 저자의 인물 평가·주장과 전승을 구분함."
+        }
+      ],
+      "coverage_gaps": [],
+      "coverage_overlaps": [],
+      "not_read_intervals": []
+    },
+    {
+      "manifest": {
+        "kind": "history",
+        "country": "japan",
+        "segment": "japan-3",
+        "commit": "ea4a7c666a690c06fe4799cea4bc94d09cc84264",
+        "path": "docs/research/history-textbooks/japan/source-en.txt",
+        "url": "https://www.gutenberg.org/ebooks/29798",
+        "line_start": 5404,
+        "line_end": 8596,
+        "chapters": [
+          "japan:11:CHAPTER XI. CHRISTIANITY IN THE SEVENTEENTH CENTURY.",
+          "japan:12:CHAPTER XII. FEUDALISM IN JAPAN.",
+          "japan:13:CHAPTER XIII. COMMODORE PERRY AND WHAT FOLLOWED.",
+          "japan:14:CHAPTER XIV. REVOLUTIONARY PRELUDES.",
+          "japan:15:CHAPTER XV. THE RESTORED EMPIRE."
+        ],
+        "heads": [
+          [
+            5404,
+            "CHAPTER XI. CHRISTIANITY IN THE SEVENTEENTH CENTURY."
+          ],
+          [
+            6003,
+            "CHAPTER XII. FEUDALISM IN JAPAN."
+          ],
+          [
+            6717,
+            "CHAPTER XIII. COMMODORE PERRY AND WHAT FOLLOWED."
+          ],
+          [
+            7298,
+            "CHAPTER XIV. REVOLUTIONARY PRELUDES."
+          ],
+          [
+            7950,
+            "CHAPTER XV. THE RESTORED EMPIRE."
+          ]
+        ],
+        "sha256": "7fa76392800e41a4a4273dcf0322d6a3f6909b7d744083a6100f6d168763189e"
+      },
+      "input_file": "미게시-임시자료:history/japan-3.json",
+      "input_sha256": "29c66eebcafd54b6ab491238a63efe446565c5c07548821aa5cff0796bda3938",
+      "candidate_count": 172,
+      "scope": {
+        "line_start": 5404,
+        "line_end": 8596,
+        "chapters": [
+          "japan:11",
+          "japan:12",
+          "japan:13",
+          "japan:14",
+          "japan:15"
+        ]
+      },
+      "coverage_worker_self_report": [
+        {
+          "unit": "japan:11",
+          "line_start": 5404,
+          "line_end": 6002,
+          "status": "read",
+          "cards": 35,
+          "note": "본문 전부 검토. 삽화 설명과 인용된 제3자 1차 자료 전문은 제외."
+        },
+        {
+          "unit": "japan:12",
+          "line_start": 6003,
+          "line_end": 6716,
+          "status": "read",
+          "cards": 34,
+          "note": "본문 전부 검토. 삽화 설명과 제3자 1차 자료 전문 제외."
+        },
+        {
+          "unit": "japan:13",
+          "line_start": 6717,
+          "line_end": 7297,
+          "status": "read",
+          "cards": 22,
+          "note": "본문 전체 검토. 삽화와 제3자 1차 사료 인용 전문은 추출에서 제외."
+        },
+        {
+          "unit": "japan:14",
+          "line_start": 7298,
+          "line_end": 7949,
+          "status": "read",
+          "cards": 39,
+          "note": "본문 전체 검토. 삽화와 제3자 1차 사료 인용 전문은 추출에서 제외."
+        },
+        {
+          "unit": "japan:15",
+          "line_start": 7950,
+          "line_end": 8596,
+          "status": "read",
+          "cards": 42,
+          "note": "본문 전체 검토. 삽화 설명과 제3자 1차 사료 전문 제외. 원서의 연대 및 제국주의 관점은 독립 검증 전 초안임."
+        }
+      ],
+      "coverage_gaps": [],
+      "coverage_overlaps": [],
+      "not_read_intervals": []
+    }
+  ],
+  "coverage_summary": {
+    "assigned_intervals": [
+      [
+        149,
+        2788
+      ],
+      [
+        2789,
+        5403
+      ],
+      [
+        5404,
+        8596
+      ]
+    ],
+    "interval_relationship": "149–2788, 2789–5403, 5404–8596는 인접하며 중복·빈 구간 없음",
+    "pending_unread_intervals": [],
+    "same_source_refills_in_manifest": [],
+    "refill_note": "입력 3개 모두 read 자기보고이므로 대체해야 할 pending/unread 없음; 이름에 japan이 들어간 중국 전쟁 보충은 다른 국가·원전이므로 제외.",
+    "caveat": "read는 추출 워커 자기보고이며 완독·전수 추출 또는 각 주장과 원문의 일치에 대한 독립 증명이 아님. 삽화 설명 및 일부 제3자 인용 전문 제외."
+  },
+  "counts": {
+    "input_files": 3,
+    "input_candidates": 579,
+    "output_representative_cards": 579,
+    "merged_duplicate_candidates": 0,
+    "preserved_input_candidates": 579,
+    "unprocessed_input_candidates": 0,
+    "equation": "579 = 579 + 0; 모든 입력 원문 후보의 title/body/type/key/units/lines 대조 일치",
+    "types": {
+      "location": 93,
+      "character": 261,
+      "other": 4,
+      "event": 109,
+      "rule": 45,
+      "object": 36,
+      "organization": 31
+    }
+  },
+  "duplicate_policy": "자동 병합 없음. 동일 key·제목 및 유형 또는 기존 제목 일치는 중복 가능성만 표시하며 서로 다른 근거·서술과 전승을 모두 보존; 동명이인과 다른 전승을 확정적으로 합치지 않음.",
+  "duplicate_review": {
+    "same_title_and_type_groups": [
+      {
+        "title": "교토",
+        "type": "location",
+        "candidates": [
+          {
+            "segment": "japan-1",
+            "key": "location-kyoto"
+          },
+          {
+            "segment": "japan-2",
+            "key": "location-kyoto"
+          }
+        ]
+      },
+      {
+        "title": "덴무천황",
+        "type": "character",
+        "candidates": [
+          {
+            "segment": "japan-1",
+            "key": "character-emperor-temmu"
+          },
+          {
+            "segment": "japan-2",
+            "key": "character-emperor-tenmu"
+          }
+        ]
+      },
+      {
+        "title": "다자이후",
+        "type": "location",
+        "candidates": [
+          {
+            "segment": "japan-1",
+            "key": "location-dazaifu"
+          },
+          {
+            "segment": "japan-2",
+            "key": "location-dazaifu"
+          }
+        ]
+      },
+      {
+        "title": "시모노세키해협",
+        "type": "location",
+        "candidates": [
+          {
+            "segment": "japan-1",
+            "key": "location-shimonoseki-strait"
+          },
+          {
+            "segment": "japan-3",
+            "key": "location-shimonoseki-strait"
+          }
+        ]
+      },
+      {
+        "title": "고니시유키나가",
+        "type": "character",
+        "candidates": [
+          {
+            "segment": "japan-2",
+            "key": "character-konishi-yukinaga"
+          },
+          {
+            "segment": "japan-3",
+            "key": "character-konishi-yukinaga"
+          }
+        ]
+      },
+      {
+        "title": "다카야마우콘",
+        "type": "character",
+        "candidates": [
+          {
+            "segment": "japan-2",
+            "key": "character-takayama-ukon"
+          },
+          {
+            "segment": "japan-3",
+            "key": "character-takayama-justo-ukon"
+          }
+        ]
+      },
+      {
+        "title": "도쿠가와이에야스",
+        "type": "character",
+        "candidates": [
+          {
+            "segment": "japan-2",
+            "key": "character-tokugawa-ieyasu"
+          },
+          {
+            "segment": "japan-3",
+            "key": "character-tokugawa-ieyasu"
+          }
+        ]
+      },
+      {
+        "title": "도쿠가와히데타다",
+        "type": "character",
+        "candidates": [
+          {
+            "segment": "japan-2",
+            "key": "character-tokugawa-hidetada"
+          },
+          {
+            "segment": "japan-3",
+            "key": "character-tokugawa-hidetada"
+          }
+        ]
+      },
+      {
+        "title": "에도성",
+        "type": "location",
+        "candidates": [
+          {
+            "segment": "japan-2",
+            "key": "location-edo-castle"
+          },
+          {
+            "segment": "japan-3",
+            "key": "location-yedo-castle"
+          }
+        ]
+      },
+      {
+        "title": "일본예수회선교단",
+        "type": "organization",
+        "candidates": [
+          {
+            "segment": "japan-2",
+            "key": "organization-jesuit-mission-japan"
+          },
+          {
+            "segment": "japan-3",
+            "key": "organization-society-of-jesus-japan"
+          }
+        ]
+      }
+    ],
+    "same_key_and_type_groups": [
+      {
+        "key": "location-kyoto",
+        "type": "location",
+        "candidates": [
+          {
+            "segment": "japan-1",
+            "key": "location-kyoto"
+          },
+          {
+            "segment": "japan-2",
+            "key": "location-kyoto"
+          }
+        ]
+      },
+      {
+        "key": "character-empress-gemmyo",
+        "type": "character",
+        "candidates": [
+          {
+            "segment": "japan-1",
+            "key": "character-empress-gemmyo"
+          },
+          {
+            "segment": "japan-2",
+            "key": "character-empress-gemmyo"
+          }
+        ]
+      },
+      {
+        "key": "location-dazaifu",
+        "type": "location",
+        "candidates": [
+          {
+            "segment": "japan-1",
+            "key": "location-dazaifu"
+          },
+          {
+            "segment": "japan-2",
+            "key": "location-dazaifu"
+          }
+        ]
+      },
+      {
+        "key": "location-shimonoseki-strait",
+        "type": "location",
+        "candidates": [
+          {
+            "segment": "japan-1",
+            "key": "location-shimonoseki-strait"
+          },
+          {
+            "segment": "japan-3",
+            "key": "location-shimonoseki-strait"
+          }
+        ]
+      },
+      {
+        "key": "character-konishi-yukinaga",
+        "type": "character",
+        "candidates": [
+          {
+            "segment": "japan-2",
+            "key": "character-konishi-yukinaga"
+          },
+          {
+            "segment": "japan-3",
+            "key": "character-konishi-yukinaga"
+          }
+        ]
+      },
+      {
+        "key": "character-tokugawa-ieyasu",
+        "type": "character",
+        "candidates": [
+          {
+            "segment": "japan-2",
+            "key": "character-tokugawa-ieyasu"
+          },
+          {
+            "segment": "japan-3",
+            "key": "character-tokugawa-ieyasu"
+          }
+        ]
+      },
+      {
+        "key": "character-tokugawa-hidetada",
+        "type": "character",
+        "candidates": [
+          {
+            "segment": "japan-2",
+            "key": "character-tokugawa-hidetada"
+          },
+          {
+            "segment": "japan-3",
+            "key": "character-tokugawa-hidetada"
+          }
+        ]
+      }
+    ],
+    "cards_with_existing_title_matches": 17,
+    "cards_with_input_matches": 22
+  },
+  "id_policy": {
+    "algorithm": "UUIDv5",
+    "namespace": "기존 worldId 8c3a276f-dda5-5b5d-89da-55221ee3d710",
+    "name": "STORYFORK/history-review/japan/{segment}/{candidate_key}",
+    "new_world_created": false
+  },
+  "card_files": [
+    {
+      "file": "cards-001.json",
+      "count": 300,
+      "sha256": "cbc90e52d4a406f9f3824ec7ec9af7190081b4d9146a52770caef0d91d6936dc",
+      "bytes": 375588
+    },
+    {
+      "file": "cards-002.json",
+      "count": 279,
+      "sha256": "cbfc2bf5ee6f2d8e771fdfe1c0d08a3619fe0cc7b9109531acba7bccab35c440",
+      "bytes": 342377
+    }
+  ],
+  "validation": {
+    "json_round_trip": true,
+    "source_sha256_matches_manifest": true,
+    "per_segment_keys_unique": true,
+    "generated_ids_unique_and_disjoint_from_compared_existing_ids": true,
+    "utf16_title_limit": 200,
+    "utf16_body_limit": 3000,
+    "utf16_limits_passed": true,
+    "nonempty_keys_fields": true,
+    "source_anchor_within_reported_unit": true,
+    "source_author_and_url_in_all_bodies": true,
+    "source_correspondence_independent_validation": "미실시",
+    "coverage_counts_match_source_units": true,
+    "source_lines_outside_assigned_units": 0,
+    "quarantine": [],
+    "caveat": "구조·행 범위 검사만 수행; 역사 사실·원전의 근거 일치·권리·인물 실재 여부를 전수 검증하지 않음."
+  },
+  "rights_and_limits": [
+    "기존 역사 README: 근거·권리 미확인 연구 샘플이며 원저 귀속·공개 및 감수 한계를 유지한다. 원저·개별 번역·관할별 권리와 제3자 자료 권리는 별도 검토한다.",
+    "Project Gutenberg 이용 고지와 배포 지역별 권리는 별도 확인 필요. 한국어 요약은 비공식·미검증이며 역사적 사실의 독립 승인이 아니다.",
+    "원저의 제국주의·인종·민족·종교 서열화와 식민주의적 해석은 사실이나 지배의 정당성으로 채택하지 않는다. 건국·황실 신적 기원은 전승으로 취급하며 일차 사료 및 현대 연구와 대조가 필요하다.",
+    "제3장 711년과 제5장 및 제6장 712년의 고사기 완성 연도 불일치는 해결되지 않았다.",
+    "현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다. 이 검토 후보는 기존 studio 28개와 합계 607개로 단순 산술상 이전 1,000개 기준 이하지만 중복·서비스 적용은 검토하지 않았고 DB에 적재하지 않았다. 검토 chunk는 세계관 분할이나 적재가 아니다.",
+    "원저 서술 종점은 1889년 헌법 공포 및 1890년 의회 소집 예고이며 모든 시대·집단을 망라하지 않는다. 20–21세기 역사와 일본어·한문 원전, 전수 번역 및 전문 역사 감수는 남아 있다."
+  ],
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

@@ -143,7 +143,7 @@ class WorkWorldHttpIntegrationTest {
                 val beyond=json(anonymous("$wiki?upto=5"))
                 assertEquals(1,beyond.path("upto").asInt());assertEquals(1,beyond.path("cards").size())
 
-                // 2화를 발행하면 2화 카드와 두 카드 사이의 관계가 보인다. 3화 카드·회차 없는 카드·값이 글자인 카드와 그쪽 관계, 관계 설명 원문은 나오지 않는다.
+                // 2화를 발행하면 2화 카드와 두 카드 사이의 관계 및 그 근거가 보인다. 보이지 않는 카드와 그쪽 관계는 나오지 않는다.
                 publishNext(mine,2)
                 val two=anonymous(wiki);val twoView=json(two)
                 assertEquals(2,twoView.path("upto").asInt())
@@ -152,7 +152,8 @@ class WorkWorldHttpIntegrationTest {
                 val edge=twoView.path("relationships").get(0)
                 assertEquals(together.id.toString(),edge.path("id").asString());assertEquals(first.id.toString(),edge.path("sourceCardId").asString())
                 assertEquals(second.id.toString(),edge.path("targetCardId").asString());assertEquals("동료",edge.path("label").asString())
-                for(leak in listOf(third.id.toString(),never.id.toString(),text.id.toString(),"관계 설명 원문","나중에 만나는 사이","숨은 사이")) assertFalse(two.body().contains(leak),leak)
+                assertEquals("관계 설명 원문",edge.path("body").asString());assertTrue(edge.path("direction").isNull)
+                for(leak in listOf(third.id.toString(),never.id.toString(),text.id.toString(),"나중에 만나는 사이","숨은 사이")) assertFalse(two.body().contains(leak),leak)
                 // 회차 화면에서 온 요청(1화 기준)에는 2화 카드가 없다.
                 assertEquals(listOf(first.id.toString()),json(anonymous("$wiki?upto=1")).path("cards").values().map { it.path("id").asString() })
                 for(bad in listOf("0","-1","x")) assertEquals(422,anonymous("$wiki?upto=$bad").statusCode())
@@ -160,6 +161,12 @@ class WorkWorldHttpIntegrationTest {
                 assertTrue(listOf(401,403).contains(send(wiki,actor=null,method="POST",body=emptyMap<String,String>()).statusCode()))
                 // 세계관 공개(다른 이용자 대상)와 독자 공개는 별개다: 이 세계관은 비공개라 공개 세계관 조회에는 없다.
                 assertEquals(404,anonymous("/api/v1/public/world-studios/$world").statusCode())
+                // 세계관을 공개하면 상세에 연결된 공개 소설의 최소 정보가 실린다(표지 없음). 목록 응답은 그대로다(#329).
+                assertEquals(200,send("$studios/$world/publication",method="PUT",body=mapOf("visibility" to "public","genre" to null)).statusCode())
+                val publicWorld="/api/v1/public/world-studios/$world"
+                val shownWork=json(anonymous(publicWorld)).path("linkedWork")
+                assertEquals(mine,shownWork.path("id").asString());assertEquals("연결할 소설",shownWork.path("title").asString());assertFalse(shownWork.path("hasCover").asBoolean())
+                assertTrue(json(anonymous("/api/v1/public/world-studios")).path("items").values().none { it.has("linkedWork") })
 
                 // 확정하지 않은 초안의 변경(3화 카드를 1화로 당김)은 독자에게 반영되지 않고, 저장 응답에도 연결이 그대로 있다.
                 val edited=send("$studios/$world/draft",method="PUT",body=EditWorldDraftRequest(2,create.name,"설명",listOf(third.copy(semanticMetadata=mapOf("revealFromEpisode" to 1))),key="draft-only"))
@@ -179,8 +186,11 @@ class WorkWorldHttpIntegrationTest {
                 val empty=json(anonymous(wiki))
                 assertTrue(empty.path("worldId").isNull);assertEquals(0,empty.path("cards").size());assertEquals(2,empty.path("upto").asInt())
                 assertTrue(json(send("$studios/$world")).path("linkedWorkId").isNull)
+                assertTrue(json(anonymous(publicWorld)).path("linkedWork").isNull)
                 assertEquals(200,link(another,world).statusCode())
                 assertEquals(409,link(mine,world).statusCode())
+                // 공개되지 않은 소설(발행한 적 없음)이 연결돼 있으면 공개 세계관 상세는 그 존재를 드러내지 않는다.
+                assertTrue(json(anonymous(publicWorld)).path("linkedWork").isNull)
 
                 // 작품을 삭제하면 연결이 풀려(UNIQUE 칼럼을 삭제된 작품이 쥐지 않는다) 그 세계관을 다시 연결할 수 있고, 삭제된 작품의 위키는 404다.
                 assertEquals(204,send("/api/v1/works/$another",method="DELETE").statusCode())
@@ -188,6 +198,7 @@ class WorkWorldHttpIntegrationTest {
                 assertEquals(404,anonymous("/api/v1/public/works/$another/world-cards").statusCode())
                 assertEquals(200,link(mine,world).statusCode())
                 assertEquals(2,json(anonymous(wiki)).path("cards").size())
+                assertEquals(mine,json(anonymous(publicWorld)).path("linkedWork").path("id").asString())
             }
         }
     }

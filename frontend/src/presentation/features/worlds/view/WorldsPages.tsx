@@ -1,17 +1,20 @@
-import { Component, lazy, Suspense, useId, useRef, type KeyboardEvent, type ReactNode, type Ref } from 'react'
+import { Component, lazy, Suspense, useId, useRef, useState, type KeyboardEvent, type ReactNode, type Ref } from 'react'
 import { useParams } from 'react-router'
 
 import { useAppSelector } from '../../../../app/store'
 import type { PublicWorld, PublicWorldLineage, PublicWorldRef, PublicWorldSummary } from '../../../../domain/entities/publicWorld'
+import { coverSrc } from '../../../shared/cover'
 import { Go } from '../../../shared/Go'
 import { useScreenId } from '../../../shared/screenIds'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { CARD_COLORS } from '../../../shared/worldBoard'
+import { PageControls } from '../../../shared/PageControls'
+import { pageItems } from '../../../shared/pageItems'
 import { WORLD_GENRES, genreLabel } from '../../../shared/worldGenres'
 import { useWorldDetailViewModel, useWorldsViewModel } from '../viewmodel/useWorldsViewModel'
 import { GENRE_COLORS, LINEAGE_COLORS, atlasFeatures, type AtlasNode, type WorldAtlas } from '../worldAtlas'
-import { DETAIL_TABS, type DetailGraph, type DetailNode, type DetailTab } from '../worldDetail'
+import { DETAIL_TABS, detailEndpoint, graphNeighbors, graphPage, type DetailGraph, type DetailNode, type DetailTab } from '../worldDetail'
 import { WorldBook } from './WorldBook'
 import { WorldOverview } from './WorldOverview'
 import { DemoNotice, LoadFailed, WorldCover, WorldLoading } from './WorldParts'
@@ -28,8 +31,8 @@ const LEFT = 'M15 5l-7 7 7 7'
 const RIGHT = 'M9 5l7 7-7 7'
 
 /** 홈 `BookCard`와 같은 책 카드. `badge`는 표지 오른쪽 아래 알약이다. */
-const WorldCard = ({ w, k, badge }: { w: PublicWorldRef; k: string; badge?: string }) => (
-  <Go to={`/worlds/${w.id}`} className="bk prox"><WorldCover w={w} k={k} badge={badge} /><h3 className="hk">{w.name}</h3><small>{meta(w)}</small></Go>
+const WorldCard = ({ w, badge }: { w: PublicWorldRef; badge?: string }) => (
+  <Go to={`/worlds/${w.id}`} className="bk prox"><WorldCover w={w} badge={badge} /><h3 className="hk">{w.name}</h3><small>{meta(w)}</small>{'relationshipCount' in w && w.relationshipCount === null && <small>관계 수 확인 불가</small>}</Go>
 )
 
 /** 캔버스를 내려받거나 그리다 실패해도 이 화면의 나머지는 그대로 쓰게 한다. `message`는 그때 대신 보일 안내(찾을 다른 길)다. */
@@ -121,7 +124,7 @@ function LiveRank({ ranked, basis, onMore }: { ranked: readonly PublicWorldSumma
 }
 
 /** 홈 '오늘, 스토리포크의 발견'과 같은 가로 선반. 화살표는 좁은 화면에서 CSS가 숨기고 손가락 스크롤을 쓴다. 동작 줄이기 설정이면 화살표가 부드럽게 넘기지 않고 바로 옮긴다. */
-function WorldRail({ title, worlds, k }: { title: string; worlds: readonly PublicWorldSummary[]; k: string }) {
+function WorldRail({ title, worlds }: { title: string; worlds: readonly PublicWorldSummary[] }) {
   const row = useRef<HTMLDivElement>(null)
   const scroll = (d: number) => row.current?.scrollBy({ left: d * row.current.clientWidth * 0.8, behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
   return (
@@ -129,7 +132,7 @@ function WorldRail({ title, worlds, k }: { title: string; worlds: readonly Publi
       <div className="sec-h"><h2>{title}</h2></div>
       <div className="shelf">
         <button type="button" className="arr l" aria-label={`${title} 이전 보기`} onClick={() => scroll(-1)}><Chev d={LEFT} /></button>
-        <div className="row" ref={row}>{worlds.map((w) => <WorldCard key={w.id} w={w} k={k} />)}</div>
+        <div className="row" ref={row}>{worlds.map((w) => <WorldCard key={w.id} w={w} />)}</div>
         <button type="button" className="arr r" aria-label={`${title} 다음 보기`} onClick={() => scroll(1)}><Chev d={RIGHT} /></button>
       </div>
     </section>
@@ -152,7 +155,7 @@ function WorldGrid({ title, list, sectionRef }: { title: string; list: Listing; 
       </div>
       {list.isLoading ? <WorldLoading what="세계관 목록" />
         : list.isError ? <LoadFailed what="세계관 목록" onRetry={list.retry} />
-        : shown ? <div className="grid6">{list.worlds.map((w) => <WorldCard key={w.id} w={w} k="g" />)}</div>
+        : shown ? <div className="grid6">{list.worlds.map((w) => <WorldCard key={w.id} w={w} />)}</div>
         : <p className="muted" role="status">이 장르의 공개 세계관이 아직 없어요.</p>}
     </section>
   )
@@ -198,7 +201,7 @@ export function WorldsPage() {
               </div>
               {vm.filtered ? <WorldGrid title={vm.heading} list={vm.list} sectionRef={all} /> : (
                 <>
-                  <WorldRail title="새로 공개된 세계관" worlds={vm.newest} k="n" />
+                  <WorldRail title="새로 공개된 세계관" worlds={vm.newest} />
                   <WorldGrid title="세계관 모아 보기" list={vm.list} sectionRef={all} />
                 </>
               )}
@@ -235,17 +238,32 @@ function DetailTabBar({ tab, onTab }: { tab: DetailTab; onTab: (next: DetailTab)
  * 상세의 그래프 카드 한 장. 세계관 지도 카드와 같은 어두운 캔버스(`.atlas-stage`)·컨트롤·통계 줄이고 캔버스만 더 높다(데스크톱 460px·모바일 340px).
  * 마우스로만 쓰는 시각 탐색이라 같은 내용은 설정집 탭의 카드 목록과 카드 페이지가 글로 대신한다.
  */
-function GraphCard({ title, mode, data, summary, stats, legend, onOpen }: {
-  title: string; mode: 'setting' | 'people'; data: DetailGraph; summary: string; stats: string; legend?: ReactNode; onOpen: (node: DetailNode) => void
+function GraphCard({ title, mode, data, summary, stats, legend, onOpen, unavailable = false }: {
+  title: string; mode: 'setting' | 'people'; data: DetailGraph; summary: string; stats: string; legend?: ReactNode; onOpen: (node: DetailNode) => void; unavailable?: boolean
 }) {
   const heading = useId()
+  const [page, setPage] = useState(0)
+  const paged = pageItems(data.nodes.filter((n) => n.kind !== '세계관'), page, 50)
+  const [query, setQuery] = useState(''), [choicePage, setChoicePage] = useState(0), [anchor, setAnchor] = useState(''), [neighborPage, setNeighborPage] = useState(0)
+  const choices = pageItems(data.nodes.filter((n) => n.kind !== '세계관' && n.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())), choicePage, 50)
+  const anchorNode = data.nodes.find((n) => n.id === anchor)
+  const neighbors = new Set(data.links.filter((l) => l.kind === 'link' && (detailEndpoint(l.source) === anchor || detailEndpoint(l.target) === anchor)).map((l) => detailEndpoint(l.source) === anchor ? detailEndpoint(l.target) : detailEndpoint(l.source)))
+  const neighborPages = pageItems([...neighbors], neighborPage, 49)
+  const shown = anchorNode ? graphNeighbors(data, anchor, neighborPages.page, 49) : graphPage(data, paged.page, 50)
+  const [edgePage, setEdgePage] = useState(0)
+  const edges = pageItems(shown.links.filter((l) => l.kind === 'link'), edgePage, 20)
+  const pairs = new Map<string, typeof edges.items>()
+  for (const link of edges.items) { const key = [detailEndpoint(link.source), detailEndpoint(link.target)].sort().join('\0'); const group = pairs.get(key) ?? []; group.push(link); pairs.set(key, group) }
+  const curves = new Map<DetailGraph['links'][number], number>()
+  for (const group of pairs.values()) group.forEach((link, i) => curves.set(link, (detailEndpoint(link.source) < detailEndpoint(link.target) ? 1 : -1) * (i - (group.length - 1) / 2) * Math.min(0.4, 1 / Math.max(1, (group.length - 1) / 2))))
+  const graph = { nodes: shown.nodes, links: [...shown.links.filter((l) => l.kind === 'world'), ...edges.items.map((link) => ({ ...link, curve: curves.get(link) }))] }
   return (
     <section className="worlds-graph" aria-labelledby={heading}>
       <div className="atlas-stage">
         <h2 id={heading} className="atlas-title">{title}</h2>
         <AtlasBoundary message="그래프를 표시하지 못했어요. 설정집 탭에서 설정 카드를 열어 같은 내용을 글로 읽을 수 있어요.">
           <Suspense fallback={<p className="atlas-loading" role="status">그래프를 불러오고 있어요.</p>}>
-            <WorldGraphCanvas data={data} mode={mode} summary={summary} onOpen={onOpen} />
+            <WorldGraphCanvas data={graph} mode={mode} summary={summary} onOpen={onOpen} />
           </Suspense>
           <div className="atlas-info">
             <p className="atlas-stats">{stats}</p>
@@ -253,6 +271,11 @@ function GraphCard({ title, mode, data, summary, stats, legend, onOpen }: {
           </div>
         </AtlasBoundary>
       </div>
+      <label>관계 볼 설정 검색 <input type="search" className="inp" value={query} onChange={(e) => { setQuery(e.target.value); setChoicePage(0) }} /></label>
+      <div role="group" aria-label="관계 볼 설정">{choices.items.map((node) => <button type="button" className="btn sm" key={node.id} aria-pressed={anchor === node.id} onClick={() => { setAnchor(node.id); setNeighborPage(0); setEdgePage(0) }}>{node.name}</button>)}</div>
+      <PageControls page={choices.page} pages={choices.pages} onPage={setChoicePage} />
+      {anchorNode ? <><p className="small muted">{unavailable ? '연결 정보를 불러오지 못했어요.' : `${anchorNode.name}의 연결된 설정 ${neighbors.size}개를 보여요.`}</p><button className="btn sm" type="button" onClick={() => { setAnchor(''); setEdgePage(0) }}>전체 그래프로</button><PageControls page={neighborPages.page} pages={neighborPages.pages} onPage={(next) => { setNeighborPage(next); setEdgePage(0) }} /></> : <><PageControls page={paged.page} pages={paged.pages} onPage={(next) => { setPage(next); setEdgePage(0) }} />{paged.pages > 1 && <p className="small muted">설정을 검색해 선택하면 다른 페이지의 연결도 그래프로 볼 수 있어요.</p>}</>}
+      {edges.pages > 1 && <><p className="small muted">현재 카드의 연결을 페이지별로 보여요.</p><PageControls page={edges.page} pages={edges.pages} onPage={setEdgePage} /></>}
       <p className="sr-only">그래프는 눈으로 훑어보는 용도예요. 같은 내용은 설정집 탭의 설정 카드에서 글로 읽을 수 있어요.</p>
     </section>
   )
@@ -271,19 +294,29 @@ function Shelf({ title, empty, children }: { title: string; empty?: string; chil
 }
 
 /**
- * 이 세계관을 쓴 작품(데모). 소설-세계관 연결은 있지만(DEC-46) 공개 세계관 API가 연결된 소설을 주지 않아(`works`가 없는 실제 모드) '연결된 소설 표시 준비 중' 안내만 보이고,
- * 데모는 실제 작품이 아니라 링크하지 않고(가짜 이동 금지) 표지에 '데모 작품'을 단다.
+ * 이 세계관을 쓴 작품. 실제 모드는 서버가 준 연결된 공개 소설(`linkedWork`, DEC-46 1:1) 하나를 책 카드로 보이고 누르면 그 작품 상세(`/work/:id`)로 간다.
+ * 서버는 소설이 공개 작품일 때만 주므로(연결 없음·비공개·제한·삭제는 null) 없으면 빈 상태 안내다. 표지는 소설의 공개 표지(`hasCover`)이거나 기본 작품 표지다.
+ * 데모(`works`)는 실제 작품이 아니라 링크하지 않고(가짜 이동 금지) 표지에 '데모 작품'을 단다.
  */
 function WorldWorks({ world }: { world: PublicWorld }) {
+  const linked = world.linkedWork
   return (
-    <Shelf title="이 세계관을 쓴 작품" empty={world.works ? '아직 이 세계관으로 쓴 작품이 없어요' : '연결된 소설 표시 준비 중'}>
-      {(world.works ?? []).map((work, i) => (
-        <div key={work.title} className="bk">
-          <WorldCover w={{ id: `${world.id}-work${i}`, genre: work.genre }} k="w" badge="데모 작품" />
-          <h3 className="hk">{work.title}</h3>
-          <small>{work.author} · {work.episodes}화</small>
-        </div>
-      ))}
+    <Shelf title="이 세계관을 쓴 작품" empty={world.works ? '아직 이 세계관으로 쓴 작품이 없어요' : '이 세계관으로 공개된 소설이 아직 없어요'}>
+      {linked
+        ? [(
+          <Go key={linked.id} to={`/work/${linked.id}`} className="bk prox">
+            <div className="cov"><img src={coverSrc(linked.hasCover ? `/api/v1/public/works/${linked.id}/cover/content` : null)} alt="" loading="lazy" /></div>
+            <h3 className="hk">{linked.title}</h3>
+            <small>{linked.authorNickname}</small>
+          </Go>
+        )]
+        : (world.works ?? []).map((work, i) => (
+          <div key={work.title} className="bk">
+            <WorldCover w={{ id: `${world.id}-work${i}`, genre: work.genre }} badge="데모 작품" />
+            <h3 className="hk">{work.title}</h3>
+            <small>{work.author} · {work.episodes}화</small>
+          </div>
+        ))}
     </Shelf>
   )
 }
@@ -297,7 +330,7 @@ function ConnectedWorlds({ lineage }: { lineage?: PublicWorldLineage }) {
   const derived = lineage ? lineage.children.map(({ kind, ...w }) => ({ w, label: kind === 'derive' ? '파생' : '조합' })) : []
   const items = [...sources, ...derived]
   if (!items.length) return null
-  return <Shelf title="연결된 세계관">{items.map(({ w, label }) => <WorldCard key={`${label}-${w.id}`} w={w} k="r" badge={label} />)}</Shelf>
+  return <Shelf title="연결된 세계관">{items.map(({ w, label }) => <WorldCard key={`${label}-${w.id}`} w={w} badge={label} />)}</Shelf>
 }
 
 /**
@@ -305,7 +338,7 @@ function ConnectedWorlds({ lineage }: { lineage?: PublicWorldLineage }) {
  * 개요 탭(`WorldOverview`)이 세계관 설명과 정보 상자(표지·장르·작가·설정 카드 수·데모의 파생·조합 출처)를 보인다.
  * 설정 가져오기(DEC-46)는 헤더에 두지 않는다: 로그인한 회원은 설정집 게시판에서 고른 설정을, 설정 카드 페이지에서 그 카드를 내 세계관 초안에 바로 더한다(`WorldAddMenu`).
  * 설정집은 카테고리별 설정 카드 게시판이고, 그래프의 카드·인물 노드를 누르면 그 설정 카드의 페이지(`/worlds/:id/cards/:cardId`)로 이동한다.
- * 관계를 불러오지 못했으면(`relationshipStatus: unavailable`) 인물관계도 탭이 빈 그래프와 구분해 알린다. 어느 탭이든 탭 영역 아래에 '이 세계관을 쓴 작품' 선반(공개 API가 연결된 소설을 주지 않는 실제 모드는 표시 준비 중 안내)과
+ * 관계를 불러오지 못했으면(`relationshipStatus: unavailable`) 인물관계도 탭이 빈 그래프와 구분해 알린다. 어느 탭이든 탭 영역 아래에 '이 세계관을 쓴 작품' 선반(실제 모드는 서버가 준 연결된 공개 소설, 없으면 빈 상태 안내)과
  * 데모의 '연결된 세계관' 선반이 있다. 불러오는 중·실패(다시 시도)·비공개·없는 세계관(찾을 수 없음)을 따로 그린다.
  */
 export function WorldDetailPage() {
@@ -344,7 +377,7 @@ export function WorldDetailPage() {
                             stats={`인물 ${detail.people.nodes.length}명 · 관계 ${linkCount(detail.people)}개`} />}
                   </>
                 ) : (
-                  <GraphCard title="설정 그래프" mode="setting" data={detail.setting} onOpen={openNode}
+                  <GraphCard title="설정 그래프" mode="setting" data={detail.setting} onOpen={openNode} unavailable={unavailable}
                     summary={unavailable ? `${world.name}의 설정 카드 ${world.cards.length}개 그래프(연결 정보를 불러오지 못함)` : `${world.name}의 설정 카드 ${world.cards.length}개가 ${linkCount(detail.setting)}개의 연결로 이어진 그래프`}
                     stats={`설정 카드 ${world.cards.length}개 · ${unavailable ? '연결 정보를 불러오지 못했어요' : `연결 ${linkCount(detail.setting)}개`}`}
                     legend={(

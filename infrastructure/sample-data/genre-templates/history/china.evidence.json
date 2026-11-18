@@ -1,0 +1,684 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "source-grounded-history-research-draft",
+  "country": "china",
+  "genre": "china_history",
+  "worldId": "d3c3b3bc-1ee5-5361-82bd-d2679a258a02",
+  "checked_date": "2026-11-13",
+  "status": "local-original-excerpts-verified; independent-historical-and-expert-review-pending",
+  "uuid_policy": {
+    "algorithm": "UUIDv5",
+    "namespace": "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
+    "world_name": "storyfork/history-research/v1/china/world",
+    "card_name_prefix": "storyfork/history-research/v1/china/card/"
+  },
+  "source_policy": {
+    "new_acquisition": false,
+    "translation_drafts_used_as_authority": false,
+    "fiction_added": false,
+    "images_captions_and_third_party_quotations_reused": false,
+    "source_agreement_is_not_historical_truth": true
+  },
+  "license": {
+    "id": "public-domain-in-USA-source; territorial-review-required",
+    "url": "https://www.gutenberg.org/ebooks/6708",
+    "notice": "Demetrius Charles Boulger, China. 보충장 표제 저자 Mayo W. Hazeltine. Project Gutenberg 6708: https://www.gutenberg.org/ebooks/6708 . 원문은 미국 퍼블릭 도메인 취급 자료이며, 세계 전체의 권리·정확한 인쇄본 판권을 별도로 보증하지 않는다. 기존 source-en.txt의 Project Gutenberg 이용 안내와 라이선스를 확인한다."
+  },
+  "sources": [
+    {
+      "file": "docs/research/history-textbooks/china/source-en.txt",
+      "sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+      "url": "https://www.gutenberg.org/ebooks/6708"
+    }
+  ],
+  "chapter_credits": [],
+  "cards": [
+    {
+      "card_id": "cf34f098-c252-5b47-8ab4-60f36d1766ea",
+      "key": "confucius",
+      "title": "공자: 정치 질서와 후대 전승",
+      "card_type": "character",
+      "era_or_scope": "고대 중국",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER I — THE EARLY AGES",
+          "line_start": 325,
+          "line_end": 343,
+          "excerpt": "Confucius was an official in the service of one of the great princes who\r\ndivided the governing power of China among themselves during the whole of\r\nthe seventh century before our era, which beheld the appearance of both of\r\nthese religious teachers and leaders. He was a trained administrator with\r\nlong experience when he urged upon his prince the necessity of reform, and\r\nadvocated a policy of union throughout the States. His exhortations were\r\nin vain, and so far ill-timed that he was obliged to resign the service of\r\none prince after another. In his day the authority of the Chow emperor had\r\nbeen reduced to the lowest point. Each prince was unto himself the supreme\r\nauthority. Yet one cardinal point of the policy of Confucius was\r\nsubmission to the emperor, as implicit obedience to the head of the State\r\nthroughout the country as was paid to the father of every Chinese\r\nhousehold. Although he failed to find a prince after his own heart, his\r\nexample and precepts were not thrown away, for in a later generation his\r\nreforms were executed, and down to the present day the best points in\r\nChinese government are based on his recommendations. If \"no intelligent\r\nmonarch arose\" in his time, the greatest emperors have since sought to\r\nconform with his usages and to rule after the ideal of the great\r\nphilosopher. His name and his teachings were perpetuated by a band of",
+          "excerpt_sha256": "65fd103dfc1c2caec04a920b45efec721adc2010a318fb68ed8a2ed2ac4de819",
+          "supports": "관직·개혁·정치 질서 및 후대 통치자들의 수용에 대한 저자의 서술"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER I",
+          "line_start": 343,
+          "line_end": 346,
+          "excerpt": "philosopher. His name and his teachings were perpetuated by a band of\r\ndevoted disciples, and the book which contained the moral and\r\nphilosophical axioms of Confucius passed into the classic literature of\r\nthe country and stood in the place of a Bible for the Chinese. The list of",
+          "excerpt_sha256": "0e1dd38de1a3ff937aee03a2f15e8974b0cd888fccada9d8e55e857c336a5075",
+          "supports": "제자와 전승에 대한 서술"
+        }
+      ],
+      "caveats": [
+        "원문의 연대·고전 귀속 오류 가능성이 있어 해당 세부는 제외했다."
+      ]
+    },
+    {
+      "card_id": "f9fef3f7-0962-542b-b587-0b38b2e692ca",
+      "key": "qin-centralization",
+      "title": "진의 통합과 중앙집권",
+      "card_type": "rule",
+      "era_or_scope": "진",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER I",
+          "line_start": 421,
+          "line_end": 433,
+          "excerpt": "In his civil administration Hwangti was aided by the minister Lisseh, who\r\nseems to have been a man of rare ability, and to have entered heartily\r\ninto all his master's schemes for uniting the empire. While Hwangti sat on\r\nthe throne with a naked sword in his hand, as the emblem of his authority,\r\ndispensing justice, arranging the details of his many campaigns, and\r\nsuperintending the innumerable affairs of his government, his minister was\r\nequally active in reorganizing the administration and in supporting his\r\nsovereign in his bitter struggle with the literary classes who advocated\r\narchaic principles, and whose animosity to the ruler was inflamed by the\r\ncontempt, not unmixed with ferocity, with which he treated them. The\r\nempire was divided into thirty-six provinces, and he impressed upon the\r\ngovernors the importance of improving communications within their\r\njurisdiction. Not content with this general precept, he issued a special",
+          "excerpt_sha256": "d76916073b4c0f6f0feb2855cfa2617b4fb6e0336b3919255604874ac1e14d48",
+          "supports": "진시황·이사·지방 행정과 교통"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER I",
+          "line_start": 437,
+          "line_end": 445,
+          "excerpt": "Imperial Rome. When advised to assign some portion of his power to his\r\nrelatives and high officials in the provinces he refused to repeat the\r\nblunders of his predecessors, and laid down the permanent truth that \"good\r\ngovernment is impossible under a multiplicity of masters.\" He centralized\r\nthe power in his own hands, and he drew up an organization for the civil\r\nservice of the State which virtually exists at the present day. The two\r\nsalient features in that organization are the indisputable supremacy of\r\nthe emperor and the non-employment of the officials in their native\r\nprovinces, and the experience of two thousand years has proved their",
+          "excerpt_sha256": "51f5b5465d9df306d0fd308511744990a4a6da6ae50607c81b35069cdbcf7579",
+          "supports": "중앙집권에 대한 원문 설명"
+        }
+      ],
+      "caveats": [
+        "현재 성제와 고대 군현제를 혼동하지 않는다."
+      ]
+    },
+    {
+      "card_id": "a35d8a06-07ab-5c7c-80b0-2e5e9b3d602c",
+      "key": "liu-bang",
+      "title": "유방: 한 왕조 창건의 서술",
+      "card_type": "character",
+      "era_or_scope": "진 말~한 초",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER II — THE FIRST NATIONAL DYNASTY",
+          "line_start": 633,
+          "line_end": 641,
+          "excerpt": "As the Chinese are still proud to call themselves the sons of Han, it will\r\nbe understood that the period covered by the Han rulers must be an\r\nimportant epoch in their history, and in more than one respect they were\r\nthe first national dynasty, When the successors of Tsin Chi Hwangti proved\r\nunable to keep the throne, the victorious general who profited by their\r\ndiscomfiture was named Liu Pang. He had been a trusted official of the\r\nEmperor Hwangti, but on finding that his descendants could not bear the\r\nburden of government, he resolved to take his own measures, and he lost no\r\ntime in collecting troops and in making a bid for popularity by",
+          "excerpt_sha256": "2db8eceecf18a7a555cb1767e02595126ac93324a2ef177a399c100616686fac",
+          "supports": "진 이후 유방의 등장"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER II",
+          "line_start": 646,
+          "line_end": 651,
+          "excerpt": "defeating another general named Pawang, who was also disposed to make a\r\nbid for supreme power. After this success Liu Pang was proclaimed emperor\r\nas Kao Hwangti, meaning Lofty and August Emperor, which has been shortened\r\ninto Kaotsou. He named his dynasty the Han, after the small state in which\r\nhe was born.\r\n",
+          "excerpt_sha256": "7e3d28fbb41e5817ec08db5f6fd348bfe93b5c7734c01a8ab3711234ca85ea53",
+          "supports": "황제 즉위와 한 왕조 명칭"
+        }
+      ],
+      "caveats": [
+        "예언·문학적 유추와 초기 관직·명칭 유래를 제외했다."
+      ]
+    },
+    {
+      "card_id": "d7bd0d10-d516-5415-bc3b-bd6cdc6e6bae",
+      "key": "tang",
+      "title": "당: 왕조 교체와 군사·행정의 분담",
+      "card_type": "organization",
+      "era_or_scope": "수 말~당 초",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER III — A LONG PERIOD OF DISUNION",
+          "line_start": 1444,
+          "line_end": 1456,
+          "excerpt": "There now ensues a break in the long period of disunion which had\r\nprevailed in China, and for a time the supreme authority of the emperor\r\nrecovered the general respect and vigor which by right belonged to it. The\r\ndeposer of the Souis was Liyuen, who some years before had been given the\r\ntitle of Prince of Tang. In the year A.D. 617 he proclaimed himself\r\nemperor under the style of Kaotsou, and he began his reign in an\r\nauspicious manner by proclaiming an amnesty and by stating his \"desire to\r\nfound his empire only on justice and humanity.\" While he devoted his\r\nattention to the reorganization of the administration at Singan, which he\r\nchose for his capital, his second son, Lichimin, was intrusted with the\r\ncommand of the army in the field, to which was assigned the task of\r\nsubjecting all the provinces. Lichimin proved himself a great commander,\r\nand his success was both rapid and unqualified. He was equally victorious",
+          "excerpt_sha256": "f5b1a6fbfc06ed8d899448123b0d8221676b1b85d48a9620426cdafe073d2e1e",
+          "supports": "이연·이세민·행정 재편과 군사 통합"
+        }
+      ],
+      "caveats": [
+        "원문의 617년 즉위 서술을 검증 없이 채택하지 않았다."
+      ]
+    },
+    {
+      "card_id": "eb9f52a1-3491-5ce7-87c7-7223af437919",
+      "key": "song",
+      "title": "송: 군 지휘권과 왕조 창건",
+      "card_type": "organization",
+      "era_or_scope": "송 초",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER IV — THE SUNGS AND THE KINS",
+          "line_start": 1923,
+          "line_end": 1930,
+          "excerpt": "become in consequence the idol of the soldiery. The ingenuity of later\r\nhistorians, rather than the credulity of his contemporaries, may have\r\ndiscovered the signs and portents which indicated that he was the chosen\r\nof Heaven; but his army had a simple and convincing method of deciding the\r\ndestiny of the empire. Like the legionaries of Rome, they exclaimed, \"The\r\nempire is without a master, and we wish to give it one. Who is more worthy\r\nof it than our general?\" Thus did Chow Kwang Yu become the Emperor Taitsou\r\nand the founder of the Sung dynasty.",
+          "excerpt_sha256": "36121c04df797e83f60c337ef05acd45707655e272d07d43371a186e58410575",
+          "supports": "군대 지지와 송 창건에 대한 서술"
+        }
+      ],
+      "caveats": [
+        "민족적 순수성 주장과 미검증 출생지 제외."
+      ]
+    },
+    {
+      "card_id": "30396de2-16e8-5681-b409-79e45c12edd5",
+      "key": "wang-anshi",
+      "title": "왕안석: 신법과 저자의 평가를 구분하기",
+      "card_type": "character",
+      "era_or_scope": "북송",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER IV",
+          "line_start": 2150,
+          "line_end": 2155,
+          "excerpt": "The career of Wanganchi, an eccentric and socialistic statesman, who\r\nwished to pose as a great national reformer, and who long possessed the\r\near and favor of his sovereign, lends an interest to the reign of the\r\nsecond Chintsong. Wanganchi did not possess the confidence or the\r\nadmiration of his brother officials, and subsequent writers have generally\r\ntermed him an impostor and a charlatan. But he may only have been a",
+          "excerpt_sha256": "b6ea3a96c692580c51e6b9a8c52329014c86b7aa475aec3a32b38f4b6790e1a5",
+          "supports": "개혁가에 대한 저자의 부정적 평가"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER IV",
+          "line_start": 2167,
+          "line_end": 2184,
+          "excerpt": "purpose cannot, however, be disputed. On being appointed to the post of\r\nchief minister he took in hand the application of his own project. He\r\nexempted the poor from all taxation. He allotted lands, and he supplied\r\nthe cultivators with seeds and implements. He also appointed local boards\r\nto superintend the efforts of the agricultural classes, and to give them\r\nassistance and advice. But this paternal government, this system of making\r\nthe state do what the individual ought to do for himself, did not work as\r\nit was expected. Those who counted on the agricultural laborer working\r\nwith as much intelligence and energy for himself as he had done under the\r\ndirection of a master were doomed to disappointment. Want of skill, the\r\nfitfulness of the small holder, aggravated perhaps by national calamities,\r\ndrought, flood, and pestilence, being felt more severely by laborers than\r\nby capitalists, led to a gradual shrinkage in the area of cultivated land,\r\nand at last to the suffering of the classes who were to specially benefit\r\nfrom the scheme of Wanganchi. The failure of his scheme, which, to use his\r\nown words, aimed at preventing there being any poor or over-rich persons\r\nin the state, entailed his disgrace and fall from power. But his work and\r\nhis name have continued to excite interest and speculation among his",
+          "excerpt_sha256": "d75cb8fe7bddf16c5ff9229fef83e68806ac86e9b850cbd6fefdbf9d77b4db9a",
+          "supports": "지원 정책 및 실패 해석"
+        }
+      ],
+      "caveats": [
+        "“사회주의자”, “사기꾼” 등의 가치 판단을 사실 서술로 옮기지 않았다."
+      ]
+    },
+    {
+      "card_id": "e9ede3f4-85db-52d0-8b8b-d96b410cc8c6",
+      "key": "kuriltai",
+      "title": "몽골 쿠릴타이와 칭기즈 칸",
+      "card_type": "organization",
+      "era_or_scope": "몽골 제국 형성기",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER V — THE MONGOL CONQUEST OF CHINA",
+          "line_start": 2692,
+          "line_end": 2702,
+          "excerpt": "of his power. Before this assumed serious proportions he summoned a Grand\r\nCouncil or Kuriltai, at his camp on the Onon, and then erected outside his\r\ntent the royal Mongol banner of the nine white yak-tails. It was on this\r\noccasion that Temujin took, and was proclaimed among the Mongol chiefs by,\r\nthe highly exalted name of Genghis Khan, which means Very Mighty Khan. The\r\nChinese character for the name signifies \"Perfect Warrior,\" and the\r\nearlier European writers affirm that it is supposed to represent the sound\r\nof \"the bird of heaven.\" At this assemblage, which was the first of a long\r\nsuccession of Mongol councils summoned at the same place on critical\r\noccasions, it was proposed and agreed that the war should be carried on\r\nwith the richer and less warlike races of the south. Among soldiers it is",
+          "excerpt_sha256": "65828bba4efb29dc7d1c36834baff0690cb49d79a8c006e175ac9575e6152719",
+          "supports": "집회·칭호·전쟁 방향 의결"
+        }
+      ],
+      "caveats": [
+        "칭호 어원 및 집단의 호전성 평가 제외."
+      ]
+    },
+    {
+      "card_id": "86cae663-e112-5173-afd6-7e56e02bd669",
+      "key": "kublai",
+      "title": "쿠빌라이: 원의 명명과 통치 구성",
+      "card_type": "character",
+      "era_or_scope": "1271년과 원 초기",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER VI — KUBLAI AND THE MONGOL DYNASTY",
+          "line_start": 3679,
+          "line_end": 3688,
+          "excerpt": "While Bayan was winning victories for his master and driving the Chinese\r\narmies from the field, Kublai was engaged at Pekin in the difficult and\r\nnecessary task of consolidating his authority. In 1271 he gave his dynasty\r\nthe name of Yuen or Original, and he took for himself the Chinese title of\r\nChitsou, although it will never supersede his Mongol name of Kublai.\r\nSummoning to his court the most experienced Chinese ministers, and aided\r\nby many foreigners, he succeeded in founding a government which was\r\nimposing by reason of its many-sidedness as well as its inherent strength.\r\nIt satisfied the Chinese and it was gratifying to the Mongols, because\r\nthey formed the buttress of one of the most imposing administrations in",
+          "excerpt_sha256": "954fc46efa380a62b9a7ce66314386b6ac52e921a4709f987fa50b42f6699292",
+          "supports": "왕조 명명·대신과 외부 출신 인물의 참여"
+        }
+      ],
+      "caveats": [
+        "저자의 전면적 만족·우월성 평가는 제외."
+      ]
+    },
+    {
+      "card_id": "161eb521-f7ac-5485-8d0a-d147cb67e83f",
+      "key": "khanbalig",
+      "title": "칸발리크: 원의 수도 공간",
+      "card_type": "location",
+      "era_or_scope": "원",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER VI",
+          "line_start": 3693,
+          "line_end": 3707,
+          "excerpt": "capital Cambaluc or Khanbalig--\"the city of the Khan\"--stood on or near\r\nthe present site of Pekin, and was made for the first time capital of\r\nChina by the Mongols. There were, according to Marco Polo, twelve gates,\r\nat each of which was stationed a guard of 1,000 men, and the streets were\r\nso straight and wide that you could see from one end to the other, or from\r\ngate to gate. The extent given of the walls varies: according to the\r\nhighest estimate they were twenty-seven miles round, according to the\r\nlowest eighteen. The khan's palace at Chandu or Kaipingfoo, north of\r\nPekin, where he built a magnificent summer palace, kept his stud of\r\nhorses, and carried out his love of the chase in the immense park and\r\npreserves attached, may be considered the Windsor of this Chinese monarch.\r\nThe position of Pekin had, and still has, much to recommend it as the site\r\nof a capital. The Mings, after proclaiming Nankin the capital, made\r\nscarcely less use of it, and Chuntche, the first of the Manchus, adopted\r\nit as his. It has since remained the sole metropolis of the empire.",
+          "excerpt_sha256": "d9c2b0ddc56aaf2a6349f1d5dce31b9e9a8ac3012076ce706c3aef6b1188938c",
+          "supports": "수도 위치·여행기 기반 수치의 차이·후대 수도 이용"
+        }
+      ],
+      "caveats": [
+        "이 지역을 “처음 수도가 된 곳”이라고 단정하는 원문 표현은 제외."
+      ]
+    },
+    {
+      "card_id": "90168f24-1319-533c-8418-0a77b8887a1e",
+      "key": "ming",
+      "title": "명: 몽골 지배 이후의 왕조 재편",
+      "card_type": "organization",
+      "era_or_scope": "명 초",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER VII — THE MING DYNASTY",
+          "line_start": 4172,
+          "line_end": 4188,
+          "excerpt": "Having expelled the Mongols, Choo assumed the style of Hongwou, and he\r\ngave his dynasty the name of Ming, which signifies \"bright.\" He then\r\nrewarded his generals and officers with titles and pecuniary grants, and\r\nin 1369, the first year of his reign after the capture of Pekin, he\r\nerected a temple or hall in that city in honor of the generals who had\r\nbeen slain, while vacant places were left for the statues of those\r\ngenerals who still held command. But while he rewarded his army, Hongwou\r\nvery carefully avoided giving his government a military character, knowing\r\nthat the Chinese resent the superiority of military officials, and he\r\ndevoted his main efforts to placing the civil administration on its old\r\nand national basis. In this he received the cordial support of the Chinese\r\nthemselves, who had been kept in the background by their late conquerors,\r\nwhose administration was essentially military. Hongwou also patronized\r\nliterature, and endowed the celebrated Hanlin College, which was neglected\r\nafter the death of Kublai. He at once provided a literary task of great\r\nmagnitude in the history of the Yuen dynasty, which was intrusted to a\r\ncommission of eighteen writers. But a still greater literary work was",
+          "excerpt_sha256": "da12128f7af6d0db3c2e8f0db02444e41be452863e150794b8db674e0223a3e1",
+          "supports": "명 왕조 명칭·포상·문관 행정·원사 편찬"
+        }
+      ],
+      "caveats": [
+        "이어지는 영락 관련 편찬물과 창건자 업적의 혼동 가능성은 채택하지 않았다."
+      ]
+    },
+    {
+      "card_id": "05013b02-54ca-55ba-bdfa-97e056d54a55",
+      "key": "kangxi",
+      "title": "강희제: 할하와의 외교",
+      "card_type": "character",
+      "era_or_scope": "청 강희기",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER XI — THE EMPEROR KANGHI",
+          "line_start": 6202,
+          "line_end": 6228,
+          "excerpt": "Among the Mongol tribes the noblest at this period were the Khalkas. They\r\nprided themselves on being the descendants of the House of Genghis, the\r\nrepresentatives of the special clan of the great conqueror, and the\r\noccupants of the original home in the valleys of the Onon and Kerulon.\r\nAlthough their military power was slight, the name of the Khalka princes\r\nstood high among the Mongol tribes, and they exercised an influence far in\r\nexcess of their numbers or capacity as a fighting force. Kanghi determined\r\nto establish friendly relations with this clan, and by the dispatch of\r\nfriendly letters and costly presents lie succeeded in inducing the Khalka\r\nchiefs to enter into formal alliance with himself, and to conclude a\r\ntreaty of amity with China, which, be it noted, they faithfully observed.\r\nKanghi's efforts in this direction, which may have been dictated by\r\napprehension at the movements of his new neighbors, the Russians, were\r\nthus crowned with success, and the adhesion of the Khalkas signified that\r\nthe great majority of the Mongols would thenceforth abstain from acts of\r\nunprovoked aggression on the Chinese frontier. But the advance of China\r\nand her influence, even in the form of paying homage to the emperor as the\r\nBogdo Khan, or the Celestial Ruler, so far west as the upper course of the\r\nAmour, involved the Pekin Government in fresh complications by bringing it\r\ninto contact with tribes and peoples of whom it had no cognizance. Beyond\r\nthe Khalkas were the Eleuths, supreme in Ili and Kashgaria, and divided\r\ninto four hordes, who obeyed as many chiefs. They had had some relations\r\nwith the Khalkas, but of China they knew nothing more than the greatness\r\nof her name. When the surrender of the Khalka princes became known the\r\nEleuth chiefs held a grand assembly or kuriltai, and at this it was\r\nfinally, and, indeed, ostentatiously, decided not to yield Kanghi his\r\ndemands. Important as this decision was, it derived increased weight from",
+          "excerpt_sha256": "fa7d3e23cddfd08f645eadc5570585b09520b6ccf45bc18e0bfafc4bd2aa0b6c",
+          "supports": "할하와의 관계·동맹 및 러시아·다른 집단과의 맥락"
+        }
+      ],
+      "caveats": [
+        "집단 서열·민족성 평가 제외."
+      ]
+    },
+    {
+      "card_id": "0df4ee01-444d-536b-b846-02e45357b248",
+      "key": "nerchinsk",
+      "title": "네르친스크 조약과 아무르의 충돌",
+      "card_type": "event",
+      "era_or_scope": "17세기 말",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER XI",
+          "line_start": 6263,
+          "line_end": 6279,
+          "excerpt": "At this juncture the Chinese came into collision with the Russians on the\r\nAmour. The Russians had built a fort at Albazin, on the upper course of\r\nthat river, and the Chinese army located in the Khalka country,\r\nconsidering its proximity a menace to their own security, attacked it in\r\noverwhelming force. Albazin was taken, and those of the garrison who fell\r\ninto the hands of the Chinese were carried off to Pekin, where their\r\ndescendants still reside as a distinct Russian colony. But when the\r\nChinese evacuated Albazin the Russians returned there with characteristic\r\nobstinacy, and Kanghi, becoming anxious at the increasing activity of\r\nGaldan, accepted the overtures of the Russian authorities in Siberia, who,\r\nin 1688, sent the son of the Governor-general of Eastern Siberia to Pekin\r\nto negotiate a peace. After twelve months' negotiation, protracted by the\r\noutbreak of war with Galdan, the Treaty of Nerchinsk, the first concluded\r\nbetween China and any European power, was signed, and the brief and only\r\nwar between Russia and China was thus brought to a speedy and satisfactory\r\ntermination. The Russians agreed to the destruction of Fort Albazin, but\r\nthey were allowed to build another at Nerchinsk.",
+          "excerpt_sha256": "d4acb3641b22a16f07125701e1a2d7135b481960beca4baf8e8b5d419ebe2848",
+          "supports": "알바진 충돌과 협상·조약"
+        }
+      ],
+      "caveats": [
+        "정확한 조약 조문과 국경은 미검증."
+      ]
+    },
+    {
+      "card_id": "803ecfe1-cf87-55a5-9235-e422f9335c07",
+      "key": "canton",
+      "title": "광저우: 외국 상인과 교섭의 항구",
+      "card_type": "location",
+      "era_or_scope": "18세기 말 대외 교섭",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER XIV — THE COMMENCEMENT OF EUROPEAN INTERCOURSE",
+          "line_start": 7375,
+          "line_end": 7389,
+          "excerpt": "There remains only to summarize the relations with the English, who, early\r\nin the seventeenth century, and before the Manchus had established their\r\nsupremacy, possessed factories at Amoy and on the island of Chusan. But\r\ntheir trade, hampered by official exactions, and also by the jealousy of\r\nthe Portuguese and Dutch, proved a slow growth; and at Canton, which they\r\nsoon discovered to be the best and most convenient outlet for the state,\r\nthey were more hampered than anywhere else, chiefly through the hostile\r\nrepresentations of the Portuguese, who bribed the mandarins to exclude all\r\nother foreigners. The English merchants, like the Portuguese, believed\r\nthat the only way to obtain a remedy for their grievances was by\r\napproaching the imperial court and obtaining an audience with the emperor;\r\nbut they were wise in not attempting to send delegates of their own. They\r\nsaw that if an impression was to be created at Pekin the embassador must\r\ncome fully accredited by the British government, and not merely as the\r\nrepresentative of a body of merchants who were suppliants for commercial",
+          "excerpt_sha256": "bcf8ef716ddc6f4fa36081cff5e4275407efe6f80273fc443f24014aea21c4d0",
+          "supports": "광저우 무역과 정부 공인 사절 요구"
+        }
+      ],
+      "caveats": [
+        "상인·유럽 측 관점이 강한 서술."
+      ]
+    },
+    {
+      "card_id": "31af5e3a-68d1-536a-a02e-9dadc69c76be",
+      "key": "macartney",
+      "title": "매카트니 사절단과 청 궁정",
+      "card_type": "event",
+      "era_or_scope": "1792~1793년",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER XIV",
+          "line_start": 7402,
+          "line_end": 7412,
+          "excerpt": "departure, and a successor was found in the person of Lord Macartney, a\r\nnobleman of considerable attainments, who had been Governor of Madras two\r\nyears before. Sir George Staunton, one of the few English sinologues, was\r\nappointed secretary, and several interpreters were sought for and\r\nobtained, not without difficulty. The presents were many and valuable,\r\nchosen with the double object of gratifying the emperor and impressing him\r\nwith the wealth and magnificence of the English sovereign. In September,\r\n1792--the same month that witnessed the overthrow of the Goorkhas at\r\nNayakot--the embassy sailed from Portsmouth, but it did not reach the\r\nPeiho, on which Pekin is inaccurately said to stand, until the following\r\nAugust.",
+          "excerpt_sha256": "d3e2b6c56d675d4e67073b73f712a499b26bb95248d43011d18c3342c009ef29",
+          "supports": "사절 구성·준비와 출항·도착"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER XIV",
+          "line_start": 7437,
+          "line_end": 7444,
+          "excerpt": "discomfiture of the mission, such positive orders were sent by Keen Lung\r\nfor the embassy to proceed to Jehol that no one dared to disobey him. Lord\r\nMacartney proceeded to Jehol with his suite and a Chinese guard of honor,\r\nand he accomplished the journey, about one hundred miles, in an English\r\ncarriage. The details of the journey and reception are given in Sir George\r\nStaunton's excellent narrative; but here it may be said that the emperor\r\ntwice received the British embassador in personal audience in a tent\r\nspecially erected for the ceremony in the gardens of the palace. The",
+          "excerpt_sha256": "9d672e2250f73753975a5266c4cd75bf14266dd20791960be42c8b0fbb534331",
+          "supports": "열하 이동·황제 알현에 대한 서술"
+        }
+      ],
+      "caveats": [
+        "사절단의 시각을 청 조정 전체의 의사로 확대하지 않는다."
+      ]
+    },
+    {
+      "card_id": "e4f8b125-6626-56d3-9cd4-ac71bad30332",
+      "key": "lin-zexu",
+      "title": "임칙서: 광저우의 아편 문제",
+      "card_type": "character",
+      "era_or_scope": "1839년",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER XVII — THE FIRST FOREIGN WAR",
+          "line_start": 8451,
+          "line_end": 8455,
+          "excerpt": "In January, 1839, Taoukwang ordered Lin Tsihseu, viceroy of the double\r\nprovince of Houkwang and an official of high reputation, to proceed to\r\nCanton as Special Commissioner to report on the situation, and to propound\r\nthe best remedy for the opium evil. At this moment the anti-opium party\r\nwas supreme in the imperial council, and three Manchu princes were",
+          "excerpt_sha256": "a6a61f67b30d4bb5b2d255c8f331dc7a6903bccfd7c07b593634d0fdbacc2a3c",
+          "supports": "파견 시점·임무·아편 문제"
+        }
+      ],
+      "caveats": [
+        "강제 개항의 정당화 서술은 채택하지 않는다."
+      ]
+    },
+    {
+      "card_id": "fe2ef517-d0a2-5b9a-922a-a6afa78b8494",
+      "key": "nanjing-treaty",
+      "title": "난징조약과 통상항의 확대",
+      "card_type": "rule",
+      "era_or_scope": "1840년대",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER XVII",
+          "line_start": 9384,
+          "line_end": 9391,
+          "excerpt": "three previous years. On the 26th of August, 1839, Lin had expelled the\r\nEnglish from Macao, in 1840 the British fleet anchored off the Peiho, and\r\nin 1841 Amoy was captured. Three days after this reception the treaty\r\nitself was signed on board the \"Cornwallis,\" when Keying and his\r\ncolleagues again attended for the purpose. The act of signing was\r\ncelebrated by a royal salute of twenty-one guns, and the hoisting of the\r\nstandards of England and China at the masthead of the man-of-war. The\r\nEmperor Taoukwang ratified the treaty with commendable dispatch, and the",
+          "excerpt_sha256": "d9c4eb29babce6ae72e25c956bb20a0cf8b5c54ebdaa8ee497d4a87176f5ad96",
+          "supports": "조약 서명과 비준의 서술"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER XVII",
+          "line_start": 9399,
+          "line_end": 9403,
+          "excerpt": "The ports in addition to Canton to be opened to trade were Shanghai,\r\nNingpo, Amoy and Foochow, but these were not to be opened until a tariff\r\nhad been drawn up and consular officers appointed. As the installments of\r\nthe indemnity were paid the troops and fleet were withdrawn, but a\r\ngarrison was left for some time in Chusan and Kulangsu, the island off",
+          "excerpt_sha256": "1fc3685d0c2da4f06c492e85abef5f437eaf2d7bfa6a73e767fa3df49cc839ad",
+          "supports": "통상항과 후속 관세·영사 절차"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER XVII",
+          "line_start": 9440,
+          "line_end": 9450,
+          "excerpt": "afar.\" The only weak point in the commercial treaty was that it contained\r\nno reference to opium. Sir Henry Pottinger failed to obtain the assent of\r\nthe Chinese government to its legalization, and he refused to undertake\r\nthe responsibility of a preventive service in China, but at the same time\r\nhe publicly stated that the \"traffic in opium was illegal and contraband\r\nby the laws and imperial edicts of China.\" Those who looked further ahead\r\nrealized that the treaty of Nankin, by leaving unsettled the main point in\r\nthe controversy and the primary cause of difference, could not be\r\nconsidered a final solution of the problem of foreign intercourse with\r\nChina. The opium question remained over to again disturb the harmony of\r\nour relations.",
+          "excerpt_sha256": "ab0248fa6cb2c43c06bf74c9c846e4cb7a4fa7e40386765848b0e60dd319a8e0",
+          "supports": "아편 문제 미해결"
+        }
+      ],
+      "caveats": [
+        "조약 전문·추가 협정 전체를 검증한 카드가 아니다."
+      ]
+    },
+    {
+      "card_id": "27b67b21-7b01-5d68-8200-54efd673d5a7",
+      "key": "taiping",
+      "title": "태평천국: 난징을 거점으로 한 경쟁 정권",
+      "card_type": "organization",
+      "era_or_scope": "1850년대",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER XVIII — TAOUKWANG AND HIS SUCCESSOR",
+          "line_start": 9929,
+          "line_end": 9947,
+          "excerpt": "The acquisition of Nankin at once made the Taepings a formidable rival to\r\nthe Manchus, and Tien Wang a contestant with Hienfung for imperial honors.\r\nThe possession of the second city in the empire gave them the complete\r\ncontrol of the navigation of the Yangtsekiang, and thus enabled them to\r\ncut off communications between the north and the south of China. To attain\r\nthis object in a still more perfect manner they occupied Chinkiangfoo at\r\nthe entrance to the Grand Canal. They also seized Yangchow on the northern\r\nbank of the river immediately opposite the place where Sir Hugh Gough had\r\ngained his decisive victory in 1842. Such was the terror of the Taepings\r\nthat the imperial garrisons did not attempt the least resistance, and town\r\nafter town was evacuated at their approach. Tien Wang, encouraged by his\r\nsuccess, transferred his headquarters from Hankow to Nankin, and\r\nproclaimed the old Ming city his capital. By rapidity and an extraordinary\r\ncombination of fortunate circumstances, the Taepings had advanced from the\r\nremote province of Kwangsi into the heart of the empire, but it was clear\r\nthat unless they could follow up their success by some blow to the central\r\ngovernment they would lose all they had gained as soon as the Manchus\r\nrecovered their confidence. At a council of war at Nankin it was decided\r\nto send an army against Pekin as soon as Nankin had been placed in a",
+          "excerpt_sha256": "7563a447718f5572971c69469839c1bda1a56028933f548f9b202b71742ae4be",
+          "supports": "난징 수도·장강·운하·북진 구상"
+        }
+      ],
+      "caveats": [
+        "피해·병력 규모 및 도덕적 평가는 별도 검토 대상."
+      ]
+    },
+    {
+      "card_id": "ce117919-1f36-56b9-bb9b-494a0d572051",
+      "key": "zongli-yamen",
+      "title": "총리아문: 대외 업무의 담당 기구",
+      "card_type": "organization",
+      "era_or_scope": "1861년 이후",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER XXI — THE REGENCY",
+          "line_start": 13148,
+          "line_end": 13160,
+          "excerpt": "to the public service. Before Sir Frederick reached the capital, the\r\nChinese minister had taken a step to facilitate the transaction of\r\nbusiness with the foreign representatives. Prince Kung--and the credit of\r\nthe measure belongs exclusively to him--will always be gratefully\r\nremembered by any foreign writer on modern China as the founder of the\r\ndepartment known as the Tsungli Yamen, which he instituted in January,\r\n1861. This department, since its institution, has very fully answered all\r\nthe expectations formed of it; and, although it is erroneous to represent\r\nit as in any sense identical with the Chinese government, or as the\r\noriginating source of Chinese policy, it has proved a convenient and well-\r\nmanaged vehicle for the dispatch of international business. Prince Kung\r\nbecame its first president, and acted in that capacity until his fall from\r\npower in 1884.",
+          "excerpt_sha256": "cd60ebe5f98754302693a45b9eebb969baa32e4542f762eb04e14d1aa472a927",
+          "supports": "설치·공친왕·국제 업무·청 정부와의 구별"
+        }
+      ],
+      "caveats": [
+        "설치 월과 권한 세부는 현대 연구·문서 대조 전 잠정."
+      ]
+    },
+    {
+      "card_id": "a4c4c84c-729d-5467-9834-625d1dd5f821",
+      "key": "shimonoseki",
+      "title": "청일전쟁 후 시모노세키 조약과 삼국간섭",
+      "card_type": "event",
+      "era_or_scope": "1895년",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "THE WAR WITH JAPAN AND SUBSEQUENT EVENTS",
+          "line_start": 15769,
+          "line_end": 15787,
+          "excerpt": "selection, therefore, was Li Hung Chang, who was, accordingly, appointed\r\nplenipotentiary. He reached Shimonoseki on March 20, 1895, and, four days\r\nafter his arrival, the success of his mission was greatly promoted by the\r\nattempt of a fanatic to assassinate him during his conference with Count\r\nIto, the Japanese representative. The wound was not very serious, but the\r\noutrage caused a unanimous expression of sympathy and regret on the part\r\nof the Japanese people, and the Mikado sent his own physician to attend\r\nthe wounded minister. To attest their sorrow for this incident, the\r\nJapanese at once granted an armistice, and the terms of peace which they\r\nat first proposed were materially mitigated. On April 17 the Treaty of\r\nShimonoseki was signed, and, on May 8, the ratifications were exchanged at\r\nChefoo. The terms of the original treaty were these: First, China was to\r\nsurrender Formosa and the Pescadores Islands and the southern part of the\r\nShingking province, including the Liau-Tung, or Regent's Sword Peninsula,\r\nand of course, also, the naval fortress of Port Arthur. China was likewise\r\nto pay in eight installments a money indemnity of 200,000,000 Kuping\r\ntaels, or, say, $160,000,000. She was also to grant certain commercial\r\nconcessions, including the admission of ships under the Japanese flag to\r\nthe Chinese lakes and rivers, and the appointment of consuls. In view of",
+          "excerpt_sha256": "2151d4cb3c0b30d5819952464c83ba217608020c89de30ef2afe2c3403ab2e71",
+          "supports": "이홍장 교섭·서명·양도·배상·통상"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "THE WAR WITH JAPAN AND SUBSEQUENT EVENTS",
+          "line_start": 15792,
+          "line_end": 15805,
+          "excerpt": "obtaining an ice-free port. The Czar's government, accordingly, determined\r\nto interpose, and, having secured the co-operation of its French ally, and\r\nalso of Germany, it presented to the Mikado, in the name of the three\r\npowers, a request that he should waive that part of the Shimonoseki Treaty\r\nwhich provided for the surrender of the Liau-Tung Peninsula. It was\r\nproposed that, in return for the renunciation of this territory on the\r\nChinese mainland, the pecuniary indemnity should be increased by\r\n$30,000,000, and that Wei-hai-Wei should be retained until the whole sum\r\nshould have been paid. The demand was, obviously, one that could not be\r\nrejected without war against the three interposing powers, and the odds\r\nwere too great for Japan to face without the assistance of Great Britain,\r\nwhich Lord Rosebery, then prime minister, did not see fit to offer. The\r\nMikado, accordingly, submitted to the loss of the best part of the fruits\r\nof victory, retaining only Formosa and the Pescadores, the value of which",
+          "excerpt_sha256": "0d8ee7a99f1597524802867e5b352dac4551973bdb946f94e9dbfcc3a0f3eb82",
+          "supports": "세 나라의 간섭과 랴오둥 조항의 후속 변경"
+        }
+      ],
+      "caveats": [
+        "금액 환산과 일본의 전쟁 정당화 평가는 제외."
+      ]
+    },
+    {
+      "card_id": "fa1823a8-29f3-5c4b-9b3c-cc421b563ded",
+      "key": "reform-1898",
+      "title": "1898년 개혁과 궁정의 권력 회수",
+      "card_type": "event",
+      "era_or_scope": "1898년 9월",
+      "review_status": "original-excerpt-checked; independent-corroboration-pending",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "THE WAR WITH JAPAN AND SUBSEQUENT EVENTS",
+          "line_start": 15911,
+          "line_end": 15929,
+          "excerpt": "In September, 1898, a palace revolution occurred at Pekin. For some time,\r\nthe Emperor Kwangsu had been known to be under the influence of a highly\r\nintelligent and progressive Cantonese named Kang Yu Wei. At the latter's\r\nsuggestion, edicts were put forth decreeing important administrative\r\nreforms which would have deprived the mandarins of their opportunities of\r\nembezzlement, and also indicating an intention to reorganize the\r\neducational system of China upon European models. The necessity of such\r\nchanges is obvious enough if China is to follow Japan in the path of\r\nprogress, but it is equally plain that the advocacy of them would render\r\nthe emperor obnoxious to the whole body of mandarins and of the literati.\r\nThe unpopularity caused by his proposed innovations proved fatal to\r\nKwangsu; for the party at court, headed by the Empress-dowager Tsi An,\r\ntook advantage of it to arrest and imprison him. Kang Yu Wei, having\r\nreceived warning of the conspiracy, had fled, and succeeded in gaining an\r\nasylum under the British flag, but many of the emperor's personal\r\nfollowers were put to death. On September 22, appeared an edict ostensibly\r\nsigned by Kwangsu announcing that he had requested the empress-dowager to\r\nresume authority over the affairs of State. It has been since reported\r\nthat he has been killed. The immediate effect of the _coup d'etat_ was to",
+          "excerpt_sha256": "cf1a8fa10fc1d4b1694b9d3d5892475313f6e4208b5f99feecfff660267949ba",
+          "supports": "개혁·정변 서술과 미확인 사망 소문 자체"
+        }
+      ],
+      "caveats": [
+        "황태후 표기 및 사망 소문 제외. 의화단·신해혁명·현대사는 수록 범위 밖."
+      ]
+    },
+    {
+      "card_id": "ceea8b20-7a9a-55d3-ac89-baa4ff43b186",
+      "key": "sources-and-rights",
+      "title": "출처·판본·권리 안내",
+      "card_type": "other",
+      "era_or_scope": "자료 안내",
+      "review_status": "editorial-provenance-with-source-evidence",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "Project Gutenberg header",
+          "line_start": 1,
+          "line_end": 23,
+          "excerpt": "The Project Gutenberg eBook of China\r\n    \r\nThis eBook is for the use of anyone anywhere in the United States and\r\nmost other parts of the world at no cost and with almost no restrictions\r\nwhatsoever. You may copy it, give it away or re-use it under the terms\r\nof the Project Gutenberg License included with this eBook or online\r\nat www.gutenberg.org. If you are not located in the United States,\r\nyou will have to check the laws of the country where you are located\r\nbefore using this eBook.\r\n\r\nTitle: China\r\n\r\nAuthor: Demetrius Charles Boulger\r\n\r\n\r\n        \r\nRelease date: October 1, 2004 [eBook #6708]\r\n                Most recently updated: December 29, 2020\r\n\r\nLanguage: English\r\n\r\nOther information and formats: www.gutenberg.org/ebooks/6708\r\n",
+          "excerpt_sha256": "6ca8ecb45c32d6c51c545cde1837e1e27df231a43f7fbff5a2d827575655e6f9",
+          "supports": "제목·저자·전자책 번호·이용 지역 안내"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "Title page",
+          "line_start": 40,
+          "line_end": 46,
+          "excerpt": "\r\nBY\r\nDEMETRIUS CHARLES BOULGER\r\n\r\nWITH A SUPPLEMENTARY CHAPTER OF RECENT EVENTS\r\nBY MAYO W. HAZELTINE\r\n",
+          "excerpt_sha256": "834600cdcfedd36db10dd0c89000e0f588ea8b59dcb650fd55ba5ec8a2853e10",
+          "supports": "본 저자와 보충장 저자"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "Supplement heading",
+          "line_start": 15940,
+          "line_end": 15940,
+          "excerpt": "THE FUTURE OF CHINA",
+          "excerpt_sha256": "39984616bc49a3eecf82028112181db719e7f7982416d9bf015c3f8da680e424",
+          "supports": "후속 항목 THE FUTURE OF CHINA"
+        }
+      ],
+      "caveats": [
+        "인쇄본 연도·판차 미확인. 모든 국가에서 자유 이용 가능하다고 주장하지 않는다."
+      ]
+    },
+    {
+      "card_id": "c87db2da-3415-510c-a445-5f3da8df8425",
+      "key": "review-status",
+      "title": "고전 통사의 관점과 검토 상태",
+      "card_type": "other",
+      "era_or_scope": "편집 검토 안내",
+      "review_status": "editorial-provenance-with-source-evidence",
+      "evidence": [
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "CHAPTER I",
+          "line_start": 173,
+          "line_end": 190,
+          "excerpt": "\r\nThe Chinese are unquestionably the oldest nation in the world, and their\r\nhistory goes back to a period to which no prudent historian will attempt\r\nto give a precise date. They speak the language and observe the same\r\nsocial and political customs that they did several thousand years before\r\nthe Christian era, and they are the only living representatives to-day of\r\na people and government which were contemporary with the Egyptians, the\r\nAssyrians, and the Jews. So far as our knowledge enables us to speak, the\r\nChinese of the present age are in all essential points identical with\r\nthose of the time of Confucius, and there is no reason to doubt that\r\nbefore his time the Chinese national character had been thoroughly formed\r\nin its present mold. The limits of the empire have varied from time to\r\ntime under circumstances of triumph or disunion, but the Middle Kingdom,\r\nor China Proper, of the eighteen provinces has always possessed more or\r\nless of its existing proportions. Another striking and peculiar feature\r\nabout China is the small amount of influence that the rest of the world\r\nhas exercised upon it. In fact, it is only during the present century that\r\nthat influence can be said to have existed at all. Up to that point China",
+          "excerpt_sha256": "5902d65ff6f415ae8b28791c71dcef2945d52027de6666d2c374b8c422a61bf7",
+          "supports": "고정된 민족성·고립에 관한 저자 관점의 사례"
+        },
+        {
+          "source_file": "docs/research/history-textbooks/china/source-en.txt",
+          "source_sha256": "40ee257edf3a9939d6fa5e5a666eeb4dd6679fbf7dc588a8fa8d46342833a7b8",
+          "section": "Supplement",
+          "line_start": 15926,
+          "line_end": 15935,
+          "excerpt": "followers were put to death. On September 22, appeared an edict ostensibly\r\nsigned by Kwangsu announcing that he had requested the empress-dowager to\r\nresume authority over the affairs of State. It has been since reported\r\nthat he has been killed. The immediate effect of the _coup d'etat_ was to\r\nplace all power at Pekin in the hands of Manchus least friendly to the\r\nadoption of European ideas, and more willing to lean upon Russia than\r\nupon any other foreign power. The early restoration to high office of Li\r\nHung Chang, who has, for some time, been a useful tool of the St.\r\nPetersburg government, and who is a favorite of the empress-dowager, may\r\nbe looked upon as probable.",
+          "excerpt_sha256": "a6c15c1da126abb561e461dac93f3930ca21286effdb9c2df1a1db9f307acbb2",
+          "supports": "동시대 소문과 전망이 섞인 끝부분"
+        }
+      ],
+      "caveats": [
+        "원문 관점을 드러내기 위한 근거이며 그 내용을 사실로 승인하지 않는다."
+      ]
+    }
+  ],
+  "validation": {
+    "expected_world_keys": [
+      "genre",
+      "worldId",
+      "name",
+      "description",
+      "cards"
+    ],
+    "expected_card_keys": [
+      "id",
+      "title",
+      "body",
+      "cardType"
+    ],
+    "total_cards": 22,
+    "substantive_cards": 20,
+    "provenance_and_review_cards": 2,
+    "all_card_ids_unique": true,
+    "uuid_version": 5,
+    "all_cards_have_exact_local_excerpts": true,
+    "all_excerpts_match_source_bytes_as_utf8": true,
+    "all_sources_sha256_checked": true,
+    "utf8_replacement_characters": 0,
+    "production_template_sha256_before": "e2488085f8ac19d57b6869debd7e8690b63ec97078708128e9e93358d6dc6c0f",
+    "production_template_changed": false,
+    "service_or_database_import": false,
+    "card_bodies_with_source_footer": 22,
+    "source_footer_scope": "Author/title, chapter/section, acquired-English-file line ranges, and source URLs appended. Confucius card distinguishes disciples transmitting teachings from later rulers adopting them; supporting excerpt expanded through line 343. Other historical bodies and evidence excerpts unchanged.",
+    "world_json_sha256": "7c2c2aa59e6e6e470f0ebf7751e453562c1d1345def89c1ab1df4a289daaf73e",
+    "markdown_sha256": "e5ac33715d53da6bc9e6f314ff2a9c9458cd754a2d7910162903798898debbdd"
+  }
+}

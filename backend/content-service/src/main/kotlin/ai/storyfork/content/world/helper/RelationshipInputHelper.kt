@@ -8,7 +8,7 @@ object RelationshipInputHelper {
     fun merge(current:List<RelationshipPayload>,updates:List<RelationshipPayload>,replace:Boolean,cards:Set<UUID>):List<RelationshipPayload> {
         require(updates.size<=1000 && updates.map { it.id }.distinct().size==updates.size) { "관계 개수 또는 중복 ID를 확인하세요." }
         val result=if(replace) updates else (current.associateBy { it.id }+updates.associateBy { it.id }).values.toList()
-        require(result.size<=1000) { "관계는 1,000개까지 저장할 수 있습니다." }
+        require(result.count { it.lifecycle=="active" }<=10000) { "관계는 10,000개까지 저장할 수 있습니다." }
         result.forEach {
             require(it.lifecycle=="removed" || it.sourceCardId in cards) { "관계의 시작 카드가 이 세계관에 없습니다." }
             require(it.lifecycle=="removed" || it.targetCardId in cards) { "관계의 대상 카드가 이 세계관에 없습니다." }
@@ -19,5 +19,10 @@ object RelationshipInputHelper {
             require(it.lifecycle in setOf("active","removed") && it.body.length<=3000 && it.label.length<=200) { "관계 내용의 길이와 상태를 확인하세요." }
         }
         return result.filter { it.lifecycle=="active" }
+    }
+
+    fun validateSnapshot(relations:List<RelationshipPayload>,cards:Set<UUID>) {
+        require(relations.map { it.id }.distinct().size==relations.size) { "중복된 관계입니다." }
+        merge(relations,emptyList(),false,cards)
     }
 }

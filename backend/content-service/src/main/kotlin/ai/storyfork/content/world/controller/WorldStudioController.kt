@@ -90,4 +90,19 @@ class WorldStudioController(private val service:WorldStudioService,private val c
     /** 기존 카드/설정 불변 버전만 조회한다. 현재 관계를 과거 관계로 섞지 않는다. */
     @GetMapping("/{id}/revisions/{revisionId}")
     fun revision(@PathVariable id:UUID,@PathVariable revisionId:UUID,principal:Principal)=service.revision(id,UUID.fromString(principal.name),revisionId)
+
+    /**
+     * 소유자가 확정 버전의 카드로 초안의 카드만 되돌린다(관계·이름·새 확정 버전은 그대로). 응답은 되돌린 초안이다. 없는 버전·남의 세계관은 404, 낡은 초안 revision은 409,
+     * 사라질 설정에 현재 관계가 이어져 있으면 409 `WORLD_RESTORE_BLOCKED`다.
+     */
+    @PostMapping("/{id}/revisions/{revisionId}/restore")
+    fun restore(@PathVariable id:UUID,@PathVariable revisionId:UUID,principal:Principal,@RequestBody request:RestoreWorldRequest)=
+        linked(service.restore(id,UUID.fromString(principal.name),revisionId,request))
+
+    /** 소유자가 세계관을 지운다(소프트 삭제, 204). 연결된 소설이 있으면 409 `WORLD_LINKED`, 남의 세계관·이미 지운 세계관은 404다. */
+    @DeleteMapping("/{id}")
+    fun delete(@PathVariable id:UUID,principal:Principal):ResponseEntity<Void> {
+        service.delete(id,UUID.fromString(principal.name),links.linkedWorkIds(listOf(id)).containsKey(id))
+        return ResponseEntity.noContent().build()
+    }
 }

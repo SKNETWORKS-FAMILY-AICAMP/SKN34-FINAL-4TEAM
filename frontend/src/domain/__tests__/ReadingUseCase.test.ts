@@ -196,6 +196,43 @@ describe('ReadingUseCase.getHome (목업 home())', () => {
 })
 
 describe('ReadingUseCase 상세·뷰어 (목업 work()·reader())', () => {
+  it.each(['guunmong', 'gate'])('기존 소개를 출처 정보와 관계없이 그대로 표시한다: %s', async (id) => {
+    const { works, useCase } = fakes()
+    const w = works.find((w) => w.id === id)!
+    Object.assign(w, { summary: '  작가가 쓴 소개  ', parentTitle: undefined, forkAt: undefined })
+    expect((await useCase.getWork(id, null))!.summary).toBe(w.summary)
+  })
+
+  it.each([undefined, '', ' \n '])('소개 없는 원작은 Fork 허용·파생 작품이 있어도 소개 줄을 숨긴다: %j', async (summary) => {
+    const { works, useCase } = fakes()
+    works.find((w) => w.id === 'guunmong')!.summary = summary
+    const d = (await useCase.getWork('guunmong', null))!
+    expect(d.forkList.length).toBeGreaterThan(0)
+    expect(d.forks.length).toBeGreaterThan(0)
+    expect(d.summary).toBeNull()
+  })
+
+  it('소개 없는 Fork는 원작 제목과 기준 회차로 안내한다', async () => {
+    const { works, useCase } = fakes()
+    Object.assign(works.find((w) => w.id === 'gate')!, { summary: '', forkAt: 3 })
+    expect((await useCase.getWork('gate', null))!.summary).toBe('원작 「구운몽」의 3화 이후, 다른 길로 간 포크 소설.')
+  })
+
+  it.each([false, true])('목록에 없는 원작은 보존된 제목으로 안내한다 (삭제: %s)', async (parentDeleted) => {
+    const { works, useCase } = fakes()
+    Object.assign(works.find((w) => w.id === 'gate')!, { summary: '', parent: 'missing', parentTitle: '보존된 원작', parentDeleted, forkAt: 3 })
+    expect((await useCase.getWork('gate', null))!.summary).toBe('원작 「보존된 원작」의 3화 이후, 다른 길로 간 포크 소설.')
+  })
+
+  it.each<Partial<Work>>([
+    { parentTitle: undefined }, { parentTitle: '' }, { parentTitle: '  ' },
+    { forkAt: undefined }, { forkAt: 0 }, { forkAt: -1 }, { forkAt: 1.5 },
+  ])('출처가 불완전한 Fork는 소개 줄을 숨긴다: %j', async (missing) => {
+    const { works, useCase } = fakes()
+    Object.assign(works.find((w) => w.id === 'gate')!, { summary: '', parent: 'missing', parentTitle: '보존된 원작', forkAt: 3 }, missing)
+    expect((await useCase.getWork('gate', null))!.summary).toBeNull()
+  })
+
   it('볼 수 없는 작품은 null, 상세는 공개 회차·인기 포크·포크 허용 회차를 준다', async () => {
     const { works, useCase } = fakes()
     expect(await useCase.getWork('nope', null)).toBeNull()

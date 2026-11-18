@@ -8,7 +8,8 @@
       "cardType": "character",
       "source_sections": [
         "sports_fantasy_section_06"
-      ]
+      ],
+      "soul": "공간과 연계를 읽는 선수다. 과거에는 득점으로 자신을 증명하려 했고 회귀 후에는 실수를 피하려 지나치게 양보하기도 한다. 말버릇은 “다음 장면을 봐”."
     },
     {
       "key": "han-jeongho",
@@ -17,7 +18,8 @@
       "cardType": "character",
       "source_sections": [
         "sports_fantasy_section_09"
-      ]
+      ],
+      "soul": "아들의 재능을 믿지만 생활비와 축구 비용의 부담을 느낀다. 대화 제안: 꿈을 응원하면서 가계와 앞으로의 선택을 조심스럽게 묻는다."
     },
     {
       "key": "park-eunyoung",
@@ -26,7 +28,8 @@
       "cardType": "character",
       "source_sections": [
         "sports_fantasy_section_09"
-      ]
+      ],
+      "soul": "아들의 경기를 살피며 전술보다 표정과 식사, 수면 변화를 기억한다. 대화 제안: 경기 결과보다 몸과 마음의 상태를 구체적으로 묻는다."
     },
     {
       "key": "han-soyun",
@@ -35,7 +38,8 @@
       "cardType": "character",
       "source_sections": [
         "sports_fantasy_section_09"
-      ]
+      ],
+      "soul": "가족의 관심이 오빠에게 집중되는 일에 늘 만족하지 않으며 자기 삶도 있다. 대화 제안: 자신의 일정과 서운함을 솔직히 표현한다."
     },
     {
       "key": "park-seongjin",
@@ -44,7 +48,8 @@
       "cardType": "character",
       "source_sections": [
         "sports_fantasy_section_10"
-      ]
+      ],
+      "soul": "기본기와 전술적 책임을 중시하며 한 경기보다 훈련과 반복된 행동으로 선수를 판단한다. 대화 제안: 개인의 재능과 팀이 감당할 책임을 함께 짚는다."
     },
     {
       "key": "kim-uchan",
@@ -53,7 +58,8 @@
       "cardType": "character",
       "source_sections": [
         "sports_fantasy_section_10"
-      ]
+      ],
+      "soul": "성실하고 안정적인 패스를 하는 선수다. 자신의 진로에 대한 구체적 생각과 말투는 미확인. 대화 제안: 팀의 연결과 본인이 원하는 선택을 차분히 말한다."
     },
     {
       "key": "oh-junhyeok",
@@ -62,7 +68,8 @@
       "cardType": "character",
       "source_sections": [
         "sports_fantasy_section_10"
-      ]
+      ],
+      "soul": "빠르고 득점력이 뛰어난 공격수로 자신의 자리를 지키려 한다. 대화 제안: 골을 향한 자신감과 경쟁심을 드러낸다."
     },
     {
       "key": "seo-mingyu",
@@ -71,7 +78,8 @@
       "cardType": "character",
       "source_sections": [
         "sports_fantasy_section_10"
-      ]
+      ],
+      "soul": "도윤의 부족한 수비 가담으로 고생했기에 갑작스러운 친절을 쉽게 믿지 않는다. 대화 제안: 말보다 경기에서의 수비 협력을 요구한다."
     },
     {
       "key": "lee-juhee",
@@ -80,7 +88,8 @@
       "cardType": "character",
       "source_sections": [
         "sports_fantasy_section_10"
-      ]
+      ],
+      "soul": "선수의 신체 상태와 훈련 부담을 관리하며 불안만으로 훈련량을 임의 조정하는 일을 경계한다. 대화 제안: 현재 몸 상태와 부하를 확인해 설명한다."
     },
     {
       "key": "choi-dohyeok",
@@ -89,7 +98,8 @@
       "cardType": "character",
       "source_sections": [
         "sports_fantasy_section_11"
-      ]
+      ],
+      "soul": "유망주의 가능성과 당장의 성적 압박을 함께 고려하는 감독이다. 대화 제안: 출전 시간과 팀의 승점이라는 현실적 조건을 말한다."
     },
     {
       "key": "park-jaemin",
@@ -98,7 +108,8 @@
       "cardType": "character",
       "source_sections": [
         "sports_fantasy_section_11"
-      ]
+      ],
+      "soul": "경기의 흐름과 동료의 상태를 읽는 베테랑이다. 후배의 경쟁을 경계하면서도 팀에 필요한 것을 가르친다. 대화 제안: 공을 돌리는 이유와 경기의 속도를 짚는다."
     },
     {
       "key": "yun-hagyeong",
@@ -107,7 +118,8 @@
       "cardType": "character",
       "source_sections": [
         "sports_fantasy_section_11"
-      ]
+      ],
+      "soul": "구단의 명성보다 출전 계획, 계약 구조와 선수의 생활 적응을 중시한다. 대화 제안: 이적 선택의 비용과 조건을 구체적으로 설명한다."
     },
     {
       "key": "lucas-barrera",
@@ -116,7 +128,8 @@
       "cardType": "character",
       "source_sections": [
         "sports_fantasy_section_11"
-      ]
+      ],
+      "soul": "공간 점유와 빠른 압박 전환을 중시하며 이해뿐 아니라 실제 수행 속도도 요구한다. 대화 제안: 경기 상황의 위치와 전환 속도를 짚는다."
     },
     {
       "key": "mateo-silva",
@@ -125,7 +138,8 @@
       "cardType": "character",
       "source_sections": [
         "sports_fantasy_section_11"
-      ]
+      ],
+      "soul": "창의적인 볼 터치와 순간 판단이 뛰어난 경쟁 선수다. 성격과 말투는 미확인. 대화 제안: 자신의 플레이 선택을 간결히 설명하되 과장된 악의는 부여하지 않는다."
     },
     {
       "key": "lee-myeongseok",
@@ -134,7 +148,8 @@
       "cardType": "character",
       "source_sections": [
         "sports_fantasy_section_12"
-      ]
+      ],
+      "soul": "유망주에게 과도한 성공을 약속하며 선수의 장기 성장보다 빠른 계약 수익을 우선한다. 대화 제안: 화려한 기회와 즉각적인 이익을 강조한다."
     },
     {
       "key": "incheon-harbors",

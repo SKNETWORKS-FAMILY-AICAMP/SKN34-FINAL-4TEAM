@@ -3,7 +3,23 @@ import {newSetting} from '../../../../domain/entities/studioWorld'
 import {putRelation} from '../../../../domain/entities/studioRelations'
 import {cardTypePatch,type CardType} from '../../../../domain/entities/studioCards'
 import {mapConnectionLabel,type MapNode} from './useWorldMapViewModel'
-import {buildCharacterMap,buildSettingRelationshipMap,cardTypeCounts,hideCardTypes,toggleHiddenType} from './characterMap'
+import {buildCharacterMap,buildSettingRelationshipMap,cardTypeCounts,hideCardTypes,toggleHiddenType,mapNeighbors} from './characterMap'
+it('선택한 카드의 다른 페이지 이웃과 관계를 유지한다',()=>{
+ const cards=Array.from({length:101},(_,i)=>{const s=newSetting('people');s.item.title=`설정 ${i}`;return s})
+ const rows=putRelation(cards,{subjectId:cards[0].item.id,targetId:cards[100].item.id,predicate:'custom_relation_directed',polarity:'asserted',text:'동료'})
+ const graph=mapNeighbors(buildSettingRelationshipMap(rows),cards[0].item.id,0,49)
+ expect(graph.nodes.map(n=>n.id)).toEqual([cards[0].item.id,cards[100].item.id])
+ expect(graph.links).toHaveLength(1)
+})
+it('이웃 페이지는 유형 필터를 따르고 입력과 관계 편집 상태를 바꾸지 않는다',()=>{
+ const {a,b,place,graph}=typedWorld(),before=structuredClone(graph)
+ const visible=hideCardTypes(graph,new Set<CardType>(['ability']))
+ const second=mapNeighbors(visible,a.item.id,1,1)
+ expect(second.nodes.map(n=>n.id)).toEqual([a.item.id,place.item.id])
+ expect(second.links.map(l=>[l.source,l.target])).toEqual([[a.item.id,place.item.id]])
+ expect(mapNeighbors(visible,a.item.id,0,1).nodes.map(n=>n.id)).toEqual([a.item.id,b.item.id])
+ expect(graph).toEqual(before)
+})
 it('keeps locations and real directed relationships in the service card board',()=>{
  const person=newSetting('people'),place=newSetting('places')
  person.item.title='가람';place.item.title='항구'

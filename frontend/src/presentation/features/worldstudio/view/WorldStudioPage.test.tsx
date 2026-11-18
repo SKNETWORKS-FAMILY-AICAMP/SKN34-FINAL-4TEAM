@@ -15,6 +15,7 @@ import type { WorldStudioRepository } from '../../../../domain/repositories/Worl
 import { WorldReviewUseCase } from '../../../../domain/usecases/WorldReviewUseCase'
 import { WorldStudioUseCase } from '../../../../domain/usecases/WorldStudioUseCase'
 import { LazyMarkdownEditor as fakeEditor } from '../../../../test/markdownEditorFake'
+import * as cardImports from '../../../shared/importCards'
 import type { useWorldRevisions } from '../viewmodel/useWorldRevisions'
 import { WorldStudioPage } from './WorldStudioPage'
 
@@ -36,7 +37,7 @@ vi.mock('../viewmodel/useWorldRevisions', () => ({ useWorldRevisions: () => revi
 vi.mock('../../../shared/LazyMarkdownEditor', () => import('../../../../test/markdownEditorFake'))
 const noRevisions = (): Revisions => ({
   rows: [], detail: null, busy: false, error: '', message: '', pending: false, aiPending: false, superseded: null, supported: true,
-  open: vi.fn(async () => undefined), refresh: vi.fn(async () => undefined), confirm: vi.fn(async () => undefined), acknowledgeSuperseded: vi.fn(async () => undefined),
+  open: vi.fn(async () => undefined), refresh: vi.fn(async () => undefined), confirm: vi.fn(async () => undefined), acknowledgeSuperseded: vi.fn(async () => undefined), restore: vi.fn(async () => undefined),
 })
 const revision = (revisionNo: number, name: string): WorldRevisionSummary => ({ worldId: 'qa', revisionId: `r${revisionNo}`, revisionNo, name, createdAt: `2026-11-0${revisionNo}T09:00:00Z` })
 const revisionDetail = (revisionNo: number, name: string): WorldRevision => ({
@@ -98,6 +99,10 @@ type Fixture = {
   linkedWorkId?: string
   /** 관계를 회차 시점으로 읽고 쓰는 서버 저장소(DEC-51, 없으면 회차를 모르는 데모) */
   relationEpisodes?: true
+  /** 세계관 삭제(소프트 삭제) 저장소 */
+  deleteStudio?: NonNullable<WorldStudioRepository['deleteStudio']>
+  /** 삭제 저장소가 없는 대역 */
+  demoDelete?: true
 }
 const published = (worldId: string, change: WorldPublicationInput, listed = true): WorldPublication => ({ worldId, ...change, publishedAt: change.visibility === 'public' ? '2026-11-12T00:00:00Z' : null, listed })
 
@@ -126,6 +131,7 @@ function mount(settings: StudioSetting[] = [person('가람', '기존 내용')], 
   const readCover = vi.fn(fixture.readCover ?? (async () => new Blob(['png'], { type: 'image/png' })))
   const uploadCardImage = vi.fn(fixture.uploadCardImage ?? (async () => CARD_IMAGE))
   const readCardImage = vi.fn(fixture.readCardImage ?? (async () => new Blob(['png'], { type: 'image/png' })))
+  const deleteStudio = vi.fn(fixture.deleteStudio ?? (async () => undefined))
   useCase = new WorldStudioUseCase({
     listStudio: async () => [world],
     read: fixture.read ?? (async () => structuredClone(world)),
@@ -134,6 +140,7 @@ function mount(settings: StudioSetting[] = [person('가람', '기존 내용')], 
     setPublication,
     ...(fixture.demoCover ? {} : { setCover, removeCover, readCover }),
     ...(fixture.demoCardImage ? {} : { uploadCardImage, readCardImage }),
+    ...(fixture.demoDelete ? {} : { deleteStudio }),
     ...(fixture.relationEpisodes ? { relationEpisodes: true as const } : {}),
   })
   render(
@@ -145,7 +152,7 @@ function mount(settings: StudioSetting[] = [person('가람', '기존 내용')], 
       </MemoryRouter>
     </Provider>,
   )
-  return { create, setPublication, saveStudio, setCover, removeCover, readCover, uploadCardImage, readCardImage }
+  return { create, setPublication, saveStudio, setCover, removeCover, readCover, uploadCardImage, readCardImage, deleteStudio }
 }
 /** `/worldstudio/qa`(저장한 세계관 관리)나 `/worldstudio`(새 세계관 만들기)를 열고 제목이 나올 때까지 기다린다. */
 async function show(settings?: StudioSetting[], path: string | string[] = '/worldstudio/qa', fixture: Fixture = {}) {
@@ -154,6 +161,24 @@ async function show(settings?: StudioSetting[], path: string | string[] = '/worl
   return opened
 }
 const showWorld = () => show()
+it('대형 설정집에서 쪽마다 선택한 카드를 유지하고 마지막 카드를 연다', async () => {
+  await show(Array.from({ length: 101 }, (_, i) => person(`설정 ${i}`)))
+  const table = () => within(screen.getByRole('table', { name: '설정 카드 목록' }))
+  expect(table().getAllByRole('row')).toHaveLength(51)
+  fireEvent.click(table().getByRole('checkbox', { name: '보이는 설정 모두 선택' }))
+  fireEvent.click(screen.getByRole('button', { name: '다음' }))
+  expect(screen.getByText('현재 페이지 0개 선택 · 다른 페이지·필터 50개 선택')).toBeTruthy()
+  fireEvent.click(table().getByRole('checkbox', { name: '설정 50 선택' }))
+  expect(screen.getByText('현재 페이지 1개 선택 · 다른 페이지·필터 50개 선택')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '현재 페이지 선택 공개' }))
+  expect(table().getByRole('row', { name: /설정 50/ }).textContent).toContain('공개')
+  fireEvent.click(screen.getByRole('button', { name: '이전' }))
+  expect(table().getByRole('row', { name: /설정 0/ }).textContent).toContain('비공개')
+  expect(table().getByRole<HTMLInputElement>('checkbox', { name: '설정 0 선택' }).checked).toBe(true)
+  fireEvent.change(screen.getByRole('searchbox', { name: '설정 검색' }), { target: { value: '설정 100' } })
+  fireEvent.click(table().getByRole('button', { name: '설정 100 인물' }))
+  expect(screen.getByRole('region', { name: '선택한 설정 편집' })).toBeTruthy()
+})
 /** 새 세계관 만들기 직후의 마법사(작성 모드): 주소에 `?new=1`이 붙고 저장 버전은 0이다. */
 const wizard = (fixture: Fixture = {}) => show(undefined, '/worldstudio/qa?new=1', { version: 0, ...fixture })
 /** 설정집 게시판의 행(제목 버튼, 이름 + 분류)을 눌러 그 카드의 편집 패널을 연다. 고르기 전에는 패널이 없다. */
@@ -283,6 +308,24 @@ it('4단계 내비는 지금 단계만 aria-current=step이고 단계 이름·�
   expect(steps.getAllByRole('button').filter((b) => b.getAttribute('aria-current') === 'step')).toEqual([steps.getByRole('button', { name: '설정 카드' })])
   expect(steps.getByRole('button', { name: '기본 정보' }).closest('li')!.getAttribute('data-state')).toBe('done')
   expect(steps.getByRole('button', { name: '관계 연결 (선택)' }).closest('li')!.getAttribute('data-state')).toBe('next')
+})
+it('작성 검토는 열 때만 렌더하고 카드와 관계를 각각 페이지로 보여 준다', async () => {
+  const cards = Array.from({ length: 101 }, (_, i) => person(`설정 ${i}`))
+  let settings = cards
+  for (let i = 0; i < 51; i++) settings = friends(settings, cards[i], cards[i + 1])
+  await show(settings, '/worldstudio/qa?new=1', { version: 0 })
+  expect(document.querySelector('.world-review')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '검토·저장' }))
+  const review = within(screen.getByRole('region', { name: '세계관 검토' }))
+  expect(review.getByText('설정 카드 101개')).toBeTruthy()
+  expect(review.getByText('관계 51개')).toBeTruthy()
+  expect(review.getByRole('heading', { name: '설정 0', level: 5 })).toBeTruthy()
+  expect(review.queryByRole('heading', { name: '설정 100', level: 5 })).toBeNull()
+  const controls = review.getAllByRole('navigation', { name: '페이지 이동' })
+  fireEvent.change(within(controls[0]).getByRole('combobox', { name: /페이지/ }), { target: { value: '2' } })
+  expect(review.getByRole('heading', { name: '설정 100', level: 5 })).toBeTruthy()
+  fireEvent.click(within(controls[1]).getByRole('button', { name: '다음' }))
+  expect(review.getByRole('heading', { name: '설정 50 → 설정 51', level: 5 })).toBeTruthy()
 })
 
 it('설정 카드 단계는 공개 설정집과 같은 분류 메뉴·검색·정렬·게시판 표로 카드를 보이고 행을 누르면 목록 대신 그 카드의 편집 화면이 열린다', async () => {
@@ -813,6 +856,14 @@ it('세계관 없는 주소(/worldstudio)는 새 세계관 만들기 화면이�
   expect(screen.getByRole('navigation', { name: '세계관 작성 단계' })).toBeTruthy() // 만든 직후에만 마법사로 열린다
   expect(where()).toBe('/worldstudio/created?new=1')
   expect(document.querySelector('.ep-create')).toBeNull() // 만든 뒤에는 만들기 화면이 사라진다
+})
+
+it('새 세계관 만들기의 표지 자리도 테마 그림이 아니라 기본 표지이고 올리지 않으면 기본 표지를 쓴다고 알린다', async () => {
+  await show(undefined, '/worldstudio')
+  const tile = document.querySelector('.ep-create .cov')
+  expect(tile?.querySelector('svg')).toBeNull()
+  expect(tile?.querySelector('img')?.getAttribute('src')).toBe('/default-work-cover.svg')
+  expect(screen.getByText('표지는 만든 뒤에 올릴 수 있어요. 올리지 않으면 기본 표지를 써요.')).toBeTruthy()
 })
 
 // ── 새 세계관 만들기 화면은 세계관 없는 주소(/worldstudio)에만 있다 ─────────────────────────
@@ -1508,6 +1559,7 @@ const png = (name = 'cover.png', type = 'image/png', size = 4) => new File([new 
 const coverGroup = () => within(infoForm().getByRole('group', { name: '표지' }))
 const pickCover = (file: File) => fireEvent.change(coverGroup().getByLabelText('이미지 선택'), { target: { files: [file] } })
 const headerCover = () => headerOf().queryByRole('img', { name: '세계관 표지' })
+const defaultCover = () => headerOf().queryByRole('img', { name: '기본 세계관 표지' })
 
 it('올린 표지가 있는 세계관은 헤더 표지가 인증 읽기로 받은 이미지이고, 화면을 떠나면 객체 주소를 해제한다', async () => {
   const { readCover } = await show(undefined, '/worldstudio/qa', { hasCover: true })
@@ -1519,19 +1571,21 @@ it('올린 표지가 있는 세계관은 헤더 표지가 인증 읽기로 받�
   expect(objectUrls.revokeObjectURL).toHaveBeenCalledWith('blob:cover-1')
 })
 
-it('올린 표지가 없으면 읽지 않고 자동 생성 표지를 보인다', async () => {
+it('올린 표지가 없으면 읽지 않고 기본 표지를 보인다', async () => {
   const { readCover } = await showWorld()
   expect(readCover).not.toHaveBeenCalled()
   expect(headerCover()).toBeNull()
-  expect(document.querySelector('.world-manage-hero .cov svg')).not.toBeNull()
+  expect(defaultCover()?.getAttribute('src')).toBe('/default-work-cover.svg')
+  expect(document.querySelector('.world-manage-hero .cov svg')).toBeNull() // 테마·장르 그림을 표지 대신 쓰지 않는다
 })
 
-it('표지를 읽지 못하면 자동 생성 표지를 두고 패널에서 이유를 알린다', async () => {
+it('표지를 읽지 못하면 기본 표지를 두고 패널에서 이유를 알린다', async () => {
   const readCover = vi.fn(async () => { throw new Error('표지를 불러오지 못했어요.') })
   await show(undefined, '/worldstudio/qa', { hasCover: true, readCover })
   await waitFor(() => expect(readCover).toHaveBeenCalled())
   expect(headerCover()).toBeNull()
-  expect(document.querySelector('.world-manage-hero .cov svg')).not.toBeNull()
+  expect(defaultCover()?.getAttribute('src')).toBe('/default-work-cover.svg')
+  expect(document.querySelector('.world-manage-hero .cov svg')).toBeNull()
   openInfoEdit()
   expect(await coverGroup().findByText('표지를 불러오지 못했어요.')).toBeTruthy()
 })
@@ -1635,7 +1689,7 @@ it('형식·크기가 맞지 않는 파일은 고르는 순간 이유를 알리�
   expect(setCover).not.toHaveBeenCalled()
 })
 
-it('표지를 지우면 확인한 뒤 바로 지우고 자동 생성 표지로 돌아간다(거절하면 아무것도 하지 않는다)', async () => {
+it('표지를 지우면 확인한 뒤 바로 지우고 기본 표지로 돌아간다(거절하면 아무것도 하지 않는다)', async () => {
   const { removeCover } = await show(undefined, '/worldstudio/qa', { hasCover: true })
   await waitFor(() => expect(headerCover()).toBeTruthy())
   openInfoEdit()
@@ -1646,10 +1700,80 @@ it('표지를 지우면 확인한 뒤 바로 지우고 자동 생성 표지로 �
   confirm.mockReturnValue(true)
   fireEvent.click(coverGroup().getByRole('button', { name: '표지 삭제' }))
   await waitFor(() => expect(removeCover).toHaveBeenCalledWith('qa', expect.any(AbortSignal)))
-  expect(await screen.findByText('표지를 지웠어요. 자동으로 만든 표지를 써요.')).toBeTruthy()
+  expect(await screen.findByText('표지를 지웠어요. 기본 표지를 써요.')).toBeTruthy()
   await waitFor(() => expect(headerCover()).toBeNull())
-  expect(document.querySelector('.world-manage-hero .cov svg')).not.toBeNull()
+  expect(defaultCover()?.getAttribute('src')).toBe('/default-work-cover.svg')
+  expect(document.querySelector('.world-manage-hero .cov svg')).toBeNull()
   expect(coverGroup().queryByRole('button', { name: '표지 삭제' })).toBeNull()
+})
+
+// ── 세계관 삭제(정보 편집 패널) ───────────────────────────────────────────────────────────────────────────
+const deleteButton = () => infoForm().getByRole<HTMLButtonElement>('button', { name: '세계관 삭제' })
+
+it('정보 편집 패널의 세계관 삭제는 이름을 보이며 확인하고, 지우면 내 세계관 목록으로 간다(거절하면 아무것도 하지 않는다)', async () => {
+  const { deleteStudio } = await showWorld()
+  openInfoEdit()
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  fireEvent.click(deleteButton())
+  expect(confirm).toHaveBeenCalledOnce()
+  expect(String(confirm.mock.calls[0][0])).toContain('검증 세계')
+  expect(String(confirm.mock.calls[0][0])).toContain('목록에서 사라져요')
+  expect(deleteStudio).not.toHaveBeenCalled()
+  expect(where()).toBe('/worldstudio/qa')
+  confirm.mockReturnValue(true)
+  fireEvent.click(deleteButton())
+  await waitFor(() => expect(deleteStudio).toHaveBeenCalledExactlyOnceWith('qa', expect.any(AbortSignal)))
+  await waitFor(() => expect(where()).toBe('/lib?tab=worlds'))
+})
+
+it('서버가 삭제를 거절하면(연결된 소설 등) 그 이유를 그대로 알리고 이동하지 않으며 패널은 열려 있다', async () => {
+  const reason = '연결된 소설이 있어 세계관을 삭제할 수 없어요. 작품 관리에서 연결을 해제한 뒤 삭제하세요.'
+  const { deleteStudio } = await show(undefined, '/worldstudio/qa', { deleteStudio: async () => { throw new Error(reason) } })
+  openInfoEdit()
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  fireEvent.click(deleteButton())
+  expect((await screen.findByText(reason)).getAttribute('role')).toBe('alert')
+  expect(deleteStudio).toHaveBeenCalledOnce()
+  expect(where()).toBe('/worldstudio/qa')
+  expect(screen.getByRole('form', { name: '세계관 정보 편집' })).toBeTruthy()
+})
+
+it('연결된 소설이 있으면 삭제 버튼을 이유와 함께 잠그고 확인도 서버 호출도 하지 않는다', async () => {
+  const { deleteStudio } = await show(undefined, '/worldstudio/qa', { linkedWorkId: 'work-1' })
+  openInfoEdit()
+  expect(deleteButton().disabled).toBe(true)
+  const reason = infoForm().getByText(/작품 관리에서 연결을 해제한 뒤 삭제하세요/)
+  expect(deleteButton().getAttribute('aria-describedby')).toBe(reason.id)
+  const confirm = vi.spyOn(window, 'confirm')
+  fireEvent.click(deleteButton())
+  expect(confirm).not.toHaveBeenCalled()
+  expect(deleteStudio).not.toHaveBeenCalled()
+})
+
+it('연결된 소설이 없으면 삭제 버튼은 열려 있고 목록에서 사라진다고 미리 알린다', async () => {
+  await showWorld()
+  openInfoEdit()
+  expect(deleteButton().disabled).toBe(false)
+  expect(infoForm().getByText(/내 세계관 목록과 공개 화면에서 사라져요/)).toBeTruthy()
+})
+
+it('삭제 저장소가 없는 데모 대역에는 삭제 버튼이 없다', async () => {
+  await show(undefined, '/worldstudio/qa', { demoDelete: true })
+  openInfoEdit()
+  expect(infoForm().queryByRole('button', { name: '세계관 삭제' })).toBeNull()
+})
+
+it('삭제하는 동안은 패널 전체가 잠겨 다시 누를 수 없다', async () => {
+  let finish: () => void = () => undefined
+  const { deleteStudio } = await show(undefined, '/worldstudio/qa', { deleteStudio: () => new Promise<void>((resolve) => { finish = resolve }) })
+  openInfoEdit()
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  fireEvent.click(deleteButton())
+  await waitFor(() => expect(deleteButton().closest('fieldset')?.disabled).toBe(true)) // 패널 fieldset이 잠기면 안의 버튼도 잠긴다
+  fireEvent.click(deleteButton())
+  expect(deleteStudio).toHaveBeenCalledOnce()
+  finish()
+  await waitFor(() => expect(where()).toBe('/lib?tab=worlds'))
 })
 
 it('이름·공개 설정·표지를 함께 바꾸면 이름·설명 → 공개 설정 → 표지 순으로 한 번씩 보내고 모두 되면 닫는다', async () => {
@@ -1687,7 +1811,7 @@ it('설명은 이름 붙은 마크다운 편집기 자리이고 문단을 나누
   expect(description.dataset.label).toBe('설정 본문')
   expect(description.value).toBe('건국이 일어났다')
   expect(description.placeholder).toContain('어떤 인물인가요?')
-  expect(editor().getByText('## 제목으로 문단을 나누면 공개 페이지 목차에 나와요.')).toBeTruthy()
+  expect(editor().getByText('# · ## · ### 제목은 공개 페이지 목차에 나와요.')).toBeTruthy()
 })
 
 it('글을 고치면 초안이 바뀌어 저장 전 수정이 있다고 알리고 글자 수를 센다', async () => {
@@ -1781,21 +1905,21 @@ it('설정 카드는 기본 비공개이고 편집 화면의 이 설정 공개�
 
 it('게시판에서 고른 설정만 선택 공개·선택 비공개로 바꾸고 전체 공개는 모든 설정 카드를 공개로 바꾼다', async () => {
   await show([person('가람'), person('나래'), place('항구')])
-  const [publish, hide, all] = ['선택 공개', '선택 비공개', '전체 공개'].map((name) => bulk().getByRole<HTMLButtonElement>('button', { name }))
+  const [publish, hide, all] = ['현재 페이지 선택 공개', '현재 페이지 선택 비공개', '전체 공개'].map((name) => bulk().getByRole<HTMLButtonElement>('button', { name }))
   expect([publish.disabled, hide.disabled, all.disabled]).toEqual([true, true, false]) // 고른 것이 없으면 선택 동작은 잠긴다
   fireEvent.click(boardTable().getByRole('checkbox', { name: '가람 선택' }))
   fireEvent.click(boardTable().getByRole('checkbox', { name: '항구 선택' }))
-  expect(bulk().getByRole('status').textContent).toBe('2개 선택')
+  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 2개 선택')
   fireEvent.click(publish)
   expect(visibilityOf()).toEqual(['공개', '비공개', '공개'])
-  expect(bulk().getByRole('status').textContent).toBe('설정 2개를 공개로 뒀어요.') // 바꾸면 고른 것을 풀고 한 일을 알린다
+  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 설정 2개를 공개로 뒀어요.') // 바꾸면 고른 것을 풀고 한 일을 알린다
   expect(boardTable().getAllByRole<HTMLInputElement>('checkbox').filter((box) => box.checked)).toEqual([])
   expect(saveBar().getByText('저장하지 않은 변경 있음')).toBeTruthy()
   fireEvent.click(boardTable().getByRole('checkbox', { name: '보이는 설정 모두 선택' }))
-  expect(bulk().getByRole('status').textContent).toBe('3개 선택')
+  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 3개 선택')
   fireEvent.click(hide)
   expect(visibilityOf()).toEqual(['비공개', '비공개', '비공개'])
-  expect(bulk().getByRole('status').textContent).toBe('설정 3개를 비공개로 뒀어요.')
+  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 설정 3개를 비공개로 뒀어요.')
   fireEvent.click(all)
   expect(visibilityOf()).toEqual(['공개', '공개', '공개'])
   expect(bulk().getByRole('status').textContent).toBe('모든 설정을 공개로 뒀어요.')
@@ -1806,8 +1930,8 @@ it('고른 설정은 지금 보이는 줄에서만 세어, 검색으로 가려�
   await show([person('가람', '북부'), person('나래', '남부')])
   fireEvent.click(boardTable().getByRole('checkbox', { name: '보이는 설정 모두 선택' }))
   fireEvent.change(screen.getByRole('searchbox', { name: '설정 검색' }), { target: { value: '북부' } })
-  expect(bulk().getByRole('status').textContent).toBe('1개 선택')
-  fireEvent.click(bulk().getByRole('button', { name: '선택 공개' }))
+  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 1개 선택 · 다른 페이지·필터 1개 선택')
+  fireEvent.click(bulk().getByRole('button', { name: '현재 페이지 선택 공개' }))
   fireEvent.change(screen.getByRole('searchbox', { name: '설정 검색' }), { target: { value: '' } })
   expect(visibilityOf()).toEqual(['공개', '비공개'])
 })
@@ -2087,16 +2211,19 @@ it('고른 세계관이 그사이 비공개가 됐거나 없으면 찾을 수 �
   expect(await sheet.findByRole('button', { name: /사라진 세계/ })).toBeTruthy()
 })
 
-it('서버 한도(설정 카드 1,000개)를 넘기면 가져오지 않고 이유를 시트에 보이며 초안은 그대로다', async () => {
+it('설정 가져오기 한도 오류를 시트에 보이고 초안은 그대로 둔다', async () => {
   stubPublicWorlds()
-  const notes = Array.from({ length: 1000 }, () => { const row = newSetting('notes'); row.item.title = '메모'; row.item.text = '내용'; return row })
-  await show(notes)
+  const append = vi.spyOn(cardImports, 'appendImported').mockImplementation(() => { throw new Error('설정 카드는 10,000개까지 저장할 수 있어요. 더 가져오려면 설정을 먼저 정리해 주세요.') })
+  await showWorld()
   const cards = await pickSource(await openImport())
   fireEvent.click(cards.getByRole('checkbox', { name: /설화/ }))
   fireEvent.click(cards.getByRole('button', { name: '설정 1개 가져오기' }))
-  expect((await cards.findByRole('alert')).textContent).toBe('설정 카드는 1,000개까지 저장할 수 있어요. 더 가져오려면 설정을 먼저 정리해 주세요.')
+  expect((await cards.findByRole('alert')).textContent).toBe('설정 카드는 10,000개까지 저장할 수 있어요. 더 가져오려면 설정을 먼저 정리해 주세요.')
+  expect(append).toHaveBeenCalledOnce()
   expect(screen.getByRole('dialog', { name: '다른 세계관에서 가져오기' })).toBeTruthy() // 닫지 않아 고른 것을 줄여 다시 할 수 있다
   expect(saveBar().getByText('저장됨')).toBeTruthy()
+  expect(boardTable().getAllByRole('row')).toHaveLength(2) // 머리글과 원래 카드만 남는다
+  expect(boardTable().getByRole('button', { name: '가람 인물' })).toBeTruthy()
 })
 
 // ── 새로 나타나거나 사라지는 영역의 초점(삭제 확인·관계 작성 패널) ─────────────────────────────────────
@@ -2233,7 +2360,7 @@ it('일괄 변경 뒤에는 잠긴 버튼 대신 표 머리의 모두 선택으�
   expect([head().checked, head().indeterminate]).toEqual([false, false])
   fireEvent.click(boardTable().getByRole('checkbox', { name: '가람 선택' }))
   expect([head().checked, head().indeterminate]).toEqual([false, true])
-  const publish = bulk().getByRole<HTMLButtonElement>('button', { name: '선택 공개' })
+  const publish = bulk().getByRole<HTMLButtonElement>('button', { name: '현재 페이지 선택 공개' })
   publish.focus()
   fireEvent.click(publish)
   expect(publish.disabled).toBe(true) // 고른 것이 풀려 누른 버튼은 잠긴다
@@ -2241,7 +2368,7 @@ it('일괄 변경 뒤에는 잠긴 버튼 대신 표 머리의 모두 선택으�
   expect([head().checked, head().indeterminate]).toEqual([false, false])
   fireEvent.click(head())
   expect([head().checked, head().indeterminate]).toEqual([true, false])
-  expect(bulk().getByRole('status').textContent).toBe('2개 선택') // 다시 고르면 결과 문구 대신 고른 수를 보인다
+  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 2개 선택') // 다시 고르면 결과 문구 대신 고른 수를 보인다
   const all = bulk().getByRole<HTMLButtonElement>('button', { name: '전체 공개' })
   all.focus()
   fireEvent.click(all)
@@ -2251,7 +2378,7 @@ it('일괄 변경 뒤에는 잠긴 버튼 대신 표 머리의 모두 선택으�
   openCard('가람 인물') // 그 뒤 초안이 달라지면(다른 수정·저장) 결과 문구는 낡은 말이라 보이지 않는다
   fireEvent.click(editor().getByRole('switch', { name: '이 설정 공개' }))
   backToBoard()
-  expect(bulk().getByRole('status').textContent).toBe('2개 선택')
+  expect(bulk().getByRole('status').textContent).toBe('현재 페이지 2개 선택')
 })
 
 it('글자 수는 입력할 때마다 읽히지 않고 3,000자를 넘는 순간에만 상태로 알린다', async () => {
@@ -2349,7 +2476,7 @@ it('인물 카드는 설명 대신 문서 목록(IDENTITY.md·SOUL.md·GOAL.md·
   expect(docBody('IDENTITY.md').value).toBe('기존 내용') // 기존 인물 카드의 본문이 그대로 IDENTITY.md다
   expect(docBody('IDENTITY.md').dataset.label).toBe('IDENTITY.md')
   expect(docsPanel().getByText('누구인가: 이름·나이·소속·외형·역할.')).toBeTruthy()
-  expect(editor().getByText('## 제목으로 문단을 나누면 공개 페이지 목차에 나와요.')).toBeTruthy() // 공개되는 문서라 목차 안내가 그대로 있다
+  expect(editor().getByText('# · ## · ### 제목은 공개 페이지 목차에 나와요.')).toBeTruthy() // 공개되는 문서라 목차 안내가 그대로 있다
   openMemory() // 회차 기억은 펼쳐야 보인다
   expect(episodeDocs().getByText('아직 회차 기억이 없어요.')).toBeTruthy()
   expect(docsPanel().queryByText(/공개 세계관과 독자 설정 위키에 나가는 글은/)).toBeNull() // 공개 범위는 문장 대신 탭의 `공개`·`작가만` 표시가 알린다
@@ -2370,7 +2497,7 @@ it('문서를 바꿔 가며 쓰면 문서마다 초안에 남고 안내와 글�
   expect(currentDoc()).toEqual(['SOUL.md 정리 필요'])
   expect(docBody('SOUL.md').value).toBe('')
   expect(docsPanel().getByText('어떻게 생각하고 말하는가: 성격·가치관·말투·욕망·두려움.')).toBeTruthy()
-  expect(editor().queryByText(/## 제목으로 문단을 나누면/)).toBeNull() // 공개 페이지 목차 안내는 공개되는 IDENTITY.md에만 있다
+  expect(editor().queryByText(/제목은 공개 페이지 목차에 나와요/)).toBeNull() // 공개 페이지 목차 안내는 공개되는 IDENTITY.md에만 있다
   expect(saveBar().getByText('저장됨')).toBeTruthy() // 문서를 옮겨 보기만 해서는 초안이 바뀌지 않는다
   fireEvent.change(docBody('SOUL.md'), { target: { value: '말수가 적다' } })
   expect(docNames()).toEqual(['IDENTITY.md', 'SOUL.md', 'GOAL.md 정리 필요']) // 채운 문서는 정리 필요가 사라진다

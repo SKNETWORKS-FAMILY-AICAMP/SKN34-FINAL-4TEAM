@@ -1,0 +1,565 @@
+{
+  "genre": "aztec_mythology",
+  "status": "검토용 후보; 서비스·DB에 자동 적재하지 않음",
+  "worldId": "b91abcca-af8b-5460-bf33-4bf5bf668e04",
+  "worldId_note": "기존 런타임의 세계관 ID를 UUIDv5 네임스페이스로만 사용. 새로운 세계관을 생성하거나 배정하지 않음.",
+  "id_rule": "UUIDv5(namespace=기존 worldId, name=review/full-myth/<입력 segment>/<candidate key>)",
+  "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+  "integration_head": "3ec049e5f00dfc6b07c9b840631b159b5b68bd54",
+  "scope": "「그림으로 전한 멕시코인들의 역사」 1882년 게재본 85–106쪽. INAH 영인 https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330 접근 불가로 같은 판본의 Academia 22쪽 OCR을 부분 열람. source/supplementary.md가 없어 지정 보충 구간은 확인되지 않음. 독립 대상이 이름만 언급되거나 OCR이 훼손된 경우 카드화하지 않음. 기존 72장과의 중복 후보는 각 카드에 명시.",
+  "manifest_entry": {
+    "segment": "aztec-mythology",
+    "focus": "source/tradition-cards.json의 scope에 명시된 주 저본 전체와 supplementary.md에 명시된 보충 구간만 모두 읽고 장·작품별 coverage를 실제 작성.",
+    "units": [
+      "main-text",
+      "specified-supplements"
+    ],
+    "genre": "aztec_mythology",
+    "scope": "16세기 익명 문헌 「그림으로 전한 멕시코인들의 역사」 한 작품의 1882년 게재본을 바탕으로 설정을 정리한다. 창조와 태양, 이주와 왕조, 스페인 정복, 하늘과 법, 토치밀코 계보, 달력과 제복까지 포함하며 다른 문헌의 신화를 덧붙이지 않는다.",
+    "existing_cards": 72,
+    "source_urls": [
+      "https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330",
+      "https://revistas.inah.gob.mx/index.php/anales/article/view/6489"
+    ],
+    "kind": "myth"
+  },
+  "input_files": [
+    {
+      "segment": "aztec-mythology",
+      "path": "미게시-임시자료:myth/aztec-mythology.json",
+      "sha256": "4fd2675ea9bc2fc8ff97404d295eaf10ce96ca359fd580fcf551a7f4f365046e",
+      "candidate_count": 12,
+      "coverage": [
+        {
+          "unit": "1장 세계와 최초의 신들",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "2장 세계 창조",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "3장 태양의 창조와 거인",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "4장 연도 계산과 태양 교체",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "5장 홍수와 하늘 복구",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "6장 하늘 복구 이후",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "7장 태양과 달의 탄생",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "8장 태양과 달 이후",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "9장 메시카의 시작과 출발",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "10장 쿨루아칸 출발 집단",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 2
+        },
+        {
+          "unit": "11장 이주 경로",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "unavailable",
+          "reason": "INAH 원본 서버 연결 거부; Academia의 동일 1882년 22쪽 복제 OCR은 일부만 열람되거나 문자가 심하게 손상되어 이 장의 전수 실독을 확인할 수 없음. 확인한 부분의 후보만 포함.",
+          "cards": 2
+        },
+        {
+          "unit": "무번호 장 1 쿨루아칸 이후 분산과 재회",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "unavailable",
+          "reason": "INAH 원본 서버 연결 거부; Academia의 동일 1882년 22쪽 복제 OCR은 일부만 열람되거나 문자가 심하게 손상되어 이 장의 전수 실독을 확인할 수 없음. 확인한 부분의 후보만 포함.",
+          "cards": 0
+        },
+        {
+          "unit": "무번호 장 2 차풀테펙 지도자와 코필",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "unavailable",
+          "reason": "INAH 원본 서버 연결 거부; Academia의 동일 1882년 22쪽 복제 OCR은 일부만 열람되거나 문자가 심하게 손상되어 이 장의 전수 실독을 확인할 수 없음. 확인한 부분의 후보만 포함.",
+          "cards": 0
+        },
+        {
+          "unit": "무번호 장 3 차풀테펙 패배",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "무번호 장 4 심장 매장",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "무번호 장 5 쿨루아칸 복속",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "무번호 장 6 소치밀코 전쟁",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 0
+        },
+        {
+          "unit": "무번호 장 7 제사와 추방",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "unavailable",
+          "reason": "INAH 원본 서버 연결 거부; Academia의 동일 1882년 22쪽 복제 OCR은 일부만 열람되거나 문자가 심하게 손상되어 이 장의 전수 실독을 확인할 수 없음. 확인한 부분의 후보만 포함.",
+          "cards": 0
+        },
+        {
+          "unit": "무번호 장 8 테누스티틀란 정착",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "unavailable",
+          "reason": "INAH 원본 서버 연결 거부; Academia의 동일 1882년 22쪽 복제 OCR은 일부만 열람되거나 문자가 심하게 손상되어 이 장의 전수 실독을 확인할 수 없음. 확인한 부분의 후보만 포함.",
+          "cards": 0
+        },
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "unavailable",
+          "reason": "INAH 원본 서버 연결 거부; Academia의 동일 1882년 22쪽 복제 OCR은 일부만 열람되거나 문자가 심하게 손상되어 이 장의 전수 실독을 확인할 수 없음. 확인한 부분의 후보만 포함.",
+          "cards": 3
+        },
+        {
+          "unit": "토치밀코 군주들의 계보",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 5
+        },
+        {
+          "unit": "달과 날 계산 및 제사 복장",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "read",
+          "reason": "INAH 서버 연결 거부로 동일 1882년 판본을 재현한 Academia OCR에서 열람. OCR의 오탈자는 원본 영인으로 재확인 필요.",
+          "cards": 0
+        }
+      ],
+      "coverage_note": "read/unavailable 및 원본 접근 제한은 입력 작성자의 자기보고로서 통합자가 원문을 독립 실독한 사실이 아니다. unavailable 장에 포함된 일부 후보는 해당 작성자가 확인했다고 한 부분만 보존한다."
+    },
+    {
+      "segment": "gap-aztec-unread",
+      "path": "미게시-임시자료:myth/gap-aztec-unread.json",
+      "sha256": "8d552a0a22d0551285f5be603abcd53b072a5bee42a57c8b56cf3dfb821dee6e",
+      "candidate_count": 40,
+      "coverage": [
+        {
+          "unit": "11장 이주 경로",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA92&output=html_text",
+          "status": "read",
+          "reason": "1882년판 92–95쪽을 Google Books의 해당 판본 접근성 OCR로 읽음. 고유명 일부 OCR 표기 오류와 95쪽 경계는 재검 필요.",
+          "cards": 13
+        },
+        {
+          "unit": "무번호 장 1 쿨루아칸 이후 분산과 재회",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA95&output=html_text",
+          "status": "read",
+          "reason": "1882년판 95쪽의 무번호 CAPÍTULO를 읽음. 장 끝에서 코필 제사가 다음 무번호 장과 겹쳐 서술됨.",
+          "cards": 3
+        },
+        {
+          "unit": "무번호 장 2 차풀테펙 지도자와 코필",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA95&output=html_text",
+          "status": "read",
+          "reason": "1882년판 95–96쪽의 무번호 CAPÍTULO를 읽음. 지도자의 계보 부분은 OCR 문장부호가 불명확하여 불확실한 관계는 확정하지 않음.",
+          "cards": 3
+        },
+        {
+          "unit": "무번호 장 7 제사와 추방",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA97&output=html_text",
+          "status": "unavailable",
+          "reason": "1882년판 97쪽 OCR의 희생 문장에 주어·행동이 빠져 전수 실독 불가. 주변의 명확한 구절만 후보로 기록함.",
+          "cards": 2
+        },
+        {
+          "unit": "무번호 장 8 테누스티틀란 정착",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA97&output=html_text",
+          "status": "read",
+          "reason": "1882년판 97쪽의 무번호 CAPÍTULO를 읽음. 코필의 심장과 관련된 기록은 이 문헌의 서술로 한정함.",
+          "cards": 5
+        },
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98&output=html_text",
+          "status": "unavailable",
+          "reason": "1882년판 98–105쪽을 OCR로 살폈으나 여러 고유명·문장과 연대기·계보가 훼손되어 전체를 정확히 읽었다고 확인할 수 없음. 명확한 구절만 후보로 기록함.",
+          "cards": 14
+        }
+      ],
+      "coverage_note": "보충 작업자의 자기보고; Google Books OCR 4단위 read, 2단위 unavailable로 각각 사유를 보존한다. 해당 보고와 판본 동일성을 통합자가 독립 검증한 것은 아니다."
+    },
+    {
+      "segment": "gap-aztec-scan",
+      "path": "미게시-임시자료:myth/gap-aztec-scan.json",
+      "sha256": "9494543b1c775edc9d4750c7e7d3d3baa6dafc190f974726fc187ea91b1f5b98",
+      "candidate_count": 21,
+      "scope": "Historia de los Mexicanos por sus pinturas, Anales del Museo Nacional de México 제2권 1882년 85–106쪽 중 무번호 제사·추방 장 97쪽 및 연대기·하늘·법 98–105쪽. https://books.google.com/books/about/Anales_del_Museo_Nacional_de_M%C3%A9xico.html?id=Nc6w48IZJv0C 에 표시된 1882년 Berkeley 소장본 영인과 Google 접근성 OCR을 대조했다. OCR 페이지 묶음은 첫 쪽 번호로 전체가 표시되므로 각 인쇄 쪽 영인과 직접 대조했다. 이용권 및 스캔·OCR 재사용 조건은 미확인이다. 기준 52개 review 후보와 기존 source 72개는 읽기 전용으로 대조했다.",
+      "coverage": [
+        {
+          "unit": "무번호 장 7 제사와 추방",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA97",
+          "status": "partial",
+          "reason": "97쪽 두 번째 CAPÍTULO 전체 인쇄면 판독. 아벤시가 희생되었다고 쓰인 문장의 도입부가 1882년 인쇄본 자체에서 이어지지 않는다. OCR도 같은 결락을 보이므로 OCR 오류로 단정하거나 다른 판본의 보충을 삽입하지 않는다. 확인 가능한 신전 조롱·추방 부분은 읽음.",
+          "cards": 2
+        },
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "coverage_note": "두 단위 모두 스캔 작업자의 partial 자기보고이며 영인·OCR 문맥과 세부 판독을 통합자가 전체 독립 검증했다고 주장하지 않는다."
+    }
+  ],
+  "manifest_sha256": "e4ba1ed138007f194b3c4133967110a63b58157d891a52205f75326b78098a9e",
+  "source_files": {
+    "infrastructure/sample-data/genre-templates/aztec_mythology/source/tradition-cards.json": "b6124cf5dc745999e3fbaece09460dbe119ad7b41082de8bc0835a23fc464253",
+    "infrastructure/sample-data/genre-templates/aztec_mythology/source/template.json": "3d6d339bc13bbd38e366fae322dc82c8018602ba6bcb11c742ff0980361bb73b",
+    "infrastructure/sample-data/genre-templates/aztec_mythology/source/sources.md": "aeb9ec846465df803708af9de922cd73056768d441ab01cc59c8bcbeac4d3e47",
+    "backend/content-service/src/main/resources/genre-templates.json": "bc3cbacd8e7806d673793963386a63c6b7d61f0ec280ce56c22fd74d33003340",
+    "backend/content-service/src/main/resources/genre-templates-v1.json": "96cbbb7607aada4ca8f7a27f56cfd6a6197c7826db0160fae2cc134768992d85",
+    "backend/content-service/src/main/resources/genre-templates-v2.json": "4699939f749f45dc0958f7c908955ade6e9ea91ab8ed9ab55860251831aa9517"
+  },
+  "source_original_sha256": null,
+  "source_original_sha256_reason": "INAH 영인, Academia OCR 및 Google Books 스캔·OCR 원문 파일의 해시를 확보하지 못함. 입력 JSON 해시는 원전의 해시가 아님.",
+  "specified_supplements": {
+    "status": "unspecified",
+    "reason": "지정된 source/supplementary.md 파일이 존재하지 않아 보충 범위 자체를 확인할 수 없음; 미접근이나 실독으로 단정하지 않음."
+  },
+  "totals": {
+    "input_files": 3,
+    "input_candidates": 73,
+    "output_individual_candidates": 73,
+    "merged_candidates": 0,
+    "unprocessed_input_candidates": 0,
+    "input_preserved_as_individual": 73,
+    "merged_inputs_with_all_evidence": 0,
+    "coverage_units": 22,
+    "reported_read_units": 20,
+    "reported_unavailable_units": 2,
+    "types": {
+      "character": 36,
+      "event": 20,
+      "rule": 5,
+      "object": 5,
+      "location": 3,
+      "other": 2,
+      "ability": 1,
+      "organization": 1
+    },
+    "baseline_aztec_cards": 72,
+    "existing_myth_cards_reported": 868,
+    "output_chunks": 3,
+    "scan_reported_partial_units": 2
+  },
+  "deduplication": {
+    "rule": "기존 입력과 보충 입력 후보 및 기존 원전 카드의 서술과 제목을 비교하여 명시적 연관 후보를 표기한다. 같은 서사에서도 부분 대상 및 판본 근거 차이가 있을 수 있어 전부 독립 보존하고 삭제·병합하지 않았다.",
+    "same_input_key_title_type_groups": [],
+    "exact_same_candidate_groups": [],
+    "merged": 0,
+    "identity_equation": "73 입력 = 73 개별 보존 + 0 완전 근거 보존 병합",
+    "limits": "각 신후보에 아즈텍 기존 카드 관련 항목을 수동으로 표시하고 관련 신후보와 기존 후보의 관계를 일부 추가했다. 표기 변형과 다른 전승의 모든 의미상 중복을 식별했다는 뜻이 아니다. 스캔 입력의 기존 source 및 후보 관련성 표시는 그 작성자의 서술과 명시적 키를 바탕으로 했고 동일성 확정은 아니다."
+  },
+  "limitations": [
+    "INAH 영인은 입력 작성자들에 따르면 접근 불가; Academia 및 Google Books OCR의 read는 각각 작업자의 자기보고이며 영인과 OCR 사이의 판본 동일성·실독·OCR 정확성을 통합자가 독립 검증하지 못했다.",
+    "기존 unavailable 6단위 중 보충 작업자는 4단위를 read로 보고하고 2단위는 OCR 손상으로 unavailable로 남겼다. 두 단위의 미독 부분, 지정 여부를 알 수 없는 보충 범위 및 OCR 손상·설명 부족으로 제외된 대상 때문에 누락 가능성이 남는다.",
+    "제공된 짧은 발췌는 카드 본문 전체의 모든 주장·관계·연대를 입증하지 않을 수 있다. 별도 원문 문맥 및 판본 대조, 역사·문화 감수가 필요하다.",
+    "식민기 서술·지역·시기별 전승 차이와 서로 다른 판본을 하나의 정본으로 확정하지 않는다.",
+    "1882년판과 원전·전사·Google Books 스캔·OCR·한국어 요약 및 제3자 자료의 지적 재산 재사용 조건과 해당 지역·시기 전승을 독립 확인하지 못했다.",
+    "기존 신화 868장과 기존 런타임은 변경하지 않았다. 카드당 SOUL/GOAL을 새로 만들지 않았다.",
+    "이 자료는 검토용이며 앱이나 DB에 자동 적재되지 않는다. 실제 반영은 별도 #425 안전 계약, 권리·중복 검증 및 한도 검토가 필요하다. 현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다.",
+    "구조·문자열 검증은 역사적 정확성, 발췌의 사실 뒷받침, 전수 추출을 보장하지 않는다.",
+    "추가 스캔 입력의 두 단위는 작성자의 partial 보고이며 인쇄본의 끊긴 문장과 OCR·판독 및 권리 미확인 범위가 남는다. 일부 페이지에서 Google Books 접근성 OCR의 앵커와 실제 인쇄 쪽이 다르므로 다른 후보도 개별 검토가 필요하다."
+  ],
+  "chunks": [
+    {
+      "file": "cards-001.json",
+      "count": 12,
+      "sha256": "66414b924848ff3d0b8d31befc2f81c130904a18d53f19f9cb7a6b95443d89bc",
+      "bytes": 49334
+    },
+    {
+      "file": "cards-002.json",
+      "count": 40,
+      "sha256": "3f5775fb5c885a4f4c089d08f008a85b621890dc2da1d2bfa590715b9abba56f",
+      "bytes": 170252
+    },
+    {
+      "file": "cards-003.json",
+      "count": 21,
+      "sha256": "6c83891859e8c0b339f9b1e6205e5442494b90dbf9c7ed7675e1a0c2da9a6c86",
+      "bytes": 81806
+    }
+  ],
+  "coverage_resolution": {
+    "original_units": 22,
+    "original_read_self_report": 16,
+    "original_unavailable": 6,
+    "supplement_reported_read": 4,
+    "remaining_unavailable": 2,
+    "effective_read_self_report": 20,
+    "effective_unavailable": 2,
+    "note": "기존 Academia 기록은 변경하지 않는다. 실독 수는 서로 다른 작업자의 자기보고를 단위별로 결합한 것으로 실제 판본 실독이나 내용 검증을 뜻하지 않는다. 기존 read/unavailable 수는 이전 두 입력의 자기보고를 보존한 것이며 이후 스캔 보충에서 해당 2단위는 partial로만 보고됐다.",
+    "revisited": [
+      {
+        "unit": "11장 이주 경로",
+        "original": {
+          "unit": "11장 이주 경로",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "unavailable",
+          "reason": "INAH 원본 서버 연결 거부; Academia의 동일 1882년 22쪽 복제 OCR은 일부만 열람되거나 문자가 심하게 손상되어 이 장의 전수 실독을 확인할 수 없음. 확인한 부분의 후보만 포함.",
+          "cards": 2
+        },
+        "supplement": {
+          "unit": "11장 이주 경로",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA92&output=html_text",
+          "status": "read",
+          "reason": "1882년판 92–95쪽을 Google Books의 해당 판본 접근성 OCR로 읽음. 고유명 일부 OCR 표기 오류와 95쪽 경계는 재검 필요.",
+          "cards": 13
+        }
+      },
+      {
+        "unit": "무번호 장 1 쿨루아칸 이후 분산과 재회",
+        "original": {
+          "unit": "무번호 장 1 쿨루아칸 이후 분산과 재회",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "unavailable",
+          "reason": "INAH 원본 서버 연결 거부; Academia의 동일 1882년 22쪽 복제 OCR은 일부만 열람되거나 문자가 심하게 손상되어 이 장의 전수 실독을 확인할 수 없음. 확인한 부분의 후보만 포함.",
+          "cards": 0
+        },
+        "supplement": {
+          "unit": "무번호 장 1 쿨루아칸 이후 분산과 재회",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA95&output=html_text",
+          "status": "read",
+          "reason": "1882년판 95쪽의 무번호 CAPÍTULO를 읽음. 장 끝에서 코필 제사가 다음 무번호 장과 겹쳐 서술됨.",
+          "cards": 3
+        }
+      },
+      {
+        "unit": "무번호 장 2 차풀테펙 지도자와 코필",
+        "original": {
+          "unit": "무번호 장 2 차풀테펙 지도자와 코필",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "unavailable",
+          "reason": "INAH 원본 서버 연결 거부; Academia의 동일 1882년 22쪽 복제 OCR은 일부만 열람되거나 문자가 심하게 손상되어 이 장의 전수 실독을 확인할 수 없음. 확인한 부분의 후보만 포함.",
+          "cards": 0
+        },
+        "supplement": {
+          "unit": "무번호 장 2 차풀테펙 지도자와 코필",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA95&output=html_text",
+          "status": "read",
+          "reason": "1882년판 95–96쪽의 무번호 CAPÍTULO를 읽음. 지도자의 계보 부분은 OCR 문장부호가 불명확하여 불확실한 관계는 확정하지 않음.",
+          "cards": 3
+        }
+      },
+      {
+        "unit": "무번호 장 7 제사와 추방",
+        "original": {
+          "unit": "무번호 장 7 제사와 추방",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "unavailable",
+          "reason": "INAH 원본 서버 연결 거부; Academia의 동일 1882년 22쪽 복제 OCR은 일부만 열람되거나 문자가 심하게 손상되어 이 장의 전수 실독을 확인할 수 없음. 확인한 부분의 후보만 포함.",
+          "cards": 0
+        },
+        "supplement": {
+          "unit": "무번호 장 7 제사와 추방",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA97&output=html_text",
+          "status": "unavailable",
+          "reason": "1882년판 97쪽 OCR의 희생 문장에 주어·행동이 빠져 전수 실독 불가. 주변의 명확한 구절만 후보로 기록함.",
+          "cards": 2
+        }
+      },
+      {
+        "unit": "무번호 장 8 테누스티틀란 정착",
+        "original": {
+          "unit": "무번호 장 8 테누스티틀란 정착",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "unavailable",
+          "reason": "INAH 원본 서버 연결 거부; Academia의 동일 1882년 22쪽 복제 OCR은 일부만 열람되거나 문자가 심하게 손상되어 이 장의 전수 실독을 확인할 수 없음. 확인한 부분의 후보만 포함.",
+          "cards": 0
+        },
+        "supplement": {
+          "unit": "무번호 장 8 테누스티틀란 정착",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA97&output=html_text",
+          "status": "read",
+          "reason": "1882년판 97쪽의 무번호 CAPÍTULO를 읽음. 코필의 심장과 관련된 기록은 이 문헌의 서술로 한정함.",
+          "cards": 5
+        }
+      },
+      {
+        "unit": "무번호 장 9 연대기·정복·하늘·법",
+        "original": {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS",
+          "status": "unavailable",
+          "reason": "INAH 원본 서버 연결 거부; Academia의 동일 1882년 22쪽 복제 OCR은 일부만 열람되거나 문자가 심하게 손상되어 이 장의 전수 실독을 확인할 수 없음. 확인한 부분의 후보만 포함.",
+          "cards": 3
+        },
+        "supplement": {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98&output=html_text",
+          "status": "unavailable",
+          "reason": "1882년판 98–105쪽을 OCR로 살폈으나 여러 고유명·문장과 연대기·계보가 훼손되어 전체를 정확히 읽었다고 확인할 수 없음. 명확한 구절만 후보로 기록함.",
+          "cards": 14
+        }
+      }
+    ],
+    "scan_supplement": {
+      "units": [
+        {
+          "unit": "무번호 장 7 제사와 추방",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA97",
+          "status": "partial",
+          "reason": "97쪽 두 번째 CAPÍTULO 전체 인쇄면 판독. 아벤시가 희생되었다고 쓰인 문장의 도입부가 1882년 인쇄본 자체에서 이어지지 않는다. OCR도 같은 결락을 보이므로 OCR 오류로 단정하거나 다른 판본의 보충을 삽입하지 않는다. 확인 가능한 신전 조롱·추방 부분은 읽음.",
+          "cards": 2
+        },
+        {
+          "unit": "무번호 장 9 연대기·정복·하늘·법",
+          "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98",
+          "status": "partial",
+          "reason": "98쪽 중간 [원문 직접 발췌 생략]부터 105쪽 중간 시장·성 관련 법의 끝까지 영인과 OCR을 읽음; 105쪽 De do procedieron los señores de tochimilco 이후는 별도 단위. 99쪽 테스코코 서술의 [원문 직접 발췌 생략]와 104쪽 전쟁 포로 조항의 끊긴 문장은 인쇄본에도 불완전하며 복구하지 않음. 인명과 법 조항의 개별 OCR 철자·쪽 경계는 영인 대조가 필요하다.",
+          "cards": 19
+        }
+      ],
+      "note": "이전 unavailable 자기보고 두 단위는 이후 스캔 작업자가 partial로 보고했다. 문장 결락 및 불명확 범위가 남아 완독·전수 확인으로 계산하지 않는다."
+    }
+  },
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "evidence_recheck": {
+    "scope": "4개 후보의 일부 근거가 본문을 충분히 지지하지 않는다는 독립 표본 지적에 대한 직접 OCR 재대조",
+    "method": "Google Books 각 쪽을 열고 표시된 OCR 문자열과 주변 문맥을 직접 확인했으며 단일 발췌는 200 UTF-16 코드 단위 이하로 기록했다. 기존 중복 카드의 내용은 원문 검증 근거로 사용하지 않았다.",
+    "candidates": [
+      {
+        "id": "6c16f05a-4dab-531f-9e5f-bfb1177f6284",
+        "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA92&output=html_text",
+        "new_evidence_count": 3,
+        "result": "Google Books OCR에서 세 집단·불의 신·전쟁 포로의 불 제사 서술을 직접 확인했다. 신의 이름은 기존 Academia 발췌의 ocotocli와 달리 ocotecli로 나타나며 OCR과 판본별 표기·동일성을 영인과 대조해야 한다."
+      },
+      {
+        "id": "ff4ef8db-5b84-5d8e-aa07-a7d8df316de5",
+        "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA94&output=html_text",
+        "new_evidence_count": 4,
+        "result": "Google Books OCR에서 숨팡고 부근 만남, 전쟁 포로의 제사와 머리를 막대기에 꽂은 서술을 직접 확인했다. 해당 인물의 칭호는 OCR에서 yn teul chichimeca로 보여 지도자라는 지위 및 철자 해석은 영인 대조 전까지 미검증이다."
+      },
+      {
+        "id": "9c83c759-571c-53b7-bb52-1ccddf190f5c",
+        "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA94&output=html_text",
+        "new_evidence_count": 3,
+        "result": "Google Books OCR에서 인구 계수, 그림에 숫자가 남지 않은 점, 계수를 맡은 cipan·xincaque에게 집을 지은 서술을 직접 확인했다. 이름의 한국어 표기와 OCR 철자는 영인 대조가 필요하다."
+      },
+      {
+        "id": "9c7437ca-0256-5119-9ea7-180cb760d942",
+        "url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA97&output=html_text",
+        "new_evidence_count": 6,
+        "result": "Google Books OCR에서 원망, 꿈속 지시, 두 얼굴·두 혀 형상, 씨앗·화살·눈가림·탐색·분식의 서술을 직접 확인했다. 눈을 가린 사람은 OCR상 형상을 쏜 사람들로 되어 있으며 구절의 철자와 문맥을 영인으로 재확인해야 한다."
+      }
+    ],
+    "limitations": "INAH 영인과 Google Books OCR이 동일한 1882년 판본인지는 독립 검증하지 못했으며 OCR 철자·역할 해석 및 재사용 권리는 미확인이다. 기존 입력의 본문과 evidence는 그대로 보존했으며 이 재대조는 전체 카드·전승의 정확성을 보증하지 않는다."
+  },
+  "source_corrections": {
+    "scope": "기존 후보 중 지정된 6개만 인쇄면과 대조하여 출처 위치 또는 인쇄본 손상 설명을 정정",
+    "original_input_hashes": "각 카드 input_sha256과 index input_files의 해시는 수정 전 입력 자료의 해시로 계속 유지한다.",
+    "items": [
+      {
+        "id": "792d9074-cbba-575b-abd3-13656586800f",
+        "candidate_key": "tizapan-temple-insult",
+        "reason": "Google Books 97쪽 인쇄면 가운데 CAPÍTULO의 “[원문 직접 발췌 생략]” 연결이 불완전한 것을 직접 확인해 OCR만의 결락으로 단정한 기술을 수정했다.",
+        "scan_url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA97"
+      },
+      {
+        "id": "22c79c16-08ce-59e7-b389-0f1a9ec63c66",
+        "candidate_key": "tlatelolco-islet",
+        "reason": "Google Books 표시 인쇄면의 페이지 번호와 해당 구절을 직접 대조해 97쪽에서 98쪽으로 수정했다. 접근성 OCR의 페이지 묶음·앵커는 인쇄 쪽과 어긋날 수 있다.",
+        "scan_url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98"
+      },
+      {
+        "id": "b292ecde-10d5-5632-93df-42a737a2ee8c",
+        "candidate_key": "tiunche-dream",
+        "reason": "Google Books 표시 인쇄면의 페이지 번호와 해당 구절을 직접 대조해 97쪽에서 98쪽으로 수정했다. 접근성 OCR의 페이지 묶음·앵커는 인쇄 쪽과 어긋날 수 있다.",
+        "scan_url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98"
+      },
+      {
+        "id": "767b8066-8233-575e-8730-811c7576d82b",
+        "candidate_key": "chichilquautli-sacrifice",
+        "reason": "Google Books 표시 인쇄면의 페이지 번호와 해당 구절을 직접 대조해 97쪽에서 98쪽으로 수정했다. 접근성 OCR의 페이지 묶음·앵커는 인쇄 쪽과 어긋날 수 있다.",
+        "scan_url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98"
+      },
+      {
+        "id": "8ee3ab00-ca51-5a01-9156-e75572a5cab7",
+        "candidate_key": "tenochtitlan-cactus",
+        "reason": "Google Books 표시 인쇄면의 페이지 번호와 해당 구절을 직접 대조해 97쪽에서 98쪽으로 수정했다. 접근성 OCR의 페이지 묶음·앵커는 인쇄 쪽과 어긋날 수 있다.",
+        "scan_url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98"
+      },
+      {
+        "id": "035db6b9-28f6-55b2-a48b-873b7488d916",
+        "candidate_key": "flood-black-water-serpents",
+        "reason": "Google Books 표시 인쇄면의 페이지 번호와 해당 구절을 직접 대조해 101쪽에서 100쪽으로 수정했다. 접근성 OCR의 페이지 묶음·앵커는 인쇄 쪽과 어긋날 수 있다.",
+        "scan_url": "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA100"
+      },
+      {
+        "id": "9c7437ca-0256-5119-9ea7-180cb760d942",
+        "candidate_key": "murmurers-two-faced-figure",
+        "reason": "97·98쪽 영인 및 OCR 직접 대조로 원망·꿈은 97쪽, 얼굴·혀 구절은 97–98쪽, 형상·눈가림·분식은 98쪽에 있음을 확인해 body와 발췌별 위치·URL을 정정했다.",
+        "scan_urls": [
+          "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA97",
+          "https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA98"
+        ],
+        "prior_input_sha256": "8d552a0a22d0551285f5be603abcd53b072a5bee42a57c8b56cf3dfb821dee6e"
+      }
+    ],
+    "unresolved_related_issue": "기존 9c7437ca 두 얼굴 형상 후보의 인쇄 쪽 경계 문제는 97·98쪽 영인과 OCR을 직접 대조해 발췌별 97쪽·97–98쪽·98쪽으로 정정했다. 판본 동일성 및 재사용 권리는 계속 미확인이다."
+  },
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

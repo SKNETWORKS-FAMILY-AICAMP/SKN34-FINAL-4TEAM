@@ -43,7 +43,8 @@
           "document": "sources.md",
           "section": "ra-isis-p009"
         }
-      ]
+      ],
+      "soul": "자신의 이름을 감춘 채 창조의 업적과 여러 칭호를 길게 열거한다. 뱀에 물린 고통 앞에서는 원인을 모른다고 인정하고 신들에게 도움을 청한다. 출전: 버지 영문 「라와 이시스」 https://www.gutenberg.org/cache/epub/9411/pg9411-images.html"
     },
     {
       "key": "isis",
@@ -79,7 +80,8 @@
           "document": "sources.md",
           "section": "ra-isis-p019"
         }
-      ]
+      ],
+      "soul": "라와 동등한 권능을 얻기 위해 독사를 만들어 놓고, 치료를 약속하며 이름을 거듭 요구한다. 라의 칭호 열거에 이름은 없다고 짚어 내고, 마지막에는 독을 물리치는 명령형 주문을 말한다. 출전: 버지 영문 「라와 이시스」 https://www.gutenberg.org/cache/epub/9411/pg9411-images.html"
     },
     {
       "key": "horus",
@@ -95,7 +97,8 @@
           "document": "sources.md",
           "section": "ra-isis-p019"
         }
-      ]
+      ],
+      "soul": "이시스가 라의 이름을 넘겨받는 장면에서 아들로 지목된다. 이 대목에서 호루스 자신의 성격이나 말투는 확인되지 않는다. 출전: 버지 영문 「라와 이시스」 https://www.gutenberg.org/cache/epub/9411/pg9411-images.html"
     },
     {
       "key": "created-serpent",
@@ -111,7 +114,8 @@
           "document": "sources.md",
           "section": "ra-isis-p005"
         }
-      ]
+      ],
+      "soul": "이시스가 만든 뱀은 라를 문다. 저본은 뱀의 의도나 대사를 제시하지 않으므로 성격과 말투는 확인되지 않는다. 출전: 버지 영문 「라와 이시스」 https://www.gutenberg.org/cache/epub/9411/pg9411-images.html"
     },
     {
       "key": "secret_name",
@@ -372,7 +376,8 @@
           "section": "unas-osiris",
           "excerpt_sha256": "02eb30bcf54a9768db3be645464a2bff3017d2f00709743ab7ba0679fde304ce"
         }
-      ]
+      ],
+      "soul": "우나스 장송 주문 219에서 여러 신의 아들이자 형제, 호루스의 아버지로 호명된다. 주문 속 호명만으로 성격이나 말투를 정하지 않는다. 출전: https://theosislibrary.com/library/verified-pyramid-texts-unas-sarcophagus-south-wall#s219"
     },
     {
       "key": "unas-sceptres",

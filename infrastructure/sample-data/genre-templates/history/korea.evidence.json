@@ -1,0 +1,1470 @@
+{
+  "schemaVersion": "1.0",
+  "country": "Korea",
+  "genre": "korea_history",
+  "worldId": "b08b14fa-dc75-5e3b-8067-148fb6346c72",
+  "worldFile": "korea.world.json",
+  "markdownFile": "korea.world.ko.md",
+  "createdAtUtc": "2026-11-13T18:06:18.466048+00:00",
+  "classification": "SOURCE_ONLY",
+  "reviewStatus": "MODERN_VERIFICATION_PENDING",
+  "usage": "RESEARCH_ONLY; DO_NOT_IMPORT",
+  "historicalEndpoint": {
+    "year": 1904,
+    "qualifier": "end of year; source explicitly says December, 1904",
+    "sourceFile": "source-vol2-en.txt",
+    "lines": [
+      13380,
+      13386
+    ]
+  },
+  "scope": "One country-wide source world spanning origin traditions, three kingdoms, Koryu, Joseon and Tai-han; no fictional renaming; no new modern acquisition.",
+  "limitations": [
+    "Original source assertions are not independently verified historical facts.",
+    "Authorial religious, ethnic and civilizational bias remains visible but is not endorsed.",
+    "No direct new check of 1905 page images or the underlying Korean records.",
+    "No modern history beyond 1904; no exhaustive translation or professional historical review.",
+    "Research JSON is structurally compatible with an individual genre-template world, not approved production content."
+  ],
+  "identity": {
+    "algorithm": "UUID5",
+    "worldNamespace": "NAMESPACE_URL",
+    "worldNamespaceUuid": "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
+    "worldSeed": "storyfork:history-source-world:korea:hulbert-1905:v1",
+    "cardNamespace": "b08b14fa-dc75-5e3b-8067-148fb6346c72",
+    "cardNameField": "stableKey"
+  },
+  "templateSchemaReference": {
+    "path": "../../../../backend/content-service/src/main/resources/genre-templates.json",
+    "repositoryRelativePath": "backend/content-service/src/main/resources/genre-templates.json",
+    "sha256": "e2488085f8ac19d57b6869debd7e8690b63ec97078708128e9e93358d6dc6c0f",
+    "worldKeys": [
+      "cards",
+      "description",
+      "genre",
+      "name",
+      "worldId"
+    ],
+    "cardKeys": [
+      "body",
+      "cardType",
+      "id",
+      "title"
+    ],
+    "allowedCardTypes": [
+      "character",
+      "event",
+      "location",
+      "object",
+      "organization",
+      "other",
+      "rule"
+    ]
+  },
+  "sources": [
+    {
+      "file": "source-vol1-en.txt",
+      "path": "../korea/hulbert-1905/source-vol1-en.txt",
+      "sha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+      "bytes": 1007640,
+      "lineCount": 16382,
+      "author": "Homer B. Hulbert",
+      "title": "The History of Korea",
+      "volume": 1,
+      "publicationYear": 1905,
+      "publisher": "The Methodist Publishing House, Seoul",
+      "gutenbergId": 52127,
+      "existingSourceUrl": "https://www.gutenberg.org/ebooks/52127",
+      "acquisition": "Previously acquired local file only; no network retrieval in this task"
+    },
+    {
+      "file": "source-vol2-en.txt",
+      "path": "../korea/hulbert-1905/source-vol2-en.txt",
+      "sha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "bytes": 1003220,
+      "lineCount": 18884,
+      "author": "Homer B. Hulbert",
+      "title": "The History of Korea",
+      "volume": 2,
+      "publicationYear": 1905,
+      "publisher": "The Methodist Publishing House, Seoul",
+      "gutenbergId": 52749,
+      "existingSourceUrl": "https://www.gutenberg.org/ebooks/52749",
+      "acquisition": "Previously acquired local file only; no network retrieval in this task"
+    }
+  ],
+  "supportingExistingInputs": [
+    {
+      "file": "chapter-identifiers-correction.ko.md",
+      "path": "../korea/hulbert-1905/chapter-identifiers-correction.ko.md",
+      "sha256": "ea77214008f50b4bf9a126b66fb398f88acd0b36c351c7bb3ca4fdb628ce3f74",
+      "role": "existing Korean draft or QA used for terminology/status only; not independent historical corroboration"
+    },
+    {
+      "file": "korea-63-chapters-qa.ko.md",
+      "path": "../korea/hulbert-1905/korea-63-chapters-qa.ko.md",
+      "sha256": "d74a2319d53518c538ee7d026c725fc4b0872ddca0363b0bc2f93a238117d8c7",
+      "role": "existing Korean draft or QA used for terminology/status only; not independent historical corroboration"
+    },
+    {
+      "file": "vol2-23.ko.draft.md",
+      "path": "../korea/hulbert-1905/vol2-23.ko.draft.md",
+      "sha256": "6b205cb7f04aa5feff2b829271976c2d19fed0e598976db23ed61f69cff4c164",
+      "role": "existing Korean draft or QA used for terminology/status only; not independent historical corroboration"
+    }
+  ],
+  "chapterIdentifiers": {
+    "totalContentUnits": 63,
+    "notUniquePrintedTitles": true,
+    "printedPageImagesRechecked": false,
+    "pgSecondVolumeSecondChapter": "I-A identifies a second content unit misprinted XI according to PG transcriber; Chapter X was misprinted XX.",
+    "transcriberReference": {
+      "sourceFile": "source-vol2-en.txt",
+      "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+      "lineStart": 17882,
+      "lineEnd": 17884,
+      "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+      "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+      "byteStart": 962049,
+      "byteEndExclusive": 962219,
+      "excerpt": "The second chapter of this volume was inadvertently headed as Chapter\r\nXI, and is referred to here as Chapter I-A. Also, the heading of Chapter\r\nX was misprinted as XX.\r\n",
+      "excerptSha256": "fe8582a39078b37972a9d53b3f10bf6ff3465d5467d33579c8d9d700e37bdbec",
+      "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+    },
+    "inventory": [
+      {
+        "sourceFile": "source-vol1-en.txt",
+        "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+        "contentUnitCount": 35,
+        "countMethod": "Each body line matching full regex \\s*Chapter [IVX]+(?:-A)?\\.\\s* is one content unit; repeated Roman numbers across parts are not unique printed titles.",
+        "headings": [
+          {
+            "line": 296,
+            "pgHeading": "Chapter I."
+          },
+          {
+            "line": 409,
+            "pgHeading": "Chapter II."
+          },
+          {
+            "line": 845,
+            "pgHeading": "Chapter III."
+          },
+          {
+            "line": 965,
+            "pgHeading": "Chapter IV."
+          },
+          {
+            "line": 1286,
+            "pgHeading": "Chapter V."
+          },
+          {
+            "line": 1530,
+            "pgHeading": "Chapter VI."
+          },
+          {
+            "line": 1893,
+            "pgHeading": "Chapter VII."
+          },
+          {
+            "line": 2185,
+            "pgHeading": "Chapter VIII."
+          },
+          {
+            "line": 2562,
+            "pgHeading": "Chapter IX."
+          },
+          {
+            "line": 3026,
+            "pgHeading": "Chapter X."
+          },
+          {
+            "line": 3428,
+            "pgHeading": "Chapter XI."
+          },
+          {
+            "line": 4030,
+            "pgHeading": "Chapter XII."
+          },
+          {
+            "line": 4479,
+            "pgHeading": "Chapter XIII."
+          },
+          {
+            "line": 4946,
+            "pgHeading": "Chapter I."
+          },
+          {
+            "line": 5463,
+            "pgHeading": "Chapter II."
+          },
+          {
+            "line": 5927,
+            "pgHeading": "Chapter III."
+          },
+          {
+            "line": 6450,
+            "pgHeading": "Chapter IV."
+          },
+          {
+            "line": 6975,
+            "pgHeading": "Chapter V."
+          },
+          {
+            "line": 7489,
+            "pgHeading": "Chapter VI."
+          },
+          {
+            "line": 7969,
+            "pgHeading": "Chapter VII."
+          },
+          {
+            "line": 8469,
+            "pgHeading": "Chapter VIII."
+          },
+          {
+            "line": 8922,
+            "pgHeading": "Chapter IX."
+          },
+          {
+            "line": 9403,
+            "pgHeading": "Chapter X."
+          },
+          {
+            "line": 9840,
+            "pgHeading": "Chapter XI."
+          },
+          {
+            "line": 10258,
+            "pgHeading": "Chapter XII."
+          },
+          {
+            "line": 10648,
+            "pgHeading": "Chapter XIII."
+          },
+          {
+            "line": 11121,
+            "pgHeading": "Chapter I."
+          },
+          {
+            "line": 11653,
+            "pgHeading": "Chapter II."
+          },
+          {
+            "line": 12152,
+            "pgHeading": "Chapter III."
+          },
+          {
+            "line": 12684,
+            "pgHeading": "Chapter IV."
+          },
+          {
+            "line": 13134,
+            "pgHeading": "Chapter V."
+          },
+          {
+            "line": 13509,
+            "pgHeading": "Chapter VI."
+          },
+          {
+            "line": 13947,
+            "pgHeading": "Chapter VII."
+          },
+          {
+            "line": 14379,
+            "pgHeading": "Chapter VIII."
+          },
+          {
+            "line": 14844,
+            "pgHeading": "Chapter IX."
+          }
+        ]
+      },
+      {
+        "sourceFile": "source-vol2-en.txt",
+        "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+        "contentUnitCount": 28,
+        "countMethod": "Each body line matching full regex \\s*Chapter [IVX]+(?:-A)?\\.\\s* is one content unit; repeated Roman numbers across parts are not unique printed titles.",
+        "headings": [
+          {
+            "line": 81,
+            "pgHeading": "Chapter I."
+          },
+          {
+            "line": 624,
+            "pgHeading": "Chapter I-A."
+          },
+          {
+            "line": 1066,
+            "pgHeading": "Chapter II."
+          },
+          {
+            "line": 1656,
+            "pgHeading": "Chapter III."
+          },
+          {
+            "line": 2224,
+            "pgHeading": "Chapter IV."
+          },
+          {
+            "line": 2680,
+            "pgHeading": "Chapter V."
+          },
+          {
+            "line": 3210,
+            "pgHeading": "Chapter VI."
+          },
+          {
+            "line": 3686,
+            "pgHeading": "Chapter VII."
+          },
+          {
+            "line": 4193,
+            "pgHeading": "Chapter VIII."
+          },
+          {
+            "line": 4684,
+            "pgHeading": "Chapter IX."
+          },
+          {
+            "line": 5218,
+            "pgHeading": "Chapter X."
+          },
+          {
+            "line": 5745,
+            "pgHeading": "Chapter XI."
+          },
+          {
+            "line": 6301,
+            "pgHeading": "Chapter XII."
+          },
+          {
+            "line": 6878,
+            "pgHeading": "Chapter XIII."
+          },
+          {
+            "line": 7357,
+            "pgHeading": "Chapter XIV."
+          },
+          {
+            "line": 7833,
+            "pgHeading": "Chapter XV."
+          },
+          {
+            "line": 8341,
+            "pgHeading": "Chapter XVI."
+          },
+          {
+            "line": 8937,
+            "pgHeading": "Chapter XVII."
+          },
+          {
+            "line": 9575,
+            "pgHeading": "Chapter XVIII."
+          },
+          {
+            "line": 9911,
+            "pgHeading": "Chapter XIX."
+          },
+          {
+            "line": 10217,
+            "pgHeading": "Chapter XX."
+          },
+          {
+            "line": 10553,
+            "pgHeading": "Chapter XXI."
+          },
+          {
+            "line": 11091,
+            "pgHeading": "Chapter XXII."
+          },
+          {
+            "line": 11404,
+            "pgHeading": "Chapter XXIII."
+          },
+          {
+            "line": 11957,
+            "pgHeading": "Chapter XXIV."
+          },
+          {
+            "line": 12310,
+            "pgHeading": "Chapter XXV."
+          },
+          {
+            "line": 12557,
+            "pgHeading": "Chapter XXVI."
+          },
+          {
+            "line": 13104,
+            "pgHeading": "Chapter XXVII."
+          }
+        ]
+      }
+    ]
+  },
+  "cards": [
+    {
+      "cardId": "29abc109-1de4-575a-aa6c-6ae29a4e0e39",
+      "stableKey": "source-scope",
+      "title": "01. 출처와 한국 SOURCE 세계의 범위",
+      "cardType": "other",
+      "role": "metadata",
+      "era": "출처·범위",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Editorial metadata with original-text anchors",
+      "uncertaintyAndBias": "저자가 사용했다고 밝힌 원사료를 직접 확인하지 않았다. 현재 국가의 영토·국체를 과거 모든 시기에 소급하지 않는다.",
+      "references": [
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 43,
+          "lineEnd": 76,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 1576,
+          "byteEndExclusive": 2406,
+          "excerpt": "                                  THE\r\n                            HISTORY OF KOREA\r\n\r\n                    HOMER B. HULBERT, A.M., F.R.G.S.\r\n                       Editor of THE KOREA REVIEW\r\n\r\n\r\n\r\n\r\n                              TWO VOLUMES\r\n\r\n\r\n\r\n\r\n                              ILLUSTRATED\r\n\r\n\r\n\r\n\r\n                              SEOUL, 1905\r\n                     THE METHODIST PUBLISHING HOUSE\r\n\r\n------------------------------------------------------------------------\r\n\r\n\r\n\r\n\r\nCONTENTS.\r\n\r\n       PREFACE                                                  I\r\n       INTRODUCTORY NOTE                                        V\r\n       ANCIENT KOREA 2257 B.C.-890 A.D.         Vol. I          1\r\n       MEDIEVAL KOREA 890-1392                  Vol. I        127\r\n       MODERN KOREA 1392-1904                   Vol. I        295\r\n",
+          "excerptSha256": "362156cc8c0b50079748a4b11f49338f9e8d0e3665d4f245017f45ee74fbd776",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 84,
+          "lineEnd": 115,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 2460,
+          "byteEndExclusive": 4559,
+          "excerpt": "The sources from which the following History of Korea is drawn are\r\nalmost purely Korean. For ancient and medieval history the Tong-sa\r\nKang-yo has been mainly followed. This is an abstract in nine volumes of\r\nthe four great ancient histories of the country. The facts here found\r\nwere verified by reference to the Tong-guk Tong-gam, the most complete\r\nof all existing ancient histories of the country. Many other works on\r\nhistory, geography and biography have been consulted, but in the main\r\nthe narrative in the works mentioned above has been followed.\r\n\r\nA number of Chinese works have been consulted, especially the Mun-hon\r\nTong-go wherein we find the best description of the wild tribes that\r\noccupied the peninsula about the time of Christ.\r\n\r\nIt has been far more difficult to obtain material for compiling the\r\nhistory of the past five centuries. By unwritten law the history of no\r\ndynasty in Korea has ever been published until after its fall. Official\r\nrecords are carefully kept in the government archives and when the\r\ndynasty closes these are published by the new dynasty. There is an\r\nofficial record which is published under the name of the Kuk-cho Po-gam\r\nbut it can in no sense be called a history, for it can contain nothing\r\nthat is not complimentary to the ruling house and, moreover, it has not\r\nbeen brought down even to the opening of the 19th century. It has been\r\nnecessary therefore to find private manuscript histories of the dynasty\r\nand by uniting and comparing them secure as accurate a delineation as\r\npossible of the salient features of modern Korean history. In this I\r\nhave enjoyed the services of a Korean scholar who has made the history\r\nof this dynasty a special study for the past twenty-five years and who\r\nhas had access to a large number of private manuscripts. I withhold his\r\nname by special request. By special courtesy I have also been granted\r\naccess to one of the largest and most complete private libraries in the\r\ncapital. Japanese records have also been consulted in regard to special\r\npoints bearing on the relations between Korea and Japan.\r\n",
+          "excerptSha256": "d0f418cc179997df13f8a24c4169d57948509ccfcdeeda54299d4ecb9630db48",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 13380,
+          "lineEnd": 13386,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 852520,
+          "byteEndExclusive": 852999,
+          "excerpt": "this required the purchase of Korean money. The result was that the yen,\r\ninstead of holding its ratio of something like one to two and a half of\r\nthe Korean dollar fell to the ratio of one to only one and four tenths.\r\nWhen, however, the sea was cleared of the Russians and import trade was\r\nresumed and the bulk of the Japanese crossed the Yalu the Korean dollar\r\nfell again to a ratio of about two to one, which it has preserved up to\r\nthe present time, i.e. December, 1904.\r\n",
+          "excerptSha256": "822d7e4ecfdc0558e4f5a59a3395f45456df891f52942053f93fc948f71802c9",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. I · Project Gutenberg 52127",
+          "url": "https://www.gutenberg.org/ebooks/52127"
+        },
+        {
+          "title": "The History of Korea, Vol. II · Project Gutenberg 52749",
+          "url": "https://www.gutenberg.org/ebooks/52749"
+        }
+      ]
+    },
+    {
+      "cardId": "b1c49145-64c0-5825-890a-ca4689bba49e",
+      "stableKey": "peninsula-rivers",
+      "title": "02. 반도와 압록강·두만강·해안",
+      "cardType": "location",
+      "role": "substantive",
+      "era": "지리적 도입",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "집필 당시 지리 서술을 모든 시대의 확정 경계로 사용하지 않는다. 거리·면적 수치와 환경 일반화는 독립 검증하지 않았다.",
+      "references": [
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 208,
+          "lineEnd": 245,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 9833,
+          "byteEndExclusive": 12244,
+          "excerpt": "Geography is the canvas on which history is painted. Topography means as\r\nmuch to the historian as to the general. A word, therefore, about the\r\nposition of Korea will not be out of place.\r\n\r\nThe peninsula of Korea, containing approximately 80,000 square miles,\r\nlies between 33° and 43° north latitude, and between 124° 30′ and 130°\r\n30′ east longitude. It is about nine hundred miles long from north to\r\nsouth and has an average width from east to west of about 240 miles. It\r\nis separated from Manchuria on the northwest by the Yalu or Am-nok\r\nRiver, and from Asiatic Russia on the northeast by the Tu-man River.\r\nBetween the sources of these streams rise the lofty peaks of White Head\r\nMountain, called by the Chinese Ever-white or Long-white Mountain. From\r\nthis mountain whorl emanates a range which passes irregularly southward\r\nthrough the peninsula until it loses itself in the waters of the Yellow\r\nSea, thus giving birth to the almost countless islands of the Korean\r\narchipelago. The main watershed of the country is near the eastern coast\r\nand consequently the streams that flow into the Japan Sea are neither\r\nlong nor navigable, while on the western side and in the extreme south\r\nwe find considerable streams that are navigable for small craft a\r\nhundred miles or more. While the eastern coast is almost entirely\r\nlacking in good harbors the western coast is one labyrinth of estuaries,\r\nbays and gulfs which furnish innumerable harbors. It is on the western\r\nwatershed of the country that we will find most of the arable land and\r\nby far the greater portion of the population.\r\n\r\nWe see then that, geographically, Korea’s face is toward China and her\r\nback toward Japan. It may be that this in part has moulded her history.\r\nDuring all the centuries her face has been politically, socially and\r\nreligiously toward China rather than toward Japan.\r\n\r\nThe climate of Korea is the same as that of eastern North America\r\nbetween the same latitudes, the only difference being that in Korea the\r\nmonth of July brings the “rainy season” which renders nearly all roads\r\nin the interior impassable. This rainy season, by cutting in two the\r\nwarmer portion of the year, has had a powerful influence on the history\r\nof the country; for military operations were necessarily suspended\r\nduring this period and combatants usually withdrew to their own\r\nrespective territories upon its approach.\r\n",
+          "excerptSha256": "bdd3ebb6a5e580d03674f25dfab8398df5b42657acf01df611324ab2588c1c37",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. I · Project Gutenberg 52127",
+          "url": "https://www.gutenberg.org/ebooks/52127"
+        }
+      ]
+    },
+    {
+      "cardId": "002ffce3-47c5-5cfc-8837-71e812244d34",
+      "stableKey": "tangun-tradition",
+      "title": "03. 단군(Tan-gun)과 건국 전승",
+      "cardType": "character",
+      "role": "substantive",
+      "era": "고대 기원 전승",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "전승과 저자의 추정이 섞여 있다. 이 카드의 연대·계보·영토는 실증된 고대사로 확정하지 않는다.",
+      "references": [
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 303,
+          "lineEnd": 358,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 14811,
+          "byteEndExclusive": 18111,
+          "excerpt": "In the primeval ages, so the story runs, there was a divine being named\r\nWhan-in, or Che-Sŏ: “Creator.” His son, Whan-ung, being affected by\r\ncelestial _ennui_, obtained permission to descend to earth and found a\r\nmundane kingdom. Armed with this warrant, Whan-ung with three thousand\r\nspirit companions descended upon Ta-băk Mountain, now known as Myo-hyang\r\nSan, in the province of P’yŭng-an, Korea. It was in the twenty-fifth\r\nyear of the Emperor Yao of China, which corresponds to 2332 B.C.\r\n\r\nHe gathered his spirit friends beneath the shade of an ancient _pak-tal_\r\ntree and there proclaimed himself King of the Universe. He governed\r\nthrough his three vice-regents, the “Wind General,” the “Rain Governor,”\r\nand the “Cloud Teacher,” but as he had not yet taken human shape, he\r\nfound it difficult to assume control of a purely human kingdom.\r\nSearching for means of incarnation he found it in the following manner.\r\n\r\nAt early dawn, a tiger and a bear met upon a mountain side and held a\r\ncolloquy.\r\n\r\n“Would that we might become men” they said. Whan-ung overheard them and\r\na voice came from out the void saying, “Here are twenty garlics and\r\napiece of artemisia for each of you. Eat them and retire from the light\r\nof the sun for thrice seven days and you will become men.”\r\n\r\nThey ate and retired into the recesses of a cave, but the tiger, by\r\nreason of the fierceness of his nature, could not endure the restraint\r\nand came forth before the allotted time; but the bear, with greater\r\nfaith and patience, waited the thrice seven days and then stepped forth,\r\na perfect woman.\r\n\r\nThe first wish of her heart was maternity, and she cried, “Give me a\r\nson.” Whan-ung, the Spirit King, passing on the wind, beheld her sitting\r\nthere beside the stream. He circled round her, breathed upon her, and\r\nher cry was answered. She cradled her babe in moss beneath that same\r\n_pak-tal_ tree and it was there that in after years the wild people of\r\nthe country found him sitting and made him their king.\r\n\r\nThis was the Tan-gun, “The Lord of the Pak-tal Tree.” He is also, but\r\nless widely, known as Wang-gŭm. At that time Korea and the territory\r\nimmediately north was peopled by the “nine wild tribes” commonly called\r\nthe _Ku-i_. Tradition names them respectively the Kyŭn, Pang, Whang,\r\nFăk, Chŭk, Hyŭn, P‘ung, Yang and U. These, we are told, were the\r\naborigines, and were fond of drinking, dancing and singing. They dressed\r\nin a fabric of woven grass and their food was the natural fruits of the\r\nearth, such as nuts, roots, fruits and berries. In summer they lived\r\nbeneath the trees and in winter they lived in a rudely covered hole in\r\nthe ground. When the Tan-gun became their king he taught them the\r\nrelation of king and subject, the rite of marriage, the art of cooking\r\nand the science of house building. He taught them to bind up the hair by\r\ntying a cloth about the head. He taught them to cut down trees and till\r\nfields.\r\n\r\nThe Tan-gun made P‘yŭng-yang the capital of his kingdom and there,\r\ntradition says, he reigned until the coming of Ki-ja, 1122 B.C. If any\r\ncredence can be given this tradition it will be by supposing that the\r\nword Tan-gun refers to a line of native chieftains who may have\r\nantedated the coming of Ki-ja.\r\n",
+          "excerptSha256": "8afea82382f6bfbafc6054901863f7474f8ed91773c9570500db3260246a784a",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. I · Project Gutenberg 52127",
+          "url": "https://www.gutenberg.org/ebooks/52127"
+        }
+      ]
+    },
+    {
+      "cardId": "21333bfa-b59b-527a-9f44-67551d63d65f",
+      "stableKey": "three-kingdoms",
+      "title": "04. 고구려·백제·신라와 주변 집단",
+      "cardType": "organization",
+      "role": "substantive",
+      "era": "삼국의 병존",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "민족·국가 성격에 대한 고정 관념을 채택하지 않는다. 초기 기록의 연대 및 현재 지명 대응은 확인 대기다.",
+      "references": [
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 1848,
+          "lineEnd": 1886,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 110419,
+          "byteEndExclusive": 112987,
+          "excerpt": "It must not be imagined that these three kingdoms of Sil-la, Ko-gu-ryŭ\r\nand Păk-je, which represented so strongly the centripetal idea in\r\ngovernment, were allowed to proceed without vigorous protests from the\r\nless civilized tribes about them. The Mal-gal tribes in the north, the\r\nSuk-sin and North Ok-jŭ tribe in the north-east and Ye-măk in the east\r\nmade fierce attacks upon them as opportunity presented. The Mal-gal\r\ntribes in particular seem to have penetrated southward even to the\r\nborders of Păk-je, probably after skirting the eastern borders of\r\nKo-gu-ryŭ. Nominally Ko-gu-ryŭ held sway even to the Japan Sea but\r\npractically the wild tribes roamed as yet at will all through the\r\neastern part of the peninsula. In the eighth year of On-jo’s reign, 10\r\nB.C., the Mal-gal forces besieged his capital and it was only after a\r\nmost desperate fight that they were driven back. On-jo found it\r\nnecessary to build the fortresses of Ma-su-sŭng and Ch’il-chung-sŭng to\r\nguard against such inroads. At the same time the Sŭn-bi were threatening\r\nKo-gu-ryŭ on the north, but Gen. Pu Bun-no lured them into an ambush and\r\nrouted them completely. The king rewarded him with land, horses and\r\nthirty pounds of gold, but the last he refused.\r\n\r\nThe next year the wild men pulled down the fortresses lately erected by\r\nKing On-jo and the latter decided that he must find a better site for\r\nhis capital. So he moved it to the present site of Nam-han, about twenty\r\nmiles from the present Seoul. At the same time he sent and informed the\r\nking of Ma-han that he had found it necessary to move. The following\r\nyear he enclosed the town in a wall and set to work teaching agriculture\r\nto the people throughout the valley of the Han River which flowed near\r\nby.\r\n\r\nIn the year which saw the birth of Christ the situation of affairs in\r\nKorea was as follows. In the north, Ko-gu-ryŭ, a vigorous, warlike\r\nkingdom, was making herself thoroughly feared by her neighbors; in the\r\ncentral western portion was the little kingdom of Păk-je, as yet without\r\nany claims to independence but waiting patiently for the power of Ma-han\r\nso to decline as to make it possible to play the serpent in the bosom as\r\nWi-man had done to Ki-ja’s kingdom. In the south was Sil-la, known as a\r\npeaceful power, not needing the sword because her rule was so mild and\r\njust that people from far and near flocked to her borders and craved to\r\nbecome her citizens. It is one of the compensations of history that\r\nSil-la, the least martial of them all, in an age when force seemed the\r\n",
+          "excerptSha256": "b8225d7a1b2e18860679133107608397ba0a8ae7c662b28f85bbed2b13a73cf0",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. I · Project Gutenberg 52127",
+          "url": "https://www.gutenberg.org/ebooks/52127"
+        }
+      ]
+    },
+    {
+      "cardId": "7728d77a-0f55-518a-b787-1e7f8c49a507",
+      "stableKey": "buddhism-courts",
+      "title": "05. 불교 수용과 왕실·사찰",
+      "cardType": "rule",
+      "role": "substantive",
+      "era": "삼국의 종교·제도",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "왕실 중심 설명이 대중의 다양한 신앙을 대표하지 않는다. 불교를 낮추는 평가를 역사적 사실로 채택하지 않는다.",
+      "references": [
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 2703,
+          "lineEnd": 2748,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 165745,
+          "byteEndExclusive": 168900,
+          "excerpt": "The year 372 beheld an event of prime importance in the history of\r\nKo-gu-ryŭ and of the whole peninsula. It was the introduction of\r\nBuddhism. It is probable that before this time some knowledge of\r\nBuddhism was current in Korea, but as it is eminently a sacerdotal\r\ninstitution but little more than indefinite reports could have been\r\ncirculated previous to the coming of the monks. We are not told whether\r\nthis was done at the request of Ko-gu-ryŭ or whether it was at the\r\nadvice of Pu-gyŭn, one of the petty kings who then divided between them\r\nthe north of China. Be that as it may, in 372 A.D. images of Buddha were\r\nbrought by a monk, Sun-do, and also a Buddhist book called Pul-gyŭng.\r\nFor this the king of Ko-gu-ryŭ returned hearty thanks and forthwith set\r\nhis son and heir to learning the new doctrine. At the same time he gave\r\nan impetus to the study of the Confucian code. It is quite probable that\r\nto this new departure is due the fact that the next year the laws of the\r\ncountry were overhauled and put in proper shape for use. In 375 two\r\ngreat monasteries were built in the capital of Ko-gu-ryŭ. They were\r\ncalled Cho-mun and I-bul-lan. It should be noticed that the introduction\r\nof Buddhism into Korea was a government affair. There had been no\r\npropagation of the tenets of this cult through emmisaries sent for the\r\npurpose, there was no call for it from the people. In all probability\r\nthe king and his court were pleased at the idea of introducing the\r\nstately ceremonial of the new faith. In fact it was a social event\r\nrather than a religious one and from that date to this there has not\r\nbeen a time when the people of Korea have entered heartily into the\r\nspirit of Buddhism, nor have her most distinguished representatives\r\nunderstood more than the mere forms and trappings of that religion which\r\namong all pagan cults is the most mystical.\r\n\r\nPăk-je was not long in following the example of her powerful neighbor.\r\nIn the year 384 a new king ascended the throne of Păk-je. His name was\r\nCh’im-yu. One of his first acts was to send an envoy to China asking\r\nthat a noted monk named Mararanta be sent to Păk-je to introduce the\r\nBuddhist ritual. We notice that this request was sent to the Emperor\r\nHyo-mu (Hsia-wu), the proper head of the Eastern Tsin dynasty, while\r\nKo-gu-ryŭ had received hers at the hands of one of those petty kings who\r\nhung upon the skirts of the weakening dynasty and waited patiently for\r\nits dissolution. Each of these petty states, as well as the central\r\ngovernment of the Tsin, was on the lookout for promising allies and such\r\na request as this of Păk-je could scarcely be refused. Mararanta, whose\r\nname smacks of the south and who certainly cannot have been a Chinaman,\r\nwas sent to the Păk-je capital. He was received with open arms. His\r\napartments were in the palace where he soon erected a Buddhist shrine.\r\nTen more monks followed him and Buddhism was firmly established in this\r\nsecond of the three Korean states. The greatest deference was paid to\r\nthese monks and they were addressed by the honorific title To-seung.\r\nSil-la received Buddhism some fifty years later.\r\n",
+          "excerptSha256": "803fd5baa155634b4ade274bbcb5e08c863a22fc263d17ad9347b2a67756a0cd",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. I · Project Gutenberg 52127",
+          "url": "https://www.gutenberg.org/ebooks/52127"
+        }
+      ]
+    },
+    {
+      "cardId": "20767a0f-4fd6-5660-a96c-f1ecf3d72614",
+      "stableKey": "silla-tang-conflict",
+      "title": "06. 고구려 멸망과 신라·당의 관계 변화",
+      "cardType": "event",
+      "role": "substantive",
+      "era": "7세기 전쟁과 재편",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "원문 자체가 통합 시점과 범위에 단서를 둔다. 예언은 전승이고 인구·군사 수치는 독립 대조하지 않았다.",
+      "references": [
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 4434,
+          "lineEnd": 4474,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 276551,
+          "byteEndExclusive": 279098,
+          "excerpt": "In 668 everything beyond the Yalu had fallen into the hands of the\r\nChinese; even Pu-yŭ Fortress of ancient fame had been taken by Gen. Sŭl\r\nIn-gwi. The Emperor sent a messenger asking “Can you take Ko-gu-ryŭ?”\r\nThe answer went back “Yes, we must take her. Prophecy says that after\r\n700 years Ko-gu-ryŭ shall fall and that _eighty_ shall cause her\r\noverthrow. The 700 years have passed and now Gen. Yi Jök is eighty years\r\nold. He shall be the one to fulfill the prophecy.”\r\n\r\nTerrible omens had been seen in the Ko-gu-ryŭ capital. Earthquakes had\r\nbeen felt; foxes had been seen running through the streets; the people\r\nwere in a state of panic. The end of Ko-gu-ryŭ was manifestly near. So\r\ntradition says.\r\n\r\nNam-gŭn had sent 50,000 troops to succor Pu-yŭ Fortress but in the\r\nbattle which ensued 30,000 of these were killed and the remainder were\r\nscattered. Conformably to China’s demands, Sil-la in the sixth moon\r\nthrew her army into Ko-gu-ryŭ. The great Sil-la general, Kim Yu-sin was\r\nill, and so Gen. Kim In-mun was in command with twenty-eight generals\r\nunder him. While this army was making its way northward the Chinese\r\nunder Gen. Yi Jök in the north took Tă-hăng Fortress and focussed all\r\nthe troops in his command upon the defenses of the Yalu. These defenses\r\nwere broken through, the river was crossed and the Chinese advanced 210\r\n_li_ toward the capital without opposition. One by one the Ko-gu-ryŭ\r\nforts surrendered and at last Gen. Kye-p‘il Ha-ryŭk arrived before the\r\nhistoric city of P‘yŭng-yang. Gen. Yi Jök arrived next and finally Gen.\r\nKim In-mun appeared at the head of the Sil-la army.\r\n\r\nAfter an uninteresting siege of a month the king sent out Gen. Chön\r\nNam-san and ninety other nobles with a flag of truce and offered to\r\nsurrender. But the chancellor Nam-gŭn knew what fate was in store for\r\nhim, so he made a bold dash at the besieging army. The attempt failed\r\nand the miserable man put the sword to his own throat and expired. The\r\naged general, Yi Jök, took the king and his two sons, Pong-nam, and\r\nTong-nam, a number of the officials, many of Nam-gŭn’s relatives and a\r\nlarge company of the people of P‘yŭng-yang and carried them back to\r\nChina, where he was received with evidences of the utmost favor by the\r\nEmperor. The whole number of captives in the triumphal return of Gen. Yi\r\nJök is said to have been 20,000.\r\n\r\nKo-gu-ryŭ’s lease of life had been 705 years, from 37 B.C. to 668 A.D.,\r\nduring which time she had been governed by twenty-eighty kings.\r\n",
+          "excerptSha256": "da1da68b6d9020ce9690e7123ba044d12cf1ca79cf3adade54577fd1ce2cab87",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 4503,
+          "lineEnd": 4530,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 280470,
+          "byteEndExclusive": 282306,
+          "excerpt": "China divided all Ko-gu-ryŭ into nine provinces in which there were\r\nforty-two large towns and over a hundred lesser ones of prefectural\r\nrank. In P‘yŭng-yang Gen. Sŭl In-gwi was stationed with a garrison of\r\n20,000 men. The various provinces were governed partly by Chinese\r\ngovernors and partly by native prefects.\r\n\r\nThe king of Sil-la was now the only king in the peninsula and the\r\npresumption was that in view of his loyalty to the Chinese his kingdom\r\nwould extend to the Yalu River if not beyond, but it probably was not\r\nextended at the time further than the middle of Whang-hă Province of\r\nto-day. The records say that in 669 the three kingdoms were all\r\nconsolidated but it did not occur immediately. It is affirmed that the\r\nChinese took 38,000 families from Ko-gu-ryŭ and colonized Kang-whe in\r\nChina and that some were also sent to San-nam in western China. That\r\nSil-la was expecting a large extension of territory is not explicitly\r\nstated but it is implied in the statement that when a Sil-la envoy went\r\nto the Chinese court the Emperor accused the king of wanting to possess\r\nhimself of the whole peninsula, and threw the envoy into prison. At the\r\nsame time he ordered Sil-la to send bow-makers to China to make bows\r\nthat would shoot 1,000 paces. In due time these arrived but when the\r\nbows were made it was found that they would shoot but thirty paces. They\r\ngave as a reason for this that it was necessary to obtain the wood from\r\nSil-la to make good bows. This was done and still the bows would shoot\r\nbut sixty paces. The bow-makers declared that they did not know the\r\nreason unless it was because the wood had been hurt by being brought\r\nacross the water. This was the beginning of an estrangement between the\r\nEmperor and the king of Sil-la which resulted in a state of actual war\r\nbetween the two.\r\n",
+          "excerptSha256": "acc4fb8ac00a8a4e43bb4fd78ac95cc92d0b6c60e9eafee7d2e87496751ebaf3",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. I · Project Gutenberg 52127",
+          "url": "https://www.gutenberg.org/ebooks/52127"
+        }
+      ]
+    },
+    {
+      "cardId": "4f763faa-bc15-504a-843d-49934259217d",
+      "stableKey": "wanggeon-foundation",
+      "title": "07. 왕건(Wang-gön)과 고려의 출발",
+      "cardType": "character",
+      "role": "substantive",
+      "era": "후삼국에서 고려로",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "정통성 서술과 일화의 사실성을 구별한다. 원문의 정신질환 비유를 임상 진단이나 인물의 본성으로 사용하지 않는다.",
+      "references": [
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 5116,
+          "lineEnd": 5166,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 319221,
+          "byteEndExclusive": 322598,
+          "excerpt": "The year 918 was one of the epochal years of Korean history. The state\r\nof the peninsula was as follows. In the south-east, the reduced kingdom\r\nof Sil-la, prostrated by her own excesses, without an army, and yet in\r\nher very supineness running to excess of riot, putting off the evil day\r\nand trying to drown regrets in further debauchery. In the central\r\neastern portion, the little kingdom of Kung-ye who had now become a\r\ntyrant and a madman. He had put his whole army under the hand of a\r\nyoung, skillful, energetic and popular man who had gained the esteem of\r\nall classes. In the south-west was another sporadic state under\r\nKyŭn-whŭn who was a fierce, unscrupulous bandit, at swords points with\r\nthe rising Wang-gön.\r\n\r\nSuddenly Kung-ye awoke to the reality of his position. He knew he was\r\nhated by all and that Wang-gön was loved by all, and he knew too that\r\nthe army was wholly estranged from himself and that everything depended\r\nupon what course the young general should pursue. Fear, suspicion and\r\njealousy mastered him and he suddenly ordered the young general up to\r\nthe capital. Wang-gön boldly complied, knowing doubtless by how slender\r\na thread hung his fortunes. When he entered his master’s presence the\r\nlatter exclaimed “You conspired against me yesterday.” The young man\r\ncalmly asked how. Kung-ye pretended to know it through the power of his\r\nsacred office as Buddha. He said “Wait, I will again consult the inner\r\nconsciousness.” Bowing his head he pretended to be communing with his\r\ninner self. At this moment one of the clerks purposely dropped his pen,\r\nletting it roll near to the prostrate form of Wang-gön. As the clerk\r\nstooped to pick it up, he whispered in Wang-gön’s ear “Confess that you\r\nhave conspired.” The young man grasped the situation at once. When the\r\nmock Buddha raised his head and repeated the accusation Wang-gön\r\nconfessed that it was true. The King was delighted at this, for he\r\ndeceived himself into believing that he actually had acquired the\r\nfaculty of reading men’s minds. This pleased him so greatly that he\r\nreadily forgave the offence and merely warned the young man not to\r\nrepeat it. After this he gave Wang-gön rich gifts and had more\r\nconfidence in him than ever.\r\n\r\nBut the officials all besieged the young general with entreaties to\r\ncrush the cruel and capricious monarch and assume the reins of\r\ngovernment himself. This he refused to do, for through it all, he was\r\nfaithful to his master. But they said “He has killed his wife and his\r\nsons and we will all fall a prey to his fickle temper unless you come to\r\nour aid. He is worse than the Emperor Chu.” Wang-gön, however, urged\r\nthat it was the worst of crimes to usurp a throne. “But” said they “is\r\nit not much worse for us all to perish? If one does not improve the\r\nopportunity that heaven provides it is a sin.” He was unmoved by this\r\ncasuistry and stood his ground firmly. At last even his wife joined in\r\nurging him to lay aside his foolish scruples and she told the officials\r\nto take him by force and carry him to the palace, whether he would or\r\nnot. They did so, and bearing him in their arms they burst through the\r\npalace gate and called upon the wretch Kung-ye to make room for their\r\nchosen king. The terrified creature fled naked but was caught at\r\nPu-yang, now P‘yŭng-gang, and beheaded.\r\n",
+          "excerptSha256": "03d172696410c4e17632e432fcd1cee838c9a4ddca28172cf2fe44255b9191ad",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 5196,
+          "lineEnd": 5219,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 324332,
+          "byteEndExclusive": 325955,
+          "excerpt": "Wang-gön sent messages to all the bandit chiefs and invited them to join\r\nthe new movement, and soon from all sides they came in and swore\r\nallegiance to the young king. Kyŭn-whŭn, however, held aloof and sought\r\nfor means to put down the new power. Wang-gön set to work to establish\r\nhis kingdom on a firm basis. He changed the official system and\r\nestablished a new set of official grades. He rewarded those who had been\r\ntrue to him and remitted three years’ revenues. He altered the revenue\r\nlaws, requiring the people to pay much less than heretofore, manumitted\r\nover a thousand slaves and gave them goods out of the royal storehouses\r\nwith which to make a start in life. As P‘yŭng-yang was the ancient\r\ncapital of the country he sent one of the highest officials there as\r\ngovernor. And he finished the year with a Buddhist festival, being\r\nhimself a Buddhist of a mild type. This great annual festival is\r\ndescribed as follows:—There was an enormous lantern, hung about with\r\nhundreds of others, under a tent made of a net-work of silk cords. Music\r\nwas an important element. There were also representations of dragons,\r\nbirds, elephants, horses, carts and boats. Dancing was prominent and\r\nthere were in all a hundred forms of entertainment. Each official wore\r\nthe long flowing sleeves and each carried the ivory memo tablet. The\r\nking sat upon a high platform and watched the entertainment.\r\n\r\nThe next year he transferred his court to Song-do which became the\r\npermanent capital. There he built his palace and also the large\r\nmerchants’ houses and shops in the center of the city. This latter act\r\n",
+          "excerptSha256": "b9ae96f6ccbb4a57d3faf97db4a8fa9f1d671560ab1a345f211c41962338c84e",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. I · Project Gutenberg 52127",
+          "url": "https://www.gutenberg.org/ebooks/52127"
+        }
+      ]
+    },
+    {
+      "cardId": "0cdbbd39-d2bb-5532-986c-cd830b2bbea3",
+      "stableKey": "ganghwa-mongol",
+      "title": "08. 강화(Kang-wha)의 조정과 몽골 침입",
+      "cardType": "location",
+      "role": "substantive",
+      "era": "고려의 몽골 전쟁기",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "피난과 봉기의 서술은 왕조 중심 자료에 의존한다. 수치·동기 및 각 행위자의 관점은 교차 검증하지 않았다.",
+      "references": [
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 7506,
+          "lineEnd": 7556,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 467966,
+          "byteEndExclusive": 471415,
+          "excerpt": "That neither the Koryŭ king nor any of the officials believed that the\r\nend of the trouble had come is evident. No sooner had the tumult of war\r\nsubsided than the question arose in the Koryŭ councils as to the moving\r\nof the court. Some objections were made, but Choe U silenced them by\r\nkilling off a few of the objectors. As for the king, he could not make\r\nup his mind to go; but the viceroy showed no hesitation. Seizing the\r\ngovernment carts he loaded his household effects upon them and moved to\r\nthe island of Kang-wha. He also urged the people to do likewise, and put\r\nup placards threatening with death anyone who should speak against\r\nremoving. Meanwhile the people throughout the country were rising in\r\nrevolt against the Mongol governors and were driving them out. This was\r\nsure to call down upon the troubled land another invasion, and the king\r\nat last made up his mind to follow the example of his viceroy and move\r\nto Kang-wha. A palace had been prepared for him there and on the\r\nappointed day a start was made from the capital. It happened to be in\r\nthe midst of the rainy season when the roads are well-nigh impassable.\r\nThe whole cavalcade soon found itself mired, and torrents of rain added\r\nmaterially to the discomfort. Even ladies of noble rank were seen wading\r\nwith bared limbs in the mud and carrying bundles on their heads. The\r\nwailing and crying of this forlorn multitude was audible for a long\r\ndistance. Gen. Kim Chung-gwi was left to guard the capital. When the\r\nking at last arrived on the island he found that the palace was not\r\nready for occupancy and he was obliged to live in a common house while\r\nthe officials shifted for themselves. Messengers were immediately sent\r\nin all directions ordering the people to leave the mainland and seek\r\nrefuge on the islands.\r\n\r\nThe common people in Song-do were in utter confusion. Anarchy stared\r\nthem in the face. A slave by the name of Yi T‘ong gathered about him a\r\nband of slaves and raised an insurrection. The general who had been\r\nplaced in charge was driven out, the monks were summoned to help in the\r\nsack of the town and all the government buildings were soon looted. It\r\nis hardly complimentary to Buddhism that her monks were invited by this\r\nseditious rabble to help in these lawless acts but it is probably a true\r\npicture of the times. When this came to the ears of the king he sent\r\nGen. Yi Cha-sung to put down the insurrection. The slaves barricaded the\r\nroad but the general dispersed them and at night gained admittance to\r\nthe city by feigning to be a deserter. Once within, he caught the slave\r\nleader Yi T‘ong and the rest soon dispersed.\r\n\r\nWhen the news of this exodus from the capital and the driving out of the\r\nMongol governors reached the Mongol capital is caused a sensation. The\r\nemperor, in a white heat, sent a messenger post-haste to Song-do and\r\nbehind him came a powerful army. The demand was “Why have you changed\r\nthe capital? Why have our people been driven out?” The king replied that\r\nthe capital was changed because all the people were running away, but he\r\naffirmed that although he had removed to Kang-wha his friendly feelings\r\ntoward the Mongols had not changed. To this the Mongols made the only\r\nanswer that was to be expected from them. They fell upon the northern\r\ntowns and put them to indiscriminate slaughter. Men, women and children\r\nfell beneath their swords. Gen. Sal Ye-t‘ap himself came to attack\r\n",
+          "excerptSha256": "e86599b494cc31b855cc3ef4279ba475ffa69206bb6ea6ec244116e57036d84b",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. I · Project Gutenberg 52127",
+          "url": "https://www.gutenberg.org/ebooks/52127"
+        }
+      ]
+    },
+    {
+      "cardId": "679323b1-3cb7-5670-8393-01053d80b4e8",
+      "stableKey": "joseon-founding",
+      "title": "09. 조선(Cho-sŭn) 왕조의 출범",
+      "cardType": "organization",
+      "role": "substantive",
+      "era": "1392년 전후 왕조 교체",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "날짜는 원문의 음력 표현을 보존하며 양력으로 환산하지 않는다. 승인 관계의 성격과 절차는 현대 검증 전이다.",
+      "references": [
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 11138,
+          "lineEnd": 11160,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 695223,
+          "byteEndExclusive": 696742,
+          "excerpt": "It was on the sixteenth day of the seventh moon of the year 1392 that\r\nGen. Yi ascended the throne of Koryŭ, now no longer Koryŭ. He was an old\r\nman, far past the age when he could hope to superintend in person the\r\nvigorous “house-cleaning” that the condition of things demanded. He\r\ncalled about him all the officials whom he knew to be personally loyal\r\nto himself and placed them in positions of trust and authority. Those\r\nwho had contributed to his rise were rewarded, and a tablet was erected\r\nin the capital telling of their merits. He liberated many who had been\r\nimprisoned because of their opposition to the Wang kings and recalled\r\nmany who had been banished.\r\n\r\nIt was not long before a message came from the emperor saying, “A man\r\ncan become king only by the decree of Heaven. How is it then that the\r\npeople of Sam-han have made Yi king?” In reply the king hastened to send\r\nan envoy to explain matters and to ask the emperor whether he would\r\nprefer to have the new kingdom called Cho-sŭn, “Morning Freshness” or\r\nWha-ryŭng, “Peaceful Harmony.” The emperor probably thought there was a\r\ngreat deal more morning freshness than peaceful harmony in the\r\npeninsula; at any rate he ordered the former name to be adopted. It was\r\nthe doubtful loyalty of the Wang kings to the Chinese throne that made\r\nit easy for king T‘ă-jo to smoothe over the displeasure of the emperor.\r\nThe seals of the Koryŭ kings were then delivered over to China and new\r\nseals received for the new dynasty.\r\n",
+          "excerptSha256": "462e6a1dcac334c9a405820eee69971785ddf07d70a0005b643b048cc048c696",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. I · Project Gutenberg 52127",
+          "url": "https://www.gutenberg.org/ebooks/52127"
+        }
+      ]
+    },
+    {
+      "cardId": "bd00d814-2609-5258-bf31-1e814f3b6da4",
+      "stableKey": "hanyang-capital",
+      "title": "10. 한양(Han-yang)과 새 수도 건설",
+      "cardType": "location",
+      "role": "substantive",
+      "era": "조선 초기 수도 재편",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "원문의 1391년 공사 서술과 1392년 건국 서술 사이에 시간상 문제가 있다. 전문 검증 전 연표에 확정 입력하지 않는다.",
+      "references": [
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 11162,
+          "lineEnd": 11183,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 696744,
+          "byteEndExclusive": 698298,
+          "excerpt": "According to unwritten law, with the beginning of a new dynasty a new\r\ncapital must be founded, and king T‘ă-jo began to look about for a new\r\nsite. At first he determined to build his capital at Kye-ryŭng Mountain\r\nin Ch‘ung-ch‘ŭng Province, and he went so far as to begin work on it;\r\nbut it was found that in the days of Sil-la a celebrated priest, To-sŭn,\r\nhad prophesied that in the days to come Yi would found a capital at\r\nHan-yang, and one of the Koryŭ kings had planted many plum trees at that\r\nplace and as fast as they matured had them mutilated, hoping thus to\r\nharm the fortunes of the Yi family; for the Chinese character for Yi is\r\nthe same as that for plum. Tradition also says that the king had a dream\r\nin which a spirit came and told him that Kye-ryŭng San was reserved for\r\nthe capital of a future kingdom which should be founded by a member of\r\nthe Chöng family. Two commissioners were thereupon sent to Han-yang to\r\nmake surveys for a palace site. It is said that a monk, Mu-hak, met them\r\nat Ha-yang and told them that the palace should face toward Pă-gak\r\nMountain and Mong-myŭk Mountain (the present Nam-san,) but they\r\npersisted in making it face the south. “Very well” the monk replied, “If\r\nyou do not listen to my advice you will have cause to remember it two\r\nhundred years from now.” His words were unheeded but precisely two\r\nhundred years later, in the year 1592, the Japanese hordes of Hideyoshi\r\nlanded on the shores of southern Korea. This is a fair sample of Korean\r\n_ex post facto_ prophecy.\r\n",
+          "excerptSha256": "900df127e933e22cb647261e10637a2ff3f180e8b077f699e71fa45cea50ca28",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 11208,
+          "lineEnd": 11229,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 699666,
+          "byteEndExclusive": 701167,
+          "excerpt": "Cho Chin was charged with the work of building the wall of the new\r\ncapital. To this end, in the spring of 1391, 119,000 men were brought\r\nfrom the provinces of P‘yŭng-an and Whang-hă and they worked steadily\r\nfor two months. In the autumn 89,000 men came from Kang-wŭn, Chŭl-la and\r\nKyŭng-sang Provinces and finished it in a month more. The whole circuit\r\nof the wall was 9,975 double paces. At five feet to the double pace this\r\nwould give us about nine and a half miles, its present length. It was\r\npierced by eight gates, the South Gate, or Suk-nye-mun, the East Gate or\r\nHeung-in-mun, the West Gate, or Ton-eui-mun, the Little West Gate, or\r\nSo-eui-mun, the North-east Gate, or Chang-eui-mun, the Water Mouth Gate,\r\nor Kwang-heui-mun, also called the Su-gu-mun, and finally the\r\nSuk-chang-mun, a private gate at the north by which the king may pass in\r\ntime of danger to the mountain fortress of Puk-han. At the same time a\r\nlaw was made that dead bodies could be carried out of the city only by\r\nway of the Little West or the Water Mouth Gates. Neither of these “dead\r\nmen’s gates” were roofed at first but were simply arches.\r\n\r\nImmediately upon the completion of the wall the court was moved from\r\nSong-do to the new capital and the new palace was named the Kyŭng-bok\r\nPalace. By this time the news of the founding of a new dynasty had\r\nspread, and envoys came from Japan, the Liu-kiu Islands and from the\r\nsouthern kingdom of Sam-na. It will be remembered that the Mongols had\r\n",
+          "excerptSha256": "a4be8c19d3b18e069b5fde8accbf910c66250a204fd99bc1ce014301d2a23f25",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. I · Project Gutenberg 52127",
+          "url": "https://www.gutenberg.org/ebooks/52127"
+        }
+      ]
+    },
+    {
+      "cardId": "4a6440ed-3b69-55dd-9ec3-3d880a33676e",
+      "stableKey": "sejong-alphabet",
+      "title": "11. 세종(Se-jong)과 새 문자",
+      "cardType": "object",
+      "role": "substantive",
+      "era": "조선 초기 문자·지식",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "문자 기원설, 학자별 기여, 문자 접근성은 저자의 주장이다. 이 카드가 현대의 한글 창제 연구를 대신하지 않는다.",
+      "references": [
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 11569,
+          "lineEnd": 11630,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 722748,
+          "byteEndExclusive": 726839,
+          "excerpt": "The most striking feat that King Se-jong accomplished and the one that\r\nhad the most far-reaching and lasting effect upon the people was the\r\ninvention of a pure phonetic alphabet. This alphabet scarcely has its\r\nequal in the world for simplicity and phonetic power. He was not the\r\nfirst one to see the vast disadvantage under which the people labored in\r\nbeing obliged to master the Chinese character before being able to read.\r\nWe will remember that in the days of Sil-la the scholar Sŭl-chong had\r\ninvented a rough way of indicating the grammatical endings in a Chinese\r\ntext by inserting certain diacritical marks, but this had of course been\r\nvery cumbersome and only the _ajuns_ or “clerks” were acquainted with\r\nit. Another similar attempt had been made near the end of the Koryŭ\r\ndynasty but it too had proved a failure so far as general use by the\r\npeople was concerned. King Se-jong was the first man to dare to face the\r\ndifficulty and overcome it by the use not of modifications of the\r\nChinese characters but by an entirely new and different system, a\r\nphonetic alphabet. It can scarcely be said that he had the genius of a\r\nCadmus, for he probably knew of the existence of phonetic alphabets, but\r\nwhen we remember that the Chinese character is considered in a sense\r\nsacred and that it had been in use in the peninsula exclusively for more\r\nthan two thousand years we can place him but little lower than the great\r\nPhoenician.\r\n\r\nKorean histories are almost a unit in affirming that the alphabet is\r\ndrawn from the Sanscrit and from the ancient seal character of China.\r\nWhere then did King Se-jong have access to the Sanscrit? Some have\r\nargued that his envoys came in contact with it at the court of the\r\nEmperor at Nanking. This is possible but it is extremely unlikely that\r\nthey gained such a knowledge of it in this way to make it of use in\r\nevolving their own alphabet. On the other hand it is well known that the\r\nmonasteries of Korea were filled with books written in the Sanscrit or\r\nthe Thibetan (which is an offshoot of the Sanscrit) character. It is\r\nbelieved by some that Buddhism was entirely crushed in the very first\r\nyears of the dynasty, but this is a great blunder. Buddhism had begun to\r\nwane, but long after the end of King Se-jong’s reign it was still the\r\npredominant religion in Korea. Most of the officials, following the lead\r\nof royalty, had given it up, but the masses were as good Buddhists as\r\never. The probabilities are therefore overwhelming that when the\r\nhistories refer to the Sanscrit they mean the Sanscrit contained in\r\nthese Buddhist books and which had been a common feature of Korean\r\nreligious life for centuries.\r\n\r\nComparison reveals the fact that the Korean consonants are mere\r\nsimplifications of the Sanscrit consonants. On the other hand there are\r\nno similarities between the Korean and Sanscrit vowels. King Se-jong’s\r\ngenius lay in his recognition of the fact that the vowel lies at the\r\nbasis of articulate speech, and in this he was in advance of every other\r\npurely Asiatic alphabet. Each syllable was made up of the “mother and\r\nchild” the mother being the vowel and the child being the consonant. If\r\nwe examine the ancient seal character of China with a view to\r\nascertaining the source from which the Koreans drew their symbols for\r\nthe vowels we shall find at a glance that they consist in the simplest\r\nstrokes of those ideographs. Every Korean vowel is found among the\r\nsimpler radicals of the Chinese. What more need be added to prove that\r\nthe statements of the Korean histories are correct?\r\n\r\nIn this work the king made use of the two distinguished scholars Sin\r\nSuk-ju and Sŭng Sam-mun. Thirteen times the latter was sent with others\r\nto Liao-tung to consult with a celebrated Chinese scholar Whang Ch’an,\r\nwho was in banishment in that place. For the prosecution of this\r\nliterary plan and the work growing out of it the king erected a separate\r\nbuilding in the palace enclosure. There he caused to be compiled and\r\nprinted the dictionary of the Korean language in the new alphabet which\r\n",
+          "excerptSha256": "fe2e56dc6b2e718343336fcbf91f29271a2d3a0a451ce33bb0303caa9f5ec497",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. I · Project Gutenberg 52127",
+          "url": "https://www.gutenberg.org/ebooks/52127"
+        }
+      ]
+    },
+    {
+      "cardId": "9872fdc8-ade1-522c-a3ec-2c73f08321bb",
+      "stableKey": "yi-sunsin-navy",
+      "title": "12. 이순신(Yi Sun-sin)과 해상 보급로",
+      "cardType": "character",
+      "role": "substantive",
+      "era": "임진왜란기 해전",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "전투 위치·참가 함선·승리의 범위는 현대 군사사 대조 전이다. 저자의 인용 대화를 실제 발언 기록으로 보증하지 않는다.",
+      "references": [
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 14081,
+          "lineEnd": 14117,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 881329,
+          "byteEndExclusive": 883815,
+          "excerpt": "A fleet of Japanese boats, bringing as is supposed the reserve of 60,000\r\nmen, arrived off the island of Ka-dok on the coast of Kyŭng-sang\r\nProvince. At that time Admiral Wŭn Kyun had charge of all matters along\r\nthe coast of that province. When he saw this vast fleet of ships his\r\nheart sank and without more ado he prepared to scuttle his ships and\r\nflee by land, but fortunately there was good advice at hand, for one of\r\nhis staff said, “Do not abandon all hope at once but send and ask Yi\r\nSun-sin the Admiral of Chŭl-la to come and aid you.” A swift messenger\r\nwas sent and the missive was placed in the hands of Admiral Yi. One of\r\nhis staff said “No, let him guard his own coast and we will look after\r\nours. Why should we go and help him?” But Admiral Yi said, “Is not\r\nKyŭng-sang Province as much the country of our king as Chŭl-la? How can\r\nwe refuse to go to his aid?” So eighty boats were gotten ready in haste\r\nand sailed away co the island of Han-san where the two admirals met and\r\njoined forces. The whole fleet sailed out of harbor together and made\r\nfor the island of Ok-po where the hostile fleet was moored. As soon as\r\nthe enemy hove in sight Admiral Yi Sun-sin made directly for them and\r\nsoon was grappling them. The Koreans had the advantage of the wind at\r\ntheir backs for they shot fire arrows among the boats of the Japanese\r\nand soon had twenty-six of them in flames. It is said the sea was\r\ncovered with the wreckage and with struggling human forms. So the\r\nremaining ships of the enemy turned about and crowded on all sail in\r\nflight, but Admiral Yi gave chase and cut down many more and scattered\r\nthe rest so that the expedition was an entire failure. This was the\r\nfirst of this great admiral’s successes and it illustrates the fact that\r\nthe Korean warrior was not a coward when well led. The Japanese armies\r\nin Korea were thus cut off from their source of supply and reinforcement\r\nand thus a tremendous blow was dealt them. This victory may be said to\r\nhave been the decisive point in the war.\r\n\r\nIt is probable that the soldiers in the Japanese army had been\r\naccustomed to short though sanguinary campaigns and had spent the\r\nintervals of leisure at home. But now this vast army was quite cut off\r\nfrom their home and were among strange scenes. It cannot be wondered at\r\ntherefore that after time discontent arose in spite of all successes, a\r\ndiscontent which, combined with other causes, finally drove them back to\r\nJapan.\r\n",
+          "excerptSha256": "3cab90cdd334ac6d7066ab270d287d7493d63f59b8aaa4df4974e8670b60a9ad",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. I · Project Gutenberg 52127",
+          "url": "https://www.gutenberg.org/ebooks/52127"
+        }
+      ]
+    },
+    {
+      "cardId": "5fd31748-4ef6-53cc-95d2-0730cf893b86",
+      "stableKey": "tortoise-boat",
+      "title": "13. 거북선(Kwi-sŭn)의 원저 묘사",
+      "cardType": "object",
+      "role": "substantive",
+      "era": "임진왜란기 함선 서술",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "철판 갑판설과 성능 평가는 특별 확인 대상이다. 현존 유물 조사나 선박공학 검증은 하지 않았다.",
+      "references": [
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 14119,
+          "lineEnd": 14147,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 883817,
+          "byteEndExclusive": 885876,
+          "excerpt": "Tradition says that about this time Admiral Yi had a dream in which a\r\nrobed man appeared and cried, “The Japanese are coming.” He arose,\r\nassembled his fleet and sailed forth as far as the town of No-ryang\r\nwhere he found a large fleet of the enemy. He used the same tactics as\r\nbefore, burning twelve of them and chasing the rest away. The main\r\nreason for his unparalleled successes on the sea was the possession of a\r\npeculiar war vessel of his own invention and construction. It was called\r\nthe Kwi-sŭn or “Tortoise Boat,” from its resemblance to that animal.\r\nThere is no doubt that the tortoise furnished the model for the boat.\r\nIts greatest peculiarity was a curved deck of iron plates like the back\r\nof a tortoise, which completely sheltered the fighters and rowers\r\nbeneath. In front was a hideous crested head, erect, with wide open\r\nmouth through which arrows and other missiles could be discharged. There\r\nwas another opening in the rear and six on either side for the same\r\npurpose. On top of the curved deck there was a narrow walk from stem to\r\nstern and another across the middle from side to side, but every other\r\npart of the back bristled with iron pikes so that an enemy who should\r\nendeavor to board her would find himself immediately impaled upon a\r\nscore of spear-heads. This deck, being of iron, rendered the ship\r\nimpervious to fire arrows and so the occupants could go into action with\r\nas much security as one of our modern battle ships could go into\r\nengagement with the wooden war vessels of a century ago. In addition to\r\nthis, she was built for speed and could easily overtake anything afloat.\r\nThis made her doubly formidable, for even flight could net avail the\r\nenemy. She usually did more execution after the flight commenced than\r\nbefore, for she could overtake and ram them one by one, probably better\r\nthan she could handle them when drawn up in line of battle. It is said\r\nthat the ribs of this remarkable ship lie in the sand today in the\r\nvillage of Ko-sŭng on the coast of Kyŭng-sang Province. They are\r\n",
+          "excerptSha256": "758122790eee4abeea14ca96f7a2560f1ff7212800a7da66a907b419baaeeaec",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. I · Project Gutenberg 52127",
+          "url": "https://www.gutenberg.org/ebooks/52127"
+        }
+      ]
+    },
+    {
+      "cardId": "dab68ed7-6a08-5e52-b61e-a0969ad6de85",
+      "stableKey": "manchu-namhan",
+      "title": "14. 남한(Nam-han) 포위와 만주 세력",
+      "cardType": "event",
+      "role": "substantive",
+      "era": "1636–1637년 겨울",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "이 대목만으로 전쟁 전체의 원인과 항복 절차를 완결하지 않는다. 서신의 정확성과 민간 피해 규모는 검증 대기다.",
+      "references": [
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 3895,
+          "lineEnd": 3960,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 251723,
+          "byteEndExclusive": 256039,
+          "excerpt": "When the last day of the year 1636 arrived it found the relative\r\nposition of the Koreans and Manchus as follows: The Manchu camps were\r\nfilled with plunder and with women which the soldiers had captured; but\r\nwhat of the children? These the soldiery did not want, and so they were\r\nkilled and their bodies thrown outside the camps. There they lay in\r\npiles and a pestilence was prevented only by the intense cold of winter.\r\nIn Nam-han the greatest distress prevailed. The provisions had not held\r\nout as had been hoped. Food was all but exhausted and horses and cattle\r\nwere dying of starvation. The king slept in his ordinary clothes, for he\r\nhad given all his blankets to the soldiers. All he had to eat with his\r\nrice was the leg or wing of a chicken. On that last day of the year some\r\nmagpies gathered and began building a nest in a tree near the king’s\r\nquarters. This was hailed as a hopeful omen. It shows to what straits\r\nthe garrison was reduced that it should have pinned its faith to this\r\nchildish superstition. It was the sole subject of conversation for some\r\ntime, but it did the caged Korean king no good.\r\n\r\nThe next day was new years day of 1637 and the king sent Kim Sin-guk and\r\nYi Kyŭng-jik to the Manchu camp to offer the compliments of the season.\r\nThey were there informed that the emperor’s son had arrived and had\r\ninspected the army and the forts. Consequently on the following day Hong\r\nSö-bong, Kim Sin-guk and Yi Kyŭng-jik hastened to his headquarters and\r\nwere met, not by the emperor’s son but by a general who said, “You have\r\ncalled us slaves and thieves but our course has been straight and\r\nconsistent throughout.” He then laid before them an edict of the emperor\r\nwritten on yellow paper, and they were ordered to bow before it. Its\r\ncontents were as follows:\r\n\r\n“The great, the good, the wise, the kind Emperor to the king of Korea.\r\nAs you preferred allegiance to the Ming Emperor rather than to us and,\r\nnot content with throwing us over, despised and insulted us, you now\r\nhave an opportunity to see the fruits of your choice. Of a truth you\r\nacted wickedly in breaking your oath, in throwing off the Manchu yoke\r\nand in offering us armed opposition. I have now brought an immense army\r\nand have surrounded your eight provinces. How can you longer hope to\r\nrender assistance to your “father,” the Ming Emperor? The Mings are now\r\nhung up by the heels, as it were.”\r\n\r\nOn the next day the king sent his answer couched in the following terms:\r\n“The great, the glorious, the righteous Emperor. The little country has\r\nindeed sinned against the great one and has drawn upon herself this\r\ntrouble which lies hard by the door of destruction. We have long wanted\r\nto write thus but we have been so surrounded and hemmed in that it\r\nseemed well-nigh impossible to get a letter through the lines; but now\r\nthat the Emperor’s son himself has come, we rejoice, and yet we tremble.\r\nThe Ming Emperor is no longer our suzerain. In this we have completely\r\nreformed. The people on the border have acted badly in ill-treating the\r\nManchu envoys. We are truly on the brink of destruction and we confess\r\nall our sin. It is for us to confess and for the Emperor to forgive.\r\nFrom this day forth we wash from our mind all other thought of\r\nallegiance and enter upon a new line of conduct. If the Emperor will not\r\nforgive, we can only bow the head and die.”\r\n\r\nWhen this abject document was read before the court, before sending it,\r\nsome thought it too humble, but the leaders said it was the only course\r\nleft; so it was forwarded to the Manchu camp. Answer was returned that\r\nthe Emperor’s son had not yet arrived but that when he came he would\r\nreply. Strange to say no truce was made and the Manchu soldiers, fearing\r\nperhaps that a truce might rob them of the pleasure of scaling those\r\nwalls that had defied them so long, approached the wall that very night\r\nand with scaling ladders a considerable number effected an entrance. But\r\nthey had underestimated the determination and courage of the defenders,\r\nand those who got in were quickly dispersed by Gen. Yi Si-băk. Many\r\nManchus fell in this desperate assault. Almost at the same hour a\r\nsimilar attack was made on the south side but there also the Manchus\r\nwere check-mated by the watchful guard.\r\n",
+          "excerptSha256": "70a45ae71c5be5a49bfb454328040478a3a0bf3e41dad610dae4a228599a9928",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. II · Project Gutenberg 52749",
+          "url": "https://www.gutenberg.org/ebooks/52749"
+        }
+      ]
+    },
+    {
+      "cardId": "597b8ed1-4120-5415-8e47-7c8f72473768",
+      "stableKey": "persecution-1866",
+      "title": "15. 1866년 외교 불안과 가톨릭 박해",
+      "cardType": "event",
+      "role": "substantive",
+      "era": "조선 후기 1866년",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "원문에도 전언과 동기 추정이 섞여 있다. 박해와 외교의 인과관계 및 당사자별 관점은 추가 대조가 필요하다.",
+      "references": [
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 7461,
+          "lineEnd": 7508,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 479917,
+          "byteEndExclusive": 483095,
+          "excerpt": "In January 1866 a Russian gunboat dropped anchor in the harbor of\r\nWŭn-san and a letter was sent to Seoul asking for freedom of trade with\r\nKorea. The answer given was that as Korea was the vassal of China the\r\nmatter must be negotiated at Peking, and an envoy was dispatched for\r\nthat purpose.\r\n\r\nIt is said that Roman Catholic adherents made use of the great\r\nuneasiness which prevailed in government circles respecting Russia to\r\ncompose a letter urging that the only way to ward off Russia was by\r\nmaking an alliance with France and England. It is said that the Regent\r\nreceived this communication and gave it special and, as some believe,\r\nfavorable attention. We are told that the Roman Catholics were all in a\r\nmost hopeful state, of mind, fully believing the hour had come for the\r\nawakening of Korea. In the light of subsequent events it is difficult to\r\ndetermine whether the Regent’s interest in the plan was real or whether\r\nit was a ruse whereby to make the final _coup_ all the more effective.\r\nAll things considered, the latter theory fits the facts more perfectly.\r\nThe French themselves believed the Regent was pushed on to the great\r\npersecution of 1866 by the violent anti-Christian party that had put him\r\nin power, and that it was simply another case of “If thou do it not thou\r\nart not Caesar’s friend.” They found fault with him for harboring the\r\nidea of a combination with this foreign element and demanded the death\r\nof the foreign priests and a general persecution. It is said the Regent\r\nreminded them of the burning of the Summer Palace at Peking and the\r\ntaking of that Imperial Capital, but that they answered that they had\r\nkilled Frenchmen before without harm resulting, and they could do it\r\nagain.\r\n\r\nWhatever may have been the pressure brought to bear on him, he finally\r\nsigned the death warrant of all the foreign priests in the land, and on\r\nFebruary 23rd Bishop Berneux was seized and thrown into the common jail,\r\nbut two days later he was transferred to the prison where noble\r\nprisoners were confined. On the 26th he was brought before the tribunal\r\nwhere he gave his name as Chang. He said he had come to save the souls\r\nof the Koreans and that he had been in the country ten years. He refused\r\nto leave except by force. As the government had made up its mind as to\r\nits course, his death warrant was then made out, and it ran thus: “The\r\naccused, Chang, refuses to obey the king. He will not apostatize. He\r\nwill not give the information demanded. He refuses to return to his own\r\ncountry. Therefore, after the usual punishments, he will be\r\ndecapitated.” While he was awaiting his end, Bretenières, Beaulieu, and\r\nDorie were taken, and after similar trial were condemned to death. All\r\nfour of these heroic men were decapitated at the public execution ground\r\nnear the river on the eighth of March and their bodies were buried\r\ntogether in a trench, from which they were recovered six months later\r\nand given burial by Roman Catholic adherents. Four days later two more\r\npriests, Petitnicolas and Pourthiè were executed at the same place. It\r\nwas the latter who lost at this time not only his life but his priceless\r\n",
+          "excerptSha256": "0acbf4d1f0138d02f5954e12ddde53f7d7012c0ab7f2c0f02d5925356db21ab8",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. II · Project Gutenberg 52749",
+          "url": "https://www.gutenberg.org/ebooks/52749"
+        }
+      ]
+    },
+    {
+      "cardId": "fcc0673a-fdb8-50e3-8e9d-5d9554a47936",
+      "stableKey": "treaty-1876",
+      "title": "16. 1876년 강화 교섭과 조약",
+      "cardType": "event",
+      "role": "substantive",
+      "era": "개항기 1876년",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "조약 원문이나 현대 연구를 새로 읽지 않았다. 날짜·체결과 비준의 구분·교섭 조건을 확정하지 않는다.",
+      "references": [
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 8030,
+          "lineEnd": 8064,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 516197,
+          "byteEndExclusive": 518323,
+          "excerpt": "wish of the dominant party; so, when the Japanese demand reached Seoul,\r\nthat commissioners be sent to Kang-wha to treat with the visitors the\r\ngovernment quickly complied. Two high officials. Sin Hön and Yun\r\nCha-seung, were despatched to Kang-wha and the first definite step was\r\ntaken toward casting off the old time isolation policy, the fond dream\r\nof the ex-Regent.\r\n\r\nThe Japanese envoy opened the conference by asking why the Koreans had\r\ngiven no answer to the repeated requests of the Japanese for the\r\nconsummation of a treaty of peace and friendship. The Korean\r\ncommissioner replied that from the very earliest times Japan had always\r\naddressed Korea in respectful language, but that now she had arrogated\r\nto herself the title of Great Japan and called her ruler the Great\r\nEmperor. This seemed to imply the vassalage of Korea, an entirely new\r\nrole for her to play. The Japanese replied that the mere assumption of\r\nthe name of empire on the part of Japan implied nothing as to the status\r\nof Korea one way or the other. This seemed to satisfy the Koreans.\r\n\r\nThe Japanese then asked why they had been fired upon at Yŭng-jŭng. The\r\nanswer was that the Japanese were dressed in European clothes and were\r\ntherefore mistaken for Europeans. But when the Japanese asked why the\r\nKoreans had not recognized the Japanese flag, especially since the\r\nJapanese government had been careful to send copies of their flag to\r\nKorea and ask that one be sent to each of the prefectures throughout the\r\nland, the Korean commissioners could find nothing to say and had to\r\nconfess that they had been in error.\r\n\r\nAll these things were duly reported to the authorities in Seoul where\r\ndaily councils were being held to discuss the important questions. The\r\nex-Regent sent an urgent appeal to the ministers not to make a treaty,\r\nbut the tide had turned, and after some sharp discussion as to how the\r\ntwo governments should be designated in the treaty it was finally\r\nratified on February 27th 1876, and Korea was a hermit no longer. Three\r\nmonths later a semi official envoy was sent to Japan in the person of\r\nKim Keui-su.\r\n",
+          "excerptSha256": "a959ebb0a242ed9364f09a78e4e8fa69773eb22648f13f2d830c2816e2d8cc2f",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. II · Project Gutenberg 52749",
+          "url": "https://www.gutenberg.org/ebooks/52749"
+        }
+      ]
+    },
+    {
+      "cardId": "6a82eec2-e3f2-5210-b551-ed5998a25f71",
+      "stableKey": "coup-1884",
+      "title": "17. 1884년 우정국 연회와 정변",
+      "cardType": "event",
+      "role": "substantive",
+      "era": "개항기 1884년",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "개화파·보수파라는 저자의 구분을 각 집단의 단일 의지로 보지 않는다. 사전 공모 및 현장 증언은 교차 검증 전이다.",
+      "references": [
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 8484,
+          "lineEnd": 8494,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 545275,
+          "byteEndExclusive": 546053,
+          "excerpt": "With the opening of 1884 the state of affairs in the peninsula was\r\nsomething as follows. The progressive and conservative elements in the\r\ngovernment were clearly differentiated. The innovations effected by the\r\nprogressives had raised in them the hope of being able to speedily\r\nreorganize the government on a foreign basis, and the degree of their\r\nsuccess marked the increasing suspicion and opposition of the\r\nconservative element. The latter were strengthened in their position by\r\nthe presence and active support of the Chinese generals and troops, and\r\nthe influence of the foreign adviser von Mollendorf was always on the\r\nside of Chinese interests. The ex-Regent was for the time being out of\r\nthe war and a great stumbling-block to the Min faction was thus removed.\r\n",
+          "excerptSha256": "a2af2aeb236cf57caa41a1b42b9840e4d04d059a3073caf08c16f119a894ae56",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 8550,
+          "lineEnd": 8566,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 549656,
+          "byteEndExclusive": 550731,
+          "excerpt": "execute the leaders of the opposition. It must be remembered that at\r\nthat time, so far as the mass of the people was concerned, the\r\nprogressive party had little or no backing. On the other hand the\r\nconservatives had the ear of the king and were backed by a Chinese army.\r\nIt was evidently necessary to secure military backing, and for this\r\nJapan alone was available. But it was manifestly impossible for Japan to\r\ncome in and attempt to effect the change. It must be at the request of\r\nthe Korean government, or at least of the king. It seemed that the only\r\nthing to do was to hasten a crisis, obtain possession of the person of\r\nthe king and then see to it that Japan be invited to loan troops to\r\npreserve the new status.\r\n\r\nInstead of waiting patiently and suffering temporary defeat with the\r\nhope of ultimate success, the progressive leaders determined to have\r\nrecourse to the old method, and in so doing they made a fatal blunder.\r\nEven had they been successful the means they employed would have fatally\r\ndiscredited them in the eyes of all enlightened people.\r\n",
+          "excerptSha256": "b54065eaac8ccd2c2f1a1de1d37be69fa311edf5b3b26543a1804a6d88aa15f8",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 8568,
+          "lineEnd": 8635,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 550733,
+          "byteEndExclusive": 555409,
+          "excerpt": "It is generally accepted as true that the progressive leaders had a\r\ndistinct understanding with the Japanese. A Japanese man-of-war was on\r\nthe way to Chemulpo and was expected to arrive on the fifth or sixth of\r\nDecember and the uprising was set for the seventh of that month. The\r\nleaders in this movement had not been able to keep it entirely a secret,\r\nfor some of them talked about it in a very excited manner of the Naval\r\nAttache of the American Legation and it came to the ears of the British\r\nConsul-general, who, meeting Yun T’ă-jun on December fourth, asked him\r\nif he had heard that there was trouble in the air. That gentleman who\r\nwas himself a strong conservative and a close friend of Min T’ă-ho,\r\nhastened to the house of the latter and reported what he had heard. Min\r\nadvised him to hasten to the house of one of the relatives of one of the\r\nprogressionists and secure information if possible. He did so, and there\r\nhappened to meet one of the leaders of the progressive party and\r\nintimated to him that he had heard that trouble was brewing. This man\r\ndenied all knowledge of any such plan but the minute his caller had gone\r\nhe hastened to the other progressionist leaders and told them that all\r\nwas lost unless instant action were taken. News had just arrived that\r\nthe Japanese gun-boat that was expected at Chemulpo had broken down and\r\ncould not come. There were only a few hundred Japanese troops in Seoul\r\nat the time. But it seemed to these men that it would be better to risk\r\nthe whole venture on a single cast than to wait passively and see the\r\ndestruction of all their hopes and plans. The seventh of December was\r\nthe appointed day but as this was a matter of kill or be killed it was\r\ndecided to proceed at once to business. Hong Yŭng-sik had been made\r\nPost-master General and on this very night he was to give a banquet at\r\nthe new post-office which was situated in that part of the city called\r\nKyo-dong. It was decided to start the ball rolling at this point. The\r\nevening came and the guests assembled to the dinner. They were the\r\nChinese leaders Yuan, Chin and Wang, United States Minister Foote and\r\nhis secretary Mr. Scudder, the British Consul-general Aston, the Foreign\r\nOffice Adviser von Mollendorf, the Koreans Hong Yŭng-sik, Kim Ok-kyun,\r\nMin Yŭng-ik, Pak Yŭng-ho, Sŭ Kwang-bom, Kim Hŭng-jip, Han Kyu-jik, Pak\r\nChöng-yang, O Yun-jung and a few others. The Japanese Minister had\r\nexcused himself on the plea of ill-health. It was noticed that Kim\r\nOk-kyun rose and left the table several times and went out into the\r\ncourt-yard but no special significance was attached to this. The dinner\r\nbegan at an early hour, not far from six o’clock, and about seven\r\no’clock an alarm of fire was sounded. A house immediately in front of\r\nthe Post Office was in flames. Min Yŭng-ik, being one of the officials\r\nwhose duty it was to superintend the extinguishing of conflagrations,\r\nrose from the table and hastened out, calling to his servants to follow.\r\nAs he passed out of the inner gate, a man dressed in Japanese clothes\r\nleaped out of the shadow of the gate-way and struck at him savagely with\r\na sword, wounding him severely in the head and in other parts of the\r\nbody. He fell heavily to the ground and in the confusion that ensued the\r\nwould-be assassin made good his escape. Von Mollendorf was not far\r\nbehind, and seeing what had happened he hastened forward, lifted the\r\nwounded man in his arms and carried him back into the dining-room. The\r\nKoreans who were present fled precipitately making their exit not by the\r\ndoor but by way of the back wall.\r\n\r\nThe wounded man was conveyed to the residence of von Mollendorf which\r\nwas in the vicinity, where Dr. H. N. Allen of the American Presbyterian\r\nMission was soon in attendance.\r\n\r\nThe die had now been cast and there was no retreat. The leaders of the\r\nconspiracy, Kim Ok-kyun, Sŭ Kwang-bom, Pak Yŭng-hyo, Hong Yŭng-sik and\r\nSŭ Chă-pil, hastened immediately to the palace known to us as “The Old\r\nPalace” where the king had resided since the insurrection of 1882.\r\nEntering the royal presence they announced that the Chinese were coming\r\nto take possession of the king’s person and that he must hasten to a\r\nplace of safety. The king did not believe this report but as they\r\ninsisted he had no recourse but to submit. The little company hastened\r\nalong under the west wall of the palace until they came to a small gate\r\nleading into Kyöng-u Palace which adjoins the “Old Palace” on the west.\r\nAs they proceeded Kim Ok-kyun asked the king to send to the Japanese\r\nMinister asking for a body-guard, but he refused. Thereupon Sŭ Kwang-bom\r\n",
+          "excerptSha256": "ff5b7bb59ea02ead2e8a371cbc02da217d68327ba32971ea372fe3433d42517f",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. II · Project Gutenberg 52749",
+          "url": "https://www.gutenberg.org/ebooks/52749"
+        }
+      ]
+    },
+    {
+      "cardId": "6807891c-442d-58b8-89f2-588722363394",
+      "stableKey": "donghak-1894",
+      "title": "18. 동학(Tong-hak)과 청·일의 군대",
+      "cardType": "event",
+      "role": "substantive",
+      "era": "1894년 정치·군사 위기",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "동학 참여자의 목소리가 제한된 자료다. 병력·날짜와 조약 위반 책임에 관한 저자의 판정은 현대 검증 전이다.",
+      "references": [
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 9091,
+          "lineEnd": 9145,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 583773,
+          "byteEndExclusive": 587393,
+          "excerpt": "accentuated when in the spring of 1894 a Korean detective, Hong Chong-u,\r\nsucceeded in gaining the confidence of Kim Ok-kyun who was living at\r\nTokyo as a political refugee. He was induced to accompany his betrayer\r\nto Shanghai where, in a hotel, his betrayer shot him down in cold blood.\r\nThe Chinese government condoned the dastardly deed and sent the\r\nassassin, together with the body of his victim, to Korea in a Chinese\r\ngunboat. The body of Kim Ok-kyun was dismembered on April fourteenth in\r\na most brutal manner and the different portions of his body were sent\r\nabout the country as a warning to traitors. This lapse into the worst\r\nexcesses of the old regime opened the eyes of Japan to the actual\r\nsituation and gave her just the impetus she needed to take the strong\r\nposition which she did later. Soon after this the Tong-hak took the town\r\nof Chŭn-ju and defeated all the government troops sent against them. The\r\ngovernor of the province, Kim Mun-hyŭn, made his escape from the place.\r\n\r\nThe government had at last become convinced of its inability to cope\r\nwith its enemies single-handed and it determined to have recourse to the\r\ndangerous policy of asking China to throw troops into the peninsula to\r\naid in putting down the Tong-hak uprising. China immediately complied\r\nand on June sixth 1,500 Chinese troops were embarked at Tientsin and\r\nwere sent to Chemulpo under the escort of three gunboats.\r\n\r\nIt must be remembered that according to the third article of the\r\nTientsin Convention China and Japan each agreed not to send troops into\r\nKorea without first notifying the other. In this case the Chinese failed\r\nto notify the Japanese until after the departure of the troops and there\r\ncan be no doubt that at this point lies the strength of Japan’s\r\ncontention. When, later, the Chinese agreed to leave Korea\r\nsimultaneously with the Japanese the latter naturally refused. The\r\nChinese broke the convention first; they must leave first. But there\r\nwere other important points involved. Korea was rapidly losing all\r\nsemblance of independence and Japan was being jeopardized. The Chinese\r\nabrogation of the treaty gave Japan just the excuse she wanted for\r\nthrowing troops into Korea and compelling those reforms which she\r\nbelieved could be effected in no other way. No sooner was she informed\r\nof China’s action than the Japanese Minister Otori, then on leave of\r\nabsence, was recalled, and sent immediately to Seoul with 400 marines,\r\narriving June ninth.\r\n\r\nThe Chinese force did not approach the capital but landed at Asan some\r\neighty miles south of Seoul. This force was soon augmented till it\r\namounted to 2,000 men. But Japan was not idle. By the twelfth of June\r\nshe had approximately 8,000 troops in Korea. Matters stood thus when the\r\nnews came that the Tong-hak, either frightened by the rumor of the\r\napproach of a Chinese army or being pressed by the government troops,\r\nhad suddenly retired and the south was at peace. This tended to hasten a\r\ncrisis between the Chinese and Japanese. There was no longer any cause\r\nwhy foreign troops should remain in the peninsula. The Chinese had come\r\nto put down the Tong-hak and the Japanese had come ostensibly to protect\r\ntheir nationals. Now that the Tong-haks had retired it did not take long\r\nto discover the real reasons underlying the actions of the Japanese. On\r\nJune 16th she landed 3,000 more troops at Chemulpo and matters began to\r\nlook so serious in Seoul that all the Chinese residents hastened away\r\nfrom the city and sought safety by embarking for China. About a thousand\r\npeople thus made a hasty exit from the country.\r\n",
+          "excerptSha256": "b8f479b039634e0d3fc004427d30f84a52762e6ba2e202cb8a8598e623407143",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. II · Project Gutenberg 52749",
+          "url": "https://www.gutenberg.org/ebooks/52749"
+        }
+      ]
+    },
+    {
+      "cardId": "b8abfc35-9b59-5872-9c40-7123b09ec50f",
+      "stableKey": "queen-assassination",
+      "title": "19. 왕비 시해와 궁궐의 권력",
+      "cardType": "event",
+      "role": "substantive",
+      "era": "1895년 궁궐 위기",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "행위자별 책임과 현장 증언의 확실성은 추가 검증이 필요하다. 저자가 명시한 불확실성을 보존한다.",
+      "references": [
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 10231,
+          "lineEnd": 10240,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 651349,
+          "byteEndExclusive": 652070,
+          "excerpt": "The year 1895 was big with history. Its events created a strong and\r\nlasting impression upon the whole Korean people and it is in the light\r\nof these events that the whole subsequent history of the country must be\r\ninterpreted. The year opened in apparent prosperity. The king had taken\r\noath to govern according to enlightened principles and had exhorted his\r\nofficials to adhere strictly to the reform program, protesting that if\r\nhe himself failed to do so it would be an offence against Heaven. The\r\nTă-wŭn-gun had retired from public life but as his son, the brother of\r\nthe king, was Minister of the Household and his grandson Yi Chun-yong\r\nheld a position near the king, there can be no doubt that in a private\r\n",
+          "excerptSha256": "2a6fcd0e209fe411e5d5efb8be024a6886c616486be59fa9965aeb98ed20a3d8",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 10760,
+          "lineEnd": 10832,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 684451,
+          "byteEndExclusive": 689192,
+          "excerpt": "The description of the scene as given by the Hiroshima court stops\r\nabruptly with the entrance into the palace before the actual business of\r\nthe day began. It is necessary for us to take up the narration from that\r\npoint. The buildings occupied by the King and Queen were near the back\r\nof the palace enclosure almost half a mile from the front gate, so that\r\nthe Japanese and Korean force accompanied by the ex-Regent had to\r\ntraverse a long succession of passage-ways through a great mass of\r\nbuildings before reaching the object of their search. Some of the palace\r\nguard were met on the way and easily pushed aside, some of them being\r\nkilled, among whom was Col. Hong. When the Japanese arrived at the\r\nbuildings occupied by their Majesties a part of them formed about it in\r\nmilitary order guarding all the approaches, but they did not enter the\r\nbuilding. A crowd of Japanese civilians commonly believed to be _soshi_,\r\nand a considerable number of Koreans, all heavily armed, rushed into the\r\nRoyal quarters. A part of the crowd went into the presence of the King\r\nbrandishing their weapons but without directly attacking his person nor\r\nthat of the Crown Prince who stood beside him. Another part of the crowd\r\nranged through the apartments of the Queen, seizing palace women and\r\ndemanding information as to the whereabouts of the Queen. They met Yi\r\nKyŭng-jik the Minister of the Household before the Queen’s apartments\r\nand at once cut him down, but he managed to crawl into the presence of\r\nthe King, where he was despatched by the Japanese. The Queen was found\r\nin one of the rooms which constituted her suite and was ruthlessly cut\r\ndown. It is impossible to state with absolute certainty whether the blow\r\nwas struck by a Korean or by a Japanese but the overwhelming probability\r\nis that it was done by one of the armed Japanese\r\n\r\nThe body was wrapped in some sort of blanket, saturated with petroleum\r\nand burned at the edge of a pine grove immediately to the east of the\r\npond which lies in front of the royal quarters.\r\n\r\nThe Royal family had been aware for two days of the danger which\r\nthreatened. The guards at the palace had been reduced, the arms had been\r\ntaken away and the movements of Japanese troops were very suspicious.\r\nThe King advised the Queen to go to a place of safety and she said she\r\nwould do so if the Queen Dowager would also go, but the latter refused.\r\nChong Pyŭng-ha who had been raised to high office through the patronage\r\nof the Queen but who had struck hands with the Japanese urged with great\r\ninsistence that there was no danger to Her Majesty’s person and it was\r\nthe confidence expressed by this traitor that did the most to set at\r\nrest the apprehension, of the King and the Queen.\r\n\r\nDuring all the time leading up to these events, the palace guard was in\r\ncharge of Gen. Dye but his efforts to carry out the wishes of His\r\nMajesty were continually thwarted and the guard was merely a nominal\r\none.\r\n\r\nAt about the time when the Queen was being killed the Tă-wŭn-gun came\r\ninto the presence of the King and took the direction of affairs at the\r\ncourt. As might be supposed, both the King and the Crown Prince were in\r\nanything but an enviable frame of mind. They had been pushed about and\r\ninsulted by low Japanese and felt that their lives were momentarily in\r\ndanger. Col. Yi Kyŭng-jik the Minister of the Household Department had\r\ntaken his stand at the door of the Queen’s apartments and had there been\r\ncut down by the Japanese or Koreans but succeeded in making his way,\r\ndesperately wounded, into the presence of the King. He was there stabbed\r\nto death by the Japanese before the eyes of His Majesty. This did not\r\ntend to reassure the King and the Crown Prince but the coming of the\r\nTă-wŭn-gun tended to quiet them somewhat. Of course they had no idea as\r\nyet that the Queen had been despatched.\r\n\r\nBefore dawn began to break the King learned that Japanese troops were\r\npouring into the barracks in front of the palace, and as some semblance\r\nof order had been restored in the immediate presence of His Majesty, a\r\nnote was sent in haste to the Japanese Minister asking what all this\r\nmeant. The messenger found Miura and Sugimura already up and dressed and\r\nsedan chairs at the door. Miura told the messenger that he had heard\r\nthat troops had been marched to the barracks but did not know why. The\r\nMinister and his secretary thereupon proceeded rapidly to the palace.\r\nImmediately upon their arrival all the disturbance suddenly quieted down\r\nand the _soshi_ dispersed and left the palace grounds. The Japanese\r\nMinister and secretary immediately sought an audience with His Majesty,\r\naccompanied only by an interpreter and another Japanese who had led the\r\n",
+          "excerptSha256": "ee721ea84cea61484c8ebff52da6bc7bed2e65497efe9db971577b5bf5f7c711",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 10868,
+          "lineEnd": 10872,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 691387,
+          "byteEndExclusive": 691739,
+          "excerpt": "War sent in reply proved altogether too much and defeated its own\r\npurpose, for it stated baldly that there was not a single Japanese in\r\nthe palace on the night of the eighth of October, when the Queen was\r\nmurdered. As this Minister was a creature of the Japanese and as the\r\npresence of Japanese in the palace was clearly proved subsequently it is\r\n",
+          "excerptSha256": "1a10ea5800c3594c0964e4acdf7258ac5abc6f539719042ac17b0a691c15c264",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. II · Project Gutenberg 52749",
+          "url": "https://www.gutenberg.org/ebooks/52749"
+        }
+      ]
+    },
+    {
+      "cardId": "0c1194e8-5cde-51ef-9b8b-4be09ef5f933",
+      "stableKey": "empire-1897",
+      "title": "20. 대한(Tai-han)의 황제국 선언",
+      "cardType": "event",
+      "role": "substantive",
+      "era": "1897년 대한제국",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "원문의 10월 17일은 특히 확인해야 할 연대다. 조약국별 승인 경위와 실제 주권 상태는 대조하지 않았다.",
+      "references": [
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 11476,
+          "lineEnd": 11488,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 730359,
+          "byteEndExclusive": 731175,
+          "excerpt": "But we must retrace our steps a little and record some other interesting\r\nevents that happened during the closing months of 1897. It was on\r\nOctober 17th that the King went to the Imperial Altar and there was\r\ncrowned Emperor of Tai-han. This had been some time in contemplation and\r\nas Korea was free from foreign suzerainty she hastened, while it was\r\ntime, to declare herself an empire. This step was recognized by the\r\ntreaty powers within a short period and so Korea took her place on an\r\nequality with China and Japan.\r\n\r\nOn November 21st the funeral ceremony of the late Queen was held. It was\r\na most imposing pageant. The funeral procession passed at night out of\r\nthe city to the tomb where elaborate preparations had been made, and a\r\nlarge number of foreigners assembled there to witness the obsequies.\r\n",
+          "excerptSha256": "fe9a06084e7bc17714e4b85426abbe4ab82a9d6d8c5616276ea857a904e81584",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. II · Project Gutenberg 52749",
+          "url": "https://www.gutenberg.org/ebooks/52749"
+        }
+      ]
+    },
+    {
+      "cardId": "d231b241-29fb-5d5f-8845-a75d03f63ec2",
+      "stableKey": "protocol-1904",
+      "title": "21. 1904년 의정서와 전쟁의 압력",
+      "cardType": "event",
+      "role": "substantive",
+      "era": "1904년, 역사적 끝점",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Hulbert-attributed historical account",
+      "uncertaintyAndBias": "의정서 원문을 새로 대조하지 않았다. 자발성·법적 효력·통제 수준에 관한 저자 평가를 현대 사실 판정으로 쓰지 않는다.",
+      "references": [
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 12749,
+          "lineEnd": 12759,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 811467,
+          "byteEndExclusive": 812227,
+          "excerpt": "The year 1904, which will be recorded in history as one of the most\r\nmomentous in all the annals of the Far East, opened upon a very\r\nunsatisfactory state of things in Korea. It had become as certain as any\r\nfuture event can be that Japan and Russia would soon be at swords\r\npoints. The negotiations between these two powers were being carried on\r\nin St. Petersburg and, as published later, were of the most\r\nunsatisfactory nature. Japan was completing her arrangements for\r\nstriking the blow which fell on February the ninth. Of course these\r\nplans were not made public but there was conflict in the very air and\r\nall men were bracing themselves for the shock that they felt must soon\r\ncome. The action of Japanese money-lenders in suspending operations was\r\n",
+          "excerptSha256": "49dc0501935db2fd8b7eeaa0d041b5daeab4e9ec6f65995efb2dedbb20c0bd89",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 13273,
+          "lineEnd": 13320,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 845525,
+          "byteEndExclusive": 848618,
+          "excerpt": "It was on the night of February 23rd that Korea signed with Japan a\r\nprotocol by the terms of which Korea practically allied herself with\r\nJapan and became, as it were, a silent partner in the war. Korea granted\r\nthe Japanese the right to use Korea as a road to Manchuria and engaged\r\nto give them every possible facility for prosecuting the war. On the\r\nother hand Japan guaranteed the independence of Korea and the safety of\r\nthe Imperial Family. It is needless to discuss the degree of spontaneity\r\nwith which Korea did this. It was a case of necessity, but if rightly\r\nused it might have proved of immense benefit to Korea, as it surely did\r\nto Japan. It formally did away with the empty husk of neutrality which\r\nhad been proclaimed, and made every seaport of the peninsula belligerent\r\nterritory, even as it did the land itself.\r\n\r\nMarch saw the end of the Peddlars Guild. They had been organized in\r\nRussian interests but now they had no longer any _raison d’etre_. As a\r\nfinal flurry, one of their number entered the house of the Foreign\r\nMinister with the intent to murder him, but did not find his victim.\r\nOther similar attempts were made but did not succeed.\r\n\r\nThe Japanese handled the situation in Seoul with great circumspection.\r\nThe notion that they would attack the pro-Russian officials proved\r\nfalse. Everything was kept quiet and the perturbation into which the\r\ncourt and the government were thrown by these startling events was soon\r\nsoothed.\r\n\r\nMarquis Ito was sent from Japan with a friendly message to the Emperor\r\nof Korea and this did much to quiet the unsettled state of things in\r\nKorea. At about the same time the northern ports of Wiju and Yongampo\r\nwere opened to foreign trade. This was a natural result of the\r\nwithdrawal of Russian influence. It was not long before Yi Yong-ik who\r\nhad played such a leading rôle in Korea was invited to go to Japan and\r\nthus an element of unrest was removed from the field of action. It was\r\nbelieved that the Japanese would immediately introduce much needed\r\nreforms, but it seemed to be their policy to go very slowly, so slowly\r\nin fact that the better element among the Koreans was disappointed, and\r\ngot the impression that Japan was not particularly interested in the\r\nmatter of reform. It is probable that the energies of the Japanese were\r\ntoo much engaged in other directions to divert any to Korea at the time.\r\nThey had been complaining bitterly about the monetary conditions, but\r\nwhen they suddenly stepped into power in Seoul on February 9th they\r\nseemed to forget all about this, for up to the end of 1904 they failed\r\nto do anything to correct the vagaries of Korean finance. But instead of\r\nthis the Japanese merchants in Korea and other Japanese who were here\r\nfor other reasons than their health immediately began to make requests\r\nand demands for all sorts of privileges. The Board of Trade in Fusan\r\nasked the Japanese government to secure the Maritime Customs service,\r\npermission for extra territorial privileges, the establishment of\r\nJapanese agricultural stations and other impossible things.\r\n",
+          "excerptSha256": "08f97c6df7624b06ada441bbe1656276681c940375e50a1ceb1e21a1e7523a0a",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 13380,
+          "lineEnd": 13386,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 852520,
+          "byteEndExclusive": 852999,
+          "excerpt": "this required the purchase of Korean money. The result was that the yen,\r\ninstead of holding its ratio of something like one to two and a half of\r\nthe Korean dollar fell to the ratio of one to only one and four tenths.\r\nWhen, however, the sea was cleared of the Russians and import trade was\r\nresumed and the bulk of the Japanese crossed the Yalu the Korean dollar\r\nfell again to a ratio of about two to one, which it has preserved up to\r\nthe present time, i.e. December, 1904.\r\n",
+          "excerptSha256": "822d7e4ecfdc0558e4f5a59a3395f45456df891f52942053f93fc948f71802c9",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. II · Project Gutenberg 52749",
+          "url": "https://www.gutenberg.org/ebooks/52749"
+        }
+      ]
+    },
+    {
+      "cardId": "4b8e8f34-349a-5786-8ece-9bde009fbd34",
+      "stableKey": "author-bias",
+      "title": "22. 저자의 편향을 읽는 기준",
+      "cardType": "other",
+      "role": "metadata",
+      "era": "전 시대 공통",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Editorial metadata with original-text anchors",
+      "uncertaintyAndBias": "편향 분석은 위 발췌에 근거한 편집적 해석이다. 저자의 모든 저작과 생애 전체에 대한 평가를 뜻하지 않는다.",
+      "references": [
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 276,
+          "lineEnd": 285,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 13895,
+          "byteEndExclusive": 14474,
+          "excerpt": "Ethnologically we may say that the people are of a mixed Mongolian and\r\nMalay origin, although this question has as yet hardly been touched\r\nupon. The language of Korea is plainly agglutinative and may, without\r\nhesitation, be placed in the great Turanian or Scythian group.\r\n\r\nThe population of Korea is variously estimated from ten to twenty\r\nmillions. We shall not be far from the truth if we take a middle course\r\nand call the population thirteen millions. Somewhat more than half of\r\nthe people live south of a line drawn east and west through the capital\r\nof the country.\r\n",
+          "excerptSha256": "9ce3b3d816b74ee03ac035db7e10f2fda4a39a6deda05c058ea48db0abdb17ec",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 2720,
+          "lineEnd": 2729,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 166953,
+          "byteEndExclusive": 167626,
+          "excerpt": "of Buddhism into Korea was a government affair. There had been no\r\npropagation of the tenets of this cult through emmisaries sent for the\r\npurpose, there was no call for it from the people. In all probability\r\nthe king and his court were pleased at the idea of introducing the\r\nstately ceremonial of the new faith. In fact it was a social event\r\nrather than a religious one and from that date to this there has not\r\nbeen a time when the people of Korea have entered heartily into the\r\nspirit of Buddhism, nor have her most distinguished representatives\r\nunderstood more than the mere forms and trappings of that religion which\r\namong all pagan cults is the most mystical.\r\n",
+          "excerptSha256": "5d0576854dcb63cad0583c50adb674b6a748c2f4f086353e4513620eb303c66a",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 1848,
+          "lineEnd": 1857,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 110419,
+          "byteEndExclusive": 111120,
+          "excerpt": "It must not be imagined that these three kingdoms of Sil-la, Ko-gu-ryŭ\r\nand Păk-je, which represented so strongly the centripetal idea in\r\ngovernment, were allowed to proceed without vigorous protests from the\r\nless civilized tribes about them. The Mal-gal tribes in the north, the\r\nSuk-sin and North Ok-jŭ tribe in the north-east and Ye-măk in the east\r\nmade fierce attacks upon them as opportunity presented. The Mal-gal\r\ntribes in particular seem to have penetrated southward even to the\r\nborders of Păk-je, probably after skirting the eastern borders of\r\nKo-gu-ryŭ. Nominally Ko-gu-ryŭ held sway even to the Japan Sea but\r\npractically the wild tribes roamed as yet at will all through the\r\n",
+          "excerptSha256": "59445bf6c77c7ec57a8cc7bf1d0f3ced743bb36824b452c737b06a78cde6ef76",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 13433,
+          "lineEnd": 13474,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 856041,
+          "byteEndExclusive": 859008,
+          "excerpt": "We must now go back and inquire into important civil matters. We have\r\nseen that no strong attempt was made by the Japanese to secure reforms\r\nin the administration of the Korean Government and for this reason many\r\nof the best Koreans were dissatisfied with the way things were going.\r\nTherefore it was doubly unfortunate that on the seventeenth of June the\r\nJapanese authorities should make the startling suggestion that all\r\nuncultivated land in the Peninsula as well as other national resources\r\nshould be thrown open to the Japanese. This appears to have been a\r\nscheme evolved by one Nagamori and broached by him so speciously to the\r\npowers in Tokyo that they backed him in it; but there can be no question\r\nthat it was a grave mistake. There is no other point on which the Korean\r\nis so sensitive as upon that of his land. He is a son of the soil, and\r\nagriculture is the basis of all his institutions. The mere proposal\r\nraised an instant storm of protest from one end of Korea to the other.\r\nThe Koreans saw in this move the entering wedge which would rive the\r\ncountry. It was the beginning of the end. This excessive show of feeling\r\nwas not expected by the Japanese and it is probable that their\r\nintentions were by no means so black as the Koreans pictured them. The\r\nvery general terms in which the proposal was worded and the almost\r\nentire lack of limiting particulars gave occasion for all sorts of wild\r\nconjectures and, it must be confessed, left the door open to very wide\r\nconstructions. The time was unpropitious, the method was unfortunate and\r\nthe subject-matter of the proposal itself was questionable. The\r\nall-important matter of water supply and control, the difficulties of\r\njurisdiction on account of the extraterritorial rights implied in the\r\nproposal and other allied questions immediately presented themselves to\r\nthe minds of Koreans and they recognized the fact that the carrying out\r\nof this plan would necessarily result in a Japanese protectorate if not\r\nabsolute absorption into the Empire of Japan. The Japanese do not seem\r\nto have followed the logic of the matter to this point or else had not\r\nbelieved the Koreans capable of doing so. But when the storm of protest\r\nbroke it carried everything before it. The Japanese were not prepared to\r\ncarry the thing to extremes and after repeated attempts at a compromise\r\nthe matter was dropped, though the Japanese neither withdrew their\r\nrequest nor accepted the refusal of the Korean Government. It is a\r\nmatter of great regret that the Japanese did not quietly and steadily\r\npress the question of internal reforms, and by so doing hasten the time\r\nwhen the Korean people as a whole would repose such confidence in the\r\ngood intentions of the neighbor country that even such plans as this of\r\nthe waste lands could be carried through without serious opposition; for\r\nit is quite sure that there is a large area of fallow land in Korea\r\nwhich might well be put under the plow.\r\n",
+          "excerptSha256": "342868a479349ae07f39f76c255ababeaaa299b37ab21a4130e624409bebdaa3",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 13504,
+          "lineEnd": 13515,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 860846,
+          "byteEndExclusive": 861632,
+          "excerpt": "The effect of this was seen when, early in August, the Japanese military\r\nauthorities asked for the services of 6,000 Korean coolies in the north\r\nat handsome wages. The number was apportioned among different provinces,\r\nbut the results were meager. Disaffected persons spread the report that\r\nthese coolies would be put on the fighting line, and it was with the\r\ngreatest difficulty that two thousand were secured. There were\r\nsanguinary fights in many towns where attempts were made to force\r\ncoolies to go against their will. It was perfectly right for the\r\nJapanese to wish to secure such labor, but the tide of public sentiment\r\nwas flowing strong in the other direction because of the attempt to\r\nsecure the waste land and because of the suspension of the right of free\r\nspeech.\r\n",
+          "excerptSha256": "2b4321e94327a409b3145b9f37e4751b7c33049b140a97a93f3af7c3876c54ae",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. I · Project Gutenberg 52127",
+          "url": "https://www.gutenberg.org/ebooks/52127"
+        },
+        {
+          "title": "The History of Korea, Vol. II · Project Gutenberg 52749",
+          "url": "https://www.gutenberg.org/ebooks/52749"
+        }
+      ]
+    },
+    {
+      "cardId": "bf9eb565-f227-5202-b5ee-6eef788726b4",
+      "stableKey": "chapter-identifiers",
+      "title": "23. 63개 내용 단위와 PG 장 식별자",
+      "cardType": "other",
+      "role": "metadata",
+      "era": "서지·전사 메타데이터",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Editorial metadata with original-text anchors",
+      "uncertaintyAndBias": "63이라는 수는 아래 evidence의 장 표제 전수 목록에서 산출한다. 인쇄 원판 이미지를 직접 대조하지 않았다.",
+      "references": [
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 296,
+          "lineEnd": 300,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 14575,
+          "byteEndExclusive": 14807,
+          "excerpt": "                               Chapter I.\r\n\r\nTan-gun.... his antecedents.... his origin.... he becomes king.... he\r\n    teaches the people.... his capital.... he retires.... extent of his\r\n    kingdom.... traditions.... monuments.\r\n",
+          "excerptSha256": "91a6849b45609420f982ffdd9643f66bdb1ba4494183d3a56624abcbc376855a",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 624,
+          "lineEnd": 633,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 37995,
+          "byteEndExclusive": 38604,
+          "excerpt": "                              Chapter I-A.\r\n\r\nThe King re-enters Seoul.... temporary palace.... a royal lament.... a\r\n    profligate prince.... imperial rebuke.... “The Flying General”....\r\n    uneasiness in Seoul.... revenue reform.... reforms in the army....\r\n    King refuses to make peace with the Japanese.... the Chinese\r\n    retire.... plot against Konishi.... Japanese envoy in Nanking....\r\n    robbers put down.... a good man ruined.... Japanese trickery.... a\r\n    patient envoy.... he absconds.... his flight covered by his\r\n    second.... home-sick Japanese.... Konishi sarcastic.... Chinese\r\n",
+          "excerptSha256": "3139399a7880eb2354b5ba292ba151d1b006ffc925213cc51214155d4046b590",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 17882,
+          "lineEnd": 17884,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 962049,
+          "byteEndExclusive": 962219,
+          "excerpt": "The second chapter of this volume was inadvertently headed as Chapter\r\nXI, and is referred to here as Chapter I-A. Also, the heading of Chapter\r\nX was misprinted as XX.\r\n",
+          "excerptSha256": "fe8582a39078b37972a9d53b3f10bf6ff3465d5467d33579c8d9d700e37bdbec",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. I · Project Gutenberg 52127",
+          "url": "https://www.gutenberg.org/ebooks/52127"
+        },
+        {
+          "title": "The History of Korea, Vol. II · Project Gutenberg 52749",
+          "url": "https://www.gutenberg.org/ebooks/52749"
+        }
+      ]
+    },
+    {
+      "cardId": "84c432b7-7c72-5450-a0e0-9bff072b0420",
+      "stableKey": "review-status",
+      "title": "24. 검수 상태와 사용 제한",
+      "cardType": "other",
+      "role": "metadata",
+      "era": "검수·운영 분리",
+      "verificationStatus": "MODERN_VERIFICATION_PENDING",
+      "claimMode": "Editorial metadata with original-text anchors",
+      "uncertaintyAndBias": "구조 검증 통과는 역사적 정확성 인증이 아니다. 근대·현대의 공백과 전체 사료의 선택 편향을 함께 표시한다.",
+      "references": [
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 117,
+          "lineEnd": 148,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 4561,
+          "byteEndExclusive": 6712,
+          "excerpt": "A word must be said in regard to the authenticity and credibility of\r\nnative Korean historical sources. The Chinese written character was\r\nintroduced into Korea as a permanent factor about the time of Christ,\r\nand with it came the possibility of permanent historical records. That\r\nsuch records were kept is quite apparent from the fact that the dates of\r\nall solar eclipses have been carefully preserved from the year 57 B.C.\r\nIn the next place it is worth noticing that the history of Korea is\r\nparticularly free from those great cataclysms such as result so often in\r\nthe destruction of libraries and records. Since the whole peninsula was\r\nconsolidated under one flag in the days of ancient Sil-la no dynastic\r\nchange has been effected by force. We have no mention of any catastrophe\r\nto the Sil-la records: and Sil-la merged into Koryŭ and Koryŭ into\r\nCho-sŭn without the show of arms, and in each case the historical\r\nrecords were kept intact. To be sure, there have been three great\r\ninvasions of Korea, by the Mongols, Manchus and Japanese respectively,\r\nbut though much vandalism was committed by each of these, we have reason\r\nto believe that the records were not tampered with. The argument is\r\nthree-fold. In the first place histories formed the great bulk of the\r\nliterature in vogue among the people and it was so widely disseminated\r\nthat it could not have been seriously injured without annihilating the\r\nentire population.\r\n\r\nIn the second place these invasions were made by peoples who, though not\r\nliterary themselves, had a somewhat high regard for literature, and\r\nthere could have been no such reason for destroying histories as might\r\nexist where one dynasty was forcibly ejected by another hostile one. In\r\nthe third place the monasteries were the great literary centers during\r\nthe centuries preceding the rise of the present dynasty, and we may well\r\nbelieve that the Mongols would not seriously molest these sacred\r\nrepositories. On the whole then we may conclude that from the year 57\r\nB.C. Korean histories are fairly accurate. Whatever comes before that is\r\nlargely traditional and therefore more or less apocryphal.\r\n",
+          "excerptSha256": "762cb2e0c34632d3101bf58a90b073603b4625f1b749170b43254aa3c317bac4",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol1-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol1-en.txt",
+          "lineStart": 193,
+          "lineEnd": 200,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "dcce85acf41652c0be4b9121f6c0a7ab30d327b98c9be149af4f9e9499cef715",
+          "byteStart": 9400,
+          "byteEndExclusive": 9774,
+          "excerpt": "This is the first attempt, so far as I am aware, to give to the English\r\nreading public a history of Korea based on native records, and I trust\r\nthat in spite of all errors and infelicities it may add something to the\r\ngeneral fund of information about the people of Korea.\r\n\r\n                                                              H.B.H.\r\n\r\n    SEOUL, KOREA, 1905.\r\n",
+          "excerptSha256": "147b55eae34a534d30bc4ebae9381a97c56d0aae9dabea9370b1a5425ab6912a",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        },
+        {
+          "sourceFile": "source-vol2-en.txt",
+          "sourcePath": "../korea/hulbert-1905/source-vol2-en.txt",
+          "lineStart": 13380,
+          "lineEnd": 13386,
+          "lineNumbering": "1-based inclusive; original local UTF-8 text lines",
+          "fileSha256": "e0cb12fcf9dc105c627b85dde2bb5511589a8f28e948624a733d84be0ae4c8d4",
+          "byteStart": 852520,
+          "byteEndExclusive": 852999,
+          "excerpt": "this required the purchase of Korean money. The result was that the yen,\r\ninstead of holding its ratio of something like one to two and a half of\r\nthe Korean dollar fell to the ratio of one to only one and four tenths.\r\nWhen, however, the sea was cleared of the Russians and import trade was\r\nresumed and the bulk of the Japanese crossed the Yalu the Korean dollar\r\nfell again to a ratio of about two to one, which it has preserved up to\r\nthe present time, i.e. December, 1904.\r\n",
+          "excerptSha256": "822d7e4ecfdc0558e4f5a59a3395f45456df891f52942053f93fc948f71802c9",
+          "excerptHashDefinition": "SHA-256 of exact UTF-8 excerpt bytes, preserving original line endings and final newline"
+        }
+      ],
+      "directSourceLinks": [
+        {
+          "title": "The History of Korea, Vol. I · Project Gutenberg 52127",
+          "url": "https://www.gutenberg.org/ebooks/52127"
+        },
+        {
+          "title": "The History of Korea, Vol. II · Project Gutenberg 52749",
+          "url": "https://www.gutenberg.org/ebooks/52749"
+        }
+      ]
+    }
+  ],
+  "validation": {
+    "result": "PASS",
+    "scope": "structural and provenance, not historical accuracy",
+    "cardCount": 24,
+    "substantiveCardCount": 20,
+    "metadataCardCount": 4,
+    "referenceCount": 43,
+    "allWorldAndCardKeysExact": true,
+    "allCardTypesAllowed": true,
+    "uuidVersion": 5,
+    "uuidSeedsRecomputed": true,
+    "allSourceFileHashesVerified": true,
+    "allExcerptBytesAndLineRangesVerified": true,
+    "allExcerptHashesVerified": true,
+    "allCardBodiesRenderedInMarkdown": true,
+    "chapterContentUnits": [
+      35,
+      28
+    ],
+    "chapterContentUnitTotal": 63,
+    "noServiceOrDatabaseImport": true,
+    "existingFilesModified": false,
+    "checksNotPerformed": [
+      "Independent modern historical verification",
+      "Professional Korean-history review",
+      "Exhaustive translation review",
+      "Application tests/builds (research-only documents)"
+    ],
+    "allCardBodiesIncludeSourceBibliographyAndVerifiedPgLinks": true,
+    "sourceLinkUpdateScope": "Citation line only; historical prose, card IDs and original evidence excerpts unchanged; links matched existing acquired-source provenance without new network acquisition",
+    "sourceLinkUpdatedAtUtc": "2026-11-13T18:10:41.503Z"
+  }
+}

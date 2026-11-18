@@ -102,7 +102,8 @@ class PublicWorldHttpIntegrationTest {
                 val edge=view.path("relationships").get(0)
                 assertEquals(relation.id.toString(),edge.path("id").asString());assertEquals(a.id.toString(),edge.path("sourceCardId").asString())
                 assertEquals(b.id.toString(),edge.path("targetCardId").asString());assertEquals("동료",edge.path("label").asString())
-                assertFalse(detail.body().contains("관계 설명 원문"))
+                assertEquals("관계 설명 원문",edge.path("body").asString());assertEquals("directed",edge.path("direction").asString())
+                assertTrue(edge.path("polarity").isNull)
                 // 비공개 카드는 id·제목·본문 어느 것도, 그 카드에 닿는 관계도 나오지 않는다.
                 for(leak in listOf(secret.id.toString(),"비공개 인물","비공개 원문","비공개 관계")) assertFalse(detail.body().contains(leak),leak)
 
@@ -139,7 +140,7 @@ class PublicWorldHttpIntegrationTest {
                 val pending=anonymous("$publics/${create.id}");assertEquals(200,pending.statusCode())
                 assertEquals("unavailable",json(pending).path("relationshipStatus").asString());assertEquals(0,json(pending).path("relationships").size())
                 assertEquals(2,json(pending).path("cards").size())
-                assertEquals(0,json(anonymous(publics)).path("items").get(0).path("relationshipCount").asInt())
+                assertTrue(json(anonymous(publics)).path("items").get(0).path("relationshipCount").isNull)
                 db.connect().use { c -> WorldStudioPostgresFixture.sql(c,"UPDATE worldstudio.relationship_state SET completed=true WHERE world_id='${create.id}'") }
                 assertEquals("current",json(anonymous("$publics/${create.id}")).path("relationshipStatus").asString())
 
@@ -152,6 +153,16 @@ class PublicWorldHttpIntegrationTest {
                 assertTrue(json(again).path("listed").asBoolean());assertTrue(json(again).path("genre").isNull)
                 assertTrue(json(anonymous("$publics/${create.id}")).path("genre").isNull)
                 assertEquals(1,json(anonymous(publics)).path("total").asInt())
+
+                // 소유자가 세계관을 지우면(소프트 삭제) 공개 목록·상세에서 즉시 사라진다. 남의 세계관은 지울 수 없고(404), 지운 행·데이터는 남는다.
+                assertEquals(404,send("$studios/${create.id}",other,"DELETE").statusCode())
+                assertEquals(1,json(anonymous(publics)).path("total").asInt())
+                assertEquals(204,send("$studios/${create.id}",method="DELETE").statusCode())
+                assertEquals(404,anonymous("$publics/${create.id}").statusCode())
+                assertEquals(0,json(anonymous(publics)).path("total").asInt());assertEquals(0,json(anonymous("$publics?genre=fantasy")).path("total").asInt())
+                assertEquals(404,send("$studios/${create.id}").statusCode());assertEquals(404,send("$studios/${create.id}",method="DELETE").statusCode())
+                assertTrue(json(send(studios)).values().none { it.path("worldId").asString()==create.id.toString() })
+                db.connect().use { c -> assertEquals(listOf("true"),WorldStudioPostgresFixture.rows(c,"SELECT (deleted_at IS NOT NULL)::text FROM worldstudio.world WHERE id='${create.id}'")) }
             }
         }
     }

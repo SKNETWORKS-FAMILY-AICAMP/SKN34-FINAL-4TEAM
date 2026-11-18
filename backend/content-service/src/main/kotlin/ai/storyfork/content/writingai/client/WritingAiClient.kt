@@ -12,7 +12,8 @@ import tools.jackson.databind.JsonNode
 
 /**
  * AI 오케스트레이션·대화 세션 내부 API 호출. AI 오류는 사용자에게 보일 고정 문구로 바꾼다.
- * 작가의 Bearer는 `X-User-Authorization`으로 넘기며 AI는 승인된 초안 반영의 Content MCP 호출에만 쓴다(DEC-49).
+ * 작가의 Bearer는 `X-User-Authorization`으로 넘기며 AI는 그 작가 권한의 Content MCP 호출에만 쓴다: 승인된 초안 반영(DEC-49)과
+ * 검수·기획이 읽는 초안·세계관·허용 문맥 조회(#59·#387). 쓰기는 승인 뒤 반영뿐이다.
  */
 internal class WritingAiClient(private val http: RestClient, private val token: String) {
     fun orchestrate(body: Map<String, Any?>, authorization: String): JsonNode = call {

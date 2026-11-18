@@ -28,7 +28,7 @@
 .episode-app .ep-edit{gap:16px;margin-top:16px;max-width:560px}
 .ep-hero-cover .ep-edit{margin-top:0}
 .ep-edit fieldset{border:0;padding:0;margin:0;min-width:0;display:grid;gap:16px}
-.ep-edit-actions{display:flex;gap:8px;flex-wrap:wrap}
+.ep-edit-actions{display:flex;gap:8px;flex-wrap:wrap}.ep-suggest{display:grid;gap:8px;margin:12px 0}.ep-suggest>.btn{justify-self:start}.ep-suggest [role=group]>div{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}
 .episode-app .ep-card{padding:20px 24px;margin:0 0 32px;box-shadow:var(--sh)}
 .ep-card p{margin-top:10px}
 .ep-card .ep-edit-actions{margin-top:14px}

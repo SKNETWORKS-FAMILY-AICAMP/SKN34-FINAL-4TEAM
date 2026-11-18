@@ -5,6 +5,7 @@ import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import type {MediaUseCase} from '../../../../domain/usecases/MediaUseCase'
 import {imageMarker} from '../../../../domain/entities/media'
 import {pickEpisode} from './pickEpisode'
+import {SessionExpired} from '../../../../domain/repositories/ProfileRepository'
 import {shouldAutoSave} from '../../../../domain/entities/draftAutosave'
 
 type WritingApi = Pick<EpisodeUseCase,'writingList'|'createEpisode'|'writeEpisode'|'restoreEpisode'|'publishEpisode'|'orderScope'|'deleteDraft'|'deleteEpisode'|'setPublicationVisibility'|'history'>
@@ -26,10 +27,12 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   const [editingLocked,setEditingLocked]=useState(false)
   const [ready,setReady]=useState(false)
   const [error,setError]=useState('')
+  const [expired,setExpired]=useState(false)
   const [failedDraft,setFailedDraft]=useState<Draft|null>(null)
   const [saving,setSaving]=useState(false)
   const [saveError,setSaveError]=useState('')
   const [notice,setNotice]=useState('')
+  const fail=(e:unknown,fallback:string)=>{setExpired(e instanceof SessionExpired);setError(e instanceof Error?e.message:fallback)}
   const [orderLookup,setOrderLookup]=useState<OrderLookup|null>(null)
   const orderRequest=useRef<AbortController|null>(null)
   const [publicationHistory,setPublicationHistory]=useState<PublicationEvent[]|null>(null)
@@ -54,14 +57,14 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   latest.current={active,dirty}
   const put=(d:Draft)=>{current.current=d;setDraft(d)}
   const resetOrder=()=>{orderRequest.current?.abort();orderRequest.current=null;setOrderLookup(null)}
-  const install=(e:WritingEpisode)=>{aiReload.current?.abort();resetOrder();setActive(e);put(e.draft);setNotice('');setError('');setSaveError('');setFailedDraft(null)}
+  const install=(e:WritingEpisode)=>{aiReload.current?.abort();resetOrder();setActive(e);put(e.draft);setNotice('');setError('');setSaveError('');setFailedDraft(null);setExpired(false)}
   useEffect(()=>{
     const controller=new AbortController()
     api.writingList(id,controller.signal).then(rows=>{
       if(controller.signal.aborted)return
       const wanted=entry.current;const first=pickEpisode(rows,wanted);entry.current=undefined
       setEpisodes(rows);if(first)install(first);else if(wanted!==undefined)setError('요청한 회차가 없어요. 회차 목록에서 선택해 주세요.');setReady(true)
-    }).catch((e:unknown)=>{if(!controller.signal.aborted){setError(e instanceof Error?e.message:'회차를 불러오지 못했어요.');setReady(true)}})
+    }).catch((e:unknown)=>{if(!controller.signal.aborted){fail(e,'회차를 불러오지 못했어요.');setReady(true)}})
     return ()=>{controller.abort();aiReload.current?.abort();pending.current?.abort();waiting.current?.abort();historyRequest.current?.abort();orderRequest.current?.abort();orderRequest.current=null}
   },[id,api])
   useEffect(()=>{
@@ -72,12 +75,12 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
   // 사용자가 누른 요청: 화면을 진행 중으로 잠근다. 자동 저장이 서버에 가 있으면 끝나기를 기다렸다가 실행한다(누른 요청을 버리지 않고, 옛 revision으로 보내 충돌하지도 않는다).
   const run=async(action:(signal:AbortSignal)=>Promise<void>,lockEditing=true)=>{
     if(waiting.current||(pending.current&&!autosave.current))return false
-    const controller=new AbortController();setBusy(true);setError('');setNotice('')
+    const controller=new AbortController();setBusy(true);setError('');setExpired(false);setNotice('')
     setEditingLocked(lockEditing)
     if(autosave.current){waiting.current=controller;await autosave.current;waiting.current=null;if(controller.signal.aborted)return false}
     pending.current=controller
     try {await action(controller.signal);return !controller.signal.aborted}
-    catch(e){if(!controller.signal.aborted)setError(e instanceof Error?e.message:'저장에 실패했어요. 입력은 화면에 남아 있어요.');return false}
+    catch(e){if(!controller.signal.aborted)fail(e,'저장에 실패했어요. 입력은 화면에 남아 있어요.');return false}
     finally {if(pending.current===controller){pending.current=null;if(!controller.signal.aborted){setBusy(false);setEditingLocked(false)}}}
   }
   const merge=(e:WritingEpisode)=>{setEpisodes(rows=>[...rows.filter(x=>x.number!==e.number),e].sort((a,b)=>a.number-b.number));setActive(e)}
@@ -110,7 +113,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     const sent=current.current
     const controller=new AbortController();pending.current=controller;setError('')
     const saving=write(false,controller.signal)
-      .catch((e:unknown)=>{if(!controller.signal.aborted){setFailedDraft(sent);setError(e instanceof Error?e.message:'저장에 실패했어요. 입력은 화면에 남아 있어요.')}})
+      .catch((e:unknown)=>{if(!controller.signal.aborted){setFailedDraft(sent);fail(e,'저장에 실패했어요. 입력은 화면에 남아 있어요.')}})
       .finally(()=>{if(pending.current===controller)pending.current=null;if(autosave.current===saving)autosave.current=null})
     autosave.current=saving
   }
@@ -195,10 +198,10 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
           return
         }
         if(next&&!pending.current&&!waiting.current)install(next)
-      }catch(e){if(!controller.signal.aborted)setError(e instanceof Error?e.message:'AI가 반영한 초안을 다시 불러오지 못했어요.')}
+      }catch(e){if(!controller.signal.aborted)fail(e,'AI가 반영한 초안을 다시 불러오지 못했어요.')}
       finally{if(aiReload.current===controller)aiReload.current=null}
     },
-    episodes,active,draft,busy,editingLocked,ready,error,notice,dirty,saving,saveError,mayLeave,deleteBlocker:deleteBlocker(active,episodes),
+    episodes,active,draft,busy,editingLocked,ready,error,expired,notice,dirty,saving,saveError,mayLeave,deleteBlocker:deleteBlocker(active,episodes),
     clearNotice:()=>setNotice(''),
     // 회차 목록의 항목별 메뉴가 선택하지 않은 회차의 삭제 가능 여부도 같은 규칙으로 알린다.
     deleteBlockerOf:(e:WritingEpisode)=>deleteBlocker(e,episodes),

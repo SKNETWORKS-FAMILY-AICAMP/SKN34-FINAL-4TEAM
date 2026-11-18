@@ -1,0 +1,425 @@
+{
+  "kind": "review_only",
+  "genre": "indian_mythology",
+  "existing_world_id_for_uuid_namespace_only": "54591714-aae0-5694-8da9-2b73a64cc53f",
+  "uuid_v5_namespace": "7542eca7-3201-52ee-b9b8-93cdf9f2cae3",
+  "uuid_name": "<segment>/<candidate_key>",
+  "baseline_refs": [
+    "b3e8cb6383aee140630d86e424e228a4557d20da"
+  ],
+  "repository_head_at_start": "3ec049e5f00dfc6b07c9b840631b159b5b68bd54",
+  "manifest_path": "미게시-임시자료:myth/manifest.json",
+  "manifest_sha256": "e4ba1ed138007f194b3c4133967110a63b58157d891a52205f75326b78098a9e",
+  "inputs": [
+    {
+      "segment": "india-gita-1",
+      "path": "미게시-임시자료:myth/india-gita-1.json",
+      "sha256": "c4a7ce10a6fcea0db5144edbf2f5f8dda247c3abdb4dc31289906fd0239d3b81",
+      "scope": "K. T. Telang 1882년 영어 번역 《바가바드기타》 제1–9장, Wisdom Library 전사 본문 전체. 기존 인도 전승은 18장과 지정 리그베다 찬가만을 포함하며 인도 전승 전체의 선집이 아니다. 별도의 인쇄본 PDF를 내려받았으나 이 작업의 본문 실독과 카드 증거는 전사본을 기준으로 함. 번역은 1882년 간행; 웹 전사 편집 및 소재별 권리 상태는 별도 확인하지 않음.",
+      "candidate_count": 14,
+      "manifest": {
+        "segment": "india-gita-1",
+        "focus": "바가바드기타 제1–9장 전체, 각 장 coverage unit.",
+        "units": [
+          "gita-1",
+          "gita-2",
+          "gita-3",
+          "gita-4",
+          "gita-5",
+          "gita-6",
+          "gita-7",
+          "gita-8",
+          "gita-9"
+        ],
+        "genre": "indian_mythology",
+        "scope": "텔랑 1882년판 《바가바드기타》 1–18장에 근거한 카드다. 별도 전승 카드는 《리그베다》 1.1·1.32·10.90·10.129를 추가하며 인도 전승 전체의 선집이 아니다.",
+        "existing_cards": 73,
+        "source_urls": [
+          "https://www.rarebooksocietyofindia.org/book_archive/196174216674_10154419998761675.pdf",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81668.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81669.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81670.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81671.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81672.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81673.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81674.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81675.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81676.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81678.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81679.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81680.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81681.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81682.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81683.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81684.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81685.html",
+          "https://en.wikisource.org/w/index.php?title=Bhagavad-Gita_(Besant_4th)/Discourse_8&oldid=9514547",
+          "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm",
+          "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm"
+        ],
+        "kind": "myth"
+      },
+      "coverage_reported_by_extractor": [
+        {
+          "unit": "gita-1",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81668.html",
+          "status": "read",
+          "cards": 3,
+          "note": "1.1–47 전체 실독. 유유다나·비라타·드루파다·드리슈타케투·체키타나·푸루지트·쿤티보자·샤이비야·유다마뉴·웃타마우자스·카르나·크리파·아슈바타만·비카르나 등은 대체로 전사 명단이나 소라 언급에 그쳐 별도 전기를 만들지 않음. 기존 소라 카드와 인물 카드 확인."
+        },
+        {
+          "unit": "gita-2",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81669.html",
+          "status": "read",
+          "cards": 1,
+          "note": "2.1–72 전체 실독. 자아·평정·행위의 열매는 기존 카드와 겹침."
+        },
+        {
+          "unit": "gita-3",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81670.html",
+          "status": "read",
+          "cards": 2,
+          "note": "3.1–43 전체 실독. 제사 순환, 모범과 욕망은 기존 카드와 겹침."
+        },
+        {
+          "unit": "gita-4",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81671.html",
+          "status": "read",
+          "cards": 1,
+          "note": "4.1–42 전체 실독. 태양·마누·이크슈바쿠는 가르침의 전달자로 등장하며 기존 신성한 탄생 카드가 전승을 포함하므로 별도 전기를 꾸미지 않음."
+        },
+        {
+          "unit": "gita-5",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81672.html",
+          "status": "read",
+          "cards": 1,
+          "note": "5.1–29 전체 실독. 포기와 행위, 평등한 시선은 기존 카드와 겹침."
+        },
+        {
+          "unit": "gita-6",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81673.html",
+          "status": "read",
+          "cards": 1,
+          "note": "6.1–47 전체 실독. 명상 자세·실패한 수행의 재탄생은 기존 카드와 겹침."
+        },
+        {
+          "unit": "gita-7",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81674.html",
+          "status": "read",
+          "cards": 1,
+          "note": "7.1–30 전체 실독. 두 본성·세 성질의 미혹·네 유형의 신자는 기존 카드와 겹침."
+        },
+        {
+          "unit": "gita-8",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81675.html",
+          "status": "read",
+          "cards": 1,
+          "note": "8.1–28 전체 실독. 텔랑 전사는 8.1 질문에 아디다이바를 생략하나 8.3–4 답변에 등장한다. 브라흐마 주기·두 길과 마지막 기억은 기존 카드와 겹침."
+        },
+        {
+          "unit": "gita-9",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81676.html",
+          "status": "read",
+          "cards": 3,
+          "note": "9.1–34 전체 실독. 봉헌 및 헌신·신분의 긴장은 기존 카드와 겹침."
+        }
+      ]
+    },
+    {
+      "segment": "india-gita-2",
+      "path": "미게시-임시자료:myth/india-gita-2.json",
+      "sha256": "83c15c12b53d66d3cddceb97915ca9aa67dc603d51f06f36f65cd7edf824c3c5",
+      "scope": "텔랑 1882년판 《바가바드기타》 제10–18장. 제1–18장 및 리그베다 1.1·1.32·10.90·10.129 기존 카드 73장 보존; 인도 전승 전체의 선집이 아님.",
+      "candidate_count": 26,
+      "manifest": {
+        "segment": "india-gita-2",
+        "focus": "바가바드기타 제10–18장 전체, 각 장 coverage unit.",
+        "units": [
+          "gita-10",
+          "gita-11",
+          "gita-12",
+          "gita-13",
+          "gita-14",
+          "gita-15",
+          "gita-16",
+          "gita-17",
+          "gita-18"
+        ],
+        "genre": "indian_mythology",
+        "scope": "텔랑 1882년판 《바가바드기타》 1–18장에 근거한 카드다. 별도 전승 카드는 《리그베다》 1.1·1.32·10.90·10.129를 추가하며 인도 전승 전체의 선집이 아니다.",
+        "existing_cards": 73,
+        "source_urls": [
+          "https://www.rarebooksocietyofindia.org/book_archive/196174216674_10154419998761675.pdf",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81668.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81669.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81670.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81671.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81672.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81673.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81674.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81675.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81676.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81678.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81679.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81680.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81681.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81682.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81683.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81684.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81685.html",
+          "https://en.wikisource.org/w/index.php?title=Bhagavad-Gita_(Besant_4th)/Discourse_8&oldid=9514547",
+          "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm",
+          "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm"
+        ],
+        "kind": "myth"
+      },
+      "coverage_reported_by_extractor": [
+        {
+          "unit": "gita-10",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "status": "read",
+          "cards": 9,
+          "note": "10.1–42 실독. 마리치·상카라·스칸다·브리구·치트라라타·카필라·아이라바타·아난타·바루나·아리아만·야마·프랄라다·라마·마카라·우샤나스 등은 발현 목록에서 범주와 이름만 확인되어 추가 서사를 추정하지 않음. 나라다·메루 등 발현 목록 카드와의 중복 검토 필요. 10.6 텔랑 주석에 다른 구문 해석이 있음."
+        },
+        {
+          "unit": "gita-11",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81678.html",
+          "status": "read",
+          "cards": 3,
+          "note": "11.1–55 실독. 우주적 모습·신성한 눈·파괴와 온화한 형태는 기존 카드와 중복. 자야드라타·카르나는 11.34의 운명 언급으로만 제한."
+        },
+        {
+          "unit": "gita-12",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81679.html",
+          "status": "read",
+          "cards": 1,
+          "note": "12.1–20 실독. 수행 단계와 신자의 자질은 기존 카드에 있음."
+        },
+        {
+          "unit": "gita-13",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81680.html",
+          "status": "read",
+          "cards": 2,
+          "note": "13.1–34 실독. 몸과 앎·자연과 영은 기존 크셰트라 카드와 중복 가능. 전사본에는 절 번호가 없어 질문을 별도 절로 세지 않는 34절 전통 번호와 대조했으며 다른 판본의 번호는 달라질 수 있다."
+        },
+        {
+          "unit": "gita-14",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81681.html",
+          "status": "read",
+          "cards": 2,
+          "note": "14.1–27 실독. 성질의 결박 및 초월은 기존 카드에 있음."
+        },
+        {
+          "unit": "gita-15",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81682.html",
+          "status": "read",
+          "cards": 3,
+          "note": "15.1–20 실독. 아슈바타·개별 영혼의 이동·지극한 존재는 기존 카드에 있음."
+        },
+        {
+          "unit": "gita-16",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81683.html",
+          "status": "read",
+          "cards": 2,
+          "note": "16.1–24 실독. 신적인 자질과 악신의 자질 및 지옥의 세 길은 기존 카드에 있음; 경전 기준과 재생은 분리 후보."
+        },
+        {
+          "unit": "gita-17",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81684.html",
+          "status": "read",
+          "cards": 2,
+          "note": "17.1–28 실독. 음식·제사 등 세 성질과 옴·타드·사트는 기존 카드와 중복 가능."
+        },
+        {
+          "unit": "gita-18",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81685.html",
+          "status": "read",
+          "cards": 2,
+          "note": "18.1–78 실독. 포기·다섯 원인·계급별 의무·귀의·결말 등 기존 카드와 중복 검토 필요."
+        }
+      ]
+    },
+    {
+      "segment": "india-rigveda",
+      "path": "미게시-임시자료:myth/india-rigveda.json",
+      "sha256": "e35ae830bd552bc3aabc6f9b604af4665894964c44604642553d42448b3f50a6",
+      "scope": "supplementary.md가 지정한 리그베다 1.1.1–2, 1.32.1–5·11, 10.90.6–15, 10.129.1·6–7(GRETIL Aufrecht 1877 제2판 전사)과 바가바드기타 8.1의 베전트 1922년 제4판 및 텔랑 1882년판 전사 비교만. 전체 찬가나 인도 전승 전체의 전수가 아니다. GRETIL은 참고용으로 제공되며 저작권·사용 조건은 원본 파일을 따르므로 전문 재배포 권한은 확인하지 않았다. 베전트 지정 oldid는 접근하지 못해 현재 전사를 사용했으며 지정 revision의 내용 일치 여부는 확인하지 못했다.",
+      "candidate_count": 8,
+      "manifest": {
+        "segment": "india-rigveda",
+        "focus": "기존 supplementary.md에 지정된 리그베다 비교 구간 및 제8장 참고의 선택 범위만 전부 확인. 전체 리그베다로 과장하지 않는다.",
+        "units": [
+          "rigveda-selected",
+          "gita-8-variant"
+        ],
+        "genre": "indian_mythology",
+        "scope": "텔랑 1882년판 《바가바드기타》 1–18장에 근거한 카드다. 별도 전승 카드는 《리그베다》 1.1·1.32·10.90·10.129를 추가하며 인도 전승 전체의 선집이 아니다.",
+        "existing_cards": 73,
+        "source_urls": [
+          "https://www.rarebooksocietyofindia.org/book_archive/196174216674_10154419998761675.pdf",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81668.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81669.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81670.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81671.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81672.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81673.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81674.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81675.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81676.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81677.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81678.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81679.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81680.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81681.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81682.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81683.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81684.html",
+          "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81685.html",
+          "https://en.wikisource.org/w/index.php?title=Bhagavad-Gita_(Besant_4th)/Discourse_8&oldid=9514547",
+          "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm",
+          "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm"
+        ],
+        "kind": "myth"
+      },
+      "coverage_reported_by_extractor": [
+        {
+          "unit": "리그베다 1.1.1–2",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm",
+          "status": "read",
+          "cards": 0,
+          "reason": "기존 아그니 카드가 구간을 다룸."
+        },
+        {
+          "unit": "리그베다 1.32.1–5",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm",
+          "status": "read",
+          "cards": 3,
+          "reason": "인드라와 바즈라는 기존 카드가 있으며 제작자·브리트라·소마를 별도 후보로 기록."
+        },
+        {
+          "unit": "리그베다 1.32.11",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn01u.htm",
+          "status": "read",
+          "cards": 0,
+          "reason": "막힌 물의 해방은 기존 브리트라 격파 사건 카드가 다룸."
+        },
+        {
+          "unit": "리그베다 10.90.6–15",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "status": "read",
+          "cards": 4,
+          "reason": "사디야와 성자들은 명칭 외에 개별 정체성이 이 범위에서 충분하지 않아 별도 카드를 만들지 않음."
+        },
+        {
+          "unit": "리그베다 10.129.1",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "status": "read",
+          "cards": 0,
+          "reason": "존재와 비존재의 물음은 기존 창조에 대한 물음 카드가 다룸."
+        },
+        {
+          "unit": "리그베다 10.129.6–7",
+          "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/1_veda/1_sam/1_rv/rv_hn10u.htm",
+          "status": "read",
+          "cards": 0,
+          "reason": "최고 하늘의 감시자 언급은 기존 창조에 대한 물음 카드가 다룸; 감시자의 정체를 확정하지 않음."
+        },
+        {
+          "unit": "바가바드기타 텔랑 1882년 전사 8.1–4",
+          "url": "https://www.wisdomlib.org/hinduism/book/the-bhagavadgita/d/doc81675.html",
+          "status": "read",
+          "cards": 0,
+          "reason": "질문과 답을 베전트판과 비교; 새 비교 카드는 베전트 unit에 집계."
+        },
+        {
+          "unit": "바가바드기타 베전트 1922년 제4판 전사 8.1",
+          "url": "https://en.wikisource.org/wiki/Bhagavad-Gita_(Besant_4th)/Discourse_8",
+          "status": "read",
+          "cards": 1,
+          "reason": "지정 oldid URL은 접근 불가(HTTP 403); 동일 작품의 현재 Wikisource 전사로 대체하여 읽음. 지정 revision과의 동일성은 미확인."
+        },
+        {
+          "unit": "바가바드기타 베전트 1922년 제4판 지정 oldid 9514547, 8.1",
+          "url": "https://en.wikisource.org/w/index.php?title=Bhagavad-Gita_(Besant_4th)/Discourse_8&oldid=9514547",
+          "status": "unavailable",
+          "reason": "HTTP 403 및 웹 도구 접근 실패. 현재 전사로 대체해 읽었으며 이 revision과 내용이 같은지는 미확인.",
+          "cards": 0
+        }
+      ]
+    }
+  ],
+  "manifest_unit_coverage": {
+    "rigveda-selected": {
+      "status": "read_reported_by_extractor",
+      "scope": "1.1.1–2, 1.32.1–5·11, 10.90.6–15, 10.129.1·6–7",
+      "detail": "입력의 구간별 자기보고를 보존; 전수·독립 재검증 아님"
+    },
+    "gita-8-variant": {
+      "status": "partially_unavailable",
+      "detail": "텔랑 및 베전트 현재 전사 열람 자기보고; 지정 oldid 9514547은 HTTP 403으로 unavailable, 대체본과 동일성 미확인"
+    }
+  },
+  "counts": {
+    "input_files": 3,
+    "input_candidates": 48,
+    "represented_individually": 48,
+    "merged_input_candidates": 0,
+    "unprocessed_candidates": 0,
+    "existing_indian_cards": 73,
+    "existing_myth_cards_all_15": 868,
+    "types": {
+      "character": 14,
+      "object": 2,
+      "rule": 18,
+      "other": 6,
+      "event": 3,
+      "location": 3,
+      "ability": 2
+    },
+    "review_flagged_cards": 39,
+    "files": [
+      {
+        "path": "cards-001.json",
+        "cards": 48,
+        "sha256": "21fe0c707cee778456c016ea251aa80f6c875f563abceaf344e2b88b41a5fb97"
+      }
+    ]
+  },
+  "deduplication": "기존 26종 runtime 세 판 및 입력 간 같은 제목·유형/키를 기계 비교하고 인도 원본의 관련 카드와 세 입력 간 관련 주제를 수동 표시했다. 의미상 중복은 확정하지 않고 48개를 각자 보존했다. 원 출전과 사실이 다를 수 있으므로 합치거나 삭제하지 않았다. 자동 비교와 일부 수동 표시는 누락 없는 동일성 검토를 보증하지 않는다.",
+  "limits": [
+    "검토용 후보만 보관하며 앱·서비스·DB에 자동 적재되지 않는다. 실제 반영은 #425 안전 계약과 권리·중복 검증이 선행되어야 한다.",
+    "이전 1,000개 기준 비교: 기존 인도 73개 및 신규 후보 48개는 합계 121개이나 검토용 건수이며 세계관 분할이나 적재를 의미하지 않는다. 현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다.",
+    "coverage read는 입력 작성자의 자기보고이며 통합 작업에서 각 원문 및 판본의 완독이나 내용·인용 정확성을 독립 검증한 것은 아니다.",
+    "베전트 지정 revision oldid 9514547 미접근, 현재 전사와의 일치 여부 미정. 별도 인쇄본 PDF의 본문은 실독 근거로 사용하지 않았다.",
+    "입력은 선택된 범위에 대한 후보이며 이름만 나열된 존재 등 누락 가능성이 있다. 지정되지 않은 범위는 미정이며 전승 전체의 전수 목록이 아니다.",
+    "번역·전사·발췌 및 한국어 요약은 지적 재산과 재사용 조건이 미확인이다. 지역·시기별 전승, 역사 감수, 인용과 해석도 미검증이며 이질적인 판본을 하나의 정본으로 확정하지 않는다.",
+    "인용은 입력 그대로 보존하며 본문 전체를 복사하지 않았다. 한국어 설명은 비공식 요약이다. 리그베다의 사회적 분류 등은 해당 찬가의 관점으로 현대 공동체 전체를 대변하지 않는다."
+  ],
+  "preservation_snapshot_sha256": {
+    "infrastructure/sample-data/genre-templates/norse_mythology/source/tradition-cards.json": "ddf24055211b823b485afb49406ed51874f168ee438b7e2099e025c771a9c256",
+    "infrastructure/sample-data/genre-templates/sumerian_mythology/source/tradition-cards.json": "9bf3b9a52da347ad67db2bf9d521bc30799dc9ba8974ff1d29417b7c92a05230",
+    "infrastructure/sample-data/genre-templates/indian_mythology/source/tradition-cards.json": "5afef3073953728807d46deb6178e6e26709b3659a46c43aeea580f6eef4124a",
+    "infrastructure/sample-data/genre-templates/journey_to_the_west/source/tradition-cards.json": "74727517f3eb7176ee693a23c40d1093065a09708197db70ff7dae66ec7e15d2",
+    "infrastructure/sample-data/genre-templates/egyptian_mythology/source/tradition-cards.json": "93ce18f4cdc6b89147f2303e66aa2bfb663b47e03a91acdd15236a9df3aa3bb3",
+    "infrastructure/sample-data/genre-templates/japanese_mythology/source/tradition-cards.json": "4384c7ea77d36f422fa75ee14b65bf5e81e9042e7b3f3387eeaad8088e3274ff",
+    "infrastructure/sample-data/genre-templates/chinese_folklore/source/tradition-cards.json": "071021c35703703e048989f3bcfb2c9c4e116ebec6ad2a9a5e72de759a41696f",
+    "infrastructure/sample-data/genre-templates/aztec_mythology/source/tradition-cards.json": "b6124cf5dc745999e3fbaece09460dbe119ad7b41082de8bc0835a23fc464253",
+    "infrastructure/sample-data/genre-templates/celtic_mythology/source/tradition-cards.json": "5eb93d532b452bd87720e3c1c864682460be80c08b800ce724ffd1df68fde731",
+    "infrastructure/sample-data/genre-templates/korean_mythology_fables/source/tradition-cards.json": "0c32609db4846ace0d6f4f94383c66242d2c929fe3e17342c49b01500d02e473",
+    "infrastructure/sample-data/genre-templates/cthulhu_mythos/source/tradition-cards.json": "cca3d937c0e116182459312e67547af72a28d3ed23bce2dab3e011326f3afa3c",
+    "infrastructure/sample-data/genre-templates/germanic_folklore/source/tradition-cards.json": "379ae168ee134e3e4b7c92e478a502535b18edaebb132693935be3ab90669d8e",
+    "infrastructure/sample-data/genre-templates/slavic_mythology/source/tradition-cards.json": "8ff41d80798978b45a848f1a255c7890ae2f54315eee82b00b085178cf5d4a1e",
+    "infrastructure/sample-data/genre-templates/maya_mythology/source/tradition-cards.json": "31f51c0202f0223bbcac210147842168818db10fa072ad155d7471ff160be0ec",
+    "infrastructure/sample-data/genre-templates/greco_roman_mythology/source/tradition-cards.json": "dd0a7650247e6d952d29ee15ed1e6fe355c0a9177c51dbbe5684dbc834d5a65f",
+    "backend/content-service/src/main/resources/genre-templates.json": "bc3cbacd8e7806d673793963386a63c6b7d61f0ec280ce56c22fd74d33003340",
+    "backend/content-service/src/main/resources/genre-templates-v1.json": "96cbbb7607aada4ca8f7a27f56cfd6a6197c7826db0160fae2cc134768992d85",
+    "backend/content-service/src/main/resources/genre-templates-v2.json": "4699939f749f45dc0958f7c908955ade6e9ea91ab8ed9ab55860251831aa9517",
+    "infrastructure/sample-data/genre-templates/indian_mythology/source/template.json": "12741362c2ec7e912a01753446cbad9a93355e7f33c6ba36e75d0a9c674a2b73",
+    "infrastructure/sample-data/genre-templates/indian_mythology/source/sources.md": "d18bbaee17f2eda6c5124b83ac0a6b6c6836d228a961e16821cb9374be0c6da2",
+    "infrastructure/sample-data/genre-templates/indian_mythology/source/supplementary.md": "668213555cf265e5ec3000f5e30dfce90d178b3e107f18a17027651611526f0a"
+  },
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

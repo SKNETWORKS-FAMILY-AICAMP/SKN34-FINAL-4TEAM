@@ -1,0 +1,1640 @@
+{
+  "genre": "sumerian_mythology",
+  "segment": "sumerian-mythology",
+  "review_only": true,
+  "registration": "앱·DB 자동 적재 금지. 최초 적용에는 별도 #425 안전 계약과 권리·중복 검증이 필요함.",
+  "world_reference": {
+    "existing_world_id": "41adfa23-2e60-5b04-885a-994cf2478a18",
+    "meaning": "기존 런타임 세계관 참조 및 UUID 네임스페이스일 뿐 새 세계관 생성·배정 아님",
+    "existing_runtime_cards": 59,
+    "limit": 1000,
+    "limit_note": "당시 비교 기준. 현재 브랜치 변경은 세계관당 활성 카드 10,000개, 요청당 카드 1,000개와 편집 요청 2MB 제한이며 아직 배포되지 않았다.",
+    "candidate_plus_existing": 193
+  },
+  "scope": "Thureau-Dangin 1905 구데아 원통 A·B 135–199쪽(원문 미확인, 별도 ETCSL 영역 대조); supplementary.md가 지정한 이난나의 저승 하강·엔키와 닌후르상가 행 및 CDLI P346462 앞면 1′–3′. 수메르 전승 전반 아님. 추가: 1905년판 원통 A I–XXX열의 제3자 OCR 부분 확인 후보(인쇄 판면 독립 대조 및 권리 미확인). 원통 B I–XXIV열의 동일 1905년판 스캔과 OCR은 신규 추출자의 확인 보고이며 결락 및 판독과 권리는 검토가 필요하다. 추가: 원통 A I–XV의 1905년판 프랑스어 번역면 생존 부분에 대한 스캔 기반 Vision OCR 자기보고, 수메르어 전사 전체의 판독은 아님. 원통 A XVI–XXX 1905년판 스캔의 전사·프랑스어 번역은 추출자 자기보고로, 결락·미번역과 판독 한계를 유지한다.",
+  "manifest_entry": {
+    "segment": "sumerian-mythology",
+    "focus": "source/tradition-cards.json의 scope에 명시된 주 저본 전체와 supplementary.md에 명시된 보충 구간만 모두 읽고 장·작품별 coverage를 실제 작성.",
+    "units": [
+      "main-text",
+      "specified-supplements"
+    ],
+    "genre": "sumerian_mythology",
+    "scope": "구데아 원통 A·B를 바탕으로 한 설정 카드다. 별도 전승 카드는 ETCSL의 《이난나의 저승 하강》과 《엔키와 닌후르상가》를 추가하며 수메르 전승 전체를 대표하지 않는다.",
+    "existing_cards": 59,
+    "source_urls": [
+      "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "https://etcsl.orinst.ox.ac.uk/section1/c141.htm",
+      "https://etcsl.orinst.ox.ac.uk/section1/c111.htm",
+      "https://etcsl.orinst.ox.ac.uk/section1/tr141.htm",
+      "https://etcsl.orinst.ox.ac.uk/section1/tr111.htm"
+    ],
+    "kind": "myth"
+  },
+  "coverage_self_report": [
+    {
+      "unit": "1905년 구데아 원통 A I열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A II열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A III열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A IV열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A V열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A VI열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A VII열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A VIII열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A IX열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A X열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XI열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XII열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XIII열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XIV열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XV열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XVI열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XVII열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XVIII열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XIX열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XX열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XXI열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XXII열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XXIII열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XXIV열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XXV열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XXVI열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XXVII열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XXVIII열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XXIX열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 A XXX열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B I열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B II열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B III열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B IV열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B V열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B VI열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B VII열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B VIII열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B IX열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B X열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B XI열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B XII열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B XIII열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B XIV열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B XV열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B XVI열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B XVII열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B XVIII열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B XIX열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B XX열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B XXI열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B XXII열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B XXIII열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "1905년 구데아 원통 B XXIV열",
+      "url": "https://archive.org/details/lesinscriptionsd00thuruoft",
+      "status": "unavailable",
+      "reason": "목록 페이지는 접근되나 본문 OCR 다운로드가 리다이렉트 이후 TLS 연결 시간 초과. 별도 판본 ETCSL 번역을 아래에 기록했으며 1905년 판독을 확인한 것으로 간주하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "ETCSL 대체 판본 원통 A, 1–814행",
+      "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+      "status": "read",
+      "reason": "지정된 1905년 판본 대신 ETCSL 영역을 읽음. 여러 인물은 개별 이름 외 역할이 없거나 기존 묶음과 겹침. 결락은 편집자의 표시를 따름.",
+      "cards": 9,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+      "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+      "status": "read",
+      "reason": "지정된 1905년 판본 대신 ETCSL 영역을 읽음. 일부 명단은 기존 묶음과 중복될 수 있고 결락을 보충하지 않음.",
+      "cards": 10,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "이난나 하강 1–5, 73–89행",
+      "url": "https://etcsl.orinst.ox.ac.uk/section1/c141.htm",
+      "status": "read",
+      "reason": "복합 전사와 영역 대조.",
+      "cards": 2,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "에레시키갈과 간제르 90–128행",
+      "url": "https://etcsl.orinst.ox.ac.uk/section1/c141.htm",
+      "status": "read",
+      "reason": "복합 전사와 영역 대조.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "측량 막대 이설 25, 129A–B, 154–158행",
+      "url": "https://etcsl.orinst.ox.ac.uk/section1/c141.htm",
+      "status": "read",
+      "reason": "복합 전사와 영역 대조. 기존 카드와 중복되어 추가하지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "일곱 문 114–163행",
+      "url": "https://etcsl.orinst.ox.ac.uk/section1/c141.htm",
+      "status": "read",
+      "reason": "복합 전사와 영역 대조. 이름 없는 장신구는 독립 후보로 부풀리지 않음.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "딜문 1–4, 11–39행",
+      "url": "https://etcsl.orinst.ox.ac.uk/section1/c111.htm",
+      "status": "read",
+      "reason": "복합 전사와 영역 대조.",
+      "cards": 1,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "닌슈부르 구원 요청 26–67, 273–281행",
+      "url": "https://etcsl.orinst.ox.ac.uk/section1/c141.htm",
+      "status": "read",
+      "reason": "복합 전사와 영역 대조.",
+      "cards": 2,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "CDLI P346462 앞면 1′–3′",
+      "url": "https://cdli.earth/artifacts/346462",
+      "status": "read",
+      "reason": "파손 전사와 현행 번역 확인. 막대 박탈을 단정하지 않음. 기존 카드와 중복.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    },
+    {
+      "unit": "복합 전사 여섯째 문 154–155행",
+      "url": "https://etcsl.orinst.ox.ac.uk/section1/c141.htm",
+      "status": "read",
+      "reason": "전사와 영역 확인. 기존 카드와 중복.",
+      "cards": 0,
+      "report_basis": "이전 추출자의 자기보고; 통합 작업자가 원전을 독립 완독한 사실을 뜻하지 않음"
+    }
+  ],
+  "coverage_summary": {
+    "read": 10,
+    "unavailable": 54,
+    "read_qualification": "읽음은 이전 추출자의 자기보고이며 통합 작업자의 독립 검증이 아님. 1905년판 대신 ETCSL을 읽은 것은 원래 판본의 열람이 아님.",
+    "manifest_unit_mapping": {
+      "main-text": "1905년 A·B 열은 unavailable, 별도 ETCSL 영어판 A·B는 read 자기보고",
+      "specified-supplements": "supplementary.md 명시된 각 구간은 read 자기보고; 그 외 범위는 미정"
+    },
+    "ocr_partial": "A I–XXX 각 열은 제3자 OCR 부분 확인 보고이나 전체 열 unavailable 유지. B I–XXIV의 이전 unavailable 보고는 보존하고 새 추출자의 read 보고 24개를 별도 기록.",
+    "b_new_worker_read": "24개 열 read는 새 추출자의 자기보고; 동일 판본 스캔/OCR 판독 및 대조는 통합자가 독립 검증하지 않음. 원통 결락과 번역자 복원 및 권리는 별도 검토 필요.",
+    "a_scan1_worker_read": "A I–XV의 프랑스어 번역면 생존 부분은 새 추출자의 read 자기보고이며 원통 결락·OCR 오류와 수메르어 전사 미판독이 남아 전수 완독의 근거가 아니다; 이전 unavailable 유지.",
+    "a_scan2_worker_read": "A XVI–XXX 스캔 전사와 프랑스어 번역의 15열 read는 신규 추출자 자기보고이며 이전 unavailable 및 Scribd 부분 보고와 별도. 결락, 프랑스어 미번역, OCR 판독 및 수메르어 독립 번역 한계를 유지한다."
+  },
+  "sources": {
+    "candidate_input_path": "미게시-임시자료:myth/sumerian-mythology.json",
+    "candidate_input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+    "manifest_path": "미게시-임시자료:myth/manifest.json",
+    "manifest_sha256": "e4ba1ed138007f194b3c4133967110a63b58157d891a52205f75326b78098a9e",
+    "baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+    "integration_head": "3ec049e5f00dfc6b07c9b840631b159b5b68bd54",
+    "source_file_sha256": {
+      "infrastructure/sample-data/genre-templates/sumerian_mythology/source/tradition-cards.json": "9bf3b9a52da347ad67db2bf9d521bc30799dc9ba8974ff1d29417b7c92a05230",
+      "infrastructure/sample-data/genre-templates/sumerian_mythology/source/template.json": "2e31bf70b3b30ae8239f2993c251c6443667ed8f6dca2dcd0b164a86cfabdf55",
+      "infrastructure/sample-data/genre-templates/sumerian_mythology/source/sources.md": "efaff88f82c2b94bf2be8829e09d0b7e8779b8e9997883f489051e11e1ab1aee",
+      "infrastructure/sample-data/genre-templates/sumerian_mythology/source/supplementary.md": "4046431ea8de163a73aa93426606fc93f44d5fd241247cbbef71443ed5d48e76",
+      "backend/content-service/src/main/resources/genre-templates.json": "bc3cbacd8e7806d673793963386a63c6b7d61f0ec280ce56c22fd74d33003340",
+      "backend/content-service/src/main/resources/genre-templates-v1.json": "96cbbb7607aada4ca8f7a27f56cfd6a6197c7826db0160fae2cc134768992d85",
+      "backend/content-service/src/main/resources/genre-templates-v2.json": "4699939f749f45dc0958f7c908955ade6e9ea91ab8ed9ab55860251831aa9517"
+    },
+    "external_source_hash": "원문 자체의 고정 해시는 입력에 제공되지 않아 미확인",
+    "additional_inputs": [
+      {
+        "path": "미게시-임시자료:myth/gap-sumer-a1.json",
+        "sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+        "segment": "gap-sumer-a1",
+        "candidate_count": 26
+      },
+      {
+        "path": "미게시-임시자료:myth/gap-sumer-a2.json",
+        "sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+        "segment": "gap-sumer-a2",
+        "candidate_count": 30
+      },
+      {
+        "path": "미게시-임시자료:myth/gap-sumer-b.json",
+        "sha256": "5fa4f8b751b40b005922248bf959fd34701157bc65f762d1bf88f8f933c36bf6",
+        "segment": "gap-sumer-b",
+        "candidate_count": 21
+      },
+      {
+        "path": "미게시-임시자료:myth/gap-sumer-a-scan1.json",
+        "sha256": "21e449f22474ca25c49ff0fea4071039ef1fcbebc9da56ec31323e0ac2a2ce98",
+        "segment": "gap-sumer-a-scan1",
+        "candidate_count": 11
+      },
+      {
+        "path": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+        "sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+        "segment": "gap-sumer-a-scan2",
+        "candidate_count": 22
+      }
+    ],
+    "independently_checked_scan": {
+      "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf",
+      "sha256": "f577e98f4e77e0f074500a8736a629e8daf60f76694af9f5598985ef27b57a37",
+      "bytes": 25692004,
+      "checked_scope": "인쇄 143쪽 V 15–18 및 VI 6–8의 두 보강 발췌만 영인 육안 대조; 다른 구절 전체 판독 또는 출처 권리 검증 아님",
+      "additional_checked_scope": "인쇄 158–159, 162–163, 168–175쪽 전사와 프랑스어 번역의 지정된 여섯 기존 후보 정정 구절만 영인 육안 대조; 다른 신규 후보의 독립 검증이나 판본 권리 검토는 아님."
+    }
+  },
+  "counts": {
+    "input_files": 6,
+    "input_candidates": 134,
+    "output_records": 134,
+    "represented_input_candidates": 134,
+    "merged_input_candidates": 0,
+    "unprocessed_input_candidates": 0,
+    "candidate_types": {
+      "object": 36,
+      "location": 27,
+      "character": 46,
+      "event": 20,
+      "other": 2,
+      "rule": 2,
+      "organization": 1
+    },
+    "evidence_entries": 159,
+    "identical_title_type_pairs": 0,
+    "existing_related_marked": 126,
+    "input_related_marked": 33,
+    "card_files": [
+      {
+        "path": "cards-001.json",
+        "count": 24,
+        "sha256": "0fe82d7f0fc7ed74aef875440275d0128410df9b36178f9fca2728a4218580a3",
+        "bytes": 47540
+      },
+      {
+        "path": "cards-002.json",
+        "count": 56,
+        "sha256": "7172755b31a2db7004e11a0b14d9051cf2d108bda4e677dd9a43b9dc653f0699",
+        "bytes": 130639
+      },
+      {
+        "path": "cards-003.json",
+        "count": 21,
+        "sha256": "5ecf1b48c1af671688a865a842f50c8242411bc0e7fac548ade1427c31d0bbca",
+        "bytes": 49884
+      },
+      {
+        "path": "cards-004.json",
+        "count": 11,
+        "sha256": "28513166a8586074e52abb310dc9f493e73e5f07f342badc27e98eecbb5e5e24",
+        "bytes": 28300
+      },
+      {
+        "path": "cards-005.json",
+        "count": 22,
+        "sha256": "951572d21725e5448f8d98baca2a6574d601cc68952fabe9639d59c0769af870",
+        "bytes": 50115
+      }
+    ],
+    "evidence_excerpt_present": 103,
+    "scribd_excerpt_redacted": 56,
+    "cards_with_scribd_excerpt_redacted": 56,
+    "cards_without_other_excerpt_after_redaction": 48
+  },
+  "deduplication": "입력 134 = 기존 후보 112 + 스캔 후보 22 = 개별 보존 134 + 병합 0; 이전 112개 중 6개만 영인 대조에 따른 최소 정정·출처 추가, 다른 106개는 완전 불변이다. 관련된 후보는 동일성 확인 전 병합하지 않는다.",
+  "limitations": [
+    "원전 접근과 완독 범위는 입력 추출자의 자기보고이며 구조 검증이 역사적 사실·출전 인용·완전성을 보증하지 않음. 1905년 판본 54개 열의 누락 후보는 미확인.",
+    "별도 ETCSL 영역은 지정 1905년 프랑스어 판본을 대체 검증하지 않으며 각 판본의 독립성과 결락을 유지한다.",
+    "입력의 근거는 직접 확인한 짧은 발췌로 보고되었으나 모든 본문 주장과 발췌의 관계를 독립적으로 검증하지 못함. 샤루르 반복 발췌·삼나무 제작 및 루갈이기후슈 악기 설명의 불일치는 별도 재검토 필요.",
+    "입력 추출 자체는 검토용 후보이고, 지정 구간 외 범위 및 더 많은 누락 후보 존재 여부는 미정.",
+    "원문·전사·번역·발췌와 한국어 요약의 지적 재산 재사용 조건 및 전승의 지역·시기 관련 세부 사항은 확인되지 않았으며 역사·법률 감수 전이다.",
+    "원통 A의 1905년판은 Scribd 제3자 OCR에서 일부만 추출자 자기보고로 확인했으며 인쇄 판면 독립 대조 없이 전체 열을 읽었다고 말할 수 없다. 제3자 OCR의 © All Rights Reserved 표기와 재사용 허락 여부는 별도 검토가 필요하다.",
+    "원통 B I–XXIV는 1905년판 스캔과 OCR을 읽었다는 새 추출자의 자기보고이며 이전 접근 불가 기록을 함께 유지한다. 고대 원통 결락, 번역자의 복원, OCR 판독 정확도, 판본 및 원문·스캔·전사와 한국어 요약의 재사용 권리는 검토가 필요하다; 짧은 발췌 자체가 모든 본문 진술의 증거는 아니다.",
+    "A I–XV는 프랑스어 번역면 생존 부분의 스캔 Vision OCR 자기보고이며 원통 결락, 판독 오류, 수메르어 전사 전체 미판독 및 전수 누락 가능성이 있다. Scribd 발췌 56개 카드의 제3자 공개 재사용 권리는 여전히 미확정이며 원래 발췌는 비공개 사본에 보존하고 공개 사본에서 생략했다.",
+    "A XVI–XXX에 대한 열람은 신규 추출자의 스캔 판독 자기보고이고 문화·지역·시기 전승과 출처 및 Scribd 재사용 권리는 미검증이다. 원통 결락, 판본 복원·미번역과 Vision OCR 오류, 신설 후보의 개별 사실 대조 및 누락 가능성이 남아 있다.",
+    "제3자 Scribd OCR 56개 발췌는 재사용권 미확인으로 공개 사본에서 생략했으며 URL·열·행·쪽과 한국어 요약은 보존했다. 개별 발췌가 해당 주장 전체를 직접 입증하는지 독립 검증하지 않았고 원문·판본·스캔·다른 발췌 및 한국어 요약의 권리, 판독·독립 감수도 미확인이라 법적 적합성을 보증하지 않는다."
+  ],
+  "verification": {
+    "baseline_source_files": "4개 소스 파일의 현재 SHA-256은 입력 baseline_ref의 git blob 내용과 각각 일치",
+    "existing_myth_runtime": "15개 신화 장르 총 868개, 수메르 59개 확인; 기존 source/runtime 파일 사전·사후 SHA-256 일치",
+    "fields_and_ids": "134개 ID·제목·본문·순서 보존; 56개 Scribd evidence 발췌만 생략하고 2개 철자 차이 메모의 중복 발췌는 생략 표현으로 대체, 다른 카드·근거 및 IA 발췌는 원형 유지; UUIDv5·UTF-16 검사 통과.",
+    "urls_and_evidence": "159개 evidence의 URL·unit·location 유지, 56개 Scribd excerpt 생략과 사유·주장 입증 미검증 표시; 다른 출처 발췌 103개 유지. 구조 확인이 원문 사실·권리 또는 법적 적합성을 보증하지 않음.",
+    "output": "공개 사본 JSON 재파싱, 각 chunk SHA-256·bytes, 134개 카드 순서 및 입력별 수량, 비공개 원본 사본과 객체 비교 확인. 입력 SHA 및 과거 chunk SHA는 당시 해시로 유지."
+  },
+  "coverage_partial_reports": [
+    {
+      "segment": "gap-sumer-a1",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a1.json",
+      "input_sha256": "384973f252cf24adf3d52200b0d181035118bb57236617924aa804e6087eb9de",
+      "scope": "François Thureau-Dangin, Les inscriptions de Sumer et d’Akkad (Paris, 1905), 원통 A I–XV열, 프랑스어 번역 135–155쪽. Louvre 목록은 A 전체를 134–175쪽으로 서지 식별한다(https://collections.louvre.fr/ark:/53355/cl010124631). 동일 책의 Scribd OCR을 직접 확인했으나 OCR 누락으로 완독 열은 없다. 이용권 미확인. 1905년 판본의 해석만 기재하고 현대 전승과 혼합하지 않았다. 기존 카드와 중복 가능.",
+      "basis": "추출자 자기보고; 각 열 전체는 unavailable이며 부분 구절만 확인했다고 보고함",
+      "coverage": [
+        {
+          "unit": "1905년 구데아 원통 A I열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "I 15의 문장이 OCR에서 빠져 벽돌 관련 동작 전체를 판독할 수 없음; 열의 일부는 아래 카드의 짧은 구절로 확인했으나 전체를 직접 판독하지 못함. Scribd OCR 미러의 이용권은 확인하지 못함.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A II열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "II 6·11의 서술이 OCR에서 빠짐; 열의 일부는 아래 카드의 짧은 구절로 확인했으나 전체를 직접 판독하지 못함. Scribd OCR 미러의 이용권은 확인하지 못함.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A III열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "III 2·11·17에 빈 문장·누락이 있음; 열의 일부는 아래 카드의 짧은 구절로 확인했으나 전체를 직접 판독하지 못함. Scribd OCR 미러의 이용권은 확인하지 못함.",
+          "cards": 2
+        },
+        {
+          "unit": "1905년 구데아 원통 A IV열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "IV 24가 OCR에서 빠짐; 열의 일부는 아래 카드의 짧은 구절로 확인했으나 전체를 직접 판독하지 못함. Scribd OCR 미러의 이용권은 확인하지 못함.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A V열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "V 8–9 문장이 빠짐; 열의 일부는 아래 카드의 짧은 구절로 확인했으나 전체를 직접 판독하지 못함. Scribd OCR 미러의 이용권은 확인하지 못함.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A VI열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "VI 3·9–11의 문장이 누락됨; 열의 일부는 아래 카드의 짧은 구절로 확인했으나 전체를 직접 판독하지 못함. Scribd OCR 미러의 이용권은 확인하지 못함.",
+          "cards": 2
+        },
+        {
+          "unit": "1905년 구데아 원통 A VII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "VII 16–18 일부 문장이 누락됨; 열의 일부는 아래 카드의 짧은 구절로 확인했으나 전체를 직접 판독하지 못함. Scribd OCR 미러의 이용권은 확인하지 못함.",
+          "cards": 2
+        },
+        {
+          "unit": "1905년 구데아 원통 A VIII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "VIII 1·13·26의 문장이 불완전함; 열의 일부는 아래 카드의 짧은 구절로 확인했으나 전체를 직접 판독하지 못함. Scribd OCR 미러의 이용권은 확인하지 못함.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A IX열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "IX 23·25 서술이 불완전함; 열의 일부는 아래 카드의 짧은 구절로 확인했으나 전체를 직접 판독하지 못함. Scribd OCR 미러의 이용권은 확인하지 못함.",
+          "cards": 2
+        },
+        {
+          "unit": "1905년 구데아 원통 A X열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "X 1·6·9–11에 OCR 누락이 있음; 열의 일부는 아래 카드의 짧은 구절로 확인했으나 전체를 직접 판독하지 못함. Scribd OCR 미러의 이용권은 확인하지 못함.",
+          "cards": 4
+        },
+        {
+          "unit": "1905년 구데아 원통 A XI열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "XI 21–22에 내용 누락이 있음; 열의 일부는 아래 카드의 짧은 구절로 확인했으나 전체를 직접 판독하지 못함. Scribd OCR 미러의 이용권은 확인하지 못함.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A XII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "XII 4·12–13·26이 불완전함; 열의 일부는 아래 카드의 짧은 구절로 확인했으나 전체를 직접 판독하지 못함. Scribd OCR 미러의 이용권은 확인하지 못함.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A XIII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "XIII 1–2·14에 내용 누락이 있음; 열의 일부는 아래 카드의 짧은 구절로 확인했으나 전체를 직접 판독하지 못함. Scribd OCR 미러의 이용권은 확인하지 못함.",
+          "cards": 2
+        },
+        {
+          "unit": "1905년 구데아 원통 A XIV열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "XIV 8–9·16·24에 내용 누락이 있음; 열의 일부는 아래 카드의 짧은 구절로 확인했으나 전체를 직접 판독하지 못함. Scribd OCR 미러의 이용권은 확인하지 못함.",
+          "cards": 3
+        },
+        {
+          "unit": "1905년 구데아 원통 A XV열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "XV 1–5는 판본의 원전 결락이고, 12–14·18·22·25·27–33은 OCR 문장도 빠짐; 열의 일부는 아래 카드의 짧은 구절로 확인했으나 전체를 직접 판독하지 못함. Scribd OCR 미러의 이용권은 확인하지 못함.",
+          "cards": 2
+        }
+      ]
+    },
+    {
+      "segment": "gap-sumer-a2",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a2.json",
+      "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+      "scope": "François Thureau-Dangin, Les inscriptions de Sumer et d’Akkad (Paris, Ernest Leroux, 1905), 구데아 원통 A XVI–XXX열, 인쇄 155–175쪽. Scribd 제3자 OCR은 제목·1905 출판 및 페이지·열 번호가 동일하나 판면 스캔을 독립 대조하지 못했고 이용권을 확인하지 못함. 출판연도와 전사본에 기재된 이용권은 별개. 각 열 전체에 결락 또는 OCR 훼손이 있어 완독으로 계산하지 않으며 부분 확인 후보만 기재한다. 기존 카드 중복 가능. Scribd에는 © All Rights Reserved 표기가 있으며 해당 제3자 전사의 이용 허락은 확인하지 못했다.",
+      "basis": "추출자 자기보고; 각 열 전체는 unavailable이며 부분 구절만 확인했다고 보고함",
+      "coverage": [
+        {
+          "unit": "1905년 구데아 원통 A XVI열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "157쪽 직접 열람했으나 완독 불가: 155쪽 말미 시작 1–2행 원문 결락, OCR 7–12·22–23행 표현 파손; 157쪽 15–17, 25–30행 등 부분 확인. 인쇄 판면과 OCR을 대조하지 못해 손상 원인을 확정할 수 없다. Scribd 제3자 OCR 이용권 미확인. 읽힌 부분에 근거한 카드만 기록.",
+          "cards": 3
+        },
+        {
+          "unit": "1905년 구데아 원통 A XVII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "157–159쪽 직접 열람했으나 완독 불가: 157쪽 1–6행 결락 및 OCR 7–9행 문장 누락; 10–17행 등은 부분 확인. 인쇄 판면과 OCR을 대조하지 못해 손상 원인을 확정할 수 없다. Scribd 제3자 OCR 이용권 미확인. 읽힌 부분에 근거한 카드만 기록.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A XVIII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "159쪽 직접 열람했으나 완독 불가: 159쪽 11–13행 결락, 20–23행 OCR 누락 및 문장 순서 훼손; 10, 14–17, 24–25행 부분 확인. 인쇄 판면과 OCR을 대조하지 못해 손상 원인을 확정할 수 없다. Scribd 제3자 OCR 이용권 미확인. 읽힌 부분에 근거한 카드만 기록.",
+          "cards": 4
+        },
+        {
+          "unit": "1905년 구데아 원통 A XIX열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "159–161쪽 직접 열람했으나 완독 불가: 159–161쪽 4–8, 10–12, 18행 OCR 문장 누락 또는 저본 결락; 1–3, 19–21행 부분 확인. 인쇄 판면과 OCR을 대조하지 못해 손상 원인을 확정할 수 없다. Scribd 제3자 OCR 이용권 미확인. 읽힌 부분에 근거한 카드만 기록.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A XX열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "161–163쪽 직접 열람했으나 완독 불가: 161–163쪽 6–8, 13행 OCR 문장 누락 또는 불완전; 14–20행 부분 확인. 인쇄 판면과 OCR을 대조하지 못해 손상 원인을 확정할 수 없다. Scribd 제3자 OCR 이용권 미확인. 읽힌 부분에 근거한 카드만 기록.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXI열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "163–165쪽 직접 열람했으나 완독 불가: 163–165쪽 1–2, 15–18행 표현 일부 누락 또는 OCR 파손; 일곱 축복 등 부분 확인. 인쇄 판면과 OCR을 대조하지 못해 손상 원인을 확정할 수 없다. Scribd 제3자 OCR 이용권 미확인. 읽힌 부분에 근거한 카드만 기록.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "165쪽 직접 열람했으나 완독 불가: 165쪽 4, 7–8행 OCR에 문장 성분 누락; 11–23행 등 부분 확인. 인쇄 판면과 OCR을 대조하지 못해 손상 원인을 확정할 수 없다. Scribd 제3자 OCR 이용권 미확인. 읽힌 부분에 근거한 카드만 기록.",
+          "cards": 3
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXIII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "165–167쪽 직접 열람했으나 완독 불가: 165–167쪽 1–3행과 일부 비석 명칭 문장 OCR 파손; 8–18행 등 부분 확인. 인쇄 판면과 OCR을 대조하지 못해 손상 원인을 확정할 수 없다. Scribd 제3자 OCR 이용권 미확인. 읽힌 부분에 근거한 카드만 기록.",
+          "cards": 2
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXIV열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "167–169쪽 직접 열람했으나 완독 불가: 167–169쪽 19행에 명사 누락 등 OCR 파손; 4–7, 26–27행 등 부분 확인. 인쇄 판면과 OCR을 대조하지 못해 손상 원인을 확정할 수 없다. Scribd 제3자 OCR 이용권 미확인. 읽힌 부분에 근거한 카드만 기록.",
+          "cards": 2
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXV열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "169쪽 직접 열람했으나 완독 불가: 169쪽 1, 6–10, 20–21행 OCR 누락 또는 표현 불완전; 24–28행 등 부분 확인. 인쇄 판면과 OCR을 대조하지 못해 손상 원인을 확정할 수 없다. Scribd 제3자 OCR 이용권 미확인. 읽힌 부분에 근거한 카드만 기록.",
+          "cards": 2
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXVI열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "169–171쪽 직접 열람했으나 완독 불가: 169–171쪽 15–16, 20–21, 26행 OCR 일부 누락; 1–14, 28–29행 등 부분 확인. 인쇄 판면과 OCR을 대조하지 못해 손상 원인을 확정할 수 없다. Scribd 제3자 OCR 이용권 미확인. 읽힌 부분에 근거한 카드만 기록.",
+          "cards": 4
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXVII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "171–173쪽 직접 열람했으나 완독 불가: 171–173쪽 12, 16, 19–21행 OCR 누락 또는 문장 파손; 18–19행 비유 등 부분 확인. 인쇄 판면과 OCR을 대조하지 못해 손상 원인을 확정할 수 없다. Scribd 제3자 OCR 이용권 미확인. 읽힌 부분에 근거한 카드만 기록.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXVIII열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "173쪽 직접 열람했으나 완독 불가: 173쪽 1–6행 OCR 행 번호 혼선 및 문장 누락; 9, 14–24행 부분 확인. 인쇄 판면과 OCR을 대조하지 못해 손상 원인을 확정할 수 없다. Scribd 제3자 OCR 이용권 미확인. 읽힌 부분에 근거한 카드만 기록.",
+          "cards": 2
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXIX열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "173–175쪽 직접 열람했으나 완독 불가: 173–175쪽 9행 대괄호 미완성 등 원문 또는 OCR 결락; 1–8행 등 부분 확인. 인쇄 판면과 OCR을 대조하지 못해 손상 원인을 확정할 수 없다. Scribd 제3자 OCR 이용권 미확인. 읽힌 부분에 근거한 카드만 기록.",
+          "cards": 2
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXX열",
+          "url": "https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad",
+          "status": "unavailable",
+          "reason": "175쪽 직접 열람했으나 완독 불가: 175쪽 7행 OCR 문장 누락; 1–6행 등 부분 확인. 인쇄 판면과 OCR을 대조하지 못해 손상 원인을 확정할 수 없다. Scribd 제3자 OCR 이용권 미확인. 읽힌 부분에 근거한 카드만 기록.",
+          "cards": 1
+        }
+      ]
+    },
+    {
+      "segment": "gap-sumer-b",
+      "input_file": "미게시-임시자료:myth/gap-sumer-b.json",
+      "input_sha256": "5fa4f8b751b40b005922248bf959fd34701157bc65f762d1bf88f8f933c36bf6",
+      "scope": "François Thureau-Dangin, Les inscriptions de Sumer et d’Akkad, Paris: Ernest Leroux, 1905, 174–199쪽 중 구데아 원통 B I–XXIV열. Internet Archive가 제공하는 동일 1905년 판본 스캔을 PDFKit/Vision 프랑스어 OCR로 직접 검토하고 공개 Scribd OCR과 대조함. 고대 원통의 결락과 판본의 대괄호 복원을 보존하며 이용권은 미확인. 타 판본을 지정판으로 혼합하지 않음.",
+      "basis": "새 추출자 자기보고: B I–XXIV 24개 열 read. 이전 추출자 unavailable 기록과 대조 보존; 통합자가 원문을 독립 완독하거나 OCR을 검증한 사실을 뜻하지 않음. 원통 결락과 번역 복원은 잔존.",
+      "coverage": [
+        {
+          "unit": "1905년 구데아 원통 B I열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=175",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 B II열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=175",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 B III열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=177",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 B IV열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=179",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 3
+        },
+        {
+          "unit": "1905년 구데아 원통 B V열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=179",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 B VI열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=181",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 B VII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=181",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 2
+        },
+        {
+          "unit": "1905년 구데아 원통 B VIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=183",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 B IX열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=185",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 3
+        },
+        {
+          "unit": "1905년 구데아 원통 B X열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=185",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 2
+        },
+        {
+          "unit": "1905년 구데아 원통 B XI열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=187",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 B XII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=187",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 2
+        },
+        {
+          "unit": "1905년 구데아 원통 B XIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=189",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 2
+        },
+        {
+          "unit": "1905년 구데아 원통 B XIV열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=191",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 2
+        },
+        {
+          "unit": "1905년 구데아 원통 B XV열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=191",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 B XVI열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=193",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 B XVII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=193",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 B XVIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=195",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 B XIX열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=195",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 5행 이후 약 6칸 결락이 판본에 표시됨. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 B XX열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=197",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 원통 원문의 약 12칸 결락을 판본이 표시하며, 결락 부분은 읽지 못함. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 B XXI열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=197",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 원통 원문의 약 16칸 결락을 판본이 표시하며, 결락 부분은 읽지 못함. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 B XXII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=197",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 원통 원문의 약 15칸 결락을 판본이 표시하며, 결락 부분은 읽지 못함. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 B XXIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=197",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 원통 원문의 약 11칸 결락을 판본이 표시하며, 결락 부분은 읽지 못함. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 B XXIV열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=197",
+          "status": "read",
+          "reason": "1905년 판본 프랑스어 번역을 직접 확인; 원문의 점·대괄호는 판본의 미상·복원 표기로 보존. 3–5행 일부 결락을 보충하지 않음. 이용권 미확인; 기존 카드와 중복 가능.",
+          "cards": 0
+        }
+      ]
+    },
+    {
+      "segment": "gap-sumer-a-scan1",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan1.json",
+      "input_sha256": "21e449f22474ca25c49ff0fea4071039ef1fcbebc9da56ec31323e0ac2a2ce98",
+      "scope": "François Thureau-Dangin, Les inscriptions de Sumer et d’Akkad, Paris: Ernest Leroux, 1905, 구데아 원통 A I–XV열. 인쇄 134–155쪽의 전사/번역 중 프랑스어 번역면 135–155쪽을 PDF 원본 이미지에서 추출한 Vision OCR로 판독했으며 인쇄 134쪽의 I열 시작과 155쪽의 XV열 끝을 확인했다. 수메르어 전사 전체의 문자별 판독은 하지 않았다.",
+      "basis": "추출자의 스캔 기반 Vision OCR 자기보고; 이전 unavailable 및 Scribd 부분 확인 보고와 별도로 보존하며 원통 결락·판독 문제 및 수메르어 전사 전체 미판독을 유지",
+      "coverage": [
+        {
+          "unit": "1905년 구데아 원통 A I열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=135",
+          "status": "read",
+          "reason": "프랑스어 번역면 생존 부분을 스캔 Vision OCR로 읽음; 역자의 점·대괄호와 OCR 오인을 구분하고 수메르어 전사 전부는 판독하지 않음.",
+          "pages": "135–137",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 A II열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=137",
+          "status": "read",
+          "reason": "프랑스어 번역면 생존 부분을 스캔 Vision OCR로 읽음; 역자의 점·대괄호와 OCR 오인을 구분하고 수메르어 전사 전부는 판독하지 않음.",
+          "pages": "137–139",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 A III열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=139",
+          "status": "read",
+          "reason": "프랑스어 번역면 생존 부분을 스캔 Vision OCR로 읽음; 역자의 점·대괄호와 OCR 오인을 구분하고 수메르어 전사 전부는 판독하지 않음.",
+          "pages": "139",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 A IV열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=139",
+          "status": "read",
+          "reason": "프랑스어 번역면 생존 부분을 스캔 Vision OCR로 읽음; 역자의 점·대괄호와 OCR 오인을 구분하고 수메르어 전사 전부는 판독하지 않음.",
+          "pages": "139–141",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 A V열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=141",
+          "status": "read",
+          "reason": "프랑스어 번역면 생존 부분을 스캔 Vision OCR로 읽음; 역자의 점·대괄호와 OCR 오인을 구분하고 수메르어 전사 전부는 판독하지 않음.",
+          "pages": "141–143",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 A VI열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=143",
+          "status": "read",
+          "reason": "프랑스어 번역면 생존 부분을 스캔 Vision OCR로 읽음; 역자의 점·대괄호와 OCR 오인을 구분하고 수메르어 전사 전부는 판독하지 않음.",
+          "pages": "143–145",
+          "cards": 3
+        },
+        {
+          "unit": "1905년 구데아 원통 A VII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=145",
+          "status": "read",
+          "reason": "프랑스어 번역면 생존 부분을 스캔 Vision OCR로 읽음; 역자의 점·대괄호와 OCR 오인을 구분하고 수메르어 전사 전부는 판독하지 않음.",
+          "pages": "145",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 A VIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=145",
+          "status": "read",
+          "reason": "프랑스어 번역면 생존 부분을 스캔 Vision OCR로 읽음; 역자의 점·대괄호와 OCR 오인을 구분하고 수메르어 전사 전부는 판독하지 않음.",
+          "pages": "145–147",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A IX열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=147",
+          "status": "read",
+          "reason": "프랑스어 번역면 생존 부분을 스캔 Vision OCR로 읽음; 역자의 점·대괄호와 OCR 오인을 구분하고 수메르어 전사 전부는 판독하지 않음.",
+          "pages": "147–149",
+          "cards": 2
+        },
+        {
+          "unit": "1905년 구데아 원통 A X열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=149",
+          "status": "read",
+          "reason": "프랑스어 번역면 생존 부분을 스캔 Vision OCR로 읽음; 역자의 점·대괄호와 OCR 오인을 구분하고 수메르어 전사 전부는 판독하지 않음.",
+          "pages": "149",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 A XI열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=149",
+          "status": "read",
+          "reason": "프랑스어 번역면 생존 부분을 스캔 Vision OCR로 읽음; 역자의 점·대괄호와 OCR 오인을 구분하고 수메르어 전사 전부는 판독하지 않음.",
+          "pages": "149–151",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A XII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=151",
+          "status": "read",
+          "reason": "프랑스어 번역면 생존 부분을 스캔 Vision OCR로 읽음; 역자의 점·대괄호와 OCR 오인을 구분하고 수메르어 전사 전부는 판독하지 않음.",
+          "pages": "151",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A XIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=151",
+          "status": "read",
+          "reason": "프랑스어 번역면 생존 부분을 스캔 Vision OCR로 읽음; 역자의 점·대괄호와 OCR 오인을 구분하고 수메르어 전사 전부는 판독하지 않음.",
+          "pages": "151–153",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A XIV열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=153",
+          "status": "read",
+          "reason": "프랑스어 번역면 생존 부분을 스캔 Vision OCR로 읽음; 역자의 점·대괄호와 OCR 오인을 구분하고 수메르어 전사 전부는 판독하지 않음.",
+          "pages": "153–155",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 A XV열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=155",
+          "status": "read",
+          "reason": "프랑스어 번역면 생존 부분을 스캔 Vision OCR로 읽음; 역자의 점·대괄호와 OCR 오인을 구분하고 수메르어 전사 전부는 판독하지 않음. 원통 원문의 첫 약 두 칸이 결락이라고 155쪽에 명시되어 있으며 3–5행 등 빈칸을 복원하지 않음.",
+          "pages": "155",
+          "cards": 2
+        }
+      ],
+      "comparison": [
+        {
+          "input": "gap-sumer-a1.json",
+          "reviewed": 26,
+          "method": "기존 26개 후보의 설명과 해당 열·행의 프랑스어 번역면을 직접 Vision OCR로 대조했다; 사람의 원본 수메르어 판독이나 모든 OCR 철자의 영인 육안 검증은 하지 않았다.",
+          "findings": [
+            {
+              "key": "dream-divine-bird-imgig",
+              "issue": "기존 IV 14–20 인용은 꿈속 새와 신전 명령을 뒷받침하나, 니나가 형제 닌기르수라고 풀이하는 근거는 V 13–18(141–143쪽)에 있다. 기존 근거에 후속 위치 추가 필요.",
+              "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=143"
+            },
+            {
+              "key": "dream-brick-of-fate",
+              "issue": "기존 V 5–7 인용은 틀 속 벽돌을 뒷받침하나, 에닌누의 신성한 벽돌이라는 해몽은 VI 6–8(143쪽)에 있다. 기존 근거에 후속 위치 추가 필요.",
+              "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=143"
+            }
+          ],
+          "remaining": "나머지 24개에서 이번 확인 범위의 명백한 내용 오류를 확인하지 못했으며, 이는 독립 영인 문자 단위 검증이나 현대 판본과의 일치 확인을 뜻하지 않는다."
+        }
+      ],
+      "provenance": {
+        "source": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf",
+        "source_catalog": "https://archive.org/details/InscriptionsDeSumerEtDakkad",
+        "official_ocr": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876_djvu.txt",
+        "limitations": "Archive 항목은 Ohio State University Libraries의 디지털화 자료, 1905년 판본 및 CC0라고 자기 보고한다. PDF 표지의 저자·출판사·1905와 인쇄 쪽, Vision OCR을 직접 확인했으나 저작권·스캔 이용권을 독립 법률 검증하지 않았고 제3자 Scribd의 All Rights Reserved 표시와 권리도 확정하지 않았다. 프랑스어 OCR에는 오인과 띄어쓰기 문제가 있어 기호가 판본의 원문 결락인지 OCR 오인인지 구분했으며 수메르어 전사 전부는 재판독하지 않았다. 예: 공식 ABBYY OCR의 VI 12는 Quant k, VIII 14는 Tupsukinnaku로 오인하며 스캔 기반 별도 OCR에서는 Quant à, upšukinnaku로 읽힌다."
+      }
+    },
+    {
+      "segment": "gap-sumer-a-scan2",
+      "input_file": "미게시-임시자료:myth/gap-sumer-a-scan2.json",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "scope": "Thureau-Dangin, Les inscriptions de Sumer et d’Akkad (1905), 원통 A XVI–XXX열, 인쇄 155–175쪽의 IA 스캔 전사 및 프랑스어 번역. 인쇄본을 직접 읽었고 수메르어 전사는 열·행·결락 표지를 대조했으며 모든 수메르어를 독립 번역했다고 주장하지 않는다. 스캔의 이용권은 별도 확인하지 않았다. 이전 Scribd 후보와 기존 수메르 카드의 중복 검토는 각 카드 본문에 분리 기재했으며 판면 불일치는 해당 coverage의 reason에 별도 기록했다. 수메르어 전사는 있고 프랑스어 번역이 점선인 경우를 고대 원문 결락으로 단정하지 않는다. 기존 sumerian-mythology.json의 후보 24개를 제목·대상 기준으로 대조했으며 새 22개와 동일한 개별 후보는 확인하지 못했다; 원래 tradition-cards.json의 묶음 카드와의 중복 가능성은 각 본문에 표기한다.",
+      "basis": "신규 추출자 자기보고: A XVI–XXX 15열 영인 판독; 기존 unavailable 및 Scribd 부분 보고를 보존하며, 결락을 복원하거나 모든 수메르어를 독립 번역했다는 뜻이 아님",
+      "coverage": [
+        {
+          "unit": "1905년 구데아 원통 A XVI열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=155",
+          "status": "read",
+          "reason": "인쇄 155–157쪽 전사·번역의 해당 열 판면 확인. 155쪽 XVI 1–2행은 판본이 직접 약 두 칸 결락이라 표시하며 3–5행은 대괄호 복원이다; 157쪽 일부 점선은 번역 미상이다. 읽음은 인쇄판의 표시까지 확인했다는 뜻이며 결락된 고대 원문을 복원했다는 뜻이 아니다.",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 A XVII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=156",
+          "status": "read",
+          "reason": "인쇄 156–159쪽 전사·번역의 해당 열 판면 확인. 156–157쪽 1–6행은 대괄호와 명시적 결락을 담으며 8–9행 프랑스어 번역은 점선으로 미상이다. 읽음은 인쇄판의 표시까지 확인했다는 뜻이며 결락된 고대 원문을 복원했다는 뜻이 아니다.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A XVIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=158",
+          "status": "read",
+          "reason": "인쇄 158–159쪽 전사·번역의 해당 열 판면 확인. 158–159쪽 11–13행 원문에 명시된 결락이 있고 20–23행 번역에도 미상의 점선이 있다. 읽음은 인쇄판의 표시까지 확인했다는 뜻이며 결락된 고대 원문을 복원했다는 뜻이 아니다. 종전 sacred-destiny-brick-mould의 성소에 들여온 받침이라는 단정은 159쪽 10–11행의 동사가 대괄호로 비어 있어 근거가 부족하다.",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 A XIX열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=158",
+          "status": "read",
+          "reason": "인쇄 158–161쪽 전사·번역의 해당 열 판면 확인. 159·161쪽 6–7, 10–12, 16, 18행에는 판본 자체의 점선·대괄호가 있다; 프랑스어가 빈 곳이 모두 물리적 결락이라는 뜻은 아니다. 읽음은 인쇄판의 표시까지 확인했다는 뜻이며 결락된 고대 원문을 복원했다는 뜻이 아니다.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A XX열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=160",
+          "status": "read",
+          "reason": "인쇄 160–163쪽 전사·번역의 해당 열 판면 확인. 161쪽 6–7행은 프랑스어 번역의 점선이지만 160쪽 전사문에는 글자들이 있다. 따라서 종전 OCR 훼손으로 단정한 것은 부정확하다. 읽음은 인쇄판의 표시까지 확인했다는 뜻이며 결락된 고대 원문을 복원했다는 뜻이 아니다.",
+          "cards": 3
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXI열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=162",
+          "status": "read",
+          "reason": "인쇄 162–165쪽 전사·번역의 해당 열 판면 확인. 163쪽의 두 번째 축복부터 XXI열이다. 종전 temple-seven-blessings의 XXI 1–12행 근거는 첫 번째 축복인 XX 27행을 빠뜨렸다. 읽음은 인쇄판의 표시까지 확인했다는 뜻이며 결락된 고대 원문을 복원했다는 뜻이 아니다.",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=164",
+          "status": "read",
+          "reason": "인쇄 164–165쪽 전사·번역의 해당 열 판면 확인. 165쪽 7–8행은 판본의 점선이며 164쪽의 수메르어 전사에는 표기가 남아 있다. 미번역과 원문 결락을 동일시하지 않는다. 읽음은 인쇄판의 표시까지 확인했다는 뜻이며 결락된 고대 원문을 복원했다는 뜻이 아니다.",
+          "cards": 4
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=164",
+          "status": "read",
+          "reason": "인쇄 164–167쪽 전사·번역의 해당 열 판면 확인. 165–167쪽 비석들의 이름은 확인되며 종전 후보 kasurra-enlil-stele과 루갈키살시 비석은 여기 포함된다. 읽음은 인쇄판의 표시까지 확인했다는 뜻이며 결락된 고대 원문을 복원했다는 뜻이 아니다.",
+          "cards": 2
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXIV열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=166",
+          "status": "read",
+          "reason": "인쇄 166–169쪽 전사·번역의 해당 열 판면 확인. 169쪽 27행에 인쇄된 이름은 Laḫamu다. 종전 후보의 Scribd OCR 표기는 스캔의 문자와 정확히 같지 않으며 OCR 발췌는 권리 미확인으로 공개 사본에 생략한다. 읽음은 인쇄판의 표시까지 확인했다는 뜻이며 결락된 고대 원문을 복원했다는 뜻이 아니다.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXV열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=168",
+          "status": "read",
+          "reason": "인쇄 168–169쪽 전사·번역의 해당 열 판면 확인. 169쪽 1, 6–10, 20–21행의 점선은 인쇄본에도 있고 일부는 번역 미상이다. 읽음은 인쇄판의 표시까지 확인했다는 뜻이며 결락된 고대 원문을 복원했다는 뜻이 아니다.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXVI열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=168",
+          "status": "read",
+          "reason": "인쇄 168–171쪽 전사·번역의 해당 열 판면 확인. 171쪽 15행 등의 점선은 판본에 인쇄돼 있다; 문과 배, 못의 구절은 읽을 수 있다. 읽음은 인쇄판의 표시까지 확인했다는 뜻이며 결락된 고대 원문을 복원했다는 뜻이 아니다.",
+          "cards": 2
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXVII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=170",
+          "status": "read",
+          "reason": "인쇄 170–173쪽 전사·번역의 해당 열 판면 확인. 171쪽 18–19행의 임기그와 뱀 구절은 점선으로 끝나 관계의 동사가 번역되지 않았다. 종전 eninnu-sacred-stake-imgig의 설명은 그 불완전성을 명시해야 한다. 읽음은 인쇄판의 표시까지 확인했다는 뜻이며 결락된 고대 원문을 복원했다는 뜻이 아니다.",
+          "cards": 0
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXVIII열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=172",
+          "status": "read",
+          "reason": "인쇄 172–173쪽 전사·번역의 해당 열 판면 확인. 173쪽 4행 점선은 실제 프랑스어 번역에 존재하지만 172쪽 4행의 전사는 남아 있다. 종전 OCR 행 번호 혼선에 관한 판단과 판본의 미번역을 구분한다. 읽음은 인쇄판의 표시까지 확인했다는 뜻이며 결락된 고대 원문을 복원했다는 뜻이 아니다. 종전 sacred-destiny-brick-mould의 성소에 들여온 받침이라는 단정은 159쪽 10–11행의 동사가 대괄호로 비어 있어 근거가 부족하다.",
+          "cards": 6
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXIX열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=172",
+          "status": "read",
+          "reason": "인쇄 172–175쪽 전사·번역의 해당 열 판면 확인. 172–173쪽 9행은 인쇄판의 대괄호 결락 또는 미상 표기를 보존한다; 173쪽 일곱 비석과 비둘기 구절을 확인했다. 읽음은 인쇄판의 표시까지 확인했다는 뜻이며 결락된 고대 원문을 복원했다는 뜻이 아니다. 종전 seven-stelae-eninnu의 왕과 숙고했다는 표현보다 판면은 왕이 숙고한 내용에 부합한다고 적는다.",
+          "cards": 1
+        },
+        {
+          "unit": "1905년 구데아 원통 A XXX열",
+          "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=174",
+          "status": "read",
+          "reason": "인쇄 174–175쪽 전사·번역의 해당 열 판면 확인. 175쪽 7행은 인쇄된 프랑스어의 점선이며 174쪽 전사문에는 7행이 있다. 종전 OCR 누락 의심과 실제 판본의 미번역을 구분한다. 읽음은 인쇄판의 표시까지 확인했다는 뜻이며 결락된 고대 원문을 복원했다는 뜻이 아니다. 종전 후보의 Scribd OCR 표기는 175쪽 인쇄된 Nin-giš-zi-da와 철자가 정확히 일치하지 않으며 OCR 발췌는 권리 미확인으로 공개 사본에 생략한다.",
+          "cards": 0
+        }
+      ]
+    }
+  ],
+  "temporary_artifact_notice": "미게시-임시자료:history/ 및 미게시-임시자료:myth/는 공개 URL이나 재현 가능한 원본이 아닌 임시 식별자다. 원전 commit URL 또는 출처 URL과 장절로 확인한다. 기존 입력과 이전 통합 기록의 해시는 당시 기록이다.",
+  "adjustment_history": [
+    {
+      "reason": "원통 A 스캔 자기보고 후보 추가 및 1905 영인에 직접 확인한 두 기존 후보의 근거 보강",
+      "input_segment": "gap-sumer-a-scan1",
+      "input_sha256": "21e449f22474ca25c49ff0fea4071039ef1fcbebc9da56ec31323e0ac2a2ce98",
+      "before_cards": 101,
+      "added_cards": 11,
+      "after_cards": 112,
+      "previous_card_chunk_sha256": {
+        "cards-001.json": "d3b09e2b92dd63b2f11057ec659419c3dcbcd95636af3947cc8ed98152180306",
+        "cards-002.json": "3345d4f965cd69d388cbe54bf9777b4ef1e94b77717d65f5cc1c0cb164280385",
+        "cards-003.json": "d974d126844f22b7c05159f30ca65d05dc2c0087f63ccfb911b410059e24faf6"
+      },
+      "preserved_unchanged_records": 99,
+      "evidence_appended_to": [
+        {
+          "candidate_key": "dream-divine-bird-imgig",
+          "added_evidence": {
+            "unit": "1905년 구데아 원통 A V열",
+            "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=143",
+            "location": "V 15–18행, 인쇄 143쪽; V 13–14행은 141쪽",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        },
+        {
+          "candidate_key": "dream-brick-of-fate",
+          "added_evidence": {
+            "unit": "1905년 구데아 원통 A VI열",
+            "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=143",
+            "location": "VI 6–8행, 인쇄 143쪽",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          }
+        }
+      ],
+      "scan_sha256": "f577e98f4e77e0f074500a8736a629e8daf60f76694af9f5598985ef27b57a37",
+      "new_chunk": "cards-004.json"
+    },
+    {
+      "reason": "A XVI–XXX 영인 판독 후보 추가 및 기존 후보 6건의 직접 영인 대조 후 최소 정정",
+      "input_segment": "gap-sumer-a-scan2",
+      "input_sha256": "efb6a84eb6ccd42c13ced9b216a4884e927c09cdceb05696e7cb623d5b661b3b",
+      "before_cards": 112,
+      "added_cards": 22,
+      "after_cards": 134,
+      "previous_card_chunk_sha256": {
+        "cards-001.json": "d3b09e2b92dd63b2f11057ec659419c3dcbcd95636af3947cc8ed98152180306",
+        "cards-002.json": "2fd7554df802be12fdca3bca40ecccde0c5bfc2e34dcca2c0a2d57ee56d19369",
+        "cards-003.json": "d974d126844f22b7c05159f30ca65d05dc2c0087f63ccfb911b410059e24faf6",
+        "cards-004.json": "a71d89bb94ef3275451329622c66ab1f86b4cb22de1cec7e9284c2add9df814a"
+      },
+      "card_chunks_at_adjustment": [
+        {
+          "path": "cards-001.json",
+          "count": 24,
+          "sha256": "d3b09e2b92dd63b2f11057ec659419c3dcbcd95636af3947cc8ed98152180306",
+          "bytes": 45835
+        },
+        {
+          "path": "cards-002.json",
+          "count": 56,
+          "sha256": "fc0f5eea38d4cb1ddeeef416faea29d27beb040bf4da05a10b5128c45a64c9d3",
+          "bytes": 121934
+        },
+        {
+          "path": "cards-003.json",
+          "count": 21,
+          "sha256": "d974d126844f22b7c05159f30ca65d05dc2c0087f63ccfb911b410059e24faf6",
+          "bytes": 48358
+        },
+        {
+          "path": "cards-004.json",
+          "count": 11,
+          "sha256": "a71d89bb94ef3275451329622c66ab1f86b4cb22de1cec7e9284c2add9df814a",
+          "bytes": 27557
+        },
+        {
+          "path": "cards-005.json",
+          "count": 22,
+          "sha256": "d8104e8e14a7e19e8050f7acd51a5c580ca46b4037b0020b476cb4cad0f238c6",
+          "bytes": 48635
+        }
+      ],
+      "card_chunks_note": "이 청크 해시와 크기는 해당 조정 시점의 과거 기록이며 현행 값은 counts.card_files를 참조한다.",
+      "preserved_unchanged_records": 106,
+      "modified_records": [
+        {
+          "id": "ff1293e1-41ea-5ad8-849f-d37c917c2a41",
+          "candidate_key": "sacred-destiny-brick-mould",
+          "input_segment": "gap-sumer-a2",
+          "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+          "before_body": "성소에 들여온 순수한 받침과 함께 언급되며 구데아가 점토를 넣어 성전 벽돌을 만든다. 출전: Thureau-Dangin, 1905, 159쪽 / A XVIII열 10–11, 24–25행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+          "after_body": "순수한 받침과 함께 언급되며 구데아가 점토를 넣어 성전 벽돌을 만든다. 판본은 성전에서 받침과 주형에 한 동작의 동사를 비워 둔다. 출전: Thureau-Dangin, 1905, 159쪽 / A XVIII열 10–11, 24–25행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+          "added_evidence": {
+            "unit": "1905년 구데아 원통 A XVIII열",
+            "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=159",
+            "location": "XVIII 10–11, 24–25행, 인쇄 159쪽",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          },
+          "added_note": "159쪽 프랑스어 번역의 동사 빈칸과 158쪽 전사의 결락 표지를 확인하여 기존의 성소에 들여왔다는 단정을 삭제했다."
+        },
+        {
+          "id": "15536de3-826e-5a05-979d-823cd5fb593a",
+          "candidate_key": "temple-seven-blessings",
+          "input_segment": "gap-sumer-a2",
+          "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+          "before_body": "구데아는 성전에 일곱 차례 축복을 내리며 마지막에는 에닌누를 땅을 비추는 아침빛에 비유한다. 출전: Thureau-Dangin, 1905, 163–165쪽 / A XXI열 1–12행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+          "after_body": "구데아는 성전에 일곱 차례 축복을 내리며 마지막에는 에닌누를 땅을 비추는 아침빛에 비유한다. 출전: Thureau-Dangin, 1905, 163–165쪽 / A XX열 27행 및 XXI열 1–12행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+          "added_evidence": {
+            "unit": "1905년 구데아 원통 A XX열",
+            "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=163",
+            "location": "XX 27 및 XXI 1–12행, 인쇄 163쪽",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          },
+          "added_note": "첫 축복은 XX 27, 둘째부터 XXI에 기록되므로 본문의 위치를 보강했다."
+        },
+        {
+          "id": "a0a98986-9315-5d99-90a1-d811f634456a",
+          "candidate_key": "lahamu-abyss",
+          "input_segment": "gap-sumer-a2",
+          "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+          "before_body": "성전에 놓인 두블라는 심연에 있는 괴물 라하무에 비유된다. 비유 자체가 전하는 설정이다. 출전: Thureau-Dangin, 1905, 167–169쪽 / A XXIV열 26–27행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+          "after_body": "성전에 놓인 두블라는 심연에 있는 괴물 라하무에 비유된다. 비유 자체가 전하는 설정이다. 출전: Thureau-Dangin, 1905, 167–169쪽 / A XXIV열 26–27행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+          "added_evidence": {
+            "unit": "1905년 구데아 원통 A XXIV열",
+            "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=169",
+            "location": "XXIV 26–27행, 인쇄 169쪽",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          },
+          "added_note": "Scribd OCR 표기는 169쪽 영인의 Laḫamu와 차이가 있다. OCR 발췌는 재사용권 미확인으로 공개 사본에 생략한다."
+        },
+        {
+          "id": "a8c86447-63ed-543a-95b1-808030894ef7",
+          "candidate_key": "eninnu-sacred-stake-imgig",
+          "input_segment": "gap-sumer-a2",
+          "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+          "before_body": "성전에 고정된 말뚝을 산의 뱀과 함께하는 신성한 새 임기그에 비유한다. 출전: Thureau-Dangin, 1905, 171–173쪽 / A XXVII열 18–19행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+          "after_body": "성전에 고정된 말뚝을 신성한 새 임기그에 비유하고 산의 뱀을 언급한다. 둘의 관계를 나타내는 동사는 프랑스어 번역에서 점선으로 남아 불완전하다. 출전: Thureau-Dangin, 1905, 171–173쪽 / A XXVII열 18–19행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+          "added_evidence": {
+            "unit": "1905년 구데아 원통 A XXVII열",
+            "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=171",
+            "location": "XXVII 18–19행, 인쇄 171쪽",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          },
+          "added_note": "프랑스어 번역이 점선으로 끝나 관계의 동사가 미번역이며 170쪽 전사에는 표기가 남아 있다."
+        },
+        {
+          "id": "b6ef96d7-e9d0-5092-b643-c5b257f3fbc0",
+          "candidate_key": "seven-stelae-eninnu",
+          "input_segment": "gap-sumer-a2",
+          "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+          "before_body": "성전에 세운 일곱 비석은 왕과 숙고한 내용에 부합하는 것으로 묘사된다. 출전: Thureau-Dangin, 1905, 173–175쪽 / A XXIX열 1–2행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+          "after_body": "성전에 세운 일곱 비석은 왕이 숙고한 내용에 부합하는 것으로 묘사된다. 출전: Thureau-Dangin, 1905, 173–175쪽 / A XXIX열 1–2행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+          "added_evidence": {
+            "unit": "1905년 구데아 원통 A XXIX열",
+            "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=173",
+            "location": "XXIX 1–2행, 인쇄 173쪽",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          },
+          "added_note": "판본은 왕이 숙고한 내용에 일치한다고 적는다."
+        },
+        {
+          "id": "eae84962-7a55-54da-8658-00bf2cd1bd6f",
+          "candidate_key": "ningishzida-temple-foundation",
+          "input_segment": "gap-sumer-a2",
+          "input_sha256": "540b7e1255fdd47927f7e4918611d8a7282a238034a5f8a1d51fab9e4f9290e2",
+          "before_body": "에닌누 건설의 마지막 구절에서 닌기시지다가 성전의 기단을 쌓았다고 한다. 출전: Thureau-Dangin, 1905, 175쪽 / A XXX열 1–3행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+          "after_body": "에닌누 건설의 마지막 구절에서 닌기시지다가 성전의 기단을 쌓았다고 한다. 출전: Thureau-Dangin, 1905, 175쪽 / A XXX열 1–3행, https://fr.scribd.com/document/782735369/230910-Les-Inscriptions-de-Sumer-Et-d-Akkad. OCR 확인 구간에 한정하며 기존 카드와 중복 가능.",
+          "added_evidence": {
+            "unit": "1905년 구데아 원통 A XXX열",
+            "url": "https://ia801803.us.archive.org/0/items/InscriptionsDeSumerEtDakkad/InscriptionsSumerAkkad_352pgs51165876.pdf#page=175",
+            "location": "XXX 1–3행, 인쇄 175쪽",
+            "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+          },
+          "added_note": "Scribd OCR 표기는 175쪽 영인의 Nin-giš-zi-da와 차이가 있다. OCR 발췌는 재사용권 미확인으로 공개 사본에 생략한다."
+        }
+      ],
+      "scan_sha256": "f577e98f4e77e0f074500a8736a629e8daf60f76694af9f5598985ef27b57a37",
+      "checked_printed_pages": [
+        158,
+        159,
+        162,
+        163,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174,
+        175
+      ],
+      "deferred_corrections": [],
+      "new_chunk": "cards-005.json"
+    }
+  ],
+  "public_excerpt_omission": {
+    "reason": "Scribd 제3자 OCR의 재사용권 미확인",
+    "omitted_evidence_count": 56,
+    "affected_cards": 56,
+    "evidence_records_preserved": 159,
+    "remaining_evidence_excerpts": 103,
+    "cards_without_other_excerpt": 48,
+    "private_original": "공개 전 전체 카드·인덱스와 발췌 기록을 비공개 사본으로 별도 보존하고 무결성 확인; 위치는 공개 사본에 기재하지 않음",
+    "comparison": "카드 ID·제목·본문·순서와 출처 URL·열·행·쪽, 다른 evidence 및 기존 IA 발췌 보존. 각 발췌의 주장 뒷받침 여부는 독립 미검증.",
+    "original_input_sha256_are_historical": true,
+    "previous_cards_002_sha256": "fc0f5eea38d4cb1ddeeef416faea29d27beb040bf4da05a10b5128c45a64c9d3",
+    "previous_index_sha256": "acffd232382687d412ac73315f83ba01f9fb01ddad357209bb2a29bc40daa587",
+    "previous_note_references": "철자 차이에 관한 두 카드 메모와 index의 반복 OCR 표기는 출처·판면 표기·불일치 취지는 보존한 채 발췌만 생략했다.",
+    "affected_card_ids": [
+      "f924f706-abb8-5a9a-bfab-bf4e577ea02f",
+      "edec454e-1050-58a8-9bcc-bacd93ecf810",
+      "66a52bf4-c3d5-5dfe-bb49-a20fdd0b5a46",
+      "63f328a4-3dad-5fd4-9e43-744d7ad1bc8e",
+      "fbcaacbb-4276-54f7-94d2-ab2333e93185",
+      "b5f9a73a-70f3-5858-976c-5ab471f755de",
+      "944008b9-a11f-5cb7-a819-a5100115fa36",
+      "f74f1da4-0c0d-5f64-ad3c-2512a4adaf6d",
+      "42c3cd3a-36d5-57b6-8aca-be0ca09a01e8",
+      "6c4dfdb2-edce-590a-aeb2-d5f5079a7acb",
+      "cb23cb59-ca73-5a89-8ba5-2d0e626770d4",
+      "bd83b7e7-5613-567d-a7ad-88aa97409965",
+      "ac5987f5-3971-59bb-830c-4708cc4490fa",
+      "5087dae0-a50d-5042-8c55-cde9868e8983",
+      "04f655ea-15ec-53cd-8d7d-93aabe934644",
+      "c6fe26ff-c3c5-5b5d-9fd7-83ba53a95856",
+      "4b6fae02-bdfd-5d1d-8ac4-98ee00e00722",
+      "70420819-2073-5f9b-b76f-8c1567ed91f5",
+      "de1ae22a-2839-5d7c-b543-af87916f3ef4",
+      "26524af2-e615-50c6-a3ce-dd0e16791609",
+      "ebd9ee39-1d92-59c3-aa19-c29f4a10f778",
+      "315ccb8b-a076-5354-84a2-4d455edf6ef8",
+      "e9559c0d-cd74-56b8-bd6f-c600817142f9",
+      "f40ae1d4-3f05-50ed-bde0-d30b53af9bb0",
+      "7d14ea5d-1537-55b7-a539-939fc081e61d",
+      "dc38f45d-9af1-5038-b767-e99a0df1e244",
+      "7388fa25-e285-5d54-9323-64d1215c628e",
+      "5418d95f-89cd-5896-a964-c1ce7c547bc2",
+      "ec755945-fdb5-5f68-b4bf-b8c199df6688",
+      "5a8c009b-cc60-5b61-8b92-34867646714f",
+      "eef34282-6acc-5824-bb7f-63799fd1d1dc",
+      "29869ce8-fb97-5d3d-a3f2-ace7d78f204a",
+      "4600081f-4bfe-5749-acc7-d96b526516bd",
+      "ff1293e1-41ea-5ad8-849f-d37c917c2a41",
+      "1346b907-9c8a-543d-a27e-8d26249c5cc0",
+      "71e65d75-c603-554e-9b91-282d0401d079",
+      "15536de3-826e-5a05-979d-823cd5fb593a",
+      "0cbe1496-7b7a-5b94-bb3e-c8d55f0911e8",
+      "be177783-5594-5833-b248-41b0da203bc6",
+      "f0aa5b1c-3e61-5361-af16-11fd6d160d2b",
+      "80be4569-8c82-525e-905b-309578ba5825",
+      "bc67a0dc-acc5-59f4-b611-09552d9dddce",
+      "13c3429a-da48-54e9-93f4-a14e0c55d88f",
+      "a0a98986-9315-5d99-90a1-d811f634456a",
+      "a0c87292-00ab-5fa5-b3e0-7d016ab76b4d",
+      "eeade5c6-4bfc-5a6c-89f0-946f9cf4f759",
+      "787f5e9e-ac77-582a-b379-68eb3212df39",
+      "7e9dbf78-2068-55aa-be8c-2baaeae861a8",
+      "d32f97a1-896f-50ba-887c-97798c6f24e3",
+      "8ca118be-a7f8-5194-9997-50bd0bf27183",
+      "a8c86447-63ed-543a-95b1-808030894ef7",
+      "a5b137a2-b3d1-56f7-8c20-27e6f48f5ebe",
+      "abc0ff44-caea-52a7-918e-a9c34fce6fed",
+      "b6ef96d7-e9d0-5092-b643-c5b257f3fbc0",
+      "5f8458e8-01fb-52ea-af3e-d7c67971240d",
+      "eae84962-7a55-54da-8658-00bf2cd1bd6f"
+    ]
+  },
+  "public_excerpt_policy": "사용자 선택에 따라 공개본의 원문 직접 발췌는 생략하고 로컬 원본에 보존했다. 이 인덱스의 발췌 확인·개수 및 과거 조정 해시는 당시 기록이며 공개본의 구조화된 excerpt 필드는 0개다. 원전·한국어 요약 재배포 권리와 판독·독립 감수는 미확인이다."
+}

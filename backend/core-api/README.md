@@ -69,6 +69,7 @@ AI 작업용 크레딧 예약·정산은 `CreditReservationService`(내부 서�
 |---|---|---|
 | `POST /internal/v1/auth/verify` | `X-Content-Service-Token` 또는 `X-Operations-Service-Token` | `{memberId, operator}`. 없는 회원·이용 제한 회원 401 |
 | `POST /internal/v1/members/nicknames` | 〃 (사용자 Bearer 불필요) | `{ids: [uuid…]}`(최대 200개, 중복 무시) → `{nicknames: {<uuid>: 닉네임}}`. Content가 작성자·작가 표시명을 응답 때마다 조회한다. 없는 회원은 빠지고 이용 제한 회원은 포함하며, 잘못된 UUID·200개 초과는 400 |
+| `POST /internal/v1/ai-rate-limit/acquire`, `POST /internal/v1/credits/reservations`(`/settle`·`/release`) | 〃 (사용자 Bearer 불필요) | AI 작업용 속도 제한 확인과 크레딧 예약·정산·해제. 예약·정산·해제는 같은 `operationKey`로 다시 불러도 결과가 같고, `acquire`는 부를 때마다 한도를 쓴다. 잔액 부족 409 `INSUFFICIENT_CREDIT`, 없는 예약 404, 닫힌 예약 409, 규칙 위반 422. [크레딧 내부 API 계약](../../docs/design/credit-internal-api.md) |
 | `GET /internal/v1/members?role=ALL\|MEMBER\|ADMIN&q=&sort=newest\|oldest` | `X-Operations-Service-Token`만 | `{items: MemberItem[]}` 최대 200개, `q`는 닉네임·이메일 대소문자 무시 부분 일치 |
 | `PUT`·`DELETE /internal/v1/members/{id}/restriction` | 〃 | 이용 제한·해제 후 `MemberItem`. 자기 자신 400, 없는 회원 404 |
 | `POST /internal/v1/members/admins` | 〃 | `{email, nickname, password}`로 관리자 생성, 201 `MemberItem`. 중복 이메일 409 |

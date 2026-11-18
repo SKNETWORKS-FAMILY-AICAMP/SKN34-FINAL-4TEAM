@@ -1,0 +1,1410 @@
+{
+  "world_id": "cthulhu_mythos",
+  "world_id_meaning": "기존 worldId 참조용 라벨",
+  "id_namespace": "79fceb31-e918-5605-bfd3-a5123daf799f",
+  "id_rule": "UUIDv5(namespace, batch_id:unit_id:candidate_key); 후보 ID일 뿐 적재나 세계관 배정 아님",
+  "scope_note": "각 구간 상태는 입력 조사자의 자기보고이며, 문헌 완전 독해·의미 전수·독립 감수·중복 검토 또는 권리 해결을 뜻하지 않는다.",
+  "rights_note": "출처 전사·번역·공동체·지역별 재사용 및 상업 이용권은 확인되지 않았으며, 조사 가능이나 공개 검토는 상업적 배포 허락이 아니다.",
+  "works": [
+    {
+      "work_id": "cthulhu-mm",
+      "world_id": "cthulhu_mythos",
+      "title": "At the Mountains of Madness",
+      "target_scope": "I–XII",
+      "edition_language_attribution": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+      "prior_investigation_grade": "A",
+      "source_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Website footer asserts © 1998–2026 Donovan K. Loucks, All Rights Reserved for the site; scope of assertion, underlying text status, transcription rights, territory and any translation rights not resolved.",
+        "evidence_url": "https://www.hplovecraft.com/writings/texts/fiction/mm.aspx",
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_section_boundaries_verified",
+        "reason": "Source text boundaries verified in saved HTML; scholarly edition and audiovisual/rights not independently verified."
+      },
+      "scope_status": "complete_local_text_boundary_verified",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": "2b94c99d4e85c9612ae1a4ffcbceb732f7984cde4a5bfe3d1b0f60f8090d4304",
+      "units": [
+        {
+          "unit_id": "cthulhu-mm--section-i",
+          "label": "Section I",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 5192,
+            "byte_end_exclusive": 28740,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "93991eec765b0f4f646034f412eb82b655c2236b4b908748b62bf4ba3493045b",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-01",
+              "unit_id": "cthulhu-mm--section-i",
+              "status": "read",
+              "read_scope": "Section I의 지정 HTML 바이트 전체에서 본문을 추출해 읽음; I절 인용시는 행별로 읽음",
+              "reason": null,
+              "candidate_count": 21
+            }
+          ],
+          "actual_candidates": 21
+        },
+        {
+          "unit_id": "cthulhu-mm--section-ii",
+          "label": "Section II",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 28740,
+            "byte_end_exclusive": 69514,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "a720f5873a18b9e59fe187e57dd7812520cbb6b43e3620abc7d2819ecf7ce875",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-01",
+              "unit_id": "cthulhu-mm--section-ii",
+              "status": "read",
+              "read_scope": "Section II의 지정 HTML 바이트 전체에서 본문을 추출해 읽음; I절 인용시는 행별로 읽음",
+              "reason": null,
+              "candidate_count": 24
+            }
+          ],
+          "actual_candidates": 24
+        },
+        {
+          "unit_id": "cthulhu-mm--section-iii",
+          "label": "Section III",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 69514,
+            "byte_end_exclusive": 93808,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "e6ff618dcc494e8612b9e352fb84a6e2d5b8693b125856d88c0ea315b90e7b85",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-01",
+              "unit_id": "cthulhu-mm--section-iii",
+              "status": "read",
+              "read_scope": "Section III의 지정 HTML 바이트 전체에서 본문을 추출해 읽음; I절 인용시는 행별로 읽음",
+              "reason": null,
+              "candidate_count": 16
+            }
+          ],
+          "actual_candidates": 16
+        },
+        {
+          "unit_id": "cthulhu-mm--section-iv",
+          "label": "Section IV",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 93808,
+            "byte_end_exclusive": 114258,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "ba332d6719c4f6bf6173698c8bc545b8b034a10247027bd8aef51c6606a771d0",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-01",
+              "unit_id": "cthulhu-mm--section-iv",
+              "status": "read",
+              "read_scope": "Section IV의 지정 HTML 바이트 전체에서 본문을 추출해 읽음; I절 인용시는 행별로 읽음",
+              "reason": null,
+              "candidate_count": 11
+            }
+          ],
+          "actual_candidates": 11
+        },
+        {
+          "unit_id": "cthulhu-mm--section-v",
+          "label": "Section V",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 114258,
+            "byte_end_exclusive": 143225,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "e7c64d0be08580863644263e79f75e675cb7e4c379a65f5a3b17dc50ad5f0682",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-01",
+              "unit_id": "cthulhu-mm--section-v",
+              "status": "read",
+              "read_scope": "Section V의 지정 HTML 바이트 전체에서 본문을 추출해 읽음; I절 인용시는 행별로 읽음",
+              "reason": null,
+              "candidate_count": 13
+            }
+          ],
+          "actual_candidates": 13
+        },
+        {
+          "unit_id": "cthulhu-mm--section-vi",
+          "label": "Section VI",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 143225,
+            "byte_end_exclusive": 160153,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "d6fe9118decccf8d6424a4d6d69c69edfc68138d8c27cd96864fbfa0aa1b59e2",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-01",
+              "unit_id": "cthulhu-mm--section-vi",
+              "status": "read",
+              "read_scope": "Section VI의 지정 HTML 바이트 전체에서 본문을 추출해 읽음; I절 인용시는 행별로 읽음",
+              "reason": null,
+              "candidate_count": 12
+            }
+          ],
+          "actual_candidates": 12
+        },
+        {
+          "unit_id": "cthulhu-mm--section-vii",
+          "label": "Section VII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 160153,
+            "byte_end_exclusive": 182652,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "8d51c76fb7438995d43cf4631434d37ac6358a51cd6c5c3a1c936e0f1afa12d7",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-02",
+              "unit_id": "cthulhu-mm--section-vii",
+              "status": "read",
+              "read_scope": "Section VII 배정 HTML 바이트 범위의 본문 전체; 절 제목 제외 본문 문단 기준",
+              "reason": null,
+              "candidate_count": 17
+            }
+          ],
+          "actual_candidates": 17
+        },
+        {
+          "unit_id": "cthulhu-mm--section-viii",
+          "label": "Section VIII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 182652,
+            "byte_end_exclusive": 201859,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "81353872ebbf93e44dd8f644185baa66c97363cdfda914b97b4d88789d603f96",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-02",
+              "unit_id": "cthulhu-mm--section-viii",
+              "status": "read",
+              "read_scope": "Section VIII 배정 HTML 바이트 범위의 본문 전체; 절 제목 제외 본문 문단 기준",
+              "reason": null,
+              "candidate_count": 10
+            }
+          ],
+          "actual_candidates": 10
+        },
+        {
+          "unit_id": "cthulhu-mm--section-ix",
+          "label": "Section IX",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 201859,
+            "byte_end_exclusive": 225965,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "eafb937432a304d150e11f8560f90129d3341e76f860ec00b960ef57b2877f97",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-02",
+              "unit_id": "cthulhu-mm--section-ix",
+              "status": "read",
+              "read_scope": "Section IX 배정 HTML 바이트 범위의 본문 전체; 절 제목 제외 본문 문단 기준",
+              "reason": null,
+              "candidate_count": 7
+            }
+          ],
+          "actual_candidates": 7
+        },
+        {
+          "unit_id": "cthulhu-mm--section-x",
+          "label": "Section X",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 225965,
+            "byte_end_exclusive": 243041,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "383284c8428cfeb78224311ef47e5ea1dad4829787fa8802ce6e44279db4eba7",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-02",
+              "unit_id": "cthulhu-mm--section-x",
+              "status": "read",
+              "read_scope": "Section X 배정 HTML 바이트 범위의 본문 전체; 절 제목 제외 본문 문단 기준",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "cthulhu-mm--section-xi",
+          "label": "Section XI",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 243041,
+            "byte_end_exclusive": 264985,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "2bd62e14e5134d0c17a56d13e48b8f47e624c77cfbd2ff37fb8ae9849db75206",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-02",
+              "unit_id": "cthulhu-mm--section-xi",
+              "status": "read",
+              "read_scope": "Section XI 배정 HTML 바이트 범위의 본문 전체; 절 제목 제외 본문 문단 기준",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "cthulhu-mm--section-xii",
+          "label": "Section XII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 264985,
+            "byte_end_exclusive": 278221,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "5e2c7ff62772d2c878c3bbafa28f766447599c4c4a6e8f76201c3f04c7f22dbf",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-02",
+              "unit_id": "cthulhu-mm--section-xii",
+              "status": "read",
+              "read_scope": "Section XII 배정 HTML 바이트 범위의 본문 전체; 절 제목 제외 본문 문단 기준",
+              "reason": null,
+              "candidate_count": 5
+            }
+          ],
+          "actual_candidates": 5
+        }
+      ]
+    },
+    {
+      "work_id": "cthulhu-wid",
+      "world_id": "cthulhu_mythos",
+      "title": "The Whisperer in Darkness",
+      "target_scope": "I–VIII",
+      "edition_language_attribution": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+      "prior_investigation_grade": "A",
+      "source_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Website footer asserts © 1998–2026 Donovan K. Loucks, All Rights Reserved for the site; scope of assertion, underlying text status, transcription rights, territory and any translation rights not resolved.",
+        "evidence_url": "https://www.hplovecraft.com/writings/texts/fiction/wid.aspx",
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_section_boundaries_verified",
+        "reason": "Source text boundaries verified in saved HTML; scholarly edition and audiovisual/rights not independently verified."
+      },
+      "scope_status": "complete_local_text_boundary_verified",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": "b801a8916f7a269a420869d252b1d8c4719ebc45548ed5bb8aa668e4e98e5bb5",
+      "units": [
+        {
+          "unit_id": "cthulhu-wid--section-i",
+          "label": "Section I",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 5182,
+            "byte_end_exclusive": 21509,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "350525697d9c8119c26af8b014a0906a37e39b551c861adf1ee4db59f8832b18",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-02",
+              "unit_id": "cthulhu-wid--section-i",
+              "status": "read",
+              "read_scope": "Section I 배정 HTML 바이트 범위의 본문 전체; 절 제목 제외 본문 문단 기준",
+              "reason": null,
+              "candidate_count": 15
+            }
+          ],
+          "actual_candidates": 15
+        },
+        {
+          "unit_id": "cthulhu-wid--section-ii",
+          "label": "Section II",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 21509,
+            "byte_end_exclusive": 49328,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "f6ef6dfe9928d9e647b12ba5a2b5841f0666221c8b3da61aa39387cfee5afa20",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-03",
+              "unit_id": "cthulhu-wid--section-ii",
+              "status": "read",
+              "read_scope": "저장된 HTML의 해당 절 전체 경계 안 본문, 편지와 대화 포함",
+              "reason": null,
+              "candidate_count": 13
+            }
+          ],
+          "actual_candidates": 13
+        },
+        {
+          "unit_id": "cthulhu-wid--section-iii",
+          "label": "Section III",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 49328,
+            "byte_end_exclusive": 67235,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "44b6298a9df66723a2423760e134520709abbf319b03d9f2807d65bdae2640b0",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-03",
+              "unit_id": "cthulhu-wid--section-iii",
+              "status": "read",
+              "read_scope": "저장된 HTML의 해당 절 전체 경계 안 본문, 편지와 대화 포함",
+              "reason": null,
+              "candidate_count": 7
+            }
+          ],
+          "actual_candidates": 7
+        },
+        {
+          "unit_id": "cthulhu-wid--section-iv",
+          "label": "Section IV",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 67235,
+            "byte_end_exclusive": 86232,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "1ab855bcdd0b7931b6bbc209f61b530329708d85f2e8769e84798382b9e44136",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-03",
+              "unit_id": "cthulhu-wid--section-iv",
+              "status": "read",
+              "read_scope": "저장된 HTML의 해당 절 전체 경계 안 본문, 편지와 대화 포함",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "cthulhu-wid--section-v",
+          "label": "Section V",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 86232,
+            "byte_end_exclusive": 105542,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "b54d2dc15fee6eed2fcae5bd54f1390ae9abbc14eb58c1e00a3ecaa827b750ab",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-03",
+              "unit_id": "cthulhu-wid--section-v",
+              "status": "read",
+              "read_scope": "저장된 HTML의 해당 절 전체 경계 안 본문, 편지와 대화 포함",
+              "reason": null,
+              "candidate_count": 5
+            }
+          ],
+          "actual_candidates": 5
+        },
+        {
+          "unit_id": "cthulhu-wid--section-vi",
+          "label": "Section VI",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 105542,
+            "byte_end_exclusive": 125756,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "4f275b978417c9e9d263de2b4ebd95dca3d345c2806b0cdd468ba70d29ea671d",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-03",
+              "unit_id": "cthulhu-wid--section-vi",
+              "status": "read",
+              "read_scope": "저장된 HTML의 해당 절 전체 경계 안 본문, 편지와 대화 포함",
+              "reason": null,
+              "candidate_count": 4
+            }
+          ],
+          "actual_candidates": 4
+        },
+        {
+          "unit_id": "cthulhu-wid--section-vii",
+          "label": "Section VII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 125756,
+            "byte_end_exclusive": 155742,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "fca35c61897d3e2cb979e9f9fc12a554e9a265d67e5a5d106d531439a203b86a",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-03",
+              "unit_id": "cthulhu-wid--section-vii",
+              "status": "read",
+              "read_scope": "저장된 HTML의 해당 절 전체 경계 안 본문, 편지와 대화 포함",
+              "reason": null,
+              "candidate_count": 10
+            }
+          ],
+          "actual_candidates": 10
+        },
+        {
+          "unit_id": "cthulhu-wid--section-viii",
+          "label": "Section VIII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 155742,
+            "byte_end_exclusive": 180034,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "8eea5146539cc32bf7634ce552726b9dc88a9970b272e58f89441a7fe37023ee",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-03",
+              "unit_id": "cthulhu-wid--section-viii",
+              "status": "read",
+              "read_scope": "저장된 HTML의 해당 절 전체 경계 안 본문, 편지와 대화 포함",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        }
+      ]
+    },
+    {
+      "work_id": "cthulhu-sot",
+      "world_id": "cthulhu_mythos",
+      "title": "The Shadow out of Time",
+      "target_scope": "I–VIII",
+      "edition_language_attribution": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+      "prior_investigation_grade": "A",
+      "source_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Website footer asserts © 1998–2026 Donovan K. Loucks, All Rights Reserved for the site; scope of assertion, underlying text status, transcription rights, territory and any translation rights not resolved.",
+        "evidence_url": "https://www.hplovecraft.com/writings/texts/fiction/sot.aspx",
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_section_boundaries_verified",
+        "reason": "Source text boundaries verified in saved HTML; scholarly edition and audiovisual/rights not independently verified."
+      },
+      "scope_status": "complete_local_text_boundary_verified",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": "7057b42043697d2707b964186b049524b51614ad1dc771c0b3fdba22bbe8e311",
+      "units": [
+        {
+          "unit_id": "cthulhu-sot--section-i",
+          "label": "Section I",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 5167,
+            "byte_end_exclusive": 23788,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "593eaee6c30e4e909fca403163748a337afebf9f1c16ba8f50b51c2d5b7aea38",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-04",
+              "unit_id": "cthulhu-sot--section-i",
+              "status": "read",
+              "read_scope": "배정 raw byte [5167,23788) 전체; HTML 본문을 br 단위로 실독",
+              "reason": null,
+              "candidate_count": 17
+            }
+          ],
+          "actual_candidates": 17
+        },
+        {
+          "unit_id": "cthulhu-sot--section-ii",
+          "label": "Section II",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 23788,
+            "byte_end_exclusive": 41663,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "4d23e5e23abda873b2e7a97276d5b8432266c72947b8e27220693e86fb9c534f",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-04",
+              "unit_id": "cthulhu-sot--section-ii",
+              "status": "read",
+              "read_scope": "배정 raw byte [23788,41663) 전체; HTML 본문을 br 단위로 실독",
+              "reason": null,
+              "candidate_count": 10
+            }
+          ],
+          "actual_candidates": 10
+        },
+        {
+          "unit_id": "cthulhu-sot--section-iii",
+          "label": "Section III",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 41663,
+            "byte_end_exclusive": 62369,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "7f9ffc89330df7d680f702257e49beeffec82c965ac4d9d8730ecb67d8766110",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-04",
+              "unit_id": "cthulhu-sot--section-iii",
+              "status": "read",
+              "read_scope": "배정 raw byte [41663,62369) 전체; HTML 본문을 br 단위로 실독",
+              "reason": null,
+              "candidate_count": 14
+            }
+          ],
+          "actual_candidates": 14
+        },
+        {
+          "unit_id": "cthulhu-sot--section-iv",
+          "label": "Section IV",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 62369,
+            "byte_end_exclusive": 91270,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "abb10556765dc3df5f6443bf756ea1142e68042ad44fb24db47a26164f30c005",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-04",
+              "unit_id": "cthulhu-sot--section-iv",
+              "status": "read",
+              "read_scope": "배정 raw byte [62369,91270) 전체; HTML 본문을 br 단위로 실독",
+              "reason": null,
+              "candidate_count": 34
+            }
+          ],
+          "actual_candidates": 34
+        },
+        {
+          "unit_id": "cthulhu-sot--section-v",
+          "label": "Section V",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 91270,
+            "byte_end_exclusive": 110492,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "4103c211227a88b89b3c16a04695106f15fee95d6d1d7199dc3504d59f7ad5cc",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-04",
+              "unit_id": "cthulhu-sot--section-v",
+              "status": "read",
+              "read_scope": "배정 raw byte [91270,110492) 전체; HTML 본문을 br 단위로 실독",
+              "reason": null,
+              "candidate_count": 12
+            }
+          ],
+          "actual_candidates": 12
+        },
+        {
+          "unit_id": "cthulhu-sot--section-vi",
+          "label": "Section VI",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 110492,
+            "byte_end_exclusive": 133490,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "430ed9b8e02e632b659a0fea92e9b13f3b13b6d1be400845986eb648f06003db",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-04",
+              "unit_id": "cthulhu-sot--section-vi",
+              "status": "read",
+              "read_scope": "배정 raw byte [110492,133490) 전체; HTML 본문을 br 단위로 실독",
+              "reason": null,
+              "candidate_count": 7
+            }
+          ],
+          "actual_candidates": 7
+        },
+        {
+          "unit_id": "cthulhu-sot--section-vii",
+          "label": "Section VII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 133490,
+            "byte_end_exclusive": 149288,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "d17334fe3a2c3ff4ce2af66c5007bc3eefc0beeeaa110597aa50b595aed2dd08",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-04",
+              "unit_id": "cthulhu-sot--section-vii",
+              "status": "read",
+              "read_scope": "배정 raw byte [133490,149288) 전체; HTML 본문을 br 단위로 실독",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "cthulhu-sot--section-viii",
+          "label": "Section VIII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 149288,
+            "byte_end_exclusive": 171962,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "7ff953cd7d23ae99dcd70d936f8dca969580664a49cda33cce4e2ae37902982f",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-05",
+              "unit_id": "cthulhu-sot--section-viii",
+              "status": "read",
+              "read_scope": "지정된 바이트 구간의 서사 본문 전체; 문단은 페이지 전사의 이미지 들여쓰기 표식 기준",
+              "reason": null,
+              "candidate_count": 8
+            }
+          ],
+          "actual_candidates": 8
+        }
+      ]
+    },
+    {
+      "work_id": "cthulhu-dq",
+      "world_id": "cthulhu_mythos",
+      "title": "The Dream-Quest of Unknown Kadath",
+      "target_scope": "whole work",
+      "edition_language_attribution": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+      "prior_investigation_grade": "A",
+      "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Website footer asserts © 1998–2026 Donovan K. Loucks, All Rights Reserved for the site; scope of assertion, underlying text status, transcription rights, territory and any translation rights not resolved.",
+        "evidence_url": "https://www.hplovecraft.com/writings/texts/fiction/dq.aspx",
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_section_boundaries_verified",
+        "reason": "Whole HTML narrative delimited and split at paragraph boundaries; underlying print edition and rights unverified."
+      },
+      "scope_status": "complete_local_text_boundary_verified",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": "a2c1ea4a08aa3d0e79fa5fedd94d0136672ec12e8b14ea6d4eca3a0b76086d6f",
+      "units": [
+        {
+          "unit_id": "cthulhu-dq--chunk-01",
+          "label": "Artificial paragraph chunk 01",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 5216,
+            "byte_end_exclusive": 35246,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "6e467f1fbd68dcbbaddbf8727268a33966d63b043916075203c938fb6b7e88e1",
+            "note": "Whole work divided at paragraph-start image markers; artificial chunks, not original chapters."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-05",
+              "unit_id": "cthulhu-dq--chunk-01",
+              "status": "read",
+              "read_scope": "지정된 바이트 구간의 서사 본문 전체; 문단은 페이지 전사의 이미지 들여쓰기 표식 기준",
+              "reason": null,
+              "candidate_count": 27
+            }
+          ],
+          "actual_candidates": 27
+        },
+        {
+          "unit_id": "cthulhu-dq--chunk-02",
+          "label": "Artificial paragraph chunk 02",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 35246,
+            "byte_end_exclusive": 65849,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "b3f7747b23422aac210978f2f206a159a15ee8d63a24595c56566d4360234c81",
+            "note": "Whole work divided at paragraph-start image markers; artificial chunks, not original chapters."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-05",
+              "unit_id": "cthulhu-dq--chunk-02",
+              "status": "read",
+              "read_scope": "지정된 바이트 구간의 서사 본문 전체; 문단은 페이지 전사의 이미지 들여쓰기 표식 기준",
+              "reason": null,
+              "candidate_count": 17
+            }
+          ],
+          "actual_candidates": 17
+        },
+        {
+          "unit_id": "cthulhu-dq--chunk-03",
+          "label": "Artificial paragraph chunk 03",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 65849,
+            "byte_end_exclusive": 96438,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "5d5038ab64f7100760c502df7059682fbc1f4b047119ecb30aa595fddef61dbf",
+            "note": "Whole work divided at paragraph-start image markers; artificial chunks, not original chapters."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-05",
+              "unit_id": "cthulhu-dq--chunk-03",
+              "status": "read",
+              "read_scope": "지정된 바이트 구간의 서사 본문 전체; 문단은 페이지 전사의 이미지 들여쓰기 표식 기준",
+              "reason": null,
+              "candidate_count": 16
+            }
+          ],
+          "actual_candidates": 16
+        },
+        {
+          "unit_id": "cthulhu-dq--chunk-04",
+          "label": "Artificial paragraph chunk 04",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 96438,
+            "byte_end_exclusive": 127029,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "c3d05a29e9c71d01987a57f2f55c5e609856c62c2cc07b1283c785b62f3a4654",
+            "note": "Whole work divided at paragraph-start image markers; artificial chunks, not original chapters."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-05",
+              "unit_id": "cthulhu-dq--chunk-04",
+              "status": "read",
+              "read_scope": "지정된 바이트 구간의 서사 본문 전체; 문단은 페이지 전사의 이미지 들여쓰기 표식 기준",
+              "reason": null,
+              "candidate_count": 20
+            }
+          ],
+          "actual_candidates": 20
+        },
+        {
+          "unit_id": "cthulhu-dq--chunk-05",
+          "label": "Artificial paragraph chunk 05",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 127029,
+            "byte_end_exclusive": 158013,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "a54ff7c7ab7ef5fbda47a9feca3d7cb42bb35a38532ecf88ef2d9a63e97ae96e",
+            "note": "Whole work divided at paragraph-start image markers; artificial chunks, not original chapters."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-06",
+              "unit_id": "cthulhu-dq--chunk-05",
+              "status": "read",
+              "read_scope": "배정된 HTML 바이트 슬라이스 전체의 본문 문단 26개 실독; 인위적 구간",
+              "reason": null,
+              "candidate_count": 21
+            }
+          ],
+          "actual_candidates": 21
+        },
+        {
+          "unit_id": "cthulhu-dq--chunk-06",
+          "label": "Artificial paragraph chunk 06",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 158013,
+            "byte_end_exclusive": 189159,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "19457de7a781909e0554514376259147654e70f3926eb221ad27f7e5a198c78d",
+            "note": "Whole work divided at paragraph-start image markers; artificial chunks, not original chapters."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-06",
+              "unit_id": "cthulhu-dq--chunk-06",
+              "status": "read",
+              "read_scope": "배정된 HTML 바이트 슬라이스 전체의 본문 문단 29개 실독; 인위적 구간",
+              "reason": null,
+              "candidate_count": 16
+            }
+          ],
+          "actual_candidates": 16
+        },
+        {
+          "unit_id": "cthulhu-dq--chunk-07",
+          "label": "Artificial paragraph chunk 07",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 189159,
+            "byte_end_exclusive": 219920,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "202757fe9c51822552362106a3b3ea657770576a08e0b2b07230989a98926471",
+            "note": "Whole work divided at paragraph-start image markers; artificial chunks, not original chapters."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-06",
+              "unit_id": "cthulhu-dq--chunk-07",
+              "status": "read",
+              "read_scope": "배정된 HTML 바이트 슬라이스 전체의 본문 문단 27개 실독; 인위적 구간",
+              "reason": null,
+              "candidate_count": 13
+            }
+          ],
+          "actual_candidates": 13
+        },
+        {
+          "unit_id": "cthulhu-dq--chunk-08",
+          "label": "Artificial paragraph chunk 08",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 219920,
+            "byte_end_exclusive": 250283,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "3640a82c21b4d9d6ef7b631fb447167397d8716e5a8358fad38a04e04d49e946",
+            "note": "Whole work divided at paragraph-start image markers; artificial chunks, not original chapters."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-06",
+              "unit_id": "cthulhu-dq--chunk-08",
+              "status": "read",
+              "read_scope": "배정된 HTML 바이트 슬라이스 전체의 본문 문단 28개 실독; 인위적 구간",
+              "reason": null,
+              "candidate_count": 12
+            }
+          ],
+          "actual_candidates": 12
+        },
+        {
+          "unit_id": "cthulhu-dq--chunk-09",
+          "label": "Artificial paragraph chunk 09",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 250283,
+            "byte_end_exclusive": 270057,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "0c5ebd4702336f69f7a5d1a9cd44cffc7d80b01dcc615a9cdbd4f8f64214ec37",
+            "note": "Whole work divided at paragraph-start image markers; artificial chunks, not original chapters."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-06",
+              "unit_id": "cthulhu-dq--chunk-09",
+              "status": "read",
+              "read_scope": "배정된 HTML 바이트 슬라이스 전체의 본문 문단 27개 실독; 인위적 구간",
+              "reason": null,
+              "candidate_count": 13
+            }
+          ],
+          "actual_candidates": 13
+        }
+      ]
+    },
+    {
+      "work_id": "cthulhu-dwh",
+      "world_id": "cthulhu_mythos",
+      "title": "The Dreams in the Witch House",
+      "target_scope": "whole work",
+      "edition_language_attribution": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+      "prior_investigation_grade": "A",
+      "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Website footer asserts © 1998–2026 Donovan K. Loucks, All Rights Reserved for the site; scope of assertion, underlying text status, transcription rights, territory and any translation rights not resolved.",
+        "evidence_url": "https://www.hplovecraft.com/writings/texts/fiction/dwh.aspx",
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_section_boundaries_verified",
+        "reason": "Whole HTML narrative delimited and split at paragraph boundaries; underlying print edition and rights unverified."
+      },
+      "scope_status": "complete_local_text_boundary_verified",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": "22f77e4127544a00ce4fd069a0f9cf836fae083a2dd0428586e700d7f13ea012",
+      "units": [
+        {
+          "unit_id": "cthulhu-dwh--chunk-01",
+          "label": "Artificial paragraph chunk 01",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 5196,
+            "byte_end_exclusive": 35627,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "9534757b5dcb6a0efdf3d6ae868b10336b3b47b5deeb026a9be95c58ef6d5a48",
+            "note": "Whole work divided at paragraph-start image markers; artificial chunks, not original chapters."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-07",
+              "unit_id": "cthulhu-dwh--chunk-01",
+              "status": "read",
+              "read_scope": "Artificial paragraph chunk 01의 전체 raw byte 슬라이스 및 본문 실독; 문단 번호는 구간 시작점부터 br 기준.",
+              "reason": null,
+              "candidate_count": 12
+            }
+          ],
+          "actual_candidates": 12
+        },
+        {
+          "unit_id": "cthulhu-dwh--chunk-02",
+          "label": "Artificial paragraph chunk 02",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 35627,
+            "byte_end_exclusive": 65687,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "a0b80991a7ffc9fc909dad68fb0eb59d7d1971dd084b40914fe48d0f2ef1eb4d",
+            "note": "Whole work divided at paragraph-start image markers; artificial chunks, not original chapters."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-07",
+              "unit_id": "cthulhu-dwh--chunk-02",
+              "status": "read",
+              "read_scope": "Artificial paragraph chunk 02의 전체 raw byte 슬라이스 및 본문 실독; 문단 번호는 구간 시작점부터 br 기준.",
+              "reason": null,
+              "candidate_count": 10
+            }
+          ],
+          "actual_candidates": 10
+        },
+        {
+          "unit_id": "cthulhu-dwh--chunk-03",
+          "label": "Artificial paragraph chunk 03",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 65687,
+            "byte_end_exclusive": 96051,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "10e1e62dc70d11d1317eaa4312fd3cef9d850f3421b96cd94f637806da3d1b7e",
+            "note": "Whole work divided at paragraph-start image markers; artificial chunks, not original chapters."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-07",
+              "unit_id": "cthulhu-dwh--chunk-03",
+              "status": "read",
+              "read_scope": "Artificial paragraph chunk 03의 전체 raw byte 슬라이스 및 본문 실독; 문단 번호는 구간 시작점부터 br 기준.",
+              "reason": null,
+              "candidate_count": 10
+            }
+          ],
+          "actual_candidates": 10
+        },
+        {
+          "unit_id": "cthulhu-dwh--chunk-04",
+          "label": "Artificial paragraph chunk 04",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 96051,
+            "byte_end_exclusive": 102003,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "73d378242a9960c622e5f84d998df0c9ef0a5312e50237c373b2c7d8f6965e13",
+            "note": "Whole work divided at paragraph-start image markers; artificial chunks, not original chapters."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-07",
+              "unit_id": "cthulhu-dwh--chunk-04",
+              "status": "read",
+              "read_scope": "Artificial paragraph chunk 04의 전체 raw byte 슬라이스 및 본문 실독; 문단 번호는 구간 시작점부터 br 기준.",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        }
+      ]
+    },
+    {
+      "work_id": "cthulhu-n",
+      "world_id": "cthulhu_mythos",
+      "title": "Nyarlathotep",
+      "target_scope": "whole prose poem",
+      "edition_language_attribution": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+      "prior_investigation_grade": "A",
+      "source_url": "https://www.hplovecraft.com/writings/texts/fiction/n.aspx",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Website footer asserts © 1998–2026 Donovan K. Loucks, All Rights Reserved for the site; scope of assertion, underlying text status, transcription rights, territory and any translation rights not resolved.",
+        "evidence_url": "https://www.hplovecraft.com/writings/texts/fiction/n.aspx",
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_section_boundaries_verified",
+        "reason": "Whole HTML narrative delimited and split at paragraph boundaries; underlying print edition and rights unverified."
+      },
+      "scope_status": "complete_local_text_boundary_verified",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": "759b30871c7c1d5ab0f72334a9d56550c5e3381313b6bfcd8654748e1c123d7a",
+      "units": [
+        {
+          "unit_id": "cthulhu-n--chunk-01",
+          "label": "Artificial paragraph chunk 01",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 5111,
+            "byte_end_exclusive": 12469,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "3cf9fe97b5a25409d57c6c0a348116e6c9b632529e629fab6e0fe84ff3139ee0",
+            "note": "Whole work divided at paragraph-start image markers; artificial chunks, not original chapters."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-07",
+              "unit_id": "cthulhu-n--chunk-01",
+              "status": "read",
+              "read_scope": "Artificial paragraph chunk 01의 전체 raw byte 슬라이스 및 본문 실독; 문단 번호는 구간 시작점부터 br 기준.",
+              "reason": null,
+              "candidate_count": 5
+            }
+          ],
+          "actual_candidates": 5
+        }
+      ]
+    },
+    {
+      "work_id": "cthulhu-dh",
+      "world_id": "cthulhu_mythos",
+      "title": "The Dunwich Horror",
+      "target_scope": "III, IV, VI–X; confirm against prior I, II, V",
+      "edition_language_attribution": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+      "prior_investigation_grade": "unverified",
+      "source_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Website footer asserts © 1998–2026 Donovan K. Loucks, All Rights Reserved for the site; scope of assertion, underlying text status, transcription rights, territory and any translation rights not resolved.",
+        "evidence_url": "https://www.hplovecraft.com/writings/texts/fiction/dh.aspx",
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_section_boundaries_verified",
+        "reason": "Source text boundaries verified in saved HTML; scholarly edition and audiovisual/rights not independently verified."
+      },
+      "scope_status": "complete_local_text_boundary_verified",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": "d5b5871455a419cd40b18a8d2f9edcda703d492b81523dd4680b1c79a0afd5e0",
+      "units": [
+        {
+          "unit_id": "cthulhu-dh--section-iii",
+          "label": "Section III",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 24569,
+            "byte_end_exclusive": 32335,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "073f101ed0623fbcf5188260401f4dd6c3d1a337c2d3edaf16d690c4704b2fc2",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-07",
+              "unit_id": "cthulhu-dh--section-iii",
+              "status": "read",
+              "read_scope": "Section III의 전체 raw byte 슬라이스 및 본문 실독; 문단 번호는 구간 시작점부터 br 기준.",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "cthulhu-dh--section-iv",
+          "label": "Section IV",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 32335,
+            "byte_end_exclusive": 41231,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "bed023e8a8d4f4d1b4760eb19bd68d8c94934e9b77b997b7734193b3bb9fdd19",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-07",
+              "unit_id": "cthulhu-dh--section-iv",
+              "status": "read",
+              "read_scope": "Section IV의 전체 raw byte 슬라이스 및 본문 실독; 문단 번호는 구간 시작점부터 br 기준.",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "cthulhu-dh--section-vi",
+          "label": "Section VI",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 51251,
+            "byte_end_exclusive": 60567,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "04da57c9ed8aa0c6a53c4dcaecd2a7e5de37f1e0aa1ce330c6fb90e520e44824",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-07",
+              "unit_id": "cthulhu-dh--section-vi",
+              "status": "read",
+              "read_scope": "Section VI의 전체 raw byte 슬라이스 및 본문 실독; 문단 번호는 구간 시작점부터 br 기준.",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "cthulhu-dh--section-vii",
+          "label": "Section VII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 60567,
+            "byte_end_exclusive": 77207,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "e428e3dc2e93e61ca38d7d2c59f6839112ee3aafd739e3d77d6b1830050ada57",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-07",
+              "unit_id": "cthulhu-dh--section-vii",
+              "status": "read",
+              "read_scope": "Section VII의 전체 raw byte 슬라이스 및 본문 실독; 문단 번호는 구간 시작점부터 br 기준.",
+              "reason": null,
+              "candidate_count": 8
+            }
+          ],
+          "actual_candidates": 8
+        },
+        {
+          "unit_id": "cthulhu-dh--section-viii",
+          "label": "Section VIII",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 77207,
+            "byte_end_exclusive": 90407,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "5ba72aae42f1ea17d181915edf394658e79fc7cfe12d56e468b31430550c0d9a",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-07",
+              "unit_id": "cthulhu-dh--section-viii",
+              "status": "read",
+              "read_scope": "Section VIII의 전체 raw byte 슬라이스 및 본문 실독; 문단 번호는 구간 시작점부터 br 기준.",
+              "reason": null,
+              "candidate_count": 8
+            }
+          ],
+          "actual_candidates": 8
+        },
+        {
+          "unit_id": "cthulhu-dh--section-ix",
+          "label": "Section IX",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 90407,
+            "byte_end_exclusive": 107898,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "a59d4b17ff2271562e04c283b7f0e312b485c179f9450f347bd692fa91c20bb3",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-08",
+              "unit_id": "cthulhu-dh--section-ix",
+              "status": "read",
+              "read_scope": "배정 raw 바이트 슬라이스 전체를 UTF-8로 디코드하고 HTML 태그와 본문을 구분하여 읽음",
+              "reason": null,
+              "candidate_count": 8
+            }
+          ],
+          "actual_candidates": 8
+        },
+        {
+          "unit_id": "cthulhu-dh--section-x",
+          "label": "Section X",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 107898,
+            "byte_end_exclusive": 123384,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "811bc9419f5928bea59512cc555484c222767aa516ab59bd3c3d3d26638687db",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-08",
+              "unit_id": "cthulhu-dh--section-x",
+              "status": "read",
+              "read_scope": "배정 raw 바이트 슬라이스 전체를 UTF-8로 디코드하고 HTML 태그와 본문을 구분하여 읽음",
+              "reason": null,
+              "candidate_count": 7
+            }
+          ],
+          "actual_candidates": 7
+        }
+      ]
+    },
+    {
+      "work_id": "cthulhu-soi",
+      "world_id": "cthulhu_mythos",
+      "title": "The Shadow over Innsmouth",
+      "target_scope": "IV; confirm against prior I, II, III, V",
+      "edition_language_attribution": "H. P. Lovecraft; English; website transcription, underlying edition unverified",
+      "prior_investigation_grade": "unverified",
+      "source_url": "https://www.hplovecraft.com/writings/texts/fiction/soi.aspx",
+      "other_recorded_urls": [],
+      "rights": {
+        "status": "unverified",
+        "notes": "Website footer asserts © 1998–2026 Donovan K. Loucks, All Rights Reserved for the site; scope of assertion, underlying text status, transcription rights, territory and any translation rights not resolved.",
+        "evidence_url": "https://www.hplovecraft.com/writings/texts/fiction/soi.aspx",
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_section_boundaries_verified",
+        "reason": "Source text boundaries verified in saved HTML; scholarly edition and audiovisual/rights not independently verified."
+      },
+      "scope_status": "complete_local_text_boundary_verified",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked.",
+      "input_file_sha256": "1d70dffd95d26791a76d19d33f48fee0a629707b5755a1a5eb4951034a3db4ae",
+      "units": [
+        {
+          "unit_id": "cthulhu-soi--section-iv",
+          "label": "Section IV",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 112596,
+            "byte_end_exclusive": 168150,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "ce4ad8c451da3bf9d27611b96a73ce6ccd4ab7093d38bf6d40b70d74977bb932",
+            "note": "Start at printed section heading; end just before next heading or body closing tag."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-08",
+              "unit_id": "cthulhu-soi--section-iv",
+              "status": "read",
+              "read_scope": "배정 raw 바이트 슬라이스 전체를 UTF-8로 디코드하고 HTML 태그와 본문을 구분하여 읽음",
+              "reason": null,
+              "candidate_count": 8
+            }
+          ],
+          "actual_candidates": 8
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,974 @@
+[
+  {
+    "id": "5ea60c5d-cd78-5116-b597-d90444bb2a45",
+    "title": "샤루르",
+    "body": "닌기르수가 땅들을 제압한다고 말하는 무기다. 이후 구데아는 신을 위해 삼나무로 그 무기를 깎는다. 기존 무기 묶음과 중복 가능. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 241–247행.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "sharur-weapon",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 A, 1–814행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "241–247행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "ETCSL 대체 판본 원통 A, 1–814행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "241–247행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "동일한 발췌가 두 번 기록되어 있고 삼나무 제작 진술은 이 발췌에서 직접 확인되지 않음; 원문 해당 행과 별도 위치 재검토 필요."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "weapons-insignia",
+          "title": "신에게 바친 무기와 왕권 표장",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "e1979ca4-460e-52ab-a1ca-14b10733a817",
+    "title": "티라슈 신전",
+    "body": "닌기르수가 압수에 비견하여 세웠으며 초승달이 뜨는 매달 큰 의례가 열린다고 말하는 신전이다. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 262–265행.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "tirash-shrine",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 A, 1–814행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "262–265행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "ETCSL 대체 판본 원통 A, 1–814행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "262–265행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "120b8db9-3f69-5269-a0c9-082b6d856720",
+    "title": "에후슈",
+    "body": "닌기르수가 두려운 장소에 지었다고 말하는 신전. 분노한 신의 독을 뱀에 비유한다. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 266–270행.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "ehush-shrine",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 A, 1–814행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "266–270행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "a5e2b7ae-5ce9-53b0-9876-05dab52d83b6",
+    "title": "에바바르 재판 장소",
+    "body": "닌기르수가 명령을 내리고 도시의 소송을 정의롭게 판단한다고 말하는 장소다. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 271–276행.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "ebarbar-judgment",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 A, 1–814행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "271–276행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "ETCSL 대체 판본 원통 A, 1–814행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "271–276행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "6c86feeb-2d36-5fb5-ae84-95b25eb3cafb",
+    "title": "피리그카세파다",
+    "body": "구데아가 닌기르수의 전차에 매어 바친 수나귀다. 이후 신의 나귀지기가 이 수나귀를 거룩한 전차에 맨다. 기존 전차 카드와 중복 가능. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 173–195행.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "pirig-kase-pada",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 A, 1–814행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "173–195행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "divine-chariot",
+          "title": "닌기르수에게 바치는 전차",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        },
+        {
+          "source_key": "weapons-insignia",
+          "title": "신에게 바친 무기와 왕권 표장",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "4e4b8783-4581-519b-8df7-4657a4f24d43",
+    "title": "닌자가",
+    "body": "구데아의 신전 건설을 위해 구리를 조달하라는 명령을 받는 존재다. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 397–404행.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "nin-zaga-copper",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 A, 1–814행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "397–404행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "resource-network",
+          "title": "산림·채석장·금속의 조달망",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "acb73012-69f0-52e8-bbbe-25fd2a7d8424",
+    "title": "닌시키르의 목재 조달",
+    "body": "신전 건설을 위해 할루브 목재와 흑단, 아바 목재를 구데아에게 보낸다. 딜문의 닌시키라와 동일인으로 단정하지 않는다. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 397–404행.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "nin-sikil-timber",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 A, 1–814행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "397–404행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "ETCSL 대체 판본 원통 A, 1–814행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "397–404행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "resource-network",
+          "title": "산림·채석장·금속의 조달망",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "ninsikila-dilmun",
+          "reason": "표기·전승 차이; 동일 인물인지 미확인"
+        }
+      ],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "fb31ea31-f3ec-5c78-96cb-fd82f61f61eb",
+    "title": "카수라 부두",
+    "body": "삼나무와 여러 목재를 실은 긴 뗏목이 하류로 내려와 정박하는 주요 부두다. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 412–423행.",
+    "cardType": "location",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "kasura-quay",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 A, 1–814행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "412–423행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "resource-network",
+          "title": "산림·채석장·금속의 조달망",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "67f426ea-8645-57f6-8fd9-0d4776316146",
+    "title": "닌투칼라마",
+    "body": "구데아가 신전에 쓸 구리와 주석을 다룰 때 대장장이 우두머리를 이끌어 데려온다. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 446–451행.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "nintu-kalama-smiths",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 A, 1–814행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "446–451행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "craft-workers",
+          "title": "장인과 건립 인력",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "7f8534eb-3c6f-5a8a-b90b-e4be508542f0",
+    "title": "네티",
+    "body": "《이난나의 저승 하강》의 저승 수문장. 이난나가 도착한 이유를 묻고 에레시키갈에게 보고한 뒤 문에 관한 지시를 수행한다. 기존 저승 문 묶음과 중복 가능. 출전: https://etcsl.orinst.ox.ac.uk/section1/tr141.htm 78–84행.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "neti-gatekeeper",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "이난나 하강 1–5, 73–89행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section1/tr141.htm",
+          "location": "78–84행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "ereshkigal-ganzer",
+          "title": "에레시키갈과 간제르",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "ca2ed551-a096-562c-88cf-0bee4f3cc2af",
+    "title": "구드갈아나의 장례",
+    "body": "이난나는 에레시키갈의 남편 구드갈아나의 죽음을 언급하며 그의 장례 의례를 위해 왔다고 문지기에게 설명한다. 기존 저승 하강 사건과 중복 가능. 출전: https://etcsl.orinst.ox.ac.uk/section1/tr141.htm 85–89행.",
+    "cardType": "event",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "gud-gal-ana-funeral",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "이난나 하강 1–5, 73–89행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section1/tr141.htm",
+          "location": "85–89행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "inana-descent",
+          "title": "이난나의 저승 하강",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "bbdf6ad2-f8f3-58b4-ad3c-c5514a0e671e",
+    "title": "갈라투라",
+    "body": "이난나의 시신을 달라고 청한 두 존재 중 하나. 갈라투라와 쿠르가라는 생명의 풀과 물로 시신을 살린다. 어느 것이 어느 물질을 뿌렸는지 273–281행은 특정하지 않는다. 출전: https://etcsl.orinst.ox.ac.uk/section1/tr141.htm 273–281행.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "galatura-rescue",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "닌슈부르 구원 요청 26–67, 273–281행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section1/tr141.htm",
+          "location": "273–281행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "닌슈부르 구원 요청 26–67, 273–281행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section1/tr141.htm",
+          "location": "273–281행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "ninshubur-aid",
+          "title": "닌슈부르의 구원 요청",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "c9b30669-dae3-57f2-9895-7b1f11a2544e",
+    "title": "쿠르가라",
+    "body": "이난나의 시신을 돌려받기 위해 갈라투라와 함께 에레시키갈에게 청하는 존재다. 둘은 물과 곡식의 제안을 거절한다. 출전: https://etcsl.orinst.ox.ac.uk/section1/tr141.htm 273–281행.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "kurgara-rescue",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "닌슈부르 구원 요청 26–67, 273–281행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section1/tr141.htm",
+          "location": "273–281행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "닌슈부르 구원 요청 26–67, 273–281행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section1/tr141.htm",
+          "location": "273–281행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "ninshubur-aid",
+          "title": "닌슈부르의 구원 요청",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "d61fa975-6469-5d25-b380-f021ce588ef2",
+    "title": "닌시키라",
+    "body": "《엔키와 닌후르상가》에서 엔키에게 딜문을 주었지만 강의 부두와 경작지가 없다며 항의한다. 구데아 원통 목재 조달자의 동일성은 미확인. 출전: https://etcsl.orinst.ox.ac.uk/section1/tr111.htm 29–39행.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "ninsikila-dilmun",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "딜문 1–4, 11–39행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section1/tr111.htm",
+          "location": "29–39행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "딜문 1–4, 11–39행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section1/tr111.htm",
+          "location": "29–39행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "dilmun-enki-ninhursanga",
+          "title": "엔키와 닌후르상가의 딜문",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [
+        {
+          "candidate_key": "nin-sikil-timber",
+          "reason": "표기·전승 차이; 동일 인물인지 미확인"
+        }
+      ],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "7c007548-4bb6-56ca-a00f-fc4c61ba3819",
+    "title": "이갈림",
+    "body": "구데아가 닌기르수에게 소개한 아들로 에닌누의 질서와 집의 안전, 올바른 자를 돕는 직무를 맡는다. 기존 갈라림·둔사가 묶음과 표기 및 동일성 확인 필요. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 944–956행.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "igalim-temple-steward",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "944–956행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "944–956행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "galalim-dunsaga",
+          "title": "갈라림과 둔사가",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "57b89a13-cbca-5c3a-a60a-a117013c0a17",
+    "title": "슐샤가",
+    "body": "구데아가 닌기르수에게 소개한 에닌누의 맏아들. 씻는 물, 술, 제물과 신을 깨우는 봉사를 맡는다. 기존 인물 묶음과 중복 가능. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 957–970행.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "shul-shaga-purification",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "957–970행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "957–970행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "galalim-dunsaga",
+          "title": "갈라림과 둔사가",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "47bc32ed-7c18-5b33-82f0-c5f78c645881",
+    "title": "쿠르슈나부루암",
+    "body": "구데아가 닌기르수에게 소개한 주인의 두 번째 장군이다. 직전 전투 대목의 본문은 손상되거나 빠진 행이 있을 수 있다고 판본이 밝힌다. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 990–992행.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "kur-shuna-buruam",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "990–992행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "990–992행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "war-commanders",
+          "title": "루갈쿠르두브와 전투의 보좌자들",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "8a99803e-5a31-59d4-b390-466bf617dcc1",
+    "title": "루갈시사",
+    "body": "라가시를 위한 간구와 기도, 구데아의 생명을 비는 역할을 맡아 닌기르수에게 소개되는 조언자다. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 993–1005행.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "lugal-sisa-adviser",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "993–1005행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "993–1005행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "war-commanders",
+          "title": "루갈쿠르두브와 전투의 보좌자들",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "94c25b0f-8001-5350-ba34-d1bfa5bac19c",
+    "title": "킨다지드",
+    "body": "닌기르수의 침실 에두가를 담당하며 씻김과 잠자리 봉사를 맡는다. 기존 시중 인물 묶음과 중복 가능. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 1015–1023행.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "kinda-zid-bedchamber",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "1015–1023행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "1015–1023행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "chamber-messengers",
+          "title": "사칸사바르와 우루지",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "63eef766-1b65-596e-b3c1-4d9738099327",
+    "title": "루갈이기후슈",
+    "body": "슬픔을 거두고 주인의 마음을 달래는 직무를 지닌 닌기르수의 발라그 북이다. 기존 우슘갈칼람마 북과 이름을 합치지 않는다. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 1048–1057행.",
+    "cardType": "object",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "lugal-igihush-drum",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "1048–1057행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "1048–1057행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": [
+        "기존 우슘갈칼람마는 수금으로 표기됨. 후보의 기존 북이라는 표현은 기존 카드와 불일치하므로 사실 및 악기명 재검토 필요."
+      ]
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "herd-music-officials",
+          "title": "가축과 악사를 맡은 이들",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        },
+        {
+          "source_key": "ushumgalkalamma",
+          "title": "우슘갈칼람마",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "ece41f9a-93f9-561d-800f-7bbe6002e7eb",
+    "title": "기슈바르에드",
+    "body": "구에디나의 농부이자 엔릴의 측량관으로, 들판과 수로를 풍요롭게 하고 곡식 수확을 돌본다. 기존 구에디나 관리 묶음과 중복 가능. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 1070–1081행.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "gishbar-ed-farmer",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "1070–1081행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "1070–1081행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "guedin-management",
+          "title": "구에딘의 농경·어업과 관리",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "a14a47ba-c9a5-51e7-9ccf-f84e601b99b1",
+    "title": "라마의 어업 관리",
+    "body": "구에디나 어업 감독으로 늪의 물고기와 갈대 산출을 전령에게 보고받아 닌기르수에게 알리는 일을 맡는다. 기존 구에디나 관리 묶음과 중복 가능. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 1082–1087행.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "lama-fisheries-inspector",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "1082–1087행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "1082–1087행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "guedin-management",
+          "title": "구에딘의 농경·어업과 관리",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "e2e12937-a3aa-57a8-82a6-87fa96da881e",
+    "title": "딤갈압수",
+    "body": "구에디나의 전령으로 들판의 새와 짐승이 번식하도록 관리한다. 기존 구에디나 관리 묶음과 중복 가능. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 1088–1099행.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "dimgal-abzu-herald",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "1088–1099행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "1088–1099행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "guedin-management",
+          "title": "구에딘의 농경·어업과 관리",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  },
+  {
+    "id": "a0a1390e-4809-57df-92fb-dacf2f4b4733",
+    "title": "루갈엔누이리쿠가캄",
+    "body": "도시와 정착지 건립, 이리쿠그 성벽의 경비소를 세우는 직무를 맡는다. 출전: https://etcsl.orinst.ox.ac.uk/section2/tr217.htm 1100–1106행.",
+    "cardType": "character",
+    "provenance": {
+      "segment": "sumerian-mythology",
+      "candidate_key": "lugal-ennu-irikugakam",
+      "input_file": "미게시-임시자료:myth/sumerian-mythology.json",
+      "input_sha256": "00212ef5f538dcb19f1ef9f39e667e521c935d794f0da226deb156a35704be5f",
+      "source_baseline_ref": "b3e8cb6383aee140630d86e424e228a4557d20da",
+      "edition": "ETCSL 영어 번역 (입력 추출자 보고; 해당 URL 및 구절 참조)",
+      "evidence": [
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "1100–1106행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        },
+        {
+          "unit": "ETCSL 대체 판본 원통 B, 815–1363행",
+          "url": "https://etcsl.orinst.ox.ac.uk/section2/tr217.htm",
+          "location": "1100–1106행",
+          "excerpt_status": "사용자 선택에 따라 공개본에서 생략; 로컬 원본에는 보존"
+        }
+      ],
+      "translation_status": "한국어 비공식 요약; 입력 추출자 작성, 독립 감수 미실시",
+      "review_notes": []
+    },
+    "duplicate_review": {
+      "existing_related_candidates": [
+        {
+          "source_key": "guedin-management",
+          "title": "구에딘의 농경·어업과 관리",
+          "reason": "기존 묶음·관련 장면 또는 판본 차이와 내용이 겹칠 가능성; 동일성 및 범위 확인 필요"
+        }
+      ],
+      "runtime_exact_title_and_type": [],
+      "input_related_candidates": [],
+      "resolution": "미판정; 기존 카드와 별도로 보존"
+    }
+  }
+]

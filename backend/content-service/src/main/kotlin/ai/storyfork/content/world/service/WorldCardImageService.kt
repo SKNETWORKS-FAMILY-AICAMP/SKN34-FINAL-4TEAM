@@ -43,10 +43,10 @@ class WorldCardImageService(
         return WorldCardImageResponse(id, image.contentType)
     }
 
-    /** 소유자에게 저장된 이미지를 돌려준다. 남의 세계관은 404(WorldNotFound), 없는 ID·다른 세계관의 ID는 404(ContentFailure)다. */
+    /** 소유자에게 저장된 이미지를 돌려준다. 남의·지운 세계관은 404(WorldNotFound), 없는 ID·다른 세계관의 ID는 404(ContentFailure)다. */
     fun read(worldId: UUID, subject: UUID, imageId: UUID): WorldCoverImage {
         val row = tx {
-            worlds.findById(worldId).orElse(null)?.takeIf { it.ownerSubject == subject } ?: throw WorldNotFound()
+            worlds.findById(worldId).orElse(null)?.takeIf { it.ownerSubject == subject && it.deletedAt == null } ?: throw WorldNotFound()
             images.findById(imageId).orElse(null)?.takeIf { it.worldId == worldId } ?: throw ContentFailure(404, "카드 이미지를 찾을 수 없습니다.")
         }
         return WorldCoverImage(coverStorage { storage.read(row.objectKey).bytes }, row.contentType)

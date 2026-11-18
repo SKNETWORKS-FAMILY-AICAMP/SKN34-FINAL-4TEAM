@@ -1,0 +1,116 @@
+{
+  "genre": "sports_fantasy",
+  "worldId": "1625407b-9bf9-5946-88c2-ca911a6e1466",
+  "relationships": [
+    {
+      "id": "ff30a632-bc5a-593f-bf5f-caccff3b17f7",
+      "sourceCardId": "508bd4e7-ee6a-5dc3-bdfd-bca00bbc0f6c",
+      "targetCardId": "ae9d6d37-b8a9-5c70-aff8-c7287a724e20",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 한정호는 도윤의 아버지다. 근거 카드 ID: 508bd4e7-ee6a-5dc3-bdfd-bca00bbc0f6c",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3bffa943-49fd-58c5-b3c1-d7cdc6b704dc",
+      "sourceCardId": "ad12d095-668f-5f0e-ad5b-2883b6520b5d",
+      "targetCardId": "ae9d6d37-b8a9-5c70-aff8-c7287a724e20",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 박은영은 도윤의 어머니다. 근거 카드 ID: ad12d095-668f-5f0e-ad5b-2883b6520b5d",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3a68b3e6-e8e6-508e-ae4b-59c1c228aa50",
+      "sourceCardId": "c5e987a7-b25c-5a65-90e0-32f4da98b7c5",
+      "targetCardId": "ae9d6d37-b8a9-5c70-aff8-c7287a724e20",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 한소윤은 도윤의 여동생이다. 근거 카드 ID: c5e987a7-b25c-5a65-90e0-32f4da98b7c5",
+      "label": "여동생",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "45b10015-6692-5492-ae26-da07d77e1670",
+      "sourceCardId": "803839e6-3583-5d63-acfc-75a567c7a62c",
+      "targetCardId": "ae9d6d37-b8a9-5c70-aff8-c7287a724e20",
+      "category": "emotional",
+      "body": "창작 세계관의 허구 설정: 서민규는 도윤의 부족했던 수비 가담 때문에 그의 갑작스러운 협조를 쉽게 믿지 않는다. 근거 카드 ID: 803839e6-3583-5d63-acfc-75a567c7a62c",
+      "label": "수비 협조 불신",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "955beb0e-563c-56aa-96fb-c1cce738e47c",
+      "sourceCardId": "3b01d9c7-e7c9-5020-889d-7f9fbda0cb66",
+      "targetCardId": "ae9d6d37-b8a9-5c70-aff8-c7287a724e20",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 이주희는 도윤이 부상 불안만으로 훈련량을 혼자 조정하는 일을 경계한다. 근거 카드 ID: 3b01d9c7-e7c9-5020-889d-7f9fbda0cb66",
+      "label": "훈련 관리",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "35fa2678-4108-5719-8ebd-e686287925ee",
+      "sourceCardId": "ae9d6d37-b8a9-5c70-aff8-c7287a724e20",
+      "targetCardId": "2fe01210-b72f-5e42-937d-c02b5fb0cc6e",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 한도윤은 인천 하버스 U-18 소속이다. 근거 카드 ID: 2fe01210-b72f-5e42-937d-c02b5fb0cc6e",
+      "label": "소속",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "dbc75d9f-3f5a-5722-aed3-b1ac493d6d8d",
+      "sourceCardId": "48e63199-5235-5b76-b53d-4bfc832c5efa",
+      "targetCardId": "9821c4e1-4abb-5644-9e22-6f6f2bcbcf31",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 최도혁은 인천 하버스 1군 감독이다. 근거 카드 ID: 48e63199-5235-5b76-b53d-4bfc832c5efa",
+      "label": "감독",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7ae80e99-5486-5bd8-9b07-6e0e522c9586",
+      "sourceCardId": "48af741e-8feb-5985-9ed0-0641900ab5f5",
+      "targetCardId": "f61508ed-e73f-5d74-8dc5-cb9140b7a3ff",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 루카스 바레라는 SC 포르투스를 이끈다. 근거 카드 ID: f61508ed-e73f-5d74-8dc5-cb9140b7a3ff",
+      "label": "감독",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "98807aa3-7fdb-5e07-9735-e4aa820da78a",
+      "sourceCardId": "ae9d6d37-b8a9-5c70-aff8-c7287a724e20",
+      "targetCardId": "6c9cfb40-acf4-5798-a8f7-991699819de5",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 도윤은 전생의 유소년 평가전에서 두 골을 넣었으나 방출되었다. 근거 카드 ID: 6c9cfb40-acf4-5798-a8f7-991699819de5",
+      "label": "전생 방출",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e58ccf77-68e9-5966-8320-1c4715d585af",
+      "sourceCardId": "ae9d6d37-b8a9-5c70-aff8-c7287a724e20",
+      "targetCardId": "4b3d85a5-3812-5455-80f4-d271e291ac01",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 도윤은 전생에 스물네 살에 부상으로 장기간 경기에 나서지 못했다. 근거 카드 ID: 4b3d85a5-3812-5455-80f4-d271e291ac01",
+      "label": "전생 부상",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7fe8cc8f-d1e9-5646-af77-b6861d2b34db",
+      "sourceCardId": "ae9d6d37-b8a9-5c70-aff8-c7287a724e20",
+      "targetCardId": "f52bf3ec-bdcd-55c4-a1d4-bcb46c4ecc98",
+      "category": "structural",
+      "body": "창작 세계관의 허구 설정: 도윤은 전생에 프로에서 뛰고 은퇴한 뒤 유소년 지도와 영상 분석을 했다. 근거 카드 ID: f52bf3ec-bdcd-55c4-a1d4-bcb46c4ecc98",
+      "label": "전생 경력",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ]
+}

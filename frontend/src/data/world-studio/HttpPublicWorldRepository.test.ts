@@ -14,12 +14,16 @@ const world = (extra: Record<string, unknown> = {}) => ({
     { id: 'c-2', title: '새벽항', text: '오래된 항구', cardType: 'location', aliases: [], tags: [], imageId: null },
   ],
   relationships: [{ id: 'r-1', sourceCardId: 'c-1', targetCardId: 'c-2', label: '수호' }],
-  relationshipStatus: 'current', ...extra,
+  relationshipStatus: 'current', linkedWork: null, ...extra,
 })
 const respond = (body: unknown, status = 200) => vi.fn(async (_url: RequestInfo | URL, _init?: RequestInit) => Response.json(body, { status }))
 const FORMAT = '서버 응답 형식을 확인할 수 없어요.'
 
 describe('공개 세계관 목록 읽기 (공개 API, 인증 없음)', () => {
+  it('관계 수 확인 실패(null)는 0으로 바꾸지 않는다', async () => {
+    const result = await new HttpPublicWorldRepository(respond(page({ items: [summary({ relationshipCount: null }), summary({ id: 'w-2', relationshipCount: 0 })] }))).list({ page: 0, size: 24 })
+    expect(result.items.map((item) => item.relationshipCount)).toEqual([null, 0])
+  })
   it('장르·쪽·크기를 쿼리로 보내고 응답을 목록으로 바꾼다', async () => {
     const fetcher = respond(page({ items: [summary(), summary({ id: 'w-2', genre: null, cardCount: 0, relationshipCount: 0 })], total: 2 }))
     const result = await new HttpPublicWorldRepository(fetcher).list({ genre: 'fantasy', page: 0, size: 24 })
@@ -78,6 +82,38 @@ describe('공개 세계관 목록 읽기 (공개 API, 인증 없음)', () => {
 })
 
 describe('공개 세계관 상세 읽기', () => {
+  it('관계 분류를 보존하고 이전 응답·null을 허용하며 잘못된 값은 거절한다', async () => {
+    const relation = world().relationships[0]
+    for (const category of ['structural', 'emotional', null] as const) {
+      const result = await new HttpPublicWorldRepository(respond(world({ relationships: [{ ...relation, category }] }))).get('w-1')
+      expect(result?.relationships[0].category).toBe(category)
+    }
+    await expect(new HttpPublicWorldRepository(respond(world({ relationships: [{ ...relation, category: 'bad' }] }))).get('w-1')).rejects.toThrow(FORMAT)
+  })
+  it('관계 방향을 보존하고 이전 응답·null은 미상이며 잘못된 값은 거절한다', async () => {
+    const relations = world().relationships
+    const withDirection = (direction: unknown) => world({ relationships: [{ ...relations[0], direction }] })
+    for (const direction of ['directed', 'symmetric', null] as const) {
+      const result = await new HttpPublicWorldRepository(respond(withDirection(direction))).get('w-1')
+      expect(result?.relationships[0].direction).toBe(direction)
+    }
+    expect((await new HttpPublicWorldRepository(respond(world())).get('w-1'))?.relationships[0].direction).toBeUndefined()
+    await expect(new HttpPublicWorldRepository(respond(withDirection('other'))).get('w-1')).rejects.toThrow(FORMAT)
+  })
+  it('관계 본문과 극성을 읽고 잘못된 값은 거절한다', async () => {
+    const relationship = { ...world().relationships[0], body: '원문\n설명', polarity: 'denied' }
+    const found = await new HttpPublicWorldRepository(respond(world({ relationships: [relationship] }))).get('w-1')
+    expect(found?.relationships[0]).toMatchObject({ body: '원문\n설명', polarity: 'denied' })
+    for (const bad of [{ ...relationship, body: 1 }, { ...relationship, polarity: 'unknown' }]) await expect(new HttpPublicWorldRepository(respond(world({ relationships: [bad] }))).get('w-1')).rejects.toThrow(FORMAT)
+  })
+  it('공개 카드 만 장과 관계 천 개 이상을 절삭 없이 읽는다', async () => {
+    const cards = Array.from({ length: 10000 }, (_, i) => ({ id: `c-${i}`, title: `설정 ${i}`, text: `# 원문\n출처 ${i}`, cardType: 'character', aliases: [], tags: [] }))
+    const relationships = Array.from({ length: 1001 }, (_, i) => ({ id: `r-${i}`, sourceCardId: `c-${i}`, targetCardId: `c-${i + 1}`, label: '관계' }))
+    const result = await new HttpPublicWorldRepository(respond(world({ cards, relationships }))).get('w-1')
+    expect(result?.cards).toHaveLength(10000)
+    expect(result?.cards[9999].text).toBe('# 원문\n출처 9999')
+    expect(result?.relationships).toHaveLength(1001)
+  })
   it('id를 경로에 싣고 카드·관계·관계 상태를 그대로 돌려준다', async () => {
     const fetcher = respond(world())
     const found = await new HttpPublicWorldRepository(fetcher).get('w-1')
@@ -91,6 +127,17 @@ describe('공개 세계관 상세 읽기', () => {
     const { hasCover: _kept, ...withoutField } = world() // 필드가 없던 옛 응답
     expect((await new HttpPublicWorldRepository(respond(withoutField)).get('w-1'))?.hasCover).toBe(false)
     await expect(new HttpPublicWorldRepository(respond(world({ hasCover: 1 }))).get('w-1')).rejects.toThrow(FORMAT)
+  })
+
+  it('연결된 공개 소설(linkedWork)을 그대로 읽고, 없거나 null이면 연결 없음(null)으로 읽으며, 모양이 어긋나면 던진다', async () => {
+    const linkedWork = { id: 'work-1', title: '달무리 항해기', authorNickname: '달무리', hasCover: true }
+    expect((await new HttpPublicWorldRepository(respond(world({ linkedWork }))).get('w-1'))?.linkedWork).toEqual(linkedWork)
+    expect((await new HttpPublicWorldRepository(respond(world({ linkedWork: null }))).get('w-1'))?.linkedWork).toBeNull()
+    const { linkedWork: _kept, ...withoutField } = world() // 필드가 없던 옛 응답
+    expect((await new HttpPublicWorldRepository(respond(withoutField)).get('w-1'))?.linkedWork).toBeNull()
+    for (const bad of [{ ...linkedWork, title: undefined }, { ...linkedWork, hasCover: 'yes' }, { ...linkedWork, id: '' }, 'work-1']) {
+      await expect(new HttpPublicWorldRepository(respond(world({ linkedWork: bad }))).get('w-1')).rejects.toThrow(FORMAT)
+    }
   })
 
   it('카드의 imageId를 그대로 읽고, 필드가 없거나 null이면 이미지 없음(null)으로 읽으며, 문자열이 아니면 던진다', async () => {

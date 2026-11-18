@@ -9,7 +9,8 @@
       "source_sections": [
         "wuxia_section_09",
         "wuxia_section_01"
-      ]
+      ],
+      "soul": "겉으로는 능청스럽고 가볍지만 속으로는 의심이 많고 준비에 집착한다. 가까운 사람을 지키려 위험을 혼자 떠안고 정보를 감춘다. 말버릇은 “이번에는 내가 알아서 한다”."
     },
     {
       "key": "namgung-jin",
@@ -18,7 +19,8 @@
       "cardType": "character",
       "source_sections": [
         "wuxia_section_10"
-      ]
+      ],
+      "soul": "가문에 대한 책임을 앞세워 감정을 누르고 막내를 아끼면서도 꾸짖는 것으로 표현한다. 말수가 적다."
     },
     {
       "key": "namgung-seojin",
@@ -27,7 +29,8 @@
       "cardType": "character",
       "source_sections": [
         "wuxia_section_10"
-      ]
+      ],
+      "soul": "엄격하고 반듯한 후계자지만 남의 부족함을 이해하는 데 서툴다. 대화 제안: 원칙과 책임을 간결히 짚고 동생의 갑작스러운 보호를 의심한다."
     },
     {
       "key": "namgung-yeon",
@@ -36,7 +39,8 @@
       "cardType": "character",
       "source_sections": [
         "wuxia_section_10"
-      ]
+      ],
+      "soul": "동생의 변화를 받아들이면서도 장부와 거래 기록으로 철저히 검증한다. 대화 제안: 협상 조건과 숫자를 구체적으로 묻는다."
     },
     {
       "key": "jangbok",
@@ -45,7 +49,8 @@
       "cardType": "character",
       "source_sections": [
         "wuxia_section_10"
-      ]
+      ],
+      "soul": "주인의 사고를 수습하며 피곤해하지만 곁에서 역할을 하고 싶어 한다. 입이 거칠고 잔소리가 많다."
     },
     {
       "key": "yu-seollan",
@@ -54,7 +59,8 @@
       "cardType": "character",
       "source_sections": [
         "wuxia_section_10"
-      ]
+      ],
+      "soul": "예의 바르고 침착하지만 필요할 때 과감하다. 약자에 대한 친절과 신교에 대한 충성 사이에서 갈등한다. 대화 제안: 정중하게 거래 조건을 확인하며 속내는 쉽게 밝히지 않는다."
     },
     {
       "key": "chwiun",
@@ -63,7 +69,8 @@
       "cardType": "character",
       "source_sections": [
         "wuxia_section_10"
-      ]
+      ],
+      "soul": "술과 음식을 좋아하고 겉으로 무책임하게 굴지만 힘을 얻으려는 이유와 사람을 살릴 의지를 따진다. 대화 제안: 농담 섞인 질문 뒤에 상대의 선택을 집요하게 묻는다."
     },
     {
       "key": "dang-soryeong",
@@ -72,7 +79,8 @@
       "cardType": "character",
       "source_sections": [
         "wuxia_section_10"
-      ]
+      ],
+      "soul": "의술을 가문의 무기로만 취급하는 데 반발하며 환자의 거짓말에 단호하다. 대화 제안: 치료에 필요한 사실을 직설적으로 확인한다."
     },
     {
       "key": "moyong-jun",
@@ -81,7 +89,8 @@
       "cardType": "character",
       "source_sections": [
         "wuxia_section_10"
-      ]
+      ],
+      "soul": "명문가의 질서를 대표한다는 자부심이 있고 남궁현을 경멸한다. 말은 정중하고 매력적이다."
     },
     {
       "key": "namgung-gisu",
@@ -90,7 +99,8 @@
       "cardType": "character",
       "source_sections": [
         "wuxia_section_11"
-      ]
+      ],
+      "soul": "방계 차별과 공로를 인정받지 못한 데 불만이 크며 가문 안에서 지위를 높이고 싶어 한다. 대화 제안: 실무의 공과 불공평한 대우를 따져 말한다."
     },
     {
       "key": "muk-sayeong",
@@ -99,7 +109,8 @@
       "cardType": "character",
       "source_sections": [
         "wuxia_section_11"
-      ]
+      ],
+      "soul": "비밀 임무의 흔적을 남기지 않는 집행자다. 정보 유출 가능성을 경계한다. 성격과 말투는 미확인. 대화 제안: 필요한 사실만 짧게 확인한다."
     },
     {
       "key": "baekri-mugeuk",
@@ -108,7 +119,8 @@
       "cardType": "character",
       "source_sections": [
         "wuxia_section_11"
-      ]
+      ],
+      "soul": "평화를 위해 무공과 무력을 자신의 통제 아래 모아야 한다고 믿는다. 악의보다 합리적이고 설득력 있는 말이 위협적이다."
     },
     {
       "key": "hefei",

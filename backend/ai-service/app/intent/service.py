@@ -12,11 +12,12 @@ from pydantic import ValidationError
 from app.intent import agent
 from app.intent.errors import IntentFailure
 from app.intent.models import IntentResult, IntentStep
-from app.intent.prompt import (CAPABILITY_NAMES, CLARIFY_MESSAGE, FEATURES, FINDING_FEATURES, GUARD_QUESTION,
-                               REJECT_MESSAGES, ROUTE_QUESTIONS)
+from app.intent.prompt import (CAPABILITY_ALIASES, CAPABILITY_NAMES, CLARIFY_MESSAGE, FEATURES, FINDING_FEATURES, GUARD_QUESTION,
+                               REJECT_MESSAGES, ROUTE_QUESTIONS, WRITING_TASK_QUESTION)
 
 _PLAIN = re.compile(r'[\s·ㆍ・]')  # 보기 이름을 알아볼 때 공백·가운뎃점(· ㆍ ・) 차이는 무시한다
 _BY_NAME = {_PLAIN.sub('', name): feature for feature, name in CAPABILITY_NAMES.items()}
+_BY_NAME.update({_PLAIN.sub('', name): feature for name, feature in CAPABILITY_ALIASES.items()})
 
 
 def clarified(request: str) -> str | None:
@@ -25,7 +26,7 @@ def clarified(request: str) -> str | None:
 
 
 def route(request: str, operation: str | None = None, materials: list[str] = (), history: list[str] = ()) -> IntentResult:
-    """UI에서 고른 operation이 있으면 가드레일만 묻고 그 기능으로 확정한다. 모델 실패·규격 밖 응답은 IntentFailure.
+    """UI에서 고른 operation이 있으면 가드레일만(집필·수정이면 작업 종류도) 묻고 그 기능으로 확정한다. 모델 실패·규격 밖 응답은 IntentFailure.
 
     자유 입력은 이번 요청만으로 먼저 분류한다. 이전 요청을 같이 보내면 이미 끝난 요청에 분류가 끌려가기 때문이다. 되묻기(clarify)가 나왔을 때만
     history(같은 대화의 이전 요청)를 붙여 한 번 더 묻는다. "그거 고쳐줘" 같은 지칭은 이전 요청이 있어야 풀린다.
@@ -39,16 +40,19 @@ def route(request: str, operation: str | None = None, materials: list[str] = (),
 
 
 def _decide(request: str, materials: list[str], operation: str | None, history: list[str]) -> IntentResult:
-    answers = agent.decide(request, list(materials), [GUARD_QUESTION] if operation else ROUTE_QUESTIONS, list(history))
+    questions = ROUTE_QUESTIONS if not operation else [GUARD_QUESTION] + ([WRITING_TASK_QUESTION] if operation == 'writing_editing' else [])
+    answers = agent.decide(request, list(materials), questions, list(history))
+    task = None if answers.get('writing_task', 'unclear') == 'unclear' else answers['writing_task']
     try:
         if answers['guard'] != 'none':
             return IntentResult(status='rejected', reason=answers['guard'], message=REJECT_MESSAGES[answers['guard']])
         if operation:
-            return IntentResult(status='route', steps=[IntentStep(feature=operation, when='always')])
+            return IntentResult(status='route', steps=[IntentStep(feature=operation, when='always', task=task)])
         chosen = sorted((answers[f], f) for f in FEATURES if answers[f] != 'none')  # 순서 값은 한 자리(1~3)라 문자열 정렬이 곧 순서다.
         check = None if answers['review_check'] == 'unclear' else answers['review_check']
         steps = [IntentStep(feature=f, when='if_issues_found' if p.endswith('_if_issues') else 'always',
-                            check=check if f == 'review' else None) for p, f in chosen]
+                            check=check if f == 'review' else None, task=task if f == 'writing_editing' else None)
+                 for p, f in chosen]
         # 기능별 답이 독립이라 상대 순서만 쓴다. 한 순서에 여러 기능이 오거나, 조건부 작업 앞에 문제를 찾는 작업이 없으면
         # 모호하다고 보고 확인을 묻는다.
         if (answers['clarity'] == 'ambiguous' or not steps or len({p[0] for p, _ in chosen}) != len(chosen)

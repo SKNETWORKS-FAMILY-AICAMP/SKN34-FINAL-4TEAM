@@ -159,6 +159,7 @@ const summaries = z.array(
     description: z.string(),
     draftRevision: revision,
     relationshipStatus: z.enum(['current', 'incomplete', 'migration_required']),
+    cardCount: z.number().int().nonnegative().default(0),
     visibility: visibility.default('private'),
     genre: genre.default(null),
     hasCover: z.boolean().default(false),
@@ -266,6 +267,9 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
   private session = authVersion()
   private pendingCreate?: { id: string; name: string; description: string }
   private readonly pending = new Map<string, { input: string; body: string }>()
+  private readonly baselines = new Map<string, StudioWorld>()
+  private baselineKey(id:string,episode?:number){return `${id}:${episode ?? 'latest'}`}
+  private remember(value:StudioWorld,episode?:number){this.baselines.set(this.baselineKey(value.id,episode),structuredClone(value))}
   constructor(fetcher?: typeof fetch) {
     this.fetcher = fetcher
   }
@@ -273,6 +277,7 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
     if (this.session !== authVersion()) {
       this.session = authVersion()
       this.pending.clear()
+      this.baselines.clear()
       this.pendingCreate = undefined
     }
   }
@@ -342,6 +347,20 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
       catch(error){if(error instanceof Error&&error.cause==='WORLD_WRITE_REJECTED')localStorage.removeItem(storageKey);throw error}
     },true)
   }
+  /** 확정 버전의 카드로 초안의 카드만 되돌린다. 응답은 되돌린 초안이다(화면이 곧 다시 읽어 저장 기준을 정한다). 거절(없는 버전 404·낡은 초안 409·관계가 이어진 설정 409)은 서버의 이유를 그대로 알린다. */
+  async restoreRevision(id: string, revisionId: string, expected: number, signal?: AbortSignal): Promise<StudioWorld> {
+    this.checkSession()
+    uuid.parse(id)
+    uuid.parse(revisionId)
+    const body = JSON.stringify({ expectedDraftRevision: expected })
+    return world(await this.request('/' + id + '/revisions/' + revisionId + '/restore', draft, 'POST', body, signal), id)
+  }
+  /** 세계관을 지운다(204, 본문 없음). 연결된 소설이 있으면 409, 남의 세계관·이미 지운 세계관은 404이며 서버의 이유를 그대로 알린다. */
+  async deleteStudio(id: string, signal?: AbortSignal): Promise<void> {
+    this.checkSession()
+    uuid.parse(id)
+    await this.request('/' + id, z.undefined(), 'DELETE', undefined, signal)
+  }
   async listStudio(signal?: AbortSignal): Promise<StudioWorld[]> {
     this.checkSession()
     const rows = await this.request('', summaries, 'GET', undefined, signal)
@@ -354,6 +373,7 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
       genre: r.genre,
       hasCover: r.hasCover,
       linkedWorkId: r.linkedWorkId,
+      cardCount: r.cardCount,
       settings: [],
       analysis: null,
       relationshipStatus: r.relationshipStatus,
@@ -363,7 +383,9 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
     this.checkSession()
     uuid.parse(id)
     const query = episode === undefined ? '' : '?episode=' + episode
-    return world(await this.request('/' + id + query, draft, 'GET', undefined, signal), id)
+    const loaded=world(await this.request('/' + id + query, draft, 'GET', undefined, signal), id)
+    this.remember(loaded,episode)
+    return loaded
   }
   /** 공개 범위·장르는 초안 저장과 별개로 바로 적용된다. 공개로 설정해도 확정 버전이 없으면 `listed`가 false다. */
   async setPublication(id: string, publication: WorldPublicationInput, signal?: AbortSignal): Promise<WorldPublication> {
@@ -432,6 +454,7 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
         body.id,
       )
       this.pendingCreate = undefined
+      this.remember(saved)
       return saved
     } catch (error) {
       if (error instanceof Error && error.cause === 'WORLD_WRITE_REJECTED') {
@@ -458,15 +481,26 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
         '저장 완료가 미확인입니다. 먼저 같은 입력으로 다시 저장하세요. 변경된 입력으로 미완료 요청을 덮어쓰지 않습니다.',
       )
     }
-    const body = previous?.body ??
-      JSON.stringify({
+    let body=previous?.body
+    if(!body){
+      const baseline=this.baselines.get(this.baselineKey(value.id,episode))
+      if(!baseline || baseline.version!==value.version) throw new Error('저장 기준을 확인할 수 없어요. 입력을 보존하고 같은 회차의 최신 세계관을 다시 불러와 주세요.',{cause:'WORLD_WRITE_REJECTED'})
+      const before=new Map(baseline.settings.map(row=>[row.item.id,row]))
+      const after=new Map(value.settings.map(row=>[row.item.id,row]))
+      if(after.size!==value.settings.length)throw new Error('설정 ID가 중복되어 저장할 수 없어요.',{cause:'WORLD_WRITE_REJECTED'})
+      const changed=value.settings.filter(row=>JSON.stringify(row)!==JSON.stringify(before.get(row.item.id)))
+      const removed=baseline.settings.filter(row=>!after.has(row.item.id) || (row.item.kind==='relation')!==(after.get(row.item.id)?.item.kind==='relation'))
+      const cards=[...changed.filter(row=>row.item.kind!=='relation').map(row=>({row,lifecycle:'active'})),...removed.filter(row=>row.item.kind!=='relation').map(row=>({row,lifecycle:'removed'}))]
+      const relationships=[...changed.filter(row=>row.item.kind==='relation').map(row=>relationship(row)),...removed.filter(row=>row.item.kind==='relation').map(row=>({...relationship(row),lifecycle:'removed'}))]
+      if(cards.length>1000 || relationships.length>1000)throw new Error('한 번에 저장할 수 있는 변경 한도를 넘었어요. 입력을 보존하고 변경을 줄여 주세요.',{cause:'WORLD_WRITE_REJECTED'})
+      body=JSON.stringify({
         expectedDraftRevision: value.version,
         key: crypto.randomUUID(),
-        replace: true,
+        replace: false,
         episode,
         name: value.name,
         description: value.description,
-        cards: value.settings.filter((s) => s.item.kind !== 'relation').map((row) => ({
+        cards: cards.map(({row,lifecycle}) => ({
           id: row.item.id,
           title: row.item.title,
           body: row.item.text,
@@ -477,10 +511,14 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
           tags: row.tags,
           semanticMetadata: metadataOf(row),
           visibility: row.visibility ?? 'private',
-          lifecycle: 'active',
+          lifecycle,
         })),
-        relationships: value.settings.filter((s) => s.item.kind === 'relation').map(relationship),
+        relationships,
       })
+      // 서버 재직렬화의 null 필드와 UTF-16 이스케이프에 여유를 둔다.
+      const size=new TextEncoder().encode(body.replace(/[\uD800-\uDFFF]/g,c=>`\\u${c.charCodeAt(0).toString(16).padStart(4,'0')}`)).length
+      if(size>1_999_000)throw new Error('한 번에 저장할 수 있는 요청 크기 한도를 넘었어요. 입력을 보존하고 변경을 줄여 주세요.',{cause:'WORLD_WRITE_REJECTED'})
+    }
     this.pending.set(value.id, { input, body })
     try {
       const saved = world(
@@ -489,6 +527,7 @@ export class HttpWorldStudioRepository implements WorldStudioRepository {
       )
       if (saved.version !== value.version + 1) throw invalid()
       this.pending.delete(value.id)
+      this.remember(saved,episode)
       return saved
     } catch (error) {
       if (error instanceof Error && error.cause === 'WORLD_WRITE_REJECTED') {

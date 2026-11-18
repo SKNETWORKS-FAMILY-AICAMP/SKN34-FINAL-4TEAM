@@ -1,0 +1,1986 @@
+{
+  "genre": "japan_history",
+  "worldId": "8c3a276f-dda5-5b5d-89da-55221ee3d710",
+  "relationships": [
+    {
+      "id": "14c159b0-5644-5c4f-b8a3-52305719e35f",
+      "sourceCardId": "91eb2a94-bddd-59c6-9645-feb19293d062",
+      "targetCardId": "d4ee2c76-b27c-5fa7-9e11-7f39d74a43fb",
+      "category": "structural",
+      "body": "창세 전승에서 이자나기와 이자나미는 부부다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 989–1065행, https://www.gutenberg.org/ebooks/29798",
+      "label": "부부",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "cc081eaf-ea70-558c-96fc-79bfa701d053",
+      "sourceCardId": "91eb2a94-bddd-59c6-9645-feb19293d062",
+      "targetCardId": "74453857-6eaa-567f-9a6e-e02f85197572",
+      "category": "structural",
+      "body": "전승에서 아마테라스는 이자나기의 왼눈을 씻을 때 태어났다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1052–1132행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5794976f-7938-558b-bbe2-8d8f7371f965",
+      "sourceCardId": "91eb2a94-bddd-59c6-9645-feb19293d062",
+      "targetCardId": "ccb74bf3-d7c9-5a50-b796-18e41c2302fd",
+      "category": "structural",
+      "body": "전승에서 달밤의 신은 이자나기의 오른눈을 씻을 때 태어났다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1060–1071행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d1ae0c24-fe5c-58dc-9c4a-d81b6253c4a4",
+      "sourceCardId": "91eb2a94-bddd-59c6-9645-feb19293d062",
+      "targetCardId": "9742c24a-c9da-55c8-8159-99ac2937472d",
+      "category": "structural",
+      "body": "전승에서 거센 남신은 이자나기의 코에서 태어났다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1060–1157행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4521ee80-06c6-57a1-94a6-958f3e1b3a65",
+      "sourceCardId": "9742c24a-c9da-55c8-8159-99ac2937472d",
+      "targetCardId": "501c9280-cf0e-5a89-a5e0-7d7c0091c1cc",
+      "category": "structural",
+      "body": "전승에서 거센 남신은 여덟 갈래 뱀을 죽였다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1140–1154행, https://www.gutenberg.org/ebooks/29798",
+      "label": "살해",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ee3a94d3-4a68-53ee-8091-3b5f11a04b55",
+      "sourceCardId": "74453857-6eaa-567f-9a6e-e02f85197572",
+      "targetCardId": "2ca62034-f750-5933-957b-15bbc023814e",
+      "category": "structural",
+      "body": "전승에서 하늘에서 내려온 왕자는 태양 여신의 손자다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1184–1206행, https://www.gutenberg.org/ebooks/29798",
+      "label": "조모",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4ea67ab2-897b-5463-b845-9ac148a7465a",
+      "sourceCardId": "56d62701-f064-5c4d-ab8a-9e06b2b4040d",
+      "targetCardId": "fee50719-855a-5691-b574-21756d793826",
+      "category": "structural",
+      "body": "전승에서 불빛 왕자와 불이 가라앉는 왕자는 형제다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1208–1284행, https://www.gutenberg.org/ebooks/29798",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "742509ff-876d-5fff-92d1-4a816a165dad",
+      "sourceCardId": "a22e8fa5-07d2-56b7-ace4-5a5ee81706cb",
+      "targetCardId": "fee50719-855a-5691-b574-21756d793826",
+      "category": "structural",
+      "body": "전승에서 바다의 신은 불이 가라앉는 왕자가 낚싯바늘을 찾도록 도왔다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1246–1265행, https://www.gutenberg.org/ebooks/29798",
+      "label": "도움",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a60fef6b-9e8c-5049-9157-a059d2f512de",
+      "sourceCardId": "c166f17c-1dfd-51f1-b930-63a6bf002b93",
+      "targetCardId": "fee50719-855a-5691-b574-21756d793826",
+      "category": "structural",
+      "body": "전승에서 소금의 신은 왕자에게 바다 신의 궁전으로 가는 길을 알려주었다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1224–1233행, https://www.gutenberg.org/ebooks/29798",
+      "label": "길 안내",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2c69c489-8a89-5ba0-a335-31dbfadc227d",
+      "sourceCardId": "829fdfd3-6684-5a37-90a9-c986c64e406a",
+      "targetCardId": "6c4d3790-28d0-551d-8bd4-253534de4927",
+      "category": "structural",
+      "body": "전승에서 이쓰세는 진무의 형이다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1314–1366행, https://www.gutenberg.org/ebooks/29798",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "44a30e34-41b1-5ef9-864e-92927a45efe6",
+      "sourceCardId": "a00e8f1e-4312-5a35-8eb8-35c4500005da",
+      "targetCardId": "829fdfd3-6684-5a37-90a9-c986c64e406a",
+      "category": "structural",
+      "body": "전승에서 나가스네는 이쓰세에게 화살을 쏘았다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1354–1366행, https://www.gutenberg.org/ebooks/29798",
+      "label": "공격",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ca07aca5-1e2f-5207-a39f-429c5ccbad5e",
+      "sourceCardId": "9e8d66c1-ccc5-5c01-9612-462ccf8d3be3",
+      "targetCardId": "fe0be448-9b10-5d36-ac51-a90ac0eb40c2",
+      "category": "structural",
+      "body": "전승에서 우카시 형과 동생은 형제다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1380–1386행, https://www.gutenberg.org/ebooks/29798",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d5873438-8bc1-56c3-ad41-3c83815747c8",
+      "sourceCardId": "fe0be448-9b10-5d36-ac51-a90ac0eb40c2",
+      "targetCardId": "6c4d3790-28d0-551d-8bd4-253534de4927",
+      "category": "structural",
+      "body": "전승에서 우카시 동생은 진무에게 형의 함정을 알렸다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1380–1386행, https://www.gutenberg.org/ebooks/29798",
+      "label": "경고",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8caefc19-bc77-5508-8dbf-7c786f4008ab",
+      "sourceCardId": "6c4d3790-28d0-551d-8bd4-253534de4927",
+      "targetCardId": "cf4d96af-4ea4-5588-bd0c-b473da28c3c0",
+      "category": "structural",
+      "body": "전승에서 진무는 스이제이의 아버지다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1433–1439행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d1d66c62-8548-5bfb-b33a-d2571dfb2774",
+      "sourceCardId": "cf4d96af-4ea4-5588-bd0c-b473da28c3c0",
+      "targetCardId": "c341c368-3258-522c-9ce6-12229630d5d2",
+      "category": "structural",
+      "body": "전승에서 스이제이는 안네이의 아버지다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1478–1479행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d81597c4-7871-5bea-946c-38fa4e998ca3",
+      "sourceCardId": "c341c368-3258-522c-9ce6-12229630d5d2",
+      "targetCardId": "0aaebc3b-aad5-5d8e-bb2f-9fa05144a97c",
+      "category": "structural",
+      "body": "전승에서 안네이는 이토쿠의 아버지다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1481–1482행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "38c32743-3866-50d7-9dd3-dccef45e379b",
+      "sourceCardId": "0aaebc3b-aad5-5d8e-bb2f-9fa05144a97c",
+      "targetCardId": "957d5365-d830-58b1-a2be-a9c136958594",
+      "category": "structural",
+      "body": "전승에서 이토쿠는 고쇼의 아버지다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1484–1486행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7e319b1b-1214-51a4-8f46-a326903976c1",
+      "sourceCardId": "957d5365-d830-58b1-a2be-a9c136958594",
+      "targetCardId": "7c05a59b-21d8-5703-9c57-7d8036e34917",
+      "category": "structural",
+      "body": "전승에서 고쇼는 고안의 아버지다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1488–1490행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7982adbc-80c4-5a4f-b71f-f0563dc86876",
+      "sourceCardId": "7c05a59b-21d8-5703-9c57-7d8036e34917",
+      "targetCardId": "b8535218-2404-5794-bfcc-47c5305af15d",
+      "category": "structural",
+      "body": "전승에서 고안은 고레이의 아버지다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1492–1494행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "504253ed-3d35-57f8-9cdd-21742a75d968",
+      "sourceCardId": "b8535218-2404-5794-bfcc-47c5305af15d",
+      "targetCardId": "fbaafbf6-f009-55e7-a27b-1e8b92e339b5",
+      "category": "structural",
+      "body": "전승에서 고레이는 고겐의 아버지다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1496–1497행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b8b6560b-ab65-5515-90df-ac40e135ab21",
+      "sourceCardId": "fbaafbf6-f009-55e7-a27b-1e8b92e339b5",
+      "targetCardId": "4fab3007-22d1-5825-bc4c-c6352c36f1ad",
+      "category": "structural",
+      "body": "전승에서 고겐은 가이카의 아버지다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1499–1500행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "76a365f5-814c-5272-994c-395959466d87",
+      "sourceCardId": "4fab3007-22d1-5825-bc4c-c6352c36f1ad",
+      "targetCardId": "10dc89c4-ef8e-50b4-9080-e426a93fa7a1",
+      "category": "structural",
+      "body": "전승에서 가이카는 스진의 아버지다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1502–1520행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1e87f70b-714c-5e53-9d0a-a9c2f74bd4cd",
+      "sourceCardId": "10dc89c4-ef8e-50b4-9080-e426a93fa7a1",
+      "targetCardId": "15980e26-ed93-54ea-bcb6-1ea49d6b58df",
+      "category": "structural",
+      "body": "전승에서 스진은 스이닌의 아버지다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1522–1608행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7d2ccdad-bfac-5430-9515-b8a17aeb73d3",
+      "sourceCardId": "15980e26-ed93-54ea-bcb6-1ea49d6b58df",
+      "targetCardId": "36993e0d-aaf2-5c27-8349-89f69e5b55f1",
+      "category": "structural",
+      "body": "전승에서 스이닌은 호무치와케의 아버지다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1565–1583행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f258b9a4-dc33-5db9-a4db-b8f181ea9ae7",
+      "sourceCardId": "cd25406b-0015-5812-9382-6d64a9289096",
+      "targetCardId": "15980e26-ed93-54ea-bcb6-1ea49d6b58df",
+      "category": "structural",
+      "body": "전승에서 노미노스쿠네는 스이닌에게 흙인형을 순장의 대안으로 제안했다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1599–1608행, https://www.gutenberg.org/ebooks/29798",
+      "label": "순장 대안 제안",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8e0e7d52-a2b4-5b20-9cfc-bc6ebd8a16e8",
+      "sourceCardId": "15980e26-ed93-54ea-bcb6-1ea49d6b58df",
+      "targetCardId": "5d19a46f-720d-54af-93e4-2f00a8004a0b",
+      "category": "structural",
+      "body": "전승에서 스이닌은 게이코의 아버지다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1632–1701행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d20dbf62-6ff6-50e2-90b3-a3db369c800d",
+      "sourceCardId": "5d19a46f-720d-54af-93e4-2f00a8004a0b",
+      "targetCardId": "3659f347-f886-5bc2-8735-13a8e1b7200b",
+      "category": "structural",
+      "body": "전승에서 게이코는 야마토다케의 아버지다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1632–1777행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b06fa187-4b29-50ba-a391-f2ab2ff47737",
+      "sourceCardId": "1dbee5ee-2845-549f-9779-7fd6e8d37110",
+      "targetCardId": "3659f347-f886-5bc2-8735-13a8e1b7200b",
+      "category": "structural",
+      "body": "전승에서 야마토히메는 야마토다케의 이모다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1703–1709행, https://www.gutenberg.org/ebooks/29798",
+      "label": "이모",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "690070b8-fe79-5c1b-a305-5d27b5b04c17",
+      "sourceCardId": "b6884461-312b-5814-9cee-c3c73a4a7d31",
+      "targetCardId": "3659f347-f886-5bc2-8735-13a8e1b7200b",
+      "category": "structural",
+      "body": "전승에서 미야즈 공주와 야마토다케는 혼인을 약속했다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1711–1713행, https://www.gutenberg.org/ebooks/29798",
+      "label": "혼인 약속",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2bd16139-7985-589f-9b97-c61e0b4307a3",
+      "sourceCardId": "bdf69afc-3a40-5ad9-9b55-c56911f56cc8",
+      "targetCardId": "3659f347-f886-5bc2-8735-13a8e1b7200b",
+      "category": "structural",
+      "body": "전승에서 오토타치바나는 야마토다케의 아내다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1726–1734행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아내",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6fab5520-561f-566b-bb79-3c5de4e184af",
+      "sourceCardId": "e8119285-e002-5591-90e4-141ac2a8b4b6",
+      "targetCardId": "3659f347-f886-5bc2-8735-13a8e1b7200b",
+      "category": "structural",
+      "body": "전승에서 기비노다케히토는 야마토다케와 동행했으며 그의 마지막 보고를 황제에게 전했다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1765–1775행, https://www.gutenberg.org/ebooks/29798",
+      "label": "동행자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fe2c24c1-591c-5f22-9d03-258a4aa06288",
+      "sourceCardId": "80e30d2e-1f06-55f3-adbf-d6cfa8150e8c",
+      "targetCardId": "46caf040-a57a-5af8-a5c5-a5cb7799efbc",
+      "category": "structural",
+      "body": "전승에서 진구는 오진의 어머니다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1858–1886행, https://www.gutenberg.org/ebooks/29798",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "54e556e0-1e36-505d-8e38-fc8d18d0c679",
+      "sourceCardId": "943c9a7b-7647-5cd5-b955-47c2c2fc9b85",
+      "targetCardId": "80e30d2e-1f06-55f3-adbf-d6cfa8150e8c",
+      "category": "structural",
+      "body": "전승에서 다케노우치는 진구의 원정을 도왔다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1809–1949행, https://www.gutenberg.org/ebooks/29798",
+      "label": "원정 지원",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "cdcc762f-96e2-5b96-b555-90766e224eeb",
+      "sourceCardId": "728be9f6-7f0a-5c17-84cd-ed13e53dbea6",
+      "targetCardId": "b1b5ba88-a849-5dbc-8605-2be24a1f9a15",
+      "category": "structural",
+      "body": "전승에서 백제 사절 아지키는 훗날 닌토쿠가 된 오진의 아들을 가르쳤다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1888–1893행, https://www.gutenberg.org/ebooks/29798",
+      "label": "가르침",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5f8b41e1-f433-5313-a86a-a784581f3c4d",
+      "sourceCardId": "46caf040-a57a-5af8-a5c5-a5cb7799efbc",
+      "targetCardId": "b1b5ba88-a849-5dbc-8605-2be24a1f9a15",
+      "category": "structural",
+      "body": "전승에서 오진은 닌토쿠의 아버지다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1900–1937행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "53fb24b2-0535-5b1e-96cd-b19acbed6c9d",
+      "sourceCardId": "6715c525-ffa4-54c1-a5bd-9a2609a4ea9e",
+      "targetCardId": "b1b5ba88-a849-5dbc-8605-2be24a1f9a15",
+      "category": "structural",
+      "body": "전승에서 와카이라쓰와 닌토쿠는 형제다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1900–1937행, https://www.gutenberg.org/ebooks/29798",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6c7f4a09-d628-5fc6-af45-8036bd1ac74f",
+      "sourceCardId": "b1b5ba88-a849-5dbc-8605-2be24a1f9a15",
+      "targetCardId": "137a619b-5b8a-5cb8-ab13-705d14950d17",
+      "category": "structural",
+      "body": "전승에서 닌토쿠는 인교의 아버지다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2289–2309행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "91c8af36-04a1-5022-bd4a-4775bdf989a8",
+      "sourceCardId": "137a619b-5b8a-5cb8-ab13-705d14950d17",
+      "targetCardId": "a8724bde-4925-5f3d-80ce-a310f720aaa0",
+      "category": "structural",
+      "body": "전승에서 인교는 기나시노카루의 아버지다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2321–2326행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "44b127ee-301b-5282-bbd9-34fb5f88d4ac",
+      "sourceCardId": "137a619b-5b8a-5cb8-ab13-705d14950d17",
+      "targetCardId": "e315e844-1538-56d6-9b41-9830226f1367",
+      "category": "structural",
+      "body": "전승에서 인교는 안코의 아버지다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2321–2341행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "95eb0ad7-bea3-5e3d-8863-6ea3d5955c5d",
+      "sourceCardId": "a8724bde-4925-5f3d-80ce-a310f720aaa0",
+      "targetCardId": "e315e844-1538-56d6-9b41-9830226f1367",
+      "category": "structural",
+      "body": "전승에서 기나시노카루와 안코는 계승권을 놓고 다투었다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2321–2326행, https://www.gutenberg.org/ebooks/29798",
+      "label": "계승 분쟁",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5341e06c-bf59-58cf-930f-dbe42e80fa77",
+      "sourceCardId": "e315e844-1538-56d6-9b41-9830226f1367",
+      "targetCardId": "9d32c0f2-70fa-551d-8885-a55b0ca0b2c6",
+      "category": "structural",
+      "body": "전승에서 안코는 오쿠사카를 죽였다고 전해진다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2328–2341행, https://www.gutenberg.org/ebooks/29798",
+      "label": "살해",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5773930d-564f-5bab-8f6c-cb44e52c4894",
+      "sourceCardId": "9d32c0f2-70fa-551d-8885-a55b0ca0b2c6",
+      "targetCardId": "7ce95c79-b4cd-5280-a8fb-a23838189089",
+      "category": "structural",
+      "body": "전승에서 오쿠사카는 마유와의 아버지다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2343–2360행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9b438b16-f405-5243-93d7-9a3411d37586",
+      "sourceCardId": "7ce95c79-b4cd-5280-a8fb-a23838189089",
+      "targetCardId": "e315e844-1538-56d6-9b41-9830226f1367",
+      "category": "structural",
+      "body": "전승에서 마유와는 안코를 살해했다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2343–2360행, https://www.gutenberg.org/ebooks/29798",
+      "label": "살해",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "71736eae-6b64-5e94-ba48-ac53a81b7935",
+      "sourceCardId": "2e700231-af21-5e1b-8a90-baa73212544a",
+      "targetCardId": "7ce95c79-b4cd-5280-a8fb-a23838189089",
+      "category": "structural",
+      "body": "전승에서 쓰부라는 마유와를 집에 숨겼다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2351–2360행, https://www.gutenberg.org/ebooks/29798",
+      "label": "은신 제공",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "afe3a11f-7265-5fb6-840e-2eed7886655e",
+      "sourceCardId": "4633ed1b-48f7-54ec-a495-84bad1fe08cb",
+      "targetCardId": "e315e844-1538-56d6-9b41-9830226f1367",
+      "category": "structural",
+      "body": "전승에서 유랴쿠와 안코는 형제다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2355–2367행, https://www.gutenberg.org/ebooks/29798",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e64cc661-a14d-5bef-a22f-42dedd435875",
+      "sourceCardId": "4633ed1b-48f7-54ec-a495-84bad1fe08cb",
+      "targetCardId": "d68d4972-cb63-53bd-97ed-0e3c00c6746c",
+      "category": "structural",
+      "body": "전승에서 유랴쿠는 이치노베를 살해했다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2362–2366행, https://www.gutenberg.org/ebooks/29798",
+      "label": "살해",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "78f1f30e-45b0-5cb5-a6db-da06aa10af81",
+      "sourceCardId": "4633ed1b-48f7-54ec-a495-84bad1fe08cb",
+      "targetCardId": "4ac44a13-c3a0-5e89-ba60-e2cb62f86d5d",
+      "category": "structural",
+      "body": "전승에서 유랴쿠는 세이네이의 아버지다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2439–2442행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1f740d62-c5f3-5187-8126-6a9e23fc0959",
+      "sourceCardId": "d68d4972-cb63-53bd-97ed-0e3c00c6746c",
+      "targetCardId": "921d9aa5-a42b-5552-9589-077432f4b6d7",
+      "category": "structural",
+      "body": "전승에서 이치노베는 겐조의 아버지다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2443–2464행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ff7a10dd-1151-5b00-98f9-f51921ff7bfb",
+      "sourceCardId": "d68d4972-cb63-53bd-97ed-0e3c00c6746c",
+      "targetCardId": "cb2c5d6a-2c42-5b1e-a438-348660a9cb1a",
+      "category": "structural",
+      "body": "전승에서 이치노베는 닌켄의 아버지다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2466–2468행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f625f102-9473-5287-b84a-6f99e1cf86b0",
+      "sourceCardId": "921d9aa5-a42b-5552-9589-077432f4b6d7",
+      "targetCardId": "cb2c5d6a-2c42-5b1e-a438-348660a9cb1a",
+      "category": "structural",
+      "body": "전승에서 겐조와 닌켄은 형제다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2466–2468행, https://www.gutenberg.org/ebooks/29798",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "dd1938fb-db51-594f-90db-d0a9b8c71a1f",
+      "sourceCardId": "cb2c5d6a-2c42-5b1e-a438-348660a9cb1a",
+      "targetCardId": "4c0cdb52-61b8-5c58-967f-f29196091bfb",
+      "category": "structural",
+      "body": "전승에서 닌켄은 무레쓰의 아버지다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2470–2475행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fff0b2f2-d637-5232-9a8e-76ae4942053f",
+      "sourceCardId": "38c4cba7-0b1a-5c1c-a909-a2ab926fc205",
+      "targetCardId": "4522a9c9-83e5-51f7-8eea-2f3caf7bc2d9",
+      "category": "structural",
+      "body": "원저에 따르면 게이타이는 긴메이의 아버지다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2482–2502행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "09607fab-f59d-58cc-87b5-d129f12e7f27",
+      "sourceCardId": "27d120c5-0842-5e59-bd9a-2e73c272ceff",
+      "targetCardId": "4522a9c9-83e5-51f7-8eea-2f3caf7bc2d9",
+      "category": "structural",
+      "body": "소가노이나메는 긴메이의 재상이었다고 원저는 서술한다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2493–2502행, https://www.gutenberg.org/ebooks/29798",
+      "label": "재상",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ea12e084-9beb-527f-b153-70916e8d6514",
+      "sourceCardId": "4522a9c9-83e5-51f7-8eea-2f3caf7bc2d9",
+      "targetCardId": "36b10585-326c-527f-b3ad-0acd38e705f5",
+      "category": "structural",
+      "body": "원저에 따르면 긴메이는 비다쓰의 아버지다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2512–2524행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "54c81342-4849-5f62-a150-62ae2cc0bc04",
+      "sourceCardId": "4b93ee6e-8eae-59a8-899b-d230218c831b",
+      "targetCardId": "c66db09b-5581-5a2f-a19a-f37e2f10e9c3",
+      "category": "structural",
+      "body": "원저에 따르면 소가노우마코와 모리야는 불교 수용을 두고 대립했다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2526–2545행, https://www.gutenberg.org/ebooks/29798",
+      "label": "궁정 분쟁",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5e8f0a8e-8986-5e65-9490-2d183246f4b3",
+      "sourceCardId": "4522a9c9-83e5-51f7-8eea-2f3caf7bc2d9",
+      "targetCardId": "cbb4daf7-127e-5b98-b6d6-f900214769fc",
+      "category": "structural",
+      "body": "원저에 따르면 긴메이는 스슌의 아버지다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2542–2557행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2a084e57-d8ff-57b5-9c42-388c74f3a8b4",
+      "sourceCardId": "4b93ee6e-8eae-59a8-899b-d230218c831b",
+      "targetCardId": "cbb4daf7-127e-5b98-b6d6-f900214769fc",
+      "category": "structural",
+      "body": "원저에 따르면 소가노우마코는 스슌의 암살을 주도했다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2542–2557행, https://www.gutenberg.org/ebooks/29798",
+      "label": "암살 모의",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ddf14304-61a4-52d3-b69c-8b31160fe51f",
+      "sourceCardId": "c41bc732-99c2-504d-83bd-0b82f2d0b866",
+      "targetCardId": "0c4a7889-67f6-5012-8a08-fff656224f17",
+      "category": "structural",
+      "body": "원저에 따르면 요메이와 스이코는 남매다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2559–2565행, https://www.gutenberg.org/ebooks/29798",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ed83ca21-c664-5399-b998-765aa116691a",
+      "sourceCardId": "c41bc732-99c2-504d-83bd-0b82f2d0b866",
+      "targetCardId": "84402419-b202-59f8-a614-1e07ee47e6b8",
+      "category": "structural",
+      "body": "원저에 따르면 요메이는 쇼토쿠의 아버지다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2559–2579행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "723f2231-96cd-592f-9b82-e1aac0ff35a1",
+      "sourceCardId": "84402419-b202-59f8-a614-1e07ee47e6b8",
+      "targetCardId": "0c4a7889-67f6-5012-8a08-fff656224f17",
+      "category": "structural",
+      "body": "쇼토쿠 태자는 스이코의 국정 운영을 도왔다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2559–2579행, https://www.gutenberg.org/ebooks/29798",
+      "label": "국정 지원",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d873c894-8426-5746-bf39-24140f989102",
+      "sourceCardId": "d4ee2c76-b27c-5fa7-9e11-7f39d74a43fb",
+      "targetCardId": "9e891da0-6a67-587d-9006-b3f5ecb6eddf",
+      "category": "structural",
+      "body": "창세 전승에서 이자나미는 불의 신을 낳았다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1013–1026행, https://www.gutenberg.org/ebooks/29798",
+      "label": "어머니",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9aba5f45-7e81-5c5c-92fb-63abeb82b5a2",
+      "sourceCardId": "91eb2a94-bddd-59c6-9645-feb19293d062",
+      "targetCardId": "9e891da0-6a67-587d-9006-b3f5ecb6eddf",
+      "category": "structural",
+      "body": "창세 전승에서 이자나기는 불의 신을 죽였다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1013–1026행, https://www.gutenberg.org/ebooks/29798",
+      "label": "살해",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ac73b4db-df03-5896-8718-333f95ef93e8",
+      "sourceCardId": "a22e8fa5-07d2-56b7-ace4-5a5ee81706cb",
+      "targetCardId": "80bfe467-f472-591f-8f47-8b6f2ce10bff",
+      "category": "structural",
+      "body": "전승에서 바다의 신은 바다 신의 딸의 아버지다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1235–1284행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "60593a3d-b2b2-568d-88c4-c013241e5973",
+      "sourceCardId": "80bfe467-f472-591f-8f47-8b6f2ce10bff",
+      "targetCardId": "fee50719-855a-5691-b574-21756d793826",
+      "category": "structural",
+      "body": "전승에서 바다 신의 딸과 불이 가라앉는 왕자는 혼인했다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1235–1284행, https://www.gutenberg.org/ebooks/29798",
+      "label": "혼인",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fae45506-5225-512d-808c-980b19d3a2e2",
+      "sourceCardId": "3659f347-f886-5bc2-8735-13a8e1b7200b",
+      "targetCardId": "70ba7b77-27c4-5fcf-a4bc-cab30f73e6b2",
+      "category": "structural",
+      "body": "전승에서 야마토다케는 미스키토모미미타케를 동쪽 원정에 데리고 갔다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1698–1701행, https://www.gutenberg.org/ebooks/29798",
+      "label": "원정 동행",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5e2d2a38-4bf6-5193-afb5-d0937f10f5ea",
+      "sourceCardId": "5adce7b8-31e2-5922-a34e-9944502c1a78",
+      "targetCardId": "3b2738fb-0a72-5660-8cf4-c36ed9d57335",
+      "category": "structural",
+      "body": "덴지는 가마타리를 내대신에 임명했다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 2834–2841행, https://www.gutenberg.org/ebooks/29798",
+      "label": "임명",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ffb543f1-7083-557a-abe1-26b0dbf103c5",
+      "sourceCardId": "3b2738fb-0a72-5660-8cf4-c36ed9d57335",
+      "targetCardId": "19f1d559-78da-59dd-95fd-15a9e9e7e589",
+      "category": "structural",
+      "body": "원저에 따르면 가마타리 등이 이루카의 암살을 꾸몄다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 2850–2858행, https://www.gutenberg.org/ebooks/29798",
+      "label": "암살 모의",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f656576a-47e7-5832-8dd4-7191d873f2eb",
+      "sourceCardId": "bb23cd5a-20a8-5489-81fa-0838948c1efd",
+      "targetCardId": "5d226257-72ec-5c46-a863-0550941c76c3",
+      "category": "structural",
+      "body": "원저에 따르면 후지와라노 도키히라는 미치자네를 다자이후로 보냈다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3072–3081행, https://www.gutenberg.org/ebooks/29798",
+      "label": "유배 조치",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2cfc7469-19dc-520a-9c1d-409e7ea3d88c",
+      "sourceCardId": "fdb3a472-e854-5641-9065-b5cbe3b0d482",
+      "targetCardId": "08b8b485-feb0-54ce-aacb-f254d33e8149",
+      "category": "structural",
+      "body": "원저에 따르면 다이라노 다다모리는 기요모리의 아버지다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3136–3151행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "cdfe0287-3fa5-5b6f-b628-98a54adf5c52",
+      "sourceCardId": "b07d23dd-b80f-5273-a13e-d470659bc851",
+      "targetCardId": "08b8b485-feb0-54ce-aacb-f254d33e8149",
+      "category": "structural",
+      "body": "원저에 따르면 요시토모는 기요모리와 손잡았다가 반기를 들었다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3175–3193행, https://www.gutenberg.org/ebooks/29798",
+      "label": "동맹과 반란",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bf7c855c-9752-5fce-a62b-efe08dc69f9f",
+      "sourceCardId": "b07d23dd-b80f-5273-a13e-d470659bc851",
+      "targetCardId": "2f89f036-1446-5f92-b7b9-f08c22e2004a",
+      "category": "structural",
+      "body": "원저에 따르면 요시토모는 요리토모의 아버지다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3234–3242행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9f940a53-6e27-52d9-aea2-bc13cfbe484e",
+      "sourceCardId": "b07d23dd-b80f-5273-a13e-d470659bc851",
+      "targetCardId": "0112eff9-0b7a-5249-ac32-6121d8454c8b",
+      "category": "structural",
+      "body": "원저에 따르면 요시토모는 요시쓰네의 아버지다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3175–3193행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "392afe2b-17e7-5f90-80f8-9dcbce18cad9",
+      "sourceCardId": "e6c68968-1ffc-51f3-9d06-fedcb9159b89",
+      "targetCardId": "0112eff9-0b7a-5249-ac32-6121d8454c8b",
+      "category": "structural",
+      "body": "히데히라는 사찰을 탈출한 요시쓰네를 받아들였다고 원저는 서술한다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3225–3229행, https://www.gutenberg.org/ebooks/29798",
+      "label": "보호",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e3181ade-34c1-5b46-9423-6bfa63462382",
+      "sourceCardId": "87ac6e0a-2277-58f0-939a-46413f0de404",
+      "targetCardId": "4acbd09b-f3e8-5162-a654-3afafd201545",
+      "category": "structural",
+      "body": "원저에 따르면 호조 도키마사는 마사코의 아버지다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3234–3238행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c35a933e-a9ce-50eb-9f1a-446efb44a414",
+      "sourceCardId": "4acbd09b-f3e8-5162-a654-3afafd201545",
+      "targetCardId": "2f89f036-1446-5f92-b7b9-f08c22e2004a",
+      "category": "structural",
+      "body": "마사코와 요리토모는 혼인했다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3234–3238행, https://www.gutenberg.org/ebooks/29798",
+      "label": "혼인",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e7c730a5-f63a-5330-843b-eba079a47b43",
+      "sourceCardId": "ca1a8c02-d34a-5fab-a908-20c3077ae3b9",
+      "targetCardId": "2f89f036-1446-5f92-b7b9-f08c22e2004a",
+      "category": "structural",
+      "body": "요시나카와 요리토모는 사촌이다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3283–3314행, https://www.gutenberg.org/ebooks/29798",
+      "label": "사촌",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0edf685a-2ac6-56bd-be14-d8407330889d",
+      "sourceCardId": "0112eff9-0b7a-5249-ac32-6121d8454c8b",
+      "targetCardId": "ca1a8c02-d34a-5fab-a908-20c3077ae3b9",
+      "category": "structural",
+      "body": "원저에 따르면 요시쓰네는 요시나카를 이겼다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3283–3314행, https://www.gutenberg.org/ebooks/29798",
+      "label": "전투 승리",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ef9de356-32ec-5571-986e-c93935329161",
+      "sourceCardId": "d07ae650-25dd-5c7f-88c9-12342e9d6a5b",
+      "targetCardId": "51fd737e-b8ce-5c10-872a-8cd83c2c16ad",
+      "category": "structural",
+      "body": "원저에 따르면 안토쿠와 고토바는 형제다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3294–3301행, https://www.gutenberg.org/ebooks/29798",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ffbedb20-ff5c-51d0-9120-2eafa7c2ac15",
+      "sourceCardId": "e6c68968-1ffc-51f3-9d06-fedcb9159b89",
+      "targetCardId": "f6e2a053-a07c-5e36-9c40-f57c449abe9c",
+      "category": "structural",
+      "body": "원저에 따르면 히데히라는 야스히라의 아버지다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3381–3396행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f0788c84-2479-5a9a-98fe-168e2ed5cae6",
+      "sourceCardId": "f6e2a053-a07c-5e36-9c40-f57c449abe9c",
+      "targetCardId": "0112eff9-0b7a-5249-ac32-6121d8454c8b",
+      "category": "structural",
+      "body": "원저에 따르면 야스히라는 요시쓰네 암살에 가담했다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3381–3396행, https://www.gutenberg.org/ebooks/29798",
+      "label": "암살 가담",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3a41b43e-1ca0-542f-bd15-6a9235c80414",
+      "sourceCardId": "aa1dfd35-1ed8-5aa9-8895-d0c6dddeefc7",
+      "targetCardId": "0112eff9-0b7a-5249-ac32-6121d8454c8b",
+      "category": "structural",
+      "body": "벤케이는 요시쓰네의 종자로 피신에 동행했다고 원저는 서술한다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3381–3385행, https://www.gutenberg.org/ebooks/29798",
+      "label": "종자",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4cd36ab8-2a9a-5e5a-a0c6-bbfac9ab07f5",
+      "sourceCardId": "2f89f036-1446-5f92-b7b9-f08c22e2004a",
+      "targetCardId": "9fa68927-a872-590e-bf02-9489fc45ce76",
+      "category": "structural",
+      "body": "원저에 따르면 요리토모는 요리이에의 아버지다. 출처: japan:7:CHAPTER VII. EMPEROR AND SHŌGUN., 3496–3525행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "274023e5-0b2c-5d23-a13a-6bcc7a6bd4fb",
+      "sourceCardId": "87ac6e0a-2277-58f0-939a-46413f0de404",
+      "targetCardId": "9fa68927-a872-590e-bf02-9489fc45ce76",
+      "category": "structural",
+      "body": "원저에 따르면 도키마사는 요리이에의 외조부다. 출처: japan:7:CHAPTER VII. EMPEROR AND SHŌGUN., 3496–3525행, https://www.gutenberg.org/ebooks/29798",
+      "label": "외조부",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6c5399f3-ca3e-5753-befb-f7796e6525d0",
+      "sourceCardId": "9fa68927-a872-590e-bf02-9489fc45ce76",
+      "targetCardId": "7ece3798-2b24-5a6d-a11d-0702689723ed",
+      "category": "structural",
+      "body": "원저에 따르면 요리이에와 사네토모는 형제다. 출처: japan:7:CHAPTER VII. EMPEROR AND SHŌGUN., 3515–3530행, https://www.gutenberg.org/ebooks/29798",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2333e349-eab8-52ca-95cd-a5a5dcc1864c",
+      "sourceCardId": "e3c099cd-c349-57f7-bc34-ab190f606899",
+      "targetCardId": "cf38c4dc-d142-5504-8df3-715532aca3e8",
+      "category": "structural",
+      "body": "원저에 따르면 호조 도키요리는 도키무네의 아버지다. 출처: japan:7:CHAPTER VII. EMPEROR AND SHŌGUN., 3583–3588행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f38d94f1-d75f-5ef3-8686-1d4a56ff1a33",
+      "sourceCardId": "06ce572a-55a9-5d3e-9be5-a76af45c9e4a",
+      "targetCardId": "de771673-7ffa-5cff-a536-5b40aa464671",
+      "category": "structural",
+      "body": "원저에 따르면 고다이고는 모리요시 친왕의 아버지다. 출처: japan:7:CHAPTER VII. EMPEROR AND SHŌGUN., 3634–3639행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bf3c33b3-7046-530c-8119-75207a8bf75c",
+      "sourceCardId": "2f4da7f9-1b10-59c1-a532-3042504cfde1",
+      "targetCardId": "06ce572a-55a9-5d3e-9be5-a76af45c9e4a",
+      "category": "structural",
+      "body": "구스노키 마사시게는 고다이고 편에서 호조에 맞섰다고 원저는 서술한다. 출처: japan:7:CHAPTER VII. EMPEROR AND SHŌGUN., 3648–3652행, https://www.gutenberg.org/ebooks/29798",
+      "label": "지지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ca06e6f9-8c02-5a9f-aa79-5c574a2e6b2e",
+      "sourceCardId": "a430a8e0-4bb5-5d6c-ae45-edaa26f917b2",
+      "targetCardId": "8fcc68b7-02a5-5d49-b313-0b80f5f38a1e",
+      "category": "structural",
+      "body": "원저에 따르면 아시카가 다카우지는 고묘를 교토에서 옹립했다. 출처: japan:7:CHAPTER VII. EMPEROR AND SHŌGUN., 3723–3728행, https://www.gutenberg.org/ebooks/29798",
+      "label": "옹립",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ae731807-769c-5e19-a29b-dcd7e6a237b2",
+      "sourceCardId": "2f4da7f9-1b10-59c1-a532-3042504cfde1",
+      "targetCardId": "a51be1d6-c62a-523b-b6c3-63aaec45243d",
+      "category": "structural",
+      "body": "원저에 따르면 마사시게는 마사쓰라의 아버지다. 출처: japan:7:CHAPTER VII. EMPEROR AND SHŌGUN., 3738–3744행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "64d50d21-0f2a-5c6d-b0eb-9384bcb1686d",
+      "sourceCardId": "25ffb731-4207-5781-a116-72c04b4415e1",
+      "targetCardId": "bc014d2c-8836-5883-a325-d905853c5a34",
+      "category": "structural",
+      "body": "안지로는 하비에르의 일본 선교에서 통역과 조력자로 활동했다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 3931–3947행, https://www.gutenberg.org/ebooks/29798",
+      "label": "선교 조력",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7945a813-8982-5068-9bc5-3f71b2c2de23",
+      "sourceCardId": "839899d4-7f83-5614-a533-7837d4ee8764",
+      "targetCardId": "2212a77e-9498-5113-af3d-f54228f57b69",
+      "category": "structural",
+      "body": "오다 노부나가는 오다 노부히데의 아들이었다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 4090–4095행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아들",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "866631d2-0fd8-50eb-88bc-56c68c52cea4",
+      "sourceCardId": "52271f66-0052-54d9-a8a7-3866b0aaecc6",
+      "targetCardId": "839899d4-7f83-5614-a533-7837d4ee8764",
+      "category": "structural",
+      "body": "원저에 따르면 사쿠마 예몬은 오다 노부나가의 가신이었다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 4145–4151행, https://www.gutenberg.org/ebooks/29798",
+      "label": "가신",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2c25c7dd-dfea-5e6c-a771-0901e8969cec",
+      "sourceCardId": "4ca25381-5c3b-5b99-80c1-75acedee0e94",
+      "targetCardId": "64290579-8cb7-582a-a8cc-3d94439e643d",
+      "category": "structural",
+      "body": "원저에 따르면 아시카가 요시아키와 요시테루는 형제였다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 4167–4180행, https://www.gutenberg.org/ebooks/29798",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a99c8c4f-802e-5e1c-b208-1aca4a3b9def",
+      "sourceCardId": "839899d4-7f83-5614-a533-7837d4ee8764",
+      "targetCardId": "4ca25381-5c3b-5b99-80c1-75acedee0e94",
+      "category": "structural",
+      "body": "원저에 따르면 노부나가는 요시아키를 쇼군으로 세웠다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 4167–4182행, https://www.gutenberg.org/ebooks/29798",
+      "label": "쇼군 옹립",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "18a064c8-b401-58ca-a545-607bfdcec5b8",
+      "sourceCardId": "bdbc87a3-3247-5205-be3e-83f2ecdb5b47",
+      "targetCardId": "8e291eca-721e-5482-92d4-db19f6ea4075",
+      "category": "structural",
+      "body": "원저에 따르면 모리 모토나리는 데루모토의 할아버지였다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 4309–4312행, https://www.gutenberg.org/ebooks/29798",
+      "label": "할아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "31daaec4-af9a-5974-8bc0-9930492906d0",
+      "sourceCardId": "8697b08a-43f3-5922-9266-2a5952516551",
+      "targetCardId": "839899d4-7f83-5614-a533-7837d4ee8764",
+      "category": "structural",
+      "body": "원저에 따르면 아케치 미쓰히데는 혼노지의 노부나가를 공격했다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 4333–4344행, https://www.gutenberg.org/ebooks/29798",
+      "label": "공격",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "28196f2c-34fd-58cf-b884-19215b56635b",
+      "sourceCardId": "5e0dba1a-46ee-5114-8725-4f91ae14ff2c",
+      "targetCardId": "839899d4-7f83-5614-a533-7837d4ee8764",
+      "category": "structural",
+      "body": "원저에 따르면 히데요시는 노부나가의 장수였다. 출처: japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI., 4377–4400행, https://www.gutenberg.org/ebooks/29798",
+      "label": "가신",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "55efb4b2-00bf-5668-b368-215e0e170a8e",
+      "sourceCardId": "5e0dba1a-46ee-5114-8725-4f91ae14ff2c",
+      "targetCardId": "8697b08a-43f3-5922-9266-2a5952516551",
+      "category": "structural",
+      "body": "원저에 따르면 히데요시는 요도 부근에서 아케치를 격파했다. 출처: japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI., 4421–4428행, https://www.gutenberg.org/ebooks/29798",
+      "label": "전투 승리",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9d865be8-0dad-5d83-ac75-f5cd7f0b7495",
+      "sourceCardId": "839899d4-7f83-5614-a533-7837d4ee8764",
+      "targetCardId": "90a93c8e-9c12-5dfc-9a5a-49b4e7b40d90",
+      "category": "structural",
+      "body": "원저에 따르면 노부나가는 산보시의 할아버지였다. 출처: japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI., 4430–4453행, https://www.gutenberg.org/ebooks/29798",
+      "label": "할아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f90ec24f-7e94-5f04-832c-707a41fc2580",
+      "sourceCardId": "5e0dba1a-46ee-5114-8725-4f91ae14ff2c",
+      "targetCardId": "90a93c8e-9c12-5dfc-9a5a-49b4e7b40d90",
+      "category": "structural",
+      "body": "원저에 따르면 히데요시는 산보시의 후견을 맡았다. 출처: japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI., 4430–4453행, https://www.gutenberg.org/ebooks/29798",
+      "label": "후견",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8c2af8bb-5ac1-530f-9839-160fb5b7e574",
+      "sourceCardId": "839899d4-7f83-5614-a533-7837d4ee8764",
+      "targetCardId": "99ded607-297f-556a-b4a6-3f74531c82cc",
+      "category": "structural",
+      "body": "원저에 따르면 노부나가는 노부타카의 아버지였다. 출처: japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI., 4430–4436행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7915a61e-af11-56f2-bb23-aa7af8e859c7",
+      "sourceCardId": "839899d4-7f83-5614-a533-7837d4ee8764",
+      "targetCardId": "d7cabb23-66cd-569d-b1da-8b0e20661b62",
+      "category": "structural",
+      "body": "원저에 따르면 노부나가는 노부오의 아버지였다. 출처: japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI., 4430–4436행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "63cc39c7-b284-5029-9f8f-07debd8dc236",
+      "sourceCardId": "c7c349af-9092-5632-b2c3-9bbafa8b1aec",
+      "targetCardId": "5e0dba1a-46ee-5114-8725-4f91ae14ff2c",
+      "category": "structural",
+      "body": "원저에 따르면 히데나가와 히데요시는 형제였다. 출처: japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI., 4541–4546행, https://www.gutenberg.org/ebooks/29798",
+      "label": "형제",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3a1ff352-273e-5e03-95e4-e8224df4d669",
+      "sourceCardId": "5e0dba1a-46ee-5114-8725-4f91ae14ff2c",
+      "targetCardId": "6ce88c8d-4055-56f7-8404-50ea018ef3b6",
+      "category": "structural",
+      "body": "원저에 따르면 히데요시는 히데쓰구의 삼촌이었다. 출처: japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI., 4701–4727행, https://www.gutenberg.org/ebooks/29798",
+      "label": "삼촌",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8af55b0c-ed76-50dc-8361-0edc02fe1365",
+      "sourceCardId": "5d226257-72ec-5c46-a863-0550941c76c3",
+      "targetCardId": "207f3de0-a7e8-5f39-aae7-854d7bdff188",
+      "category": "structural",
+      "body": "원저에 따르면 스가와라노 미치자네는 우다 천황의 스승이었다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3063–3077행, https://www.gutenberg.org/ebooks/29798",
+      "label": "스승",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "57f9e683-5192-5617-b6c7-ca64ebc01834",
+      "sourceCardId": "207f3de0-a7e8-5f39-aae7-854d7bdff188",
+      "targetCardId": "da708760-2604-547c-9a83-1809b1d330d4",
+      "category": "structural",
+      "body": "원저에 따르면 우다는 다이고의 아버지였다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3072–3077행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9b4995ce-1d0d-5fb5-b705-514601ab562d",
+      "sourceCardId": "5d226257-72ec-5c46-a863-0550941c76c3",
+      "targetCardId": "da708760-2604-547c-9a83-1809b1d330d4",
+      "category": "structural",
+      "body": "원저에 따르면 미치자네는 다이고 천황의 고문이었다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3072–3077행, https://www.gutenberg.org/ebooks/29798",
+      "label": "고문",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "af360355-e4f7-5455-bf96-4fdea259dbae",
+      "sourceCardId": "4ec1fa6e-7b05-5741-af79-faf9147a639a",
+      "targetCardId": "8324b202-ae6d-5793-858d-a672f2d97b71",
+      "category": "structural",
+      "body": "원저에 따르면 아시카가 요시미쓰는 요시모치의 아버지였다. 출처: japan:7:CHAPTER VII. EMPEROR AND SHŌGUN., 3765–3780행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "078b0bd2-4b31-5572-ab2e-ee1f8703783a",
+      "sourceCardId": "2c22bc61-b07f-5be4-9597-e2b76de3a48b",
+      "targetCardId": "e2e68f99-594d-553c-9ba7-a95e4eb4903e",
+      "category": "structural",
+      "body": "원저에 따르면 존 세리스는 콕스에게 영국 상관 운영을 맡겼다. 출처: japan:12, 6539–6541행, https://www.gutenberg.org/ebooks/29798",
+      "label": "상관 운영 위임",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "34940d3b-bea1-5703-a207-4cf5d2d81dd8",
+      "sourceCardId": "0dca89bd-169b-5eff-aaca-3ec0e7be1ffe",
+      "targetCardId": "419eaa4a-b92c-5627-a7b8-56e11a03a924",
+      "category": "structural",
+      "body": "원저에 따르면 이에요시는 이에사다의 아버지였다. 출처: japan:13, 6991–6994행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2c82557a-e0ad-5c85-9e68-2f6df225ed27",
+      "sourceCardId": "658a0563-e4a8-5a44-a70f-f8e5f85cb60e",
+      "targetCardId": "cff86a10-40bf-5e89-99c5-8b0ccfa39c5d",
+      "category": "structural",
+      "body": "원저에 따르면 고메이는 무쓰히토의 아버지였다. 출처: japan:14, 7889–7896행, https://www.gutenberg.org/ebooks/29798",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a86114f5-cdda-5526-833c-77626aaaec45",
+      "sourceCardId": "e489b3d6-350f-575f-a42b-bb9860bfe33e",
+      "targetCardId": "a675e4f7-ccfb-5669-a2e0-8db656b36cb8",
+      "category": "structural",
+      "body": "원저에 따르면 미예다 시게루는 파크스의 행렬을 습격했다. 출처: japan:15, 8100–8107행, https://www.gutenberg.org/ebooks/29798",
+      "label": "습격",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c6276acb-892d-512e-9853-8f37072094e1",
+      "sourceCardId": "6d1c63fc-68d9-5a00-9149-d7e523071ea5",
+      "targetCardId": "c211942f-9087-588e-9408-b11d777283a1",
+      "category": "structural",
+      "body": "원저에 따르면 에노모토와 마쓰다이라는 하코다테에서 함께 저항을 지휘했다. 출처: japan:15, 8144–8154행, https://www.gutenberg.org/ebooks/29798",
+      "label": "저항 공동 지휘",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "22a728ab-0ce3-53d8-a344-a66738d1f839",
+      "sourceCardId": "91eb2a94-bddd-59c6-9645-feb19293d062",
+      "targetCardId": "f0f13bb5-ca26-5163-aa89-a6decb979b86",
+      "category": "structural",
+      "body": "창세 전승에서 이자나기는 이자나미와 함께 섬들을 만들었다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 989–1011행, https://www.gutenberg.org/ebooks/29798",
+      "label": "창조 전승",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "12809a45-93c8-5ae9-8052-777c7000ee08",
+      "sourceCardId": "d4ee2c76-b27c-5fa7-9e11-7f39d74a43fb",
+      "targetCardId": "f0f13bb5-ca26-5163-aa89-a6decb979b86",
+      "category": "structural",
+      "body": "창세 전승에서 이자나미는 이자나기와 함께 섬들을 만들었다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 989–1011행, https://www.gutenberg.org/ebooks/29798",
+      "label": "창조 전승",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "476458e6-9a86-5cd9-b4f3-1cff8eb5338d",
+      "sourceCardId": "91eb2a94-bddd-59c6-9645-feb19293d062",
+      "targetCardId": "0c141d39-b505-50cf-ba23-5ce4a0c1fbba",
+      "category": "structural",
+      "body": "창세 전승에서 이자나기는 오노고로섬에 내려와 궁전을 지었다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 991–998행, https://www.gutenberg.org/ebooks/29798",
+      "label": "전승 속 거처",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0bdbba8a-b796-5a5e-ad53-a939661a8884",
+      "sourceCardId": "d4ee2c76-b27c-5fa7-9e11-7f39d74a43fb",
+      "targetCardId": "0c141d39-b505-50cf-ba23-5ce4a0c1fbba",
+      "category": "structural",
+      "body": "창세 전승에서 이자나미는 오노고로섬에 내려와 궁전을 지었다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 991–998행, https://www.gutenberg.org/ebooks/29798",
+      "label": "전승 속 거처",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "94c65bc7-197d-51d3-9a75-2ce6f3072df2",
+      "sourceCardId": "d4ee2c76-b27c-5fa7-9e11-7f39d74a43fb",
+      "targetCardId": "cd252332-a5c3-5f38-9355-0c9c6160591b",
+      "category": "structural",
+      "body": "전승에서 이자나미는 죽은 뒤 저승에 갔다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1028–1038행, https://www.gutenberg.org/ebooks/29798",
+      "label": "전승 속 저승",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "cadb6216-b637-5110-be79-3c7bb0c87259",
+      "sourceCardId": "91eb2a94-bddd-59c6-9645-feb19293d062",
+      "targetCardId": "9675b115-dfaf-5508-b632-fa2c87f6c895",
+      "category": "structural",
+      "body": "전승에서 이자나기의 정화 과정에 여러 신이 태어났다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1040–1065행, https://www.gutenberg.org/ebooks/29798",
+      "label": "정화",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "db0ad0c5-284b-5a86-b6e2-027dc64562d8",
+      "sourceCardId": "74453857-6eaa-567f-9a6e-e02f85197572",
+      "targetCardId": "bec95ecd-14cc-51ad-925d-0d78ce324a97",
+      "category": "structural",
+      "body": "전승에서 태양 여신은 동굴에 숨어 세상이 어두워졌다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1111–1136행, https://www.gutenberg.org/ebooks/29798",
+      "label": "은거",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ad7ca3db-9e80-5f04-8b7f-54b90557e79a",
+      "sourceCardId": "9742c24a-c9da-55c8-8159-99ac2937472d",
+      "targetCardId": "ed929824-8381-51ff-964f-1aa6ddcaa69b",
+      "category": "structural",
+      "body": "전승에서 거센 남신은 이즈모에서 뱀을 죽였다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1138–1164행, https://www.gutenberg.org/ebooks/29798",
+      "label": "뱀 퇴치",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a6e98ac6-9fe1-5691-a569-afa82a02d671",
+      "sourceCardId": "2ca62034-f750-5933-957b-15bbc023814e",
+      "targetCardId": "e5d7734d-1f7f-5009-8c4d-09c952631cfa",
+      "category": "structural",
+      "body": "전승에서 태양 여신의 손자는 다카치호에 내려왔다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1199–1206행, https://www.gutenberg.org/ebooks/29798",
+      "label": "강림",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2e7ed193-a6eb-57bf-8db8-01933575e07f",
+      "sourceCardId": "56d62701-f064-5c4d-ab8a-9e06b2b4040d",
+      "targetCardId": "e4f63f06-c6a1-5f67-aba1-d9eccba3d801",
+      "category": "structural",
+      "body": "전승에서 불빛 왕자의 낚싯바늘을 동생이 잃어버렸다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1208–1276행, https://www.gutenberg.org/ebooks/29798",
+      "label": "낚싯바늘 소유",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fc0c1296-ceac-540e-82e2-e30e352cee99",
+      "sourceCardId": "fee50719-855a-5691-b574-21756d793826",
+      "targetCardId": "e4f63f06-c6a1-5f67-aba1-d9eccba3d801",
+      "category": "structural",
+      "body": "전승에서 불이 가라앉는 왕자는 바다 신의 도움으로 낚싯바늘을 찾았다. 출처: japan:3:CHAPTER III. MYTHS AND LEGENDS., 1208–1276행, https://www.gutenberg.org/ebooks/29798",
+      "label": "낚싯바늘 회수",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "450aeada-0f67-516c-aba0-46e1c116388d",
+      "sourceCardId": "6c4d3790-28d0-551d-8bd4-253534de4927",
+      "targetCardId": "f1e06dc1-081a-5750-ae03-9235d92c079b",
+      "category": "structural",
+      "body": "전승에서 진무 일행은 동쪽으로 이동해 야마토에 정착했다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1314–1413행, https://www.gutenberg.org/ebooks/29798",
+      "label": "동정",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f8773593-df75-55fe-be74-d8a4793913cf",
+      "sourceCardId": "829fdfd3-6684-5a37-90a9-c986c64e406a",
+      "targetCardId": "f1e06dc1-081a-5750-ae03-9235d92c079b",
+      "category": "structural",
+      "body": "전승에서 이쓰세는 진무의 동쪽 원정에 동참했다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1314–1366행, https://www.gutenberg.org/ebooks/29798",
+      "label": "동행",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f509b14e-7398-5e7a-b4d0-99e9bc94c4aa",
+      "sourceCardId": "6c4d3790-28d0-551d-8bd4-253534de4927",
+      "targetCardId": "42797112-4e6c-5599-af50-5ac3d654e7ee",
+      "category": "structural",
+      "body": "전승에서 진무는 야마토에 가시하라 궁을 세웠다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1403–1413행, https://www.gutenberg.org/ebooks/29798",
+      "label": "궁전 건립",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7f9f112a-8e23-5781-8963-689f789ce5d8",
+      "sourceCardId": "10dc89c4-ef8e-50b4-9080-e426a93fa7a1",
+      "targetCardId": "389ebad5-7e62-50dd-9595-3c96406ecd32",
+      "category": "structural",
+      "body": "전승에서 스진의 제사 뒤 역병이 잦아들었다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1502–1510행, https://www.gutenberg.org/ebooks/29798",
+      "label": "제사",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fcf37dc9-2c24-53b1-8727-4e78637fe793",
+      "sourceCardId": "cd25406b-0015-5812-9382-6d64a9289096",
+      "targetCardId": "ba13d4d6-29d2-5a06-81e9-15169f33c5e8",
+      "category": "structural",
+      "body": "전승에서 노미노스쿠네는 순장 대신 흙인형을 세우자고 제안했다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1599–1608행, https://www.gutenberg.org/ebooks/29798",
+      "label": "대안 제안",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1178d054-a214-5e46-8aa2-fe19bc413709",
+      "sourceCardId": "3659f347-f886-5bc2-8735-13a8e1b7200b",
+      "targetCardId": "6b032bf2-5ef0-5d42-9bad-5ee52d095f75",
+      "category": "structural",
+      "body": "전승에서 야마토다케는 구마소 형제의 연회에 들어가 그들을 죽였다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1650–1685행, https://www.gutenberg.org/ebooks/29798",
+      "label": "구마소 원정",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fe2147ee-ec14-5dfa-88ee-f5369d1040aa",
+      "sourceCardId": "3659f347-f886-5bc2-8735-13a8e1b7200b",
+      "targetCardId": "bf2ea549-60bd-523a-b66a-788e9d0fe8ba",
+      "category": "structural",
+      "body": "전승에서 야마토다케는 불타는 들판에서 살아남았다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1711–1724행, https://www.gutenberg.org/ebooks/29798",
+      "label": "화재 탈출",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "41e83e1d-9fb8-5a2a-9b47-f7808f9d1eb0",
+      "sourceCardId": "bdf69afc-3a40-5ad9-9b55-c56911f56cc8",
+      "targetCardId": "3206fb5b-1942-57a6-b9a6-ee8fc16af863",
+      "category": "structural",
+      "body": "전승에서 오토타치바나는 배가 위태로워지자 바다에 몸을 던졌다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1726–1734행, https://www.gutenberg.org/ebooks/29798",
+      "label": "전승 속 희생",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5efad0d4-24ba-51c8-8fd0-f815b40c09df",
+      "sourceCardId": "80e30d2e-1f06-55f3-adbf-d6cfa8150e8c",
+      "targetCardId": "d8af87c2-8419-5cd3-bc28-2de9f61fdfe5",
+      "category": "structural",
+      "body": "원저는 진구의 한반도 원정과 조공을 전승으로 서술하며 사실 여부는 미검증이다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1830–1856행, https://www.gutenberg.org/ebooks/29798",
+      "label": "한반도 원정 전승",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7fe14aa5-94dd-59f5-97da-2307eaa282a4",
+      "sourceCardId": "b1b5ba88-a849-5dbc-8605-2be24a1f9a15",
+      "targetCardId": "c56c7976-8cdd-59a5-a05a-b03ce29159c0",
+      "category": "structural",
+      "body": "전승에서 닌토쿠는 백성의 부담을 덜기 위해 3년간 세금을 거두지 않았다. 출처: japan:4:CHAPTER IV. FOUNDING THE EMPIRE., 1921–1937행, https://www.gutenberg.org/ebooks/29798",
+      "label": "면세",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "21fd2e5c-d0d4-5de8-9c1a-7c89cc8df0a4",
+      "sourceCardId": "137a619b-5b8a-5cb8-ab13-705d14950d17",
+      "targetCardId": "4fd1d257-a780-5e74-b541-f846ef5f1e42",
+      "category": "structural",
+      "body": "전승에서 인교는 가문 이름 분쟁을 끓는 물 시험으로 처리했다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2295–2309행, https://www.gutenberg.org/ebooks/29798",
+      "label": "성씨 시련",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8fff1d82-c911-5ce9-8ad6-75cd0ad06432",
+      "sourceCardId": "7ce95c79-b4cd-5280-a8fb-a23838189089",
+      "targetCardId": "35b670d2-220e-505a-9629-576b04d14907",
+      "category": "structural",
+      "body": "전승에서 마유와는 안코를 살해했다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2328–2360행, https://www.gutenberg.org/ebooks/29798",
+      "label": "암살",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2d6000fb-8908-50e1-9710-e68945db3d45",
+      "sourceCardId": "e315e844-1538-56d6-9b41-9830226f1367",
+      "targetCardId": "35b670d2-220e-505a-9629-576b04d14907",
+      "category": "structural",
+      "body": "전승에서 안코는 오쿠사카의 아들 마유와에게 살해되었다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2328–2360행, https://www.gutenberg.org/ebooks/29798",
+      "label": "살해당함",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2ed83731-e036-5def-9e6e-4060221cf00a",
+      "sourceCardId": "27d120c5-0842-5e59-bd9a-2e73c272ceff",
+      "targetCardId": "bbdc8a8a-6ead-5347-a0d8-66e13e3ab896",
+      "category": "structural",
+      "body": "원저에 따르면 소가노이나메는 백제에서 온 불상을 예배했다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2482–2509행, https://www.gutenberg.org/ebooks/29798",
+      "label": "불교 예배",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "769f33a1-0a87-59b7-bf26-1727d92cb6b7",
+      "sourceCardId": "27d120c5-0842-5e59-bd9a-2e73c272ceff",
+      "targetCardId": "f4898dfc-a952-5002-997c-7f6f81a5a0f5",
+      "category": "structural",
+      "body": "원저에 따르면 소가노이나메는 백제 사절이 바친 불상을 모셨다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2482–2509행, https://www.gutenberg.org/ebooks/29798",
+      "label": "예배",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ccb502c9-a4af-5c6b-8839-c910409ba68a",
+      "sourceCardId": "4b93ee6e-8eae-59a8-899b-d230218c831b",
+      "targetCardId": "b72e0f7c-c06c-5508-89ff-7695e2d4f0a7",
+      "category": "structural",
+      "body": "원저에 따르면 소가노우마코는 불교 수용을 두고 모리야와 대립했다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2526–2545행, https://www.gutenberg.org/ebooks/29798",
+      "label": "궁정 분쟁",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "243739b9-2b2c-5c4b-9abd-48cb48b00a97",
+      "sourceCardId": "c66db09b-5581-5a2f-a19a-f37e2f10e9c3",
+      "targetCardId": "b72e0f7c-c06c-5508-89ff-7695e2d4f0a7",
+      "category": "structural",
+      "body": "원저에 따르면 모리야는 불교 수용을 두고 소가노우마코와 대립했다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2526–2545행, https://www.gutenberg.org/ebooks/29798",
+      "label": "궁정 분쟁",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5ebea1a1-fa8f-56c6-ae84-fd6d568ca2fb",
+      "sourceCardId": "59261227-e739-5bdd-827e-c9cbae556f47",
+      "targetCardId": "f982c1c2-c83e-5268-b03a-d54e1dde965e",
+      "category": "structural",
+      "body": "원저는 니혼기가 겐쇼 재위 중 편찬되어 나왔다고 서술한다. 출처: japan:5:CHAPTER V. NATIVE CULTURE AND CONTINENTAL INFLUENCES., 2775–2780행, https://www.gutenberg.org/ebooks/29798",
+      "label": "편찬 시기",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e4b0331d-ce90-5489-8282-89c28243e3fe",
+      "sourceCardId": "08b8b485-feb0-54ce-aacb-f254d33e8149",
+      "targetCardId": "be77413d-9e3c-5f9d-9c1c-92090dc756a2",
+      "category": "structural",
+      "body": "기요모리 측은 1156년 황위 계승 분쟁에서 승리했다고 원저는 서술한다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3151–3169행, https://www.gutenberg.org/ebooks/29798",
+      "label": "계승 분쟁 참가",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "39fbc042-e437-5797-b175-108127be406c",
+      "sourceCardId": "2f89f036-1446-5f92-b7b9-f08c22e2004a",
+      "targetCardId": "62e0868c-8f40-5c13-b489-683a33818d1c",
+      "category": "structural",
+      "body": "원저에 따르면 요리토모의 군대는 이시바시야마에서 패주했다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3247–3259행, https://www.gutenberg.org/ebooks/29798",
+      "label": "전투 패배",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4f636cef-1a8d-5407-9d76-77a7e2c211b3",
+      "sourceCardId": "2f89f036-1446-5f92-b7b9-f08c22e2004a",
+      "targetCardId": "0e5e0386-b4ee-5f0d-b066-aab90c668528",
+      "category": "structural",
+      "body": "원저에 따르면 요리토모는 가마쿠라를 거점으로 삼았다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3261–3271행, https://www.gutenberg.org/ebooks/29798",
+      "label": "거점",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "04fd1c43-0947-53c1-b296-5c54d617b478",
+      "sourceCardId": "0112eff9-0b7a-5249-ac32-6121d8454c8b",
+      "targetCardId": "ea651705-a959-5a58-8aef-c955b42152c3",
+      "category": "structural",
+      "body": "원저에 따르면 요시쓰네는 단노우라에서 미나모토 군을 지휘했다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3310–3355행, https://www.gutenberg.org/ebooks/29798",
+      "label": "해전 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "46e02744-82b2-5073-ac5e-c935114c0628",
+      "sourceCardId": "168ce2ed-020e-59f9-bf59-d53bd3805bc0",
+      "targetCardId": "6c51ae2f-1d0c-5b39-a06a-3303b7813bf0",
+      "category": "structural",
+      "body": "원저에 따르면 오에노 히로모토는 가마쿠라 정무 회의의 의장을 맡았다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3419–3428행, https://www.gutenberg.org/ebooks/29798",
+      "label": "의장",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "700e2cff-89e6-50b3-90a4-96bc6b3d778d",
+      "sourceCardId": "2f89f036-1446-5f92-b7b9-f08c22e2004a",
+      "targetCardId": "6c51ae2f-1d0c-5b39-a06a-3303b7813bf0",
+      "category": "structural",
+      "body": "원저에 따르면 요리토모는 가마쿠라 정무 회의를 설치했다. 출처: japan:6:CHAPTER VI. THE MIDDLE AGES OF JAPAN., 3419–3428행, https://www.gutenberg.org/ebooks/29798",
+      "label": "설치",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b8aad9ab-9cb3-5487-acc0-b4a35afca4ee",
+      "sourceCardId": "06ce572a-55a9-5d3e-9be5-a76af45c9e4a",
+      "targetCardId": "11a7cfcb-8ea3-547a-9688-5d31c2a19e1f",
+      "category": "structural",
+      "body": "원저에 따르면 고다이고와 승려들은 가사기를 호조에 대한 저항 거점으로 요새화했다. 출처: japan:7:CHAPTER VII. EMPEROR AND SHŌGUN., 3639–3645행, https://www.gutenberg.org/ebooks/29798",
+      "label": "저항 거점",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "e0363dc2-2c6b-55ab-ad44-07779524b705",
+      "sourceCardId": "1ba70f19-5d2d-5743-b2ab-0c4973587d34",
+      "targetCardId": "b362670e-8e44-580c-8dfe-eac441022553",
+      "category": "structural",
+      "body": "원저에 따르면 닛타 요시사다의 군대는 가마쿠라를 공격했다. 출처: japan:7:CHAPTER VII. EMPEROR AND SHŌGUN., 3660–3678행, https://www.gutenberg.org/ebooks/29798",
+      "label": "공격 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b7d68168-3554-5ad4-bed6-d5db4a0879bc",
+      "sourceCardId": "a430a8e0-4bb5-5d6c-ae45-edaa26f917b2",
+      "targetCardId": "d66dd825-dab5-540e-84d7-ba467f43e23a",
+      "category": "structural",
+      "body": "원저는 아시카가 다카우지를 아시카가 막부의 창시자로 소개한다. 출처: japan:7:CHAPTER VII. EMPEROR AND SHŌGUN., 3765–3774행, https://www.gutenberg.org/ebooks/29798",
+      "label": "창시",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fbb07291-dcb1-5f13-93fd-8da6ca71b534",
+      "sourceCardId": "4ec1fa6e-7b05-5741-af79-faf9147a639a",
+      "targetCardId": "19adb5c7-83e3-5c13-b395-766940790593",
+      "category": "structural",
+      "body": "원저에 따르면 아시카가 요시미쓰는 금각을 세웠다. 출처: japan:7:CHAPTER VII. EMPEROR AND SHŌGUN., 3777–3784행, https://www.gutenberg.org/ebooks/29798",
+      "label": "건축",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "2b7b1b11-6148-59c5-965e-ef5bc5029f7a",
+      "sourceCardId": "823278f2-e653-5b00-b8b3-3831d03ad940",
+      "targetCardId": "be1fce07-4a00-5907-a653-c69682bca11a",
+      "category": "structural",
+      "body": "원저에 따르면 아시카가 요시마사는 은각을 지었다. 출처: japan:7:CHAPTER VII. EMPEROR AND SHŌGUN., 3803–3810행, https://www.gutenberg.org/ebooks/29798",
+      "label": "건축",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f8de8372-063a-5d42-b5ce-de3b16d24016",
+      "sourceCardId": "4f9581c7-b313-5fc8-a1ab-376afc2132c3",
+      "targetCardId": "e9127d33-760d-55c6-be31-0c0f652cdab9",
+      "category": "structural",
+      "body": "핀투는 다네가시마를 방문했다고 자신의 기록에서 서술한다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 3887–3909행, https://www.gutenberg.org/ebooks/29798",
+      "label": "방문",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "569e5c9e-0640-5567-9715-52dc2eebee6c",
+      "sourceCardId": "bc014d2c-8836-5883-a325-d905853c5a34",
+      "targetCardId": "83ffc7f8-e984-5e92-919f-a4fd9f7a21d7",
+      "category": "structural",
+      "body": "하비에르는 1549년 가고시마에 도착했다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 3936–3956행, https://www.gutenberg.org/ebooks/29798",
+      "label": "도착",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "005dbcac-43d9-541f-b286-d2832ad3058f",
+      "sourceCardId": "25ffb731-4207-5781-a116-72c04b4415e1",
+      "targetCardId": "83ffc7f8-e984-5e92-919f-a4fd9f7a21d7",
+      "category": "structural",
+      "body": "안지로는 하비에르 일행과 1549년 가고시마에 도착했다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 3936–3956행, https://www.gutenberg.org/ebooks/29798",
+      "label": "도착",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "42942b7e-d1ae-53d0-8915-f2adf041dc15",
+      "sourceCardId": "bc014d2c-8836-5883-a325-d905853c5a34",
+      "targetCardId": "679346c8-f628-53b9-80f4-d74fe7fad46a",
+      "category": "structural",
+      "body": "하비에르는 가고시마를 떠나 여러 지역에서 선교한 뒤 중국행을 떠났다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 4004–4035행, https://www.gutenberg.org/ebooks/29798",
+      "label": "일본 선교",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "927e7de7-edb8-583c-85ae-fc03a7e2dc8f",
+      "sourceCardId": "839899d4-7f83-5614-a533-7837d4ee8764",
+      "targetCardId": "fcccf3fb-d555-5726-9b4d-ab7b01632cdf",
+      "category": "structural",
+      "body": "원저에 따르면 노부나가는 군대를 이끌고 교토로 들어가 요시아키를 쇼군으로 세웠다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 4167–4182행, https://www.gutenberg.org/ebooks/29798",
+      "label": "쇼군 옹립",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "242b3c86-35fb-5753-af7f-0d3996188a54",
+      "sourceCardId": "839899d4-7f83-5614-a533-7837d4ee8764",
+      "targetCardId": "68143b3f-78fe-5000-a9f4-8bf2ef056d55",
+      "category": "structural",
+      "body": "노부나가는 적을 지원한 엔랴쿠지를 공격하고 건물들을 불태웠다고 원저는 서술한다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 4234–4244행, https://www.gutenberg.org/ebooks/29798",
+      "label": "공격",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c2253fd6-1241-54ba-8066-64f704423f66",
+      "sourceCardId": "839899d4-7f83-5614-a533-7837d4ee8764",
+      "targetCardId": "8e50e15b-1d6b-5e48-934a-ef4e541eb581",
+      "category": "structural",
+      "body": "노부나가는 비와 호수에 아즈치 성을 세웠다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 4255–4259행, https://www.gutenberg.org/ebooks/29798",
+      "label": "성 건립",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "450462cd-0b01-53d5-a496-32f3f99deb65",
+      "sourceCardId": "a8b06c7d-c81a-5d01-83bd-15a163c50def",
+      "targetCardId": "638cc750-b8ae-548d-ae9d-fd08c5ea85b1",
+      "category": "structural",
+      "body": "발리냐노는 일본 영주들의 유럽 사절단과 동행했다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 4261–4266행, https://www.gutenberg.org/ebooks/29798",
+      "label": "사절단 동행",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "9d9e5b4a-ae57-512b-8a8d-d2a4324d6b76",
+      "sourceCardId": "002896b5-6291-5ef1-bfe1-394c9421223f",
+      "targetCardId": "638cc750-b8ae-548d-ae9d-fd08c5ea85b1",
+      "category": "structural",
+      "body": "메스키타는 사절단의 교육자 겸 통역으로 동행했다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 4261–4266행, https://www.gutenberg.org/ebooks/29798",
+      "label": "교육과 통역",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "aadafb17-5554-5572-bcdf-0ee93e7914ef",
+      "sourceCardId": "839899d4-7f83-5614-a533-7837d4ee8764",
+      "targetCardId": "517ac5fb-7664-5cd8-b2b9-57eb44b27425",
+      "category": "structural",
+      "body": "원저에 따르면 노부나가는 쇼군 요시아키를 축출했다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 4284–4292행, https://www.gutenberg.org/ebooks/29798",
+      "label": "쇼군 축출",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c56ae217-6bfc-5d0f-8f3f-dc4c8cf5ddfb",
+      "sourceCardId": "5e0dba1a-46ee-5114-8725-4f91ae14ff2c",
+      "targetCardId": "fea128eb-234f-5016-91e5-c1e3f7b71178",
+      "category": "structural",
+      "body": "원저에 따르면 히데요시는 강을 막아 다카마쓰 성을 공격했다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 4323–4333행, https://www.gutenberg.org/ebooks/29798",
+      "label": "수공",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4661e08a-145f-5604-a4b2-5e15333b840f",
+      "sourceCardId": "8697b08a-43f3-5922-9266-2a5952516551",
+      "targetCardId": "a6d59928-6dfb-5aed-b24d-31643b98d111",
+      "category": "structural",
+      "body": "원저에 따르면 아케치 미쓰히데는 혼노지에서 노부나가를 기습했다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 4333–4350행, https://www.gutenberg.org/ebooks/29798",
+      "label": "기습",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "17df3f75-7281-5a58-9732-2fa46fa3e91e",
+      "sourceCardId": "839899d4-7f83-5614-a533-7837d4ee8764",
+      "targetCardId": "a6d59928-6dfb-5aed-b24d-31643b98d111",
+      "category": "structural",
+      "body": "원저에 따르면 노부나가는 혼노지에서 아케치의 기습을 받았다. 출처: japan:8:CHAPTER VIII. FROM THE ASHIKAGA SHŌGUNS TO THE DEATH OF NOBUNAGA., 4333–4350행, https://www.gutenberg.org/ebooks/29798",
+      "label": "공격당함",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1a8ab4b2-10a0-5848-a738-e39b8f0f64ce",
+      "sourceCardId": "5e0dba1a-46ee-5114-8725-4f91ae14ff2c",
+      "targetCardId": "0fac7953-5e68-559f-b6bf-a58cbd7ebd08",
+      "category": "structural",
+      "body": "원저에 따르면 히데요시는 요도 부근에서 아케치 세력을 격파했다. 출처: japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI., 4421–4428행, https://www.gutenberg.org/ebooks/29798",
+      "label": "전투 승리",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7cb9f8c2-d14f-564c-b0fb-91e999ec49f5",
+      "sourceCardId": "5e0dba1a-46ee-5114-8725-4f91ae14ff2c",
+      "targetCardId": "baf0a740-0b79-56ea-bfd8-6b027f0c5e43",
+      "category": "structural",
+      "body": "원저에 따르면 히데요시는 전국에서 일꾼을 모아 오사카 성을 건설했다. 출처: japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI., 4503–4513행, https://www.gutenberg.org/ebooks/29798",
+      "label": "성 건설",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "b54dde1b-92a7-5dad-95ea-312f71c60722",
+      "sourceCardId": "5e0dba1a-46ee-5114-8725-4f91ae14ff2c",
+      "targetCardId": "c2e63161-2664-586b-bf7a-a64ffca05c7f",
+      "category": "structural",
+      "body": "원저에 따르면 히데요시는 시마즈의 복속 거부 뒤 규슈에 군사를 보냈다. 출처: japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI., 4532–4566행, https://www.gutenberg.org/ebooks/29798",
+      "label": "원정 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "71379cb5-37d6-54c0-9312-d51639c39990",
+      "sourceCardId": "5e0dba1a-46ee-5114-8725-4f91ae14ff2c",
+      "targetCardId": "5213d5ed-6e7c-59d4-afbd-ce2dfbb5d808",
+      "category": "structural",
+      "body": "원저에 따르면 히데요시는 외국 종교 교사에게 추방령을 내렸다. 출처: japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI., 4619–4632행, https://www.gutenberg.org/ebooks/29798",
+      "label": "추방령",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "47094693-6a09-5a1a-8d4b-0fb00200d131",
+      "sourceCardId": "311ccdc0-6214-5570-bb48-8ba7d63136fe",
+      "targetCardId": "b7f06693-fbcd-5a65-8d6f-f013608eb49a",
+      "category": "structural",
+      "body": "원저에 따르면 호조 우지마사는 오다와라에서 히데요시에 맞섰다. 출처: japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI., 4645–4667행, https://www.gutenberg.org/ebooks/29798",
+      "label": "방어",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "72882f26-86c0-5c3a-92ce-5b90c206e989",
+      "sourceCardId": "5e0dba1a-46ee-5114-8725-4f91ae14ff2c",
+      "targetCardId": "b7f06693-fbcd-5a65-8d6f-f013608eb49a",
+      "category": "structural",
+      "body": "원저에 따르면 히데요시는 호조 우지마사의 오다와라를 공략했다. 출처: japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI., 4645–4667행, https://www.gutenberg.org/ebooks/29798",
+      "label": "공략",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "46191596-3315-505f-a5cf-23439a0a92a7",
+      "sourceCardId": "5e0dba1a-46ee-5114-8725-4f91ae14ff2c",
+      "targetCardId": "a330d59f-3ac2-5f6c-b197-c754da28fdbd",
+      "category": "structural",
+      "body": "원저는 히데요시의 조선 침략과 중국 정복 계획을 서술한다. 출처: japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI., 4729–4745행, https://www.gutenberg.org/ebooks/29798",
+      "label": "침략",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "c0ee0fdf-323d-59b7-a06f-2e2a9371a474",
+      "sourceCardId": "9b070bc5-84be-5759-bb6d-1aa1cd06f10b",
+      "targetCardId": "a330d59f-3ac2-5f6c-b197-c754da28fdbd",
+      "category": "structural",
+      "body": "원저에 따르면 가토 기요마사는 히데요시의 조선 침략에서 군대를 지휘했다. 출처: japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI., 4838–4846행, https://www.gutenberg.org/ebooks/29798",
+      "label": "침략군 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "26f94d53-214f-5572-9554-3286e6ca56ce",
+      "sourceCardId": "270fe49c-068f-5203-b511-221f2ec223e3",
+      "targetCardId": "63359d64-119b-5f8a-b8ff-69ce70089534",
+      "category": "structural",
+      "body": "원저에 따르면 시마즈 요시히로는 조선 도공 17가구를 사쓰마로 데려왔다. 출처: japan:9:CHAPTER IX. TOYOTOMI HIDEYOSHI., 5019–5026행, https://www.gutenberg.org/ebooks/29798",
+      "label": "도공 이주",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "25109799-41f3-5142-abbb-d63553415131",
+      "sourceCardId": "6e2e57ab-bba8-5e41-a2e4-dd3918783d0f",
+      "targetCardId": "b7d54be7-df9d-5547-a81a-402dbd40c671",
+      "category": "structural",
+      "body": "원저에 따르면 시로 도키사다는 시마바라 봉기군의 지도자로 뽑혔다. 출처: japan:11, 5830–5841행, https://www.gutenberg.org/ebooks/29798",
+      "label": "봉기 지도",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8e518597-a6d0-5e7e-bb43-3dbb3bbf712e",
+      "sourceCardId": "91efbdac-395e-5f92-87f5-578685c542cc",
+      "targetCardId": "e695af5c-fceb-5025-a209-c79c0b5fda2b",
+      "category": "structural",
+      "body": "원저에 따르면 이타쿠라 나이젠은 막부군의 하라성 포위를 시작했다. 출처: japan:11, 5865–5872행, https://www.gutenberg.org/ebooks/29798",
+      "label": "포위 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3f94ae07-baa2-5e30-a805-6f563a48a8c7",
+      "sourceCardId": "2a5c6580-fcc1-5438-9c8f-54cc1ccde918",
+      "targetCardId": "e890eaa5-e76c-5925-a6e0-9e747ade06d1",
+      "category": "structural",
+      "body": "원저에 따르면 코에케바커는 막부군 요청에 데 레이프를 제공했다. 출처: japan:11, 5899–5917행, https://www.gutenberg.org/ebooks/29798",
+      "label": "선박 제공",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "488ba79d-ac80-55fb-841e-75826af9c1ba",
+      "sourceCardId": "4501f14c-dfe8-5567-b79f-30e3e0e79674",
+      "targetCardId": "b9de3697-f690-53dc-88b1-aaa9fffe3c04",
+      "category": "structural",
+      "body": "원저에 따르면 이노우에 지쿠고노카미는 기리시탄 조사 책임을 오래 맡았다. 출처: japan:11, 5971–5981행, https://www.gutenberg.org/ebooks/29798",
+      "label": "조사 책임",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5bd657b0-1196-543f-96ff-5273d3eee56a",
+      "sourceCardId": "97140ea3-0377-55b8-9799-5a61a908739d",
+      "targetCardId": "2d7a2d27-7e44-5627-9421-f3ce892cb211",
+      "category": "structural",
+      "body": "원저는 이에야스가 애덤스에게 헤미의 작은 영지를 주었다고 서술한다. 출처: japan:12, 6452–6463행, https://www.gutenberg.org/ebooks/29798",
+      "label": "영지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "341b905f-b3cc-5904-a6f2-9fba3778b9a5",
+      "sourceCardId": "2c22bc61-b07f-5be4-9597-e2b76de3a48b",
+      "targetCardId": "0b7a2670-b869-5f2e-9ac6-79bba488a6a3",
+      "category": "structural",
+      "body": "원저에 따르면 세리스는 영국 히라도 상관을 설치했다. 출처: japan:12, 6521–6541행, https://www.gutenberg.org/ebooks/29798",
+      "label": "설치",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "619be8b3-b0f7-5b7b-ae07-2a720b4b4326",
+      "sourceCardId": "11b482fb-0465-53a2-92bf-4d924a19546e",
+      "targetCardId": "50ba6cae-3a98-5b32-8691-9a1d7ba11aab",
+      "category": "structural",
+      "body": "페리는 1853년 에도만에 들어온 미국 함대를 지휘했다. 출처: japan:13, 6830–6871행, https://www.gutenberg.org/ebooks/29798",
+      "label": "함대 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "28b5124d-e6a1-56ad-b2cd-1936415767c2",
+      "sourceCardId": "84cf7f1c-f633-56b9-a377-b9dff64c1244",
+      "targetCardId": "11085d77-9df8-53f8-a75b-03642336e66c",
+      "category": "structural",
+      "body": "원저에 따르면 이이 가몬노카미는 사쿠라다문 밖에서 암살되었다. 출처: japan:13, 7280–7287행, https://www.gutenberg.org/ebooks/29798",
+      "label": "암살당함",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "03121db2-fa50-55dd-b681-d5f80270c59d",
+      "sourceCardId": "4e8c800f-0124-5090-8089-4048745df149",
+      "targetCardId": "c3747fc5-924b-52e5-a886-5a2049fbb869",
+      "category": "structural",
+      "body": "일본 관리들은 1862년 도젠지 재습격을 이토 군페이의 단독 범행이라고 주장했다. 출처: japan:14, 7392–7408행, https://www.gutenberg.org/ebooks/29798",
+      "label": "공격 혐의",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a84bf05b-61c3-58af-acba-18910fccd331",
+      "sourceCardId": "26307556-9a54-5f86-8861-01141c1850c2",
+      "targetCardId": "aba53769-557e-5eb4-92ef-fb867f3e090b",
+      "category": "structural",
+      "body": "원저에 따르면 리처드슨은 사쓰마 행렬과 마주친 뒤 공격당해 사망했다. 출처: japan:14, 7451–7511행, https://www.gutenberg.org/ebooks/29798",
+      "label": "피해",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "30f81bcb-a1fc-5abc-866b-9bb3049d4261",
+      "sourceCardId": "8bd72b13-76fe-5f54-96da-8770f912a336",
+      "targetCardId": "abb68d8f-f1d7-54b1-8146-275f98ff5b73",
+      "category": "structural",
+      "body": "쿠퍼 제독은 사쓰마에 배상을 요구하기 위해 함대를 이끌고 가고시마에 도착했다. 출처: japan:14, 7513–7522행, https://www.gutenberg.org/ebooks/29798",
+      "label": "함대 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "fbb2f770-84c8-58de-9976-33a1cfc5983c",
+      "sourceCardId": "a675e4f7-ccfb-5669-a2e0-8db656b36cb8",
+      "targetCardId": "1f93da8b-525b-5484-8a1b-1dd50c73f35d",
+      "category": "structural",
+      "body": "1868년 천황 알현을 향하던 파크스의 호위대가 습격당했다고 원저는 서술한다. 출처: japan:15, 8078–8107행, https://www.gutenberg.org/ebooks/29798",
+      "label": "습격 피해",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "911d9bde-0aba-53e0-b2e4-efc7fc2d1d86",
+      "sourceCardId": "442f8fca-1dcb-5d74-9a0b-d9dfd6c91ee6",
+      "targetCardId": "3bb51efe-e84f-54ac-aabe-f8c86720f7cd",
+      "category": "structural",
+      "body": "원저에 따르면 요시노부는 정권을 천황에게 반환했다. 출처: japan:14, 7928–7944행, https://www.gutenberg.org/ebooks/29798",
+      "label": "정권 반환",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "afc46574-382d-5172-a109-fdf02bbab7ed",
+      "sourceCardId": "6d1c63fc-68d9-5a00-9149-d7e523071ea5",
+      "targetCardId": "f80f2a42-3ef7-5ce7-81a1-76cf9837065f",
+      "category": "structural",
+      "body": "원저에 따르면 에노모토가 지휘한 구막부 함대는 하코다테에서 항복했다. 출처: japan:15, 8133–8154행, https://www.gutenberg.org/ebooks/29798",
+      "label": "항복",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8c3337d4-6941-5539-9833-a5db36ce1da8",
+      "sourceCardId": "0da8e6f3-fae6-5357-b52e-b8f8f94865eb",
+      "targetCardId": "3514fded-ef02-5165-b0c9-d74f0a22ae9f",
+      "category": "structural",
+      "body": "원저에 따르면 오쿠보 도시미치는 도쿄에서 암살되었다. 출처: japan:15, 8524–8536행, https://www.gutenberg.org/ebooks/29798",
+      "label": "암살 피해",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "0950caa9-8cfc-5e1b-ab13-2e4bc1cdf1a2",
+      "sourceCardId": "a1144320-ce2c-501a-a0f4-8fdae59533c3",
+      "targetCardId": "e6ed6ac8-dde6-5b1a-ac3a-5a5549523681",
+      "category": "structural",
+      "body": "원저에 따르면 모리 아리노리는 헌법 반포 당일 살해되었다. 출처: japan:15, 8581–8591행, https://www.gutenberg.org/ebooks/29798",
+      "label": "암살 피해",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7878f222-65b3-58f6-aed3-5a494b7aa091",
+      "sourceCardId": "127944c9-79ad-5fc7-86be-ce718a11df4d",
+      "targetCardId": "121b2767-00a2-55ac-9433-a15f5659e5d8",
+      "category": "structural",
+      "body": "원저에 따르면 사이고 쓰구미치는 일본의 대만 출병을 지휘했다. 출처: japan:15, 8412–8419행, https://www.gutenberg.org/ebooks/29798",
+      "label": "원정 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "02cee171-a2a2-5736-9711-93a9002bc38c",
+      "sourceCardId": "48ceb491-6ec0-5687-b713-06ea165a6941",
+      "targetCardId": "83f5c135-3467-5816-af38-a2ec02026bc7",
+      "category": "structural",
+      "body": "원저는 구로다 기요타카의 원정과 협상 뒤 조일 조약이 체결되었다고 서술한다. 출처: japan:15, 8426–8432행, https://www.gutenberg.org/ebooks/29798",
+      "label": "원정과 협상",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "129fc618-4d7b-5f59-bf6d-331c91c2a10c",
+      "sourceCardId": "79854f2c-dba5-5598-8864-3cfd4d645cc7",
+      "targetCardId": "dbb8776b-d92c-5b37-831c-596cc26590e0",
+      "category": "structural",
+      "body": "원저에 따르면 사이고 다카모리는 가고시마 부근에 군사학교를 세웠다. 출처: japan:15, 8454–8462행, https://www.gutenberg.org/ebooks/29798",
+      "label": "학교 설립",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "152e2cc3-985b-58e5-9680-454ce3fe5ec9",
+      "sourceCardId": "79854f2c-dba5-5598-8864-3cfd4d645cc7",
+      "targetCardId": "69c90144-a01a-58e7-9d85-1b9298634ddc",
+      "category": "structural",
+      "body": "원저에 따르면 사이고 다카모리의 병력은 구마모토성을 포위했다. 출처: japan:15, 8464–8522행, https://www.gutenberg.org/ebooks/29798",
+      "label": "반란 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4e1e422d-a2fb-5d3e-b571-e7e0f055a47f",
+      "sourceCardId": "b8e182ea-adf6-545e-b14c-3e535f019c8e",
+      "targetCardId": "7915383e-a37e-5c39-a8e2-e5795d8cde87",
+      "category": "structural",
+      "body": "원저에 따르면 다니 장군은 구마모토성의 정부군 수비대를 지휘했다. 출처: japan:15, 8478–8482행, https://www.gutenberg.org/ebooks/29798",
+      "label": "방어",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "344889e2-0921-5fff-aa19-c44b555a15bf",
+      "sourceCardId": "96d4c63a-7b4a-53d0-9ab5-56c086c127a3",
+      "targetCardId": "69c90144-a01a-58e7-9d85-1b9298634ddc",
+      "category": "structural",
+      "body": "원저에 따르면 아리스가와노미야는 사쓰마 반란 때 정부군 총사령관이었다. 출처: japan:15, 8483–8485행, https://www.gutenberg.org/ebooks/29798",
+      "label": "정부군 지휘",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "768adeb2-c5c7-5142-94b7-a672f33d2906",
+      "sourceCardId": "79854f2c-dba5-5598-8864-3cfd4d645cc7",
+      "targetCardId": "7b715246-7e23-5ce3-a26a-e493a8c8fa03",
+      "category": "structural",
+      "body": "원저에 따르면 사이고는 시로야마에서 최후를 맞았다. 출처: japan:15, 8508–8517행, https://www.gutenberg.org/ebooks/29798",
+      "label": "최후 거점",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ]
+}

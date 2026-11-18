@@ -1,4 +1,5 @@
 import type { CardType } from './studioCards'
+import type { PublicWorldRelationship } from './publicWorld'
 import { baseOf, nid, type Knowledge, type Work } from './work'
 
 /** 목업 WCATS·LINE: 사전 분류와 사건 라인 */
@@ -24,7 +25,7 @@ const SEEDW: Record<string, [string, string, string, number][]> = { guunmong: [[
 const SEEDL: Record<string, [string, string, string][]> = { guunmong: [['돌다리에서 팔선녀를 만나다', '스승의 벌로 인간 세상으로', '계기'], ['복숭아꽃이 여덟 구슬이 되다', '스승의 벌로 인간 세상으로', '복선']], starlight: [['탑 앞에서 밤을 지새우다', '봉인 아래의 속삭임', '계기']] }
 
 /** `markdown`이면 `body`가 마크다운 문자열이다(연결된 세계관의 설정 카드 본문). 없으면 일반 글이다. */
-export type Doc = { id: string; cat: string; t: string; alias: string[]; tags: string[]; props: Record<string, string>; at: Record<number, Record<string, string>>; img?: string | null; body: string; markdown?: boolean; knowledge?: Knowledge[]; ep?: number; line?: string; who?: string[]; links?: { to: string; k: string }[]
+export type Doc = { id: string; cat: string; t: string; alias: string[]; tags: string[]; props: Record<string, string>; at: Record<number, Record<string, string>>; img?: string | null; body: string; markdown?: boolean; knowledge?: Knowledge[]; ep?: number; line?: string; who?: string[]; links?: { to: string; k: string; relation?: Pick<PublicWorldRelationship, 'category' | 'direction' | 'body' | 'polarity'> & { sourceFirst: boolean } }[]
   /** 연결된 세계관 카드의 대표 이미지 공개 주소(독자 설정 위키, #401). 없으면 이미지 없는 카드다. 기존 작품 위키 문서의 `img`와 다른 값이라 독자 화면은 이것만 그린다. */
   cardImage?: string }
 export type Wiki = { docs: Doc[]; cats: WikiCat[] }
@@ -37,7 +38,7 @@ export type ReaderWorldCard = { id: string; title: string; text: string; cardTyp
  */
 export type ReaderWorldCards = {
   workId: string; worldId: string | null; upto: number; cards: ReaderWorldCard[]
-  relationships: { id: string; sourceCardId: string; targetCardId: string; label: string }[]
+  relationships: PublicWorldRelationship[]
   relationshipStatus: 'current' | 'unavailable'
 }
 

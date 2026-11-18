@@ -29,21 +29,21 @@ function InfoBox({ doc, cat }: { doc: Doc; cat: WikiCat }) {
 }
 
 /**
- * 문서 본문. 연결된 세계관의 설정 카드(마크다운)는 공개 카드 페이지와 같은 규칙(`splitCardSections`)으로 `## 제목` 문단을 나눠 문서 제목(h3) 아래 소제목(h4)으로 그리고,
- * 첫머리 글(제목 없는 '개요')에는 소제목을 달지 않는다. 기존 작품 위키 문서는 글자 그대로 둔다.
+ * 문서 본문. 연결된 세계관의 설정 카드(마크다운)는 공개 카드 페이지와 같은 규칙(`splitCardSections`)으로 `#`·`##`·`###` 제목 문단을 나눠 문서 제목(h3) 아래 소제목(h4)으로 그리고,
+ * 첫머리 글(첫 제목 앞, 제목 없음)에는 소제목을 달지 않는다. 기존 작품 위키 문서는 글자 그대로 둔다.
  */
 function DocBody({ doc }: { doc: Doc }) {
   if (!doc.body) return <p className="nw-empty">아직 설명이 공개되지 않았어요.</p>
   if (!doc.markdown) return <p>{doc.body}</p>
   return splitCardSections(doc.body).map(({ title, body }, i) => (
-    <Fragment key={i}>{(i > 0 || title !== '개요') && <h4>{title}</h4>}<CardMarkdown text={body} /></Fragment>
+    <Fragment key={i}>{title && <h4>{title}</h4>}<CardMarkdown text={body} /></Fragment>
   ))
 }
 
 /** 문서 한 건. 서버가 기준 회차까지 공개한 항목만 주므로 거르지 않는다. 연결·등장 인물은 같은 위키의 문서로 건너가는 링크가 된다(연결의 라벨이 비면 이름만). */
 function Article({ doc, cat, no, docs }: { doc: Doc; cat: WikiCat; no: string; docs: Doc[] }) {
   const byName = (n: string) => docs.find((d) => d.t === n)
-  const links = (doc.links ?? []).flatMap((l) => { const to = docs.find((d) => d.id === l.to); return to ? [{ to, k: l.k }] : [] })
+  const links = (doc.links ?? []).flatMap((l) => { const to = docs.find((d) => d.id === l.to); return to ? [{ ...l, to }] : [] })
   return (
     <div className="nw-doc" id={docAnchor(doc)} tabIndex={-1}>
       <h3><Jump to="nw-toc" className="nw-no" describedBy="nw-back">{no}</Jump> {doc.t}</h3>
@@ -56,7 +56,7 @@ function Article({ doc, cat, no, docs }: { doc: Doc; cat: WikiCat; no: string; d
         <p className="nw-rel"><b>등장</b> {doc.who.map((n, i) => { const d = byName(n); return <span key={n}>{i > 0 && ', '}{d ? <Jump to={docAnchor(d)}>{n}</Jump> : n}</span> })}</p>
       )}
       {links.length > 0 && (
-        <p className="nw-rel"><b>연결</b> {links.map(({ to, k }, i) => <span key={to.id + k}>{i > 0 && ', '}<Jump to={docAnchor(to)}>{to.t}</Jump>{k && ` (${k})`}</span>)}</p>
+        <p className="nw-rel"><b>연결</b> {links.map(({ to, k, relation }, i) => <span key={i}>{i > 0 && ', '}<Jump to={docAnchor(to)}>{to.t}</Jump>{k && ` (${k})`}{relation?.category && ` · ${relation.category === 'emotional' ? '감정 관계' : '구조 관계'}`}{relation && ` · ${relation.direction === 'directed' ? `단방향: ${relation.sourceFirst ? `이 설정 → ${to.t}` : `${to.t} → 이 설정`}` : relation.direction === 'symmetric' ? '대칭 관계' : '방향 미상'}`}{relation?.polarity === 'denied' && ' · 부정된 관계'}{relation?.polarity === 'asserted' && ' · 확인된 관계'}{relation?.body && <span style={{ whiteSpace: 'pre-wrap' }}>{` · ${relation.body}`}</span>}</span>)}</p>
       )}
     </div>
   )

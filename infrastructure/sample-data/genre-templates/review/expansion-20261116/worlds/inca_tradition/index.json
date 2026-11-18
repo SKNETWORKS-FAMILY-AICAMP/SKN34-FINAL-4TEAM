@@ -1,0 +1,71 @@
+{
+  "world_id": "inca_tradition",
+  "world_id_meaning": "신규 문화권 연구용 라벨, 실제 world 또는 DB ID 아님",
+  "id_namespace": "48aa45ea-04fe-5f12-9ef9-f3b5b1c25913",
+  "id_rule": "UUIDv5(namespace, batch_id:unit_id:candidate_key); 후보 ID일 뿐 적재나 세계관 배정 아님",
+  "scope_note": "각 구간 상태는 입력 조사자의 자기보고이며, 문헌 완전 독해·의미 전수·독립 감수·중복 검토 또는 권리 해결을 뜻하지 않는다.",
+  "rights_note": "출처 전사·번역·공동체·지역별 재사용 및 상업 이용권은 확인되지 않았으며, 조사 가능이나 공개 검토는 상업적 배포 허락이 아니다.",
+  "works": [
+    {
+      "work_id": "inca-comentarios",
+      "world_id": "inca_tradition",
+      "title": "Comentarios reales, primera parte",
+      "target_scope": "Book I origin and founding of Cusco; prior report calls linked capitulo-12 chapter 10: resolve discrepancy",
+      "edition_language_attribution": "Inca Garcilaso de la Vega 1609, Spanish; Biblioteca Origen transcription; underlying edition unverified",
+      "prior_investigation_grade": "A",
+      "source_url": "https://www.bibliotecaorigen.com/comentarios-reales-libro-1/capitulo-12",
+      "other_recorded_urls": [
+        "https://www.bibliotecaorigen.com/comentarios-reales-libro-1",
+        "https://museogarcilaso.culturacusco.gob.pe/mediaelement/pdf/3-ComentariosReales.pdf"
+      ],
+      "rights": {
+        "status": "unverified",
+        "notes": "Original work, transcription, translation, images and jurisdiction separately unverified; access is not redistribution permission.",
+        "evidence_url": null,
+        "publication_or_commercial_use": "requires separate review; no approval inferred"
+      },
+      "access": {
+        "status": "body_read_partial",
+        "reason": "Site page identifies sequence 12 as chapter X, and chapter text div was bounded; the other relevant Book I chapters remain unidentified."
+      },
+      "scope_status": "partial_chapter10_bounded",
+      "interpretation": "Preserve edition and variants; distinguish narrator or editor assertions, bias and oral context from source evidence; do not merge by similar names. Existing card overlap not checked. The author explicitly characterizes some peoples as beasts; record such descriptions as colonial authorial bias and not fact.",
+      "input_file_sha256": "8a4b195cfc2c0299ff28e114374014a3b42eff6f9827cb28a7abb1d0c8880c0a",
+      "units": [
+        {
+          "unit_id": "inca-comentarios--book1-chapter10",
+          "label": "Book I chapter X, site sequence 12",
+          "status": "ready_local_research",
+          "reason": null,
+          "input_boundary": {
+            "byte_start_inclusive": 13208,
+            "byte_end_exclusive": 20619,
+            "boundary_encoding": "raw downloaded bytes, half-open",
+            "slice_sha256": "b2e8ed7c89fe5e48452ed06ce68a258880ca2a7db1c8c96f07b70f682364fc1d",
+            "note": "Site title labels this sequence 12 and printed chapter X; raw transcription includes the author’s colonial judgments about other peoples."
+          },
+          "coverage": [
+            {
+              "batch_id": "batch-20",
+              "unit_id": "inca-comentarios--book1-chapter10",
+              "status": "read",
+              "read_scope": "Book I chapter X, site sequence 12에 해당하는 배정 바이트 전체를 읽고 본문·노래·주석·사이트 요소를 구분함",
+              "reason": null,
+              "candidate_count": 6
+            }
+          ],
+          "actual_candidates": 6
+        },
+        {
+          "unit_id": "inca-comentarios--book1-origins",
+          "label": "Other Book I origin and Cusco founding chapters",
+          "status": "blocked",
+          "reason": "Exact chapter inventory and scope not settled.",
+          "input_boundary": null,
+          "coverage": [],
+          "actual_candidates": 0
+        }
+      ]
+    }
+  ]
+}

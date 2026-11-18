@@ -171,10 +171,18 @@ export class ReadingUseCase {
     const record = records.find((r) => r.workId === w.id)
     const forks = forksOf(works, w.id)
     const like = await this.likeStateOf(w, role, !!progress.liked[w.id])
+    const parent = works.find((x) => x.id === w.parent)
+    const sourceTitle = parent?.title.trim() || w.parentTitle?.trim()
+    let summary = w.summary?.trim() ? w.summary : null
+    if (summary === null && w.parent && sourceTitle && w.forkAt != null && Number.isInteger(w.forkAt) && w.forkAt > 0) {
+      summary = `원작 「${sourceTitle}」의 ${w.forkAt}화 이후, 다른 길로 간 포크 소설.`
+    }
     return {
       work: w,
+      /** 표시할 소개가 없으면 null. 원작·출처 불완전 Fork에 임의 문구를 만들지 않는다. */
+      summary,
       upto: n,
-      parent: works.find((x) => x.id === w.parent),
+      parent,
       visible: epsOf(w).map((e, i) => [e, i] as const).filter(([e]) => visibleEpisode(w, e, role)),
       last: record?.lastEpisode,
       read: record?.readEpisodes ?? [],

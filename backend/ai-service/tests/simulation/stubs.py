@@ -59,14 +59,23 @@ PLAN_FLOW = SimulationPlan(mode='flow', characterIds=[KAEL, LINA], beats=[
     'B0-NOW 카엘이 성문에서 리나를 막아선다', 'B1-FUTURE 리나가 정체를 숨기며 통행을 청한다'])
 
 
-def fake_content(monkeypatch, worlds=None, read=READ):
+# Fork가 이어받는 원작 세계관(work_inherited_world 응답)이 없는 기본값과, 이어받은 값. 이어받은 카드는 공개 카드뿐이고
+# 인물 문서(SOUL·GOAL·회차 기억)는 작가용이라 없다.
+NO_INHERITED = {'workId': 'work', 'worldId': None, 'upto': 0, 'cards': [], 'relationships': [], 'relationshipStatus': 'current', 'relationshipVersion': 0}
+INHERITED = {**NO_INHERITED, 'worldId': WORLD, 'upto': EPISODE, 'relationshipVersion': 7, 'cards': [
+    {**card(KAEL, '카엘', 'KAEL-IDENTITY 북문을 지키는 기사', reveal=1), 'visibility': 'public'},
+    {**card(LINA, '리나', 'LINA-IDENTITY 떠돌이 약초상', reveal=2), 'visibility': 'public'}],
+    'relationships': [relation(REL, KAEL, LINA, '경계', '')]}
+
+
+def fake_content(monkeypatch, worlds=None, read=READ, inherited=NO_INHERITED):
     """Content MCP 대역. 호출 기록 [(도구, 인자)]를 돌려준다."""
     calls = []
     linked = [{'worldId': WORLD, 'name': '달빛 세계', 'linkedWorkId': 'work'}] if worlds is None else worlds
 
     def call(tool, arguments):
         calls.append((tool, arguments))
-        return {'world_studio_list': linked, 'world_studio_read': read}[tool]
+        return {'world_studio_list': linked, 'world_studio_read': read, 'work_inherited_world': inherited}[tool]
 
     monkeypatch.setattr(service.content_mcp, 'call', call)
     return calls

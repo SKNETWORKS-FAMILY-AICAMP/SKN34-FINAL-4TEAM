@@ -58,6 +58,7 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
         coverRevision={vm.coverRevision}
         onMediaBusy={setMediaBusy}
         onSaveInfo={vm.updateWork}
+        onSuggestTags={vm.suggestTags}
         onSavePolicy={vm.policy}
         onStopFork={vm.stopFork}
         onDeleteFork={async () => {

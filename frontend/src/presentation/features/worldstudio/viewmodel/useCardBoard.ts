@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { cardStatuses } from '../../../../domain/entities/worldReview'
 import { cardLibraryRows } from '../../../../domain/entities/worldStudioWriting'
 import { boardEmptyKinds, boardKindCounts, boardRows, parseBookSort, type BookSort, type CardKind } from '../../../shared/worldBoard'
+import { pageItems } from '../../../shared/pageItems'
 import { settingBoardEntries } from './settingBoard'
 import type { useWorldStudioViewModel } from './useWorldStudioViewModel'
 
@@ -19,6 +20,7 @@ const TODO = 'todo'
 export function useCardBoard(studio: Studio) {
   const [picked, setPicked] = useState<CardKind | typeof TODO>()
   const [sort, setSort] = useState<BookSort>('book')
+  const [page, setPage] = useState(0)
   const settings = studio.editing?.settings
   const findings = studio.review.findings
   const entries = useMemo(() => settingBoardEntries(settings ?? []), [settings])
@@ -39,12 +41,12 @@ export function useCardBoard(studio: Studio) {
   }, [entries, settings, query, kind, sort, todo, statuses])
   return {
     counts, total: entries.length, kind, sort,
-    rows,
+    rows, paged: pageItems(rows, page, 50), setPage,
     statuses, todoCount, todo, empty,
-    selectSort: (value: string) => setSort(parseBookSort(value)),
-    pickKind: (next?: CardKind) => setPicked(next),
-    pickTodo: () => setPicked(TODO),
+    selectSort: (value: string) => { setSort(parseBookSort(value)); setPage(0) },
+    pickKind: (next?: CardKind) => { setPicked(next); setPage(0) },
+    pickTodo: () => { setPicked(TODO); setPage(0) },
     /** 새 설정을 더하기 전에 전체·빈 검색으로 돌려 새 카드가 목록에 보이게 한다. */
-    reset: () => { setPicked(undefined); studio.setCardQuery('') },
+    reset: () => { setPicked(undefined); setPage(0); studio.setCardQuery('') },
   }
 }

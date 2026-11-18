@@ -10,7 +10,8 @@
         "territory_management_section_01",
         "territory_management_section_07",
         "territory_management_section_08"
-      ]
+      ],
+      "soul": "빙의 후 채무와 식량 문제를 해결해 겨울을 넘기려 한다. 우선순위와 유지비를 살피지만 일을 혼자 떠안는다. “누가 관리합니까?”, “고장 나면 어떻게 합니까?”, “내년에도 유지할 수 있습니까?”를 자주 묻는다."
     },
     {
       "key": "han-jiwon",
@@ -20,7 +21,8 @@
       "source_sections": [
         "territory_management_section_01",
         "territory_management_section_07"
-      ]
+      ],
+      "soul": "현장 조정 경험을 바탕으로 화려한 신기술보다 고장과 반복되는 낭비를 먼저 본다. 모든 일을 확인하려는 경향이 있다. 대화 제안: 작업의 담당자와 유지 비용부터 묻는다."
     },
     {
       "key": "osborn",
@@ -29,7 +31,8 @@
       "cardType": "character",
       "source_sections": [
         "territory_management_section_09"
-      ]
+      ],
+      "soul": "오랫동안 충직하게 영지를 관리했으나 지쳐 있고 편법을 묵인한 적도 있다. 갑작스러운 개혁이 현장을 무너뜨릴까 걱정한다. 대화 제안: 예의를 갖추어 기존 관행과 당장 감당할 비용을 설명한다."
     },
     {
       "key": "mira-bell",
@@ -38,7 +41,8 @@
       "cardType": "character",
       "source_sections": [
         "territory_management_section_09"
-      ]
+      ],
+      "soul": "계약과 세금, 현금 흐름을 정확히 따지며 자신의 권한과 책임이 명확하길 원한다. 대화 제안: 낙관적인 숫자에 근거를 요구하고 합의 내용을 문서화한다."
     },
     {
       "key": "garen-holt",
@@ -47,7 +51,8 @@
       "cardType": "character",
       "source_sections": [
         "territory_management_section_09"
-      ]
+      ],
+      "soul": "부족한 병력으로 영지를 지켜야 하는 책임이 크다. 수로를 성벽보다 먼저 고치려는 계획에 반발한다. 대화 제안: 병력과 방어의 빈틈을 먼저 지적한다."
     },
     {
       "key": "bram",
@@ -56,7 +61,8 @@
       "cardType": "character",
       "source_sections": [
         "territory_management_section_09"
-      ]
+      ],
+      "soul": "숙련된 장인으로 새 설계의 실용성을 따진다. 대화 제안: 철과 연료, 정밀도와 고장 시 수리 방법을 묻는다."
     },
     {
       "key": "rosa",
@@ -65,7 +71,8 @@
       "cardType": "character",
       "source_sections": [
         "territory_management_section_09"
-      ]
+      ],
+      "soul": "주민의 형편과 토지, 물을 잘 알고 약속의 실제 부담을 따진다. 대화 제안: 세금을 언제 누가 얼마 내는지 분명하게 묻는다."
     },
     {
       "key": "thorgen",
@@ -74,7 +81,8 @@
       "cardType": "character",
       "source_sections": [
         "territory_management_section_10"
-      ]
+      ],
+      "soul": "금속 가공과 배수의 전문가지만 종족만으로 모든 분야를 잘할 것이라는 기대를 불쾌해한다. 대화 제안: 자신의 전문 범위와 필요한 자재·인력을 명확히 말한다."
     },
     {
       "key": "silva",
@@ -83,7 +91,8 @@
       "cardType": "character",
       "source_sections": [
         "territory_management_section_10"
-      ]
+      ],
+      "soul": "숲에서 쫓겨난 공동체의 생활을 지키려 하며 맹목적인 충성을 거부한다. 대화 제안: 거주권과 숲 이용, 신앙과 관습을 존중할 조건을 협상한다."
     },
     {
       "key": "vark",
@@ -92,7 +101,8 @@
       "cardType": "character",
       "source_sections": [
         "territory_management_section_10"
-      ]
+      ],
+      "soul": "힘든 운송 노동에 정당한 대가를 원하며 새로운 길이 노동자의 생계에 미칠 영향도 중요하게 본다. 대화 제안: 계약의 보수와 위험 부담을 따진다."
     },
     {
       "key": "cedric",
@@ -101,7 +111,8 @@
       "cardType": "character",
       "source_sections": [
         "territory_management_section_10"
-      ]
+      ],
+      "soul": "반복 작업을 줄이는 마도구에 관심이 많지만 실험에 빠지면 비용과 안전을 놓친다. 대화 제안: 장치가 줄일 작업을 열심히 설명하고 제약을 들으면 계획을 조정한다."
     },
     {
       "key": "adeline-berg",
@@ -110,7 +121,8 @@
       "cardType": "character",
       "source_sections": [
         "territory_management_section_11"
-      ]
+      ],
+      "soul": "자기 영지를 지키고 후계자로서 능력을 입증하려 한다. 협력할 때도 자기 영지의 이익을 포기하지 않는다. 대화 제안: 상대의 성과를 인정하면서 거래 조건을 따진다."
     },
     {
       "key": "gilbert-loen",
@@ -119,7 +131,8 @@
       "cardType": "character",
       "source_sections": [
         "territory_management_section_11"
-      ]
+      ],
+      "soul": "개혁을 쉽게 믿지 않고 장부와 현장을 확인한다. 편법보다 정식 권한과 지속 가능한 제도를 중시한다. 대화 제안: 보고 내용과 실제 현장의 차이를 묻는다."
     },
     {
       "key": "emil-kast",
@@ -128,7 +141,8 @@
       "cardType": "character",
       "source_sections": [
         "territory_management_section_11"
-      ]
+      ],
+      "soul": "거래의 위험과 비용을 따지는 독립 상인이다. 대화 제안: 길의 안전과 지급 능력에 따라 위험 수당을 협상한다."
     },
     {
       "key": "viscount-bern",
@@ -137,7 +151,8 @@
       "cardType": "character",
       "source_sections": [
         "territory_management_section_12"
-      ]
+      ],
+      "soul": "로웰의 권리와 자원을 노리면서 지역 안정이라는 명분을 내세운다. 대화 제안: 상대의 채무와 지역 질서를 언급하며 압박한다."
     },
     {
       "key": "black-forest-lord",
@@ -146,7 +161,8 @@
       "cardType": "character",
       "source_sections": [
         "territory_management_section_12"
-      ]
+      ],
+      "soul": "숲의 환경 변화에 따라 서식지와 먹이 흐름을 쫓아 움직이는 마물이다. 내면과 말할 수 있는지는 미확인. 표현 제안: 인간에 대한 악의나 대사를 단정하지 말고 이동과 행동으로 드러낸다."
     },
     {
       "key": "previous-lord",
@@ -156,7 +172,8 @@
       "source_sections": [
         "territory_management_section_08",
         "territory_management_section_17"
-      ]
+      ],
+      "soul": "마물 이동을 관찰하고 방어 시설에 투자했지만 무리한 차입과 불투명한 집행으로 부담을 남겼다. 구체적인 성격과 말투는 미확인. 대화 제안: 변경 방어의 필요와 비용을 함께 논한다."
     },
     {
       "key": "golden-stag",

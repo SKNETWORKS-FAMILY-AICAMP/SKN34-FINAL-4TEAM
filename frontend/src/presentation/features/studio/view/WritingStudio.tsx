@@ -202,7 +202,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         </PopMenu>
       </div>
     </header>
-    {vm.error&&<div className="ep-alert" role="alert">{vm.error} {active&&'저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.'} {active&&!active.inherited&&vm.dirty&&<button type="button" className="btn sm" disabled={vm.busy} onClick={vm.retrySave}>저장 다시 시도</button>}</div>}
+    {vm.error&&<div className="ep-alert" role="alert">{vm.error} {active&&'저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.'} {active&&!active.inherited&&vm.dirty&&<button type="button" className="btn sm" disabled={vm.busy} onClick={vm.retrySave}>저장 다시 시도</button>}{vm.expired&&<> <Go to="/login">로그인</Go></>}</div>}
     <main ref={main} id="main" tabIndex={-1} className="studio-workspace">{!vm.ready?<p className="writing-message">회차를 불러오고 있어요…</p>:vm.error&&!active&&!vm.episodes.length?null:<>
     <div className={`sgrid writing-grid${mode==='advanced'?' writing-with-plans':''}`}>
       <div className="writing-rail">

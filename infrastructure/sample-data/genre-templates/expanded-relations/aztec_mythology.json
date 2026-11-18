@@ -1,0 +1,296 @@
+{
+  "genre": "aztec_mythology",
+  "worldId": "b91abcca-af8b-5460-bf33-4bf5bf668e04",
+  "relationships": [
+    {
+      "id": "766b88ca-adee-54d1-8c2a-031d7fc87c94",
+      "sourceCardId": "bfcd93a0-5ceb-54f2-97b3-dc1a0fcc8cf7",
+      "targetCardId": "7272b510-9dd4-51d0-abcf-3bbec30a9195",
+      "category": "structural",
+      "body": "선택 저본에서 검은 테스카틀리포카는 토나카테쿠틀리와 토나카시우아틀의 둘째다. 근거 카드 ID: bfcd93a0-5ceb-54f2-97b3-dc1a0fcc8cf7. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/view/6489.",
+      "label": "자녀",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "23e5a5c3-ce62-5236-a9e5-914578038431",
+      "sourceCardId": "bfcd93a0-5ceb-54f2-97b3-dc1a0fcc8cf7",
+      "targetCardId": "c235d7d6-85d3-561d-bf1b-8d595a07cf69",
+      "category": "structural",
+      "body": "선택 저본에서 케찰코아틀은 두 신의 셋째다. 근거 카드 ID: bfcd93a0-5ceb-54f2-97b3-dc1a0fcc8cf7. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/view/6489.",
+      "label": "자녀",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1b51d9f9-ff9d-5aad-a9b5-bb652aa51e9e",
+      "sourceCardId": "bfcd93a0-5ceb-54f2-97b3-dc1a0fcc8cf7",
+      "targetCardId": "d7cdee75-8268-5bfa-9beb-ff73d2c75750",
+      "category": "structural",
+      "body": "선택 저본에서 우칠로비는 두 신의 막내다. 근거 카드 ID: bfcd93a0-5ceb-54f2-97b3-dc1a0fcc8cf7. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/view/6489.",
+      "label": "자녀",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6b9f7c13-7b36-5411-a2a4-a7b1a96817b2",
+      "sourceCardId": "7272b510-9dd4-51d0-abcf-3bbec30a9195",
+      "targetCardId": "c235d7d6-85d3-561d-bf1b-8d595a07cf69",
+      "category": "structural",
+      "body": "테스카틀리포카는 케찰코아틀에게 물속에 떨어졌다가 그를 태양 자리에서 밀어낸다. 근거 카드 ID: 7272b510-9dd4-51d0-abcf-3bbec30a9195. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330.",
+      "label": "태양 자리 대결",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4cfc4327-bc93-5701-9df5-335db08f9adf",
+      "sourceCardId": "c235d7d6-85d3-561d-bf1b-8d595a07cf69",
+      "targetCardId": "d7cdee75-8268-5bfa-9beb-ff73d2c75750",
+      "category": "structural",
+      "body": "케찰코아틀과 우칠로비는 불과 최초의 남녀 등을 만드는 일을 맡는다. 근거 카드 ID: c235d7d6-85d3-561d-bf1b-8d595a07cf69. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330.",
+      "label": "창조 협력",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "5a7fd580-9de1-5188-b938-952d312c3958",
+      "sourceCardId": "3cdac14d-5ca9-57e2-859f-72aa9594e1b1",
+      "targetCardId": "d7cdee75-8268-5bfa-9beb-ff73d2c75750",
+      "category": "structural",
+      "body": "쿠아틀리쿠에에게서 우칠로비가 무장한 채 태어난다. 근거 카드 ID: 3cdac14d-5ca9-57e2-859f-72aa9594e1b1. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330.",
+      "label": "출생",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "bcc3e480-e351-548c-a33f-ddf8be4eb350",
+      "sourceCardId": "b8c3bf9f-dc3b-5cc1-b095-8a7b1f80f745",
+      "targetCardId": "6a1e785f-2415-5011-a0ee-a79a12bf854f",
+      "category": "structural",
+      "body": "세아카틀은 카마살레와 그의 친척 여자 사이에서 태어난다. 근거 카드 ID: 6a1e785f-2415-5011-a0ee-a79a12bf854f. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/view/6489.",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4ee9fc71-d60a-59c3-971e-da5fb40c1040",
+      "sourceCardId": "7272b510-9dd4-51d0-abcf-3bbec30a9195",
+      "targetCardId": "6a1e785f-2415-5011-a0ee-a79a12bf854f",
+      "category": "structural",
+      "body": "테스카틀리포카는 세아카틀에게 틀라팔라로 떠나라고 말한다. 근거 카드 ID: 6a1e785f-2415-5011-a0ee-a79a12bf854f. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/view/6489.",
+      "label": "떠나라는 지시",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "ab66e394-93ef-5ce9-a27c-7a41c2b471d2",
+      "sourceCardId": "19d06256-263e-5776-a3b2-c1299baf14c5",
+      "targetCardId": "d08ccc7a-14ec-5e6f-af3a-62cafd5612ad",
+      "category": "structural",
+      "body": "일란쿠에이틀은 남편 아카마피치에게 멕시코로 가라고 조언한다. 근거 카드 ID: 19d06256-263e-5776-a3b2-c1299baf14c5. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330.",
+      "label": "부부",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4ecaee2a-f7f9-5a88-9133-390fac0e7993",
+      "sourceCardId": "a03f700f-b181-58ce-ab2d-30267f5a24db",
+      "targetCardId": "90314d5d-e29c-5244-a4a9-4898dba76244",
+      "category": "structural",
+      "body": "토날테미틀은 이스코쿠틀의 아들이다. 근거 카드 ID: 90314d5d-e29c-5244-a4a9-4898dba76244. 출처:  https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS.",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "886e1a3d-85c0-5871-866d-eaac46f4451f",
+      "sourceCardId": "90314d5d-e29c-5244-a4a9-4898dba76244",
+      "targetCardId": "f31b3657-58c9-5670-8d44-5c48727d3134",
+      "category": "structural",
+      "body": "신틀라윌시는 토날테미틀의 군주 자리를 이었다. 근거 카드 ID: f31b3657-58c9-5670-8d44-5c48727d3134. 출처:  https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS.",
+      "label": "아버지",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "df92e2b8-8108-5c87-9000-49be2f58cc07",
+      "sourceCardId": "47a031c9-20d3-5b78-a174-c69446e6ed99",
+      "targetCardId": "5ddb1440-0ca5-52be-a673-9a0cae002554",
+      "category": "structural",
+      "body": "문헌은 돈 미겔을 콰필리의 조카로 설명한다. 근거 카드 ID: 5ddb1440-0ca5-52be-a673-9a0cae002554. 출처:  https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS.",
+      "label": "삼촌과 조카",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "6894a500-7dc7-5fcb-ae58-fe33e4f1ab88",
+      "sourceCardId": "c235d7d6-85d3-561d-bf1b-8d595a07cf69",
+      "targetCardId": "725c33b4-5402-50ae-9e98-532d1b5dc6e7",
+      "category": "structural",
+      "body": "케찰코아틀은 우칠로비와 함께 옥소모코와 시팍토날을 만든다. 근거 카드 ID: 725c33b4-5402-50ae-9e98-532d1b5dc6e7. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/view/6489.",
+      "label": "최초 남녀 창조",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "d4f8e77d-3386-5b70-a658-16b63558d817",
+      "sourceCardId": "d7cdee75-8268-5bfa-9beb-ff73d2c75750",
+      "targetCardId": "725c33b4-5402-50ae-9e98-532d1b5dc6e7",
+      "category": "structural",
+      "body": "우칠로비는 케찰코아틀과 함께 옥소모코와 시팍토날을 만든다. 근거 카드 ID: 725c33b4-5402-50ae-9e98-532d1b5dc6e7. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/view/6489.",
+      "label": "최초 남녀 창조",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "a206e9c4-c29c-55e3-be7e-4109fa295f3f",
+      "sourceCardId": "ff4ef8db-5b84-5d8e-aa07-a7d8df316de5",
+      "targetCardId": "d7cdee75-8268-5bfa-9beb-ff73d2c75750",
+      "category": "structural",
+      "body": "틀라우이스칼 포통기는 전쟁 포로를 우칠로비에게 제사했다. 근거 카드 ID: ff4ef8db-5b84-5d8e-aa07-a7d8df316de5. 출처:  https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS.",
+      "label": "제사 대상",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "28537b05-6113-5f01-95ca-1b5d49d7e2d7",
+      "sourceCardId": "d7cdee75-8268-5bfa-9beb-ff73d2c75750",
+      "targetCardId": "69a216d7-6b02-5bf3-ae02-162bc2f63b11",
+      "category": "structural",
+      "body": "우부칠티는 우칠로비가 자신의 아들인 듯하다고 말하고 친해진다. 실제 혈통은 확정되지 않는다. 근거 카드 ID: 69a216d7-6b02-5bf3-ae02-162bc2f63b11. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/view/6489.",
+      "label": "친교",
+      "direction": "symmetric",
+      "polarity": "asserted"
+    },
+    {
+      "id": "af950e7e-ea44-5608-aea1-3895719e7e0e",
+      "sourceCardId": "d7cdee75-8268-5bfa-9beb-ff73d2c75750",
+      "targetCardId": "5494a6ce-b35e-5a82-b6d9-4f61a01212f9",
+      "category": "structural",
+      "body": "우칠로비는 코아테펙에서 다시 태어난다. 근거 카드 ID: 5494a6ce-b35e-5a82-b6d9-4f61a01212f9. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330.",
+      "label": "재탄생 장소",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "4f5ebc7a-e7a3-59e4-b5a9-4aeaf8503419",
+      "sourceCardId": "d7cdee75-8268-5bfa-9beb-ff73d2c75750",
+      "targetCardId": "18c55529-c2b9-5ae6-aac7-74e42cf6f859",
+      "category": "structural",
+      "body": "우칠로비는 쿠아틀리쿠에에게서 무장한 채 태어난다. 근거 카드 ID: 18c55529-c2b9-5ae6-aac7-74e42cf6f859. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330.",
+      "label": "무장한 탄생",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f57123ba-1cb7-58d0-aa63-3e0c0213aab1",
+      "sourceCardId": "7272b510-9dd4-51d0-abcf-3bbec30a9195",
+      "targetCardId": "71fefdff-9e33-5911-be7c-71eae8bf83c1",
+      "category": "structural",
+      "body": "테스카틀리포카는 676년 동안 태양이었다고 전한다. 근거 카드 ID: 71fefdff-9e33-5911-be7c-71eae8bf83c1. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/view/6489.",
+      "label": "첫 태양",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "1b7fbb10-8e7e-52cc-8f23-d65b37343a4a",
+      "sourceCardId": "c235d7d6-85d3-561d-bf1b-8d595a07cf69",
+      "targetCardId": "71fefdff-9e33-5911-be7c-71eae8bf83c1",
+      "category": "structural",
+      "body": "케찰코아틀은 테스카틀리포카를 물에 떨어뜨린 뒤 태양이 된다. 근거 카드 ID: 71fefdff-9e33-5911-be7c-71eae8bf83c1. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/view/6489.",
+      "label": "태양 교체",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "12e5a994-3714-588b-ac4b-bc25d70caaf4",
+      "sourceCardId": "c235d7d6-85d3-561d-bf1b-8d595a07cf69",
+      "targetCardId": "c22700d8-6662-58b0-a709-cb40abe18d53",
+      "category": "structural",
+      "body": "케찰코아틀은 아들을 불에 던져 태양이 되게 한다. 근거 카드 ID: c22700d8-6662-58b0-a709-cb40abe18d53. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330.",
+      "label": "태양 탄생",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "796f7514-46c4-544c-9fc8-f659d38a4612",
+      "sourceCardId": "d7cdee75-8268-5bfa-9beb-ff73d2c75750",
+      "targetCardId": "d7e63b06-1ff0-5998-86ac-031f81b000ab",
+      "category": "structural",
+      "body": "우칠로비는 테누스티탄을 정착지로 지정한다. 근거 카드 ID: d7e63b06-1ff0-5998-86ac-031f81b000ab. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330.",
+      "label": "정착지 지정",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "3802a389-dbe1-5196-9e8c-e6274dd76796",
+      "sourceCardId": "14180c78-63a9-5cc2-befc-caf421963145",
+      "targetCardId": "d7e63b06-1ff0-5998-86ac-031f81b000ab",
+      "category": "structural",
+      "body": "코필의 심장은 우칠로비가 거처로 지목한 곳에 묻힌다. 근거 카드 ID: 14180c78-63a9-5cc2-befc-caf421963145. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/download/6489/7330.",
+      "label": "심장 매장",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "7209da77-5ff8-5e48-b4f3-3ab215d206bb",
+      "sourceCardId": "b8c3bf9f-dc3b-5cc1-b095-8a7b1f80f745",
+      "targetCardId": "519f7451-6874-55b2-aef3-98b716331222",
+      "category": "structural",
+      "body": "카마살레는 두 머리 사슴을 사람들에게 신으로 섬기게 한다. 근거 카드 ID: 519f7451-6874-55b2-aef3-98b716331222. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/view/6489.",
+      "label": "사슴 숭배",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "8139f1f6-9f57-5302-b768-0311e47ec102",
+      "sourceCardId": "d7cdee75-8268-5bfa-9beb-ff73d2c75750",
+      "targetCardId": "dbc06312-ea48-51be-8a85-f367f5bf1e76",
+      "category": "structural",
+      "body": "우칠로비의 망토와 마스틀레는 이주 중 담당자들이 운반한다. 근거 카드 ID: dbc06312-ea48-51be-8a85-f367f5bf1e76. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/view/6489.",
+      "label": "유물 운반",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "91e0e8a4-ec86-5e30-b794-0e01a8f136c2",
+      "sourceCardId": "d7cdee75-8268-5bfa-9beb-ff73d2c75750",
+      "targetCardId": "f5a0c29f-11e5-5635-844d-d9a7e3b858b3",
+      "category": "structural",
+      "body": "사람들을 흩어지게 하는 지시는 우칠로보스의 명령으로 서술된다. 근거 카드 ID: f5a0c29f-11e5-5635-844d-d9a7e3b858b3. 출처:  https://books.google.com/books?id=Nc6w48IZJv0C&pg=PA95&output=html_text.",
+      "label": "분산 명령",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "57ca5cf6-bcb6-5e25-8b0c-d32e66071a17",
+      "sourceCardId": "19d06256-263e-5776-a3b2-c1299baf14c5",
+      "targetCardId": "7e90f5f6-8f54-5d13-ac8e-887fef634e3f",
+      "category": "structural",
+      "body": "일란쿠에이틀은 메시카를 지배한 여성으로 기록된다. 근거 카드 ID: 7e90f5f6-8f54-5d13-ac8e-887fef634e3f. 출처:  https://www.academia.edu/34919106/HISTORIA_DE_LOS_MEXICANOS_POR_SUS_PINTURAS.",
+      "label": "통치",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "612e668c-660a-5454-af0e-43a55a140180",
+      "sourceCardId": "6596820c-4642-5f8d-ae50-563f60a96ac6",
+      "targetCardId": "35c109b7-6198-501a-b9ff-51bdd2fc020b",
+      "category": "structural",
+      "body": "토톨라요가 평화를 추진하자 메시카는 군주의 죽음을 조건으로 삼는다. 근거 카드 ID: 35c109b7-6198-501a-b9ff-51bdd2fc020b. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/view/6489.",
+      "label": "평화 추진",
+      "direction": "directed",
+      "polarity": "asserted"
+    },
+    {
+      "id": "f0b24c61-896f-599f-8825-8c74219da5ad",
+      "sourceCardId": "babb8bc3-436b-55aa-8be4-cea12d83913d",
+      "targetCardId": "a76f17fe-a131-58f0-83d0-9e364177e8aa",
+      "category": "structural",
+      "body": "시틀랄코아시는 말리날코의 군주로 임명된다. 근거 카드 ID: a76f17fe-a131-58f0-83d0-9e364177e8aa. 출처:  https://revistas.inah.gob.mx/index.php/anales/article/view/6489.",
+      "label": "군주 임명",
+      "direction": "directed",
+      "polarity": "asserted"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 
 import { avatarOf, epsOf, type Work } from '../../../../domain/entities/work'
-import { Art, Cov, CoverOf, Tags } from '../../../shared/art'
+import { Cov, CoverOf, Tags } from '../../../shared/art'
 import { ago, asOf, kfmt } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
@@ -74,11 +74,12 @@ export function Hero({ works, hero, stepHero, setHero }: { works: Work[]; hero: 
         <div className="track" id="track" ref={track}>
           {works.map((w, i) => {
             const active = i >= shown && i < shown + visible
-            return <Go key={w.id} to={`/work/${w.id}`} className={`slide ${w.lite ? 'lite' : ''}`} style={{ background: w.heroBg }}
+            // 배경은 표지와 같은 이미지를 흐리게 깐다(표지가 없으면 기본 표지). 테마 그림·색은 표지와 어긋나 쓰지 않는다.
+            return <Go key={w.id} to={`/work/${w.id}`} className="slide"
               inert={!active} aria-hidden={!active} tabIndex={active ? undefined : -1}>
-              <div className="bgart"><Art theme={w.theme} w={400} h={400} seed={w.id + 'bg'} /></div>
+              <div className="bgart"><CoverOf w={w} /></div>
               <div className="tg"><Tags w={w} /></div>
-              <div className="cv"><CoverOf w={w} k="h" /></div>
+              <div className="cv"><CoverOf w={w} /></div>
               <h3>{w.hero?.[0] || w.title}<br />{w.hero?.[1]}</h3>
               <p>&lt;{w.title}&gt; {w.author}</p>
             </Go>
@@ -142,8 +143,8 @@ function Top10({ list, works, failed, retry, ranked, computedAt }: { list: Work[
   )
 }
 
-const BookCard = ({ w, k, label, sub, source }: { w: Work; k: string; label?: string; sub: string; source?: { title: string; episode: number } }) => (
-  <Go to={`/work/${w.id}`} className="bk prox"><Cov w={w} k={k} likes /><h3 className="hk">{label}</h3><small>{sub}</small>{source && <small className="fork-source">{source.title} · {source.episode}화에서 분기</small>}</Go>
+const BookCard = ({ w, label, sub, source }: { w: Work; label?: string; sub: string; source?: { title: string; episode: number } }) => (
+  <Go to={`/work/${w.id}`} className="bk prox"><Cov w={w} likes /><h3 className="hk">{label}</h3><small>{sub}</small>{source && <small className="fork-source">{source.title} · {source.episode}화에서 분기</small>}</Go>
 )
 
 /** 목업 home(): U01 홈 · U02 필터 결과 */
@@ -179,7 +180,7 @@ export function HomePage() {
             <section className="sec">
               <div className="sec-h"><h2>{vm.chip}</h2><span className="muted small">{h.filtered.length}편</span></div>
               <div className="grid6">
-                {h.filtered.length ? h.filtered.map((w) => <BookCard key={w.id} w={w} k="" label={shortTitle(w)} sub={`${w.author} · ${w.genre}`} source={h.forkSources[w.id]} />) : <p className="muted">아직 소설이 없어요.</p>}
+                {h.filtered.length ? h.filtered.map((w) => <BookCard key={w.id} w={w} label={shortTitle(w)} sub={`${w.author} · ${w.genre}`} source={h.forkSources[w.id]} />) : <p className="muted">아직 소설이 없어요.</p>}
               </div>
             </section>
           )}
@@ -202,7 +203,7 @@ export function HomePage() {
                   <Go to="/rank?t=orig" className="ring add"><div className="o">＋</div><b>나도 쓰기</b><small>원작에서 포크하기</small></Go>
                   {h.forkFeed.map((w) => (
                     <Go key={w.id} to={`/work/${w.id}`} className={`ring ${h.seen[w.id] ? 'seen' : ''} prox`} onClick={() => vm.markSeen(w.id)}>
-                      <div className="o"><span><CoverOf w={w} k="r" /></span></div>
+                      <div className="o"><span><CoverOf w={w} /></span></div>
                       <b>{w.title.split(': ')[1] || w.title}</b><small>{w.author}{!w.canonical && ` · ${ago(w.upd)}`}</small>
                     </Go>
                   ))}
@@ -213,10 +214,10 @@ export function HomePage() {
               <section className="sec">
                 <div className="tri">
                   <div><h2>{h.ranked ? '24시간 인기 급상승' : '이야기의 시작, 원작 소설'}</h2><RankState failed={h.rankingFailed} retry={vm.retry} list={h.rising} empty={h.ranked ? '최근 24시간 동안 조회가 늘어난 소설이 아직 없어요.' : '아직 공개된 원작이 없어요.'}>{h.rising.map((w, i) => (
-                    <Go key={w.id} to={`/work/${w.id}`} className="rk"><span className={`n ${h.ranked && i < 3 ? 'top' : ''}`}>{h.ranked ? ['1st', '2nd', '3rd'][i] || i + 1 + 'th' : i + 1}</span><span className="th"><CoverOf w={w} k="rk" /></span><b>{w.title}</b>{(h.ranked || w.statisticsSupported !== false) && <em>👁 {kfmt(w.views)}</em>}</Go>
+                    <Go key={w.id} to={`/work/${w.id}`} className="rk"><span className={`n ${h.ranked && i < 3 ? 'top' : ''}`}>{h.ranked ? ['1st', '2nd', '3rd'][i] || i + 1 + 'th' : i + 1}</span><span className="th"><CoverOf w={w} /></span><b>{w.title}</b>{(h.ranked || w.statisticsSupported !== false) && <em>👁 {kfmt(w.views)}</em>}</Go>
                   ))}</RankState></div>
                   <div><h2>{h.serverRanking ? '방금 업데이트' : '함께 읽을 소설'}</h2><RankState failed={h.freshFailed} failure="업데이트 소식을 불러오지 못했어요." retry={vm.retry} list={h.fresh} empty="아직 업데이트된 소설이 없어요.">{h.fresh.map((w) => (
-                    <Go key={w.id} to={`/work/${w.id}`} className="rk" style={{ gridTemplateColumns: '38px minmax(0,1fr) auto' }}><span className="th"><CoverOf w={w} k="rk" /></span><b>{w.title}</b><em>{freshLabel(w, h.serverRanking)}</em></Go>
+                    <Go key={w.id} to={`/work/${w.id}`} className="rk" style={{ gridTemplateColumns: '38px minmax(0,1fr) auto' }}><span className="th"><CoverOf w={w} /></span><b>{w.title}</b><em>{freshLabel(w, h.serverRanking)}</em></Go>
                   ))}</RankState></div>
                   <div><h2>소설 모아 보기</h2><div className="picks">{h.picks.map((w) => (
                     <Go key={w.id} to={`/work/${w.id}`} className="pick prox"><Cov w={w} /><b>{shortTitle(w)}</b></Go>
@@ -227,7 +228,7 @@ export function HomePage() {
                 <div className="sec-h"><h2>오늘, 스토리포크의 발견</h2></div>
                 <div className="shelf">
                   <button type="button" className="arr l" aria-label="이전" onClick={() => scrollShelf(-1)}><Chev d={LEFT} /></button>
-                  <div className="row" id="shelf" ref={shelf}>{h.discover.map((w) => <BookCard key={w.id} w={w} k="s" label={w.hook || w.dir} sub={shortTitle(w) ?? ''} />)}</div>
+                  <div className="row" id="shelf" ref={shelf}>{h.discover.map((w) => <BookCard key={w.id} w={w} label={w.hook || w.dir} sub={shortTitle(w) ?? ''} />)}</div>
                   <button type="button" className="arr r" aria-label="다음" onClick={() => scrollShelf(1)}><Chev d={RIGHT} /></button>
                 </div>
               </section>
@@ -241,7 +242,7 @@ export function HomePage() {
                         <h3>{w.title}</h3><p>{w.summary}</p>
                         <div className="ft"><i style={{ background: avatarOf(w.author) }} />{w.author}{w.statisticsSupported!==false && <span>👁 {kfmt(w.views)} · ♥ {kfmt(w.likes)}</span>}</div>
                       </div>
-                      <Cov w={w} k="w" />
+                      <Cov w={w} />
                     </Go>
                   ))}</div>
                 </RankState>

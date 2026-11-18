@@ -1,9 +1,10 @@
-import type { PublicWorld } from '../../../domain/entities/publicWorld'
+import type { PublicWorld, PublicWorldRelationship } from '../../../domain/entities/publicWorld'
 import { cardTypes, type CardType } from '../../../domain/entities/studioCards'
 import { plainCardText } from '../../shared/cardSections'
-import { CARD_COLORS, CARD_KIND, KINDS, boardKindCounts, boardRows, type BoardEntry, type BoardRow, type CardKind } from '../../shared/worldBoard'
+import { CARD_COLORS, CARD_KIND, KINDS, boardRows, type BoardEntry, type BoardRow, type CardKind } from '../../shared/worldBoard'
 import { genreLabel } from '../../shared/worldGenres'
 import { GENRE_COLORS } from './worldAtlas'
+import { pageItems } from '../../shared/pageItems'
 
 /*
  * 공개 세계관 상세(`/worlds/:id`)와 설정 카드 페이지(`/worlds/:id/cards/:cardId`)의 순수 규칙: 설정 그래프·인물관계도의 노드·링크,
@@ -11,8 +12,7 @@ import { GENRE_COLORS } from './worldAtlas'
  *
  * 공개 세계관 상세 API(`GET /api/v1/public/world-studios/{id}`)의 카드와 현재 관계(양 끝 카드 id)를 그래프·카드 페이지로 바꾼다. 카드 페이지 주소의 cardId는 카드 id다.
  * 관계 중 인물↔인물은 인물관계도(라벨이 관계)가, 그 밖은 설정 연관이 된다. 관계 상태가 `unavailable`이면 서버가 관계를 비워 주므로 연결이 없는 그래프가 된다(화면이 따로 알린다).
- * ponytail: 연관은 방향이 없고 같은 두 카드 사이의 관계는 방향·종류와 상관없이 먼저 나온 하나만 보인다(그래프에서 같은 두 노드의 선이 겹쳐 라벨을 읽을 수 없다).
- * 쓴 쪽이 카드 페이지의 '연관'·반대쪽이 '가리키는 설정'이다. 여러 관계를 한 선에 묶어 보이는 것은 같은 두 카드의 관계가 실제로 여럿 쌓일 때 더한다.
+ * 단방향 관계만 쓴 쪽이 '연관', 반대쪽이 '가리키는 설정'이다. 대칭·미상은 양쪽 모두 '연관'이다. 같은 카드 쌍의 관계도 ID마다 보존한다.
  */
 
 export const DETAIL_TABS = [['graph', '설정 그래프'], ['people', '인물관계도'], ['book', '설정집'], ['overview', '개요']] as const
@@ -30,23 +30,20 @@ export const cardImageSrc = (worldId: string, imageId: string) => `/api/v1/publi
 /** 설정집 탭 주소. `kind`를 주면 그 유형 칩이 골라진 채로 열린다(`?type=`). */
 export const bookPath = (worldId: string, kind?: CardKind) => `/worlds/${worldId}?${new URLSearchParams({ tab: 'book', ...(kind ? { type: kind } : {}) })}`
 
-type CardPair = { a: number; b: number; label?: string }
+type RelationData = Pick<PublicWorldRelationship, 'category' | 'direction' | 'body' | 'polarity'>
+type CardPair = { id: string; a: number; b: number; label?: string } & RelationData
 /**
- * 카드 위치 쌍으로 본 카드 연관. 양 끝 카드가 없는 관계·자기 참조는 버리고, 같은 두 카드를 잇는 중복은 방향과 상관없이 먼저 나온 하나만 남긴다.
+ * 카드 위치 쌍으로 본 카드 연관. 양 끝 카드가 없는 관계·자기 참조는 버리고 각 관계 ID를 보존한다.
  * `a`는 관계의 출발(source) 카드, `b`는 도착(target)이고 빈 라벨은 라벨 없음이다. 그래프 링크와 카드 페이지의 연관 목록이 모두 이 결과를 쓴다.
  */
 export function cardPairs(world: PublicWorld): CardPair[] {
   const at = new Map(world.cards.map((c, i) => [c.id, i]))
-  const seen = new Set<string>()
   const pairs: CardPair[] = []
-  for (const { sourceCardId, targetCardId, label } of world.relationships) {
+  for (const { id, sourceCardId, targetCardId, label, category, direction, body, polarity } of world.relationships) {
     const a = at.get(sourceCardId)
     const b = at.get(targetCardId)
     if (a === undefined || b === undefined || a === b) continue
-    const key = a < b ? `${a}:${b}` : `${b}:${a}`
-    if (seen.has(key)) continue
-    seen.add(key)
-    pairs.push({ a, b, label: label || undefined })
+    pairs.push({ id, a, b, label: label || undefined, ...(category !== undefined && { category }), ...(direction !== undefined && { direction }), ...(body !== undefined && { body }), ...(polarity !== undefined && { polarity }) })
   }
   return pairs
 }
@@ -55,17 +52,36 @@ type Pos = { x?: number; y?: number; vx?: number; vy?: number; fx?: number; fy?:
 /** `kind`는 중심이면 '세계관', 카드면 유형 묶음(색·범례와 같은 이름)이다. `to`는 노드를 누르면 갈 주소(카드는 카드 페이지, 중심은 설정집 탭)다. */
 export type DetailNode = Pos & { id: string; name: string; kind: '세계관' | CardKind; color: string; to: string }
 /** `world`는 중심→카드의 옅은 선, `link`는 카드끼리의 연관이다(인물끼리는 `label`이 관계). `source`·`target`은 ForceGraph가 노드 객체로 바꾼다. */
-export type DetailLink = { source: string | DetailNode; target: string | DetailNode; kind: 'world' | 'link'; label?: string }
+export type DetailLink = { id?: string; source: string | DetailNode; target: string | DetailNode; kind: 'world' | 'link'; label?: string; curve?: number } & RelationData
 export type DetailGraph = { nodes: DetailNode[]; links: DetailLink[] }
 
 export const detailEndpoint = (end: string | DetailNode) => (typeof end === 'string' ? end : end.id)
+
+/** 한 페이지의 양 끝이 보이는 선만 그린다. 전체 연결은 카드 상세에서 볼 수 있다. */
+export function graphPage(graph: DetailGraph, page: number, size: number): DetailGraph {
+  const center = graph.nodes.filter((n) => n.kind === '세계관')
+  const nodes = [...pageItems(graph.nodes.filter((n) => n.kind !== '세계관'), page, size).items, ...center]
+  const ids = new Set(nodes.map((n) => n.id))
+  return { nodes, links: graph.links.filter((l) => ids.has(detailEndpoint(l.source)) && ids.has(detailEndpoint(l.target))) }
+}
+
+/** 선택한 카드의 인접 카드를 페이지별로 보여 준다. 서로 다른 원래 페이지의 끝점도 함께 그린다. */
+export function graphNeighbors(graph: DetailGraph, anchor: string, page: number, size: number): DetailGraph {
+  const center = graph.nodes.find((n) => n.id === anchor)
+  if (!center) return { nodes: [], links: [] }
+  const links = graph.links.filter((l) => l.kind === 'link' && (detailEndpoint(l.source) === anchor || detailEndpoint(l.target) === anchor))
+  const neighborIds = new Set(links.map((l) => detailEndpoint(l.source) === anchor ? detailEndpoint(l.target) : detailEndpoint(l.source)))
+  const neighbors = pageItems(graph.nodes.filter((n) => neighborIds.has(n.id)), page, size).items
+  const ids = new Set([anchor, ...neighbors.map((n) => n.id)])
+  return { nodes: [center, ...neighbors], links: links.filter((l) => ids.has(detailEndpoint(l.source)) && ids.has(detailEndpoint(l.target))) }
+}
 
 const cardNode = (world: PublicWorld, i: number): DetailNode => {
   const { id, title, cardType } = world.cards[i]
   const kind = CARD_KIND[cardType]
   return { id: `card:${id}`, name: title, kind, color: CARD_COLORS[kind], to: cardPath(world.id, id) }
 }
-const pairLink = (world: PublicWorld, { a, b, label }: CardPair): DetailLink => ({ source: `card:${world.cards[a].id}`, target: `card:${world.cards[b].id}`, kind: 'link', label })
+const pairLink = (world: PublicWorld, { id, a, b, label, category, direction, polarity }: CardPair): DetailLink => ({ id, source: `card:${world.cards[a].id}`, target: `card:${world.cards[b].id}`, kind: 'link', label, ...(category !== undefined && { category }), ...(direction !== undefined && { direction }), ...(polarity !== undefined && { polarity }) })
 
 /**
  * 설정 그래프: 카드 노드 + 세계관 중심 노드. 호출마다 새 객체를 만든다(ForceGraph가 노드에 좌표를 붙이고 링크 끝점을 노드 객체로 바꾼다).
@@ -96,7 +112,7 @@ export const showsDetailLabel = (node: DetailNode, total: number, hover?: string
 const typeLabel = (type: CardType) => cardTypes.find((t) => t.id === type)?.label ?? type
 
 /** 다른 카드를 가리키는 값. `type`은 카드 자신의 유형 이름(능력·사물 …), `kind`는 묶음(색·범례·설정집 섹션)이고 `label`은 이어 준 연관의 라벨이다. */
-export type CardRef = { cardId: string; title: string; type: string; kind: CardKind; label?: string }
+export type CardRef = { cardId: string; title: string; type: string; kind: CardKind; label?: string; sourceFirst?: boolean; relationId?: string } & RelationData
 const cardRef = (world: PublicWorld, i: number, label?: string): CardRef => {
   const { id, title, cardType } = world.cards[i]
   return { cardId: id, title, type: typeLabel(cardType), kind: CARD_KIND[cardType], ...(label ? { label } : {}) }
@@ -106,16 +122,18 @@ const cardRef = (world: PublicWorld, i: number, label?: string): CardRef => {
 const bookOrder = (world: PublicWorld) => KINDS.flatMap((kind) => world.cards.flatMap((c, i) => (CARD_KIND[c.cardType] === kind ? [i] : [])))
 
 export type CardPage = {
-  /** `text`는 마크다운 원문 그대로다(화면이 `## 제목` 문단으로 나눠 그린다). `imageId`는 대표 이미지가 있을 때만 있다. */
+  /** `text`는 마크다운 원문 그대로다(화면이 `#`·`##`·`###` 제목 문단으로 나눠 그린다). `imageId`는 대표 이미지가 있을 때만 있다. */
   card: CardRef & { text: string; aliases: string[]; tags: string[]; imageId?: string }
   /** 인물의 소속: 어느 쪽이 썼든 이어진 조직 카드. 인물이 아니면 빈 목록이다. */
   affiliations: CardRef[]
   /** 인물 카드가 다른 인물과 맺은 관계(`label`이 관계). 인물이 아닌 카드는 빈 목록이다. */
   relations: CardRef[]
-  /** 이 카드가 쓴 연관 중 인물 관계가 아닌 것 */
+  /** 이 카드에서 나가는 단방향 또는 대칭·미상 연관 중 인물 관계가 아닌 것 */
   links: CardRef[]
-  /** 다른 카드가 이 카드를 가리켜 쓴 연관 중 인물 관계가 아닌 것 */
+  /** 다른 카드가 이 카드를 가리키는 단방향 연관 중 인물 관계가 아닌 것 */
   backlinks: CardRef[]
+  /** 같은 두 카드 사이에서 그래프가 겹쳐 생략한 나머지 관계. */
+  additionalRelations: CardRef[]
   /** 같은 유형 묶음의 다른 카드 */
   sameType: CardRef[]
   /** 세계관 전체를 설정집 순서로 이은 앞·뒤 카드 */
@@ -133,17 +151,29 @@ function pageAt(world: PublicWorld, me: number): CardPage {
   const kind = CARD_KIND[world.cards[me].cardType]
   const person = kind === '인물'
   const inPerson = (i: number) => person && CARD_KIND[world.cards[i].cardType] === '인물'
+  const first = new Set<number>()
   const touching = cardPairs(world)
-    .flatMap(({ a, b, label }) => (a === me ? [{ i: b, label, out: true }] : b === me ? [{ i: a, label, out: false }] : []))
+    .flatMap(({ id, a, b, label, category, direction, body, polarity }) => (a === me ? [{ id, i: b, label, category, direction, body, polarity, out: true }] : b === me ? [{ id, i: a, label, category, direction, body, polarity, out: false }] : []))
+    .filter(({ i }) => { if (first.has(i)) return false; first.add(i); return true })
     .sort((x, y) => order.indexOf(x.i) - order.indexOf(y.i))
-  const refs = (list: typeof touching) => list.map(({ i, label }) => cardRef(world, i, label))
   const at = order.indexOf(me)
+  const positions = new Map(world.cards.map((card, index) => [card.id, index]))
+  const seen = new Set<number>(), duplicates = new Set<number>(), additionalRelations: CardRef[] = []
+  for (const relation of world.relationships) {
+    const a = positions.get(relation.sourceCardId), b = positions.get(relation.targetCardId)
+    if (a === undefined || b === undefined || a === b || (a !== me && b !== me)) continue
+    const other = a === me ? b : a
+    if (seen.has(other)) { duplicates.add(other); additionalRelations.push({ ...cardRef(world, other, relation.label || undefined), relationId: relation.id, sourceFirst: a === me, category: relation.category, direction: relation.direction ?? null, body: relation.body, polarity: relation.polarity }) }
+    else seen.add(other)
+  }
+  const refs = (list: typeof touching) => list.map(({ id, i, label, out, category, direction, body, polarity }) => ({ ...cardRef(world, i, label), relationId: id, ...(duplicates.has(i) || direction === 'directed' ? { sourceFirst: out } : {}), category, direction: direction ?? null, body, polarity }))
   return {
     card: { ...cardRef(world, me), text: world.cards[me].text, aliases: world.cards[me].aliases, tags: world.cards[me].tags, ...(world.cards[me].imageId ? { imageId: world.cards[me].imageId } : {}) },
     affiliations: refs(touching.filter(({ i }) => person && world.cards[i].cardType === 'organization')),
     relations: refs(touching.filter(({ i }) => inPerson(i))),
-    links: refs(touching.filter(({ i, out }) => out && !inPerson(i))),
-    backlinks: refs(touching.filter(({ i, out }) => !out && !inPerson(i))),
+    links: refs(touching.filter(({ i, out, direction }) => !inPerson(i) && (out || direction !== 'directed'))),
+    backlinks: refs(touching.filter(({ i, out, direction }) => !inPerson(i) && !out && direction === 'directed')),
+    additionalRelations,
     sameType: order.filter((i) => i !== me && CARD_KIND[world.cards[i].cardType] === kind).map((i) => cardRef(world, i)),
     prev: at > 0 ? cardRef(world, order[at - 1]) : undefined,
     next: at < order.length - 1 ? cardRef(world, order[at + 1]) : undefined,
@@ -167,12 +197,15 @@ export type BookRow = BoardRow
  * 요약 열(`text`)은 한 줄로 보이므로 본문의 마크다운 기호를 벗긴 글자이고 검색도 그 글자에 맞춘다.
  */
 function bookEntries(world: PublicWorld): BoardEntry[] {
+  const connections = new Uint32Array(world.cards.length), people = new Uint32Array(world.cards.length)
+  for (const { a, b } of cardPairs(world)) {
+    connections[a]++; connections[b]++
+    if (world.cards[a].cardType === 'character' && world.cards[b].cardType === 'character') { people[a]++; people[b]++ }
+  }
   return bookOrder(world).map((i) => {
     const { id, title, text, cardType } = world.cards[i]
     const kind = CARD_KIND[cardType]
-    const { relations, links, backlinks } = pageAt(world, i)
-    const connections = relations.length + links.length + backlinks.length
-    return { cardId: id, title, text: plainCardText(text), type: typeLabel(cardType), kind, connections, badge: kind === '인물' ? relations.length : connections }
+    return { cardId: id, title, text: plainCardText(text), type: typeLabel(cardType), kind, connections: connections[i], badge: kind === '인물' ? people[i] : connections[i] }
   })
 }
 
@@ -180,6 +213,6 @@ function bookEntries(world: PublicWorld): BoardEntry[] {
 export const bookRows = (world: PublicWorld, filter: Parameters<typeof boardRows>[1] = {}): BookRow[] => boardRows(bookEntries(world), filter)
 
 /** 카드가 있는 유형 묶음과 장수(인물·장소·조직·규칙·사건·기타 순). 설정집의 분류 메뉴와 그래프 범례가 함께 쓴다. */
-export const kindCounts = (world: PublicWorld) => boardKindCounts(bookEntries(world))
+export const kindCounts = (world: PublicWorld) => KINDS.map((kind) => ({ kind, count: world.cards.filter((card) => CARD_KIND[card.cardType] === kind).length })).filter(({ count }) => count > 0)
 /** `?type=` 값. 그 세계관에 카드가 있는 유형 이름이면 그 유형이고, 없거나 모르는 값이면 undefined(전체)다. */
 export const parseBookKind = (value: string | null, kinds: readonly CardKind[]) => kinds.find((k) => k === value)
