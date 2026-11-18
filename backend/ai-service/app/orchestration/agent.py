@@ -28,6 +28,7 @@ from openai import OpenAIError
 from app import tracing
 from app.intent import service as intent
 from app.orchestration import tools
+from app.orchestration.models import manuscript_review_feature
 from app.orchestration.prompt import INSTRUCTIONS
 
 MODEL_CALLS = 5  # 메인 모델 호출 상한(턴당). 마지막 호출은 도구 없이 종합한다.
@@ -38,7 +39,7 @@ MAIN_FAILED_NOTHING_MESSAGE = '요청을 처리하지 못했어요. 잠시 뒤 �
 BAD_ARGUMENTS = '작업 지시가 형식에 맞지 않아 실행하지 않았어요.'  # 도구 인자 검증 실패(예: request 2,000자 초과)
 TOOLS = {feature: getattr(tools, name) for feature, name in tools.TOOL_NAMES.items()}
 # 한 모델 턴에 함께 실행할 수 있는 조회형 도구(#474). 서로의 결과를 쓰지 않는다. ask_writing·ask_character_simulation은 항상 단독이다.
-PARALLEL = {'ask_story_qa', 'ask_web_research', 'ask_rating', 'ask_world_review', 'ask_review'}
+PARALLEL = {'ask_story_qa', 'ask_web_research', 'ask_rating', 'ask_world_review', 'ask_manuscript_review'}
 
 
 class MainState(AgentState):
@@ -56,7 +57,8 @@ def _closed(state: dict) -> bool:
 
 
 def _allowed(state: dict) -> set[str]:
-    return set() if _closed(state) else {TOOLS[c].name for c in state['decision']['capabilities'] if c in TOOLS}
+    capabilities = map(manuscript_review_feature, state['decision']['capabilities'])
+    return set() if _closed(state) else {TOOLS[c].name for c in capabilities if c in TOOLS}
 
 
 class DecisionGuardMiddleware(AgentMiddleware):
@@ -109,8 +111,13 @@ class DynamicToolMiddleware(AgentMiddleware):
         return await handler(request.override(tools=exposed, model_settings={'parallel_tool_calls': True} if exposed else {}))
 
     async def awrap_tool_call(self, request, handler):
+        call = request.tool_call
+        if call['name'] == 'ask_review' and 'review' in request.state['decision']['capabilities']:
+            # 입력 대기 중 저장된 옛 호출을 복원한다. 모델에는 새 도구 이름만 노출한다.
+            tool = TOOLS['manuscript_review']
+            request = request.override(tool=tool, tool_call={**call, 'name': tool.name})
         if request.tool_call['name'] not in _allowed(request.state):
-            return _blocked(request.tool_call)
+            return _blocked(call)
         result = await handler(request)
         # 도구는 항상 Command로 답한다. 오류 ToolMessage만 왔다면 ToolNode가 인자 검증 실패를 돌려준 것이라 그 기능 단계를 실패로 남긴다.
         if isinstance(result, ToolMessage) and result.status == 'error':
@@ -141,7 +148,11 @@ class ToolCallLimit(ToolCallLimitMiddleware):
                 break
             answered.add(asked.tool_call_id)
         pending = asked.model_copy(update={'tool_calls': [c for c in asked.tool_calls if c['id'] not in answered]})
-        return super().after_model({**state, 'messages': [pending]}, runtime)
+        counted = {**state, 'messages': [pending]}
+        if self.tool_name == 'ask_manuscript_review' and (old_count := state.get('thread_tool_call_count', {}).get('ask_review')):
+            counts = state['thread_tool_call_count']
+            counted['thread_tool_call_count'] = {**counts, self.tool_name: counts.get(self.tool_name, old_count)}
+        return super().after_model(counted, runtime)
 
 
 class MainModelMiddleware(AgentMiddleware):

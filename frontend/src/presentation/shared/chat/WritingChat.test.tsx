@@ -265,7 +265,7 @@ it('부분 수정(task=patch) 입력 대기는 새 원고 계획 칸을 띄우�
 })
 
 it('원고 검수 입력 대기는 검수 종류를 골라야 이어서 실행하고, 고른 종류를 단계 입력으로 보낸다', async () => {
-  openThread([{ request: '검수해 줘', reply: { status: 'waiting', steps: [], missingInputs: ['review'], awaitingApproval: null } }])
+  openThread([{ request: '검수해 줘', reply: { status: 'waiting', steps: [], missingInputs: ['manuscript_review'], awaitingApproval: null } }])
   send.mockResolvedValue(undefined)
   render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
   const form = (await screen.findByRole('heading', { name: '작업에 필요한 내용을 알려 주세요' })).closest('form') as HTMLElement
@@ -275,14 +275,14 @@ it('원고 검수 입력 대기는 검수 종류를 골라야 이어서 실행�
   fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.click(within(form).getByRole('button', { name: '이어서 실행' }))
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
-  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true, inputs: { review: { check: 'semantic' } } } })
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true, inputs: { manuscript_review: { check: 'semantic' } } } })
 })
 
 it('조건부 수정 입력 대기는 확정 지적만 보기로 두고, 고른 지적 번호를 단계 입력으로 보낸다(#370)', async () => {
   const finding = (quote: string, status: string) => ({ category: 'spelling', quote, reason: `${quote} 오류`, status, evidenceRefs: [], suggestion: '', start: status === 'confirmed' ? 0 : null, end: status === 'confirmed' ? 1 : null })
   const review = { check: 'mechanical', episode: 2, revision: 4, gaps: [], findings: [finding('웃엇다', 'confirmed'), finding('비가', 'suspected'), finding('말햇다', 'confirmed')] }
   openThread([{ request: '검수하고 틀리면 고쳐 줘', reply: { status: 'waiting', missingInputs: ['writing_editing'], awaitingApproval: null, steps: [
-    { feature: 'review', status: 'completed', review }, { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' }] } }])
+    { feature: 'manuscript_review', status: 'completed', manuscriptReview: review }, { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' }] } }])
   send.mockResolvedValue(undefined)
   render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
   const form = (await screen.findByRole('heading', { name: '작업에 필요한 내용을 알려 주세요' })).closest('form') as HTMLElement
@@ -301,7 +301,7 @@ it('조건부 수정 지적 고르기 중에도 직전 검수 결과(제안·의
   const finding = (quote: string, status: string) => ({ category: 'spelling', quote, reason: `${quote} 오류`, status, evidenceRefs: [], suggestion: `${quote} 고침`, start: status === 'confirmed' ? 0 : null, end: status === 'confirmed' ? 1 : null })
   const review = { check: 'mechanical', episode: 2, revision: 4, gaps: ['날짜 비교 대상 없음'], findings: [finding('웃엇다', 'confirmed'), finding('비가', 'suspected'), finding('말햇다', 'confirmed')] }
   openThread([{ request: '검수하고 틀리면 고쳐 줘', reply: { status: 'waiting', missingInputs: ['writing_editing'], awaitingApproval: null, steps: [
-    { feature: 'review', status: 'completed', review }, { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' }] } }])
+    { feature: 'manuscript_review', status: 'completed', manuscriptReview: review }, { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' }] } }])
   render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
   const form = (await screen.findByRole('heading', { name: '작업에 필요한 내용을 알려 주세요' })).closest('form') as HTMLElement
   const result = within(form).getByLabelText('검수 결과').textContent
@@ -323,8 +323,8 @@ it('건너뛴 조건부 수정 단계는 진행 표시에서 대기가 아니라
   fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '검수하고 틀리면 고쳐 줘' } })
   fireEvent.click(screen.getByRole('button', { name: '전송' }))
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
-  await act(async () => { emit({ type: 'plan', steps: [{ feature: 'review', status: 'not_started' }, { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' }] }) })
-  await act(async () => { emit({ type: 'step', step: { feature: 'review', status: 'completed', review: { check: 'mechanical', episode: 2, revision: 4, findings: [], gaps: [] } } }) })
+  await act(async () => { emit({ type: 'plan', steps: [{ feature: 'manuscript_review', status: 'not_started' }, { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' }] }) })
+  await act(async () => { emit({ type: 'step', step: { feature: 'manuscript_review', status: 'completed', manuscriptReview: { check: 'mechanical', episode: 2, revision: 4, findings: [], gaps: [] } } }) })
   await act(async () => { emit({ type: 'step', step: { feature: 'writing_editing', when: 'if_issues_found', status: 'skipped', error: '고칠 문제가 없어요.' } }) })
   const progress = screen.getByRole('status', { name: 'AI 진행 상황' })
   expect(within(progress).getByText('건너뜀', { selector: '.chat-step-state' })).toBeTruthy()

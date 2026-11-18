@@ -1,6 +1,6 @@
 # 8개 필수 기능 설계
 
-집필 AI의 필수 기능은 여섯 업무 Agent(Story Context / Q&A, Manuscript Review, World, Writing & Editing, Research, Rating. 2026-11-19 사용자 결정으로 World Review → **World**(`check` 설정 충돌 검사·`enrich` 설정 보강·`impact` 설정 변경 영향 분석, World & Plot Management를 흡수), Web Research → **Research**(`web` 웹 조사·`platform` 플랫폼 내부 조사), 플롯(계획)은 Writing & Editing)와 공통 Character Simulation Subgraph다. 아래 1~8절은 이전 절 번호를 유지한다: 6절은 World `impact`, 7절은 Research, 8절은 World `check`·`enrich`다([목표 구조](02-ai-architecture.md#목표-구조-여섯-업무-agent-2026-11-19)). 원고 검수 Agent의 이름은 **Manuscript Review**다(2026-11-18 사용자 결정). 코드 식별자(`app/review/`, 기능 키 `review`, 도구 `ask_review`, `/internal/v1/reviews`)는 #499에서 `manuscript_review` 계열로 바꾸며, 그 전까지 문서의 코드 이름은 현재 이름 그대로다.
+집필 AI의 필수 기능은 여섯 업무 Agent(Story Context / Q&A, Manuscript Review, World, Writing & Editing, Research, Rating. 2026-11-19 사용자 결정으로 World Review → **World**(`check` 설정 충돌 검사·`enrich` 설정 보강·`impact` 설정 변경 영향 분석, World & Plot Management를 흡수), Web Research → **Research**(`web` 웹 조사·`platform` 플랫폼 내부 조사), 플롯(계획)은 Writing & Editing)와 공통 Character Simulation Subgraph다. 아래 1~8절은 이전 절 번호를 유지한다: 6절은 World `impact`, 7절은 Research, 8절은 World `check`·`enrich`다([목표 구조](02-ai-architecture.md#목표-구조-여섯-업무-agent-2026-11-19)). 원고 검수 Agent의 이름은 **Manuscript Review**다(2026-11-18 사용자 결정). 코드 식별자는 #499에서 `manuscript_review` 계열(`app/manuscript_review/`, 기능 키 `manuscript_review`, 도구 `ask_manuscript_review`, `/internal/v1/manuscript-reviews`)로 바꿨다.
 
 모든 기능은 Content가 검증한 작품/Fork·판본·공개 범위에서 시작한다. 업무 Agent는 각자의 역할과 입출력을 가지며 생성·판단에 `gpt-6-luna`를 사용하는 목표다. 역할마다 서버나 전용 모델 인스턴스를 추가하지 않는다. 공통 도구는 필요한 작업에서만 호출하고 실제 RAG 공급자는 기능이 필요할 때 연결한다. [전체 구조](02-ai-architecture.md) · [검색 계약](07-retrieval-contract-and-mocks.md)
 
@@ -28,7 +28,7 @@ Mechanical만 요청하면 Semantic과 Simulation을 실행하지 않는다. Sem
 
 ### 현재 구현 — MVP (#59)
 
-`backend/ai-service/app/review/`의 내부 API `POST /internal/v1/reviews {workId, episode, check: mechanical|semantic|both}`이고, 집필 AI 오케스트레이션의 `review` 단계가 같은 service를 부른다(검사 종류는 단계 입력 `review.check`, 대상은 Content가 확인한 `target` 반영 회차, 승인·반영 없음). 메인 에이전트가 요청에서 검사 종류를 알아내면 `ask_review(check)`로 넘겨 묻지 않고, 모르면 집필실 채팅이 입력 대기에서 고르게 하며 지적을 상태·분류·구절·이유·제안으로 보인다. 단독 Content 공개 API는 없다.
+`backend/ai-service/app/manuscript_review/`의 내부 API `POST /internal/v1/manuscript-reviews {workId, episode, check: mechanical|semantic|both}`이고, 집필 AI 오케스트레이션의 `manuscript_review` 단계가 같은 service를 부른다(검사 종류는 단계 입력 `manuscript_review.check`, 대상은 Content가 확인한 `target` 반영 회차, 승인·반영 없음). 메인 에이전트가 요청에서 검사 종류를 알아내면 `ask_manuscript_review(check)`로 넘겨 묻지 않고, 모르면 집필실 채팅이 입력 대기에서 고르게 하며 지적을 상태·분류·구절·이유·제안으로 보인다. 단독 Content 공개 API는 없다.
 
 1. Content가 전달한 작가 Bearer(`X-User-Authorization`)로 Content MCP `episode_read`를 불러 작성 중 초안 본문과 `revision`을 읽는다. 빈 초안은 모델 호출 없이 422다.
 2. `semantic`만 `world_studio_list`에서 작품에 연결된 세계관을 찾아 `world_studio_read(episode)`로 그 회차 시점 관계를 읽는다. 연결이 없으면 Fork가 이어받는 원작 세계관(`work_inherited_world`, 공개 카드·Fork 기준 회차까지 읽기 전용, [계약](../design/character-simulation-contract.md#fork-이어받기-365))을 읽고 그것도 없으면 409다. 그 회차까지 공개된 카드(`revealFromEpisode ≤ episode`, 인물 회차 기억도 그 회차까지)와 두 끝이 모두 공개된 관계만 `card:<id>`·`relation:<id>` 설정으로 보낸다. `mechanical`은 초안만 보낸다. 어느 쪽도 Simulation·Retrieval을 부르지 않는다.

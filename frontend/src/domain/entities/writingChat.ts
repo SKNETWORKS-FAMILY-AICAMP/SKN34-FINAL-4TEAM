@@ -3,7 +3,7 @@ import type { WritingEpisode } from './content'
 import { FINDING_KINDS, type ReviewFinding as WorldFinding } from './worldReview'
 
 /** 집필 AI 채팅(#331). 대화 원본은 AI 서비스의 LangGraph 체크포인터이며 화면은 Content API로만 읽고 쓴다. */
-export type ChatFeature = 'story_context' | 'writing_editing' | 'web_research' | 'character_simulation' | 'review' | (string & {})
+export type ChatFeature = 'story_context' | 'writing_editing' | 'web_research' | 'character_simulation' | 'manuscript_review' | (string & {})
 // both는 Router가 두 검수를 함께 고른 결과(#369)다. 작가에게 묻는 화면은 두 가지 중 하나만 고른다.
 export type ReviewCheck = 'mechanical' | 'semantic' | 'both'
 /** 원고 검수 지적 하나. 위치는 초안 본문의 UTF-16 [start,end)이고 같은 구절이 여러 곳이면 null이다(AI가 추측하지 않는다). */
@@ -46,8 +46,8 @@ export type ChatStep = {
   result?: ChatStepResult | null
   /** character_simulation 단계의 검증된 결과(#58). 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
   simulation?: CharacterSimulation | null
-  /** review 단계의 검증된 결과. 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
-  review?: ChatReview | null
+  /** manuscript_review 단계의 검증된 결과. 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
+  manuscriptReview?: ChatReview | null
   /** rating 단계의 검증된 결과. 형식이 어긋난 결과는 이 값 없이 실패한 단계로 들어온다. */
   rating?: ChatRating | null
   /** world_review 단계의 검증된 결과(#479). 채팅은 지적의 종류·메시지만 보인다. */
@@ -86,7 +86,7 @@ export type ChatBasis = { episode: number; episodeVersionId: string; targetEpiso
 /** 입력 대기에서 작가가 채우는 단계 입력. 이름은 AI StepInputs 계약과 같다. */
 export type ChatStepInputs = {
   web_research?: { question: string }
-  review?: { check: ReviewCheck }
+  manuscript_review?: { check: ReviewCheck }
   /** fix는 조건부 수정에서 고른 검수 지적의 번호(검수 결과 findings 순서)다. */
   writing_editing?: { draft: { episodeNumber: number; plan: string } } | { patch: { selection: string; instruction: string } } | { fix: number }
 }
@@ -128,7 +128,7 @@ export function cleanScene(scene: SceneAction): SceneAction {
   }
 }
 
-export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '기획·집필·수정', web_research: '고증 조사', character_simulation: '인물 시뮬레이션', review: '원고 검수', rating: '심의 등급', world_review: '설정집 검토' }
+export const featureLabel: Record<string, string> = { story_context: '작품 질문', writing_editing: '기획·집필·수정', web_research: '고증 조사', character_simulation: '인물 시뮬레이션', manuscript_review: '원고 검수', rating: '심의 등급', world_review: '설정집 검토' }
 export const reviewCheckLabel: Record<ReviewCheck, string> = { mechanical: '맞춤법·표기', semantic: '설정·개연성', both: '설정·개연성 + 맞춤법·표기' }
 const reviewStatus: Record<ReviewFinding['status'], string> = { confirmed: '확정', suspected: '의심', undeterminable: '판단 불가' }
 const reviewCategory: Record<string, string> = {
@@ -182,7 +182,7 @@ export function stepText(step: ChatStep): string {
   if (step.status === 'failed') return `실패: ${step.error ?? '작업을 완료하지 못했어요.'}`
   if (step.status === 'skipped') return `건너뜀: ${step.error ?? '할 일이 없어 건너뛰었어요.'}`
   if (step.simulation) return sceneSummary(step.simulation)
-  if (step.review) return reviewText(step.review)
+  if (step.manuscriptReview) return reviewText(step.manuscriptReview)
   if (step.rating) return ratingText(step.rating)
   if (step.worldReview) return step.worldReview.findings.map((f) => `${FINDING_KINDS[f.kind]} · ${f.message}`).join('\n')
     || (step.worldReview.reviewedCards ? '검토에서 찾은 문제가 없어요.' : '검토할 설정 카드가 없어요.')

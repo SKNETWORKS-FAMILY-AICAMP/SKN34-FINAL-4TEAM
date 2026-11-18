@@ -16,7 +16,7 @@ from app.research.errors import ResearchFailure
 
 from app.retrieval.errors import RetrievalFailure, RetrievalUnavailable
 from app.retrieval.models import RetrievalResult
-from app.review.models import Finding as ReviewFinding, ReviewResponse
+from app.manuscript_review.models import Finding as ReviewFinding, ReviewResponse
 from app.simulation import scene_agent
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import SimulationPlan
@@ -367,11 +367,11 @@ def write_turn(thread, authorization='Bearer user', **body):
 
 
 def test_review_checks_the_target_draft_with_the_chosen_check_and_writes_nothing(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('review'))
+    calls = fake_agents(monkeypatch, plan('manuscript_review'))
     applied = writer(monkeypatch)
-    result = write_turn(str(uuid4()), request='맞춤법 봐줘', target=TARGET, inputs={'review': REVIEW})
+    result = write_turn(str(uuid4()), request='맞춤법 봐줘', target=TARGET, inputs={'manuscript_review': REVIEW})
     assert result.status == 'completed' and result.awaitingApproval is None
-    [(_, (data,), _)] = [c for c in calls if c[0] == 'review']
+    [(_, (data,), _)] = [c for c in calls if c[0] == 'manuscript_review']
     assert (data.workId, data.episode, data.check) == ('work', 3, 'mechanical')
     found = result.steps[0].result.findings[0]
     assert (found.quote, found.start, found.end, found.status) == ('웃엇다', 3, 6, 'confirmed')
@@ -379,8 +379,8 @@ def test_review_checks_the_target_draft_with_the_chosen_check_and_writes_nothing
 
 
 def test_review_without_a_target_fails_the_step_without_a_model_call(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('review'))
-    result = run('검수해줘', inputs={'review': REVIEW})
+    calls = fake_agents(monkeypatch, plan('manuscript_review'))
+    result = run('검수해줘', inputs={'manuscript_review': REVIEW})
     assert result.status == 'failed' and result.steps[0].error == tools.NO_REVIEW_TARGET
     assert names(calls) == ['judge']
 
@@ -413,27 +413,27 @@ def test_rating_without_a_target_fails_the_step_without_a_model_call(monkeypatch
 
 def test_review_waits_for_the_check_kind_in_conversation(monkeypatch):
     thread = str(uuid4())
-    calls = fake_agents(monkeypatch, plan('review'))
+    calls = fake_agents(monkeypatch, plan('manuscript_review'))
     waiting = write_turn(thread, request='검수해줘', target=TARGET)
-    assert (waiting.status, waiting.missingInputs) == ('waiting', ['review'])
-    done = write_turn(thread, resume={'approved': True, 'inputs': {'review': {'check': 'semantic'}}})
+    assert (waiting.status, waiting.missingInputs) == ('waiting', ['manuscript_review'])
+    done = write_turn(thread, resume={'approved': True, 'inputs': {'manuscript_review': {'check': 'semantic'}}})
     assert done.status == 'completed' and done.steps[0].result.check == 'semantic'
-    assert names(calls) == ['judge', 'review']
+    assert names(calls) == ['judge', 'manuscript_review']
 
 
 @pytest.mark.parametrize('check', ['semantic', 'both'])
 def test_review_uses_the_check_kind_the_router_found_without_asking(monkeypatch, check):
-    calls = fake_agents(monkeypatch, plan(Step('review', check=check)))
+    calls = fake_agents(monkeypatch, plan(Step('manuscript_review', check=check)))
     result = write_turn(str(uuid4()), request='설정이랑 맞춤법 다 봐줘', target=TARGET)
     assert result.status == 'completed' and result.missingInputs == []
-    [(_, (data,), _)] = [c for c in calls if c[0] == 'review']
+    [(_, (data,), _)] = [c for c in calls if c[0] == 'manuscript_review']
     assert data.check == check
 
 
 def test_author_chosen_check_kind_wins_over_the_router(monkeypatch):
-    calls = fake_agents(monkeypatch, plan(Step('review', check='semantic')))
-    write_turn(str(uuid4()), request='검수해줘', target=TARGET, inputs={'review': REVIEW})
-    [(_, (data,), _)] = [c for c in calls if c[0] == 'review']
+    calls = fake_agents(monkeypatch, plan(Step('manuscript_review', check='semantic')))
+    write_turn(str(uuid4()), request='검수해줘', target=TARGET, inputs={'manuscript_review': REVIEW})
+    [(_, (data,), _)] = [c for c in calls if c[0] == 'manuscript_review']
     assert data.check == 'mechanical'
 
 
@@ -535,8 +535,8 @@ def found(quote, status='confirmed'):
 
 def conditional(monkeypatch, *findings, revision=4, body=BODY):
     """검수 → 조건부 집필·수정 계획과 검수 결과·초안 읽기 대역. 호출 기록을 돌려준다."""
-    calls = fake_agents(monkeypatch, plan('review', ('writing_editing', 'if_issues_found')))
-    monkeypatch.setattr(tools.review, 'review', lambda data: ReviewResponse(
+    calls = fake_agents(monkeypatch, plan('manuscript_review', ('writing_editing', 'if_issues_found')))
+    monkeypatch.setattr(tools.manuscript_review, 'review', lambda data: ReviewResponse(
         workId=data.workId, episode=data.episode, revision=4, check=data.check, gaps=[], model='m', providerResponseId='r', usage=None,
         findings=list(findings)))
     monkeypatch.setattr(tools.content_mcp, 'call', lambda tool, args: {'draft': {'title': '3화', 'body': body, 'revision': revision}})
@@ -546,7 +546,7 @@ def conditional(monkeypatch, *findings, revision=4, body=BODY):
 def test_one_confirmed_finding_becomes_the_patch_and_waits_for_approval(monkeypatch):
     calls = conditional(monkeypatch, found('서윤은 웃엇다.'), found('비가', status='suspected'))
     applied = writer(monkeypatch)
-    result = write_turn(str(uuid4()), request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'review': REVIEW})
+    result = write_turn(str(uuid4()), request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'manuscript_review': REVIEW})
     assert (result.status, result.awaitingApproval) == ('waiting', 'writing_editing')
     [(_, (patch,), _)] = [c for c in calls if c[0] == 'patch']
     assert (patch.selection, patch.precedingText, patch.followingText) == ('서윤은 웃엇다.', '비가 왔다. ', ' 바람이 차가왔다.')
@@ -560,7 +560,7 @@ def test_one_confirmed_finding_becomes_the_patch_and_waits_for_approval(monkeypa
 ])
 def test_review_without_confirmed_issues_skips_the_edit_with_the_reason(monkeypatch, findings, reason):
     calls = conditional(monkeypatch, *findings)
-    result = write_turn(str(uuid4()), request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'review': REVIEW})
+    result = write_turn(str(uuid4()), request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'manuscript_review': REVIEW})
     assert result.status == 'completed'
     assert (result.steps[1].status, result.steps[1].error) == ('skipped', reason)
     assert 'patch' not in names(calls)
@@ -569,7 +569,7 @@ def test_review_without_confirmed_issues_skips_the_edit_with_the_reason(monkeypa
 def test_several_confirmed_findings_wait_for_the_author_to_pick_one(monkeypatch):
     thread = str(uuid4())
     calls = conditional(monkeypatch, found('서윤은 웃엇다.'), found('바람이 차가왔다.'))
-    waiting = write_turn(thread, request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'review': REVIEW})
+    waiting = write_turn(thread, request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'manuscript_review': REVIEW})
     assert (waiting.status, waiting.missingInputs) == ('waiting', ['writing_editing'])
     assert waiting.steps[0].result.findings[1].quote == '바람이 차가왔다.'
     done = write_turn(thread, resume={'approved': True, 'inputs': {'writing_editing': {'fix': 1}}})
@@ -581,7 +581,7 @@ def test_several_confirmed_findings_wait_for_the_author_to_pick_one(monkeypatch)
 def test_picking_a_finding_that_is_not_confirmed_fails_the_edit(monkeypatch):
     thread = str(uuid4())
     calls = conditional(monkeypatch, found('서윤은 웃엇다.'), found('바람이 차가왔다.'), found('비가', status='suspected'))
-    write_turn(thread, request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'review': REVIEW})
+    write_turn(thread, request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'manuscript_review': REVIEW})
     done = write_turn(thread, resume={'approved': True, 'inputs': {'writing_editing': {'fix': 2}}})
     assert done.status == 'failed' and done.steps[1].error == tools.BAD_FIX
     assert 'patch' not in names(calls)
@@ -589,13 +589,13 @@ def test_picking_a_finding_that_is_not_confirmed_fails_the_edit(monkeypatch):
 
 def test_several_confirmed_findings_without_a_conversation_skip_with_guidance(monkeypatch):
     conditional(monkeypatch, found('서윤은 웃엇다.'), found('바람이 차가왔다.'))
-    result = run('검수하고 틀리면 고쳐줘', target=TARGET, inputs={'review': REVIEW})
+    result = run('검수하고 틀리면 고쳐줘', target=TARGET, inputs={'manuscript_review': REVIEW})
     assert (result.steps[1].status, result.steps[1].error) == ('skipped', tools.PICK_NEEDED)
 
 
 def test_draft_changed_after_the_review_fails_the_edit_without_a_model_call(monkeypatch):
     calls = conditional(monkeypatch, found('서윤은 웃엇다.'), revision=5)
-    result = write_turn(str(uuid4()), request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'review': REVIEW})
+    result = write_turn(str(uuid4()), request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'manuscript_review': REVIEW})
     assert result.status == 'failed' and result.steps[1].error == tools.DRAFT_CHANGED
     assert 'patch' not in names(calls)
 
@@ -603,7 +603,7 @@ def test_draft_changed_after_the_review_fails_the_edit_without_a_model_call(monk
 def test_overlapping_quote_is_not_one_place_and_fails_the_edit(monkeypatch):
     # '하하하'의 '하하'는 겹쳐 두 곳이라 어느 쪽을 고칠지 정할 수 없다(#390).
     calls = conditional(monkeypatch, found('하하'), body='하하하')
-    result = write_turn(str(uuid4()), request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'review': REVIEW})
+    result = write_turn(str(uuid4()), request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'manuscript_review': REVIEW})
     assert result.status == 'failed' and result.steps[1].error == tools.DRAFT_CHANGED
     assert 'patch' not in names(calls)
 
@@ -1215,6 +1215,20 @@ def test_sessions_lists_only_threads_of_the_scope_newest_first(monkeypatch):
     assert [(s.threadId, s.title) for s in sessions] == [(second, '길드 규칙은?'), (first, '카이의 목표는?')]
 
 
+def test_history_reads_a_manuscript_review_step_from_an_old_checkpoint():
+    thread = str(uuid4())
+    result = {'workId': 'w', 'episode': 3, 'revision': 4, 'check': 'semantic', 'findings': [], 'gaps': [],
+              'model': 'm', 'providerResponseId': 'provider-1', 'usage': None}
+    old_step = {'feature': 'review', 'when': 'always', 'status': 'completed', 'result': result}
+    turn = {'request': '원고 검수', 'qa': None, 'reply': {'status': 'completed', 'steps': [old_step]}}
+    asyncio.run(service.CHAT.aupdate_state(service._config(thread, ME),
+                                          {'scope': ME, 'turns': [turn]}, as_node='finish'))
+
+    [saved] = conversation('history', thread, ME).turns
+    [step] = saved.reply.steps
+    assert (step.feature, step.result.episode, step.result.check) == ('review', 3, 'semantic')
+
+
 def test_history_has_each_turn_with_its_reply_and_the_waiting_turn(monkeypatch):
     thread = str(uuid4())
     fake_agents(monkeypatch, plan('story_context'))
@@ -1468,7 +1482,7 @@ def test_an_explicit_operation_wins_over_a_clarify_answer(monkeypatch):
 def test_cancelling_the_finding_pick_runs_no_edit(monkeypatch):
     thread = str(uuid4())
     calls = conditional(monkeypatch, found('서윤은 웃엇다.'), found('바람이 차가왔다.'))
-    write_turn(thread, request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'review': REVIEW})
+    write_turn(thread, request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'manuscript_review': REVIEW})
     done = write_turn(thread, resume={'approved': False})
     assert done.status == 'cancelled' and 'patch' not in names(calls)
 
@@ -1476,7 +1490,7 @@ def test_cancelling_the_finding_pick_runs_no_edit(monkeypatch):
 def test_malformed_draft_read_fails_the_edit_step_instead_of_the_run(monkeypatch):
     conditional(monkeypatch, found('서윤은 웃엇다.'))
     monkeypatch.setattr(tools.content_mcp, 'call', lambda tool, args: {})
-    result = write_turn(str(uuid4()), request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'review': REVIEW})
+    result = write_turn(str(uuid4()), request='검수하고 틀리면 고쳐줘', target=TARGET, inputs={'manuscript_review': REVIEW})
     assert result.status == 'failed' and result.steps[1].error == tools.BAD_DRAFT
 
 
@@ -1506,12 +1520,12 @@ def test_plan_only_returns_beat_plans_with_allowed_context_and_never_asks_to_wri
 
 
 def test_draft_without_a_plan_plans_and_writes_in_one_step_then_waits_for_approval(monkeypatch):
-    calls = fake_agents(monkeypatch, plan(writing_step('draft'), 'review'))
+    calls = fake_agents(monkeypatch, plan(writing_step('draft'), 'manuscript_review'))
     applied = writer(monkeypatch)
-    result = write_turn(str(uuid4()), request='11화를 기획하고 써서 검수해줘', target=TARGET, inputs={'review': REVIEW})
+    result = write_turn(str(uuid4()), request='11화를 기획하고 써서 검수해줘', target=TARGET, inputs={'manuscript_review': REVIEW})
     assert (result.status, result.awaitingApproval) == ('waiting', 'writing_editing')
-    assert [(s.feature, s.status) for s in result.steps] == [('writing_editing', 'completed'), ('review', 'completed')]
-    assert result.steps[0].result.plan == BEAT and names(calls) == ['judge', 'mcp', 'plan_and_draft', 'review'] and applied == []
+    assert [(s.feature, s.status) for s in result.steps] == [('writing_editing', 'completed'), ('manuscript_review', 'completed')]
+    assert result.steps[0].result.plan == BEAT and names(calls) == ['judge', 'mcp', 'plan_and_draft', 'manuscript_review'] and applied == []
 
 
 def test_author_plan_still_wins_and_gets_the_allowed_context(monkeypatch):

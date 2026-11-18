@@ -51,6 +51,13 @@ def test_world_review_can_be_chosen_as_an_operation_but_takes_no_step_input():
         OrchestrationRequest(request='설정집 검토', inputs={'world_review': {}})
 
 
+@pytest.mark.parametrize('operation', ['manuscript_review', 'review'])
+def test_manuscript_review_operations_use_the_new_feature(operation):
+    request = OrchestrationRequest(request='원고 검수', operation=operation, inputs={operation: {'check': 'semantic'}})
+    assert request.operation == 'manuscript_review'
+    assert request.inputs.model_dump(exclude_none=True) == {'manuscript_review': {'check': 'semantic'}}
+
+
 # [시뮬레이션] 버튼의 시작 양식(simulation): operation이 character_simulation인 새 요청에서만 받고 한도는 SimulationPlan이 지킨다.
 FORM = {'mode': 'if', 'premise': '만약 북문이 열려 있었다면?', 'characterIds': ['k']}
 BUTTON = {'request': '흐름 모드 시뮬레이션: 장면 계획 3개', 'operation': 'character_simulation', 'simulation': FORM}

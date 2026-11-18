@@ -10,9 +10,9 @@ from concurrent.futures import ThreadPoolExecutor
 
 from app.content_mcp import service as content_mcp
 from app.novelbrain.models import WorldSnapshot, world_snapshot
-from app.review import agent
-from app.review.errors import ReviewFailure
-from app.review.models import CATEGORIES, Finding, ReviewRequest, ReviewResponse
+from app.manuscript_review import agent
+from app.manuscript_review.errors import ReviewFailure
+from app.manuscript_review.models import CATEGORIES, Finding, ReviewRequest, ReviewResponse
 
 EMPTY_DRAFT = '검수할 초안 본문이 없어요.'
 NO_LINKED_WORLD = '이 작품에 연결된 세계관이 없어 설정 검수를 할 수 없어요.'

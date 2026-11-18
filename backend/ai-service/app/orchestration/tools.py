@@ -35,9 +35,9 @@ from app.research.models import ResearchRequest
 from app.retrieval import service as retrieval
 from app.retrieval.errors import RetrievalFailure
 from app.retrieval.models import RetrievalScope
-from app.review import service as review
-from app.review.errors import ReviewFailure
-from app.review.models import ReviewRequest
+from app.manuscript_review import service as manuscript_review
+from app.manuscript_review.errors import ReviewFailure
+from app.manuscript_review.models import ReviewRequest
 from app.simulation import service as simulation
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import GAP_LABELS, SimulationPlan
@@ -68,7 +68,7 @@ BAD_FIX = '고칠 수 있는 확정 지적이 아니에요. 검수 결과에서 
 DRAFT_CHANGED = '검수한 뒤 초안이 바뀌어 고치지 않았어요. 다시 검수해 주세요.'
 BAD_DRAFT = 'Content 초안 응답을 확인할 수 없습니다.'
 # 판정 기능 → 메인에 노출할 도구 이름. world_plot은 미구현이라 도구가 없다(판정되면 unsupported).
-TOOL_NAMES = {'story_context': 'ask_story_qa', 'review': 'ask_review', 'world_review': 'ask_world_review', 'writing_editing': 'ask_writing',
+TOOL_NAMES = {'story_context': 'ask_story_qa', 'manuscript_review': 'ask_manuscript_review', 'world_review': 'ask_world_review', 'writing_editing': 'ask_writing',
               'web_research': 'ask_web_research', 'rating': 'ask_rating', 'character_simulation': 'ask_character_simulation'}
 UNSUPPORTED_MESSAGE = ('요청에 아직 실행할 수 없는 작업이 있어 아무 작업도 실행하지 않았어요. '
                        '작품 질문, 원고 검수, 설정집 검토, 기획·집필·수정, 고증 조사, 인물 시뮬레이션은 각각 요청할 수 있어요.')
@@ -76,14 +76,14 @@ UNSUPPORTED_MESSAGE = ('요청에 아직 실행할 수 없는 작업이 있어 �
 
 def _check(inputs: dict, check: str | None) -> str | None:
     """Review 검사 종류. 작가가 보낸 검사 종류가 메인 에이전트의 check보다 우선한다."""
-    return (inputs.get('review') or {}).get('check') or check
+    return (inputs.get('manuscript_review') or inputs.get('review') or {}).get('check') or check
 
 
 # 작가 입력을 기다리는 조건(turn, inputs, scope, 도구 인자). 도구 안 needs와 병렬 묶음 검사(waits)가 같은 조건을 쓴다.
 # ask_writing·ask_character_simulation은 항상 단독이라 묶음 검사에 필요 없다.
 WAITS = {
     'ask_story_qa': lambda turn, inputs, scope, args: 'story_context' not in inputs and not scope,
-    'ask_review': lambda turn, inputs, scope, args: bool(turn.get('target')) and not _check(inputs, args.get('check')),
+    'ask_manuscript_review': lambda turn, inputs, scope, args: bool(turn.get('target')) and not _check(inputs, args.get('check')),
     'ask_web_research': lambda turn, inputs, scope, args: 'web_research' not in inputs,
 }
 
@@ -136,7 +136,7 @@ def _writing_summary(r: dict) -> dict:
 
 SUMMARIES: dict[str, Callable[[dict], dict]] = {
     'story_context': lambda r: {'claims': [{k: c[k] for k in ('text', 'kind', 'sourceIds')} for c in r['claims']], 'gaps': r['gaps']},
-    'review': lambda r: {'revision': r['revision'], 'gaps': r['gaps'], 'findings': [
+    'manuscript_review': lambda r: {'revision': r['revision'], 'gaps': r['gaps'], 'findings': [
         {'fix': i, 'status': f['status'], 'category': f['category'], 'quote': f['quote'], 'reason': f['reason']}
         for i, f in enumerate(r['findings'])]},
     'world_review': lambda r: {'findings': [{'kind': f['kind'], 'message': f['message']} for f in r['findings']]},
@@ -217,8 +217,8 @@ def ask_story_qa(request: Request, runtime: ToolRuntime) -> Command:
 
 
 @tool
-def ask_review(request: Request, runtime: ToolRuntime, check: Literal['mechanical', 'semantic', 'both'] | None = None) -> Command:
-    """원고 검수(Review): Content가 확인한 반영 회차 초안을 검수해 위치·근거·확정/의심이 있는 지적을 돌려준다.
+def ask_manuscript_review(request: Request, runtime: ToolRuntime, check: Literal['mechanical', 'semantic', 'both'] | None = None) -> Command:
+    """원고 검수(Manuscript Review): Content가 확인한 반영 회차 초안을 검수해 위치·근거·확정/의심이 있는 지적을 돌려준다.
 
     check는 mechanical(맞춤법·표기), semantic(설정·개연성), both 중 요청에서 알 수 있는 것이며 모르면 비운다(작가가 고른다).
     """
@@ -226,14 +226,14 @@ def ask_review(request: Request, runtime: ToolRuntime, check: Literal['mechanica
 
     def run(inputs, scope):
         target = _target(turn, ReviewFailure, NO_REVIEW_TARGET)
-        return review.review(ReviewRequest(workId=target['workId'], episode=target['episode'], check=_check(inputs, check)))
+        return manuscript_review.review(ReviewRequest(workId=target['workId'], episode=target['episode'], check=_check(inputs, check)))
 
-    return _ask(runtime, 'review', run, needs=lambda inputs, scope: WAITS['ask_review'](turn, inputs, scope, {'check': check}))
+    return _ask(runtime, 'manuscript_review', run, needs=lambda inputs, scope: WAITS['ask_manuscript_review'](turn, inputs, scope, {'check': check}))
 
 
 @tool
 def ask_world_review(request: Request, runtime: ToolRuntime) -> Command:
-    """설정집 검토: 작품에 연결된 세계관 카드 자체의 모순·역할 오류·누락을 검토한다(원고 검수는 ask_review)."""
+    """설정집 검토: 작품에 연결된 세계관 카드 자체의 모순·역할 오류·누락을 검토한다(원고 검수는 ask_manuscript_review)."""
     turn = runtime.context
     return _ask(runtime, 'world_review', lambda inputs, scope: world_review.review(world_review.linked_request(
         _target(turn, WorldReviewFailure, NO_WORLD_REVIEW_TARGET)['workId'])))
@@ -262,10 +262,10 @@ def ask_web_research(runtime: ToolRuntime) -> Command:
 def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch'], runtime: ToolRuntime, fix: int | None = None) -> Command:
     """기획·집필·수정(Writing & Editing): plan은 전개 기획만, draft는 계획을 세워 새 원고까지, patch는 기존 문장 수정안이다.
 
-    이번 턴 ask_review 결과의 확정 지적을 고칠 때만 task=patch와 fix(그 지적의 fix 번호)를 쓴다. 확정 지적이 하나면 fix를 비워도 된다.
+    이번 턴 ask_manuscript_review 결과의 확정 지적을 고칠 때만 task=patch와 fix(그 지적의 fix 번호)를 쓴다. 확정 지적이 하나면 fix를 비워도 된다.
     """
     turn, steps = runtime.context, runtime.state.get('steps', [])
-    reviewed = next((s for s in reversed(steps) if s['feature'] == 'review' and s['status'] == 'completed'), None)
+    reviewed = next((s for s in reversed(steps) if s['feature'] in ('manuscript_review', 'review') and s['status'] == 'completed'), None)
     given = (runtime.state.get('inputs') or {}).get('writing_editing') or {}
     fixing = 'fix' in given or fix is not None or (task == 'patch' and 'patch' not in given and reviewed is not None)
     if fixing:
