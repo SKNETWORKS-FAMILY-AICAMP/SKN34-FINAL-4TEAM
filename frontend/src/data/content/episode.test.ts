@@ -410,7 +410,17 @@ describe('Fork가 이어받는 원작 세계관(#365)', () => {
     expect(url).toBe('/api/v1/works/fork%201/inherited-world?upto=4')
     expect(request.method).toBe('GET')
     expect(request.headers).toEqual(expect.objectContaining({ Authorization: 'Bearer content-bearer' }))
-    expect(inherited).toEqual({ upto: 2, cards: [{ id: 'c1', title: '카엘', cardType: 'character', aliases: ['검은 기사'] }, { id: 'p1', title: '성문', cardType: 'location', aliases: ['검은 기사'] }] })
+    expect(inherited).toEqual({ upto: 2, cards: [{ id: 'c1', title: '카엘', cardType: 'character', aliases: ['검은 기사'] }, { id: 'p1', title: '성문', cardType: 'location', aliases: ['검은 기사'] }], identity: [] })
+  })
+
+  // 「동일 인물」(#485): 시작 양식이 같은 사람의 두 카드를 함께 고르지 못하게 하려고 이어받은 세계관의 identity를 다른 이름 → 본체 쌍으로 받는다.
+  it('이어받은 세계관의 「동일 인물」 관계를 다른 이름 → 본체 쌍으로 돌려주고 부정·다른 종류의 관계는 뺀다', async () => {
+    const relationship = (rid: string, sourceCardId: string, targetCardId: string, category: string, polarity = 'asserted') =>
+      ({ id: rid, sourceCardId, targetCardId, category, label: '', body: '', direction: 'directed', polarity, semanticMetadata: {}, lifecycle: 'active' })
+    const fetcher = vi.fn().mockImplementation(async () => Response.json(answer({ relationships: [
+      relationship('r1', 'c1', 'p1', 'identity'), relationship('r2', 'p1', 'c1', 'identity', 'denied'), relationship('r3', 'c1', 'p1', 'structural'),
+    ] })))
+    expect((await new EpisodeUseCase(new HttpEpisodeRepository(fetcher)).inheritedWorld('fork', 4))?.identity).toEqual([{ sourceCardId: 'c1', targetCardId: 'p1' }])
   })
 
   it('upto를 모르면 쿼리를 붙이지 않는다(서버가 Fork 기준 회차로 읽는다)', async () => {

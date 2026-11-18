@@ -4,6 +4,8 @@ import {
   createPairRelationDraft,
   hasRelationDraftChanges,
   hasIncompleteRelationDraft,
+  identityBodyPatch,
+  identityNeedsEpisode,
   newRelationDraftRow,
   relationDirection,
   relationDirectionPatch,
@@ -202,4 +204,46 @@ it('detects incomplete new rows with any entered content even beside valid rows'
     expect(hasIncompleteRelationDraft(originals, [{...first,value:{...first.value,text:'유효한 관계'}}, changed])).toBe(true)
   }
   expect(hasIncompleteRelationDraft(originals, [{...first,value:{...first.value,text:'유효한 관계'}}, second])).toBe(false)
+})
+
+describe('동일 인물 draft rows', () => {
+  it('starts from other name → body, needs no text, and is the only row that joins the changes', () => {
+    const rows = createPairRelationDraft([], 'a', 'b')
+    const identity = newRelationDraftRow('identity', 'a', 'b')
+    expect(identity.value).toMatchObject({ subjectId: 'a', targetId: 'b', predicate: 'identity_of', polarity: 'asserted' })
+    expect(relationDraftChanges([...rows, identity]).map((change) => change.predicate)).toEqual(['identity_of'])
+    expect(hasIncompleteRelationDraft(rows, [...rows, identity])).toBe(false)
+    expect(createPairRelationDraft([], 'a', 'b').some((row) => row.group === 'identity')).toBe(false)
+  })
+
+  it('brings the existing identity relation of the pair back as an identity row in either direction', () => {
+    const [a, b] = pair()
+    const settings = putRelation([a, b], { subjectId: b.item.id, targetId: a.item.id, predicate: 'identity_of', polarity: 'asserted' })
+    const rows = createPairRelationDraft(settings, a.item.id, b.item.id)
+    const identity = rows.filter((row) => row.group === 'identity')
+    expect(identity).toHaveLength(1)
+    expect(identity[0]).toMatchObject({ key: settings[2].item.id, value: { subjectId: b.item.id, targetId: a.item.id }, baseline: settings[2].item })
+    expect(rows.filter((row) => row.group === 'fact')).toHaveLength(1) // 실제 관계 칸은 그대로 하나 비어 있다
+  })
+
+  it('choosing the body turns the endpoints around and keeps the other card as the other name', () => {
+    expect(identityBodyPatch('a', 'a', 'b')).toEqual({ subjectId: 'b', targetId: 'a' })
+    expect(identityBodyPatch('b', 'a', 'b')).toEqual({ subjectId: 'a', targetId: 'b' })
+  })
+
+  it('needs an episode for a new, changed or ended identity row but not for one left as it is', () => {
+    const [a, b] = pair()
+    const settings = putRelation([a, b], { subjectId: a.item.id, targetId: b.item.id, predicate: 'identity_of', polarity: 'asserted' })
+    const initial = createPairRelationDraft(settings, a.item.id, b.item.id)
+    expect(identityNeedsEpisode(initial, initial, [])).toBe(false) // 그대로 둔 것은 회차를 다시 정하지 않아도 된다
+    const turned = initial.map((row) => row.group === 'identity' ? { ...row, value: { ...row.value, ...identityBodyPatch(a.item.id, a.item.id, b.item.id) } } : row)
+    expect(identityNeedsEpisode(initial, turned, [])).toBe(true) // 바꾸기
+    const start = createPairRelationDraft([], 'a', 'b')
+    expect(identityNeedsEpisode(start, [...start, newRelationDraftRow('identity', 'a', 'b')], [])).toBe(true) // 새로 쓰기
+    expect(identityNeedsEpisode(start, start, [])).toBe(false)
+    const link = initial.find((row) => row.group === 'identity')!
+    expect(identityNeedsEpisode(initial, initial.filter((row) => row !== link), [link.value.id!])).toBe(true) // 끝내기
+    const other = initial.find((row) => row.group === 'fact')!
+    expect(identityNeedsEpisode(initial, initial.filter((row) => row !== other), [other.value.id ?? 'x'])).toBe(false) // 다른 관계를 지우는 것은 상관없다
+  })
 })

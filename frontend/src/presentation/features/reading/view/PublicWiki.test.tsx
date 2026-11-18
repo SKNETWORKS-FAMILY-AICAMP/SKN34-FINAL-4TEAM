@@ -160,4 +160,15 @@ describe('연결된 세계관의 설정 카드로 채운 설정 위키 (DEC-46)'
     }
     expect(within(rian).getAllByRole('link', { name: '별빛 탑' })).toHaveLength(3)
   })
+
+  it('「동일 인물」은 다른 이름 문서에는 정체로, 본체 문서에는 다른 이름으로 보이고 구조 관계·방향·부정 문구를 붙이지 않는다', () => {
+    const people = [card('mask', { title: '승상' }), card('body', { title: '홍길동' })]
+    const rels: ReaderWorldCards['relationships'] = [{ id: 'i', sourceCardId: 'mask', targetCardId: 'body', label: '승상 · 동일 인물 · 홍길동', category: 'identity', direction: 'directed', polarity: 'asserted', body: '' }]
+    const panel = render(<MemoryRouter><PublicWikiArticle work={{ ...mapReadingWork(record), wiki: worldCardWiki({ workId: record.id, upto: 2, cards: people, relationships: rels }) }} upto={2} /></MemoryRouter>).container
+    const mask = docOf(panel, /승상$/), body = docOf(panel, /홍길동$/)
+    expect(mask.querySelector('.nw-rel')?.textContent).toBe('연결 동일 인물 · 정체: 홍길동')
+    expect(body.querySelector('.nw-rel')?.textContent).toBe('연결 동일 인물 · 다른 이름: 승상')
+    within(mask).getByRole('link', { name: '홍길동' })
+    expect(panel.textContent).not.toMatch(/구조 관계|단방향|확인된 관계/)
+  })
 })

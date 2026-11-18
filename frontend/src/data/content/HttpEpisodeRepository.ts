@@ -54,13 +54,15 @@ const cardId = z.string().min(1)
 const readingWorldCards = z.object({
   workId: z.string(), worldId: z.string().min(1).nullable(), upto: z.number().int().nonnegative(),
   cards: z.array(z.object({ id: cardId, title: z.string(), text: z.string(), cardType: z.enum(cardTypes.map((type) => type.id)), aliases: z.array(z.string()), tags: z.array(z.string()), revealFromEpisode: z.number().int().positive(), imageId: z.string().min(1).nullable().default(null) })),
-  relationships: z.array(z.object({ id: cardId, sourceCardId: cardId, targetCardId: cardId, label: z.string(), category: z.enum(['structural', 'emotional']).nullable().optional(), direction: z.enum(['directed', 'symmetric']).nullable().optional(), body: z.string().nullable().optional(), polarity: z.enum(['asserted', 'denied']).nullable().optional() })),
+  relationships: z.array(z.object({ id: cardId, sourceCardId: cardId, targetCardId: cardId, label: z.string(), category: z.enum(['structural', 'emotional', 'identity']).nullable().optional(), direction: z.enum(['directed', 'symmetric']).nullable().optional(), body: z.string().nullable().optional(), polarity: z.enum(['asserted', 'denied']).nullable().optional() })),
   relationshipStatus: z.enum(['current', 'unavailable']).default('current'),
 })
 /** Fork가 이어받는 원작 세계관(#365): 시작 양식이 쓰는 카드 필드만 읽는다. 이어받는 세계관이 없으면 worldId가 null이다. */
 const inheritedWorld = z.object({
   worldId: z.uuid().nullable(), upto: z.number().int().nonnegative(),
   cards: z.array(z.object({ id: cardId, title: z.string(), cardType: z.string(), aliases: z.array(z.string()) })),
+  // 「동일 인물」(#485)만 쓴다: 이어받은 관계 중 identity가 아닌 것의 나머지 필드는 읽지 않는다.
+  relationships: z.array(z.object({ sourceCardId: cardId, targetCardId: cardId, category: z.string().nullable().optional(), polarity: z.string().nullable().optional() })).default([]),
 })
 const publicationSchedule = z.object({
   id: z.string().min(1),
@@ -196,7 +198,10 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
   /** Fork 소유자가 자기 세계관 없이 이어받는 원작 세계관(읽기 전용, #365). 이어받는 세계관이 없으면 null이고, 서버 거절·형식 오류는 없음으로 바꾸지 않고 그대로 던진다. */
   async inheritedWorld(workId: string, upto?: number, signal?: AbortSignal) {
     const world = await this.request(`/works/${encodeURIComponent(workId)}/inherited-world${upto === undefined ? '' : `?upto=${upto}`}`, inheritedWorld, 'GET', undefined, signal)
-    return world.worldId ? { upto: world.upto, cards: world.cards } : null
+    return world.worldId ? {
+      upto: world.upto, cards: world.cards,
+      identity: world.relationships.filter((r) => r.category === 'identity' && r.polarity !== 'denied').map(({ sourceCardId, targetCardId }) => ({ sourceCardId, targetCardId })),
+    } : null
   }
   save(id: string, value: Draft) { return this.request(`/works/${id}/draft`,draft,'PUT',value) }
   publish(id: string, revision: number, rightsConfirmed: boolean, allowFork: boolean, allowForkPublication = false, versionId?: string) { return this.request(`/works/${id}/publish`,work,'POST',{revision,rightsConfirmed,allowFork,allowForkPublication,versionId}) }

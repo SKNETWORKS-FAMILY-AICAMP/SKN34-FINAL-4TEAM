@@ -21,7 +21,7 @@ const worldPage: z.ZodType<PublicWorldPage> = z.object({ items: z.array(summary)
 const world: z.ZodType<PublicWorld> = z.object({
   id, name: z.string(), description: z.string(), genre, authorNickname: z.string(), publishedAt: instant, hasCover: z.boolean().default(false), revisionNo: z.number().int().positive(),
   cards: z.array(z.object({ id, title: z.string(), text: z.string(), cardType, aliases: z.array(z.string()), tags: z.array(z.string()), imageId })),
-  relationships: z.array(z.object({ id, sourceCardId: id, targetCardId: id, label: z.string(), category: z.enum(['structural', 'emotional']).nullable().optional(), direction: z.enum(['directed', 'symmetric']).nullable().optional(), body: z.string().nullable().optional(), polarity: z.enum(['asserted', 'denied']).nullable().optional() })),
+  relationships: z.array(z.object({ id, sourceCardId: id, targetCardId: id, label: z.string(), category: z.enum(['structural', 'emotional', 'identity']).nullable().optional(), direction: z.enum(['directed', 'symmetric']).nullable().optional(), body: z.string().nullable().optional(), polarity: z.enum(['asserted', 'denied']).nullable().optional() })),
   relationshipStatus: z.enum(['current', 'unavailable']),
   linkedWork,
 })

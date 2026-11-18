@@ -24,7 +24,7 @@ import '../../reading/view/publicWiki.css'
 import './worlds.css'
 
 /** 다른 카드 페이지로 가는 링크와 그 연관의 라벨(`제목 · 라벨`) */
-const CardLink = ({ worldId, r }: { worldId: string; r: CardRef }) => <><Go to={cardPath(worldId, r.cardId)}>{r.title}</Go>{r.label && ` · ${r.label}`}{r.category && ` · ${r.category === 'emotional' ? '감정 관계' : '구조 관계'}`}{r.direction !== undefined && ` · ${r.direction === 'directed' ? `단방향: ${r.sourceFirst ? `이 설정 → ${r.title}` : `${r.title} → 이 설정`}` : r.direction === 'symmetric' ? '대칭 관계' : '방향 미상'}`}{r.polarity === 'denied' && ' · 부정된 관계'}{r.polarity === 'asserted' && ' · 확인된 관계'}{r.sourceFirst !== undefined && r.direction !== 'directed' && ` · 기록 순서: ${r.sourceFirst ? `이 설정 → ${r.title}` : `${r.title} → 이 설정`}`}{r.body && <p className="world-prose" style={{ whiteSpace: 'pre-wrap' }}>{r.body}</p>}</>
+const CardLink = ({ worldId, r }: { worldId: string; r: CardRef }) => <><Go to={cardPath(worldId, r.cardId)}>{r.title}</Go>{r.label && ` · ${r.label}`}{r.category && ` · ${r.category === 'emotional' ? '감정 관계' : r.category === 'identity' ? '동일 인물' : '구조 관계'}`}{r.direction !== undefined && ` · ${r.direction === 'directed' ? `단방향: ${r.sourceFirst ? `이 설정 → ${r.title}` : `${r.title} → 이 설정`}` : r.direction === 'symmetric' ? '대칭 관계' : '방향 미상'}`}{r.polarity === 'denied' && ' · 부정된 관계'}{r.polarity === 'asserted' && ' · 확인된 관계'}{r.sourceFirst !== undefined && r.direction !== 'directed' && ` · 기록 순서: ${r.sourceFirst ? `이 설정 → ${r.title}` : `${r.title} → 이 설정`}`}{r.body && <p className="world-prose" style={{ whiteSpace: 'pre-wrap' }}>{r.body}</p>}</>
 
 /** 카드 목록. 묶음이 섞인 목록(연관·가리키는 설정)은 항목마다 유형 칩을 단다. */
 function CardList({ worldId, refs, withType }: { worldId: string; refs: readonly CardRef[]; withType: boolean }) {

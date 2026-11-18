@@ -433,9 +433,9 @@ def test_the_world_is_read_once_per_request_and_the_retrieval_token_is_the_one_t
     monkeypatch.setattr(service.retrieval, 'retrieve', lambda scope, question: tokens.append(scope.scopeToken) or RetrievalResult(
         status='found', excerpts=[], gaps=[], steps=[], coverage={'expected': [], 'withVerifiedExcerpt': [], 'withoutVerifiedExcerpt': []}))
     run = Run(scope={'scopeToken': 'old.token'}).start()
-    assert [tool for tool, _ in h.content] == ['world_studio_list', 'world_studio_read'] and tokens == ['old.token']
+    assert [tool for tool, _ in h.content] == ['world_studio_list', 'world_studio_read', 'world_studio_read'] and tokens == ['old.token']
     run.resume(SceneAction(action='next'), scope={'scopeToken': 'fresh.token'})  # 한 요청 안의 재생성은 세계관을 다시 읽지 않는다
-    assert len(h.content) == 4 and tokens == ['old.token', 'fresh.token'] and h.calls.act[-1]['self']['id'] == KAEL
+    assert len(h.content) == 6 and tokens == ['old.token', 'fresh.token'] and h.calls.act[-1]['self']['id'] == KAEL
 
 
 def test_dialogue_quotes_are_unified_in_the_written_turn(monkeypatch):
