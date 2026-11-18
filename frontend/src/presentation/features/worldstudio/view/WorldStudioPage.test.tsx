@@ -3535,3 +3535,17 @@ it('이른 카드의 글에 더 늦게 공개되는 카드의 이름이 나오�
   fireEvent.change(editor().getByRole('textbox', { name: '설명' }), { target: { value: '승상은 궁궐에 산다.' } }) // 늦은 카드가 이른 카드의 이름을 말하는 것은 괜찮다
   expect(editor().queryByRole('region', { name: '공개 순서 확인' })).toBeNull()
 })
+
+it('관계 문구의 공개 순서 확인은 관계를 처음 기록한 회차를 알 수 없어 두 설정이 공개되는 회차부터로 계산했다고 알리고 단정하지 않는다 (DEC-53)', async () => {
+  const [lian, kael] = [{ ...person('리안'), revealFromEpisode: 1 }, { ...person('카엘'), revealFromEpisode: 1 }]
+  const seraphin = { ...person('세라핀'), revealFromEpisode: 3 }
+  const secret = { ...person('검은 옷의 사내'), revealFromEpisode: undefined } // 작가 전용
+  const settings = putRelation([lian, kael, seraphin, secret], { subjectId: kael.item.id, targetId: lian.item.id, predicate: 'custom_relation_directed', polarity: 'asserted', title: '보호', text: '세라핀의 부탁으로 지킨다' })
+  await show(putRelation(settings, { subjectId: lian.item.id, targetId: kael.item.id, predicate: 'custom_relation_directed', polarity: 'asserted', title: '의심', text: '검은 옷의 사내를 닮았다' }))
+  openCard('리안 인물')
+  const items = within(editor().getByRole('region', { name: '공개 순서 확인' })).getAllByRole('listitem').map((li) => li.textContent)
+  expect(items).toEqual([
+    '관계 ‘보호’의 글에 ‘세라핀’이(가) 나와요. 세라핀 카드는 3화부터 공개인데 이 관계가 두 설정이 공개되는 1화부터 보이면 이름이 먼저 드러나요(관계를 처음 기록한 회차는 알 수 없어요).',
+    '관계 ‘의심’의 글에 ‘검은 옷의 사내’이(가) 나와요. 검은 옷의 사내 카드는 작가 전용인데 이 관계가 두 설정이 공개되는 1화부터 보이면 이름이 먼저 드러나요(관계를 처음 기록한 회차는 알 수 없어요).',
+  ])
+})

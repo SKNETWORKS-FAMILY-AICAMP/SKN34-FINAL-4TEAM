@@ -1,5 +1,11 @@
 import type { OrderIssue } from '../../../../domain/entities/worldReview'
 
+/** 경고 뒷부분. 본문은 그 카드가 보이는 회차부터 독자에게 보이지만, 관계는 기록 회차(DEC-51)를 초안도 서버 응답도 주지 않아 두 끝 설정이 공개되는 회차부터로 계산한 가정임을 밝힌다(더 늦게 기록한 관계면 해당하지 않는다). */
+const timing = ({ source, visibleFrom }: OrderIssue) =>
+  source === 'body'
+    ? `이 글은 ${visibleFrom}화부터 독자에게 보여요.`
+    : `이 관계가 두 설정이 공개되는 ${visibleFrom}화부터 보이면 이름이 먼저 드러나요(관계를 처음 기록한 회차는 알 수 없어요).`
+
 /**
  * 편집 화면의 '공개 순서 확인'([계약](../../../../../../docs/design/world-review-contract.md#공개-순서-규칙--dec-53)): 이 카드의 글(본문·링크 글자, 이 카드를 끝점으로 하는 관계의 label·body)에
  * 이 글이 독자에게 보이기 시작하는 회차보다 늦게 공개되는 카드(작가 전용 포함)의 이름이 나오면 어느 글에 어떤 이름이 나오는지 알린다. 경고일 뿐 저장·확정을 막지 않는다.
@@ -16,7 +22,7 @@ export function WorldCardOrder({ issues, relationTitle, onOpenCard }: { issues: 
             <p>
               {issue.source === 'body' ? '본문' : `관계 ‘${relationTitle(issue.relationId!)}’의 글`}에 ‘{issue.name}’이(가) 나와요.{' '}
               <button type="button" className="world-finding-link" onClick={() => onOpenCard(issue.named.cardId)}>{issue.named.title || '이름 없는 설정'}</button>
-              {` 카드는 ${issue.named.from === undefined ? '작가 전용' : `${issue.named.from}화부터 공개`}인데 이 글은 ${issue.visibleFrom}화부터 독자에게 보여요.`}
+              {` 카드는 ${issue.named.from === undefined ? '작가 전용' : `${issue.named.from}화부터 공개`}인데 ${timing(issue)}`}
             </p>
           </li>
         ))}
