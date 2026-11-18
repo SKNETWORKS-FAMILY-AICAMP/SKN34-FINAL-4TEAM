@@ -50,7 +50,24 @@ it('바로 쓴 원고의 승인 카드는 반영할 본문과 따로 사용한 �
   render(<WritingChat workId="w" basis={{ episode: 2, episodeVersionId: 'v2' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
   await screen.findByRole('heading', { name: '2화 초안에 반영할까요?' })
   expect(screen.getByLabelText('반영할 내용').textContent).toBe('선장은 항구에 내렸다.')
-  expect(screen.getByText('사용한 계획: 항구의 밤 — 선장이 도착한다.')).toBeTruthy()
+  expect(document.querySelector('.chat-plan')?.textContent).toBe('사용한 계획: 항구의 밤 — 선장이 도착한다.')
+})
+
+it('승인 카드는 같은 턴에 끝난 다른 단계 결과도 짧게 보인다(#493)', async () => {
+  sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [{
+    request: '1화 심의 등급을 판정하고 다음 장면도 써줘',
+    reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 1, steps: [
+      { feature: 'rating', status: 'failed', error: '판별 실패' },
+      { feature: 'writing_editing', status: 'completed', result: { text: '선장은 항구에 내렸다.' } },
+    ] },
+  }] })
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v1' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByRole('heading', { name: '1화 초안에 반영할까요?' })
+  const others = screen.getByLabelText('같이 끝난 작업')
+  expect(within(others).getByText('심의 등급')).toBeTruthy()
+  expect(within(others).getByText('실패: 판별 실패')).toBeTruthy()
+  expect(within(others).queryByText('선장은 항구에 내렸다.')).toBeNull()
 })
 
 // ── 인물 시뮬레이션 장면(#58): 대본·승인은 집필실 무대가 맡고, 채팅에는 상태 한 줄과 무대 열기만 남는다 ──

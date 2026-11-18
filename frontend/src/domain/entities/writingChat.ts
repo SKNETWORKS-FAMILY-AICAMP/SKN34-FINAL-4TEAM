@@ -21,7 +21,7 @@ export type ChatRating = {
     assessments: { criterion: string; level: number; quotes: string[]; rationale: string }[] }[]
 }
 /** 설정집 검토 단계 결과. 웹 조사와 같은 키(findings)를 쓰지만 모양이 달라 따로 둔다. */
-export type ChatWorldReview = { findings: Pick<WorldFinding, 'kind' | 'message'>[] }
+export type ChatWorldReview = { reviewedCards: number; findings: Pick<WorldFinding, 'kind' | 'message'>[] }
 export type ChatStepResult = {
   claims?: { text: string }[]
   gaps?: string[]
@@ -184,7 +184,8 @@ export function stepText(step: ChatStep): string {
   if (step.simulation) return sceneSummary(step.simulation)
   if (step.review) return reviewText(step.review)
   if (step.rating) return ratingText(step.rating)
-  if (step.worldReview) return step.worldReview.findings.map((f) => `${FINDING_KINDS[f.kind]} · ${f.message}`).join('\n') || '검토에서 찾은 문제가 없어요.'
+  if (step.worldReview) return step.worldReview.findings.map((f) => `${FINDING_KINDS[f.kind]} · ${f.message}`).join('\n')
+    || (step.worldReview.reviewedCards ? '검토에서 찾은 문제가 없어요.' : '검토할 설정 카드가 없어요.')
   const r = step.result
   if (step.status !== 'completed' || !r) return ''
   if (r.claims) return [...r.claims.map((c) => c.text), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '근거를 찾지 못했어요.'
@@ -199,7 +200,8 @@ export function stepText(step: ChatStep): string {
 export const PLAN_PICK_HINT = "가장 최근 기획한 안 중 하나를 '계획 1로 써줘'처럼 말하면 그 계획으로 써요."
 
 /** 바로 쓴 원고가 정해 쓴 계획 한 줄. 반영 본문(stepText)과 섞지 않도록 따로 보인다. */
-export const usedPlan = (step: ChatStep) => (step.result?.plan ? `사용한 계획: ${step.result.plan.title} — ${step.result.plan.beats.join(' / ')}` : '')
+export const PLAN_LABEL = '사용한 계획'
+export const usedPlan = (step: ChatStep) => (step.result?.plan ? `${PLAN_LABEL}: ${step.result.plan.title} — ${step.result.plan.beats.join(' / ')}` : '')
 
 /**
  * 턴의 단계별 결과를 계획 순서로 이은 평문. 종합 답변(`reply.message`)은 넣지 않는다: 화면이 답변을 마크다운으로 그리고
