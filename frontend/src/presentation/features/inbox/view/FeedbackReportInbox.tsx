@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { Activity, useRef, useState } from 'react'
 
 import { REPORT_KIND_LABEL, REPORT_RESPONSE_MAX, REPORT_STATUS_LABEL, SETTABLE_REPORT_STATUSES, type FeedbackReport } from '../../../../domain/entities/feedbackReport'
 import { FeedbackReportCard } from '../../../shared/feedbackReports/FeedbackReportCard'
@@ -64,7 +64,7 @@ export function FeedbackReportInbox({ workId }: { workId?: string }) {
   const { reports } = vm
   const [kind, setKind] = useState('')
   const [status, setStatus] = useState('')
-  const visible = reports?.filter(r => (!kind || r.kind === kind) && (!status || r.status === status))
+  const matches = (r: FeedbackReport) => (!kind || r.kind === kind) && (!status || r.status === status)
   return (
     // .panel 대신 .list 카드를 쓴다(데모 피드백 패널과 구분되고, 데모 패널의 aria-busy를 첫 .panel로 읽는 기존 테스트도 그대로 맞는다).
     // 다른 섹션과 같은 .sec/.sec-h 제목이다. 이 섹션은 화면의 첫 섹션이라 위쪽 간격(.sec의 margin-top)만 없앤다.
@@ -83,8 +83,8 @@ export function FeedbackReportInbox({ workId }: { workId?: string }) {
         <label>제보 유형 <select value={kind} onChange={e=>setKind(e.target.value)}><option value="">전체</option>{Object.entries(REPORT_KIND_LABEL).map(([key, label])=><option key={key} value={key}>{label}</option>)}</select></label>
         <label>제보 상태 <select value={status} onChange={e=>setStatus(e.target.value)}><option value="">전체</option>{Object.entries(REPORT_STATUS_LABEL).map(([key, label])=><option key={key} value={key}>{label}</option>)}</select></label>
       </div>}
-      {!!reports?.length && !visible?.length && <p>조건에 맞는 제보가 없어요.</p>}
-      {!!visible?.length && <div className="list">{visible.map((r) => <InboxReportRow key={r.id} r={r} vm={vm} />)}</div>}
+      {!!reports?.length && !reports.some(matches) && <p>조건에 맞는 제보가 없어요.</p>}
+      {!!reports?.length && <div className="list">{reports.map(r => <Activity key={r.id} mode={matches(r) ? 'visible' : 'hidden'}><InboxReportRow r={r} vm={vm} /></Activity>)}</div>}
     </section>
   )
 }

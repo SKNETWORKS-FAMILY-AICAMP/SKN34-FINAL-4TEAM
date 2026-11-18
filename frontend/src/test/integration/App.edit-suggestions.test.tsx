@@ -250,6 +250,15 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
     expect(repo.inbox.mock.calls.length).toBeGreaterThanOrEqual(2)
   })
 
+  it('필터를 왕복해도 전송 전 편집안이 남는다', async () => {
+    await open([suggestion()])
+    fireEvent.change(within(await card()).getByLabelText('편집안'), { target: { value: '아직 전송하지 않은 문장' } })
+    fireEvent.change(screen.getByLabelText('수정 제안 상태'), { target: { value: 'approved' } })
+    expect(screen.queryByRole('article', { name: '별빛 서약 3화 수정 제안' })).toBeNull()
+    fireEvent.change(screen.getByLabelText('수정 제안 상태'), { target: { value: '' } })
+    expect((within(await card()).getByLabelText('편집안') as HTMLTextAreaElement).value).toBe('아직 전송하지 않은 문장')
+  })
+
   it('현재 발행본에 반영된 제안은 발행본으로 연결하고 처리자를 표시한다', async () => {
     await open([suggestion({ status: 'approved', applyResult: 'applied', published: true, handlerName: '작가봄', handledAt: '2026-11-10T01:00:00Z' })])
     const c = await card()
@@ -257,7 +266,7 @@ describe('작가 피드백함의 수정 제안 (기능 24)', () => {
     within(c).getByText(/처리자 작가봄/)
     expect(within(c).getByRole('link', { name: '발행본 보기' }).getAttribute('href')).toBe('/read/w1/3')
     fireEvent.change(screen.getByLabelText('수정 제안 상태'), { target: { value: 'pending' } })
-    expect(screen.queryByText('발행 반영됨')).toBeNull()
+    expect(screen.queryByRole('link', { name: '발행본 보기' })).toBeNull()
     screen.getByText('조건에 맞는 수정 제안이 없어요.')
   })
 

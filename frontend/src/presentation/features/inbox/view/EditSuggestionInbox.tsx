@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { Activity, useEffect, useRef, useState } from 'react'
 
 import { BASE_CHANGED_MESSAGE, SUGGESTION_MAX, type EditSuggestion } from '../../../../domain/entities/editSuggestion'
 import { Go } from '../../../shared/Go'
@@ -83,7 +83,7 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
 export function EditSuggestionInbox({ workId }: { workId?: string }) {
   const vm = useEditSuggestionInboxViewModel(workId)
   const [status, setStatus] = useState('')
-  const visible = vm.items?.filter(item => !status || item.status === status)
+  const matches = (item: EditSuggestion) => !status || item.status === status
   return (
     <section className="sec" aria-labelledby="edit-suggestions-h" aria-busy={!vm.items && !vm.isError}>
       <div className="sec-h"><h2 id="edit-suggestions-h">독자 수정 제안</h2><span className="muted small">독자가 보낸 문장 수정 제안</span></div>
@@ -99,8 +99,8 @@ export function EditSuggestionInbox({ workId }: { workId?: string }) {
         <option value="">전체</option><option value="pending">검토 대기</option><option value="held">보류</option>
         <option value="approved">승인</option><option value="rejected">거절</option>
       </select></label>}
-      {!!vm.items?.length && !visible?.length && <p>조건에 맞는 수정 제안이 없어요.</p>}
-      {visible && visible.length > 0 && <div style={{ display: 'grid', gap: 12 }}>{visible.map((s) => <SuggestionCard key={s.id} s={s} vm={vm} />)}</div>}
+      {!!vm.items?.length && !vm.items.some(matches) && <p>조건에 맞는 수정 제안이 없어요.</p>}
+      {!!vm.items?.length && <div style={{ display: 'grid', gap: 12 }}>{vm.items.map(s => <Activity key={s.id} mode={matches(s) ? 'visible' : 'hidden'}><SuggestionCard s={s} vm={vm} /></Activity>)}</div>}
     </section>
   )
 }
