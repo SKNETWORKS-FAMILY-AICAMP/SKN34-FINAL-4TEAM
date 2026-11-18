@@ -22,7 +22,7 @@
 ## 처리 흐름
 
 1. **회차별 추출 (병렬):** 회차마다 LLM 1회로 사건, 묘사(외모·성격·세계관 규칙처럼 사건이 아닌 서술), 거기 등장한 호칭(인물·장소·물건·조직)을 원문 근거와 함께 뽑는다. 호칭은 그 회차 안에서만 통하는 임시 ID를 받고, 다른 회차의 같은 이름과 연결하지 않는다.
-2. **정체 정리:** 호칭을 같은 대상끼리 묶어 정식 ID를 준다. 동명이인은 분리하고 별칭은 병합한다. 같은 이름만으로 병합하지 않는다. 정체가 나중에 밝혀지는 경우는 병합에 "몇 화부터 같은 대상으로 보는지"를 함께 기록해 앞 회차 상태에 미래 정보가 섞이지 않게 한다.
+2. **정체 정리:** 호칭을 같은 대상끼리 묶어 정식 ID를 준다. 동명이인은 분리한다. 같은 이름만으로 병합하지 않는다. 같은 인물로 보이는 서로 다른 이름(별칭·가면·나중에 밝혀지는 정체)은 한 카드로 병합하지 않고 카드를 따로 둔 채 「동일 인물」 후보로 낸다(DEC-53): 다른 이름 카드 → 본체 카드와 "몇 화부터 같은 인물로 보이는지"를 함께 기록해 앞 회차 상태에 미래 정보가 섞이지 않게 한다. 후보는 관계가 아니며 작가가 승인해야 `identity` 관계가 된다.
 3. **사건 등록:** 사건의 호칭을 정식 ID로 바꿔 회차 순서대로 정리한다.
 4. **인물별 정리:** 인물이 나온 사건과 묘사를 모아 프로필·상태·기억을 구성한다.
 5. **설정·아이템 정리:** 장소·물건·조직을 4와 같은 방식으로 정리한다.
@@ -56,10 +56,10 @@
 |---|---|---|
 | `preprocessing_episode_read` | `jobId`, `number` | `{number, title, body}` 그 회차 최신 저장 버전 |
 | `preprocessing_progress` | `jobId`, `stage`(`extracting/resolving/organizing/loading`), `done`, `total`, `failedEpisodes[]`, `failed`(선택, 고정 사유 문구) | 갱신된 작업 상태 |
-| `preprocessing_load` | `jobId`, `cards[]`, `relations[]` | 적재 결과(카드 수·관계 수), 작업 `completed` |
+| `preprocessing_load` | `jobId`, `cards[]`, `relations[]`, `identityCandidates[]` | 적재 결과(카드 수·관계 수), 작업 `completed` |
 
-`cards[]` 항목: `key`(작업 안 정식 ID), `cardType`(`character/location/organization/object/event`), `title`, `aliases[]`, `body`(마크다운, 인물은 `IDENTITY.md`), `revealFromEpisode`(첫 등장 회차), 인물만 `characterDocs{soul, goal, episodes{"NN": 글}}`(`memory` 키는 쓰지 않음, 이야기 시작 전 기억은 `episodes{"00"}`)(DEC-47, 문서마다 3,000자 이하). 사건 카드 본문은 회차 번호와 참여 인물을 적는다.
-`relations[]` 항목: `fromKey`, `toKey`, `label`, `fromEpisode`, `ended`(선택). Content가 DEC-51 회차별 관계로 변환해 `fromEpisode` 시점마다 기록한다. 카드 공개 여부는 기본 비공개(DEC-46) 그대로다.
+`cards[]` 항목: `key`(작업 안 정식 ID), `cardType`(`character/location/organization/object/event`), `title`, `aliases[]`, `body`(마크다운, 인물은 `IDENTITY.md`), `firstEpisode`(첫 등장 회차, 제안값이며 공개 설정이 아니다), 인물만 `characterDocs{soul, goal, episodes{"NN": 글}}`(`memory` 키는 쓰지 않음, 이야기 시작 전 기억은 `episodes{"00"}`)(DEC-47, 문서마다 3,000자 이하). 사건 카드 본문은 회차 번호와 참여 인물을 적는다. 카드는 공개 설정 없이 적재한다: 작가 전용으로 시작하고 `revealFromEpisode`·`visibility`를 쓰지 않는다(DEC-53). `firstEpisode`는 작가가 'N화부터 공개'를 정할 때 보는 제안값으로 카드의 `semanticMetadata.preprocessing`에 두며 독자에게 나가지 않는다.
+`relations[]` 항목: `fromKey`, `toKey`, `label`, `fromEpisode`, `ended`(선택). Content가 DEC-51 회차별 관계로 변환해 `fromEpisode` 시점마다 기록한다. 카드 공개는 작가 전용(DEC-53)으로 시작하고 `relations[]`에는 `identity`를 싣지 않는다. 「동일 인물」 후보는 `identityCandidates[]` 항목(`fromKey`: 다른 이름 카드, `toKey`: 본체 카드, `episode`: 같은 인물로 보이는 회차, 근거)으로 따로 싣고 Content가 카드의 `semanticMetadata.preprocessing`에 후보로 남긴다. 후보를 관계로 올리는 것은 작가 승인이다.
 
 ## 관련
 
