@@ -189,6 +189,7 @@ describe('showsDetailLabel', () => {
   it('300개를 넘으면 확대했을 때만 일반 노드 이름을 그린다', () => {
     expect(showsDetailLabel(node('인물'), 301, undefined, 1)).toBe(false)
     expect(showsDetailLabel(node('인물'), 301, undefined, 1.5)).toBe(true)
+    expect(showsDetailLabel(node('세계관'), 301, undefined, 1)).toBe(true)
   })
 })
 

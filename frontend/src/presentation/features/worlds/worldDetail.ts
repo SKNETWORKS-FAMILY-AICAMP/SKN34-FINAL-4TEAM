@@ -117,7 +117,7 @@ export function buildCharacterGraph(world: PublicWorld): DetailGraph {
 /** 이름을 늘 그려도 겹치지 않는 노드 수의 한계. */
 export const LABEL_ALL_MAX = 30
 /** 300개를 넘는 그래프는 확대할 때만 일반 라벨을 그려 캔버스 그리기 비용을 낮춘다. */
-export const showsDetailLabel = (node: DetailNode, total: number, hover?: string, scale = 1) => total > 300 ? node.id === hover || scale >= 1.4 : total <= LABEL_ALL_MAX || node.kind === '세계관' || node.id === hover
+export const showsDetailLabel = (node: DetailNode, total: number, hover?: string, scale = 1) => node.kind === '세계관' || node.id === hover || (total > 300 ? scale >= 1.4 : total <= LABEL_ALL_MAX)
 
 export const typeLabel = (type: CardType) => cardTypes.find((t) => t.id === type)?.label ?? type
 

@@ -1,4 +1,4 @@
-import { Component, lazy, Suspense, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type Ref } from 'react'
+import { Component, lazy, Suspense, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type Ref } from 'react'
 import { useParams } from 'react-router'
 
 import { useAppSelector } from '../../../../app/store'
@@ -235,6 +235,8 @@ function GraphCard({ title, mode, data, summary, stats, legend, onOpen, bookHref
 }) {
   const heading = useId()
   const listId = useId()
+  const searchInput = useRef<HTMLInputElement>(null)
+  const results = useRef<HTMLUListElement>(null)
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(-1)
   const [open, setOpen] = useState(false)
@@ -256,17 +258,21 @@ function GraphCard({ title, mode, data, summary, stats, legend, onOpen, bookHref
     for (const group of pairs.values()) group.forEach((link, i) => curves.set(link, (detailEndpoint(link.source) < detailEndpoint(link.target) ? 1 : -1) * (i - (group.length - 1) / 2) * Math.min(0.4, 1 / Math.max(1, (group.length - 1) / 2))))
     return { nodes: data.nodes, links: data.links.map((link) => link.kind === 'link' ? { ...link, curve: curves.get(link) } : link) }
   }, [data])
+  useEffect(() => {
+    if (active >= 0) (results.current?.children[active] as HTMLElement | undefined)?.scrollIntoView({ block: 'nearest' })
+  }, [active])
   const select = (node: DetailNode) => {
     setHighlightId(node.id)
     setQuery(node.name)
     setActive(-1)
     setOpen(false)
   }
-  const clearHighlight = () => {
+  const clearHighlight = (focusSearch = false) => {
     setHighlightId(undefined)
     setQuery('')
     setActive(-1)
     setOpen(false)
+    if (focusSearch) searchInput.current?.focus()
   }
   const onSearchKey = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
@@ -300,15 +306,19 @@ function GraphCard({ title, mode, data, summary, stats, legend, onOpen, bookHref
       </div>
       {unavailable ? <p className="worlds-graph-status muted" role="status">관계를 불러오지 못했어요. 설정집 탭에서 설정을 글로 읽을 수 있어요.</p>
         : linkCount(data) === 0 ? <p className="worlds-graph-status muted" role="status">아직 연결된 관계가 없어요. <Go to={bookHref}>설정집 탭</Go>에서 설정을 글로 읽을 수 있어요.</p> : null}
-      <div className="worlds-graph-search">
+      <div className="worlds-graph-search" onBlur={(event) => {
+        if (event.currentTarget.contains(event.relatedTarget as Node | null)) return
+        setOpen(false)
+        setActive(-1)
+      }}>
         <label htmlFor={listId}>설정 찾기</label>
-        <input id={listId} type="search" className="inp" role="combobox" value={query} aria-autocomplete="list" aria-expanded={open && choices.length > 0} aria-controls={`${listId}-results`} aria-activedescendant={active >= 0 ? `${listId}-option-${active}` : undefined}
+        <input ref={searchInput} id={listId} type="search" className="inp" role="combobox" value={query} aria-autocomplete="list" aria-expanded={open && choices.length > 0} aria-controls={`${listId}-results`} aria-activedescendant={active >= 0 ? `${listId}-option-${active}` : undefined}
           onFocus={() => { if (query.trim()) setOpen(true) }} onKeyDown={onSearchKey}
           onChange={(event) => { setQuery(event.target.value); setHighlightId(undefined); setActive(-1); setOpen(true) }} />
-        {open && choices.length > 0 && <ul id={`${listId}-results`} className="worlds-graph-results" role="listbox" aria-label="설정 찾기 결과">
+        {open && choices.length > 0 && <ul ref={results} id={`${listId}-results`} className="worlds-graph-results" role="listbox" aria-label="설정 찾기 결과">
           {choices.map((node, index) => <li key={node.id} id={`${listId}-option-${index}`} role="option" aria-selected={active === index} onMouseDown={(event) => event.preventDefault()} onClick={() => select(node)}>{node.name}</li>)}
         </ul>}
-        {highlightId && <button type="button" className="btn sm" onClick={clearHighlight}>강조 해제</button>}
+        {highlightId && <button type="button" className="btn sm" onClick={() => clearHighlight(true)}>강조 해제</button>}
       </div>
       <p className="sr-only">그래프는 눈으로 훑어보는 용도예요. 같은 내용은 설정집 탭의 설정 카드에서 글로 읽을 수 있어요.</p>
     </section>
