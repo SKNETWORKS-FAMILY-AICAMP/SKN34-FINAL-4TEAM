@@ -119,8 +119,10 @@ jobs:
             cat <<'REMOTE'
           set -euo pipefail
           umask 077
+          printf 'Checking remote deployment directory and container ownership.\n'
           cd -P -- "$CD_DIRECTORY"
-          [[ "$PWD" == "$CD_DIRECTORY" && -f .env ]] || exit 1
+          [[ "$PWD" == "$CD_DIRECTORY" ]] || { echo 'CD_DEPLOY_DIR is not the physical directory.' >&2; exit 1; }
+          [[ -f .env ]] || { echo 'The deployment .env is missing or is not a regular file.' >&2; exit 1; }
           export CD_DIRECTORY CD_WEB_PORT COMPOSE_PROJECT_NAME=storyfork-develop-cd DOCKER_HOST=unix:///var/run/docker.sock
           # 서버 .env의 profile 설정이 배포 구성을 바꾸지 못하게 한다.
           export COMPOSE_PROFILES=
@@ -138,7 +140,8 @@ jobs:
           # 같은 프로젝트 이름을 사용하는 다른 배포는 변경하지 않는다.
           containers=$(docker container ls --all --quiet --filter label=com.docker.compose.project=storyfork-develop-cd)
           for container in $containers; do
-            [[ "$(docker container inspect --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}' "$container")" == "$CD_DIRECTORY" ]] || exit 1
+            working_dir=$(docker container inspect --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}' "$container")
+            [[ "$working_dir" == "$CD_DIRECTORY" ]] || { echo 'Existing Compose container working directory differs from CD_DEPLOY_DIR.' >&2; exit 1; }
           done
 
           printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
