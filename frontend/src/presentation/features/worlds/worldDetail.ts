@@ -6,7 +6,6 @@ import { relationName, showsParagraph } from '../../shared/relationParagraph'
 import { CARD_COLORS, CARD_KIND, KINDS, boardRows, type BoardEntry, type BoardRow, type CardKind } from '../../shared/worldBoard'
 import { genreLabel } from '../../shared/worldGenres'
 import { GENRE_COLORS } from './worldAtlas'
-import { pageItems } from '../../shared/pageItems'
 
 /*
  * 공개 세계관 상세(`/worlds/:id`)와 설정 카드 페이지(`/worlds/:id/cards/:cardId`)의 순수 규칙: 설정 그래프·인물관계도의 노드·링크,
@@ -19,10 +18,10 @@ import { pageItems } from '../../shared/pageItems'
  * 카드 본문의 링크(`[글자](card:<uuid>)`, DEC-53)로 이 카드를 가리킨 카드도 '가리키는 설정'이다(서버가 보이는 카드로만 링크를 남기고, 화면이 받은 본문으로 계산한다).
  */
 
-export const DETAIL_TABS = [['graph', '설정 그래프'], ['people', '인물관계도'], ['book', '설정집'], ['overview', '개요']] as const
+export const DETAIL_TABS = [['overview', '개요'], ['book', '설정집'], ['people', '인물관계도'], ['graph', '설정 그래프']] as const
 export type DetailTab = (typeof DETAIL_TABS)[number][0]
-/** `?tab=` 값. 없거나 모르는 값이면 첫 탭(설정 그래프)이다. */
-export const parseDetailTab = (value: string | null): DetailTab => DETAIL_TABS.find(([key]) => key === value)?.[0] ?? 'graph'
+/** `?tab=` 값. 없거나 모르는 값이면 첫 탭(개요)이다. */
+export const parseDetailTab = (value: string | null): DetailTab => DETAIL_TABS.find(([key]) => key === value)?.[0] ?? 'overview'
 
 /** 설정 카드 페이지 주소. `cardId`는 서버 카드 id다. */
 export const cardPath = (worldId: string, cardId: string | number) => `/worlds/${worldId}/cards/${cardId}`
@@ -52,6 +51,9 @@ export function cardPairs(world: PublicWorld): CardPair[] {
   return pairs
 }
 
+/** 공개 상세에서 실제로 보이는 관계 수. 끝 카드가 없거나 자기 자신을 잇는 잘못된 관계는 그래프처럼 빼고 센다. */
+export const relationshipCount = (world: PublicWorld) => cardPairs(world).length
+
 /**
  * 본문 링크로 이어진 카드 쌍 `[건 카드, 가리킨 카드]`의 위치다. 응답 안의 카드끼리만 잇고(서버가 보이지 않는 대상의 링크는 글자로 바꿔 보냈다), 없는 대상·자기 자신·같은 카드를 여러 번 건 것은 한 번만 센다.
  * 관계(`pairs`)로 이미 이어진 두 카드는 관계 쪽이 그 연결을 보이므로 뺀다(연결 수를 두 번 세지 않는다).
@@ -75,7 +77,7 @@ function linkPairs(world: PublicWorld, pairs: readonly CardPair[]): [from: numbe
 }
 
 type Pos = { x?: number; y?: number; vx?: number; vy?: number; fx?: number; fy?: number }
-/** `kind`는 중심이면 '세계관', 카드면 유형 묶음(색·범례와 같은 이름)이다. `to`는 노드를 누르면 갈 주소(카드는 카드 페이지, 중심은 설정집 탭)다. */
+/** `kind`는 중심이면 '세계관', 카드면 유형 묶음(색·범례와 같은 이름)이다. `to`는 노드를 누르면 갈 주소(카드는 카드 페이지, 중심은 개요 탭)다. */
 export type DetailNode = Pos & { id: string; name: string; kind: '세계관' | CardKind; color: string; to: string }
 /** `world`는 중심→카드의 옅은 선, `link`는 카드끼리의 연관이다(인물끼리는 `label`이 관계). `source`·`target`은 ForceGraph가 노드 객체로 바꾼다. */
 export type DetailLink = { id?: string; source: string | DetailNode; target: string | DetailNode; kind: 'world' | 'link'; label?: string; curve?: number } & RelationData
@@ -83,23 +85,19 @@ export type DetailGraph = { nodes: DetailNode[]; links: DetailLink[] }
 
 export const detailEndpoint = (end: string | DetailNode) => (typeof end === 'string' ? end : end.id)
 
-/** 한 페이지의 양 끝이 보이는 선만 그린다. 전체 연결은 카드 상세에서 볼 수 있다. */
-export function graphPage(graph: DetailGraph, page: number, size: number): DetailGraph {
-  const center = graph.nodes.filter((n) => n.kind === '세계관')
-  const nodes = [...pageItems(graph.nodes.filter((n) => n.kind !== '세계관'), page, size).items, ...center]
-  const ids = new Set(nodes.map((n) => n.id))
-  return { nodes, links: graph.links.filter((l) => ids.has(detailEndpoint(l.source)) && ids.has(detailEndpoint(l.target))) }
-}
-
-/** 선택한 카드의 인접 카드를 페이지별로 보여 준다. 서로 다른 원래 페이지의 끝점도 함께 그린다. */
-export function graphNeighbors(graph: DetailGraph, anchor: string, page: number, size: number): DetailGraph {
-  const center = graph.nodes.find((n) => n.id === anchor)
-  if (!center) return { nodes: [], links: [] }
-  const links = graph.links.filter((l) => l.kind === 'link' && (detailEndpoint(l.source) === anchor || detailEndpoint(l.target) === anchor))
-  const neighborIds = new Set(links.map((l) => detailEndpoint(l.source) === anchor ? detailEndpoint(l.target) : detailEndpoint(l.source)))
-  const neighbors = pageItems(graph.nodes.filter((n) => neighborIds.has(n.id)), page, size).items
-  const ids = new Set([anchor, ...neighbors.map((n) => n.id)])
-  return { nodes: [center, ...neighbors], links: links.filter((l) => ids.has(detailEndpoint(l.source)) && ids.has(detailEndpoint(l.target))) }
+/** 찾은 설정과 직접 관계인 노드·선. 중심으로 향하는 장식 선은 강조하지 않는다. */
+export function graphHighlight(graph: DetailGraph, nodeId?: string) {
+  const nodes = new Set<string>()
+  const links = new Set<DetailLink>()
+  if (!nodeId) return { nodes, links }
+  nodes.add(nodeId)
+  for (const link of graph.links) {
+    if (link.kind !== 'link' || (detailEndpoint(link.source) !== nodeId && detailEndpoint(link.target) !== nodeId)) continue
+    links.add(link)
+    nodes.add(detailEndpoint(link.source))
+    nodes.add(detailEndpoint(link.target))
+  }
+  return { nodes, links }
 }
 
 const cardNode = (world: PublicWorld, i: number): DetailNode => {
@@ -111,11 +109,11 @@ const pairLink = (world: PublicWorld, { id, a, b, label, category, direction, po
 
 /**
  * 설정 그래프: 카드 노드 + 세계관 중심 노드. 호출마다 새 객체를 만든다(ForceGraph가 노드에 좌표를 붙이고 링크 끝점을 노드 객체로 바꾼다).
- * 중심을 맨 뒤에 두어 큰 노드와 그 이름이 카드 위에 그려지고 클릭도 먼저 받는다.
+ * 중심을 맨 뒤에 두어 큰 노드와 그 이름이 카드 위에 그려지고 클릭도 먼저 받는다. 중심은 세계관 자체의 첫 안내인 개요로 간다.
  */
 export function buildSettingGraph(world: PublicWorld): DetailGraph {
   const cards = world.cards.map((_, i) => cardNode(world, i))
-  const center: DetailNode = { id: 'world', name: world.name, kind: '세계관', color: GENRE_COLORS[genreLabel(world.genre)], to: bookPath(world.id) }
+  const center: DetailNode = { id: 'world', name: world.name, kind: '세계관', color: GENRE_COLORS[genreLabel(world.genre)], to: `/worlds/${world.id}?tab=overview` }
   return {
     nodes: [...cards, center],
     links: [...cards.map((n): DetailLink => ({ source: center.id, target: n.id, kind: 'world' })), ...cardPairs(world).map((pair) => pairLink(world, pair))],
@@ -131,9 +129,12 @@ export function buildCharacterGraph(world: PublicWorld): DetailGraph {
   }
 }
 
-/** 이름을 늘 그려도 겹치지 않는 노드 수의 한계. 넘으면 세계관(중심)과 마우스를 올린 노드만 그린다. */
+/** 이름을 늘 그려도 겹치지 않는 노드 수의 한계. */
 export const LABEL_ALL_MAX = 30
-export const showsDetailLabel = (node: DetailNode, total: number, hover?: string) => total <= LABEL_ALL_MAX || node.kind === '세계관' || node.id === hover
+/** 이 수를 넘으면 확대 전에는 일반 노드·관계 라벨을 생략한다. */
+export const LARGE_GRAPH = 300
+/** 300개를 넘는 그래프는 확대할 때만 일반 라벨을 그려 캔버스 그리기 비용을 낮춘다. */
+export const showsDetailLabel = (node: DetailNode, total: number, hover?: string, scale = 1) => node.kind === '세계관' || node.id === hover || (total > LARGE_GRAPH ? scale >= 1.4 : total <= LABEL_ALL_MAX)
 
 export const typeLabel = (type: CardType) => cardTypes.find((t) => t.id === type)?.label ?? type
 
@@ -234,6 +235,21 @@ function bookEntries(world: PublicWorld): BoardEntry[] {
 
 /** 설정집 게시판의 줄들: 유형·검색어로 거른 카드를 정렬해 순번을 매긴다(필터·정렬 규칙은 shared의 `boardRows`). */
 export const bookRows = (world: PublicWorld, filter: Parameters<typeof boardRows>[1] = {}): BookRow[] => boardRows(bookEntries(world), filter)
+
+/** 개요의 주요 카드: 실제 관계 수가 많은 순, 동률은 설정집 순이다. 관계가 없거나 불러오지 못했으면 설정집 앞쪽 카드를 쓴다. 요약은 `bookRows`의 게시판과 같다. */
+export type OverviewCard = BookRow & { relationshipCount: number }
+export function overviewCards(world: PublicWorld, limit = 6): OverviewCard[] {
+  const counts = new Map(world.cards.map((card) => [card.id, 0]))
+  for (const { a, b } of cardPairs(world)) {
+    const source = world.cards[a].id, target = world.cards[b].id
+    counts.set(source, counts.get(source)! + 1)
+    counts.set(target, counts.get(target)! + 1)
+  }
+  const cards = bookRows(world).map((row) => ({ ...row, relationshipCount: counts.get(row.cardId)! }))
+  return world.relationshipStatus !== 'unavailable' && cards.some((card) => card.relationshipCount > 0)
+    ? cards.sort((a, b) => b.relationshipCount - a.relationshipCount || a.no - b.no).slice(0, limit)
+    : cards.slice(0, limit)
+}
 
 /** 카드가 있는 유형 묶음과 장수(인물·장소·조직·규칙·사건·기타 순). 설정집의 분류 메뉴와 그래프 범례가 함께 쓴다. */
 export const kindCounts = (world: PublicWorld) => KINDS.map((kind) => ({ kind, count: world.cards.filter((card) => CARD_KIND[card.cardType] === kind).length })).filter(({ count }) => count > 0)

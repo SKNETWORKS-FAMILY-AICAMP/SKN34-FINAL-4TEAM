@@ -418,7 +418,7 @@
 <tr><td>랭킹 갱신 시각 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/253">PR #253</a></td></tr>
 <tr><td rowspan="7">추천·홈 탐색 관리</td><td rowspan="5">46 추천 시스템</td><td>홈 개인 맞춤 추천(좋아요·관심·독서 기록 기반, 비회원은 인기순)</td><td>❌</td><td rowspan="5"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/12">PR #12</a></td></tr>
 <tr><td>작품 상세 비슷한 작품 추천(장르·태그·원작·세계관)</td><td>❌ <small>(부분: <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/295">PR #295</a> 장르·태그·같은 작가만, 세계관 제외)</small></td></tr>
-<tr><td>세계관 추천·많이 쓰는 세계관(공개 세계관 둘러보기 이후, 예정)</td><td>❌ <small>(추천·인기 집계는 없음. 공개 세계관 지도·상세(설정 그래프·인물관계도·설정집·개요 탭)와 설정 카드별 페이지(<code>/worlds/:id/cards/:cardId</code>)는 공개 세계관 API 연결 소스 구현, hosted CI 통합 미확인)</small></td></tr>
+<tr><td>세계관 추천·많이 쓰는 세계관(공개 세계관 둘러보기 이후, 예정)</td><td>❌ <small>(추천·인기 집계는 없음. 공개 세계관 지도·상세(개요 기본, 설정집·인물관계도·설정 그래프 탭; 그래프는 모든 노드·관계선과 설정 찾기 강조를 한 캔버스에 표시)와 설정 카드별 페이지(<code>/worlds/:id/cards/:cardId</code>)는 공개 세계관 API 연결 소스 구현, hosted CI 통합 미확인)</small></td></tr>
 <tr><td>홈 장르별 작품 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/commit/e3181356">커밋 e3181356</a></td></tr>
 <tr><td>오늘의 발견 작품 조회</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/commit/e3181356">커밋 e3181356</a></td></tr>
 <tr><td rowspan="2">55 홈 탐색 필터</td><td>홈 무료 작품만 보기</td><td>❌</td><td rowspan="2">—</td></tr>
