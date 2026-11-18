@@ -7,7 +7,7 @@ import { PublicCardImage } from '../../../shared/PublicCardImage'
 import { splitCardSections } from '../../../shared/cardSections'
 import { Go } from '../../../shared/Go'
 import { Jump } from '../../../shared/Jump'
-import { relationAnchor, relationNote } from '../../../shared/relationParagraph'
+import { relationAnchor, relationHistoryLine, relationNote } from '../../../shared/relationParagraph'
 import './publicWiki.css'
 
 const docAnchor = (d: Pick<Doc, 'id'>) => 'doc-' + d.id
@@ -43,7 +43,7 @@ function DocBody({ doc, cardLink }: { doc: Doc; cardLink: CardLinkRender }) {
 
 /**
  * 문서 한 건. 서버가 기준 회차까지 공개한 항목만 주므로 거르지 않는다. 등장 인물은 같은 위키의 문서로 건너가는 링크가 된다.
- * 연결된 세계관의 관계(DEC-54)는 `상대 — 관계명` 소제목(h4)과 관계 설명(마크다운) 문단으로 보이고(보내는 쪽, 대칭·미상은 양쪽), 단방향의 받는 쪽은 '이 설정을 가리키는 관계' 줄에 `상대(관계명)` 링크로만 보인다:
+ * 연결된 세계관의 관계(DEC-54)는 `상대 — 관계명` 소제목(h4)과 관계 설명(마크다운) 문단으로 보이고(보내는 쪽, 대칭·미상은 양쪽, 회차에 따라 바뀐 관계는 소제목 아래에 `경계(1화) → 보호(3화)` 한 줄), 단방향의 받는 쪽은 '이 설정을 가리키는 관계' 줄에 `상대(관계명)` 링크로만 보인다:
  * 그 링크는 보내는 쪽 문서의 문단(관계 id 앵커)으로 이동해 초점을 옮기고 짧게 강조한다. 기존 작품 위키의 연결은 '연결' 줄(상대 이름과 라벨)이다.
  */
 function Article({ doc, cat, no, docs }: { doc: Doc; cat: WikiCat; no: string; docs: Doc[] }) {
@@ -67,10 +67,11 @@ function Article({ doc, cat, no, docs }: { doc: Doc; cat: WikiCat; no: string; d
         <p className="nw-rel"><b>등장</b> {doc.who.map((n, i) => { const d = byName(n); return <span key={n}>{i > 0 && ', '}{d ? <Jump to={docAnchor(d)}>{n}</Jump> : n}</span> })}</p>
       )}
       {paragraphs.map(({ to, k, relation }) => {
-        const note = relationNote(relation)
+        const note = relationNote(relation), history = relationHistoryLine(relation.category, relation.history)
         return (
           <div key={relation.id} className="nw-relsec" id={relationAnchor(doc.id, relation.id)} tabIndex={-1}>
             <h4><Jump to={docAnchor(to)}>{to.t}</Jump>{k && ` — ${k}`}{note && <>{' '}<small>{note}</small></>}</h4>
+            {history && <p className="nw-relhist">{history}</p>}
             {relation.body && <CardMarkdown text={relation.body} cardLink={cardLink} />}
           </div>
         )

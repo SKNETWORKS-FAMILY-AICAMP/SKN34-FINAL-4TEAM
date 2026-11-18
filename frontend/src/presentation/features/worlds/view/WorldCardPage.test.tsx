@@ -239,6 +239,25 @@ it('관계 문단 앵커가 붙은 주소로 처음 열어도 카드가 그려�
   expect(animate).toHaveBeenCalledTimes(1)
 })
 
+it('관계가 회차에 따라 바뀌었으면 그 관계 문단의 소제목 아래에 변화를 한 줄로 보이고 바뀐 적이 없으면 한 줄도 두지 않는다', async () => {
+  const history = [{ episode: 1, label: '경계', body: '' }, { episode: 3, label: '스승', body: '검술을 가르쳤다' }]
+  const get = vi.spyOn(useCase(), 'get').mockResolvedValue(duo({ direction: 'directed', body: '검술을 가르쳤다', history }))
+  await renderAt(cardPath('sw', 'c1'))
+  const paragraph = sections()[1]
+  expect(paragraph.querySelector('.nw-relhist')?.textContent).toBe('경계(1화) → 스승(3화)')
+  expect(paragraph.querySelector('.nw-doc')?.firstElementChild).toBe(paragraph.querySelector('.nw-relhist')) // 설명(마지막 값) 위
+  expect(paragraph.querySelector('.nw-doc')?.textContent).toContain('검술을 가르쳤다')
+  cleanup()
+  // 받는 쪽 카드 페이지의 링크 줄에는 이력이 없다.
+  await renderAt(cardPath('sw', 'c2'))
+  expect(document.querySelector('.nw-relhist')).toBeNull()
+  cleanup()
+  get.mockResolvedValue(duo({ direction: 'directed', body: '검술을 가르쳤다', history: [] }))
+  await renderAt(cardPath('sw', 'c1'))
+  expect(document.querySelector('.nw-relhist')).toBeNull()
+})
+
+
 it('「동일 인물」은 다른 이름 카드에 본체 카드 문단(관계명은 동일 인물)으로, 본체 카드에 받는 쪽 링크로 보이고 종류·방향 부가 표시는 없다', async () => {
   vi.spyOn(useCase(), 'get').mockResolvedValue(duo({ label: '하린 · 동일 인물 · 세나', category: 'identity', direction: 'directed', polarity: 'asserted' }))
   await renderAt(cardPath('sw', 'c1'))

@@ -84,6 +84,15 @@ it('이웃이 많아도 선택한 카드를 유지하며 마지막 이웃 페이
 it('같은 두 카드 쌍의 관계도 관계마다 하나씩 카드 상세에 모두 나온다', () => {
   expect(names(page(sample, '오르').relations)).toEqual(['미라·스승-제자', '미라·제자-스승', '새벽항·거점'])
 })
+it('관계의 회차 이력(history)을 상세의 문단과 받는 쪽 링크에 전달한다', () => {
+  const w = world([card('가', 'character'), card('나', 'character')])
+  const history = [{ episode: 1, label: '경계', body: '' }, { episode: 3, label: '보호', body: '지킨다' }]
+  w.relationships = [{ id: 'a', sourceCardId: '0', targetCardId: '1', label: '보호', direction: 'directed', history }, { id: 'b', sourceCardId: '1', targetCardId: '0', label: '동료', direction: 'symmetric' }]
+  const [first, second] = ['0', '1'].map((id) => cardPage(w, id)!)
+  expect(first.relations.map((r) => [r.relationId, r.history])).toEqual([['a', history], ['b', undefined]])
+  expect(second.backlinks.map((r) => [r.relationId, r.history])).toEqual([['a', history]])
+})
+
 it('관계의 실제 방향·부정·본문을 상세의 문단과 받는 쪽 링크, 그래프에 전달한다', () => {
   const w = world([card('가', 'character'), card('나', 'character')])
   w.relationships = [{ id: 'a', sourceCardId: '0', targetCardId: '1', label: '관계', direction: 'directed', polarity: 'denied', body: '원문\n설명' }, { id: 'b', sourceCardId: '1', targetCardId: '0', label: '관계', direction: 'symmetric' }, { id: 'c', sourceCardId: '0', targetCardId: '1', label: '관계' }]

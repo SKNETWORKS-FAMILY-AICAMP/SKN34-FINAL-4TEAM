@@ -72,3 +72,12 @@ it('「동일 인물」은 다른 이름 문서에는 문단, 본체 문서에�
   expect(mask.links![0]).toMatchObject({ to: 'body', k: '동일 인물', relation: { id: 'i', category: 'identity', paragraph: true } })
   expect(body.links![0]).toMatchObject({ to: 'mask', k: '동일 인물', relation: { id: 'i', category: 'identity', paragraph: false } })
 })
+it('관계 이력(history)을 양 끝 문서의 관계에 그대로 싣고 이력이 없는 관계에는 싣지 않는다', () => {
+  const history = [{ episode: 1, label: '경계', body: '' }, { episode: 3, label: '보호', body: '지킨다' }]
+  const [a, b] = wiki([card('a'), card('b')], [
+    { id: 'r', sourceCardId: 'a', targetCardId: 'b', label: '보호', direction: 'symmetric', history },
+    { id: 's', sourceCardId: 'a', targetCardId: 'b', label: '동료' },
+  ]).docs
+  expect([a, b].map((d) => d.links![0].relation!.history)).toEqual([history, history])
+  expect([a, b].map((d) => d.links![1].relation!.history)).toEqual([undefined, undefined])
+})

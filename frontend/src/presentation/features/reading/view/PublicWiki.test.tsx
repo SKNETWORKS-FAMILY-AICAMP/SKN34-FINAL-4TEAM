@@ -215,6 +215,23 @@ describe('연결된 세계관의 설정 카드로 채운 설정 위키 (DEC-46)'
     expect(panel.textContent).not.toMatch(/구조 관계|단방향|확인된 관계|정체|다른 이름/)
   })
 
+  it('관계가 회차에 따라 바뀌었으면 보내는 쪽 문단의 소제목 바로 아래에 변화를 한 줄로 쌓아 보이고 바뀐 적이 없으면 한 줄도 두지 않는다', () => {
+    const history = [{ episode: 1, label: '경계', body: '' }, { episode: 3, label: '보호', body: '지킨다' }]
+    const panel = showLinked(cards, [
+      { id: 'r1', sourceCardId: 'rian', targetCardId: 'tower', label: '보호', direction: 'directed', body: '지킨다', history },
+      { id: 'r2', sourceCardId: 'seal', targetCardId: 'tower', label: '봉인', direction: 'directed', history: [] },
+    ])
+    const section = docOf(panel, /리안$/).querySelector('.nw-relsec') as HTMLElement
+    const line = section.querySelector('.nw-relhist')
+    expect(line?.textContent).toBe('경계(1화) → 보호(3화)')
+    expect(section.querySelector('h4')?.nextElementSibling).toBe(line) // 소제목 바로 아래, 설명(마지막 값) 위
+    expect(docOf(panel, /봉인 규칙$/).querySelector('.nw-relhist')).toBeNull()
+    // 받는 쪽 링크 줄은 이력과 상관없이 그대로다.
+    expect(receivedLines(docOf(panel, /별빛 탑$/))).toEqual(['이 설정을 가리키는 관계 리안(보호), 봉인 규칙(봉인)'])
+    expect(docOf(panel, /별빛 탑$/).querySelector('.nw-relhist')).toBeNull()
+  })
+
+
   it('받는 쪽 링크를 누르면 보내는 쪽 문서의 그 관계 문단으로 이동해 초점을 옮기고 짧게 강조하며 접힌 분류도 펼치고 움직임 줄이기면 고정 강조한다', () => {
     const panel = showLinked(cards, directed)
     const target = panel.querySelector<HTMLElement>('#rel-rian-r1')!

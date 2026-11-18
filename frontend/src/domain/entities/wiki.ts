@@ -28,7 +28,7 @@ const SEEDL: Record<string, [string, string, string][]> = { guunmong: [['돌다�
  * `markdown`이면 `body`가 마크다운 문자열이다(연결된 세계관의 설정 카드 본문). 없으면 일반 글이다.
  * `links[].relation`은 연결된 세계관의 관계(DEC-54)다: `paragraph`가 true면 이 문서에 `상대 — 관계명` 문단으로 보이고(보내는 쪽, 대칭·미상은 양쪽), false면 단방향의 받는 쪽이라 링크로만 보인다. 없으면 기존 작품 위키의 연결이다.
  */
-export type Doc = { id: string; cat: string; t: string; alias: string[]; tags: string[]; props: Record<string, string>; at: Record<number, Record<string, string>>; img?: string | null; body: string; markdown?: boolean; knowledge?: Knowledge[]; ep?: number; line?: string; who?: string[]; links?: { to: string; k: string; relation?: Pick<PublicWorldRelationship, 'id' | 'category' | 'direction' | 'body' | 'polarity'> & { paragraph: boolean } }[]
+export type Doc = { id: string; cat: string; t: string; alias: string[]; tags: string[]; props: Record<string, string>; at: Record<number, Record<string, string>>; img?: string | null; body: string; markdown?: boolean; knowledge?: Knowledge[]; ep?: number; line?: string; who?: string[]; links?: { to: string; k: string; relation?: Pick<PublicWorldRelationship, 'id' | 'category' | 'direction' | 'body' | 'polarity' | 'history'> & { paragraph: boolean } }[]
   /** 연결된 세계관 카드의 대표 이미지 공개 주소(독자 설정 위키, #401). 없으면 이미지 없는 카드다. 기존 작품 위키 문서의 `img`와 다른 값이라 독자 화면은 이것만 그린다. */
   cardImage?: string }
 export type Wiki = { docs: Doc[]; cats: WikiCat[] }
