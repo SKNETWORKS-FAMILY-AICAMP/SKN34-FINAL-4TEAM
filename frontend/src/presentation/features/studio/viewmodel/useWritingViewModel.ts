@@ -63,7 +63,7 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     api.writingList(id,controller.signal).then(rows=>{
       if(controller.signal.aborted)return
       const wanted=entry.current;const first=pickEpisode(rows,wanted);entry.current=undefined
-      setEpisodes(rows);if(first)install(first);else if(wanted!==undefined)setError('요청한 회차가 없어요. 회차 목록에서 선택해 주세요.');setReady(true)
+      setEpisodes(rows);if(first)install(first);else if(wanted!==undefined&&rows.length)setError('요청한 회차가 없어요. 회차 목록에서 선택해 주세요.');setReady(true)
     }).catch((e:unknown)=>{if(!controller.signal.aborted){fail(e,'회차를 불러오지 못했어요.');setReady(true)}})
     return ()=>{controller.abort();aiReload.current?.abort();pending.current?.abort();waiting.current?.abort();historyRequest.current?.abort();orderRequest.current?.abort();orderRequest.current=null}
   },[id,api])
@@ -80,7 +80,8 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     if(autosave.current){waiting.current=controller;await autosave.current;waiting.current=null;if(controller.signal.aborted)return false}
     pending.current=controller
     try {await action(controller.signal);return !controller.signal.aborted}
-    catch(e){if(!controller.signal.aborted)fail(e,'저장에 실패했어요. 입력은 화면에 남아 있어요.');return false}
+    // 실패한 입력은 자동 저장도 멈춘다: 2초 뒤 자동 저장이 이 실패 안내를 지우거나 같은 입력으로 되풀이하면 안 된다. 다음 편집이나 `초안 저장 다시 시도`가 다시 시작한다.
+    catch(e){if(!controller.signal.aborted){setFailedDraft(current.current);fail(e,'저장에 실패했어요. 입력은 화면에 남아 있어요.')}return false}
     finally {if(pending.current===controller){pending.current=null;if(!controller.signal.aborted){setBusy(false);setEditingLocked(false)}}}
   }
   const merge=(e:WritingEpisode)=>{setEpisodes(rows=>[...rows.filter(x=>x.number!==e.number),e].sort((a,b)=>a.number-b.number));setActive(e)}
@@ -89,7 +90,8 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     const sent=current.current
     setSaving(true);setSaveError('')
     try {
-    const result=await api.writeEpisode(id,active.number,sent,version,signal)
+    // TypeError는 fetch가 연결하지 못했을 때만 이 안내로 바꾼다. 응답을 반영하다 난 코드 오류는 원인 그대로 알린다.
+    const result=await api.writeEpisode(id,active.number,sent,version,signal).catch((e:unknown)=>{throw e instanceof TypeError?new Error('서버에 연결하지 못했어요. 연결을 확인하고 저장을 다시 시도해 주세요.'):e})
     if(signal.aborted)return
     if(version)resetOrder()
     merge(result)
@@ -98,11 +100,8 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     // 자동 저장의 성공은 상단의 저장 상태('저장됨')가 알린다. 알림 문단은 사용자가 누른 버전 저장만 쓴다.
     if(version)setNotice('새 원고 버전을 저장했어요. 발행본은 그대로예요.')
     } catch(e) {
-      const error = e instanceof TypeError
-        ? new Error('서버에 연결하지 못했어요. 연결을 확인하고 저장을 다시 시도해 주세요.')
-        : e
-      if (!signal.aborted) setSaveError(error instanceof Error ? error.message : '저장에 실패했어요. 입력은 화면에 남아 있어요.')
-      throw error
+      if (!signal.aborted) setSaveError(e instanceof Error ? e.message : '저장에 실패했어요. 입력은 화면에 남아 있어요.')
+      throw e
     } finally {if(!signal.aborted)setSaving(false)}
   }
   const save=()=>run(signal=>write(true,signal))

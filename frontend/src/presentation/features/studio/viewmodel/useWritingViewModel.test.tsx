@@ -155,6 +155,17 @@ it('없는 회차 주소는 다른 원고를 열지 않고 목록에서 선택�
   expect(result.current.error).toBe('')
 })
 
+// 정상으로 읽은 빈 목록은 오류가 아니다. 오류를 내면 화면이 레일·'새 회차' 버튼까지 숨겨 첫 회차를 만들 길이 막힌다.
+it('회차가 하나도 없는 작품을 ?ep=n으로 열어도 오류 없이 첫 회차를 만들 수 있게 둔다',async()=>{
+  const api=deletionApi([])
+  const {result}=renderHook(()=>useWritingViewModel('w',api,undefined,3))
+  await act(async()=>{})
+  expect(result.current.ready).toBe(true)
+  expect(result.current.error).toBe('')
+  expect(result.current.active).toBeNull()
+  expect(result.current.episodes).toEqual([])
+})
+
 it('자동 저장 진행과 네트워크 실패를 표시하고 새 시트에서 옛 완료 안내를 비운다',async()=>{
   vi.useFakeTimers()
   const episode=row(1)
@@ -653,4 +664,59 @@ it.each(['autosave', 'version'])('%s 도중 로그인이 만료되면 입력을 
   expect(result.current.saveError).toBe(failure.message)
   expect(result.current.draft.body).toBe('계속 쓰던 원고')
   expect(result.current.expired).toBe(true)
+})
+
+
+// ── 사용자가 누른 요청의 실패 안내는 자동 저장이 지우지 않는다 ──
+it.each([
+  ['오류',new Error('버전 저장에 실패했어요.'),false],
+  ['로그인 만료',new SessionExpired('로그인한 뒤 다시 저장해 주세요.'),true],
+] as const)('누른 버전 저장이 실패(%s)하면 2초 뒤 자동 저장이 그 안내를 지우거나 같은 입력을 다시 저장하지 않는다',async(_name,failure,expired)=>{
+  vi.useFakeTimers()
+  const episode=row(1)
+  const api=deletionApi([episode])
+  api.writeEpisode.mockRejectedValueOnce(failure).mockImplementation(async(_id,_number,draft)=>({...episode,draft:{...draft,revision:5}}))
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'미저장 입력'}))
+  await act(async()=>{expect(await result.current.save()).toBe(false)})
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(1)
+  expect(result.current.error).toBe(failure.message)
+  expect(result.current.saveError).toBe(failure.message)
+  expect(result.current.expired).toBe(expired)
+  expect(result.current.dirty).toBe(true)
+})
+
+it.each(['edit','retry'] as const)('누른 버전 저장이 실패한 뒤에도 %s로 초안만 다시 저장한다',async action=>{
+  vi.useFakeTimers()
+  const episode=row(1)
+  const api=deletionApi([episode])
+  api.writeEpisode.mockRejectedValueOnce(new Error('버전 저장에 실패했어요.')).mockImplementation(async(_id,_number,draft)=>({...episode,draft:{...draft,revision:5}}))
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'미저장 입력'}))
+  await act(async()=>{await result.current.save()})
+  await act(async()=>{if(action==='edit')result.current.edit({body:'계속 쓴 입력'});else result.current.retrySave()})
+  await act(async()=>{await vi.advanceTimersByTimeAsync(2000)})
+  expect(api.writeEpisode).toHaveBeenCalledTimes(2)
+  expect(api.writeEpisode).toHaveBeenLastCalledWith('w',1,{title:'1화',body:action==='edit'?'계속 쓴 입력':'미저장 입력',revision:4},false,expect.any(AbortSignal))
+  expect(result.current.dirty).toBe(false)
+  expect(result.current.error).toBe('')
+})
+
+// '서버에 연결하지 못했어요'는 요청이 TypeError로 실패했을 때만 붙인다. 응답을 반영하다 난 코드 오류까지 연결 문제로 바꾸면 원인을 가린다.
+it('저장 응답을 반영하다 난 TypeError는 연결 오류 안내로 바꾸지 않는다',async()=>{
+  const api=deletionApi([row(1)])
+  let reads=0
+  const response=row(1)
+  // 응답을 반영하는 첫 줄(put)에서 draft를 읽을 때만 코드 오류가 난다. 그 뒤 렌더는 정상 초안을 읽는다.
+  Object.defineProperty(response,'draft',{get(){if(reads++===0)throw new TypeError('응답 반영 중 코드 오류');return {title:'1화',body:'입력',revision:5}}})
+  api.writeEpisode.mockResolvedValue(response)
+  const {result}=renderHook(()=>useWritingViewModel('w',api))
+  await act(async()=>{})
+  act(()=>result.current.edit({body:'입력'}))
+  await act(async()=>{expect(await result.current.save()).toBe(false)})
+  expect(result.current.saveError).toBe('응답 반영 중 코드 오류')
+  expect(result.current.error).toBe('응답 반영 중 코드 오류')
 })
