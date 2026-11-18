@@ -28,6 +28,16 @@ describe('공용 채팅 메시지', () => {
     expect(within(rows[1]).queryByLabelText('첨부')).toBeNull()
   })
 
+  it('markdown 메시지만 마크다운으로 그리고 원시 HTML은 요소로 만들지 않는다(#492)', () => {
+    render(<ChatPanel messages={[
+      { id: 'a', role: 'assistant', text: '**모순**이 있어요. <b>x</b>', format: 'markdown' },
+      { id: 'b', role: 'assistant', text: '**그대로**' },
+    ]} />)
+    expect(screen.getByText('모순').tagName).toBe('STRONG')
+    expect(document.querySelector('.chat-md b')).toBeNull()
+    expect(screen.getByText('**그대로**').tagName).toBe('P')
+  })
+
   it('메시지가 없으면 안내 문구를 보인다', () => {
     render(<ChatPanel messages={[]} emptyText="아직 이야기가 없어요." />)
     expect(within(screen.getByRole('log')).getByText('아직 이야기가 없어요.')).toBeTruthy()
