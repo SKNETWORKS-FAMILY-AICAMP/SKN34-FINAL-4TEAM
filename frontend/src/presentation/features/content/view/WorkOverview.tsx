@@ -14,8 +14,8 @@ type Props = {
   /** 요청·표지 전송 중에는 편집을 시작하거나 저장하지 못한다. */
   locked: boolean
   busy: boolean
-  /** 지금 작성 중인 회차 번호 */
-  draftCount?: number
+  /** 작성 중인 초안 수. null이면 아직 읽는 중이라 자리만 보이고, undefined이면 읽지 못해 항목을 감춘다(0으로 채우지 않는다). */
+  draftCount?: number | null
   /** 작품 생성 직후 표지 업로드가 끝나면 올라가, 표지 목록을 다시 읽게 한다. */
   coverRevision: number
   onMediaBusy: (busy: boolean) => void
@@ -95,7 +95,11 @@ export function WorkOverview({ work: w, locked, busy, draftCount, coverRevision,
           {!!w.hashtags?.length && <div className='hashes'>{w.hashtags.map((tag) => <span key={tag}>#{tag}</span>)}</div>}
           <div className='stats'>
             <span>공개 회차 <b>{w.episodes.length}</b>화</span>
-            {draftCount !== undefined && <span>작성 중인 초안 <b>{draftCount}</b>개</span>}
+            {draftCount !== undefined && (
+              <span>
+                작성 중인 초안 {draftCount === null ? <b>…<span className='sr-only'>불러오는 중</span></b> : <><b>{draftCount}</b>개</>}
+              </span>
+            )}
           </div>
           <div className='acts'>
             <Go to={`/studio/${w.id}`} className='btn pri'>회차 작성하기</Go>

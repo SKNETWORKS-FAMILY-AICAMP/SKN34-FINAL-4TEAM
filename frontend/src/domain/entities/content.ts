@@ -1,5 +1,5 @@
 export type Draft = { title: string; body: string; authorNote?: string; revision: number }
-export type Episode = { number: number; version: number; title: string; body: string; authorNote?: string; inherited: boolean }
+export type Episode = { number: number; version: number; /** 공개 중인 저장 버전 id. 같은 회차의 `WritingEpisode.versions`에서 찾아 '저장 버전 N'으로 보인다(`version`은 초안 편집 번호다). */ versionId?: string; title: string; body: string; authorNote?: string; inherited: boolean }
 export type Source = { workId: string; title: string; episode: number; version: number; direction: string; deleted?: boolean }
 export type WorkCreationType = 'ORIGINAL' | 'EXTERNAL_DERIVATIVE'
 /** 작품 등록 시 함께 보내는 유형·장르·해시태그·권리 확인이다. 장르 2개·해시태그 10개까지다. */
@@ -56,8 +56,8 @@ export type InheritedCard = { id: string; title: string; cardType: string; alias
 export type InheritedWorld = { upto: number; cards: InheritedCard[] }
 export type EpisodeOrderScope = {number:number;candidateNumbers:number[];reasons:string[];executable:false}
 
-/** 집필실이 표시하는 회차별 저장 순번. 발행본의 편집 revision과 구분한다. */
-export function savedVersionLabel(versions: readonly {id: string}[], id: string) {
+/** 집필실이 표시하는 회차별 저장 순번. 발행본의 편집 revision과 구분한다. id가 없거나 목록에 없으면 번호를 지어내지 않는다. */
+export function savedVersionLabel(versions: readonly {id: string}[], id?: string) {
   const index = versions.findIndex(version => version.id === id)
   return index < 0 ? '저장 버전 미확인' : `저장 버전 ${index + 1}`
 }

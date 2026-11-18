@@ -64,6 +64,12 @@ const stubCover = (onUpload?: (path: string, init: RequestInit) => Response) => 
 
 const owned = { id: 'w', title: '옛 제목', summary: '옛 소개', visibility: 'private', allowFork: false, allowForkPublication: false, revision: 0, source: null, episodes: [], draft: { title: '회차', body: '초안', revision: 0 }, creationType: 'ORIGINAL', genres: ['판타지', 'SF'], hashtags: ['회귀', '성장'] }
 const episode = (number: number) => ({ number, version: 1, title: `${number}화 제목`, body: `${number}화 본문`, inherited: false })
+/** 소유자 회차 조회(GET /works/{id}/episodes)의 한 줄. 기본은 발행 전 초안이다. */
+const writingRow = (number: number, extra: object = {}) => ({
+  number, draft: { title: `${number}화 초안`, body: '', revision: 0 }, publicationStatus: 'draft', hasDraft: true,
+  versions: [], publishedVersionId: null, inherited: false, updatedAt: null, checkpointStatus: 'none', checkpoints: [], ...extra,
+})
+const heroStats = () => document.querySelector('.ep-hero .stats')!.textContent
 const myFork = { ...owned, title: '내 포크', summary: '소개', visibility: 'public', revision: 4, draft: { ...owned.draft, revision: 4 }, source: { workId: 'o', title: '원작', episode: 2, version: 7, direction: '다른 결말' } }
 const STOP_CONFIRM = '포크 작품의 공개를 중단할까요? 발행된 회차와 원고는 보존돼요. 대기 중인 예약 발행은 취소되고, 원작이 공개를 허용하지 않으면 다시 공개할 수 없어요.'
 const AREAS = ['작품 정보 편집', '표지 편집', '분기 정책 편집']
@@ -95,7 +101,48 @@ it('shows both editable drafts and the empty publication status of a public work
   for (const ep of rows) {
     expect((await screen.findByRole('link', { name: `${ep.number}화 · ${ep.draft.title}` })).getAttribute('href')).toBe(`/studio/w?ep=${ep.number}`)
   }
-  expect(screen.getByText('작성 중인 초안', { exact: false }).textContent).toContain('2개')
+  expect(heroStats()).toContain('작성 중인 초안 2개')
+  // 목록 제목도 히어로와 같은 말('초안')이다.
+  expect(screen.getByRole('heading', { name: '작성 중인 초안' })).toBeTruthy()
+})
+
+it('does not count a suspended episode as a draft in progress', async () => {
+  stubCover()
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([{ ...owned, visibility: 'public' }]),
+    'GET /api/v1/works/w/episodes': () => Response.json([writingRow(1), writingRow(2, { publicationStatus: 'suspended' })]),
+  }))
+  await waitFor(() => expect(heroStats()).toContain('작성 중인 초안 1개'))
+  expect(screen.getByRole('link', { name: '1화 · 1화 초안' })).toBeTruthy()
+  expect(screen.queryByRole('link', { name: '2화 · 2화 초안' })).toBeNull()
+})
+
+it('keeps a place for the draft count while drafts load and fills it in when they arrive', async () => {
+  stubCover()
+  let finish!: (res: Response) => void
+  const pending = new Promise<Response>((resolve) => { finish = resolve })
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([{ ...owned, visibility: 'public' }]),
+    'GET /api/v1/works/w/episodes': () => pending,
+  }))
+  // 읽는 동안에도 자리를 잡아 두어, 읽고 나서 끼어들며 아래 화면을 밀지 않는다.
+  expect(heroStats()).toContain('작성 중인 초안 …')
+  finish(Response.json([writingRow(1), writingRow(2)]))
+  await waitFor(() => expect(heroStats()).toContain('작성 중인 초안 2개'))
+  expect(heroStats()).not.toContain('…')
+})
+
+it('tells the drafts could not be read in an alert box and does not pretend to count them', async () => {
+  stubCover()
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([owned]),
+    'GET /api/v1/works/w/episodes': () => Response.json({ detail: '서버 오류' }, { status: 500 }),
+  }))
+  const alert = await screen.findByText('초안 목록을 불러오지 못했어요.')
+  expect(alert.getAttribute('role')).toBe('alert')
+  expect(alert.classList.contains('ep-alert')).toBe(true)
+  // 못 읽은 것을 읽는 중처럼 '…'로 두지도, 0개로 채우지도 않는다.
+  expect(heroStats()).not.toContain('작성 중인 초안')
 })
 
 it('creates a private work through the API and opens its writing studio', async () => {
@@ -735,13 +782,15 @@ it('links and unlinks my world from the world tab and shows the server reason wh
 
 it('lists saved versions, AI requests and publications read-only while restore and publish-target actions stay in the studio', async () => {
   stubCover()
-  const version = { id: 'v1', episode: 1, title: '첫 화', body: '저장된 원고', revision: 1, savedAt: '2026-11-02T00:00:00Z' }
+  // revision(편집 번호)과 저장 순번이 다르게 두어, 화면이 순번('저장 버전 1')을 쓰는지 가른다.
+  const version = { id: 'v1', episode: 1, title: '첫 화', body: '저장된 원고', revision: 7, savedAt: '2026-11-02T00:00:00Z' }
   await openWork(contentApi({
     'GET /api/v1/works': () => Response.json([owned]),
+    'GET /api/v1/works/w/episodes': () => Response.json([writingRow(1, { versions: [version] })]),
     'GET /api/v1/works/w/history': () => Response.json({ versions: [version], proposals: [], publicationHistory: [] }),
   }))
   fireEvent.click(screen.getByRole('button', { name: '저장·AI·발행 이력' }))
-  expect(await screen.findByRole('heading', { name: '1화 · 저장본 · 편집 리비전 1 · 첫 화' })).toBeTruthy()
+  expect(await screen.findByRole('heading', { name: '1화 · 저장 버전 1 · 첫 화' })).toBeTruthy()
   for (const name of ['이 원고를 새 버전으로 복원', '이 버전을 공개 대상으로 선택', '이 제안 다시 열기']) expect(screen.queryByRole('button', { name })).toBeNull()
 })
 
@@ -930,13 +979,15 @@ it('brings the top alert into view when a request without its own place fails, s
 
 it('keeps saved manuscript bodies out of the history tab until each version is opened', async () => {
   stubCover()
-  const version = { id: 'v1', episode: 1, title: '첫 화', body: '저장된 원고', revision: 1, savedAt: '2026-11-02T00:00:00Z' }
+  const version = { id: 'v1', episode: 1, title: '첫 화', body: '저장된 원고', revision: 7, savedAt: '2026-11-02T00:00:00Z' }
+  const second = { ...version, id: 'v2', revision: 8, body: '둘째 저장본' }
   await openWork(contentApi({
     'GET /api/v1/works': () => Response.json([owned]),
-    'GET /api/v1/works/w/history': () => Response.json({ versions: [version, { ...version, id: 'v2', revision: 2, body: '둘째 저장본' }], proposals: [], publicationHistory: [] }),
+    'GET /api/v1/works/w/episodes': () => Response.json([writingRow(1, { versions: [version, second] })]),
+    'GET /api/v1/works/w/history': () => Response.json({ versions: [version, second], proposals: [], publicationHistory: [] }),
   }))
   fireEvent.click(screen.getByRole('button', { name: '저장·AI·발행 이력' }))
-  const title = await screen.findByRole('heading', { name: '1화 · 저장본 · 편집 리비전 1 · 첫 화' })
+  const title = await screen.findByRole('heading', { name: '1화 · 저장 버전 1 · 첫 화' })
   // 저장본이 많아도 본문(과 그 안의 이미지)은 펼친 것만 그린다.
   expect(screen.queryByText('저장된 원고')).toBeNull()
   expect(screen.queryByText('둘째 저장본')).toBeNull()
