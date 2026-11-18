@@ -6,9 +6,6 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.intent.models import Feature
-
-# 저장된 응답의 기능 이름. #387 전 대화 기록에는 Writing & Editing으로 합쳐진 story_development가 남아 있다.
-RecordedFeature = Feature | Literal['story_development']
 from app.story_qa.models import AnswerRequest, AnswerResponse, Excerpt
 from app.rating.models import RatingResponse
 from app.research.models import ResearchRequest, ResearchResponse
@@ -17,6 +14,9 @@ from app.review.models import ReviewResponse, Scope
 from app.simulation.models import SceneAction, SimulationPlan, SimulationResult
 from app.world_review.models import WorldReviewResponse
 from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse, PlanResponse
+
+# 저장된 응답의 기능 이름. #387 전 대화 기록에는 Writing & Editing으로 합쳐진 story_development가 남아 있다.
+RecordedFeature = Feature | Literal['story_development']
 
 
 class WritingInput(BaseModel):

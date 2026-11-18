@@ -8,7 +8,7 @@ from typing import Annotated, Literal, get_args
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 Criterion = Literal['sexual', 'violence', 'crime', 'drug', 'gambling', 'language', 'other']
-Level = Literal[0, 1, 2, 3]  # 0 없음 · 1 암시·생략 · 2 묘사 · 3 노골·지속
+Level = Literal[0, 1, 2, 3]  # 0 없음 · 1 암시·생략 · 2 묘사 · 3 별표 2 개별 기준 해당
 Verdict = Literal['adult', 'general', 'needsReview']
 
 
