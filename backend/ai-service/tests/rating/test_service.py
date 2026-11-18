@@ -1,5 +1,6 @@
 import pytest
 
+from app.content_mcp.errors import ContentMcpFailure
 from app.rating import service
 from app.rating.errors import RatingFailure
 from app.rating.models import RatingRequest
@@ -168,9 +169,11 @@ def test_empty_draft_fails_before_any_model_call(monkeypatch):
     lambda tool, arguments: {'draft': {'body': None, 'revision': 1}},  # 초안 형식 오류
     lambda tool, arguments: ({'draft': {'title': '1화', 'body': '비', 'revision': 1}} if tool == 'episode_read'
                              else [{'worldId': 'w', 'linkedWorkId': WORK}] if tool == 'world_studio_list' else {'cards': 'x'}),  # 세계관 형식 오류
+    # 세계관 목록 형식 오류: 공용 linked_world가 ContentMcpFailure(502)로 올린다(처리되지 않은 500이 아니다)
+    lambda tool, arguments: ({'draft': {'title': '1화', 'body': '비', 'revision': 1}} if tool == 'episode_read' else {'worlds': []}),
 ])
 def test_unreadable_content_is_502(monkeypatch, call):
     monkeypatch.setattr(service.content_mcp, 'call', call)
-    with pytest.raises(RatingFailure) as error:
+    with pytest.raises((RatingFailure, ContentMcpFailure)) as error:
         service.rate(request(1))
     assert error.value.status == 502
