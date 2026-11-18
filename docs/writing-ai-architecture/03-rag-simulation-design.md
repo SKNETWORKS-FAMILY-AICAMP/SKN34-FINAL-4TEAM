@@ -158,7 +158,7 @@ POST /internal/v1/ratings {workId, episodes[1..10]}
   → agent.rate: 회차마다 agent_runtime.run(create_agent + 공통 미들웨어) 1회, 회차끼리 스레드로 동시 호출
              (지시문 + 기준 문서, 입력은 {title, authorNote, draft, characters, signals}) → 항목별 수준·근거·prohibited
   → models: 일곱 항목을 한 번씩 평가했는지, 수준 2 이상에 근거 구절이 있는지
-  → service: 근거 구절이 그 회차 초안에 있는지 대조(공백·둥근 따옴표만 같게 봄, 4자 이상),
+  → service: 근거 구절이 그 회차 초안에 있는지 대조(공백·둥근 따옴표·말줄임표만 같게 봄, 4자 이상),
              회차 판정 = 문턱값(models.verdict), 묶음 판정 = 하나라도 adult면 adult, 전부 general이면 general, 그 외 needsReview
 ```
 
