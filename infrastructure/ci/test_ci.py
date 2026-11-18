@@ -58,6 +58,8 @@ class SelectionTest(unittest.TestCase):
         block = workflow.split('\n  configuration:\n', 1)[1].split('\n  unit:\n', 1)[0]
         self.assertIn('python3 -I -m unittest discover -s infrastructure/sample-data/genre-templates -p expanded_test.py -v', block)
         self.assertIn('python3 -I -m unittest discover -s infrastructure/sample-data/genre-templates/expanded-relations -p test_merge.py -v', block)
+        # 하이픈 디렉터리는 상위 discover가 찾지 못하므로 시연 세계관 검사를 따로 실행한다.
+        self.assertIn("python3 -I -m unittest discover -s infrastructure/sample-data/simulation-demo -p 'test_*.py' -v", block)
 
     def test_docs_only_has_no_runtime_jobs(self):
         plan = ci.select(["README.md", "frontend/AGENTS.md", "docs/design/design.md"])

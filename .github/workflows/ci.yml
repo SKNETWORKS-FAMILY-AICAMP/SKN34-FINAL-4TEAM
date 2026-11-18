@@ -102,6 +102,8 @@ jobs:
         run: python3 -I -m unittest discover -s infrastructure/sample-data/genre-templates -p expanded_test.py -v
       - name: Validate expanded world relations without a database
         run: python3 -I -m unittest discover -s infrastructure/sample-data/genre-templates/expanded-relations -p test_merge.py -v
+      - name: Validate simulation demo worlds without a database
+        run: python3 -I -m unittest discover -s infrastructure/sample-data/simulation-demo -p 'test_*.py' -v
 
   unit:
     name: Unit / ${{ matrix.service }}
