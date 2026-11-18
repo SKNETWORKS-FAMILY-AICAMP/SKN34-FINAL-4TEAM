@@ -10,7 +10,7 @@ import { createFixtureDb } from '../../../../data/mock/fixtureDb'
 import { InMemoryWorkRepository } from '../../../../data/mock/InMemoryRepositories'
 import { InMemoryStoryPlanRepository } from '../../../../data/plans/InMemoryStoryPlanRepository'
 import { StoryPlanUseCase } from '../../../../domain/usecases/StoryPlanUseCase'
-import { useStoryPlanViewModel } from '../viewmodel/useStoryPlanViewModel'
+import { useStoryPlanViewModel } from '../../../shared/plans/useStoryPlanViewModel'
 import { useWritingPlanNavigation } from '../../studio/viewmodel/useWritingPlanNavigation'
 import { StoryPlanPanel } from './StoryPlanWorkspace'
 

@@ -1,10 +1,10 @@
 import { StoryPlanPanel } from '../../plans/view/StoryPlanWorkspace'
-import { useStoryPlanViewModel } from '../../plans/viewmodel/useStoryPlanViewModel'
+import { useStoryPlanViewModel } from '../../../shared/plans/useStoryPlanViewModel'
 import { useWritingPlanNavigation } from '../viewmodel/useWritingPlanNavigation'
 import { Suspense,useEffect,useEffectEvent,useId,useRef,useState,type ReactNode } from 'react'
 import { useSearchParams } from 'react-router'
 import { useWritingViewModel } from '../viewmodel/useWritingViewModel'
-import { publicationActionLabel,type WritingEpisode } from '../../../../domain/entities/content'
+import { savedVersionLabel,publicationActionLabel,type WritingEpisode } from '../../../../domain/entities/content'
 import { useVersionComparisonViewModel } from '../viewmodel/useVersionComparisonViewModel'
 import './writing.css'
 // 오류 상자(.ep-alert)는 작품 관리 화면과 같은 공용 모양을 쓴다.
@@ -50,15 +50,17 @@ function Group({title,className,children}:{title:string;className?:string;childr
   return <section className={className?`writing-group ${className}`:'writing-group'} aria-labelledby={titleId}><h3 id={titleId} className="writing-group-title">{title}</h3>{children}</section>
 }
 
-/** episode는 주소의 ?ep=n이다. 들어올 때 그 회차를 열고, 목록에 없으면 첫 회차를 연다. */
+/** episode는 주소의 ?ep=n이다. 없는 번호면 회차 목록에서 직접 고른다. */
 export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   useScreenId('U13')
   useDocumentTitle('집필실')
   const plans=useStoryPlanViewModel(id,false,undefined,true)
   const vm=useWritingViewModel(id,undefined,undefined,episode,plans.confirmLeave)
-  useWritingPlanNavigation(vm.mayLeave,vm.dirty||plans.dirty,vm.busy||plans.busy)
+  useWritingPlanNavigation(vm.mayLeave,vm.dirty||plans.dirty,vm.busy||vm.saving||plans.busy)
   const editor=useRef<ManuscriptEditorHandle>(null)
   const main=useRef<HTMLElement>(null)
+  // 재시도를 누르면 버튼이 있던 오류 상자가 사라지므로, 눌렀을 때만 남아 있는 상단 저장 상태 줄이 초점을 이어받는다.
+  const statusLine=useRef<HTMLSpanElement>(null)
   // 좁은 화면(900px 이하)은 문서가 스크롤하고 상단 바가 화면 위에 붙어 있다. 버튼이 줄바꿈되면 높이가 달라지므로,
   // 본문 툴바가 그 바로 아래에 붙도록 실제 높이를 CSS 변수로 알린다(쓰는 곳은 writing.css의 --writing-toolbar-top).
   const bar=useRef<HTMLElement>(null)
@@ -71,6 +73,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   },[])
   const settingsButton=useRef<HTMLButtonElement>(null)
   const [settingsOpen,setSettingsOpen]=useState(false)
+  const openSettings=()=>{vm.clearNotice();setSettingsOpen(true)}
   // 삭제한 회차·초안의 버튼은 사라지거나 잠기므로 확정된 뒤에만 초점을 main으로 옮긴다.
   // 설정 시트가 닫히며 열었던 버튼으로 초점을 돌리는 정리가 먼저 끝나야 하므로 효과에서 옮긴다.
   const [focusMain,setFocusMain]=useState(0)
@@ -97,7 +100,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const followUrl=useEffectEvent((n:number)=>setQuery(q=>{const next=new URLSearchParams(q);next.set('ep',String(n));return next},{replace:true}))
   useEffect(()=>{
     if(activeNumber===undefined)return
-    if(shown.current!==undefined&&shown.current!==activeNumber)followUrl(activeNumber)
+    if((shown.current!==undefined&&shown.current!==activeNumber)||(episode!==undefined&&episode!==activeNumber))followUrl(activeNumber)
     shown.current=activeNumber
   },[activeNumber])
   // 왼쪽 레일에서 회차 목록이 차지하는 높이 비율(%). 화면 로컬 값이라 새로 열면 처음으로 돌아온다.
@@ -135,7 +138,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const [planFocus,setPlanFocus]=useState(0)
   useEffect(()=>{if(planFocus)planPanel.current?.focus()},[planFocus])
   const openPlans=()=>{setMode('advanced');setPlanFocus(n=>n+1)}
-  const startBlocker=plans.startBlocker||(vm.dirty||vm.busy?'원고 저장이 끝난 뒤 시작해 주세요. 저장 실패가 있으면 원고를 먼저 저장해 주세요.':'')
+  const startBlocker=plans.startBlocker||(vm.dirty||vm.busy||vm.saving?'원고 저장이 끝난 뒤 시작해 주세요. 저장 실패가 있으면 원고를 먼저 저장해 주세요.':'')
   // 사용자가 무대를 열었을 때만 무대 제목으로 초점을 옮기고(저절로 열린 무대는 초점을 빼앗지 않는다), 닫으면 버튼으로 돌려준다.
   const stageButton=useRef<HTMLButtonElement>(null)
   const stageHeading=useRef<HTMLHeadingElement>(null)
@@ -166,7 +169,8 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const [deleting,setDeleting]=useState(0)
   const deleteWhenSelected=useEffectEvent(()=>void deleteActive())
   useEffect(()=>{if(deleting&&active?.number===deleting){setDeleting(0);deleteWhenSelected()}},[deleting,active?.number])
-  const status=writingStatus({ready:vm.ready,busy:vm.busy,error:vm.error,dirty:vm.dirty,active:!!active,hasDraft:active?.hasDraft!==false,inherited:active?.inherited??false})
+  const canRetry=!!active&&!active.inherited&&vm.dirty
+  const status=writingStatus({ready:vm.ready,busy:vm.busy,error:vm.error,dirty:vm.dirty,active:!!active,hasDraft:active?.hasDraft!==false,inherited:active?.inherited??false,saving:vm.saving,saveError:vm.saveError,savedAt:active?.updatedAt,version:active?.versions.length})
   const openVersions=()=>{setRights(false);setHistoryView('versions');setVersionsOpen(true)}
   const openSettingHistory=()=>{setHistoryView('settings');setVersionsOpen(true)}
   const openPublication=(episode:number|null=null)=>{setHistoryEpisode(episode);setHistoryView('publication');setVersionsOpen(true);void vm.loadPublicationHistory()}
@@ -179,7 +183,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         <Go className="back rback" to="/lib?tab=write"><BackChev />내가 쓰는 소설</Go>
         <h1 className="t">집필실</h1>
         {/* 완료 안내는 늘 있는 이 줄에 이어 적는다: 알림 문단이 생기고 사라지며 아래 3단을 밀지 않고, 스크린리더도 저장 상태와 함께 한 번만 읽는다. */}
-        <span className="st" role="status" aria-live="polite">{status}{vm.notice&&<span className="writing-notice"> · {vm.notice}</span>}</span>
+        <span ref={statusLine} tabIndex={-1} className="st" role="status" aria-live="polite">{status}{vm.notice&&<span className="writing-notice"> · {vm.notice}</span>}</span>
       </div>
       <div className="writing-bar writing-bar-end">
         <div className="svw writing-mode" role="group" aria-label="집필 모드">
@@ -201,8 +205,9 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         </PopMenu>
       </div>
     </header>
-    {vm.error&&<div className="ep-alert" role="alert">{vm.error} {active&&'저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.'}{vm.expired&&<> <Go to="/login">로그인</Go></>}</div>}
-    <main ref={main} id="main" tabIndex={-1} className="studio-workspace">{!vm.ready?<p className="writing-message">회차를 불러오고 있어요…</p>:vm.error&&!active?null:<>
+    {/* 다시 시도할 입력이 있으면 복사 안내 대신 재시도 버튼을 둔다. 재시도는 버전이 아니라 초안만 저장하므로 버튼 이름에 대상을 적는다. 버튼과 로그인 링크는 한 묶음이다. */}
+    {vm.error&&<div className="ep-alert" role="alert">{vm.error} {active&&!canRetry&&'저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.'}{(canRetry||vm.expired)&&<span className="ep-alert-actions">{canRetry&&<button type="button" className="btn sm" disabled={vm.busy} onClick={()=>{vm.retrySave();statusLine.current?.focus()}}>초안 저장 다시 시도</button>}{vm.expired&&<Go to="/login">로그인</Go>}</span>}</div>}
+    <main ref={main} id="main" tabIndex={-1} className="studio-workspace">{!vm.ready?<p className="writing-message">회차를 불러오고 있어요…</p>:vm.error&&!active&&!vm.episodes.length?null:<>
     <div className={`sgrid writing-grid${mode==='advanced'?' writing-with-plans':''}`}>
       <div className="writing-rail">
         <div className="writing-rail-head">
@@ -222,7 +227,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
                 </button>
                 {/* 항목마다 그 회차를 대상으로 하는 메뉴. 회차를 먼저 고른 뒤 기존 시트·삭제 흐름을 그대로 쓴다. */}
                 <PopMenu className="writing-episode-more" label={`${e.number}화 더보기`} icon={<MoreVerticalIcon />}>
-                  <button type="button" role="menuitem" disabled={vm.busy} onClick={()=>{if(pick(e))setSettingsOpen(true)}}>회차 설정</button>
+                  <button type="button" role="menuitem" disabled={vm.busy} onClick={()=>{if(pick(e))openSettings()}}>회차 설정</button>
                   <button type="button" role="menuitem" disabled={vm.busy||!e.checkpoints.length} onClick={()=>{if(pick(e))openVersions()}}>체크포인트</button>
                   {/* 설정 수집 기능은 아직 없다: 가짜 동작 없이 준비 중으로 잠근다. */}
                   <button type="button" role="menuitem" disabled>설정 수집 <small>준비 중</small></button>
@@ -260,13 +265,13 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
               <LazyManuscriptEditor ref={editor} value={vm.draft.body} editable={!vm.editingLocked} busy={vm.busy} workId={id} number={active.number} onChange={body=>vm.edit({body})} onImage={(file,start,end)=>vm.addImage(file,start,end)}/>
             </Suspense>}
           <footer className="writing-foot">
-            <p className="small muted">{bodyLength(vm.draft.body).toLocaleString('ko-KR')} / {BODY_MAX.toLocaleString('ko-KR')}자{!active.inherited&&` · ${publishHint(vm.draft.body)}`} · {active.inherited?'원작 기준 버전을 보존한 원고예요.':'입력을 멈추면 2초 후 초안만 저장해요. 버전 저장과 공개는 각각 선택하세요.'}</p>
+            <p className="small muted">{bodyLength(vm.draft.body).toLocaleString('ko-KR')} / {BODY_MAX.toLocaleString('ko-KR')}자 (공백 포함){!active.inherited&&` · ${publishHint(vm.draft.body)}`} · {active.inherited?'원작 기준 버전을 보존한 원고예요.':'입력을 멈추면 2초 후 초안만 저장해요. 버전 저장과 공개는 각각 선택하세요.'}</p>
             <div className="writing-foot-actions">
               {vm.busy&&<button type="button" className="btn sm" onClick={vm.cancel}>진행 중 요청 취소</button>}
-              <button ref={settingsButton} type="button" className="btn sm" aria-haspopup="dialog" onClick={()=>setSettingsOpen(true)}>회차 설정</button>
+              <button ref={settingsButton} type="button" className="btn sm" aria-haspopup="dialog" onClick={openSettings}>회차 설정</button>
             </div>
           </footer>
-        </>:<p>회차가 없어요. 회차 목록의 새 회차 버튼으로 첫 회차를 만들어 이야기를 시작해 보세요.</p>}
+        </>:<p>{vm.episodes.length?'회차 목록에서 집필할 회차를 선택해 주세요.':'회차가 없어요. 회차 목록의 새 회차 버튼으로 첫 회차를 만들어 이야기를 시작해 보세요.'}</p>}
       </div>
       <aside ref={planPanel} tabIndex={-1} className="writing-plan-panel" aria-label="플롯과 장면 계획" hidden={mode!=='advanced'}>
         <StoryPlanPanel workId={id} vm={plans} episode={active?.number} episodes={vm.episodes.map(e=>({number:e.number,title:e.draft.title}))} />
@@ -341,7 +346,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
               {vm.historyLoading?<p role="status">발행 이력을 불러오고 있어요…</p>:events&&<>
                 {!events.length&&<p>{historyEpisode===null?'아직 발행 이력이 없어요.':'이 회차의 발행 이력이 아직 없어요.'}</p>}
                 <ol>{events.map((event,i)=><li key={i}>
-                  {event.episode}화 · {publicationActionLabel[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')}<small> · 버전 {event.versionId}</small>
+                  {event.episode}화 · {publicationActionLabel[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')}<small> · {savedVersionLabel(vm.episodes.find(e=>e.number===event.episode)?.versions ?? [],event.versionId)}</small>
                 </li>)}</ol>
               </>}
             </>:historyView==='settings'?<SettingHistoryPanel key={id} workId={id}/>:!active?<p>회차를 선택해 주세요.</p>:historyView==='schedule'?(active.inherited?<p>원작 기준 회차는 예약 발행할 수 없어요.</p>:

@@ -1,5 +1,5 @@
 import { useId, useRef, useState } from 'react'
-import { publicationActionLabel, type Version, type Work } from '../../../../domain/entities/content'
+import { publicationActionLabel, savedVersionLabel, type Version, type Work } from '../../../../domain/entities/content'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
 import { Go } from '../../../shared/Go'
 import { Branch } from '../../../shared/icons'
@@ -41,6 +41,12 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
   const [page, setPage] = useState(1)
   const episodeList = useRef<HTMLOListElement>(null)
   const view = paginate(w.episodes, page)
+  // 작성 중인 초안: 발행 전이고 초안이 있는 자체 회차. 공개를 중단한 회차(suspended)는 발행본이 없어도 초안이 아니다.
+  const drafts = vm.writing?.rows?.filter(e => !e.inherited && !e.publishedVersionId && e.publicationStatus !== 'suspended' && e.hasDraft !== false)
+  // 저장 버전 순번은 소유자 회차 조회의 versions 순서다. 그 목록을 아직 읽는 중이면 못 찾은 '미확인'과 구분해 '불러오는 중'으로 보인다.
+  const savedVersion = (episode: number, id?: string) => !vm.writing
+    ? '저장 버전 불러오는 중'
+    : savedVersionLabel(vm.writing.rows?.find(r => r.number === episode)?.versions ?? [], id)
   const locked = vm.busy || mediaBusy
   // 서버가 없는 목업 빌드는 서버 수정 제안을 부르지 않는다(InboxPage와 같다). 정적 JSX에 두면 모듈 로드 때 한 번만 평가되므로 렌더 시점 변수로 읽는다.
   const mockup = import.meta.env.MODE === 'mockup'
@@ -54,7 +60,7 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
         work={w}
         locked={locked}
         busy={vm.busy}
-        nextNo={w.writingEpisodeNumber ?? w.episodes.length + 1}
+        draftCount={vm.writing ? drafts?.length : null}
         coverRevision={vm.coverRevision}
         onMediaBusy={setMediaBusy}
         onSaveInfo={vm.updateWork}
@@ -69,7 +75,7 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
       />
       <nav className='ep-tabs' aria-label='작품 메뉴'>
         {([
-          ['read', `회차 · ${w.episodes.length}`],
+          ['read', `공개 회차 · ${w.episodes.length}`],
           ['world', '세계관·설정집'],
           ['fork', '이야기 분기'],
           ['feedback', '받은 피드백'],
@@ -103,7 +109,7 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
             <>
               <h3>발행 이력</h3>
               {!vm.history.publicationHistory?<p className="ep-alert" role="alert">발행 이력 응답을 확인할 수 없어요.</p>:vm.history.publicationHistory.length?<ol>{vm.history.publicationHistory.map((event,i)=><li key={i}>
-                {event.episode}화 · {publicationActionLabel[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')} · 버전 {event.versionId}
+                {event.episode}화 · {publicationActionLabel[event.action]} · {new Date(event.publishedAt).toLocaleString('ko-KR')} · {savedVersion(event.episode, event.versionId)}
               </li>)}</ol>:<p>발행 이력이 없어요.</p>}
               <h3>원고 저장본</h3>
               {vm.history.versions.length === 0 && (
@@ -111,7 +117,7 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
                   아직 보관된 저장본이 없어요. 원고를 저장하면 버전 이력을 확인할 수 있어요.
                 </p>
               )}
-              {vm.history.versions.map((v) => <SavedVersion key={v.id} workId={w.id} version={v} />)}
+              {vm.history.versions.map((v) => <SavedVersion key={v.id} workId={w.id} version={v} label={savedVersion(v.episode, v.id)} />)}
               <h3>AI 요청·제안</h3>
               {vm.history.proposals.length === 0 && <p>아직 AI 제안이 없어요.</p>}
               {vm.history.proposals.map((p) => (
@@ -141,10 +147,25 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
       )}
       {tab === 'read' && (
         <>
+          {vm.writing?.error && <p className="ep-alert" role="alert">{vm.writing.error}</p>}
+          {!!drafts?.length && (
+            <section className="ep-drafts">
+              <h2>작성 중인 초안</h2>
+              <ul role="list">
+                {drafts.map(e => (
+                  <li key={e.number}>
+                    <Go to={`/studio/${w.id}?ep=${e.number}`}>
+                      {e.number}화 · {e.draft.title}
+                    </Go>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           <div className='ep-notes'>
             <p>
               {w.visibility === 'public'
-                ? '공개된 회차만 표시해요. 작성 중인 초안은 포함되지 않아요.'
+                ? '아래 목록은 독자가 볼 수 있는 발행본이에요.'
                 : '아직 독자에게 공개하지 않은 작품이에요.'}
             </p>
             {inherited && <p>{inherited}는 원작에서 이어받은 회차라 수정할 수 없어요.</p>}
@@ -162,7 +183,9 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
                       <div>
                         <b>{e.title}</b>
                         <div className='d'>
-                          {e.body.replace(/\s/g, '').length.toLocaleString()}자 <i className='sep' /> v{e.version}
+                          {e.body.length.toLocaleString()}자 (공백 포함)
+                          {/* 상속 회차는 저장 버전이 없다(원작 기준 원고). 공개 중인 저장 버전만 순번으로 알린다. */}
+                          {!e.inherited && <> <i className='sep' /> 공개 중 · {savedVersion(e.number, e.versionId)}</>}
                           {forks > 0 && <> <i className='sep' /> <span title='이 회차에서 갈라진 포크'><Branch /> <span className='sr-only'>이 회차에서 갈라진 포크 </span>{forks}<span className='sr-only'>편</span></span></>}
                         </div>
                       </div>
@@ -180,7 +203,7 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
             )
             : (
               <div className='ep-empty'>
-                아직 공개한 회차가 없어요. 첫 회차를 작성해 보세요.
+                아직 공개한 회차가 없어요.{!drafts?.length && ' 첫 회차를 작성해 보세요.'}
               </div>
             )}
           {/* 쪽을 옮기면 목록 머리로 스크롤만 한다. 초점은 누른 쪽 버튼에 남아 이어서 옮길 수 있다(scrollIntoView가 없는 jsdom에서는 건너뛴다). */}
@@ -274,12 +297,12 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
  * 이력 탭의 저장 버전 한 건. 제목과 저장 시각만 먼저 보이고 본문은 '원고 보기'로 펼칠 때 그린다.
  * 저장본이 쌓여도 모든 본문과 그 안의 이미지를 한꺼번에 그리거나 내려받지 않는다.
  */
-function SavedVersion({ workId, version: v }: { workId: string; version: Version }) {
+function SavedVersion({ workId, version: v, label }: { workId: string; version: Version; label: string }) {
   const [open, setOpen] = useState(false)
   const title = useId()
   return (
     <article>
-      <h3 id={title}>{v.episode}화 · 저장 버전 {v.revision} · {v.title}</h3>
+      <h3 id={title}>{v.episode}화 · {label} · {v.title}</h3>
       <p><time>{new Date(v.savedAt).toLocaleString('ko-KR')}</time></p>
       <p>
         <button type='button' className='btn sm' aria-expanded={open} aria-describedby={title} onClick={() => setOpen((shown) => !shown)}>

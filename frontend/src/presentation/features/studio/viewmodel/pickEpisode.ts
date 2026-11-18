@@ -1,4 +1,4 @@
-/** 집필실이 처음 여는 회차: 주소의 ?ep=n 회차가 목록에 있으면 그 회차, 없거나 범위 밖이면 기존처럼 첫 회차다. */
+/** 주소가 없는 진입만 첫 회차를 연다. 없는 번호를 다른 회차로 바꾸지 않는다. */
 export function pickEpisode<T extends { number: number }>(rows: T[], wanted?: number) {
-  return rows.find((e) => e.number === wanted) ?? rows[0]
+  return wanted === undefined ? rows[0] : rows.find((e) => e.number === wanted)
 }

@@ -1,5 +1,5 @@
 export type Draft = { title: string; body: string; authorNote?: string; revision: number }
-export type Episode = { number: number; version: number; title: string; body: string; authorNote?: string; inherited: boolean }
+export type Episode = { number: number; version: number; /** 공개 중인 저장 버전 id. 같은 회차의 `WritingEpisode.versions`에서 찾아 '저장 버전 N'으로 보인다(`version`은 초안 편집 번호다). */ versionId?: string; title: string; body: string; authorNote?: string; inherited: boolean }
 export type Source = { workId: string; title: string; episode: number; version: number; direction: string; deleted?: boolean }
 export type WorkCreationType = 'ORIGINAL' | 'EXTERNAL_DERIVATIVE'
 /** 작품 등록 시 함께 보내는 유형·장르·해시태그·권리 확인이다. 장르 2개·해시태그 10개까지다. */
@@ -17,7 +17,7 @@ export const parseHashtags = (raw: string) => [...new Set(raw.split(',').map((t)
 /** 히어로 칩에 쓰는 작품 종류다. 분기 작품은 서버가 유형을 ORIGINAL로 내려 줘도 '분기 작품'이고, 유형이 없으면 빈 문자열이다. */
 export const workKindLabel = (w: Pick<Work, 'creationType' | 'source'>) =>
   w.source ? '분기 작품' : w.creationType === 'EXTERNAL_DERIVATIVE' ? '외부 2차 창작' : w.creationType ? '원작' : ''
-export type Work = {revision:number; writingEpisodeNumber?:number|null; creationType?: WorkCreationType; genres?: string[]; hashtags?: string[]; hasWritingEpisode?: boolean; readOnly?: boolean; id: string; title: string; summary: string; visibility: 'private' | 'public'; allowFork: boolean; allowForkPublication: boolean; source: Source | null; episodes: Episode[]; draft: Draft; /** 연결된 WorldStudio 세계관 id(DEC-46 1:1 연결). 소유자 응답에서만 오고 없으면 미연결이다. */ worldStudioId?: string | null }
+export type Work = {revision:number; creationType?: WorkCreationType; genres?: string[]; hashtags?: string[]; readOnly?: boolean; id: string; title: string; summary: string; visibility: 'private' | 'public'; allowFork: boolean; allowForkPublication: boolean; source: Source | null; episodes: Episode[]; draft: Draft; /** 연결된 WorldStudio 세계관 id(DEC-46 1:1 연결). 소유자 응답에서만 오고 없으면 미연결이다. */ worldStudioId?: string | null }
 export type Proposal = { id: string; text: string; model: string; revision: number; status: 'pending' | 'accepted'; prompt?: string; baseBody?: string; createdAt?: string; context?: StoryContext }
 export const settingCategories = ['규칙','인물','장소','광물','상태','지식','관계'] as const
 export type SettingInput = {name:string;content:string;category:typeof settingCategories[number];tags:string[];visibility:'private'|'public';fromEpisode:number;toEpisode:number|null;knownBy:string[];evidence:string}
@@ -57,3 +57,9 @@ export type InheritedCard = { id: string; title: string; cardType: string; alias
 export type InheritedIdentity = { sourceCardId: string; targetCardId: string }
 export type InheritedWorld = { upto: number; cards: InheritedCard[]; identity?: InheritedIdentity[] }
 export type EpisodeOrderScope = {number:number;candidateNumbers:number[];reasons:string[];executable:false}
+
+/** 집필실이 표시하는 회차별 저장 순번. 발행본의 편집 revision과 구분한다. id가 없거나 목록에 없으면 번호를 지어내지 않는다. */
+export function savedVersionLabel(versions: readonly {id: string}[], id?: string) {
+  const index = versions.findIndex(version => version.id === id)
+  return index < 0 ? '저장 버전 미확인' : `저장 버전 ${index + 1}`
+}

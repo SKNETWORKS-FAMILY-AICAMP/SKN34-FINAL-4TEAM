@@ -10,7 +10,7 @@ import { InMemoryWorkRepository } from '../../../../data/mock/InMemoryRepositori
 import { InMemoryStoryPlanRepository } from '../../../../data/plans/InMemoryStoryPlanRepository'
 import { StoryPlanUseCase } from '../../../../domain/usecases/StoryPlanUseCase'
 import type { StoryPlan } from '../../../../domain/entities/storyPlan'
-import { useStoryPlanViewModel } from '../viewmodel/useStoryPlanViewModel'
+import { useStoryPlanViewModel } from '../../../shared/plans/useStoryPlanViewModel'
 import { openQuick } from '../../../shared/events'
 import { Sheet } from '../../../shared/Sheet'
 import { QuickJump } from '../../../shared/shell/QuickJump'
