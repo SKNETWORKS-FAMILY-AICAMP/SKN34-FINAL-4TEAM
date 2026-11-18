@@ -314,8 +314,8 @@ class WorldChecks:
                     self.assertLessEqual(at, visible_from, f"카드가 {visible_from}화에 보이는데 {at}화에서 처음 쓰이는 이름")
 
     def test_relations_a_reader_can_see_carry_no_secret_the_readers_do_not_know(self):
-        """독자 설정 위키·공개 세계관·Fork는 양 끝 카드가 기준 회차까지 공개돼 있으면 그 관계(label·body)를 그대로 보인다. 카드가 공개되는 회차(유효 공개 회차)는 revealFromEpisode이고,
-        그 값이 없고 visibility가 public이면 1화다(DEC-53). 그래서 그런 관계에는 독자가 아직 모르는 비밀(readersKnow가 아닌 secrets) 문구를 쓰지 않는다.
+        """독자 설정 위키·공개 세계관은 양 끝 카드가 기준 회차까지 공개돼 있으면 그 관계(label·body)를 그대로 보이고, Fork 이어받기는 label만 보인다(body는 싣지 않는다). 카드가 공개되는 회차(유효 공개 회차)는
+        revealFromEpisode 키가 있으면 그 값이고, 키가 없고 visibility가 public이면 1화다(DEC-53). 그래서 그런 관계에는 독자가 아직 모르는 비밀(readersKnow가 아닌 secrets) 문구를 쓰지 않는다.
         비밀은 보유자의 memory 문서에 두고 관계에는 겉으로 드러난 사실만 쓴다."""
         shown = lambda card: "revealFromEpisode" in card or card["visibility"] == "public"  # noqa: E731  (작가 전용 카드는 어느 회차에도 안 보인다)
         for rel in self.rels:
