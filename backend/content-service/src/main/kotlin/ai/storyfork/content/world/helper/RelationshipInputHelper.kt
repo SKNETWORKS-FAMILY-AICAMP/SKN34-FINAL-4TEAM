@@ -33,17 +33,21 @@ object RelationshipInputHelper {
      */
     fun validateIdentity(relations:List<RelationshipPayload>,written:List<RelationshipPayload>,cardTypes:Map<UUID,String>,episode:Int?) {
         require(episode!=null || written.none { it.category==IDENTITY }) { "「동일 인물」 관계를 새로 쓰거나 바꾸거나 끝내려면 저장 회차를 정해야 합니다." }
-        relations.filter { it.category==IDENTITY }.forEach {
-            require(it.direction=="directed") { "「동일 인물」은 다른 이름 카드에서 본체 카드로 잇는 방향 관계여야 합니다." }
-            require(cardTypes[it.sourceCardId]=="character" && cardTypes[it.targetCardId]=="character") { "「동일 인물」은 인물 카드끼리만 이을 수 있습니다." }
-        }
+        requireIdentityShape(relations,cardTypes)
+    }
+
+    private fun requireIdentityShape(relations:List<RelationshipPayload>,cardTypes:Map<UUID,String>) = relations.filter { it.category==IDENTITY }.forEach {
+        require(it.direction=="directed") { "「동일 인물」은 다른 이름 카드에서 본체 카드로 잇는 방향 관계여야 합니다." }
+        require(cardTypes[it.sourceCardId]=="character" && cardTypes[it.targetCardId]=="character") { "「동일 인물」은 인물 카드끼리만 이을 수 있습니다." }
     }
 
     /**
-     * [latest]는 저장 결과의 최신 회차 시점 관계 전체다(중간 회차 시점의 사슬은 보지 않는다). 부정(denied) identity는 한 사람으로 묶는 데 쓰지 않으니 빼고,
+     * [latest]는 저장 결과의 최신 회차 시점 관계 전체다(중간 회차 시점의 사슬은 보지 않는다). 그 시점의 identity도 모양(방향·인물 끝점)을 같이 본다: 카드를 인물이 아닌 유형으로
+     * 바꾸는 저장은 저장 회차에 보이지 않는 뒤 회차 identity의 끝점일 수 있다. 부정(denied) identity는 한 사람으로 묶는 데 쓰지 않으니 사슬 검사에서 빼고,
      * 한 카드는 다른 이름이거나 본체다(둘 다일 수 없다). 한 다른 이름 카드의 본체는 하나이고 본체 하나에 다른 이름 여럿은 허용한다.
      */
-    fun validateIdentityLinks(latest:List<RelationshipPayload>) {
+    fun validateIdentityLinks(latest:List<RelationshipPayload>,cardTypes:Map<UUID,String>) {
+        requireIdentityShape(latest,cardTypes)
         val links=latest.filter { it.category==IDENTITY && it.polarity!="denied" }
         val others=links.map { it.sourceCardId }
         require(others.distinct().size==others.size) { "다른 이름 카드의 본체는 하나여야 합니다." }

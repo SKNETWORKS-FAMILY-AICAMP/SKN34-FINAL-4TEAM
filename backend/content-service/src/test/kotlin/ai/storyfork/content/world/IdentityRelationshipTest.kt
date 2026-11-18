@@ -107,6 +107,24 @@ class IdentityRelationshipTest {
         owned();at(4,identity())
         rejected(EditWorldDraftRequest(2,"x","",listOf(CardPayload(body,"본체","원문","location","basic")),key="retype",episode=4))
     }
+    @Test fun `retyping a body card is refused even when the saved episode comes before the identity starts`() {
+        owned();at(3)                                  // 3화 시점에는 identity가 없다(4화부터 이어져 있다)
+        val later=identity()
+        `when`(graph.readAfter(anyUUID(),anyList(),anyEpisode())).thenAnswer { RelationshipStateResult(world,state.graphVersion,state.requestKey,state.requestHash,listOf(later)) }
+        val retype=listOf(CardPayload(body,"본체","원문","location","basic"))
+        rejected(EditWorldDraftRequest(2,"x","",retype,key="retype-early",episode=3))   // 저장 결과의 최신 시점 identity의 끝점이 인물이 아니게 된다
+        rejected(EditWorldDraftRequest(2,"x","",listOf(CardPayload(mask,"가면","원문","object","basic")),key="retype-mask",episode=3))
+    }
+    @Test fun `retyping a card no identity touches is saved, and cards that stay characters never read the latest episode`() {
+        owned();at(3);val sent=graphKeeps()
+        `when`(graph.readAfter(anyUUID(),anyList(),anyEpisode())).thenAnswer { RelationshipStateResult(world,state.graphVersion,state.requestKey,state.requestHash,listOf(identity())) }
+        assertEquals(3L,service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(CardPayload(other,"카드","원문","location","basic")),key="retype-other",episode=3)).draftRevision)
+        assertEquals(3,sent.single()[5])
+        draft.draftRevision=2;state.graphVersion=3
+        clearInvocations(graph);at(3);graphKeeps()
+        service.edit(world,actor,EditWorldDraftRequest(2,"x","",listOf(CardPayload(body,"본체","새 원문","character","basic")),key="text-only",episode=3))
+        verify(graph,never()).readAfter(anyUUID(),anyList(),anyEpisode())
+    }
     @Test fun `a chain or a cycle of identities is rejected`() {
         owned();at(4,identity(mask,body))
         rejected(save(identity(body,other)))             // 본체가 다시 다른 카드의 다른 이름이다
