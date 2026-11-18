@@ -289,7 +289,7 @@ def finish(state: State) -> State:
 def _next(state: State) -> str:
     """진행할 장면(scene), 승인 대기 중인 Writing 결과·시뮬레이션 장면(apply) 순으로 가고, 없으면 끝낸다.
 
-    실패가 있으면 장면을 시작하지 않는다. 앞서 끝난 결과의 승인은 뒤 도구가 실패하거나 작가가 뒤 입력을 취소해도 묻는다(완료한 결과 보존).
+    실패가 있으면 장면을 시작하지 않는다. 앞서 끝난 결과의 승인은 뒤 도구가 실패하거나 작가가 뒤 입력을 취소하거나 시뮬레이션이 되묻기로 끝나도 먼저 묻는다(완료한 결과 보존, #491).
     작가가 장면을 반영하지 않기로 한 턴(scene의 declined)은 묻지 않는다.
     """
     failed = any(s['status'] == 'failed' for s in state['steps'])
@@ -297,7 +297,7 @@ def _next(state: State) -> str:
             s['feature'] == 'character_simulation' and s['status'] == 'not_started' for s in state['steps']):
         return 'scene'
     declined = (state.get('scene') or {}).get('declined')
-    return 'apply' if state['status'] in ('running', 'cancelled', 'failed') and not declined and _pending(state) else 'finish'
+    return 'apply' if state['status'] in ('running', 'cancelled', 'failed', 'clarify') and not declined and _pending(state) else 'finish'
 
 
 def build() -> StateGraph:

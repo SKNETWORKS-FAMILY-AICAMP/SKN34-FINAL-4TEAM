@@ -3,11 +3,14 @@
 import asyncio
 import json
 import threading
+from contextlib import contextmanager
+from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
 from langchain_core.messages import ToolMessage
 from openai import OpenAIError
+from pydantic import ValidationError
 
 from app.intent.errors import IntentFailure
 from app.intent.prompt import CLARIFY_MESSAGE, REJECT_MESSAGES
@@ -15,6 +18,7 @@ from app.orchestration import agent, service, tools
 from app.orchestration.models import OrchestrationRequest
 from app.review.models import Finding as ReviewFinding, ReviewResponse
 from app.research.errors import ResearchFailure
+from app.simulation.models import SimulationPlan
 from app.story_qa.errors import StoryQaFailure
 
 from .stubs import PATCH, QA, REVIEW, WEB, Step, fake_agents, fake_main, fake_scene, plan
@@ -151,6 +155,48 @@ def test_a_main_model_failure_keeps_the_finished_steps_with_a_fixed_message(monk
     result = run(inputs={'story_context': QA})
     assert (result.status, result.message) == ('failed', agent.MAIN_FAILED_MESSAGE)
     assert [(s.feature, s.status) for s in result.steps] == [('story_context', 'completed')]
+
+
+def test_a_main_model_failure_before_any_step_does_not_point_at_results_below(monkeypatch):
+    fake_agents(monkeypatch, plan('story_context'))
+    fake_main(monkeypatch, answer=OpenAIError('rate limited'))
+    result = run(inputs={'story_context': QA})
+    assert (result.status, result.message, result.steps) == ('failed', agent.MAIN_FAILED_NOTHING_MESSAGE, [])
+    assert '아래' not in result.message
+
+
+def traced(monkeypatch) -> list[dict]:
+    """메인 모델 추적(main_agent)에 남은 update 값들."""
+    updates = []
+
+    @contextmanager
+    def observe(name, **fields):
+        yield SimpleNamespace(update=lambda **kw: name == 'main_agent' and updates.append(kw))
+
+    monkeypatch.setattr(agent.tracing, 'observe', observe)
+    return updates
+
+
+@pytest.mark.parametrize('error, recorded', [
+    (OpenAIError('down'), agent.MAIN_FAILED_MESSAGE),  # 제공사 실패는 고정 문구
+    (ValueError('원고 일부가 담긴 메시지'), 'ValueError'),  # 그 밖의 예외는 종류만 남기고 메시지(입력이 담길 수 있음)는 남기지 않는다
+    (ValidationError.from_exception_data('Model', []), 'ValidationError'),
+])
+def test_a_main_model_failure_traces_the_failure_kind_without_its_message(monkeypatch, error, recorded):
+    updates = traced(monkeypatch)
+    fake_agents(monkeypatch, plan('story_context'))
+    fake_main(monkeypatch, answer=error)
+    assert run(inputs={'story_context': QA}).status == 'failed'
+    assert [u['status_message'] for u in updates if u.get('level') == 'ERROR'] == [recorded]
+
+
+def test_a_tool_call_with_invalid_arguments_fails_its_step_instead_of_clarifying(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    fake_main(monkeypatch, ('ask_story_qa', {'request': '가' * 2001}))
+    result = run(inputs={'story_context': QA})
+    assert 'story_context' not in names(calls)
+    assert [(s.feature, s.status, s.error) for s in result.steps] == [('story_context', 'failed', agent.BAD_ARGUMENTS)]
+    assert result.status == 'failed'
 
 
 def test_a_turn_that_calls_no_tool_is_the_main_agents_clarifying_question(monkeypatch):
@@ -358,6 +404,16 @@ def test_a_later_failure_still_asks_to_approve_the_finished_writing(monkeypatch)
     assert (waiting.status, waiting.awaitingApproval) == ('waiting', 'writing_editing') and written == []
     done = resume(thread, approved=True)
     assert done.status == 'failed' and done.steps[0].approval == 'approved' and len(written) == 1
+
+
+def test_a_later_simulation_clarify_still_asks_to_approve_the_finished_writing_first(monkeypatch):
+    fake_agents(monkeypatch, plan('writing_editing', 'character_simulation'), drafted=SimulationPlan(mode='flow', beats=['성문 대면']))
+    written, thread = applied(monkeypatch), str(uuid4())
+    waiting = turn(thread, target=TARGET, inputs={'writing_editing': PATCH})
+    assert (waiting.status, waiting.awaitingApproval) == ('waiting', 'writing_editing') and written == []
+    done = resume(thread, approved=True)
+    assert done.status == 'clarify' and '참여 인물' in done.message
+    assert done.steps[0].approval == 'approved' and len(written) == 1
 
 
 def test_a_cancelled_later_input_still_asks_to_approve_the_finished_writing(monkeypatch):
