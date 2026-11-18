@@ -459,6 +459,29 @@ class FeedbackReportServiceTest {
         }
     }
 
+    @Test fun `after the check an answer or a status change moves handledAt only and the first check time stays`() {
+        work(); val row = report("r1", status = "unchecked")
+        service.check("work", "r1", "author")
+        val first = row.authorCheckedAt
+        assertNotNull(first)
+        // 확인은 최초 확인과 마지막 처리를 같은 시각으로 남긴다.
+        assertEquals(first, row.handledAt)
+
+        val changed = service.setStatus("work", "r1", "author", StatusRequest("resolved"))
+
+        assertEquals(first, row.authorCheckedAt)
+        assertEquals(row.updatedAt, row.handledAt)
+        // 작가에게는 마지막 처리와 최초 확인 시각을 따로, 처리자를 Core 닉네임으로 준다.
+        assertEquals(listOf<Any?>(row.handledAt, first, "author-닉"), listOf(changed.handledAt, changed.authorCheckedAt, changed.handlerName))
+        val answered = service.answer("work", "r1", "author", ResponseRequest("답변"))
+        assertEquals(first, row.authorCheckedAt)
+        assertEquals(row.updatedAt, row.handledAt)
+        assertEquals(listOf(row.handledAt, first), listOf(answered.handledAt, answered.authorCheckedAt))
+        // 제보자에게는 작가의 처리 기록(시각·처리자)을 주지 않고 확인했는지만 알린다.
+        val mine = service.mine("reporter").items.single()
+        assertEquals(listOf<Any?>(null, null, null, true), listOf(mine.handledAt, mine.authorCheckedAt, mine.handlerName, mine.authorChecked))
+    }
+
     @Test fun `an answer or a status change records the author check once even without a prior check`() {
         work()
         val answeredRow = report("r1", status = "unchecked"); val changedRow = report("r2", status = "unchecked")
