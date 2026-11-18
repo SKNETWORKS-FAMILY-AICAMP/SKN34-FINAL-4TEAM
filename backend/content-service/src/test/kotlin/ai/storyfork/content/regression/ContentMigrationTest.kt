@@ -116,7 +116,7 @@ class ContentMigrationTest {
         // Same sample owner and tag id, different local value: the sample row must not overwrite it.
         jdbc.update("INSERT INTO member(id) VALUES ('b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44')")
         jdbc.update("INSERT INTO setting_tag(id,owner_id,name) VALUES ('d33a36b6-5c8e-3862-9ad2-ca287e55889c','b1b09f26-1c1e-3a11-9bb1-6f0d7927ab44','keep local')")
-        // 남은 V16(샘플)부터 V21(작품 소프트 삭제)·V22(회차 공개 상태)·V23(작가의 말)·V25(예약 발행)·V26(세계관 체크포인트)·V27(회차 기준 세계관)·V28(제보)·V29(수정 제안)·V30(댓글 숨김)·V31(회차 소프트 삭제)·V36(작품 소식)·V37(작품-세계관 연결)·V38(장면 순서)까지 적용된다(V24는 결번, V32~V35는 다른 열린 PR 몫).
+        // 남은 V16(샘플)부터 V21(작품 소프트 삭제)·V22(회차 공개 상태)·V23(작가의 말)·V25(예약 발행)·V26(세계관 체크포인트)·V27(회차 기준 세계관)·V28(제보)·V29(수정 제안)·V30(댓글 숨김)·V31(회차 소프트 삭제)·V36(작품 소식)·V37(작품-세계관 연결)·V38(장면 순서)·V39(제보 처리 시각)까지 적용된다(V24는 결번, V32~V35는 다른 열린 PR 몫).
         assertEquals(19,flyway.migrate().migrationsExecuted)
         assertEquals("keep local", jdbc.queryForObject("SELECT name FROM setting_tag WHERE id='d33a36b6-5c8e-3862-9ad2-ca287e55889c'", String::class.java))
         assertEquals(11, jdbc.queryForObject("SELECT count(*) FROM work", Int::class.java))
