@@ -1,28 +1,12 @@
-# 집필 AI: 현재 상태와 개발 출발점
+# 집필 AI: 개발 출발점 (이력)
 
-기준: `develop`의 2026-11-11 소스. 기존 집필 AI 스택은 [`chore/writing-ai-archive`](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/tree/chore/writing-ai-archive)에 보존되어 있다. 닫힌 PR #220, #230, #241, #244, #245, #279~#282의 코드와 인수 기록은 **참고 자료**이며 `develop`의 구현이나 수용 결과로 취급하지 않는다. 새 작업은 최신 `develop`에서 기능별로 다시 시작한다.
+**상태: 이력.** 2026-11-11 `develop`을 기준으로 개발을 다시 시작할 때의 출발점 기록이다. 현행 실행 구조는 [아키텍처](02-ai-architecture.md), 구현 순서와 상태는 [로드맵](05-implementation-roadmap.md)을 본다.
 
-## 이미 있는 경계
-
-| 소유자 | 현재 사용할 수 있는 기반 | 이번 작업에서 확인할 것 |
-|---|---|---|
-| Core | 회원 인증·세션·크레딧의 정본 | 회원 확인과 비용 동의 계약. 콘텐츠 정본을 Core에 복제하지 않는다. |
-| Content | 작품·원고·버전·Fork·설정·플롯의 인가와 저장, 기존 이어쓰기 제안/수락 | 요청자의 작품/Fork/판본, 원문 선택 구간, 실제 반영 결과를 검증한다. [서비스 경계](../design/service-boundaries.md) |
-| PostgreSQL | 원고·버전·설정·체크포인트와 제안 이력 | AI 제안과 정본 쓰기를 구분한다. 발행판과 초안, 원작과 Fork를 혼합하지 않는다. |
-| Neo4j | WorldStudio 관계의 **현재 상태 하나** | Content가 현재 graph token과 소속을 확인한 결과만 읽는다. 과거 관계 복원·관계 이력은 제공하지 않는다. [#132 계약](../design/worldstudio-independent-schema.md#현재-관계-mvp-계약--132) |
-| AI Service | FastAPI와 기존 OpenAI Responses 이어쓰기 | 허용된 입력으로 결과만 만들고 권한·발행·정본 반영은 결정하지 않는다. [서비스 지침](../../backend/ai-service/AGENTS.md) |
-| Frontend | `/api` 공개 경유의 집필 화면 | 실제 API의 접수·로딩·실패·제안·적용 상태를 구분한다. 내부 AI/DB에 직접 접근하지 않는다. |
-
-아래 내용은 **2026-11-11 기준의 과거 출발점**이며 현재 구현 상태가 아니다. 당시 `develop`에는 원고용 Elasticsearch 벡터 인덱스가 없었다. 이후 구현·개발 DB 검증 기록은 [원고 벡터 인덱스 v1](07-retrieval-contract-and-mocks.md#원고-벡터-인덱스-v1)을 따른다. 기존 스택의 실험적 연결을 가져올 수는 있으나, 현재 Content의 원고·판본·삭제·권한 계약과 맞는지 새 브랜치에서 검증해야 한다. 회차 Wiki와 템플릿 벡터 검색 역시 목표 RAG의 구성 요소이지 현재 가용한 정본이 아니다.
-
-## 개발 단위의 판단
-
-1. 정책이나 DB 정본이 이미 있는 기능부터 한 개의 사용자 요청을 끝까지 연결한다.
-2. 해당 기능의 권한·버전·실패 단위 테스트를 Red → Green으로 만든다.
-3. 개발용 데이터와 실제 OpenAI API로 그 기능의 정상·근거 부족·실패 사례를 확인한다.
-4. 관찰한 한계를 기록한 뒤 다음 기능 또는 다음 RAG 공급자로 진행한다.
-
-첫 수직 단위는 **Content가 허용한 세계관 현재 관계 조회 → Story Context 질문 → 출처 있는 답변**이다. 다음 독립 기반은 **PostgreSQL 원고 변경 → Elasticsearch 인덱싱/검색 → 원문 판본 확인 → 답변 또는 검수**다. 두 경로가 실제로 작동하기 전에는 네 검색 공급자를 모두 구현했다는 이유만으로 기능 완료를 선언하지 않는다.
+- 기존 집필 AI 스택은 [`chore/writing-ai-archive`](https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/tree/chore/writing-ai-archive)에 보존되어 있다. 닫힌 PR #220, #230, #241, #244, #245, #279~#282의 코드와 인수 기록은 참고 자료이며, 구현이나 수용 결과로 취급하지 않는다.
+- 당시 출발점:
+  - 원고용 Elasticsearch 벡터 인덱스가 없었다. 이후 구현은 [원고 벡터 인덱스 v1](07-retrieval-contract-and-mocks.md#원고-벡터-인덱스-v1)에 있다.
+  - WorldStudio 관계는 Neo4j에 현재 상태 하나만 저장했다(#132). 지금은 회차별 연결로 기록한다([DEC-51](../design/worldstudio-independent-schema.md#회차별-관계--dec-51)).
+- 당시 정한 개발 단위: 기능 하나를 정하고 단위 테스트 Red → Green, 개발용 데이터와 실제 OpenAI 모델로 확인, 한계 기록 순으로 진행한다. 이 방식은 [로드맵의 작업 루프](05-implementation-roadmap.md#모든-단계의-작업-루프)로 이어진다. 첫 수직 단위는 세계관 관계 조회 → Story Context 질문 → 출처 있는 답변이었고, 다음은 원고 색인·검색이었다.
 
 ## 유지할 도메인 규칙
 
