@@ -16,3 +16,7 @@
 .report-answer { margin-top: 8px; }
 .report-answer summary { min-height: 44px; padding: 10px 0; cursor: pointer; }
 .report-notice { margin-top: 8px; }
+
+.feedback-filters { display: flex; flex-wrap: wrap; gap: 8px 12px; margin: 12px 0 16px; }
+.feedback-filters label { display: grid; gap: 4px; width: 10rem; max-width: 100%; font-weight: 700; }
+.feedback-filters select.inp { min-height: 44px; width: 100%; margin: 0; }

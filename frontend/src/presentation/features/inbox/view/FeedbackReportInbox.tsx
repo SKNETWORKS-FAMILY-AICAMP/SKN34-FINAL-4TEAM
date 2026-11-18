@@ -79,9 +79,9 @@ export function FeedbackReportInbox({ workId }: { workId?: string }) {
       )}
       {!reports && !vm.isError && <p className="muted">독자 제보를 불러오고 있어요…</p>}
       {reports?.length === 0 && <p className="muted">{workId ? '이 작품에 접수된 독자 제보가 없어요.' : '접수된 독자 제보가 없어요.'}</p>}
-      {!!reports?.length && <div className="rowend">
-        <label>제보 유형 <select value={kind} onChange={e=>setKind(e.target.value)}><option value="">전체</option>{Object.entries(REPORT_KIND_LABEL).map(([key, label])=><option key={key} value={key}>{label}</option>)}</select></label>
-        <label>제보 상태 <select value={status} onChange={e=>setStatus(e.target.value)}><option value="">전체</option>{Object.entries(REPORT_STATUS_LABEL).map(([key, label])=><option key={key} value={key}>{label}</option>)}</select></label>
+      {!!reports?.length && <div className="feedback-filters">
+        <label>제보 유형 <select className="inp" value={kind} onChange={e=>setKind(e.target.value)}><option value="">전체</option>{Object.entries(REPORT_KIND_LABEL).map(([key, label])=><option key={key} value={key}>{label}</option>)}</select></label>
+        <label>제보 상태 <select className="inp" value={status} onChange={e=>setStatus(e.target.value)}><option value="">전체</option>{Object.entries(REPORT_STATUS_LABEL).map(([key, label])=><option key={key} value={key}>{label}</option>)}</select></label>
       </div>}
       {!!reports?.length && !reports.some(matches) && <p>조건에 맞는 제보가 없어요.</p>}
       {!!reports?.length && <div className="list">{reports.map(r => <Activity key={r.id} mode={matches(r) ? 'visible' : 'hidden'}><InboxReportRow r={r} vm={vm} /></Activity>)}</div>}

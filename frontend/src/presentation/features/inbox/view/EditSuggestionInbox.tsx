@@ -1,6 +1,7 @@
 import { Activity, useEffect, useRef, useState } from 'react'
 
 import { BASE_CHANGED_MESSAGE, SUGGESTION_MAX, type EditSuggestion } from '../../../../domain/entities/editSuggestion'
+import './inbox.css'
 import { Go } from '../../../shared/Go'
 import { SuggestionDiff, SuggestionStatusChip } from '../../../shared/editSuggestion/SuggestionParts'
 import { useEditSuggestionInboxViewModel } from '../viewmodel/useEditSuggestionInboxViewModel'
@@ -95,10 +96,14 @@ export function EditSuggestionInbox({ workId }: { workId?: string }) {
       )}
       {!vm.items && !vm.isError && <p className="muted">수정 제안을 불러오고 있어요…</p>}
       {vm.items?.length === 0 && <p className="muted">{workId ? '이 작품에 받은 수정 제안이 없어요.' : '받은 수정 제안이 없어요.'}</p>}
-      {!!vm.items?.length && <label>수정 제안 상태 <select value={status} onChange={e=>setStatus(e.target.value)}>
-        <option value="">전체</option><option value="pending">검토 대기</option><option value="held">보류</option>
-        <option value="approved">승인</option><option value="rejected">거절</option>
-      </select></label>}
+      {!!vm.items?.length && <div className="feedback-filters">
+        <label>수정 제안 상태
+          <select className="inp" value={status} onChange={e => setStatus(e.target.value)}>
+            <option value="">전체</option><option value="pending">검토 대기</option><option value="held">보류</option>
+            <option value="approved">승인</option><option value="rejected">거절</option>
+          </select>
+        </label>
+      </div>}
       {!!vm.items?.length && !vm.items.some(matches) && <p>조건에 맞는 수정 제안이 없어요.</p>}
       {!!vm.items?.length && <div style={{ display: 'grid', gap: 12 }}>{vm.items.map(s => <Activity key={s.id} mode={matches(s) ? 'visible' : 'hidden'}><SuggestionCard s={s} vm={vm} /></Activity>)}</div>}
     </section>
