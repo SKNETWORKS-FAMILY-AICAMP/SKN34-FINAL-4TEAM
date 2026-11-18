@@ -10,7 +10,6 @@ import {
   LABEL_ALL_MAX, bookPath, bookRows, buildCharacterGraph, buildSettingGraph, cardPage, cardPairs, cardPath, detailEndpoint, kindCounts, parseBookKind, parseDetailTab,
   selectVisible, showsDetailLabel, type CardRef, type DetailGraph, type DetailNode,
 } from './worldDetail'
-import { graphPage, graphNeighbors } from './worldDetail'
 
 /** 카드 한 장의 명세. `links`는 제목으로 이은 연관(대상 제목, 인물끼리는 라벨이 관계)이고 `world()`가 서버와 같은 관계 목록으로 바꾼다. */
 type Card = { type: CardType; title: string; links?: readonly { to: string; label?: string }[] }
@@ -56,30 +55,11 @@ const guild = world([
   card('후원자', 'character'),
 ])
 
-it('그래프는 페이지의 양 끝이 보이는 관계만 그리며 다른 페이지에도 접근한다', () => {
-  const graph = buildCharacterGraph(sample)
-  expect(graphPage(graph, 0, 2).links).toHaveLength(2)
-  expect(graphPage(graph, 1, 2).nodes.map((n) => n.name)).toEqual(['하엘'])
-})
 it('같은 두 카드의 관계마다 ID·방향을 보존하고 카드별 관계 수에 모두 센다', () => {
   const w = world([card('가', 'character'), card('나', 'character')])
   w.relationships = [{ id: 'one', sourceCardId: '0', targetCardId: '1', label: '동료', direction: 'directed' }, { id: 'two', sourceCardId: '1', targetCardId: '0', label: '동료', direction: 'directed' }]
   expect(buildCharacterGraph(w).links.map(({ id, direction }) => [id, direction])).toEqual([['one', 'directed'], ['two', 'directed']])
   expect(bookRows(w).map((row) => [row.connections, row.badge])).toEqual([[2, 2], [2, 2]])
-})
-it('페이지가 다른 이웃도 선택한 카드의 관계 그래프에서 확인한다', () => {
-  const w = world(Array.from({ length: 101 }, (_, i) => card(`설정 ${i}`, 'character')))
-  w.relationships = [{ id: 'cross', sourceCardId: '0', targetCardId: '100', label: '친구', direction: 'directed' }]
-  const graph = graphNeighbors(buildCharacterGraph(w), 'card:0', 0, 49)
-  expect(graph.nodes.map((n) => n.id)).toEqual(['card:0', 'card:100'])
-  expect(graph.links.map((l) => l.id)).toEqual(['cross'])
-})
-it('이웃이 많아도 선택한 카드를 유지하며 마지막 이웃 페이지까지 탐색한다', () => {
-  const w = world(Array.from({ length: 105 }, (_, i) => card(`설정 ${i}`, 'character')))
-  w.relationships = Array.from({ length: 104 }, (_, i) => ({ id: `r${i}`, sourceCardId: '0', targetCardId: String(i + 1), label: '관계' }))
-  const graph = graphNeighbors(buildCharacterGraph(w), 'card:0', 2, 49)
-  expect(graph.nodes.map((n) => n.id)).toEqual(['card:0', ...Array.from({ length: 6 }, (_, i) => `card:${i + 99}`)])
-  expect(graph.links).toHaveLength(6)
 })
 it('같은 두 카드 쌍의 관계도 관계마다 하나씩 카드 상세에 모두 나온다', () => {
   expect(names(page(sample, '오르').relations)).toEqual(['미라·스승-제자', '미라·제자-스승', '새벽항·거점'])
@@ -149,8 +129,8 @@ describe('buildSettingGraph', () => {
     expect(graph.nodes.map((n) => n.color)).toEqual([CARD_COLORS.인물, CARD_COLORS.인물, CARD_COLORS.인물, CARD_COLORS.장소, CARD_COLORS.규칙, GENRE_COLORS.판타지])
   })
 
-  it('카드 노드는 누르면 그 카드의 페이지로, 세계관 중심 노드는 설정집 탭으로 가는 주소(to)를 가진다', () => {
-    expect(buildSettingGraph(sample).nodes.map((n) => n.to)).toEqual([...[0, 1, 2, 3, 4].map((i) => cardPath('w', i)), bookPath('w')])
+  it('카드 노드는 누르면 그 카드의 페이지로, 세계관 중심 노드는 개요 탭으로 가는 주소(to)를 가진다', () => {
+    expect(buildSettingGraph(sample).nodes.map((n) => n.to)).toEqual([...[0, 1, 2, 3, 4].map((i) => cardPath('w', i)), '/worlds/w?tab=overview'])
   })
 
   it('중심에서 카드마다 옅은 선 하나를, 카드끼리는 연관마다 선 하나를 긋는다', () => {
@@ -205,12 +185,17 @@ describe('showsDetailLabel', () => {
     expect(showsDetailLabel(node('인물', 'x'), LABEL_ALL_MAX + 1, 'x')).toBe(true)
     expect(showsDetailLabel(node('세계관'), LABEL_ALL_MAX + 1)).toBe(true)
   })
+
+  it('300개를 넘으면 확대했을 때만 일반 노드 이름을 그린다', () => {
+    expect(showsDetailLabel(node('인물'), 301, undefined, 1)).toBe(false)
+    expect(showsDetailLabel(node('인물'), 301, undefined, 1.5)).toBe(true)
+  })
 })
 
 describe('parseDetailTab', () => {
-  it('?tab 값이 네 탭 중 하나면 그 탭이고 없거나 모르는 값이면 설정 그래프다', () => {
+  it('?tab 값이 네 탭 중 하나면 그 탭이고 없거나 모르는 값이면 개요다', () => {
     expect(['graph', 'people', 'book', 'overview'].map(parseDetailTab)).toEqual(['graph', 'people', 'book', 'overview'])
-    expect([null, '', 'map', 'BOOK'].map(parseDetailTab)).toEqual(['graph', 'graph', 'graph', 'graph'])
+    expect([null, '', 'map', 'BOOK'].map(parseDetailTab)).toEqual(['overview', 'overview', 'overview', 'overview'])
   })
 })
 
@@ -323,7 +308,7 @@ describe('서버 카드 id(위치와 다른 id)로 이은 세계관', () => {
 
   it('그래프 노드 id와 누르면 가는 주소는 카드 id를 쓴다', () => {
     expect(buildSettingGraph(server).nodes.map((n) => [n.id, n.to])).toEqual([
-      ['card:c-9', cardPath('w', 'c-9')], ['card:c-3', cardPath('w', 'c-3')], ['card:c-7', cardPath('w', 'c-7')], ['world', bookPath('w')],
+      ['card:c-9', cardPath('w', 'c-9')], ['card:c-3', cardPath('w', 'c-3')], ['card:c-7', cardPath('w', 'c-7')], ['world', '/worlds/w?tab=overview'],
     ])
   })
 
