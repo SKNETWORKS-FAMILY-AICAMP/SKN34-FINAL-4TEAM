@@ -150,6 +150,16 @@ PostgreSQL의 원고·판본이 정본입니다. [원고 검색 계약](../docs/
 3. Content 터미널에 `MANUSCRIPT_INDEX_ENABLED=true`와 해당 DB의 `DATABASE_*`를 설정하고 평소대로 Content를 시작합니다. 두 서비스의 `INTERNAL_TOKEN`은 같아야 하며, 네이티브 실행에서는 필요한 값을 루트 `.env`에서 각 터미널에 설정합니다. Elasticsearch 기본 주소는 `http://127.0.0.1:9200`입니다.
 4. Content 로그의 `manuscript index reconciled`와 `curl.exe --fail http://127.0.0.1:9200/storyfork-manuscript-v1/_count`로 첫 적재를 확인합니다. 이후 변경은 기본 60초 주기에서 확인할 수 있습니다.
 
+### 로컬 compose 스택에서 켜기 (#475)
+
+로컬 compose(`storyfork-local`)의 Content는 원고 색인을 기본으로 끕니다. 켜면 원고 Q&A(Retrieval)가 동작합니다. 임베딩 모델은 ai-service 이미지에 이미 들어 있어서 따로 받을 필요가 없습니다.
+
+1. 위 명령으로 Elasticsearch를 먼저 띄웁니다. Content 컨테이너는 `http://host.docker.internal:9200`으로 이 ES에 접속합니다.
+2. 루트 `.env`에 `MANUSCRIPT_INDEX_ENABLED=true`를 넣고 `docker compose up -d --build --wait`로 다시 시작합니다. 네이티브 Content와 다른 DB를 쓴다면 `MANUSCRIPT_INDEX_NAME`을 `storyfork-manuscript-v1-<이름>`처럼 따로 정합니다(대조 작업이 그 DB에 없는 청크를 지웁니다).
+3. Content 로그의 `manuscript index reconciled`로 첫 적재를 확인한 뒤, 집필실 채팅에서 발행 회차에 대한 작품 질문을 보냅니다. `MANUSCRIPT_INDEX_URL`은 네이티브 실행용 값이라 compose에서는 읽지 않습니다.
+
+켜기 전에 ES 상태가 `green` 또는 `yellow`인지 확인합니다. Content는 시작할 때 인덱스를 만들거나 매핑을 검증합니다.
+
 ### 개발 서버 자동 배포(CD)
 
 develop CI가 성공하면 CD가 [`docker-compose.dev.yaml`](docker-compose.dev.yaml)로 Elasticsearch를 함께 띄웁니다. 별도 수동 작업은 없습니다.
