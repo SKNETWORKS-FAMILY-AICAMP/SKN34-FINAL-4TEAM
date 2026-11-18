@@ -32,6 +32,7 @@ AREAS = {"basic", "space", "history", "society", "culture", "special", "conflict
 DOC_MAX = 3000
 KEY = re.compile(r"^[a-z][a-z0-9-]*$")
 EPISODE_KEY = re.compile(r"^(0|[1-9]\d*)$")  # frontend characterDocs.ts isEpisodeKey와 같은 규칙
+CARD_LINK = re.compile(r"\[([^\]]+)\]\(card:([^)]+)\)")
 # 화면(frontend studioRelations.ts relationDefinitions)이 읽을 수 있는 술어와 (category, direction)
 UI_PREDICATES = {
     "custom_relation": ("structural", "symmetric"), "custom_relation_directed": ("structural", "directed"),
@@ -103,6 +104,20 @@ class WorldChecks:
     knowers = lambda self, event, episode: self.dataset.knowers(event, episode)  # noqa: E731
     scope = property(lambda self: seed.scope_of(self.world))
 
+    def reader_reveal(self, card):
+        """DEC-53 독자 공개 회차. 작가 전용 카드는 None이다."""
+        return card.get("revealFromEpisode", 1 if card["visibility"] == "public" else None)
+
+    def assert_names_follow_reveal_order(self, text, shown_from, who):
+        """링크 글자를 포함한 본문은 그 글이 보이는 회차보다 늦은 카드 이름을 쓰지 않는다."""
+        text = CARD_LINK.sub(r"\1", text)
+        for key, card in self.cards.items():
+            if card["title"] not in text and not any(alias in text for alias in card["aliases"]):
+                continue
+            reveal = self.reader_reveal(card)
+            self.assertIsNotNone(reveal, f"{who}: 작가 전용 카드 {key}의 이름을 쓴다")
+            self.assertLessEqual(reveal, shown_from, f"{who}: {key}는 {reveal}화부터 공개다")
+
     def test_world_and_work(self):
         uuid.UUID(self.world["world"]["id"])
         self.assertTrue(0 < len(self.world["world"]["name"]) <= 100)
@@ -155,6 +170,45 @@ class WorldChecks:
             self.assertIn(card["visibility"], ("private", "public"), who)
             reveal = card.get("revealFromEpisode")
             self.assertTrue(reveal is None or (isinstance(reveal, int) and reveal >= 1), who)
+
+    def test_card_body_links_stay_in_this_world_and_follow_reveal_order(self):
+        """DEC-53 템플릿 키 링크는 적재 시 같은 세계관 카드 UUID가 되고, 링크 글자도 공개 순서를 앞서지 않는다."""
+        ids = {seed.card_id(key, self.scope): key for key in self.cards}
+        links = []
+        for key, card in self.cards.items():
+            shown_from = self.reader_reveal(card)
+            for _, target in CARD_LINK.findall(card["body"]):
+                links.append((key, target))
+                self.assertIn(target, self.cards, f"{key}: 다른 세계관 카드 링크")
+                self.assertNotEqual(key, target, f"{key}: 자기 자신 링크")
+                if shown_from is not None:
+                    reveal = self.reader_reveal(self.cards[target])
+                    self.assertIsNotNone(reveal, f"{key}: 작가 전용 카드 {target} 링크")
+                    self.assertLessEqual(reveal, shown_from, f"{key}: {target}는 {reveal}화부터 공개다")
+            body = seed.card_payload(card, self.scope, self.cards)["body"]
+            for _, target_id in CARD_LINK.findall(body):
+                self.assertIn(target_id, ids, f"{key}: 적재 뒤 다른 세계관 카드 링크")
+            if shown_from is not None:
+                self.assert_names_follow_reveal_order(card["body"], shown_from, key)
+        self.assertTrue(links, "시연 카드 본문 링크가 없다")
+
+    def test_reader_visible_relation_text_follows_reveal_order(self):
+        """관계 label·body는 두 끝 카드와 기록이 모두 공개된 뒤에 보인다."""
+        for rel in self.rels:
+            reveal = [self.reader_reveal(self.cards[end]) for end in (rel["source"], rel["target"])]
+            if None not in reveal:
+                self.assert_names_follow_reveal_order(rel["label"] + " " + rel["body"], max(rel["from"], *reveal),
+                                                      f"{rel['key']}@{rel['from']}")
+
+    def test_changed_relationship_labels_are_in_episode_order(self):
+        """DEC-54 위키 이력은 같은 key의 달라진 관계명을 회차 오름차순으로 보여 준다."""
+        histories = {}
+        for rel in self.rels:
+            histories.setdefault(rel["key"], []).append(rel)
+        changed = [records for records in histories.values() if len({(r["label"], r["body"]) for r in records}) > 1]
+        self.assertTrue(changed, "회차에 따라 관계 정보가 바뀌는 관계가 없다")
+        for records in changed:
+            self.assertEqual([r["from"] for r in records], sorted(r["from"] for r in records), records[0]["key"])
 
     def test_character_docs(self):
         souls = []
@@ -329,7 +383,7 @@ class WorldChecks:
     def test_card_payloads_match_server_and_ui_contract(self):
         ids = set()
         for card in self.world["cards"]:
-            payload = seed.card_payload(card, self.scope)
+            payload = seed.card_payload(card, self.scope, self.cards)
             self.assertEqual({"id", "title", "body", "cardType", "areaCode", "classification", "aliases", "tags",
                               "semanticMetadata", "visibility", "lifecycle"}, set(payload))
             self.assertEqual(seed.card_id(card["key"], self.scope), payload["id"])
@@ -369,7 +423,7 @@ class WorldChecks:
         self.assertLessEqual(len(self.world["cards"]), 1000)
         for ep in seed.episodes(self.world):
             self.assertLessEqual(len(seed.relations_at(self.world, ep)), 1000)
-        size = len(json.dumps([seed.card_payload(c, self.scope) for c in self.world["cards"]], ensure_ascii=False).encode())
+        size = len(json.dumps([seed.card_payload(c, self.scope, self.cards) for c in self.world["cards"]], ensure_ascii=False).encode())
         self.assertLess(size, 1_000_000)  # 서버 한도 2,000,000바이트(WorldStudioService.validateEditRequest)
 
     def test_manuscripts_follow_the_format_and_order(self):
@@ -412,9 +466,6 @@ class WorldChecks:
 
     def test_relations_start_after_both_cards_are_revealed(self):
         """recall 필터는 상대 카드가 아직 공개되지 않은 관계를 뺀다. 그런 관계를 만들지 않는다."""
-        d = self.dataset
-        if not d.manuscripts:
-            self.skipTest("원고 파일이 없는 데이터셋")
         for rel in self.rels:
             for end in (rel["source"], rel["target"]):
                 self.assertLessEqual(self.cards[end].get("revealFromEpisode", 1), rel["from"], f"{rel['key']}@{rel['from']} {end}")
@@ -462,6 +513,7 @@ class WorldChecks:
             card, docs = self.cards[key], self.cards[key].get("characterDocs")
             texts += [card["body"]] + ([docs["soul"], docs["goal"], *docs["episodes"].values()] if docs else [])
         for text in texts:
+            text = CARD_LINK.sub(r"\1", text)
             for word in BANNED:
                 self.assertNotIn(word, text)
             self.assertNotRegex(text, r"[A-Za-z]", "외국어를 흉내 낸 말투를 쓰지 않는다")
@@ -484,13 +536,16 @@ class WorldChecks:
         원고에서 길동이 '형님'이라 부르는 회차에는 관계 문장도 그렇게 바뀐다."""
         if not {"gildong", "gilhyeon"} <= set(self.cards):
             self.skipTest("길동·길현이 없는 데이터셋")
-        about = lambda episode: [r for r in self.records_at(episode) if (r["source"], r["target"], r["label"]) == ("gildong", "gilhyeon", "이복형")]  # noqa: E731
+        about = lambda episode: [r for r in self.records_at(episode) if r["key"] == "gildong-gilhyeon-c9ca"]  # noqa: E731
         (first,) = about(self.cards["gilhyeon"]["revealFromEpisode"])
+        self.assertEqual(("gildong", "gilhyeon"), (first["source"], first["target"]))
+        self.assertEqual("이복형", first["label"])
         self.assertEqual("asserted", first.get("polarity", "asserted"))
         self.assertTrue("형이라 부르지 못" in first["body"] and "이름" in first["body"] and "직함" in first["body"])
         for m in self.dataset.manuscripts:
             if "형님" in m.body:
                 (record,) = about(m.number)
+                self.assertEqual("형님", record["label"], f"{m.number}화 원고의 호칭과 관계명이 다르다")
                 self.assertNotIn("부르지 못", record["body"], f"{m.number}화 원고에서 길동이 형님이라 부르는데 관계는 부르지 못한다고 한다")
 
     def test_a_kin_term_the_manuscript_forbids_is_not_spoken(self):
