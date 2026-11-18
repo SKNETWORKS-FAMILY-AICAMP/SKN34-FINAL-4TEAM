@@ -134,9 +134,9 @@ class WorldChecks:
         self.assertEqual(len(self.world["cards"]), len(self.cards))  # key 중복 없음
         for card in self.world["cards"]:
             if card["cardType"] in ("location", "rule") and not is_narrator(card):
-                self.assertEqual("public", card["visibility"], card["key"])  # 누구나 아는 세계 설정
+                self.assertEqual("public", card["visibility"], card["key"])  # 누구나 아는 세계 설정이라는 표시다. 독자·공개 세계관에 보이는 회차는 revealFromEpisode가 정한다(DEC-53: visibility는 호환 값)
             if card["cardType"] in ("character", "event"):
-                self.assertEqual("private", card["visibility"], card["key"])  # 지식은 관계로만 퍼진다
+                self.assertEqual("private", card["visibility"], card["key"])  # 지식은 관계로만 퍼진다는 표시다. 옛 '비공개 + 회차 N' 조합이라 /worlds·가져오기·Fork에는 그 회차부터 보인다(DEC-53)
 
     def test_cards_follow_server_limits(self):
         self.assertEqual(len({c["title"] for c in self.world["cards"]}), len(self.world["cards"]))
@@ -271,7 +271,7 @@ class WorldChecks:
                            *(t for n, t in docs["episodes"].items() if int(n) < known_from)]  # 00회차는 늘 보인다(0 < 알게 되는 회차)
                 for text in visible:
                     self.assertNotIn(phrase, text, key)
-            for key, card in self.cards.items():  # 독자도 모르는 비밀이면 카드 본문에 있을 때 숨겨진 비공개 카드여야 한다(readersKnow: 독자는 이미 안다)
+            for key, card in self.cards.items():  # 독자도 모르는 비밀이면 카드 본문에 있을 때 작가 전용 카드(비공개 + 공개 회차 없음, DEC-53)여야 한다(readersKnow: 독자는 이미 안다)
                 if not secret.get("readersKnow") and key not in self.characters and phrase in card["title"] + card["body"]:
                     self.assertEqual("private", card["visibility"], key)
                     self.assertNotIn("revealFromEpisode", card, key)
@@ -314,10 +314,12 @@ class WorldChecks:
                     self.assertLessEqual(at, visible_from, f"카드가 {visible_from}화에 보이는데 {at}화에서 처음 쓰이는 이름")
 
     def test_relations_a_reader_can_see_carry_no_secret_the_readers_do_not_know(self):
-        """독자 설정 위키는 양 끝 카드에 revealFromEpisode가 있으면 그 관계(label·body)를 카드의 공개 범위와 상관없이 그대로 보인다(DEC-46).
-        그래서 그런 관계에는 독자가 아직 모르는 비밀(readersKnow가 아닌 secrets) 문구를 쓰지 않는다. 비밀은 보유자의 memory 문서에 두고 관계에는 겉으로 드러난 사실만 쓴다."""
+        """독자 설정 위키·공개 세계관은 양 끝 카드가 기준 회차까지 공개돼 있으면 그 관계(label·body)를 그대로 보이고, Fork 이어받기는 label만 보인다(body는 싣지 않는다). 카드가 공개되는 회차(유효 공개 회차)는
+        revealFromEpisode 키가 있으면 그 값이고, 키가 없고 visibility가 public이면 1화다(DEC-53). 그래서 그런 관계에는 독자가 아직 모르는 비밀(readersKnow가 아닌 secrets) 문구를 쓰지 않는다.
+        비밀은 보유자의 memory 문서에 두고 관계에는 겉으로 드러난 사실만 쓴다."""
+        shown = lambda card: "revealFromEpisode" in card or card["visibility"] == "public"  # noqa: E731  (작가 전용 카드는 어느 회차에도 안 보인다)
         for rel in self.rels:
-            if not all("revealFromEpisode" in self.cards[end] for end in (rel["source"], rel["target"])):
+            if not all(shown(self.cards[end]) for end in (rel["source"], rel["target"])):
                 continue
             for secret in self.world["secrets"]:
                 with self.subTest(relation=f"{rel['key']}@{rel['from']}", phrase=secret["phrase"]):

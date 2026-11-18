@@ -51,7 +51,7 @@ export function WorldNovelButton({ vm }: { vm: VM }) {
       {novel.open && (
         <Sheet sid="W01" label="소설 연결하기" panelClass="sheet world-sheet" onClose={novel.close}>
           <div className="world-sheet-head"><h3>소설 연결하기</h3><button type="button" className="btn sm" onClick={novel.close}>닫기</button></div>
-          <p className="small muted">세계관 하나는 소설 하나에만 연결해요. 연결하면 설정마다 독자 공개 회차를 정해 그 소설의 독자 설정 위키에 보일 수 있어요.</p>
+          <p className="small muted">세계관 하나는 소설 하나에만 연결해요. 연결하면 설정마다 ‘N화부터 공개’를 정해 그 소설의 독자 설정 위키와 공개 세계관에 보일 수 있어요.</p>
           {novel.problem && <p role="alert" className="world-error">{novel.problem}</p>}
           {novel.isLoading ? <p role="status">내 소설을 불러오고 있어요…</p>
             : novel.failed ? <p role="alert">내 소설을 불러오지 못했어요. <button type="button" className="btn sm" onClick={novel.retry}>다시 시도</button></p>

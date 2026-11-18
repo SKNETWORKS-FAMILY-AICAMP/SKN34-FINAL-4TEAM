@@ -21,9 +21,9 @@ export type ImportedFrom = {worldId:string;worldName:string;authorNickname:strin
  */
 export type CharacterDocs = {soul:string;goal:string;episodes:Record<number,string>}
 export type StudioSetting = {serverMetadata?:Record<string,unknown>;item:SettingItem;userCategory:string;tags:string[];aliases?:string[]
- /** 카드 단위 공개. 없으면 비공개다. 관계 행에는 쓰지 않는다. */
+ /** 옛 공개 값이다(DEC-53). 새 화면은 `revealFromEpisode`만 정하고 이 값은 회차가 있으면 public, 없으면 지워 맞춰 둔다. 없으면 비공개다. 관계 행에는 쓰지 않는다. */
  visibility?:CardVisibility
- /** 독자 공개 시작 회차(연결된 소설 기준, 1 이상 정수). 없으면 독자에게 숨긴다. */
+ /** 공개 시작 회차('N화부터 공개', 연결된 소설 기준, 1 이상 정수). 없고 `visibility`도 공개가 아니면 작가 전용이다. */
  revealFromEpisode?:number
  /** 다른 세계관에서 가져온 카드의 출처. 직접 만든 카드에는 없다. */
  importedFrom?:ImportedFrom
@@ -33,6 +33,12 @@ export type StudioSetting = {serverMetadata?:Record<string,unknown>;item:Setting
  imageId?:string
  /** 장르 템플릿 카드의 읽기 순서(서버 `semanticMetadata.studio.templateOrder`). 없으면 뒤로 간다. */
  templateOrder?:number}
+/**
+ * 카드의 유효 공개 회차(DEC-53)다: `revealFromEpisode`가 있으면 그 값, 없고 `visibility`가 공개면 1(옛 공개 카드), 그 밖은 작가 전용(undefined).
+ * 서버 `shownCardEpisode`와 같은 규칙이되, 서버 값이 잘못된 경우(키는 있는데 JSON null·문자열·0·소수 등)는 서버가 작가 전용으로 닫으므로 읽는 어댑터(`HttpWorldStudioRepository`)가
+ * 그 카드의 `visibility`를 가져오지 않아 이 함수에 오지 않는다. 입력 중인 0 같은 값은 그대로 돌려주고 `invalidReveal`이 저장을 막는다. 화면은 이 값을 보여 줄 뿐 카드를 거르지 않는다(DEC-46).
+ */
+export const cardRevealEpisode=({revealFromEpisode:n,visibility}:Pick<StudioSetting,'revealFromEpisode'|'visibility'>)=>n??(visibility==='public'?1:undefined)
 /** 독자 공개 회차가 잘못됐는지: 값이 있는데 1 이상의 정수가 아니다. 저장 전 확인([worldWritingIssues])과 저장 검증(WorldStudioUseCase.save)이 같은 규칙·문구를 쓴다. */
 export const REVEAL_EPISODE_ERROR='독자 공개 회차는 1 이상의 정수로 입력해 주세요.'
 export const invalidReveal=({revealFromEpisode:n}:Pick<StudioSetting,'revealFromEpisode'>)=>n!==undefined&&!(Number.isInteger(n)&&n>=1)

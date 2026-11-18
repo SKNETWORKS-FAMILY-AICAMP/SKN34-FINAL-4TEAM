@@ -23,16 +23,13 @@ fun worldGenre(code: String?): String? = code?.also { require(it in WORLD_GENRES
 /** 공개 목록·상세에 나오는지다. 공개로 설정돼도 저장 버전이 하나도 없으면(초안만 있으면) 나오지 않는다. */
 fun isListed(visibility: String, currentRevisionId: UUID?): Boolean = visibility == "public" && currentRevisionId != null
 
-/** 공개 세계관에서 보이는 카드다(DEC-46): 삭제되지 않았고 소유자가 공개로 바꾼 카드뿐이다. 카드의 기본은 비공개다. */
-fun isPublicCard(lifecycle: String, visibility: String): Boolean = lifecycle == "active" && visibility == "public"
-
-/** 공개 관계는 양 끝이 모두 공개 카드인 것뿐이다. 끝이 비었거나 저장 버전에 없는 카드·비공개 카드를 가리키는 관계는 뺀다. */
+/** 보이는 관계는 양 끝이 모두 보이는 카드([shownCardEpisode])인 것뿐이다. 끝이 비었거나 저장 버전에 없는 카드·기준 회차 뒤나 작가 전용 카드를 가리키는 관계는 뺀다. */
 fun visibleRelationships(rows: List<RelationshipPayload>, cardIds: Set<UUID>): List<RelationshipPayload> =
     rows.filter { it.sourceCardId in cardIds && it.targetCardId in cardIds }
 
 /**
- * 설정 카드의 독자 공개 회차('N화부터', DEC-46)다. 카드 `semanticMetadata`의 최상위 `revealFromEpisode`가 1 이상의 정수인 JSON 숫자일 때만 읽는다.
- * 값이 없거나 문자열·소수·0·음수·int 범위 밖이면 null이며 독자에게 숨긴다(닫힌 쪽으로 실패). jsonb 숫자는 Int·Long 등 어느 타입으로도 올 수 있어 값으로 판정한다.
+ * 설정 카드의 공개 회차('N화부터', DEC-46)다. 카드 `semanticMetadata`의 최상위 `revealFromEpisode`가 1 이상의 정수인 JSON 숫자일 때만 읽는다.
+ * 값이 없거나(JSON null 포함) 문자열·소수·0·음수·int 범위 밖이면 null이다(닫힌 쪽으로 실패). 옛 공개 카드의 1화 규칙은 [shownCardEpisode]가 더한다. jsonb 숫자는 Int·Long 등 어느 타입으로도 올 수 있어 값으로 판정한다.
  */
 fun revealFromEpisode(metadata: Map<String, Any?>): Int? {
     val number = (metadata["revealFromEpisode"] as? Number)?.toDouble() ?: return null
@@ -49,11 +46,13 @@ fun cardImageId(metadata: Map<String, Any?>): UUID? {
 }
 
 /**
- * 연결된 소설의 독자에게 기준 회차 [upto]에 보이는 카드면 그 독자 공개 회차를, 아니면 null을 돌려준다: 삭제되지 않았고 독자 공개 회차가 [upto] 이하여야 한다.
- * 카드의 공개 범위(공개 세계관에서 다른 이용자에게 보이는지, [isPublicCard])와는 별개다.
+ * 비작가(독자·공개 세계관·가져오기·Fork)에게 기준 회차 [basis]화에 보이는 카드면 그 유효 공개 회차를, 아니면 null(작가 전용)을 돌려준다(DEC-53). 모든 비작가 출구가 이 함수 하나를 쓴다.
+ * 유효 공개 회차는 `revealFromEpisode` 키가 있으면 그 값이고, 키가 없고 `visibility`가 public이면 1(옛 공개 카드는 읽을 때 계산한다, 저장은 다시 쓰지 않는다), 그 밖은 작가 전용이다.
+ * 키가 있는데 읽을 수 없으면(JSON null·문자열·소수·0·음수 등, [revealFromEpisode]가 null) 공개 1화로 되돌리지 않고 작가 전용으로 닫는다. 보이려면 삭제되지 않았고 유효 공개 회차가 [basis] 이하여야 한다.
  */
-fun readerCardEpisode(lifecycle: String, metadata: Map<String, Any?>, upto: Int): Int? =
-    revealFromEpisode(metadata)?.takeIf { lifecycle == "active" && it <= upto }
+fun shownCardEpisode(lifecycle: String, visibility: String, metadata: Map<String, Any?>, basis: Int): Int? =
+    (if ("revealFromEpisode" in metadata) revealFromEpisode(metadata) else 1.takeIf { visibility == "public" })
+        ?.takeIf { lifecycle == "active" && it <= basis }
 
 /** 독자 설정 위키의 `upto` 쿼리(기준 회차, 1 이상의 정수)다. 없으면 null(마지막 발행 회차 기준)이고 값 오류는 422다. */
 fun readerUpto(code: String?): Int? = code?.let { queryInt(it, 1, 1..Int.MAX_VALUE, "upto") }

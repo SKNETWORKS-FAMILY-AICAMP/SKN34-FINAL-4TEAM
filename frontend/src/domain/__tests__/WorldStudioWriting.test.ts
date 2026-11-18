@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 import { cardLibraryRows, revealEpisodeInput, selectCardForFilter, worldSealIssues, worldWritingIssues, writingIssueLabel } from '../entities/worldStudioWriting'
-import { newSetting, type StudioWorld } from '../entities/studioWorld'
+import { cardRevealEpisode, newSetting, type StudioWorld } from '../entities/studioWorld'
 const world = (settings: StudioWorld['settings'] = []): StudioWorld => ({
   id: 'qa',
   name: '초기 세계',
@@ -126,4 +126,13 @@ it('저장 전 확인 사유를 화면에 보일 때는 어느 설정의 문제�
 
 it('독자 공개 회차 입력은 숫자만 남겨 정수로 바꾸고, 숫자가 없으면 값을 비운다', () => {
   expect(['3', ' 12 ', '1.5', '-4', 'abc', '', '0', '007'].map(revealEpisodeInput)).toEqual([3, 12, 15, 4, undefined, undefined, 0, 7])
+})
+
+it('카드의 유효 공개 회차(DEC-53)는 회차 값, 값이 없고 공개면 1화(옛 공개 카드), 그 밖은 작가 전용이다', () => {
+  // 서버 shownCardEpisode와 같은 규칙이다: 회차 값이 있으면 공개 여부와 무관하게 그 값이다.
+  expect(cardRevealEpisode({ revealFromEpisode: 3, visibility: 'private' })).toBe(3)
+  expect(cardRevealEpisode({ revealFromEpisode: 3, visibility: 'public' })).toBe(3)
+  expect(cardRevealEpisode({ visibility: 'public' })).toBe(1)
+  expect(cardRevealEpisode({ visibility: 'private' })).toBeUndefined()
+  expect(cardRevealEpisode({})).toBeUndefined()
 })

@@ -3,7 +3,7 @@ import { Suspense, useEffect, useId, useRef, useState } from 'react'
 import { presentationPortrait } from '../../../../app/presentationPortraits'
 import { cardTypeOf, cardTypes, settingAreas, type CardType } from '../../../../domain/entities/studioCards'
 import { relationDefinitions } from '../../../../domain/entities/studioRelations'
-import { invalidReveal, REVEAL_EPISODE_ERROR, studioLabelCleanup, type SettingItem } from '../../../../domain/entities/studioWorld'
+import { cardRevealEpisode, invalidReveal, REVEAL_EPISODE_ERROR, studioLabelCleanup, type SettingItem } from '../../../../domain/entities/studioWorld'
 import { revealEpisodeInput } from '../../../../domain/entities/worldStudioWriting'
 import { BackChev, ComposeIcon, MoreVerticalIcon } from '../../../shared/icons'
 import { LazyMarkdownEditor } from '../../../shared/LazyMarkdownEditor'
@@ -12,7 +12,7 @@ import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { ResizeSeparator } from '../../studio/view/ResizeSeparator'
 import { VersionGraph } from '../../studio/view/VersionGraph'
 import '../../studio/view/writing.css'
-import { setCardVisibility } from '../viewmodel/cardVisibility'
+import { setCardReveal } from '../viewmodel/cardVisibility'
 import { importedSource } from '../../../shared/importCards'
 import { kinds, labelOf, settingLinks } from '../viewmodel/settingBoard'
 import { useCardBoard } from '../viewmodel/useCardBoard'
@@ -44,9 +44,10 @@ const BODY_MAX = 3000
  *   저장 중에는 편집기를 `inert`로 잠가(글자 입력은 `fieldset disabled`가 닿지 않는다) 그사이 입력이 초안과 어긋나지 않게 한다. 편집기는 처음 값만 읽으므로 `key`로 카드마다(인물 카드는 문서마다) 다시 만든다.
  *   인물 카드는 설명 하나 대신 문서 네 종류로 쓴다(`CharacterDocs`·`useCharacterDocs`): 설명 자리에 문서 탭 줄(정체성 IDENTITY.md = 카드 본문 · 성격·말투 SOUL.md · 목표 GOAL.md · 회차 기억 memory/NN회차.md)과 고른 문서의 같은 편집기를 두고,
  *   글자 수·3,000자 초과 알림은 고른 문서의 것이다. 인물이 아닌 유형으로 바꾼 카드에 문서가 남아 있으면 저장하지 않는다고 알린다(인물로 되돌리면 그대로다).
- *   설명 아래 공개 범위(DEC-46): `이 설정 공개`(기본 비공개, 공개 세계관 화면에는 공개 카드만 보인다)와 `독자 공개 N화부터`(연결된 소설의 독자 설정 위키에 보이기 시작하는 회차, 비우면 숨김, 소설을 연결해야 켜진다).
+ *   설명 아래 공개 범위(DEC-53): 공개 설정은 하나다. 소설이 연결된 세계관은 `공개 회차 N화부터 공개`(비우면 작가 전용, 기본), 연결되지 않은 세계관은 `이 설정 공개`(1화부터)와 작가 전용이다.
  *   회차 입력은 숫자만 받는 글자 칸이다(`type="number"`는 휠·스핀 버튼으로 값이 바뀌고 `e` 같은 글자를 받으면 보이는 값과 초안이 어긋난다). 0처럼 쓸 수 없는 값은 입력 바로 아래에 이유를 글로 보이고 입력의 설명으로 잇는다.
- *   둘 다 초안 값이라 저장과 확정 버전을 거쳐야 반영된다. 다른 세계관에서 가져온 카드는 유형 옆에 `가져옴`과 출처를 보인다.
+ *   바꾸면 `revealFromEpisode`만 정하고 `visibility`는 회차가 있으면 public, 없으면 지워 맞춘다(`setCardReveal`). 건드리지 않은 카드는 다시 쓰지 않는다(옛 공개 카드는 1화로 보인다).
+ *   초안 값이라 저장과 확정 버전을 거쳐야 반영된다. 다른 세계관에서 가져온 카드는 유형 옆에 `가져옴`과 출처를 보인다.
  *   마지막 설정집 AI 검토가 이 카드에 지적을 남겼으면 편집기 맨 위에 'AI 검토 의견'(`WorldCardFindings`)이 보이고, 수정안을 `초안에 반영`하면 편집기를 지금 초안의 글로 다시 만든다(`docs.reload`).
  * - 오른쪽: AI 채팅(전송은 연결 전이라 '준비 중').
  * 삭제는 초안 변경이라 확인(함께 지워질 관계 수)을 거친 뒤 설정집으로 돌아가고 되돌릴 수 있으며, 세계관 저장으로 서버에 반영한다.
@@ -77,6 +78,10 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
   const docs = useCharacterDocs(vm, setting) // 편집 중인 글: 인물 카드는 고른 문서, 그 밖은 카드 본문
   const over = docs.text.length > BODY_MAX
   const revealError = invalidReveal(setting)
+  const reveal = cardRevealEpisode(setting)
+  const unlinkedHelp = reveal !== undefined && reveal > 1
+    ? `${reveal}화부터 공개로 정해져 있지만 소설이 연결되지 않아 지금은 공개되지 않아요.`
+    : demo ? '데모에서는 소설 연결을 지원하지 않아 공개(1화부터)와 작가 전용(기본)만 고를 수 있어요.' : '소설을 연결하면 N화부터 공개로 정할 수 있어요. 지금은 공개(1화부터)와 작가 전용(기본)만 고를 수 있어요.'
   const portrait = cardTypeOf(item) === 'character' ? presentationPortrait(item.title) : undefined
   const deletion = confirm === item.id ? vm.cardDeletionInfo(item.id) : null
   const bodyEditor = (
@@ -174,18 +179,25 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
                 {item.kind !== 'relation' && (
                   <section className="world-card-reach" aria-label="공개 범위">
                     <h4>공개 범위</h4>
-                    <label className="world-consent">
-                      <input type="checkbox" role="switch" checked={setting.visibility === 'public'} aria-describedby={`${listId}-public`} onChange={(e) => vm.patch({ settings: setCardVisibility(world.settings, new Set([item.id]), e.target.checked ? 'public' : 'private') })} />
-                      이 설정 공개
-                    </label>
-                    <p id={`${listId}-public`} className="small muted">세계관을 공개하면 누구나 이 설정을 볼 수 있고, 로그인한 사람은 자기 세계관으로 가져갈 수 있어요.</p>
-                    <label className="world-reveal">
-                      독자 공개
-                      <input type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="off" className="inp" disabled={!vm.linkedWorkId} aria-invalid={revealError} aria-describedby={`${revealError ? `${listId}-reveal-error ` : ''}${listId}-reveal`} value={setting.revealFromEpisode ?? ''} onChange={(e) => vm.update(item.id, {}, { revealFromEpisode: revealEpisodeInput(e.target.value) })} />
-                      화부터
-                    </label>
-                    {revealError && <p id={`${listId}-reveal-error`} role="alert" className="small world-field-error">{REVEAL_EPISODE_ERROR}</p>}
-                    <p id={`${listId}-reveal`} className="small muted">{vm.linkedWorkId ? '연결된 소설의 독자 설정 위키에 이 회차부터 보여요. 비워 두면 독자에게 보이지 않아요.' : demo ? '데모에서는 소설 연결을 지원하지 않아 설정할 수 없어요.' : '소설을 연결하면 설정할 수 있어요.'}</p>
+                    {vm.linkedWorkId ? (
+                      <>
+                        <label className="world-reveal">
+                          공개 회차
+                          <input type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="off" className="inp" aria-invalid={revealError} aria-describedby={`${revealError ? `${listId}-reveal-error ` : ''}${listId}-reveal`} value={reveal ?? ''} onChange={(e) => vm.patch({ settings: setCardReveal(world.settings, new Set([item.id]), revealEpisodeInput(e.target.value)) })} />
+                          화부터 공개
+                        </label>
+                        {revealError && <p id={`${listId}-reveal-error`} role="alert" className="small world-field-error">{REVEAL_EPISODE_ERROR}</p>}
+                        <p id={`${listId}-reveal`} className="small muted">비워 두면 작가 전용(기본)이에요. 연결된 소설이 이 회차까지 발행되면 독자 설정 위키와 공개 세계관에 보이고, 로그인한 사람은 자기 세계관으로 가져갈 수 있어요.</p>
+                      </>
+                    ) : (
+                      <>
+                        <label className="world-consent">
+                          <input type="checkbox" role="switch" checked={reveal !== undefined} aria-describedby={`${listId}-reveal`} onChange={(e) => vm.patch({ settings: setCardReveal(world.settings, new Set([item.id]), e.target.checked ? 1 : undefined) })} />
+                          이 설정 공개
+                        </label>
+                        <p id={`${listId}-reveal`} className="small muted">{unlinkedHelp}</p>
+                      </>
+                    )}
                     <p className="small muted">저장한 뒤 ‘확정 버전 남기기’를 해야 공개 세계관 화면과 독자 설정 위키에 반영돼요.</p>
                   </section>
                 )}

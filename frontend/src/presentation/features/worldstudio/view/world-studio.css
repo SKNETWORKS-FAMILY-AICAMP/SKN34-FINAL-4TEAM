@@ -64,7 +64,7 @@ html:has(.world-writing){scrollbar-gutter:stable}
 .world-imported-from{display:block;margin-top:2px;color:var(--tsub);font-size:12px;font-weight:500}
 /* 빈 인물 문서가 있는 인물 줄의 `정리 필요`: 관계 수·가져옴(강조색)과 구분되게 주의색 글자다. 편집 화면의 문서 버튼에 붙는 표시(.world-doc-flag)와 같은 색이다. 공용 .worlds-badge의 색을 불러오는 순서와 상관없이 이기도록 두 클래스로 쓴다. */
 .worlds-badge.world-todo{color:var(--acc-ink)}
-.world-bulk{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}.world-bulk p{flex:1 1 260px;margin:0;line-height:1.5}.world-bulk [role=status]{color:var(--pri-ink);font-weight:700;font-variant-numeric:tabular-nums}
+.world-bulk{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}.world-bulk .world-reveal{margin-top:0}.world-bulk p{flex:1 1 260px;margin:0;line-height:1.5}.world-bulk [role=status]{color:var(--pri-ink);font-weight:700;font-variant-numeric:tabular-nums}
 /* 좁은 본문(게시판 폭 760px 이하): 공용 게시판이 번호·요약을 숨길 때 분류·연결 칸도 숨겨 선택·제목·공개만 남기고 제목이 남은 폭을 쓴다.
    숨긴 분류와 요약은 제목 아래 한 줄(.world-row-sub: 유형 점·이름 + 요약 한 줄)로 보이고, 연결 수는 제목 옆 [n]이 대신한다(인물은 그중 관계로 이어진 수). 넓은 본문에서는 그 줄을 숨긴다. */
 .world-row-sub{display:none}
