@@ -119,8 +119,9 @@ class SearchElasticsearch(private val http: RestClient, private val mapper: Json
     private fun action(kind: String, id: String) = mapper.writeValueAsString(mapOf(kind to mapOf("_id" to id)))
 
     private fun bulk(kind: String, count: Int, body: String) {
+        // 문자열 본문은 변환기의 기본 charset으로 쓰이는데 순수 RestClient는 ISO-8859-1이라 한글 문서가 `?`로 깨진다(Boot는 UTF-8로 맞춰 둠). 전역 설정에 기대지 않고 색인이 읽는 UTF-8 바이트로 직접 보낸다.
         val items = json(http.post().uri("/$INDEX/_bulk?refresh=wait_for")
-            .contentType(MediaType.parseMediaType("application/x-ndjson")).body(body)).path("items")
+            .contentType(MediaType.parseMediaType("application/x-ndjson")).body(body.toByteArray(Charsets.UTF_8))).path("items")
         check(items.isArray && items.size() == count && items.all {
             val status = it.path(kind).path("status").asInt()
             status in 200..299 || (kind == "delete" && status == 404 && it.path(kind).path("result").asString() == "not_found")

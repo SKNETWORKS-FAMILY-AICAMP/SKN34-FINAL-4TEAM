@@ -167,6 +167,7 @@ class SearchElasticsearchIntegrationTest {
         server.verify()
     }
 
+    // 한글 제목·작가로 본문의 UTF-8 인코딩도 지킨다: 순수 RestClient의 String 변환기 기본 charset은 ISO-8859-1이라 클라이언트가 바이트로 보내야 통과한다.
     @Test fun `put sends one index action and one source line per document`() {
         val a = workDocument("a", "작품 a", "작가", emptyList(), emptyList())
         val b = workDocument("b", "작품 b", "작가", emptyList(), emptyList())
