@@ -26,7 +26,8 @@ def test_world_is_the_one_linked_to_the_work_and_is_read_at_the_base_episode(mon
     calls = fake_content(monkeypatch, worlds=[{'worldId': 'other', 'linkedWorkId': 'x'},
                                               {'worldId': WORLD, 'linkedWorkId': 'work'}])
     assert service.read_world('work', EPISODE) == READ
-    assert calls == [('world_studio_list', {}), ('world_studio_read', {'id': WORLD, 'episode': '3'})]
+    # 기준 회차 시점으로 읽고, 「동일 인물」만 최신 시점으로 한 번 더 읽는다(회차 없이).
+    assert calls == [('world_studio_list', {}), ('world_studio_read', {'id': WORLD, 'episode': '3'}), ('world_studio_read', {'id': WORLD})]
 
 
 def test_a_409_from_the_episode_scoped_world_read_fails_as_it_is_and_is_never_retried_without_the_episode(monkeypatch):
@@ -62,7 +63,7 @@ def test_a_fork_without_a_world_of_its_own_reads_the_original_world_it_inherits_
 def test_a_world_linked_to_the_work_wins_over_the_inherited_one(monkeypatch):
     calls = fake_content(monkeypatch, inherited=INHERITED)
     assert service.read_world('work', EPISODE) == READ
-    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read']
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read', 'world_studio_read']
 
 
 def test_inherited_world_failing_to_vouch_for_its_relations_stops_the_run_instead_of_continuing_without_them(monkeypatch):
@@ -93,7 +94,7 @@ def test_load_world_reads_the_linked_world_and_retrieves_excerpts_for_the_reques
     monkeypatch.setattr(service.retrieval, 'retrieve', lambda scope, question: asked.append((scope.scopeToken, question)) or
                         RetrievalResult(status='found', excerpts=excerpts, gaps=[], coverage=COVERAGE, steps=[]))
     world = service.load_world(TARGET, '카엘과 리나가 만나면', {'scopeToken': 'signed.token'})
-    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read'] and asked == [('signed.token', '카엘과 리나가 만나면')]
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read', 'world_studio_read'] and asked == [('signed.token', '카엘과 리나가 만나면')]
     # 받은 발췌를 그대로 둔다. 원고가 아닌 발췌(설정·현재 관계)는 recall의 인물 필터가 gaps로 돌린다.
     assert [e.id for e in world.manuscript] == ['m', 's'] and set(world.characters) == {KAEL, LINA} and world.episode == EPISODE
 
@@ -104,10 +105,11 @@ BASE_TARGET = {'workId': 'work', 'episode': EPISODE + 2, 'baseEpisode': EPISODE}
 def test_the_world_is_read_at_the_base_episode_not_at_the_episode_the_scene_is_reflected_into(monkeypatch):
     calls = fake_content(monkeypatch)
     world = service.load_world(BASE_TARGET, '요청', None)
-    assert [(tool, args.get('episode')) for tool, args in calls if tool == 'world_studio_read'] == [('world_studio_read', str(EPISODE))]
+    # 관계는 기준 회차(3화)로 읽고, 「동일 인물」만 회차 없이(최신) 한 번 더 읽는다. 반영 회차(5화)로는 읽지 않는다.
+    assert [args.get('episode') for tool, args in calls if tool == 'world_studio_read'] == [str(EPISODE), None]
     assert world.episode == EPISODE
     service.plan_from_form(SimulationPlan(mode='if', premise='만약 ~했다면', characterIds=[KAEL]), BASE_TARGET)
-    assert [args.get('episode') for tool, args in calls if tool == 'world_studio_read'] == [str(EPISODE)] * 2
+    assert [args.get('episode') for tool, args in calls if tool == 'world_studio_read'] == [str(EPISODE), None] * 2
 
 
 def raising(error):
@@ -145,7 +147,7 @@ def test_the_context_reads_the_world_once_for_the_whole_request(monkeypatch):
     calls = fake_content(monkeypatch)
     ctx = context()
     assert ctx.world() is ctx.world()
-    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read']
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read', 'world_studio_read']
 
 
 # --- 계획 ------------------------------------------------------------------------------------------------------------
@@ -210,7 +212,7 @@ def test_form_plan_is_used_as_it_is_after_checking_the_linked_world_without_aski
     monkeypatch.setattr(service.agent, 'plan', lambda *args: pytest.fail('양식으로 정한 계획은 모델에게 묻지 않는다'))
     form = SimulationPlan(mode='flow', beats=['성문 대면'], characterIds=[KAEL, LINA])
     assert service.plan_from_form(form, TARGET) == form
-    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read']
+    assert [tool for tool, _ in calls] == ['world_studio_list', 'world_studio_read', 'world_studio_read']
 
 
 @pytest.mark.parametrize('form, said', [
