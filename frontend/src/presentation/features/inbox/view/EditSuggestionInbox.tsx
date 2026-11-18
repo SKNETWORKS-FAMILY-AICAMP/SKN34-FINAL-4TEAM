@@ -53,7 +53,7 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
         </>
       )}
       {s.status === 'approved' && s.applyResult === 'applied' && (
-        <div className="rowend">{s.published ? <Go to={`/read/${s.workId}/${s.episodeNumber}`}>발행본 보기</Go> : <><span>반영한 원고를 발행할까요?</span><Go to={`/studio/${s.workId}?ep=${s.episodeNumber}`} className="btn sm">집필실 열기</Go></>}</div>
+        <div className="rowend">{s.published ? <Go to={`/read/${s.workId}/${s.episodeNumber}`} className="btn sm">발행본 보기</Go> : <><span>발행은 집필실에서 할 수 있어요.</span><Go to={`/studio/${s.workId}?ep=${s.episodeNumber}`} className="btn sm">집필실 열기</Go></>}</div>
       )}
       {s.handlerName && <p className="small muted">처리자 {s.handlerName} · {s.handledAt ? new Date(s.handledAt).toLocaleString('ko-KR') : '처리 시각 기록 없음'}</p>}
       {retryable && (
@@ -84,7 +84,9 @@ function SuggestionCard({ s, vm }: { s: EditSuggestion; vm: Vm }) {
 export function EditSuggestionInbox({ workId }: { workId?: string }) {
   const vm = useEditSuggestionInboxViewModel(workId)
   const [status, setStatus] = useState('')
-  const matches = (item: EditSuggestion) => !status || item.status === status
+  // 방금 처리한 제안은 처리 결과로 상태가 바뀌어 필터와 어긋나도 보인다. 숨기면 카드 안의 결과 안내와 초점 대상이 함께 사라진다.
+  // ponytail: 다음 처리 전에는 필터를 바꿔도 그 카드가 남는다. 거슬리면 필터를 바꿀 때 notice를 비운다.
+  const visible = (item: EditSuggestion) => !status || item.status === status || item.id === vm.notice?.id
   return (
     <section className="sec" aria-labelledby="edit-suggestions-h" aria-busy={!vm.items && !vm.isError}>
       <div className="sec-h"><h2 id="edit-suggestions-h">독자 수정 제안</h2><span className="muted small">독자가 보낸 문장 수정 제안</span></div>
@@ -104,8 +106,8 @@ export function EditSuggestionInbox({ workId }: { workId?: string }) {
           </select>
         </label>
       </div>}
-      {!!vm.items?.length && !vm.items.some(matches) && <p>조건에 맞는 수정 제안이 없어요.</p>}
-      {!!vm.items?.length && <div style={{ display: 'grid', gap: 12 }}>{vm.items.map(s => <Activity key={s.id} mode={matches(s) ? 'visible' : 'hidden'}><SuggestionCard s={s} vm={vm} /></Activity>)}</div>}
+      {!!vm.items?.length && !vm.items.some(visible) && <p role="status">조건에 맞는 수정 제안이 없어요.</p>}
+      {!!vm.items?.length && <div style={{ display: 'grid', gap: 12 }}>{vm.items.map(s => <Activity key={s.id} mode={visible(s) ? 'visible' : 'hidden'}><SuggestionCard s={s} vm={vm} /></Activity>)}</div>}
     </section>
   )
 }
