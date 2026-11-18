@@ -12,6 +12,7 @@ data class SuggestionResponse(
     val reason: String?, val status: String, val decisionReason: String?, val applyResult: String?, val applyFailure: String?,
     val appliedVersionId: String?, val scope: String, val scopeReasons: List<String>,
     val mine: Boolean, val owner: Boolean, val createdAt: Instant, val updatedAt: Instant,
+    val published: Boolean, val handledAt: Instant?, val handlerName: String?,
 )
 
 /** 수정 제안 목록이다. 최대 200개이며 페이지네이션은 없다. */

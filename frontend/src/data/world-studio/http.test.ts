@@ -2,7 +2,7 @@ import {afterEach,beforeEach,expect,it,vi} from 'vitest'
 import '../../test/testLocks'
 import {login} from '../api/auth'
 import {HttpWorldStudioRepository} from './HttpWorldStudioRepository'
-import {newSetting,type StudioWorld} from '../../domain/entities/studioWorld'
+import {cardRevealEpisode,newSetting,type StudioWorld} from '../../domain/entities/studioWorld'
 import {readFileSync} from 'node:fs'
 
 const id=crypto.randomUUID()
@@ -563,6 +563,30 @@ it('treats the row as the source of truth: a cleared reveal episode or import so
  expect(sent.visibility).toBe('private')
  expect(Object.keys(sent.semanticMetadata).sort()).toEqual(['kept','studio'])
  expect((await savedBody([{...row,revealFromEpisode:5},b,relation])).cards[0].semanticMetadata.revealFromEpisode).toBe(5)
+})
+it('sends old reveal/visibility combinations back exactly as read (DEC-53 computes them on read), never rewriting a card the author did not touch',async()=>{
+  // 옛 공개 카드(공개 + 회차 없음)는 읽을 때 1화로 계산하므로 회차 값을 만들어 쓰지 않고 그대로 다시 보낸다.
+  const oldPublic=vi.fn().mockImplementation(async()=>Response.json(wireWith({visibility:'public',semanticMetadata:{studio:a}})))
+  const [legacy]=(await new HttpWorldStudioRepository(oldPublic).read(id)).settings
+  expect(legacy).toEqual({...a,visibility:'public'})
+  const sentPublic=(await savedBody([legacy,b,relation])).cards[0]
+  expect([sentPublic.visibility,Object.keys(sentPublic.semanticMetadata)]).toEqual(['public',['studio']])
+  // 비공개 + 회차 N도 읽은 그대로다: 회차 값만 행에 올라오고 visibility는 새 화면이 만지기 전에는 맞춰 쓰지 않는다.
+  const revealOnly=vi.fn().mockImplementation(async()=>Response.json(wireWith({visibility:'private',semanticMetadata:{studio:a,revealFromEpisode:3}})))
+  const [numbered]=(await new HttpWorldStudioRepository(revealOnly).read(id)).settings
+  expect(numbered).toEqual({...a,revealFromEpisode:3})
+  const sentNumbered=(await savedBody([numbered,b,relation])).cards[0]
+  expect([sentNumbered.visibility,sentNumbered.semanticMetadata.revealFromEpisode]).toEqual(['private',3])
+})
+it.each([['3'],[0],[-1],[1.5],[2147483648],[null]])('reads a public card whose reveal value (%j) is unusable as author-only like the server, so one save never opens it from episode 1',async(revealFromEpisode)=>{
+  // 서버는 키가 있는데(JSON null 포함) 값이 잘못되면 작가 전용으로 닫는다(visibility로 열지 않는다). 화면도 같게 읽고, 저장하면 비공개로 맞춘다.
+  const fetcher=vi.fn().mockImplementation(async()=>Response.json(wireWith({visibility:'public',semanticMetadata:{studio:a,revealFromEpisode}})))
+  const [row]=(await new HttpWorldStudioRepository(fetcher).read(id)).settings
+  expect(Object.keys(row)).not.toContain('visibility')
+  expect(Object.keys(row)).not.toContain('revealFromEpisode')
+  expect(cardRevealEpisode(row)).toBeUndefined()
+  const sent=(await savedBody([row,b,relation])).cards[0]
+  expect([sent.visibility,sent.semanticMetadata.revealFromEpisode]).toEqual(['private',undefined])
 })
 
 // ── 인물 문서(SOUL.md·GOAL.md·회차별 기억): 인물 카드 semanticMetadata의 최상위 키 characterDocs. IDENTITY.md는 카드 본문(body)이다 ───

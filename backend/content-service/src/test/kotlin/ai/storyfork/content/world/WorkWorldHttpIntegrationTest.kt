@@ -77,7 +77,7 @@ class WorkWorldHttpIntegrationTest {
                     driver.publishEpisode(id,owner.toString(),number,PublishRequest(saved.draft.revision,true,versionId=saved.versions.last().id))
                 }
 
-                // 세계관: 독자 공개 회차가 1·2·3화인 카드, 회차가 없는 공개 카드, 값이 정수가 아닌 카드. 확정 버전은 아직 없다.
+                // 세계관: 공개 회차가 1·2·3화인 카드, 공개 회차가 없는 작가 전용 카드(비공개·값 없음, DEC-53), 값이 정수가 아닌 카드. 확정 버전은 아직 없다.
                 val create=CreateWorldRequest("연결할 세계관","설명");val world=create.id
                 assertEquals(200,send(studios,method="POST",body=create).statusCode())
                 fun card(title:String,visibility:String,reveal:Any?)=CardPayload(UUID.randomUUID(),title,"$title 원문","character","basic",
@@ -85,7 +85,7 @@ class WorkWorldHttpIntegrationTest {
                 val first=card("1화 인물","private",1)
                 val second=card("2화 인물","public",2)
                 val third=card("3화 인물","public",3)
-                val never=card("독자 비공개 인물","public",null)
+                val never=card("작가 전용 인물","private",null)
                 val text=card("회차가 글자인 인물","public","1")
                 val together=RelationshipPayload(UUID.randomUUID(),first.id,second.id,"structural","관계 설명 원문",label="동료")
                 val later=RelationshipPayload(UUID.randomUUID(),first.id,third.id,"structural","나중 관계 설명",label="나중에 만나는 사이")

@@ -61,7 +61,7 @@ class QaScopeService(
             ?: throw ContentFailure(422, "기준 회차에 연결된 세계관이 없어 관계를 확인할 수 없어요.", "WORLD_LINK_REQUIRED")
     }
 
-    /** 연결한 세계관이 없는 Fork의 자기 회차가 이어받는 원작 세계관이다. 원작 작가 권한이 아니라 공개 카드·Fork 기준 회차로 걸러진 값만이며, 없으면 null이다. */
+    /** 연결한 세계관이 없는 Fork의 자기 회차가 이어받는 원작 세계관이다. 원작 작가 권한이 아니라 공개 회차·Fork 기준 회차로 걸러진 값만이며, 없으면 null이다. */
     private fun inheritedWorld(workId: String, owner: String): InheritedWorldResponse? =
         workWorlds.inheritedWorld(workId, owner, null).takeIf { it.worldId != null }
 

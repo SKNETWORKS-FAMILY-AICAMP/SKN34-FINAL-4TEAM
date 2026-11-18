@@ -353,4 +353,16 @@ describe('원고 검수 단계 결과(#59)', () => {
     expect(step).toMatchObject({ status: 'failed', error: '심의 등급 결과 형식을 확인할 수 없어요.' })
     expect(step.rating).toBeUndefined()
   })
+
+  it.each([
+    ['항목이 계약에 없다', { criterion: 'unknown' }],
+    ['수준이 3보다 크다', { level: 4 }],
+    ['수준이 0보다 작다', { level: -1 }],
+  ])('항목 평가가 계약 밖이면(%s) 단계 실패로 알린다(#457)', async (_name, bad) => {
+    const result = rating()
+    result.episodes[0].assessments = [{ ...assessment, ...bad }]
+    const step = await run({ feature: 'rating', status: 'completed', result })
+    expect(step).toMatchObject({ status: 'failed', error: '심의 등급 결과 형식을 확인할 수 없어요.' })
+    expect(step.rating).toBeUndefined()
+  })
 })

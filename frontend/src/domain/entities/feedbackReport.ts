@@ -31,6 +31,9 @@ export type FeedbackReport = {
   mine: boolean
   /** 요청자가 작품 소유자 */
   owner: boolean
+  handledAt?: string | null
+  handlerName?: string | null
+  authorCheckedAt?: string | null
   authorChecked: boolean
   withdrawn: boolean
   amendments: FeedbackReportAmendment[]

@@ -23,8 +23,8 @@ class WorkWorldController(private val service: WorkWorldService) {
         service.link(id, principal.name, data.worldId)
 
     /**
-     * 공개 작품의 독자 설정 위키다. 익명 조회를 허용한다. 연결된 세계관의 확정 버전 카드 중 독자 공개 회차가 `upto`(1 이상, 생략하면 마지막 발행 회차,
-     * 발행된 회차까지만) 이하인 카드와 그 카드끼리의 현재 관계만 반환한다. 공개가 아니거나 연결·확정 버전이 없으면 빈 목록 200, 없는 작품은 404, `upto` 값 오류는 422다
+     * 공개 작품의 독자 설정 위키다. 익명 조회를 허용한다. 연결된 세계관의 확정 버전 카드 중 유효 공개 회차(DEC-53: 공개 회차 값, 없고 공개면 1화)가 `upto`(1 이상, 생략하면 마지막 발행 회차,
+     * 발행된 회차까지만) 이하인 카드와 그 카드끼리의 그 시점 관계만 반환한다. 공개가 아니거나 연결·확정 버전이 없으면 빈 목록 200, 없는 작품은 404, `upto` 값 오류는 422다
      * (문자열로 받아 Spring 타입 변환 400이 되지 않게 한다).
      */
     @GetMapping("/public/works/{id}/world-cards")
@@ -32,7 +32,7 @@ class WorkWorldController(private val service: WorkWorldService) {
 
     /**
      * Fork 소유자가 자기 세계관 없이 이어받는 원작 세계관(읽기 전용, DEC-32·37, #365)이다. 지식 상한은 Fork 기준 회차이고 `upto`(1 이상)가 더 작으면 그 회차까지다.
-     * 공개 카드와 그 카드끼리의 그 시점 관계만 준다. 이어받는 세계관이 없으면(자기 세계관이 있거나 독립한 Fork·Fork가 아닌 작품·원작에 세계관이 없음) `worldId`가 null인 200,
+     * 독자 설정 위키와 같은 카드 집합(유효 공개 회차가 상한 이하, DEC-53)과 그 카드끼리의 그 시점 관계만 준다. 이어받는 세계관이 없으면(자기 세계관이 있거나 독립한 Fork·Fork가 아닌 작품·원작에 세계관이 없음) `worldId`가 null인 200,
      * 남의 작품은 404, `upto` 값 오류는 422다.
      */
     @GetMapping("/works/{id}/inherited-world")

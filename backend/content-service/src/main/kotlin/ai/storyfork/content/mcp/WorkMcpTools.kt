@@ -166,7 +166,7 @@ class WorkMcpTools(
 
     @McpTool(
         name = "work_public_world_cards",
-        description = "공개 작품의 독자 설정 위키(GET /api/v1/public/works/{id}/world-cards). 인증이 필요 없다. 독자 공개 회차가 upto 이하인 카드와 그 카드끼리의 현재 관계만 돌려주고, 없는 작품은 404, upto 값 오류는 422다.",
+        description = "공개 작품의 독자 설정 위키(GET /api/v1/public/works/{id}/world-cards). 인증이 필요 없다. 유효 공개 회차(공개 회차 값, 없고 공개면 1화)가 upto 이하인 카드와 그 카드끼리의 그 시점 관계만 돌려주고, 없는 작품은 404, upto 값 오류는 422다.",
         annotations = McpTool.McpAnnotations(readOnlyHint = true),
     )
     fun publicWorldCards(
@@ -176,7 +176,7 @@ class WorkMcpTools(
 
     @McpTool(
         name = "work_inherited_world",
-        description = "Fork가 자기 세계관 없이 이어받는 원작 세계관(GET /api/v1/works/{id}/inherited-world). Fork 소유자만 읽을 수 있고 Fork 기준 회차(upto가 더 작으면 그 회차)까지 독자 공개된 공개 카드와 그 카드끼리의 그 시점 관계만 돌려준다. 이어받는 세계관이 없으면 worldId가 null이고, 남의 작품은 404, upto 값 오류는 422다.",
+        description = "Fork가 자기 세계관 없이 이어받는 원작 세계관(GET /api/v1/works/{id}/inherited-world). Fork 소유자만 읽을 수 있고 Fork 기준 회차(upto가 더 작으면 그 회차)까지 공개된 카드(독자 설정 위키와 같은 집합)와 그 카드끼리의 그 시점 관계만 돌려준다. 이어받는 세계관이 없으면 worldId가 null이고, 남의 작품은 404, upto 값 오류는 422다.",
         annotations = McpTool.McpAnnotations(readOnlyHint = true),
     )
     fun inheritedWorld(

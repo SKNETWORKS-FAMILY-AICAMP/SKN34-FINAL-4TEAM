@@ -133,6 +133,7 @@ class WorldStudioServicePostgresTest {
                 org.mockito.Mockito.mock(ai.storyfork.content.work.repository.WorkRepository::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.work.service.WorkAccessService::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.attachment.repository.ContentImageRepository::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.publication.service.PublicationService::class.java),
                 ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java))
             val visible=publicService.detail(id)
             assertEquals(setOf(first.id,second.id),visible.cards.map { it.id }.toSet())
@@ -402,7 +403,7 @@ class WorldStudioServicePostgresTest {
             val entered=CountDownLatch(1);val release=CountDownLatch(1)
             val slow=org.mockito.Mockito.spy(ctx.getBean(Neo4jRelationshipRepository::class.java))
             org.mockito.Mockito.doAnswer { call -> val result=call.callRealMethod();entered.countDown();check(release.await(10,TimeUnit.SECONDS));result }
-                .`when`(slow).read(id,null)
+                .`when`(slow).read(id,1) // 공개 상세는 기준 회차 시점으로 읽는다(DEC-53): 연결된 소설이 없는 세계관의 기준 회차는 1화라 최신(null)이 아니다
             fun publicView(graph:Neo4jRelationshipRepository)=ai.storyfork.content.world.service.PublicWorldService(ctx.getBean(StudioWorldRepository::class.java),
                 ctx.getBean(WorldRevisionRepository::class.java),ctx.getBean(WorldRevisionCardRepository::class.java),
                 ctx.getBean(SettingCardVersionRepository::class.java),ctx.getBean(SettingCardImageRepository::class.java),
@@ -412,6 +413,7 @@ class WorldStudioServicePostgresTest {
                 org.mockito.Mockito.mock(ai.storyfork.content.work.repository.WorkRepository::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.work.service.WorkAccessService::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.attachment.repository.ContentImageRepository::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.publication.service.PublicationService::class.java),
                 ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java))
             val view=publicView(ctx.getBean(Neo4jRelationshipRepository::class.java))
             Executors.newSingleThreadExecutor().use { pool ->
@@ -456,6 +458,7 @@ class WorldStudioServicePostgresTest {
                 org.mockito.Mockito.mock(ai.storyfork.content.work.repository.WorkRepository::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.work.service.WorkAccessService::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.attachment.repository.ContentImageRepository::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.publication.service.PublicationService::class.java),
                 ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java))
             assertEquals(36,manifest.worlds.size)
             assertEquals(16461,manifest.worlds.sumOf { world -> world.chunks.sumOf { name ->
@@ -521,6 +524,7 @@ class WorldStudioServicePostgresTest {
                 org.mockito.Mockito.mock(ai.storyfork.content.work.repository.WorkRepository::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.work.service.WorkAccessService::class.java),
                 org.mockito.Mockito.mock(ai.storyfork.content.attachment.repository.ContentImageRepository::class.java),
+                org.mockito.Mockito.mock(ai.storyfork.content.publication.service.PublicationService::class.java),
                 ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java))
             val published=publicService.detail(id)
             assertEquals(cards.map { it.id }.toSet(),published.cards.map { it.id }.toSet())
