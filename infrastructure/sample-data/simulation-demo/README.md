@@ -152,12 +152,12 @@ python3 infrastructure/sample-data/simulation-demo/seed.py guunmong --base-url h
 - 하위 디렉터리의 데이터셋은 새 작품이다. 같은 제목의 작품이 개발 작가 계정에 있으면 그 작품을 쓰고, 없으면 `POST /api/v1/works`로 만든 뒤 원고를 회차 순서로 저장·발행한다(`episodes/NN.md`: 첫 줄 제목, 나머지 본문). 원작은 분기 정책(`PUT /works/{id}/policy`)도 허용으로 켠다.
   Fork는 `POST /api/v1/works/{원작}/forks`(기준 회차·제목·소개·전개 방향)로 만들고 자기 회차만 저장·발행한다. 다시 실행하면 제목과 기준 회차가 같은 분기를 쓴다(다른 분기에는 쓰지 않는다). 그다음 아래 세계관 적재와 작품 연결은 별빛과 같다.
 
-- 순서: Core 로그인 → 작품 소유·연결 확인 → `POST /api/v1/world-studios`(고정 id) → 회차 오름차순(1·2·3·5화)으로 `PUT /api/v1/world-studios/{id}/draft`(카드는 첫 저장, 관계는 회차별 `episode`, 그 회차에 새로 생기거나 바뀐 것만) → `PUT /api/v1/works/{workId}/world-studio` → (`plans.json`이 있으면) `POST /api/v1/works/{workId}/story-plans`로 플롯 1개와 장면([장면 계획과 나레이터 카드](#장면-계획과-나레이터-카드-흐름-모드-시연)).
-- 다시 실행해도 중복이 없다. 회차마다 그 시점의 초안을 읽어 같은 값이면 저장을 건너뛰고, 저장 key는 보내는 입력에서 정하므로 같은 입력이면 같은 key다. 중간에 실패하면 다시 실행해 이어 간다.
+- 순서: Core 로그인 → 작품 소유·연결 확인 → `POST /api/v1/world-studios`(고정 id) → 회차 오름차순(1·2·3·5화)으로 `PUT /api/v1/world-studios/{id}/draft`(카드는 첫 저장, 관계는 회차별 `episode`, 그 회차에 새로 생기거나 바뀐 것만) → `POST /api/v1/world-studios/{id}/revisions`(확정 버전 한 번) → `PUT /api/v1/works/{workId}/world-studio` → (`plans.json`이 있으면) `POST /api/v1/works/{workId}/story-plans`로 플롯 1개와 장면([장면 계획과 나레이터 카드](#장면-계획과-나레이터-카드-흐름-모드-시연)).
+- 다시 실행해도 중복이 없다. 회차마다 그 시점의 초안을 읽어 같은 값이면 저장을 건너뛰고, 저장 key는 보내는 입력에서 정하므로 같은 입력이면 같은 key다. 현재 확정 버전이 시연 카드와 같은 값이면 확정도 건너뛴다(카드를 고쳐 다시 실행하면 새 확정 버전이 하나 생긴다). 중간에 실패하면 다시 실행해 이어 간다.
 - 작품에 이미 **다른 세계관**이 연결돼 있으면 덮어쓰지 않고 그 id를 알린 뒤 실패한다(연결을 직접 해제하거나 그 세계관을 쓴다). 원고를 저장·발행하기 전에 확인하므로 실패해도 공개 원고는 바뀌지 않는다. 소유자가 아닌 계정, 같은 id의 세계관을 다른 이름으로 이미 만든 경우도 이유를 알리고 실패한다.
 - 비밀번호는 환경변수(`STORYFORK_SEED_PASSWORD`) 또는 `--password`로 받고 출력하지 않는다. 오류 메시지에는 상태 코드와 서버가 준 `detail`만 담는다.
 - 끝에 회차별 관계 수를 출력하고 1화와 2화가 같으면 실패로 끝낸다. 직접 보려면 `GET /api/v1/world-studios/e29824ed-c503-55a7-ac48-721c125f1299?episode=N`(작가 토큰, MCP `world_studio_read`와 같다)의 `relationships` 길이가 표와 같아야 한다.
-- 세계관은 초안만 저장한다. 확정 버전(`/revisions`)과 세계관 공개는 하지 않으므로 독자 설정 위키·공개 세계관에는 나오지 않는다. AI가 `world_studio_read`로 읽는 것은 이 초안이다.
+- 모든 회차를 저장한 뒤 확정 버전을 한 번 남긴다. 독자 설정 위키(`GET /public/works/{id}/world-cards?upto=`)는 연결 세계관의 **확정 버전**에서 `revealFromEpisode`가 `upto` 이하인 카드를 주므로(카드·세계관의 공개 범위와 무관, DEC-46), 확정 버전이 없으면 연결해도 위키가 빈다. 그래서 `revealFromEpisode`가 있는 카드는 `visibility`가 비공개여도 그 회차부터 위키에 나온다(별빛은 인물·사건·서한 카드도 값이 있어 함께 나온다). 독자에게 숨기려면 그 카드의 `revealFromEpisode`를 비운다. 확정이 서버 검사(설명·IDENTITY 등)로 거절되면 이유와 함께 실패하고 연결하지 않는다. 세계관 자체는 공개(`PUT /publication`)하지 않으므로 `/worlds` 목록에는 나오지 않는다. AI가 `world_studio_read`로 읽는 것은 초안이다.
 - 적재는 upsert다. world.json에서 카드·관계를 지워도 서버에서는 지워지지 않는다(화면의 설정 삭제를 쓰거나 아래 복구 안내대로 다시 만든다).
 
 ## 확인과 한계
@@ -166,7 +166,7 @@ python3 infrastructure/sample-data/simulation-demo/seed.py guunmong --base-url h
 python3 -m unittest infrastructure/sample-data/simulation-demo/test_world.py   # 저장소 루트에서, 서버·DB 없이
 ```
 
-- 테스트는 데이터셋마다(별빛과 하위 세 개) 카드 유형·`characterDocs` 키·문서 길이·관계 끝점·episode 정수·비밀과 미래 사건의 격리(보유자 밖 문서·공개 카드·관계에 비밀 문구가 새지 않음)·서버/화면 계약·recall 필터가 읽는 규칙(부정 관계의 이름, 인물이 말하는 카드와의 긍정 연결)과, 나레이터 카드(제목·비공개·인물 이름과 비밀 금지·Fork의 고정관념 금지 문장)·장면 계획(회차·인물 key·비트 200자·본문의 인물 이름이 `characters`와 같은지·함께 나오는 인물끼리 긍정 관계로 이어졌는지), 모의 스택으로 본 적재 흐름(멱등·재개·연결 충돌·장면 계획의 파일 순서와 다음 회차 초안)을 검사한다. CI에는 연결하지 않았다(`infrastructure/sample-data`의 CI 단계는 `test_import.py`만 돈다).
+- 테스트는 데이터셋마다(별빛과 하위 세 개) 카드 유형·`characterDocs` 키·문서 길이·관계 끝점·episode 정수·비밀과 미래 사건의 격리(보유자 밖 문서·공개 카드·관계에 비밀 문구가 새지 않음)·서버/화면 계약·recall 필터가 읽는 규칙(부정 관계의 이름, 인물이 말하는 카드와의 긍정 연결)과, 나레이터 카드(제목·비공개·인물 이름과 비밀 금지·Fork의 고정관념 금지 문장)·장면 계획(회차·인물 key·비트 200자·본문의 인물 이름이 `characters`와 같은지·함께 나오는 인물끼리 긍정 관계로 이어졌는지), 모의 스택으로 본 적재 흐름(멱등·재개·연결 충돌·모든 회차 저장 뒤 확정 버전 한 번(재실행은 건너뛰고 거절은 이유와 함께 멈춤)·장면 계획의 파일 순서와 다음 회차 초안)을 검사한다. CI에는 연결하지 않았다(`infrastructure/sample-data`의 CI 단계는 `test_import.py`만 돈다).
 - 설계 규칙 4·5는 `feat/58-novelbrain`(`filter_for_character`)과 `feat/58-character-simulation`(관계를 `A → B: label[ 아님] — body`로 인물 입력에 넣음)의 2026-11-14 구현이 읽는 방식에 맞춘 것이다. 두 구현을 바꾸면 다시 확인한다.
 - **실제 스택 적재**: 처음 만들 때는 스택이 없어 확인하지 못했고, 2026-11-14에 격리 로컬 스택(공개 진입점)에서 네 데이터셋을 `seed.py`로 다시 적재해 확인했다. 나레이터 카드가 네 세계관에 저장되고, 흑길동전에 플롯 1개·장면 8개, 홍길동전에 플롯 1개·장면 4개가 만들어진다(장면의 인물·장소 id는 비고 회차 연결은 모두 유효하다). 다시 실행하면 새로 만드는 것이 없다. 서버에서 읽은 장면 계획으로 흐름 모드 비트 문장(`제목: 내용`, 흑길동전 4화·5화 각 4개, 홍길동전 5화 4개)을 계산해 보았다. 브라우저에서 흐름 탭이 비트를 채우는지는 확인하지 못했다.
   서버·화면 계약은 소스(`WorldStudioService`·`RelationshipInputHelper`·`HttpWorldStudioRepository`)를 읽고 맞췄고, 스택이 없던 때 저장소 밖 임시 검증으로 세 가지를 확인했다:
