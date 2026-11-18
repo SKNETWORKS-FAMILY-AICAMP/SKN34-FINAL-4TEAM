@@ -223,12 +223,6 @@ it('does not treat an unexpected successful deletion response as confirmed remov
 })
 
 
-it('preserves the missing writing episode state from Core',async()=>{
- const value={id:'w',title:'작품',summary:'',visibility:'private',allowFork:false,source:null,episodes:[],draft:{title:'새 회차',body:'',revision:4},hasWritingEpisode:false,revision:0}
- const repo=new HttpEpisodeRepository(vi.fn().mockResolvedValue(Response.json([value])))
- expect((await repo.list())[0].hasWritingEpisode).toBe(false)
-})
-
 describe('work update and delete', () => {
   const work = { id: 'w', title: '새 제목', summary: '소개', visibility: 'private', allowFork: false, source: null, episodes: [], draft: { title: '', body: '', revision: 0 }, revision: 0 }
   it('puts title, summary and revision to the work and parses the response', async () => {
@@ -351,11 +345,6 @@ describe('회차 공개 상태와 발행 이력', () => {
   })
 })
 
-
-it('공개 중단 후 서버가 지정한 다음 작성 회차 번호를 유지한다',async()=>{
-  const fetcher=vi.fn().mockResolvedValue(Response.json([{id:'w',title:'작품',summary:'',visibility:'public',allowFork:false,source:null,episodes:[],draft:{title:'3화',body:'',revision:3},writingEpisodeNumber:3,revision:0}]))
-  expect((await new HttpEpisodeRepository(fetcher).list())[0].writingEpisodeNumber).toBe(3)
-})
 
 it('stops Fork publication through its dedicated authenticated command', async () => {
   const fetcher = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))

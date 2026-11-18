@@ -38,10 +38,13 @@ const fillRegistration = () => {
   fireEvent.click(screen.getByLabelText('이 작품을 등록할 권리가 있음을 확인합니다.'))
 }
 
-/** 같은 경로가 여러 번 읽혀도 호출마다 새 Response를 돌려주는 Content API 대역. 정의하지 않은 요청은 실패한다. */
+/**
+ * 같은 경로가 여러 번 읽혀도 호출마다 새 Response를 돌려주는 Content API 대역. 정의하지 않은 요청은 실패한다.
+ * 작품 관리가 열 때마다 읽는 소유자 회차 목록(GET /works/{id}/episodes)만은 기본으로 빈 목록이다(정의하면 그것을 쓴다). 이 기본이 없으면 읽기 실패가 조용히 화면에 그려진다.
+ */
 const contentApi = (routes: Record<string, () => Response | Promise<Response>>) => vi.fn<typeof fetch>(async (input, init) => {
   const route = `${init?.method ?? 'GET'} ${String(input)}`
-  const make = routes[route]
+  const make = routes[route] ?? (/^GET \/api\/v1\/works\/[^/]+\/episodes$/.test(route) ? () => Response.json([]) : undefined)
   if (!make) throw new Error(`대역에 없는 요청: ${route}`)
   return make()
 })
@@ -106,7 +109,6 @@ it('creates a private work through the API and opens its writing studio', async 
   fireEvent.change(screen.getByLabelText('해시태그'), { target: { value: '#회귀, 성장' } })
   fireEvent.click(screen.getByRole('button', { name: '작품 만들기' }))
   await screen.findByText('위치 /studio/w1')
-
   expect(calls.mock.calls[1][0]).toBe('/api/v1/works')
   expect(JSON.parse(calls.mock.calls[1][1].body)).toEqual({ title: '별의 기록', summary: '', creationType: 'EXTERNAL_DERIVATIVE', genres: ['판타지', 'SF'], hashtags: ['회귀', '성장'], rightsConfirmed: true })
 })
@@ -141,7 +143,6 @@ it('does not reuse the previous cover when creating another work', async () => {
   fireEvent.click(screen.getByRole('button', { name: '작품 만들기' }))
   await waitFor(() => expect(router.state.location.pathname).toBe(`/studio/${second.id}`))
   expect(uploads).toHaveBeenCalledTimes(1)
-
 })
 
 it('shows the default cover in the cover slot of the creation screen', async () => {
@@ -600,7 +601,7 @@ it('has no manuscript tab: the tabs are the episodes, world, fork, received feed
 
 it('links to the studio instead of offering manuscript editing or AI continuation, even when there is no writing episode', async () => {
   stubCover()
-  const w = { ...owned, title: '회차 삭제됨', draft: { title: '새 회차', body: '', revision: 4 }, hasWritingEpisode: false }
+  const w = { ...owned, title: '회차 삭제됨', draft: { title: '새 회차', body: '', revision: 4 } }
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([w]) }), '회차 삭제됨')
   expect(screen.getByRole('link', { name: '회차 작성하기' }).getAttribute('href')).toBe('/studio/w')
   expect(screen.queryByRole('button', { name: '원고 저장' })).toBeNull()

@@ -18,7 +18,9 @@ const original: Work = { ...fork, id: 'o1', title: '원작', source: null }
 
 /** api 대역은 렌더 밖에서 한 번만 만든다(훅이 api가 바뀌면 다시 조회한다). 열린 작품은 주소의 ?work= 값(workId)으로 정해진다. */
 async function openFork(api: object, work: Work = fork) {
-  const hook = renderHook(() => useEpisodeViewModel(work.id, api as unknown as EpisodeUseCase, { upload: vi.fn() }))
+  // 초안 목록 조회는 이 테스트의 관심사가 아니라 빈 목록을 기본으로 둔다(대역 객체는 렌더 밖에서 한 번만 만든다).
+  const useCase = { writingList: vi.fn().mockResolvedValue([]), ...api }
+  const hook = renderHook(() => useEpisodeViewModel(work.id, useCase as unknown as EpisodeUseCase, { upload: vi.fn() }))
   await act(async () => {})
   return hook
 }
