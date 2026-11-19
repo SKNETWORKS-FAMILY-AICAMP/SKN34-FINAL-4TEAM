@@ -11,6 +11,9 @@ import org.springframework.web.client.body
 
 data class CoreAdminRequest(val email: String, val nickname: String, val password: String)
 
+/** Core GET /internal/v1/members/stats; the dashboard shows these three numbers as they are. */
+data class MemberStats(val total: Long, val joinedLast7Days: Long, val withdrawalPending: Long)
+
 /** Core internal APIs; the admin's own Bearer is forwarded so Core re-checks `operator=true`. */
 class CoreClient(private val http: RestClient) {
     /** 401/403 keep their meaning; every other verification failure is 502. */
@@ -32,6 +35,10 @@ class CoreClient(private val http: RestClient) {
 
     fun unrestrict(authorization: String, id: UUID): MemberItem = upstream {
         http.delete().uri("/internal/v1/members/{id}/restriction", id).header(HttpHeaders.AUTHORIZATION, authorization).retrieve().body<MemberItem>()
+    }
+
+    fun memberStats(authorization: String): MemberStats = upstream {
+        http.get().uri("/internal/v1/members/stats").header(HttpHeaders.AUTHORIZATION, authorization).retrieve().body<MemberStats>()
     }
 
     fun createAdmin(authorization: String, request: CoreAdminRequest): MemberItem = upstream {

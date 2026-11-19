@@ -3,6 +3,10 @@
 # External DB/SMTP, HTTPS ingress and operational approval are prerequisites, not provisioned here.
 name: storyfork-production
 
+# Langfuse(LLMOps, DEC-55)를 앱 스택과 같은 프로젝트로 함께 켠다. 정의는 로컬 별도 실행과 같은 한 파일이며, 저장소는 자체 컨테이너를 쓴다.
+include:
+  - path: docker-compose.langfuse.yaml
+
 services:
   # Variable names match local/dev; the production server's own .env supplies values. Blank required values fail config.
   ai-service:

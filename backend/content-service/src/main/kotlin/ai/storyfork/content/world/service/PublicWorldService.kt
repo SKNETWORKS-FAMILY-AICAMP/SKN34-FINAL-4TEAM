@@ -261,12 +261,27 @@ class PublicWorldService(
         return WorldCoverImage(coverStorage { storage.read(image.objectKey).bytes }, image.contentType)
     }
 
+    /**
+     * Fork의 원작 세계관 [worldId]에서 기준 회차 [upto]화에 독자에게 **안 보이는** 활성 카드의 제목이다(작가 전용이거나 유효 공개 회차가 기준 회차 뒤인 카드, [shownAt]의 여집합, DEC-53).
+     * 운영의 정보 누설 비교 기준(DEC-55)이라 운영 서비스 토큰의 내부 API만 쓰고 공개 응답에는 싣지 않는다. 확정 버전이 없거나 지운 세계관이면 비어 있다. 제목순·중복 없음이다.
+     */
+    fun hiddenCardTitles(worldId: UUID, upto: Int): List<String> = tx {
+        val cards = sealedCards(worldId)?.second.orEmpty()
+        val shown = shownAt(cards, upto).map { it.first.id }.toSet()
+        cards.filter { it.fields.lifecycle == "active" && it.id !in shown }.map { it.fields.title }.distinct().sorted()
+    }
+
     /** [upto]화 기준으로 보이는 카드(유효 공개 회차와 함께)와 관계 상태다. 확정 버전이 없거나 지운 세계관이면 비어 있다. 읽기 트랜잭션 안에서 부른다. */
     private fun readerSnapshot(worldId: UUID, upto: Int): ReaderSnapshot {
+        val (revision, cards) = sealedCards(worldId) ?: return ReaderSnapshot(emptyList(), null)
+        return ReaderSnapshot(shownAt(cards, upto).sortedBy { it.first.cardId.toString() }, states.findById(worldId).orElse(null), revision.id)
+    }
+
+    /** 지우지 않은 세계관의 확정(sealed)된 현재 버전과 그 모든 카드 버전이다. 확정 버전이 없거나 지운 세계관이면 null이다. 읽기 트랜잭션 안에서 부른다. */
+    private fun sealedCards(worldId: UUID): Pair<WorldRevision, List<SettingCardVersion>>? {
         val revision = worlds.findById(worldId).orElse(null)?.takeIf { it.deletedAt == null }?.currentRevisionId?.let { revisions.findByIdAndWorldId(it, worldId) }?.takeIf { it.sealed }
-            ?: return ReaderSnapshot(emptyList(), null)
-        return ReaderSnapshot(shownAt(cardVersions.findAllById(revisionCards.findAllByIdRevisionId(revision.id).map { it.versionId }), upto)
-            .sortedBy { it.first.cardId.toString() }, states.findById(worldId).orElse(null),revision.id)
+            ?: return null
+        return revision to cardVersions.findAllById(revisionCards.findAllByIdRevisionId(revision.id).map { it.versionId })
     }
 
     /** [cards] 중 기준 회차 [basis]화에 보이는 카드와 그 유효 공개 회차의 쌍이다. 독자 위키·공개 세계관·가져오기·Fork 이어받기가 모두 이 한 곳을 거친다(DEC-53). */

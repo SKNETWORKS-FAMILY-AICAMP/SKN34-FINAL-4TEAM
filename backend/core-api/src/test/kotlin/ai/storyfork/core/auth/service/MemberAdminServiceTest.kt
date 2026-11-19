@@ -1,8 +1,11 @@
 package ai.storyfork.core.auth.service
 
 import ai.storyfork.core.auth.entity.AuthMember
+import ai.storyfork.core.auth.entity.AuthWithdrawal
 import ai.storyfork.core.auth.repository.MemberRepository
+import ai.storyfork.core.auth.repository.WithdrawalRepository
 import ai.storyfork.core.auth.service.dto.AdminCreateRequest
+import java.time.Duration
 import java.time.Instant
 import java.util.Optional
 import java.util.UUID
@@ -24,8 +27,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 
 class MemberAdminServiceTest {
     private val members = mock(MemberRepository::class.java)
+    private val withdrawals = mock(WithdrawalRepository::class.java)
     private val passwords = BCryptPasswordEncoder(4)
-    private val service = MemberAdminService(members, AuthVerificationService(members, "", ""), passwords)
+    private val service = MemberAdminService(members, AuthVerificationService(members, "", ""), passwords, withdrawals)
     private val admin = AuthMember(UUID.randomUUID(), "admin@example.test", "hash", "운영자", operator = true)
     private val reader = AuthMember(UUID.randomUUID(), "reader@example.test", "hash", "Reader",
         createdAt = Instant.parse("2026-01-02T03:04:05Z"))
@@ -111,6 +115,37 @@ class MemberAdminServiceTest {
         assertEquals(AuthException.Reason.INVALID, reason {
             service.createAdmin(admin.id.toString(), AdminCreateRequest("long@example.test", "long", "가".repeat(25)))
         })
+    }
+
+    @Test
+    fun `stats counts all members, the last 7 days of signups and pending withdrawals for an operator`() {
+        val cutoffs = mutableListOf<Instant>()
+        `when`(members.count()).thenReturn(120L)
+        `when`(members.countByCreatedAtGreaterThanEqual(any(Instant::class.java) ?: Instant.EPOCH)).thenAnswer {
+            cutoffs += it.getArgument<Instant>(0)
+            9L
+        }
+        `when`(withdrawals.countByStatus(AuthWithdrawal.PENDING)).thenReturn(3L)
+        val before = Instant.now()
+
+        val stats = service.stats(admin.id.toString())
+
+        assertEquals(120L, stats.total)
+        assertEquals(9L, stats.joinedLast7Days)
+        assertEquals(3L, stats.withdrawalPending)
+        // 가입 기준 시각은 호출 시점에서 7일 전이다.
+        val cutoff = cutoffs.single()
+        assertTrue(!cutoff.isBefore(before.minus(Duration.ofDays(7))) && !cutoff.isAfter(Instant.now().minus(Duration.ofDays(7))))
+    }
+
+    @Test
+    fun `stats is refused for non operators, restricted operators and unknown actors without counting anything`() {
+        assertEquals(AuthException.Reason.FORBIDDEN, reason { service.stats(reader.id.toString()) })
+        assertEquals(AuthException.Reason.UNAUTHENTICATED, reason { service.stats(UUID.randomUUID().toString()) })
+        admin.restricted = true
+        assertEquals(AuthException.Reason.UNAUTHENTICATED, reason { service.stats(admin.id.toString()) })
+        org.mockito.Mockito.verifyNoInteractions(withdrawals)
+        verify(members, never()).count()
     }
 
     @Test

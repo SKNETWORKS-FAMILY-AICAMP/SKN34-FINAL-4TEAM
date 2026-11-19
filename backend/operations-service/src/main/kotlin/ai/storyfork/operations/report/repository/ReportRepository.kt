@@ -11,6 +11,7 @@ interface ReportRepository : JpaRepository<ReportEntity, UUID> {
     fun findTop200ByOrderByCreatedAtDescIdDesc(): List<ReportEntity>
     fun findTop200ByStatusOrderByCreatedAtDescIdDesc(status: ReportStatus): List<ReportEntity>
     fun findTop200ByReporterIdOrWorkOwnerIdOrderByCreatedAtDescIdDesc(reporterId: UUID, workOwnerId: UUID): List<ReportEntity>
+    fun countByStatus(status: ReportStatus): Long
 }
 
 interface ReportHistoryRepository : JpaRepository<ReportHistoryEntity, UUID> {

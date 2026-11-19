@@ -33,7 +33,10 @@ enum class NoticeEventType(val code: String, val kind: NoticeKind, val summary: 
     OPERATOR_COMMENT_HIDDEN("content.operator.comment-hidden", NoticeKind.RESULT, "운영자가 내 댓글을 숨겼어요", "work"),
 
     /** 운영자가 숨긴 댓글을 다시 게시함 -> 댓글 작성자에게 처리 결과 알림(#553). target.id는 댓글이 달린 작품 id. 묶지 않는다. */
-    OPERATOR_COMMENT_RESTORED("content.operator.comment-restored", NoticeKind.RESULT, "운영자가 숨긴 내 댓글을 다시 게시했어요", "work");
+    OPERATOR_COMMENT_RESTORED("content.operator.comment-restored", NoticeKind.RESULT, "운영자가 숨긴 내 댓글을 다시 게시했어요", "work"),
+
+    /** 운영 서비스 경고 발생 -> `llm`·`jobs` 권한을 가진 운영자마다 한 건의 알림(DEC-55). 끌 수 없는 처리 결과 분류이고 target.id는 경고 id다. */
+    OPERATIONS_ALERT_RAISED("operations.alert.raised", NoticeKind.RESULT, "운영 경고가 발생했어요", "alert");
 
     companion object {
         fun fromCode(code: String): NoticeEventType? = entries.firstOrNull { it.code == code }
