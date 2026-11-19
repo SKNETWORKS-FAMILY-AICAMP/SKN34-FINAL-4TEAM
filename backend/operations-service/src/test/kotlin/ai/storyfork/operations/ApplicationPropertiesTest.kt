@@ -62,7 +62,7 @@ class ApplicationPropertiesTest {
         assertEquals("\${INTERNAL_TOKEN:}", properties.getProperty("app.operations.internal-token"))
         assertEquals("\${OPERATIONS_RABBITMQ_HOST:localhost}", properties.getProperty("spring.rabbitmq.host"))
         assertEquals("\${OPERATIONS_RABBITMQ_PORT:5672}", properties.getProperty("spring.rabbitmq.port"))
-        assertEquals("\${OPERATIONS_RABBITMQ_USER:}", properties.getProperty("spring.rabbitmq.username"))
+        assertEquals("\${OPERATIONS_RABBITMQ_USERNAME:}", properties.getProperty("spring.rabbitmq.username"))
         assertEquals("\${OPERATIONS_RABBITMQ_PASSWORD:}", properties.getProperty("spring.rabbitmq.password"))
         // A broker outage must not hold a scheduled check for the 60 second default.
         assertEquals("5s", properties.getProperty("spring.rabbitmq.connection-timeout"))

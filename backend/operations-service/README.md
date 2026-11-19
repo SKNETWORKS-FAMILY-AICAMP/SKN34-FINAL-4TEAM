@@ -25,7 +25,7 @@
 | `LANGFUSE_PUBLIC_KEY`·`LANGFUSE_SECRET_KEY` | 빈 값 — AI와 같은 Langfuse 프로젝트 키(Basic 인증). 비어 있으면 Langfuse 호출이 502라 대시보드 AI 칸은 `unavailable`이다. 서비스 토큰은 Langfuse에 보내지 않는다 |
 | `OPERATIONS_AI_BASE_URL` | `http://127.0.0.1:8000` — AI 서비스(회귀 평가 실행·누설 판정). 읽기 제한 30초 |
 | `INTERNAL_TOKEN` | 빈 값 — Core·Content·AI가 공유하는 내부 토큰(`X-Internal-Token`). AI 호출에만 쓴다 |
-| `OPERATIONS_RABBITMQ_HOST`·`_PORT`·`_USER`·`_PASSWORD` | `localhost`·`5672`·빈 값·빈 값 — Core와 같은 RabbitMQ(`storyfork.events`). 연결 제한 5초, 발행 실패는 로그만 남긴다 |
+| `OPERATIONS_RABBITMQ_HOST`·`_PORT`·`_USERNAME`·`_PASSWORD` | `localhost`·`5672`·빈 값·빈 값 — Core와 같은 RabbitMQ(`storyfork.events`). 연결 제한 5초, 발행 실패는 로그만 남긴다 |
 
 DB 자격과 서비스 토큰은 Operations 및 허용된 서버에만 주입합니다. 서비스 토큰은 JWT 서명 키·회원 Bearer·Content 인증 토큰과 재사용하지 말고 충분히 긴 무작위 값(32자 이상 권장)을 생성합니다. 로그·스크린샷·브라우저 번들·`VITE_*`·build ARG·저장소에 넣지 않습니다. 외부 네트워크에서 사용할 때 TLS와 신뢰 서버 경계를 별도 마련해야 하며, loopback 바깥 바인딩이나 배포는 이번 범위가 아닙니다.
 
