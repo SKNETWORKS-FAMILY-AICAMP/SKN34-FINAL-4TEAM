@@ -18,6 +18,16 @@ interface EpisodeCurrentRepository : JpaRepository<EpisodeCurrentEntity, String>
     """)
     fun lastNumber(@Param("workId") workId: String): Int
 
+    /**
+     * [workId]의 [after]화 뒤 회차의 `[현재 초안 제목, 발행 버전 제목]` 행이다(회차 번호순, 어느 쪽이든 없으면 null). 지운 회차는 뷰가 뺀다.
+     * 본문은 읽지 않고 쿼리 한 번이다. 운영 정보 누설 비교 기준(DEC-55)이 쓴다.
+     */
+    @Query("""select d.title, v.title from EpisodeCurrentEntity c
+        left join EpisodeDraftEntity d on d.episodeId = c.id
+        left join EpisodeVersionEntity v on v.id = c.publishedVersionId
+        where c.workId = :workId and c.sequence > :after order by c.sequence""")
+    fun titlesAfter(@Param("workId") workId: String, @Param("after") after: Int): List<Array<Any?>>
+
     fun findAllByWorkIdOrderBySequence(workId: String): List<EpisodeCurrentEntity>
     fun findByWorkIdAndSequence(workId: String, sequence: Int): EpisodeCurrentEntity?
 }
