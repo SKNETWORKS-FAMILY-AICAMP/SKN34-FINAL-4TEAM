@@ -44,7 +44,7 @@ prod는 소스 빌드 이미지, dev는 CI가 게시한 `:develop` 이미지를 
 
 콘텐츠 정본·콘텐츠 인가·채택·발행은 목표 콘텐츠 서비스, 회원·인증·크레딧·회원 알림은 Core, 운영 판단은 운영 서비스가 소유하며 AI가 직접 확정하지 않습니다. 현재 허용 문맥 구성·생성 작업 기록·제안 채택은 `core-api`의 콘텐츠 코드가 담당합니다. 향후에도 문서·원고와 그래프 관계는 같은 기준 버전·허용 범위를 따라야 하며 조회 경로는 후속 설계합니다. 장애를 정상 결과로 숨기는 fallback이나 Agent별 서버는 추가하지 않습니다.
 
-LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화면이 그 Public API로 통합하며 Spring Boot로 전체 기능을 재구현하지 않습니다([계약](../../docs/design/operations-llmops-contract.md)). AI 런타임은 요청마다 trace 하나를 남깁니다: 요청 루트 관측 하나가 요청 전체(SSE는 `done`까지)를 덮고, 루트와 모든 하위 observation에 회원 UUID·세션·기능 태그(`feature:<키>`)·metadata(`request_id`·`work_id`·`fork`)가 붙으며 상태(`success|failed|timeout`)는 루트의 metadata `status`입니다. 모델 호출은 generation(모델·사용량·프롬프트 버전)이고 모델 지시문은 Langfuse 프롬프트(`production` 버전, 이름 `<기능>.<용도>`)를 읽어 씁니다. `LANGFUSE_PUBLIC_KEY`·`LANGFUSE_SECRET_KEY`가 없으면 추적을 끄고 코드의 지시문을 씁니다.
+LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화면이 그 Public API로 통합하며 Spring Boot로 전체 기능을 재구현하지 않습니다([계약](../../docs/design/operations-llmops-contract.md)). AI 런타임은 요청마다 trace 하나를 남깁니다: 요청 루트 관측 하나가 요청 전체(SSE는 `done`까지)를 덮고, 루트와 모든 하위 observation에 회원 UUID·세션·기능 태그(`feature:<키>`)·metadata(`request_id`·`work_id`·`fork`)가 붙으며 상태(`success|failed|timeout`)는 루트의 metadata `status`입니다. 모델 호출은 generation(모델·사용량·프롬프트 버전)이고 모델 지시문은 Langfuse 프롬프트(`production` 버전, 이름 `<기능>.<용도>`)를 읽어 씁니다. `LANGFUSE_PUBLIC_KEY`·`LANGFUSE_SECRET_KEY`가 없으면 추적을 끄고 코드의 지시문을 씁니다. 컨테이너를 종료(SIGTERM)할 때는 아직 보내지 않은 추적을 먼저 보내고 끝납니다.
 구현 기준은 [AGENTS.md](AGENTS.md), [Agent 구현 경계](docs/agent-structure.md)를 따릅니다.
 
 ## 초기 세계관 추출 (5-B)

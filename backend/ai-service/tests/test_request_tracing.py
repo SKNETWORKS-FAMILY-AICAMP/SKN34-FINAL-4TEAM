@@ -1,11 +1,14 @@
-"""app/main.py의 모든 AI Router는 요청 하나를 trace 하나로 남긴다(DEC-55): 기능 태그·상태 태그·회원·작업 식별."""
+"""app/main.py의 모든 AI Router는 요청 하나를 trace 하나로 남긴다(DEC-55): 기능 태그·루트 상태·회원·작업 식별. 앱이 끝날 때는 남은 span을 보낸다."""
 
+import asyncio
+from contextlib import asynccontextmanager
 from types import SimpleNamespace
 from uuid import UUID
 
 import pytest
 from fastapi import HTTPException
 
+from app import tracing
 from app.generation import router as generation
 from app.generation.errors import ProviderFailure
 from app.generation.models import GenerationInput
@@ -15,6 +18,7 @@ from app.initial_world.errors import ExtractionFailure
 from app.manuscript_review import router as manuscript_review
 from app.manuscript_review.errors import ReviewFailure
 from app.manuscript_review.models import ReviewRequest
+from app.orchestration import service as orchestration
 from app.rating import router as rating
 from app.rating.errors import RatingFailure
 from app.rating.models import RatingRequest
@@ -151,3 +155,41 @@ def test_every_traced_route_declares_the_optional_author_bearer_header():
     for path in TRACED_PATHS:
         header = next((p for p in spec['paths'][path]['post'].get('parameters', []) if p['name'] == 'x-user-authorization'), None)
         assert header is not None and header['in'] == 'header' and not header['required'], path
+
+
+def test_closing_the_app_sends_the_spans_that_are_still_waiting_in_the_batch(monkeypatch):
+    """SDK의 atexit 전송은 uvicorn의 SIGTERM 종료에서 돌지 않는다(이유는 app/main.py lifespan). 앱 종료가 직접 남은 span을 보낸다."""
+    flushed = []
+    monkeypatch.delenv('AI_CHECKPOINT_DATABASE_URL', raising=False)
+    monkeypatch.setattr(tracing, 'client', lambda: SimpleNamespace(flush=lambda: flushed.append(True)))
+    application = create_app()
+
+    async def serve():
+        async with application.router.lifespan_context(application):
+            assert flushed == []  # 요청을 받는 동안에는 보내지 않는다(SDK 주기에 맡긴다)
+
+    asyncio.run(serve())
+
+    assert flushed == [True]
+
+
+def test_a_failure_while_closing_still_sends_the_waiting_spans(monkeypatch):
+    flushed = []
+    monkeypatch.setattr(tracing, 'client', lambda: SimpleNamespace(flush=lambda: flushed.append(True)))
+
+    @asynccontextmanager
+    async def checkpoint_connection_fails_to_close(_app):
+        yield
+        raise RuntimeError('체크포인트 연결 종료 실패')
+
+    monkeypatch.setattr(orchestration, 'lifespan', checkpoint_connection_fails_to_close)
+    application = create_app()
+
+    async def serve():
+        async with application.router.lifespan_context(application):
+            pass
+
+    with pytest.raises(RuntimeError):
+        asyncio.run(serve())
+
+    assert flushed == [True]
