@@ -20,6 +20,8 @@
 
 > **V11(신규 확장 샘플 진행):** `expanded_seed_progress`를 추가한다. 신규 세계관과 동일 PG 트랜잭션에서 표식을 만들고 입력 hash·다음 청크·완료를 기록하며 기존 행은 건드리지 않는다. V1~V11 11건, 테이블은 21개다. 적재는 기본 켬이다(사용자 결정 2026-11-18, 시연용).
 
+> **V12(설정집 AI 검토 결과, #555):** `world_review_result`를 추가한다. 세계관마다 마지막 검토 한 행(`world_id` PK·FK, `result jsonb`, `reviewed_at timestamptz`)이고 성공한 검토가 같은 행을 덮어쓴다. AI 호출·응답 검증이 실패하면 저장하지 않아 이전 결과가 남는다. 기존 행·기존 SQL 이력·체크섬은 바꾸지 않는다. V1~V12 12건, 테이블은 22개다. [검토 계약](../../../../../../../../docs/design/world-review-contract.md#검토-결과-저장-2026-11-19-사용자-결정).
+
 ## 실행 계약
 
 > **Core→Content 추출 후 현재 계약:** 명시 main은 Content 이미지의 `ai.storyfork.content.world.migration.WorldStudioMigration`이며 기존 같은 DB를 `DATABASE_URL/USER/PASSWORD`로 받는다. 서버는 `contentDataSource`와 studio-only EntityManager/TransactionManager로 validate만 하며 Auth를 스캔하지 않는다. CD는 fresh 전환 승인 후 ingress/구 writer 중지 → opt-in migration → 새 앱 시작 순서이며 실패 시 ingress를 멈춘 채 자동 rollback하지 않는다. 로컬은 선택 순수 `unitTest`만 허용하고 아래 PostgreSQL/통합 명령은 hosted CI 전용이다. **아래 Core 패키지·기본 persistence unit·통합 로컬 실행 설명은 추출 전 기록으로 사용하지 않는다.** 최신 [Content 안내](../../../../../../README.md)와 [배포 계약](../../../../../../../../docs/deployment/worldstudio-v1-rollout.md)을 우선한다.

@@ -292,6 +292,99 @@ describe('설정집 검토 단계 결과(#479)', () => {
   })
 })
 
+describe('World 단계 결과(#546)', () => {
+  const done = 'event: done\ndata: {"status":"completed","steps":[],"missingInputs":[]}\n\n'
+  const BAD = '세계관 결과 형식을 확인할 수 없어요.'
+  const enrichResult = {
+    worldId: 'wd1', revision: 8, model: 'm', note: '북문 규칙에 맞췄어요.',
+    fixes: [
+      { cardId: 'c1', cardTitle: '카엘', target: 'soul', episode: null, text: '말수가 적다.' },
+      { cardId: 'c1', cardTitle: '카엘', target: 'episode', episode: 3, text: '3화의 비밀' },
+    ],
+  }
+  const run = async (step: unknown) => {
+    const events: ChatEvent[] = []
+    await new HttpWritingChatRepository(vi.fn().mockResolvedValue(sse(`event: step\ndata: ${JSON.stringify(step)}\n\n`, done))).send('w1', 't1', input, (e) => events.push(e))
+    return events.flatMap((e) => (e.type === 'step' ? [e.step] : []))[0]
+  }
+
+  it('check는 설정집 검토와 같은 결과를 지적 종류·메시지로 읽는다', async () => {
+    const step = await run({ feature: 'world', task: 'check', status: 'completed', result: { reviewedCards: 2, model: 'm',
+      findings: [{ cardIds: ['c1', 'c2'], kind: 'contradiction', message: '나이가 어긋나요.', fix: null }] } })
+    expect(step).toMatchObject({ feature: 'world', task: 'check', status: 'completed', world: { task: 'check', reviewedCards: 2, findings: [{ kind: 'contradiction', message: '나이가 어긋나요.' }] } })
+    expect(stepText(step)).toBe('설정 충돌 · 나이가 어긋나요.')
+  })
+
+  it('enrich는 수정안(카드·칸·새 글)과 note를 읽고 승인·반영 결과를 그대로 둔다', async () => {
+    const step = await run({ feature: 'world', task: 'enrich', status: 'completed', approval: 'approved', applied: { episode: 0, revision: 9 }, result: enrichResult })
+    expect(step.world).toEqual({ task: 'enrich', note: '북문 규칙에 맞췄어요.', fixes: [
+      { cardId: 'c1', cardTitle: '카엘', target: 'soul', episode: null, text: '말수가 적다.' },
+      { cardId: 'c1', cardTitle: '카엘', target: 'episode', episode: 3, text: '3화의 비밀' },
+    ] })
+    expect(step).toMatchObject({ approval: 'approved', applied: { episode: 0, revision: 9 } })
+  })
+
+  it('episode 키가 없는 수정안은 null로 읽는다', async () => {
+    const step = await run({ feature: 'world', task: 'enrich', status: 'completed',
+      result: { ...enrichResult, fixes: [{ cardId: 'c1', cardTitle: '카엘', target: 'body', text: '새 본문' }] } })
+    expect(step.world).toMatchObject({ task: 'enrich', fixes: [{ target: 'body', episode: null }] })
+  })
+
+  it('impact는 영향 목록·충돌·확인 못 함을 읽는다', async () => {
+    const result = { model: 'm', conflicts: ['두 카드의 나이가 달라요.'], gaps: ['관계 기록이 없어요.'], affected: [
+      { kind: 'card', ref: 'c1', title: '카엘', reason: '나이 설정이 어긋나요.', certainty: 'confirmed' },
+      { kind: 'scene', ref: 'p1', title: '성문 장면', reason: '카엘이 등장해요.', certainty: 'inferred' },
+    ] }
+    const step = await run({ feature: 'world', task: 'impact', status: 'completed', result })
+    expect(step.world).toEqual({ task: 'impact', conflicts: result.conflicts, gaps: result.gaps, affected: [ // 영향 종류·참조 id(kind·ref)는 화면이 쓰지 않아 받지 않는다
+      { title: '카엘', reason: '나이 설정이 어긋나요.', certainty: 'confirmed' },
+      { title: '성문 장면', reason: '카엘이 등장해요.', certainty: 'inferred' },
+    ] })
+    expect(stepText(step)).toBe('[확정] 카엘 · 나이 설정이 어긋나요.\n[추정] 성문 장면 · 카엘이 등장해요.\n충돌: 두 카드의 나이가 달라요.\n확인 못 함: 관계 기록이 없어요.')
+  })
+
+  it.each([
+    ['check: 지적 종류가 계약에 없다', 'check', { reviewedCards: 1, findings: [{ kind: 'unknown', message: 'x' }] }],
+    ['enrich: 칸 종류가 계약에 없다', 'enrich', { ...enrichResult, fixes: [{ cardId: 'c1', cardTitle: '카엘', target: 'memory', episode: null, text: 'x' }] }],
+    ['enrich: 새 글이 없다', 'enrich', { ...enrichResult, fixes: [{ cardId: 'c1', cardTitle: '카엘', target: 'soul', episode: null }] }],
+    ['enrich: 회차가 숫자가 아니다', 'enrich', { ...enrichResult, fixes: [{ cardId: 'c1', cardTitle: '카엘', target: 'episode', episode: '3', text: 'x' }] }],
+    ['impact: 확신도가 계약에 없다', 'impact', { affected: [{ kind: 'card', ref: 'c1', title: '카엘', reason: 'r', certainty: 'maybe' }], conflicts: [], gaps: [] }],
+    ['impact: 충돌 목록이 없다', 'impact', { affected: [], gaps: [] }],
+    ['결과가 객체가 아니다', 'enrich', '제안이에요'],
+    ['task와 다른 작업의 결과다', 'impact', enrichResult],
+  ])('형식이 어긋난 결과(%s)는 그 단계만 실패로 보인다', async (_name, task, result) => {
+    const step = await run({ feature: 'world', task, status: 'completed', result })
+    expect(step).toMatchObject({ feature: 'world', task, status: 'failed', error: BAD })
+    expect(step.world).toBeUndefined()
+  })
+
+  it('task가 없거나 world의 작업이 아닌 완료 단계는 어느 결과인지 알 수 없어 그 단계만 실패로 보인다', async () => {
+    expect(await run({ feature: 'world', status: 'completed', result: enrichResult })).toMatchObject({ status: 'failed', error: BAD })
+    expect(await run({ feature: 'world', task: 'draft', status: 'completed', result: enrichResult })).toMatchObject({ status: 'failed', error: BAD })
+  })
+
+  it('결과가 없는 시작 전 단계는 task만 두고, 서버가 실패로 보낸 단계는 결과가 어긋나도 서버 사유를 지킨다', async () => {
+    expect(await run({ feature: 'world', task: 'enrich', status: 'not_started' })).toEqual({ feature: 'world', task: 'enrich', status: 'not_started' })
+    expect(await run({ feature: 'world', task: 'check', status: 'failed', error: '연결된 세계관이 없어요.' }))
+      .toEqual({ feature: 'world', task: 'check', status: 'failed', error: '연결된 세계관이 없어요.' })
+    expect(await run({ feature: 'world', task: 'enrich', status: 'failed', error: '읽은 초안이 제안 때와 달라요.', result: { fixes: '깨짐' } }))
+      .toMatchObject({ status: 'failed', error: '읽은 초안이 제안 때와 달라요.' })
+  })
+
+  it('저장된 대화의 승인 대기(awaitingApproval: world)와 world 단계, 옛 대화 기록의 world_review 단계를 함께 읽는다', async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ threadId: 't1', title: '대화', turns: [
+      { request: '카엘 설정을 자세히 써 줘', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'world',
+        steps: [{ feature: 'world', task: 'enrich', status: 'completed', result: enrichResult }] } },
+      { request: '설정집 검토해 줘', reply: { status: 'completed', missingInputs: [],
+        steps: [{ feature: 'world_review', status: 'completed', result: { reviewedCards: 1, findings: [] } }] } },
+    ] }))
+    const { turns } = await new HttpWritingChatRepository(fetcher).history('w1', 't1')
+    expect(turns[0].reply?.awaitingApproval).toBe('world')
+    expect(turns[0].reply?.steps[0]).toMatchObject({ feature: 'world', task: 'enrich', world: { task: 'enrich' } })
+    expect(turns[1].reply?.steps[0].worldReview).toEqual({ reviewedCards: 1, findings: [] })
+  })
+})
+
 describe('원고 검수 단계 결과(#59)', () => {
   const finding = (extra: Record<string, unknown> = {}) => ({
     category: 'spelling', quote: '웃엇다', reason: '받침 오류', status: 'confirmed', evidenceRefs: [], suggestion: '웃었다', start: 3, end: 6, ...extra,

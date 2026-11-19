@@ -47,6 +47,7 @@ class WorkMcpTools(
     private val forks: ForkService,
     private val contexts: ContextService,
     private val proposals: ProposalService,
+    private val changeNotice: McpChangeNotice,
 ) {
     @McpTool(
         name = "work_public_list",
@@ -75,7 +76,7 @@ class WorkMcpTools(
     fun create(
         context: McpTransportContext,
         @McpToolParam(description = "작품 생성 입력(title 필수·120자 이하, summary 2000자 이하, 선택: creationType·genres·hashtags·rightsConfirmed)") data: CreateWorkRequest,
-    ): WorkResponse = mcpTool { service.create(context.requireCaller().memberId, data.validated()) }
+    ): WorkResponse = mcpTool { service.create(context.requireCaller().memberId, data.validated()).also { changeNotice.work(context, it.id) } }
 
     @McpTool(
         name = "work_read",
@@ -93,21 +94,21 @@ class WorkMcpTools(
         context: McpTransportContext,
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "작품 수정 입력(title 필수·120자 이하, summary 2000자 이하, revision 필수: 읽은 작품의 revision, 선택: genres·hashtags — 생략하면 기존 값 유지)") data: UpdateWorkRequest,
-    ): WorkResponse = mcpTool { service.update(id, context.requireCaller().memberId, data.validated()) }
+    ): WorkResponse = mcpTool { service.update(id, context.requireCaller().memberId, data.validated()).also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "work_delete",
         description = "작품 삭제(DELETE /api/v1/works/{id}). 소프트 삭제이며 원작·Fork 모두 소유자만 가능하다. 없거나 남의 작품은 404다. 확인 없이 즉시 반영된다.",
     )
     fun delete(context: McpTransportContext, @McpToolParam(description = "작품 ID") id: String) =
-        mcpTool { service.delete(id, context.requireCaller().memberId) }
+        mcpTool { service.delete(id, context.requireCaller().memberId).also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "work_stop_fork_publication",
         description = "Fork 작품 공개 중단(DELETE /api/v1/works/{id}/fork-publication). Fork 소유자만 가능하며 발행된 회차·기록은 보존하고 대기 중인 예약 발행은 취소한다. Fork가 아니면 404다.",
     )
     fun stopForkPublication(context: McpTransportContext, @McpToolParam(description = "Fork 작품 ID") id: String) =
-        mcpTool { service.stopForkPublication(id, context.requireCaller().memberId) }
+        mcpTool { service.stopForkPublication(id, context.requireCaller().memberId).also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "work_history",
@@ -125,7 +126,7 @@ class WorkMcpTools(
         context: McpTransportContext,
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "정책 입력(revision·allowFork·allowForkPublication 필수, 선택: episodeScope all|from|selected·fromEpisode·episodes)") data: PolicyRequest,
-    ): WorkResponse = mcpTool { service.policy(id, context.requireCaller().memberId, data.validated()) }
+    ): WorkResponse = mcpTool { service.policy(id, context.requireCaller().memberId, data.validated()).also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "work_public_ranking",
@@ -162,7 +163,7 @@ class WorkMcpTools(
         context: McpTransportContext,
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "연결할 세계관(WorldStudio) UUID. 생략하면 연결을 해제한다", required = false) worldId: String?,
-    ): WorkWorldLinkResponse = mcpTool { worldLinks.link(id, context.requireCaller().memberId, uuidOrNull(worldId)) }
+    ): WorkWorldLinkResponse = mcpTool { worldLinks.link(id, context.requireCaller().memberId, uuidOrNull(worldId)).also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "work_public_world_cards",
@@ -202,7 +203,7 @@ class WorkMcpTools(
         @McpToolParam(description = NOTICE_INPUT) data: WorkNoticeRequest,
     ): WorkNoticeResponse = mcpTool {
         val caller = context.requireCaller()
-        notices.create(id, caller.memberId, caller.operator, data)
+        notices.create(id, caller.memberId, caller.operator, data).also { changeNotice.workToOwner(id) }
     }
 
     @McpTool(
@@ -216,7 +217,7 @@ class WorkMcpTools(
         @McpToolParam(description = NOTICE_INPUT) data: WorkNoticeRequest,
     ): WorkNoticeResponse = mcpTool {
         val caller = context.requireCaller()
-        notices.update(id, noticeId, caller.memberId, caller.operator, data)
+        notices.update(id, noticeId, caller.memberId, caller.operator, data).also { changeNotice.workToOwner(id) }
     }
 
     @McpTool(
@@ -229,7 +230,7 @@ class WorkMcpTools(
         @McpToolParam(description = "소식 ID") noticeId: String,
     ) = mcpTool {
         val caller = context.requireCaller()
-        notices.delete(id, noticeId, caller.memberId, caller.operator)
+        notices.delete(id, noticeId, caller.memberId, caller.operator).also { changeNotice.workToOwner(id) }
     }
 
     @McpTool(
@@ -240,7 +241,7 @@ class WorkMcpTools(
         context: McpTransportContext,
         @McpToolParam(description = "원작 ID") id: String,
         @McpToolParam(description = "Fork 입력(episode: 기준 회차 1 이상, title 필수·120자 이하, summary·direction 2000자 이하)") data: ForkRequest,
-    ): WorkResponse = mcpTool { forks.create(id, context.requireCaller().memberId, data.validated()) }
+    ): WorkResponse = mcpTool { forks.create(id, context.requireCaller().memberId, data.validated()).also { changeNotice.work(context, it.id) } }
 
     @McpTool(
         name = "work_fork_world_change",
@@ -250,7 +251,7 @@ class WorkMcpTools(
         context: McpTransportContext,
         @McpToolParam(description = "Fork 작품 ID") id: String,
         @McpToolParam(description = "변경 선택 입력(revision: 읽은 세계관의 revision, changeId, decision: apply|reject)") data: ChangeRequest,
-    ): WorldResponse = mcpTool { forks.decideChange(id, context.requireCaller().memberId, data.validated()) }
+    ): WorldResponse = mcpTool { forks.decideChange(id, context.requireCaller().memberId, data.validated()).also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "work_context_read",
@@ -296,7 +297,7 @@ class WorkMcpTools(
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "제안 ID") proposalId: String,
         @McpToolParam(description = "반영 입력(revision: 제안 응답의 revision. 현재 작품 revision과 같아야 한다)") data: AcceptProposalRequest,
-    ): DraftResponse = mcpTool { proposals.accept(id, proposalId, context.requireCaller().memberId, data.validated().revision) }
+    ): DraftResponse = mcpTool { proposals.accept(id, proposalId, context.requireCaller().memberId, data.validated().revision).also { changeNotice.work(context, id) } }
 
     /** 컨트롤러의 `@Valid @ModelAttribute`와 같다. 선택 인자의 기본값은 빈 문자열이다. */
     private fun contextRequest(episode: Int, query: String?, character: String?) = ContextRequest(episode, query.orEmpty(), character.orEmpty()).validated()

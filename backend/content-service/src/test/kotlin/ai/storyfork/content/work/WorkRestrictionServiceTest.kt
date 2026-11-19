@@ -5,6 +5,8 @@ import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.episode.repository.*
 import ai.storyfork.content.episode_version.repository.*
 import ai.storyfork.content.fork.repository.*
+import ai.storyfork.content.interest.entity.ContentEventOutboxEntity
+import ai.storyfork.content.interest.repository.ContentEventOutboxRepository
 import ai.storyfork.content.publication.entity.WorkPublicationHistoryEntity
 import ai.storyfork.content.publication.repository.WorkPublicationHistoryRepository
 import ai.storyfork.content.work.entity.*
@@ -21,29 +23,34 @@ import org.mockito.Mockito.*
 class WorkRestrictionServiceTest {
     private val works = mock(WorkRepository::class.java)
     private val nicknames = mock(CoreNicknameService::class.java)
+    private val outbox = mock(ContentEventOutboxRepository::class.java)
     private val row = WorkEntity(id = "work", ownerId = "author", title = "작품")
+
+    /** 저장소에 건넨 outbox 행이다(같은 트랜잭션에서 쓰는 운영자 조치 알림 사건). */
+    private fun saved() = mockingDetails(outbox).invocations.filter { it.method.name == "save" }.map { it.arguments[0] as ContentEventOutboxEntity }
 
     @Test fun `internal read returns owner title and restriction and 404 for missing work`() {
         `when`(works.findById("work")).thenReturn(Optional.of(row))
-        assertEquals(InternalWorkResponse("work", "author", "작품", false), InternalWorkService(works, nicknames).read("work"))
+        assertEquals(InternalWorkResponse("work", "author", "작품", false), InternalWorkService(works, nicknames, outbox).read("work"))
 
         `when`(works.findById("none")).thenReturn(Optional.empty())
-        assertEquals(404, assertThrows(ContentFailure::class.java) { InternalWorkService(works, nicknames).read("none") }.status)
+        assertEquals(404, assertThrows(ContentFailure::class.java) { InternalWorkService(works, nicknames, outbox).read("none") }.status)
     }
 
     @Test fun `operations cannot read or restrict a soft deleted work`() {
         val gone = WorkEntity(id = "gone", ownerId = "author", title = "삭제", deletedAt = java.time.Instant.now())
         `when`(works.findById("gone")).thenReturn(Optional.of(gone))
         `when`(works.lockAll(listOf("gone"))).thenReturn(listOf(gone))
-        val service = InternalWorkService(works, nicknames)
+        val service = InternalWorkService(works, nicknames, outbox)
         assertEquals(404, assertThrows(ContentFailure::class.java) { service.read("gone") }.status)
         assertEquals(404, assertThrows(ContentFailure::class.java) { service.restrict("gone", true) }.status)
         assertFalse(gone.restricted)
+        assertEquals(0, saved().size)
     }
 
     @Test fun `restrict and unrestrict lock the work row and return the new flag`() {
         `when`(works.lockAll(listOf("work"))).thenReturn(listOf(row))
-        val service = InternalWorkService(works, nicknames)
+        val service = InternalWorkService(works, nicknames, outbox)
 
         assertEquals(InternalWorkResponse("work", "author", "작품", true), service.restrict("work", true))
         assertTrue(row.restricted)
@@ -52,6 +59,24 @@ class WorkRestrictionServiceTest {
 
         `when`(works.lockAll(listOf("none"))).thenReturn(emptyList())
         assertEquals(404, assertThrows(ContentFailure::class.java) { service.restrict("none", true) }.status)
+    }
+
+    @Test fun `restrict and unrestrict record one operator event for the owner only when the flag really changes`() {
+        `when`(works.lockAll(listOf("work"))).thenReturn(listOf(row))
+        val service = InternalWorkService(works, nicknames, outbox)
+
+        service.restrict("work", false) // 이미 해제 상태
+        service.restrict("work", true)
+        service.restrict("work", true) // 멱등 재요청
+        service.restrict("work", false)
+        service.restrict("work", false)
+
+        val events = saved()
+        assertEquals(listOf("content.operator.work-restricted", "content.operator.work-unrestricted"), events.map { it.type })
+        assertEquals(listOf("author", "author"), events.map { it.recipientId })
+        assertEquals(listOf("work", "work"), events.map { it.targetType })
+        assertEquals(listOf("work", "work"), events.map { it.targetId })
+        assertEquals(2, events.map { it.id }.toSet().size)
     }
 
     @Test fun `restricted public work is hidden from public access but still readable by its owner`() {

@@ -20,6 +20,7 @@ import ai.storyfork.content.publication.service.dto.PublishedEpisodeListResponse
 import ai.storyfork.content.publication.service.dto.PublishedEpisodeResponse
 import ai.storyfork.content.work.entity.WorkEntity
 import ai.storyfork.content.work.repository.WorkRepository
+import ai.storyfork.content.mcp.McpChangeNotice
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.WorkService
 import ai.storyfork.content.work.service.WorkWorldService
@@ -78,8 +79,8 @@ class WorldCardLinkExitsTest {
         mock(CoreNicknameService::class.java), mock(AttachmentStorageClient::class.java), works, access, mock(ContentImageRepository::class.java), publication, SearchCandidates(null), manager)
     private val workWorlds = WorkWorldService(access, works, publication, mock(StudioWorldRepository::class.java), publicWorlds, references, TransactionTemplate(manager))
     private val specs = SyncMcpAnnotationProviders.statelessToolSpecifications(listOf<Any>(
-        WorkMcpTools(mock(WorkService::class.java), workWorlds, mock(WorkNoticeService::class.java), mock(ForkService::class.java), mock(ContextService::class.java), mock(ProposalService::class.java)),
-        WorldStudioMcpTools(mock(WorldStudioService::class.java), workWorlds, publicWorlds, mock(InitialWorldAnalysisService::class.java), mock(InitialWorldApplicationService::class.java)),
+        WorkMcpTools(mock(WorkService::class.java), workWorlds, mock(WorkNoticeService::class.java), mock(ForkService::class.java), mock(ContextService::class.java), mock(ProposalService::class.java), mock(McpChangeNotice::class.java)),
+        WorldStudioMcpTools(mock(WorldStudioService::class.java), workWorlds, publicWorlds, mock(InitialWorldAnalysisService::class.java), mock(InitialWorldApplicationService::class.java), mock(McpChangeNotice::class.java)),
     ))
 
     @AfterEach fun clear() = SecurityContextHolder.clearContext()
