@@ -5,6 +5,9 @@ type RecordIdentity = { id: string; createdAt: string; updatedAt: string }
 export type OperationsNotice = NoticeInput & RecordIdentity
 export type OperationsEvent = EventInput & RecordIdentity
 
+/** 운영 목록 응답. page는 0부터이고, unavailable은 읽지 못한 출처 이름입니다(읽은 출처의 기록은 그대로 보입니다). */
+export type OperationsPage<T> = { items: T[]; page: number; size: number; total: number; unavailable: string[] }
+
 /** 알려진 업무 입력·대상 오류만 화면에 그대로 안내합니다. 외부 예외 내용은 노출하지 않습니다. */
 export class OperationsError extends Error {}
 

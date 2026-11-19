@@ -1,0 +1,37 @@
+import type { JobRunQuery, ScheduleInput } from '../entities/jobMonitor'
+import { OperationsError } from '../entities/operations'
+import type { JobMonitorRepository } from '../repositories/JobMonitorRepository'
+
+/** 비면 빈 객체이고, JSON 객체가 아니면(배열·null·숫자 포함) 입력 오류입니다. */
+function parseParams(text: string): Record<string, unknown> {
+  if (!text.trim()) return {}
+  const fail = () => new OperationsError('매개변수는 JSON 객체로 입력해 주세요. 예: {}')
+  let value: unknown
+  try { value = JSON.parse(text) } catch { throw fail() }
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) throw fail()
+  return Object.fromEntries(Object.entries(value))
+}
+const required = (...values: string[]) => { if (values.some((value) => !value.trim())) throw new OperationsError('작업 종류와 cron 식을 입력해 주세요.') }
+
+/** 작업 감시·정기 작업 일정(DEC-55). 실행은 소유 서비스가 하고, 여기서는 감시·재실행 요청과 일정 입력만 다룹니다. */
+export class JobMonitorUseCase {
+  private readonly repository: JobMonitorRepository
+  constructor(repository: JobMonitorRepository) { this.repository = repository }
+
+  runs(query: JobRunQuery) { return this.repository.runs(query) }
+  retry(id: string) { return this.repository.retry(id) }
+  schedules() { return this.repository.schedules() }
+  cancelSchedule(id: string) { return this.repository.cancelSchedule(id) }
+
+  async createSchedule(kind: string, cron: string, enabled: boolean, params: string) {
+    required(kind, cron)
+    const input: ScheduleInput = { kind: kind.trim(), cron: cron.trim(), enabled, params: parseParams(params) }
+    return this.repository.createSchedule(input)
+  }
+
+  /** 종류는 바꿀 수 없어 cron·사용 여부·매개변수만 보냅니다. */
+  async updateSchedule(id: string, cron: string, enabled: boolean, params: string) {
+    required(id, cron)
+    return this.repository.updateSchedule(id, { cron: cron.trim(), enabled, params: parseParams(params) })
+  }
+}

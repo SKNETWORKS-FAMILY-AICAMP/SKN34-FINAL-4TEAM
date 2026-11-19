@@ -52,9 +52,9 @@ const supportInquiry = z.object({
   id: z.string(), memberId: z.string(), category: z.string(), title: z.string(), body: z.string(), status: z.enum(['WAITING', 'ANSWERED']),
   createdAt: instant, updatedAt: instant, replies: z.array(supportReply),
 })
-const items = <T extends z.ZodType>(item: T) => z.object({ items: z.array(item) }).transform((v) => v.items)
+export const items = <T extends z.ZodType>(item: T) => z.object({ items: z.array(item) }).transform((v) => v.items)
 
-const MESSAGES: Record<number, string> = {
+export const MESSAGES: Record<number, string> = {
   400: '입력값을 확인해 주세요.',
   403: '이 작업을 할 권한이 없어요.',
   404: '대상을 찾을 수 없어요. 목록을 새로고침해 주세요.',
@@ -90,8 +90,8 @@ export async function send(fetcher: typeof fetch | undefined, path: string, meth
   }
   return response
 }
-export async function read<T>(fetcher: typeof fetch | undefined, path: string, schema: z.ZodType<T>, serverMessages: readonly number[] = []): Promise<T> {
-  const parsed = schema.safeParse(await (await send(fetcher, path, 'GET', undefined, MESSAGES, serverMessages)).json().catch(() => undefined))
+export async function read<T>(fetcher: typeof fetch | undefined, path: string, schema: z.ZodType<T>, serverMessages: readonly number[] = [], messages: Record<number, string> = MESSAGES): Promise<T> {
+  const parsed = schema.safeParse(await (await send(fetcher, path, 'GET', undefined, messages, serverMessages)).json().catch(() => undefined))
   if (!parsed.success) throw new OperationsError('서버 응답 형식을 확인할 수 없어요.')
   return parsed.data
 }
