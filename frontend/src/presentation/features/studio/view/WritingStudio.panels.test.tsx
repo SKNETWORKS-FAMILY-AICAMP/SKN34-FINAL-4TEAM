@@ -2,9 +2,12 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
+import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
+import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
+import type { WritingChatUseCase } from '../../../../domain/usecases/WritingChatUseCase'
 import { WritingStudio } from './WritingStudio'
 
 const model = vi.hoisted(() => ({
@@ -34,7 +37,14 @@ vi.mock('./EpisodeImagePanel', () => ({
 }))
 
 const original = { ...model, active: model.active }
-afterEach(() => { cleanup(); vi.clearAllMocks(); Object.assign(model, original) })
+beforeEach(() => {
+  vi.spyOn(appContainer.resolve<EpisodeUseCase>('episodeUseCase'), 'workSettings').mockResolvedValue({
+    current: { revision: 0, writingMode: null, changedAt: null }, history: [],
+    worldUpdateMode: 'manual', proofreadingMode: 'review', autoserialState: 'off',
+  })
+  vi.spyOn(appContainer.resolve<WritingChatUseCase>('writingChatUseCase'), 'sessions').mockResolvedValue([])
+})
+afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.clearAllMocks(); Object.assign(model, original) })
 const exportProps = () => JSON.parse(screen.getByTestId('export-panel').textContent!)
 const imageProps = () => JSON.parse(screen.getByTestId('image-panel').dataset.props!)
 const renderStudio = () => render(<Provider store={createAppStore()}><MemoryRouter><WritingStudio id="work-id" /></MemoryRouter></Provider>)
@@ -87,26 +97,26 @@ it('원작 기준 회차에는 회차 이미지 패널을 열지 않는다', () 
 
 const follows = (a: Element, b: Element) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
 
-it('왼쪽 회차 목록·버전 그래프, 가운데 원고, 오른쪽 AI 채팅의 3단 순서로 놓는다', () => {
+it('왼쪽 회차 목록·버전 그래프, 가운데 원고, 오른쪽 AI 채팅의 3단 순서로 놓는다', async () => {
   renderStudio()
   const list = screen.getByRole('navigation', { name: '회차 목록' })
   const graph = screen.getByRole('region', { name: '버전 그래프' })
   const editor = screen.getByRole('textbox', { name: '회차 제목' })
-  const chat = screen.getByRole('complementary', { name: 'AI 채팅' })
+  const chat = await screen.findByRole('complementary', { name: 'AI 채팅' })
   expect(follows(list, graph) && follows(graph, editor) && follows(editor, chat)).toBe(true)
   expect(list.closest('.writing-rail')).toBe(graph.closest('.writing-rail'))
   expect(list.closest('.writing-rail')).not.toBeNull()
   expect(chat.contains(editor)).toBe(false)
 })
 
-it('AI 채팅은 보낼 수 없는 동안(데모·발행 회차 없음·동의 전) 입력·전송·첨부·추천 칩을 사유와 함께 잠가 가짜 제안이나 전송 흔적을 만들지 않는다', () => {
+it('AI 채팅은 보낼 수 없는 동안(데모·발행 회차 없음) 입력·전송·첨부·추천 칩을 사유와 함께 잠가 가짜 제안이나 전송 흔적을 만들지 않는다', async () => {
   renderStudio()
-  const chat = screen.getByRole('complementary', { name: 'AI 채팅' })
+  const chat = await screen.findByRole('complementary', { name: 'AI 채팅' })
   const box = within(chat).getByRole('textbox', { name: '메시지' })
   expect(box).toHaveProperty('disabled', true)
   expect(box.getAttribute('placeholder')).toBe('AI에게 무엇이든 물어보세요')
   for (const name of ['전송', '음성 입력 (준비 중)']) expect(within(chat).getByRole('button', { name })).toHaveProperty('disabled', true)
-  expect(document.getElementById(box.getAttribute('aria-describedby') ?? '')?.textContent).toMatch(/데모에서는|발행하면|동의에 체크/)
+  expect(document.getElementById(box.getAttribute('aria-describedby') ?? '')?.textContent).toMatch(/데모에서는|발행하면/)
   // 첨부 안내는 + 버튼의 popover 안에만 있고, 항목은 모두 잠겨 있다.
   expect(within(chat).queryByText('이미지·음성 첨부는 준비 중이에요.')).toBeNull()
   fireEvent.click(within(chat).getByRole('button', { name: '첨부' }))
@@ -121,11 +131,12 @@ it('AI 채팅은 보낼 수 없는 동안(데모·발행 회차 없음·동의 �
   expect(model.save).not.toHaveBeenCalled()
 })
 
-it('좁은 화면에서 쓸 수 있게 AI 채팅을 접었다 다시 열 수 있고 접어도 집필 영역은 그대로다', () => {
+it('좁은 화면에서 쓸 수 있게 AI 채팅을 접었다 다시 열 수 있고 접어도 집필 영역은 그대로다', async () => {
   renderStudio()
+  const chat = await screen.findByRole('complementary', { name: 'AI 채팅' })
   // 처음 렌더링에서는 초점을 옮기지 않는다.
   expect(document.activeElement).toBe(document.body)
-  fireEvent.click(within(screen.getByRole('complementary', { name: 'AI 채팅' })).getByRole('button', { name: '접기' }))
+  fireEvent.click(within(chat).getByRole('button', { name: '접기' }))
   expect(screen.queryByRole('complementary', { name: 'AI 채팅' })).toBeNull()
   expect(screen.getByLabelText('원고 본문')).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: 'AI 채팅 열기' }))
@@ -133,9 +144,9 @@ it('좁은 화면에서 쓸 수 있게 AI 채팅을 접었다 다시 열 수 있
   expect(screen.queryByRole('button', { name: 'AI 채팅 열기' })).toBeNull()
 })
 
-it('접거나 다시 열면 사라진 버튼 대신 새로 보이는 버튼으로 키보드 초점을 옮긴다', () => {
+it('접거나 다시 열면 사라진 버튼 대신 새로 보이는 버튼으로 키보드 초점을 옮긴다', async () => {
   renderStudio()
-  const fold = within(screen.getByRole('complementary', { name: 'AI 채팅' })).getByRole('button', { name: '접기' })
+  const fold = within(await screen.findByRole('complementary', { name: 'AI 채팅' })).getByRole('button', { name: '접기' })
   fold.focus()
   fireEvent.click(fold)
   const open = screen.getByRole('button', { name: 'AI 채팅 열기' })
@@ -144,9 +155,9 @@ it('접거나 다시 열면 사라진 버튼 대신 새로 보이는 버튼으�
   expect(document.activeElement).toBe(within(screen.getByRole('complementary', { name: 'AI 채팅' })).getByRole('button', { name: '접기' }))
 })
 
-it('AI 채팅은 머리글에 브랜드 마크와 AI 채팅 제목을 두고 메시지 영역 다음 맨 아래에 입력 카드를 붙인다', () => {
+it('AI 채팅은 머리글에 브랜드 마크와 AI 채팅 제목을 두고 메시지 영역 다음 맨 아래에 입력 카드를 붙인다', async () => {
   renderStudio()
-  const chat = screen.getByRole('complementary', { name: 'AI 채팅' })
+  const chat = await screen.findByRole('complementary', { name: 'AI 채팅' })
   const head = within(chat).getByRole('heading', { level: 2, name: 'AI 채팅' })
   expect(head.querySelector('.chat-brand svg')).not.toBeNull()
   expect(head.querySelector('.chat-brand')?.getAttribute('aria-hidden')).toBe('true')

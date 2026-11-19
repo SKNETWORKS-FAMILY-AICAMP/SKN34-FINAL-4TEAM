@@ -29,7 +29,7 @@ const notice = (id: string, patch: Partial<AppNotification> = {}): AppNotificati
 /** 인증된 Core API 대신 Repository 메서드를 가로채 화면 동작만 검증합니다(HTTP 계약은 HttpNotificationRepository 테스트가 확인). */
 function backend(items: AppNotification[], nextCursor: string | null = null) {
   const repo = appContainer.resolve('notificationRepository')
-  const state = { items: [...items], prefs: { read: true, creator: true } }
+  const state = { items: [...items], prefs: { read: true, creator: true, aiTool: true } }
   return {
     state,
     list: vi.spyOn(repo, 'list').mockImplementation(async (cursor) => (cursor ? { items: [notice('older', { createdAt: '2026-11-04T03:00:00Z', read: true })], nextCursor: null } : { items: state.items, nextCursor })),
@@ -160,8 +160,22 @@ describe('알림함 (U42)', () => {
     const b = backend([notice('a')])
     renderAt('/notifications')
     fireEvent.click(await screen.findByLabelText('작가 소식'))
-    await waitFor(() => expect(b.save).toHaveBeenCalledWith({ read: true, creator: false }))
+    await waitFor(() => expect(b.save).toHaveBeenCalledWith({ read: true, creator: false, aiTool: true }))
     await waitFor(() => expect((screen.getByLabelText('작가 소식') as HTMLInputElement).checked).toBe(false))
+  })
+
+  it.each([
+    ['ai-tool', 'AI·외부 도구 변경', 'world', 'qa-world', '/worldstudio/qa-world'],
+    ['ai-tool', 'AI·외부 도구 변경', 'work', 'starlight', '/studio/starlight'],
+    // 운영자 조치 알림은 처리 결과 + work라 기존대로 작품 상세로 간다(#553).
+    ['result', '처리 결과', 'work', 'starlight', '/work/starlight'],
+  ] as const)('%s 알림은 분류 이름 %s로 보이고, %s 대상 %s를 누르면 %s로 간다', async (kind, label, targetType, targetId, path) => {
+    backend([notice('a', { kind, targetType, targetId })])
+    renderAt('/notifications')
+    await screen.findByText(label, { selector: '.chip' })
+    // 접근 이름은 '알림 a' 뒤에 분류 이름이 바로 붙어('알림 aAI·…') \b를 쓰지 않는다. 이 테스트의 알림은 하나뿐이다.
+    fireEvent.click(screen.getByRole('button', { name: /^알림 a/ }))
+    await waitFor(() => expect(where()).toBe(path))
   })
 
   it('설정 저장에 실패하면 안내하고 값을 바꾸지 않는다', async () => {
