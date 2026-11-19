@@ -125,7 +125,7 @@ flowchart TD
 | | | `enrich` | 지정한 카드의 본문·인물 문서를 세계관과 어긋나지 않게 보강한 제안. 작가 승인 뒤에만 Content MCP `world_studio_edit_draft`로 초안에 반영(확정 버전은 작가가 남김) | 구현(#546) |
 | `research` | `ask_research` | `web` | 웹 고증. 외부 전송 동의 입력 대기는 이 작업에만 건다 | `web_research`·`ask_web_research` 그대로 |
 | | | `platform` | 다른 공개 세계관·설정 카드에서 참고할 설정 검색. 공개 데이터만 쓰므로 외부 전송 동의가 없고, 결과는 출처(세계관·카드)를 단 참고안이며 자동 복사하지 않는다(가져오기는 기존 화면 기능) | 없음 |
-| | | `impact` | 설정·사건을 바꿀 때 영향받는 설정·관계, 사건 카드(연대기), 이미 쓴 회차의 구절(Content MCP `work_context_read`), 계획된 장면(MCP `story_plan_list`)과 충돌 분석(옛 World & Plot, #291). 읽기만 하고 결과로 조건부 수정(`ask_writing(patch, fix)`)을 하지 않는다 | 구현(#291) |
+| | | `impact` | 설정·사건을 바꿀 때 영향받는 설정·관계, 사건 카드(연대기), 이미 쓴 회차의 구절(Content MCP `work_context_read`), 계획된 장면(MCP `story_plan_list`)과 충돌 분석(#291). 읽기만 하고 결과로 조건부 수정(`ask_writing(patch, fix)`)을 하지 않는다 | 구현(#291) |
 | `manuscript_review` | `ask_manuscript_review` | `mechanical`·`semantic`·`both` | 원고 검수 | 그대로(#499에서 `review`·`ask_review`에서 바꿈) |
 | `writing_editing` | `ask_writing` | `plan`·`draft`·`patch` | 전개 기획·새 원고 집필·기존 원고 수정 | 구현 |
 
@@ -257,7 +257,7 @@ MVP에서 한 요청 안에 이어지는 결과 전달은 Manuscript Review → 
 
 Decision Guard가 `manuscript_review`와 `writing_editing`을 함께 판정하거나 메인 에이전트가 수정을 부르기로 한 것이 곧 수정 허용이라는 뜻은 아니다. 각 기능의 Finding·근거·원문 범위를 위 조건에 맞게 연결하는 계약이 확정된 Manuscript Review 외에는 조건부 수정을 지원하지 않는다.
 
-메인 에이전트가 `ask_manuscript_review` 결과를 보고 수정 호출 여부를 정한다. 메인 에이전트의 판단도 수정 허용이 아니며, 코드는 이번 턴 Manuscript Review 결과의 확정 지적을 가리킨 `ask_writing(task=patch, fix)`만 받는다. 아래 검증은 그 도구가 그대로 수행한다. 웹 조사·World & Plot 결과로 고치는 연결은 계약 확정 전까지 지원하지 않는다.
+메인 에이전트가 `ask_manuscript_review` 결과를 보고 수정 호출 여부를 정한다. 메인 에이전트의 판단도 수정 허용이 아니며, 코드는 이번 턴 Manuscript Review 결과의 확정 지적을 가리킨 `ask_writing(task=patch, fix)`만 받는다. 아래 검증은 그 도구가 그대로 수행한다. 웹 조사·World `impact` 결과로 고치는 연결은 계약 확정 전까지 지원하지 않는다.
 
 현재 구현(#370)은 Manuscript Review → 조건부 집필·수정만 연결한다.
 - 확정 지적(원고 위치가 하나로 정해진 지적만 확정이다)이 하나면 바로, 여러 개면 대화에서 작가가 검수 결과의 지적 번호를 고른다(입력 대기 `missingInputs: [writing_editing]`, resume `inputs.writing_editing.fix`, 화면은 확정 지적만 보기로 보인다). 대화가 없는 요청에서 여러 개면 고를 수 없어 건너뛰고 구간을 골라 새 편집을 요청하라고 안내한다.
@@ -301,7 +301,7 @@ Decision Guard가 `manuscript_review`와 `writing_editing`을 함께 판정하�
 |---|---|---|---|
 | Story Context / Q&A | 질문, 작품/Fork/회차, 허용 자료 | 출처 있는 답변·모르는 항목 | 조회만 수행 |
 | Manuscript Review | 원고/설정, 검사 종류 | 위치·근거·확정/의심이 있는 Findings | Mechanical·Semantic 또는 둘 다(병렬); Simulation은 사용자가 명시적으로 요청한 경우에만 실행 |
-| World(`check` 설정집 검토·`enrich` 설정 보강·`impact` 변경 영향 분석) | 작품에 연결된 세계관의 기준 회차 시점 카드·관계(소설 연결 없이도 WorldStudio 화면에서 `check` 요청 가능). `impact`는 바꾸려는 설정·사건 | `check`: 카드별 지적(모순·역할 오류·누락·연대기 모순)과 카드 한 칸을 바꿀 수정안. `enrich`: 지정 카드의 본문·인물 문서 보강안. `impact`(옛 World & Plot): 영향 대상(설정·사건·회차 구절·계획된 장면)·판본·근거·충돌 | 원고 검수(Manuscript Review)와 별개. 결과는 저장하지 않는 제안이며 작가가 승인해야 편집 초안에 들어간다. `impact`는 읽기만 하고 `work_context_read`·`story_plan_list`를 읽으며 조건부 수정과 잇지 않는다. Simulation 호출 없음 |
+| World(`check` 설정집 검토·`enrich` 설정 보강·`impact` 변경 영향 분석) | 작품에 연결된 세계관의 최신 초안 카드·관계(소설 연결 없이도 WorldStudio 화면에서 `check` 요청 가능). `impact`는 바꾸려는 설정·사건 | `check`: 카드별 지적(모순·역할 오류·누락·연대기 모순)과 카드 한 칸을 바꿀 수정안. `enrich`: 지정 카드의 본문·인물 문서 보강안. `impact`: 영향 대상(설정·관계·회차·계획된 장면)·근거·확실성·충돌·누락 | WorldStudio는 마지막 `check` 결과를 저장한다. `enrich` 보강안은 작가 승인 후 세계관 편집 초안에 반영한다. `impact`는 읽기만 하고 `work_context_read`·`story_plan_list`를 읽으며 조건부 수정과 잇지 않는다. Simulation 호출 없음 |
 | Character Simulation Subgraph | 상황, 인물별 허용 지식, 행동 상한, 작가/독자 모드 | 범위가 제한된 가상 기록·임시 상태·장면 요약, 모드별 검토 결과 | 턴마다 행동 → 상태 갱신 → 다음 인물. [모드별 결과](03-rag-simulation-design.md#시뮬레이션-결과와-후속-검수) 참고 |
 | Writing & Editing | Content가 확인한 기획 문맥·집필 계획·원고 선택 구간 또는 저장된 플롯·장면 계획과 수정 지시 | 전개 대안·BeatPlan, 새 Text, 원고 Patch 또는 플롯·장면 계획 수정안(미구현) | 기획 결과는 저장하지 않는다. 기존 계획 수정안은 작가 승인 후 Content가 반영한다. Retrieval·Simulation 직접 호출 없음 |
 | Research(`web` 웹 조사·`platform` 플랫폼 내부 조사) | `web`: 현실 검증 질문, 작품의 필요한 최소 맥락. `platform`(미구현): 찾을 설정 주제 | `web`: URL·검색 시각·주장별 근거·불확실성. `platform`: 출처 세계관·카드를 단 참고 설정 | 웹·다른 세계관 자료는 작품 정본과 분리, 자동 복사 없음 |
