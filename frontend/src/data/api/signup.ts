@@ -1,4 +1,4 @@
-import type { SignupRepository } from '../../domain/repositories/SignupRepository'
+import { DuplicateEmail, type SignupRepository } from '../../domain/repositories/SignupRepository'
 import { csrf } from './csrf'
 
 async function post(path: string, body: object, status: number) {
@@ -8,6 +8,7 @@ async function post(path: string, body: object, status: number) {
     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
     body: JSON.stringify(body),
   })
+  if (path === 'signup' && response.status === 409) throw new DuplicateEmail()
   if (response.status !== status && !(path === 'verify-email' && response.status === 200)) throw new Error('Request failed')
 }
 
