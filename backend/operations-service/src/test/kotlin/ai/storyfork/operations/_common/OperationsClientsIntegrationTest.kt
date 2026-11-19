@@ -258,7 +258,8 @@ class OperationsClientsIntegrationTest {
     fun `Content operations stats send the window as ISO instants and only the service token`() {
         val (client, server) = content()
         server.expect(method(HttpMethod.GET)).andExpect { assertEquals("/internal/v1/operations/stats", it.uri.path) }
-            .andExpect(queryParam("from", "2026-11-12T00:00:00Z")).andExpect(queryParam("to", "2026-11-19T00:00:00Z"))
+            // On the wire the colons are escaped (%3A); queryParam would compare that raw text. The decoded query is what Content's @RequestParam reads.
+            .andExpect { assertEquals("from=2026-11-12T00:00:00Z&to=2026-11-19T00:00:00Z", it.uri.query) }
             .andExpect(header("X-Operations-Service-Token", token))
             .andExpect { assertNull(it.headers.getFirst("Authorization")) }
             .andRespond(withSuccess(
