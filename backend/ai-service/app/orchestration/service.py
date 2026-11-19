@@ -520,7 +520,7 @@ def _traced(data: OrchestrationRequest, authorization: str, state: dict):
     target = state.get('target') or {}
     return tracing.request('orchestration', user_id=tracing.member_id(authorization),
                            session_id=data.conversation.threadId if data.conversation else None,
-                           work_id=target.get('workId'), fork=target.get('fork'),
+                           work_id=target.get('workId'), fork='true' if target.get('fork') else None,
                            trace_context=tracing.context(state.get('runId'), state.get('traceParent')))
 
 

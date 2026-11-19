@@ -83,12 +83,12 @@ def test_a_served_request_is_one_trace_tagged_with_its_feature_and_success(monke
 @pytest.mark.parametrize('key', CASES)
 def test_a_failed_request_is_tagged_failed_and_keeps_its_http_error(monkeypatch, spans, key):
     failure = CASES[key][2]
-    with pytest.raises((HTTPException, ProviderFailure)) as error:
+    with pytest.raises(HTTPException) as error:
         prepare(monkeypatch, key, failure)()
     [root] = spans()
     assert attrs(root)['langfuse.trace.tags'] == [f'feature:{root.name}', 'status:failed']
     assert root.attributes['langfuse.observation.level'] == 'ERROR'
-    assert not isinstance(error.value, HTTPException) or error.value.status_code == getattr(failure, 'status', 503)
+    assert error.value.status_code == getattr(failure, 'status', 503)  # 이어쓰기의 ProviderFailure는 상태 없이 503이다
 
 
 @pytest.mark.parametrize('key', ['review', 'rating'])

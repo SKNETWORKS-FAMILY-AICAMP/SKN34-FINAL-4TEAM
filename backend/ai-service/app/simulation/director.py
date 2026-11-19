@@ -96,7 +96,7 @@ class OpenAIDecisionClassifier(TypeSafeClassifier):
 @lru_cache(maxsize=1)
 def classifier() -> OpenAIDecisionClassifier:
     """연출 결정용 분류기. 연결(httpx2 클라이언트)을 재사용하려고 한 번만 만든다."""
-    return OpenAIDecisionClassifier(instructions=DIRECTOR_INSTRUCTIONS)
+    return OpenAIDecisionClassifier()
 
 
 async def decide(state: dict, allowed: Sequence[str], cast: Sequence[dict], last_pov: str | None = None) -> Decision:

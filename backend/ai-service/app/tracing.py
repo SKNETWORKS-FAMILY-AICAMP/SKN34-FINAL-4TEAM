@@ -17,6 +17,7 @@ import os
 from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import lru_cache
+from types import SimpleNamespace
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -70,11 +71,6 @@ def context(run_id: str | None, parent_id: str | None) -> dict | None:
 
 
 
-class Run:
-    """request가 내주는 요청 결과. status는 예외 없이 끝난 요청의 결과이며 응답을 보고 바꿀 수 있다(None이면 상태 태그를 남기지 않는다)."""
-    status: str | None = 'success'
-
-
 def timed_out(error: BaseException | None) -> bool:
     """예외 사슬(__cause__·__context__)에 시간 초과가 있는지. 기능이 `from None`으로 고정 문구 실패로 바꿔도 __context__는 남는다.
 
@@ -91,11 +87,12 @@ def timed_out(error: BaseException | None) -> bool:
 def request(feature: str, *, user_id: str | None = None, session_id: str | None = None, trace_context: dict | None = None, **metadata):
     """AI 요청 하나 = trace 하나(DEC-55): 요청 루트 observation을 열고 회원·세션·기능 태그·metadata를 이 안의 모든 observation에 붙인다.
 
-    끝나면 루트에 상태 태그를 더한다. 예외는 failed(시간 초과면 timeout)로 남기고 그대로 올린다. metadata는 문자열로 남고
-    None·False는 뺀다(True는 'true'). trace_context를 주면 그 trace에 붙는다(대화에서 멈췄던 턴의 resume).
+    끝나면 루트에 상태 태그를 더한다. 예외는 failed(시간 초과면 timeout)로 남기고 그대로 올린다. 예외 없이 끝난 요청의 상태는 내주는 run.status
+    (기본 success, 응답을 보고 바꾼다. None이면 태그 없음)다. metadata는 문자열 값이고 비어 있으면 뺀다. trace_context를 주면 그 trace에
+    붙는다(대화에서 멈췄던 턴의 resume).
     """
-    meta = {'request_id': uuid4().hex, **{k: 'true' if v is True else v for k, v in metadata.items() if v is not None and v is not False}}
-    run = Run()
+    meta = {'request_id': uuid4().hex, **{k: v for k, v in metadata.items() if v}}
+    run = SimpleNamespace(status='success')
     with propagate_attributes(user_id=user_id, session_id=session_id, tags=[f'feature:{feature}'], metadata=meta):
         with observe(feature, trace_context=trace_context):
             try:

@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import json
 import time
 from uuid import uuid4
@@ -1624,13 +1625,11 @@ def test_the_request_without_a_conversation_has_no_session(monkeypatch, spans):
     assert 'session.id' not in request.attributes and 'langfuse.trace.metadata.work_id' not in request.attributes
 
 
-@pytest.mark.parametrize('failure', [IntentFailure(), ResearchFailure(503, '웹 검색에 실패했습니다.')])
-def test_a_router_failure_or_a_failed_step_tags_the_turn_failed(monkeypatch, spans, failure):
-    fake_agents(monkeypatch, plan('web_research'), fail={'judge': failure} if isinstance(failure, IntentFailure) else {'web_research': failure})
-    try:
+@pytest.mark.parametrize('where, failure', [('judge', IntentFailure()), ('web_research', ResearchFailure(503, '웹 검색에 실패했습니다.'))])
+def test_a_router_failure_or_a_failed_step_tags_the_turn_failed(monkeypatch, spans, where, failure):
+    fake_agents(monkeypatch, plan('web_research'), fail={where: failure})
+    with contextlib.suppress(IntentFailure):  # 판정 실패는 예외로 올라오고, 실패한 단계는 응답 status=failed다
         member_run(inputs={'web_research': WEB})
-    except IntentFailure:
-        pass
     [request] = requests_of(spans)
     assert tags_of(request) == ['feature:orchestration', 'status:failed']
 

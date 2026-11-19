@@ -56,7 +56,7 @@ def test_member_id_is_none_when_there_is_no_uuid_subject(authorization):
 
 
 def test_request_root_carries_member_session_feature_tags_and_metadata(spans):
-    with tracing.request('review', user_id=MEMBER, session_id='thread-1', work_id='work-1', fork=True, credit_reservation_id=None):
+    with tracing.request('review', user_id=MEMBER, session_id='thread-1', work_id='work-1', fork='true', credit_reservation_id=None):
         pass
     [root] = spans()
     found = attrs(root)
@@ -68,8 +68,8 @@ def test_request_root_carries_member_session_feature_tags_and_metadata(spans):
     assert 'langfuse.trace.metadata.credit_reservation_id' not in found  # 없는 값은 남기지 않는다
 
 
-def test_fork_false_and_missing_values_are_left_out(spans):
-    with tracing.request('review', fork=False, work_id=None):
+def test_missing_values_are_left_out(spans):
+    with tracing.request('review', fork=None, work_id=''):
         pass
     [root] = spans()
     assert not {'langfuse.trace.metadata.fork', 'langfuse.trace.metadata.work_id', 'user.id', 'session.id'} & set(root.attributes)
