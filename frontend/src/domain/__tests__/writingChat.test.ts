@@ -428,3 +428,10 @@ describe('content_action 단계(#554)', () => {
     expect(stepText({ feature: 'content_action', status: 'failed', error: '세계관 초안이 바뀌었어요.' })).toBe('실패: 세계관 초안이 바뀌었어요.')
   })
 })
+
+describe('pendingChanges (평평한 인자)', () => {
+  it('모델이 request로 감싸지 않고 cards를 바로 보낸 카드 수정도 수정 전·후를 알려 준다', () => {
+    const action: PendingAction = { tool: 'world_studio_edit_draft', label: '세계관 설정 카드 수정', args: { id: 'w', expectedDraftRevision: 3, cards: [{ id: 'k', title: '카엘 공' }] } }
+    expect(pendingChanges(action, () => ({ title: '카엘 경', body: '기사' }))).toEqual([{ name: '카엘 경 · 이름', before: '카엘 경', after: '카엘 공' }])
+  })
+})

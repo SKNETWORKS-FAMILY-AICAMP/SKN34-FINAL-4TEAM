@@ -120,6 +120,8 @@ def edit_world(arguments: dict) -> dict:
     본문을 바꾸면 화면이 읽는 사본(studio.item.text)도 함께 맞춘다. expectedDraftRevision을 모델이 주면 그대로 쓰고 어긋나면 Content가 409로 거절한다.
     """
     world_id, given = arguments.get('id'), arguments.get('request')
+    if given is None and 'cards' in arguments:  # 모델이 request로 감싸지 않고 평평하게 보낸 호출도 같은 입력으로 본다
+        given = {k: v for k, v in arguments.items() if k != 'id'}
     if not isinstance(world_id, str) or not isinstance(given, dict) or not isinstance(given.get('cards', []), list):
         raise ContentMcpFailure(422, '세계관 수정 요청 형식이 올바르지 않아요.')
     read = call('world_studio_read', {'id': world_id})
@@ -135,6 +137,9 @@ def edit_world(arguments: dict) -> dict:
         merged = {**(old or {}), **card, 'semanticMetadata': {**((old or {}).get('semanticMetadata') or {}), **(card.get('semanticMetadata') or {})}}
         if old is not None and 'body' in card:
             _replace_cell(merged, {'target': 'body', 'text': card['body']})
+        item = ((merged['semanticMetadata'].get('studio') or {}).get('item'))
+        if old is not None and 'title' in card and isinstance(item, dict) and 'title' in item:
+            item['title'] = card['title']  # 화면이 읽는 이름 사본(studio.item.title)도 함께 맞춘다
         cards.append(merged)
     if not isinstance(given.get('expectedDraftRevision'), int):  # 읽은 revision 없이 저장하면 그 사이 바뀐 초안을 덮어쓴다
         raise ContentMcpFailure(422, '세계관을 읽은 revision(expectedDraftRevision)이 필요해요.')

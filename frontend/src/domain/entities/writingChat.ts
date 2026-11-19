@@ -148,7 +148,7 @@ export type PendingChange = { name: string; before: string | null; after: string
  */
 export function pendingChanges(action: PendingAction, cardOf?: (id: string) => { title: string; body: string } | undefined): PendingChange[] {
   if (action.tool !== 'world_studio_edit_draft') return []
-  const request = action.args.request
+  const request = action.args.request ?? action.args // 모델이 request로 감싸지 않고 평평하게 보낸 호출도 읽는다
   const cards = request && typeof request === 'object' ? (request as { cards?: unknown }).cards : undefined
   if (!Array.isArray(cards)) return []
   return cards.flatMap((card): PendingChange[] => {

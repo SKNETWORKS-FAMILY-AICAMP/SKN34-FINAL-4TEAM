@@ -28,6 +28,8 @@ READ = {'world_studio_read': '세계관 읽기', 'episode_read': '회차 읽기'
 WRITE = {'world_studio_edit_draft': '세계관 설정 카드 수정', 'work_update': '작품 정보 수정', 'story_plan_create': '플롯·장면 계획 추가',
          'story_plan_update': '플롯·장면 계획 수정'}
 LABELS = {**READ, **WRITE}
+# Content의 도구 설명만으로는 모델이 request를 풀어 평평하게 보내는 일이 있어 모양을 덧붙인다.
+HINTS = {'world_studio_edit_draft': ' 인자는 {id, request: {expectedDraftRevision(world_studio_read의 draftRevision), name, description, key, replace: false, cards: [바꿀 카드]}} 모양이다. 바꿀 카드만 cards에 넣는다.'}
 NAMES = tuple(LABELS)
 WORK_ID = {'episode_read': 'id', 'episode_list': 'id', 'work_read': 'id', 'work_update': 'id', 'story_plan_list': 'workId',
            'story_plan_read': 'workId', 'story_plan_create': 'workId', 'story_plan_update': 'workId'}
@@ -49,7 +51,7 @@ def tools(found: list[dict]) -> list[StructuredTool]:
     """모델에 보일 도구 모양. func는 쓰지 않는다(미들웨어가 가로채 실행한다)."""
     def never(**_):
         raise RuntimeError('Content MCP 도구는 DynamicToolMiddleware가 실행한다.')
-    return [StructuredTool(name=s['name'], description=s['description'], args_schema=s['schema'], func=never) for s in found if s['name'] in LABELS]
+    return [StructuredTool(name=s['name'], description=s['description'] + HINTS.get(s['name'], ''), args_schema=s['schema'], func=never) for s in found if s['name'] in LABELS]
 
 
 def _result(step: dict | None, call: dict, content: str, failed: bool = False, **update) -> Command:

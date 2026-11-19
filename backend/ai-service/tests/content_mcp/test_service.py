@@ -362,3 +362,11 @@ def test_edit_world_without_the_read_revision_refuses_instead_of_overwriting(mon
     with pytest.raises(ContentMcpFailure) as error:
         service.edit_world({'id': 'w', 'request': {'cards': [{'id': 'k', 'body': '새 글'}]}})
     assert error.value.status == 422 and [c[2] for c in calls] == ['world_studio_read']
+
+
+def test_edit_world_accepts_the_flat_shape_and_keeps_the_screen_title_copy_in_step(monkeypatch):
+    titled = {**WORLD, 'cards': [{**WORLD['cards'][0], 'semanticMetadata': {'studio': {'item': {'title': '카엘', 'text': '기사'}}}}]}
+    calls = content(monkeypatch, {'world_studio_read': (False, json.dumps(titled)), 'world_studio_edit_draft': (False, json.dumps({'draftRevision': 5}))})
+    service.edit_world({'id': 'w', 'expectedDraftRevision': 4, 'cards': [{'id': 'k', 'title': '카엘 공'}]})  # request로 감싸지 않은 평평한 호출
+    [card] = calls[1][3]['request']['cards']
+    assert (card['title'], card['semanticMetadata']['studio']['item']['title'], card['body']) == ('카엘 공', '카엘 공', '기사')
