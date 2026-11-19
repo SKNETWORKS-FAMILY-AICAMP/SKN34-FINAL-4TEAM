@@ -3,13 +3,13 @@
 import pytest
 
 from app import agent_runtime
+from app.manuscript_review import agent as manuscript_review
+from app.manuscript_review.prompt import INSTRUCTIONS as MANUSCRIPT_REVIEW
 from app.rating import agent as rating
 from app.rating.prompt import INSTRUCTIONS as RATING
 from app.research import agent as research
 from app.research.models import ResearchRequest
 from app.research.prompt import RESEARCH_INSTRUCTIONS
-from app.review import agent as review
-from app.review.prompt import INSTRUCTIONS as REVIEW
 from app.story_qa import agent as story_qa
 from app.story_qa.models import AnswerRequest, Excerpt
 from app.story_qa.prompt import QA_INSTRUCTIONS
@@ -29,8 +29,8 @@ TAGS = {'schemaVersion': 'work-tags.v1', 'title': '작품', 'description': '', '
 
 CASES = [
     (lambda: story_qa.answer(AnswerRequest(question='누구?', excerpts=[Excerpt(id='a', episode=1, quote='원문')])), 'story_context.answer', QA_INSTRUCTIONS),
-    (lambda: review.review('mechanical', '본문', []), 'review.mechanical', REVIEW['mechanical']),
-    (lambda: review.review('semantic', '본문', []), 'review.semantic', REVIEW['semantic']),
+    (lambda: manuscript_review.review('mechanical', '본문', []), 'manuscript_review.mechanical', MANUSCRIPT_REVIEW['mechanical']),
+    (lambda: manuscript_review.review('semantic', '본문', []), 'manuscript_review.semantic', MANUSCRIPT_REVIEW['semantic']),
     (lambda: writing.plan(PlanRequest(episodeNumber=1, request='기획')), 'writing_editing.plan', PLAN_INSTRUCTIONS),
     (lambda: writing.draft(DraftRequest(episodeNumber=1, plan='계획')), 'writing_editing.draft', DRAFT_INSTRUCTIONS),
     (lambda: writing.patch(PatchRequest(selection='문장', instruction='고쳐')), 'writing_editing.patch', PATCH_INSTRUCTIONS),

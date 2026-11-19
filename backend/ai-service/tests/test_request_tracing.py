@@ -12,18 +12,15 @@ from app.generation.models import GenerationInput
 from app.main import create_app
 from app.initial_world import router as initial_world
 from app.initial_world.errors import ExtractionFailure
+from app.manuscript_review import router as manuscript_review
+from app.manuscript_review.errors import ReviewFailure
+from app.manuscript_review.models import ReviewRequest
 from app.rating import router as rating
 from app.rating.errors import RatingFailure
 from app.rating.models import RatingRequest
 from app.research import router as research
 from app.research.errors import ResearchFailure
 from app.research.models import ResearchRequest
-from app.review import router as review
-from app.review.errors import ReviewFailure
-from app.review.models import ReviewRequest
-from app.story_qa import router as story_qa
-from app.story_qa.errors import StoryQaFailure
-from app.story_qa.models import AnswerRequest, Excerpt
 from app.work_tags import router as work_tags
 from app.work_tags.errors import SuggestionFailure
 from app.world_review import router as world_review
@@ -44,10 +41,8 @@ CASES = {
                   ProviderFailure()),
     'initial_world': (lambda auth='': initial_world.extract_initial_world(SimpleNamespace(analysisId=ANALYSIS), TOKEN, auth),
                       (initial_world, 'extract'), ExtractionFailure('MODEL_UNAVAILABLE', 503)),
-    'story_context': (lambda auth='': story_qa.answer(AnswerRequest(question='누구?', excerpts=[Excerpt(id='a', episode=1, quote='원문')]), TOKEN, auth),
-                      (story_qa.service, 'answer'), StoryQaFailure(502, '출처 확인 실패')),
-    'review': (lambda auth=AUTHOR: review.review(ReviewRequest(workId='work-1', episode=3, check='mechanical'), TOKEN, auth),
-               (review.service, 'review'), ReviewFailure(422, '검수할 초안이 없어요.')),
+    'manuscript_review': (lambda auth=AUTHOR: manuscript_review.review(ReviewRequest(workId='work-1', episode=3, check='mechanical'), TOKEN, auth),
+                          (manuscript_review.service, 'review'), ReviewFailure(422, '검수할 초안이 없어요.')),
     'rating': (lambda auth=AUTHOR: rating.rate(RatingRequest(workId='work-1', episodes=[3]), TOKEN, auth), (rating.service, 'rate'),
                RatingFailure(502, '판별 실패')),
     'web_research': (lambda auth='': research.research(ResearchRequest(question='질문'), TOKEN, auth), (research.service, 'research'),
@@ -96,7 +91,7 @@ def test_a_failed_request_is_tagged_failed_and_keeps_its_http_error(monkeypatch,
     assert error.value.status_code == getattr(failure, 'status', 503)  # 이어쓰기의 ProviderFailure는 상태 없이 503이다
 
 
-@pytest.mark.parametrize('key', ['review', 'rating'])
+@pytest.mark.parametrize('key', ['manuscript_review', 'rating'])
 def test_the_author_bearer_and_work_identify_the_request(monkeypatch, spans, key):
     prepare(monkeypatch, key, 'ok')()
     [root] = spans()
@@ -106,8 +101,8 @@ def test_the_author_bearer_and_work_identify_the_request(monkeypatch, spans, key
 
 def test_a_bearer_without_a_member_leaves_the_trace_anonymous(monkeypatch, spans):
     monkeypatch.setenv('INTERNAL_TOKEN', TOKEN)
-    monkeypatch.setattr(review.service, 'review', lambda data: 'ok')
-    review.review(ReviewRequest(workId='work-1', episode=3, check='mechanical'), TOKEN, '')
+    monkeypatch.setattr(manuscript_review.service, 'review', lambda data: 'ok')
+    manuscript_review.review(ReviewRequest(workId='work-1', episode=3, check='mechanical'), TOKEN, '')
     [root] = spans()
     assert 'user.id' not in root.attributes
 
@@ -121,13 +116,12 @@ def test_the_initial_analysis_id_is_the_job_id_of_the_trace(monkeypatch, spans):
 def test_a_wrong_internal_token_is_refused_before_anything_is_traced(monkeypatch, spans):
     monkeypatch.setenv('INTERNAL_TOKEN', TOKEN)
     with pytest.raises(HTTPException):
-        review.review(ReviewRequest(workId='work-1', episode=3, check='mechanical'), 'wrong', AUTHOR)
+        manuscript_review.review(ReviewRequest(workId='work-1', episode=3, check='mechanical'), 'wrong', AUTHOR)
     assert spans() == ()
 
 
-
 # 작가 Bearer(X-User-Authorization)는 모든 추적 Router가 선택으로 받는다. 검수·심의·오케스트레이션은 MCP에도 쓰고, 나머지는 회원 식별에만 쓴다.
-UNAUTHENTICATED = [key for key in CASES if key not in ('review', 'rating')]
+UNAUTHENTICATED = [key for key in CASES if key not in ('manuscript_review', 'rating')]
 
 
 @pytest.mark.parametrize('key', UNAUTHENTICATED)
@@ -145,9 +139,9 @@ def test_without_a_usable_bearer_the_request_is_served_and_the_trace_stays_anony
     assert 'user.id' not in root.attributes
 
 
-TRACED_PATHS = ['/internal/v1/proposals', '/internal/v1/initial-world/extractions', '/internal/v1/manuscript/qa', '/internal/v1/research/web',
-                '/internal/v1/world-reviews', '/internal/v1/writing/drafts', '/internal/v1/writing/patches', '/internal/v1/work-tags/suggestions',
-                '/internal/v1/reviews', '/internal/v1/ratings', '/internal/v1/orchestrations', '/internal/v1/orchestrations/stream']
+TRACED_PATHS = ['/internal/v1/proposals', '/internal/v1/initial-world/extractions', '/internal/v1/research/web', '/internal/v1/world-reviews',
+                '/internal/v1/writing/drafts', '/internal/v1/writing/patches', '/internal/v1/work-tags/suggestions',
+                '/internal/v1/manuscript-reviews', '/internal/v1/ratings', '/internal/v1/orchestrations', '/internal/v1/orchestrations/stream']
 
 
 def test_every_traced_route_declares_the_optional_author_bearer_header():

@@ -10,6 +10,7 @@ def answer(data: AnswerRequest) -> AnswerResponse:
     """전달받은 발췌만 근거로 주장과 답할 수 없는 부분을 구조화해 생성한다. 설정·관계 발췌는 추적에 참조만 남긴다."""
     trace = {'question': data.question, 'excerpts': tracing.excerpts(data.excerpts),
              'history': [turn.model_dump() for turn in data.history]}
+    # 정상 답변도 출력이 1,222토큰까지 나와 1,400에서 잘릴 수 있었다(#548). 근거 16건을 인용하는 긴 답을 담는 한도다.
     _, result = agent_runtime.run('qa.generation', 'Q&A', StoryQaFailure, QA_INSTRUCTIONS, data.model_dump(), prompt_name='story_context.answer',
-                                  max_tokens=1400, timeout=40, trace=trace, schema=AnswerResponse)
+                                  max_tokens=2400, timeout=40, trace=trace, schema=AnswerResponse)
     return result

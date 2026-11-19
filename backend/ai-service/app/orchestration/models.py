@@ -3,20 +3,27 @@
 from datetime import datetime
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import AliasChoices, BaseModel, BeforeValidator, ConfigDict, Field, model_validator
 
 from app.intent.models import Feature
 from app.story_qa.models import AnswerRequest, AnswerResponse, Excerpt
 from app.rating.models import RatingResponse
 from app.research.models import ResearchRequest, ResearchResponse
 from app.retrieval.models import Coverage, RetrievalScope
-from app.review.models import ReviewResponse, Scope
+from app.manuscript_review.models import ReviewResponse, Scope
 from app.simulation.models import SceneAction, SimulationPlan, SimulationResult
 from app.world_review.models import WorldReviewResponse
 from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchResponse, PlanResponse
 
-# 저장된 응답의 기능 이름. #387 전 대화 기록에는 Writing & Editing으로 합쳐진 story_development가 남아 있다.
-RecordedFeature = Feature | Literal['story_development']
+# 이전 체크포인트는 기록 당시의 단계 식별자를 보존한다(#387·#499).
+RecordedFeature = Feature | Literal['story_development', 'review']
+
+
+def manuscript_review_feature(feature: str) -> str:
+    return 'manuscript_review' if feature == 'review' else feature
+
+
+CurrentFeature = Annotated[Feature, BeforeValidator(manuscript_review_feature)]
 
 
 class WritingInput(BaseModel):
@@ -27,7 +34,7 @@ class WritingInput(BaseModel):
     model_config = ConfigDict(extra='forbid')
     draft: DraftRequest | None = None
     patch: PatchRequest | None = None
-    fix: int | None = Field(default=None, ge=0)  # 직전 Review 결과 findings의 번호(#370)
+    fix: int | None = Field(default=None, ge=0)  # 직전 Manuscript Review 결과 findings의 번호(#370)
 
     @model_validator(mode='after')
     def one(self):
@@ -51,7 +58,7 @@ class StepInputs(BaseModel):
     story_context: AnswerRequest | None = None
     writing_editing: WritingInput | None = None
     web_research: ResearchRequest | None = None
-    review: ReviewInput | None = None
+    manuscript_review: ReviewInput | None = Field(default=None, validation_alias=AliasChoices('manuscript_review', 'review'))
 
 
 class Conversation(BaseModel):
@@ -95,7 +102,7 @@ class OrchestrationRequest(BaseModel):
     request: str | None = Field(default=None, min_length=1, max_length=2000)
     resume: Resume | None = None
     target: WritingTarget | None = None  # 있고 대화 안이면 Writing 결과를 승인받아 Content MCP로 초안에 반영한다.
-    operation: Feature | None = None
+    operation: CurrentFeature | None = None
     materials: list[Annotated[str, Field(max_length=2000)]] = Field(default=[], max_length=8)
     inputs: StepInputs = StepInputs()
     fromTurn: int | None = Field(default=None, ge=0)  # 있으면 그 턴부터 지우고 이 request로 다시 실행한다(메시지 수정).
@@ -150,7 +157,7 @@ class OrchestrationResponse(BaseModel):
     runId: str | None = None  # Langfuse trace id. 추적이 꺼져 있으면 없다.
     message: str | None = None
     steps: list[StepResult] = []
-    missingInputs: list[Feature] = []
+    missingInputs: list[CurrentFeature] = []
     unsupported: list[RecordedFeature] = []
     awaitingApproval: Feature | None = None
     awaitingScene: Feature | None = None  # 시뮬레이션 장면이 턴 사이에서 작가의 조작(resume.scene)을 기다린다

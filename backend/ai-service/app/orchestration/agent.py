@@ -29,6 +29,7 @@ from app import tracing
 from app.intent import service as intent
 from app.intent.errors import IntentFailure
 from app.orchestration import tools
+from app.orchestration.models import manuscript_review_feature
 from app.orchestration.prompt import INSTRUCTIONS
 
 MODEL_CALLS = 5  # 메인 모델 호출 상한(턴당). 마지막 호출은 도구 없이 종합한다.
@@ -39,25 +40,32 @@ MAIN_FAILED_NOTHING_MESSAGE = '요청을 처리하지 못했어요. 잠시 뒤 �
 BAD_ARGUMENTS = '작업 지시가 형식에 맞지 않아 실행하지 않았어요.'  # 도구 인자 검증 실패(예: request 2,000자 초과)
 TOOLS = {feature: getattr(tools, name) for feature, name in tools.TOOL_NAMES.items()}
 # 한 모델 턴에 함께 실행할 수 있는 조회형 도구(#474). 서로의 결과를 쓰지 않는다. ask_writing·ask_character_simulation은 항상 단독이다.
-PARALLEL = {'ask_story_qa', 'ask_web_research', 'ask_rating', 'ask_world_review', 'ask_review'}
+PARALLEL = {'ask_story_qa', 'ask_web_research', 'ask_rating', 'ask_world_review', 'ask_manuscript_review'}
 
 
 class MainState(AgentState):
     decision: NotRequired[dict]  # Decision Guard 판정 {allowed, reason, capabilities}
     steps: NotRequired[Annotated[list[dict], operator.add]]  # 이번 턴 서브 에이전트 결과. 도구마다 자기 단계 하나를 덧붙인다(호출 순서)
+    writingBase: NotRequired[dict | None]  # 검수 후보의 기준이 되는 집필 직전 초안
     inputs: NotRequired[dict]  # Content가 확인한 단계 입력. 입력 대기 resume이 채운다
     retrievalScope: NotRequired[dict | None]  # Content가 서명한 Q&A 조회 토큰. resume이 새 토큰으로 바꾼다
     stopped: NotRequired[dict | None]  # 남은 호출을 막고 끝낸 이유 {status: needs_input|cancelled|clarify, ...}
     simulationPlan: NotRequired[dict | None]  # 시뮬레이션 계획. 장면은 바깥 scene 노드가 쓴다
 
 
-def _closed(state: dict) -> bool:
-    """새 서브 에이전트 호출을 받지 않는 상태: 실패·취소·입력 대기·되묻기 뒤, 시뮬레이션 계획 뒤(장면은 도구 호출이 끝난 뒤 진행한다)."""
-    return bool(state.get('stopped') or state.get('simulationPlan')) or any(s['status'] == 'failed' for s in state.get('steps', []))
-
-
 def _allowed(state: dict) -> set[str]:
-    return set() if _closed(state) else {TOOLS[c].name for c in state['decision']['capabilities'] if c in TOOLS}
+    if state.get('stopped') or state.get('simulationPlan'):
+        return set()
+    capabilities = map(manuscript_review_feature, state['decision']['capabilities'])
+    available = {TOOLS[c].name for c in capabilities if c in TOOLS}
+    steps = state.get('steps', [])
+    failed = {s['feature'] for s in steps if s['status'] == 'failed'}
+    if failed:
+        # 작성에 실패해도 판정에 포함된 검수는 저장된 초안으로 한 번 실행할 수 있다.
+        if failed == {'writing_editing'} and not any(manuscript_review_feature(s['feature']) == 'manuscript_review' for s in steps):
+            return available & {'ask_manuscript_review'}
+        return set()
+    return available
 
 
 class DecisionGuardMiddleware(AgentMiddleware):
@@ -99,7 +107,12 @@ class DynamicToolMiddleware(AgentMiddleware):
         calls, allowed = state['messages'][-1].tool_calls, _allowed(state)
         run = [c for c in calls if c['name'] in allowed]
         if len(run) > 1:
-            run = [c for c in run if c['name'] in PARALLEL and not tools.waits(c, state, runtime.context)] or run[:1]
+            writing = next((i for i, c in enumerate(run) if c['name'] == 'ask_writing'), len(run))
+            review = next((i for i, c in enumerate(run) if c['name'] == 'ask_manuscript_review'), -1)
+            if writing < review:  # 같은 묶음에서도 집필을 먼저 요청했다면 뒤 검수에 후보가 필요하다.
+                run = run[:1]
+            else:
+                run = [c for c in run if c['name'] in PARALLEL and not tools.waits(c, state, runtime.context)] or run[:1]
         refused = [_blocked(c) if c['name'] not in allowed else _deferred(c) for c in calls if c not in run]
         return {'messages': refused} if refused else None
 
@@ -110,8 +123,13 @@ class DynamicToolMiddleware(AgentMiddleware):
         return await handler(request.override(tools=exposed, model_settings={'parallel_tool_calls': True} if exposed else {}))
 
     async def awrap_tool_call(self, request, handler):
+        call = request.tool_call
+        if call['name'] == 'ask_review' and 'review' in request.state['decision']['capabilities']:
+            # 입력 대기 중 저장된 옛 호출을 복원한다. 모델에는 새 도구 이름만 노출한다.
+            tool = TOOLS['manuscript_review']
+            request = request.override(tool=tool, tool_call={**call, 'name': tool.name})
         if request.tool_call['name'] not in _allowed(request.state):
-            return _blocked(request.tool_call)
+            return _blocked(call)
         result = await handler(request)
         # 도구는 항상 Command로 답한다. 오류 ToolMessage만 왔다면 ToolNode가 인자 검증 실패를 돌려준 것이라 그 기능 단계를 실패로 남긴다.
         if isinstance(result, ToolMessage) and result.status == 'error':
@@ -142,7 +160,11 @@ class ToolCallLimit(ToolCallLimitMiddleware):
                 break
             answered.add(asked.tool_call_id)
         pending = asked.model_copy(update={'tool_calls': [c for c in asked.tool_calls if c['id'] not in answered]})
-        return super().after_model({**state, 'messages': [pending]}, runtime)
+        counted = {**state, 'messages': [pending]}
+        if self.tool_name == 'ask_manuscript_review' and (old_count := state.get('thread_tool_call_count', {}).get('ask_review')):
+            counts = state['thread_tool_call_count']
+            counted['thread_tool_call_count'] = {**counts, self.tool_name: counts.get(self.tool_name, old_count)}
+        return super().after_model(counted, runtime)
 
 
 class MainModelMiddleware(AgentMiddleware):

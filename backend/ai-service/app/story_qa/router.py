@@ -1,12 +1,11 @@
-"""원고 임베딩·Q&A 내부 API. 검색 범위·원문 재대조·인가는 Content가 확정한다."""
+"""원고 임베딩 내부 API(Content 색인·검색용). Q&A 답변은 집필 AI 오케스트레이션이 `service.answer`를 직접 부른다(작품 Q&A 화면 제거, #525)."""
 
 from fastapi import APIRouter, Header, HTTPException
 
-from app import tracing
 from app.internal_auth import require_internal_token
 from app.story_qa import service
 from app.story_qa.errors import StoryQaFailure
-from app.story_qa.models import AnswerRequest, AnswerResponse, EmbeddingRequest, EmbeddingResponse
+from app.story_qa.models import EmbeddingRequest, EmbeddingResponse
 
 router = APIRouter()
 
@@ -17,17 +16,5 @@ def embed(data: EmbeddingRequest, x_internal_token: str = Header(default='')) ->
     require_internal_token(x_internal_token)
     try:
         return service.embed(data)
-    except StoryQaFailure as error:
-        raise HTTPException(error.status, str(error)) from None
-
-
-@router.post('/internal/v1/manuscript/qa')
-def answer(data: AnswerRequest, x_internal_token: str = Header(default=''),
-           x_user_authorization: str = Header(default='')) -> AnswerResponse:
-    """검증된 발췌에 근거한 주장과 답할 수 없는 부분을 반환한다. X-User-Authorization(선택)은 추적의 회원 식별에만 쓴다."""
-    require_internal_token(x_internal_token)
-    try:
-        with tracing.request('story_context', user_id=tracing.member_id(x_user_authorization)):
-            return service.answer(data)
     except StoryQaFailure as error:
         raise HTTPException(error.status, str(error)) from None

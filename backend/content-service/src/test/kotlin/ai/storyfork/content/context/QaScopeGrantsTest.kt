@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test
 class QaScopeGrantsTest {
     private val now = Instant.parse("2026-11-12T00:00:00Z")
     private val grants = QaScopeGrants(Clock.fixed(now, ZoneOffset.UTC))
-    private val grant = QaScopeGrant("fork", "owner-uuid", 2, "r2", "relationship")
+    private val grant = QaScopeGrant("fork", "owner-uuid", 2, "r2")
 
     @Test
     fun `issued token reads back the same scope`() {

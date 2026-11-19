@@ -61,7 +61,7 @@ describe('replyText', () => {
   })
 
   it('종합 답변은 단계 글에 다시 넣지 않고(#492), 답변도 단계도 없을 때만 안내 문구를 쓴다', () => {
-    const steps = [{ feature: 'review', status: 'failed' as const, error: '검수 실패' }]
+    const steps = [{ feature: 'manuscript_review', status: 'failed' as const, error: '검수 실패' }]
     expect(replyText(reply({ message: '**검수**를 마치지 못했어요.', steps }))).toBe('[원고 검수] 실패: 검수 실패')
     expect(replyText(reply({ message: '확인 질문이에요.' }))).toBe('')
     expect(replyText(reply({}))).toBe('응답 내용이 없어요.')
@@ -157,7 +157,7 @@ describe('장면 조작 정리(cleanScene)', () => {
 
 describe('WritingChatUseCase 시뮬레이션 시작', () => {
   const repository = () => ({ send: vi.fn().mockResolvedValue(undefined) }) as unknown as WritingChatRepository & { send: ReturnType<typeof vi.fn> }
-  const basis = { episode: 1, episodeVersionId: 'v', consent: true as const }
+  const basis = { episode: 1, episodeVersionId: 'v' }
   const onEvent = () => {}
 
   it('시작 값을 다듬어 operation과 함께 보낸다', async () => {
@@ -182,7 +182,7 @@ describe('WritingChatUseCase', () => {
     const repo = repository()
     const chat = new WritingChatUseCase(repo)
     await expect(chat.rename('w', 't', '  ')).rejects.toThrow('대화 제목')
-    await expect(chat.send('w', 't', { episode: 1, episodeVersionId: 'v', consent: true, request: ' ' }, () => {})).rejects.toThrow('보낼 내용')
+    await expect(chat.send('w', 't', { episode: 1, episodeVersionId: 'v', request: ' ' }, () => {})).rejects.toThrow('보낼 내용')
     expect(repo.rename).not.toHaveBeenCalled()
     expect(repo.send).not.toHaveBeenCalled()
     await chat.rename('w', 't', ' 새 제목 ')
@@ -193,7 +193,7 @@ describe('WritingChatUseCase', () => {
     const repo = repository()
     repo.send.mockResolvedValue(undefined)
     const chat = new WritingChatUseCase(repo)
-    const basis = { episode: 1, episodeVersionId: 'v', consent: true as const }
+    const basis = { episode: 1, episodeVersionId: 'v' }
     const scene = (action: SceneAction) => ({ ...basis, resume: { approved: true, scene: action } })
     const onEvent = () => {}
     await chat.send('w', 't', scene({ action: 'next', note: ' 비가 쏟아진다 ' }), onEvent)
@@ -221,8 +221,8 @@ it('shows whether web research confirmed or contradicted a finding', () => {
 
 describe('원고 검수 결과 글(#59)', () => {
   const finding: ReviewFinding = { category: 'spelling', quote: '웃엇다', reason: '받침 오류', status: 'confirmed', evidenceRefs: [], suggestion: '웃었다', start: 3, end: 6 }
-  const step = (findings: ReviewFinding[], gaps: string[] = []) => ({ feature: 'review', status: 'completed' as const,
-    review: { check: 'mechanical' as const, episode: 3, revision: 4, findings, gaps } })
+  const step = (findings: ReviewFinding[], gaps: string[] = []) => ({ feature: 'manuscript_review', status: 'completed' as const,
+    manuscriptReview: { check: 'mechanical' as const, episode: 3, revision: 4, findings, gaps } })
 
   it('지적마다 상태·분류·원문 구절·이유·제안을 보이고, 위치를 정하지 못한 구절은 여러 곳이라고 알린다', () => {
     const text = stepText(step([finding, { ...finding, status: 'suspected', start: null, end: null, category: 'repetition' }], ['날짜 비교 대상 없음']))
@@ -265,7 +265,7 @@ describe('원고 검수 결과 글(#59)', () => {
   })
 
   it('두 검수를 함께 돌린 결과는 두 검수 이름을 제목에 붙인다(#369)', () => {
-    expect(stepText({ ...step([]), review: { ...step([]).review, check: 'both' } })).toBe('3화 초안 설정·개연성 + 맞춤법·표기 검수: 찾은 문제가 없어요.')
+    expect(stepText({ ...step([]), manuscriptReview: { ...step([]).manuscriptReview, check: 'both' } })).toBe('3화 초안 설정·개연성 + 맞춤법·표기 검수: 찾은 문제가 없어요.')
   })
 })
 

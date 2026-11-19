@@ -56,20 +56,20 @@ def test_member_id_is_none_when_there_is_no_uuid_subject(authorization):
 
 
 def test_request_root_carries_member_session_feature_tags_and_metadata(spans):
-    with tracing.request('review', user_id=MEMBER, session_id='thread-1', work_id='work-1', fork='true', credit_reservation_id=None):
+    with tracing.request('manuscript_review', user_id=MEMBER, session_id='thread-1', work_id='work-1', fork='true', credit_reservation_id=None):
         pass
     [root] = spans()
     found = attrs(root)
-    assert root.name == 'review'
+    assert root.name == 'manuscript_review'
     assert (found['user.id'], found['session.id']) == (MEMBER, 'thread-1')
-    assert found['langfuse.trace.tags'] == ['feature:review', 'status:success']
+    assert found['langfuse.trace.tags'] == ['feature:manuscript_review', 'status:success']
     assert found['langfuse.trace.metadata.work_id'] == 'work-1' and found['langfuse.trace.metadata.fork'] == 'true'
     assert len(found['langfuse.trace.metadata.request_id']) == 32
     assert 'langfuse.trace.metadata.credit_reservation_id' not in found  # 없는 값은 남기지 않는다
 
 
 def test_missing_values_are_left_out(spans):
-    with tracing.request('review', fork=None, work_id=''):
+    with tracing.request('manuscript_review', fork=None, work_id=''):
         pass
     [root] = spans()
     assert not {'langfuse.trace.metadata.fork', 'langfuse.trace.metadata.work_id', 'user.id', 'session.id'} & set(root.attributes)
@@ -91,7 +91,7 @@ def test_attributes_reach_threads_that_copy_the_context(spans):
         with tracing.observe('in-thread'):
             pass
 
-    with tracing.request('review', user_id=MEMBER):
+    with tracing.request('manuscript_review', user_id=MEMBER):
         with ThreadPoolExecutor(1) as pool:
             pool.submit(contextvars.copy_context().run, in_thread).result()  # 심의·검수가 병렬로 부르는 방식
     thread_span, root = spans()
@@ -106,16 +106,16 @@ class Failure(Exception):
                                            (APITimeoutError(request=SimpleNamespace()), 'timeout'), (TimeoutError(), 'timeout')])
 def test_an_exception_marks_the_request_failed_or_timed_out_and_is_reraised(spans, error, status):
     with pytest.raises(type(error)):
-        with tracing.request('review'):
+        with tracing.request('manuscript_review'):
             raise error
     [root] = spans()
-    assert attrs(root)['langfuse.trace.tags'] == ['feature:review', f'status:{status}']
+    assert attrs(root)['langfuse.trace.tags'] == ['feature:manuscript_review', f'status:{status}']
     assert root.attributes['langfuse.observation.level'] == 'ERROR'
 
 
 def test_a_fixed_failure_raised_from_a_timeout_still_counts_as_a_timeout(spans):
     with pytest.raises(Failure):
-        with tracing.request('review'):
+        with tracing.request('manuscript_review'):
             try:
                 raise APITimeoutError(request=SimpleNamespace())
             except APITimeoutError:
@@ -164,9 +164,9 @@ def test_request_runs_with_tracing_off(monkeypatch):
     monkeypatch.delenv('LANGFUSE_SECRET_KEY', raising=False)
     tracing.client.cache_clear()
     with pytest.raises(ValueError):
-        with tracing.request('review', user_id=MEMBER):
+        with tracing.request('manuscript_review', user_id=MEMBER):
             raise ValueError('x')
-    with tracing.request('review', user_id=MEMBER) as run:
+    with tracing.request('manuscript_review', user_id=MEMBER) as run:
         pass
     assert run.status == 'success'
 

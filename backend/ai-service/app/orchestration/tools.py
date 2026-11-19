@@ -33,18 +33,18 @@ from app.research import service as research
 from app.research.errors import ResearchFailure
 from app.research.models import ResearchRequest
 from app.retrieval import service as retrieval
-from app.retrieval.errors import RetrievalFailure
+from app.retrieval.errors import RetrievalFailure, RetrievalUnavailable
 from app.retrieval.models import RetrievalScope
-from app.review import service as review
-from app.review.errors import ReviewFailure
-from app.review.models import ReviewRequest
+from app.manuscript_review import service as manuscript_review
+from app.manuscript_review.errors import ReviewFailure
+from app.manuscript_review.models import ReviewRequest
 from app.simulation import service as simulation
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import GAP_LABELS, SimulationPlan
 from app.story_qa import service as story_qa
 from app.story_qa.errors import StoryQaFailure
 from app.story_qa.models import AnswerRequest
-from app.orchestration.models import QaStepResult
+from app.orchestration.models import QaStepResult, manuscript_review_feature
 from app.world_review import service as world_review
 from app.world_review.errors import WorldReviewFailure
 from app.writing import agent as writing
@@ -57,6 +57,7 @@ HISTORY_TURNS = 5
 FAILURES = (StoryQaFailure, WritingFailure, ResearchFailure, RetrievalFailure, SimulationFailure, ContentMcpFailure, ReviewFailure,
             WorldReviewFailure, RatingFailure)
 NO_REVIEW_TARGET = '검수할 작품과 회차를 확인할 수 없어요.'
+NO_QA_TARGET = '질문할 작품과 회차를 확인할 수 없어요.'
 NO_RATING_TARGET = '심의 등급을 판별할 작품과 회차를 확인할 수 없어요.'
 NO_WORLD_REVIEW_TARGET = '검토할 작품을 확인할 수 없어요.'
 NO_WRITING_TARGET = '기획하거나 쓸 작품과 회차를 확인할 수 없어요.'
@@ -68,7 +69,7 @@ BAD_FIX = '고칠 수 있는 확정 지적이 아니에요. 검수 결과에서 
 DRAFT_CHANGED = '검수한 뒤 초안이 바뀌어 고치지 않았어요. 다시 검수해 주세요.'
 BAD_DRAFT = 'Content 초안 응답을 확인할 수 없습니다.'
 # 판정 기능 → 메인에 노출할 도구 이름. world_plot은 미구현이라 도구가 없다(판정되면 unsupported).
-TOOL_NAMES = {'story_context': 'ask_story_qa', 'review': 'ask_review', 'world_review': 'ask_world_review', 'writing_editing': 'ask_writing',
+TOOL_NAMES = {'story_context': 'ask_story_qa', 'manuscript_review': 'ask_manuscript_review', 'world_review': 'ask_world_review', 'writing_editing': 'ask_writing',
               'web_research': 'ask_web_research', 'rating': 'ask_rating', 'character_simulation': 'ask_character_simulation'}
 UNSUPPORTED_MESSAGE = ('요청에 아직 실행할 수 없는 작업이 있어 아무 작업도 실행하지 않았어요. '
                        '작품 질문, 원고 검수, 설정집 검토, 기획·집필·수정, 고증 조사, 인물 시뮬레이션은 각각 요청할 수 있어요.')
@@ -76,14 +77,14 @@ UNSUPPORTED_MESSAGE = ('요청에 아직 실행할 수 없는 작업이 있어 �
 
 def _check(inputs: dict, check: str | None) -> str | None:
     """Review 검사 종류. 작가가 보낸 검사 종류가 메인 에이전트의 check보다 우선한다."""
-    return (inputs.get('review') or {}).get('check') or check
+    return (inputs.get('manuscript_review') or inputs.get('review') or {}).get('check') or check
 
 
 # 작가 입력을 기다리는 조건(turn, inputs, scope, 도구 인자). 도구 안 needs와 병렬 묶음 검사(waits)가 같은 조건을 쓴다.
 # ask_writing·ask_character_simulation은 항상 단독이라 묶음 검사에 필요 없다.
 WAITS = {
     'ask_story_qa': lambda turn, inputs, scope, args: 'story_context' not in inputs and not scope,
-    'ask_review': lambda turn, inputs, scope, args: bool(turn.get('target')) and not _check(inputs, args.get('check')),
+    'ask_manuscript_review': lambda turn, inputs, scope, args: bool(turn.get('target')) and not _check(inputs, args.get('check')),
     'ask_web_research': lambda turn, inputs, scope, args: 'web_research' not in inputs,
 }
 
@@ -136,7 +137,8 @@ def _writing_summary(r: dict) -> dict:
 
 SUMMARIES: dict[str, Callable[[dict], dict]] = {
     'story_context': lambda r: {'claims': [{k: c[k] for k in ('text', 'kind', 'sourceIds')} for c in r['claims']], 'gaps': r['gaps']},
-    'review': lambda r: {'revision': r['revision'], 'gaps': r['gaps'], 'findings': [
+    'manuscript_review': lambda r: {'revision': r['revision'], 'basis': 'writing_candidate' if r.get('candidate') else 'saved_draft',
+                                    'gaps': r['gaps'], 'findings': [
         {'fix': i, 'status': f['status'], 'category': f['category'], 'quote': f['quote'], 'reason': f['reason']}
         for i, f in enumerate(r['findings'])]},
     'world_review': lambda r: {'findings': [{'kind': f['kind'], 'message': f['message']} for f in r['findings']]},
@@ -196,17 +198,26 @@ def _target(turn: dict, failure: type[Exception], message: str) -> dict:
 
 @tool
 def ask_story_qa(request: Request, runtime: ToolRuntime) -> Command:
-    """작품 질문(Story Context / Q&A): 작품의 내용·설정·인물 관계를 Content가 허용한 근거로 답한다. request는 질문이다."""
+    """작품 질문(Story Context / Q&A): 작품의 원고·세계관 설정·인물 관계를 Content가 허용한 근거로 답한다. request는 질문이다."""
     turn = runtime.context
 
     def answer(inputs, scope):
         data, gaps, coverage = inputs.get('story_context'), [], None
-        if data is None:  # 발췌가 없으면 공통 Retrieval 도구로 Content가 확인한 근거를 받아 온다. 근거가 없으면 모델을 부르지 않는다.
-            found = retrieval.retrieve(RetrievalScope.model_validate(scope), request)
-            gaps, coverage = [g.detail for g in found.gaps], found.coverage
-            if not found.excerpts:
+        if data is None:
+            # 발췌가 없으면 원고는 공통 Retrieval(Content 내부 검색), 설정·관계는 Content MCP로 기준 회차 시점의 세계관을 읽는다(#490).
+            # 둘 다 근거가 없으면 모델을 부르지 않는다.
+            target = _target(turn, StoryQaFailure, NO_QA_TARGET)
+            try:
+                found = retrieval.retrieve(RetrievalScope.model_validate(scope), request)
+                # 설정·관계 정본은 WorldStudio 하나라(#490 결정 1) Retrieval에서는 원고 발췌만 쓴다(옛 설정 문서·현재 관계 제외).
+                manuscript, gaps, coverage = [e for e in found.excerpts if e.kind == 'manuscript'], [g.detail for g in found.gaps], found.coverage
+            except RetrievalUnavailable as error:  # Content가 원고 검색을 쓸 수 없다고 답하면 세계관 근거로만 답하고 이유를 gap으로 알린다
+                manuscript, gaps = [], [str(error)]
+            world, world_gaps = story_qa.world_excerpts(target['workId'], target.get('baseEpisode') or target['episode'], request[:500])
+            gaps += world_gaps
+            if not (excerpts := [e.model_dump() for e in [*manuscript, *world]]):
                 return QaStepResult(claims=[], gaps=gaps, coverage=coverage)
-            data = {'question': request[:500], 'excerpts': [e.model_dump() for e in found.excerpts]}
+            data = {'question': request[:500], 'excerpts': excerpts}
         qa = [t['qa'] for t in previous(turn) if t['qa']][-HISTORY_TURNS:]
         answered = story_qa.answer(AnswerRequest.model_validate({**data, 'history': qa}))
         cited = {i for claim in answered.claims for i in claim.sourceIds}
@@ -217,8 +228,8 @@ def ask_story_qa(request: Request, runtime: ToolRuntime) -> Command:
 
 
 @tool
-def ask_review(request: Request, runtime: ToolRuntime, check: Literal['mechanical', 'semantic', 'both'] | None = None) -> Command:
-    """원고 검수(Review): Content가 확인한 반영 회차 초안을 검수해 위치·근거·확정/의심이 있는 지적을 돌려준다.
+def ask_manuscript_review(request: Request, runtime: ToolRuntime, check: Literal['mechanical', 'semantic', 'both'] | None = None) -> Command:
+    """원고 검수(Manuscript Review): Content가 확인한 반영 회차 초안을 검수해 위치·근거·확정/의심이 있는 지적을 돌려준다.
 
     check는 mechanical(맞춤법·표기), semantic(설정·개연성), both 중 요청에서 알 수 있는 것이며 모르면 비운다(작가가 고른다).
     """
@@ -226,14 +237,18 @@ def ask_review(request: Request, runtime: ToolRuntime, check: Literal['mechanica
 
     def run(inputs, scope):
         target = _target(turn, ReviewFailure, NO_REVIEW_TARGET)
-        return review.review(ReviewRequest(workId=target['workId'], episode=target['episode'], check=_check(inputs, check)))
+        data = ReviewRequest(workId=target['workId'], episode=target['episode'], check=_check(inputs, check))
+        if base := runtime.state.get('writingBase'):
+            written = next(s['result'] for s in runtime.state['steps'] if s['feature'] == 'writing_editing' and s['status'] == 'completed')
+            return manuscript_review.review_candidate(data, base, written)
+        return manuscript_review.review(data)
 
-    return _ask(runtime, 'review', run, needs=lambda inputs, scope: WAITS['ask_review'](turn, inputs, scope, {'check': check}))
+    return _ask(runtime, 'manuscript_review', run, needs=lambda inputs, scope: WAITS['ask_manuscript_review'](turn, inputs, scope, {'check': check}))
 
 
 @tool
 def ask_world_review(request: Request, runtime: ToolRuntime) -> Command:
-    """설정집 검토: 작품에 연결된 세계관 카드 자체의 모순·역할 오류·누락을 검토한다(원고 검수는 ask_review)."""
+    """설정집 검토: 작품에 연결된 세계관 카드 자체의 모순·역할 오류·누락을 검토한다(원고 검수는 ask_manuscript_review)."""
     turn = runtime.context
     return _ask(runtime, 'world_review', lambda inputs, scope: world_review.review(world_review.linked_request(
         _target(turn, WorldReviewFailure, NO_WORLD_REVIEW_TARGET)['workId'])))
@@ -262,20 +277,27 @@ def ask_web_research(runtime: ToolRuntime) -> Command:
 def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch'], runtime: ToolRuntime, fix: int | None = None) -> Command:
     """기획·집필·수정(Writing & Editing): plan은 전개 기획만, draft는 계획을 세워 새 원고까지, patch는 기존 문장 수정안이다.
 
-    이번 턴 ask_review 결과의 확정 지적을 고칠 때만 task=patch와 fix(그 지적의 fix 번호)를 쓴다. 확정 지적이 하나면 fix를 비워도 된다.
+    이번 턴 ask_manuscript_review 결과의 확정 지적을 고칠 때만 task=patch와 fix(그 지적의 fix 번호)를 쓴다. 확정 지적이 하나면 fix를 비워도 된다.
     """
     turn, steps = runtime.context, runtime.state.get('steps', [])
-    reviewed = next((s for s in reversed(steps) if s['feature'] == 'review' and s['status'] == 'completed'), None)
+    reviewed = next((s for s in reversed(steps) if s['feature'] in ('manuscript_review', 'review') and s['status'] == 'completed'), None)
     given = (runtime.state.get('inputs') or {}).get('writing_editing') or {}
     fixing = 'fix' in given or fix is not None or (task == 'patch' and 'patch' not in given and reviewed is not None)
     if fixing:
         return _fix(runtime, reviewed, fix)
 
+    base = None
+
     def run(inputs, scope):
+        nonlocal base
         data = inputs.get('writing_editing') or {}
+        target = turn.get('target')
+        changes_draft = task != 'plan' or 'patch' in data or 'draft' in data
+        if target and changes_draft and reviewed is None and 'manuscript_review' in map(manuscript_review_feature, runtime.state['decision']['capabilities']):
+            draft = content_mcp.read_draft(target['workId'], target['episode'])
+            base = {'body': draft.body, 'revision': draft.revision}
         if 'patch' in data:
             return writing.patch(PatchRequest.model_validate(data['patch']))
-        target = turn.get('target')
         if 'draft' in data:
             draft = DraftRequest.model_validate(data['draft'])
             if target and not draft.context:
@@ -289,7 +311,10 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch'], runti
 
     # 부분 수정은 Content·작가가 주는 선택 구간이 있어야 한다. 기획·바로 집필은 요청과 반영 대상으로 실행한다(#387).
     needs = lambda inputs, scope: task == 'patch' and not {'patch', 'draft'} & set(inputs.get('writing_editing') or {})  # noqa: E731
-    return _ask(runtime, 'writing_editing', run, needs=needs, task_kind=task)
+    command = _ask(runtime, 'writing_editing', run, needs=needs, task_kind=task)
+    if base is not None and command.update['steps'][0]['status'] == 'completed':
+        command.update['writingBase'] = base
+    return command
 
 
 def _fix(runtime: ToolRuntime, reviewed: dict | None, fix: int | None) -> Command:
@@ -302,7 +327,7 @@ def _fix(runtime: ToolRuntime, reviewed: dict | None, fix: int | None) -> Comman
     pick = lambda inputs: (inputs.get('writing_editing') or {}).get('fix', fix)  # noqa: E731
 
     def needs(inputs, scope):
-        if reviewed is None:
+        if reviewed is None or reviewed['result'].get('candidate') is not None:
             raise WritingFailure(422, BAD_FIX)
         findings = reviewed['result']['findings']
         confirmed = [i for i, f in enumerate(findings) if f['status'] == 'confirmed']

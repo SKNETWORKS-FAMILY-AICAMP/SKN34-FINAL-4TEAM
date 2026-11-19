@@ -2,7 +2,7 @@
 
 Stateless Streamable HTTP `{CONTENT_SERVICE_BASE_URL}/mcp`에 AI를 호출한 사용자의 Bearer를 그대로 보내고,
 인가·revision 충돌 판단은 Content Service가 한다. 토큰은 요청마다 `AUTHORIZATION` 컨텍스트로만 받고
-그래프 상태·체크포인트·추적에 넣지 않는다. 쓰기는 초안 수정(`episode_update_draft`)뿐이며 버전 저장·발행·삭제 도구는 부르지 않는다.
+그래프 상태·체크포인트·추적에 넣지 않는다. Review·Q&A·시뮬레이션은 같은 창구로 원고·세계관을 읽는다. 쓰기는 초안 수정(`episode_update_draft`)뿐이며 버전 저장·발행·삭제 도구는 부르지 않는다.
 """
 
 import asyncio
@@ -46,19 +46,31 @@ def place(body: str, quote: str) -> int | None:
     return at if at >= 0 and body.find(quote, at + 1) < 0 else None
 
 
-def apply_writing(work_id: str, number: int, result: dict) -> dict:
-    """승인된 Text는 기존 초안 뒤에 잇고, Patch는 초안 안에 하나뿐인 선택 구간만 바꿔 저장한다."""
+def read_draft(work_id: str, number: int) -> Draft:
+    """작가 권한으로 최신 초안과 revision을 읽는다."""
     try:
-        draft = EpisodeReadResponse.model_validate(call('episode_read', {'id': work_id, 'number': number})).draft
+        return EpisodeReadResponse.model_validate(call('episode_read', {'id': work_id, 'number': number})).draft
     except ValidationError:
         raise ContentMcpFailure(502, 'Content 초안 응답을 확인할 수 없습니다.') from None
+
+
+def render_writing(body: str, result: dict) -> tuple[str, tuple[int, int] | None]:
+    """Text를 뒤에 잇거나 유일한 Patch 선택 구간을 바꾼다. Patch 위치는 원래 본문 기준이다."""
     if 'text' in result:
-        # 기존 초안을 덮어써 작가 원고를 잃지 않도록 뒤에 잇는다.
-        body = f"{draft.body}\n\n{result['text']}" if draft.body.strip() else result['text']
-    elif place(draft.body, result['before']) is not None:
-        body = draft.body.replace(result['before'], result['after'])
-    else:
+        return (f"{body}\n\n{result['text']}" if body.strip() else result['text']), None
+    before = result['before']
+    if (start := place(body, before)) is None:
         raise ContentMcpFailure(409, SELECTION_CHANGED)
+    end = start + len(before)
+    return body[:start] + result['after'] + body[end:], (start, end)
+
+
+def apply_writing(work_id: str, number: int, result: dict, *, expected_revision: int | None = None) -> dict:
+    """승인된 후보를 반영한다. 저장 직전의 revision 경쟁은 Content가 확인한다."""
+    draft = read_draft(work_id, number)
+    if expected_revision is not None and draft.revision != expected_revision:
+        raise ContentMcpFailure(409, '검수한 뒤 초안이 바뀌어 반영하지 않았어요. 다시 요청해 주세요.')
+    body, _ = render_writing(draft.body, result)
     saved = call('episode_update_draft', {'id': work_id, 'number': number, 'data': {
         'title': draft.title, 'body': body, 'revision': draft.revision, 'authorNote': draft.authorNote or ''}})
     try:
@@ -81,6 +93,22 @@ def inherited_world(work_id: str, episode: int) -> dict | None:
         return None
     if read.get('relationshipStatus') != 'current':
         raise ContentMcpFailure(503, '원작 세계관의 관계를 읽을 수 없어요.')
+    return read
+
+
+def linked_world(work_id: str, episode: int) -> dict | None:
+    """작품에 연결된 세계관을 그 회차 시점 관계로 읽는다(`world_studio_read(episode)`). 연결이 없으면 Fork가 이어받는 원작 세계관(#365)을 읽고,
+    그것도 없으면 None이다(대체 세계관을 찾지 않는다). Review·Q&A가 같은 세계관을 기준으로 쓰게 하는 한 곳이다.
+    """
+    try:
+        linked = next((w['worldId'] for w in call('world_studio_list', {}) if w.get('linkedWorkId') == work_id), None)
+    except (LookupError, TypeError, AttributeError):
+        raise ContentMcpFailure(502, 'Content MCP 결과를 확인할 수 없습니다.') from None
+    if linked is None:
+        return inherited_world(work_id, episode)
+    # None 등 dict가 아닌 응답을 '세계관 없음'으로 오인하지 않게 여기서 막는다(inherited_world와 같은 규칙).
+    if not isinstance(read := call('world_studio_read', {'id': linked, 'episode': str(episode)}), dict):
+        raise ContentMcpFailure(502, 'Content MCP 결과를 확인할 수 없습니다.')
     return read
 
 
