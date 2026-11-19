@@ -1,8 +1,8 @@
 # 8개 필수 기능 설계
 
-집필 AI의 필수 기능은 여덟이다. 일곱 업무 Agent(Story Context / Q&A, Manuscript Review, Writing & Editing, Rating, World & Plot Management, Web Research, World Review)와 공통 Character Simulation Subgraph이며, 아래 1~8절이 각각을 다룬다. World Review(설정집 검토)는 2026-11-18 사용자 결정으로 업무 Agent에 더했다. 원고 검수 Agent의 이름은 **Manuscript Review**다(2026-11-18 사용자 결정). 코드 식별자(`app/review/`, 기능 키 `review`, 도구 `ask_review`, `/internal/v1/reviews`)는 #499에서 `manuscript_review` 계열로 바꾸며, 그 전까지 문서의 코드 이름은 현재 이름 그대로다.
+집필 AI의 필수 기능은 여섯 업무 Agent(Story Context / Q&A, Manuscript Review, World, Writing & Editing, Research, Rating. 2026-11-19 사용자 결정으로 World Review → **World**(`check` 설정 충돌 검사·`enrich` 설정 보강·`impact` 설정 변경 영향 분석, World & Plot Management를 흡수), Web Research → **Research**(`web` 웹 조사·`platform` 플랫폼 내부 조사), 플롯(계획)은 Writing & Editing)와 공통 Character Simulation Subgraph다. 아래 1~8절은 이전 절 번호를 유지한다: 6절은 World `impact`, 7절은 Research, 8절은 World `check`·`enrich`다([목표 구조](02-ai-architecture.md#목표-구조-여섯-업무-agent-2026-11-19)). 원고 검수 Agent의 이름은 **Manuscript Review**다(2026-11-18 사용자 결정). 코드 식별자(`app/review/`, 기능 키 `review`, 도구 `ask_review`, `/internal/v1/reviews`)는 #499에서 `manuscript_review` 계열로 바꾸며, 그 전까지 문서의 코드 이름은 현재 이름 그대로다.
 
-모든 기능은 Content가 검증한 작품/Fork·판본·공개 범위에서 시작한다. 일곱 업무 Agent는 각자의 역할과 입출력을 가지며 생성·판단에 `gpt-6-luna`를 사용하는 목표다. 역할마다 서버나 전용 모델 인스턴스를 추가하지 않는다. 공통 도구는 필요한 작업에서만 호출하고 실제 RAG 공급자는 기능이 필요할 때 연결한다. [전체 구조](02-ai-architecture.md) · [검색 계약](07-retrieval-contract-and-mocks.md)
+모든 기능은 Content가 검증한 작품/Fork·판본·공개 범위에서 시작한다. 업무 Agent는 각자의 역할과 입출력을 가지며 생성·판단에 `gpt-6-luna`를 사용하는 목표다. 역할마다 서버나 전용 모델 인스턴스를 추가하지 않는다. 공통 도구는 필요한 작업에서만 호출하고 실제 RAG 공급자는 기능이 필요할 때 연결한다. [전체 구조](02-ai-architecture.md) · [검색 계약](07-retrieval-contract-and-mocks.md)
 
 #473(2026-11-17 사용자 결정)부터 아래 업무 Agent와 인물 시뮬레이션은 메인 에이전트의 `ask_*` 서브 에이전트 도구로 호출되며, 각 기능의 입출력·검증·실패 계약은 바뀌지 않는다. 아래 '현재 구현'에 적힌 Router 분류(검사 종류, Writing `task`, `rating` 분류)는 전환 전 기록이다. 지금은 Decision Guard가 필요한 기능을 판정하고, 메인 에이전트가 도구 인자(`check`·`task`·`fix`)를 정하며, 정하지 못한 입력은 입력 대기로 작가가 고른다. 시뮬레이션 도구는 계획까지만 하고 장면은 바깥 `scene` 노드가 쓴다. [메인 에이전트 오케스트레이션](02-ai-architecture.md#메인-에이전트-오케스트레이션-473)
 
@@ -195,11 +195,15 @@ POST /internal/v1/ratings {workId, episodes[1..10]}
 - 회차 판별은 동시에 부르므로(최대 10개) 한 요청이 OpenAI 호출을 동시에 최대 10개 만든다. 한 회차의 503은 다른 회차 결과까지 버리고 요청 전체를 실패시킨다.
 - 고정 모델 응답 단위 테스트만 있으며 실제 OpenAI 판별 품질은 측정하지 않았다.
 
-## 6. World & Plot Management
+## 6. World `impact` (옛 World & Plot Management, #291)
+
+2026-11-19 사용자 결정으로 별도 Agent가 아니라 World의 `impact` 작업이다. 입력은 바꾸려는 설정·사건이고, 기준 회차 시점의 설정·관계, 사건 카드(연대기), 이미 쓴 회차의 구절(공통 Retrieval 원고 벡터 인덱스), 계획된 장면(MCP `story_plan_list`)을 읽는다. 읽기만 하고 결과로 조건부 수정을 하지 않는다. 변경은 World `enrich`나 작가 편집으로 따로 한다.
 
 세계관 설정이나 플롯 변경 전에 관련 설정, 기준 회차 시점의 관계(DEC-51), 영향받는 회차·장면·다른 플롯을 조회한다. ImpactReport에 영향 대상·판본·근거·확실성과 해결할 충돌을 먼저 보여준다. 그다음 검토 가능한 변경 후보를 만든다. 작가 승인 전 정본은 그대로다. Neo4j 관계와 PostgreSQL 문서를 한 원자 트랜잭션이라고 표시하지 않는다. 미구현이며, Decision Guard가 `world_plot`을 판정하면 아무것도 실행하지 않고 `unsupported`다.
 
-## 7. Web Research Agent
+## 7. Research Agent (`web`·`platform`)
+
+2026-11-19 사용자 결정으로 Web Research를 Research로 바꾸고 두 작업을 둔다. `web`은 아래 웹 조사이고 외부 전송 동의가 필요하다. `platform`(미구현)은 다른 공개 세계관·설정 카드(Content 공개 API·MCP, DEC-53 공개 기준)에서 참고할 설정을 찾아 출처를 단 참고안으로 돌려준다. 공개 데이터만 쓰므로 동의 입력을 기다리지 않고, 내 세계관에 자동 복사하지 않는다(가져오기는 기존 화면 기능).
 
 작품의 현실성과 개연성을 확인할 외부 사실 질문을 만든 뒤 웹 검색으로 출처·발행/확인 시점·서로 다른 근거를 수집한다. 주장별로 확인/상충/미확인 결과와 작품의 해당 장면을 연결한다. 웹 문서를 작품 정본이나 인물 기억으로 승격하지 않는다. 검색 페이지의 프롬프트 인젝션을 지시로 실행하지 않고, 비공개 원고 전문은 검색어로 보내지 않는다. 검색 실패와 근거 부재를 명시하며 원고 수정은 Editing 후보와 승인 경로로 분리한다.
 
@@ -214,7 +218,9 @@ POST /internal/v1/ratings {workId, episodes[1..10]}
 
 모두 후속 후보이며 현재 연결된 기능이 아니다. 실제 사용 사례가 생기면 기존 검색과 비교해 필요한 도구만 선택한다. 제공사·비용·보관·외부 전송과 동의 조건을 확인하고, 허용된 최소 맥락만 보낸다. URL·자료와 확인 시점·누락을 유지하며 외부 텍스트를 지시나 작품 정본으로 취급하지 않는다. 합성 자료로 품질·실패를 평가한 뒤 적용한다.
 
-## 8. World Review Agent
+## 8. World Agent (`check`·`enrich`)
+
+2026-11-19 사용자 결정으로 World Review를 World로 바꾸고 `check`·`enrich`·`impact`(6절) 세 작업을 둔다. `check`는 아래 설정집 검토이며 사건 카드끼리의 시간 모순(연대기) 지적을 더한다(#546). `enrich`(미구현)는 지정한 기존 카드의 본문·인물 문서를 세계관과 어긋나지 않게 보강한 제안을 만들고, 작가가 승인하면 Content MCP `world_studio_edit_draft`로 초안에만 반영한다(확정 버전은 작가가 남긴다). 새 카드 생성은 이번 범위가 아니다(#546).
 
 설정집 검토. 원고가 아니라 세계관(설정집) 자체에 오류가 없는지 본다. 대상은 규칙·사건·인물 설정끼리의 모순, 인물 문서(DEC-47)의 역할 오류(SOUL=말투·사고, GOAL=목표, 회차 문서=그 회차의 경험·비밀), 사건 카드의 회차·참여 인물 같은 정보 누락이다. Manuscript Review(회차 원고를 설정에 비춰 봄)와 다른 기능이다. 상세 계약은 [설정집 검토 계약](../design/world-review-contract.md)이 정본이다(2026-11-16 사용자 결정, #394).
 

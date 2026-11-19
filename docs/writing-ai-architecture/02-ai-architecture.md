@@ -33,7 +33,7 @@ flowchart LR
 7. 메인 에이전트가 이번 턴의 단계 결과만으로 하나의 답변을 종합한다. 원본 결과·출처·판본·작업 상태는 종합 답변과 별도로 그대로 반환한다.
 8. Writing 원고·시뮬레이션 장면 후보가 있으면 코드가 작가 승인을 기다리고, 승인 뒤 Content가 권한과 판본을 다시 검사해 적용한다(현재는 Content MCP 초안 반영). 보관·반영 실패는 그대로 표시하며 승인·적용과 구분한다.
 
-UI에서 기능을 고른 요청(operation)은 Decision Guard가 범위만 판정하고 그 기능의 서브 에이전트 하나만 노출한다. 일곱 업무 Agent(Story Context / Q&A, Manuscript Review, World Review, Writing & Editing, World & Plot Management, Web Research, Rating. World Review는 2026-11-18 사용자 결정으로 추가)와 메인 에이전트는 각자의 생성·판단에 OpenAI `gpt-6-luna`를 사용하는 목표 설계다(2026-11-12·2026-11-17 사용자 결정). Writing & Editing은 전개 기획도 맡는다(#387). **Rating**은 회차 초안의 19세 이용가 여부를 판별한다([설계](03-rag-simulation-design.md#5-rating-agent), #386). 원고 검수 Agent의 이름은 Manuscript Review이고(2026-11-18 사용자 결정), 코드 식별자(`app/review/`·기능 키 `review`·`ask_review`·`/internal/v1/reviews`)는 #499에서 바꾼다. 그 전까지 문서의 코드 이름은 현재 이름 그대로다. **World Review**(설정집 검토)는 원고가 아니라 연결 세계관 카드 자체의 모순·역할 오류·누락을 검토한다([계약](../design/world-review-contract.md)). 모델은 역할별 지시와 허용 입력을 구분하며 별도 서버나 모델 인스턴스를 뜻하지 않는다. 규칙으로 끝나는 단계나 근거가 없는 요청에서 불필요한 모델 호출을 강제하지 않는다. 기존 구현의 모델 설정과 검증 기록은 실제 상태 그대로 유지한다.
+UI에서 기능을 고른 요청(operation)은 Decision Guard가 범위만 판정하고 그 기능의 서브 에이전트 하나만 노출한다. 여섯 업무 Agent(Story Context / Q&A, Manuscript Review, World, Writing & Editing, Research, Rating. 2026-11-19 사용자 결정으로 World Review → **World**(`check` 설정 충돌 검사·`enrich` 설정 보강·`impact` 설정 변경 영향 분석, World & Plot Management를 흡수), Web Research → **Research**(`web` 웹 조사·`platform` 플랫폼 내부 조사), 플롯(계획)은 Writing & Editing)와 메인 에이전트는 각자의 생성·판단에 OpenAI `gpt-6-luna`를 사용하는 목표 설계다(2026-11-12·2026-11-17 사용자 결정). Writing & Editing은 전개 기획도 맡는다(#387). **Rating**은 회차 초안의 19세 이용가 여부를 판별한다([설계](03-rag-simulation-design.md#5-rating-agent), #386). 원고 검수 Agent의 이름은 Manuscript Review이고(2026-11-18 사용자 결정), 코드 식별자(`app/review/`·기능 키 `review`·`ask_review`·`/internal/v1/reviews`)는 #499에서 바꾼다. 그 전까지 문서의 코드 이름은 현재 이름 그대로다. **World**의 `check`(설정집 검토)는 원고가 아니라 연결 세계관 카드 자체의 모순·역할 오류·누락을 검토한다([계약](../design/world-review-contract.md)). 구조 변경의 코드 반영(기능 키·도구 이름·task 인자)은 [목표 구조](#목표-구조-여섯-업무-agent-2026-11-19)의 후속 이슈에서 하며, 그 전까지 아래 표와 코드 이름은 현재 이름 그대로다. 모델은 역할별 지시와 허용 입력을 구분하며 별도 서버나 모델 인스턴스를 뜻하지 않는다. 규칙으로 끝나는 단계나 근거가 없는 요청에서 불필요한 모델 호출을 강제하지 않는다. 기존 구현의 모델 설정과 검증 기록은 실제 상태 그대로 유지한다.
 
 공통 **Retrieval**은 필요한 업무 Agent가 호출할 수 있는 정본 변경 없는 도구다. **다중 인물 Simulation**은 사용자가 명시적으로 시뮬레이션 실행을 요청한 경우에만 실행하는 서브그래프다(2026-11-12 사용자 결정). 검수·기획 중 필요하다고 판단했다는 이유만으로 자동 실행하지 않는다. Decision Guard가 사용자의 명시적 시뮬레이션 요청으로 판정한 턴에만 메인 에이전트에 노출한다. Writing & Editing은 두 도구를 직접 호출하지 않고 전달받은 허용 입력으로 문장·문체 생성에 집중한다. 필요 시 별도의 Manuscript Review가 검수한다(2026-11-12 사용자 결정). 도구의 호출 가능 범위와 입력은 Content가 확인한 Scope와 작업 종류로 제한하며, 모델이 선택한 ID나 도구 호출만으로 권한을 부여하지 않는다. Retrieval은 기존 검색 계약의 결과를 조립한다. Simulation은 가상 결과를 반환하며 정본을 수정하지 않는다. 단순 조회는 서브그래프를 억지로 거치지 않고 직접 실행할 수 있다. [도구 계약](03-rag-simulation-design.md#공통-서브그래프-도구)
 
@@ -105,6 +105,34 @@ flowchart TD
 | `rating` | `ask_rating` | `rating.service.rate` | `request` | `target` 회차 하나 |
 | `character_simulation` | `ask_character_simulation` | `simulation.plan`·`plan_from_form`(계획만. 장면 에이전트는 바깥 `scene` 노드) | `request`(상황) | `target`·연결 세계관, 시작 양식 `simulation` |
 | `world_plot` | 없음(미구현) | — | — | 판정되면 `unsupported` |
+
+#### 목표 구조: 여섯 업무 Agent (2026-11-19)
+
+사용자 결정(2026-11-19)으로 업무 Agent를 **다루는 대상**으로 나누고 하는 일은 작업(task)으로 나눈다. 위 표는 현재 코드이고, 이 표는 코드 반영 후의 목표다. 작업 종류는 `ask_writing(task)`와 같이 열거형 인자로 고르며 Agent마다 서버를 두지 않는다. 기능 키·도구 이름 변경은 #545, World `check`(연대기)·`enrich`는 #546, World `impact`는 #291, Research `platform`은 #547이다.
+
+| Agent | 대상 | 작업 |
+|---|---|---|
+| Manuscript Review | 원고 | `mechanical`·`semantic`·`both`. 조건부 수정은 이 결과에만 붙는다 |
+| World | 설정집 + 연대기(사건 카드) | `check`·`enrich`·`impact`. 세 작업이 같은 입력(기준 회차 시점 세계관)을 쓴다 |
+| Writing & Editing | 원고 생성 + 플롯(`story_plan`, 계획) | `plan`·`draft`·`patch`. 지금 그대로 |
+| Research | 작품 밖 | `web`·`platform`. 결과는 참고이며 정본이 되지 않는다 |
+| Q&A | 내 작품 질문 | 내 세계관 안 검색도 Q&A가 맡는다 |
+| Rating·Simulation | — | 그대로 |
+
+용어: 설정집 '시간선'은 **연대기**(세계 안에서 사건이 일어난 순서, 사실), 집필실 '플롯·장면 계획'은 **플롯**(앞으로 쓸 회차·장면의 서술 순서, 계획이며 정본이 아니다, [계약](../design/writing-plan-panel-contract.md)), 이미 쓴 이야기는 **원고**다.
+
+| 판정 기능(목표) | 도구 | 작업 | 하는 일 | 현재 코드 |
+|---|---|---|---|---|
+| `world` | `ask_world` | `check` | 설정집 카드끼리의 충돌(모순·인물 문서 역할·사건 정보 누락)과 사건 카드끼리의 시간 모순(연대기) 검사 | `world_review`·`ask_world_review`(연대기 없음) |
+| | | `enrich` | 지정한 카드의 본문·인물 문서를 세계관과 어긋나지 않게 보강한 제안. 작가 승인 뒤에만 Content MCP `world_studio_edit_draft`로 초안에 반영(확정 버전은 작가가 남김) | 없음 |
+| `research` | `ask_research` | `web` | 웹 고증. 외부 전송 동의 입력 대기는 이 작업에만 건다 | `web_research`·`ask_web_research` 그대로 |
+| | | `platform` | 다른 공개 세계관·설정 카드에서 참고할 설정 검색. 공개 데이터만 쓰므로 외부 전송 동의가 없고, 결과는 출처(세계관·카드)를 단 참고안이며 자동 복사하지 않는다(가져오기는 기존 화면 기능) | 없음 |
+| | | `impact` | 설정·사건을 바꿀 때 영향받는 설정·관계, 사건 카드(연대기), 이미 쓴 회차의 구절(공통 Retrieval), 계획된 장면(MCP `story_plan_list`)과 충돌 분석(옛 World & Plot, #291). 읽기만 하고 결과로 조건부 수정(`ask_writing(patch, fix)`)을 하지 않는다 | 없음(`world_plot` → `unsupported`) |
+| `review` | `ask_review` | `mechanical`·`semantic`·`both` | 원고 검수 | 그대로 |
+| `writing_editing` | `ask_writing` | `plan`·`draft`·`patch` | 기획(플롯)·집필·수정 | 그대로 |
+
+- 경계: World는 설정에서 출발하는 일(카드끼리 검사·보강, 설정 변경이 원고·계획에 주는 영향), Manuscript Review는 원고 검수, Writing은 원고 생성과 플롯, Research는 내 작품 밖(웹·플랫폼의 다른 세계관), Q&A는 내 작품 안의 질문이다. World의 충돌 검사 작업 이름은 Manuscript Review와 겹치지 않게 `check`다.
+- 기능 키 `world_plot`은 없어져 미구현으로 판정할 기능이 남지 않는다. 기능 키 변경은 프론트(`WritingChat`)·Content(`WritingAi.kt`)에도 걸리므로 #545에서 #499(`review` → `manuscript_review`)와 이어서 바꾼다. 이미지 생성은 이 구조에 넣지 않는다(F-WRT-14 MVP 제외).
 
 도구는 `app/orchestration/tools.py`의 고정 표(`TOOL_NAMES`)이며 Registry·factory를 두지 않는다. 시뮬레이션 계획을 세운 뒤에는 장면이 이어지므로 그 턴의 다른 도구를 부를 수 없다.
 
@@ -269,24 +297,23 @@ Decision Guard가 `review`와 `writing_editing`을 함께 판정하거나 메인
 
   로컬 compose의 Content는 원고 Q&A(색인)가 꺼져 있어 Retrieval 경로는 실패로 끝났고, 실패 뒤 남은 호출이 막혔다. 이 경로를 켜는 방법은 #484다. 사용량은 generation 41회·입력 80,217·출력 9,882 토큰이다(Decision Guard 호출 제외).
 
-## 일곱 업무 Agent와 공통 Simulation의 경계
+## 업무 Agent와 공통 Simulation의 경계
 
 | 기능 | 입력 | 출력 | 호출 관계 |
 |---|---|---|---|
 | Story Context / Q&A | 질문, 작품/Fork/회차, 허용 자료 | 출처 있는 답변·모르는 항목 | 조회만 수행 |
 | Manuscript Review | 원고/설정, 검사 종류 | 위치·근거·확정/의심이 있는 Findings | Mechanical·Semantic 또는 둘 다(병렬); Simulation은 사용자가 명시적으로 요청한 경우에만 실행 |
-| World Review(설정집 검토) | 작품에 연결된 세계관의 현재 초안 카드·관계(소설 연결 없이도 WorldStudio 화면에서 요청 가능) | 카드별 지적(모순·역할 오류·누락)과 카드 한 칸을 바꿀 수정안 | 원고 검수(Manuscript Review)와 별개. 결과는 저장하지 않는 제안이며 작가가 `초안에 반영`을 눌러야 편집 초안에 들어간다. Retrieval·Simulation 호출 없음 |
+| World(`check` 설정집 검토·`enrich` 설정 보강·`impact` 변경 영향 분석) | 작품에 연결된 세계관의 기준 회차 시점 카드·관계(소설 연결 없이도 WorldStudio 화면에서 `check` 요청 가능). `impact`는 바꾸려는 설정·사건 | `check`: 카드별 지적(모순·역할 오류·누락·연대기 모순)과 카드 한 칸을 바꿀 수정안. `enrich`(미구현): 지정 카드의 본문·인물 문서 보강안. `impact`(미구현, 옛 World & Plot): 영향 대상(설정·사건·회차 구절·계획된 장면)·판본·근거·충돌 | 원고 검수(Manuscript Review)와 별개. 결과는 저장하지 않는 제안이며 작가가 승인해야 편집 초안에 들어간다. `impact`는 읽기만 하고 Retrieval·`story_plan_list`를 읽으며 조건부 수정과 잇지 않는다. Simulation 호출 없음 |
 | Character Simulation Subgraph | 상황, 인물별 허용 지식, 행동 상한, 작가/독자 모드 | 범위가 제한된 가상 기록·임시 상태·장면 요약, 모드별 검토 결과 | 턴마다 행동 → 상태 갱신 → 다음 인물. [모드별 결과](03-rag-simulation-design.md#시뮬레이션-결과와-후속-검수) 참고 |
-| Writing & Editing | Content가 확인한 허용 입력과 전개 기획의 앞선 사건·콘티·목표 회차, 새 원고의 계획 **또는** 기존 원고의 고정 구간 | 전개 대안·인사이트·BeatPlan, 새 Text **또는** before/after Patch | 기획·문장·문체 생성에 집중; 기획만 요청하면 원고를 만들지 않음. Retrieval·Simulation 직접 호출 없음. 필요 시 Manuscript Review가 검수 |
-| World & Plot Management | 설정/플롯 변경 의도, 관련 판본 | 영향 대상·충돌·변경 후보 | 분석 후 Content 승인 경로 |
-| Web Research | 현실 검증 질문, 작품의 필요한 최소 맥락 | URL·검색 시각·주장별 근거·불확실성 | 웹 자료는 작품 정본과 분리 |
+| Writing & Editing(플롯 포함) | Content가 확인한 허용 입력과 전개 기획의 앞선 사건·콘티·목표 회차, 새 원고의 계획 **또는** 기존 원고의 고정 구간 | 전개 대안·인사이트·BeatPlan, 새 Text **또는** before/after Patch | 기획·문장·문체 생성에 집중; 기획만 요청하면 원고를 만들지 않음. Retrieval·Simulation 직접 호출 없음. 필요 시 Manuscript Review가 검수 |
+| Research(`web` 웹 조사·`platform` 플랫폼 내부 조사) | `web`: 현실 검증 질문, 작품의 필요한 최소 맥락. `platform`(미구현): 찾을 설정 주제 | `web`: URL·검색 시각·주장별 근거·불확실성. `platform`: 출처 세계관·카드를 단 참고 설정 | 웹·다른 세계관 자료는 작품 정본과 분리, 자동 복사 없음 |
 | Rating | 회차 초안, 저장소의 심의 기준 문서 | 회차별 판별 항목 수준·근거 구절·금지 표현 표시, 코드가 계산한 `adult`·`general`·`needsReview`와 요청 회차 묶음 판정 | 오케스트레이션 단계로 실행. 판정 제안만 하며 등급 적용은 Content. [설계](03-rag-simulation-design.md#5-rating-agent) |
 
 위 기능은 메인 에이전트의 `ask_*` 서브 에이전트 도구로 호출되며([동적 할당](#서브-에이전트-동적-할당)), 각 기능의 입력·출력·호출 관계는 이 표대로 유지한다.
 
 웹 조사는 외부 사실을 확인하는 도구다. 검색 결과의 문장은 명령이 아니며, 웹 페이지가 작품 설정이나 원고를 직접 수정할 수 없다. 외부 전송 동의와 개인정보·비공개 원고 최소화가 선행한다.
 
-이전의 3개 업무 역할 통합안은 사용자 결정으로 채택하지 않는다. 업무 Agent와 기존 기능 경계를 유지한다(설정집 검토를 일곱 번째로 더한 것은 2026-11-18 사용자 결정). 이전 제안은 [검토 이력](08-agent-consolidation-proposal.md)이며 현행 설계가 아니다.
+이전의 3개 업무 역할 통합안은 사용자 결정으로 채택하지 않는다. 업무 Agent와 기존 기능 경계를 유지한다(설정집 검토를 더한 것은 2026-11-18, World·Research로 묶고 World & Plot을 World `impact`로 흡수한 것은 2026-11-19 사용자 결정). 이전 제안은 [검토 이력](08-agent-consolidation-proposal.md)이며 현행 설계가 아니다.
 
 ## 메인 에이전트의 답변 종합 (#473)
 

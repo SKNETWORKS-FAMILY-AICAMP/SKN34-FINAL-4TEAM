@@ -1,6 +1,6 @@
 # 설정집 AI 검토 계약 (world review)
 
-상태: `확정`(2026-11-16 사용자 결정), 구현 중(#394). 브랜치 `feat/world-review-agent`(스택: `feat/world-relation-graph` 위). 원고 검수 `review`(#368)와 다른 기능이다: 그것은 회차 원고를 설정에 비춰 보고, 이것은 설정집 자체를 본다.
+상태: `확정`(2026-11-16 사용자 결정), 구현 중(#394). 브랜치 `feat/world-review-agent`(스택: `feat/world-relation-graph` 위). 원고 검수 `review`(#368)와 다른 기능이다: 그것은 회차 원고를 설정에 비춰 보고, 이것은 설정집 자체를 본다. 2026-11-19 사용자 결정으로 World Agent의 `check` 작업이 된다(같은 Agent의 `enrich` 설정 보강·`impact` 변경 영향 분석과 함께, [목표 구조](../writing-ai-architecture/02-ai-architecture.md#목표-구조-여섯-업무-agent-2026-11-19)). 기능 키·도구 이름 변경은 #545, 사건 카드끼리의 시간 모순(연대기) 지적 추가는 #546에서 이 계약에 반영한다. 그 전까지 이 계약은 그대로다.
 
 ## 결정
 
