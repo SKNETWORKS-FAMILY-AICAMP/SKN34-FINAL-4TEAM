@@ -115,8 +115,8 @@ Schedule { id, kind, cron, enabled, params, createdAt, updatedAt, lastRun?:JobRu
 - `llmops_setting(key PK, value)` — `leak_sample_rate=0.1`.
 - `leak_check_result(id, trace_id, work_id, matched jsonb, suspected bool, reason, checked_at)`.
 - 위 넷은 LLMOps 조각의 V8, 아래 작업 테이블은 작업 감시 조각의 V9다(V8을 먼저 병합한다).
-- (V9) `scheduled_job(id, kind, cron, enabled, params jsonb, created_at, updated_at)`, `job_run(id, kind, source, status, trigger, done, total, started_at, finished_at, error, target_id, external_ref)`.
-- (V10) `job_run.retry_of`(NULL 허용, `job_run` 자기 참조): 수동 재실행 기록이 다시 실행한 실패 기록의 id다. 이 값이 가리키는 기록은 재실행 결과와 무관하게 다시 재실행할 수 없다(409). V10 이전의 수동 기록은 같은 일정에서 그보다 앞선 가장 최근 실패 기록을 다시 실행한 것으로 채운다.
+- (V9) `scheduled_job(id, kind, cron, enabled, params jsonb, created_at, updated_at)`, `job_run(id, kind, source, status, trigger, done, total, started_at, finished_at, error, target_id, external_ref, retry_of)`.
+- `job_run.retry_of`(NULL 허용, `job_run` 자기 참조): 수동 재실행 기록이 다시 실행한 실패 기록의 id다. 이 값이 가리키는 기록은 재실행 결과와 무관하게 다시 재실행할 수 없다(409).
 
 ## 정기 작업 (운영 스케줄러)
 
