@@ -23,6 +23,9 @@ export type Schedule = {
 }
 export type ScheduleInput = { kind: string; cron: string; enabled: boolean; params: Record<string, unknown> }
 
+/** 실행 기록·일정 조회는 `jobs` 권한이 필요합니다. 403이면 다시 불러오기 대신 이 안내만 보입니다. */
+export const JOBS_FORBIDDEN = "실행 기록과 일정을 보려면 '정기 작업' 권한이 필요해요."
+
 /** 운영 스케줄러가 실행할 수 있는 작업 종류(handler가 등록된 kind만 일정으로 받습니다). */
 export const JOB_KINDS: [string, string][] = [
   ['llm_alert_check', 'LLM 경고 점검'], ['leak_sample_check', '정보 누설 표본 검사'], ['regression_eval', '회귀 평가'], ['alert_cleanup', '해결 경고 정리'],

@@ -49,6 +49,9 @@ export type EvaluationInput = { dataset: string; prompt: string; version: number
 export type LeakCheck = { id: string; traceId: string; workId: string; checkedAt: string; matched: string[]; suspected: boolean; reason?: string | null }
 export type LlmOpsSettings = { leakSampleRate: number }
 
+/** LLM Ops 조회 API는 `llm` 권한이 필요합니다. 403이면 다시 불러오기 대신 이 안내만 보입니다. */
+export const LLM_FORBIDDEN = 'LLM Ops 조회 권한이 있어야 볼 수 있어요.'
+
 /** 승격이 그 버전의 최신 회귀 평가 미통과로 막힐 때(409 EVALUATION_REQUIRED) 보이는 문구. 서버의 영문 문구 대신 이 문구를 씁니다. */
 export const EVALUATION_REQUIRED_MESSAGE = '회귀 평가를 통과한 버전만 production으로 올릴 수 있어요.'
 

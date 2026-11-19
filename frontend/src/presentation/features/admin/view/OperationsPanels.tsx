@@ -33,8 +33,11 @@ export function Table({ label, style, children }: { label: string; style?: CSSPr
   )
 }
 
-/** 실제 운영 API 목록의 로딩·새로고침·실패. 실패를 빈 목록으로 숨기지 않습니다. */
-export function LiveState({ vm, label, state }: { vm: VM; label: string; state?: Pick<VM['live'], 'isLoading' | 'isRefreshing' | 'isError' | 'retry'> }) {
+/**
+ * 실제 운영 API 목록의 로딩·새로고침·실패. 실패를 빈 목록으로 숨기지 않습니다.
+ * forbidden을 주면 권한이 없을 때(데이터가 null, 403) 다시 불러오기 없이 그 안내만 보입니다.
+ */
+export function LiveState({ vm, label, state, forbidden }: { vm: VM; label: string; state?: Pick<VM['live'], 'isLoading' | 'isRefreshing' | 'isError' | 'retry'> & { data?: unknown }; forbidden?: string }) {
   const l = state ?? vm.live
   return (
     <>
@@ -46,6 +49,7 @@ export function LiveState({ vm, label, state }: { vm: VM; label: string; state?:
           <button type="button" className="btn sm" onClick={l.retry}>다시 불러오기</button>
         </div>
       )}
+      {forbidden && l.data === null && <p className="admin-action-error" role="alert">{forbidden}</p>}
     </>
   )
 }

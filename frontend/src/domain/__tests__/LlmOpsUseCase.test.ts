@@ -87,3 +87,20 @@ describe('대시보드 차트용 최근 7일 지표', () => {
     await expect(make({ metrics: async () => { throw new OperationsError('연결 실패') } }).weeklyMetrics()).rejects.toThrow('연결 실패')
   })
 })
+
+describe('LLM Ops 조회 권한', () => {
+  it('조회는 권한(llm)이 없으면(403) 모두 실패가 아니라 null이고, 변경은 그대로 던진다', async () => {
+    const forbidden = async () => { throw new OperationsForbidden('권한 없음') }
+    const uc = make({
+      traces: forbidden, trace: forbidden, metrics: forbidden, prompts: forbidden, prompt: forbidden, models: forbidden, evaluations: forbidden,
+      evaluation: forbidden, leakChecks: forbidden, alertRules: forbidden, settings: forbidden, promote: forbidden,
+    })
+    const traceQuery = { from: '', to: '', feature: '', status: '', userId: '', requestId: '', page: 0 }
+    const reads = await Promise.all([
+      uc.traces(traceQuery), uc.trace('t1'), uc.metrics({ from: '', to: '', groupBy: 'day' }), uc.prompts(), uc.prompt('qa-answer'), uc.models(),
+      uc.evaluations(), uc.evaluation('run-1'), uc.leakChecks(), uc.alertRules(), uc.settings(),
+    ])
+    expect(reads).toEqual(Array(11).fill(null))
+    await expect(uc.promote('qa-answer', 1)).rejects.toThrow(OperationsForbidden)
+  })
+})

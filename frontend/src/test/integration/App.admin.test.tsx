@@ -211,6 +211,46 @@ describe('관리자 (A01~A18)', () => {
     await screen.findByRole('region', { name: 'LLM 추적 표' })
   })
 
+  it("정기 작업 탭은 '정기 작업' 권한이 없으면(403) 일반 실패 문구와 다시 불러오기 대신 필요한 권한 안내만 보인다", async () => {
+    const jobs = appContainer.resolve('jobMonitorUseCase')
+    vi.spyOn(jobs, 'runs').mockResolvedValue(null)
+    vi.spyOn(jobs, 'schedules').mockResolvedValue(null)
+    renderAt('/admin?tab=jobs')
+    await screen.findByText("실행 기록과 일정을 보려면 '정기 작업' 권한이 필요해요.")
+    expect(screen.queryByText(/불러오지 못했어요/)).toBeNull()
+    expect(screen.queryByRole('button', { name: '다시 불러오기' })).toBeNull()
+    expect(screen.queryByRole('region', { name: '정기 작업 일정 표' })).toBeNull()
+    expect(screen.queryByRole('button', { name: '일정 등록' })).toBeNull()
+  })
+
+  it('LLM Ops의 추적·지표·프롬프트·모델·평가·누설 검사·경고 기준은 조회 권한(llm)이 없으면(403) 다시 불러오기 대신 같은 권한 안내만 보인다', async () => {
+    const llm = appContainer.resolve('llmOpsUseCase')
+    vi.spyOn(llm, 'traces').mockResolvedValue(null)
+    vi.spyOn(llm, 'metrics').mockResolvedValue(null)
+    vi.spyOn(llm, 'prompts').mockResolvedValue(null)
+    vi.spyOn(llm, 'models').mockResolvedValue(null)
+    vi.spyOn(llm, 'evaluations').mockResolvedValue(null)
+    vi.spyOn(llm, 'leakChecks').mockResolvedValue(null)
+    vi.spyOn(llm, 'alertRules').mockResolvedValue(null)
+    renderAt('/admin?tab=llm')
+    for (const view of ['추적', '지표', '프롬프트', '모델', '평가', '누설 검사', '경고 기준·설정']) {
+      fireEvent.click(await screen.findByRole('button', { name: view }))
+      await screen.findByText('LLM Ops 조회 권한이 있어야 볼 수 있어요.')
+      expect(screen.queryByText(/불러오지 못했어요/)).toBeNull()
+      expect(screen.queryByRole('button', { name: '다시 불러오기' })).toBeNull()
+    }
+  })
+
+  it('프롬프트 상세만 403이어도 다시 불러오기 없이 권한 안내를 보인다', async () => {
+    vi.spyOn(appContainer.resolve('llmOpsUseCase'), 'prompt').mockResolvedValue(null)
+    renderAt('/admin?tab=llm')
+    fireEvent.click(await screen.findByRole('button', { name: '프롬프트' }))
+    fireEvent.click(await screen.findByRole('button', { name: /qa-answer/ }))
+    const detail = await screen.findByLabelText('프롬프트 상세')
+    await within(detail).findByText('LLM Ops 조회 권한이 있어야 볼 수 있어요.')
+    expect(within(detail).queryByRole('button', { name: '다시 불러오기' })).toBeNull()
+  })
+
   it('공지를 게시하면 회원 공지사항에 보인다', async () => {
     renderAt('/admin?tab=notices')
     fireEvent.click(await screen.findByRole('button', { name: '공지 작성' }))
@@ -244,7 +284,7 @@ describe('관리자 (A01~A18)', () => {
   it('정기 작업 탭은 실행 기록의 출처 실패를 알리되 불러온 기록은 그대로 보이고, 실패한 작업은 확인 뒤 다시 실행을 요청한다', async () => {
     const jobs = appContainer.resolve('jobMonitorUseCase')
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
-    const real = await jobs.runs({ status: '', kind: '', page: 0 })
+    const real = (await jobs.runs({ status: '', kind: '', page: 0 }))!
     const runs = vi.spyOn(jobs, 'runs').mockResolvedValue({ ...real, unavailable: ['content-preprocessing'] })
     renderAt('/admin?tab=jobs')
     await screen.findByText(/일부 출처의 실행 기록을 불러오지 못했어요: content-preprocessing/)
@@ -288,7 +328,7 @@ describe('관리자 (A01~A18)', () => {
 
   it('실행 기록은 서버가 읽게 허용하는 앞쪽 1,000건 밖으로는 쪽 이동을 막고 안내한다', async () => {
     const jobs = appContainer.resolve('jobMonitorUseCase')
-    const real = await jobs.runs({ status: '', kind: '', page: 0 })
+    const real = (await jobs.runs({ status: '', kind: '', page: 0 }))!
     vi.spyOn(jobs, 'runs').mockResolvedValue({ ...real, page: 49, size: 20, total: 3000 })
     renderAt('/admin?tab=jobs')
     await screen.findByText(/전체 3,000건 · 50\/50쪽/)

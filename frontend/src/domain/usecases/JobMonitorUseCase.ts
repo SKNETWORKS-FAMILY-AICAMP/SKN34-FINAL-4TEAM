@@ -1,5 +1,5 @@
 import type { JobRunQuery, ScheduleInput } from '../entities/jobMonitor'
-import { OperationsError } from '../entities/operations'
+import { OperationsError, orNullIfForbidden } from '../entities/operations'
 import type { JobMonitorRepository } from '../repositories/JobMonitorRepository'
 
 /** 비면 빈 객체이고, JSON 객체가 아니면(배열·null·숫자 포함) 입력 오류입니다. */
@@ -22,9 +22,10 @@ export class JobMonitorUseCase {
   private readonly repository: JobMonitorRepository
   constructor(repository: JobMonitorRepository) { this.repository = repository }
 
-  runs(query: JobRunQuery) { return this.repository.runs(query) }
+  // 조회는 권한('정기 작업')이 없으면(403) 실패가 아니라 null이라 화면이 다시 불러오기 대신 필요한 권한을 안내합니다.
+  runs(query: JobRunQuery) { return orNullIfForbidden(this.repository.runs(query)) }
   retry(id: string) { return this.repository.retry(id) }
-  schedules() { return this.repository.schedules() }
+  schedules() { return orNullIfForbidden(this.repository.schedules()) }
   cancelSchedule(id: string) { return this.repository.cancelSchedule(id) }
 
   async createSchedule(kind: string, cron: string, enabled: boolean, params: string) {

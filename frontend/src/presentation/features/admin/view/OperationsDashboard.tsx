@@ -1,3 +1,4 @@
+import { LLM_FORBIDDEN } from '../../../../domain/entities/llmOps'
 import { usagePoints } from '../../../../domain/entities/llmOpsCharts'
 import { dashboardCards } from '../../../../domain/entities/operationsDashboard'
 import { Go } from '../../../shared/Go'
@@ -53,7 +54,7 @@ function WeeklyUsage({ vm, usage }: { vm: VM; usage: ReturnType<typeof useWeekly
     <section className="panel admin-operations admin-usage" aria-label="최근 7일 AI 사용">
       <h2>최근 7일 AI 사용</h2>
       <LiveState vm={vm} label="AI 사용 현황" state={usage} />
-      {metrics === null && <p className="admin-data-state" role="status">LLM Ops 조회 권한이 있어야 볼 수 있어요.</p>}
+      {metrics === null && <p className="admin-data-state" role="status">{LLM_FORBIDDEN}</p>}
       {metrics && (points.length
         ? (
           <>

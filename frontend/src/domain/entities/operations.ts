@@ -20,6 +20,16 @@ export class OperationsForbidden extends OperationsError {}
 /** 서버가 대상의 상태 때문에 거절하며 보낸 안내 문구(404·409)를 그대로 담습니다. 다시 시도해도 같은 결과입니다. */
 export class OperationsRejected extends OperationsError {}
 
+/** 403(권한 없음)이면 실패가 아니라 null로 바꿔, 화면이 다시 불러오기 대신 필요한 권한을 안내하게 합니다. 그 밖의 실패는 그대로 던집니다. */
+export async function orNullIfForbidden<T>(read: Promise<T>): Promise<T | null> {
+  try {
+    return await read
+  } catch (error) {
+    if (error instanceof OperationsForbidden) return null
+    throw error
+  }
+}
+
 /** datetime-local의 시간대는 브라우저 설정이 아니라 명시된 한국시간(UTC+09:00)입니다. */
 export function toUtcFromKoreanInput(value: string): string | null {
   if (!value) return null

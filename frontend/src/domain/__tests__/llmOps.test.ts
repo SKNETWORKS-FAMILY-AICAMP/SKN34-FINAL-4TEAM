@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { bodyText, percent, periodRange, promoteLabel, usd, type PromptVersion } from '../entities/llmOps'
-import { JOB_RUNS_LIMIT, jobKindLabel, jobProgress, jobStatusLabel } from '../entities/jobMonitor'
+import { LLM_FORBIDDEN, bodyText, percent, periodRange, promoteLabel, usd, type PromptVersion } from '../entities/llmOps'
+import { JOBS_FORBIDDEN, JOB_RUNS_LIMIT, jobKindLabel, jobProgress, jobStatusLabel } from '../entities/jobMonitor'
 import { lastPage } from '../entities/operations'
 
 describe('LLMOps 표시 값', () => {
@@ -73,5 +73,12 @@ describe('작업 감시 표시 값', () => {
     expect(jobProgress({ done: 5, total: 0 })).toBe('5건')
     expect(jobProgress(null)).toBe('—')
     expect(jobProgress(undefined)).toBe('—')
+  })
+})
+
+describe('권한 안내 문구', () => {
+  it('조회가 403이면 다시 불러오기 대신 필요한 권한을 안내한다', () => {
+    expect(LLM_FORBIDDEN).toBe('LLM Ops 조회 권한이 있어야 볼 수 있어요.')
+    expect(JOBS_FORBIDDEN).toBe("실행 기록과 일정을 보려면 '정기 작업' 권한이 필요해요.")
   })
 })

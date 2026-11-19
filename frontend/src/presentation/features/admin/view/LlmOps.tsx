@@ -1,5 +1,5 @@
 import {
-  METRICS_GROUPS, PERIODS, TRACE_STATUS_OPTIONS, bodyText, count, millis, percent, traceStatusLabel, usd, type TraceItem,
+  LLM_FORBIDDEN, METRICS_GROUPS, PERIODS, TRACE_STATUS_OPTIONS, bodyText, count, millis, percent, traceStatusLabel, usd, type TraceItem,
 } from '../../../../domain/entities/llmOps'
 import { usagePoints } from '../../../../domain/entities/llmOpsCharts'
 import { kstDateTime } from '../../../shared/format'
@@ -65,7 +65,7 @@ function Traces({ vm, l }: { vm: VM; l: LlmVM }) {
         <label className="field">요청 ID<input className="inp" name="requestId" defaultValue={f.requestId} placeholder="AI 요청 ID" /></label>
         <button type="submit" className="btn sm pri">조회</button>
       </form>
-      <LiveState vm={vm} label="추적 목록" state={l.traces} />
+      <LiveState vm={vm} label="추적 목록" state={l.traces} forbidden={LLM_FORBIDDEN} />
       {page && (page.items.length
         ? (
           <>
@@ -113,7 +113,7 @@ function TraceDetailPanel({ vm, l }: { vm: VM; l: LlmVM }) {
   return (
     <section className="panel admin-operations" aria-label="추적 상세">
       <button type="button" className="btn sm" onClick={l.closeTrace}>추적 목록으로</button>
-      <LiveState vm={vm} label="추적 상세 내용" state={l.trace} />
+      <LiveState vm={vm} label="추적 상세 내용" state={l.trace} forbidden={LLM_FORBIDDEN} />
       {t && (
         <>
           <h2 tabIndex={-1}>{t.feature} · {traceStatusLabel(t.status)}</h2>
@@ -190,7 +190,7 @@ function Metrics({ vm, l }: { vm: VM; l: LlmVM }) {
         </label>
         <button type="submit" className="btn sm pri">조회</button>
       </form>
-      <LiveState vm={vm} label="지표 현황" state={l.metrics} />
+      <LiveState vm={vm} label="지표 현황" state={l.metrics} forbidden={LLM_FORBIDDEN} />
       {m && (
         <>
           {points.length > 0 && (q.groupBy === 'day'
@@ -249,7 +249,7 @@ function LeakChecks({ vm, l }: { vm: VM; l: LlmVM }) {
   const rows = l.leaks.data
   return (
     <section className="panel admin-operations" aria-label="정보 누설 검사">
-      <LiveState vm={vm} label="누설 검사 기록" state={l.leaks} />
+      <LiveState vm={vm} label="누설 검사 기록" state={l.leaks} forbidden={LLM_FORBIDDEN} />
       {rows && (rows.length
         ? (
           <Table label="정보 누설 검사 표">

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { OperationsError } from '../entities/operations'
+import { OperationsError, OperationsForbidden } from '../entities/operations'
 import type { JobMonitorRepository } from '../repositories/JobMonitorRepository'
 import { JobMonitorUseCase } from '../usecases/JobMonitorUseCase'
 
@@ -36,5 +36,16 @@ describe('정기 작업 일정', () => {
     const updateSchedule = vi.fn(async () => {})
     await make({ updateSchedule }).updateSchedule('s1', ' regression_eval ', ' 0 30 3 * * * ', false, '{"a":1}')
     expect(updateSchedule).toHaveBeenCalledWith('s1', { kind: 'regression_eval', cron: '0 30 3 * * *', enabled: false, params: { a: 1 } })
+  })
+})
+
+describe('실행 기록·일정 조회 권한', () => {
+  it("'정기 작업' 권한이 없으면(403) 실패가 아니라 null이라 화면이 다시 불러오기 대신 권한 안내를 보이고, 변경은 그대로 던진다", async () => {
+    const forbidden = async () => { throw new OperationsForbidden('권한 없음') }
+    const uc = make({ runs: forbidden, schedules: forbidden, retry: forbidden })
+    expect(await uc.runs({ status: '', kind: '', page: 0 })).toBeNull()
+    expect(await uc.schedules()).toBeNull()
+    await expect(uc.retry('r1')).rejects.toThrow(OperationsForbidden)
+    await expect(make({ schedules: async () => { throw new OperationsError('연결 실패') } }).schedules()).rejects.toThrow('연결 실패')
   })
 })

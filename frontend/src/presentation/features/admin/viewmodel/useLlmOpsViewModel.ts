@@ -41,7 +41,12 @@ export function useLlmOpsViewModel(mutate: AdminMutate, useCase: LlmOpsUseCase =
   const evaluations = useAsyncData(async () => view === 'evaluations' && !runId ? useCase.evaluations() : null, [useCase, view, runId])
   const evaluation = useAsyncData(async () => runId ? useCase.evaluation(runId) : null, [useCase, runId])
   const leaks = useAsyncData(async () => view === 'leaks' ? useCase.leakChecks() : null, [useCase, view])
-  const config = useAsyncData(async () => view === 'settings' ? { rules: await useCase.alertRules(), settings: await useCase.settings() } : null, [useCase, view])
+  const config = useAsyncData(async () => {
+    if (view !== 'settings') return null
+    const rules = await useCase.alertRules()
+    const settings = rules && await useCase.settings()
+    return rules && settings ? { rules, settings } : null
+  }, [useCase, view])
 
   return {
     view,

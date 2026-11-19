@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { evaluationStatusLabel, passedLabel, perMillion, promoteLabel, type Evaluation } from '../../../../domain/entities/llmOps'
+import { LLM_FORBIDDEN, evaluationStatusLabel, passedLabel, perMillion, promoteLabel, type Evaluation } from '../../../../domain/entities/llmOps'
 import { alertRuleLabel, type AlertRule } from '../../../../domain/entities/operationsAlert'
 import { kstDateTime } from '../../../shared/format'
 import { EvaluationChart } from './AdminCharts'
@@ -24,7 +24,7 @@ function Prompts({ vm, l }: Props) {
   if (!l.promptName) {
     return (
       <section className="panel admin-operations" aria-label="프롬프트">
-        <LiveState vm={vm} label="프롬프트 목록" state={l.prompts} />
+        <LiveState vm={vm} label="프롬프트 목록" state={l.prompts} forbidden={LLM_FORBIDDEN} />
         {rows && (rows.length
           ? (
             <ul className="admin-record-list">
@@ -46,7 +46,7 @@ function Prompts({ vm, l }: Props) {
   return (
     <section className="panel admin-operations" aria-label="프롬프트 상세">
       <button type="button" className="btn sm" onClick={l.closePrompt}>프롬프트 목록으로</button>
-      <LiveState vm={vm} label="프롬프트 버전 목록" state={l.prompt} />
+      <LiveState vm={vm} label="프롬프트 버전 목록" state={l.prompt} forbidden={LLM_FORBIDDEN} />
       <ActionLines vm={vm} prefix="prompt:" />
       {p && (
         <>
@@ -123,7 +123,7 @@ function Models({ vm, l }: Props) {
   const rows = l.models.data, busy = !!vm.actions['model:new']?.pending
   return (
     <section className="panel admin-operations" aria-label="모델 단가">
-      <LiveState vm={vm} label="모델 목록" state={l.models} />
+      <LiveState vm={vm} label="모델 목록" state={l.models} forbidden={LLM_FORBIDDEN} />
       {rows && (rows.length
         ? (
           <Table label="모델 단가 표">
@@ -178,7 +178,7 @@ function Evaluations({ vm, l }: Props) {
     return (
       <section className="panel admin-operations" aria-label="평가 상세">
         <button type="button" className="btn sm" onClick={l.closeEvaluation}>평가 목록으로</button>
-        <LiveState vm={vm} label="평가 지표 목록" state={l.evaluation} />
+        <LiveState vm={vm} label="평가 지표 목록" state={l.evaluation} forbidden={LLM_FORBIDDEN} />
         {e && (
           <>
             <h2 tabIndex={-1}>{e.dataset} · {e.prompt} {e.version}번 버전</h2>
@@ -215,7 +215,7 @@ function Evaluations({ vm, l }: Props) {
   }
   return (
     <section className="panel admin-operations" aria-label="회귀 평가">
-      <LiveState vm={vm} label="평가 목록" state={l.evaluations} />
+      <LiveState vm={vm} label="평가 목록" state={l.evaluations} forbidden={LLM_FORBIDDEN} />
       {rows && (rows.length
         ? (
           <Table label="회귀 평가 표">
@@ -267,7 +267,7 @@ function Settings({ vm, l }: Props) {
   const c = l.config.data, busy = !!vm.actions['setting:leak']?.pending
   return (
     <section className="panel admin-operations" aria-label="경고 기준·설정">
-      <LiveState vm={vm} label="경고 기준·설정" state={l.config} />
+      <LiveState vm={vm} label="경고 기준·설정" state={l.config} forbidden={LLM_FORBIDDEN} />
       {c && (
         <>
           <h2>경고 기준</h2>

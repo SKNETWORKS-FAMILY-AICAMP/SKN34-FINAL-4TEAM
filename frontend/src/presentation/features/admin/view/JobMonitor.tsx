@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { JOB_KINDS, JOB_RUNS_LIMIT, JOB_STATUSES, jobKindLabel, jobProgress, jobSourceLabel, jobStatusLabel, jobTriggerLabel, type JobRun, type Schedule } from '../../../../domain/entities/jobMonitor'
+import { JOBS_FORBIDDEN, JOB_KINDS, JOB_RUNS_LIMIT, JOB_STATUSES, jobKindLabel, jobProgress, jobSourceLabel, jobStatusLabel, jobTriggerLabel, type JobRun, type Schedule } from '../../../../domain/entities/jobMonitor'
 import { kstDateTime } from '../../../shared/format'
 import { useJobMonitorViewModel } from '../viewmodel/useJobMonitorViewModel'
 import type { useAdminViewModel } from '../viewmodel/useAdminViewModel'
@@ -15,6 +15,8 @@ const statusChip = (status: string) => <span className={`chip ${status === 'succ
 /** 35 작업 감시·정기 작업: 회차 원고 전처리와 운영 정기 작업을 같은 실행 기록으로 보고, 실패 재실행과 일정 관리를 요청합니다. */
 export function JobMonitor({ vm }: { vm: VM }) {
   const j = useJobMonitorViewModel(vm.live.mutate)
+  // 실행 기록·일정은 같은 '정기 작업' 권한이라 실행 기록이 403이면 일정도 볼 수 없으니, 필터·폼 없이 안내 하나만 보입니다.
+  if (j.runs.data === null) return <section className="panel admin-operations" aria-label="정기 작업"><p className="admin-action-error" role="alert">{JOBS_FORBIDDEN}</p></section>
   return (
     <>
       <Runs vm={vm} j={j} />
@@ -129,7 +131,7 @@ function Schedules({ vm, j }: { vm: VM; j: Jobs }) {
   return (
     <section className="panel admin-operations" style={{ marginTop: 14 }} aria-label="정기 작업 일정">
       <h2 className="panel-title">정기 작업 일정</h2>
-      <LiveState vm={vm} label="일정 목록" state={j.schedules} />
+      <LiveState vm={vm} label="일정 목록" state={j.schedules} forbidden={JOBS_FORBIDDEN} />
       <ActionLines vm={vm} prefix="schedule:" />
       {rows && (rows.length
         ? (
