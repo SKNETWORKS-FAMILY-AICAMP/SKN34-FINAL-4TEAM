@@ -28,5 +28,7 @@ export function noticeTarget(n: Pick<AppNotification, 'targetType' | 'targetId'>
   if (n.targetType === 'credit-expiry') return '/me/pay'
   // 탈퇴 취소 카드는 프로필 맨 아래라, 알림에서 왔다는 표시(focus)를 붙여 그 카드로 스크롤·포커스합니다(화면 안 이동에 #anchor를 쓰지 않음).
   if (n.targetType === 'withdrawal') return '/me/profile?focus=withdrawal'
+  // 운영 경고(operations.alert.raised): 대상 id는 주소에 쓰지 않고 경고를 확인·처리하는 LLM Ops 탭(첫 보기가 경고)으로 보냅니다.
+  if (n.targetType === 'alert') return '/admin?tab=llm'
   return null
 }
