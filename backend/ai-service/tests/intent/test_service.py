@@ -74,7 +74,7 @@ def test_writing_operation_asks_only_the_guard_too(monkeypatch):
 
 def test_story_development_is_no_longer_a_feature(monkeypatch):
     calls = fake_decisions(monkeypatch, {'guard': 'none'})
-    assert 'story_development' not in prompt.FEATURES and len(prompt.FEATURES) == 8
+    assert 'story_development' not in prompt.FEATURES and len(prompt.FEATURES) == 7
     with pytest.raises(ValueError):
         service.judge('11화 사건을 추천해줘', operation='story_development')
     assert calls == []
@@ -129,19 +129,35 @@ def test_simulation_is_asked_as_an_explicit_request_to_run_it(monkeypatch):
     assert '명시적으로' in asked['character_simulation']
 
 
-def test_world_review_is_told_apart_from_the_manuscript_review(monkeypatch):
-    calls = fake_decisions(monkeypatch, ok(world_review='yes'))
-    assert service.judge('설정에 오류 없는지 봐줘').capabilities == ['world_review']
+@pytest.mark.parametrize('text', ['설정에 오류 없는지 봐줘', '이 인물 설정을 더 자세히 보강해줘', '카엘의 나이를 바꾸면 어디에 영향이 가?'])
+def test_world_is_one_feature_for_check_enrich_and_impact_and_is_told_apart_from_the_manuscript_review(monkeypatch, text):
+    calls = fake_decisions(monkeypatch, ok(world='yes'))
+    assert service.judge(text).capabilities == ['world']
     asked = {q['name']: q['instructions'] for q in calls[0][1]['questions']}
-    # 설정집 자체의 검토와 원고 검수는 서로를 가리켜 모델이 둘을 섞지 않게 한다.
-    assert '설정집' in asked['world_review'] and '원고 검수는 manuscript_review' in asked['world_review']
-    assert 'world_review' in prompt.FEATURES['manuscript_review']
-    assert 'world_review' in prompt.INSTRUCTIONS
+    # 설정집 자체를 다루는 세 작업(검사·보강·영향 분석)은 한 기능이고, 원고 검수와는 서로를 가리켜 모델이 둘을 섞지 않게 한다.
+    assert all(word in asked['world'] for word in ('설정집', '모순', '시간 순서', '보강', '영향')) and '원고 검수는 manuscript_review' in asked['world']
+    assert 'world' in prompt.FEATURES['manuscript_review'] and 'world' in prompt.FEATURES['story_context']
+    assert all(word in prompt.INSTRUCTIONS for word in ('world만 yes', '보강', '영향'))
 
 
-def test_ui_operation_world_review_asks_only_the_guard(monkeypatch):
+def test_the_old_world_features_are_gone_from_the_features_and_the_prompts():
+    assert 'world' in prompt.FEATURES and not {'world_review', 'world_plot'} & set(prompt.FEATURES)
+    # world_review·world_plot은 기능 키로도 설명 문구로도 남지 않는다(world_plot 판정 경로가 없다).
+    texts = [*prompt.FEATURES.values(), prompt.INSTRUCTIONS, prompt.CLARIFY_MESSAGE, *prompt.CAPABILITY_NAMES.values()]
+    assert not any('world_review' in t or 'world_plot' in t for t in texts)
+
+
+@pytest.mark.parametrize('operation', ['world_review', 'world_plot'])
+def test_the_old_world_operations_are_unregistered(monkeypatch, operation):
     calls = fake_decisions(monkeypatch, {'guard': 'none'})
-    assert service.judge('설정집 검토', operation='world_review').capabilities == ['world_review']
+    with pytest.raises(ValueError):
+        service.judge('설정집 검토', operation=operation)
+    assert calls == []
+
+
+def test_ui_operation_world_asks_only_the_guard(monkeypatch):
+    calls = fake_decisions(monkeypatch, {'guard': 'none'})
+    assert service.judge('설정집 검토', operation='world').capabilities == ['world']
     assert [q['name'] for q in calls[0][1]['questions']] == ['guard']
 
 
@@ -190,9 +206,9 @@ def test_every_feature_has_a_name_in_the_clarify_question():
 
 @pytest.mark.parametrize('text, feature', [
     ('작품 질문', 'story_context'), ('원고 검수', 'manuscript_review'), ('인물 시뮬레이션', 'character_simulation'),
-    ('기획·집필·수정', 'writing_editing'), ('전개 제안', 'writing_editing'), ('집필·수정', 'writing_editing'), ('설정·플롯 분석', 'world_plot'),
+    ('기획·집필·수정', 'writing_editing'), ('전개 제안', 'writing_editing'), ('집필·수정', 'writing_editing'),
     ('고증 조사', 'web_research'), ('심의 등급', 'rating'),
-    ('설정집 검토', 'world_review'), ('설정집검토', 'world_review'),
+    ('세계관', 'world'), (' 세계관 ', 'world'),
     ('기획 집필 수정', 'writing_editing'), ('기획ㆍ집필ㆍ수정', 'writing_editing'), (' 인물  시뮬레이션 ', 'character_simulation'),
 ])
 def test_a_capability_name_answers_the_clarify_question(text, feature):

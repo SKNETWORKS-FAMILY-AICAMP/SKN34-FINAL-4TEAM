@@ -1,13 +1,15 @@
-"""Content MCP 창구(DEC-49) 클라이언트: 작가가 승인한 Writing 결과를 그 작가의 권한으로 회차 초안에 반영한다.
+"""Content MCP 창구(DEC-49) 클라이언트: 작가가 승인한 Writing 결과를 그 작가의 권한으로 회차 초안에, 설정 보강 제안을 세계관 초안에 반영한다.
 
 Stateless Streamable HTTP `{CONTENT_SERVICE_BASE_URL}/mcp`에 AI를 호출한 사용자의 Bearer를 그대로 보내고,
 인가·revision 충돌 판단은 Content Service가 한다. 토큰은 요청마다 `AUTHORIZATION` 컨텍스트로만 받고
-그래프 상태·체크포인트·추적에 넣지 않는다. Review·Q&A·시뮬레이션은 같은 창구로 원고·세계관을 읽는다. 쓰기는 초안 수정(`episode_update_draft`)뿐이며 버전 저장·발행·삭제 도구는 부르지 않는다.
+그래프 상태·체크포인트·추적에 넣지 않는다. Review·Q&A·시뮬레이션은 같은 창구로 원고·세계관을 읽는다. 쓰기는 회차 초안 수정(`episode_update_draft`)과 세계관 초안 수정(`world_studio_edit_draft`)뿐이며
+버전 저장(확정)·발행·삭제 도구는 부르지 않는다.
 """
 
 import asyncio
 import json
 import os
+import uuid
 from contextvars import ContextVar
 
 from agents.mcp import MCPServerStreamableHttp
@@ -19,6 +21,7 @@ AUTHORIZATION: ContextVar[str] = ContextVar('content_mcp_authorization', default
 # Content가 사용자에게 보여 줄 detail로 거절하는 상태. 그 밖의 도구 오류는 502로 닫는다.
 PASSED_STATUSES = {401, 403, 404, 409, 422}
 SELECTION_CHANGED = '선택한 문장이 초안에서 바뀌었거나 여러 곳에 있어 반영하지 않았어요. 다시 요청해 주세요.'
+WORLD_CHANGED = '제안한 뒤 세계관 초안이 바뀌어 반영하지 않았어요. 다시 요청해 주세요.'
 
 
 class DraftRevision(BaseModel):
@@ -78,6 +81,55 @@ def apply_writing(work_id: str, number: int, result: dict, *, expected_revision:
     except ValidationError:
         raise ContentMcpFailure(502, 'Content 초안 저장 응답을 확인할 수 없습니다.') from None
     return {'episode': number, 'revision': revision}
+
+
+def apply_world(world_id: str, revision: int, fixes: list[dict]) -> dict:
+    """승인된 설정 보강 제안(fixes)을 세계관 초안의 그 칸에만 반영한다. 읽은 초안 revision이 제안 때와 다르면 409로 쓰지 않는다.
+
+    Content의 세계관 편집은 replace=false면 보낸 카드만 갱신하고 관계는 보낸 것만 갱신하므로, 고친 카드만 보내고 관계는 보내지 않아 다른 카드와
+    관계는 저장된 그대로 남는다. 고친 카드도 칸 하나만 바꾼 채 읽은 그대로(별칭·태그·공개 범위·메타데이터) 돌려보낸다. 확정 버전은 만들지 않는다.
+    """
+    read = call('world_studio_read', {'id': world_id})
+    try:
+        current, name, description = read['draftRevision'], read['name'], read.get('description') or ''
+        cards = {c['id']: c for c in read['cards'] if c.get('lifecycle') != 'removed'}
+    except (LookupError, TypeError, AttributeError):
+        raise ContentMcpFailure(502, 'Content 세계관 응답을 확인할 수 없습니다.') from None
+    if current != revision:
+        raise ContentMcpFailure(409, WORLD_CHANGED)
+    edited: dict[str, dict] = {}
+    for fix in fixes:
+        card = edited.get(fix['cardId']) or cards.get(fix['cardId'])
+        if card is None or (fix['target'] != 'body' and card.get('cardType') != 'character'):
+            raise ContentMcpFailure(409, WORLD_CHANGED)
+        _replace_cell(card, fix)
+        edited[card['id']] = card
+    saved = call('world_studio_edit_draft', {'id': world_id, 'request': {
+        'expectedDraftRevision': revision, 'name': name, 'description': description, 'key': uuid.uuid4().hex, 'replace': False,
+        'cards': list(edited.values())}})
+    new = saved.get('draftRevision') if isinstance(saved, dict) else None
+    if not isinstance(new, int):
+        raise ContentMcpFailure(502, 'Content 세계관 저장 응답을 확인할 수 없습니다.')
+    return {'worldId': world_id, 'revision': new}
+
+
+def _replace_cell(card: dict, fix: dict) -> None:
+    """카드 하나의 칸 하나를 새 글로 바꾼다(제자리). body는 카드 본문(인물은 IDENTITY), soul·goal·episode는 semanticMetadata.characterDocs의 칸이다."""
+    if fix['target'] == 'body':
+        card['body'] = fix['text']
+        # 화면이 만든 카드는 semanticMetadata.studio.item.text가 본문의 사본이다. 프런트는 둘이 다르면 세계관 전체를 읽지 못하므로(HttpWorldStudioRepository.world())
+        # 사본이 있을 때 같이 맞춘다. 사본이 없는 카드(옛 Seeder·부분 studio)에는 새 키를 만들지 않는다. 인물 문서는 studio 안에 사본이 없다.
+        studio = (card.get('semanticMetadata') or {}).get('studio')
+        item = studio.get('item') if isinstance(studio, dict) else None
+        if isinstance(item, dict) and 'text' in item:
+            item['text'] = fix['text']
+        return
+    metadata = card['semanticMetadata'] = card.get('semanticMetadata') or {}
+    docs = metadata['characterDocs'] = {'soul': '', 'goal': '', 'episodes': {}, **(metadata.get('characterDocs') or {})}
+    if fix['target'] == 'episode':
+        docs['episodes'] = {**(docs.get('episodes') or {}), str(fix['episode']): fix['text']}
+    else:
+        docs[fix['target']] = fix['text']
 
 
 def inherited_world(work_id: str, episode: int) -> dict | None:
