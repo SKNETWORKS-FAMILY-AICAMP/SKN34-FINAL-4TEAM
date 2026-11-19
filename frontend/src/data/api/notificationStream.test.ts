@@ -85,6 +85,20 @@ describe('openNotificationStream', () => {
       close()
     })
 
+    it('서버가 연결을 정상 종료하면 offline 없이 다시 연결한다', async () => {
+      await signIn()
+      const server = fakeServer()
+      const r = recorder()
+      const close = openNotificationStream({ ...r, fetcher: server.fetcher, backoff: () => 0 })
+      await vi.waitFor(() => expect(server.connections).toHaveLength(1))
+      server.connections[0].push('event:ready\ndata:ok\n\n')
+      await vi.waitFor(() => expect(r.states.at(-1)).toBe('live'))
+      server.connections[0].end()
+      await vi.waitFor(() => expect(server.connections).toHaveLength(2))
+      expect(r.states).not.toContain('offline')
+      close()
+    })
+
     it('서버 오류 응답은 offline으로 보고 계속 다시 시도한다', async () => {
       await signIn()
       const fetcher = vi.fn(async () => new Response(null, { status: 502 }))

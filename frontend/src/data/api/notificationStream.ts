@@ -27,7 +27,6 @@ export function openNotificationStream(options: StreamOptions): () => void {
 }
 
 function wait(ms: number, signal: AbortSignal) {
-  if (signal.aborted) return Promise.resolve()
   return new Promise<void>((resolve) => {
     const done = () => { clearTimeout(timer); signal.removeEventListener('abort', done); resolve() }
     const timer = setTimeout(done, ms)
@@ -76,16 +75,14 @@ async function run(options: StreamOptions, stop: AbortSignal) {
         }
       }
     } catch (error) {
-      if (error instanceof SessionExpired) {
-        if (!stop.aborted && authVersion() === version) options.onState('off')
-        break
-      }
+      if (stop.aborted || authVersion() !== version) break
+      if (error instanceof SessionExpired) { options.onState('off'); break }
+      options.onState('offline') // 정상 종료(서버 연결 수명 10분)는 끊김으로 알리지 않는다
     } finally {
       clearTimeout(idle)
       stop.removeEventListener('abort', closeConnection)
     }
     if (stop.aborted || authVersion() !== version) break
-    options.onState('offline')
     await wait(backoff(failures++), stop)
   }
 }
