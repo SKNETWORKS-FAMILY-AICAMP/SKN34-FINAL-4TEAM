@@ -61,7 +61,7 @@
 | `GET /llmops/metrics?from&to&groupBy=day|feature|model` | `llm` | 요청·실패율·시간 초과율·p50/p95 지연·토큰·비용(사용자/플랫폼)·채택률·승인률·필터 복원률 |
 | `GET /llmops/prompts`, `GET /llmops/prompts/{name}` | `llm` | 프롬프트별 버전·라벨·최신 평가 결과 |
 | `POST /llmops/prompts/{name}` | `llm` | 새 버전 등록(라벨 없음) |
-| `PUT /llmops/prompts/{name}/production` `{version}` | `llm` | `production` 라벨 이동(승격·이전 버전 복원). 그 버전의 최신 회귀 평가가 통과가 아니면 409 `EVALUATION_REQUIRED` |
+| `PUT /llmops/prompts/{name}/production` `{version}` | `llm` | `production` 라벨 이동(승격·이전 버전 복원). 그 버전의 최신 회귀 평가가 통과가 아니면 409 `EVALUATION_REQUIRED`(화면은 code로 한국어 안내) |
 | `GET /llmops/models`, `POST /llmops/models` | `llm` | Langfuse 모델 정의(이름·매칭 패턴·입력/출력 단가) 조회·등록 |
 | `GET /llmops/evaluations`, `GET /llmops/evaluations/{runId}` | `llm` | Dataset Run 목록·상세(지표별 점수, 기준 버전 대비 차이, 통과 여부) |
 | `POST /llmops/evaluations` `{dataset, prompt, version}` | `llm` | 회귀 평가 실행 요청(AI에 위임, 202 + 실행 기록 ID) |
@@ -70,9 +70,9 @@
 | `PUT /alerts/{id}` `{status, note}` | `llm` 또는 `jobs` | 확인·조치 완료 기록 |
 | `GET /alerts/rules`, `PUT /alerts/rules/{key}` `{threshold, windowMinutes, enabled}` | `llm` | 경고 기준값 설정 |
 | `GET /llmops/settings`, `PUT /llmops/settings` `{leakSampleRate}` | `llm` | 누설 검사 표본 비율(0~1, 기본 0.1) |
-| `GET /jobs/runs?status&kind&page` | `jobs` | 전처리 작업 + 운영 정기 작업 실행 기록(같은 모양) |
+| `GET /jobs/runs?status&kind&page` | `jobs` | 전처리 작업 + 운영 정기 작업 실행 기록(같은 모양). 앞쪽 1,000건까지만(`(page+1)*size > 1000`이면 400) |
 | `POST /jobs/runs/{id}/retry` | `jobs` | 실패 작업 수동 재실행 요청(전처리는 Content 재접수 = 실패 회차만) |
-| `GET /jobs/schedules`, `POST /jobs/schedules`, `PUT /jobs/schedules/{id}`, `DELETE /jobs/schedules/{id}` | `jobs` | 정기 작업 일정 등록·조회·변경·취소(취소는 `enabled=false` 소프트) |
+| `GET /jobs/schedules`, `POST /jobs/schedules`, `PUT /jobs/schedules/{id}`, `DELETE /jobs/schedules/{id}` | `jobs` | 정기 작업 일정 등록·조회·변경·취소(취소는 `enabled=false` 소프트). PUT은 `{kind,cron,enabled,params}` 전체 교체이며 종류 변경은 422 |
 
 실행 기록 모양(출처 독립): `{id, kind, source, status(queued|running|succeeded|failed|cancelled), trigger(schedule|manual|user), progress{done,total}, startedAt, finishedAt, error, targetId}`.
 `source`는 `operations-scheduler`·`content-preprocessing`이고 Airflow를 붙이면 `airflow`가 더해진다.
@@ -84,11 +84,11 @@ Dashboard { members{total,joinedLast7Days,withdrawalPending}?, ai{today:AiSummar
             jobs{running,failedLast24h}?, pending{inquiries,reports,authorReviews}?, openAlerts?, unavailable:[string] }
 AiSummary { requests, failed, timeouts, failureRate, costUser, costPlatform }
 TraceItem { id, timestamp, feature, status, latencyMs, inputTokens, outputTokens, cost, userId?, workId? }
-TraceDetail { ...TraceItem, input?, output?, observations:[{id,name,type,startTime,endTime,latencyMs,model?,inputTokens?,outputTokens?,level,statusMessage?,promptName?,promptVersion?}] }
+TraceDetail { ...TraceItem, input?, output?, observations:[{id,name,type,startTime?,endTime?,latencyMs,model?,inputTokens?,outputTokens?,level,statusMessage?,promptName?,promptVersion?}] }
 Page<T> { items:[T], page, size, total }
 MetricRow { key(날짜·기능·모델), requests, failureRate, timeoutRate, p50LatencyMs, p95LatencyMs, inputTokens, outputTokens, costUser, costPlatform }
 Metrics { rows:[MetricRow], adoptionRate?, approvalRate?, filterRestoreRate? }   // 비율은 0~1, 데이터 없으면 null
-Prompt { name, versions:[{version, labels:[string], createdAt, evaluation?:{runId, passed, createdAt}}] }
+Prompt { name, versions:[{version, labels:[string], createdAt?, evaluation?:{runId, passed, createdAt}}] }
 Model { id, modelName, matchPattern, inputPrice, outputPrice, unit }        // 가격은 토큰당 USD
 Evaluation { runId, dataset, prompt, version, status(running|completed|failed), passed?, createdAt,
              metrics:[{name, score, baseline?, delta?}] }
