@@ -49,7 +49,7 @@ def internal_token(x_internal_token: str = Header(default='')) -> None:
              dependencies=[Depends(internal_token)])
 async def orchestrate_stream(data: OrchestrationRequest,
                              x_user_authorization: str = Header(default='')) -> AsyncIterator[ServerSentEvent]:
-    """같은 실행을 SSE로 흘린다: plan, 단계마다 started·step(시뮬레이션은 턴이 끝날 때마다 누적 결과 step), 멈추면 waiting, 마지막 done(실패 시 error)."""
+    """실행을 SSE로 흘린다. 저장한 턴은 실패 상태를 포함해 done, 처리하지 못한 요청은 error로 끝난다."""
     async for event in service.stream(data, x_user_authorization):
         yield event
 

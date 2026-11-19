@@ -89,6 +89,28 @@ const openThread = (turns: unknown[]) => {
   history.mockResolvedValue({ threadId: 'a', title: '', turns })
 }
 
+it('저장된 승인 카드는 다시 동의할 위치를 안내하고 체크 뒤에만 반영을 요청한다', async () => {
+  openThread([{ request: '이어 써줘', reply: {
+    status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 1,
+  } }])
+  send.mockResolvedValue(undefined)
+  renderChat()
+
+  const card = within(await screen.findByRole('region', { name: '1화 초안에 반영할까요?' }))
+  const approve = card.getByRole('button', { name: '초안에 반영', exact: true })
+  expect(card.getByText(/입력창 위.*동의/)).toBeTruthy()
+  expect(approve).toHaveProperty('disabled', true)
+  expect(card.getByRole('button', { name: '반영하지 않기' })).toHaveProperty('disabled', true)
+  fireEvent.click(approve)
+  expect(send).not.toHaveBeenCalled()
+
+  fireEvent.click(screen.getByRole('checkbox'))
+  expect(card.queryByText(/입력창 위.*동의/)).toBeNull()
+  fireEvent.click(approve)
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ consent: true, resume: { approved: true } })
+})
+
 it('턴 사이에 멈춘 장면은 대본 대신 진행 상태 한 줄과 무대 열기만 보이고, 무대 열기가 호스트의 무대를 연다', async () => {
   openThread([{ request: '시뮬레이션', reply: { status: 'waiting', steps: [simStep(scene({ status: 'paused', turns: [turn(0, '카엘', '카엘이 문을 열었다.'), turn(1, '리안', '"저예요."')] }))], missingInputs: [], awaitingScene: 'character_simulation' } }])
   const open = vi.fn()
@@ -236,6 +258,9 @@ it('시뮬레이션 단계가 전제·비트를 기다리면 화면에서 채울
   expect(within(form).getByText(/인물 시뮬레이션 단계가 입력을 기다려요/)).toBeTruthy()
   expect(within(form).getByText(/화면에서 채울 수 없어요/)).toBeTruthy()
   expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
+  expect(within(form).getByRole('button', { name: '취소' })).toHaveProperty('disabled', true)
+  fireEvent.click(screen.getByRole('checkbox'))
+  expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
   expect(within(form).getByRole('button', { name: '취소' })).toHaveProperty('disabled', false)
 })
 
@@ -272,6 +297,10 @@ it('원고 검수 입력 대기는 검수 종류를 골라야 이어서 실행�
   expect(within(form).getByRole('group', { name: '검수 종류 · 2화 초안' })).toBeTruthy()
   expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
   fireEvent.click(within(form).getByRole('radio', { name: /설정·개연성/ }))
+  expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
+  expect(within(form).getByRole('button', { name: '취소' })).toHaveProperty('disabled', true)
+  fireEvent.submit(form)
+  expect(send).not.toHaveBeenCalled()
   fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.click(within(form).getByRole('button', { name: '이어서 실행' }))
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))

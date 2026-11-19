@@ -131,7 +131,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   const lockedReason = !useCase ? '데모에서는 집필 AI 채팅을 지원하지 않아요.'
     : !workId ? '세계관에 소설을 연결하면 그 소설을 근거로 AI와 대화할 수 있어요.'
       : !basis ? '회차를 하나 이상 발행하면 AI와 대화할 수 있어요. AI는 발행한 회차를 근거로 답해요.'
-        : !consent ? '입력창 위 동의에 체크하면 보낼 수 있어요.' : undefined
+        : !consent ? '입력창 위에서 OpenAI 전송 및 API 비용에 동의해 주세요.' : undefined
   const waiting = !live && turns.at(-1)?.reply?.status === 'waiting' ? turns.at(-1)!.reply! : null
   // 인물 시뮬레이션 장면(#58 무대): 흐르는 중이면 SSE로 받은 단계, 아니면 저장된 마지막 응답의 단계. 장면을 못 읽은 단계는 simulation 없이 실패로 온다.
   const simulationStep = (live ? live.steps : turns.at(-1)?.reply?.steps)?.find((step) => step.feature === 'character_simulation') ?? null

@@ -12,6 +12,7 @@ export type StreamOptions = NotificationStreamOptions & {
 }
 
 const PATH = '/api/v1/me/notifications/stream'
+const STABLE_CONNECTION_MS = 20000
 const defaultBackoff = (attempt: number) => Math.min(1000 * 2 ** attempt, 30000) + Math.floor(Math.random() * 500)
 
 /**
@@ -26,6 +27,7 @@ export function openNotificationStream(options: StreamOptions): () => void {
 }
 
 function wait(ms: number, signal: AbortSignal) {
+  if (signal.aborted) return Promise.resolve()
   return new Promise<void>((resolve) => {
     const done = () => { clearTimeout(timer); signal.removeEventListener('abort', done); resolve() }
     const timer = setTimeout(done, ms)
@@ -44,6 +46,7 @@ async function run(options: StreamOptions, stop: AbortSignal) {
     const closeConnection = () => connection.abort()
     stop.addEventListener('abort', closeConnection, { once: true })
     let idle: ReturnType<typeof setTimeout> | undefined
+    let readyAt: number | undefined
     const watch = () => { clearTimeout(idle); idle = setTimeout(closeConnection, idleMs) }
     try {
       watch()
@@ -57,25 +60,32 @@ async function run(options: StreamOptions, stop: AbortSignal) {
         const { done, value } = await reader.read()
         if (done) break
         watch()
+        const receivedAt = performance.now()
+        if (readyAt !== undefined && receivedAt - readyAt >= STABLE_CONNECTION_MS) failures = 0
         buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n')
         for (let end = buffer.indexOf('\n\n'); end >= 0; end = buffer.indexOf('\n\n')) {
           const frame = buffer.slice(0, end)
           buffer = buffer.slice(end + 2)
           const name = frame.split('\n').find((line) => line.startsWith('event:'))?.slice(6).trim()
-          if (name === 'ready') { failures = 0; options.onState('live'); options.onSignal() }
+          if (name === 'ready') {
+            readyAt ??= receivedAt
+            options.onState('live')
+            options.onSignal()
+          }
           else if (name === 'changed') options.onSignal()
         }
       }
-      // 서버가 연결 수명(10분)에 맞춰 정상 종료한 경우: 새 토큰으로 바로 다시 연결합니다.
-      if (!stop.aborted) await wait(300, stop)
     } catch (error) {
-      if (stop.aborted || authVersion() !== version) break
-      if (error instanceof SessionExpired) { options.onState('off'); break }
-      options.onState('offline')
-      await wait(backoff(failures++), stop)
+      if (error instanceof SessionExpired) {
+        if (!stop.aborted && authVersion() === version) options.onState('off')
+        break
+      }
     } finally {
       clearTimeout(idle)
       stop.removeEventListener('abort', closeConnection)
     }
+    if (stop.aborted || authVersion() !== version) break
+    options.onState('offline')
+    await wait(backoff(failures++), stop)
   }
 }

@@ -95,6 +95,36 @@ describe('openNotificationStream', () => {
       close()
     })
 
+    it('ready 직후 종료가 반복되면 백오프를 늘리고, 안정된 연결 이후 초기화한다', async () => {
+      await signIn()
+      const server = fakeServer()
+      const backoff = vi.fn(() => 0)
+      const clock = vi.spyOn(performance, 'now').mockReturnValue(0)
+      const close = openNotificationStream({ ...recorder(), fetcher: server.fetcher, backoff })
+
+      try {
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          await vi.waitFor(() => expect(server.connections).toHaveLength(attempt + 1))
+          const connection = server.connections[attempt]
+          connection.push('event:ready\ndata:ok\n\n')
+          connection.end()
+          await vi.waitFor(() => expect(backoff).toHaveBeenNthCalledWith(attempt + 1, attempt))
+        }
+
+        await vi.waitFor(() => expect(server.connections).toHaveLength(4))
+        const connection = server.connections[3]
+        connection.push('event:ready\ndata:ok\n\n')
+        await flush()
+        clock.mockReturnValue(21_000)
+        connection.push(':ping\n\n')
+        connection.end()
+        await vi.waitFor(() => expect(backoff).toHaveBeenNthCalledWith(4, 0))
+      } finally {
+        close()
+        clock.mockRestore()
+      }
+    })
+
     it('닫으면 열린 연결을 끊고 더 이상 다시 연결하지 않는다', async () => {
       await signIn()
       const server = fakeServer()
