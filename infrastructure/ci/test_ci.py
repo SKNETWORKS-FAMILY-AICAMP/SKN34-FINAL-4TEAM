@@ -15,6 +15,19 @@ SPEC = importlib.util.spec_from_file_location("ci", Path(__file__).with_name("ci
 ci = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(ci)
 
+def read(path):
+    return (ci.ROOT / path).read_text()
+
+
+def nginx_upstream(text, route):
+    """nginx location 선택(정확 일치 > 가장 긴 접두)을 흉내 내 route가 가는 proxy_pass 대상을 돌려준다."""
+    locations = re.findall(r'location (\^~ |= |)(/\S*) \{([^}]*)\}', text)
+    path = route.split('?')[0]
+    exact = [body for modifier, prefix, body in locations if modifier == '= ' and path == prefix]
+    prefixed = [(prefix, body) for modifier, prefix, body in locations if modifier != '= ' and path.startswith(prefix)]
+    body = exact[0] if exact else max(prefixed, key=lambda item: len(item[0]))[1]
+    return re.search(r'proxy_pass (\S+);', body)[1]
+
 
 class SelectionTest(unittest.TestCase):
     def test_expanded_data_paths_select_configuration_without_unrelated_services(self):
@@ -597,7 +610,7 @@ class ConfigurationTest(unittest.TestCase):
             for private in ['/api/v1/operations/inquiries', '/api/v1/operations/notices', '/api/v1/operations/events']:
                 self.assertNotIn(private, text)
         text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
-        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities)', text)
+        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs)', text)
 
     def test_operations_works_public_routes_go_to_operations(self):
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
@@ -616,6 +629,38 @@ class ConfigurationTest(unittest.TestCase):
             text = (ci.ROOT / path).read_text()
             for location in ['location = /api/v1/operations/admin/activities {', 'location ^~ /api/v1/operations/admin/activities/ {']:
                 self.assertIn(location + '\n        proxy_pass http://operations-service:8082;', text)
+
+    def test_operations_dashboard_llmops_alerts_and_jobs_routes_go_to_operations(self):
+        # DEC-55: 운영 대시보드·LLMOps·경고·작업 감시 API는 네 접두와 하위 경로를 Operations로 보낸다(일반 /api보다 구체적).
+        routes = ['/api/v1/operations/dashboard', '/api/v1/operations/llmops/traces?from=2026-11-19',
+                  '/api/v1/operations/llmops/prompts/p/production', '/api/v1/operations/alerts',
+                  '/api/v1/operations/alerts/rules/ai_failure_rate', '/api/v1/operations/jobs/runs/id/retry',
+                  '/api/v1/operations/jobs/schedules']
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            for route in routes:
+                with self.subTest(proxy=path, route=route):
+                    self.assertEqual('http://operations-service:8082', nginx_upstream(read(path), route))
+        pattern = re.search(r"'(\^/api/v1/operations/[^']*)':\s*\{", read('frontend/vite.config.ts'))[1].replace('\\\\', '\\')
+        for route in routes:
+            with self.subTest(vite=route):
+                self.assertRegex(route, pattern)
+        for route in ['/api/v1/operations/dashboards', '/api/v1/operations/jobs-extra',
+                      '/api/v1/operations/inquiries', '/api/v1/operations/notices']:
+            with self.subTest(vite=route):
+                self.assertNotRegex(route, pattern)
+
+    def test_oidc_provider_routes_stay_on_the_generic_core_rule(self):
+        # DEC-55: Langfuse 로그인용 /api/v1/auth/oidc/**는 새 규칙 없이 기존 /api → Core에 든다.
+        routes = ['/api/v1/auth/oidc/authorize?client_id=langfuse', '/api/v1/auth/oidc/token', '/api/v1/auth/oidc/jwks',
+                  '/api/v1/auth/oidc/.well-known/openid-configuration', '/api/v1/auth/oidc/userinfo']
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            for route in routes:
+                with self.subTest(proxy=path, route=route):
+                    self.assertEqual('http://core-api:8080', nginx_upstream(read(path), route))
+        for key in re.findall(r"'(\^[^']*)':\s*\{", read('frontend/vite.config.ts')):
+            for route in routes:
+                with self.subTest(vite=key, route=route):
+                    self.assertNotRegex(route, key.replace('\\\\', '\\'))
 
     def test_redaction_does_not_keep_tokens_or_addresses(self):
         text = ci.redact('Bearer abc.def.ghi test@example.invalid #token=opaque-token ' + 'a' * 64)
