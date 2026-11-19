@@ -524,6 +524,18 @@ def _traced(data: OrchestrationRequest, authorization: str, state: dict):
                            trace_context=tracing.context(state.get('runId'), state.get('traceParent')))
 
 
+async def _begin(data: OrchestrationRequest, authorization: str):
+    """`_target`을 부르고, 대화 확인 단계(저장소·scope 일치·이어갈 작업·장면 조작)의 실패도 실패한 요청 trace로 남긴 뒤 그대로 올린다.
+
+    이 단계는 붙일 턴에 닿기 전이라(다른 대화의 trace에 붙이면 안 된다) 그 요청만의 새 trace가 된다. 회원·세션은 요청에서 안다.
+    """
+    try:
+        return await _target(data)
+    except Exception:
+        with _traced(data, authorization, {}):
+            raise
+
+
 def _outcome(response: OrchestrationResponse) -> str | None:
     """턴의 상태 태그. 대기(waiting) 중인 턴은 끝나지 않았으므로 태그 없이 두고 같은 턴의 resume이 남긴다."""
     return None if response.status == 'waiting' else 'failed' if response.status == 'failed' else 'success'
@@ -535,7 +547,7 @@ async def run(data: OrchestrationRequest, authorization: str = '') -> Orchestrat
     authorization은 AI를 호출한 사용자의 Bearer이며 이 요청의 Content MCP 반영과 추적의 회원 식별에 쓴다.
     """
     content_mcp.AUTHORIZATION.set(authorization)
-    graph, config, payload, state = await _target(data)
+    graph, config, payload, state = await _begin(data, authorization)
     with _traced(data, authorization, state) as turn:
         response = _response(await graph.ainvoke(payload, config))
         turn.status = _outcome(response)
@@ -575,7 +587,7 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
     content_mcp.AUTHORIZATION.set(authorization)
     relayed = False
     try:
-        graph, config, payload, state = await _target(data)
+        graph, config, payload, state = await _begin(data, authorization)
         with _traced(data, authorization, state) as turn:
             async for namespace, mode, update in graph.astream(payload, config, stream_mode=['updates', 'custom'], subgraphs=True):
                 if mode == 'custom':

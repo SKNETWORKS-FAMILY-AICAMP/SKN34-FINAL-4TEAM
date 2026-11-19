@@ -1662,3 +1662,44 @@ def test_a_waiting_stream_and_a_failed_stream_are_tagged_by_their_outcome(monkey
     assert member_stream(inputs={'story_context': QA}) == [('error', {'message': '요청 분류에 실패했습니다.'})]
     waiting, failed = requests_of(spans)
     assert tags_of(waiting) == ['feature:orchestration'] and tags_of(failed) == ['feature:orchestration', 'status:failed']
+
+
+
+# 대화·재개 확인 단계(_target)의 실패는 붙일 턴에 닿기 전이다. 그래도 실패한 요청 trace로 남아 실패율에서 빠지지 않는다.
+
+def assert_one_failed_request(spans, thread):
+    [failed] = [s for s in requests_of(spans) if tags_of(s)[-1] == 'status:failed']
+    found = attrs(failed)
+    assert tags_of(failed) == ['feature:orchestration', 'status:failed'] and failed.attributes['langfuse.observation.level'] == 'ERROR'
+    assert (found['user.id'], found['session.id']) == (MEMBER, thread)
+
+
+def test_an_unavailable_conversation_store_is_a_failed_request_trace(monkeypatch, spans):
+    thread = str(uuid4())
+    monkeypatch.setattr(service, 'CHAT', None)
+    with pytest.raises(service.ConversationUnavailable):
+        member_run(conversation={'threadId': thread, 'scope': 'user:1/work:1'})
+    assert_one_failed_request(spans, thread)
+
+
+def test_a_conversation_of_another_scope_is_a_failed_request_trace(monkeypatch, spans):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'))
+    member_run(conversation={'threadId': thread, 'scope': 'user:1/work:1'}, inputs={'story_context': QA})  # 첫 턴은 성공이다
+    with pytest.raises(service.ConversationMismatch):
+        member_run(conversation={'threadId': thread, 'scope': 'user:2/work:2'}, inputs={'story_context': QA})
+    assert_one_failed_request(spans, thread)
+
+
+def test_resuming_with_nothing_to_resume_is_a_failed_request_trace(monkeypatch, spans):
+    thread = str(uuid4())
+    with pytest.raises(service.NothingToResume):
+        member_resume(thread)
+    assert_one_failed_request(spans, thread)
+
+
+def test_a_stream_that_fails_at_the_conversation_check_is_a_failed_request_trace_too(monkeypatch, spans):
+    thread = str(uuid4())
+    events = member_stream(None, conversation={'threadId': thread, 'scope': 'user:1/work:1'}, resume={'approved': True})
+    assert events == [('error', {'message': service.NOTHING_TO_RESUME_MESSAGE})]
+    assert_one_failed_request(spans, thread)
