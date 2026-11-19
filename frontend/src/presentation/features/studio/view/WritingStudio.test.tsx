@@ -1223,6 +1223,34 @@ it('재시도 버튼과 로그인 링크는 한 묶음이라 넓은 오류 상�
   expect(retry.parentElement?.parentElement).toBe(alert)
 })
 
+// #460: 로그인이 풀린 오류의 '로그인' 링크는 홈이 아니라 쓰던 회차로 돌아오게 현재 주소를 기억하고, 오류 글씨와 구분되는 버튼으로 보인다.
+it('로그인이 풀려 나타난 로그인 링크는 쓰던 회차 주소(?ep=n)를 로그인 뒤 돌아갈 곳으로 남기고 로그인 화면으로 보낸다', () => {
+  model.error = '로그인한 뒤 다시 저장해 주세요.'
+  model.expired = true
+  const { store } = renderStudio({}, undefined, '/studio/work-id?ep=3')
+  fireEvent.click(within(screen.getByRole('alert')).getByRole('link', { name: '로그인' }))
+  expect(store.getState().session.next).toBe('/studio/work-id?ep=3')
+  expect(where()).toBe('/login')
+})
+
+it('저장하지 않은 입력이 있어 이동을 취소하면 돌아갈 주소를 남기지 않고 화면에 머문다', () => {
+  model.error = '로그인한 뒤 다시 저장해 주세요.'
+  model.expired = true
+  model.dirty = true
+  model.mayLeave.mockReturnValueOnce(false)
+  const { store } = renderStudio({}, undefined, '/studio/work-id?ep=3')
+  fireEvent.click(within(screen.getByRole('alert')).getByRole('link', { name: '로그인' }))
+  expect(store.getState().session.next).toBeNull()
+  expect(where()).toBe('/studio/work-id?ep=3')
+})
+
+it('로그인 링크는 오류 글씨와 같은 색의 밑줄 없는 글자가 아니라 버튼 모양이다', () => {
+  model.error = '로그인한 뒤 다시 저장해 주세요.'
+  model.expired = true
+  renderStudio()
+  expect(within(screen.getByRole('alert')).getByRole('link', { name: '로그인' }).classList.contains('btn')).toBe(true)
+})
+
 // 재시도가 시작되면 오류 상자(와 그 안의 버튼)가 사라져 초점이 body로 떨어지던 문제: 눌렀을 때만 남아 있는 저장 상태 줄이 초점을 이어받는다.
 it('초안 저장 다시 시도를 누르면 사라질 오류 상자 대신 상단 저장 상태가 초점을 이어받는다', () => {
   model.error = '오프라인'

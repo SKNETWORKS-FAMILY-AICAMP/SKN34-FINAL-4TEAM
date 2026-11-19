@@ -16,6 +16,7 @@
   `db/migration/content`·root 직하 SQL을 다시 만들지 않는다. Auth·첨부·WorldStudio SQL 이력은 보존하고 자동 repair/reset하지 않는다.
 - WorldStudio는 `contentDataSource`를 재사용하고 시작 시 전용 schema(`world_studio_schema_history`)를 migrate한 뒤 전용 EntityManager/TransactionManager로 validate한다. 별도 DB·분산 transaction을 추가하지 않는다.
 - 세계관 삭제는 소프트 삭제(WorldStudio V9 `world.deleted_at`)다. `StudioWorldRepository`의 `lockOwned`·내 목록·`listed`·`listedByGenre` 쿼리와 `PublicWorldService.listedWorld`·`readerSnapshot`, `WorldCoverService.read`·`WorldCardImageService.read`, `WorkWorldService.link`의 `findById` 확인이 `deletedAt`을 거르므로 새 조회·쿼리도 같은 조건을 둔다. 연결된 소설(`work.world_studio_id`)이 있으면 409 `WORLD_LINKED`이며 컨트롤러가 연결을 먼저 읽어 `WorldStudioService.delete`에 넘긴다(두 트랜잭션을 겹치지 않는다). 확정 버전 되돌리기(`WorldStudioService.restore`)는 초안의 카드만 되돌리고 관계·새 확정 버전은 건드리지 않으며, 사라질 카드가 현재 관계의 끝점이면 409 `WORLD_RESTORE_BLOCKED`다. [계약](../../docs/design/worldstudio-independent-schema.md#확정-버전으로-카드-되돌리기와-세계관-삭제-2026-11-17)
+- 설정집 AI 검토(`POST /world-studios/{id}/reviews`)는 성공한 결과를 WorldStudio `world_review_result`(V12, 세계관당 1행 upsert, AI 호출은 트랜잭션 밖)에 저장하고 `GET …/reviews/latest`로 소유자에게 돌려준다(#555, [계약](../../docs/design/world-review-contract.md#검토-결과-저장-2026-11-19-사용자-결정)).
 - 장르 템플릿 세계관은 SQL 마이그레이션이 아니라 `GenreTemplateSeeder`가 서버 시작 시 `WorldStudioService`(create → edit → save)로
   Core `auth/V8` 운영 관리자(`GenreTemplateSeeder.TEMPLATE_OWNER`, 임시 할당) 소유 WorldStudio 세계관으로 적재한다. 리소스는 `genre-templates.json`이며
   소유자 한계(공개 비밀번호·소유자 불일치·타 사용자 미노출)를 포함한 [설계](../../docs/design/worldstudio-independent-schema.md#플랫폼-장르-템플릿-세계관)를 따른다.

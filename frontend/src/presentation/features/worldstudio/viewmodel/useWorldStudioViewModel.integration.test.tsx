@@ -212,6 +212,50 @@ it('does not ask a world without a linked novel for the N화부터 of a relation
  act(()=>{result.current.applyRelations([{...row,text:'다시 만난 친구'}],[])})
  expect([result.current.writingIssues,result.current.canSave]).toEqual([[],true])
 })
+
+// 채팅의 World 반영(#546)이 서버 초안을 바꾼 뒤: 저장하지 않은 변경이 없으면 다시 읽고, 있으면 덮어쓰지 않고 알리기만 한다.
+async function openChatStudio(){
+ const repository=new InMemoryWorldStudioRepository(),useCase=new WorldStudioUseCase(repository)
+ const world=await useCase.create('세계','')
+ const wrapper=({children}:{children:ReactNode})=><MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path="/worldstudio/:worldId" element={children}/></Routes></MemoryRouter>
+ const {result}=renderHook(()=>useWorldStudioViewModel(useCase),{wrapper})
+ await waitFor(()=>expect(result.current.editing?.id).toBe(world.id))
+ return {result,repository,useCase,id:world.id}
+}
+const AI_DRAFT_CHANGED='설정집 초안이 AI 반영으로 바뀌었어요. 저장하지 않은 변경을 정리한 뒤 다시 불러오세요.'
+it('reads the draft again after a chat World apply when nothing is unsaved',async()=>{
+ const {result,useCase,id}=await openChatStudio()
+ await useCase.save({...await useCase.read(id),description:'AI가 바꾼 설명'}) // 채팅의 반영은 서버 초안을 바꾼다
+ let reread:boolean|undefined
+ await act(async()=>{reread=await result.current.aiDraftChanged()})
+ expect(reread).toBe(true)
+ expect([result.current.editing?.description,result.current.saved?.description,result.current.dirty]).toEqual(['AI가 바꾼 설명','AI가 바꾼 설명',false])
+})
+type Studio=ReturnType<typeof useWorldStudioViewModel>
+it.each([
+ ['unsaved draft changes',(vm:Studio)=>vm.patch({description:'고친 설명'}),'고친 설명'],
+ ['an unapplied relation input',(vm:Studio)=>vm.setRelationDirty(true),''],
+] as const)('does not overwrite %s after a chat World apply and only says the draft changed',async(_name,change,description)=>{
+ const {result,repository}=await openChatStudio()
+ act(()=>change(result.current))
+ const read=vi.spyOn(repository,'read')
+ let reread:boolean|undefined
+ await act(async()=>{reread=await result.current.aiDraftChanged()})
+ expect(reread).toBe(false);expect(read).not.toHaveBeenCalled()
+ expect(result.current.message).toBe(AI_DRAFT_CHANGED)
+ expect(result.current.error).toBe('')
+ expect(result.current.editing?.description).toBe(description)
+})
+it('reports the error and keeps the draft when reading it again after a chat World apply fails',async()=>{
+ const {result,repository}=await openChatStudio()
+ vi.spyOn(repository,'read').mockRejectedValueOnce(new Error('서버를 읽지 못했어요.'))
+ let reread:boolean|undefined
+ await act(async()=>{reread=await result.current.aiDraftChanged()})
+ expect(reread).toBe(false)
+ expect(result.current.error).toBe('서버를 읽지 못했어요.')
+ expect(result.current.message).toBe('')
+ expect(result.current.editing?.id).toBeTruthy()
+})
 it('refresh reads the server draft again and drops unsaved edits without asking (changed elsewhere by MCP, #553)',async()=>{
  const repository:WorldStudioRepository=new InMemoryWorldStudioRepository(),useCase=new WorldStudioUseCase(repository)
  const world=await useCase.create('세계','')

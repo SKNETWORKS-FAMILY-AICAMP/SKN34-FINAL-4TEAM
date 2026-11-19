@@ -15,7 +15,7 @@ const message = (error: unknown, fallback: string) => (error instanceof Error &&
  * 스트림이 끝나거나 실패하면 이력을 다시 읽어 저장된 상태를 그대로 보인다(실패를 성공처럼 남기지 않는다).
  * workId가 없거나(연결 소설 없음) basis가 없으면(발행 회차 없음) 보내지 않는다.
  */
-export function useWritingChatViewModel(workId: string | null, basis: ChatBasis | null, onApplied?: (episode: number) => void) {
+export function useWritingChatViewModel(workId: string | null, basis: ChatBasis | null, onApplied?: (episode: number) => void, onWorldApplied?: () => void) {
   const useCase = appContainer.resolve('writingChatUseCase')
   const [sessions, setSessions] = useState<ChatSession[] | null>(null)
   const [threadId, setThreadId] = useState<string | null>(null)
@@ -32,6 +32,9 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   // 작품(또는 UseCase)이 바뀔 때마다 오른다. 이전 작품의 요청이 뒤늦게 이 작품의 목록·장면 신호를 건드리지 못하게 한다.
   const generation = useRef(0)
   current.current = threadId
+  // 스트림은 몇 분 걸릴 수 있어 World 반영 알림은 시작할 때가 아니라 도착한 지금의 핸들러로 보낸다(그사이 저장하지 않은 변경이 생길 수 있다).
+  const worldApplied = useRef(onWorldApplied)
+  worldApplied.current = onWorldApplied
 
   const refreshSessions = useCallback(async (pick = false) => {
     if (!useCase || !workId) return
@@ -99,7 +102,8 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
         if (active.current !== controller) return
         if (event.type === 'error') { ok = false; setError(event.message) }
         if (event.type === 'waiting' && event.awaitingScene === 'character_simulation') sceneWaits = true
-        if (event.type === 'step' && event.step.applied) onApplied?.(event.step.applied.episode)
+        // World 반영은 회차 초안이 아니라 설정집 초안을 바꾼다(applied.episode는 회차가 아니다).
+        if (event.type === 'step' && event.step.applied) { if (event.step.feature === 'world') worldApplied.current?.(); else onApplied?.(event.step.applied.episode) }
         apply(event)
       }, controller.signal, editIndex)
     } catch (failure) {
