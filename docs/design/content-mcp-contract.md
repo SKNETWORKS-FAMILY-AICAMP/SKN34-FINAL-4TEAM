@@ -119,6 +119,10 @@ AI가 사용자가 프론트에서 할 수 있는 세계관·작품·회차 작�
 
 공개·이어받기 도구(`work_public_world_cards`·`work_inherited_world`·`world_studio_public_read`·`world_studio_public_list`)는 화면과 같은 Service 함수라 DEC-53의 카드 집합(유효 공개 회차 ≤ 기준 회차)·관계 시점·본문 링크 치환을 그대로 따른다([공개 세계관 계약](public-world-contract.md#카드-공개-기준-일원화--dec-53)). 공개 상세·독자 설정 위키 도구(`world_studio_public_read`·`work_public_world_cards`)의 관계마다 `history`(기준 회차까지의 변화 `{episode, label, body}`, 기준 회차 뒤와 끝점이 달랐던 옛 연결은 담지 않음)가 있고 `work_inherited_world`에는 없다. `world_studio_read`·`world_studio_edit_draft`는 작가 범위(초안 전체)라 작가 전용 카드와 본문 링크 id를 그대로 주고받으며, 모델에 넘기기 전에 링크를 글자로 벗기는 일은 AI 쪽 입력 경계가 한다(ai-service `world_snapshot`·`world_review` 채팅 경로). 「동일 인물」(`category: identity`)을 새로 쓰거나 바꾸거나 끝내는 `world_studio_edit_draft`는 `episode`를 지정해야 한다(새로 쓰거나 바꾸는 관계는 그 관계의 `relationshipEpisodes` 값으로 대신할 수 있다)([규칙](worldstudio-independent-schema.md#동일-인물-관계--dec-53)).
 
+## 변경 알림
+
+내용·설정을 바꾸는 쓰기 도구는 성공한 뒤 도구를 부른 회원에게 알림 사건(`content.mcp.world-changed`·`content.mcp.work-changed`)을 남긴다. 대상 도구 목록과 화면 새로고침은 [MCP 변경 알림 계약](mcp-change-notice-contract.md)이다.
+
 ## 오류 형식
 
 - 도구 오류 텍스트는 첫 줄 `HTTP <상태>[ <코드>]`, 둘째 줄 detail이다. `ContentFailure`·`CoreAuthException`·WorldStudio 예외는 기존 HTTP API와 같은 상태·코드로 옮기고, 그 밖의 예외는 내용 없이 `HTTP 500`이다.
