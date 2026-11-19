@@ -46,8 +46,8 @@ class JobRunServiceTest {
         JobRunEntity(scheduleId = UUID.randomUUID(), kind = kind, trigger = JobTrigger.SCHEDULE, status = status,
             createdAt = t.plusSeconds(seconds), startedAt = t.plusSeconds(seconds)).also { runs.rows += it }
 
-    private fun job(id: String, status: String, seconds: Long? = null, failedEpisodes: List<Int> = emptyList()) =
-        ContentPreprocessingJob(id, "work-$id", status, 3, 10, failedEpisodes, seconds?.let { t.plusSeconds(it) }, null)
+    private fun job(id: String, status: String, seconds: Long? = null, failedEpisodes: List<Int> = emptyList(), finishedSeconds: Long? = null) =
+        ContentPreprocessingJob(id, "work-$id", status, 3, 10, failedEpisodes, seconds?.let { t.plusSeconds(it) }, finishedSeconds?.let { t.plusSeconds(it) })
 
     private fun contentJobs(vararg jobs: ContentPreprocessingJob) {
         `when`(content.preprocessingJobs(CONTENT_JOB_WINDOW)).thenReturn(ContentPreprocessingJobList(jobs.toList()))
@@ -81,6 +81,15 @@ class JobRunServiceTest {
         contentJobs(job("waiting", "queued", null))
 
         assertEquals("waiting", service.list(admin, null, null, firstPage).items.first().id)
+    }
+
+    @Test
+    fun `a Content job that never started sorts by its finish time and one with neither stays on top in Content's order`() {
+        val a1 = own(1)
+        val a5 = own(5)
+        contentJobs(job("waiting-1", "queued"), job("waiting-2", "queued"), job("early-fail", "failed", seconds = null, finishedSeconds = 3))
+
+        assertEquals(listOf("waiting-1", "waiting-2", a5.id.toString(), "early-fail", a1.id.toString()), ids(service.list(admin, null, null, firstPage).items))
     }
 
     @Test

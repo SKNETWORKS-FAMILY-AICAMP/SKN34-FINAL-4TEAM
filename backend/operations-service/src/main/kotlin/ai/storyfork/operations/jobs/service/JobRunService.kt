@@ -60,8 +60,9 @@ class JobRunService(
         require(limit <= MERGE_LIMIT) { "page is too deep" }
         val own = own(wanted, kind, PageRequest.of(0, limit, NEWEST_FIRST))
         val (fromContent, unavailable) = preprocessing(wanted, kind)
-        // Own runs sort by when they were queued, Content jobs by when they started; a Content job that has not started yet is the newest.
-        val merged = (own.content.map { it.createdAt to it.toRun() } + fromContent.map { (it.startedAt ?: Instant.MAX) to it })
+        // Own runs sort by when they were queued, Content jobs (which have no creation time) by when they started, else finished;
+        // one with neither is the newest and keeps Content's own order (the sort is stable).
+        val merged = (own.content.map { it.createdAt to it.toRun() } + fromContent.map { (it.startedAt ?: it.finishedAt ?: Instant.MAX) to it })
             .sortedByDescending { it.first }
         return JobPage(merged.drop(page * size).take(size).map { it.second }, page, size, own.totalElements + fromContent.size, unavailable)
     }

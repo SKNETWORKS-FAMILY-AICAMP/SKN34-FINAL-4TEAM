@@ -55,6 +55,7 @@ data class ContentPreprocessingJob(
     val failedEpisodes: List<Int> = emptyList(),
     val startedAt: Instant? = null,
     val finishedAt: Instant? = null,
+    val error: String? = null,
 )
 
 data class ContentPreprocessingJobList(val items: List<ContentPreprocessingJob>)
@@ -70,8 +71,9 @@ fun ContentPreprocessingJob.toRun() = JobRun(
     id, PREPROCESSING_KIND, CONTENT_PREPROCESSING,
     when (status) { "running", "loading" -> "running"; "completed" -> "succeeded"; else -> status },
     "user", JobProgress(done, total), startedAt, finishedAt,
-    // A fixed message with the count: the failed episode numbers stay with Content (a long work can have hundreds).
-    if (status != "failed") null else if (failedEpisodes.isEmpty()) "전처리에 실패했어요." else "전처리에 실패한 회차가 ${failedEpisodes.size}개 있어요.",
+    // Content's own fixed reason for a failed job; without one, a fixed message with the failed episode count
+    // (the numbers stay with Content, a long work can have hundreds). A retried job may still carry its old reason, so only a failed one shows it.
+    if (status != "failed") null else error ?: if (failedEpisodes.isEmpty()) "전처리에 실패했어요." else "전처리에 실패한 회차가 ${failedEpisodes.size}개 있어요.",
     workId,
 )
 

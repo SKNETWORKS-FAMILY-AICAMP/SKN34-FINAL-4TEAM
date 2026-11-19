@@ -30,7 +30,7 @@ class JobsContentClientIntegrationTest {
     private fun status(call: () -> Unit): Int = assertThrows(ResponseStatusException::class.java) { call() }.statusCode.value()
 
     private val jobJson = """{"id":"job-1","workId":"work-1","status":"loading","done":3,"total":10,"failedEpisodes":[4],
-        "startedAt":"2026-03-10T01:02:03Z","finishedAt":null,"memberId":"not used"}"""
+        "startedAt":"2026-03-10T01:02:03Z","finishedAt":null,"error":null,"memberId":"not used"}"""
 
     @Test
     fun `the job list is read from the first page of the given size with only the service token and parsed`() {

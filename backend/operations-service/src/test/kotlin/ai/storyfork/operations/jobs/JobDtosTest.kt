@@ -28,8 +28,8 @@ class JobDtosTest {
     private val mapper = jacksonMapperBuilder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build()
     private val t = Instant.parse("2026-03-10T01:02:03Z")
 
-    private fun job(status: String, failed: List<Int> = emptyList(), startedAt: Instant? = t, finishedAt: Instant? = null) =
-        ContentPreprocessingJob("job-1", "work-1", status, 3, 10, failed, startedAt, finishedAt)
+    private fun job(status: String, failed: List<Int> = emptyList(), startedAt: Instant? = t, finishedAt: Instant? = null, error: String? = null) =
+        ContentPreprocessingJob("job-1", "work-1", status, 3, 10, failed, startedAt, finishedAt, error)
 
     @Test
     fun `a Content job becomes a user started preprocessing run with progress and the work as target`() {
@@ -56,9 +56,12 @@ class JobDtosTest {
     }
 
     @Test
-    fun `a failed Content job reports a fixed message with the failed episode count and no episode list`() {
+    fun `a failed Content job shows Content's own reason, else a fixed message with the failed episode count and no episode list`() {
+        assertEquals("추출 단계에서 실패했어요.", job("failed", failed = listOf(2, 5), error = "추출 단계에서 실패했어요.").toRun().error)
         assertEquals("전처리에 실패한 회차가 2개 있어요.", job("failed", failed = listOf(2, 5), finishedAt = t).toRun().error)
         assertEquals("전처리에 실패했어요.", job("failed").toRun().error)
+        // Only a failed job shows a reason: a retried job may still carry the old one while it runs.
+        assertNull(job("running", error = "old reason").toRun().error)
         assertNull(job("completed", failed = listOf(2)).toRun().error)
     }
 
@@ -97,13 +100,15 @@ class JobDtosTest {
 
     @Test
     fun `the Content list parses the contract shape, ignoring fields it does not use`() {
-        val body = """{"items":[{"id":"job-1","workId":"work-1","status":"loading","done":3,"total":10,"failedEpisodes":[4,9],
-            "startedAt":"2026-03-10T01:02:03Z","finishedAt":null,"memberId":"ignored"},
-            {"id":"job-2","workId":"work-2","status":"queued","done":0,"total":0,"failedEpisodes":[],"startedAt":null,"finishedAt":null}],"total":2}"""
+        val body = """{"items":[{"id":"job-1","workId":"work-1","status":"failed","done":3,"total":10,"failedEpisodes":[4,9],
+            "startedAt":"2026-03-10T01:02:03Z","finishedAt":null,"error":"추출 단계에서 실패했어요.","memberId":"ignored"},
+            {"id":"job-2","workId":"work-2","status":"queued","done":0,"total":0,"failedEpisodes":[],"startedAt":null,"finishedAt":null,"error":null}],"total":2}"""
 
         val list = mapper.readValue<ContentPreprocessingJobList>(body)
 
         assertEquals(listOf(4, 9), list.items[0].failedEpisodes)
+        assertEquals("추출 단계에서 실패했어요.", list.items[0].error)
+        assertNull(list.items[1].error)
         assertEquals(t, list.items[0].startedAt)
         assertNull(list.items[0].finishedAt)
         assertNull(list.items[1].startedAt)
