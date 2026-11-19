@@ -42,7 +42,7 @@ class WorkWorldController(private val service: WorkWorldService) {
 
     /**
      * Fork 소유자가 이어받던 원작 세계관을 내 세계관으로 독립한다(DEC-37, #583, 본문 없음): 카드·관계를 새 세계관으로 복사해 Fork에 연결하고 더는 원작 변경을 따라가지 않는다.
-     * 201 + `{ workId, worldId }`(새 세계관), 남의 작품 404, 이어받을 세계관이 없으면 409 `FORK_WORLD_NOT_INHERITED`, 관계 저장소 불확실 503(어느 쪽도 세계관을 만들지 않음). 만드는 중의 실패는 WorldStudio 처리기가 돌려준다.
+     * 201 + `{ workId, worldId }`(새 세계관), 남의 작품 404, 이어받을 세계관이 없으면 409 `FORK_WORLD_NOT_INHERITED`, 관계 저장소 불확실 503(어느 쪽도 세계관을 만들지 않음). 세계관을 만드는 중의 WorldStudio 실패는 서비스가 WorldStudio API와 같은 상태·code로 옮긴다(이 컨트롤러는 WorldStudio 처리기 대상이 아니다).
      */
     @PostMapping("/works/{id}/inherited-world/detach")
     @ResponseStatus(HttpStatus.CREATED)

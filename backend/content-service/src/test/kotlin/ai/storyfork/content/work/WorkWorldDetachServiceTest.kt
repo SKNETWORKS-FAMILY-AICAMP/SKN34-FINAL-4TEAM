@@ -11,6 +11,8 @@ import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.work.service.dto.WorkAccessResult
 import ai.storyfork.content.work.service.dto.WorkWorldLinkResponse
+import ai.storyfork.content.world.domain.WorldConflict
+import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.service.PublicWorldService
 import ai.storyfork.content.world.service.WorldStudioService
@@ -30,6 +32,9 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.*
+import org.springframework.dao.DataAccessResourceFailureException
+import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.transaction.CannotCreateTransactionException
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.SimpleTransactionStatus
 import org.springframework.transaction.support.TransactionTemplate
@@ -52,6 +57,7 @@ class WorkWorldDetachServiceTest {
         }
     }
 
+    private var failCreate: RuntimeException? = null
     private var failEdit: RuntimeException? = null
     private var failDelete: RuntimeException? = null
     /** 새 세계관 초안을 저장하는 동안(WorldStudio 쓰기 중) 다른 요청이 끼어드는 상황을 흉내 낸다. */
@@ -59,7 +65,10 @@ class WorkWorldDetachServiceTest {
     private val worldStudio = mock(WorldStudioService::class.java) { call ->
         assertEquals(0, openTransactions, "WorldStudio는 Content 트랜잭션 밖에서 부른다")
         when (call.method.name) {
-            "create" -> call.getArgument<CreateWorldRequest>(1).let { WorldDraftResponse(it.id, 0, null, null, it.name, it.description, emptyList(), emptyList()) }
+            "create" -> {
+                failCreate?.let { throw it }
+                call.getArgument<CreateWorldRequest>(1).let { WorldDraftResponse(it.id, 0, null, null, it.name, it.description, emptyList(), emptyList()) }
+            }
             "edit" -> {
                 failEdit?.let { throw it }
                 val saved = call.getArgument<EditWorldDraftRequest>(2).let { WorldDraftResponse(call.getArgument(0), it.expectedDraftRevision + 1, null, null, it.name, it.description, it.cards, it.relationships) }
@@ -209,19 +218,56 @@ class WorkWorldDetachServiceTest {
         assertEquals(listOf("create", "edit", "delete"), calls())
     }
 
-    @Test fun `a failure while writing the new world discards it, is not hidden and leaves the fork as it was`() {
+    @Test fun `a WorldStudio failure while making the new world comes out as the world studio API's status and code and the new world is discarded`() {
         forking()
         readable()
-        val boom = WorldStudioFailure.unavailable()
-        failEdit = boom
+        // WorldStudioExceptionHandler와 같은 대답이다. 이 컨트롤러는 그 처리기 대상이 아니라서(기존 API 응답을 바꾸지 않는다) 독립 경로가 직접 옮긴다.
+        val expected = listOf(
+            WorldStudioFailure.unavailable() to Pair(503, "RELATIONSHIP_STORE_UNAVAILABLE"),
+            WorldStudioFailure.incomplete() to Pair(503, "RELATIONSHIP_WRITE_INCOMPLETE"),
+            WorldStudioFailure.mismatch() to Pair(409, "RELATIONSHIP_VERSION_MISMATCH"),
+            WorldStudioFailure.rejected() to Pair(409, "WORLD_WRITE_REJECTED"),
+            WorldConflict() to Pair(409, "WORLD_CONFLICT"),
+            WorldNotFound() to Pair(404, "WORLD_NOT_FOUND"),
+            IllegalArgumentException("카드 한도") to Pair(422, "WORLD_INPUT_INVALID"),
+            DataAccessResourceFailureException("db") to Pair(503, "WORLD_WRITE_UNCONFIRMED"),
+            CannotCreateTransactionException("tx") to Pair(503, "WORLD_WRITE_UNCONFIRMED"),
+        )
 
-        assertSame(boom, assertThrows(WorldStudioFailure::class.java) { service.detachInheritedWorld("fork", ownerId) })
+        for ((cause, answer) in expected) {
+            failEdit = cause
 
-        assertEquals(listOf("create", "edit", "delete"), calls())
-        assertEquals(call("create").getArgument<CreateWorldRequest>(1).id, call("delete").getArgument<UUID>(0))
+            val failure = failure { service.detachInheritedWorld("fork", ownerId) }
+
+            assertEquals(answer, Pair(failure.status, failure.code), cause.javaClass.simpleName)
+            (cause as? WorldStudioFailure)?.let { assertEquals(it.detail, failure.message) }
+            assertEquals(listOf("create", "edit", "delete"), calls())
+            assertEquals(call("create").getArgument<CreateWorldRequest>(1).id, call("delete").getArgument<UUID>(0))
+            clearInvocations(worldStudio)
+        }
+        // 만들기 단계의 실패도 같다(편집은 부르지 않고 지우기만 시도한다).
+        failEdit = null
+        failCreate = WorldStudioFailure.unavailable()
+        val creating = failure { service.detachInheritedWorld("fork", ownerId) }
+
+        assertEquals(Pair(503, "RELATIONSHIP_STORE_UNAVAILABLE"), Pair(creating.status, creating.code))
+        assertEquals(listOf("create", "delete"), calls())
         assertNull(fork.worldStudioId)
         assertEquals("following", following.referenceStatus)
-        verify(access, times(1)).own("fork", ownerId)
+        verify(access, times(expected.size + 1)).own("fork", ownerId)  // ④(Content 트랜잭션 재확인)에는 한 번도 닿지 않았다
+        assertEquals(0, openTransactions)
+    }
+
+    @Test fun `a failure outside the WorldStudio calls is not turned into a world studio answer but still discards the new world`() {
+        forking()
+        readable()
+        val db = DataIntegrityViolationException("work_world_studio_id_key")
+        `when`(works.saveAndFlush(fork)).thenThrow(db)
+
+        assertSame(db, assertThrows(DataIntegrityViolationException::class.java) { service.detachInheritedWorld("fork", ownerId) })
+
+        assertEquals(listOf("create", "edit", "delete"), calls())
+        assertEquals("following", following.referenceStatus)
         assertEquals(0, openTransactions)
     }
 

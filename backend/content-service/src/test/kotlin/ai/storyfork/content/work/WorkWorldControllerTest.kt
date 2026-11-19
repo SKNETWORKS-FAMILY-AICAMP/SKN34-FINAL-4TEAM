@@ -115,11 +115,17 @@ class WorkWorldControllerTest {
         assertSame(detached, works.detachInheritedWorld("fork", principal))
     }
 
-    @Test fun `the detach route is a 201 POST and its WorldStudio failures reach the world studio error handler`() {
+    @Test fun `the detach route is a 201 POST`() {
         val method = WorkWorldController::class.java.methods.first { it.name == "detachInheritedWorld" }
         assertEquals(listOf("/works/{id}/inherited-world/detach"), AnnotatedElementUtils.findMergedAnnotation(method, PostMapping::class.java)!!.value.toList())
         assertEquals(HttpStatus.CREATED, AnnotatedElementUtils.findMergedAnnotation(method, ResponseStatus::class.java)!!.code)
-        // 새 세계관을 만들다 WorldStudioService가 던지는 실패(관계 저장소 불확실·충돌·입력 오류)가 500이 아니라 404·409·503·422가 되려면 이 처리기의 대상이어야 한다(ContentFailure는 콘텐츠 처리기가 맡는다).
-        assertTrue(WorkWorldController::class in AnnotatedElementUtils.findMergedAnnotation(WorldStudioExceptionHandler::class.java, RestControllerAdvice::class.java)!!.assignableTypes)
+    }
+
+    @Test fun `the world studio error handler does not apply to this controller so the existing endpoints answer as before`() {
+        // 처리기를 이 컨트롤러 전체에 씌우면 기존 연결·독자 위키·이어받기의 DB 오류(500→503)·UUID 경로 오류(400→422) 응답이 바뀐다. 독립 경로가 WorldStudio 실패를 직접 옮긴다.
+        val advice = AnnotatedElementUtils.findMergedAnnotation(WorldStudioExceptionHandler::class.java, RestControllerAdvice::class.java)!!
+        assertFalse(WorkWorldController::class in advice.assignableTypes)
+        // 선택 기준이 assignableTypes뿐이라는 확인이다(패키지·애노테이션 기준이 생기면 이 컨트롤러가 그 안에 들 수 있다).
+        assertEquals(0, advice.basePackages.size + advice.basePackageClasses.size + advice.annotations.size)
     }
 }

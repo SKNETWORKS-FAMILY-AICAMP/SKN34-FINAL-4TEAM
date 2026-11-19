@@ -7,7 +7,10 @@ import ai.storyfork.content.publication.service.PublicationService
 import ai.storyfork.content.work.repository.WorkRepository
 import ai.storyfork.content.work.service.dto.WorkAccessResult
 import ai.storyfork.content.work.service.dto.WorkWorldLinkResponse
+import ai.storyfork.content.world.controller.WorldStudioExceptionHandler
+import ai.storyfork.content.world.domain.WorldConflict
 import ai.storyfork.content.world.domain.WorldNotFound
+import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.domain.forkWorldCopy
 import ai.storyfork.content.world.domain.readerUpto
 import ai.storyfork.content.world.service.PublicWorldService
@@ -21,8 +24,10 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.dao.DataAccessException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
+import org.springframework.transaction.TransactionException
 import org.springframework.transaction.support.TransactionTemplate
 
 /**
@@ -36,6 +41,7 @@ class WorkWorldService(
     private val worldStudio: WorldStudioService, @Qualifier("contentTransactions") private val transaction: TransactionTemplate,
 ) {
     private val log = org.slf4j.LoggerFactory.getLogger(javaClass)
+    private val studioErrors = WorldStudioExceptionHandler()
 
     /**
      * 요청자 [owner]의 작품에 요청자의 세계관을 연결한다. [worldId]가 null이면 해제한다. 작품이든 세계관이든 없거나 남의 것이면(지운 세계관 포함) 404다.
@@ -99,6 +105,7 @@ class WorkWorldService(
      * 이름 `{작품 제목} 세계관`의 비공개 세계관 초안에 한 번 저장하고(저장 버전 1, 확정 버전은 만들지 않는다: 작가가 고친 뒤 남긴다) 작품에 연결하며 참조를 `independent`로 바꾼다.
      * 순서: ① Content 트랜잭션에서 소유·조건 확인 → ② 원작 읽기 → ③ WorldStudio 생성·초안 편집(Content 트랜잭션과 겹치면 매니저가 달라 실패한다) → ④ Content 트랜잭션에서 참조 행을 잠그고 재확인한 뒤 연결.
      * ③ 이후의 실패(④ 재확인 실패 = 동시에 먼저 끝난 요청이 있음 포함)는 만든 세계관을 소프트 삭제하고 알린다. 남의·없는 작품 404, 이어받을 것이 없으면 409 `FORK_WORLD_NOT_INHERITED`, 관계 저장소 불확실 503이며 어느 쪽도 세계관을 만들지 않는다.
+     * WorldStudio 호출의 실패는 WorldStudio API와 같은 상태·code로 옮긴다([studioCall]).
      */
     fun detachInheritedWorld(workId: String, owner: String): WorkWorldLinkResponse {
         val (work, inherited) = checkNotNull(transaction.execute { access.own(workId, owner).let { it to inheritance(it) } })
@@ -111,8 +118,9 @@ class WorkWorldService(
         try {
             // 세계관 이름은 100자까지라 작품 제목(120자까지)을 잘라 맞춘다. 서로게이트 쌍 가운데서 잘리면 짝 잃은 글자를 뺀다.
             val name = "${work.title.take(96).dropLastWhile(Char::isHighSurrogate)} 세계관"
-            val created = worldStudio.create(subject, CreateWorldRequest(name, "", world))
-            worldStudio.edit(world, subject, forkWorldCopy(source, created.draftRevision, name, UUID.randomUUID().toString()))
+            val created = studioCall { worldStudio.create(subject, CreateWorldRequest(name, "", world)) }
+            val copy = forkWorldCopy(source, created.draftRevision, name, UUID.randomUUID().toString())
+            studioCall { worldStudio.edit(world, subject, copy) }
             transaction.executeWithoutResult { connect(workId, owner, sourceWorld, world) }
         } catch (error: RuntimeException) {
             discard(world, subject)
@@ -136,6 +144,25 @@ class WorkWorldService(
             referenceStatus = "independent"
             detachedAt = Instant.now().truncatedTo(ChronoUnit.MICROS)
         }
+    }
+
+    /**
+     * ③의 WorldStudio 호출이 던지는 실패를 WorldStudio API와 같은 상태·code·detail의 [ContentFailure]로 옮긴다. [WorldStudioExceptionHandler]를 그대로 써서 어긋나지 않게 한다(MCP 도구와 같은 방식).
+     * WorkWorldController는 그 처리기 대상이 아니다: 컨트롤러 전체에 씌우면 기존 연결·독자 위키·이어받기의 DB 오류와 경로 값 오류 응답이 바뀐다. 그래서 독립 경로가 WorldStudio 호출만 직접 옮기고 그 밖의 실패는 그대로 둔다.
+     */
+    private fun <T> studioCall(call: () -> T): T = try {
+        call()
+    } catch (error: RuntimeException) {
+        val answer = when (error) {
+            is WorldStudioFailure -> studioErrors.failure(error)
+            is WorldNotFound -> studioErrors.missing()
+            is WorldConflict -> studioErrors.conflict()
+            is IllegalArgumentException -> studioErrors.invalid()
+            is DataAccessException, is TransactionException -> studioErrors.persistence()
+            else -> throw error
+        }
+        val body = checkNotNull(answer.body)
+        throw ContentFailure(answer.statusCode.value(), body.detail, body.code)
     }
 
     /** 독립에 실패해 연결하지 못한 새 세계관을 기존 소프트 삭제로 지운다. 지우기가 실패해도 원래 실패를 가리지 않고 기록만 남긴다. */
