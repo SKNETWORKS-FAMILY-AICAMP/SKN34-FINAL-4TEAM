@@ -1,0 +1,303 @@
+import json
+import logging
+import re
+
+import pytest
+
+from app.evaluation import service
+from app.evaluation.errors import EvaluationFailure
+from app.evaluation.models import LeakCheckRequest, LeakCheckResponse
+
+from .stubs import CRITERIA, DATASET_ID, GEVAL_REQUEST, QA, QA_REQUEST, FakeDataset, experiment, install, item, prepared, prompt, stub_models
+
+PRODUCTION = {('qa.answer', 'production'): prompt('옛 지시문', 2)}
+
+
+@pytest.fixture(autouse=True)
+def slept(monkeypatch):
+    """Run 조회 재시도의 대기를 건너뛰고 기록한다."""
+    waits = []
+    monkeypatch.setattr(service, 'sleep', waits.append, raising=False)
+    return waits
+
+
+@pytest.mark.parametrize('averages, baseline, failed, passed, deltas', [
+    ({'a': 0.8}, None, 0, True, {}),  # 기준 Run이 없으면 통과(한계는 점수 메타데이터에 남긴다)
+    ({'a': 0.8}, {'a': 0.8}, 0, True, {'a': 0.0}),
+    ({'a': 0.75}, {'a': 0.8}, 0, True, {'a': -0.05}),  # 허용 오차 경계는 통과
+    ({'a': 0.74}, {'a': 0.8}, 0, False, {'a': -0.06}),
+    ({'a': 0.9, 'b': 0.5}, {'a': 0.9, 'b': 0.8}, 0, False, {'a': 0.0, 'b': -0.3}),  # 지표 하나라도 기준 아래면 불통과
+    ({'a': 0.95}, {'a': 0.8}, 1, False, {'a': 0.15}),  # 지표가 올라도 실패한 항목이 있으면 불통과
+    ({}, {'a': 0.8}, 2, False, {}),
+    ({}, None, 2, False, {}),
+])
+def test_judge(averages, baseline, failed, passed, deltas):
+    assert service.judge(averages, baseline, 0.05, failed) == (passed, deltas)
+
+
+def test_prepare_names_the_run_and_reads_the_requested_prompt_version(monkeypatch):
+    _, _, plan = prepared(monkeypatch, [item(1, QA)])
+
+    assert re.fullmatch(r'qa\.answer@v3-\d{8}T\d{6}Z-[0-9a-f]{6}', plan.run_name)
+    assert (plan.instructions, plan.tolerance, plan.baseline) == ('지시문', 0.05, None)  # production 라벨이 없으면 기준 Run도 없다
+
+
+@pytest.mark.parametrize('case, status', [
+    ('no_langfuse', 503), ('no_model', 503), ('bad_tolerance', 503), ('negative_tolerance', 503),
+    ('no_dataset', 404), ('empty_dataset', 422), ('no_prompt_version', 404), ('chat_prompt', 422),
+])
+def test_prepare_rejects_before_anything_starts(monkeypatch, case, status):
+    dataset = None if case == 'no_dataset' else FakeDataset([] if case == 'empty_dataset' else [item(1, QA)])
+    chat = [{'role': 'system', 'content': '지시문'}]
+    install(monkeypatch, dataset, {} if case == 'no_prompt_version' else {('qa.answer', 3): prompt(chat if case == 'chat_prompt' else '지시문', 3)})
+    if case == 'no_langfuse':
+        monkeypatch.delenv('LANGFUSE_SECRET_KEY')
+    if case == 'no_model':
+        monkeypatch.delenv('OPENAI_MODEL')
+    if case in ('bad_tolerance', 'negative_tolerance'):
+        monkeypatch.setenv('EVAL_TOLERANCE', 'abc' if case == 'bad_tolerance' else '-0.1')
+
+    with pytest.raises(EvaluationFailure) as error:
+        service.prepare(QA_REQUEST)
+
+    assert error.value.status == status
+
+
+def test_langfuse_failure_is_502_without_the_original_message(monkeypatch):
+    client = install(monkeypatch, FakeDataset([item(1, QA)]), {('qa.answer', 3): prompt('지시문', 3)})
+
+    def down(*_, **__):
+        raise RuntimeError('원고 본문 일부')
+    client.get_dataset = down
+
+    with pytest.raises(EvaluationFailure) as error:
+        service.prepare(QA_REQUEST)
+
+    assert error.value.status == 502 and '원고 본문 일부' not in str(error.value) and error.value.__suppress_context__
+
+
+def test_baseline_is_the_latest_run_that_finished_with_passed_and_every_metric_average(monkeypatch):
+    metrics = {'faithfulness': 0.95, 'context_precision': 0.85}
+    runs = [experiment('qa.answer@v2-running', metrics, passed=None),  # 아직 끝나지 않은 Run
+            experiment('qa.answer@v2-failed', {}),  # 모든 항목이 실패해 passed만 남은 Run: 지표를 비교할 수 없다
+            experiment('qa.answer@v2-partial', {'faithfulness': 0.9}),  # 지표 평균이 일부뿐인 Run
+            experiment('qa.answer@v3-new', metrics),  # 다른 버전
+            experiment('qa.answer@v20-new', metrics),  # 버전 번호가 2로 시작하는 다른 버전
+            experiment('other@v2-new', metrics),  # 다른 프롬프트
+            experiment('qa.answer@v2-latest', metrics),
+            experiment('qa.answer@v2-older', {'faithfulness': 0.1, 'context_precision': 0.1})]
+
+    _, client, plan = prepared(monkeypatch, [item(1, QA)], experiments=runs, prompts=PRODUCTION)
+
+    assert plan.baseline == service.Baseline(run='qa.answer@v2-latest', version=2, metrics=metrics)
+    query = client.requests[-1].url.params  # 실제 SDK가 Experiments API(GET /api/public/experiments)로 보낸 쿼리
+    assert (query['datasetId'], query['fields'], query['limit']) == (DATASET_ID, 'core,scores', '100') and 'fromStartTime' in query
+
+
+def test_run_scores_each_item_and_records_the_run_result(monkeypatch):
+    other = {**QA, 'question': '초낭은 누구인가?'}
+    dataset, client, plan = prepared(monkeypatch, [item(1, QA), item(2, other)])
+    calls = stub_models(monkeypatch, ragas=lambda question, contexts, answer: {'faithfulness': 1.0 if question == QA['question'] else 0.5,
+                                                                              'context_precision': 0.8})
+
+    service.run(plan)
+
+    assert calls.generate == [('지시문', QA), ('지시문', other)]  # 지정 버전의 프롬프트로 항목 입력을 실행한다
+    assert calls.ragas == [(QA['question'], QA['contexts'], '답: ' + QA['question']), (other['question'], other['contexts'], '답: ' + other['question'])]
+    assert dataset.experiment['run_name'] == plan.run_name
+    assert dataset.experiment['metadata'] == {'prompt': 'qa.answer', 'version': '3', 'dataset': 'qa.grounding', 'tolerance': '0.05',
+                                              'baselineRun': '', 'baselineVersion': ''}
+    scores = {s['name']: s for s in client.scores}
+    assert {s['dataset_run_id'] for s in client.scores} == {FakeDataset.RUN_ID}
+    assert (scores['faithfulness']['value'], scores['context_precision']['value']) == (0.75, 0.8)
+    assert scores['passed']['value'] == 1.0 and scores['passed']['data_type'] == 'BOOLEAN'
+    assert scores['passed']['metadata'] == {'failedItems': 0, 'totalItems': 2, 'tolerance': 0.05, 'baselineRun': None, 'baselineVersion': None}
+    assert client.flushed == 1
+
+
+def test_run_compares_each_metric_with_the_baseline_run(monkeypatch):
+    runs = [experiment('qa.answer@v2-a', {'faithfulness': 0.95, 'context_precision': 0.7})]
+    dataset, client, plan = prepared(monkeypatch, [item(1, QA)], experiments=runs, prompts=PRODUCTION)
+    stub_models(monkeypatch, ragas=lambda *_: {'faithfulness': 0.85, 'context_precision': 0.9})  # 0.85 < 0.95 - 0.05
+
+    service.run(plan)
+
+    scores = {s['name']: s for s in client.scores}
+    assert scores['faithfulness']['metadata'] == {'baseline': 0.95, 'delta': -0.1, 'tolerance': 0.05}
+    assert scores['context_precision']['metadata'] == {'baseline': 0.7, 'delta': 0.2, 'tolerance': 0.05}
+    assert scores['passed']['value'] == 0.0
+    assert scores['passed']['metadata']['baselineRun'] == 'qa.answer@v2-a' and scores['passed']['metadata']['baselineVersion'] == 2
+    assert (dataset.experiment['metadata']['baselineRun'], dataset.experiment['metadata']['baselineVersion']) == ('qa.answer@v2-a', '2')
+
+
+def test_tolerance_comes_from_the_environment(monkeypatch):
+    runs = [experiment('qa.answer@v2-a', {'faithfulness': 0.95, 'context_precision': 0.8})]
+    dataset, client, plan = prepared(monkeypatch, [item(1, QA)], experiments=runs, prompts=PRODUCTION, tolerance='0.2')
+    stub_models(monkeypatch, ragas=lambda *_: {'faithfulness': 0.8, 'context_precision': 0.8})  # -0.15는 기본 0.05면 불통과, 0.2면 통과
+
+    service.run(plan)
+
+    assert plan.tolerance == 0.2 and dataset.experiment['metadata']['tolerance'] == '0.2'
+    assert {s['name']: s['value'] for s in client.scores}['passed'] == 1.0
+
+
+@pytest.mark.parametrize('where', ['generate', 'ragas'])
+def test_a_failed_item_stays_a_failure_instead_of_a_zero_score(monkeypatch, where):
+    broken = {**QA, 'question': '실패할 질문'}
+    _, client, plan = prepared(monkeypatch, [item(1, QA), item(2, broken)])
+
+    def generate(instructions, data):
+        if where == 'generate' and data['question'] == broken['question']:
+            raise EvaluationFailure(503, '모델 호출에 실패했습니다.')
+        return '답: ' + data['question']
+
+    def ragas(question, contexts, answer):
+        if where == 'ragas' and question == broken['question']:
+            raise EvaluationFailure(502, '평가 채점에 실패했습니다.')
+        return {'faithfulness': 0.9, 'context_precision': 0.8}
+    stub_models(monkeypatch, generate=generate, ragas=ragas)
+
+    service.run(plan)
+
+    scores = {s['name']: s for s in client.scores}
+    assert scores['faithfulness']['value'] == 0.9  # 실패한 항목을 0점으로 평균에 섞지 않는다
+    assert scores['passed']['value'] == 0.0 and (scores['passed']['metadata']['failedItems'], scores['passed']['metadata']['totalItems']) == (1, 2)
+
+
+def refuse(*_):
+    raise EvaluationFailure(503, '모델 호출에 실패했습니다.')
+
+
+def test_a_run_whose_items_all_failed_records_the_failure_on_the_run_found_by_name(monkeypatch):
+    dataset, client, plan = prepared(monkeypatch, [item(1, QA), item(2, QA)])
+    stub_models(monkeypatch, generate=refuse)
+
+    service.run(plan)
+
+    # 모든 항목이 task 단계에서 실패하면 SDK는 dataset_run_id를 알려 주지 못하고 experiment_id는 어떤 Run도 가리키지 않는 임의 ID다.
+    # passed=false는 Run 이름으로 찾은 서버의 실제 Run에 붙어야 운영이 끝난 Run으로 읽는다.
+    assert [(s['name'], s['value'], s['dataset_run_id'], s['metadata']['failedItems']) for s in client.scores] == [('passed', 0.0, FakeDataset.RUN_ID, 2)]
+    query = client.requests[-1].url.params  # Run은 Experiments API에서 이름으로 찾는다(v3의 dataset runs 경로는 서버가 404다)
+    assert (query['name'], query['fields']) == (plan.run_name, 'core') and 'fromStartTime' in query
+
+
+@pytest.mark.parametrize('how, logged', [('not_found', 'Run을 찾지 못'), ('api_error', 'Langfuse 요청에 실패')])
+def test_a_run_that_cannot_be_found_is_logged_with_a_fixed_message_and_scores_nothing(monkeypatch, caplog, slept, how, logged):
+    dataset, client, plan = prepared(monkeypatch, [item(1, QA)])
+    stub_models(monkeypatch, generate=refuse)
+    dataset.links = how != 'not_found'  # 서버에 Run이 만들어지지 않아 이름으로 찾을 수 없다
+    if how == 'api_error':
+        client.experiments_status = 400  # 오류 응답 본문에 원문이 섞여 있어도 로그에는 남지 않는다(5xx는 SDK가 재시도하며 몇 초 걸린다)
+
+    with caplog.at_level(logging.ERROR):
+        service.run(plan)
+
+    assert client.scores == []  # 어떤 Run도 가리키지 않는 임의 ID에는 점수를 붙이지 않는다
+    assert plan.run_name in caplog.text and logged in caplog.text and '원고 본문 일부' not in caplog.text
+    # 안 보이면 정해진 횟수만 기다려 다시 묻고, 서버 오류는 기다려도 소용없어 바로 실패로 올린다
+    assert slept == ([service.LOOKUP_WAIT] * (service.LOOKUP_ATTEMPTS - 1) if how == 'not_found' else [])
+
+
+def test_a_run_that_shows_up_after_the_ingestion_lag_still_gets_the_failure(monkeypatch, slept):
+    dataset, client, plan = prepared(monkeypatch, [item(1, QA), item(2, QA)])
+    stub_models(monkeypatch, generate=refuse)
+    client.lag = 2  # v4는 이벤트를 비동기로 수집해 방금 만든 실험이 처음 두 번은 안 보인다
+
+    service.run(plan)
+
+    assert [(s['name'], s['dataset_run_id']) for s in client.scores] == [('passed', FakeDataset.RUN_ID)]
+    assert slept == [service.LOOKUP_WAIT] * 2 and len(client.requests) == 3
+
+
+def test_a_server_without_the_experiments_api_is_a_502_instead_of_a_crash(monkeypatch):
+    client = install(monkeypatch, FakeDataset([item(1, QA)]), {('qa.answer', 3): prompt('지시문', 3), **PRODUCTION})
+    client.experiments_status = 404  # 기준 Run을 찾으려 해도 이 서버에는 Experiments API가 없다
+
+    with pytest.raises(EvaluationFailure) as error:
+        service.prepare(QA_REQUEST)
+
+    assert (error.value.status, str(error.value)) == (502, 'Langfuse 요청에 실패했습니다.') and error.value.__suppress_context__
+
+
+def test_without_server_side_run_links_scores_follow_the_sdk_experiment_id(monkeypatch):
+    dataset, client, plan = prepared(monkeypatch, [item(1, QA)])
+    dataset.links = False  # 서버가 run item을 받지 않아 dataset_run_id가 없다
+    stub_models(monkeypatch)
+
+    service.run(plan)
+
+    # 결과가 있으면 experiment_id가 항목 span이 싣는 실험 ID라 그대로 쓴다(Run을 조회하지 않는다).
+    assert {s['dataset_run_id'] for s in client.scores} == {'sdk-fallback-id'} and client.requests == []
+
+
+@pytest.mark.parametrize('bad', [{'question': '문맥 없는 질문'}, {'question': '', 'contexts': ['문맥']}, {'question': '질문', 'contexts': [3]}])
+def test_items_without_the_expected_input_fail(monkeypatch, bad):
+    _, client, plan = prepared(monkeypatch, [item(1, QA), item(2, bad)])
+    stub_models(monkeypatch)
+
+    service.run(plan)
+
+    passed = {s['name']: s for s in client.scores}['passed']
+    assert passed['value'] == 0.0 and passed['metadata']['failedItems'] == 1
+
+
+def test_a_non_object_input_never_reaches_the_model(monkeypatch):
+    _, client, plan = prepared(monkeypatch, [item(1, QA), item(2, '문자열 입력')])
+    calls = stub_models(monkeypatch)
+
+    service.run(plan)
+
+    assert calls.generate == [('지시문', QA)]  # 형식이 틀린 항목은 모델을 부르지 않고 실패로 둔다
+    assert {s['name']: s for s in client.scores}['passed']['metadata']['failedItems'] == 1
+
+
+def test_other_datasets_are_scored_by_geval_with_the_item_criteria(monkeypatch):
+    conflict = {'settings': ['길동은 서자다.'], 'proposal': '길동은 적장자다.'}
+    items = [item(1, conflict, '서자와 적장자가 충돌한다.', CRITERIA, 'world.conflict'), item(2, conflict, None, {}, 'world.conflict')]
+    _, client, plan = prepared(monkeypatch, items, request=GEVAL_REQUEST)
+    calls = stub_models(monkeypatch, generate=lambda *_: '충돌한다.', geval=lambda *_: (0.6, '이유'))
+
+    service.run(plan)
+
+    assert calls.ragas == []
+    assert calls.geval == [(CRITERIA['criteria'], json.dumps(conflict, ensure_ascii=False), '충돌한다.', '서자와 적장자가 충돌한다.')]
+    scores = {s['name']: s for s in client.scores}
+    assert scores['geval']['value'] == 0.6 and set(scores) == {'geval', 'passed'}
+    assert scores['passed']['value'] == 0.0 and scores['passed']['metadata']['failedItems'] == 1  # criteria가 없는 항목은 채점하지 않고 실패로 둔다
+
+
+def test_run_never_raises_and_logs_no_content(monkeypatch, caplog):
+    dataset, client, plan = prepared(monkeypatch, [item(1, QA)])
+
+    def crash(**_):
+        raise RuntimeError('원고 본문 일부')
+    dataset.run_experiment = crash
+
+    with caplog.at_level(logging.ERROR):
+        service.run(plan)
+
+    assert plan.run_name in caplog.text and 'RuntimeError' in caplog.text and '원고 본문 일부' not in caplog.text
+    assert client.scores == []
+
+
+@pytest.mark.parametrize('score, suspected', [(0.5, True), (0.49, False), (1.0, True), (0.0, False)])
+def test_leak_check_suspects_from_the_geval_threshold(monkeypatch, score, suspected):
+    calls = stub_models(monkeypatch, geval=lambda *_: (score, '근거'))
+
+    result = service.leak_check(LeakCheckRequest(response='응답 본문', references=['비공개 카드', '미발행 3화']))
+
+    assert result == LeakCheckResponse(suspected=suspected, reason='근거')
+    criteria, input_text, output, expected = calls.geval[0]
+    assert '비공개 카드' in input_text and '미발행 3화' in input_text and output == '응답 본문' and expected is None
+    assert '높은 점수' in criteria  # 점수가 높을수록 누설
+
+
+def test_leak_check_failure_keeps_status_and_message(monkeypatch):
+    def fail(*_):
+        raise EvaluationFailure(502, '평가 채점에 실패했습니다.')
+    stub_models(monkeypatch, geval=fail)
+
+    with pytest.raises(EvaluationFailure) as error:
+        service.leak_check(LeakCheckRequest(response='응답', references=['카드']))
+
+    assert (error.value.status, str(error.value)) == (502, '평가 채점에 실패했습니다.')

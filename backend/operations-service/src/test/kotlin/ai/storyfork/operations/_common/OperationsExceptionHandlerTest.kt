@@ -290,4 +290,9 @@ class OperationsExceptionHandlerTest {
         assertAnswered(null, ResponseStatusException(HttpStatus.BAD_GATEWAY, null, ResourceAccessException("I/O error", IOException("down"))),
             502, "UPSTREAM_FAILED")
     }
+
+    @Test
+    fun `a prompt promotion without a passing evaluation is a 409 with its own code`() {
+        assertError(handler.evaluationRequired(), 409, "EVALUATION_REQUIRED", "A passing regression evaluation is required for this prompt version.")
+    }
 }

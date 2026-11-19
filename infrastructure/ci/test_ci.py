@@ -15,6 +15,27 @@ SPEC = importlib.util.spec_from_file_location("ci", Path(__file__).with_name("ci
 ci = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(ci)
 
+LANGFUSE_COMPOSE = 'infrastructure/docker-compose.langfuse.yaml'
+
+
+def read(path):
+    return (ci.ROOT / path).read_text()
+
+
+def service_block(text, name):
+    """compose 문자열에서 서비스 하나의 블록(다음 서비스 시작 전까지)을 잘라 낸다."""
+    return re.split(r'\n  [a-z][\w-]*:\n', text.split(f'\n  {name}:\n', 1)[1], maxsplit=1)[0]
+
+
+def nginx_upstream(text, route):
+    """nginx location 선택(정확 일치 > 가장 긴 접두)을 흉내 내 route가 가는 proxy_pass 대상을 돌려준다."""
+    locations = re.findall(r'location (\^~ |= |)(/\S*) \{([^}]*)\}', text)
+    path = route.split('?')[0]
+    exact = [body for modifier, prefix, body in locations if modifier == '= ' and path == prefix]
+    prefixed = [(prefix, body) for modifier, prefix, body in locations if modifier != '= ' and path.startswith(prefix)]
+    body = exact[0] if exact else max(prefixed, key=lambda item: len(item[0]))[1]
+    return re.search(r'proxy_pass (\S+);', body)[1]
+
 
 class SelectionTest(unittest.TestCase):
     def test_expanded_data_paths_select_configuration_without_unrelated_services(self):
@@ -416,6 +437,80 @@ class ComposeSplitTest(unittest.TestCase):
             block = re.split(r'\n  [a-z][\w-]*:\n', overlay.split('  ' + service + ':\n', 1)[1], maxsplit=1)[0]
             self.assertIn('ports: !reset []', block)
 
+    def test_langfuse_is_one_file_that_dev_and_prod_include(self):
+        langfuse = read(LANGFUSE_COMPOSE)
+        services = re.findall(r'(?m)^  ([a-z][\w-]*):$', langfuse.split('\nservices:\n', 1)[1].split('\nvolumes:\n', 1)[0])
+        # 앱 스택의 postgres·minio와 이름이 겹치면 같은 프로젝트에 include할 수 없다.
+        self.assertEqual({'langfuse-web', 'langfuse-worker', 'langfuse-postgres', 'langfuse-clickhouse',
+                          'langfuse-minio', 'langfuse-redis'}, set(services))
+        dev, prod = read('infrastructure/docker-compose.dev.yaml'), read('infrastructure/docker-compose.prod.yaml')
+        # 원격 CD는 --project-directory 때문에 상대 경로가 어긋나므로 dev만 임시로 둔 절대 경로를 받는다.
+        self.assertIn('\ninclude:\n  - path: ${CD_LANGFUSE_COMPOSE_FILE:-docker-compose.langfuse.yaml}\n', dev)
+        self.assertIn('\ninclude:\n  - path: docker-compose.langfuse.yaml\n', prod)
+        for source in (dev, prod):
+            self.assertNotIn('\n  langfuse-web:\n', source)  # 정의를 복제하지 않는다.
+        # 로컬 기본 진입점은 별도 프로젝트로 두고 Langfuse 없이 뜬다.
+        for path in ('compose.yaml', 'infrastructure/docker-compose.yaml', 'infrastructure/docker-compose.local.yaml'):
+            self.assertNotIn('langfuse.yaml', read(path), path)
+
+    def test_langfuse_web_is_developer_only_and_keeps_the_headless_init_admin(self):
+        # 2026-11-19 사용자 결정: 관리자는 Langfuse 웹에 들어가지 않는다(OIDC 로그인·화면 링크·기본 조직 자동 배정 없음).
+        # 웹은 개발자가 초기 관리자(LANGFUSE_INIT_*)로 loopback 포트에서만 쓰고 가입은 막는다.
+        langfuse = read(LANGFUSE_COMPOSE)
+        web = service_block(langfuse, 'langfuse-web')
+        self.assertIn('- "127.0.0.1:${LANGFUSE_WEB_PORT:-3000}:3000"', web)
+        self.assertIn('NEXTAUTH_URL: http://localhost:${LANGFUSE_WEB_PORT:-3000}\n', langfuse)
+        self.assertEqual({'AUTH_DISABLE_SIGNUP'}, set(re.findall(r'(?m)^      (AUTH_\w+):', web)))
+        self.assertIn('AUTH_DISABLE_SIGNUP: "true"\n', web)
+        self.assertEqual({'LANGFUSE_INIT_ORG_ID', 'LANGFUSE_INIT_ORG_NAME', 'LANGFUSE_INIT_PROJECT_ID', 'LANGFUSE_INIT_PROJECT_NAME',
+                          'LANGFUSE_INIT_PROJECT_PUBLIC_KEY', 'LANGFUSE_INIT_PROJECT_SECRET_KEY', 'LANGFUSE_INIT_USER_EMAIL',
+                          'LANGFUSE_INIT_USER_NAME', 'LANGFUSE_INIT_USER_PASSWORD'}, set(re.findall(r'(?m)^      (LANGFUSE_\w+):', web)))
+        # 공개 진입점(nginx·Vite)은 Langfuse 웹으로 가는 길을 두지 않는다.
+        for path in ('frontend/nginx.conf', 'infrastructure/nginx.dev.conf', 'frontend/vite.config.ts'):
+            self.assertNotIn('langfuse-web', read(path), path)
+
+    def test_langfuse_keys_and_internal_addresses_reach_ai_and_operations(self):
+        base = read('infrastructure/docker-compose.yaml')
+        ai, operations = service_block(base, 'ai-service'), service_block(base, 'operations-service')
+        for line in ('LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}', 'LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}'):
+            self.assertIn(line, ai)
+            self.assertIn(line, operations)
+        # Langfuse 서버의 초기 프로젝트 키도 같은 변수에서 읽어 세 곳의 값이 항상 같다.
+        langfuse = read(LANGFUSE_COMPOSE)
+        self.assertIn('LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:?', langfuse)
+        self.assertIn('LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:?', langfuse)
+        # 컨테이너에서는 Langfuse를 내부 주소로 부른다(루트 .env의 localhost 값은 네이티브 실행용).
+        self.assertIn('LANGFUSE_BASE_URL: http://langfuse-web:3000', ai)
+        for line in ('OPERATIONS_LANGFUSE_BASE_URL: http://langfuse-web:3000',
+                     'OPERATIONS_AI_BASE_URL: http://ai-service:8000', 'INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}',
+                     'OPERATIONS_RABBITMQ_HOST: ${CORE_RABBITMQ_HOST:-rabbitmq}', 'OPERATIONS_RABBITMQ_PORT: ${CORE_RABBITMQ_PORT:-5672}',
+                     'OPERATIONS_RABBITMQ_USERNAME: ${CORE_RABBITMQ_USER:-storyfork}',
+                     'OPERATIONS_RABBITMQ_PASSWORD: ${CORE_RABBITMQ_PASSWORD:-}'):
+            self.assertIn(line, operations)
+
+    def test_operations_waits_for_the_broker_it_publishes_alerts_to(self):
+        for name in ('local', 'dev'):
+            with self.subTest(file=name):
+                operations = service_block(read(f'infrastructure/docker-compose.{name}.yaml'), 'operations-service')
+                self.assertIn('rabbitmq:\n        condition: service_healthy', operations)
+
+    def test_configuration_job_supplies_every_required_dev_and_prod_value(self):
+        # .env.example는 비밀값을 비워 두므로 dev·prod·Langfuse가 :? 로 요구하는 값은 job의 합성 값이 채워야 config가 통과한다.
+        job = read('.github/workflows/ci.yml').split('\n  configuration:\n', 1)[1].split('\n    steps:\n', 1)[0]
+        example = dict(line.split('=', 1) for line in read('.env.example').splitlines() if line and not line.startswith('#'))
+        provided = set(re.findall(r'(?m)^ {6}([A-Z][A-Z0-9_]*):', job)) | {key for key, value in example.items() if value}
+        for name in ('docker-compose.dev.yaml', 'docker-compose.prod.yaml', 'docker-compose.langfuse.yaml'):
+            with self.subTest(file=name):
+                required = set(re.findall(r'\$\{([A-Z][A-Z0-9_]*):\?', read('infrastructure/' + name)))
+                self.assertEqual(set(), required - provided)
+
+    def test_example_lists_the_native_operations_settings_blank(self):
+        example = dict(line.split('=', 1) for line in read('.env.example').splitlines() if line and not line.startswith('#'))
+        for key in ('OPERATIONS_LANGFUSE_BASE_URL', 'OPERATIONS_AI_BASE_URL', 'OPERATIONS_RABBITMQ_HOST', 'OPERATIONS_RABBITMQ_PORT',
+                    'OPERATIONS_RABBITMQ_USERNAME', 'OPERATIONS_RABBITMQ_PASSWORD'):
+            with self.subTest(key=key):
+                self.assertEqual('', example[key])
+
     def test_example_does_not_activate_deployment_or_supply_signing_keys(self):
         source = (ci.ROOT / '.env.example').read_text()
         active = dict(line.split('=', 1) for line in source.splitlines() if line and not line.startswith('#'))
@@ -597,7 +692,7 @@ class ConfigurationTest(unittest.TestCase):
             for private in ['/api/v1/operations/inquiries', '/api/v1/operations/notices', '/api/v1/operations/events']:
                 self.assertNotIn(private, text)
         text = (ci.ROOT / 'frontend/vite.config.ts').read_text()
-        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities)', text)
+        self.assertIn('(?:reports|members|admins|support|works|comments|admin/notices|public/notices|admin/events|public/events|admin/activities|dashboard|llmops|alerts|jobs)', text)
 
     def test_operations_works_public_routes_go_to_operations(self):
         for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
@@ -616,6 +711,25 @@ class ConfigurationTest(unittest.TestCase):
             text = (ci.ROOT / path).read_text()
             for location in ['location = /api/v1/operations/admin/activities {', 'location ^~ /api/v1/operations/admin/activities/ {']:
                 self.assertIn(location + '\n        proxy_pass http://operations-service:8082;', text)
+
+    def test_operations_dashboard_llmops_alerts_and_jobs_routes_go_to_operations(self):
+        # DEC-55: 운영 대시보드·LLMOps·경고·작업 감시 API는 네 접두와 하위 경로를 Operations로 보낸다(일반 /api보다 구체적).
+        routes = ['/api/v1/operations/dashboard', '/api/v1/operations/llmops/traces?from=2026-11-19',
+                  '/api/v1/operations/llmops/prompts/p/production', '/api/v1/operations/alerts',
+                  '/api/v1/operations/alerts/rules/ai_failure_rate', '/api/v1/operations/jobs/runs/id/retry',
+                  '/api/v1/operations/jobs/schedules']
+        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
+            for route in routes:
+                with self.subTest(proxy=path, route=route):
+                    self.assertEqual('http://operations-service:8082', nginx_upstream(read(path), route))
+        pattern = re.search(r"'(\^/api/v1/operations/[^']*)':\s*\{", read('frontend/vite.config.ts'))[1].replace('\\\\', '\\')
+        for route in routes:
+            with self.subTest(vite=route):
+                self.assertRegex(route, pattern)
+        for route in ['/api/v1/operations/dashboards', '/api/v1/operations/jobs-extra',
+                      '/api/v1/operations/inquiries', '/api/v1/operations/notices']:
+            with self.subTest(vite=route):
+                self.assertNotRegex(route, pattern)
 
     def test_redaction_does_not_keep_tokens_or_addresses(self):
         text = ci.redact('Bearer abc.def.ghi test@example.invalid #token=opaque-token ' + 'a' * 64)

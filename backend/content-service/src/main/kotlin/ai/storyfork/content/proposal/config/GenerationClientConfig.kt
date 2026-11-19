@@ -15,6 +15,6 @@ class GenerationClientConfig {
         @Value("\${AI_GENERATION_READ_TIMEOUT:75s}") timeout: Duration,
         @Value("\${INTERNAL_TOKEN:}") token: String): GenerationClient {
         validatePositiveDuration(timeout,"AI_GENERATION_READ_TIMEOUT")
-        return GenerationClient(buildRestClient(builder,properties.baseUrl,properties.connectTimeout,timeout),token)
+        return GenerationClient(buildRestClient(builder,properties.baseUrl,properties.connectTimeout,timeout,forwardUser=true),token)
     }
 }

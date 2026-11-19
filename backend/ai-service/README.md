@@ -44,9 +44,26 @@ prod는 소스 빌드 이미지, dev는 CI가 게시한 `:develop` 이미지를 
 
 콘텐츠 정본·콘텐츠 인가·채택·발행은 목표 콘텐츠 서비스, 회원·인증·크레딧·회원 알림은 Core, 운영 판단은 운영 서비스가 소유하며 AI가 직접 확정하지 않습니다. 현재 허용 문맥 구성·생성 작업 기록·제안 채택은 `core-api`의 콘텐츠 코드가 담당합니다. 향후에도 문서·원고와 그래프 관계는 같은 기준 버전·허용 범위를 따라야 하며 조회 경로는 후속 설계합니다. 장애를 정상 결과로 숨기는 fallback이나 Agent별 서버는 추가하지 않습니다.
 
-LLMOps는 운영 영역이고 Langfuse는 MVP 이후 도입 시 별도 제품으로 배포합니다. 자체 UI와 운영 화면 API 통합은 미정이며 Spring Boot로 전체 기능을 재구현하지 않습니다. AI 런타임의 계측·버전 적용과 평가 실행 위치·연동 계약도 후속 설계이며 현재 Langfuse 연동은 없습니다.
+LLMOps는 운영 영역이고 정본은 self-host Langfuse입니다. 운영 화면이 그 Public API로 통합하며 Spring Boot로 전체 기능을 재구현하지 않습니다([계약](../../docs/design/operations-llmops-contract.md)). AI 런타임은 요청마다 trace 하나를 남깁니다: 요청 루트 관측 하나가 요청 전체(SSE는 `done`까지)를 덮고, 루트와 모든 하위 observation에 회원 UUID·세션·기능 태그(`feature:<키>`)·metadata(`request_id`·`work_id`·`fork`)가 붙으며 상태(`success|failed|timeout`)는 루트의 metadata `status`입니다. 모델 호출은 generation(모델·사용량·프롬프트 버전)이고 모델 지시문은 Langfuse 프롬프트(`production` 버전, 이름 `<기능>.<용도>`)를 읽어 씁니다. `LANGFUSE_PUBLIC_KEY`·`LANGFUSE_SECRET_KEY`가 없으면 추적을 끄고 코드의 지시문을 씁니다. 컨테이너를 종료(SIGTERM)할 때는 아직 보내지 않은 추적을 먼저 보내고 끝납니다.
 구현 기준은 [AGENTS.md](AGENTS.md), [Agent 구현 경계](docs/agent-structure.md)를 따릅니다.
 
 ## 초기 세계관 추출 (5-B)
 
 `POST /internal/v1/initial-world/extractions`는 기존 내부 토큰·OpenAI 설정으로 #219 Input을 받아 검증된 후보 Output만 반환합니다. 실제 모델 호출 경로는 구현했지만 유료 호출·추출 품질은 미검증입니다. 저장·승인·Content 실행 연결은 제외하며 [호출/실패 계약과 검증 한계](../../docs/design/initial-world-ai-extraction.md)를 따릅니다. 기존 이어쓰기 API는 유지합니다.
+
+## 회귀 평가·누설 판정 (DEC-55)
+
+운영 서비스가 부르는 내부 API입니다([계약](../../docs/design/operations-llmops-contract.md)). Langfuse 4.x(`events_only`) 기준이며 `ragas`·`deepeval`은 `--extra eval`입니다(AI 이미지에는 설치하고, 단위 테스트는 설치 없이 통과합니다).
+
+| 경로 | 내용 |
+|---|---|
+| `POST /internal/v1/evaluations` `{dataset, prompt, version}` | 평가 세트·프롬프트 버전·설정을 확인한 뒤 `202 {runName}`을 먼저 돌려주고 백그라운드로 평가합니다 |
+| `POST /internal/v1/evaluations/leak-check` `{response, references[], question?}` | 응답이 비공개 참조를 드러내는지 GEval 한 번으로 판정해 `{suspected, reason}`을 돌려줍니다. 사용자 질문 원문 `question`(선택)을 주면 질문에 이미 나온 이름을 되풀이하거나 근거가 없다고 답한 응답은 의심하지 않고 비공개 참조의 내용을 새로 알려 줄 때만 의심합니다 |
+
+결과는 Langfuse Experiments API(`GET /api/public/experiments?fromStartTime=…&name=<runName>&fields=core,metadata,scores`)로 읽습니다.
+
+- 실험 이름은 `runName`(`<프롬프트>@v<버전>-<UTC yyyymmddTHHMMSSZ>-<hex6>`)이고 `fields=metadata`로 읽는 `metadata`에는 `prompt`·`version`·`dataset`·`tolerance`·`baselineRun`·`baselineVersion`(모두 문자열)을 실어 보냅니다(서버가 돌려주는 모양은 실서버 확인 전).
+- Run 수준 점수는 `scores`에 있고 실험 id(`Experiment.id`)를 `datasetRunId`로 단 것입니다(Scores v3는 `experimentId`). `passed`(BOOLEAN, metadata `failedItems`·`totalItems`·`tolerance`·`baselineRun`·`baselineVersion`)와 지표 평균(NUMERIC, metadata `baseline`·`delta`·`tolerance`)이며, `qa.` 평가 세트는 `faithfulness`·`context_precision`, 그 밖은 `geval`입니다. `passed`가 없으면 실행 중입니다.
+- 항목 점수는 항목 trace에 같은 이름으로 남습니다.
+
+평가 세트는 `app/evaluation/datasets/*.jsonl`(저작권 만료 작품만)이고 `python -m app.evaluation.seed`로 Langfuse에 멱등 등록합니다. 설정은 `OPENAI_API_KEY`·`OPENAI_MODEL`(채점 모델 겸용)·`LANGFUSE_*`·`INTERNAL_TOKEN`이고 선택 `EVAL_TOLERANCE`(기본 0.05)가 있습니다.

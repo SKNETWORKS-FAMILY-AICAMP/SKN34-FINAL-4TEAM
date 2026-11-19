@@ -6,7 +6,7 @@ Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다.
 
 ## 서비스와 진입점
 
-현재 Compose의 앱은 **web·core-api·content-service·operations-service·ai-service 다섯 개**입니다. Core는 회원·인증·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio, AI는 요청된 모델 실행을 소유합니다. 정산·알림·운영 업무는 목표 책임이며 구현 완료를 뜻하지 않습니다. Langfuse·새 큐/worker/Start 서버는 추가하지 않습니다.
+현재 Compose의 앱은 **web·core-api·content-service·operations-service·ai-service 다섯 개**입니다. Core는 회원·인증·세션·Health, Content는 기존 콘텐츠·첨부·WorldStudio, AI는 요청된 모델 실행을 소유합니다. 정산·알림·운영 업무는 목표 책임이며 구현 완료를 뜻하지 않습니다. develop·prod는 여기에 **Langfuse(LLMOps, DEC-55)를 같은 프로젝트로 함께 켭니다**([Langfuse 절](#집필-ai-추적용-langfuse-302)). 새 큐/worker/Start 서버는 추가하지 않습니다.
 
 [`docker-compose.yaml`](docker-compose.yaml)은 공통 환경·내부 포트만 정의하는 base로 **단독 실행하지 않습니다**.
 
@@ -17,16 +17,18 @@ Content의 초기 SQL은 사용자가 승인한 개발용 fresh 이력입니다.
 | 앱 | 다섯 앱 소스 build, web은 nginx 정적 runtime, HMR 아님 | 다섯 앱의 GHCR `:develop`, `linux/amd64` | 다섯 앱의 GHCR `:main`, `linux/amd64`, 게시 여부 미확인 |
 | DB·SMTP | 새 프로젝트 범위 `core-postgres` volume의 PostgreSQL + Mailpit | 로컬과 같은 PostgreSQL·Mailpit 정의 재사용, 별도 프로젝트 DB volume | 별도 승인·준비한 외부 PostgreSQL·SMTP, 내장 DB·Mailpit·volume 없음 |
 | web 포트 | `127.0.0.1:${WEB_PORT:-5173}` | `127.0.0.1:${CD_WEB_PORT}` | `127.0.0.1:${WEB_PORT}` |
-| 추가 호스트 공개 | Core 8080·Content 8081·DB 5432·SMTP 1025·Mailpit 8025, 모두 loopback | 없음 | 없음 |
+| Langfuse | 별도 프로젝트 `storyfork-langfuse`(필요할 때만, [절차](#로컬-별도-실행)) | 같은 프로젝트에 `include`(웹·worker와 자체 저장소 4개) | 같은 프로젝트에 `include`(자체 저장소·volume 포함, 앱 DB는 외부 PostgreSQL 그대로) |
+| 추가 호스트 공개 | Core 8080·Content 8081·DB 5432·SMTP 1025·Mailpit 8025, 모두 loopback | Langfuse 웹(개발자용) `127.0.0.1:${LANGFUSE_WEB_PORT:-3000}`만 | Langfuse 웹(개발자용) `127.0.0.1:${LANGFUSE_WEB_PORT:-3000}`만 |
 
 루트 진입점은 Compose native `include`로 base+local을 재사용하므로 build context는 `infrastructure/` 기준의 `../frontend`·`../backend/*`입니다.
-루트 `.env`는 기본 명령에서 자동 로드하며 컨테이너에는 서비스별 allowlist만 전달합니다. dev는 local 파일의 PostgreSQL·Mailpit 서비스만 native `extends`로 재사용하고 호스트 포트는 제거합니다. 원격 CD에서는 `--project-directory`와 임시 설정 위치가 다르므로 `CD_LOCAL_COMPOSE_FILE`을 임시 파일의 절대 경로로 고정합니다. dev 렌더링에 앱 build는 없으며 DB volume은 `storyfork-develop-cd_core-postgres`로 격리됩니다. Compose v2.24.4 이상을 사용합니다.
+루트 `.env`는 기본 명령에서 자동 로드하며 컨테이너에는 서비스별 allowlist만 전달합니다. dev는 local 파일의 PostgreSQL·Mailpit 서비스만 native `extends`로 재사용하고 호스트 포트는 제거합니다. 원격 CD에서는 `--project-directory`와 임시 설정 위치가 다르므로 `CD_LOCAL_COMPOSE_FILE`(extends)과 `CD_LANGFUSE_COMPOSE_FILE`(include)을 임시 파일의 절대 경로로 고정합니다. dev 렌더링에 앱 build는 없으며 DB volume은 `storyfork-develop-cd_core-postgres`로 격리됩니다. Compose v2.24.4 이상을 사용합니다.
 
 ```text
 Browser → web nginx
            ├─ /api/v1/works 및 /api/v1/public/works(+하위) → Content:8081 → AI:8000
            │                                                   └→ Core 내부 인증 확인
            ├─ /api/v1/operations/{reports,members,admins,support,works,comments,admin/notices,public/notices,admin/events,public/events,admin/activities}(+하위) → Operations:8082 → Core·Content 내부 API
+           ├─ /api/v1/operations/{dashboard,llmops,alerts,jobs}(+하위) → Operations:8082 → Langfuse Public API·AI·Core·Content 내부 API
            └─ 나머지 /api → Core:8080 → AI Health
 ```
 
@@ -64,8 +66,9 @@ docker compose down
 | `CORE_AUTH_CONNECT_TIMEOUT` / `CORE_AUTH_READ_TIMEOUT` | `1s` / `3s` | Content 인증 확인 |
 | `CONTENT_CORE_AUTH_TOKEN` | 빈 값 | Core/Content만, 활성화 시 필수 |
 | `DATABASE_*` | 빈 계정, `storyfork` DB | Core·Content(Studio 포함)·운영 공용 PostgreSQL(운영은 전용 `operations` schema) |
-| `INTERNAL_TOKEN` | 빈 값 | Content/AI 생성만 |
+| `INTERNAL_TOKEN` | 빈 값 | Content·Operations·AI (Content/AI 생성, Operations → AI 평가 위임) |
 | `OPERATIONS_SERVICE_TOKEN` | 빈 값(운영 호출 거절) | Operations·Core·Content |
+| `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` | 빈 값(추적 끔) | AI·Operations, Langfuse 서버의 초기 프로젝트 키(세 곳이 같은 값) |
 | `CREDIT_SIGNUP_TRIAL_AMOUNT` | `0`(가입 체험 크레딧을 지급하지 않음) | Core만, 양수면 가입한 회원에게 한 번 지급(30일 뒤 소멸) |
 | `APP_CORS_ALLOWED_ORIGIN` | 빈 값이면 web 포트에서 계산 | Core/Content의 단일 origin |
 | `WEB_PORT` | local `5173` / prod 필수 | web loopback (dev는 CD workflow의 `CD_WEB_PORT`) |
@@ -76,11 +79,11 @@ docker compose down
 
 Health는 OpenAI 인증·모델 접근 검증이 아니며 모델 클라이언트를 만들지 않습니다. 생성 제공사 설정 누락은 503입니다. OpenAI 키를 Frontend·Core·Content·build ARG에 넣지 않습니다. 루트 `.env` 전체를 프로세스에 주입하지 않습니다.
 
-네이티브는 각 서비스의 기본 명령(`pnpm dev`, `./gradlew bootRun`, `uv run --locked uvicorn app.main:create_app --factory --reload --port 8000`)을 사용합니다. Core/Content 기본 포트는 8080/8081입니다. 필요한 변수만 해당 터미널에 전달하며 루트 `.env` 전체를 source하지 않습니다. Vite는 `VITE_DEV_PROXY_TARGET`(Core)·`VITE_CONTENT_DEV_PROXY_TARGET`(Content)·`VITE_OPERATIONS_DEV_PROXY_TARGET`(Operations, 기본 8082)으로 경로를 분기합니다. 기본 web origin은 `http://localhost:5173`이며 CORS도 실제 origin과 맞춥니다. 생성 timeout을 늘릴 때 브라우저 80초/nginx 90초 한도도 함께 검토합니다.
+네이티브는 각 서비스의 기본 명령(`pnpm dev`, `./gradlew bootRun`, `uv run --locked uvicorn app.main:create_app --factory --reload --port 8000`)을 사용합니다. Core/Content 기본 포트는 8080/8081입니다. 필요한 변수만 해당 터미널에 전달하며 루트 `.env` 전체를 source하지 않습니다. Vite는 `VITE_DEV_PROXY_TARGET`(Core)·`VITE_CONTENT_DEV_PROXY_TARGET`(Content)·`VITE_OPERATIONS_DEV_PROXY_TARGET`(Operations, 기본 8082)으로 경로를 분기합니다. Operations를 네이티브로 띄울 때는 `OPERATIONS_LANGFUSE_BASE_URL`(`http://127.0.0.1:3000`)·`OPERATIONS_AI_BASE_URL`(`http://127.0.0.1:8000`)·`OPERATIONS_RABBITMQ_*`와 Langfuse 키·`INTERNAL_TOKEN`도 같은 터미널에 설정합니다(Compose는 내부 주소와 Core 값을 씁니다). 기본 web origin은 `http://localhost:5173`이며 CORS도 실제 origin과 맞춥니다. 생성 timeout을 늘릴 때 브라우저 80초/nginx 90초 한도도 함께 검토합니다.
 
 ## 운영 서버 설정 준비 — prod
 
-prod는 **게시된 `:main` runtime 이미지 네 개 + 외부 PostgreSQL·SMTP**만 선택합니다. 소스 build·PostgreSQL·Mailpit·로컬 자격증명·DB volume을 포함하지 않습니다. 현재 [`publish-images.yml`](../.github/workflows/publish-images.yml)은 **develop만 게시**하므로 `:main`의 존재·접근 가능 여부는 미확인입니다. 이미지 목록에 이름이 있다고 실제 게시된 것은 아닙니다. main 게시/배포 trigger는 추가하지 않았습니다.
+prod는 **게시된 `:main` runtime 이미지 네 개 + 외부 PostgreSQL·SMTP**만 선택합니다. 소스 build·PostgreSQL·Mailpit·로컬 자격증명·앱 DB volume을 포함하지 않습니다. 예외로 Langfuse는 `include`로 함께 켜며 자체 저장소 컨테이너와 volume을 씁니다([Langfuse 절](#집필-ai-추적용-langfuse-302)). 현재 [`publish-images.yml`](../.github/workflows/publish-images.yml)은 **develop만 게시**하므로 `:main`의 존재·접근 가능 여부는 미확인입니다. 이미지 목록에 이름이 있다고 실제 게시된 것은 아닙니다. main 게시/배포 trigger는 추가하지 않았습니다.
 
 변수 이름은 local/dev와 같습니다. 운영 서버 담당자가 서버 전용 `.env`에 다음 값을 준비하며 로컬 `.env`를 복사하지 않습니다. `config` 단계에서 비어 있거나 누락된 필수값은 명시적으로 실패합니다.
 
@@ -93,6 +96,7 @@ prod는 **게시된 `:main` runtime 이미지 네 개 + 외부 PostgreSQL·SMTP*
 | `CONTENT_CORE_AUTH_TOKEN` / `INTERNAL_TOKEN` | 각각 Core↔Content / Content↔AI의 별도 무작위 서비스 자격 |
 | `OPERATIONS_SERVICE_TOKEN` | Operations → Core/Content 내부 호출용 별도 무작위 서비스 자격(32자 이상), 세 서비스에 같은 값 전달 |
 | `WEB_PORT` | 담당자가 준비한 비충돌 loopback 포트, TLS ingress는 별도 |
+| `LANGFUSE_*` | [Langfuse 절](#집필-ai-추적용-langfuse-302)의 값(Langfuse 서버 비밀값·프로젝트 키·초기 관리자). 비어 있으면 `config`가 실패 |
 
 SMTP 인증은 기본 `CORE_SMTP_AUTH=true`이며 제공사가 요구하는 `CORE_SMTP_USERNAME/PASSWORD`를 설정합니다. 인증 없는 신뢰 relay라면 해당 정책을 확인한 뒤 `CORE_SMTP_AUTH=false`로 명시합니다. STARTTLS를 지원하지 않는 제공사와의 호환성은 별도 결정이 필요하며 TLS 연결 성공을 주장하지 않습니다. `OPENAI_API_KEY/MODEL`은 AI에만 전달합니다(local·dev에서 `OPENAI_API_KEY`는 필수). Neo4j·RabbitMQ는 local·개발 배포에서 항상 뜨며 `NEO4J_PASSWORD`·`CORE_RABBITMQ_PASSWORD`가 필요합니다. WorldStudio schema는 Content 시작 시 적용됩니다.
 
@@ -178,6 +182,7 @@ develop CI가 성공하면 CD가 [`docker-compose.dev.yaml`](docker-compose.dev.
 | CPU·ONNX | 메타데이터에 고정된 산출물은 AVX-512 VNNI용으로 양자화한 INT8 모델입니다. 다른 x86-64 CPU에서도 동작하는지는 확인하지 않았습니다. 배포 확인 단계가 실패하면 이 항목부터 확인합니다. 모델을 바꾸려면 새 인덱스 버전이 필요합니다. | `grep -o -m1 -w 'avx512_vnni\|avx2' /proc/cpuinfo`, 배포 로그의 E5 확인 단계 |
 | 커널 | 단일 노드 모드라 bootstrap check를 강제하지 않습니다. 공식 권장값은 `vm.max_map_count>=1048576`입니다. | `sysctl vm.max_map_count` |
 | 아키텍처 | 모든 이미지를 `linux/amd64`로 실행합니다. | `uname -m` → `x86_64` |
+| Langfuse | 웹·worker·PostgreSQL·ClickHouse·Redis·MinIO가 함께 뜹니다. ClickHouse는 최대 3GiB(`mem_limit`)이고 전체로 수 GB의 메모리와 이미지·볼륨 디스크가 더 필요합니다. 서버 `.env`에 Langfuse 값이 없으면 배포가 `config`에서 멈춥니다. 웹 포트(기본 3000)가 비어 있어야 합니다. | `free -h`, `df -h /var/lib/docker`, `ss -ltn 'sport = :3000'`, 배포 뒤 SSH 포워딩으로 Langfuse 웹 로그인 |
 
 배포 후 인덱스 상태는 서버의 배포 디렉터리에서 확인합니다.
 
@@ -188,9 +193,31 @@ docker logs storyfork-develop-cd-content-service-1 2>&1 | grep 'manuscript index
 
 ## 집필 AI 추적용 Langfuse (#302)
 
-앱 스택과 분리한 별도 Compose 프로젝트(`storyfork-langfuse`)입니다. 시연·디버깅할 때만 켭니다. 공식 구성에서 웹·worker와 PostgreSQL·ClickHouse·Redis·MinIO만 남겼고, 웹 화면만 `127.0.0.1:${LANGFUSE_WEB_PORT:-3000}`에 엽니다. 나머지는 호스트 포트가 없어 앱 스택의 5432·6379·9000과 겹치지 않습니다. 메모리를 수 GB 쓰며 ClickHouse는 3GiB로 제한합니다.
+제목은 첫 도입(#302) 때의 이름입니다(문서 링크 보존). Langfuse(self-host)는 이제 LLMOps 정본입니다([DEC-55](../docs/design/decisions.md), [계약](../docs/design/operations-llmops-contract.md)). AI 서비스가 모든 요청을 trace로 남기고, 운영 서비스가 Langfuse Public API를 읽어 관리자 화면(대시보드·추적·지표·프롬프트·평가)에 통합합니다. 관리자는 Langfuse 웹에 들어가지 않습니다. 두 서비스는 프로젝트 API 키로만 접근하며 별도 로그인 연동이나 화면 링크는 없습니다. 정의는 [`docker-compose.langfuse.yaml`](docker-compose.langfuse.yaml) 한 파일이며 세 곳에서 씁니다.
 
-1. 루트 `.env`에 `.env.example`의 Langfuse 항목을 채웁니다. 비밀값은 각각 `openssl rand -hex 32`로 만들고, `LANGFUSE_PUBLIC_KEY=pk-lf-<임의값>`, `LANGFUSE_SECRET_KEY=sk-lf-<임의값>`처럼 접두어를 붙입니다. `LANGFUSE_BASE_URL`은 Compose의 ai-service면 `http://langfuse-web:3000`, 네이티브 실행이면 `http://localhost:3000`입니다.
+| 실행 | 방식 |
+|---|---|
+| 로컬 | 앱 스택과 분리한 별도 Compose 프로젝트 `storyfork-langfuse`. 시연·디버깅할 때만 켭니다([로컬 별도 실행](#로컬-별도-실행)) |
+| develop(CD)·prod | `docker-compose.dev.yaml`·`docker-compose.prod.yaml`이 `include`로 앱 스택과 같은 프로젝트에서 함께 켭니다(정의 복제 없음). 앱은 같은 네트워크의 `http://langfuse-web:3000`으로 부르므로 네트워크 연결 작업이 없습니다 |
+
+구성은 웹·worker와 자체 저장소(PostgreSQL·ClickHouse·Redis·MinIO)입니다. 서비스 이름은 앱 스택의 `postgres`·`minio`와 겹치지 않게 모두 `langfuse-` 접두어를 씁니다(볼륨 이름은 그대로라 기존 로컬 데이터가 이어집니다). 나머지 저장소는 호스트 포트가 없습니다. 웹 화면은 **개발자용**이라 `127.0.0.1:${LANGFUSE_WEB_PORT:-3000}`에만 열고 공개 진입점(nginx)에는 두지 않습니다. 개발자는 초기 관리자(`LANGFUSE_INIT_USER_*`)로 로그인하며 가입은 막혀 있습니다. 원격 서버에서는 SSH 포트 포워딩으로 서버의 `LANGFUSE_WEB_PORT`를 같은 번호의 로컬 포트로 연 뒤 `http://localhost:<포트>`에 접속합니다(Langfuse의 기준 주소가 `http://localhost:${LANGFUSE_WEB_PORT:-3000}`로 고정). 메모리를 수 GB 쓰며 ClickHouse는 3GiB로 제한합니다.
+
+### develop·prod에서 켜기
+
+별도 켜기 작업은 없습니다. CD와 prod `config`가 Langfuse를 앱과 함께 올립니다. 서버 `.env`에 다음을 준비하며, 빈 필수값은 `config`가 실패시킵니다(CD는 앱을 멈추기 전에 중단합니다). 값 이름과 한 줄 설명은 [`.env.example`](../.env.example)에 있습니다.
+
+| 변수 | 내용 |
+|---|---|
+| `LANGFUSE_DB_PASSWORD`·`LANGFUSE_CLICKHOUSE_PASSWORD`·`LANGFUSE_REDIS_PASSWORD`·`LANGFUSE_MINIO_PASSWORD`·`LANGFUSE_NEXTAUTH_SECRET`·`LANGFUSE_SALT`·`LANGFUSE_ENCRYPTION_KEY` | Langfuse 서버 전용 비밀값. 각각 `openssl rand -hex 32`(MinIO는 8자 이상) |
+| `LANGFUSE_PUBLIC_KEY`·`LANGFUSE_SECRET_KEY` | `pk-lf-<임의값>`·`sk-lf-<임의값>`. Langfuse가 첫 시작 때 같은 키로 조직 `storyfork`·프로젝트 `storyfork-writing-ai`를 만들고, AI·운영 서비스가 같은 값을 씁니다 |
+| `LANGFUSE_INIT_USER_EMAIL`·`LANGFUSE_INIT_USER_PASSWORD` | 헤드리스 초기화용 초기 관리자(조직 OWNER). 개발자가 Langfuse 웹에 로그인할 때만 씁니다 |
+| (선택) `LANGFUSE_WEB_PORT` | 개발자용 loopback 포트, 기본 3000. 점유돼 있으면 바꿉니다 |
+
+배포 전제는 CD가 확인하지 않습니다. 서버 관리자가 확인합니다(아래 'CI → CD' 전제조건 표에도 있습니다).
+
+### 로컬 별도 실행
+
+1. 루트 `.env`에 `.env.example`의 Langfuse 항목을 채웁니다. 비밀값은 각각 `openssl rand -hex 32`로 만들고, `LANGFUSE_PUBLIC_KEY=pk-lf-<임의값>`, `LANGFUSE_SECRET_KEY=sk-lf-<임의값>`처럼 접두어를 붙입니다. `LANGFUSE_BASE_URL`은 네이티브 ai-service용(`http://localhost:3000`)이며 Compose 컨테이너는 항상 내부 주소 `http://langfuse-web:3000`을 씁니다.
 2. 저장소 루트에서 시작합니다. 첫 실행은 이미지를 받고 마이그레이션하느라 몇 분 걸립니다.
 
 ```powershell
@@ -198,7 +225,13 @@ docker compose -f infrastructure/docker-compose.langfuse.yaml --env-file .env up
 ```
 
 3. 첫 시작 때 조직 `STORYFORK`, 프로젝트 `writing-ai`, 관리자(`LANGFUSE_INIT_USER_*`)와 `.env`의 같은 API 키가 만들어집니다. 회원가입은 막혀 있습니다. http://localhost:3000 에 관리자로 로그인합니다.
-4. 앱 스택을 시작하고 `docker network connect storyfork-langfuse_default $(docker compose ps -q ai-service)`로 AI 컨테이너만 Langfuse 네트워크에 연결합니다. AI 컨테이너를 다시 만들면 연결을 다시 설정합니다. 집필 AI 요청은 **Tracing → Traces**에 나타납니다. 응답의 `runId`가 trace id입니다. 전송은 몇 초 단위로 묶여 늦게 보일 수 있습니다.
+4. 앱 스택을 시작하고 AI·운영 컨테이너만 Langfuse 네트워크에 연결합니다. AI는 요청을 trace로 보내고 운영은 관리자 화면을 위해 읽습니다. 컨테이너를 다시 만들면 연결을 다시 설정합니다. 집필 AI 요청은 **Tracing → Traces**에 나타납니다. 응답의 `runId`가 trace id입니다. 전송은 몇 초 단위로 묶여 늦게 보일 수 있습니다.
+
+```bash
+for service in ai-service operations-service; do docker network connect storyfork-langfuse_default "$(docker compose ps -q $service)"; done
+```
+
+서비스 이름을 `langfuse-` 접두어로 바꾸기 전 파일(`postgres`·`clickhouse`·`minio`·`redis`)로 띄운 로컬 Langfuse가 남아 있으면 같은 볼륨을 두 컨테이너가 쓰지 않도록 먼저 `docker compose -f infrastructure/docker-compose.langfuse.yaml --env-file .env down --remove-orphans`(볼륨 유지)를 실행하고 다시 시작합니다.
 
 종료는 같은 명령에 `stop`, 데이터까지 지우려면 `down -v`입니다(되돌릴 수 없음). 비밀값을 바꾸면 기존 볼륨과 맞지 않으므로 `down -v` 뒤 다시 시작합니다. 키를 비워 두면 ai-service는 추적하지 않습니다.
 
@@ -225,6 +258,8 @@ docker compose -f infrastructure/docker-compose.langfuse.yaml --env-file .env up
 
 모든 `sha-<전체 SHA>`를 게시한 뒤 `develop` 태그를 갱신합니다. publish는 대상 SHA가 현재 develop HEAD가 아니면 게시하지 않습니다. deploy는 pull한 네 `develop` 이미지의 revision이 모두 이 run의 SHA와 같지 않으면(혼합 revision·더 새 커밋 포함) 앱을 멈추기 전에 중단합니다. 같은 CD run에서 실패한 job만 재실행할 수 있습니다. 별도 run ID/artifact 증거 체계는 추가하지 않습니다.
 
+Langfuse는 공식 이미지(`docker.langfuse.com/langfuse/langfuse`·`langfuse-worker`, ClickHouse·PostgreSQL·Redis)와 이미 게시하는 `storyfork-minio`를 그대로 쓰므로 게시 목록은 바뀌지 않습니다. 배포는 이 이미지들도 `pull`하지만 revision 비교 대상은 앱 이미지뿐입니다.
+
 ### 배포 설정과 전환
 
 | 위치 | 이름 | 역할 |
@@ -238,7 +273,7 @@ docker compose -f infrastructure/docker-compose.langfuse.yaml --env-file .env up
 
 **fresh 승인 변수는 DB를 초기화하거나 준비 상태를 검증하지 않습니다.** 정확한 개발 대상·보존할 Auth/Studio/첨부·백업/격리 복원·중단 시간·호환 이미지의 복구 방법을 담당자가 확정해야 합니다. 이 확인 없이 기존 Content history에 새 앱을 배포하지 않습니다. 일괄 DROP/volume 삭제·자동 repair/clean을 하지 않습니다.
 
-CD는 기존 전용 디렉터리/project labels를 확인하고 base·dev 및 의존 서비스 참조용 local Compose 파일을 SSH stdin으로 임시 전달하며 서버 `.env`를 덮어쓰지 않습니다. 순서는 **두 DB 승인 확인 → login/pull → 앱 네 이미지만 revision 확인 → web·구 Core·Content writer 중지 → 내부 PostgreSQL·Mailpit `up --wait` → opt-in Studio 명시 migration → 새 앱 `up --wait`**입니다. PostgreSQL/Mailpit 이미지는 앱 revision 비교에서 제외하며 원격 앱 소스 build는 없습니다. Core Health 뒤 Content를 시작합니다. Studio main은 Content 이미지에 있으며 [대상 allowlist/백업/실패 계약](../docs/deployment/worldstudio-v1-rollout.md)을 따릅니다.
+CD는 기존 전용 디렉터리/project labels를 확인하고 base·dev와 참조되는 local(extends)·Langfuse(include) Compose 파일을 SSH stdin으로 임시 전달하며 서버 `.env`를 덮어쓰지 않습니다. 순서는 **두 DB 승인 확인 → login/pull → 앱 네 이미지만 revision 확인 → web·구 Core·Content writer 중지 → 내부 PostgreSQL·Mailpit `up --wait` → opt-in Studio 명시 migration → 새 앱 `up --wait`**입니다. 전체 스택의 `--wait-timeout`은 600초입니다(첫 배포는 Langfuse 저장소·Elasticsearch·앱이 함께 처음 뜨고, PostgreSQL·Mailpit만 먼저 올릴 때는 180초). PostgreSQL/Mailpit 이미지는 앱 revision 비교에서 제외하며 원격 앱 소스 build는 없습니다. Core Health 뒤 Content를 시작합니다. Studio main은 Content 이미지에 있으며 [대상 allowlist/백업/실패 계약](../docs/deployment/worldstudio-v1-rollout.md)을 따릅니다.
 
 중지 전 login/pull/revision 실패는 기존 앱을 건드리지 않습니다. 중지 후 migration/startup 실패는 **ingress를 멈춘 채 실패**하며 자동 rollback/repair/retry·`down`/prune/volume 삭제를 하지 않습니다. 새 이력과 구 binary가 비호환이므로 운영자가 로그/이력과 호환 스냅샷을 확인해 복구를 결정합니다. `up --wait`는 running/healthcheck 확인이지 사용자 HTTP/DB/SMTP 전체 수용 검증이 아닙니다. web의 loopback 외 운영 TLS/ingress는 별도입니다.
 
@@ -252,7 +287,7 @@ docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastr
 docker compose --env-file .env -f infrastructure/docker-compose.yaml -f infrastructure/docker-compose.prod.yaml config --quiet
 ```
 
-구문 검사만 하며 컨테이너를 시작하지 않습니다. CI configuration은 예시/synthetic 값으로 루트 기본 진입점과 local/dev/prod의 content false/true, 소스 빌드 CI overlay, 첨부 환경 격리를 확인합니다. 실제 DB·HTTP·SMTP는 CI 통합/시스템, 모델은 대역 또는 명시적 설정 누락 실패로 검증합니다.
+구문 검사만 하며 컨테이너를 시작하지 않습니다. CI configuration은 예시/synthetic 값으로 루트 기본 진입점과 local/dev/prod의 content false/true, 소스 빌드 CI overlay, 첨부 환경 격리를 확인합니다. dev·prod가 include하는 Langfuse의 필수값은 configuration job 환경의 synthetic 값으로 채웁니다(새 `:?` 필수 변수를 더하면 `.github/workflows/ci.yml`의 같은 job 환경에도 더합니다. 단위 테스트가 빠진 값을 잡습니다). 실제 DB·HTTP·SMTP는 CI 통합/시스템, 모델은 대역 또는 명시적 설정 누락 실패로 검증합니다.
 
 ## 표준 테스트 프레임워크 직접 실행
 

@@ -2,6 +2,11 @@
 # External/shared DB cutover is NOT performed by this configuration change.
 name: storyfork-develop-cd
 
+# Langfuse(LLMOps, DEC-55)를 앱 스택과 같은 프로젝트로 함께 켠다. 정의는 로컬 별도 실행과 같은 한 파일이다.
+# 원격 CD는 --project-directory 때문에 상대 경로가 어긋나므로 임시로 둔 절대 경로(CD_LANGFUSE_COMPOSE_FILE)를 받는다.
+include:
+  - path: ${CD_LANGFUSE_COMPOSE_FILE:-docker-compose.langfuse.yaml}
+
 x-cd-labels: &cd-labels
   io.storyfork.cd.repository: SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM
   io.storyfork.cd.directory: ${CD_DIRECTORY:?Provision a dedicated deployment directory}
@@ -141,6 +146,8 @@ services:
     labels: *cd-labels
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     environment:
       OPERATIONS_SERVICE_TOKEN: ${OPERATIONS_SERVICE_TOKEN:?Set OPERATIONS_SERVICE_TOKEN}

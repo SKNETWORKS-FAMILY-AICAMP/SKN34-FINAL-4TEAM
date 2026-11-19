@@ -1,0 +1,28 @@
+{
+  "id": "qa.grounding-06",
+  "datasetId": "cmwn0p68d000cqu2r640b58gg",
+  "sourceTraceId": null,
+  "sourceObservationId": null,
+  "status": "ACTIVE",
+  "createdAt": "2026-11-19T03:55:41.498Z",
+  "updatedAt": "2026-11-19T03:55:41.498Z",
+  "input": {
+    "contexts": [
+      "그러나 용왕이 거듭 권하자 성진은 끝내 세 잔을 받아 마셨다.",
+      "용왕은 문무 신하들을 거느리고 궁문 밖까지 나와 맞이했다."
+    ],
+    "question": "성진은 동정 용왕이 권한 술을 몇 잔 마셨나요?"
+  },
+  "expectedOutput": "세 잔을 마셨다.",
+  "metadata": {
+    "source": {
+      "work": "구운몽",
+      "author": "김만중(1692년 사망)",
+      "origin": "위키문헌 「구운몽」, 저작권 만료",
+      "sample": "infrastructure/sample-data/simulation-demo/guunmong/episodes/01.md"
+    }
+  },
+  "datasetName": "qa.grounding",
+  "version": "2026-11-19T03:55:41.497Z",
+  "mediaReferences": []
+}

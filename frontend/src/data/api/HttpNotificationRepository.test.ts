@@ -31,6 +31,12 @@ describe('HttpNotificationRepository', () => {
     expect(await new HttpNotificationRepository(fetcher).list()).toEqual({ items: [aiTool], nextCursor: null })
   })
 
+  it('운영 경고 알림(대상 alert)도 거절하지 않고 그대로 읽는다', async () => {
+    const alert = { ...item, kind: 'result', summary: '운영 경고가 생겼어요', targetType: 'alert', targetId: '3f2c9a10-0000-4000-8000-000000000001' }
+    const page = await new HttpNotificationRepository(vi.fn(async () => Response.json({ items: [alert], nextCursor: null }))).list()
+    expect(page.items).toEqual([alert])
+  })
+
   it('알 수 없는 분류나 형식이 다른 응답은 거부한다', async () => {
     const fetcher = vi.fn().mockResolvedValue(Response.json({ items: [{ ...item, kind: 'unknown' }], nextCursor: null }))
     await expect(new HttpNotificationRepository(fetcher).list()).rejects.toThrow()

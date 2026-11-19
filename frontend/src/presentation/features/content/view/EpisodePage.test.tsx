@@ -630,11 +630,11 @@ it('shows independent fork publication consent in the policy editor and keeps th
 
 // ── 원고 작성은 집필실로: 이 화면에는 없고 링크만 있다 ───────────────────
 
-it('has no manuscript tab: the tabs are the episodes, world, fork, received feedback and history, and the episodes open first', async () => {
+it('lists the management tabs including operating settings, and opens the episodes first', async () => {
   stubCover()
   await openWork(contentApi({ 'GET /api/v1/works': () => Response.json([owned]) }))
   const nav = screen.getByRole('navigation', { name: '작품 메뉴' })
-  expect(within(nav).getAllByRole('button').map((b) => b.textContent)).toEqual(['공개 회차 · 0', '세계관·설정집', '이야기 분기', '받은 피드백', '저장·AI·발행 이력'])
+  expect(within(nav).getAllByRole('button').map((b) => b.textContent)).toEqual(['공개 회차 · 0', '세계관·설정집', '이야기 분기', '받은 피드백', '운영 설정', '저장·AI·발행 이력'])
   expect(within(nav).getByRole('button', { name: '공개 회차 · 0' }).getAttribute('aria-current')).toBe('page')
   // 공개한 회차가 없어도 안내 문구와 아래쪽 '새 회차 집필하기'는 남는다.
   expect(screen.getByText('아직 공개한 회차가 없어요. 첫 회차를 작성해 보세요.')).toBeTruthy()

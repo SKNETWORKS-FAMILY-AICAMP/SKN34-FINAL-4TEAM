@@ -2,7 +2,7 @@
 
 모델은 `ChatOpenAI`(Responses API, store=False, 자동 재시도 없음, 병렬 도구 호출 켬)이며 도구는 판정된 기능의 `ask_*`뿐이다.
 메인에는 Retrieval·Content MCP·웹 검색·반영 도구가 없다. 모델의 판단은 인가·승인·정본 적용이 아니고 아래 미들웨어와 도구가 경계를 지킨다.
-- `DecisionGuardMiddleware.before_agent`: 턴당 1회 Decision Guard(`intent.judge`). 거절·기능 없음·미구현 기능이면 모델을 부르지 않고 끝낸다.
+- `DecisionGuardMiddleware.before_agent`: 턴당 1회 Decision Guard(`intent.judge`). 거절·기능 없음이면 모델을 부르지 않고 끝낸다.
 - `DynamicToolMiddleware`: 판정 기능의 도구만 모델에 보이고 실행 직전 다시 확인한다. 실패·취소·입력 대기·시뮬레이션 계획 뒤와
   모델 호출 상한의 마지막 호출에는 도구를 치운다(FinalAnswerMiddleware 방식). 한 모델 턴의 병렬 묶음은 조회형(PARALLEL)만 함께 실행하고
   단독 도구·입력이 빠진 호출은 실행하지 않고 돌려 다음 모델 턴에 따로 부르게 한다(#474, 2026-11-17 사용자 결정). 함께 실행하는 호출은
@@ -27,6 +27,7 @@ from openai import OpenAIError
 
 from app import tracing
 from app.intent import service as intent
+from app.intent.errors import IntentFailure
 from app.orchestration import tools
 from app.orchestration.models import manuscript_review_feature
 from app.orchestration.prompt import INSTRUCTIONS
@@ -38,8 +39,9 @@ MAIN_FAILED_MESSAGE = '답변을 정리하지 못했어요. 완료한 작업의 
 MAIN_FAILED_NOTHING_MESSAGE = '요청을 처리하지 못했어요. 잠시 뒤 다시 시도해 주세요.'  # 완료한 단계가 없을 때
 BAD_ARGUMENTS = '작업 지시가 형식에 맞지 않아 실행하지 않았어요.'  # 도구 인자 검증 실패(예: request 2,000자 초과)
 TOOLS = {feature: getattr(tools, name) for feature, name in tools.TOOL_NAMES.items()}
-# 한 모델 턴에 함께 실행할 수 있는 조회형 도구(#474). 서로의 결과를 쓰지 않는다. ask_writing·ask_character_simulation은 항상 단독이다.
-PARALLEL = {'ask_story_qa', 'ask_web_research', 'ask_rating', 'ask_world_review', 'ask_manuscript_review'}
+# 한 모델 턴에 함께 실행할 수 있는 조회형 도구(#474). 서로의 결과를 쓰지 않는다. ask_writing·ask_character_simulation은 항상 단독이고,
+# ask_world는 작가 승인이 필요한 enrich만 단독이다(tools.WAITS). check·impact는 조회형이라 함께 실행한다.
+PARALLEL = {'ask_story_qa', 'ask_web_research', 'ask_rating', 'ask_world', 'ask_manuscript_review'}
 
 
 class MainState(AgentState):
@@ -77,11 +79,11 @@ class DecisionGuardMiddleware(AgentMiddleware):
     @hook_config(can_jump_to=['end'])
     def before_agent(self, state, runtime) -> dict[str, Any]:
         turn, asked = runtime.context, runtime.context['decide']
-        with tracing.observe('decision_guard', trace_context=tools.trace(turn), input={'request': asked['request']}) as span:
+        with tracing.observe('decision_guard', input={'request': asked['request']}) as span:
             decided = intent.judge(asked['request'], asked['operation'], asked['materials'], asked['history'])
             span.update(metadata=decided.model_dump())
         done = {'decision': decided.model_dump()}
-        if not decided.allowed or not decided.capabilities or 'world_plot' in decided.capabilities:
+        if not decided.allowed or not decided.capabilities:
             done['jump_to'] = 'end'
         return done
 
@@ -97,8 +99,8 @@ class DynamicToolMiddleware(AgentMiddleware):
     def after_model(self, state, runtime) -> dict | None:
         """노출 밖 호출과 병렬 묶음에서 함께 실행할 수 없는 호출을 실행하지 않고 오류 ToolMessage로 모델에게 돌려준다.
 
-        묶음(실행할 호출 둘 이상)에서는 단독 도구(PARALLEL 밖)와 작가 입력이 빠진 호출을 미룬다. 동시에 둘 이상 interrupt하면 resume
-        하나로 이어 갈 수 없고, 의존 호출(검수 → 수정)은 앞 결과를 본 다음 모델 턴에 부르게 하기 위해서다. 함께 실행할 것이 하나도 없으면
+        묶음(실행할 호출 둘 이상)에서는 단독 도구(PARALLEL 밖)와 작가 입력이 빠진 호출, 작가 승인이 필요한 World 보강(enrich)을 미룬다.
+        동시에 둘 이상 interrupt하면 resume 하나로 이어 갈 수 없고, 의존 호출(검수 → 수정)은 앞 결과를 본 다음 모델 턴에 부르게 하기 위해서다. 함께 실행할 것이 하나도 없으면
         첫 호출만 단독으로 실행한다(모두 미루면 모델이 같은 묶음을 되풀이해 아무것도 못 한다). 답을 단 호출은 ToolCallLimit이 세지 않고
         create_agent가 실행하지 않는다(모두 막히면 바로 모델로 돌아간다). 모델 호출 수는 이 훅보다 먼저 센다(미들웨어 목록에서
         ModelCallLimitMiddleware가 뒤에 있다). 그래서 계속 잘못 불러도 상한에서 끝난다.
@@ -167,14 +169,20 @@ class ToolCallLimit(ToolCallLimitMiddleware):
 
 
 class MainModelMiddleware(AgentMiddleware):
-    """메인 모델 호출 하나를 추적하고, 쓸 수 없는 응답은 고정 실패 메시지로 끝낸다. 실패를 성공으로 바꾸지 않는다(status=failed)."""
+    """메인 모델 호출 하나를 추적하고, 쓸 수 없는 응답은 고정 실패 메시지로 끝낸다. 실패를 성공으로 바꾸지 않는다(status=failed).
+
+    generation에는 이번 턴 지시문의 Langfuse 프롬프트 버전(prompt)을 연결한다.
+    """
+
+    def __init__(self, prompt=None):
+        super().__init__()
+        self.prompt = prompt
 
     async def awrap_model_call(self, request, handler):
         done = any(s['status'] == 'completed' for s in request.state.get('steps') or [])
         text = MAIN_FAILED_MESSAGE if done else MAIN_FAILED_NOTHING_MESSAGE
         failed = ModelResponse(result=[AIMessage(content=text, name=FAILED)])
-        with tracing.observe('main_agent', as_type='generation', model=request.model.model_name,
-                             trace_context=tools.trace(request.runtime.context)) as generation:
+        with tracing.observe('main_agent', as_type='generation', model=request.model.model_name, prompt=self.prompt) as generation:
             try:
                 response = await handler(request)
             except (OpenAIError, ValueError) as error:
@@ -193,12 +201,19 @@ class MainModelMiddleware(AgentMiddleware):
 
 
 def build():
-    """메인 에이전트. 바깥 오케스트레이션 노드 안에서 돌며 체크포인터는 바깥 그래프의 것을 이어받는다(도구 안 interrupt·resume)."""
+    """메인 에이전트. 바깥 오케스트레이션 노드 안에서 돌며 체크포인터는 바깥 그래프의 것을 이어받는다(도구 안 interrupt·resume).
+
+    지시문은 Langfuse 프롬프트 orchestration.main의 production 버전이다(INSTRUCTIONS는 최초 등록용 기본값). 읽을 수 없으면 판정 실패(503)다.
+    """
+    try:
+        managed = tracing.prompt('orchestration.main', INSTRUCTIONS)
+    except tracing.PromptUnavailable:
+        raise IntentFailure() from None
     chat = ChatOpenAI(model=os.environ['OPENAI_MODEL'], api_key=os.environ['OPENAI_API_KEY'], use_responses_api=True, store=False,
                       max_tokens=4000, timeout=120, max_retries=0)
-    return create_agent(chat, tools=list(TOOLS.values()), system_prompt=INSTRUCTIONS, state_schema=MainState, context_schema=dict, middleware=[
+    return create_agent(chat, tools=list(TOOLS.values()), system_prompt=managed.text, state_schema=MainState, context_schema=dict, middleware=[
         # after_model 훅은 목록의 역순으로 돈다: 모델 호출 수 → 노출·묶음 확인 → 도구 한도. 순서를 바꾸면 막힌 호출이 한도를 쓴다.
-        DecisionGuardMiddleware(), MainModelMiddleware(),
+        DecisionGuardMiddleware(), MainModelMiddleware(managed.client),
         ToolCallLimit(thread_limit=TOOL_CALLS),
         *(ToolCallLimit(tool_name=t.name, thread_limit=1) for t in TOOLS.values()),
         DynamicToolMiddleware(), ModelCallLimitMiddleware(thread_limit=MODEL_CALLS, exit_behavior='end')])

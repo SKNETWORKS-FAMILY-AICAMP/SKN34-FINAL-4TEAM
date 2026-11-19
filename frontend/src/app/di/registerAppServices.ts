@@ -11,9 +11,13 @@ import { EventUseCase } from '../../domain/usecases/EventUseCase'
 import { OperationsWorkUseCase } from '../../domain/usecases/OperationsWorkUseCase'
 import { OperationsCommentUseCase } from '../../domain/usecases/OperationsCommentUseCase'
 import { AdminActivityUseCase } from '../../domain/usecases/AdminActivityUseCase'
+import { JobMonitorUseCase } from '../../domain/usecases/JobMonitorUseCase'
+import { LlmOpsUseCase } from '../../domain/usecases/LlmOpsUseCase'
+import { OperationsDashboardUseCase } from '../../domain/usecases/OperationsDashboardUseCase'
 import { HttpEventRepository } from '../../data/api/HttpEventRepository'
 import { HttpAdminActivityRepository, HttpMemberRepository, HttpOperationsCommentRepository, HttpOperationsWorkRepository, HttpReportRepository, HttpSupportInquiryRepository } from '../../data/api/operationsApi'
 import { HttpNoticeRepository } from '../../data/api/noticeApi'
+import { HttpJobMonitorRepository, HttpLlmOpsRepository, HttpOperationsDashboardRepository } from '../../data/api/llmOpsApi'
 import { InMemoryOperationsRepository } from '../../data/mock/InMemoryOperationsRepository'
 import {WorldStudioUseCase} from '../../domain/usecases/WorldStudioUseCase'
 import { StoryPlanUseCase } from '../../domain/usecases/StoryPlanUseCase'
@@ -100,6 +104,12 @@ export function registerAppServices(container: AppContainer) {
     operationsCommentUseCase: asFunction(({ operationsCommentRepository }) => new OperationsCommentUseCase(operationsCommentRepository)).singleton(),
     adminActivityRepository: asFunction(() => new HttpAdminActivityRepository()).singleton(),
     adminActivityUseCase: asFunction(({ adminActivityRepository }) => new AdminActivityUseCase(adminActivityRepository)).singleton(),
+    operationsDashboardRepository: asFunction(() => new HttpOperationsDashboardRepository()).singleton(),
+    operationsDashboardUseCase: asFunction(({ operationsDashboardRepository }) => new OperationsDashboardUseCase(operationsDashboardRepository)).singleton(),
+    llmOpsRepository: asFunction(() => new HttpLlmOpsRepository()).singleton(),
+    llmOpsUseCase: asFunction(({ llmOpsRepository }) => new LlmOpsUseCase(llmOpsRepository)).singleton(),
+    jobMonitorRepository: asFunction(() => new HttpJobMonitorRepository()).singleton(),
+    jobMonitorUseCase: asFunction(({ jobMonitorRepository }) => new JobMonitorUseCase(jobMonitorRepository)).singleton(),
     initialWorldUseCase: asFunction(() => new InitialWorldUseCase(new HttpInitialWorldRepository())).singleton(),
     worldStudioUseCase: asFunction(() => new WorldStudioUseCase(new HttpWorldStudioRepository())).singleton(),
     worldReviewUseCase: asFunction(() => new WorldReviewUseCase(new HttpWorldReviewRepository())).singleton(),

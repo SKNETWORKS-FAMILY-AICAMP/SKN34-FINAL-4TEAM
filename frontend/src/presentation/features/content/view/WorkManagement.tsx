@@ -15,6 +15,7 @@ import { ContextPreview } from './ContextPreview'
 import { EpisodeBulkImportSheet } from './EpisodeBulkImportSheet'
 import { LinkedWorldPanel } from './LinkedWorldPanel'
 import { WorkOverview } from './WorkOverview'
+import { WorkSettingsPanel } from './WorkSettingsPanel'
 import { WorldPanel } from './WorldPanel'
 
 type Props = {
@@ -31,7 +32,7 @@ type Props = {
  * 작품이 바뀌면 호출 측이 key로 새로 만들어 탭·분기 입력이 처음 상태로 돌아간다.
  */
 export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Props) {
-  const [tab, setTab] = useState<'read' | 'fork' | 'history' | 'world' | 'feedback'>('read')
+  const [tab, setTab] = useState<'read' | 'fork' | 'history' | 'world' | 'feedback' | 'settings'>('read')
   const [mediaBusy, setMediaBusy] = useState(false)
   const [bulkImportOpen, setBulkImportOpen] = useState(false)
   const [forkTitle, setForkTitle] = useState('')
@@ -79,6 +80,7 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
           ['world', '세계관·설정집'],
           ['fork', '이야기 분기'],
           ['feedback', '받은 피드백'],
+          ...(!mockup ? [['settings', '운영 설정']] as const : []),
           ['history', '저장·AI·발행 이력'],
         ] as const).map(([value, label]) => (
           <button
@@ -95,6 +97,7 @@ export function WorkManagement({ vm, work: w, useCase, onForked, onDeleted }: Pr
           </button>
         ))}
       </nav>
+      {tab === 'settings' && <WorkSettingsPanel workId={w.id} useCase={useCase} />}
       {tab === 'world' && (
         <>
           <LinkedWorldPanel work={w} busy={locked} onLink={vm.linkWorld} error={vm.origin === 'link' ? vm.error : ''} notice={vm.origin === 'link' ? vm.notice : ''} />

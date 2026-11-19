@@ -16,6 +16,7 @@ val ADMIN_PERMISSIONS = listOf(
 interface AdminPermissionRepository : JpaRepository<AdminPermissionEntity, AdminPermissionId> {
     fun existsByMemberIdAndPermission(memberId: UUID, permission: String): Boolean
     fun findAllByMemberIdIn(memberIds: Collection<UUID>): List<AdminPermissionEntity>
+    fun findAllByPermissionIn(permissions: Collection<String>): List<AdminPermissionEntity>
 }
 
 /** An admin is a Core operator holding the business permission; a stale grant alone never authorizes. */

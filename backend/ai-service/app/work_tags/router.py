@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Header, HTTPException
 
+from app import tracing
 from app.internal_auth import require_internal_token
 from app.work_tags.errors import SuggestionFailure
 from app.work_tags.models import Input, Output
@@ -11,10 +12,15 @@ router = APIRouter()
 
 
 @router.post('/internal/v1/work-tags/suggestions', response_model=Output)
-def suggest_work_tags(data: Input, x_internal_token: str = Header(default='')) -> Output:
-    """Content가 고른 작품 문맥에서 장르·키워드 후보만 만든다. 저장은 작가가 고른 값으로 Content가 한다."""
+def suggest_work_tags(data: Input, x_internal_token: str = Header(default=''),
+                      x_user_authorization: str = Header(default='')) -> Output:
+    """Content가 고른 작품 문맥에서 장르·키워드 후보만 만든다. 저장은 작가가 고른 값으로 Content가 한다.
+
+    X-User-Authorization(선택)은 추적의 회원 식별에만 쓴다.
+    """
     require_internal_token(x_internal_token)
     try:
-        return suggest(data)
+        with tracing.request('work_tags', user_id=tracing.member_id(x_user_authorization)):
+            return suggest(data)
     except SuggestionFailure as error:
         raise HTTPException(error.status, str(error)) from None

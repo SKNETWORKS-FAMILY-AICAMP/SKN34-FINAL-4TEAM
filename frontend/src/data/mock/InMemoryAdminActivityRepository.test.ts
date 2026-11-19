@@ -17,10 +17,11 @@ describe('InMemoryAdminActivityRepository (서버 없는 시연·테스트용)',
     expect(await repo.list()).toEqual([])
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date('2026-11-10T01:00:00Z'))
-    await demo.runJob('notification-cleanup')
+    const { chats: [chat] } = await demo.load()
+    await demo.toggleChat(chat.id)
     expect(await repo.list()).toEqual([{
-      id: 'demo-1', actorId: 'demo-admin', actorNickname: '관리자', action: '정기 작업 재시도 시연', targetType: '데모', targetId: '',
-      detail: '알림 90일 보관기간 정리', createdAt: '2026-11-10T01:00:00.000Z',
+      id: 'demo-1', actorId: 'demo-admin', actorNickname: '관리자', action: '캐릭터챗 중지', targetType: '데모', targetId: '',
+      detail: `${chat.w.title} · ${chat.character}`, createdAt: '2026-11-10T01:00:00.000Z',
     }])
   })
 

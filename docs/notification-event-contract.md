@@ -43,7 +43,7 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
 | type | 알림 분류 | target.type | 비고 |
 | --- | --- | --- | --- |
 | `content.world.changed` | 읽기(끌 수 있음) | `work` | 후보. 수신자 결정 규칙은 Content 쪽 확인 필요 |
-| `operations.alert.raised` | 운영 | `alert` | 운영 서비스가 경고를 만들 때 `llm`·`jobs` 권한 운영자마다 발행([계약](design/operations-llmops-contract.md#사이트-안-알림)). 화면은 `/admin?tab=llm`으로 이동 |
+| `operations.alert.raised` | 처리 결과(끌 수 없음) | `alert` | 운영 서비스가 경고를 만들 때 `llm`·`jobs` 권한 운영자마다 발행([계약](design/operations-llmops-contract.md#사이트-안-알림)). 화면은 `/admin?tab=llm`으로 이동 |
 | `content.episode.published` | 읽기(끌 수 있음) | `work` | 관심 작품에 새 회차(처음 발행한 회차 번호)가 올라왔을 때. 수신자는 그 작품을 관심 작품으로 담은 회원(작가 본인 제외), `target.id`는 작품 id. 회차 번호·제목은 싣지 않는다 |
 | `content.mcp.world-changed` | AI·외부 도구 변경(`ai-tool`, 끌 수 있음) | `world` | MCP 쓰기 도구가 세계관 내용·설정을 바꿨을 때 도구를 부른 회원(작가 본인)에게. 같은 대상의 읽지 않은 알림이 있으면 시각만 올린다([계약](design/mcp-change-notice-contract.md)) |
 | `content.mcp.work-changed` | AI·외부 도구 변경(`ai-tool`, 끌 수 있음) | `work` | MCP 쓰기 도구가 작품·회차·플롯·공지·작품 설정을 바꿨을 때. 수신·묶음 규칙은 위와 같다 |
@@ -62,6 +62,7 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
 - 없는 회원 대상 사건은 버리고 정상 처리한다.
 - 형식·계약 위반은 재시도 없이 DLQ로 보낸다. DB 등 일시 오류는 3회 재시도 후 DLQ로 간다.
 - 알림이 DB에 저장된 뒤에만 열려 있는 알림 스트림(SSE)에 변경 신호가 간다.
+- 웹은 `ready`·`changed`를 받으면 알림을 다시 조회한다. 스트림 종료·유휴 타임아웃·연결 오류는 지수 백오프로 재연결하며, `ready` 뒤 20초 이상 지난 시점에도 데이터를 받으면 재시도 횟수를 초기화한다(#419).
 
 ## 발행 쪽 약속
 
