@@ -37,7 +37,7 @@ import org.springframework.web.server.ResponseStatusException
 import tools.jackson.databind.json.JsonMapper
 
 /**
- * CI-only HTTP/PostgreSQL coverage of Flyway V9 and V10, the real member Bearer chain with the `jobs` permission, the schedule CRUD,
+ * CI-only HTTP/PostgreSQL coverage of Flyway V9, the real member Bearer chain with the `jobs` permission, the schedule CRUD,
  * the scheduler tick (called directly, as its own 1-minute timer is far slower than a test) and the merge with Content's jobs.
  * Core and Content are test doubles; cleanup touches only rows this test created.
  * A schedule uses a yearly cron and is back-dated two years to be due: the tick of another cached Spring context that shares
