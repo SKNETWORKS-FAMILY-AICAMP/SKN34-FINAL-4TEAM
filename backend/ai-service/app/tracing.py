@@ -70,7 +70,6 @@ def context(run_id: str | None, parent_id: str | None) -> dict | None:
     return {'trace_id': run_id, 'parent_span_id': parent_id} if run_id else None
 
 
-
 def timed_out(error: BaseException | None) -> bool:
     """예외 사슬(__cause__·__context__)에 시간 초과가 있는지. 기능이 `from None`으로 고정 문구 실패로 바꿔도 __context__는 남는다.
 
