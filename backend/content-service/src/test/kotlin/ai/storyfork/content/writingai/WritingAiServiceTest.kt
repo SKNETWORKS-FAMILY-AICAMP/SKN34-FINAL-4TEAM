@@ -7,6 +7,7 @@ import ai.storyfork.content.context.service.QaScopeService
 import ai.storyfork.content.context.service.dto.QaScope
 import ai.storyfork.content.context.service.dto.QaScopeRequest
 import ai.storyfork.content.episode.service.EpisodeService
+import ai.storyfork.content.fork.repository.ForkRepository
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.writingai.client.WritingAiClient
 import ai.storyfork.content.writingai.service.WritingAiService
@@ -26,7 +27,8 @@ class WritingAiServiceTest {
     private val grants = QaScopeGrants()
     private val access = mock(WorkAccessService::class.java)
     private val episodes = mock(EpisodeService::class.java)
-    private val service = WritingAiService(scopes, grants, client, access, episodes)
+    private val forks = mock(ForkRepository::class.java)
+    private val service = WritingAiService(scopes, grants, client, access, episodes, forks)
     private val result = JsonMapper.builder().build().readTree("""{"status":"completed"}""")
     private val ask = WritingAiRequest(request = "길드 규칙은?", episode = 2, episodeVersionId = "r2", consent = true)
 
@@ -55,6 +57,15 @@ class WritingAiServiceTest {
 
     private fun grounded() = `when`(scopes.resolve("work", "owner", QaScopeRequest(2, "r2", "manuscript"))).thenReturn(
         QaScope("work", null, 2, "r2", emptyList(), null))
+
+    @Test
+    fun `a Fork work marks the target as fork for the AI trace while a plain work sends no fork key`() {
+        grounded()
+        `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
+        `when`(forks.existsById("work")).thenReturn(true)
+        service.run("work", "owner", "Bearer user", ask)
+        assertEquals(mapOf("workId" to "work", "episode" to 2, "fork" to true), sent()["target"])
+    }
 
     @Test
     fun `a target episode after the grounding episode reflects into that episode while the grounding stays as it was`() {
@@ -100,7 +111,7 @@ class WritingAiServiceTest {
         `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
         service.run("work", "owner", "Bearer user", ask.copy(request = null, resume = WritingAiResume(true), threadId = "thread", targetEpisode = 1))
         assertFalse("target" in sent())
-        verifyNoInteractions(episodes)
+        verifyNoInteractions(episodes, forks)
     }
 
     @Test

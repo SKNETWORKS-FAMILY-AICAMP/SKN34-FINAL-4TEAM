@@ -70,5 +70,5 @@ internal class ManuscriptIndexConfig {
         builder: RestClient.Builder, ai: AiServiceClientProperties, @Value("\${INTERNAL_TOKEN:}") token: String,
         grants: QaScopeGrants,
     ) = ManuscriptQaService(scopes, index, embeddings, episodes, versions,
-        ManuscriptQaClient(buildRestClient(builder.clone(), ai.baseUrl, ai.connectTimeout, Duration.ofSeconds(45)), token), worlds, grants)
+        ManuscriptQaClient(buildRestClient(builder.clone(), ai.baseUrl, ai.connectTimeout, Duration.ofSeconds(45), forwardUser = true), token), worlds, grants)
 }
