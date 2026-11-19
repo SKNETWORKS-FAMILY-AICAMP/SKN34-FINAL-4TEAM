@@ -24,8 +24,8 @@
 | 사용자 요청 | 실행 후보 | 다음 단계가 받는 입력 | MVP 범위 |
 |---|---|---|---|
 | “11화 전개를 계획하고 그 계획으로 써줘.” | Writing(기획 → 원고) | 한 단계 안에서 집필용 BeatPlan 하나를 정해 원고로 이어 쓴다. 사용자가 대안 비교·선택을 요청하면 선택한 계획을 새 집필 요청에서 받는다. | MVP |
-| “그 콘티로 쓰고, 방금 쓴 장면이 설정에 맞는지 봐줘.” | Writing → Manuscript Review | 생성 Text의 불변 참조와 비교 기준. Finding 위치는 생성 후보 기준이다. 같은 턴의 Manuscript Review는 저장된 초안을 읽어 승인 전 결과를 검수하지 못한다. 승인·반영 뒤 새 Manuscript Review 요청으로 받는다(2026-11-18 사용자 결정). | 후속 |
-| “이 대사를 고친 뒤 새 대사의 말투를 검수해줘.” | Editing → Manuscript Review | Patch 후보와 후보 안의 위치. 원래 초안의 판본·선택 구간은 함께 유지한다. 같은 턴의 Manuscript Review는 저장된 초안을 읽어 승인 전 결과를 검수하지 못한다. 승인·반영 뒤 새 Manuscript Review 요청으로 받는다(2026-11-18 사용자 결정). | 후속 |
+| “그 콘티로 쓰고, 방금 쓴 장면이 설정에 맞는지 봐줘.” | Writing → Manuscript Review | Text를 기준 초안 뒤에 붙인 전체 후보를 검수한다. Finding은 후보 기준 위치다. | MVP (#520) |
+| “이 대사를 고친 뒤 새 대사의 말투를 검수해줘.” | Editing → Manuscript Review | 원본 대사를 Patch로 바꾼 전체 후보를 검수한다. 원래 초안 revision과 선택 범위를 결과에 남긴다. | MVP (#520) |
 | “이 초안을 검수하고 문제가 있으면 고쳐줘.” | Manuscript Review → 조건부 Editing | 정상 검수의 유효 Finding과 수정 가능한 초안 구간. 조건과 수정 입력을 각각 검증한다. | MVP |
 | “설정에서 확정된 마법 제약을 찾아 그 안에서 다음 전개를 짜줘.” | Q&A → Writing(기획) | 확인된 제약과 출처. 추론과 근거 부족도 구분한다. | 후속 |
 | “4화에서 쓰인 호칭을 찾아 이 장면의 호칭과 대조해줘.” | Q&A → Manuscript Review | 기준 회차의 근거와 현재 검수 대상의 별도 판본. | 후속 |
@@ -35,7 +35,7 @@
 | “당시 이동 수단을 조사해서 이 장면의 고증을 검수해줘.” | Web Research → Manuscript Review | 허용된 장면과 연결된 외부 근거, URL·검색 시각·상충 여부. | 후속 |
 | “당시 통행 제도를 조사하고 그 제약을 활용한 사건을 짜줘.” | Web Research → Writing(기획) | 외부 사실과 불확실성. 작품 설정에 추가하는 절차는 별도다. | 후속 |
 | “항구를 폐쇄하면 생길 영향을 보고, 폐쇄를 가정해 다음 화를 기획해줘.” | World & Plot → Writing(기획) | 영향 보고서와 사용자가 요청한 가정. 후보 변경을 확정 설정으로 사용하지 않는다. | 후속 |
-| “11화를 기획하고 쓰고, 방금 쓴 내용을 검수해줘.” | Writing(기획 → 원고) → Manuscript Review | BeatPlan을 사용한 Text와 해당 후보 참조를 Manuscript Review에 전달한다. 같은 턴의 Manuscript Review는 저장된 초안을 읽어 승인 전 결과를 검수하지 못한다. 승인·반영 뒤 새 Manuscript Review 요청으로 받는다(2026-11-18 사용자 결정). | 후속 |
+| “11화를 기획하고 쓰고, 방금 쓴 내용을 검수해줘.” | Writing(기획 → 원고) → Manuscript Review | BeatPlan으로 만든 Text를 기준 초안에 이은 후보 전체를 검수한다. | MVP (#520) |
 | “이동 시간을 조사해 장면과 비교하고, 오류가 확인되면 고쳐줘.” | Web Research → Manuscript Review → 조건부 Editing | 웹 근거를 Manuscript Review가 대상 구절·판본과 연결한다. 조건부 수정은 Manuscript Review 결과를 기준으로 한다. | 후속 |
 | “이전 회차의 호칭을 찾아 검수하고 확정된 오류만 고쳐줘.” | Q&A → Manuscript Review → 조건부 Editing | 발행 판본의 비교 근거와 작성 중인 초안의 수정 범위를 각각 확인한다. | 후속 |
 | “이 장면의 설정 충돌을 찾아, 이를 피해 전개를 짜고 그 안으로 써줘.” | Manuscript Review → Writing(기획 → 원고) | Finding은 계획 제약으로, BeatPlan은 생성 원고 입력으로 쓴다. 원래 초안과 새 원고의 대상은 각각 확인한다. | 후속 |
@@ -88,7 +88,7 @@ MVP의 같은 요청 안 결과 전달은 [등록된 집필 연결](02-ai-archit
 | 모델이 한 턴에 부른 묶음 | 코드의 처리 | 결과 |
 |---|---|---|
 | `ask_story_qa` + `ask_web_research`(질문·동의 있음) | 둘 다 조회형이고 입력이 있어 동시에 실행한다. | `steps[]`는 부른 순서, SSE `step`은 먼저 끝난 순서. 메인 모델 호출은 묶음 1회 + 종합 1회 |
-| `ask_review` + `ask_writing(task=patch, fix)` | 수정은 단독 도구라 실행하지 않고 `[순차]` 오류로 돌려준다(한도 미차감). | 검수가 끝난 다음 모델 턴에 수정을 단독으로 불러 Manuscript Review → 조건부 수정 순서가 남는다 |
+| `ask_manuscript_review` + `ask_writing(task=patch, fix)` | 수정은 단독 도구라 실행하지 않고 `[순차]` 오류로 돌려준다(한도 미차감). | 검수가 끝난 다음 모델 턴에 수정을 단독으로 불러 Manuscript Review → 조건부 수정 순서가 남는다 |
 | `ask_story_qa` + `ask_web_research`(질문·동의 없음) | 입력이 빠진 웹 조사는 미루고 Q&A만 실행한다. | 다음 모델 턴에 웹 조사를 단독으로 불러 입력 대기(`waiting`) → resume으로 이어 간다 |
 | `ask_story_qa` + `ask_web_research` 중 웹 조사 실패 | Q&A는 취소하지 않고 끝까지 실행한다. | 두 결과를 보존하고 새 호출은 막으며 응답은 `failed` |
 | 조회형 네 개 | 앞의 세 개만 실행하고 네 번째는 턴당 3회 한도로 막는다. | 세 단계 |
@@ -103,7 +103,7 @@ MVP의 같은 요청 안 결과 전달은 [등록된 집필 연결](02-ai-archit
 | “초안의 충돌과 설정 변경 영향을 각각 분석하고, 둘을 고려한 다음 화 계획을 줘.” | (Manuscript Review ∥ World & Plot) → Writing(기획) | Finding과 ImpactReport의 대상·판본을 각각 확인한다. 변경 후보는 가정으로 표시한다. | 후속 |
 | “가상의 만남을 시뮬레이션하고 시대 자료도 따로 조사해서, 둘을 대조해 개연성을 봐줘.” | (Simulation ∥ Web Research) → Manuscript Review | 가상 기록과 외부 근거를 구분한다. 조사가 가상 기록을 검색어로 보내지 않는다. | 후속 |
 | “콘티로 새 장면을 쓰고, 작성과 별도로 당시 복식을 조사해 완성된 후보를 고증해줘.” | (Writing ∥ Web Research) → Manuscript Review | 고정 Text 후보와 그 장면에 연결한 외부 근거가 필요하다. | 후속 |
-| “이 콘티를 쓰고 검수하되, 다른 회차의 설정 질문도 답해줘.” | Writing → Manuscript Review → 별도 입력의 Q&A | Manuscript Review는 Writing 결과를 사용한다. Q&A는 자체 입력을 사용한다. 실패 이후에는 새 단계를 시작하지 않는다. Writing → Manuscript Review 전달이 후속이라 이 조합도 후속이다. | 후속 |
+| “이 콘티를 쓰고 검수하되, 다른 회차의 설정 질문도 답해줘.” | Writing → Manuscript Review → 별도 입력의 Q&A | Manuscript Review는 같은 턴 후보를 사용한다. Q&A는 자체 입력과 허용 문맥으로 답한다. | MVP (#520) |
 | “이 원고를 검수하고 문제가 있으면 고쳐줘. 별도로 시대 자료도 찾아줘.” | Manuscript Review → 조건부 Editing → 별도 입력의 Web Research | Editing은 Manuscript Review 결과만 사용한다. 조건이 거짓이면 조사는 계속할 수 있고, 검수가 실패하면 시작하지 않는다. | MVP · 순차 |
 | “현재 설정과 현실 고증을 모아 전개를 짜고, 그 안으로 쓰고 검수해줘.” | (Q&A ∥ Web Research) → Writing(기획 → 원고) → Manuscript Review | 분기 합류와 세 단계 초과를 함께 다룬다. | 후속 |
 

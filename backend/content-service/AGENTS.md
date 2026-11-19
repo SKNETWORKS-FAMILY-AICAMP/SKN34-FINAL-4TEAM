@@ -8,7 +8,7 @@
   그 밖의 레이어·DTO·이름 규칙은 [Core 지침](../core-api/AGENTS.md)을 이 앱의 패키지에 맞춰 적용한다.
 - 인증은 `CoreAuthClient`(Spring HTTP Service proxy)로 Core `POST /internal/v1/auth/verify`를 호출한다.
   사용자 Bearer와 `X-Content-Service-Token`을 함께 보내고 검증된 회원 UUID를 Principal로 쓰고 Core가 알려 준 운영자 여부(`operator`)는 `ROLE_OPERATOR` authority로만 쓴다. JWT 서명 키·Core Entity를 가져오지 않는다.
-- 회원이 시작하는 AI 호출 클라이언트(제안·새 원고·부분 수정, 장르·키워드 추천, 초기 세계관·설정집 검토, 원고 Q&A)는 `buildRestClient(..., forwardUser = true)`로 만들어 처리 중 요청의 Bearer를 `X-User-Authorization`으로 전달한다(`UserBearerInterceptor`, DEC-55 추적의 회원). 백그라운드와 같이 쓰는 색인 임베딩 클라이언트에는 달지 않는다. 집필 AI 오케스트레이션 `target`에는 Fork 작품일 때만 `fork: true`를 싣는다.
+- 회원이 시작하는 AI 호출 클라이언트(제안·새 원고·부분 수정, 장르·키워드 추천, 초기 세계관·설정집 검토)는 `buildRestClient(..., forwardUser = true)`로 만들어 처리 중 요청의 Bearer를 `X-User-Authorization`으로 전달한다(`UserBearerInterceptor`, DEC-55 추적의 회원). 백그라운드와 같이 쓰는 색인 임베딩 클라이언트에는 달지 않는다. 집필 AI 오케스트레이션 `target`에는 Fork 작품일 때만 `fork: true`를 싣는다.
 - 작성자·작가 표시명은 저장하지 않는다. 응답마다 `CoreNicknameService`(같은 `CoreAuthClient`, 서비스 토큰만)로 회원 ID 묶음을 한 번 조회해 채우며, Core에 없으면 `탈퇴한 회원`, 호출 실패는 503/504/502로 응답하고 대체 이름을 쓰지 않는다. Content↔Core 테이블 JOIN은 없다.
 - 기존 API·CSRF·UUID·revision·잠금·불변 이력을 유지한다.
 - Flyway: 콘텐츠 스키마는 `ContentPersistenceConfig.MIGRATION_LOCATIONS`의 `db/migration/{work,episode,world,episode_version,publication,fork,proposal,plan,sample}`와

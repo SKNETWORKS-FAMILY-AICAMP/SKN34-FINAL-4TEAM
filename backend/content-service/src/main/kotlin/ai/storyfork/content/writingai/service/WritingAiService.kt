@@ -88,7 +88,6 @@ internal class WritingAiService(
 
     /** AI 요청 본문. 검증·권한 실패는 SSE 응답 헤더를 보내기 전에 여기서 HTTP 오류가 된다. fromTurn은 메시지 수정이다. */
     fun message(workId: String, owner: String, threadId: String, request: WritingAiRequest, fromTurn: Int? = null): Map<String, Any?> {
-        checkContent(request.consent, message="OpenAI 전송과 API 비용에 동의해 주세요.")
         checkContent((request.request == null) != (request.resume == null), message="새 요청과 이어가기 중 하나만 보내 주세요.")
         checkContent(fromTurn == null || request.resume == null, message="메시지 수정은 새 요청으로만 보낼 수 있어요.")
         request.simulation?.let { form ->
@@ -106,12 +105,11 @@ internal class WritingAiService(
         if (request.resume == null) {
             checkContent(reflect >= request.episode, message="반영할 회차는 근거 회차보다 앞설 수 없어요.")
             // 모델 호출 전에 권한 밖 작품·회차를 막는다. 실제 근거 조회 때 Content가 다시 확정한다.
-            scopes.resolve(workId, owner, QaScopeRequest(request.episode, request.episodeVersionId,
-                if (request.target == "relationship") "manuscript" else request.target))
+            scopes.resolve(workId, owner, QaScopeRequest(request.episode, request.episodeVersionId))
             if (reflect != request.episode) requireEpisode(workId, owner, reflect)
         }
         val scope = mapOf("scopeToken" to grants.issue(
-            QaScopeGrant(workId, owner, request.episode, request.episodeVersionId, request.target)))
+            QaScopeGrant(workId, owner, request.episode, request.episodeVersionId)))
         return buildMap {
             put("conversation", mapOf("threadId" to threadId, "scope" to scopeOf(workId, owner)))
             if (request.resume != null) {

@@ -39,8 +39,9 @@ const stepFields = {
   applied: z.object({ episode: z.number().int(), revision: z.number().int() }).nullish(),
 }
 // 원고 검수(#59) 단계 결과. AI ReviewResponse 중 화면이 쓰는 값만 계약의 열거값으로 받는다.
-const review: z.ZodType<ChatReview> = z.object({
+const manuscriptReview: z.ZodType<ChatReview> = z.object({
   check: z.enum(['mechanical', 'semantic', 'both']), episode: z.number().int(), revision: z.number().int(), gaps: z.array(z.string()),
+  candidate: z.object({ selection: z.object({ start: z.number().int().nonnegative(), end: z.number().int().nonnegative() }).nullable() }).optional(),
   findings: z.array(z.object({
     category: z.string(), quote: z.string(), reason: z.string(), status: z.enum(['confirmed', 'suspected', 'undeterminable']),
     evidenceRefs: z.array(z.string()), suggestion: z.string(), start: z.number().int().nullable(), end: z.number().int().nullable(),
@@ -68,8 +69,8 @@ const beatPlan = z.object({ title: z.string(), beats: z.array(z.string()) })
 
 // 시뮬레이션·검수 단계는 결과가 객체가 아니어도(문자열·배열·숫자) 이 단계만 실패로 바꿔야 해서 결과를 transform이 따로 검증한다.
 // 결과를 객체로 먼저 검사하면 그 실패가 transform 앞에서 응답 전체의 형식 오류가 된다.
-const typedStep = <T,>(feature: string, schema: z.ZodType<T>, key: 'simulation' | 'review' | 'rating' | 'worldReview', bad: string) =>
-  z.object({ feature: z.literal(feature), ...stepFields, result: z.unknown() }).transform((raw): ChatStep => {
+const typedStep = <T,>(feature: z.ZodType<string>, schema: z.ZodType<T>, key: 'simulation' | 'manuscriptReview' | 'rating' | 'worldReview', bad: string) =>
+  z.object({ feature, ...stepFields, result: z.unknown() }).transform((raw): ChatStep => {
     const { result, ...rest } = raw
     // 완료됐다는 단계는 결과가 있어야 한다. 아직 시작 전·서버가 실패로 보낸 결과 없는 단계는 그대로 둔다.
     if (!result && raw.status !== 'completed') return rest
@@ -78,9 +79,10 @@ const typedStep = <T,>(feature: string, schema: z.ZodType<T>, key: 'simulation' 
     // 형식이 어긋나면 가짜 결과를 만들지 않고 일반 단계처럼 실패를 보인다. 서버가 이미 보낸 실패 사유는 지킨다.
     return { ...rest, status: 'failed', error: (raw.status === 'failed' && raw.error) || bad }
   })
-const step: z.ZodType<ChatStep> = z.union([typedStep('character_simulation', simulation, 'simulation', BAD_SIMULATION),
-  typedStep('review', review, 'review', BAD_REVIEW), typedStep('rating', rating, 'rating', BAD_RATING),
-  typedStep('world_review', worldReview, 'worldReview', BAD_WORLD_REVIEW), z.object({
+const step: z.ZodType<ChatStep> = z.union([typedStep(z.literal('character_simulation'), simulation, 'simulation', BAD_SIMULATION),
+  typedStep(z.literal(['manuscript_review', 'review']).transform(() => 'manuscript_review'), manuscriptReview, 'manuscriptReview', BAD_REVIEW),
+  typedStep(z.literal('rating'), rating, 'rating', BAD_RATING),
+  typedStep(z.literal('world_review'), worldReview, 'worldReview', BAD_WORLD_REVIEW), z.object({
   feature: z.string(),
   ...stepFields,
   result: z.looseObject({
@@ -95,11 +97,12 @@ const step: z.ZodType<ChatStep> = z.union([typedStep('character_simulation', sim
     plan: beatPlan.nullish(),
   }).nullish(),
 })])
+const featureKey = z.string().transform((feature) => feature === 'review' ? 'manuscript_review' : feature)
 const reply: z.ZodType<ChatReply> = z.object({
   status: z.enum(['completed', 'failed', 'clarify', 'rejected', 'unsupported', 'needs_input', 'waiting', 'cancelled']),
   message: z.string().nullish(),
   steps: z.array(step),
-  missingInputs: z.array(z.string()),
+  missingInputs: z.array(featureKey),
   awaitingApproval: z.string().nullish(),
   awaitingScene: z.string().nullish(),
   approvalEpisode: z.number().int().positive().nullish(),
@@ -110,9 +113,9 @@ const history: z.ZodType<ChatHistory> = z.object({
 })
 const events = {
   plan: z.object({ steps: z.array(step) }).transform((d) => ({ type: 'plan' as const, ...d })),
-  started: z.object({ feature: z.string() }).transform((d) => ({ type: 'started' as const, ...d })),
+  started: z.object({ feature: featureKey }).transform((d) => ({ type: 'started' as const, ...d })),
   step: step.transform((s) => ({ type: 'step' as const, step: s })),
-  waiting: z.object({ steps: z.array(step), missingInputs: z.array(z.string()).default([]), awaitingApproval: z.string().nullish(), awaitingScene: z.string().nullish() })
+  waiting: z.object({ steps: z.array(step), missingInputs: z.array(featureKey).default([]), awaitingApproval: z.string().nullish(), awaitingScene: z.string().nullish() })
     .transform((d) => ({ type: 'waiting' as const, ...d })),
   done: reply.transform((r) => ({ type: 'done' as const, reply: r })),
   error: z.object({ message: z.string() }).transform((d) => ({ type: 'error' as const, ...d })),

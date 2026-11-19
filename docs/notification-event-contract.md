@@ -43,6 +43,7 @@ Core가 켜질 때 교환기·큐·DLQ를 선언한다. 발행 쪽이 먼저 선
 | type | 알림 분류 | target.type | 비고 |
 | --- | --- | --- | --- |
 | `content.world.changed` | 읽기(끌 수 있음) | `work` | 후보. 수신자 결정 규칙은 Content 쪽 확인 필요 |
+| `operations.alert.raised` | 운영 | `alert` | 운영 서비스가 경고를 만들 때 `llm`·`jobs` 권한 운영자마다 발행([계약](design/operations-llmops-contract.md#사이트-안-알림)). 화면은 `/admin?tab=llm`으로 이동 |
 | `content.episode.published` | 읽기(끌 수 있음) | `work` | 관심 작품에 새 회차(처음 발행한 회차 번호)가 올라왔을 때. 수신자는 그 작품을 관심 작품으로 담은 회원(작가 본인 제외), `target.id`는 작품 id. 회차 번호·제목은 싣지 않는다 |
 | `core.credit.expiring` | 크레딧(끌 수 없음) | `credit-expiry` | Core가 발행. 남은 크레딧이 `app.credit.expiry-notice.lead-time`(기본 3일, 임시) 안에 소멸하는 회원에게 소멸 날짜마다 한 번. `target.id`는 소멸 날짜(KST, `yyyy-MM-dd`), `eventId`는 회원·날짜로 고정 |
 | `core.member.withdrawal-requested` | 권리·보안(끌 수 없음) | `withdrawal` | Core가 발행. 탈퇴를 요청한 회원 본인에게, `target.id`는 탈퇴 요청 id. 유예 중 로그인하면 볼 수 있다 |

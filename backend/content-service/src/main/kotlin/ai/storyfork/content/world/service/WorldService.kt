@@ -57,11 +57,6 @@ class WorldService(
         checkContent(episode>0 && currentEpisodes.findByWorkIdAndSequence(id,episode)?.publishedVersionId!=null,404,"공개된 회차를 찾을 수 없어요.")
         return ReadingWorldResponse(id, episode, readingDocuments(l, episode, public = true))
     }
-    fun settingsForQa(id: String, owner: String?, episode: Int): List<ReadingDocumentResponse> {
-        if (owner == null) return publicRead(id, episode).documents
-        val loaded = load(access.own(id, owner))
-        return readingDocuments(loaded, episode, public = loaded.state.mode == "following")
-    }
     private fun readingDocuments(l: Loaded, episode: Int, public: Boolean): List<ReadingDocumentResponse> {
         if(l.state.mode=="following" && l.work.source?.deleted==true) return emptyList()
         val selected=selectSettings(effective(l),episode,public)
