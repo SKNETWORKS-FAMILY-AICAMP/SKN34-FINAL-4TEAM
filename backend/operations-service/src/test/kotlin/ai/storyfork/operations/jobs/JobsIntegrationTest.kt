@@ -37,7 +37,7 @@ import org.springframework.web.server.ResponseStatusException
 import tools.jackson.databind.json.JsonMapper
 
 /**
- * CI-only HTTP/PostgreSQL coverage of Flyway V9, the real member Bearer chain with the `jobs` permission, the schedule CRUD,
+ * CI-only HTTP/PostgreSQL coverage of Flyway V9 and V10, the real member Bearer chain with the `jobs` permission, the schedule CRUD,
  * the scheduler tick (called directly, as its own 1-minute timer is far slower than a test) and the merge with Content's jobs.
  * Core and Content are test doubles; cleanup touches only rows this test created.
  * A schedule uses a yearly cron and is back-dated two years to be due: the tick of another cached Spring context that shares
@@ -167,9 +167,10 @@ class JobsIntegrationTest {
         assertTrue(json.readTree(created.body()).path("enabled").asBoolean())
         assertEquals(runId, json.readTree(created.body()).path("params").path("target").asString())
 
-        // A kind without a handler is 422, an unreadable cron 400, and neither is stored.
-        assertEquals(422, send("POST", "$base/schedules", adminBearer, """{"kind":"nope","cron":"$yearly"}""").statusCode())
-        assertEquals(400, send("POST", "$base/schedules", adminBearer, """{"kind":"ci_ok","cron":"not a cron"}""").statusCode())
+        // A kind without a handler and a cron that cannot be read or never fires are 422, and none of them is stored.
+        for (body in listOf("""{"kind":"nope","cron":"$yearly"}""", """{"kind":"ci_ok","cron":"not a cron"}""", """{"kind":"ci_ok","cron":"0 0 0 31 2 *"}""")) {
+            assertEquals(422, send("POST", "$base/schedules", adminBearer, body).statusCode(), body)
+        }
         assertEquals(1, jdbc.queryForObject("SELECT count(*) FROM operations.scheduled_job WHERE id = ?", Int::class.java, id))
 
         val listed = send("GET", "$base/schedules", adminBearer)
@@ -240,6 +241,14 @@ class JobsIntegrationTest {
         assertEquals(setOf("schedule", "manual"), runs.map { it.path("trigger").asString() }.toSet())
         assertEquals(listOf("JOB_SCHEDULE_CREATE"), activities(id.toString()))
         assertEquals(listOf("JOB_RETRY"), activities(failed.path("id").asString()))
+
+        // The re-run failed too, yet the first failed run stays re-run: it is refused for good, whatever its re-run did.
+        assertEquals(409, send("POST", "$base/runs/${failed.path("id").asString()}/retry", adminBearer).statusCode())
+        // The re-run is a record of its own: it failed, so it can be re-run once.
+        val rerun = runs.single { it.path("trigger").asString() == "manual" }.path("id").asString()
+        assertEquals(202, send("POST", "$base/runs/$rerun/retry", adminBearer).statusCode())
+        assertEquals(409, send("POST", "$base/runs/$rerun/retry", adminBearer).statusCode())
+        assertEquals(listOf("JOB_RETRY"), activities(rerun))
     }
 
     @Test

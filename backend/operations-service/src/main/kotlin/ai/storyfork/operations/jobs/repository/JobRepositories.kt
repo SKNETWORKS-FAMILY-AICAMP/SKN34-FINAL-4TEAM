@@ -22,4 +22,5 @@ interface JobRunRepository : JpaRepository<JobRunEntity, UUID> {
     fun findAllByStatusAndKind(status: JobStatus, kind: String, page: Pageable): Page<JobRunEntity>
     fun existsByScheduleIdAndStatusIn(scheduleId: UUID, statuses: Collection<JobStatus>): Boolean
     fun findFirstByScheduleIdOrderByCreatedAtDescIdDesc(scheduleId: UUID): JobRunEntity?
+    fun existsByRetryOf(retryOf: UUID): Boolean
 }

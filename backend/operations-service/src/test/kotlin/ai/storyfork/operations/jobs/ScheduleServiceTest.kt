@@ -73,15 +73,23 @@ class ScheduleServiceTest {
     }
 
     @Test
-    fun `a kind without a registered handler is 422 and a bad or never firing cron is 400, and nothing is saved`() {
+    fun `a kind without a registered handler and a cron that is unreadable, too long or never fires are all 422, and nothing is saved`() {
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, status { service.create(admin, ScheduleRequest("gone", daily)) })
 
-        for (cron in listOf("not a cron", "", "0 0 0 31 2 *", "0 ".repeat(60))) {
-            assertThrows(IllegalArgumentException::class.java, { service.create(admin, ScheduleRequest("alpha", cron)) }, cron)
+        // The last one is a readable cron that only the 100 character limit (the column width) refuses.
+        for (cron in listOf("not a cron", "", "0 0 0 31 2 *", "0 ".repeat(60), daily.padEnd(101))) {
+            assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, status { service.create(admin, ScheduleRequest("alpha", cron)) }, cron)
         }
 
         assertTrue(schedules.rows.isEmpty())
         verifyNoInteractions(activities)
+    }
+
+    @Test
+    fun `a cron of exactly 100 characters is still accepted`() {
+        service.create(admin, ScheduleRequest("alpha", daily.padEnd(100)))
+
+        assertEquals(1, schedules.rows.size)
     }
 
     @Test
@@ -122,7 +130,7 @@ class ScheduleServiceTest {
 
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, status { service.update(admin, schedule.id, ScheduleRequest("gone", daily)) })
         assertThrows(NoSuchElementException::class.java) { service.update(admin, UUID.randomUUID(), ScheduleRequest("alpha", daily)) }
-        assertThrows(IllegalArgumentException::class.java) { service.update(admin, schedule.id, ScheduleRequest("alpha", "bad cron")) }
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, status { service.update(admin, schedule.id, ScheduleRequest("alpha", "bad cron")) })
 
         assertEquals(daily, schedule.cron)
         verifyNoInteractions(activities)
@@ -169,6 +177,8 @@ class ScheduleServiceTest {
         assertEquals("alpha", saved.kind)
         assertEquals(JobStatus.QUEUED, saved.status)
         assertEquals(JobTrigger.MANUAL, saved.trigger)
+        assertEquals(failed.id, saved.retryOf)
+        assertNull(failed.retryOf)
         assertNull(saved.startedAt)
         assertEquals(saved.id.toString(), queued.id)
         assertEquals(listOf("queued", "manual", "operations-scheduler"), listOf(queued.status, queued.trigger, queued.source))
@@ -189,5 +199,41 @@ class ScheduleServiceTest {
 
         assertEquals(2, runs.rows.size)
         verifyNoInteractions(activities)
+    }
+
+    /** The run a retry queued, as the scheduler would find it in the repository. */
+    private fun rerun(failed: JobRunEntity) = service.requeue(admin, failed).let { queued -> runs.rows.single { it.id.toString() == queued.id } }
+
+    @Test
+    fun `a failed run that was already re-run is 409 whatever its re-run is doing or did, and no second run is queued`() {
+        val retried = mutableListOf<JobRunEntity>()
+        for (outcome in listOf(JobStatus.QUEUED, JobStatus.RUNNING, JobStatus.SUCCEEDED, JobStatus.FAILED, JobStatus.CANCELLED)) {
+            runs.rows.clear()
+            val failed = failedRun(stored()).also { retried += it }
+            rerun(failed).status = outcome
+
+            assertEquals(HttpStatus.CONFLICT, status { service.requeue(admin, failed) }, outcome.name)
+
+            assertEquals(2, runs.rows.size, outcome.name)
+        }
+        // Only the five accepted retries were recorded, none of the refused ones.
+        for (failed in retried) verify(activities).record(admin, "JOB_RETRY", "JOB_RUN", failed.id, "alpha")
+        verifyNoMoreInteractions(activities)
+    }
+
+    @Test
+    fun `a re-run that failed can be re-run itself and so can a failed run that was never re-run, each record only once`() {
+        val schedule = stored()
+        val older = failedRun(schedule, createdAt = Instant.parse("2026-03-02T03:00:00Z"))
+        val newer = failedRun(schedule, createdAt = Instant.parse("2026-03-03T03:00:00Z"))
+        val first = rerun(newer).also { it.status = JobStatus.FAILED }
+        val second = rerun(first).also { it.status = JobStatus.SUCCEEDED }
+        // The older failure is not superseded by the newer runs: the contract only refuses a run in progress or already re-run.
+        val third = rerun(older).also { it.status = JobStatus.FAILED }
+
+        assertEquals(listOf(newer.id, first.id, older.id), listOf(first.retryOf, second.retryOf, third.retryOf))
+        for (done in listOf(newer, first, older)) assertEquals(HttpStatus.CONFLICT, status { service.requeue(admin, done) }, done.id.toString())
+        // The last re-run failed and nothing re-ran it yet.
+        assertEquals(third.id, rerun(third).retryOf)
     }
 }

@@ -73,6 +73,7 @@ class FakeRuns(private val log: MutableList<String> = mutableListOf()) {
             "findAllByStatusOrderByCreatedAtAscIdAsc" ->
                 rows.filter { it.status == args[0] }.sortedWith(compareBy<JobRunEntity> { it.createdAt }.thenBy { it.id })
             "existsByScheduleIdAndStatusIn" -> rows.any { it.scheduleId == args[0] && it.status in (args[1] as Collection<*>) }
+            "existsByRetryOf" -> rows.any { it.retryOf == args[0] }
             "findFirstByScheduleIdOrderByCreatedAtDescIdDesc" -> rows.filter { it.scheduleId == args[0] }.minWithOrNull(newestFirst)
             "findAllByStatus", "findAllByKind", "findAllByStatusAndKind", "findAll" -> page(call)
             else -> throw UnsupportedOperationException(call.method.name)

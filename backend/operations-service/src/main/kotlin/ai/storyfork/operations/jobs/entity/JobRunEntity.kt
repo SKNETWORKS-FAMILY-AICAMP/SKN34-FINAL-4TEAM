@@ -52,4 +52,7 @@ class JobRunEntity(
     var error: String? = null,
     @field:Column(name = "target_id", length = 100)
     var targetId: String? = null,
+    /** The failed run this manual run re-runs; a run that has a re-run is not re-run again, whatever the re-run did. */
+    @field:Column(name = "retry_of", updatable = false)
+    val retryOf: UUID? = null,
 )

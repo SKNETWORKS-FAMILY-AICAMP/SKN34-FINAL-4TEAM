@@ -83,15 +83,17 @@ class ScheduleService(
     }
 
     /**
-     * Queues a manual run for the schedule of a failed run; the scheduler tick executes it.
-     * ponytail: the idle check and the insert are not atomic, so two clicks at once could queue two runs.
+     * Queues a manual run for the schedule of a failed run; the scheduler tick executes it. A run that did not fail, whose schedule has
+     * a queued or running run, or that was already re-run is 409. The queued run keeps the link in [JobRunEntity.retryOf], so a run
+     * stays re-run whatever its re-run does, while a re-run that failed can itself be re-run.
+     * ponytail: the checks and the insert are not atomic, so two clicks at once could queue two runs.
      */
     @Transactional
     fun requeue(member: OperationsMember, run: JobRunEntity): JobRun {
-        if (run.status != JobStatus.FAILED || runs.existsByScheduleIdAndStatusIn(run.scheduleId, ACTIVE_JOB_STATUSES)) {
+        if (run.status != JobStatus.FAILED || runs.existsByRetryOf(run.id) || runs.existsByScheduleIdAndStatusIn(run.scheduleId, ACTIVE_JOB_STATUSES)) {
             throw ResponseStatusException(HttpStatus.CONFLICT)
         }
-        val queued = JobRunEntity(scheduleId = run.scheduleId, kind = run.kind, trigger = JobTrigger.MANUAL)
+        val queued = JobRunEntity(scheduleId = run.scheduleId, kind = run.kind, trigger = JobTrigger.MANUAL, retryOf = run.id)
         runs.save(queued)
         activities.record(member, "JOB_RETRY", "JOB_RUN", run.id, run.kind)
         return queued.toRun()
@@ -109,10 +111,10 @@ class ScheduleService(
 
     private fun summary(schedule: ScheduledJobEntity) = "${schedule.kind} · ${schedule.cron}"
 
-    /** An unregistered kind is 422; an unreadable, too long or never firing cron is 400 (IllegalArgumentException). */
+    /** An unregistered kind and a cron that cannot be read, is too long or never fires again are all 422. */
     private fun validate(request: ScheduleRequest) {
-        if (request.kind !in kinds) throw ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY)
-        require(request.cron.length <= CRON_MAX) { "cron is too long" }
-        requireNotNull(nextRun(request.cron, Instant.now())) { "cron never fires" }
+        if (request.kind !in kinds || !firesAgain(request.cron)) throw ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY)
     }
+
+    private fun firesAgain(cron: String) = cron.length <= CRON_MAX && try { nextRun(cron, Instant.now()) != null } catch (_: IllegalArgumentException) { false }
 }
