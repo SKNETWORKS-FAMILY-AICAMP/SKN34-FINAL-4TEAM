@@ -152,10 +152,11 @@ class NoticeIntegrationTest {
     }
 
     @Test
-    fun `preferences default to enabled and only reading and creation can be disabled`() {
+    fun `preferences default to enabled and only reading, creation and ai-tool can be disabled`() {
         val me = member(); val auth = bearer(me)
         mvc.perform(get("/api/v1/me/notification-preferences").header("Authorization", auth)).andExpect(status().isOk())
-            .andExpect(jsonPath("$.items.length()").value(5)).andExpect(jsonPath("$.items[?(@.kind=='creation')].enabled").value(true))
+            .andExpect(jsonPath("$.items.length()").value(6)).andExpect(jsonPath("$.items[?(@.kind=='creation')].enabled").value(true))
+            .andExpect(jsonPath("$.items[?(@.kind=='ai-tool')].enabled").value(true)).andExpect(jsonPath("$.items[?(@.kind=='ai-tool')].mutable").value(true))
             .andExpect(jsonPath("$.items[?(@.kind=='result')].mutable").value(false))
         mvc.perform(json(put("/api/v1/me/notification-preferences"), auth, """{"items":[{"kind":"result","enabled":false}]}""")).andExpect(status().isBadRequest())
         mvc.perform(json(put("/api/v1/me/notification-preferences"), auth, """{"items":[{"kind":"nope","enabled":false}]}""")).andExpect(status().isBadRequest())
@@ -163,6 +164,8 @@ class NoticeIntegrationTest {
         mvc.perform(json(put("/api/v1/me/notification-preferences"), auth, """{"items":[]}""")).andExpect(status().isBadRequest())
         mvc.perform(json(put("/api/v1/me/notification-preferences"), auth, """{"items":[{"kind":"creation","enabled":false}]}""")).andExpect(status().isOk())
             .andExpect(jsonPath("$.items[?(@.kind=='creation')].enabled").value(false))
+        mvc.perform(json(put("/api/v1/me/notification-preferences"), auth, """{"items":[{"kind":"ai-tool","enabled":false}]}""")).andExpect(status().isOk())
+            .andExpect(jsonPath("$.items[?(@.kind=='ai-tool')].enabled").value(false))
     }
 
     @Test

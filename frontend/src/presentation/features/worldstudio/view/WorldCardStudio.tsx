@@ -7,6 +7,7 @@ import { cardRevealEpisode, invalidReveal, REVEAL_EPISODE_ERROR, studioLabelClea
 import { revealEpisodeInput } from '../../../../domain/entities/worldStudioWriting'
 import { BackChev, ComposeIcon, MoreVerticalIcon } from '../../../shared/icons'
 import { LazyMarkdownEditor } from '../../../shared/LazyMarkdownEditor'
+import { McpChangeBanner, type McpChangeState } from '../../../shared/McpChangeBanner'
 import { PopMenu } from '../../../shared/PopMenu'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { ResizeSeparator } from '../../studio/view/ResizeSeparator'
@@ -42,7 +43,7 @@ const BODY_MAX = 3000
  * - 가운데: 머리는 두 열(왼쪽 큰 이름 입력·유형, 오른쪽 대표 이미지 타일 `CardImageControl`, 좁은 화면은 타일이 이름 아래로) · 설명(마크다운 편집기 `MarkdownEditor`: Toast UI Editor, 쓰기·미리보기 탭, 편집 화면에서만 `React.lazy`로 늦게 불러온다) 등 기존 필드 · 한 줄 하단 바(글자 수·저장 상태·카드 삭제). 위 상단 바에는 `← 설정집`과 상시 저장 영역, 그 옆 끝에 테마 전환 버튼이 있다(집필실처럼 떠 있는 테마 버튼은 GlobalChrome이 이 화면에서 뺀다).
  *   설명은 마크다운 문자열 그대로 저장한다(`#`·`##`·`###` 제목이 공개 카드 페이지의 문단·목차가 된다). 편집기는 글자 수 제한이 없어 3000자를 넘으면 글자 수가 경고로 바뀌고 저장은 기존 검증이 막는다.
  *   글자 수 줄은 입력마다 바뀌므로 라이브 영역에 두지 않고, 3000자를 넘는 순간만 따로 둔 상태 문구로 한 번 알린다.
- *   저장 중에는 편집기를 `inert`로 잠가(글자 입력은 `fieldset disabled`가 닿지 않는다) 그사이 입력이 초안과 어긋나지 않게 한다. 편집기는 처음 값만 읽으므로 `key`로 카드마다(인물 카드는 문서마다) 다시 만든다.
+ *   저장 중에는 편집기를 `inert`로 잠가(글자 입력은 `fieldset disabled`가 닿지 않는다) 그사이 입력이 초안과 어긋나지 않게 한다. 편집기는 처음 값만 읽으므로 `key`로 카드마다(인물 카드는 문서마다), 그리고 초안을 서버 값으로 다시 읽을 때마다(`vm.relationKey`: 다른 곳(MCP)에서 바뀐 알림의 `refresh`·확정 버전 되돌리기) 다시 만든다.
  *   인물 카드는 설명 하나 대신 문서 네 종류로 쓴다(`CharacterDocs`·`useCharacterDocs`): 설명 자리에 문서 탭 줄(정체성 IDENTITY.md = 카드 본문 · 성격·말투 SOUL.md · 목표 GOAL.md · 회차 기억 memory/NN회차.md)과 고른 문서의 같은 편집기를 두고,
  *   글자 수·3,000자 초과 알림은 고른 문서의 것이다. 인물이 아닌 유형으로 바꾼 카드에 문서가 남아 있으면 저장하지 않는다고 알린다(인물로 되돌리면 그대로다).
  *   설명 아래 공개 범위(DEC-53): 공개 설정은 하나다. 소설이 연결된 세계관은 `공개 회차 N화부터 공개`(비우면 작가 전용, 기본), 연결되지 않은 세계관은 `이 설정 공개`(1화부터)와 작가 전용이다.
@@ -56,7 +57,7 @@ const BODY_MAX = 3000
  * 삭제는 초안 변경이라 확인(함께 지워질 관계 수)을 거친 뒤 설정집으로 돌아가고 되돌릴 수 있으며, 세계관 저장으로 서버에 반영한다.
  * 관계 기준 회차를 고른 동안(`vm.deleteLock`)은 삭제가 최신 저장에서만 되므로 하단 삭제와 레일 ⋮ 삭제를 잠그고 이유를 하단에 보인다(잠긴 메뉴 항목의 설명도 같은 글).
  */
-export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatOpenChange }: { vm: VM; revisions: ReturnType<typeof useWorldRevisions>; openVersions: () => void; chatOpen: boolean; onChatOpenChange: (open: boolean) => void }) {
+export function WorldCardStudio({ vm, mcp, revisions, openVersions, chatOpen, onChatOpenChange }: { vm: VM; mcp: McpChangeState; revisions: ReturnType<typeof useWorldRevisions>; openVersions: () => void; chatOpen: boolean; onChatOpenChange: (open: boolean) => void }) {
   const world = vm.editing!
   const setting = world.settings.find((s) => s.item.id === vm.selected)!
   const { item } = setting
@@ -95,7 +96,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
   const bodyEditor = (
     <div className="world-card-editor" inert={vm.busy}>
       <Suspense fallback={<div className="world-card-editor-loading" aria-live="polite">편집기를 불러오고 있어요.</div>}>
-        <LazyMarkdownEditor key={docs.editorKey} label={docs.person ? docs.name : '설정 본문'} initialValue={docs.text} placeholder={docs.person ? undefined : '어떤 인물인가요? 무엇이 중요한 장소인가요? 떠오르는 내용을 자유롭게 적어 보세요.'} onChange={docs.write} cardLinks={docs.doc === 'identity' ? { cards: linkChoices, open: openLinked } : undefined} />
+        <LazyMarkdownEditor key={`${docs.editorKey}:${vm.relationKey}`} label={docs.person ? docs.name : '설정 본문'} initialValue={docs.text} placeholder={docs.person ? undefined : '어떤 인물인가요? 무엇이 중요한 장소인가요? 떠오르는 내용을 자유롭게 적어 보세요.'} onChange={docs.write} cardLinks={docs.doc === 'identity' ? { cards: linkChoices, open: openLinked } : undefined} />
       </Suspense>
     </div>
   )
@@ -126,6 +127,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
       </header>
       {vm.error && <p role="alert" className="ep-alert">{vm.error}</p>}
       {vm.message && <p role="status" className="writing-message">{vm.message}</p>}
+      <McpChangeBanner {...mcp} />
       <main id="main" tabIndex={-1} className="studio-workspace">
         <div className="sgrid writing-grid">
           <div className="writing-rail">

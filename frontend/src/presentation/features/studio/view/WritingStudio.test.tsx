@@ -15,7 +15,7 @@ const model = vi.hoisted(() => ({
   deleteBlocker: '', deleteBlockerOf: vi.fn((e: { inherited: boolean; publishedVersionId: string | null }) => e.inherited ? '원작 기준 회차는 삭제할 수 없어요.' : e.publishedVersionId ? '발행본이 있는 회차는 삭제할 수 없어요.' : ''),
   addImage: vi.fn().mockResolvedValue(true), orderLookup: null as null | { status: 'loading' } | { status: 'failed'; message: string } | { status: 'ready'; scope: { number: number; candidateNumbers: number[]; reasons: string[]; executable: false } },
   checkOrder: vi.fn(), deleteDraft: vi.fn(),
-  edit: vi.fn(), save: vi.fn(), reload: vi.fn(), deleteEpisode: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true), clearNotice: vi.fn(),
+  edit: vi.fn(), save: vi.fn(), reload: vi.fn(), refresh: vi.fn(), deleteEpisode: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true), clearNotice: vi.fn(),
   retrySave: vi.fn(), expired: false,
   create: vi.fn().mockResolvedValue(true), select: vi.fn<(e: { number: number }) => boolean>(() => true),
   cancel: vi.fn(), loadPublicationHistory: vi.fn(), historyLoading: false, historyError: '', publicationHistory: null as null | unknown[],
@@ -28,6 +28,10 @@ vi.mock('../../../shared/plans/useStoryPlanViewModel', () => ({ useStoryPlanView
   plans: [], references: null, selected: null, editor: null, deleting: null, embedded: true,
   busy: false, ready: true, dirty: false, error: '', notice: '', version: 0, startBlocker: '', confirmLeave: () => true,
 }) }))
+// AI·외부 도구(MCP) 변경 감시(#553)는 훅 자체의 테스트(useMcpChangeWatch.test)가 확인하고, 여기서는 집필실이 넘기는 값과 배너 연결만 본다.
+const mcp = vi.hoisted(() => ({ stale: false, reload: vi.fn(), watch: vi.fn() }))
+vi.mock('../../../shared/useMcpChangeWatch', () => ({ useMcpChangeWatch: (...args: unknown[]) => { mcp.watch(...args); return { stale: mcp.stale, reload: mcp.reload } } }))
+afterEach(() => { mcp.stale = false })
 vi.mock('../../../shared/screenIds', () => ({ useScreenId: () => {} }))
 vi.mock('../../../shared/media/MediaPanel', () => ({ ManuscriptBody: ({ body }: { body: string }) => <p>{body}</p>, StoredImage: () => null }))
 vi.mock('./SettingHistoryPanel', () => ({ SettingHistoryPanel: ({ workId }: { workId: string }) => <section aria-label="설정 버전 이력"><h2>설정 버전 이력</h2><p>{workId}</p></section> }))
@@ -1298,4 +1302,23 @@ it.each([
     // 문서 스크롤은 건드리지 않는다(좁은 화면에서 원고를 읽던 자리가 튀지 않게).
     expect(page).not.toHaveBeenCalled()
   } finally { layout.mockRestore(); page.mockRestore() }
+})
+
+it('AI·외부 도구 변경 감시에 열린 작품 id와 미저장 원고 여부, 다시 읽기(확인 없는 refresh)를 넘긴다', () => {
+  const { rerender } = renderStudio()
+  expect(mcp.watch).toHaveBeenLastCalledWith({ targetType: 'work', targetId: 'work-id', dirty: false, reload: model.refresh })
+  model.dirty = true
+  rerender(<WritingStudio id="work-id" />)
+  expect(mcp.watch).toHaveBeenLastCalledWith({ targetType: 'work', targetId: 'work-id', dirty: true, reload: model.refresh })
+})
+
+it('다른 곳에서 바뀌었다는 배너는 바뀐 것이 있을 때만 보이고, 다시 불러오기를 누르면 감시 훅의 reload를 부른다', () => {
+  const { unmount } = renderStudio()
+  expect(screen.queryByText('다른 곳에서 바뀌었어요')).toBeNull()
+  unmount()
+  mcp.stale = true
+  renderStudio()
+  const banner = screen.getByText('다른 곳에서 바뀌었어요').closest('[role="status"]') as HTMLElement
+  fireEvent.click(within(banner).getByRole('button', { name: '다시 불러오기' }))
+  expect(mcp.reload).toHaveBeenCalledTimes(1)
 })
