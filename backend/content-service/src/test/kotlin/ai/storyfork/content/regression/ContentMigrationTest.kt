@@ -231,9 +231,9 @@ class ContentMigrationTest {
     }
 
     @Test fun `changed history fails validation instead of silently repairing`() = isolated { flyway,jdbc ->
-        flyway.migrate()
+        val applied = flyway.migrate().migrationsExecuted
         jdbc.update("UPDATE content_schema_history SET checksum=checksum+1 WHERE version='1'")
         assertThrows(FlywayException::class.java) {flyway.migrate()}
-        assertEquals(34,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
+        assertEquals(applied,jdbc.queryForObject("SELECT count(*) FROM content_schema_history WHERE version<>'0' AND success",Int::class.java))
     }
 }
