@@ -17,9 +17,11 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
 from langchain_openai.middleware import OpenAIModerationMiddleware
-from openai import OpenAI, OpenAIError
+from openai import (APIConnectionError, APITimeoutError, AuthenticationError, OpenAI, OpenAIError, PermissionDeniedError,
+                    RateLimitError)
 from pydantic import ValidationError
 
+from app.intent import errors
 from app.intent.errors import IntentFailure
 from app.intent.models import Decision
 from app.intent.prompt import INSTRUCTIONS, MODEL
@@ -81,6 +83,19 @@ class DecisionsModel(BaseChatModel):
         return ChatResult(generations=[ChatGeneration(message=AIMessage(content='', additional_kwargs={'decision': response}))])
 
 
+def _provider_message(error: OpenAIError) -> str:
+    """제공사 오류를 작가에게 보일 고정 문구로 바꾼다. 한도 초과 중 크레딧 소진(insufficient_quota)은 기다려도 풀리지 않아 따로 알린다."""
+    if isinstance(error, RateLimitError):
+        return errors.QUOTA_MESSAGE if error.code == 'insufficient_quota' else errors.RATE_LIMIT_MESSAGE
+    if isinstance(error, (AuthenticationError, PermissionDeniedError)):
+        return errors.AUTH_MESSAGE
+    if isinstance(error, APITimeoutError):  # APIConnectionError의 하위 클래스라 먼저 본다
+        return errors.TIMEOUT_MESSAGE
+    if isinstance(error, APIConnectionError):
+        return errors.CONNECTION_MESSAGE
+    return errors.ROUTER_FAILED_MESSAGE
+
+
 def decide(request: str, materials: list[str], questions: list[dict], history: list[str] = ()) -> dict[str, str]:
     key = os.environ.get('OPENAI_API_KEY')
     if not key:
@@ -110,7 +125,9 @@ def decide(request: str, materials: list[str], questions: list[dict], history: l
         if answers['guard'] == 'none' and any(answers.get(n) not in v for n, v in valid.items()):
             raise IntentFailure()
         return answers
-    except (OpenAIError, ValidationError):
+    except OpenAIError as error:
+        raise IntentFailure(_provider_message(error)) from None
+    except ValidationError:
         raise IntentFailure() from None
     finally:
         client.close()

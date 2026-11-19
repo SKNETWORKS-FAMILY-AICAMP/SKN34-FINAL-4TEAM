@@ -150,6 +150,11 @@ def test_stream_router_failure_is_an_error_event(monkeypatch):
     assert stream() == [('error', {'message': '요청 분류에 실패했습니다.'})]
 
 
+def test_stream_shows_the_provider_failure_message(monkeypatch):
+    fake_agents(monkeypatch, plan('story_context'), fail={'judge': IntentFailure('AI 제공사 크레딧이 부족해 요청을 처리하지 못했습니다.')})
+    assert stream() == [('error', {'message': 'AI 제공사 크레딧이 부족해 요청을 처리하지 못했습니다.'})]
+
+
 def chat(thread, scope='user:1/work:1', **body):
     return run(conversation={'threadId': thread, 'scope': scope}, **body)
 

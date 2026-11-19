@@ -74,7 +74,6 @@ SCENE_NOT_WAITING = '지금은 장면을 조작할 수 없어요.'
 SCENE_NO_TURN = '장면에 그 번호의 턴이 없어요.'
 SCENE_FIRST = '장면이 끝난 뒤에 승인할 수 있어요. 지금은 장면을 이어 가거나 끝내거나 반영하지 않기로 해 주세요.'
 MODEL_UNSET_MESSAGE = '집필 AI 모델 설정이 필요합니다.'
-ROUTER_FAILED_MESSAGE = '요청 분류에 실패했습니다.'
 CONVERSATION_MISMATCH_MESSAGE = '다른 사용자나 작품의 대화는 이어갈 수 없습니다.'
 NOTHING_TO_RESUME_MESSAGE = '이어갈 대기 중인 작업이 없습니다.'
 CONVERSATION_UNAVAILABLE_MESSAGE = '대화 저장소 설정이 필요합니다.'
@@ -552,7 +551,7 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
     (edit)이면 멈춘 payload의 장면을 step으로 알린 뒤 waiting(awaitingScene)을 보낸다. 응답 헤더를 보낸 뒤라
     Router 실패·대화 오류는 HTTP 상태 대신 error 이벤트 하나로 알린다.
     """
-    errors = {IntentFailure: ROUTER_FAILED_MESSAGE, ConversationMismatch: CONVERSATION_MISMATCH_MESSAGE,
+    errors = {ConversationMismatch: CONVERSATION_MISMATCH_MESSAGE,
               NothingToResume: NOTHING_TO_RESUME_MESSAGE, ConversationUnavailable: CONVERSATION_UNAVAILABLE_MESSAGE,
               ConversationNotFound: CONVERSATION_NOT_FOUND_MESSAGE}
     content_mcp.AUTHORIZATION.set(authorization)
@@ -589,7 +588,7 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
                     yield ServerSentEvent(event='step', data=answered)
                 if node in ('main_agent', 'scene', 'apply') and _next(state) == 'scene':
                     yield ServerSentEvent(event='started', data={'feature': 'character_simulation'})
-    except SceneRejected as error:
+    except (SceneRejected, IntentFailure) as error:  # 판정 실패는 원인별 고정 문구(제공사 한도·인증·시간 초과 등)를 그대로 보인다
         yield ServerSentEvent(event='error', data={'message': str(error)})
         return
     except tuple(errors) as error:
