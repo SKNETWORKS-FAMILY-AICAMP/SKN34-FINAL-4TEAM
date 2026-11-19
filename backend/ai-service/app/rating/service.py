@@ -1,6 +1,6 @@
 """심의 등급 판별: 작가의 회차 초안을 판별 항목별 수준으로 평가하고, 문턱값으로 회차·묶음 판정을 계산한다.
 
-초안·연결 세계관은 Content MCP(DEC-49)로 요청한 작가의 권한으로 읽고, Retrieval·Simulation은 부르지 않는다. 모델에는 회차의 제목·작가 메모·
+초안·세계관(연결 → Fork 상속, `content_mcp.linked_world`)은 Content MCP(DEC-49)로 요청한 작가의 권한으로 읽고, Retrieval·Simulation은 부르지 않는다. 모델에는 회차의 제목·작가 메모·
 초안과 그 회차까지 공개된 인물 카드(미성년 여부 판단용), 비속어 빈도(규칙 신호)를 보낸다. 근거 구절은 초안에서만 인정한다.
 모든 회차를 먼저 읽어 하나라도 실패하면 모델을 부르지 않고, 회차 판별은 서로 독립이라 동시에 부른다.
 결과는 판정 제안이며 작품 등급을 바꾸지 않는다. 모델 응답을 확인할 수 없거나 근거 구절이 그 회차 초안에 없으면 그 회차만 판별 실패로 둔다.
@@ -77,12 +77,11 @@ def _draft(work_id: str, number: int) -> content_mcp.Draft:
 
 
 def _characters(work_id: str, episode: int) -> list[Card]:
-    """작품에 연결된 세계관의 인물 카드. 심의는 세계관 없이도 할 수 있어 연결이 없으면 인물 없이 판별한다(Review와 다름)."""
+    """작품에 연결된(없으면 Fork가 이어받는 원작의, #524) 세계관의 인물 카드. 심의는 세계관 없이도 할 수 있어 둘 다 없으면 인물 없이 판별한다(Review와 다름)."""
+    if (read := content_mcp.linked_world(work_id, episode)) is None:
+        return []
     try:
-        linked = next((w['worldId'] for w in content_mcp.call('world_studio_list', {}) if w.get('linkedWorkId') == work_id), None)
-        if linked is None:
-            return []
-        world = world_snapshot(content_mcp.call('world_studio_read', {'id': linked, 'episode': str(episode)}), episode)
-    except (LookupError, TypeError, AttributeError, ValueError):
+        world = world_snapshot(read, episode)
+    except ValueError:
         raise RatingFailure(502, BAD_CONTENT) from None
     return [c for c in world.cards if c.cardType == 'character']

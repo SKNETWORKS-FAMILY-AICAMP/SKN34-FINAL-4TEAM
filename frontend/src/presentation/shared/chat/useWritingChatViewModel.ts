@@ -15,7 +15,7 @@ const message = (error: unknown, fallback: string) => (error instanceof Error &&
  * 스트림이 끝나거나 실패하면 이력을 다시 읽어 저장된 상태를 그대로 보인다(실패를 성공처럼 남기지 않는다).
  * workId가 없거나(연결 소설 없음) basis가 없으면(발행 회차 없음) 보내지 않는다.
  */
-export function useWritingChatViewModel(workId: string | null, basis: ChatBasis | null, onApplied?: (episode: number) => void) {
+export function useWritingChatViewModel(workId: string | null, basis: ChatBasis | null, onApplied?: (episode: number) => void, onWorldApplied?: () => void) {
   const useCase = appContainer.resolve('writingChatUseCase')
   const [sessions, setSessions] = useState<ChatSession[] | null>(null)
   const [threadId, setThreadId] = useState<string | null>(null)
@@ -24,7 +24,6 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   const [live, setLive] = useState<LiveTurn | null>(null)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
-  const [consent, setConsent] = useState(false)
   // 턴 사이에 멈춘 시뮬레이션 장면이 작가 조작을 기다리게 된 횟수(무대가 자동 재생이면 이 값이 오를 때마다 다음 턴을 보낸다).
   const [sceneTicket, setSceneTicket] = useState(0)
   const active = useRef<AbortController | null>(null)
@@ -33,6 +32,9 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   // 작품(또는 UseCase)이 바뀔 때마다 오른다. 이전 작품의 요청이 뒤늦게 이 작품의 목록·장면 신호를 건드리지 못하게 한다.
   const generation = useRef(0)
   current.current = threadId
+  // 스트림은 몇 분 걸릴 수 있어 World 반영 알림은 시작할 때가 아니라 도착한 지금의 핸들러로 보낸다(그사이 저장하지 않은 변경이 생길 수 있다).
+  const worldApplied = useRef(onWorldApplied)
+  worldApplied.current = onWorldApplied
 
   const refreshSessions = useCallback(async (pick = false) => {
     if (!useCase || !workId) return
@@ -81,7 +83,7 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
   /** 스트림 하나를 끝까지 읽고 이력·목록을 다시 읽는다. 실패도 저장 여부는 이력이 알려 준다. */
   async function stream(request: string, input: ChatSendBody, editIndex?: number) {
     if (active.current) return false
-    if (!useCase || !workId || !basis || !consent) { setError(lockedReason ?? '지금은 보낼 수 없어요.'); return false }
+    if (!useCase || !workId || !basis) { setError(lockedReason ?? '지금은 보낼 수 없어요.'); return false }
     const controller = new AbortController()
     active.current = controller
     const owner = generation.current
@@ -96,11 +98,12 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
     try {
       id ??= await useCase.open(workId, controller.signal)
       if (!threadId) { current.current = id; setThreadId(id) }
-      await useCase.send(workId, id, { ...basis, consent: true, ...input }, (event) => {
+      await useCase.send(workId, id, { ...basis, ...input }, (event) => {
         if (active.current !== controller) return
         if (event.type === 'error') { ok = false; setError(event.message) }
         if (event.type === 'waiting' && event.awaitingScene === 'character_simulation') sceneWaits = true
-        if (event.type === 'step' && event.step.applied) onApplied?.(event.step.applied.episode)
+        // World 반영은 회차 초안이 아니라 설정집 초안을 바꾼다(applied.episode는 회차가 아니다).
+        if (event.type === 'step' && event.step.applied) { if (event.step.feature === 'world') worldApplied.current?.(); else onApplied?.(event.step.applied.episode) }
         apply(event)
       }, controller.signal, editIndex)
     } catch (failure) {
@@ -130,15 +133,14 @@ export function useWritingChatViewModel(workId: string | null, basis: ChatBasis 
 
   const lockedReason = !useCase ? '데모에서는 집필 AI 채팅을 지원하지 않아요.'
     : !workId ? '세계관에 소설을 연결하면 그 소설을 근거로 AI와 대화할 수 있어요.'
-      : !basis ? '회차를 하나 이상 발행하면 AI와 대화할 수 있어요. AI는 발행한 회차를 근거로 답해요.'
-        : !consent ? '입력창 위에서 OpenAI 전송 및 API 비용에 동의해 주세요.' : undefined
+      : !basis ? '회차를 하나 이상 발행하면 AI와 대화할 수 있어요. AI는 발행한 회차를 근거로 답해요.' : undefined
   const waiting = !live && turns.at(-1)?.reply?.status === 'waiting' ? turns.at(-1)!.reply! : null
   // 인물 시뮬레이션 장면(#58 무대): 흐르는 중이면 SSE로 받은 단계, 아니면 저장된 마지막 응답의 단계. 장면을 못 읽은 단계는 simulation 없이 실패로 온다.
   const simulationStep = (live ? live.steps : turns.at(-1)?.reply?.steps)?.find((step) => step.feature === 'character_simulation') ?? null
   const awaiting = waiting?.awaitingScene === 'character_simulation' ? 'scene' as const : waiting?.awaitingApproval === 'character_simulation' ? 'approval' as const : null
 
   return {
-    sessions, threadId, title, turns, live, waiting, pending, error, consent, setConsent, lockedReason,
+    sessions, threadId, title, turns, live, waiting, pending, error, lockedReason,
     available: !!useCase && !!workId && !!basis, basisEpisode: basis?.episode ?? null,
     // 결과를 반영할 회차(작가가 연 회차). 근거 회차와 다를 수 있다(5화 초안은 4화까지를 근거로 5화에 반영한다).
     targetEpisode: basis?.targetEpisode ?? basis?.episode ?? null,

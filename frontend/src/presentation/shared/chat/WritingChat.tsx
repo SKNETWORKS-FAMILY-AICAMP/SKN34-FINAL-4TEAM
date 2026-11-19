@@ -5,7 +5,7 @@ import { featureLabel, PLAN_LABEL, replyOutcome, replyText, reviewCheckLabel, st
 import type { ChatMessage } from '../../../domain/entities/chat'
 import { ComposeIcon, MoreIcon, SparkIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
-import { ChatPanel, ConsentCheck } from './ChatPanel'
+import { ChatPanel } from './ChatPanel'
 import { useWritingChatViewModel, type ChatViewModel, type LiveTurn } from './useWritingChatViewModel'
 
 const stateLabel = { done: '완료', run: '진행 중', wait: '대기', stop: '멈춤', fail: '실패', skip: '건너뜀' } as const
@@ -69,37 +69,37 @@ function SceneWait({ reply, onOpenStage }: { reply: ChatReply; onOpenStage?: () 
   </div>
 }
 
-/** 멈춘 턴: 초안 반영 승인 또는 빠진 단계 입력. 승인 전에는 원고가 바뀌지 않는다. */
-function Waiting({ reply, episode, pending, lockedReason, onResume, onOpenStage }: {
-  reply: ChatReply; episode: number | null; pending: boolean; lockedReason?: string
-  onResume: (approved: boolean, inputs?: ChatStepInputs) => void; onOpenStage?: () => void
+/** 멈춘 턴: 초안 반영 승인(World 제안은 설정집 초안, #546) 또는 빠진 단계 입력. 승인 전에는 원고·설정집이 바뀌지 않는다. */
+function Waiting({ reply, episode, pending, onResume, onOpenStage }: {
+  reply: ChatReply; episode: number | null; pending: boolean; onResume: (approved: boolean, inputs?: ChatStepInputs) => void; onOpenStage?: () => void
 }) {
   const id = useId()
   const [question, setQuestion] = useState('')
   const [plan, setPlan] = useState('')
   const [check, setCheck] = useState<ReviewCheck | null>(null)
   const [fix, setFix] = useState<number | null>(null)
-  const blocked = pending || Boolean(lockedReason)
-  const reasonId = lockedReason ? `${id}-locked` : undefined
-  const reason = lockedReason && <p id={reasonId} className="chat-note">{lockedReason}</p>
-  const draft = reply.steps.find((s) => s.feature === 'writing_editing' && s.status === 'completed')
+  // World 제안(enrich)은 회차 원고가 아니라 설정집 초안에 반영한다(#546): 승인 대상 단계와 문구를 대기 기능으로 가른다. 읽지 못한(형식 오류) 제안은 보이지 않으므로 반영 버튼을 잠근다.
+  const world = reply.awaitingApproval === 'world'
+  const draft = reply.steps.find((s) => s.feature === (world ? 'world' : 'writing_editing') && s.status === 'completed')
   const planLine = draft ? usedPlan(draft) : ''
   // 같은 턴에 끝난 다른 단계(심의 등급 등). 승인을 기다리는 동안 대기 응답은 메시지 목록에 없어 여기서만 보인다(#493).
-  const others = reply.steps.filter((s) => s !== draft && (s.status === 'completed' || s.status === 'failed'))
+  // 같은 턴의 후보 검수(#538)는 반영 여부를 정할 근거라 부가 작업 목록에 묻지 않고 미리보기 바로 아래에 따로 보인다.
+  const candidateReview = reply.steps.find((s) => s.feature === 'manuscript_review' && s.status === 'completed' && s.manuscriptReview?.candidate)
+  const others = reply.steps.filter((s) => s !== draft && s !== candidateReview && (s.status === 'completed' || s.status === 'failed'))
   if (reply.awaitingApproval === 'character_simulation' || reply.awaitingScene === 'character_simulation') return <SceneWait reply={reply} onOpenStage={onOpenStage} />
   if (reply.awaitingApproval) {
-    return <section className="chat-hitl" aria-labelledby={`${id}-t`} aria-describedby={reasonId}>
-      <h3 id={`${id}-t`}>{reply.approvalEpisode ? `${reply.approvalEpisode}화 초안에 반영할까요?` : '이 제안을 초안에 반영할까요?'}</h3>
+    return <section className="chat-hitl" aria-labelledby={`${id}-t`}>
+      <h3 id={`${id}-t`}>{world ? '이 제안을 설정집 초안에 반영할까요?' : reply.approvalEpisode ? `${reply.approvalEpisode}화 초안에 반영할까요?` : '이 제안을 초안에 반영할까요?'}</h3>
       {draft && <div className="chat-hitl-preview" tabIndex={0} aria-label="반영할 내용">{stepText(draft)}</div>}
+      {candidateReview && <div className="chat-hitl-preview" tabIndex={0} aria-label="후보 검수 결과">{stepText(candidateReview)}</div>}
       {planLine && <p className="chat-plan" tabIndex={0}><b>{PLAN_LABEL}</b>{planLine.slice(PLAN_LABEL.length)}</p>}
       {!!others.length && <ul className="chat-hitl-others" tabIndex={0} aria-label="같이 끝난 작업">{others.map((s, i) => <li key={`${s.feature}-${i}`}>
         <span className="chat-step-name">{featureLabel[s.feature] ?? s.feature}</span><p>{stepText(s)}</p>
       </li>)}</ul>}
-      <p className="chat-note">반영하면 작업 중인 초안만 바뀌고 발행되지 않아요. 반영하지 않아도 제안은 대화에 남아요.</p>
-      {reason}
+      <p className="chat-note">{world ? '반영하면 설정집 초안만 바뀌고 확정 버전은 남지 않아요.' : '반영하면 작업 중인 초안만 바뀌고 발행되지 않아요.'} 반영하지 않아도 제안은 대화에 남아요.</p>
       <div className="chat-hitl-actions">
-        <button type="button" className="btn sm pri" disabled={blocked} onClick={() => onResume(true)}>초안에 반영</button>
-        <button type="button" className="btn sm" disabled={blocked} onClick={() => onResume(false)}>반영하지 않기</button>
+        <button type="button" className="btn sm pri" disabled={pending || (world && !draft)} onClick={() => onResume(true)}>{world ? '설정집 초안에 반영' : '초안에 반영'}</button>
+        <button type="button" className="btn sm" disabled={pending} onClick={() => onResume(false)}>반영하지 않기</button>
       </div>
     </section>
   }
@@ -108,18 +108,17 @@ function Waiting({ reply, episode, pending, lockedReason, onResume, onOpenStage 
   const fixing = reply.steps.some((s) => s.feature === 'writing_editing' && s.when === 'if_issues_found')
   // 선택 구간 수정(#387 task=patch)은 고칠 구간을 채팅에서 고를 수 없어 새 원고 계획 칸을 띄우지 않는다.
   const patching = !fixing && reply.steps.some((s) => s.feature === 'writing_editing' && s.task === 'patch')
-  const reviewed = reply.steps.find((s) => s.feature === 'review')
-  const confirmed = (reviewed?.review?.findings ?? [])
+  const reviewed = reply.steps.find((s) => s.feature === 'manuscript_review')
+  const confirmed = (reviewed?.manuscriptReview?.findings ?? [])
     .flatMap((f, i) => (f.status === 'confirmed' ? [{ ...f, index: i }] : []))
-  const filled = needs.every((f) => (f === 'web_research' ? question.trim() : f === 'writing_editing' ? (fixing ? fix !== null : !patching && plan.trim()) : f === 'review' ? check : false))
+  const filled = needs.every((f) => (f === 'web_research' ? question.trim() : f === 'writing_editing' ? (fixing ? fix !== null : !patching && plan.trim()) : f === 'manuscript_review' ? check : false))
   const inputs: ChatStepInputs = {
     ...(needs.includes('web_research') ? { web_research: { question: question.trim() } } : {}),
-    ...(needs.includes('review') && check ? { review: { check } } : {}),
+    ...(needs.includes('manuscript_review') && check ? { manuscript_review: { check } } : {}),
     ...(needs.includes('writing_editing') && fixing && fix !== null ? { writing_editing: { fix } } : {}),
     ...(needs.includes('writing_editing') && !fixing && !patching && episode ? { writing_editing: { draft: { episodeNumber: episode, plan: plan.trim() } } } : {}),
   }
-  return <form className="chat-hitl" aria-labelledby={`${id}-t`} aria-describedby={reasonId}
-    onSubmit={(e) => { e.preventDefault(); if (!blocked && filled) onResume(true, inputs) }}>
+  return <form className="chat-hitl" aria-labelledby={`${id}-t`} onSubmit={(e) => { e.preventDefault(); if (filled) onResume(true, inputs) }}>
     <h3 id={`${id}-t`}>작업에 필요한 내용을 알려 주세요</h3>
     <p className="chat-note">{needs.map((f) => featureLabel[f] ?? f).join(' · ')} 단계가 입력을 기다려요. 취소하면 아무 작업도 실행하지 않아요.</p>
     {needs.includes('web_research') && <label className="chat-field">조사할 질문
@@ -137,18 +136,17 @@ function Waiting({ reply, episode, pending, lockedReason, onResume, onOpenStage 
     {needs.includes('writing_editing') && !fixing && !patching && <label className="chat-field">쓸 장면 계획{episode ? ` · ${episode}화` : ''}
       <textarea rows={3} value={plan} maxLength={4000} onChange={(e) => setPlan(e.target.value)} placeholder="예: 선장이 항구에 도착해 옛 동료와 마주친다." />
     </label>}
-    {needs.includes('review') && <fieldset className="chat-choice">
+    {needs.includes('manuscript_review') && <fieldset className="chat-choice">
       <legend>검수 종류{episode ? ` · ${episode}화 초안` : ''}</legend>
       {(['mechanical', 'semantic'] as const).map((c) => <label key={c}>
         <input type="radio" name={`${id}-check`} checked={check === c} onChange={() => setCheck(c)} />
         {reviewCheckLabel[c]}{c === 'semantic' && <span className="chat-note"> (연결된 세계관 설정과 대조)</span>}
       </label>)}
     </fieldset>}
-    {(patching || needs.some((f) => f !== 'web_research' && f !== 'writing_editing' && f !== 'review')) && <p className="chat-note">이 단계의 입력은 아직 화면에서 채울 수 없어요. 취소한 뒤 다른 요청으로 보내 주세요.</p>}
-    {reason}
+    {(patching || needs.some((f) => f !== 'web_research' && f !== 'writing_editing' && f !== 'manuscript_review')) && <p className="chat-note">이 단계의 입력은 아직 화면에서 채울 수 없어요. 취소한 뒤 다른 요청으로 보내 주세요.</p>}
     <div className="chat-hitl-actions">
-      <button type="submit" className="btn sm pri" disabled={blocked || !filled}>이어서 실행</button>
-      <button type="button" className="btn sm" disabled={blocked} onClick={() => onResume(false)}>취소</button>
+      <button type="submit" className="btn sm pri" disabled={pending || !filled}>이어서 실행</button>
+      <button type="button" className="btn sm" disabled={pending} onClick={() => onResume(false)}>취소</button>
     </div>
   </form>
 }
@@ -162,14 +160,16 @@ function Waiting({ reply, episode, pending, lockedReason, onResume, onOpenStage 
 type WritingChatProps = {
   workId: string | null; emptyTitle: string; emptyText: string; suggestions: string[]; onOpenStage?: () => void
   chat?: ChatViewModel; basis?: ChatBasis | null; onApplied?: (episode: number) => void
+  /** World 제안이 설정집 초안에 반영됐다(#546). 세계관 화면이 초안을 다시 읽는다. 집필실처럼 chat을 직접 만든 화면은 그 Hook에 넘긴다. */
+  onWorldApplied?: () => void
 }
 
-export function WritingChat({ chat, basis = null, onApplied, ...rest }: WritingChatProps) {
-  return chat ? <WorkChat key={rest.workId} vm={chat} {...rest} /> : <OwnedChat key={rest.workId} basis={basis} onApplied={onApplied} {...rest} />
+export function WritingChat({ chat, basis = null, onApplied, onWorldApplied, ...rest }: WritingChatProps) {
+  return chat ? <WorkChat key={rest.workId} vm={chat} {...rest} /> : <OwnedChat key={rest.workId} basis={basis} onApplied={onApplied} onWorldApplied={onWorldApplied} {...rest} />
 }
 
-function OwnedChat({ basis, onApplied, ...rest }: Omit<WritingChatProps, 'chat'>) {
-  const vm = useWritingChatViewModel(rest.workId, basis ?? null, onApplied)
+function OwnedChat({ basis, onApplied, onWorldApplied, ...rest }: Omit<WritingChatProps, 'chat'>) {
+  const vm = useWritingChatViewModel(rest.workId, basis ?? null, onApplied, onWorldApplied)
   return <WorkChat vm={vm} {...rest} />
 }
 
@@ -255,10 +255,8 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage }: { vm:
       emptyTitle={emptyTitle} emptyText={emptyText} suggestions={[...suggestions, ...simulationExamples]} renderCard={stepDetails} renderActions={actions}
       after={live || vm.waiting || vm.error ? <>
         {live && <Progress live={live} onOpenStage={onOpenStage} />}
-        {vm.waiting && <Waiting key={`${vm.threadId}-${vm.turns.length}`} reply={vm.waiting} episode={vm.targetEpisode}
-          pending={vm.pending} lockedReason={vm.lockedReason} onResume={(approved, inputs) => void vm.resume(approved, inputs)} onOpenStage={onOpenStage} />}
+        {vm.waiting && <Waiting key={`${vm.threadId}-${vm.turns.length}`} reply={vm.waiting} episode={vm.targetEpisode} pending={vm.pending} onResume={(approved, inputs) => void vm.resume(approved, inputs)} onOpenStage={onOpenStage} />}
         {vm.error && <div className="chat-error" role="alert"><p>{vm.error}</p><button type="button" className="btn sm" onClick={vm.retry}>다시 불러오기</button></div>}
-      </> : undefined}
-      composerTop={vm.available && <ConsentCheck checked={vm.consent} onChange={vm.setConsent} />} />
+      </> : undefined} />
   </>
 }

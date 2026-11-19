@@ -22,7 +22,6 @@ it('discards a message edit when switching to another conversation', async () =>
   }))
   render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
   expect(await screen.findByText('첫 질문')).toBeTruthy()
-  fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.click(screen.getByRole('button', { name: '수정' }))
   expect(screen.getByLabelText('고칠 메시지')).toBeTruthy()
   fireEvent.change(screen.getByLabelText('대화 고르기'), { target: { value: 'b' } })
@@ -70,6 +69,22 @@ it('승인 카드는 같은 턴에 끝난 다른 단계 결과도 짧게 보인�
   expect(within(others).queryByText('선장은 항구에 내렸다.')).toBeNull()
 })
 
+it('승인 카드는 같은 턴의 후보 검수 결과를 반영할 내용 바로 아래에 따로 보인다(#538)', async () => {
+  sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
+  const finding = { category: 'spelling', quote: '웃엇다', reason: '맞춤법', status: 'confirmed', evidenceRefs: [], suggestion: '웃었다', start: 0, end: 3 }
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [{
+    request: '다음 장면 쓰고 검수해 줘',
+    reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 1, steps: [
+      { feature: 'writing_editing', status: 'completed', result: { text: '선장은 웃엇다.' } },
+      { feature: 'manuscript_review', status: 'completed', manuscriptReview: { check: 'mechanical', episode: 1, revision: 4, findings: [finding], gaps: [], candidate: { selection: null } } },
+    ] },
+  }] })
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v1' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByRole('heading', { name: '1화 초안에 반영할까요?' })
+  expect(screen.getByLabelText('후보 검수 결과').textContent).toContain('"웃엇다"')
+  expect(screen.queryByLabelText('같이 끝난 작업')).toBeNull()
+})
+
 // ── 인물 시뮬레이션 장면(#58): 대본·승인은 집필실 무대가 맡고, 채팅에는 상태 한 줄과 무대 열기만 남는다 ──
 const turn = (index: number, name: string, prose: string): CharacterSimulation['turns'][number] => ({
   index, kind: 'character', pov: 'omniscient', characterId: `c${index}`, characterName: name, prose, editedByAuthor: false,
@@ -88,28 +103,6 @@ const openThread = (turns: unknown[]) => {
   sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
   history.mockResolvedValue({ threadId: 'a', title: '', turns })
 }
-
-it('저장된 승인 카드는 다시 동의할 위치를 안내하고 체크 뒤에만 반영을 요청한다', async () => {
-  openThread([{ request: '이어 써줘', reply: {
-    status: 'waiting', steps: [], missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 1,
-  } }])
-  send.mockResolvedValue(undefined)
-  renderChat()
-
-  const card = within(await screen.findByRole('region', { name: '1화 초안에 반영할까요?' }))
-  const approve = card.getByRole('button', { name: /^초안에 반영$/ })
-  expect(card.getByText(/입력창 위.*동의/)).toBeTruthy()
-  expect(approve).toHaveProperty('disabled', true)
-  expect(card.getByRole('button', { name: '반영하지 않기' })).toHaveProperty('disabled', true)
-  fireEvent.click(approve)
-  expect(send).not.toHaveBeenCalled()
-
-  fireEvent.click(screen.getByRole('checkbox'))
-  expect(card.queryByText(/입력창 위.*동의/)).toBeNull()
-  fireEvent.click(approve)
-  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
-  expect(send.mock.calls[0][2]).toMatchObject({ consent: true, resume: { approved: true } })
-})
 
 it('턴 사이에 멈춘 장면은 대본 대신 진행 상태 한 줄과 무대 열기만 보이고, 무대 열기가 호스트의 무대를 연다', async () => {
   openThread([{ request: '시뮬레이션', reply: { status: 'waiting', steps: [simStep(scene({ status: 'paused', turns: [turn(0, '카엘', '카엘이 문을 열었다.'), turn(1, '리안', '"저예요."')] }))], missingInputs: [], awaitingScene: 'character_simulation' } }])
@@ -182,18 +175,17 @@ it('함께 시작한 단계는 다른 단계의 결과가 먼저 와도 끝날 �
   })
   renderChat()
   await screen.findByText('새 대화', { selector: 'h3' })
-  fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '등급 보고 설정집도 검토해줘' } })
   fireEvent.click(screen.getByRole('button', { name: '전송' }))
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
   const run = async (event: ChatEvent) => { await act(async () => { emit(event) }) }
-  await run({ type: 'plan', steps: [{ feature: 'rating', status: 'not_started' }, { feature: 'world_review', status: 'not_started' }] })
+  await run({ type: 'plan', steps: [{ feature: 'rating', status: 'not_started' }, { feature: 'world', task: 'check', status: 'not_started' }] })
   await run({ type: 'started', feature: 'rating' })
-  await run({ type: 'started', feature: 'world_review' })
+  await run({ type: 'started', feature: 'world' })
   const progress = screen.getByRole('status', { name: 'AI 진행 상황' })
   const states = () => within(progress).getAllByText(/./, { selector: '.chat-step-state' }).map((e) => e.textContent)
   expect(states()).toEqual(['진행 중', '진행 중'])
-  await run({ type: 'step', step: { feature: 'world_review', status: 'failed', error: '검토 실패' } })
+  await run({ type: 'step', step: { feature: 'world', task: 'check', status: 'failed', error: '검토 실패' } })
   expect(states()).toEqual(['진행 중', '실패'])
 })
 
@@ -207,7 +199,6 @@ it('진행 중 step이 올 때마다 진행 표시는 상태 알림 안에 단�
   })
   renderChat(vi.fn())
   await screen.findByText('새 대화', { selector: 'h3' })
-  fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '만약 카엘이 성문을 열었다면?' } })
   fireEvent.click(screen.getByRole('button', { name: '전송' }))
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
@@ -239,7 +230,6 @@ it('턴 사이 대기(paused) 장면을 진행 표시에서 대기나 완료로 
   })
   renderChat()
   await screen.findByText('새 대화', { selector: 'h3' })
-  fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '시뮬레이션' } })
   fireEvent.click(screen.getByRole('button', { name: '전송' }))
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
@@ -258,9 +248,6 @@ it('시뮬레이션 단계가 전제·비트를 기다리면 화면에서 채울
   expect(within(form).getByText(/인물 시뮬레이션 단계가 입력을 기다려요/)).toBeTruthy()
   expect(within(form).getByText(/화면에서 채울 수 없어요/)).toBeTruthy()
   expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
-  expect(within(form).getByRole('button', { name: '취소' })).toHaveProperty('disabled', true)
-  fireEvent.click(screen.getByRole('checkbox'))
-  expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
   expect(within(form).getByRole('button', { name: '취소' })).toHaveProperty('disabled', false)
 })
 
@@ -270,7 +257,6 @@ it('집필 입력 대기는 근거 회차가 아니라 열린(반영) 회차의 
   render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
   const form = (await screen.findByRole('heading', { name: '작업에 필요한 내용을 알려 주세요' })).closest('form') as HTMLElement
   fireEvent.change(within(form).getByLabelText(/쓸 장면 계획 · 2화/), { target: { value: '선장이 항구에 도착한다.' } })
-  fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.click(within(form).getByRole('button', { name: '이어서 실행' }))
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
   expect(send.mock.calls[0][2]).toMatchObject({
@@ -290,28 +276,23 @@ it('부분 수정(task=patch) 입력 대기는 새 원고 계획 칸을 띄우�
 })
 
 it('원고 검수 입력 대기는 검수 종류를 골라야 이어서 실행하고, 고른 종류를 단계 입력으로 보낸다', async () => {
-  openThread([{ request: '검수해 줘', reply: { status: 'waiting', steps: [], missingInputs: ['review'], awaitingApproval: null } }])
+  openThread([{ request: '검수해 줘', reply: { status: 'waiting', steps: [], missingInputs: ['manuscript_review'], awaitingApproval: null } }])
   send.mockResolvedValue(undefined)
   render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
   const form = (await screen.findByRole('heading', { name: '작업에 필요한 내용을 알려 주세요' })).closest('form') as HTMLElement
   expect(within(form).getByRole('group', { name: '검수 종류 · 2화 초안' })).toBeTruthy()
   expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
   fireEvent.click(within(form).getByRole('radio', { name: /설정·개연성/ }))
-  expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
-  expect(within(form).getByRole('button', { name: '취소' })).toHaveProperty('disabled', true)
-  fireEvent.submit(form)
-  expect(send).not.toHaveBeenCalled()
-  fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.click(within(form).getByRole('button', { name: '이어서 실행' }))
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
-  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true, inputs: { review: { check: 'semantic' } } } })
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true, inputs: { manuscript_review: { check: 'semantic' } } } })
 })
 
 it('조건부 수정 입력 대기는 확정 지적만 보기로 두고, 고른 지적 번호를 단계 입력으로 보낸다(#370)', async () => {
   const finding = (quote: string, status: string) => ({ category: 'spelling', quote, reason: `${quote} 오류`, status, evidenceRefs: [], suggestion: '', start: status === 'confirmed' ? 0 : null, end: status === 'confirmed' ? 1 : null })
   const review = { check: 'mechanical', episode: 2, revision: 4, gaps: [], findings: [finding('웃엇다', 'confirmed'), finding('비가', 'suspected'), finding('말햇다', 'confirmed')] }
   openThread([{ request: '검수하고 틀리면 고쳐 줘', reply: { status: 'waiting', missingInputs: ['writing_editing'], awaitingApproval: null, steps: [
-    { feature: 'review', status: 'completed', review }, { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' }] } }])
+    { feature: 'manuscript_review', status: 'completed', manuscriptReview: review }, { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' }] } }])
   send.mockResolvedValue(undefined)
   render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
   const form = (await screen.findByRole('heading', { name: '작업에 필요한 내용을 알려 주세요' })).closest('form') as HTMLElement
@@ -320,7 +301,6 @@ it('조건부 수정 입력 대기는 확정 지적만 보기로 두고, 고른 
   expect(within(form).queryByRole('textbox')).toBeNull()  // 장면 계획을 적는 새 원고 입력이 아니다
   expect(within(form).getByRole('button', { name: '이어서 실행' })).toHaveProperty('disabled', true)
   fireEvent.click(within(group).getByRole('radio', { name: /말햇다/ }))
-  fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.click(within(form).getByRole('button', { name: '이어서 실행' }))
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
   expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true, inputs: { writing_editing: { fix: 2 } } } })
@@ -330,7 +310,7 @@ it('조건부 수정 지적 고르기 중에도 직전 검수 결과(제안·의
   const finding = (quote: string, status: string) => ({ category: 'spelling', quote, reason: `${quote} 오류`, status, evidenceRefs: [], suggestion: `${quote} 고침`, start: status === 'confirmed' ? 0 : null, end: status === 'confirmed' ? 1 : null })
   const review = { check: 'mechanical', episode: 2, revision: 4, gaps: ['날짜 비교 대상 없음'], findings: [finding('웃엇다', 'confirmed'), finding('비가', 'suspected'), finding('말햇다', 'confirmed')] }
   openThread([{ request: '검수하고 틀리면 고쳐 줘', reply: { status: 'waiting', missingInputs: ['writing_editing'], awaitingApproval: null, steps: [
-    { feature: 'review', status: 'completed', review }, { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' }] } }])
+    { feature: 'manuscript_review', status: 'completed', manuscriptReview: review }, { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' }] } }])
   render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v', targetEpisode: 2 }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
   const form = (await screen.findByRole('heading', { name: '작업에 필요한 내용을 알려 주세요' })).closest('form') as HTMLElement
   const result = within(form).getByLabelText('검수 결과').textContent
@@ -348,12 +328,11 @@ it('건너뛴 조건부 수정 단계는 진행 표시에서 대기가 아니라
   })
   renderChat(vi.fn())
   await screen.findByText('새 대화', { selector: 'h3' })
-  fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '검수하고 틀리면 고쳐 줘' } })
   fireEvent.click(screen.getByRole('button', { name: '전송' }))
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
-  await act(async () => { emit({ type: 'plan', steps: [{ feature: 'review', status: 'not_started' }, { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' }] }) })
-  await act(async () => { emit({ type: 'step', step: { feature: 'review', status: 'completed', review: { check: 'mechanical', episode: 2, revision: 4, findings: [], gaps: [] } } }) })
+  await act(async () => { emit({ type: 'plan', steps: [{ feature: 'manuscript_review', status: 'not_started' }, { feature: 'writing_editing', when: 'if_issues_found', status: 'not_started' }] }) })
+  await act(async () => { emit({ type: 'step', step: { feature: 'manuscript_review', status: 'completed', manuscriptReview: { check: 'mechanical', episode: 2, revision: 4, findings: [], gaps: [] } } }) })
   await act(async () => { emit({ type: 'step', step: { feature: 'writing_editing', when: 'if_issues_found', status: 'skipped', error: '고칠 문제가 없어요.' } }) })
   const progress = screen.getByRole('status', { name: 'AI 진행 상황' })
   expect(within(progress).getByText('건너뜀', { selector: '.chat-step-state' })).toBeTruthy()
@@ -365,8 +344,109 @@ it('빈 대화에는 IF·흐름 시뮬레이션 예시를 추천 칩으로 보�
   renderChat()
   const log = await screen.findByRole('log')
   for (const name of ['다음 장면 아이디어', 'IF 시뮬레이션: "만약 ~했다면?"', '흐름 시뮬레이션: 비트를 적어 요청']) expect(within(log).getByRole('button', { name })).toBeTruthy()
-  fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.click(within(log).getByRole('button', { name: 'IF 시뮬레이션: "만약 ~했다면?"' }))
   expect((screen.getByRole('textbox', { name: '메시지' }) as HTMLTextAreaElement).value).toBe('IF 시뮬레이션: "만약 ~했다면?"')
   expect(send).not.toHaveBeenCalled()
+})
+
+it('동의 체크 없이 바로 보내고 요청에 동의 값을 싣지 않는다(#542)', async () => {
+  openThread([])
+  send.mockResolvedValue(undefined)
+  renderChat()
+  await screen.findByText('새 대화', { selector: 'h3' })
+  expect(screen.queryByRole('checkbox', { name: /OpenAI/ })).toBeNull()
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '길드 규칙은?' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).not.toHaveProperty('consent')
+})
+
+// ── World 단계(#546): enrich 제안은 설정집 초안에 반영할지 묻고, 반영되면 세계관 화면(onWorldApplied)이 초안을 다시 읽는다 ──
+const enrichStep: ChatStep = {
+  feature: 'world', task: 'enrich', status: 'completed',
+  world: { task: 'enrich', note: '북문 규칙에 맞췄어요.', fixes: [
+    { cardId: 'c1', cardTitle: '카엘', target: 'soul', episode: null, text: '말수가 적고 단호하다.' },
+    { cardId: 'c1', cardTitle: '카엘', target: 'episode', episode: 3, text: '3화에서 비밀을 안다.' },
+  ] },
+}
+const worldApproval = () => openThread([{ request: '카엘 설정을 자세히 써 줘', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'world', approvalEpisode: 2, steps: [enrichStep] } }])
+
+it('World 제안의 승인 카드는 설정집 초안에 반영할지 묻고, 회차 문구 없이 각 칸의 새 글을 승인 전에 보인다', async () => {
+  worldApproval()
+  renderChat()
+  await screen.findByRole('heading', { name: '이 제안을 설정집 초안에 반영할까요?' })
+  expect(screen.queryByRole('heading', { name: /화 초안에 반영할까요/ })).toBeNull()
+  expect(screen.getByLabelText('반영할 내용').textContent).toBe('카엘 · SOUL\n말수가 적고 단호하다.\n\n카엘 · 3회차 문서\n3화에서 비밀을 안다.\n\n참고: 북문 규칙에 맞췄어요.')
+  expect(screen.getByRole('button', { name: '설정집 초안에 반영' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '반영하지 않기' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '초안에 반영' })).toBeNull()
+  expect(screen.getByText(/설정집 초안만 바뀌고 확정 버전은 남지 않아요/)).toBeTruthy()
+})
+
+it('승인을 기다리는 World 제안을 읽지 못하면(결과 형식 오류) 보이지 않는 제안을 반영하지 않도록 반영 버튼만 잠근다', async () => {
+  openThread([{ request: '카엘 설정을 자세히 써 줘', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'world',
+    steps: [{ feature: 'world', task: 'enrich', status: 'failed', error: '세계관 결과 형식을 확인할 수 없어요.' }] } }])
+  renderChat()
+  await screen.findByRole('heading', { name: '이 제안을 설정집 초안에 반영할까요?' })
+  expect(within(screen.getByLabelText('같이 끝난 작업')).getByText('실패: 세계관 결과 형식을 확인할 수 없어요.')).toBeTruthy()
+  expect(screen.getByRole('button', { name: '설정집 초안에 반영' })).toHaveProperty('disabled', true)
+  expect(screen.getByRole('button', { name: '반영하지 않기' })).toHaveProperty('disabled', false)
+})
+
+it('World 제안을 설정집 초안에 반영하면 승인으로, 반영하지 않기는 거절로 이어 보낸다', async () => {
+  worldApproval()
+  send.mockResolvedValue(undefined)
+  renderChat()
+  await screen.findByRole('heading', { name: '이 제안을 설정집 초안에 반영할까요?' })
+  fireEvent.click(screen.getByRole('button', { name: '설정집 초안에 반영' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true } })
+  fireEvent.click(await screen.findByRole('button', { name: '반영하지 않기' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(2))
+  expect(send.mock.calls[1][2]).toMatchObject({ resume: { approved: false } })
+})
+
+const worldStream = async (props: { onApplied?: () => void; onWorldApplied?: () => void }) => {
+  openThread([])
+  let emit!: (event: ChatEvent) => void
+  send.mockImplementation(async (_work: string, _thread: string, _input: unknown, onEvent: (event: ChatEvent) => void) => {
+    emit = onEvent
+    await new Promise<void>(() => {})
+  })
+  const view = render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} {...props} />)
+  await screen.findByText('새 대화', { selector: 'h3' })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '카엘 설정을 자세히 써 줘' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  return { view, run: async (event: ChatEvent) => { await act(async () => { emit(event) }) } }
+}
+
+it('World 반영(step.applied)은 설정집 초안 갱신(onWorldApplied)만 알리고 회차 초안 갱신(onApplied)은 부르지 않는다', async () => {
+  const onApplied = vi.fn()
+  const onWorldApplied = vi.fn()
+  const { run } = await worldStream({ onApplied, onWorldApplied })
+  await run({ type: 'step', step: { ...enrichStep, approval: 'approved', applied: { episode: 0, revision: 9 } } })
+  expect(onWorldApplied).toHaveBeenCalledTimes(1)
+  expect(onApplied).not.toHaveBeenCalled()
+  await run({ type: 'step', step: { feature: 'writing_editing', status: 'completed', result: { text: '본문' }, approval: 'approved', applied: { episode: 2, revision: 3 } } })
+  expect(onApplied).toHaveBeenCalledWith(2)
+  expect(onWorldApplied).toHaveBeenCalledTimes(1)
+})
+
+it('반영 없이 끝난 World 단계(제안만 도착·반영 거절)는 설정집 초안 갱신을 알리지 않는다', async () => {
+  const onWorldApplied = vi.fn()
+  const { run } = await worldStream({ onWorldApplied })
+  await run({ type: 'step', step: enrichStep })
+  await run({ type: 'step', step: { ...enrichStep, approval: 'declined' } })
+  expect(onWorldApplied).not.toHaveBeenCalled()
+})
+
+it('오래 걸린 스트림의 World 반영 알림은 시작할 때의 핸들러가 아니라 지금의 핸들러로 간다(저장하지 않은 변경 판단이 최신이어야 한다)', async () => {
+  const first = vi.fn()
+  const second = vi.fn()
+  const { view, run } = await worldStream({ onWorldApplied: first })
+  view.rerender(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} onWorldApplied={second} />)
+  await run({ type: 'step', step: { ...enrichStep, approval: 'approved', applied: { episode: 0, revision: 9 } } })
+  expect(second).toHaveBeenCalledTimes(1)
+  expect(first).not.toHaveBeenCalled()
 })

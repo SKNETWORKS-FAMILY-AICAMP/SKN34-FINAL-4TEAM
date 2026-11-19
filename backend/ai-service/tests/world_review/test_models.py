@@ -1,9 +1,10 @@
 import pytest
 from pydantic import ValidationError
 
-from app.world_review.models import MAX_CARD_CHARS, MAX_CARDS, Finding, Fix, WorldReviewRequest
+from app.world_review.models import (MAX_CARD_CHARS, MAX_CARDS, Affected, CardFix, EnrichResponse, Finding, Fix, ImpactResponse,
+                                     WorldReviewRequest)
 
-from .stubs import WORLD, card, request
+from .stubs import WORLD, affected, card, request
 
 
 def docs(**body):
@@ -77,3 +78,27 @@ def test_other_finding_kinds_and_fix_targets_are_rejected():
         Finding(cardIds=['a'], kind='typo', message='m', fix=None)
     with pytest.raises(ValidationError):
         Fix(cardId='a', target='title', episode=None, text='글')
+
+
+def test_refs_are_the_card_and_relationship_ids_in_input_order():
+    assert request().refs() == {'cards': ['seoyun', 'war', 'rule'], 'relationships': ['rel-1']}
+
+
+def test_enrich_response_has_exactly_the_contract_keys():
+    fixes = [CardFix(cardId='seoyun', cardTitle='서윤', target='episode', episode=3, text='새 글')]
+    shown = EnrichResponse(worldId='w', revision=7, fixes=fixes, note='보강했다', model='m').model_dump()
+    assert shown == {'worldId': 'w', 'revision': 7, 'note': '보강했다', 'model': 'm', 'fixes': [
+        {'cardId': 'seoyun', 'cardTitle': '서윤', 'target': 'episode', 'episode': 3, 'text': '새 글'}]}
+    assert issubclass(CardFix, Fix)  # 수정안 규칙(target·episode·text)은 check의 Fix와 같다
+
+
+def test_impact_response_has_exactly_the_contract_keys():
+    shown = ImpactResponse(affected=[affected(kind='scene', ref='scene-1', certainty='inferred')], conflicts=['충돌'], gaps=['모름'], model='m').model_dump()
+    assert shown == {'affected': [{'kind': 'scene', 'ref': 'scene-1', 'title': '서윤', 'reason': '나이 설정이 바뀐다.', 'certainty': 'inferred'}],
+                     'conflicts': ['충돌'], 'gaps': ['모름'], 'model': 'm'}
+
+
+@pytest.mark.parametrize('patch', [{'kind': 'plot'}, {'kind': 'chapter'}, {'certainty': 'likely'}, {'certainty': 'suspected'}])
+def test_affected_kinds_and_certainties_are_the_contract_values(patch):
+    with pytest.raises(ValidationError):
+        Affected(**{'kind': 'card', 'ref': 'a', 'title': 't', 'reason': 'r', 'certainty': 'confirmed', **patch})

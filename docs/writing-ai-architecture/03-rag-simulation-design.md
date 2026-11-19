@@ -1,6 +1,6 @@
 # 8개 필수 기능 설계
 
-집필 AI의 필수 기능은 여섯 업무 Agent(Story Context / Q&A, Manuscript Review, World, Writing & Editing, Research, Rating. 2026-11-19 사용자 결정으로 World Review → **World**(`check` 설정 충돌 검사·`enrich` 설정 보강·`impact` 설정 변경 영향 분석, World & Plot Management를 흡수), Web Research → **Research**(`web` 웹 조사·`platform` 플랫폼 내부 조사), 플롯(계획)은 Writing & Editing)와 공통 Character Simulation Subgraph다. 아래 1~8절은 이전 절 번호를 유지한다: 6절은 World `impact`, 7절은 Research, 8절은 World `check`·`enrich`다([목표 구조](02-ai-architecture.md#목표-구조-여섯-업무-agent-2026-11-19)). 원고 검수 Agent의 이름은 **Manuscript Review**다(2026-11-18 사용자 결정). 코드 식별자(`app/review/`, 기능 키 `review`, 도구 `ask_review`, `/internal/v1/reviews`)는 #499에서 `manuscript_review` 계열로 바꾸며, 그 전까지 문서의 코드 이름은 현재 이름 그대로다.
+집필 AI의 필수 기능은 여섯 업무 Agent(Story Context / Q&A, Manuscript Review, World, Writing & Editing, Research, Rating. 2026-11-19 사용자 결정으로 World Review → **World**(`check` 설정 충돌 검사·`enrich` 설정 보강·`impact` 설정 변경 영향 분석, World & Plot Management를 흡수), Web Research → **Research**(`web` 웹 조사·`platform` 플랫폼 내부 조사), 플롯(계획)은 Writing & Editing)와 공통 Character Simulation Subgraph다. 아래 1~8절은 이전 절 번호를 유지한다: 6절은 World `impact`, 7절은 Research, 8절은 World `check`·`enrich`다([목표 구조](02-ai-architecture.md#목표-구조-여섯-업무-agent-2026-11-19)). 원고 검수 Agent의 이름은 **Manuscript Review**다(2026-11-18 사용자 결정). 코드 식별자는 #499에서 `manuscript_review` 계열(`app/manuscript_review/`, 기능 키 `manuscript_review`, 도구 `ask_manuscript_review`, `/internal/v1/manuscript-reviews`)로 바꿨다.
 
 모든 기능은 Content가 검증한 작품/Fork·판본·공개 범위에서 시작한다. 업무 Agent는 각자의 역할과 입출력을 가지며 생성·판단에 `gpt-6-luna`를 사용하는 목표다. 역할마다 서버나 전용 모델 인스턴스를 추가하지 않는다. 공통 도구는 필요한 작업에서만 호출하고 실제 RAG 공급자는 기능이 필요할 때 연결한다. [전체 구조](02-ai-architecture.md) · [검색 계약](07-retrieval-contract-and-mocks.md)
 
@@ -15,7 +15,7 @@ Retrieval은 Writing & Editing을 제외한 업무 Agent가 필요할 때 재사
 
 ## 1. Story Context / Q&A
 
-작품 정보 조회와 질문 응답을 담당한다. 이름·나이·관계·특정 원문 같은 정확한 질문은 Content 정본과 Neo4j 관계에서 확인한다. 관계는 지금 Content 내부 검색 API가 주는 최신 관계이며 기준 회차 시점이 아니다. Manuscript Review처럼 Content MCP로 회차 시점 관계를 읽게 바꾸는 일은 #490이다. 서사적 이유·회차 간 연결은 허용 원고 검색과, 구축된 뒤에는 Wiki의 사건 경로를 쓴다. 답변은 주장별 출처·판본·확인/추론/불명 상태를 표시한다. 질문에 필요한 자료가 없으면 모른다고 답한다. 조회만으로 정본을 변경하지 않는다.
+작품 정보 조회와 질문 응답을 담당한다. 이름·나이·관계·특정 원문 같은 정확한 질문은 Content 정본과 Neo4j 관계에서 확인한다. 집필 AI 대화의 Q&A는 원고를 Content 내부 검색 API(Retrieval)로, 설정·관계를 Manuscript Review와 같은 Content MCP 세계관 읽기(기준 회차 시점의 WorldStudio 카드·관계)로 받는다([#490 근거 경로](07-retrieval-contract-and-mocks.md#qa-세계관-근거-490)). 집필실·독서 화면의 작품 Q&A 패널은 출처가 달라 제거했고(#525) 작품 질문은 집필 AI 대화로만 한다. 서사적 이유·회차 간 연결은 허용 원고 검색과, 구축된 뒤에는 Wiki의 사건 경로를 쓴다. 답변은 주장별 출처·판본·확인/추론/불명 상태를 표시한다. 질문에 필요한 자료가 없으면 모른다고 답한다. 조회만으로 정본을 변경하지 않는다.
 
 ## 2. Manuscript Review Agent
 
@@ -28,7 +28,7 @@ Mechanical만 요청하면 Semantic과 Simulation을 실행하지 않는다. Sem
 
 ### 현재 구현 — MVP (#59)
 
-`backend/ai-service/app/review/`의 내부 API `POST /internal/v1/reviews {workId, episode, check: mechanical|semantic|both}`이고, 집필 AI 오케스트레이션의 `review` 단계가 같은 service를 부른다(검사 종류는 단계 입력 `review.check`, 대상은 Content가 확인한 `target` 반영 회차, 승인·반영 없음). 메인 에이전트가 요청에서 검사 종류를 알아내면 `ask_review(check)`로 넘겨 묻지 않고, 모르면 집필실 채팅이 입력 대기에서 고르게 하며 지적을 상태·분류·구절·이유·제안으로 보인다. 단독 Content 공개 API는 없다.
+`backend/ai-service/app/manuscript_review/`의 내부 API `POST /internal/v1/manuscript-reviews {workId, episode, check: mechanical|semantic|both}`이고, 집필 AI 오케스트레이션의 `manuscript_review` 단계가 같은 service에서 저장된 초안이나 같은 턴의 집필 후보를 검수한다(검사 종류는 단계 입력 `manuscript_review.check`, 대상은 Content가 확인한 `target` 반영 회차, 승인·반영 없음). 메인 에이전트가 요청에서 검사 종류를 알아내면 `ask_manuscript_review(check)`로 넘겨 묻지 않고, 모르면 집필실 채팅이 입력 대기에서 고르게 하며 지적을 상태·분류·구절·이유·제안으로 보인다. 단독 Content 공개 API는 없다.
 
 1. Content가 전달한 작가 Bearer(`X-User-Authorization`)로 Content MCP `episode_read`를 불러 작성 중 초안 본문과 `revision`을 읽는다. 빈 초안은 모델 호출 없이 422다.
 2. `semantic`만 `world_studio_list`에서 작품에 연결된 세계관을 찾아 `world_studio_read(episode)`로 그 회차 시점 관계를 읽는다. 연결이 없으면 Fork가 이어받는 원작 세계관(`work_inherited_world`, 공개 카드·Fork 기준 회차까지 읽기 전용, [계약](../design/character-simulation-contract.md#fork-이어받기-365))을 읽고 그것도 없으면 409다. 그 회차까지 공개된 카드(`revealFromEpisode ≤ episode`, 인물 회차 기억도 그 회차까지)와 두 끝이 모두 공개된 관계만 `card:<id>`·`relation:<id>` 설정으로 보낸다. `mechanical`은 초안만 보낸다. 어느 쪽도 Simulation·Retrieval을 부르지 않는다.
@@ -92,7 +92,7 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 
 ## 4. Writing & Editing Agent
 
-기획·새 원고·기존 원고 수정의 세 작업은 입력·출력·저장 검증이 각각 다르다.
+현재 구현된 기획·새 원고 작성·기존 원고 수정은 입력·출력·저장 검증이 각각 다르다.
 
 - **전개 기획:** 앞선 사건, 콘티, 목표 회차와 허용된 설정을 받아 앞으로의 전개 대안·인사이트·다음 화 아이디어와 사건·장면 순서를 BeatPlan으로 반환한다. 예정 사건과 확정 사건을 구분한다. 기획만 요청하면 BeatPlan만 반환하고 원고를 생성하거나 저장하지 않는다. 계획을 원고 정본처럼 저장하지 않는다.
   - 바로 집필하라는 요청(“11화 전개를 계획하고 그 계획으로 써줘”)은 한 단계 안에서 집필용 BeatPlan 하나를 정해 새 원고로 이어 쓴다. 결과에는 사용한 BeatPlan과 Text를 구분해 보인다.
@@ -100,7 +100,7 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 - **새 원고:** 목표 회차와 BeatPlan/콘티, 허용된 설정·직전 회차를 받아 새 소설 문장을 만든다. 출력은 생성 원문과 사용한 계획·근거다.
 - **기존 원고 수정:** 대상 문서 판본, 선택 구간, 원문 해시, 수정 지시를 받아 그 구간의 before/after Patch를 만든다. 선택 밖 문장은 유지한다.
 
-**생성 후보 검수 목표 계약:** Writing의 승인 전 결과는 정본 판본과 구분되는 고정 후보로 Manuscript Review에 전달한다. 후보 식별자 또는 불변 참조, 후보 내용, 원래 초안 revision과 선택 구간/원문 스냅샷을 함께 확인한다. Finding 위치는 정본이 아니라 해당 후보를 기준으로 표시한다. 검수 후 수정 요청은 검수한 후보를 입력으로 새 후보를 만들며 이전 후보를 덮어쓰지 않는다. Content는 최종 적용 전에 원래 초안 revision·구간/본문과 현재 권한을 다시 확인하고 충돌하면 적용하지 않는다. 이 연결과 후보 참조의 구체 API·보관 방식은 아직 구현되지 않았다.
+**생성 후보 검수(#520):** 같은 턴에 Writing/Editing 다음으로 Manuscript Review를 부르면, 집필 직전에 작가 권한으로 읽은 기준 초안과 완료된 Text/Patch를 사용한다. Text는 초안 뒤에 잇고 Patch는 원래 초안에서 유일한 선택 구간을 교체한다. 상태의 단계 결과를 그대로 사용하며 후보 전체를 검수한다. `revision`은 기준 초안 판본이고, `candidate.selection`은 Patch 전 원래 선택 범위(UTF-16 반열림 구간)이며 Text는 null이다. Finding의 위치는 검수한 후보 본문 기준이다. 기획만 완료했거나 Writing이 실패했다면 저장된 초안을 검수한다. 후보 검수 자체는 초안을 저장하지 않는다. Writing 결과 승인 시 초안이 기준 판본에서 바뀌었으면 409 충돌로 처리하고, 저장 직전에 판본이 바뀌면 기존 Content 저장 검증이 막는다. 후보 검수 후 다시 수정하는 반복 연결은 후속이다.
 
 세 작업 모두 기획·문장·문체 생성에 집중하며 Retrieval과 Simulation을 직접 호출하지 않는다. 기획도 Content가 전달한 허용 입력만 쓰고, Simulation은 명시적으로 요청한 실행의 결과를 사용자가 고른 경우에만 재료로 받는다. Content가 기준 판본·선택 구간을 확인하고 허용된 최소 입력을 전달하며, 사용자가 선택한 계획이나 시뮬레이션 결과도 집필 재료로 받을 수 있다. 필요 시 Manuscript Review가 생성 결과의 설정·연속성을 검수한다. 두 경로는 입력·출력·저장 검증이 다르다. 문체/말투 변경도 기존 원고 수정이다. 결과 표시와 실제 원고 저장을 분리하고, Content가 최신 판본·선택 범위·승인 영수증을 확인한 뒤에만 반영한다.
 
@@ -120,6 +120,12 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
   - `POST /api/v1/works/{id}/writing/patches` `{revision, start, end, instruction, consent, episode?, character?}` → 초안 본문 UTF-16 구간 `[start,end)`(공백 아님·≤5000자·서로게이트 분할 금지, 위반 시 422)의 `kind=patch` 후보. `position="start:end"`를 입력 스냅샷에 남기고 응답의 `baseBody`·`position`으로 before를 보여준다. 문맥 JSON에서는 초안 전문을 빼고 앞뒤 2000자만 보낸다.
   - 승인은 기존 `POST /api/v1/works/{id}/proposals/{pid}/accept`이다. 작품 revision이 바뀌었거나, patch인데 현재 초안이 후보 생성 때와 다르면 409로 덮어쓰지 않는다. patch는 그 구간만 교체하고 `proposal_episode_change.position`에 위치를 남긴다. 거절·목록 화면과 프론트엔드 연결은 후속이다.
 - 실모델 수용(2026-11-11, `gpt-6-luna`, 개발용 합성 자료, 실호출 3회): 11화 새 원고는 계획 3단계를 순서대로 따른 약 1,500자(32.0초, 출력 1,030토큰)였으나 "열 살 전의 서윤"처럼 설정(29세, 10년 전)과 어긋난 나이 표현이 1건 있었다. 부분 수정은 2.9초에 선택 문장 하나만 바꿨고 앞뒤 문장은 결과에 없었다. 선택 구간 안의 "앞뒤 문장까지 다시 써라" 지시는 따르지 않았으나, 맞춤법만 요청했는데 그 괄호 문구를 지웠다(1.7초). 키 미설정은 호출 없이 503이었다. 장문 생성의 설정 일치는 Manuscript Review 연계 전 작가 검토에 의존한다.
+
+### 기존 플롯 및 장면 계획 수정
+
+**미구현.** 작가가 저장된 플롯이나 장면 계획의 수정을 요청하면 Content가 작품·대상 계획·편집 권한을 확인하고 기존 계획을 읽는다. Writing & Editing은 그 계획과 수정 지시를 바탕으로 대상과 변경 전후를 제안으로 보여준다.
+
+작가가 제안을 명시적으로 승인하면 Content가 편집 권한을 다시 확인하고 현재 계획을 제안의 기준 상태와 대조한 뒤, 기존 계획 수정 경로로 승인된 변경만 반영한다. 승인 전이나 거절 시 계획은 그대로다. 기준 계획이 바뀌었으면 충돌을 알리고 적용하지 않는다. 전개 기획의 BeatPlan은 저장 없이 반환하며 원고 `patch`는 초안 문장에 적용한다.
 
 ## 5. Rating Agent
 
@@ -156,7 +162,7 @@ Simulation 결과 생성 단계가 허용된 정본과 대조한다. Python은 �
 POST /internal/v1/ratings {workId, episodes[1..10]}
   → router: X-Internal-Token 검증, X-User-Authorization을 Content MCP 컨텍스트에 설정
   → service: 회차마다 Content MCP episode_read(작가 권한) → 제목·작가 메모·초안 본문·revision (모델 호출 전에 전부 읽음)
-             연결 세계관이 있으면 world_studio_list → world_studio_read(가장 늦은 회차 시점) 1회 → 인물 카드(그 회차까지 공개된 것만)
+             content_mcp.linked_world(가장 늦은 회차 시점: 연결 세계관 → 없으면 Fork 상속 원작 세계관) → 인물 카드(그 회차까지 공개된 것만)
              비속어 어근 빈도(profanityCount, 규칙 신호)
   → agent.rate: 회차마다 agent_runtime.run(create_agent + 공통 미들웨어) 1회, 회차끼리 스레드로 동시 호출
              (지시문 + 기준 문서, 입력은 {title, authorNote, draft, characters, signals}) → 항목별 수준·근거·prohibited
@@ -171,7 +177,7 @@ POST /internal/v1/ratings {workId, episodes[1..10]}
 - 문턱값(2026-11-17 사용자 결정, F-ADULT-01 확정 전 초안): `prohibited`이거나 어느 항목이든 수준 3이면 `adult`, 최고 수준이 2면 `needsReview`(사람 검토), 모두 1 이하면 `general`.
 - 근거 구절은 초안의 연속된 한 구간을 그대로 복사하게 지시한다. 대명사를 이름으로 바꾸거나 주어를 보태거나 떨어진 문장을 잇지 않고, 누가 한 일인지 같은 맥락은 `rationale`에 쓴다(#509: "그는"을 인물 이름으로 바꾼 인용 때문에 회차 판별이 실패했다). 대조 검사는 완화하지 않는다.
 - 회차별로 따로 판별한다. 여러 회차 원고를 한 호출에 넣으면 입력이 길어지고 어느 회차 근거인지 섞인다.
-- 판별 근거는 원고 표현이다. 인물 카드는 등장인물이 미성년자인지 판단하는 데만 쓰고 근거 구절은 초안에서만 인정한다. 세계관이 연결되지 않은 작품은 인물 없이 판별한다(Manuscript Review와 달리 실패하지 않음). Retrieval·Simulation은 부르지 않는다.
+- 판별 근거는 원고 표현이다. 인물 카드는 등장인물이 미성년자인지 판단하는 데만 쓰고 근거 구절은 초안에서만 인정한다. 세계관 선택은 Review·Q&A와 같은 `content_mcp.linked_world`다(#524, 2026-11-18 사용자 결정): 연결 세계관이 없는 Fork는 원작의 공개 인물 카드(Fork 기준 회차까지, 인물 문서 없음)로 미성년 여부를 본다. 연결·상속 세계관이 모두 없으면 인물 없이 판별한다(Manuscript Review와 달리 실패하지 않음). Retrieval·Simulation은 부르지 않는다.
 - 비속어 빈도는 서로 겹치지 않는 고정 어근 목록의 부분 문자열 수다. 등급을 직접 정하지 않고 `language` 평가의 참고값으로 모델에 보내며 회차 결과(`signals`)에도 남긴다. 변형 표기(ㅅㅂ 등)는 세지 않는다.
 - 한 회차라도 초안이 비었거나 Content가 거절하면 모델을 부르기 전에 전체 요청이 실패한다.
 
@@ -197,9 +203,9 @@ POST /internal/v1/ratings {workId, episodes[1..10]}
 
 ## 6. World `impact` (옛 World & Plot Management, #291)
 
-2026-11-19 사용자 결정으로 별도 Agent가 아니라 World의 `impact` 작업이다. 입력은 바꾸려는 설정·사건이고, 기준 회차 시점의 설정·관계, 사건 카드(연대기), 이미 쓴 회차의 구절(공통 Retrieval 원고 벡터 인덱스), 계획된 장면(MCP `story_plan_list`)을 읽는다. 읽기만 하고 결과로 조건부 수정을 하지 않는다. 변경은 World `enrich`나 작가 편집으로 따로 한다.
+2026-11-19 사용자 결정으로 별도 Agent가 아니라 World의 `impact` 작업이다. 입력은 바꾸려는 설정·사건이고, 기준 회차 시점의 설정·관계, 사건 카드(연대기), 이미 쓴 회차의 구절(공통 Retrieval 원고 벡터 인덱스), 계획된 장면(MCP `story_plan_list`)을 읽는다. 읽기만 하고 결과로 조건부 수정을 하지 않는다. 설정 보강은 World `enrich`, 기존 플롯·장면 계획의 수정 제안과 승인 후 반영은 [Writing & Editing의 후속 작업](#기존-플롯-및-장면-계획-수정)이다.
 
-세계관 설정이나 플롯 변경 전에 관련 설정, 기준 회차 시점의 관계(DEC-51), 영향받는 회차·장면·다른 플롯을 조회한다. ImpactReport에 영향 대상·판본·근거·확실성과 해결할 충돌을 먼저 보여준다. 그다음 검토 가능한 변경 후보를 만든다. 작가 승인 전 정본은 그대로다. Neo4j 관계와 PostgreSQL 문서를 한 원자 트랜잭션이라고 표시하지 않는다. 미구현이며, Decision Guard가 `world_plot`을 판정하면 아무것도 실행하지 않고 `unsupported`다.
+ImpactReport에 영향 대상·판본·근거·확실성과 해결할 충돌을 보여준다. 미구현이며, Decision Guard가 `world_plot`을 판정하면 아무것도 실행하지 않고 `unsupported`다.
 
 ## 7. Research Agent (`web`·`platform`)
 
@@ -220,13 +226,13 @@ POST /internal/v1/ratings {workId, episodes[1..10]}
 
 ## 8. World Agent (`check`·`enrich`)
 
-2026-11-19 사용자 결정으로 World Review를 World로 바꾸고 `check`·`enrich`·`impact`(6절) 세 작업을 둔다. `check`는 아래 설정집 검토이며 사건 카드끼리의 시간 모순(연대기) 지적을 더한다(#546). `enrich`(미구현)는 지정한 기존 카드의 본문·인물 문서를 세계관과 어긋나지 않게 보강한 제안을 만들고, 작가가 승인하면 Content MCP `world_studio_edit_draft`로 초안에만 반영한다(확정 버전은 작가가 남긴다). 새 카드 생성은 이번 범위가 아니다(#546).
+2026-11-19 사용자 결정으로 World Review를 World로 바꾸고 `check`·`enrich`·`impact`(6절) 세 작업을 둔다. `check`는 아래 설정집 검토이며 사건 카드끼리의 시간 모순(연대기) 지적을 더한다(#546). `enrich`는 지정한 기존 카드의 본문·인물 문서를 세계관과 어긋나지 않게 보강한 제안을 만들고, 작가가 승인하면 Content MCP `world_studio_edit_draft`로 초안에만 반영한다(확정 버전은 작가가 남긴다). 새 카드 생성은 이번 범위가 아니다(#546).
 
 설정집 검토. 원고가 아니라 세계관(설정집) 자체에 오류가 없는지 본다. 대상은 규칙·사건·인물 설정끼리의 모순, 인물 문서(DEC-47)의 역할 오류(SOUL=말투·사고, GOAL=목표, 회차 문서=그 회차의 경험·비밀), 사건 카드의 회차·참여 인물 같은 정보 누락이다. Manuscript Review(회차 원고를 설정에 비춰 봄)와 다른 기능이다. 상세 계약은 [설정집 검토 계약](../design/world-review-contract.md)이 정본이다(2026-11-16 사용자 결정, #394).
 
 - **진입:** 두 경로가 있다.
   - WorldStudio 관리 화면의 `AI 검토`: Content `POST /api/v1/world-studios/{worldId}/reviews` → AI `POST /internal/v1/world-reviews`. 소설 연결이 필요 없다.
-  - 집필 채팅: 메인 에이전트의 `ask_world_review`(`world_review.linked_request`가 `target` 작품에 연결된 세계관을 작가 권한 Content MCP로 읽음). 조회형이라 다른 조회형과 병렬로 부를 수 있다(#474).
+  - 집필 채팅: 메인 에이전트의 `ask_world(task)`(`world_review.linked_request`가 `target` 작품에 연결된 세계관을 작가 권한 Content MCP로 읽음). `check`·`impact`는 조회형이라 다른 조회형과 병렬로 부를 수 있고(#474), `enrich`는 승인 대기(`awaitingApproval: world`)가 있어 단독이다. 기능당 1회 한도 그대로라 한 턴에 `ask_world`는 하나의 작업만 실행한다.
 - **입력·출력:** 저장된 현재 초안의 카드(최대 300장·카드당 4,000자)와 관계를 받는다. 지적은 카드 1~3개·종류(`contradiction`·`doc_role`·`missing_info`·`other`)·300자 이하 메시지와 선택 수정안(카드 한 칸의 바꾼 뒤 전체 글)이다. 서비스가 카드 id와 길이를 검증하고, 어긋나면 고치지 않고 502다.
 - **경계:** 결과는 저장하지 않는 제안이다. 작가가 관리 화면에서 `초안에 반영`을 눌러야 편집 초안에 들어가고, 기존 `세계관 저장`으로 반영된다(DEC-36). 집필 채팅은 지적·수정안을 글로만 보이고 반영 승인(`apply`)을 묻지 않는다. Retrieval·Simulation은 부르지 않는다. 모델 호출은 `agent_runtime.run` 1회(`gpt-6-luna`)다.
 - **한계:** 관계는 최신 시점만 보고 회차별 기록(DEC-51)은 쓰지 않는다. 긴 세계관의 분할 검토와 채팅 승인 카드는 후속이다.

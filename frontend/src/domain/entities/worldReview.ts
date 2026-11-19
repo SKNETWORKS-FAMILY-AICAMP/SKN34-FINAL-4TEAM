@@ -2,10 +2,10 @@ import { stripCardLinks } from './cardLinks'
 import { characterDocName, characterDocText, missingCharacterDocs, withCharacterDoc, type CharacterDocKey } from './characterDocs'
 import { cardTypeOf, cardTypes } from './studioCards'
 import { editStudioSetting } from './studioRelations'
-import { cardRevealEpisode, type StudioSetting } from './studioWorld'
+import { cardRevealEpisode, type CharacterDocs, type StudioSetting } from './studioWorld'
 
 /*
- * 설정집 AI 검토(#394): 저장한 초안의 설정끼리의 모순·인물 문서가 제 역할대로 쓰였는지·빠진 정보를 AI가 지적한다. 결과는 저장하지 않는 화면 상태다.
+ * 설정집 AI 검토(#394): 저장한 초안의 설정끼리의 모순·인물 문서가 제 역할대로 쓰였는지·빠진 정보를 AI가 지적한다. 마지막 검토 결과는 서버가 세계관마다 하나 저장해(#555) 새로 고쳐도 남는다.
  * 이 파일은 Content 응답의 모양과, 화면이 즉시 계산하는 게시판 상태(`연결 필요`·`공개 순서 확인`·`AI 의견 N`)·수정안 반영 규칙을 순수 함수로 둔다.
  */
 
@@ -17,8 +17,16 @@ export const FINDING_KINDS: Record<ReviewFindingKind, string> = { contradiction:
  */
 export type ReviewFix = { cardId: string; text: string } & ({ target: 'body' | 'soul' | 'goal' } | { target: 'episode'; episode: number })
 export type ReviewFinding = { cardIds: string[]; kind: ReviewFindingKind; message: string; fix?: ReviewFix }
-/** `reviewedCards < totalCards`이면 한 번에 보낼 수 있는 분량을 넘은 카드는 검토하지 못한 것이다. 응답의 `draftRevision`·`model`은 화면이 쓰지 않아 읽지 않는다. */
-export type WorldReview = { reviewedCards: number; totalCards: number; findings: ReviewFinding[] }
+/**
+ * 검토 응답의 기준(`basis`): 수정안(`fix`)이 가리킨 카드 id → 검토한 초안의 그 카드 글. 본문 링크를 벗기기 전 원문이라 화면 초안의 글과 그대로 견줄 수 있고,
+ * 인물 문서(`characterDocs`)는 그 카드에 있을 때만 온다. 잠금(`reviewFixState`)이 지금 글과 견주는 기준이라 요청 직후와 새로 고친 뒤가 같다.
+ */
+export type ReviewBasis = Record<string, { body: string; characterDocs?: CharacterDocs }>
+/**
+ * `reviewedCards < totalCards`이면 한 번에 보낼 수 있는 분량을 넘은 카드는 검토하지 못한 것이다. `reviewedAt`은 서버가 저장한 검토 시각이다.
+ * 응답의 `draftRevision`·`model`은 화면이 쓰지 않아 읽지 않는다.
+ */
+export type WorldReview = { reviewedCards: number; totalCards: number; findings: ReviewFinding[]; reviewedAt: Date; basis: ReviewBasis }
 
 /** 게시판 한 줄의 보완 상태. `cleanup`은 빈 인물 문서(`정리 필요`), `unlinked`는 `연결 필요`, `order`는 `공개 순서 확인`, `opinions`는 마지막 AI 검토가 그 카드에 남긴 지적 수다. */
 export type CardStatus = { cleanup: boolean; unlinked: boolean; opinions: number; order: boolean }
@@ -92,6 +100,15 @@ export function cardStatuses(settings: readonly StudioSetting[], findings: reado
   return statuses
 }
 
+/**
+ * 지금 초안에 남은 카드를 하나라도 가리킨 지적만. 가리킨 카드가 모두 없어진 지적(삭제한 카드)은 붙을 곳이 없어 보이지 않고 수에도 세지 않는다. 관계 행은 카드가 아니다.
+ * 번호(`cardFindings`의 `id`)는 검토가 준 전체 목록의 것이라 이 목록으로 번호를 매기지 않는다.
+ */
+export function visibleFindings(findings: readonly ReviewFinding[], settings: readonly StudioSetting[]): ReviewFinding[] {
+  const cards = new Set(settings.filter((s) => s.item.kind !== 'relation').map((s) => s.item.id))
+  return findings.filter((finding) => finding.cardIds.some((id) => cards.has(id)))
+}
+
 /** 그 카드를 가리킨 지적. `id`는 검토가 준 목록에서의 번호라 반영·반영 안 함 표시의 열쇠로 쓴다. */
 export const cardFindings = (findings: readonly ReviewFinding[], cardId: string) =>
   findings.flatMap((finding, id) => (finding.cardIds.includes(cardId) ? [{ id, finding }] : []))
@@ -108,18 +125,33 @@ export function reviewFixField(settings: readonly StudioSetting[], fix: ReviewFi
   return row && (fix.target === 'body' || cardTypeOf(row.item) === 'character') ? characterDocText(row, docKey(fix)) : undefined
 }
 
-/** 수정안을 지금 초안에 반영할 수 있는지. 검토 때(`reviewed`)와 지금의 그 칸 글이 같아야 한다: 다르면 작가가 그 뒤에 고친 글을 덮어쓰게 된다. */
-export function reviewFixState(fix: ReviewFix, reviewed: readonly StudioSetting[], current: readonly StudioSetting[]): ReviewFixState {
+/**
+ * 검토 때(`basis`)의 그 칸 글. 기준에 그 카드가 없으면 undefined(비교할 수 없다), 카드는 있는데 문서가 없으면 빈 글이다(지금 글을 읽는 `characterDocText`와 같은 규칙).
+ * `basis`는 서버 응답의 JSON이라 회차 기억의 키가 글자지만 `episodes[3]`은 같은 키를 읽는다.
+ */
+function basisField(basis: ReviewBasis, fix: ReviewFix): string | undefined {
+  const card = basis[fix.cardId]
+  if (!card) return undefined
+  if (fix.target === 'body') return card.body
+  const docs = card.characterDocs
+  return (fix.target === 'episode' ? docs?.episodes[fix.episode] : docs?.[fix.target]) ?? ''
+}
+
+/**
+ * 수정안을 지금 초안에 반영할 수 있는지. 검토 때의 그 칸 글(`basis`, 서버가 검토 응답에 실은 기준)과 지금 글이 같아야 한다: 다르면 작가가 그 뒤에 고친 글을 덮어쓰게 된다.
+ * 기준에 그 카드가 없으면 검토 때의 글을 알 수 없어 stale이다(덮어쓰지 않는다).
+ */
+export function reviewFixState(fix: ReviewFix, basis: ReviewBasis, current: readonly StudioSetting[]): ReviewFixState {
   const now = reviewFixField(current, fix)
-  return now === undefined ? 'missing' : now === reviewFixField(reviewed, fix) ? 'ready' : 'stale'
+  return now === undefined ? 'missing' : now === basisField(basis, fix) ? 'ready' : 'stale'
 }
 
 /**
  * 수정안이 가리키는 칸 하나만 바꾼 초안. 반영할 수 없으면(`reviewFixState`) 이유를 던지고 초안은 그대로다. 글이 이미 같으면 같은 목록을 돌려준다.
  * 본문은 `editStudioSetting`의 작가 수정이고, 인물 문서는 `withCharacterDoc`으로 그 문서만 바꾼다(없던 회차 기억은 새로 생긴다).
  */
-export function applyReviewFix(settings: StudioSetting[], fix: ReviewFix, reviewed: readonly StudioSetting[]): StudioSetting[] {
-  const state = reviewFixState(fix, reviewed, settings)
+export function applyReviewFix(settings: StudioSetting[], fix: ReviewFix, basis: ReviewBasis): StudioSetting[] {
+  const state = reviewFixState(fix, basis, settings)
   if (state !== 'ready') throw new Error(REVIEW_FIX_BLOCKED[state])
   if (reviewFixField(settings, fix) === fix.text) return settings
   if (fix.target === 'body') return editStudioSetting(settings, fix.cardId, { text: fix.text })
@@ -134,8 +166,8 @@ export const reviewFixName = (row: StudioSetting | undefined, fix: ReviewFix) =>
 const two = (n: number) => String(n).padStart(2, '0')
 /** 검토를 받은 시각(`HH:mm`, 이 브라우저의 로컬 시각). */
 export const reviewClock = (at: Date) => `${two(at.getHours())}:${two(at.getMinutes())}`
-/** `AI 의견 N건 · 카드 M장 · HH:mm 검토` */
-export const reviewSummary = (review: WorldReview, at: Date) => `AI 의견 ${review.findings.length}건 · 카드 ${review.reviewedCards}장 · ${reviewClock(at)} 검토`
+/** `AI 의견 N건 · 카드 M장 · HH:mm 검토`. N은 화면에 보이는 지적 수(`shown`, `visibleFindings`), 시각은 서버가 저장한 검토 시각이다. */
+export const reviewSummary = (review: WorldReview, shown: number) => `AI 의견 ${shown}건 · 카드 ${review.reviewedCards}장 · ${reviewClock(review.reviewedAt)} 검토`
 /** 전체 카드보다 적게 검토했을 때만 그 사실을 알리는 문장(아니면 빈 글). */
 export const reviewPartialNote = ({ reviewedCards, totalCards }: WorldReview) =>
   reviewedCards < totalCards ? `카드 ${totalCards}장 중 ${reviewedCards}장만 검토했어요. 한 번에 보낼 수 있는 분량을 넘은 카드는 검토하지 못했어요.` : ''

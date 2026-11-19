@@ -10,6 +10,8 @@ import './writing.css'
 // 오류 상자(.ep-alert)는 작품 관리 화면과 같은 공용 모양을 쓴다.
 import '../../../shared/episode.css'
 import { Go } from '../../../shared/Go'
+import { McpChangeBanner } from '../../../shared/McpChangeBanner'
+import { useMcpChangeWatch } from '../../../shared/useMcpChangeWatch'
 import { useScreenId } from '../../../shared/screenIds'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import {ManuscriptBody} from '../../../shared/media/MediaPanel'
@@ -28,7 +30,6 @@ import { VersionComparison } from './VersionComparison'
 import { SettingHistoryPanel } from './SettingHistoryPanel'
 import { CheckpointPanel } from './CheckpointPanel'
 import { PublicationSchedulePanel } from './PublicationSchedulePanel'
-import { StoryQaPanel } from '../../../shared/storyContext/StoryQaPanel'
 import { versionGraphRows } from '../../../../domain/entities/versionGraph'
 import { SimulationStage } from '../../../shared/chat/SimulationStage'
 import { useSimulationStageViewModel } from '../../../shared/chat/useSimulationStageViewModel'
@@ -56,6 +57,8 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   useDocumentTitle('집필실')
   const plans=useStoryPlanViewModel(id,false,undefined,true)
   const vm=useWritingViewModel(id,undefined,undefined,episode,plans.confirmLeave)
+  // AI·외부 도구(MCP)가 이 작품을 바꾸면 알림 신호로 알아차려 다시 읽는다. 저장하지 않은 원고가 있으면 덮지 않고 배너로 알린다(#553).
+  const mcp=useMcpChangeWatch({targetType:'work',targetId:id,dirty:vm.dirty,reload:vm.refresh})
   useWritingPlanNavigation(vm.mayLeave,vm.dirty||plans.dirty,vm.busy||vm.saving||plans.busy)
   const editor=useRef<ManuscriptEditorHandle>(null)
   const main=useRef<HTMLElement>(null)
@@ -205,6 +208,7 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         </PopMenu>
       </div>
     </header>
+    <McpChangeBanner {...mcp} />
     {/* 다시 시도할 입력이 있으면 복사 안내 대신 재시도 버튼을 둔다. 재시도는 버전이 아니라 초안만 저장하므로 버튼 이름에 대상을 적는다. 버튼과 로그인 링크는 한 묶음이다. */}
     {vm.error&&<div className="ep-alert" role="alert">{vm.error} {active&&!canRetry&&'저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.'}{(canRetry||vm.expired)&&<span className="ep-alert-actions">{canRetry&&<button type="button" className="btn sm" disabled={vm.busy} onClick={()=>{vm.retrySave();statusLine.current?.focus()}}>초안 저장 다시 시도</button>}{vm.expired&&<Go to="/login">로그인</Go>}</span>}</div>}
     <main ref={main} id="main" tabIndex={-1} className="studio-workspace">{!vm.ready?<p className="writing-message">회차를 불러오고 있어요…</p>:vm.error&&!active&&!vm.episodes.length?null:<>
@@ -304,8 +308,6 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
               </div>
               <div className="writing-group"><ManuscriptExportPanel workId={id} episode={active.number} inherited={active.inherited} disabled={vm.busy||vm.dirty}/></div>
               {!active.inherited&&import.meta.env.MODE!=='mockup'&&<div className="writing-group"><EpisodeWorldBasisControl key={active.number} workId={id} number={active.number}/></div>}
-              {active.publishedVersionId&&import.meta.env.MODE!=='mockup'&&<div className="writing-group"><StoryQaPanel
-                key={`${id}/${active.number}/${active.publishedVersionId}`} workId={id} episode={active.number} versionId={active.publishedVersionId} owner/></div>}
               <Group title="회차 관리">
                 <div className="writing-actions">
                   {!active.inherited&&active.publishedVersionId&&<button className="btn sm" disabled={vm.busy||vm.dirty} onClick={async()=>{if(await vm.changeVisibility(false,false))setRights(false)}}>회차 공개 중단</button>}

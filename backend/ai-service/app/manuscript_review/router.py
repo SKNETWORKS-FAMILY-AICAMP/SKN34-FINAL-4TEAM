@@ -4,14 +4,14 @@ from fastapi import APIRouter, Header, HTTPException
 
 from app.content_mcp.errors import ContentMcpFailure
 from app.internal_auth import require_internal_token
-from app.review import service
-from app.review.errors import ReviewFailure
-from app.review.models import ReviewRequest, ReviewResponse
+from app.manuscript_review import service
+from app.manuscript_review.errors import ReviewFailure
+from app.manuscript_review.models import ReviewRequest, ReviewResponse
 
 router = APIRouter()
 
 
-@router.post('/internal/v1/reviews')
+@router.post('/internal/v1/manuscript-reviews')
 def review(data: ReviewRequest, x_internal_token: str = Header(default=''),
            x_user_authorization: str = Header(default='')) -> ReviewResponse:
     """회차 초안을 Mechanical 또는 Semantic으로 검수해 위치·이유·근거·확정/의심/판단 불가가 있는 지적을 반환한다.
