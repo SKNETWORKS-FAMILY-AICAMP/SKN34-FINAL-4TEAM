@@ -14,5 +14,5 @@ import org.springframework.web.client.RestClient
 class WorkTagSuggestionConfig {
     @Bean fun workTagSuggestionClient(builder: RestClient.Builder, properties: AiServiceClientProperties,
         @Value("\${INTERNAL_TOKEN:}") token: String) = WorkTagSuggestionClient(
-        buildRestClient(builder, properties.baseUrl, properties.connectTimeout, Duration.ofSeconds(40)), token)
+        buildRestClient(builder, properties.baseUrl, properties.connectTimeout, Duration.ofSeconds(40), forwardUser = true), token)
 }
