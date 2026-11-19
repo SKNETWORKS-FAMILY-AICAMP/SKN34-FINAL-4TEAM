@@ -36,25 +36,32 @@ def _score(kind, name, value):
                 created_at=NOW, updated_at=NOW)
 
 
-def experiment(name, metrics, *, passed=True) -> Experiment:
+def experiment(name, metrics, *, passed=True, id=None) -> Experiment:
     """끝난 Run은 지표 평균 점수와 passed 점수를 가진다. passed=None이면 아직 끝나지 않은 Run이다."""
     scores = [_score(ScoreV3_Numeric, metric, value) for metric, value in metrics.items()]
     if passed is not None:
         scores.append(_score(ScoreV3_Boolean, 'passed', passed))
-    return Experiment(id=f'exp-{name}', name=name, start_time=NOW, end_time=NOW, item_count=2, dataset_id='ds-1', scores=scores)
+    return Experiment(id=id or f'exp-{name}', name=name, start_time=NOW, end_time=NOW, item_count=2, dataset_id='ds-1', scores=scores)
 
 
 class FakeDataset:
-    """Langfuse DatasetClient 대역. run_experiment는 SDK처럼 항목마다 task → evaluators 순으로 실행하고,
-    task가 실패한 항목은 결과에서 빠지며 평가자가 실패하면 그 평가자의 점수만 빠진다."""
+    """Langfuse DatasetClient 대역. run_experiment는 SDK 4.18처럼 동작한다: 항목마다 task를 돌리기 전에 서버에 run item을 만들어 Run id를 받고
+    (links=False는 서버가 run item을 받지 않는 환경), task가 실패한 항목은 결과에서 빠지며, 평가자가 실패하면 그 평가자의 점수만 빠진다.
+    결과의 dataset_run_id는 결과에 남은 항목이 알려 주는 값이라 모든 항목이 실패하면 None이고, 그때 experiment_id는 서버의 어떤 Run도
+    가리키지 않는 임의 ID다."""
 
-    def __init__(self, items, name='qa.grounding'):
-        self.id, self.name, self.items, self.experiment = 'ds-1', name, items, None
+    RUN_ID = 'run-real'  # 서버가 정한 Run id
+
+    def __init__(self, items, name='qa.grounding', *, links=True):
+        self.id, self.name, self.items, self.links = 'ds-1', name, items, links
+        self.experiment, self.runs = None, {}  # runs: 서버에 만들어진 Run 이름 → id
 
     def run_experiment(self, *, name, run_name, description, task, evaluators, max_concurrency, metadata=None):
         self.experiment = {'name': name, 'run_name': run_name, 'description': description, 'max_concurrency': max_concurrency, 'metadata': metadata}
         results = []
         for it in self.items:
+            if self.links:
+                self.runs[run_name] = self.RUN_ID
             try:
                 output = _run(task(item=it))
             except Exception:
@@ -66,9 +73,11 @@ class FakeDataset:
                 except Exception:
                     continue
                 evaluations += found if isinstance(found, list) else [found]
-            results.append(ExperimentItemResult(item=it, output=output, evaluations=evaluations, trace_id='trace', dataset_run_id=None))
+            results.append(ExperimentItemResult(item=it, output=output, evaluations=evaluations, trace_id='trace',
+                                                dataset_run_id=self.RUN_ID if self.links else None))
+        run_id = next((r.dataset_run_id for r in results if r.dataset_run_id), None)
         return ExperimentResult(name=name, run_name=run_name, description=description, item_results=results, run_evaluations=[],
-                                experiment_id='exp-1')
+                                experiment_id=run_id or 'sdk-fallback-id', dataset_run_id=run_id)
 
 
 def _run(value):
@@ -92,9 +101,14 @@ class FakeLangfuse:
             raise NotFoundError(body='missing')
         return found
 
-    def _list(self, **kwargs):
+    def _list(self, *, from_start_time, **kwargs):  # SDK처럼 시작 시각 하한이 필수다
         self.listed = kwargs
-        return SimpleNamespace(data=self.experiments)
+        name = kwargs.get('name')
+        found = [e for e in self.experiments if name in (None, e.name)]
+        runs = getattr(self.dataset, 'runs', {})  # 서버에 만들어진 Run은 이름으로 찾을 수 있다
+        if name in runs:
+            found.append(experiment(name, {}, passed=None, id=runs[name]))
+        return SimpleNamespace(data=found)
 
     def create_score(self, **kwargs):
         self.scores.append(kwargs)

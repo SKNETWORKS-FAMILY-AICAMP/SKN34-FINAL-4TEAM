@@ -68,9 +68,11 @@ def test_langfuse_failure_is_502_without_the_original_message(monkeypatch):
     assert error.value.status == 502 and '원고 본문 일부' not in str(error.value) and error.value.__suppress_context__
 
 
-def test_baseline_is_the_latest_completed_run_of_the_production_version(monkeypatch):
+def test_baseline_is_the_latest_run_that_finished_with_passed_and_every_metric_average(monkeypatch):
     metrics = {'faithfulness': 0.95, 'context_precision': 0.85}
     runs = [experiment('qa.answer@v2-running', metrics, passed=None),  # 아직 끝나지 않은 Run
+            experiment('qa.answer@v2-failed', {}),  # 모든 항목이 실패해 passed만 남은 Run: 지표를 비교할 수 없다
+            experiment('qa.answer@v2-partial', {'faithfulness': 0.9}),  # 지표 평균이 일부뿐인 Run
             experiment('qa.answer@v3-new', metrics),  # 다른 버전
             experiment('qa.answer@v20-new', metrics),  # 버전 번호가 2로 시작하는 다른 버전
             experiment('other@v2-new', metrics),  # 다른 프롬프트
@@ -97,7 +99,7 @@ def test_run_scores_each_item_and_records_the_run_result(monkeypatch):
     assert dataset.experiment['metadata'] == {'prompt': 'qa.answer', 'version': '3', 'dataset': 'qa.grounding', 'tolerance': '0.05',
                                               'baselineRun': '', 'baselineVersion': ''}
     scores = {s['name']: s for s in client.scores}
-    assert {s['dataset_run_id'] for s in client.scores} == {'exp-1'}
+    assert {s['dataset_run_id'] for s in client.scores} == {FakeDataset.RUN_ID}
     assert (scores['faithfulness']['value'], scores['context_precision']['value']) == (0.75, 0.8)
     assert scores['passed']['value'] == 1.0 and scores['passed']['data_type'] == 'BOOLEAN'
     assert scores['passed']['metadata'] == {'failedItems': 0, 'totalItems': 2, 'tolerance': 0.05, 'baselineRun': None, 'baselineVersion': None}
@@ -153,16 +155,49 @@ def test_a_failed_item_stays_a_failure_instead_of_a_zero_score(monkeypatch, wher
     assert scores['passed']['value'] == 0.0 and (scores['passed']['metadata']['failedItems'], scores['passed']['metadata']['totalItems']) == (1, 2)
 
 
-def test_a_run_whose_items_all_failed_records_only_the_failure(monkeypatch):
-    _, client, plan = prepared(monkeypatch, [item(1, QA), item(2, QA)])
+def refuse(*_):
+    raise EvaluationFailure(503, '모델 호출에 실패했습니다.')
 
-    def generate(*_):
-        raise EvaluationFailure(503, '모델 호출에 실패했습니다.')
-    stub_models(monkeypatch, generate=generate)
+
+def test_a_run_whose_items_all_failed_records_the_failure_on_the_run_found_by_name(monkeypatch):
+    dataset, client, plan = prepared(monkeypatch, [item(1, QA), item(2, QA)])
+    stub_models(monkeypatch, generate=refuse)
 
     service.run(plan)
 
-    assert [(s['name'], s['value'], s['metadata']['failedItems']) for s in client.scores] == [('passed', 0.0, 2)]
+    # 모든 항목이 task 단계에서 실패하면 SDK는 dataset_run_id를 알려 주지 못하고 experiment_id는 어떤 Run도 가리키지 않는 임의 ID다.
+    # passed=false는 Run 이름으로 찾은 서버의 실제 Run에 붙어야 운영이 끝난 Run으로 읽는다.
+    assert [(s['name'], s['value'], s['dataset_run_id'], s['metadata']['failedItems']) for s in client.scores] == [('passed', 0.0, FakeDataset.RUN_ID, 2)]
+    assert (client.listed['name'], client.listed['dataset_id']) == (plan.run_name, 'ds-1')
+
+
+@pytest.mark.parametrize('how, logged', [('not_found', 'Run을 찾지 못'), ('api_down', 'Langfuse 요청에 실패')])
+def test_a_run_that_cannot_be_found_is_logged_with_a_fixed_message_and_scores_nothing(monkeypatch, caplog, how, logged):
+    dataset, client, plan = prepared(monkeypatch, [item(1, QA)])
+    stub_models(monkeypatch, generate=refuse)
+    dataset.links = how != 'not_found'  # 서버에 Run이 만들어지지 않아 이름으로 찾을 수 없다
+
+    def down(**_):
+        raise RuntimeError('원고 본문 일부')
+    if how == 'api_down':
+        client.api.experiments.list = down
+
+    with caplog.at_level(logging.ERROR):
+        service.run(plan)
+
+    assert client.scores == []  # 어떤 Run도 가리키지 않는 임의 ID에는 점수를 붙이지 않는다
+    assert plan.run_name in caplog.text and logged in caplog.text and '원고 본문 일부' not in caplog.text
+
+
+def test_without_server_side_run_links_scores_follow_the_sdk_experiment_id(monkeypatch):
+    dataset, client, plan = prepared(monkeypatch, [item(1, QA)])
+    dataset.links = False  # 서버가 run item을 받지 않아 dataset_run_id가 없다
+    stub_models(monkeypatch)
+
+    service.run(plan)
+
+    # 결과가 있으면 experiment_id가 항목 span이 싣는 실험 ID라 그대로 쓴다(Run을 조회하지 않는다).
+    assert {s['dataset_run_id'] for s in client.scores} == {'sdk-fallback-id'} and client.listed is None
 
 
 @pytest.mark.parametrize('bad', [{'question': '문맥 없는 질문'}, {'question': '', 'contexts': ['문맥']}, {'question': '질문', 'contexts': [3]}])

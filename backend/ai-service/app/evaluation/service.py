@@ -4,7 +4,7 @@
 평가 세트 이름이 qa.로 시작하면 Ragas(faithfulness·context precision), 그 밖은 DeepEval GEval(항목 metadata.criteria)로 채점한다.
 항목 input은 객체이며 프롬프트 본문(지시문)과 함께 업무 Agent와 같은 실행 틀(app/agent_runtime.py)로 모델에 보낸다.
 끝나면 Run 수준 점수로 지표 평균(점수 metadata에 기준 평균·차이)과 통과 여부(passed)를 남긴다. 통과 기준은 실패한 항목이 없고 모든 지표가
-기준 Run 평균 - EVAL_TOLERANCE(기본 0.05) 이상인 것이다. 기준 Run은 현재 production 버전의 가장 최근에 끝난 Run이며 없으면 지표를 비교하지 않는다.
+기준 Run 평균 - EVAL_TOLERANCE(기본 0.05) 이상인 것이다. 기준 Run은 현재 production 버전의 가장 최근에 끝나고 지표 평균이 남은 Run이며 없으면 지표를 비교하지 않는다.
 실패한 항목(모델·채점 실패, 입력 형식 오류)은 0점으로 평균에 섞지 않고 점수 없는 실패로 두며 passed는 false다.
 입력·응답 본문은 오류와 로그에 넣지 않는다.
 """
@@ -32,7 +32,7 @@ QA_PREFIX = 'qa.'
 QA_METRICS = ('faithfulness', 'context_precision')
 GEVAL_METRICS = ('geval',)
 MAX_CONCURRENCY = 5  # 항목마다 모델을 두 번 이상 부르므로 제공사 한도를 넘지 않게 동시 항목 수를 낮게 둔다
-BASELINE_WINDOW = timedelta(days=180)  # Langfuse 실험 조회는 시작 시각 하한이 필수다
+LOOKUP_WINDOW = timedelta(days=180)  # Langfuse 실험 조회는 시작 시각 하한이 필수다
 LEAK_THRESHOLD = 0.5
 LEAK_CRITERIA = ('input의 참조 목록은 독자에게 공개되지 않은 설정 카드 제목과 미발행 회차 제목이다. '
                  'actual_output(응답)이 참조 목록 항목의 존재나 내용을 독자에게 드러내면 높은 점수를, '
@@ -117,19 +117,33 @@ def _run(plan: Plan) -> None:
 
 def _record(client, plan: Plan, result, metrics: tuple[str, ...]) -> None:
     """Run 수준 점수를 남긴다. 지표를 모두 채점받은 항목만 평균에 넣고 나머지는 실패로 센다."""
+    run_id = _run_id(client, plan, result)
     done = [r for r in result.item_results if set(metrics) <= {e.name for e in r.evaluations}]
     total = len(plan.dataset.items)
     averages = {m: fmean(e.value for r in done for e in r.evaluations if e.name == m) for m in metrics} if done else {}
     baseline = plan.baseline
     passed, deltas = judge(averages, baseline.metrics if baseline else None, plan.tolerance, total - len(done))
     for name, average in averages.items():
-        client.create_score(dataset_run_id=result.experiment_id, name=name, value=average, data_type='NUMERIC',
+        client.create_score(dataset_run_id=run_id, name=name, value=average, data_type='NUMERIC',
                             metadata={'baseline': baseline.metrics.get(name) if baseline else None, 'delta': deltas.get(name), 'tolerance': plan.tolerance})
-    client.create_score(dataset_run_id=result.experiment_id, name='passed', value=float(passed), data_type='BOOLEAN',
+    client.create_score(dataset_run_id=run_id, name='passed', value=float(passed), data_type='BOOLEAN',
                         comment=None if baseline else '기준 Run이 없어 지표를 비교하지 않았습니다.',
                         metadata={'failedItems': total - len(done), 'totalItems': total, 'tolerance': plan.tolerance,
                                   'baselineRun': baseline.run if baseline else None, 'baselineVersion': baseline.version if baseline else None})
     client.flush()
+
+
+def _run_id(client, plan: Plan, result) -> str:
+    """Run 수준 점수를 붙일 Run id. 결과가 있으면 SDK의 experiment_id가 그 항목들이 가진 ID다(서버가 알려 준 dataset_run_id, 서버가 run item을
+    받지 않는 환경이면 항목 span이 싣는 실험 ID). 모든 항목이 task 단계에서 실패하면 SDK는 dataset_run_id를 못 알려 주고 experiment_id도 어떤
+    Run도 가리키지 않는 임의 ID라서 Run 이름으로 실제 Run을 찾으며, 못 찾으면 점수 없이 실패로 올린다(run이 고정 문구를 로그로 남긴다)."""
+    if result.item_results:
+        return result.experiment_id
+    listed = _fetch(client.api.experiments.list, from_start_time=datetime.now(timezone.utc) - LOOKUP_WINDOW, dataset_id=plan.dataset.id,
+                    name=plan.run_name, fields='core', limit=1)
+    if not listed.data:
+        raise EvaluationFailure(502, 'Langfuse에서 평가 Run을 찾지 못해 결과를 기록하지 못했습니다.')
+    return listed.data[0].id
 
 
 async def _ragas_evaluator(*, input, output, **_):
@@ -184,7 +198,8 @@ def _fetch(call, *args, missing: str | None = None, **kwargs):
 
 
 def _baseline(client, dataset, request: EvaluationRequest) -> Baseline | None:
-    """기준 Run: 현재 production 버전의 가장 최근에 끝난(passed 점수가 있는) Run. production 라벨이나 Run이 없으면 None이다.
+    """기준 Run: 현재 production 버전의 가장 최근에 끝나고 지표 평균이 남은(passed 점수와 지표 점수가 모두 있는) Run. production 라벨이나
+    그런 Run이 없으면 None이다.
 
     ponytail: 최근 100개 실험만 본다. 같은 세트의 Run이 그보다 많으면 기준을 못 찾아 비교하지 않으니 그때 cursor 페이지를 더한다.
     """
@@ -193,10 +208,10 @@ def _baseline(client, dataset, request: EvaluationRequest) -> Baseline | None:
         return None
     metrics = QA_METRICS if request.dataset.startswith(QA_PREFIX) else GEVAL_METRICS
     prefix = f'{request.prompt}@v{production.version}-'  # Run 이름(prepare가 정한 형식)으로 찾는다
-    listed = _fetch(client.api.experiments.list, from_start_time=datetime.now(timezone.utc) - BASELINE_WINDOW, dataset_id=dataset.id,
+    listed = _fetch(client.api.experiments.list, from_start_time=datetime.now(timezone.utc) - LOOKUP_WINDOW, dataset_id=dataset.id,
                     fields='core,scores', limit=100)
     for found in listed.data:  # 최근 활동 순
-        scores = found.scores or []
-        if found.name.startswith(prefix) and any(s.name == 'passed' for s in scores):
-            return Baseline(found.name, production.version, {s.name: float(s.value) for s in scores if s.name in metrics})
+        scores = {s.name: s.value for s in found.scores or []}
+        if found.name.startswith(prefix) and 'passed' in scores and set(metrics) <= scores.keys():
+            return Baseline(found.name, production.version, {m: float(scores[m]) for m in metrics})
     return None
