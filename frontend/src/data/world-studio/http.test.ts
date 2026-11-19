@@ -212,6 +212,13 @@ it('rebuilds the kind from the server card type when the studio disagrees and ke
  expect(loaded.settings[0].item).toMatchObject({kind:'entity',entityType:'character',timeText:'미래'})
  expect(loaded.settings[0].item).not.toHaveProperty('semanticType')
 })
+it('rebuilds a card from the canonical fields when its studio item says relation',async()=>{
+ const response=wire()
+ const card={...response.cards[1],cardType:'other',semanticMetadata:{studio:{...b,item:{...b.item,kind:'relation',entityType:null,semanticType:'fact'}}}}
+ const loaded=await new HttpWorldStudioRepository(vi.fn().mockResolvedValue(Response.json({...response,cards:[response.cards[0],card]}))).read(id)
+ expect(loaded.settings[1].item).toMatchObject({id:b.item.id,kind:'entity',entityType:'other'})
+ expect(loaded.settings[1].item).not.toHaveProperty('semanticType')
+})
 it('loads only an authenticated coherent current graph with lossless relation metadata',async()=>{
  const fetcher=vi.fn().mockResolvedValue(Response.json(wire()))
  const controller=new AbortController()

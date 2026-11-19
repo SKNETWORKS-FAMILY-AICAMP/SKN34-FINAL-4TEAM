@@ -218,7 +218,7 @@ function cardRow(c: z.infer<typeof card>): StudioSetting {
   let row = view
     ? { ...view, userCategory: c.classification, tags: c.tags, ...(view.aliases !== undefined || c.aliases.length > 0 ? { aliases: c.aliases } : {}), item: { ...view.item, id: c.id, title: c.title, text: c.body, category: c.areaCode } }
     : canonicalCard(c)
-  if (cardType(row) !== c.cardType) {
+  if (row.item.kind === 'relation' || cardType(row) !== c.cardType) {
     const { semanticType: _stale, ...item } = row.item
     row = { ...row, item: { ...item, ...kindFields(c.cardType) } }
   }

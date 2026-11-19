@@ -922,6 +922,23 @@ class WorldStudioServiceTest {
         verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
         verify(revisions,never()).saveAndFlush(any());verify(cardVersions,never()).saveAll(any<Iterable<SettingCardVersion>>());verifyNoInteractions(requests)
     }
+    @Test fun `confirmed save is not blocked by an old card that still holds an unknown metadata key`() {
+        val legacy=mapOf("unknown" to "옛 키","characterDocs" to mapOf("soul" to "s","memory" to "옛 기억","episodes" to emptyMap<String,String>()))
+        owned()
+        `when`(cardDrafts.findAllByWorldId(world)).thenReturn(listOf(SettingCardDraft(cardA,world,fieldsOf("가람",meta=legacy))))
+        var revision:WorldRevision?=null;var versions=emptyList<SettingCardVersion>()
+        `when`(revisions.saveAndFlush(any())).thenAnswer { (it.arguments[0] as WorldRevision).also { value -> revision=value } }
+        `when`(revisions.findByIdAndWorldId(anyUUID(),anyUUID())).thenAnswer { revision }
+        `when`(cardVersions.saveAll(any<Iterable<SettingCardVersion>>())).thenAnswer { (it.arguments[0] as Iterable<SettingCardVersion>).toList().also { value -> versions=value } }
+        `when`(cardVersions.findAllById(any<Iterable<UUID>>())).thenAnswer { versions }
+        `when`(revisionCards.findAllByIdRevisionId(anyUUID())).thenAnswer { versions.map { WorldRevisionCard(RevisionCardKey(revision!!.id,it.cardId),world,it.id) } }
+
+        val saved=service.save(world,actor,SaveWorldRequest(2,"confirm-legacy"))
+
+        // 검사는 초안 편집 요청에만 있어 확정 저장은 옛 키를 그대로 봉인한다.
+        assertEquals(legacy,saved.cards.single().card.semanticMetadata)
+        assertEquals(3L,draft.draftRevision)
+    }
     @Test fun `restore does not apply the draft edit metadata check to confirmed cards`() {
         val legacy=mapOf("unknown" to "옛 키","characterDocs" to mapOf("soul" to "s","memory" to "옛 기억","episodes" to emptyMap<String,String>()))
         val rows=restoring(legacy);at(null)
