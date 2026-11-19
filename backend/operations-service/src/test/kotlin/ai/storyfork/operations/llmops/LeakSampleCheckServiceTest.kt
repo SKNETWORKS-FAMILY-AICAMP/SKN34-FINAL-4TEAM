@@ -44,18 +44,27 @@ class LeakSampleCheckServiceTest {
     private val from = Instant.parse("2026-11-19T00:00:00Z")
     private val to = Instant.parse("2026-11-19T01:00:00Z")
 
-    private fun fork(id: String, workId: String?, output: String) =
-        trace(id, metadata = """{"fork":true${workId?.let { ",\"work_id\":\"$it\"" } ?: ""}}""", output = output)
+    /** A request root of the window and the answer its trace gave: Langfuse keeps the answer on the model call, as raw text. */
+    private class Request(val root: JsonNode, val answer: String?) {
+        val traceId: String = root.path("traceId").asString()
+    }
 
-    private val leaked = fork("f1", "w-1", "\"그 사람의 진짜 이름은 한서진이야\"")
-    private val clean = fork("f2", "w-1", "\"아무 일도 없었어요\"")
-    private val notAFork = trace("f3", metadata = """{"fork":false,"work_id":"w-1"}""", output = "\"한서진\"")
-    private val noWork = fork("f4", null, "\"한서진\"")
-    private val gone = fork("f5", "w-2", "\"한서진\"")
+    private fun fork(id: String, workId: String?, answer: String?, status: String? = "success", fork: Boolean = true) = Request(
+        root(id, status = status, metadata = mapOf("fork" to fork.toString()) + (workId?.let { mapOf("work_id" to it) } ?: emptyMap())), answer,
+    )
+
+    private val leaked = fork("f1", "w-1", "그 사람의 진짜 이름은 한서진이야")
+    private val clean = fork("f2", "w-1", "아무 일도 없었어요")
+    private val notAFork = fork("f3", "w-1", "한서진", fork = false)
+    private val noWork = fork("f4", null, "한서진")
+    private val gone = fork("f5", "w-2", "한서진")
     private val objectAnswer = fork("f6", "w-1", """{"answer":"12화 진실이 밝혀져요"}""")
 
-    private fun givenTraces(vararg traces: JsonNode, rate: Double = 1.0, leakRuleEnabled: Boolean? = true) {
-        `when`(langfuse.allTraces(from, to)).thenReturn(traces.toList())
+    private fun givenTraces(vararg requests: Request, rate: Double = 1.0, leakRuleEnabled: Boolean? = true) {
+        `when`(langfuse.allTraces(from, to)).thenReturn(requests.map { it.root })
+        for (request in requests) {
+            `when`(langfuse.traceObservations(request.traceId)).thenReturn(listOf(request.root, generation(request.traceId, "g-${request.traceId}", output = request.answer)))
+        }
         `when`(settings.leakSampleRate()).thenReturn(rate)
         `when`(content.leakReferences("w-1")).thenReturn(LeakReferences("w-origin", listOf("한서진", "", "  ", "별빛 열쇠"), listOf("12화 진실")))
         `when`(content.leakReferences("w-2")).thenThrow(ResponseStatusException(HttpStatus.NOT_FOUND))
@@ -63,6 +72,8 @@ class LeakSampleCheckServiceTest {
     }
 
     private fun aiCalls() = mockingDetails(ai).invocations.map { it.arguments[0] as String to it.arguments[1] as List<*> }
+
+    private fun readAnswersOf() = mockingDetails(langfuse).invocations.filter { it.method.name == "traceObservations" }.map { it.arguments[0] }
 
     @Test
     fun `a sampled fork answer is matched against the private titles and only matches go to the AI judge`() {
@@ -80,6 +91,7 @@ class LeakSampleCheckServiceTest {
         val calls = aiCalls()
         assertEquals(2, calls.size)
         assertEquals("그 사람의 진짜 이름은 한서진이야" to listOf("한서진"), calls[0])
+        // An answer Langfuse stores as JSON text is read as JSON again, so Korean text is matched as written and not as \u escapes.
         assertTrue(calls[1].first.contains("12화 진실이 밝혀져요"))
         assertEquals(listOf("12화 진실"), calls[1].second)
     }
@@ -96,13 +108,23 @@ class LeakSampleCheckServiceTest {
 
     @Test
     fun `Content is asked once per work in a run and an unknown work is skipped without a result`() {
-        givenTraces(leaked, clean, gone, objectAnswer, fork("f7", "w-2", "\"x\""))
+        givenTraces(leaked, clean, gone, objectAnswer, fork("f7", "w-2", "x"))
 
         service.run(from, to, Random(1))
 
         verify(content, times(1)).leakReferences("w-1")
         verify(content, times(1)).leakReferences("w-2")
         assertEquals(listOf("f1", "f2", "f6"), saved.map { it.traceId })
+    }
+
+    @Test
+    fun `the answer is read only for a sampled trace that is not yet checked and whose work is known`() {
+        givenTraces(leaked, clean, gone, notAFork)
+        alreadyChecked = setOf("f1")
+
+        service.run(from, to, Random(1))
+
+        assertEquals(listOf<Any?>("f2"), readAnswersOf())
     }
 
     @Test
@@ -114,19 +136,34 @@ class LeakSampleCheckServiceTest {
         assertTrue(saved.isEmpty())
         verify(content, never()).leakReferences("w-1")
         assertTrue(aiCalls().isEmpty())
+        assertTrue(readAnswersOf().isEmpty())
     }
 
     @Test
     fun `a fractional rate draws once per eligible trace in list order`() {
-        val eligible = listOf(leaked, clean, objectAnswer, fork("f8", "w-1", "\"조용해요\""), fork("f9", "w-1", "\"평온해요\""), fork("f10", "w-1", "\"고요해요\""))
+        val eligible = listOf(leaked, clean, objectAnswer, fork("f8", "w-1", "조용해요"), fork("f9", "w-1", "평온해요"), fork("f10", "w-1", "고요해요"))
         givenTraces(notAFork, *eligible.toTypedArray(), noWork, rate = 0.5)
         val mirror = Random(7)
-        val expected = eligible.map { it.path("id").asString() }.filter { mirror.nextDouble() < 0.5 }
+        val expected = eligible.map { it.traceId }.filter { mirror.nextDouble() < 0.5 }
 
         service.run(from, to, Random(7))
 
         assertEquals(expected, saved.map { it.traceId })
         assertTrue(expected.isNotEmpty() && expected.size < eligible.size, "the seed must sample some but not all: " + expected)
+    }
+
+    @Test
+    fun `a request that has no status is not sampled and a trace with several requests is drawn once`() {
+        val waiting = fork("f7", "w-1", "한서진", status = null)
+        val resumedFirst = fork("f8", "w-1", "조용해요", status = "success")
+        val resumedAgain = Request(root("f8", "2026-11-19T00:30:00Z", status = "success", id = "again", metadata = mapOf("fork" to "true", "work_id" to "w-1")), "조용해요")
+        givenTraces(waiting, resumedAgain, resumedFirst)
+
+        service.run(from, to, Random(3))
+
+        // A waiting request is not a finished one and its trace has no answer yet; the two finished requests of f8 are one trace with one draw.
+        assertEquals(listOf("f8"), saved.map { it.traceId })
+        assertEquals(listOf<Any?>("f8"), readAnswersOf())
     }
 
     @Test

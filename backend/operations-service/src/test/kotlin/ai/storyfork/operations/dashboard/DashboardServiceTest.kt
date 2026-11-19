@@ -6,12 +6,14 @@ import ai.storyfork.operations._common.client.CoreClient
 import ai.storyfork.operations._common.client.EditSuggestionStats
 import ai.storyfork.operations._common.client.LangfuseClient
 import ai.storyfork.operations._common.client.MemberStats
+import ai.storyfork.operations._common.client.ObservationUsage
 import ai.storyfork.operations._common.client.ProposalDecisionStats
 import ai.storyfork.operations.alert.repository.OperationAlertRepository
 import ai.storyfork.operations.dashboard.service.DashboardService
 import ai.storyfork.operations.inquiry.repository.InquiryRepository
 import ai.storyfork.operations.llmops.service.AiUsageService
-import ai.storyfork.operations.llmops.trace
+import ai.storyfork.operations.llmops.json
+import ai.storyfork.operations.llmops.root
 import ai.storyfork.operations.report.entity.ReportStatus
 import ai.storyfork.operations.report.repository.ReportRepository
 import ai.storyfork.operations.security.OperationsMember
@@ -40,14 +42,17 @@ class DashboardServiceTest {
     private val weekAgo = Instant.parse("2026-11-12T05:00:00Z")
 
     private val traces = listOf(
-        trace("old", "2026-11-18T14:59:59Z", "qa", "failed", 2.0, 0.20),
-        trace("edge", "2026-11-18T15:00:00Z", "qa", "success", 1.0, 0.10, metadata = """{"credit_reservation_id":"r-1"}"""),
-        trace("new", "2026-11-19T01:00:00Z", "writing", "timeout", 5.0, 0.40),
+        root("old", "2026-11-18T14:59:59Z", "qa", "failed", 2.0),
+        root("edge", "2026-11-18T15:00:00Z", "qa", "success", 1.0, metadata = mapOf("credit_reservation_id" to "r-1")),
+        root("new", "2026-11-19T01:00:00Z", "writing", "timeout", 5.0),
     )
+    // The cost is the model calls' (a root has none): 0.20, 0.10 and 0.40.
+    private val usage = listOf(ObservationUsage("old", "gpt-5", 1, 1, 0.20), ObservationUsage("edge", "gpt-5", 1, 1, 0.10), ObservationUsage("new", "mini", 1, 1, 0.40))
 
     private fun givenAllSources() {
         `when`(core.memberStats(bearer)).thenReturn(MemberStats(100, 5, 1))
         `when`(langfuse.allTraces(weekAgo, now)).thenReturn(traces)
+        `when`(langfuse.observationUsage(weekAgo, now)).thenReturn(usage)
         `when`(content.operationsStats(weekAgo, now)).thenReturn(ContentOperationsStats(3, 4, ProposalDecisionStats(1, 2), EditSuggestionStats(1, 1)))
         `when`(inquiries.countWaitingMemberInquiries()).thenReturn(2L)
         `when`(reports.countByStatus(ReportStatus.RECEIVED)).thenReturn(5L)
@@ -136,7 +141,7 @@ class DashboardServiceTest {
     @Test
     fun `a Langfuse answer that cannot be read blanks only the Langfuse card`() {
         givenAllSources()
-        `when`(langfuse.allTraces(weekAgo, now)).thenReturn(listOf(trace("old", "2026-11-18 14:59:59", "qa", "failed", 2.0, 0.20)))
+        `when`(langfuse.allTraces(weekAgo, now)).thenReturn(listOf(json("""{"traceId":"old","startTime":"2026-11-18 14:59:59"}""")))
 
         val dashboard = service.get(operator, bearer, now)
 

@@ -3,43 +3,47 @@ package ai.storyfork.operations.llmops
 import ai.storyfork.operations._common.client.LangfuseClient
 import ai.storyfork.operations._common.client.ObservationUsage
 import ai.storyfork.operations.llmops.service.AiUsageService
+import ai.storyfork.operations.llmops.service.TraceFact
 import ai.storyfork.operations.llmops.service.toTraceFact
 import ai.storyfork.operations.llmops.service.usageStats
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
+import tools.jackson.databind.JsonNode
 
-/** Mocked Langfuse client with canned traces and usage rows: no network, Spring context or database. */
+/** Mocked Langfuse client with canned request roots and usage rows: no network, Spring context or database. */
 class AiUsageServiceTest {
     private val langfuse = mock(LangfuseClient::class.java)
     private val usage = AiUsageService(langfuse)
     private val from = Instant.parse("2026-11-18T00:00:00Z")
     private val to = Instant.parse("2026-11-20T00:00:00Z")
-    private val charged1 = """{"credit_reservation_id":"r-1"}"""
-    private val charged2 = """{"credit_reservation_id":"r-2"}"""
+    private val charged1 = mapOf("credit_reservation_id" to "r-1")
+    private val charged2 = mapOf("credit_reservation_id" to "r-2")
 
     // KST days: t1 is 11-18; t2, t3 and t4 are 11-19 (t2 is 01:00 KST although 16:00 UTC the day before).
     private val traces = listOf(
-        trace("t1", "2026-11-18T10:00:00Z", "qa", "success", 1.0, 0.10, metadata = charged1),
-        trace("t2", "2026-11-18T16:00:00Z", "qa", "failed", 2.0, 0.20),
-        trace("t3", "2026-11-19T01:00:00Z", "qa", "timeout", 10.0, 0.30),
-        trace("t4", "2026-11-19T02:00:00Z", "writing", "success", 3.0, 0.40, metadata = charged2),
+        root("t1", "2026-11-18T10:00:00Z", "qa", "success", 1.0, metadata = charged1),
+        root("t2", "2026-11-18T16:00:00Z", "qa", "failed", 2.0),
+        root("t3", "2026-11-19T01:00:00Z", "qa", "timeout", 10.0),
+        root("t4", "2026-11-19T02:00:00Z", "writing", "success", 3.0, metadata = charged2),
     )
     private val rows = listOf(
         ObservationUsage("t1", "gpt-5", 100, 10, 0.10), ObservationUsage("t2", "gpt-5", 50, 5, 0.12), ObservationUsage("t2", "mini", 20, 2, 0.08),
         ObservationUsage("t3", "gpt-5", 30, 3, 0.30), ObservationUsage("t4", "mini", 40, 4, 0.40),
-        ObservationUsage("ghost", "gpt-5", 999, 999, 9.0), // a trace outside the window's trace list is not counted anywhere
+        ObservationUsage("ghost", "gpt-5", 999, 999, 9.0), // a trace outside the window's roots is not counted anywhere
     )
 
-    private fun givenWindow() {
-        `when`(langfuse.allTraces(from, to)).thenReturn(traces)
-        `when`(langfuse.observationUsage(from, to)).thenReturn(rows)
+    private fun givenWindow(roots: List<JsonNode> = traces, usageRows: List<ObservationUsage> = rows) {
+        `when`(langfuse.allTraces(from, to)).thenReturn(roots)
+        `when`(langfuse.observationUsage(from, to)).thenReturn(usageRows)
     }
+
+    private fun fact(root: JsonNode, cost: Double = 0.0): TraceFact = root.toTraceFact().copy(cost = cost)
 
     @Test
     fun `stats count requests failures and timeouts and split cost by credit reservation`() {
-        val stats = traces.map { it.toTraceFact() }.usageStats()
+        val stats = listOf(fact(traces[0], 0.10), fact(traces[1], 0.20), fact(traces[2], 0.30), fact(traces[3], 0.40)).usageStats()
 
         assertEquals(4, stats.requests)
         assertEquals(1, stats.failed)
@@ -54,8 +58,19 @@ class AiUsageServiceTest {
     }
 
     @Test
+    fun `a root without a status is no request and no latency but its cost still counts`() {
+        val stats = listOf(fact(root("a", latency = 4.0, status = "failed"), 0.10), fact(root("b", status = null, latency = 0.5), 0.20), fact(root("c", status = null, latency = null), 0.30)).usageStats()
+
+        // A request that waits for the writer or was cancelled has no status: it is not counted, nor timed, but its model calls were paid for.
+        assertEquals(listOf(1, 1, 0), listOf(stats.requests, stats.failed, stats.timeouts))
+        assertEquals(1.0, stats.failureRate, 1e-9)
+        assertEquals(listOf(4000L, 4000L), listOf(stats.p50LatencyMs, stats.p95LatencyMs))
+        assertEquals(0.60, stats.costPlatform, 1e-9)
+    }
+
+    @Test
     fun `stats of an empty window are zeros and never a division by zero`() {
-        val stats = emptyList<ai.storyfork.operations.llmops.service.TraceFact>().usageStats()
+        val stats = emptyList<TraceFact>().usageStats()
 
         assertEquals(listOf(0, 0, 0), listOf(stats.requests, stats.failed, stats.timeouts))
         assertEquals(0.0, stats.failureRate)
@@ -64,12 +79,24 @@ class AiUsageServiceTest {
     }
 
     @Test
-    fun `traces without a latency do not count in the percentiles`() {
-        val stats = listOf(trace("a", latency = 4.0), trace("b", latency = null), trace("c", latency = 2.0)).map { it.toTraceFact() }.usageStats()
+    fun `requests without a latency do not count in the percentiles`() {
+        val stats = listOf(root("a", latency = 4.0), root("b", latency = null), root("c", latency = 2.0)).map { it.toTraceFact() }.usageStats()
 
         assertEquals(3, stats.requests)
         assertEquals(2000L, stats.p50LatencyMs)
         assertEquals(4000L, stats.p95LatencyMs)
+    }
+
+    @Test
+    fun `the facts of a window carry the cost and tokens of their trace's generations`() {
+        givenWindow()
+
+        val facts = usage.traceFacts(from, to).associateBy { it.id }
+
+        assertEquals(listOf(0.10, 0.20, 0.30, 0.40), listOf("t1", "t2", "t3", "t4").map { facts.getValue(it).cost })
+        assertEquals(listOf(100L, 70L, 30L, 40L), listOf("t1", "t2", "t3", "t4").map { facts.getValue(it).inputTokens })
+        assertEquals(listOf(10L, 7L, 3L, 4L), listOf("t1", "t2", "t3", "t4").map { facts.getValue(it).outputTokens })
+        assertFalse("ghost" in facts)
     }
 
     @Test
@@ -134,10 +161,66 @@ class AiUsageServiceTest {
 
     @Test
     fun `a generation without a model is the unknown model`() {
-        `when`(langfuse.allTraces(from, to)).thenReturn(listOf(trace("t1")))
-        `when`(langfuse.observationUsage(from, to)).thenReturn(listOf(ObservationUsage("t1", null, 1, 1, 0.0)))
+        givenWindow(listOf(root("t1")), listOf(ObservationUsage("t1", null, 1, 1, 0.0)))
 
         assertEquals(listOf("unknown"), usage.rows(from, to, "model").map { it.key })
+    }
+
+    @Test
+    fun `a resumed turn is one request for its waiting root and its generations are counted once for its finished roots`() {
+        val waiting = root("t1", "2026-11-19T01:00:00Z", "qa", null, 0.5, id = "r1")
+        val success = root("t1", "2026-11-19T03:00:00Z", "qa", "success", 4.0, id = "r2")
+        givenWindow(listOf(success, waiting), listOf(ObservationUsage("t1", "gpt-5", 100, 10, 0.10)))
+
+        val row = usage.rows(from, to, "feature").single()
+
+        // The waiting root has no status, so the turn is one request, timed by the request that finished it, with all of the turn's generations.
+        assertEquals(listOf<Any>(1, 4000L), listOf(row.requests, row.p95LatencyMs))
+        assertEquals(listOf(100L, 10L), listOf(row.inputTokens, row.outputTokens))
+        assertEquals(0.10, row.costPlatform, 1e-9)
+    }
+
+    @Test
+    fun `a trace with several finished requests counts each request but its generations once with the newest`() {
+        val failed = root("t1", "2026-11-19T01:00:00Z", "qa", "failed", 1.0, id = "r1")
+        val success = root("t1", "2026-11-19T03:00:00Z", "qa", "success", 2.0, id = "r2")
+        givenWindow(listOf(failed, success), listOf(ObservationUsage("t1", "gpt-5", 100, 10, 0.10)))
+
+        val facts = usage.traceFacts(from, to)
+        val row = usage.rows(from, to, "feature").single()
+
+        assertEquals(listOf(2, 0.5), listOf(row.requests, row.failureRate))
+        assertEquals(listOf(100L, 10L), listOf(row.inputTokens, row.outputTokens))
+        assertEquals(0.10, row.costPlatform, 1e-9)
+        assertEquals(listOf(0.0, 0.10), facts.sortedBy { it.timestamp }.map { it.cost })
+        // A model row is a request of the trace as a whole, shown by its newest finished request.
+        val model = usage.rows(from, to, "model").single()
+        assertEquals(listOf(1, 0.0), listOf(model.requests, model.failureRate))
+    }
+
+    @Test
+    fun `the generations of a trace stay with its newest finished request even when a later request was cancelled`() {
+        val finished = root("t1", "2026-11-19T01:00:00Z", "qa", "success", 1.0, id = "r1")
+        val cancelled = root("t1", "2026-11-20T01:00:00Z", "qa", null, 0.5, id = "r2")
+        givenWindow(listOf(cancelled, finished), listOf(ObservationUsage("t1", "gpt-5", 100, 10, 0.10)))
+
+        val rows = usage.rows(from, to, "day")
+
+        // The two requests fall on two Korean days; the cost stays with the one that was counted as a request.
+        assertEquals(listOf("2026-11-19", "2026-11-20"), rows.map { it.key })
+        assertEquals(listOf(1, 0), rows.map { it.requests })
+        assertEquals(listOf(0.10, 0.0), rows.map { it.costPlatform })
+    }
+
+    @Test
+    fun `a trace that only waits is no request but its model calls cost money`() {
+        givenWindow(listOf(root("t1", "2026-11-19T01:00:00Z", "qa", null, 0.5)), listOf(ObservationUsage("t1", "gpt-5", 100, 10, 0.10)))
+
+        val row = usage.rows(from, to, "day").single()
+
+        assertEquals(listOf(0, 0.0, 0L), listOf(row.requests, row.failureRate, row.p95LatencyMs))
+        assertEquals(listOf(100L, 10L), listOf(row.inputTokens, row.outputTokens))
+        assertEquals(0.10, row.costPlatform, 1e-9)
     }
 
     @Test
@@ -145,6 +228,7 @@ class AiUsageServiceTest {
         `when`(langfuse.allTraces(from, to)).thenReturn(emptyList())
 
         assertTrue(usage.rows(from, to, "day").isEmpty())
+        assertTrue(usage.traceFacts(from, to).isEmpty())
 
         verify(langfuse, never()).observationUsage(from, to)
     }

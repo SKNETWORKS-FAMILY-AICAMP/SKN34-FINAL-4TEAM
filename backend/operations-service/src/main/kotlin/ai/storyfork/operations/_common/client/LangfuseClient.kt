@@ -12,50 +12,101 @@ import tools.jackson.databind.json.JsonMapper
 /** Token and cost sums of one trace's generations for one model, read from the metrics API. */
 data class ObservationUsage(val traceId: String, val model: String?, val inputTokens: Long, val outputTokens: Long, val cost: Double)
 
+/** One page of request roots (a root observation per trace, newest first) and how many roots match in all. */
+class TraceRoots(val items: List<JsonNode>, val total: Long)
+
 private const val PAGE_SIZE = 100
-private const val MAX_TRACE_PAGES = 10
 private const val MAX_LIST_PAGES = 5
 private const val USAGE_ROW_LIMIT = 1000
 
 /**
- * Langfuse Public API (Basic auth with the project keys, see [langfuseRestClient]). Responses stay [JsonNode]: the services read only the
- * fields a screen needs. Every user-controlled value goes in as a URI variable, so reserved characters can never add or change a parameter.
- * Only a missing record (404) keeps its status on reads, and 400/404/409 on writes; a bad key (401/403) is a 502, not the admin's own 401.
+ * ponytail: a read sees the newest 1,000 request roots at most (the largest page of the Observations API) so a wide window cannot stall a screen;
+ * narrow the window to see older ones, or move to server-side aggregation with the Metrics API.
+ */
+internal const val MAX_TRACES = 1000
+private const val OBSERVATION_PAGE = 1000
+private const val MAX_TRACE_OBSERVATIONS = 1000
+
+/** Experiments and Scores v3 pages are 100 at most. */
+private const val CURSOR_PAGE = 100
+private const val MAX_EXPERIMENTS = 500
+private const val MAX_SCORES = 1000
+
+/** Experiment ids per scores request, so the URL stays short. */
+private const val SCORE_ID_CHUNK = 50
+
+/** A cursor page can come back empty while it still has a cursor; this many requests is the most a single read makes. */
+private const val MAX_REQUESTS = 20
+
+/** What Langfuse itself assumes when a read has no lower time bound. */
+private val EARLIEST = Instant.parse("2020-01-01T00:00:00Z")
+
+/** The tags and the trace name only come back with trace_context. */
+private const val ROOT_FIELDS = "core,basic,metadata,metrics,trace_context"
+private const val DETAIL_FIELDS = "core,basic,io,metadata,model,usage,prompt,metrics,trace_context"
+
+private fun condition(type: String, column: String, operator: String, value: Any?, key: String? = null): Map<String, Any?> =
+    listOfNotNull("type" to type, "column" to column, key?.let { "key" to it }, "operator" to operator, "value" to value).toMap()
+
+private val ROOT = condition("boolean", "isRootObservation", "=", true)
+
+private fun window(from: Instant?, to: Instant?) =
+    listOfNotNull(from?.let { condition("datetime", "startTime", ">=", it.toString()) }, to?.let { condition("datetime", "startTime", "<", it.toString()) })
+
+/**
+ * Langfuse Public API (Basic auth with the project keys, see [langfuseRestClient]): the v4 read APIs (Observations v2, Metrics v2, Experiments, Scores v3;
+ * the traces, sessions, v1 metrics and dataset-run endpoints answer 404 there). Responses stay [JsonNode]: the services read only the fields a screen
+ * needs. Every user-controlled value goes in as a URI variable, so reserved characters can never add or change a parameter. A 404 on a prompt read is a
+ * missing record and keeps its status, and 400/404/409 on writes; every other failure, a 404 of the v4 read APIs included (it means a server or URL
+ * that does not serve them), and a bad key (401/403) is a 502, not the admin's own 401.
  */
 class LangfuseClient(private val http: RestClient, private val mapper: JsonMapper) {
-    /** One trace page (data, meta). A [requestId] is a metadata filter, which Langfuse only takes in its filter parameter. */
-    fun traces(from: Instant?, to: Instant?, tags: List<String>, userId: String?, requestId: String?, page: Int, limit: Int): JsonNode {
-        val params = mutableListOf<Pair<String, Any?>>("page" to page, "limit" to limit, "orderBy" to "timestamp.desc")
-        if (requestId == null) {
-            params += listOf("fromTimestamp" to from?.toString(), "toTimestamp" to to?.toString(), "userId" to userId)
-            tags.forEach { params += "tags" to it }
-        } else {
-            params += "filter" to traceFilter(from, to, tags, userId, requestId)
+    /**
+     * One page of the requests that have finished, a line per trace. A request has finished when its root carries a metadata status (a waiting or cancelled
+     * one has none) and a resumed turn has a root per HTTP request, so roots of one trace are merged into the newest. [skip] traces are passed over: the
+     * Observations API only walks forward by cursor. Every filter, the window included, goes inside the one filter parameter, which Langfuse lets win over
+     * the plain ones. ponytail: [TraceRoots.total] counts roots, so a trace with two finished requests counts twice in it.
+     */
+    fun traces(from: Instant?, to: Instant?, feature: String?, status: String?, userId: String?, requestId: String?, skip: Int, limit: Int): TraceRoots {
+        val conditions = traceConditions(feature, status, userId, requestId)
+        val wanted = minOf(skip + limit, MAX_TRACES)
+        val roots = cursorPages("/api/public/v2/observations", listOf("fields" to ROOT_FIELDS, "filter" to mapper.writeValueAsString(conditions + window(from, to))), OBSERVATION_PAGE) {
+            wanted - it.distinctBy { root -> root.path("traceId").asString() }.size
         }
-        return get("/api/public/traces", params = params)
+        val items = roots.distinctBy { it.path("traceId").asString() }.drop(skip).take(limit)
+        return TraceRoots(items, count(conditions, from ?: EARLIEST, to ?: Instant.now()))
     }
 
-    /** Newest first. ponytail: at most 1,000 traces (10 pages) so a wide window cannot stall a screen; move to server-side metrics aggregation beyond that. */
-    fun allTraces(from: Instant, to: Instant): List<JsonNode> = pages(
-        "/api/public/traces", params = listOf("fromTimestamp" to from.toString(), "toTimestamp" to to.toString(), "orderBy" to "timestamp.desc"), maxPages = MAX_TRACE_PAGES,
-    )
+    /** Every request root of the window, finished or not, newest first. Their generations cost money whatever became of the request. */
+    fun allTraces(from: Instant, to: Instant): List<JsonNode> =
+        cursorPages("/api/public/v2/observations", listOf("fields" to ROOT_FIELDS, "filter" to mapper.writeValueAsString(listOf(ROOT) + window(from, to))), OBSERVATION_PAGE) {
+            MAX_TRACES - it.size
+        }
 
-    fun trace(id: String): JsonNode = get("/api/public/traces/{id}", mapOf("id" to id))
+    /** Every observation of one trace, its roots and all steps, in no fixed order; empty when Langfuse has no such trace. */
+    fun traceObservations(id: String): List<JsonNode> =
+        cursorPages("/api/public/v2/observations", listOf("fields" to DETAIL_FIELDS, "filter" to mapper.writeValueAsString(listOf(condition("string", "traceId", "=", id)))), OBSERVATION_PAGE) {
+            MAX_TRACE_OBSERVATIONS - it.size
+        }
 
-    /** Token and cost sums per trace and model over the window; [traceIds] narrows it to one page of traces. */
+    /**
+     * Token and cost sums per trace and model over the window; [traceIds] narrows it to one page of traces. Langfuse groups by a trace id only when the rows
+     * are limited and ordered by a measure, biggest first, and otherwise answers 400 (its OpenAPI text still calls the trace id unsupported).
+     */
     fun observationUsage(from: Instant, to: Instant, traceIds: List<String>? = null): List<ObservationUsage> {
-        val filters = mutableListOf<Map<String, Any>>(mapOf("column" to "type", "operator" to "=", "value" to "GENERATION", "type" to "string"))
-        if (traceIds != null) filters += mapOf("column" to "traceId", "operator" to "any of", "value" to traceIds, "type" to "stringOptions")
+        val filters = mutableListOf(condition("string", "type", "=", "GENERATION"))
+        if (traceIds != null) filters += condition("stringOptions", "traceId", "any of", traceIds)
         val query = mapOf(
             "view" to "observations",
             "dimensions" to listOf(mapOf("field" to "traceId"), mapOf("field" to "providedModelName")),
             "metrics" to listOf("inputTokens", "outputTokens", "totalCost").map { mapOf("measure" to it, "aggregation" to "sum") },
             "filters" to filters, "fromTimestamp" to from.toString(), "toTimestamp" to to.toString(),
+            "orderBy" to listOf(mapOf("field" to "sum_totalCost", "direction" to "desc")),
             "config" to mapOf("row_limit" to USAGE_ROW_LIMIT),
         )
-        return get("/api/public/metrics", params = listOf("query" to mapper.writeValueAsString(query))).path("data").values().map { row ->
+        return metrics(query).values().map { row ->
             ObservationUsage(row.path("traceId").asString(), row.path("providedModelName").textOrNull(),
-                row.sum("inputTokens").asLong(), row.sum("outputTokens").asLong(), row.sum("totalCost").asDouble())
+                row.path("sum_inputTokens").asLong(), row.path("sum_outputTokens").asLong(), row.path("sum_totalCost").asDouble())
         }
     }
 
@@ -73,28 +124,59 @@ class LangfuseClient(private val http: RestClient, private val mapper: JsonMappe
 
     fun models(): List<JsonNode> = pages("/api/public/models")
 
-    /** The run-level scores of one Dataset Run (the passed verdict and the metric averages the AI service writes when an evaluation ends). */
-    fun runScores(runId: String): List<JsonNode> = pages("/api/public/v2/scores", params = listOf("datasetRunId" to runId))
-
     fun createModel(body: Map<String, Any?>): JsonNode = send(HttpMethod.POST, "/api/public/models", emptyMap(), body)
 
-    /** Every run of every dataset; a run carries its datasetName and metadata. ponytail: 500 datasets and 500 runs each at most. */
-    fun datasetRuns(): List<JsonNode> = pages("/api/public/datasets").flatMap { dataset ->
-        pages("/api/public/datasets/{dataset}/runs", mapOf("dataset" to dataset.path("name").asString()))
+    /**
+     * The experiments (what a Dataset Run is on v4) that started or had events since [from], newest activity first, with their metadata; [name] narrows it to
+     * the experiments of that exact name. Langfuse requires the start time. ponytail: the newest 500 at most.
+     */
+    fun experiments(from: Instant, name: String?): List<JsonNode> = cursorPages(
+        "/api/public/experiments", listOf("fromStartTime" to from.toString(), "fields" to "core,metadata", "name" to name), CURSOR_PAGE,
+    ) { MAX_EXPERIMENTS - it.size }
+
+    /**
+     * The scores attached to the experiments themselves, which is where the AI service writes a run's verdict and metric averages, with their details and the
+     * subject that says which experiment each belongs to. An empty id list is no request: an empty filter would read every score of the project.
+     */
+    fun experimentScores(experimentIds: List<String>): List<JsonNode> = experimentIds.chunked(SCORE_ID_CHUNK).flatMap { ids ->
+        cursorPages("/api/public/v3/scores", listOf("experimentId" to ids.joinToString(","), "fields" to "details,subject"), CURSOR_PAGE) { MAX_SCORES - it.size }
     }
 
-    private fun traceFilter(from: Instant?, to: Instant?, tags: List<String>, userId: String?, requestId: String): String {
-        val conditions = mutableListOf<Map<String, Any>>()
-        from?.let { conditions += mapOf("type" to "datetime", "column" to "timestamp", "operator" to ">=", "value" to it.toString()) }
-        to?.let { conditions += mapOf("type" to "datetime", "column" to "timestamp", "operator" to "<", "value" to it.toString()) }
-        userId?.let { conditions += mapOf("type" to "string", "column" to "userId", "operator" to "=", "value" to it) }
-        if (tags.isNotEmpty()) conditions += mapOf("type" to "arrayOptions", "column" to "tags", "operator" to "all of", "value" to tags)
-        conditions += mapOf("type" to "stringObject", "column" to "metadata", "key" to "request_id", "operator" to "=", "value" to requestId)
-        return mapper.writeValueAsString(conditions)
-    }
+    /** The conditions of the requests that count: finished ones (a status is set, or is the one asked for) and the filters of the screen. */
+    private fun traceConditions(feature: String?, status: String?, userId: String?, requestId: String?): List<Map<String, Any?>> = listOfNotNull(
+        ROOT,
+        if (status == null) condition("stringObject", "metadata", "is set", "", "status") else condition("stringObject", "metadata", "=", status, "status"),
+        feature?.let { condition("arrayOptions", "tags", "any of", listOf("feature:$it")) },
+        userId?.let { condition("string", "userId", "=", it) },
+        requestId?.let { condition("stringObject", "metadata", "=", it, "request_id") },
+    )
 
-    /** The aggregate of one measure; the name is "measure_aggregation" or "aggregation_measure" depending on the Langfuse version. */
-    private fun JsonNode.sum(measure: String): JsonNode = path("${measure}_sum").takeUnless { it.isMissingNode } ?: path("sum_${measure}")
+    /** How many roots match, from the metrics API: the Observations API has no total. */
+    private fun count(conditions: List<Map<String, Any?>>, from: Instant, to: Instant): Long = metrics(mapOf(
+        "view" to "observations", "metrics" to listOf(mapOf("measure" to "count", "aggregation" to "count")),
+        "filters" to conditions, "fromTimestamp" to from.toString(), "toTimestamp" to to.toString(),
+    )).values().firstOrNull()?.path("count_count")?.doubleOrNull()?.toLong() ?: 0L
+
+    private fun metrics(query: Map<String, Any?>): JsonNode =
+        get("/api/public/v2/metrics", params = listOf("query" to mapper.writeValueAsString(query)), missing = emptySet()).path("data")
+
+    /**
+     * Reads a cursor-paged list (Observations v2, Experiments, Scores v3): the last page has no cursor in its meta, and a page can be short or even empty
+     * while it still has one. [need] says how many more rows are wanted for what has been read so far (nothing more when it is 0 or less); no request asks
+     * for more than [pageSize].
+     */
+    private fun cursorPages(path: String, params: List<Pair<String, Any?>>, pageSize: Int, need: (List<JsonNode>) -> Int): List<JsonNode> {
+        val rows = mutableListOf<JsonNode>()
+        var cursor: String? = null
+        repeat(MAX_REQUESTS) {
+            val wanted = need(rows)
+            if (wanted <= 0) return rows
+            val body = get(path, params = params + listOf("limit" to minOf(wanted, pageSize), "cursor" to cursor), missing = emptySet())
+            rows += body.path("data").values()
+            cursor = body.path("meta").path("cursor").textOrNull() ?: return rows
+        }
+        return rows
+    }
 
     private fun pages(
         path: String, pathVars: Map<String, Any?> = emptyMap(), params: List<Pair<String, Any?>> = emptyList(), maxPages: Int = MAX_LIST_PAGES,
@@ -108,8 +190,10 @@ class LangfuseClient(private val http: RestClient, private val mapper: JsonMappe
         return out
     }
 
-    private fun get(path: String, pathVars: Map<String, Any?> = emptyMap(), params: List<Pair<String, Any?>> = emptyList()): JsonNode =
-        upstream(setOf(404)) { http.get().uri { uri(it, path, pathVars, params) }.retrieve().body(JsonNode::class.java) }
+    /** [missing] are the statuses that mean "no such record" and are kept: only prompt reads have such a record. */
+    private fun get(
+        path: String, pathVars: Map<String, Any?> = emptyMap(), params: List<Pair<String, Any?>> = emptyList(), missing: Set<Int> = setOf(404),
+    ): JsonNode = upstream(missing) { http.get().uri { uri(it, path, pathVars, params) }.retrieve().body(JsonNode::class.java) }
 
     private fun send(method: HttpMethod, path: String, pathVars: Map<String, Any?>, body: Any): JsonNode = upstream {
         http.method(method).uri { uri(it, path, pathVars, emptyList()) }.contentType(MediaType.APPLICATION_JSON).body(body).retrieve().body(JsonNode::class.java)

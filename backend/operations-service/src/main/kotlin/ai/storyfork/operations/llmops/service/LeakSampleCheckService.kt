@@ -28,15 +28,17 @@ class LeakSampleCheckService(
     private val raiser: AlertRaiser,
 ) {
     /**
-     * Samples the Fork-work traces of the window at the configured rate (one draw per eligible trace, in list order), looks for the origin's
-     * private card titles and unpublished episode titles in the answer text, and sends only the matches to the AI judge. Every sampled trace
+     * Samples the Fork-work traces of the window at the configured rate (one draw per eligible trace, in list order; a trace is eligible once a
+     * request of it has finished, and a resumed turn is one trace), looks for the origin's private card titles and unpublished episode titles in
+     * the answer text (read from the trace's observations when it is drawn), and sends only the matches to the AI judge. Every sampled trace
      * leaves one result (nothing matched is a clean result); a suspicious one raises the leak alert when that rule is switched on.
      * Returns how many answers the judge found suspicious. A failing AI or Content call reaches the caller and keeps the results saved before it.
      * ponytail: titles are matched as plain substrings, so a title that JSON would escape inside an object answer is missed.
      */
     fun run(from: Instant, to: Instant, random: Random = Random.Default): Int {
         val rate = settings.leakSampleRate()
-        val sampled = langfuse.allTraces(from, to).map { it.toTraceFact() }.filter { it.fork && it.workId != null }.filter { random.nextDouble() < rate }
+        val sampled = langfuse.allTraces(from, to).map { it.toTraceFact() }.filter { it.status != null && it.fork && it.workId != null }.distinctBy { it.id }
+            .filter { random.nextDouble() < rate }
         // Content is asked once per work in a run, an unknown work (null) included.
         val references = HashMap<String, LeakReferences?>()
         var suspicious = 0
@@ -45,7 +47,7 @@ class LeakSampleCheckService(
             val workId = checkNotNull(trace.workId)
             val origin = if (workId in references) references[workId] else referencesOf(workId).also { references[workId] = it }
             if (origin == null) continue
-            val answer = trace.output?.let { if (it.isString) it.stringValue() else it.toString() }.orEmpty()
+            val answer = langfuse.traceObservations(trace.id).traceOutput()?.let { if (it.isString) it.stringValue() else it.toString() }.orEmpty()
             val matched = (origin.privateCardTitles + origin.unpublishedEpisodeTitles).filter { it.isNotBlank() && answer.contains(it) }.distinct()
             val verdict = if (matched.isEmpty()) LeakVerdict(false) else ai.leakCheck(answer, matched)
             results.saveAndFlush(LeakCheckResultEntity(traceId = trace.id, workId = workId, matched = matched, suspected = verdict.suspected, reason = verdict.reason))

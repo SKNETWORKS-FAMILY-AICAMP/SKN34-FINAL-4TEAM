@@ -59,7 +59,7 @@ data class ModelCreateRequest(val modelName: String, val matchPattern: String, v
 
 data class EvaluationMetric(val name: String, val score: Double, val baseline: Double?, val delta: Double?)
 
-/** [runId] is the Langfuse Dataset Run name; [status] is running, completed or failed. */
+/** [runId] is the name of the Langfuse experiment (Dataset Run); [status] is running, completed or failed. */
 data class Evaluation(
     val runId: String, val dataset: String, val prompt: String, val version: Int, val status: String, val passed: Boolean?,
     val createdAt: Instant, val metrics: List<EvaluationMetric>,

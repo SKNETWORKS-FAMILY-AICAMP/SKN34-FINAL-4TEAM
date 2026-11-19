@@ -7,6 +7,7 @@ import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.llmops.service.EvaluationService
 import ai.storyfork.operations.llmops.service.dto.EvaluationRequest
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
@@ -14,50 +15,54 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import tools.jackson.databind.JsonNode
 
-/** Mocked Langfuse and AI clients: no network, Spring context or database. */
+/** Mocked AI client and a fake Langfuse that answers like the Experiments and Scores v3 APIs: no network, Spring context or database. */
 class EvaluationServiceTest {
-    private val langfuse = mock(LangfuseClient::class.java)
+    // The experiments Langfuse knows (its name filter is exact, like the real one) and the scores of each, found by experiment id.
+    private var experiments: List<JsonNode> = emptyList()
+    private val scores = mutableMapOf<String, List<JsonNode>>()
+    private val langfuse = mock(LangfuseClient::class.java) { call ->
+        when (call.method.name) {
+            "experiments" -> experiments.filter { call.arguments[1] == null || it.path("name").asString() == call.arguments[1] }
+            "experimentScores" -> (call.arguments[0] as List<*>).flatMap { scores[it].orEmpty() }
+            else -> null
+        }
+    }
     private val ai = mock(AiClient::class.java)
     private val activities = mock(AdminActivityService::class.java)
     private val operators = Operators()
     private val service = EvaluationService(operators.permissions, langfuse, ai, activities)
     private val now = Instant.parse("2026-11-19T10:00:00Z")
 
-    /** A Dataset Run as the AI service starts it: the metadata values are strings. */
-    private fun run(name: String, createdAt: String, metadata: String, dataset: String = "qa-regression") =
-        json("""{"id":"id-$name","name":"$name","datasetName":"$dataset","createdAt":"$createdAt","metadata":$metadata}""")
-
-    private fun started(prompt: String, version: Int) = """{"prompt":"$prompt","version":"$version","dataset":"qa-regression","tolerance":"0.02","baselineRun":"x","baselineVersion":"1"}"""
-
-    /** A run-level score the AI service writes when it finishes. */
-    private fun score(name: String, value: Double, dataType: String = "NUMERIC", metadata: String = "null") =
-        json("""{"id":"s-$name","name":"$name","value":$value,"dataType":"$dataType","datasetRunId":"x","metadata":$metadata}""")
-
-    private fun passedScore(passed: Boolean) = score("passed", if (passed) 1.0 else 0.0, "BOOLEAN", """{"failedItems":0,"totalItems":10}""")
-
-    private val finished = run("run-1", "2026-11-19T01:00:00Z", started("qa/answer", 3))
-    private val failedNewer = run("run-2", "2026-11-19T02:00:00Z", started("qa/answer", 3))
-    private val running = run("run-3", "2026-11-19T09:30:00Z", started("qa/answer", 4))
-    private val stale = run("run-5", "2026-11-19T07:00:00Z", started("world/review", 1), "world-regression")
-    private val manual = run("run-4", "2026-11-19T09:50:00Z", """{"note":"started by hand in Langfuse"}""")
-
-    private fun givenScores() {
-        `when`(langfuse.runScores("id-run-1")).thenReturn(listOf(
-            score("faithfulness", 0.9, metadata = """{"baseline":0.85,"delta":0.05,"tolerance":0.02}"""), score("context_precision", 0.8), passedScore(true),
-        ))
-        `when`(langfuse.runScores("id-run-2")).thenReturn(listOf(score("faithfulness", 0.5, metadata = """{"baseline":0.85}"""), passedScore(false)))
-        `when`(langfuse.runScores("id-run-3")).thenReturn(emptyList())
-        `when`(langfuse.runScores("id-run-5")).thenReturn(emptyList())
+    /** An experiment (Dataset Run) as the AI service starts it: named "<prompt>@v<version>-<UTC time>-<hex6>", metadata values are strings. */
+    private fun experiment(prompt: String, version: Int, startTime: String, hex: String, dataset: String = "qa-regression"): JsonNode {
+        val stamp = startTime.replace("-", "").replace(":", "")
+        return json("""{"id":"id-$hex","name":"$prompt@v$version-$stamp-$hex","description":null,"startTime":"$startTime","endTime":"$startTime","itemCount":10,"datasetId":"ds-1",
+            "metadata":{"prompt":"$prompt","version":"$version","dataset":"$dataset","tolerance":"0.02","baselineRun":"x","baselineVersion":"1"}}""")
     }
 
-    private fun givenRuns(vararg runs: JsonNode) {
-        `when`(langfuse.datasetRuns()).thenReturn(runs.toList())
-        givenScores()
+    private fun name(experiment: JsonNode) = experiment.path("name").asString()
+
+    /** A run-level score as Scores API v3 answers it with the details and subject groups: BOOLEAN is true or false, NUMERIC a number. */
+    private fun score(experimentId: String, name: String, value: Any, dataType: String = "NUMERIC", metadata: String = "null", kind: String = "experiment", id: String = experimentId) =
+        json("""{"id":"s-$id-$name","projectId":"p","name":"$name","source":"API","timestamp":"2026-11-19T02:00:00Z","environment":"default","createdAt":"2026-11-19T02:00:00Z",
+            "updatedAt":"2026-11-19T02:00:00Z","dataType":"$dataType","value":$value,"comment":null,"configId":null,"metadata":$metadata,"subject":{"kind":"$kind","id":"$id"}}""")
+
+    private fun passed(experimentId: String, passed: Boolean) = score(experimentId, "passed", passed, "BOOLEAN", """{"failedItems":0,"totalItems":10}""")
+
+    private val finished = experiment("qa/answer", 3, "2026-11-19T01:00:00Z", "a1b2c3")
+    private val failedNewer = experiment("qa/answer", 3, "2026-11-19T02:00:00Z", "b2c3d4")
+    private val running = experiment("qa/answer", 4, "2026-11-19T09:30:00Z", "c3d4e5")
+    private val stale = experiment("world/review", 1, "2026-11-19T07:00:00Z", "d4e5f6", "world-regression")
+    private val manual = json("""{"id":"id-manual","name":"tried by hand","description":null,"startTime":"2026-11-19T09:50:00Z","endTime":"2026-11-19T09:50:00Z","itemCount":2,"datasetId":null,
+        "metadata":{"note":"started by hand in Langfuse"}}""")
+
+    private fun givenAllRuns() {
+        experiments = listOf(manual, running, stale, failedNewer, finished)
+        scores["id-a1b2c3"] = listOf(score("id-a1b2c3", "faithfulness", 0.9, metadata = """{"baseline":0.85,"delta":0.05,"tolerance":0.02}"""), score("id-a1b2c3", "context_precision", 0.8), passed("id-a1b2c3", true))
+        scores["id-b2c3d4"] = listOf(score("id-b2c3d4", "faithfulness", 0.5, metadata = """{"baseline":0.85}"""), passed("id-b2c3d4", false))
     }
 
-    private fun givenAllRuns() = givenRuns(finished, failedNewer, running, stale, manual)
-
-    private fun scoredRuns() = mockingDetails(langfuse).invocations.filter { it.method.name == "runScores" }.map { it.arguments[0] }
+    private fun scoreReads() = mockingDetails(langfuse).invocations.filter { it.method.name == "experimentScores" }.map { it.arguments[0] }
 
     private fun assertForbidden(call: () -> Unit) {
         assertEquals(HttpStatus.FORBIDDEN, assertThrows(ResponseStatusException::class.java) { call() }.statusCode)
@@ -75,18 +80,20 @@ class EvaluationServiceTest {
     }
 
     @Test
-    fun `the list maps prompt runs newest first and skips runs that are not prompt evaluations`() {
+    fun `the list maps prompt runs newest first and skips experiments that are not prompt evaluations`() {
         givenAllRuns()
 
         val items = service.list(operators.llm, now).items
 
-        assertEquals(listOf("run-3", "run-5", "run-2", "run-1"), items.map { it.runId })
+        assertEquals(listOf(running, stale, failedNewer, finished).map(::name), items.map { it.runId })
         assertEquals(listOf("qa-regression", "world-regression", "qa-regression", "qa-regression"), items.map { it.dataset })
         assertEquals(listOf("qa/answer", "world/review", "qa/answer", "qa/answer"), items.map { it.prompt })
-        // The version is a string in the run metadata.
         assertEquals(listOf(4, 1, 3, 3), items.map { it.version })
         assertEquals(Instant.parse("2026-11-19T09:30:00Z"), items[0].createdAt)
-        assertFalse(scoredRuns().contains("id-run-4"), "a run that is not a prompt evaluation is not scored")
+        // Langfuse is asked for a year of experiments (it requires a start time) and for no name in particular.
+        val read = mockingDetails(langfuse).invocations.single { it.method.name == "experiments" }
+        assertEquals(listOf<Any?>(now.minus(365, ChronoUnit.DAYS), null), read.arguments.toList())
+        assertFalse(scoreReads().flatMap { it as List<*> }.contains("id-manual"), "an experiment that is not a prompt evaluation is not scored")
     }
 
     @Test
@@ -95,25 +102,26 @@ class EvaluationServiceTest {
 
         val byRun = service.list(operators.llm, now).items.associateBy { it.runId }
 
-        assertEquals(listOf("completed", true), listOf(byRun.getValue("run-1").status, byRun.getValue("run-1").passed))
-        assertEquals(listOf("completed", false), listOf(byRun.getValue("run-2").status, byRun.getValue("run-2").passed))
-        assertEquals("running", byRun.getValue("run-3").status)
-        assertNull(byRun.getValue("run-3").passed)
+        assertEquals(listOf("completed", true), listOf(byRun.getValue(name(finished)).status, byRun.getValue(name(finished)).passed))
+        assertEquals(listOf("completed", false), listOf(byRun.getValue(name(failedNewer)).status, byRun.getValue(name(failedNewer)).passed))
+        assertEquals("running", byRun.getValue(name(running)).status)
+        assertNull(byRun.getValue(name(running)).passed)
         // Started at 07:00 and still no passed score at 10:00: an interrupted run shows as failed.
-        assertEquals("failed", byRun.getValue("run-5").status)
-        assertNull(byRun.getValue("run-5").passed)
+        assertEquals("failed", byRun.getValue(name(stale)).status)
+        assertNull(byRun.getValue(name(stale)).passed)
     }
 
     @Test
     fun `a run is failed only when it is older than two hours`() {
-        givenRuns(run("run-3", "2026-11-19T08:00:00Z", started("qa/answer", 4)))
+        experiments = listOf(experiment("qa/answer", 4, "2026-11-19T08:00:00Z", "c3d4e5"))
         assertEquals("running", service.list(operators.llm, now).items.single().status)
 
-        givenRuns(run("run-3", "2026-11-19T07:59:59Z", started("qa/answer", 4)))
+        experiments = listOf(experiment("qa/answer", 4, "2026-11-19T07:59:59Z", "c3d4e5"))
         assertEquals("failed", service.list(operators.llm, now).items.single().status)
 
         // A run that finished late is completed, however old it is.
-        givenRuns(run("run-1", "2026-11-18T00:00:00Z", started("qa/answer", 3)))
+        experiments = listOf(experiment("qa/answer", 3, "2026-11-18T00:00:00Z", "a1b2c3"))
+        scores["id-a1b2c3"] = listOf(passed("id-a1b2c3", true))
         assertEquals("completed", service.list(operators.llm, now).items.single().status)
     }
 
@@ -121,7 +129,7 @@ class EvaluationServiceTest {
     fun `each metric score carries its baseline and difference from the score metadata`() {
         givenAllRuns()
 
-        val metrics = service.detail(operators.llm, "run-1", now).metrics
+        val metrics = service.detail(operators.llm, name(finished), now).metrics
 
         assertEquals(listOf("faithfulness", "context_precision"), metrics.map { it.name })
         assertEquals(listOf(0.9, 0.8), metrics.map { it.score })
@@ -135,60 +143,94 @@ class EvaluationServiceTest {
     fun `a missing delta is computed from the baseline and the passed score is not a metric`() {
         givenAllRuns()
 
-        val metrics = service.detail(operators.llm, "run-2", now).metrics
+        val metrics = service.detail(operators.llm, name(failedNewer), now).metrics
 
         assertEquals(listOf("faithfulness"), metrics.map { it.name })
         assertEquals(-0.35, checkNotNull(metrics[0].delta), 1e-9)
-        assertTrue(service.detail(operators.llm, "run-3", now).metrics.isEmpty())
+        assertTrue(service.detail(operators.llm, name(running), now).metrics.isEmpty())
     }
 
     @Test
     fun `only numeric scores are metrics`() {
-        givenRuns(finished)
-        `when`(langfuse.runScores("id-run-1")).thenReturn(listOf(score("faithfulness", 0.9), score("verdict", 1.0, "CATEGORICAL"), score("geval", 0.7), passedScore(true)))
+        experiments = listOf(finished)
+        scores["id-a1b2c3"] = listOf(score("id-a1b2c3", "faithfulness", 0.9), score("id-a1b2c3", "verdict", "\"good\"", "CATEGORICAL"), score("id-a1b2c3", "geval", 0.7), score("id-a1b2c3", "clean", true, "BOOLEAN"), passed("id-a1b2c3", true))
 
-        assertEquals(listOf("faithfulness", "geval"), service.detail(operators.llm, "run-1", now).metrics.map { it.name })
+        assertEquals(listOf("faithfulness", "geval"), service.detail(operators.llm, name(finished), now).metrics.map { it.name })
+    }
+
+    @Test
+    fun `the verdict is found by its name whatever its data type and is never a metric`() {
+        experiments = listOf(finished)
+        for ((value, expected) in listOf<Pair<Any, Boolean>>(true to true, false to false, 1.0 to true, 0.0 to false, 0.5 to false)) {
+            scores["id-a1b2c3"] = listOf(score("id-a1b2c3", "faithfulness", 0.9), score("id-a1b2c3", "passed", value, if (value is Boolean) "BOOLEAN" else "NUMERIC"))
+
+            val evaluation = service.detail(operators.llm, name(finished), now)
+
+            assertEquals(listOf("completed", expected), listOf(evaluation.status, evaluation.passed), value.toString())
+            assertEquals(listOf("faithfulness"), evaluation.metrics.map { it.name })
+        }
+    }
+
+    @Test
+    fun `only scores whose subject is the experiment count`() {
+        givenAllRuns()
+        scores["id-a1b2c3"] = scores.getValue("id-a1b2c3") + listOf(score("id-a1b2c3", "faithfulness", 0.1, kind = "trace"), score("id-a1b2c3", "passed", false, "BOOLEAN", kind = "observation"))
+        scores["id-c3d4e5"] = listOf(passed("id-b2c3d4", false))
+
+        val byRun = service.list(operators.llm, now).items.associateBy { it.runId }
+
+        // The extra trace and observation scores are neither the verdict nor a metric, and a score of another experiment is not this run's.
+        assertEquals(listOf("completed", true, listOf("faithfulness", "context_precision")), byRun.getValue(name(finished)).let { listOf(it.status, it.passed, it.metrics.map { m -> m.name }) })
+        assertEquals("running", byRun.getValue(name(running)).status)
     }
 
     @Test
     fun `a run whose time cannot be read is a 502`() {
-        givenRuns(run("run-1", "last Tuesday", started("qa/answer", 3)))
+        experiments = listOf(json("""{"id":"id-x","name":"qa/answer@v3-20261119T010000Z-a1b2c3","startTime":"last Tuesday","metadata":{}}"""))
 
         assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.list(operators.llm, now) }.statusCode)
     }
 
     @Test
-    fun `the verdict is found by its name whatever its data type and is never a metric`() {
-        givenRuns(finished)
-        `when`(langfuse.runScores("id-run-1")).thenReturn(listOf(score("faithfulness", 0.9), score("passed", 0.0, "NUMERIC")))
+    fun `a prompt run is told by its name and else by its metadata and its dataset falls back to the dataset id`() {
+        val named = json("""{"id":"id-1","name":"qa@v2@v3-20261119T010000Z-a1b2c3","startTime":"2026-11-19T01:00:00Z","datasetId":"ds-9","metadata":null}""")
+        val tagged = json("""{"id":"id-2","name":"retry 2","startTime":"2026-11-19T02:00:00Z","datasetId":null,"metadata":{"prompt":"world/review","version":"5","dataset":"world-regression"}}""")
+        val neither = json("""{"id":"id-3","name":"qa@v3-today-a1b2c3","startTime":"2026-11-19T03:00:00Z","datasetId":"ds-1","metadata":{"prompt":"qa"}}""")
+        val blank = json("""{"id":"id-4","name":"qa@vx-20261119T010000Z-a1b2c3","startTime":"2026-11-19T04:00:00Z","datasetId":null,"metadata":{"prompt":"qa","version":""}}""")
+        experiments = listOf(blank, neither, tagged, named)
 
-        val evaluation = service.detail(operators.llm, "run-1", now)
+        val items = service.list(operators.llm, now).items
 
-        assertEquals(listOf("completed", false), listOf(evaluation.status, evaluation.passed))
-        assertEquals(listOf("faithfulness"), evaluation.metrics.map { it.name })
+        // The version and prompt come from the name (the prompt may contain "@v" itself), the dataset from the metadata or else the experiment's dataset id.
+        assertEquals(listOf("retry 2", "qa@v2@v3-20261119T010000Z-a1b2c3"), items.map { it.runId })
+        assertEquals(listOf("world/review" to 5, "qa@v2" to 3), items.map { it.prompt to it.version })
+        assertEquals(listOf("world-regression", "ds-9"), items.map { it.dataset })
     }
 
     @Test
     fun `a run is found by its name and scored alone and an unknown one is not found`() {
         givenAllRuns()
 
-        assertEquals("run-2", service.detail(operators.llm, "run-2", now).runId)
-        assertEquals(listOf<Any?>("id-run-2"), scoredRuns())
-        assertThrows(NoSuchElementException::class.java) { service.detail(operators.llm, "run-4", now) } // not a prompt evaluation
+        assertEquals(name(failedNewer), service.detail(operators.llm, name(failedNewer), now).runId)
+        assertEquals(listOf<Any?>(listOf("id-b2c3d4")), scoreReads())
+        // Langfuse is asked for that name only, so a large number of runs does not slow it down.
+        val read = mockingDetails(langfuse).invocations.single { it.method.name == "experiments" }
+        assertEquals(name(failedNewer), read.arguments[1])
+        assertThrows(NoSuchElementException::class.java) { service.detail(operators.llm, "tried by hand", now) } // not a prompt evaluation
         assertThrows(NoSuchElementException::class.java) { service.detail(operators.llm, "nope", now) }
     }
 
     @Test
-    fun `the latest run per prompt version is the newest one and only those runs are scored`() {
+    fun `the latest run per prompt version is the newest one and only those runs are scored in one read`() {
         givenAllRuns()
 
         val latest = service.latestByVersion(now)
 
-        assertEquals("run-2", latest.getValue("qa/answer" to 3).runId)
+        assertEquals(name(failedNewer), latest.getValue("qa/answer" to 3).runId)
         assertEquals(false, latest.getValue("qa/answer" to 3).passed)
-        assertEquals("run-3", latest.getValue("qa/answer" to 4).runId)
+        assertEquals(name(running), latest.getValue("qa/answer" to 4).runId)
         assertEquals(setOf("qa/answer" to 3, "qa/answer" to 4, "world/review" to 1), latest.keys)
-        assertEquals(setOf<Any?>("id-run-2", "id-run-3", "id-run-5"), scoredRuns().toSet())
+        assertEquals(listOf<Any?>(listOf("id-c3d4e5", "id-d4e5f6", "id-b2c3d4")), scoreReads())
     }
 
     @Test
@@ -197,20 +239,18 @@ class EvaluationServiceTest {
 
         val latest = checkNotNull(service.latest("qa/answer", 3, now))
 
-        assertEquals(listOf("run-2", false), listOf(latest.runId, latest.passed))
-        assertEquals(listOf<Any?>("id-run-2"), scoredRuns())
+        assertEquals(listOf(name(failedNewer), false), listOf(latest.runId, latest.passed))
+        assertEquals(listOf<Any?>(listOf("id-b2c3d4")), scoreReads())
         assertNull(service.latest("qa/answer", 9, now))
         assertNull(service.latest("other", 3, now))
     }
 
     @Test
-    fun `at most the newest 50 runs are scored in the list`() {
-        val many = (1..60).map { run("run-$it", Instant.parse("2026-11-19T00:00:00Z").plusSeconds(it.toLong()).toString(), started("qa/answer", it)) }
-        `when`(langfuse.datasetRuns()).thenReturn(many)
-        `when`(langfuse.runScores(anyString())).thenReturn(emptyList())
+    fun `at most the newest 50 runs are listed and scored in one read`() {
+        experiments = (1..60).map { experiment("qa/answer", it, Instant.parse("2026-11-19T00:00:00Z").plusSeconds(it.toLong()).toString(), "%06x".format(it)) }
 
         assertEquals(50, service.list(operators.llm, now).items.size)
-        assertEquals(50, scoredRuns().size)
+        assertEquals(listOf(50), scoreReads().map { (it as List<*>).size })
     }
 
     @Test

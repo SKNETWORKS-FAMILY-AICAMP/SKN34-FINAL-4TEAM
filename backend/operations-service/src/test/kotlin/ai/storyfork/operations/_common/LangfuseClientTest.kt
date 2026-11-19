@@ -14,9 +14,11 @@ import tools.jackson.module.kotlin.jacksonMapperBuilder
 /** 실제 RestClient 파이프라인을 메모리 요청 팩토리로 돌린다. 소켓·서버·Spring 컨텍스트가 없다. */
 class LangfuseClientTest {
     private val mapper = jacksonMapperBuilder().build()
-    private val empty = """{"data":[],"meta":{"page":1,"limit":20,"totalItems":0,"totalPages":0}}"""
     private val from = Instant.parse("2026-11-18T00:00:00Z")
     private val to = Instant.parse("2026-11-19T00:00:00Z")
+    private val observations = "/api/public/v2/observations"
+    private val metrics = "/api/public/v2/metrics"
+    private val nothing = """{"data":[],"meta":{}}"""
 
     private fun client(factory: RecordingRequestFactory) = LangfuseClient(
         langfuseRestClient("http://langfuse.test", "pk-lf-1", "sk-lf-2", mapper).requestFactory(factory).build(), mapper,
@@ -28,142 +30,271 @@ class LangfuseClientTest {
 
     private fun List<JsonNode>.of(column: String) = single { it.path("column").asString() == column }
 
+    /** Metadata conditions are told apart by their key. */
+    private fun List<JsonNode>.metadata(key: String) = single { it.path("column").asString() == "metadata" && it.path("key").asString() == key }
+
+    private fun row(traceId: String) = """{"id":"o-$traceId","traceId":"$traceId"}"""
+
+    /** A cursor page the way Langfuse answers: a missing cursor is the last page. */
+    private fun page(vararg traceIds: String, cursor: String? = null): String {
+        val meta = if (cursor == null) "{}" else """{"cursor":"$cursor"}"""
+        return """{"data":[${traceIds.joinToString(",") { row(it) }}],"meta":$meta}"""
+    }
+
+    private fun items(count: Int, prefix: String) = (1..count).joinToString(",") { """{"id":"$prefix$it"}""" }
+
+    private fun count(total: Int) = """{"data":[{"count_count":$total}]}"""
+
+    /** Answers the metrics count of a trace list and gives every other read the same page. */
+    private fun listing(answer: String) = RecordingRequestFactory { call -> Reply(200, if (call.uri.path == metrics) count(0) else answer) }
+
     @Test
     fun `requests carry the project keys as Basic auth and never the operations service token`() {
-        val factory = RecordingRequestFactory { Reply(200, empty) }
+        val factory = RecordingRequestFactory { Reply(200, nothing) }
 
-        client(factory).traces(null, null, emptyList(), null, null, 1, 20)
+        client(factory).allTraces(from, to)
 
         val call = factory.calls.single()
         assertEquals("Basic " + Base64.getEncoder().encodeToString("pk-lf-1:sk-lf-2".toByteArray()), call.headers.getFirst("Authorization"))
         assertNull(call.headers.getFirst("X-Operations-Service-Token"))
         assertEquals(HttpMethod.GET, call.method)
-        assertEquals("/api/public/traces", call.uri.path)
-        assertEquals(mapOf("page" to listOf("1"), "limit" to listOf("20"), "orderBy" to listOf("timestamp.desc")), call.query)
+        assertEquals(observations, call.uri.path)
     }
 
     @Test
-    fun `a trace list sends the window user and every tag as separate Langfuse parameters`() {
-        val factory = RecordingRequestFactory { Reply(200, empty) }
+    fun `a trace list reads finished request roots through the Observations API with every filter inside the filter parameter`() {
+        val factory = listing(nothing)
 
-        client(factory).traces(from, to, listOf("feature:qa", "status:failed"), "user-1", null, 2, 20)
+        client(factory).traces(from, to, "qa", "failed", "user-1", "req-9", 0, 20)
 
-        val query = factory.calls.single().query
-        assertEquals(listOf("2"), query["page"])
-        assertEquals(listOf("2026-11-18T00:00:00Z"), query["fromTimestamp"])
-        assertEquals(listOf("2026-11-19T00:00:00Z"), query["toTimestamp"])
-        assertEquals(listOf("user-1"), query["userId"])
-        assertEquals(listOf("feature:qa", "status:failed"), query["tags"])
-        assertNull(query["filter"])
+        val call = factory.calls.first()
+        assertEquals(observations, call.uri.path)
+        // Langfuse lets the filter parameter win over the plain ones, so nothing may be left outside it.
+        assertEquals(setOf("fields", "filter", "limit"), call.query.keys)
+        assertEquals(listOf("20"), call.query["limit"])
+        // The tags and the trace name only come back with the trace_context group.
+        assertTrue(call.query.getValue("fields").single().split(",").containsAll(listOf("core", "basic", "metadata", "metrics", "trace_context")))
+        val all = conditions(call.query.getValue("filter").single())
+        val root = all.of("isRootObservation")
+        assertEquals(listOf("boolean", "="), listOf(root.path("type").asString(), root.path("operator").asString()))
+        assertTrue(root.path("value").asBoolean())
+        val times = all.filter { it.path("column").asString() == "startTime" }
+        assertEquals(listOf("datetime", "datetime"), times.map { it.path("type").asString() })
+        assertEquals(listOf(">=", "<"), times.map { it.path("operator").asString() })
+        assertEquals(listOf("2026-11-18T00:00:00Z", "2026-11-19T00:00:00Z"), times.map { it.path("value").asString() })
+        val tags = all.of("tags")
+        assertEquals(listOf("arrayOptions", "any of"), listOf(tags.path("type").asString(), tags.path("operator").asString()))
+        assertEquals(listOf("feature:qa"), tags.path("value").values().map { it.asString() })
+        val status = all.metadata("status")
+        assertEquals(listOf("stringObject", "=", "failed"), listOf(status.path("type").asString(), status.path("operator").asString(), status.path("value").asString()))
+        val user = all.of("userId")
+        assertEquals(listOf("string", "=", "user-1"), listOf(user.path("type").asString(), user.path("operator").asString(), user.path("value").asString()))
+        val request = all.metadata("request_id")
+        assertEquals(listOf("stringObject", "=", "req-9"), listOf(request.path("type").asString(), request.path("operator").asString(), request.path("value").asString()))
     }
 
     @Test
-    fun `a request id travels as a metadata filter and carries the other filters inside it`() {
-        val factory = RecordingRequestFactory { Reply(200, empty) }
+    fun `a trace list without filters asks only for roots that carry a status`() {
+        val factory = listing(nothing)
 
-        client(factory).traces(from, to, listOf("feature:qa"), "user-1", "req-9", 1, 20)
+        client(factory).traces(null, null, null, null, null, null, 0, 20)
 
-        val query = factory.calls.single().query
-        // Langfuse lets the filter parameter take precedence over the plain ones, so nothing may be left outside it.
-        assertNull(query["fromTimestamp"])
-        assertNull(query["toTimestamp"])
-        assertNull(query["userId"])
-        assertNull(query["tags"])
-        val all = conditions(query.getValue("filter").single())
-        val request = all.of("metadata")
-        assertEquals("stringObject", request.path("type").asString())
-        assertEquals("request_id", request.path("key").asString())
-        assertEquals("=", request.path("operator").asString())
-        assertEquals("req-9", request.path("value").asString())
-        assertEquals("user-1", all.of("userId").path("value").asString())
-        assertEquals(listOf("feature:qa"), all.of("tags").path("value").values().map { it.asString() })
-        assertEquals("all of", all.of("tags").path("operator").asString())
-        assertEquals(listOf(">=", "<"), all.filter { it.path("column").asString() == "timestamp" }.map { it.path("operator").asString() })
-        assertEquals(listOf("2026-11-18T00:00:00Z", "2026-11-19T00:00:00Z"), all.filter { it.path("column").asString() == "timestamp" }.map { it.path("value").asString() })
+        val all = conditions(factory.calls.first().query.getValue("filter").single())
+        // A request has finished when its root has a status: a waiting or cancelled one has none and is not a request.
+        assertEquals(listOf("isRootObservation", "metadata"), all.map { it.path("column").asString() })
+        val status = all.metadata("status")
+        assertEquals(listOf("stringObject", "is set"), listOf(status.path("type").asString(), status.path("operator").asString()))
     }
 
     @Test
-    fun `a request id alone still makes a valid filter`() {
-        val factory = RecordingRequestFactory { Reply(200, empty) }
+    fun `the total is a metrics count over the same filters and window`() {
+        val factory = RecordingRequestFactory { call -> Reply(200, if (call.uri.path == metrics) count(57) else nothing) }
 
-        client(factory).traces(null, null, emptyList(), null, "req-9", 1, 20)
+        val roots = client(factory).traces(from, to, "qa", "failed", "user-1", "req-9", 0, 20)
 
-        assertEquals(listOf("metadata"), conditions(factory.calls.single().query.getValue("filter").single()).map { it.path("column").asString() })
+        assertEquals(57L, roots.total)
+        assertTrue(roots.items.isEmpty())
+        val (list, total) = factory.calls
+        assertEquals(metrics, total.uri.path)
+        val query = mapper.readTree(total.query.getValue("query").single())
+        assertEquals("observations", query.path("view").asString())
+        assertEquals(listOf("count" to "count"), query.path("metrics").values().map { it.path("measure").asString() to it.path("aggregation").asString() })
+        assertEquals("2026-11-18T00:00:00Z", query.path("fromTimestamp").asString())
+        assertEquals("2026-11-19T00:00:00Z", query.path("toTimestamp").asString())
+        // The same conditions as the list; its time bounds are query fields here.
+        val listed = conditions(list.query.getValue("filter").single()).filter { it.path("column").asString() != "startTime" }
+        assertEquals(listed, query.path("filters").values().toList())
+    }
+
+    @Test
+    fun `a trace list without a window counts from Langfuse's own floor until now`() {
+        val factory = RecordingRequestFactory { call -> Reply(200, if (call.uri.path == metrics) count(3) else nothing) }
+        val before = Instant.now()
+
+        client(factory).traces(null, null, null, null, null, null, 0, 20)
+
+        val after = Instant.now()
+        val query = mapper.readTree(factory.calls[1].query.getValue("query").single())
+        assertEquals("2020-01-01T00:00:00Z", query.path("fromTimestamp").asString())
+        val end = Instant.parse(query.path("toTimestamp").asString())
+        assertTrue(!end.isBefore(before.minusSeconds(1)) && !end.isAfter(after.plusSeconds(1)), end.toString())
+        assertTrue(conditions(factory.calls[0].query.getValue("filter").single()).none { it.path("column").asString() == "startTime" })
+    }
+
+    @Test
+    fun `later pages walk the cursors and skip the newer traces`() {
+        val factory = RecordingRequestFactory { call ->
+            when {
+                call.uri.path == metrics -> Reply(200, count(9))
+                call.query["cursor"] == null -> Reply(200, page("t1", "t2", "t3", cursor = "c1"))
+                else -> Reply(200, page("t4"))
+            }
+        }
+
+        val roots = client(factory).traces(null, null, null, null, null, null, 2, 2)
+
+        assertEquals(listOf("t3", "t4"), roots.items.map { it.path("traceId").asString() })
+        val reads = factory.calls.filter { it.uri.path == observations }
+        // Four traces are wanted (two passed over, two shown): the first read asks for all of them, the second only for the one still missing.
+        assertEquals(listOf(listOf("4"), listOf("1")), reads.map { it.query.getValue("limit") })
+        assertEquals(listOf(null, listOf("c1")), reads.map { it.query["cursor"] })
+    }
+
+    @Test
+    fun `a resumed turn shows as one line with its newest finished request`() {
+        val factory = RecordingRequestFactory { call ->
+            when {
+                call.uri.path == metrics -> Reply(200, count(3))
+                call.query["cursor"] == null -> Reply(200, """{"data":[{"id":"r-new","traceId":"t1"},{"id":"r-old","traceId":"t1"}],"meta":{"cursor":"c1"}}""")
+                else -> Reply(200, page("t2"))
+            }
+        }
+
+        val roots = client(factory).traces(null, null, null, null, null, null, 0, 2)
+
+        // Roots come newest first, so the first root of a trace is its newest; the second read tops the page up with the line the merge cost.
+        assertEquals(listOf("r-new", "o-t2"), roots.items.map { it.path("id").asString() })
+        assertEquals(listOf(listOf("2"), listOf("1")), factory.calls.filter { it.uri.path == observations }.map { it.query.getValue("limit") })
+    }
+
+    @Test
+    fun `a page that is empty while a cursor is present is followed but never forever`() {
+        val endless = RecordingRequestFactory { Reply(200, """{"data":[],"meta":{"cursor":"again"}}""") }
+
+        assertTrue(client(endless).allTraces(from, to).isEmpty())
+
+        assertEquals(20, endless.calls.size)
+        val late = RecordingRequestFactory { call -> Reply(200, if (call.query["cursor"] == null) """{"data":[],"meta":{"cursor":"c1"}}""" else page("t1")) }
+        assertEquals(listOf("o-t1"), client(late).allTraces(from, to).map { it.path("id").asString() })
+    }
+
+    @Test
+    fun `all traces are the roots of the window up to the newest 1000 finished or not`() {
+        val full = page(*(1..1000).map { "t$it" }.toTypedArray(), cursor = "more")
+        val factory = RecordingRequestFactory { Reply(200, full) }
+
+        val roots = client(factory).allTraces(from, to)
+
+        assertEquals(1000, roots.size)
+        val call = factory.calls.single()
+        assertEquals(listOf("1000"), call.query["limit"])
+        assertEquals(setOf("fields", "filter", "limit"), call.query.keys)
+        // Waiting and cancelled requests have no status, but their generations cost money, so a status is no condition here.
+        val all = conditions(call.query.getValue("filter").single())
+        assertEquals(listOf("isRootObservation", "startTime", "startTime"), all.map { it.path("column").asString() })
+        val times = all.filter { it.path("column").asString() == "startTime" }
+        assertEquals(listOf(">=", "<"), times.map { it.path("operator").asString() })
+        assertEquals(listOf("2026-11-18T00:00:00Z", "2026-11-19T00:00:00Z"), times.map { it.path("value").asString() })
+    }
+
+    @Test
+    fun `a short page is topped up from the next cursor`() {
+        val factory = RecordingRequestFactory { call -> Reply(200, if (call.query["cursor"] == null) page("t1", "t2", "t3", cursor = "c1") else page("t4", "t5")) }
+
+        val roots = client(factory).allTraces(from, to)
+
+        assertEquals(listOf("t1", "t2", "t3", "t4", "t5"), roots.map { it.path("traceId").asString() })
+        assertEquals(listOf(listOf("1000"), listOf("997")), factory.calls.map { it.query.getValue("limit") })
+        assertEquals(listOf("c1"), factory.calls[1].query["cursor"])
+    }
+
+    @Test
+    fun `the observations of a trace are read by its id as a filter value with every field group the detail needs`() {
+        val factory = RecordingRequestFactory { Reply(200, page("a/b c")) }
+
+        val steps = client(factory).traceObservations("a/b c")
+
+        assertEquals(listOf("o-a/b c"), steps.map { it.path("id").asString() })
+        val call = factory.calls.single()
+        assertEquals(observations, call.uri.path)
+        assertEquals(setOf("fields", "filter", "limit"), call.query.keys)
+        assertEquals(listOf("1000"), call.query["limit"])
+        assertTrue(call.query.getValue("fields").single().split(",").containsAll(listOf("core", "basic", "io", "metadata", "model", "usage", "prompt", "metrics", "trace_context")))
+        val trace = conditions(call.query.getValue("filter").single()).single()
+        assertEquals(listOf("string", "traceId", "=", "a/b c"), listOf(trace.path("type").asString(), trace.path("column").asString(), trace.path("operator").asString(), trace.path("value").asString()))
+    }
+
+    @Test
+    fun `a 404 or any other failure on these reads is a 502 and never a not-found`() {
+        val reads = listOf<(LangfuseClient) -> Unit>(
+            { it.traces(null, null, null, null, null, null, 0, 20) }, { it.allTraces(from, to) }, { it.traceObservations("t-1") },
+            { it.observationUsage(from, to) }, { it.experiments(from, null) }, { it.experimentScores(listOf("e-1")) },
+        )
+
+        for (upstream in listOf(404, 401, 403, 400, 500, 503)) {
+            for (read in reads) assertEquals(502, status { read(client(RecordingRequestFactory { Reply(upstream, """{"message":"x"}""") })) }, upstream.toString())
+        }
+        for (body in listOf("not-json", "")) {
+            for (read in reads) assertEquals(502, status { read(client(RecordingRequestFactory { Reply(200, body) })) }, body)
+        }
     }
 
     @Test
     fun `user input is a URI variable so reserved characters cannot add or change parameters`() {
-        val factory = RecordingRequestFactory { Reply(200, empty) }
         val hostile = "a&page=9=c+d/é #x"
+        val factory = RecordingRequestFactory { call -> Reply(200, if (call.uri.path == metrics) count(0) else nothing) }
+        val langfuse = client(factory)
 
-        client(factory).traces(null, null, listOf("feature:$hostile"), hostile, null, 1, 20)
-        client(factory).traces(null, null, emptyList(), null, hostile, 1, 20)
+        langfuse.traces(null, null, hostile, "failed", hostile, hostile, 0, 20)
+        langfuse.experiments(from, hostile)
+        langfuse.experimentScores(listOf(hostile))
 
-        val plain = factory.calls[0]
-        assertEquals(listOf("1"), plain.query["page"])
-        assertEquals(listOf(hostile), plain.query["userId"])
-        assertEquals(listOf("feature:$hostile"), plain.query["tags"])
-        assertTrue(plain.uri.rawQuery.contains("userId=a%26page%3D9%3Dc%2Bd%2F%C3%A9%20%23x"), plain.uri.rawQuery)
-        val filter = factory.calls[1]
-        assertEquals(listOf("1"), filter.query["page"])
-        assertEquals(hostile, conditions(filter.query.getValue("filter").single()).single().path("value").asString())
+        val list = factory.calls[0]
+        assertEquals(setOf("fields", "filter", "limit"), list.query.keys)
+        val all = conditions(list.query.getValue("filter").single())
+        assertEquals(listOf("feature:$hostile"), all.of("tags").path("value").values().map { it.asString() })
+        assertEquals(hostile, all.of("userId").path("value").asString())
+        assertEquals(hostile, all.metadata("request_id").path("value").asString())
+        val experiments = factory.calls[2]
+        assertEquals(setOf("fromStartTime", "fields", "name", "limit"), experiments.query.keys)
+        assertEquals(listOf(hostile), experiments.query["name"])
+        assertTrue(experiments.uri.rawQuery.contains("name=a%26page%3D9%3Dc%2Bd%2F%C3%A9%20%23x"), experiments.uri.rawQuery)
+        val scores = factory.calls[3]
+        assertEquals(setOf("experimentId", "fields", "limit"), scores.query.keys)
+        assertEquals(listOf(hostile), scores.query["experimentId"])
     }
 
     @Test
-    fun `all traces are read page by page up to the cap`() {
-        val full = """{"data":[{"id":"t"}],"meta":{"page":1,"limit":100,"totalItems":300,"totalPages":3}}"""
-        val factory = RecordingRequestFactory { Reply(200, full) }
-        val items = client(factory).allTraces(from, to)
-
-        assertEquals(3, factory.calls.size)
-        assertEquals(listOf("1", "2", "3"), factory.calls.map { it.query.getValue("page").single() })
-        assertEquals(setOf("100"), factory.calls.map { it.query.getValue("limit").single() }.toSet())
-        assertEquals(setOf("2026-11-18T00:00:00Z"), factory.calls.map { it.query.getValue("fromTimestamp").single() }.toSet())
-        assertEquals(3, items.size)
-
-        val endless = RecordingRequestFactory { Reply(200, """{"data":[{"id":"t"}],"meta":{"totalPages":500}}""") }
-        assertEquals(10, client(endless).allTraces(from, to).size)
-        assertEquals(10, endless.calls.size)
-    }
-
-    @Test
-    fun `a missing trace stays 404 and every other failure including bad keys is 502`() {
-        for ((upstream, expected) in listOf(404 to 404, 401 to 502, 403 to 502, 400 to 502, 500 to 502, 503 to 502)) {
-            val factory = RecordingRequestFactory { Reply(upstream, """{"message":"x"}""") }
-            assertEquals(expected, status { client(factory).trace("t-1") }, upstream.toString())
-        }
-        assertEquals(502, status { client(RecordingRequestFactory { Reply(200, "not-json") }).trace("t-1") })
-        assertEquals(502, status { client(RecordingRequestFactory { Reply(200, "") }).trace("t-1") })
-    }
-
-    @Test
-    fun `a trace detail is read by its id as a URI variable`() {
-        val factory = RecordingRequestFactory { Reply(200, """{"id":"a/b c","observations":[]}""") }
-
-        assertEquals("a/b c", client(factory).trace("a/b c").path("id").asString())
-
-        assertEquals("/api/public/traces/a%2Fb%20c", factory.calls.single().uri.rawPath)
-    }
-
-    @Test
-    fun `token usage is one metrics query over generations grouped by trace and model`() {
+    fun `token usage is one Metrics API v2 query over generations grouped by trace and model with the biggest cost first`() {
         val rows = """{"data":[
-            {"traceId":"t-1","providedModelName":"gpt-5","inputTokens_sum":"120","outputTokens_sum":"30","totalCost_sum":0.0125},
+            {"traceId":"t-1","providedModelName":"gpt-5","sum_inputTokens":"120","sum_outputTokens":"30","sum_totalCost":0.0125},
             {"traceId":"t-2","providedModelName":null,"sum_inputTokens":7,"sum_outputTokens":"3","sum_totalCost":"0.5"}]}"""
         val factory = RecordingRequestFactory { Reply(200, rows) }
 
         val usage = client(factory).observationUsage(from, to, listOf("t-1", "t-2"))
 
         val call = factory.calls.single()
-        assertEquals("/api/public/metrics", call.uri.path)
+        assertEquals(metrics, call.uri.path)
         val query = mapper.readTree(call.query.getValue("query").single())
         assertEquals("observations", query.path("view").asString())
         assertEquals(listOf("traceId", "providedModelName"), query.path("dimensions").values().map { it.path("field").asString() })
         assertEquals(listOf("inputTokens", "outputTokens", "totalCost"), query.path("metrics").values().map { it.path("measure").asString() })
         assertEquals(setOf("sum"), query.path("metrics").values().map { it.path("aggregation").asString() }.toSet())
+        // Langfuse groups by a trace id only when the rows are limited and ordered by a measure, biggest first (it answers 400 otherwise).
+        assertEquals(listOf("sum_totalCost" to "desc"), query.path("orderBy").values().map { it.path("field").asString() to it.path("direction").asString() })
+        assertEquals(1000, query.path("config").path("row_limit").asInt())
         assertEquals("2026-11-18T00:00:00Z", query.path("fromTimestamp").asString())
         assertEquals("2026-11-19T00:00:00Z", query.path("toTimestamp").asString())
-        assertEquals(1000, query.path("config").path("row_limit").asInt())
         val filters = query.path("filters").values().toList()
         assertEquals("GENERATION", filters.of("type").path("value").asString())
         assertEquals("any of", filters.of("traceId").path("operator").asString())
@@ -181,6 +312,76 @@ class LangfuseClientTest {
 
         val filters = mapper.readTree(factory.calls.single().query.getValue("query").single()).path("filters").values().toList()
         assertEquals(listOf("type"), filters.map { it.path("column").asString() })
+    }
+
+    @Test
+    fun `experiments are read from a start time with their metadata 100 per page up to 500`() {
+        val full = """{"data":[${items(100, "e")}],"meta":{"cursor":"more"}}"""
+        val factory = RecordingRequestFactory { Reply(200, full) }
+
+        val runs = client(factory).experiments(from, null)
+
+        assertEquals(500, runs.size)
+        assertEquals(5, factory.calls.size)
+        val first = factory.calls.first()
+        assertEquals("/api/public/experiments", first.uri.path)
+        // fromStartTime is required: Langfuse answers 400 without it.
+        assertEquals(mapOf("fromStartTime" to listOf("2026-11-18T00:00:00Z"), "fields" to listOf("core,metadata"), "limit" to listOf("100")), first.query)
+        assertEquals(listOf("more"), factory.calls[1].query["cursor"])
+    }
+
+    @Test
+    fun `the scores of experiments are read by experiment id with their details and subject`() {
+        val factory = RecordingRequestFactory { Reply(200, """{"data":[{"id":"s-1","name":"passed","dataType":"BOOLEAN","value":true,"subject":{"kind":"experiment","id":"e-1"}}],"meta":{"limit":100}}""") }
+
+        val scores = client(factory).experimentScores(listOf("e-1", "e-2"))
+
+        assertEquals(listOf("passed"), scores.map { it.path("name").asString() })
+        val call = factory.calls.single()
+        assertEquals("/api/public/v3/scores", call.uri.path)
+        assertEquals(mapOf("experimentId" to listOf("e-1,e-2"), "fields" to listOf("details,subject"), "limit" to listOf("100")), call.query)
+    }
+
+    @Test
+    fun `many experiments are scored in chunks of 50 ids and none means no request`() {
+        val factory = RecordingRequestFactory { Reply(200, nothing) }
+        val langfuse = client(factory)
+
+        // An empty experimentId filter would narrow nothing and read every score of the project.
+        assertTrue(langfuse.experimentScores(emptyList()).isEmpty())
+        assertTrue(factory.calls.isEmpty())
+
+        langfuse.experimentScores((1..120).map { "e$it" })
+
+        assertEquals(listOf(50, 50, 20), factory.calls.map { it.query.getValue("experimentId").single().split(",").size })
+    }
+
+    @Test
+    fun `scores page by cursor`() {
+        val factory = RecordingRequestFactory { call ->
+            Reply(200, if (call.query["cursor"] == null) """{"data":[{"id":"s-1"},{"id":"s-2"}],"meta":{"limit":100,"cursor":"c1"}}""" else """{"data":[{"id":"s-3"}],"meta":{"limit":100}}""")
+        }
+
+        val scores = client(factory).experimentScores(listOf("e-1"))
+
+        assertEquals(listOf("s-1", "s-2", "s-3"), scores.map { it.path("id").asString() })
+        assertEquals(listOf("c1"), factory.calls[1].query["cursor"])
+    }
+
+    @Test
+    fun `every Langfuse read uses a v4 endpoint and none of the removed v1 ones`() {
+        val factory = RecordingRequestFactory { Reply(200, nothing) }
+        val langfuse = client(factory)
+
+        langfuse.traces(from, to, null, null, null, null, 0, 20)
+        langfuse.allTraces(from, to)
+        langfuse.traceObservations("t-1")
+        langfuse.observationUsage(from, to)
+        langfuse.experiments(from, null)
+        langfuse.experimentScores(listOf("e-1"))
+
+        // /api/public/traces, /observations, /sessions, /scores, /v2/scores, /metrics and /datasets/{name}/runs answer 404 on a v4 server.
+        assertEquals(setOf(observations, metrics, "/api/public/experiments", "/api/public/v3/scores"), factory.calls.map { it.uri.path }.toSet())
     }
 
     @Test
@@ -238,36 +439,5 @@ class LangfuseClientTest {
         assertEquals(listOf(HttpMethod.GET, HttpMethod.POST), factory.calls.map { it.method })
         assertEquals(setOf("/api/public/models"), factory.calls.map { it.uri.path }.toSet())
         assertEquals("TOKENS", mapper.readTree(factory.calls[1].body).path("unit").asString())
-    }
-
-    @Test
-    fun `dataset runs are the runs of every dataset`() {
-        val factory = RecordingRequestFactory { call ->
-            when (call.uri.rawPath) {
-                "/api/public/datasets" -> Reply(200, """{"data":[{"name":"qa regression"},{"name":"leak"}],"meta":{"totalPages":1}}""")
-                "/api/public/datasets/qa%20regression/runs" -> Reply(200, """{"data":[{"name":"run-1","datasetName":"qa regression"}],"meta":{"totalPages":1}}""")
-                "/api/public/datasets/leak/runs" -> Reply(200, """{"data":[{"name":"run-2","datasetName":"leak"},{"name":"run-3","datasetName":"leak"}],"meta":{"totalPages":1}}""")
-                else -> Reply(404)
-            }
-        }
-
-        val runs = client(factory).datasetRuns()
-
-        assertEquals(listOf("run-1", "run-2", "run-3"), runs.map { it.path("name").asString() })
-        assertEquals(3, factory.calls.size)
-    }
-
-    @Test
-    fun `a run's scores are read by its run id as a URI variable and paged`() {
-        val factory = RecordingRequestFactory { Reply(200, """{"data":[{"name":"passed","value":1.0},{"name":"faithfulness","value":0.9}],"meta":{"totalPages":1}}""") }
-
-        val scores = client(factory).runScores("run id&x")
-
-        assertEquals(listOf("passed", "faithfulness"), scores.map { it.path("name").asString() })
-        val call = factory.calls.single()
-        assertEquals("/api/public/v2/scores", call.uri.path)
-        assertEquals(listOf("run id&x"), call.query["datasetRunId"])
-        assertEquals(listOf("1"), call.query["page"])
-        assertEquals(listOf("100"), call.query["limit"])
     }
 }

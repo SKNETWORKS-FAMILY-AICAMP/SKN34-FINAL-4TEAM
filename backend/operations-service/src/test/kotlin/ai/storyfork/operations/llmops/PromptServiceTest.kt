@@ -14,28 +14,40 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
+import tools.jackson.databind.JsonNode
 
 /** Mocked Langfuse client (real evaluation reading over it): no network, Spring context or database. */
 class PromptServiceTest {
-    private val langfuse = mock(LangfuseClient::class.java)
+    // The experiments (Dataset Runs) Langfuse lists and the run-level scores of each; every other call answers with the Mockito default or its stub.
+    private var experiments: List<JsonNode> = emptyList()
+    private val scores = mutableMapOf<String, List<JsonNode>>()
+    private val langfuse = mock(LangfuseClient::class.java, withSettings().defaultAnswer { call ->
+        when (call.method.name) {
+            "experiments" -> experiments
+            "experimentScores" -> (call.arguments[0] as List<*>).flatMap { scores[it].orEmpty() }
+            else -> RETURNS_DEFAULTS.answer(call)
+        }
+    })
     private val activities = mock(AdminActivityService::class.java)
     private val operators = Operators()
     private val evaluations = EvaluationService(operators.permissions, langfuse, mock(AiClient::class.java), mock(AdminActivityService::class.java))
     private val service = PromptService(operators.permissions, langfuse, evaluations, activities)
 
-    /** A Dataset Run as the AI service starts it: the metadata values are strings. */
+    /** An experiment as Langfuse lists it for a prompt evaluation: the metadata values are strings and name the prompt version (the name is free here). */
     private fun run(name: String, createdAt: String, prompt: String, version: Int) = json(
-        """{"id":"id-$name","name":"$name","datasetName":"qa-regression","createdAt":"$createdAt","metadata":{"prompt":"$prompt","version":"$version"}}""")
+        """{"id":"id-$name","name":"$name","description":null,"startTime":"$createdAt","endTime":"$createdAt","itemCount":10,"datasetId":"ds-1",
+            "metadata":{"prompt":"$prompt","version":"$version","dataset":"qa-regression"}}""")
 
     private fun version(name: String, version: Int, labels: String, createdAt: String? = null) = json(
         """{"name":"$name","version":$version,"labels":$labels${createdAt?.let { ",\"createdAt\":\"$it\"" } ?: ""}}""")
 
     /** Runs with their verdict: true or false is the run-level passed score, null is a run that has none yet. */
-    private fun givenRuns(vararg runs: Pair<tools.jackson.databind.JsonNode, Boolean?>) {
-        `when`(langfuse.datasetRuns()).thenReturn(runs.map { it.first })
+    private fun givenRuns(vararg runs: Pair<JsonNode, Boolean?>) {
+        experiments = runs.map { it.first }
+        scores.clear()
         for ((run, verdict) in runs) {
-            val scores = listOfNotNull(verdict?.let { json("""{"id":"s","name":"passed","value":${if (it) 1.0 else 0.0},"dataType":"BOOLEAN","metadata":null}""") })
-            `when`(langfuse.runScores(run.path("id").asString())).thenReturn(scores)
+            val id = run.path("id").asString()
+            scores[id] = listOfNotNull(verdict?.let { json("""{"id":"s","name":"passed","dataType":"BOOLEAN","value":$it,"metadata":null,"subject":{"kind":"experiment","id":"$id"}}""") })
         }
     }
 

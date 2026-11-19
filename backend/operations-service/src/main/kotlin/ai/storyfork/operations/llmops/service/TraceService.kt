@@ -1,7 +1,9 @@
 package ai.storyfork.operations.llmops.service
 
 import ai.storyfork.operations._common.client.LangfuseClient
+import ai.storyfork.operations._common.client.MAX_TRACES
 import ai.storyfork.operations._common.client.ObservationUsage
+import ai.storyfork.operations._common.client.doubleOrNull
 import ai.storyfork.operations._common.client.instantOrNull
 import ai.storyfork.operations._common.client.textOrNull
 import ai.storyfork.operations.llmops.service.dto.TraceDetail
@@ -20,39 +22,51 @@ private const val LLM = "llm"
 private const val PAGE_SIZE = 20
 private val STATUSES = setOf("success", "failed", "timeout")
 
+/** What a screen shows for a trace that has no finished request (it waits for the writer or was cancelled). */
+private const val UNKNOWN = "unknown"
+
+/**
+ * A resumed turn's first generations are older than its last request. ponytail: the usage of a page is read from a week before its oldest line; a turn
+ * resumed after a longer wait shows only the usage since then.
+ */
+private val USAGE_LOOKBACK = Duration.ofDays(7)
+
 /** Trace list and detail for llm admins, read from Langfuse on every call. Permission is checked before any input or Langfuse call. */
 @Service
 class TraceService(private val permissions: AdminPermissionRepository, private val langfuse: LangfuseClient) {
-    /** [page] starts at 0 and the size is fixed at 20; a [requestId] matches the trace metadata request_id. */
+    /**
+     * [page] starts at 0 and the size is fixed at 20; a [requestId] matches the root metadata request_id. A line is a trace that has a finished request,
+     * shown by its newest one. ponytail: only the newest 1,000 traces are reachable by paging; narrow the window or the filters to see older ones.
+     */
     fun list(member: OperationsMember, from: Instant?, to: Instant?, feature: String?, status: String?, userId: String?, requestId: String?, page: Int): TracePage {
         permissions.requirePermission(member, LLM)
-        require(page >= 0) { "Invalid page." }
+        require(page >= 0 && (page + 1) * PAGE_SIZE <= MAX_TRACES) { "Invalid page." }
         val statusFilter = status.blankToNull()
         require(statusFilter == null || statusFilter in STATUSES) { "Unknown status." }
-        val tags = listOfNotNull(feature.blankToNull()?.let { "feature:$it" }, statusFilter?.let { "status:$it" })
-        val body = langfuse.traces(from, to, tags, userId.blankToNull(), requestId.blankToNull(), page + 1, PAGE_SIZE)
-        val facts = body.path("data").values().map { it.toTraceFact() }
-        // One usage query for the whole page, narrowed to its trace ids; a generation starts after its trace, so the oldest trace opens the window.
+        val roots = langfuse.traces(from, to, feature.blankToNull(), statusFilter, userId.blankToNull(), requestId.blankToNull(), page * PAGE_SIZE, PAGE_SIZE)
+        val facts = roots.items.map { it.toTraceFact() }
+        // One usage query for the whole page, narrowed to its trace ids.
         val usage = if (facts.isEmpty()) emptyMap()
-        else langfuse.observationUsage(facts.minOf { it.timestamp }.minusSeconds(60), Instant.now(), facts.map { it.id }).groupBy { it.traceId }
-        return TracePage(facts.map { it.item(usage[it.id].orEmpty()) }, page, PAGE_SIZE, body.path("meta").path("totalItems").asLong(facts.size.toLong()))
+        else langfuse.observationUsage(facts.minOf { it.timestamp }.minus(USAGE_LOOKBACK), Instant.now(), facts.map { it.id }).groupBy { it.traceId }
+        return TracePage(facts.map { it.item(usage[it.id].orEmpty()) }, page, PAGE_SIZE, roots.total)
     }
 
+    /** The trace-level fields are those of the request root ([requestRoot]); tokens and cost add up the model calls of all the requests of the trace. */
     fun detail(member: OperationsMember, id: String): TraceDetail {
         permissions.requirePermission(member, LLM)
-        val node = langfuse.trace(id)
-        val fact = node.toTraceFact()
-        val observations = node.path("observations").values().map { it.observation() }
-            .sortedWith(compareBy(nullsLast<Instant>()) { it.startTime })
+        val nodes = langfuse.traceObservations(id).sortedWith(compareBy(nullsLast<Instant>()) { it.path("startTime").instantOrNull() })
+        if (nodes.isEmpty()) throw NoSuchElementException("Trace not found.")
+        val fact = nodes.requestRoot().toTraceFact()
+        val observations = nodes.map { it.observation() }
         return TraceDetail(
-            fact.id, fact.timestamp, fact.feature, fact.status, fact.latencyMs ?: 0, observations.sumOf { it.inputTokens ?: 0L },
-            observations.sumOf { it.outputTokens ?: 0L }, fact.cost, fact.userId, fact.workId,
-            node.path("input").takeUnless { it.isMissingNode || it.isNull }, fact.output, observations,
+            fact.id, fact.timestamp, fact.feature, fact.status ?: UNKNOWN, fact.latencyMs ?: 0, observations.sumOf { it.inputTokens ?: 0L },
+            observations.sumOf { it.outputTokens ?: 0L }, nodes.sumOf { it.path("totalCost").doubleOrNull() ?: 0.0 }, fact.userId, fact.workId,
+            nodes.traceInput(), nodes.traceOutput(), observations,
         )
     }
 
     private fun TraceFact.item(usage: List<ObservationUsage>) = TraceItem(
-        id, timestamp, feature, status, latencyMs ?: 0, usage.sumOf { it.inputTokens }, usage.sumOf { it.outputTokens }, cost, userId, workId,
+        id, timestamp, feature, status ?: UNKNOWN, latencyMs ?: 0, usage.sumOf { it.inputTokens }, usage.sumOf { it.outputTokens }, usage.sumOf { it.cost }, userId, workId,
     )
 
     private fun JsonNode.observation(): TraceObservation {
@@ -61,14 +75,11 @@ class TraceService(private val permissions: AdminPermissionRepository, private v
         return TraceObservation(
             path("id").asString(), path("name").textOrNull() ?: "", path("type").textOrNull() ?: "SPAN", start, end,
             if (start != null && end != null) Duration.between(start, end).toMillis() else 0, path("model").textOrNull(),
-            tokens("input", "promptTokens"), tokens("output", "completionTokens"), path("level").textOrNull() ?: "DEFAULT",
-            path("statusMessage").textOrNull(), path("promptName").textOrNull(), path("promptVersion").takeIf { it.isNumber }?.asInt(),
+            path("usageDetails").path("input").takeIf { it.isNumber }?.asLong(), path("usageDetails").path("output").takeIf { it.isNumber }?.asLong(),
+            path("level").textOrNull() ?: "DEFAULT", path("statusMessage").textOrNull(), path("promptName").textOrNull(),
+            path("promptVersion").takeIf { it.isNumber }?.asInt(),
         )
     }
-
-    /** usageDetails (current) before usage (older); the legacy prompt/completion names last. */
-    private fun JsonNode.tokens(key: String, legacy: String): Long? =
-        listOf(path("usageDetails").path(key), path("usage").path(key), path("usage").path(legacy)).firstOrNull { it.isNumber }?.asLong()
 
     private fun String?.blankToNull() = this?.trim()?.takeIf { it.isNotEmpty() }
 }

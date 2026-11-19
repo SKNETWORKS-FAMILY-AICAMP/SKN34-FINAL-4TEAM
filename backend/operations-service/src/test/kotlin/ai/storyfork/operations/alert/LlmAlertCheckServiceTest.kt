@@ -1,13 +1,14 @@
 package ai.storyfork.operations.alert
 
 import ai.storyfork.operations._common.client.LangfuseClient
+import ai.storyfork.operations._common.client.ObservationUsage
 import ai.storyfork.operations.alert.entity.AlertRuleEntity
 import ai.storyfork.operations.alert.entity.OperationAlertEntity
 import ai.storyfork.operations.alert.repository.AlertRuleRepository
 import ai.storyfork.operations.alert.service.AlertRaiser
 import ai.storyfork.operations.alert.service.LlmAlertCheckService
 import ai.storyfork.operations.llmops.service.AiUsageService
-import ai.storyfork.operations.llmops.trace
+import ai.storyfork.operations.llmops.root
 import java.math.BigDecimal
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.*
@@ -29,10 +30,14 @@ class LlmAlertCheckServiceTest {
     private val service = LlmAlertCheckService(rules, AiUsageService(langfuse), raiser)
     private val now = Instant.parse("2026-11-19T05:00:00Z")
 
-    // 4 requests: one failed, one timeout; costs 0.10 + 0.20 + 0.30 + 0.40 = 1.00; latencies 1, 2, 3, 10 seconds.
+    // 4 requests: one failed, one timeout; latencies 1, 2, 3, 10 seconds. A root has no cost: its generations do, 0.10 + 0.20 + 0.30 + 0.40 = 1.00.
     private val traces: List<JsonNode> = listOf(
-        trace("t1", status = "success", latency = 1.0, cost = 0.10), trace("t2", status = "failed", latency = 2.0, cost = 0.20),
-        trace("t3", status = "timeout", latency = 10.0, cost = 0.30), trace("t4", status = "success", latency = 3.0, cost = 0.40),
+        root("t1", status = "success", latency = 1.0), root("t2", status = "failed", latency = 2.0),
+        root("t3", status = "timeout", latency = 10.0), root("t4", status = "success", latency = 3.0),
+    )
+    private val usage = listOf(
+        ObservationUsage("t1", "gpt-5", 10, 1, 0.10), ObservationUsage("t2", "gpt-5", 10, 1, 0.20),
+        ObservationUsage("t3", "gpt-5", 10, 1, 0.30), ObservationUsage("t4", "gpt-5", 10, 1, 0.40),
     )
 
     private fun rule(key: String, threshold: String?, window: Int = 60, enabled: Boolean = true) =
@@ -40,8 +45,10 @@ class LlmAlertCheckServiceTest {
 
     private fun givenEnabled(vararg enabled: AlertRuleEntity) = `when`(rules.findAllByEnabledTrue()).thenReturn(enabled.toList())
 
-    private fun givenWindow(minutes: Long, found: List<JsonNode> = traces) =
+    private fun givenWindow(minutes: Long, found: List<JsonNode> = traces, rows: List<ObservationUsage> = usage) {
         `when`(langfuse.allTraces(now.minusSeconds(minutes * 60), now)).thenReturn(found)
+        `when`(langfuse.observationUsage(now.minusSeconds(minutes * 60), now)).thenReturn(rows)
+    }
 
     private fun raisedKeys() = mockingDetails(raiser).invocations.filter { it.method.name == "raise" }
 
@@ -96,8 +103,24 @@ class LlmAlertCheckServiceTest {
         service.run(now)
 
         verify(langfuse, times(1)).allTraces(now.minusSeconds(3600), now)
+        verify(langfuse, times(1)).observationUsage(now.minusSeconds(3600), now)
         verify(langfuse, times(1)).allTraces(now.minusSeconds(1800), now)
+        verify(langfuse, times(1)).observationUsage(now.minusSeconds(1800), now)
         assertEquals(3, raisedKeys().size)
+    }
+
+    @Test
+    fun `a request that waits or was cancelled is no request for the rates but its generations count for the cost`() {
+        givenEnabled(rule("ai_failure_rate", "0.4"), rule("ai_daily_cost_usd", "1.09"))
+        // t5 has no status and 0.10 of model calls: the failure rate stays 1 of 4 requests, the cost becomes 1.10.
+        givenWindow(60, traces + listOf(root("t5", status = null, latency = 0.2)), usage + ObservationUsage("t5", "gpt-5", 10, 1, 0.10))
+
+        val raised = service.run(now)
+
+        assertEquals(1, raised)
+        val call = raisedKeys().single()
+        assertEquals("ai_daily_cost_usd", call.arguments[0])
+        assertEquals(1.10, call.arguments[2] as Double, 1e-9)
     }
 
     @Test

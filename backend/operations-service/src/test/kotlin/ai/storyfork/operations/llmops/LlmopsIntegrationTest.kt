@@ -8,6 +8,7 @@ import ai.storyfork.operations._common.client.EditSuggestionStats
 import ai.storyfork.operations._common.client.LangfuseClient
 import ai.storyfork.operations._common.client.MemberStats
 import ai.storyfork.operations._common.client.ProposalDecisionStats
+import ai.storyfork.operations._common.client.TraceRoots
 import ai.storyfork.operations.alert.repository.OperationAlertRepository
 import ai.storyfork.operations.alert.service.AlertCleanupService
 import ai.storyfork.operations.alert.service.AlertRaiser
@@ -291,7 +292,7 @@ class LlmopsIntegrationTest {
     @Test
     fun `a prompt is promoted only after a passing evaluation of that version`() {
         `when`(langfuse.prompt("it-prompt", 3)).thenReturn(json.readTree("""{"name":"it-prompt","version":3,"labels":["latest"]}"""))
-        `when`(langfuse.datasetRuns()).thenReturn(emptyList())
+        `when`(langfuse.experiments(anyInstant(), isNull())).thenReturn(emptyList())
         assertEquals(403, send("PUT", "$base/llmops/prompts/it-prompt/production", jobsBearer, """{"version":3}""").statusCode())
 
         val refused = send("PUT", "$base/llmops/prompts/it-prompt/production", adminBearer, """{"version":3}""")
@@ -300,11 +301,13 @@ class LlmopsIntegrationTest {
         assertEquals("EVALUATION_REQUIRED", tree(refused).path("code").asString())
         verify(langfuse, never()).setPromptLabels("it-prompt", 3, listOf("production"))
 
-        // The AI service starts a run with string metadata and writes the verdict as a run-level passed score when it finishes.
-        `when`(langfuse.datasetRuns()).thenReturn(listOf(json.readTree(
-            """{"id":"run-id-1","name":"run-1","datasetName":"qa","createdAt":"2026-11-19T01:00:00Z","metadata":{"prompt":"it-prompt","version":"3","dataset":"qa"}}""")))
-        `when`(langfuse.runScores("run-id-1")).thenReturn(listOf(json.readTree(
-            """{"name":"passed","value":1.0,"dataType":"BOOLEAN","metadata":{"failedItems":0,"totalItems":10}}""")))
+        // The AI service starts an experiment with string metadata and writes the verdict as a run-level passed score when it finishes;
+        // Scores API v3 answers a BOOLEAN as true or false and says which experiment the score belongs to.
+        `when`(langfuse.experiments(anyInstant(), isNull())).thenReturn(listOf(json.readTree(
+            """{"id":"run-id-1","name":"it-prompt@v3-20261119T010000Z-a1b2c3","description":null,"startTime":"2026-11-19T01:00:00Z","endTime":"2026-11-19T01:05:00Z","itemCount":10,"datasetId":"ds-1",
+                "metadata":{"prompt":"it-prompt","version":"3","dataset":"qa"}}""")))
+        `when`(langfuse.experimentScores(listOf("run-id-1"))).thenReturn(listOf(json.readTree(
+            """{"id":"s-1","name":"passed","dataType":"BOOLEAN","value":true,"metadata":{"failedItems":0,"totalItems":10},"subject":{"kind":"experiment","id":"run-id-1"}}""")))
         val promoted = send("PUT", "$base/llmops/prompts/it-prompt/production", adminBearer, """{"version":3}""")
 
         assertEquals(200, promoted.statusCode(), promoted.body())
@@ -315,8 +318,7 @@ class LlmopsIntegrationTest {
 
     @Test
     fun `the trace list passes the request id filter to Langfuse`() {
-        `when`(langfuse.traces(null, null, emptyList(), null, "req-77", 1, 20)).thenReturn(json.readTree(
-            """{"data":[{"id":"t-1","timestamp":"2026-11-19T01:00:00Z","tags":["feature:qa","status:success"],"metadata":{"request_id":"req-77"},"latency":1.5,"totalCost":0.01}],"meta":{"totalItems":1}}"""))
+        `when`(langfuse.traces(null, null, null, null, null, "req-77", 0, 20)).thenReturn(TraceRoots(listOf(root("t-1", metadata = mapOf("request_id" to "req-77"))), 1))
         assertEquals(403, send("GET", "$base/llmops/traces?requestId=req-77", jobsBearer).statusCode())
 
         val response = send("GET", "$base/llmops/traces?requestId=req-77", adminBearer)
@@ -324,6 +326,6 @@ class LlmopsIntegrationTest {
         assertEquals(200, response.statusCode(), response.body())
         assertEquals(listOf("t-1"), items(response).map { it.path("id").asString() })
         assertEquals(1, tree(response).path("total").asInt())
-        verify(langfuse).traces(null, null, emptyList(), null, "req-77", 1, 20)
+        verify(langfuse).traces(null, null, null, null, null, "req-77", 0, 20)
     }
 }
