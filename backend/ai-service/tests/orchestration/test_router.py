@@ -25,7 +25,15 @@ def test_router_failure_becomes_503(monkeypatch):
     fake_agents(monkeypatch, plan('story_context'), fail={'judge': IntentFailure()})
     with pytest.raises(HTTPException) as error:
         asyncio.run(router.orchestrate(OrchestrationRequest(request='요청'), 'test-token'))
-    assert error.value.status_code == 503
+    assert (error.value.status_code, error.value.detail) == (503, '요청 분류에 실패했습니다.')
+
+
+def test_provider_failure_message_is_the_503_detail(monkeypatch):
+    monkeypatch.setenv('INTERNAL_TOKEN', 'test-token')
+    fake_agents(monkeypatch, plan('story_context'), fail={'judge': IntentFailure('AI 제공사 인증에 실패했습니다. 운영자에게 문의해 주세요.')})
+    with pytest.raises(HTTPException) as error:
+        asyncio.run(router.orchestrate(OrchestrationRequest(request='요청'), 'test-token'))
+    assert (error.value.status_code, error.value.detail) == (503, 'AI 제공사 인증에 실패했습니다. 운영자에게 문의해 주세요.')
 
 
 @pytest.mark.parametrize('failure, status', [

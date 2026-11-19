@@ -2,12 +2,12 @@
 
 MODEL = 'gpt-6-luna'  # Decisions API가 지원하는 유일한 모델
 FEATURES = {
-    'story_context': '이미 쓴 작품의 내용·설정·인물 관계를 묻고 출처 있는 답을 받는다(현실 사실·고증 확인은 web_research, 설정 변경의 영향 분석은 world_plot)',
-    'review': '작품 안의 기준으로 원고의 맞춤법·설정 충돌·오류를 검수한다(설정집 자체의 검토는 world_review, 현실 고증 확인은 web_research)',
-    'world_review': '지금 설정집(세계관 카드) 자체에 설정끼리의 모순·인물 문서의 잘못된 역할·사건 정보 누락 같은 오류가 없는지 검토한다(원고 검수는 review, 설정을 바꿀 때의 영향 분석은 world_plot)',
+    'story_context': '이미 쓴 작품의 내용·설정·인물 관계를 묻고 출처 있는 답을 받는다(현실 사실·고증 확인은 web_research, 설정 변경의 영향 분석은 world)',
+    'manuscript_review': '작품 안의 기준으로 원고의 맞춤법·설정 충돌·오류를 검수한다(설정집 자체의 검사는 world, 현실 고증 확인은 web_research)',
+    'world': '설정집(세계관 카드) 자체를 다룬다: 설정끼리의 모순·인물 문서의 잘못된 역할·사건 정보 누락·사건 카드 사이의 시간 순서 모순이 없는지 검사하거나, '
+             '기존 카드의 본문·인물 문서를 세계관과 어긋나지 않게 자세히 보강하거나, 설정·사건을 바꾸려 할 때 그 변경이 어디에 영향을 주고 무엇과 충돌하는지 분석한다(원고 검수는 manuscript_review)',
     'character_simulation': '인물이 특정 상황에서 어떻게 행동할지 가상으로 실행해 본다',
     'writing_editing': '다음 사건·전개·콘티·아이디어를 기획하거나, 새 원고 문장을 쓰거나, 기존 문장을 고친 수정안을 받는다',
-    'world_plot': '설정·플롯을 새로 바꾸려 할 때 그 변경이 어디에 영향을 주고 무엇과 충돌하는지 분석한다(현재 원고의 설정 오류 검수는 review)',
     'web_research': '역사·과학·지리 같은 현실 사실과 고증이 맞는지 웹 출처로 확인한다',
     'rating': '이 회차 원고가 19세 이용가(청소년 이용불가)로 분류될 내용인지 심의 기준으로 판별한다',
 }
@@ -22,9 +22,8 @@ GUARDS = {
     'sensitive_data': '회원 개인정보(이메일·연락처·주소 등)나 API 키·토큰·비밀번호·내부 설정 같은 기밀을 알려 달라는 요청',
 }
 # 작가에게 보이는 기능 이름. CLARIFY_MESSAGE의 보기이며 작가가 이 이름으로 답하면 그 기능으로 확정한다(service.clarified).
-CAPABILITY_NAMES = {'story_context': '작품 질문', 'review': '원고 검수', 'world_review': '설정집 검토', 'character_simulation': '인물 시뮬레이션',
-                    'writing_editing': '기획·집필·수정', 'world_plot': '설정·플롯 분석',
-                    'web_research': '고증 조사', 'rating': '심의 등급'}
+CAPABILITY_NAMES = {'story_context': '작품 질문', 'manuscript_review': '원고 검수', 'world': '세계관', 'character_simulation': '인물 시뮬레이션',
+                    'writing_editing': '기획·집필·수정', 'web_research': '고증 조사', 'rating': '심의 등급'}
 # 이전 보기 이름(#387 전). 예전 되묻기에 답하는 작가도 같은 기능으로 확정한다.
 CAPABILITY_ALIASES = {'전개 제안': 'writing_editing', '집필·수정': 'writing_editing'}
 CAPABILITIES = ', '.join(CAPABILITY_NAMES.values())
@@ -45,8 +44,8 @@ INSTRUCTIONS = (
     '기능마다 작가가 이번 요청에서 그 작업의 결과를 직접 원하는지 yes/no로만 답하고 순서는 따지지 마세요. '
     '다른 작업을 하는 데 참고가 될 것 같다는 이유만으로는 no입니다. 특히 story_context는 작가가 작품 내용을 물었을 때만 yes입니다. '
     '예: "11화에 넣을 사건을 추천해줘"와 "11화를 계획하고 그 계획으로 써줘"는 writing_editing만 yes, '
-    '"검수하고 문제가 있으면 고쳐줘"는 review와 writing_editing이 yes이고 나머지 기능은 no입니다. '
-    '"세계관 설정에 모순이 없는지 봐줘"는 원고가 아니라 설정집 자체의 검토라 world_review만 yes입니다.'
+    '"검수하고 문제가 있으면 고쳐줘"는 manuscript_review와 writing_editing이 yes이고 나머지 기능은 no입니다. '
+    '"세계관 설정에 모순이 없는지 봐줘", "이 인물 설정을 더 자세히 보강해줘", "카엘의 나이를 바꾸면 어디에 영향이 가?"는 원고가 아니라 설정집 자체를 다루는 일이라 world만 yes입니다.'
 )
 
 

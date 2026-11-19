@@ -13,10 +13,11 @@ from openai import OpenAIError
 from pydantic import ValidationError
 
 from app.intent.errors import IntentFailure
+from app.intent.models import DecisionResult
 from app.intent.prompt import CLARIFY_MESSAGE, REJECT_MESSAGES
 from app.orchestration import agent, service, tools
 from app.orchestration.models import OrchestrationRequest
-from app.review.models import Finding as ReviewFinding, ReviewResponse
+from app.manuscript_review.models import Finding as ReviewFinding, ReviewResponse
 from app.research.errors import ResearchFailure
 from app.simulation.models import SimulationPlan
 from app.story_qa.errors import StoryQaFailure
@@ -68,14 +69,18 @@ def test_the_decision_guard_runs_once_per_turn_and_the_main_agent_synthesizes_th
 @pytest.mark.parametrize('routed, status, message', [
     (plan(status='rejected', reason='greeting'), 'rejected', REJECT_MESSAGES['greeting']),
     (plan(status='clarify'), 'clarify', CLARIFY_MESSAGE),
-    (plan('story_context', capabilities=['story_context', 'world_plot']), 'unsupported', tools.UNSUPPORTED_MESSAGE),
 ])
-def test_rejected_no_feature_or_unsupported_decisions_never_call_the_main_model(monkeypatch, routed, status, message):
+def test_rejected_or_no_feature_decisions_never_call_the_main_model(monkeypatch, routed, status, message):
     calls = fake_agents(monkeypatch, routed)
     result = run(inputs={'story_context': QA})
-    assert (result.status, result.message) == (status, message)
+    assert (result.status, result.message, result.unsupported) == (status, message, [])
     assert names(calls) == ['judge'] and calls.main == []
-    assert result.unsupported == (['world_plot'] if status == 'unsupported' else [])
+
+
+def test_world_plot_is_gone_so_no_decision_can_end_as_unsupported():
+    # 미구현 기능이 남지 않았다: 판정은 world_plot을 담을 수 없고 메인 에이전트에게도 그 도구가 없다.
+    with pytest.raises(ValidationError):
+        DecisionResult(allowed=True, capabilities=['story_context', 'world_plot'])
 
 
 def test_decision_failure_propagates_without_running_anything(monkeypatch):
@@ -116,7 +121,7 @@ def test_the_same_feature_runs_only_once_per_turn(monkeypatch):
 
 
 def test_at_most_three_sub_agents_run_per_turn(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('story_context', 'web_research', 'rating', 'world_review'))
+    calls = fake_agents(monkeypatch, plan('story_context', 'web_research', 'rating', 'world'))
     result = run(target=TARGET, inputs={'story_context': QA, 'web_research': WEB})
     assert [s.feature for s in result.steps] == ['story_context', 'web_research', 'rating']
     assert 'world_review' not in names(calls)
@@ -218,16 +223,17 @@ def test_a_turn_that_calls_no_tool_is_the_main_agents_clarifying_question(monkey
 
 def test_the_model_only_sets_the_request_and_enumerated_arguments():
     schemas = {t.name: t.tool_call_schema.model_json_schema() for t in agent.TOOLS.values()}
-    assert set(schemas) == {'ask_story_qa', 'ask_review', 'ask_world_review', 'ask_writing', 'ask_web_research', 'ask_rating',
-                            'ask_character_simulation'}
+    assert set(schemas) == {'ask_story_qa', 'ask_manuscript_review', 'ask_world', 'ask_writing', 'ask_web_research', 'ask_rating', 'ask_character_simulation'}
     for name, schema in schemas.items():
         properties = schema.get('properties', {})
         assert set(properties) <= {'request', 'check', 'task', 'fix'}, name
         if 'request' in properties:
             assert properties['request']['maxLength'] == 2000
     assert schemas['ask_web_research'].get('properties', {}) == {}
-    assert set(schemas['ask_review']['properties']['check']['anyOf'][0]['enum']) == {'mechanical', 'semantic', 'both'}
+    assert set(schemas['ask_manuscript_review']['properties']['check']['anyOf'][0]['enum']) == {'mechanical', 'semantic', 'both'}
     assert set(schemas['ask_writing']['properties']['task']['enum']) == {'plan', 'draft', 'patch'}
+    # World의 작업은 열거형 인자 task로 고르고 반드시 정해야 한다(고르지 않은 호출은 인자 오류로 단계 실패다).
+    assert set(schemas['ask_world']['properties']['task']['enum']) == {'check', 'enrich', 'impact'} and 'task' in schemas['ask_world']['required']
 
 
 def test_a_tool_returns_a_summary_for_the_main_agent_and_the_raw_result_as_its_artifact(monkeypatch):
@@ -244,16 +250,16 @@ def test_a_tool_returns_a_summary_for_the_main_agent_and_the_raw_result_as_its_a
 
 
 def test_boundary_scope_review_reads_only_the_content_checked_target(monkeypatch):
-    calls = fake_agents(monkeypatch, plan(Step('review', check='semantic')))
+    calls = fake_agents(monkeypatch, plan(Step('manuscript_review', check='semantic')))
     run(target=TARGET)
-    [(_, (request,), _)] = [c for c in calls if c[0] == 'review']
+    [(_, (request,), _)] = [c for c in calls if c[0] == 'manuscript_review']
     assert (request.workId, request.episode, request.check) == ('w1', 3, 'semantic')
 
 
 def test_boundary_scope_without_a_target_fails_the_tool_without_a_model_call(monkeypatch):
-    calls = fake_agents(monkeypatch, plan(Step('review', check='mechanical')))
+    calls = fake_agents(monkeypatch, plan(Step('manuscript_review', check='mechanical')))
     result = run()
-    assert 'review' not in names(calls)
+    assert 'manuscript_review' not in names(calls)
     assert (result.steps[0].status, result.steps[0].error) == ('failed', tools.NO_REVIEW_TARGET)
 
 
@@ -282,7 +288,7 @@ def finding(quote, status='confirmed'):
 
 
 def reviewed(monkeypatch, *findings, revision=4, body=BODY):
-    monkeypatch.setattr(tools.review, 'review', lambda data: ReviewResponse(
+    monkeypatch.setattr(tools.manuscript_review, 'review', lambda data: ReviewResponse(
         workId=data.workId, episode=data.episode, revision=4, check=data.check, gaps=[], model='m', providerResponseId='r', usage=None,
         findings=list(findings)))
     monkeypatch.setattr(tools.content_mcp, 'call', lambda tool, args: {'draft': {'title': '3화', 'body': body, 'revision': revision}})
@@ -294,16 +300,16 @@ def reviewed(monkeypatch, *findings, revision=4, body=BODY):
     (0, [finding('웃엇다.')], 4, '웃엇다. 웃엇다.', tools.DRAFT_CHANGED),                         # 한 곳이 아닌 구절
 ])
 def test_boundary_the_fix_must_point_at_one_confirmed_place_of_the_reviewed_revision(monkeypatch, fix, findings, revision, body, error):
-    calls = fake_agents(monkeypatch, plan(Step('review', check='mechanical'), Step('writing_editing', task='patch', fix=fix)))
+    calls = fake_agents(monkeypatch, plan(Step('manuscript_review', check='mechanical'), Step('writing_editing', task='patch', fix=fix)))
     reviewed(monkeypatch, *findings, revision=revision, body=body)
     result = run(target=TARGET)
     assert 'patch' not in names(calls)
-    assert [(s.feature, s.status) for s in result.steps] == [('review', 'completed'), ('writing_editing', 'failed')]
+    assert [(s.feature, s.status) for s in result.steps] == [('manuscript_review', 'completed'), ('writing_editing', 'failed')]
     assert result.steps[1].error == error
 
 
 def test_boundary_the_fix_patches_the_chosen_confirmed_finding(monkeypatch):
-    calls = fake_agents(monkeypatch, plan(Step('review', check='mechanical'), Step('writing_editing', task='patch', fix=0)))
+    calls = fake_agents(monkeypatch, plan(Step('manuscript_review', check='mechanical'), Step('writing_editing', task='patch', fix=0)))
     reviewed(monkeypatch, finding('서윤은 웃엇다.'), finding('바람이 차가왔다.'))
     result = run(target=TARGET)
     [(_, (patch,), _)] = [c for c in calls if c[0] == 'patch']
@@ -311,8 +317,8 @@ def test_boundary_the_fix_patches_the_chosen_confirmed_finding(monkeypatch):
 
 
 def test_boundary_simulation_is_only_reachable_when_the_guard_decided_it(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('review', 'character_simulation', capabilities=['review']))
-    run(target=TARGET, inputs={'review': REVIEW})
+    calls = fake_agents(monkeypatch, plan('manuscript_review', 'character_simulation', capabilities=['manuscript_review']))
+    run(target=TARGET, inputs={'manuscript_review': REVIEW})
     assert 'sim_plan' not in names(calls) and all('ask_character_simulation' not in t for t in exposed(calls))
 
 
@@ -385,10 +391,10 @@ def test_the_main_agent_gets_the_last_five_turns_of_requests_and_answers(monkeyp
 
 
 def test_a_blocked_tool_outside_the_decision_does_not_use_up_the_three_calls(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('rating', 'story_context', 'web_research', 'world_review',
-                                          capabilities=['story_context', 'web_research', 'world_review']))
+    calls = fake_agents(monkeypatch, plan('rating', 'story_context', 'web_research', 'world',
+                                          capabilities=['story_context', 'web_research', 'world']))
     result = run(target=TARGET, inputs={'story_context': QA, 'web_research': WEB})
-    assert [s.feature for s in result.steps] == ['story_context', 'web_research', 'world_review']
+    assert [s.feature for s in result.steps] == ['story_context', 'web_research', 'world']
     assert 'rating' not in names(calls)
 
 
@@ -401,7 +407,7 @@ def test_repeated_blocked_calls_still_end_within_the_model_call_limit(monkeypatc
 
 def applied(monkeypatch):
     done = []
-    monkeypatch.setattr(service.content_mcp, 'apply_writing', lambda work, episode, result: done.append(result) or {'episode': episode, 'revision': 5})
+    monkeypatch.setattr(service.content_mcp, 'apply_writing', lambda work, episode, result, *, expected_revision=None: done.append(result) or {'episode': episode, 'revision': 5})
     return done
 
 
@@ -474,8 +480,8 @@ def test_independent_lookups_in_one_model_turn_run_concurrently_in_call_order(mo
     assert len(calls.main) == 2 and (result.status, result.message) == ('completed', '종합 답변')  # 묶음 한 번 + 종합
 
 
-@pytest.mark.parametrize('solo', [Step('writing_editing', task='plan'), Step('character_simulation')])
-def test_writing_and_simulation_in_a_batch_are_refused_and_run_alone_next(monkeypatch, solo):
+@pytest.mark.parametrize('solo', [Step('writing_editing', task='plan'), Step('character_simulation'), Step('world', task='enrich')])
+def test_writing_simulation_and_world_enrich_in_a_batch_are_refused_and_run_alone_next(monkeypatch, solo):
     calls = fake_agents(monkeypatch, plan(['rating', solo], solo))
     fake_scene(monkeypatch)
     result = run('요청', target=TARGET)
@@ -484,12 +490,47 @@ def test_writing_and_simulation_in_a_batch_are_refused_and_run_alone_next(monkey
     assert [s.feature for s in result.steps] == ['rating', solo.feature]  # 거부는 기능당 1회를 쓰지 않는다
 
 
+def test_writing_and_review_wait_for_an_earlier_tool_in_the_same_batch(monkeypatch):
+    review = Step('manuscript_review', check='mechanical')
+    calls = fake_agents(monkeypatch, plan(['story_context', 'writing_editing', review], 'writing_editing', review))
+    result = run(target=TARGET, inputs={'story_context': QA})
+
+    assert result.status == 'completed'
+    assert [s.feature for s in result.steps] == ['story_context', 'writing_editing', 'manuscript_review']
+    assert names(calls) == ['judge', 'story_context', 'mcp', 'mcp', 'plan_and_draft', 'manuscript_review']
+
+
+@pytest.mark.parametrize('task, service_call', [('check', (tools.world_review, 'review')), ('impact', (tools.world_review, 'impact'))])
+def test_world_check_and_impact_are_lookups_that_run_concurrently_with_the_others(monkeypatch, task, service_call):
+    calls = fake_agents(monkeypatch, plan(['rating', Step('world', task=task)]))
+    together(monkeypatch, (tools.rating, 'rate'), service_call)
+    result = run('요청', target=TARGET)
+    assert [(s.feature, s.task, s.status) for s in result.steps] == [('rating', None, 'completed'), ('world', task, 'completed')]
+    assert len(calls.main) == 2 and (result.status, result.message) == ('completed', '종합 답변')  # 묶음 한 번 + 종합
+
+
+def test_the_world_summary_gives_the_main_agent_the_minimum_per_task_and_never_the_proposed_text_or_ids(monkeypatch):
+    summaries = {}
+    for task in ('check', 'enrich', 'impact'):
+        calls = fake_agents(monkeypatch, plan(Step('world', task=task)))
+        run(target=TARGET)
+        summaries[task] = tool_messages(calls)[0].content
+    assert json.loads(summaries['check']) == {'feature': 'world', 'status': 'completed', 'task': 'check',
+                                              'findings': [{'kind': 'doc_role', 'message': 'SOUL에 목표가 섞여 있어요.'}]}
+    assert json.loads(summaries['enrich']) == {'feature': 'world', 'status': 'completed', 'task': 'enrich', 'note': '카엘의 SOUL을 보강했어요.',
+                                               'fixes': [{'card': '카엘', 'target': 'soul', 'episode': None}]}
+    assert json.loads(summaries['impact']) == {
+        'feature': 'world', 'status': 'completed', 'task': 'impact', 'conflicts': ['3화의 나이와 충돌한다.'], 'gaps': ['5화 계획의 나이를 알 수 없다.'],
+        'affected': [{'kind': 'card', 'title': '카엘', 'reason': '나이 설정이 바뀐다.', 'certainty': 'confirmed'}]}
+    assert '말이 짧고 낮게' not in summaries['enrich']  # 제안한 글 전체는 승인 카드에 있다
+
+
 def test_a_dependent_fix_in_the_same_batch_as_its_review_waits_for_the_review(monkeypatch):
     fix = Step('writing_editing', task='patch', fix=0)
-    calls = fake_agents(monkeypatch, plan([Step('review', check='mechanical'), fix], fix))
+    calls = fake_agents(monkeypatch, plan([Step('manuscript_review', check='mechanical'), fix], fix))
     reviewed(monkeypatch, finding('서윤은 웃엇다.'))
     result = run(target=TARGET)
-    assert [(s.feature, s.status) for s in result.steps] == [('review', 'completed'), ('writing_editing', 'completed')]
+    assert [(s.feature, s.status) for s in result.steps] == [('manuscript_review', 'completed'), ('writing_editing', 'completed')]
     assert names(calls).count('patch') == 1 and len(calls.main) == 3
 
 
@@ -506,9 +547,9 @@ def test_a_call_missing_author_input_in_a_batch_is_deferred_then_waits_alone(mon
 
 def test_a_batch_where_nothing_can_run_together_still_runs_its_first_call_alone(monkeypatch):
     # 둘 다 작가 입력이 빠졌다. 모두 미루면 모델이 같은 묶음을 반복해 아무것도 못 한다.
-    calls = fake_agents(monkeypatch, plan([Step('review'), 'web_research']))
+    calls = fake_agents(monkeypatch, plan([Step('manuscript_review'), 'web_research']))
     waiting = turn(str(uuid4()), target=TARGET)
-    assert (waiting.status, waiting.missingInputs) == ('waiting', ['review'])
+    assert (waiting.status, waiting.missingInputs) == ('waiting', ['manuscript_review'])
     assert len(calls.main) == 1
 
 
@@ -520,14 +561,14 @@ def test_a_failure_in_a_batch_keeps_the_finished_sibling_and_closes_the_tools(mo
 
 
 def test_each_call_in_a_batch_counts_toward_the_three_calls_per_turn(monkeypatch):
-    calls = fake_agents(monkeypatch, plan(['story_context', 'web_research', 'rating', 'world_review']))
+    calls = fake_agents(monkeypatch, plan(['story_context', 'web_research', 'rating', 'world']))
     result = run(target=TARGET, inputs={'story_context': QA, 'web_research': WEB})
     assert [s.feature for s in result.steps] == ['story_context', 'web_research', 'rating']
-    assert 'world_review' not in names(calls) and sent(calls, 'ask_world_review').status == 'error'
+    assert 'world_review' not in names(calls) and sent(calls, 'ask_world').status == 'error'
 
 
 def test_the_patch_summary_names_the_changed_passage_so_the_answer_cannot_claim_more(monkeypatch):
-    calls = fake_agents(monkeypatch, plan(Step('review', check='mechanical'), Step('writing_editing', task='patch', fix=1)))
+    calls = fake_agents(monkeypatch, plan(Step('manuscript_review', check='mechanical'), Step('writing_editing', task='patch', fix=1)))
     reviewed(monkeypatch, finding('서윤은 웃엇다.'), finding('바람이 차가왔다.'))
     run(target=TARGET)
     summary = json.loads(tool_messages(calls)[1].content)

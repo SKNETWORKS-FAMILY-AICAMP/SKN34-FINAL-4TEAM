@@ -1,13 +1,14 @@
 import type {EpisodeRepository} from '../../domain/repositories/EpisodeRepository'
 import type {WorkRankingQuery, WorkSearchQuery, WorkSearchRepository} from '../../domain/repositories/WorkSearchRepository'
 import { z } from 'zod'
-import {settingCategories, type Draft, type SettingInput, type StoryQaInput, type WorkRegistration, type WorkTaxonomy} from '../../domain/entities/content'
+import {settingCategories, type Draft, type SettingInput, type WorkRegistration, type WorkTaxonomy} from '../../domain/entities/content'
 import type { PublicationScheduleInput, PublicationScheduleRevision } from '../../domain/entities/publicationSchedule'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, getAccessToken, protectedRequest } from '../api/auth'
 import { csrf } from '../api/csrf'
 import { mapReadingWork } from './readingWork'
 import type { EpisodeWorldBasisChoice } from '../../domain/entities/episodeWorldBasis'
+import type { WritingMode } from '../../domain/entities/operatingSettings'
 import { cardTypes } from '../../domain/entities/studioCards'
 
 const draft = z.object({title:z.string(),body:z.string(),authorNote:z.string().optional(),revision:z.number().int().nonnegative()})
@@ -41,6 +42,13 @@ const readingWork = work.omit({draft:true}).extend({
   likes:z.number().int().nonnegative(),
 })
 const instant = z.iso.datetime({offset:true})
+const settingsVersion = z.object({ revision: z.number().int().positive(), writingMode: z.enum(['direct', 'assisted']), changedAt: instant })
+const unsetSettings = z.object({ revision: z.literal(0), writingMode: z.null(), changedAt: z.null() })
+const operatingSettings = z.object({
+  current: z.union([settingsVersion, unsetSettings]), history: z.array(settingsVersion),
+  worldUpdateMode: z.literal('manual'), proofreadingMode: z.literal('review'), autoserialState: z.literal('off'),
+})
+const operatingSettingsPath = (id: string) => `/works/${encodeURIComponent(id)}/operating-settings`
 /** 기간별 랭킹 응답: items는 공개 작품(방금 업데이트만 updatedAt=마지막 발행 시각)이고 computedAt은 서버가 계산한 시각이다. kind·period·type echo는 쓰지 않는다. */
 const rankingsResponse = z.object({items:z.array(readingWork.extend({updatedAt:instant.nullable().optional()})),computedAt:instant})
 const readingDocument = z.object({id:z.string(),versionId:z.string(),category:z.string(),name:z.string(),body:z.string(),
@@ -76,34 +84,12 @@ const publicationSchedule = z.object({
   failureReason: z.string().nullable(),
 })
 const schedulesPath = (id: string, number: number) => `/works/${encodeURIComponent(id)}/episodes/${number}/publication-schedules`
-const qaEpisode = z.object({ number: z.number().int().positive(), versionId: z.string() })
-const qaSource = z.object({
-  id: z.string(), workId: z.string(), sourceWorkId: z.string().nullable(), episode: z.number().int().positive(), quote: z.string(),
-})
-const manuscriptQaAnswer = z.object({
-  status: z.enum(['answered', 'partial', 'insufficient']),
-  claims: z.array(z.object({ text: z.string(), kind: z.enum(['confirmed', 'inferred']), sourceIds: z.array(z.string()) })),
-  sources: z.array(z.discriminatedUnion('kind', [
-    qaSource.extend({ kind: z.literal('manuscript'), episodeId: z.string(), versionId: z.string(),
-      startUtf16: z.number().int().nonnegative(), endUtf16: z.number().int().positive() }),
-    qaSource.extend({ kind: z.literal('setting'), settingId: z.string(), versionId: z.string(), title: z.string() }),
-    qaSource.extend({ kind: z.literal('relationship'), worldId: z.uuid(), graphVersion: z.number().int().nonnegative(),
-      relationshipId: z.uuid(), title: z.string() }),
-  ])),
-  gaps: z.array(z.object({ code: z.string(), detail: z.string() })),
-  coverage: z.object({
-    expected: z.array(qaEpisode), withVerifiedExcerpt: z.array(qaEpisode), withoutVerifiedExcerpt: z.array(qaEpisode),
-  }),
-})
 export type ReadingWorkRecord = z.infer<typeof readingWork>
 export type ReadingWorldRecord = z.infer<typeof readingWorld>
 
 export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepository {
   private readonly fetcher?: typeof fetch
   constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
-  askStoryContext(id: string, input: StoryQaInput, owner: boolean, signal?: AbortSignal) {
-    return this.request(`${owner ? '' : '/public'}/works/${encodeURIComponent(id)}/context/qa`, manuscriptQaAnswer, 'POST', input, signal)
-  }
   /** anonymous면 Bearer 없이 보낸다. 기본은 공개 목록·세계관 같은 /public/works 읽기이고, 회차 댓글은 로그인 상태면 Bearer로 읽어 mine·liked를 받는다. */
   async request<T>(path: string, schema: z.ZodType<T>, method = 'GET', body?: unknown, signal?: AbortSignal, anonymous = path.startsWith('/public/works') && method === 'GET'): Promise<T> {
     const fetcher = this.fetcher ?? fetch
@@ -135,6 +121,12 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
   deleteDraft(id:string,number:number,revision:number,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/draft?revision=${revision}`,z.undefined(),'DELETE',undefined,signal)}
   deleteEpisode(id:string,number:number,revision:number,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}?revision=${revision}`,z.undefined(),'DELETE',undefined,signal)}
   writingList(id:string,signal?:AbortSignal) {return this.request(`/works/${id}/episodes`,z.array(writing),'GET',undefined,signal)}
+  workSettings(id: string, signal?: AbortSignal) {
+    return this.request(operatingSettingsPath(id), operatingSettings, 'GET', undefined, signal)
+  }
+  updateWorkSettings(id: string, revision: number, writingMode: WritingMode, signal?: AbortSignal) {
+    return this.request(operatingSettingsPath(id), operatingSettings, 'PUT', { revision, writingMode }, signal)
+  }
   createEpisode(id:string,title:string,signal?:AbortSignal) {return this.request(`/works/${id}/episodes`,writing,'POST',{title},signal)}
   writeEpisode(id:string,number:number,value:Draft,version:boolean,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/${version?'versions':'draft'}`,writing,version?'POST':'PUT',value,signal)}
   restoreEpisode(id:string,number:number,revision:number,versionId:string,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/restore`,writing,'POST',{revision,versionId},signal)}

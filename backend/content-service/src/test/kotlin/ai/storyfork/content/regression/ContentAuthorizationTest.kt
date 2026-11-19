@@ -4,9 +4,6 @@ import ai.storyfork.content.auth.config.ContentSecurityConfig
 import ai.storyfork.content.auth.service.CoreAuthVerificationService
 import ai.storyfork.content.context.controller.ManuscriptQaController
 import ai.storyfork.content.context.service.ManuscriptQaService
-import ai.storyfork.content.context.service.dto.ManuscriptQaRequest
-import ai.storyfork.content.context.service.dto.ManuscriptQaResponse
-import ai.storyfork.content.context.service.dto.QaCoverage
 import ai.storyfork.content._common.config.WebCorsConfig
 import ai.storyfork.content.work.controller.WorkController
 import ai.storyfork.content.work.service.WorkService
@@ -67,17 +64,14 @@ class ContentAuthorizationTest {
         .cookie(Cookie("XSRF-TOKEN","test-csrf")).header("X-CSRF-TOKEN",csrfValue()).contentType("application/json")
         .content(body)
 
-    @Test fun `public manuscript qa requires membership and csrf while using reader scope`() {
-        val path = "/api/v1/public/works/work-id/context/qa"
+    @Test fun `removed work qa endpoints answer nothing`() {
+        // 작품 Q&A 화면 제거(#525): 독자 경로는 공개 POST 허용 목록에서 빠져 403, 작가 경로는 핸들러가 없어 404다.
         val body = """{"episode":2,"episodeVersionId":"v2","question":"누가 왔나요?","consent":true}"""
-        val request = ManuscriptQaRequest(2, "v2", "누가 왔나요?", true)
-        mvc.perform(mutation(path).content(body)).andExpect(status().isUnauthorized())
-        mvc.perform(post(path).header("Authorization", "Bearer " + token()).content(body)).andExpect(status().isForbidden())
+        mvc.perform(mutation("/api/v1/public/works/work-id/context/qa").header("Authorization", "Bearer " + token()).content(body))
+            .andExpect(status().isForbidden())
+        mvc.perform(mutation("/api/v1/works/work-id/context/qa").header("Authorization", "Bearer " + token()).content(body))
+            .andExpect(status().isNotFound())
         verifyNoInteractions(manuscriptQa)
-        `when`(manuscriptQa.ask("work-id", null, request))
-            .thenReturn(ManuscriptQaResponse("insufficient", emptyList(), emptyList(), emptyList(), QaCoverage(emptyList(), emptyList(), emptyList())))
-        mvc.perform(mutation(path).header("Authorization", "Bearer " + token()).content(body)).andExpect(status().isOk())
-        verify(manuscriptQa).ask("work-id", null, request)
     }
 
     @Test fun `browser demo identity and forged headers cannot authorize`() {

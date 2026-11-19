@@ -1,7 +1,7 @@
 import type { AppNotification, NotificationPage } from '../entities/notification'
 
-/** 회원이 끌 수 있는 알림 종류(읽기·작가 소식). 나머지 분류는 항상 켜져 있습니다. */
-export type NotificationPrefs = { read: boolean; creator: boolean }
+/** 회원이 끌 수 있는 알림 종류(읽기·작가 소식·AI·외부 도구 변경). 나머지 분류는 항상 켜져 있습니다. */
+export type NotificationPrefs = { read: boolean; creator: boolean; aiTool: boolean }
 
 export interface NotificationRepository {
   /** 최신순 한 페이지. cursor는 직전 응답의 nextCursor입니다. */

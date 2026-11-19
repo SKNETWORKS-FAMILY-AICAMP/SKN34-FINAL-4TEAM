@@ -1,6 +1,7 @@
 import type {EpisodeRepository} from '../repositories/EpisodeRepository'
 import type { Draft, SettingInput, WorkRegistration, WorkTaxonomy } from '../entities/content'
 import { toKstDateTimeInput, type PublicationScheduleRevision } from '../entities/publicationSchedule'
+import type { WritingMode } from '../entities/operatingSettings'
 
 /** 작품 등록과 정보 수정이 같은 장르(1~2개)·해시태그(10개까지) 규칙을 쓴다. 주지 않은 쪽은 검사하지 않는다. */
 function taxonomyError({ genres, hashtags }: WorkTaxonomy) {
@@ -12,9 +13,6 @@ function taxonomyError({ genres, hashtags }: WorkTaxonomy) {
 export class EpisodeUseCase {
   private readonly repository: EpisodeRepository
   constructor(repository: EpisodeRepository) { this.repository = repository }
-  askStoryContext(id: string, input: import('../entities/content').StoryQaInput, owner: boolean, signal?: AbortSignal) {
-    return this.repository.askStoryContext(id, input, owner, signal)
-  }
   orderScope(id:string,number:number,signal?:AbortSignal) {return this.repository.orderScope(id,number,signal)}
   deleteDraft(id:string,number:number,revision:number,signal?:AbortSignal) {return this.repository.deleteDraft(id,number,revision,signal)}
   deleteEpisode(id:string,number:number,revision:number,signal?:AbortSignal) {return this.repository.deleteEpisode(id,number,revision,signal)}
@@ -60,6 +58,10 @@ export class EpisodeUseCase {
     return this.repository.create(title.trim(),summary.trim(),signal,registration)
   }
   suggestWorkTags(id: string, signal?: AbortSignal) { return this.repository.suggestWorkTags(id,signal) }
+  workSettings(id: string, signal?: AbortSignal) { return this.repository.workSettings(id, signal) }
+  updateWorkSettings(id: string, revision: number, writingMode: WritingMode, signal?: AbortSignal) {
+    return this.repository.updateWorkSettings(id, revision, writingMode, signal)
+  }
   updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal, taxonomy?: WorkTaxonomy) {
     if (!title.trim() || title.length>120 || summary.length>2000) return Promise.reject(new Error('작품 제목은 120자, 소개는 2,000자 이내로 입력해 주세요.'))
     const invalid = taxonomy && taxonomyError(taxonomy)

@@ -127,7 +127,10 @@ class NoticeService(
         return preferences(memberId)
     }
 
-    /** 내부 생성. 끌 수 있는 분류가 꺼져 있으면 만들지 않고 null을 반환한다. */
+    /**
+     * 내부 생성. 끌 수 있는 분류가 꺼져 있으면 만들지 않고 null을 반환한다.
+     * ai-tool 분류는 같은 대상의 읽지 않은 알림이 있으면 새 행 없이 그 알림의 시각만 올리고(사건 id는 저장하지 않는다) 그 알림을 반환한다.
+     */
     @Transactional
     fun create(request: NoticeCreateRequest): NoticeResponse? {
         require(request.summary.length in 1..300)
@@ -135,14 +138,27 @@ class NoticeService(
             val stored = preferences.findAllByMemberId(request.recipientId).firstOrNull { it.kind == request.kind.code }
             if (stored != null && !stored.enabled) return null
         }
+        val now = Instant.now().truncatedTo(ChronoUnit.MICROS)
         // 사건 id 유일 제약 위반을 이 트랜잭션 안에서 바로 드러내도록 즉시 반영한다.
-        val saved = notices.saveAndFlush(NoticeEntity(
+        val saved = mergeIntoUnread(request, now) ?: notices.saveAndFlush(NoticeEntity(
             id = UUID.randomUUID(), recipientId = request.recipientId, kind = request.kind.code, summary = request.summary,
-            targetType = request.targetType, targetId = request.targetId, createdAt = Instant.now().truncatedTo(ChronoUnit.MICROS),
+            targetType = request.targetType, targetId = request.targetId, createdAt = now,
             sourceEventId = request.sourceEventId,
         ))
         signalAfterCommit(request.recipientId)
         return toResponse(saved)
+    }
+
+    /**
+     * ai-tool 알림이고 같은 대상의 읽지 않은 알림이 있으면 그 알림의 시각을 now로 올려 그 알림을 반환하고, 아니면 null이다(#553).
+     * 연속 저장으로 알림함이 도배되지 않게 하며, 변경 신호는 호출한 쪽이 그대로 보낸다.
+     * ponytail: 같은 대상의 첫 사건 둘이 동시에 오면 읽지 않은 행이 둘 생길 수 있다(사건 소비자가 하나라 직렬 처리). 막으려면 회원 행 잠금을 건다.
+     */
+    private fun mergeIntoUnread(request: NoticeCreateRequest, now: Instant): NoticeEntity? {
+        if (request.kind != NoticeKind.AI_TOOL || request.targetType == null || request.targetId == null) return null
+        if (notices.bumpUnread(request.recipientId, request.kind.code, request.targetType, request.targetId, now) == 0) return null
+        // 방금 올린 행이 가장 최근이고, 이 트랜잭션이 그 행을 잠그고 있어 그사이 지워지지 않는다.
+        return notices.groupItems(request.recipientId, request.kind.code, request.targetType, request.targetId, PageRequest.of(0, 1)).first()
     }
 
     /** 알림이 DB에 커밋된 뒤에만 본인에게 변경 신호를 보낸다. 롤백되면 신호도 보내지 않는다. */

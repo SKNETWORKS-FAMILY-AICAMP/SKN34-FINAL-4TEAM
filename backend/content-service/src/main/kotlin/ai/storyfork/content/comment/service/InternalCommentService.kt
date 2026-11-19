@@ -8,9 +8,15 @@ import ai.storyfork.content.comment.repository.EpisodeCommentLikeRepository
 import ai.storyfork.content.comment.repository.EpisodeCommentRepository
 import ai.storyfork.content.comment.service.dto.OperationsCommentListResponse
 import ai.storyfork.content.comment.service.dto.OperationsCommentResponse
+import ai.storyfork.content.interest.entity.ContentEventOutboxEntity
+import ai.storyfork.content.interest.repository.ContentEventOutboxRepository
 import ai.storyfork.content.work.repository.WorkRepository
+import java.util.UUID
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+
+private const val COMMENT_HIDDEN = "content.operator.comment-hidden"
+private const val COMMENT_RESTORED = "content.operator.comment-restored"
 
 /** 운영 서비스 전용 댓글 조회와 숨김·게시 복구. 작성자 검사 없이 서비스 토큰으로만 보호된다. 삭제된 댓글과 삭제된 작품의 댓글은 대상이 아니다(DEC-42). */
 @Service
@@ -20,6 +26,7 @@ class InternalCommentService(
     private val likes: EpisodeCommentLikeRepository,
     private val works: WorkRepository,
     private val nicknames: CoreNicknameService,
+    private val outbox: ContentEventOutboxRepository,
 ) {
     /**
      * 숨김을 포함한 전체 댓글(작성 최신순)이다. 댓글·작품 제목은 쿼리 한 번, 공감 수는 댓글별 group by 쿼리 한 번으로 읽고 행마다 추가 조회하지 않는다.
@@ -42,11 +49,17 @@ class InternalCommentService(
     /** 숨긴 댓글을 다시 게시한다. 이미 게시 중이면 그대로다(멱등). */
     fun restore(id: String) = set(id, false)
 
-    /** 없는·삭제된 댓글이나 삭제된 작품의 댓글은 바꾸기 전에 404로 막는다. 수정이 아니므로 updatedAt은 건드리지 않는다. */
+    /**
+     * 없는·삭제된 댓글이나 삭제된 작품의 댓글은 바꾸기 전에 404로 막는다. 수정이 아니므로 updatedAt은 건드리지 않는다.
+     * 상태가 실제로 바뀔 때만 같은 트랜잭션에서 작성자에게 보낼 운영자 조치 알림 사건(대상은 댓글이 달린 작품)을 outbox에 쓴다(멱등 재요청은 쓰지 않는다).
+     */
     private fun set(id: String, hidden: Boolean): OperationsCommentResponse {
         val row = comments.findById(id).orElse(null)?.takeIf { it.deletedAt == null } ?: missing()
         val work = works.findById(row.workId).orElse(null)?.takeIf { it.deletedAt == null } ?: missing()
-        row.hidden = hidden
+        if (row.hidden != hidden) {
+            row.hidden = hidden
+            outbox.save(ContentEventOutboxEntity(UUID.randomUUID(), if (hidden) COMMENT_HIDDEN else COMMENT_RESTORED, row.authorId, "work", row.workId))
+        }
         val name = nicknames.nicknames(listOf(row.authorId))[row.authorId] ?: WITHDRAWN_MEMBER_NAME
         return view(row, work.title, likes.findAllByCommentIdIn(listOf(id)).size, name)
     }

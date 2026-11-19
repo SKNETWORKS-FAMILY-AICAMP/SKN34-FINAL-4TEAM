@@ -1,10 +1,9 @@
 import type { PublicationSchedule, PublicationScheduleInput, PublicationScheduleRevision } from '../entities/publicationSchedule'
 import type {WorkRegistration,WorkTaxonomy,WorkTagSuggestion,WritingEpisode,Draft,Work,Proposal,History,World,SettingInput,StoryContext,WorldCheckpoint,WorldCheckpointSummary,InheritedWorld} from '../entities/content'
 import type { EpisodeWorldBasis, EpisodeWorldBasisChoice, WorldBasisCard, WorldBasisVersion } from '../entities/episodeWorldBasis'
-import type { ManuscriptQaAnswer, StoryQaInput } from '../entities/content'
+import type { WorkSettings, WritingMode } from '../entities/operatingSettings'
 
 export interface EpisodeRepository {
-  askStoryContext(id: string, input: StoryQaInput, owner: boolean, signal?: AbortSignal): Promise<ManuscriptQaAnswer>
   orderScope(id:string,number:number,signal?:AbortSignal):Promise<import('../entities/content').EpisodeOrderScope>
   deleteDraft(id:string,number:number,revision:number,signal?:AbortSignal):Promise<void>
   deleteEpisode(id:string,number:number,revision:number,signal?:AbortSignal):Promise<void>
@@ -20,6 +19,8 @@ export interface EpisodeRepository {
   list(signal?: AbortSignal): Promise<Work[]>
   create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration): Promise<Work>
   updateWork(id: string, title: string, summary: string, revision: number, signal?: AbortSignal, taxonomy?: WorkTaxonomy): Promise<Work>
+  workSettings(id: string, signal?: AbortSignal): Promise<WorkSettings>
+  updateWorkSettings(id: string, revision: number, writingMode: WritingMode, signal?: AbortSignal): Promise<WorkSettings>
   /** 작가 본인 작품의 저장된 제목·소개와 발행 회차로 장르·해시태그 후보를 받는다. 저장은 하지 않는다. */
   suggestWorkTags(id: string, signal?: AbortSignal): Promise<WorkTagSuggestion>
   stopForkPublication(id: string, signal?: AbortSignal): Promise<void>
