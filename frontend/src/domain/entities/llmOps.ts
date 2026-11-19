@@ -9,7 +9,7 @@ export type TraceItem = {
   latencyMs?: number | null; inputTokens?: number | null; outputTokens?: number | null; cost?: number | null
   userId?: string | null; workId?: string | null
 }
-export type Observation = {
+type Observation = {
   id: string; name: string; type: string; startTime: string; endTime?: string | null; latencyMs?: number | null
   model?: string | null; inputTokens?: number | null; outputTokens?: number | null; level: string
   statusMessage?: string | null; promptName?: string | null; promptVersion?: number | null
@@ -18,7 +18,7 @@ export type TraceDetail = TraceItem & { input?: unknown; output?: unknown; obser
 /** 비어 있는 값(전체)은 서버에 보내지 않습니다. from·to는 UTC ISO 시각, page는 0부터입니다. */
 export type TraceQuery = { from: string; to: string; feature: string; status: string; userId: string; requestId: string; page: number }
 
-export type MetricRow = {
+type MetricRow = {
   key: string; requests: number; failureRate?: number | null; timeoutRate?: number | null
   p50LatencyMs?: number | null; p95LatencyMs?: number | null; inputTokens: number; outputTokens: number; costUser: number; costPlatform: number
 }
@@ -34,10 +34,10 @@ export type Prompt = { name: string; versions: PromptVersion[] }
 export type PromptVersionInput = { prompt: string; commitMessage: string }
 
 /** 가격은 토큰당 USD입니다. */
-export type Model = { id: string; modelName: string; matchPattern: string; inputPrice?: number | null; outputPrice?: number | null; unit?: string | null }
+export type Model = { id: string; modelName: string; matchPattern: string; inputPrice?: number | null; outputPrice?: number | null }
 export type ModelInput = { modelName: string; matchPattern: string; inputPrice: number; outputPrice: number }
 
-export type EvaluationMetric = { name: string; score: number; baseline?: number | null; delta?: number | null }
+type EvaluationMetric = { name: string; score: number; baseline?: number | null; delta?: number | null }
 export type Evaluation = {
   runId: string; dataset: string; prompt: string; version: number
   /** running | completed | failed */

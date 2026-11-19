@@ -23,7 +23,7 @@ export class InMemoryOperationsDashboardRepository implements OperationsDashboar
   private readonly rows: Alert[] = [
     { id: 'alert-1', ruleKey: 'ai_failure_rate', status: 'open', message: '최근 60분 AI 실패율 32%가 기준 20%를 넘었어요.', value: 0.32, targetRef: null, createdAt: ago(25) },
     { id: 'alert-2', ruleKey: 'job_failed', status: 'open', message: '회차 원고 전처리 작업이 실패했어요.', value: null, targetRef: 'job-failed-1', createdAt: ago(90) },
-    { id: 'alert-3', ruleKey: 'leak_suspected', status: 'resolved', message: '비공개 카드 제목이 Fork 작품의 답변에 그대로 나왔어요.', value: null, targetRef: 'work-demo', createdAt: ago(1800), actedBy: 'demo-admin', actedAt: ago(1700), note: '프롬프트 수정 뒤 재확인' },
+    { id: 'alert-3', ruleKey: 'leak_suspected', status: 'resolved', message: '비공개 카드 제목이 Fork 작품의 답변에 그대로 나왔어요.', value: null, targetRef: 'work-demo', createdAt: ago(1800), actedAt: ago(1700), note: '프롬프트 수정 뒤 재확인' },
   ]
 
   async dashboard(): Promise<Dashboard> {
@@ -38,7 +38,7 @@ export class InMemoryOperationsDashboardRepository implements OperationsDashboar
   }
   async alerts(status: AlertStatus | null) { return structuredClone(this.rows.filter((row) => !status || row.status === status)) }
   async updateAlert(id: string, status: 'acknowledged' | 'resolved', note: string) {
-    Object.assign(found(this.rows.find((row) => row.id === id)), { status, note: note || null, actedBy: 'demo-admin', actedAt: new Date().toISOString() })
+    Object.assign(found(this.rows.find((row) => row.id === id)), { status, note: note || null, actedAt: new Date().toISOString() })
   }
 }
 
@@ -60,8 +60,8 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
     { name: 'writing-assist', versions: [{ version: 1, labels: ['production'], createdAt: ago(9000) }] },
   ]
   private readonly modelRows: Model[] = [
-    { id: 'model-1', modelName: 'gpt-demo', matchPattern: '(?i)^gpt-demo$', inputPrice: 0.0000025, outputPrice: 0.00001, unit: 'TOKENS' },
-    { id: 'model-2', modelName: 'embed-demo', matchPattern: '(?i)^embed-demo$', inputPrice: 0.0000001, outputPrice: 0, unit: 'TOKENS' },
+    { id: 'model-1', modelName: 'gpt-demo', matchPattern: '(?i)^gpt-demo$', inputPrice: 0.0000025, outputPrice: 0.00001 },
+    { id: 'model-2', modelName: 'embed-demo', matchPattern: '(?i)^embed-demo$', inputPrice: 0.0000001, outputPrice: 0 },
   ]
   private readonly evaluationRows: Evaluation[] = [
     { runId: 'run-2', dataset: 'qa-regression', prompt: 'qa-answer', version: 3, status: 'completed', passed: false, createdAt: ago(240), metrics: [
@@ -112,7 +112,7 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
     for (const v of p.versions) v.labels = v === target ? ['production'] : v.labels.filter((label) => label !== 'production')
   }
   async models() { return structuredClone(this.modelRows) }
-  async createModel(input: ModelInput) { this.modelRows.push({ id: `model-${this.modelRows.length + 1}`, ...input, unit: 'TOKENS' }) }
+  async createModel(input: ModelInput) { this.modelRows.push({ id: `model-${this.modelRows.length + 1}`, ...input }) }
   async evaluations() { return structuredClone(this.evaluationRows.map((row) => ({ ...row, metrics: [] }))) }
   async evaluation(runId: string) { return structuredClone(found(this.evaluationRows.find((row) => row.runId === runId))) }
   async runEvaluation(input: EvaluationInput) {

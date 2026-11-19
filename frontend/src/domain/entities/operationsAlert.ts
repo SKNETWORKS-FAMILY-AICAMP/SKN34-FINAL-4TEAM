@@ -3,7 +3,7 @@ export type AlertStatus = 'open' | 'acknowledged' | 'resolved'
 export const ALERT_STATUSES: [AlertStatus, string][] = [['open', '미확인'], ['acknowledged', '확인함'], ['resolved', '조치 완료']]
 export type Alert = {
   id: string; ruleKey: string; status: string; message: string; value?: number | null; targetRef?: string | null; createdAt: string
-  actedBy?: string | null; actedAt?: string | null; note?: string | null
+  actedAt?: string | null; note?: string | null
 }
 export type AlertRule = { key: string; metric: string; threshold?: number | null; windowMinutes: number; enabled: boolean; updatedAt: string }
 export type AlertRuleInput = { threshold: number | null; windowMinutes: number; enabled: boolean }

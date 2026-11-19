@@ -143,7 +143,7 @@ describe('HttpLlmOpsRepository 프롬프트·모델·평가·설정', () => {
   })
 
   it('모델은 목록을 읽고 토큰당 단가로 등록한다', async () => {
-    const model = { id: 'm1', modelName: 'gpt-x', matchPattern: '^gpt-x$', inputPrice: 0.0000025, outputPrice: 0.00001, unit: 'TOKENS' }
+    const model = { id: 'm1', modelName: 'gpt-x', matchPattern: '^gpt-x$', inputPrice: 0.0000025, outputPrice: 0.00001 }
     const fetcher = ok({ items: [model], page: 0, size: 100, total: 1 })
     const repo = new HttpLlmOpsRepository(fetcher)
     expect(await repo.models()).toEqual([model])
@@ -195,16 +195,23 @@ describe('HttpJobMonitorRepository', () => {
     await expect(new HttpJobMonitorRepository(ok({ items: [{ ...run, status: undefined }], page: 0, size: 20, total: 1 })).runs({ status: '', kind: '', page: 0 })).rejects.toThrow(FORMAT)
   })
 
-  it('실패 재실행은 POST, 대상 상태 때문의 거절(409)은 서버 문구를 그대로 알린다', async () => {
-    const fetcher = ok({})
+  it('실패 재실행(202)은 POST, 진행 중·이미 재실행된 기록의 거절(409)은 서버 문구를 그대로 알린다', async () => {
+    const fetcher = ok({}, 202)
     await new HttpJobMonitorRepository(fetcher).retry('j 1')
     expect(callsOf(fetcher).map(([url, init]) => [url, init.method])).toEqual([['/api/v1/operations/jobs/runs/j%201/retry', 'POST']])
     await expect(new HttpJobMonitorRepository(fail(409, { code: 'NOT_FAILED', message: '실패한 작업만 다시 실행할 수 있어요.' })).retry('j1')).rejects.toThrow(new OperationsRejected('실패한 작업만 다시 실행할 수 있어요.'))
   })
 
+  it('일정 등록의 종류 미등록·cron 오류(422)는 서버 문구를 그대로 알리고, 문구가 없으면 입력 확인 안내다', async () => {
+    const input = { kind: 'nope', cron: 'x', enabled: true, params: {} }
+    await expect(new HttpJobMonitorRepository(fail(422, { code: 'UNKNOWN_KIND', message: '등록되지 않은 작업 종류예요.' })).createSchedule(input)).rejects.toThrow(new OperationsRejected('등록되지 않은 작업 종류예요.'))
+    await expect(new HttpJobMonitorRepository(fail(422, {})).createSchedule(input)).rejects.toThrow(new OperationsError('입력값을 확인해 주세요.'))
+  })
+
   it('일정은 목록을 읽고 등록·변경·취소는 계약 경로와 본문을 쓴다', async () => {
     const schedule = { id: 's1', kind: 'alert_cleanup', cron: '0 0 4 * * *', enabled: true, params: { days: 90 }, createdAt: AT, updatedAt: AT, lastRun: null }
-    const fetcher = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => init?.method === 'GET' ? Response.json({ items: [{ ...schedule, params: null }], page: 0, size: 100, total: 1 }) : Response.json({}))
+    // 등록은 201+Location, 변경·취소는 본문 없는 성공이다.
+    const fetcher = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => init?.method === 'GET' ? Response.json({ items: [{ ...schedule, params: null }], page: 0, size: 100, total: 1 }) : init?.method === 'POST' ? new Response(null, { status: 201, headers: { Location: '/api/v1/operations/jobs/schedules/s2' } }) : new Response(null, { status: 204 }))
     const repo = new HttpJobMonitorRepository(fetcher)
     // jsonb params가 비어 오면 빈 객체다.
     expect(await repo.schedules()).toEqual([{ ...schedule, params: {} }])

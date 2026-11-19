@@ -29,7 +29,7 @@ const dashboard = z.object({
 })
 const alert = z.object({
   id: z.string(), ruleKey: z.string(), status: z.string(), message: z.string(), value: num, targetRef: text, createdAt: instant,
-  actedBy: text, actedAt: instant.nullish(), note: text,
+  actedAt: instant.nullish(), note: text,
 })
 const alertRule = z.object({ key: z.string(), metric: z.string(), threshold: num, windowMinutes: z.number(), enabled: z.boolean(), updatedAt: instant })
 
@@ -59,7 +59,7 @@ const prompt = z.object({
     evaluation: z.object({ runId: z.string(), passed: z.boolean().nullish(), createdAt: instant }).nullish(),
   })).default([]),
 })
-const model = z.object({ id: z.string(), modelName: z.string(), matchPattern: z.string(), inputPrice: num, outputPrice: num, unit: text })
+const model = z.object({ id: z.string(), modelName: z.string(), matchPattern: z.string(), inputPrice: num, outputPrice: num })
 const evaluation = z.object({
   runId: z.string(), dataset: z.string(), prompt: z.string(), version: z.number(), status: z.string(), passed: z.boolean().nullish(), createdAt: instant,
   metrics: z.array(z.object({ name: z.string(), score: z.number(), baseline: num, delta: num })).default([]),
@@ -77,7 +77,7 @@ const schedule = z.object({
 })
 
 /** 읽기·변경 실패 안내. 502는 Langfuse·AI·Core·Content 같은 연결 서비스 실패라 반영 여부를 단정하지 않습니다. */
-const MESSAGES_UPSTREAM = { ...MESSAGES, 502: '연결된 서비스(Langfuse·AI·Core·Content)에서 처리하지 못했어요. 잠시 후 다시 시도해 주세요.' }
+const MESSAGES_UPSTREAM = { ...MESSAGES, 422: MESSAGES[400], 502: '연결된 서비스(Langfuse·AI·Core·Content)에서 처리하지 못했어요. 잠시 후 다시 시도해 주세요.' }
 const id = encodeURIComponent
 /** 비어 있는 조건은 서버에 보내지 않습니다. */
 function withQuery(path: string, params: Record<string, string | number>) {
@@ -89,8 +89,8 @@ class LlmOpsApi {
   private readonly fetcher?: typeof fetch
   constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
   protected get<T>(path: string, schema: z.ZodType<T>) { return read(this.fetcher, path, schema, [], MESSAGES_UPSTREAM) }
-  /** 변경 응답은 쓰지 않고 화면이 목록을 다시 조회합니다. 400·404·409는 대상 상태 때문이므로 서버 문구를 그대로 보입니다. */
-  protected async change(path: string, method: string, body?: unknown) { await send(this.fetcher, path, method, body, MESSAGES_UPSTREAM, [400, 404, 409]) }
+  /** 변경 응답은 쓰지 않고 화면이 목록을 다시 조회합니다. 400·404·409·422는 입력·대상 상태 때문이므로 서버 문구를 그대로 보입니다. */
+  protected async change(path: string, method: string, body?: unknown) { await send(this.fetcher, path, method, body, MESSAGES_UPSTREAM, [400, 404, 409, 422]) }
 }
 
 export class HttpOperationsDashboardRepository extends LlmOpsApi implements OperationsDashboardRepository {
