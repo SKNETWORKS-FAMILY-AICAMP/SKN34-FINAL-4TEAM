@@ -3,7 +3,7 @@ import { useId, useState } from 'react'
 import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
 import { featureLabel, PLAN_LABEL, replyOutcome, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck } from '../../../domain/entities/writingChat'
 import type { ChatMessage } from '../../../domain/entities/chat'
-import { ComposeIcon, MoreIcon, SparkIcon } from '../icons'
+import { ComposeIcon, MoreIcon, PencilIcon, SparkIcon, ThumbDownIcon, ThumbUpIcon, TrashIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
 import { ChatPanel } from './ChatPanel'
 import { useWritingChatViewModel, type ChatViewModel, type LiveTurn } from './useWritingChatViewModel'
@@ -193,14 +193,23 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage }: { vm:
       : { id: `a${i}`, role: 'assistant' as const, text: replyText(turn.reply) }] : []),
   ])
   // 종합 답변이 있는 말풍선은 단계별 결과를 접어 둔다(답변과 같은 내용이 두 번 보이지 않게, #492). 승인 카드·진행 표시는 그대로다.
+  // 좋아요·싫어요는 그 줄의 오른쪽(말풍선 오른쪽 아래)에 둔다.
   const stepDetails = (m: ChatMessage) => {
+    if (m.role !== 'assistant') return null
     const reply = m.format === 'markdown' ? shown[Number(m.id.slice(1))]?.reply : undefined
     const text = reply ? replyText(reply) : ''
-    const outcome = reply ? replyOutcome(reply) : []
-    return text ? <>
+    const outcome = text && reply ? replyOutcome(reply) : []
+    return <>
       {outcome.map((line, i) => <p key={i} className="chat-note">{line}</p>)}
-      <details className="chat-step-details"><summary>단계별 결과 보기</summary><p>{text}</p></details>
-    </> : null
+      <div className="chat-reply-foot">
+        {text && <details className="chat-step-details"><summary>단계별 결과 보기</summary><p>{text}</p></details>}
+        {/* shortcut: 좋아요·싫어요는 누른 값을 저장하지 않는다. 저장 위치·용도가 정해지면(#560) 연결한다. */}
+        <div className="chat-msg-actions">
+          <button type="button" aria-label="이 답변 좋아요" title="이 답변 좋아요"><ThumbUpIcon size={16} /></button>
+          <button type="button" aria-label="이 답변 싫어요" title="이 답변 싫어요"><ThumbDownIcon size={16} /></button>
+        </div>
+      </div>
+    </>
   }
   if (live) messages.push({ id: 'live', role: 'user', text: live.request })
   const actions = (m: ChatMessage) => {
@@ -220,8 +229,9 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage }: { vm:
     }
     if (vm.pending || live) return null
     return <div className="chat-msg-actions">
-      <button type="button" onClick={() => setEditing({ index, text: m.text })} disabled={!!vm.lockedReason}>수정</button>
-      <button type="button" onClick={() => void vm.deleteFrom(index)}>여기부터 지우기</button>
+      <button type="button" onClick={() => setEditing({ index, text: m.text })} disabled={!!vm.lockedReason}
+        aria-label="이 메시지 고치기" title="이 메시지 고치기"><PencilIcon size={16} /></button>
+      <button type="button" onClick={() => void vm.deleteFrom(index)} aria-label="이 메시지부터 지우기" title="이 메시지부터 지우기"><TrashIcon size={16} /></button>
     </div>
   }
   const current = vm.sessions?.find((s) => s.threadId === vm.threadId)

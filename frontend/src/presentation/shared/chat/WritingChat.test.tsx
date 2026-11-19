@@ -22,7 +22,8 @@ it('discards a message edit when switching to another conversation', async () =>
   }))
   render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
   expect(await screen.findByText('첫 질문')).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: '수정' }))
+  expect(screen.getByRole('button', { name: '이 메시지부터 지우기' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '이 메시지 고치기' }))
   expect(screen.getByLabelText('고칠 메시지')).toBeTruthy()
   fireEvent.change(screen.getByLabelText('대화 고르기'), { target: { value: 'b' } })
   expect(await screen.findByText('둘째 질문')).toBeTruthy()
@@ -164,6 +165,10 @@ it('종합 답변이 있는 말풍선도 승인 뒤 반영 결과와 실패 단�
   const applied = screen.getAllByText('→ 3화 초안에 반영했어요.').find((e) => !details.contains(e))
   const failed = screen.getAllByText('[고증 조사] 실패: 검색 실패').find((e) => !details.contains(e))
   expect(applied && failed).toBeTruthy()
+  // 좋아요·싫어요는 단계별 결과 줄의 오른쪽(같은 줄, 뒤쪽)에 있다.
+  const foot = details.parentElement as HTMLElement
+  expect(foot.lastElementChild?.contains(within(foot).getByRole('button', { name: '이 답변 좋아요' }))).toBe(true)
+  expect(within(foot).getByRole('button', { name: '이 답변 싫어요' })).toBeTruthy()
 })
 
 it('함께 시작한 단계는 다른 단계의 결과가 먼저 와도 끝날 때까지 진행 중으로 보인다(#474 병렬 호출)', async () => {
@@ -359,6 +364,23 @@ it('동의 체크 없이 바로 보내고 요청에 동의 값을 싣지 않는�
   fireEvent.click(screen.getByRole('button', { name: '전송' }))
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
   expect(send.mock.calls[0][2]).not.toHaveProperty('consent')
+})
+
+it('AI 답변 아래에 좋아요·싫어요 아이콘 버튼만 두고, 눌러도 아무 요청을 보내지 않는다(저장은 #560)', async () => {
+  sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [{
+    request: '주인공이 누구야?', reply: { status: 'completed', message: '주인공은 홍길동입니다.', steps: [] },
+  }] })
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByText('주인공은 홍길동입니다.')
+  const like = screen.getByRole('button', { name: '이 답변 좋아요' })
+  const dislike = screen.getByRole('button', { name: '이 답변 싫어요' })
+  expect(like.textContent).toBe('')
+  fireEvent.click(like)
+  fireEvent.click(dislike)
+  expect(send).not.toHaveBeenCalled()
+  expect(history).toHaveBeenCalledTimes(1)
+  expect(screen.getAllByRole('button', { name: '이 답변 좋아요' })).toHaveLength(1)
 })
 
 // ── World 단계(#546): enrich 제안은 설정집 초안에 반영할지 묻고, 반영되면 세계관 화면(onWorldApplied)이 초안을 다시 읽는다 ──
