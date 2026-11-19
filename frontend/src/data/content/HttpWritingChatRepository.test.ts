@@ -307,8 +307,8 @@ describe('원고 검수 단계 결과(#59)', () => {
   }
 
   it('지적의 위치·이유·상태와 위치를 정하지 못한 지적(null)을 그대로 읽는다', async () => {
-    const step = await run({ feature: 'review', status: 'completed', result: review({ findings: [finding(), finding({ start: null, end: null, status: 'suspected' })] }) })
-    expect(step.review).toEqual({ check: 'mechanical', episode: 3, revision: 4, gaps: [],
+    const step = await run({ feature: 'manuscript_review', status: 'completed', result: review({ findings: [finding(), finding({ start: null, end: null, status: 'suspected' })] }) })
+    expect(step.manuscriptReview).toEqual({ check: 'mechanical', episode: 3, revision: 4, gaps: [],
       findings: [finding(), finding({ start: null, end: null, status: 'suspected' })] })
     expect(step.result).toBeUndefined()
   })
@@ -318,9 +318,21 @@ describe('원고 검수 단계 결과(#59)', () => {
     expect(step).toMatchObject({ feature: 'writing_editing', when: 'if_issues_found', status: 'skipped', error: '고칠 문제가 없어요.' })
   })
 
+  it.each(['manuscript_review', 'review'])('이력의 원고 검수 단계 %s를 같은 결과로 읽는다', async (feature) => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({
+      threadId: 't1', title: '원고 검수', turns: [{ request: '검수해 줘', reply: {
+        status: 'completed', steps: [{ feature, status: 'completed', result: review() }], missingInputs: [],
+      } }],
+    }))
+    const history = await new HttpWritingChatRepository(fetcher).history('w1', 't1')
+    expect(history.turns[0].reply?.steps[0]).toMatchObject({
+      feature: 'manuscript_review', manuscriptReview: { check: 'mechanical', findings: [finding()] },
+    })
+  })
+
   it('두 검수를 함께 돌린 결과(both)도 읽는다(#369)', async () => {
-    const step = await run({ feature: 'review', status: 'completed', result: review({ check: 'both' }) })
-    expect(step.review?.check).toBe('both')
+    const step = await run({ feature: 'manuscript_review', status: 'completed', result: review({ check: 'both' }) })
+    expect(step.manuscriptReview?.check).toBe('both')
   })
 
   it.each([
@@ -329,9 +341,9 @@ describe('원고 검수 단계 결과(#59)', () => {
     ['검사 종류가 계약에 없다', review({ check: 'style' })],
     ['결과가 객체가 아니다', '문제 없음'],
   ])('형식이 어긋난 결과(%s)는 가짜 지적 없이 단계 실패로 알린다', async (_name, result) => {
-    const step = await run({ feature: 'review', status: 'completed', result })
+    const step = await run({ feature: 'manuscript_review', status: 'completed', result })
     expect(step).toMatchObject({ status: 'failed', error: '원고 검수 결과 형식을 확인할 수 없어요.' })
-    expect(step.review).toBeUndefined()
+    expect(step.manuscriptReview).toBeUndefined()
   })
 
   const assessment = { criterion: 'violence', level: 3, quotes: ['칼로 손가락을 잘랐다.'], rationale: '잔혹한 신체 훼손' }

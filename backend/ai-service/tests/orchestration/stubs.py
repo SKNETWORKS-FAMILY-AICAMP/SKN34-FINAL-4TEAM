@@ -13,7 +13,7 @@ from app.orchestration import agent as main_agent, tools as service
 from app.rating.models import EpisodeRating, RatingResponse
 from app.research.models import Finding, ResearchResponse
 from app.retrieval.models import RetrievalResult
-from app.review.models import Finding as ReviewFinding, ReviewResponse
+from app.manuscript_review.models import Finding as ReviewFinding, ReviewResponse
 from app.simulation import agent, director
 from app.simulation.models import Action, Check, CheckItem, Decision, Narration, SimulationPlan, SimulationResult, Turn, Verdict
 from app.world_review.models import Finding as WorldFinding, Fix, WorldReviewRequest, WorldReviewResponse
@@ -191,7 +191,7 @@ def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None):
     monkeypatch.setattr(service.research, 'research', recorded('web_research', ResearchResponse(
         findings=[Finding(text='약 15일', verdict='unverified', sourceUrls=[])], gaps=[],
         searchedAt=datetime(2026, 11, 12, tzinfo=timezone.utc))))
-    monkeypatch.setattr(service.review, 'review', recorded('review', lambda data: ReviewResponse(
+    monkeypatch.setattr(service.manuscript_review, 'review', recorded('manuscript_review', lambda data: ReviewResponse(
         workId=data.workId, episode=data.episode, revision=4, check=data.check, gaps=[], model='m', providerResponseId='r', usage=None,
         findings=[ReviewFinding(category='spelling', quote='웃엇다', reason='맞춤법', status='confirmed', evidenceRefs=[],
                                 suggestion='웃었다', start=3, end=6)])))

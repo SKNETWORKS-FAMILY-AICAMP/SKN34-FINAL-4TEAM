@@ -1,8 +1,8 @@
 import pytest
 
-from app.review import service
-from app.review.errors import ReviewFailure
-from app.review.models import ReviewRequest, ReviewResult
+from app.manuscript_review import service
+from app.manuscript_review.errors import ReviewFailure
+from app.manuscript_review.models import ReviewRequest, ReviewResult
 
 from .stubs import NO_INHERITED, WORK, WORLD, fake_agent, fake_content, finding
 
