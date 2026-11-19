@@ -75,6 +75,30 @@
 실행 기록 모양(출처 독립): `{id, kind, source, status(queued|running|succeeded|failed|cancelled), trigger(schedule|manual|user), progress{done,total}, startedAt, finishedAt, error, targetId}`.
 `source`는 `operations-scheduler`·`content-preprocessing`이고 Airflow를 붙이면 `airflow`가 더해진다.
 
+### 응답 모양 (JSON, 시각은 ISO-8601 UTC, 비용은 USD 숫자)
+
+```text
+Dashboard { members{total,joinedLast7Days,withdrawalPending}?, ai{today:AiSummary, last7Days:AiSummary}?,
+            jobs{running,failedLast24h}?, pending{inquiries,reports,authorReviews}?, openAlerts?, unavailable:[string] }
+AiSummary { requests, failed, timeouts, failureRate, costUser, costPlatform }
+TraceItem { id, timestamp, feature, status, latencyMs, inputTokens, outputTokens, cost, userId?, workId?, traceUrl }
+TraceDetail { ...TraceItem, input?, output?, observations:[{id,name,type,startTime,endTime,latencyMs,model?,inputTokens?,outputTokens?,level,statusMessage?,promptName?,promptVersion?}] }
+Page<T> { items:[T], page, size, total }
+MetricRow { key(날짜·기능·모델), requests, failureRate, timeoutRate, p50LatencyMs, p95LatencyMs, inputTokens, outputTokens, costUser, costPlatform }
+Metrics { rows:[MetricRow], adoptionRate?, approvalRate?, filterRestoreRate? }   // 비율은 0~1, 데이터 없으면 null
+Prompt { name, versions:[{version, labels:[string], createdAt, evaluation?:{runId, passed, createdAt}}] }
+Model { id, modelName, matchPattern, inputPrice, outputPrice, unit }        // 가격은 토큰당 USD
+Evaluation { runId, dataset, prompt, version, status(running|completed|failed), passed?, createdAt,
+             metrics:[{name, score, baseline?, delta?}] }
+LeakCheck { id, traceId, workId, checkedAt, matched:[string], suspected, reason? }
+Alert { id, ruleKey, status, message, value?, targetRef?, createdAt, actedBy?, actedAt?, note? }
+AlertRule { key, metric, threshold?, windowMinutes, enabled, updatedAt }
+JobRun { id, kind, source, status, trigger, progress?{done,total}, startedAt?, finishedAt?, error?, targetId? }
+Schedule { id, kind, cron, enabled, params, createdAt, updatedAt, lastRun?:JobRun }
+```
+
+목록 경로는 끝 슬래시 없이 부른다(Spring 6 기본). 오류는 기존 운영 공통 `{code,message}`이며 Langfuse·AI·Core·Content 실패는 502 `UPSTREAM_FAILED`(대시보드만 칸별 `unavailable`).
+
 관리자 변경 조치(프롬프트 등록·승격, 모델 등록, 평가 실행, 경고 처리·기준 변경, 표본 비율 변경, 일정 CRUD, 재실행)는 성공 뒤
 `AdminActivityService.record`로 기록하고 [활동 기록 계약](operations-admin-activity-contract.md) action 표와 프런트 라벨에 더한다.
 
@@ -85,11 +109,13 @@
 - `operation_alert(id, rule_key, status open|acknowledged|resolved, message, value, target_ref, created_at, acted_by, acted_at, note)`
   같은 규칙의 열린 경고는 하나(부분 UNIQUE). 90일 지난 해결 경고는 정리 작업이 지운다(F-ALT-02 보관 90일).
 - `llmops_setting(key PK, value)` — `leak_sample_rate=0.1`.
-- `scheduled_job(id, kind, cron, enabled, params jsonb, created_at, updated_at)`, `job_run(id, kind, source, status, trigger, done, total, started_at, finished_at, error, target_id, external_ref)`.
+- `leak_check_result(id, trace_id, work_id, matched jsonb, suspected bool, reason, checked_at)`.
+- 위 넷은 LLMOps 조각의 V8, 아래 작업 테이블은 작업 감시 조각의 V9다(V8을 먼저 병합한다).
+- (V9) `scheduled_job(id, kind, cron, enabled, params jsonb, created_at, updated_at)`, `job_run(id, kind, source, status, trigger, done, total, started_at, finished_at, error, target_id, external_ref)`.
 
 ## 정기 작업 (운영 스케줄러)
 
-운영 서비스의 `@Scheduled` 1분 tick이 켜진 일정 중 도래한 것을 실행하고 `job_run`에 남긴다(같은 일정의 실행 중 기록이 있으면 건너뜀).
+운영 서비스의 `@Scheduled` 1분 tick이 켜진 일정 중 도래한 것을 실행하고 `job_run`에 남긴다(같은 일정의 실행 중 기록이 있으면 건너뜀). 작업 종류마다 `ScheduledJobHandler`(`kind`, `run(params)`) 빈 하나가 실행을 맡고, 일정 등록은 등록된 handler의 `kind`만 받는다.
 
 | kind | 실행 위치 | 내용 |
 |---|---|---|
