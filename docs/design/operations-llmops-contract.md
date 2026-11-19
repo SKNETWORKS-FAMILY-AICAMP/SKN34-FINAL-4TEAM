@@ -28,8 +28,8 @@
 | AI 요청 수·실패·시간 초과·지연·토큰·비용 | Langfuse trace·observation | 운영 → Langfuse `GET /api/public/metrics`, `GET /api/public/traces` |
 | 사용자 부담 비용 | Core 크레딧 예약 확정 + trace metadata `credit_reservation_id` | 확정된 예약이 붙은 trace의 비용 합. 아직 AI 요청이 크레딧을 차감하지 않으므로 지금은 전부 플랫폼 부담으로 나온다 |
 | 답변 대기 문의·접수 신고 | 운영 DB | 운영 Repository |
-| 작가 검토 대기(미처리 제보·수정 제안) | Content | Content `GET /internal/v1/operations/stats` |
-| 제안 채택률·수정안 승인률 | Content 제안 결정·수정 제안 승인 | 같은 Content 통계 API(`from`·`to`) |
+| 작가 검토 대기(확인 전 제보 `unchecked`·대기 수정 제안 `pending`) | Content | Content `GET /internal/v1/operations/stats` |
+| 제안 채택률·수정안 승인률 | Content 제안(기간 내 생성 제안 중 채택된 비율)·수정 제안 승인(결정 중 승인) | 같은 Content 통계 API(`from`·`to`) |
 | 필터 복원률 | 콘텐츠 필터 기능(미구현) | 필터가 생기기 전까지 `null`, 화면은 '데이터 없음' |
 | 전처리 작업 진행 | Content 전처리 작업 테이블(DEC-50 계약) | Content `GET /internal/v1/preprocessing-jobs` |
 | 정기 작업 일정·실행 기록 | 운영 DB | 운영 Repository |
@@ -43,9 +43,11 @@
   metadata `request_id`·`work_id`·`fork`(Fork 작품 요청이면 true)·`credit_reservation_id`(있을 때)를 단다.
 - 모델 호출 observation은 `generation`으로 남기고 `model`·`usage`(입력·출력 토큰)를 넣는다. 비용은 Langfuse 모델 단가 정의로 계산한다.
 - 프롬프트는 Langfuse Prompt Management에서 `production` 라벨 버전을 읽고 generation에 그 prompt를 연결한다(사용 버전 조회의 근거).
-  코드의 프롬프트는 최초 등록용 시드다: 서버 시작 시 같은 이름의 프롬프트가 Langfuse에 없을 때만 버전 1로 등록한다.
+  코드의 프롬프트는 최초 등록용 시드다: 처음 읽을 때 Langfuse에 없으면(404) 버전 1(`production`)로 등록한다. 이름은 `<기능>.<용도>`(예 `story_context.answer`, `orchestration.main`).
   Langfuse 키가 없으면(로컬·CI) 추적과 같이 꺼지고 코드 프롬프트를 그대로 쓴다. 키가 있는데 읽기에 실패하면 SDK 캐시(마지막 성공 값)를 쓰고, 캐시도 없으면 503으로 실패한다.
-- 시간 초과는 `status:timeout`, 그 밖의 실패는 `status:failed`와 observation `level=ERROR`다.
+- 시간 초과는 `status:timeout`, 그 밖의 실패는 `status:failed`와 observation `level=ERROR`다. 대기(`waiting`) 턴·취소·연결 끊김은 상태 태그를 달지 않는다.
+- 회원 UUID는 Content가 넘기는 작가 Bearer(`X-User-Authorization`)의 `sub`에서 읽고(추적 전용, 인가에 쓰지 않음), `request_id`는 AI가 HTTP 요청마다 발급한다. `fork`는 Content가 오케스트레이션 `target.fork`로 알린다. 요청 루트 trace에는 본문을 남기지 않고 generation observation이 입출력을 갖는다.
+- 회귀 평가 결과는 Run 수준 점수다: 지표 평균(NUMERIC, metadata `baseline`·`delta`·`tolerance`)과 `passed`(BOOLEAN). `passed`가 없으면 실행 중이고, 시작 후 2시간이 지나도 없으면 운영 화면은 실패로 본다.
 
 ## 운영 공개 API (회원 Bearer, Core `operator=true`)
 
@@ -53,8 +55,8 @@
 
 | 메서드·경로 | 권한 | 내용 |
 |---|---|---|
-| `GET /dashboard` | 운영자 누구나 | 회원 수, 오늘·7일 AI 요청·실패율·비용(사용자/플랫폼), 진행 중 작업 수, 답변 대기 문의·접수 신고·작가 검토 대기, 미확인 경고 수. 출처 하나가 실패하면 그 칸만 `null` + `unavailable:[출처]`(나머지는 보인다, 실패를 0으로 바꾸지 않는다) |
-| `GET /llmops/traces?from&to&feature&status&userId&page` | `llm` | trace 목록(시각·기능·상태·지연·토큰·비용) |
+| `GET /dashboard` | 운영자 누구나 | 회원 수, 오늘·7일 AI 요청·실패율·비용(사용자/플랫폼), 진행 중 작업 수, 답변 대기 문의·접수 신고·작가 검토 대기, 미확인 경고 수. 출처 하나가 실패하면 그 칸만 `null` + `unavailable:[출처]`(나머지는 보인다, 실패를 0으로 바꾸지 않는다). 요청 0건이면 `failureRate`는 `null` |
+| `GET /llmops/traces?from&to&feature&status&userId&requestId&page` | `llm` | trace 목록(시각·기능·상태·지연·토큰·비용), `requestId`는 metadata `request_id` 일치 |
 | `GET /llmops/traces/{id}` | `llm` | 단계별 observation(이름·시각·지연·모델·토큰·level), 입력·출력 본문 |
 | `GET /llmops/metrics?from&to&groupBy=day|feature|model` | `llm` | 요청·실패율·시간 초과율·p50/p95 지연·토큰·비용(사용자/플랫폼)·채택률·승인률·필터 복원률 |
 | `GET /llmops/prompts`, `GET /llmops/prompts/{name}` | `llm` | 프롬프트별 버전·라벨·최신 평가 결과 |
