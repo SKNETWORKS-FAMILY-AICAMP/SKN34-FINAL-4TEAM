@@ -28,7 +28,7 @@ export function PendingActionCard({ action, cardOf, unsaved = false, pending, on
     </li>)}</ul>}
     <div className="chat-hitl-preview chat-hitl-args" tabIndex={0} aria-label="실행할 도구와 인자"><code>{action.tool}</code>{'\n'}{JSON.stringify(action.args, null, 2)}</div>
     <p className="chat-note">승인하기 전에는 아무것도 바뀌지 않아요. 승인하면 이 내용 그대로 저장하고, 거절하면 실행하지 않아요.</p>
-    {unsaved && <p className="chat-note" role="alert">{SAVE_FIRST}. 작성 중인 변경이 있어 지금은 승인할 수 없어요.</p>}
+    {unsaved && <p className="chat-note" role="alert">{SAVE_FIRST}. 작성 중인 변경이 있어 지금은 승인할 수 없어요. 저장하면 서버 초안이 바뀌어 이 제안은 오래된 내용이 되니, 저장한 뒤 같은 요청을 다시 보내 주세요.</p>}
     <div className="chat-hitl-actions">
       <button type="button" className="btn sm pri" disabled={pending || unsaved} onClick={() => onResume(true)}>실행</button>
       <button type="button" className="btn sm" disabled={pending} onClick={() => onResume(false)}>실행하지 않기</button>
