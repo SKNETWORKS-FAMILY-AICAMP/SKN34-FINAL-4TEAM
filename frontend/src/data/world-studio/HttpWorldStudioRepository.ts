@@ -68,10 +68,8 @@ const preprocessing = z.object({
   condition:z.string(),timeText:z.string(),polarity:z.enum(['asserted','denied']),
 }).passthrough()
 const partialStudio = z.object({ item: z.object({id:uuid,kind:z.literal('note'),subjectId:uuid.nullable(),relatedIds:z.array(uuid)}).strict() }).strict()
-const metadata = z.union([
-  z.object({studio,preprocessing:preprocessing.optional()}).passthrough(),
-  z.object({studio:partialStudio,preprocessing}).passthrough(),
-])
+// 카드·관계 semanticMetadata는 자유 객체로 받고 읽을 때 키마다 검사한다(#541): 모르는 키와 모양이 어긋난 값은 버리고, 정본 필드(제목·본문·끝점 등)가 항상 이긴다.
+const looseMetadata = z.record(z.string(), z.unknown())
 // 카드 semanticMetadata의 최상위 키(DEC-46·53): 공개 시작 회차와 가져온 출처. 모양이 어긋난 값은 읽지 않는다. 회차는 서버(`shownCardEpisode`)와 같이 1 이상 Int 범위의 정수만 읽는다.
 const revealFromEpisode = z.number().int().min(1).max(2147483647)
 const importedFrom = z.object({ worldId: z.string(), worldName: z.string(), authorNickname: z.string(), revisionNo: z.number().int(), cardId: z.string() })
@@ -86,17 +84,22 @@ function metadataOf(row:StudioSetting) {
   const docs=storedCharacterDocs(row)
   return {...serverMetadata,studio:{...view,item},...(reveal!==undefined&&{revealFromEpisode:reveal}),...(source&&{importedFrom:source}),...(docs&&{characterDocs:docs}),...(image&&{imageId:image})}
 }
-// A 6-B addition is a wire card/relation, not a complete legacy StudioSetting.
-function setting(m:z.infer<typeof metadata>, fields:Partial<StudioSetting['item']>, labels:Pick<StudioSetting,'userCategory'|'tags'|'aliases'>):StudioSetting {
-  const full=studio.safeParse(m.studio)
-  if(full.success)return Object.keys(m).some(key=>key!=='studio') ? {...full.data,serverMetadata:m} : full.data
-  const p=m.preprocessing
-  if(!p)throw invalid()
-  const base=newSetting()
-  return {...base,...labels,serverMetadata:m,item:{...base.item,...m.studio.item,
-    kind:p.semanticType==='relation'?'relation':p.semanticType==='rule'?'rule':p.semanticType==='event'?'event':p.semanticType==='conjecture'?'claim':'fact',
-    semanticType:p.semanticType,condition:p.condition,timeText:p.timeText,polarity:p.polarity,evidence:p.evidence,
-    origin:p.provenance==='ai_extraction'?'extraction':'author_addition',authorText:null,...fields}}
+// 서버가 만들거나 그대로 돌려줘야 하는 키(`preprocessing`·관계 `evidence`)만 객체일 때 남긴다. 그 밖의 키는 읽을 때 버려 저장 요청에 실리지 않는다(고쳐 저장한 카드만 정리된다).
+function serverMetadataOf(m: Record<string, unknown>, keys: string[]) {
+  const kept = Object.fromEntries(keys.filter((key) => looseMetadata.safeParse(m[key]).success).map((key) => [key, m[key]]))
+  return Object.keys(kept).length ? { serverMetadata: kept } : {}
+}
+// 화면 보조값(시간 표기·순서·관계 종류처럼 정본에 없는 값)의 출처다: 모양이 맞고 이 카드·관계의 id를 가리키는 `studio`, 또는 분석 반영 항목(A 6-B)의 부분 `studio`와 `preprocessing`. 둘 다 아니면 없다.
+function viewOf(m: Record<string, unknown>, id: string): StudioSetting | undefined {
+  const full = studio.safeParse(m.studio)
+  if (full.success) return full.data.item.id === id ? full.data : undefined
+  const partial = partialStudio.safeParse(m.studio), p = preprocessing.safeParse(m.preprocessing)
+  if (!partial.success || !p.success || partial.data.item.id !== id) return undefined
+  const base = newSetting()
+  return {...base,item:{...base.item,...partial.data.item,
+    kind:p.data.semanticType==='relation'?'relation':p.data.semanticType==='rule'?'rule':p.data.semanticType==='event'?'event':p.data.semanticType==='conjecture'?'claim':'fact',
+    semanticType:p.data.semanticType,condition:p.data.condition,timeText:p.data.timeText,polarity:p.data.polarity,evidence:p.data.evidence,
+    origin:p.data.provenance==='ai_extraction'?'extraction':'author_addition',authorText:null}}
 }
 const card = z.object({
   id: uuid,
@@ -116,15 +119,13 @@ const card = z.object({
   classification: z.string(),
   aliases: z.array(z.string()),
   tags: z.array(z.string()),
-  semanticMetadata: z.union([metadata, z.strictObject({})]),
+  semanticMetadata: looseMetadata,
   visibility,
   lifecycle: z.enum(['active', 'removed']),
 })
-// 빈 메타데이터(기존 Seeder 카드)와 studio가 있는 메타데이터를 가른다. `'studio' in`만으로는 빈 객체 쪽의 index signature가 남는다.
-const hasStudio=(m:z.infer<typeof card>['semanticMetadata']):m is z.infer<typeof metadata>=>'studio' in m
 const confirmationRequest=z.object({expectedDraftRevision:revision,key:uuid})
 const revisionSummary=z.object({worldId:uuid,revisionId:uuid,revisionNo:revision.positive(),name:z.string(),createdAt:z.string()})
-const revisionSnapshot=z.object({worldId:uuid,revisionId:uuid,revisionNo:revision.positive(),name:z.string(),description:z.string(),parentRevisionId:uuid.nullable(),restoredFromRevisionId:uuid.nullable(),relationshipStatus:z.literal('not_recorded'),relationships:z.null(),cards:z.array(z.object({versionId:uuid,versionNo:revision.positive(),restoredFromVersionId:uuid.nullable(),card:card.extend({semanticMetadata:z.record(z.string(),z.unknown()),visibility:z.enum(['private','public'])})}))})
+const revisionSnapshot=z.object({worldId:uuid,revisionId:uuid,revisionNo:revision.positive(),name:z.string(),description:z.string(),parentRevisionId:uuid.nullable(),restoredFromRevisionId:uuid.nullable(),relationshipStatus:z.literal('not_recorded'),relationships:z.null(),cards:z.array(z.object({versionId:uuid,versionNo:revision.positive(),restoredFromVersionId:uuid.nullable(),card}))})
 const relation = z.object({
   id: uuid,
   sourceCardId: uuid.nullable(),
@@ -134,7 +135,7 @@ const relation = z.object({
   label: z.string(),
   direction: z.enum(['directed', 'symmetric']).nullable(),
   polarity: z.enum(['asserted', 'denied']).nullable(),
-  semanticMetadata: metadata,
+  semanticMetadata: looseMetadata,
   lifecycle: z.literal('active'),
 })
 const draft = z.object({
@@ -195,58 +196,58 @@ function relationship(row: StudioSetting) {
     lifecycle: 'active',
   }
 }
+// 정본 카드 유형의 종류 필드다. studio가 없거나 정본 유형과 어긋나면 이것으로 다시 만든다.
+const kindFields = (type: z.infer<typeof card>['cardType']) =>
+  type === 'rule' || type === 'event' ? { kind: type, entityType: null } : { kind: 'entity' as const, entityType: type }
+// 기존 Seeder·MCP처럼 정본 필드만 저장한 카드(빈 메타데이터)의 행이다.
+function canonicalCard(c: z.infer<typeof card>): StudioSetting {
+  return {
+    userCategory: c.classification, tags: c.tags, aliases: c.aliases,
+    item: {
+      id: c.id, title: c.title, text: c.body, category: c.areaCode, ...kindFields(c.cardType),
+      topics: [], subjectId: null, targetId: null, predicate: null, polarity: 'asserted', relatedIds: [],
+      condition: '', timeText: '', afterId: null, orderEvidence: [], evidence: [], origin: 'author_input', authorText: c.body, decision: 'approved',
+    },
+  }
+}
+// 카드 한 장의 행: 정본 필드(제목·본문·영역·분류·태그·별칭)가 항상 이기고 `studio`는 시간·순서 같은 보조값만 보탠다(#541).
+// 종류(kind·entityType)가 정본 카드 유형과 어긋나면 그 값만 정본에서 다시 만든다(유형을 정하는 의미 유형 semanticType도 함께 버린다).
+function cardRow(c: z.infer<typeof card>): StudioSetting {
+  const m = c.semanticMetadata, view = viewOf(m, c.id)
+  // 별칭이 없는 카드는 studio에도 없으면 키를 만들지 않는다(빈 목록과 같은 뜻이고, 읽은 행이 만든 행과 같게 남는다).
+  let row = view
+    ? { ...view, userCategory: c.classification, tags: c.tags, ...(view.aliases !== undefined || c.aliases.length > 0 ? { aliases: c.aliases } : {}), item: { ...view.item, id: c.id, title: c.title, text: c.body, category: c.areaCode } }
+    : canonicalCard(c)
+  if (row.item.kind === 'relation' || cardType(row) !== c.cardType) {
+    const { semanticType: _stale, ...item } = row.item
+    row = { ...row, item: { ...item, ...kindFields(c.cardType) } }
+  }
+  // 공개 회차·가져온 출처·인물 문서·대표 이미지는 서버 메타데이터에 남기지 않고 행 필드로 옮긴다(지운 값이 다음 저장에서 되살아나지 않게). 어긋난 값은 버리고 읽기는 계속한다.
+  // 키가 있는데(JSON null 포함) 회차 값이 잘못됐으면 서버는 작가 전용으로 닫으므로(옛 `visibility`로 열지 않는다) 화면도 같게 읽고, 저장하면 비공개로 맞춘다. 키가 없을 때만 옛 공개 카드다.
+  const stored = m.revealFromEpisode, episode = revealFromEpisode.safeParse(stored), closed = stored !== undefined && !episode.success
+  const from = importedFrom.safeParse(m.importedFrom), docs = characterDocs.safeParse(m.characterDocs), picture = uuid.safeParse(m.imageId)
+  return {...row,...serverMetadataOf(m,['preprocessing']),...(c.visibility==='public'&&!closed&&{visibility:c.visibility}),...(episode.success&&{revealFromEpisode:episode.data}),...(from.success&&{importedFrom:from.data}),
+    ...(docs.success&&c.cardType==='character'&&{characterDocs:docs.data}),...(picture.success&&{imageId:picture.data})}
+}
+// 관계 한 줄의 행: 양 끝·극성·관계명·설명은 정본이 이기고(극성이 없으면 긍정), 관계 종류(predicate)는 서버의 유형·방향과 맞는 studio 값만 쓰고 아니면 정본에서 다시 만든다.
+function relationRow(r: z.infer<typeof relation>): StudioSetting {
+  const m = r.semanticMetadata, base = viewOf(m, r.id) ?? { ...newSetting(), userCategory: '', aliases: [] }
+  const row = { ...base, item: { ...base.item, id: r.id, kind: 'relation' as const, title: r.label, text: r.body, subjectId: r.sourceCardId, targetId: r.targetCardId, polarity: r.polarity ?? 'asserted' } }
+  const known = relationDefinitions[row.item.predicate ?? ''], stored = known && known.group !== 'other' ? relationship(row) : undefined
+  const predicate = stored && stored.category === r.category && stored.direction === r.direction ? row.item.predicate
+    : r.category === 'identity' ? 'identity_of' : r.category === 'emotional' ? (r.direction === 'symmetric' ? 'preserved_emotion_symmetric' : 'custom_emotion') : r.direction === 'symmetric' ? 'custom_relation' : 'custom_relation_directed'
+  return { ...row, ...serverMetadataOf(m, ['preprocessing', 'evidence']), item: { ...row.item, predicate } }
+}
 function world(value: z.infer<typeof draft>, id: string): StudioWorld {
   if (value.worldId !== id) throw invalid()
   // 관계 끝점은 삭제한 카드도 이 세계관의 카드다: 지난 회차 시점 관계는 그 뒤에 삭제한 설정을 끝점으로 가질 수 있다(DEC-51). 그 이름은 화면이 쓰도록 남긴다.
   const active = value.cards.filter((c) => c.lifecycle === 'active'),
     ids = new Set(value.cards.map((c) => c.id))
-  const settings: StudioSetting[] = active.map((c) => {
-    // 기존 Seeder는 정본 필드만 저장했다(빈 메타데이터). 그 카드만 정본 필드로 복원하며 손상된 studio는 검증에서 거절한다.
-    const m = c.semanticMetadata
-    let row: StudioSetting, source: unknown, written: unknown, image: unknown
-    if (hasStudio(m)) {
-      // 공개 회차·가져온 출처·인물 문서·대표 이미지는 서버 메타데이터에 남기지 않고 행 필드로 옮긴다(지운 값이 다음 저장에서 되살아나지 않게). 어긋난 값은 버리고 읽기는 계속한다.
-      const {revealFromEpisode:_reveal,importedFrom:f,characterDocs:w,imageId:i,...known}=m
-      source=f; written=w; image=i
-      row = setting(known,{id:c.id,title:c.title,text:c.body,category:c.areaCode},
-        {userCategory:c.classification,aliases:c.aliases,tags:c.tags})
-      if(m.studio.item.id!==c.id)throw invalid()
-    } else row = {
-      userCategory:c.classification, tags:c.tags, aliases:c.aliases,
-      item:{id:c.id,title:c.title,text:c.body,category:c.areaCode,
-        kind:c.cardType==='rule'?'rule':c.cardType==='event'?'event':'entity',
-        entityType:['rule','event'].includes(c.cardType)?null:c.cardType,
-        topics:[],subjectId:null,targetId:null,predicate:null,polarity:'asserted',relatedIds:[],
-        condition:'',timeText:'',afterId:null,orderEvidence:[],evidence:[],origin:'author_input',authorText:c.body,decision:'approved'},
-    }
-    if (
-      row.item.kind === 'relation' || row.item.id !== c.id || row.item.title !== c.title ||
-      row.item.text !== c.body || row.item.category !== c.areaCode ||
-      cardType(row) !== c.cardType || row.userCategory !== c.classification ||
-      JSON.stringify(row.tags) !== JSON.stringify(c.tags) ||
-      JSON.stringify(row.aliases ?? []) !== JSON.stringify(c.aliases)
-    ) throw invalid()
-    // 키가 있는데(JSON null 포함) 값이 잘못됐으면 서버는 작가 전용으로 닫으므로(옛 `visibility`로 열지 않는다) 화면도 같게 읽고, 저장하면 비공개로 맞춘다. 키가 없을 때만 옛 공개 카드다.
-    const stored = m.revealFromEpisode, episode = revealFromEpisode.safeParse(stored), closed = stored !== undefined && !episode.success
-    const from = importedFrom.safeParse(source), docs = characterDocs.safeParse(written), picture = uuid.safeParse(image)
-    return {...row,...(c.visibility==='public'&&!closed&&{visibility:c.visibility}),...(episode.success&&{revealFromEpisode:episode.data}),...(from.success&&{importedFrom:from.data}),
-      ...(docs.success&&c.cardType==='character'&&{characterDocs:docs.data}),...(picture.success&&{imageId:picture.data})}
-  }).sort((a,b)=>(a.templateOrder??Number.MAX_SAFE_INTEGER)-(b.templateOrder??Number.MAX_SAFE_INTEGER))
+  const settings: StudioSetting[] = active.map(cardRow).sort((a,b)=>(a.templateOrder??Number.MAX_SAFE_INTEGER)-(b.templateOrder??Number.MAX_SAFE_INTEGER))
   for (const r of value.relationships) {
-    const row = setting(r.semanticMetadata,{id:r.id,kind:'relation',title:r.label,text:r.body,
-      subjectId:r.sourceCardId,targetId:r.targetCardId,polarity:r.polarity??'asserted',
-      predicate:r.category==='identity'?'identity_of':r.category==='emotional'?(r.direction==='symmetric'?'preserved_emotion_symmetric':'custom_emotion'):r.direction==='symmetric'?'custom_relation':'custom_relation_directed'},
-      {userCategory:'',tags:[],aliases:[]}), expected = relationship(row)
-    if(r.semanticMetadata.studio.item.id!==r.id)throw invalid()
-    if (
-      row.item.kind !== 'relation' || row.item.id !== r.id || r.body !== expected.body ||
-      r.label !== expected.label || r.sourceCardId !== expected.sourceCardId ||
-      r.targetCardId !== expected.targetCardId || r.category !== expected.category ||
-      r.direction !== expected.direction || r.polarity !== expected.polarity ||
-      r.sourceCardId !== null && !ids.has(r.sourceCardId) ||
-      r.targetCardId !== null && !ids.has(r.targetCardId)
-    ) throw invalid()
-    const from = value.relationshipEpisodes[r.id]
+    // 정본 필드의 enum·id·끝점이 어긋난 응답은 서버 계약 위반이라 세계관 전체를 읽지 않는다. 메타데이터 문제로는 실패하지 않는다.
+    if (r.sourceCardId !== null && !ids.has(r.sourceCardId) || r.targetCardId !== null && !ids.has(r.targetCardId)) throw invalid()
+    const row = relationRow(r), from = value.relationshipEpisodes[r.id]
     settings.push(from === undefined ? row : { ...row, item: { ...row.item, fromEpisode: from, recordedFrom: from } })
   }
   if (new Set(settings.map((s) => s.item.id)).size !== settings.length) throw invalid()
