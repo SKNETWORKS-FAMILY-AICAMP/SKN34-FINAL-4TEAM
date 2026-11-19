@@ -7,6 +7,7 @@ import ai.storyfork.core.auth.controller.MemberAdminController
 import ai.storyfork.core.auth.controller.MemberNicknameController
 import ai.storyfork.core.auth.entity.AuthMember
 import ai.storyfork.core.auth.repository.MemberRepository
+import ai.storyfork.core.auth.repository.WithdrawalRepository
 import ai.storyfork.core.auth.service.AuthVerificationService
 import ai.storyfork.core.auth.service.MemberAdminService
 import ai.storyfork.core.auth.service.MemberNicknameService
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyIterable
 import org.mockito.Mockito.`when`
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -46,6 +48,7 @@ class InternalAuthVerificationIntegrationTest {
     @Autowired lateinit var encoder: JwtEncoder
     private val credential="ci-content-core-auth-only-0123456789abcdef"
     @MockitoBean lateinit var members: MemberRepository
+    @MockitoBean lateinit var withdrawals: WithdrawalRepository
     private val operations="ci-operations-service-only-0123456789abcdef"
     private val member=UUID.fromString("12345678-1234-4234-8234-123456789abc")
     private val admin=UUID.fromString("5f0c2c7e-8a51-4d6b-9a39-1f4f2b6d0a01")
@@ -133,6 +136,28 @@ class InternalAuthVerificationIntegrationTest {
         mvc.perform(post("/internal/v1/members/admins").header("X-Operations-Service-Token",operations)
             .header("Authorization",bearer(admin.toString())).contentType("application/json").content("{}"))
             .andExpect(status().isBadRequest())
+    }
+
+    @Test fun `member stats use the same operations token and operator bearer rule as the member list`() {
+        `when`(members.count()).thenReturn(120L)
+        `when`(members.countByCreatedAtGreaterThanEqual(any(Instant::class.java) ?: Instant.EPOCH)).thenReturn(9L)
+        `when`(withdrawals.countByStatus("PENDING")).thenReturn(3L)
+        fun stats() = get("/internal/v1/members/stats")
+        mvc.perform(stats().header("X-Content-Service-Token",credential).header("Authorization",bearer(admin.toString())))
+            .andExpect(status().isForbidden())
+        mvc.perform(stats().header("X-Operations-Service-Token",operations)).andExpect(status().isUnauthorized())
+        mvc.perform(stats().header("X-Operations-Service-Token",operations).header("Authorization",bearer()))
+            .andExpect(status().isForbidden())
+        val response=mvc.perform(stats().header("X-Operations-Service-Token",operations).header("Authorization",bearer(admin.toString())))
+            .andExpect(status().isOk()).andReturn().response
+        val body=JsonMapper.builder().build().readTree(response.contentAsString)
+        assertEquals(3,body.size())
+        assertEquals(120L,body.path("total").longValue())
+        assertEquals(9L,body.path("joinedLast7Days").longValue())
+        assertEquals(3L,body.path("withdrawalPending").longValue())
+        // 통계 경로는 GET만 열려 있다.
+        mvc.perform(post("/internal/v1/members/stats").header("X-Operations-Service-Token",operations)
+            .header("Authorization",bearer(admin.toString()))).andExpect(status().isForbidden())
     }
 
     private fun nicknames(ids: String)=post("/internal/v1/members/nicknames").contentType("application/json").content("""{"ids":$ids}""")
