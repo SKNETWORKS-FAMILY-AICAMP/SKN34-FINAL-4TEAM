@@ -6,6 +6,7 @@ import ai.storyfork.operations.dashboard.service.DashboardService
 import ai.storyfork.operations.dashboard.service.dto.AiSummary
 import ai.storyfork.operations.dashboard.service.dto.Dashboard
 import ai.storyfork.operations.dashboard.service.dto.DashboardAi
+import ai.storyfork.operations.dashboard.service.dto.DashboardJobs
 import ai.storyfork.operations.dashboard.service.dto.DashboardPending
 import ai.storyfork.operations.llmops.testMapper
 import ai.storyfork.operations.security.OperationsMember
@@ -22,7 +23,7 @@ class DashboardJsonTest {
     fun `a full dashboard has the contract fields`() {
         val summary = AiSummary(10, 2, 1, 0.2, 0.5, 1.5)
         val tree = testMapper.readTree(testMapper.writeValueAsString(
-            Dashboard(MemberStats(100, 5, 1), DashboardAi(summary, summary), null, DashboardPending(2, 5, 7), 3, listOf("jobs")),
+            Dashboard(MemberStats(100, 5, 1), DashboardAi(summary, summary), DashboardJobs(5, 2), DashboardPending(2, 5, 7), 3, emptyList()),
         ))
 
         assertEquals(listOf("members", "ai", "jobs", "pending", "openAlerts", "unavailable"), names(tree))
@@ -30,15 +31,17 @@ class DashboardJsonTest {
         assertEquals(listOf("today", "last7Days"), names(tree.path("ai")))
         assertEquals(listOf("requests", "failed", "timeouts", "failureRate", "costUser", "costPlatform"), names(tree.path("ai").path("today")))
         assertEquals(listOf("inquiries", "reports", "authorReviews"), names(tree.path("pending")))
-        assertTrue(tree.path("jobs").isNull)
+        assertEquals(listOf("running", "failedLast24h"), names(tree.path("jobs")))
+        assertEquals(5, tree.path("jobs").path("running").asInt())
+        assertEquals(2, tree.path("jobs").path("failedLast24h").asInt())
         assertEquals(3, tree.path("openAlerts").asInt())
-        assertEquals(listOf("jobs"), tree.path("unavailable").values().map { it.asString() })
+        assertEquals(emptyList<String>(), tree.path("unavailable").values().map { it.asString() })
     }
 
     @Test
     fun `an unavailable card is null and not missing but pending always keeps its database numbers`() {
         val tree = testMapper.readTree(testMapper.writeValueAsString(
-            Dashboard(null, null, null, DashboardPending(2, 5, null), 0, listOf("core", "langfuse", "content", "jobs")),
+            Dashboard(null, null, null, DashboardPending(2, 5, null), 0, listOf("core", "langfuse", "content")),
         ))
 
         for (card in listOf("members", "ai", "jobs")) assertTrue(tree.path(card).isNull, card)
