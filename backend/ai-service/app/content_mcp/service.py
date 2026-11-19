@@ -208,7 +208,7 @@ async def tool_specs(names: tuple[str, ...]) -> list[dict]:
             listed = await _list(f'{base.rstrip("/")}/mcp', authorization)
         except Exception:  # 연결·프로토콜 오류. 메시지에 입력이 섞일 수 있어 고정 문구만 쓴다.
             raise ContentMcpFailure(503, 'Content MCP를 호출할 수 없습니다.') from None
-        _SPECS.update({t.name: {'name': t.name, 'description': t.description or '', 'schema': t.inputSchema} for t in listed})
+        _SPECS.update({t.name: {'name': t.name, 'description': t.description or '', 'schema': t.input_schema} for t in listed})
     return [_SPECS[n] for n in names if n in _SPECS]
 
 

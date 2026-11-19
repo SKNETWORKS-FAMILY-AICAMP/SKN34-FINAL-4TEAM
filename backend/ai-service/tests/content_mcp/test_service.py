@@ -341,14 +341,14 @@ def test_edit_world_keeps_a_content_conflict_as_it_is(monkeypatch):
 
 def test_tool_specs_lists_the_content_tools_once_and_returns_only_the_allowed_names(monkeypatch):
     import asyncio
-    from types import SimpleNamespace
+    from mcp.types import Tool  # 실제 SDK 타입(필드 이름이 inputSchema가 아니라 input_schema)이어야 대역이 실서버와 같다
     monkeypatch.setenv('CONTENT_SERVICE_BASE_URL', 'http://content.test/')
     monkeypatch.setattr(service, '_SPECS', {})
     asked = []
 
     async def listed(url, authorization):
         asked.append((url, authorization))
-        return [SimpleNamespace(name=n, description=f'{n} 설명', inputSchema={'type': 'object'}) for n in ('episode_read', 'episode_update_draft')]
+        return [Tool(name=n, description=f'{n} 설명', inputSchema={'type': 'object'}) for n in ('episode_read', 'episode_update_draft')]
 
     monkeypatch.setattr(service, '_list', listed)
     service.AUTHORIZATION.set('Bearer user')
