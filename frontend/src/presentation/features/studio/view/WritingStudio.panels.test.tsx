@@ -7,6 +7,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { appContainer } from '../../../../app/appContainer'
 import { createAppStore } from '../../../../app/store'
 import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
+import type { WritingChatUseCase } from '../../../../domain/usecases/WritingChatUseCase'
 import { WritingStudio } from './WritingStudio'
 
 const model = vi.hoisted(() => ({
@@ -41,6 +42,7 @@ beforeEach(() => {
     current: { revision: 0, writingMode: null, changedAt: null }, history: [],
     worldUpdateMode: 'manual', proofreadingMode: 'review', autoserialState: 'off',
   })
+  vi.spyOn(appContainer.resolve<WritingChatUseCase>('writingChatUseCase'), 'sessions').mockResolvedValue([])
 })
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.clearAllMocks(); Object.assign(model, original) })
 const exportProps = () => JSON.parse(screen.getByTestId('export-panel').textContent!)
