@@ -29,6 +29,24 @@ it('reads authenticated storage usage and the server item sizes', async () => {
   }))
 })
 
+describe('작품 운영 설정', () => {
+  it('소유자 경로에서 미설정 상태를 읽고 설정 버전으로 집필 방식을 저장한다', async () => {
+    const version = { revision: 1, writingMode: 'assisted', changedAt: '2026-11-19T03:00:00Z' }
+    const defaults = { worldUpdateMode: 'manual', proofreadingMode: 'review', autoserialState: 'off' }
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(Response.json({ ...defaults, current: { revision: 0, writingMode: null, changedAt: null }, history: [] }))
+      .mockResolvedValueOnce(Response.json({ ...defaults, current: version, history: [version] }))
+    const api = new EpisodeUseCase(new HttpEpisodeRepository(fetcher))
+
+    expect((await api.workSettings('work 1')).current.writingMode).toBeNull()
+    expect((await api.updateWorkSettings('work 1', 0, 'assisted')).history).toEqual([version])
+    expect(fetcher).toHaveBeenNthCalledWith(1, '/api/v1/works/work%201/operating-settings', expect.objectContaining({ method: 'GET' }))
+    expect(fetcher).toHaveBeenNthCalledWith(2, '/api/v1/works/work%201/operating-settings', expect.objectContaining({
+      method: 'PUT', body: JSON.stringify({ revision: 0, writingMode: 'assisted' }),
+    }))
+  })
+})
+
 describe('회차 예약 발행', () => {
   const path = '/api/v1/works/w/episodes/2/publication-schedules'
   const scheduledAt = '2099-11-10T01:30:00.000Z'

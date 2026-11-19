@@ -98,3 +98,10 @@
 .ep-drafts a:is(:hover, :focus-visible) { text-decoration: underline; text-underline-offset: 3px; }
 /* 다른 곳(AI·외부 도구)에서 바뀌었다는 안내(McpChangeBanner)는 오류가 아니라서 공용 알림 상자(.ep-alert)의 위험색 대신 강조색 면·테두리를 쓴다. */
 .ep-alert.ep-changed{background:color-mix(in srgb,var(--pri) 8%,var(--surface));color:var(--ink);border-color:color-mix(in srgb,var(--pri) 40%,var(--line2))}
+.ep-operating-settings form { max-width: 520px; margin-top: 16px; gap: 14px; }
+.ep-operating-settings select { max-width: 320px; }
+.ep-settings-rules { display: grid; grid-template-columns: minmax(7rem, max-content) 1fr; gap: 8px 16px; }
+.ep-settings-rules dd { margin: 0; color: var(--sub); }
+.ep-settings-history { list-style: none; margin: 0; padding: 0; }
+.ep-settings-history li { display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 10px 0; border-bottom: 1px solid var(--line2); }
+.ep-settings-history time { color: var(--sub); }

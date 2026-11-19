@@ -4,9 +4,12 @@ import httpx
 import pytest
 from openai import APIConnectionError, APITimeoutError, AuthenticationError, OpenAIError, PermissionDeniedError, RateLimitError
 
+from app import tracing
 from app.intent.errors import IntentFailure
 from app.intent import agent, prompt, service
 from app.intent.models import DecisionResult
+
+from traced import attrs
 
 
 def fake_decisions(monkeypatch, answers, flagged=(), moderated=None):
@@ -355,3 +358,41 @@ def test_a_rejection_cannot_carry_features_and_an_allowed_decision_has_no_reason
         DecisionResult(allowed=False, reason='greeting', capabilities=['manuscript_review'])
     with pytest.raises(ValueError):
         DecisionResult(allowed=True, reason='greeting')
+
+
+
+def test_the_decisions_call_is_a_generation_of_the_managed_prompt_with_its_usage(monkeypatch, spans):
+    calls = fake_decisions(monkeypatch, {**raw(guard='none'), 'usage': {'input_tokens': 50, 'output_tokens': 4}})
+    asked, version = [], SimpleNamespace(name='decision_guard.judge', version=5, is_fallback=False)
+    monkeypatch.setattr(tracing, 'prompt', lambda name, default: asked.append((name, default)) or tracing.Prompt('관리된 지시', version))
+
+    service.judge('11화 원고를 검수해줘', operation='manuscript_review')
+
+    assert asked == [('decision_guard.judge', prompt.INSTRUCTIONS)]
+    assert calls[0][1]['input'][0] == {'role': 'developer', 'content': '관리된 지시'}
+    [span] = spans()
+    found = attrs(span)
+    assert span.name == 'decision_guard.generation' and found['langfuse.observation.type'] == 'generation'
+    assert found['langfuse.observation.model.name'] == prompt.MODEL
+    assert found['langfuse.observation.usage_details'] == '{"input": 50, "output": 4}'
+    assert (found['langfuse.observation.prompt.name'], found['langfuse.observation.prompt.version']) == ('decision_guard.judge', 5)
+    assert 'langfuse.observation.input' not in found  # 요청·자료 본문은 이 observation에 남기지 않는다
+
+
+def test_a_decisions_reply_without_usage_is_still_a_generation(monkeypatch, spans):
+    fake_decisions(monkeypatch, {'guard': 'none'})
+    service.judge('11화 원고를 검수해줘', operation='manuscript_review')
+    [span] = spans()
+    assert span.name == 'decision_guard.generation' and 'langfuse.observation.usage_details' not in span.attributes
+
+
+def test_an_unavailable_prompt_is_a_judgment_failure_before_any_model_call(monkeypatch):
+    calls = fake_decisions(monkeypatch, {'guard': 'none'})
+
+    def unavailable(name, default):
+        raise tracing.PromptUnavailable
+
+    monkeypatch.setattr(tracing, 'prompt', unavailable)
+    with pytest.raises(IntentFailure):
+        service.judge('검수해줘')
+    assert calls == []

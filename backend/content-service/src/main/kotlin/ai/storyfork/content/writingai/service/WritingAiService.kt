@@ -7,6 +7,7 @@ import ai.storyfork.content.context.service.QaScopeGrants
 import ai.storyfork.content.context.service.QaScopeService
 import ai.storyfork.content.context.service.dto.QaScopeRequest
 import ai.storyfork.content.episode.service.EpisodeService
+import ai.storyfork.content.fork.repository.ForkRepository
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.writingai.client.WritingAiClient
 import ai.storyfork.content.writingai.service.dto.ChatSessionCreated
@@ -34,6 +35,7 @@ internal class WritingAiService(
     private val client: WritingAiClient,
     private val access: WorkAccessService,
     private val episodes: EpisodeService,
+    private val forks: ForkRepository,
 ) {
     fun run(workId: String, owner: String, authorization: String, request: WritingAiRequest): WritingAiResponse {
         checkContent(request.resume == null || request.threadId != null, message="이어갈 대화를 지정해 주세요.")
@@ -125,6 +127,8 @@ internal class WritingAiService(
                     put("workId", workId)
                     put("episode", reflect)
                     if (reflect != request.episode) put("baseEpisode", request.episode)
+                    // Fork 작품 요청은 AI 추적이 가를 수 있게 알린다(DEC-55). 아니면 키를 싣지 않는다(AI 요청 DTO가 모르는 필드를 거절한다).
+                    if (forks.existsById(workId)) put("fork", true)
                 })
                 request.operation?.let { put("operation", it) }
                 request.simulation?.let { put("simulation", body(it)) }

@@ -73,12 +73,13 @@ class WritingTarget(BaseModel):
     """Content가 권한을 확인한 Writing 반영 대상. 작가가 승인하면 AI가 그 작가 권한으로 이 회차 초안에만 쓴다.
 
     baseEpisode는 근거 회차(시뮬레이션이 세계관을 읽는 지식 상한)다. 작가가 발행 전 초안을 열어 둬 반영 회차(episode)가 근거 회차와
-    다를 때만 오고, 없으면 episode와 같다.
+    다를 때만 오고, 없으면 episode와 같다. fork는 Fork 작품이면 Content가 true로 보내며 추적 metadata에만 쓴다(DEC-55 누설 표본 검사).
     """
     model_config = ConfigDict(extra='forbid')
     workId: str = Field(min_length=1, max_length=100)
     episode: int = Field(ge=1)
     baseEpisode: int | None = Field(default=None, ge=1)
+    fork: bool | None = None
 
 
 class Resume(BaseModel):

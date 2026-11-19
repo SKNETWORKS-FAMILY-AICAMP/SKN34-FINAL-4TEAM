@@ -34,6 +34,10 @@ class OperationsExceptionHandler {
     fun conflict(): ResponseEntity<OperationsErrorResponse> =
         ResponseEntity.status(409).body(OperationsErrorResponse("CONFLICT", "Resource conflicts with its current state."))
 
+    @ExceptionHandler(EvaluationRequiredException::class)
+    fun evaluationRequired(): ResponseEntity<OperationsErrorResponse> =
+        ResponseEntity.status(409).body(OperationsErrorResponse("EVALUATION_REQUIRED", "A passing regression evaluation is required for this prompt version."))
+
     // Every Spring ErrorResponse (ResponseStatusException, validation and missing-parameter errors, framework 404/405) reaches
     // unexpected() and is answered here by its status, so none of them needs a handler of its own.
     fun responseStatus(error: ErrorResponse, request: HttpServletRequest): ResponseEntity<OperationsErrorResponse> = when (error.statusCode.value()) {
