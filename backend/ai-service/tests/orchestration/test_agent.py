@@ -183,7 +183,8 @@ def traced(monkeypatch) -> list[dict]:
 
     @contextmanager
     def observe(name, **fields):
-        yield SimpleNamespace(update=lambda **kw: name == 'main_agent' and updates.append(kw))
+        # 요청 루트(tracing.request)도 이 대역을 거치므로 id를 읽을 수 있어야 한다. 0 id는 추적이 꺼진 span이다.
+        yield SimpleNamespace(trace_id='0' * 32, id='0' * 16, update=lambda **kw: name == 'main_agent' and updates.append(kw))
 
     monkeypatch.setattr(agent.tracing, 'observe', observe)
     return updates

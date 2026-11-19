@@ -6,9 +6,10 @@
 LANGFUSE_PUBLIC_KEY·LANGFUSE_SECRET_KEY가 없으면 추적과 프롬프트 관리를 끈다. 전송은 SDK가 백그라운드로 하므로
 Langfuse 장애가 작업 결과를 바꾸지 않는다(프롬프트를 읽지 못해 기능이 실패하는 경우만 예외다). 서버 주소는 SDK가 LANGFUSE_BASE_URL에서 읽는다.
 
-DEC-55 계측 규칙: AI 요청 하나가 trace 하나다. `request`가 요청 루트를 열어 회원(trace user_id=회원 UUID)·세션·기능 태그·metadata를
-이 안의 모든 observation에 붙이고, 끝나면 상태 태그(success·failed·timeout)를 루트에 더한다. 지시문은 `prompt`가
-Langfuse Prompt Management의 production 버전을 읽어 주고(코드 문자열은 최초 등록용), generation에 연결한다.
+DEC-55 계측 규칙(Langfuse v4): AI 요청 하나가 trace 하나이고 요청 루트 관측 하나가 요청 전체를 덮는다. `request`가 그 루트를 열어
+회원(user_id=회원 UUID)·세션·trace 이름·기능 태그·metadata를 루트와 안의 모든 observation에 붙이고, 끝나면 상태(success·failed·timeout)를
+루트의 metadata `status`로 남긴다. 지시문은 `prompt`가 Langfuse Prompt Management의 production 버전을 읽어 주고(코드 문자열은
+최초 등록용), generation에 연결한다.
 """
 
 import base64
@@ -58,15 +59,8 @@ def excerpts(items) -> list[dict]:
             for e in items]
 
 
-def start_run(name: str, **fields) -> tuple[str | None, str | None]:
-    """한 작업의 root observation을 열고 바로 닫는다. 단계는 (trace id, root id)로 나중 요청에서도 붙인다."""
-    span = client().start_observation(name=name, **fields)
-    span.end()
-    return (None, None) if span.trace_id == _OFF else (span.trace_id, span.id)
-
-
 def context(run_id: str | None, parent_id: str | None) -> dict | None:
-    """저장해 둔 작업 trace에 하위 observation을 붙이는 trace_context. 추적이 꺼져 있으면 None."""
+    """저장해 둔 trace(요청 루트의 id)에 이어 붙는 trace_context. 추적이 꺼져 있으면 None."""
     return {'trace_id': run_id, 'parent_span_id': parent_id} if run_id else None
 
 
@@ -83,17 +77,23 @@ def timed_out(error: BaseException | None) -> bool:
 
 
 @contextmanager
-def request(feature: str, *, user_id: str | None = None, session_id: str | None = None, trace_context: dict | None = None, **metadata):
-    """AI 요청 하나 = trace 하나(DEC-55): 요청 루트 observation을 열고 회원·세션·기능 태그·metadata를 이 안의 모든 observation에 붙인다.
+def request(feature: str, *, user_id: str | None = None, session_id: str | None = None, trace_context: dict | None = None,
+            fork: bool = False, **metadata):
+    """AI 요청 하나 = trace 하나 = 요청 루트 관측 하나(DEC-55 v4). 루트는 이 안의 요청 전체(SSE 끝까지)를 덮고 가장 마지막에 끝난다.
 
-    끝나면 루트에 상태 태그를 더한다. 예외는 failed(시간 초과면 timeout)로 남기고 그대로 올린다. 예외 없이 끝난 요청의 상태는 내주는 run.status
-    (기본 success, 응답을 보고 바꾼다. None이면 태그 없음)다. metadata는 문자열 값이고 비어 있으면 뺀다. trace_context를 주면 그 trace에
-    붙는다(대화에서 멈췄던 턴의 resume).
+    루트와 안의 모든 observation에 회원·세션·trace 이름(=기능 키)·태그 `feature:<키>`·metadata(request_id·fork·work_id 등)를
+    propagate_attributes로 붙인다(v4는 observation별로 거르므로 하위 generation 비용도 기능·회원별로 모을 수 있어야 한다).
+    상태는 끝나야 알 수 있어 **루트에만** metadata `status`로 남기고(이미 내보낸 하위 observation은 고칠 수 없다) 실패·시간 초과면 level ERROR다.
+    예외는 failed(시간 초과면 timeout)로 남기고 그대로 올린다. 예외 없이 끝난 요청의 상태는 내주는 run.status(기본 success, 응답을 보고 바꾼다.
+    None이면 남기지 않는다)다. run.trace_id·span_id는 루트의 id다(추적이 꺼져 있으면 None). fork는 항상 'true'/'false', 나머지 metadata는
+    문자열 값이고 비어 있으면 뺀다. trace_context를 주면 그 trace에 새 루트로 붙는다(대화에서 멈췄던 턴을 이어 가는 요청).
     """
-    meta = {'request_id': uuid4().hex, **{k: v for k, v in metadata.items() if v}}
-    run = SimpleNamespace(status='success')
-    with propagate_attributes(user_id=user_id, session_id=session_id, tags=[f'feature:{feature}'], metadata=meta):
-        with observe(feature, trace_context=trace_context):
+    meta = {'request_id': uuid4().hex, 'fork': 'true' if fork else 'false', **{k: v for k, v in metadata.items() if v}}
+    run = SimpleNamespace(status='success', trace_id=None, span_id=None)
+    with propagate_attributes(user_id=user_id, session_id=session_id, trace_name=feature, tags=[f'feature:{feature}'], metadata=meta):
+        with observe(feature, trace_context=trace_context) as span:
+            if span.trace_id != _OFF:
+                run.trace_id, run.span_id = span.trace_id, span.id
             try:
                 yield run
             except Exception as error:
@@ -104,8 +104,7 @@ def request(feature: str, *, user_id: str | None = None, session_id: str | None 
                 raise
             finally:
                 if run.status:
-                    with propagate_attributes(tags=[f'status:{run.status}']):  # 현재 span(요청 루트)의 태그에 상태를 더한다
-                        pass
+                    span.update(metadata={'status': run.status}, **({'level': 'ERROR'} if run.status != 'success' else {}))
 
 
 def member_id(authorization: str) -> str | None:

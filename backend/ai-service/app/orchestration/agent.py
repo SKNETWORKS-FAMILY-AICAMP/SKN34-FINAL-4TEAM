@@ -78,7 +78,7 @@ class DecisionGuardMiddleware(AgentMiddleware):
     @hook_config(can_jump_to=['end'])
     def before_agent(self, state, runtime) -> dict[str, Any]:
         turn, asked = runtime.context, runtime.context['decide']
-        with tracing.observe('decision_guard', trace_context=tools.trace(turn), input={'request': asked['request']}) as span:
+        with tracing.observe('decision_guard', input={'request': asked['request']}) as span:
             decided = intent.judge(asked['request'], asked['operation'], asked['materials'], asked['history'])
             span.update(metadata=decided.model_dump())
         done = {'decision': decided.model_dump()}
@@ -181,8 +181,7 @@ class MainModelMiddleware(AgentMiddleware):
         done = any(s['status'] == 'completed' for s in request.state.get('steps') or [])
         text = MAIN_FAILED_MESSAGE if done else MAIN_FAILED_NOTHING_MESSAGE
         failed = ModelResponse(result=[AIMessage(content=text, name=FAILED)])
-        with tracing.observe('main_agent', as_type='generation', model=request.model.model_name, prompt=self.prompt,
-                             trace_context=tools.trace(request.runtime.context)) as generation:
+        with tracing.observe('main_agent', as_type='generation', model=request.model.model_name, prompt=self.prompt) as generation:
             try:
                 response = await handler(request)
             except (OpenAIError, ValueError) as error:

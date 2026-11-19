@@ -10,7 +10,7 @@ from openai import APITimeoutError
 from app import tracing
 from app.story_qa.errors import StoryQaFailure
 
-from traced import MEMBER, attrs, bearer
+from traced import MEMBER, attrs, bearer, status_of
 
 
 def test_failure_is_level_error_with_fixed_message_and_no_exception_event(spans):
@@ -28,20 +28,21 @@ def test_failure_is_level_error_with_fixed_message_and_no_exception_event(spans)
 
 
 def test_child_joins_given_trace_from_another_request(spans):
-    run_id, parent = tracing.start_run('run')
-    with tracing.observe('child', trace_context=tracing.context(run_id, parent)):
+    with tracing.request('orchestration') as first:
         pass
-    root, child = spans()  # root는 열자마자 닫는다.
-    assert format(child.context.trace_id, '032x') == run_id and format(child.parent.span_id, '016x') == parent
+    with tracing.observe('child', trace_context=tracing.context(first.trace_id, first.span_id)):
+        pass
+    root, child = spans()
+    assert format(child.context.trace_id, '032x') == first.trace_id and format(child.parent.span_id, '016x') == first.span_id
 
 
 def test_disabled_tracing_has_no_run_id(monkeypatch):
     monkeypatch.delenv('LANGFUSE_PUBLIC_KEY', raising=False)
     monkeypatch.delenv('LANGFUSE_SECRET_KEY', raising=False)
     tracing.client.cache_clear()
-    assert tracing.start_run('run') == (None, None)
-    with tracing.observe('child', trace_context=tracing.context(None, None)):
-        pass
+    with tracing.request('orchestration') as run:
+        assert tracing.context(run.trace_id, run.span_id) is None
+    assert (run.trace_id, run.span_id) == (None, None)
 
 
 # --- 요청 하나 = trace 하나(DEC-55 계측 규칙) ---------------------------------------------------------------------------
@@ -55,35 +56,42 @@ def test_member_id_is_none_when_there_is_no_uuid_subject(authorization):
     assert tracing.member_id(authorization) is None
 
 
-def test_request_root_carries_member_session_feature_tags_and_metadata(spans):
-    with tracing.request('manuscript_review', user_id=MEMBER, session_id='thread-1', work_id='work-1', fork='true', credit_reservation_id=None):
+def test_request_root_carries_member_session_feature_name_tags_and_metadata(spans):
+    with tracing.request('manuscript_review', user_id=MEMBER, session_id='thread-1', work_id='work-1', fork=True, credit_reservation_id='res-1'):
         pass
     [root] = spans()
     found = attrs(root)
-    assert root.name == 'manuscript_review'
+    assert root.name == 'manuscript_review' and root.parent is None
     assert (found['user.id'], found['session.id']) == (MEMBER, 'thread-1')
-    assert found['langfuse.trace.tags'] == ['feature:manuscript_review', 'status:success']
+    assert found['langfuse.trace.name'] == 'manuscript_review' and found['langfuse.trace.tags'] == ['feature:manuscript_review']
     assert found['langfuse.trace.metadata.work_id'] == 'work-1' and found['langfuse.trace.metadata.fork'] == 'true'
+    assert found['langfuse.trace.metadata.credit_reservation_id'] == 'res-1'
     assert len(found['langfuse.trace.metadata.request_id']) == 32
-    assert 'langfuse.trace.metadata.credit_reservation_id' not in found  # 없는 값은 남기지 않는다
+    assert status_of(root) == 'success' and found['langfuse.internal.is_app_root']  # 이 요청의 루트 관측은 하나뿐이다
 
 
-def test_missing_values_are_left_out(spans):
-    with tracing.request('manuscript_review', fork=None, work_id=''):
+def test_fork_is_always_true_or_false_and_other_missing_values_are_left_out(spans):
+    with tracing.request('manuscript_review', work_id='', credit_reservation_id=None):
         pass
     [root] = spans()
-    assert not {'langfuse.trace.metadata.fork', 'langfuse.trace.metadata.work_id', 'user.id', 'session.id'} & set(root.attributes)
+    found = attrs(root)
+    assert found['langfuse.trace.metadata.fork'] == 'false'
+    assert not {'langfuse.trace.metadata.work_id', 'langfuse.trace.metadata.credit_reservation_id', 'user.id', 'session.id'} & set(found)
 
 
-def test_observations_inside_a_request_carry_the_trace_attributes_but_not_the_final_status(spans):
-    with tracing.request('rating', user_id=MEMBER, work_id='work-1'):
+def test_observations_inside_a_request_carry_the_trace_attributes_but_never_the_status(spans):
+    with tracing.request('rating', user_id=MEMBER, session_id='s-1', work_id='work-1', fork=True, credit_reservation_id='res-1'):
         with tracing.observe('rating.generation', as_type='generation', model='m'):
             pass
     generation, root = spans()
     assert generation.parent.span_id == root.context.span_id
     found = attrs(generation)
-    assert found['user.id'] == MEMBER and found['langfuse.trace.metadata.work_id'] == 'work-1'
-    assert found['langfuse.trace.tags'] == ['feature:rating']  # 상태는 요청이 끝나야 알 수 있어 루트에만 붙는다
+    assert (found['user.id'], found['session.id']) == (MEMBER, 's-1')
+    assert found['langfuse.trace.name'] == 'rating' and found['langfuse.trace.tags'] == ['feature:rating']
+    assert (found['langfuse.trace.metadata.work_id'], found['langfuse.trace.metadata.fork'],
+            found['langfuse.trace.metadata.credit_reservation_id']) == ('work-1', 'true', 'res-1')
+    assert found['langfuse.trace.metadata.request_id'] == attrs(root)['langfuse.trace.metadata.request_id']
+    assert status_of(generation) is None and 'langfuse.internal.is_app_root' not in found  # 상태는 루트에만, 루트도 하나뿐
 
 
 def test_attributes_reach_threads_that_copy_the_context(spans):
@@ -104,13 +112,13 @@ class Failure(Exception):
 
 @pytest.mark.parametrize('error, status', [(ValueError('원고 본문'), 'failed'), (Failure('고정 문구'), 'failed'),
                                            (APITimeoutError(request=SimpleNamespace()), 'timeout'), (TimeoutError(), 'timeout')])
-def test_an_exception_marks_the_request_failed_or_timed_out_and_is_reraised(spans, error, status):
+def test_an_exception_marks_the_request_failed_or_timed_out_on_the_root_and_is_reraised(spans, error, status):
     with pytest.raises(type(error)):
         with tracing.request('manuscript_review'):
             raise error
     [root] = spans()
-    assert attrs(root)['langfuse.trace.tags'] == ['feature:manuscript_review', f'status:{status}']
-    assert root.attributes['langfuse.observation.level'] == 'ERROR'
+    assert status_of(root) == status and root.attributes['langfuse.observation.level'] == 'ERROR'
+    assert attrs(root)['langfuse.trace.tags'] == ['feature:manuscript_review']  # 상태 태그는 없다
 
 
 def test_a_fixed_failure_raised_from_a_timeout_still_counts_as_a_timeout(spans):
@@ -121,17 +129,20 @@ def test_a_fixed_failure_raised_from_a_timeout_still_counts_as_a_timeout(spans):
             except APITimeoutError:
                 raise Failure('고정 문구') from None  # 기능은 이렇게 제공사 오류를 고정 문구로 바꾼다
     [root] = spans()
-    assert attrs(root)['langfuse.trace.tags'][-1] == 'status:timeout'
+    assert status_of(root) == 'timeout'
 
 
 def test_the_caller_sets_or_withholds_the_status_of_a_request_that_did_not_raise(spans):
     with tracing.request('orchestration') as run:
         run.status = None  # 대기 중인 턴은 끝나지 않았다
     with tracing.request('orchestration') as run:
-        run.status = 'failed'
-    waiting, failed = spans()
-    assert attrs(waiting)['langfuse.trace.tags'] == ['feature:orchestration']
-    assert attrs(failed)['langfuse.trace.tags'] == ['feature:orchestration', 'status:failed']
+        run.status = 'failed'  # 응답에 실패한 단계가 있어도 예외는 없다
+    with tracing.request('orchestration'):
+        pass
+    waiting, failed, done = spans()
+    assert status_of(waiting) is None and 'langfuse.observation.level' not in waiting.attributes
+    assert status_of(failed) == 'failed' and failed.attributes['langfuse.observation.level'] == 'ERROR'
+    assert status_of(done) == 'success' and 'langfuse.observation.level' not in done.attributes
 
 
 def test_a_request_cut_off_before_it_ended_has_no_status(spans):
@@ -147,15 +158,20 @@ def test_a_request_cut_off_before_it_ended_has_no_status(spans):
 
     asyncio.run(cut())
     [root] = spans()
-    assert attrs(root)['langfuse.trace.tags'] == ['feature:orchestration']  # 끝나지 않은 요청을 성공으로 세지 않는다
+    assert status_of(root) is None  # 끝나지 않은 요청을 성공으로 세지 않는다
 
 
-def test_a_request_joins_the_trace_of_an_earlier_request(spans):
-    run_id, parent = tracing.start_run('turn')
-    with tracing.request('orchestration', user_id=MEMBER, trace_context=tracing.context(run_id, parent)):
+def test_the_request_exposes_the_ids_of_its_root_and_a_later_request_joins_that_trace_as_a_root(spans):
+    with tracing.request('orchestration') as first:
         pass
-    turn, resumed = spans()
-    assert format(resumed.context.trace_id, '032x') == run_id and format(resumed.parent.span_id, '016x') == parent
+    with tracing.request('orchestration', user_id=MEMBER, trace_context=tracing.context(first.trace_id, first.span_id)) as second:
+        with tracing.observe('step'):
+            pass
+    turn, step, resumed = spans()
+    assert (format(turn.context.trace_id, '032x'), format(turn.context.span_id, '016x')) == (first.trace_id, first.span_id)
+    assert format(resumed.context.trace_id, '032x') == first.trace_id == second.trace_id
+    assert format(resumed.parent.span_id, '016x') == first.span_id and resumed.attributes['langfuse.internal.is_app_root']  # 요청마다 루트
+    assert step.parent.span_id == resumed.context.span_id and 'langfuse.internal.is_app_root' not in step.attributes
     assert attrs(resumed)['user.id'] == MEMBER
 
 

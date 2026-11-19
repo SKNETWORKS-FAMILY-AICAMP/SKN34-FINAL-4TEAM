@@ -14,3 +14,8 @@ def bearer(sub=MEMBER) -> str:
 def attrs(span) -> dict:
     """span 속성. 태그는 튜플로 나오므로 list로 바꾼다."""
     return {key: list(value) if isinstance(value, tuple) else value for key, value in span.attributes.items()}
+
+
+def status_of(span):
+    """루트 관측의 metadata status(DEC-55 v4: 상태는 끝나야 알 수 있어 루트에만, metadata로 남긴다)."""
+    return span.attributes.get('langfuse.observation.metadata.status')

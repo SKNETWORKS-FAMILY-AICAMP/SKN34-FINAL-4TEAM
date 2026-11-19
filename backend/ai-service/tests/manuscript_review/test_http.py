@@ -5,7 +5,7 @@ from app.main import create_app
 from app.manuscript_review import router
 from app.manuscript_review.models import ReviewResponse
 
-from traced import MEMBER, attrs, bearer
+from traced import MEMBER, attrs, bearer, status_of
 
 pytestmark = pytest.mark.integration
 
@@ -22,4 +22,4 @@ def test_manuscript_review_route_is_one_request_trace_of_the_author(monkeypatch,
     [root] = spans()  # 동기 핸들러는 스레드풀에서 돌지만 요청 루트와 속성은 같다
     found = attrs(root)
     assert root.name == 'manuscript_review' and found['user.id'] == MEMBER and found['langfuse.trace.metadata.work_id'] == 'work-1'
-    assert found['langfuse.trace.tags'] == ['feature:manuscript_review', 'status:success']
+    assert found['langfuse.trace.tags'] == ['feature:manuscript_review'] and status_of(root) == 'success'

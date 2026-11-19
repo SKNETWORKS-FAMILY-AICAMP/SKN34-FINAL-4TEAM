@@ -58,11 +58,11 @@ class ProgressMiddleware(AgentMiddleware):
 class UsageLedger(BaseCallbackHandler):
     """공통 사용량 장부: MODEL_EVENT로 알려진 호출과 도구 실패를 모았다가 STEP_EVENT마다 span(name) 하나로 남긴다.
 
-    describe(step)는 span 메타데이터에 넣을 단계 식별(예: 턴 번호·상태)이다. trace가 없으면 현재 문맥이 없어 추적만 건너뛴다.
+    describe(step)는 span 메타데이터에 넣을 단계 식별(예: 턴 번호·상태)이다. span은 호출한 요청의 루트 아래(현재 문맥)에 붙는다.
     """
 
-    def __init__(self, name: str, describe, trace: dict | None = None):
-        self.name, self.describe, self.trace = name, describe, trace
+    def __init__(self, name: str, describe):
+        self.name, self.describe = name, describe
         self.calls: list[dict] = []
         self.records: list[dict] = []  # 지금까지 남긴 단계 요약(추적이 꺼져 있어도 남아 테스트·진단이 읽는다)
 
@@ -81,7 +81,7 @@ class UsageLedger(BaseCallbackHandler):
                   'ms': total('ms'), 'inputTokens': total('inputTokens'), 'outputTokens': total('outputTokens'), 'calls': self.calls}
         self.records.append(record)
         self.calls = []
-        tracing.client().start_observation(name=self.name, as_type='span', trace_context=self.trace, metadata=record).end()
+        tracing.client().start_observation(name=self.name, as_type='span', metadata=record).end()
 
 
 class ModelCallMiddleware(AgentMiddleware):

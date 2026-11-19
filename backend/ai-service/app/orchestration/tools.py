@@ -114,10 +114,6 @@ def task(turn: dict) -> str:
     return turn.get('task') or turn['request']
 
 
-def trace(turn: dict) -> dict | None:
-    return tracing.context(turn.get('runId'), turn.get('traceParent'))
-
-
 def _summary(step: dict) -> str:
     """메인 에이전트가 읽을 결과 요약. 원고 Text·Patch·BeatPlan 본문은 넣지 않는다(종합 답변에서 다시 쓰지 않게)."""
     if step['status'] == 'failed':
@@ -180,7 +176,7 @@ def _ask(runtime: ToolRuntime, feature: str, call, needs=lambda inputs, scope: F
             scope = answer.get('scope') or scope
             answered = {'inputs': inputs, 'retrievalScope': scope}
         runtime.stream_writer({'started': feature})
-        with tracing.observe(f'step.{feature}', as_type='agent', trace_context=trace(turn)):
+        with tracing.observe(f'step.{feature}', as_type='agent'):
             step.update(status='completed', result=call(inputs, scope).model_dump(mode='json'))
     except Skipped as skip:
         step.update(status='skipped', error=str(skip))
@@ -388,7 +384,7 @@ def ask_character_simulation(request: Request, runtime: ToolRuntime) -> Command:
     turn = runtime.context
     step = {'feature': 'character_simulation', 'when': 'always', 'status': 'not_started'}
     try:
-        with tracing.observe('step.character_simulation.plan', as_type='agent', trace_context=trace(turn)):
+        with tracing.observe('step.character_simulation.plan', as_type='agent'):
             if form := turn.get('simulationForm'):  # 버튼 진입: 모델에게 묻지 않고 작가가 양식에 적은 값을 세계관으로 확인해 쓴다
                 drafted = simulation.plan_from_form(SimulationPlan.model_validate(form), turn.get('target'))
             else:

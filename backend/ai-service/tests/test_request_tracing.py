@@ -30,7 +30,7 @@ from app.writing import router as writing
 from app.writing.errors import WritingFailure
 from app.writing.models import DraftRequest, PatchRequest
 
-from traced import MEMBER, attrs, bearer
+from traced import MEMBER, attrs, bearer, status_of
 
 TOKEN = 'router-token'
 ANALYSIS = UUID('0b1f6a52-3c1e-4b7a-9a58-2f6f0c1d4e10')
@@ -73,21 +73,23 @@ def prepare(monkeypatch, key, outcome):
 
 
 @pytest.mark.parametrize('key', CASES)
-def test_a_served_request_is_one_trace_tagged_with_its_feature_and_success(monkeypatch, spans, key):
+def test_a_served_request_is_one_root_named_and_tagged_with_its_feature_and_marked_success(monkeypatch, spans, key):
     assert prepare(monkeypatch, key, 'ok')() == 'ok'
     [root] = spans()
-    assert root.name == key.split('/')[0]
-    assert attrs(root)['langfuse.trace.tags'] == [f'feature:{root.name}', 'status:success']
+    assert root.name == key.split('/')[0] and root.parent is None
+    found = attrs(root)
+    assert found['langfuse.trace.name'] == root.name and found['langfuse.trace.tags'] == [f'feature:{root.name}']
+    assert status_of(root) == 'success' and found['langfuse.trace.metadata.fork'] == 'false'
 
 
 @pytest.mark.parametrize('key', CASES)
-def test_a_failed_request_is_tagged_failed_and_keeps_its_http_error(monkeypatch, spans, key):
+def test_a_failed_request_is_marked_failed_on_its_root_and_keeps_its_http_error(monkeypatch, spans, key):
     failure = CASES[key][2]
     with pytest.raises(HTTPException) as error:
         prepare(monkeypatch, key, failure)()
     [root] = spans()
-    assert attrs(root)['langfuse.trace.tags'] == [f'feature:{root.name}', 'status:failed']
-    assert root.attributes['langfuse.observation.level'] == 'ERROR'
+    assert attrs(root)['langfuse.trace.tags'] == [f'feature:{root.name}']
+    assert status_of(root) == 'failed' and root.attributes['langfuse.observation.level'] == 'ERROR'
     assert error.value.status_code == getattr(failure, 'status', 503)  # 이어쓰기의 ProviderFailure는 상태 없이 503이다
 
 

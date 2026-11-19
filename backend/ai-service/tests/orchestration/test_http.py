@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 
 from app.main import create_app
 
-from traced import MEMBER, attrs, bearer
+from traced import MEMBER, attrs, bearer, status_of
 
 from .stubs import QA, fake_agents, plan
 
@@ -43,4 +43,5 @@ def test_orchestration_stream_is_one_request_trace_of_the_author(monkeypatch, sp
                     json={'request': '길드 규칙 알려줘', 'inputs': {'story_context': QA}})
     [request] = [s for s in spans() if s.name == 'orchestration']  # SSE를 끝까지 흘린 요청의 루트
     found = attrs(request)
-    assert found['user.id'] == MEMBER and found['langfuse.trace.tags'] == ['feature:orchestration', 'status:success']
+    assert found['user.id'] == MEMBER and found['langfuse.trace.tags'] == ['feature:orchestration'] and status_of(request) == 'success'
+    assert request.parent is None  # 스트림 전체를 덮는 trace의 유일한 루트

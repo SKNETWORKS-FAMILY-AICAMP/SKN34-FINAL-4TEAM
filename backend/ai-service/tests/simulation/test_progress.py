@@ -88,10 +88,12 @@ def test_usage_callback_counts_a_failed_tool_and_starts_the_next_turn_clean(monk
 
 def test_usage_callback_leaves_one_span_per_turn_in_the_trace_without_any_text(monkeypatch, spans):
     staged(monkeypatch, speech(KAEL), acts=reporting(lambda payload: action(), 'act'), verdicts=lambda payload: verdict(payload, scene_complete=True))
-    usage = UsageLedger('simulation.turn', scene_agent.turn, trace=tracing.context(*tracing.start_run('writing_ai.orchestration', as_type='chain')))
-    run_with([usage])
+    usage = UsageLedger('simulation.turn', scene_agent.turn)
+    with tracing.request('orchestration'):
+        run_with([usage])
+    root = next(s for s in spans() if s.name == 'orchestration')
     turns = [s for s in spans() if s.name == 'simulation.turn']
-    assert len(turns) == 3
+    assert len(turns) == 3 and all(t.parent.span_id == root.context.span_id for t in turns)  # 요청 루트 아래에 붙는다
     metadata = {k.removeprefix('langfuse.observation.metadata.'): v for k, v in dict(turns[1].attributes).items() if 'metadata' in k}
     assert json.loads(metadata['calls']) == usage.records[1]['calls'] and metadata['turn'] == 2 and metadata['modelCalls'] == 1
     assert 'KAEL' not in str(dict(turns[1].attributes)) and action().prose not in str(dict(turns[1].attributes))

@@ -194,17 +194,19 @@ def test_progress_middleware_streams_a_step_left_in_state_once_and_clears_it(mon
 
 def test_usage_ledger_closes_the_model_calls_of_each_step_in_one_span(spans):
     from app import tracing
-    ledger = agent_runtime.UsageLedger('test.turn', lambda step: {'turn': step['n']},
-                                       trace=tracing.context(*tracing.start_run('run', as_type='chain')))
+    ledger = agent_runtime.UsageLedger('test.turn', lambda step: {'turn': step['n']})
     call = {'name': 'act', 'ms': 5, 'failed': False, 'inputTokens': 10, 'outputTokens': 4}
-    ledger.on_custom_event(agent_runtime.MODEL_EVENT, call)
-    ledger.on_tool_error(RuntimeError('x'))
-    ledger.on_custom_event(agent_runtime.STEP_EVENT, {'n': 1})
-    ledger.on_custom_event(agent_runtime.STEP_EVENT, {'n': 2})
+    with tracing.request('orchestration'):
+        ledger.on_custom_event(agent_runtime.MODEL_EVENT, call)
+        ledger.on_tool_error(RuntimeError('x'))
+        ledger.on_custom_event(agent_runtime.STEP_EVENT, {'n': 1})
+        ledger.on_custom_event(agent_runtime.STEP_EVENT, {'n': 2})
     first, second = ledger.records
     assert (first['turn'], first['modelCalls'], first['failures'], first['inputTokens'], first['ms']) == (1, 2, 1, 10, 5)
     assert second['modelCalls'] == 0 and ledger.calls == []
-    assert len([s for s in spans() if s.name == 'test.turn']) == 2
+    root = next(s for s in spans() if s.name == 'orchestration')
+    turns = [s for s in spans() if s.name == 'test.turn']
+    assert len(turns) == 2 and all(t.parent.span_id == root.context.span_id for t in turns)  # 요청 루트 아래에 붙는다
 
 
 def test_a_step_from_an_agent_inside_an_orchestration_node_reaches_the_outer_custom_stream():

@@ -26,7 +26,7 @@ from app.world_review import service as world_review
 from app.world_review.errors import WorldReviewFailure
 from app.world_review.models import Finding as WorldFinding, WorldReviewResult
 
-from traced import MEMBER, attrs, bearer
+from traced import MEMBER, attrs, bearer, status_of
 
 from .stubs import (BEAT, CLOSING, CONTEXT, COVERAGE, DRAFT, FORM, LINE, OPENING, PATCH, QA, REVIEW, SCENE_TEXT, SCOPE, WEB,
                     WORLD, WORLD_REVIEW_REQUEST, Step, fake_agents, fake_scene, plan)
@@ -136,7 +136,7 @@ def test_batched_steps_are_overlapping_spans_of_the_same_trace(monkeypatch, span
     monkeypatch.setattr(tools.research, 'research', lambda data: (time.sleep(0.3), web(data))[1])
     run(inputs={'story_context': QA, 'web_research': WEB})
     found = {s.name: s for s in spans()}
-    qa, web, root = found['step.story_context'], found['step.web_research'], found['writing_ai.orchestration']
+    qa, web, root = found['step.story_context'], found['step.web_research'], found['orchestration']
     assert qa.parent.span_id == web.parent.span_id == root.context.span_id
     assert web.start_time < qa.end_time and qa.start_time < web.end_time
 
@@ -266,13 +266,12 @@ def test_run_id_is_the_trace_of_the_decision_main_agent_and_steps(monkeypatch, s
     fake_agents(monkeypatch, plan('story_context', 'web_research'))
     result = run(inputs={'story_context': QA, 'web_research': WEB})
     found = {s.name: s for s in spans()}
-    assert {'writing_ai.orchestration', 'decision_guard', 'main_agent', 'step.story_context', 'step.web_research'} <= set(found)
-    root = found['writing_ai.orchestration']
+    assert {'orchestration', 'decision_guard', 'main_agent', 'step.story_context', 'step.web_research'} <= set(found)
+    root = found['orchestration']
     assert result.runId == format(root.context.trace_id, '032x')
     assert all(found[n].parent.span_id == root.context.span_id
                for n in ('decision_guard', 'main_agent', 'step.story_context', 'step.web_research'))
-    assert json.loads(root.attributes['langfuse.observation.input']) == {'request': '요청'}
-    assert json.loads(found['decision_guard'].attributes['langfuse.observation.input']) == {'request': '요청'}
+    assert json.loads(found['decision_guard'].attributes['langfuse.observation.input']) == {'request': '요청'}  # 요청 루트에는 본문을 남기지 않는다
     assert len([s for s in spans() if s.name == 'main_agent']) == 3  # 도구 두 번 + 종합
 
 
@@ -1764,10 +1763,6 @@ def requests_of(spans):
     return [s for s in spans() if s.name == 'orchestration']
 
 
-def tags_of(span):
-    return attrs(span)['langfuse.trace.tags']
-
-
 def test_a_turn_request_carries_member_session_work_and_success_through_the_whole_trace(monkeypatch, spans):
     thread = str(uuid4())
     fake_agents(monkeypatch, plan('story_context'))
@@ -1777,9 +1772,9 @@ def test_a_turn_request_carries_member_session_work_and_success_through_the_whol
     found = attrs(request)
     assert (found['user.id'], found['session.id']) == (MEMBER, thread)
     assert (found['langfuse.trace.metadata.work_id'], found['langfuse.trace.metadata.fork']) == ('work-1', 'true')
-    assert tags_of(request) == ['feature:orchestration', 'status:success']
-    assert format(request.context.trace_id, '032x') == result.runId  # 턴의 trace에 붙는다
-    # 턴의 trace에 명시적으로 붙은 observation도 같은 회원·세션을 갖는다
+    assert attrs(request)['langfuse.trace.tags'] == ['feature:orchestration'] and status_of(request) == 'success'
+    assert format(request.context.trace_id, '032x') == result.runId  # 턴의 trace의 루트다
+    # 요청 루트 아래의 모든 observation도 같은 회원·세션을 갖는다
     steps = [s for s in spans() if s.name in ('decision_guard', 'main_agent', 'step.story_context')]
     assert len(steps) == 4 and all(attrs(s)['user.id'] == MEMBER and attrs(s)['session.id'] == thread for s in steps)
 
@@ -1792,12 +1787,12 @@ def test_the_request_without_a_conversation_has_no_session(monkeypatch, spans):
 
 
 @pytest.mark.parametrize('where, failure', [('judge', IntentFailure()), ('web_research', ResearchFailure(503, '웹 검색에 실패했습니다.'))])
-def test_a_router_failure_or_a_failed_step_tags_the_turn_failed(monkeypatch, spans, where, failure):
+def test_a_router_failure_or_a_failed_step_marks_the_turn_failed_on_the_root(monkeypatch, spans, where, failure):
     fake_agents(monkeypatch, plan('web_research'), fail={where: failure})
     with contextlib.suppress(IntentFailure):  # 판정 실패는 예외로 올라오고, 실패한 단계는 응답 status=failed다
         member_run(inputs={'web_research': WEB})
     [request] = requests_of(spans)
-    assert tags_of(request) == ['feature:orchestration', 'status:failed']
+    assert status_of(request) == 'failed' and request.attributes['langfuse.observation.level'] == 'ERROR'  # 응답 status가 failed여도 루트는 ERROR다
 
 
 def test_a_waiting_turn_has_no_status_and_its_resume_joins_the_trace_and_ends_it(monkeypatch, spans):
@@ -1807,8 +1802,12 @@ def test_a_waiting_turn_has_no_status_and_its_resume_joins_the_trace_and_ends_it
     done = member_resume(thread, {'web_research': WEB})
     first, second = requests_of(spans)
     assert (waiting.status, done.status) == ('waiting', 'completed') and waiting.runId == done.runId
-    assert tags_of(first) == ['feature:orchestration'] and tags_of(second) == ['feature:orchestration', 'status:success']
+    assert status_of(first) is None and status_of(second) == 'success'
     assert {format(s.context.trace_id, '032x') for s in (first, second)} == {waiting.runId}
+    # 이어 간 요청의 루트는 첫 요청 루트 아래에서 새 루트가 되고, 그 요청의 단계는 그 루트 아래에 붙는다
+    assert first.parent is None and second.parent.span_id == first.context.span_id and second.attributes['langfuse.internal.is_app_root']
+    step = next(s for s in spans() if s.name == 'step.web_research')
+    assert step.parent.span_id == second.context.span_id
     resumed = attrs(second)
     assert (resumed['user.id'], resumed['session.id'], resumed['langfuse.trace.metadata.work_id']) == (MEMBER, thread, 'work-1')
 
@@ -1818,25 +1817,25 @@ def test_a_stream_is_one_request_trace_too(monkeypatch, spans):
     events = member_stream(inputs={'story_context': QA})
     [request] = requests_of(spans)
     assert events[-1][1]['status'] == 'completed' and attrs(request)['user.id'] == MEMBER
-    assert tags_of(request) == ['feature:orchestration', 'status:success']
+    assert status_of(request) == 'success'
 
 
-def test_a_waiting_stream_and_a_failed_stream_are_tagged_by_their_outcome(monkeypatch, spans):
+def test_a_waiting_stream_and_a_failed_stream_are_marked_by_their_outcome(monkeypatch, spans):
     fake_agents(monkeypatch, plan('web_research'))
     member_stream(conversation={'threadId': str(uuid4()), 'scope': 'user:1/work:1'})
     fake_agents(monkeypatch, plan('story_context'), fail={'judge': IntentFailure()})
     assert member_stream(inputs={'story_context': QA}) == [('error', {'message': '요청 분류에 실패했습니다.'})]
     waiting, failed = requests_of(spans)
-    assert tags_of(waiting) == ['feature:orchestration'] and tags_of(failed) == ['feature:orchestration', 'status:failed']
+    assert status_of(waiting) is None and status_of(failed) == 'failed'
 
 
 
 # 대화·재개 확인 단계(_target)의 실패는 붙일 턴에 닿기 전이다. 그래도 실패한 요청 trace로 남아 실패율에서 빠지지 않는다.
 
 def assert_one_failed_request(spans, thread):
-    [failed] = [s for s in requests_of(spans) if tags_of(s)[-1] == 'status:failed']
+    [failed] = [s for s in requests_of(spans) if status_of(s) == 'failed']
     found = attrs(failed)
-    assert tags_of(failed) == ['feature:orchestration', 'status:failed'] and failed.attributes['langfuse.observation.level'] == 'ERROR'
+    assert found['langfuse.trace.tags'] == ['feature:orchestration'] and failed.attributes['langfuse.observation.level'] == 'ERROR'
     assert (found['user.id'], found['session.id']) == (MEMBER, thread)
 
 
@@ -1869,3 +1868,53 @@ def test_a_stream_that_fails_at_the_conversation_check_is_a_failed_request_trace
     events = member_stream(None, conversation={'threadId': thread, 'scope': 'user:1/work:1'}, resume={'approved': True})
     assert events == [('error', {'message': service.NOTHING_TO_RESUME_MESSAGE})]
     assert_one_failed_request(spans, thread)
+
+
+
+# 요청 루트 관측 하나가 trace의 유일한 루트이고 요청 전체(SSE 끝까지)를 덮는다(DEC-55 v4).
+
+def test_a_request_is_one_trace_with_one_root_that_starts_first_ends_last_and_every_span_descends_from(monkeypatch, spans):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context', 'web_research'))
+    result = member_run(conversation={'threadId': thread, 'scope': 'user:1/work:1'}, target={**TURN_TARGET, 'fork': True},
+                        inputs={'story_context': QA, 'web_research': WEB})
+    everything = spans()
+    roots = [s for s in everything if s.parent is None]
+    assert [s.name for s in roots] == ['orchestration'] and not [s for s in everything if s.name == 'writing_ai.orchestration']
+    [root] = roots
+    by_id = {s.context.span_id: s for s in everything}
+
+    def top(span):
+        while span.parent is not None:
+            span = by_id[span.parent.span_id]
+        return span
+
+    assert all(top(s) is root for s in everything) and format(root.context.trace_id, '032x') == result.runId
+    assert root.start_time == min(s.start_time for s in everything) and root.end_time == max(s.end_time for s in everything)
+    # 서버가 루트로 세는 표시(is_app_root)도 루트에만 있고, 상태는 루트에만 남는다
+    assert [s.name for s in everything if s.attributes.get('langfuse.internal.is_app_root')] == ['orchestration']
+    assert [s.name for s in everything if status_of(s)] == ['orchestration'] and status_of(root) == 'success'
+    # 루트와 모든 하위 observation에 같은 회원·세션·trace 이름·태그·metadata가 있다
+    root_request_id = attrs(root)['langfuse.trace.metadata.request_id']
+    for span in everything:
+        found = attrs(span)
+        assert (found['user.id'], found['session.id'], found['langfuse.trace.name']) == (MEMBER, thread, 'orchestration'), span.name
+        assert found['langfuse.trace.tags'] == ['feature:orchestration'], span.name
+        assert (found['langfuse.trace.metadata.work_id'], found['langfuse.trace.metadata.fork'],
+                found['langfuse.trace.metadata.request_id']) == ('work-1', 'true', root_request_id), span.name
+
+
+def test_the_stream_root_stays_open_until_the_done_event_is_consumed(monkeypatch, spans):
+    fake_agents(monkeypatch, plan('story_context'))
+
+    async def consume():
+        events, open_at_done = [], None
+        async for event in service.stream(OrchestrationRequest(request='요청', inputs={'story_context': QA}), bearer()):
+            events.append(event.event)
+            if event.event == 'done':
+                open_at_done = 'orchestration' not in [s.name for s in spans()]  # done을 막 받았을 때 루트는 아직 안 끝났다
+        return events, open_at_done
+
+    events, open_at_done = asyncio.run(consume())
+    assert events[-1] == 'done' and open_at_done is True
+    assert [s.name for s in requests_of(spans)] == ['orchestration']

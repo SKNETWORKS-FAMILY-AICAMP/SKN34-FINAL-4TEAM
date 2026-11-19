@@ -55,8 +55,7 @@ from app.intent.errors import IntentFailure
 from app.intent.prompt import CLARIFY_MESSAGE, REJECT_MESSAGES
 from app.orchestration import agent
 from app.orchestration.models import ChatHistory, ChatSession, ChatTurn, OrchestrationRequest, OrchestrationResponse, Resume
-from app.orchestration.tools import (HISTORY_TURNS, UNSUPPORTED_MESSAGE, history as _history, previous as _previous, task as _task,
-                                     trace as _trace)
+from app.orchestration.tools import HISTORY_TURNS, UNSUPPORTED_MESSAGE, history as _history, previous as _previous, task as _task
 from app.simulation import service as simulation
 from app.simulation.models import Scene, SimulationPlan
 from app.simulation.scene_agent import scene_agent, turn as simulation_turn
@@ -127,8 +126,8 @@ class State(TypedDict, total=False):
     simulationForm: dict | None  # [시뮬레이션] 버튼의 시작 양식(SimulationPlan JSON). 있으면 도구가 모델 없이 이 값을 계획으로 쓴다.
     scene: dict | None  # 끝났거나 승인을 기다리는 장면(Scene JSON). 승인 대기 중 장면 조작이 이 장면에서 이어 간다. 진행 중 장면은 에이전트 상태에 있다.
     sceneAction: dict | None  # 승인 대기에서 장면으로 돌아온 작가의 조작(SceneAction JSON). 다음 에이전트 실행이 처리한다.
-    runId: str | None  # Langfuse trace id. resume한 단계도 같은 trace에 붙는다.
-    traceParent: str | None
+    runId: str | None  # Langfuse trace id. 이 턴을 연 요청의 루트가 정한다(_claim). resume한 요청의 루트도 같은 trace에 붙는다.
+    traceParent: str | None  # 이 턴을 연 요청 루트의 id. resume한 요청의 루트가 그 아래(같은 trace)에 새 루트로 붙는다.
     title: str  # 대화 제목. 첫 턴 요청 앞부분이며 rename으로만 바뀐다.
     replaceHistory: bool
     turns: Annotated[list[dict], operator.add]  # 턴마다 {request, qa, reply}를 하나씩 덧붙인다.
@@ -210,9 +209,9 @@ async def scene(state: State, config: RunnableConfig) -> State:
                            pausing=pausing)
     seed = {'messages': [HumanMessage('장면을 진행해 주세요.')], 'scene': current.model_dump(mode='json'), 'pending': False,
             'decision': None, 'action': state.get('sceneAction')}
-    config = merge_configs(config, {'callbacks': [UsageLedger('simulation.turn', simulation_turn, _trace(state))]})
+    config = merge_configs(config, {'callbacks': [UsageLedger('simulation.turn', simulation_turn)]})
     out = paused = None
-    with tracing.observe('step.character_simulation', as_type='agent', trace_context=_trace(state)):
+    with tracing.observe('step.character_simulation', as_type='agent'):
         try:
             out = await scene_agent(pausing).ainvoke(seed, config, context=context)
         except GraphBubbleUp as pause:  # 턴 사이 대기는 정상이라 추적에 실패로 남기지 않는다
@@ -254,8 +253,7 @@ def apply(state: State) -> State:
         result = step['result'] if feature == 'writing_editing' else {'text': '\n\n'.join(t['prose'] for t in step['result']['turns'])}
         expected_revision = state.get('writingBaseRevision') if feature == 'writing_editing' else None
         try:
-            with tracing.observe(f'step.{feature}.apply', as_type='tool', trace_context=_trace(state),
-                                 metadata={'episode': target['episode']}):
+            with tracing.observe(f'step.{feature}.apply', as_type='tool', metadata={'episode': target['episode']}):
                 step['applied'] = content_mcp.apply_writing(target['workId'], target['episode'], result, expected_revision=expected_revision)
         except ContentMcpFailure as error:
             step.update(status='failed', error=str(error))
@@ -363,10 +361,8 @@ async def lifespan(_app):
 
 
 def _initial(data: OrchestrationRequest) -> State:
-    """턴마다 바뀌는 값은 모두 새로 넣어 이전 턴 결과가 이번 응답에 남지 않게 한다. 턴마다 새 trace를 연다."""
-    run_id, parent = tracing.start_run('writing_ai.orchestration', as_type='chain', input={'request': data.request},
-                                       metadata={'operation': data.operation, 'conversation': data.conversation is not None})
-    return {'runId': run_id, 'traceParent': parent, 'request': data.request, 'operation': data.operation, 'materials': data.materials,
+    """턴마다 바뀌는 값은 모두 새로 넣어 이전 턴 결과가 이번 응답에 남지 않게 한다. runId·traceParent는 이 턴을 여는 요청의 루트가 채운다(_claim)."""
+    return {'runId': None, 'traceParent': None, 'request': data.request, 'operation': data.operation, 'materials': data.materials,
             'inputs': data.inputs.model_dump(exclude_none=True), 'status': 'planning', 'message': None,
             'steps': [], 'missingInputs': [], 'unsupported': [], 'writingBaseRevision': None, 'replaceHistory': False, 'simulationPlan': None, 'task': None,
             'scene': None, 'sceneAction': None, 'simulationForm': data.simulation.model_dump(mode='json') if data.simulation else None,
@@ -516,15 +512,23 @@ async def truncate(thread_id: str, scope: str, index: int) -> None:
 
 
 def _traced(data: OrchestrationRequest, authorization: str, state: dict):
-    """한 HTTP 요청의 추적(DEC-55). 요청 루트를 이 턴의 trace에 붙인다: 새 턴은 방금 연 trace, 멈춘 턴의 resume은 그 턴의 trace다.
+    """한 HTTP 요청의 추적(DEC-55 v4): 요청 루트 관측 하나가 이 요청 전체를 덮는다. 새 턴은 새 trace의 루트이고, 멈춘 턴을 이어 가는
+    resume 요청은 그 턴의 trace에 새 루트로 붙는다(state의 runId·traceParent).
 
-    회원은 Bearer, 세션은 대화 id, 작품·Fork는 반영 대상(resume은 체크포인트에 남은 대상)에서 읽는다.
+    회원은 Bearer, 세션은 대화 id, 작품·Fork는 반영 대상(resume은 체크포인트에 남은 대상)에서 읽는다. 단계 observation은 현재 문맥(이 루트)의 하위로 붙는다.
     """
     target = state.get('target') or {}
     return tracing.request('orchestration', user_id=tracing.member_id(authorization),
                            session_id=data.conversation.threadId if data.conversation else None,
-                           work_id=target.get('workId'), fork='true' if target.get('fork') else None,
+                           work_id=target.get('workId'), fork=bool(target.get('fork')),
                            trace_context=tracing.context(state.get('runId'), state.get('traceParent')))
+
+
+def _claim(turn, *states: dict) -> None:
+    """새 턴이면 이 요청의 루트가 그 턴의 trace다. 이어 가는 요청의 루트가 붙도록 그 id를 상태(체크포인트에 남는다)에 적는다."""
+    for state in states:
+        if isinstance(state, dict) and state.get('runId') is None and turn.trace_id:
+            state['runId'], state['traceParent'] = turn.trace_id, turn.span_id
 
 
 async def _begin(data: OrchestrationRequest, authorization: str):
@@ -552,6 +556,7 @@ async def run(data: OrchestrationRequest, authorization: str = '') -> Orchestrat
     content_mcp.AUTHORIZATION.set(authorization)
     graph, config, payload, state = await _begin(data, authorization)
     with _traced(data, authorization, state) as turn:
+        _claim(turn, payload, state)
         response = _response(await graph.ainvoke(payload, config))
         turn.status = _outcome(response)
     return response
@@ -592,6 +597,7 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
     try:
         graph, config, payload, state = await _begin(data, authorization)
         with _traced(data, authorization, state) as turn:
+            _claim(turn, payload, state)
             async for namespace, mode, update in graph.astream(payload, config, stream_mode=['updates', 'custom'], subgraphs=True):
                 if mode == 'custom':
                     if 'started' in update:  # 도구가 입력을 다 받고 실제로 실행하기 직전에 알린 기능
@@ -624,6 +630,7 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
                         yield ServerSentEvent(event='started', data={'feature': 'character_simulation'})
             response = _response(state)
             turn.status = _outcome(response)
+            yield ServerSentEvent(event='done', data=response.model_dump(mode='json'))  # 요청 루트가 done까지 덮는다
     except SceneRejected as error:
         yield ServerSentEvent(event='error', data={'message': str(error)})
         return
@@ -633,4 +640,3 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
     except Exception:  # 체크포인트 DB 장애·버그도 연결만 끊기지 않게 알린다. 메시지에 입력이 섞일 수 있어 고정 문구만 보낸다.
         yield ServerSentEvent(event='error', data={'message': STREAM_FAILED_MESSAGE})
         return
-    yield ServerSentEvent(event='done', data=response.model_dump(mode='json'))
