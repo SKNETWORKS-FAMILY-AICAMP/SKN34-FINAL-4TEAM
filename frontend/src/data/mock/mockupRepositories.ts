@@ -34,7 +34,7 @@ export const mockupNotificationRepository: NotificationRepository = {
   markRead: async () => {},
   markAllRead: async () => {},
   remove: async () => {},
-  getPrefs: async () => ({ read: true, creator: true }),
+  getPrefs: async () => ({ read: true, creator: true, aiTool: true }),
   savePrefs: async (prefs) => prefs,
 }
 

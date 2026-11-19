@@ -6,6 +6,7 @@ import type { StudioWorld } from '../../../../domain/entities/studioWorld'
 import { cardLibraryRows, writingIssueLabel } from '../../../../domain/entities/worldStudioWriting'
 import { coverSrc } from '../../../shared/cover'
 import { Go } from '../../../shared/Go'
+import { McpChangeBanner } from '../../../shared/McpChangeBanner'
 import { PageControls } from '../../../shared/PageControls'
 import { pageItems } from '../../../shared/pageItems'
 import { BackChev } from '../../../shared/icons'
@@ -14,6 +15,7 @@ import { Sheet } from '../../../shared/Sheet'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
+import { useMcpChangeWatch } from '../../../shared/useMcpChangeWatch'
 import { genreLabel } from '../../../shared/worldGenres'
 import { labelOf } from '../viewmodel/settingBoard'
 import { useWorldRevisions } from '../viewmodel/useWorldRevisions'
@@ -55,6 +57,8 @@ export function WorldStudioPage() {
   useScreenId('W01')
   useDocumentTitle('세계관')
   const vm = useWorldStudioViewModel()
+  // AI·외부 도구(MCP)가 이 세계관을 바꾸면 알림 신호로 알아차려 다시 읽는다. 저장하지 않은 변경·관계 입력이 있으면 덮지 않고 배너로 알린다(#553).
+  const mcp = useMcpChangeWatch({ targetType: 'world', targetId: vm.reviewWorldId, dirty: vm.dirty || vm.relationDirty, reload: vm.refresh })
   // 넓은 화면은 채팅을 연 채로, 1200px 이하는 닫은 채로 시작한다. 전송이 아직 잠긴(준비 중) 채팅이 300~350px를 차지하면 중간 폭에서 게시판·편집기가 너무 좁아지기 때문이다.
   // 닫혀 있어도 `AI 채팅 열기`로 열 수 있고(900px 이하에서는 화면을 덮는 서랍), 설정집 화면과 편집 화면이 같은 상태를 쓴다.
   const [chatOpen, setChatOpen] = useState(() => !window.matchMedia?.('(max-width: 1200px)').matches)
@@ -75,6 +79,7 @@ export function WorldStudioPage() {
           {/* 편집 화면이 열려 있는 동안은 같은 오류·알림을 그 화면이 보인다(숨은 설정집 화면에 같은 글이 겹쳐 있지 않게 한다). */}
           {!editingCard && vm.error && <p role="alert" className="ep-alert">{vm.error}</p>}
           {!editingCard && vm.message && <p role="status" className="ep-notice">{vm.message}</p>}
+          {!editingCard && <McpChangeBanner {...mcp} />}
           {loading && <p role="status" className="ep-notice">세계관을 불러오고 있어요…</p>}
           {!vm.reviewWorldId && <WorldCreate vm={vm} />}
           {!vm.editing && vm.reviewWorldId && <InitialWorldReview key={vm.reviewWorldId} studio={vm} />}
@@ -83,7 +88,7 @@ export function WorldStudioPage() {
         {/* 편집 화면이 열려 있는 동안은 그 화면이 채팅을 그린다. 숨은 설정집 화면의 채팅은 좁은 화면에서 body에 그려지는 서랍이라 여기서 빼지 않으면 편집 화면 위에 겹쳐 뜬다. */}
         {vm.editing && !editingCard && <WorldChat open={chatOpen} onOpenChange={setChatOpen} linkedWorkId={vm.linkedWorkId} />}
       </div>
-      {editingCard && <WorldCardStudio vm={vm} revisions={revisions} openVersions={() => setVersionsOpen(true)} chatOpen={chatOpen} onChatOpenChange={setChatOpen} />}
+      {editingCard && <WorldCardStudio vm={vm} mcp={mcp} revisions={revisions} openVersions={() => setVersionsOpen(true)} chatOpen={chatOpen} onChatOpenChange={setChatOpen} />}
       {vm.editing && versionsOpen && (
         <Sheet sid="W01" label="확정 버전" panelClass="sheet world-sheet" onClose={closeVersions}>
           <div className="world-sheet-head"><button type="button" className="btn sm" onClick={closeVersions}>닫기</button></div>

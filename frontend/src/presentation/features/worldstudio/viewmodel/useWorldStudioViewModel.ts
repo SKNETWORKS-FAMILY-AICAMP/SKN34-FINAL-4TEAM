@@ -310,6 +310,21 @@ export function useWorldStudioViewModel(
     setReviewBusy,
     /** 설정집 AI 검토: 동의·요청·결과(지적·수정안)와 수정안 반영. 결과는 저장하지 않고 세계관이 바뀌면 지운다. */
     review,
+    /** 서버 값으로 초안을 바꾼다. 저장하지 않은 변경·관계 입력은 확인 없이 버리므로, 다른 곳(MCP)에서 바뀐 알림(useMcpChangeWatch)은 입력이 없을 때 자동으로, 있으면 배너를 사용자가 누른 뒤에 부른다. 고른 관계 기준 회차는 유지하고, 읽었으면 true다. */
+    refresh: async () => {
+      let done = false
+      await perform(async (signal) => {
+        const current = generation.current
+        const world = await useCase.read(worldId, signal, episode ?? undefined)
+        if (generation.current !== current || signal.aborted) return
+        setRelationKey((key) => key + 1) // 관계 편집기·카드 편집기를 새로 열어 옛 입력이 남지 않게 한다
+        setRelationRequest(null)
+        setRelationDirty(false)
+        apply(world, current)
+        done = true
+      })
+      return done
+    },
     reload:async(expected?:{resultDraftRevision:number|null;createdCardIds:string[];createdRelationshipIds:string[]})=>{if(dirty||relationDirty)throw new Error('작성 중인 입력을 먼저 저장해 주세요.');const current=generation.current;const w=await useCase.read(worldId);if(current!==generation.current)throw new Error('다른 세계관으로 이동했어요.');if(expected&&(expected.resultDraftRevision===null||w.version<expected.resultDraftRevision||[...expected.createdCardIds,...expected.createdRelationshipIds].some(id=>!w.settings.some(s=>s.item.id===id))))throw new Error('반영된 설정 재조회를 확인하지 못했어요. 같은 요청으로 다시 확인해 주세요.');install(w);setEpisode(null);setRelationKey(v=>v+1);return w},
     storage: worldStudioStorage(import.meta.env.MODE),
     canUndoCardDeletion: !!cardUndo,
