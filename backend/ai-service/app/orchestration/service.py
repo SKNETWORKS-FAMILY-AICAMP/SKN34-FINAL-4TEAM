@@ -152,6 +152,16 @@ def _conversation(state: State) -> list:
 
 
 async def main_agent(state: State, config: RunnableConfig) -> State:
+    """새 채팅 메시지의 판정 실패는 finish에서 종료된 턴으로 저장한다."""
+    try:
+        return await _run_main_agent(state, config)
+    except IntentFailure:
+        if not config.get('configurable', {}).get('persist_chat_intent_failure'):
+            raise
+        return {'status': 'failed', 'message': ROUTER_FAILED_MESSAGE, 'steps': []}
+
+
+async def _run_main_agent(state: State, config: RunnableConfig) -> State:
     """메인 에이전트를 실행하고 판정·단계·답변을 바깥 상태로 옮긴다.
 
     작가가 되묻기에 기능 이름으로 답했으면 모델에게 다시 판정시키지 않는다. 되물음을 받은 요청을 그 기능의 operation 경로(가드레일만)로
@@ -553,7 +563,7 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
     waiting(계획·빠진 입력·승인·장면 대기)과 done(status=waiting)으로 끝난다. 시뮬레이션 장면은 노드가 끝나기 전에 턴이 끝날 때마다
     장면 에이전트의 이벤트를 받아 step 이벤트(그때까지의 누적 결과, 단계 status는 아직 not_started)로 중계하고, 모델을 부르지 않은 조작
     (edit)이면 멈춘 payload의 장면을 step으로 알린 뒤 waiting(awaitingScene)을 보낸다. 응답 헤더를 보낸 뒤라
-    Router 실패·대화 오류는 HTTP 상태 대신 error 이벤트 하나로 알린다.
+    새 대화 메시지의 판정 실패는 턴을 저장한 뒤 done(status=failed)으로 끝난다. 그 밖의 판정 실패와 대화 오류는 error로 알린다.
     """
     errors = {IntentFailure: ROUTER_FAILED_MESSAGE, ConversationMismatch: CONVERSATION_MISMATCH_MESSAGE,
               NothingToResume: NOTHING_TO_RESUME_MESSAGE, ConversationUnavailable: CONVERSATION_UNAVAILABLE_MESSAGE,
@@ -562,6 +572,8 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
     relayed = False
     try:
         graph, config, payload, state = await _target(data)
+        if config is not None and data.resume is None and data.fromTurn is None:
+            config = merge_configs(config, {'configurable': {'persist_chat_intent_failure': True}})
         async for namespace, mode, update in graph.astream(payload, config, stream_mode=['updates', 'custom'], subgraphs=True):
             if mode == 'custom':
                 if 'started' in update:  # 도구가 입력을 다 받고 실제로 실행하기 직전에 알린 기능

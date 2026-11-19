@@ -1533,6 +1533,23 @@ def test_rename_keeps_turns_and_waits_for_a_finished_run(monkeypatch):
         conversation('rename', thread, ME, '다른 제목')
 
 
+def test_failed_new_message_is_saved_and_chat_can_be_renamed(monkeypatch):
+    thread = str(uuid4())
+    fake_agents(monkeypatch, plan('story_context'), fail={'judge': IntentFailure()})
+
+    events = stream(request='카이의 목표는?', conversation={'threadId': thread, 'scope': ME})
+
+    assert events[-1][0] == 'done'
+    assert events[-1][1]['status'] == 'failed'
+    conversation('rename', thread, ME, '실패한 집필 요청')
+    history = conversation('history', thread, ME)
+    assert history.title == '실패한 집필 요청'
+    assert len(history.turns) == 1
+    turn = history.turns[0]
+    assert turn.request == '카이의 목표는?'
+    assert (turn.reply.status, turn.reply.message) == ('failed', service.ROUTER_FAILED_MESSAGE)
+
+
 def test_delete_removes_the_thread(monkeypatch):
     thread = str(uuid4())
     fake_agents(monkeypatch, plan('story_context'))
