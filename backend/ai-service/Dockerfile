@@ -10,13 +10,14 @@ ENV UV_COMPILE_BYTECODE=1 \
 
 WORKDIR /app
 
+# eval: 회귀 평가(ragas·deepeval)가 AI 프로세스에서 돌아 같은 이미지에 설치한다(Celery 병합 뒤 평가를 돌리는 worker 이미지로 옮긴다, DEC-55).
 COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev --extra manuscript --no-install-project
+    uv sync --locked --no-dev --extra manuscript --extra eval --no-install-project
 
 COPY app ./app
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev --extra manuscript --no-editable
+    uv sync --locked --no-dev --extra manuscript --extra eval --no-editable
 
 FROM python:3.11-slim-bookworm AS runtime
 
