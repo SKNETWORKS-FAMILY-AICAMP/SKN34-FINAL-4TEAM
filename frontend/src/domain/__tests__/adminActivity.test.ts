@@ -16,10 +16,23 @@ const ACTIONS: [string, string][] = [
   ['COMMENT_HIDE', '댓글 숨김'], ['COMMENT_UNHIDE', '댓글 게시 복구'],
 ]
 
+/** DEC-55 계약의 관리자 변경 조치 11종(조각 2·3이 정한 이름과 다르면 코디네이터가 맞춘다) */
+const LLMOPS_ACTIONS: [string, string][] = [
+  ['PROMPT_VERSION_CREATED', '프롬프트 새 버전 등록'], ['PROMPT_PROMOTED', '프롬프트 production 승격·복원'], ['MODEL_CREATED', '모델 단가 등록'],
+  ['EVALUATION_STARTED', '회귀 평가 실행'], ['ALERT_UPDATED', '경고 확인·조치 기록'], ['ALERT_RULE_UPDATED', '경고 기준 변경'],
+  ['LLMOPS_SETTING_UPDATED', 'LLMOps 설정 변경'], ['JOB_SCHEDULE_CREATED', '정기 작업 일정 등록'], ['JOB_SCHEDULE_UPDATED', '정기 작업 일정 변경'],
+  ['JOB_SCHEDULE_CANCELLED', '정기 작업 일정 취소'], ['JOB_RUN_RETRIED', '작업 실패 재실행'],
+]
+
 describe('관리자 활동 기록 표시 규칙 (72)', () => {
   it('계약의 조치 20종은 모두 한국어 이름으로 보인다', () => {
     expect(ACTIONS).toHaveLength(20)
     for (const [code, label] of ACTIONS) expect(activityActionLabel(code)).toBe(label)
+  })
+
+  it('운영 대시보드·LLMOps·작업 감시의 조치 11종도 한국어 이름으로 보인다', () => {
+    expect(LLMOPS_ACTIONS).toHaveLength(11)
+    for (const [code, label] of LLMOPS_ACTIONS) expect(activityActionLabel(code)).toBe(label)
   })
 
   it('모르는 조치는 코드 그대로 보이고 객체 기본 속성 이름도 함수로 새지 않는다', () => {

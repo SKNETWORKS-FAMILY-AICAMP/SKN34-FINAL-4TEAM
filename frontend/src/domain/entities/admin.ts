@@ -28,6 +28,18 @@ export const ADMIN_TABS = ['data', 'users', 'works', 'comments', 'characterChats
 export type AdminTab = (typeof ADMIN_TABS)[number]
 export const adminTab = (t: string | null): AdminTab => ADMIN_TABS.find((x) => x === (t === 'ai' ? 'llm' : t)) ?? 'data'
 
+/**
+ * 로그인 뒤 전체 페이지 이동으로 돌아갈 Core OIDC 인가 주소(Langfuse 로그인, DEC-55)입니다. 이 경로만 허용하고 그 밖(외부 주소·다른 경로)은 null이며,
+ * 주소는 가짜 기준 주소로 해석한 결과(점 경로·인코딩 정리 뒤)가 같은 출처의 이 경로일 때만 인정합니다.
+ */
+export function oidcAuthorizeReturn(next: string | null): string | null {
+  if (!next) return null
+  const base = 'http://return.invalid'
+  let url: URL
+  try { url = new URL(next, base) } catch { return null }
+  return url.origin === base && url.pathname === '/api/v1/auth/oidc/authorize' ? url.pathname + url.search : null
+}
+
 /** 로그인 복귀에는 알려진 내부 관리자 탭 하나만 남깁니다. 임의 next/외부 URL은 전달하지 않습니다. */
 export function adminReturnPath(search: string): string {
   const query = new URLSearchParams(search)
