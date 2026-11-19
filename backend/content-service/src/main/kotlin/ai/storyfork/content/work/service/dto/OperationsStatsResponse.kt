@@ -8,7 +8,7 @@ data class OperationsStatsResponse(
     val editSuggestions: EditSuggestionStats,
 )
 
-/** AI 제안: [adopted]는 기간 안에 채택(적용)한 수(결정 시각 기준), [total]은 기간 안에 생성된 수(생성 시각 기준)다. */
+/** AI 제안: [total]은 기간 안에 생성된 수, [adopted]는 그중 채택(적용)된 수다(둘 다 생성 시각 기준이라 adopted <= total, 결정 시각은 보지 않는다). */
 data class ProposalDecisionStats(val adopted: Long, val total: Long)
 
 /** 수정 제안 결정: [approved]는 승인, [decided]는 승인+거절이다(보류는 결정이 아니다). */

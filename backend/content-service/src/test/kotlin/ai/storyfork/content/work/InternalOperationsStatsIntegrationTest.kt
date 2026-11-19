@@ -122,9 +122,10 @@ class InternalOperationsStatsIntegrationTest {
         settle(suggestion(gone),"approved","2032-03-01T00:00:00Z")
         settle(suggestion(open),"rejected","2032-04-01T00:00:00Z")
         settle(suggestion(open),"approved","2033-01-01T00:00:00Z")
-        // AI 제안: 기간 안에 생성돼 채택된 둘, 기간 안에 생성됐지만 채택 안 된 둘(total에만 든다), 기간 앞에 생성돼 기간 안에 채택된 하나(adopted에만 든다), 기간 밖 하나.
+        // AI 제안(생성 시각이 기준이고 adopted는 total 중 채택이 있는 것이다): 기간 안에 생성돼 기간 안에 채택된 하나, 기간 안에 생성돼 기간 뒤에 채택된 하나(결정 시각은 보지 않는다),
+        // 기간 안에 생성됐지만 채택 안 된 둘(total에만 든다), 기간 앞에 생성돼 기간 안에 채택된 하나와 기간 뒤에 생성된 하나(둘 다 세지 않는다).
         proposal(open,"2032-02-01T00:00:00Z","2032-02-02T00:00:00Z")
-        proposal(open,"2032-06-01T00:00:00Z","2032-06-02T00:00:00Z")
+        proposal(open,"2032-06-01T00:00:00Z","2033-03-01T00:00:00Z")
         proposal(open,"2032-07-01T00:00:00Z")
         proposal(open,"2032-08-01T00:00:00Z")
         proposal(open,"2031-12-30T00:00:00Z","2032-01-02T00:00:00Z")
@@ -136,7 +137,7 @@ class InternalOperationsStatsIntegrationTest {
         assertEquals(2L,after.path("pendingEditSuggestions").asLong()-before.path("pendingEditSuggestions").asLong())
         val inWindow=read(stats+window)
         assertEquals(listOf(2L,3L),listOf(inWindow.path("editSuggestions").path("approved").asLong(),inWindow.path("editSuggestions").path("decided").asLong()))
-        assertEquals(listOf(3L,4L),listOf(inWindow.path("proposalDecisions").path("adopted").asLong(),inWindow.path("proposalDecisions").path("total").asLong()))
+        assertEquals(listOf(2L,4L),listOf(inWindow.path("proposalDecisions").path("adopted").asLong(),inWindow.path("proposalDecisions").path("total").asLong()))
         // 기간을 생략하면 최근 7일이라 2032년 결정은 들어오지 않는다.
         val recent=read()
         assertEquals(before.path("editSuggestions").path("approved").asLong(),recent.path("editSuggestions").path("approved").asLong())

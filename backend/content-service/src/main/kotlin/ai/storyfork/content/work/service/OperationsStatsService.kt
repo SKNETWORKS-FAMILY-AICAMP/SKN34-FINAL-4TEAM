@@ -6,7 +6,6 @@ import ai.storyfork.content.editsuggestion.domain.EditSuggestionRules
 import ai.storyfork.content.editsuggestion.repository.EditSuggestionRepository
 import ai.storyfork.content.feedbackreport.repository.FeedbackReportRepository
 import ai.storyfork.content.proposal.repository.AiProposalRepository
-import ai.storyfork.content.proposal.repository.ProposalDecisionRepository
 import ai.storyfork.content.work.service.dto.EditSuggestionStats
 import ai.storyfork.content.work.service.dto.OperationsStatsResponse
 import ai.storyfork.content.work.service.dto.ProposalDecisionStats
@@ -21,16 +20,15 @@ import org.springframework.transaction.annotation.Transactional
  * 운영 서비스 전용 통계(DEC-55)다. 값마다 count 쿼리 하나라 행을 읽지도 Core를 부르지도 않는다.
  * - 대기: 작가가 아직 손대지 않은 것(제보 `unchecked`·수정 제안 `pending`)의 전체 수다. 삭제된 작품은 작가 피드백함에 안 나오므로 뺀다.
  * - 기간(`from`~`to`, 양 끝 포함, 생략하면 최근 7일): 수정 제안은 그 안에 승인·거절한 수이고 보류는 결정이 아니다.
- *   AI 제안은 `adopted`가 그 안의 채택(`ProposalService.accept`가 남기는 `accept`) 결정 수, `total`이 그 안에 생성된 수(`ai_proposal.created_at`)다.
- * ponytail: adopted(결정 시각)와 total(생성 시각)은 같은 제안 집단이 아니라 기간이 짧으면 adopted > total일 수 있다.
- *   제안 집단의 채택률이 필요하면 adopted를 '기간 안에 생성된 제안 중 채택된 것'으로 바꾼다.
+ *   AI 제안은 `total`이 그 안에 생성된 수(`ai_proposal.created_at`), `adopted`가 그중 채택(`ProposalService.accept`가 남기는 `accept` 결정)이 있는 수다.
+ *   같은 집단이라 `adopted <= total`이고 결정 시각은 보지 않아 기간 뒤에 채택해도 생성 기간에 센다.
+ * ponytail: 기간 끝에 가까운 제안은 아직 채택 전일 수 있어 채택률이 낮게 보인다(집단 기준 집계의 한계). 더 정확히 하려면 채택까지 기다릴 유예 기간을 둔다.
  */
 @Service
 @Transactional(transactionManager = "contentTransactionManager", readOnly = true)
 class OperationsStatsService(
     private val reports: FeedbackReportRepository,
     private val suggestions: EditSuggestionRepository,
-    private val decisions: ProposalDecisionRepository,
     private val proposals: AiProposalRepository,
 ) {
     /** [from]·[to]는 ISO-8601 시각 문자열이다. 값 오류와 `from > to`는 아무것도 세기 전에 422다. */
@@ -43,7 +41,7 @@ class OperationsStatsService(
         return OperationsStatsResponse(
             pendingFeedbackReports = reports.countUnchecked(),
             pendingEditSuggestions = suggestions.countPending(),
-            proposalDecisions = ProposalDecisionStats(adopted = decisions.countByDecisionAndDecidedAtBetween("accept", start, end), total = proposals.countByCreatedAtBetween(start, end)),
+            proposalDecisions = ProposalDecisionStats(adopted = proposals.countAdoptedByCreatedAtBetween(start, end), total = proposals.countByCreatedAtBetween(start, end)),
             editSuggestions = EditSuggestionStats(approved = approved, decided = approved + rejected),
         )
     }

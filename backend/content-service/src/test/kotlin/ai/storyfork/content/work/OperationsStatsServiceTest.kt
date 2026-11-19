@@ -4,7 +4,6 @@ import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.editsuggestion.repository.EditSuggestionRepository
 import ai.storyfork.content.feedbackreport.repository.FeedbackReportRepository
 import ai.storyfork.content.proposal.repository.AiProposalRepository
-import ai.storyfork.content.proposal.repository.ProposalDecisionRepository
 import ai.storyfork.content.work.service.OperationsStatsService
 import ai.storyfork.content.work.service.dto.EditSuggestionStats
 import ai.storyfork.content.work.service.dto.OperationsStatsResponse
@@ -20,24 +19,23 @@ import tools.jackson.databind.json.JsonMapper
 class OperationsStatsServiceTest {
     private val reports = mock(FeedbackReportRepository::class.java)
     private val suggestions = mock(EditSuggestionRepository::class.java)
-    private val decisions = mock(ProposalDecisionRepository::class.java)
     private val proposals = mock(AiProposalRepository::class.java)
-    private val service = OperationsStatsService(reports, suggestions, decisions, proposals)
+    private val service = OperationsStatsService(reports, suggestions, proposals)
     private val now = Instant.parse("2026-11-19T03:00:00Z")
 
-    /** 기간 안 수 대역: 수정 제안 승인·거절, AI 제안 채택(결정 시각 기준)과 생성된 AI 제안(생성 시각 기준)이다. */
-    private fun decided(from: Instant, to: Instant, approved: Long = 0, rejected: Long = 0, accepted: Long = 0, generated: Long = 0) {
+    /** 기간 안 수 대역: 수정 제안 승인·거절, 기간 안에 생성된 AI 제안과 그중 채택된 제안(둘 다 생성 시각 기준, 같은 집단)이다. */
+    private fun decided(from: Instant, to: Instant, approved: Long = 0, rejected: Long = 0, adopted: Long = 0, generated: Long = 0) {
         `when`(suggestions.countByStatusAndDecidedAtBetween("approved", from, to)).thenReturn(approved)
         `when`(suggestions.countByStatusAndDecidedAtBetween("rejected", from, to)).thenReturn(rejected)
-        `when`(decisions.countByDecisionAndDecidedAtBetween("accept", from, to)).thenReturn(accepted)
+        `when`(proposals.countAdoptedByCreatedAtBetween(from, to)).thenReturn(adopted)
         `when`(proposals.countByCreatedAtBetween(from, to)).thenReturn(generated)
     }
 
-    @Test fun `every number of the contract comes from its own count, decided is approved plus rejected and total is the proposals generated rather than the decisions`() {
+    @Test fun `every number of the contract comes from its own count, decided is approved plus rejected and the adopted proposals are counted among the ones generated in the window`() {
         val from = now.minus(7, ChronoUnit.DAYS)
         `when`(reports.countUnchecked()).thenReturn(4)
         `when`(suggestions.countPending()).thenReturn(2)
-        decided(from, now, approved = 3, rejected = 1, accepted = 7, generated = 10)
+        decided(from, now, approved = 3, rejected = 1, adopted = 7, generated = 10)
 
         assertEquals(
             OperationsStatsResponse(4, 2, ProposalDecisionStats(adopted = 7, total = 10), EditSuggestionStats(approved = 3, decided = 4)),
@@ -51,17 +49,17 @@ class OperationsStatsServiceTest {
         val from = now.minus(7, ChronoUnit.DAYS)
         verify(suggestions).countByStatusAndDecidedAtBetween("approved", from, now)
         verify(suggestions).countByStatusAndDecidedAtBetween("rejected", from, now)
-        verify(decisions).countByDecisionAndDecidedAtBetween("accept", from, now)
+        verify(proposals).countAdoptedByCreatedAtBetween(from, now)
         verify(proposals).countByCreatedAtBetween(from, now)
         verify(reports).countUnchecked()
         verify(suggestions).countPending()
-        verifyNoMoreInteractions(reports, suggestions, decisions, proposals)
+        verifyNoMoreInteractions(reports, suggestions, proposals)
     }
 
     @Test fun `an explicit window is used as given with Z or an offset and a missing end falls back to the other end`() {
         val from = Instant.parse("2026-11-01T00:00:00Z")
         val to = Instant.parse("2026-11-08T00:00:00Z")
-        decided(from, to, approved = 1, rejected = 1, accepted = 5)
+        decided(from, to, approved = 1, rejected = 1, adopted = 5)
         assertEquals(EditSuggestionStats(1, 2), service.stats("2026-11-01T00:00:00Z", "2026-11-08T09:00:00+09:00", now).editSuggestions)
 
         // only [to]: the start is seven days before it. only [from]: the end is now.
@@ -76,7 +74,7 @@ class OperationsStatsServiceTest {
             val failure = assertThrows(ContentFailure::class.java) { service.stats(from, to, now) }
             assertEquals(422, failure.status, "$from $to")
         }
-        verifyNoInteractions(reports, suggestions, decisions, proposals)
+        verifyNoInteractions(reports, suggestions, proposals)
     }
 
     @Test fun `the response serializes to the contract field names`() {
