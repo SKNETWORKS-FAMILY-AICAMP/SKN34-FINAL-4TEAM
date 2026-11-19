@@ -92,6 +92,22 @@ def test_instructions_come_from_the_managed_prompt_and_the_generation_links_that
     assert (span.attributes['langfuse.observation.prompt.name'], span.attributes['langfuse.observation.prompt.version']) == ('test.prompt', 3)
 
 
+def test_without_a_prompt_name_the_given_instructions_are_used_as_is_and_no_prompt_is_read_or_linked(monkeypatch, spans):
+    """회귀 평가는 평가할 프롬프트 버전 본문을 instructions로 직접 넘긴다. production 프롬프트를 읽거나 generation에 연결하면 안 된다."""
+    from app import tracing
+    seen = fake_chat(monkeypatch, text='평가 대상 응답')
+    asked = []
+    monkeypatch.setattr(tracing, 'prompt', lambda name, default: asked.append((name, default)) or tracing.Prompt('production 본문'))
+
+    message, parsed = agent_runtime.run('test.generation', '테스트', Failure, '평가할 버전 본문', {'question': '서윤은 누구?'},
+                                        max_tokens=100, timeout=7, trace={'question': '서윤은 누구?'})
+
+    assert asked == []  # Langfuse 프롬프트 조회 없음
+    assert seen['messages'][0].content == '평가할 버전 본문' and parsed is None and message.text == '평가 대상 응답'
+    [span] = [s for s in spans() if s.name == 'test.generation']
+    assert not [key for key in span.attributes if key.startswith('langfuse.observation.prompt')]  # 프롬프트 연결 없음
+
+
 def test_an_unavailable_prompt_is_the_features_503_before_any_model_call(monkeypatch):
     from app import tracing
     seen = fake_chat(monkeypatch)
