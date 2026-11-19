@@ -36,11 +36,25 @@ class DashboardJsonTest {
     }
 
     @Test
-    fun `an unavailable card is null and not missing`() {
-        val tree = testMapper.readTree(testMapper.writeValueAsString(Dashboard(null, null, null, null, 0, listOf("core", "langfuse", "content", "jobs"))))
+    fun `an unavailable card is null and not missing but pending always keeps its database numbers`() {
+        val tree = testMapper.readTree(testMapper.writeValueAsString(
+            Dashboard(null, null, null, DashboardPending(2, 5, null), 0, listOf("core", "langfuse", "content", "jobs")),
+        ))
 
-        for (card in listOf("members", "ai", "jobs", "pending")) assertTrue(tree.path(card).isNull, card)
+        for (card in listOf("members", "ai", "jobs")) assertTrue(tree.path(card).isNull, card)
+        assertEquals(listOf("inquiries", "reports", "authorReviews"), names(tree.path("pending")))
+        assertEquals(2, tree.path("pending").path("inquiries").asInt())
+        assertEquals(5, tree.path("pending").path("reports").asInt())
+        assertTrue(tree.path("pending").path("authorReviews").isNull)
         assertEquals(0, tree.path("openAlerts").asInt())
+    }
+
+    @Test
+    fun `a period without requests has a null failure rate in the contract field`() {
+        val tree = testMapper.readTree(testMapper.writeValueAsString(AiSummary(0, 0, 0, null, 0.0, 0.0)))
+
+        assertEquals(listOf("requests", "failed", "timeouts", "failureRate", "costUser", "costPlatform"), names(tree))
+        assertTrue(tree.path("failureRate").isNull)
     }
 
     @Test

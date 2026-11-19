@@ -148,7 +148,7 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 
 | 경로 | 권한 | 동작 |
 |---|---|---|
-| `GET /dashboard` | 운영자 누구나 | 회원 수(Core)·오늘(한국 날짜)·7일 AI 요청·실패율·비용(Langfuse)·답변 대기 문의·접수 신고(운영 DB)·작가 검토 대기(Content)·미확인 경고 수. 출처가 실패하면(Langfuse 응답을 읽지 못하는 경우 포함) 그 칸만 `null` + `unavailable`(`core`·`langfuse`·`content`)이고 실패를 0으로 바꾸지 않습니다. 작가 검토 대기는 Content 통계에서 오므로 Content가 실패하면 `pending` 칸 전체가 `null`입니다. `jobs` 칸은 작업 감시 조각이 `job_run`을 병합한 뒤 채우므로 지금은 `null` + `unavailable:["jobs"]`입니다 |
+| `GET /dashboard` | 운영자 누구나 | 회원 수(Core)·오늘(한국 날짜)·7일 AI 요청·실패율·비용(Langfuse)·답변 대기 문의·접수 신고(운영 DB)·작가 검토 대기(Content)·미확인 경고 수. 출처가 실패하면(Langfuse 응답을 읽지 못하는 경우 포함) 그 칸만 `null` + `unavailable`(`core`·`langfuse`·`content`)이고 실패를 0으로 바꾸지 않습니다. 답변 대기 문의·접수 신고는 운영 DB 값이라 `pending`에 항상 채우고, 작가 검토 대기(`pending.authorReviews`)만 Content가 실패하면 `null` + `unavailable:["content"]`입니다. 요청이 0건인 기간의 `failureRate`는 `null`입니다(0%로 보이지 않게). `jobs` 칸은 작업 감시 조각이 `job_run`을 병합한 뒤 채우므로 지금은 `null` + `unavailable:["jobs"]`입니다 |
 | `GET /llmops/traces?from&to&feature&status&userId&requestId&page`, `GET /llmops/traces/{id}` | `llm` | trace 목록(토큰은 metrics API로 쪽마다 한 번)·상세(단계별 observation·입력·출력). `requestId`는 trace metadata `request_id` 일치 필터로, Langfuse에는 `filter` 매개변수로 보내며 이때 다른 필터도 그 안에 담습니다 |
 | `GET /llmops/metrics?from&to&groupBy=day\|feature\|model` | `llm` | 요청·실패율·시간 초과율·p50/p95 지연·토큰·비용(사용자=metadata `credit_reservation_id`가 있는 trace, 나머지 플랫폼). 채택률·승인률은 Content 통계(분모 0이면 `null`), 필터 복원률은 `null`. 기본은 최근 7일·`day`이고 날짜 키는 한국 날짜 |
 | `GET /llmops/prompts`, `GET /llmops/prompts/{name}` | `llm` | 버전(새것부터)·라벨·생성 시각(Langfuse가 주는 경우만)·최신 평가 |

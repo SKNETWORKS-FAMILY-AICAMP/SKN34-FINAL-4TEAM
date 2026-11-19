@@ -69,7 +69,7 @@ class DashboardServiceTest {
         val dashboard = service.get(operator, bearer, now)
 
         assertEquals(MemberStats(100, 5, 1), dashboard.members)
-        assertEquals(listOf(7L, 2L, 5L), listOf(dashboard.pending?.authorReviews, dashboard.pending?.inquiries, dashboard.pending?.reports))
+        assertEquals(listOf(7L, 2L, 5L), listOf(dashboard.pending.authorReviews, dashboard.pending.inquiries, dashboard.pending.reports))
         assertEquals(3L, dashboard.openAlerts)
         assertNull(dashboard.jobs)
         assertEquals(listOf("jobs"), dashboard.unavailable)
@@ -84,11 +84,11 @@ class DashboardServiceTest {
         // today: edge (the boundary instant is today) and new.
         assertEquals(listOf(2, 0, 1), listOf(ai.today.requests, ai.today.failed, ai.today.timeouts))
         // A timeout is not a failure, so nothing failed today.
-        assertEquals(0.0, ai.today.failureRate, 1e-9)
+        assertEquals(0.0, checkNotNull(ai.today.failureRate), 1e-9)
         assertEquals(0.10, ai.today.costUser, 1e-9)
         assertEquals(0.40, ai.today.costPlatform, 1e-9)
         assertEquals(listOf(3, 1, 1), listOf(ai.last7Days.requests, ai.last7Days.failed, ai.last7Days.timeouts))
-        assertEquals(1.0 / 3, ai.last7Days.failureRate, 1e-9)
+        assertEquals(1.0 / 3, checkNotNull(ai.last7Days.failureRate), 1e-9)
         assertEquals(0.10, ai.last7Days.costUser, 1e-9)
         assertEquals(0.60, ai.last7Days.costPlatform, 1e-9)
     }
@@ -101,7 +101,9 @@ class DashboardServiceTest {
         val ai = checkNotNull(service.get(operator, bearer, now).ai)
 
         assertEquals(listOf(0, 0, 0), listOf(ai.today.requests, ai.today.failed, ai.today.timeouts))
-        assertEquals(0.0, ai.today.failureRate)
+        // No request means no rate to show: null, not a 0% that would read as "all good".
+        assertNull(ai.today.failureRate)
+        assertNull(ai.last7Days.failureRate)
         assertEquals(0.0, ai.last7Days.costUser)
     }
 
@@ -123,7 +125,9 @@ class DashboardServiceTest {
             assertEquals(listOf(source, "jobs"), dashboard.unavailable, source)
             assertEquals(source == "core", dashboard.members == null, source)
             assertEquals(source == "langfuse", dashboard.ai == null, source)
-            assertEquals(source == "content", dashboard.pending == null, source)
+            // Waiting inquiries and received reports are database values, so only the author-review count follows Content.
+            assertEquals(listOf(2L, 5L), listOf(dashboard.pending.inquiries, dashboard.pending.reports), source)
+            assertEquals(source == "content", dashboard.pending.authorReviews == null, source)
             // The database cards are never lost to an upstream failure, and a failure is never turned into a 0.
             assertEquals(3L, dashboard.openAlerts, source)
         }
@@ -139,7 +143,7 @@ class DashboardServiceTest {
         assertNull(dashboard.ai)
         assertEquals(listOf("langfuse", "jobs"), dashboard.unavailable)
         assertEquals(MemberStats(100, 5, 1), dashboard.members)
-        assertEquals(7L, dashboard.pending?.authorReviews)
+        assertEquals(7L, dashboard.pending.authorReviews)
         assertEquals(3L, dashboard.openAlerts)
     }
 
@@ -149,13 +153,16 @@ class DashboardServiceTest {
         `when`(langfuse.allTraces(weekAgo, now)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
         `when`(content.operationsStats(weekAgo, now)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
         `when`(alerts.countByStatus("open")).thenReturn(0L)
+        `when`(inquiries.countWaitingMemberInquiries()).thenReturn(4L)
+        `when`(reports.countByStatus(ReportStatus.RECEIVED)).thenReturn(6L)
 
         val dashboard = service.get(operator, bearer, now)
 
         assertEquals(listOf("core", "langfuse", "content", "jobs"), dashboard.unavailable)
         assertNull(dashboard.members)
         assertNull(dashboard.ai)
-        assertNull(dashboard.pending)
+        assertEquals(listOf(4L, 6L), listOf(dashboard.pending.inquiries, dashboard.pending.reports))
+        assertNull(dashboard.pending.authorReviews)
         assertEquals(0L, dashboard.openAlerts)
     }
 

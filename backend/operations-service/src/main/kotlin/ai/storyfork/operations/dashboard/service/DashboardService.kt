@@ -53,8 +53,8 @@ class DashboardService(
         }
         // ponytail: the jobs card is filled when the jobs piece (job_run) is merged; until then it is reported unavailable, not a made-up 0.
         unavailable += "jobs"
-        // The author-review count comes from Content, so the whole pending card follows Content's availability.
-        val pending = authorReviews?.let { DashboardPending(inquiries.countWaitingMemberInquiries(), reports.countByStatus(ReportStatus.RECEIVED), it) }
+        // Inquiries and reports are database values and always shown; only the author-review count follows Content's availability.
+        val pending = DashboardPending(inquiries.countWaitingMemberInquiries(), reports.countByStatus(ReportStatus.RECEIVED), authorReviews)
         return Dashboard(members, ai, null, pending, alerts.countByStatus(AlertStatus.OPEN), unavailable)
     }
 
@@ -65,5 +65,6 @@ class DashboardService(
         return DashboardAi(week.filter { !it.timestamp.isBefore(startOfToday) }.usageStats().summary(), week.usageStats().summary())
     }
 
-    private fun UsageStats.summary() = AiSummary(requests, failed, timeouts, failureRate, costUser, costPlatform)
+    private fun UsageStats.summary() =
+        AiSummary(requests, failed, timeouts, if (requests == 0) null else failureRate, costUser, costPlatform)
 }

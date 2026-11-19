@@ -269,6 +269,7 @@ class LlmopsIntegrationTest {
         assertTrue(dashboard.path("pending").path("reports").isNumber)
         assertTrue(dashboard.path("openAlerts").isNumber)
         assertEquals(0, dashboard.path("ai").path("today").path("requests").asInt())
+        assertTrue(dashboard.path("ai").path("today").path("failureRate").isNull, "no request means no failure rate")
         assertTrue(dashboard.path("jobs").isNull)
         assertEquals(listOf("jobs"), dashboard.path("unavailable").values().map { it.asString() })
 
@@ -277,6 +278,14 @@ class LlmopsIntegrationTest {
         assertTrue(partial.path("members").isNull)
         assertEquals(7, partial.path("pending").path("authorReviews").asInt())
         assertEquals(listOf("core", "jobs"), partial.path("unavailable").values().map { it.asString() })
+
+        doThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY)).`when`(content).operationsStats(anyInstant(), anyInstant())
+        val noContent = tree(send("GET", "$base/dashboard", operatorBearer))
+        // Waiting inquiries and received reports are database values; only the author-review count follows Content.
+        assertTrue(noContent.path("pending").path("inquiries").isNumber)
+        assertTrue(noContent.path("pending").path("reports").isNumber)
+        assertTrue(noContent.path("pending").path("authorReviews").isNull)
+        assertEquals(listOf("core", "content", "jobs"), noContent.path("unavailable").values().map { it.asString() })
     }
 
     @Test
