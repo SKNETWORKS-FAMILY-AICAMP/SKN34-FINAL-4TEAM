@@ -12,15 +12,19 @@ from langchain_core.messages import ToolMessage
 from openai import OpenAIError
 from pydantic import ValidationError
 
+from app import tracing
 from app.intent.errors import IntentFailure
 from app.intent.models import DecisionResult
 from app.intent.prompt import CLARIFY_MESSAGE, REJECT_MESSAGES
 from app.orchestration import agent, mcp_tools, service, tools
+from app.orchestration.prompt import INSTRUCTIONS
 from app.orchestration.models import OrchestrationRequest
 from app.manuscript_review.models import Finding as ReviewFinding, ReviewResponse
 from app.research.errors import ResearchFailure
 from app.simulation.models import SimulationPlan
 from app.story_qa.errors import StoryQaFailure
+
+from traced import attrs
 
 from .stubs import PATCH, QA, REVIEW, WEB, Step, fake_agents, fake_main, fake_scene, plan
 
@@ -188,7 +192,8 @@ def traced(monkeypatch) -> list[dict]:
 
     @contextmanager
     def observe(name, **fields):
-        yield SimpleNamespace(update=lambda **kw: name == 'main_agent' and updates.append(kw))
+        # 요청 루트(tracing.request)도 이 대역을 거치므로 id를 읽을 수 있어야 한다. 0 id는 추적이 꺼진 span이다.
+        yield SimpleNamespace(trace_id='0' * 32, id='0' * 16, update=lambda **kw: name == 'main_agent' and updates.append(kw))
 
     monkeypatch.setattr(agent.tracing, 'observe', observe)
     return updates
@@ -577,3 +582,32 @@ def test_the_patch_summary_names_the_changed_passage_so_the_answer_cannot_claim_
     run(target=TARGET)
     summary = json.loads(tool_messages(calls)[1].content)
     assert (summary['kind'], summary['selection']) == ('patch', '그는 웃었다.')
+
+
+
+# 메인 에이전트의 지시문은 Langfuse 프롬프트(orchestration.main)다
+
+def test_the_main_agent_uses_the_managed_prompt_and_its_generations_link_that_version(monkeypatch, spans):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    asked, version = [], SimpleNamespace(name='orchestration.main', version=6, is_fallback=False)
+    monkeypatch.setattr(tracing, 'prompt', lambda name, default: asked.append((name, default)) or tracing.Prompt('관리된 지시', version))
+
+    run(inputs={'story_context': QA})
+
+    assert asked == [('orchestration.main', INSTRUCTIONS)]
+    assert calls.main[0]['messages'][0].content == '관리된 지시'
+    mains = [s for s in spans() if s.name == 'main_agent']
+    assert len(mains) == 2 and all(
+        (attrs(s)['langfuse.observation.prompt.name'], attrs(s)['langfuse.observation.prompt.version']) == ('orchestration.main', 6) for s in mains)
+
+
+def test_an_unavailable_main_prompt_is_the_judgment_failure_before_any_model_call(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+
+    def unavailable(name, default):
+        raise tracing.PromptUnavailable
+
+    monkeypatch.setattr(tracing, 'prompt', unavailable)
+    with pytest.raises(IntentFailure):
+        run(inputs={'story_context': QA})
+    assert calls == [] and calls.main == []

@@ -1,3 +1,6 @@
+import type { CSSProperties, ReactNode } from 'react'
+
+import { lastPage } from '../../../../domain/entities/operations'
 import { kstDateTime } from '../../../shared/format'
 import type { AdminActionState, useAdminViewModel } from '../viewmodel/useAdminViewModel'
 import { useAdminDetailFocus } from './useAdminDetailFocus'
@@ -16,6 +19,56 @@ export function AdminActionStatus({ state, target, done = true }: { state?: Admi
     {state?.error && <p className="admin-action-error" role="alert">{who}{state.error}</p>}
     {done && state?.message && <p className="admin-note" role="status">{state.message}</p>}
   </>
+}
+
+/** 표마다 용도를 알리는 캡션과, 좁은 화면에서 키보드로 가로 스크롤할 수 있는 영역을 붙입니다. */
+export function Table({ label, style, children }: { label: string; style?: CSSProperties; children: ReactNode }) {
+  return (
+    <div className="adm-scroll" role="region" tabIndex={0} aria-label={label} style={style}>
+      <table>
+        <caption className="sr-only">{label}</caption>
+        {children}
+      </table>
+    </div>
+  )
+}
+
+/**
+ * 실제 운영 API 목록의 로딩·새로고침·실패. 실패를 빈 목록으로 숨기지 않습니다.
+ * forbidden을 주면 권한이 없을 때(데이터가 null, 403) 다시 불러오기 없이 그 안내만 보입니다.
+ */
+export function LiveState({ vm, label, state, forbidden }: { vm: VM; label: string; state?: Pick<VM['live'], 'isLoading' | 'isRefreshing' | 'isError' | 'retry'> & { data?: unknown }; forbidden?: string }) {
+  const l = state ?? vm.live
+  return (
+    <>
+      {l.isLoading && <p className="admin-data-state" role="status">{label}을 불러오고 있어요.</p>}
+      {l.isRefreshing && <p className="admin-data-state" role="status">{label}을 새로고침하고 있어요.</p>}
+      {l.isError && (
+        <div className="admin-data-state admin-action-error" role="alert">
+          <p>{label}을 불러오지 못했어요. 로그인·업무 권한과 서버 연결을 확인한 뒤 다시 시도해 주세요.</p>
+          <button type="button" className="btn sm" onClick={l.retry}>다시 불러오기</button>
+        </div>
+      )}
+      {forbidden && l.data === null && <p className="admin-action-error" role="alert">{forbidden}</p>}
+    </>
+  )
+}
+
+/** 접두사가 같은 조치(`alert:…`)의 진행·실패·완료 안내를 모아 보입니다. 같은 패널에서 도는 조치는 한두 개뿐입니다. */
+export function ActionLines({ vm, prefix, target }: { vm: VM; prefix: string; target?: (key: string) => string | undefined }) {
+  return <>{Object.entries(vm.actions).filter(([key]) => key.startsWith(prefix)).map(([key, state]) => <AdminActionStatus key={key} state={state} target={target?.(key)} />)}</>
+}
+
+/** 번호 쪽 이동. page는 0부터이고 화면에는 1쪽부터 보입니다. limit이 있으면 서버가 앞에서부터 읽게 허용하는 건수 안의 쪽까지만 열 수 있습니다. */
+export function Pager({ page, size, total, limit, onPage }: { page: number; size: number; total: number; limit?: number; onPage: (page: number) => void }) {
+  const last = lastPage(total, size, limit)
+  return (
+    <nav className="rowend" aria-label="쪽 이동">
+      <span className="small muted">전체 {total.toLocaleString('ko-KR')}건 · {page + 1}/{last + 1}쪽</span>
+      <button type="button" className="btn sm" disabled={page <= 0} onClick={() => onPage(page - 1)}>이전</button>
+      <button type="button" className="btn sm" disabled={page >= last} onClick={() => onPage(page + 1)}>다음</button>
+    </nav>
+  )
 }
 
 /** 실제 운영 공지 API 패널. 목록의 로딩·실패는 AdminPage의 LiveState가 보이고, 저장하면 회원 공지사항에 바로 공개됩니다. */

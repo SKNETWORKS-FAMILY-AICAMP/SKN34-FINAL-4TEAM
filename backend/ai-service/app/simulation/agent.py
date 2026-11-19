@@ -16,7 +16,7 @@ from pydantic import BaseModel, ValidationError
 
 from app import tracing
 from app.agent_runtime import MODEL_EVENT
-from app.simulation.errors import SimulationFailure
+from app.simulation.errors import PROMPT_UNAVAILABLE, SimulationFailure
 from app.simulation.models import Action, Narration, PlanDraft, Verdict
 from app.simulation.prompt import ACT_INSTRUCTIONS, CHECK_INSTRUCTIONS, NARRATE_INSTRUCTIONS, PLAN_INSTRUCTIONS
 
@@ -46,14 +46,18 @@ def _parse(name: str, instructions: str, data: dict, text_format: type[BaseModel
     key, model = os.environ.get('OPENAI_API_KEY'), os.environ.get('OPENAI_MODEL')
     if not key or not model:
         raise SimulationFailure(503, '시뮬레이션 모델 설정이 필요합니다.')
+    try:  # 지시문은 Langfuse 프롬프트 character_simulation.<호출>의 production 버전이고 instructions(코드 문자열)는 기본값이다
+        managed = tracing.prompt(f'character_simulation.{name}', instructions)
+    except tracing.PromptUnavailable:
+        raise SimulationFailure(503, PROMPT_UNAVAILABLE) from None
     started, usage = time.monotonic(), None
     try:
         with OpenAI(api_key=key, timeout=timeout, max_retries=0) as client, \
-                tracing.observe(f'simulation.{name}', as_type='generation', model=model) as generation:
+                tracing.observe(f'simulation.{name}', as_type='generation', model=model, prompt=managed.client) as generation:
             try:
                 result = client.responses.parse(
                     model=model, store=False, max_output_tokens=max_tokens, text_format=text_format,
-                    instructions=instructions, input=json.dumps(data, ensure_ascii=False))
+                    instructions=managed.text, input=json.dumps(data, ensure_ascii=False))
             except ValidationError:
                 raise SimulationFailure(502, '시뮬레이션 모델 응답을 확인할 수 없습니다.') from None
             except OpenAIError:

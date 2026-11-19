@@ -58,7 +58,7 @@ from app.orchestration import agent, mcp_tools
 from app.orchestration.models import (CONTENT_ACTION, ChatHistory, ChatSession, ChatTurn, OrchestrationRequest, OrchestrationResponse,
                                       Resume)
 from app.orchestration.prompt import screen
-from app.orchestration.tools import HISTORY_TURNS, history as _history, previous as _previous, task as _task, trace as _trace
+from app.orchestration.tools import HISTORY_TURNS, history as _history, previous as _previous, task as _task
 from app.simulation import service as simulation
 from app.simulation.models import Scene, SimulationPlan
 from app.simulation.scene_agent import scene_agent, turn as simulation_turn
@@ -132,8 +132,8 @@ class State(TypedDict, total=False):
     simulationForm: dict | None  # [시뮬레이션] 버튼의 시작 양식(SimulationPlan JSON). 있으면 도구가 모델 없이 이 값을 계획으로 쓴다.
     scene: dict | None  # 끝났거나 승인을 기다리는 장면(Scene JSON). 승인 대기 중 장면 조작이 이 장면에서 이어 간다. 진행 중 장면은 에이전트 상태에 있다.
     sceneAction: dict | None  # 승인 대기에서 장면으로 돌아온 작가의 조작(SceneAction JSON). 다음 에이전트 실행이 처리한다.
-    runId: str | None  # Langfuse trace id. resume한 단계도 같은 trace에 붙는다.
-    traceParent: str | None
+    runId: str | None  # Langfuse trace id. 이 턴을 연 요청의 루트가 정한다(_claim). resume한 요청의 루트도 같은 trace에 붙는다.
+    traceParent: str | None  # 이 턴을 연 요청 루트의 id. resume한 요청의 루트가 그 아래(같은 trace)에 새 루트로 붙는다.
     title: str  # 대화 제목. 첫 턴 요청 앞부분이며 rename으로만 바뀐다.
     replaceHistory: bool
     turns: Annotated[list[dict], operator.add]  # 턴마다 {request, qa, reply}를 하나씩 덧붙인다.
@@ -222,9 +222,9 @@ async def scene(state: State, config: RunnableConfig) -> State:
                            pausing=pausing)
     seed = {'messages': [HumanMessage('장면을 진행해 주세요.')], 'scene': current.model_dump(mode='json'), 'pending': False,
             'decision': None, 'action': state.get('sceneAction')}
-    config = merge_configs(config, {'callbacks': [UsageLedger('simulation.turn', simulation_turn, _trace(state))]})
+    config = merge_configs(config, {'callbacks': [UsageLedger('simulation.turn', simulation_turn)]})
     out = paused = None
-    with tracing.observe('step.character_simulation', as_type='agent', trace_context=_trace(state)):
+    with tracing.observe('step.character_simulation', as_type='agent'):
         try:
             out = await scene_agent(pausing).ainvoke(seed, config, context=context)
         except GraphBubbleUp as pause:  # 턴 사이 대기는 정상이라 추적에 실패로 남기지 않는다
@@ -264,8 +264,7 @@ def apply(state: State) -> State:
         target = state['target']
         expected_revision = state.get('writingBaseRevision') if feature == 'writing_editing' else None
         try:
-            with tracing.observe(f'step.{feature}.apply', as_type='tool', trace_context=_trace(state),
-                                 metadata={'episode': target['episode']}):
+            with tracing.observe(f'step.{feature}.apply', as_type='tool', metadata={'episode': target['episode']}):
                 if feature == 'world':
                     # 보강 제안은 세계관 초안의 그 칸만 바꾼다. applied는 회차 초안 반영과 같은 모양이라 episode는 채팅 대상 회차를 그대로 싣고(world에서는 뜻 없음)
                     # revision은 반영 뒤 세계관 초안 revision이다.
@@ -381,10 +380,8 @@ async def lifespan(_app):
 
 
 def _initial(data: OrchestrationRequest) -> State:
-    """턴마다 바뀌는 값은 모두 새로 넣어 이전 턴 결과가 이번 응답에 남지 않게 한다. 턴마다 새 trace를 연다."""
-    run_id, parent = tracing.start_run('writing_ai.orchestration', as_type='chain', input={'request': data.request},
-                                       metadata={'operation': data.operation, 'conversation': data.conversation is not None})
-    return {'runId': run_id, 'traceParent': parent, 'request': data.request, 'operation': data.operation, 'materials': data.materials,
+    """턴마다 바뀌는 값은 모두 새로 넣어 이전 턴 결과가 이번 응답에 남지 않게 한다. runId·traceParent는 이 턴을 여는 요청의 루트가 채운다(_claim)."""
+    return {'runId': None, 'traceParent': None, 'request': data.request, 'operation': data.operation, 'materials': data.materials,
             'inputs': data.inputs.model_dump(exclude_none=True), 'status': 'planning', 'message': None,
             'steps': [], 'missingInputs': [], 'unsupported': [], 'writingBaseRevision': None, 'replaceHistory': False, 'simulationPlan': None, 'task': None,
             'scene': None, 'sceneAction': None, 'simulationForm': data.simulation.model_dump(mode='json') if data.simulation else None,
@@ -548,14 +545,55 @@ async def truncate(thread_id: str, scope: str, index: int) -> None:
                              as_node='finish')
 
 
+def _traced(data: OrchestrationRequest, authorization: str, state: dict):
+    """한 HTTP 요청의 추적(DEC-55 v4): 요청 루트 관측 하나가 이 요청 전체를 덮는다. 새 턴은 새 trace의 루트이고, 멈춘 턴을 이어 가는
+    resume 요청은 그 턴의 trace에 새 루트로 붙는다(state의 runId·traceParent).
+
+    회원은 Bearer, 세션은 대화 id, 작품·Fork는 반영 대상(resume은 체크포인트에 남은 대상)에서 읽는다. 단계 observation은 현재 문맥(이 루트)의 하위로 붙는다.
+    """
+    target = state.get('target') or {}
+    return tracing.request('orchestration', user_id=tracing.member_id(authorization),
+                           session_id=data.conversation.threadId if data.conversation else None,
+                           work_id=target.get('workId'), fork=bool(target.get('fork')),
+                           trace_context=tracing.context(state.get('runId'), state.get('traceParent')))
+
+
+def _claim(turn, *states: dict) -> None:
+    """새 턴이면 이 요청의 루트가 그 턴의 trace다. 이어 가는 요청의 루트가 붙도록 그 id를 상태(체크포인트에 남는다)에 적는다."""
+    for state in states:
+        if isinstance(state, dict) and state.get('runId') is None and turn.trace_id:
+            state['runId'], state['traceParent'] = turn.trace_id, turn.span_id
+
+
+async def _begin(data: OrchestrationRequest, authorization: str):
+    """`_target`을 부르고, 대화 확인 단계(저장소·scope 일치·이어갈 작업·장면 조작)의 실패도 실패한 요청 trace로 남긴 뒤 그대로 올린다.
+
+    이 단계는 붙일 턴에 닿기 전이라(다른 대화의 trace에 붙이면 안 된다) 그 요청만의 새 trace가 된다. 회원·세션은 요청에서 안다.
+    """
+    try:
+        return await _target(data)
+    except Exception:
+        with _traced(data, authorization, {}):
+            raise
+
+
+def _outcome(response: OrchestrationResponse) -> str | None:
+    """턴의 상태 태그. 대기(waiting) 중인 턴은 끝나지 않았으므로 태그 없이 두고 같은 턴의 resume이 남긴다."""
+    return None if response.status == 'waiting' else 'failed' if response.status == 'failed' else 'success'
+
+
 async def run(data: OrchestrationRequest, authorization: str = '') -> OrchestrationResponse:
     """한 턴을 판정·실행하거나 멈춘 실행을 이어간다. 판정 실패·대화 오류는 그대로 올린다.
 
-    authorization은 AI를 호출한 사용자의 Bearer이며 이 요청의 Content MCP 반영에만 쓴다.
+    authorization은 AI를 호출한 사용자의 Bearer이며 이 요청의 Content MCP 반영과 추적의 회원 식별에 쓴다.
     """
     content_mcp.AUTHORIZATION.set(authorization)
-    graph, config, payload, _ = await _target(data)
-    return _response(await graph.ainvoke(payload, config))
+    graph, config, payload, state = await _begin(data, authorization)
+    with _traced(data, authorization, state) as turn:
+        _claim(turn, payload, state)
+        response = _response(await graph.ainvoke(payload, config))
+        turn.status = _outcome(response)
+    return response
 
 
 def _main_events(update: dict) -> list[ServerSentEvent]:
@@ -591,41 +629,46 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
     content_mcp.AUTHORIZATION.set(authorization)
     relayed, seen = False, []  # seen: 메인 에이전트가 이 실행에서 알린 단계(Content 쓰기 승인 대기의 waiting에 싣는다)
     try:
-        graph, config, payload, state = await _target(data)
+        graph, config, payload, state = await _begin(data, authorization)
         if config is not None and data.resume is None and data.fromTurn is None:
             config = merge_configs(config, {'configurable': {'persist_chat_intent_failure': True}})
-        async for namespace, mode, update in graph.astream(payload, config, stream_mode=['updates', 'custom'], subgraphs=True):
-            if mode == 'custom':
-                if 'started' in update:  # 도구가 입력을 다 받고 실제로 실행하기 직전에 알린 기능
-                    yield ServerSentEvent(event='started', data={'feature': update['started']})
-                else:  # 장면 에이전트가 턴이 끝날 때 낸 그때까지의 결과
-                    relayed = True
-                    yield ServerSentEvent(event='step', data=update)
-                continue
-            if namespace:  # 메인 에이전트의 판정·도구 결과만 알리고 장면 에이전트 안쪽 노드의 갱신은 알리지 않는다
-                if len(namespace) == 1 and namespace[0].startswith('main_agent'):
-                    for event in _main_events(update):
-                        if event.event == 'step':
-                            seen.append(event.data)
-                        yield event
-                continue
-            for node, change in update.items():
-                if node == '__interrupt__':
-                    state['__interrupt__'] = [dataclasses.replace(change[0], value=_waiting(change[0].value, seen))]
-                    waiting = state['__interrupt__'][0].value
-                    if waiting.get('awaitingScene') and not relayed:  # 턴 이벤트 없이 멈췄다(edit): 고친 장면을 알린다
-                        yield ServerSentEvent(event='step', data=next(s for s in waiting['steps'] if s['feature'] == waiting['awaitingScene']))
-                    yield ServerSentEvent(event='waiting', data=waiting)
+        with _traced(data, authorization, state) as turn:
+            _claim(turn, payload, state)
+            async for namespace, mode, update in graph.astream(payload, config, stream_mode=['updates', 'custom'], subgraphs=True):
+                if mode == 'custom':
+                    if 'started' in update:  # 도구가 입력을 다 받고 실제로 실행하기 직전에 알린 기능
+                        yield ServerSentEvent(event='started', data={'feature': update['started']})
+                    else:  # 장면 에이전트가 턴이 끝날 때 낸 그때까지의 결과
+                        relayed = True
+                        yield ServerSentEvent(event='step', data=update)
                     continue
-                before = state.get('steps', [])
-                state.update(change)
-                if node == 'scene':
-                    yield ServerSentEvent(event='step', data=next(s for s in state['steps'] if s['feature'] == 'character_simulation'))
-                elif node == 'apply' and (answered := next((s for s, old in zip(state['steps'], before)
-                                                            if 'approval' in s and 'approval' not in old), None)):  # 방금 작가의 답을 받은 단계
-                    yield ServerSentEvent(event='step', data=answered)
-                if node in ('main_agent', 'scene', 'apply') and _next(state) == 'scene':
-                    yield ServerSentEvent(event='started', data={'feature': 'character_simulation'})
+                if namespace:  # 메인 에이전트의 판정·도구 결과만 알리고 장면 에이전트 안쪽 노드의 갱신은 알리지 않는다
+                    if len(namespace) == 1 and namespace[0].startswith('main_agent'):
+                        for event in _main_events(update):
+                            if event.event == 'step':
+                                seen.append(event.data)
+                            yield event
+                    continue
+                for node, change in update.items():
+                    if node == '__interrupt__':
+                        state['__interrupt__'] = [dataclasses.replace(change[0], value=_waiting(change[0].value, seen))]
+                        waiting = state['__interrupt__'][0].value
+                        if waiting.get('awaitingScene') and not relayed:  # 턴 이벤트 없이 멈췄다(edit): 고친 장면을 알린다
+                            yield ServerSentEvent(event='step', data=next(s for s in waiting['steps'] if s['feature'] == waiting['awaitingScene']))
+                        yield ServerSentEvent(event='waiting', data=waiting)
+                        continue
+                    before = state.get('steps', [])
+                    state.update(change)
+                    if node == 'scene':
+                        yield ServerSentEvent(event='step', data=next(s for s in state['steps'] if s['feature'] == 'character_simulation'))
+                    elif node == 'apply' and (answered := next((s for s, old in zip(state['steps'], before)
+                                                                if 'approval' in s and 'approval' not in old), None)):  # 방금 작가의 답을 받은 단계
+                        yield ServerSentEvent(event='step', data=answered)
+                    if node in ('main_agent', 'scene', 'apply') and _next(state) == 'scene':
+                        yield ServerSentEvent(event='started', data={'feature': 'character_simulation'})
+            response = _response(state)
+            turn.status = _outcome(response)
+            yield ServerSentEvent(event='done', data=response.model_dump(mode='json'))  # 요청 루트가 done까지 덮는다
     except (SceneRejected, IntentFailure) as error:  # 판정 실패는 원인별 고정 문구(제공사 한도·인증·시간 초과 등)를 그대로 보인다
         yield ServerSentEvent(event='error', data={'message': str(error)})
         return
@@ -635,4 +678,3 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
     except Exception:  # 체크포인트 DB 장애·버그도 연결만 끊기지 않게 알린다. 메시지에 입력이 섞일 수 있어 고정 문구만 보낸다.
         yield ServerSentEvent(event='error', data={'message': STREAM_FAILED_MESSAGE})
         return
-    yield ServerSentEvent(event='done', data=_response(state).model_dump(mode='json'))

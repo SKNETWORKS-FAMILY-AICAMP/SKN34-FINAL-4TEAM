@@ -77,17 +77,19 @@
 실행 기록 모양(출처 독립): `{id, kind, source, status(queued|running|succeeded|failed|cancelled), trigger(schedule|manual|user), progress{done,total}, startedAt, finishedAt, error, targetId}`.
 `source`는 `operations-scheduler`·`content-preprocessing`이고 Airflow를 붙이면 `airflow`가 더해진다.
 
+작업 감시 오류 규칙: 일정 등록·변경에서 등록되지 않은 `kind`, 바뀐 `kind`, 읽을 수 없거나 100자를 넘거나 다시 도래하지 않는 `cron`은 모두 422다(형식이 틀린 본문은 400, 없는 일정은 404). 재실행은 운영 정기 작업의 실패한 기록만 새 `queued`·`manual` 기록 하나로 접수하고(202) 다음 tick이 실행한다. 실패가 아닌 기록, 그 일정에 진행 중(`queued`·`running`) 기록이 있을 때, **이미 재실행된 기록은 재실행 결과(성공·실패)와 무관하게 409**다. 재실행으로 생긴 새 기록이 실패하면 그 기록은 다시 재실행할 수 있다.
+
 ### 응답 모양 (JSON, 시각은 ISO-8601 UTC, 비용은 USD 숫자)
 
 ```text
 Dashboard { members{total,joinedLast7Days,withdrawalPending}?, ai{today:AiSummary, last7Days:AiSummary}?,
             jobs{running,failedLast24h}?, pending{inquiries,reports,authorReviews}?, openAlerts?, unavailable:[string] }
-AiSummary { requests, failed, timeouts, failureRate, costUser, costPlatform }
+AiSummary { requests, failed, timeouts, failureRate?, costUser, costPlatform }
 TraceItem { id, timestamp, feature, status, latencyMs, inputTokens, outputTokens, cost, userId?, workId? }
 TraceDetail { ...TraceItem, input?, output?, observations:[{id,name,type,startTime?,endTime?,latencyMs,model?,inputTokens?,outputTokens?,level,statusMessage?,promptName?,promptVersion?}] }
 Page<T> { items:[T], page, size, total }
-MetricRow { key(날짜·기능·모델), requests, failureRate, timeoutRate, p50LatencyMs, p95LatencyMs, inputTokens, outputTokens, costUser, costPlatform }
-Metrics { rows:[MetricRow], adoptionRate?, approvalRate?, filterRestoreRate? }   // 비율은 0~1, 데이터 없으면 null
+MetricRow { key(날짜·기능·모델), requests, failureRate?, timeoutRate?, p50LatencyMs?, p95LatencyMs?, inputTokens, outputTokens, costUser, costPlatform }
+Metrics { rows:[MetricRow], adoptionRate?, approvalRate?, filterRestoreRate? }   // 비율은 0~1, 데이터 없으면 null. 끝난 요청이 없으면 AiSummary·MetricRow의 실패율·시간 초과율·지연도 null(0이 아님), 요청·토큰·비용이 모두 없는 행은 내려주지 않는다
 Prompt { name, versions:[{version, labels:[string], createdAt?, evaluation?:{runId, passed, createdAt}}] }
 Model { id, modelName, matchPattern, inputPrice, outputPrice, unit }        // 가격은 토큰당 USD
 Evaluation { runId, dataset, prompt, version, status(running|completed|failed), passed?, createdAt,
@@ -113,7 +115,8 @@ Schedule { id, kind, cron, enabled, params, createdAt, updatedAt, lastRun?:JobRu
 - `llmops_setting(key PK, value)` — `leak_sample_rate=0.1`.
 - `leak_check_result(id, trace_id, work_id, matched jsonb, suspected bool, reason, checked_at)`.
 - 위 넷은 LLMOps 조각의 V8, 아래 작업 테이블은 작업 감시 조각의 V9다(V8을 먼저 병합한다).
-- (V9) `scheduled_job(id, kind, cron, enabled, params jsonb, created_at, updated_at)`, `job_run(id, kind, source, status, trigger, done, total, started_at, finished_at, error, target_id, external_ref)`.
+- (V9) `scheduled_job(id, kind, cron, enabled, params jsonb, created_at, updated_at)`, `job_run(id, kind, source, status, trigger, done, total, started_at, finished_at, error, target_id, external_ref, retry_of)`.
+- `job_run.retry_of`(NULL 허용, `job_run` 자기 참조): 수동 재실행 기록이 다시 실행한 실패 기록의 id다. 이 값이 가리키는 기록은 재실행 결과와 무관하게 다시 재실행할 수 없다(409).
 
 ## 정기 작업 (운영 스케줄러)
 
@@ -122,11 +125,14 @@ Schedule { id, kind, cron, enabled, params, createdAt, updatedAt, lastRun?:JobRu
 | kind | 실행 위치 | 내용 |
 |---|---|---|
 | `llm_alert_check` | 운영 | 경고 규칙을 Langfuse 지표·실패 작업과 비교해 경고 생성. 생성 시 운영자에게 사이트 안 알림 사건 발행 |
-| `leak_sample_check` | 운영 → Content·AI | 직전 구간 Fork 작품 요청 trace를 표본 비율로 뽑고 Content가 준 원작 비공개 카드 제목·미발행 회차 제목과 글자 대조 → 걸린 건만 AI `POST /internal/v1/evaluations/leak-check`(DeepEval)로 판정 → 의심이면 `leak_suspected` 경고 |
+| `leak_sample_check` | 운영 → Content·AI | 직전 구간 Fork 작품 요청 trace를 표본 비율로 뽑고 Content가 준 원작 비공개 카드 제목·미발행 회차 제목을 답변 글자와 대조한다 → 하나라도 걸린 건만 AI `POST /internal/v1/evaluations/leak-check` `{response, references, question?}`(`references`는 걸린 제목 그대로, `question`은 사용자 질문 원문(요청 루트 관측 input의 `request`)이고 없으면 null, DeepEval)로 판정한다. 제목이 질문에 이미 있어도 걸리면 넘기고, 답변이 사용자의 말을 되풀이했을 뿐인지 비공개 내용까지 드러냈는지는 AI가 질문을 보고 판단한다 → 의심이면 `leak_suspected` 경고. 걸린 제목이 없으면 AI를 부르지 않고 `suspected=false` 결과만 남긴다 |
 | `regression_eval` | AI | AI `POST /internal/v1/evaluations`로 위임, AI가 Langfuse Dataset Run을 만들고 끝나면 운영 콜백 없이 운영이 Run 상태를 읽어 기록 갱신 |
 | `alert_cleanup` | 운영 | 90일 지난 해결 경고 삭제 |
 
 Content 내부 `GET /internal/v1/works/{id}/leak-references`는 Fork 작품의 원작 기준 비공개 카드 제목·미발행 회차 제목을 준다(서비스 토큰, 공개 진입점 미노출).
+
+- 대시보드 `jobs`: `running`은 대기·실행 중인 `job_run` 수 + Content 전처리 `queued`·`running`·`loading` 수, `failedLast24h`는 최근 24시간 안에 끝난 `FAILED` `job_run` 수 + 같은 24시간 안에 끝난 Content 전처리 `failed` 수다(Content 쪽은 최신 100건만 읽는다).
+- `llm_alert_check`의 `job_failed`(metric `failed_jobs`) 판정: 규칙 `windowMinutes` 안에 끝난 `FAILED` `job_run` 수 + Content 전처리 `failed` 수(위 `failedLast24h`와 같은 집계)가 `threshold` 이상이면 값=건수로 경고를 만든다. 실패가 0건이면 `threshold`가 0이어도 만들지 않고, 같은 규칙의 미해결 경고가 있으면 다시 만들지 않는다. Langfuse(AI 규칙)와 Content(`job_failed`)는 따로 읽어 한쪽이 내려가도 다른 쪽을 평가하고, 읽지 못한 쪽이 있으면 둘 다 시도한 뒤 실행이 실패한다.
 
 ## 사이트 안 알림
 

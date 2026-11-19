@@ -96,7 +96,7 @@ async def execute(request) -> Command:
     if write:
         request.runtime.stream_writer({'started': CONTENT_ACTION})
     try:
-        with tracing.observe(f'mcp.{name}', as_type='tool', trace_context=tracing.context(turn.get('runId'), turn.get('traceParent'))):
+        with tracing.observe(f'mcp.{name}', as_type='tool'):
             done = await asyncio.to_thread(_run, name, args, turn)
     except ContentMcpFailure as error:
         if not write:  # 읽기 실패(예: 잘못된 인자 422)는 단계로 남기지 않고 모델이 사유를 보고 다시 부르게 한다(횟수는 MCP 한도가 막는다)
