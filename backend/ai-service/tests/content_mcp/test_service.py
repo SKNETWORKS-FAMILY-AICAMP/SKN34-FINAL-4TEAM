@@ -370,3 +370,14 @@ def test_edit_world_accepts_the_flat_shape_and_keeps_the_screen_title_copy_in_st
     service.edit_world({'id': 'w', 'expectedDraftRevision': 4, 'cards': [{'id': 'k', 'title': '카엘 공'}]})  # request로 감싸지 않은 평평한 호출
     [card] = calls[1][3]['request']['cards']
     assert (card['title'], card['semanticMetadata']['studio']['item']['title'], card['body']) == ('카엘 공', '카엘 공', '기사')
+
+
+def test_edit_world_keeps_the_null_fields_of_the_screen_metadata_the_model_left_out(monkeypatch):
+    full = {'id': 'k', 'kind': 'entity', 'title': '카엘', 'text': '기사', 'subjectId': None, 'targetId': None, 'predicate': None, 'afterId': None}
+    old = {**WORLD['cards'][0], 'semanticMetadata': {'studio': {'item': full, 'tags': [], 'aliases': [], 'userCategory': ''}}}
+    calls = content(monkeypatch, {'world_studio_read': (False, json.dumps({**WORLD, 'cards': [old]})), 'world_studio_edit_draft': (False, json.dumps({'draftRevision': 5}))})
+    # 모델이 null인 칸을 빼고 studio를 다시 보낸 호출
+    service.edit_world({'id': 'w', 'request': {'expectedDraftRevision': 4, 'cards': [{'id': 'k', 'title': '카엘 공', 'semanticMetadata': {'studio': {'item': {'id': 'k', 'kind': 'entity', 'title': '카엘', 'text': '기사'}}}}]}})
+    [card] = calls[1][3]['request']['cards']
+    item = card['semanticMetadata']['studio']['item']
+    assert (item['subjectId'], item['afterId'], item['title']) == (None, None, '카엘 공') and card['semanticMetadata']['studio']['userCategory'] == ''

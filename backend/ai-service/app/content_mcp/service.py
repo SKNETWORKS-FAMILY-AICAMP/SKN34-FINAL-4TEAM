@@ -134,7 +134,7 @@ def edit_world(arguments: dict) -> dict:
         old = current.get(card.get('id') if isinstance(card, dict) else None)
         if not isinstance(card, dict) or (old is None and not {'title', 'body', 'cardType', 'areaCode'} <= card.keys()):
             raise ContentMcpFailure(422, '세계관 수정 요청 형식이 올바르지 않아요.')
-        merged = {**(old or {}), **card, 'semanticMetadata': {**((old or {}).get('semanticMetadata') or {}), **(card.get('semanticMetadata') or {})}}
+        merged = {**(old or {}), **card, 'semanticMetadata': _merge_metadata((old or {}).get('semanticMetadata'), card.get('semanticMetadata'))}
         if old is not None and 'body' in card:
             _replace_cell(merged, {'target': 'body', 'text': card['body']})
         item = ((merged['semanticMetadata'].get('studio') or {}).get('item'))
@@ -146,6 +146,17 @@ def edit_world(arguments: dict) -> dict:
     request = {'name': name, 'description': description, 'key': uuid.uuid4().hex,
                **{k: v for k, v in given.items() if k != 'cards'}, 'replace': False, 'cards': cards}
     return call('world_studio_edit_draft', {'id': world_id, 'request': request})
+
+
+def _merge_metadata(old: dict | None, new: dict | None) -> dict:
+    """읽은 카드의 semanticMetadata 위에 모델이 보낸 값을 덮는다. 화면이 읽는 `studio`와 그 `item`은 한 단계 더 합친다: 모델이 null인 칸을 빼 보내면 화면이 세계관 전체를 읽지 못하기 때문이다."""
+    old, new = old or {}, new or {}
+    merged = {**old, **new}
+    if isinstance(old.get('studio'), dict) and isinstance(new.get('studio'), dict):
+        merged['studio'] = {**old['studio'], **new['studio']}
+        if isinstance(old['studio'].get('item'), dict) and isinstance(new['studio'].get('item'), dict):
+            merged['studio']['item'] = {**old['studio']['item'], **new['studio']['item']}
+    return merged
 
 
 def _replace_cell(card: dict, fix: dict) -> None:
