@@ -26,6 +26,15 @@ def report(job_id: str, action: str, body: BaseModel | None = None):
     with urlopen(request, timeout=15) as response:
         return (ClaimResponse if action == "claim" else JobResponse).model_validate_json(response.read())
 
+def read_reference(job_id: str) -> bytes:
+    """선점한 작업에 고정된 참조 이미지만 내부 API에서 읽는다."""
+    base = os.environ["CONTENT_SERVICE_BASE_URL"].rstrip("/")
+    request = Request(f"{base}/internal/v1/ai/image-generations/{job_id}/reference",
+                      headers={"X-Internal-Token": os.environ["INTERNAL_TOKEN"]})
+    with urlopen(request, timeout=15) as response:
+        return response.read(service.MAX_REFERENCE_BYTES + 1)
+
+
 @app.task(name="images.generate", max_retries=0)
 def execute(job_id: str):
     """중복 배달은 선점 실패로 종료한다. 결과가 불명확한 실행은 재생성하지 않는다."""
@@ -38,7 +47,7 @@ def execute(job_id: str):
             return
         stage = "generating"
         try:
-            raw = agent.generate(data)
+            raw = agent.generate(data, read_reference(job_id)) if data.referenceRole else agent.generate(data)
             service.validate_image(raw, data)
             stage = "uploading"
             report(job_id, "progress", ProgressRequest(stage=stage))

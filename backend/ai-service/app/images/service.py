@@ -7,6 +7,21 @@ from botocore.config import Config
 from PIL import Image
 from app.images.models import ImageInput
 
+MAX_REFERENCE_BYTES = 5 * 1024 * 1024
+
+def reference_file(raw: bytes) -> tuple[str, bytes, str]:
+    """참조를 실제 디코딩한 후 제공사 multipart 파일을 만든다."""
+    if not raw or len(raw) > MAX_REFERENCE_BYTES:
+        raise ValueError("IMAGE_REFERENCE_SIZE")
+    formats = {"PNG": ("png", "image/png"), "JPEG": ("jpg", "image/jpeg"), "WEBP": ("webp", "image/webp")}
+    with Image.open(io.BytesIO(raw)) as image:
+        if (image.format not in formats or max(image.size) > 4096
+                or image.width * image.height > 16_000_000 or getattr(image, "n_frames", 1) != 1):
+            raise ValueError("IMAGE_REFERENCE_FORMAT")
+        extension, media_type = formats[image.format]
+        image.load()
+    return f"reference.{extension}", raw, media_type
+
 def validate_image(raw: bytes, data: ImageInput) -> None:
     """표지의 기존 5MiB 상한을 모든 생성 결과에 적용한다."""
     if not raw or len(raw) > 5 * 1024 * 1024:

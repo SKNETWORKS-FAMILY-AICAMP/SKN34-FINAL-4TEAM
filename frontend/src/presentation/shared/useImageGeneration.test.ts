@@ -35,12 +35,26 @@ it('같은 입력 재접수는 키를 유지하고 고정 설정이 바뀌면 �
  act(()=>{result.current.setPrompt('새벽 항구');result.current.setVisualSettings('황동 탑')})
  await act(async()=>{await result.current.generate()})
  await act(async()=>{await result.current.generate()})
- expect(useCase.submit.mock.calls[0][0]).toMatchObject({prompt:'새벽 항구',visualSettings:'황동 탑'})
+ expect(useCase.submit.mock.calls[0][0]).toMatchObject({
+  prompt:'새벽 항구',visualSettings:'황동 탑',reference:{mode:'preset',role:'style',presetVersion:'landscape-v1'},
+ })
  expect(useCase.submit.mock.calls[1][1]).toBe(useCase.submit.mock.calls[0][1])
  act(()=>result.current.setVisualSettings('흰 석조 탑'))
  await act(async()=>{await result.current.generate()})
  expect(useCase.submit.mock.calls[2][1]).not.toBe(useCase.submit.mock.calls[0][1])
  expect(result.current.prompt).toBe('새벽 항구')
+})
+
+it('현재 표지로 바꾸면 기본 이미지를 대체하고 새 요청 키를 쓴다',async()=>{
+ sessionStorage.clear()
+ useCase.submit.mockRejectedValue(new Error('offline'))
+ const {result}=renderHook(()=>useImageGeneration({purpose:'world_cover',worldId:'world'}))
+ act(()=>result.current.setPrompt('장면'))
+ await act(async()=>{await result.current.generate()})
+ act(()=>{result.current.setReferenceMode('cover');result.current.setReferenceRole('subject')})
+ await act(async()=>{await result.current.generate()})
+ expect(useCase.submit.mock.calls[1][0]).toMatchObject({worldId:'world',reference:{mode:'cover',role:'subject'}})
+ expect(useCase.submit.mock.calls[1][1]).not.toBe(useCase.submit.mock.calls[0][1])
 })
 
 it('다른 표지 대상으로 이동하면 이전 대상의 두 입력을 비운다',()=>{

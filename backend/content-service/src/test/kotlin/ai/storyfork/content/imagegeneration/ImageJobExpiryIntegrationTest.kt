@@ -5,6 +5,7 @@ import ai.storyfork.content.imagegeneration.client.ImageJobClient
 import ai.storyfork.content.imagegeneration.entity.ImageJob
 import ai.storyfork.content.imagegeneration.repository.ImageJobRepository
 import ai.storyfork.content.imagegeneration.service.ImageJobService
+import ai.storyfork.content.imagegeneration.service.ImageReferences
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.world.service.WorldStudioService
 import java.time.Instant
@@ -45,7 +46,7 @@ class ImageJobExpiryIntegrationTest {
      selected
     }.`when`(jobs).findAllByStatusInAndUpdatedAtBefore(anyCollection(),any(Instant::class.java) ?: Instant.EPOCH)
     val service=ImageJobService(jobs,mock(ImageJobClient::class.java),mock(AttachmentStorageClient::class.java),
-     mock(WorkAccessService::class.java),mock(WorldStudioService::class.java),JsonMapper.builder().build(),tx)
+     mock(WorkAccessService::class.java),mock(WorldStudioService::class.java),JsonMapper.builder().build(),tx,mock(ImageReferences::class.java))
 
     service.expire()
 

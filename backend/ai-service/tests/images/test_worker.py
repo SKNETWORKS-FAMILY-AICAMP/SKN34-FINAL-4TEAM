@@ -36,3 +36,25 @@ def test_upload_failure_is_explicit(monkeypatch):
     monkeypatch.setattr(worker.service,"upload",lambda *a:(_ for _ in ()).throw(OSError()))
     worker.execute.run("job")
     assert calls==["claim","progress","failed"]
+
+
+def test_unavailable_reference_does_not_fall_back_to_paid_text_generation(monkeypatch):
+    calls = []
+
+    def report(job, action, body=None):
+        calls.append(action)
+        if action == "claim":
+            return ClaimResponse.model_validate({"claimed": True, "input": {
+                "purpose": "work_cover", "prompt": "scene",
+                "templateVersion": "cover-v3", "referenceRole": "style",
+            }})
+
+    monkeypatch.setattr(worker, "report", report)
+    monkeypatch.setattr(worker, "read_reference", Mock(side_effect=OSError))
+    generate = Mock()
+    monkeypatch.setattr(worker.agent, "generate", generate)
+
+    worker.execute.run("job")
+
+    generate.assert_not_called()
+    assert calls == ["claim", "failed"]

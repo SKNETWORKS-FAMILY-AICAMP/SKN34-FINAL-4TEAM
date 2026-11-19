@@ -332,7 +332,7 @@ function OwnCover({ workId, editing, blocked, disabled, editRef, onBusy, onEdit,
                     이미지 선택
                     <input ref={first} type='file' accept='.png,.jpg,.jpeg' onChange={(e) => setFile(e.target.files?.[0])} />
                   </label>
-                  <AiCoverButton workId={workId} onPick={setFile} />
+                  <AiCoverButton workId={workId} hasCurrentCover={!!current} onPick={setFile} />
                 </div>
                 {file
                   ? (

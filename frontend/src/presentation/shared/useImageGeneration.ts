@@ -1,23 +1,41 @@
 import { useEffect, useRef, useState } from 'react'
 import { appContainer } from '../../app/appContainer'
 import { authenticatedUserId } from '../../data/api/auth'
-import type { ImageJob, ImageRequest } from '../../domain/repositories/ImageGenerationRepository'
+import { DEFAULT_COVER_REFERENCE, type CoverReference, type CoverReferenceRole, type ImageJob, type ImageRequest } from '../../domain/repositories/ImageGenerationRepository'
+import { referenceFileError } from '../../domain/usecases/ImageGenerationUseCase'
 
 /** 상태 조회만 재개한다. 화면을 닫아도 서버 생성 작업은 계속된다. */
-export function useImageGeneration(input: Omit<ImageRequest,'prompt'|'visualSettings'>) {
+export function useImageGeneration(input: Omit<ImageRequest,'prompt'|'visualSettings'|'reference'|'referenceFile'>) {
  const useCase=appContainer.resolve('imageGenerationUseCase')
  const [prompt,setPrompt]=useState(''), [job,setJob]=useState<ImageJob>(), [error,setError]=useState(''), [busy,setBusy]=useState(false), [preview,setPreview]=useState('')
  const [visualSettings,setVisualSettings]=useState('')
+ const [referenceMode,setReferenceMode]=useState<CoverReference['mode']>('preset')
+ const [referenceRole,setReferenceRole]=useState<CoverReferenceRole>('style')
+ const [referenceFile,setReferenceFile]=useState<File>()
+ const [referencePreview,setReferencePreview]=useState('')
+ const referenceIssue=referenceFile ? referenceFileError(referenceFile) : undefined
  const file=useRef<File | undefined>(undefined)
  const controller=useRef<AbortController | undefined>(undefined)
  const pollController=useRef<AbortController | undefined>(undefined)
- const pending=useRef<{key:string;prompt:string;visualSettings:string} | undefined>(undefined)
+ const pending=useRef<{key:string;signature:string;file?:File} | undefined>(undefined)
  const [refresh,setRefresh]=useState(0)
  const [pollRefresh,setPollRefresh]=useState(0)
  const [restoring,setRestoring]=useState(false)
  const [unresolved,setUnresolved]=useState(false)
  const storageKey=`image-generation:${authenticatedUserId()}:${input.purpose}:${input.workId ?? input.worldId ?? 'new'}`
- useEffect(()=>{setPrompt('');setVisualSettings('');setError('')},[storageKey])
+ useEffect(()=>{
+  setPrompt('');setVisualSettings('');setError('')
+  setReferenceMode('preset');setReferenceRole('style');setReferenceFile(undefined)
+ },[storageKey])
+ useEffect(()=>{
+  if (referenceMode!=='upload' || !referenceFile || referenceIssue) {
+   setReferencePreview('')
+   return
+  }
+  const url=URL.createObjectURL(referenceFile)
+  setReferencePreview(url)
+  return ()=>URL.revokeObjectURL(url)
+ },[referenceMode,referenceFile,referenceIssue])
  useEffect(()=> {
   setJob(undefined);setPreview('');setBusy(false);setRestoring(false);setUnresolved(false);file.current=undefined;pending.current=undefined
   const saved=sessionStorage.getItem(storageKey)
@@ -65,17 +83,29 @@ export function useImageGeneration(input: Omit<ImageRequest,'prompt'|'visualSett
  },[job?.jobId,useCase,refresh,pollRefresh])
  async function generate() {
   if(busy || restoring || unresolved) return
+  const cover=input.purpose==='work_cover' || input.purpose==='world_cover'
+  const reference:CoverReference|undefined=!cover ? undefined : referenceMode==='preset'
+   ? {mode:'preset',role:'style',presetVersion:DEFAULT_COVER_REFERENCE}
+   : {mode:referenceMode,role:referenceRole}
+  const upload=reference?.mode==='upload' ? referenceFile : undefined
+  if(reference?.mode==='upload' && (!upload || referenceIssue)) return
+  const request:ImageRequest={...input,prompt,...(cover?{visualSettings,reference,referenceFile:upload}:{})}
+  const signature=JSON.stringify([prompt,visualSettings,reference])
   controller.current?.abort();const abort=new AbortController();controller.current=abort
   pollController.current?.abort()
   setBusy(true);setError('');setPreview('');file.current=undefined
-  if(!pending.current || pending.current.prompt!==prompt || pending.current.visualSettings!==visualSettings) pending.current={key:crypto.randomUUID(),prompt,visualSettings}
+  if(!pending.current || pending.current.signature!==signature || pending.current.file!==upload) {
+   pending.current={key:crypto.randomUUID(),signature,file:upload}
+  }
   try {
    sessionStorage.setItem(storageKey+':request',pending.current.key)
-   const next=await useCase.submit({...input,prompt,...(['work_cover','world_cover'].includes(input.purpose)?{visualSettings}:{})},pending.current.key,abort.signal)
+   const next=await useCase.submit(request,pending.current.key,abort.signal)
    if(abort.signal.aborted)return
    sessionStorage.setItem(storageKey,next.jobId);sessionStorage.removeItem(storageKey+':request');setJob(next);pending.current=undefined
   } catch { if(!abort.signal.aborted) { setError('접수하지 못했어요. 다시 누르면 같은 요청 키로 결과를 확인해요.');setPollRefresh(x=>x+1) } }
   finally { if(!abort.signal.aborted)setBusy(false) }
  }
- return {prompt,setPrompt,visualSettings,setVisualSettings,job,error,busy:busy||restoring||unresolved,preview,generate,retry:()=>{setError('');setRefresh(x=>x+1)},file:()=>file.current}
+ return {prompt,setPrompt,visualSettings,setVisualSettings,referenceMode,setReferenceMode,referenceRole,setReferenceRole,
+  referenceFile,setReferenceFile,referencePreview,referenceIssue,job,error,busy:busy||restoring||unresolved,preview,
+  generate,retry:()=>{setError('');setRefresh(x=>x+1)},file:()=>file.current}
 }

@@ -10,7 +10,27 @@
 
 후속 사용자 채택으로 작품·세계관 표지는 고정 시각 설정과 이번 장면을 분리하고 `cover-v2` 템플릿으로 조립한다. 인물 프로필·삽화와 기존 v1 작업은 원문 전달을 유지한다. 그림체 프리셋 관리·품질 평가 기준·생성 기록 목록·크레딧 차감·자동 fallback은 이번 변경 범위 밖이다.
 
-후속 요청의 [이미지 일관성 적용안과 프롬프트 예시](image-consistency-proposal.md) 중 작품·세계관 표지 템플릿을 채택했다. 참조 이미지 편집·합성·시각 품질 검사 기능은 여전히 제안이며 구현한 것으로 보지 않는다.
+후속 요청의 [이미지 일관성 적용안과 프롬프트 예시](image-consistency-proposal.md) 중 작품·세계관 표지의 템플릿과 참조 이미지 편집을 채택했다. 합성과 시각 품질 검사는 별도 제안이다.
+
+## 표지 참조 이미지 (2026-11-19 사용자 채택)
+
+작품 생성·작품 표지 편집·세계관 표지 편집의 AI 생성창은 내장 원화 `landscape-v1`(해 질 녘 산길)을 기본 참조로 선택한다. 사용자는 `내 이미지 참고`에서 현재 저장된 표지 또는 PNG·JPEG·WebP 파일 한 장(최대 5 MiB)을 선택한다. 현재 표지가 없으면 새 이미지 업로드를 사용한다. 사용자 참조의 목적은 그림체·색감 또는 인물·장소 외형이다. 업로드는 생성 접수 시 이루어지며, 결과를 명시적으로 선택해 저장하면 최종 표지가 바뀐다.
+
+기본 원화는 버전으로 조회하고 교체할 때 새 버전을 추가한다. 화면과 워커는 Content에 내장된 같은 원화 바이트를 사용한다. 공개 조회 범위는 서비스에서 등록한 기본 원화다.
+
+- 기본 원화·현재 표지에는 기존 JSON 접수로 `reference`를 전달한다. 새 파일은 `POST /api/v1/image-generations/with-reference`의 JSON `request` 파트와 바이너리 `file` 파트로 함께 접수한다. 사용자 파일을 선택하기만 했을 때는 업로드하지 않는다.
+- Content는 기존 대상·표지 소유권을 확인하고 참조 모드·목적·버전·실제 바이트 해시를 접수 시 고정한다. 사용자 파일과 현재 표지 사본은 작업 전용 비공개 객체로 큐 등록 전에 저장한다. 동일 키와 동일 요청은 기존 작업을 반환하며, 모드·목적·버전 또는 업로드 파일이 달라지면 409다. 현재 표지를 갈아 끼워도 이미 접수한 작업은 기존 사본을 사용한다.
+- 새 참조 작업은 `cover-v3`에서 기존 고정 설정·장면과 참고 역할을 조립한다. 워커는 작업을 선점한 후 내부 토큰과 작업 ID로 참조 바이트를 읽고 실제 디코딩한 뒤 Flare `images.edit`로 전송한다. 참조 필드가 없는 기존 호출과 접수된 v1·cover-v2 작업은 기존 `images.generate`를 사용한다. 결과 규격·검사·상태 조회·저장은 기존 계약대로 동작한다.
+- 완료·실패·중단 후 사용자 참조 사본을 정리하고, 저장소 삭제가 실패하면 운영 로그에 작업 ID를 남긴다. 작업을 삭제할 때 다시 정리할 수 있다. 로그에 파일 바이트·원문·키를 싣지 않는다. 워커와 Content를 갱신한 뒤 웹을 갱신해야 신규 화면의 참조 작업을 처리할 수 있다.
+
+원화는 Codex 내장 이미지 생성으로 제작한 3:4 수채 과슈풍 산길 풍경이다. 남청색 산과 청록색 안개, 낮은 황금빛을 사용하고 인물·특정 랜드마크·문구는 배제했다. 참조로 새 장면을 그릴 때 외형이 완전히 같아지는 보장은 없으며, 픽셀 단위 일치가 필요한 요소는 승인 원화 합성이 별도 제안으로 남아 있다.
+
+<details>
+<summary>기본 원화 생성 프롬프트</summary>
+
+> Create ONE polished vertical 3:4 editorial illustration used as a general-purpose style reference for Korean storytelling web app cover generation, not as a final book cover. Depict a quiet broad landscape at blue hour with layers of soft indigo hills, dusty teal mist, warm muted amber light in a break in the clouds, understated textured stone and grasses along a foreground path. Painterly digital gouache, gentle brush grain, atmospheric depth and natural lighting, restrained rich palette. Simple skies in upper fifth, balanced midtones, no strong iconic landmark, no figures, no distinctive prop. No typography, lettering, frame, border, panels, logos or watermark. Full-bleed. Portrait 3:4 aspect ratio.
+
+</details>
 
 ## 표지 프롬프트 입력 분리 (2026-11-16 사용자 채택)
 
@@ -33,6 +53,16 @@ AI worker는 접수 스냅샷의 버전에 따라 `app/images/prompt.py`에서 �
 실제 유료 모델 호출·DB migration·RabbitMQ·MinIO 통합은 로컬 단위 검증과 구분한다. 단위 테스트는 SDK/저장소 대역을 사용한다.
 
 ## 현재 검증 기록
+
+### 기본·사용자 참조 이미지 실검증 (2026-11-19)
+
+AI 이미지 29개, Content 이미지 14개, 프런트 이미지·공용 스타일 27개 등 관련 테스트 70개, TypeScript 검사, AI·Content·웹 Docker 빌드를 통과했다. CodeRabbit 구현 리뷰는 지적 0개였다.
+
+D:의 격리된 Linux Compose에서 기본 원화의 썸네일 바이트가 서버 등록본과 일치했다. 현재 표지 변경 뒤에도 접수한 참조 사본을 내부 워커 경로에서 읽을 수 있었고, 내부 토큰 없이 접근하면 거절됐다. 같은 키·파일의 중복 접수는 기존 작업을 반환했으며, 다른 파일은 409, 누락되거나 잘못된 파일은 422였다.
+
+기존 API 키로 Flare `images.edit`를 2회 호출했다. 업로드 참조를 사용한 세계관 표지는 워커 실행 약 13.06초에 성공했다. 결과는 1152×1536 PNG, 2,895,906 bytes이며 기존 표지 저장 API로 저장한 바이트가 생성 결과와 일치했다. 기본 참조를 사용한 작품 표지는 HTTP 200 뒤 응답 본문 수신이 시간 제한을 넘어 약 204.58초에 `interrupted`가 됐다. 작품 표지의 이번 실호출 생성 완료·저장은 확인하지 못했다. 자동 모델 재호출은 없었다.
+
+검증 작업의 사용자 참조 사본이 객체 저장소에서 정리됐고, 테스트 컨테이너 구성과 로그에 제공된 키 값이 없음을 확인했다. 결과는 로컬 `D:/Codex/image-live-verification/cover-reference-v3/`의 `result.json`, `audit.json`에 보관한다.
 
 ### 표지 템플릿 입력 분리 (2026-11-18)
 

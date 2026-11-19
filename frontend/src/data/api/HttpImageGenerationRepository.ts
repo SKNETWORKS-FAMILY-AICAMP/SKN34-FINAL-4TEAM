@@ -6,8 +6,17 @@ const job = z.object({jobId:z.uuid(),status:z.enum(['accepted','queued','running
 export class HttpImageGenerationRepository implements ImageGenerationRepository {
  async submit(input:ImageRequest,key:string,signal?:AbortSignal) {
   const token=await csrf(signal)
+  const {referenceFile,...request}=input
+  const headers={'X-CSRF-TOKEN':token,'Idempotency-Key':key}
+  const json=JSON.stringify(request)
+  if (referenceFile) {
+   const body=new FormData()
+   body.set('request',new Blob([json],{type:'application/json'}),'request.json')
+   body.set('file',referenceFile)
+   return job.parse(await (await protectedRequest('/api/v1/image-generations/with-reference',{method:'POST',signal,headers,body})).json())
+  }
   return job.parse(await (await protectedRequest('/api/v1/image-generations',{method:'POST',signal,
-   headers:{'Content-Type':'application/json','X-CSRF-TOKEN':token,'Idempotency-Key':key},body:JSON.stringify(input)})).json())
+   headers:{...headers,'Content-Type':'application/json'},body:json})).json())
  }
  async readByKey(key:string,signal?:AbortSignal) {
   const response=await protectedRequest(`/api/v1/image-generations/by-request/${encodeURIComponent(key)}`,{signal},undefined,false,{allowHttpError:true})

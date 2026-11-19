@@ -46,3 +46,35 @@ def test_provider_failure_trace_contains_only_safe_error_type(monkeypatch, spans
     assert generation.attributes['langfuse.observation.status_message']=='RuntimeError'
     assert 'private' not in str(generation.attributes)
     assert not generation.events
+
+
+@pytest.mark.parametrize(('role', 'guidance'), [('style', '색감'), ('subject', '외형')])
+def test_cover_reference_uses_edit_with_one_image(monkeypatch, role, guidance):
+    from PIL import Image
+    from io import BytesIO
+
+    image = BytesIO()
+    Image.new('RGB', (8, 8)).save(image, 'PNG')
+    reference = image.getvalue()
+    requests = []
+
+    class Client:
+        def __init__(self, **kwargs): self.images = self
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def edit(self, **kwargs):
+            requests.append(kwargs)
+            return SimpleNamespace(data=[SimpleNamespace(b64_json='cG5n')], usage=None)
+
+    monkeypatch.setenv('OPENAI_API_KEY', 'test-only')
+    monkeypatch.setattr(agent, 'OpenAI', Client)
+    data = ImageInput(purpose='work_cover', prompt='새벽 항구', templateVersion='cover-v3', referenceRole=role)
+    assert agent.generate(data, reference) == b'png'
+    request, = requests
+    assert request['image'] == ('reference.png', reference, 'image/png')
+    assert (request['model'], request['quality'], request['size'], request['output_format'], request['n']) == (
+        'gpt-image-2.6-flare', 'high', '1152x1536', 'png', 1)
+    assert guidance in request['prompt'] and '새벽 항구' in request['prompt']
+    with pytest.raises(ValueError):
+        agent.generate(data)
+    assert len(requests) == 1

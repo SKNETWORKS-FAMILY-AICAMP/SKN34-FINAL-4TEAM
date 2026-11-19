@@ -12,15 +12,18 @@ class ImageInput(BaseModel):
     prompt: str = Field(min_length=1, max_length=12000)
     model: Literal["gpt-image-2.6-flare"] = MODEL
     quality: Literal["high"] = QUALITY
-    templateVersion: Literal["v1", "cover-v2"] = "v1"
+    templateVersion: Literal["v1", "cover-v2", "cover-v3"] = "v1"
     visualSettings: str = Field(default="", max_length=6000)
+    referenceRole: Literal["style", "subject"] | None = None
 
     @model_validator(mode="after")
     def cover_template(self):
-        if self.templateVersion == "cover-v2" and self.purpose not in ("work_cover", "world_cover"):
+        if self.templateVersion != "v1" and self.purpose not in ("work_cover", "world_cover"):
             raise ValueError("cover template requires cover purpose")
-        if self.visualSettings and self.templateVersion != "cover-v2":
-            raise ValueError("visual settings require cover-v2")
+        if self.visualSettings and self.templateVersion == "v1":
+            raise ValueError("visual settings require a cover template")
+        if (self.templateVersion == "cover-v3") != (self.referenceRole is not None):
+            raise ValueError("cover-v3 requires a reference role")
         return self
 
     @property

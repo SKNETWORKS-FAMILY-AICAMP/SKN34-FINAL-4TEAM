@@ -2,8 +2,11 @@ package ai.storyfork.content.imagegeneration
 import ai.storyfork.content.imagegeneration.entity.ImageJob
 import ai.storyfork.content.imagegeneration.repository.ImageJobRepository
 import ai.storyfork.content.imagegeneration.service.ImageJobService
+import ai.storyfork.content.imagegeneration.service.ImageReferences
 import ai.storyfork.content.imagegeneration.client.ImageJobClient
 import ai.storyfork.content.attachment.client.AttachmentStorageClient
+import ai.storyfork.content.attachment.service.AttachmentService
+import ai.storyfork.content.world.service.WorldCoverService
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content._common.exception.ContentFailure
@@ -23,7 +26,9 @@ class ImageJobServiceTest {
  private val storage=mock(AttachmentStorageClient::class.java)
  private val manager=mock(PlatformTransactionManager::class.java).also { `when`(it.getTransaction(any())).thenAnswer { SimpleTransactionStatus() } }
  private val mapper=JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
- private val service=ImageJobService(jobs,mock(ImageJobClient::class.java),storage,mock(WorkAccessService::class.java),mock(WorldStudioService::class.java),mapper,TransactionTemplate(manager))
+ private val client=mock(ImageJobClient::class.java)
+ private val references=ImageReferences(mock(AttachmentService::class.java),mock(WorldCoverService::class.java))
+ private val service=ImageJobService(jobs,client,storage,mock(WorkAccessService::class.java),mock(WorldStudioService::class.java),mapper,TransactionTemplate(manager),references)
  @Test fun `another owner cannot see job or bytes`() {
   val id=UUID.randomUUID()
   `when`(jobs.lock(id)).thenReturn(ImageJob(id=id,owner="alice",status="succeeded"))
@@ -77,5 +82,35 @@ class ImageJobServiceTest {
  @Test fun `fixed visual settings cannot be silently ignored for illustrations`() {
   val request=mapper.readValue("""{"purpose":"illustration","prompt":"scene","workId":"a-work","visualSettings":"fixed"}""",ImageRequest::class.java)
   assertEquals(422,assertThrows(ContentFailure::class.java){service.submit(UUID.randomUUID().toString(),UUID.randomUUID(),request)}.status)
+ }
+ @Test fun `reference snapshot precedes enqueue and cannot be changed with the same key`() {
+  val owner=UUID.randomUUID().toString()
+  val requestKey=UUID.randomUUID()
+  val request=mapper.readValue("""{"purpose":"work_cover","prompt":"새벽 항구","reference":{"mode":"upload","role":"subject"}}""",ImageRequest::class.java)
+  val data=java.io.ByteArrayOutputStream().also {
+   javax.imageio.ImageIO.write(java.awt.image.BufferedImage(8,8,java.awt.image.BufferedImage.TYPE_INT_RGB),"png",it)
+  }.toByteArray()
+  var saved:ImageJob?=null
+  `when`(jobs.findByOwnerAndRequestKey(owner,requestKey)).thenAnswer { saved }
+  `when`(jobs.saveAndFlush(any(ImageJob::class.java))).thenAnswer { invocation ->
+   (invocation.arguments[0] as ImageJob).also { saved=it;`when`(jobs.lock(it.id)).thenReturn(it) }
+  }
+  val accepted=service.submit(owner,requestKey,request,data)
+  val objectKey="image-references/${accepted.jobId}"
+  val order=inOrder(storage,client)
+  order.verify(storage).upload(org.mockito.ArgumentMatchers.eq(objectKey) ?: objectKey, any(ai.storyfork.content.attachment.client.dto.AttachmentObjectPayload::class.java)
+   ?: ai.storyfork.content.attachment.client.dto.AttachmentObjectPayload(data,"image/png"))
+  order.verify(client).submit(accepted.jobId)
+  assertEquals("cover-v3",service.claim(accepted.jobId).input?.templateVersion)
+  `when`(storage.read(objectKey)).thenReturn(ai.storyfork.content.attachment.client.dto.AttachmentObjectResult(data))
+  assertArrayEquals(data,service.reference(accepted.jobId).bytes)
+  assertEquals(accepted.jobId,service.submit(owner,requestKey,request,data).jobId)
+  val changed=request.copy(reference=request.reference?.copy(role="style"))
+  assertEquals(409,assertThrows(ContentFailure::class.java){service.submit(owner,requestKey,changed,data)}.status)
+  assertEquals(409,assertThrows(ContentFailure::class.java){service.submit(owner,requestKey,request,data+0.toByte())}.status)
+  assertEquals(422,assertThrows(ContentFailure::class.java){service.submit(owner,UUID.randomUUID(),request)}.status)
+  service.failed(accepted.jobId,"generating")
+  verify(storage).delete(objectKey)
+  assertEquals(404,assertThrows(ContentFailure::class.java){service.reference(accepted.jobId)}.status)
  }
 }

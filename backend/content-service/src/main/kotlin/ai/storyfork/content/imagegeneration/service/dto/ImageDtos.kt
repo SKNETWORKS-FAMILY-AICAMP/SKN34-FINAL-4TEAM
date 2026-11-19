@@ -9,10 +9,14 @@ data class ImageRequest(
  val workId:String?=null, val worldId:UUID?=null, val basisRevision:Int?=null,
  // 빈 새 필드는 빼서 기존 v1 요청의 JSON과 중복 요청 해시를 유지한다.
  @get:JsonInclude(JsonInclude.Include.NON_EMPTY) @field:Size(max=6000) val visualSettings:String="",
+ @get:JsonInclude(JsonInclude.Include.NON_NULL) val reference:ImageReference?=null,
 )
+data class ImageReference(val mode:String, val role:String, val presetVersion:String?=null)
+/** 신규 작업만 참조 해시·형식을 저장한다. 옛 작업은 ImageRequest 그대로 읽는다. */
+internal data class ReferencedImageRequest(val request:ImageRequest, val digest:String, val mediaType:String)
 data class ImageResult(val jobId:UUID,val status:String,val stage:String,val previewUrl:String?,
  val model:String="gpt-image-2.6-flare",val quality:String="high")
-data class ImageInput(val purpose:String,val prompt:String,val model:String="gpt-image-2.6-flare",val quality:String="high",val templateVersion:String="v1",val visualSettings:String="")
+data class ImageInput(val purpose:String,val prompt:String,val model:String="gpt-image-2.6-flare",val quality:String="high",val templateVersion:String="v1",val visualSettings:String="",val referenceRole:String?=null)
 data class ImageClaim(val claimed:Boolean,val input:ImageInput?=null)
 data class ImageProgress(val stage:String)
 data class ImageCompletion(val key:String)
