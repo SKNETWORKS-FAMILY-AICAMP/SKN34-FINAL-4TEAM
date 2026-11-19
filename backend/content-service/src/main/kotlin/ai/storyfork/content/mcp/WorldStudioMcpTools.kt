@@ -3,6 +3,7 @@ package ai.storyfork.content.mcp
 import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.world.controller.WorldStudioExceptionHandler
 import ai.storyfork.content.world.domain.WorldConflict
+import ai.storyfork.content.world.domain.WorldMetadataInvalid
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.domain.episodeFromText
@@ -48,16 +49,16 @@ class WorldStudioMcpTools(
 
     @McpTool(
         name = "world_studio_create",
-        description = "새 세계관을 만든다(POST /api/v1/world-studios). id를 생략하면 새로 만들고 재시도에는 같은 id·같은 입력을 다시 보내면 중복 없이 같은 세계관을 돌려주며, 입력 오류는 422·같은 id에 다른 입력은 409다.",
+        description = "새 세계관을 만든다(POST /api/v1/world-studios). id를 생략하면 새로 만들고 재시도에는 같은 id·같은 입력을 다시 보내면 중복 없이 같은 세계관을 돌려주며, 입력 오류는 422·같은 id에 다른 입력은 409다. 응답의 draftRevision(0)이 첫 저장(world_studio_edit_draft)의 expectedDraftRevision이다.",
     )
     fun create(
         context: McpTransportContext,
-        @McpToolParam(description = "생성 입력: name(필수, 100자 이하)·description(선택)·id(선택, 재시도 식별용 UUID)") request: CreateWorldRequest,
+        @McpToolParam(description = "생성 입력: name(필수, 1~100자)·description(선택, 20,000자 이하)·id(선택, 재시도 식별용 UUID)") request: CreateWorldRequest,
     ): WorldDraftResponse = studioTool { linked(studio.create(context.callerUuid(), request)) }
 
     @McpTool(
         name = "world_studio_read",
-        description = "세계관의 현재 초안(카드·관계·공개 설정)을 조회한다(GET /api/v1/world-studios/{id}). 관계는 episode(선택)화 시점의 것이며 생략하면 최신 회차다. relationshipEpisodes는 관계 id마다 그 시점 관계가 시작된 회차('N화부터')다. 소유자만 가능하며 남의 세계관은 404, episode 값 오류는 422, 관계 저장소 전환 필요·불일치는 409, 관계 저장 미완료는 503이다.",
+        description = "세계관의 현재 초안(카드·관계·공개 설정)을 조회한다(GET /api/v1/world-studios/{id}). 관계는 episode(선택)화 시점의 것이며 생략하면 최신 회차다. relationshipEpisodes는 관계 id마다 그 시점 관계가 시작된 회차('N화부터')다. 소유자만 가능하며 남의 세계관은 404, episode 값 오류는 422, 관계 저장소 전환 필요·불일치는 409, 관계 저장 미완료는 503이다. 카드에는 삭제한 것(lifecycle=removed)도 들어 있다(지난 회차 관계의 끝점일 수 있다). draftRevision이 다음 저장의 expectedDraftRevision이고 카드·관계 semanticMetadata의 키 뜻은 world_studio_edit_draft의 request 설명을 본다. 관계 source → target 「label」은 'target은 source의 label'로 읽는다.",
         annotations = McpTool.McpAnnotations(readOnlyHint = true),
     )
     fun read(
@@ -68,17 +69,17 @@ class WorldStudioMcpTools(
 
     @McpTool(
         name = "world_studio_edit_draft",
-        description = "세계관 초안(이름·설명·카드·관계)을 저장한다(PUT /api/v1/world-studios/{id}/draft). 관계는 episode(선택)화 시점의 전체 목록으로 저장하며 생략하면 최신 회차다. 관계마다 다른 회차에 기록하려면 relationshipEpisodes(관계 id → 'N화부터')를 준다. 설정 삭제(lifecycle=removed·replace=true에서 생략)는 episode를 생략한 최신 회차에서만 하며 지정하면 422다. 소유자만 가능하며 expectedDraftRevision이 world_studio_read의 draftRevision과 다르면 409이고, 결과를 못 받으면 같은 key·같은 입력으로 재시도한다.",
+        description = "세계관 초안(이름·설명·카드·관계)을 저장한다(PUT /api/v1/world-studios/{id}/draft). 카드·관계는 부분 수정이 아니라 통째로 덮어쓴다: 고칠 항목은 world_studio_read로 읽은 전체(semanticMetadata 포함)에서 바꿀 필드만 고쳐 보내며, 빠뜨린 선택 필드는 기본값(분류 비움·별칭과 태그 없음·비공개·semanticMetadata 빈 객체)으로 바뀐다. name·description도 바꾸지 않을 때는 읽은 값을 다시 보내야 하고 보낸 값으로 덮어쓴다. 기본(replace=false)은 보낸 카드·관계만 추가·갱신한다. replace=true는 보낸 것이 전부라는 뜻이라 보내지 않은 카드는 삭제되고 보내지 않은 관계는 그 회차에서 끝나니 일부만 고칠 때는 쓰지 않는다. 관계는 episode(선택)화 시점의 것이며 생략하면 최신 회차다. 관계마다 다른 회차에 기록하려면 relationshipEpisodes(관계 id → 'N화부터')를 준다. 설정 삭제(lifecycle=removed·replace=true에서 생략)는 episode를 생략한 최신 회차에서만 하며 지정하면 422다. 소유자만 가능하며 expectedDraftRevision(world_studio_read 또는 직전 저장 응답의 draftRevision, 저장에 성공하면 1 늘어난다)이 어긋나면 409이고, 결과를 못 받으면 같은 key·같은 입력으로 재시도한다. 입력 오류는 422이며 semanticMetadata의 허용 키·형식을 어기면 detail에 카드·관계 id와 키 이름이 나온다(허용 키는 request 설명을 본다).",
     )
     fun editDraft(
         context: McpTransportContext,
         @McpToolParam(description = "세계관 ID(UUID)") id: String,
-        @McpToolParam(description = "초안 입력: expectedDraftRevision·name·description·key(필수, 1~200바이트, 재시도 식별용)·replace(false면 보낸 카드·관계만 추가·갱신, true면 보내지 않은 것은 제거)·cards(최대 1000개; cardType=character|location|organization|ability|object|rule|event|other, areaCode=basic|space|history|society|culture|special|conflict, visibility=private|public, lifecycle=active|removed)·relationships(sourceCardId·targetCardId 둘 다 필요; category=structural|emotional|identity, direction=directed|symmetric, polarity=asserted|denied. identity는 「동일 인물」로 sourceCardId=다른 이름 인물 카드·targetCardId=본체 인물 카드·direction=directed이고 episode 또는 그 관계의 relationshipEpisodes 값이 필요하며(끝내는 identity는 episode) 사슬·순환·한 카드에 본체 둘은 422)·episode(선택, 연결된 소설의 회차 순번 1 이상. relationships는 그 회차 시점의 관계이며 바뀐 것만 그 회차에 기록하고 생략하면 최신 회차)·relationshipEpisodes(선택, 관계 id → 그 관계의 'N화부터' 1 이상의 정수 JSON 값. 이 요청에서 삭제하지 않는 관계에만 줄 수 있고 모르는 id·삭제 관계·1 미만이거나 정수가 아닌 값(소수·문자열)은 422이며, 준 관계는 episode가 아니라 그 회차에 기록하고 안 준 관계와 삭제는 episode를 따른다)") request: EditWorldDraftRequest,
+        @McpToolParam(description = EDIT_DRAFT_INPUT) request: EditWorldDraftRequest,
     ): WorldDraftResponse = studioTool { linked(studio.edit(uuidArg(id), context.callerUuid(), request)) }
 
     @McpTool(
         name = "world_studio_save_revision",
-        description = "세계관 초안의 카드·설정을 불변 버전으로 확정한다(POST /api/v1/world-studios/{id}/revisions). 소유자만 가능하며 expectedDraftRevision이 어긋나면 409이고 같은 key·같은 입력의 재시도는 같은 버전을 돌려준다(관계의 과거 상태는 저장하지 않는다).",
+        description = "세계관 초안의 카드·설정을 불변 버전으로 확정한다(POST /api/v1/world-studios/{id}/revisions). 소유자만 가능하며 expectedDraftRevision이 어긋나면 409이고 같은 key·같은 입력의 재시도는 같은 버전을 돌려준다(관계의 과거 상태는 저장하지 않는다). 확정하면 draftRevision이 1 늘어나 다음 저장은 새 값을 읽어 써야 하고, 활성 카드 가운데 title 또는 body가 빈 것이 있으면 422다. 공개 세계관·독자 설정 위키·이어받기는 초안이 아니라 마지막 확정 버전의 카드를 보여 주므로 고친 내용을 독자에게 보이려면 확정해야 한다.",
     )
     fun saveRevision(
         context: McpTransportContext,
@@ -88,7 +89,7 @@ class WorldStudioMcpTools(
 
     @McpTool(
         name = "world_studio_update_publication",
-        description = "세계관의 공개 범위(private|public)와 장르를 바꾼다(PUT /api/v1/world-studios/{id}/publication). 소유자만 가능하며 확정한 버전이 없으면 설정만 되고 listed=false이고, 남의 세계관은 404·값 오류는 422다.",
+        description = "세계관의 공개 범위(private|public)와 장르를 바꾼다(PUT /api/v1/world-studios/{id}/publication). 소유자만 가능하며 확정한 버전이 없으면 설정만 되고 listed=false이고, 남의 세계관은 404·값 오류는 422다. 공개해도 작가 전용 카드(revealFromEpisode가 없고 visibility도 private)는 독자에게 보이지 않는다.",
     )
     fun updatePublication(
         context: McpTransportContext,
@@ -106,7 +107,7 @@ class WorldStudioMcpTools(
 
     @McpTool(
         name = "world_studio_revision_read",
-        description = "확정된 세계관 버전 하나의 카드·설정을 조회한다(GET /api/v1/world-studios/{id}/revisions/{revisionId}). 소유자만 가능하며 현재 관계를 과거 관계로 섞지 않고 없는 버전은 404다.",
+        description = "확정된 세계관 버전 하나의 카드·설정을 조회한다(GET /api/v1/world-studios/{id}/revisions/{revisionId}). 소유자만 가능하며 현재 관계를 과거 관계로 섞지 않고 없는 버전은 404다. 확정 버전으로 초안을 되돌리는 도구는 없다(화면 전용).",
         annotations = McpTool.McpAnnotations(readOnlyHint = true),
     )
     fun revisionRead(
@@ -198,7 +199,7 @@ class WorldStudioMcpTools(
 
     @McpTool(
         name = "world_analysis_apply",
-        description = "승인한 분석 후보를 세계관 초안에 추가한다(POST /api/v1/world-studios/{worldId}/analyses/{analysisId}/applications). 소유자만 가능하고 같은 key·같은 입력은 저장된 요청을 이어서 처리하며, 반영하지 못했거나 결과를 확인하지 못하면(503) 도구 오류이니 world_analysis_application_read로 확인한다.",
+        description = "승인한 분석 후보를 세계관 초안에 추가한다(POST /api/v1/world-studios/{worldId}/analyses/{analysisId}/applications). 소유자만 가능하고 같은 key·같은 입력은 저장된 요청을 이어서 처리하며, 반영하지 못했거나 결과를 확인하지 못하면(503) 도구 오류이니 world_analysis_application_read로 확인한다. 반영된 카드·관계에는 semanticMetadata.preprocessing(분석 출처)이 붙으니 이후 world_studio_edit_draft로 그 카드를 고칠 때 이 값을 그대로 돌려보낸다.",
     )
     fun applyAnalysis(
         context: McpTransportContext,
@@ -255,6 +256,8 @@ private fun <T> studioTool(call: () -> T): T = mcpTool {
         throw studioErrors.missing().toToolFailure()
     } catch (e: WorldConflict) {
         throw studioErrors.conflict().toToolFailure()
+    } catch (e: WorldMetadataInvalid) {
+        throw studioErrors.metadataInvalid(e).toToolFailure()
     } catch (e: IllegalArgumentException) {
         throw studioErrors.invalid().toToolFailure()
     } catch (e: DataAccessException) {
@@ -276,3 +279,26 @@ private fun <T> analysisTool(call: () -> T): T = studioTool {
         throw McpToolFailure(503, "ANALYSIS_STORAGE_UNCONFIRMED", "저장 결과를 확인하지 못했습니다. 동일 키로 조회하고 새 키로 자동 실행하지 마세요.")
     }
 }
+
+// world_studio_edit_draft의 request 설명이다. 도구 설명은 동작·함정을, 이 필드 사전은 입력 칸의 규칙을 싣는다. semanticMetadata 허용 키는 world/domain/SemanticMetadata.kt와 같다(WorldStudioMcpToolsTest가 어긋남을 막는다).
+private const val EDIT_DRAFT_INPUT =
+    "초안 입력: expectedDraftRevision(world_studio_read 또는 직전 저장 응답의 draftRevision)·name(1~100자)·description(20,000자 이하)·" +
+        "key(필수, 1~200바이트, 요청마다 새 값(UUID 권장). 결과를 못 받았을 때만 같은 key·같은 입력으로 다시 보내며 같은 key·같은 expectedDraftRevision에 다른 입력은 409)·" +
+        "replace(false면 보낸 카드·관계만 추가·갱신, true면 보내지 않은 카드는 삭제하고 보내지 않은 관계는 그 회차에서 끝냄)·" +
+        "cards(한 요청에 최대 1000개, 세계관 전체 활성 카드 10,000개까지. id는 새 카드면 호출자가 만든 UUID. title 200자·body 3,000자·classification 50자 이하, aliases·tags는 각 100개 이하(항목당 200자). " +
+        "cardType=character|location|organization|ability|object|rule|event|other, areaCode=basic|space|history|society|culture|special|conflict, lifecycle=active|removed, " +
+        "visibility=private|public(독자 공개는 revealFromEpisode로 정하고, visibility=public이면서 revealFromEpisode가 없으면 1화부터 공개로 읽는 옛 방식). " +
+        "확정 저장(world_studio_save_revision)하려면 활성 카드의 title·body가 비어 있으면 안 됨. " +
+        "카드 본문에서 다른 카드를 가리킬 때는 [보이는 글자](card:<카드 UUID>)로 쓰며(글자는 1~200자, 대괄호·줄바꿈 없음) 독자에게 아직 공개되지 않은 카드를 가리키는 링크는 공개 응답에서 글자만 남음)·" +
+        "relationships(한 요청에 최대 1000개, 세계관 전체 활성 관계 10,000개까지. id는 새 관계면 호출자가 만든 UUID. label 200자·body 3,000자 이하. sourceCardId·targetCardId는 이 세계관의 서로 다른 카드이며 둘 다 필요(삭제하는 관계는 비워도 됨). " +
+        "category=structural|emotional|identity, direction=directed|symmetric, polarity=asserted|denied('그 관계가 아니다'라는 기록). " +
+        "관계 source → target 「label」은 'target은 source의 label'로 읽는다(예: source=홍길동, target=홍 판서, label=아버지 → 홍 판서는 홍길동의 아버지). label은 명사형 관계명으로 쓰고 서로 같은 관계(친구·형제)는 direction=symmetric으로 한 번만 쓴다. " +
+        "body는 독자에게 보이는 관계 설명이므로 비밀은 쓰지 않고 인물의 characterDocs.episodes에 쓴다. " +
+        "identity는 「동일 인물」로 sourceCardId=다른 이름 인물 카드·targetCardId=본체 인물 카드·direction=directed이고 episode 또는 그 관계의 relationshipEpisodes 값이 필요하며(끝내는 identity는 episode) 사슬·순환·한 카드에 본체 둘은 422)·" +
+        "episode(선택, 연결된 소설의 회차 순번 1 이상. relationships는 그 회차 시점의 관계이며 바뀐 것만 그 회차에 기록하고 생략하면 최신 회차)·" +
+        "relationshipEpisodes(선택, 관계 id → 그 관계의 'N화부터' 1 이상의 정수 JSON 값. 이 요청에서 삭제하지 않는 관계에만 줄 수 있고 모르는 id·삭제 관계·1 미만이거나 정수가 아닌 값(소수·문자열)은 422이며, 준 관계는 episode가 아니라 그 회차에 기록하고 안 준 관계와 삭제는 episode를 따른다)·" +
+        "semanticMetadata(카드·관계, 선택, 기본 {})의 최상위 키는 아래만 허용하고 다른 키나 모양이 틀린 값은 422다(detail에 카드/관계 id와 키 이름이 나온다). " +
+        "카드: revealFromEpisode(1 이상의 정수. 연결된 소설의 그 회차부터 독자에게 공개, 없으면 작가 전용)·" +
+        "characterDocs(cardType=character만. soul·goal·episodes 세 키뿐이며 soul·goal은 문자열, episodes는 \"0\"(이야기 시작 전)·\"1\"… 회차 번호 문자열 → 그 회차의 기억 글. 문서마다 3,000자 이하. 인물의 IDENTITY는 카드 body이고 옛 memory 키는 episodes의 \"0\"으로 옮겨 보낸다)·" +
+        "imageId(이 세계관에 올린 카드 이미지의 UUID, null이면 이미지 없음)·importedFrom(가져온 출처 {worldId, worldName, authorNickname, revisionNo, cardId}). " +
+        "카드·관계의 studio·preprocessing과 관계의 evidence는 화면·분석·템플릿이 쓰는 값이다: 새 카드·관계에는 넣지 말고, 기존 것을 고칠 때는 world_studio_read로 읽은 값을 고치지 말고 그대로 돌려보낸다(빼면 화면의 시간 표기·순서·관계 종류가 지워진다). 관계의 허용 키는 studio·preprocessing·evidence뿐이다."

@@ -236,7 +236,27 @@ nginx/Vite의 `/api/v1/world-studios` exact 및 하위 경로는 Content:8081로
 
 공개 조회는 소유자 API가 아니라 비로그인 읽기 전용 `GET /api/v1/public/world-studios`·`/{id}`가 맡는다. 공개이고 저장 버전이 있는 세계관만 마지막 저장 버전에서 기준 회차 이하로 공개된 카드(DEC-46·53)와 그 카드끼리의 Neo4j 기준 회차 시점 관계를 보이며(관계 이력 API는 여전히 없다) 참조 이용·Fork는 없다([계약](public-world-contract.md)). 상세에는 이 세계관에 연결된 소설이 공개 작품일 때만 그 최소 정보(`linkedWork`, #329)가 붙는다(같은 계약). 설정 가져오기는 화면이 이 공개 API로 읽은 카드를 내 세계관 초안에 복사해 `PUT /{id}/draft`로 저장하는 것이라 전용 API가 없다. 소유자 응답(`GET /`의 요약과 `GET /{id}`·`PUT /{id}/draft`·`POST /`의 초안 응답)에는 이 세계관에 연결된 소설 `linkedWorkId`가 붙는다(1:1, 정본은 Content `work.world_studio_id`, 같은 계약). 공개 표지는 같은 기준일 때만 `GET /api/v1/public/world-studios/{id}/cover`로 읽는다. 이 경로의 nginx/Vite 라우팅도 Content:8081이다.
 
-기존 관계 편집·관계도는 서버가 확인한 현재 draft를 사용한다. UI의 저장 버튼은 현재 draft PUT이며 카드 revision POST·공개·발행을 자동 실행하지 않는다. AI 후보는 연결하지 않았다. 이탈 시 요청을 취소하고 늦은 응답 설치를 막는다. 지원하는 `semanticMetadata.studio`가 없거나 현재 UI 모델과 불일치하는 서버 응답은 임의 변환/빈 데이터로 대체하지 않고 실패한다. 카드 `semanticMetadata` 최상위의 `revealFromEpisode`·`importedFrom`(DEC-46, 독자 공개 회차와 가져오기 출처)은 `studio` 밖에 따로 두며 모양이 어긋나면 그 값만 버리고 로드는 계속한다([계약](public-world-contract.md)). 기존 데이터 호환 import는 별도 승인 대상이다.
+기존 관계 편집·관계도는 서버가 확인한 현재 draft를 사용한다. UI의 저장 버튼은 현재 draft PUT이며 카드 revision POST·공개·발행을 자동 실행하지 않는다. 이탈 시 요청을 취소하고 늦은 응답 설치를 막는다. 소유자 화면은 카드·관계의 **정본 필드가 항상 이기고** `semanticMetadata.studio`는 시간 표기·순서·관계 종류처럼 정본에 없는 보조값만 보탠다(#541). studio가 없거나 모양이 틀리거나 다른 카드·관계의 것이면 정본 필드로 복원하고, 종류(`kind`·`entityType`)가 정본 카드 유형과 어긋나거나 관계 종류(`predicate`)가 서버의 유형·방향과 어긋나면 그 값만 정본에서 다시 만든다. 관계의 `studio`·`category`·`direction`·`polarity`는 없어도 읽힌다(극성이 없으면 긍정). 정본 필드의 enum·id·관계 끝점이 어긋난 응답(서버 계약 위반)만 세계관 전체 읽기 실패로 남긴다.
+
+### 초안 semanticMetadata 계약 (#541)
+
+**쓰기는 엄격하고 읽기는 관대하다.** 초안 편집 요청(`PUT /{id}/draft`·MCP `world_studio_edit_draft`·AI 후보 반영·시더가 쓰는 같은 저장 경로)은 요청에 든 카드·관계(삭제 요청 포함)의 `semanticMetadata`를 `WorldStudioService.validateEditRequest`에서만 검사한다. 허용하지 않는 최상위 키(자유 칸은 없다)나 모양이 어긋난 값은 422 `WORLD_INPUT_INVALID`이고 detail에는 카드/관계 id·키 이름(호출자가 보낸 글이라 50자로 자름)·고정 이유만 싣고 값은 싣지 않는다. 요청을 고치지 않으므로 재시도 hash와 템플릿 원본 대조는 그대로다. 확정 저장·되돌리기·이미 저장된 데이터에는 이 검사를 적용하지 않는다(적용하면 모르는 키가 남은 기존 세계관은 확정 저장이 막힌다).
+
+| 대상 | 키 | 쓰기 형식 |
+|---|---|---|
+| 카드 | `studio` | 객체이고 `item` 객체의 `id`가 카드 id와 같은 문자열(대소문자 무시). 안쪽 값은 보지 않는다 |
+| 카드 | `preprocessing` | 객체. AI 후보 반영이 만든 값이며 안쪽은 보지 않는다 |
+| 카드 | `characterDocs` | 인물(`cardType=character`)만. `soul`·`goal`·`episodes` 세 키뿐인 객체: `soul`·`goal`은 문자열, `episodes`는 0 이상의 정수를 군더더기 없이 쓴 문자열 키(`"0"`, `"12"`)와 문자열 값. 문서마다 3,000자 이하. 옛 `memory` 키는 거절한다(`episodes["0"]`으로 옮겨 보낸다) |
+| 카드 | `revealFromEpisode` | 1 이상 int 범위의 정수 JSON 숫자(`1.0`·`"1"`·`null`은 거절) |
+| 카드 | `importedFrom` | `worldId`·`worldName`·`authorNickname`·`cardId` 문자열과 `revisionNo` 정수, 이 다섯 키뿐인 객체 |
+| 카드 | `imageId` | UUID 문자열 또는 `null`(이미지 없음, 기존 규칙). 이 세계관에 올린 이미지인지는 저장 단계가 따로 확인한다 |
+| 관계 | `studio` | 카드와 같다(`item.id`는 관계 id) |
+| 관계 | `preprocessing`·`evidence` | 각각 객체. `evidence`는 확장 템플릿 관계의 출처(`{cardId, source}`)다 |
+
+- 카드와 관계의 허용 키는 다르다. 서버·프런트·MCP 도구 설명(`world_studio_edit_draft`의 `request` 설명, `EDIT_DRAFT_INPUT`)이 같은 목록을 쓴다.
+- 읽기는 기존 데이터에 관대하다. 프런트는 키별로 검사해 모르는 키와 모양이 어긋난 값을 버리고 `preprocessing`·관계 `evidence`만 서버 메타데이터로 보존해 저장 때 되돌려 보낸다. 기존 데이터 이전은 없고 **고쳐 저장한 카드만 정리된다**(손대지 않은 카드는 DB에 그대로 남는다). 옛 `characterDocs.memory`는 프런트가 읽을 때 00회차로 옮긴다.
+- MCP: 카드·관계는 통째로 덮어쓰므로 기존 것을 고칠 때는 읽은 `semanticMetadata` 전체(`studio`·`preprocessing`·`evidence` 포함)에서 바꿀 필드만 고쳐 돌려보내고, 새 카드·관계에는 `studio`·`preprocessing`·`evidence`를 만들지 않는다(빼면 화면의 시간 표기·순서·관계 종류가 지워진다).
+- AI 후보 반영(`InitialWorldAdditionMapper`)·장르 템플릿 SOUL 보완·확장 샘플 적재·시연 seed가 보내는 값은 모두 이 규칙을 따른다(앞의 세 곳은 단위 테스트가 실제 입력·리소스로 확인한다).
 
 | 오류 code | HTTP | 의미 |
 |---|---|---|
@@ -387,6 +407,6 @@ JWT 서명·만료 검증과 Principal→UUID 변환은 호출 계층의 책임�
 
 **PR 병합만으로 자동 마이그레이션이 실행되는지는 미확정이다.** 현재 WorldStudioConfig는 validate만 수행하고 migrate를 자동 호출하지 않는다. 실제 개발 DB 적용 여부, 배포 시 Flyway의 명시 실행 주체/시점/권한과 기능 활성화 순서는 팀원 검토가 필요하다.
 
-템플릿 보완의 `semanticMetadata.studio`는 정본 카드 필드와 일치하며, `templateOrder`로 읽기 순서를 보존한다. 프런트는 빈 메타데이터의 기존 카드만 정본 필드로 해석하고 손상된 studio는 거절한다. 사건 area는 `history`다.
+템플릿 보완의 `semanticMetadata.studio`는 `templateOrder`로 읽기 순서를 보존한다. 프런트는 정본 카드 필드를 우선하고 유효한 studio의 보조값만 읽는다. 사건 area는 `history`다.
 
 기존 역사 카드의 제품 리소스는 원문·SOUL을 포함하지 않고 세계관별 고정 요청 hash와 카드 ID·순서별 canonical payload SHA-256만 보관한다. 저장된 초안과 버전을 지문 및 고정 요청 이력과 대조한 경우에만 기존 세계관 확장을 시작하며, 과거 중단 요청은 계속 보류한다. 지문 대조는 인용이나 권리 승인을 뜻하지 않으며 #425의 권리·독립 감수 및 5,143건 보류 조건은 유지한다.

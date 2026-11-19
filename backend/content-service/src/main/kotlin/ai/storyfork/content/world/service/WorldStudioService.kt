@@ -6,6 +6,8 @@ import ai.storyfork.content.world.domain.WorldRestoreBlocked
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.domain.cardImageId
 import ai.storyfork.content.world.domain.isListed
+import ai.storyfork.content.world.domain.requireCardMetadata
+import ai.storyfork.content.world.domain.requireRelationshipMetadata
 import ai.storyfork.content.world.domain.validEpisode
 import ai.storyfork.content.world.domain.worldGenre
 import ai.storyfork.content.world.domain.worldVisibility
@@ -400,7 +402,9 @@ class WorldStudioService(
         request.relationshipEpisodes.values.forEach { validEpisode(it) }
         require(request.expectedDraftRevision>=0 && request.cards.size<=1000)
         require(request.cards.map { it.id }.distinct().size==request.cards.size) { "중복된 카드입니다." }
-        request.cards.forEach { validate(it,false);require(it.semanticMetadata["imageId"]==null || cardImageId(it.semanticMetadata)!=null) { "카드 이미지 ID를 확인하세요." } }
+        // semanticMetadata의 허용 키·형식(#541)은 이 요청 검사에서만 본다: 확정 저장·되돌리기·이미 저장된 카드는 받지 않고, 요청을 고치지 않아 재시도 hash와 템플릿 원본 대조가 그대로다.
+        request.cards.forEach { validate(it,false);requireCardMetadata(it) }
+        request.relationships.forEach(::requireRelationshipMetadata)
         require(mapper.writeValueAsBytes(request).size<=2_000_000) { "세계관 입력 크기를 확인하세요." }
     }
 

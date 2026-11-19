@@ -55,6 +55,53 @@ class WorldStudioServiceTest {
         `when`(states.findById(world)).thenReturn(if(marker) Optional.of(state) else Optional.empty())
         `when`(graph.read(world)).thenAnswer { RelationshipStateResult(world,state.graphVersion,state.requestKey,state.requestHash,emptyList()) }
     }
+    @Test fun `edit metadata rejects unknown keys and malformed values with safe card or relation detail`() {
+        val id=UUID.randomUUID()
+        val card=CardPayload(id,"제목","본문","character","basic")
+        fun check(metadata:Map<String,Any?>, type:String="character") {
+            val error=assertThrows(IllegalArgumentException::class.java) {
+                service.validateEditRequest(EditWorldDraftRequest(0,"세계","",cards=listOf(card.copy(cardType=type,semanticMetadata=metadata)),key="key"))
+            }
+            assertTrue(error.message!!.contains(id.toString())); assertTrue(error.message!!.contains(metadata.keys.first().take(50)))
+            assertFalse(error.message!!.contains("비밀값"))
+        }
+        listOf(
+            mapOf("unknown" to "비밀값"), mapOf("x".repeat(80) to "비밀값"), mapOf("studio" to "red"),
+            mapOf("studio" to mapOf("item" to mapOf("id" to UUID.randomUUID().toString()))),
+            mapOf("preprocessing" to null), mapOf("revealFromEpisode" to 0), mapOf("revealFromEpisode" to 1.0),
+            mapOf("revealFromEpisode" to 2147483648L), mapOf("revealFromEpisode" to null), mapOf("imageId" to "invalid"), mapOf("imageId" to 42),
+            mapOf("importedFrom" to mapOf("worldId" to "id")),
+            mapOf("characterDocs" to mapOf("soul" to "s", "goal" to "g", "episodes" to mapOf("01" to "x"))),
+            mapOf("characterDocs" to mapOf("soul" to "x".repeat(3001), "goal" to "g", "episodes" to emptyMap<String,String>())),
+            mapOf("characterDocs" to mapOf("soul" to "s", "goal" to "g", "episodes" to emptyMap<String,String>(),"memory" to "old"))
+        ).forEach { check(it) }
+        check(mapOf("characterDocs" to mapOf("soul" to "s", "goal" to "g", "episodes" to emptyMap<String,String>())),"location")
+    }
+
+    @Test fun `edit metadata accepts supported shapes without modifying request`() {
+        val id=UUID.randomUUID(); val rid=UUID.randomUUID()
+        val card=CardPayload(id,"제목","본문","character","basic",semanticMetadata=mapOf(
+            "studio" to mapOf("item" to mapOf("id" to id.toString())), "preprocessing" to emptyMap<String,Any>(),
+            "characterDocs" to mapOf("soul" to "s", "goal" to "g", "episodes" to mapOf("0" to "기억")),
+            "revealFromEpisode" to 1, "imageId" to UUID.randomUUID().toString(),
+            "importedFrom" to mapOf("worldId" to "w", "worldName" to "n", "authorNickname" to "a", "revisionNo" to 1, "cardId" to "c")))
+        val relation=RelationshipPayload(rid,id,UUID.randomUUID(),"structural",semanticMetadata=mapOf("studio" to mapOf("item" to mapOf("id" to rid.toString())),"preprocessing" to emptyMap<String,Any>(),"evidence" to mapOf("source" to "template")))
+        val request=EditWorldDraftRequest(0,"세계","",listOf(card),listOf(relation),key="key")
+        val before=mapper.writeValueAsString(request)
+        service.validateEditRequest(request)
+        assertEquals(before,mapper.writeValueAsString(request))
+    }
+    @Test fun `edit metadata rejects the same kinds of mistakes on relations`() {
+        val id=UUID.randomUUID();val relationId=UUID.randomUUID()
+        listOf(mapOf("other" to "비밀값"),mapOf("studio" to "red"),mapOf("studio" to mapOf("item" to mapOf("id" to UUID.randomUUID().toString()))),mapOf("preprocessing" to null),
+            mapOf("evidence" to "x"),mapOf("characterDocs" to emptyMap<String,Any>())).forEach { metadata ->
+            val error=assertThrows(IllegalArgumentException::class.java) {
+                service.validateEditRequest(EditWorldDraftRequest(0,"세계","",relationships=listOf(RelationshipPayload(relationId,id,UUID.randomUUID(),"structural",semanticMetadata=metadata)),key="key"))
+            }
+            assertTrue(error.message!!.contains(relationId.toString()) && error.message!!.contains(metadata.keys.first()),"$metadata")
+            assertFalse(error.message!!.contains("비밀값"))
+        }
+    }
     @Test fun `template genre backfill changes only a null owned world's genre`() {
         val owner = GenreTemplateSeeder.TEMPLATE_OWNER
         val entity = StudioWorld(world, owner, UUID.randomUUID(), visibility = "public", publishedAt = java.time.Instant.EPOCH)
@@ -838,11 +885,11 @@ class WorldStudioServiceTest {
      * 확정 버전 R의 카드는 A(내용이 달라짐)·B(지금은 삭제 상태)·E(같음)이고, 지금 초안은 A·B(삭제)·C(R에 없던 활성 카드)·D(R에 없고 이미 삭제)·E다.
      * 초안 행은 같은 객체를 돌려줘 서비스가 바꾼 값을 그대로 읽을 수 있다.
      */
-    private fun restoring():List<SettingCardDraft> {
+    private fun restoring(metaA:Map<String,Any?> = mapOf("revealFromEpisode" to 2)):List<SettingCardDraft> {
         owned()
         val rows=listOf(SettingCardDraft(cardA,world,fieldsOf("가람 수정","수정한 내용")),SettingCardDraft(cardB,world,fieldsOf("나래 삭제됨",lifecycle="removed")),
             SettingCardDraft(cardC,world,fieldsOf("다온")),SettingCardDraft(cardD,world,fieldsOf("지난 삭제",lifecycle="removed")),SettingCardDraft(cardE,world,fieldsOf("이든","같음")))
-        val versions=listOf(SettingCardVersion(cardId=cardA,worldId=world,versionNo=1,fields=fieldsOf("가람 확정","확정 당시 내용","public",meta=mapOf("revealFromEpisode" to 2))),
+        val versions=listOf(SettingCardVersion(cardId=cardA,worldId=world,versionNo=1,fields=fieldsOf("가람 확정","확정 당시 내용","public",meta=metaA)),
             SettingCardVersion(cardId=cardB,worldId=world,versionNo=1,fields=fieldsOf("나래 확정")),SettingCardVersion(cardId=cardE,worldId=world,versionNo=1,fields=fieldsOf("이든","같음")))
         `when`(revisions.findByIdAndWorldId(revisionId,world)).thenReturn(WorldRevision(revisionId,world,3,"확정 이름","확정 설명",sealed=true))
         `when`(revisionCards.findAllByIdRevisionId(revisionId)).thenReturn(versions.map { WorldRevisionCard(RevisionCardKey(revisionId,it.cardId),world,it.id) })
@@ -874,6 +921,14 @@ class WorldStudioServiceTest {
         assertEquals(3L,result.draftRevision);assertEquals(listOf(relation),result.relationships);assertEquals(5,result.cards.size);assertEquals(3L,state.graphVersion)
         verify(graph,never()).replace(anyUUID(),anyLong(),anyString(),anyString(),anyList(),anyEpisode())
         verify(revisions,never()).saveAndFlush(any());verify(cardVersions,never()).saveAll(any<Iterable<SettingCardVersion>>());verifyNoInteractions(requests)
+    }
+    @Test fun `restore does not apply the draft edit metadata check to confirmed cards`() {
+        val legacy=mapOf("unknown" to "옛 키","characterDocs" to mapOf("soul" to "s","memory" to "옛 기억","episodes" to emptyMap<String,String>()))
+        val rows=restoring(legacy);at(null)
+        restore()
+        assertEquals(legacy,rows.single { it.cardId==cardA }.fields.semanticMetadata)
+        // 같은 메타데이터를 초안 편집으로 보내면 거절된다: 검사는 편집 요청에만 있다.
+        assertThrows(IllegalArgumentException::class.java) { service.validateEditRequest(EditWorldDraftRequest(0,"x","",listOf(CardPayload(cardA,"가람","본문","character","basic",semanticMetadata=legacy)),key="k")) }
     }
     @Test fun `restore is refused and changes nothing while a current relation still ends on a card the version lacks`() {
         val rows=restoring();at(null,RelationshipPayload(UUID.randomUUID(),cardA,cardC,"structural",label="동료"))

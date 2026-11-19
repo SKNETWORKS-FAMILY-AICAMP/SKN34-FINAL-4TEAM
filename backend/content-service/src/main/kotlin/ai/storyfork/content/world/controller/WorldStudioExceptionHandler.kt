@@ -35,6 +35,9 @@ class WorldStudioExceptionHandler {
     }
     @ExceptionHandler(WorldConflict::class)
     fun conflict()=ResponseEntity.status(409).body(WorldStudioErrorResponse("WORLD_CONFLICT","다른 편집본 또는 저장 요청과 충돌했습니다. 입력을 보존하고 상태를 확인하세요."))
+    /** semanticMetadata 입력 오류(#541)는 카드/관계 id·키 이름·고정 이유만 담은 메시지라(값 없음) 그대로 알린다. 나머지 입력 오류는 아래 고정 문구다. */
+    @ExceptionHandler(WorldMetadataInvalid::class)
+    fun metadataInvalid(error:WorldMetadataInvalid)=ResponseEntity.status(422).body(WorldStudioErrorResponse("WORLD_INPUT_INVALID",error.message.orEmpty()))
     @ExceptionHandler(IllegalArgumentException::class)
     fun invalid()=ResponseEntity.status(422).body(WorldStudioErrorResponse("WORLD_INPUT_INVALID","이름·내용 길이, 카드·관계 ID와 입력 값을 확인하세요."))
     @ExceptionHandler(DataAccessException::class,TransactionException::class)

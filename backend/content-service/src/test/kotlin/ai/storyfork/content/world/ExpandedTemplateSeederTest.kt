@@ -1,5 +1,7 @@
 package ai.storyfork.content.world
 
+import ai.storyfork.content.world.domain.requireCardMetadata
+import ai.storyfork.content.world.domain.requireRelationshipMetadata
 import ai.storyfork.content.world.service.*
 import ai.storyfork.content.world.service.dto.RelationshipPayload
 import java.util.UUID
@@ -156,6 +158,19 @@ usa_history 96059da0b018e943c9e091552591bae7a7e57fa320fedc79faf6ea38ea09c9ca a93
             cards+=chunks.sumOf { it.cards.size };relations+=chunks.sumOf { it.relationships.size }
         }
         assertEquals(16461,cards);assertEquals(4216,relations)
+    }
+    @Test fun `every expanded manifest request passes the draft edit metadata check`() {
+        val mapper=JsonMapper.builder().addModule(KotlinModule.Builder().build()).build()
+        val manifest=ClassPathResource("sample-worlds-expanded/manifest.json").inputStream.use { mapper.readValue(it,ExpandedManifest::class.java) }
+        var withEvidence=0
+        manifest.worlds.forEach { world ->
+            val chunks=world.chunks.map { name -> ClassPathResource("sample-worlds-expanded/$name").inputStream.use { mapper.readValue(it,ExpandedChunk::class.java) } }
+            expandedRequests(world,chunks,mapper).forEach { request ->
+                request.cards.forEach(::requireCardMetadata);request.relationships.forEach(::requireRelationshipMetadata)
+                withEvidence+=request.relationships.count { it.semanticMetadata.containsKey("evidence") }
+            }
+        }
+        assertTrue(withEvidence>0,"evidence가 있는 관계가 하나도 검사되지 않았습니다")
     }
     @Test fun `large card chunks split by serialized request size`() {
         val world=ExpandedWorld("fixture",UUID.randomUUID(),"세계","설명",listOf("one.json"))

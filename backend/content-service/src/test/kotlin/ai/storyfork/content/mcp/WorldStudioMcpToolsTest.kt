@@ -2,7 +2,10 @@ package ai.storyfork.content.mcp
 
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.work.service.WorkWorldService
+import ai.storyfork.content.world.domain.CARD_METADATA_KEYS
+import ai.storyfork.content.world.domain.RELATION_METADATA_KEYS
 import ai.storyfork.content.world.domain.WorldConflict
+import ai.storyfork.content.world.domain.WorldMetadataInvalid
 import ai.storyfork.content.world.domain.WorldNotFound
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.domain.WorldStudioFailure.Reason
@@ -176,6 +179,15 @@ class WorldStudioMcpToolsTest {
 
         assertTrue("episode" in schema("world_studio_read"), schema("world_studio_read"))
         assertTrue("episode" in schema("world_studio_edit_draft"), schema("world_studio_edit_draft"))
+    }
+
+    @Test fun `the edit tool says it overwrites whole cards and lists every allowed semanticMetadata key`() {
+        val tool = specs.single { it.tool().name() == "world_studio_edit_draft" }.tool()
+        val schema = tool.inputSchema().toString()
+
+        // 허용 키가 바뀌면 도구 설명도 같이 바뀌어야 한다(검증은 world/domain/SemanticMetadata.kt).
+        for (key in (CARD_METADATA_KEYS + RELATION_METADATA_KEYS).distinct()) assertTrue(key in schema, key)
+        assertTrue("semanticMetadata" in tool.description() && "통째로 덮어쓴다" in tool.description(), tool.description())
     }
 
     @Test fun `world_studio_edit_draft binds nested cards and relationships and forwards the same request DTO`() {
@@ -441,6 +453,8 @@ class WorldStudioMcpToolsTest {
         WorldConflict() to listOf("HTTP 409 WORLD_CONFLICT", "다른 편집본 또는 저장 요청과 충돌했습니다. 입력을 보존하고 상태를 확인하세요."),
         // 입력 원문이 섞일 수 있는 예외 메시지는 되돌려 주지 않는다.
         IllegalArgumentException("원고 본문 일부") to listOf("HTTP 422 WORLD_INPUT_INVALID", "이름·내용 길이, 카드·관계 ID와 입력 값을 확인하세요."),
+        // semanticMetadata 입력 오류(#541)는 카드/관계 id·키 이름·고정 이유만 담았으므로 그대로 알린다.
+        WorldMetadataInvalid("카드 $worldId: semanticMetadata 키 'color'는 허용되지 않습니다.") to listOf("HTTP 422 WORLD_INPUT_INVALID", "카드 $worldId: semanticMetadata 키 'color'는 허용되지 않습니다."),
         DataAccessResourceFailureException("jdbc 원고 본문 일부") to listOf("HTTP 503 WORLD_WRITE_UNCONFIRMED", "저장 완료를 확인하지 못했습니다. 입력을 보존하고 동일 요청으로 다시 시도하세요."),
         TransactionSystemException("tx 원고 본문 일부") to listOf("HTTP 503 WORLD_WRITE_UNCONFIRMED", "저장 완료를 확인하지 못했습니다. 입력을 보존하고 동일 요청으로 다시 시도하세요."),
         IllegalStateException("원고 본문 일부") to listOf("HTTP 500", "요청을 처리하지 못했어요."),

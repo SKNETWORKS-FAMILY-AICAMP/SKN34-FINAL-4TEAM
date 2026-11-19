@@ -1,6 +1,7 @@
 package ai.storyfork.content.world
 
 import ai.storyfork.content.world.controller.WorldStudioExceptionHandler
+import ai.storyfork.content.world.domain.WorldMetadataInvalid
 import ai.storyfork.content.world.domain.WorldRestoreBlocked
 import ai.storyfork.content.world.domain.WorldStudioFailure
 import ai.storyfork.content.world.domain.WorldStudioFailure.Reason
@@ -43,6 +44,13 @@ class WorldStudioExceptionHandlerTest {
     @Test fun `a long list of blocked cards is cut to five names and a count`() {
         val detail=handler.restoreBlocked(WorldRestoreBlocked((1..8).map { "카드$it" })).body!!.detail
         assertTrue(detail.contains("카드1, 카드2, 카드3, 카드4, 카드5 외 3개"));assertFalse(detail.contains("카드6"))
+    }
+
+    @Test fun `a semanticMetadata input error is 422 WORLD_INPUT_INVALID with its own detail and other input errors keep the fixed sentence`() {
+        val detail="카드 11111111-1111-1111-1111-111111111111: semanticMetadata 키 'color'는 허용되지 않습니다."
+        val response=handler.metadataInvalid(WorldMetadataInvalid(detail))
+        assertEquals(422,response.statusCode.value());assertEquals("WORLD_INPUT_INVALID",response.body?.code);assertEquals(detail,response.body?.detail)
+        assertEquals("이름·내용 길이, 카드·관계 ID와 입력 값을 확인하세요.",handler.invalid().body?.detail)
     }
 
     @Test fun `failure is not a Spring web exception`() {
