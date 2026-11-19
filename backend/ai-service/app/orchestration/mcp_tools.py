@@ -85,7 +85,8 @@ async def execute(request) -> Command:
     실패(Content의 409 revision 충돌 포함)는 단계 failed로 남겨 남은 호출을 막는다(다시 시도하거나 덮어쓰지 않는다).
     """
     call, turn = request.tool_call, request.runtime.context
-    name, args = call['name'], call['args'] if isinstance(call['args'], dict) else {}
+    # 모델이 고르지 않은 선택 인자를 빈 글("")·null로 채우면 Content가 값 오류(422)로 거절하므로 뺀다.
+    name, args = call['name'], {k: v for k, v in (call['args'] if isinstance(call['args'], dict) else {}).items() if v not in ('', None)}
     label = LABELS[name]
     if reason := mismatch(call, turn):
         return _result(None, call, f'[차단] {label}: {reason}', failed=True)

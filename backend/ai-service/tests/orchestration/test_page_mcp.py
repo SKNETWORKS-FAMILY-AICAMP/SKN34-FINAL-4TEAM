@@ -120,6 +120,13 @@ def test_reads_run_without_approval_and_a_work_id_other_than_the_target_is_refus
     assert refused.status == 'error' and refused.content.startswith('[차단]')
 
 
+def test_optional_arguments_the_model_left_empty_are_not_sent_to_content(monkeypatch):
+    fake_agents(monkeypatch, only_content(('world_studio_read', {'id': 'w1', 'episode': ''})))
+    log = content(monkeypatch)
+    turn(str(uuid4()), page=PAGE)
+    assert log == [('world_studio_read', {'id': 'w1'})]
+
+
 def test_a_failed_read_returns_the_reason_to_the_model_and_leaves_no_failed_step(monkeypatch):
     calls = fake_agents(monkeypatch, only_content(('episode_read', {'id': 'work', 'number': 'x'}), ('episode_read', {'id': 'work', 'number': 3})))
     log = content(monkeypatch, fail={'episode_read': ContentMcpFailure(422, '입력 값을 확인하세요.')})
