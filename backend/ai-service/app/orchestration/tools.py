@@ -44,7 +44,7 @@ from app.simulation.models import GAP_LABELS, SimulationPlan
 from app.story_qa import service as story_qa
 from app.story_qa.errors import StoryQaFailure
 from app.story_qa.models import AnswerRequest
-from app.orchestration.models import QaStepResult, manuscript_review_feature
+from app.orchestration.models import QaStepResult, current_feature
 from app.world_review import service as world_review
 from app.world_review.errors import WorldReviewFailure
 from app.writing import agent as writing
@@ -70,7 +70,7 @@ DRAFT_CHANGED = '검수한 뒤 초안이 바뀌어 고치지 않았어요. 다�
 BAD_DRAFT = 'Content 초안 응답을 확인할 수 없습니다.'
 # 판정 기능 → 메인에 노출할 도구 이름. 판정 기능마다 도구가 있어 미구현으로 끝내는 기능이 없다.
 TOOL_NAMES = {'story_context': 'ask_story_qa', 'manuscript_review': 'ask_manuscript_review', 'world': 'ask_world', 'writing_editing': 'ask_writing',
-              'web_research': 'ask_web_research', 'rating': 'ask_rating', 'character_simulation': 'ask_character_simulation'}
+              'research': 'ask_research', 'rating': 'ask_rating', 'character_simulation': 'ask_character_simulation'}
 
 
 def _check(inputs: dict, check: str | None) -> str | None:
@@ -84,7 +84,7 @@ def _check(inputs: dict, check: str | None) -> str | None:
 WAITS = {
     'ask_story_qa': lambda turn, inputs, scope, args: 'story_context' not in inputs and not scope,
     'ask_manuscript_review': lambda turn, inputs, scope, args: bool(turn.get('target')) and not _check(inputs, args.get('check')),
-    'ask_web_research': lambda turn, inputs, scope, args: 'web_research' not in inputs,
+    'ask_research': lambda turn, inputs, scope, args: args.get('task') == 'web' and 'research' not in inputs,
     'ask_world': lambda turn, inputs, scope, args: args.get('task') == 'enrich',
 }
 
@@ -149,7 +149,7 @@ SUMMARIES: dict[str, Callable[[dict], dict]] = {
         for i, f in enumerate(r['findings'])]},
     'world': _world_summary,
     'writing_editing': _writing_summary,
-    'web_research': lambda r: {'gaps': r['gaps'], 'findings': [{k: f[k] for k in ('text', 'verdict', 'sourceUrls')} for f in r['findings']]},
+    'research': lambda r: {'gaps': r['gaps'], 'findings': [{k: f[k] for k in ('text', 'verdict', 'sourceUrls')} for f in r['findings']]},
     'rating': lambda r: {'verdict': r['verdict'], 'prohibited': r['prohibited']},
 }
 
@@ -288,10 +288,10 @@ def ask_rating(request: Request, runtime: ToolRuntime) -> Command:
 
 
 @tool
-def ask_web_research(runtime: ToolRuntime) -> Command:
-    """고증 조사(웹): 작가가 동의한 질문·맥락만 웹에서 확인한다. 외부 전송이라 작업 지시를 받지 않는다."""
-    return _ask(runtime, 'web_research', lambda inputs, scope: research.research(ResearchRequest.model_validate(inputs['web_research'])),
-                needs=lambda inputs, scope: WAITS['ask_web_research'](runtime.context, inputs, scope, {}))
+def ask_research(task: Literal['web'], runtime: ToolRuntime) -> Command:
+    """고증 조사(Research): web은 작가가 동의한 질문·맥락만 웹에서 확인한다. 외부 전송이라 작업 지시(request)를 받지 않는다."""
+    return _ask(runtime, 'research', lambda inputs, scope: research.research(ResearchRequest.model_validate(inputs['research'])),
+                needs=lambda inputs, scope: WAITS['ask_research'](runtime.context, inputs, scope, {'task': task}))
 
 
 @tool
@@ -314,7 +314,7 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch'], runti
         data = inputs.get('writing_editing') or {}
         target = turn.get('target')
         changes_draft = task != 'plan' or 'patch' in data or 'draft' in data
-        if target and changes_draft and reviewed is None and 'manuscript_review' in map(manuscript_review_feature, runtime.state['decision']['capabilities']):
+        if target and changes_draft and reviewed is None and 'manuscript_review' in map(current_feature, runtime.state['decision']['capabilities']):
             draft = content_mcp.read_draft(target['workId'], target['episode'])
             base = {'body': draft.body, 'revision': draft.revision}
         if 'patch' in data:

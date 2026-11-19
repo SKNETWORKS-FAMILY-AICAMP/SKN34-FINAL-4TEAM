@@ -113,7 +113,9 @@ const step: z.ZodType<ChatStep> = z.union([typedStep(z.literal('character_simula
     plan: beatPlan.nullish(),
   }).nullish(),
 })])
-const featureKey = z.string().transform((feature) => feature === 'review' ? 'manuscript_review' : feature)
+// 옛 대화 기록의 기능 키(#499 review, #545 web_research)를 지금 키로 바꾼다.
+const RENAMED_FEATURES = new Map([['review', 'manuscript_review'], ['web_research', 'research']])
+const featureKey = z.string().transform((feature) => RENAMED_FEATURES.get(feature) ?? feature)
 const reply: z.ZodType<ChatReply> = z.object({
   status: z.enum(['completed', 'failed', 'clarify', 'rejected', 'unsupported', 'needs_input', 'waiting', 'cancelled']),
   message: z.string().nullish(),

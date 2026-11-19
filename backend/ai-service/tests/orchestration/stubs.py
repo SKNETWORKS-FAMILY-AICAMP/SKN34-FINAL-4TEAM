@@ -91,6 +91,8 @@ def call(step: Step) -> tuple[str, dict]:
         return 'ask_writing', {'task': task, **({'fix': step.fix} if step.fix is not None else {})}
     if step.feature == 'world':
         return 'ask_world', {'task': step.task or 'check'}
+    if step.feature == 'research':
+        return 'ask_research', {'task': step.task or 'web'}
     return service.TOOL_NAMES.get(step.feature, f'ask_{step.feature}'), {'check': step.check} if step.check else {}
 
 
@@ -138,7 +140,7 @@ class FakeMain(BaseChatModel):
         usage = {'input_tokens': 20, 'output_tokens': 5, 'total_tokens': 25}
         if done < len(self.script) and tools:
             batch = self.script[done] if isinstance(self.script[done], list) else [self.script[done]]
-            calls = [{'name': name, 'args': args if name == 'ask_web_research' else {'request': messages[last].text, **args},
+            calls = [{'name': name, 'args': args if name == 'ask_research' else {'request': messages[last].text, **args},
                       'id': f'call-{done}-{i}'} for i, (name, args) in enumerate(batch)]
             message = AIMessage(content='', tool_calls=calls, response_metadata=meta, usage_metadata=usage)
         elif isinstance(self.answer, Exception):
@@ -201,7 +203,7 @@ def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None):
         before='그는 웃었다.', after='그는 차갑게 웃었다.', model='m', providerResponseId='r', usage=None)))
     monkeypatch.setattr(service.simulation, 'plan', recorded(
         'sim_plan', lambda request, history, target: drafted or SimulationPlan(**SIM)))
-    monkeypatch.setattr(service.research, 'research', recorded('web_research', ResearchResponse(
+    monkeypatch.setattr(service.research, 'research', recorded('research', ResearchResponse(
         findings=[Finding(text='약 15일', verdict='unverified', sourceUrls=[])], gaps=[],
         searchedAt=datetime(2026, 11, 12, tzinfo=timezone.utc))))
     review = recorded('manuscript_review', lambda data: ReviewResponse(

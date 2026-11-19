@@ -208,6 +208,13 @@ describe('WritingChatUseCase', () => {
 })
 
 
+it('고증 조사 단계 이름은 research이고, 옛 대화 기록의 web_research 단계도 같은 이름으로 보인다(#545)', () => {
+  expect(featureLabel.research).toBe('고증 조사')
+  expect(featureLabel.web_research).toBe('고증 조사')
+  const reply: ChatReply = { status: 'failed', missingInputs: [], steps: [{ feature: 'research', status: 'failed', error: '검색 실패' }] }
+  expect(replyText(reply)).toBe('[고증 조사] 실패: 검색 실패')
+})
+
 it('shows whether web research confirmed or contradicted a finding', () => {
   const reply: ChatReply = { status: 'completed', missingInputs: [], steps: [
     { feature: 'web_research', status: 'completed', result: { findings: [
