@@ -267,6 +267,28 @@ class EvaluationServiceTest {
     }
 
     @Test
+    fun `a scheduled start needs no admin and records no admin activity`() {
+        `when`(ai.startEvaluation("qa-regression", "qa/answer", 3)).thenReturn(EvaluationStarted("qa-answer-v3-20261119"))
+
+        val started = service.startRun(EvaluationRequest("qa-regression", "qa/answer", 3))
+
+        assertEquals(listOf("qa-answer-v3-20261119", "qa-regression", "qa/answer", 3, "running"),
+            listOf(started.runId, started.dataset, started.prompt, started.version, started.status))
+        verifyNoInteractions(activities)
+    }
+
+    @Test
+    fun `a scheduled start validates like an admin start and a failed AI call reaches the scheduler`() {
+        for (bad in listOf(EvaluationRequest("", "p", 1), EvaluationRequest("d", " ", 1), EvaluationRequest("d", "p", 0), EvaluationRequest("d".repeat(201), "p", 1))) {
+            assertThrows(IllegalArgumentException::class.java) { service.startRun(bad) }
+        }
+        verifyNoInteractions(ai)
+
+        `when`(ai.startEvaluation("d", "p", 1)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
+        assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.startRun(EvaluationRequest("d", "p", 1)) }.statusCode)
+    }
+
+    @Test
     fun `an invalid request is 400 before the AI service and a failed start records nothing`() {
         for (bad in listOf(EvaluationRequest("", "p", 1), EvaluationRequest("d", " ", 1), EvaluationRequest("d", "p", 0), EvaluationRequest("d".repeat(201), "p", 1))) {
             assertThrows(IllegalArgumentException::class.java) { service.start(operators.llm, bad) }

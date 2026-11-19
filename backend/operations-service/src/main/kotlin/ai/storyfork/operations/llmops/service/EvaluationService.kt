@@ -73,11 +73,17 @@ class EvaluationService(
     /** The AI service answers 202 and keeps running; the result shows up in the run list. */
     fun start(member: OperationsMember, request: EvaluationRequest): EvaluationStartedResponse {
         permissions.requirePermission(member, LLM)
+        val started = startRun(request)
+        activities.record(member, "EVALUATION_RUN", "EVALUATION", started.runId.take(100), "${request.dataset} · ${request.prompt} v${request.version}")
+        return started
+    }
+
+    /** The start itself, without an admin: the scheduled regression_eval job calls it, so there is no admin activity to record. */
+    internal fun startRun(request: EvaluationRequest): EvaluationStartedResponse {
         require(request.dataset.isNotBlank() && request.dataset.length <= NAME_MAX) { "Invalid dataset." }
         require(request.prompt.isNotBlank() && request.prompt.length <= NAME_MAX) { "Invalid prompt." }
         require(request.version >= 1) { "Invalid version." }
         val started = ai.startEvaluation(request.dataset, request.prompt, request.version)
-        activities.record(member, "EVALUATION_RUN", "EVALUATION", started.runName.take(100), "${request.dataset} · ${request.prompt} v${request.version}")
         return EvaluationStartedResponse(started.runName, request.dataset, request.prompt, request.version, "running")
     }
 

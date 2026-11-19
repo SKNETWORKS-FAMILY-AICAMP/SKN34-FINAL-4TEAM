@@ -3,6 +3,7 @@ package ai.storyfork.operations.jobs.repository
 import ai.storyfork.operations.jobs.entity.JobRunEntity
 import ai.storyfork.operations.jobs.entity.JobStatus
 import ai.storyfork.operations.jobs.entity.ScheduledJobEntity
+import java.time.Instant
 import java.util.UUID
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -21,6 +22,10 @@ interface JobRunRepository : JpaRepository<JobRunEntity, UUID> {
     fun findAllByKind(kind: String, page: Pageable): Page<JobRunEntity>
     fun findAllByStatusAndKind(status: JobStatus, kind: String, page: Pageable): Page<JobRunEntity>
     fun existsByScheduleIdAndStatusIn(scheduleId: UUID, statuses: Collection<JobStatus>): Boolean
+
+    /** The dashboard's job counts: runs queued or running, and runs that failed after a moment. */
+    fun countByStatusIn(statuses: Collection<JobStatus>): Long
+    fun countByStatusAndFinishedAtAfter(status: JobStatus, since: Instant): Long
     fun findFirstByScheduleIdOrderByCreatedAtDescIdDesc(scheduleId: UUID): JobRunEntity?
     fun existsByRetryOf(retryOf: UUID): Boolean
 }

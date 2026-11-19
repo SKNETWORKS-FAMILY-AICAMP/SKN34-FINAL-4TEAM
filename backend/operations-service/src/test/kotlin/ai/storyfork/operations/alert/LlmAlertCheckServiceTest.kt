@@ -7,6 +7,8 @@ import ai.storyfork.operations.alert.entity.OperationAlertEntity
 import ai.storyfork.operations.alert.repository.AlertRuleRepository
 import ai.storyfork.operations.alert.service.AlertRaiser
 import ai.storyfork.operations.alert.service.LlmAlertCheckService
+import ai.storyfork.operations.jobs.service.JobCountService
+import ai.storyfork.operations.jobs.service.JobCounts
 import ai.storyfork.operations.llmops.service.AiUsageService
 import ai.storyfork.operations.llmops.root
 import java.math.BigDecimal
@@ -18,7 +20,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import tools.jackson.databind.JsonNode
 
-/** Mocked rules, Langfuse and alert raiser (the usage aggregation runs for real): no network, broker, Spring context or database. */
+/** Mocked rules, Langfuse, job counts and alert raiser (the usage aggregation runs for real): no network, broker, Spring context or database. */
 class LlmAlertCheckServiceTest {
     private val rules = mock(AlertRuleRepository::class.java)
     private val langfuse = mock(LangfuseClient::class.java)
@@ -27,7 +29,8 @@ class LlmAlertCheckServiceTest {
     private val raiser = mock(AlertRaiser::class.java) { call ->
         if (call.method.name == "raise" && raiserCreates) OperationAlertEntity(ruleKey = call.arguments[0] as String, message = "m") else null
     }
-    private val service = LlmAlertCheckService(rules, AiUsageService(langfuse), raiser)
+    private val jobs = mock(JobCountService::class.java)
+    private val service = LlmAlertCheckService(rules, AiUsageService(langfuse), raiser, jobs)
     private val now = Instant.parse("2026-11-19T05:00:00Z")
 
     // 4 requests: one failed, one timeout; latencies 1, 2, 3, 10 seconds. A root has no cost: its generations do, 0.10 + 0.20 + 0.30 + 0.40 = 1.00.
@@ -49,6 +52,10 @@ class LlmAlertCheckServiceTest {
         `when`(langfuse.allTraces(now.minusSeconds(minutes * 60), now)).thenReturn(found)
         `when`(langfuse.observationUsage(now.minusSeconds(minutes * 60), now)).thenReturn(rows)
     }
+
+    // The job count the rule reads: failures in the rule's window (60 minutes unless the test says otherwise).
+    private fun givenFailed(failed: Int, minutes: Long = 60) =
+        `when`(jobs.counts(now.minusSeconds(minutes * 60))).thenReturn(JobCounts(running = 7, failed = failed))
 
     private fun raisedKeys() = mockingDetails(raiser).invocations.filter { it.method.name == "raise" }
 
@@ -134,11 +141,11 @@ class LlmAlertCheckServiceTest {
 
     @Test
     fun `a rule without a value and the rules this check does not own are skipped without reading Langfuse`() {
-        givenEnabled(rule("ai_failure_rate", null), rule("leak_suspected", null), rule("leak_suspected", "5"), rule("job_failed", "1"))
+        givenEnabled(rule("ai_failure_rate", null), rule("job_failed", null), rule("leak_suspected", null), rule("leak_suspected", "5"))
 
         assertEquals(0, service.run(now))
 
-        verifyNoInteractions(langfuse, raiser)
+        verifyNoInteractions(langfuse, jobs, raiser)
     }
 
     @Test
@@ -147,7 +154,7 @@ class LlmAlertCheckServiceTest {
 
         assertEquals(0, service.run(now))
 
-        verifyNoInteractions(langfuse, raiser)
+        verifyNoInteractions(langfuse, jobs, raiser)
     }
 
     @Test
@@ -167,6 +174,129 @@ class LlmAlertCheckServiceTest {
         `when`(langfuse.allTraces(now.minusSeconds(3600), now)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
 
         assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.run(now) }.statusCode)
+
+        assertTrue(raisedKeys().isEmpty())
+    }
+
+    @Test
+    fun `job_failed raises one alert carrying the failed count and the numbers in its message`() {
+        givenEnabled(rule("job_failed", "3", 1440))
+        givenFailed(5, 1440)
+
+        assertEquals(1, service.run(now))
+
+        val call = raisedKeys().single()
+        assertEquals(listOf("job_failed", 5.0, null), listOf(call.arguments[0], call.arguments[2], call.arguments[3]))
+        val message = call.arguments[1] as String
+        assertTrue(message.contains("실패한 작업이 5건") && message.contains("기준 3건") && message.contains("1440분"), message)
+        verifyNoInteractions(langfuse)
+    }
+
+    @Test
+    fun `job_failed alerts exactly at the threshold and not below it`() {
+        givenEnabled(rule("job_failed", "3"))
+        givenFailed(2)
+        assertEquals(0, service.run(now))
+
+        givenFailed(3)
+        assertEquals(1, service.run(now))
+    }
+
+    @Test
+    fun `job_failed counts only the failures in the rule's own window`() {
+        givenEnabled(rule("job_failed", "3", 120))
+        givenFailed(2, 120)
+
+        assertEquals(0, service.run(now))
+
+        verify(jobs, times(1)).counts(now.minusSeconds(7200))
+        verifyNoMoreInteractions(jobs)
+    }
+
+    @Test
+    fun `a zero threshold alerts on any failure but never on none`() {
+        givenEnabled(rule("job_failed", "0"))
+        givenFailed(0)
+        assertEquals(0, service.run(now))
+
+        givenFailed(1)
+        assertEquals(1, service.run(now))
+    }
+
+    @Test
+    fun `a fractional threshold is compared as it is and shown without trailing zeros`() {
+        givenEnabled(rule("job_failed", "2.50"))
+        givenFailed(2)
+        assertEquals(0, service.run(now))
+
+        givenFailed(3)
+        assertEquals(1, service.run(now))
+
+        assertTrue((raisedKeys().single().arguments[1] as String).contains("2.5건"))
+    }
+
+    @Test
+    fun `job_failed and the AI rules are checked in one run`() {
+        givenEnabled(rule("ai_failure_rate", "0.1"), rule("job_failed", "1"))
+        givenWindow(60)
+        givenFailed(4)
+
+        assertEquals(2, service.run(now))
+
+        assertEquals(listOf("ai_failure_rate", "job_failed"), raisedKeys().map { it.arguments[0] })
+    }
+
+    @Test
+    fun `a standing job_failed breach is not raised again while the rule has an unresolved alert`() {
+        givenEnabled(rule("job_failed", "1"))
+        givenFailed(4)
+        raiserCreates = false
+
+        assertEquals(0, service.run(now))
+
+        assertEquals(1, raisedKeys().size)
+    }
+
+    @Test
+    fun `Content being down does not hide the AI alerts but still fails the run`() {
+        givenEnabled(rule("ai_failure_rate", "0.1"), rule("job_failed", "1"))
+        givenWindow(60)
+        `when`(jobs.counts(now.minusSeconds(3600))).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
+
+        assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.run(now) }.statusCode)
+
+        assertEquals(listOf("ai_failure_rate"), raisedKeys().map { it.arguments[0] })
+    }
+
+    @Test
+    fun `Langfuse being down does not hide the job alert but still fails the run`() {
+        givenEnabled(rule("ai_failure_rate", "0.1"), rule("job_failed", "1"))
+        `when`(langfuse.allTraces(now.minusSeconds(3600), now)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
+        givenFailed(2)
+
+        assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.run(now) }.statusCode)
+
+        assertEquals(listOf("job_failed"), raisedKeys().map { it.arguments[0] })
+    }
+
+    @Test
+    fun `both sources down fails the run with the first failure after trying both`() {
+        givenEnabled(rule("ai_failure_rate", "0.1"), rule("job_failed", "1"))
+        `when`(langfuse.allTraces(now.minusSeconds(3600), now)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
+        `when`(jobs.counts(now.minusSeconds(3600))).thenThrow(ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE))
+
+        assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.run(now) }.statusCode)
+
+        verify(jobs, times(1)).counts(now.minusSeconds(3600))
+    }
+
+    @Test
+    fun `an error that is not a failed upstream call is a bug and fails the run at once`() {
+        givenEnabled(rule("ai_failure_rate", "0.1"), rule("job_failed", "1"))
+        `when`(langfuse.allTraces(now.minusSeconds(3600), now)).thenThrow(IllegalStateException("bug"))
+        givenFailed(2)
+
+        assertThrows(IllegalStateException::class.java) { service.run(now) }
 
         assertTrue(raisedKeys().isEmpty())
     }

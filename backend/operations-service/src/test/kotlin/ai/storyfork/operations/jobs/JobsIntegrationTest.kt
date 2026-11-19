@@ -146,6 +146,11 @@ class JobsIntegrationTest {
         jdbc.queryForList("SELECT action FROM operations.admin_activity WHERE target_id = ? ORDER BY created_at, id", String::class.java, targetId).filterNotNull()
 
     @Test
+    fun `the four LLMOps job kinds have handlers so a schedule can be created for each`() {
+        for (kind in listOf("llm_alert_check", "leak_sample_check", "regression_eval", "alert_cleanup")) createSchedule(kind)
+    }
+
+    @Test
     fun `the jobs API needs a Core verified Bearer and the jobs permission`() {
         for (path in listOf("$base/runs", "$base/schedules")) {
             assertEquals(401, send("GET", path).statusCode(), path)
