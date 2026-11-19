@@ -49,9 +49,15 @@ class LeakSampleCheckServiceTest {
         val traceId: String = root.path("traceId").asString()
     }
 
-    private fun fork(id: String, workId: String?, answer: String?, status: String? = "success", fork: Boolean = true) = Request(
-        root(id, status = status, metadata = mapOf("fork" to fork.toString()) + (workId?.let { mapOf("work_id" to it) } ?: emptyMap())), answer,
+    /** [input] is the request root's raw input text, null for a root without one. */
+    private fun fork(id: String, workId: String?, answer: String?, status: String? = "success", fork: Boolean = true, input: String? = null) = Request(
+        root(id, status = status, input = input, metadata = mapOf("fork" to fork.toString()) + (workId?.let { mapOf("work_id" to it) } ?: emptyMap())), answer,
     )
+
+    /** What the AI service writes as a request root's input, like Python's json.dumps: {"request": "…"} with every non-ASCII character escaped. */
+    private fun asked(question: String) = buildString {
+        for (c in """{"request": ${testMapper.writeValueAsString(question)}}""") if (c.code < 128) append(c) else append("\\u%04x".format(c.code))
+    }
 
     private val leaked = fork("f1", "w-1", "그 사람의 진짜 이름은 한서진이야")
     private val clean = fork("f2", "w-1", "아무 일도 없었어요")
@@ -72,6 +78,8 @@ class LeakSampleCheckServiceTest {
     }
 
     private fun aiCalls() = mockingDetails(ai).invocations.map { it.arguments[0] as String to it.arguments[1] as List<*> }
+
+    private fun aiQuestions() = mockingDetails(ai).invocations.map { it.arguments[2] }
 
     private fun readAnswersOf() = mockingDetails(langfuse).invocations.filter { it.method.name == "traceObservations" }.map { it.arguments[0] }
 
@@ -224,5 +232,45 @@ class LeakSampleCheckServiceTest {
         `when`(content.leakReferences("w-1")).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))
         assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.run(from, to, Random(1)) }.statusCode)
         assertTrue(saved.isEmpty())
+    }
+
+    @Test
+    fun `a title the user already wrote in the question is no match and nothing goes to the AI judge`() {
+        // The answer only says there is no ground for what the user asked about: repeating the user's own words gives nothing away.
+        val repeated = fork("f7", "w-1", "율도국과 백씨, 12화 진실에 대한 근거는 찾지 못했어요", input = asked("율도국에서 백씨는 누구야? 12화 진실도 알려 줘"))
+        givenTraces(repeated)
+        `when`(content.leakReferences("w-1")).thenReturn(LeakReferences("w-origin", listOf("율도국", "백씨"), listOf("12화 진실")))
+
+        assertEquals(0, service.run(from, to, Random(1)))
+
+        assertEquals(listOf(emptyList<String>()), saved.map { it.matched })
+        assertEquals(listOf(false), saved.map { it.suspected })
+        assertTrue(aiCalls().isEmpty())
+        verifyNoInteractions(raiser)
+    }
+
+    @Test
+    fun `only the titles missing from the question are matched and the judge gets the question with them`() {
+        val request = fork("f7", "w-1", "길현은 율도국의 왕자예요", input = asked("율도국은 어떤 나라야?"))
+        givenTraces(request)
+        `when`(content.leakReferences("w-1")).thenReturn(LeakReferences("w-origin", listOf("율도국", "길현")))
+        verdicts["길현"] = LeakVerdict(true, "원작의 숨은 인물 이름을 말했어요")
+
+        assertEquals(1, service.run(from, to, Random(1)))
+
+        assertEquals(listOf(listOf("길현")), saved.map { it.matched })
+        assertEquals(listOf("길현은 율도국의 왕자예요" to listOf("길현")), aiCalls())
+        assertEquals(listOf<Any?>("율도국은 어떤 나라야?"), aiQuestions())
+    }
+
+    @Test
+    fun `a trace whose input has no usable request has no question and every match goes to the judge`() {
+        val inputs = listOf(null, "그냥 글자", """{"message": "한서진이 누구야?"}""", """{"request": "   "}""", """{"request": 7}""", """{"request": null}""")
+        givenTraces(*inputs.mapIndexed { i, input -> fork("q${i}", "w-1", "그 사람의 진짜 이름은 한서진이야", input = input) }.toTypedArray())
+
+        service.run(from, to, Random(1))
+
+        assertEquals(inputs.map { listOf("한서진") }, saved.map { it.matched })
+        assertEquals(inputs.map { null }, aiQuestions())
     }
 }

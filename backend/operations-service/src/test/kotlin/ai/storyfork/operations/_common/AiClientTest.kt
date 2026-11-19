@@ -55,6 +55,20 @@ class AiClientTest {
     }
 
     @Test
+    fun `a leak check sends the question the user asked, and null when there was none`() {
+        val factory = RecordingRequestFactory { Reply(200, """{"suspected":false}""") }
+
+        client(factory).leakCheck("율도국은 근거를 찾지 못했어요", listOf("길현"), "율도국에서 길현은 누구야?")
+        client(factory).leakCheck("x", listOf("y"))
+
+        val bodies = factory.calls.map { mapper.readTree(it.body) }
+        assertEquals("율도국에서 길현은 누구야?", bodies[0].path("question").asString())
+        // The field is always sent: null says the trace had no question, so the judge never has to guess whether a caller left it out.
+        assertTrue(bodies[1].path("question").isNull)
+        assertEquals(listOf("response", "references", "question"), bodies[1].propertyNames().toList())
+    }
+
+    @Test
     fun `400 404 and 409 keep their status and every other failure or an empty reply is 502`() {
         for ((upstream, expected) in listOf(400 to 400, 404 to 404, 409 to 409, 401 to 502, 403 to 502, 422 to 502, 500 to 502, 503 to 502)) {
             val factory = RecordingRequestFactory { Reply(upstream, """{"detail":"x"}""") }

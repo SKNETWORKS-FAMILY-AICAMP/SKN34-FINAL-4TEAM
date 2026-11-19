@@ -120,7 +120,7 @@ Schedule { id, kind, cron, enabled, params, createdAt, updatedAt, lastRun?:JobRu
 | kind | 실행 위치 | 내용 |
 |---|---|---|
 | `llm_alert_check` | 운영 | 경고 규칙을 Langfuse 지표·실패 작업과 비교해 경고 생성. 생성 시 운영자에게 사이트 안 알림 사건 발행 |
-| `leak_sample_check` | 운영 → Content·AI | 직전 구간 Fork 작품 요청 trace를 표본 비율로 뽑고 Content가 준 원작 비공개 카드 제목·미발행 회차 제목과 글자 대조 → 걸린 건만 AI `POST /internal/v1/evaluations/leak-check`(DeepEval)로 판정 → 의심이면 `leak_suspected` 경고 |
+| `leak_sample_check` | 운영 → Content·AI | 직전 구간 Fork 작품 요청 trace를 표본 비율로 뽑고 Content가 준 원작 비공개 카드 제목·미발행 회차 제목을 답변 글자와 대조한다. 사용자 질문(요청 루트 관측 input의 `request`, 없으면 null)에 이미 있는 제목은 답변이 사용자의 말을 되풀이했을 뿐이라 일치에서 뺀다 → 남은 일치가 있는 건만 AI `POST /internal/v1/evaluations/leak-check` `{response, references, question?}`(`references`는 남은 일치 제목, `question`은 사용자 질문 원문이고 없으면 null, DeepEval)로 판정 → 의심이면 `leak_suspected` 경고. 남은 일치가 없으면 AI를 부르지 않고 `suspected=false` 결과만 남긴다 |
 | `regression_eval` | AI | AI `POST /internal/v1/evaluations`로 위임, AI가 Langfuse Dataset Run을 만들고 끝나면 운영 콜백 없이 운영이 Run 상태를 읽어 기록 갱신 |
 | `alert_cleanup` | 운영 | 90일 지난 해결 경고 삭제 |
 

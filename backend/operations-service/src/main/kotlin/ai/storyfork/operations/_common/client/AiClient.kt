@@ -16,9 +16,12 @@ class AiClient(private val http: RestClient) {
             .body(mapOf("dataset" to dataset, "prompt" to prompt, "version" to version)).retrieve().body<EvaluationStarted>()
     }
 
-    /** [references] are the private titles that appeared in [response]; the judge decides whether the response really gave them away. */
-    fun leakCheck(response: String, references: List<String>): LeakVerdict = upstream {
+    /**
+     * [references] are the private titles that appeared in [response]; the judge decides whether the response really gave them away. [question] is what
+     * the user asked (null when the trace has none), always sent, so the judge can tell a title the answer gave away from a word it only repeated.
+     */
+    fun leakCheck(response: String, references: List<String>, question: String? = null): LeakVerdict = upstream {
         http.post().uri("/internal/v1/evaluations/leak-check").contentType(MediaType.APPLICATION_JSON)
-            .body(mapOf("response" to response, "references" to references)).retrieve().body<LeakVerdict>()
+            .body(mapOf("response" to response, "references" to references, "question" to question)).retrieve().body<LeakVerdict>()
     }
 }

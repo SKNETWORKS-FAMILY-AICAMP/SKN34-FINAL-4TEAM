@@ -30,8 +30,9 @@ class LeakSampleCheckService(
     /**
      * Samples the Fork-work traces of the window at the configured rate (one draw per eligible trace, in list order; a trace is eligible once a
      * request of it has finished, and a resumed turn is one trace), looks for the origin's private card titles and unpublished episode titles in
-     * the answer text (read from the trace's observations when it is drawn), and sends only the matches to the AI judge. Every sampled trace
-     * leaves one result (nothing matched is a clean result); a suspicious one raises the leak alert when that rule is switched on.
+     * the answer text (read from the trace's observations when it is drawn), and sends only the matches to the AI judge together with the user's
+     * question. A title the user wrote in that question is no match: an answer that only repeats the user's own words gives nothing away. Every
+     * sampled trace leaves one result (nothing matched is a clean result); a suspicious one raises the leak alert when that rule is switched on.
      * Returns how many answers the judge found suspicious. A failing AI or Content call reaches the caller and keeps the results saved before it.
      * ponytail: titles are matched as plain substrings, so a title that JSON would escape inside an object answer is missed.
      */
@@ -47,9 +48,13 @@ class LeakSampleCheckService(
             val workId = checkNotNull(trace.workId)
             val origin = if (workId in references) references[workId] else referencesOf(workId).also { references[workId] = it }
             if (origin == null) continue
-            val answer = langfuse.traceObservations(trace.id).traceOutput()?.let { if (it.isString) it.stringValue() else it.toString() }.orEmpty()
-            val matched = (origin.privateCardTitles + origin.unpublishedEpisodeTitles).filter { it.isNotBlank() && answer.contains(it) }.distinct()
-            val verdict = if (matched.isEmpty()) LeakVerdict(false) else ai.leakCheck(answer, matched)
+            val observations = langfuse.traceObservations(trace.id)
+            val answer = observations.traceOutput()?.let { if (it.isString) it.stringValue() else it.toString() }.orEmpty()
+            // The question is the request root's input {"request": "..."}; a trace whose input has no usable request has none.
+            val question = observations.traceInput()?.path("request")?.takeIf { it.isString }?.stringValue()?.takeIf { it.isNotBlank() }
+            val matched = (origin.privateCardTitles + origin.unpublishedEpisodeTitles)
+                .filter { it.isNotBlank() && answer.contains(it) && (question == null || !question.contains(it)) }.distinct()
+            val verdict = if (matched.isEmpty()) LeakVerdict(false) else ai.leakCheck(answer, matched, question)
             results.saveAndFlush(LeakCheckResultEntity(traceId = trace.id, workId = workId, matched = matched, suspected = verdict.suspected, reason = verdict.reason))
             if (verdict.suspected) {
                 suspicious++
