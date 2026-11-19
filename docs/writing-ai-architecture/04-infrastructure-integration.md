@@ -24,7 +24,7 @@ Elasticsearch 인덱스의 필수 키는 work/Fork, episode/document ID, source 
 
 ### 단일 기능과 복합 요청
 
-기존 이어쓰기와 명시적 `operation`을 사용하는 단일 기능 경로를 유지한다. 자유 입력은 전용 공개 경로에서 받아 오케스트레이션에 전달한다(Decision Guard 판정 뒤 메인 에이전트, #473). 두 경로에 인증·인가·동의 규칙을 동일하게 적용한다. 집필 AI 공개 경로는 Content `/api/v1/works/{id}/chat/sessions`(대화·SSE)와 `/api/v1/works/{id}/writing-ai/orchestrations`다([실행 계약](02-ai-architecture.md#유지되는-실행-계약)).
+기존 이어쓰기와 명시적 `operation`을 사용하는 단일 기능 경로를 유지한다. 자유 입력은 전용 공개 경로에서 받아 오케스트레이션에 전달한다(Decision Guard 판정 뒤 메인 에이전트, #473). 두 경로에 인증·인가 규칙을 동일하게 적용한다. 집필 AI 대화(자유 입력)는 OpenAI 전송·비용 동의를 받지 않는다(#542). 이어쓰기 제안의 동의는 그대로다. 집필 AI 공개 경로는 Content `/api/v1/works/{id}/chat/sessions`(대화·SSE)와 `/api/v1/works/{id}/writing-ai/orchestrations`다([실행 계약](02-ai-architecture.md#유지되는-실행-계약)).
 
 
 ### 복합 실행 기록과 중복 요청

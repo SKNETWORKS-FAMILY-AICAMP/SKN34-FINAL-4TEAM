@@ -3,7 +3,6 @@ package ai.storyfork.core.notification
 import ai.storyfork.core.notification.domain.NoticeEventType
 import ai.storyfork.core.notification.domain.NoticeKind
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -39,14 +38,26 @@ class NoticeEventTypeTest {
         assertTrue(listOfNotNull(expiring, withdrawal).none { it.kind.mutable })
     }
 
+    /** 분류 코드·끌 수 있는지·대상 종류·문구를 한 번에 본다. 모르는 코드면 null이라 비교가 실패한다. */
+    private fun shape(code: String) = NoticeEventType.fromCode(code)?.let { listOf(it.kind.code, it.kind.mutable, it.targetType, it.summary) }
+
+    @Test
+    fun `mcp changes are ai-tool notices that members can turn off and that target the world or the work`() {
+        assertEquals(listOf("ai-tool", true, "world", "AI가 MCP로 세계관을 수정했어요"), shape("content.mcp.world-changed"))
+        assertEquals(listOf("ai-tool", true, "work", "AI가 MCP로 작품을 수정했어요"), shape("content.mcp.work-changed"))
+    }
+
+    @Test
+    fun `operator actions are result notices about the work that members cannot turn off`() {
+        assertEquals(listOf("result", false, "work", "운영자가 작품을 제한했어요"), shape("content.operator.work-restricted"))
+        assertEquals(listOf("result", false, "work", "운영자가 작품 제한을 해제했어요"), shape("content.operator.work-unrestricted"))
+        assertEquals(listOf("result", false, "work", "운영자가 내 댓글을 숨겼어요"), shape("content.operator.comment-hidden"))
+        assertEquals(listOf("result", false, "work", "운영자가 숨긴 내 댓글을 다시 게시했어요"), shape("content.operator.comment-restored"))
+    }
+
     @Test
     fun `an operations alert is a result notice that targets the alert and cannot be turned off`() {
-        val alert = NoticeEventType.fromCode("operations.alert.raised")
-        assertEquals(NoticeEventType.OPERATIONS_ALERT_RAISED, alert)
-        assertEquals(NoticeKind.RESULT, alert?.kind)
-        assertEquals("alert", alert?.targetType)
-        assertEquals("운영 경고가 발생했어요", alert?.summary)
-        assertFalse(alert?.kind?.mutable ?: true)
+        assertEquals(listOf("result", false, "alert", "운영 경고가 발생했어요"), shape("operations.alert.raised"))
     }
 
     @Test

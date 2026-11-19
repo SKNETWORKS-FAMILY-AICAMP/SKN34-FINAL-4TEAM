@@ -54,7 +54,7 @@ class EpisodeMcpToolsTest {
     private val publication = mock(PublicationService::class.java)
     private val schedules = mock(PublicationScheduleService::class.java)
     private val works = mock(WorkService::class.java)
-    private val specs = specsOf(EpisodeMcpTools(episodes, worldBasis, versions, publication, schedules, works))
+    private val specs = specsOf(EpisodeMcpTools(episodes, worldBasis, versions, publication, schedules, works, mock(McpChangeNotice::class.java)))
 
     @AfterEach fun clear() = SecurityContextHolder.clearContext()
 
@@ -132,6 +132,7 @@ class EpisodeMcpToolsTest {
         val failing = EpisodeMcpTools(
             mock(EpisodeService::class.java, boom), mock(EpisodeWorldBasisService::class.java, boom), mock(EpisodeVersionService::class.java, boom),
             mock(PublicationService::class.java, boom), mock(PublicationScheduleService::class.java, boom), mock(WorkService::class.java, boom),
+            mock(McpChangeNotice::class.java),
         )
 
         val result = call(tool, validArgs.getValue(tool), on = specsOf(failing))

@@ -3,9 +3,9 @@ import json
 import pytest
 from openai import OpenAIError
 
-from app.review import agent
-from app.review.errors import ReviewFailure
-from app.review.models import ReviewResult
+from app.manuscript_review import agent
+from app.manuscript_review.errors import ReviewFailure
+from app.manuscript_review.models import ReviewResult
 
 from .stubs import fake_openai, finding
 
@@ -29,7 +29,7 @@ def test_review_is_traced_with_setting_refs_only(monkeypatch, spans):
 
     agent.review('semantic', '서윤은 웃엇다.', [{'ref': 'card:seoyun', 'title': '서윤', 'text': '비밀 설정 본문'}])
 
-    [span] = [s for s in spans() if s.name == 'review.generation']
+    [span] = [s for s in spans() if s.name == 'manuscript_review.generation']
     recorded = json.loads(span.attributes['langfuse.observation.input'])
     # 원고 본문은 팀 결정으로 남기고, 설정 본문은 참조만 남긴다.
     assert recorded == {'check': 'semantic', 'draft': '서윤은 웃엇다.', 'settings': ['card:seoyun']}

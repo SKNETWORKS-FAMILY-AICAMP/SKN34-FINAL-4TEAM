@@ -5,7 +5,7 @@ import type { NotificationPrefs, NotificationRepository } from '../../domain/rep
 import { authVersion, protectedRequest } from './auth'
 import { csrf } from './csrf'
 
-const kind = z.enum(['reading', 'creation', 'result', 'credit', 'rights-security'])
+const kind = z.enum(['reading', 'creation', 'result', 'credit', 'rights-security', 'ai-tool'])
 const notice = z.object({
   id: z.string().min(1), kind, summary: z.string(), targetType: z.string().nullable(), targetId: z.string().nullable(),
   createdAt: z.string().datetime({ offset: true }), read: z.boolean(),
@@ -49,12 +49,12 @@ export class HttpNotificationRepository implements NotificationRepository {
 
   async getPrefs(signal?: AbortSignal) { return toPrefs(prefsSchema.parse(await (await this.request('/api/v1/me/notification-preferences', { signal })).json())) }
   async savePrefs(prefs: NotificationPrefs) {
-    const body = { items: [{ kind: 'reading', enabled: prefs.read }, { kind: 'creation', enabled: prefs.creator }] }
+    const body = { items: [{ kind: 'reading', enabled: prefs.read }, { kind: 'creation', enabled: prefs.creator }, { kind: 'ai-tool', enabled: prefs.aiTool }] }
     return toPrefs(prefsSchema.parse(await (await this.request('/api/v1/me/notification-preferences', { method: 'PUT', body })).json()))
   }
 }
 
 function toPrefs(response: z.infer<typeof prefsSchema>): NotificationPrefs {
   const on = (code: string) => response.items.find((i) => i.kind === code)?.enabled ?? true
-  return { read: on('reading'), creator: on('creation') }
+  return { read: on('reading'), creator: on('creation'), aiTool: on('ai-tool') }
 }
