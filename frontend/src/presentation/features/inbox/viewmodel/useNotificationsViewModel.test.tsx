@@ -37,7 +37,7 @@ function setup(first: NotificationPage) {
       pending.push({ cursor, response })
       return response.promise
     }),
-    getPrefs: vi.fn(() => Promise.resolve({ read: true, creator: true })),
+    getPrefs: vi.fn(() => Promise.resolve({ read: true, creator: true, aiTool: true })),
     markAllRead: vi.fn(() => markAll.promise),
   } as unknown as ShellUseCase
   const wrapper = ({ children }: { children: ReactNode }) => <Provider store={store}><MemoryRouter>{children}</MemoryRouter></Provider>
@@ -189,7 +189,7 @@ it('수신 설정 저장과 더 보기 실패도 각각의 자리로 남긴다',
   Object.assign(shell, { savePrefs: vi.fn(() => Promise.reject(new Error('저장 실패'))) })
   await act(async () => { await hook.result.current.setPref('read', false) })
   expect(hook.result.current.failure).toEqual({ at: 'prefs', msg: '알림 설정을 저장하지 못했어요. 다시 시도해 주세요.' })
-  expect(hook.result.current.prefs).toEqual({ read: true, creator: true })
+  expect(hook.result.current.prefs).toEqual({ read: true, creator: true, aiTool: true })
 
   let more!: Promise<void>
   act(() => { more = hook.result.current.loadMore() })

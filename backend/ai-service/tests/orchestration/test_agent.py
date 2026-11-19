@@ -13,6 +13,7 @@ from openai import OpenAIError
 from pydantic import ValidationError
 
 from app.intent.errors import IntentFailure
+from app.intent.models import DecisionResult
 from app.intent.prompt import CLARIFY_MESSAGE, REJECT_MESSAGES
 from app.orchestration import agent, service, tools
 from app.orchestration.models import OrchestrationRequest
@@ -68,14 +69,18 @@ def test_the_decision_guard_runs_once_per_turn_and_the_main_agent_synthesizes_th
 @pytest.mark.parametrize('routed, status, message', [
     (plan(status='rejected', reason='greeting'), 'rejected', REJECT_MESSAGES['greeting']),
     (plan(status='clarify'), 'clarify', CLARIFY_MESSAGE),
-    (plan('story_context', capabilities=['story_context', 'world_plot']), 'unsupported', tools.UNSUPPORTED_MESSAGE),
 ])
-def test_rejected_no_feature_or_unsupported_decisions_never_call_the_main_model(monkeypatch, routed, status, message):
+def test_rejected_or_no_feature_decisions_never_call_the_main_model(monkeypatch, routed, status, message):
     calls = fake_agents(monkeypatch, routed)
     result = run(inputs={'story_context': QA})
-    assert (result.status, result.message) == (status, message)
+    assert (result.status, result.message, result.unsupported) == (status, message, [])
     assert names(calls) == ['judge'] and calls.main == []
-    assert result.unsupported == (['world_plot'] if status == 'unsupported' else [])
+
+
+def test_world_plot_is_gone_so_no_decision_can_end_as_unsupported():
+    # 미구현 기능이 남지 않았다: 판정은 world_plot을 담을 수 없고 메인 에이전트에게도 그 도구가 없다.
+    with pytest.raises(ValidationError):
+        DecisionResult(allowed=True, capabilities=['story_context', 'world_plot'])
 
 
 def test_decision_failure_propagates_without_running_anything(monkeypatch):
@@ -116,7 +121,7 @@ def test_the_same_feature_runs_only_once_per_turn(monkeypatch):
 
 
 def test_at_most_three_sub_agents_run_per_turn(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('story_context', 'web_research', 'rating', 'world_review'))
+    calls = fake_agents(monkeypatch, plan('story_context', 'web_research', 'rating', 'world'))
     result = run(target=TARGET, inputs={'story_context': QA, 'web_research': WEB})
     assert [s.feature for s in result.steps] == ['story_context', 'web_research', 'rating']
     assert 'world_review' not in names(calls)
@@ -218,8 +223,7 @@ def test_a_turn_that_calls_no_tool_is_the_main_agents_clarifying_question(monkey
 
 def test_the_model_only_sets_the_request_and_enumerated_arguments():
     schemas = {t.name: t.tool_call_schema.model_json_schema() for t in agent.TOOLS.values()}
-    assert set(schemas) == {'ask_story_qa', 'ask_manuscript_review', 'ask_world_review', 'ask_writing', 'ask_web_research', 'ask_rating',
-                            'ask_character_simulation'}
+    assert set(schemas) == {'ask_story_qa', 'ask_manuscript_review', 'ask_world', 'ask_writing', 'ask_web_research', 'ask_rating', 'ask_character_simulation'}
     for name, schema in schemas.items():
         properties = schema.get('properties', {})
         assert set(properties) <= {'request', 'check', 'task', 'fix'}, name
@@ -228,6 +232,8 @@ def test_the_model_only_sets_the_request_and_enumerated_arguments():
     assert schemas['ask_web_research'].get('properties', {}) == {}
     assert set(schemas['ask_manuscript_review']['properties']['check']['anyOf'][0]['enum']) == {'mechanical', 'semantic', 'both'}
     assert set(schemas['ask_writing']['properties']['task']['enum']) == {'plan', 'draft', 'patch'}
+    # World의 작업은 열거형 인자 task로 고르고 반드시 정해야 한다(고르지 않은 호출은 인자 오류로 단계 실패다).
+    assert set(schemas['ask_world']['properties']['task']['enum']) == {'check', 'enrich', 'impact'} and 'task' in schemas['ask_world']['required']
 
 
 def test_a_tool_returns_a_summary_for_the_main_agent_and_the_raw_result_as_its_artifact(monkeypatch):
@@ -385,10 +391,10 @@ def test_the_main_agent_gets_the_last_five_turns_of_requests_and_answers(monkeyp
 
 
 def test_a_blocked_tool_outside_the_decision_does_not_use_up_the_three_calls(monkeypatch):
-    calls = fake_agents(monkeypatch, plan('rating', 'story_context', 'web_research', 'world_review',
-                                          capabilities=['story_context', 'web_research', 'world_review']))
+    calls = fake_agents(monkeypatch, plan('rating', 'story_context', 'web_research', 'world',
+                                          capabilities=['story_context', 'web_research', 'world']))
     result = run(target=TARGET, inputs={'story_context': QA, 'web_research': WEB})
-    assert [s.feature for s in result.steps] == ['story_context', 'web_research', 'world_review']
+    assert [s.feature for s in result.steps] == ['story_context', 'web_research', 'world']
     assert 'rating' not in names(calls)
 
 
@@ -474,8 +480,8 @@ def test_independent_lookups_in_one_model_turn_run_concurrently_in_call_order(mo
     assert len(calls.main) == 2 and (result.status, result.message) == ('completed', '종합 답변')  # 묶음 한 번 + 종합
 
 
-@pytest.mark.parametrize('solo', [Step('writing_editing', task='plan'), Step('character_simulation')])
-def test_writing_and_simulation_in_a_batch_are_refused_and_run_alone_next(monkeypatch, solo):
+@pytest.mark.parametrize('solo', [Step('writing_editing', task='plan'), Step('character_simulation'), Step('world', task='enrich')])
+def test_writing_simulation_and_world_enrich_in_a_batch_are_refused_and_run_alone_next(monkeypatch, solo):
     calls = fake_agents(monkeypatch, plan(['rating', solo], solo))
     fake_scene(monkeypatch)
     result = run('요청', target=TARGET)
@@ -492,6 +498,31 @@ def test_writing_and_review_wait_for_an_earlier_tool_in_the_same_batch(monkeypat
     assert result.status == 'completed'
     assert [s.feature for s in result.steps] == ['story_context', 'writing_editing', 'manuscript_review']
     assert names(calls) == ['judge', 'story_context', 'mcp', 'mcp', 'plan_and_draft', 'manuscript_review']
+
+
+@pytest.mark.parametrize('task, service_call', [('check', (tools.world_review, 'review')), ('impact', (tools.world_review, 'impact'))])
+def test_world_check_and_impact_are_lookups_that_run_concurrently_with_the_others(monkeypatch, task, service_call):
+    calls = fake_agents(monkeypatch, plan(['rating', Step('world', task=task)]))
+    together(monkeypatch, (tools.rating, 'rate'), service_call)
+    result = run('요청', target=TARGET)
+    assert [(s.feature, s.task, s.status) for s in result.steps] == [('rating', None, 'completed'), ('world', task, 'completed')]
+    assert len(calls.main) == 2 and (result.status, result.message) == ('completed', '종합 답변')  # 묶음 한 번 + 종합
+
+
+def test_the_world_summary_gives_the_main_agent_the_minimum_per_task_and_never_the_proposed_text_or_ids(monkeypatch):
+    summaries = {}
+    for task in ('check', 'enrich', 'impact'):
+        calls = fake_agents(monkeypatch, plan(Step('world', task=task)))
+        run(target=TARGET)
+        summaries[task] = tool_messages(calls)[0].content
+    assert json.loads(summaries['check']) == {'feature': 'world', 'status': 'completed', 'task': 'check',
+                                              'findings': [{'kind': 'doc_role', 'message': 'SOUL에 목표가 섞여 있어요.'}]}
+    assert json.loads(summaries['enrich']) == {'feature': 'world', 'status': 'completed', 'task': 'enrich', 'note': '카엘의 SOUL을 보강했어요.',
+                                               'fixes': [{'card': '카엘', 'target': 'soul', 'episode': None}]}
+    assert json.loads(summaries['impact']) == {
+        'feature': 'world', 'status': 'completed', 'task': 'impact', 'conflicts': ['3화의 나이와 충돌한다.'], 'gaps': ['5화 계획의 나이를 알 수 없다.'],
+        'affected': [{'kind': 'card', 'title': '카엘', 'reason': '나이 설정이 바뀐다.', 'certainty': 'confirmed'}]}
+    assert '말이 짧고 낮게' not in summaries['enrich']  # 제안한 글 전체는 승인 카드에 있다
 
 
 def test_a_dependent_fix_in_the_same_batch_as_its_review_waits_for_the_review(monkeypatch):
@@ -530,10 +561,10 @@ def test_a_failure_in_a_batch_keeps_the_finished_sibling_and_closes_the_tools(mo
 
 
 def test_each_call_in_a_batch_counts_toward_the_three_calls_per_turn(monkeypatch):
-    calls = fake_agents(monkeypatch, plan(['story_context', 'web_research', 'rating', 'world_review']))
+    calls = fake_agents(monkeypatch, plan(['story_context', 'web_research', 'rating', 'world']))
     result = run(target=TARGET, inputs={'story_context': QA, 'web_research': WEB})
     assert [s.feature for s in result.steps] == ['story_context', 'web_research', 'rating']
-    assert 'world_review' not in names(calls) and sent(calls, 'ask_world_review').status == 'error'
+    assert 'world_review' not in names(calls) and sent(calls, 'ask_world').status == 'error'
 
 
 def test_the_patch_summary_names_the_changed_passage_so_the_answer_cannot_claim_more(monkeypatch):

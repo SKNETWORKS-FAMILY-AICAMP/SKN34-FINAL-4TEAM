@@ -3,9 +3,9 @@ from pydantic import ValidationError
 
 from app.orchestration.models import OrchestrationRequest, StepResult, WritingInput
 from app.simulation.models import SimulationPlan, SimulationResult
-from app.world_review.models import WorldReviewResponse
+from app.world_review.models import EnrichResponse, ImpactResponse, WorldReviewResponse
 
-from .stubs import DRAFT, PATCH, SCENE, WORLD_REVIEW
+from .stubs import DRAFT, PATCH, SCENE, WORLD_ENRICH, WORLD_IMPACT, WORLD_REVIEW
 
 
 @pytest.mark.parametrize('body', [{}, {**DRAFT, **PATCH}])
@@ -39,16 +39,28 @@ def test_simulation_result_is_a_step_result():
     assert isinstance(step.result, SimulationResult) and len(step.result.turns) == 2
 
 
-def test_world_review_result_is_a_step_result():
-    step = StepResult.model_validate({'feature': 'world_review', 'when': 'always', 'status': 'completed',
-                                      'result': WORLD_REVIEW.model_dump(mode='json')})
-    assert isinstance(step.result, WorldReviewResponse) and step.result.findings[0].fix.text == '말이 짧다.'
+@pytest.mark.parametrize('task, result, kind', [('check', WORLD_REVIEW, WorldReviewResponse), ('enrich', WORLD_ENRICH, EnrichResponse),
+                                                 ('impact', WORLD_IMPACT, ImpactResponse)])
+def test_world_results_are_step_results_that_keep_their_task(task, result, kind):
+    step = StepResult.model_validate({'feature': 'world', 'when': 'always', 'task': task, 'status': 'completed', 'result': result.model_dump(mode='json')})
+    assert (step.feature, step.task) == ('world', task) and type(step.result) is kind and step.result == result
 
 
-def test_world_review_can_be_chosen_as_an_operation_but_takes_no_step_input():
-    assert OrchestrationRequest(request='설정집 검토', operation='world_review').operation == 'world_review'
+def test_a_step_task_is_one_of_the_known_tasks():
     with pytest.raises(ValidationError):
-        OrchestrationRequest(request='설정집 검토', inputs={'world_review': {}})
+        StepResult.model_validate({'feature': 'world', 'when': 'always', 'task': 'audit', 'status': 'not_started'})
+
+
+def test_world_can_be_chosen_as_an_operation_but_takes_no_step_input():
+    assert OrchestrationRequest(request='설정집 검토', operation='world').operation == 'world'
+    with pytest.raises(ValidationError):
+        OrchestrationRequest(request='설정집 검토', inputs={'world': {}})
+
+
+@pytest.mark.parametrize('operation', ['world_review', 'world_plot'])
+def test_the_old_world_operations_are_no_longer_accepted(operation):
+    with pytest.raises(ValidationError):
+        OrchestrationRequest(request='설정집 검토', operation=operation)
 
 
 @pytest.mark.parametrize('operation', ['manuscript_review', 'review'])

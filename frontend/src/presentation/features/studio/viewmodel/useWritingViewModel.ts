@@ -164,6 +164,9 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
       setNotice(visible?'중단했던 발행본을 다시 공개했어요.':'회차 공개를 중단했어요.')
     })
   }
+  // 서버 값으로 목록과 활성 회차를 다시 읽는다. 저장하지 않은 입력은 확인 없이 버리므로, 확인이 필요한 메뉴(reload)는 mayLeave 뒤에 부르고
+  // 다른 곳(MCP)에서 바뀐 알림(useMcpChangeWatch)은 입력이 없을 때 자동으로, 있으면 배너를 사용자가 누른 뒤에 부른다. 읽었으면 true다.
+  const refresh=()=>run(async signal=>{const rows=await api.writingList(id,signal);if(!signal.aborted){setEpisodes(rows);const e=rows.find(x=>x.number===active?.number)??rows[0];if(e)install(e);else {resetOrder();setActive(null);put({title:'',body:'',revision:0})}setReady(true)}})
   return {publicationHistory,changeVisibility,
     orderLookup,
     historyLoading,historyError,
@@ -239,7 +242,8 @@ export function useWritingViewModel(id:string, api:WritingApi=appContainer.resol
     }),
     cancel:()=>{pending.current?.abort();waiting.current?.abort();pending.current=null;setFailedDraft(current.current);setSaving(false);setBusy(false);setEditingLocked(false);setError('요청을 취소했어요. 서버에서 이미 처리했을 수 있어요. 원고를 복사해 보관하고 다시 불러오기로 확인해 주세요.')},
     create:(title:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const e=await api.createEpisode(id,title,signal);if(!signal.aborted){merge(e);install(e);setNotice('비공개 회차를 만들었어요.')}})},
-    reload:()=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{const rows=await api.writingList(id,signal);if(!signal.aborted){setEpisodes(rows);const e=rows.find(x=>x.number===active?.number)??rows[0];if(e)install(e);else {resetOrder();setActive(null);put({title:'',body:'',revision:0})}setReady(true)}})},
+    refresh,
+    reload:()=>mayLeave()?refresh():Promise.resolve(false),
     restore:(versionId:string)=>{if(!mayLeave())return Promise.resolve(false);return run(async signal=>{if(!active)return;const e=await api.restoreEpisode(id,active.number,current.current.revision,versionId,signal);if(!signal.aborted){merge(e);install(e);setNotice('선택한 원고를 새 버전으로 복원했어요. 발행본은 그대로예요.')}})},
     publish:(versionId:string,rights:boolean)=>publishVersion(versionId,rights,'선택한 저장 버전을 공개했어요.'),
     revertCheckpoint:(versionId:string,rights:boolean)=>publishVersion(versionId,rights,'선택한 체크포인트로 되돌렸어요. 작업 초안과 체크포인트 이력은 그대로예요.'),

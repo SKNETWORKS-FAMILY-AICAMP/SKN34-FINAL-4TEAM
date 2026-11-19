@@ -660,7 +660,7 @@ it('줄 수정은 인라인 입력으로 고쳐 edit만 보내고(모델 호출 
   const edited = { ...speak(1, '카엘', '"열어라, 지금."'), checks: [], evidence: [], editedByAuthor: true }
   setup((_input, emit) => { pauseAt(emit, scene([narrate(0), edited])) })
   await waitFor(() => expect(lines()).toHaveLength(2))
-  fireEvent.click(within(lines()[1]).getByRole('button', { name: '수정' }))
+  fireEvent.click(within(lines()[1]).getByRole('button', { name: '이 줄 고치기' }))
   const edit = within(lines()[1]).getByRole('textbox', { name: /줄 고치기/ }) as HTMLTextAreaElement
   expect(edit.value).toBe('"열어라."')
   expect(edit.maxLength).toBe(2000)
@@ -681,7 +681,7 @@ it('줄 수정 입력이 닫히면(취소·Esc·저장) 초점이 그 줄의 수
   const edited = { ...speak(1, '카엘', '"열어라, 지금."'), checks: [], evidence: [], editedByAuthor: true }
   setup((_input, emit) => { pauseAt(emit, scene([narrate(0), edited])) })
   await waitFor(() => expect(lines()).toHaveLength(2))
-  const editButton = () => within(lines()[1]).getByRole('button', { name: '수정' })
+  const editButton = () => within(lines()[1]).getByRole('button', { name: '이 줄 고치기' })
   fireEvent.click(editButton())
   const box1 = within(lines()[1]).getByRole('textbox')
   expect(document.activeElement).toBe(box1)
@@ -702,7 +702,7 @@ it('수정 입력이 비었거나 그대로면 저장할 수 없고, 취소하�
   paused(speak(0))
   setup()
   await waitFor(() => expect(lines()).toHaveLength(1))
-  fireEvent.click(within(lines()[0]).getByRole('button', { name: '수정' }))
+  fireEvent.click(within(lines()[0]).getByRole('button', { name: '이 줄 고치기' }))
   const save = within(lines()[0]).getByRole('button', { name: '수정 저장' }) as HTMLButtonElement
   expect(save.disabled).toBe(true)
   fireEvent.change(within(lines()[0]).getByRole('textbox'), { target: { value: '   ' } })
@@ -717,7 +717,7 @@ it('수정 요청이 실패하면 입력을 그대로 두고 사유를 알린다
   paused(speak(0))
   setup(() => { throw new Error('장면 대기 상태가 아니에요.') })
   await waitFor(() => expect(lines()).toHaveLength(1))
-  fireEvent.click(within(lines()[0]).getByRole('button', { name: '수정' }))
+  fireEvent.click(within(lines()[0]).getByRole('button', { name: '이 줄 고치기' }))
   fireEvent.change(within(lines()[0]).getByRole('textbox'), { target: { value: '"다른 말."' } })
   fireEvent.click(within(lines()[0]).getByRole('button', { name: '수정 저장' }))
   await waitFor(() => expect(box().getByRole('alert').textContent).toContain('장면 대기 상태가 아니에요.'))
@@ -731,7 +731,7 @@ it('줄 수정을 저장하는 동안에는 입력을 잠가, 그사이 친 글�
   let release!: () => void
   setup(async (_input, emit) => { await new Promise<void>((resolve) => { release = resolve }); pauseAt(emit, scene([narrate(0), edited])) })
   await waitFor(() => expect(lines()).toHaveLength(2))
-  fireEvent.click(within(lines()[1]).getByRole('button', { name: '수정' }))
+  fireEvent.click(within(lines()[1]).getByRole('button', { name: '이 줄 고치기' }))
   const edit = () => within(lines()[1]).getByRole('textbox') as HTMLTextAreaElement
   expect(edit().readOnly).toBe(false)
   fireEvent.change(edit(), { target: { value: '"열어라, 지금."' } })
@@ -776,7 +776,7 @@ it('턴을 만드는 중에는 줄 수정·다시 말하기를 잠그고 이유�
   await waitFor(() => expect(lines()).toHaveLength(1))
   fireEvent.click(box().getByRole('button', { name: '재생' }))
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
-  expect((within(lines()[0]).getByRole('button', { name: '수정' }) as HTMLButtonElement).disabled).toBe(true)
+  expect((within(lines()[0]).getByRole('button', { name: '이 줄 고치기' }) as HTMLButtonElement).disabled).toBe(true)
   expect((within(lines()[0]).getByRole('button', { name: '다시 말하기' }) as HTMLButtonElement).disabled).toBe(true)
   expect(box().getByText('줄 수정과 다시 말하기는 일시정지한 뒤 턴이 끝나면 쓸 수 있어요.')).toBeTruthy()
   serve(); await act(async () => { release() })
@@ -800,7 +800,7 @@ it('독백 줄은 시점 인물의 이름과 속마음 표시로 나레이션과
   expect(row.querySelector('.stage-bubble')?.textContent).toContain('문이 열리면 끝이다.')
   expect(row.querySelector('details')).toBeNull() // 검사·근거가 없는 독백에는 접는 상자를 두지 않는다.
   expect((within(row).getByRole('button', { name: '다시 말하기' }) as HTMLButtonElement).disabled).toBe(false)
-  fireEvent.click(within(row).getByRole('button', { name: '수정' }))
+  fireEvent.click(within(row).getByRole('button', { name: '이 줄 고치기' }))
   fireEvent.change(within(row).getByRole('textbox', { name: '카엘 속마음 줄 고치기' }), { target: { value: '문이 열려도 끝은 아니다.' } })
   fireEvent.click(within(row).getByRole('button', { name: '수정 저장' }))
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
@@ -885,7 +885,7 @@ it('승인 대기 장면에서 줄을 고치는 동안에는 원고 반영을 �
   await waitFor(() => expect(lines()).toHaveLength(2))
   const approve = () => box().getByRole('button', { name: '원고에 반영' }) as HTMLButtonElement
   expect(approve().disabled).toBe(false)
-  fireEvent.click(within(lines()[1]).getByRole('button', { name: '수정' }))
+  fireEvent.click(within(lines()[1]).getByRole('button', { name: '이 줄 고치기' }))
   fireEvent.change(within(lines()[1]).getByRole('textbox'), { target: { value: '"고친 말."' } })
   expect(approve().disabled).toBe(true)
   expect(box().getByText('고치는 줄을 저장하거나 취소하면 원고에 반영할 수 있어요.')).toBeTruthy()
@@ -901,7 +901,7 @@ it('고치던 줄이 다시 말하기로 지워져도 원고 반영 잠금이 �
   vi.spyOn(window, 'confirm').mockReturnValue(true)
   setup((_input, emit) => { reviewAt(emit, scene([narrate(0, '문이 다시 닫혔다.')], { status: 'completed' })) })
   await waitFor(() => expect(lines()).toHaveLength(2))
-  fireEvent.click(within(lines()[1]).getByRole('button', { name: '수정' }))
+  fireEvent.click(within(lines()[1]).getByRole('button', { name: '이 줄 고치기' }))
   expect((box().getByRole('button', { name: '원고에 반영' }) as HTMLButtonElement).disabled).toBe(true)
   fireEvent.click(within(lines()[0]).getByRole('button', { name: '다시 말하기' }))
   await waitFor(() => expect(lines()).toHaveLength(1))
@@ -1223,7 +1223,7 @@ it('대본 안의 조작 영역(줄 행동·수정 입력·검사 접기)은 ari
   await waitFor(() => expect(lines()).toHaveLength(2))
   expect(lines()[1].querySelector('.stage-actions')?.getAttribute('aria-live')).toBe('off')
   expect(lines()[1].querySelector('details')?.getAttribute('aria-live')).toBe('off')
-  fireEvent.click(within(lines()[1]).getByRole('button', { name: '수정' }))
+  fireEvent.click(within(lines()[1]).getByRole('button', { name: '이 줄 고치기' }))
   expect(lines()[1].querySelector('form.stage-edit')?.getAttribute('aria-live')).toBe('off')
 })
 

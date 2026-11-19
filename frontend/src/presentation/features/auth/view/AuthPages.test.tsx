@@ -160,10 +160,20 @@ describe('결과 영역으로 초점 이동', () => {
   })
 
   it('가입 요청 실패 뒤 입력이 잠겼다 풀려도 초점을 오류 메시지로 옮긴다', async () => {
-    vi.stubGlobal('fetch', respond(409))
+    vi.stubGlobal('fetch', respond(503))
     renderApp('/me/signup')
     submitSignup()
     await focused(await screen.findByRole('alert'))
+  })
+
+  // #469: 이미 쓰는 이메일(409)은 일반 실패가 아니라 이메일 칸의 수정 안내이고, 초점도 그 입력으로 간다.
+  it('가입 요청이 이미 쓰는 이메일(409)로 거절되면 이메일 칸에 안내하고 그 입력으로 초점을 옮긴다', async () => {
+    vi.stubGlobal('fetch', respond(409))
+    renderApp('/me/signup')
+    submitSignup()
+    expect((await screen.findByRole('alert')).textContent).toContain('이미 사용 중인 이메일')
+    expect(screen.queryByText('요청을 처리하지 못했어요. 입력을 확인하고 다시 시도해 주세요.')).toBeNull()
+    await focused(field('이메일'))
   })
 
   it('확인 메일 재발송 성공 뒤 초점을 상태 메시지로 옮긴다', async () => {
