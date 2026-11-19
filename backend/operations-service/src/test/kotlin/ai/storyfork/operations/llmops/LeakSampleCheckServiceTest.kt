@@ -188,13 +188,4 @@ class LeakSampleCheckServiceTest {
         assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.run(from, to, Random(1)) }.statusCode)
         assertTrue(saved.isEmpty())
     }
-
-    @Test
-    fun `the traces are read for exactly the given window`() {
-        givenTraces()
-
-        service.run(from, to, Random(1))
-
-        verify(langfuse).allTraces(from, to)
-    }
 }

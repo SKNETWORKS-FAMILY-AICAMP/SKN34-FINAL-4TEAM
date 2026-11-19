@@ -55,7 +55,7 @@ class PromptService(
         request.config?.takeUnless { it.isNull }?.let { body["config"] = it }
         request.commitMessage?.trim()?.takeIf { it.isNotEmpty() }?.let { body["commitMessage"] = it }
         val created = langfuse.createPrompt(body)
-        val version = version(name, created, emptyMap())
+        val version = version(created, null)
         activities.record(member, "PROMPT_CREATE", "PROMPT", name, "v${version.version}")
         return version
     }
@@ -66,25 +66,22 @@ class PromptService(
         require(request.version >= 1) { "Invalid version." }
         val current = langfuse.prompt(name, request.version)
         val labels = labels(current)
-        val latest = evaluations.latestByVersion()
-        if (PRODUCTION in labels) return version(name, current, latest)
-        if (latest[name to request.version]?.passed != true) throw EvaluationRequiredException()
+        val evaluation = evaluations.latest(name, request.version)
+        if (PRODUCTION in labels) return version(current, evaluation)
+        if (evaluation?.passed != true) throw EvaluationRequiredException()
         // Langfuse manages "latest" itself and keeps labels unique across versions, so the version's other labels stay and production moves here.
         langfuse.setPromptLabels(name, request.version, (labels - "latest") + PRODUCTION)
         activities.record(member, "PROMPT_PROMOTE", "PROMPT", name, "v${request.version}")
-        return PromptVersion(request.version, labels + PRODUCTION, createdAt(current), latest[name to request.version]?.summary())
+        return PromptVersion(request.version, labels + PRODUCTION, createdAt(current), evaluation.summary())
     }
 
     private fun prompt(meta: JsonNode, latest: Map<Pair<String, Int>, Evaluation>): Prompt {
         val name = meta.path("name").asString()
-        val versions = meta.path("versions").values().map { it.asInt() }.sortedDescending().map { version(name, langfuse.prompt(name, it), latest) }
+        val versions = meta.path("versions").values().map { it.asInt() }.sortedDescending().map { version(langfuse.prompt(name, it), latest[name to it]) }
         return Prompt(name, versions)
     }
 
-    private fun version(name: String, node: JsonNode, latest: Map<Pair<String, Int>, Evaluation>): PromptVersion {
-        val version = node.path("version").asInt()
-        return PromptVersion(version, labels(node), createdAt(node), latest[name to version]?.summary())
-    }
+    private fun version(node: JsonNode, evaluation: Evaluation?) = PromptVersion(node.path("version").asInt(), labels(node), createdAt(node), evaluation?.summary())
 
     private fun labels(node: JsonNode) = node.path("labels").values().mapNotNull { it.textOrNull() }
 

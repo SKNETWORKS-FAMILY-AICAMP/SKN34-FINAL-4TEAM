@@ -273,8 +273,11 @@ class LlmopsIntegrationTest {
         assertEquals("EVALUATION_REQUIRED", tree(refused).path("code").asString())
         verify(langfuse, never()).setPromptLabels("it-prompt", 3, listOf("production"))
 
+        // The AI service starts a run with string metadata and writes the verdict as a run-level passed score when it finishes.
         `when`(langfuse.datasetRuns()).thenReturn(listOf(json.readTree(
-            """{"id":"i","name":"run-1","datasetName":"qa","createdAt":"2026-11-19T01:00:00Z","metadata":{"prompt":"it-prompt","version":3,"passed":true}}""")))
+            """{"id":"run-id-1","name":"run-1","datasetName":"qa","createdAt":"2026-11-19T01:00:00Z","metadata":{"prompt":"it-prompt","version":"3","dataset":"qa"}}""")))
+        `when`(langfuse.runScores("run-id-1")).thenReturn(listOf(json.readTree(
+            """{"name":"passed","value":1.0,"dataType":"BOOLEAN","metadata":{"failedItems":0,"totalItems":10}}""")))
         val promoted = send("PUT", "$base/llmops/prompts/it-prompt/production", adminBearer, """{"version":3}""")
 
         assertEquals(200, promoted.statusCode(), promoted.body())

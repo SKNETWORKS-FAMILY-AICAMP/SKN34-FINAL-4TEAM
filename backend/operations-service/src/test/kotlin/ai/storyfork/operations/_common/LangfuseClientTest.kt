@@ -256,4 +256,18 @@ class LangfuseClientTest {
         assertEquals(listOf("run-1", "run-2", "run-3"), runs.map { it.path("name").asString() })
         assertEquals(3, factory.calls.size)
     }
+
+    @Test
+    fun `a run's scores are read by its run id as a URI variable and paged`() {
+        val factory = RecordingRequestFactory { Reply(200, """{"data":[{"name":"passed","value":1.0},{"name":"faithfulness","value":0.9}],"meta":{"totalPages":1}}""") }
+
+        val scores = client(factory).runScores("run id&x")
+
+        assertEquals(listOf("passed", "faithfulness"), scores.map { it.path("name").asString() })
+        val call = factory.calls.single()
+        assertEquals("/api/public/v2/scores", call.uri.path)
+        assertEquals(listOf("run id&x"), call.query["datasetRunId"])
+        assertEquals(listOf("1"), call.query["page"])
+        assertEquals(listOf("100"), call.query["limit"])
+    }
 }

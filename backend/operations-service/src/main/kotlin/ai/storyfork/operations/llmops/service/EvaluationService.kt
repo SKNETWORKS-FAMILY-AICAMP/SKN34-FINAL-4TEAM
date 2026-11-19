@@ -13,18 +13,28 @@ import ai.storyfork.operations.llmops.service.dto.EvaluationStartedResponse
 import ai.storyfork.operations.member.repository.AdminPermissionRepository
 import ai.storyfork.operations.member.repository.requirePermission
 import ai.storyfork.operations.security.OperationsMember
+import java.time.Duration
 import java.time.Instant
 import org.springframework.stereotype.Service
-import tools.jackson.databind.JsonNode
 
 private const val LLM = "llm"
 private const val NAME_MAX = 200
-private val STATUSES = setOf("running", "completed", "failed")
+private const val PASSED = "passed"
+
+/** ponytail: only the newest 50 runs are scored per list call (one Langfuse scores read each), so older runs drop out of the list. */
+private const val MAX_LISTED_RUNS = 50
+
+/** The AI service writes the verdict when it finishes, so a run still without one this long after it started was cut short (a restart, lost scoring). */
+private val STALE_AFTER = Duration.ofHours(2)
+
+/** A Dataset Run that is a prompt evaluation: the AI service starts it with metadata prompt and version (strings). */
+private class Run(val id: String, val name: String, val dataset: String, val prompt: String, val version: Int, val createdAt: Instant)
 
 /**
- * Regression evaluations. The AI service runs them and writes the result into a Langfuse Dataset Run's metadata:
- * prompt, version, passed (the verdict, written when it finishes), optional status (running, completed or failed),
- * metrics (name to score) and optional baseline (name to the baseline version's score). Runs without a prompt and version are not evaluations.
+ * Regression evaluations. The AI service runs them: it starts a Langfuse Dataset Run with the metadata (prompt, version, dataset, tolerance,
+ * baselineRun, baselineVersion) and, when it finishes, writes run-level scores: a NUMERIC average per metric (metadata baseline, delta, tolerance)
+ * and the verdict "passed" (BOOLEAN 1.0 or 0.0). A run with the passed score is completed; without one it is running, or failed once it is older
+ * than two hours. Runs without a prompt and version are not evaluations.
  */
 @Service
 class EvaluationService(
@@ -33,15 +43,19 @@ class EvaluationService(
     private val ai: AiClient,
     private val activities: AdminActivityService,
 ) {
-    fun list(member: OperationsMember): EvaluationListResponse {
+    fun list(member: OperationsMember): EvaluationListResponse = list(member, Instant.now())
+
+    internal fun list(member: OperationsMember, now: Instant): EvaluationListResponse {
         permissions.requirePermission(member, LLM)
-        return EvaluationListResponse(evaluations())
+        return EvaluationListResponse(runs().take(MAX_LISTED_RUNS).map { evaluation(it, now) })
     }
 
+    fun detail(member: OperationsMember, runId: String): Evaluation = detail(member, runId, Instant.now())
+
     /** [runId] is the run name. ponytail: found by listing every run, so a very large number of runs makes it slow. */
-    fun detail(member: OperationsMember, runId: String): Evaluation {
+    internal fun detail(member: OperationsMember, runId: String, now: Instant): Evaluation {
         permissions.requirePermission(member, LLM)
-        return evaluations().firstOrNull { it.runId == runId } ?: throw NoSuchElementException("Evaluation not found.")
+        return runs().firstOrNull { it.name == runId }?.let { evaluation(it, now) } ?: throw NoSuchElementException("Evaluation not found.")
     }
 
     /** The AI service answers 202 and keeps running; the result shows up in the run list. */
@@ -55,26 +69,35 @@ class EvaluationService(
         return EvaluationStartedResponse(started.runName, request.dataset, request.prompt, request.version, "running")
     }
 
-    /** The newest run of each prompt version: the prompt screen shows it and the production gate reads it. */
-    internal fun latestByVersion(): Map<Pair<String, Int>, Evaluation> =
-        evaluations().groupBy { it.prompt to it.version }.mapValues { (_, runs) -> runs.maxBy { it.createdAt } }
+    /** The newest run of each prompt version, for the prompt screens; only those runs are scored. */
+    internal fun latestByVersion(now: Instant = Instant.now()): Map<Pair<String, Int>, Evaluation> =
+        runs().distinctBy { it.prompt to it.version }.associate { (it.prompt to it.version) to evaluation(it, now) }
 
-    private fun evaluations(): List<Evaluation> = langfuse.datasetRuns().mapNotNull { it.toEvaluation() }.sortedByDescending { it.createdAt }
+    /** The newest run of one prompt version (scored alone): the production gate reads its verdict. */
+    internal fun latest(prompt: String, version: Int, now: Instant = Instant.now()): Evaluation? =
+        runs().firstOrNull { it.prompt == prompt && it.version == version }?.let { evaluation(it, now) }
 
-    private fun JsonNode.toEvaluation(): Evaluation? {
-        val metadata = path("metadata")
-        val prompt = metadata.path("prompt").textOrNull() ?: return null
-        val version = metadata.path("version").doubleOrNull()?.toInt() ?: return null
-        val passed = metadata.path("passed").takeIf { it.isBoolean }?.asBoolean()
-        val status = metadata.path("status").textOrNull()?.takeIf { it in STATUSES } ?: if (passed != null) "completed" else "running"
-        val scores = metadata.path("metrics")
-        val baseline = metadata.path("baseline")
-        val metrics = scores.propertyNames().mapNotNull { name ->
-            scores.path(name).doubleOrNull()?.let { score ->
-                val base = baseline.path(name).doubleOrNull()
-                EvaluationMetric(name, score, base, base?.let { score - it })
-            }
+    /** Newest first. */
+    private fun runs(): List<Run> = langfuse.datasetRuns().mapNotNull { node ->
+        val metadata = node.path("metadata")
+        val prompt = metadata.path("prompt").textOrNull() ?: return@mapNotNull null
+        val version = metadata.path("version").doubleOrNull()?.toInt() ?: return@mapNotNull null
+        Run(node.path("id").asString(), node.path("name").asString(), node.path("datasetName").asString(), prompt, version, Instant.parse(node.path("createdAt").asString()))
+    }.sortedByDescending { it.createdAt }
+
+    private fun evaluation(run: Run, now: Instant): Evaluation {
+        val scores = langfuse.runScores(run.id)
+        val passed = scores.firstOrNull { it.path("name").asString() == PASSED }?.let { it.path("value").doubleOrNull() == 1.0 }
+        val status = when {
+            passed != null -> "completed"
+            Duration.between(run.createdAt, now) > STALE_AFTER -> "failed"
+            else -> "running"
         }
-        return Evaluation(path("name").asString(), path("datasetName").asString(), prompt, version, status, passed, Instant.parse(path("createdAt").asString()), metrics)
+        val metrics = scores.filter { it.path("name").asString() != PASSED && it.path("dataType").asString() == "NUMERIC" }.mapNotNull { score ->
+            val value = score.path("value").doubleOrNull() ?: return@mapNotNull null
+            val baseline = score.path("metadata").path("baseline").doubleOrNull()
+            EvaluationMetric(score.path("name").asString(), value, baseline, score.path("metadata").path("delta").doubleOrNull() ?: baseline?.let { value - it })
+        }
+        return Evaluation(run.name, run.dataset, run.prompt, run.version, status, passed, run.createdAt, metrics)
     }
 }

@@ -23,13 +23,21 @@ class PromptServiceTest {
     private val evaluations = EvaluationService(operators.permissions, langfuse, mock(AiClient::class.java), mock(AdminActivityService::class.java))
     private val service = PromptService(operators.permissions, langfuse, evaluations, activities)
 
-    private fun run(name: String, createdAt: String, prompt: String, version: Int, passed: String) = json(
-        """{"id":"id-$name","name":"$name","datasetName":"qa-regression","createdAt":"$createdAt","metadata":{"prompt":"$prompt","version":$version,"passed":$passed}}""")
+    /** A Dataset Run as the AI service starts it: the metadata values are strings. */
+    private fun run(name: String, createdAt: String, prompt: String, version: Int) = json(
+        """{"id":"id-$name","name":"$name","datasetName":"qa-regression","createdAt":"$createdAt","metadata":{"prompt":"$prompt","version":"$version"}}""")
 
     private fun version(name: String, version: Int, labels: String, createdAt: String? = null) = json(
         """{"name":"$name","version":$version,"labels":$labels${createdAt?.let { ",\"createdAt\":\"$it\"" } ?: ""}}""")
 
-    private fun givenRuns(vararg runs: tools.jackson.databind.JsonNode) = `when`(langfuse.datasetRuns()).thenReturn(runs.toList())
+    /** Runs with their verdict: true or false is the run-level passed score, null is a run that has none yet. */
+    private fun givenRuns(vararg runs: Pair<tools.jackson.databind.JsonNode, Boolean?>) {
+        `when`(langfuse.datasetRuns()).thenReturn(runs.map { it.first })
+        for ((run, verdict) in runs) {
+            val scores = listOfNotNull(verdict?.let { json("""{"id":"s","name":"passed","value":${if (it) 1.0 else 0.0},"dataType":"BOOLEAN","metadata":null}""") })
+            `when`(langfuse.runScores(run.path("id").asString())).thenReturn(scores)
+        }
+    }
 
     private fun assertForbidden(call: () -> Unit) {
         assertEquals(HttpStatus.FORBIDDEN, assertThrows(ResponseStatusException::class.java) { call() }.statusCode)
@@ -49,7 +57,7 @@ class PromptServiceTest {
 
     @Test
     fun `a prompt lists its versions newest first with labels creation time and the latest evaluation`() {
-        givenRuns(run("run-old", "2026-11-19T01:00:00Z", "qa/answer", 2, "false"), run("run-new", "2026-11-19T02:00:00Z", "qa/answer", 2, "true"))
+        givenRuns(run("run-old", "2026-11-19T01:00:00Z", "qa/answer", 2) to false, run("run-new", "2026-11-19T02:00:00Z", "qa/answer", 2) to true)
         `when`(langfuse.prompts()).thenReturn(listOf(json("""{"name":"qa/answer","versions":[1,3,2],"labels":["production","latest"]}""")))
         `when`(langfuse.prompt("qa/answer", 1)).thenReturn(version("qa/answer", 1, "[]", "2026-11-01T00:00:00Z"))
         `when`(langfuse.prompt("qa/answer", 2)).thenReturn(version("qa/answer", 2, """["production"]""", "2026-11-10T00:00:00Z"))
@@ -116,7 +124,7 @@ class PromptServiceTest {
 
     @Test
     fun `promoting needs a passing evaluation of that very version and moves the production label`() {
-        givenRuns(run("run-1", "2026-11-19T01:00:00Z", "qa/answer", 3, "true"))
+        givenRuns(run("run-1", "2026-11-19T01:00:00Z", "qa/answer", 3) to true)
         `when`(langfuse.prompt("qa/answer", 3)).thenReturn(version("qa/answer", 3, """["latest","staging"]""", "2026-11-12T00:00:00Z"))
 
         val promoted = service.promote(operators.llm, "qa/answer", PromptPromoteRequest(3))
@@ -133,12 +141,14 @@ class PromptServiceTest {
     fun `without a passing latest evaluation promoting is a conflict with nothing changed`() {
         val labels = version("qa/answer", 3, """["latest"]""")
         `when`(langfuse.prompt("qa/answer", 3)).thenReturn(labels)
+        val none = emptyList<Pair<tools.jackson.databind.JsonNode, Boolean?>>()
         val cases = mapOf(
-            "no run at all" to emptyList<tools.jackson.databind.JsonNode>(),
-            "a failed latest run" to listOf(run("run-1", "2026-11-19T01:00:00Z", "qa/answer", 3, "true"), run("run-2", "2026-11-19T02:00:00Z", "qa/answer", 3, "false")),
-            "a run of another version" to listOf(run("run-3", "2026-11-19T01:00:00Z", "qa/answer", 2, "true")),
-            "a run of another prompt" to listOf(run("run-4", "2026-11-19T01:00:00Z", "world/review", 3, "true")),
-            "a run that has no verdict yet" to listOf(json("""{"id":"i","name":"run-5","datasetName":"d","createdAt":"2026-11-19T01:00:00Z","metadata":{"prompt":"qa/answer","version":3}}""")),
+            "no run at all" to none,
+            "a failed latest run" to listOf(run("run-1", "2026-11-19T01:00:00Z", "qa/answer", 3) to true, run("run-2", "2026-11-19T02:00:00Z", "qa/answer", 3) to false),
+            "a run of another version" to listOf(run("run-3", "2026-11-19T01:00:00Z", "qa/answer", 2) to true),
+            "a run of another prompt" to listOf(run("run-4", "2026-11-19T01:00:00Z", "world/review", 3) to true),
+            "a run that has no verdict yet" to listOf(run("run-5", Instant.now().toString(), "qa/answer", 3) to null),
+            "a run that never got a verdict and is long past two hours" to listOf(run("run-6", "2026-11-19T01:00:00Z", "qa/answer", 3) to null),
         )
 
         for ((case, runs) in cases) {

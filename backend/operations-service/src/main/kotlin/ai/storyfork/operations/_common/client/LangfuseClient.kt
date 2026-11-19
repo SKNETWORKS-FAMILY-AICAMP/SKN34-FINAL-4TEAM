@@ -36,15 +36,9 @@ class LangfuseClient(private val http: RestClient, private val mapper: JsonMappe
     }
 
     /** Newest first. ponytail: at most 1,000 traces (10 pages) so a wide window cannot stall a screen; move to server-side metrics aggregation beyond that. */
-    fun allTraces(from: Instant, to: Instant): List<JsonNode> {
-        val out = mutableListOf<JsonNode>()
-        for (page in 1..MAX_TRACE_PAGES) {
-            val body = traces(from, to, emptyList(), null, null, page, PAGE_SIZE)
-            out += body.path("data").values()
-            if (page >= body.path("meta").path("totalPages").asInt(1)) break
-        }
-        return out
-    }
+    fun allTraces(from: Instant, to: Instant): List<JsonNode> = pages(
+        "/api/public/traces", params = listOf("fromTimestamp" to from.toString(), "toTimestamp" to to.toString(), "orderBy" to "timestamp.desc"), maxPages = MAX_TRACE_PAGES,
+    )
 
     fun trace(id: String): JsonNode = get("/api/public/traces/{id}", mapOf("id" to id))
 
@@ -79,6 +73,9 @@ class LangfuseClient(private val http: RestClient, private val mapper: JsonMappe
 
     fun models(): List<JsonNode> = pages("/api/public/models")
 
+    /** The run-level scores of one Dataset Run (the passed verdict and the metric averages the AI service writes when an evaluation ends). */
+    fun runScores(runId: String): List<JsonNode> = pages("/api/public/v2/scores", params = listOf("datasetRunId" to runId))
+
     fun createModel(body: Map<String, Any?>): JsonNode = send(HttpMethod.POST, "/api/public/models", emptyMap(), body)
 
     /** Every run of every dataset; a run carries its datasetName and metadata. ponytail: 500 datasets and 500 runs each at most. */
@@ -99,9 +96,11 @@ class LangfuseClient(private val http: RestClient, private val mapper: JsonMappe
     /** The aggregate of one measure; the name is "measure_aggregation" or "aggregation_measure" depending on the Langfuse version. */
     private fun JsonNode.sum(measure: String): JsonNode = path("${measure}_sum").takeUnless { it.isMissingNode } ?: path("sum_${measure}")
 
-    private fun pages(path: String, pathVars: Map<String, Any?> = emptyMap(), params: List<Pair<String, Any?>> = emptyList()): List<JsonNode> {
+    private fun pages(
+        path: String, pathVars: Map<String, Any?> = emptyMap(), params: List<Pair<String, Any?>> = emptyList(), maxPages: Int = MAX_LIST_PAGES,
+    ): List<JsonNode> {
         val out = mutableListOf<JsonNode>()
-        for (page in 1..MAX_LIST_PAGES) {
+        for (page in 1..maxPages) {
             val body = get(path, pathVars, params + listOf("page" to page, "limit" to PAGE_SIZE))
             out += body.path("data").values()
             if (page >= body.path("meta").path("totalPages").asInt(1)) break
