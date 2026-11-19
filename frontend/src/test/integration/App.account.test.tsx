@@ -12,7 +12,7 @@ import App from '../../App'
 import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
 
-afterEach(() => { cleanup(); vi.unstubAllGlobals() })
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.unstubAllEnvs() })
 
 const Where = () => { const l = useLocation(); return <p hidden data-testid="where">{l.pathname + l.search}</p> }
 const where = () => screen.getByTestId('where').textContent
@@ -91,13 +91,14 @@ describe('계정 (U30~U35E)', () => {
     expect(within(screen.getByRole('navigation', { name: '계정 메뉴' })).queryByRole('button', { name: '로그아웃' })).toBeNull()
   })
 
-  it('저장 공간은 MVP 제외를 안내하고 발행 회차 수정 초안을 보여 준다', async () => {
+  it('목업 저장 공간은 데모 데이터 안내와 발행 회차 수정 초안을 보여 준다', async () => {
     renderAt('/studio/starlight?ep=1')
     const body = await screen.findByLabelText('원고 본문')
     body.innerHTML = '<p>수정 초안</p>'
     fireEvent.input(body)
     await waitFor(() => expect(document.getElementById('saved')!.textContent).toBe('저장 중…'))
     cleanup()
+    vi.stubEnv('MODE', 'mockup')
     renderAt('/me/storage')
     await screen.findByText(/저장 공간 관리는 MVP에서 제외됐어요/)
     await screen.findByText('별빛 서약의 탑 · 1화 수정 초안')

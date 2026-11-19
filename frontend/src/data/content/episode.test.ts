@@ -12,6 +12,23 @@ beforeEach(async () => {
 })
 afterEach(() => vi.unstubAllGlobals())
 
+it('reads authenticated storage usage and the server item sizes', async () => {
+  const usage = {
+    totalBytes: 503, manuscriptBytes: 3, settingBytes: 0, manuscriptImageBytes: 500,
+    items: [
+      { id: 'episode', kind: 'manuscript', title: '1화 · 시작', parentTitle: '작품', bytes: 3 },
+      { id: 'image', kind: 'manuscript_image', title: '시장.png', parentTitle: '작품 · 1화', bytes: 500 },
+    ],
+  }
+  const fetcher = vi.fn().mockResolvedValue(Response.json(usage))
+  const signal = new AbortController().signal
+
+  expect(await new HttpEpisodeRepository(fetcher).storageUsage(signal)).toEqual(usage)
+  expect(fetcher).toHaveBeenCalledWith('/api/v1/me/storage-usage', expect.objectContaining({
+    method: 'GET', headers: expect.objectContaining({ Authorization: 'Bearer content-bearer' }), signal: expect.any(AbortSignal),
+  }))
+})
+
 describe('회차 예약 발행', () => {
   const path = '/api/v1/works/w/episodes/2/publication-schedules'
   const scheduledAt = '2099-11-10T01:30:00.000Z'

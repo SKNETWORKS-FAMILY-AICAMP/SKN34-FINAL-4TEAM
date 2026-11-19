@@ -21,6 +21,7 @@ function setup(path: string, patch?: () => Promise<Response>) {
     if (url.endsWith('/refresh')) return Response.json({ accessToken: 'token', user: me })
     if (url.endsWith('/sessions')) return Response.json({ sessions: [] })
     if (url.endsWith('/withdrawal')) return Response.json({ status: 'NONE' })
+    if (url.endsWith('/storage-usage')) return Response.json({ totalBytes: 0, manuscriptBytes: 0, settingBytes: 0, manuscriptImageBytes: 0, items: [] })
     if (url.endsWith('/email-change')) return new Response(null, { status: 202 })
     if (url.endsWith('/me') && init?.method === 'PATCH' && patch) return patch()
     return Response.json(me)
@@ -264,7 +265,7 @@ describe('관심 소설·저장 공간 조회 상태 (U32)', () => {
 
   it('저장 공간 조회에 실패하면 빈 화면으로 숨기지 않고 알린 뒤 다시 불러올 수 있다', async () => {
     const storage = vi.spyOn(account(), 'storage').mockRejectedValue(new Error('down'))
-    await failsThenRecovers('/me/storage', '저장 공간', () => storage.mockRestore(), /저장 공간 관리는 MVP에서 제외됐어요/)
+    await failsThenRecovers('/me/storage', '저장 공간', () => storage.mockRestore(), '저장 항목이 없어요.')
   })
 })
 

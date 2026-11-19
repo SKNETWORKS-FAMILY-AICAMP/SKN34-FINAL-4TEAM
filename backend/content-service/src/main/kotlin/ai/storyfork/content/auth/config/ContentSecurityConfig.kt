@@ -65,6 +65,7 @@ class ContentSecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/v1/public/works", "/api/v1/public/works/**",
                         "/api/v1/public/world-studios", "/api/v1/public/world-studios/**").permitAll()
                     .requestMatchers("/api/v1/works", "/api/v1/works/**", "/api/v1/world-studios", "/api/v1/world-studios/**").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/me/storage-usage").authenticated()
                     .anyRequest().denyAll()
             }
             .exceptionHandling { it.authenticationEntryPoint { _, response, _ ->

@@ -87,6 +87,7 @@ class ContentExtractionTest(unittest.TestCase):
             source = (ROOT / relative).read_text()
             with self.subTest(proxy=relative):
                 self.assertIn("location = /api/v1/works", source)
+                self.assertIn("location = /api/v1/me/storage-usage", source)
                 self.assertIn("location ^~ /api/v1/works/", source)
                 self.assertIn("location = /api/v1/public/works", source)
                 self.assertIn("location ^~ /api/v1/public/works/", source)
@@ -94,9 +95,9 @@ class ContentExtractionTest(unittest.TestCase):
                 self.assertNotIn("location /internal", source)
         vite = (ROOT / "frontend/vite.config.ts").read_text()
         pattern = re.search(r"'([^']*works[^']*)':\s*\{", vite)[1].replace("\\\\", "\\")
-        for path in ("/api/v1/works", "/api/v1/works?limit=2", "/api/v1/works/id", "/api/v1/public/works", "/api/v1/public/works/id?x=1"):
+        for path in ("/api/v1/works", "/api/v1/works?limit=2", "/api/v1/works/id", "/api/v1/public/works", "/api/v1/public/works/id?x=1", "/api/v1/me/storage-usage"):
             self.assertRegex(path, pattern)
-        for path in ("/api/v1/works-extra", "/api/v1/public/works-extra", "/api/v1/auth/csrf", "/internal/v1/auth/verify"):
+        for path in ("/api/v1/works-extra", "/api/v1/public/works-extra", "/api/v1/auth/csrf", "/api/v1/me/storage-usage-extra", "/internal/v1/auth/verify"):
             self.assertNotRegex(path, pattern)
         self.assertIn("VITE_CONTENT_DEV_PROXY_TARGET || 'http://localhost:8081'", vite)
 

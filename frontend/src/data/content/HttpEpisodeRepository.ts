@@ -3,6 +3,7 @@ import type {WorkRankingQuery, WorkSearchQuery, WorkSearchRepository} from '../.
 import { z } from 'zod'
 import {settingCategories, type Draft, type SettingInput, type WorkRegistration, type WorkTaxonomy} from '../../domain/entities/content'
 import type { PublicationScheduleInput, PublicationScheduleRevision } from '../../domain/entities/publicationSchedule'
+import { storageKinds } from '../../domain/entities/storageUsage'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, getAccessToken, protectedRequest } from '../api/auth'
 import { csrf } from '../api/csrf'
@@ -41,6 +42,11 @@ const readingWork = work.omit({draft:true}).extend({
   likes:z.number().int().nonnegative(),
 })
 const instant = z.iso.datetime({offset:true})
+const bytes = z.number().int().nonnegative()
+const storageUsage = z.object({
+  totalBytes: bytes, manuscriptBytes: bytes, settingBytes: bytes, manuscriptImageBytes: bytes,
+  items: z.array(z.object({ id: z.string().min(1), kind: z.enum(storageKinds), title: z.string(), parentTitle: z.string(), bytes })),
+})
 /** 기간별 랭킹 응답: items는 공개 작품(방금 업데이트만 updatedAt=마지막 발행 시각)이고 computedAt은 서버가 계산한 시각이다. kind·period·type echo는 쓰지 않는다. */
 const rankingsResponse = z.object({items:z.array(readingWork.extend({updatedAt:instant.nullable().optional()})),computedAt:instant})
 const readingDocument = z.object({id:z.string(),versionId:z.string(),category:z.string(),name:z.string(),body:z.string(),
@@ -165,6 +171,7 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
     await this.request(`/works/${encodeURIComponent(id)}/episodes/${number}/views`, z.undefined(), 'POST', undefined, signal)
   }
   list(signal?: AbortSignal) { return this.request('/works', z.array(work), 'GET', undefined, signal) }
+  storageUsage(signal?: AbortSignal) { return this.request('/me/storage-usage', storageUsage, 'GET', undefined, signal) }
   create(title: string, summary: string, signal?: AbortSignal, registration?: WorkRegistration) { return this.request('/works',work,'POST',registration?{title,summary,...registration}:{title,summary},signal) }
   suggestWorkTags(id: string, signal?: AbortSignal) { return this.request(`/works/${id}/tag-suggestions`,z.object({genres:z.array(z.string()),hashtags:z.array(z.string())}),'POST',undefined,signal) }
   /** 장르·해시태그는 주었을 때만 본문에 싣는다(생략하면 서버가 유지하고, 빈 배열은 비운다). */

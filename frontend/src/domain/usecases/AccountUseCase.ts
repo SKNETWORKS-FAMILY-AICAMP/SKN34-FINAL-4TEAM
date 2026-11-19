@@ -1,5 +1,6 @@
 import { isMine } from '../entities/work'
 import type { AdminRepository } from '../repositories/AdminRepository'
+import type { EpisodeRepository } from '../repositories/EpisodeRepository'
 import type { WorkInterestRepository } from '../repositories/WorkInterestRepository'
 import type { WorkRepository } from '../repositories/WorkRepository'
 import type { WorldRepository } from '../repositories/WorldRepository'
@@ -10,11 +11,13 @@ export class AccountUseCase {
   private readonly worldRepository: WorldRepository
   private readonly interestRepository: WorkInterestRepository
   private readonly adminRepository: AdminRepository
-  constructor(workRepository: WorkRepository, worldRepository: WorldRepository, interestRepository: WorkInterestRepository, adminRepository: AdminRepository) {
+  private readonly storageRepository: Pick<EpisodeRepository, 'storageUsage'>
+  constructor(workRepository: WorkRepository, worldRepository: WorldRepository, interestRepository: WorkInterestRepository, adminRepository: AdminRepository, storageRepository: Pick<EpisodeRepository, 'storageUsage'>) {
     this.workRepository = workRepository
     this.worldRepository = worldRepository
     this.interestRepository = interestRepository
     this.adminRepository = adminRepository
+    this.storageRepository = storageRepository
   }
 
   /** U32 관심 소설: 서버 관심 목록(최근 등록순, 서재 U11과 같은 출처). 읽지 못하면 빈 목록으로 숨기지 않고 던집니다. */
@@ -23,8 +26,10 @@ export class AccountUseCase {
     return ids.flatMap((id) => works.filter((w) => w.id === id))
   }
 
-  /** 저장 공간: 메모리 데모 데이터 크기 예시와 작성 중인 초안 (관리 기능은 MVP 제외) */
-  async storage() {
+  storage(signal?: AbortSignal) { return this.storageRepository.storageUsage(signal) }
+
+  /** 발표용 저장 공간 예시. 실제 모드에서는 소유자의 서버 집계만 표시한다. */
+  async demoStorage() {
     const [works, worlds, all] = await Promise.all([this.workRepository.listWorks(), this.worldRepository.list(), this.workRepository.listDrafts()])
     const drafts = Object.entries(all).flatMap(([key, d]) => { const w = works.find((x) => x.id === key.split(':ep:')[0]); return w && isMine(w) ? [{ key, title: w.title, d }] : [] })
     const bytes = new Blob([JSON.stringify({ works: works.filter(isMine), worlds: worlds.filter((w) => !w.owner), drafts: drafts.map((x) => [x.key, x.d]) })]).size

@@ -1,0 +1,28 @@
+.storage-usage h3 {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 0.5rem;
+}
+
+.storage-usage p { margin: 0; }
+.storage-usage-breakdown { margin: 1rem 0 0; }
+.storage-usage-breakdown dd { margin: 0; }
+.storage-usage-items { list-style: none; margin: 0; padding: 0; }
+
+.storage-usage-breakdown > div,
+.storage-usage-items > li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--line2);
+}
+
+.storage-usage-breakdown > div:last-child,
+.storage-usage-items > li:last-child { padding-bottom: 0; }
+.storage-usage-items > li > div { min-width: 0; overflow-wrap: anywhere; }
+.storage-usage-items small { display: block; margin-top: 0.2rem; }
+.storage-usage-bytes { font-variant-numeric: tabular-nums; white-space: nowrap; }

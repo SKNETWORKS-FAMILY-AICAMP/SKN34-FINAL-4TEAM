@@ -64,15 +64,17 @@ export function useAccountViewModel(
   const noticeId = sub === 'notice' ? params.get('id') : null
   // 이벤트는 운영 공개 API로 읽는다: ?id=가 없으면 목록, 있으면 그 UUID의 상세. 비로그인도 열람한다.
   const eventKey = sub === 'event' ? params.get('id') : null
-  const { data, isError, retry } = useAsyncData(async () => ({
+  const mockup = import.meta.env.MODE === 'mockup'
+  const { data, isError, retry } = useAsyncData(async (signal) => ({
     sub,
     liked: sub === 'liked' ? await accountUseCase.liked() : [],
-    storage: sub === 'storage' ? await accountUseCase.storage() : null,
+    storage: sub === 'storage' && !mockup ? await accountUseCase.storage(signal) : null,
+    demoStorage: sub === 'storage' && mockup ? await accountUseCase.demoStorage() : null,
     notices: sub === 'notice' && noticeId === null ? await noticeUseCase.listPublic() : [],
     notice: sub === 'notice' && noticeId ? await noticeUseCase.getPublic(noticeId) : null,
     events: sub === 'event' && eventKey === null ? await eventUseCase.listPublic() : [],
     event: sub === 'event' && eventKey !== null ? await eventUseCase.getPublic(eventKey) : null,
-  }), [accountUseCase, noticeUseCase, eventUseCase, sub, noticeId, eventKey])
+  }), [accountUseCase, noticeUseCase, eventUseCase, sub, noticeId, eventKey, mockup])
   // 내 문의: 로그인한 회원의 문의하기 화면에서만 실제 목록을 읽습니다. 로딩·실패·빈 목록은 화면이 구분합니다.
   const mine = useAsyncData(async () => sub === 'inquiry' && role ? supportInquiryUseCase.listMine() : [], [supportInquiryUseCase, sub])
   // 결제 내역(U33): 로그인한 회원의 보유 크레딧과 지급·사용·소멸 내역을 Core 크레딧 API로 읽습니다. 로딩·실패·빈 내역은 화면이 구분합니다.
