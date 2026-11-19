@@ -58,11 +58,11 @@ class ProgressMiddleware(AgentMiddleware):
 class UsageLedger(BaseCallbackHandler):
     """공통 사용량 장부: MODEL_EVENT로 알려진 호출과 도구 실패를 모았다가 STEP_EVENT마다 span(name) 하나로 남긴다.
 
-    describe(step)는 span 메타데이터에 넣을 단계 식별(예: 턴 번호·상태)이다. trace가 없으면 현재 문맥이 없어 추적만 건너뛴다.
+    describe(step)는 span 메타데이터에 넣을 단계 식별(예: 턴 번호·상태)이다. span은 호출한 요청의 루트 아래(현재 문맥)에 붙는다.
     """
 
-    def __init__(self, name: str, describe, trace: dict | None = None):
-        self.name, self.describe, self.trace = name, describe, trace
+    def __init__(self, name: str, describe):
+        self.name, self.describe = name, describe
         self.calls: list[dict] = []
         self.records: list[dict] = []  # 지금까지 남긴 단계 요약(추적이 꺼져 있어도 남아 테스트·진단이 읽는다)
 
@@ -81,19 +81,20 @@ class UsageLedger(BaseCallbackHandler):
                   'ms': total('ms'), 'inputTokens': total('inputTokens'), 'outputTokens': total('outputTokens'), 'calls': self.calls}
         self.records.append(record)
         self.calls = []
-        tracing.client().start_observation(name=self.name, as_type='span', trace_context=self.trace, metadata=record).end()
+        tracing.client().start_observation(name=self.name, as_type='span', metadata=record).end()
 
 
 class ModelCallMiddleware(AgentMiddleware):
     """모델 호출 하나를 추적하고, 결과를 쓸 수 있는지 확인한다. 실패는 failure(status, 고정 문구)로 올린다."""
 
-    def __init__(self, name: str, label: str, failure: type[Exception], trace: dict, settings: dict):
+    def __init__(self, name: str, label: str, failure: type[Exception], trace: dict, settings: dict, prompt=None):
         super().__init__()
-        self.observation, self.label, self.failure, self.trace, self.settings = name, label, failure, trace, settings
+        self.observation, self.label, self.failure, self.trace, self.settings, self.prompt = name, label, failure, trace, settings, prompt
 
     def wrap_model_call(self, request, handler):
         unusable = self.failure(502, f'{self.label} 모델 응답을 확인할 수 없습니다.')
-        with tracing.observe(self.observation, as_type='generation', model=request.model.model_name, input=self.trace) as generation:
+        with tracing.observe(self.observation, as_type='generation', model=request.model.model_name, input=self.trace,
+                             prompt=self.prompt) as generation:
             try:
                 response = handler(request.override(model_settings={**request.model_settings, **self.settings}))
             # 스키마 위반(pydantic ValidationError는 ValueError)과 langchain-openai가 응답의 error를 올리는 ValueError는 쓸 수 없는 응답이다.
@@ -112,22 +113,30 @@ class ModelCallMiddleware(AgentMiddleware):
         return response
 
 
-def run(name: str, label: str, failure: type[Exception], instructions: str, data: dict, *, max_tokens: int, timeout: int,
-        trace: dict, schema: type[BaseModel] | None = None, web_search: bool = False) -> tuple[AIMessage, Any]:
-    """data(JSON 자료)를 instructions로 한 번 처리해 마지막 모델 메시지와 구조화 결과(schema가 없으면 None)를 돌려준다.
+def run(name: str, label: str, failure: type[Exception], instructions: str, data: dict, *, prompt_name: str | None = None, max_tokens: int,
+        timeout: int, trace: dict, schema: type[BaseModel] | None = None, web_search: bool = False) -> tuple[AIMessage, Any]:
+    """data(JSON 자료)를 지시문으로 한 번 처리해 마지막 모델 메시지와 구조화 결과(schema가 없으면 None)를 돌려준다.
 
+    지시문은 Langfuse 프롬프트 prompt_name의 production 버전이고 instructions(코드 문자열)는 최초 등록용 기본값이다(tracing.prompt).
+    generation이 그 프롬프트 버전을 연결한다. 프롬프트를 읽을 수 없으면 모델을 부르지 않고 503이다.
+    prompt_name이 없으면 Langfuse 프롬프트를 읽지 않고 instructions를 그대로 지시문으로 쓰며 generation에도 연결하지 않는다(회귀 평가처럼
+    평가할 프롬프트 버전의 본문을 직접 넘기는 호출. production 버전을 읽으면 안 된다).
     web_search면 OpenAI 내장 `web_search`를 반드시 쓰게 하고 검색 출처를 응답에 포함시킨다. trace는 추적에 남길 입력이다.
     """
     key, model = os.environ.get('OPENAI_API_KEY'), os.environ.get('OPENAI_MODEL')
     if not key or not model:
         raise failure(503, f'{label} 모델 설정이 필요합니다.')
+    try:
+        managed = tracing.Prompt(instructions) if prompt_name is None else tracing.prompt(prompt_name, instructions)
+    except tracing.PromptUnavailable:
+        raise failure(503, f'{label} 프롬프트를 불러올 수 없습니다.') from None
     chat = ChatOpenAI(model=model, api_key=key, use_responses_api=True, store=False, max_tokens=max_tokens, timeout=timeout,
                       max_retries=0, include=['web_search_call.action.sources'] if web_search else None)
     agent = create_agent(
         # checkpointer=False: 오케스트레이션 노드 안에서 돌아도 바깥 대화 체크포인터를 이어받아 입력(원고·허용 문맥)을 남기지 않는다.
-        chat, tools=[WEB_SEARCH] if web_search else [], system_prompt=instructions, checkpointer=False,
+        chat, tools=[WEB_SEARCH] if web_search else [], system_prompt=managed.text, checkpointer=False,
         response_format=ProviderStrategy(schema, strict=True) if schema else None,
-        middleware=[ModelCallMiddleware(name, label, failure, trace, {'tool_choice': 'required'} if web_search else {}),
+        middleware=[ModelCallMiddleware(name, label, failure, trace, {'tool_choice': 'required'} if web_search else {}, managed.client),
                     ModelCallLimitMiddleware(run_limit=1, exit_behavior='error')])
     state = agent.invoke({'messages': [HumanMessage(json.dumps(data, ensure_ascii=False))]})
     return state['messages'][-1], state.get('structured_response')

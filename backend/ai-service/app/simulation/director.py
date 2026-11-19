@@ -20,9 +20,10 @@ from langchain_typesafe.client import (TypeSafeAPIConnectionError, TypeSafeAPIRe
 from langchain_typesafe.types import ClassifierRequest, ClassifierResponse
 from pydantic import Field, JsonValue, SecretStr
 
+from app import tracing
 from app.agent_runtime import MODEL_EVENT
 from app.intent.models import Decision as DecisionsReply
-from app.simulation.errors import SimulationFailure
+from app.simulation.errors import PROMPT_UNAVAILABLE, SimulationFailure
 from app.simulation.models import Decision
 from app.simulation.prompt import DIRECTOR_INSTRUCTIONS, POV_QUESTION, SPEAKER_QUESTION, TURN_CHOICES, TURN_QUESTION
 
@@ -95,7 +96,7 @@ class OpenAIDecisionClassifier(TypeSafeClassifier):
 @lru_cache(maxsize=1)
 def classifier() -> OpenAIDecisionClassifier:
     """연출 결정용 분류기. 연결(httpx2 클라이언트)을 재사용하려고 한 번만 만든다."""
-    return OpenAIDecisionClassifier(instructions=DIRECTOR_INSTRUCTIONS)
+    return OpenAIDecisionClassifier()
 
 
 async def decide(state: dict, allowed: Sequence[str], cast: Sequence[dict], last_pov: str | None = None) -> Decision:
@@ -128,15 +129,26 @@ async def decide(state: dict, allowed: Sequence[str], cast: Sequence[dict], last
 
 
 async def _ask(state: dict, questions: dict[str, Choice]) -> dict:
-    """Decisions를 한 번 부른다. 호출 하나의 지연·토큰·실패는 공통 `MODEL_EVENT`로 알려 사용량 장부가 남기게 한다(본문·키는 없다)."""
+    """Decisions를 한 번 부른다. 호출 하나의 지연·토큰·실패는 공통 `MODEL_EVENT`로 알려 사용량 장부가 남기게 하고 generation으로도 남긴다(본문·키는 없다).
+
+    지시문은 Langfuse 프롬프트 character_simulation.direct의 production 버전이고 DIRECTOR_INSTRUCTIONS(코드 문자열)는 기본값이다.
+    """
     try:
         chosen = classifier()
     except ValueError:  # 키가 없다
         raise SimulationFailure(503, NEEDS_SETTINGS) from None
+    try:
+        managed = tracing.prompt('character_simulation.direct', DIRECTOR_INSTRUCTIONS)
+    except tracing.PromptUnavailable:
+        raise SimulationFailure(503, PROMPT_UNAVAILABLE) from None
+    chosen = chosen.model_copy(update={'instructions': managed.text})  # 연결(HTTP 클라이언트)은 공유하고 지시문만 이번 호출 것이다
     started, usage = time.monotonic(), None
     try:
-        reply = await chosen.ainvoke({'state': state, 'questions': questions})
-        usage = reply.usage
+        with tracing.observe('simulation.director', as_type='generation', model=DECISIONS_MODEL, prompt=managed.client) as generation:
+            reply = await chosen.ainvoke({'state': state, 'questions': questions})
+            usage = reply.usage
+            if usage.input_tokens is not None:
+                generation.update(usage_details={'input': usage.input_tokens, 'output': usage.output_tokens})
         return reply.choices
     except TypeSafeAPIResponseValidationError:
         raise SimulationFailure(502, UNUSABLE) from None

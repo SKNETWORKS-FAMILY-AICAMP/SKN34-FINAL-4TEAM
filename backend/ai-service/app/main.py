@@ -1,5 +1,8 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
+from app import tracing
 from app.health.router import router as health_router
 from app.generation.router import router as generation_router
 from app.initial_world.router import router as initial_world_router
@@ -14,13 +17,27 @@ from app.world_review.router import router as world_review_router
 from app.writing.router import router as writing_router
 
 
+@asynccontextmanager
+async def lifespan(application: FastAPI):
+    """대화 체크포인트를 열고 닫은 뒤 아직 보내지 않은 추적 span을 보낸다.
+
+    SDK의 종료 훅(atexit)에 맡기면 안 된다: uvicorn은 SIGTERM으로 정상 종료한 뒤 그 시그널을 다시 올려 프로세스를 끝내므로
+    (컨테이너는 init: true) atexit이 돌지 않아, 요청 뒤 SDK 전송 주기(5초) 안에 재시작하면 마지막 요청의 trace가 사라진다.
+    """
+    try:
+        async with orchestration.lifespan(application):
+            yield
+    finally:
+        tracing.client().flush()
+
+
 def create_app() -> FastAPI:
     """시작 시 모델 호출 없이 내부 상태·이어쓰기·초기 세계관·원고 API를 조립한다."""
     application = FastAPI(
         title="STORYFORK AI Service",
         description="STORYFORK Core API가 호출하는 내부 서비스 개발 기반",
         version="0.1.0",
-        lifespan=orchestration.lifespan,
+        lifespan=lifespan,
     )
     application.include_router(health_router)
     application.include_router(generation_router)
