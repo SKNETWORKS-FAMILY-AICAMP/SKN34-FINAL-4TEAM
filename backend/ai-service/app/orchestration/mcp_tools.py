@@ -81,7 +81,7 @@ def _run(name: str, args: dict, turn: dict):
 async def execute(request) -> Command:
     """허용된 MCP 도구 호출 하나를 실행한다. 승인(쓰기)은 이 호출 전에 끝나 있다.
 
-    읽기는 결과 JSON을 모델에 그대로(길면 잘라) 주고 단계를 남기지 않는다. 쓰기는 성공하면 단계(content_action, applied=새 revision)를 남겨 화면이 다시 읽게 하고,
+    읽기는 결과 JSON을 모델에 그대로(길면 잘라) 주고 단계를 남기지 않는다(읽기 실패도 오류 메시지만 준다). 쓰기는 성공하면 단계(content_action, applied=새 revision)를 남겨 화면이 다시 읽게 하고,
     실패(Content의 409 revision 충돌 포함)는 단계 failed로 남겨 남은 호출을 막는다(다시 시도하거나 덮어쓰지 않는다).
     """
     call, turn = request.tool_call, request.runtime.context
@@ -96,6 +96,8 @@ async def execute(request) -> Command:
         with tracing.observe(f'mcp.{name}', as_type='tool', trace_context=tracing.context(turn.get('runId'), turn.get('traceParent'))):
             done = await asyncio.to_thread(_run, name, args, turn)
     except ContentMcpFailure as error:
+        if not write:  # 읽기 실패(예: 잘못된 인자 422)는 단계로 남기지 않고 모델이 사유를 보고 다시 부르게 한다(횟수는 MCP 한도가 막는다)
+            return _result(None, call, f'[실패] {label}: {error}', failed=True)
         step = {'feature': CONTENT_ACTION, 'when': 'always', 'status': 'failed', 'error': str(error)}
         return _result(step, call, f'[실패] {label}: {error}', failed=True)
     if not write:
