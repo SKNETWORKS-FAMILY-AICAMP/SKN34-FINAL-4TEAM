@@ -2,14 +2,19 @@ import { StoryPlanPanel } from '../../plans/view/StoryPlanWorkspace'
 import { useStoryPlanViewModel } from '../../../shared/plans/useStoryPlanViewModel'
 import { useWritingPlanNavigation } from '../viewmodel/useWritingPlanNavigation'
 import { Suspense,useEffect,useEffectEvent,useId,useRef,useState,type ReactNode } from 'react'
-import { useSearchParams } from 'react-router'
+import { useLocation,useSearchParams } from 'react-router'
 import { useWritingViewModel } from '../viewmodel/useWritingViewModel'
+import { appContainer } from '../../../../app/appContainer'
+import type { EpisodeUseCase } from '../../../../domain/usecases/EpisodeUseCase'
+import { useAsyncData } from '../../../shared/useAsyncData'
 import { savedVersionLabel,publicationActionLabel,type WritingEpisode } from '../../../../domain/entities/content'
 import { useVersionComparisonViewModel } from '../viewmodel/useVersionComparisonViewModel'
 import './writing.css'
 // 오류 상자(.ep-alert)는 작품 관리 화면과 같은 공용 모양을 쓴다.
 import '../../../shared/episode.css'
 import { Go } from '../../../shared/Go'
+import { McpChangeBanner } from '../../../shared/McpChangeBanner'
+import { useMcpChangeWatch } from '../../../shared/useMcpChangeWatch'
 import { useScreenId } from '../../../shared/screenIds'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import {ManuscriptBody} from '../../../shared/media/MediaPanel'
@@ -21,6 +26,7 @@ import { BackChev,ComposeIcon,FoldIcon,MoreIcon,MoreVerticalIcon,SparkIcon } fro
 import { PopMenu } from '../../../shared/PopMenu'
 import { useTheme } from '../../../shared/shell/useTheme'
 import { uiActions } from '../../../shared/ui/uiSlice'
+import { sessionActions } from '../../../shared/session/sessionSlice'
 import { useAppDispatch,useAppSelector } from '../../../../app/store'
 import { writingStatus } from '../../../../domain/entities/writingStatus'
 import { BODY_MAX,bodyLength,publishBlocker,publishHint } from '../../../../domain/entities/manuscriptLength'
@@ -55,6 +61,8 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   useDocumentTitle('집필실')
   const plans=useStoryPlanViewModel(id,false,undefined,true)
   const vm=useWritingViewModel(id,undefined,undefined,episode,plans.confirmLeave)
+  // AI·외부 도구(MCP)가 이 작품을 바꾸면 알림 신호로 알아차려 다시 읽는다. 저장하지 않은 원고가 있으면 덮지 않고 배너로 알린다(#553).
+  const mcp=useMcpChangeWatch({targetType:'work',targetId:id,dirty:vm.dirty,reload:vm.refresh})
   useWritingPlanNavigation(vm.mayLeave,vm.dirty||plans.dirty,vm.busy||vm.saving||plans.busy)
   const editor=useRef<ManuscriptEditorHandle>(null)
   const main=useRef<HTMLElement>(null)
@@ -106,19 +114,27 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
   const [split,setSplit]=useState(50)
   const {dark,toggle:toggleTheme}=useTheme()
   const dispatch=useAppDispatch()
+  // 로그인이 풀린 오류의 '로그인' 링크: 로그인 뒤 홈이 아니라 쓰던 회차(?ep=n 포함)로 돌아오게 현재 주소를 넘긴다(댓글·작품 화면과 같은 방식).
+  const {pathname,search}=useLocation()
+  const requireLogin=()=>{dispatch(sessionActions.requireLogin({next:pathname+search,msg:'로그인하면 쓰던 회차로 돌아와요. 저장하지 않은 입력은 먼저 복사해 두세요.',role:'user'}))}
   const showSid=useAppSelector(s=>s.ui.showSid)
   const dev=import.meta.env.DEV
   // 고급 패널은 숨겨도 마운트를 유지해 계획 입력과 원고를 함께 보존한다.
   const [mode,setMode]=useState<'basic'|'advanced'>('basic')
   // 채팅이 본문 폭을 줄이지 않게, 창이 1200px 이하면 접은 채로 시작한다(세계관 작업실의 기본값과 같은 방식).
-  const [chatOpen,setChatOpen]=useState(()=>!window.matchMedia?.('(max-width: 1200px)').matches)
+  const api=appContainer.resolve<EpisodeUseCase>('episodeUseCase')
+  const mockup=import.meta.env.MODE==='mockup'
+  const settings=useAsyncData((signal)=>mockup?Promise.resolve(null):api.workSettings(id,signal),[id,api,mockup])
+  const [chatOverride,setChatOpen]=useState<boolean|null>(null)
+  const [wide]=useState(()=>!window.matchMedia?.('(max-width: 1200px)').matches)
+  const chatOpen=chatOverride??(wide&&(mockup||settings.isError||settings.data?.current.writingMode===null||settings.data?.current.writingMode==='assisted'))
   // 접기·열기 버튼은 한 번에 하나만 마운트되므로 ref 하나를 함께 쓴다. 누르면 그 버튼이 사라지니 새로 보이는 버튼으로 초점을 옮긴다(처음 렌더링에서는 옮기지 않는다).
   const chatToggle=useRef<HTMLButtonElement>(null)
   const wasChatOpen=useRef(chatOpen)
   useEffect(()=>{
-    if(wasChatOpen.current!==chatOpen)chatToggle.current?.focus()
+    if(chatOverride!==null&&wasChatOpen.current!==chatOpen)chatToggle.current?.focus()
     wasChatOpen.current=chatOpen
-  },[chatOpen])
+  },[chatOpen,chatOverride])
   const [selection,setSelection]=useState({episode:0,id:''})
   const [rights,setRights]=useState(false)
   const [versionsOpen,setVersionsOpen]=useState(false)
@@ -204,8 +220,10 @@ export function WritingStudio({id,episode}:{id:string;episode?:number}) {
         </PopMenu>
       </div>
     </header>
+    <McpChangeBanner {...mcp} />
     {/* 다시 시도할 입력이 있으면 복사 안내 대신 재시도 버튼을 둔다. 재시도는 버전이 아니라 초안만 저장하므로 버튼 이름에 대상을 적는다. 버튼과 로그인 링크는 한 묶음이다. */}
-    {vm.error&&<div className="ep-alert" role="alert">{vm.error} {active&&!canRetry&&'저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.'}{(canRetry||vm.expired)&&<span className="ep-alert-actions">{canRetry&&<button type="button" className="btn sm" disabled={vm.busy} onClick={()=>{vm.retrySave();statusLine.current?.focus()}}>초안 저장 다시 시도</button>}{vm.expired&&<Go to="/login">로그인</Go>}</span>}</div>}
+    {vm.error&&<div className="ep-alert" role="alert">{vm.error} {active&&!canRetry&&'저장되지 않은 원고는 복사해 보관한 뒤 다시 불러올 수 있어요.'}{(canRetry||vm.expired)&&<span className="ep-alert-actions">{canRetry&&<button type="button" className="btn sm" disabled={vm.busy} onClick={()=>{vm.retrySave();statusLine.current?.focus()}}>초안 저장 다시 시도</button>}{vm.expired&&<Go to="/login" className="btn sm" onClick={requireLogin}>로그인</Go>}</span>}</div>}
+    {settings.isError&&vm.ready&&!vm.error&&<div className="ep-alert" role="status">집필 방식을 불러오지 못했어요.<button type="button" className="btn sm" onClick={settings.retry}>다시 불러오기</button></div>}
     <main ref={main} id="main" tabIndex={-1} className="studio-workspace">{!vm.ready?<p className="writing-message">회차를 불러오고 있어요…</p>:vm.error&&!active&&!vm.episodes.length?null:<>
     <div className={`sgrid writing-grid${mode==='advanced'?' writing-with-plans':''}`}>
       <div className="writing-rail">

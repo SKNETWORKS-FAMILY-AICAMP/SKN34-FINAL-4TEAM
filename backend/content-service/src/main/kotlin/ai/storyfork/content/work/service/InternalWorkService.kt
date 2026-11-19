@@ -3,18 +3,24 @@ package ai.storyfork.content.work.service
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.auth.service.WITHDRAWN_MEMBER_NAME
+import ai.storyfork.content.interest.entity.ContentEventOutboxEntity
+import ai.storyfork.content.interest.repository.ContentEventOutboxRepository
 import ai.storyfork.content.work.entity.WorkEntity
 import ai.storyfork.content.work.repository.WorkRepository
 import ai.storyfork.content.work.service.dto.InternalWorkResponse
 import ai.storyfork.content.work.service.dto.OperationsWorkListResponse
 import ai.storyfork.content.work.service.dto.OperationsWorkResponse
+import java.util.UUID
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+
+private const val WORK_RESTRICTED = "content.operator.work-restricted"
+private const val WORK_UNRESTRICTED = "content.operator.work-unrestricted"
 
 /** 운영 서비스 전용 작품 조회·제한 플래그 변경. 소유권 검사 없이 서비스 토큰으로만 보호된다. */
 @Service
 @Transactional(transactionManager="contentTransactionManager")
-class InternalWorkService(private val works: WorkRepository, private val nicknames: CoreNicknameService) {
+class InternalWorkService(private val works: WorkRepository, private val nicknames: CoreNicknameService, private val outbox: ContentEventOutboxRepository) {
     fun read(id: String) = view(works.findById(id).orElse(null)?.takeIf { it.deletedAt == null } ?: missing())
 
     /**
@@ -33,10 +39,16 @@ class InternalWorkService(private val works: WorkRepository, private val nicknam
         })
     }
 
-    /** 작가 수정과 같은 작품 행 잠금으로 직렬화해 전체 행 저장이 플래그를 덮어쓰지 않게 한다. */
+    /**
+     * 작가 수정과 같은 작품 행 잠금으로 직렬화해 전체 행 저장이 플래그를 덮어쓰지 않게 한다.
+     * 플래그가 실제로 바뀔 때만 같은 트랜잭션에서 소유자에게 보낼 운영자 조치 알림 사건을 outbox에 쓴다(멱등 재요청은 쓰지 않는다).
+     */
     fun restrict(id: String, restricted: Boolean): InternalWorkResponse {
         val row = works.lockAll(listOf(id)).singleOrNull()?.takeIf { it.deletedAt == null } ?: missing()
-        row.restricted = restricted
+        if (row.restricted != restricted) {
+            row.restricted = restricted
+            outbox.save(ContentEventOutboxEntity(UUID.randomUUID(), if (restricted) WORK_RESTRICTED else WORK_UNRESTRICTED, row.ownerId, "work", row.id))
+        }
         return view(row)
     }
 

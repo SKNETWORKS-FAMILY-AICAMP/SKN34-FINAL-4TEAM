@@ -57,7 +57,7 @@ flowchart TD
   C[Content: 인증·scope·target·허용 입력 확인] --> G0[공통 입력 가드레일<br/>SensitiveDataGuard·ModerationGuard]
   G0 -->|차단| R[고정 거절 문구로 종료]
   G0 --> G1[Decision Guard<br/>Decisions 1회: guard + 기능별 yes/no]
-  G1 -->|거절·판정 실패·미구현 기능| R
+  G1 -->|거절·판정 실패| R
   G1 -->|고른 기능 없음| Q[고정 확인 질문]
   G1 -->|통과| M[메인 에이전트 gpt-6-luna]
   M <-->|판정된 ask_* 도구만, 조회형은 한 턴에 병렬| S[서브 에이전트<br/>Q&A·Manuscript Review·설정집 검토·Writing & Editing·웹 조사·Rating·인물 시뮬레이션]
@@ -80,13 +80,12 @@ flowchart TD
 - **호출:** 기존 `app/intent/agent.decide`를 재사용한다. 그 안의 공통 입력 가드레일(`SensitiveDataGuard`의 이메일·카드번호·API 키, `ModerationGuard`의 차단 범주)이 Decisions보다 먼저 작가 요청을 거르고, Decisions 응답의 선택지·누락·중복·refusal 검증도 그대로 쓴다. 바뀌는 것은 보내는 질문뿐이다.
 - **질문:**
   - `guard`: 현재 선택지 그대로(`none`·`greeting`·`out_of_scope`·`inappropriate_edit`·`prompt_injection`·`sensitive_data`). `none`이 아니면 고정 거절 문구로 끝나며, guard 질문 자체를 거부하면 `unsafe`다.
-  - 기능별 필요 여부: `story_context`·`manuscript_review`·`world_review`·`writing_editing`·`web_research`·`rating`·`character_simulation`·`world_plot`마다 독립 `choice` 질문(`yes`·`no`)을 하나씩 보낸다. 기능 설명은 `app/intent/prompt.py`의 `FEATURES` 문구다. `character_simulation`은 "사용자가 시뮬레이션 실행을 명시적으로 요청했는가"로 묻는다.
+  - 기능별 필요 여부: `story_context`·`manuscript_review`·`world`·`writing_editing`·`web_research`·`rating`·`character_simulation`마다 독립 `choice` 질문(`yes`·`no`)을 하나씩 보낸다. 기능 설명은 `app/intent/prompt.py`의 `FEATURES` 문구다. `character_simulation`은 "사용자가 시뮬레이션 실행을 명시적으로 요청했는가"로 묻는다.
   - 없앤 질문: 순서(`1|2|2_if_issues|3|3_if_issues`)·`clarity`·`review_check`·`writing_task`. 순서·조건·검사 종류·작업 종류는 메인 에이전트가 정한다.
 - **입력:** 이번 요청은 `request`, 검색·원고 자료는 `materials`, 이전 요청은 `history`로 `input_json` 데이터에만 담는다(자료 안 지시는 판정에 반영하지 않는다). 자유 입력은 먼저 이번 요청만으로 판정하고, 고른 기능이 없을 때만 같은 대화 최근 5턴의 요청을 붙여 한 번 더 판정한다. operation 경로는 처음부터 최근 5턴의 요청을 함께 보낸다(guard 판정의 지칭 해석용). 직전 턴의 고정 확인 질문에 기능 보기 이름으로 답한 경우 그 기능의 operation 경로로 확정하는 규칙도 유지한다.
 - **결과:** `decision {allowed, reason, capabilities[]}`를 상태에 남긴다.
   - 거절 → 메인 에이전트를 부르지 않고 `rejected`와 기존 고정 문구(`REJECT_MESSAGES`).
   - 고른 기능 없음 → 메인 에이전트를 부르지 않고 `clarify`와 고정 확인 질문(`CLARIFY_MESSAGE`).
-  - 미구현 기능(`world_plot`)이 하나라도 있음 → 아무것도 실행하지 않고 `unsupported`(축소 실행 금지).
   - 판정 실패(`OPENAI_API_KEY` 미설정·제공사 오류·검증 실패) → 실행하지 않고 503. 메인 모델 이름(`OPENAI_MODEL`)이 없으면 판정 전에 `failed`로 끝낸다.
 - **operation:** UI가 기능을 골랐으면 `guard`만 묻고 `capabilities`를 그 기능 하나로 고정한다(등록되지 않은 값은 호출 전 거절).
 - 판정은 1차 필터다. 범위·권한은 Content가 이미 확정했고 판정 결과에는 작품·회차·도구 인자가 없어 요청 문장이 범위를 넓힐 수 없다.
@@ -99,12 +98,11 @@ flowchart TD
 |---|---|---|---|---|
 | `story_context` | `ask_story_qa` | `story_qa.service.answer` + 공통 Retrieval(`app/retrieval`) | `request`(질문) | `scope` 토큰(없으면 `inputs.story_context`), 최근 5턴 질문·답 |
 | `manuscript_review` | `ask_manuscript_review` | `manuscript_review.service.review` | `request`, `check?`(`mechanical`·`semantic`·`both`) | `target` 반영 회차, 작가가 보낸 `inputs.manuscript_review`가 있으면 우선 |
-| `world_review` | `ask_world_review` | `world_review.review` | `request` | `target` 작품의 연결 세계관 |
+| `world` | `ask_world` | `world_review.review`·`enrich`·`impact`(#546·#291) | `request`, `task`(`check`·`enrich`·`impact`) | `target` 작품의 연결 세계관, `impact`는 `work_context_read`·`story_plan_list` |
 | `writing_editing` | `ask_writing` | `writing.agent.plan`·`plan_and_draft`·`draft`·`patch` | `request`, `task`(`plan`·`draft`·`patch`), `fix?`(지적 번호) | `target`, Content MCP 허용 문맥, `previousPlans`, `inputs.writing_editing` |
 | `web_research` | `ask_web_research` | `research.service.research` | 없음(실행 여부만) | `inputs.web_research`(작가가 동의한 질문·500자 이하 맥락·외부 전송 동의) |
 | `rating` | `ask_rating` | `rating.service.rate` | `request` | `target` 회차 하나 |
 | `character_simulation` | `ask_character_simulation` | `simulation.plan`·`plan_from_form`(계획만. 장면 에이전트는 바깥 `scene` 노드) | `request`(상황) | `target`·연결 세계관, 시작 양식 `simulation` |
-| `world_plot` | 없음(미구현) | — | — | 판정되면 `unsupported` |
 
 #### 목표 구조: 여섯 업무 Agent (2026-11-19)
 
@@ -114,7 +112,7 @@ flowchart TD
 |---|---|---|
 | Manuscript Review | 원고 | `mechanical`·`semantic`·`both`. 조건부 수정은 이 결과에만 붙는다 |
 | World | 설정집 + 연대기(사건 카드) | `check`·`enrich`·`impact`. 세 작업이 같은 입력(기준 회차 시점 세계관)을 쓴다 |
-| Writing & Editing | 원고 생성 + 플롯(`story_plan`, 계획) | `plan`·`draft`·`patch`. 지금 그대로 |
+| Writing & Editing | 원고와 플롯·장면 계획(`story_plan`) | 현재 `plan`·`draft`·`patch`. [기존 플롯 및 장면 계획 수정](03-rag-simulation-design.md#기존-플롯-및-장면-계획-수정)은 미구현이며 수정안 제안과 작가 승인 후 반영을 포함 |
 | Research | 작품 밖 | `web`·`platform`. 결과는 참고이며 정본이 되지 않는다 |
 | Q&A | 내 작품 질문 | 내 세계관 안 검색도 Q&A가 맡는다 |
 | Rating·Simulation | — | 그대로 |
@@ -123,16 +121,16 @@ flowchart TD
 
 | 판정 기능(목표) | 도구 | 작업 | 하는 일 | 현재 코드 |
 |---|---|---|---|---|
-| `world` | `ask_world` | `check` | 설정집 카드끼리의 충돌(모순·인물 문서 역할·사건 정보 누락)과 사건 카드끼리의 시간 모순(연대기) 검사 | `world_review`·`ask_world_review`(연대기 없음) |
-| | | `enrich` | 지정한 카드의 본문·인물 문서를 세계관과 어긋나지 않게 보강한 제안. 작가 승인 뒤에만 Content MCP `world_studio_edit_draft`로 초안에 반영(확정 버전은 작가가 남김) | 없음 |
+| `world` | `ask_world` | `check` | 설정집 카드끼리의 충돌(모순·인물 문서 역할·사건 정보 누락)과 사건 카드끼리의 시간 모순(연대기) 검사 | 구현(#546) |
+| | | `enrich` | 지정한 카드의 본문·인물 문서를 세계관과 어긋나지 않게 보강한 제안. 작가 승인 뒤에만 Content MCP `world_studio_edit_draft`로 초안에 반영(확정 버전은 작가가 남김) | 구현(#546) |
 | `research` | `ask_research` | `web` | 웹 고증. 외부 전송 동의 입력 대기는 이 작업에만 건다 | `web_research`·`ask_web_research` 그대로 |
 | | | `platform` | 다른 공개 세계관·설정 카드에서 참고할 설정 검색. 공개 데이터만 쓰므로 외부 전송 동의가 없고, 결과는 출처(세계관·카드)를 단 참고안이며 자동 복사하지 않는다(가져오기는 기존 화면 기능) | 없음 |
-| | | `impact` | 설정·사건을 바꿀 때 영향받는 설정·관계, 사건 카드(연대기), 이미 쓴 회차의 구절(공통 Retrieval), 계획된 장면(MCP `story_plan_list`)과 충돌 분석(옛 World & Plot, #291). 읽기만 하고 결과로 조건부 수정(`ask_writing(patch, fix)`)을 하지 않는다 | 없음(`world_plot` → `unsupported`) |
+| | | `impact` | 설정·사건을 바꿀 때 영향받는 설정·관계, 사건 카드(연대기), 이미 쓴 회차의 구절(Content MCP `work_context_read`), 계획된 장면(MCP `story_plan_list`)과 충돌 분석(#291). 읽기만 하고 결과로 조건부 수정(`ask_writing(patch, fix)`)을 하지 않는다 | 구현(#291) |
 | `manuscript_review` | `ask_manuscript_review` | `mechanical`·`semantic`·`both` | 원고 검수 | 그대로(#499에서 `review`·`ask_review`에서 바꿈) |
-| `writing_editing` | `ask_writing` | `plan`·`draft`·`patch` | 기획(플롯)·집필·수정 | 그대로 |
+| `writing_editing` | `ask_writing` | `plan`·`draft`·`patch` | 전개 기획·새 원고 집필·기존 원고 수정 | 구현 |
 
 - 경계: World는 설정에서 출발하는 일(카드끼리 검사·보강, 설정 변경이 원고·계획에 주는 영향), Manuscript Review는 원고 검수, Writing은 원고 생성과 플롯, Research는 내 작품 밖(웹·플랫폼의 다른 세계관), Q&A는 내 작품 안의 질문이다. World의 충돌 검사 작업 이름은 Manuscript Review와 겹치지 않게 `check`다.
-- 기능 키 `world_plot`은 없어져 미구현으로 판정할 기능이 남지 않는다. 기능 키 변경은 프론트(`WritingChat`)·Content(`WritingAi.kt`)에도 걸리므로 #545에서 바꾼다(`review` → `manuscript_review`는 #499에서 먼저 바꿨다). 이미지 생성은 이 구조에 넣지 않는다(F-WRT-14 MVP 제외).
+- 기능 키 `world_plot`은 없앴고(#546) 미구현으로 판정할 기능이 남지 않는다. `world_review` → `world`는 #546에서 AI·프론트에 반영했다(Content는 값을 그대로 넘겨 변경 없음). `web_research` → `research`는 #545에서 바꾼다(`review` → `manuscript_review`는 #499에서 먼저 바꿨다). 이미지 생성은 이 구조에 넣지 않는다(F-WRT-14 MVP 제외).
 
 도구는 `app/orchestration/tools.py`의 고정 표(`TOOL_NAMES`)이며 Registry·factory를 두지 않는다. 시뮬레이션 계획을 세운 뒤에는 장면이 이어지므로 그 턴의 다른 도구를 부를 수 없다.
 
@@ -157,7 +155,7 @@ flowchart TD
 
 | 항목 | 결정 |
 |---|---|
-| 병렬 허용 조합 | 조회형만 묶는다: `ask_story_qa`·`ask_web_research`·`ask_rating`·`ask_world_review`·`ask_manuscript_review`. `ask_writing`(모든 `task`)과 `ask_character_simulation`은 항상 단독이며, 두 개 이상의 묶음에 섞이면 그 호출은 실행하지 않고 오류 ToolMessage로 돌려 다음 모델 턴에 단독으로 부르게 한다. 그래서 Manuscript Review → 조건부 수정 같은 의존 호출은 순차로 남는다(Writing → Manuscript Review도 [같은 순차 규칙](#작업-간-입력출력)을 따른다). |
+| 병렬 허용 조합 | 조회형만 묶는다: `ask_story_qa`·`ask_web_research`·`ask_rating`·`ask_world`(`check`·`impact`)·`ask_manuscript_review`. `ask_world(task=enrich)`는 작가 승인이 필요해 단독이고, `ask_writing`(모든 `task`)과 `ask_character_simulation`은 항상 단독이며, 두 개 이상의 묶음에 섞이면 그 호출은 실행하지 않고 오류 ToolMessage로 돌려 다음 모델 턴에 단독으로 부르게 한다. 그래서 Manuscript Review → 조건부 수정 같은 의존 호출은 순차로 남는다(Writing → Manuscript Review도 [같은 순차 규칙](#작업-간-입력출력)을 따른다). |
 | 시뮬레이션·입력 대기 | resume 형식(`{approved, inputs, scope?}` 하나)을 유지하려고 한 번에 interrupt 하나만 건다. 묶음 안에서 작가 입력이 빠진 호출(검사 종류가 없는 Manuscript Review, 질문·동의가 없는 웹 조사, scope·발췌가 없는 Q&A)은 실행하지 않고 오류 ToolMessage로 미뤄 다음 모델 턴에 단독으로 부르게 하며, 단독 호출이면 기존처럼 interrupt로 멈춘다. 시뮬레이션은 항상 단독이다. |
 | 실패 | 함께 시작한 다른 호출은 취소하지 않고 끝까지 실행해 결과를 보존한다(각자의 기존 시간 제한). 묶음 뒤에는 기존 [실패 뒤 정지](#코드가-지키는-실행-경계)대로 새 호출을 막고 종합만 하며 응답은 `failed`다. |
 | 한도 | 묶음 안 호출도 하나씩 센다: 서브 에이전트 턴당 3회·기능당 1회(넘는 호출은 거부), 메인 모델 호출 턴당 5회(묶음을 낸 모델 호출은 1회). 노출·묶음 검사에서 거부한 호출은 도구 한도를 쓰지 않는다. 동시 실행 수는 턴 한도와 같은 최대 3이라 따로 두지 않는다. |
@@ -225,7 +223,7 @@ flowchart TD
 `app/orchestration/`(2026-11-12 사용자 요청)이 위 계약 중 **구현된 Agent와 공통 Retrieval 도구만** 연결한다. 대상은 Story Context / Q&A(`story_qa.service.answer`), Writing & Editing(`writing.agent.plan|plan_and_draft|draft|patch`), Web Research(`research.service.research`), Manuscript Review(`manuscript_review.service.review`, #59), 설정집 검토(`world_review.review`), Rating(`rating.service.rate`, #386), 인물 시뮬레이션이다. Q&A·Writing·웹 조사·Manuscript Review·Rating의 모델 호출은 LangChain `create_agent` + 공통 커스텀 미들웨어(`app/agent_runtime.py`, #373·DEC-52)로 실행하며, 바깥 그래프·HITL·SSE 계약은 바뀌지 않는다.
 
 - `POST /internal/v1/orchestrations` `{request, operation?, materials?, inputs}` → `main_agent` 노드가 메인 에이전트를 실행한다(Decision Guard 판정 → 판정 기능의 `ask_*` 도구 → 종합 답변). 시뮬레이션 계획이 있으면 `scene`, 승인할 결과가 있으면 `apply`를 거쳐 `finish`로 끝낸다. `inputs`는 Content가 권한·판본을 확인해 기능별로 채운 각 내부 API의 요청 DTO다(`story_context`, `writing_editing.draft|patch`, `web_research`, `manuscript_review {check: mechanical|semantic|both}`). Writing & Editing의 전개 기획·계획 없는 바로 집필(`ask_writing(task=plan|draft)`)은 입력 없이 메인 에이전트의 작업 지시와 `target`으로 실행한다([계약](03-rag-simulation-design.md#4-writing--editing-agent), #387). Manuscript Review는 검사 종류만 입력으로 받는다. `target` 반영 회차의 저장된 초안 또는 같은 턴의 집필 후보를 검수하며, `target`이 없으면 단계 실패다. 검사 종류는 메인 에이전트가 요청에서 알아내면 `ask_manuscript_review(check)`로 넘기고, 작가가 보낸 `inputs.manuscript_review`가 있으면 그것이 우선한다. 정하지 못하면(`check` 없음) 대화에서는 아래 HITL로 작가가 고른다(맞춤법·표기 / 설정·개연성). `both`는 두 검수를 병렬로 돌려 Semantic → Mechanical 순서로 합친다. 검수 결과는 제안이라 승인·반영(`apply`)을 묻지 않는다. Rating은 단계 입력이 없고 `target`의 반영 회차 하나를 판별하며(`target`이 없으면 단계 실패), 판정도 제안이라 승인·반영을 묻지 않는다.
-- 판정이 거절이면 `rejected`, 고른 기능이 없으면 `clarify`와 고정 문구를 돌려준다. 미구현 기능(World & Plot)이 하나라도 판정되면 `unsupported`이며 아무 Agent도 실행하지 않는다(축소 실행 금지). 도구 입력이 빠지면 대화 없는 요청은 `needs_input`(빠진 기능은 `missingInputs`, 앞서 끝난 단계는 보존)으로 끝내고, 대화 안에서는 아래 HITL로 멈춘다. 조건부 수정은 이번 턴 Manuscript Review 결과의 확정 지적만 고친다(#370, 아래 조건부 수정).
+- 판정이 거절이면 `rejected`, 고른 기능이 없으면 `clarify`와 고정 문구를 돌려준다. 도구 입력이 빠지면 대화 없는 요청은 `needs_input`(빠진 기능은 `missingInputs`, 앞서 끝난 단계는 보존)으로 끝내고, 대화 안에서는 아래 HITL로 멈춘다. 조건부 수정은 이번 턴 Manuscript Review 결과의 확정 지적만 고친다(#370, 아래 조건부 수정).
 - 코드가 검증해 넘기는 연결은 Manuscript Review → 조건부 수정과 Writing/Editing → Manuscript Review다(“MVP · 순차”). 기능 실패는 그 단계의 `failed`로 남기고, 완료 결과를 보존한다. 새 도구 호출은 [실패 뒤 정지](#코드가-지키는-실행-경계) 규칙을 따른다. 단계는 호출 순서의 원본 결과이고 `message`는 메인 에이전트의 종합 답변이다.
 - #499 이전 체크포인트의 `review` 단계는 기록 그대로 읽고, 입력을 기다리던 검수도 재개할 수 있다. 요청의 옛 `operation: "review"`와 `inputs.review`는 AI 서비스가 판정·실행 전에 새 이름으로 변환한다.
 - `POST /internal/v1/orchestrations/stream`은 같은 그래프를 노드 단위로 흘리는 SSE다. 이벤트는 `plan`(판정 기능) → 도구마다 `started`(실제로 실행할 기능)·`step`(그 단계의 결과·실패) → `done`(위 응답과 같은 최종 결과)이다. 응답 헤더를 보낸 뒤라 판정 실패는 `error` 이벤트 하나로 알리고 끝낸다. 내부 인증은 스트림 전에 검사한다. Agent의 모델 호출은 스트리밍하지 않아 단계 결과는 완성본 단위로 온다.
@@ -259,7 +257,7 @@ MVP에서 한 요청 안에 이어지는 결과 전달은 Manuscript Review → 
 
 Decision Guard가 `manuscript_review`와 `writing_editing`을 함께 판정하거나 메인 에이전트가 수정을 부르기로 한 것이 곧 수정 허용이라는 뜻은 아니다. 각 기능의 Finding·근거·원문 범위를 위 조건에 맞게 연결하는 계약이 확정된 Manuscript Review 외에는 조건부 수정을 지원하지 않는다.
 
-메인 에이전트가 `ask_manuscript_review` 결과를 보고 수정 호출 여부를 정한다. 메인 에이전트의 판단도 수정 허용이 아니며, 코드는 이번 턴 Manuscript Review 결과의 확정 지적을 가리킨 `ask_writing(task=patch, fix)`만 받는다. 아래 검증은 그 도구가 그대로 수행한다. 웹 조사·World & Plot 결과로 고치는 연결은 계약 확정 전까지 지원하지 않는다.
+메인 에이전트가 `ask_manuscript_review` 결과를 보고 수정 호출 여부를 정한다. 메인 에이전트의 판단도 수정 허용이 아니며, 코드는 이번 턴 Manuscript Review 결과의 확정 지적을 가리킨 `ask_writing(task=patch, fix)`만 받는다. 아래 검증은 그 도구가 그대로 수행한다. 웹 조사·World `impact` 결과로 고치는 연결은 계약 확정 전까지 지원하지 않는다.
 
 현재 구현(#370)은 Manuscript Review → 조건부 집필·수정만 연결한다.
 - 확정 지적(원고 위치가 하나로 정해진 지적만 확정이다)이 하나면 바로, 여러 개면 대화에서 작가가 검수 결과의 지적 번호를 고른다(입력 대기 `missingInputs: [writing_editing]`, resume `inputs.writing_editing.fix`, 화면은 확정 지적만 보기로 보인다). 대화가 없는 요청에서 여러 개면 고를 수 없어 건너뛰고 구간을 골라 새 편집을 요청하라고 안내한다.
@@ -287,6 +285,7 @@ Decision Guard가 `manuscript_review`와 `writing_editing`을 함께 판정하�
 - 요청과 검색·원고 자료(`materials`)는 `input_json` 데이터로만 보내며 자료 안 지시는 판정에 반영하지 않는다.
 - 권한·작품/Fork/회차 범위는 Decision Guard가 다시 검사하지 않는다. Content가 `QaScopeService` 등으로 먼저 확정한 범위를 그대로 쓰며, 판정 결과에는 범위·대상·도구 필드가 없어 입력 문장이 그 범위를 넓힐 수 없다.
 - 선택지 밖 값·답 누락/중복·모델 오류·키 미설정은 `IntentFailure`(503)이며 정상 판정으로 표시하지 않는다.
+  제공사 오류는 원인별 고정 문구로 알린다(#413): 크레딧 소진(`insufficient_quota`)·요청 한도·인증(401·403)·시간 초과·연결 실패. 그 밖은 "요청 분류에 실패했습니다."이며 제공사 오류 본문·입력·키는 문구에 넣지 않는다. 새 채팅 메시지의 판정 실패로 저장되는 턴도 같은 문구를 쓴다.
 - Decision Guard 실모델 수용(2026-11-17, #473, `gpt-6-luna`): 8개 기능 대표·모호 2·복합 3·인사 2·범위 밖 2·부적절한 수정 2·인젝션 3·개인정보·기밀 2·자료 속 인젝션 2·UI 선택+인젝션 1로 구성한 개발용 합성 문장 27건을 3회 판정했다. 81/81이 기대한 거절 사유·기능 집합과 같았다. 첫 실행은 23/27이었고, '참고로 필요해 보이는 기능'까지 yes로 고르는 문제를 "작가가 직접 요구한 작업만 yes" 문구와 기능 설명의 상호 구분으로 고쳤다. 같은 구성의 전환 전 Router 수용(2026-11-11)도 81/81이었다. 표본을 저장소에 고정하는 일은 #476이다.
 - 메인 에이전트 실모델 확인(2026-11-17, 로컬 compose·샘플 작품): 다음을 확인했다.
   - 검수 → 확정 지적 2건 → `ask_writing(patch)` → 지적 고르기 입력 대기 → 수정안 → 승인 반영(초안 revision 증가)
@@ -303,9 +302,9 @@ Decision Guard가 `manuscript_review`와 `writing_editing`을 함께 판정하�
 |---|---|---|---|
 | Story Context / Q&A | 질문, 작품/Fork/회차, 허용 자료 | 출처 있는 답변·모르는 항목 | 조회만 수행 |
 | Manuscript Review | 원고/설정, 검사 종류 | 위치·근거·확정/의심이 있는 Findings | Mechanical·Semantic 또는 둘 다(병렬); Simulation은 사용자가 명시적으로 요청한 경우에만 실행 |
-| World(`check` 설정집 검토·`enrich` 설정 보강·`impact` 변경 영향 분석) | 작품에 연결된 세계관의 기준 회차 시점 카드·관계(소설 연결 없이도 WorldStudio 화면에서 `check` 요청 가능). `impact`는 바꾸려는 설정·사건 | `check`: 카드별 지적(모순·역할 오류·누락·연대기 모순)과 카드 한 칸을 바꿀 수정안. `enrich`(미구현): 지정 카드의 본문·인물 문서 보강안. `impact`(미구현, 옛 World & Plot): 영향 대상(설정·사건·회차 구절·계획된 장면)·판본·근거·충돌 | 원고 검수(Manuscript Review)와 별개. 결과는 저장하지 않는 제안이며 작가가 승인해야 편집 초안에 들어간다. `impact`는 읽기만 하고 Retrieval·`story_plan_list`를 읽으며 조건부 수정과 잇지 않는다. Simulation 호출 없음 |
+| World(`check` 설정집 검토·`enrich` 설정 보강·`impact` 변경 영향 분석) | 작품에 연결된 세계관의 최신 초안 카드·관계(소설 연결 없이도 WorldStudio 화면에서 `check` 요청 가능). `impact`는 바꾸려는 설정·사건 | `check`: 카드별 지적(모순·역할 오류·누락·연대기 모순)과 카드 한 칸을 바꿀 수정안. `enrich`: 지정 카드의 본문·인물 문서 보강안. `impact`: 영향 대상(설정·관계·회차·계획된 장면)·근거·확실성·충돌·누락 | WorldStudio는 마지막 `check` 결과를 저장한다. `enrich` 보강안은 작가 승인 후 세계관 편집 초안에 반영한다. `impact`는 읽기만 하고 `work_context_read`·`story_plan_list`를 읽으며 조건부 수정과 잇지 않는다. Simulation 호출 없음 |
 | Character Simulation Subgraph | 상황, 인물별 허용 지식, 행동 상한, 작가/독자 모드 | 범위가 제한된 가상 기록·임시 상태·장면 요약, 모드별 검토 결과 | 턴마다 행동 → 상태 갱신 → 다음 인물. [모드별 결과](03-rag-simulation-design.md#시뮬레이션-결과와-후속-검수) 참고 |
-| Writing & Editing(플롯 포함) | Content가 확인한 허용 입력과 전개 기획의 앞선 사건·콘티·목표 회차, 새 원고의 계획 **또는** 기존 원고의 고정 구간 | 전개 대안·인사이트·BeatPlan, 새 Text **또는** before/after Patch | 기획·문장·문체 생성에 집중; 기획만 요청하면 원고를 만들지 않음. Retrieval·Simulation 직접 호출 없음. 필요 시 Manuscript Review가 검수 |
+| Writing & Editing | Content가 확인한 기획 문맥·집필 계획·원고 선택 구간 또는 저장된 플롯·장면 계획과 수정 지시 | 전개 대안·BeatPlan, 새 Text, 원고 Patch 또는 플롯·장면 계획 수정안(미구현) | 기획 결과는 저장하지 않는다. 기존 계획 수정안은 작가 승인 후 Content가 반영한다. Retrieval·Simulation 직접 호출 없음 |
 | Research(`web` 웹 조사·`platform` 플랫폼 내부 조사) | `web`: 현실 검증 질문, 작품의 필요한 최소 맥락. `platform`(미구현): 찾을 설정 주제 | `web`: URL·검색 시각·주장별 근거·불확실성. `platform`: 출처 세계관·카드를 단 참고 설정 | 웹·다른 세계관 자료는 작품 정본과 분리, 자동 복사 없음 |
 | Rating | 회차 초안, 저장소의 심의 기준 문서 | 회차별 판별 항목 수준·근거 구절·금지 표현 표시, 코드가 계산한 `adult`·`general`·`needsReview`와 요청 회차 묶음 판정 | 오케스트레이션 단계로 실행. 판정 제안만 하며 등급 적용은 Content. [설계](03-rag-simulation-design.md#5-rating-agent) |
 

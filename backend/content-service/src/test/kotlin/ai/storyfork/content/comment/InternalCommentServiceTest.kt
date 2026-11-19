@@ -12,6 +12,8 @@ import ai.storyfork.content.comment.repository.EpisodeCommentRepository
 import ai.storyfork.content.comment.service.InternalCommentService
 import ai.storyfork.content.comment.service.dto.OperationsCommentListResponse
 import ai.storyfork.content.comment.service.dto.OperationsCommentResponse
+import ai.storyfork.content.interest.entity.ContentEventOutboxEntity
+import ai.storyfork.content.interest.repository.ContentEventOutboxRepository
 import ai.storyfork.content.work.entity.WorkEntity
 import ai.storyfork.content.work.repository.WorkRepository
 import java.time.Instant
@@ -27,7 +29,8 @@ class InternalCommentServiceTest {
     private val likes = mock(EpisodeCommentLikeRepository::class.java)
     private val works = mock(WorkRepository::class.java)
     private val nicknames = mock(CoreNicknameService::class.java)
-    private val service = InternalCommentService(comments, likes, works, nicknames)
+    private val outbox = mock(ContentEventOutboxRepository::class.java)
+    private val service = InternalCommentService(comments, likes, works, nicknames, outbox)
     private val t0 = Instant.parse("2020-01-01T00:00:00Z")
 
     private fun comment(id: String, work: String = "w1", author: String = "a1", body: String = "본문-$id", number: Int = 1, hidden: Boolean = false, at: Instant = t0) =
@@ -43,6 +46,8 @@ class InternalCommentServiceTest {
         `when`(likes.findAllByCommentIdIn(listOf(row.id))).thenReturn(List(likeCount) { EpisodeCommentLikeEntity(row.id, "m$it") })
     }
     private fun failure(block: () -> Unit) = assertThrows(ContentFailure::class.java, block)
+    /** 저장소에 건넨 outbox 행이다(같은 트랜잭션에서 쓰는 운영자 조치 알림 사건). */
+    private fun saved() = mockingDetails(outbox).invocations.filter { it.method.name == "save" }.map { it.arguments[0] as ContentEventOutboxEntity }
 
     @Test fun `list maps every row in repository order with title like count and Core nickname and keeps the original body of hidden comments`() {
         val shown = comment("c1", work = "w1", author = "a1", number = 2)
@@ -88,7 +93,7 @@ class InternalCommentServiceTest {
         val core = mock(CoreAuthClient::class.java)
         `when`(comments.listForOperations()).thenReturn(emptyList())
 
-        assertEquals(OperationsCommentListResponse(emptyList()), InternalCommentService(comments, likes, works, CoreNicknameService(core)).list())
+        assertEquals(OperationsCommentListResponse(emptyList()), InternalCommentService(comments, likes, works, CoreNicknameService(core), outbox).list())
         verifyNoInteractions(core)
     }
 
@@ -122,5 +127,26 @@ class InternalCommentServiceTest {
         }
 
         assertEquals(listOf(false, true), listOf(deleted.hidden, orphan.hidden))
+        verifyNoInteractions(outbox)
+    }
+
+    @Test fun `hide and restore record one operator event for the comment author on the comment's work only when the state really changes`() {
+        val row = comment("c1", work = "w9", author = "a7")
+        stored(row)
+        coreNames("a7" to "닉7")
+
+        service.restore("c1") // 이미 게시 중
+        service.hide("c1")
+        service.hide("c1") // 멱등 재요청
+        service.restore("c1")
+        service.restore("c1")
+
+        val events = saved()
+        assertEquals(listOf("content.operator.comment-hidden", "content.operator.comment-restored"), events.map { it.type })
+        // 수신자는 작품 소유자("owner")가 아니라 댓글 작성자이고, 대상은 댓글이 달린 작품이다.
+        assertEquals(listOf("a7", "a7"), events.map { it.recipientId })
+        assertEquals(listOf("work", "work"), events.map { it.targetType })
+        assertEquals(listOf("w9", "w9"), events.map { it.targetId })
+        assertEquals(2, events.map { it.id }.toSet().size)
     }
 }

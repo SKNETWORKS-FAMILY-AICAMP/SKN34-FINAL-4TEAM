@@ -27,7 +27,7 @@ it('가입 요청을 보내고 인증 전 로그인하지 않는다', async () =
 })
 
 it('가입 실패를 성공으로 표시하지 않고 입력을 보존한다', async () => {
-  const fetch = mockFetch(409)
+  const fetch = mockFetch(503)
   vi.stubGlobal('fetch', fetch)
   const { store } = renderApp('/me/signup')
   fireEvent.change(screen.getByLabelText('이메일'), { target: { value: 'reader@example.com' } })

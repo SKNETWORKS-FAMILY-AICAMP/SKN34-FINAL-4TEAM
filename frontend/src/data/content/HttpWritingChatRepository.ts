@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import type { CharacterSimulation } from '../../domain/entities/characterSimulation'
-import type { ChatEvent, ChatHistory, ChatMessageInput, ChatRating, ChatReply, ChatReview, ChatSession, ChatStep, ChatWorldReview } from '../../domain/entities/writingChat'
+import type { ChatEvent, ChatHistory, ChatMessageInput, ChatRating, ChatReply, ChatReview, ChatSession, ChatStep, ChatWorld, ChatWorldReview } from '../../domain/entities/writingChat'
 import type { WritingChatRepository } from '../../domain/repositories/WritingChatRepository'
 import { SessionExpired } from '../../domain/repositories/ProfileRepository'
 import { authVersion, protectedRequest } from '../api/auth'
@@ -32,7 +32,7 @@ const BAD_SIMULATION = '인물 시뮬레이션 결과 형식을 확인할 수 �
 
 const stepFields = {
   when: z.enum(['always', 'if_issues_found']).optional(),
-  task: z.enum(['plan', 'draft', 'patch']).nullish(),
+  task: z.enum(['plan', 'draft', 'patch', 'check', 'enrich', 'impact']).nullish(), // 앞 셋은 writing_editing, 뒤 셋은 world 단계의 작업이다
   status: z.enum(['completed', 'failed', 'not_started', 'skipped']),
   error: z.string().nullish(),
   approval: z.enum(['approved', 'declined']).nullish(),
@@ -54,6 +54,20 @@ const worldReview: z.ZodType<ChatWorldReview> = z.object({
   findings: z.array(z.object({ kind: z.enum(['contradiction', 'doc_role', 'missing_info', 'other']), message: z.string() })),
 })
 const BAD_WORLD_REVIEW = '설정집 검토 결과 형식을 확인할 수 없어요.'
+// World 단계(#546) 결과. task마다 모양이 달라 단계의 task로 고르고(check는 설정집 검토와 같은 모양), 알 수 없는 task는 어느 모양인지 몰라 실패로 본다.
+const worldFix = z.object({
+  cardId: z.string(), cardTitle: z.string(), target: z.enum(['body', 'soul', 'goal', 'episode']),
+  episode: z.number().int().nonnegative().nullish().transform((n) => n ?? null), text: z.string(),
+})
+const worldResults: Record<string, z.ZodType<ChatWorld>> = {
+  check: worldReview.transform((r) => ({ task: 'check' as const, ...r })),
+  enrich: z.object({ fixes: z.array(worldFix), note: z.string() }).transform((r) => ({ task: 'enrich' as const, ...r })),
+  impact: z.object({
+    affected: z.array(z.object({ title: z.string(), reason: z.string(), certainty: z.enum(['confirmed', 'inferred']) })),
+    conflicts: z.array(z.string()), gaps: z.array(z.string()),
+  }).transform((r) => ({ task: 'impact' as const, ...r })),
+}
+const BAD_WORLD = '세계관 결과 형식을 확인할 수 없어요.'
 // 심의 등급 단계 결과. AI RatingResponse 중 화면이 쓰는 값만 계약의 열거값으로 받는다.
 const ratingVerdict = z.enum(['adult', 'general', 'needsReview'])
 const rating: z.ZodType<ChatRating> = z.object({
@@ -69,20 +83,22 @@ const beatPlan = z.object({ title: z.string(), beats: z.array(z.string()) })
 
 // 시뮬레이션·검수 단계는 결과가 객체가 아니어도(문자열·배열·숫자) 이 단계만 실패로 바꿔야 해서 결과를 transform이 따로 검증한다.
 // 결과를 객체로 먼저 검사하면 그 실패가 transform 앞에서 응답 전체의 형식 오류가 된다.
-const typedStep = <T,>(feature: z.ZodType<string>, schema: z.ZodType<T>, key: 'simulation' | 'manuscriptReview' | 'rating' | 'worldReview', bad: string) =>
+const typedStep = <T,>(feature: z.ZodType<string>, schema: z.ZodType<T> | ((task: ChatStep['task']) => z.ZodType<T> | undefined), key: 'simulation' | 'manuscriptReview' | 'rating' | 'worldReview' | 'world', bad: string) =>
   z.object({ feature, ...stepFields, result: z.unknown() }).transform((raw): ChatStep => {
     const { result, ...rest } = raw
     // 완료됐다는 단계는 결과가 있어야 한다. 아직 시작 전·서버가 실패로 보낸 결과 없는 단계는 그대로 둔다.
     if (!result && raw.status !== 'completed') return rest
-    const parsed = schema.safeParse(result)
-    if (parsed.success) return { ...rest, [key]: parsed.data }
+    // 함수 스키마는 단계의 task로 결과 모양을 고른다(world). 고를 수 없으면 형식 오류와 같다.
+    const parsed = (typeof schema === 'function' ? schema(raw.task) : schema)?.safeParse(result)
+    if (parsed?.success) return { ...rest, [key]: parsed.data }
     // 형식이 어긋나면 가짜 결과를 만들지 않고 일반 단계처럼 실패를 보인다. 서버가 이미 보낸 실패 사유는 지킨다.
     return { ...rest, status: 'failed', error: (raw.status === 'failed' && raw.error) || bad }
   })
 const step: z.ZodType<ChatStep> = z.union([typedStep(z.literal('character_simulation'), simulation, 'simulation', BAD_SIMULATION),
   typedStep(z.literal(['manuscript_review', 'review']).transform(() => 'manuscript_review'), manuscriptReview, 'manuscriptReview', BAD_REVIEW),
   typedStep(z.literal('rating'), rating, 'rating', BAD_RATING),
-  typedStep(z.literal('world_review'), worldReview, 'worldReview', BAD_WORLD_REVIEW), z.object({
+  typedStep(z.literal('world_review'), worldReview, 'worldReview', BAD_WORLD_REVIEW),
+  typedStep(z.literal('world'), (task) => (task ? worldResults[task] : undefined), 'world', BAD_WORLD), z.object({
   feature: z.string(),
   ...stepFields,
   result: z.looseObject({

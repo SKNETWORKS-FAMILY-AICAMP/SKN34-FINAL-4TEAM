@@ -18,12 +18,13 @@ from app.work_tags.models import Input as WorkTagsInput
 from app.work_tags.prompt import INSTRUCTIONS as WORK_TAGS
 from app.world_review import agent as world_review
 from app.world_review.models import WorldReviewRequest
-from app.world_review.prompt import INSTRUCTIONS as WORLD_REVIEW
+from app.world_review.prompt import ENRICH_INSTRUCTIONS, IMPACT_INSTRUCTIONS, INSTRUCTIONS as WORLD_REVIEW
 from app.writing import agent as writing
 from app.writing.models import DraftRequest, PatchRequest, PlanRequest
 from app.writing.prompt import DRAFT_INSTRUCTIONS, PATCH_INSTRUCTIONS, PLAN_INSTRUCTIONS
 
 EPISODE = {'title': '3화', 'authorNote': None, 'draft': '본문', 'characters': [], 'signals': {}}
+WORLD = WorldReviewRequest(worldName='세계', worldDescription='', cards=[], relationships=[])
 TAGS = {'schemaVersion': 'work-tags.v1', 'title': '작품', 'description': '', 'allowedGenres': ['판타지'], 'maxGenres': 1, 'maxHashtags': 1,
         'episodes': [{'number': 1, 'title': '', 'text': '본문'}]}
 
@@ -36,8 +37,9 @@ CASES = [
     (lambda: writing.patch(PatchRequest(selection='문장', instruction='고쳐')), 'writing_editing.patch', PATCH_INSTRUCTIONS),
     (lambda: rating.rate(EPISODE), 'rating.assess', RATING),
     (lambda: research.search(ResearchRequest(question='질문')), 'web_research.search', RESEARCH_INSTRUCTIONS),
-    (lambda: world_review.review(WorldReviewRequest(worldName='세계', worldDescription='', cards=[], relationships=[])),
-     'world_review.check', WORLD_REVIEW),
+    (lambda: world_review.review(WORLD), 'world_review.check', WORLD_REVIEW),
+    (lambda: world_review.enrich('인물을 보강해줘', WORLD), 'world_review.enrich', ENRICH_INSTRUCTIONS),
+    (lambda: world_review.impact('나이를 바꾸면?', WORLD, {}, []), 'world_review.impact', IMPACT_INSTRUCTIONS),
     (lambda: work_tags.propose(WorkTagsInput.model_validate(TAGS)), 'work_tags.suggest', WORK_TAGS),
 ]
 

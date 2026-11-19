@@ -1,11 +1,15 @@
 package ai.storyfork.content.world
 
 import ai.storyfork.content.world.client.dto.WorldReviewAiCard
+import ai.storyfork.content.world.client.dto.WorldReviewAiCharacterDocs
 import ai.storyfork.content.world.client.dto.WorldReviewAiRequest
 import ai.storyfork.content.world.service.WorldReviewOutputValidation
+import ai.storyfork.content.world.service.dto.WorldReviewBasis
 import ai.storyfork.content.world.service.dto.WorldReviewFinding
 import ai.storyfork.content.world.service.dto.WorldReviewFix
 import ai.storyfork.content.world.service.dto.WorldReviewResponse
+import java.time.Instant
+import java.time.OffsetDateTime
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -119,19 +123,26 @@ class WorldReviewOutputTest {
         }
     }
 
-    @Test fun `the public JSON omits an absent fix and an absent episode but keeps every other field`() {
+    @Test fun `the public JSON omits an absent fix, episode and character documents but keeps every other field`() {
         val findings = listOf(
             WorldReviewFinding(listOf(hero), "other", "수정안 없음"),
             WorldReviewFinding(listOf(hero), "doc_role", "본문 수정안", WorldReviewFix(hero, "body", text = "새 본문")),
             WorldReviewFinding(listOf(hero), "missing_info", "회차 수정안", WorldReviewFix(hero, "episode", 2, "새 기억")))
         // valueToTree는 Long을 LongNode로 만들어 파싱한 IntNode와 달라지므로 문자열을 거쳐 같은 방식으로 읽는다.
-        val actual: JsonNode = mapper.readTree(mapper.writeValueAsString(WorldReviewResponse(5, 3, 4, findings, "gpt-6-luna")))
+        val basis = mapOf(hero to WorldReviewBasis("본문", WorldReviewAiCharacterDocs("말투", "목표", mapOf("0" to "비밀", "3" to "셋째"))), rival to WorldReviewBasis("라이벌 본문"))
+        val actual: JsonNode = mapper.readTree(mapper.writeValueAsString(WorldReviewResponse(5, 3, 4, findings, "gpt-6-luna", "2026-11-19T03:04:11.089Z", basis)))
         val expected = mapper.readTree("""
             {"draftRevision":5,"reviewedCards":3,"totalCards":4,"findings":[
               {"cardIds":["$hero"],"kind":"other","message":"수정안 없음"},
               {"cardIds":["$hero"],"kind":"doc_role","message":"본문 수정안","fix":{"cardId":"$hero","target":"body","text":"새 본문"}},
-              {"cardIds":["$hero"],"kind":"missing_info","message":"회차 수정안","fix":{"cardId":"$hero","target":"episode","episode":2,"text":"새 기억"}}],"model":"gpt-6-luna"}""")
+              {"cardIds":["$hero"],"kind":"missing_info","message":"회차 수정안","fix":{"cardId":"$hero","target":"episode","episode":2,"text":"새 기억"}}],"model":"gpt-6-luna",
+             "reviewedAt":"2026-11-19T03:04:11.089Z",
+             "basis":{"$hero":{"body":"본문","characterDocs":{"soul":"말투","goal":"목표","episodes":{"0":"비밀","3":"셋째"}}},"$rival":{"body":"라이벌 본문"}}}""")
         assertEquals(expected, actual)
+        // 화면(Zod)이 읽는 계약: reviewedAt은 오프셋이 있는 ISO-8601, basis는 카드 id를 키로 한 객체이고 인물 문서의 회차 키는 글자 숫자다.
+        assertEquals(Instant.parse("2026-11-19T03:04:11.089Z"), OffsetDateTime.parse(actual.path("reviewedAt").asString()).toInstant())
+        assertTrue(actual.path("basis").isObject)
+        assertTrue(actual.path("basis").path(hero).path("characterDocs").path("episodes").isObject)
     }
 
     @Test fun `unknown properties are ignored because only the known fields are passed on`() {

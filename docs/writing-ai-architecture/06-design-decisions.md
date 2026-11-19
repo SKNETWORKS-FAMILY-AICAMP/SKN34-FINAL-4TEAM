@@ -15,7 +15,7 @@
 | 업무 Agent | Story Context / Q&A·Manuscript Review(원고 검수)·World(`check` 설정 충돌 검사·`enrich` 설정 보강·`impact` 변경 영향 분석)·Writing & Editing(플롯 포함)·Research(`web`·`platform`)·Rating의 여섯(2026-11-19 사용자 결정: 대상으로 Agent를, 하는 일로 task를 나눈다. World Review→World, Web Research→Research, World & Plot→World `impact`. 코드 반영은 #545·#546·#547·#291, 이전 일곱 구성은 2026-11-18). 원고 검수 Agent의 이름은 Manuscript Review(2026-11-18 사용자 결정, 코드 이름 변경은 #499) | 설정집 검토는 Decision Guard 기능·`ask_world_review` 도구·`app/world_review/`를 따로 가져 원고 검수와 단위가 다르다. 계약은 [설정집 검토](../design/world-review-contract.md). 이전의 3역할 통합안은 미채택([이력](08-agent-consolidation-proposal.md)) |
 | 집필 도구 경계 | Writing & Editing은 Retrieval·Simulation 직접 호출 없이 기획·문장·문체 생성에 집중 | Content가 허용 입력을 전달한다(2026-11-12 사용자 결정). 같은 턴의 완료된 Text·Patch를 Manuscript Review가 집필 후보로 검수할 수 있다(#520). |
 | 검수 | Mechanical과 Semantic 분리, Simulation은 사용자 명시 요청 때만 실행 | 맞춤법과 서사 판단의 근거·오류 유형이 다르다. |
-| 집필과 기획 | Writing & Editing이 전개 기획 BeatPlan, 새 Text, 기존 Patch를 맡음(2026-11-16 사용자 결정, #387) | 계획을 원고 정본처럼 저장하지 않는다. 기획만 요청하면 원고를 만들지 않는다. 기획 → 집필은 한 단계 안에서 처리한다. |
+| 집필과 기획 | Writing & Editing이 전개 기획 BeatPlan, 새 Text, 기존 원고 Patch를 맡음(2026-11-16 사용자 결정, #387) | 기획만 요청하면 BeatPlan을 반환한다. 기획 → 집필은 한 단계 안에서 처리한다. [기존 플롯 및 장면 계획 수정](03-rag-simulation-design.md#기존-플롯-및-장면-계획-수정)은 미구현 작업이며, 작가 승인 후 Content가 반영한다. |
 | 심의 등급 | 업무 Agent 중 **Rating**이 회차 초안의 19세 이용가 여부만 판별(#386). 기준은 저장소 마크다운을 프롬프트에 주입 | MCP·파일 도구 없이 기존 structured output 구조를 따른다. 오케스트레이션 단계로 연결한다. 판정은 제안이며 등급 적용은 Content(F-ADULT-01 미정). 등급은 항목별 수준을 코드 문턱값으로 계산하고, `needsReview`는 AI가 다시 판정하지 않고 작가 검토로 넘긴다(#439). 수준 3 기준은 시행령 별표 2 원문(#440). [설계](03-rag-simulation-design.md#5-rating-agent) |
 | 제안 적용 | AI는 변경 후보, Content가 승인·현재 판본·적용 영수증 판단 | 모델 출력이 곧 저장/발행은 아니다. 저장소 간 원자성을 가정하지 않는다. |
 | 외부 근거 | 웹 검색은 현실 사실의 출처, 작품 내용은 Content 정본 | 웹 텍스트는 명령이 아니며 모델 입력과 정본을 오염시키지 않는다. |
@@ -54,7 +54,7 @@
 - 확정 오류와 의심이 섞이면 검증된 확정 오류만 수정에 전달한다. 의심은 검수 결과에 표시한다.
 - 의심만 있으면 조건부 수정 미지원으로 안내한다. 사용자가 수정하려면 별도 편집 요청으로 받는다.
 - 여러 구간에 유효 Finding이 있으면 사용자가 지정한 한 구간만 수정한다. 지정된 구간이 없으면 선택을 요청한다. 실패·부분 검수·근거 부족은 조건을 충족하지 않는다.
-- 웹 조사·World & Plot 직후 조건부 수정과 가상 결과를 확정 오류로 사용하는 흐름은 지원하지 않는다.
+- 웹 조사·World `impact` 직후 조건부 수정과 가상 결과를 확정 오류로 사용하는 흐름은 지원하지 않는다.
 - 이번 턴에 Manuscript Review가 있으면 부분 수정은 그 Manuscript Review의 확정 지적만 고친다. 다른 구간 수정은 새 요청으로 받는다(2026-11-18 사용자 결정).
 - 선택 구간이 없는 부분 수정은 입력 대기에서 채팅 카드로 구간을 골라 이어 간다(2026-11-18 사용자 결정, 미구현, #497). [채팅 구간 입력](02-ai-architecture.md#입력-대기와-승인-hitl)
 - SSE `plan`의 판정 기능 중 메인 에이전트가 부르지 않은 것은 완료 뒤 화면에서 사라진다(2026-11-18 사용자 결정, 현행 유지).
