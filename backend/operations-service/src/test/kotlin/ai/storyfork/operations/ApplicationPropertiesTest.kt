@@ -49,4 +49,23 @@ class ApplicationPropertiesTest {
         assertEquals("\${OPERATIONS_CORE_BASE_URL:http://127.0.0.1:8080}", properties.getProperty("app.operations.core-base-url"))
         assertEquals("\${OPERATIONS_CONTENT_BASE_URL:http://127.0.0.1:8081}", properties.getProperty("app.operations.content-base-url"))
     }
+
+    @Test
+    fun `LLMOps clients and the alert broker read their documented environment variables`() {
+        val properties = Properties()
+        checkNotNull(javaClass.getResourceAsStream("/application.properties")).use(properties::load)
+
+        assertEquals("\${OPERATIONS_LANGFUSE_BASE_URL:http://127.0.0.1:3000}", properties.getProperty("app.operations.langfuse-base-url"))
+        assertEquals("\${LANGFUSE_PUBLIC_KEY:}", properties.getProperty("app.operations.langfuse-public-key"))
+        assertEquals("\${LANGFUSE_SECRET_KEY:}", properties.getProperty("app.operations.langfuse-secret-key"))
+        assertEquals("\${LANGFUSE_UI_URL:http://localhost:3000}", properties.getProperty("app.operations.langfuse-ui-url"))
+        assertEquals("\${OPERATIONS_AI_BASE_URL:http://127.0.0.1:8000}", properties.getProperty("app.operations.ai-base-url"))
+        assertEquals("\${INTERNAL_TOKEN:}", properties.getProperty("app.operations.internal-token"))
+        assertEquals("\${OPERATIONS_RABBITMQ_HOST:localhost}", properties.getProperty("spring.rabbitmq.host"))
+        assertEquals("\${OPERATIONS_RABBITMQ_PORT:5672}", properties.getProperty("spring.rabbitmq.port"))
+        assertEquals("\${OPERATIONS_RABBITMQ_USER:}", properties.getProperty("spring.rabbitmq.username"))
+        assertEquals("\${OPERATIONS_RABBITMQ_PASSWORD:}", properties.getProperty("spring.rabbitmq.password"))
+        // A broker outage must not hold a scheduled check for the 60 second default.
+        assertEquals("5s", properties.getProperty("spring.rabbitmq.connection-timeout"))
+    }
 }
