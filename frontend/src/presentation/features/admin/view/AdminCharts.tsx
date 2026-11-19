@@ -2,7 +2,7 @@ import type { ReactElement } from 'react'
 import { Bar, BarChart, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { count, millis, percent, usd, type EvaluationMetric } from '../../../../domain/entities/llmOps'
-import { costSummary, evaluationSummary, latencySummary, requestsSummary, type UsagePoint } from '../../../../domain/entities/llmOpsCharts'
+import { RATIO_DOMAIN, costSummary, evaluationSummary, latencySummary, requestsSummary, type UsagePoint } from '../../../../domain/entities/llmOpsCharts'
 
 // 색은 전역 테마 토큰이라 라이트·다크가 같이 바뀝니다. 옅은 --acc는 면 위에서 3:1이 안 되므로 같은 계열의 진한 --acc-ink 테두리를 두고(막대), 선은 --acc-ink를 씁니다.
 const PRIMARY = { fill: 'var(--pri)' }
@@ -50,7 +50,7 @@ export function RequestsChart({ period, points, latency = false }: { period: str
         <XAxis dataKey="label" tick={TICK} tickLine={false} axisLine={{ stroke: 'var(--line2)' }} />
         <YAxis yAxisId="requests" allowDecimals={false} tick={TICK} tickLine={false} axisLine={false} width={40} />
         {latency && <YAxis yAxisId="latency" orientation="right" tick={TICK} tickFormatter={millis} tickLine={false} axisLine={false} width={68} />}
-        <YAxis yAxisId="rate" orientation="right" tick={TICK} tickFormatter={percent} tickLine={false} axisLine={false} width={44} />
+        <YAxis yAxisId="rate" orientation="right" domain={RATIO_DOMAIN} tick={TICK} tickFormatter={percent} tickLine={false} axisLine={false} width={44} />
         {tooltip}
         {legend}
         <Bar yAxisId="requests" dataKey="requests" name="요청 수" {...PRIMARY} maxBarSize={36} radius={[4, 4, 0, 0]} />
@@ -86,7 +86,7 @@ export function EvaluationChart({ metrics }: { metrics: EvaluationMetric[] }) {
       <BarChart data={metrics} margin={MARGIN} accessibilityLayer={false}>
         <CartesianGrid stroke="var(--line)" vertical={false} />
         <XAxis dataKey="name" tick={TICK} tickLine={false} axisLine={{ stroke: 'var(--line2)' }} />
-        <YAxis domain={[0, 1]} tick={TICK} tickLine={false} axisLine={false} width={40} />
+        <YAxis domain={RATIO_DOMAIN} tick={TICK} tickLine={false} axisLine={false} width={40} />
         {tooltip}
         {legend}
         <Bar dataKey="score" name="점수" {...PRIMARY} maxBarSize={36} radius={[4, 4, 0, 0]} />

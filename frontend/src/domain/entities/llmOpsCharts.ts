@@ -10,6 +10,11 @@ export type UsagePoint = {
   costUser: number; costPlatform: number
 }
 
+/**
+ * 비율(0~1) 축의 고정 범위: 실패율·시간 초과율·평가 점수. 범위를 자동에 맡기면 값이 모두 0일 때 0~4(=0~400%)로 잡혀서 고정합니다.
+ */
+export const RATIO_DOMAIN: [number, number] = [0, 1]
+
 /** 날짜 묶음의 키는 서버가 한국시간(Asia/Seoul)으로 자른 달력 날짜(YYYY-MM-DD)라 시간대를 다시 바꾸지 않고 글자에서 월/일만 뽑습니다. */
 const dayLabel = (key: string) => {
   const date = /^\d{4}-(\d{2})-(\d{2})$/.exec(key)

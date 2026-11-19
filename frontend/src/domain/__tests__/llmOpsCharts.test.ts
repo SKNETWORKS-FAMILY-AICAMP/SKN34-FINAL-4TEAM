@@ -1,7 +1,9 @@
+import { readFileSync } from 'node:fs'
+
 import { describe, expect, it } from 'vitest'
 
 import type { EvaluationMetric, MetricRow } from '../entities/llmOps'
-import { costSummary, evaluationSummary, latencySummary, requestsSummary, usagePoints, usageTotals } from '../entities/llmOpsCharts'
+import { RATIO_DOMAIN, costSummary, evaluationSummary, latencySummary, requestsSummary, usagePoints, usageTotals } from '../entities/llmOpsCharts'
 
 const row = (key: string, patch: Partial<MetricRow> = {}): MetricRow => ({
   key, requests: 10, failureRate: 0.1, timeoutRate: 0, p50LatencyMs: 800, p95LatencyMs: 2000, inputTokens: 1000, outputTokens: 300, costUser: 0.01, costPlatform: 0.02, ...patch,
@@ -68,5 +70,19 @@ describe('차트 합계와 요약 문장', () => {
   it('평가 요약은 지표마다 점수와 있으면 기준을 말한다', () => {
     const metrics: EvaluationMetric[] = [{ name: 'faithfulness', score: 0.78, baseline: 0.9, delta: -0.12 }, { name: 'answer_relevancy', score: 0.91, baseline: null }]
     expect(evaluationSummary(metrics)).toBe('평가 지표 2개: faithfulness 점수 0.780 기준 0.900, answer_relevancy 점수 0.910 기준 없음')
+  })
+})
+
+describe('비율 축 범위', () => {
+  it('실패율·시간 초과율·평가 점수 축은 0~1(0~100%)로 고정한다', () => {
+    expect(RATIO_DOMAIN).toEqual([0, 1])
+  })
+
+  // 범위를 자동에 맡기면 값이 모두 0일 때 0~4(=0~400%)로 잡힌다(실데이터 E2E에서 확인). jsdom은 크기를 못 재 그림을 볼 수 없으니 연결을 소스에서 지킨다.
+  it('차트의 실패율 축과 점수 축은 모두 이 상수를 쓴다', () => {
+    const source = readFileSync(new URL('../../presentation/features/admin/view/AdminCharts.tsx', import.meta.url), 'utf8')
+    const axes = source.match(/<YAxis[^>]*(?:yAxisId="rate"|domain=)[^>]*>/g) ?? []
+    expect(axes.length).toBeGreaterThan(0)
+    for (const axis of axes) expect(axis).toContain('domain={RATIO_DOMAIN}')
   })
 })
