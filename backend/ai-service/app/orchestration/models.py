@@ -17,7 +17,9 @@ from app.writing.models import DraftRequest, DraftResponse, PatchRequest, PatchR
 
 # 이전 체크포인트는 기록 당시의 단계 식별자를 보존한다(#387·#499). #387 전 대화 기록에는 Writing & Editing으로 합쳐진 story_development가, #499 전에는 review가,
 # World Agent(#546) 전에는 옛 설정집 검토 world_review와 미구현 판정 world_plot이 남아 있다. 이력을 다시 읽을 때 형식 오류가 되지 않게 읽기만 받는다.
-RecordedFeature = Feature | Literal['story_development', 'review', 'world_review', 'world_plot']
+RecordedFeature = Feature | Literal['story_development', 'review', 'world_review', 'world_plot', 'content_action']
+CONTENT_ACTION = 'content_action'  # 메인 에이전트가 승인 뒤 직접 실행한 Content MCP 쓰기 도구(#554)의 단계·승인 대기 이름
+AwaitingApproval = Feature | Literal['content_action']
 
 
 def manuscript_review_feature(feature: str) -> str:
@@ -81,6 +83,28 @@ class WritingTarget(BaseModel):
     baseEpisode: int | None = Field(default=None, ge=1)
 
 
+class PageContent(BaseModel):
+    """저장하지 않은 편집 내용. 카드 본문은 3,000자 이하라 통째로, 회차 원고는 10,000자까지 보내고 넘치면 잘라 truncated를 붙인다."""
+    model_config = ConfigDict(extra='forbid')
+    title: str | None = Field(default=None, max_length=300)
+    body: str = Field(max_length=10000)
+    unsaved: Literal[True]
+    truncated: bool = False
+
+
+class PageContext(BaseModel):
+    """작가가 지금 보고 있는 화면(#554, Content가 사용자 권한으로 확인한 값). 표시·맥락용이며 인가 근거가 아니다. 그 턴에만 쓰고 대화 기록에 남기지 않는다."""
+    model_config = ConfigDict(extra='forbid')
+    path: str = Field(max_length=300)
+    kind: Literal['studio', 'world']
+    episode: int | None = Field(default=None, ge=1)  # studio: 지금 연 회차
+    worldId: str | None = Field(default=None, max_length=100)  # world
+    cardId: str | None = Field(default=None, max_length=100)
+    view: str | None = Field(default=None, max_length=40)
+    selection: str | None = Field(default=None, min_length=1, max_length=5000)  # 편집기에서 선택한 글(PatchRequest.selection 상한과 같다)
+    content: PageContent | None = None
+
+
 class Resume(BaseModel):
     """interrupt로 멈춘 실행에 대한 작가·Content의 답. 입력 대기면 빠진 단계 입력을, 반영 승인 대기면 승인 여부만 보낸다.
 
@@ -95,7 +119,7 @@ class Resume(BaseModel):
 
 
 class OrchestrationRequest(BaseModel):
-    """새 턴은 request, 멈춘 실행을 이어갈 때는 같은 conversation의 resume 하나만 보낸다."""
+    """새 턴은 request(와 작가가 보는 화면 page), 멈춘 실행을 이어갈 때는 같은 conversation의 resume 하나만 보낸다."""
     model_config = ConfigDict(extra='forbid')
     conversation: Conversation | None = None
     scope: RetrievalScope | None = None  # 있으면 Q&A가 inputs 없이 Retrieval 도구로 근거를 받는다.
@@ -109,6 +133,7 @@ class OrchestrationRequest(BaseModel):
     # [시뮬레이션] 버튼의 시작 양식(계약 '버튼 진입'). character_simulation 새 요청에서만 받고 길이·개수 한도는 SimulationPlan이 지킨다.
     # ask_character_simulation이 모델 없이 이 값을 계획으로 쓰고 연결 세계관으로 확인한다.
     simulation: SimulationPlan | None = None
+    page: PageContext | None = None  # 새 요청에서만: 작가가 지금 보는 화면(메인 에이전트와 Decision Guard가 그 턴에만 본다)
 
     @model_validator(mode='after')
     def turn_or_resume(self):
@@ -116,6 +141,8 @@ class OrchestrationRequest(BaseModel):
             raise ValueError('request와 resume 중 하나만 보내야 합니다.')
         if (self.resume is not None or self.fromTurn is not None) and self.conversation is None:
             raise ValueError('resume·fromTurn은 conversation이 필요합니다.')
+        if self.page is not None and self.request is None:
+            raise ValueError('page는 새 요청에서만 보낼 수 있습니다.')
         if self.simulation is not None and (self.operation != 'character_simulation' or self.request is None):
             raise ValueError('simulation은 character_simulation 새 요청에서만 보낼 수 있습니다.')
         return self
@@ -133,6 +160,19 @@ class AppliedDraft(BaseModel):
     revision: int
 
 
+class ActionResult(BaseModel):
+    """승인 뒤 실행한 Content MCP 쓰기 도구(content_action 단계). 수정한 내용 자체는 Content가 정본이라 도구 이름과 고정 문구만 남긴다."""
+    tool: str
+    label: str
+
+
+class PendingAction(BaseModel):
+    """작가의 승인을 기다리는 Content MCP 쓰기 도구. 모델의 요약이 아니라 실제로 실행할 도구와 인자다(label은 도구별 고정 한국어 문구)."""
+    tool: str
+    label: str
+    args: dict
+
+
 class StepResult(BaseModel):
     feature: RecordedFeature
     when: Literal['always', 'if_issues_found']
@@ -141,7 +181,7 @@ class StepResult(BaseModel):
     # 끝까지 가지 못한 시뮬레이션 장면은 부분 result와 함께 failed다. skipped는 조건부 수정이 고칠 확정 지적이 없어 건너뛴 단계다(#370).
     status: Literal['completed', 'failed', 'not_started', 'skipped']
     result: (QaStepResult | PlanResponse | DraftResponse | PatchResponse | ResearchResponse | SimulationResult | ReviewResponse | WorldReviewResponse
-             | EnrichResponse | ImpactResponse | RatingResponse | None) = None
+             | EnrichResponse | ImpactResponse | RatingResponse | ActionResult | None) = None
     error: str | None = None  # 실패 사유, skipped면 건너뛴 이유
     approval: Literal['approved', 'declined'] | None = None  # Writing 결과·시뮬레이션 장면·World 보강 제안 반영에 대한 작가의 답
     applied: AppliedDraft | None = None  # World 보강 제안이면 episode는 채팅 대상 회차를 그대로 싣고 revision은 반영 뒤 세계관 초안 revision이다
@@ -162,7 +202,8 @@ class OrchestrationResponse(BaseModel):
     steps: list[StepResult] = []
     missingInputs: list[CurrentFeature] = []
     unsupported: list[RecordedFeature] = []
-    awaitingApproval: Feature | None = None
+    awaitingApproval: AwaitingApproval | None = None
+    pendingAction: PendingAction | None = None  # awaitingApproval이 content_action일 때 실행을 기다리는 도구와 인자
     awaitingScene: Feature | None = None  # 시뮬레이션 장면이 턴 사이에서 작가의 조작(resume.scene)을 기다린다
     approvalEpisode: int | None = None
 

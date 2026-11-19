@@ -15,7 +15,10 @@ const never = new Promise<never>(() => {})
 export function LazyManuscriptEditor({ value, onChange, editable, busy, onImage, ref }: Parameters<typeof ManuscriptEditor>[0]) {
   if (LazyManuscriptEditor.suspend) use(never)
   const area = useRef<HTMLTextAreaElement>(null)
-  useImperativeHandle(ref, () => ({ addImage: (file) => onImage(file, area.current!.selectionStart, area.current!.selectionEnd) }), [onImage])
+  useImperativeHandle(ref, () => ({
+    addImage: (file) => onImage(file, area.current!.selectionStart, area.current!.selectionEnd),
+    selectedText: () => area.current!.value.slice(area.current!.selectionStart, area.current!.selectionEnd), // 선택 범위의 글(집필 AI 채팅이 보내는 순간 읽는다)
+  }), [onImage])
   return <textarea ref={area} aria-label="원고 본문" value={value} readOnly={!editable} data-busy={busy ? 'true' : undefined} onChange={(e) => onChange(e.target.value)} />
 }
 LazyManuscriptEditor.suspend = false

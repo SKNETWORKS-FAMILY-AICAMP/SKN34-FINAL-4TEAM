@@ -9,7 +9,8 @@ from langchain_core.outputs import ChatGeneration, ChatResult
 from app.intent import service as intent
 from app.intent.models import DecisionResult
 from app.story_qa.models import AnswerResponse, Claim
-from app.orchestration import agent as main_agent, tools as service
+from app.content_mcp import service as content_mcp
+from app.orchestration import agent as main_agent, mcp_tools, tools as service
 from app.rating.models import EpisodeRating, RatingResponse
 from app.research.models import Finding, ResearchResponse
 from app.retrieval.models import RetrievalResult
@@ -138,7 +139,7 @@ class FakeMain(BaseChatModel):
         usage = {'input_tokens': 20, 'output_tokens': 5, 'total_tokens': 25}
         if done < len(self.script) and tools:
             batch = self.script[done] if isinstance(self.script[done], list) else [self.script[done]]
-            calls = [{'name': name, 'args': args if name == 'ask_web_research' else {'request': messages[last].text, **args},
+            calls = [{'name': name, 'args': args if name == 'ask_web_research' or name in mcp_tools.NAMES else {'request': messages[last].text, **args},
                       'id': f'call-{done}-{i}'} for i, (name, args) in enumerate(batch)]
             message = AIMessage(content='', tool_calls=calls, response_metadata=meta, usage_metadata=usage)
         elif isinstance(self.answer, Exception):
@@ -146,6 +147,15 @@ class FakeMain(BaseChatModel):
         else:
             message = AIMessage(content=self.answer, response_metadata=meta, usage_metadata=usage)
         return ChatResult(generations=[ChatGeneration(message=message)])
+
+
+# Content MCP list_tools가 알려 주는 도구(허용 목록 10개 + 허용 밖 하나). 스키마는 테스트용으로 줄였다.
+SPECS = [{'name': n, 'description': f'{n} 설명', 'schema': {'type': 'object', 'properties': {'id': {'type': 'string'}}}}
+         for n in (*mcp_tools.NAMES, 'episode_update_draft')]
+
+
+async def _specs(names):
+    return [s for s in SPECS if s['name'] in names]
 
 
 def fake_main(monkeypatch, *calls, answer='종합 답변'):
@@ -159,6 +169,7 @@ def fake_main(monkeypatch, *calls, answer='종합 답변'):
         return FakeMain(script=list(calls), answer=answer, seen=seen)
 
     monkeypatch.setattr(main_agent, 'ChatOpenAI', chat)
+    monkeypatch.setattr(content_mcp, 'tool_specs', _specs)
     return seen
 
 

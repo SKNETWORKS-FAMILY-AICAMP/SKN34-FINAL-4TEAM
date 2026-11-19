@@ -1,6 +1,7 @@
 package ai.storyfork.content.writingai.service.dto
 
 import jakarta.validation.Valid
+import jakarta.validation.constraints.AssertTrue
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
@@ -13,6 +14,8 @@ import tools.jackson.databind.JsonNode
  * targetEpisode는 AI가 승인 뒤 초안을 쓸 회차다(작가가 연 회차, 발행 전 초안이어도 된다). 없으면 episode와 같고, 있으면 episode 이상이어야
  * 하며 그 작품의 활성 회차여야 한다. 근거 회차(episode)는 그대로 지식 상한이다. 새 요청에서만 쓰고 이어가기에서는 무시한다.
  * simulation은 [시뮬레이션] 버튼의 시작 양식이며 operation이 character_simulation인 새 요청에서만 받는다.
+ * page는 작가가 지금 보는 화면과 그 내용(#554)이다. 새 요청에서만 쓰고 이어가기에서는 무시한다. 길이·형식은 DTO가, 권한(회차·세계관·카드)은
+ * [ai.storyfork.content.writingai.service.WritingAiService]가 사용자 기준으로 다시 확인한 뒤 AI에 그대로 싣는다.
  */
 data class WritingAiRequest(
     @field:Size(min=1, max=2000) val request: String? = null,
@@ -23,6 +26,30 @@ data class WritingAiRequest(
     @field:Size(max=100) val threadId: String? = null,
     @field:Valid val simulation: WritingAiSimulation? = null,
     val targetEpisode: Int? = null,
+    @field:Valid val page: WritingAiPage? = null,
+)
+
+/**
+ * 작가가 지금 보는 화면. path는 표시용이며 인가에 쓰지 않는다. studio는 episode, world는 worldId·cardId·view를 쓴다.
+ * selection은 편집기에서 고른 글(부분 수정 selection 상한과 같다)이고 content는 저장하지 않은 편집 내용이다.
+ */
+data class WritingAiPage(
+    @field:NotBlank @field:Size(max = 300) val path: String,
+    @field:Pattern(regexp = "studio|world") val kind: String,
+    @field:Min(1) val episode: Int? = null,
+    @field:Size(max = 100) val worldId: String? = null,
+    @field:Size(max = 100) val cardId: String? = null,
+    @field:Size(max = 40) val view: String? = null,
+    @field:Size(min = 1, max = 5000) val selection: String? = null,
+    @field:Valid val content: WritingAiPageContent? = null,
+)
+
+/** 저장하지 않은 편집 내용. 카드 본문은 3,000자 이하라 통째로, 회차 원고는 화면이 10,000자까지만 보내고 넘으면 truncated를 붙인다. */
+data class WritingAiPageContent(
+    @field:Size(max = 300) val title: String? = null,
+    @field:Size(max = 10000) val body: String,
+    @field:AssertTrue val unsaved: Boolean,
+    val truncated: Boolean? = null,
 )
 
 /**

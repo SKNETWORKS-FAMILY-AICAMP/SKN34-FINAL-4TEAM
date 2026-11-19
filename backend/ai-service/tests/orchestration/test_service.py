@@ -26,7 +26,7 @@ from app.world_review.errors import WorldReviewFailure
 from app.world_review.models import Affected, EnrichResult, Finding as WorldFinding, Fix, ImpactResult, WorldReviewResult
 
 from .stubs import (BEAT, CLOSING, CONTEXT, COVERAGE, DRAFT, FORM, LINE, OPENING, PATCH, QA, REVIEW, SCENE_TEXT, SCOPE, WEB,
-                    WORLD, WORLD_ENRICH, WORLD_PLANS, WORLD_REVIEW, WORLD_REVIEW_REQUEST, Step, fake_agents, fake_scene, plan)
+                    WORLD, WORLD_ENRICH, WORLD_PLANS, WORLD_REVIEW, WORLD_REVIEW_REQUEST, Step, fake_agents, fake_main, fake_scene, plan)
 
 REAL_WORLD = {name: getattr(world_review, name) for name in ('linked_request', 'review', 'linked_world', 'enrich', 'impact')}  # fake_agents가 바꾸기 전의 실제 함수
 
@@ -1718,6 +1718,7 @@ CLARIFY = plan(status='clarify')
 def test_a_capability_name_answering_the_router_clarify_runs_the_earlier_request_as_that_feature(monkeypatch):
     thread = str(uuid4())
     fake_agents(monkeypatch, CLARIFY)
+    fake_main(monkeypatch, answer=CLARIFY_MESSAGE)  # 옛 대화 기록의 고정 확인 질문(CLARIFY_MESSAGE)을 메인이 그대로 답한 턴
     asked = write_turn(thread, request=VAGUE, scope=SCOPE, target=TARGET)
     assert (asked.status, asked.message) == ('clarify', CLARIFY_MESSAGE)
     calls = fake_agents(monkeypatch, plan('character_simulation'))
@@ -1736,6 +1737,7 @@ def test_a_capability_name_answering_the_router_clarify_runs_the_earlier_request
 def test_the_clarified_request_does_not_leak_into_the_next_turn(monkeypatch):
     thread = str(uuid4())
     fake_agents(monkeypatch, CLARIFY)
+    fake_main(monkeypatch, answer=CLARIFY_MESSAGE)
     write_turn(thread, request='길드 규칙은?', scope=SCOPE, target=TARGET)
     calls = fake_agents(monkeypatch, plan('story_context'))
     result = write_turn(thread, request='작품 질문', scope=SCOPE, target=TARGET)

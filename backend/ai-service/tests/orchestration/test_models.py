@@ -100,3 +100,34 @@ def test_simulation_form_needs_the_simulation_operation_and_a_new_request(body):
 def test_simulation_form_keeps_the_plan_limits(form):
     with pytest.raises(ValidationError):
         OrchestrationRequest.model_validate({**BUTTON, 'simulation': form})
+
+
+def _page(**extra):
+    return {'path': '/studio/w?ep=3', 'kind': 'studio', 'episode': 3, **extra}
+
+
+def test_page_context_accepts_the_screen_the_author_sees_with_selection_and_unsaved_content():
+    request = OrchestrationRequest(request='요청', page=_page(selection='그는 웃었다.', content={'title': '3화', 'body': '본문', 'unsaved': True, 'truncated': True}))
+    assert request.page.selection == '그는 웃었다.' and request.page.content.truncated is True
+    assert OrchestrationRequest(request='요청').page is None
+
+
+@pytest.mark.parametrize('page', [
+    _page(path='x' * 301), _page(kind='lib'), _page(episode=0), _page(selection=''), _page(selection='가' * 5001),
+    _page(content={'body': '가' * 10001, 'unsaved': True}), _page(content={'body': '본문', 'unsaved': False}),  # 저장된 내용은 싣지 않는다
+    _page(extra=1),                                                                                              # 모르는 필드
+])
+def test_page_context_refuses_over_long_or_unknown_values(page):
+    with pytest.raises(ValidationError):
+        OrchestrationRequest(request='요청', page=page)
+
+
+def test_page_belongs_to_a_new_request_only():
+    with pytest.raises(ValidationError):
+        OrchestrationRequest(resume={'approved': True}, conversation={'threadId': 't', 'scope': 's'}, page=_page())
+
+
+def test_an_applied_content_action_is_a_step_result_and_a_pending_action_names_the_tool_and_args():
+    step = StepResult.model_validate({'feature': 'content_action', 'when': 'always', 'status': 'completed', 'approval': 'approved',
+                                      'result': {'tool': 'work_update', 'label': '작품 정보 수정'}, 'applied': {'episode': 3, 'revision': 9}})
+    assert step.result.tool == 'work_update' and step.applied.revision == 9

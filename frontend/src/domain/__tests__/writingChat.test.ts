@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { chatBasis, cleanScene, featureLabel, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatReply, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix } from '../entities/writingChat'
+import { chatBasis, chatPage, cleanScene, featureLabel, pendingChanges, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatReply, type PendingAction, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -353,5 +353,78 @@ describe('World 단계 결과 글(#546)', () => {
     expect(replyOutcome(reply)).toEqual(['→ 설정집 초안에 반영했어요.'])
     expect(replyText(reply)).toBe('[세계관] ' + stepText(applied) + '\n→ 설정집 초안에 반영했어요.')
     expect(replyOutcome({ ...reply, steps: [world(body, { approval: 'declined' })] })).toEqual(['→ 반영하지 않았어요.'])
+  })
+})
+
+// 화면 맥락(#554): 메시지마다 작가가 보는 화면을 싣는다. 길이 상한은 서버(Content DTO·AI PageContext)와 같다.
+describe('chatPage', () => {
+  const studio = { path: '/studio/w?ep=3', kind: 'studio' as const, episode: 3 }
+
+  it('경로·종류·대상 id만 있으면 그대로 싣고 비어 있는 값은 키를 넣지 않는다', () => {
+    expect(chatPage(studio)).toEqual(studio)
+    expect(chatPage({ path: '/worldstudio/w?card=k', kind: 'world', worldId: 'w', cardId: 'k', view: undefined })).toEqual({ path: '/worldstudio/w?card=k', kind: 'world', worldId: 'w', cardId: 'k' })
+  })
+
+  it('경로는 300자까지만 싣는다(표시용이라 잘라도 된다)', () => {
+    expect(chatPage({ ...studio, path: `/studio/${'a'.repeat(400)}` }).path).toHaveLength(300)
+  })
+
+  it('선택한 글은 5,000자 이하만 싣고 비었거나 공백뿐이거나 넘치면 뺀다(잘린 글은 수정 대상이 될 수 없다)', () => {
+    expect(chatPage({ ...studio, selection: '그는 웃었다.' }).selection).toBe('그는 웃었다.')
+    expect(chatPage({ ...studio, selection: '가'.repeat(5000) }).selection).toHaveLength(5000)
+    for (const selection of ['', '  \n ', '가'.repeat(5001)]) expect(chatPage({ ...studio, selection })).not.toHaveProperty('selection')
+  })
+
+  it('저장하지 않은 편집 내용은 unsaved로 싣고 없으면 content를 넣지 않는다', () => {
+    expect(chatPage({ ...studio, unsaved: { title: '3화', body: '고친 본문' } }).content).toEqual({ title: '3화', body: '고친 본문', unsaved: true })
+    expect(chatPage(studio)).not.toHaveProperty('content')
+  })
+
+  it('본문은 10,000자까지 보내고 넘으면 잘라 truncated를 붙인다(이름은 300자까지)', () => {
+    expect(chatPage({ ...studio, unsaved: { body: '가'.repeat(10000) } }).content).toEqual({ body: '가'.repeat(10000), unsaved: true })
+    const cut = chatPage({ ...studio, unsaved: { title: '제'.repeat(301), body: '나'.repeat(10001) } }).content!
+    expect(cut.body).toHaveLength(10000)
+    expect(cut.title).toHaveLength(300)
+    expect(cut.truncated).toBe(true)
+  })
+
+  it('자르는 자리가 서로게이트 쌍의 가운데이면 한 글자 앞에서 자른다', () => {
+    const body = `${'가'.repeat(9999)}😀뒤`
+    expect(chatPage({ ...studio, unsaved: { body } }).content!.body).toBe('가'.repeat(9999))
+  })
+})
+
+describe('pendingChanges', () => {
+  const card = { id: 'k', title: '카엘', body: '북문을 지키는 기사' }
+  const edit = (cards: object[]): PendingAction => ({ tool: 'world_studio_edit_draft', label: '세계관 설정 카드 수정', args: { id: 'w', request: { cards } } })
+
+  it('카드 수정은 그 카드의 수정 전과 후를 칸마다 알려 준다', () => {
+    expect(pendingChanges(edit([{ id: 'k', body: '과묵한 기사' }]), (id) => (id === 'k' ? card : undefined)))
+      .toEqual([{ name: '카엘 · 설명', before: '북문을 지키는 기사', after: '과묵한 기사' }])
+    expect(pendingChanges(edit([{ id: 'k', title: '카엘 경', body: '북문을 지키는 기사' }]), () => card))
+      .toEqual([{ name: '카엘 · 이름', before: '카엘', after: '카엘 경' }])
+  })
+
+  it('저장된 카드에 없는 카드는 새 설정으로 보고 수정 전이 없다', () => {
+    expect(pendingChanges(edit([{ id: 'n', title: '새 설정', body: '본문' }]), () => undefined))
+      .toEqual([{ name: '새 설정 · 이름', before: null, after: '새 설정' }, { name: '새 설정 · 설명', before: null, after: '본문' }])
+  })
+
+  it('카드 수정이 아닌 도구나 모양이 어긋난 인자는 칸을 만들지 않는다(화면이 도구 인자를 그대로 보인다)', () => {
+    expect(pendingChanges({ tool: 'work_update', label: '작품 정보 수정', args: { id: 'w' } })).toEqual([])
+    expect(pendingChanges({ tool: 'world_studio_edit_draft', label: '', args: { id: 'w', request: 3 } })).toEqual([])
+  })
+})
+
+describe('content_action 단계(#554)', () => {
+  const step: ChatStep = { feature: 'content_action', status: 'completed', result: { tool: 'work_update', label: '작품 정보 수정' }, approval: 'approved', applied: { episode: 3, revision: 9 } }
+
+  it('승인 뒤 실행한 Content 작업은 고정 문구로 보이고 반영 줄은 회차 초안이 아니라 승인한 작업이라고 알린다', () => {
+    expect(stepText(step)).toBe('작품 정보 수정 완료')
+    expect(replyOutcome({ status: 'completed', steps: [step], missingInputs: [] })).toEqual(['→ 승인한 작업을 실행했어요.'])
+  })
+
+  it('실패한 Content 작업은 사유를 그대로 보인다', () => {
+    expect(stepText({ feature: 'content_action', status: 'failed', error: '세계관 초안이 바뀌었어요.' })).toBe('실패: 세계관 초안이 바뀌었어요.')
   })
 })

@@ -822,3 +822,23 @@ it('이미지 줄을 지우거나 화면에서 사라지면 이미지 위젯에 
   expect(made.destroyed).toEqual([made.editors[0]])
   expect(place.children).toHaveLength(0)
 })
+
+it('선택한 글을 저장 문자열 기준으로 돌려주고, 선택이 없으면 빈 글이다(#554 집필 AI 채팅의 선택 구간)', async () => {
+  const handle = createRef<ManuscriptEditorHandle>()
+  render(draw(<Harness initial={'그는 웃었다.\n바람이 불었다.\n세 번째 줄'} handle={handle} />))
+  await screen.findByRole('group', { name: '원고 보기' })
+  select([1, 1])
+  expect(handle.current!.selectedText()).toBe('')
+  select([1, 1], [1, 8]) // 첫 줄의 "그는 웃었다."
+  expect(handle.current!.selectedText()).toBe('그는 웃었다.')
+  select([1, 4], [2, 3]) // 줄을 걸친 선택은 줄바꿈으로 잇는다
+  expect(handle.current!.selectedText()).toBe('웃었다.\n바람')
+})
+
+it('선택한 글에 이미지 줄이 걸려도 Toast 내부 표기($$widget)가 아니라 저장 표식으로 돌려준다', async () => {
+  const handle = createRef<ManuscriptEditorHandle>()
+  render(draw(<Harness initial={`앞\n${MARK}\n뒤`} handle={handle} />))
+  await screen.findByRole('img', { name: '본문 이미지 1' })
+  select([1, 1], [3, 2])
+  expect(handle.current!.selectedText()).toBe(`앞\n${MARK}\n뒤`)
+})

@@ -29,6 +29,7 @@ interrupt로 작가 승인을 기다린다. 승인 resume이면 그 요청의 �
 (옛 갈래 checkpoint는 남지만 최신 상태가 아니라 보이지 않는다). scope가 다른 대화는 없는 대화로 본다.
 """
 
+import dataclasses
 import operator
 import os
 from collections.abc import AsyncIterator
@@ -36,7 +37,7 @@ from contextlib import asynccontextmanager
 from typing import Annotated, TypedDict
 
 from fastapi.sse import ServerSentEvent
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_core.runnables.config import merge_configs
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
@@ -53,8 +54,10 @@ from app.content_mcp.errors import ContentMcpFailure
 from app.intent import service as intent
 from app.intent.errors import IntentFailure
 from app.intent.prompt import CLARIFY_MESSAGE, REJECT_MESSAGES
-from app.orchestration import agent
-from app.orchestration.models import ChatHistory, ChatSession, ChatTurn, OrchestrationRequest, OrchestrationResponse, Resume
+from app.orchestration import agent, mcp_tools
+from app.orchestration.models import (CONTENT_ACTION, ChatHistory, ChatSession, ChatTurn, OrchestrationRequest, OrchestrationResponse,
+                                      Resume)
+from app.orchestration.prompt import screen
 from app.orchestration.tools import HISTORY_TURNS, history as _history, previous as _previous, task as _task, trace as _trace
 from app.simulation import service as simulation
 from app.simulation.models import Scene, SimulationPlan
@@ -67,7 +70,9 @@ NEEDS_INPUT_MESSAGE = '작업에 필요한 자료가 빠져 있어 아무 작업
 WAITING_MESSAGE = '작업에 필요한 자료를 기다리고 있어요. 자료를 보내거나 취소하면 이어서 진행해요.'
 APPROVAL_MESSAGES = {'writing_editing': 'Writing 결과를 원고 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.',
                      'character_simulation': '시뮬레이션 장면을 원고 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.',
-                     'world': '설정 보강 제안을 세계관 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.'}
+                     'world': '설정 보강 제안을 세계관 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.',
+                     CONTENT_ACTION: '아래 작업을 실행할지 승인해 주세요. 거절하면 실행하지 않아요.'}
+CONTENT_ACTION_REJECTED = '작가가 거절해 실행하지 않았어요. 같은 작업을 다시 시도하지 마세요.'
 CANCELLED_MESSAGE = '요청을 취소해 아무 작업도 실행하지 않았어요.'
 SCENE_MESSAGE = '시뮬레이션 장면을 진행하고 있어요. 다음 턴을 이어 가거나 줄을 고치고 다시 말하게 하거나 끝낼 수 있어요.'
 SCENE_NOT_WAITING = '지금은 장면을 조작할 수 없어요.'
@@ -119,6 +124,7 @@ class State(TypedDict, total=False):
     missingInputs: list[str]
     unsupported: list[str]
     scope: str | None
+    page: dict | None  # 작가가 지금 보는 화면(PageContext JSON). 그 턴의 메인 에이전트·Decision Guard만 본다. turns에는 남기지 않는다.
     retrievalScope: dict | None  # Content가 확인한 Q&A 조회 키. 있으면 Q&A가 Retrieval로 근거를 받는다.
     target: dict | None  # Content가 확인한 Writing 반영 대상(workId·episode). 토큰은 담지 않는다.
     simulationPlan: dict | None  # ask_character_simulation이 정한 시뮬레이션 계획(SimulationPlan JSON). scene 노드가 쓴다.
@@ -171,21 +177,21 @@ async def _run_main_agent(state: State, config: RunnableConfig) -> State:
     if not os.environ.get('OPENAI_MODEL'):
         return {'status': 'failed', 'message': MODEL_UNSET_MESSAGE, 'steps': []}
     asked = _clarified(state)
+    seen = [screen(state['page'])[:2000]] if state.get('page') else []  # 화면 글은 자료일 뿐이라 Decision Guard도 materials로만 받는다
     if asked:
         decide, run_as = {'request': asked[1], 'operation': asked[0], 'materials': state['materials'], 'history': []}, asked[1]
     else:
-        decide = {'request': state['request'], 'operation': state.get('operation'), 'materials': state['materials'],
+        decide = {'request': state['request'], 'operation': state.get('operation'), 'materials': [*state['materials'], *seen],
                   'history': _history(state)}
         run_as = None
     turn = {**state, 'task': run_as, 'decide': decide}
-    seed = {'messages': [*_conversation(state), HumanMessage(_task(turn))], 'steps': [], 'inputs': state['inputs'],
+    asking = _task(turn) + (f"\n\n{screen(state['page'])}" if state.get('page') else '')
+    seed = {'messages': [*_conversation(state), HumanMessage(asking)], 'steps': [], 'inputs': state['inputs'],
             'retrievalScope': state.get('retrievalScope'), 'stopped': None, 'simulationPlan': None, 'writingBase': None}
-    out = await agent.build().ainvoke(seed, config, context=turn)
+    out = await agent.build(await mcp_tools.specs()).ainvoke(seed, config, context=turn)
     decision, steps = out['decision'], out.get('steps', [])
     if not decision['allowed']:
         return {'status': 'rejected', 'message': REJECT_MESSAGES[decision['reason']], 'steps': []}
-    if not decision['capabilities']:
-        return {'status': 'clarify', 'message': CLARIFY_MESSAGE, 'steps': []}
     done: State = {'steps': steps, 'inputs': out.get('inputs', state['inputs']), 'retrievalScope': out.get('retrievalScope'),
                    'simulationPlan': out.get('simulationPlan'), 'task': run_as, 'message': out['messages'][-1].text,
                    'writingBaseRevision': (out.get('writingBase') or {}).get('revision')}
@@ -196,7 +202,7 @@ async def _run_main_agent(state: State, config: RunnableConfig) -> State:
         return {**done, 'status': 'failed'}
     if stopped:
         return {**done, 'status': stopped['status'], 'missingInputs': stopped.get('missingInputs', [])}
-    if not steps:  # 도구를 하나도 부르지 않았다: 메인 에이전트의 확인 질문(2026-11-17 사용자 결정)
+    if not steps and not any(isinstance(m, ToolMessage) and m.name in mcp_tools.NAMES for m in out['messages']):  # 도구를 하나도 부르지 않았다: 메인 에이전트의 확인 질문(2026-11-17 사용자 결정). Content 읽기만 한 턴은 질문이 아니다.
         return {**done, 'status': 'clarify'}
     return {**done, 'status': 'running'}
 
@@ -382,7 +388,7 @@ def _initial(data: OrchestrationRequest) -> State:
             'inputs': data.inputs.model_dump(exclude_none=True), 'status': 'planning', 'message': None,
             'steps': [], 'missingInputs': [], 'unsupported': [], 'writingBaseRevision': None, 'replaceHistory': False, 'simulationPlan': None, 'task': None,
             'scene': None, 'sceneAction': None, 'simulationForm': data.simulation.model_dump(mode='json') if data.simulation else None,
-            'scope': data.conversation.scope if data.conversation else None,
+            'scope': data.conversation.scope if data.conversation else None, 'page': data.page.model_dump(exclude_none=True) if data.page else None,
             'retrievalScope': data.scope.model_dump() if data.scope else None,
             'target': data.target.model_dump(exclude_none=True) if data.target else None}
 
@@ -410,7 +416,10 @@ async def _target(data: OrchestrationRequest):
     if not snapshot.interrupts:
         raise NothingToResume()
     _check_scene(data.resume, snapshot.interrupts[0].value)
-    return CHAT, config, Command(resume=data.resume.model_dump(mode='json', exclude_none=True)), dict(snapshot.values)
+    answer = data.resume.model_dump(mode='json', exclude_none=True)
+    if asked := snapshot.interrupts[0].value.get('action_requests'):  # Content 쓰기 도구 승인(HITL): {approved}를 HumanInTheLoopMiddleware의 결정으로 바꾼다
+        answer = {'decisions': [{'type': 'approve'} if data.resume.approved else {'type': 'reject', 'message': CONTENT_ACTION_REJECTED}] * len(asked)}
+    return CHAT, config, Command(resume=answer), dict(snapshot.values)
 
 
 def _check_scene(resume: Resume, waiting: dict) -> None:
@@ -432,17 +441,29 @@ def _check_scene(resume: Resume, waiting: dict) -> None:
         raise SceneRejected(SCENE_NO_TURN)
 
 
+def _waiting(value: dict, steps: list) -> dict:
+    """멈춘 payload. Content 쓰기 도구 승인(HITL)은 awaitingApproval=content_action과 실제 실행할 도구·인자(pendingAction)로 바꾼다.
+
+    승인 전까지 이 턴에서 끝난 단계는 메인 에이전트 상태에 있어 이 payload에 없다. 스트림은 본 단계를 steps로 넘기고, 새로 고쳐 읽는 이력에는 승인이 끝난 뒤에 보인다.
+    """
+    if 'action_requests' not in value:
+        return value
+    action = value['action_requests'][0]
+    return {'steps': steps, 'awaitingApproval': CONTENT_ACTION,
+            'pendingAction': {'tool': action['name'], 'label': mcp_tools.LABELS.get(action['name'], action['name']), 'args': action['args']}}
+
+
 def _response(state: dict) -> OrchestrationResponse:
     if state.get('__interrupt__'):
-        waiting = state['__interrupt__'][0].value
+        waiting = _waiting(state['__interrupt__'][0].value, state.get('steps', []))
         approval, scene = waiting.get('awaitingApproval'), waiting.get('awaitingScene')
         message = APPROVAL_MESSAGES[approval] if approval else SCENE_MESSAGE if scene else WAITING_MESSAGE
         if approval and state.get('message'):  # 승인 대기는 메인 에이전트가 답을 종합한 뒤라 그 답과 승인 안내를 함께 보인다
             message = '\n\n'.join((state['message'], message))
         # 장면은 에이전트 상태에서 진행 중이라 바깥 상태의 단계에는 아직 결과가 없다. 멈춘 payload의 단계가 현재 모습이다.
         state = {**state, 'status': 'waiting', 'message': message, 'steps': waiting.get('steps', state.get('steps', [])),
-                 'missingInputs': waiting.get('missingInputs', []), 'awaitingApproval': approval, 'awaitingScene': scene,
-                 'approvalEpisode': (state.get('target') or {}).get('episode') if approval else None}
+                 'missingInputs': waiting.get('missingInputs', []), 'awaitingApproval': approval, 'awaitingScene': scene, 'pendingAction': waiting.get('pendingAction'),
+                 'approvalEpisode': (state.get('target') or {}).get('episode') if approval in APPROVABLE else None}
     return OrchestrationResponse.model_validate({k: v for k, v in state.items() if k in OrchestrationResponse.model_fields})
 
 
@@ -568,7 +589,7 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
               NothingToResume: NOTHING_TO_RESUME_MESSAGE, ConversationUnavailable: CONVERSATION_UNAVAILABLE_MESSAGE,
               ConversationNotFound: CONVERSATION_NOT_FOUND_MESSAGE}
     content_mcp.AUTHORIZATION.set(authorization)
-    relayed = False
+    relayed, seen = False, []  # seen: 메인 에이전트가 이 실행에서 알린 단계(Content 쓰기 승인 대기의 waiting에 싣는다)
     try:
         graph, config, payload, state = await _target(data)
         if config is not None and data.resume is None and data.fromTurn is None:
@@ -584,12 +605,14 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
             if namespace:  # 메인 에이전트의 판정·도구 결과만 알리고 장면 에이전트 안쪽 노드의 갱신은 알리지 않는다
                 if len(namespace) == 1 and namespace[0].startswith('main_agent'):
                     for event in _main_events(update):
+                        if event.event == 'step':
+                            seen.append(event.data)
                         yield event
                 continue
             for node, change in update.items():
                 if node == '__interrupt__':
-                    state['__interrupt__'] = change
-                    waiting = change[0].value
+                    state['__interrupt__'] = [dataclasses.replace(change[0], value=_waiting(change[0].value, seen))]
+                    waiting = state['__interrupt__'][0].value
                     if waiting.get('awaitingScene') and not relayed:  # 턴 이벤트 없이 멈췄다(edit): 고친 장면을 알린다
                         yield ServerSentEvent(event='step', data=next(s for s in waiting['steps'] if s['feature'] == waiting['awaitingScene']))
                     yield ServerSentEvent(event='waiting', data=waiting)

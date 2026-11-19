@@ -49,6 +49,12 @@ class WorkWorldService(
         return WorkWorldLinkResponse(workId, worldId)
     }
 
+    /** 요청자 [owner]의 작품 [workId]에 연결된 세계관 id다. 연결이 없으면 null, 작품이 없거나 남의 것이면 404다. */
+    fun linkedWorldId(workId: String, owner: String): UUID? = transaction.execute {
+        access.own(workId, owner)
+        works.findById(workId).orElseThrow().worldStudioId
+    }
+
     /** [worldIds] 가운데 작품에 연결된 세계관과 그 작품 id다. 삭제된 작품은 삭제할 때 연결이 해제돼 나오지 않는다. */
     fun linkedWorkIds(worldIds: Collection<UUID>): Map<UUID, String> =
         if (worldIds.isEmpty()) emptyMap()

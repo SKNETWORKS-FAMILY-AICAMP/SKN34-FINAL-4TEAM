@@ -6,6 +6,8 @@ import ai.storyfork.content.context.service.QaScopeGrants
 import ai.storyfork.content.context.service.QaScopeService
 import ai.storyfork.content.episode.service.EpisodeService
 import ai.storyfork.content.work.service.WorkAccessService
+import ai.storyfork.content.work.service.WorkWorldService
+import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.writingai.client.WritingAiClient
 import ai.storyfork.content.writingai.service.WritingAiService
 import java.time.Duration
@@ -19,7 +21,8 @@ internal class WritingAiConfig {
     // 집필 지원 작업 기준(UC-21) 3분 안에 Router·Agent·검색 단계가 끝나야 한다.
     @Bean
     fun writingAiService(scopes: QaScopeService, grants: QaScopeGrants, access: WorkAccessService, episodes: EpisodeService,
+                         workWorlds: WorkWorldService, worlds: WorldStudioService,
                          builder: RestClient.Builder, ai: AiServiceClientProperties, @Value("\${INTERNAL_TOKEN:}") token: String) =
         WritingAiService(scopes, grants,
-            WritingAiClient(buildRestClient(builder.clone(), ai.baseUrl, ai.connectTimeout, Duration.ofMinutes(3)), token), access, episodes)
+            WritingAiClient(buildRestClient(builder.clone(), ai.baseUrl, ai.connectTimeout, Duration.ofMinutes(3)), token), access, episodes, workWorlds, worlds)
 }

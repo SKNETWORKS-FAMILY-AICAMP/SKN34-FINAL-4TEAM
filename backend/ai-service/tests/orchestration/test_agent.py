@@ -15,7 +15,7 @@ from pydantic import ValidationError
 from app.intent.errors import IntentFailure
 from app.intent.models import DecisionResult
 from app.intent.prompt import CLARIFY_MESSAGE, REJECT_MESSAGES
-from app.orchestration import agent, service, tools
+from app.orchestration import agent, mcp_tools, service, tools
 from app.orchestration.models import OrchestrationRequest
 from app.manuscript_review.models import Finding as ReviewFinding, ReviewResponse
 from app.research.errors import ResearchFailure
@@ -66,15 +66,19 @@ def test_the_decision_guard_runs_once_per_turn_and_the_main_agent_synthesizes_th
     assert len(calls.main) == 3  # 도구 두 번 + 종합 한 번
 
 
-@pytest.mark.parametrize('routed, status, message', [
-    (plan(status='rejected', reason='greeting'), 'rejected', REJECT_MESSAGES['greeting']),
-    (plan(status='clarify'), 'clarify', CLARIFY_MESSAGE),
-])
-def test_rejected_or_no_feature_decisions_never_call_the_main_model(monkeypatch, routed, status, message):
-    calls = fake_agents(monkeypatch, routed)
+def test_a_rejected_decision_never_calls_the_main_model(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(status='rejected', reason='greeting'))
     result = run(inputs={'story_context': QA})
-    assert (result.status, result.message, result.unsupported) == (status, message, [])
+    assert (result.status, result.message, result.unsupported) == ('rejected', REJECT_MESSAGES['greeting'], [])
     assert names(calls) == ['judge'] and calls.main == []
+
+
+def test_an_allowed_decision_without_features_runs_the_main_agent_with_only_the_content_tools(monkeypatch):
+    # #554: 허용됐지만 기능이 비면 고정 되묻기로 끝내지 않고 메인이 Content 도구만 가지고 실행한다. 도구를 쓰지 않고 답하면 그 답이 확인 질문(clarify)이다.
+    calls = fake_agents(monkeypatch, plan(status='clarify'))
+    result = run(inputs={'story_context': QA})
+    assert (result.status, result.message, result.steps) == ('clarify', '종합 답변', [])
+    assert exposed(calls) == [list(mcp_tools.NAMES)]
 
 
 def test_world_plot_is_gone_so_no_decision_can_end_as_unsupported():
@@ -102,7 +106,7 @@ def test_the_guard_gets_the_request_operation_materials_and_no_history_on_the_fi
 def test_only_the_tools_of_the_decided_features_are_exposed(monkeypatch):
     calls = fake_agents(monkeypatch, plan('story_context', 'rating'))
     run(target=TARGET, inputs={'story_context': QA})
-    assert exposed(calls)[0] == ['ask_story_qa', 'ask_rating']
+    assert exposed(calls)[0] == ['ask_story_qa', 'ask_rating', *mcp_tools.NAMES]
 
 
 def test_a_tool_outside_the_decision_is_blocked_before_it_runs(monkeypatch):
@@ -128,11 +132,11 @@ def test_at_most_three_sub_agents_run_per_turn(monkeypatch):
 
 
 def test_the_last_allowed_model_call_has_no_tools_so_it_can_only_answer(monkeypatch):
-    # 막힌 호출로 모델 호출을 다 쓰게 한다: 한도(5회) 중 마지막은 도구 없이 종합한다.
-    calls = fake_agents(monkeypatch, plan(*['story_context'] * 6))
+    # 막힌 호출로 모델 호출을 다 쓰게 한다: 한도(8회) 중 마지막은 도구 없이 종합한다.
+    calls = fake_agents(monkeypatch, plan(*['story_context'] * 9))
     result = run(inputs={'story_context': QA})
-    assert len(calls.main) == agent.MODEL_CALLS == 5
-    assert exposed(calls)[:4] == [['ask_story_qa']] * 4 and exposed(calls)[4] == []
+    assert len(calls.main) == agent.MODEL_CALLS == 8
+    assert exposed(calls)[:7] == [['ask_story_qa', *mcp_tools.NAMES]] * 7 and exposed(calls)[7] == []
     assert (result.status, result.message) == ('completed', '종합 답변')
 
 

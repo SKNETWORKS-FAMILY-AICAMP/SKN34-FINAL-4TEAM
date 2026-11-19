@@ -2,8 +2,8 @@
 
 Stateless Streamable HTTP `{CONTENT_SERVICE_BASE_URL}/mcp`에 AI를 호출한 사용자의 Bearer를 그대로 보내고,
 인가·revision 충돌 판단은 Content Service가 한다. 토큰은 요청마다 `AUTHORIZATION` 컨텍스트로만 받고
-그래프 상태·체크포인트·추적에 넣지 않는다. Review·Q&A·시뮬레이션은 같은 창구로 원고·세계관을 읽는다. 쓰기는 회차 초안 수정(`episode_update_draft`)과 세계관 초안 수정(`world_studio_edit_draft`)뿐이며
-버전 저장(확정)·발행·삭제 도구는 부르지 않는다.
+그래프 상태·체크포인트·추적에 넣지 않는다. Review·Q&A·시뮬레이션은 같은 창구로 원고·세계관을 읽는다. 승인 반영의 쓰기는 회차 초안 수정(`episode_update_draft`)과 세계관 초안 수정(`world_studio_edit_draft`)뿐이며
+버전 저장(확정)·발행·삭제 도구는 부르지 않는다. 메인 에이전트의 직접 도구 10개(#554)는 `app/orchestration/mcp_tools.py`가 이 창구로 부른다(쓰기 4개는 작가 승인 뒤).
 """
 
 import asyncio
@@ -113,6 +113,34 @@ def apply_world(world_id: str, revision: int, fixes: list[dict]) -> dict:
     return {'worldId': world_id, 'revision': new}
 
 
+def edit_world(arguments: dict) -> dict:
+    """메인 에이전트의 `world_studio_edit_draft` 호출을 실행한다(#554). 항상 replace=false라 보낸 카드만 바꾸고 다른 카드·관계는 저장된 그대로 남는다.
+
+    Content는 replace=false여도 보낸 카드를 통째로 바꾸므로(빠진 선택 필드는 기본값으로 돌아간다) 모델이 일부 필드만 보내도 읽은 카드 위에 덮어서 보낸다.
+    본문을 바꾸면 화면이 읽는 사본(studio.item.text)도 함께 맞춘다. expectedDraftRevision을 모델이 주면 그대로 쓰고 어긋나면 Content가 409로 거절한다.
+    """
+    world_id, given = arguments.get('id'), arguments.get('request')
+    if not isinstance(world_id, str) or not isinstance(given, dict) or not isinstance(given.get('cards', []), list):
+        raise ContentMcpFailure(422, '세계관 수정 요청 형식이 올바르지 않아요.')
+    read = call('world_studio_read', {'id': world_id})
+    try:
+        current, name, description, revision = {c['id']: c for c in read['cards']}, read['name'], read.get('description') or '', read['draftRevision']
+    except (LookupError, TypeError, AttributeError):
+        raise ContentMcpFailure(502, 'Content 세계관 응답을 확인할 수 없습니다.') from None
+    cards = []
+    for card in given.get('cards', []):
+        old = current.get(card.get('id') if isinstance(card, dict) else None)
+        if not isinstance(card, dict) or (old is None and not {'title', 'body', 'cardType', 'areaCode'} <= card.keys()):
+            raise ContentMcpFailure(422, '세계관 수정 요청 형식이 올바르지 않아요.')
+        merged = {**(old or {}), **card, 'semanticMetadata': {**((old or {}).get('semanticMetadata') or {}), **(card.get('semanticMetadata') or {})}}
+        if old is not None and 'body' in card:
+            _replace_cell(merged, {'target': 'body', 'text': card['body']})
+        cards.append(merged)
+    request = {'expectedDraftRevision': revision, 'name': name, 'description': description, 'key': uuid.uuid4().hex,
+               **{k: v for k, v in given.items() if k != 'cards'}, 'replace': False, 'cards': cards}
+    return call('world_studio_edit_draft', {'id': world_id, 'request': request})
+
+
 def _replace_cell(card: dict, fix: dict) -> None:
     """카드 하나의 칸 하나를 새 글로 바꾼다(제자리). body는 카드 본문(인물은 IDENTITY), soul·goal·episode는 semanticMetadata.characterDocs의 칸이다."""
     if fix['target'] == 'body':
@@ -162,6 +190,30 @@ def linked_world(work_id: str, episode: int) -> dict | None:
     if not isinstance(read := call('world_studio_read', {'id': linked, 'episode': str(episode)}), dict):
         raise ContentMcpFailure(502, 'Content MCP 결과를 확인할 수 없습니다.')
     return read
+
+
+# shortcut: 도구 목록(이름·설명·inputSchema)을 프로세스 안에 한 번 받아 두고 Content가 바뀌어도 다시 받지 않는다. 도구 스키마를 배포 중에 바꾸게 되면 만료·재조회를 둔다.
+_SPECS: dict[str, dict] = {}
+
+
+async def tool_specs(names: tuple[str, ...]) -> list[dict]:
+    """Content MCP `list_tools`에서 허용 목록(names)의 도구 {name, description, schema}만 돌려준다. 인증은 사용자 Bearer를 함께 보낸다(공개 도구 목록도 같은 길이다)."""
+    if not _SPECS:
+        base, authorization = os.environ.get('CONTENT_SERVICE_BASE_URL'), AUTHORIZATION.get()
+        if not base:
+            raise ContentMcpFailure(503, 'Content MCP 설정이 필요합니다.')
+        try:
+            listed = await _list(f'{base.rstrip("/")}/mcp', authorization)
+        except Exception:  # 연결·프로토콜 오류. 메시지에 입력이 섞일 수 있어 고정 문구만 쓴다.
+            raise ContentMcpFailure(503, 'Content MCP를 호출할 수 없습니다.') from None
+        _SPECS.update({t.name: {'name': t.name, 'description': t.description or '', 'schema': t.inputSchema} for t in listed})
+    return [_SPECS[n] for n in names if n in _SPECS]
+
+
+async def _list(url: str, authorization: str):
+    headers = {'Authorization': authorization} if authorization else {}
+    async with MCPServerStreamableHttp({'url': url, 'headers': headers, 'timeout': 20}, client_session_timeout_seconds=20) as server:
+        return await server.list_tools()
 
 
 def call(tool: str, arguments: dict) -> dict:
