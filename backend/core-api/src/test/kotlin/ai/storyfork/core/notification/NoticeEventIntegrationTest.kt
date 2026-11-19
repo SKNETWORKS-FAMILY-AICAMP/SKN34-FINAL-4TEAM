@@ -33,10 +33,12 @@ class NoticeEventIntegrationTest {
         jdbc.update("insert into auth_member(id,email,password_hash,nickname) values (?,?,?,?)", id, "${UUID.randomUUID()}@example.invalid", BCryptPasswordEncoder().encode("test-password"), "Reader")
         return id
     }
-    private fun message(recipient: UUID, eventId: UUID = UUID.randomUUID(), work: String = "work-1") = NoticeEventMessage(
-        schemaVersion = 1, eventId = eventId.toString(), type = "content.world.changed", occurredAt = Instant.now().toString(),
-        recipientId = recipient.toString(), target = NoticeEventTarget("work", work),
+    private fun message(recipient: UUID, eventId: UUID = UUID.randomUUID(), work: String = "work-1", type: String = "content.world.changed", targetType: String = "work") = NoticeEventMessage(
+        schemaVersion = 1, eventId = eventId.toString(), type = type, occurredAt = Instant.now().toString(),
+        recipientId = recipient.toString(), target = NoticeEventTarget(targetType, work),
     )
+    private fun mcpWork(recipient: UUID, eventId: UUID = UUID.randomUUID(), work: String = "work-1") = message(recipient, eventId, work, "content.mcp.work-changed")
+    private fun inbox(member: UUID) = notices.list(member, NoticeListRequest()).items
     private fun rows(eventId: UUID) = jdbc.queryForObject("select count(*) from notification where source_event_id = ?", Int::class.java, eventId)
 
     @Test
@@ -94,6 +96,52 @@ class NoticeEventIntegrationTest {
         val eventId = UUID.randomUUID()
         assertEquals(NoticeEventResult.DROPPED_UNKNOWN_MEMBER, events.handle(message(UUID.randomUUID(), eventId)))
         assertEquals(0, rows(eventId))
+    }
+
+    @Test
+    fun `repeated ai-tool events for one target keep one unread notice and move it to the top`() {
+        val me = member(); val first = UUID.randomUUID(); val second = UUID.randomUUID()
+        assertEquals(NoticeEventResult.CREATED, events.handle(mcpWork(me, first, "work-1")))
+        val firstAt = inbox(me).single().createdAt
+        events.handle(mcpWork(me, work = "work-2"))
+        assertEquals(NoticeEventResult.CREATED, events.handle(mcpWork(me, second, "work-1")))
+        val items = inbox(me)
+        assertEquals(2, items.size)
+        assertEquals("ai-tool", items[0].kind); assertEquals("work-1", items[0].targetId)
+        assertTrue(items[0].createdAt > firstAt)
+        assertEquals(2L, notices.unreadCount(me).count)
+        assertEquals(1, rows(first)); assertEquals(0, rows(second))
+    }
+
+    @Test
+    fun `after the member reads it the next ai-tool event for the same target creates a new notice`() {
+        val me = member()
+        events.handle(mcpWork(me))
+        notices.markRead(me, UUID.fromString(inbox(me).single().id))
+        assertEquals(NoticeEventResult.CREATED, events.handle(mcpWork(me)))
+        assertEquals(2, inbox(me).size)
+        assertEquals(1L, notices.unreadCount(me).count)
+    }
+
+    @Test
+    fun `a deleted ai-tool notice is not revived by the next event for that target`() {
+        val me = member()
+        events.handle(mcpWork(me))
+        notices.delete(me, UUID.fromString(inbox(me).single().id))
+        events.handle(mcpWork(me))
+        assertEquals(1, inbox(me).size)
+        assertEquals(2, jdbc.queryForObject("select count(*) from notification where recipient_id = ?", Int::class.java, me))
+    }
+
+    @Test
+    fun `ai-tool events for another member, target type or kind stay separate notices`() {
+        val me = member(); val other = member()
+        events.handle(mcpWork(me, work = "x-1"))
+        events.handle(mcpWork(other, work = "x-1"))
+        events.handle(message(me, work = "x-1", type = "content.mcp.world-changed", targetType = "world"))
+        events.handle(message(me, work = "x-1", type = "content.operator.work-restricted"))
+        assertEquals(3, inbox(me).size)
+        assertEquals(1, inbox(other).size)
     }
 
     @Test

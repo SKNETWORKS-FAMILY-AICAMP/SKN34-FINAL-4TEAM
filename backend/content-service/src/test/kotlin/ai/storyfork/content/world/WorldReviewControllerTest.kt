@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.*
 import org.springframework.core.annotation.AnnotatedElementUtils
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -25,12 +26,22 @@ class WorldReviewControllerTest {
     private val world = UUID.randomUUID()
     private val owner = UUID.randomUUID()
     private val principal = Principal { owner.toString() }
+    private val result = WorldReviewResponse(3, 2, 2, emptyList(), "gpt-6-luna", "2026-11-19T03:40:00.123Z", emptyMap())
 
     @Test fun `hands the verified member and the consent flag to the service and never caches the answer`() {
-        val result = WorldReviewResponse(3, 2, 2, emptyList(), "gpt-6-luna")
         `when`(service.review(world, owner, true)).thenReturn(result)
 
         val response = controller.review(world, principal, WorldReviewRequest(true))
+
+        assertEquals(200, response.statusCode.value())
+        assertEquals(result, response.body)
+        assertEquals("no-store", response.headers.cacheControl)
+    }
+
+    @Test fun `latest hands the verified member to the service and never caches the answer`() {
+        `when`(service.latest(world, owner)).thenReturn(result)
+
+        val response = controller.latest(world, principal)
 
         assertEquals(200, response.statusCode.value())
         assertEquals(result, response.body)
@@ -48,6 +59,9 @@ class WorldReviewControllerTest {
             AnnotatedElementUtils.findMergedAnnotation(WorldReviewController::class.java, RequestMapping::class.java)!!.value.toList())
         val method = WorldReviewController::class.java.methods.first { it.name == "review" }
         assertNotNull(AnnotatedElementUtils.findMergedAnnotation(method, PostMapping::class.java))
+        // 마지막 검토 읽기는 같은 경로 아래 GET /latest다.
+        val latest = WorldReviewController::class.java.methods.first { it.name == "latest" }
+        assertEquals(listOf("/latest"), AnnotatedElementUtils.findMergedAnnotation(latest, GetMapping::class.java)!!.value.toList())
         // 소유자 404(WorldNotFound)·관계 저장소 오류는 소유자 쪽 처리기가, 동의·AI 실패(ContentFailure)는 콘텐츠 처리기가 맡는다.
         assertTrue(WorldReviewController::class in AnnotatedElementUtils.findMergedAnnotation(WorldStudioExceptionHandler::class.java, RestControllerAdvice::class.java)!!.assignableTypes)
         assertTrue(WorldReviewController::class.java.packageName in AnnotatedElementUtils.findMergedAnnotation(ContentExceptionHandler::class.java, RestControllerAdvice::class.java)!!.basePackages)

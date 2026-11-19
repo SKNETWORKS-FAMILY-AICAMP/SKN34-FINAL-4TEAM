@@ -19,7 +19,6 @@ class WorldStudioFailure(val reason:Reason):RuntimeException(reason.code) {
         fun rejected()=WorldStudioFailure(Reason.REJECTED)
         fun mismatch()=WorldStudioFailure(Reason.MISMATCH)
         fun unavailable()=WorldStudioFailure(Reason.UNAVAILABLE)
-        fun history()=WorldStudioFailure(Reason.HISTORY)
         fun linked()=WorldStudioFailure(Reason.LINKED)
     }
 }

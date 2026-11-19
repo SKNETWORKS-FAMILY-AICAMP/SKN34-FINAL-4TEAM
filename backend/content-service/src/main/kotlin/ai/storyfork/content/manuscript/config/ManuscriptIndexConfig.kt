@@ -10,10 +10,8 @@ import ai.storyfork.content.episode.repository.EpisodeCurrentRepository
 import ai.storyfork.content.episode_version.repository.EpisodeVersionRepository
 import ai.storyfork.content.manuscript.client.ManuscriptElasticsearch
 import ai.storyfork.content.manuscript.client.ManuscriptEmbeddingClient
-import ai.storyfork.content.manuscript.client.ManuscriptQaClient
 import ai.storyfork.content.manuscript.service.ManuscriptIndexJob
 import ai.storyfork.content.manuscript.service.ManuscriptIndexSync
-import ai.storyfork.content.world.service.WorldService
 import java.net.URI
 import java.time.Duration
 import javax.sql.DataSource
@@ -66,9 +64,7 @@ internal class ManuscriptIndexConfig {
     @Bean
     fun manuscriptQaService(
         scopes: QaScopeService, index: ManuscriptElasticsearch, embeddings: ManuscriptEmbeddingClient,
-        episodes: EpisodeCurrentRepository, versions: EpisodeVersionRepository, worlds: WorldService,
-        builder: RestClient.Builder, ai: AiServiceClientProperties, @Value("\${INTERNAL_TOKEN:}") token: String,
+        episodes: EpisodeCurrentRepository, versions: EpisodeVersionRepository,
         grants: QaScopeGrants,
-    ) = ManuscriptQaService(scopes, index, embeddings, episodes, versions,
-        ManuscriptQaClient(buildRestClient(builder.clone(), ai.baseUrl, ai.connectTimeout, Duration.ofSeconds(45)), token), worlds, grants)
+    ) = ManuscriptQaService(scopes, index, embeddings, episodes, versions, grants)
 }

@@ -13,10 +13,11 @@ from app.orchestration import agent as main_agent, tools as service
 from app.rating.models import EpisodeRating, RatingResponse
 from app.research.models import Finding, ResearchResponse
 from app.retrieval.models import RetrievalResult
-from app.review.models import Finding as ReviewFinding, ReviewResponse
+from app.manuscript_review.models import Finding as ReviewFinding, ReviewResponse
 from app.simulation import agent, director
 from app.simulation.models import Action, Check, CheckItem, Decision, Narration, SimulationPlan, SimulationResult, Turn, Verdict
-from app.world_review.models import Finding as WorldFinding, Fix, WorldReviewRequest, WorldReviewResponse
+from app.world_review.models import (Affected, CardFix, EnrichResponse, Finding as WorldFinding, Fix, ImpactResponse, WorldReviewRequest,
+                                     WorldReviewResponse)
 from app.writing.models import BeatPlan, DraftResponse, PatchResponse, PlanResponse
 
 QA = {'question': '길드 규칙은?', 'excerpts': [{'id': 'a', 'episode': 4, 'quote': '길드는 밤에 문을 닫는다.'}]}
@@ -41,6 +42,12 @@ WORLD_REVIEW = WorldReviewResponse(
     findings=[WorldFinding(cardIds=['k'], kind='doc_role', message='SOUL에 목표가 섞여 있어요.',
                            fix=Fix(cardId='k', target='soul', episode=None, text='말이 짧다.'))], reviewedCards=1, model='m')
 WORLD_REVIEW_REQUEST = WorldReviewRequest(worldName='달빛 세계', worldDescription='', cards=[], relationships=[])
+# World의 세 작업(check·enrich·impact)의 결과. enrich의 worldId·revision은 연결 세계관을 읽은 때의 값이다.
+WORLD_ENRICH = EnrichResponse(worldId='w', revision=7, note='카엘의 SOUL을 보강했어요.', model='m', fixes=[
+    CardFix(cardId='k', cardTitle='카엘', target='soul', episode=None, text='말이 짧고 낮게 깔린다.')])
+WORLD_IMPACT = ImpactResponse(affected=[Affected(kind='card', ref='k', title='카엘', reason='나이 설정이 바뀐다.', certainty='confirmed')],
+                              conflicts=['3화의 나이와 충돌한다.'], gaps=['5화 계획의 나이를 알 수 없다.'], model='m')
+WORLD_PLANS = [{'id': 'scene-1', 'kind': 'scene', 'title': '재회', 'content': '카엘이 리나를 만난다.', 'episodeNumber': 5, 'parentId': None}]
 
 
 def scene(*prose, status='completed', reason=None):
@@ -56,6 +63,8 @@ FOUND = RetrievalResult(status='found', excerpts=QA['excerpts'], gaps=[{'code': 
 
 
 BEAT = BeatPlan(title='항구의 밤', beats=['선장이 항구에 도착한다.', '카이가 배를 숨긴다.'])
+# Q&A가 읽는 세계관: 기본은 연결·이어받은 세계관이 없다. 그 밖의 도구는 CONTEXT(work_context_read)를 돌려준다.
+NO_WORLD = {'world_studio_list': [], 'work_inherited_world': {'worldId': None}}
 CONTEXT = {'title': '작품', 'settings': [{'title': '항구', 'body': '밤에 닫힌다'}], 'draft': ''}
 
 
@@ -80,6 +89,8 @@ def call(step: Step) -> tuple[str, dict]:
     if step.feature == 'writing_editing':
         task = 'patch' if step.when == 'if_issues_found' else step.task or 'draft'
         return 'ask_writing', {'task': task, **({'fix': step.fix} if step.fix is not None else {})}
+    if step.feature == 'world':
+        return 'ask_world', {'task': step.task or 'check'}
     return service.TOOL_NAMES.get(step.feature, f'ask_{step.feature}'), {'check': step.check} if step.check else {}
 
 
@@ -183,7 +194,9 @@ def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None):
         plans=[BEAT], notes=['10화의 약속은 확정 사건'], model='m', providerResponseId='r', usage=None)))
     monkeypatch.setattr(service.writing, 'plan_and_draft', recorded('plan_and_draft', DraftResponse(
         text='선장은 항구에 내렸다.', model='m', providerResponseId='r', usage=None, plan=BEAT)))
-    monkeypatch.setattr(service.content_mcp, 'call', recorded('mcp', lambda tool, args: CONTEXT))
+    episode = {'episode_read': {'draft': {'title': '3화', 'body': '그는 웃었다.', 'revision': 4}}}
+    monkeypatch.setattr(service.content_mcp, 'call', recorded('mcp', lambda tool, args:
+                        {**NO_WORLD, **episode, 'story_plan_list': WORLD_PLANS}.get(tool, CONTEXT)))
     monkeypatch.setattr(service.writing, 'patch', recorded('patch', PatchResponse(
         before='그는 웃었다.', after='그는 차갑게 웃었다.', model='m', providerResponseId='r', usage=None)))
     monkeypatch.setattr(service.simulation, 'plan', recorded(
@@ -191,15 +204,20 @@ def fake_agents(monkeypatch, routed, fail=None, retrieved=FOUND, drafted=None):
     monkeypatch.setattr(service.research, 'research', recorded('web_research', ResearchResponse(
         findings=[Finding(text='약 15일', verdict='unverified', sourceUrls=[])], gaps=[],
         searchedAt=datetime(2026, 11, 12, tzinfo=timezone.utc))))
-    monkeypatch.setattr(service.review, 'review', recorded('review', lambda data: ReviewResponse(
+    review = recorded('manuscript_review', lambda data: ReviewResponse(
         workId=data.workId, episode=data.episode, revision=4, check=data.check, gaps=[], model='m', providerResponseId='r', usage=None,
         findings=[ReviewFinding(category='spelling', quote='웃엇다', reason='맞춤법', status='confirmed', evidenceRefs=[],
-                                suggestion='웃었다', start=3, end=6)])))
+                                suggestion='웃었다', start=3, end=6)]))
+    monkeypatch.setattr(service.manuscript_review, 'review', review)
+    monkeypatch.setattr(service.manuscript_review, 'review_candidate', lambda data, base, writing: review(data))
     monkeypatch.setattr(service.rating, 'rate', recorded('rating', lambda data: RatingResponse(
         workId=data.workId, verdict='general', prohibited=False,
         episodes=[EpisodeRating(episode=n, revision=4, verdict='general', signals={'profanityCount': 0}) for n in data.episodes])))
     monkeypatch.setattr(service.world_review, 'linked_request', recorded('world_review_read', lambda work_id: WORLD_REVIEW_REQUEST))
     monkeypatch.setattr(service.world_review, 'review', recorded('world_review', WORLD_REVIEW))
+    monkeypatch.setattr(service.world_review, 'linked_world', recorded('world_read', lambda work_id: (WORLD_REVIEW_REQUEST, 'w', 7)))
+    monkeypatch.setattr(service.world_review, 'enrich', recorded('world_enrich', WORLD_ENRICH))
+    monkeypatch.setattr(service.world_review, 'impact', recorded('world_impact', WORLD_IMPACT))
     calls.main = seen
     return calls
 

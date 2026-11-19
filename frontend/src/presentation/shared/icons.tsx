@@ -63,3 +63,12 @@ export const Share = () => <Line size={22}><path d="M12 15V3.5M8 7l4-3.5L16 7M6 
 
 /** 소설 신고 버튼: 깃발(부차 행동이라 작게) */
 export const Flag = () => <Line size={16}><path d="M5 21V4.5M5 5h12.5l-2.8 3.8 2.8 3.7H5" /></Line>
+
+/** 메시지·줄 고치기: 연필 */
+export const PencilIcon = ({ size }: { size?: number }) => <StrokeIcon size={size}><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z" /></StrokeIcon>
+/** 이 메시지부터 지우기: 휴지통 */
+export const TrashIcon = ({ size }: { size?: number }) => <StrokeIcon size={size}><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" /></StrokeIcon>
+/** AI 답변 좋아요: 엄지 위 */
+export const ThumbUpIcon = ({ size }: { size?: number }) => <StrokeIcon size={size}><path d="M7 10v11H4V10zM7 10l4-7a2 2 0 0 1 3 2l-1 5h5.5a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.3 21H7" /></StrokeIcon>
+/** AI 답변 싫어요: 엄지 아래 */
+export const ThumbDownIcon = ({ size }: { size?: number }) => <StrokeIcon size={size}><path d="M17 14V3h3v11zM17 14l-4 7a2 2 0 0 1-3-2l1-5H5.5a2 2 0 0 1-2-2.3l1.2-7A2 2 0 0 1 6.7 3H17" /></StrokeIcon>

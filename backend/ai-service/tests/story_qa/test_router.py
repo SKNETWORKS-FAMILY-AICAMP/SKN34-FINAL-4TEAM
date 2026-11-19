@@ -2,24 +2,16 @@ import pytest
 from fastapi import HTTPException
 
 from app.story_qa import router
-from app.story_qa.models import AnswerRequest, EmbeddingRequest, Excerpt
+from app.story_qa.models import EmbeddingRequest
 
 
-@pytest.mark.parametrize('call', [
-    lambda token: router.embed(EmbeddingRequest(texts=['원고'], kind='passage'), token),
-    lambda token: router.answer(AnswerRequest(question='누구?', excerpts=[Excerpt(id='a', episode=1, quote='원문')]), token),
-])
-def test_internal_token_is_required(monkeypatch, call):
+def test_internal_token_is_required(monkeypatch):
     monkeypatch.setenv('INTERNAL_TOKEN', 'test-token')
     with pytest.raises(HTTPException) as error:
-        call('wrong')
+        router.embed(EmbeddingRequest(texts=['원고'], kind='passage'), 'wrong')
     assert error.value.status_code == 403
 
 
-def test_feature_failure_becomes_http_status(monkeypatch):
-    monkeypatch.setenv('INTERNAL_TOKEN', 'test-token')
-    monkeypatch.delenv('OPENAI_API_KEY', raising=False)
-    data = AnswerRequest(question='누구?', excerpts=[Excerpt(id='a', episode=1, quote='원문')])
-    with pytest.raises(HTTPException) as error:
-        router.answer(data, 'test-token')
-    assert error.value.status_code == 503
+def test_work_qa_route_is_removed():
+    # 작품 Q&A 화면 제거(#525): Content가 부르던 답변 라우트가 없다. 채팅 Q&A는 오케스트레이션이 service.answer를 직접 쓴다.
+    assert '/internal/v1/manuscript/qa' not in {r.path for r in router.router.routes}
