@@ -22,11 +22,12 @@ def embed(data: EmbeddingRequest, x_internal_token: str = Header(default='')) ->
 
 
 @router.post('/internal/v1/manuscript/qa')
-def answer(data: AnswerRequest, x_internal_token: str = Header(default='')) -> AnswerResponse:
-    """검증된 발췌에 근거한 주장과 답할 수 없는 부분을 반환한다."""
+def answer(data: AnswerRequest, x_internal_token: str = Header(default=''),
+           x_user_authorization: str = Header(default='')) -> AnswerResponse:
+    """검증된 발췌에 근거한 주장과 답할 수 없는 부분을 반환한다. X-User-Authorization(선택)은 추적의 회원 식별에만 쓴다."""
     require_internal_token(x_internal_token)
     try:
-        with tracing.request('story_context'):
+        with tracing.request('story_context', user_id=tracing.member_id(x_user_authorization)):
             return service.answer(data)
     except StoryQaFailure as error:
         raise HTTPException(error.status, str(error)) from None

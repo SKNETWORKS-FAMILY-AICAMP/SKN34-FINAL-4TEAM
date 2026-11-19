@@ -9,6 +9,7 @@ from fastapi import HTTPException
 from app.generation import router as generation
 from app.generation.errors import ProviderFailure
 from app.generation.models import GenerationInput
+from app.main import create_app
 from app.initial_world import router as initial_world
 from app.initial_world.errors import ExtractionFailure
 from app.rating import router as rating
@@ -39,22 +40,26 @@ ANALYSIS = UUID('0b1f6a52-3c1e-4b7a-9a58-2f6f0c1d4e10')
 AUTHOR = bearer()
 # (기능 키, 호출, 대체할 (객체, 속성), 그 기능의 실패)
 CASES = {
-    'proposals': (lambda: generation.propose(GenerationInput(context={}, prompt='이어서'), TOKEN), (generation.agent, 'generate'), ProviderFailure()),
-    'initial_world': (lambda: initial_world.extract_initial_world(SimpleNamespace(analysisId=ANALYSIS), TOKEN), (initial_world, 'extract'),
-                      ExtractionFailure('MODEL_UNAVAILABLE', 503)),
-    'story_context': (lambda: story_qa.answer(AnswerRequest(question='누구?', excerpts=[Excerpt(id='a', episode=1, quote='원문')]), TOKEN),
+    'proposals': (lambda auth='': generation.propose(GenerationInput(context={}, prompt='이어서'), TOKEN, auth), (generation.agent, 'generate'),
+                  ProviderFailure()),
+    'initial_world': (lambda auth='': initial_world.extract_initial_world(SimpleNamespace(analysisId=ANALYSIS), TOKEN, auth),
+                      (initial_world, 'extract'), ExtractionFailure('MODEL_UNAVAILABLE', 503)),
+    'story_context': (lambda auth='': story_qa.answer(AnswerRequest(question='누구?', excerpts=[Excerpt(id='a', episode=1, quote='원문')]), TOKEN, auth),
                       (story_qa.service, 'answer'), StoryQaFailure(502, '출처 확인 실패')),
-    'review': (lambda: review.review(ReviewRequest(workId='work-1', episode=3, check='mechanical'), TOKEN, AUTHOR),
+    'review': (lambda auth=AUTHOR: review.review(ReviewRequest(workId='work-1', episode=3, check='mechanical'), TOKEN, auth),
                (review.service, 'review'), ReviewFailure(422, '검수할 초안이 없어요.')),
-    'rating': (lambda: rating.rate(RatingRequest(workId='work-1', episodes=[3]), TOKEN, AUTHOR), (rating.service, 'rate'),
+    'rating': (lambda auth=AUTHOR: rating.rate(RatingRequest(workId='work-1', episodes=[3]), TOKEN, auth), (rating.service, 'rate'),
                RatingFailure(502, '판별 실패')),
-    'web_research': (lambda: research.research(ResearchRequest(question='질문'), TOKEN), (research.service, 'research'),
+    'web_research': (lambda auth='': research.research(ResearchRequest(question='질문'), TOKEN, auth), (research.service, 'research'),
                      ResearchFailure(503, '웹 검색 실패')),
-    'world_review': (lambda: world_review.review(WorldReviewRequest(worldName='세계', worldDescription='', cards=[], relationships=[]), TOKEN),
+    'world_review': (lambda auth='': world_review.review(WorldReviewRequest(worldName='세계', worldDescription='', cards=[], relationships=[]),
+                                                          TOKEN, auth),
                      (world_review.service, 'review'), WorldReviewFailure(502, '검토 실패')),
-    'work_tags': (lambda: work_tags.suggest_work_tags(SimpleNamespace(), TOKEN), (work_tags, 'suggest'), SuggestionFailure(502, '추천 실패')),
-    'writing_editing': (lambda: writing.draft(DraftRequest(episodeNumber=1, plan='계획'), TOKEN), (writing.agent, 'draft'), WritingFailure(502, '집필 실패')),
-    'writing_editing/patch': (lambda: writing.patch(PatchRequest(selection='문장', instruction='고쳐'), TOKEN), (writing.agent, 'patch'),
+    'work_tags': (lambda auth='': work_tags.suggest_work_tags(SimpleNamespace(), TOKEN, auth), (work_tags, 'suggest'),
+                  SuggestionFailure(502, '추천 실패')),
+    'writing_editing': (lambda auth='': writing.draft(DraftRequest(episodeNumber=1, plan='계획'), TOKEN, auth), (writing.agent, 'draft'),
+                        WritingFailure(502, '집필 실패')),
+    'writing_editing/patch': (lambda auth='': writing.patch(PatchRequest(selection='문장', instruction='고쳐'), TOKEN, auth), (writing.agent, 'patch'),
                               WritingFailure(502, '수정 실패')),
 }
 
@@ -118,3 +123,35 @@ def test_a_wrong_internal_token_is_refused_before_anything_is_traced(monkeypatch
     with pytest.raises(HTTPException):
         review.review(ReviewRequest(workId='work-1', episode=3, check='mechanical'), 'wrong', AUTHOR)
     assert spans() == ()
+
+
+
+# 작가 Bearer(X-User-Authorization)는 모든 추적 Router가 선택으로 받는다. 검수·심의·오케스트레이션은 MCP에도 쓰고, 나머지는 회원 식별에만 쓴다.
+UNAUTHENTICATED = [key for key in CASES if key not in ('review', 'rating')]
+
+
+@pytest.mark.parametrize('key', UNAUTHENTICATED)
+def test_the_optional_author_bearer_identifies_the_request_of_routes_that_had_no_member(monkeypatch, spans, key):
+    prepare(monkeypatch, key, 'ok')(AUTHOR)
+    [root] = spans()
+    assert attrs(root)['user.id'] == MEMBER
+
+
+@pytest.mark.parametrize('authorization', ['', 'Bearer not-a-jwt'])
+@pytest.mark.parametrize('key', UNAUTHENTICATED)
+def test_without_a_usable_bearer_the_request_is_served_and_the_trace_stays_anonymous(monkeypatch, spans, key, authorization):
+    assert prepare(monkeypatch, key, 'ok')(authorization) == 'ok'  # 헤더가 없거나 읽을 수 없어도 오류가 아니다
+    [root] = spans()
+    assert 'user.id' not in root.attributes
+
+
+TRACED_PATHS = ['/internal/v1/proposals', '/internal/v1/initial-world/extractions', '/internal/v1/manuscript/qa', '/internal/v1/research/web',
+                '/internal/v1/world-reviews', '/internal/v1/writing/drafts', '/internal/v1/writing/patches', '/internal/v1/work-tags/suggestions',
+                '/internal/v1/reviews', '/internal/v1/ratings', '/internal/v1/orchestrations', '/internal/v1/orchestrations/stream']
+
+
+def test_every_traced_route_declares_the_optional_author_bearer_header():
+    spec = create_app().openapi()
+    for path in TRACED_PATHS:
+        header = next((p for p in spec['paths'][path]['post'].get('parameters', []) if p['name'] == 'x-user-authorization'), None)
+        assert header is not None and header['in'] == 'header' and not header['required'], path
