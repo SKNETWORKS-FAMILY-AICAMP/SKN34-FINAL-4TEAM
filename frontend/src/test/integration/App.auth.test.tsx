@@ -293,26 +293,3 @@ it.each(['unavailable', 'failed'])('초기 인증 잠금 %s 오류를 안내한�
   render(<Provider store={createAppStore()}><MemoryRouter><App /></MemoryRouter></Provider>)
   expect((await screen.findByRole('alert')).textContent).toContain('브라우저')
 })
-
-describe('Langfuse OIDC 로그인 복귀 (DEC-55)', () => {
-  const authorize = '/api/v1/auth/oidc/authorize?client_id=langfuse&state=s'
-
-  it('/login?next=가 Core OIDC 인가 주소면 로그인 뒤 라우터 이동 없이 전체 페이지 이동으로 그 주소에 보낸다', async () => {
-    const assign = vi.fn()
-    vi.stubGlobal('location', { ...window.location, assign })
-    const store = renderGuarded('/login?next=' + encodeURIComponent(authorize))
-    submitLogin('admin@example.com')
-    await waitFor(() => expect(assign).toHaveBeenCalledWith(authorize))
-    expect(store.getState().session.role).toBe('admin')
-    expect(screen.queryByTestId('where')).toBeNull()
-  })
-
-  it.each(['https://evil.example' + authorize, '//evil.example' + authorize, '/admin?tab=llm'])('인가 주소가 아닌 next(%s)는 따르지 않고 기존 규칙대로 홈으로 간다', async (next) => {
-    const assign = vi.fn()
-    vi.stubGlobal('location', { ...window.location, assign })
-    renderGuarded('/login?next=' + encodeURIComponent(next))
-    submitLogin('me@storyfork.demo')
-    expect((await screen.findByTestId('where')).textContent).toBe('/')
-    expect(assign).not.toHaveBeenCalled()
-  })
-})

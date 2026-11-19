@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { useNavigate } from 'react-router'
 
 import { appContainer } from '../../../../app/appContainer'
 import { useAppDispatch, useAppSelector } from '../../../../app/store'
 import { EMAIL } from '../../../../domain/entities/account'
-import { oidcAuthorizeReturn } from '../../../../domain/entities/admin'
 import { AccountRestricted, InvalidCredentials, LockUnavailable } from '../../../../domain/repositories/AuthRepository'
 import { useScreenId } from '../../../shared/screenIds'
 import { sessionActions } from '../../../shared/session/sessionSlice'
@@ -14,8 +13,6 @@ export function useLoginViewModel() {
   const { loginMsg, next } = useAppSelector((s) => s.session)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  // Langfuse 로그인(DEC-55): Core가 /login?next=<OIDC 인가 주소>로 보낸 경우에만 그 주소로 돌아간다(허용 경로 밖의 next는 무시).
-  const oidcReturn = oidcAuthorizeReturn(useSearchParams()[0].get('next'))
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   /** 오류가 입력한 이메일·비밀번호 때문일 때만 참입니다. 서버·잠금 장애는 입력을 탓하지 않습니다. */
@@ -32,8 +29,6 @@ export function useLoginViewModel() {
       const user = await appContainer.resolve('authUseCase').login(email, password)
       if (!active.current) return
       dispatch(sessionActions.login(user))
-      // 인가 주소는 SPA 경로가 아니라 Core API라 라우터 이동이 아닌 전체 페이지 이동이다.
-      if (oidcReturn) { window.location.assign(oidcReturn); return }
       navigate(next && next !== '/login' && (!next.startsWith('/admin') || user.operator) ? next : '/')
     } catch (cause) {
       if (!active.current) return

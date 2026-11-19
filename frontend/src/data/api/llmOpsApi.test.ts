@@ -62,7 +62,7 @@ describe('HttpOperationsDashboardRepository', () => {
 
 const trace = {
   id: 't1', timestamp: AT, feature: 'qa', status: 'failed', latencyMs: 820, inputTokens: 100, outputTokens: 20, cost: 0.001,
-  userId: 'm1', workId: null, traceUrl: 'http://localhost:3000/project/p/traces/t1',
+  userId: 'm1', workId: null,
 }
 
 describe('HttpLlmOpsRepository 추적·지표', () => {
@@ -84,8 +84,10 @@ describe('HttpLlmOpsRepository 추적·지표', () => {
     await expect(new HttpLlmOpsRepository(ok(body)).traces({ from: '', to: '', feature: '', status: '', userId: '', requestId: '', page: 0 })).rejects.toThrow(FORMAT)
   })
 
-  it('Langfuse 주소가 http·https가 아니면 거부한다', async () => {
-    await expect(new HttpLlmOpsRepository(ok({ items: [{ ...trace, traceUrl: 'javascript:alert(1)' }], page: 0, size: 20, total: 1 })).traces({ from: '', to: '', feature: '', status: '', userId: '', requestId: '', page: 0 })).rejects.toThrow(FORMAT)
+  it('Langfuse 화면 주소(traceUrl)는 화면 값으로 받지 않는다: 서버가 보내도 버린다', async () => {
+    const page = await new HttpLlmOpsRepository(ok({ items: [{ ...trace, traceUrl: 'http://localhost:3000/project/p/traces/t1' }], page: 0, size: 20, total: 1 })).traces({ from: '', to: '', feature: '', status: '', userId: '', requestId: '', page: 0 })
+    expect(page.items[0]).toEqual(trace)
+    expect(page.items[0]).not.toHaveProperty('traceUrl')
   })
 
   it('추적 상세는 id를 인코딩해 읽고 입력·출력과 단계를 그대로 준다', async () => {

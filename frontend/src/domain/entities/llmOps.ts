@@ -8,8 +8,6 @@ export type TraceItem = {
   status: string
   latencyMs?: number | null; inputTokens?: number | null; outputTokens?: number | null; cost?: number | null
   userId?: string | null; workId?: string | null
-  /** Langfuse 화면 주소(http·https만) */
-  traceUrl: string
 }
 export type Observation = {
   id: string; name: string; type: string; startTime: string; endTime?: string | null; latencyMs?: number | null

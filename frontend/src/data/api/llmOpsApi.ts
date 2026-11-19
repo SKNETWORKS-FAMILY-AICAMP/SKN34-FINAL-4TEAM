@@ -16,8 +16,6 @@ const instant = z.string().datetime({ offset: true })
 /** 비어 올 수 있는 숫자. 비어 있음(null·생략)을 0으로 바꾸지 않습니다. */
 const num = z.number().nullish()
 const text = z.string().nullish()
-/** Langfuse 화면 주소는 새 창으로 열므로 http·https만 받습니다. */
-const webUrl = z.string().regex(/^https?:\/\//)
 
 const aiSummary = z.object({ requests: z.number(), failed: z.number(), timeouts: z.number(), failureRate: num, costUser: z.number(), costPlatform: z.number() })
 // 출처 하나가 실패하면 그 칸만 null이고, 칸 안의 값도 비어 올 수 있습니다.
@@ -42,7 +40,7 @@ const pageOf = <T extends z.ZodType>(item: T) => z.object({
 
 const traceItem = z.object({
   id: z.string(), timestamp: instant, feature: z.string(), status: z.string(), latencyMs: num, inputTokens: num, outputTokens: num, cost: num,
-  userId: text, workId: text, traceUrl: webUrl,
+  userId: text, workId: text,
 })
 const observation = z.object({
   id: z.string(), name: z.string(), type: z.string(), startTime: instant, endTime: instant.nullish(), latencyMs: num, model: text, inputTokens: num, outputTokens: num,

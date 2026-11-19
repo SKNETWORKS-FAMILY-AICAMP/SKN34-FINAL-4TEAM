@@ -44,7 +44,6 @@ export class InMemoryOperationsDashboardRepository implements OperationsDashboar
 
 const trace = (id: string, feature: string, status: string, minutes: number, latencyMs: number, cost: number): TraceItem => ({
   id, timestamp: ago(minutes), feature, status, latencyMs, inputTokens: 1200, outputTokens: 340, cost, userId: 'demo-member', workId: 'demo-work',
-  traceUrl: `http://localhost:3000/project/demo/traces/${id}`,
 })
 
 export class InMemoryLlmOpsRepository implements LlmOpsRepository {
