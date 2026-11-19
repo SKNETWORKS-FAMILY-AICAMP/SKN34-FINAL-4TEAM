@@ -160,6 +160,11 @@ def test_stream_router_failure_is_an_error_event(monkeypatch):
     assert stream() == [('error', {'message': '요청 분류에 실패했습니다.'})]
 
 
+def test_stream_shows_the_provider_failure_message(monkeypatch):
+    fake_agents(monkeypatch, plan('story_context'), fail={'judge': IntentFailure('AI 제공사 크레딧이 부족해 요청을 처리하지 못했습니다.')})
+    assert stream() == [('error', {'message': 'AI 제공사 크레딧이 부족해 요청을 처리하지 못했습니다.'})]
+
+
 def chat(thread, scope='user:1/work:1', **body):
     return run(conversation={'threadId': thread, 'scope': scope}, **body)
 
@@ -1533,21 +1538,25 @@ def test_rename_keeps_turns_and_waits_for_a_finished_run(monkeypatch):
         conversation('rename', thread, ME, '다른 제목')
 
 
-def test_failed_new_message_is_saved_and_chat_can_be_renamed(monkeypatch):
+@pytest.mark.parametrize('failure, message', [
+    (IntentFailure(), '요청 분류에 실패했습니다.'),
+    (IntentFailure('AI 제공사 크레딧이 부족해 요청을 처리하지 못했습니다.'), 'AI 제공사 크레딧이 부족해 요청을 처리하지 못했습니다.'),
+])
+def test_failed_new_message_is_saved_and_chat_can_be_renamed(monkeypatch, failure, message):
     thread = str(uuid4())
-    fake_agents(monkeypatch, plan('story_context'), fail={'judge': IntentFailure()})
+    fake_agents(monkeypatch, plan('story_context'), fail={'judge': failure})
 
     events = stream(request='카이의 목표는?', conversation={'threadId': thread, 'scope': ME})
 
     assert events[-1][0] == 'done'
-    assert events[-1][1]['status'] == 'failed'
+    assert (events[-1][1]['status'], events[-1][1]['message']) == ('failed', message)
     conversation('rename', thread, ME, '실패한 집필 요청')
     history = conversation('history', thread, ME)
     assert history.title == '실패한 집필 요청'
     assert len(history.turns) == 1
     turn = history.turns[0]
     assert turn.request == '카이의 목표는?'
-    assert (turn.reply.status, turn.reply.message) == ('failed', service.ROUTER_FAILED_MESSAGE)
+    assert (turn.reply.status, turn.reply.message) == ('failed', message)
 
 
 def test_delete_removes_the_thread(monkeypatch):

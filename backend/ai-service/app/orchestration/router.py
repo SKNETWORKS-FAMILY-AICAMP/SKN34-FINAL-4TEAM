@@ -26,8 +26,8 @@ async def orchestrate(data: OrchestrationRequest, x_internal_token: str = Header
     require_internal_token(x_internal_token)
     try:
         return await service.run(data, x_user_authorization)
-    except IntentFailure:
-        raise HTTPException(503, service.ROUTER_FAILED_MESSAGE) from None
+    except IntentFailure as error:
+        raise HTTPException(503, str(error)) from None
     except service.ConversationUnavailable:
         raise HTTPException(503, service.CONVERSATION_UNAVAILABLE_MESSAGE) from None
     except service.ConversationMismatch:

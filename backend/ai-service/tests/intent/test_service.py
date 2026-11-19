@@ -1,7 +1,8 @@
 from types import SimpleNamespace
 
+import httpx
 import pytest
-from openai import OpenAIError
+from openai import APIConnectionError, APITimeoutError, AuthenticationError, OpenAIError, PermissionDeniedError, RateLimitError
 
 from app.intent.errors import IntentFailure
 from app.intent import agent, prompt, service
@@ -309,6 +310,38 @@ def test_fiction_violence_flag_alone_is_left_to_the_decision(monkeypatch):
 def test_explicit_operation_is_also_guarded(monkeypatch):
     calls = fake_decisions(monkeypatch, {'guard': 'none'})
     assert service.judge('writer@example.com', operation='manuscript_review').reason == 'sensitive_data' and calls == []
+
+
+REQUEST = httpx.Request('POST', 'https://api.openai.com/v1/decisions')
+
+
+def provider_error(kind, status, code):
+    response = httpx.Response(status, request=REQUEST)
+    return kind('provider said no', response=response, body={'code': code})
+
+
+@pytest.mark.parametrize('error, message', [
+    (provider_error(RateLimitError, 429, 'insufficient_quota'), 'AI 제공사 크레딧이 부족해 요청을 처리하지 못했습니다.'),
+    (provider_error(RateLimitError, 429, 'rate_limit_exceeded'), 'AI 제공사 요청 한도를 넘었습니다. 잠시 후 다시 시도해 주세요.'),
+    (provider_error(AuthenticationError, 401, 'invalid_api_key'), 'AI 제공사 인증에 실패했습니다. 운영자에게 문의해 주세요.'),
+    (provider_error(PermissionDeniedError, 403, None), 'AI 제공사 인증에 실패했습니다. 운영자에게 문의해 주세요.'),
+    (APITimeoutError(REQUEST), 'AI 제공사 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.'),
+    (APIConnectionError(request=REQUEST), 'AI 제공사에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.'),
+    (OpenAIError('down'), '요청 분류에 실패했습니다.'),
+])
+@pytest.mark.parametrize('operation', [None, 'character_simulation'])
+def test_provider_errors_get_distinct_messages_without_provider_text(monkeypatch, error, message, operation):
+    fake_decisions(monkeypatch, error)
+    with pytest.raises(IntentFailure) as failure:
+        service.judge('검수해줘', operation=operation)
+    assert str(failure.value) == message and 'provider said no' not in str(failure.value)
+
+
+def test_moderation_quota_error_is_also_distinct(monkeypatch):
+    fake_decisions(monkeypatch, ok(review='yes'), flagged=provider_error(RateLimitError, 429, 'insufficient_quota'))
+    with pytest.raises(IntentFailure) as failure:
+        service.judge('검수해줘')
+    assert str(failure.value) == 'AI 제공사 크레딧이 부족해 요청을 처리하지 못했습니다.'
 
 
 def test_moderation_error_fails_closed(monkeypatch):
