@@ -25,13 +25,13 @@ const ACTIONS = new Map([
   ['EVENT_CREATE', '이벤트 등록'], ['EVENT_UPDATE', '이벤트 수정'], ['EVENT_DELETE', '이벤트 삭제'],
   ['INQUIRY_REPLY_CREATE', '문의 답변 등록'], ['INQUIRY_REPLY_UPDATE', '문의 답변 수정'], ['INQUIRY_REPLY_DELETE', '문의 답변 삭제'],
   ['COMMENT_HIDE', '댓글 숨김'], ['COMMENT_UNHIDE', '댓글 게시 복구'],
-  // DEC-55 운영 대시보드·LLMOps·작업 감시
-  ['PROMPT_VERSION_CREATED', '프롬프트 새 버전 등록'], ['PROMPT_PROMOTED', '프롬프트 production 승격·복원'], ['MODEL_CREATED', '모델 단가 등록'],
-  ['EVALUATION_STARTED', '회귀 평가 실행'], ['ALERT_UPDATED', '경고 확인·조치 기록'], ['ALERT_RULE_UPDATED', '경고 기준 변경'],
-  ['LLMOPS_SETTING_UPDATED', 'LLMOps 설정 변경'], ['JOB_SCHEDULE_CREATE', '정기 작업 일정 등록'], ['JOB_SCHEDULE_UPDATE', '정기 작업 일정 변경'],
-  ['JOB_SCHEDULE_CANCEL', '정기 작업 일정 취소'], ['JOB_RETRY', '작업 실패 재실행'],
+  // DEC-55 운영 LLMOps(조각 2 서버 코드의 이름)와 작업 감시(조각 3)
+  ['PROMPT_CREATE', '프롬프트 버전 등록'], ['PROMPT_PROMOTE', '프롬프트 승격·복원'], ['MODEL_CREATE', '모델 등록'], ['EVALUATION_RUN', '회귀 평가 실행'],
+  ['ALERT_ACKNOWLEDGE', '경고 확인'], ['ALERT_RESOLVE', '경고 조치 완료'], ['ALERT_RULE_UPDATE', '경고 기준 변경'], ['LLMOPS_SETTING_UPDATE', 'LLMOps 설정 변경'],
+  ['JOB_SCHEDULE_CREATE', '정기 작업 일정 등록'], ['JOB_SCHEDULE_UPDATE', '정기 작업 일정 변경'], ['JOB_SCHEDULE_CANCEL', '정기 작업 일정 취소'], ['JOB_RETRY', '작업 실패 재실행'],
 ])
-const TARGETS = new Map([['MEMBER', '회원'], ['REPORT', '신고'], ['WORK', '작품'], ['NOTICE', '공지'], ['EVENT', '이벤트'], ['INQUIRY', '문의'], ['COMMENT', '댓글'], ['JOB_SCHEDULE', '정기 작업 일정'], ['JOB_RUN', '작업 실행']])
+const TARGETS = new Map([['MEMBER', '회원'], ['REPORT', '신고'], ['WORK', '작품'], ['NOTICE', '공지'], ['EVENT', '이벤트'], ['INQUIRY', '문의'], ['COMMENT', '댓글'], ['JOB_SCHEDULE', '정기 작업 일정'], ['JOB_RUN', '작업 실행'],
+  ['PROMPT', '프롬프트'], ['MODEL', '모델'], ['EVALUATION', '회귀 평가'], ['ALERT', '경고'], ['ALERT_RULE', '경고 기준'], ['LLMOPS_SETTING', 'LLMOps 설정']])
 
 /** 모르는 조치는 코드 그대로 보여 줍니다. */
 export const activityActionLabel = (action: string) => ACTIONS.get(action) ?? action
