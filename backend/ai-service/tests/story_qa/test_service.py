@@ -42,13 +42,31 @@ def test_embedding_model_unavailable_is_an_explicit_error(monkeypatch):
 
 
 def answer_with(monkeypatch, claims):
+    """모델 대역. claims의 sourceIds는 모델이 보는 별칭(e1·e2…)이다."""
     from app.story_qa.models import AnswerResponse
     monkeypatch.setattr(service.agent, 'answer', lambda data: AnswerResponse(claims=claims, gaps=[]))
     return AnswerRequest(question='누구?', excerpts=[Excerpt(id='a', episode=1, quote='원문')])
 
 
+def test_model_cites_short_aliases_and_answer_returns_the_real_ids(monkeypatch):
+    """긴 UUID를 모델이 옮겨 적다 한 글자씩 틀려 502가 났다(#548). 모델에는 e1·e2… 별칭만 보이고 답은 실제 id로 돌아온다."""
+    from app.story_qa.models import AnswerResponse
+    card, relation = 'card:aff97912-9452-5e5a-8920-68d92da24865', 'relation:dc15545b-41a5-5888-a6bb-e28019c6d4b3'
+    seen = {}
+
+    def fake(data):
+        seen['ids'] = [e.id for e in data.excerpts]
+        return AnswerResponse(claims=[Claim(text='스승', kind='confirmed', sourceIds=['e2', 'e1'])], gaps=[])
+
+    monkeypatch.setattr(service.agent, 'answer', fake)
+    data = AnswerRequest(question='누구?', excerpts=[Excerpt(id=card, episode=1, quote='카드', kind='setting'),
+                                                     Excerpt(id=relation, episode=1, quote='관계', kind='relationship')])
+    assert service.answer(data).claims[0].sourceIds == [relation, card]
+    assert seen['ids'] == ['e1', 'e2']
+
+
 def test_answer_keeps_claims_cited_from_given_excerpts(monkeypatch):
-    data = answer_with(monkeypatch, [Claim(text='홍길동', kind='confirmed', sourceIds=['a'])])
+    data = answer_with(monkeypatch, [Claim(text='홍길동', kind='confirmed', sourceIds=['e1'])])
     assert service.answer(data).claims[0].sourceIds == ['a']
 
 
@@ -67,7 +85,7 @@ def attrs(span):
 
 
 def test_answer_trace_has_question_manuscript_and_answer_bodies_but_no_setting_text(monkeypatch, spans):
-    data = answer_with(monkeypatch, [Claim(text='홍길동', kind='confirmed', sourceIds=['a'])])
+    data = answer_with(monkeypatch, [Claim(text='홍길동', kind='confirmed', sourceIds=['e1'])])
     data.excerpts.append(Excerpt(id='s', episode=1, quote='비공개 설정 본문', kind='setting', title='설정 제목'))
     service.answer(data)
     retrieval, check, qa = spans()
