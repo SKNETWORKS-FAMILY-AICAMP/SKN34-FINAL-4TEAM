@@ -100,6 +100,12 @@ describe('HttpLlmOpsRepository 추적·지표', () => {
     expect(detail.observations).toEqual([observation])
   })
 
+  it('계약상 선택 값인 입력·출력이 없고 실행 단계의 시작 시각이 비어 와도 추적 상세를 거절하지 않는다', async () => {
+    const observation = { id: 'o1', name: 'retrieve', type: 'SPAN', startTime: null, endTime: null, latencyMs: null, level: 'DEFAULT' }
+    const detail = await new HttpLlmOpsRepository(ok({ ...trace, observations: [observation] })).trace('t1')
+    expect(detail.observations.map((o) => o.startTime ?? null)).toEqual([null])
+  })
+
   it('지표는 기간·묶음을 query로 보내고 데이터가 없는 비율은 null로 둔다', async () => {
     const row = { key: '2026-11-19', requests: 5, failureRate: 0.2, timeoutRate: 0, p50LatencyMs: 300, p95LatencyMs: 900, inputTokens: 10, outputTokens: 5, costUser: 0, costPlatform: 0.01 }
     const fetcher = ok({ rows: [row], adoptionRate: 0.5, approvalRate: null, filterRestoreRate: null })
@@ -126,14 +132,41 @@ describe('HttpLlmOpsRepository 프롬프트·모델·평가·설정', () => {
     ])
   })
 
-  it('production 승격은 PUT으로 버전을 보내고, 평가 미통과 409는 서버 문구를 그대로 알린다', async () => {
+  it('프롬프트 버전의 등록 시각이 비어 와도(Langfuse에 값이 없을 때) 상세를 거절하지 않는다', async () => {
+    const versions = [{ version: 1, labels: [], createdAt: null }, { version: 2, labels: ['production'] }]
+    const detail = await new HttpLlmOpsRepository(ok({ name: 'qa', versions })).prompt('qa')
+    expect(detail.versions.map((v) => v.createdAt ?? null)).toEqual([null, null])
+  })
+
+  it('production 승격은 PUT으로 버전을 보내고, 평가 미통과 409(EVALUATION_REQUIRED)는 서버의 영문 문구 대신 정해진 한국어 문구로 알린다', async () => {
     const fetcher = ok({})
     await new HttpLlmOpsRepository(fetcher).promote('qa', 3)
     expect(callsOf(fetcher)[0].slice(0, 2).map((v) => typeof v === 'string' ? v : [v.method, v.body])).toEqual(['/api/v1/operations/llmops/prompts/qa/production', ['PUT', JSON.stringify({ version: 3 })]])
-    const rejected = new HttpLlmOpsRepository(fail(409, { code: 'EVALUATION_REQUIRED', message: '3번 버전은 회귀 평가를 통과해야 승격할 수 있어요.' })).promote('qa', 3)
-    await expect(rejected).rejects.toThrow(new OperationsRejected('3번 버전은 회귀 평가를 통과해야 승격할 수 있어요.'))
-    // 서버 문구가 없으면 일반 문구다.
+    const rejected = new HttpLlmOpsRepository(fail(409, { code: 'EVALUATION_REQUIRED', message: 'A passing regression evaluation is required for this prompt version.' })).promote('qa', 3)
+    await expect(rejected).rejects.toThrow(new OperationsRejected('회귀 평가를 통과한 버전만 production으로 올릴 수 있어요.'))
+    // 다른 409(영문 고정 문구)나 본문이 없는 409는 일반 충돌 안내다.
+    await expect(new HttpLlmOpsRepository(fail(409, { code: 'CONFLICT', message: 'Resource conflicts with its current state.' })).promote('qa', 3)).rejects.toThrow(new OperationsError('다른 변경과 충돌했어요. 목록을 새로고침한 뒤 다시 시도해 주세요.'))
     await expect(new HttpLlmOpsRepository(fail(409, {})).promote('qa', 3)).rejects.toThrow(new OperationsError('다른 변경과 충돌했어요. 목록을 새로고침한 뒤 다시 시도해 주세요.'))
+  })
+
+  it.each([
+    [400, 'INVALID_REQUEST', 'Invalid request.', '입력값을 확인해 주세요.'],
+    [404, 'NOT_FOUND', 'Resource not found.', '대상을 찾을 수 없어요. 목록을 새로고침해 주세요.'],
+    [409, 'CONFLICT', 'Resource conflicts with its current state.', '다른 변경과 충돌했어요. 목록을 새로고침한 뒤 다시 시도해 주세요.'],
+    [422, 'REQUEST_FAILED', 'Request could not be completed.', '입력값을 확인해 주세요.'],
+  ])('변경 요청의 %s 응답이 서버의 영문 고정 문구면 한국어 안내로 바꾼다', async (status, code, message, korean) => {
+    const body = { code, message }
+    await expect(new HttpLlmOpsRepository(fail(status, body)).updateSettings({ leakSampleRate: 0.5 })).rejects.toThrow(new OperationsError(korean))
+    await expect(new HttpOperationsDashboardRepository(fail(status, body)).updateAlert('a1', 'resolved', '')).rejects.toThrow(new OperationsError(korean))
+    await expect(new HttpJobMonitorRepository(fail(status, body)).cancelSchedule('s1')).rejects.toThrow(new OperationsError(korean))
+  })
+
+  it('상위 서비스가 준 안내(code UPSTREAM…이거나 한글로 쓴 문구)는 그대로 보이고, 502 연결 실패는 한국어 안내다', async () => {
+    const retry = (status: number, body: unknown) => new HttpJobMonitorRepository(fail(status, body)).retry('j1')
+    // 서버는 상위 서비스 거절을 일반 오류와 같은 code로 주되 문구만 상위 서비스의 한글 안내로 바꾼다.
+    await expect(retry(409, { code: 'CONFLICT', message: '이미 다시 실행한 기록이에요.' })).rejects.toThrow(new OperationsRejected('이미 다시 실행한 기록이에요.'))
+    await expect(retry(409, { code: 'UPSTREAM_REJECTED', message: 'Content refused the request.' })).rejects.toThrow(new OperationsRejected('Content refused the request.'))
+    await expect(retry(502, { code: 'UPSTREAM_FAILED', message: 'Upstream service request failed.' })).rejects.toThrow(new OperationsError('연결된 서비스(Langfuse·AI·Core·Content)에서 처리하지 못했어요. 잠시 후 다시 시도해 주세요.'))
   })
 
   it('연결된 서비스 실패(502)는 반영 여부를 단정하지 않는 안내로 바꾼다', async () => {
@@ -216,12 +249,12 @@ describe('HttpJobMonitorRepository', () => {
     // jsonb params가 비어 오면 빈 객체다.
     expect(await repo.schedules()).toEqual([{ ...schedule, params: {} }])
     await repo.createSchedule({ kind: 'alert_cleanup', cron: '0 0 4 * * *', enabled: true, params: { days: 90 } })
-    await repo.updateSchedule('s 1', { cron: '0 0 5 * * *', enabled: false, params: {} })
+    await repo.updateSchedule('s 1', { kind: 'alert_cleanup', cron: '0 0 5 * * *', enabled: false, params: {} })
     await repo.cancelSchedule('s 1')
     expect(callsOf(fetcher).map(([url, init]) => [url, init.method, init.body])).toEqual([
       ['/api/v1/operations/jobs/schedules', 'GET', undefined],
       ['/api/v1/operations/jobs/schedules', 'POST', JSON.stringify({ kind: 'alert_cleanup', cron: '0 0 4 * * *', enabled: true, params: { days: 90 } })],
-      ['/api/v1/operations/jobs/schedules/s%201', 'PUT', JSON.stringify({ cron: '0 0 5 * * *', enabled: false, params: {} })],
+      ['/api/v1/operations/jobs/schedules/s%201', 'PUT', JSON.stringify({ kind: 'alert_cleanup', cron: '0 0 5 * * *', enabled: false, params: {} })],
       ['/api/v1/operations/jobs/schedules/s%201', 'DELETE', undefined],
     ])
   })

@@ -7,7 +7,8 @@ export interface JobMonitorRepository {
   retry(id: string): Promise<void>
   schedules(): Promise<Schedule[]>
   createSchedule(input: ScheduleInput): Promise<void>
-  updateSchedule(id: string, input: Pick<ScheduleInput, 'cron' | 'enabled' | 'params'>): Promise<void>
+  /** 서버는 생성과 같은 전체 본문으로 교체하며 종류는 바꿀 수 없습니다(다르면 422). */
+  updateSchedule(id: string, input: ScheduleInput): Promise<void>
   /** 취소는 삭제가 아니라 enabled=false입니다. */
   cancelSchedule(id: string): Promise<void>
 }

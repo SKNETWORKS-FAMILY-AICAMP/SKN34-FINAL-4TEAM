@@ -12,6 +12,10 @@ function parseParams(text: string): Record<string, unknown> {
   return Object.fromEntries(Object.entries(value))
 }
 const required = (...values: string[]) => { if (values.some((value) => !value.trim())) throw new OperationsError('작업 종류와 cron 식을 입력해 주세요.') }
+function scheduleInput(kind: string, cron: string, enabled: boolean, params: string): ScheduleInput {
+  required(kind, cron)
+  return { kind: kind.trim(), cron: cron.trim(), enabled, params: parseParams(params) }
+}
 
 /** 작업 감시·정기 작업 일정(DEC-55). 실행은 소유 서비스가 하고, 여기서는 감시·재실행 요청과 일정 입력만 다룹니다. */
 export class JobMonitorUseCase {
@@ -24,14 +28,12 @@ export class JobMonitorUseCase {
   cancelSchedule(id: string) { return this.repository.cancelSchedule(id) }
 
   async createSchedule(kind: string, cron: string, enabled: boolean, params: string) {
-    required(kind, cron)
-    const input: ScheduleInput = { kind: kind.trim(), cron: cron.trim(), enabled, params: parseParams(params) }
-    return this.repository.createSchedule(input)
+    return this.repository.createSchedule(scheduleInput(kind, cron, enabled, params))
   }
 
-  /** 종류는 바꿀 수 없어 cron·사용 여부·매개변수만 보냅니다. */
-  async updateSchedule(id: string, cron: string, enabled: boolean, params: string) {
-    required(id, cron)
-    return this.repository.updateSchedule(id, { cron: cron.trim(), enabled, params: parseParams(params) })
+  /** 서버가 전체 교체로 받으므로 수정 중인 일정의 기존 종류를 함께 보냅니다(종류는 바꿀 수 없음). */
+  async updateSchedule(id: string, kind: string, cron: string, enabled: boolean, params: string) {
+    required(id)
+    return this.repository.updateSchedule(id, scheduleInput(kind, cron, enabled, params))
   }
 }

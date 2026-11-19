@@ -67,7 +67,7 @@ function Prompts({ vm, l }: Props) {
                   <tr key={v.version}>
                     <td>{v.version}</td>
                     <td>{v.labels.length ? v.labels.map((label) => <span key={label} className="chip ok">{label}</span>) : '—'}</td>
-                    <td>{kstDateTime(v.createdAt)}</td>
+                    <td>{v.createdAt ? kstDateTime(v.createdAt) : '—'}</td>
                     <td>
                       {evaluation
                         ? (

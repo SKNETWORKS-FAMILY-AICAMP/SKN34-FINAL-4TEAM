@@ -1,4 +1,5 @@
 import type { JobRun, JobRunPage, JobRunQuery, Schedule, ScheduleInput } from '../../domain/entities/jobMonitor'
+import { EVALUATION_REQUIRED_MESSAGE } from '../../domain/entities/llmOps'
 import type {
   Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
 } from '../../domain/entities/llmOps'
@@ -108,7 +109,7 @@ export class InMemoryLlmOpsRepository implements LlmOpsRepository {
   }
   async promote(name: string, version: number) {
     const p = found(this.prompts_.find((item) => item.name === name)), target = found(p.versions.find((v) => v.version === version))
-    if (target.evaluation?.passed !== true) throw new OperationsRejected('이 버전은 최신 회귀 평가를 통과해야 production으로 올릴 수 있어요.')
+    if (target.evaluation?.passed !== true) throw new OperationsRejected(EVALUATION_REQUIRED_MESSAGE)
     for (const v of p.versions) v.labels = v === target ? ['production'] : v.labels.filter((label) => label !== 'production')
   }
   async models() { return structuredClone(this.modelRows) }
@@ -151,6 +152,11 @@ export class InMemoryJobMonitorRepository implements JobMonitorRepository {
     const now = new Date().toISOString()
     this.scheduleRows.push({ id: `schedule-${this.scheduleRows.length + 1}`, ...input, createdAt: now, updatedAt: now })
   }
-  async updateSchedule(id: string, input: Pick<ScheduleInput, 'cron' | 'enabled' | 'params'>) { Object.assign(found(this.scheduleRows.find((row) => row.id === id)), input, { updatedAt: new Date().toISOString() }) }
+  /** 서버처럼 전체 본문으로 교체하되 종류는 바꿀 수 없습니다. */
+  async updateSchedule(id: string, { kind, ...rest }: ScheduleInput) {
+    const row = found(this.scheduleRows.find((item) => item.id === id))
+    if (kind !== row.kind) throw new OperationsRejected('작업 종류는 바꿀 수 없어요.')
+    Object.assign(row, rest, { updatedAt: new Date().toISOString() })
+  }
   async cancelSchedule(id: string) { Object.assign(found(this.scheduleRows.find((row) => row.id === id)), { enabled: false, updatedAt: new Date().toISOString() }) }
 }

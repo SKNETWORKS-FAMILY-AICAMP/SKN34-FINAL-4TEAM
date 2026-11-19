@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 
+import { lastPage } from '../../../../domain/entities/operations'
 import { kstDateTime } from '../../../shared/format'
 import type { AdminActionState, useAdminViewModel } from '../viewmodel/useAdminViewModel'
 import { useAdminDetailFocus } from './useAdminDetailFocus'
@@ -54,9 +55,9 @@ export function ActionLines({ vm, prefix, target }: { vm: VM; prefix: string; ta
   return <>{Object.entries(vm.actions).filter(([key]) => key.startsWith(prefix)).map(([key, state]) => <AdminActionStatus key={key} state={state} target={target?.(key)} />)}</>
 }
 
-/** 번호 쪽 이동. page는 0부터이고 화면에는 1쪽부터 보입니다. */
-export function Pager({ page, size, total, onPage }: { page: number; size: number; total: number; onPage: (page: number) => void }) {
-  const last = Math.max(Math.ceil(total / size) - 1, 0)
+/** 번호 쪽 이동. page는 0부터이고 화면에는 1쪽부터 보입니다. limit이 있으면 서버가 앞에서부터 읽게 허용하는 건수 안의 쪽까지만 열 수 있습니다. */
+export function Pager({ page, size, total, limit, onPage }: { page: number; size: number; total: number; limit?: number; onPage: (page: number) => void }) {
+  const last = lastPage(total, size, limit)
   return (
     <nav className="rowend" aria-label="쪽 이동">
       <span className="small muted">전체 {total.toLocaleString('ko-KR')}건 · {page + 1}/{last + 1}쪽</span>

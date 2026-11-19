@@ -14,6 +14,8 @@ export type JobRun = {
 }
 /** unavailable에 전처리 출처 이름이 있으면 그 출처를 읽지 못한 것이고, 읽은 출처(운영 정기 작업)의 기록은 그대로 보입니다. */
 export type JobRunPage = OperationsPage<JobRun>
+/** 서버가 실행 기록을 앞에서부터 읽게 허용하는 최대 건수. (쪽+1)×크기가 이를 넘는 쪽은 400이라 화면이 막습니다. */
+export const JOB_RUNS_LIMIT = 1000
 /** 비어 있는 값(전체)은 서버에 보내지 않습니다. page는 0부터입니다. */
 export type JobRunQuery = { status: string; kind: string; page: number }
 export type Schedule = {

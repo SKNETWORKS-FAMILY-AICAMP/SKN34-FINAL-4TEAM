@@ -10,7 +10,7 @@ export type TraceItem = {
   userId?: string | null; workId?: string | null
 }
 type Observation = {
-  id: string; name: string; type: string; startTime: string; endTime?: string | null; latencyMs?: number | null
+  id: string; name: string; type: string; startTime?: string | null; endTime?: string | null; latencyMs?: number | null
   model?: string | null; inputTokens?: number | null; outputTokens?: number | null; level: string
   statusMessage?: string | null; promptName?: string | null; promptVersion?: number | null
 }
@@ -28,7 +28,7 @@ export type MetricsGroup = 'day' | 'feature' | 'model'
 export type MetricsQuery = { from: string; to: string; groupBy: MetricsGroup }
 export const METRICS_GROUPS: [MetricsGroup, string][] = [['day', '날짜'], ['feature', '기능'], ['model', '모델']]
 
-export type PromptVersion = { version: number; labels: string[]; createdAt: string; evaluation?: { runId: string; passed?: boolean | null; createdAt: string } | null }
+export type PromptVersion = { version: number; labels: string[]; createdAt?: string | null; evaluation?: { runId: string; passed?: boolean | null; createdAt: string } | null }
 export type Prompt = { name: string; versions: PromptVersion[] }
 /** 새 버전은 라벨 없이 등록되며, production 라벨 이동은 승격으로 따로 합니다. */
 export type PromptVersionInput = { prompt: string; commitMessage: string }
@@ -48,6 +48,9 @@ export type EvaluationInput = { dataset: string; prompt: string; version: number
 
 export type LeakCheck = { id: string; traceId: string; workId: string; checkedAt: string; matched: string[]; suspected: boolean; reason?: string | null }
 export type LlmOpsSettings = { leakSampleRate: number }
+
+/** 승격이 그 버전의 최신 회귀 평가 미통과로 막힐 때(409 EVALUATION_REQUIRED) 보이는 문구. 서버의 영문 문구 대신 이 문구를 씁니다. */
+export const EVALUATION_REQUIRED_MESSAGE = '회귀 평가를 통과한 버전만 production으로 올릴 수 있어요.'
 
 const TRACE_STATUSES = new Map([['success', '성공'], ['failed', '실패'], ['timeout', '시간 초과']])
 export const TRACE_STATUS_OPTIONS = [...TRACE_STATUSES]

@@ -62,18 +62,21 @@ export const MESSAGES: Record<number, string> = {
   502: '연결된 서비스에서 처리하지 못해 반영되지 않았어요. 잠시 후 다시 시도해 주세요.',
 }
 
-/** 운영 서비스의 오류 본문 `{ code, message }`에서 안내 문구만 읽습니다. 없거나 비어 있으면 undefined입니다. */
-const failureMessage = async (response: Response) => {
-  const parsed = z.object({ message: z.string().trim().min(1) }).safeParse(await response.json().catch(() => undefined))
-  return parsed.success ? parsed.data.message : undefined
+/** 운영 서비스의 오류 본문 `{ code, message }`. 없거나 형식이 다르면 빈 객체입니다. */
+const failureBody = async (response: Response) => {
+  const parsed = z.object({ code: z.string().optional(), message: z.string().trim().min(1).optional() }).safeParse(await response.json().catch(() => undefined))
+  return parsed.success ? parsed.data : {}
 }
+/** 실패 상태와 오류 본문으로 화면에 그대로 보일 문구를 정합니다. 보이지 않을 오류면 undefined(상태별 일반 문구)입니다. */
+export type ServerReason = (status: number, error: { code?: string; message?: string }) => string | undefined
 
 /**
  * 운영 공개 API(/api/v1/operations) 공통 요청. 운영 서비스는 회원 Bearer만 확인하는 stateless API라 CSRF를 보내지 않습니다.
  * 실패 상태는 성공으로 숨기지 않고 화면에 보일 OperationsError로 바꿉니다. 403은 OperationsForbidden이고,
  * [serverMessages]에 든 상태는 서버가 보낸 안내 문구를 그대로 담은 OperationsRejected입니다(문구가 없으면 일반 문구).
+ * 함수를 주면 상태·code·message를 보고 보일 문구를 정합니다(돌려준 문구가 없으면 일반 문구).
  */
-export async function send(fetcher: typeof fetch | undefined, path: string, method = 'GET', body?: unknown, messages: Record<number, string> = MESSAGES, serverMessages: readonly number[] = []) {
+export async function send(fetcher: typeof fetch | undefined, path: string, method = 'GET', body?: unknown, messages: Record<number, string> = MESSAGES, serverMessages: readonly number[] | ServerReason = []) {
   const init: RequestInit = { method, signal: AbortSignal.timeout(15000), headers: body === undefined ? {} : { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) }
   let response: Response
   try {
@@ -83,7 +86,8 @@ export async function send(fetcher: typeof fetch | undefined, path: string, meth
     throw error
   }
   if (!response.ok) {
-    const reason = serverMessages.includes(response.status) ? await failureMessage(response) : undefined
+    const reason = typeof serverMessages === 'function' ? serverMessages(response.status, await failureBody(response))
+      : serverMessages.includes(response.status) ? (await failureBody(response)).message : undefined
     if (reason) throw new OperationsRejected(reason)
     const message = messages[response.status] ?? '요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.'
     throw response.status === 403 ? new OperationsForbidden(message) : new OperationsError(message)

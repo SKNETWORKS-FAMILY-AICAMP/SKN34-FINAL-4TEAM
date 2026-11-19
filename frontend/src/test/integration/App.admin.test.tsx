@@ -236,6 +236,17 @@ describe('관리자 (A01~A18)', () => {
     expect(screen.queryByRole('button', { name: '프로필 저장' })).toBeNull()
   })
 
+  it('실행 기록은 서버가 읽게 허용하는 앞쪽 1,000건 밖으로는 쪽 이동을 막고 안내한다', async () => {
+    const jobs = appContainer.resolve('jobMonitorUseCase')
+    const real = await jobs.runs({ status: '', kind: '', page: 0 })
+    vi.spyOn(jobs, 'runs').mockResolvedValue({ ...real, page: 49, size: 20, total: 3000 })
+    renderAt('/admin?tab=jobs')
+    await screen.findByText(/전체 3,000건 · 50\/50쪽/)
+    expect((screen.getByRole('button', { name: '다음' }) as HTMLButtonElement).disabled).toBe(true)
+    expect((screen.getByRole('button', { name: '이전' }) as HTMLButtonElement).disabled).toBe(false)
+    screen.getByText(/앞쪽 1,000건까지만 볼 수 있어요/)
+  })
+
   it('LLM Ops 추적은 요청 ID로 한 요청을 찾고 단계 상세를 우리 화면에 보인다', async () => {
     renderAt('/admin?tab=llm')
     fireEvent.click(await screen.findByRole('button', { name: '추적' }))
@@ -274,7 +285,7 @@ describe('관리자 (A01~A18)', () => {
     await screen.findByRole('heading', { name: 'qa-answer' })
     fireEvent.click(screen.getByRole('button', { name: 'qa-answer 3번 버전 production 승격' }))
     expect(confirm).toHaveBeenCalledTimes(1)
-    await within(screen.getByLabelText('프롬프트 상세')).findByText('이 버전은 최신 회귀 평가를 통과해야 production으로 올릴 수 있어요.')
+    await within(screen.getByLabelText('프롬프트 상세')).findByText('회귀 평가를 통과한 버전만 production으로 올릴 수 있어요.')
     // 현재 production 버전에는 승격 버튼이 없다.
     expect(screen.queryByRole('button', { name: /qa-answer 2번 버전 production/ })).toBeNull()
     fireEvent.change(screen.getByLabelText('새 버전 본문'), { target: { value: '새 프롬프트' } })
@@ -349,6 +360,14 @@ describe('관리자 (A01~A18)', () => {
     await toastIs('정기 작업 일정을 등록했어요.')
     const table = screen.getByRole('region', { name: '정기 작업 일정 표' })
     await within(table).findByText('0 0 5 * * *')
+    // 수정은 기존 종류를 함께 보내는 전체 교체라 cron만 고쳐도 성공하고, 폼은 등록 모드로 돌아간다.
+    fireEvent.click(within(table).getByRole('button', { name: '정보 누설 표본 검사 일정 수정' }))
+    await screen.findByRole('heading', { name: '일정 수정 · 정보 누설 표본 검사' })
+    fireEvent.change(screen.getByLabelText('cron 식'), { target: { value: '0 0 6 * * *' } })
+    fireEvent.click(screen.getByRole('button', { name: '일정 변경' }))
+    await toastIs('정기 작업 일정을 바꿨어요.')
+    await within(table).findByText('0 0 6 * * *')
+    await screen.findByRole('heading', { name: '일정 등록' })
     fireEvent.click(within(table).getByRole('button', { name: '정보 누설 표본 검사 일정 취소' }))
     await toastIs('정기 작업 일정을 취소했어요.')
     await within(table).findByText('꺼짐·취소됨')

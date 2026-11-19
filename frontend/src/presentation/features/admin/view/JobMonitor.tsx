@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { JOB_KINDS, JOB_STATUSES, jobKindLabel, jobProgress, jobSourceLabel, jobStatusLabel, jobTriggerLabel, type JobRun, type Schedule } from '../../../../domain/entities/jobMonitor'
+import { JOB_KINDS, JOB_RUNS_LIMIT, JOB_STATUSES, jobKindLabel, jobProgress, jobSourceLabel, jobStatusLabel, jobTriggerLabel, type JobRun, type Schedule } from '../../../../domain/entities/jobMonitor'
 import { kstDateTime } from '../../../shared/format'
 import { useJobMonitorViewModel } from '../viewmodel/useJobMonitorViewModel'
 import type { useAdminViewModel } from '../viewmodel/useAdminViewModel'
@@ -76,7 +76,8 @@ function Runs({ vm, j }: { vm: VM; j: Jobs }) {
               </thead>
               <tbody>{page.items.map((run) => <RunRow key={run.id} run={run} j={j} busy={!!vm.actions[`run:${run.id}`]?.pending} />)}</tbody>
             </Table>
-            <Pager page={page.page} size={page.size} total={page.total} onPage={j.setPage} />
+            <Pager page={page.page} size={page.size} total={page.total} limit={JOB_RUNS_LIMIT} onPage={j.setPage} />
+            {page.total > JOB_RUNS_LIMIT && <p className="admin-note">실행 기록은 앞쪽 1,000건까지만 볼 수 있어요. 상태·종류 조건으로 좁혀 보세요.</p>}
           </>
         )
         : <p className="admin-empty">조건에 맞는 실행 기록이 없어요.</p>)}
@@ -192,7 +193,7 @@ function ScheduleForm({ editing, vm, j, onDone }: { editing: Schedule | null; vm
         e.preventDefault()
         const form = e.currentTarget
         const cron = formText(form, 'cron'), params = formText(form, 'params'), enabled = new FormData(form).get('enabled') === 'on'
-        if (editing ? await j.updateSchedule(editing.id, cron, enabled, params) : await j.createSchedule(formText(form, 'kind'), cron, enabled, params)) {
+        if (editing ? await j.updateSchedule(editing.id, editing.kind, cron, enabled, params) : await j.createSchedule(formText(form, 'kind'), cron, enabled, params)) {
           if (editing) onDone()
           else form.reset()
         }

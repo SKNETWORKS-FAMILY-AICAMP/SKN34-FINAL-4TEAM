@@ -25,15 +25,16 @@ describe('정기 작업 일정', () => {
     await rejects(uc.createSchedule('alert_cleanup', '0 0 3 * * *', true, '{깨짐'), '매개변수는 JSON 객체로 입력해 주세요. 예: {}')
     await rejects(uc.createSchedule('alert_cleanup', '0 0 3 * * *', true, '[1]'), '매개변수는 JSON 객체로 입력해 주세요. 예: {}')
     await rejects(uc.createSchedule('alert_cleanup', '0 0 3 * * *', true, 'null'), '매개변수는 JSON 객체로 입력해 주세요. 예: {}')
-    await rejects(uc.updateSchedule('s1', '', true, '{}'), '작업 종류와 cron 식을 입력해 주세요.')
-    await rejects(uc.updateSchedule('s1', '0 0 3 * * *', true, '3'), '매개변수는 JSON 객체로 입력해 주세요. 예: {}')
+    await rejects(uc.updateSchedule('s1', 'alert_cleanup', '', true, '{}'), '작업 종류와 cron 식을 입력해 주세요.')
+    await rejects(uc.updateSchedule('s1', '', '0 0 3 * * *', true, '{}'), '작업 종류와 cron 식을 입력해 주세요.')
+    await rejects(uc.updateSchedule('s1', 'alert_cleanup', '0 0 3 * * *', true, '3'), '매개변수는 JSON 객체로 입력해 주세요. 예: {}')
     expect(createSchedule).not.toHaveBeenCalled()
     expect(updateSchedule).not.toHaveBeenCalled()
   })
 
-  it('변경은 종류를 바꾸지 않고 cron·사용 여부·매개변수만 보낸다', async () => {
+  it('변경은 서버가 전체 교체로 받으므로 기존 종류를 담은 {kind, cron, enabled, params} 전체를 보낸다', async () => {
     const updateSchedule = vi.fn(async () => {})
-    await make({ updateSchedule }).updateSchedule('s1', ' 0 30 3 * * * ', false, '{"a":1}')
-    expect(updateSchedule).toHaveBeenCalledWith('s1', { cron: '0 30 3 * * *', enabled: false, params: { a: 1 } })
+    await make({ updateSchedule }).updateSchedule('s1', ' regression_eval ', ' 0 30 3 * * * ', false, '{"a":1}')
+    expect(updateSchedule).toHaveBeenCalledWith('s1', { kind: 'regression_eval', cron: '0 30 3 * * *', enabled: false, params: { a: 1 } })
   })
 })

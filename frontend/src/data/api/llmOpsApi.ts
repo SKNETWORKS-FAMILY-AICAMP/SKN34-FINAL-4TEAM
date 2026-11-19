@@ -5,12 +5,13 @@ import type { JobRunPage, JobRunQuery, Schedule, ScheduleInput } from '../../dom
 import type {
   Evaluation, EvaluationInput, LeakCheck, LlmOpsSettings, Metrics, MetricsQuery, Model, ModelInput, Prompt, PromptVersionInput, TraceDetail, TraceItem, TraceQuery,
 } from '../../domain/entities/llmOps'
+import { EVALUATION_REQUIRED_MESSAGE } from '../../domain/entities/llmOps'
 import type { OperationsPage } from '../../domain/entities/operations'
 import type { Alert, AlertRule, AlertRuleInput, AlertStatus } from '../../domain/entities/operationsAlert'
 import type { JobMonitorRepository } from '../../domain/repositories/JobMonitorRepository'
 import type { LlmOpsRepository } from '../../domain/repositories/LlmOpsRepository'
 import type { OperationsDashboardRepository } from '../../domain/repositories/OperationsDashboardRepository'
-import { MESSAGES, items, read, send } from './operationsApi'
+import { MESSAGES, items, read, send, type ServerReason } from './operationsApi'
 
 const instant = z.string().datetime({ offset: true })
 /** 비어 올 수 있는 숫자. 비어 있음(null·생략)을 0으로 바꾸지 않습니다. */
@@ -43,10 +44,11 @@ const traceItem = z.object({
   userId: text, workId: text,
 })
 const observation = z.object({
-  id: z.string(), name: z.string(), type: z.string(), startTime: instant, endTime: instant.nullish(), latencyMs: num, model: text, inputTokens: num, outputTokens: num,
+  id: z.string(), name: z.string(), type: z.string(), startTime: instant.nullish(), endTime: instant.nullish(), latencyMs: num, model: text, inputTokens: num, outputTokens: num,
   level: z.string(), statusMessage: text, promptName: text, promptVersion: num,
 })
-const traceDetail = traceItem.extend({ input: z.unknown(), output: z.unknown(), observations: z.array(observation) })
+// zod 4의 z.unknown()은 객체에서 필수 키라, 계약상 선택 값인 입력·출력이 생략돼도 받도록 optional을 붙입니다.
+const traceDetail = traceItem.extend({ input: z.unknown().optional(), output: z.unknown().optional(), observations: z.array(observation) })
 const metricRow = z.object({
   key: z.string(), requests: z.number(), failureRate: num, timeoutRate: num, p50LatencyMs: num, p95LatencyMs: num,
   inputTokens: z.number(), outputTokens: z.number(), costUser: z.number(), costPlatform: z.number(),
@@ -55,7 +57,7 @@ const metrics = z.object({ rows: z.array(metricRow), adoptionRate: num, approval
 const prompt = z.object({
   name: z.string(),
   versions: z.array(z.object({
-    version: z.number(), labels: z.array(z.string()), createdAt: instant,
+    version: z.number(), labels: z.array(z.string()), createdAt: instant.nullish(),
     evaluation: z.object({ runId: z.string(), passed: z.boolean().nullish(), createdAt: instant }).nullish(),
   })).default([]),
 })
@@ -79,6 +81,14 @@ const schedule = z.object({
 /** 읽기·변경 실패 안내. 502는 Langfuse·AI·Core·Content 같은 연결 서비스 실패라 반영 여부를 단정하지 않습니다. */
 const MESSAGES_UPSTREAM = { ...MESSAGES, 422: MESSAGES[400], 502: '연결된 서비스(Langfuse·AI·Core·Content)에서 처리하지 못했어요. 잠시 후 다시 시도해 주세요.' }
 const id = encodeURIComponent
+/**
+ * 변경 요청의 오류 안내. 서버의 영문 고정 문구("Invalid request." 등)는 상태별 한국어 안내(MESSAGES)로 바꾸고, 승격이 평가 미통과로 막힌 409는 code(EVALUATION_REQUIRED)로 정해진 한국어 문구를 보입니다.
+ * 상위 서비스(Content 등)가 준 안내는 그대로 보입니다: code가 UPSTREAM…이거나 한글로 쓴 문구인 경우이고, 서버가 상위 서비스 거절을 일반 오류와 같은 code로 주고 문구만 바꾸기 때문에 한글 여부도 함께 봅니다.
+ */
+const changeReason: ServerReason = (status, { code, message }) => {
+  if (code === 'EVALUATION_REQUIRED') return EVALUATION_REQUIRED_MESSAGE
+  return message && [400, 404, 409, 422].includes(status) && (code?.startsWith('UPSTREAM') || /[가-힣]/.test(message)) ? message : undefined
+}
 /** 비어 있는 조건은 서버에 보내지 않습니다. */
 function withQuery(path: string, params: Record<string, string | number>) {
   const query = new URLSearchParams(Object.entries(params).filter(([, value]) => value !== '').map(([key, value]) => [key, String(value)])).toString()
@@ -89,8 +99,8 @@ class LlmOpsApi {
   private readonly fetcher?: typeof fetch
   constructor(fetcher?: typeof fetch) { this.fetcher = fetcher }
   protected get<T>(path: string, schema: z.ZodType<T>) { return read(this.fetcher, path, schema, [], MESSAGES_UPSTREAM) }
-  /** 변경 응답은 쓰지 않고 화면이 목록을 다시 조회합니다. 400·404·409·422는 입력·대상 상태 때문이므로 서버 문구를 그대로 보입니다. */
-  protected async change(path: string, method: string, body?: unknown) { await send(this.fetcher, path, method, body, MESSAGES_UPSTREAM, [400, 404, 409, 422]) }
+  /** 변경 응답은 쓰지 않고 화면이 목록을 다시 조회합니다. 오류 문구는 changeReason이 정합니다. */
+  protected async change(path: string, method: string, body?: unknown) { await send(this.fetcher, path, method, body, MESSAGES_UPSTREAM, changeReason) }
 }
 
 export class HttpOperationsDashboardRepository extends LlmOpsApi implements OperationsDashboardRepository {
@@ -126,6 +136,6 @@ export class HttpJobMonitorRepository extends LlmOpsApi implements JobMonitorRep
   retry(runId: string) { return this.change(`/jobs/runs/${id(runId)}/retry`, 'POST') }
   schedules(): Promise<Schedule[]> { return this.get('/jobs/schedules', items(schedule)) }
   createSchedule(input: ScheduleInput) { return this.change('/jobs/schedules', 'POST', input) }
-  updateSchedule(scheduleId: string, input: Pick<ScheduleInput, 'cron' | 'enabled' | 'params'>) { return this.change(`/jobs/schedules/${id(scheduleId)}`, 'PUT', input) }
+  updateSchedule(scheduleId: string, input: ScheduleInput) { return this.change(`/jobs/schedules/${id(scheduleId)}`, 'PUT', input) }
   cancelSchedule(scheduleId: string) { return this.change(`/jobs/schedules/${id(scheduleId)}`, 'DELETE') }
 }

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import { bodyText, percent, periodRange, promoteLabel, usd, type PromptVersion } from '../entities/llmOps'
-import { jobKindLabel, jobProgress, jobStatusLabel } from '../entities/jobMonitor'
+import { JOB_RUNS_LIMIT, jobKindLabel, jobProgress, jobStatusLabel } from '../entities/jobMonitor'
+import { lastPage } from '../entities/operations'
 
 describe('LLMOps 표시 값', () => {
   it('비율은 백분율로, 데이터가 없으면 0%가 아니라 데이터 없음이다', () => {
@@ -39,6 +40,23 @@ describe('LLMOps 표시 값', () => {
     expect(promoteLabel(versions, versions[1])).toBeNull()
     // production 라벨이 아직 없으면 어느 버전이든 승격이다.
     expect(promoteLabel([v(1)], v(1))).toBe('승격')
+  })
+})
+
+describe('쪽 이동 범위', () => {
+  it('마지막 쪽은 0부터 세고, 합계가 0이어도 첫 쪽이다', () => {
+    expect(lastPage(45, 20)).toBe(2)
+    expect(lastPage(40, 20)).toBe(1)
+    expect(lastPage(0, 20)).toBe(0)
+  })
+
+  it('서버가 앞에서부터 1,000건까지만 읽게 하면 그 안의 쪽까지만 열 수 있다(넘는 쪽은 400)', () => {
+    expect(JOB_RUNS_LIMIT).toBe(1000)
+    expect(lastPage(5000, 20, JOB_RUNS_LIMIT)).toBe(49)
+    expect(lastPage(1000, 20, JOB_RUNS_LIMIT)).toBe(49)
+    // 크기 30이면 33쪽(0부터)은 34*30=1,020이라 넘으므로 마지막은 32쪽이다.
+    expect(lastPage(5000, 30, JOB_RUNS_LIMIT)).toBe(32)
+    expect(lastPage(15, 20, JOB_RUNS_LIMIT)).toBe(0)
   })
 })
 

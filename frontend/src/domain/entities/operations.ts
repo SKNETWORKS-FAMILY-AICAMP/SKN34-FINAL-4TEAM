@@ -8,6 +8,9 @@ export type OperationsEvent = EventInput & RecordIdentity
 /** 운영 목록 응답. page는 0부터이고, unavailable은 읽지 못한 출처 이름입니다(읽은 출처의 기록은 그대로 보입니다). */
 export type OperationsPage<T> = { items: T[]; page: number; size: number; total: number; unavailable: string[] }
 
+/** 마지막으로 열 수 있는 쪽(0부터). limit은 서버가 앞에서부터 읽게 허용하는 건수이고, 그보다 뒤 쪽은 서버가 거절해서 막습니다. */
+export const lastPage = (total: number, size: number, limit = Number.POSITIVE_INFINITY) => Math.max(Math.min(Math.ceil(total / size), Math.floor(limit / size)) - 1, 0)
+
 /** 알려진 업무 입력·대상 오류만 화면에 그대로 안내합니다. 외부 예외 내용은 노출하지 않습니다. */
 export class OperationsError extends Error {}
 

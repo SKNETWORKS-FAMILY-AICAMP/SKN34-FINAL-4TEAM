@@ -21,8 +21,8 @@ export function useJobMonitorViewModel(mutate: AdminMutate, useCase: JobMonitorU
     retry: (id: string) => mutate(`run:${id}`, '실패한 작업의 재실행을 요청했어요. 진행은 실행 기록에서 확인해 주세요.', () => useCase.retry(id)),
     createSchedule: (kind: string, cron: string, enabled: boolean, params: string) =>
       mutate('schedule:new', '정기 작업 일정을 등록했어요.', () => useCase.createSchedule(kind, cron, enabled, params)),
-    updateSchedule: (id: string, cron: string, enabled: boolean, params: string) =>
-      mutate(`schedule:${id}`, '정기 작업 일정을 바꿨어요.', () => useCase.updateSchedule(id, cron, enabled, params)),
+    updateSchedule: (id: string, kind: string, cron: string, enabled: boolean, params: string) =>
+      mutate(`schedule:${id}`, '정기 작업 일정을 바꿨어요.', () => useCase.updateSchedule(id, kind, cron, enabled, params)),
     cancelSchedule: (id: string) => mutate(`schedule:${id}`, '정기 작업 일정을 취소했어요. 다시 쓰려면 일정을 수정해 켜 주세요.', () => useCase.cancelSchedule(id)),
   }
 }

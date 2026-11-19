@@ -143,7 +143,7 @@ function TraceDetailPanel({ vm, l }: { vm: VM; l: LlmVM }) {
                 <tr key={o.id}>
                   <td>{o.name}</td>
                   <td>{o.type}</td>
-                  <td>{kstDateTime(o.startTime)}</td>
+                  <td>{o.startTime ? kstDateTime(o.startTime) : '—'}</td>
                   <td>{millis(o.latencyMs)}</td>
                   <td>{o.model ?? '—'}</td>
                   <td>{count(o.inputTokens)} / {count(o.outputTokens)}</td>
