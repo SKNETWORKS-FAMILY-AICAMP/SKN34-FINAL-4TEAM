@@ -28,10 +28,10 @@ const ACTIONS = new Map([
   // DEC-55 운영 대시보드·LLMOps·작업 감시
   ['PROMPT_VERSION_CREATED', '프롬프트 새 버전 등록'], ['PROMPT_PROMOTED', '프롬프트 production 승격·복원'], ['MODEL_CREATED', '모델 단가 등록'],
   ['EVALUATION_STARTED', '회귀 평가 실행'], ['ALERT_UPDATED', '경고 확인·조치 기록'], ['ALERT_RULE_UPDATED', '경고 기준 변경'],
-  ['LLMOPS_SETTING_UPDATED', 'LLMOps 설정 변경'], ['JOB_SCHEDULE_CREATED', '정기 작업 일정 등록'], ['JOB_SCHEDULE_UPDATED', '정기 작업 일정 변경'],
-  ['JOB_SCHEDULE_CANCELLED', '정기 작업 일정 취소'], ['JOB_RUN_RETRIED', '작업 실패 재실행'],
+  ['LLMOPS_SETTING_UPDATED', 'LLMOps 설정 변경'], ['JOB_SCHEDULE_CREATE', '정기 작업 일정 등록'], ['JOB_SCHEDULE_UPDATE', '정기 작업 일정 변경'],
+  ['JOB_SCHEDULE_CANCEL', '정기 작업 일정 취소'], ['JOB_RETRY', '작업 실패 재실행'],
 ])
-const TARGETS = new Map([['MEMBER', '회원'], ['REPORT', '신고'], ['WORK', '작품'], ['NOTICE', '공지'], ['EVENT', '이벤트'], ['INQUIRY', '문의'], ['COMMENT', '댓글']])
+const TARGETS = new Map([['MEMBER', '회원'], ['REPORT', '신고'], ['WORK', '작품'], ['NOTICE', '공지'], ['EVENT', '이벤트'], ['INQUIRY', '문의'], ['COMMENT', '댓글'], ['JOB_SCHEDULE', '정기 작업 일정'], ['JOB_RUN', '작업 실행']])
 
 /** 모르는 조치는 코드 그대로 보여 줍니다. */
 export const activityActionLabel = (action: string) => ACTIONS.get(action) ?? action

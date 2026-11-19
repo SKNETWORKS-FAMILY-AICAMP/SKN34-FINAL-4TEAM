@@ -16,12 +16,12 @@ const ACTIONS: [string, string][] = [
   ['COMMENT_HIDE', '댓글 숨김'], ['COMMENT_UNHIDE', '댓글 게시 복구'],
 ]
 
-/** DEC-55 계약의 관리자 변경 조치 11종(조각 2·3이 정한 이름과 다르면 코디네이터가 맞춘다) */
+/** DEC-55 관리자 변경 조치 11종. 작업 감시 4종(JOB_*)은 조각 3이 확정한 이름이고, LLMOps 7종은 조각 2 확정 전의 계약 문구 기준이다 */
 const LLMOPS_ACTIONS: [string, string][] = [
   ['PROMPT_VERSION_CREATED', '프롬프트 새 버전 등록'], ['PROMPT_PROMOTED', '프롬프트 production 승격·복원'], ['MODEL_CREATED', '모델 단가 등록'],
   ['EVALUATION_STARTED', '회귀 평가 실행'], ['ALERT_UPDATED', '경고 확인·조치 기록'], ['ALERT_RULE_UPDATED', '경고 기준 변경'],
-  ['LLMOPS_SETTING_UPDATED', 'LLMOps 설정 변경'], ['JOB_SCHEDULE_CREATED', '정기 작업 일정 등록'], ['JOB_SCHEDULE_UPDATED', '정기 작업 일정 변경'],
-  ['JOB_SCHEDULE_CANCELLED', '정기 작업 일정 취소'], ['JOB_RUN_RETRIED', '작업 실패 재실행'],
+  ['LLMOPS_SETTING_UPDATED', 'LLMOps 설정 변경'], ['JOB_SCHEDULE_CREATE', '정기 작업 일정 등록'], ['JOB_SCHEDULE_UPDATE', '정기 작업 일정 변경'],
+  ['JOB_SCHEDULE_CANCEL', '정기 작업 일정 취소'], ['JOB_RETRY', '작업 실패 재실행'],
 ]
 
 describe('관리자 활동 기록 표시 규칙 (72)', () => {
@@ -49,6 +49,8 @@ describe('관리자 활동 기록 표시 규칙 (72)', () => {
     expect(target('NOTICE', 'n-1')).toBe('공지 n-1')
     expect(target('EVENT', 'e-1')).toBe('이벤트 e-1')
     expect(target('INQUIRY', 'q-1')).toBe('문의 q-1')
+    expect(target('JOB_SCHEDULE', 's-1')).toBe('정기 작업 일정 s-1')
+    expect(target('JOB_RUN', 'j-1')).toBe('작업 실행 j-1')
     expect(target('FUTURE', 'f-1')).toBe('FUTURE f-1')
     expect(target('toString', 'x')).toBe('toString x')
     expect(target('FUTURE', '')).toBe('FUTURE')
