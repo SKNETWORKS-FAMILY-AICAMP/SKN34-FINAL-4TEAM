@@ -20,6 +20,13 @@ interface InquiryRepository : JpaRepository<InquiryEntity, UUID> {
     """)
     fun findWaitingMemberInquiries(page: Pageable): List<InquiryEntity>
 
+    /** The dashboard's "waiting for an answer" count, the same rule as `findWaitingMemberInquiries` without the page limit. */
+    @Query("""
+        select count(i) from InquiryEntity i
+        where i.memberId is not null and not exists (select r.id from InquiryReplyEntity r where r.inquiryId = i.id)
+    """)
+    fun countWaitingMemberInquiries(): Long
+
     @Query("""
         select i from InquiryEntity i
         where i.memberId is not null and exists (select r.id from InquiryReplyEntity r where r.inquiryId = i.id)
