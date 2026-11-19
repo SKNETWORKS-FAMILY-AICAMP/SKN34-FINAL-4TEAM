@@ -1,8 +1,4 @@
-import { useState } from 'react'
-
 import { storageKinds, type StorageUsage } from '../../../../domain/entities/storageUsage'
-import { Pager } from '../../../shared/Pager'
-import { paginate } from '../../../shared/paginate'
 import './storageUsage.css'
 
 const labels = { manuscript: '원고', setting: '세계관 설정', manuscript_image: '원고 이미지' }
@@ -10,8 +6,7 @@ const number = new Intl.NumberFormat('ko-KR')
 const formatBytes = (bytes: number) => `${number.format(bytes)} B`
 
 export function StorageUsageView({ usage }: { usage: StorageUsage }) {
-  const [selectedPage, setSelectedPage] = useState(1)
-  const { items, page, pages } = paginate(usage.items, selectedPage)
+  const { items } = usage
   const bytes = { manuscript: usage.manuscriptBytes, setting: usage.settingBytes, manuscript_image: usage.manuscriptImageBytes }
 
   return <>
@@ -26,16 +21,15 @@ export function StorageUsageView({ usage }: { usage: StorageUsage }) {
       </dl>
     </div>
     <div className="tcard mecard storage-usage">
-      <h3>저장 항목 <span className="muted small">{number.format(usage.items.length)}개</span></h3>
-      {items.length ? <>
+      <h3>저장 항목 <span className="muted small">{number.format(items.length)}개</span></h3>
+      {items.length ? (
         <ul className="storage-usage-items">
           {items.map((item) => <li key={`${item.kind}:${item.id}`}>
             <div><b>{item.title}</b><small className="muted">{labels[item.kind]} · {item.parentTitle}</small></div>
             <span className="storage-usage-bytes">{formatBytes(item.bytes)}</span>
           </li>)}
         </ul>
-        <Pager page={page} pages={pages} onPage={setSelectedPage} />
-      </> : <p className="muted">저장 항목이 없어요.</p>}
+      ) : <p className="muted">저장 항목이 없어요.</p>}
     </div>
   </>
 }

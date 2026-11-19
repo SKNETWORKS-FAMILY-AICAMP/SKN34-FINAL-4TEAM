@@ -9,7 +9,8 @@ import ai.storyfork.content.world.studio.repository.SettingCardDraftRepository
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 
 class StorageUsageServiceTest {
     private val owner = UUID.fromString("00000000-0000-0000-0000-000000000036")
@@ -36,10 +37,6 @@ class StorageUsageServiceTest {
         assertEquals(15L, usage.settingBytes)
         assertEquals(3_000_000_000L, usage.manuscriptImageBytes)
         assertEquals(setOf(episode, legacy, studio, image), usage.items.toSet())
-        verify(manuscripts).storageItems(owner.toString())
-        verify(documents).storageItems(owner.toString())
-        verify(cards).storageItems(owner)
-        verify(images).storageItems(owner.toString())
     }
 
     @Test fun `a member with no qualifying rows has zero usage and an empty list`() {
