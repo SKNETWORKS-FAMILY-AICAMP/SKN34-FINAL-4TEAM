@@ -10,8 +10,6 @@ import ai.storyfork.content.episode.service.EpisodeService
 import ai.storyfork.content.work.service.WorkAccessService
 import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.world.service.WorldStudioService
-import ai.storyfork.content.world.service.dto.CardPayload
-import ai.storyfork.content.world.service.dto.WorldDraftResponse
 import ai.storyfork.content.writingai.client.WritingAiClient
 import ai.storyfork.content.writingai.service.WritingAiService
 import ai.storyfork.content.writingai.service.dto.WritingAiPage
@@ -303,15 +301,13 @@ class WritingAiServiceTest {
         WritingAiPage("/worldstudio/$world?card=$card", "world", worldId = world, cardId = card, view = "cards",
             content = WritingAiPageContent("카엘", "북문을 지키는 기사", true))
 
-    private fun draftWith(vararg cards: CardPayload) = WorldDraftResponse(worldId, 1, null, null, "세계", "", cards.toList(), emptyList())
-    private fun card(lifecycle: String = "active") = CardPayload(cardId, "카엘", "본문", "character", "society", lifecycle = lifecycle)
     private fun groundedFor(who: String) = `when`(scopes.resolve("work", who, QaScopeRequest(2, "r2"))).thenReturn(QaScope("work", null, 2, "r2", emptyList()))
 
     @Test
     fun `a world page of this authors linked world and card goes to the AI with only the given fields`() {
         groundedFor(owner)
         `when`(workWorlds.linkedWorldId("work", owner)).thenReturn(worldId)
-        `when`(worlds.draft(worldId, java.util.UUID.fromString(owner))).thenReturn(draftWith(card()))
+        `when`(worlds.hasCard(worldId, java.util.UUID.fromString(owner), cardId)).thenReturn(true)
         `when`(client.orchestrate(anyMap(), anyString())).thenReturn(result)
         service.run("work", owner, "Bearer user", pageAsk(worldPage()))
         assertEquals(mapOf("path" to "/worldstudio/$worldId?card=$cardId", "kind" to "world", "worldId" to worldId.toString(), "cardId" to cardId.toString(),
@@ -352,11 +348,11 @@ class WritingAiServiceTest {
     fun `a card that is not in the linked world or was removed is refused and another authors world keeps its 404`() {
         groundedFor(owner)
         `when`(workWorlds.linkedWorldId("work", owner)).thenReturn(worldId)
-        `when`(worlds.draft(worldId, java.util.UUID.fromString(owner))).thenReturn(draftWith(card("removed")))
-        for (page in listOf(worldPage(), worldPage(card = java.util.UUID.randomUUID().toString()))) {
+        `when`(worlds.hasCard(worldId, java.util.UUID.fromString(owner), cardId)).thenReturn(false)
+        for (page in listOf(worldPage(), worldPage(card = java.util.UUID.randomUUID().toString()), worldPage(card = "not-a-uuid"))) {
             assertEquals(422, assertThrows(ContentFailure::class.java) { service.run("work", owner, "Bearer user", pageAsk(page)) }.status)
         }
-        `when`(worlds.draft(worldId, java.util.UUID.fromString(owner))).thenThrow(ContentFailure(404, "세계관을 찾을 수 없어요."))
+        `when`(worlds.hasCard(worldId, java.util.UUID.fromString(owner), cardId)).thenThrow(ContentFailure(404, "세계관을 찾을 수 없어요."))
         assertEquals(404, assertThrows(ContentFailure::class.java) { service.run("work", owner, "Bearer user", pageAsk(worldPage())) }.status)
         verifyNoInteractions(client)
     }

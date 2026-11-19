@@ -37,7 +37,7 @@ def content(monkeypatch, fail=None, **replies):
         if tool in (fail or {}):
             raise fail[tool]
         return {'world_studio_read': WORLD_READ, 'world_studio_edit_draft': {'draftRevision': 5}, 'episode_read': {'draft': {'revision': 2}},
-                'work_update': {'revision': 9}, **replies}.get(tool, {})
+                'work_update': {'revision': 9}, 'work_read': {'worldStudioId': 'w1'}, **replies}.get(tool, {})
 
     monkeypatch.setattr(tools.content_mcp, 'call', call)
     return log
@@ -192,18 +192,52 @@ def test_every_write_tool_waits_for_approval_with_its_fixed_label(monkeypatch, n
     assert resume(thread, True).status == 'completed' and [t for t, _ in writes(log)] == [name]
 
 
-def test_a_write_for_another_work_is_refused_even_after_approval(monkeypatch):
-    fake_agents(monkeypatch, only_content(('work_update', {'id': 'someone-elses', 'data': {'title': 'x', 'revision': 1}})))
+def test_a_write_for_another_work_is_refused_before_any_approval_is_asked(monkeypatch):
+    calls = fake_agents(monkeypatch, only_content(('work_update', {'id': 'someone-elses', 'data': {'title': 'x', 'revision': 1}})))
+    log = content(monkeypatch)
+    result = turn(str(uuid4()))
+    assert (result.status, result.awaitingApproval) == ('completed', None) and writes(log) == []
+    refused = next(m for m in calls.main[-1]['messages'] if getattr(m, 'name', None) == 'work_update')
+    assert refused.status == 'error' and refused.content.startswith('[차단]')
+
+
+def test_a_world_other_than_the_one_on_screen_is_refused_before_approval_and_never_read(monkeypatch):
+    fake_agents(monkeypatch, only_content(('world_studio_edit_draft', {**EDIT, 'id': 'another-world'})))
+    log = content(monkeypatch)
+    result = turn(str(uuid4()), page=PAGE)  # 화면의 세계관은 w1
+    assert (result.status, result.awaitingApproval) == ('completed', None) and log == []
+
+
+def test_without_a_world_on_screen_only_the_world_linked_to_the_work_may_be_changed(monkeypatch):
+    fake_agents(monkeypatch, only_content(('world_studio_edit_draft', {**EDIT, 'id': 'another-world'})))
     log = content(monkeypatch)
     thread = str(uuid4())
-    turn(thread)
-    assert resume(thread, True).status == 'completed' and writes(log) == []
+    assert turn(thread).awaitingApproval == 'content_action'  # 승인 카드는 뜨지만
+    done = resume(thread, True)
+    assert done.status == 'failed' and done.steps[0].error == mcp_tools.NOT_THIS_WORLD  # 실행 직전에 연결된 세계관(w1)이 아니라 거절한다
+    assert writes(log) == [] and ('work_read', {'id': 'work'}) in log
+
+
+def test_a_world_write_without_the_read_revision_is_refused_instead_of_overwriting(monkeypatch):
+    fake_agents(monkeypatch, only_content(('world_studio_edit_draft', {'id': 'w1', 'request': {'cards': [{'id': 'k', 'body': '새 글'}]}})))
+    log = content(monkeypatch)
+    thread = str(uuid4())
+    turn(thread, page=PAGE)
+    done = resume(thread, True)
+    assert done.status == 'failed' and writes(log) == []
+
+
+def test_a_request_the_ui_assigned_to_one_feature_gets_no_content_tools(monkeypatch):
+    calls = fake_agents(monkeypatch, plan('story_context'))
+    content(monkeypatch)
+    turn(str(uuid4()), operation='story_context', inputs={'story_context': {'question': 'q', 'excerpts': [{'id': 'a', 'episode': 1, 'quote': '인용'}]}})
+    assert calls.main[0]['tools'] == ['ask_story_qa']
 
 
 def test_a_write_in_a_batch_with_a_read_waits_for_its_own_turn_so_only_one_card_appears(monkeypatch):
     calls = fake_agents(monkeypatch, only_content([('world_studio_read', {'id': 'w1'}), ('world_studio_edit_draft', EDIT)]))
     log = content(monkeypatch)
-    waiting = turn(str(uuid4()))
+    waiting = turn(str(uuid4()), page=PAGE)
     assert waiting.status == 'completed' and [t for t, _ in log] == ['world_studio_read'] and writes(log) == []
     deferred = next(m for m in calls.main[-1]['messages'] if getattr(m, 'name', None) == 'world_studio_edit_draft')
     assert deferred.content.startswith('[순차]')

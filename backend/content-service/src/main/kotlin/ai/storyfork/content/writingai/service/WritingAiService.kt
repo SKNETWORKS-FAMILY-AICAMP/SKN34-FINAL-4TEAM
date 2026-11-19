@@ -98,8 +98,9 @@ internal class WritingAiService(
         val id = runCatching { UUID.fromString(world) }.getOrNull()
         checkContent(id != null && id == workWorlds.linkedWorldId(workId, owner), message = "이 작품에 연결된 세계관이 아니에요.")
         page.cardId?.let { card ->
-            val draft = worlds.draft(id!!, subject ?: throw ContentFailure(404, "세계관을 찾을 수 없어요."))
-            checkContent(draft.cards.any { it.id.toString() == card && it.lifecycle != "removed" }, message = "이 세계관의 설정 카드가 아니에요.")
+            val cardId = runCatching { UUID.fromString(card) }.getOrNull()
+            checkContent(cardId != null && worlds.hasCard(id!!, subject ?: throw ContentFailure(404, "세계관을 찾을 수 없어요."), cardId),
+                message = "이 세계관의 설정 카드가 아니에요.")
         }
     }
 

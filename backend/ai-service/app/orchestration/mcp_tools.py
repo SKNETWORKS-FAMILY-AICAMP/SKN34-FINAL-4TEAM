@@ -32,6 +32,8 @@ NAMES = tuple(LABELS)
 WORK_ID = {'episode_read': 'id', 'episode_list': 'id', 'work_read': 'id', 'work_update': 'id', 'story_plan_list': 'workId',
            'story_plan_read': 'workId', 'story_plan_create': 'workId', 'story_plan_update': 'workId'}
 NOT_THIS_WORK = '지금 보는 작품이 아닌 작품은 다룰 수 없어요.'
+NOT_THIS_WORLD = '지금 보는 작품에 연결된 세계관이 아닌 세계관은 다룰 수 없어요.'
+WORLD_TOOLS = ('world_studio_read', 'world_studio_edit_draft')
 LIMIT_REACHED = '이번 요청에서 부를 수 있는 Content 도구 횟수를 넘었어요.'
 
 
@@ -55,13 +57,24 @@ def _result(step: dict | None, call: dict, content: str, failed: bool = False, *
     return Command(update={'mcpCalls': 1, 'messages': [message], **({'steps': [step]} if step else {}), **update})
 
 
-def _foreign(name: str, args: dict, turn: dict) -> bool:
-    """작품 id를 받는 도구가 대상 작품이 아닌 작품을 가리키는가. 대상 작품이 없으면 작품 도구는 쓸 수 없다."""
-    key = WORK_ID.get(name)
-    return bool(key) and args.get(key) != (turn.get('target') or {}).get('workId')
+def mismatch(call: dict, turn: dict) -> str | None:
+    """작품 id를 받는 도구가 대상 작품이 아닌 작품을, 화면에 세계관이 열려 있으면 세계관 도구가 그 세계관이 아닌 세계관을 가리키면 이유 글. 대상 작품이 없으면 작품 도구는 쓸 수 없다.
+
+    화면에 세계관이 없을 때(집필실)는 그 세계관이 작품에 연결된 것인지 실행 직전에 `_run`이 Content에서 확인한다.
+    """
+    args = call['args'] if isinstance(call['args'], dict) else {}
+    if key := WORK_ID.get(call['name']):
+        return None if args.get(key) == (turn.get('target') or {}).get('workId') else NOT_THIS_WORK
+    seen = (turn.get('page') or {}).get('worldId')
+    return NOT_THIS_WORLD if seen and args.get('id') != seen else None
 
 
-def _run(name: str, args: dict):
+def _run(name: str, args: dict, turn: dict):
+    if name in WORLD_TOOLS and not (turn.get('page') or {}).get('worldId'):
+        work = (turn.get('target') or {}).get('workId')
+        linked = content_mcp.call('work_read', {'id': work}).get('worldStudioId') if work else None
+        if not linked or args.get('id') != linked:
+            raise ContentMcpFailure(422, NOT_THIS_WORLD)
     return content_mcp.edit_world(args) if name == 'world_studio_edit_draft' else content_mcp.call(name, args)
 
 
@@ -74,14 +87,14 @@ async def execute(request) -> Command:
     call, turn = request.tool_call, request.runtime.context
     name, args = call['name'], call['args'] if isinstance(call['args'], dict) else {}
     label = LABELS[name]
-    if _foreign(name, args, turn):
-        return _result(None, call, f'[차단] {label}: {NOT_THIS_WORK}', failed=True)
+    if reason := mismatch(call, turn):
+        return _result(None, call, f'[차단] {label}: {reason}', failed=True)
     write = name in WRITE
     if write:
         request.runtime.stream_writer({'started': CONTENT_ACTION})
     try:
         with tracing.observe(f'mcp.{name}', as_type='tool', trace_context=tracing.context(turn.get('runId'), turn.get('traceParent'))):
-            done = await asyncio.to_thread(_run, name, args)
+            done = await asyncio.to_thread(_run, name, args, turn)
     except ContentMcpFailure as error:
         step = {'feature': CONTENT_ACTION, 'when': 'always', 'status': 'failed', 'error': str(error)}
         return _result(step, call, f'[실패] {label}: {error}', failed=True)

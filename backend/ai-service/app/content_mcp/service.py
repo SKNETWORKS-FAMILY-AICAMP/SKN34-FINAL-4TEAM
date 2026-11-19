@@ -124,7 +124,7 @@ def edit_world(arguments: dict) -> dict:
         raise ContentMcpFailure(422, '세계관 수정 요청 형식이 올바르지 않아요.')
     read = call('world_studio_read', {'id': world_id})
     try:
-        current, name, description, revision = {c['id']: c for c in read['cards']}, read['name'], read.get('description') or '', read['draftRevision']
+        current, name, description = {c['id']: c for c in read['cards']}, read['name'], read.get('description') or ''
     except (LookupError, TypeError, AttributeError):
         raise ContentMcpFailure(502, 'Content 세계관 응답을 확인할 수 없습니다.') from None
     cards = []
@@ -136,7 +136,9 @@ def edit_world(arguments: dict) -> dict:
         if old is not None and 'body' in card:
             _replace_cell(merged, {'target': 'body', 'text': card['body']})
         cards.append(merged)
-    request = {'expectedDraftRevision': revision, 'name': name, 'description': description, 'key': uuid.uuid4().hex,
+    if not isinstance(given.get('expectedDraftRevision'), int):  # 읽은 revision 없이 저장하면 그 사이 바뀐 초안을 덮어쓴다
+        raise ContentMcpFailure(422, '세계관을 읽은 revision(expectedDraftRevision)이 필요해요.')
+    request = {'name': name, 'description': description, 'key': uuid.uuid4().hex,
                **{k: v for k, v in given.items() if k != 'cards'}, 'replace': False, 'cards': cards}
     return call('world_studio_edit_draft', {'id': world_id, 'request': request})
 

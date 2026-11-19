@@ -355,3 +355,10 @@ def test_tool_specs_lists_the_content_tools_once_and_returns_only_the_allowed_na
     assert asyncio.run(service.tool_specs(('episode_read', 'work_read'))) == [{'name': 'episode_read', 'description': 'episode_read 설명', 'schema': {'type': 'object'}}]
     asyncio.run(service.tool_specs(('episode_read',)))
     assert asked == [('http://content.test/mcp', 'Bearer user')]  # 두 번째는 캐시
+
+
+def test_edit_world_without_the_read_revision_refuses_instead_of_overwriting(monkeypatch):
+    calls = content(monkeypatch, {'world_studio_read': (False, json.dumps(WORLD))})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.edit_world({'id': 'w', 'request': {'cards': [{'id': 'k', 'body': '새 글'}]}})
+    assert error.value.status == 422 and [c[2] for c in calls] == ['world_studio_read']

@@ -63,7 +63,8 @@ def _allowed(state: dict) -> set[str]:
         return set()
     capabilities = map(manuscript_review_feature, state['decision']['capabilities'])
     available = {TOOLS[c].name for c in capabilities if c in TOOLS}
-    if state.get('mcpCalls', 0) < mcp_tools.MCP_CALLS:
+    # UI가 기능을 고른 요청(operation)은 그 기능의 서브 에이전트만 쓴다. Content 도구는 기능을 고르지 않은 자유 입력에서만 쓴다.
+    if state.get('mcpCalls', 0) < mcp_tools.MCP_CALLS and not state['decision'].get('operation'):
         available |= set(mcp_tools.NAMES)  # 실제 노출은 request.tools(Content가 알려 준 도구)와의 교집합이다
     steps = state.get('steps', [])
     failed = {s['feature'] for s in steps if s['status'] == 'failed'}
@@ -88,7 +89,7 @@ class DecisionGuardMiddleware(AgentMiddleware):
         with tracing.observe('decision_guard', trace_context=tools.trace(turn), input={'request': asked['request']}) as span:
             decided = intent.judge(asked['request'], asked['operation'], asked['materials'], asked['history'])
             span.update(metadata=decided.model_dump())
-        done = {'decision': decided.model_dump()}
+        done = {'decision': {**decided.model_dump(), 'operation': asked['operation']}}  # operation은 UI가 기능을 골랐는지(Content 도구 노출 판단)
         if not decided.allowed:  # 기능이 비어도 허용됐다면 메인이 MCP 도구만으로 실행한다(#554)
             done['jump_to'] = 'end'
         return done
@@ -122,7 +123,11 @@ class DynamicToolMiddleware(AgentMiddleware):
                 run = run[:1]
             else:
                 run = [c for c in run if c['name'] in PARALLEL and not tools.waits(c, state, runtime.context)] or run[:1]
-        refused = [_limited(c) if c in over else _blocked(c) if c['name'] not in allowed else _deferred(c) for c in calls if c not in run]
+        # 대상 작품·세계관이 아닌 id를 가리키는 Content 도구는 승인을 묻기 전에 막는다(HumanInTheLoopMiddleware는 이미 답한 호출을 묻지 않는다).
+        foreign = [c for c in run if c['name'] in mcp_tools.NAMES and mcp_tools.mismatch(c, runtime.context)]
+        run = [c for c in run if c not in foreign]
+        refused = [_foreign(c, mcp_tools.mismatch(c, runtime.context)) if c in foreign else _limited(c) if c in over else _blocked(c) if c['name'] not in allowed else _deferred(c)
+                   for c in calls if c not in run]
         return {'messages': refused} if refused else None
 
     async def awrap_model_call(self, request, handler):
@@ -159,6 +164,10 @@ def _deferred(call: dict) -> ToolMessage:
     return ToolMessage(content=f"[순차] {call['name']}: 다른 도구와 함께 실행할 수 없어 실행하지 않았어요. "
                                '함께 부른 도구의 결과를 본 뒤 이 도구만 따로 다시 부르세요.',
                        tool_call_id=call['id'], name=call['name'], status='error')
+
+
+def _foreign(call: dict, reason: str) -> ToolMessage:
+    return ToolMessage(content=f"[차단] {call['name']}: {reason}", tool_call_id=call['id'], name=call['name'], status='error')
 
 
 def _limited(call: dict) -> ToolMessage:
