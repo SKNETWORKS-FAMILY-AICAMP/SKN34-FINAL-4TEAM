@@ -15,7 +15,10 @@ enum class NoticeEventType(val code: String, val kind: NoticeKind, val summary: 
     CREDIT_EXPIRING("core.credit.expiring", NoticeKind.CREDIT, "곧 소멸되는 크레딧이 있어요", "credit-expiry"),
 
     /** Core 탈퇴 요청 -> 요청한 회원에게 권리·보안 알림(UC-22·UC-27). target.id는 탈퇴 요청 id. */
-    WITHDRAWAL_REQUESTED("core.member.withdrawal-requested", NoticeKind.RIGHTS_SECURITY, "탈퇴가 요청됐어요. 유예 기간 안에 프로필에서 탈퇴 요청을 취소하면 복구할 수 있어요", "withdrawal");
+    WITHDRAWAL_REQUESTED("core.member.withdrawal-requested", NoticeKind.RIGHTS_SECURITY, "탈퇴가 요청됐어요. 유예 기간 안에 프로필에서 탈퇴 요청을 취소하면 복구할 수 있어요", "withdrawal"),
+
+    /** 운영 서비스 경고 발생 -> `llm`·`jobs` 권한을 가진 운영자마다 한 건의 알림(DEC-55). 끌 수 없는 처리 결과 분류이고 target.id는 경고 id다. */
+    OPERATIONS_ALERT_RAISED("operations.alert.raised", NoticeKind.RESULT, "운영 경고가 발생했어요", "alert");
 
     companion object {
         fun fromCode(code: String): NoticeEventType? = entries.firstOrNull { it.code == code }

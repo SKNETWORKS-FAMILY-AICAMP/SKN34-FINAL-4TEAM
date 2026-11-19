@@ -3,6 +3,7 @@ package ai.storyfork.core.notification
 import ai.storyfork.core.notification.domain.NoticeEventType
 import ai.storyfork.core.notification.domain.NoticeKind
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -36,6 +37,16 @@ class NoticeEventTypeTest {
         // 로그인만으로는 복구되지 않으므로(프로필에서 취소해야 함) 안내도 취소 동작을 말한다.
         assertEquals("탈퇴가 요청됐어요. 유예 기간 안에 프로필에서 탈퇴 요청을 취소하면 복구할 수 있어요", withdrawal?.summary)
         assertTrue(listOfNotNull(expiring, withdrawal).none { it.kind.mutable })
+    }
+
+    @Test
+    fun `an operations alert is a result notice that targets the alert and cannot be turned off`() {
+        val alert = NoticeEventType.fromCode("operations.alert.raised")
+        assertEquals(NoticeEventType.OPERATIONS_ALERT_RAISED, alert)
+        assertEquals(NoticeKind.RESULT, alert?.kind)
+        assertEquals("alert", alert?.targetType)
+        assertEquals("운영 경고가 발생했어요", alert?.summary)
+        assertFalse(alert?.kind?.mutable ?: true)
     }
 
     @Test
