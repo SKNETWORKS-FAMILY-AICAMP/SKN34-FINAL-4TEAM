@@ -84,14 +84,14 @@ class InternalOperationsStatsIntegrationTest {
     private fun settle(id:String,status:String,at:String) {
         jdbc.update("UPDATE edit_suggestion SET status=?,decided_at=? WHERE id=?",status,Timestamp.from(Instant.parse(at)),id)
     }
-    /** AI 제안과 그 결정 한 건이다. 결정 행은 바꿀 수 없으니 처음부터 시각을 정해 넣는다. */
-    private fun decision(workId:String,value:String,at:String) {
+    /** [createdAt]에 생성된 AI 제안 한 건이다. [acceptedAt]이 있으면 그 시각의 채택(accept) 결정도 남긴다. 결정 행은 바꿀 수 없으니 처음부터 시각을 정해 넣는다. */
+    private fun proposal(workId:String,createdAt:String,acceptedAt:String?=null) {
         val job=UUID.randomUUID().toString()
         val proposal=UUID.randomUUID().toString()
-        val time=Timestamp.from(Instant.parse(at))
         jdbc.update("INSERT INTO ai_job(id,requester_id,work_id,kind,status) VALUES (?,?,?,?,?)",job,owner,workId,"continuation","completed")
-        jdbc.update("INSERT INTO ai_proposal(id,job_id,kind,content,created_at) VALUES (?,?,?,?,?)",proposal,job,"continuation","제안 본문",time)
-        jdbc.update("INSERT INTO proposal_decision(id,proposal_id,sequence,decision,approved_content,decided_at) VALUES (?,?,?,?,?,?)",UUID.randomUUID().toString(),proposal,1,value,"제안 본문",time)
+        jdbc.update("INSERT INTO ai_proposal(id,job_id,kind,content,created_at) VALUES (?,?,?,?,?)",proposal,job,"continuation","제안 본문",Timestamp.from(Instant.parse(createdAt)))
+        if(acceptedAt!=null) jdbc.update("INSERT INTO proposal_decision(id,proposal_id,sequence,decision,approved_content,decided_at) VALUES (?,?,?,?,?,?)",
+            UUID.randomUUID().toString(),proposal,1,"accept","제안 본문",Timestamp.from(Instant.parse(acceptedAt)))
     }
 
     @Test fun `stats need the service token return the contract shape and reject a bad window with 422`() {
@@ -122,11 +122,13 @@ class InternalOperationsStatsIntegrationTest {
         settle(suggestion(gone),"approved","2032-03-01T00:00:00Z")
         settle(suggestion(open),"rejected","2032-04-01T00:00:00Z")
         settle(suggestion(open),"approved","2033-01-01T00:00:00Z")
-        // AI 제안 결정: 기간 안 채택 둘과 다른 값 하나, 기간 밖 채택 하나.
-        decision(open,"accept","2032-02-01T00:00:00Z")
-        decision(open,"accept","2032-06-01T00:00:00Z")
-        decision(open,"reject","2032-07-01T00:00:00Z")
-        decision(open,"accept","2033-01-01T00:00:00Z")
+        // AI 제안: 기간 안에 생성돼 채택된 둘, 기간 안에 생성됐지만 채택 안 된 둘(total에만 든다), 기간 앞에 생성돼 기간 안에 채택된 하나(adopted에만 든다), 기간 밖 하나.
+        proposal(open,"2032-02-01T00:00:00Z","2032-02-02T00:00:00Z")
+        proposal(open,"2032-06-01T00:00:00Z","2032-06-02T00:00:00Z")
+        proposal(open,"2032-07-01T00:00:00Z")
+        proposal(open,"2032-08-01T00:00:00Z")
+        proposal(open,"2031-12-30T00:00:00Z","2032-01-02T00:00:00Z")
+        proposal(open,"2033-01-01T00:00:00Z","2033-01-02T00:00:00Z")
         jdbc.update("UPDATE work SET deleted_at=now() WHERE id=?",gone)
 
         val after=read()
@@ -134,7 +136,7 @@ class InternalOperationsStatsIntegrationTest {
         assertEquals(2L,after.path("pendingEditSuggestions").asLong()-before.path("pendingEditSuggestions").asLong())
         val inWindow=read(stats+window)
         assertEquals(listOf(2L,3L),listOf(inWindow.path("editSuggestions").path("approved").asLong(),inWindow.path("editSuggestions").path("decided").asLong()))
-        assertEquals(listOf(2L,3L),listOf(inWindow.path("proposalDecisions").path("adopted").asLong(),inWindow.path("proposalDecisions").path("total").asLong()))
+        assertEquals(listOf(3L,4L),listOf(inWindow.path("proposalDecisions").path("adopted").asLong(),inWindow.path("proposalDecisions").path("total").asLong()))
         // 기간을 생략하면 최근 7일이라 2032년 결정은 들어오지 않는다.
         val recent=read()
         assertEquals(before.path("editSuggestions").path("approved").asLong(),recent.path("editSuggestions").path("approved").asLong())
