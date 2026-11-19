@@ -155,6 +155,8 @@ export function createMockupWritingRepository() {
     // 시연 ② 확정 설정 확인: 집필실 '설정 버전 이력'에 보이는 확정 설정입니다.
     world: async (id: string) => structuredClone(confirmedWorld(id)),
     revertSetting: async () => { throw new Error('발표용 목업에서는 설정 복원을 막아 두었어요.') },
+    // 독립은 서버가 새 세계관을 만드는 일이라 흉내 내지 않고 미지원 오류로 답한다(#583).
+    detachInheritedWorld: demoUnsupported,
     deleteDraft: async () => { throw new Error('발표용 목업에서는 삭제를 막아 두었어요.') },
     deleteEpisode: async () => { throw new Error('발표용 목업에서는 삭제를 막아 두었어요.') },
   } satisfies Partial<EpisodeRepository>
