@@ -35,8 +35,8 @@ it('신고·권리 탭은 운영 API 실패를 데모 행이나 빈 목록으로
   expect(screen.getByText('운영 API 연결')).toBeTruthy()
 })
 
-// users·admins 표는 운영 API 응답이 있어야 그려지므로, notices·events는 표 없이 목록 패널만 그리므로 렌더 통합 대상에서 뺍니다.
-it.each(['data', 'rights', 'llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'credits'])(
+// users·admins 표는 운영 API 응답이 있어야 그려지므로, notices·events는 표 없이 목록 패널만 그리므로, data(관리 개요)는 표 없이 숫자 카드와 차트만 그리므로(아래 별도 테스트) 렌더 통합 대상에서 뺍니다.
+it.each(['rights', 'llm', 'works', 'characterChats', 'comments', 'feedback', 'jobs', 'credits'])(
   '%s 탭의 모든 표에 캡션·열 머리 범위·키보드 스크롤 영역이 있다',
   async (tab) => {
     renderAdmin(tab)
@@ -52,6 +52,23 @@ it.each(['data', 'rights', 'llm', 'works', 'characterChats', 'comments', 'feedba
     }
   },
 )
+
+// 관리 개요는 표가 아니라 숫자 카드와 차트라, 표의 캡션·열 머리 범위 대신 카드의 이름·값 글자와 차트의 캡션·role=img·요약 aria-label로 읽힙니다.
+it('data 탭의 숫자 카드는 이름과 값을 글자로 갖고 차트는 캡션과 role=img 요약 aria-label을 갖는다', async () => {
+  renderAdmin('data')
+  await waitFor(() => {
+    expect(document.querySelectorAll('.kpi > div').length).toBeGreaterThan(0)
+    expect(document.querySelectorAll('.admin-chart').length).toBeGreaterThan(0)
+  })
+  for (const card of document.querySelectorAll('.kpi > div')) {
+    expect(card.querySelector(':scope > small')?.textContent?.trim()).toBeTruthy()
+    expect(card.querySelector(':scope > b')?.textContent?.trim()).toBeTruthy()
+  }
+  for (const chart of document.querySelectorAll('.admin-chart')) {
+    expect(chart.querySelector(':scope > figcaption')?.textContent?.trim()).toBeTruthy()
+    expect(chart.querySelector(':scope > [role="img"]')?.getAttribute('aria-label')?.trim()).toBeTruthy()
+  }
+})
 
 it('본문 영역은 건너뛰기 링크가 닿는 하나의 main이다', async () => {
   renderAdmin('data')
