@@ -17,7 +17,7 @@
 | `pg_git` (`seanwevans/pg_git`) | MVP 이후 PostgreSQL 확장 도입을 신중히 추진 | **MVP 미적용**. 실제 포크·설치·개발은 아직 안 함; 재사용 범위·격리 방식 검토(DEC-27·30) |
 | MinIO(S3 호환) | 설정 이미지 파일 보관. RDB에는 URL 저장 | 설정·표지·회차 첨부 선택 구현 존재. 추가 배포·접근·정리 계약은 별도 |
 | KAG·pgvector | 이전 MVP 이후 또는 범위 밖 항목 | 이번 결정으로 추가하지 않음 |
-| Langfuse | 운영 영역 LLMOps, 도입 시 별도 제품 배포 | MVP 이후 유지. 자체 UI/API 통합·평가 실행 계약 미정, Spring Boot 재구현 아님 |
+| Langfuse | 운영 영역 LLMOps, 별도 제품 배포 | dev·prod Compose 포함, 운영 화면 API 통합(DEC-55), Spring Boot 재구현 아님 |
 | SMTP | 현재 인증·복구·이메일 변경 | 로컬 구성 존재, 운영 제공사 미정. 옛 MVP 제외를 미구현으로 읽지 않음 |
 | Celery | AI 서비스의 회차 원고 전처리 작업 실행(DEC-50). 브로커는 기존 RabbitMQ, worker 컨테이너 하나 추가 | **결정만 기록, 미구현.** [전처리 계약](../manuscript-preprocessing-contract.md) |
 
@@ -35,7 +35,7 @@
                              ├─ Core/콘텐츠: 회원/콘텐츠 조치 적용 요청
                              └─ AI: 운영 검사·평가 (계약 미정)
 AI → 허용 문맥 조회 (목표 콘텐츠 경유 도구 후보, 최종 경로 미정)
-Langfuse → 도입 시 별도 제품 서비스 (운영 UI/API 통합 미정)
+Langfuse → 별도 제품 서비스 (운영 화면 API 통합, DEC-55)
 ```
 
 위는 목표 경계입니다. 현재 works/public works와 world-studios exact·하위 경로는 Content로, 나머지 `/api`는 Core로 연결합니다. 기존 쿠키·CSRF·응답과 내부 인증 endpoint 비공개 경계를 유지합니다. Core를 중앙 프록시로 만들지 않습니다. 콘텐츠 인가는 콘텐츠, 회원 인증은 Core, 운영 권한은 운영이 검사합니다. AI의 DB 조회 여부는 미정이며 자격 증명·정본 쓰기 권한을 승인하지 않습니다. DB·내부 API의 비공개 포트는 인증이 아닙니다(DEC-19). 분리 서비스 인증·키 배포·세션 폐기 전파, TLS·백업·운영 배포는 후속 계약입니다.
