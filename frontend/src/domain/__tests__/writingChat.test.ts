@@ -157,7 +157,7 @@ describe('장면 조작 정리(cleanScene)', () => {
 
 describe('WritingChatUseCase 시뮬레이션 시작', () => {
   const repository = () => ({ send: vi.fn().mockResolvedValue(undefined) }) as unknown as WritingChatRepository & { send: ReturnType<typeof vi.fn> }
-  const basis = { episode: 1, episodeVersionId: 'v', consent: true as const }
+  const basis = { episode: 1, episodeVersionId: 'v' }
   const onEvent = () => {}
 
   it('시작 값을 다듬어 operation과 함께 보낸다', async () => {
@@ -182,7 +182,7 @@ describe('WritingChatUseCase', () => {
     const repo = repository()
     const chat = new WritingChatUseCase(repo)
     await expect(chat.rename('w', 't', '  ')).rejects.toThrow('대화 제목')
-    await expect(chat.send('w', 't', { episode: 1, episodeVersionId: 'v', consent: true, request: ' ' }, () => {})).rejects.toThrow('보낼 내용')
+    await expect(chat.send('w', 't', { episode: 1, episodeVersionId: 'v', request: ' ' }, () => {})).rejects.toThrow('보낼 내용')
     expect(repo.rename).not.toHaveBeenCalled()
     expect(repo.send).not.toHaveBeenCalled()
     await chat.rename('w', 't', ' 새 제목 ')
@@ -193,7 +193,7 @@ describe('WritingChatUseCase', () => {
     const repo = repository()
     repo.send.mockResolvedValue(undefined)
     const chat = new WritingChatUseCase(repo)
-    const basis = { episode: 1, episodeVersionId: 'v', consent: true as const }
+    const basis = { episode: 1, episodeVersionId: 'v' }
     const scene = (action: SceneAction) => ({ ...basis, resume: { approved: true, scene: action } })
     const onEvent = () => {}
     await chat.send('w', 't', scene({ action: 'next', note: ' 비가 쏟아진다 ' }), onEvent)

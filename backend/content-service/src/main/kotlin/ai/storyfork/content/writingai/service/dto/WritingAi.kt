@@ -21,7 +21,6 @@ data class WritingAiRequest(
     @field:Min(1) val episode: Int,
     @field:NotBlank @field:Size(max=100) val episodeVersionId: String,
     @field:Size(max=100) val threadId: String? = null,
-    val consent: Boolean = false,
     @field:Valid val simulation: WritingAiSimulation? = null,
     val targetEpisode: Int? = null,
 )
