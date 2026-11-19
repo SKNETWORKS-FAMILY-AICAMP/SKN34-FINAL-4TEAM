@@ -26,8 +26,9 @@ data class TraceDetail(
 
 data class TracePage(val items: List<TraceItem>, val page: Int, val size: Int, val total: Long)
 
+/** The rates and latencies are null for a row without a finished request (the latencies also without a measured one): no data, not zero. */
 data class MetricRow(
-    val key: String, val requests: Int, val failureRate: Double, val timeoutRate: Double, val p50LatencyMs: Long, val p95LatencyMs: Long,
+    val key: String, val requests: Int, val failureRate: Double?, val timeoutRate: Double?, val p50LatencyMs: Long?, val p95LatencyMs: Long?,
     val inputTokens: Long, val outputTokens: Long, val costUser: Double, val costPlatform: Double,
 )
 

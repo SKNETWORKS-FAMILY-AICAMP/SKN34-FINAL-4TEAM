@@ -170,4 +170,41 @@ class LlmAlertCheckServiceTest {
 
         assertTrue(raisedKeys().isEmpty())
     }
+
+    @Test
+    fun `the cost message keeps the significant digits of a sub-cent cost and of its threshold`() {
+        // value to threshold, as the message shows them: cents from one dollar up, two significant digits below one (E2E: $0.0059 over $0.001 read "$0.01 over $0.00").
+        val cases = listOf(
+            Triple(0.0059, "0.001", "\$0.0059" to "\$0.001"),
+            Triple(0.0123, "0.01", "\$0.012" to "\$0.01"),
+            Triple(0.0010000001, "0.0005", "\$0.001" to "\$0.0005"),
+            Triple(0.0004, "0", "\$0.0004" to "\$0.00"),
+            Triple(0.45, "0.1", "\$0.45" to "\$0.10"),
+            Triple(0.999, "0.5", "\$1.00" to "\$0.50"),
+            Triple(12.34, "5", "\$12.34" to "\$5.00"),
+        )
+        for ((cost, threshold, shown) in cases) {
+            givenEnabled(rule("ai_daily_cost_usd", threshold, 1440))
+            givenWindow(1440, listOf(root("t1", status = "success")), listOf(ObservationUsage("t1", "gpt-5", 10, 1, cost)))
+
+            service.run(now)
+
+            assertEquals("AI 비용이 최근 1440분 동안 ${shown.first}로 기준 ${shown.second}를 넘었어요", raisedKeys().last().arguments[1])
+        }
+    }
+
+    @Test
+    fun `a rate under one percent keeps its significant digits in the message`() {
+        // 1 failed and 1 timed-out request among 2500: 0.04% over a 0.01% threshold; one decimal would read "0.0% over 0.0%".
+        val many = listOf(root("t1", status = "failed"), root("t2", status = "timeout")) + (3..2500).map { root("t${it}", status = "success") }
+        givenEnabled(rule("ai_failure_rate", "0.0001"), rule("ai_timeout_rate", "0.0001"))
+        givenWindow(60, many, emptyList())
+
+        service.run(now)
+
+        assertEquals(
+            listOf("AI 요청 실패율이 0.04%로 기준 0.01%를 넘었어요 (최근 60분, 요청 2500건 중 1건 실패)", "AI 요청 시간 초과율이 0.04%로 기준 0.01%를 넘었어요 (최근 60분, 요청 2500건 중 1건 시간 초과)"),
+            raisedKeys().map { it.arguments[1] },
+        )
+    }
 }

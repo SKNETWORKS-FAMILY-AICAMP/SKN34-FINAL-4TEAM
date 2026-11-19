@@ -38,13 +38,18 @@ class LlmopsJsonTest {
 
     @Test
     fun `metrics rows and rates have the contract fields`() {
-        val tree = tree(Metrics(listOf(MetricRow("2026-11-19", 4, 0.25, 0.0, 1000, 2000, 10, 20, 0.1, 0.2)), 0.6, null, null))
+        val tree = tree(Metrics(listOf(MetricRow("2026-11-19", 4, 0.25, 0.0, 1000, 2000, 10, 20, 0.1, 0.2), MetricRow("qa", 0, null, null, null, null, 10, 20, 0.0, 0.2)), 0.6, null, null))
 
         assertEquals(listOf("rows", "adoptionRate", "approvalRate", "filterRestoreRate"), tree.names())
         assertEquals(listOf("key", "requests", "failureRate", "timeoutRate", "p50LatencyMs", "p95LatencyMs", "inputTokens", "outputTokens", "costUser", "costPlatform"), tree.path("rows").path(0).names())
         assertEquals(0.6, tree.path("adoptionRate").asDouble())
         assertTrue(tree.path("approvalRate").isNull)
         assertTrue(tree.path("filterRestoreRate").isNull)
+        // A row without a finished request has no rates or latencies: the fields are there and null, never 0.
+        val idle = tree.path("rows").path(1)
+        assertEquals(tree.path("rows").path(0).names(), idle.names())
+        assertEquals(listOf(true, true, true, true), listOf("failureRate", "timeoutRate", "p50LatencyMs", "p95LatencyMs").map { idle.path(it).isNull })
+        assertEquals(0, idle.path("requests").asInt())
     }
 
     @Test

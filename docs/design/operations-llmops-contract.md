@@ -80,12 +80,12 @@
 ```text
 Dashboard { members{total,joinedLast7Days,withdrawalPending}?, ai{today:AiSummary, last7Days:AiSummary}?,
             jobs{running,failedLast24h}?, pending{inquiries,reports,authorReviews}?, openAlerts?, unavailable:[string] }
-AiSummary { requests, failed, timeouts, failureRate, costUser, costPlatform }
+AiSummary { requests, failed, timeouts, failureRate?, costUser, costPlatform }
 TraceItem { id, timestamp, feature, status, latencyMs, inputTokens, outputTokens, cost, userId?, workId?, traceUrl }
 TraceDetail { ...TraceItem, input?, output?, observations:[{id,name,type,startTime,endTime,latencyMs,model?,inputTokens?,outputTokens?,level,statusMessage?,promptName?,promptVersion?}] }
 Page<T> { items:[T], page, size, total }
-MetricRow { key(날짜·기능·모델), requests, failureRate, timeoutRate, p50LatencyMs, p95LatencyMs, inputTokens, outputTokens, costUser, costPlatform }
-Metrics { rows:[MetricRow], adoptionRate?, approvalRate?, filterRestoreRate? }   // 비율은 0~1, 데이터 없으면 null
+MetricRow { key(날짜·기능·모델), requests, failureRate?, timeoutRate?, p50LatencyMs?, p95LatencyMs?, inputTokens, outputTokens, costUser, costPlatform }
+Metrics { rows:[MetricRow], adoptionRate?, approvalRate?, filterRestoreRate? }   // 비율은 0~1, 데이터 없으면 null. 끝난 요청이 없으면 AiSummary·MetricRow의 실패율·시간 초과율·지연도 null(0이 아님), 요청·토큰·비용이 모두 없는 행은 내려주지 않는다
 Prompt { name, versions:[{version, labels:[string], createdAt, evaluation?:{runId, passed, createdAt}}] }
 Model { id, modelName, matchPattern, inputPrice, outputPrice, unit }        // 가격은 토큰당 USD
 Evaluation { runId, dataset, prompt, version, status(running|completed|failed), passed?, createdAt,

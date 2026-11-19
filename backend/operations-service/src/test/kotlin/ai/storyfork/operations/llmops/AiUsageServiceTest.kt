@@ -48,8 +48,8 @@ class AiUsageServiceTest {
         assertEquals(4, stats.requests)
         assertEquals(1, stats.failed)
         assertEquals(1, stats.timeouts)
-        assertEquals(0.25, stats.failureRate, 1e-9)
-        assertEquals(0.25, stats.timeoutRate, 1e-9)
+        assertEquals(0.25, stats.failureRate!!, 1e-9)
+        assertEquals(0.25, stats.timeoutRate!!, 1e-9)
         assertEquals(0.50, stats.costUser, 1e-9)
         assertEquals(0.50, stats.costPlatform, 1e-9)
         // Nearest rank over [1000, 2000, 3000, 10000].
@@ -63,19 +63,20 @@ class AiUsageServiceTest {
 
         // A request that waits for the writer or was cancelled has no status: it is not counted, nor timed, but its model calls were paid for.
         assertEquals(listOf(1, 1, 0), listOf(stats.requests, stats.failed, stats.timeouts))
-        assertEquals(1.0, stats.failureRate, 1e-9)
+        assertEquals(1.0, stats.failureRate!!, 1e-9)
         assertEquals(listOf(4000L, 4000L), listOf(stats.p50LatencyMs, stats.p95LatencyMs))
         assertEquals(0.60, stats.costPlatform, 1e-9)
     }
 
     @Test
-    fun `stats of an empty window are zeros and never a division by zero`() {
+    fun `stats of an empty window have no rates or latencies and never a division by zero`() {
         val stats = emptyList<TraceFact>().usageStats()
 
         assertEquals(listOf(0, 0, 0), listOf(stats.requests, stats.failed, stats.timeouts))
-        assertEquals(0.0, stats.failureRate)
-        assertEquals(0.0, stats.timeoutRate)
-        assertEquals(listOf(0L, 0L), listOf(stats.p50LatencyMs, stats.p95LatencyMs))
+        // No data is null, not a 0% rate or a 0 ms latency.
+        assertNull(stats.failureRate)
+        assertNull(stats.timeoutRate)
+        assertEquals(listOf(null, null), listOf(stats.p50LatencyMs, stats.p95LatencyMs))
     }
 
     @Test
@@ -85,6 +86,16 @@ class AiUsageServiceTest {
         assertEquals(3, stats.requests)
         assertEquals(2000L, stats.p50LatencyMs)
         assertEquals(4000L, stats.p95LatencyMs)
+    }
+
+    @Test
+    fun `finished requests without any latency have their rates but no percentiles`() {
+        val stats = listOf(root("a", status = "failed", latency = null), root("b", latency = null)).map { it.toTraceFact() }.usageStats()
+
+        assertEquals(2, stats.requests)
+        assertEquals(0.5, stats.failureRate!!, 1e-9)
+        assertEquals(0.0, stats.timeoutRate!!, 1e-9)
+        assertEquals(listOf(null, null), listOf(stats.p50LatencyMs, stats.p95LatencyMs))
     }
 
     @Test
@@ -113,8 +124,8 @@ class AiUsageServiceTest {
         assertEquals(0.0, first.costPlatform, 1e-9)
         val second = result[1]
         assertEquals(3, second.requests)
-        assertEquals(1.0 / 3, second.failureRate, 1e-9)
-        assertEquals(1.0 / 3, second.timeoutRate, 1e-9)
+        assertEquals(1.0 / 3, second.failureRate!!, 1e-9)
+        assertEquals(1.0 / 3, second.timeoutRate!!, 1e-9)
         assertEquals(listOf(3000L, 10000L), listOf(second.p50LatencyMs, second.p95LatencyMs))
         assertEquals(listOf(140L, 14L), listOf(second.inputTokens, second.outputTokens))
         assertEquals(0.40, second.costUser, 1e-9)
@@ -145,14 +156,14 @@ class AiUsageServiceTest {
         val gpt = result[0]
         assertEquals(3, gpt.requests) // t1, t2, t3; the ghost row is dropped
         assertEquals(listOf(180L, 18L), listOf(gpt.inputTokens, gpt.outputTokens))
-        assertEquals(1.0 / 3, gpt.failureRate, 1e-9)
-        assertEquals(1.0 / 3, gpt.timeoutRate, 1e-9)
+        assertEquals(1.0 / 3, gpt.failureRate!!, 1e-9)
+        assertEquals(1.0 / 3, gpt.timeoutRate!!, 1e-9)
         assertEquals(0.10, gpt.costUser, 1e-9)
         assertEquals(0.42, gpt.costPlatform, 1e-9)
         val mini = result[1]
         assertEquals(2, mini.requests)
         assertEquals(listOf(60L, 6L), listOf(mini.inputTokens, mini.outputTokens))
-        assertEquals(0.5, mini.failureRate, 1e-9)
+        assertEquals(0.5, mini.failureRate!!, 1e-9)
         assertEquals(0.0, mini.timeoutRate)
         assertEquals(listOf(2000L, 3000L), listOf(mini.p50LatencyMs, mini.p95LatencyMs))
         assertEquals(0.40, mini.costUser, 1e-9)
@@ -206,10 +217,10 @@ class AiUsageServiceTest {
 
         val rows = usage.rows(from, to, "day")
 
-        // The two requests fall on two Korean days; the cost stays with the one that was counted as a request.
-        assertEquals(listOf("2026-11-19", "2026-11-20"), rows.map { it.key })
-        assertEquals(listOf(1, 0), rows.map { it.requests })
-        assertEquals(listOf(0.10, 0.0), rows.map { it.costPlatform })
+        // The two requests fall on two Korean days; the cost stays with the one that was counted as a request, so the cancelled one's day has nothing to show.
+        assertEquals(listOf("2026-11-19"), rows.map { it.key })
+        assertEquals(listOf(1), rows.map { it.requests })
+        assertEquals(listOf(0.10), rows.map { it.costPlatform })
     }
 
     @Test
@@ -218,9 +229,48 @@ class AiUsageServiceTest {
 
         val row = usage.rows(from, to, "day").single()
 
-        assertEquals(listOf(0, 0.0, 0L), listOf(row.requests, row.failureRate, row.p95LatencyMs))
+        assertEquals(listOf(0, null, null, null, null), listOf(row.requests, row.failureRate, row.timeoutRate, row.p50LatencyMs, row.p95LatencyMs))
         assertEquals(listOf(100L, 10L), listOf(row.inputTokens, row.outputTokens))
         assertEquals(0.10, row.costPlatform, 1e-9)
+    }
+
+    @Test
+    fun `a row without a finished request but with tokens or cost stays, with no rates or latencies`() {
+        val tokensOnly = root("t1", feature = "a", status = null)
+        val platformCost = root("t2", feature = "b", status = null)
+        val userCost = root("t3", feature = "c", status = null, metadata = charged1)
+        givenWindow(listOf(tokensOnly, platformCost, userCost), listOf(
+            ObservationUsage("t1", "gpt-5", 100, 10, 0.0), ObservationUsage("t2", "gpt-5", 0, 0, 0.10), ObservationUsage("t3", "gpt-5", 0, 0, 0.20),
+        ))
+
+        val result = usage.rows(from, to, "feature")
+
+        assertEquals(listOf("a", "b", "c"), result.map { it.key })
+        for (row in result) assertEquals(listOf(0, null, null, null, null), listOf(row.requests, row.failureRate, row.timeoutRate, row.p50LatencyMs, row.p95LatencyMs))
+        assertEquals(listOf(110L, 0L, 0L), result.map { it.inputTokens + it.outputTokens })
+        assertEquals(listOf(0.0, 0.10, 0.0), result.map { it.costPlatform })
+        assertEquals(listOf(0.0, 0.0, 0.20), result.map { it.costUser })
+    }
+
+    @Test
+    fun `a row without a finished request, tokens or cost is left out of every grouping`() {
+        // The old root name of a feature: roots that never finished and made no model call. It said p50 0 ms and p95 0 ms on the metrics screen.
+        val idle = root("t0", "2026-11-17T10:00:00Z", "writing_ai.orchestration", null, null)
+        givenWindow(traces + listOf(idle), rows + ObservationUsage("t0", "gpt-0", 0, 0, 0.0))
+
+        assertEquals(listOf("2026-11-18", "2026-11-19"), usage.rows(from, to, "day").map { it.key })
+        assertEquals(listOf("qa", "writing"), usage.rows(from, to, "feature").map { it.key })
+        assertEquals(listOf("gpt-5", "mini"), usage.rows(from, to, "model").map { it.key })
+    }
+
+    @Test
+    fun `a row with a finished request stays even when the request made no model call`() {
+        givenWindow(listOf(root("t1", feature = "a", status = "failed", latency = 2.0)), emptyList())
+
+        val row = usage.rows(from, to, "feature").single()
+
+        assertEquals(listOf(1, 1.0, 0.0, 2000L, 2000L), listOf(row.requests, row.failureRate, row.timeoutRate, row.p50LatencyMs, row.p95LatencyMs))
+        assertEquals(listOf(0L, 0L, 0.0, 0.0), listOf(row.inputTokens, row.outputTokens, row.costUser, row.costPlatform))
     }
 
     @Test

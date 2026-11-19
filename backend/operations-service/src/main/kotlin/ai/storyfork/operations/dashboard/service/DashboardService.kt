@@ -66,5 +66,5 @@ class DashboardService(
     }
 
     private fun UsageStats.summary() =
-        AiSummary(requests, failed, timeouts, if (requests == 0) null else failureRate, costUser, costPlatform)
+        AiSummary(requests, failed, timeouts, failureRate, costUser, costPlatform)
 }

@@ -38,11 +38,13 @@ class AiUsageService(private val langfuse: LangfuseClient) {
         require(groupBy in GROUPINGS) { "Unknown grouping." }
         val (facts, usage) = window(from, to)
         if (facts.isEmpty()) return emptyList()
-        return when (groupBy) {
+        val rows = when (groupBy) {
             "day" -> facts.groupBy { it.timestamp.atZone(KST).toLocalDate().toString() }.toSortedMap().map { (key, group) -> traceRow(key, group) }
             "feature" -> facts.groupBy { it.feature }.map { (key, group) -> traceRow(key, group) }.mostRequestedFirst()
             else -> modelRows(facts, usage).mostRequestedFirst()
         }
+        // A row of roots that never finished, made no model call and cost nothing (the old root name of a feature, say) has nothing to show.
+        return rows.filter { it.requests > 0 || it.inputTokens + it.outputTokens > 0 || it.costUser + it.costPlatform > 0 }
     }
 
     /** A day or feature row: the group's roots give the counts, the tokens and the cost. */

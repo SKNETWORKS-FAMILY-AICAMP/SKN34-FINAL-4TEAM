@@ -81,12 +81,15 @@ internal fun List<JsonNode>.traceOutput(): JsonNode? = if (isEmpty()) null else
     requestRoot().path("output").ioValue() ?: filter { it.path("type").textOrNull() == "GENERATION" }
         .sortedBy { it.path("endTime").instantOrNull() ?: it.startedAt() }.asReversed().firstNotNullOfOrNull { it.path("output").ioValue() }
 
-/** A finished request is a root that carries a status; the others are not counted as requests. */
+/**
+ * A finished request is a root that carries a status; the others are not counted as requests. What needs a finished request to mean anything is null
+ * without one, "no data", never a 0% rate or a 0 ms latency: the rates, and the latency percentiles (which also need a measured latency).
+ */
 internal data class UsageStats(
-    val requests: Int, val failed: Int, val timeouts: Int, val costUser: Double, val costPlatform: Double, val p50LatencyMs: Long, val p95LatencyMs: Long,
+    val requests: Int, val failed: Int, val timeouts: Int, val costUser: Double, val costPlatform: Double, val p50LatencyMs: Long?, val p95LatencyMs: Long?,
 ) {
-    val failureRate: Double get() = if (requests == 0) 0.0 else failed.toDouble() / requests
-    val timeoutRate: Double get() = if (requests == 0) 0.0 else timeouts.toDouble() / requests
+    val failureRate: Double? get() = if (requests == 0) null else failed.toDouble() / requests
+    val timeoutRate: Double? get() = if (requests == 0) null else timeouts.toDouble() / requests
 }
 
 /** A failed request is status:failed and a timeout is status:timeout, so the two never overlap; the rates divide by all finished requests. */
@@ -94,7 +97,7 @@ internal fun List<TraceFact>.usageStats(): UsageStats {
     val requests = filter { it.status != null }
     val latencies = requests.mapNotNull { it.latencyMs }.sorted()
     // Nearest rank: the smallest latency that at least p of the samples do not exceed.
-    fun percentile(p: Double) = if (latencies.isEmpty()) 0L else latencies[(ceil(p * latencies.size).toInt() - 1).coerceAtLeast(0)]
+    fun percentile(p: Double) = if (latencies.isEmpty()) null else latencies[(ceil(p * latencies.size).toInt() - 1).coerceAtLeast(0)]
     // The cost counts every root: the model calls of a request that waits for the writer or was cancelled were paid for too.
     return UsageStats(
         requests.size, requests.count { it.status == "failed" }, requests.count { it.status == "timeout" },

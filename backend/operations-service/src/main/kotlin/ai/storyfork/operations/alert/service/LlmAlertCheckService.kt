@@ -5,6 +5,8 @@ import ai.storyfork.operations.alert.repository.AlertRuleRepository
 import ai.storyfork.operations.llmops.service.AiUsageService
 import ai.storyfork.operations.llmops.service.UsageStats
 import ai.storyfork.operations.llmops.service.usageStats
+import java.math.BigDecimal
+import java.math.MathContext
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.Locale
@@ -44,19 +46,29 @@ class LlmAlertCheckService(
     private fun breach(rule: AlertRuleEntity, threshold: Double, stats: UsageStats): Pair<Double, String>? {
         val window = "최근 ${rule.windowMinutes}분"
         return when (rule.ruleKey) {
-            "ai_failure_rate" -> stats.failureRate.takeIf { stats.requests > 0 && it > threshold }
+            "ai_failure_rate" -> stats.failureRate?.takeIf { it > threshold }
                 ?.let { it to "AI 요청 실패율이 ${percent(it)}로 기준 ${percent(threshold)}를 넘었어요 ($window, 요청 ${stats.requests}건 중 ${stats.failed}건 실패)" }
-            "ai_timeout_rate" -> stats.timeoutRate.takeIf { stats.requests > 0 && it > threshold }
+            "ai_timeout_rate" -> stats.timeoutRate?.takeIf { it > threshold }
                 ?.let { it to "AI 요청 시간 초과율이 ${percent(it)}로 기준 ${percent(threshold)}를 넘었어요 ($window, 요청 ${stats.requests}건 중 ${stats.timeouts}건 시간 초과)" }
             "ai_daily_cost_usd" -> (stats.costUser + stats.costPlatform).takeIf { it > threshold }
                 ?.let { it to "AI 비용이 $window 동안 ${usd(it)}로 기준 ${usd(threshold)}를 넘었어요" }
-            "ai_p95_latency_ms" -> stats.p95LatencyMs.toDouble().takeIf { stats.requests > 0 && it > threshold }
+            "ai_p95_latency_ms" -> stats.p95LatencyMs?.toDouble()?.takeIf { it > threshold }
                 ?.let { it to "AI 응답 p95 지연이 ${stats.p95LatencyMs}ms로 기준 ${threshold.toLong()}ms를 넘었어요 ($window, 요청 ${stats.requests}건)" }
             else -> null
         }
     }
 
-    private fun percent(fraction: Double) = String.format(Locale.ROOT, "%.1f%%", fraction * 100)
+    private fun percent(fraction: Double) = "${figure(fraction * 100, 1)}%"
 
-    private fun usd(amount: Double) = String.format(Locale.ROOT, "\$%.2f", amount)
+    private fun usd(amount: Double) = "\$${figure(amount, 2)}"
+
+    /**
+     * [value] with [decimals] decimals, but below 1 with two significant digits, so a small figure is not shown as 0.0 or 0.00 next to a threshold it
+     * exceeds: $0.0059 over $0.001, not "$0.01 over $0.00". Zeros past the decimals are dropped (0.0010 is 0.001, 0.10 stays 0.10).
+     */
+    private fun figure(value: Double, decimals: Int): String {
+        if (value !in 0.0..<1.0) return String.format(Locale.ROOT, "%.${decimals}f", value)
+        val significant = BigDecimal.valueOf(value).round(MathContext(2)).stripTrailingZeros()
+        return significant.setScale(maxOf(decimals, significant.scale())).toPlainString()
+    }
 }
