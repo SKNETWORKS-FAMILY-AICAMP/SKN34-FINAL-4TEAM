@@ -6,7 +6,7 @@
 
 ## 표 기준
 
-> **서비스 열은 DEC-41의 목표 소유권이다.** [서비스 경계·실행 구조](design/service-boundaries.md)를 따른다. 기존 ✅는 해당 동작의 종전 구현 근거이지 새 서비스로의 이전 완료가 아니다. Core→Content 업무·테스트·인증 확인·라우팅·이미지/CI 연결은 소스에 반영했으며 hosted CI·실제 DB 전환·배포는 대기다. 아래 이전 기능의 ✅를 이번 추출 완료로 승격하지 않는다. LLMOps는 운영 영역으로 분류하되 Langfuse 자체 UI와 운영 화면 API 통합은 미정이며 Spring 내부 구현을 뜻하지 않는다. 정기 작업 행은 운영의 감시·관리 관점이고 실제 실행은 업무 소유 서비스에 둔다.
+> **서비스 열은 DEC-41의 목표 소유권이다.** [서비스 경계·실행 구조](design/service-boundaries.md)를 따른다. 기존 ✅는 해당 동작의 종전 구현 근거이지 새 서비스로의 이전 완료가 아니다. Core→Content 업무·테스트·인증 확인·라우팅·이미지/CI 연결은 소스에 반영했으며 hosted CI·실제 DB 전환·배포는 대기다. 아래 이전 기능의 ✅를 이번 추출 완료로 승격하지 않는다. LLMOps는 운영 영역이며 운영 화면이 Langfuse API로 통합한다(DEC-55, [계약](design/operations-llmops-contract.md)). Spring 재구현이 아니다. 정기 작업 행은 운영의 감시·관리 관점이고 실제 실행은 업무 소유 서비스에 둔다.
 
 
 - **개발 완료:** ✅는 해당 세부 동작을 명시적으로 구현한 PR이 병합됐고 그 PR 최신 head의 `Required CI` 성공을 확인한 항목이다. ❌는 미구현·부분 구현·열린 PR·병합 없는 종료·완료 근거 미확인을 포함한다. ❌가 코드가 전혀 없다는 뜻은 아니다.
@@ -536,12 +536,12 @@
 
 ## 운영 관리 서비스 — 운영 업무·LLMOps
 
-관리자 화면 연결까지 확인한 운영 기능은 ✅로 표시한다. 계약: [회원·신고](design/operations-member-report-contract.md) · [공지](design/operations-notice-contract.md) · [문의](design/operations-support-inquiry-contract.md) · [이벤트](design/operations-event-contract.md) · [작품](design/operations-work-contract.md).
+관리자 화면 연결까지 확인한 운영 기능은 ✅로 표시한다. 계약: [회원·신고](design/operations-member-report-contract.md) · [공지](design/operations-notice-contract.md) · [문의](design/operations-support-inquiry-contract.md) · [이벤트](design/operations-event-contract.md) · [작품](design/operations-work-contract.md) · [대시보드·LLMOps·작업 감시](design/operations-llmops-contract.md).
 
 <table>
 <thead><tr><th>서비스</th><th>서브시스템</th><th>중간 기능</th><th>세부 기능</th><th>개발 완료</th><th>관련 이슈</th></tr></thead>
 <tbody>
-<tr><td rowspan="120">운영 관리 서비스</td><td>실행 기반</td><td>89 독립 앱 실행</td><td>운영 서비스 독립 Spring Boot 실행 기반(loopback 8082 유지)</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/164">PR #164</a></td><td>—</td></tr>
+<tr><td rowspan="126">운영 관리 서비스</td><td>실행 기반</td><td>89 독립 앱 실행</td><td>운영 서비스 독립 Spring Boot 실행 기반(loopback 8082 유지)</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/164">PR #164</a></td><td>—</td></tr>
 <tr><td rowspan="6">운영 API 공통 기반</td><td rowspan="6">91 서비스 자격·저장 격리</td><td>전용 X-Operations-Service-Token으로 서비스 호출 인증(사람의 관리자 권한 아님)</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/164">PR #164</a></td><td rowspan="6">—</td></tr>
 <tr><td>미설정·공백·잘못된 서비스 자격의 보호 접근 거절</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/164">PR #164</a></td></tr>
 <tr><td>독립 operations schema·전용 Flyway 이력과 JPA validate 저장</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/164">PR #164</a></td></tr>
@@ -562,7 +562,7 @@
 <tr><td>대상 콘텐츠 제한 해제</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
 <tr><td>운영 조치 이력 조회</td><td>✅</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/49">#49</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/81">PR #81</a></td></tr>
 <tr><td>작품 등록자에게 권리 증빙 요청</td><td>✅</td><td>—</td></tr>
-<tr><td rowspan="8">정기 작업 관리</td><td rowspan="8">35 일정·실행 관리</td><td>정기 작업 일정 등록</td><td>❌</td><td rowspan="8"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a></td></tr>
+<tr><td rowspan="9">정기 작업 관리</td><td rowspan="9">35 일정·실행 관리</td><td>정기 작업 일정 등록</td><td>❌</td><td rowspan="9"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/50">#50</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/52">#52</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/68">PR #68</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/91">PR #91</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/71">PR #71</a> · <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/88">PR #88</a></td></tr>
 <tr><td>정기 작업 일정 조회</td><td>❌</td></tr>
 <tr><td>정기 작업 일정 변경</td><td>❌</td></tr>
 <tr><td>정기 작업 일정 취소</td><td>❌</td></tr>
@@ -570,6 +570,7 @@
 <tr><td>작업 실행 기록 조회</td><td>❌</td></tr>
 <tr><td>실패 작업 조회</td><td>❌</td></tr>
 <tr><td>실패 작업 수동 재실행</td><td>❌</td></tr>
+<tr><td>회차 원고 전처리 작업 진행·실패 감시</td><td>❌</td></tr>
 <tr><td rowspan="21">고객지원 관리</td><td rowspan="21">67 문의 접수·답변</td><td>문의 유형(category)을 포함한 문의 레코드 등록(서비스 자격)</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/164">PR #164</a></td><td rowspan="21"><a href="design/operations-support-inquiry-contract.md">계약</a></td></tr>
 <tr><td>내 고객지원 문의 목록 조회</td><td>✅</td></tr>
 <tr><td>내 고객지원 문의 본문·처리 상태 조회</td><td>✅</td></tr>
@@ -630,9 +631,12 @@
 <tr><td>운영 댓글 내용·작품명·작성자 검색</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/265">PR #265</a></td></tr>
 <tr><td>운영 댓글 공감 많은순 정렬</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/265">PR #265</a></td></tr>
 <tr><td>운영 댓글 공감 적은순 정렬</td><td>✅ <a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/pull/265">PR #265</a></td></tr>
-<tr><td rowspan="2">운영 현황 관리</td><td rowspan="2">85 업무·데이터 현황 조회</td><td>답변 대기 문의·접수 신고·작가 검토 대기 수 조회</td><td>❌</td><td rowspan="2">—</td></tr>
+<tr><td rowspan="5">운영 현황 관리</td><td rowspan="5">85 업무·데이터 현황 조회</td><td>답변 대기 문의·접수 신고·작가 검토 대기 수 조회</td><td>❌</td><td rowspan="5">—</td></tr>
 <tr><td>수집 자료 출처·수량·형식·사용처 명세 조회</td><td>❌</td></tr>
-<tr><td rowspan="29">LLMOps</td><td rowspan="7">40-A AI 호출 추적</td><td>AI 작업별 추적 기록 저장</td><td>❌ <small>(집필 AI 오케스트레이션·Q&A RAG의 Langfuse SDK 계측과 로컬 self-host Compose 구현(#302) · 실제 기동 미검증 · Content 검색 단계 미연결)</small></td><td rowspan="7"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
+<tr><td>대시보드 회원 수(전체·최근 7일 가입·탈퇴 유예) 조회</td><td>❌</td></tr>
+<tr><td>대시보드 AI 요청·실패율·사용자/플랫폼 비용 요약 조회</td><td>❌</td></tr>
+<tr><td>대시보드 진행 중 작업·미확인 경고 수 조회</td><td>❌</td></tr>
+<tr><td rowspan="31">LLMOps</td><td rowspan="7">40-A AI 호출 추적</td><td>AI 작업별 추적 기록 저장</td><td>❌ <small>(집필 AI 오케스트레이션·Q&A RAG의 Langfuse SDK 계측과 로컬 self-host Compose 구현(#302) · 실제 기동 미검증 · Content 검색 단계 미연결)</small></td><td rowspan="7"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>AI 호출 기록 목록 조회</td><td>❌</td></tr>
 <tr><td>AI 호출 기록 상세 조회</td><td>❌</td></tr>
 <tr><td>요청 ID 기반 실행 단계 조회</td><td>❌</td></tr>
@@ -650,7 +654,7 @@
 <tr><td>회귀 평가 결과 조회</td><td>❌</td></tr>
 <tr><td>기존 버전과 평가 결과 비교</td><td>❌</td></tr>
 <tr><td>배포 전 평가 통과 여부 확인</td><td>❌</td></tr>
-<tr><td rowspan="8">40-D 품질·비용 지표</td><td>AI 오류 지표 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
+<tr><td rowspan="9">40-D 품질·비용 지표</td><td>AI 오류 지표 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>AI 시간 초과율 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>AI 비용 지표 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>제안 채택률 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
@@ -658,9 +662,11 @@
 <tr><td>필터 복원률 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>운영 경고 조회</td><td>❌</td><td><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>실패·지연 경고 확인 및 수동 조치 완료 기록</td><td>❌</td><td>—</td></tr>
-<tr><td rowspan="3">40-E 정보 누설 표본 검사</td><td>AI 응답 정보 누설 표본 검사</td><td>❌</td><td rowspan="3"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
+<tr><td>경고 기준값 관리자 설정</td><td>❌</td><td>—</td></tr>
+<tr><td rowspan="4">40-E 정보 누설 표본 검사</td><td>AI 응답 정보 누설 표본 검사</td><td>❌</td><td rowspan="4"><a href="https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-4TEAM/issues/54">#54</a></td></tr>
 <tr><td>정보 누설 의심 결과 조회</td><td>❌</td></tr>
 <tr><td>정보 누설 의심 경고 기록</td><td>❌</td></tr>
+<tr><td>누설 검사 표본 비율 관리자 설정</td><td>❌</td></tr>
 </tbody>
 </table>
 
