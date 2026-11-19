@@ -273,7 +273,7 @@ Langfuse는 공식 이미지(`docker.langfuse.com/langfuse/langfuse`·`langfuse-
 
 **fresh 승인 변수는 DB를 초기화하거나 준비 상태를 검증하지 않습니다.** 정확한 개발 대상·보존할 Auth/Studio/첨부·백업/격리 복원·중단 시간·호환 이미지의 복구 방법을 담당자가 확정해야 합니다. 이 확인 없이 기존 Content history에 새 앱을 배포하지 않습니다. 일괄 DROP/volume 삭제·자동 repair/clean을 하지 않습니다.
 
-CD는 기존 전용 디렉터리/project labels를 확인하고 base·dev와 참조되는 local(extends)·Langfuse(include) Compose 파일을 SSH stdin으로 임시 전달하며 서버 `.env`를 덮어쓰지 않습니다. 순서는 **두 DB 승인 확인 → login/pull → 앱 네 이미지만 revision 확인 → web·구 Core·Content writer 중지 → 내부 PostgreSQL·Mailpit `up --wait` → opt-in Studio 명시 migration → 새 앱 `up --wait`**입니다. PostgreSQL/Mailpit 이미지는 앱 revision 비교에서 제외하며 원격 앱 소스 build는 없습니다. Core Health 뒤 Content를 시작합니다. Studio main은 Content 이미지에 있으며 [대상 allowlist/백업/실패 계약](../docs/deployment/worldstudio-v1-rollout.md)을 따릅니다.
+CD는 기존 전용 디렉터리/project labels를 확인하고 base·dev와 참조되는 local(extends)·Langfuse(include) Compose 파일을 SSH stdin으로 임시 전달하며 서버 `.env`를 덮어쓰지 않습니다. 순서는 **두 DB 승인 확인 → login/pull → 앱 네 이미지만 revision 확인 → web·구 Core·Content writer 중지 → 내부 PostgreSQL·Mailpit `up --wait` → opt-in Studio 명시 migration → 새 앱 `up --wait`**입니다. 전체 스택의 `--wait-timeout`은 600초입니다(첫 배포는 Langfuse 저장소·Elasticsearch·앱이 함께 처음 뜨고, PostgreSQL·Mailpit만 먼저 올릴 때는 180초). PostgreSQL/Mailpit 이미지는 앱 revision 비교에서 제외하며 원격 앱 소스 build는 없습니다. Core Health 뒤 Content를 시작합니다. Studio main은 Content 이미지에 있으며 [대상 allowlist/백업/실패 계약](../docs/deployment/worldstudio-v1-rollout.md)을 따릅니다.
 
 중지 전 login/pull/revision 실패는 기존 앱을 건드리지 않습니다. 중지 후 migration/startup 실패는 **ingress를 멈춘 채 실패**하며 자동 rollback/repair/retry·`down`/prune/volume 삭제를 하지 않습니다. 새 이력과 구 binary가 비호환이므로 운영자가 로그/이력과 호환 스냅샷을 확인해 복구를 결정합니다. `up --wait`는 running/healthcheck 확인이지 사용자 HTTP/DB/SMTP 전체 수용 검증이 아닙니다. web의 loopback 외 운영 TLS/ingress는 별도입니다.
 

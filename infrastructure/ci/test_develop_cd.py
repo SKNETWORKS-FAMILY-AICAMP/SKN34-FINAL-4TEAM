@@ -49,13 +49,14 @@ class DevelopDeploymentTest(unittest.TestCase):
         code, commands, error = self.deploy()
         self.assertEqual(0, code, error)
         self.assertLess(commands.index("stop web core-api content-service"), commands.index("postgres mailpit"))
-        self.assertLess(commands.index("postgres mailpit"), commands.index("up -d --no-build --pull never --wait --wait-timeout 180\n"))
+        # 전체 스택 대기는 첫 배포에서 Langfuse 저장소·Elasticsearch·앱이 함께 처음 뜨는 시간을 담아 600초다(postgres·mailpit만 먼저 올릴 때는 180초).
+        self.assertLess(commands.index("postgres mailpit"), commands.index("up -d --no-build --pull never --wait --wait-timeout 600\n"))
         self.assertNotIn("run --rm", commands)
 
     def test_superseded_images_are_pruned_only_after_the_new_stack_is_healthy(self):
         code, commands, error = self.deploy()
         self.assertEqual(0, code, error)
-        self.assertLess(commands.index("up -d --no-build --pull never --wait --wait-timeout 180\n"),
+        self.assertLess(commands.index("up -d --no-build --pull never --wait --wait-timeout 600\n"),
             commands.index("image prune --force\n"))
 
     def test_failed_revision_check_keeps_previous_images(self):
@@ -65,7 +66,7 @@ class DevelopDeploymentTest(unittest.TestCase):
     def test_inherited_profile_cannot_change_the_deployed_stack(self):
         code, commands, error = self.deploy(overrides={"COMPOSE_PROFILES": "anything"})
         self.assertEqual(0, code, error)
-        self.assertIn("up -d --no-build --pull never --wait --wait-timeout 180\n", commands)
+        self.assertIn("up -d --no-build --pull never --wait --wait-timeout 600\n", commands)
         self.assertNotIn("run --rm", commands)
 
     def test_image_revision_other_than_run_target_stops_before_ingress(self):
@@ -77,7 +78,7 @@ class DevelopDeploymentTest(unittest.TestCase):
         code, commands, error = self.deploy()
         self.assertEqual(0, code, error)
         smoke = commands.index("exec -T ai-service python -c")
-        self.assertLess(commands.index("up -d --no-build --pull never --wait --wait-timeout 180\n"), smoke)
+        self.assertLess(commands.index("up -d --no-build --pull never --wait --wait-timeout 600\n"), smoke)
         self.assertLess(smoke, commands.index("image prune --force\n"))
 
     def test_develop_stack_runs_official_elasticsearch_for_content_on_a_kept_volume(self):

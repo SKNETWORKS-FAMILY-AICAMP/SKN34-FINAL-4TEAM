@@ -161,8 +161,9 @@ jobs:
           # Failure leaves ingress stopped; never auto-repair history or roll incompatible binaries back.
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env stop web core-api content-service operations-service
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull never --wait --wait-timeout 180 postgres mailpit
-          # Neo4j·RabbitMQ·MinIO를 포함한 전체 스택을 띄운다. WorldStudio schema는 Content 시작 시 Flyway가 적용한다.
-          docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull never --wait --wait-timeout 180
+          # Neo4j·RabbitMQ·MinIO·Langfuse를 포함한 전체 스택을 띄운다. WorldStudio schema는 Content 시작 시 Flyway가 적용한다.
+          # 첫 배포는 Langfuse 저장소·Elasticsearch·앱이 함께 처음 뜨므로 대기 제한을 600초로 둔다(위 postgres·mailpit만 올릴 때는 180초).
+          docker compose --project-directory "$CD_DIRECTORY" --env-file .env up -d --no-build --pull never --wait --wait-timeout 600
           # 원고 검색 인덱스는 Content 시작 때 생성·검증된다(실패하면 위 --wait가 실패). 고정 리비전 E5 모델은
           # 이 서버 CPU에서 한 번 실제로 실행해 확인한다. 실패하면 이전 이미지를 지우지 않고 CD를 실패시킨다.
           docker compose --project-directory "$CD_DIRECTORY" --env-file .env exec -T ai-service python -c 'from app.story_qa.service import get_encoder; get_encoder().encode(["query: storyfork deploy check"])'
