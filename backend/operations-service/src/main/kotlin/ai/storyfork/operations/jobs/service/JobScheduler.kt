@@ -90,13 +90,37 @@ class JobScheduler(
             run.done = outcome.done
             run.total = outcome.total
             run.targetId = outcome.targetId?.take(TARGET_ID_MAX)
-        } catch (error: Exception) {
+        } catch (error: Throwable) {
+            // Throwable, not Exception: an Error from a handler (a missing class, a stack overflow) must fail the run too,
+            // or the run stays running and blocks its schedule until the next restart.
             log.error("Scheduled job failed: kind={} run={}", run.kind, run.id, error)
             run.status = JobStatus.FAILED
             run.error = JOB_FAILED_MESSAGE
         }
         run.finishedAt = now()
-        runs.save(run)
+        saveResult(run)
+    }
+
+    /**
+     * A failed save of the result is retried once as a plain failed run (fixed message, no progress), because a run whose result
+     * cannot be recorded is not a success. If that fails too only the log remains and the run stays running until the next restart sweep.
+     */
+    private fun saveResult(run: JobRunEntity) {
+        try {
+            runs.save(run)
+        } catch (error: Throwable) {
+            log.error("Saving the result of job run {} failed, recording it as failed", run.id, error)
+            run.status = JobStatus.FAILED
+            run.error = JOB_FAILED_MESSAGE
+            run.done = null
+            run.total = null
+            run.targetId = null
+            try {
+                runs.save(run)
+            } catch (again: Throwable) {
+                log.error("Job run {} stays running until the next restart", run.id, again)
+            }
+        }
     }
 
     /** One broken run or schedule must not starve the others in the same tick. */

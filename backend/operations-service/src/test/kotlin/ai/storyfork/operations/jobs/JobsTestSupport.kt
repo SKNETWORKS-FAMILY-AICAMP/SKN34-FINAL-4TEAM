@@ -17,7 +17,7 @@ import org.springframework.data.domain.Pageable
 class FakeJobHandler(
     override val kind: String,
     private val outcome: JobOutcome = JobOutcome(),
-    private val failure: Exception? = null,
+    private val failure: Throwable? = null,
 ) : ScheduledJobHandler {
     val calls = mutableListOf<Map<String, Any?>>()
 
@@ -50,9 +50,13 @@ class FakeSchedules(private val log: MutableList<String> = mutableListOf()) {
     }
 }
 
-/** In-memory stand-in for [JobRunRepository]; [savedStatuses] is the status of the row at each save, [pageables] every page asked for. */
+/**
+ * In-memory stand-in for [JobRunRepository]; [savedStatuses] is the status of the row at each save that went through,
+ * [pageables] every page asked for. [saveFailure] makes a save throw before it is recorded, like a database that is down for that call.
+ */
 class FakeRuns(private val log: MutableList<String> = mutableListOf()) {
     val rows = mutableListOf<JobRunEntity>()
+    var saveFailure: (JobRunEntity) -> Throwable? = { null }
     val savedStatuses = mutableListOf<ai.storyfork.operations.jobs.entity.JobStatus>()
     val pageables = mutableListOf<Pageable>()
 
@@ -60,6 +64,7 @@ class FakeRuns(private val log: MutableList<String> = mutableListOf()) {
         val args = call.arguments
         when (call.method.name) {
             "save" -> (args[0] as JobRunEntity).also {
+                saveFailure(it)?.let { error -> throw error }
                 log += "save"
                 savedStatuses += it.status
                 if (rows.none { row -> row.id == it.id }) rows += it

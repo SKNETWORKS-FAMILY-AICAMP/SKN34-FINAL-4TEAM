@@ -10,9 +10,17 @@ import ai.storyfork.operations.jobs.service.JOB_INTERRUPTED_MESSAGE
 import ai.storyfork.operations.jobs.service.JobOutcome
 import ai.storyfork.operations.jobs.service.JobScheduler
 import ai.storyfork.operations.jobs.service.ScheduledJobHandler
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.classic.spi.ThrowableProxy
+import ch.qos.logback.core.read.ListAppender
 import java.time.Instant
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.slf4j.LoggerFactory
 
 /** Fake repositories and handlers with a fixed clock: no Spring context, scheduler thread or database. */
 class JobSchedulerTest {
@@ -20,6 +28,22 @@ class JobSchedulerTest {
     private val schedules = FakeSchedules()
     private val runs = FakeRuns()
     private val alpha = FakeJobHandler("alpha", JobOutcome(done = 3, total = 5, targetId = "target-1"))
+    private val logger = LoggerFactory.getLogger(JobScheduler::class.java) as Logger
+    private val logs = ListAppender<ILoggingEvent>()
+
+    @BeforeEach
+    fun captureLogs() {
+        logs.start()
+        logger.addAppender(logs)
+    }
+
+    @AfterEach
+    fun releaseLogs() {
+        logger.detachAppender(logs)
+    }
+
+    /** The throwable messages of every ERROR event the scheduler logged. */
+    private fun errorMessages() = logs.list.filter { it.level == Level.ERROR }.mapNotNull { (it.throwableProxy as? ThrowableProxy)?.throwable?.message }
 
     private fun scheduler(vararg handlers: ScheduledJobHandler) =
         object : JobScheduler(schedules.repository, runs.repository, handlers.toList()) {
@@ -128,6 +152,62 @@ class JobSchedulerTest {
         assertEquals(start, byKind.getValue("beta").finishedAt)
         assertEquals(JobStatus.SUCCEEDED, byKind.getValue("alpha").status)
         assertEquals(1, alpha.calls.size)
+    }
+
+    @Test
+    fun `a handler that throws an Error fails its run with the fixed message instead of leaving it running`() {
+        val broken = FakeJobHandler("beta", failure = NoClassDefFoundError("com/example/Missing"))
+        schedule(kind = "beta")
+        schedule(kind = "alpha")
+
+        scheduler(alpha, broken).tick()
+
+        val byKind = runs.rows.associateBy { it.kind }
+        assertEquals(JobStatus.FAILED, byKind.getValue("beta").status)
+        assertEquals(JOB_FAILED_MESSAGE, byKind.getValue("beta").error)
+        assertEquals(start, byKind.getValue("beta").finishedAt)
+        assertEquals(JobStatus.SUCCEEDED, byKind.getValue("alpha").status)
+        assertEquals(listOf("com/example/Missing"), errorMessages())
+    }
+
+    @Test
+    fun `a failed save of the result is retried once as a plain failed run so the schedule is not blocked`() {
+        schedule()
+        // The save of the successful result fails, like a database that is down for that call; the retry as a failed run goes through.
+        runs.saveFailure = { run -> if (run.status == JobStatus.SUCCEEDED) IllegalStateException("result save failed") else null }
+
+        scheduler(alpha).tick()
+
+        val saved = runs.rows.single()
+        assertEquals(listOf(JobStatus.QUEUED, JobStatus.RUNNING, JobStatus.FAILED), runs.savedStatuses)
+        assertEquals(JobStatus.FAILED, saved.status)
+        assertEquals(JOB_FAILED_MESSAGE, saved.error)
+        assertEquals(listOf(null, null, null), listOf(saved.done, saved.total, saved.targetId))
+        assertEquals(start, saved.finishedAt)
+        assertEquals(listOf("result save failed"), errorMessages())
+    }
+
+    @Test
+    fun `when the retry save fails too both failures are logged and the other schedules still run`() {
+        schedule(kind = "alpha")
+        schedule(kind = "beta")
+        val beta = FakeJobHandler("beta")
+        runs.saveFailure = { run ->
+            when {
+                run.kind != "alpha" -> null
+                // Errors, not exceptions: a save that dies with one must not leave the run running either.
+                run.status == JobStatus.SUCCEEDED -> LinkageError("result save failed")
+                run.status == JobStatus.FAILED -> NoClassDefFoundError("retry save failed")
+                else -> null
+            }
+        }
+
+        scheduler(alpha, beta).tick()
+
+        // alpha stays at running in the database (the startup sweep closes it later); beta runs to the end.
+        assertEquals(listOf(JobStatus.QUEUED, JobStatus.RUNNING, JobStatus.QUEUED, JobStatus.RUNNING, JobStatus.SUCCEEDED), runs.savedStatuses)
+        assertEquals(1, beta.calls.size)
+        assertEquals(listOf("result save failed", "retry save failed"), errorMessages())
     }
 
     @Test
