@@ -113,6 +113,7 @@ class State(TypedDict, total=False):
     operation: str | None
     materials: list[str]
     inputs: dict
+    writingBaseRevision: int | None  # 후보를 만든 초안 판본, 승인까지 보존한다.
     status: str
     message: str | None
     steps: list[dict]
@@ -169,7 +170,7 @@ async def main_agent(state: State, config: RunnableConfig) -> State:
         run_as = None
     turn = {**state, 'task': run_as, 'decide': decide}
     seed = {'messages': [*_conversation(state), HumanMessage(_task(turn))], 'steps': [], 'inputs': state['inputs'],
-            'retrievalScope': state.get('retrievalScope'), 'stopped': None, 'simulationPlan': None}
+            'retrievalScope': state.get('retrievalScope'), 'stopped': None, 'simulationPlan': None, 'writingBase': None}
     out = await agent.build().ainvoke(seed, config, context=turn)
     decision, steps = out['decision'], out.get('steps', [])
     if not decision['allowed']:
@@ -180,7 +181,8 @@ async def main_agent(state: State, config: RunnableConfig) -> State:
         return {'status': 'unsupported', 'message': UNSUPPORTED_MESSAGE, 'unsupported': ['world_plot'],
                 'steps': [{'feature': f, 'when': 'always', 'status': 'not_started'} for f in decision['capabilities']]}
     done: State = {'steps': steps, 'inputs': out.get('inputs', state['inputs']), 'retrievalScope': out.get('retrievalScope'),
-                   'simulationPlan': out.get('simulationPlan'), 'task': run_as, 'message': out['messages'][-1].text}
+                   'simulationPlan': out.get('simulationPlan'), 'task': run_as, 'message': out['messages'][-1].text,
+                   'writingBaseRevision': (out.get('writingBase') or {}).get('revision')}
     stopped = out.get('stopped') or {}
     if stopped.get('status') == 'clarify':
         return {**done, 'status': 'clarify', 'message': stopped['message']}
@@ -250,10 +252,11 @@ def apply(state: State) -> State:
         target = state['target']
         # 장면은 지문 + "대사" 문단을 빈 줄로 이어 Text 경로(초안 뒤에 잇기)로 반영한다.
         result = step['result'] if feature == 'writing_editing' else {'text': '\n\n'.join(t['prose'] for t in step['result']['turns'])}
+        expected_revision = state.get('writingBaseRevision') if feature == 'writing_editing' else None
         try:
             with tracing.observe(f'step.{feature}.apply', as_type='tool', trace_context=_trace(state),
                                  metadata={'episode': target['episode']}):
-                step['applied'] = content_mcp.apply_writing(target['workId'], target['episode'], result)
+                step['applied'] = content_mcp.apply_writing(target['workId'], target['episode'], result, expected_revision=expected_revision)
         except ContentMcpFailure as error:
             step.update(status='failed', error=str(error))
     return {'steps': steps, 'retrievalScope': answer.get('scope') or state.get('retrievalScope')}
@@ -365,7 +368,7 @@ def _initial(data: OrchestrationRequest) -> State:
                                        metadata={'operation': data.operation, 'conversation': data.conversation is not None})
     return {'runId': run_id, 'traceParent': parent, 'request': data.request, 'operation': data.operation, 'materials': data.materials,
             'inputs': data.inputs.model_dump(exclude_none=True), 'status': 'planning', 'message': None,
-            'steps': [], 'missingInputs': [], 'unsupported': [], 'replaceHistory': False, 'simulationPlan': None, 'task': None,
+            'steps': [], 'missingInputs': [], 'unsupported': [], 'writingBaseRevision': None, 'replaceHistory': False, 'simulationPlan': None, 'task': None,
             'scene': None, 'sceneAction': None, 'simulationForm': data.simulation.model_dump(mode='json') if data.simulation else None,
             'scope': data.conversation.scope if data.conversation else None,
             'retrievalScope': data.scope.model_dump() if data.scope else None,

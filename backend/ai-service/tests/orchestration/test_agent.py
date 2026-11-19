@@ -401,7 +401,7 @@ def test_repeated_blocked_calls_still_end_within_the_model_call_limit(monkeypatc
 
 def applied(monkeypatch):
     done = []
-    monkeypatch.setattr(service.content_mcp, 'apply_writing', lambda work, episode, result: done.append(result) or {'episode': episode, 'revision': 5})
+    monkeypatch.setattr(service.content_mcp, 'apply_writing', lambda work, episode, result, *, expected_revision=None: done.append(result) or {'episode': episode, 'revision': 5})
     return done
 
 
@@ -482,6 +482,16 @@ def test_writing_and_simulation_in_a_batch_are_refused_and_run_alone_next(monkey
     refused = sent(calls, tools.TOOL_NAMES[solo.feature])
     assert (refused.status, refused.content.startswith('[순차]')) == ('error', True)
     assert [s.feature for s in result.steps] == ['rating', solo.feature]  # 거부는 기능당 1회를 쓰지 않는다
+
+
+def test_writing_and_review_wait_for_an_earlier_tool_in_the_same_batch(monkeypatch):
+    review = Step('manuscript_review', check='mechanical')
+    calls = fake_agents(monkeypatch, plan(['story_context', 'writing_editing', review], 'writing_editing', review))
+    result = run(target=TARGET, inputs={'story_context': QA})
+
+    assert result.status == 'completed'
+    assert [s.feature for s in result.steps] == ['story_context', 'writing_editing', 'manuscript_review']
+    assert names(calls) == ['judge', 'story_context', 'mcp', 'mcp', 'plan_and_draft', 'manuscript_review']
 
 
 def test_a_dependent_fix_in_the_same_batch_as_its_review_waits_for_the_review(monkeypatch):

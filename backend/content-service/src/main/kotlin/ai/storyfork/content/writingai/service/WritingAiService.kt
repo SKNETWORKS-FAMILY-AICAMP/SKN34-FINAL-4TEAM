@@ -104,12 +104,11 @@ internal class WritingAiService(
         if (request.resume == null) {
             checkContent(reflect >= request.episode, message="반영할 회차는 근거 회차보다 앞설 수 없어요.")
             // 모델 호출 전에 권한 밖 작품·회차를 막는다. 실제 근거 조회 때 Content가 다시 확정한다.
-            scopes.resolve(workId, owner, QaScopeRequest(request.episode, request.episodeVersionId,
-                if (request.target == "relationship") "manuscript" else request.target))
+            scopes.resolve(workId, owner, QaScopeRequest(request.episode, request.episodeVersionId))
             if (reflect != request.episode) requireEpisode(workId, owner, reflect)
         }
         val scope = mapOf("scopeToken" to grants.issue(
-            QaScopeGrant(workId, owner, request.episode, request.episodeVersionId, request.target)))
+            QaScopeGrant(workId, owner, request.episode, request.episodeVersionId)))
         return buildMap {
             put("conversation", mapOf("threadId" to threadId, "scope" to scopeOf(workId, owner)))
             if (request.resume != null) {

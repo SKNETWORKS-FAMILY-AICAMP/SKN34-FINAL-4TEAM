@@ -45,20 +45,26 @@ PARALLEL = {'ask_story_qa', 'ask_web_research', 'ask_rating', 'ask_world_review'
 class MainState(AgentState):
     decision: NotRequired[dict]  # Decision Guard 판정 {allowed, reason, capabilities}
     steps: NotRequired[Annotated[list[dict], operator.add]]  # 이번 턴 서브 에이전트 결과. 도구마다 자기 단계 하나를 덧붙인다(호출 순서)
+    writingBase: NotRequired[dict | None]  # 검수 후보의 기준이 되는 집필 직전 초안
     inputs: NotRequired[dict]  # Content가 확인한 단계 입력. 입력 대기 resume이 채운다
     retrievalScope: NotRequired[dict | None]  # Content가 서명한 Q&A 조회 토큰. resume이 새 토큰으로 바꾼다
     stopped: NotRequired[dict | None]  # 남은 호출을 막고 끝낸 이유 {status: needs_input|cancelled|clarify, ...}
     simulationPlan: NotRequired[dict | None]  # 시뮬레이션 계획. 장면은 바깥 scene 노드가 쓴다
 
 
-def _closed(state: dict) -> bool:
-    """새 서브 에이전트 호출을 받지 않는 상태: 실패·취소·입력 대기·되묻기 뒤, 시뮬레이션 계획 뒤(장면은 도구 호출이 끝난 뒤 진행한다)."""
-    return bool(state.get('stopped') or state.get('simulationPlan')) or any(s['status'] == 'failed' for s in state.get('steps', []))
-
-
 def _allowed(state: dict) -> set[str]:
+    if state.get('stopped') or state.get('simulationPlan'):
+        return set()
     capabilities = map(manuscript_review_feature, state['decision']['capabilities'])
-    return set() if _closed(state) else {TOOLS[c].name for c in capabilities if c in TOOLS}
+    available = {TOOLS[c].name for c in capabilities if c in TOOLS}
+    steps = state.get('steps', [])
+    failed = {s['feature'] for s in steps if s['status'] == 'failed'}
+    if failed:
+        # 작성에 실패해도 판정에 포함된 검수는 저장된 초안으로 한 번 실행할 수 있다.
+        if failed == {'writing_editing'} and not any(manuscript_review_feature(s['feature']) == 'manuscript_review' for s in steps):
+            return available & {'ask_manuscript_review'}
+        return set()
+    return available
 
 
 class DecisionGuardMiddleware(AgentMiddleware):
@@ -100,7 +106,12 @@ class DynamicToolMiddleware(AgentMiddleware):
         calls, allowed = state['messages'][-1].tool_calls, _allowed(state)
         run = [c for c in calls if c['name'] in allowed]
         if len(run) > 1:
-            run = [c for c in run if c['name'] in PARALLEL and not tools.waits(c, state, runtime.context)] or run[:1]
+            writing = next((i for i, c in enumerate(run) if c['name'] == 'ask_writing'), len(run))
+            review = next((i for i, c in enumerate(run) if c['name'] == 'ask_manuscript_review'), -1)
+            if writing < review:  # 같은 묶음에서도 집필을 먼저 요청했다면 뒤 검수에 후보가 필요하다.
+                run = run[:1]
+            else:
+                run = [c for c in run if c['name'] in PARALLEL and not tools.waits(c, state, runtime.context)] or run[:1]
         refused = [_blocked(c) if c['name'] not in allowed else _deferred(c) for c in calls if c not in run]
         return {'messages': refused} if refused else None
 

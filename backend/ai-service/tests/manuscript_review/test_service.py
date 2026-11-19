@@ -1,5 +1,6 @@
 import pytest
 
+from app.content_mcp.errors import ContentMcpFailure
 from app.manuscript_review import service
 from app.manuscript_review.errors import ReviewFailure
 from app.manuscript_review.models import ReviewRequest, ReviewResult
@@ -119,7 +120,7 @@ def test_semantic_suspicion_may_have_no_evidence(monkeypatch):
     assert service.review(semantic()).findings[0].status == 'suspected'
 
 
-@pytest.mark.parametrize('world', [[], None, {'worldId': 'world-1'}, {'worldId': 'world-1', 'cards': [{'id': 'c'}]}])
+@pytest.mark.parametrize('world', [{'worldId': 'world-1'}, {'worldId': 'world-1', 'cards': [{'id': 'c'}]}])
 def test_semantic_with_malformed_world_read_is_502(monkeypatch, world):
     # 세계관 응답 형식 오류는 처리되지 않은 500이 아니라 정해진 502다(#392).
     fake_content(monkeypatch, world=world)
@@ -127,6 +128,15 @@ def test_semantic_with_malformed_world_read_is_502(monkeypatch, world):
     with pytest.raises(ReviewFailure) as error:
         service.review(semantic())
     assert (error.value.status, str(error.value)) == (502, service.BAD_CONTENT)
+
+
+@pytest.mark.parametrize('world', [[], None])
+def test_semantic_with_a_world_read_that_is_not_an_object_is_502_not_a_missing_world(monkeypatch, world):
+    fake_content(monkeypatch, world=world)
+    fake_agent(monkeypatch)
+    with pytest.raises(ContentMcpFailure) as error:
+        service.review(semantic())
+    assert error.value.status == 502
 
 
 def test_semantic_of_a_fork_without_a_world_of_its_own_uses_the_inherited_original_world(monkeypatch):

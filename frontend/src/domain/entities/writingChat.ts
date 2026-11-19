@@ -12,7 +12,10 @@ export type ReviewFinding = {
   evidenceRefs: string[]; suggestion: string; start: number | null; end: number | null
 }
 /** 원고 검수(#59) 단계의 검증된 결과. 검수한 초안의 회차·판본과 확인하지 못한 부분(gaps)을 함께 둔다. */
-export type ChatReview = { check: ReviewCheck; episode: number; revision: number; findings: ReviewFinding[]; gaps: string[] }
+export type ChatReview = {
+  check: ReviewCheck; episode: number; revision: number; findings: ReviewFinding[]; gaps: string[]
+  candidate?: { selection: { start: number; end: number } | null }
+}
 export type RatingVerdict = 'adult' | 'general' | 'needsReview'
 /** 심의 등급 판별 단계의 검증된 결과. 판정은 제안이며 작품 등급을 바꾸지 않는다. 회차 verdict가 null이면 그 회차는 판별 실패(error)다. */
 export type ChatRating = {
@@ -136,11 +139,14 @@ const reviewCategory: Record<string, string> = {
   setting: '설정 충돌', knowledge: '인물 지식', emotion: '감정 변화', causality: '인과관계', foreshadowing: '복선',
 }
 
-function reviewText({ check, episode, findings, gaps }: ChatReview): string {
-  const title = `${episode}화 초안 ${reviewCheckLabel[check]} 검수`
+function reviewText({ check, episode, revision, findings, gaps, candidate }: ChatReview): string {
+  const basis = candidate ? `승인 전 집필 후보 (기준 초안 판본 ${revision})` : '초안'
+  const selection = candidate?.selection
+  const title = `${episode}화 ${basis} ${reviewCheckLabel[check]} 검수${selection ? ` · 원래 선택 위치 ${selection.start}–${selection.end}` : ''}`
   if (!findings.length && !gaps.length) return `${title}: 찾은 문제가 없어요.`
   return [title, ...findings.map((f) => [
     `${reviewStatus[f.status]} · ${reviewCategory[f.category] ?? f.category} · "${f.quote}"${f.start === null ? ' (여러 곳)' : ''}`,
+    ...(candidate && f.start !== null && f.end !== null ? [`후보 위치 ${f.start}–${f.end}`] : []),
     `이유: ${f.reason}`, ...(f.suggestion ? [`제안: ${f.suggestion}`] : []),
   ].join('\n')), ...gaps.map((g) => `확인 못 함: ${g}`)].join('\n\n')
 }
