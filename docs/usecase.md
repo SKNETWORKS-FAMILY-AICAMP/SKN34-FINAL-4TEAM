@@ -467,7 +467,7 @@ flowchart LR
 | UC-23 | 공유 저작물 원작 등록 | 운영자 | — | 테스트 전용 | [F-RGT-04](requirements.md#f-rgt-04)·[05](requirements.md#f-rgt-05) | 22쪽 |
 | UC-24 | 작품 생성·관리 | 창작자(작품 소유자) | — | 핵심 | [F-WLD-03](requirements.md#f-wld-03)·[04](requirements.md#f-wld-04)·[08](requirements.md#f-wld-08), [F-WRT-07](requirements.md#f-wrt-07), [F-SET-01](requirements.md#f-set-01)·[04](requirements.md#f-set-04) | 14·18·19쪽 |
 | UC-25 | 캐릭터 챗 | 독자 | 외부 LLM API | 채택·MVP 제외 | [F-PUB-07](requirements.md#f-pub-07) | 기획서 근거 없음 · UI 프로토타입 U27 |
-| UC-26 | AI 품질·사용량 모니터링 (LLMOps) | 운영자 | 외부 LLM API | 지원 · MVP 이후 | [F-LLM-01](requirements.md#f-llm-01)~[05](requirements.md#f-llm-05) | 팀 결정 · UI 프로토타입 A05 |
+| UC-26 | AI 품질·사용량 모니터링 (LLMOps) | 운영자 | 외부 LLM API | 지원(DEC-55) | [F-LLM-01](requirements.md#f-llm-01)~[05](requirements.md#f-llm-05) | 팀 결정 · UI 프로토타입 A05 |
 | UC-27 | 알림 수신·설정 | 회원 | — | 지원 | [F-NTF-01](requirements.md#f-ntf-01)·[02](requirements.md#f-ntf-02) | 팀 결정 |
 | UC-28 | 시스템 정기 작업·운영 감시 | 운영자(시스템이 일정으로 시작) | — | 지원 | [F-JOB-01](requirements.md#f-job-01)·[02](requirements.md#f-job-02) | 팀 결정 |
 
