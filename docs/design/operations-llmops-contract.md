@@ -82,12 +82,12 @@
 ```text
 Dashboard { members{total,joinedLast7Days,withdrawalPending}?, ai{today:AiSummary, last7Days:AiSummary}?,
             jobs{running,failedLast24h}?, pending{inquiries,reports,authorReviews}?, openAlerts?, unavailable:[string] }
-AiSummary { requests, failed, timeouts, failureRate, costUser, costPlatform }
+AiSummary { requests, failed, timeouts, failureRate?, costUser, costPlatform }
 TraceItem { id, timestamp, feature, status, latencyMs, inputTokens, outputTokens, cost, userId?, workId? }
 TraceDetail { ...TraceItem, input?, output?, observations:[{id,name,type,startTime?,endTime?,latencyMs,model?,inputTokens?,outputTokens?,level,statusMessage?,promptName?,promptVersion?}] }
 Page<T> { items:[T], page, size, total }
-MetricRow { key(날짜·기능·모델), requests, failureRate, timeoutRate, p50LatencyMs, p95LatencyMs, inputTokens, outputTokens, costUser, costPlatform }
-Metrics { rows:[MetricRow], adoptionRate?, approvalRate?, filterRestoreRate? }   // 비율은 0~1, 데이터 없으면 null
+MetricRow { key(날짜·기능·모델), requests, failureRate?, timeoutRate?, p50LatencyMs?, p95LatencyMs?, inputTokens, outputTokens, costUser, costPlatform }
+Metrics { rows:[MetricRow], adoptionRate?, approvalRate?, filterRestoreRate? }   // 비율은 0~1, 데이터 없으면 null. 끝난 요청이 없으면 AiSummary·MetricRow의 실패율·시간 초과율·지연도 null(0이 아님), 요청·토큰·비용이 모두 없는 행은 내려주지 않는다
 Prompt { name, versions:[{version, labels:[string], createdAt?, evaluation?:{runId, passed, createdAt}}] }
 Model { id, modelName, matchPattern, inputPrice, outputPrice, unit }        // 가격은 토큰당 USD
 Evaluation { runId, dataset, prompt, version, status(running|completed|failed), passed?, createdAt,
@@ -122,7 +122,7 @@ Schedule { id, kind, cron, enabled, params, createdAt, updatedAt, lastRun?:JobRu
 | kind | 실행 위치 | 내용 |
 |---|---|---|
 | `llm_alert_check` | 운영 | 경고 규칙을 Langfuse 지표·실패 작업과 비교해 경고 생성. 생성 시 운영자에게 사이트 안 알림 사건 발행 |
-| `leak_sample_check` | 운영 → Content·AI | 직전 구간 Fork 작품 요청 trace를 표본 비율로 뽑고 Content가 준 원작 비공개 카드 제목·미발행 회차 제목과 글자 대조 → 걸린 건만 AI `POST /internal/v1/evaluations/leak-check`(DeepEval)로 판정 → 의심이면 `leak_suspected` 경고 |
+| `leak_sample_check` | 운영 → Content·AI | 직전 구간 Fork 작품 요청 trace를 표본 비율로 뽑고 Content가 준 원작 비공개 카드 제목·미발행 회차 제목을 답변 글자와 대조한다 → 하나라도 걸린 건만 AI `POST /internal/v1/evaluations/leak-check` `{response, references, question?}`(`references`는 걸린 제목 그대로, `question`은 사용자 질문 원문(요청 루트 관측 input의 `request`)이고 없으면 null, DeepEval)로 판정한다. 제목이 질문에 이미 있어도 걸리면 넘기고, 답변이 사용자의 말을 되풀이했을 뿐인지 비공개 내용까지 드러냈는지는 AI가 질문을 보고 판단한다 → 의심이면 `leak_suspected` 경고. 걸린 제목이 없으면 AI를 부르지 않고 `suspected=false` 결과만 남긴다 |
 | `regression_eval` | AI | AI `POST /internal/v1/evaluations`로 위임, AI가 Langfuse Dataset Run을 만들고 끝나면 운영 콜백 없이 운영이 Run 상태를 읽어 기록 갱신 |
 | `alert_cleanup` | 운영 | 90일 지난 해결 경고 삭제 |
 
