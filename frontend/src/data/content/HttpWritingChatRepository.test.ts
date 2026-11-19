@@ -4,7 +4,7 @@ import { login } from '../api/auth'
 import { stepText, type ChatEvent } from '../../domain/entities/writingChat'
 import { HttpWritingChatRepository } from './HttpWritingChatRepository'
 
-const input = { episode: 2, episodeVersionId: 'v2', consent: true as const, request: '길드 규칙은?' }
+const input = { episode: 2, episodeVersionId: 'v2', request: '길드 규칙은?' }
 /** 이벤트 경계와 상관없이 잘린 조각으로 SSE를 흘린다. */
 const sse = (...chunks: string[]) => new Response(new ReadableStream({
   start(controller) { chunks.forEach((c) => controller.enqueue(new TextEncoder().encode(c))); controller.close() },
@@ -259,7 +259,7 @@ describe('시뮬레이션 무대(#58) 응답·요청', () => {
       return JSON.parse(fetcher.mock.calls[0][1].body)
     }
     expect(await send({ request: '만약 카엘이 성문을 열었다면?', operation: 'character_simulation' }))
-      .toMatchObject({ request: '만약 카엘이 성문을 열었다면?', operation: 'character_simulation', consent: true })
+      .toMatchObject({ request: '만약 카엘이 성문을 열었다면?', operation: 'character_simulation' })
     // 반영 회차(targetEpisode, 작가가 연 회차)는 근거 회차(episode)와 따로 그대로 간다.
     expect(await send({ request: '이어 써 줘', targetEpisode: 3 })).toMatchObject({ episode: 2, episodeVersionId: 'v2', targetEpisode: 3 })
     // 버튼 진입의 시작 양식 값(IF: 전제, 흐름: 비트)과 참여 인물은 simulation으로 그대로 간다.
@@ -307,8 +307,8 @@ describe('원고 검수 단계 결과(#59)', () => {
   }
 
   it('지적의 위치·이유·상태와 위치를 정하지 못한 지적(null)을 그대로 읽는다', async () => {
-    const step = await run({ feature: 'review', status: 'completed', result: review({ findings: [finding(), finding({ start: null, end: null, status: 'suspected' })] }) })
-    expect(step.review).toEqual({ check: 'mechanical', episode: 3, revision: 4, gaps: [],
+    const step = await run({ feature: 'manuscript_review', status: 'completed', result: review({ findings: [finding(), finding({ start: null, end: null, status: 'suspected' })] }) })
+    expect(step.manuscriptReview).toEqual({ check: 'mechanical', episode: 3, revision: 4, gaps: [],
       findings: [finding(), finding({ start: null, end: null, status: 'suspected' })] })
     expect(step.result).toBeUndefined()
   })
@@ -318,9 +318,33 @@ describe('원고 검수 단계 결과(#59)', () => {
     expect(step).toMatchObject({ feature: 'writing_editing', when: 'if_issues_found', status: 'skipped', error: '고칠 문제가 없어요.' })
   })
 
+  it.each(['manuscript_review', 'review'])('이력의 원고 검수 단계 %s를 같은 결과로 읽는다', async (feature) => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({
+      threadId: 't1', title: '원고 검수', turns: [{ request: '검수해 줘', reply: {
+        status: 'completed', steps: [{ feature, status: 'completed', result: review() }], missingInputs: [],
+      } }],
+    }))
+    const history = await new HttpWritingChatRepository(fetcher).history('w1', 't1')
+    expect(history.turns[0].reply?.steps[0]).toMatchObject({
+      feature: 'manuscript_review', manuscriptReview: { check: 'mechanical', findings: [finding()] },
+    })
+  })
+
+it('승인 전 집필 후보와 원래 선택 구간을 검수 결과에 표시한다', async () => {
+    const candidate = { selection: { start: 9, end: 17 } }
+    const step = await run({ feature: 'manuscript_review', status: 'completed', result: review({ candidate, findings: [finding(), finding({ end: null })] }) })
+    expect(step.manuscriptReview?.candidate).toEqual(candidate)
+    expect(stepText(step)).toContain('승인 전 집필 후보')
+    expect(stepText(step)).toContain('기준 초안 판본 4')
+    // 미리보기·편집기에 위치 표시가 없어 문자 위치 숫자는 작가가 쓸 수 없다. 구절은 인용으로 알린다.
+    expect(stepText(step)).toContain('선택 구간 수정')
+    expect(stepText(step)).not.toMatch(/위치 \d/)
+  })
+
+
   it('두 검수를 함께 돌린 결과(both)도 읽는다(#369)', async () => {
-    const step = await run({ feature: 'review', status: 'completed', result: review({ check: 'both' }) })
-    expect(step.review?.check).toBe('both')
+    const step = await run({ feature: 'manuscript_review', status: 'completed', result: review({ check: 'both' }) })
+    expect(step.manuscriptReview?.check).toBe('both')
   })
 
   it.each([
@@ -329,9 +353,9 @@ describe('원고 검수 단계 결과(#59)', () => {
     ['검사 종류가 계약에 없다', review({ check: 'style' })],
     ['결과가 객체가 아니다', '문제 없음'],
   ])('형식이 어긋난 결과(%s)는 가짜 지적 없이 단계 실패로 알린다', async (_name, result) => {
-    const step = await run({ feature: 'review', status: 'completed', result })
+    const step = await run({ feature: 'manuscript_review', status: 'completed', result })
     expect(step).toMatchObject({ status: 'failed', error: '원고 검수 결과 형식을 확인할 수 없어요.' })
-    expect(step.review).toBeUndefined()
+    expect(step.manuscriptReview).toBeUndefined()
   })
 
   const assessment = { criterion: 'violence', level: 3, quotes: ['칼로 손가락을 잘랐다.'], rationale: '잔혹한 신체 훼손' }

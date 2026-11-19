@@ -1,11 +1,12 @@
 import pytest
 
+from app.content_mcp.errors import ContentMcpFailure
 from app.rating import service
 from app.rating.errors import RatingFailure
 from app.rating.models import RatingRequest
 from app.rating.prompt import INSTRUCTIONS
 
-from .stubs import WORK, adult, fake_agent, fake_content, general, result
+from .stubs import NO_INHERITED, WORK, adult, fake_agent, fake_content, general, result
 
 
 def request(*episodes):
@@ -47,6 +48,19 @@ def test_unlinked_work_is_rated_without_characters(monkeypatch):
     seen = fake_agent(monkeypatch, general())
     assert service.rate(request(1)).verdict == 'general'
     assert seen[0]['characters'] == []
+
+
+def test_fork_without_its_own_world_uses_the_inherited_original_characters(monkeypatch):
+    # #524: Review·Q&A와 같은 세계관 선택(content_mcp.linked_world). 원작의 공개 인물 카드로 미성년 여부를 본다.
+    inherited = {**NO_INHERITED, 'worldId': 'world-1', 'upto': 2, 'cards': [
+        {'id': 'hana', 'cardType': 'character', 'title': '하나', 'body': '열여섯 살 학생.'},
+        {'id': 'gate', 'cardType': 'location', 'title': '성문', 'body': '북쪽 문.'}]}
+    calls = fake_content(monkeypatch, linked='other-work', inherited=inherited)
+    seen = fake_agent(monkeypatch, general(), general())
+    service.rate(request(1, 2))
+    assert ('work_inherited_world', {'id': WORK, 'upto': '2'}) in calls
+    assert 'world_studio_read' not in [tool for tool, _ in calls]
+    assert [c['ref'] for c in seen[0]['characters']] == ['card:hana']
 
 
 def test_profanity_count_is_a_rule_signal_returned_with_the_rating(monkeypatch):
@@ -155,9 +169,11 @@ def test_empty_draft_fails_before_any_model_call(monkeypatch):
     lambda tool, arguments: {'draft': {'body': None, 'revision': 1}},  # 초안 형식 오류
     lambda tool, arguments: ({'draft': {'title': '1화', 'body': '비', 'revision': 1}} if tool == 'episode_read'
                              else [{'worldId': 'w', 'linkedWorkId': WORK}] if tool == 'world_studio_list' else {'cards': 'x'}),  # 세계관 형식 오류
+    # 세계관 목록 형식 오류: 공용 linked_world가 ContentMcpFailure(502)로 올린다(처리되지 않은 500이 아니다)
+    lambda tool, arguments: ({'draft': {'title': '1화', 'body': '비', 'revision': 1}} if tool == 'episode_read' else {'worlds': []}),
 ])
 def test_unreadable_content_is_502(monkeypatch, call):
     monkeypatch.setattr(service.content_mcp, 'call', call)
-    with pytest.raises(RatingFailure) as error:
+    with pytest.raises((RatingFailure, ContentMcpFailure)) as error:
         service.rate(request(1))
     assert error.value.status == 502

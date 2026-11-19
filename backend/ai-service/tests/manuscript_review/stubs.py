@@ -1,7 +1,7 @@
 from fake_chat import fake_chat
 
-from app.review import service
-from app.review.models import DraftFinding, ReviewResult
+from app.manuscript_review import service
+from app.manuscript_review.models import DraftFinding, ReviewResult
 
 WORK = 'work-1'
 WORLD = {

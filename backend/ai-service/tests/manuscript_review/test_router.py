@@ -2,8 +2,8 @@ import pytest
 from fastapi import HTTPException
 
 from app.content_mcp.errors import ContentMcpFailure
-from app.review import router
-from app.review.models import ReviewRequest
+from app.manuscript_review import router
+from app.manuscript_review.models import ReviewRequest
 
 from .stubs import WORK, fake_agent, fake_content
 

@@ -34,7 +34,11 @@ def general():
     return result(0)
 
 
-def fake_content(monkeypatch, bodies=None, world=WORLD, linked=WORK):
+# 연결 세계관이 없는 작품이 이어받는 원작 세계관이 없다(work_inherited_world 응답).
+NO_INHERITED = {'workId': WORK, 'worldId': None, 'upto': 0, 'cards': [], 'relationships': [], 'relationshipStatus': 'current'}
+
+
+def fake_content(monkeypatch, bodies=None, world=WORLD, linked=WORK, inherited=NO_INHERITED):
     """Content MCP 대역. bodies는 회차 번호 → 초안 본문이며 호출한 도구·인자 목록을 돌려준다."""
     bodies = bodies or {1: '비가 왔다.', 2: '비명이 울렸다. 그는 칼로 손가락을 하나씩 잘랐다.'}
     calls = []
@@ -48,6 +52,8 @@ def fake_content(monkeypatch, bodies=None, world=WORLD, linked=WORK):
             return [{'worldId': 'world-1', 'linkedWorkId': linked}]
         if tool == 'world_studio_read':
             return world
+        if tool == 'work_inherited_world':
+            return inherited
         raise AssertionError(tool)
 
     monkeypatch.setattr(service.content_mcp, 'call', call)

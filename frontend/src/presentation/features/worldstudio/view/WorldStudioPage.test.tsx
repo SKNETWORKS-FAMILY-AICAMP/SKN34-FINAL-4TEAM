@@ -1531,7 +1531,7 @@ it('설정 카드 단계에도 집필실과 같은 AI 채팅 패널이 있고 �
   const box = chat.getByRole('textbox', { name: '메시지' })
   expect(box).toHaveProperty('disabled', true)
   expect(chat.getByRole('button', { name: '전송' })).toHaveProperty('disabled', true)
-  expect(document.getElementById(box.getAttribute('aria-describedby') ?? '')?.textContent).toMatch(/데모에서는|소설을 연결하면|발행하면|동의에 체크/)
+  expect(document.getElementById(box.getAttribute('aria-describedby') ?? '')?.textContent).toMatch(/데모에서는|소설을 연결하면|발행하면/)
   const log = chat.getByRole('log')
   for (const name of ['인물 카드 아이디어', '이 설정의 모순 찾기', '관계 제안']) expect(within(log).getByRole('button', { name })).toHaveProperty('disabled', true)
   expect(log.querySelectorAll('.chat-msg')).toHaveLength(0)
