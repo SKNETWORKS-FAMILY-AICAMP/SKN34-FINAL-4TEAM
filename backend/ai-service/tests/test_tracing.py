@@ -1,3 +1,4 @@
+import asyncio
 import contextvars
 from concurrent.futures import ThreadPoolExecutor
 from types import SimpleNamespace
@@ -131,6 +132,22 @@ def test_the_caller_sets_or_withholds_the_status_of_a_request_that_did_not_raise
     waiting, failed = spans()
     assert attrs(waiting)['langfuse.trace.tags'] == ['feature:orchestration']
     assert attrs(failed)['langfuse.trace.tags'] == ['feature:orchestration', 'status:failed']
+
+
+def test_a_request_cut_off_before_it_ended_has_no_status(spans):
+    async def streaming():
+        with tracing.request('orchestration'):
+            yield 1
+            yield 2
+
+    async def cut():
+        stream = streaming()
+        await stream.__anext__()
+        await stream.aclose()  # 클라이언트가 SSE 연결을 끊은 경우
+
+    asyncio.run(cut())
+    [root] = spans()
+    assert attrs(root)['langfuse.trace.tags'] == ['feature:orchestration']  # 끝나지 않은 요청을 성공으로 세지 않는다
 
 
 def test_a_request_joins_the_trace_of_an_earlier_request(spans):

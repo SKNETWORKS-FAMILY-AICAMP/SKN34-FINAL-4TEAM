@@ -103,6 +103,9 @@ def request(feature: str, *, user_id: str | None = None, session_id: str | None 
             except Exception as error:
                 run.status = 'timeout' if timed_out(error) else 'failed'
                 raise
+            except BaseException:  # 취소·SSE 연결 끊김: 끝나지 않은 요청이라 상태를 남기지 않는다
+                run.status = None
+                raise
             finally:
                 if run.status:
                     with propagate_attributes(tags=[f'status:{run.status}']):  # 현재 span(요청 루트)의 태그에 상태를 더한다
@@ -134,7 +137,8 @@ def prompt(name: str, default: str) -> Prompt:
 
     없는 프롬프트(404)는 default를 버전 1(production)로 등록해 쓴다. 읽기에 실패하면 SDK가 캐시(마지막 성공 값)를 주고,
     캐시도 없으면 default로 바꾸지 않고 PromptUnavailable이다.
-    ponytail: 서버가 막 뜬 직후 같은 프롬프트를 동시에 처음 쓰면 같은 내용의 버전이 둘 생길 수 있다. 문제 되면 시작 때 한 번 등록한다.
+    ponytail: 서버가 막 뜬 직후 같은 프롬프트를 동시에 처음 쓰면 같은 내용의 버전이 둘 생길 수 있고, 프롬프트마다 첫 읽기는 동기 HTTP다
+    (이후는 SDK 캐시). 문제 되면 시작 때 한 번 등록·예열한다.
     """
     if not enabled():
         return Prompt(default)
