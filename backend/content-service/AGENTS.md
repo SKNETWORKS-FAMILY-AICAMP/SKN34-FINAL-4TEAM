@@ -10,8 +10,8 @@
   사용자 Bearer와 `X-Content-Service-Token`을 함께 보내고 검증된 회원 UUID를 Principal로 쓰고 Core가 알려 준 운영자 여부(`operator`)는 `ROLE_OPERATOR` authority로만 쓴다. JWT 서명 키·Core Entity를 가져오지 않는다.
 - 작성자·작가 표시명은 저장하지 않는다. 응답마다 `CoreNicknameService`(같은 `CoreAuthClient`, 서비스 토큰만)로 회원 ID 묶음을 한 번 조회해 채우며, Core에 없으면 `탈퇴한 회원`, 호출 실패는 503/504/502로 응답하고 대체 이름을 쓰지 않는다. Content↔Core 테이블 JOIN은 없다.
 - 기존 API·CSRF·UUID·revision·잠금·불변 이력을 유지한다.
-- Flyway: 콘텐츠 스키마는 `ContentPersistenceConfig.MIGRATION_LOCATIONS`의 `db/migration/{work,episode,world,episode_version,publication,fork,proposal,plan,sample}`와
-  단일 `content_schema_history`다. 버전은 경로를 가로질러 전역으로 매기며(현재 V1~V31·V36~V38, V24는 결번이며 V32~V35는 열린 PR 몫) 새 SQL은 최댓값 다음 번호를 쓰고 결번은 채우지 않는다(`outOfOrder` 미사용).
+- Flyway: 콘텐츠 스키마는 `ContentPersistenceConfig.MIGRATION_LOCATIONS`의 `db/migration/{work,episode,world,episode_version,publication,fork,proposal,plan,preprocessing,sample}`와
+  단일 `content_schema_history`다. 버전은 경로를 가로질러 전역으로 매기며(현재 V1~V31·V36~V40, V24는 결번이며 V32~V35는 열린 PR 몫) 새 SQL은 최댓값 다음 번호를 쓰고 결번은 채우지 않는다(`outOfOrder` 미사용).
   `sample/V16`은 CSV에서 생성한 개발 샘플 행이며 직접 편집하지 않는다. 샘플 변경은 다음 번호의 새 마이그레이션으로 한다.
   `db/migration/content`·root 직하 SQL을 다시 만들지 않는다. Auth·첨부·WorldStudio SQL 이력은 보존하고 자동 repair/reset하지 않는다.
 - WorldStudio는 `contentDataSource`를 재사용하고 시작 시 전용 schema(`world_studio_schema_history`)를 migrate한 뒤 전용 EntityManager/TransactionManager로 validate한다. 별도 DB·분산 transaction을 추가하지 않는다.
@@ -27,6 +27,7 @@
 - 자기 세계관을 연결하지 않은 `following` Fork는 원작 세계관을 읽기 전용으로 이어받는다(#365). `WorkWorldService.inheritedWorld` 한 곳이 조건·상한 회차(Fork 기준 회차)를 정하고 `PublicWorldService.inheritedWorld`가 확정 버전의 카드 중 유효 공개 회차가 상한 이하인 것(DEC-53: 독자 설정 위키와 같은 카드 집합이며 DEC-46·#365의 '공개 카드만'을 대체)과 그 카드끼리의 그 시점 관계만 거른다. 인물 문서·관계 본문 같은 작가용 값은 싣지 않는다. REST `GET /api/v1/works/{id}/inherited-world`·MCP `work_inherited_world`·`QaScopeService`가 같은 결과를 쓰며 원작 작가 권한으로 초안을 읽지 않는다. [계약](../../docs/design/public-world-contract.md#fork가-이어받는-원작-세계관-dec-3237-365)
 - 관계는 회차별 연결이다(DEC-51). 저장 요청의 `relationshipEpisodes`(관계 id → 그 관계의 'N화부터', DEC-54 2단계)가 있으면 `WorldStudioService.edit`이 `Neo4jRelationshipRepository.replaceWithEpisodes`·`readAfterWithEpisodes`를, 없으면 이전 경로(`replace`·`readAfter`)를 부르고(필드가 비면 직렬화하지 않아 요청 hash가 이전과 같다), 회차를 준 관계는 값이 같아도 새로 쓰는 관계라 양 끝이 활성 카드여야 한다(값은 정수 JSON 값만 읽는 `WholeEpisode`라 소수·문자열은 422). 공개 응답(`PublicWorldService.detail`·`readerCards`)만 관계마다 `history`를 싣는다: 이력은 저장소 `read(worldId, 기준 회차)`가 기준 회차 이하에서 그 시점 연결과 끝점이 같은 연속한 연결로 만들고(다른 카드로 옮겨지기 전의 옛 연결은 지금 보이지 않는 카드와의 관계일 수 있어 뺀다) `RelationshipStateResult.history`를 처음 읽을 때 계산해 `currentRelationships(withHistory)`인 상세·독자 위키만 풀고(소유자 읽기·저장·목록·Fork 이어받기는 풀지 않는다) 공개 경로는 늘 기준 회차로 읽고(최신으로 읽어 뒤 회차의 변화를 내보내지 않는다) 이력 `body`의 본문 링크도 관계 `body`와 같은 `hideCardLinks`로 치환한다(Fork 이어받기 응답에는 이력이 없다). [계약](../../docs/design/worldstudio-independent-schema.md#관계별-회차--dec-54-2단계)
 - MCP 창구(`ai.storyfork.content.mcp`, `/mcp`)는 기존 Service 함수만 호출하는 어댑터다. 공개 도구는 인증 없이, 사용자 도구는 전달된 Bearer를 기존 필터로 검증한 회원 UUID로 호출하며 도구 인자로 회원 ID를 받지 않는다. [계약](../../docs/design/content-mcp-contract.md)
+- 회차 원고 전처리(#343, DEC-50)는 `ai.storyfork.content.preprocessing`이 작업 기록(`preprocessing_job`, V40 `preprocessing` leaf)·접수·진행·재실행만 소유하고 추출·정리·적재는 AI 서비스가 한다(틀 단계, [계약](../../docs/design/manuscript-preprocessing-contract.md#실행-계약-2026-11-13-343)). 접수는 작업을 `queued`로 저장한 뒤 AI `POST /internal/v1/preprocessing/jobs`를 부르고(DB 트랜잭션·잠금을 AI 호출 동안 열지 않는다) AI가 받지 않으면 `failed`+고정 사유로 남기고 502다. 같은 작품의 진행 중·완료 작업은 하나(부분 유니크 인덱스가 최종 방어)이고 재실행은 작품의 가장 최근 실패 작업만 된다. 진행 보고 `POST /internal/v1/preprocessing-jobs/{id}/progress`만 AI 토큰 체인(`X-Internal-Token`)이고 목록·재실행은 운영 토큰 체인이다.
 - 로컬은 이 디렉터리에서 `./gradlew unitTest --tests 'ai.storyfork.content.<대상 클래스>' --no-daemon`으로 순수 단위만 실행한다.
   Spring/HTTP/DB/Flyway 검사는 CI `integrationTest`에서 실행한다.
 
