@@ -279,7 +279,7 @@ InheritedWorld = { "workId": "<Fork>", "worldId": "<원작 세계관 uuid>" | nu
 - **관계**는 그 카드끼리의 `upto`화 시점 관계(DEC-51, `identity` 포함)만이다. 방향·긍정/부정(`polarity`)은 관계의 뜻이라 남기고, 작가가 관계에 적은 본문(`body`)·메모는 비운다. 관계 저장소가 그 시점 상태를 보증하지 못하면 카드는 두고 `relationships: []`·`relationshipStatus: "unavailable"`이며, AI는 관계 없이 진행하지 않고 실패로 끝낸다(`world_studio_read`가 관계 저장 미완료에 503으로 답하는 것과 같다). 보일 카드가 없으면 관계 저장소를 읽지 않는다.
 - **싣지 않는 것**: 카드 메타데이터는 `revealFromEpisode`만이다. 인물 문서 `SOUL.md`·`GOAL.md`·`memory/NN회차.md`(`characterDocs`, 작가용), 가져온 출처, 이미지는 없다. 이어받은 인물은 `IDENTITY.md`(카드 본문)만 가진다.
 - 원작의 현재 확정 버전을 매번 읽으므로 `following` 동안 원작의 변경(기준 회차 이하에 영향을 주는 것)을 따라간다(DEC-37). `independent` 전환(최초 수정 시 독립)은 아직 없어 모든 Fork가 `following`이다.
-- 같은 계산을 `QaScopeService`가 쓴다: 관계 질문의 범위(`QaScope.world`)는 자기 회차에 연결한 세계관이 없을 때 이어받은 세계관의 `worldId`·`relationshipVersion`을 쓰고, 현재 관계 근거(`currentRelationships`)는 이어받은 관계만이다(원작 작가 권한으로 초안을 읽지 않는다). 상속 회차(원작 기준 이하)는 기존대로 원작 작가가 그 회차에 연결한 세계관을 쓴다.
+- 집필 AI Q&A도 같은 이어받은 세계관을 AI가 Content MCP `work_inherited_world`로 읽는다(#490). Content `QaScopeService`의 관계 질문 경로는 #525 뒤 지웠다.
 - 화면: 집필실 시뮬레이션 시작 양식이 내 세계관 목록에 이 작품에 연결된 세계관이 없을 때 이 API를 `upto=<여는 회차>`로 읽어 인물 카드(`cardType=character`, 나레이터 카드 제외)를 후보로 쓴다. 후보와 서버 검증이 같은 카드 집합이다([시뮬레이션 계약](character-simulation-contract.md#fork-이어받기-365)).
 - 한계: Fork 생성 미리보기(공개된 세계관 규칙·인물 수)는 아직 레거시 설정 이력 기준이다(후속). `SOUL.md`가 없는 이어받은 인물은 말투 근거가 약하다.
 

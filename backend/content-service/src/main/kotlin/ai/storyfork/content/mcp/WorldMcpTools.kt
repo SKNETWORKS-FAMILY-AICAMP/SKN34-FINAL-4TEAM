@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
  * 계약: docs/design/content-mcp-contract.md. 형식은 [WorkMcpTools]와 같다.
  */
 @Component
-class WorldMcpTools(private val worlds: WorldService, private val checkpoints: WorldCheckpointService) {
+class WorldMcpTools(private val worlds: WorldService, private val checkpoints: WorldCheckpointService, private val changeNotice: McpChangeNotice) {
     @McpTool(
         name = "work_world_read",
         description = "작품의 세계관(설정집)을 확정 설정·초안·변경 이력과 이후 저장에 쓰는 revision·sourceToken까지 조회한다(GET /api/v1/works/{id}/world). 작품 소유자만 가능하며 접근할 수 없으면 404다.",
@@ -42,7 +42,7 @@ class WorldMcpTools(private val worlds: WorldService, private val checkpoints: W
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "설정 ID. 새 설정이면 new") sid: String,
         @McpToolParam(description = "초안 입력: revision(work_world_read의 revision)·setting(설정 내용)·sourceToken(work_world_read의 sourceToken)") data: SettingRequest,
-    ): WorldResponse = mcpTool { worlds.saveDraft(id, sid, context.requireCaller().memberId, data.validated()) }
+    ): WorldResponse = mcpTool { worlds.saveDraft(id, sid, context.requireCaller().memberId, data.validated()).also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "work_setting_commit",
@@ -53,7 +53,7 @@ class WorldMcpTools(private val worlds: WorldService, private val checkpoints: W
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "설정 ID") sid: String,
         @McpToolParam(description = "기대 revision(work_world_read의 revision)") data: RevisionRequest,
-    ): WorldResponse = mcpTool { worlds.commit(id, sid, context.requireCaller().memberId, data.validated().revision) }
+    ): WorldResponse = mcpTool { worlds.commit(id, sid, context.requireCaller().memberId, data.validated().revision).also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "work_setting_revert",
@@ -64,7 +64,7 @@ class WorldMcpTools(private val worlds: WorldService, private val checkpoints: W
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "설정 ID") sid: String,
         @McpToolParam(description = "복원 입력: revision(work_world_read의 revision)·versionId(복원할 설정 버전 ID)") data: RevertRequest,
-    ): WorldResponse = mcpTool { worlds.revert(id, sid, context.requireCaller().memberId, data.validated()) }
+    ): WorldResponse = mcpTool { worlds.revert(id, sid, context.requireCaller().memberId, data.validated()).also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "world_checkpoint_create",

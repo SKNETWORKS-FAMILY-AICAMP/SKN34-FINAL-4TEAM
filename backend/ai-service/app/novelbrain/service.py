@@ -30,6 +30,25 @@ _NOT_REVEALED = '상대 설정이 아직 공개되지 않아 이 관계를 아�
 _EXCERPT_GAPS = {'relationship': 'relationship_current_not_episode', 'setting': 'setting_via_retrieval'}
 
 
+def episode_settings(world: WorldSnapshot, episode: int) -> list[dict]:
+    """그 회차까지 독자에게 공개된 카드(인물은 그 회차까지의 기억)와 두 끝이 모두 공개된 관계를 `{ref, type, title, text}`로 돌려준다.
+
+    이후 회차 정보는 근거가 아니다. Review·Q&A가 같은 거르기를 쓴다. ref는 `card:<id>`·`relation:<id>`이고 관계의 type은 `relation`이다.
+    """
+    cards = {c.id: c for c in world.cards if c.revealFromEpisode is None or c.revealFromEpisode <= episode}
+    settings = []
+    for c in cards.values():
+        memories = [f'{n}화: {t}' for n, t in sorted(c.episodes.items()) if n <= episode]
+        text = '\n\n'.join(t for t in (c.text, c.soul, c.goal, *memories) if t.strip())
+        settings.append({'ref': f'card:{c.id}', 'type': c.cardType, 'title': c.title, 'text': text})
+    for r in world.relations:
+        if r.source in cards and r.target in cards:
+            label = f'{r.label}(아님)' if r.polarity == 'denied' else r.label
+            settings.append({'ref': f'relation:{r.id}', 'type': 'relation',
+                             'title': f'{cards[r.source].title} → {cards[r.target].title}', 'text': f'{label}\n{r.body}'.strip()})
+    return settings
+
+
 def _fold(text: str) -> str:
     # macOS 등에서 온 풀어쓴(NFD) 한글도 같은 글자로 맞춘다.
     return unicodedata.normalize('NFC', text).lower()

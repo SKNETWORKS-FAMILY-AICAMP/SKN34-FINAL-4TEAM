@@ -35,6 +35,14 @@ interface NoticeRepository : JpaRepository<NoticeEntity, UUID> {
     @Query("select n from NoticeEntity n where n.recipientId = :recipientId and n.deletedAt is null and n.kind = :kind and n.targetType = :targetType and n.targetId = :targetId order by n.createdAt desc, n.id desc")
     fun groupItems(recipientId: UUID, kind: String, targetType: String, targetId: String, pageable: Pageable): List<NoticeEntity>
 
+    /**
+     * 같은 종류·대상의 읽지 않고 삭제되지 않은 알림의 도착 시각을 now로 올린다(AI 변경 알림 묶음, #553). 올린 행 수를 반환하며 0이면 묶을 알림이 없다.
+     * 필요한 컬럼만 조건부로 갱신해 동시 읽음·삭제 표시를 덮어쓰지 않는다.
+     */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update NoticeEntity n set n.createdAt = :now where n.recipientId = :recipientId and n.kind = :kind and n.targetType = :targetType and n.targetId = :targetId and n.readAt is null and n.deletedAt is null")
+    fun bumpUnread(recipientId: UUID, kind: String, targetType: String, targetId: String, now: Instant): Int
+
     /** 읽지 않은 본인 알림 하나만 읽음 처리한다. 필요한 컬럼만 조건부로 갱신해 동시 삭제 표시를 덮어쓰지 않는다. */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update NoticeEntity n set n.readAt = :now where n.id = :id and n.recipientId = :recipientId and n.readAt is null and n.deletedAt is null")

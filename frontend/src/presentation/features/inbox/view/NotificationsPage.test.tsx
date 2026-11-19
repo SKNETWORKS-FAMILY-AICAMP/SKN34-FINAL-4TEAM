@@ -19,7 +19,7 @@ function setup(ids: string[], remove: (id: string) => Promise<void> = async () =
   let items = ids.map(notice)
   vi.spyOn(repo, 'list').mockImplementation(async () => ({ items, nextCursor: null }))
   vi.spyOn(repo, 'unreadCount').mockImplementation(async () => items.length)
-  vi.spyOn(repo, 'getPrefs').mockResolvedValue({ read: true, creator: true })
+  vi.spyOn(repo, 'getPrefs').mockResolvedValue({ read: true, creator: true, aiTool: true })
   const removed = vi.spyOn(repo, 'remove').mockImplementation(async (id) => { await remove(id); items = items.filter((n) => n.id !== id) })
   render(<Provider store={createAppStore({ role: 'user' })}><MemoryRouter><NotificationsPage /></MemoryRouter></Provider>)
   return removed
@@ -91,5 +91,16 @@ describe('알림함 (U42)', () => {
     // 수신 설정 체크박스 줄도 정의 없는 .row 대신 전용 줄을 쓴다.
     expect(screen.getByLabelText('읽기 알림').closest('.notice-prefs')).not.toBeNull()
     expect(document.querySelector('.row')).toBeNull()
+  })
+
+  it('수신 설정에 AI·외부 도구 변경 토글이 있고, 끄면 나머지 설정은 그대로 두고 그 분류만 저장한다', async () => {
+    setup(['a'])
+    const save = vi.spyOn(appContainer.resolve('notificationRepository'), 'savePrefs').mockImplementation(async (prefs) => prefs)
+    const toggle = await screen.findByLabelText('AI·외부 도구 변경')
+    expect(toggle.closest('.notice-prefs')).not.toBeNull()
+    expect((toggle as HTMLInputElement).checked).toBe(true)
+    fireEvent.click(toggle)
+    await waitFor(() => expect(save).toHaveBeenCalledWith({ read: true, creator: true, aiTool: false }))
+    await waitFor(() => expect((screen.getByLabelText('AI·외부 도구 변경') as HTMLInputElement).checked).toBe(false))
   })
 })

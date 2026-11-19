@@ -15,7 +15,7 @@ const model = vi.hoisted(() => ({
   deleteBlocker: '', deleteBlockerOf: vi.fn((e: { inherited: boolean; publishedVersionId: string | null }) => e.inherited ? '원작 기준 회차는 삭제할 수 없어요.' : e.publishedVersionId ? '발행본이 있는 회차는 삭제할 수 없어요.' : ''),
   addImage: vi.fn().mockResolvedValue(true), orderLookup: null as null | { status: 'loading' } | { status: 'failed'; message: string } | { status: 'ready'; scope: { number: number; candidateNumbers: number[]; reasons: string[]; executable: false } },
   checkOrder: vi.fn(), deleteDraft: vi.fn(),
-  edit: vi.fn(), save: vi.fn(), reload: vi.fn(), deleteEpisode: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true), clearNotice: vi.fn(),
+  edit: vi.fn(), save: vi.fn(), reload: vi.fn(), refresh: vi.fn(), deleteEpisode: vi.fn(), publish: vi.fn().mockResolvedValue(true), revertCheckpoint: vi.fn().mockResolvedValue(true), restore: vi.fn(), mayLeave: vi.fn(() => true), clearNotice: vi.fn(),
   retrySave: vi.fn(), expired: false,
   create: vi.fn().mockResolvedValue(true), select: vi.fn<(e: { number: number }) => boolean>(() => true),
   cancel: vi.fn(), loadPublicationHistory: vi.fn(), historyLoading: false, historyError: '', publicationHistory: null as null | unknown[],
@@ -28,6 +28,10 @@ vi.mock('../../../shared/plans/useStoryPlanViewModel', () => ({ useStoryPlanView
   plans: [], references: null, selected: null, editor: null, deleting: null, embedded: true,
   busy: false, ready: true, dirty: false, error: '', notice: '', version: 0, startBlocker: '', confirmLeave: () => true,
 }) }))
+// AI·외부 도구(MCP) 변경 감시(#553)는 훅 자체의 테스트(useMcpChangeWatch.test)가 확인하고, 여기서는 집필실이 넘기는 값과 배너 연결만 본다.
+const mcp = vi.hoisted(() => ({ stale: false, reload: vi.fn(), watch: vi.fn() }))
+vi.mock('../../../shared/useMcpChangeWatch', () => ({ useMcpChangeWatch: (...args: unknown[]) => { mcp.watch(...args); return { stale: mcp.stale, reload: mcp.reload } } }))
+afterEach(() => { mcp.stale = false })
 vi.mock('../../../shared/screenIds', () => ({ useScreenId: () => {} }))
 vi.mock('../../../shared/media/MediaPanel', () => ({ ManuscriptBody: ({ body }: { body: string }) => <p>{body}</p>, StoredImage: () => null }))
 vi.mock('./SettingHistoryPanel', () => ({ SettingHistoryPanel: ({ workId }: { workId: string }) => <section aria-label="설정 버전 이력"><h2>설정 버전 이력</h2><p>{workId}</p></section> }))
@@ -1219,6 +1223,34 @@ it('재시도 버튼과 로그인 링크는 한 묶음이라 넓은 오류 상�
   expect(retry.parentElement?.parentElement).toBe(alert)
 })
 
+// #460: 로그인이 풀린 오류의 '로그인' 링크는 홈이 아니라 쓰던 회차로 돌아오게 현재 주소를 기억하고, 오류 글씨와 구분되는 버튼으로 보인다.
+it('로그인이 풀려 나타난 로그인 링크는 쓰던 회차 주소(?ep=n)를 로그인 뒤 돌아갈 곳으로 남기고 로그인 화면으로 보낸다', () => {
+  model.error = '로그인한 뒤 다시 저장해 주세요.'
+  model.expired = true
+  const { store } = renderStudio({}, undefined, '/studio/work-id?ep=3')
+  fireEvent.click(within(screen.getByRole('alert')).getByRole('link', { name: '로그인' }))
+  expect(store.getState().session.next).toBe('/studio/work-id?ep=3')
+  expect(where()).toBe('/login')
+})
+
+it('저장하지 않은 입력이 있어 이동을 취소하면 돌아갈 주소를 남기지 않고 화면에 머문다', () => {
+  model.error = '로그인한 뒤 다시 저장해 주세요.'
+  model.expired = true
+  model.dirty = true
+  model.mayLeave.mockReturnValueOnce(false)
+  const { store } = renderStudio({}, undefined, '/studio/work-id?ep=3')
+  fireEvent.click(within(screen.getByRole('alert')).getByRole('link', { name: '로그인' }))
+  expect(store.getState().session.next).toBeNull()
+  expect(where()).toBe('/studio/work-id?ep=3')
+})
+
+it('로그인 링크는 오류 글씨와 같은 색의 밑줄 없는 글자가 아니라 버튼 모양이다', () => {
+  model.error = '로그인한 뒤 다시 저장해 주세요.'
+  model.expired = true
+  renderStudio()
+  expect(within(screen.getByRole('alert')).getByRole('link', { name: '로그인' }).classList.contains('btn')).toBe(true)
+})
+
 // 재시도가 시작되면 오류 상자(와 그 안의 버튼)가 사라져 초점이 body로 떨어지던 문제: 눌렀을 때만 남아 있는 저장 상태 줄이 초점을 이어받는다.
 it('초안 저장 다시 시도를 누르면 사라질 오류 상자 대신 상단 저장 상태가 초점을 이어받는다', () => {
   model.error = '오프라인'
@@ -1298,4 +1330,23 @@ it.each([
     // 문서 스크롤은 건드리지 않는다(좁은 화면에서 원고를 읽던 자리가 튀지 않게).
     expect(page).not.toHaveBeenCalled()
   } finally { layout.mockRestore(); page.mockRestore() }
+})
+
+it('AI·외부 도구 변경 감시에 열린 작품 id와 미저장 원고 여부, 다시 읽기(확인 없는 refresh)를 넘긴다', () => {
+  const { rerender } = renderStudio()
+  expect(mcp.watch).toHaveBeenLastCalledWith({ targetType: 'work', targetId: 'work-id', dirty: false, reload: model.refresh })
+  model.dirty = true
+  rerender(<WritingStudio id="work-id" />)
+  expect(mcp.watch).toHaveBeenLastCalledWith({ targetType: 'work', targetId: 'work-id', dirty: true, reload: model.refresh })
+})
+
+it('다른 곳에서 바뀌었다는 배너는 바뀐 것이 있을 때만 보이고, 다시 불러오기를 누르면 감시 훅의 reload를 부른다', () => {
+  const { unmount } = renderStudio()
+  expect(screen.queryByText('다른 곳에서 바뀌었어요')).toBeNull()
+  unmount()
+  mcp.stale = true
+  renderStudio()
+  const banner = screen.getByText('다른 곳에서 바뀌었어요').closest('[role="status"]') as HTMLElement
+  fireEvent.click(within(banner).getByRole('button', { name: '다시 불러오기' }))
+  expect(mcp.reload).toHaveBeenCalledTimes(1)
 })
