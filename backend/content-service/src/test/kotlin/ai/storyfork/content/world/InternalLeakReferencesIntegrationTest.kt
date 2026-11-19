@@ -30,7 +30,8 @@ import tools.jackson.databind.json.JsonMapper
 
 /**
  * Hosted CI only: 운영 정보 누설 비교 기준(DEC-55) 내부 API를 실제 Content HTTP·서비스 토큰 체인·PostgreSQL(작품 + WorldStudio)·Neo4j로 확인한다.
- * 안 보이는 카드 판정(DEC-53)과 Fork 기준 회차 고정, 원작의 기준 회차 뒤 회차 제목, 제목만 나가고 본문은 안 나감을 본다. Core 회원 검증과 닉네임은 대역이다.
+ * 안 보이는 카드 판정(DEC-53)과 Fork 기준 회차 고정, 원작의 기준 회차 뒤 회차 제목, 제목만 나가고 본문은 안 나감, Fork 독자가 이미 읽은 본문(물려받은 원작 발행본·Fork가 발행한 회차)에 나온 제목이 빠짐을 본다.
+ * Core 회원 검증과 닉네임은 대역이다.
  */
 @EnabledIfEnvironmentVariable(named="TEST_WORLDSTUDIO_DATABASE_URL",matches=".+")
 class InternalLeakReferencesIntegrationTest {
@@ -43,7 +44,7 @@ class InternalLeakReferencesIntegrationTest {
     private val token="leak-references-test-token-at-least-32"
     private val wrongToken="wrong-service-token-wrong-service-token"
 
-    @Test fun `the operations token reads the origin cards a Fork reader cannot see and the origin episode titles after the basis episode, titles only`() {
+    @Test fun `the operations token reads the origin cards a Fork reader cannot see and the origin episode titles after the basis episode, titles only and minus titles the Fork reader already read`() {
         WorldStudioPostgresFixture("coexist").use { db ->
             db.studio().migrate()
             SpringApplicationBuilder(ContentServiceApplication::class.java,Core::class.java,ContentTestConfig::class.java).run(
@@ -69,19 +70,19 @@ class InternalLeakReferencesIntegrationTest {
                 fun internal(path:String,serviceToken:String?=token)=send(path,actor=null,serviceToken=serviceToken)
                 fun titles(node:JsonNode)=node.values().map { it.asString() }
                 fun work(actor:UUID,title:String):String=works.create(actor.toString(),CreateWorkRequest(title,"소개","ORIGINAL",listOf("판타지"),emptyList(),true)).id
-                /** 이미 만들어진 [number]화 초안을 [title]로 저장 버전으로 확정해 발행한다. */
-                fun publish(id:String,number:Int,title:String) {
-                    val saved=driver.writeEpisode(id,owner.toString(),number,DraftRequest(title,"본문",driver.writing(id,owner.toString(),number).draft.revision),true)
-                    driver.publishEpisode(id,owner.toString(),number,PublishRequest(saved.draft.revision,true,true,true,saved.versions.last().id))
+                /** 이미 만들어진 [number]화 초안을 [actor]가 [title]·[body]로 저장 버전으로 확정해 발행한다. */
+                fun publish(id:String,number:Int,title:String,body:String="본문",actor:UUID=owner) {
+                    val saved=driver.writeEpisode(id,actor.toString(),number,DraftRequest(title,body,driver.writing(id,actor.toString(),number).draft.revision),true)
+                    driver.publishEpisode(id,actor.toString(),number,PublishRequest(saved.draft.revision,true,true,true,saved.versions.last().id))
                 }
 
-                // 원작 세계관: 1화부터 공개 카드, 3화에 공개되는 카드, 공개 회차가 없는 작가 전용 카드. 확정해 원작에 연결한다.
+                // 원작 세계관: 1화부터 공개 카드, 3화에 공개되는 카드, 공개 회차가 없는 작가 전용 카드, 4화에 공개되지만 원작 2화 본문에 먼저 나오는 카드. 확정해 원작에 연결한다.
                 val create=CreateWorldRequest("누설 기준 세계관","설명");val world=create.id
                 assertEquals(200,send("/api/v1/world-studios",method="POST",body=create).statusCode())
                 fun card(title:String,visibility:String,reveal:Int?)=CardPayload(UUID.randomUUID(),title,"$title 카드 원문","character","basic",
                     semanticMetadata=if(reveal==null) emptyMap() else mapOf("revealFromEpisode" to reveal),visibility=visibility)
                 assertEquals(200,send("/api/v1/world-studios/$world/draft",method="PUT",body=EditWorldDraftRequest(0,create.name,"설명",
-                    listOf(card("1화 공개 인물","public",1),card("3화 공개 인물","private",3),card("작가 전용 인물","private",null)),emptyList(),"leak-edit",true)).statusCode())
+                    listOf(card("1화 공개 인물","public",1),card("3화 공개 인물","private",3),card("작가 전용 인물","private",null),card("초반 언급 인물","private",4)),emptyList(),"leak-edit",true)).statusCode())
                 assertEquals(200,send("/api/v1/world-studios/$world/revisions",method="POST",body=SaveWorldRequest(1,"leak-save")).statusCode())
                 val origin=work(owner,"누설 기준 원작")
                 assertEquals(200,send("/api/v1/works/$origin/world-studio",method="PUT",body=mapOf("worldId" to world)).statusCode())
@@ -89,7 +90,7 @@ class InternalLeakReferencesIntegrationTest {
                 // 원작은 1·2화를 발행하고 3화는 제목만 있는 초안이다. 2화에서 갈라진 Fork를 만든다.
                 val first=driver.edit(origin,owner.toString(),DraftRequest("1화","본문",0))
                 driver.publish(origin,owner.toString(),PublishRequest(first.revision,true,true,true,driver.history(origin,owner.toString()).versions.last().id))
-                publish(origin,2,"2화")
+                publish(origin,2,"2화","2화에서 초반 언급 인물이 먼저 나온다")
                 driver.createEpisode(origin,owner.toString(),ai.storyfork.content.fixture.CreateWorkRequest("비밀 3화 제목"))
                 val fork=driver.fork(origin,forker.toString(),ai.storyfork.content.fixture.ForkRequest(2,"분기")).id
                 val path="/internal/v1/works/$fork/leak-references"
@@ -101,6 +102,7 @@ class InternalLeakReferencesIntegrationTest {
                 val response=internal(path);assertEquals(200,response.statusCode(),response.body())
                 val body=json(response)
                 assertEquals(origin,body.path("originWorkId").asString())
+                // 4화 카드 '초반 언급 인물'도 기준 회차 2화에는 안 보이지만 Fork가 물려받은 원작 2화 본문에 이미 나와 빠진다.
                 assertEquals(listOf("3화 공개 인물","작가 전용 인물"),titles(body.path("privateCardTitles")))
                 assertEquals(listOf("비밀 3화 제목"),titles(body.path("unpublishedEpisodeTitles")))
                 assertEquals(setOf("originWorkId","privateCardTitles","unpublishedEpisodeTitles"),body.propertyNames().toSet())
@@ -113,10 +115,21 @@ class InternalLeakReferencesIntegrationTest {
                 assertEquals(listOf("3화 공개 인물","작가 전용 인물"),titles(later.path("privateCardTitles")))
                 assertEquals(listOf("3화 발행 제목"),titles(later.path("unpublishedEpisodeTitles")))
 
+                // Fork가 직접 발행한 3화 본문에 나온 카드 제목은 독자가 이미 읽은 글이라 빠지고 안 나온 카드는 남는다. 원작 3화 제목은 그 본문에 없어 남는다.
+                publish(fork,3,"분기 3화","분기 3화에서 작가 전용 인물이 나타난다",forker)
+                val own=json(internal(path))
+                assertEquals(listOf("3화 공개 인물"),titles(own.path("privateCardTitles")))
+                assertEquals(listOf("3화 발행 제목"),titles(own.path("unpublishedEpisodeTitles")))
+
                 // 원작에서 세계관을 풀면 카드 제목은 비고 회차 제목은 그대로다.
                 assertEquals(200,send("/api/v1/works/$origin/world-studio",method="PUT",body=mapOf("worldId" to null)).statusCode())
                 val unlinked=json(internal(path))
                 assertEquals(0,unlinked.path("privateCardTitles").size());assertEquals(listOf("3화 발행 제목"),titles(unlinked.path("unpublishedEpisodeTitles")))
+
+                // 원작 3화 제목이 Fork가 발행한 4화 본문에 그대로 나오면 회차 제목도 같은 규칙으로 빠진다.
+                driver.createEpisode(fork,forker.toString(),ai.storyfork.content.fixture.CreateWorkRequest("분기 4화 초안"))
+                publish(fork,4,"분기 4화","분기 4화에서 3화 발행 제목이 읽힌다",forker)
+                assertEquals(0,json(internal(path)).path("unpublishedEpisodeTitles").size())
 
                 // Fork가 아닌 작품은 원작 없이 빈 목록이고, 없는 작품과 삭제된 작품은 404다.
                 val plain=json(internal("/internal/v1/works/$origin/leak-references"))

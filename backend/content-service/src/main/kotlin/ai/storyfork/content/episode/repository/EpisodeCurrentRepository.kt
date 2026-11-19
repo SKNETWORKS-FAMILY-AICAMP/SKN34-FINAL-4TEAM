@@ -28,6 +28,14 @@ interface EpisodeCurrentRepository : JpaRepository<EpisodeCurrentEntity, String>
         where c.workId = :workId and c.sequence > :after order by c.sequence""")
     fun titlesAfter(@Param("workId") workId: String, @Param("after") after: Int): List<Array<Any?>>
 
+    /**
+     * [workId]의 지금 발행본 본문이다(상속 회차는 Fork가 물려받은 원작 발행본, 초안·공개 중단 회차는 없다).
+     * 독자가 이미 읽을 수 있는 글이라 운영 정보 누설 비교 기준(DEC-55)이 제목 대조에서 뺄 때 쓴다.
+     */
+    @Query("""select v.content from EpisodeCurrentEntity c join EpisodeVersionEntity v on v.id = c.publishedVersionId
+        where c.workId = :workId""")
+    fun publishedBodies(@Param("workId") workId: String): List<String>
+
     fun findAllByWorkIdOrderBySequence(workId: String): List<EpisodeCurrentEntity>
     fun findByWorkIdAndSequence(workId: String, sequence: Int): EpisodeCurrentEntity?
 }

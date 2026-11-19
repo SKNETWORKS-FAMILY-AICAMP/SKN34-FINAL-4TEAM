@@ -125,6 +125,44 @@ class ForkLeakReferenceServiceTest {
         order.verify(publicWorlds).hiddenCardTitles(originWorld, 5)
     }
 
+    /** Fork 독자가 이미 읽을 수 있는 본문이다(물려받은 원작 발행본과 Fork가 직접 발행한 현재 발행본, 회차마다 하나). */
+    private fun readable(vararg bodies: String) = `when`(current.publishedBodies("fork")).thenReturn(bodies.toList())
+
+    @Test fun `a card title found in the text the Fork reader can already read is dropped and one that is not found stays`() {
+        fork()
+        `when`(publicWorlds.hiddenCardTitles(originWorld, 5)).thenReturn(listOf("길현", "백씨 가문", "특재"))
+        readable("1화 본문", "길현이 문을 열었다.", "특재는 말이 없었다.")
+
+        assertEquals(listOf("백씨 가문"), service.read("fork").privateCardTitles)
+
+        verify(current).publishedBodies("fork")
+    }
+
+    @Test fun `an origin episode title found in that text is dropped by the same rule`() {
+        fork()
+        titles("길현의 귀환" to null, "숨겨진 7화" to null)
+        readable("분기 4화에서 길현의 귀환이 이어진다.")
+
+        assertEquals(listOf("숨겨진 7화"), service.read("fork").unpublishedEpisodeTitles)
+    }
+
+    @Test fun `only whitespace is normalized when a title is looked for in the text`() {
+        fork()
+        `when`(publicWorlds.hiddenCardTitles(originWorld, 5)).thenReturn(listOf("백씨 가문", "율도국 병사", "철수 영희", "도  적", " 특재 ", "Gilhyun", "백씨가문", "남은  제목"))
+        readable("백씨\n\n 가문의 소문", "율도국\u00a0병사가 왔다", "철수\u3000영희가 웃었다", "도 적이 나왔다. gilhyun은 웃었다.", "특재가 말했다")
+
+        // 줄바꿈·연속 공백·줄 바꿈 없는 공백·전각 공백은 한 칸으로 맞추고 제목 앞뒤 공백은 떼며, 대소문자와 공백 유무는 그대로 다르다. 남는 제목은 원래 모양으로 나간다.
+        assertEquals(listOf("Gilhyun", "백씨가문", "남은  제목"), service.read("fork").privateCardTitles)
+    }
+
+    @Test fun `a title split across two episodes is not found`() {
+        fork()
+        `when`(publicWorlds.hiddenCardTitles(originWorld, 5)).thenReturn(listOf("길현"))
+        readable("1화는 길", "현이 나온다")
+
+        assertEquals(listOf("길현"), service.read("fork").privateCardTitles)
+    }
+
     @Test fun `the response serializes to the contract names and keeps a null origin explicit`() {
         val json = JsonMapper.builder().findAndAddModules().build()
 
