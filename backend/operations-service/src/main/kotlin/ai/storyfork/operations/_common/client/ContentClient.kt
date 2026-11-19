@@ -2,6 +2,8 @@ package ai.storyfork.operations._common.client
 
 import ai.storyfork.operations.comment.service.dto.OperationsComment
 import ai.storyfork.operations.comment.service.dto.OperationsCommentList
+import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJob
+import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJobList
 import ai.storyfork.operations.work.service.dto.ForkIntegrity
 import ai.storyfork.operations.work.service.dto.OperationsWorkList
 import java.util.UUID
@@ -47,5 +49,15 @@ class ContentClient(private val http: RestClient) {
 
     fun unhideComment(commentId: String): OperationsComment = upstream {
         http.delete().uri("/internal/v1/comments/{id}/hidden", commentId).retrieve().body<OperationsComment>()
+    }
+
+    // ponytail: the newest [size] preprocessing jobs in one call under the fixed 5s read timeout; pass status and page through when jobs outgrow one window.
+    fun preprocessingJobs(size: Int): ContentPreprocessingJobList = upstream {
+        http.get().uri("/internal/v1/preprocessing-jobs?page=0&size={size}", size).retrieve().body<ContentPreprocessingJobList>()
+    }
+
+    /** Content re-submits only the failed episodes of the job (DEC-50) and answers with the updated job. */
+    fun retryPreprocessingJob(id: String): ContentPreprocessingJob = upstream {
+        http.post().uri("/internal/v1/preprocessing-jobs/{id}/retry", id).retrieve().body<ContentPreprocessingJob>()
     }
 }
