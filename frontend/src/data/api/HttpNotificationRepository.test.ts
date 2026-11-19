@@ -7,7 +7,7 @@ import { HttpNotificationRepository } from './HttpNotificationRepository'
 const item = { id: '3f0c1b52-8f7e-4a53-9a45-0d3a9c7a1e11', kind: 'creation', summary: '작가가 새 회차를 공개했어요', targetType: 'work', targetId: 'starlight', createdAt: '2026-11-05T03:00:00Z', read: false }
 type Call = [string, { method?: string; body?: string; headers: Record<string, string> }]
 const callsOf = (f: { mock: { calls: unknown[] } }) => f.mock.calls as Call[]
-const prefsBody = { items: [{ kind: 'reading', enabled: false, mutable: true }, { kind: 'creation', enabled: true, mutable: true }, { kind: 'result', enabled: true, mutable: false }] }
+const prefsBody = { items: [{ kind: 'reading', enabled: false, mutable: true }, { kind: 'creation', enabled: true, mutable: true }, { kind: 'ai-tool', enabled: false, mutable: true }, { kind: 'result', enabled: true, mutable: false }] }
 
 beforeEach(async () => {
   vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'n-csrf' }) : Response.json({ accessToken: 'n-bearer', user: { id: 'u1', email: 'u1@example.invalid', nickname: 'U', operator: false } })))
@@ -23,6 +23,12 @@ describe('HttpNotificationRepository', () => {
     const [url, init] = callsOf(fetcher)[0]
     expect(url).toBe('/api/v1/me/notifications?limit=20&cursor=c1')
     expect(init.headers.Authorization).toBe('Bearer n-bearer')
+  })
+
+  it('AI·외부 도구 변경 분류(ai-tool)와 세계관 대상 알림을 읽는다', async () => {
+    const aiTool = { ...item, kind: 'ai-tool', summary: 'AI가 MCP로 세계관을 수정했어요', targetType: 'world', targetId: '8c1d0e8a-2b8f-4d63-9f5c-6f4c5d9d2a10' }
+    const fetcher = vi.fn(async () => Response.json({ items: [aiTool], nextCursor: null }))
+    expect(await new HttpNotificationRepository(fetcher).list()).toEqual({ items: [aiTool], nextCursor: null })
   })
 
   it('알 수 없는 분류나 형식이 다른 응답은 거부한다', async () => {
@@ -55,12 +61,12 @@ describe('HttpNotificationRepository', () => {
     expect(callsOf(fetcher)[0][1]).toMatchObject({ method: 'POST', body: JSON.stringify({ upTo: '2026-11-05T03:00:00Z' }) })
   })
 
-  it('수신 설정은 읽기·창작 분류로 저장하고 응답으로 다시 맞춘다', async () => {
+  it('수신 설정은 읽기·창작·AI 도구 변경 분류로 저장하고 응답으로 다시 맞춘다', async () => {
     const fetcher = vi.fn(async () => Response.json(prefsBody))
     const repo = new HttpNotificationRepository(fetcher)
-    expect(await repo.getPrefs()).toEqual({ read: false, creator: true })
-    expect(await repo.savePrefs({ read: false, creator: true })).toEqual({ read: false, creator: true })
-    expect(callsOf(fetcher)[1][1]).toMatchObject({ method: 'PUT', body: JSON.stringify({ items: [{ kind: 'reading', enabled: false }, { kind: 'creation', enabled: true }] }) })
+    expect(await repo.getPrefs()).toEqual({ read: false, creator: true, aiTool: false })
+    expect(await repo.savePrefs({ read: false, creator: true, aiTool: false })).toEqual({ read: false, creator: true, aiTool: false })
+    expect(callsOf(fetcher)[1][1]).toMatchObject({ method: 'PUT', body: JSON.stringify({ items: [{ kind: 'reading', enabled: false }, { kind: 'creation', enabled: true }, { kind: 'ai-tool', enabled: false }] }) })
   })
 
   it('미읽음 수를 읽는다', async () => {

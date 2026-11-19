@@ -96,3 +96,5 @@
   overflow-wrap: anywhere;
 }
 .ep-drafts a:is(:hover, :focus-visible) { text-decoration: underline; text-underline-offset: 3px; }
+/* 다른 곳(AI·외부 도구)에서 바뀌었다는 안내(McpChangeBanner)는 오류가 아니라서 공용 알림 상자(.ep-alert)의 위험색 대신 강조색 면·테두리를 쓴다. */
+.ep-alert.ep-changed{background:color-mix(in srgb,var(--pri) 8%,var(--surface));color:var(--ink);border-color:color-mix(in srgb,var(--pri) 40%,var(--line2))}

@@ -16,8 +16,12 @@ MAX_CARD_CHARS = 4000  # 카드 하나의 본문과 모든 인물 문서의 글�
 
 CardType = Literal['character', 'location', 'organization', 'ability', 'object', 'rule', 'event', 'other']
 AreaCode = Literal['basic', 'space', 'history', 'society', 'culture', 'special', 'conflict']
+MAX_FIXES = 5  # enrich가 한 번에 제안하는 칸 수의 상한(하한은 1)
+
 Kind = Literal['contradiction', 'doc_role', 'missing_info', 'other']
 Target = Literal['body', 'soul', 'goal', 'episode']
+AffectedKind = Literal['card', 'relationship', 'episode', 'scene']
+Certainty = Literal['confirmed', 'inferred']
 
 
 class CharacterDocs(BaseModel):
@@ -68,6 +72,10 @@ class WorldReviewRequest(BaseModel):
             raise ValueError(f'카드 하나의 본문과 문서 합계는 {MAX_CARD_CHARS}자 이하여야 합니다.')
         return cards
 
+    def refs(self) -> dict:
+        """추적에 남기는 참조. 설정 본문은 추적 결정 범위 밖이라 카드·관계 id만 남긴다."""
+        return {'cards': [c.id for c in self.cards], 'relationships': [r.id for r in self.relationships]}
+
 
 class Fix(BaseModel):
     """카드 하나의 한 칸을 바꿀 새 글. text는 그 칸의 바꾼 뒤 전체 글(3,000자 이하)이다. body는 카드 본문(인물은 IDENTITY)이고, episode는 target이 episode일 때만 회차 순번(0 이상)이다."""
@@ -97,4 +105,48 @@ class WorldReviewResponse(BaseModel):
     """reviewedCards는 검토한 카드 수다. model은 응답한 모델이며 검토할 카드가 없어 모델을 부르지 않았으면 빈 글이다."""
     findings: list[Finding]
     reviewedCards: int
+    model: str
+
+
+class EnrichResult(BaseModel):
+    """enrich 모델 structured output: 카드 칸 수정안 1~5개와 설명. 스키마에는 개수·길이 제약을 못 둬 service가 다시 검증한다."""
+    model_config = ConfigDict(extra='forbid')
+    fixes: list[Fix]
+    note: str
+
+
+class CardFix(Fix):
+    """제안 하나: 수정안(Fix)에 카드 제목을 더한 것. cardTitle은 모델이 쓰지 않고 service가 입력에서 채운다."""
+    cardTitle: str
+
+
+class EnrichResponse(BaseModel):
+    """worldId·revision은 제안의 기준이 된 세계관과 읽은 초안 revision이며, 반영은 그 revision이 그대로일 때만 한다."""
+    worldId: str
+    revision: int
+    fixes: list[CardFix]
+    note: str
+    model: str
+
+
+class Affected(BaseModel):
+    """영향받는 곳 하나. ref는 kind가 card면 카드 id, relationship이면 관계 id, episode면 회차 번호(숫자 글), scene이면 계획 id다. 입력에 있던 것만 허용한다."""
+    model_config = ConfigDict(extra='forbid')
+    kind: AffectedKind
+    ref: str
+    title: str
+    reason: str
+    certainty: Certainty
+
+
+class ImpactResult(BaseModel):
+    """impact 모델 structured output. ref 대조·문장 길이는 service가 다시 검증한다."""
+    model_config = ConfigDict(extra='forbid')
+    affected: list[Affected]
+    conflicts: list[str]
+    gaps: list[str]
+
+
+class ImpactResponse(ImpactResult):
+    """분석 결과와 응답한 모델. 읽기만 하는 분석이라 반영 단계가 없다."""
     model: str

@@ -59,7 +59,7 @@ FAILURES = (StoryQaFailure, WritingFailure, ResearchFailure, RetrievalFailure, S
 NO_REVIEW_TARGET = '검수할 작품과 회차를 확인할 수 없어요.'
 NO_QA_TARGET = '질문할 작품과 회차를 확인할 수 없어요.'
 NO_RATING_TARGET = '심의 등급을 판별할 작품과 회차를 확인할 수 없어요.'
-NO_WORLD_REVIEW_TARGET = '검토할 작품을 확인할 수 없어요.'
+NO_WORLD_TARGET = '세계관을 다룰 작품을 확인할 수 없어요.'
 NO_WRITING_TARGET = '기획하거나 쓸 작품과 회차를 확인할 수 없어요.'
 CONTEXT_TOO_LONG = '허용 문맥이 너무 길어요. 기준 회차나 원고 분량을 줄여 주세요.'
 NO_ISSUES = '검수에서 고칠 문제를 찾지 못해 수정하지 않았어요.'
@@ -68,11 +68,9 @@ PICK_NEEDED = '확정된 문제가 여러 곳이라 자동으로 고치지 않�
 BAD_FIX = '고칠 수 있는 확정 지적이 아니에요. 검수 결과에서 확정 지적을 골라 주세요.'
 DRAFT_CHANGED = '검수한 뒤 초안이 바뀌어 고치지 않았어요. 다시 검수해 주세요.'
 BAD_DRAFT = 'Content 초안 응답을 확인할 수 없습니다.'
-# 판정 기능 → 메인에 노출할 도구 이름. world_plot은 미구현이라 도구가 없다(판정되면 unsupported).
-TOOL_NAMES = {'story_context': 'ask_story_qa', 'manuscript_review': 'ask_manuscript_review', 'world_review': 'ask_world_review', 'writing_editing': 'ask_writing',
+# 판정 기능 → 메인에 노출할 도구 이름. 판정 기능마다 도구가 있어 미구현으로 끝내는 기능이 없다.
+TOOL_NAMES = {'story_context': 'ask_story_qa', 'manuscript_review': 'ask_manuscript_review', 'world': 'ask_world', 'writing_editing': 'ask_writing',
               'web_research': 'ask_web_research', 'rating': 'ask_rating', 'character_simulation': 'ask_character_simulation'}
-UNSUPPORTED_MESSAGE = ('요청에 아직 실행할 수 없는 작업이 있어 아무 작업도 실행하지 않았어요. '
-                       '작품 질문, 원고 검수, 설정집 검토, 기획·집필·수정, 고증 조사, 인물 시뮬레이션은 각각 요청할 수 있어요.')
 
 
 def _check(inputs: dict, check: str | None) -> str | None:
@@ -81,11 +79,13 @@ def _check(inputs: dict, check: str | None) -> str | None:
 
 
 # 작가 입력을 기다리는 조건(turn, inputs, scope, 도구 인자). 도구 안 needs와 병렬 묶음 검사(waits)가 같은 조건을 쓴다.
-# ask_writing·ask_character_simulation은 항상 단독이라 묶음 검사에 필요 없다.
+# ask_writing·ask_character_simulation은 항상 단독이라 묶음 검사에 필요 없다. ask_world는 작가 승인이 필요한 enrich만 ask_writing처럼
+# 단독으로 부르게 같은 검사에 넣는다(check·impact는 조회형이라 묶음에서 함께 실행한다).
 WAITS = {
     'ask_story_qa': lambda turn, inputs, scope, args: 'story_context' not in inputs and not scope,
     'ask_manuscript_review': lambda turn, inputs, scope, args: bool(turn.get('target')) and not _check(inputs, args.get('check')),
     'ask_web_research': lambda turn, inputs, scope, args: 'web_research' not in inputs,
+    'ask_world': lambda turn, inputs, scope, args: args.get('task') == 'enrich',
 }
 
 
@@ -135,13 +135,23 @@ def _writing_summary(r: dict) -> dict:
     return {'kind': 'patch', 'selection': r['before']} if 'after' in r else {'kind': 'draft', 'characters': len(r['text'])}
 
 
+def _world_summary(r: dict) -> dict:
+    """World는 작업마다 모양이 달라 결과로 가른다. 메인 에이전트가 읽을 최소 정보만 넣는다: 제안한 글 전체와 카드·관계 id는 넣지 않는다."""
+    if 'fixes' in r:  # enrich: 어느 칸을 바꾸자는 제안인지만. 글은 승인 카드가 보여 준다
+        return {'task': 'enrich', 'note': r['note'], 'fixes': [{'card': f['cardTitle'], 'target': f['target'], 'episode': f['episode']} for f in r['fixes']]}
+    if 'affected' in r:
+        return {'task': 'impact', 'conflicts': r['conflicts'], 'gaps': r['gaps'],
+                'affected': [{k: a[k] for k in ('kind', 'title', 'reason', 'certainty')} for a in r['affected']]}
+    return {'task': 'check', 'findings': [{'kind': f['kind'], 'message': f['message']} for f in r['findings']]}
+
+
 SUMMARIES: dict[str, Callable[[dict], dict]] = {
     'story_context': lambda r: {'claims': [{k: c[k] for k in ('text', 'kind', 'sourceIds')} for c in r['claims']], 'gaps': r['gaps']},
     'manuscript_review': lambda r: {'revision': r['revision'], 'basis': 'writing_candidate' if r.get('candidate') else 'saved_draft',
                                     'gaps': r['gaps'], 'findings': [
         {'fix': i, 'status': f['status'], 'category': f['category'], 'quote': f['quote'], 'reason': f['reason']}
         for i, f in enumerate(r['findings'])]},
-    'world_review': lambda r: {'findings': [{'kind': f['kind'], 'message': f['message']} for f in r['findings']]},
+    'world': _world_summary,
     'writing_editing': _writing_summary,
     'web_research': lambda r: {'gaps': r['gaps'], 'findings': [{k: f[k] for k in ('text', 'verdict', 'sourceUrls')} for f in r['findings']]},
     'rating': lambda r: {'verdict': r['verdict'], 'prohibited': r['prohibited']},
@@ -247,11 +257,26 @@ def ask_manuscript_review(request: Request, runtime: ToolRuntime, check: Literal
 
 
 @tool
-def ask_world_review(request: Request, runtime: ToolRuntime) -> Command:
-    """설정집 검토: 작품에 연결된 세계관 카드 자체의 모순·역할 오류·누락을 검토한다(원고 검수는 ask_manuscript_review)."""
+def ask_world(request: Request, task: Literal['check', 'enrich', 'impact'], runtime: ToolRuntime) -> Command:
+    """세계관(World): 작품에 연결된 설정집 카드를 다룬다(원고 검수는 ask_manuscript_review).
+
+    check는 카드끼리의 모순·인물 문서의 역할 오류·사건 정보 누락·사건 카드끼리의 시간 순서 모순을 검사한다. enrich는 request가 가리킨 기존 카드의
+    본문·인물 문서를 자세히 쓴 보강 제안이다(보강할 카드와 방향을 request에 적는다. 작가가 승인해야 초안에 반영하므로 다른 도구와 함께 부르지 않는다).
+    impact는 request의 설정·사건을 바꿀 때 영향받는 카드·관계·회차·계획된 장면과 충돌을 분석한다(읽기만 한다).
+    """
     turn = runtime.context
-    return _ask(runtime, 'world_review', lambda inputs, scope: world_review.review(world_review.linked_request(
-        _target(turn, WorldReviewFailure, NO_WORLD_REVIEW_TARGET)['workId'])))
+
+    def run(inputs, scope):
+        target = _target(turn, WorldReviewFailure, NO_WORLD_TARGET)
+        if task == 'check':
+            return world_review.review(world_review.linked_request(target['workId']))
+        if task == 'enrich':
+            return world_review.enrich(request, *world_review.linked_world(target['workId']))
+        # impact는 허용 문맥을 writing과 같은 방식으로 읽고(Retrieval이 아니다) 계획 목록(정본 아님)을 더해 분석한다.
+        data = world_review.linked_request(target['workId'])
+        return world_review.impact(request, data, _read_context(target, request), content_mcp.call('story_plan_list', {'workId': target['workId']}))
+
+    return _ask(runtime, 'world', run, task_kind=task)
 
 
 @tool
@@ -370,11 +395,14 @@ def _previous_plans(turn: dict) -> list[dict]:
     return []
 
 
+def _read_context(target: dict, query: str) -> dict:
+    """Content가 근거 회차까지 허용한 설정·원문 발췌(작가 권한, work_context_read). Retrieval이 아니라 Content가 고른 문맥이다."""
+    return content_mcp.call('work_context_read', {'id': target['workId'], 'episode': target.get('baseEpisode') or target['episode'], 'query': query[:200]})
+
+
 def _allowed_context(target: dict, query: str) -> str:
-    """Content가 근거 회차까지 허용한 설정·원문 발췌(작가 권한). Retrieval이 아니라 Content가 고른 문맥이며 한도(60,000자)도 Content가 지킨다."""
-    found = content_mcp.call('work_context_read', {'id': target['workId'], 'episode': target.get('baseEpisode') or target['episode'],
-                                                   'query': query[:200]})
-    context = json.dumps(found, ensure_ascii=False, separators=(',', ':'))
+    """writing에 보내는 허용 문맥 글. 한도(60,000자)는 Content가 지킨다."""
+    context = json.dumps(_read_context(target, query), ensure_ascii=False, separators=(',', ':'))
     if len(context) > 60000:  # Content는 Jackson 직렬화 길이로 잰다. 여기 직렬화가 더 길면 모델 입력 한도를 넘는다.
         raise WritingFailure(422, CONTEXT_TOO_LONG)
     return context

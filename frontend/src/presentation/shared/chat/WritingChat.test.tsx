@@ -184,13 +184,13 @@ it('함께 시작한 단계는 다른 단계의 결과가 먼저 와도 끝날 �
   fireEvent.click(screen.getByRole('button', { name: '전송' }))
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
   const run = async (event: ChatEvent) => { await act(async () => { emit(event) }) }
-  await run({ type: 'plan', steps: [{ feature: 'rating', status: 'not_started' }, { feature: 'world_review', status: 'not_started' }] })
+  await run({ type: 'plan', steps: [{ feature: 'rating', status: 'not_started' }, { feature: 'world', task: 'check', status: 'not_started' }] })
   await run({ type: 'started', feature: 'rating' })
-  await run({ type: 'started', feature: 'world_review' })
+  await run({ type: 'started', feature: 'world' })
   const progress = screen.getByRole('status', { name: 'AI 진행 상황' })
   const states = () => within(progress).getAllByText(/./, { selector: '.chat-step-state' }).map((e) => e.textContent)
   expect(states()).toEqual(['진행 중', '진행 중'])
-  await run({ type: 'step', step: { feature: 'world_review', status: 'failed', error: '검토 실패' } })
+  await run({ type: 'step', step: { feature: 'world', task: 'check', status: 'failed', error: '검토 실패' } })
   expect(states()).toEqual(['진행 중', '실패'])
 })
 
@@ -381,4 +381,94 @@ it('AI 답변 아래에 좋아요·싫어요 아이콘 버튼만 두고, 눌러�
   expect(send).not.toHaveBeenCalled()
   expect(history).toHaveBeenCalledTimes(1)
   expect(screen.getAllByRole('button', { name: '이 답변 좋아요' })).toHaveLength(1)
+})
+
+// ── World 단계(#546): enrich 제안은 설정집 초안에 반영할지 묻고, 반영되면 세계관 화면(onWorldApplied)이 초안을 다시 읽는다 ──
+const enrichStep: ChatStep = {
+  feature: 'world', task: 'enrich', status: 'completed',
+  world: { task: 'enrich', note: '북문 규칙에 맞췄어요.', fixes: [
+    { cardId: 'c1', cardTitle: '카엘', target: 'soul', episode: null, text: '말수가 적고 단호하다.' },
+    { cardId: 'c1', cardTitle: '카엘', target: 'episode', episode: 3, text: '3화에서 비밀을 안다.' },
+  ] },
+}
+const worldApproval = () => openThread([{ request: '카엘 설정을 자세히 써 줘', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'world', approvalEpisode: 2, steps: [enrichStep] } }])
+
+it('World 제안의 승인 카드는 설정집 초안에 반영할지 묻고, 회차 문구 없이 각 칸의 새 글을 승인 전에 보인다', async () => {
+  worldApproval()
+  renderChat()
+  await screen.findByRole('heading', { name: '이 제안을 설정집 초안에 반영할까요?' })
+  expect(screen.queryByRole('heading', { name: /화 초안에 반영할까요/ })).toBeNull()
+  expect(screen.getByLabelText('반영할 내용').textContent).toBe('카엘 · SOUL\n말수가 적고 단호하다.\n\n카엘 · 3회차 문서\n3화에서 비밀을 안다.\n\n참고: 북문 규칙에 맞췄어요.')
+  expect(screen.getByRole('button', { name: '설정집 초안에 반영' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '반영하지 않기' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '초안에 반영' })).toBeNull()
+  expect(screen.getByText(/설정집 초안만 바뀌고 확정 버전은 남지 않아요/)).toBeTruthy()
+})
+
+it('승인을 기다리는 World 제안을 읽지 못하면(결과 형식 오류) 보이지 않는 제안을 반영하지 않도록 반영 버튼만 잠근다', async () => {
+  openThread([{ request: '카엘 설정을 자세히 써 줘', reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'world',
+    steps: [{ feature: 'world', task: 'enrich', status: 'failed', error: '세계관 결과 형식을 확인할 수 없어요.' }] } }])
+  renderChat()
+  await screen.findByRole('heading', { name: '이 제안을 설정집 초안에 반영할까요?' })
+  expect(within(screen.getByLabelText('같이 끝난 작업')).getByText('실패: 세계관 결과 형식을 확인할 수 없어요.')).toBeTruthy()
+  expect(screen.getByRole('button', { name: '설정집 초안에 반영' })).toHaveProperty('disabled', true)
+  expect(screen.getByRole('button', { name: '반영하지 않기' })).toHaveProperty('disabled', false)
+})
+
+it('World 제안을 설정집 초안에 반영하면 승인으로, 반영하지 않기는 거절로 이어 보낸다', async () => {
+  worldApproval()
+  send.mockResolvedValue(undefined)
+  renderChat()
+  await screen.findByRole('heading', { name: '이 제안을 설정집 초안에 반영할까요?' })
+  fireEvent.click(screen.getByRole('button', { name: '설정집 초안에 반영' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  expect(send.mock.calls[0][2]).toMatchObject({ resume: { approved: true } })
+  fireEvent.click(await screen.findByRole('button', { name: '반영하지 않기' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(2))
+  expect(send.mock.calls[1][2]).toMatchObject({ resume: { approved: false } })
+})
+
+const worldStream = async (props: { onApplied?: () => void; onWorldApplied?: () => void }) => {
+  openThread([])
+  let emit!: (event: ChatEvent) => void
+  send.mockImplementation(async (_work: string, _thread: string, _input: unknown, onEvent: (event: ChatEvent) => void) => {
+    emit = onEvent
+    await new Promise<void>(() => {})
+  })
+  const view = render(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} {...props} />)
+  await screen.findByText('새 대화', { selector: 'h3' })
+  fireEvent.change(screen.getByRole('textbox', { name: '메시지' }), { target: { value: '카엘 설정을 자세히 써 줘' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
+  return { view, run: async (event: ChatEvent) => { await act(async () => { emit(event) }) } }
+}
+
+it('World 반영(step.applied)은 설정집 초안 갱신(onWorldApplied)만 알리고 회차 초안 갱신(onApplied)은 부르지 않는다', async () => {
+  const onApplied = vi.fn()
+  const onWorldApplied = vi.fn()
+  const { run } = await worldStream({ onApplied, onWorldApplied })
+  await run({ type: 'step', step: { ...enrichStep, approval: 'approved', applied: { episode: 0, revision: 9 } } })
+  expect(onWorldApplied).toHaveBeenCalledTimes(1)
+  expect(onApplied).not.toHaveBeenCalled()
+  await run({ type: 'step', step: { feature: 'writing_editing', status: 'completed', result: { text: '본문' }, approval: 'approved', applied: { episode: 2, revision: 3 } } })
+  expect(onApplied).toHaveBeenCalledWith(2)
+  expect(onWorldApplied).toHaveBeenCalledTimes(1)
+})
+
+it('반영 없이 끝난 World 단계(제안만 도착·반영 거절)는 설정집 초안 갱신을 알리지 않는다', async () => {
+  const onWorldApplied = vi.fn()
+  const { run } = await worldStream({ onWorldApplied })
+  await run({ type: 'step', step: enrichStep })
+  await run({ type: 'step', step: { ...enrichStep, approval: 'declined' } })
+  expect(onWorldApplied).not.toHaveBeenCalled()
+})
+
+it('오래 걸린 스트림의 World 반영 알림은 시작할 때의 핸들러가 아니라 지금의 핸들러로 간다(저장하지 않은 변경 판단이 최신이어야 한다)', async () => {
+  const first = vi.fn()
+  const second = vi.fn()
+  const { view, run } = await worldStream({ onWorldApplied: first })
+  view.rerender(<WritingChat workId="w" basis={basis} emptyTitle="새 대화" emptyText="" suggestions={[]} onWorldApplied={second} />)
+  await run({ type: 'step', step: { ...enrichStep, approval: 'approved', applied: { episode: 0, revision: 9 } } })
+  expect(second).toHaveBeenCalledTimes(1)
+  expect(first).not.toHaveBeenCalled()
 })

@@ -720,3 +720,43 @@ it('저장 응답을 반영하다 난 TypeError는 연결 오류 안내로 바�
   expect(result.current.saveError).toBe('응답 반영 중 코드 오류')
   expect(result.current.error).toBe('응답 반영 중 코드 오류')
 })
+
+// #553 다른 곳(MCP)에서 바뀐 알림: 확인 없이 서버 값으로 다시 읽는 refresh와, 확인을 거치는 메뉴의 reload
+it('refresh는 저장하지 않은 입력을 확인 없이 서버 값으로 바꾸고, reload는 입력이 있으면 먼저 확인한다',async()=>{
+  const api=deletionApi([row(1)])
+  const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
+  try {
+    const {result}=renderHook(()=>useWritingViewModel('w',api))
+    await act(async()=>{})
+    act(()=>result.current.edit({body:'미저장 입력'}))
+    expect(result.current.dirty).toBe(true)
+    await act(async()=>{expect(await result.current.reload()).toBe(false)})
+    expect(confirm).toHaveBeenCalledWith('저장하지 않은 입력을 버리고 이동할까요?')
+    expect(api.writingList).toHaveBeenCalledTimes(1)
+    expect(result.current.draft.body).toBe('미저장 입력')
+    confirm.mockClear()
+    api.writingList.mockResolvedValue([row(1,{draft:{title:'1화',body:'서버에서 바뀐 원고',revision:5}})])
+    await act(async()=>{expect(await result.current.refresh()).toBe(true)})
+    expect(confirm).not.toHaveBeenCalled()
+    expect(api.writingList).toHaveBeenCalledTimes(2)
+    expect(result.current.draft.body).toBe('서버에서 바뀐 원고')
+    expect(result.current.dirty).toBe(false)
+  } finally {confirm.mockRestore()}
+})
+
+it('refresh로 다시 읽었을 때 열어 둔 회차가 서버에서 지워졌으면 첫 회차를 열고, 하나도 없으면 빈 화면으로 두며, 읽지 못하면 false와 오류를 남긴다',async()=>{
+  const api=deletionApi([row(1),row(2)])
+  const {result}=renderHook(()=>useWritingViewModel('w',api,undefined,2))
+  await act(async()=>{})
+  expect(result.current.active?.number).toBe(2)
+  api.writingList.mockResolvedValue([row(1)])
+  await act(async()=>{expect(await result.current.refresh()).toBe(true)})
+  expect(result.current.active?.number).toBe(1)
+  api.writingList.mockResolvedValue([])
+  await act(async()=>{expect(await result.current.refresh()).toBe(true)})
+  expect(result.current.active).toBeNull()
+  expect(result.current.draft.body).toBe('')
+  api.writingList.mockRejectedValue(new Error('연결 실패'))
+  await act(async()=>{expect(await result.current.refresh()).toBe(false)})
+  expect(result.current.error).toBe('연결 실패')
+})

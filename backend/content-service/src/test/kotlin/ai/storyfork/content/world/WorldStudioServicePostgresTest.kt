@@ -189,7 +189,8 @@ class WorldStudioServicePostgresTest {
             val service=ctx.getBean(WorldStudioService::class.java);val owner=GenreTemplateSeeder.TEMPLATE_OWNER;val id=UUID.randomUUID()
             service.startExpanded(CreateWorldRequest("검토 세계","",id),"digest")
             val ai=org.mockito.Mockito.mock(ai.storyfork.content.world.client.InitialWorldExtractionClient::class.java)
-            val review=WorldReviewService(service,ai)
+            val review=WorldReviewService(service,ai,ctx.getBean(StudioWorldRepository::class.java),ctx.getBean(WorldReviewResultRepository::class.java),
+                ctx.getBean("worldStudioTransactionManager",PlatformTransactionManager::class.java),ctx.getBean(JsonMapper::class.java))
             assertThrows(WorldConflict::class.java) { review.review(id,owner,true) }
             org.mockito.Mockito.verifyNoInteractions(ai)
             val card=CardPayload(UUID.randomUUID(),"인물","본문","character","basic",visibility="public")
