@@ -58,7 +58,6 @@ class ApplicationPropertiesTest {
         assertEquals("\${OPERATIONS_LANGFUSE_BASE_URL:http://127.0.0.1:3000}", properties.getProperty("app.operations.langfuse-base-url"))
         assertEquals("\${LANGFUSE_PUBLIC_KEY:}", properties.getProperty("app.operations.langfuse-public-key"))
         assertEquals("\${LANGFUSE_SECRET_KEY:}", properties.getProperty("app.operations.langfuse-secret-key"))
-        assertEquals("\${LANGFUSE_UI_URL:http://localhost:3000}", properties.getProperty("app.operations.langfuse-ui-url"))
         assertEquals("\${OPERATIONS_AI_BASE_URL:http://127.0.0.1:8000}", properties.getProperty("app.operations.ai-base-url"))
         assertEquals("\${INTERNAL_TOKEN:}", properties.getProperty("app.operations.internal-token"))
         assertEquals("\${OPERATIONS_RABBITMQ_HOST:localhost}", properties.getProperty("spring.rabbitmq.host"))

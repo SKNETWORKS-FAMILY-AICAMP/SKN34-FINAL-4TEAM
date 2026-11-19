@@ -2,14 +2,10 @@ package ai.storyfork.operations._common.client
 
 import java.net.URI
 import java.time.Instant
-import java.util.concurrent.atomic.AtomicReference
 import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.client.RestClient
-import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.util.UriBuilder
-import org.springframework.web.util.UriUtils
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.json.JsonMapper
 
@@ -26,9 +22,7 @@ private const val USAGE_ROW_LIMIT = 1000
  * fields a screen needs. Every user-controlled value goes in as a URI variable, so reserved characters can never add or change a parameter.
  * Only a missing record (404) keeps its status on reads, and 400/404/409 on writes; a bad key (401/403) is a 502, not the admin's own 401.
  */
-class LangfuseClient(private val http: RestClient, private val uiUrl: String, private val mapper: JsonMapper) {
-    private val projectId = AtomicReference<String?>()
-
+class LangfuseClient(private val http: RestClient, private val mapper: JsonMapper) {
     /** One trace page (data, meta). A [requestId] is a metadata filter, which Langfuse only takes in its filter parameter. */
     fun traces(from: Instant?, to: Instant?, tags: List<String>, userId: String?, requestId: String?, page: Int, limit: Int): JsonNode {
         val params = mutableListOf<Pair<String, Any?>>("page" to page, "limit" to limit, "orderBy" to "timestamp.desc")
@@ -91,12 +85,6 @@ class LangfuseClient(private val http: RestClient, private val uiUrl: String, pr
     fun datasetRuns(): List<JsonNode> = pages("/api/public/datasets").flatMap { dataset ->
         pages("/api/public/datasets/{dataset}/runs", mapOf("dataset" to dataset.path("name").asString()))
     }
-
-    /** The Langfuse screen of one trace; the project id is read once (the keys belong to a single project). */
-    fun traceUrl(id: String): String = "${uiUrl.trimEnd('/')}/project/${projectId()}/traces/${UriUtils.encodePathSegment(id, Charsets.UTF_8)}"
-
-    private fun projectId(): String = projectId.get() ?: (get("/api/public/projects").path("data").path(0).path("id").textOrNull()
-        ?: throw ResponseStatusException(HttpStatus.BAD_GATEWAY)).also { projectId.set(it) }
 
     private fun traceFilter(from: Instant?, to: Instant?, tags: List<String>, userId: String?, requestId: String): String {
         val conditions = mutableListOf<Map<String, Any>>()

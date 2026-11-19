@@ -19,7 +19,7 @@ class LangfuseClientTest {
     private val to = Instant.parse("2026-11-19T00:00:00Z")
 
     private fun client(factory: RecordingRequestFactory) = LangfuseClient(
-        langfuseRestClient("http://langfuse.test", "pk-lf-1", "sk-lf-2", mapper).requestFactory(factory).build(), "http://localhost:3000/", mapper,
+        langfuseRestClient("http://langfuse.test", "pk-lf-1", "sk-lf-2", mapper).requestFactory(factory).build(), mapper,
     )
 
     private fun status(call: () -> Unit) = assertThrows(ResponseStatusException::class.java) { call() }.statusCode.value()
@@ -124,30 +124,6 @@ class LangfuseClientTest {
         val endless = RecordingRequestFactory { Reply(200, """{"data":[{"id":"t"}],"meta":{"totalPages":500}}""") }
         assertEquals(10, client(endless).allTraces(from, to).size)
         assertEquals(10, endless.calls.size)
-    }
-
-    @Test
-    fun `the trace link reads the project once and builds the Langfuse screen address`() {
-        val factory = RecordingRequestFactory { Reply(200, """{"data":[{"id":"proj-1","name":"writing-ai"}]}""") }
-        val langfuse = client(factory)
-
-        assertEquals("http://localhost:3000/project/proj-1/traces/t-1", langfuse.traceUrl("t-1"))
-        assertEquals("http://localhost:3000/project/proj-1/traces/t-2", langfuse.traceUrl("t-2"))
-
-        assertEquals(1, factory.calls.size)
-        assertEquals("/api/public/projects", factory.calls.single().uri.path)
-    }
-
-    @Test
-    fun `a failed project read is not cached and its failure reaches the caller`() {
-        var healthy = false
-        val factory = RecordingRequestFactory { if (healthy) Reply(200, """{"data":[{"id":"proj-1"}]}""") else Reply(503) }
-        val langfuse = client(factory)
-
-        assertEquals(502, status { langfuse.traceUrl("t-1") })
-        healthy = true
-
-        assertEquals("http://localhost:3000/project/proj-1/traces/t-1", langfuse.traceUrl("t-1"))
     }
 
     @Test

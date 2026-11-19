@@ -31,8 +31,7 @@ class OperationsClientConfig {
     @Bean
     fun langfuseClient(@Value("\${app.operations.langfuse-base-url}") baseUrl: String,
         @Value("\${app.operations.langfuse-public-key:}") publicKey: String, @Value("\${app.operations.langfuse-secret-key:}") secretKey: String,
-        @Value("\${app.operations.langfuse-ui-url}") uiUrl: String, mapper: JsonMapper) =
-        LangfuseClient(langfuseRestClient(baseUrl, publicKey, secretKey, mapper).build(), uiUrl, mapper)
+        mapper: JsonMapper) = LangfuseClient(langfuseRestClient(baseUrl, publicKey, secretKey, mapper).build(), mapper)
 
     @Bean
     fun aiClient(@Value("\${app.operations.ai-base-url}") baseUrl: String,
