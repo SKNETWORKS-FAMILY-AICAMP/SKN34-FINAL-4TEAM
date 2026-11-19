@@ -115,7 +115,8 @@ jobs:
               GITHUB_ACTOR "$GITHUB_ACTOR" GH_TOKEN "$GH_TOKEN" \
               COMPOSE_BASE_YAML "$(< infrastructure/docker-compose.yaml)" \
               COMPOSE_DEV_YAML "$(< infrastructure/docker-compose.dev.yaml)" \
-              COMPOSE_LOCAL_YAML "$(< infrastructure/docker-compose.local.yaml)"
+              COMPOSE_LOCAL_YAML "$(< infrastructure/docker-compose.local.yaml)" \
+              COMPOSE_LANGFUSE_YAML "$(< infrastructure/docker-compose.langfuse.yaml)"
             cat <<'REMOTE'
           set -euo pipefail
           umask 077
@@ -134,6 +135,9 @@ jobs:
           # --project-directory changes relative extends resolution; use the staged absolute path.
           export CD_LOCAL_COMPOSE_FILE="$DOCKER_CONFIG/docker-compose.local.yaml"
           printf '%s\n' "$COMPOSE_LOCAL_YAML" > "$CD_LOCAL_COMPOSE_FILE"
+          # dev가 include하는 Langfuse 정의도 같은 이유로 임시 절대 경로로 준다.
+          export CD_LANGFUSE_COMPOSE_FILE="$DOCKER_CONFIG/docker-compose.langfuse.yaml"
+          printf '%s\n' "$COMPOSE_LANGFUSE_YAML" > "$CD_LANGFUSE_COMPOSE_FILE"
 
           # 같은 프로젝트 이름을 사용하는 다른 배포는 변경하지 않는다.
           containers=$(docker container ls --all --quiet --filter label=com.docker.compose.project=storyfork-develop-cd)

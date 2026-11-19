@@ -15,8 +15,16 @@ SPEC = importlib.util.spec_from_file_location("ci", Path(__file__).with_name("ci
 ci = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(ci)
 
+LANGFUSE_COMPOSE = 'infrastructure/docker-compose.langfuse.yaml'
+
+
 def read(path):
     return (ci.ROOT / path).read_text()
+
+
+def service_block(text, name):
+    """compose 문자열에서 서비스 하나의 블록(다음 서비스 시작 전까지)을 잘라 낸다."""
+    return re.split(r'\n  [a-z][\w-]*:\n', text.split(f'\n  {name}:\n', 1)[1], maxsplit=1)[0]
 
 
 def nginx_upstream(text, route):
@@ -428,6 +436,104 @@ class ComposeSplitTest(unittest.TestCase):
         for service in ('postgres', 'core-api', 'content-service'):
             block = re.split(r'\n  [a-z][\w-]*:\n', overlay.split('  ' + service + ':\n', 1)[1], maxsplit=1)[0]
             self.assertIn('ports: !reset []', block)
+
+    def test_langfuse_is_one_file_that_dev_and_prod_include(self):
+        langfuse = read(LANGFUSE_COMPOSE)
+        services = re.findall(r'(?m)^  ([a-z][\w-]*):$', langfuse.split('\nservices:\n', 1)[1].split('\nvolumes:\n', 1)[0])
+        # 앱 스택의 postgres·minio와 이름이 겹치면 같은 프로젝트에 include할 수 없다.
+        self.assertEqual({'langfuse-web', 'langfuse-worker', 'langfuse-postgres', 'langfuse-clickhouse',
+                          'langfuse-minio', 'langfuse-redis'}, set(services))
+        dev, prod = read('infrastructure/docker-compose.dev.yaml'), read('infrastructure/docker-compose.prod.yaml')
+        # 원격 CD는 --project-directory 때문에 상대 경로가 어긋나므로 dev만 임시로 둔 절대 경로를 받는다.
+        self.assertIn('\ninclude:\n  - path: ${CD_LANGFUSE_COMPOSE_FILE:-docker-compose.langfuse.yaml}\n', dev)
+        self.assertIn('\ninclude:\n  - path: docker-compose.langfuse.yaml\n', prod)
+        for source in (dev, prod):
+            self.assertNotIn('\n  langfuse-web:\n', source)  # 정의를 복제하지 않는다.
+        # 로컬 기본 진입점은 별도 프로젝트로 두고 Langfuse 없이 뜬다.
+        for path in ('compose.yaml', 'infrastructure/docker-compose.yaml', 'infrastructure/docker-compose.local.yaml'):
+            self.assertNotIn('langfuse.yaml', read(path), path)
+
+    def test_langfuse_login_is_core_oidc_sso_with_viewer_auto_assignment(self):
+        langfuse = read(LANGFUSE_COMPOSE)
+        web = service_block(langfuse, 'langfuse-web')
+        for line in ('AUTH_CUSTOM_CLIENT_ID: ${AUTH_OIDC_LANGFUSE_CLIENT_ID:-}',
+                     'AUTH_CUSTOM_CLIENT_SECRET: ${AUTH_OIDC_LANGFUSE_CLIENT_SECRET:-}',
+                     'AUTH_CUSTOM_ISSUER: ${AUTH_OIDC_ISSUER:-}', 'AUTH_CUSTOM_NAME: STORYFORK',
+                     'AUTH_DISABLE_USERNAME_PASSWORD: ${LANGFUSE_AUTH_DISABLE_USERNAME_PASSWORD:-false}',
+                     'AUTH_DISABLE_SIGNUP: ${LANGFUSE_AUTH_DISABLE_SIGNUP:-true}',
+                     'LANGFUSE_DEFAULT_ORG_ROLE: VIEWER', 'LANGFUSE_DEFAULT_PROJECT_ROLE: VIEWER'):
+            self.assertIn(line, web)
+        # 기본 조직·프로젝트는 헤드리스 초기화가 만든 것과 같은 ID라야 한다(YAML 별칭으로 한 곳에서 정한다).
+        for init, default, alias, value in (('LANGFUSE_INIT_ORG_ID', 'LANGFUSE_DEFAULT_ORG_ID', 'org-id', 'storyfork'),
+                                            ('LANGFUSE_INIT_PROJECT_ID', 'LANGFUSE_DEFAULT_PROJECT_ID', 'project-id', 'storyfork-writing-ai')):
+            self.assertIn(f'{init}: &{alias} {value}\n', web)
+            self.assertIn(f'{default}: *{alias}\n', web)
+        # Langfuse 공개 주소 한 변수가 NEXTAUTH_URL(로그인 콜백의 기준)을 정한다.
+        self.assertIn('NEXTAUTH_URL: ${LANGFUSE_UI_URL:-http://localhost:${LANGFUSE_WEB_PORT:-3000}}\n', langfuse)
+
+    def test_langfuse_keys_and_internal_addresses_reach_ai_and_operations(self):
+        base = read('infrastructure/docker-compose.yaml')
+        ai, operations = service_block(base, 'ai-service'), service_block(base, 'operations-service')
+        for line in ('LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}', 'LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}'):
+            self.assertIn(line, ai)
+            self.assertIn(line, operations)
+        # Langfuse 서버의 초기 프로젝트 키도 같은 변수에서 읽어 세 곳의 값이 항상 같다.
+        langfuse = read(LANGFUSE_COMPOSE)
+        self.assertIn('LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:?', langfuse)
+        self.assertIn('LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:?', langfuse)
+        # 컨테이너에서는 Langfuse를 내부 주소로 부른다(루트 .env의 localhost 값은 네이티브 실행용).
+        self.assertIn('LANGFUSE_BASE_URL: http://langfuse-web:3000', ai)
+        for line in ('OPERATIONS_LANGFUSE_BASE_URL: http://langfuse-web:3000',
+                     'LANGFUSE_UI_URL: ${LANGFUSE_UI_URL:-http://localhost:${LANGFUSE_WEB_PORT:-3000}}',
+                     'OPERATIONS_AI_BASE_URL: http://ai-service:8000', 'INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}',
+                     'OPERATIONS_RABBITMQ_HOST: ${CORE_RABBITMQ_HOST:-rabbitmq}', 'OPERATIONS_RABBITMQ_PORT: ${CORE_RABBITMQ_PORT:-5672}',
+                     'OPERATIONS_RABBITMQ_USERNAME: ${CORE_RABBITMQ_USER:-storyfork}',
+                     'OPERATIONS_RABBITMQ_PASSWORD: ${CORE_RABBITMQ_PASSWORD:-}'):
+            self.assertIn(line, operations)
+        # 서버는 Langfuse 공개 주소를 반드시 정한다(traceUrl·로그인 콜백의 기준).
+        for name in ('dev', 'prod'):
+            with self.subTest(server=name):
+                operations = service_block(read(f'infrastructure/docker-compose.{name}.yaml'), 'operations-service')
+                self.assertIn('LANGFUSE_UI_URL: ${LANGFUSE_UI_URL:?', operations)
+
+    def test_core_receives_the_oidc_provider_settings_and_servers_require_them(self):
+        core = service_block(read('infrastructure/docker-compose.yaml'), 'core-api')
+        for name in ('AUTH_OIDC_ISSUER', 'AUTH_OIDC_SIGNING_KEY', 'AUTH_OIDC_LANGFUSE_CLIENT_ID',
+                     'AUTH_OIDC_LANGFUSE_CLIENT_SECRET', 'AUTH_OIDC_LOGIN_URL'):
+            self.assertIn(f'{name}: ${{{name}:-}}', core)
+        # 콜백 주소는 Langfuse 공개 주소 + /api/auth/callback/custom이다(NEXTAUTH_URL과 같은 변수에서 파생).
+        self.assertIn('AUTH_OIDC_LANGFUSE_REDIRECT_URI: ${AUTH_OIDC_LANGFUSE_REDIRECT_URI:-'
+                      '${LANGFUSE_UI_URL:-http://localhost:${LANGFUSE_WEB_PORT:-3000}}/api/auth/callback/custom}', core)
+        for server in ('dev', 'prod'):
+            core = service_block(read(f'infrastructure/docker-compose.{server}.yaml'), 'core-api')
+            for name in ('AUTH_OIDC_ISSUER', 'AUTH_OIDC_SIGNING_KEY', 'AUTH_OIDC_LANGFUSE_CLIENT_ID', 'AUTH_OIDC_LANGFUSE_CLIENT_SECRET'):
+                with self.subTest(server=server, name=name):
+                    self.assertIn(f'{name}: ${{{name}:?', core)
+
+    def test_operations_waits_for_the_broker_it_publishes_alerts_to(self):
+        for name in ('local', 'dev'):
+            with self.subTest(file=name):
+                operations = service_block(read(f'infrastructure/docker-compose.{name}.yaml'), 'operations-service')
+                self.assertIn('rabbitmq:\n        condition: service_healthy', operations)
+
+    def test_configuration_job_supplies_every_required_dev_and_prod_value(self):
+        # .env.example는 비밀값을 비워 두므로 dev·prod·Langfuse가 :? 로 요구하는 값은 job의 합성 값이 채워야 config가 통과한다.
+        job = read('.github/workflows/ci.yml').split('\n  configuration:\n', 1)[1].split('\n    steps:\n', 1)[0]
+        example = dict(line.split('=', 1) for line in read('.env.example').splitlines() if line and not line.startswith('#'))
+        provided = set(re.findall(r'(?m)^ {6}([A-Z][A-Z0-9_]*):', job)) | {key for key, value in example.items() if value}
+        for name in ('docker-compose.dev.yaml', 'docker-compose.prod.yaml', 'docker-compose.langfuse.yaml'):
+            with self.subTest(file=name):
+                required = set(re.findall(r'\$\{([A-Z][A-Z0-9_]*):\?', read('infrastructure/' + name)))
+                self.assertEqual(set(), required - provided)
+
+    def test_example_lists_the_langfuse_login_and_operations_settings_blank(self):
+        example = dict(line.split('=', 1) for line in read('.env.example').splitlines() if line and not line.startswith('#'))
+        for key in ('LANGFUSE_UI_URL', 'LANGFUSE_AUTH_DISABLE_USERNAME_PASSWORD', 'LANGFUSE_AUTH_DISABLE_SIGNUP',
+                    'AUTH_OIDC_ISSUER', 'AUTH_OIDC_SIGNING_KEY', 'AUTH_OIDC_LANGFUSE_CLIENT_ID', 'AUTH_OIDC_LANGFUSE_CLIENT_SECRET',
+                    'AUTH_OIDC_LANGFUSE_REDIRECT_URI', 'AUTH_OIDC_LOGIN_URL', 'OPERATIONS_LANGFUSE_BASE_URL', 'OPERATIONS_AI_BASE_URL',
+                    'OPERATIONS_RABBITMQ_HOST', 'OPERATIONS_RABBITMQ_PORT', 'OPERATIONS_RABBITMQ_USERNAME', 'OPERATIONS_RABBITMQ_PASSWORD'):
+            with self.subTest(key=key):
+                self.assertEqual('', example[key])
 
     def test_example_does_not_activate_deployment_or_supply_signing_keys(self):
         source = (ci.ROOT / '.env.example').read_text()

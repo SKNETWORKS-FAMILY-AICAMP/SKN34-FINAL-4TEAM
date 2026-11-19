@@ -78,6 +78,23 @@ jobs:
       CORE_RABBITMQ_PASSWORD: synthetic-config-only
       OPERATIONS_SERVICE_TOKEN: synthetic-config-only
       OPENAI_API_KEY: synthetic-config-only
+      # develop·production이 include하는 Langfuse와 Core OIDC 제공자의 필수 값. 보간만 확인하므로 형식은 보지 않는다.
+      LANGFUSE_PUBLIC_KEY: synthetic-config-only
+      LANGFUSE_SECRET_KEY: synthetic-config-only
+      LANGFUSE_DB_PASSWORD: synthetic-config-only
+      LANGFUSE_CLICKHOUSE_PASSWORD: synthetic-config-only
+      LANGFUSE_REDIS_PASSWORD: synthetic-config-only
+      LANGFUSE_MINIO_PASSWORD: synthetic-config-only
+      LANGFUSE_NEXTAUTH_SECRET: synthetic-config-only
+      LANGFUSE_SALT: synthetic-config-only
+      LANGFUSE_ENCRYPTION_KEY: synthetic-config-only
+      LANGFUSE_INIT_USER_EMAIL: ci@example.invalid
+      LANGFUSE_INIT_USER_PASSWORD: synthetic-config-only
+      LANGFUSE_UI_URL: https://langfuse-config.invalid
+      AUTH_OIDC_ISSUER: https://production-config.invalid/api/v1/auth/oidc
+      AUTH_OIDC_SIGNING_KEY: synthetic-config-only
+      AUTH_OIDC_LANGFUSE_CLIENT_ID: synthetic-config-only
+      AUTH_OIDC_LANGFUSE_CLIENT_SECRET: synthetic-config-only
       WEB_PORT: "18088"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

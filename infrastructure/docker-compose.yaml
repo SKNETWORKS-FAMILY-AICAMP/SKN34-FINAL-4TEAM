@@ -11,10 +11,11 @@ services:
       CONTENT_SERVICE_BASE_URL: http://content-service:8081
       # 집필 AI 대화·HITL 체크포인트(LangGraph AsyncPostgresSaver). 비우면 대화 요청은 503이다.
       AI_CHECKPOINT_DATABASE_URL: ${AI_CHECKPOINT_DATABASE_URL:-}
-      # 집필 AI Langfuse 추적(질문·원고 인용·답변 포함). 키가 비면 추적하지 않는다.
+      # Langfuse 추적(질문·원고 인용·답변 포함). 키가 비면 추적하지 않는다.
+      # 주소는 컨테이너 내부 이름으로 고정한다(루트 .env의 localhost 값은 네이티브 실행용이고, 키가 있는데 주소가 비면 SDK가 클라우드로 보낸다).
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
-      LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL:-}
+      LANGFUSE_BASE_URL: http://langfuse-web:3000
     # 호스트에서 별도 도구를 실행하는 기존 설정에서도 내부 호스트 이름을 유지한다.
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -37,6 +38,14 @@ services:
       CORE_RABBITMQ_PASSWORD: ${CORE_RABBITMQ_PASSWORD:-}
       # 가입 체험 크레딧 지급량. 팀 결정 전이라 기본 0(지급하지 않음)이며 값을 주면 켜진다.
       CREDIT_SIGNUP_TRIAL_AMOUNT: ${CREDIT_SIGNUP_TRIAL_AMOUNT:-0}
+      # Langfuse 로그인용 OIDC 제공자(DEC-55). 이슈어·클라이언트 값은 Langfuse의 AUTH_CUSTOM_*와 같은 루트 변수에서 읽는다. 비우면 제공하지 않는다.
+      AUTH_OIDC_ISSUER: ${AUTH_OIDC_ISSUER:-}
+      AUTH_OIDC_SIGNING_KEY: ${AUTH_OIDC_SIGNING_KEY:-}
+      AUTH_OIDC_LANGFUSE_CLIENT_ID: ${AUTH_OIDC_LANGFUSE_CLIENT_ID:-}
+      AUTH_OIDC_LANGFUSE_CLIENT_SECRET: ${AUTH_OIDC_LANGFUSE_CLIENT_SECRET:-}
+      # 콜백 주소는 Langfuse 공개 주소 + /api/auth/callback/custom이다(NEXTAUTH_URL과 같은 LANGFUSE_UI_URL에서 파생).
+      AUTH_OIDC_LANGFUSE_REDIRECT_URI: ${AUTH_OIDC_LANGFUSE_REDIRECT_URI:-${LANGFUSE_UI_URL:-http://localhost:${LANGFUSE_WEB_PORT:-3000}}/api/auth/callback/custom}
+      AUTH_OIDC_LOGIN_URL: ${AUTH_OIDC_LOGIN_URL:-}
     expose:
       - "8080"
     # Bash is in the existing JRE image; no new probe dependency or authenticated route.
@@ -90,6 +99,19 @@ services:
       OPERATIONS_SERVICE_TOKEN: ${OPERATIONS_SERVICE_TOKEN:-}
       OPERATIONS_CORE_BASE_URL: http://core-api:8080
       OPERATIONS_CONTENT_BASE_URL: http://content-service:8081
+      # 대시보드·LLMOps 중계(DEC-55). Langfuse는 컨테이너 내부 주소로 부르고, 화면 링크(traceUrl)용 공개 주소는 LANGFUSE_UI_URL이다. 키는 AI와 같은 프로젝트 키다.
+      OPERATIONS_LANGFUSE_BASE_URL: http://langfuse-web:3000
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+      LANGFUSE_UI_URL: ${LANGFUSE_UI_URL:-http://localhost:${LANGFUSE_WEB_PORT:-3000}}
+      # 평가 위임·누설 판정은 AI 내부 API로 부르며 Content와 같은 INTERNAL_TOKEN을 쓴다.
+      OPERATIONS_AI_BASE_URL: http://ai-service:8000
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
+      # 경고 알림 사건은 Core와 같은 rabbitmq·자격으로 발행한다(루트 .env의 OPERATIONS_RABBITMQ_*는 네이티브 실행용).
+      OPERATIONS_RABBITMQ_HOST: ${CORE_RABBITMQ_HOST:-rabbitmq}
+      OPERATIONS_RABBITMQ_PORT: ${CORE_RABBITMQ_PORT:-5672}
+      OPERATIONS_RABBITMQ_USERNAME: ${CORE_RABBITMQ_USER:-storyfork}
+      OPERATIONS_RABBITMQ_PASSWORD: ${CORE_RABBITMQ_PASSWORD:-}
     expose:
       - "8082"
 

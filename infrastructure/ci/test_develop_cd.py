@@ -28,12 +28,13 @@ class DevelopDeploymentTest(unittest.TestCase):
                 'case "$*" in\n'
                 ' "image inspect"*)\n'
                 '   [[ "${CD_LOCAL_COMPOSE_FILE:-}" == "$DOCKER_CONFIG/docker-compose.local.yaml" && -f "${CD_LOCAL_COMPOSE_FILE:-}" ]] || exit 25\n'
+                '   [[ "${CD_LANGFUSE_COMPOSE_FILE:-}" == "$DOCKER_CONFIG/docker-compose.langfuse.yaml" && -f "${CD_LANGFUSE_COMPOSE_FILE:-}" ]] || exit 27\n'
                 '   [[ "$3 $4 $5 $6 $7" == "$CD_WEB_IMAGE $CD_CORE_API_IMAGE $CD_CONTENT_SERVICE_IMAGE $CD_AI_SERVICE_IMAGE $CD_OPERATIONS_SERVICE_IMAGE" ]] || exit 26\n'
                 '   printf "%040d\\n" 1 ;;\n'
                 'esac\n', encoding="utf-8")
             docker.chmod(0o755)
             env = dict(os.environ, CD_DIRECTORY=directory.replace("\\", "/"), CD_WEB_PORT="8088", TARGET_SHA="%040d" % 1,
-                GITHUB_ACTOR="test", GH_TOKEN="fake-token", COMPOSE_BASE_YAML="", COMPOSE_DEV_YAML="", COMPOSE_LOCAL_YAML="",
+                GITHUB_ACTOR="test", GH_TOKEN="fake-token", COMPOSE_BASE_YAML="", COMPOSE_DEV_YAML="", COMPOSE_LOCAL_YAML="", COMPOSE_LANGFUSE_YAML="",
                 TEST_COMMANDS=str(path / "commands"))
             env.update(overrides or {})
             # Git Bash translates native Windows paths before the deployment's physical-path check.
@@ -90,6 +91,12 @@ class DevelopDeploymentTest(unittest.TestCase):
         self.assertIn("elasticsearch:\n        condition: service_healthy", content)
         self.assertIn('MANUSCRIPT_INDEX_ENABLED: "true"', content)
         self.assertIn("MANUSCRIPT_INDEX_URL: http://elasticsearch:9200", content)
+
+    def test_langfuse_compose_is_staged_like_the_other_files_for_the_dev_include(self):
+        # dev가 include하는 Langfuse 정의도 SSH stdin으로 보내 임시 위치에 두고, 절대 경로를 CD_LANGFUSE_COMPOSE_FILE로 준다
+        # (받는 쪽은 위 fake docker의 image inspect 검사가 확인한다).
+        workflow = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8")
+        self.assertIn('COMPOSE_LANGFUSE_YAML "$(< infrastructure/docker-compose.langfuse.yaml)"', workflow)
 
     def test_publish_requires_target_to_be_current_develop_head(self):
         workflow = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8")
