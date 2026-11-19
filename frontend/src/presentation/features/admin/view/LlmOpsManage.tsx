@@ -149,6 +149,7 @@ function Models({ vm, l }: Props) {
         )
         : <p className="admin-empty">등록된 모델이 없어요.</p>)}
       <form
+        hidden={rows === null}
         onSubmit={async (e) => {
           e.preventDefault()
           const form = e.currentTarget
@@ -243,6 +244,7 @@ function Evaluations({ vm, l }: Props) {
         )
         : <p className="admin-empty">아직 실행한 평가가 없어요.</p>)}
       <form
+        hidden={rows === null}
         onSubmit={async (event) => {
           event.preventDefault()
           const form = event.currentTarget

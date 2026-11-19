@@ -233,11 +233,14 @@ describe('관리자 (A01~A18)', () => {
     vi.spyOn(llm, 'leakChecks').mockResolvedValue(null)
     vi.spyOn(llm, 'alertRules').mockResolvedValue(null)
     renderAt('/admin?tab=llm')
+    // 목록이 403이면 등록·실행·저장 폼도 숨겨 권한 안내만 보인다.
+    const hiddenForm: Record<string, RegExp> = { 모델: /^모델 등록$/, 평가: /^평가 실행$/, '경고 기준·설정': /기준 저장$|^표본 비율 저장$/ }
     for (const view of ['추적', '지표', '프롬프트', '모델', '평가', '누설 검사', '경고 기준·설정']) {
       fireEvent.click(await screen.findByRole('button', { name: view }))
       await screen.findByText('LLM Ops 조회 권한이 있어야 볼 수 있어요.')
       expect(screen.queryByText(/불러오지 못했어요/)).toBeNull()
       expect(screen.queryByRole('button', { name: '다시 불러오기' })).toBeNull()
+      if (hiddenForm[view]) expect(screen.queryByRole('button', { name: hiddenForm[view] })).toBeNull()
     }
   })
 
@@ -249,6 +252,7 @@ describe('관리자 (A01~A18)', () => {
     const detail = await screen.findByLabelText('프롬프트 상세')
     await within(detail).findByText('LLM Ops 조회 권한이 있어야 볼 수 있어요.')
     expect(within(detail).queryByRole('button', { name: '다시 불러오기' })).toBeNull()
+    expect(within(detail).queryByRole('button', { name: '새 버전 등록' })).toBeNull()
   })
 
   it('공지를 게시하면 회원 공지사항에 보인다', async () => {
