@@ -296,19 +296,19 @@ def test_explicit_operation_is_also_guarded(monkeypatch):
     assert service.judge('writer@example.com', operation='manuscript_review').reason == 'sensitive_data' and calls == []
 
 
-def provider_error(kind, status, code):
-    response = httpx.Response(status, request=httpx.Request('POST', 'https://api.openai.com/v1/decisions'))
-    return kind('provider said no', response=response, body={'code': code})
-
-
 REQUEST = httpx.Request('POST', 'https://api.openai.com/v1/decisions')
+
+
+def provider_error(kind, status, code):
+    response = httpx.Response(status, request=REQUEST)
+    return kind('provider said no', response=response, body={'code': code})
 
 
 @pytest.mark.parametrize('error, message', [
     (provider_error(RateLimitError, 429, 'insufficient_quota'), 'AI 제공사 크레딧이 부족해 요청을 처리하지 못했습니다.'),
     (provider_error(RateLimitError, 429, 'rate_limit_exceeded'), 'AI 제공사 요청 한도를 넘었습니다. 잠시 후 다시 시도해 주세요.'),
-    (provider_error(AuthenticationError, 401, 'invalid_api_key'), 'AI 제공사 인증에 실패했습니다. API 키 설정을 확인해 주세요.'),
-    (provider_error(PermissionDeniedError, 403, None), 'AI 제공사 인증에 실패했습니다. API 키 설정을 확인해 주세요.'),
+    (provider_error(AuthenticationError, 401, 'invalid_api_key'), 'AI 제공사 인증에 실패했습니다. 운영자에게 문의해 주세요.'),
+    (provider_error(PermissionDeniedError, 403, None), 'AI 제공사 인증에 실패했습니다. 운영자에게 문의해 주세요.'),
     (APITimeoutError(REQUEST), 'AI 제공사 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.'),
     (APIConnectionError(request=REQUEST), 'AI 제공사에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.'),
     (OpenAIError('down'), '요청 분류에 실패했습니다.'),
