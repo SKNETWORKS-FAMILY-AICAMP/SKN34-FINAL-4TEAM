@@ -154,6 +154,16 @@ describe('storyfork.css theme tokens', () => {
     expect(contrast(pair('pri')[0], pair('bg')[0])).toBeGreaterThanOrEqual(4.5)
     expect(contrast(pair('pri-ink')[1], pair('bg')[1])).toBeGreaterThanOrEqual(4.5)
   })
+
+  it('keeps the work cover and title side by side on phones and gives reading actions the full width', () => {
+    const phone = sheet.filter((rule) => rule.media === '(max-width:600px)')
+    const layout = phone.find((rule) => rule.selector === '.whero')
+    const body = phone.find((rule) => rule.selector === '.whero > .whero-body')
+    const fullWidth = phone.find((rule) => rule.selector === '.whero :is(.sum,.hashes,.stats,.acts)')
+    expect(declOf(layout, 'grid-template-columns')).toBe('96px minmax(0,1fr)')
+    expect(declOf(body, 'display')).toBe('contents')
+    expect(declOf(fullWidth, 'grid-column')).toBe('1/-1')
+  })
 })
 
 describe('storyfork.css accessibility contracts', () => {
