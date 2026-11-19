@@ -255,8 +255,9 @@ nginx/Vite의 `/api/v1/world-studios` exact 및 하위 경로는 Content:8081로
 
 - 카드와 관계의 허용 키는 다르다. 서버·프런트·MCP 도구 설명(`world_studio_edit_draft`의 `request` 설명, `EDIT_DRAFT_INPUT`)이 같은 목록을 쓴다.
 - 읽기는 기존 데이터에 관대하다. 프런트는 키별로 검사해 모르는 키와 모양이 어긋난 값을 버리고 `preprocessing`·관계 `evidence`만 서버 메타데이터로 보존해 저장 때 되돌려 보낸다. 기존 데이터 이전은 없고 **고쳐 저장한 카드만 정리된다**(손대지 않은 카드는 DB에 그대로 남는다). 옛 `characterDocs.memory`는 프런트가 읽을 때 00회차로 옮긴다.
-- MCP: 카드·관계는 통째로 덮어쓰므로 기존 것을 고칠 때는 읽은 `semanticMetadata` 전체(`studio`·`preprocessing`·`evidence` 포함)에서 바꿀 필드만 고쳐 돌려보내고, 새 카드·관계에는 `studio`·`preprocessing`·`evidence`를 만들지 않는다(빼면 화면의 시간 표기·순서·관계 종류가 지워진다).
+- MCP: 카드·관계는 통째로 덮어쓰므로 기존 것을 고칠 때는 읽은 `semanticMetadata`의 허용 키(`studio`·`preprocessing`·`evidence` 포함)를 그대로 두고 바꿀 필드만 고쳐 돌려보낸다. 허용하지 않는 옛 키(임의로 넣은 키·모양이 틀린 값·옛 `characterDocs.memory`)는 빼고 보낸다(422가 카드/관계 id와 키 이름을 알려 준다). 새 카드·관계에는 `studio`·`preprocessing`·`evidence`를 만들지 않는다(빼면 화면의 시간 표기·순서·관계 종류가 지워진다).
 - AI 후보 반영(`InitialWorldAdditionMapper`)·장르 템플릿 SOUL 보완·확장 샘플 적재·시연 seed가 보내는 값은 모두 이 규칙을 따른다(앞의 세 곳은 단위 테스트가 실제 입력·리소스로 확인한다).
+- **한계(미완료 요청)**: 검사는 요청마다 먼저 돌아서, 이 변경 전에 저장이 중간에 멈춘(`completed=false`) 요청이 지금은 허용되지 않는 키를 담고 있으면 같은 key·같은 입력의 이어 가기도 422이고 그 세계관은 미완료(503)에 묶인다. 프런트·시더·AI 반영이 만든 요청에는 해당이 없고 키를 임의로 넣은 수동 MCP·API 요청이 멈춘 경우만 해당한다. 배포 전에 `worldstudio.world_relationship_state.completed=false`인 세계관을 읽기 조회로 확인하고, 있으면 DB 정리(승인 대상)가 필요하다.
 
 | 오류 code | HTTP | 의미 |
 |---|---|---|

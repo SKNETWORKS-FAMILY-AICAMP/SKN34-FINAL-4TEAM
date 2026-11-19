@@ -69,7 +69,7 @@ class WorldStudioMcpTools(
 
     @McpTool(
         name = "world_studio_edit_draft",
-        description = "세계관 초안(이름·설명·카드·관계)을 저장한다(PUT /api/v1/world-studios/{id}/draft). 카드·관계는 부분 수정이 아니라 통째로 덮어쓴다: 고칠 항목은 world_studio_read로 읽은 전체(semanticMetadata 포함)에서 바꿀 필드만 고쳐 보내며, 빠뜨린 선택 필드는 기본값(분류 비움·별칭과 태그 없음·비공개·semanticMetadata 빈 객체)으로 바뀐다. name·description도 바꾸지 않을 때는 읽은 값을 다시 보내야 하고 보낸 값으로 덮어쓴다. 기본(replace=false)은 보낸 카드·관계만 추가·갱신한다. replace=true는 보낸 것이 전부라는 뜻이라 보내지 않은 카드는 삭제되고 보내지 않은 관계는 그 회차에서 끝나니 일부만 고칠 때는 쓰지 않는다. 관계는 episode(선택)화 시점의 것이며 생략하면 최신 회차다. 관계마다 다른 회차에 기록하려면 relationshipEpisodes(관계 id → 'N화부터')를 준다. 설정 삭제(lifecycle=removed·replace=true에서 생략)는 episode를 생략한 최신 회차에서만 하며 지정하면 422다. 소유자만 가능하며 expectedDraftRevision(world_studio_read 또는 직전 저장 응답의 draftRevision, 저장에 성공하면 1 늘어난다)이 어긋나면 409이고, 결과를 못 받으면 같은 key·같은 입력으로 재시도한다. 입력 오류는 422이며 semanticMetadata의 허용 키·형식을 어기면 detail에 카드·관계 id와 키 이름이 나온다(허용 키는 request 설명을 본다).",
+        description = "세계관 초안(이름·설명·카드·관계)을 저장한다(PUT /api/v1/world-studios/{id}/draft). 카드·관계는 부분 수정이 아니라 통째로 덮어쓴다: 고칠 항목은 world_studio_read로 읽은 전체에서 바꿀 필드만 고쳐 보내고(semanticMetadata는 허용 키만 그대로 두고 허용하지 않는 옛 키는 뺀다), 빠뜨린 선택 필드는 기본값(분류 비움·별칭과 태그 없음·비공개·semanticMetadata 빈 객체)으로 바뀐다. name·description도 바꾸지 않을 때는 읽은 값을 다시 보내야 하고 보낸 값으로 덮어쓴다. 기본(replace=false)은 보낸 카드·관계만 추가·갱신한다. replace=true는 보낸 것이 전부라는 뜻이라 보내지 않은 카드는 삭제되고 보내지 않은 관계는 그 회차에서 끝나니 일부만 고칠 때는 쓰지 않는다. 관계는 episode(선택)화 시점의 것이며 생략하면 최신 회차다. 관계마다 다른 회차에 기록하려면 relationshipEpisodes(관계 id → 'N화부터')를 준다. 설정 삭제(lifecycle=removed·replace=true에서 생략)는 episode를 생략한 최신 회차에서만 하며 지정하면 422다. 소유자만 가능하며 expectedDraftRevision(world_studio_read 또는 직전 저장 응답의 draftRevision, 저장에 성공하면 1 늘어난다)이 어긋나면 409이고, 결과를 못 받으면 같은 key·같은 입력으로 재시도한다. 입력 오류는 422이며 semanticMetadata의 허용 키·형식을 어기면 detail에 카드·관계 id와 키 이름이 나온다(허용 키는 request 설명을 본다).",
     )
     fun editDraft(
         context: McpTransportContext,
@@ -301,4 +301,5 @@ private const val EDIT_DRAFT_INPUT =
         "카드: revealFromEpisode(1 이상의 정수. 연결된 소설의 그 회차부터 독자에게 공개, 없으면 작가 전용)·" +
         "characterDocs(cardType=character만. soul·goal·episodes 세 키뿐이며 soul·goal은 문자열, episodes는 \"0\"(이야기 시작 전)·\"1\"… 회차 번호 문자열 → 그 회차의 기억 글. 문서마다 3,000자 이하. 인물의 IDENTITY는 카드 body이고 옛 memory 키는 episodes의 \"0\"으로 옮겨 보낸다)·" +
         "imageId(이 세계관에 올린 카드 이미지의 UUID, null이면 이미지 없음)·importedFrom(가져온 출처 {worldId, worldName, authorNickname, revisionNo, cardId}). " +
-        "카드·관계의 studio·preprocessing과 관계의 evidence는 화면·분석·템플릿이 쓰는 값이다: 새 카드·관계에는 넣지 말고, 기존 것을 고칠 때는 world_studio_read로 읽은 값을 고치지 말고 그대로 돌려보낸다(빼면 화면의 시간 표기·순서·관계 종류가 지워진다). 관계의 허용 키는 studio·preprocessing·evidence뿐이다."
+        "카드·관계의 studio·preprocessing과 관계의 evidence는 화면·분석·템플릿이 쓰는 값이다: 새 카드·관계에는 넣지 말고, 기존 것을 고칠 때는 world_studio_read로 읽은 값을 고치지 말고 그대로 돌려보낸다(빼면 화면의 시간 표기·순서·관계 종류가 지워진다). 관계의 허용 키는 studio·preprocessing·evidence뿐이다. " +
+        "읽은 semanticMetadata에 허용하지 않는 키나 모양이 틀린 값(예: 임의로 넣은 키, 옛 characterDocs.memory)이 있으면 그 키만 빼고 보낸다(422가 카드/관계 id와 키 이름을 알려 준다)."
