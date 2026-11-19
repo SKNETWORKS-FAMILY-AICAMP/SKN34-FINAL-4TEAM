@@ -1,0 +1,60 @@
+"""기능별 프롬프트 이름(Langfuse Prompt Management, <기능>.<용도>)과 코드 기본값. 이름은 운영 화면의 프롬프트 목록이 된다."""
+
+import pytest
+
+from app import agent_runtime
+from app.rating import agent as rating
+from app.rating.prompt import INSTRUCTIONS as RATING
+from app.research import agent as research
+from app.research.models import ResearchRequest
+from app.research.prompt import RESEARCH_INSTRUCTIONS
+from app.review import agent as review
+from app.review.prompt import INSTRUCTIONS as REVIEW
+from app.story_qa import agent as story_qa
+from app.story_qa.models import AnswerRequest, Excerpt
+from app.story_qa.prompt import QA_INSTRUCTIONS
+from app.work_tags import agent as work_tags
+from app.work_tags.models import Input as WorkTagsInput
+from app.work_tags.prompt import INSTRUCTIONS as WORK_TAGS
+from app.world_review import agent as world_review
+from app.world_review.models import WorldReviewRequest
+from app.world_review.prompt import INSTRUCTIONS as WORLD_REVIEW
+from app.writing import agent as writing
+from app.writing.models import DraftRequest, PatchRequest, PlanRequest
+from app.writing.prompt import DRAFT_INSTRUCTIONS, PATCH_INSTRUCTIONS, PLAN_INSTRUCTIONS
+
+EPISODE = {'title': '3화', 'authorNote': None, 'draft': '본문', 'characters': [], 'signals': {}}
+TAGS = {'schemaVersion': 'work-tags.v1', 'title': '작품', 'description': '', 'allowedGenres': ['판타지'], 'maxGenres': 1, 'maxHashtags': 1,
+        'episodes': [{'number': 1, 'title': '', 'text': '본문'}]}
+
+CASES = [
+    (lambda: story_qa.answer(AnswerRequest(question='누구?', excerpts=[Excerpt(id='a', episode=1, quote='원문')])), 'story_context.answer', QA_INSTRUCTIONS),
+    (lambda: review.review('mechanical', '본문', []), 'review.mechanical', REVIEW['mechanical']),
+    (lambda: review.review('semantic', '본문', []), 'review.semantic', REVIEW['semantic']),
+    (lambda: writing.plan(PlanRequest(episodeNumber=1, request='기획')), 'writing_editing.plan', PLAN_INSTRUCTIONS),
+    (lambda: writing.draft(DraftRequest(episodeNumber=1, plan='계획')), 'writing_editing.draft', DRAFT_INSTRUCTIONS),
+    (lambda: writing.patch(PatchRequest(selection='문장', instruction='고쳐')), 'writing_editing.patch', PATCH_INSTRUCTIONS),
+    (lambda: rating.rate(EPISODE), 'rating.assess', RATING),
+    (lambda: research.search(ResearchRequest(question='질문')), 'web_research.search', RESEARCH_INSTRUCTIONS),
+    (lambda: world_review.review(WorldReviewRequest(worldName='세계', worldDescription='', cards=[], relationships=[])),
+     'world_review.check', WORLD_REVIEW),
+    (lambda: work_tags.propose(WorkTagsInput.model_validate(TAGS)), 'work_tags.suggest', WORK_TAGS),
+]
+
+
+class Stop(Exception):
+    pass
+
+
+@pytest.mark.parametrize('call, name, default', CASES, ids=[case[1] for case in CASES])
+def test_each_agent_asks_its_prompt_by_name_with_the_code_text_as_the_seed(monkeypatch, call, name, default):
+    seen = []
+
+    def run(label, korean, failure, instructions, data, *, prompt_name, **kwargs):
+        seen.append((prompt_name, instructions))
+        raise Stop
+
+    monkeypatch.setattr(agent_runtime, 'run', run)
+    with pytest.raises(Stop):
+        call()
+    assert seen == [(name, default)]

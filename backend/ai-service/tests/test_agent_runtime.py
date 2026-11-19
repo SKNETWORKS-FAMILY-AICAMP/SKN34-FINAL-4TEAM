@@ -21,7 +21,7 @@ class Failure(Exception):
 
 
 def run(**kwargs):
-    return agent_runtime.run('test.generation', '테스트', Failure, 'INSTRUCTIONS', {'question': '서윤은 누구?'},
+    return agent_runtime.run('test.generation', '테스트', Failure, 'INSTRUCTIONS', {'question': '서윤은 누구?'}, prompt_name='test.prompt',
                              max_tokens=100, timeout=7, trace={'question': '서윤은 누구?'}, **kwargs)
 
 
@@ -73,6 +73,36 @@ def test_usage_meta_is_the_feature_response_shape(monkeypatch):
     message, _ = run()
     assert agent_runtime.meta(message) == {'model': 'resolved-model', 'providerResponseId': 'resp-1',
                                            'usage': {'inputTokens': 10, 'outputTokens': 5}}
+
+
+def test_instructions_come_from_the_managed_prompt_and_the_generation_links_that_version(monkeypatch, spans):
+    from types import SimpleNamespace
+
+    from app import tracing
+    seen = fake_chat(monkeypatch, text='{"text": "주인공"}')
+    asked = []
+    version = SimpleNamespace(name='test.prompt', version=3, is_fallback=False)
+    monkeypatch.setattr(tracing, 'prompt', lambda name, default: asked.append((name, default)) or tracing.Prompt('관리된 지시', version))
+
+    run(schema=Answer)
+
+    assert asked == [('test.prompt', 'INSTRUCTIONS')]  # 코드의 지시는 기본값(최초 등록용)으로만 넘긴다
+    assert seen['messages'][0].content == '관리된 지시'
+    [span] = [s for s in spans() if s.name == 'test.generation']
+    assert (span.attributes['langfuse.observation.prompt.name'], span.attributes['langfuse.observation.prompt.version']) == ('test.prompt', 3)
+
+
+def test_an_unavailable_prompt_is_the_features_503_before_any_model_call(monkeypatch):
+    from app import tracing
+    seen = fake_chat(monkeypatch)
+
+    def unavailable(name, default):
+        raise tracing.PromptUnavailable
+
+    monkeypatch.setattr(tracing, 'prompt', unavailable)
+    with pytest.raises(Failure) as error:
+        run()
+    assert (error.value.status, str(error.value)) == (503, '테스트 프롬프트를 불러올 수 없습니다.') and 'init' not in seen
 
 
 def test_missing_model_settings_is_503_before_building_a_model(monkeypatch):

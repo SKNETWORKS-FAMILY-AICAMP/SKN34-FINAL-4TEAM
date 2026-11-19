@@ -11,6 +11,6 @@ def rate(episode: dict) -> tuple[RatingResult, dict]:
     # 원고 본문은 팀 결정(2026-11-13)으로 추적에 남기고 인물 설정 본문은 참조만 남긴다. 심의 기준은 저장소 문서라 남기지 않는다.
     trace = {**episode, 'characters': [c['ref'] for c in episode['characters']]}
     # 출력 한도는 추론 토큰을 함께 센다. 일곱 항목의 근거·이유가 잘리지 않을 만큼 검수와 같게 둔다.
-    message, result = agent_runtime.run('rating.generation', '심의 판별', RatingFailure, INSTRUCTIONS, episode,
+    message, result = agent_runtime.run('rating.generation', '심의 판별', RatingFailure, INSTRUCTIONS, episode, prompt_name='rating.assess',
                                         max_tokens=16000, timeout=120, trace=trace, schema=RatingResult)
     return result, agent_runtime.meta(message)

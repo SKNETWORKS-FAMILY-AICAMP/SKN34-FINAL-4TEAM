@@ -10,6 +10,6 @@ def answer(data: AnswerRequest) -> AnswerResponse:
     """전달받은 발췌만 근거로 주장과 답할 수 없는 부분을 구조화해 생성한다. 설정·관계 발췌는 추적에 참조만 남긴다."""
     trace = {'question': data.question, 'excerpts': tracing.excerpts(data.excerpts),
              'history': [turn.model_dump() for turn in data.history]}
-    _, result = agent_runtime.run('qa.generation', 'Q&A', StoryQaFailure, QA_INSTRUCTIONS, data.model_dump(),
+    _, result = agent_runtime.run('qa.generation', 'Q&A', StoryQaFailure, QA_INSTRUCTIONS, data.model_dump(), prompt_name='story_context.answer',
                                   max_tokens=1400, timeout=40, trace=trace, schema=AnswerResponse)
     return result
