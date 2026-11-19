@@ -5,7 +5,7 @@ import { ALL_CHIP, genreLabel, type GenreLabel } from '../../shared/worldGenres'
 /*
  * 세계관 지도(`/worlds` 상단 노드 그래프)의 순수 규칙: 공개 세계관 목록 → 노드·링크, 실시간 인기 순위, 장르 칩 하이라이트.
  *
- * 서버 목록(`PublicWorldSummary`)은 장르·카드 수만 주므로 실제 모드의 지도는 장르→세계관(크기는 카드 수)뿐이다. 카드 점(`cards`)과
+ * 서버 목록(`PublicWorldSummary`)은 장르·카드 수만 주므로 실제 모드의 지도는 장르→세계관(크기는 모두 같다)뿐이다. 카드 점(`cards`)과
  * 파생·조합 선(`derivedFrom`·`combinedFrom`)은 메모리 데모만 채우는 선택 필드라 있을 때만 그린다(계약 범위 밖, DEC-35).
  * ponytail: 하이라이트는 장르 칩 하나에 대해 한 단계 이웃까지만 밝힌다(여러 단계를 따라가면 이어진 망 전체가 밝아져 뜻이 없어진다).
  */
@@ -28,7 +28,8 @@ export type WorldAtlas = { nodes: AtlasNode[]; links: AtlasLink[]; stats: { worl
 
 export const atlasEndpoint = (end: string | AtlasNode) => (typeof end === 'string' ? end : end.id)
 /** 장르는 크게 고정, 카드는 작은 점, 세계관은 `val`(카드 수 + 쓰인 횟수 가중)의 제곱근에 비례한다. */
-export const nodeRadius = (n: AtlasNode) => (n.kind === 'genre' ? 16 : n.kind === 'card' ? 2.6 : 4 + 2.2 * Math.sqrt(n.val))
+/** 세계관 노드는 설정 카드 수와 상관없이 같은 크기다(카드가 많은 세계관이 지도를 덮어 읽기 어려웠다, 사용자 결정 2026-11-18). */
+export const nodeRadius = (n: AtlasNode) => (n.kind === 'genre' ? 16 : n.kind === 'card' ? 2.6 : 9)
 /**
  * 캔버스에 이름을 그릴 노드. 늘 그리는 것은 장르뿐이고 세계관·카드는 마우스를 올린 노드 하나만 그린다.
  * 노드가 많아져도 글자가 겹치지 않게 확대 정도와는 연동하지 않는다. 이름 탐색은 접근성 요약·실시간 인기 순위·아래 목록이 맡는다.

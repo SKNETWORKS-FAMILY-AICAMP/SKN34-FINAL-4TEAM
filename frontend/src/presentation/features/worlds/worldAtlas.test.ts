@@ -140,13 +140,14 @@ describe('색', () => {
 })
 
 describe('nodeRadius', () => {
-  it('설정 카드 < 세계관 < 장르 순으로 크고 세계관은 쓰인 횟수가 많을수록 커진다', () => {
+  it('설정 카드 < 세계관 < 장르 순으로 크고 세계관은 설정 카드 수·쓰인 횟수와 상관없이 같은 크기다', () => {
     const atlas = buildWorldAtlas(DEMO)
     const radii = (kind: AtlasNode['kind']) => atlas.nodes.filter((n) => n.kind === kind).map(nodeRadius)
     expect(Math.max(...radii('card'))).toBeLessThan(Math.min(...radii('world')))
     expect(Math.max(...radii('world'))).toBeLessThan(Math.min(...radii('genre')))
+    expect(new Set(radii('world')).size).toBe(1)
     const small = buildWorldAtlas(sample)
-    expect(nodeRadius(find(small, 'world', 'a'))).toBeGreaterThan(nodeRadius(find(small, 'world', 'e')))
+    expect(nodeRadius(find(small, 'world', 'a'))).toBe(nodeRadius(find(small, 'world', 'e')))
   })
 })
 
@@ -316,10 +317,9 @@ describe('서버 목록으로 만든 지도(카드 점·계보 없음)', () => {
     expect(pairs(atlas, 'genre')).toEqual([['판타지', 'a'], ['판타지', 'b'], ['미지정', 'c'], ['SF', 'd']])
   })
 
-  it('세계관 크기는 서버가 알려 준 설정 카드 수만으로 정해진다(쓰인 횟수 가중이 없다)', () => {
+  it('세계관 크기는 서버가 알려 준 설정 카드 수와 상관없이 같다', () => {
     const atlas = buildWorldAtlas(real)
-    expect([find(atlas, 'world', 'a').val, find(atlas, 'world', 'b').val]).toEqual([5, 0])
-    expect(nodeRadius(find(atlas, 'world', 'a'))).toBeGreaterThan(nodeRadius(find(atlas, 'world', 'b')))
+    expect(nodeRadius(find(atlas, 'world', 'a'))).toBe(nodeRadius(find(atlas, 'world', 'b')))
   })
 
   it('통계는 세계관 수와 카드 수 합계이고 파생·조합은 0이다', () => {
