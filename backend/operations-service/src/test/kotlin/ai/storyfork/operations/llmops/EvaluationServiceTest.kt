@@ -151,6 +151,17 @@ class EvaluationServiceTest {
     }
 
     @Test
+    fun `the verdict is found by its name whatever its data type and is never a metric`() {
+        givenRuns(finished)
+        `when`(langfuse.runScores("id-run-1")).thenReturn(listOf(score("faithfulness", 0.9), score("passed", 0.0, "NUMERIC")))
+
+        val evaluation = service.detail(operators.llm, "run-1", now)
+
+        assertEquals(listOf("completed", false), listOf(evaluation.status, evaluation.passed))
+        assertEquals(listOf("faithfulness"), evaluation.metrics.map { it.name })
+    }
+
+    @Test
     fun `a run is found by its name and scored alone and an unknown one is not found`() {
         givenAllRuns()
 
