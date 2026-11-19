@@ -1,6 +1,7 @@
 import asyncio
 import gzip
 import json
+from types import SimpleNamespace
 
 import httpx2
 import pytest
@@ -8,10 +9,13 @@ from langchain_core.runnables import RunnableLambda
 from langchain_typesafe import Choice
 from langchain_typesafe.client import (TypeSafeAPIResponseValidationError, TypeSafeBadRequestError, TypeSafeNotFoundError)
 
+from app import tracing
 from app.simulation import director
 from app.agent_runtime import UsageLedger
 from app.simulation.errors import SimulationFailure
 from app.simulation.models import Decision
+
+from traced import attrs
 
 KAEL, LINA = 'card-kael-0001', 'card-lina-0002'
 CAST = [{'id': KAEL, 'name': '카엘'}, {'id': LINA, 'name': '리나'}]
@@ -260,3 +264,48 @@ def test_a_second_omniscient_answer_for_a_monologue_is_still_an_error(monkeypatc
     with pytest.raises(SimulationFailure) as failure:
         asyncio.run(director.decide(STATE, ('narration', 'monologue', 'speech'), CAST))
     assert failure.value.status == 502 and len(asked) == 2  # 세 번째 시도는 없다
+
+
+def managed(monkeypatch, text='관리된 연출 지시'):
+    asked, version = [], SimpleNamespace(name='character_simulation.direct', version=3, is_fallback=False)
+    monkeypatch.setattr(tracing, 'prompt', lambda name, default: asked.append((name, default)) or tracing.Prompt(text, version))
+    return asked
+
+
+def test_the_director_call_is_a_generation_of_the_managed_prompt_with_its_usage(monkeypatch, spans):
+    sent = wired(monkeypatch, {**reply(speaker='c1', pov='omniscient'), 'usage': {'input_tokens': 120, 'output_tokens': 7}})
+    asked = managed(monkeypatch)
+
+    result = asyncio.run(director.decide(STATE, ('speech',), CAST))
+
+    assert result.turn == 'speech' and asked == [('character_simulation.direct', director.DIRECTOR_INSTRUCTIONS)]
+    assert sent[0][2]['input'][0] == {'role': 'developer', 'content': '관리된 연출 지시'}
+    [span] = spans()
+    found = attrs(span)
+    assert span.name == 'simulation.director' and found['langfuse.observation.type'] == 'generation'
+    assert found['langfuse.observation.model.name'] == 'gpt-6-luna'
+    assert found['langfuse.observation.usage_details'] == '{"input": 120, "output": 7}'
+    assert (found['langfuse.observation.prompt.name'], found['langfuse.observation.prompt.version']) == ('character_simulation.direct', 3)
+    assert 'langfuse.observation.input' not in found  # 장면·설정은 추적에 남기지 않는다
+
+
+def test_a_director_reply_without_usage_is_a_generation_without_usage_and_a_failed_call_is_an_error(monkeypatch, spans):
+    wired(monkeypatch, reply(speaker='c1', pov='omniscient'))
+    asyncio.run(director.decide(STATE, ('speech',), CAST))
+    wired(monkeypatch, {'unexpected': True})
+    with pytest.raises(SimulationFailure):
+        asyncio.run(director.decide(STATE, ('speech',), CAST))
+    ok, failed = spans()
+    assert 'langfuse.observation.usage_details' not in ok.attributes and failed.attributes['langfuse.observation.level'] == 'ERROR'
+
+
+def test_an_unavailable_director_prompt_is_a_503_before_the_http_call(monkeypatch):
+    sent = wired(monkeypatch, reply(speaker='c1', pov='omniscient'))
+
+    def unavailable(name, default):
+        raise tracing.PromptUnavailable
+
+    monkeypatch.setattr(tracing, 'prompt', unavailable)
+    with pytest.raises(SimulationFailure) as error:
+        asyncio.run(director.decide(STATE, ('speech',), CAST))
+    assert (error.value.status, str(error.value)) == (503, '시뮬레이션 프롬프트를 불러올 수 없습니다.') and sent == []

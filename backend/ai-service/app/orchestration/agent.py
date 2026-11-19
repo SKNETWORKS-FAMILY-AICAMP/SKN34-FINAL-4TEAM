@@ -27,6 +27,7 @@ from openai import OpenAIError
 
 from app import tracing
 from app.intent import service as intent
+from app.intent.errors import IntentFailure
 from app.orchestration import tools
 from app.orchestration.prompt import INSTRUCTIONS
 
@@ -145,13 +146,20 @@ class ToolCallLimit(ToolCallLimitMiddleware):
 
 
 class MainModelMiddleware(AgentMiddleware):
-    """메인 모델 호출 하나를 추적하고, 쓸 수 없는 응답은 고정 실패 메시지로 끝낸다. 실패를 성공으로 바꾸지 않는다(status=failed)."""
+    """메인 모델 호출 하나를 추적하고, 쓸 수 없는 응답은 고정 실패 메시지로 끝낸다. 실패를 성공으로 바꾸지 않는다(status=failed).
+
+    generation에는 이번 턴 지시문의 Langfuse 프롬프트 버전(prompt)을 연결한다.
+    """
+
+    def __init__(self, prompt=None):
+        super().__init__()
+        self.prompt = prompt
 
     async def awrap_model_call(self, request, handler):
         done = any(s['status'] == 'completed' for s in request.state.get('steps') or [])
         text = MAIN_FAILED_MESSAGE if done else MAIN_FAILED_NOTHING_MESSAGE
         failed = ModelResponse(result=[AIMessage(content=text, name=FAILED)])
-        with tracing.observe('main_agent', as_type='generation', model=request.model.model_name,
+        with tracing.observe('main_agent', as_type='generation', model=request.model.model_name, prompt=self.prompt,
                              trace_context=tools.trace(request.runtime.context)) as generation:
             try:
                 response = await handler(request)
@@ -171,12 +179,19 @@ class MainModelMiddleware(AgentMiddleware):
 
 
 def build():
-    """메인 에이전트. 바깥 오케스트레이션 노드 안에서 돌며 체크포인터는 바깥 그래프의 것을 이어받는다(도구 안 interrupt·resume)."""
+    """메인 에이전트. 바깥 오케스트레이션 노드 안에서 돌며 체크포인터는 바깥 그래프의 것을 이어받는다(도구 안 interrupt·resume).
+
+    지시문은 Langfuse 프롬프트 orchestration.main의 production 버전이다(INSTRUCTIONS는 최초 등록용 기본값). 읽을 수 없으면 판정 실패(503)다.
+    """
+    try:
+        managed = tracing.prompt('orchestration.main', INSTRUCTIONS)
+    except tracing.PromptUnavailable:
+        raise IntentFailure() from None
     chat = ChatOpenAI(model=os.environ['OPENAI_MODEL'], api_key=os.environ['OPENAI_API_KEY'], use_responses_api=True, store=False,
                       max_tokens=4000, timeout=120, max_retries=0)
-    return create_agent(chat, tools=list(TOOLS.values()), system_prompt=INSTRUCTIONS, state_schema=MainState, context_schema=dict, middleware=[
+    return create_agent(chat, tools=list(TOOLS.values()), system_prompt=managed.text, state_schema=MainState, context_schema=dict, middleware=[
         # after_model 훅은 목록의 역순으로 돈다: 모델 호출 수 → 노출·묶음 확인 → 도구 한도. 순서를 바꾸면 막힌 호출이 한도를 쓴다.
-        DecisionGuardMiddleware(), MainModelMiddleware(),
+        DecisionGuardMiddleware(), MainModelMiddleware(managed.client),
         ToolCallLimit(thread_limit=TOOL_CALLS),
         *(ToolCallLimit(tool_name=t.name, thread_limit=1) for t in TOOLS.values()),
         DynamicToolMiddleware(), ModelCallLimitMiddleware(thread_limit=MODEL_CALLS, exit_behavior='end')])
