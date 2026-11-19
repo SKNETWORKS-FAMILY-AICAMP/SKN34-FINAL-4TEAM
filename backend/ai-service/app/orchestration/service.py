@@ -154,10 +154,10 @@ async def main_agent(state: State, config: RunnableConfig) -> State:
     """새 채팅 메시지의 판정 실패는 finish에서 종료된 턴으로 저장한다."""
     try:
         return await _run_main_agent(state, config)
-    except IntentFailure:
+    except IntentFailure as error:
         if not config.get('configurable', {}).get('persist_chat_intent_failure'):
             raise
-        return {'status': 'failed', 'message': ROUTER_FAILED_MESSAGE, 'steps': []}
+        return {'status': 'failed', 'message': str(error), 'steps': []}
 
 
 async def _run_main_agent(state: State, config: RunnableConfig) -> State:
