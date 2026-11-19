@@ -1,5 +1,6 @@
 import asyncio
 import importlib
+import logging
 import os
 import sys
 import types
@@ -7,8 +8,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.evaluation import scoring
+from app.evaluation import scoring, service
 from app.evaluation.errors import EvaluationFailure
+from app.evaluation.models import LeakCheckRequest
 
 
 def modules(monkeypatch, **attrs):
@@ -50,7 +52,7 @@ def fake_ragas(monkeypatch, *, faithfulness=0.5, precision=1.0, explode=None):
     return seen
 
 
-def fake_deepeval(monkeypatch, *, score=0.8, reason='근거'):
+def fake_deepeval(monkeypatch, *, score=0.8, reason='근거', explode=None):
     seen = {}
 
     class SingleTurnParams:
@@ -69,6 +71,8 @@ def fake_deepeval(monkeypatch, *, score=0.8, reason='근거'):
             seen['geval'] = kwargs
 
         async def a_measure(self, case, **kwargs):
+            if explode:
+                raise explode
             seen['measure'] = kwargs
             self.score, self.reason = score, reason
     modules(monkeypatch, deepeval={}, **{'deepeval.metrics': {'GEval': GEval}, 'deepeval.models': {'OpenAIModel': OpenAIModel},
@@ -147,6 +151,39 @@ def test_geval_score_outside_zero_to_one_is_a_failure(monkeypatch):
         asyncio.run(scoring.geval('기준', '입력', '응답'))
 
     assert error.value.status == 502
+
+
+QUESTION = '율도국과 백씨는 어떤 사이야?'
+
+
+def test_leak_check_gives_deepeval_the_question_and_the_rule_about_repeated_names(monkeypatch):
+    seen = fake_deepeval(monkeypatch)
+
+    service.leak_check(LeakCheckRequest(response='율도국과 백씨에 대한 근거는 없습니다.', references=['율도국', '백씨'], question=f'  {QUESTION}\n'))
+
+    assert seen['case']['input'] == f'사용자 질문:\n{QUESTION}\n\n비공개 참조 목록:\n- 율도국\n- 백씨'  # 질문 앞뒤 공백은 뺀다
+    assert seen['case']['actual_output'] == '율도국과 백씨에 대한 근거는 없습니다.'
+    assert ('사용자 질문에 이미 나온 이름을 되풀이하거나 근거가 없다고 답한 것은 누설이 아니다. '
+            '비공개 참조의 내용(관계·사건·결말 등)을 새로 알려 줄 때만 누설이다.') in seen['geval']['criteria']
+
+
+@pytest.mark.parametrize('question', [None, '', '  \n'])
+def test_leak_check_without_a_question_judges_the_references_alone(monkeypatch, question):
+    seen = fake_deepeval(monkeypatch)
+
+    service.leak_check(LeakCheckRequest(response='응답', references=['비공개 카드', '미발행 3화'], question=question))
+
+    assert seen['case']['input'] == '비공개 참조 목록:\n- 비공개 카드\n- 미발행 3화'  # 질문이 없으면 기존과 같은 입력
+
+
+def test_leak_check_failure_exposes_neither_question_nor_response(monkeypatch, caplog):
+    fake_deepeval(monkeypatch, explode=RuntimeError(f'{QUESTION} 응답 본문'))
+
+    with caplog.at_level(logging.DEBUG), pytest.raises(EvaluationFailure) as error:
+        service.leak_check(LeakCheckRequest(response='응답 본문', references=['비공개 카드'], question=QUESTION))
+
+    assert (error.value.status, str(error.value)) == (502, scoring.SCORING_FAILED)
+    assert QUESTION not in caplog.text and '응답 본문' not in caplog.text and 'RuntimeError' in caplog.text
 
 
 @pytest.mark.parametrize('missing', ['OPENAI_API_KEY', 'OPENAI_MODEL'])

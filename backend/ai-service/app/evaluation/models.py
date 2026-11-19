@@ -20,6 +20,8 @@ class LeakCheckRequest(BaseModel):
     response: str = Field(min_length=1, max_length=100_000)
     # 독자에게 공개되지 않은 설정 카드 제목·미발행 회차 제목 등(운영이 글자 대조로 걸러 온 참조)
     references: list[Annotated[str, Field(min_length=1, max_length=500)]] = Field(min_length=1, max_length=200)
+    # 응답을 이끈 사용자 질문 원문(선택). 질문에 이미 나온 이름을 응답이 되풀이한 것은 누설로 보지 않는 근거로 쓴다
+    question: str | None = Field(default=None, max_length=100_000)
 
 
 class LeakCheckResponse(BaseModel):

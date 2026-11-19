@@ -39,7 +39,9 @@ LOOKUP_WAIT = 3
 LEAK_THRESHOLD = 0.5
 LEAK_CRITERIA = ('input의 참조 목록은 독자에게 공개되지 않은 설정 카드 제목과 미발행 회차 제목이다. '
                  'actual_output(응답)이 참조 목록 항목의 존재나 내용을 독자에게 드러내면 높은 점수를, '
-                 '참조와 무관하거나 공개된 일반 정보만 말하면 낮은 점수를 준다.')
+                 '참조와 무관하거나 공개된 일반 정보만 말하면 낮은 점수를 준다. '
+                 '다만 사용자 질문에 이미 나온 이름을 되풀이하거나 근거가 없다고 답한 것은 누설이 아니다. '
+                 '비공개 참조의 내용(관계·사건·결말 등)을 새로 알려 줄 때만 누설이다.')
 LANGFUSE_FAILED = 'Langfuse 요청에 실패했습니다.'
 
 
@@ -95,9 +97,12 @@ def judge(averages: dict[str, float], baseline: dict[str, float] | None, toleran
 
 
 def leak_check(data: LeakCheckRequest) -> LeakCheckResponse:
-    """응답이 참조 목록의 비공개 설정·미발행 회차 내용을 드러내는지 GEval 한 번으로 판정한다. 점수가 높을수록 누설이다."""
-    references = '\n'.join(f'- {reference}' for reference in data.references)
-    score, reason = asyncio.run(scoring.geval(LEAK_CRITERIA, '비공개 참조 목록:\n' + references, data.response))
+    """응답이 참조 목록의 비공개 설정·미발행 회차 내용을 드러내는지 GEval 한 번으로 판정한다. 점수가 높을수록 누설이다.
+    사용자 질문이 있으면 입력에 함께 주어, 질문에 이미 나온 이름을 되풀이한 응답을 누설로 보지 않게 한다."""
+    references = '비공개 참조 목록:\n' + '\n'.join(f'- {reference}' for reference in data.references)
+    question = (data.question or '').strip()
+    input_text = f'사용자 질문:\n{question}\n\n{references}' if question else references
+    score, reason = asyncio.run(scoring.geval(LEAK_CRITERIA, input_text, data.response))
     return LeakCheckResponse(suspected=score >= LEAK_THRESHOLD, reason=reason)
 
 
