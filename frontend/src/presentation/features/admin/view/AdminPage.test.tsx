@@ -510,7 +510,7 @@ it('활동 로그 탭은 조회 권한이 없으면(403) 실패 화면 대신 �
 
 it('패널 제목은 굵은 글씨가 아니라 제목 요소이고, 메뉴 묶음 이름은 제목이 아니어서 화면 제목(h1)이 첫 제목이다', async () => {
   renderAdmin('jobs')
-  const title = await screen.findByRole('heading', { name: '운영 정기 작업', level: 2 })
+  const title = await screen.findByRole('heading', { name: '실행 기록', level: 2 })
   expect(title.className).toBe('panel-title')
   expect(screen.getAllByRole('heading')[0].tagName).toBe('H1')
   const menu = screen.getByRole('navigation', { name: '관리자 업무' })
@@ -520,8 +520,8 @@ it('패널 제목은 굵은 글씨가 아니라 제목 요소이고, 메뉴 묶�
 
 it('표의 행 버튼은 이름이 같은 버튼끼리 구분되도록 대상 이름을 함께 읽는다', async () => {
   renderAdmin('jobs')
-  const row = (await screen.findByText('알림 90일 보관기간 정리')).closest('tr') as HTMLElement
-  expect(within(row).getByRole('button', { name: '알림 90일 보관기간 정리 수동 재시도 시연' }).textContent).toBe('수동 재시도 시연')
+  const retry = await screen.findByRole('button', { name: 'manuscript_preprocessing 실행 job-failed-1 다시 실행' })
+  expect(retry.textContent).toBe('다시 실행')
   cleanup()
   renderAdmin('characterChats')
   const chat = (await screen.findAllByRole('button', { name: /(중지|운영 재개)$/ }))[0]
@@ -538,10 +538,12 @@ it('관리자 계정 생성 폼은 필수 항목과 비밀번호 규칙을 글�
 
 // 이 파일의 다른 테스트가 데모 조치를 남기지 않으므로 마지막에 둡니다(픽스처 DB는 파일 안에서 공유됩니다).
 it('픽스처(데모) 컨테이너에서는 데모 관리자 조치가 활동 로그에 남는다', async () => {
-  await appContainer.resolve('adminUseCase').runJob('notification-cleanup')
+  const admin = appContainer.resolve('adminUseCase')
+  const { chats: [chat] } = await admin.load()
+  await admin.toggleChat(chat.id)
   renderAdmin('audit')
   await waitFor(() => expect(activityRows()).toHaveLength(1))
-  within(activityRows()[0]).getByText('정기 작업 재시도 시연', { selector: 'b' })
+  within(activityRows()[0]).getByText('캐릭터챗 중지', { selector: 'b' })
   within(activityRows()[0]).getByText('수행자 관리자 · 대상 데모')
-  within(activityRows()[0]).getByText('알림 90일 보관기간 정리')
+  within(activityRows()[0]).getByText(`${chat.w.title} · ${chat.character}`)
 })

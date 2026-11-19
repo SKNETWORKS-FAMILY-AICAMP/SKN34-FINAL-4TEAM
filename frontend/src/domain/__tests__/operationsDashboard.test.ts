@@ -26,6 +26,8 @@ describe('운영 대시보드 카드 (DEC-55)', () => {
     expect(card(full, 'aiWeek').details[0]).toBe('실패 4건 · 실패율 데이터 없음')
     expect(card(full, 'reports')).toEqual({ key: 'reports', label: '접수 신고', value: '0건', details: [], to: '/admin?tab=rights' })
     expect(card(full, 'inquiries').to).toBe('/admin?tab=feedback')
+    // 경고 목록은 LLM Ops의 '경고' 보기에서 처리하므로 미확인 경고 카드가 거기로 잇는다.
+    expect(card(full, 'openAlerts')).toMatchObject({ value: '3건', to: '/admin?tab=llm' })
     expect(card(full, 'jobs')).toMatchObject({ value: '2건', details: ['최근 24시간 실패 1건'], to: '/admin?tab=jobs' })
     expect(dashboardCards(full).map((c) => c.key)).toEqual(['members', 'aiToday', 'aiWeek', 'jobs', 'inquiries', 'reports', 'authorReviews', 'openAlerts'])
   })

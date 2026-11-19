@@ -1,7 +1,7 @@
 import { count, percent, usd } from './llmOps'
 
 /** 운영 대시보드(DEC-55). 출처 하나가 실패하면 그 칸만 null이고 `unavailable`에 출처가 들어옵니다. 실패를 0으로 바꾸지 않습니다. */
-export type AiSummary = { requests: number; failed: number; timeouts: number; failureRate?: number | null; costUser: number; costPlatform: number }
+type AiSummary = { requests: number; failed: number; timeouts: number; failureRate?: number | null; costUser: number; costPlatform: number }
 export type Dashboard = {
   members?: { total?: number | null; joinedLast7Days?: number | null; withdrawalPending?: number | null } | null
   ai?: { today: AiSummary; last7Days: AiSummary } | null
@@ -11,7 +11,7 @@ export type Dashboard = {
   unavailable: string[]
 }
 /** value가 null이면 출처를 불러오지 못한 칸입니다. */
-export type DashboardCard = { key: string; label: string; value: string | null; details: string[]; to?: string }
+type DashboardCard = { key: string; label: string; value: string | null; details: string[]; to?: string }
 
 const unit = (value: number | null | undefined, suffix: string) => value == null ? null : `${count(value)}${suffix}`
 
@@ -32,6 +32,6 @@ export function dashboardCards(d: Dashboard): DashboardCard[] {
     { key: 'inquiries', label: '답변 대기 문의', value: unit(pending?.inquiries, '건'), details: [], to: '/admin?tab=feedback' },
     { key: 'reports', label: '접수 신고', value: unit(pending?.reports, '건'), details: [], to: '/admin?tab=rights' },
     { key: 'authorReviews', label: '작가 검토 대기', value: unit(pending?.authorReviews, '건'), details: [] },
-    { key: 'openAlerts', label: '미확인 경고', value: unit(d.openAlerts, '건'), details: [] },
+    { key: 'openAlerts', label: '미확인 경고', value: unit(d.openAlerts, '건'), details: [], to: '/admin?tab=llm' },
   ]
 }

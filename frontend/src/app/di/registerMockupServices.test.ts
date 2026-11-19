@@ -80,3 +80,16 @@ it('mockup 컨테이너의 탈퇴는 요청 없음 상태만 보이고 탈퇴·�
   await expect(withdrawal.request('pw', '')).rejects.toThrow('데모에서는 지원하지 않아요')
   await expect(withdrawal.restore()).rejects.toThrow('데모에서는 지원하지 않아요')
 })
+
+it('운영 대시보드·LLMOps·작업 감시 저장소는 실제 모드에서 운영 API를, mockup에서 예시 메모리를 쓴다', async () => {
+  const real = createAppContainer()
+  expect(real.resolve('operationsDashboardRepository').constructor.name).toBe('HttpOperationsDashboardRepository')
+  expect(real.resolve('llmOpsRepository').constructor.name).toBe('HttpLlmOpsRepository')
+  expect(real.resolve('jobMonitorRepository').constructor.name).toBe('HttpJobMonitorRepository')
+  vi.stubEnv('MODE', 'mockup')
+  const mockup = createAppContainer()
+  expect(mockup.resolve('operationsDashboardRepository').constructor.name).toBe('InMemoryOperationsDashboardRepository')
+  expect(mockup.resolve('llmOpsRepository').constructor.name).toBe('InMemoryLlmOpsRepository')
+  expect(mockup.resolve('jobMonitorRepository').constructor.name).toBe('InMemoryJobMonitorRepository')
+  expect((await mockup.resolve('operationsDashboardUseCase').dashboard()).unavailable).toEqual([])
+})

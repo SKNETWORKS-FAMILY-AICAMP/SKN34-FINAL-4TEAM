@@ -44,3 +44,14 @@
 @media (max-width: 900px) {
   .adm .admin-nav :is(button, a) { height: auto; min-height: 44px; }
 }
+/* 운영 대시보드·LLMOps·작업 감시(DEC-55): 보기 선택 칩, 조회 조건 줄, 표 안 조치 묶음, 카드 안 보조 줄. */
+.adm .admin-subnav { margin: 0 0 14px; }
+.adm .admin-filter { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 12px; margin: 0 0 12px; }
+.adm .admin-filter .field { min-width: 120px; }
+.adm .admin-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.adm .admin-operations .admin-inline .inp { width: auto; min-width: 140px; }
+.adm .kpi span.small { display: block; margin-top: 2px; }
+.adm .kpi b.unavailable { font-size: 15px; color: var(--sub); }
+.adm .kpi a { display: inline-block; margin-top: 8px; font-size: 13px; color: var(--pri-ink); }
+.adm .admin-operations pre.admin-prose { margin: 8px 0 18px; padding: 12px; max-height: 360px; overflow: auto; background: var(--muted-bg); border-radius: 10px; font-size: 13px; line-height: 1.6; }
+.adm progress { width: 100%; max-width: 160px; }
