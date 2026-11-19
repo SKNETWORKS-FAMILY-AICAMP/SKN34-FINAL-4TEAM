@@ -794,6 +794,46 @@ it('lists saved versions, AI requests and publications read-only while restore a
   for (const name of ['이 원고를 새 버전으로 복원', '이 버전을 공개 대상으로 선택', '이 제안 다시 열기']) expect(screen.queryByRole('button', { name })).toBeNull()
 })
 
+it('deletes the original after confirmation and returns to the library only after the response', async () => {
+  stubCover()
+  let complete!: (response: Response) => void
+  const response = new Promise<Response>((resolve) => { complete = resolve })
+  const remove = vi.fn(() => response)
+  const fetcher = contentApi({ 'GET /api/v1/works': () => Response.json([owned]), 'DELETE /api/v1/works/w': remove })
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  await openWork(fetcher)
+  const button = screen.getByRole<HTMLButtonElement>('button', { name: '원작 삭제' })
+  expect(button.classList.contains('ep-danger')).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: '작품 정보 편집' }))
+  expect(button.disabled).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: '취소' }))
+  fireEvent.click(button)
+  expect(remove).not.toHaveBeenCalled()
+  expect(screen.getByText('위치 /content?work=w')).toBeTruthy()
+
+  confirm.mockReturnValue(true)
+  fireEvent.click(button)
+  await waitFor(() => expect(remove).toHaveBeenCalledTimes(1))
+  expect(button.disabled).toBe(true)
+  expect(screen.getByText('위치 /content?work=w')).toBeTruthy()
+  complete(new Response(null, { status: 204 }))
+  expect(await screen.findByText('위치 /lib?tab=write')).toBeTruthy()
+})
+
+it('keeps the original management page open and displays the server reason after deletion fails', async () => {
+  stubCover()
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([owned]),
+    'DELETE /api/v1/works/w': () => Response.json({ detail: '작품을 찾을 수 없어요.' }, { status: 404 }),
+  }))
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  const button = screen.getByRole<HTMLButtonElement>('button', { name: '원작 삭제' })
+  fireEvent.click(button)
+  expect(await screen.findByText('작품을 찾을 수 없어요.', { selector: '[role="alert"]' })).toBeTruthy()
+  expect(screen.getByText('위치 /content?work=w')).toBeTruthy()
+  expect(button.disabled).toBe(false)
+})
+
 // ── 분기 작품: 포크 정보와 만들기 ────────────────────────────────────
 
 it('labels a fork as 분기 작품 and shows its pinned basis and direction instead of the original-work chip', async () => {

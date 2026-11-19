@@ -233,12 +233,16 @@ export function useEpisodeViewModel(
         setNotice('포크 공개를 중단했어요.')
       })
     },
-    /** 분기 작품을 삭제한다. 성공하면 true이며, 열려 있던 작품이 사라지므로 화면이 서재로 이동한다. */
-    deleteFork: () => {
-      if (!active?.source || !window.confirm(`「${active.title}」 포크를 삭제할까요? 서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 같은 원작에서 포크를 다시 만들 수 없어요.`)) return Promise.resolve(false)
+    /** 원작과 포크를 소프트 삭제한다. 성공하면 true를 반환해 화면이 서재로 이동한다. */
+    deleteWork: () => {
+      if (!active) return Promise.resolve(false)
+      const message = active.source
+        ? `「${active.title}」 포크를 삭제할까요? 서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 같은 원작에서 포크를 다시 만들 수 없어요.`
+        : `「${active.title}」을 삭제할까요? 서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 이 작품에서 만들어진 포크는 유지돼요.`
+      if (!window.confirm(message)) return Promise.resolve(false)
       return run(async () => {
         await useCase.deleteWork(active.id)
-        setNotice('포크를 삭제했어요.')
+        setNotice(active.source ? '포크를 삭제했어요.' : '원작을 삭제했어요.')
       })
     },
   }
