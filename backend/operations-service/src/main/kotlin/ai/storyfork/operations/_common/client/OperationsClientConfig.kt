@@ -27,14 +27,35 @@ class OperationsClientConfig {
     fun contentClient(@Value("\${app.operations.content-base-url}") baseUrl: String,
         @Value("\${app.operations.service-token:}") token: String, mapper: JsonMapper) =
         ContentClient(operationsRestClient(baseUrl, token, mapper).build())
+
+    @Bean
+    fun langfuseClient(@Value("\${app.operations.langfuse-base-url}") baseUrl: String,
+        @Value("\${app.operations.langfuse-public-key:}") publicKey: String, @Value("\${app.operations.langfuse-secret-key:}") secretKey: String,
+        mapper: JsonMapper) = LangfuseClient(langfuseRestClient(baseUrl, publicKey, secretKey, mapper).build(), mapper)
+
+    @Bean
+    fun aiClient(@Value("\${app.operations.ai-base-url}") baseUrl: String,
+        @Value("\${app.operations.internal-token:}") token: String, mapper: JsonMapper) =
+        AiClient(aiRestClient(baseUrl, token, mapper).build())
 }
 
+/** Core and Content: the operations service token only. */
+fun operationsRestClient(baseUrl: String, token: String, mapper: JsonMapper): RestClient.Builder =
+    jsonRestClient(baseUrl, mapper).defaultHeader("X-Operations-Service-Token", token)
+
+/** Langfuse: the project keys as Basic auth; the service token must never reach it. */
+fun langfuseRestClient(baseUrl: String, publicKey: String, secretKey: String, mapper: JsonMapper): RestClient.Builder =
+    jsonRestClient(baseUrl, mapper).defaultHeaders { it.setBasicAuth(publicKey, secretKey) }
+
+/** AI service: the internal token only. The leak judge is an LLM call, so the read timeout is longer than the 5 seconds of the others. */
+fun aiRestClient(baseUrl: String, token: String, mapper: JsonMapper): RestClient.Builder =
+    jsonRestClient(baseUrl, mapper, Duration.ofSeconds(30)).defaultHeader("X-Internal-Token", token)
+
 /** ponytail: fixed short timeouts and no retry; expose properties only if a deployment needs tuning. */
-fun operationsRestClient(baseUrl: String, token: String, mapper: JsonMapper): RestClient.Builder {
+private fun jsonRestClient(baseUrl: String, mapper: JsonMapper, readTimeout: Duration = Duration.ofSeconds(5)): RestClient.Builder {
     val http = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).connectTimeout(Duration.ofSeconds(2)).build()
     return RestClient.builder().baseUrl(baseUrl)
-        .requestFactory(JdkClientHttpRequestFactory(http).apply { setReadTimeout(Duration.ofSeconds(5)) })
-        .defaultHeader("X-Operations-Service-Token", token)
+        .requestFactory(JdkClientHttpRequestFactory(http).apply { setReadTimeout(readTimeout) })
         .configureMessageConverters { it.withJsonConverter(JacksonJsonHttpMessageConverter(mapper)) }
 }
 

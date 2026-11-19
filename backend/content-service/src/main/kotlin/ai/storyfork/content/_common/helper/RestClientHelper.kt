@@ -15,11 +15,13 @@ internal fun buildRestClient(
     baseUrl: URI,
     connectTimeout: Duration,
     readTimeout: Duration,
+    forwardUser: Boolean = false,
 ): RestClient {
     val settings = HttpClientSettings.defaults()
         .withConnectTimeout(connectTimeout)
         .withReadTimeout(readTimeout)
         .withRedirects(HttpRedirects.DONT_FOLLOW)
+    if (forwardUser) builder.requestInterceptor(UserBearerInterceptor)
     val requestFactory = ClientHttpRequestFactoryBuilder.jdk()
         .withHttpClientCustomizer { httpClientBuilder ->
             httpClientBuilder.version(HttpClient.Version.HTTP_1_1)

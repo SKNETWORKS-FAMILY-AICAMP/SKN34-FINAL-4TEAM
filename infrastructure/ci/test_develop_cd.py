@@ -28,12 +28,13 @@ class DevelopDeploymentTest(unittest.TestCase):
                 'case "$*" in\n'
                 ' "image inspect"*)\n'
                 '   [[ "${CD_LOCAL_COMPOSE_FILE:-}" == "$DOCKER_CONFIG/docker-compose.local.yaml" && -f "${CD_LOCAL_COMPOSE_FILE:-}" ]] || exit 25\n'
+                '   [[ "${CD_LANGFUSE_COMPOSE_FILE:-}" == "$DOCKER_CONFIG/docker-compose.langfuse.yaml" && -f "${CD_LANGFUSE_COMPOSE_FILE:-}" ]] || exit 27\n'
                 '   [[ "$3 $4 $5 $6 $7" == "$CD_WEB_IMAGE $CD_CORE_API_IMAGE $CD_CONTENT_SERVICE_IMAGE $CD_AI_SERVICE_IMAGE $CD_OPERATIONS_SERVICE_IMAGE" ]] || exit 26\n'
                 '   printf "%040d\\n" 1 ;;\n'
                 'esac\n', encoding="utf-8")
             docker.chmod(0o755)
             env = dict(os.environ, CD_DIRECTORY=directory.replace("\\", "/"), CD_WEB_PORT="8088", TARGET_SHA="%040d" % 1,
-                GITHUB_ACTOR="test", GH_TOKEN="fake-token", COMPOSE_BASE_YAML="", COMPOSE_DEV_YAML="", COMPOSE_LOCAL_YAML="",
+                GITHUB_ACTOR="test", GH_TOKEN="fake-token", COMPOSE_BASE_YAML="", COMPOSE_DEV_YAML="", COMPOSE_LOCAL_YAML="", COMPOSE_LANGFUSE_YAML="",
                 TEST_COMMANDS=str(path / "commands"))
             env.update(overrides or {})
             # Git Bash translates native Windows paths before the deployment's physical-path check.
@@ -48,13 +49,14 @@ class DevelopDeploymentTest(unittest.TestCase):
         code, commands, error = self.deploy()
         self.assertEqual(0, code, error)
         self.assertLess(commands.index("stop web core-api content-service"), commands.index("postgres mailpit"))
-        self.assertLess(commands.index("postgres mailpit"), commands.index("up -d --no-build --pull never --wait --wait-timeout 180\n"))
+        # 전체 스택 대기는 첫 배포에서 Langfuse 저장소·Elasticsearch·앱이 함께 처음 뜨는 시간을 담아 600초다(postgres·mailpit만 먼저 올릴 때는 180초).
+        self.assertLess(commands.index("postgres mailpit"), commands.index("up -d --no-build --pull never --wait --wait-timeout 600\n"))
         self.assertNotIn("run --rm", commands)
 
     def test_superseded_images_are_pruned_only_after_the_new_stack_is_healthy(self):
         code, commands, error = self.deploy()
         self.assertEqual(0, code, error)
-        self.assertLess(commands.index("up -d --no-build --pull never --wait --wait-timeout 180\n"),
+        self.assertLess(commands.index("up -d --no-build --pull never --wait --wait-timeout 600\n"),
             commands.index("image prune --force\n"))
 
     def test_failed_revision_check_keeps_previous_images(self):
@@ -64,7 +66,7 @@ class DevelopDeploymentTest(unittest.TestCase):
     def test_inherited_profile_cannot_change_the_deployed_stack(self):
         code, commands, error = self.deploy(overrides={"COMPOSE_PROFILES": "anything"})
         self.assertEqual(0, code, error)
-        self.assertIn("up -d --no-build --pull never --wait --wait-timeout 180\n", commands)
+        self.assertIn("up -d --no-build --pull never --wait --wait-timeout 600\n", commands)
         self.assertNotIn("run --rm", commands)
 
     def test_image_revision_other_than_run_target_stops_before_ingress(self):
@@ -76,7 +78,7 @@ class DevelopDeploymentTest(unittest.TestCase):
         code, commands, error = self.deploy()
         self.assertEqual(0, code, error)
         smoke = commands.index("exec -T ai-service python -c")
-        self.assertLess(commands.index("up -d --no-build --pull never --wait --wait-timeout 180\n"), smoke)
+        self.assertLess(commands.index("up -d --no-build --pull never --wait --wait-timeout 600\n"), smoke)
         self.assertLess(smoke, commands.index("image prune --force\n"))
 
     def test_develop_stack_runs_official_elasticsearch_for_content_on_a_kept_volume(self):
@@ -90,6 +92,12 @@ class DevelopDeploymentTest(unittest.TestCase):
         self.assertIn("elasticsearch:\n        condition: service_healthy", content)
         self.assertIn('MANUSCRIPT_INDEX_ENABLED: "true"', content)
         self.assertIn("MANUSCRIPT_INDEX_URL: http://elasticsearch:9200", content)
+
+    def test_langfuse_compose_is_staged_like_the_other_files_for_the_dev_include(self):
+        # dev가 include하는 Langfuse 정의도 SSH stdin으로 보내 임시 위치에 두고, 절대 경로를 CD_LANGFUSE_COMPOSE_FILE로 준다
+        # (받는 쪽은 위 fake docker의 image inspect 검사가 확인한다).
+        workflow = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8")
+        self.assertIn('COMPOSE_LANGFUSE_YAML "$(< infrastructure/docker-compose.langfuse.yaml)"', workflow)
 
     def test_publish_requires_target_to_be_current_develop_head(self):
         workflow = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8")

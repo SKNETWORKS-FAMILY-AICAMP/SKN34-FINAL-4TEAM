@@ -9,7 +9,8 @@ from app.research.prompt import RESEARCH_INSTRUCTIONS
 def search(data: ResearchRequest) -> tuple[ResearchResult, list[str]]:
     """모델 판단과 검색 도구가 실제로 반환한 URL 목록을 함께 돌려준다."""
     message, result = agent_runtime.run('research.generation', '웹 조사', ResearchFailure, RESEARCH_INSTRUCTIONS, data.model_dump(),
-                                        max_tokens=2000, timeout=90, trace=data.model_dump(), schema=ResearchResult, web_search=True)
+                                        prompt_name='web_research.search', max_tokens=2000, timeout=90, trace=data.model_dump(),
+                                        schema=ResearchResult, web_search=True)
     calls = [block for block in message.content if isinstance(block, dict) and block.get('type') == 'web_search_call']
     if not any(call.get('status') == 'completed' for call in calls):
         raise ResearchFailure(503, '웹 검색에 실패했습니다.')

@@ -21,7 +21,7 @@ class Failure(Exception):
 
 
 def run(**kwargs):
-    return agent_runtime.run('test.generation', '테스트', Failure, 'INSTRUCTIONS', {'question': '서윤은 누구?'},
+    return agent_runtime.run('test.generation', '테스트', Failure, 'INSTRUCTIONS', {'question': '서윤은 누구?'}, prompt_name='test.prompt',
                              max_tokens=100, timeout=7, trace={'question': '서윤은 누구?'}, **kwargs)
 
 
@@ -73,6 +73,52 @@ def test_usage_meta_is_the_feature_response_shape(monkeypatch):
     message, _ = run()
     assert agent_runtime.meta(message) == {'model': 'resolved-model', 'providerResponseId': 'resp-1',
                                            'usage': {'inputTokens': 10, 'outputTokens': 5}}
+
+
+def test_instructions_come_from_the_managed_prompt_and_the_generation_links_that_version(monkeypatch, spans):
+    from types import SimpleNamespace
+
+    from app import tracing
+    seen = fake_chat(monkeypatch, text='{"text": "주인공"}')
+    asked = []
+    version = SimpleNamespace(name='test.prompt', version=3, is_fallback=False)
+    monkeypatch.setattr(tracing, 'prompt', lambda name, default: asked.append((name, default)) or tracing.Prompt('관리된 지시', version))
+
+    run(schema=Answer)
+
+    assert asked == [('test.prompt', 'INSTRUCTIONS')]  # 코드의 지시는 기본값(최초 등록용)으로만 넘긴다
+    assert seen['messages'][0].content == '관리된 지시'
+    [span] = [s for s in spans() if s.name == 'test.generation']
+    assert (span.attributes['langfuse.observation.prompt.name'], span.attributes['langfuse.observation.prompt.version']) == ('test.prompt', 3)
+
+
+def test_without_a_prompt_name_the_given_instructions_are_used_as_is_and_no_prompt_is_read_or_linked(monkeypatch, spans):
+    """회귀 평가는 평가할 프롬프트 버전 본문을 instructions로 직접 넘긴다. production 프롬프트를 읽거나 generation에 연결하면 안 된다."""
+    from app import tracing
+    seen = fake_chat(monkeypatch, text='평가 대상 응답')
+    asked = []
+    monkeypatch.setattr(tracing, 'prompt', lambda name, default: asked.append((name, default)) or tracing.Prompt('production 본문'))
+
+    message, parsed = agent_runtime.run('test.generation', '테스트', Failure, '평가할 버전 본문', {'question': '서윤은 누구?'},
+                                        max_tokens=100, timeout=7, trace={'question': '서윤은 누구?'})
+
+    assert asked == []  # Langfuse 프롬프트 조회 없음
+    assert seen['messages'][0].content == '평가할 버전 본문' and parsed is None and message.text == '평가 대상 응답'
+    [span] = [s for s in spans() if s.name == 'test.generation']
+    assert not [key for key in span.attributes if key.startswith('langfuse.observation.prompt')]  # 프롬프트 연결 없음
+
+
+def test_an_unavailable_prompt_is_the_features_503_before_any_model_call(monkeypatch):
+    from app import tracing
+    seen = fake_chat(monkeypatch)
+
+    def unavailable(name, default):
+        raise tracing.PromptUnavailable
+
+    monkeypatch.setattr(tracing, 'prompt', unavailable)
+    with pytest.raises(Failure) as error:
+        run()
+    assert (error.value.status, str(error.value)) == (503, '테스트 프롬프트를 불러올 수 없습니다.') and 'init' not in seen
 
 
 def test_missing_model_settings_is_503_before_building_a_model(monkeypatch):
@@ -164,17 +210,19 @@ def test_progress_middleware_streams_a_step_left_in_state_once_and_clears_it(mon
 
 def test_usage_ledger_closes_the_model_calls_of_each_step_in_one_span(spans):
     from app import tracing
-    ledger = agent_runtime.UsageLedger('test.turn', lambda step: {'turn': step['n']},
-                                       trace=tracing.context(*tracing.start_run('run', as_type='chain')))
+    ledger = agent_runtime.UsageLedger('test.turn', lambda step: {'turn': step['n']})
     call = {'name': 'act', 'ms': 5, 'failed': False, 'inputTokens': 10, 'outputTokens': 4}
-    ledger.on_custom_event(agent_runtime.MODEL_EVENT, call)
-    ledger.on_tool_error(RuntimeError('x'))
-    ledger.on_custom_event(agent_runtime.STEP_EVENT, {'n': 1})
-    ledger.on_custom_event(agent_runtime.STEP_EVENT, {'n': 2})
+    with tracing.request('orchestration'):
+        ledger.on_custom_event(agent_runtime.MODEL_EVENT, call)
+        ledger.on_tool_error(RuntimeError('x'))
+        ledger.on_custom_event(agent_runtime.STEP_EVENT, {'n': 1})
+        ledger.on_custom_event(agent_runtime.STEP_EVENT, {'n': 2})
     first, second = ledger.records
     assert (first['turn'], first['modelCalls'], first['failures'], first['inputTokens'], first['ms']) == (1, 2, 1, 10, 5)
     assert second['modelCalls'] == 0 and ledger.calls == []
-    assert len([s for s in spans() if s.name == 'test.turn']) == 2
+    root = next(s for s in spans() if s.name == 'orchestration')
+    turns = [s for s in spans() if s.name == 'test.turn']
+    assert len(turns) == 2 and all(t.parent.span_id == root.context.span_id for t in turns)  # 요청 루트 아래에 붙는다
 
 
 def test_a_step_from_an_agent_inside_an_orchestration_node_reaches_the_outer_custom_stream():

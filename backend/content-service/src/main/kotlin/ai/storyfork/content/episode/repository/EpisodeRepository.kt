@@ -16,6 +16,10 @@ interface EpisodeRepository : JpaRepository<EpisodeEntity, String> {
         e.draftRevisionFloor>=0 or exists(select d.episodeId from EpisodeDraftEntity d where d.episodeId=e.id) or
         exists(select v.id from EpisodeVersionEntity v where v.episodeId=e.id and v.isSaved=true))""")
     fun countWritingAt(@org.springframework.data.repository.query.Param("work") work: String, @org.springframework.data.repository.query.Param("number") number: Int): Long
+    /** 저장 버전(is_saved)이 하나 이상 있는 살아 있는 회차의 번호다(오름차순). 회차 원고 전처리가 읽을 회차 목록이며 초안만 있는 회차는 뺀다. */
+    @Query("""select e.sequence from EpisodeEntity e where e.workId=:work and
+        exists(select v.id from EpisodeVersionEntity v where v.episodeId=e.id and v.isSaved=true) order by e.sequence""")
+    fun savedNumbers(@org.springframework.data.repository.query.Param("work") work: String): List<Int>
     fun findAllByWorkIdOrderBySequence(workId: String): List<EpisodeEntity>
     fun findByWorkIdAndSequence(workId: String, sequence: Int): EpisodeEntity?
 }

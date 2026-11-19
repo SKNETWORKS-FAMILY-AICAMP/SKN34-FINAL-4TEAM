@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.Query
 interface WithdrawalRepository : JpaRepository<AuthWithdrawal, UUID> {
     fun findByMemberIdAndStatus(memberId: UUID, status: String): AuthWithdrawal?
 
+    fun countByStatus(status: String): Long
+
     /** 유예 기한이 지났는데 아직 처리되지 않은 요청 id를 기한이 오래된 순으로 반환한다. [excluded]에 든 요청은 뺀다(비어 있으면 안 된다). */
     @Query("select w.id from AuthWithdrawal w where w.status = 'PENDING' and w.dueAt <= :now and w.id not in :excluded order by w.dueAt")
     fun findDueIds(now: Instant, excluded: Collection<UUID>, pageable: Pageable): List<UUID>
