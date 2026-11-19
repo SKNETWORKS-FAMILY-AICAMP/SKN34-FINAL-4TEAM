@@ -18,7 +18,7 @@ export type TraceDetail = TraceItem & { input?: unknown; output?: unknown; obser
 /** 비어 있는 값(전체)은 서버에 보내지 않습니다. from·to는 UTC ISO 시각, page는 0부터입니다. */
 export type TraceQuery = { from: string; to: string; feature: string; status: string; userId: string; requestId: string; page: number }
 
-type MetricRow = {
+export type MetricRow = {
   key: string; requests: number; failureRate?: number | null; timeoutRate?: number | null
   p50LatencyMs?: number | null; p95LatencyMs?: number | null; inputTokens: number; outputTokens: number; costUser: number; costPlatform: number
 }
@@ -37,7 +37,7 @@ export type PromptVersionInput = { prompt: string; commitMessage: string }
 export type Model = { id: string; modelName: string; matchPattern: string; inputPrice?: number | null; outputPrice?: number | null }
 export type ModelInput = { modelName: string; matchPattern: string; inputPrice: number; outputPrice: number }
 
-type EvaluationMetric = { name: string; score: number; baseline?: number | null; delta?: number | null }
+export type EvaluationMetric = { name: string; score: number; baseline?: number | null; delta?: number | null }
 export type Evaluation = {
   runId: string; dataset: string; prompt: string; version: number
   /** running | completed | failed */

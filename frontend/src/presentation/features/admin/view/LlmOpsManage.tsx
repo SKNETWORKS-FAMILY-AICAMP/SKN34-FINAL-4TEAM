@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { evaluationStatusLabel, passedLabel, perMillion, promoteLabel, type Evaluation } from '../../../../domain/entities/llmOps'
 import { alertRuleLabel, type AlertRule } from '../../../../domain/entities/operationsAlert'
 import { kstDateTime } from '../../../shared/format'
+import { EvaluationChart } from './AdminCharts'
 import type { LlmVM, VM } from './LlmOps'
 import { formNumber, formText } from './formValue'
 import { ActionLines, LiveState, Table } from './OperationsPanels'
@@ -182,6 +183,7 @@ function Evaluations({ vm, l }: Props) {
           <>
             <h2 tabIndex={-1}>{e.dataset} · {e.prompt} {e.version}번 버전</h2>
             <p>{evaluationChip(e)} <span className="small muted">{kstDateTime(e.createdAt)} · 실행 {e.runId}</span></p>
+            {e.metrics.length > 0 && <EvaluationChart metrics={e.metrics} />}
             {e.metrics.length
               ? (
                 <Table label="평가 지표 표">

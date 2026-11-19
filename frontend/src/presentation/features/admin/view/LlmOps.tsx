@@ -1,9 +1,11 @@
 import {
   METRICS_GROUPS, PERIODS, TRACE_STATUS_OPTIONS, bodyText, count, millis, percent, traceStatusLabel, usd, type TraceItem,
 } from '../../../../domain/entities/llmOps'
+import { usagePoints } from '../../../../domain/entities/llmOpsCharts'
 import { kstDateTime } from '../../../shared/format'
 import { LLM_VIEWS, useLlmOpsViewModel } from '../viewmodel/useLlmOpsViewModel'
 import type { useAdminViewModel } from '../viewmodel/useAdminViewModel'
+import { CostChart, RequestsChart } from './AdminCharts'
 import { LlmAlerts } from './LlmAlerts'
 import { LlmOpsManage } from './LlmOpsManage'
 import { formText } from './formValue'
@@ -169,6 +171,8 @@ function TraceDetailPanel({ vm, l }: { vm: VM; l: LlmVM }) {
 function Metrics({ vm, l }: { vm: VM; l: LlmVM }) {
   const m = l.metrics.data, q = l.metricsQuery
   const groupLabel = METRICS_GROUPS.find(([value]) => value === q.groupBy)?.[1] ?? ''
+  const periodLabel = PERIODS.find(([hours]) => hours === q.hours)?.[1] ?? ''
+  const points = m ? usagePoints(m.rows, q.groupBy) : []
   return (
     <section className="panel admin-operations" aria-label="LLM 지표">
       <form
@@ -189,6 +193,9 @@ function Metrics({ vm, l }: { vm: VM; l: LlmVM }) {
       <LiveState vm={vm} label="지표 현황" state={l.metrics} />
       {m && (
         <>
+          {points.length > 0 && (q.groupBy === 'day'
+            ? <RequestsChart latency period={periodLabel} points={points} />
+            : <CostChart title={`${groupLabel}별 비용(USD)`} period={`${periodLabel} ${groupLabel}별`} points={points} horizontal />)}
           {m.rows.length
             ? (
               <Table label="LLM 지표 표">

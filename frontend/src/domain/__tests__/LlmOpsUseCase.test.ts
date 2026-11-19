@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { OperationsError } from '../entities/operations'
+import { OperationsError, OperationsForbidden } from '../entities/operations'
 import type { LlmOpsRepository } from '../repositories/LlmOpsRepository'
 import { LlmOpsUseCase } from '../usecases/LlmOpsUseCase'
 
@@ -72,5 +72,18 @@ describe('경고 기준·표본 비율', () => {
     await rejects(uc.updateSettings(1.1), '표본 비율은 0 이상 1 이하의 숫자로 입력해 주세요.')
     await rejects(uc.updateSettings(Number.NaN), '표본 비율은 0 이상 1 이하의 숫자로 입력해 주세요.')
     expect(updateSettings).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('대시보드 차트용 최근 7일 지표', () => {
+  it('지금부터 7일 전까지를 날짜별(day)로 읽는다', async () => {
+    const metrics = vi.fn(async () => ({ rows: [] }))
+    expect(await make({ metrics }).weeklyMetrics(new Date('2026-11-19T03:00:00Z'))).toEqual({ rows: [] })
+    expect(metrics).toHaveBeenCalledWith({ from: '2026-11-12T03:00:00.000Z', to: '2026-11-19T03:00:00.000Z', groupBy: 'day' })
+  })
+
+  it('조회 권한(llm)이 없으면(403) 실패가 아니라 null이고, 그 밖의 실패는 그대로 던진다', async () => {
+    expect(await make({ metrics: async () => { throw new OperationsForbidden('권한 없음') } }).weeklyMetrics()).toBeNull()
+    await expect(make({ metrics: async () => { throw new OperationsError('연결 실패') } }).weeklyMetrics()).rejects.toThrow('연결 실패')
   })
 })

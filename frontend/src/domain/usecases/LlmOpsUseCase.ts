@@ -1,5 +1,5 @@
-import type { EvaluationInput, MetricsQuery, TraceQuery } from '../entities/llmOps'
-import { OperationsError } from '../entities/operations'
+import { periodRange, type EvaluationInput, type Metrics, type MetricsQuery, type TraceQuery } from '../entities/llmOps'
+import { OperationsError, OperationsForbidden } from '../entities/operations'
 import type { AlertRuleInput } from '../entities/operationsAlert'
 import type { LlmOpsRepository } from '../repositories/LlmOpsRepository'
 
@@ -15,6 +15,16 @@ export class LlmOpsUseCase {
   traces(query: TraceQuery) { return this.repository.traces(query) }
   trace(id: string) { return this.repository.trace(id) }
   metrics(query: MetricsQuery) { return this.repository.metrics(query) }
+
+  /** 대시보드 차트: 지금부터 7일 전까지의 날짜별 지표('지표' 보기의 최근 7일과 같은 구간). 조회 권한(llm)이 없으면(403) 실패가 아니라 null이라 화면이 다시 불러오기 대신 권한 안내를 보입니다. */
+  async weeklyMetrics(now = new Date()): Promise<Metrics | null> {
+    try {
+      return await this.repository.metrics({ ...periodRange(24 * 7, now), groupBy: 'day' })
+    } catch (error) {
+      if (error instanceof OperationsForbidden) return null
+      throw error
+    }
+  }
   prompts() { return this.repository.prompts() }
   prompt(name: string) { return this.repository.prompt(name) }
   models() { return this.repository.models() }

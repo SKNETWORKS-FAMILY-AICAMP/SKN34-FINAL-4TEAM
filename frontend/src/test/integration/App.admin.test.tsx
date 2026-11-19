@@ -10,6 +10,7 @@ import '../scrollToSpy'
 import App from '../../App'
 import { appContainer } from '../../app/appContainer'
 import { createAppStore } from '../../app/store'
+import type { Metrics } from '../../domain/entities/llmOps'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 
@@ -151,6 +152,55 @@ describe('관리자 (A01~A18)', () => {
     await screen.findByText('1,284명')
   })
 
+  it('개요는 카드 아래에 최근 7일 AI 사용 차트 둘을 보이고, 새로고침은 차트도 다시 읽는다', async () => {
+    const weekly = vi.spyOn(appContainer.resolve('llmOpsUseCase'), 'weeklyMetrics')
+    renderAt('/admin?tab=data')
+    const usage = await screen.findByLabelText('최근 7일 AI 사용')
+    // 차트는 값을 말로 옮긴 요약을 role=img로 알린다(크기를 못 재는 jsdom에서는 그림 없이 이 틀만 렌더된다).
+    await within(usage).findByRole('img', { name: /^최근 7일 요청 \d+건, 실패율 / })
+    within(usage).getByRole('img', { name: /^최근 7일 비용 사용자 \$/ })
+    const before = weekly.mock.calls.length
+    fireEvent.click(screen.getByRole('button', { name: '새로고침' }))
+    await waitFor(() => expect(weekly.mock.calls.length).toBeGreaterThan(before))
+  })
+
+  it('최근 7일 차트는 읽는 동안 불러오는 중으로 보이고, 카드는 따로 먼저 보인다', async () => {
+    let finish!: (metrics: Metrics) => void
+    vi.spyOn(appContainer.resolve('llmOpsUseCase'), 'weeklyMetrics').mockReturnValue(new Promise<Metrics>((resolve) => { finish = resolve }))
+    renderAt('/admin?tab=data')
+    const usage = await screen.findByLabelText('최근 7일 AI 사용')
+    within(usage).getByText('AI 사용 현황을 불러오고 있어요.')
+    await screen.findByText('1,284명')
+    expect(within(usage).queryByRole('img')).toBeNull()
+    finish({ rows: [] })
+    await within(usage).findByText('아직 데이터가 없어요.')
+    expect(within(usage).queryByText('AI 사용 현황을 불러오고 있어요.')).toBeNull()
+    expect(within(usage).queryByRole('img')).toBeNull()
+  })
+
+  it('최근 7일 차트는 LLM Ops 조회 권한이 없으면(403) 차트 대신 안내 한 줄만 보이고 다시 불러오기는 두지 않는다', async () => {
+    vi.spyOn(appContainer.resolve('llmOpsUseCase'), 'weeklyMetrics').mockResolvedValue(null)
+    renderAt('/admin?tab=data')
+    const usage = await screen.findByLabelText('최근 7일 AI 사용')
+    await within(usage).findByText('LLM Ops 조회 권한이 있어야 볼 수 있어요.')
+    expect(within(usage).queryByRole('img')).toBeNull()
+    expect(within(usage).queryByRole('button', { name: '다시 불러오기' })).toBeNull()
+    await screen.findByText('1,284명')
+  })
+
+  it('최근 7일 차트를 읽지 못하면 0으로 채우지 않고 실패를 알리며, 다시 불러오기로 복구한다', async () => {
+    const weekly = vi.spyOn(appContainer.resolve('llmOpsUseCase'), 'weeklyMetrics').mockRejectedValue(new Error('조회 실패'))
+    renderAt('/admin?tab=data')
+    const usage = await screen.findByLabelText('최근 7일 AI 사용')
+    await within(usage).findByText(/AI 사용 현황을 불러오지 못했어요/)
+    expect(within(usage).queryByRole('img')).toBeNull()
+    await screen.findByText('1,284명')
+    weekly.mockRestore()
+    fireEvent.click(within(usage).getByRole('button', { name: '다시 불러오기' }))
+    await within(usage).findByRole('img', { name: /^최근 7일 요청 \d+건, 실패율 / })
+    expect(within(usage).queryByText(/불러오지 못했어요/)).toBeNull()
+  })
+
   it('경고 조회 권한(llm·jobs)이 없으면 LLM Ops 경고 보기는 실패 화면 대신 필요한 권한을 안내하고, 다른 보기는 그대로 쓸 수 있다', async () => {
     vi.spyOn(appContainer.resolve('operationsDashboardUseCase'), 'alerts').mockResolvedValue(null)
     renderAt('/admin?tab=llm')
@@ -269,12 +319,17 @@ describe('관리자 (A01~A18)', () => {
     renderAt('/admin?tab=llm')
     fireEvent.click(await screen.findByRole('button', { name: '지표' }))
     within(await screen.findByRole('region', { name: 'LLM 지표 표' })).getByRole('columnheader', { name: '날짜' })
+    // 표 위 차트: 날짜별은 요청 수·p95 지연·실패율.
+    screen.getByRole('img', { name: /^최근 7일 요청 \d+건, 실패율 .*, p95 지연 최대 / })
     const ratio = (label: string) => screen.getByText(label).closest('div') as HTMLElement
     within(ratio('제안 채택률')).getByText('42%')
     within(ratio('필터 복원률')).getByText('데이터 없음')
     fireEvent.change(screen.getByLabelText('묶음'), { target: { value: 'model' } })
     fireEvent.click(screen.getByRole('button', { name: '조회' }))
     await within(await screen.findByRole('region', { name: 'LLM 지표 표' })).findByRole('columnheader', { name: '모델' })
+    // 기능·모델별은 비용 가로 막대로 바뀐다.
+    screen.getByRole('img', { name: /^최근 7일 모델별 비용 사용자 / })
+    expect(screen.queryByRole('img', { name: /p95 지연/ })).toBeNull()
   })
 
   it('프롬프트 승격은 최신 평가가 통과가 아니면 서버 문구로 거절되고, 새 버전은 라벨 없이 등록된다', async () => {
@@ -299,6 +354,7 @@ describe('관리자 (A01~A18)', () => {
     fireEvent.click(await screen.findByRole('button', { name: '평가' }))
     fireEvent.click(await screen.findByRole('button', { name: 'qa-regression qa-answer 3번 버전 평가 상세' }))
     const metrics = await screen.findByRole('region', { name: '평가 지표 표' })
+    screen.getByRole('img', { name: /^평가 지표 2개: faithfulness 점수 0\.780 기준 0\.900/ })
     within(metrics).getByText('faithfulness')
     within(metrics).getByText('-0.120')
     fireEvent.click(screen.getByRole('button', { name: '모델' }))
