@@ -11,9 +11,9 @@
 | 항목 | 결정 |
 |---|---|
 | LLMOps 정본 | **Langfuse**(self-host). LangSmith가 주는 추적·세션·프롬프트 버전·데이터셋·실험·점수·비용을 Langfuse로 채우고 Spring으로 재구현하지 않는다. DEC-18의 'MVP 이후'를 이 결정으로 바꾼다 |
-| 화면 방식 | **우리 운영 화면이 API로 통합**한다. 운영 서비스가 Langfuse Public API를 중계·집계하고, 실행 단계 상세는 Langfuse 화면 링크(`traceUrl`)를 함께 준다 |
-| 배치 | Langfuse를 dev·prod Compose에 포함한다(웹·worker·ClickHouse·Redis·MinIO·Postgres). 공식 이미지는 하위 경로를 지원하지 않으므로 화면은 별도 포트(로컬 `:3000`)나 서브도메인으로 연다 |
-| Langfuse 로그인 | **우리 계정(Core)으로 OIDC 로그인**한다. Core가 OIDC 제공자가 되고 Langfuse는 Custom OAuth Provider로 붙으며 이메일·비밀번호 로그인은 끈다(아래 'Langfuse OIDC 로그인') |
+| 화면 방식 | **우리 운영 화면이 API로 통합**한다. 운영 서비스가 Langfuse Public API를 중계·집계하고 실행 단계 상세까지 우리 화면에 보인다(Langfuse 화면 링크 없음) |
+| 배치 | Langfuse를 dev·prod Compose에 포함한다(웹·worker·ClickHouse·Redis·MinIO·Postgres). 웹은 개발자용 별도 포트(로컬 `:3000`)로만 연다 |
+| Langfuse 화면 | 관리자는 Langfuse 웹에 들어가지 않는다. 데이터는 운영·AI 서비스가 프로젝트 API 키로만 읽고 쓴다. Langfuse 웹은 개발자가 초기 관리자 계정(`LANGFUSE_INIT_*`)으로만 쓴다(2026-11-19 사용자 결정, OIDC 로그인 안 함) |
 | 회원 식별 | trace의 `user_id`에 **회원 UUID**를 남긴다. 이메일·닉네임·키는 계속 남기지 않는다(2026-11-13 팀 결정의 보완) |
 | 경고 기준 | 기준값은 문서로 고정하지 않고 **운영 화면에서 관리자가 정한다**. 초기 행은 꺼진 상태로 시드하고 값을 넣어 켠다 |
 | 평가 | 회귀 평가는 AI 서비스의 **Ragas**(Q&A RAG)·**DeepEval**(생성·검토·누설 판정)로 채점하고 결과를 Langfuse Dataset Run 점수로 남긴다. 1회 비용 상한은 **추후 결정**(그 전까지 상한 없음, 평가는 관리자가 직접 실행할 때만 돈다) |
@@ -54,7 +54,7 @@
 | 메서드·경로 | 권한 | 내용 |
 |---|---|---|
 | `GET /dashboard` | 운영자 누구나 | 회원 수, 오늘·7일 AI 요청·실패율·비용(사용자/플랫폼), 진행 중 작업 수, 답변 대기 문의·접수 신고·작가 검토 대기, 미확인 경고 수. 출처 하나가 실패하면 그 칸만 `null` + `unavailable:[출처]`(나머지는 보인다, 실패를 0으로 바꾸지 않는다) |
-| `GET /llmops/traces?from&to&feature&status&userId&page` | `llm` | trace 목록(시각·기능·상태·지연·토큰·비용·`traceUrl`) |
+| `GET /llmops/traces?from&to&feature&status&userId&page` | `llm` | trace 목록(시각·기능·상태·지연·토큰·비용) |
 | `GET /llmops/traces/{id}` | `llm` | 단계별 observation(이름·시각·지연·모델·토큰·level), 입력·출력 본문 |
 | `GET /llmops/metrics?from&to&groupBy=day|feature|model` | `llm` | 요청·실패율·시간 초과율·p50/p95 지연·토큰·비용(사용자/플랫폼)·채택률·승인률·필터 복원률 |
 | `GET /llmops/prompts`, `GET /llmops/prompts/{name}` | `llm` | 프롬프트별 버전·라벨·최신 평가 결과 |
@@ -81,7 +81,7 @@
 Dashboard { members{total,joinedLast7Days,withdrawalPending}?, ai{today:AiSummary, last7Days:AiSummary}?,
             jobs{running,failedLast24h}?, pending{inquiries,reports,authorReviews}?, openAlerts?, unavailable:[string] }
 AiSummary { requests, failed, timeouts, failureRate, costUser, costPlatform }
-TraceItem { id, timestamp, feature, status, latencyMs, inputTokens, outputTokens, cost, userId?, workId?, traceUrl }
+TraceItem { id, timestamp, feature, status, latencyMs, inputTokens, outputTokens, cost, userId?, workId? }
 TraceDetail { ...TraceItem, input?, output?, observations:[{id,name,type,startTime,endTime,latencyMs,model?,inputTokens?,outputTokens?,level,statusMessage?,promptName?,promptVersion?}] }
 Page<T> { items:[T], page, size, total }
 MetricRow { key(날짜·기능·모델), requests, failureRate, timeoutRate, p50LatencyMs, p95LatencyMs, inputTokens, outputTokens, costUser, costPlatform }
@@ -131,27 +131,15 @@ Content 내부 `GET /internal/v1/works/{id}/leak-references`는 Fork 작품의 �
 경고가 생기면 운영 서비스가 기존 교환기 `storyfork.events`에 `operations.alert.raised`(recipient = `llm` 또는 `jobs` 권한을 가진 운영자마다 한 건)를 발행하고 Core가 알림함에 넣는다.
 운영 서비스에 AMQP 연결(`spring-boot-starter-amqp`, Core가 이미 쓰는 의존성)이 더해진다.
 
-## Langfuse OIDC 로그인 (Core)
-
-| 항목 | 결정 |
-|---|---|
-| 구현 | Core에 **Spring Authorization Server**(새 production 의존성)를 넣어 인가 코드 + PKCE 흐름, `/.well-known/openid-configuration`, JWKS(RS256 키, env `AUTH_OIDC_SIGNING_KEY`), userinfo를 연다. 클라이언트는 Langfuse 하나(env `AUTH_OIDC_LANGFUSE_CLIENT_ID`·`_SECRET`·`_REDIRECT_URI`)이고 동적 등록은 없다 |
-| 경로 | 인가 시작은 refresh 쿠키 경로 안의 `/api/v1/auth/oidc/authorize`, 토큰·JWKS·userinfo·discovery도 `/api/v1/auth/oidc/**` 아래 둔다. 기존 회원 JWT(HS256)와 서명 키·경로가 섞이지 않는다 |
-| 로그인 상태 | authorize 요청의 `refresh_token` 쿠키(HttpOnly·SameSite=Strict, 같은 사이트의 Langfuse 포트·서브도메인에서 넘어오면 전송됨)를 **회전하지 않고 검증만** 해 회원을 정한다. 없거나 무효면 프런트 `/login?next=<authorize 주소>`로 보내고 로그인 뒤 그 주소로 돌아온다(프런트 복귀 허용 목록에 이 경로만 추가) |
-| 발급 대상 | Core `operator=true` 회원만. 아니면 `access_denied`로 Langfuse에 돌려보낸다. 운영 업무 권한(`llm`)은 운영 DB에 있어 Core가 보지 않는다(한계) |
-| claim | `sub`=회원 UUID, `email`, `name`=닉네임, `email_verified`. Langfuse가 이메일로 사용자를 구분하므로 이메일이 필요하다(trace 본문 규칙과 별개) |
-| Langfuse 설정 | `AUTH_CUSTOM_CLIENT_ID`·`AUTH_CUSTOM_CLIENT_SECRET`·`AUTH_CUSTOM_ISSUER`(Core 공개 주소 + `/api/v1/auth/oidc`)·`AUTH_CUSTOM_NAME=STORYFORK`, `AUTH_DISABLE_USERNAME_PASSWORD=true`, 처음 들어온 사용자를 기본 조직·프로젝트 `VIEWER`로 자동 배정. 초기 관리자 계정(`LANGFUSE_INIT_*`)은 헤드리스 초기화용으로만 둔다 |
-| 연결 | 관리자 화면의 `traceUrl`·'Langfuse 열기'를 누르면 Langfuse → Core authorize → (이미 로그인했으면 바로) Langfuse 콜백으로 들어간다 |
-
 ## 실행 연결
 
-- nginx·Vite: `/api/v1/operations/{dashboard,llmops,alerts,jobs}`와 하위 경로를 Operations로. `/api/v1/auth/oidc/**`는 기존 `/api` → Core 규칙에 그대로 든다. Langfuse 웹은 별도 포트·서브도메인.
-- env: 운영 `OPERATIONS_LANGFUSE_BASE_URL`·`LANGFUSE_PUBLIC_KEY`·`LANGFUSE_SECRET_KEY`(AI와 같은 프로젝트 키)·`LANGFUSE_UI_URL`(traceUrl 생성), `OPERATIONS_AI_BASE_URL`·`INTERNAL_TOKEN`(AI 내부 호출), RabbitMQ 접속값. Langfuse 프로젝트·키는 `LANGFUSE_INIT_*` 헤드리스 초기화로 만든다.
+- nginx·Vite: `/api/v1/operations/{dashboard,llmops,alerts,jobs}`와 하위 경로를 Operations로. Langfuse 웹은 공개 진입점에 열지 않는다(개발자용 별도 포트).
+- env: 운영 `OPERATIONS_LANGFUSE_BASE_URL`·`LANGFUSE_PUBLIC_KEY`·`LANGFUSE_SECRET_KEY`(AI와 같은 프로젝트 키), `OPERATIONS_AI_BASE_URL`·`INTERNAL_TOKEN`(AI 내부 호출), RabbitMQ 접속값. Langfuse 프로젝트·키는 `LANGFUSE_INIT_*` 헤드리스 초기화로 만든다.
 - AI 평가 의존성 `ragas`·`deepeval`은 `[project.optional-dependencies] eval`에 두고 평가를 실행하는 이미지(worker)만 설치한다.
 
 ## 단계
 
-1. Core 통계·OIDC 제공자 · 운영 대시보드·추적·지표 중계 · AI 계측 보강 · Langfuse Compose · 프런트 `data`·`llm` 추적/지표 화면 (병렬)
+1. Core 통계 · 운영 대시보드·추적·지표 중계 · AI 계측 보강 · Langfuse Compose · 프런트 `data`·`llm` 추적/지표 화면 (병렬)
 2. 프롬프트 이관·모델 정의 → 회귀 평가 → 경고 규칙·알림 → 누설 표본 검사
 3. 작업 감시: 운영 스케줄러·일정 CRUD는 1단계와 병렬, 전처리 작업 목록은 #343(전처리) 병합 후 연결
 
@@ -161,5 +149,4 @@ Content 내부 `GET /internal/v1/works/{id}/leak-references`는 Fork 작품의 �
 - 사용자 부담 비용은 AI 요청이 Core 크레딧 예약을 쓰기 시작해야 0이 아니게 된다.
 - 필터 복원률은 콘텐츠 필터 기능이 생기기 전까지 비어 있다.
 - 평가 비용 상한이 없다(추후 결정). 평가는 관리자 실행·켠 일정으로만 돈다.
-- Langfuse 로그인은 Core `operator` 여부만 본다. `llm` 권한이 없는 운영자도 Langfuse 조회 권한으로 들어간다. 막으려면 Core가 운영 권한 조회 API를 부르게 바꾼다.
 - 운영 스케줄러는 단일 인스턴스를 가정한다(DB 잠금 없음). 여러 대로 늘리거나 Airflow로 옮길 때 실행 주체를 하나로 바꾼다.
