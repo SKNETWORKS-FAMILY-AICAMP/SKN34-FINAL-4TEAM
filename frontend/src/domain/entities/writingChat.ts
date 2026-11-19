@@ -103,7 +103,7 @@ export type SceneAction =
 export type ChatResume = { approved: boolean; inputs?: ChatStepInputs; scene?: SceneAction }
 /** 새 요청(operation이 있으면 의도 분류를 건너뛰고 그 기능을 실행, 시뮬레이션은 시작 양식 값을 싣는다)이거나 멈춘 실행을 잇는 답이다. */
 export type ChatSendBody = { request: string; operation?: ChatFeature; simulation?: SimulationStart } | { resume: ChatResume }
-export type ChatMessageInput = ChatBasis & { consent: true } & ChatSendBody
+export type ChatMessageInput = ChatBasis & ChatSendBody
 
 export const SCENE_NOTE_MAX = 300
 export const SCENE_TEXT_MAX = 2000

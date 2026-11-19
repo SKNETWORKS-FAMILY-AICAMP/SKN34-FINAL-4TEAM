@@ -133,8 +133,6 @@
 .chat-choice input { accent-color: var(--tacc); }
 .chat-error { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; padding: 10px 14px; border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--tline)); border-radius: 12px; color: var(--danger); font-size: 13px; }
 .chat-error p { flex: 1 1 160px; margin: 0; }
-.chat-consent { display: flex; align-items: flex-start; gap: 8px; padding-inline: 8px; color: var(--tsub); font-size: 12.5px; line-height: 1.5; cursor: pointer; }
-.chat-consent input { flex: none; width: 16px; height: 16px; margin-top: 2px; accent-color: var(--pri); }
 @media (max-width: 600px), (pointer: coarse) {
   .chat-session-pick, .chat-session-menu .pop-menu-btn, .chat-rename input { height: 44px; }
   .chat-session-menu .pop-menu-btn { width: 44px; }

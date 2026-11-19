@@ -28,7 +28,7 @@ class WritingAiServiceTest {
     private val episodes = mock(EpisodeService::class.java)
     private val service = WritingAiService(scopes, grants, client, access, episodes)
     private val result = JsonMapper.builder().build().readTree("""{"status":"completed"}""")
-    private val ask = WritingAiRequest(request = "길드 규칙은?", episode = 2, episodeVersionId = "r2", consent = true)
+    private val ask = WritingAiRequest(request = "길드 규칙은?", episode = 2, episodeVersionId = "r2")
 
     @Suppress("UNCHECKED_CAST")
     private fun sent(): Map<String, Any?> {
@@ -116,8 +116,8 @@ class WritingAiServiceTest {
     }
 
     @Test
-    fun `missing consent ambiguous input or resume without thread never reach the model`() {
-        for (bad in listOf(ask.copy(consent = false), ask.copy(resume = WritingAiResume(true)),
+    fun `ambiguous input or resume without thread never reach the model`() {
+        for (bad in listOf(ask.copy(resume = WritingAiResume(true)),
             ask.copy(request = null), ask.copy(request = null, resume = WritingAiResume(false)))) {
             assertEquals(422, assertThrows(ContentFailure::class.java) { service.run("work", "owner", "Bearer user", bad) }.status)
         }

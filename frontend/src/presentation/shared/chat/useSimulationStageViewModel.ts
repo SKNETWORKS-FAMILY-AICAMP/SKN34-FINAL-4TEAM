@@ -6,7 +6,6 @@ import {
 import { bodyLength } from '../../../domain/entities/manuscriptLength'
 import type { ChatViewModel } from './useWritingChatViewModel'
 
-const CONSENT_FIRST = '동의에 체크하면 보낼 수 있어요.'
 const LINES_LOCKED = '줄 수정과 다시 말하기는 일시정지한 뒤 턴이 끝나면 쓸 수 있어요.'
 
 /**
@@ -38,7 +37,7 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
   // 진행 중이거나 작가의 답(다음 턴·승인)을 기다리는 장면이 있다.
   const attention = !!sim && (chat.streaming || !!chat.awaiting)
   const playing = live && !paused && (chat.streaming || chat.sceneTicket !== consumed)
-  const blocked = chat.available ? (chat.consent ? '' : CONSENT_FIRST) : chat.lockedReason ?? ''
+  const blocked = chat.available ? '' : chat.lockedReason ?? ''
   const canAct = !chat.pending && !!chat.awaiting && !blocked
 
   useEffect(() => { if (attention) { setOpen(true); setComposing(false); setAsked(false) } }, [attention])
@@ -99,7 +98,7 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
     answer: asked && !sim && !chat.pending ? chat.turns.at(-1)?.reply?.message ?? '' : '',
     // 이 무대에서 시작한 요청이 첫 턴을 만드는 중이다(아직 장면이 없다).
     starting: asked && !sim && chat.streaming,
-    available: chat.available, consent: chat.consent, setConsent: chat.setConsent, pending: chat.pending, deciding: chat.deciding,
+    available: chat.available, pending: chat.pending, deciding: chat.deciding,
     error: chat.error, reload: chat.retry,
     issue: simulationIssue,
     start: (start: SimulationStart, source: 'plan' | 'manual' = 'manual', names: Record<string, string> = {}) => {

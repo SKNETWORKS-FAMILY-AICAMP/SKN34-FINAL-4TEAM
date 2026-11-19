@@ -86,7 +86,6 @@ internal class WritingAiService(
 
     /** AI 요청 본문. 검증·권한 실패는 SSE 응답 헤더를 보내기 전에 여기서 HTTP 오류가 된다. fromTurn은 메시지 수정이다. */
     fun message(workId: String, owner: String, threadId: String, request: WritingAiRequest, fromTurn: Int? = null): Map<String, Any?> {
-        checkContent(request.consent, message="OpenAI 전송과 API 비용에 동의해 주세요.")
         checkContent((request.request == null) != (request.resume == null), message="새 요청과 이어가기 중 하나만 보내 주세요.")
         checkContent(fromTurn == null || request.resume == null, message="메시지 수정은 새 요청으로만 보낼 수 있어요.")
         request.simulation?.let { form ->

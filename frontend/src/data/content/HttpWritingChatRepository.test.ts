@@ -4,7 +4,7 @@ import { login } from '../api/auth'
 import { stepText, type ChatEvent } from '../../domain/entities/writingChat'
 import { HttpWritingChatRepository } from './HttpWritingChatRepository'
 
-const input = { episode: 2, episodeVersionId: 'v2', consent: true as const, request: '길드 규칙은?' }
+const input = { episode: 2, episodeVersionId: 'v2', request: '길드 규칙은?' }
 /** 이벤트 경계와 상관없이 잘린 조각으로 SSE를 흘린다. */
 const sse = (...chunks: string[]) => new Response(new ReadableStream({
   start(controller) { chunks.forEach((c) => controller.enqueue(new TextEncoder().encode(c))); controller.close() },
@@ -259,7 +259,7 @@ describe('시뮬레이션 무대(#58) 응답·요청', () => {
       return JSON.parse(fetcher.mock.calls[0][1].body)
     }
     expect(await send({ request: '만약 카엘이 성문을 열었다면?', operation: 'character_simulation' }))
-      .toMatchObject({ request: '만약 카엘이 성문을 열었다면?', operation: 'character_simulation', consent: true })
+      .toMatchObject({ request: '만약 카엘이 성문을 열었다면?', operation: 'character_simulation' })
     // 반영 회차(targetEpisode, 작가가 연 회차)는 근거 회차(episode)와 따로 그대로 간다.
     expect(await send({ request: '이어 써 줘', targetEpisode: 3 })).toMatchObject({ episode: 2, episodeVersionId: 'v2', targetEpisode: 3 })
     // 버튼 진입의 시작 양식 값(IF: 전제, 흐름: 비트)과 참여 인물은 simulation으로 그대로 간다.
