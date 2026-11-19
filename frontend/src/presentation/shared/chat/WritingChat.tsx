@@ -3,7 +3,7 @@ import { useId, useState } from 'react'
 import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
 import { featureLabel, PLAN_LABEL, replyOutcome, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck } from '../../../domain/entities/writingChat'
 import type { ChatMessage } from '../../../domain/entities/chat'
-import { ComposeIcon, MoreIcon, PencilIcon, SparkIcon, TrashIcon } from '../icons'
+import { ComposeIcon, MoreIcon, PencilIcon, SparkIcon, ThumbDownIcon, ThumbUpIcon, TrashIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
 import { ChatPanel } from './ChatPanel'
 import { useWritingChatViewModel, type ChatViewModel, type LiveTurn } from './useWritingChatViewModel'
@@ -200,6 +200,11 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage }: { vm:
   }
   if (live) messages.push({ id: 'live', role: 'user', text: live.request })
   const actions = (m: ChatMessage) => {
+    // shortcut: 좋아요·싫어요는 자리만 둔 버튼이라 누른 값을 저장하지 않는다. 저장 위치·용도가 정해지면(#560) 연결한다.
+    if (m.role === 'assistant') return <div className="chat-msg-actions">
+      <button type="button" aria-label="이 답변 좋아요" title="이 답변 좋아요"><ThumbUpIcon size={16} /></button>
+      <button type="button" aria-label="이 답변 싫어요" title="이 답변 싫어요"><ThumbDownIcon size={16} /></button>
+    </div>
     if (m.role !== 'user' || m.id === 'live') return null
     const index = Number(m.id.slice(1))
     if (editing?.index === index) {

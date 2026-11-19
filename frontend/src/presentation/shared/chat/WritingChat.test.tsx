@@ -361,3 +361,20 @@ it('동의 체크 없이 바로 보내고 요청에 동의 값을 싣지 않는�
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1))
   expect(send.mock.calls[0][2]).not.toHaveProperty('consent')
 })
+
+it('AI 답변 아래에 좋아요·싫어요 아이콘 버튼만 두고, 눌러도 아무 요청을 보내지 않는다(저장은 #560)', async () => {
+  sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [{
+    request: '주인공이 누구야?', reply: { status: 'completed', message: '주인공은 홍길동입니다.', steps: [] },
+  }] })
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByText('주인공은 홍길동입니다.')
+  const like = screen.getByRole('button', { name: '이 답변 좋아요' })
+  const dislike = screen.getByRole('button', { name: '이 답변 싫어요' })
+  expect(like.textContent).toBe('')
+  fireEvent.click(like)
+  fireEvent.click(dislike)
+  expect(send).not.toHaveBeenCalled()
+  expect(history).toHaveBeenCalledTimes(1)
+  expect(screen.getAllByRole('button', { name: '이 답변 좋아요' })).toHaveLength(1)
+})
