@@ -213,7 +213,7 @@ docker logs storyfork-develop-cd-content-service-1 2>&1 | grep 'manuscript index
 | `LANGFUSE_DB_PASSWORD`·`LANGFUSE_CLICKHOUSE_PASSWORD`·`LANGFUSE_REDIS_PASSWORD`·`LANGFUSE_MINIO_PASSWORD`·`LANGFUSE_NEXTAUTH_SECRET`·`LANGFUSE_SALT`·`LANGFUSE_ENCRYPTION_KEY` | Langfuse 서버 전용 비밀값. 각각 `openssl rand -hex 32`(MinIO는 8자 이상) |
 | `LANGFUSE_PUBLIC_KEY`·`LANGFUSE_SECRET_KEY` | `pk-lf-<임의값>`·`sk-lf-<임의값>`. Langfuse가 첫 시작 때 같은 키로 조직 `storyfork`·프로젝트 `storyfork-writing-ai`를 만들고, AI·운영 서비스가 같은 값을 씁니다 |
 | `LANGFUSE_INIT_USER_EMAIL`·`LANGFUSE_INIT_USER_PASSWORD` | 헤드리스 초기화용 관리자(조직 OWNER). SSO 전용이면 비밀번호 로그인은 꺼 두고 계정만 만들어집니다 |
-| `LANGFUSE_UI_URL` | 브라우저가 여는 공개 주소(서브도메인 또는 `host:포트`, 끝 슬래시 없음). Langfuse `NEXTAUTH_URL`·운영 `traceUrl`·Core 콜백 주소의 기준이고 `LANGFUSE_WEB_PORT`(기본 3000)의 loopback 포트로 ingress를 연결합니다 |
+| `LANGFUSE_UI_URL` | 브라우저가 여는 공개 주소(서브도메인 또는 `host:포트`, 끝 슬래시 없음). Langfuse `NEXTAUTH_URL`·운영 `traceUrl`·Core 콜백 주소의 기준이고 `LANGFUSE_WEB_PORT`(기본 3000)의 loopback 포트로 ingress를 연결합니다. web과 같은 사이트(같은 등록 도메인의 서브도메인이거나 같은 호스트의 다른 포트)여야 합니다. Core authorize가 SameSite=Strict refresh 쿠키를 읽기 때문입니다 |
 | `AUTH_OIDC_ISSUER` | 공개 web origin + `/api/v1/auth/oidc`. Core와 Langfuse(`AUTH_CUSTOM_ISSUER`)가 같은 값을 읽습니다 |
 | `AUTH_OIDC_SIGNING_KEY` | Core가 id_token을 서명하는 RSA 개인키(PEM). `openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048`, 줄바꿈은 `\n`로 이어 따옴표로 감쌉니다 |
 | `AUTH_OIDC_LANGFUSE_CLIENT_ID`·`AUTH_OIDC_LANGFUSE_CLIENT_SECRET` | Core가 등록하는 Langfuse 클라이언트이며 Langfuse의 `AUTH_CUSTOM_CLIENT_ID/SECRET`과 같은 변수입니다. 시크릿은 `openssl rand -hex 32` |
