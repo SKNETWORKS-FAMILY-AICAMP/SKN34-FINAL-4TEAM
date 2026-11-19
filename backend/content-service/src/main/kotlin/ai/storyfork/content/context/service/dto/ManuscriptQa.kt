@@ -4,20 +4,11 @@ import ai.storyfork.content.manuscript.client.dto.QaExcerpt
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
-sealed interface QaCitation {
-    val kind: String
-    val id: String
-    val workId: String
-    val sourceWorkId: String?
-    val episode: Int
-    val quote: String
-}
-
 data class QaSource(
-    override val id: String, override val workId: String, override val sourceWorkId: String?, val episodeId: String,
-    override val episode: Int, val versionId: String, val startUtf16: Int, val endUtf16: Int, override val quote: String,
-) : QaCitation {
-    override val kind = "manuscript"
+    val id: String, val workId: String, val sourceWorkId: String?, val episodeId: String,
+    val episode: Int, val versionId: String, val startUtf16: Int, val endUtf16: Int, val quote: String,
+) {
+    val kind = "manuscript"
 }
 
 data class QaGap(val code: String, val detail: String)
@@ -35,6 +26,6 @@ data class QaRetrievalRequest(
 data class QaRetrievalStep(val provider: String, val ms: Long, val hits: Int)
 /** status는 found 또는 insufficient다. excerpts는 AI Q&A 입력 형식, sources는 출처 원본 참조다. */
 internal data class QaRetrievalResponse(
-    val status: String, val sources: List<QaCitation>, val excerpts: List<QaExcerpt>,
+    val status: String, val sources: List<QaSource>, val excerpts: List<QaExcerpt>,
     val gaps: List<QaGap>, val coverage: QaCoverage, val steps: List<QaRetrievalStep>,
 )

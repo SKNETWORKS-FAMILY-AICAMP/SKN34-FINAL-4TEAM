@@ -336,8 +336,9 @@ it('승인 전 집필 후보와 원래 선택 구간을 검수 결과에 표시�
     expect(step.manuscriptReview?.candidate).toEqual(candidate)
     expect(stepText(step)).toContain('승인 전 집필 후보')
     expect(stepText(step)).toContain('기준 초안 판본 4')
-    expect(stepText(step)).toContain('후보 위치 3–6')
-    expect(stepText(step)).not.toContain('후보 위치 3–null')
+    // 미리보기·편집기에 위치 표시가 없어 문자 위치 숫자는 작가가 쓸 수 없다. 구절은 인용으로 알린다.
+    expect(stepText(step)).toContain('선택 구간 수정')
+    expect(stepText(step)).not.toMatch(/위치 \d/)
   })
 
 

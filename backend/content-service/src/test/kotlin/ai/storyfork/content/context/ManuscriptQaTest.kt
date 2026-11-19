@@ -46,7 +46,7 @@ class ManuscriptQaTest {
         prepare(hit, hit.copy(id="foreign", workId="other"), hit.copy(id="wrong-pair", episode=1), hit.copy(id="surrogate", start=1))
         val result = retrieve()
         assertEquals("found", result.status)
-        assertEquals(listOf(QaExcerpt("chunk", 2, "용이 나타났다.", "manuscript", "")), result.excerpts)
+        assertEquals(listOf(QaExcerpt("chunk", 2, "용이 나타났다.")), result.excerpts)
         assertEquals(listOf("embedding" to 1, "elasticsearch" to 4, "postgres_verify" to 1), result.steps.map { it.provider to it.hits })
         assertEquals(listOf(QaEpisodeRef(1, "r1")), result.coverage.withoutVerifiedExcerpt)
         assertTrue(result.gaps.any { it.code == "UNVERIFIED_HIT" })

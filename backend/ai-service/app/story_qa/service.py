@@ -97,14 +97,18 @@ def answer(data: AnswerRequest) -> AnswerResponse:
         with tracing.observe('retrieval', as_type='retriever', metadata={'provider': 'content'},
                              output=tracing.excerpts(data.excerpts)):
             pass
-        result = agent.answer(data)
+        # 모델은 긴 UUID id(card:<uuid> 등)를 옮겨 적다 틀린다(#548). 짧은 별칭 e1·e2…로 보내고 답을 실제 id로 되돌린다.
+        alias = {f'e{n}': excerpt.id for n, excerpt in enumerate(data.excerpts, 1)}
+        result = agent.answer(data.model_copy(update={'excerpts': [
+            excerpt.model_copy(update={'id': short}) for short, excerpt in zip(alias, data.excerpts)]}))
         with tracing.observe('evidence_check', as_type='evaluator') as check:
-            ids = {excerpt.id for excerpt in data.excerpts}
             cited = {i for claim in result.claims for i in claim.sourceIds}
-            check.update(metadata={'citedIds': sorted(cited), 'invalidIds': sorted(cited - ids),
+            check.update(metadata={'citedIds': sorted(alias.get(i, i) for i in cited), 'invalidIds': sorted(cited - alias.keys()),
                                    'claims': len(result.claims), 'gaps': len(result.gaps)})
-            if not all(claim.sourceIds and set(claim.sourceIds) <= ids for claim in result.claims):
+            if not all(claim.sourceIds and set(claim.sourceIds) <= alias.keys() for claim in result.claims):
                 raise StoryQaFailure(502, 'Q&A 답변의 출처를 확인할 수 없습니다.')
+        result = result.model_copy(update={'claims': [
+            claim.model_copy(update={'sourceIds': [alias[i] for i in claim.sourceIds]}) for claim in result.claims]})
         qa.update(output=result.model_dump())
         return result
 
