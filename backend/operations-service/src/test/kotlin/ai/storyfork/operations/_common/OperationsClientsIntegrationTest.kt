@@ -3,10 +3,12 @@ package ai.storyfork.operations._common
 import ai.storyfork.operations._common.client.ContentClient
 import ai.storyfork.operations._common.client.CoreAdminRequest
 import ai.storyfork.operations._common.client.CoreClient
+import ai.storyfork.operations._common.client.MemberStats
 import ai.storyfork.operations._common.client.UpstreamRejection
 import ai.storyfork.operations._common.client.operationsRestClient
 import ai.storyfork.operations.security.OperationsMember
 import ai.storyfork.operations.work.service.dto.OperationsWork
+import java.time.Instant
 import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -230,5 +232,62 @@ class OperationsClientsIntegrationTest {
             assertEquals(expected, status { client.hideComment("ops-comment-1") }, upstream.toString())
             assertEquals(expected, status { client.unhideComment("ops-comment-1") }, upstream.toString())
         }
+    }
+
+    @Test
+    fun `member stats forward the admin bearer with the service token and parse the three counts`() {
+        val (client, server) = core()
+        server.expect(requestTo("http://core.test/internal/v1/members/stats")).andExpect(method(HttpMethod.GET))
+            .andExpect(header("Authorization", bearer)).andExpect(header("X-Operations-Service-Token", token))
+            .andRespond(withSuccess("""{"total":120,"joinedLast7Days":9,"withdrawalPending":2}""", MediaType.APPLICATION_JSON))
+
+        assertEquals(MemberStats(120, 9, 2), client.memberStats(bearer))
+        server.verify()
+    }
+
+    @Test
+    fun `Core member stats map failures to 502 except the preserved 404`() {
+        for ((upstream, expected) in listOf(HttpStatus.NOT_FOUND to 404, HttpStatus.UNAUTHORIZED to 502, HttpStatus.FORBIDDEN to 502, HttpStatus.SERVICE_UNAVAILABLE to 502)) {
+            val (client, server) = core()
+            server.expect(requestTo("http://core.test/internal/v1/members/stats")).andRespond(withStatus(upstream))
+            assertEquals(expected, status { client.memberStats(bearer) }, upstream.toString())
+        }
+    }
+
+    @Test
+    fun `Content operations stats send the window as ISO instants and only the service token`() {
+        val (client, server) = content()
+        server.expect(method(HttpMethod.GET)).andExpect { assertEquals("/internal/v1/operations/stats", it.uri.path) }
+            .andExpect(queryParam("from", "2026-11-12T00:00:00Z")).andExpect(queryParam("to", "2026-11-19T00:00:00Z"))
+            .andExpect(header("X-Operations-Service-Token", token))
+            .andExpect { assertNull(it.headers.getFirst("Authorization")) }
+            .andRespond(withSuccess(
+                """{"pendingFeedbackReports":4,"pendingEditSuggestions":6,"proposalDecisions":{"adopted":30,"total":50},"editSuggestions":{"approved":8,"decided":10}}""",
+                MediaType.APPLICATION_JSON))
+
+        val stats = client.operationsStats(Instant.parse("2026-11-12T00:00:00Z"), Instant.parse("2026-11-19T00:00:00Z"))
+
+        assertEquals(4L, stats.pendingFeedbackReports)
+        assertEquals(30L to 50L, stats.proposalDecisions.adopted to stats.proposalDecisions.total)
+        assertEquals(8L to 10L, stats.editSuggestions.approved to stats.editSuggestions.decided)
+        server.verify()
+    }
+
+    @Test
+    fun `Content leak references are read by work id with a work id that needs encoding and keep 404`() {
+        val (client, server) = content()
+        server.expect(requestTo("http://content.test/internal/v1/works/w%2F1/leak-references")).andExpect(method(HttpMethod.GET))
+            .andExpect(header("X-Operations-Service-Token", token))
+            .andRespond(withSuccess("""{"originWorkId":null,"privateCardTitles":["한서진"],"unpublishedEpisodeTitles":["12화 진실"]}""", MediaType.APPLICATION_JSON))
+        server.expect(requestTo("http://content.test/internal/v1/works/gone/leak-references")).andRespond(withStatus(HttpStatus.NOT_FOUND))
+        server.expect(requestTo("http://content.test/internal/v1/works/broken/leak-references")).andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE))
+
+        val refs = client.leakReferences("w/1")
+        assertNull(refs.originWorkId)
+        assertEquals(listOf("한서진"), refs.privateCardTitles)
+        assertEquals(listOf("12화 진실"), refs.unpublishedEpisodeTitles)
+        assertEquals(404, status { client.leakReferences("gone") })
+        assertEquals(502, status { client.leakReferences("broken") })
+        server.verify()
     }
 }
