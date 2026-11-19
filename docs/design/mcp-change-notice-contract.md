@@ -1,6 +1,9 @@
-# MCP 변경 알림·화면 자동 새로고침 계약 (#553)
+# 남이 바꾼 변경 알림·화면 자동 새로고침 계약 (#553)
 
 [서비스 경계](service-boundaries.md) · [알림 사건 계약](../notification-event-contract.md) · [Content MCP 계약](content-mcp-contract.md)
+
+원칙: **회원 자신이 화면에서 직접 바꾼 것은 알리지 않고, 다른 주체(AI·운영자)가 그 회원의 콘텐츠를 바꾸면 알린다**(2026-11-19 사용자).
+지금 다른 주체의 쓰기 경로는 AI의 Content MCP 쓰기와 운영자 조치(작품 제한·해제, 댓글 숨김·해제) 두 가지다.
 
 AI 에이전트(집필 AI 채팅 밖의 외부 MCP 클라이언트 포함)가 Content MCP로 내용·설정을 바꾸면 그 회원의 알림함에 "AI가 MCP로 수정했어요"가 남고,
 그 대상을 열어 둔 화면은 다시 불러온다. 화면에서 직접 저장한 변경은 알리지 않는다(이미 화면에 반영돼 있다).
@@ -24,6 +27,18 @@ AI 에이전트(집필 AI 채팅 밖의 외부 MCP 클라이언트 포함)가 Co
 - 수신자(`recipientId`)는 MCP 도구를 부른 회원(`callerUuid()`)이다. 이 도구들은 모두 소유자만 성공하므로 곧 그 대상의 작가 본인이다.
 - 회차·플롯·작품 공지·작품에 딸린 설정 변경도 `work` 대상이다. 집필실은 작품 단위로 열리므로 회차 번호는 싣지 않는다.
 - 생성·삭제도 같은 두 종류다(작업 종류 필드를 두지 않는다). 생성은 새 id가 대상이고, 삭제된 대상을 열어 둔 화면은 다시 불러오면서 기존 '없음' 처리를 그대로 보인다.
+
+## 운영자 조치 알림
+
+| type | 알림 분류 | target.type | target.id | 수신자 | 문구(Core) |
+| --- | --- | --- | --- | --- | --- |
+| `content.operator.work-restricted` | `result`(처리 결과, 끌 수 없음) | `work` | 작품 id | 작품 소유자 | 운영자가 작품을 제한했어요 |
+| `content.operator.work-unrestricted` | `result` | `work` | 작품 id | 작품 소유자 | 운영자가 작품 제한을 해제했어요 |
+| `content.operator.comment-hidden` | `result` | `work` | 댓글이 달린 작품 id | 댓글 작성자 | 운영자가 내 댓글을 숨겼어요 |
+| `content.operator.comment-restored` | `result` | `work` | 댓글이 달린 작품 id | 댓글 작성자 | 운영자가 숨긴 내 댓글을 다시 게시했어요 |
+
+- Content 내부 API(`InternalWorkService.restrict`, `InternalCommentService.hide`·`restore`)가 **상태가 실제로 바뀔 때만**(멱등 재요청은 제외) 같은 트랜잭션에서 `content_event_outbox`에 쓴다.
+- 운영자 알림은 묶지 않고(결정 5는 `ai-tool`만) 화면 자동 새로고침도 하지 않는다. 알림을 누르면 기존처럼 `/work/{id}`로 간다.
 
 ## Content: 사건을 남기는 도구
 
