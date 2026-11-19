@@ -1,6 +1,7 @@
 """LangChain Responses API strict 구조화 호출. 단계당 1회, 자동 재시도·fallback 없음."""
 import json
 import os
+from httpx import Timeout
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from openai import APITimeoutError, OpenAIError
@@ -19,7 +20,7 @@ def _call(instructions, data, schema):
     if len(serialized) > 120000:
         raise PreprocessingFailure('MODEL_INPUT_TOO_LARGE', 422)
     try:
-        llm = ChatOpenAI(api_key=key, model=model, max_retries=0, timeout=60,
+        llm = ChatOpenAI(api_key=key, model=model, max_retries=0, timeout=Timeout(60, read=70),
                          use_responses_api=True, store=False, max_tokens=16000)
         result = llm.with_structured_output(schema, method='json_schema', strict=True, include_raw=True).invoke(
             [SystemMessage(content=instructions), HumanMessage(content=serialized)])

@@ -31,9 +31,13 @@ def test_strict_responses_path_no_retries_and_original_is_data(provider):
     result=agent.extract(EpisodeText(number=1,title='원문',body=body))
     assert result.mentions==[]
     assert provider.settings['max_retries']==0 and provider.settings['use_responses_api'] is True
+    assert provider.settings['timeout'].read == 70
+    assert provider.settings['timeout'].connect == 60
     assert provider.settings['store'] is False
     assert provider.schema[1]=={'method':'json_schema','strict':True,'include_raw':True}
     assert provider.messages[0].type=='system' and body not in provider.messages[0].content
+    assert 'knowers: []' in provider.messages[0].content
+    assert 'mention.name' in provider.messages[0].content
     assert provider.messages[1].type=='human' and body in provider.messages[1].content
 
 

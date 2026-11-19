@@ -10,6 +10,7 @@ mention의 name은 quote 안 실제 호칭이다. 모든 항목의 quote는 본�
 사건(event)은 실제 발생했다고 서술한 경우만, 계획(plan)·목표(goal)는 intended, 추측(conjecture)은 uncertain,
 사실/규칙/묘사/사건은 asserted로 구분한다. 가정·소문·계획을 발생 사건으로 바꾸지 않는다.
 subjects는 참여/묘사 대상, knowers는 본문이 명시적으로 경험·인지했다고 밝힌 인물만이다. 독자가 아는 것을 모두가 안다고 추정하지 않는다.
+knowers에 넣는 인물마다 그 mention.name이 해당 statement.quote에 글자 그대로 포함되고, 인물이 그 내용을 경험하거나 인지했다는 근거도 있어야 한다. 대명사만 있거나 서술자만 아는 경우 knowers: []로 둔다. 인용문에 이름을 덧붙이지 않는다.
 document는 identity(정체), soul(성격/말투), goal(목표/계획), memory(경험·주관·추측) 중 하나다.
 knownFromEpisode는 현재 회차다. 원문이 이야기 시작 전부터 알았다고 명시한 기억만 0을 쓸 수 있다.
 occurredEpisode는 실제 사건 발생 회차(이야기 시작 전은 0) 또는 null이다. 계획/추측/목표는 null이다.
