@@ -76,6 +76,15 @@ class PromptServiceTest {
     }
 
     @Test
+    fun `a prompt version whose creation time cannot be read is a 502`() {
+        givenRuns()
+        `when`(langfuse.prompts()).thenReturn(listOf(json("""{"name":"qa/answer","versions":[1]}""")))
+        `when`(langfuse.prompt("qa/answer", 1)).thenReturn(version("qa/answer", 1, "[]", "never"))
+
+        assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.list(operators.llm) }.statusCode)
+    }
+
+    @Test
     fun `the detail is the prompt with exactly that name and an unknown name is not found`() {
         givenRuns()
         `when`(langfuse.prompts("qa")).thenReturn(listOf(json("""{"name":"qa/answer","versions":[1]}"""), json("""{"name":"qa","versions":[1]}""")))

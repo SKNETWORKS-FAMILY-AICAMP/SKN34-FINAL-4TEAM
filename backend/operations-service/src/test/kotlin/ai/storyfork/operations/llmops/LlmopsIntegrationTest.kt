@@ -8,6 +8,7 @@ import ai.storyfork.operations._common.client.EditSuggestionStats
 import ai.storyfork.operations._common.client.LangfuseClient
 import ai.storyfork.operations._common.client.MemberStats
 import ai.storyfork.operations._common.client.ProposalDecisionStats
+import ai.storyfork.operations.alert.repository.OperationAlertRepository
 import ai.storyfork.operations.alert.service.AlertCleanupService
 import ai.storyfork.operations.alert.service.AlertRaiser
 import ai.storyfork.operations.llmops.entity.LeakCheckResultEntity
@@ -34,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.http.HttpStatus
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -65,6 +67,7 @@ class LlmopsIntegrationTest {
     @Autowired private lateinit var raiser: AlertRaiser
     @Autowired private lateinit var cleanup: AlertCleanupService
     @Autowired private lateinit var leakResults: LeakCheckResultRepository
+    @Autowired private lateinit var alertRepository: OperationAlertRepository
     private val client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build()
     private val base = "/api/v1/operations"
 
@@ -172,6 +175,21 @@ class LlmopsIntegrationTest {
         assertNotNull(raised("job_failed", "fourth"), "a resolved alert lets the next breach raise a new one")
         assertEquals(404, send("PUT", "$base/alerts/${UUID.randomUUID()}", adminBearer, """{"status":"resolved"}""").statusCode())
         assertEquals(1L, count("SELECT count(*) FROM operations.admin_activity WHERE action = 'ALERT_ACKNOWLEDGE' AND target_id = ? AND created_at >= ?", first.id.toString(), Timestamp.from(startedAt)))
+    }
+
+    @Test
+    fun `when two admins handle one alert at once the later write is refused and the first decision stays`() {
+        val alert = checkNotNull(raised("job_failed", "race"))
+        val first = alertRepository.findById(alert.id).orElseThrow()
+        val stale = alertRepository.findById(alert.id).orElseThrow()
+        first.status = "acknowledged"
+        alertRepository.saveAndFlush(first)
+        stale.status = "resolved"
+
+        assertThrows(OptimisticLockingFailureException::class.java) { alertRepository.saveAndFlush(stale) }
+
+        assertEquals("acknowledged", jdbc.queryForObject("SELECT status FROM operations.operation_alert WHERE id = ?", String::class.java, alert.id))
+        assertEquals(1L, count("SELECT version FROM operations.operation_alert WHERE id = ?", alert.id))
     }
 
     @Test

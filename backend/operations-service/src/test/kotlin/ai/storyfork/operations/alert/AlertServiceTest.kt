@@ -17,6 +17,8 @@ import java.util.UUID
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
+import org.springframework.dao.OptimisticLockingFailureException
+import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 
@@ -166,6 +168,17 @@ class AlertServiceTest {
         assertStatus(HttpStatus.FORBIDDEN) { service.act(noPermission, alert.id, AlertActRequest("resolved")) }
 
         assertEquals("open", alert.status)
+        verifyNoInteractions(activities)
+    }
+
+    @Test
+    fun `a stale save is refused with the exception the common handler turns into 409 and records no activity`() {
+        val alert = alert()
+        `when`(alerts.findById(alert.id)).thenReturn(Optional.of(alert))
+        doThrow(ObjectOptimisticLockingFailureException(OperationAlertEntity::class.java, alert.id)).`when`(alerts).saveAndFlush(alert)
+
+        assertThrows(OptimisticLockingFailureException::class.java) { service.act(llmAdmin, alert.id, AlertActRequest("resolved")) }
+
         verifyNoInteractions(activities)
     }
 

@@ -4,6 +4,8 @@ import ai.storyfork.operations.llmops.service.toTraceFact
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.springframework.http.HttpStatus
+import org.springframework.web.server.ResponseStatusException
 
 /** Langfuse JSON in, what the screens and checks read out. No network, Spring context or database. */
 class TraceFactTest {
@@ -63,5 +65,21 @@ class TraceFactTest {
         assertEquals("그 사람의 이름은 한서진이야", trace("t", output = "\"그 사람의 이름은 한서진이야\"").toTraceFact().output?.asString())
         assertEquals("답", trace("t", output = """{"answer":"답"}""").toTraceFact().output?.path("answer")?.asString())
         assertNull(trace("t", output = "null").toTraceFact().output)
+    }
+
+    @Test
+    fun `a timestamp that is missing or malformed is a broken Langfuse answer (502) and not a crash`() {
+        for (bad in listOf("\"yesterday\"", "\"2026-11-19 01:00:00\"", "null", "42", "\"\"")) {
+            val failure = assertThrows(ResponseStatusException::class.java) { json("""{"id":"t","timestamp":$bad}""").toTraceFact() }
+            assertEquals(HttpStatus.BAD_GATEWAY, failure.statusCode, bad)
+        }
+        assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { json("""{"id":"t"}""").toTraceFact() }.statusCode)
+    }
+
+    @Test
+    fun `a latency that is not a finite number is unknown and never a crash`() {
+        for (bad in listOf("\"NaN\"", "\"Infinity\"", "\"-Infinity\"", "\"soon\"")) {
+            assertNull(json("""{"id":"t","timestamp":"2026-11-19T01:00:00Z","latency":$bad}""").toTraceFact().latencyMs, bad)
+        }
     }
 }

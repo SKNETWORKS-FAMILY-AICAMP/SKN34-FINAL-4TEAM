@@ -2,6 +2,7 @@ package ai.storyfork.operations.llmops.service
 
 import ai.storyfork.operations._common.client.LangfuseClient
 import ai.storyfork.operations._common.client.ObservationUsage
+import ai.storyfork.operations._common.client.instantOrNull
 import ai.storyfork.operations._common.client.textOrNull
 import ai.storyfork.operations.llmops.service.dto.TraceDetail
 import ai.storyfork.operations.llmops.service.dto.TraceItem
@@ -55,8 +56,8 @@ class TraceService(private val permissions: AdminPermissionRepository, private v
     )
 
     private fun JsonNode.observation(): TraceObservation {
-        val start = path("startTime").textOrNull()?.let(Instant::parse)
-        val end = path("endTime").textOrNull()?.let(Instant::parse)
+        val start = path("startTime").instantOrNull()
+        val end = path("endTime").instantOrNull()
         return TraceObservation(
             path("id").asString(), path("name").textOrNull() ?: "", path("type").textOrNull() ?: "SPAN", start, end,
             if (start != null && end != null) Duration.between(start, end).toMillis() else 0, path("model").textOrNull(),

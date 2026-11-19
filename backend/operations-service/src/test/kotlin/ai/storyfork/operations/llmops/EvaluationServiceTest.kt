@@ -151,6 +151,13 @@ class EvaluationServiceTest {
     }
 
     @Test
+    fun `a run whose time cannot be read is a 502`() {
+        givenRuns(run("run-1", "last Tuesday", started("qa/answer", 3)))
+
+        assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.list(operators.llm, now) }.statusCode)
+    }
+
+    @Test
     fun `the verdict is found by its name whatever its data type and is never a metric`() {
         givenRuns(finished)
         `when`(langfuse.runScores("id-run-1")).thenReturn(listOf(score("faithfulness", 0.9), score("passed", 0.0, "NUMERIC")))

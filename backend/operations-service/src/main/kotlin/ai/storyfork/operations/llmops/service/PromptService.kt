@@ -1,6 +1,7 @@
 package ai.storyfork.operations.llmops.service
 
 import ai.storyfork.operations._common.client.LangfuseClient
+import ai.storyfork.operations._common.client.instantOrNull
 import ai.storyfork.operations._common.client.textOrNull
 import ai.storyfork.operations._common.exception.EvaluationRequiredException
 import ai.storyfork.operations.activity.service.AdminActivityService
@@ -14,7 +15,6 @@ import ai.storyfork.operations.llmops.service.dto.PromptVersion
 import ai.storyfork.operations.member.repository.AdminPermissionRepository
 import ai.storyfork.operations.member.repository.requirePermission
 import ai.storyfork.operations.security.OperationsMember
-import java.time.Instant
 import org.springframework.stereotype.Service
 import tools.jackson.databind.JsonNode
 
@@ -85,7 +85,7 @@ class PromptService(
 
     private fun labels(node: JsonNode) = node.path("labels").values().mapNotNull { it.textOrNull() }
 
-    private fun createdAt(node: JsonNode) = node.path("createdAt").textOrNull()?.let(Instant::parse)
+    private fun createdAt(node: JsonNode) = node.path("createdAt").instantOrNull()
 
     private fun Evaluation.summary() = PromptEvaluation(runId, passed, createdAt)
 }

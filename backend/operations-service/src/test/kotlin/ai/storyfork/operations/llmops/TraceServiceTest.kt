@@ -124,6 +124,15 @@ class TraceServiceTest {
     }
 
     @Test
+    fun `a Langfuse answer that cannot be read is a 502 in the list and in the detail`() {
+        `when`(langfuse.traces(null, null, emptyList(), null, null, 1, 20)).thenReturn(page(1, trace("t-1", "yesterday")))
+        `when`(langfuse.trace("t-2")).thenReturn(json("""{"id":"t-2","timestamp":"2026-11-19T01:00:00Z","observations":[{"id":"o","startTime":"not a time"}]}"""))
+
+        assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.list(operators.llm, null, null, null, null, null, null, 0) }.statusCode)
+        assertEquals(HttpStatus.BAD_GATEWAY, assertThrows(ResponseStatusException::class.java) { service.detail(operators.llm, "t-2") }.statusCode)
+    }
+
+    @Test
     fun `a missing trace stays 404 and a Langfuse failure stays 502`() {
         `when`(langfuse.trace("missing")).thenThrow(ResponseStatusException(HttpStatus.NOT_FOUND))
         `when`(langfuse.trace("broken")).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))

@@ -144,11 +144,11 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 
 ## 대시보드·LLMOps·경고 API
 
-[계약](../../docs/design/operations-llmops-contract.md)(DEC-55)대로 `/api/v1/operations/{dashboard,llmops,alerts}`와 하위 경로는 회원 Bearer 체인에 듭니다(서비스 토큰은 인증 수단이 아닙니다). 서비스가 권한을 입력·Langfuse 호출보다 먼저 확인하고, Langfuse·AI·Core·Content 실패는 502 `UPSTREAM_FAILED`(대시보드만 칸별 `unavailable`), Langfuse의 없는 기록은 404입니다. 목록 응답은 `{ items }`이고 trace 목록만 `{ items, page, size, total }`(쪽은 0부터, 20건 고정)입니다. 지표는 요청마다 Langfuse를 다시 읽습니다(캐시 없음).
+[계약](../../docs/design/operations-llmops-contract.md)(DEC-55)대로 `/api/v1/operations/{dashboard,llmops,alerts}`와 하위 경로는 회원 Bearer 체인에 듭니다(서비스 토큰은 인증 수단이 아닙니다). 서비스가 권한을 입력·Langfuse 호출보다 먼저 확인하고, Langfuse·AI·Core·Content 실패는 502 `UPSTREAM_FAILED`(Langfuse 응답의 시각 형식이 깨진 경우도 같고, 대시보드만 칸별 `unavailable`), Langfuse의 없는 기록은 404입니다. 목록 응답은 `{ items }`이고 trace 목록만 `{ items, page, size, total }`(쪽은 0부터, 20건 고정)입니다. 지표는 요청마다 Langfuse를 다시 읽습니다(캐시 없음).
 
 | 경로 | 권한 | 동작 |
 |---|---|---|
-| `GET /dashboard` | 운영자 누구나 | 회원 수(Core)·오늘(한국 날짜)·7일 AI 요청·실패율·비용(Langfuse)·답변 대기 문의·접수 신고(운영 DB)·작가 검토 대기(Content)·미확인 경고 수. 출처가 실패하면 그 칸만 `null` + `unavailable`(`core`·`langfuse`·`content`)이고 실패를 0으로 바꾸지 않습니다. 작가 검토 대기는 Content 통계에서 오므로 Content가 실패하면 `pending` 칸 전체가 `null`입니다. `jobs` 칸은 작업 감시 조각이 `job_run`을 병합한 뒤 채우므로 지금은 `null` + `unavailable:["jobs"]`입니다 |
+| `GET /dashboard` | 운영자 누구나 | 회원 수(Core)·오늘(한국 날짜)·7일 AI 요청·실패율·비용(Langfuse)·답변 대기 문의·접수 신고(운영 DB)·작가 검토 대기(Content)·미확인 경고 수. 출처가 실패하면(Langfuse 응답을 읽지 못하는 경우 포함) 그 칸만 `null` + `unavailable`(`core`·`langfuse`·`content`)이고 실패를 0으로 바꾸지 않습니다. 작가 검토 대기는 Content 통계에서 오므로 Content가 실패하면 `pending` 칸 전체가 `null`입니다. `jobs` 칸은 작업 감시 조각이 `job_run`을 병합한 뒤 채우므로 지금은 `null` + `unavailable:["jobs"]`입니다 |
 | `GET /llmops/traces?from&to&feature&status&userId&requestId&page`, `GET /llmops/traces/{id}` | `llm` | trace 목록(토큰은 metrics API로 쪽마다 한 번)·상세(단계별 observation·입력·출력). `requestId`는 trace metadata `request_id` 일치 필터로, Langfuse에는 `filter` 매개변수로 보내며 이때 다른 필터도 그 안에 담습니다 |
 | `GET /llmops/metrics?from&to&groupBy=day\|feature\|model` | `llm` | 요청·실패율·시간 초과율·p50/p95 지연·토큰·비용(사용자=metadata `credit_reservation_id`가 있는 trace, 나머지 플랫폼). 채택률·승인률은 Content 통계(분모 0이면 `null`), 필터 복원률은 `null`. 기본은 최근 7일·`day`이고 날짜 키는 한국 날짜 |
 | `GET /llmops/prompts`, `GET /llmops/prompts/{name}` | `llm` | 버전(새것부터)·라벨·생성 시각(Langfuse가 주는 경우만)·최신 평가 |
@@ -158,14 +158,14 @@ Security는 stateless이며 로그인 폼·Basic·로그아웃·request cache·�
 | `GET /llmops/evaluations`, `GET /llmops/evaluations/{runId}`, `POST /llmops/evaluations` | `llm` | Dataset Run 목록·상세, 회귀 평가 실행 요청(AI에 위임, 202 `{runId, dataset, prompt, version, status}`) |
 | `GET /llmops/leak-checks` | `llm` | 정보 누설 표본 검사 결과 최신 100개 |
 | `GET /llmops/settings`, `PUT /llmops/settings` `{leakSampleRate}` | `llm` | 누설 검사 표본 비율(0~1, 기본 0.1) |
-| `GET /alerts?status=open\|acknowledged\|resolved`, `PUT /alerts/{id}` `{status, note}` | `llm` 또는 `jobs` | 경고 목록(최신 100개)·확인(`acknowledged`)·조치 완료(`resolved`). 열림→확인→해결만 되고 해결된 경고나 같은 상태 반복은 409 |
+| `GET /alerts?status=open\|acknowledged\|resolved`, `PUT /alerts/{id}` `{status, note}` | `llm` 또는 `jobs` | 경고 목록(최신 100개)·확인(`acknowledged`)·조치 완료(`resolved`). 열림→확인→해결만 되고 해결된 경고나 같은 상태 반복은 409이며, 두 관리자가 동시에 처리하면 늦은 쪽은 낙관적 락(`version`)으로 409 `CONFLICT`입니다 |
 | `GET /alerts/rules`, `PUT /alerts/rules/{key}` `{threshold, windowMinutes, enabled}` | `llm` | 경고 기준. 비율 기준은 0~1이고, 값 없이 켤 수 있는 것은 `leak_suspected`뿐입니다 |
 
 - **평가 결과 읽기**: AI 서비스가 시작할 때 Langfuse Dataset Run의 metadata(문자열)에 `prompt`·`version`·`dataset`·`tolerance`·`baselineRun`·`baselineVersion`을 쓰고, 끝나면 Run 수준 점수로 지표 평균(NUMERIC, 점수 metadata `baseline`·`delta`·`tolerance`)과 판정 `passed`(BOOLEAN 1.0/0.0)를 씁니다. 운영은 `GET /api/public/v2/scores?datasetRunId=`로 읽어 `passed` 점수가 있으면 `completed`(통과 여부는 값 1.0), 없으면 `running`이고 시작 후 2시간이 지나도 없으면 `failed`로 보입니다. production 승격의 409 판정도 그 버전 최신 Run의 `passed` 점수로 합니다. `prompt`·`version`이 없는 Run은 평가가 아니라 건너뜁니다. `runId`는 Run 이름(AI가 `POST /internal/v1/evaluations`로 돌려주는 `runName`)이고 목록에서 같은 이름으로 나타납니다. 목록은 최신 Run 50개까지만 점수를 읽고(Run마다 Langfuse 점수 조회 한 번), 상세는 목록에서 Run을 찾으므로 Run이 아주 많으면 느려집니다.
 - **정기 실행 로직**: `LlmAlertCheckService.run()`(켜진 AI 경고 규칙을 최근 구간 Langfuse 지표와 비교, 같은 구간은 한 번만 읽음), `LeakSampleCheckService.run(from, to)`(`metadata.fork=true` trace를 표본 비율로 뽑아 Content의 원작 비공개 카드·미발행 회차 제목과 글자 대조하고 걸린 것만 AI 누설 판정, 작품별 Content 호출은 실행당 한 번, 결과 저장, 의심이면 `leak_suspected` 경고), `AlertCleanupService.run()`(90일 지난 해결 경고 삭제)은 서비스 메서드까지만 있고 `@Scheduled` 연결은 작업 감시 조각이 병합된 뒤입니다. `job_failed` 규칙도 `job_run`이 생긴 뒤 연결합니다(지금은 평가하지 않음).
 - **경고와 알림**: 한 규칙의 미해결(열림·확인) 경고는 하나이고 `AlertRaiser`가 만듭니다(부분 UNIQUE가 경합도 막음). 만든 뒤 `llm` 또는 `jobs` 권한 운영자마다 `operations.alert.raised`를 `storyfork.events`로 발행하며([알림 사건 계약](../../docs/notification-event-contract.md), `target` `{type:"alert", id}`) 발행이 실패해도 경고는 남고 로그만 찍습니다(Outbox 없음). 수신자는 `admin_permission` 기준이라 Core 운영자 자격을 잃은 옛 권한 행도 받을 수 있습니다.
 - **관리자 활동 기록**(성공 뒤 `AdminActivityService.record`, DB만 바꾸는 조치는 한 트랜잭션): `PROMPT_CREATE`(`PROMPT`·이름·`v<번호>`)·`PROMPT_PROMOTE`(`PROMPT`·이름·`v<번호>`)·`MODEL_CREATE`(`MODEL`·모델 id·이름)·`EVALUATION_RUN`(`EVALUATION`·Run 이름·`데이터셋 · 프롬프트 v<번호>`)·`ALERT_ACKNOWLEDGE`·`ALERT_RESOLVE`(`ALERT`·경고 id·규칙 키)·`ALERT_RULE_UPDATE`(`ALERT_RULE`·규칙 키·`threshold=… windowMinutes=… enabled=…`)·`LLMOPS_SETTING_UPDATE`(`LLMOPS_SETTING`·`leak_sample_rate`·값).
-- **한계(ponytail)**: trace 집계는 기간 안 최신 1,000건까지, 토큰 합은 metrics API 1,000행까지입니다. 프롬프트 목록은 버전마다 Langfuse를 한 번씩 읽습니다. 누설 대조는 단순 부분 문자열이라 JSON 답변 안에서 이스케이프되는 제목은 놓칩니다. 경고 동시 처리는 마지막 저장이 이깁니다.
+- **한계(ponytail)**: trace 집계는 기간 안 최신 1,000건까지, 토큰 합은 metrics API 1,000행까지입니다. 프롬프트 목록은 버전마다 Langfuse를 한 번씩 읽습니다. 누설 대조는 단순 부분 문자열이라 JSON 답변 안에서 이스케이프되는 제목은 놓칩니다. 경고 기준(규칙)을 동시에 바꾸면 마지막 저장이 이깁니다(경고 처리는 버전으로 늦은 쪽이 409).
 
 ## 저장·동시성
 

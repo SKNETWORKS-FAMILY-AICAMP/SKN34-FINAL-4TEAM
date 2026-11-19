@@ -1,6 +1,7 @@
 package ai.storyfork.operations.llmops.service
 
 import ai.storyfork.operations._common.client.doubleOrNull
+import ai.storyfork.operations._common.client.instant
 import ai.storyfork.operations._common.client.textOrNull
 import java.time.Instant
 import java.time.ZoneId
@@ -22,7 +23,7 @@ internal fun JsonNode.toTraceFact(): TraceFact {
     fun tag(prefix: String) = tags.firstOrNull { it.startsWith(prefix) }?.removePrefix(prefix)
     val metadata = path("metadata")
     return TraceFact(
-        id = path("id").asString(), timestamp = Instant.parse(path("timestamp").asString()),
+        id = path("id").asString(), timestamp = path("timestamp").instant(),
         feature = tag("feature:") ?: "unknown", status = tag("status:") ?: "unknown",
         latencyMs = path("latency").doubleOrNull()?.let { (it * 1000).roundToLong() }, cost = path("totalCost").doubleOrNull() ?: 0.0,
         userId = path("userId").textOrNull(), workId = metadata.path("work_id").textOrNull(),

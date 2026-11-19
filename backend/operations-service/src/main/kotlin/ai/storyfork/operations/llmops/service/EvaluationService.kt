@@ -3,6 +3,7 @@ package ai.storyfork.operations.llmops.service
 import ai.storyfork.operations._common.client.AiClient
 import ai.storyfork.operations._common.client.LangfuseClient
 import ai.storyfork.operations._common.client.doubleOrNull
+import ai.storyfork.operations._common.client.instant
 import ai.storyfork.operations._common.client.textOrNull
 import ai.storyfork.operations.activity.service.AdminActivityService
 import ai.storyfork.operations.llmops.service.dto.Evaluation
@@ -82,7 +83,7 @@ class EvaluationService(
         val metadata = node.path("metadata")
         val prompt = metadata.path("prompt").textOrNull() ?: return@mapNotNull null
         val version = metadata.path("version").doubleOrNull()?.toInt() ?: return@mapNotNull null
-        Run(node.path("id").asString(), node.path("name").asString(), node.path("datasetName").asString(), prompt, version, Instant.parse(node.path("createdAt").asString()))
+        Run(node.path("id").asString(), node.path("name").asString(), node.path("datasetName").asString(), prompt, version, node.path("createdAt").instant())
     }.sortedByDescending { it.createdAt }
 
     private fun evaluation(run: Run, now: Instant): Evaluation {

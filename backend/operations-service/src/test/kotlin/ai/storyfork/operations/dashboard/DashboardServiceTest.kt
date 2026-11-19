@@ -130,6 +130,20 @@ class DashboardServiceTest {
     }
 
     @Test
+    fun `a Langfuse answer that cannot be read blanks only the Langfuse card`() {
+        givenAllSources()
+        `when`(langfuse.allTraces(weekAgo, now)).thenReturn(listOf(trace("old", "2026-11-18 14:59:59", "qa", "failed", 2.0, 0.20)))
+
+        val dashboard = service.get(operator, bearer, now)
+
+        assertNull(dashboard.ai)
+        assertEquals(listOf("langfuse", "jobs"), dashboard.unavailable)
+        assertEquals(MemberStats(100, 5, 1), dashboard.members)
+        assertEquals(7L, dashboard.pending?.authorReviews)
+        assertEquals(3L, dashboard.openAlerts)
+    }
+
+    @Test
     fun `a Core answer with another status is unavailable too and all three failing names all three`() {
         `when`(core.memberStats(bearer)).thenThrow(ResponseStatusException(HttpStatus.NOT_FOUND))
         `when`(langfuse.allTraces(weekAgo, now)).thenThrow(ResponseStatusException(HttpStatus.BAD_GATEWAY))

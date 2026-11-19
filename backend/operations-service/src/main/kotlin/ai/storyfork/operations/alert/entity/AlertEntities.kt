@@ -4,6 +4,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import jakarta.persistence.Version
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -36,7 +37,7 @@ class AlertRuleEntity(
     var updatedAt: Instant = Instant.now().truncatedTo(ChronoUnit.MICROS),
 )
 
-/** ponytail: no @Version, so two admins acting on one alert at once is last-write-wins; add one if that ever matters. */
+/** Versioned: when two admins handle one alert at once, the later save is refused (409) instead of overwriting the other's decision. */
 @Entity
 @Table(name = "operation_alert", schema = "operations")
 class OperationAlertEntity(
@@ -61,4 +62,7 @@ class OperationAlertEntity(
     var actedAt: Instant? = null,
     @field:Column(length = 500)
     var note: String? = null,
+    @field:Version
+    @field:Column(nullable = false)
+    var version: Long? = null,
 )

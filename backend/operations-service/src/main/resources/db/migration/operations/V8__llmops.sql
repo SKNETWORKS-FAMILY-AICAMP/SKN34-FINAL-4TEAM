@@ -31,6 +31,7 @@ CREATE TABLE operations.operation_alert (
     acted_by UUID,
     acted_at TIMESTAMPTZ,
     note VARCHAR(500),
+    version BIGINT NOT NULL DEFAULT 0,
     CONSTRAINT operation_alert_status_valid CHECK (status IN ('open', 'acknowledged', 'resolved')),
     CONSTRAINT fk_operation_alert_rule FOREIGN KEY (rule_key) REFERENCES operations.alert_rule (key) ON DELETE RESTRICT
 );
