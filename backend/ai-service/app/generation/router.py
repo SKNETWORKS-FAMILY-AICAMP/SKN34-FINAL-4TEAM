@@ -4,6 +4,7 @@ import json
 
 from fastapi import APIRouter, Header, HTTPException
 
+from app import tracing
 from app.internal_auth import require_internal_token
 
 from app.generation import agent
@@ -20,6 +21,7 @@ def propose(data: GenerationInput, x_internal_token: str = Header(default='')) -
     if len(json.dumps(data.context, ensure_ascii=False)) > 60000:
         raise HTTPException(422, '문맥 한도 초과')
     try:
-        return agent.generate(data.context, data.prompt)
+        with tracing.request('proposals'):
+            return agent.generate(data.context, data.prompt)
     except ProviderFailure:
         raise HTTPException(503, 'OpenAI 요청 실패 또는 설정 누락') from None

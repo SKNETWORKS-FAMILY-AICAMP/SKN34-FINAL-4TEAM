@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Header, HTTPException
 
+from app import tracing
 from app.internal_auth import require_internal_token
 from app.story_qa import service
 from app.story_qa.errors import StoryQaFailure
@@ -25,6 +26,7 @@ def answer(data: AnswerRequest, x_internal_token: str = Header(default='')) -> A
     """검증된 발췌에 근거한 주장과 답할 수 없는 부분을 반환한다."""
     require_internal_token(x_internal_token)
     try:
-        return service.answer(data)
+        with tracing.request('story_context'):
+            return service.answer(data)
     except StoryQaFailure as error:
         raise HTTPException(error.status, str(error)) from None

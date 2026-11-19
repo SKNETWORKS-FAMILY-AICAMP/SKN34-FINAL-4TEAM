@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Header, HTTPException
 
+from app import tracing
 from app.internal_auth import require_internal_token
 from app.writing import agent
 from app.writing.errors import WritingFailure
@@ -15,7 +16,8 @@ def draft(data: DraftRequest, x_internal_token: str = Header(default='')) -> Dra
     """BeatPlan/콘티와 허용 문맥으로 새 회차 원고 제안을 만든다."""
     require_internal_token(x_internal_token)
     try:
-        return agent.draft(data)
+        with tracing.request('writing_editing'):
+            return agent.draft(data)
     except WritingFailure as error:
         raise HTTPException(error.status, str(error)) from None
 
@@ -25,6 +27,7 @@ def patch(data: PatchRequest, x_internal_token: str = Header(default='')) -> Pat
     """선택 구간 하나를 수정 지시대로 고친 before/after 제안을 만든다."""
     require_internal_token(x_internal_token)
     try:
-        return agent.patch(data)
+        with tracing.request('writing_editing'):
+            return agent.patch(data)
     except WritingFailure as error:
         raise HTTPException(error.status, str(error)) from None

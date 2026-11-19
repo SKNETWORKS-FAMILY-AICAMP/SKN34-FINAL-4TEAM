@@ -512,14 +512,34 @@ async def truncate(thread_id: str, scope: str, index: int) -> None:
                              as_node='finish')
 
 
+def _traced(data: OrchestrationRequest, authorization: str, state: dict):
+    """한 HTTP 요청의 추적(DEC-55). 요청 루트를 이 턴의 trace에 붙인다: 새 턴은 방금 연 trace, 멈춘 턴의 resume은 그 턴의 trace다.
+
+    회원은 Bearer, 세션은 대화 id, 작품·Fork는 반영 대상(resume은 체크포인트에 남은 대상)에서 읽는다.
+    """
+    target = state.get('target') or {}
+    return tracing.request('orchestration', user_id=tracing.member_id(authorization),
+                           session_id=data.conversation.threadId if data.conversation else None,
+                           work_id=target.get('workId'), fork=target.get('fork'),
+                           trace_context=tracing.context(state.get('runId'), state.get('traceParent')))
+
+
+def _outcome(response: OrchestrationResponse) -> str | None:
+    """턴의 상태 태그. 대기(waiting) 중인 턴은 끝나지 않았으므로 태그 없이 두고 같은 턴의 resume이 남긴다."""
+    return None if response.status == 'waiting' else 'failed' if response.status == 'failed' else 'success'
+
+
 async def run(data: OrchestrationRequest, authorization: str = '') -> OrchestrationResponse:
     """한 턴을 판정·실행하거나 멈춘 실행을 이어간다. 판정 실패·대화 오류는 그대로 올린다.
 
-    authorization은 AI를 호출한 사용자의 Bearer이며 이 요청의 Content MCP 반영에만 쓴다.
+    authorization은 AI를 호출한 사용자의 Bearer이며 이 요청의 Content MCP 반영과 추적의 회원 식별에 쓴다.
     """
     content_mcp.AUTHORIZATION.set(authorization)
-    graph, config, payload, _ = await _target(data)
-    return _response(await graph.ainvoke(payload, config))
+    graph, config, payload, state = await _target(data)
+    with _traced(data, authorization, state) as turn:
+        response = _response(await graph.ainvoke(payload, config))
+        turn.status = _outcome(response)
+    return response
 
 
 def _main_events(update: dict) -> list[ServerSentEvent]:
@@ -556,36 +576,39 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
     relayed = False
     try:
         graph, config, payload, state = await _target(data)
-        async for namespace, mode, update in graph.astream(payload, config, stream_mode=['updates', 'custom'], subgraphs=True):
-            if mode == 'custom':
-                if 'started' in update:  # 도구가 입력을 다 받고 실제로 실행하기 직전에 알린 기능
-                    yield ServerSentEvent(event='started', data={'feature': update['started']})
-                else:  # 장면 에이전트가 턴이 끝날 때 낸 그때까지의 결과
-                    relayed = True
-                    yield ServerSentEvent(event='step', data=update)
-                continue
-            if namespace:  # 메인 에이전트의 판정·도구 결과만 알리고 장면 에이전트 안쪽 노드의 갱신은 알리지 않는다
-                if len(namespace) == 1 and namespace[0].startswith('main_agent'):
-                    for event in _main_events(update):
-                        yield event
-                continue
-            for node, change in update.items():
-                if node == '__interrupt__':
-                    state['__interrupt__'] = change
-                    waiting = change[0].value
-                    if waiting.get('awaitingScene') and not relayed:  # 턴 이벤트 없이 멈췄다(edit): 고친 장면을 알린다
-                        yield ServerSentEvent(event='step', data=next(s for s in waiting['steps'] if s['feature'] == waiting['awaitingScene']))
-                    yield ServerSentEvent(event='waiting', data=waiting)
+        with _traced(data, authorization, state) as turn:
+            async for namespace, mode, update in graph.astream(payload, config, stream_mode=['updates', 'custom'], subgraphs=True):
+                if mode == 'custom':
+                    if 'started' in update:  # 도구가 입력을 다 받고 실제로 실행하기 직전에 알린 기능
+                        yield ServerSentEvent(event='started', data={'feature': update['started']})
+                    else:  # 장면 에이전트가 턴이 끝날 때 낸 그때까지의 결과
+                        relayed = True
+                        yield ServerSentEvent(event='step', data=update)
                     continue
-                before = state.get('steps', [])
-                state.update(change)
-                if node == 'scene':
-                    yield ServerSentEvent(event='step', data=next(s for s in state['steps'] if s['feature'] == 'character_simulation'))
-                elif node == 'apply' and (answered := next((s for s, old in zip(state['steps'], before)
-                                                            if 'approval' in s and 'approval' not in old), None)):  # 방금 작가의 답을 받은 단계
-                    yield ServerSentEvent(event='step', data=answered)
-                if node in ('main_agent', 'scene', 'apply') and _next(state) == 'scene':
-                    yield ServerSentEvent(event='started', data={'feature': 'character_simulation'})
+                if namespace:  # 메인 에이전트의 판정·도구 결과만 알리고 장면 에이전트 안쪽 노드의 갱신은 알리지 않는다
+                    if len(namespace) == 1 and namespace[0].startswith('main_agent'):
+                        for event in _main_events(update):
+                            yield event
+                    continue
+                for node, change in update.items():
+                    if node == '__interrupt__':
+                        state['__interrupt__'] = change
+                        waiting = change[0].value
+                        if waiting.get('awaitingScene') and not relayed:  # 턴 이벤트 없이 멈췄다(edit): 고친 장면을 알린다
+                            yield ServerSentEvent(event='step', data=next(s for s in waiting['steps'] if s['feature'] == waiting['awaitingScene']))
+                        yield ServerSentEvent(event='waiting', data=waiting)
+                        continue
+                    before = state.get('steps', [])
+                    state.update(change)
+                    if node == 'scene':
+                        yield ServerSentEvent(event='step', data=next(s for s in state['steps'] if s['feature'] == 'character_simulation'))
+                    elif node == 'apply' and (answered := next((s for s, old in zip(state['steps'], before)
+                                                                if 'approval' in s and 'approval' not in old), None)):  # 방금 작가의 답을 받은 단계
+                        yield ServerSentEvent(event='step', data=answered)
+                    if node in ('main_agent', 'scene', 'apply') and _next(state) == 'scene':
+                        yield ServerSentEvent(event='started', data={'feature': 'character_simulation'})
+            response = _response(state)
+            turn.status = _outcome(response)
     except SceneRejected as error:
         yield ServerSentEvent(event='error', data={'message': str(error)})
         return
@@ -595,4 +618,4 @@ async def stream(data: OrchestrationRequest, authorization: str = '') -> AsyncIt
     except Exception:  # 체크포인트 DB 장애·버그도 연결만 끊기지 않게 알린다. 메시지에 입력이 섞일 수 있어 고정 문구만 보낸다.
         yield ServerSentEvent(event='error', data={'message': STREAM_FAILED_MESSAGE})
         return
-    yield ServerSentEvent(event='done', data=_response(state).model_dump(mode='json'))
+    yield ServerSentEvent(event='done', data=response.model_dump(mode='json'))

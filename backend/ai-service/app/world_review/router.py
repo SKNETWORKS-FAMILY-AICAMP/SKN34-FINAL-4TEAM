@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Header, HTTPException
 
+from app import tracing
 from app.internal_auth import require_internal_token
 from app.world_review import service
 from app.world_review.errors import WorldReviewFailure
@@ -15,6 +16,7 @@ def review(data: WorldReviewRequest, x_internal_token: str = Header(default=''))
     """Content가 보낸 설정집 스냅샷에서 설정 모순·인물 문서 역할 오류·사건 정보 누락을 찾아 카드 id가 붙은 지적과 수정안을 반환한다."""
     require_internal_token(x_internal_token)
     try:
-        return service.review(data)
+        with tracing.request('world_review'):
+            return service.review(data)
     except WorldReviewFailure as error:
         raise HTTPException(error.status, str(error)) from None
