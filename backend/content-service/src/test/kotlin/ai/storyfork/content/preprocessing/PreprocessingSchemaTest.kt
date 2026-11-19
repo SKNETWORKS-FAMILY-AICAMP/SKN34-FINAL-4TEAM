@@ -8,9 +8,9 @@ import jakarta.persistence.Column
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
-/** 전처리 작업 테이블 계약(V40)이다. 엔티티와 칼럼이 어긋나면 ddl-auto=validate 때문에 CI 통합 테스트 전체가 깨지므로 DB 없이 이름을 대조한다. */
+/** 전처리 작업 테이블 계약(V41)이다. 엔티티와 칼럼이 어긋나면 ddl-auto=validate 때문에 CI 통합 테스트 전체가 깨지므로 DB 없이 이름을 대조한다. */
 class PreprocessingSchemaTest {
-    private val sql = Files.readString(Path.of("src/main/resources/db/migration/preprocessing/V40__manuscript_preprocessing_job.sql"))
+    private val sql = Files.readString(Path.of("src/main/resources/db/migration/preprocessing/V41__manuscript_preprocessing_job.sql"))
 
     @Test fun `the job table keeps the contract fields with a status check and one open or completed job per work`() {
         assertTrue(sql.contains("CREATE TABLE preprocessing_job ("))

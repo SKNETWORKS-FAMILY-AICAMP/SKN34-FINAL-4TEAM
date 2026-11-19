@@ -28,7 +28,7 @@ class ContentPersistenceConfig {
             "classpath:db/migration/publication", "classpath:db/migration/fork",
             "classpath:db/migration/proposal",
             "classpath:db/migration/plan",
-            // 회차 원고 전처리 작업 기록(#343, DEC-50). 같은 전역 버전 순서를 쓴다(V40).
+            // 회차 원고 전처리 작업 기록(#343, DEC-50). 같은 전역 버전 순서를 쓴다(V41).
             "classpath:db/migration/preprocessing",
             // Development sample rows (generated from infrastructure/sample-data CSV), same global version order.
             "classpath:db/migration/sample",

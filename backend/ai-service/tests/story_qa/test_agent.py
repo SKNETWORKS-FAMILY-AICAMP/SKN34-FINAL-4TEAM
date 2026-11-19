@@ -25,7 +25,7 @@ def test_answer_uses_structured_outputs_and_only_provided_passages(monkeypatch):
     assert seen['init']['store'] is False and seen['response_format']['json_schema']['name'] == 'AnswerResponse'
     assert json.loads(human.content)['excerpts'][0] == {'id': 'source', 'episode': 1, 'quote': '원문 한 줄',
                                                        'kind': 'relationship', 'title': '리안 → 카엘'}
-    assert '현재 관계' in system.content
+    assert '기준 회차) 시점의 세계관' in system.content
 
 
 def test_incomplete_model_response_is_502(monkeypatch):
