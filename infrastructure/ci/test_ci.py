@@ -459,6 +459,8 @@ class ComposeSplitTest(unittest.TestCase):
         for line in ('AUTH_CUSTOM_CLIENT_ID: ${AUTH_OIDC_LANGFUSE_CLIENT_ID:-}',
                      'AUTH_CUSTOM_CLIENT_SECRET: ${AUTH_OIDC_LANGFUSE_CLIENT_SECRET:-}',
                      'AUTH_CUSTOM_ISSUER: ${AUTH_OIDC_ISSUER:-}', 'AUTH_CUSTOM_NAME: STORYFORK',
+                     # next-auth 기본 checks는 state뿐이라 계약의 인가 코드 + PKCE 흐름은 명시해야 한다.
+                     'AUTH_CUSTOM_CHECKS: pkce,state',
                      'AUTH_DISABLE_USERNAME_PASSWORD: ${LANGFUSE_AUTH_DISABLE_USERNAME_PASSWORD:-false}',
                      'AUTH_DISABLE_SIGNUP: ${LANGFUSE_AUTH_DISABLE_SIGNUP:-true}',
                      'LANGFUSE_DEFAULT_ORG_ROLE: VIEWER', 'LANGFUSE_DEFAULT_PROJECT_ROLE: VIEWER'):

@@ -220,7 +220,7 @@ docker logs storyfork-develop-cd-content-service-1 2>&1 | grep 'manuscript index
 | `LANGFUSE_AUTH_DISABLE_USERNAME_PASSWORD=true`·`LANGFUSE_AUTH_DISABLE_SIGNUP=false` | SSO 전용으로 둡니다. 서버마다 직접 정하며 빈 값이면 로컬 기본(비밀번호 로그인·가입 차단)입니다. 가입 차단이 켜져 있으면 SSO 첫 로그인이 "Sign up is disabled."로 막힙니다 |
 | (선택) `AUTH_OIDC_LANGFUSE_REDIRECT_URI`·`AUTH_OIDC_LOGIN_URL` | 콜백은 비우면 `LANGFUSE_UI_URL` + `/api/auth/callback/custom`. 로그인 주소는 로그아웃 상태의 회원을 보내는 프런트 `/login` |
 
-로그인은 Core가 OIDC 제공자입니다. Langfuse에서 로그인하면 Core `/api/v1/auth/oidc/authorize`를 거쳐 돌아오며(`/api/v1/auth/oidc/**`는 기존 `/api` → Core 규칙에 들어갑니다), Core `operator=true` 회원만 발급받습니다. 처음 들어온 운영자는 Langfuse 계정이 만들어지고 기본 조직·프로젝트의 `VIEWER`가 됩니다(`LANGFUSE_DEFAULT_*`, 조직 역할이 모든 프로젝트에 적용됩니다). Langfuse **컨테이너가 `AUTH_OIDC_ISSUER` 주소에 서버 측에서 접속**(discovery·토큰·JWKS)할 수 있어야 합니다. 서버 안에서 공개 주소가 풀리지 않으면 호스트 DNS나 hairpin 설정이 필요하며 이 파일이 만들어 주지 않습니다.
+로그인은 Core가 OIDC 제공자입니다. Langfuse에서 로그인하면 인가 코드 + PKCE(`AUTH_CUSTOM_CHECKS=pkce,state`, next-auth 기본은 state뿐이라 명시)로 Core `/api/v1/auth/oidc/authorize`를 거쳐 돌아오며(`/api/v1/auth/oidc/**`는 기존 `/api` → Core 규칙에 들어갑니다), Core `operator=true` 회원만 발급받습니다. 처음 들어온 운영자는 Langfuse 계정이 만들어지고 기본 조직·프로젝트의 `VIEWER`가 됩니다(`LANGFUSE_DEFAULT_*`, 조직 역할이 모든 프로젝트에 적용됩니다). Langfuse **컨테이너가 `AUTH_OIDC_ISSUER` 주소에 서버 측에서 접속**(discovery·토큰·JWKS)할 수 있어야 합니다. 서버 안에서 공개 주소가 풀리지 않으면 호스트 DNS나 hairpin 설정이 필요하며 이 파일이 만들어 주지 않습니다.
 
 배포 전제는 CD가 확인하지 않습니다. 서버 관리자가 확인합니다(아래 'CI → CD' 전제조건 표에도 있습니다).
 
