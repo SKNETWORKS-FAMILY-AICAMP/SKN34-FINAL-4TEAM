@@ -220,13 +220,13 @@ POST /internal/v1/ratings {workId, episodes[1..10]}
 
 ## 8. World Agent (`check`·`enrich`)
 
-2026-11-19 사용자 결정으로 World Review를 World로 바꾸고 `check`·`enrich`·`impact`(6절) 세 작업을 둔다. `check`는 아래 설정집 검토이며 사건 카드끼리의 시간 모순(연대기) 지적을 더한다(#546). `enrich`(미구현)는 지정한 기존 카드의 본문·인물 문서를 세계관과 어긋나지 않게 보강한 제안을 만들고, 작가가 승인하면 Content MCP `world_studio_edit_draft`로 초안에만 반영한다(확정 버전은 작가가 남긴다). 새 카드 생성은 이번 범위가 아니다(#546).
+2026-11-19 사용자 결정으로 World Review를 World로 바꾸고 `check`·`enrich`·`impact`(6절) 세 작업을 둔다. `check`는 아래 설정집 검토이며 사건 카드끼리의 시간 모순(연대기) 지적을 더한다(#546). `enrich`는 지정한 기존 카드의 본문·인물 문서를 세계관과 어긋나지 않게 보강한 제안을 만들고, 작가가 승인하면 Content MCP `world_studio_edit_draft`로 초안에만 반영한다(확정 버전은 작가가 남긴다). 새 카드 생성은 이번 범위가 아니다(#546).
 
 설정집 검토. 원고가 아니라 세계관(설정집) 자체에 오류가 없는지 본다. 대상은 규칙·사건·인물 설정끼리의 모순, 인물 문서(DEC-47)의 역할 오류(SOUL=말투·사고, GOAL=목표, 회차 문서=그 회차의 경험·비밀), 사건 카드의 회차·참여 인물 같은 정보 누락이다. Manuscript Review(회차 원고를 설정에 비춰 봄)와 다른 기능이다. 상세 계약은 [설정집 검토 계약](../design/world-review-contract.md)이 정본이다(2026-11-16 사용자 결정, #394).
 
 - **진입:** 두 경로가 있다.
   - WorldStudio 관리 화면의 `AI 검토`: Content `POST /api/v1/world-studios/{worldId}/reviews` → AI `POST /internal/v1/world-reviews`. 소설 연결이 필요 없다.
-  - 집필 채팅: 메인 에이전트의 `ask_world_review`(`world_review.linked_request`가 `target` 작품에 연결된 세계관을 작가 권한 Content MCP로 읽음). 조회형이라 다른 조회형과 병렬로 부를 수 있다(#474).
+  - 집필 채팅: 메인 에이전트의 `ask_world(task)`(`world_review.linked_request`가 `target` 작품에 연결된 세계관을 작가 권한 Content MCP로 읽음). `check`·`impact`는 조회형이라 다른 조회형과 병렬로 부를 수 있고(#474), `enrich`는 승인 대기(`awaitingApproval: world`)가 있어 단독이다. 기능당 1회 한도 그대로라 한 턴에 `ask_world`는 하나의 작업만 실행한다.
 - **입력·출력:** 저장된 현재 초안의 카드(최대 300장·카드당 4,000자)와 관계를 받는다. 지적은 카드 1~3개·종류(`contradiction`·`doc_role`·`missing_info`·`other`)·300자 이하 메시지와 선택 수정안(카드 한 칸의 바꾼 뒤 전체 글)이다. 서비스가 카드 id와 길이를 검증하고, 어긋나면 고치지 않고 502다.
 - **경계:** 결과는 저장하지 않는 제안이다. 작가가 관리 화면에서 `초안에 반영`을 눌러야 편집 초안에 들어가고, 기존 `세계관 저장`으로 반영된다(DEC-36). 집필 채팅은 지적·수정안을 글로만 보이고 반영 승인(`apply`)을 묻지 않는다. Retrieval·Simulation은 부르지 않는다. 모델 호출은 `agent_runtime.run` 1회(`gpt-6-luna`)다.
 - **한계:** 관계는 최신 시점만 보고 회차별 기록(DEC-51)은 쓰지 않는다. 긴 세계관의 분할 검토와 채팅 승인 카드는 후속이다.

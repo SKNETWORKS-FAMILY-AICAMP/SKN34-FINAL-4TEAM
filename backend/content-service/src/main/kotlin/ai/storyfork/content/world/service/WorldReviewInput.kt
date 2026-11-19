@@ -7,6 +7,8 @@ import ai.storyfork.content.world.client.dto.WorldReviewAiRequest
 import ai.storyfork.content.world.domain.stripCardLinks
 import ai.storyfork.content.world.service.dto.CardPayload
 import ai.storyfork.content.world.service.dto.WorldDraftResponse
+import ai.storyfork.content.world.service.dto.WorldReviewBasis
+import ai.storyfork.content.world.service.dto.WorldReviewFinding
 
 /**
  * 저장된 현재 초안(활성 카드와 최신 관계)에서 AI 검토 요청을 만든다(docs/design/world-review-contract.md).
@@ -30,19 +32,30 @@ object WorldReviewInput {
         return WorldReviewAiRequest(draft.name, draft.description, cards, relationships)
     }
 
+    /**
+     * 수정안이 가리킨 카드마다 검토에 쓴 초안의 그 카드 글이다. 링크를 벗기기 전 원문이라 화면이 '검토 뒤 바뀐 칸'을 새로 고침 뒤에도 같은 기준으로 가린다.
+     * 같은 카드의 수정안이 여럿이어도 한 번이고, 수정안이 없는 카드는 싣지 않는다.
+     */
+    fun basis(draft: WorldDraftResponse, findings: List<WorldReviewFinding>): Map<String, WorldReviewBasis> {
+        val fixed = findings.mapNotNull { it.fix?.cardId }.toSet()
+        return draft.cards.filter { it.id.toString() in fixed }.associate { card ->
+            card.id.toString() to WorldReviewBasis(card.body, if (card.cardType == "character") characterDocs(card.semanticMetadata) { it } else null)
+        }
+    }
+
     private fun aiCard(card: CardPayload) = WorldReviewAiCard(card.id.toString(), card.cardType, card.areaCode, card.title, stripCardLinks(card.body),
-        if (card.cardType == "character") characterDocs(card.semanticMetadata) else null)
+        if (card.cardType == "character") characterDocs(card.semanticMetadata, ::stripCardLinks) else null)
 
     /**
-     * 카드 `semanticMetadata.characterDocs`(DEC-47)에서 SOUL·GOAL·회차 기억만 읽는다. 옛 `memory`는 보내지 않고(AI가 받으면 00회차 앞에 잇는 규칙으로 읽는다),
-     * goal이 없으면 빈 글이다. 모양이 어긋나면 화면의 읽기 규칙처럼 문서 전체를 빼고 카드는 그대로 보낸다.
+     * 카드 `semanticMetadata.characterDocs`(DEC-47)에서 SOUL·GOAL·회차 기억만 읽고 글마다 [transform]을 거친다(AI 요청은 링크를 벗기고 basis는 원문 그대로).
+     * 옛 `memory`는 보내지 않고(AI가 받으면 00회차 앞에 잇는 규칙으로 읽는다), goal이 없으면 빈 글이다. 모양이 어긋나면 화면의 읽기 규칙처럼 문서 전체를 뺀다.
      */
-    private fun characterDocs(metadata: Map<String, Any?>): WorldReviewAiCharacterDocs? {
+    private fun characterDocs(metadata: Map<String, Any?>, transform: (String) -> String): WorldReviewAiCharacterDocs? {
         val docs = metadata["characterDocs"] as? Map<*, *> ?: return null
         val soul = docs["soul"] as? String ?: return null
         val goal = docs["goal"] ?: ""
         val episodes = docs["episodes"] as? Map<*, *> ?: return null
         if (goal !is String || episodes.any { (key, text) -> key !is String || !EPISODE_KEY.matches(key) || text !is String }) return null
-        return WorldReviewAiCharacterDocs(stripCardLinks(soul), stripCardLinks(goal), episodes.entries.associate { (key, text) -> key as String to stripCardLinks(text as String) })
+        return WorldReviewAiCharacterDocs(transform(soul), transform(goal), episodes.entries.associate { (key, doc) -> key as String to transform(doc as String) })
     }
 }

@@ -35,7 +35,7 @@ class WorldReviewHttpIntegrationTest {
         @Bean @Primary fun reviewTestAiClient():InitialWorldExtractionClient=mock(InitialWorldExtractionClient::class.java)
     }
 
-    @Test fun `the owner reviews the saved draft through the AI double and nothing is written or cached`() {
+    @Test fun `the owner reviews the saved draft through the AI double and the last result is stored, read back and never cached`() {
         WorldStudioPostgresFixture("coexist").use { db ->
             db.studio().migrate()
             SpringApplicationBuilder(ContentServiceApplication::class.java,Doubles::class.java).run(
@@ -56,6 +56,7 @@ class WorldReviewHttpIntegrationTest {
                     return client.send(request.build(),HttpResponse.BodyHandlers.ofString())
                 }
                 fun review(world:UUID,actor:UUID?=owner,body:Any?=WorldReviewRequest(true),csrf:Boolean=true)=send("/$world/reviews",actor,"POST",body,csrf)
+                fun latest(world:UUID,actor:UUID?=owner)=send("/$world/reviews/latest",actor)
                 val placeholder=WorldReviewAiRequest("","",emptyList(),emptyList())
                 fun aiAnswers(json:String)=doReturn(json).`when`(ai).review(any(WorldReviewAiRequest::class.java) ?: placeholder)
                 fun aiFails(failure:InitialWorldCallFailure)=doThrow(failure).`when`(ai).review(any(WorldReviewAiRequest::class.java) ?: placeholder)
@@ -74,6 +75,10 @@ class WorldReviewHttpIntegrationTest {
                 assertEquals(200,send("/${create.id}/draft",method="PUT",
                     body=EditWorldDraftRequest(0,create.name,"세계관 설명",listOf(hero,rival,rule,bloated),listOf(relation),"review-edit",true)).statusCode())
 
+                // 검토 전에는 마지막 결과가 없다.
+                val notYet=latest(create.id)
+                assertEquals(404,notYet.statusCode());assertEquals("WORLD_REVIEW_NOT_FOUND",mapper.readTree(notYet.body()).path("code").asString())
+
                 aiAnswers(mapper.writeValueAsString(mapOf("findings" to listOf(mapOf(
                     "cardIds" to listOf(hero.id.toString(),rival.id.toString()),"kind" to "contradiction","message" to "영웅과 라이벌의 설정이 어긋나요.",
                     "fix" to mapOf("cardId" to hero.id.toString(),"target" to "goal","episode" to null,"text" to "새 목표"))),
@@ -89,6 +94,20 @@ class WorldReviewHttpIntegrationTest {
                 assertEquals(listOf(hero.id.toString(),rival.id.toString()),finding.path("cardIds").values().map { it.asString() })
                 assertEquals("goal",finding.path("fix").path("target").asString());assertEquals("새 목표",finding.path("fix").path("text").asString())
                 assertFalse(finding.path("fix").has("episode"))
+                // 응답에는 검토 시각과, 수정안이 가리킨 카드(영웅)의 검토 시점 글(basis)이 있다. 옛 memory는 없다.
+                val reviewedAt=java.time.Instant.parse(body.path("reviewedAt").asString())
+                val basis=body.path("basis")
+                assertEquals(1,basis.size());assertFalse(basis.has(rival.id.toString()))
+                assertEquals("영웅 본문",basis.path(hero.id.toString()).path("body").asString())
+                val docs=basis.path(hero.id.toString()).path("characterDocs")
+                assertEquals("느긋한 말투",docs.path("soul").asString());assertEquals("복수",docs.path("goal").asString())
+                assertEquals("비밀",docs.path("episodes").path("0").asString());assertFalse(docs.has("memory"))
+
+                // 마지막 검토를 다시 읽으면 방금 응답과 같은 모양·값이고 캐시하지 않는다(저장은 DB).
+                val stored=latest(create.id)
+                assertEquals(200,stored.statusCode(),stored.body())
+                assertTrue(stored.headers().firstValue("Cache-Control").orElse("").contains("no-store"))
+                assertEquals(body,mapper.readTree(stored.body()))
 
                 // AI로 간 요청: 활성 카드 중 한도 안의 셋뿐, 인물 문서는 soul·goal·episodes만(옛 memory 없음), 관계는 양 끝을 보낸 것만.
                 val sent=mockingDetails(ai).invocations.last().arguments[0] as WorldReviewAiRequest
@@ -108,6 +127,10 @@ class WorldReviewHttpIntegrationTest {
                     assertEquals(404,unreadable.statusCode());assertEquals("WORLD_NOT_FOUND",mapper.readTree(unreadable.body()).path("code").asString())
                 }
                 assertEquals(401,review(create.id,null).statusCode())
+                for(unreadable in listOf(latest(create.id,other),latest(UUID.randomUUID()))) {
+                    assertEquals(404,unreadable.statusCode());assertEquals("WORLD_NOT_FOUND",mapper.readTree(unreadable.body()).path("code").asString())
+                }
+                assertEquals(401,latest(create.id,null).statusCode())
                 assertEquals(403,review(create.id,csrf=false).statusCode())
                 assertEquals(calls,aiCalls())
 
@@ -122,6 +145,18 @@ class WorldReviewHttpIntegrationTest {
                 aiAnswers("""{"findings":[{"cardIds":["${UUID.randomUUID()}"],"kind":"other","message":"모르는 카드"}],"model":"m"}""")
                 val invalid=review(create.id)
                 assertEquals(502,invalid.statusCode());assertEquals("AI_OUTPUT_INVALID",mapper.readTree(invalid.body()).path("code").asString())
+                // 실패한 검토(시간 초과·미설정·미확인·출력 오류)는 이전 결과를 그대로 둔다.
+                assertEquals(body,mapper.readTree(latest(create.id).body()))
+
+                // 성공한 검토는 같은 행을 덮어쓴다: 지적이 없는 새 결과가 마지막이고 행은 하나뿐이다.
+                aiAnswers("""{"findings":[],"reviewedCards":3,"model":"gpt-6-luna-2"}""")
+                val again=mapper.readTree(review(create.id).body())
+                val latestAgain=mapper.readTree(latest(create.id).body())
+                assertEquals(again,latestAgain)
+                assertEquals("gpt-6-luna-2",latestAgain.path("model").asString())
+                assertEquals(0,latestAgain.path("findings").size());assertEquals(0,latestAgain.path("basis").size())
+                assertFalse(java.time.Instant.parse(latestAgain.path("reviewedAt").asString()).isBefore(reviewedAt))
+                db.connect().use { c -> assertEquals(listOf("1"),WorldStudioPostgresFixture.rows(c,"SELECT count(*) FROM worldstudio.world_review_result WHERE world_id='${create.id}'")) }
 
                 // 카드가 없는 세계관은 AI를 부르지 않고 빈 검토다.
                 val empty=CreateWorldRequest("빈 세계관")
@@ -131,8 +166,13 @@ class WorldReviewHttpIntegrationTest {
                 assertEquals(0,none.path("reviewedCards").asInt());assertEquals(0,none.path("totalCards").asInt())
                 assertEquals(0,none.path("findings").size());assertEquals("",none.path("model").asString())
                 assertEquals(before,aiCalls())
+                // 빈 검토도 마지막 결과로 저장되고, 지운 세계관은 마지막 검토도 없는 것이다(소유자 조회와 같은 소프트 삭제 규칙).
+                assertEquals(none,mapper.readTree(latest(empty.id).body()))
+                assertEquals(204,send("/${empty.id}",method="DELETE").statusCode())
+                val gone=latest(empty.id)
+                assertEquals(404,gone.statusCode());assertEquals("WORLD_NOT_FOUND",mapper.readTree(gone.body()).path("code").asString())
 
-                // 검토는 아무것도 저장하지 않는다: 초안 revision은 편집 한 번 뒤 그대로다.
+                // 검토는 초안을 건드리지 않는다: 초안 revision은 편집 한 번 뒤 그대로다.
                 assertEquals(1,mapper.readTree(send("/${create.id}").body()).path("draftRevision").asInt())
             }
         }

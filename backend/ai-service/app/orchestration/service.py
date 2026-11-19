@@ -1,7 +1,7 @@
 """집필 AI 오케스트레이션(#473): 메인 에이전트 하나가 요청을 해석해 서브 에이전트를 부르고 답을 종합하며, 바깥 LangGraph는 승인·장면·종료와 체크포인트만 맡는다.
 
 바깥 그래프는 main_agent → (scene ⇄ apply) → finish다. main_agent 노드가 메인 에이전트(app/orchestration/agent.py, create_agent)를 실행한다.
-메인 에이전트는 턴당 1회 Decision Guard로 범위·기능을 판정받고(거절·기능 없음·미구현이면 아무것도 실행하지 않는다), 판정된 기능의
+메인 에이전트는 턴당 1회 Decision Guard로 범위·기능을 판정받고(거절·기능 없음이면 아무것도 실행하지 않는다), 판정된 기능의
 ask_* 도구(app/orchestration/tools.py)만 순서대로 불러 원본 결과를 단계로 남긴 뒤 하나의 답변(message)을 쓴다. 상태는 체크포인트에
 그대로 저장할 수 있도록 JSON 값만 담는다.
 
@@ -13,8 +13,8 @@ HITL: 대화 안에서 작가 입력이 빠지면 그 도구가 interrupt로 멈
 판정·앞선 도구를 다시 실행하지 않고 멈춘 도구 호출만 이어 실행한다(메인 에이전트는 바깥 체크포인터를 이어받는다). 체크포인트는
 AsyncPostgresSaver가 PostgreSQL에 보관한다.
 
-Content MCP(DEC-49): 대화 안에서 Content가 반영 대상(target)을 보내면 Writing 결과와 시뮬레이션 장면 뒤 apply 노드가
-interrupt로 작가 승인을 기다린다. 승인 resume이면 그 요청의 사용자 Bearer로 Content MCP에 초안 반영을 요청하고, 거절이면
+Content MCP(DEC-49): 대화 안에서 Content가 반영 대상(target)을 보내면 Writing 결과와 시뮬레이션 장면, World 보강 제안(enrich) 뒤 apply 노드가
+interrupt로 작가 승인을 기다린다. 승인 resume이면 그 요청의 사용자 Bearer로 Content MCP에 초안(회차 초안, World는 세계관 초안) 반영을 요청하고, 거절이면
 쓰지 않는다. 토큰은 요청마다 컨텍스트로만 넘겨 체크포인트에 남기지 않는다. 메인 에이전트에는 반영 도구가 없다.
 
 인물 시뮬레이션(#58·#362): ask_character_simulation 도구가 요청 문장(또는 [시뮬레이션] 버튼의 시작 양식)과 연결 세계관으로 계획을 정하고,
@@ -55,19 +55,19 @@ from app.intent.errors import IntentFailure
 from app.intent.prompt import CLARIFY_MESSAGE, REJECT_MESSAGES
 from app.orchestration import agent
 from app.orchestration.models import ChatHistory, ChatSession, ChatTurn, OrchestrationRequest, OrchestrationResponse, Resume
-from app.orchestration.tools import (HISTORY_TURNS, UNSUPPORTED_MESSAGE, history as _history, previous as _previous, task as _task,
-                                     trace as _trace)
+from app.orchestration.tools import HISTORY_TURNS, history as _history, previous as _previous, task as _task, trace as _trace
 from app.simulation import service as simulation
 from app.simulation.models import Scene, SimulationPlan
 from app.simulation.scene_agent import scene_agent, turn as simulation_turn
 from app.simulation.service import SceneContext
 
 LIMIT_MESSAGE = '시뮬레이션이 호출 한도를 넘어 멈췄어요.'
-APPROVABLE = ('writing_editing', 'character_simulation')  # 결과를 작가가 승인하면 초안에 반영하는 단계
+APPROVABLE = ('writing_editing', 'character_simulation', 'world')  # 결과를 작가가 승인하면 초안에 반영하는 단계(world는 보강 제안 enrich만)
 NEEDS_INPUT_MESSAGE = '작업에 필요한 자료가 빠져 있어 아무 작업도 실행하지 않았어요.'
 WAITING_MESSAGE = '작업에 필요한 자료를 기다리고 있어요. 자료를 보내거나 취소하면 이어서 진행해요.'
 APPROVAL_MESSAGES = {'writing_editing': 'Writing 결과를 원고 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.',
-                     'character_simulation': '시뮬레이션 장면을 원고 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.'}
+                     'character_simulation': '시뮬레이션 장면을 원고 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.',
+                     'world': '설정 보강 제안을 세계관 초안에 반영할지 승인해 주세요. 거절하면 반영하지 않아요.'}
 CANCELLED_MESSAGE = '요청을 취소해 아무 작업도 실행하지 않았어요.'
 SCENE_MESSAGE = '시뮬레이션 장면을 진행하고 있어요. 다음 턴을 이어 가거나 줄을 고치고 다시 말하게 하거나 끝낼 수 있어요.'
 SCENE_NOT_WAITING = '지금은 장면을 조작할 수 없어요.'
@@ -177,9 +177,6 @@ async def main_agent(state: State, config: RunnableConfig) -> State:
         return {'status': 'rejected', 'message': REJECT_MESSAGES[decision['reason']], 'steps': []}
     if not decision['capabilities']:
         return {'status': 'clarify', 'message': CLARIFY_MESSAGE, 'steps': []}
-    if 'world_plot' in decision['capabilities']:  # 축소 실행 금지: 미구현 기능이 하나라도 있으면 아무것도 실행하지 않는다
-        return {'status': 'unsupported', 'message': UNSUPPORTED_MESSAGE, 'unsupported': ['world_plot'],
-                'steps': [{'feature': f, 'when': 'always', 'status': 'not_started'} for f in decision['capabilities']]}
     done: State = {'steps': steps, 'inputs': out.get('inputs', state['inputs']), 'retrievalScope': out.get('retrievalScope'),
                    'simulationPlan': out.get('simulationPlan'), 'task': run_as, 'message': out['messages'][-1].text,
                    'writingBaseRevision': (out.get('writingBase') or {}).get('revision')}
@@ -232,14 +229,14 @@ async def scene(state: State, config: RunnableConfig) -> State:
 
 
 def apply(state: State) -> State:
-    """승인 대기 중인 Writing 결과나 시뮬레이션 장면을 작가에게 보여 주고 승인하면 사용자 권한으로 Content MCP에 초안 반영을 요청한다.
+    """승인 대기 중인 Writing 결과·시뮬레이션 장면·World 보강 제안을 작가에게 보여 주고 승인하면 사용자 권한으로 Content MCP에 초안 반영을 요청한다.
 
     resume 때 이 노드는 처음부터 다시 실행되므로 interrupt 앞에는 부수효과를 두지 않는다. 반영 실패는 결과를 보존한 채
     단계 실패로 남겨 남은 단계를 시작하지 않는다.
     """
     steps = [dict(s) for s in state['steps']]
-    feature = _pending(state)['feature']
-    step = next(s for s in steps if s['feature'] == feature)
+    pending = _pending(state)
+    feature, step = pending['feature'], steps[state['steps'].index(pending)]  # _pending이 고른 단계 그대로다(같은 feature의 앞 단계를 다시 찾지 않는다)
     answer = interrupt({'steps': state['steps'], 'awaitingApproval': feature})
     if feature == 'character_simulation' and answer.get('scene'):
         # 승인 대신 장면을 고치거나 이어 가는 조작이다(승인·거절은 scene 없는 답으로만 한다). 단계를 다시 진행 중으로 돌리고
@@ -250,25 +247,31 @@ def apply(state: State) -> State:
     step['approval'] = 'approved' if answer['approved'] else 'declined'
     if answer['approved']:
         target = state['target']
-        # 장면은 지문 + "대사" 문단을 빈 줄로 이어 Text 경로(초안 뒤에 잇기)로 반영한다.
-        result = step['result'] if feature == 'writing_editing' else {'text': '\n\n'.join(t['prose'] for t in step['result']['turns'])}
         expected_revision = state.get('writingBaseRevision') if feature == 'writing_editing' else None
         try:
             with tracing.observe(f'step.{feature}.apply', as_type='tool', trace_context=_trace(state),
                                  metadata={'episode': target['episode']}):
-                step['applied'] = content_mcp.apply_writing(target['workId'], target['episode'], result, expected_revision=expected_revision)
+                if feature == 'world':
+                    # 보강 제안은 세계관 초안의 그 칸만 바꾼다. applied는 회차 초안 반영과 같은 모양이라 episode는 채팅 대상 회차를 그대로 싣고(world에서는 뜻 없음)
+                    # revision은 반영 뒤 세계관 초안 revision이다.
+                    saved = content_mcp.apply_world(step['result']['worldId'], step['result']['revision'], step['result']['fixes'])
+                    step['applied'] = {'episode': target['episode'], 'revision': saved['revision']}
+                else:
+                    # 장면은 지문 + "대사" 문단을 빈 줄로 이어 Text 경로(초안 뒤에 잇기)로 반영한다.
+                    result = step['result'] if feature == 'writing_editing' else {'text': '\n\n'.join(t['prose'] for t in step['result']['turns'])}
+                    step['applied'] = content_mcp.apply_writing(target['workId'], target['episode'], result, expected_revision=expected_revision)
         except ContentMcpFailure as error:
             step.update(status='failed', error=str(error))
     return {'steps': steps, 'retrievalScope': answer.get('scope') or state.get('retrievalScope')}
 
 
 def _pending(state: State) -> dict | None:
-    """대화 안의 반영 대상이 있을 때, 작가의 답을 아직 못 받은 완료된 결과(Writing·시뮬레이션 장면)의 첫 단계."""
+    """대화 안의 반영 대상이 있을 때, 작가의 답을 아직 못 받은 완료된 결과(Writing·시뮬레이션 장면·World 보강 제안)의 첫 단계."""
     if not (state.get('scope') and state.get('target')):
         return None
-    # 기획 결과(plans)는 원고가 아니라 반영하지 않는다.
+    # 기획 결과(plans)는 원고가 아니라 반영하지 않는다. World는 보강 제안(enrich)만 반영하고 검사·영향 분석(check·impact)은 읽기뿐이다.
     return next((s for s in state['steps'] if s['feature'] in APPROVABLE and s['status'] == 'completed'
-                 and 'approval' not in s and 'plans' not in s['result']), None)
+                 and 'approval' not in s and 'plans' not in s['result'] and s.get('task') not in ('check', 'impact')), None)
 
 
 def finish(state: State) -> State:

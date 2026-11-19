@@ -261,7 +261,7 @@ export function WorldCardStudio({ vm, revisions, openVersions, chatOpen, onChatO
             </footer>
           </div>
         </div>
-        <WorldChat variant="writing" open={chatOpen} onOpenChange={onChatOpenChange} linkedWorkId={vm.linkedWorkId} />
+        <WorldChat variant="writing" open={chatOpen} onOpenChange={onChatOpenChange} linkedWorkId={vm.linkedWorkId} onWorldApplied={() => void vm.aiDraftChanged().then((reread) => { if (reread) docs.reload() })} />
       </main>
     </div>
   )
