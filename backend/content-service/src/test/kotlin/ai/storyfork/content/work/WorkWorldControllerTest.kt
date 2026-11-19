@@ -6,6 +6,7 @@ import ai.storyfork.content.work.service.WorkWorldService
 import ai.storyfork.content.work.service.dto.WorkWorldLinkRequest
 import ai.storyfork.content.work.service.dto.WorkWorldLinkResponse
 import ai.storyfork.content.world.controller.WorldStudioController
+import ai.storyfork.content.world.controller.WorldStudioExceptionHandler
 import ai.storyfork.content.world.service.WorldCoverService
 import ai.storyfork.content.world.service.WorldStudioService
 import ai.storyfork.content.world.service.dto.CreateWorldRequest
@@ -21,8 +22,11 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import org.springframework.core.annotation.AnnotatedElementUtils
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
 /** 세계관-소설 연결(DEC-46)의 HTTP 조립: 연결·독자 위키 경로와, 세계관 소유자 응답에 연결된 작품을 붙이는 일이다. 서비스는 대역이다. */
@@ -102,5 +106,20 @@ class WorkWorldControllerTest {
         verify(studio).draft(world, owner, 3)
         for (bad in listOf("0", "-2", "abc", "1.5", "")) assertThrows(IllegalArgumentException::class.java, { studios.read(world, principal, bad) }, bad)
         verifyNoMoreInteractions(studio)
+    }
+
+    @Test fun `detaching hands the signed-in member to the service and answers the new world`() {
+        val detached = WorkWorldLinkResponse("fork", world)
+        `when`(links.detachInheritedWorld("fork", owner.toString())).thenReturn(detached)
+
+        assertSame(detached, works.detachInheritedWorld("fork", principal))
+    }
+
+    @Test fun `the detach route is a 201 POST and its WorldStudio failures reach the world studio error handler`() {
+        val method = WorkWorldController::class.java.methods.first { it.name == "detachInheritedWorld" }
+        assertEquals(listOf("/works/{id}/inherited-world/detach"), AnnotatedElementUtils.findMergedAnnotation(method, PostMapping::class.java)!!.value.toList())
+        assertEquals(HttpStatus.CREATED, AnnotatedElementUtils.findMergedAnnotation(method, ResponseStatus::class.java)!!.code)
+        // 새 세계관을 만들다 WorldStudioService가 던지는 실패(관계 저장소 불확실·충돌·입력 오류)가 500이 아니라 404·409·503·422가 되려면 이 처리기의 대상이어야 한다(ContentFailure는 콘텐츠 처리기가 맡는다).
+        assertTrue(WorkWorldController::class in AnnotatedElementUtils.findMergedAnnotation(WorldStudioExceptionHandler::class.java, RestControllerAdvice::class.java)!!.assignableTypes)
     }
 }
