@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 // Docker Compose에서는 브라우저가 /api를 Vite 개발 서버로 보내고,
-// Vite는 콘텐츠 경로는 Content로, 신고·회원·관리자·작품·댓글·고객지원·공지·이벤트(관리자·공개)·대시보드·LLMOps·경고·작업 감시 운영 경로는 Operations로, 나머지(인증·OIDC·CSRF·상태 확인)는 Core로 전달한다.
+// Vite는 콘텐츠 경로는 Content로, 신고·회원·관리자·작품·댓글·고객지원·공지·이벤트(관리자·공개)·대시보드·LLMOps·경고·작업 감시 운영 경로는 Operations로, 나머지(인증·CSRF·상태 확인)는 Core로 전달한다.
 // 네이티브 기본 대상은 Core localhost:8080 / Content localhost:8081 / Operations localhost:8082이다.
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')

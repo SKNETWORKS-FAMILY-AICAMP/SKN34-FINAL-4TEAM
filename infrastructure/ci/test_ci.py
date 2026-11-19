@@ -453,25 +453,21 @@ class ComposeSplitTest(unittest.TestCase):
         for path in ('compose.yaml', 'infrastructure/docker-compose.yaml', 'infrastructure/docker-compose.local.yaml'):
             self.assertNotIn('langfuse.yaml', read(path), path)
 
-    def test_langfuse_login_is_core_oidc_sso_with_viewer_auto_assignment(self):
+    def test_langfuse_web_is_developer_only_and_keeps_the_headless_init_admin(self):
+        # 2026-11-19 사용자 결정: 관리자는 Langfuse 웹에 들어가지 않는다(OIDC 로그인·화면 링크·기본 조직 자동 배정 없음).
+        # 웹은 개발자가 초기 관리자(LANGFUSE_INIT_*)로 loopback 포트에서만 쓰고 가입은 막는다.
         langfuse = read(LANGFUSE_COMPOSE)
         web = service_block(langfuse, 'langfuse-web')
-        for line in ('AUTH_CUSTOM_CLIENT_ID: ${AUTH_OIDC_LANGFUSE_CLIENT_ID:-}',
-                     'AUTH_CUSTOM_CLIENT_SECRET: ${AUTH_OIDC_LANGFUSE_CLIENT_SECRET:-}',
-                     'AUTH_CUSTOM_ISSUER: ${AUTH_OIDC_ISSUER:-}', 'AUTH_CUSTOM_NAME: STORYFORK',
-                     # next-auth 기본 checks는 state뿐이라 계약의 인가 코드 + PKCE 흐름은 명시해야 한다.
-                     'AUTH_CUSTOM_CHECKS: pkce,state',
-                     'AUTH_DISABLE_USERNAME_PASSWORD: ${LANGFUSE_AUTH_DISABLE_USERNAME_PASSWORD:-false}',
-                     'AUTH_DISABLE_SIGNUP: ${LANGFUSE_AUTH_DISABLE_SIGNUP:-true}',
-                     'LANGFUSE_DEFAULT_ORG_ROLE: VIEWER', 'LANGFUSE_DEFAULT_PROJECT_ROLE: VIEWER'):
-            self.assertIn(line, web)
-        # 기본 조직·프로젝트는 헤드리스 초기화가 만든 것과 같은 ID라야 한다(YAML 별칭으로 한 곳에서 정한다).
-        for init, default, alias, value in (('LANGFUSE_INIT_ORG_ID', 'LANGFUSE_DEFAULT_ORG_ID', 'org-id', 'storyfork'),
-                                            ('LANGFUSE_INIT_PROJECT_ID', 'LANGFUSE_DEFAULT_PROJECT_ID', 'project-id', 'storyfork-writing-ai')):
-            self.assertIn(f'{init}: &{alias} {value}\n', web)
-            self.assertIn(f'{default}: *{alias}\n', web)
-        # Langfuse 공개 주소 한 변수가 NEXTAUTH_URL(로그인 콜백의 기준)을 정한다.
-        self.assertIn('NEXTAUTH_URL: ${LANGFUSE_UI_URL:-http://localhost:${LANGFUSE_WEB_PORT:-3000}}\n', langfuse)
+        self.assertIn('- "127.0.0.1:${LANGFUSE_WEB_PORT:-3000}:3000"', web)
+        self.assertIn('NEXTAUTH_URL: http://localhost:${LANGFUSE_WEB_PORT:-3000}\n', langfuse)
+        self.assertEqual({'AUTH_DISABLE_SIGNUP'}, set(re.findall(r'(?m)^      (AUTH_\w+):', web)))
+        self.assertIn('AUTH_DISABLE_SIGNUP: "true"\n', web)
+        self.assertEqual({'LANGFUSE_INIT_ORG_ID', 'LANGFUSE_INIT_ORG_NAME', 'LANGFUSE_INIT_PROJECT_ID', 'LANGFUSE_INIT_PROJECT_NAME',
+                          'LANGFUSE_INIT_PROJECT_PUBLIC_KEY', 'LANGFUSE_INIT_PROJECT_SECRET_KEY', 'LANGFUSE_INIT_USER_EMAIL',
+                          'LANGFUSE_INIT_USER_NAME', 'LANGFUSE_INIT_USER_PASSWORD'}, set(re.findall(r'(?m)^      (LANGFUSE_\w+):', web)))
+        # 공개 진입점(nginx·Vite)은 Langfuse 웹으로 가는 길을 두지 않는다.
+        for path in ('frontend/nginx.conf', 'infrastructure/nginx.dev.conf', 'frontend/vite.config.ts'):
+            self.assertNotIn('langfuse-web', read(path), path)
 
     def test_langfuse_keys_and_internal_addresses_reach_ai_and_operations(self):
         base = read('infrastructure/docker-compose.yaml')
@@ -486,31 +482,11 @@ class ComposeSplitTest(unittest.TestCase):
         # 컨테이너에서는 Langfuse를 내부 주소로 부른다(루트 .env의 localhost 값은 네이티브 실행용).
         self.assertIn('LANGFUSE_BASE_URL: http://langfuse-web:3000', ai)
         for line in ('OPERATIONS_LANGFUSE_BASE_URL: http://langfuse-web:3000',
-                     'LANGFUSE_UI_URL: ${LANGFUSE_UI_URL:-http://localhost:${LANGFUSE_WEB_PORT:-3000}}',
                      'OPERATIONS_AI_BASE_URL: http://ai-service:8000', 'INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}',
                      'OPERATIONS_RABBITMQ_HOST: ${CORE_RABBITMQ_HOST:-rabbitmq}', 'OPERATIONS_RABBITMQ_PORT: ${CORE_RABBITMQ_PORT:-5672}',
                      'OPERATIONS_RABBITMQ_USERNAME: ${CORE_RABBITMQ_USER:-storyfork}',
                      'OPERATIONS_RABBITMQ_PASSWORD: ${CORE_RABBITMQ_PASSWORD:-}'):
             self.assertIn(line, operations)
-        # 서버는 Langfuse 공개 주소를 반드시 정한다(traceUrl·로그인 콜백의 기준).
-        for name in ('dev', 'prod'):
-            with self.subTest(server=name):
-                operations = service_block(read(f'infrastructure/docker-compose.{name}.yaml'), 'operations-service')
-                self.assertIn('LANGFUSE_UI_URL: ${LANGFUSE_UI_URL:?', operations)
-
-    def test_core_receives_the_oidc_provider_settings_and_servers_require_them(self):
-        core = service_block(read('infrastructure/docker-compose.yaml'), 'core-api')
-        for name in ('AUTH_OIDC_ISSUER', 'AUTH_OIDC_SIGNING_KEY', 'AUTH_OIDC_LANGFUSE_CLIENT_ID',
-                     'AUTH_OIDC_LANGFUSE_CLIENT_SECRET', 'AUTH_OIDC_LOGIN_URL'):
-            self.assertIn(f'{name}: ${{{name}:-}}', core)
-        # 콜백 주소는 Langfuse 공개 주소 + /api/auth/callback/custom이다(NEXTAUTH_URL과 같은 변수에서 파생).
-        self.assertIn('AUTH_OIDC_LANGFUSE_REDIRECT_URI: ${AUTH_OIDC_LANGFUSE_REDIRECT_URI:-'
-                      '${LANGFUSE_UI_URL:-http://localhost:${LANGFUSE_WEB_PORT:-3000}}/api/auth/callback/custom}', core)
-        for server in ('dev', 'prod'):
-            core = service_block(read(f'infrastructure/docker-compose.{server}.yaml'), 'core-api')
-            for name in ('AUTH_OIDC_ISSUER', 'AUTH_OIDC_SIGNING_KEY', 'AUTH_OIDC_LANGFUSE_CLIENT_ID', 'AUTH_OIDC_LANGFUSE_CLIENT_SECRET'):
-                with self.subTest(server=server, name=name):
-                    self.assertIn(f'{name}: ${{{name}:?', core)
 
     def test_operations_waits_for_the_broker_it_publishes_alerts_to(self):
         for name in ('local', 'dev'):
@@ -528,12 +504,10 @@ class ComposeSplitTest(unittest.TestCase):
                 required = set(re.findall(r'\$\{([A-Z][A-Z0-9_]*):\?', read('infrastructure/' + name)))
                 self.assertEqual(set(), required - provided)
 
-    def test_example_lists_the_langfuse_login_and_operations_settings_blank(self):
+    def test_example_lists_the_native_operations_settings_blank(self):
         example = dict(line.split('=', 1) for line in read('.env.example').splitlines() if line and not line.startswith('#'))
-        for key in ('LANGFUSE_UI_URL', 'LANGFUSE_AUTH_DISABLE_USERNAME_PASSWORD', 'LANGFUSE_AUTH_DISABLE_SIGNUP',
-                    'AUTH_OIDC_ISSUER', 'AUTH_OIDC_SIGNING_KEY', 'AUTH_OIDC_LANGFUSE_CLIENT_ID', 'AUTH_OIDC_LANGFUSE_CLIENT_SECRET',
-                    'AUTH_OIDC_LANGFUSE_REDIRECT_URI', 'AUTH_OIDC_LOGIN_URL', 'OPERATIONS_LANGFUSE_BASE_URL', 'OPERATIONS_AI_BASE_URL',
-                    'OPERATIONS_RABBITMQ_HOST', 'OPERATIONS_RABBITMQ_PORT', 'OPERATIONS_RABBITMQ_USERNAME', 'OPERATIONS_RABBITMQ_PASSWORD'):
+        for key in ('OPERATIONS_LANGFUSE_BASE_URL', 'OPERATIONS_AI_BASE_URL', 'OPERATIONS_RABBITMQ_HOST', 'OPERATIONS_RABBITMQ_PORT',
+                    'OPERATIONS_RABBITMQ_USERNAME', 'OPERATIONS_RABBITMQ_PASSWORD'):
             with self.subTest(key=key):
                 self.assertEqual('', example[key])
 
@@ -756,19 +730,6 @@ class ConfigurationTest(unittest.TestCase):
                       '/api/v1/operations/inquiries', '/api/v1/operations/notices']:
             with self.subTest(vite=route):
                 self.assertNotRegex(route, pattern)
-
-    def test_oidc_provider_routes_stay_on_the_generic_core_rule(self):
-        # DEC-55: Langfuse 로그인용 /api/v1/auth/oidc/**는 새 규칙 없이 기존 /api → Core에 든다.
-        routes = ['/api/v1/auth/oidc/authorize?client_id=langfuse', '/api/v1/auth/oidc/token', '/api/v1/auth/oidc/jwks',
-                  '/api/v1/auth/oidc/.well-known/openid-configuration', '/api/v1/auth/oidc/userinfo']
-        for path in ['frontend/nginx.conf', 'infrastructure/nginx.dev.conf']:
-            for route in routes:
-                with self.subTest(proxy=path, route=route):
-                    self.assertEqual('http://core-api:8080', nginx_upstream(read(path), route))
-        for key in re.findall(r"'(\^[^']*)':\s*\{", read('frontend/vite.config.ts')):
-            for route in routes:
-                with self.subTest(vite=key, route=route):
-                    self.assertNotRegex(route, key.replace('\\\\', '\\'))
 
     def test_redaction_does_not_keep_tokens_or_addresses(self):
         text = ci.redact('Bearer abc.def.ghi test@example.invalid #token=opaque-token ' + 'a' * 64)

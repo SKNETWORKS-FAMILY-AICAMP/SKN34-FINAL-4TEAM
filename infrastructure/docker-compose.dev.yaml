@@ -107,11 +107,6 @@ services:
       AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:?Set AUTH_JWT_SECRET}
       AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-true}
       APP_CORS_ALLOWED_ORIGIN: ${APP_CORS_ALLOWED_ORIGIN:-http://127.0.0.1:${CD_WEB_PORT:?Provision a free loopback port}}
-      # Langfuse 로그인용 OIDC 제공자: 서버는 값이 없으면 시작하지 않는다(이슈어·클라이언트는 Langfuse도 같은 변수를 읽는다).
-      AUTH_OIDC_ISSUER: ${AUTH_OIDC_ISSUER:?Set AUTH_OIDC_ISSUER to the public origin + /api/v1/auth/oidc}
-      AUTH_OIDC_SIGNING_KEY: ${AUTH_OIDC_SIGNING_KEY:?Set AUTH_OIDC_SIGNING_KEY (RSA private key)}
-      AUTH_OIDC_LANGFUSE_CLIENT_ID: ${AUTH_OIDC_LANGFUSE_CLIENT_ID:?Set AUTH_OIDC_LANGFUSE_CLIENT_ID}
-      AUTH_OIDC_LANGFUSE_CLIENT_SECRET: ${AUTH_OIDC_LANGFUSE_CLIENT_SECRET:?Set AUTH_OIDC_LANGFUSE_CLIENT_SECRET}
 
   content-service:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-content-service:develop
@@ -159,8 +154,6 @@ services:
       DATABASE_URL: jdbc:postgresql://postgres:5432/storyfork
       DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
-      # Langfuse 화면 링크(traceUrl)와 로그인 콜백의 기준이 되는 공개 주소. 서버는 반드시 정한다.
-      LANGFUSE_UI_URL: ${LANGFUSE_UI_URL:?Set LANGFUSE_UI_URL to the public Langfuse origin}
 
   web:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-web:develop

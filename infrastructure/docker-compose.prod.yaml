@@ -36,11 +36,6 @@ services:
       CONTENT_CORE_AUTH_TOKEN: ${CONTENT_CORE_AUTH_TOKEN:?Set CONTENT_CORE_AUTH_TOKEN}
       OPERATIONS_SERVICE_TOKEN: ${OPERATIONS_SERVICE_TOKEN:?Set OPERATIONS_SERVICE_TOKEN}
       APP_CORS_ALLOWED_ORIGIN: ${AUTH_PUBLIC_ORIGIN:?Set AUTH_PUBLIC_ORIGIN to the public HTTPS origin}
-      # Langfuse 로그인용 OIDC 제공자: 값이 비면 config가 실패한다(이슈어·클라이언트는 Langfuse도 같은 변수를 읽는다).
-      AUTH_OIDC_ISSUER: ${AUTH_OIDC_ISSUER:?Set AUTH_OIDC_ISSUER to the public HTTPS origin + /api/v1/auth/oidc}
-      AUTH_OIDC_SIGNING_KEY: ${AUTH_OIDC_SIGNING_KEY:?Set AUTH_OIDC_SIGNING_KEY (RSA private key)}
-      AUTH_OIDC_LANGFUSE_CLIENT_ID: ${AUTH_OIDC_LANGFUSE_CLIENT_ID:?Set AUTH_OIDC_LANGFUSE_CLIENT_ID}
-      AUTH_OIDC_LANGFUSE_CLIENT_SECRET: ${AUTH_OIDC_LANGFUSE_CLIENT_SECRET:?Set AUTH_OIDC_LANGFUSE_CLIENT_SECRET}
 
   content-service:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-content-service:main
@@ -62,8 +57,6 @@ services:
       DATABASE_USER: ${DATABASE_USER:?Set DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD}
       OPERATIONS_SERVICE_TOKEN: ${OPERATIONS_SERVICE_TOKEN:?Set OPERATIONS_SERVICE_TOKEN}
-      # Langfuse 화면 링크(traceUrl)와 로그인 콜백의 기준이 되는 공개 주소(서브도메인 또는 포트). 값이 비면 config가 실패한다.
-      LANGFUSE_UI_URL: ${LANGFUSE_UI_URL:?Set LANGFUSE_UI_URL to the public Langfuse origin}
 
   web:
     image: ghcr.io/sknetworks-family-aicamp/storyfork-web:main

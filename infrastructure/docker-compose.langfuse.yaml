@@ -1,12 +1,12 @@
 # Langfuse self-host(#302, dev·prod 편입 DEC-55). 로컬은 앱 스택과 분리한 별도 프로젝트로, dev·prod는 각 Compose 파일의 include로 같은 프로젝트에서 켠다(정의 복제 없음).
 # 공식 docker-compose.yml(langfuse/langfuse)에서 웹·worker와 의존 저장소만 남겼다(AI gateway 제외). 앱의 postgres·minio와 겹치지 않게 서비스 이름은 langfuse- 접두어다.
-# 웹 화면만 127.0.0.1에 열고(서버 ingress가 LANGFUSE_UI_URL 주소에서 이 포트로 프록시) 나머지는 내부 네트워크에만 둔다.
+# 웹 화면은 개발자용이라 127.0.0.1에만 열고(공개 진입점 nginx에는 없다. 관리자는 들어가지 않고 서비스는 프로젝트 API 키로만 접근한다) 나머지는 내부 네트워크에만 둔다.
 # 비밀값은 루트 .env에서 읽는다: docker compose -f infrastructure/docker-compose.langfuse.yaml --env-file .env up -d --wait
 name: storyfork-langfuse
 
 x-langfuse-env: &langfuse-env
-  # 브라우저가 여는 공개 주소(OIDC 로그인 콜백의 기준). 비우면 로컬 포트.
-  NEXTAUTH_URL: ${LANGFUSE_UI_URL:-http://localhost:${LANGFUSE_WEB_PORT:-3000}}
+  # 개발자가 브라우저로 여는 주소. 원격 서버는 SSH 포트 포워딩으로 같은 포트를 연다.
+  NEXTAUTH_URL: http://localhost:${LANGFUSE_WEB_PORT:-3000}
   DATABASE_URL: postgresql://langfuse:${LANGFUSE_DB_PASSWORD:?Set LANGFUSE_DB_PASSWORD}@langfuse-postgres:5432/langfuse
   SALT: ${LANGFUSE_SALT:?Set LANGFUSE_SALT}
   ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY:?Set LANGFUSE_ENCRYPTION_KEY (openssl rand -hex 32)}
@@ -56,29 +56,17 @@ services:
       <<: *langfuse-env
       NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET:?Set LANGFUSE_NEXTAUTH_SECRET}
       # 첫 시작 때 조직·프로젝트·관리자와 AI·운영 서비스가 쓸 API 키를 만든다. 이미 있으면 건너뛴다. 키는 두 서비스의 LANGFUSE_PUBLIC_KEY·LANGFUSE_SECRET_KEY와 같은 변수다.
-      LANGFUSE_INIT_ORG_ID: &org-id storyfork
+      LANGFUSE_INIT_ORG_ID: storyfork
       LANGFUSE_INIT_ORG_NAME: STORYFORK
-      LANGFUSE_INIT_PROJECT_ID: &project-id storyfork-writing-ai
+      LANGFUSE_INIT_PROJECT_ID: storyfork-writing-ai
       LANGFUSE_INIT_PROJECT_NAME: writing-ai
       LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:?Set LANGFUSE_PUBLIC_KEY (pk-lf-...)}
       LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:?Set LANGFUSE_SECRET_KEY (sk-lf-...)}
       LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL:?Set LANGFUSE_INIT_USER_EMAIL}
       LANGFUSE_INIT_USER_NAME: storyfork-admin
       LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD:?Set LANGFUSE_INIT_USER_PASSWORD}
-      # 로그인(DEC-55): Core OIDC. 세 값이 모두 있어야 켜지고 비면(로컬) INIT 관리자의 이메일·비밀번호로 로그인한다. 처음 들어온 운영자는 아래 기본 조직·프로젝트의 VIEWER가 된다.
-      AUTH_CUSTOM_CLIENT_ID: ${AUTH_OIDC_LANGFUSE_CLIENT_ID:-}
-      AUTH_CUSTOM_CLIENT_SECRET: ${AUTH_OIDC_LANGFUSE_CLIENT_SECRET:-}
-      AUTH_CUSTOM_ISSUER: ${AUTH_OIDC_ISSUER:-}
-      AUTH_CUSTOM_NAME: STORYFORK
-      # 인가 코드 + PKCE: next-auth 기본 checks는 state뿐이라 명시한다.
-      AUTH_CUSTOM_CHECKS: pkce,state
-      # dev·prod 서버는 .env에서 비밀번호 로그인을 끄고(true) 가입 차단을 푼다(false): 가입 차단이면 SSO 첫 로그인이 "Sign up is disabled."로 막힌다. 로컬 기본은 비밀번호 로그인·가입 차단.
-      AUTH_DISABLE_USERNAME_PASSWORD: ${LANGFUSE_AUTH_DISABLE_USERNAME_PASSWORD:-false}
-      AUTH_DISABLE_SIGNUP: ${LANGFUSE_AUTH_DISABLE_SIGNUP:-true}
-      LANGFUSE_DEFAULT_ORG_ID: *org-id
-      LANGFUSE_DEFAULT_ORG_ROLE: VIEWER
-      LANGFUSE_DEFAULT_PROJECT_ID: *project-id
-      LANGFUSE_DEFAULT_PROJECT_ROLE: VIEWER
+      # 초기 관리자는 개발자가 Langfuse 웹에 로그인할 때만 쓴다. 다른 사용자는 만들지 않는다.
+      AUTH_DISABLE_SIGNUP: "true"
 
   langfuse-worker:
     image: docker.langfuse.com/langfuse/langfuse-worker:4.78.0
