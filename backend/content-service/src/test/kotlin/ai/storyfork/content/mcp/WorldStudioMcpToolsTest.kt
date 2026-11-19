@@ -51,7 +51,7 @@ class WorldStudioMcpToolsTest {
     @AfterEach fun clear() = SecurityContextHolder.clearContext()
 
     private fun toolsOver(a: WorldStudioService, b: WorkWorldService, c: PublicWorldService, d: InitialWorldAnalysisService, e: InitialWorldApplicationService) =
-        SyncMcpAnnotationProviders.statelessToolSpecifications(listOf<Any>(WorldStudioMcpTools(a, b, c, d, e)))
+        SyncMcpAnnotationProviders.statelessToolSpecifications(listOf<Any>(WorldStudioMcpTools(a, b, c, d, e, mock(McpChangeNotice::class.java))))
 
     private fun signedIn(): McpTransportContext {
         SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken.authenticated("$member", null, emptyList())

@@ -4,6 +4,7 @@ import ai.storyfork.content.auth.client.CoreAuthClient
 import ai.storyfork.content.auth.client.exception.CoreAuthException
 import ai.storyfork.content.auth.service.CoreNicknameService
 import ai.storyfork.content.auth.service.WITHDRAWN_MEMBER_NAME
+import ai.storyfork.content.interest.repository.ContentEventOutboxRepository
 import ai.storyfork.content.work.entity.WorkEntity
 import ai.storyfork.content.work.repository.WorkRepository
 import ai.storyfork.content.work.service.InternalWorkService
@@ -18,7 +19,7 @@ import org.mockito.Mockito.*
 class InternalWorkListTest {
     private val works = mock(WorkRepository::class.java)
     private val nicknames = mock(CoreNicknameService::class.java)
-    private val service = InternalWorkService(works, nicknames)
+    private val service = InternalWorkService(works, nicknames, mock(ContentEventOutboxRepository::class.java))
 
     /** 저장된 author_name 칼럼과 다른 값이 보이면 Core 닉네임이 아닌 칼럼을 쓴 것이다. */
     private fun row(id: String, owner: String) =
@@ -80,7 +81,7 @@ class InternalWorkListTest {
         val core = mock(CoreAuthClient::class.java)
         `when`(works.listForOperations()).thenReturn(emptyList())
 
-        assertEquals(OperationsWorkListResponse(emptyList()), InternalWorkService(works, CoreNicknameService(core)).list())
+        assertEquals(OperationsWorkListResponse(emptyList()), InternalWorkService(works, CoreNicknameService(core), mock(ContentEventOutboxRepository::class.java)).list())
         verifyNoInteractions(core)
     }
 }

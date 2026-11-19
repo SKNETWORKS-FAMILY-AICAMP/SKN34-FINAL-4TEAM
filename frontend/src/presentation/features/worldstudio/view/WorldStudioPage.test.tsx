@@ -35,6 +35,10 @@ let revisions: Revisions
 vi.mock('../viewmodel/useWorldRevisions', () => ({ useWorldRevisions: () => revisions }))
 // 카드 설명 편집기(Toast UI Editor)는 jsdom에서 입력을 흉내 낼 수 없어 같은 값 전달만 하는 textarea 대역을 쓴다.
 vi.mock('../../../shared/LazyMarkdownEditor', () => import('../../../../test/markdownEditorFake'))
+// AI·외부 도구(MCP) 변경 감시(#553)는 훅 자체의 테스트(useMcpChangeWatch.test)가 확인하고, 여기서는 이 화면이 넘기는 값·배너 연결·다시 읽은 뒤의 편집기만 본다.
+const mcp = vi.hoisted(() => ({ stale: false, reload: vi.fn(), watch: vi.fn() }))
+vi.mock('../../../shared/useMcpChangeWatch', () => ({ useMcpChangeWatch: (...args: unknown[]) => { mcp.watch(...args); return { stale: mcp.stale, reload: mcp.reload } } }))
+afterEach(() => { mcp.stale = false; mcp.watch.mockClear(); mcp.reload.mockClear() })
 const noRevisions = (): Revisions => ({
   rows: [], detail: null, busy: false, error: '', message: '', pending: false, aiPending: false, superseded: null, supported: true,
   open: vi.fn(async () => undefined), refresh: vi.fn(async () => undefined), confirm: vi.fn(async () => undefined), acknowledgeSuperseded: vi.fn(async () => undefined), restore: vi.fn(async () => undefined),
@@ -3597,4 +3601,37 @@ it('관계 문구의 공개 순서 확인은 두 설정이 공개되는 회차�
     '관계 ‘약속’의 글에 ‘검은 옷의 사내’이(가) 나와요. 검은 옷의 사내 카드는 작가 전용인데 이 글은 2화부터 독자에게 보여요.',
   ])
   expect(editor().queryByText(/알 수 없어요/)).toBeNull() // 관계를 처음 기록한 회차를 모른다는 단서는 더 이상 붙지 않는다
+})
+
+// ── #553 AI·외부 도구(MCP) 변경 감시 연결 ──
+it('AI·외부 도구 변경 감시에 열린 세계관 id와 저장하지 않은 변경 여부, 다시 읽기를 넘긴다', async () => {
+  await show()
+  expect(mcp.watch).toHaveBeenLastCalledWith({ targetType: 'world', targetId: 'qa', dirty: false, reload: expect.any(Function) })
+  fireEvent.click(screen.getByRole('button', { name: '집필 메모 추가' })) // 초안에 메모를 더하고 편집 화면을 연다
+  expect(mcp.watch).toHaveBeenLastCalledWith({ targetType: 'world', targetId: 'qa', dirty: true, reload: expect.any(Function) })
+})
+
+it.each([false, true])('다른 곳에서 바뀌었다는 배너는 설정집 화면과 설정 편집 화면(%s)에 보이고, 다시 불러오기를 누르면 감시 훅의 reload를 부른다', async (editing) => {
+  mcp.stale = true
+  await show()
+  if (editing) openCard('가람 인물')
+  const banner = screen.getByText('다른 곳에서 바뀌었어요').closest('[role="status"]') as HTMLElement
+  expect(!!banner.closest('.world-card-studio')).toBe(editing)
+  fireEvent.click(within(banner).getByRole('button', { name: '다시 불러오기' }))
+  expect(mcp.reload).toHaveBeenCalledTimes(1)
+})
+
+it('다른 곳에서 바뀐 세계관을 다시 읽으면 열어 둔 카드 편집기가 서버의 새 글로 다시 열리고 저장하지 않은 입력은 버려진다', async () => {
+  const garam = person('가람', '기존 내용')
+  let served = '기존 내용'
+  const read = async (): Promise<StudioWorld> => ({ id: 'qa', name: '검증 세계', description: '설명', version: 1, settings: [{ ...structuredClone(garam), item: { ...garam.item, text: served } }], analysis: null })
+  await show([garam], '/worldstudio/qa', { read })
+  openCard('가람 인물')
+  fireEvent.change(body(), { target: { value: '저장하지 않은 입력' } })
+  expect(mcp.watch).toHaveBeenLastCalledWith(expect.objectContaining({ dirty: true }))
+  served = '다른 곳에서 바뀐 글'
+  const { reload } = mcp.watch.mock.lastCall![0] as { reload: () => Promise<boolean> }
+  await act(async () => { expect(await reload()).toBe(true) })
+  expect(body().value).toBe('다른 곳에서 바뀐 글')
+  expect(mcp.watch).toHaveBeenLastCalledWith(expect.objectContaining({ dirty: false }))
 })

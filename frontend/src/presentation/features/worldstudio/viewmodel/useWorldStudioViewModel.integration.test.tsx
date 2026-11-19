@@ -212,3 +212,27 @@ it('does not ask a world without a linked novel for the N화부터 of a relation
  act(()=>{result.current.applyRelations([{...row,text:'다시 만난 친구'}],[])})
  expect([result.current.writingIssues,result.current.canSave]).toEqual([[],true])
 })
+it('refresh reads the server draft again and drops unsaved edits without asking (changed elsewhere by MCP, #553)',async()=>{
+ const repository:WorldStudioRepository=new InMemoryWorldStudioRepository(),useCase=new WorldStudioUseCase(repository)
+ const world=await useCase.create('세계','')
+ const confirm=vi.spyOn(window,'confirm')
+ const wrapper=({children}:{children:ReactNode})=><MemoryRouter initialEntries={['/worldstudio/'+world.id]}><Routes><Route path="/worldstudio/:worldId" element={children}/></Routes></MemoryRouter>
+ const {result}=renderHook(()=>useWorldStudioViewModel(useCase),{wrapper})
+ await waitFor(()=>expect(result.current.editing?.id).toBe(world.id))
+ act(()=>result.current.patch({name:'저장하지 않은 이름'}))
+ expect(result.current.dirty).toBe(true)
+ await useCase.save({...world,name:'다른 곳에서 바꾼 이름'})
+ const keyBefore=result.current.relationKey
+ let done=false
+ await act(async()=>{done=await result.current.refresh()})
+ expect(done).toBe(true)
+ expect(confirm).not.toHaveBeenCalled()
+ expect(result.current.editing?.name).toBe('다른 곳에서 바꾼 이름')
+ expect(result.current.dirty).toBe(false)
+ expect(result.current.relationKey).toBe(keyBefore+1)
+ vi.spyOn(repository,'read').mockRejectedValueOnce(new Error('읽기 실패'))
+ await act(async()=>{done=await result.current.refresh()})
+ expect(done).toBe(false)
+ expect(result.current.error).not.toBe('')
+ confirm.mockRestore()
+})
