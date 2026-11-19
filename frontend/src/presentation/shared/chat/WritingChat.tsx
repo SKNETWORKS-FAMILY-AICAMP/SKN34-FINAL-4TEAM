@@ -3,7 +3,7 @@ import { useId, useState } from 'react'
 import { sceneLine, type CharacterSimulation } from '../../../domain/entities/characterSimulation'
 import { featureLabel, PLAN_LABEL, replyOutcome, replyText, reviewCheckLabel, stepText, usedPlan, type ChatBasis, type ChatReply, type ChatStep, type ChatStepInputs, type ReviewCheck } from '../../../domain/entities/writingChat'
 import type { ChatMessage } from '../../../domain/entities/chat'
-import { ComposeIcon, MoreIcon, SparkIcon } from '../icons'
+import { ComposeIcon, MoreIcon, PencilIcon, SparkIcon, TrashIcon } from '../icons'
 import { PopMenu } from '../PopMenu'
 import { ChatPanel } from './ChatPanel'
 import { useWritingChatViewModel, type ChatViewModel, type LiveTurn } from './useWritingChatViewModel'
@@ -216,8 +216,9 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage }: { vm:
     }
     if (vm.pending || live) return null
     return <div className="chat-msg-actions">
-      <button type="button" onClick={() => setEditing({ index, text: m.text })} disabled={!!vm.lockedReason}>수정</button>
-      <button type="button" onClick={() => void vm.deleteFrom(index)}>여기부터 지우기</button>
+      <button type="button" onClick={() => setEditing({ index, text: m.text })} disabled={!!vm.lockedReason}
+        aria-label="이 메시지 고치기" title="이 메시지 고치기"><PencilIcon size={16} /></button>
+      <button type="button" onClick={() => void vm.deleteFrom(index)} aria-label="이 메시지부터 지우기" title="이 메시지부터 지우기"><TrashIcon size={16} /></button>
     </div>
   }
   const current = vm.sessions?.find((s) => s.threadId === vm.threadId)

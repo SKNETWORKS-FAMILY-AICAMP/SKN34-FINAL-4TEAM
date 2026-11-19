@@ -53,7 +53,7 @@
 /* 줄 행동: 평소엔 옅게, 줄에 다가가면 또렷하게(키보드 초점 포함) */
 .stage-actions { display: flex; gap: 2px; opacity: .55; transition: opacity .15s; }
 .stage-turn:hover .stage-actions, .stage-actions:focus-within { opacity: 1; }
-.stage-actions button { min-height: 28px; padding: 0 8px; border: 0; border-radius: 999px; background: none; color: var(--tsub); font-size: 12.5px; font-weight: 600; }
+.stage-actions button { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px; padding: 0 8px; border: 0; border-radius: 999px; background: none; color: var(--tsub); font-size: 12.5px; font-weight: 600; }
 .stage-actions button:hover:not(:disabled) { background: var(--muted-bg); color: var(--tfg); }
 .stage-actions button:disabled { cursor: not-allowed; opacity: .5; }
 .stage-edit { display: grid; gap: 6px; }
@@ -88,7 +88,7 @@
 /* 좁은 화면과 손가락이 주 입력인 기기: 누르는 버튼은 44px, 입력 글자는 16px(iOS가 초점에서 화면을 확대하지 않게). */
 @media (max-width: 600px), (pointer: coarse) {
   .stage-actions { opacity: 1; }
-  .stage-actions button { min-height: 44px; }
+  .stage-actions button { min-width: 44px; min-height: 44px; }
   .stage-checks summary { padding-block: 13px; }
   .stage-note-form input { height: 44px; }
   .stage-radio, .stage-people label { min-height: 44px; }

@@ -5,6 +5,7 @@ import {
   type CharacterSimulation, type SimulationStart, type SimulationTurn,
 } from '../../../domain/entities/characterSimulation'
 import { SCENE_NOTE_MAX, SCENE_TEXT_MAX } from '../../../domain/entities/writingChat'
+import { PencilIcon } from '../icons'
 import { ManuscriptBody } from '../media/MediaPanel'
 import { useSimulationSetupViewModel } from './useSimulationSetupViewModel'
 import type { StageViewModel } from './useSimulationStageViewModel'
@@ -158,7 +159,7 @@ function Turn({ turn, stage, workId, episode, lockId, track }: { turn: Simulatio
       : <div className="stage-bubble"><ManuscriptBody workId={workId} number={episode} body={turn.prose} /></div>}
     {draft === null && stage.interactive && <div className="stage-actions" aria-live="off">
       <button ref={editButton} type="button" aria-describedby={stage.linesLock ? lockId : nameId} disabled={!stage.canAct}
-        onClick={() => { stage.pause(); setDraft(turn.prose) }}>수정</button>
+        aria-label="이 줄 고치기" title="이 줄 고치기" onClick={() => { stage.pause(); setDraft(turn.prose) }}><PencilIcon size={16} /></button>
       <button type="button" aria-describedby={stage.linesLock ? lockId : nameId} disabled={!stage.canAct} onClick={() => void stage.redo(turn.index)}>다시 말하기</button>
     </div>}
     {!turn.editedByAuthor && (turn.kind === 'character' || !!turn.checks.length || !!turn.evidence.length) && <Checks turn={turn} />}
