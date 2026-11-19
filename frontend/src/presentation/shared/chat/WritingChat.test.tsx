@@ -165,6 +165,10 @@ it('종합 답변이 있는 말풍선도 승인 뒤 반영 결과와 실패 단�
   const applied = screen.getAllByText('→ 3화 초안에 반영했어요.').find((e) => !details.contains(e))
   const failed = screen.getAllByText('[고증 조사] 실패: 검색 실패').find((e) => !details.contains(e))
   expect(applied && failed).toBeTruthy()
+  // 좋아요·싫어요는 단계별 결과 줄의 오른쪽(같은 줄, 뒤쪽)에 있다.
+  const foot = details.parentElement as HTMLElement
+  expect(foot.lastElementChild?.contains(within(foot).getByRole('button', { name: '이 답변 좋아요' }))).toBe(true)
+  expect(within(foot).getByRole('button', { name: '이 답변 싫어요' })).toBeTruthy()
 })
 
 it('함께 시작한 단계는 다른 단계의 결과가 먼저 와도 끝날 때까지 진행 중으로 보인다(#474 병렬 호출)', async () => {
