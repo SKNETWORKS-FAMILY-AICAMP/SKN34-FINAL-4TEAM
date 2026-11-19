@@ -8,9 +8,17 @@ from app.evaluation import service
 from app.evaluation.errors import EvaluationFailure
 from app.evaluation.models import LeakCheckRequest, LeakCheckResponse
 
-from .stubs import CRITERIA, GEVAL_REQUEST, QA, QA_REQUEST, FakeDataset, experiment, install, item, prepared, prompt, stub_models
+from .stubs import CRITERIA, DATASET_ID, GEVAL_REQUEST, QA, QA_REQUEST, FakeDataset, experiment, install, item, prepared, prompt, stub_models
 
 PRODUCTION = {('qa.answer', 'production'): prompt('옛 지시문', 2)}
+
+
+@pytest.fixture(autouse=True)
+def slept(monkeypatch):
+    """Run 조회 재시도의 대기를 건너뛰고 기록한다."""
+    waits = []
+    monkeypatch.setattr(service, 'sleep', waits.append, raising=False)
+    return waits
 
 
 @pytest.mark.parametrize('averages, baseline, failed, passed, deltas', [
@@ -82,7 +90,8 @@ def test_baseline_is_the_latest_run_that_finished_with_passed_and_every_metric_a
     _, client, plan = prepared(monkeypatch, [item(1, QA)], experiments=runs, prompts=PRODUCTION)
 
     assert plan.baseline == service.Baseline(run='qa.answer@v2-latest', version=2, metrics=metrics)
-    assert client.listed['dataset_id'] == 'ds-1' and client.listed['fields'] == 'core,scores'
+    query = client.requests[-1].url.params  # 실제 SDK가 Experiments API(GET /api/public/experiments)로 보낸 쿼리
+    assert (query['datasetId'], query['fields'], query['limit']) == (DATASET_ID, 'core,scores', '100') and 'fromStartTime' in query
 
 
 def test_run_scores_each_item_and_records_the_run_result(monkeypatch):
@@ -168,25 +177,46 @@ def test_a_run_whose_items_all_failed_records_the_failure_on_the_run_found_by_na
     # 모든 항목이 task 단계에서 실패하면 SDK는 dataset_run_id를 알려 주지 못하고 experiment_id는 어떤 Run도 가리키지 않는 임의 ID다.
     # passed=false는 Run 이름으로 찾은 서버의 실제 Run에 붙어야 운영이 끝난 Run으로 읽는다.
     assert [(s['name'], s['value'], s['dataset_run_id'], s['metadata']['failedItems']) for s in client.scores] == [('passed', 0.0, FakeDataset.RUN_ID, 2)]
-    assert (client.listed['name'], client.listed['dataset_id']) == (plan.run_name, 'ds-1')
+    query = client.requests[-1].url.params  # Run은 Experiments API에서 이름으로 찾는다(v3의 dataset runs 경로는 서버가 404다)
+    assert (query['name'], query['fields']) == (plan.run_name, 'core') and 'fromStartTime' in query
 
 
-@pytest.mark.parametrize('how, logged', [('not_found', 'Run을 찾지 못'), ('api_down', 'Langfuse 요청에 실패')])
-def test_a_run_that_cannot_be_found_is_logged_with_a_fixed_message_and_scores_nothing(monkeypatch, caplog, how, logged):
+@pytest.mark.parametrize('how, logged', [('not_found', 'Run을 찾지 못'), ('api_error', 'Langfuse 요청에 실패')])
+def test_a_run_that_cannot_be_found_is_logged_with_a_fixed_message_and_scores_nothing(monkeypatch, caplog, slept, how, logged):
     dataset, client, plan = prepared(monkeypatch, [item(1, QA)])
     stub_models(monkeypatch, generate=refuse)
     dataset.links = how != 'not_found'  # 서버에 Run이 만들어지지 않아 이름으로 찾을 수 없다
-
-    def down(**_):
-        raise RuntimeError('원고 본문 일부')
-    if how == 'api_down':
-        client.api.experiments.list = down
+    if how == 'api_error':
+        client.experiments_status = 400  # 오류 응답 본문에 원문이 섞여 있어도 로그에는 남지 않는다(5xx는 SDK가 재시도하며 몇 초 걸린다)
 
     with caplog.at_level(logging.ERROR):
         service.run(plan)
 
     assert client.scores == []  # 어떤 Run도 가리키지 않는 임의 ID에는 점수를 붙이지 않는다
     assert plan.run_name in caplog.text and logged in caplog.text and '원고 본문 일부' not in caplog.text
+    # 안 보이면 정해진 횟수만 기다려 다시 묻고, 서버 오류는 기다려도 소용없어 바로 실패로 올린다
+    assert slept == ([service.LOOKUP_WAIT] * (service.LOOKUP_ATTEMPTS - 1) if how == 'not_found' else [])
+
+
+def test_a_run_that_shows_up_after_the_ingestion_lag_still_gets_the_failure(monkeypatch, slept):
+    dataset, client, plan = prepared(monkeypatch, [item(1, QA), item(2, QA)])
+    stub_models(monkeypatch, generate=refuse)
+    client.lag = 2  # v4는 이벤트를 비동기로 수집해 방금 만든 실험이 처음 두 번은 안 보인다
+
+    service.run(plan)
+
+    assert [(s['name'], s['dataset_run_id']) for s in client.scores] == [('passed', FakeDataset.RUN_ID)]
+    assert slept == [service.LOOKUP_WAIT] * 2 and len(client.requests) == 3
+
+
+def test_a_server_without_the_experiments_api_is_a_502_instead_of_a_crash(monkeypatch):
+    client = install(monkeypatch, FakeDataset([item(1, QA)]), {('qa.answer', 3): prompt('지시문', 3), **PRODUCTION})
+    client.experiments_status = 404  # 기준 Run을 찾으려 해도 이 서버에는 Experiments API가 없다
+
+    with pytest.raises(EvaluationFailure) as error:
+        service.prepare(QA_REQUEST)
+
+    assert (error.value.status, str(error.value)) == (502, 'Langfuse 요청에 실패했습니다.') and error.value.__suppress_context__
 
 
 def test_without_server_side_run_links_scores_follow_the_sdk_experiment_id(monkeypatch):
@@ -197,7 +227,7 @@ def test_without_server_side_run_links_scores_follow_the_sdk_experiment_id(monke
     service.run(plan)
 
     # 결과가 있으면 experiment_id가 항목 span이 싣는 실험 ID라 그대로 쓴다(Run을 조회하지 않는다).
-    assert {s['dataset_run_id'] for s in client.scores} == {'sdk-fallback-id'} and client.listed is None
+    assert {s['dataset_run_id'] for s in client.scores} == {'sdk-fallback-id'} and client.requests == []
 
 
 @pytest.mark.parametrize('bad', [{'question': '문맥 없는 질문'}, {'question': '', 'contexts': ['문맥']}, {'question': '질문', 'contexts': [3]}])

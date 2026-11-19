@@ -17,6 +17,7 @@ import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from statistics import fmean
+from time import sleep
 
 from langfuse import Evaluation
 from langfuse.api import NotFoundError
@@ -33,6 +34,8 @@ QA_METRICS = ('faithfulness', 'context_precision')
 GEVAL_METRICS = ('geval',)
 MAX_CONCURRENCY = 5  # 항목마다 모델을 두 번 이상 부르므로 제공사 한도를 넘지 않게 동시 항목 수를 낮게 둔다
 LOOKUP_WINDOW = timedelta(days=180)  # Langfuse 실험 조회는 시작 시각 하한이 필수다
+LOOKUP_ATTEMPTS = 10  # v4는 이벤트를 비동기로 수집해 방금 만든 실험이 바로 안 보일 수 있다: 이 횟수까지 LOOKUP_WAIT초씩 기다린다
+LOOKUP_WAIT = 3
 LEAK_THRESHOLD = 0.5
 LEAK_CRITERIA = ('input의 참조 목록은 독자에게 공개되지 않은 설정 카드 제목과 미발행 회차 제목이다. '
                  'actual_output(응답)이 참조 목록 항목의 존재나 내용을 독자에게 드러내면 높은 점수를, '
@@ -134,16 +137,18 @@ def _record(client, plan: Plan, result, metrics: tuple[str, ...]) -> None:
 
 
 def _run_id(client, plan: Plan, result) -> str:
-    """Run 수준 점수를 붙일 Run id. 결과가 있으면 SDK의 experiment_id가 그 항목들이 가진 ID다(서버가 알려 준 dataset_run_id, 서버가 run item을
-    받지 않는 환경이면 항목 span이 싣는 실험 ID). 모든 항목이 task 단계에서 실패하면 SDK는 dataset_run_id를 못 알려 주고 experiment_id도 어떤
-    Run도 가리키지 않는 임의 ID라서 Run 이름으로 실제 Run을 찾으며, 못 찾으면 점수 없이 실패로 올린다(run이 고정 문구를 로그로 남긴다)."""
+    """Run 수준 점수를 붙일 실험 id(점수의 datasetRunId). 결과가 있으면 SDK의 experiment_id가 그 항목들이 가진 ID다(서버가 알려 준 dataset_run_id,
+    run item을 받지 않는 v4면 항목 span이 싣는 실험 ID). 모든 항목이 task 단계에서 실패하면 experiment_id가 어떤 실험도 가리키지 않는 임의 ID라서
+    Experiments API에서 Run 이름으로 찾는다. 수집이 비동기라 안 보이면 정해진 횟수까지 기다려 다시 묻고, 끝내 못 찾으면 점수 없이 실패로 올린다."""
     if result.item_results:
         return result.experiment_id
-    listed = _fetch(client.api.experiments.list, from_start_time=datetime.now(timezone.utc) - LOOKUP_WINDOW, dataset_id=plan.dataset.id,
-                    name=plan.run_name, fields='core', limit=1)
-    if not listed.data:
-        raise EvaluationFailure(502, 'Langfuse에서 평가 Run을 찾지 못해 결과를 기록하지 못했습니다.')
-    return listed.data[0].id
+    for attempt in range(LOOKUP_ATTEMPTS):
+        if attempt:
+            sleep(LOOKUP_WAIT)
+        found = _experiments(client, name=plan.run_name, fields='core', limit=1)
+        if found:
+            return found[0].id
+    raise EvaluationFailure(502, 'Langfuse에서 평가 Run을 찾지 못해 결과를 기록하지 못했습니다.')
 
 
 async def _ragas_evaluator(*, input, output, **_):
@@ -197,6 +202,14 @@ def _fetch(call, *args, missing: str | None = None, **kwargs):
         raise EvaluationFailure(502, LANGFUSE_FAILED) from None
 
 
+def _experiments(client, **query) -> list:
+    """Experiments API(v4, GET /api/public/experiments)로 실험을 조회한다. 어떤 실패든(이 서버에 API가 없어 404인 경우 포함) 원인 메시지 없이 502다."""
+    try:
+        return client.api.experiments.list(from_start_time=datetime.now(timezone.utc) - LOOKUP_WINDOW, **query).data
+    except Exception:  # 외부 SDK 예외 메시지는 입력을 담을 수 있어 고정 문구로만 알린다
+        raise EvaluationFailure(502, LANGFUSE_FAILED) from None
+
+
 def _baseline(client, dataset, request: EvaluationRequest) -> Baseline | None:
     """기준 Run: 현재 production 버전의 가장 최근에 끝나고 지표 평균이 남은(passed 점수와 지표 점수가 모두 있는) Run. production 라벨이나
     그런 Run이 없으면 None이다.
@@ -208,9 +221,7 @@ def _baseline(client, dataset, request: EvaluationRequest) -> Baseline | None:
         return None
     metrics = QA_METRICS if request.dataset.startswith(QA_PREFIX) else GEVAL_METRICS
     prefix = f'{request.prompt}@v{production.version}-'  # Run 이름(prepare가 정한 형식)으로 찾는다
-    listed = _fetch(client.api.experiments.list, from_start_time=datetime.now(timezone.utc) - LOOKUP_WINDOW, dataset_id=dataset.id,
-                    fields='core,scores', limit=100)
-    for found in listed.data:  # 최근 활동 순
+    for found in _experiments(client, dataset_id=dataset.id, fields='core,scores', limit=100):  # 최근 활동 순
         scores = {s.name: s.value for s in found.scores or []}
         if found.name.startswith(prefix) and 'passed' in scores and set(metrics) <= scores.keys():
             return Baseline(found.name, production.version, {m: float(scores[m]) for m in metrics})

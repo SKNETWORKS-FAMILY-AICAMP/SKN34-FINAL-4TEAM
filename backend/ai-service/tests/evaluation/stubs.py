@@ -1,21 +1,25 @@
-"""평가 테스트 대역. Langfuse SDK의 실제 타입(DatasetItem·Evaluation·ExperimentResult·Experiment)으로 모양을 맞추고,
-채점 라이브러리와 모델은 부르지 않는다."""
+"""평가 테스트 대역. 응답 픽스처는 실서버(Langfuse 4.78.0 events_only)가 돌려준 JSON이나 그 OpenAPI 모양이고, SDK의 실제 응답 파싱을 거친다.
+데이터셋 항목은 실측 JSON(fixtures/dataset-item.json), Experiments API는 실제 SDK 클라이언트가 보낸 요청을 받는 httpx 대역 서버다
+(v3 경로는 서버처럼 404). 채점 라이브러리와 모델은 부르지 않는다."""
 
 import asyncio
 import inspect
-from datetime import datetime, timezone
+import json
+from pathlib import Path
 from types import SimpleNamespace
 
-from langfuse.api import DatasetItem, NotFoundError
-from langfuse.api.experiments.types.experiment import Experiment
-from langfuse.api.scores_v3.types.score_v3 import ScoreV3_Boolean, ScoreV3_Numeric
+import httpx
+from langfuse.api import DatasetItem, LangfuseAPI, NotFoundError
+from langfuse.api.core.pydantic_utilities import parse_obj_as
 from langfuse.experiment import ExperimentItemResult, ExperimentResult
 
 from app import tracing
 from app.evaluation import service
 from app.evaluation.models import EvaluationRequest
 
-NOW = datetime(2026, 11, 19, tzinfo=timezone.utc)
+REAL_ITEM = json.loads((Path(__file__).parent / 'fixtures' / 'dataset-item.json').read_text(encoding='utf-8'))
+DATASET_ID = REAL_ITEM['datasetId']
+ISO = '2026-11-19T01:05:00.000Z'
 QA = {'question': '길동의 어머니는 누구인가?', 'contexts': ['길동의 어머니는 시비 춘섬이다.', '초낭은 홍문의 총첩이다.']}
 QA_REQUEST = EvaluationRequest(dataset='qa.grounding', prompt='qa.answer', version=3)
 GEVAL_REQUEST = EvaluationRequest(dataset='world.conflict', prompt='world.check', version=1)
@@ -23,25 +27,28 @@ CRITERIA = {'criteria': '충돌 지점을 짚으면 높은 점수'}
 
 
 def item(number, input, expected=None, metadata=None, dataset='qa.grounding') -> DatasetItem:
-    return DatasetItem(id=f'{dataset}-{number}', status='ACTIVE', input=input, expected_output=expected, metadata=metadata,
-                       media_references=[], dataset_id='ds-1', dataset_name=dataset, created_at=NOW, updated_at=NOW)
+    """실서버가 돌려준 데이터셋 항목 JSON에 값만 바꿔 SDK 모델로 읽는다."""
+    return parse_obj_as(DatasetItem, {**REAL_ITEM, 'id': f'{dataset}-{number}', 'datasetName': dataset, 'input': input, 'expectedOutput': expected,
+                                      'metadata': metadata})
 
 
 def prompt(text, version):
     return SimpleNamespace(prompt=text, version=version)
 
 
-def _score(kind, name, value):
-    return kind(value=value, id=f'score-{name}', project_id='p', name=name, source='API', timestamp=NOW, environment='default',
-                created_at=NOW, updated_at=NOW)
+def _score(name, value, data_type):
+    """Experiment에 직접 붙은 점수(ScoreV3) JSON. 필수 필드는 OpenAPI의 NumericScoreV3·BooleanScoreV3와 같다."""
+    return {'id': f'score-{name}', 'projectId': 'project-1', 'name': name, 'value': value, 'dataType': data_type, 'source': 'API',
+            'timestamp': ISO, 'environment': 'default', 'createdAt': ISO, 'updatedAt': ISO}
 
 
-def experiment(name, metrics, *, passed=True, id=None) -> Experiment:
-    """끝난 Run은 지표 평균 점수와 passed 점수를 가진다. passed=None이면 아직 끝나지 않은 Run이다."""
-    scores = [_score(ScoreV3_Numeric, metric, value) for metric, value in metrics.items()]
+def experiment(name, metrics, *, passed=True, id=None) -> dict:
+    """GET /api/public/experiments 응답 항목(Experiment) JSON. 끝난 Run은 지표 평균 점수와 passed 점수를 가진다. passed=None이면 아직 끝나지 않은 Run이다."""
+    scores = [_score(metric, value, 'NUMERIC') for metric, value in metrics.items()]
     if passed is not None:
-        scores.append(_score(ScoreV3_Boolean, 'passed', passed))
-    return Experiment(id=id or f'exp-{name}', name=name, start_time=NOW, end_time=NOW, item_count=2, dataset_id='ds-1', scores=scores)
+        scores.append(_score('passed', passed, 'BOOLEAN'))
+    return {'id': id or f'exp-{name}', 'name': name, 'description': None, 'startTime': ISO, 'endTime': ISO, 'itemCount': 2, 'datasetId': DATASET_ID,
+            'scores': scores}
 
 
 class FakeDataset:
@@ -53,7 +60,7 @@ class FakeDataset:
     RUN_ID = 'run-real'  # 서버가 정한 Run id
 
     def __init__(self, items, name='qa.grounding', *, links=True):
-        self.id, self.name, self.items, self.links = 'ds-1', name, items, links
+        self.id, self.name, self.items, self.links = DATASET_ID, name, items, links
         self.experiment, self.runs = None, {}  # runs: 서버에 만들어진 Run 이름 → id
 
     def run_experiment(self, *, name, run_name, description, task, evaluators, max_concurrency, metadata=None):
@@ -85,10 +92,14 @@ def _run(value):
 
 
 class FakeLangfuse:
+    """Langfuse 클라이언트 대역. api는 실제 SDK 클라이언트이고 요청은 _serve가 받는다. lag는 방금 만든 실험이 보이기까지 건너뛸 조회 수(v4는 이벤트를
+    비동기로 수집한다), experiments_status는 Experiments API가 돌려줄 오류 상태(서버가 그 API를 모르면 404)다."""
+
     def __init__(self, dataset, prompts, experiments):
         self.dataset, self.prompts, self.experiments = dataset, prompts, list(experiments)
-        self.scores, self.flushed, self.listed = [], 0, None
-        self.api = SimpleNamespace(experiments=SimpleNamespace(list=self._list))
+        self.scores, self.flushed, self.requests, self.lag, self.experiments_status = [], 0, [], 0, 200
+        self.api = LangfuseAPI(base_url='http://langfuse.test', x_langfuse_sdk_name='python', x_langfuse_sdk_version='4.18.0', username='pk', password='sk',
+                               httpx_client=httpx.Client(transport=httpx.MockTransport(self._serve)))
 
     def get_dataset(self, name, **_):
         if self.dataset is None:
@@ -101,14 +112,28 @@ class FakeLangfuse:
             raise NotFoundError(body='missing')
         return found
 
-    def _list(self, *, from_start_time, **kwargs):  # SDK처럼 시작 시각 하한이 필수다
-        self.listed = kwargs
-        name = kwargs.get('name')
-        found = [e for e in self.experiments if name in (None, e.name)]
-        runs = getattr(self.dataset, 'runs', {})  # 서버에 만들어진 Run은 이름으로 찾을 수 있다
-        if name in runs:
-            found.append(experiment(name, {}, passed=None, id=runs[name]))
-        return SimpleNamespace(data=found)
+    def _serve(self, request: httpx.Request) -> httpx.Response:
+        """실서버(4.78.0 events_only)처럼 GET /api/public/experiments만 답하고 v3 경로(dataset runs 등)는 404다."""
+        if request.method != 'GET' or request.url.path != '/api/public/experiments':
+            return httpx.Response(404, json={'message': 'Not Found'})
+        self.requests.append(request)
+        query = request.url.params
+        if self.experiments_status != 200:
+            return httpx.Response(self.experiments_status, json={'message': '원고 본문 일부'})
+        if 'fromStartTime' not in query or int(query.get('limit', 50)) > 100:  # 시작 시각 하한 필수, 한 쪽 최대 100
+            return httpx.Response(400, json={'message': 'Invalid request'})
+        names = query['name'].split(',') if 'name' in query else None
+        datasets = query['datasetId'].split(',') if 'datasetId' in query else None
+        found = [e for e in self.experiments if (names is None or e['name'] in names) and (datasets is None or e['datasetId'] in datasets)]
+        for name in names or []:  # 서버에 만들어진 Run은 이름으로 찾을 수 있다
+            if name in getattr(self.dataset, 'runs', {}):
+                if self.lag > 0:
+                    self.lag -= 1
+                else:
+                    found.append(experiment(name, {}, passed=None, id=self.dataset.runs[name]))
+        with_scores = 'scores' in query.get('fields', 'core').split(',')
+        data = [e if with_scores else {k: v for k, v in e.items() if k != 'scores'} for e in found[:int(query.get('limit', 50))]]
+        return httpx.Response(200, json={'data': data, 'meta': {}})
 
     def create_score(self, **kwargs):
         self.scores.append(kwargs)
