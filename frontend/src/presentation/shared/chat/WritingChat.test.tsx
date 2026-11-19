@@ -97,7 +97,7 @@ it('저장된 승인 카드는 다시 동의할 위치를 안내하고 체크 �
   renderChat()
 
   const card = within(await screen.findByRole('region', { name: '1화 초안에 반영할까요?' }))
-  const approve = card.getByRole('button', { name: '초안에 반영', exact: true })
+  const approve = card.getByRole('button', { name: /^초안에 반영$/ })
   expect(card.getByText(/입력창 위.*동의/)).toBeTruthy()
   expect(approve).toHaveProperty('disabled', true)
   expect(card.getByRole('button', { name: '반영하지 않기' })).toHaveProperty('disabled', true)
