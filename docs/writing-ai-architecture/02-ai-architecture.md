@@ -112,7 +112,7 @@ flowchart TD
 |---|---|---|
 | Manuscript Review | 원고 | `mechanical`·`semantic`·`both`. 조건부 수정은 이 결과에만 붙는다 |
 | World | 설정집 + 연대기(사건 카드) | `check`·`enrich`·`impact`. 세 작업이 같은 입력(기준 회차 시점 세계관)을 쓴다 |
-| Writing & Editing | 원고 생성 + 플롯(`story_plan`, 계획) | `plan`·`draft`·`patch`. 지금 그대로 |
+| Writing & Editing | 원고와 플롯·장면 계획(`story_plan`) | 현재 `plan`·`draft`·`patch`. [기존 플롯 및 장면 계획 수정](03-rag-simulation-design.md#기존-플롯-및-장면-계획-수정)은 미구현이며 수정안 제안과 작가 승인 후 반영을 포함 |
 | Research | 작품 밖 | `web`·`platform`. 결과는 참고이며 정본이 되지 않는다 |
 | Q&A | 내 작품 질문 | 내 세계관 안 검색도 Q&A가 맡는다 |
 | Rating·Simulation | — | 그대로 |
@@ -127,7 +127,7 @@ flowchart TD
 | | | `platform` | 다른 공개 세계관·설정 카드에서 참고할 설정 검색. 공개 데이터만 쓰므로 외부 전송 동의가 없고, 결과는 출처(세계관·카드)를 단 참고안이며 자동 복사하지 않는다(가져오기는 기존 화면 기능) | 없음 |
 | | | `impact` | 설정·사건을 바꿀 때 영향받는 설정·관계, 사건 카드(연대기), 이미 쓴 회차의 구절(Content MCP `work_context_read`), 계획된 장면(MCP `story_plan_list`)과 충돌 분석(옛 World & Plot, #291). 읽기만 하고 결과로 조건부 수정(`ask_writing(patch, fix)`)을 하지 않는다 | 구현(#291) |
 | `manuscript_review` | `ask_manuscript_review` | `mechanical`·`semantic`·`both` | 원고 검수 | 그대로(#499에서 `review`·`ask_review`에서 바꿈) |
-| `writing_editing` | `ask_writing` | `plan`·`draft`·`patch` | 기획(플롯)·집필·수정 | 그대로 |
+| `writing_editing` | `ask_writing` | `plan`·`draft`·`patch` | 전개 기획·새 원고 집필·기존 원고 수정 | 구현 |
 
 - 경계: World는 설정에서 출발하는 일(카드끼리 검사·보강, 설정 변경이 원고·계획에 주는 영향), Manuscript Review는 원고 검수, Writing은 원고 생성과 플롯, Research는 내 작품 밖(웹·플랫폼의 다른 세계관), Q&A는 내 작품 안의 질문이다. World의 충돌 검사 작업 이름은 Manuscript Review와 겹치지 않게 `check`다.
 - 기능 키 `world_plot`은 없앴고(#546) 미구현으로 판정할 기능이 남지 않는다. `world_review` → `world`는 #546에서 AI·프론트에 반영했다(Content는 값을 그대로 넘겨 변경 없음). `web_research` → `research`는 #545에서 바꾼다(`review` → `manuscript_review`는 #499에서 먼저 바꿨다). 이미지 생성은 이 구조에 넣지 않는다(F-WRT-14 MVP 제외).
@@ -303,7 +303,7 @@ Decision Guard가 `manuscript_review`와 `writing_editing`을 함께 판정하�
 | Manuscript Review | 원고/설정, 검사 종류 | 위치·근거·확정/의심이 있는 Findings | Mechanical·Semantic 또는 둘 다(병렬); Simulation은 사용자가 명시적으로 요청한 경우에만 실행 |
 | World(`check` 설정집 검토·`enrich` 설정 보강·`impact` 변경 영향 분석) | 작품에 연결된 세계관의 기준 회차 시점 카드·관계(소설 연결 없이도 WorldStudio 화면에서 `check` 요청 가능). `impact`는 바꾸려는 설정·사건 | `check`: 카드별 지적(모순·역할 오류·누락·연대기 모순)과 카드 한 칸을 바꿀 수정안. `enrich`: 지정 카드의 본문·인물 문서 보강안. `impact`(옛 World & Plot): 영향 대상(설정·사건·회차 구절·계획된 장면)·판본·근거·충돌 | 원고 검수(Manuscript Review)와 별개. 결과는 저장하지 않는 제안이며 작가가 승인해야 편집 초안에 들어간다. `impact`는 읽기만 하고 `work_context_read`·`story_plan_list`를 읽으며 조건부 수정과 잇지 않는다. Simulation 호출 없음 |
 | Character Simulation Subgraph | 상황, 인물별 허용 지식, 행동 상한, 작가/독자 모드 | 범위가 제한된 가상 기록·임시 상태·장면 요약, 모드별 검토 결과 | 턴마다 행동 → 상태 갱신 → 다음 인물. [모드별 결과](03-rag-simulation-design.md#시뮬레이션-결과와-후속-검수) 참고 |
-| Writing & Editing(플롯 포함) | Content가 확인한 허용 입력과 전개 기획의 앞선 사건·콘티·목표 회차, 새 원고의 계획 **또는** 기존 원고의 고정 구간 | 전개 대안·인사이트·BeatPlan, 새 Text **또는** before/after Patch | 기획·문장·문체 생성에 집중; 기획만 요청하면 원고를 만들지 않음. Retrieval·Simulation 직접 호출 없음. 필요 시 Manuscript Review가 검수 |
+| Writing & Editing | Content가 확인한 기획 문맥·집필 계획·원고 선택 구간 또는 저장된 플롯·장면 계획과 수정 지시 | 전개 대안·BeatPlan, 새 Text, 원고 Patch 또는 플롯·장면 계획 수정안(미구현) | 기획 결과는 저장하지 않는다. 기존 계획 수정안은 작가 승인 후 Content가 반영한다. Retrieval·Simulation 직접 호출 없음 |
 | Research(`web` 웹 조사·`platform` 플랫폼 내부 조사) | `web`: 현실 검증 질문, 작품의 필요한 최소 맥락. `platform`(미구현): 찾을 설정 주제 | `web`: URL·검색 시각·주장별 근거·불확실성. `platform`: 출처 세계관·카드를 단 참고 설정 | 웹·다른 세계관 자료는 작품 정본과 분리, 자동 복사 없음 |
 | Rating | 회차 초안, 저장소의 심의 기준 문서 | 회차별 판별 항목 수준·근거 구절·금지 표현 표시, 코드가 계산한 `adult`·`general`·`needsReview`와 요청 회차 묶음 판정 | 오케스트레이션 단계로 실행. 판정 제안만 하며 등급 적용은 Content. [설계](03-rag-simulation-design.md#5-rating-agent) |
 
