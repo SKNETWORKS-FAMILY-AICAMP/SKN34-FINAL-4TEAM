@@ -2,7 +2,7 @@ import { useState, type KeyboardEvent } from 'react'
 import { useParams } from 'react-router'
 import { hiddenSourceEpisode, isPub } from '../../../../domain/entities/work'
 
-import { Art, CoverOf } from '../../../shared/art'
+import { CoverOf } from '../../../shared/art'
 import { kfmt } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
 import { ContentLoadState } from '../../../shared/ContentLoadState'
@@ -10,7 +10,6 @@ import { Branch, Bubble, Eye, Flag, Heart, Like, Share } from '../../../shared/i
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useWorkViewModel } from '../viewmodel/useWorkViewModel'
-import { Amb } from './Amb'
 import { ReportSheet } from './Sheets'
 import { WorkComments } from './WorkComments'
 import { WorkInfo, serialView } from './WorkInfo'
@@ -60,8 +59,6 @@ export function WorkPage() {
     <>
     <Gnb />
     <div className={`calm calm-${w.theme}`} style={{ minHeight: '100vh' }}>
-      <div className="band"><Art theme={w.theme} w={1200} h={460} seed={w.id + 'band'} /></div>
-      {vm.bandAmb && <Amb t={w.theme} lite band />}
       <main className="wrap" id="main" tabIndex={-1}>
         <section className="whero">
           <div className="cover"><CoverOf w={w} /></div>

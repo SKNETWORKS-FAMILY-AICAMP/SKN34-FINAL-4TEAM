@@ -432,7 +432,6 @@ button.avatar{border:0;cursor:pointer}
 @keyframes rise{from{transform:translateY(0)}to{transform:translateY(-60vh) translateX(24px)}}@keyframes tw2{50%{opacity:.25}}
 .amb.lite .rl{position:absolute;top:-80px;width:1.4px;height:70px;background:linear-gradient(transparent,rgba(60,110,125,.55));transform:rotate(12deg);animation:rainl linear infinite}
 @keyframes rainl{to{transform:translate(-22vh,118vh) rotate(12deg)}}
-.amb.band-amb{position:absolute;height:520px;bottom:auto;z-index:-1;-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
 .seg5 button{font-size:13px;padding:0 4px}
 @media (prefers-reduced-motion:reduce){.amb{display:none}}
 @media (max-width:900px){.arr{display:none}}
