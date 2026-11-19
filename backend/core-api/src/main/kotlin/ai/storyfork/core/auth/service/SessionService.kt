@@ -82,6 +82,20 @@ class SessionService(
         return LoginResult(access(user), user, next)
     }
 
+    /**
+     * refresh 쿠키를 회전·폐기 없이 검증만 하고 회원을 돌려준다(OIDC authorize 로그인 확인용).
+     * 없거나 만료·폐기·이미 사용·이용 제한이면 null이다. 재사용 탐지로 세션을 폐기하는 [refresh]와 달리 아무것도 바꾸지 않는다.
+     */
+    @Transactional(readOnly = true)
+    fun verifyRefreshToken(token: String?): MemberResponse? {
+        val memberId = owner(token) ?: return null
+        val member = members.findById(memberId).orElse(null)?.takeUnless { it.restricted } ?: return null
+        val stored = tokens.findById(secrets.hash(requireNotNull(token))).orElse(null)?.takeUnless { it.used } ?: return null
+        val session = sessions.findById(stored.sessionId).orElse(null) ?: return null
+        if (session.revoked || !session.expiresAt.isAfter(Instant.now())) return null
+        return user(member)
+    }
+
     @Transactional
     fun logout(token: String?, expectedMemberId: UUID? = null): Boolean {
         val memberId = owner(token) ?: return true
