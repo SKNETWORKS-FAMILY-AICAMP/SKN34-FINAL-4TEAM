@@ -28,7 +28,7 @@ export function WorldCardFindings({ vm, cardId, onOpenCard, onApplied }: { vm: V
   const toggle = (id: number) => setOpen((current) => new Set(current.has(id) ? [...current].filter((other) => other !== id) : [...current, id]))
   return (
     <section className="world-findings" aria-label="AI 검토 의견">
-      <h4>AI 검토 의견 <span className="small muted">{vm.review.result.clock} 검토 · 저장하지 않는 참고 의견이에요</span></h4>
+      <h4>AI 검토 의견 <span className="small muted">{vm.review.result.clock} 검토 · 참고 의견이에요</span></h4>
       <ul>
         {list.map(({ id, finding, handled, related, fix, fixIn }) => (
           <li key={id} className="world-finding">

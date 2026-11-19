@@ -8,6 +8,7 @@ import { authVersion, getAccessToken, protectedRequest } from '../api/auth'
 import { csrf } from '../api/csrf'
 import { mapReadingWork } from './readingWork'
 import type { EpisodeWorldBasisChoice } from '../../domain/entities/episodeWorldBasis'
+import type { WritingMode } from '../../domain/entities/operatingSettings'
 import { cardTypes } from '../../domain/entities/studioCards'
 
 const draft = z.object({title:z.string(),body:z.string(),authorNote:z.string().optional(),revision:z.number().int().nonnegative()})
@@ -41,6 +42,13 @@ const readingWork = work.omit({draft:true}).extend({
   likes:z.number().int().nonnegative(),
 })
 const instant = z.iso.datetime({offset:true})
+const settingsVersion = z.object({ revision: z.number().int().positive(), writingMode: z.enum(['direct', 'assisted']), changedAt: instant })
+const unsetSettings = z.object({ revision: z.literal(0), writingMode: z.null(), changedAt: z.null() })
+const operatingSettings = z.object({
+  current: z.union([settingsVersion, unsetSettings]), history: z.array(settingsVersion),
+  worldUpdateMode: z.literal('manual'), proofreadingMode: z.literal('review'), autoserialState: z.literal('off'),
+})
+const operatingSettingsPath = (id: string) => `/works/${encodeURIComponent(id)}/operating-settings`
 /** 기간별 랭킹 응답: items는 공개 작품(방금 업데이트만 updatedAt=마지막 발행 시각)이고 computedAt은 서버가 계산한 시각이다. kind·period·type echo는 쓰지 않는다. */
 const rankingsResponse = z.object({items:z.array(readingWork.extend({updatedAt:instant.nullable().optional()})),computedAt:instant})
 const readingDocument = z.object({id:z.string(),versionId:z.string(),category:z.string(),name:z.string(),body:z.string(),
@@ -113,6 +121,12 @@ export class HttpEpisodeRepository implements EpisodeRepository, WorkSearchRepos
   deleteDraft(id:string,number:number,revision:number,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/draft?revision=${revision}`,z.undefined(),'DELETE',undefined,signal)}
   deleteEpisode(id:string,number:number,revision:number,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}?revision=${revision}`,z.undefined(),'DELETE',undefined,signal)}
   writingList(id:string,signal?:AbortSignal) {return this.request(`/works/${id}/episodes`,z.array(writing),'GET',undefined,signal)}
+  workSettings(id: string, signal?: AbortSignal) {
+    return this.request(operatingSettingsPath(id), operatingSettings, 'GET', undefined, signal)
+  }
+  updateWorkSettings(id: string, revision: number, writingMode: WritingMode, signal?: AbortSignal) {
+    return this.request(operatingSettingsPath(id), operatingSettings, 'PUT', { revision, writingMode }, signal)
+  }
   createEpisode(id:string,title:string,signal?:AbortSignal) {return this.request(`/works/${id}/episodes`,writing,'POST',{title},signal)}
   writeEpisode(id:string,number:number,value:Draft,version:boolean,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/${version?'versions':'draft'}`,writing,version?'POST':'PUT',value,signal)}
   restoreEpisode(id:string,number:number,revision:number,versionId:string,signal?:AbortSignal) {return this.request(`/works/${id}/episodes/${number}/restore`,writing,'POST',{revision,versionId},signal)}

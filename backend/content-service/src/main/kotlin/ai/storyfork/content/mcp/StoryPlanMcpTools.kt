@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
  * 모두 소유자 전용이라 호출자는 `context.requireCaller()`로만 얻는다. 계약: docs/design/content-mcp-contract.md
  */
 @Component
-class StoryPlanMcpTools(private val service: StoryPlanService) {
+class StoryPlanMcpTools(private val service: StoryPlanService, private val changeNotice: McpChangeNotice) {
     @McpTool(
         name = "story_plan_list",
         description = "작품의 플롯·장면 계획 목록(GET /api/v1/works/{workId}/story-plans). 소유자만 읽을 수 있고 타인 작품은 404다.",
@@ -42,7 +42,7 @@ class StoryPlanMcpTools(private val service: StoryPlanService) {
         context: McpTransportContext,
         @McpToolParam(description = "작품 ID") workId: String,
         @McpToolParam(description = PLAN_INPUT) data: StoryPlanRequest,
-    ): StoryPlanResponse = mcpTool { service.create(workId, context.requireCaller().memberId, data.validated()) }
+    ): StoryPlanResponse = mcpTool { service.create(workId, context.requireCaller().memberId, data.validated()).also { changeNotice.work(context, workId) } }
 
     @McpTool(
         name = "story_plan_update",
@@ -53,7 +53,7 @@ class StoryPlanMcpTools(private val service: StoryPlanService) {
         @McpToolParam(description = "작품 ID") workId: String,
         @McpToolParam(description = "계획 ID") id: String,
         @McpToolParam(description = PLAN_INPUT) data: StoryPlanRequest,
-    ): StoryPlanResponse = mcpTool { service.update(workId, context.requireCaller().memberId, id, data.validated()) }
+    ): StoryPlanResponse = mcpTool { service.update(workId, context.requireCaller().memberId, id, data.validated()).also { changeNotice.work(context, workId) } }
 
     @McpTool(
         name = "story_plan_delete",
@@ -64,7 +64,7 @@ class StoryPlanMcpTools(private val service: StoryPlanService) {
         @McpToolParam(description = "작품 ID") workId: String,
         @McpToolParam(description = "계획 ID") id: String,
         @McpToolParam(description = "읽은 계획의 revision") revision: Int,
-    ) = mcpTool { service.delete(workId, context.requireCaller().memberId, id, revision) }
+    ) = mcpTool { service.delete(workId, context.requireCaller().memberId, id, revision).also { changeNotice.work(context, workId) } }
 }
 
 private const val PLAN_INPUT =

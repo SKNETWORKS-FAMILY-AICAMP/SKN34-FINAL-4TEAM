@@ -39,6 +39,7 @@ class EpisodeMcpTools(
     private val publication: PublicationService,
     private val schedules: PublicationScheduleService,
     private val works: WorkService,
+    private val changeNotice: McpChangeNotice,
 ) {
     @McpTool(
         name = "episode_list",
@@ -58,7 +59,7 @@ class EpisodeMcpTools(
         context: McpTransportContext,
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "새 회차 입력: title(1~120자)") data: CreateEpisodeRequest,
-    ): EpisodeResponse = mcpTool { episodes.create(id, context.requireCaller().memberId, data.validated()) }
+    ): EpisodeResponse = mcpTool { episodes.create(id, context.requireCaller().memberId, data.validated()).also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "episode_read",
@@ -80,7 +81,7 @@ class EpisodeMcpTools(
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "회차 번호(1부터)") number: Int,
         @McpToolParam(description = "초안 입력: title(1~120자)·body(40,000자 이하)·revision(읽은 draft.revision)·authorNote(2,000자 이하, 선택)") data: DraftRequest,
-    ): EpisodeResponse = mcpTool { episodes.update(id, context.requireCaller().memberId, number, data.validated()) }
+    ): EpisodeResponse = mcpTool { episodes.update(id, context.requireCaller().memberId, number, data.validated()).also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "episode_order_scope",
@@ -102,7 +103,7 @@ class EpisodeMcpTools(
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "회차 번호(1부터)") number: Int,
         @McpToolParam(description = "지울 초안의 수정 번호(읽은 draft.revision)") revision: Int,
-    ) = mcpTool { episodes.deleteDraft(id, context.requireCaller().memberId, number, revision) }
+    ) = mcpTool { episodes.deleteDraft(id, context.requireCaller().memberId, number, revision).also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "episode_delete",
@@ -113,7 +114,7 @@ class EpisodeMcpTools(
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "회차 번호(1부터)") number: Int,
         @McpToolParam(description = "삭제할 회차의 수정 번호(읽은 draft.revision)") revision: Int,
-    ) = mcpTool { episodes.deleteEpisode(id, context.requireCaller().memberId, number, revision) }
+    ) = mcpTool { episodes.deleteEpisode(id, context.requireCaller().memberId, number, revision).also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "episode_world_basis_read",
@@ -135,7 +136,7 @@ class EpisodeMcpTools(
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "회차 번호(1부터)") number: Int,
         @McpToolParam(description = "기준 입력: worldId(세계관 UUID)·revisionId(확정 버전 UUID)·revision(읽은 수정 번호)") data: EpisodeWorldBasisRequest,
-    ): EpisodeWorldBasisResponse = mcpTool { worldBasis.choose(id, UUID.fromString(context.requireCaller().memberId), number, data.validated()) }
+    ): EpisodeWorldBasisResponse = mcpTool { worldBasis.choose(id, UUID.fromString(context.requireCaller().memberId), number, data.validated()).also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "episode_version_save",
@@ -146,7 +147,7 @@ class EpisodeMcpTools(
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "회차 번호(1부터)") number: Int,
         @McpToolParam(description = "저장할 원고: title(1~120자)·body(40,000자 이하)·revision(읽은 draft.revision)·authorNote(2,000자 이하, 선택)") data: DraftRequest,
-    ): EpisodeResponse = mcpTool { versions.save(id, context.requireCaller().memberId, number, data.validated()) }
+    ): EpisodeResponse = mcpTool { versions.save(id, context.requireCaller().memberId, number, data.validated()).also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "episode_version_restore",
@@ -157,7 +158,7 @@ class EpisodeMcpTools(
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "회차 번호(1부터)") number: Int,
         @McpToolParam(description = "복원 입력: versionId(저장 버전 ID)·revision(읽은 draft.revision)") data: RevertRequest,
-    ): EpisodeResponse = mcpTool { versions.restore(id, context.requireCaller().memberId, number, data.validated()) }
+    ): EpisodeResponse = mcpTool { versions.restore(id, context.requireCaller().memberId, number, data.validated()).also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "episode_save_current_draft",
@@ -167,7 +168,7 @@ class EpisodeMcpTools(
         context: McpTransportContext,
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "저장할 원고: title(1~120자)·body(40,000자 이하)·revision(작품 revision)·authorNote(2,000자 이하, 선택)") data: DraftRequest,
-    ): DraftResponse = mcpTool { versions.saveCurrent(id, context.requireCaller().memberId, data.validated()).draft }
+    ): DraftResponse = mcpTool { versions.saveCurrent(id, context.requireCaller().memberId, data.validated()).draft.also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "episode_publish",
@@ -178,7 +179,7 @@ class EpisodeMcpTools(
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "회차 번호(1부터)") number: Int,
         @McpToolParam(description = "발행 입력: versionId(발행할 저장 버전 ID)·revision(읽은 draft.revision)·rightsConfirmed(권리 확인)") data: PublishRequest,
-    ): EpisodeResponse = mcpTool { publication.publishEpisode(id, context.requireCaller().memberId, number, data.validated()) }
+    ): EpisodeResponse = mcpTool { publication.publishEpisode(id, context.requireCaller().memberId, number, data.validated()).also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "episode_update_visibility",
@@ -189,7 +190,7 @@ class EpisodeMcpTools(
         @McpToolParam(description = "작품 ID") id: String,
         @McpToolParam(description = "회차 번호(1부터)") number: Int,
         @McpToolParam(description = "공개 상태 입력: visible(true=재공개, false=중단)·revision(읽은 draft.revision)·rightsConfirmed(재공개 때 필수)") data: PublicationVisibilityRequest,
-    ): EpisodeResponse = mcpTool { publication.visibility(id, context.requireCaller().memberId, number, data.validated()) }
+    ): EpisodeResponse = mcpTool { publication.visibility(id, context.requireCaller().memberId, number, data.validated()).also { changeNotice.work(context, id) } }
 
     @McpTool(
         name = "episode_publish_current",
@@ -202,7 +203,7 @@ class EpisodeMcpTools(
     ): WorkResponse = mcpTool {
         val memberId = context.requireCaller().memberId
         publication.publishCurrent(id, memberId, data.validated())
-        works.read(id, memberId)
+        works.read(id, memberId).also { changeNotice.work(context, id) }
     }
 
     @McpTool(

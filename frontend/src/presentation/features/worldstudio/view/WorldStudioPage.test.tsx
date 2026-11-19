@@ -9,7 +9,7 @@ import { createAppStore } from '../../../../app/store'
 import type { Work } from '../../../../domain/entities/content'
 import type { PublicWorld, PublicWorldSummary } from '../../../../domain/entities/publicWorld'
 import { putRelation, relationLabel } from '../../../../domain/entities/studioRelations'
-import type { ReviewFinding, WorldReview } from '../../../../domain/entities/worldReview'
+import type { ReviewBasis, ReviewFinding, WorldReview } from '../../../../domain/entities/worldReview'
 import { type CharacterDocs, newSetting, type StudioSetting, type StudioWorld, type WorldPublication, type WorldPublicationInput, type WorldRevision, type WorldRevisionSummary } from '../../../../domain/entities/studioWorld'
 import type { WorldStudioRepository } from '../../../../domain/repositories/WorldStudioRepository'
 import { WorldReviewUseCase } from '../../../../domain/usecases/WorldReviewUseCase'
@@ -20,8 +20,13 @@ import type { useWorldRevisions } from '../viewmodel/useWorldRevisions'
 import { WorldStudioPage } from './WorldStudioPage'
 
 let useCase: WorldStudioUseCase
-/** 설정집 AI 검토 UseCase. 비워 두면 운영 컨테이너의 것(서버 호출)이고, `null`은 서버 기능이 없는 데모다. */
+/**
+ * 설정집 AI 검토 UseCase. 기본(`beforeEach`)은 서버가 저장한 마지막 검토가 아직 없는 세계관(`latest`가 null)이라 화면이 서버를 부르지 않고, 검토를 요청하는 테스트는 `reviewing`이 갈아 끼운다.
+ * `null`은 서버 기능이 없는 데모다. 세계관을 열 때 마지막 검토를 읽으므로(#555) 운영 컨테이너의 것을 그대로 두면 테스트마다 서버 호출을 시도한다.
+ */
 let reviewCase: WorldReviewUseCase | null | undefined
+/** `mount`가 연 세계관의 저장본 설정. 서버가 검토 응답의 기준(basis)을 저장한 초안에서 만드는 것처럼 `reviewOf`가 같은 초안으로 기준을 만든다. */
+let savedRows: StudioSetting[] = []
 vi.mock('../viewmodel/useWorldStudioViewModel', async (original) => {
   const actual = await original<typeof import('../viewmodel/useWorldStudioViewModel')>()
   return { useWorldStudioViewModel: () => actual.useWorldStudioViewModel(useCase, reviewCase) }
@@ -35,6 +40,10 @@ let revisions: Revisions
 vi.mock('../viewmodel/useWorldRevisions', () => ({ useWorldRevisions: () => revisions }))
 // 카드 설명 편집기(Toast UI Editor)는 jsdom에서 입력을 흉내 낼 수 없어 같은 값 전달만 하는 textarea 대역을 쓴다.
 vi.mock('../../../shared/LazyMarkdownEditor', () => import('../../../../test/markdownEditorFake'))
+// AI·외부 도구(MCP) 변경 감시(#553)는 훅 자체의 테스트(useMcpChangeWatch.test)가 확인하고, 여기서는 이 화면이 넘기는 값·배너 연결·다시 읽은 뒤의 편집기만 본다.
+const mcp = vi.hoisted(() => ({ stale: false, reload: vi.fn(), watch: vi.fn() }))
+vi.mock('../../../shared/useMcpChangeWatch', () => ({ useMcpChangeWatch: (...args: unknown[]) => { mcp.watch(...args); return { stale: mcp.stale, reload: mcp.reload } } }))
+afterEach(() => { mcp.stale = false; mcp.watch.mockClear(); mcp.reload.mockClear() })
 const noRevisions = (): Revisions => ({
   rows: [], detail: null, busy: false, error: '', message: '', pending: false, aiPending: false, superseded: null, supported: true,
   open: vi.fn(async () => undefined), refresh: vi.fn(async () => undefined), confirm: vi.fn(async () => undefined), acknowledgeSuperseded: vi.fn(async () => undefined), restore: vi.fn(async () => undefined),
@@ -49,6 +58,7 @@ const revisionDetail = (revisionNo: number, name: string): WorldRevision => ({
 const objectUrls = { created: 0, createObjectURL: vi.fn(), revokeObjectURL: vi.fn() }
 beforeEach(() => {
   revisions = noRevisions()
+  reviewCase = new WorldReviewUseCase({ review: vi.fn(async () => { throw new Error('이 테스트는 설정집 검토를 요청하지 않아요.') }), latest: vi.fn(async () => null) })
   objectUrls.created = 0
   objectUrls.createObjectURL = vi.fn(() => `blob:cover-${++objectUrls.created}`)
   objectUrls.revokeObjectURL = vi.fn()
@@ -121,6 +131,7 @@ const browserBack = () => fireEvent.click(screen.getByTestId('history-back'))
 
 /** 화면을 연다(제목은 기다리지 않는다). 기본 세계관은 저장한 적 있는 버전 1이다. */
 function mount(settings: StudioSetting[] = [person('가람', '기존 내용')], path: string | string[] = '/worldstudio/qa', fixture: Fixture = {}) {
+  savedRows = settings
   const entries = Array.isArray(path) ? path : [path]
   const world: StudioWorld = { id: 'qa', name: '검증 세계', description: '설명', version: fixture.version ?? 1, settings, analysis: null, visibility: fixture.visibility, genre: fixture.genre, currentRevisionId: fixture.currentRevisionId, hasCover: fixture.hasCover, linkedWorkId: fixture.linkedWorkId }
   const create = vi.fn(async (_name: string, _description: string, _signal?: AbortSignal): Promise<StudioWorld> => ({ ...structuredClone(world), id: 'created' }))
@@ -3005,15 +3016,28 @@ it('하단 바의 삭제 버튼은 카드 삭제라고 적혀 있어, 문서 글
 
 // ── 설정집 AI 검토(#394): 시트의 설정집 검토 요청 · 게시판 상태 칸 · 편집 화면의 지적과 수정안 ─────────────────────────────────────
 const finding = (cardIds: string[], over: Partial<ReviewFinding> = {}): ReviewFinding => ({ cardIds, kind: 'contradiction', message: `${cardIds.length}장에 걸친 지적이에요.`, ...over })
-const reviewOf = (findings: ReviewFinding[], over: Partial<WorldReview> = {}): WorldReview => ({ reviewedCards: 3, totalCards: 3, findings, ...over })
-/** 검토 요청 대역. 호출은 (세계관 id, 취소 신호)로 기록되고 결과는 만든 쪽이 정한다(약속을 주면 끝나는 때도 정한다). */
-const reviewing = (result: WorldReview | Error | Promise<WorldReview> = reviewOf([])) => {
+/** 서버가 검토 응답에 싣는 기준: 수정안이 가리킨 카드마다 검토한 초안(저장본)의 그 카드 글. */
+const basisOfFixes = (findings: ReviewFinding[]): ReviewBasis => Object.fromEntries(findings.flatMap(({ fix }) => {
+  const row = savedRows.find((s) => s.item.id === fix?.cardId)
+  return row ? [[row.item.id, { body: row.item.text, ...(row.characterDocs && { characterDocs: row.characterDocs }) }]] : []
+}))
+const reviewOf = (findings: ReviewFinding[], over: Partial<WorldReview> = {}): WorldReview =>
+  ({ reviewedCards: 3, totalCards: 3, findings, reviewedAt: new Date(2026, 10, 19, 9, 5), basis: basisOfFixes(findings), ...over })
+/**
+ * 검토 요청 대역. 호출은 (세계관 id, 취소 신호)로 기록되고 결과는 만든 쪽이 정한다(약속을 주면 끝나는 때도 정한다).
+ * `last`는 서버가 저장한 마지막 검토(세계관을 열 때 읽는다, #555): 기본은 없음(404 → null)이고 Error면 읽기 실패다. 읽기 대역은 `review.latest`다.
+ */
+const reviewing = (result: WorldReview | Error | Promise<WorldReview> = reviewOf([]), last: WorldReview | Error | null = null) => {
   const review = vi.fn(async (_world: string, _signal?: AbortSignal): Promise<WorldReview> => {
     if (result instanceof Error) throw result
     return result
   })
-  reviewCase = new WorldReviewUseCase({ review })
-  return review
+  const latest = vi.fn(async (_world: string, _signal?: AbortSignal): Promise<WorldReview | null> => {
+    if (last instanceof Error) throw last
+    return last
+  })
+  reviewCase = new WorldReviewUseCase({ review, latest })
+  return Object.assign(review, { latest })
 }
 const objectCard = (title: string): StudioSetting => {
   const row = newSetting()
@@ -3161,6 +3185,7 @@ it('데모(서버 기능 없음)에서는 설정집 검토를 지원하지 않�
   expect(ask.getByText('데모에서는 지원하지 않아요.')).toBeTruthy()
   expect(ask.getByRole<HTMLButtonElement>('button', { name: '설정집 검토 요청' }).disabled).toBe(true)
   expect(ask.getByRole<HTMLInputElement>('checkbox', { name: /OpenAI로 보내고/ }).disabled).toBe(true)
+  expect(ask.queryByRole('alert')).toBeNull() // 데모는 마지막 검토를 읽지 않아 '불러오지 못했어요'도 없다(#555)
 })
 
 it('설정집 게시판은 사건·사물 카드가 인물과 승인된 관계로 이어지지 않으면 연결 필요를 보이고, 관계를 이으면 사라진다', async () => {
@@ -3324,6 +3349,76 @@ it('지적이 없는 카드의 편집 화면에는 AI 검토 의견 절이 없�
 })
 
 // ── 설정 카드 대표 이미지(#401): 편집 화면 제목 줄에서 올리고 바꾸고 빼며, 게시판·레일은 작은 썸네일(소유자 이미지는 인증 읽기 → 객체 주소) ───
+// ── 마지막 검토 읽기(#555): 서버가 저장한 마지막 검토를 세계관을 열 때 읽어 검토 직후와 같은 상태로 채운다 ───────────────────────────
+it('세계관을 열면 서버가 저장한 마지막 검토를 읽어, 요청 없이도 버튼 이름·게시판·시트 요약·편집 화면에 검토 직후와 같이 보인다', async () => {
+  const filled = { soul: '성격', goal: '목표' }
+  const [garam, harbor] = [withDocs(person('가람', '기존 내용'), filled), place('항구')]
+  const stored = reviewOf(
+    [finding([garam.item.id], { kind: 'doc_role', message: '본문이 짧아요.', fix: { cardId: garam.item.id, target: 'body', text: '새 본문' } }), finding([harbor.item.id])],
+    { reviewedCards: 2, totalCards: 2, reviewedAt: new Date(2026, 10, 18, 22, 7), basis: { [garam.item.id]: { body: '기존 내용' } } },
+  )
+  const review = reviewing(undefined, stored)
+  await show([garam, harbor])
+  expect(await screen.findByRole('button', { name: 'AI 검토 · 의견 2' })).toBeTruthy()
+  expect(review.latest).toHaveBeenCalledOnce()
+  expect(review.latest.mock.calls[0][0]).toBe('qa')
+  expect(review).not.toHaveBeenCalled() // 읽기만 하고 새로 검토하지 않는다
+  expect(['가람', '항구'].map(todos)).toEqual([['AI 의견 1'], ['AI 의견 1']])
+  fireEvent.click(screen.getByRole('button', { name: /^AI 검토/ }))
+  const ask = askSection()
+  expect(ask.getByText('AI 의견 2건 · 카드 2장 · 22:07 검토').getAttribute('role')).toBe('status') // 시각은 서버가 저장한 검토 시각이다
+  expect(ask.getByRole('button', { name: '다시 검토 요청' })).toBeTruthy()
+  expect(ask.queryByRole('alert')).toBeNull()
+  fireEvent.click(aiSheet().getByRole('button', { name: '닫기' }))
+  openCard('가람 인물')
+  expect(findings().getByText('본문이 짧아요.')).toBeTruthy()
+  expect(findings().getByText(/22:07 검토/)).toBeTruthy()
+  fireEvent.click(findings().getByRole('button', { name: '수정안 보기' }))
+  expect(findings().getByRole<HTMLButtonElement>('button', { name: '초안에 반영' }).disabled).toBe(false) // 기준과 지금 글이 같다
+})
+
+it('마지막 검토를 읽지 못하면(404 외) 시트에 지난 검토 결과를 불러오지 못했어요 알림만 보이고, 화면은 그대로 쓸 수 있으며 새 검토가 성공하면 알림이 사라진다', async () => {
+  const review = reviewing(reviewOf([]), new Error('서버가 응답하지 않아요.'))
+  await showWorld()
+  fireEvent.click(screen.getByRole('button', { name: 'AI 검토' })) // 읽지 못했으니 의견 수는 없다
+  const ask = askSection()
+  expect((await ask.findByRole('alert')).textContent).toBe('지난 검토 결과를 불러오지 못했어요') // 서버가 준 문구는 쓰지 않는다
+  expect(ask.queryByText(SUMMARY)).toBeNull()
+  expect(boardTable()).toBeTruthy() // 게시판은 그대로 쓸 수 있다
+  agree(ask)
+  const send = ask.getByRole<HTMLButtonElement>('button', { name: '설정집 검토 요청' })
+  expect(send.disabled).toBe(false) // 새 검토 요청도 막지 않는다
+  fireEvent.click(send)
+  await ask.findByText(SUMMARY)
+  expect(ask.queryByRole('alert')).toBeNull()
+  expect(review).toHaveBeenCalledOnce()
+})
+
+it('새로 고친 뒤에도 잠금은 응답의 기준으로 계산한다: 지금 글이 기준과 다르면 검토 뒤 바뀐 설정이라 반영할 수 없다고 알리고 반영을 잠근다', async () => {
+  const garam = withDocs(person('가람', '서버에서 바뀐 본문'), { soul: '성격', goal: '목표' })
+  const stored = reviewOf([finding([garam.item.id], { fix: { cardId: garam.item.id, target: 'body', text: '수정안 본문' } })], { basis: { [garam.item.id]: { body: '검토 때의 본문' } } })
+  reviewing(undefined, stored)
+  await show([garam])
+  await screen.findByRole('button', { name: 'AI 검토 · 의견 1' })
+  openCard('가람 인물')
+  fireEvent.click(findings().getByRole('button', { name: '수정안 보기' }))
+  const apply = findings().getByRole<HTMLButtonElement>('button', { name: '초안에 반영' })
+  expect(apply.disabled).toBe(true)
+  expect(apply.getAttribute('aria-describedby')).toBe(findings().getByText('검토 뒤 바뀐 설정이라 반영할 수 없어요').id)
+  expect(within(findings().getByRole('region', { name: '지금 글' })).getByText('서버에서 바뀐 본문')).toBeTruthy()
+})
+
+it('지금 초안에 없는 카드의 지적은 버튼 이름의 의견 수·게시판·시트 요약에 보이지 않는다', async () => {
+  const garam = withDocs(person('가람', '본문'), { soul: '성격', goal: '목표' })
+  const stored = reviewOf([finding([garam.item.id]), finding([crypto.randomUUID()]), finding([crypto.randomUUID(), garam.item.id])])
+  reviewing(undefined, stored)
+  await show([garam])
+  expect(await screen.findByRole('button', { name: 'AI 검토 · 의견 2' })).toBeTruthy() // 3건 중 지금 초안에 남은 카드를 가리킨 2건
+  expect(todos('가람')).toEqual(['AI 의견 2'])
+  fireEvent.click(screen.getByRole('button', { name: /^AI 검토/ }))
+  expect(askSection().getByText(/^AI 의견 2건 · 카드 3장 · /)).toBeTruthy()
+})
+
 const withImage = (row: StudioSetting, imageId = CARD_IMAGE): StudioSetting => ({ ...row, imageId })
 const imageGroup = () => within(screen.getByRole('group', { name: '대표 이미지' }))
 const imageInput = (label = '이미지 추가') => imageGroup().getByLabelText<HTMLInputElement>(label)
@@ -3597,4 +3692,37 @@ it('관계 문구의 공개 순서 확인은 두 설정이 공개되는 회차�
     '관계 ‘약속’의 글에 ‘검은 옷의 사내’이(가) 나와요. 검은 옷의 사내 카드는 작가 전용인데 이 글은 2화부터 독자에게 보여요.',
   ])
   expect(editor().queryByText(/알 수 없어요/)).toBeNull() // 관계를 처음 기록한 회차를 모른다는 단서는 더 이상 붙지 않는다
+})
+
+// ── #553 AI·외부 도구(MCP) 변경 감시 연결 ──
+it('AI·외부 도구 변경 감시에 열린 세계관 id와 저장하지 않은 변경 여부, 다시 읽기를 넘긴다', async () => {
+  await show()
+  expect(mcp.watch).toHaveBeenLastCalledWith({ targetType: 'world', targetId: 'qa', dirty: false, reload: expect.any(Function) })
+  fireEvent.click(screen.getByRole('button', { name: '집필 메모 추가' })) // 초안에 메모를 더하고 편집 화면을 연다
+  expect(mcp.watch).toHaveBeenLastCalledWith({ targetType: 'world', targetId: 'qa', dirty: true, reload: expect.any(Function) })
+})
+
+it.each([false, true])('다른 곳에서 바뀌었다는 배너는 설정집 화면과 설정 편집 화면(%s)에 보이고, 다시 불러오기를 누르면 감시 훅의 reload를 부른다', async (editing) => {
+  mcp.stale = true
+  await show()
+  if (editing) openCard('가람 인물')
+  const banner = screen.getByText('다른 곳에서 바뀌었어요').closest('[role="status"]') as HTMLElement
+  expect(!!banner.closest('.world-card-studio')).toBe(editing)
+  fireEvent.click(within(banner).getByRole('button', { name: '다시 불러오기' }))
+  expect(mcp.reload).toHaveBeenCalledTimes(1)
+})
+
+it('다른 곳에서 바뀐 세계관을 다시 읽으면 열어 둔 카드 편집기가 서버의 새 글로 다시 열리고 저장하지 않은 입력은 버려진다', async () => {
+  const garam = person('가람', '기존 내용')
+  let served = '기존 내용'
+  const read = async (): Promise<StudioWorld> => ({ id: 'qa', name: '검증 세계', description: '설명', version: 1, settings: [{ ...structuredClone(garam), item: { ...garam.item, text: served } }], analysis: null })
+  await show([garam], '/worldstudio/qa', { read })
+  openCard('가람 인물')
+  fireEvent.change(body(), { target: { value: '저장하지 않은 입력' } })
+  expect(mcp.watch).toHaveBeenLastCalledWith(expect.objectContaining({ dirty: true }))
+  served = '다른 곳에서 바뀐 글'
+  const { reload } = mcp.watch.mock.lastCall![0] as { reload: () => Promise<boolean> }
+  await act(async () => { expect(await reload()).toBe(true) })
+  expect(body().value).toBe('다른 곳에서 바뀐 글')
+  expect(mcp.watch).toHaveBeenLastCalledWith(expect.objectContaining({ dirty: false }))
 })

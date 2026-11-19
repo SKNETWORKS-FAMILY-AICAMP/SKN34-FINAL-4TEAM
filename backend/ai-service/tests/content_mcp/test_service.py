@@ -128,3 +128,177 @@ def test_inherited_world_with_unreadable_relations_or_a_bad_reply_fails_instead_
     with pytest.raises(ContentMcpFailure) as error:
         service.inherited_world('fork', 4)
     assert error.value.status in (502, 503)
+
+
+# --- apply_world: 작가가 승인한 설정 보강 제안을 세계관 초안의 그 칸에만 반영한다 ---------------------------------------------------
+
+WORLD_ID = '00000000-0000-0000-0000-0000000000a1'
+KAEL, WAR, RULE = 'card-kael', 'card-war', 'card-rule'
+REL = {'id': 'rel-1', 'sourceCardId': KAEL, 'targetCardId': WAR, 'category': 'structural', 'body': '긴 설명', 'label': '겪음', 'direction': 'directed',
+       'polarity': 'asserted', 'semanticMetadata': {}, 'lifecycle': 'active'}
+def screen_card(card):
+    """화면에서 만든 카드: semanticMetadata.studio.item이 카드와 같은 id·제목·본문·영역을 가진다. 프런트(HttpWorldStudioRepository.world())는 이 사본이
+    본문(item.text)·제목·영역·분류·태그·별칭과 어긋나면 세계관 전체를 읽지 못한다."""
+    item = {'id': card['id'], 'kind': 'entity', 'title': card['title'], 'text': card['body'], 'category': card['areaCode'], 'topics': [],
+            'entityType': card['cardType'], 'subjectId': None, 'targetId': None, 'predicate': None, 'polarity': 'asserted', 'relatedIds': [],
+            'condition': '', 'timeText': '', 'afterId': None, 'orderEvidence': [], 'evidence': [], 'origin': 'author_input', 'authorText': card['body'],
+            'decision': 'approved'}
+    studio = {'templateOrder': 1, 'userCategory': card['classification'], 'tags': card['tags'], 'aliases': card['aliases'], 'item': item}
+    return {**card, 'semanticMetadata': {**card['semanticMetadata'], 'studio': studio}}
+
+
+KAEL_CARD = screen_card({'id': KAEL, 'title': '카엘', 'body': '북문을 지키는 기사', 'cardType': 'character', 'areaCode': 'society', 'classification': '기사단',
+                         'aliases': ['북문의 기사'], 'tags': ['주인공'], 'visibility': 'public', 'lifecycle': 'active',
+                         'semanticMetadata': {'revealFromEpisode': 2, 'imageId': 'img-1',
+                                              'characterDocs': {'soul': '말이 짧다', 'goal': '북문을 지킨다', 'episodes': {'0': '시작 전', '3': '편지를 받았다'}}}})
+WAR_CARD = screen_card({'id': WAR, 'title': '북방 전쟁', 'body': '10년 전 일어난 전쟁', 'cardType': 'event', 'areaCode': 'history', 'classification': '',
+                        'aliases': [], 'tags': [], 'visibility': 'private', 'lifecycle': 'active', 'semanticMetadata': {'revealFromEpisode': 1}})
+# 옛 Seeder 카드는 정본 필드만 저장해 메타데이터가 비어 있다(studio 없음).
+RULE_CARD = {'id': RULE, 'title': '달의 규칙', 'body': '달이 둘이다', 'cardType': 'rule', 'areaCode': 'special', 'classification': '', 'aliases': [], 'tags': [],
+             'visibility': 'private', 'lifecycle': 'active', 'semanticMetadata': {}}
+GONE_CARD = {**RULE_CARD, 'id': 'card-gone', 'lifecycle': 'removed'}
+# 6-B로 반영한 AI 후보 카드의 부분 studio: item에 text가 없고(엄격 스키마) preprocessing이 따라온다. 여기에 text를 더하면 프런트가 읽지 못한다.
+PARTIAL_CARD = {**WAR_CARD, 'id': 'card-partial', 'semanticMetadata': {
+    'studio': {'item': {'id': 'card-partial', 'kind': 'note', 'subjectId': None, 'relatedIds': []}}, 'preprocessing': {'semanticType': 'event'}}}
+
+
+def world_read(revision=7, cards=(KAEL_CARD, WAR_CARD, RULE_CARD, GONE_CARD)):
+    """`world_studio_read`의 응답(WorldDraftResponse). 관계는 최신 회차 시점이다."""
+    return False, json.dumps({'worldId': WORLD_ID, 'draftRevision': revision, 'name': '달빛 세계', 'description': '달이 둘인 대륙', 'cards': list(cards),
+                              'relationships': [REL], 'relationshipEpisodes': {'rel-1': 3}, 'visibility': 'private'})
+
+
+def world_saved(revision=8):
+    return False, json.dumps({'worldId': WORLD_ID, 'draftRevision': revision, 'name': '달빛 세계', 'cards': [], 'relationships': []})
+
+
+def fix_of(target='soul', text='새 글', card_id=KAEL, episode=None):
+    return {'cardId': card_id, 'cardTitle': '제목', 'target': target, 'episode': episode, 'text': text}
+
+
+def edited(monkeypatch, fixes, read=None):
+    """apply_world를 실행하고 (결과, Content 호출 목록)을 돌려준다. edit_draft의 요청 본문은 calls[1][3]['request']다."""
+    calls = content(monkeypatch, {'world_studio_read': read or world_read(), 'world_studio_edit_draft': world_saved()})
+    return service.apply_world(WORLD_ID, 7, fixes), calls
+
+
+def sent_card(calls, card_id=KAEL):
+    [card] = [c for c in calls[1][3]['request']['cards'] if c['id'] == card_id]
+    return card
+
+
+@pytest.mark.parametrize('target, episode, path', [('soul', None, ('soul',)), ('goal', None, ('goal',)), ('episode', 3, ('episodes', '3')),
+                                                   ('episode', 12, ('episodes', '12'))])  # 이미 있는 회차 문서와 아직 없는 회차 문서
+def test_apply_world_changes_only_the_one_cell_of_the_character_documents(monkeypatch, target, episode, path):
+    result, calls = edited(monkeypatch, [fix_of(target=target, episode=episode, text='새 글')])
+
+    sent = sent_card(calls)
+    expected = json.loads(json.dumps(KAEL_CARD))
+    cell = expected['semanticMetadata']['characterDocs']
+    for key in path[:-1]:
+        cell = cell[key]
+    cell[path[-1]] = '새 글'
+    # 칸 하나만 바뀌고 제목·별칭·태그·공개 범위·분류·읽은 메타데이터(revealFromEpisode·imageId·studio)는 읽은 그대로 돌려보낸다.
+    # 인물 문서는 최상위 characterDocs에만 있고 studio.item 안에 사본이 없어(프런트 metadataOf·studio 스키마) studio는 맞출 것이 없다.
+    assert sent == expected
+    assert result == {'worldId': WORLD_ID, 'revision': 8}
+
+
+@pytest.mark.parametrize('card', [KAEL_CARD, WAR_CARD], ids=['character', 'event'])
+def test_apply_world_body_fix_rewrites_the_screens_copy_of_the_body_too_so_the_frontend_can_still_read_the_world(monkeypatch, card):
+    _, calls = edited(monkeypatch, [fix_of(target='body', card_id=card['id'], text='새 글')])
+
+    # 프런트는 studio.item.text !== body이면 세계관 전체를 거절한다(HttpWorldStudioRepository.ts world(): row.item.text !== c.body).
+    # 그래서 본문과 item.text가 함께 새 글이고, 그 밖(제목·영역·분류·태그·별칭·authorText·공개 회차·이미지·인물 문서·templateOrder)은 읽은 그대로다.
+    expected = json.loads(json.dumps(card))
+    expected['body'] = expected['semanticMetadata']['studio']['item']['text'] = '새 글'
+    assert sent_card(calls, card['id']) == expected
+
+
+@pytest.mark.parametrize('card', [RULE_CARD, PARTIAL_CARD], ids=['no-studio', 'partial-studio'])
+def test_apply_world_body_fix_adds_no_keys_to_a_card_without_a_studio_item_text(monkeypatch, card):
+    # studio가 없는 옛 카드와 text 없는 부분 studio(엄격 스키마)에는 새 키를 만들지 않는다. 본문만 바뀐다.
+    _, calls = edited(monkeypatch, [fix_of(target='body', card_id=card['id'], text='새 글')], read=world_read(cards=[card]))
+    assert sent_card(calls, card['id']) == {**card, 'body': '새 글'}
+
+
+def test_apply_world_edits_the_draft_with_the_user_token_and_never_touches_other_cards_or_relationships(monkeypatch):
+    _, calls = edited(monkeypatch, [fix_of(target='body', card_id=WAR, text='북방 전쟁은 10년 전에 시작됐다.'), fix_of(target='soul')])
+
+    assert [(c[1], c[2]) for c in calls] == [('Bearer user', 'world_studio_read'), ('Bearer user', 'world_studio_edit_draft')]
+    assert calls[0][3] == {'id': WORLD_ID}
+    request = calls[1][3]['request']
+    # replace=false는 보낸 카드만 갱신하는 편집이고 relationships를 보내지 않으면 관계는 저장된 그대로 남는다(Content 계약).
+    assert calls[1][3]['id'] == WORLD_ID and request['replace'] is False and 'relationships' not in request and 'relationshipEpisodes' not in request
+    assert [c['id'] for c in request['cards']] == [WAR, KAEL]  # 제안이 가리킨 카드만(제안 순서). 지운 카드와 건드리지 않은 카드는 보내지 않는다
+    assert (request['expectedDraftRevision'], request['name'], request['description']) == (7, '달빛 세계', '달이 둘인 대륙')
+    assert 1 <= len(request['key'].encode()) <= 200
+
+
+def test_apply_world_applies_several_cells_of_one_card_to_one_payload_without_changing_the_rest(monkeypatch):
+    _, calls = edited(monkeypatch, [fix_of(target='body', text='새 IDENTITY'), fix_of(target='goal', text='새 GOAL'),
+                                    fix_of(target='episode', episode=0, text='새 00회차')])
+
+    assert [c['id'] for c in calls[1][3]['request']['cards']] == [KAEL]
+    docs = sent_card(calls)['semanticMetadata']['characterDocs']
+    assert (sent_card(calls)['body'], docs['soul'], docs['goal'], docs['episodes']) == ('새 IDENTITY', '말이 짧다', '새 GOAL', {'0': '새 00회차', '3': '편지를 받았다'})
+    assert sent_card(calls)['semanticMetadata']['studio']['item']['text'] == '새 IDENTITY'  # 본문과 함께 고친 글도 화면의 사본이 따라간다
+
+
+def test_apply_world_makes_a_fresh_request_key_per_call(monkeypatch):
+    _, first = edited(monkeypatch, [fix_of()])
+    _, second = edited(monkeypatch, [fix_of()])
+    assert first[1][3]['request']['key'] != second[1][3]['request']['key']
+
+
+def test_apply_world_creates_the_character_documents_only_when_the_card_has_none(monkeypatch):
+    bare = {**KAEL_CARD, 'semanticMetadata': {'revealFromEpisode': 2}}
+    _, calls = edited(monkeypatch, [fix_of(target='goal', text='새 GOAL')], read=world_read(cards=[bare]))
+    assert sent_card(calls)['semanticMetadata'] == {'revealFromEpisode': 2, 'characterDocs': {'soul': '', 'goal': '새 GOAL', 'episodes': {}}}
+
+
+def test_apply_world_refuses_when_the_draft_is_not_the_revision_the_proposal_was_made_from_and_writes_nothing(monkeypatch):
+    calls = content(monkeypatch, {'world_studio_read': world_read(revision=8)})
+
+    with pytest.raises(ContentMcpFailure) as error:
+        service.apply_world(WORLD_ID, 7, [fix_of()])
+
+    assert error.value.status == 409 and '바뀌어' in str(error.value)
+    assert [c[2] for c in calls] == ['world_studio_read']
+
+
+@pytest.mark.parametrize('fixes', [
+    [fix_of(card_id='card-ghost', target='body')],                 # 없는 카드
+    [fix_of(card_id='card-gone', target='body')],                  # 삭제된 카드
+    [fix_of(card_id=WAR, target='soul')],                          # 인물이 아닌 카드의 인물 문서
+    [fix_of(), fix_of(card_id=RULE, target='goal')],               # 뒤 수정안이 어긋나도 앞 수정안만 쓰지 않는다
+])
+def test_apply_world_refuses_a_fix_that_no_longer_fits_the_read_cards_and_writes_nothing(monkeypatch, fixes):
+    calls = content(monkeypatch, {'world_studio_read': world_read()})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.apply_world(WORLD_ID, 7, fixes)
+    assert error.value.status == 409 and [c[2] for c in calls] == ['world_studio_read']
+
+
+@pytest.mark.parametrize('read', [(False, '{"draftRevision": 7}'), (False, json.dumps({'draftRevision': 7, 'name': 'x', 'cards': 'x'})),
+                                  (False, json.dumps({'name': 'x', 'cards': []}))])
+def test_apply_world_unreadable_world_is_502_without_writing(monkeypatch, read):
+    calls = content(monkeypatch, {'world_studio_read': read})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.apply_world(WORLD_ID, 7, [fix_of()])
+    assert error.value.status == 502 and [c[2] for c in calls] == ['world_studio_read']
+
+
+@pytest.mark.parametrize('saved', [(False, '{}'), (False, '{"draftRevision": "8"}'), (False, '[]')])
+def test_apply_world_unconfirmed_save_response_is_502_not_a_success(monkeypatch, saved):
+    content(monkeypatch, {'world_studio_read': world_read(), 'world_studio_edit_draft': saved})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.apply_world(WORLD_ID, 7, [fix_of()])
+    assert error.value.status == 502
+
+
+def test_apply_world_keeps_contents_status_and_detail_when_the_edit_is_rejected(monkeypatch):
+    content(monkeypatch, {'world_studio_read': world_read(), 'world_studio_edit_draft': (True, 'HTTP 409 WORLD_CONFLICT\n초안이 최신이 아니에요.')})
+    with pytest.raises(ContentMcpFailure) as error:
+        service.apply_world(WORLD_ID, 7, [fix_of()])
+    assert (error.value.status, str(error.value)) == (409, '초안이 최신이 아니에요.')

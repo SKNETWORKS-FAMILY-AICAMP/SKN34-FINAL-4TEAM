@@ -27,7 +27,7 @@ private const val PLAN = "plan-1"
  */
 class StoryPlanMcpToolsTest {
     private val service = mock(StoryPlanService::class.java)
-    private val specs = SyncMcpAnnotationProviders.statelessToolSpecifications(listOf<Any>(StoryPlanMcpTools(service)))
+    private val specs = SyncMcpAnnotationProviders.statelessToolSpecifications(listOf<Any>(StoryPlanMcpTools(service, mock(McpChangeNotice::class.java))))
 
     private fun call(tool: String, args: Map<String, Any?> = emptyMap(), context: McpTransportContext = McpTransportContext.EMPTY): CallToolResult =
         specs.single { it.tool().name() == tool }.callHandler().apply(context, CallToolRequest.builder(tool).arguments(args).build())
@@ -88,7 +88,7 @@ class StoryPlanMcpToolsTest {
     // `mcpTool {}`를 빠뜨린 도구는 상태·코드가 빠진 채 나가므로, 모든 Service 호출이 던지는 대역으로 모든 도구를 확인한다.
     @TestFactory fun `every tool reports a service failure with the status code and detail of the existing API`(): List<DynamicTest> {
         val fail = Answer<Any> { throw ContentFailure(409, "다른 변경과 충돌했어요.", "SOME_CODE") }
-        val failing = SyncMcpAnnotationProviders.statelessToolSpecifications(listOf<Any>(StoryPlanMcpTools(mock(StoryPlanService::class.java, fail))))
+        val failing = SyncMcpAnnotationProviders.statelessToolSpecifications(listOf<Any>(StoryPlanMcpTools(mock(StoryPlanService::class.java, fail), mock(McpChangeNotice::class.java))))
         return cases().map { case ->
             dynamicTest("${case.tool} reports the failure") {
                 val request = CallToolRequest.builder(case.tool).arguments(case.args).build()
