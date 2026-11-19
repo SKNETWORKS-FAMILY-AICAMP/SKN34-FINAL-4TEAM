@@ -1,6 +1,5 @@
 /** 목업 S.admin의 운영 데모 상태와 이벤트(EVENTS). 브라우저 메모리에만 있습니다. 공지는 운영 공지 API(NoticeRepository)가 맡습니다. */
 type AdminUser = { id: string; nick: string; email: string; role: string; status: string; joined: string }
-type AdminJob = { id: string; name: string; status: string; last: string }
 type AdminAccount = { id: string; nick: string; email: string; permissions: string[]; created: string }
 /** 데모 조치 기록. at은 ISO 시각이며 활동 기록 탭(72)은 이를 메모리 AdminActivity로 바꿔 보여 줍니다. */
 type AuditEntry = { at: string; actor: string; action: string; detail: string }
@@ -12,7 +11,6 @@ export type AdminState = {
   profile: { nick: string; email: string; joined: string }
   audit: AuditEntry[]
   users: AdminUser[]
-  jobs: AdminJob[]
   admins: AdminAccount[]
   flagged: Flagged
   /** 댓글 관리에서 숨긴 댓글 id (목업 A.comments[].status) */

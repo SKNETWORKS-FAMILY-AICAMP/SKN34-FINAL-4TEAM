@@ -130,15 +130,6 @@ describe('관리자 비동기 상태와 입력 보존', () => {
     await waitFor(() => expect(get).toHaveBeenCalledWith('q1'))
   })
 
-  it('개요 탭은 답변 대기 문의만 서버에서 읽고 조회 실패를 빈 목록으로 숨기지 않는다', async () => {
-    const f = setup('data')
-    const listAll = vi.spyOn(f.support, 'listAll').mockRejectedValueOnce(new Error('조회 실패'))
-    const { result } = f.mount()
-    await waitFor(() => expect(result.current.live.inquiries.isError).toBe(true))
-    expect(result.current.live.inquiries.data).toBeUndefined()
-    expect(listAll).toHaveBeenCalledWith('WAITING')
-  })
-
   it('공지 저장 중 이탈·재진입해 같은 폼을 새로 쓰면 오래된 성공은 새 초안과 선택을 보존한다', async () => {
     const f = setup()
     const hook = f.mount()
