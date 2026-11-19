@@ -258,7 +258,7 @@ ReaderWorldCards = { "workId", "worldId": "<uuid>" | null, "upto": <적용된 �
 
 ## Fork가 이어받는 원작 세계관 (DEC-32·37, #365)
 
-Fork는 자기에게 연결한 세계관이 없으면 원작 세계관을 **읽기 전용**으로 이어받아 시뮬레이션·원고 검수가 읽는다(1단계: 읽기만 이어받기. 최초 수정 시 세계관 독립·원본 변경 알림은 범위 밖). 소유하지 않은 세계관이라 `world_studio_read`·`GET /api/v1/world-studios/{id}`(소유자만)로는 읽을 수 없어 전용 읽기를 둔다.
+Fork는 자기에게 연결한 세계관이 없으면 원작 세계관을 **읽기 전용**으로 이어받아 시뮬레이션·원고 검수가 읽는다. 수정하려면 [독립](#fork-세계관-독립--dec-37)한다. 독립 후 원본 변경 알림·반영은 만들지 않는다(DEC-34 범위 제외). 소유하지 않은 세계관이라 `world_studio_read`·`GET /api/v1/world-studios/{id}`(소유자만)로는 읽을 수 없어 전용 읽기를 둔다.
 
 ```text
 InheritedWorld = { "workId": "<Fork>", "worldId": "<원작 세계관 uuid>" | null, "upto": <적용된 상한 회차>,
@@ -278,10 +278,25 @@ InheritedWorld = { "workId": "<Fork>", "worldId": "<원작 세계관 uuid>" | nu
 - **카드**는 원작 세계관의 **확정 버전** 카드 중 `lifecycle=active`이고 유효 공개 회차(DEC-53)가 `upto` 이하인 것만이다. 독자 설정 위키와 **같은 카드 집합**이고 상한만 Fork 기준 회차(요청 `upto`가 더 작으면 그 값)다. 비공개 카드라도 공개 회차가 있으면 이어받고(DEC-46 때보다 범위가 넓어진다) 작가 전용 카드는 이어받지 않는다. 확정 버전이 없으면(초안만) 빈 목록이다. 카드는 `id` 순이다. 응답 모양은 그대로이고 `visibility`는 호환 값(`public`), `semanticMetadata.revealFromEpisode`는 유효 공개 회차이며 `text`의 본문 링크는 위와 같은 치환을 거친다.
 - **관계**는 그 카드끼리의 `upto`화 시점 관계(DEC-51, `identity` 포함)만이다. 방향·긍정/부정(`polarity`)은 관계의 뜻이라 남기고, 작가가 관계에 적은 본문(`body`)·메모는 비운다. 관계 저장소가 그 시점 상태를 보증하지 못하면 카드는 두고 `relationships: []`·`relationshipStatus: "unavailable"`이며, AI는 관계 없이 진행하지 않고 실패로 끝낸다(`world_studio_read`가 관계 저장 미완료에 503으로 답하는 것과 같다). 보일 카드가 없으면 관계 저장소를 읽지 않는다.
 - **싣지 않는 것**: 카드 메타데이터는 `revealFromEpisode`만이다. 인물 문서 `SOUL.md`·`GOAL.md`·`memory/NN회차.md`(`characterDocs`, 작가용), 가져온 출처, 이미지는 없다. 이어받은 인물은 `IDENTITY.md`(카드 본문)만 가진다.
-- 원작의 현재 확정 버전을 매번 읽으므로 `following` 동안 원작의 변경(기준 회차 이하에 영향을 주는 것)을 따라간다(DEC-37). `independent` 전환(최초 수정 시 독립)은 아직 없어 모든 Fork가 `following`이다.
+- 원작의 현재 확정 버전을 매번 읽으므로 `following` 동안 원작의 변경(기준 회차 이하에 영향을 주는 것)을 따라간다(DEC-37). 독립하면(`independent`, 아래 절) 더는 따라가지 않는다.
 - 집필 AI Q&A도 같은 이어받은 세계관을 AI가 Content MCP `work_inherited_world`로 읽는다(#490). Content `QaScopeService`의 관계 질문 경로는 #525 뒤 지웠다.
 - 화면: 집필실 시뮬레이션 시작 양식이 내 세계관 목록에 이 작품에 연결된 세계관이 없을 때 이 API를 `upto=<여는 회차>`로 읽어 인물 카드(`cardType=character`, 나레이터 카드 제외)를 후보로 쓴다. 후보와 서버 검증이 같은 카드 집합이다([시뮬레이션 계약](character-simulation-contract.md#fork-이어받기-365)).
 - 한계: Fork 생성 미리보기(공개된 세계관 규칙·인물 수)는 아직 레거시 설정 이력 기준이다(후속). `SOUL.md`가 없는 이어받은 인물은 말투 근거가 약하다.
+
+## Fork 세계관 독립 — DEC-37
+
+(#583) 이어받는 중인 Fork의 작가가 원작 세계관을 고치려면 `내 세계관으로 만들어 수정하기`로 **독립**한다. 이어받던 카드·관계를 Fork 작가 소유의 새 세계관으로 복사해 Fork에 연결하고, 그 뒤로는 원작 변경을 따라가지 않는다. 원작 세계관과 다른 Fork는 바뀌지 않는다(부모·형제 보존).
+
+| 메서드·경로 | 동작 |
+|---|---|
+| `POST /api/v1/works/{id}/inherited-world/detach` | Fork **소유자**만(Bearer, 본문 없음). 201 + `{ "workId", "worldId": "<새 세계관 uuid>" }` |
+
+- **조건**: 위 '이어받는 조건'을 모두 만족하고 이어받을 카드가 1장 이상일 때만이다. 남의 작품·없는 작품 404, Fork가 아니거나·자기 세계관이 이미 연결됐거나·이미 `independent`이거나·이어받을 세계관(카드)이 없으면 409 `FORK_WORLD_NOT_INHERITED`이며 세계관을 만들지 않는다. 관계 저장소가 시점 상태를 보증하지 못하면(`relationshipStatus: unavailable`) 관계를 빼고 복사하지 않고 503으로 실패한다.
+- **복사 범위**: `GET …/inherited-world`(상한 = Fork 기준 회차)와 **같은 카드·관계 집합**이다. 카드는 새 카드 id로 제목·본문·유형·영역·분류·별칭·태그와 유효 공개 회차(`semanticMetadata.revealFromEpisode`, `visibility=public`)를 옮기고, 본문 링크(`card:<원래 id>`)는 새 id로 다시 잇는다. 카드마다 출처를 기존 키 `importedFrom{worldId, worldName, authorNickname, revisionNo, cardId}`(원작 세계관·확정 버전·원래 카드)로 남겨 화면이 `가져옴 · 참고: …`로 보인다. 관계는 새 관계 id·새 끝점 id로 `category`·`label`·`direction`·`polarity`를 옮기고 시작 회차(`relationshipEpisodes`)는 그 관계가 원작에서 보이기 시작한 회차(기준 회차 이하)다. 인물 문서(`characterDocs`)·관계 본문·이미지는 이어받지 않았으므로 복사하지 않는다.
+- **새 세계관**: 이름 `{Fork 작품 제목} 세계관`, 공개 범위 비공개, 복사본을 한 번 저장(저장 버전 1)한다. 확정 버전은 만들지 않는다(작가가 고친 뒤 남긴다).
+- **순서·동시성**: ① Content 트랜잭션에서 소유·조건 확인 → ② 이어받은 세계관 읽기(트랜잭션 밖) → ③ WorldStudio로 새 세계관 생성·초안 편집·저장 → ④ Content 트랜잭션에서 `fork_world_reference` 행을 잠그고 조건을 다시 확인한 뒤 `work.world_studio_id` 연결, `reference_status=independent`, `detached_at` 기록. ④의 재확인이 실패하면(동시에 두 번 누름) ③에서 만든 세계관을 소프트 삭제하고 409다. WorldStudio 읽기·쓰기를 Content 트랜잭션 안에서 열지 않는다.
+- **화면**: 작품 관리 세계관 탭(`LinkedWorldPanel`)은 자기 세계관이 없는 Fork에서 이어받기 응답의 `worldId`가 있으면 '원작 「제목」 세계관을 N화 기준으로 이어받는 중'과 카드(유형별 수·제목)·관계 수를 읽기 전용으로 보이고, `내 세계관으로 만들어 수정하기`(확인: '독립하면 원작 세계관의 이후 변경은 따라오지 않아요')를 둔다. 성공하면 `/worldstudio/{worldId}`로 가고, 실패는 서버 문구를 그 카드 안에 보인다. 기존 '세계관 연결' 드롭다운은 그대로다(직접 연결해도 이어받기가 끝나지만 복사는 하지 않는다).
+- 한계: 원본 변경 관리는 만들지 않는다(DEC-34). 관계는 기준 회차 시점의 상태를 시작 회차로 옮기므로 그 사이 관계명이 바뀐 이력(`경계(1화) → 보호(3화)`)은 마지막 상태 하나로 줄어든다.
 
 ## 설정 가져오기와 카드 메타데이터 (DEC-46)
 
