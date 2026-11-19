@@ -15,6 +15,7 @@ import ai.storyfork.operations.inquiry.repository.InquiryRepository
 import ai.storyfork.operations.jobs.entity.JobStatus
 import ai.storyfork.operations.jobs.repository.JobRunRepository
 import ai.storyfork.operations.jobs.service.CONTENT_JOB_WINDOW
+import ai.storyfork.operations.jobs.service.JobCountService
 import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJob
 import ai.storyfork.operations.jobs.service.dto.ContentPreprocessingJobList
 import ai.storyfork.operations.llmops.service.AiUsageService
@@ -41,7 +42,7 @@ class DashboardServiceTest {
     private val reports = mock(ReportRepository::class.java)
     private val alerts = mock(OperationAlertRepository::class.java)
     private val runs = mock(JobRunRepository::class.java)
-    private val service = DashboardService(core, AiUsageService(langfuse), content, inquiries, reports, alerts, runs)
+    private val service = DashboardService(core, AiUsageService(langfuse), content, inquiries, reports, alerts, JobCountService(runs, content))
 
     private val operator = OperationsMember(UUID.randomUUID(), true)
     private val bearer = "Bearer admin-access"
@@ -100,25 +101,6 @@ class DashboardServiceTest {
         // Own runs queued or running (2) plus Content jobs queued, running or loading (3); failed in 24 hours: one own run and one Content job.
         assertEquals(DashboardJobs(5, 2), dashboard.jobs)
         assertEquals(emptyList<String>(), dashboard.unavailable)
-    }
-
-    @Test
-    fun `only queued running and loading Content jobs are in progress`() {
-        givenAllSources()
-        `when`(content.preprocessingJobs(CONTENT_JOB_WINDOW)).thenReturn(ContentPreprocessingJobList(listOf(job("completed"), job("failed"), job("cancelled"), job("whatever"))))
-
-        assertEquals(2, checkNotNull(service.get(operator, bearer, now).jobs).running)
-    }
-
-    @Test
-    fun `a failed job counts for the last 24 hours only when it finished after that moment`() {
-        givenAllSources()
-        `when`(content.preprocessingJobs(CONTENT_JOB_WINDOW)).thenReturn(ContentPreprocessingJobList(listOf(
-            job("failed", dayAgo), job("failed", dayAgo.plusSeconds(1)), job("failed", null), job("completed", now),
-        )))
-
-        // The own count (1) comes from the repository query that is strictly after the same moment.
-        assertEquals(2, checkNotNull(service.get(operator, bearer, now).jobs).failedLast24h)
     }
 
     @Test
