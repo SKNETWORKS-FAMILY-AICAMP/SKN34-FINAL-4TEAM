@@ -12,7 +12,6 @@ import ai.storyfork.content.manuscript.client.ManuscriptElasticsearch
 import ai.storyfork.content.manuscript.client.ManuscriptEmbeddingClient
 import ai.storyfork.content.manuscript.service.ManuscriptIndexJob
 import ai.storyfork.content.manuscript.service.ManuscriptIndexSync
-import ai.storyfork.content.world.service.WorldService
 import java.net.URI
 import java.time.Duration
 import javax.sql.DataSource
@@ -65,7 +64,7 @@ internal class ManuscriptIndexConfig {
     @Bean
     fun manuscriptQaService(
         scopes: QaScopeService, index: ManuscriptElasticsearch, embeddings: ManuscriptEmbeddingClient,
-        episodes: EpisodeCurrentRepository, versions: EpisodeVersionRepository, worlds: WorldService,
+        episodes: EpisodeCurrentRepository, versions: EpisodeVersionRepository,
         grants: QaScopeGrants,
-    ) = ManuscriptQaService(scopes, index, embeddings, episodes, versions, worlds, grants)
+    ) = ManuscriptQaService(scopes, index, embeddings, episodes, versions, grants)
 }

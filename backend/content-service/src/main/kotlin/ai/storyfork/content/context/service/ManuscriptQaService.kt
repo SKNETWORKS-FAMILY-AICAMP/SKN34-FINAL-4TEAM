@@ -2,15 +2,12 @@ package ai.storyfork.content.context.service
 
 import ai.storyfork.content._common.exception.ContentFailure
 import ai.storyfork.content._common.exception.checkContent
-import ai.storyfork.content.context.domain.sourceExcerpts
 import ai.storyfork.content.context.service.dto.*
 import ai.storyfork.content.episode.repository.EpisodeCurrentRepository
 import ai.storyfork.content.episode_version.repository.EpisodeVersionRepository
 import ai.storyfork.content.manuscript.client.*
 import ai.storyfork.content.manuscript.client.dto.*
 import ai.storyfork.content.manuscript.service.manuscriptHash
-import ai.storyfork.content.world.domain.stripCardLinks
-import ai.storyfork.content.world.service.WorldService
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestClientResponseException
 import kotlin.time.measureTimedValue
@@ -21,7 +18,6 @@ internal class ManuscriptQaService(
     private val embeddings: ManuscriptEmbeddingClient,
     private val episodes: EpisodeCurrentRepository,
     private val versions: EpisodeVersionRepository,
-    private val worlds: WorldService,
     private val grants: QaScopeGrants,
 ) {
     /**
@@ -30,19 +26,17 @@ internal class ManuscriptQaService(
      */
     fun retrieveForAi(request: QaRetrievalRequest): QaRetrievalResponse {
         val grant = grants.read(request.scopeToken) ?: throw ContentFailure(403, "조회 범위를 확인할 수 없어요.")
-        val found = retrieve(grant.workId, grant.owner, request.question.trim(), grant.target, grant.episode, grant.episodeVersionId)
+        val found = retrieve(grant.workId, grant.owner, request.question.trim(), grant.episode, grant.episodeVersionId)
         return QaRetrievalResponse(if (found.sources.isEmpty()) "insufficient" else "found", found.sources,
-            found.sources.map { QaExcerpt(it.id, it.episode, it.quote, it.kind, it.title()) }, found.gaps, found.coverage, found.steps)
+            found.sources.map { QaExcerpt(it.id, it.episode, it.quote, it.kind, "") }, found.gaps, found.coverage, found.steps)
     }
 
     private class Retrieved(val sources: List<QaCitation>, val gaps: List<QaGap>, val coverage: QaCoverage,
                             val steps: List<QaRetrievalStep>)
 
-    private fun retrieve(workId: String, owner: String?, question: String, target: String, episode: Int,
+    private fun retrieve(workId: String, owner: String?, question: String, episode: Int,
                          episodeVersionId: String): Retrieved {
-        val relationship = target == "relationship"
-        if (relationship) checkContent(owner != null, 403, "현재 관계 질문은 작가만 사용할 수 있어요.")
-        val input = QaScopeRequest(episode, episodeVersionId, if (relationship) "manuscript" else target)
+        val input = QaScopeRequest(episode, episodeVersionId)
         val scope = scopes.resolve(workId, owner, input)
         fun requireCurrent() = checkContent(scopes.resolve(workId, owner, input) == scope, 409,
             "공개 원고 범위가 변경됐어요. 최신 회차에서 다시 질문해 주세요.")
@@ -53,17 +47,6 @@ internal class ManuscriptQaService(
             return value
         }
 
-        if (target != "manuscript") {
-            val sources = step(if (relationship) "neo4j" else "postgres_settings", { it.size }) {
-                if (relationship) relationships(scope, checkNotNull(owner)) else settings(scope, owner, question)
-            }.rankedFor(question)
-            val coverage = QaCoverage(emptyList(), emptyList(), emptyList())
-            val missing = if (relationship) "연결된 내 세계관에서 확인할 수 있는 현재 관계가 없어요."
-                else "이 회차의 열람 범위에서 확인할 수 있는 설정이 없어요."
-            if (sources.isEmpty()) return Retrieved(emptyList(), listOf(QaGap("NO_EVIDENCE", missing)), coverage, steps)
-            requireCurrent()
-            return Retrieved(sources, emptyList(), coverage, steps)
-        }
 
         val hits = try {
             val vector = step("embedding", { 1 }) { embeddings.query(question) }
@@ -87,55 +70,6 @@ internal class ManuscriptQaService(
         }
         return Retrieved(verified, gaps, coverage, steps)
     }
-
-    private fun settings(scope: QaScope, owner: String?, question: String): List<QaSettingSource> =
-        worlds.settingsForQa(scope.workId, owner, scope.episode).mapNotNull { setting ->
-            val text = (listOf(setting.body) + setting.properties.map { "${it.name}: ${it.value}" } +
-                setting.knowledge.map { it.text }).filter { it.isNotBlank() }.joinToString("\n")
-            val quote = sourceExcerpts(text, 256, question).joinToString("\n") { it.text }.evidenceText()
-            if (quote.isBlank()) return@mapNotNull null
-            val id = if (setting.id.length <= 92) setting.id else manuscriptHash(setting.id)
-            QaSettingSource("setting:${id}", scope.workId, scope.sourceWorkId, scope.episode, quote,
-                setting.id, setting.versionId, setting.name.evidenceText())
-        }
-
-    private fun relationships(scope: QaScope, owner: String): List<QaRelationshipSource> {
-        val world = scopes.currentRelationships(scope, owner) ?: return emptyList()
-        val cards = world.cards.filter { it.lifecycle == "active" }.associateBy { it.id }
-        return world.relationships.filter { it.lifecycle == "active" }.mapNotNull { relation ->
-            val from = cards[relation.sourceCardId] ?: return@mapNotNull null
-            val to = cards[relation.targetCardId] ?: return@mapNotNull null
-            val direction = when (relation.direction) {
-                "directed" -> "→"
-                "symmetric" -> "↔"
-                else -> "—"
-            }
-            val title = "${from.title} $direction ${to.title}".evidenceText()
-            // 관계 본문의 설정 링크(DEC-53)는 모델·인용에 카드 id가 섞이지 않게 글자로 벗겨 보낸다(AI 입력 경계).
-            val quote = listOfNotNull(relation.label, stripCardLinks(relation.body), relation.category, relation.polarity)
-                .filter { it.isNotBlank() }.joinToString("\n").evidenceText()
-            if (quote.isBlank()) return@mapNotNull null
-            QaRelationshipSource("relationship:${relation.id}", scope.workId, scope.sourceWorkId, scope.episode,
-                quote, world.worldId, world.relationshipVersion, relation.id, title)
-        }
-    }
-
-    private fun QaCitation.title() = when (this) {
-        is QaSettingSource -> title
-        is QaRelationshipSource -> title
-        is QaSource -> ""
-    }
-
-    private fun List<QaCitation>.rankedFor(question: String): List<QaCitation> {
-        // shortcut: 시연 규모의 설정·관계는 제목과 근거의 문자 일치로 정렬한다. 품질 평가에서 누락이 반복되면 검색을 교체한다.
-        val terms = Regex("[가-힣A-Za-z0-9]{2,}").findAll(question).map { it.value }.distinct().toList()
-        return sortedWith(compareByDescending<QaCitation> { source ->
-            terms.count { source.title().contains(it, ignoreCase = true) } * 2 +
-                terms.count { source.quote.contains(it, ignoreCase = true) }
-        }.thenBy { it.id }).take(8)
-    }
-
-    private fun String.evidenceText() = take(256).dropLastWhile { Character.isHighSurrogate(it) }
 
     private fun verify(scope: QaScope, hits: List<ManuscriptHit>): List<QaSource> {
         val allowed = scope.episodes.associate { it.number to it.versionId }
