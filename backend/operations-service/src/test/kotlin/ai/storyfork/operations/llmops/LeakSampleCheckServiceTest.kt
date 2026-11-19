@@ -235,32 +235,37 @@ class LeakSampleCheckServiceTest {
     }
 
     @Test
-    fun `a title the user already wrote in the question is no match and nothing goes to the AI judge`() {
-        // The answer only says there is no ground for what the user asked about: repeating the user's own words gives nothing away.
+    fun `an answer that only repeats the question still goes to the judge and its verdict decides`() {
+        // The user asked about 율도국, 백씨 and 12화 진실 and the answer only says there is no ground for them: the judge, who gets the question, finds no leak.
         val repeated = fork("f7", "w-1", "율도국과 백씨, 12화 진실에 대한 근거는 찾지 못했어요", input = asked("율도국에서 백씨는 누구야? 12화 진실도 알려 줘"))
         givenTraces(repeated)
         `when`(content.leakReferences("w-1")).thenReturn(LeakReferences("w-origin", listOf("율도국", "백씨"), listOf("12화 진실")))
 
         assertEquals(0, service.run(from, to, Random(1)))
 
-        assertEquals(listOf(emptyList<String>()), saved.map { it.matched })
+        // Every title the text comparison found is saved as it was found, whether or not the question has it too.
+        assertEquals(listOf(listOf("율도국", "백씨", "12화 진실")), saved.map { it.matched })
         assertEquals(listOf(false), saved.map { it.suspected })
-        assertTrue(aiCalls().isEmpty())
+        assertEquals(listOf("율도국과 백씨, 12화 진실에 대한 근거는 찾지 못했어요" to listOf("율도국", "백씨", "12화 진실")), aiCalls())
+        assertEquals(listOf<Any?>("율도국에서 백씨는 누구야? 12화 진실도 알려 줘"), aiQuestions())
         verifyNoInteractions(raiser)
     }
 
     @Test
-    fun `only the titles missing from the question are matched and the judge gets the question with them`() {
-        val request = fork("f7", "w-1", "길현은 율도국의 왕자예요", input = asked("율도국은 어떤 나라야?"))
-        givenTraces(request)
-        `when`(content.leakReferences("w-1")).thenReturn(LeakReferences("w-origin", listOf("율도국", "길현")))
-        verdicts["길현"] = LeakVerdict(true, "원작의 숨은 인물 이름을 말했어요")
+    fun `a title only the question shares with the answer still reaches the judge, which can find the leak behind it`() {
+        // The user asked about 율도국 and the answer gives away what happens there: the one title found is in the question, the leak is in the rest.
+        val leaking = fork("f7", "w-1", "길동은 율도국의 왕을 항복시키고 스스로 왕이 돼요", input = asked("율도국은 어떤 나라야?"))
+        givenTraces(leaking)
+        `when`(content.leakReferences("w-1")).thenReturn(LeakReferences("w-origin", listOf("율도국")))
+        verdicts["율도국"] = LeakVerdict(true, "질문에 없는 비공개 줄거리를 말했어요")
 
         assertEquals(1, service.run(from, to, Random(1)))
 
-        assertEquals(listOf(listOf("길현")), saved.map { it.matched })
-        assertEquals(listOf("길현은 율도국의 왕자예요" to listOf("길현")), aiCalls())
+        assertEquals(listOf(listOf("율도국")), saved.map { it.matched })
+        assertEquals(listOf(true), saved.map { it.suspected })
+        assertEquals(listOf("길동은 율도국의 왕을 항복시키고 스스로 왕이 돼요" to listOf("율도국")), aiCalls())
         assertEquals(listOf<Any?>("율도국은 어떤 나라야?"), aiQuestions())
+        assertEquals(listOf<Any?>("f7"), mockingDetails(raiser).invocations.filter { it.method.name == "raise" }.map { it.arguments[3] })
     }
 
     @Test
