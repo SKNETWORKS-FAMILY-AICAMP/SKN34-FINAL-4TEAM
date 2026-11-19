@@ -23,6 +23,24 @@ const open = (count: number) => render(
 const rows = () => within(screen.getByRole('list')).getAllByRole('listitem')
 const titles = () => rows().map((row) => row.querySelector('b')?.textContent)
 const range = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => `${from + i}화 제목`)
+
+it('운영 설정 탭은 저장 성공 응답으로 집필 방식 변경 이력을 표시한다', async () => {
+  const defaults = { worldUpdateMode: 'manual', proofreadingMode: 'review', autoserialState: 'off' }
+  const version = { revision: 1, writingMode: 'assisted', changedAt: '2026-11-19T03:00:00Z' }
+  const useCase = {
+    workSettings: vi.fn().mockResolvedValue({ ...defaults, current: { revision: 0, writingMode: null, changedAt: null }, history: [] }),
+    updateWorkSettings: vi.fn().mockResolvedValue({ ...defaults, current: version, history: [version] }),
+  }
+  render(<MemoryRouter><WorkManagement vm={vm as never} work={work(1)} useCase={useCase as never} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
+
+  fireEvent.click(screen.getByRole('button', { name: '운영 설정' }))
+  fireEvent.change(await screen.findByRole('combobox', { name: '집필 방식' }), { target: { value: 'assisted' } })
+  fireEvent.click(screen.getByRole('button', { name: '집필 방식 저장' }))
+
+  expect(await screen.findByText('집필 방식을 저장했어요.')).toBeTruthy()
+  expect(screen.getByRole('listitem').textContent).toContain('AI 협업 집필')
+  expect(useCase.updateWorkSettings).toHaveBeenCalledWith('w', 0, 'assisted', expect.any(AbortSignal))
+})
 const pager = () => screen.getByRole('navigation', { name: '페이지' })
 const press = (name: string) => fireEvent.click(within(pager()).getByRole('button', { name }))
 
@@ -88,7 +106,7 @@ it('쪽을 나눠도 이야기 분기의 기준 회차 선택에는 모든 회�
 it('요청을 처리하는 동안 다른 탭은 잠그되 지금 보고 있는 탭은 잠그지 않아, 누른 탭에서 키보드 초점이 사라지지 않는다', () => {
   render(<MemoryRouter><WorkManagement vm={{ ...vm, busy: true } as never} work={work(3)} onForked={() => {}} onDeleted={() => {}} /></MemoryRouter>)
   const tabs = within(screen.getByRole('navigation', { name: '작품 메뉴' })).getAllByRole('button') as HTMLButtonElement[]
-  expect(tabs.map((tab) => [tab.textContent, tab.disabled])).toEqual([['공개 회차 · 3', false], ['세계관·설정집', true], ['이야기 분기', true], ['받은 피드백', true], ['저장·AI·발행 이력', true]])
+  expect(tabs.map((tab) => [tab.textContent, tab.disabled])).toEqual([['공개 회차 · 3', false], ['세계관·설정집', true], ['이야기 분기', true], ['받은 피드백', true], ['운영 설정', true], ['저장·AI·발행 이력', true]])
 })
 
 // ── 초안 목록(소유자 회차 조회)에서 오는 표시: 저장 버전 순번·작성 중인 초안 ──────────────────────────
