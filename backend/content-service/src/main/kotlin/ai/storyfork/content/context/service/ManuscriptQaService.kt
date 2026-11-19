@@ -28,18 +28,16 @@ internal class ManuscriptQaService(
         val grant = grants.read(request.scopeToken) ?: throw ContentFailure(403, "조회 범위를 확인할 수 없어요.")
         val found = retrieve(grant.workId, grant.owner, request.question.trim(), grant.episode, grant.episodeVersionId)
         return QaRetrievalResponse(if (found.sources.isEmpty()) "insufficient" else "found", found.sources,
-            found.sources.map { QaExcerpt(it.id, it.episode, it.quote, it.kind, "") }, found.gaps, found.coverage, found.steps)
+            found.sources.map { QaExcerpt(it.id, it.episode, it.quote) }, found.gaps, found.coverage, found.steps)
     }
 
-    private class Retrieved(val sources: List<QaCitation>, val gaps: List<QaGap>, val coverage: QaCoverage,
+    private class Retrieved(val sources: List<QaSource>, val gaps: List<QaGap>, val coverage: QaCoverage,
                             val steps: List<QaRetrievalStep>)
 
     private fun retrieve(workId: String, owner: String?, question: String, episode: Int,
                          episodeVersionId: String): Retrieved {
         val input = QaScopeRequest(episode, episodeVersionId)
         val scope = scopes.resolve(workId, owner, input)
-        fun requireCurrent() = checkContent(scopes.resolve(workId, owner, input) == scope, 409,
-            "공개 원고 범위가 변경됐어요. 최신 회차에서 다시 질문해 주세요.")
         val steps = mutableListOf<QaRetrievalStep>()
         fun <T> step(provider: String, hits: (T) -> Int, block: () -> T): T {
             val (value, took) = measureTimedValue(block)
@@ -59,7 +57,7 @@ internal class ManuscriptQaService(
         } catch (_: IllegalStateException) {
             throw ContentFailure(503, "원고 검색 결과를 확인할 수 없어요.")
         }
-        requireCurrent()
+        checkContent(scopes.resolve(workId, owner, input) == scope, 409, "공개 원고 범위가 변경됐어요. 최신 회차에서 다시 질문해 주세요.")
         val verified = step("postgres_verify", { it.size }) { verify(scope, hits) }
         val covered = verified.map { QaEpisodeRef(it.episode, it.versionId) }.toSet()
         val coverage = QaCoverage(scope.episodes, scope.episodes.filter { it in covered }, scope.episodes.filterNot { it in covered })

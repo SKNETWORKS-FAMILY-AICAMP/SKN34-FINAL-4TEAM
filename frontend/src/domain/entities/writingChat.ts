@@ -142,11 +142,10 @@ const reviewCategory: Record<string, string> = {
 function reviewText({ check, episode, revision, findings, gaps, candidate }: ChatReview): string {
   const basis = candidate ? `승인 전 집필 후보 (기준 초안 판본 ${revision})` : '초안'
   const selection = candidate?.selection
-  const title = `${episode}화 ${basis} ${reviewCheckLabel[check]} 검수${selection ? ` · 원래 선택 위치 ${selection.start}–${selection.end}` : ''}`
+  const title = `${episode}화 ${basis} ${reviewCheckLabel[check]} 검수${selection ? ' · 선택 구간 수정' : ''}`
   if (!findings.length && !gaps.length) return `${title}: 찾은 문제가 없어요.`
   return [title, ...findings.map((f) => [
     `${reviewStatus[f.status]} · ${reviewCategory[f.category] ?? f.category} · "${f.quote}"${f.start === null ? ' (여러 곳)' : ''}`,
-    ...(candidate && f.start !== null && f.end !== null ? [`후보 위치 ${f.start}–${f.end}`] : []),
     `이유: ${f.reason}`, ...(f.suggestion ? [`제안: ${f.suggestion}`] : []),
   ].join('\n')), ...gaps.map((g) => `확인 못 함: ${g}`)].join('\n\n')
 }

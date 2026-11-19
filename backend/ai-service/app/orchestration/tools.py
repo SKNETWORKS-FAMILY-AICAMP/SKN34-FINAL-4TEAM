@@ -44,7 +44,7 @@ from app.simulation.models import GAP_LABELS, SimulationPlan
 from app.story_qa import service as story_qa
 from app.story_qa.errors import StoryQaFailure
 from app.story_qa.models import AnswerRequest
-from app.orchestration.models import QaStepResult
+from app.orchestration.models import QaStepResult, manuscript_review_feature
 from app.world_review import service as world_review
 from app.world_review.errors import WorldReviewFailure
 from app.writing import agent as writing
@@ -293,7 +293,7 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch'], runti
         data = inputs.get('writing_editing') or {}
         target = turn.get('target')
         changes_draft = task != 'plan' or 'patch' in data or 'draft' in data
-        if target and changes_draft and reviewed is None and 'manuscript_review' in runtime.state['decision']['capabilities']:
+        if target and changes_draft and reviewed is None and 'manuscript_review' in map(manuscript_review_feature, runtime.state['decision']['capabilities']):
             draft = content_mcp.read_draft(target['workId'], target['episode'])
             base = {'body': draft.body, 'revision': draft.revision}
         if 'patch' in data:

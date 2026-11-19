@@ -37,7 +37,7 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
   // 진행 중이거나 작가의 답(다음 턴·승인)을 기다리는 장면이 있다.
   const attention = !!sim && (chat.streaming || !!chat.awaiting)
   const playing = live && !paused && (chat.streaming || chat.sceneTicket !== consumed)
-  const blocked = chat.available ? '' : chat.lockedReason ?? ''
+  const blocked = chat.lockedReason ?? ''
   const canAct = !chat.pending && !!chat.awaiting && !blocked
 
   useEffect(() => { if (attention) { setOpen(true); setComposing(false); setAsked(false) } }, [attention])
@@ -98,7 +98,7 @@ export function useSimulationStageViewModel(chat: ChatViewModel) {
     answer: asked && !sim && !chat.pending ? chat.turns.at(-1)?.reply?.message ?? '' : '',
     // 이 무대에서 시작한 요청이 첫 턴을 만드는 중이다(아직 장면이 없다).
     starting: asked && !sim && chat.streaming,
-    available: chat.available, pending: chat.pending, deciding: chat.deciding,
+    pending: chat.pending, deciding: chat.deciding,
     error: chat.error, reload: chat.retry,
     issue: simulationIssue,
     start: (start: SimulationStart, source: 'plan' | 'manual' = 'manual', names: Record<string, string> = {}) => {

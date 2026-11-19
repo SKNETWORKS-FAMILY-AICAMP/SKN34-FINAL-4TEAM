@@ -69,6 +69,22 @@ it('승인 카드는 같은 턴에 끝난 다른 단계 결과도 짧게 보인�
   expect(within(others).queryByText('선장은 항구에 내렸다.')).toBeNull()
 })
 
+it('승인 카드는 같은 턴의 후보 검수 결과를 반영할 내용 바로 아래에 따로 보인다(#538)', async () => {
+  sessions.mockResolvedValue([{ threadId: 'a', title: '대화', updatedAt: '' }])
+  const finding = { category: 'spelling', quote: '웃엇다', reason: '맞춤법', status: 'confirmed', evidenceRefs: [], suggestion: '웃었다', start: 0, end: 3 }
+  history.mockResolvedValue({ threadId: 'a', title: '', turns: [{
+    request: '다음 장면 쓰고 검수해 줘',
+    reply: { status: 'waiting', missingInputs: [], awaitingApproval: 'writing_editing', approvalEpisode: 1, steps: [
+      { feature: 'writing_editing', status: 'completed', result: { text: '선장은 웃엇다.' } },
+      { feature: 'manuscript_review', status: 'completed', manuscriptReview: { check: 'mechanical', episode: 1, revision: 4, findings: [finding], gaps: [], candidate: { selection: null } } },
+    ] },
+  }] })
+  render(<WritingChat workId="w" basis={{ episode: 1, episodeVersionId: 'v1' }} emptyTitle="새 대화" emptyText="" suggestions={[]} />)
+  await screen.findByRole('heading', { name: '1화 초안에 반영할까요?' })
+  expect(screen.getByLabelText('후보 검수 결과').textContent).toContain('"웃엇다"')
+  expect(screen.queryByLabelText('같이 끝난 작업')).toBeNull()
+})
+
 // ── 인물 시뮬레이션 장면(#58): 대본·승인은 집필실 무대가 맡고, 채팅에는 상태 한 줄과 무대 열기만 남는다 ──
 const turn = (index: number, name: string, prose: string): CharacterSimulation['turns'][number] => ({
   index, kind: 'character', pov: 'omniscient', characterId: `c${index}`, characterName: name, prose, editedByAuthor: false,
