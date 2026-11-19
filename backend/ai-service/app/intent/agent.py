@@ -21,6 +21,7 @@ from openai import (APIConnectionError, APITimeoutError, AuthenticationError, Op
                     RateLimitError)
 from pydantic import ValidationError
 
+from app import tracing
 from app.intent.errors import ROUTER_FAILED_MESSAGE, IntentFailure
 from app.intent.models import Decision
 from app.intent.prompt import INSTRUCTIONS, MODEL
@@ -61,11 +62,13 @@ class DecisionsModel(BaseChatModel):
     """create_agent의 모델 슬롯에서 OpenAI Decisions를 부른다. 시스템 메시지는 developer 지시, 사용자 메시지는 작가 요청이다.
 
     질문·자료·이전 요청은 호출마다 정해 필드로 받는다. 응답(dict)은 그대로 additional_kwargs['decision']에 담고 decide가 검증한다.
+    호출은 generation으로 남기되 모델·사용량·프롬프트 버전만 담는다(요청·자료는 가드레일이 거른 작가 원문이라 이 observation에 넣지 않는다).
     """
     client: Any
     questions: list[dict]
     materials: list[str]
     history: list[str]
+    prompt: Any = None  # generation에 연결할 Langfuse 프롬프트
 
     @property
     def _llm_type(self) -> str:
@@ -74,11 +77,15 @@ class DecisionsModel(BaseChatModel):
     def _generate(self, messages, stop=None, run_manager=None, **kwargs) -> ChatResult:
         system, request = messages
         # 설치된 SDK에 decisions 리소스가 없어 공식 HTTP 계약(POST /v1/decisions)을 직접 쓴다.
-        response = self.client.post('/decisions', cast_to=object, body={
-            'model': MODEL, 'questions': self.questions,
-            'input': [{'role': 'developer', 'content': system.content},
-                      {'role': 'user', 'content': [{'type': 'input_json', 'data': {
-                          'request': request.content, 'materials': self.materials, 'history': self.history}}]}]})
+        with tracing.observe('decision_guard.generation', as_type='generation', model=MODEL, prompt=self.prompt) as generation:
+            response = self.client.post('/decisions', cast_to=object, body={
+                'model': MODEL, 'questions': self.questions,
+                'input': [{'role': 'developer', 'content': system.content},
+                          {'role': 'user', 'content': [{'type': 'input_json', 'data': {
+                              'request': request.content, 'materials': self.materials, 'history': self.history}}]}]})
+            usage = response.get('usage') if isinstance(response, dict) else None
+            if isinstance(usage, dict):
+                generation.update(usage_details={'input': usage.get('input_tokens', 0), 'output': usage.get('output_tokens', 0)})
         return ChatResult(generations=[ChatGeneration(message=AIMessage(content='', additional_kwargs={'decision': response}))])
 
 
@@ -99,10 +106,14 @@ def decide(request: str, materials: list[str], questions: list[dict], history: l
     key = os.environ.get('OPENAI_API_KEY')
     if not key:
         raise IntentFailure()
+    try:
+        managed = tracing.prompt('decision_guard.judge', INSTRUCTIONS)
+    except tracing.PromptUnavailable:
+        raise IntentFailure() from None
     client = OpenAI(api_key=key, timeout=30, max_retries=0)
     try:
-        model = DecisionsModel(client=client, questions=questions, materials=list(materials), history=list(history))
-        agent = create_agent(model, system_prompt=INSTRUCTIONS, checkpointer=False, middleware=[
+        model = DecisionsModel(client=client, questions=questions, materials=list(materials), history=list(history), prompt=managed.client)
+        agent = create_agent(model, system_prompt=managed.text, checkpointer=False, middleware=[
             SensitiveDataGuard('email'), SensitiveDataGuard('credit_card'), SensitiveDataGuard('api_key', API_KEY),
             ModerationGuard(client=client, check_output=False, exit_behavior='end'),
             ModelCallLimitMiddleware(run_limit=1, exit_behavior='error')])

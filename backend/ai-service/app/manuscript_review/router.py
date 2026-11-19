@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Header, HTTPException
 
+from app import tracing
 from app.content_mcp.errors import ContentMcpFailure
 from app.internal_auth import require_internal_token
 from app.manuscript_review import service
@@ -21,6 +22,7 @@ def review(data: ReviewRequest, x_internal_token: str = Header(default=''),
     require_internal_token(x_internal_token)
     service.content_mcp.AUTHORIZATION.set(x_user_authorization)
     try:
-        return service.review(data)
+        with tracing.request('manuscript_review', user_id=tracing.member_id(x_user_authorization), work_id=data.workId):
+            return service.review(data)
     except (ReviewFailure, ContentMcpFailure) as error:
         raise HTTPException(error.status, str(error)) from None

@@ -56,6 +56,11 @@ class NoticeEventTypeTest {
     }
 
     @Test
+    fun `an operations alert is a result notice that targets the alert and cannot be turned off`() {
+        assertEquals(listOf("result", false, "alert", "운영 경고가 발생했어요"), shape("operations.alert.raised"))
+    }
+
+    @Test
     fun `lookup is exact and unknown codes are null`() {
         assertEquals(NoticeEventType.WORLD_CHANGED, NoticeEventType.fromCode("content.world.changed"))
         assertNull(NoticeEventType.fromCode("CONTENT.WORLD.CHANGED"))
