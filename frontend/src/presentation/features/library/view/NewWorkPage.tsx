@@ -1,11 +1,13 @@
 import { useRef, useState, type FormEvent } from 'react'
 
-import { NOVEL_GENRES, NOVEL_TAG_GROUPS, type WorldForm, type WorldPermission } from '../../../../domain/usecases/LibraryUseCase'
+import { genreOptions } from '../../../../domain/entities/genre'
+import { NOVEL_TAG_GROUPS, type WorldForm, type WorldPermission } from '../../../../domain/usecases/LibraryUseCase'
 import type { World } from '../../../../domain/entities/world'
 import { Go } from '../../../shared/Go'
 import { BackChev } from '../../../shared/icons'
 import { resizeImg } from '../../../shared/resizeImg'
 import { toast } from '../../../shared/events'
+import { useGenres } from '../../../shared/useGenres'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useNewWorkViewModel } from '../viewmodel/useNewWorkViewModel'
@@ -59,6 +61,8 @@ function PolicyGate({ vm }: { vm: VM }) {
 
 function NewWorkForm({ vm }: { vm: VM }) {
   const { form: f, worlds } = vm
+  const genres = useGenres()
+  const genresUnavailable = genres.isError && !genres.data
   const [tagInput, setTagInput] = useState('')
   const [tagPick, setTagPick] = useState('')
   const tagRef = useRef<HTMLInputElement>(null)
@@ -76,7 +80,8 @@ function NewWorkForm({ vm }: { vm: VM }) {
       </div>
       <div className="tcard fstep"><h3><i>1</i>소설 정보</h3><div className="newwork-info-grid">
         <label className="field">제목<input className="inp" id="nwt" value={f.title} onChange={(e) => vm.set({ title: e.target.value })} maxLength={40} placeholder="예: 안개 항구의 등대지기" /></label>
-        <label className="field">장르<select className="inp" id="nwg" value={f.genre} onChange={(e) => vm.set({ genre: e.target.value })}>{NOVEL_GENRES.map((g) => <option key={g} value={g}>{g}</option>)}</select></label>
+        <label className="field">장르<select className="inp" id="nwg" value={f.genre} disabled={genresUnavailable} onChange={(e) => vm.set({ genre: e.target.value })}>{genreOptions(genres.data ?? [], [f.genre]).map((g) => <option key={g} value={g}>{g}</option>)}</select></label>
+        {genresUnavailable && <p className="note2 newwork-wide" role="alert">장르 목록을 불러오지 못했어요. <button type="button" className="btn sm" onClick={genres.retry}>다시 불러오기</button></p>}
         <fieldset className="novel-days" id="nwschedule"><legend>연재 요일</legend><p className="small muted" style={{ margin: '0 0 8px' }}>요일은 여러 개 선택할 수 있어요.</p><div className="novel-choices">
           {[...DAYS, '비정기'].map((day) => (
             <label className="novel-choice" key={day}><input type="checkbox" name={day === '비정기' ? undefined : 'novelDay'} id={day === '비정기' ? 'nwIrregular' : undefined} value={day} checked={f.schedule.includes(day)}

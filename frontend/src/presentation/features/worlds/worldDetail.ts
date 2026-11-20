@@ -4,8 +4,7 @@ import { cardTypes, type CardType } from '../../../domain/entities/studioCards'
 import { plainCardText } from '../../shared/cardSections'
 import { relationName, showsParagraph } from '../../shared/relationParagraph'
 import { CARD_COLORS, CARD_KIND, KINDS, boardRows, type BoardEntry, type BoardRow, type CardKind } from '../../shared/worldBoard'
-import { genreLabel } from '../../shared/worldGenres'
-import { GENRE_COLORS } from './worldAtlas'
+import { genreColor, genreKey } from '../../shared/worldGenres'
 
 /*
  * 공개 세계관 상세(`/worlds/:id`)와 설정 카드 페이지(`/worlds/:id/cards/:cardId`)의 순수 규칙: 설정 그래프·인물관계도의 노드·링크,
@@ -113,7 +112,7 @@ const pairLink = (world: PublicWorld, { id, a, b, label, category, direction, po
  */
 export function buildSettingGraph(world: PublicWorld): DetailGraph {
   const cards = world.cards.map((_, i) => cardNode(world, i))
-  const center: DetailNode = { id: 'world', name: world.name, kind: '세계관', color: GENRE_COLORS[genreLabel(world.genre)], to: `/worlds/${world.id}?tab=overview` }
+  const center: DetailNode = { id: 'world', name: world.name, kind: '세계관', color: genreColor(genreKey(world)), to: `/worlds/${world.id}?tab=overview` }
   return {
     nodes: [...cards, center],
     links: [...cards.map((n): DetailLink => ({ source: center.id, target: n.id, kind: 'world' })), ...cardPairs(world).map((pair) => pairLink(world, pair))],

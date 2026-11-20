@@ -16,7 +16,6 @@ import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { ThemeButton } from '../../../shared/shell/ThemeButton'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
 import { useMcpChangeWatch } from '../../../shared/useMcpChangeWatch'
-import { genreLabel } from '../../../shared/worldGenres'
 import { labelOf } from '../viewmodel/settingBoard'
 import { useWorldRevisions } from '../viewmodel/useWorldRevisions'
 import { UNLISTED_HINT } from '../viewmodel/worldPublication'
@@ -30,7 +29,7 @@ import { WorldCardStudio } from './WorldCardStudio'
 import { WorldChat } from './WorldChat'
 import { WorldCreate } from './WorldCreate'
 import { WorldLinkedLine, WorldNovelButton } from './WorldLinkedWork'
-import { PublicCardsNotice, PublishFields } from './WorldPublishFields'
+import { GenreChip, PublicCardsNotice, PublishFields } from './WorldPublishFields'
 import { RelationEpisodePicker } from './RelationEpisodePicker'
 import { WorldRelationshipEditor } from './WorldRelationshipEditor'
 import { WorldRevisions } from './WorldRevisions'
@@ -151,7 +150,7 @@ function WorldHeader({ vm, world, infoOpen, setInfoOpen }: { vm: VM; world: Stud
           <span className="chip">설정 {cardLibraryRows(saved.settings, 'all', '').length}개</span>
           <span className="chip">저장 버전 {saved.version}</span>
           <span className={'chip' + (visibility === 'public' ? ' ok' : '')}>{visibility === 'public' ? '공개' : '비공개'}</span>
-          {genre && <span className="chip">{genreLabel(genre)}</span>}
+          {genre && <GenreChip code={genre} />}
           {!manage && <span role="status" className={'chip ' + state.tone}>{state.text}</span>}
           {vm.relationDirty && <span role="status" className="chip wait">관계 입력 미적용</span>}
         </div>

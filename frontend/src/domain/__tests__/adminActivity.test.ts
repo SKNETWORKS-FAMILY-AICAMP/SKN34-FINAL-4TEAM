@@ -34,6 +34,15 @@ describe('관리자 활동 기록 표시 규칙 (72)', () => {
     for (const [code, label] of LLMOPS_ACTIONS) expect(activityActionLabel(code)).toBe(label)
   })
 
+  it('장르 관리 조치 3종(DEC-56)도 한국어 이름으로 보이고 대상은 장르 코드, 순서 변경은 장르 목록으로 보인다', () => {
+    expect([['GENRE_CREATE', '장르 추가'], ['GENRE_UPDATE', '장르 수정'], ['GENRE_REORDER', '장르 순서 변경']].map(([code]) => activityActionLabel(code))).toEqual(['장르 추가', '장르 수정', '장르 순서 변경'])
+    expect(activityTarget({ targetType: 'GENRE', targetId: 'genre-31' })).toBe('장르 genre-31')
+    expect(activityTarget({ targetType: 'GENRE', targetId: 'order' })).toBe('장르 목록')
+    expect(activityDetail({ action: 'GENRE_CREATE', detail: '사이버펑크' })).toBe('사이버펑크')
+    expect(activityDetail({ action: 'GENRE_REORDER', detail: 'genre-02,genre-01,genre-03' })).toBe('3개 장르의 순서')
+    expect(activityDetail({ action: 'GENRE_REORDER', detail: null })).toBeNull()
+  })
+
   it('모르는 조치는 코드 그대로 보이고 객체 기본 속성 이름도 함수로 새지 않는다', () => {
     expect(activityActionLabel('FUTURE_ACTION')).toBe('FUTURE_ACTION')
     expect(activityActionLabel('toString')).toBe('toString')

@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import type { WorldStudioRepository } from '../../domain/repositories/WorldStudioRepository'
-import { PUBLIC_WORLD_GENRES } from '../../domain/entities/publicWorld'
 import { isEpisodeKey, migrateCharacterDocs, storedCharacterDocs } from '../../domain/entities/characterDocs'
 import { invalidRelationFrom, newSetting, RELATION_FROM_ERROR, type StudioSetting, type StudioWorld, type WorldPublication, type WorldPublicationInput } from '../../domain/entities/studioWorld'
 import { cardTypeOf } from '../../domain/entities/studioCards'
@@ -11,7 +10,8 @@ import { csrf, withLock } from '../api/csrf'
 
 const uuid = z.uuid(), revision = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER)
 // 세계관 단위 공개 설정. 서버가 이 필드를 주기 전 응답은 비공개·장르 미지정으로 읽는다.
-const visibility = z.enum(['private', 'public']), genre = z.enum(PUBLIC_WORLD_GENRES).nullable()
+// 세계관 장르는 Content 장르 코드(`genre-01` …)다(DEC-56).
+const visibility = z.enum(['private', 'public']), genre = z.string().min(1).nullable()
 const publicationResult = z.object({ worldId: uuid, visibility, genre, publishedAt: z.string().nullable(), listed: z.boolean() })
 // 세계관 표지. 서버가 `hasCover`를 주기 전 응답은 표지 없음으로 읽는다.
 const coverResult = z.object({ worldId: uuid, hasCover: z.literal(true) })
