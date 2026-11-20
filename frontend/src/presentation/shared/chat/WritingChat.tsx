@@ -202,9 +202,13 @@ function WorkChat({ vm, emptyTitle, emptyText, suggestions, onOpenStage, cardOf,
   const shown = live?.editIndex !== undefined ? vm.turns.slice(0, live.editIndex) : live?.resumed ? vm.turns.slice(0, -1) : vm.turns
   const messages: ChatMessage[] = shown.flatMap((turn, i) => [
     { id: `u${i}`, role: 'user' as const, text: turn.request },
-    ...(turn.reply && turn.reply.status !== 'waiting' ? [turn.reply.message
-      ? { id: `a${i}`, role: 'assistant' as const, text: turn.reply.message, format: 'markdown' as const }
-      : { id: `a${i}`, role: 'assistant' as const, text: replyText(turn.reply) }] : []),
+    ...(turn.reply && turn.reply.status !== 'waiting' ? [{
+      id: `a${i}`,
+      role: 'assistant' as const,
+      text: turn.reply.message || replyText(turn.reply),
+      format: turn.reply.message ? 'markdown' as const : undefined,
+      failed: turn.reply.status === 'failed' || turn.reply.status === 'rejected',
+    }] : []),
   ])
   // 종합 답변이 있는 말풍선은 단계별 결과를 접어 둔다(답변과 같은 내용이 두 번 보이지 않게, #492). 승인 카드·진행 표시는 그대로다.
   // 좋아요·싫어요는 그 줄의 오른쪽(말풍선 오른쪽 아래)에 둔다.
