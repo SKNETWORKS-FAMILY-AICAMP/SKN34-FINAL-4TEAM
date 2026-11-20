@@ -55,12 +55,14 @@ class DraftResponse(BaseModel):
     providerResponseId: str
     usage: Usage | None
     plan: BeatPlan | None = None  # 계획 없이 바로 집필한 경우 스스로 정해 쓴 계획
+    gaps: list[str] = []  # 설정 없이 쓴 이유 같은 알림. 모델 출력이 아니라 허용 문맥을 만든 쪽(ask_writing)이 채운다
 
 
 class PlanResponse(PlanOutput):
     model: str
     providerResponseId: str
     usage: Usage | None
+    gaps: list[str] = []
 
 
 class PatchResponse(BaseModel):

@@ -29,7 +29,7 @@ from app.world_review.models import Affected, EnrichResult, Finding as WorldFind
 from traced import MEMBER, attrs, bearer, status_of
 
 from .stubs import (BEAT, CLOSING, CONTEXT, COVERAGE, DRAFT, FORM, LINE, OPENING, PATCH, QA, REVIEW, SCENE_TEXT, SCOPE, WEB,
-                    WORLD, WORLD_ENRICH, WORLD_PLANS, WORLD_REVIEW, WORLD_REVIEW_REQUEST, Step, fake_agents, fake_scene, plan)
+                    NO_WORLD, WORLD, WORLD_ENRICH, WORLD_PLANS, WORLD_REVIEW, WORLD_REVIEW_REQUEST, Step, fake_agents, fake_scene, plan)
 
 REAL_WORLD = {name: getattr(world_review, name) for name in ('linked_request', 'review', 'linked_world', 'enrich', 'impact')}  # fake_agents가 바꾸기 전의 실제 함수
 
@@ -1818,11 +1818,11 @@ def test_plan_only_returns_beat_plans_with_allowed_context_and_never_asks_to_wri
     result = write_turn(str(uuid4()), request='11화 전개만 짜줘', target={**TARGET, 'episode': 5, 'baseEpisode': 3})
     assert result.status == 'completed' and result.awaitingApproval is None
     assert result.steps[0].result.plans[0].title == BEAT.title
-    assert names(calls) == ['judge', 'mcp', 'writing_plan'] and applied == []
-    # 허용 문맥은 Content가 근거 회차(지식 상한)까지 확인한 것이다. 반영 회차 5화를 기획한다.
+    assert names(calls) == ['judge', 'mcp', 'mcp', 'mcp', 'writing_plan'] and applied == []
+    # 허용 문맥은 Content가 근거 회차(지식 상한)까지 확인한 것이다. 반영 회차 5화를 기획한다. 설정은 WorldStudio로 바꾼다(#523): 연결 세계관이 없어 비어 있다.
     assert calls[1][1] == ('work_context_read', {'id': 'work', 'episode': 3, 'query': '11화 전개만 짜줘'})
-    sent = calls[2][1][0]
-    assert (sent.episodeNumber, sent.request) == (5, '11화 전개만 짜줘') and json.loads(sent.context) == CONTEXT
+    sent = calls[4][1][0]
+    assert (sent.episodeNumber, sent.request) == (5, '11화 전개만 짜줘') and json.loads(sent.context) == {**CONTEXT, 'settings': []}
 
 
 def test_draft_without_a_plan_plans_and_writes_in_one_step_then_waits_for_approval(monkeypatch):
@@ -1831,7 +1831,7 @@ def test_draft_without_a_plan_plans_and_writes_in_one_step_then_waits_for_approv
     result = write_turn(str(uuid4()), request='11화를 기획하고 써서 검수해줘', target=TARGET, inputs={'manuscript_review': REVIEW})
     assert (result.status, result.awaitingApproval) == ('waiting', 'writing_editing')
     assert [(s.feature, s.status) for s in result.steps] == [('writing_editing', 'completed'), ('manuscript_review', 'completed')]
-    assert result.steps[0].result.plan == BEAT and names(calls) == ['judge', 'mcp', 'mcp', 'plan_and_draft', 'manuscript_review'] and applied == []
+    assert result.steps[0].result.plan == BEAT and names(calls) == ['judge', 'mcp', 'mcp', 'mcp', 'mcp', 'plan_and_draft', 'manuscript_review'] and applied == []
 
 
 @pytest.mark.parametrize('task, text, selection', [
@@ -1853,7 +1853,7 @@ def test_same_turn_review_checks_writing_candidate_and_approval_checks_its_revis
 
     def content(tool, args):
         mcp_calls.append(tool)
-        return CONTEXT if tool == 'work_context_read' else {'draft': dict(before)}
+        return CONTEXT if tool == 'work_context_read' else NO_WORLD.get(tool, {'draft': dict(before)})
 
     monkeypatch.setattr(tools.content_mcp, 'call', content)
     thread = str(uuid4())
@@ -1887,7 +1887,7 @@ def test_failed_candidate_review_does_not_let_approval_apply_against_a_newer_dra
 
     def content(tool, args):
         assert tool != 'episode_update_draft'
-        return CONTEXT if tool == 'work_context_read' else {'draft': dict(draft)}
+        return CONTEXT if tool == 'work_context_read' else NO_WORLD.get(tool, {'draft': dict(draft)})
 
     monkeypatch.setattr(tools.content_mcp, 'call', content)
     thread = str(uuid4())
@@ -1909,7 +1909,7 @@ def test_failed_writing_allows_only_the_planned_review_of_the_saved_draft(monkey
     monkeypatch.setattr(tools.manuscript_review, 'review', real_review)
     seen = fake_agent(monkeypatch)
     monkeypatch.setattr(tools.content_mcp, 'call', lambda tool, args: {'draft': {'title': '3화', 'body': '원문', 'revision': 4}}
-                        if tool == 'episode_read' else CONTEXT)
+                        if tool == 'episode_read' else NO_WORLD.get(tool, CONTEXT))
     response = run('쓰고 검수해 줘', target=TARGET, scope=SCOPE)
     assert response.status == 'failed'
     assert [(s.feature, s.status) for s in response.steps] == [('writing_editing', 'failed'), ('manuscript_review', 'completed')]
@@ -1921,7 +1921,76 @@ def test_failed_writing_allows_only_the_planned_review_of_the_saved_draft(monkey
 def test_author_plan_still_wins_and_gets_the_allowed_context(monkeypatch):
     calls = fake_agents(monkeypatch, plan(writing_step('draft')))
     run('써줘', target=TARGET, inputs={'writing_editing': DRAFT})
-    assert names(calls) == ['judge', 'mcp', 'draft'] and json.loads(calls[2][1][0].context) == CONTEXT
+    assert names(calls) == ['judge', 'mcp', 'mcp', 'mcp', 'draft'] and json.loads(calls[4][1][0].context) == {**CONTEXT, 'settings': []}
+
+
+# Writing의 설정 근거는 Q&A·Review와 같은 WorldStudio다(#523). work_context_read의 settings(옛 설정 문서)는 버린다.
+WRITING_WORLD = {'worldId': 'w', 'relationships': [{'id': 'r1', 'sourceCardId': 'k', 'targetCardId': 'g', 'label': '수호'}], 'cards': [
+    {'id': 'k', 'title': '카엘', 'body': '북문을 지키는 기사', 'cardType': 'character', 'lifecycle': 'active'},
+    {'id': 'g', 'title': '성문', 'body': '북쪽 성문', 'cardType': 'location', 'lifecycle': 'active'},
+    {'id': 'f', 'title': '비밀 창고', 'body': '5화에 공개', 'cardType': 'location', 'lifecycle': 'active', 'semanticMetadata': {'revealFromEpisode': 5}}]}
+
+
+def linked_writing_world(monkeypatch, calls, read=WRITING_WORLD, fail=None):
+    def call(tool, args):
+        calls.append(('mcp', (tool, args), {}))
+        if tool == 'world_studio_read' and fail:
+            raise fail
+        return {'world_studio_list': [{'worldId': 'w', 'linkedWorkId': 'work'}], 'world_studio_read': read}.get(tool, CONTEXT)
+    monkeypatch.setattr(tools.content_mcp, 'call', call)
+
+
+def test_writing_context_replaces_the_old_settings_with_the_worldstudio_cards_known_at_the_basis_episode(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(writing_step('plan')))
+    linked_writing_world(monkeypatch, calls)
+    result = write_turn(str(uuid4()), request='전개 짜줘', target={**TARGET, 'episode': 5, 'baseEpisode': 3})
+    assert ('mcp', ('world_studio_read', {'id': 'w', 'episode': '3'}), {}) in calls
+    sent = json.loads(next(args[0] for name, args, _ in calls if name == 'writing_plan').context)
+    assert [s['ref'] for s in sent['settings']] == ['card:k', 'card:g', 'relation:r1']  # 5화에 공개되는 카드 f는 근거 회차(3화)에 없다
+    assert '항구' not in json.dumps(sent, ensure_ascii=False) and sent['title'] == CONTEXT['title']
+    assert result.steps[0].result.gaps == []
+
+
+@pytest.mark.parametrize('task, called', [('plan', 'writing_plan'), ('draft', 'plan_and_draft')])
+def test_writing_without_a_world_runs_with_no_settings_and_tells_the_author(monkeypatch, task, called):
+    calls = fake_agents(monkeypatch, plan(writing_step(task)))
+    result = write_turn(str(uuid4()), request='전개 짜줘', target=TARGET)
+    assert json.loads(next(args[0] for name, args, _ in calls if name == called).context)['settings'] == []
+    assert (result.steps[0].status, result.steps[0].result.gaps) == ('completed', [tools.NO_WORLD_SETTINGS])
+
+
+def test_a_world_without_settings_known_yet_writes_without_a_notice(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(writing_step('plan')))
+    linked_writing_world(monkeypatch, calls, read={**WRITING_WORLD, 'cards': WRITING_WORLD['cards'][2:], 'relationships': []})
+    result = write_turn(str(uuid4()), request='전개 짜줘', target=TARGET)
+    assert (result.steps[0].status, result.steps[0].result.gaps) == ('completed', [])
+
+
+@pytest.mark.parametrize('fail, read, error', [
+    (ContentMcpFailure(503, 'Content MCP를 호출할 수 없습니다.'), WRITING_WORLD, 'Content MCP를 호출할 수 없습니다.'),
+    (None, {'worldId': 'w', 'cards': 'x'}, tools.BAD_WORLD),
+])
+def test_a_failed_or_unreadable_world_fails_the_writing_step_instead_of_writing_without_settings(monkeypatch, fail, read, error):
+    calls = fake_agents(monkeypatch, plan(writing_step('plan')))
+    linked_writing_world(monkeypatch, calls, read=read, fail=fail)
+    result = write_turn(str(uuid4()), request='전개 짜줘', target=TARGET)
+    assert (result.status, result.steps[0].error) == ('failed', error)
+    assert 'writing_plan' not in names(calls)
+
+
+def test_an_unreadable_work_context_fails_the_writing_step_instead_of_crashing_the_run(monkeypatch):
+    calls = fake_agents(monkeypatch, plan(writing_step('plan')))
+    monkeypatch.setattr(tools.content_mcp, 'call', lambda tool, args: NO_WORLD.get(tool, ['not', 'an', 'object']))
+    result = write_turn(str(uuid4()), request='전개 짜줘', target=TARGET)
+    assert (result.status, result.steps[0].status) == ('failed', 'failed') and 'writing_plan' not in names(calls)
+
+
+@pytest.mark.parametrize('task', ['plan', 'draft'])
+def test_the_main_agent_is_told_the_writing_notice_so_the_answer_can_pass_it_on(monkeypatch, task):
+    calls = fake_agents(monkeypatch, plan(writing_step(task)))
+    write_turn(str(uuid4()), request='전개 짜줘', target=TARGET)
+    sent = json.loads(next(m for m in calls.main[-1]['messages'] if m.type == 'tool').content)
+    assert sent['gaps'] == [tools.NO_WORLD_SETTINGS]
 
 
 def test_planning_without_a_target_fails_the_step(monkeypatch):
@@ -1958,7 +2027,7 @@ def test_a_reply_recorded_with_the_world_review_step_before_the_world_agent_stil
 
 def test_allowed_context_over_the_limit_fails_the_step_instead_of_breaking_the_run(monkeypatch):
     calls = fake_agents(monkeypatch, plan(writing_step('plan')))
-    monkeypatch.setattr(tools.content_mcp, 'call', lambda tool, args: {'draft': '가' * 60001})
+    monkeypatch.setattr(tools.content_mcp, 'call', lambda tool, args: NO_WORLD.get(tool, {'draft': '가' * 60001}))
     result = write_turn(str(uuid4()), request='전개 짜줘', target=TARGET)
     assert result.status == 'failed' and result.steps[0].error == tools.CONTEXT_TOO_LONG
     assert 'writing_plan' not in names(calls)

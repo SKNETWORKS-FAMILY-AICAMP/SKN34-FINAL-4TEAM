@@ -26,6 +26,8 @@ from app import tracing
 from app.content_mcp import service as content_mcp
 from app.content_mcp.errors import ContentMcpFailure
 from app.intent.prompt import CAPABILITY_NAMES
+from app.novelbrain.models import world_snapshot
+from app.novelbrain.service import episode_settings
 from app.rating import service as rating
 from app.rating.errors import RatingFailure
 from app.rating.models import RatingRequest
@@ -62,6 +64,8 @@ NO_RATING_TARGET = '심의 등급을 판별할 작품과 회차를 확인할 수
 NO_WORLD_TARGET = '세계관을 다룰 작품을 확인할 수 없어요.'
 NO_WRITING_TARGET = '기획하거나 쓸 작품과 회차를 확인할 수 없어요.'
 CONTEXT_TOO_LONG = '허용 문맥이 너무 길어요. 기준 회차나 원고 분량을 줄여 주세요.'
+NO_WORLD_SETTINGS = '이 작품에 연결된 세계관이 없어 설정 없이 작성했어요.'
+BAD_WORLD = 'Content 세계관 응답을 확인할 수 없습니다.'
 NO_ISSUES = '검수에서 고칠 문제를 찾지 못해 수정하지 않았어요.'
 ONLY_SUSPECTED = '확정된 문제가 없어 자동으로 고치지 않았어요. 의심 지적은 고칠 구간을 골라 집필·수정을 따로 요청해 주세요.'
 PICK_NEEDED = '확정된 문제가 여러 곳이라 자동으로 고치지 않았어요. 고칠 구간을 골라 집필·수정을 따로 요청해 주세요.'
@@ -125,10 +129,11 @@ def _summary(step: dict) -> str:
 
 
 def _writing_summary(r: dict) -> dict:
+    # gaps(설정 없이 쓴 이유 등, #523)는 종합 답변이 작가에게 전하도록 기획·집필 요약에 넣는다.
     if 'plans' in r:
-        return {'kind': 'plan', 'plans': [p['title'] for p in r['plans']], 'notes': r['notes']}
+        return {'kind': 'plan', 'plans': [p['title'] for p in r['plans']], 'notes': r['notes'], 'gaps': r['gaps']}
     # 수정안은 고친 구절(before)만 알려 어느 지적을 고쳤는지 말하게 한다. 고친 문장(after)과 새 원고 본문은 넣지 않는다.
-    return {'kind': 'patch', 'selection': r['before']} if 'after' in r else {'kind': 'draft', 'characters': len(r['text'])}
+    return {'kind': 'patch', 'selection': r['before']} if 'after' in r else {'kind': 'draft', 'characters': len(r['text']), 'gaps': r['gaps']}
 
 
 def _world_summary(r: dict) -> dict:
@@ -330,15 +335,15 @@ def ask_writing(request: Request, task: Literal['plan', 'draft', 'patch'], runti
         if 'patch' in data:
             return writing.patch(PatchRequest.model_validate(data['patch']))
         if 'draft' in data:
-            draft = DraftRequest.model_validate(data['draft'])
+            draft, gaps = DraftRequest.model_validate(data['draft']), []
             if target and not draft.context:
-                draft.context = _allowed_context(target, draft.plan)
-            return writing.draft(draft)
+                draft.context, gaps = _allowed_context(target, draft.plan)
+            return writing.draft(draft).model_copy(update={'gaps': gaps})
         if not target:
             raise WritingFailure(422, NO_WRITING_TARGET)
-        planned = PlanRequest(episodeNumber=target['episode'], request=request, context=_allowed_context(target, request),
-                              previousPlans=_previous_plans(turn))
-        return writing.plan(planned) if task == 'plan' else writing.plan_and_draft(planned)
+        context, gaps = _allowed_context(target, request)
+        planned = PlanRequest(episodeNumber=target['episode'], request=request, context=context, previousPlans=_previous_plans(turn))
+        return (writing.plan(planned) if task == 'plan' else writing.plan_and_draft(planned)).model_copy(update={'gaps': gaps})
 
     # 부분 수정은 Content·작가가 주는 선택 구간이 있어야 한다. 기획·바로 집필은 요청과 반영 대상으로 실행한다(#387).
     needs = lambda inputs, scope: task == 'patch' and not {'patch', 'draft'} & set(inputs.get('writing_editing') or {})  # noqa: E731
@@ -406,12 +411,28 @@ def _read_context(target: dict, query: str) -> dict:
     return content_mcp.call('work_context_read', {'id': target['workId'], 'episode': target.get('baseEpisode') or target['episode'], 'query': query[:200]})
 
 
-def _allowed_context(target: dict, query: str) -> str:
-    """writing에 보내는 허용 문맥 글. 한도(60,000자)는 Content가 지킨다."""
-    context = json.dumps(_read_context(target, query), ensure_ascii=False, separators=(',', ':'))
-    if len(context) > 60000:  # Content는 Jackson 직렬화 길이로 잰다. 여기 직렬화가 더 길면 모델 입력 한도를 넘는다.
+def _allowed_context(target: dict, query: str) -> tuple[str, list[str]]:
+    """writing에 보내는 허용 문맥 글과 작가에게 알릴 gaps. 원고 문맥은 Content가 근거 회차까지 허용한 것을 그대로 쓰고,
+    설정(settings)만 Q&A·Review와 같은 WorldStudio(연결 → Fork 상속 세계관)로 바꾼다(#523). 세계관이 없으면 빈 설정과 알림이다.
+
+    shortcut: Content의 48,000자 예산은 버리는 옛 settings 길이까지 세어, 옛 설정 문서가 큰 작품은 Content가 422를 줄 수 있다.
+    문제가 되면 Content work_context_read에 설정 제외 옵션을 둔다. 공개된 카드가 0건이면 알림 없이 빈 설정으로 쓴다.
+    """
+    if not isinstance(context := _read_context(target, query), dict):  # settings만 바꿔 끼우므로 객체가 아니면 단계 실패다(linked_world와 같은 규칙)
+        raise ContentMcpFailure(502, 'Content MCP 결과를 확인할 수 없습니다.')
+    episode = target.get('baseEpisode') or target['episode']
+    gaps = []
+    if (world := content_mcp.linked_world(target['workId'], episode)) is None:
+        settings, gaps = [], [NO_WORLD_SETTINGS]
+    else:
+        try:
+            settings = episode_settings(world_snapshot(world, episode), episode)
+        except ValueError:
+            raise WritingFailure(502, BAD_WORLD) from None
+    text = json.dumps({**context, 'settings': settings}, ensure_ascii=False, separators=(',', ':'))
+    if len(text) > 60000:  # 한도(60,000자)는 모델 입력 한도다. Content는 Jackson 직렬화 길이로 재서 여기 직렬화가 더 길 수 있다.
         raise WritingFailure(422, CONTEXT_TOO_LONG)
-    return context
+    return text, gaps
 
 
 @tool

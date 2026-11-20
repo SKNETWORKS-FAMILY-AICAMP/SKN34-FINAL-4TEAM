@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { WritingEpisode } from '../entities/content'
 import type { CharacterSimulation } from '../entities/characterSimulation'
-import { chatBasis, cleanScene, featureLabel, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatReply, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix } from '../entities/writingChat'
+import { chatBasis, cleanScene, draftNotice, featureLabel, PLAN_PICK_HINT, replyOutcome, replyText, stepText, type ChatReply, type ChatStep, type ChatWorld, type ReviewFinding, type SceneAction, type WorldFix } from '../entities/writingChat'
 import type { WritingChatRepository } from '../repositories/WritingChatRepository'
 import { WritingChatUseCase } from '../usecases/WritingChatUseCase'
 
@@ -80,6 +80,21 @@ describe('replyText', () => {
       text: '선장은 항구에 내렸다.', plan: { title: '항구의 밤', beats: ['선장이 도착한다.'] } } }
     expect(stepText(step)).toBe('선장은 항구에 내렸다.')
     expect(replyText(reply({ steps: [step] }))).toBe('[기획·집필·수정] 선장은 항구에 내렸다.\n사용한 계획: 항구의 밤 — 선장이 도착한다.')
+  })
+
+  it('기획 결과의 알림(gaps)은 확인 못 함 줄로 참고 뒤에 붙는다(#523)', () => {
+    const step = { feature: 'writing_editing', status: 'completed' as const, result: {
+      plans: [{ title: '항구의 밤', beats: ['선장이 도착한다.'] }], notes: ['참고 하나'], gaps: ['이 작품에 연결된 세계관이 없어 설정 없이 작성했어요.'] } }
+    expect(stepText(step)).toBe('계획 1. 항구의 밤\n  1) 선장이 도착한다.\n참고: 참고 하나\n확인 못 함: 이 작품에 연결된 세계관이 없어 설정 없이 작성했어요.\n' + PLAN_PICK_HINT)
+  })
+
+  it('집필 결과의 알림(gaps)은 반영 본문에 섞지 않고 따로 한 줄로 보인다(#523)', () => {
+    const step = { feature: 'writing_editing', status: 'completed' as const, result: {
+      text: '선장은 항구에 내렸다.', gaps: ['이 작품에 연결된 세계관이 없어 설정 없이 작성했어요.'] } }
+    expect(stepText(step)).toBe('선장은 항구에 내렸다.')
+    expect(draftNotice(step)).toBe('확인 못 함: 이 작품에 연결된 세계관이 없어 설정 없이 작성했어요.')
+    expect(replyText(reply({ steps: [step] }))).toBe('[기획·집필·수정] 선장은 항구에 내렸다.\n확인 못 함: 이 작품에 연결된 세계관이 없어 설정 없이 작성했어요.')
+    expect(draftNotice({ ...step, result: { text: '본문', gaps: [] } })).toBe('')
   })
 })
 

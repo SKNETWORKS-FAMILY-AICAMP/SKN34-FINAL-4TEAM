@@ -237,7 +237,7 @@ export function stepText(step: ChatStep): string {
   if (r.findings) return [...r.findings.map((f) => `${researchVerdict[f.verdict] ?? researchVerdict.unverified} · ${f.text}${f.sourceUrls.length ? ` (${f.sourceUrls.join(', ')})` : ''}`), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`)].join('\n') || '조사 결과가 없어요.'
   if (r.after !== undefined) return `수정 전: ${r.before ?? ''}\n수정 후: ${r.after}`
   if (r.plans) return [...r.plans.map((p, i) => [`계획 ${i + 1}. ${p.title}`, ...p.beats.map((b, j) => `  ${j + 1}) ${b}`)].join('\n')),
-    ...(r.notes ?? []).map((n) => `참고: ${n}`), PLAN_PICK_HINT].join('\n')
+    ...(r.notes ?? []).map((n) => `참고: ${n}`), ...(r.gaps ?? []).map((g) => `확인 못 함: ${g}`), PLAN_PICK_HINT].join('\n')
   return r.text ?? ''
 }
 
@@ -248,13 +248,16 @@ export const PLAN_PICK_HINT = "가장 최근 기획한 안 중 하나를 '계획
 export const PLAN_LABEL = '사용한 계획'
 export const usedPlan = (step: ChatStep) => (step.result?.plan ? `${PLAN_LABEL}: ${step.result.plan.title} — ${step.result.plan.beats.join(' / ')}` : '')
 
+/** 바로 쓴 원고에 붙는 알림(설정 없이 쓴 이유 등, #523) 한 줄. 반영 본문(stepText)과 섞지 않도록 사용한 계획처럼 따로 보인다. */
+export const draftNotice = (step: ChatStep) => (step.result?.text !== undefined && step.result.gaps?.length ? step.result.gaps.map((g) => `확인 못 함: ${g}`).join('\n') : '')
+
 /**
  * 턴의 단계별 결과를 계획 순서로 이은 평문. 종합 답변(`reply.message`)은 넣지 않는다: 화면이 답변을 마크다운으로 그리고
  * 이 글은 그 아래에 접어 둔다(같은 내용 두 번 보이기 방지, #492). 답변도 단계도 없을 때만 안내 문구다.
  */
 export function replyText(reply: ChatReply): string {
   const steps = reply.steps.filter((s) => s.status !== 'not_started')
-    .map((s) => [`${stepLabel(s)} ${stepText(s)}`, s.status === 'completed' && usedPlan(s), appliedLine(s)].filter(Boolean).join('\n'))
+    .map((s) => [`${stepLabel(s)} ${stepText(s)}`, s.status === 'completed' && usedPlan(s), s.status === 'completed' && draftNotice(s), appliedLine(s)].filter(Boolean).join('\n'))
   return steps.join('\n\n') || (reply.message ? '' : '응답 내용이 없어요.')
 }
 

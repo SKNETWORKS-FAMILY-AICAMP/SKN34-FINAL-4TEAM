@@ -118,7 +118,7 @@ AI가 DB에 직접 접속하지 않고 Content API를 호출하는 방식이다.
 - Content `POST /internal/v1/ai/qa/retrieval` `{scopeToken, question}` → `{status: found|insufficient, sources, excerpts, gaps, coverage, steps}`. `ManuscriptQaService.retrieve`(범위 확정 → 임베딩 → Elasticsearch → PostgreSQL 원문 재대조)를 쓰고 모델은 부르지 않는다. `steps`는 공급자별(`embedding`·`elasticsearch`·`postgres_verify`) 소요 ms·결과 수다.
 - 인증은 `/internal/v1/ai/**` 전용 보안 체인의 `X-Internal-Token`(`INTERNAL_TOKEN`, 32자 이상)이다. 조회 키(작품·작가·회차·판본)는 Content가 인증 뒤 `QaScopeGrants`로 HMAC 서명해 발급한 `scopeToken`(1시간 만료)에서만 읽는다. AI는 토큰을 되돌려 줄 뿐이라 `INTERNAL_TOKEN`만으로 다른 작가를 지정할 수 없다. 서명이 틀리거나 만료되면 403이다. Content가 그 값으로 `QaScopeService` 권한·범위를 다시 확정한다. 서명 키는 프로세스마다 새로 만들어 Content 재시작·다중 인스턴스에서는 발급한 토큰이 무효다.
 - 토큰 발급은 Content 공개 경로 `POST /api/v1/works/{id}/writing-ai/orchestrations` `{request | resume{approved}, threadId?, operation?, episode, episodeVersionId, targetEpisode?}`가 한다(`episode`·`episodeVersionId`는 근거 회차, 선택 `targetEpisode`는 승인 뒤 쓸 반영 회차로 없으면 `episode`와 같다). 회원 인증(Principal)·작품 범위를 확인한 뒤 작가 본인으로 토큰을 발급하고, 대화를 `user:<작가>/work:<작품>` scope에 묶어 AI 오케스트레이션을 부른다. 응답은 `{threadId, result}`이며 result는 AI 응답 그대로다. resume 때도 새 토큰을 보내 AI가 저장된 토큰을 바꾸므로 1시간 만료·Content 재시작 뒤에도 이어 실행할 수 있다. 집필실 채팅은 같은 `WritingAiService`로 범위를 확인하고 토큰을 발급하는 SSE 경로 `/api/v1/works/{id}/chat/sessions/{threadId}/messages`를 쓴다([대화 세션](02-ai-architecture.md#유지되는-실행-계약)). Content는 아직 콘티·선택 구간 입력을 보내지 않는다. 웹 조사의 질문·동의는 입력 대기 뒤 resume으로 받는다. 집필 AI 대화는 OpenAI 전송·비용 동의를 따로 받지 않는다(2026-11-19 사용자 결정, #542).
-- AI `app/retrieval/service.retrieve`가 이 API를 호출한다. 오케스트레이션 요청에 Content가 확인한 `scope`가 있으면 Q&A 단계가 발췌 입력 없이 Retrieval로 근거를 받고, 근거가 없으면 모델을 부르지 않고 gaps만 돌려준다. Writing & Editing은 호출하지 않는다.
+- AI `app/retrieval/service.retrieve`가 이 API를 호출한다. 오케스트레이션 요청에 Content가 확인한 `scope`가 있으면 Q&A 단계가 발췌 입력 없이 Retrieval로 근거를 받고, 근거가 없으면 모델을 부르지 않고 gaps만 돌려준다. Writing & Editing은 호출하지 않는다. 설정은 Retrieval이 아니라 Content MCP 세계관 읽기(`content_mcp.linked_world`, 연결 → Fork 상속 원작 세계관 → 없음)에서 받는다([#523](#qa-세계관-근거-490)).
 - 한계: 오케스트레이션 경로는 답변 생성 뒤 Content의 범위·근거 재확인(409)을 하지 않는다. 검색어는 메인 에이전트가 정한 `ask_story_qa(request)`의 앞 500자다. 메인 모델이 지칭을 풀어 적을 수 있지만 Content 쪽 검색어 재작성은 없다. Manuscript Review·Rating·시뮬레이션은 이 도구가 아니라 Content MCP로 원고·세계관을 읽는다. World `impact`는 Content MCP `work_context_read`와 `story_plan_list`를 사용한다.
 
 ### Q&A 세계관 근거 (#490)
@@ -130,7 +130,7 @@ AI가 DB에 직접 접속하지 않고 Content API를 호출하는 방식이다.
 1. **설정 정본은 WorldStudio 하나다.** Q&A는 Content 작품 설정 문서(`setting_*`, knownBy·회차 범위)를 읽지 않는다. 데이터는 옮기지 않는다. WorldStudio에서는 아는 인물이 관계 연결과 인물 회차 기억(DEC-47)으로, 공개 범위가 `revealFromEpisode`(DEC-46)로 표현된다.
 2. **초안을 근거로 쓴다.** Review와 같은 `world_studio_read` 초안이라 작가가 막 고친 설정이 바로 반영된다. 작가 전용 경로라 독자에게 초안이 보이지 않는다.
 3. **작품 연결 세계관을 읽는다.** `world_studio_list`의 `linkedWorkId`가 작품인 세계관을 읽고, 없으면 Fork가 이어받는 원작 세계관(`work_inherited_world`)을 읽는다. 그것도 없으면 대체 세계관을 찾지 않고 gaps로 알린다. 회차 기준 세계관(`episode_world_basis_read`)은 쓰지 않는다.
-4. **Writing(`work_context_read`)은 이 이슈에서 바꾸지 않는다.** 후속으로 맞춘다.
+4. **Writing은 #523에서 맞췄다(2026-11-20).** 기획·집필은 `work_context_read`의 원고 문맥(제목·요약·작성 중 초안·최근 발행 회차 발췌·선택 구간)은 그대로 쓰고, `settings`만 위 3과 같은 세계관 읽기(`content_mcp.linked_world`, 근거 회차 시점)와 거르기(`episode_settings`)의 결과로 바꿔 보낸다. 옛 설정 문서 값은 버리고 둘을 함께 보내지 않는다. 세계관이 없으면 빈 설정으로 계속하고 결과 `gaps`에 알린다("이 작품에 연결된 세계관이 없어 설정 없이 작성했어요."). World `impact`는 이미 연결 세계관 카드를 따로 받으므로 `work_context_read` 원형을 그대로 쓴다.
 5. **질문 종류를 나누지 않는다.** Content Retrieval은 원고만 다루므로 Q&A마다 원고 Retrieval과 세계관을 둘 다 근거로 넣고 모델이 골라 인용한다.
 
 동작:
@@ -143,6 +143,7 @@ AI가 DB에 직접 접속하지 않고 Content API를 호출하는 방식이다.
 - 세계관이 없거나 쓸 카드가 없으면 gaps로 알리고, 원고와 세계관 모두 근거가 없으면 모델을 부르지 않는다. MCP 호출·형식 오류는 빈 근거로 바꾸지 않고 단계 실패다. MCP 도구와 인자는 Python이 고정해 호출하고 모델에 노출하지 않으며 읽기 도구만 쓴다.
 - 실모델 확인(2026-11-18, 로컬 집필실 채팅 브라우저 e2e, 개발 샘플 작품 '별빛 서약의 탑'(WorldStudio 카드 15장, 발행 3화), 근거 회차 2화, 모델 호출은 Decision Guard·메인 에이전트·Q&A): 설정 질문 '카엘은 어떤 사람이야?'는 카엘·리안·오르벤 카드와 관계 하나(`card:`·`relation:`)를 인용해 답하고 나이·외모는 gaps로 남겼다. 관계 질문 '리안과 오르벤은 어떤 관계야?'는 리안 카드와 원고 발췌로 스승·제자 관계를 답했다. 3화 공개 카드(세라핀·재의 사절 도착·마법 금지 규칙)는 2화 근거에서 빠졌다(Langfuse `world_read` 참조로 확인). 카드 15장이라 BM25로 8건을 골랐다. 컨테이너를 새로 띄운 직후 첫 질문은 Content 원고 검색이 E5 모델을 처음 읽느라 20초를 넘겨 Retrieval 시간 초과로 실패했고, 다음 질문부터는 정상이었다.
 - 한계: 인물 문서(SOUL·GOAL)는 회차 범위가 없어 그 안에 적은 뒤 회차 정보(예: 3화에 등장하는 인물의 호칭)가 근거로 쓰일 수 있다(Review와 같다). Rating도 같은 `linked_world`를 쓴다(#524). 설정집 검토·시뮬레이션의 세계관 읽기는 아직 각자 코드에 있다.
+- Writing 한계(#523): Q&A처럼 8건·2,000자로 자르지 않고 공개 카드·관계를 모두 보낸다(시연 규모). 한도는 모델 입력 60,000자 검사가 지키며 넘으면 단계 실패다. Content `work_context_read`의 48,000자 예산은 버리는 옛 `settings` 길이까지 세므로, 옛 설정 문서가 큰 작품은 Content가 422를 줄 수 있다. 문제가 되면 Content에 설정 제외 옵션을 둔다(후속). 세계관은 있으나 근거 회차까지 공개된 카드가 0건이면 알림 없이 빈 설정으로 쓴다. 세계관 형식 오류(`ValueError`)는 빈 설정이 아니라 502 단계 실패이고, MCP 호출 오류는 그대로 단계 실패다.
 
 ### 로컬 실모델 검증 (2026-11-11, 제거 전 작품 Q&A 화면 기록)
 
