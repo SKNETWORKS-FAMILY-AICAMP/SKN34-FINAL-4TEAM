@@ -32,7 +32,7 @@ export function Withdrawal() {
   // 다시 읽은 상태가 유예 중이면(다른 곳에서 이미 요청) 요청 시트를 닫아, 나중에 복구했을 때 다시 열리지 않게 합니다.
   useEffect(() => { if (state?.status === 'PENDING') setOpen(false) }, [state])
   const card = useRef<HTMLDivElement>(null)
-  const title = useRef<HTMLElement>(null)
+  const title = useRef<HTMLHeadingElement>(null)
   const restore = useRef<HTMLButtonElement>(null)
   const { focusRequested, focusHandled } = vm
   const keeping = useRef<(() => void) | null>(null)
@@ -46,7 +46,7 @@ export function Withdrawal() {
   }, [focusRequested, focusHandled, state, vm.loadError])
   return (
     <div ref={card} className="tcard mecard danger" aria-busy={vm.pending || (!state && !vm.loadError)}>
-      <b ref={title} tabIndex={-1}>회원탈퇴</b>
+      <h3 ref={title} tabIndex={-1}>회원탈퇴</h3>
       {vm.loadError ? <>
         <p role="alert" className="small">탈퇴 상태를 불러오지 못했어요. 다시 시도해 주세요.</p>
         <button type="button" className="btn" onClick={vm.retry}>탈퇴 상태 다시 시도</button>
@@ -78,7 +78,7 @@ function WithdrawSheet({ pending, error, onClose, onSubmit }: { pending: boolean
         <label className="field">비밀번호<input className="inp" type="password" autoComplete="current-password" required data-autofocus disabled={pending} value={password} onChange={(e) => setPassword(e.target.value)} /></label>
         <label className="field">탈퇴 사유 (선택)<textarea className="ta" rows={3} maxLength={WITHDRAWAL_REASON_MAX} disabled={pending} value={reason} onChange={(e) => setReason(e.target.value)} /></label>
         {error && <p role="alert">{error}</p>}
-        <div className="rowend"><button type="button" className="btn" disabled={pending} onClick={onClose}>취소</button><button type="submit" className="btn pri" disabled={pending || !password}>{pending ? '요청하는 중…' : '탈퇴하기'}</button></div>
+        <div className="rowend"><button type="button" className="btn" disabled={pending} onClick={onClose}>취소</button><button type="submit" className="btn danger" disabled={pending || !password}>{pending ? '요청하는 중…' : '탈퇴하기'}</button></div>
       </form>
     </Sheet>
   )

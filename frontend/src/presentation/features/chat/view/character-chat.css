@@ -4,3 +4,5 @@
 .chlog { position: relative; }
 /* 빈 질문 경고: 입력 줄(.chf) 바로 아래에 같은 좌우 여백으로 둔다. */
 .chat-ask-error { padding: 0 20px 12px; }
+/* 상대 말풍선 아래 근거 표시: 전역 .ev는 테두리·배경·안쪽 여백이 있는 카드 상자라, 전역 .they .ev(작은 글씨·색)만으로는 상자가 남는다. 작은 캡션으로만 보이게 한다. */
+.they .ev { border: 0; background: none; padding: 0; }

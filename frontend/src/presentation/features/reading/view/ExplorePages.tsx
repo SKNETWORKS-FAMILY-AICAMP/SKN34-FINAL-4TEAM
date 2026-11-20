@@ -33,7 +33,6 @@ function ListTools({ base, st, onSubmit, placeholder, filters }: { base: string;
   return (
     <div className="ltools">
       <form className="lq" onSubmit={(e) => { e.preventDefault(); onSubmit(text) }}>
-        <span aria-hidden="true">🔍</span>
         <input name="q" value={text} onChange={(e) => setText(e.target.value)} placeholder={placeholder} aria-label="검색어" />
         <button className="btn sm pri" type="submit">검색</button>
       </form>
@@ -77,7 +76,7 @@ export function WCard({ w, i, ranked, updated, popular, onReport }: { w: Work; i
         <div className="rc">
           <CoverOf w={w} />
           {ranked && <span className={`big ${i < 3 ? 'b' + (i + 1) : ''}`}>{i + 1}</span>}
-          {ranked && i === 0 && <span className="crown" aria-label="1위"><Crown /></span>}
+          {ranked && i === 0 && <span className="crown" aria-hidden="true"><Crown /></span>}
           {w.parent && <span className="tag if">포크</span>}
         </div>
         <div className="ri">
@@ -235,7 +234,7 @@ export function RankPage() {
     <>
       <Gnb on="rank" />
       <main className="wrap" id="main" tabIndex={-1}>
-        <div className="sec-h" style={{ marginBottom: 0 }}><h1>랭킹</h1><span className="muted small">{basis}</span><Go to="/search" className="more"><span aria-hidden="true">🔍</span> 소설 검색 ›</Go></div>
+        <div className="sec-h" style={{ marginBottom: 0 }}><h1>랭킹</h1><span className="muted small">{basis}</span><Go to="/search" className="more">소설 검색 ›</Go></div>
         <nav className="libtabs" aria-label="랭킹 범위">{RANKING_TYPES.map(([k, l]) => <Go key={k} to={to({ t: k })} {...selected(vm.st.t === k)}>{l}</Go>)}</nav>
         <div className="ltools">
           <div className="lrow">

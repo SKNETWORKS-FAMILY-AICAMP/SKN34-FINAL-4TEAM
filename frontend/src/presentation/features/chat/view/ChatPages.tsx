@@ -5,6 +5,7 @@ import { SORTS } from '../../../../domain/entities/work'
 import { CoverOf } from '../../../shared/art'
 import { ago, kfmt } from '../../../shared/format'
 import { Go } from '../../../shared/Go'
+import { PencilIcon } from '../../../shared/icons'
 import { Portrait } from '../../../shared/Portrait'
 import { Footer, Gnb } from '../../../shared/shell/Gnb'
 import { useDocumentTitle } from '../../../shared/useDocumentTitle'
@@ -44,7 +45,7 @@ function ChatList() {
               <label className="field" style={{ flex: '1 1 180px' }}>작품<select className="inp" id="chatWork" value={st.work} onChange={(e) => vm.go({ work: e.target.value, character: 'all' })}><option value="all">전체 작품</option>{data.works.map((w) => <option key={w.id} value={w.id}>{w.title}</option>)}</select></label>
               <label className="field" style={{ flex: '1 1 180px' }}>캐릭터<select className="inp" id="chatCharacter" value={st.character} onChange={(e) => vm.go({ character: e.target.value })}><option value="all">전체 캐릭터</option>{data.characters.map((c) => <option key={c} value={c}>{c}</option>)}</select></label>
             </div>
-            <div className="eptool" style={{ margin: '12px 0 0', padding: '6px 0 0', border: 0 }}><b>정렬</b><div className="sortt">{SORTS.map(([k, l]) => <Go key={k} to={vm.to({ sort: k })} className={st.sort === k ? 'on' : ''} aria-current={st.sort === k ? 'page' : undefined}>{l}</Go>)}</div></div>
+            <div className="eptool" style={{ margin: '12px 0 0', padding: '6px 0 0', border: 0 }}><b>정렬</b><div className="sortt" role="group" aria-label="정렬">{SORTS.map(([k, l]) => <Go key={k} to={vm.to({ sort: k })} className={st.sort === k ? 'on' : ''} aria-current={st.sort === k ? 'page' : undefined}>{l}</Go>)}</div></div>
             <p className="small muted">최신순·인기순·조회순은 연결된 작품의 지표를 따릅니다. 포크는 원작과 구분해 보여요.</p>
           </div>
           <div className="rgrid">{data.listed.length ? data.listed.map(({ w, character: c, parent }) => (
@@ -107,7 +108,7 @@ function ChatRoom({ wid, cn }: { wid: string; cn?: string }) {
               : <div className="they" key={i}><i className="pt"><Portrait name={cur.n} size={36} /></i><div><span className="sr-only">{cur.n}</span><p>{m[1]}</p>{m[2] && <span className="ev">{m[2]}</span>}</div></div>)}</div>
             <div className="chq" role="group" aria-label="추천 질문">{d.questions.map((x, i) => <button type="button" key={i} onClick={() => vm.ask({ q: i })}>{x[0] > d.base ? '🔒 ' : ''}{x[1]}</button>)}</div>
             <AskForm key={d.key} name={cur.n} error={vm.askError} onAsk={(text) => vm.ask({ text })} />
-            {d.forkAt && <div className="chfork"><span>대화하다 떠오른 전개가 있나요?</span><Go to={`/fork/${wid}?at=${d.forkAt}`} className="btn sm">✎ {d.forkAt}화에서 포크하기</Go></div>}
+            {d.forkAt && <div className="chfork"><span>대화하다 떠오른 전개가 있나요?</span><Go to={`/fork/${wid}?at=${d.forkAt}`} className="btn sm"><PencilIcon size={14} />{d.forkAt}화에서 포크하기</Go></div>}
           </> : <p className="muted">대화할 수 있는 인물이 없어요.</p>}</section>
         </div>}
       </main>

@@ -9,6 +9,8 @@
 .notice-row { display: flex; align-items: center; gap: 8px; }
 /* 전역 .ibx는 width:100%·아래 여백 10px의 블록이다. 줄 안에서는 남는 폭만 차지하고 간격은 목록의 gap이 맡는다. */
 .notice-row .ibx { flex: 1; min-width: 0; margin-bottom: 0; }
+/* 안 읽은 알림(.ibx.on)은 테두리 색으로만 알린다. 전역 .ibx.on의 4px 후광은 피드백함에서 '선택한 카드'를 뜻해, 알림 목록에서는 안 읽음과 선택이 같은 모양이 된다. */
+.notice-list .ibx.on { box-shadow: none; }
 /* 조작 실패 안내: 실패한 줄·버튼 바로 아래에 둔다. */
 .notice-failure { margin-top: 6px; }
 

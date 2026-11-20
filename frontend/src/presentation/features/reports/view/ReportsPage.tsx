@@ -32,9 +32,9 @@ export function ReportsPage() {
     <>
       <Gnb />
       <main id='main' tabIndex={-1} className='wrap'>
-        <div className='topbar' style={{ height: 'auto', marginBottom: 14 }}>
-          <h1 style={{ fontSize: 22 }}>내 신고</h1>
-          <button type='button' className='btn sm' disabled={list.isRefreshing} onClick={list.retry}>새로고침</button>
+        <div className='sec-h'>
+          <h1>내 신고</h1>
+          <button type='button' className='btn sm' style={{ marginLeft: 'auto' }} disabled={list.isRefreshing} onClick={list.retry}>새로고침</button>
         </div>
         <section className='panel' aria-label='신고 목록'>
           <p className='small muted'>내가 접수한 신고와 내 작품이 대상인 신고를 최신순으로 보여 줘요.</p>

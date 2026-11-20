@@ -27,3 +27,8 @@
 
 /* 전체 탭의 묶음(작품·세계관·설정 카드·캐릭터챗) 사이 간격. 묶음 제목 줄(.sec-h)과 더 보기 링크(.more)는 전역 규칙이다. */
 .search-group { margin-top: 32px; }
+/* 묶음 제목(h2)은 페이지 제목(h1)보다 작게 둔다. 전역 .sec-h는 h1·h2를 같은 23px로 그린다. */
+.search-group .sec-h h2 { font-size: 18px; }
+
+/* 3열 격자(.rgrid) 안의 결과 없음·불러오기 실패 안내(.rp)는 한 칸에 갇히지 않고 전체 폭을 쓴다. 밑줄은 목록 행의 구분선이라 안내에는 두지 않는다. */
+.rgrid > .rp { grid-column: 1 / -1; border-bottom: 0; }

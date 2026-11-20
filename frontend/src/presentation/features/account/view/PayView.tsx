@@ -19,18 +19,18 @@ export function PayView({ vm }: { vm: VM }) {
     {isLoading && <p role="status">크레딧을 불러오고 있어요.</p>}
     {isError && <div role="alert"><p>크레딧을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p><button type="button" className="btn sm" onClick={retry}>다시 불러오기</button></div>}
     {data && <>
-      <div className="kpi" style={{ gridTemplateColumns: 'repeat(2,minmax(0,1fr))' }}>
+      <div className="kpi" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,220px),1fr))' }}>
         <div><small>보유 크레딧</small><b>{num(data.balance.total)}</b><span className="small muted">소멸이 빠른 크레딧부터 사용돼요</span></div>
         <div><small>가장 빠른 소멸 예정</small><b>{next ? kstDateTime(next.expiresAt) : '—'}</b><span className="small muted">{next ? `${next.kinds} ${num(next.remaining)}` : '소멸 예정인 크레딧이 없어요'}</span></div>
       </div>
       <div className="tcard mecard" style={{ marginTop: 14 }}>
         <h3 className="st">지급·사용·소멸 내역 {data.history.length}</h3>
         {data.history.length
-          ? <div className="list">{data.history.map((x, i) => (
-            <div className="rp" key={`${x.occurredAt}-${x.type}-${x.kind}-${i}`}>
+          ? <div>{data.history.map((x, i) => (
+            <div className="rp" key={`${x.occurredAt}-${x.type}-${x.kind}-${i}`} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '4px 12px' }}>
               <b>{creditHistoryLabel[x.type]} · {creditKindLabel(x.kind)}</b>
-              <span> {SIGN[x.type]}{num(x.amount)}</span>
-              <small className="muted"> {kstDateTime(x.occurredAt)}</small>
+              <span style={{ marginLeft: 'auto', fontVariantNumeric: 'tabular-nums' }}>{SIGN[x.type]}{num(x.amount)}</span>
+              <small className="muted" style={{ flexBasis: '100%' }}> {kstDateTime(x.occurredAt)}</small>
             </div>
           ))}</div>
           : <p className="muted" style={{ padding: '28px 0', textAlign: 'center' }}>지급·사용 내역이 없어요.</p>}

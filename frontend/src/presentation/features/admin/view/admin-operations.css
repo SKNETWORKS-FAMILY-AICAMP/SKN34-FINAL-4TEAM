@@ -11,7 +11,7 @@
 .adm .admin-record-list { list-style: none; padding: 0; margin: 12px 0 0; }
 .adm .admin-record-list li { border-bottom: 1px solid var(--line); }
 .adm .admin-record-link { display: flex; flex-direction: column; gap: 6px; width: 100%; min-height: 64px; padding: 14px 8px; border: 0; background: transparent; color: var(--ink); text-align: left; }
-.adm .admin-record-link:hover { background: var(--pri-soft); }
+.adm .admin-record-link:hover { background: var(--muted-bg); }
 .adm .admin-record-link:focus-visible { outline-offset: -2px; }
 .adm .admin-prose { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; }
 .adm .admin-operations p.admin-prose { margin: 18px 0; max-width: 75ch; }
@@ -44,6 +44,8 @@
 @media (max-width: 900px) {
   .adm .admin-nav :is(button, a) { height: auto; min-height: 44px; }
 }
+/* 메뉴 대부분에 붙는 'API' 표시는 글자(범례 안 표시 포함)보다 눈에 띄지 않게 무채색 작은 글자로 둔다. */
+.adm .nav-live { background: none; color: var(--faint); font-weight: 700; }
 /* 운영 대시보드·LLMOps·작업 감시(DEC-55): 보기 선택 칩, 조회 조건 줄, 표 안 조치 묶음, 카드 안 보조 줄. */
 .adm .admin-subnav { margin: 0 0 14px; }
 .adm .admin-filter { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 12px; margin: 0 0 12px; }

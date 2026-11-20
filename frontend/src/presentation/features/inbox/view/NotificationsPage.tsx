@@ -27,7 +27,7 @@ export function NotificationsPage() {
     <>
       <Gnb />
       <main id="main" tabIndex={-1} className="wrap">
-        <div className="topbar" style={{ height: 'auto', marginBottom: 14 }}><h1 style={{ fontSize: 22 }}>알림함</h1><button type="button" className="btn sm" disabled={!vm.unread} onClick={vm.markAll}>모두 읽음</button></div>
+        <div className="sec-h"><h1>알림함</h1><button type="button" className="btn sm" style={{ marginLeft: 'auto' }} disabled={!vm.unread} onClick={vm.markAll}>모두 읽음</button></div>
         <section className="panel"><h2 className="inbox-panel-title">알림 설정</h2>
           {vm.prefs && <div className="notice-prefs">{([['read', '읽기 알림'], ['creator', '작가 소식'], ['aiTool', 'AI·외부 도구 변경']] as const).map(([k, l]) => (
             <label className="ck" key={k}><input type="checkbox" checked={vm.prefs![k]} disabled={vm.saving} onChange={(e) => vm.setPref(k, e.target.checked)} /> {l}</label>
