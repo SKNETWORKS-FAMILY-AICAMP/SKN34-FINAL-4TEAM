@@ -655,12 +655,15 @@ def build(llm, raw: Path, out: Path, rows: list[dict], *, limit_usd: float, work
     hp_chapters.write_chapters(splits, out / 'chapters')
     ordinals = ordinals_of(splits)
     units = [(book, unit) for book, split in sorted(splits.items()) for unit in split.units]
-    plan, started = estimate_build([len(u.text) for _, u in units]), llm.cost.spent()
-    log(f'build 예상: 추출 {plan["calls"]["extract"]}회·이름 {plan["calls"]["names"]}회·문서 {plan["calls"]["docs"]}회·SOUL·GOAL {plan["calls"]["traits"]}회 → 약 ${plan["usd"]:.2f} (장부 ${started:.2f} / 상한 ${limit_usd:.2f})')
-    if plan['usd'] > limit_usd - started:
-        raise LimitReached(f'예상 금액 ${plan["usd"]:.2f}가 남은 상한 ${limit_usd - started:.2f}(상한 ${limit_usd:.2f} − 장부 ${started:.2f})를 넘어 호출 없이 멈춘다.')
     requests = {(i, j): (*extract_request(window), Extraction, EXTRACT_TOKENS, window)
                 for i, (_, unit) in enumerate(units) for j, window in enumerate(hp_chapters.windows(unit.text, WINDOW))}
+    plan, started = estimate_build([len(u.text) for _, u in units]), llm.cost.spent()
+    cached = getattr(llm, 'is_cached', None)   # 캐시에 있는 추출은 호출이 들지 않는다: 이미 끝낸 빌드를 다시 조립할 때 장부가 높아도 막지 않는다(뒤 단계는 호출마다 상한을 다시 확인한다)
+    fresh = sum(1 for instructions, data, schema, tokens, _ in requests.values() if not (cached and cached(instructions, data, schema=schema, max_output_tokens=tokens)))
+    expected = plan['usd'] * fresh / (len(requests) or 1)
+    log(f'build 예상: 추출 {plan["calls"]["extract"]}회(캐시에 없는 창 {fresh}/{len(requests)})·이름 {plan["calls"]["names"]}회·문서 {plan["calls"]["docs"]}회·SOUL·GOAL {plan["calls"]["traits"]}회 → 약 ${expected:.2f} (장부 ${started:.2f} / 상한 ${limit_usd:.2f})')
+    if expected > limit_usd - started:
+        raise LimitReached(f'예상 금액 ${expected:.2f}가 남은 상한 ${limit_usd - started:.2f}(상한 ${limit_usd:.2f} − 장부 ${started:.2f})를 넘어 호출 없이 멈춘다.')
     done = _run(llm, 'hp_extract', requests, workers, limit_usd, log)
     infos = []
     for i, (book, unit) in enumerate(units):

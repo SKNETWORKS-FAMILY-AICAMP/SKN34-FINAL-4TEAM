@@ -205,6 +205,7 @@ def test_ocx_needs_only_the_model_name_switches_the_process_and_runs_without_a_m
     monkeypatch.setattr(cli.sim_stats, 'paired_quality', lambda by_source: {})
     cli.main(['run', '--suite', 'quality', '--configs', 'A', '--via', 'ocx', '--limit-usd', '1'])
     assert switched == ['ocx'] and limits == [('ocx', math.inf)]
+    assert json.loads((run_env / 'results' / 'quality.json').read_text())['judge'] == 'gpt-6-luna'   # ocx에서는 채점 모델도 바뀐다(결과에 실제 모델을 적는다)
 
 
 def test_a_quality_run_that_hits_the_openai_cap_tells_how_to_continue_with_ocx_and_ocx_itself_just_fails(monkeypatch, run_env):
@@ -363,6 +364,8 @@ def test_the_report_for_the_original_text_world_reads_its_own_results_and_shows_
     cli.main(['report', '--suite', 'quality'])
     assert '결과 없음' in capsys.readouterr().out   # 얇은 세계관 결과는 따로 있다
     assert cli.format_via('openai') == 'via: openai' and '섞여' not in cli.format_via({'A': {'openai': 4}})
+    everything = cli.format_via({'A': {'ocx': 150}, 'B': {'ocx': 150}})
+    assert 'A ocx 150, B ocx 150' in everything and '전부 ocx라 섞이지 않았다' in everything and '섞여 있다' not in everything and 'gpt-6-luna' in everything   # 전부 ocx면 섞이지 않았지만 채점 모델은 다르다
 
 
 def test_korean_world_inputs_are_counted_with_a_denser_character_to_token_ratio_and_without_json_escapes(monkeypatch, tmp_path):

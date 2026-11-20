@@ -550,3 +550,17 @@ def test_the_preview_prints_soul_and_goal_in_full_for_the_asked_people_and_count
     assert '다시 쓴 인물: 0명, 두 번 걸려 이전(첫 등장 기준) 문서로 둔 인물: 2명' in text and '**SOUL**\n\n## 말투' in text
     short = b.preview(data, ['Harry Potter'], limit=40)
     assert ('조용하다 ' * 79 + '조용하다') not in short and '**SOUL** ## 말투' in short
+
+
+def test_a_build_whose_extraction_is_all_cached_is_not_blocked_by_a_high_ledger(small):
+    """끝낸 빌드를 호출 없이 다시 조립할 때 장부가 상한에 가까워도 막지 않는다: 캐시에 있는 추출은 호출이 들지 않는다(뒤 단계는 호출마다 상한을 다시 확인한다)."""
+    class Cached(FakeLlm):
+        def is_cached(self, *args, **kwargs):
+            return True
+
+    small.cost.record('prior', 24_750_000, 0)   # 272K 초과 할증을 포함해 약 $9.9
+    llm = Cached(small.cost)
+    _, stats = run_build(small, llm, limit_usd=10)   # 남은 상한 $0.1은 예상($0.27)보다 작지만 추출이 모두 캐시에 있다
+    assert stats['units'] == 5
+    with pytest.raises(b.LimitReached, match='상한'):
+        run_build(small, FakeLlm(small.cost), limit_usd=10)   # is_cached가 없는 Llm은 모두 호출이 든다고 본다

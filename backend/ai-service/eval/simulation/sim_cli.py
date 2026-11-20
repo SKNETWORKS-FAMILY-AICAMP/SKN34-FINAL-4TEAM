@@ -256,7 +256,8 @@ def cmd_run(args) -> None:
     worlds = sim_worlds.Worlds.load(hp=True) if args.world == 'hp' else sim_worlds.Worlds.load()
     llm = make_llm(args)
     ran_as = cfg.plan_runs(configs, args.suite)
-    meta, runs = {'model': os.environ['OPENAI_MODEL'], 'judge': llm.model, 'world': args.world}, sim_worlds.DATA / 'runs'
+    judge = sim_via.MODEL if args.via == 'ocx' else llm.model   # ocx에는 gpt-5.6-luna가 없어 채점도 게이트웨이의 gpt-6-luna다(캐시 열쇠의 모델 이름과 다르다)
+    meta, runs = {'model': os.environ['OPENAI_MODEL'], 'judge': judge, 'world': args.world}, sim_worlds.DATA / 'runs'
     if args.suite == 'quality':
         rows = question_rows(worlds, args.world)
         templates, personalities = sim_quality.load_inputs(rows)
@@ -290,12 +291,15 @@ def cmd_run(args) -> None:
 
 
 def format_via(via) -> str:
-    """결과의 via: 설정마다 문항 수(openai·ocx가 섞였으면 둘 다). ocx가 있으면 모델이 달라 섞였음을 알린다."""
+    """결과의 via: 설정마다 문항 수(openai·ocx가 섞였으면 둘 다). ocx가 있으면 채점 모델이 달라졌음과 섞임 여부를 알린다."""
     if isinstance(via, str):
         return f'via: {via}'
     parts = ', '.join(f"{name} {' · '.join(f'{k} {n}' for k, n in sorted(counts.items()))}" for name, counts in via.items())
-    mixed = ' — ocx 문항은 생성·채점 모델이 게이트웨이의 gpt-6-luna라 OpenAI 문항과 섞여 있다' if any('ocx' in counts for counts in via.values()) else ''
-    return f'via(문항 수): {parts}{mixed}'
+    kinds = {k for counts in via.values() for k in counts}
+    note = ''
+    if 'ocx' in kinds:   # ocx에는 채점 모델 gpt-5.6-luna가 없어 채점도 게이트웨이의 gpt-6-luna다
+        note = ' — ocx 문항은 채점 모델이 게이트웨이의 gpt-6-luna다(OpenAI 채점은 gpt-5.6-luna)' + (', OpenAI 문항과 섞여 있다' if 'openai' in kinds else ': 전부 ocx라 섞이지 않았다')
+    return f'via(문항 수): {parts}{note}'
 
 
 def cmd_report(args) -> None:
