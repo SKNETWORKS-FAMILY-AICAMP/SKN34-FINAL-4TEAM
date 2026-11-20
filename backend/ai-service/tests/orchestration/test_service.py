@@ -1027,6 +1027,12 @@ def test_a_scene_wait_and_the_history_that_restores_it_carry_the_reflection_epis
     assert (restored.awaitingScene, restored.approvalEpisode) == ('character_simulation', 5)
 
 
+def test_the_conversation_of_a_scene_in_progress_keeps_its_title_in_the_session_list(monkeypatch):
+    thread, *_ = start_scene(monkeypatch)
+    scene_turn(thread)
+    assert [(s.threadId, s.title) for s in conversation('sessions', ME)] == [(thread, REQUEST)]
+
+
 def test_scene_approval_writes_all_turns_in_order_joined_by_blank_lines_with_the_resuming_users_token(monkeypatch):
     thread, _, calls, _, applied = start_scene(monkeypatch)
     finish_scene(thread)
