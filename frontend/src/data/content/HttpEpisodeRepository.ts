@@ -43,10 +43,8 @@ const readingWork = work.omit({draft:true}).extend({
   likes:z.number().int().nonnegative(),
 })
 const instant = z.iso.datetime({offset:true})
-const bytes = z.number().int().nonnegative()
 const storageUsage = z.object({
-  totalBytes: bytes, manuscriptBytes: bytes, settingBytes: bytes, manuscriptImageBytes: bytes,
-  items: z.array(z.object({ id: z.string().min(1), kind: z.enum(storageKinds), title: z.string(), parentTitle: z.string(), bytes })),
+  items: z.array(z.object({ id: z.string().min(1), kind: z.enum(storageKinds), title: z.string(), parentTitle: z.string(), bytes: z.number().int().nonnegative() })),
 })
 const settingsVersion = z.object({ revision: z.number().int().positive(), writingMode: z.enum(['direct', 'assisted']), changedAt: instant })
 const unsetSettings = z.object({ revision: z.literal(0), writingMode: z.null(), changedAt: z.null() })

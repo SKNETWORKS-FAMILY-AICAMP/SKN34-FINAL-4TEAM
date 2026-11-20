@@ -14,7 +14,6 @@ afterEach(() => vi.unstubAllGlobals())
 
 it('reads authenticated storage usage and the server item sizes', async () => {
   const usage = {
-    totalBytes: 503, manuscriptBytes: 3, settingBytes: 0, manuscriptImageBytes: 500,
     items: [
       { id: 'episode', kind: 'manuscript', title: '1화 · 시작', parentTitle: '작품', bytes: 3 },
       { id: 'image', kind: 'manuscript_image', title: '시장.png', parentTitle: '작품 · 1화', bytes: 500 },

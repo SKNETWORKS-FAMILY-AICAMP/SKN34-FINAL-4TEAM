@@ -27,7 +27,8 @@ interface EpisodeRepository : JpaRepository<EpisodeEntity, String> {
 
     @Query("""
         select new ai.storyfork.content.storage.service.dto.StorageItem(e.id, 'manuscript',
-            concat(cast(e.sequence as String), '화 · ', coalesce(d.title, v.title)), w.title,
+            case when coalesce(d.title, v.title)='' then concat(cast(e.sequence as String), '화')
+                else concat(cast(e.sequence as String), '화 · ', coalesce(d.title, v.title)) end, w.title,
             cast(function('octet_length', coalesce(d.content, v.content)) as Long))
         from EpisodeCurrentEntity e
         join WorkEntity w on w.id=e.workId

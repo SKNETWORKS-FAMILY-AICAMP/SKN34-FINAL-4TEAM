@@ -16,11 +16,11 @@ interface SettingCardDraftRepository : JpaRepository<SettingCardDraft, UUID> {
     fun deleteWorldDrafts(@Param("world") world: UUID)
 
     @Query("""
-        select new ai.storyfork.content.storage.service.dto.StorageItem(concat('card:', cast(d.cardId as String)), 'setting', d.fields.title, worldDraft.name,
+        select new ai.storyfork.content.storage.service.dto.StorageItem(concat('card:', cast(d.cardId as String)), 'setting', d.fields.title, coalesce(worldDraft.name, ''),
             cast(function('octet_length', d.fields.body) as Long))
         from SettingCardDraft d
         join StudioWorld w on w.id=d.worldId
-        join WorldDraft worldDraft on worldDraft.worldId=w.id
+        left join WorldDraft worldDraft on worldDraft.worldId=w.id
         where w.ownerSubject=:owner and w.deletedAt is null and d.fields.lifecycle='active'
     """)
     fun storageItems(@Param("owner") owner: UUID): List<StorageItem>

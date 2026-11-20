@@ -1,6 +1,7 @@
 .storage-usage { gap: 12px; }
 
-.storage-usage h3 {
+.storage-usage h3,
+.storage-usage-head {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
@@ -8,9 +9,9 @@
   margin: 0;
 }
 
-.storage-usage-total { margin-inline-start: auto; font-size: 1.25rem; }
+.storage-usage-total { margin-inline-start: auto; font-size: 1.25rem; font-weight: 800; }
 .storage-usage p,
-.storage-usage-breakdown { margin: 0; }
+.storage-usage-breakdown,
 .storage-usage-breakdown dd { margin: 0; }
 .storage-usage-items { list-style: none; margin: 0; padding: 0; }
 

@@ -59,9 +59,6 @@ function Account({ sub }: { sub: string }) {
     ? <div className="grid6">{vm.data.liked.map((w) => <Go key={w.id} to={`/work/${w.id}`} className="bk prox"><Cov w={w} likes /><span className="hk">{w.title}</span></Go>)}</div>
     : <div className="tcard mecard muted">소설 상세에서 ♡를 누르면 여기에 모여요.</div>}</>
   else if (sub === 'storage' && vm.data?.storage) T = <StorageUsageView usage={vm.data.storage} />
-  else if (sub === 'storage' && vm.data?.demoStorage) T = <><h2>저장 공간</h2><div className="tcard mecard" data-storage-summary><b>현재 데모 데이터 약 {vm.data.demoStorage.bytes.toLocaleString()}바이트</b>
-    <p className="small muted">저장 공간 관리는 MVP에서 제외됐어요. 이 화면에는 브라우저 메모리 기준 예시만 표시하며 새로고침하면 사라져요.</p><h3>작성 중인 초안</h3>
-    {vm.data.demoStorage.drafts.length ? vm.data.demoStorage.drafts.map(({ key, title, d }) => <div className="rp" key={key}><b>{title} · {d.editingEpisode ? `${d.editingEpisode}화 수정 초안` : `${d.no}화`}</b></div>) : <p className="muted">작성 중인 초안이 없어요.</p>}</div></>
   else if (sub === 'pay') T = <PayView vm={vm} />
   else if (sub === 'inquiry') T = <InquiryView vm={vm} />
   return (

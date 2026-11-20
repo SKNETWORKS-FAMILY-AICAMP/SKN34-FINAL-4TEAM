@@ -8,10 +8,5 @@ data class StorageItem(
     val bytes: Long,
 )
 
-data class StorageUsageResponse(
-    val totalBytes: Long,
-    val manuscriptBytes: Long,
-    val settingBytes: Long,
-    val manuscriptImageBytes: Long,
-    val items: List<StorageItem>,
-)
+/** 합계·종류별 사용량은 화면이 항목 크기를 더해 구한다. */
+data class StorageUsageResponse(val items: List<StorageItem>)
