@@ -25,7 +25,7 @@ type Props = {
   onSuggestTags: () => Promise<WorkTagSuggestion | null>
   onSavePolicy: (allowFork: boolean, allowForkPublication: boolean) => Promise<boolean>
   onStopFork: () => Promise<boolean>
-  onDeleteFork: () => Promise<boolean>
+  onDeleteWork: () => Promise<boolean>
 }
 
 /**
@@ -37,7 +37,7 @@ type Props = {
  * 원고 작성은 이 화면이 아니라 집필실(`/studio/{id}`)에서 하므로 히어로의 '회차 작성하기'가 그리로 보낸다.
  * 작품이 바뀌면 호출 측이 key로 새로 만든다.
  */
-export function WorkOverview({ work: w, locked, busy, draftCount, coverRevision, onMediaBusy, onSaveInfo, onSuggestTags, onSavePolicy, onStopFork, onDeleteFork }: Props) {
+export function WorkOverview({ work: w, locked, busy, draftCount, coverRevision, onMediaBusy, onSaveInfo, onSuggestTags, onSavePolicy, onStopFork, onDeleteWork }: Props) {
   const [editing, setEditing] = useState<Section | null>(null)
   const infoButton = useRef<HTMLButtonElement>(null)
   const coverButton = useRef<HTMLButtonElement>(null)
@@ -133,11 +133,12 @@ export function WorkOverview({ work: w, locked, busy, draftCount, coverRevision,
                 // 공개 중단은 작품을 다시 읽어 revision이 오르고 편집 폼이 새로 시작하므로, 편집 중에는 잠가 저장하지 않은 입력이 사라지지 않게 한다.
                 <button type='button' className='btn sm' disabled={blocked} onClick={() => void onStopFork()}>포크 공개 중단</button>
               )}
-              <button type='button' className='btn sm ep-danger' disabled={locked} onClick={() => void onDeleteFork()}>포크 삭제</button>
+              <button type='button' className='btn sm ep-danger' disabled={blocked} onClick={() => void onDeleteWork()}>포크 삭제</button>
             </div>
           </section>
         )
         : (
+          <>
           <section className='tcard ep-card' aria-labelledby='ep-policy-title'>
             <div className='ep-sec-head'>
               <h2 id='ep-policy-title'>분기 정책</h2>
@@ -162,6 +163,15 @@ export function WorkOverview({ work: w, locked, busy, draftCount, coverRevision,
                 </dl>
               )}
           </section>
+          {/* 작품 전체를 지우는 동작은 분기 정책과 섞지 않고 따로 둔다. 편집 중에는 잠가 저장하지 않은 입력을 잃지 않게 한다. */}
+          <section className='tcard ep-card' aria-labelledby='ep-delete-title'>
+            <div className='ep-sec-head'>
+              <h2 id='ep-delete-title'>작품 삭제</h2>
+              <button type='button' className='btn sm ep-danger' disabled={blocked} onClick={() => void onDeleteWork()}>작품 삭제</button>
+            </div>
+            <p className='small muted'>서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 이 작품에서 만들어진 포크는 유지돼요.</p>
+          </section>
+          </>
         )}
     </>
   )

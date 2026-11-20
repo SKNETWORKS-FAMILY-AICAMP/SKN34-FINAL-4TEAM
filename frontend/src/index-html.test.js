@@ -48,6 +48,15 @@ describe('frontend shell source contracts', () => {
     ])
   })
 
+  it('guards the Content and writing studio routes with the existing RequireRole (#605)', () => {
+    const app = readFileSync(new URL('./App.tsx', import.meta.url), 'utf8')
+    const routes = [...app.matchAll(/<Route\s+path="(\/content|\/studio\/[^"]*)"\s+element=\{([^\n]+)\}/g)]
+    expect(routes.map(([, path, element]) => [path, element])).toEqual([
+      ['/content', '<RequireRole><EpisodePage /></RequireRole>'],
+      ['/studio/:id', '<RequireRole><StudioPage /></RequireRole>'],
+    ])
+  })
+
   it('keeps the worlds label free of the demo tag', () => {
     const gnb = readFileSync(new URL('./presentation/shared/shell/Gnb.tsx', import.meta.url), 'utf8')
     expect(gnb).toContain("['worlds', '세계관', '세계관']")

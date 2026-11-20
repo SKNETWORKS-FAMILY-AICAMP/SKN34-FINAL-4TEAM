@@ -838,6 +838,49 @@ it('lists saved versions, AI requests and publications read-only while restore a
   for (const name of ['이 원고를 새 버전으로 복원', '이 버전을 공개 대상으로 선택', '이 제안 다시 열기']) expect(screen.queryByRole('button', { name })).toBeNull()
 })
 
+it('deletes the original after confirmation and returns to the library only after the response', async () => {
+  stubCover()
+  let complete!: (response: Response) => void
+  const response = new Promise<Response>((resolve) => { complete = resolve })
+  const remove = vi.fn(() => response)
+  const fetcher = contentApi({ 'GET /api/v1/works': () => Response.json([owned]), 'DELETE /api/v1/works/w': remove })
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  await openWork(fetcher)
+  // 작품 삭제는 분기 정책 카드가 아니라 자기 카드에 있다.
+  expect(within(screen.getByRole('region', { name: '분기 정책' })).queryByRole('button', { name: /삭제/ })).toBeNull()
+  const button = within(screen.getByRole('region', { name: '작품 삭제' })).getByRole<HTMLButtonElement>('button', { name: '작품 삭제' })
+  expect(button.classList.contains('ep-danger')).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: '작품 정보 편집' }))
+  expect(button.disabled).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: '취소' }))
+  fireEvent.click(button)
+  expect(confirm).toHaveBeenCalledWith('「옛 제목」 작품을 삭제할까요? 서재와 공개 화면에서 숨겨지고 되돌릴 수 없어요. 이 작품에서 만들어진 포크는 유지돼요.')
+  expect(remove).not.toHaveBeenCalled()
+  expect(screen.getByText('위치 /content?work=w')).toBeTruthy()
+
+  confirm.mockReturnValue(true)
+  fireEvent.click(button)
+  await waitFor(() => expect(remove).toHaveBeenCalledTimes(1))
+  expect(button.disabled).toBe(true)
+  expect(screen.getByText('위치 /content?work=w')).toBeTruthy()
+  complete(new Response(null, { status: 204 }))
+  expect(await screen.findByText('위치 /lib?tab=write')).toBeTruthy()
+})
+
+it('keeps the original management page open and displays the server reason after deletion fails', async () => {
+  stubCover()
+  await openWork(contentApi({
+    'GET /api/v1/works': () => Response.json([owned]),
+    'DELETE /api/v1/works/w': () => Response.json({ detail: '작품을 찾을 수 없어요.' }, { status: 404 }),
+  }))
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  const button = screen.getByRole<HTMLButtonElement>('button', { name: '작품 삭제' })
+  fireEvent.click(button)
+  expect(await screen.findByText('작품을 찾을 수 없어요.', { selector: '[role="alert"]' })).toBeTruthy()
+  expect(screen.getByText('위치 /content?work=w')).toBeTruthy()
+  expect(button.disabled).toBe(false)
+})
+
 // ── 분기 작품: 포크 정보와 만들기 ────────────────────────────────────
 
 it('labels a fork as 분기 작품 and shows its pinned basis and direction instead of the original-work chip', async () => {
@@ -872,6 +915,8 @@ it('locks stopping a fork publication while the work info is being edited, so th
   expect(stop().disabled).toBe(false)
   fireEvent.click(screen.getByRole('button', { name: '작품 정보 편집' }))
   expect(stop().disabled).toBe(true)
+  // 포크 삭제도 원작의 작품 삭제처럼 편집 중에는 잠근다.
+  expect((screen.getByRole('button', { name: '포크 삭제' }) as HTMLButtonElement).disabled).toBe(true)
   fireEvent.click(screen.getByRole('button', { name: '취소' }))
   expect(stop().disabled).toBe(false)
 })

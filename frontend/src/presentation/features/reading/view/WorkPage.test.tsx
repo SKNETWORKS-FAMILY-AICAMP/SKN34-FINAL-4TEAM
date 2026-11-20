@@ -164,6 +164,18 @@ it('비로그인이 서버 작품의 좋아요를 누르면 서버를 부르지 
   } finally { server.restore() }
 })
 
+it('비로그인이 서버 작품의 소설 신고를 누르면 신고 시트를 열지 않고 로그인 안내로 보낸다 (#605)', async () => {
+  const server = serverWorks()
+  try {
+    const { store } = renderApp('/work/guunmong')
+    fireEvent.click(await screen.findByRole('button', { name: '구운몽 소설 신고' }))
+    await screen.findByRole('heading', { name: '로그인', level: 1 })
+    screen.getByText('소설 신고는 로그인한 회원만 할 수 있어요.')
+    expect(store.getState().session.next).toBe('/work/guunmong')
+    expect(screen.queryByRole('dialog', { name: '소설 신고' })).toBeNull()
+  } finally { server.restore() }
+})
+
 it('소설 상세 소식 탭은 고정 소식을 펼쳐 보이고 독자에게는 작성 폼을 숨긴다', async () => {
   renderApp('/work/postman', createAppStore({ role: 'user' }))
   fireEvent.click(await screen.findByRole('tab', { name: '소식' }))

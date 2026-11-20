@@ -11,10 +11,13 @@ beforeEach(async () => {
 })
 afterEach(()=>{cleanup();vi.unstubAllGlobals()})
 it('uses server authorization on persisted studio routes without a demo session',async()=>{
-  vi.stubGlobal('fetch',vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'c' }) : Response.json({detail:'서버 인증이 필요합니다.'},{status:401})))
+  const fetcher=vi.fn(async (path: string) => path.endsWith('/csrf') ? Response.json({ csrfToken: 'c' }) : Response.json({detail:'서버 인증이 필요합니다.'},{status:401}))
+  vi.stubGlobal('fetch',fetcher)
   renderApp('/studio/00000000-0000-0000-0000-000000000001')
-  expect(await screen.findByRole('alert')).toHaveProperty('textContent',expect.stringContaining('서버 인증이 필요합니다.'))
+  // 로그인하지 않았으면 집필실을 열지 않고 로그인으로 보낸다(#605). 서버 인증이 필요한 요청도 보내지 않는다.
+  await screen.findByRole('heading',{name:'로그인',level:1})
   expect(screen.queryByRole('button',{name:'데모 계정으로 바로 시작'})).toBeNull()
+  expect(fetcher.mock.calls.some(([path])=>path.startsWith('/api/v1/works'))).toBe(false)
 })
 
 it('keeps a signed-in screen and reports a server outage during restore', async () => {
@@ -72,6 +75,28 @@ it('clears a restore connection error only after a later successful login', asyn
   expect(getAccessToken()).toBe('manual-login')
   await waitFor(() => expect(screen.queryByText(connectionError)).toBeNull())
   expect(fetcher.mock.calls.filter(([path]) => path.endsWith('/refresh'))).toHaveLength(1)
+})
+
+it.each(['/content', '/content?work=work-uuid', '/studio/00000000-0000-0000-0000-000000000001?ep=2'])('sends a guest from %s to login and returns to it after login (#605)', async path => {
+  const user = { id: 'writer', email: 'writer@example.invalid', nickname: 'Writer', operator: false }
+  const fetcher = vi.fn(async (url: string, _init?: RequestInit) => {
+    if (url.endsWith('/csrf')) return Response.json({ csrfToken: 'c' })
+    if (url.endsWith('/login')) return Response.json({ accessToken: 'logged-in', user })
+    if (url.endsWith('/refresh')) return new Response(null, { status: 401 })
+    return Response.json([])
+  })
+  vi.stubGlobal('fetch', fetcher)
+  const { store } = renderApp(path)
+  await screen.findByRole('heading', { name: '로그인', level: 1 })
+  screen.getByText('로그인이 필요한 화면이에요.')
+  expect(store.getState().session).toMatchObject({ role: null, next: path })
+  expect(fetcher.mock.calls.some(([url]) => url.startsWith('/api/v1/works'))).toBe(false)
+
+  fireEvent.change(screen.getByLabelText('이메일'), { target: { value: user.email } })
+  fireEvent.change(screen.getByLabelText('비밀번호'), { target: { value: 'password' } })
+  fireEvent.click(screen.getByRole('button', { name: '로그인' }))
+  await waitFor(() => expect(fetcher.mock.calls.some(([url]) => url.startsWith('/api/v1/works'))).toBe(true))
+  expect(screen.queryByRole('heading', { name: '로그인', level: 1 })).toBeNull()
 })
 
 it.each(['/content', '/studio/00000000-0000-0000-0000-000000000001', '/studio/00000000-0000-0000-0000-000000000001?view=narrative'])('waits for restored memory authentication before loading %s', async path => {

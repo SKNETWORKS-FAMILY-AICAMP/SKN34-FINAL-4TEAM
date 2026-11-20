@@ -64,10 +64,10 @@ export function useAccountViewModel(
   const noticeId = sub === 'notice' ? params.get('id') : null
   // 이벤트는 운영 공개 API로 읽는다: ?id=가 없으면 목록, 있으면 그 UUID의 상세. 비로그인도 열람한다.
   const eventKey = sub === 'event' ? params.get('id') : null
-  const { data, isError, retry } = useAsyncData(async () => ({
+  const { data, isError, retry } = useAsyncData(async (signal) => ({
     sub,
     liked: sub === 'liked' ? await accountUseCase.liked() : [],
-    storage: sub === 'storage' ? await accountUseCase.storage() : null,
+    storage: sub === 'storage' ? await accountUseCase.storage(signal) : null,
     notices: sub === 'notice' && noticeId === null ? await noticeUseCase.listPublic() : [],
     notice: sub === 'notice' && noticeId ? await noticeUseCase.getPublic(noticeId) : null,
     events: sub === 'event' && eventKey === null ? await eventUseCase.listPublic() : [],
