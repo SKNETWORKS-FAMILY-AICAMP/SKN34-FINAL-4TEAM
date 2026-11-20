@@ -145,6 +145,14 @@ def test_a_record_grades_the_first_answer_and_the_final_one_and_keeps_what_the_c
     assert all('Harry' in call for call in judge.calls) and any('brave' in call for call in judge.calls)
 
 
+def test_a_record_says_which_path_the_model_calls_went_through(monkeypatch, worlds, judge):
+    act_returns(monkeypatch, 'Harry shrugged.')
+    check_returns(monkeypatch, ())
+    assert q.evaluate(ROWS[0], worlds, judge, TEMPLATES, {})['via'] == 'openai'   # via가 없는 Llm은 OpenAI
+    judge.via = 'ocx'
+    assert q.evaluate(ROWS[0], worlds, judge, TEMPLATES, {})['via'] == 'ocx'
+
+
 def test_an_answer_that_needs_no_rewrite_is_graded_once(monkeypatch, worlds, judge):
     act_returns(monkeypatch, 'Harry shrugged.')
     check_returns(monkeypatch, ())

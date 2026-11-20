@@ -22,6 +22,7 @@ import math
 import os
 import sys
 import urllib.error
+from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'novelbrain'))
@@ -30,6 +31,7 @@ from llm import CallCapExceeded, usd_llm  # noqa: E402
 from timechara import TYPES  # noqa: E402
 
 import hp_build  # noqa: E402
+import hp_chapters  # noqa: E402
 import sim_config as cfg  # noqa: E402
 import sim_quality  # noqa: E402
 import sim_speed  # noqa: E402
@@ -42,6 +44,8 @@ RESULTS = Path(__file__).resolve().parent / 'results'
 CHARS_PER_TOKEN = 3.5   # 영어 JSON 입력의 글자/토큰 비(어림). 예상 금액의 입력 크기에만 쓴다
 PARAGRAPH = 600         # 검사·채점 입력에 들어갈 응답 한 문단의 글자 수(어림)
 ASSUMED = {'act_in': 8_000, 'check_in': 20_000, 'judge_in': 2_500, 'narrate_in': 8_000}  # prepare 전의 가정 입력 크기(토큰). prepare 뒤에는 실제 입력으로 잰다
+HP_ASSUMED = {'act_in': 40_000, 'check_in': 60_000, 'judge_in': 2_500, 'narrate_in': 40_000}  # 원문 기반 세계관을 만들기 전의 가정(인물 기억·관계가 길다). 만든 뒤에는 실제 입력으로 잰다
+HP_QUESTIONS = 150  # 해리 포터 TimeChara 질문 수(가정 입력용)
 
 
 def parse_configs(text: str) -> list[str]:
@@ -94,16 +98,36 @@ def measure_speed(worlds) -> list[dict]:
     return sized
 
 
-def sizes(per_type: int) -> tuple[list[dict], list[dict], str]:
-    """(품질 입력 크기, 속도 입력 크기, 안내). prepare가 끝났으면 실제 입력으로 재고, 아니면 가정값이다."""
-    if not prepared():
-        note = (f'prepare 전이라 입력 크기는 가정값(act {ASSUMED["act_in"]:,}·check {ASSUMED["check_in"]:,}·judge {ASSUMED["judge_in"]:,}토큰)이다. '
-                'prepare를 먼저 실행하면 실제 입력으로 잰다')
-        return [{'type': t, **ASSUMED} for t in TYPES for _ in range(per_type)], [dict(ASSUMED)] * len(sim_worlds.SCENES), note
-    worlds = sim_worlds.Worlds.load()
-    rows = sample_rows(worlds)
+def question_rows(worlds, world: str) -> list[dict]:
+    """품질 질문: thin은 prepare가 고정한 표본, hp는 해리 포터 질문 전부(원문 기반 세계관은 해리 포터만 있다)."""
+    return [r for r in worlds.rows if r['series'] == sim_worlds.HP] if world == 'hp' else sample_rows(worlds)
+
+
+def sizes(per_type: int, world: str = 'thin') -> tuple[list[dict], list[dict], str]:
+    """(품질 입력 크기, 속도 입력 크기, 안내). prepare(hp는 world.json도)가 끝났으면 실제 입력으로 재고, 아니면 가정값이다."""
+    hp = world == 'hp'
+    if not prepared() or (hp and not sim_worlds.HP_WORLD.exists()):
+        assumed = HP_ASSUMED if hp else ASSUMED
+        note = (f'{"world.json(build-hp)·" if hp else ""}prepare 전이라 입력 크기는 가정값(act {assumed["act_in"]:,}·check {assumed["check_in"]:,}·judge {assumed["judge_in"]:,}토큰)이다. '
+                '먼저 실행하면 실제 입력으로 잰다')
+        questions = [{'type': TYPES[i % len(TYPES)], **assumed} for i in range(HP_QUESTIONS)] if hp else [{'type': t, **assumed} for t in TYPES for _ in range(per_type)]
+        return questions, [dict(assumed)] * len(sim_worlds.SCENES), note
+    worlds = sim_worlds.Worlds.load(hp=True) if hp else sim_worlds.Worlds.load()
+    rows = question_rows(worlds, world)
     templates, _ = sim_quality.load_inputs(rows)
-    return measure_quality(worlds, rows, templates), measure_speed(worlds), '실제 입력 크기로 계산(prepare 한 표본·고정 장면)'
+    return measure_quality(worlds, rows, templates), measure_speed(worlds), '실제 입력 크기로 계산(' + ('원문 기반 세계관·해리 포터 질문 전부·고정 장면)' if hp else 'prepare 한 표본·고정 장면)')
+
+
+def format_build_estimate() -> tuple[str, float]:
+    """원문 기반 세계관 build의 예상(호출 없음): 이미 만들었으면 0, 원문이 있으면 장 나눈 글 크기로 잰다."""
+    if sim_worlds.HP_WORLD.exists():
+        return 'build(원문 → world.json): 이미 만들었다(.data/hp/world.json): 호출·금액 0', 0.0
+    raw = sim_worlds.HP_DIR / 'raw'
+    if not raw.exists():
+        return 'build(원문 → world.json): 원문(.data/hp/raw)이 없어 예상 생략', 0.0
+    plan = hp_build.estimate_build([len(u.text) for split in hp_chapters.split_all(raw).values() for u in split.units])
+    calls = plan['calls']
+    return f"build(원문 → world.json): 추출 {calls['extract']:,}회·이름 {calls['names']:,}회·문서 {calls['docs']:,}회 → 약 ${plan['usd']:.2f}(문서 수는 덩어리마다 6명으로 어림)", plan['usd']
 
 
 def format_estimate(title: str, rows: dict[str, dict], note: str, limit_usd: float) -> str:
@@ -134,7 +158,9 @@ def cmd_prepare(args) -> None:
 def show_estimate(args, configs: list[str], quality: list[dict], speed: list[dict], note: str) -> float:
     """선택한 스위트의 예상 표를 출력하고 예상 합계(달러)를 돌려준다."""
     total = 0.0
-    for suite, title, inputs in (('quality', f'품질(표본 {len(quality)}문항)', quality), ('speed', f'속도(고정 장면 {len(speed)}개)', speed)):
+    hp = getattr(args, 'world', 'thin') == 'hp'
+    for suite, title, inputs in (('quality', f'품질({"해리 포터 질문 전부·원문 기반 세계관" if hp else "표본"} {len(quality)}문항)', quality),
+                                 ('speed', f'속도(고정 장면 {len(speed)}개{"·해리 포터 장면은 원문 기반 세계관" if hp else ""})', speed)):
         if args.suite in ('all', suite):
             rows = cfg.estimate(suite, configs, inputs)
             print(format_estimate(title, rows, note, args.limit_usd), end='\n\n')
@@ -143,7 +169,13 @@ def show_estimate(args, configs: list[str], quality: list[dict], speed: list[dic
 
 
 def cmd_estimate(args) -> None:
-    show_estimate(args, parse_configs(args.configs), *sizes(args.per_type))
+    build = 0.0
+    if args.world == 'hp':
+        text, build = format_build_estimate()
+        print(text, end='\n\n')
+    total = show_estimate(args, parse_configs(args.configs), *sizes(args.per_type, args.world))
+    if args.world == 'hp':
+        print(f'세 가지 합계(build + 품질 + 속도): 약 ${build + total:.2f} / 상한 ${args.limit_usd:.2f}')
 
 
 def make_llm(args):
@@ -207,56 +239,69 @@ def cmd_run(args) -> None:
         raise SystemExit('prepare를 먼저 실행한다(표본·고정 장면 입력이 없다).')
     for key in ('LANGFUSE_PUBLIC_KEY', 'LANGFUSE_SECRET_KEY'):
         os.environ.pop(key, None)  # 원문이 Langfuse로 가지 않게, 프롬프트는 코드 문자열로
-    configs = parse_configs(args.configs)
-    quality, speed, note = sizes(args.per_type)
+    configs, suffix = parse_configs(args.configs), '-hp' if args.world == 'hp' else ''   # 원문 기반 세계관의 실행·결과는 얇은 세계관의 것과 파일이 섞이지 않는다
+    quality, speed, note = sizes(args.per_type, args.world)
     total = show_estimate(args, configs, quality, speed, note)
-    if total > args.limit_usd:
-        raise SystemExit(f'예상 금액 ${total:.2f}가 상한 ${args.limit_usd:.2f}를 넘어 호출 없이 멈춘다. --limit-usd를 올리거나 --configs를 줄인다.')
-    worlds = sim_worlds.Worlds.load()
+    if args.via == 'openai' and total > args.limit_usd:
+        raise continue_with_ocx(f'예상 금액 ${total:.2f}가 상한 ${args.limit_usd:.2f}를 넘어 호출 없이 멈춘다. --limit-usd를 올리거나 --configs를 줄인다.', 'run')
+    worlds = sim_worlds.Worlds.load(hp=True) if args.world == 'hp' else sim_worlds.Worlds.load()
     llm = make_llm(args)
     ran_as = cfg.plan_runs(configs, args.suite)
-    meta, runs = {'model': os.environ['OPENAI_MODEL'], 'judge': llm.model}, sim_worlds.DATA / 'runs'
+    meta, runs = {'model': os.environ['OPENAI_MODEL'], 'judge': llm.model, 'world': args.world}, sim_worlds.DATA / 'runs'
     if args.suite == 'quality':
-        rows = sample_rows(worlds)
+        rows = question_rows(worlds, args.world)
         templates, personalities = sim_quality.load_inputs(rows)
         question_usd = max(cfg.question_max_usd(q) for q in quality)  # 동시에 진행하는 질문이 끝나도 상한을 넘지 않을 여유(sim_quality.run_quality)
         by_source = {}
         try:
             for name in dict.fromkeys(ran_as.values()):
                 with cfg.applied(name):
-                    by_source[name] = sim_quality.run_quality(rows, worlds, llm, templates, personalities, money_limit(args), args.workers, runs / f'quality-{name}.jsonl', question_usd)
+                    by_source[name] = sim_quality.run_quality(rows, worlds, llm, templates, personalities, money_limit(args), args.workers, runs / f'quality-{name}{suffix}.jsonl', question_usd)
         except CallCapExceeded as stop:
             if args.via == 'ocx':
                 raise
             raise continue_with_ocx(stop, 'run --suite quality') from None
-        meta |= {'seed': sim_worlds.SEED, 'questions': len(rows), 'paired': sim_stats.paired_quality(by_source), 'usd': llm.cost.spent()}
+        meta |= {'seed': sim_worlds.SEED, 'questions': len(rows), 'paired': sim_stats.paired_quality(by_source), 'usd': llm.cost.spent(),
+                 'via': {name: dict(Counter(r.get('via', 'openai') for r in records)) for name, records in by_source.items()}}
         data = results('quality', {name: sim_stats.summarize_quality(records) for name, records in by_source.items()}, ran_as, meta)
     else:
         async def play() -> dict:  # 한 이벤트 루프에서 설정을 차례로 돈다(연출 분류기의 HTTP 연결이 루프에 묶인다)
             done = {}
             for name in dict.fromkeys(ran_as.values()):
                 with cfg.applied(name):
-                    done[name] = await sim_speed.run_speed(sim_worlds.SCENES, worlds, llm.cost, args.limit_usd, runs / f'speed-{name}.jsonl')
+                    done[name] = await sim_speed.run_speed(sim_worlds.SCENES, worlds, llm.cost, args.limit_usd, runs / f'speed-{name}{suffix}.jsonl')
             return done
 
         by_source = asyncio.run(play())
         data = results('speed', {name: sim_stats.summarize_speed(records) for name, records in by_source.items()}, ran_as,
-                       {**meta, 'scenes': len(sim_worlds.SCENES), 'usd': llm.cost.spent()})
+                       {**meta, 'scenes': len(sim_worlds.SCENES), 'usd': llm.cost.spent(), 'via': 'openai'})
     RESULTS.mkdir(exist_ok=True)
-    (RESULTS / f'{args.suite}.json').write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
-    print(f"{args.suite} 결과를 results/{args.suite}.json에 썼다(비용 장부 합계 ${llm.cost.spent():.2f})")
+    (RESULTS / f'{args.suite}{suffix}.json').write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True))
+    print(f"{args.suite} 결과를 results/{args.suite}{suffix}.json에 썼다(비용 장부 합계 ${llm.cost.spent():.2f})")
+
+
+def format_via(via) -> str:
+    """결과의 via: 설정마다 문항 수(openai·ocx가 섞였으면 둘 다). ocx가 있으면 모델이 달라 섞였음을 알린다."""
+    if isinstance(via, str):
+        return f'via: {via}'
+    parts = ', '.join(f"{name} {' · '.join(f'{k} {n}' for k, n in sorted(counts.items()))}" for name, counts in via.items())
+    mixed = ' — ocx 문항은 생성·채점 모델이 게이트웨이의 gpt-6-luna라 OpenAI 문항과 섞여 있다' if any('ocx' in counts for counts in via.values()) else ''
+    return f'via(문항 수): {parts}{mixed}'
 
 
 def cmd_report(args) -> None:
+    suffix = '-hp' if args.world == 'hp' else ''
     for suite, table in (('quality', sim_stats.quality_table), ('speed', sim_stats.speed_table)):
         if args.suite not in ('all', suite):
             continue
-        path = RESULTS / f'{suite}.json'
+        path = RESULTS / f'{suite}{suffix}.json'
         if not path.exists():
-            print(f'{suite}: 결과 없음(run 전)')
+            print(f'{suite}{suffix}: 결과 없음(run 전)')
             continue
         data = json.loads(path.read_text())
-        print(f"## {suite} (모델 {data['model']}, 채점 {data.get('judge', '-')}, 비용 ${data['usd']:.2f})\n\n{table(data)}\n")
+        print(f"## {suite}{' (원문 기반 세계관)' if suffix else ''} (모델 {data['model']}, 채점 {data.get('judge', '-')}, 비용 ${data['usd']:.2f})\n\n{table(data)}\n")
+        if 'via' in data:
+            print(format_via(data['via']) + '\n')
         for pair, found in data.get('paired', {}).items():
             print(f"짝 비교 {pair}(최종 시공간): 앞만 맞음 {found['a_only']}·뒤만 맞음 {found['b_only']}, p={found['p']:.3f}")
 
@@ -269,6 +314,8 @@ def main(argv=None) -> None:
         command = sub.add_parser(name, help=helper)
         command.set_defaults(handler=handler)
         command.add_argument('--per-type', type=int, default=sim_worlds.PER_TYPE, help='유형마다 표본 수(기본 50)')
+        if name != 'prepare':
+            command.add_argument('--world', choices=('thin', 'hp'), default='thin', help='hp: 해리 포터를 원문 기반 세계관(build-hp)으로(질문 150개 전부, 장면 8개). 기본 thin은 TimeChara 행으로 만든 얇은 세계관')
         if name in ('estimate', 'run'):
             command.add_argument('--configs', default=','.join(cfg.CONFIGS), help='설정 A~E를 쉼표로(기본 모두)')
             command.add_argument('--limit-usd', type=float, default=10.0, help='금액 상한(달러)')

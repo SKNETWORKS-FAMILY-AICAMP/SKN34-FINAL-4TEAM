@@ -74,7 +74,7 @@ def run_env(monkeypatch, tmp_path):
     for name in cfg.SWITCHES:
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setattr(cli, 'prepared', lambda: True)
-    monkeypatch.setattr(cli, 'sizes', lambda per_type: ([{'type': 'future', 'act_in': 1, 'check_in': 1, 'judge_in': 1}], [{'act_in': 1, 'check_in': 1, 'narrate_in': 1}], '대역'))
+    monkeypatch.setattr(cli, 'sizes', lambda per_type, world='thin': ([{'type': 'future', 'act_in': 1, 'check_in': 1, 'judge_in': 1}], [{'act_in': 1, 'check_in': 1, 'narrate_in': 1}], '대역'))
     monkeypatch.setattr(cli, 'sample_rows', lambda worlds: [{'idx': 0}, {'idx': 1}])
     monkeypatch.setattr(cli, 'usd_llm', lambda *args: SimpleNamespace(cost=CostLog(tmp_path / 'cost.jsonl'), model='judge-model'))
     monkeypatch.setattr(cli.sim_worlds.Worlds, 'load', classmethod(lambda cls: object()))
@@ -111,7 +111,7 @@ def test_run_quality_runs_only_the_configs_that_differ_on_the_character_turn_pat
                  'first': {'score': 1, 'personality': 5}, 'final': {'score': 1, 'personality': 5}} for r in rows]
 
     big = {'type': 'past-absence', 'act_in': 50_000, 'check_in': 90_000, 'judge_in': 4_000}
-    monkeypatch.setattr(cli, 'sizes', lambda per_type: ([{'type': 'future', 'act_in': 1, 'check_in': 1, 'judge_in': 1}, big], [], '대역'))
+    monkeypatch.setattr(cli, 'sizes', lambda per_type, world='thin': ([{'type': 'future', 'act_in': 1, 'check_in': 1, 'judge_in': 1}, big], [], '대역'))
     monkeypatch.setattr(cli.sim_quality, 'run_quality', run_quality)
     cli.main(['run', '--suite', 'quality', '--configs', 'A,B,C,D,E', '--workers', '3'])
     worst = cfg.question_max_usd(big)  # 가장 큰 질문 하나가 쓸 수 있는 최대 금액을 동시 수만큼 곱해 확인한다
@@ -295,3 +295,68 @@ def test_seed_hp_hands_the_world_path_and_the_local_address_to_hp_seed(monkeypat
     with pytest.raises(SystemExit) as done:
         cli.main(['seed-hp'])
     assert done.value.code == 0 and got == [['--world', str(hp_env / 'world.json'), '--base-url', 'http://localhost:5173']]
+
+
+# --- --world hp: 해리 포터 질문·장면을 원문 기반 세계관으로 ----------------------------------------------------------------------
+
+RECORD = {'data_type': 'future', 'attempts': 1, 'blocked': False, 'error': None, 'flagged': False, 'leakFlagged': False,
+          'first': {'score': 1, 'personality': 5}, 'final': {'score': 1, 'personality': 5}, 'via': 'openai'}
+
+
+def test_a_quality_run_on_the_original_text_world_asks_every_hp_question_and_keeps_files_and_results_apart(monkeypatch, run_env):
+    rows = [{'idx': 0, 'series': 'harry_potter'}, {'idx': 1, 'series': 'twilight'}, {'idx': 2, 'series': 'harry_potter'}]
+    loaded, seen = [], []
+    monkeypatch.setattr(cli.sim_worlds.Worlds, 'load', classmethod(lambda cls, hp=False: loaded.append(hp) or SimpleNamespace(rows=rows)))
+
+    def run_quality(rows_, worlds, llm, templates, personalities, limit_usd, workers, out, question_usd):
+        seen.append((out.name, [r['idx'] for r in rows_]))
+        return [{**RECORD, 'idx': r['idx']} for r in rows_]
+
+    monkeypatch.setattr(cli.sim_quality, 'run_quality', run_quality)
+    cli.main(['run', '--suite', 'quality', '--configs', 'A', '--world', 'hp'])
+    assert loaded == [True] and seen == [('quality-A-hp.jsonl', [0, 2])]   # 표본이 아니라 해리 포터 질문 전부, 얇은 세계관의 파일과 섞이지 않는다
+    data = json.loads((run_env / 'results' / 'quality-hp.json').read_text())
+    assert (data['world'], data['questions'], data['via']) == ('hp', 2, {'A': {'openai': 2}}) and not (run_env / 'results' / 'quality.json').exists()
+
+
+def test_a_speed_run_on_the_original_text_world_keeps_its_files_apart(monkeypatch, run_env):
+    loaded, seen = [], []
+    monkeypatch.setattr(cli.sim_worlds.Worlds, 'load', classmethod(lambda cls, hp=False: loaded.append(hp) or object()))
+
+    async def run_speed(specs, worlds, cost, limit_usd, out):
+        seen.append(out.name)
+        return [SCENE]
+
+    monkeypatch.setattr(cli.sim_speed, 'run_speed', run_speed)
+    cli.main(['run', '--suite', 'speed', '--configs', 'C', '--world', 'hp'])
+    data = json.loads((run_env / 'results' / 'speed-hp.json').read_text())
+    assert loaded == [True] and seen == ['speed-C-hp.jsonl'] and (data['world'], data['via']) == ('hp', 'openai')
+
+
+def test_the_estimate_for_the_original_text_world_shows_build_quality_and_speed_and_their_total(monkeypatch, tmp_path, capsys):
+    hp = tmp_path / 'hp'
+    (hp / 'raw').mkdir(parents=True)
+    for name, value in (('DATA', tmp_path), ('TC', tmp_path / 'timechara'), ('HP_DIR', hp), ('HP_WORLD', hp / 'world.json')):
+        monkeypatch.setattr(sim_worlds, name, value)
+    monkeypatch.setattr(cli.hp_chapters, 'split_all', lambda raw: {1: SimpleNamespace(units=[SimpleNamespace(text='가' * 28_001), SimpleNamespace(text='나' * 10)])})
+    cli.main(['estimate', '--suite', 'all', '--world', 'hp'])
+    shown = capsys.readouterr().out
+    assert 'build(원문 → world.json): 추출 3회' in shown and '품질(해리 포터 질문 전부·원문 기반 세계관 150문항)' in shown and '속도(고정 장면' in shown
+    assert 'world.json(build-hp)' in shown and '가정' in shown and '세 가지 합계(build + 품질 + 속도)' in shown
+    (hp / 'world.json').write_text('{}')
+    cli.main(['estimate', '--suite', 'speed', '--world', 'hp'])
+    assert '이미 만들었다' in capsys.readouterr().out
+
+
+def test_the_report_for_the_original_text_world_reads_its_own_results_and_shows_the_mix_of_paths(monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(cli, 'RESULTS', tmp_path)
+    records = [{**RECORD, 'idx': i} for i in range(5)]
+    saved = cli.results('quality', {'A': cli.sim_stats.summarize_quality(records)}, {'A': 'A'},
+                        {'model': 'gpt-6-luna', 'judge': 'gpt-5.6-luna', 'usd': 2.0, 'world': 'hp', 'paired': {}, 'via': {'A': {'openai': 3, 'ocx': 2}}})
+    (tmp_path / 'quality-hp.json').write_text(json.dumps(saved))
+    cli.main(['report', '--suite', 'quality', '--world', 'hp'])
+    shown = capsys.readouterr().out
+    assert '원문 기반 세계관' in shown and 'via(문항 수): A ocx 2 · openai 3' in shown and '섞여 있다' in shown
+    cli.main(['report', '--suite', 'quality'])
+    assert '결과 없음' in capsys.readouterr().out   # 얇은 세계관 결과는 따로 있다
+    assert cli.format_via('openai') == 'via: openai' and '섞여' not in cli.format_via({'A': {'openai': 4}})

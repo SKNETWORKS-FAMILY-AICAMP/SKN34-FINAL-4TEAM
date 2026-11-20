@@ -67,7 +67,7 @@ def grade(llm, row: dict, response: str, templates: dict, personality: str | Non
 def evaluate(row: dict, worlds, llm, templates: dict, personalities: dict) -> dict:
     """질문 하나: 인물 턴을 만들고(모델 호출은 비용 장부에 남긴다) 첫 응답과 최종 응답을 채점한다. 생성이 실패하면 error에 상태만 남긴다."""
     ledger = UsageLedger('simulation.quality', lambda step: {})  # 모델 호출마다 {name, ms, tokens}를 모은다(STEP이 없어 span은 남기지 않는다)
-    record = {'idx': row['idx'], 'data_type': row['data_type'], 'error': None}
+    record = {'idx': row['idx'], 'data_type': row['data_type'], 'error': None, 'via': getattr(llm, 'via', 'openai')}  # via: 이 문항의 모델 호출 경로(openai·ocx가 섞일 수 있다)
     try:
         attempts = RunnableLambda(lambda _: generate(*worlds.interview(row))).invoke(None, {'callbacks': [ledger]})
     except SimulationFailure as failure:
