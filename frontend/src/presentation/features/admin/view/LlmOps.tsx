@@ -15,7 +15,7 @@ import { useAdminDetailFocus } from './useAdminDetailFocus'
 export type VM = ReturnType<typeof useAdminViewModel>
 export type LlmVM = ReturnType<typeof useLlmOpsViewModel>
 
-const statusChip = (status: string) => <span className={`chip ${status === 'success' ? 'ok' : 'wait'}`}>{traceStatusLabel(status)}</span>
+const statusChip = (status: string) => <span className={`chip ${status === 'success' ? 'ok' : 'bad'}`}>{traceStatusLabel(status)}</span>
 
 /** 40-A~E LLM Ops: Langfuse 기준 추적·지표와 프롬프트·모델·평가·누설 검사·경고 기준을 운영 서비스 API로 보고 관리합니다. */
 export function LlmOps({ vm }: { vm: VM }) {
@@ -150,7 +150,7 @@ function TraceDetailPanel({ vm, l }: { vm: VM; l: LlmVM }) {
                   <td>{o.model ?? '—'}</td>
                   <td>{count(o.inputTokens)} / {count(o.outputTokens)}</td>
                   <td>
-                    <span className={`chip ${o.level === 'ERROR' ? 'wait' : ''}`}>{o.level}</span>
+                    <span className={`chip ${o.level === 'ERROR' ? 'bad' : ''}`}>{o.level}</span>
                     {o.statusMessage && <div className="small">{o.statusMessage}</div>}
                   </td>
                   <td>{o.promptName ? `${o.promptName} v${o.promptVersion ?? '?'}` : '—'}</td>
@@ -268,7 +268,7 @@ function LeakChecks({ vm, l }: { vm: VM; l: LlmVM }) {
                 <tr key={row.id}>
                   <td>{kstDateTime(row.checkedAt)}</td>
                   <td>{row.workId}</td>
-                  <td><span className={`chip ${row.suspected ? 'wait' : 'ok'}`}>{row.suspected ? '의심' : '이상 없음'}</span></td>
+                  <td><span className={`chip ${row.suspected ? 'bad' : 'ok'}`}>{row.suspected ? '의심' : '이상 없음'}</span></td>
                   <td>{row.matched.join(', ') || '—'}</td>
                   <td>{row.reason ?? '—'}</td>
                   <td><button type="button" className="btn sm" aria-label={`추적 ${row.traceId} 보기`} onClick={() => l.openTrace(row.traceId)}>추적 보기</button></td>

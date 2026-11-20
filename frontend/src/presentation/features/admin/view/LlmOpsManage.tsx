@@ -10,6 +10,9 @@ import { ActionLines, LiveState, Table } from './OperationsPanels'
 
 type Props = { vm: VM; l: LlmVM }
 
+/** 평가 통과 여부의 칩 색: 미통과만 실패 색(bad)이고, 통과는 중립, 결과 없음(null)은 칠하지 않는다. */
+const passTone = (passed: boolean | null | undefined) => (passed === false ? 'bad' : passed ? 'ok' : '')
+
 /** 프롬프트·모델·평가·경고 기준 보기. 변경 조치(새 버전·승격·모델 등록·평가 실행·기준 저장)는 모두 활동 로그에 남습니다. */
 export function LlmOpsManage({ vm, l }: Props) {
   if (l.view === 'prompts') return <Prompts vm={vm} l={l} />
@@ -73,7 +76,7 @@ function Prompts({ vm, l }: Props) {
                       {evaluation
                         ? (
                           <>
-                            <span className={`chip ${evaluation.passed ? 'ok' : 'wait'}`}>{passedLabel(evaluation.passed)}</span>{' '}
+                            <span className={`chip ${passTone(evaluation.passed)}`}>{passedLabel(evaluation.passed)}</span>{' '}
                             <button type="button" className="btn sm" aria-label={`${p.name} ${v.version}번 버전 평가 결과 보기`} onClick={() => l.openEvaluation(evaluation.runId)}>결과 보기</button>
                           </>
                         )
@@ -171,7 +174,7 @@ function Models({ vm, l }: Props) {
   )
 }
 
-const evaluationChip = (e: Evaluation) => <span className={`chip ${e.passed ? 'ok' : 'wait'}`}>{e.status === 'completed' ? passedLabel(e.passed) : evaluationStatusLabel(e.status)}</span>
+const evaluationChip = (e: Evaluation) => <span className={`chip ${e.status === 'failed' ? 'bad' : passTone(e.passed)}`}>{e.status === 'completed' ? passedLabel(e.passed) : evaluationStatusLabel(e.status)}</span>
 
 function Evaluations({ vm, l }: Props) {
   const rows = l.evaluations.data, e = l.evaluation.data, busy = !!vm.actions['eval:new']?.pending

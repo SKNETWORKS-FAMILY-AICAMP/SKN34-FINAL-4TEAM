@@ -531,7 +531,7 @@ function Works(p: BodyProps) {
                     <div className='rowend'>
                       <button
                         type='button'
-                        className='btn sm'
+                        className={`btn sm${w.restricted ? '' : ' danger'}`}
                         aria-label={`「${w.title}」 ${w.restricted ? '제한 해제' : '운영 제한'}`}
                         disabled={blocked(vm, `work:${w.workId}`)}
                         onClick={() => {
@@ -730,7 +730,7 @@ function Users({ vm, f, setF }: BodyProps) {
                       : (
                         <button
                           type='button'
-                          className='btn sm'
+                          className={`btn sm${u.restricted ? '' : ' danger'}`}
                           aria-label={`${u.nickname} ${u.restricted ? '제한 해제' : '이용 제한'}`}
                           disabled={blocked(vm, `member:${u.id}`)}
                           onClick={() => {
@@ -1356,7 +1356,7 @@ function ReplyEditor(
             답변 내용<textarea className='ta' name='body' required maxLength={20000} rows={4} defaultValue={reply.body} />
           </label>
           <div className='rowend'>
-            <button type='submit' className='btn sm pri'>{state?.pending ? '처리 중…' : '답변 저장'}</button>
+            <button type='submit' className='btn sm'>{state?.pending ? '처리 중…' : '답변 저장'}</button>
             <button
               type='button'
               className='btn sm'

@@ -10,7 +10,7 @@ import { ActionLines, LiveState, Pager, Table } from './OperationsPanels'
 type VM = ReturnType<typeof useAdminViewModel>
 type Jobs = ReturnType<typeof useJobMonitorViewModel>
 
-const statusChip = (status: string) => <span className={`chip ${status === 'succeeded' ? 'ok' : status === 'failed' ? 'wait' : ''}`}>{jobStatusLabel(status)}</span>
+const statusChip = (status: string) => <span className={`chip ${status === 'succeeded' ? 'ok' : status === 'failed' ? 'bad' : ''}`}>{jobStatusLabel(status)}</span>
 
 /** 35 작업 감시·정기 작업: 회차 원고 전처리와 운영 정기 작업을 같은 실행 기록으로 보고, 실패 재실행과 일정 관리를 요청합니다. */
 export function JobMonitor({ vm }: { vm: VM }) {
@@ -161,7 +161,7 @@ function Schedules({ vm, j }: { vm: VM; j: Jobs }) {
                         <button type="button" className="btn sm" aria-label={`${kind} 일정 수정`} disabled={busy} onClick={() => setEditing(row)}>수정</button>
                         <button
                           type="button"
-                          className="btn sm"
+                          className="btn sm danger"
                           aria-label={`${kind} 일정 취소`}
                           disabled={busy || !row.enabled}
                           onClick={() => { if (window.confirm(`${kind} 일정을 취소할까요? 일정은 삭제되지 않고 꺼져요.`)) void j.cancelSchedule(row.id) }}
