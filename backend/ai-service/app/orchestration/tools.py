@@ -438,19 +438,20 @@ def _previous_plans(turn: dict) -> list[dict]:
     return []
 
 
-def _read_context(target: dict, query: str) -> dict:
-    """Content가 근거 회차까지 허용한 설정·원문 발췌(작가 권한, work_context_read). Retrieval이 아니라 Content가 고른 문맥이다."""
-    return content_mcp.call('work_context_read', {'id': target['workId'], 'episode': target.get('baseEpisode') or target['episode'], 'query': query[:200]})
+def _read_context(target: dict, query: str, include_settings: bool = True) -> dict:
+    """Content가 근거 회차까지 허용한 설정·원문 발췌(작가 권한, work_context_read). Retrieval이 아니라 Content가 고른 문맥이다.
+    include_settings=False면 Content가 옛 설정 문서를 빼고 그 길이를 예산에서도 뺀다(#602)."""
+    args = {'id': target['workId'], 'episode': target.get('baseEpisode') or target['episode'], 'query': query[:200]}
+    return content_mcp.call('work_context_read', args if include_settings else {**args, 'includeSettings': False})
 
 
 def _allowed_context(target: dict, query: str) -> tuple[str, list[str]]:
     """writing에 보내는 허용 문맥 글과 작가에게 알릴 gaps. 원고 문맥은 Content가 근거 회차까지 허용한 것을 그대로 쓰고,
     설정(settings)만 Q&A·Review와 같은 WorldStudio(연결 → Fork 상속 세계관)로 바꾼다(#523). 세계관이 없으면 빈 설정과 알림이다.
 
-    shortcut: Content의 48,000자 예산은 버리는 옛 settings 길이까지 세어, 옛 설정 문서가 큰 작품은 Content가 422를 줄 수 있다.
-    문제가 되면 Content work_context_read에 설정 제외 옵션을 둔다. 공개된 카드가 0건이면 알림 없이 빈 설정으로 쓴다.
+    옛 설정 문서는 Content에서 빼고 읽어 예산을 깎지 않는다(#602). 공개된 카드가 0건이면 알림 없이 빈 설정으로 쓴다.
     """
-    if not isinstance(context := _read_context(target, query), dict):  # settings만 바꿔 끼우므로 객체가 아니면 단계 실패다(linked_world와 같은 규칙)
+    if not isinstance(context := _read_context(target, query, include_settings=False), dict):  # settings만 바꿔 끼우므로 객체가 아니면 단계 실패다(linked_world와 같은 규칙)
         raise ContentMcpFailure(502, 'Content MCP 결과를 확인할 수 없습니다.')
     episode = target.get('baseEpisode') or target['episode']
     gaps = []

@@ -1811,8 +1811,8 @@ def test_plan_only_returns_beat_plans_with_allowed_context_and_never_asks_to_wri
     assert result.status == 'completed' and result.awaitingApproval is None
     assert result.steps[0].result.plans[0].title == BEAT.title
     assert names(calls) == ['judge', 'mcp', 'mcp', 'mcp', 'writing_plan'] and applied == []
-    # 허용 문맥은 Content가 근거 회차(지식 상한)까지 확인한 것이다. 반영 회차 5화를 기획한다. 설정은 WorldStudio로 바꾼다(#523): 연결 세계관이 없어 비어 있다.
-    assert calls[1][1] == ('work_context_read', {'id': 'work', 'episode': 3, 'query': '11화 전개만 짜줘'})
+    # 허용 문맥은 Content가 근거 회차(지식 상한)까지 확인한 것이다. 반영 회차 5화를 기획한다. 설정은 WorldStudio로 바꾼다(#523): 연결 세계관이 없어 비어 있다. 옛 설정은 Content에서 뺀다(#602).
+    assert calls[1][1] == ('work_context_read', {'id': 'work', 'episode': 3, 'query': '11화 전개만 짜줘', 'includeSettings': False})
     sent = calls[4][1][0]
     assert (sent.episodeNumber, sent.request) == (5, '11화 전개만 짜줘') and json.loads(sent.context) == {**CONTEXT, 'settings': []}
 

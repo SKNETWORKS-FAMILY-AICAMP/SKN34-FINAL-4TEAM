@@ -177,7 +177,7 @@ flowchart TD
 1. **범위:** 모든 서브 에이전트는 Content가 Core 인증 뒤 확정한 사용자·작품/Fork·`target`·기준 회차/판본·`scope`만 쓴다. 필요한 Content 확인이 실패하거나 대상·판본이 맞지 않으면 그 도구는 실패다.
 2. **노출·한도:** 판정에 없는 도구, 기능당 2회째 호출, 턴당 4회째 호출은 실행 직전에 막는다.
 3. **실패 뒤 정지:** 서브 에이전트가 실패하거나 시간 초과되면 그 턴에서 새 서브 에이전트 호출을 막는다. Writing 실패 뒤에는 판정에 포함된 미실행 Manuscript Review만 저장 초안을 검수할 수 있다. 완료한 결과는 보존한다. 병렬 묶음에서 함께 시작한 호출은 취소하지 않고 끝까지 실행해 보존한다(#474).
-4. **집필 도구 경계:** Writing & Editing 서브 에이전트에는 Retrieval·Simulation이 없다. 허용 문맥은 Content MCP `work_context_read`로 받되 설정(`settings`)만 Q&A·Review와 같은 WorldStudio(`content_mcp.linked_world`, 근거 회차 시점)로 바꾼다. 세계관이 없으면 빈 설정으로 실행하고 결과 `gaps`로 알린다(#523, [근거](07-retrieval-contract-and-mocks.md#qa-세계관-근거-490)).
+4. **집필 도구 경계:** Writing & Editing 서브 에이전트에는 Retrieval·Simulation이 없다. 허용 문맥은 Content MCP `work_context_read`(`includeSettings=false`, 옛 설정 문서 제외, #602)로 받고 설정(`settings`)은 Q&A·Review와 같은 WorldStudio(`content_mcp.linked_world`, 근거 회차 시점)로 바꾼다. 세계관이 없으면 빈 설정으로 실행하고 결과 `gaps`로 알린다(#523, [근거](07-retrieval-contract-and-mocks.md#qa-세계관-근거-490)).
 5. **조건부 수정:** `ask_writing(task=patch, fix=n)`은 이번 턴 `ask_manuscript_review` 결과가 상태에 있을 때만 받는다. 고른 지적이 확정이고 구절이 한 곳이며 초안 revision이 검수 때와 같아야 한다([조건부 수정](#조건부-수정-if_issues_found)). 메인 에이전트의 판단만으로 수정 입력을 만들지 않는다.
 6. **시뮬레이션:** Decision Guard가 명시적 요청으로 판정했거나 UI에서 고른 턴에만 노출한다.
 7. **외부 전송:** 웹 조사에는 작가가 동의한 질문·맥락 외의 원고·다른 결과·대화 기록을 보내지 않는다.
