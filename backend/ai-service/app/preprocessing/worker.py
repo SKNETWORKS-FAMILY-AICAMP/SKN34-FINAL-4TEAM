@@ -1,11 +1,19 @@
 """Run one claimed Content snapshot. Content alone persists inputs, results and receipts."""
+import logging
 import os
 import httpx
 
+from app import tracing
 from app.manuscript_extraction import service
 from app.manuscript_extraction.errors import PreprocessingFailure
 from app.manuscript_extraction.models import EpisodeText, EpisodeExtraction
 from app.preprocessing.models import JobRequest
+
+log = logging.getLogger(__name__)
+
+# 모델·검증의 세부 코드를 Content·화면이 아는 실패 사유로 옮긴다. 그 밖의 검증·출력 오류는 모두 AI_OUTPUT_INVALID다.
+REASONS = {"MODEL_TIMEOUT": "AI_TIMEOUT", "MODEL_UNAVAILABLE": "AI_RESPONSE_UNCONFIRMED", "MODEL_NOT_CONFIGURED": "AI_REQUEST_REJECTED",
+           "MODEL_INPUT_TOO_LARGE": "AI_REQUEST_REJECTED", "NO_SETTINGS_FOUND": "NO_SETTINGS_FOUND"}
 
 
 def callback(job: str, action: str, data: dict) -> dict:
@@ -19,37 +27,68 @@ def callback(job: str, action: str, data: dict) -> dict:
     return response.json()
 
 
+def reason_of(job: str, error: Exception) -> str:
+    """실패 사유 코드. 세부 코드(고정 코드나 예외 종류 이름: 메시지에는 원고가 섞일 수 있다)는 로그에만 남긴다."""
+    detail = str(error) if isinstance(error, PreprocessingFailure) else type(error).__name__
+    log.error("manuscript build %s failed: %s", job, detail)
+    return REASONS.get(detail, "AI_OUTPUT_INVALID")
+
+
 def run(request: JobRequest) -> None:
     job = request.jobId
-    claim = callback(job, "claim", {"workId": request.workId})
-    if not claim["claimed"]:
-        return
-    lease = {"token": claim["token"]}
-    if not claim["loading"]:
-        failed = []
-        reason = "INVALID_EXTRACTION_OR_PAYLOAD"
-        for raw in claim["missing"]:
-            episode = EpisodeText.model_validate(raw)
-            try:
-                result = service.extract(episode)
-            except PreprocessingFailure as error:
-                failed.append(episode.number)
-                reason = str(error)
-                continue
-            # A lost write response is ambiguous. Never start another job or overwrite its state.
-            callback(job, "result", {**lease, "result": result.model_dump(mode="json")})
-        if failed:
-            callback(job, "failed", {**lease, "episodes": failed, "reason": reason})
+    with tracing.request("manuscript_extraction", session_id=job, work_id=request.workId) as trace:
+        claim = callback(job, "claim", {"workId": request.workId})
+        if not claim["claimed"]:
             return
-        inputs = callback(job, "structure-input", lease)
-        if not inputs["prepared"]:
-            rows = {row.number: row for row in map(EpisodeExtraction.model_validate, inputs["results"])}
+        lease = {"token": claim["token"]}
+
+        def post(action: str, data: dict) -> bool:
+            # 4xx는 Content가 거절한 것이라 같은 입력은 같은 거절을 되풀이한다(False). 5xx·시간 초과는 일시 장애라 그대로 올려 재개하게 둔다.
             try:
-                identity = service.resolve(rows)
-                payload = service.organize(identity, rows)
-            except PreprocessingFailure as error:
-                callback(job, "failed", {**lease, "episodes": [], "reason": str(error)})
+                callback(job, action, {**lease, **data})
+            except httpx.HTTPStatusError as error:
+                if not 400 <= error.response.status_code < 500:
+                    raise
+                log.error("manuscript build %s: content rejected %s (%s)", job, action, error.response.status_code)
+                return False
+            return True
+
+        def fail(episodes: list[int], reason: str) -> None:
+            trace.status = "failed"
+            post("failed", {"episodes": episodes, "reason": reason})  # 거절되면 Content가 이미 실패로 기록한 것이라(원고·연결 변경) 남길 것이 없다
+
+        def send(action: str, data: dict, episodes: list[int]) -> bool:
+            accepted = post(action, data)
+            if not accepted:
+                fail(episodes, "CONTENT_REJECTED")
+            return accepted
+
+        if not claim["loading"]:
+            # Content는 failed의 episodes가 결과가 저장되지 않은 회차 전체와 같기를 요구한다.
+            unsaved, reason = [raw["number"] for raw in claim["missing"]], "AI_OUTPUT_INVALID"
+            for raw in claim["missing"]:
+                episode = EpisodeText.model_validate(raw)
+                try:
+                    result = service.extract(episode)
+                except Exception as error:  # 모델·검증 실패도 예상 밖 예외도 그 회차의 실패다
+                    reason = reason_of(job, error)
+                    continue
+                # A lost write response is ambiguous. Never start another job or overwrite its state.
+                if not send("result", {"result": result.model_dump(mode="json")}, unsaved):
+                    return
+                unsaved.remove(episode.number)
+            if unsaved:
+                fail(unsaved, reason)
                 return
-            callback(job, "structure", {**lease, "identity": identity.model_dump(mode="json"),
-                                         "payload": payload.model_dump(mode="json")})
-    callback(job, "load", lease)
+            inputs = callback(job, "structure-input", lease)
+            if not inputs["prepared"]:
+                try:
+                    rows = {row.number: row for row in map(EpisodeExtraction.model_validate, inputs["results"])}
+                    identity = service.resolve(rows)
+                    payload = service.organize(identity, rows)
+                except Exception as error:
+                    fail([], reason_of(job, error))
+                    return
+                if not send("structure", {"identity": identity.model_dump(mode="json"), "payload": payload.model_dump(mode="json")}, []):
+                    return
+        send("load", {}, [])

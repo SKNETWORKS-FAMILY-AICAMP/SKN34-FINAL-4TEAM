@@ -30,7 +30,7 @@ class CharacterDocs(Model):
 class Card(Model):
     """최초 일괄 적재 카드. 첫 등장 회차는 독자 공개 승인이나 공개 회차가 아니다."""
     key: str
-    cardType: Literal['character', 'location', 'organization', 'object', 'event']
+    cardType: Literal['character', 'location', 'organization', 'object', 'rule', 'event']
     title: str
     aliases: list[str]
     body: Doc
@@ -62,7 +62,7 @@ class LoadPayload(Model):
 # ── 모델 출력과 검증된 중간 결과 (#344). 정본 UUID는 생성하지 않는다. ──
 LocalId = Annotated[str, Field(pattern=r'^[a-zA-Z][a-zA-Z0-9_-]{0,63}$')]
 Quote = Annotated[str, Field(min_length=1, max_length=3000)]
-EntityKind = Literal['character', 'location', 'organization', 'object']
+EntityKind = Literal['character', 'location', 'organization', 'object', 'rule']
 
 
 class Mention(Model):
@@ -84,21 +84,26 @@ class Statement(Model):
     quote: Quote
 
 
-class ExtractedRelation(Model):
+class ProposedRelation(Model):
+    """모델이 내는 관계. 회차는 묻지 않는다: 시작 회차는 현재 회차, 종료 여부는 change에서 프로그램이 채운다."""
     id: LocalId
     source: LocalId
     target: LocalId
     label: Annotated[str, Field(min_length=1, max_length=100)]
+    change: Literal['started', 'ended']
+    quote: Quote
+
+
+class ExtractedRelation(ProposedRelation):
+    """저장되는 관계. Content가 이 모양(fromEpisode·ended)으로 다시 검증한다."""
     fromEpisode: EpisodeNumber
     ended: bool
-    change: Literal["started", "changed", "ended", "learned"]
-    quote: Quote
 
 
 class ProposedExtraction(Model):
     mentions: list[Mention]
     statements: list[Statement]
-    relationships: list[ExtractedRelation]
+    relationships: list[ProposedRelation]
 
 
 class Evidence(Model):
@@ -114,13 +119,15 @@ class EpisodeExtraction(ProposedExtraction):
     title: str
     source: str
     sourceHash: str
+    relationships: list[ExtractedRelation]
     evidence: list[Evidence]
+    skipped: dict[str, int] = Field(default_factory=dict)  # 근거를 확인하지 못해 뺀 항목의 코드별 건수
 
 
 class IdentityLink(Model):
     left: str
     right: str
-    basis: Literal['explicit_alias', 'explicit_coreference', 'name_only', 'uncertain', 'distinct']
+    basis: Literal['explicit_alias', 'explicit_coreference', 'same_name', 'name_only', 'uncertain', 'distinct']
     confirmedAt: EpisodeNumber
     evidenceEpisode: EpisodeNumber
     quote: Quote

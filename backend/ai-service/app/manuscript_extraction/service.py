@@ -1,17 +1,17 @@
 """검증된 원고 추출 → 근거 있는 정체 통합 → 기존 Content 적재 DTO 구성. 정본·저장소는 수정하지 않는다."""
 import hashlib
 import json
+from collections import Counter
 from uuid import NAMESPACE_URL, uuid5
 from pydantic import ValidationError
 from app.manuscript_extraction import agent
 from app.manuscript_extraction.errors import PreprocessingFailure
-from app.manuscript_extraction.models import (Card, CharacterDocs, EpisodeExtraction, EpisodeText, Evidence,
-    IdentityCandidate, IdentityDecision, IdentityResolution, LoadPayload, ProposedExtraction, ProposedResolution, Relation)
+from app.manuscript_extraction.models import (DOC_LIMIT, Card, CharacterDocs, EpisodeExtraction, EpisodeText, Evidence, ExtractedRelation,
+    IdentityCandidate, IdentityDecision, IdentityLink, IdentityResolution, LoadPayload, ProposedExtraction, ProposedRelation,
+    ProposedResolution, Relation)
 
-
-def require_available() -> None:
-    """#345 및 성공 결과 보존·멱등 적재 검증 전에는 실제 작업을 접수하지 않는다."""
-    raise PreprocessingFailure('PREPROCESSING_NOT_IMPLEMENTED', 503)
+# 카드 본문·문서의 줄은 '<표지> <인용>'이다. 표지와 사건 카드 제목은 Content ManuscriptStructureVerifier와 글자까지 같아야 한다.
+LABELS = {'event': '[사건]', 'description': '[묘사]', 'fact': '[사실]', 'rule': '[규칙]', 'plan': '[계획]', 'goal': '[목표]', 'conjecture': '[추측]'}
 
 
 def _require(condition, code):
@@ -27,63 +27,109 @@ def _source_hash(episode):
     return _hash(json.dumps(episode.model_dump(), sort_keys=True, ensure_ascii=False, separators=(',', ':')))
 
 
-def _evidence(source, quote):
+def _quote_start(source, quote):
+    """인용이 원문에 연속한 글자로 정확히 한 번 나오면 그 위치, 아니면 -1."""
     start = source.find(quote)
-    _require(start >= 0 and source.find(quote, start + 1) < 0, 'INVALID_OR_AMBIGUOUS_QUOTE')
-    offset = len(source[:start].encode('utf-16-le')) // 2
+    return start if start >= 0 and source.find(quote, start + 1) < 0 else -1
+
+
+def _evidence(source, quote):
+    offset = len(source[:source.find(quote)].encode('utf-16-le')) // 2
     return Evidence(quote=quote, start=offset, end=offset + len(quote.encode('utf-16-le')) // 2, quoteHash=_hash(quote))
 
 
+def _line(statement):
+    return f'{LABELS[statement.kind]} {statement.quote}'
+
+
+def _first(*checks):
+    """(위반 여부, 코드)를 차례로 보고 처음 위반한 코드를 돌려준다."""
+    return next((code for broken, code in checks if broken), None)
+
+
 def _validate(episode, proposed):
+    """항목마다 원문·참조·시점을 다시 확인한다. 어긋난 항목만 빼고 코드별 건수를 skipped에 남긴다.
+
+    제안은 있었는데 하나도 검증되지 못한 회차(모델 출력을 믿을 수 없다)만 실패다. 아무것도 제안하지 않은 회차는 빈 추출이다.
+    """
     proposed = ProposedExtraction.model_validate(proposed)
-    mentions = {m.id: m for m in proposed.mentions}
-    all_rows = [*proposed.mentions, *proposed.statements, *proposed.relationships]
-    _require(len({r.id for r in all_rows}) == len(all_rows), 'DUPLICATE_LOCAL_ID')
-    quotes = sorted({r.quote for r in all_rows})
-    evidence = [_evidence(episode.body, q) for q in quotes]
+    n, skipped = episode.number, Counter()
+    ids = Counter(row.id for row in [*proposed.mentions, *proposed.statements, *proposed.relationships])
+
+    def sound(row):  # 모든 항목 공통: 지역 id가 유일하고 인용이 원문에 정확히 한 번 나온다
+        return ('DUPLICATE_LOCAL_ID' if ids[row.id] > 1 else
+                'INVALID_OR_AMBIGUOUS_QUOTE' if _quote_start(episode.body, row.quote) < 0 else None)
+
+    mentions = {}
     for mention in proposed.mentions:
-        _require(mention.name.strip() and mention.name in mention.quote, 'INVALID_MENTION_NAME')
-    seen = set()
+        code = sound(mention) or (None if mention.name.strip() and mention.name in mention.quote else 'INVALID_MENTION_NAME')
+        if code:
+            skipped[code] += 1
+        else:
+            mentions[mention.id] = mention
+
+    def knower_problem(ref, quote):  # 기억에 넣을 인물은 검증된 인물이고 이름이 인용에 글자 그대로 있어야 한다(다른 인물의 비밀이 새지 않게)
+        found = mentions.get(ref)
+        return ('UNKNOWN_ENTITY' if found is None else 'INVALID_KNOWER' if found.kind != 'character' else
+                None if found.name in quote else 'KNOWLEDGE_NOT_EXPLICIT')
+
+    def shelves(statement):  # 이 진술의 줄이 실리는 (대상, 칸). 첫 등장 회차인지는 정체 정리 뒤에야 알 수 있어 모든 칸을 센다
+        docs = [(ref, 'body' if statement.document == 'identity' or mentions[ref].kind != 'character' else statement.document)
+                for ref in statement.subjects if statement.document in ('identity', 'soul', 'goal')]
+        return docs + [(ref, 'memory') for ref in statement.knowers]
+
+    statements, seen, used = [], set(), Counter()
     for statement in proposed.statements:
-        refs = statement.subjects + statement.knowers
-        _require(all(ref in mentions for ref in refs), 'UNKNOWN_ENTITY')
-        _require(len(set(statement.subjects)) == len(statement.subjects) and len(set(statement.knowers)) == len(statement.knowers), 'DUPLICATE_ENTITY_REFERENCE')
-        _require(all(mentions[ref].kind == 'character' for ref in statement.knowers), 'INVALID_KNOWER')
-        _require(all(mentions[ref].name in statement.quote for ref in statement.knowers), 'KNOWLEDGE_NOT_EXPLICIT')
+        code = sound(statement) or _first(
+            (not all(ref in mentions for ref in statement.subjects), 'UNKNOWN_ENTITY'),
+            (len(set(statement.subjects)) < len(statement.subjects) or len(set(statement.knowers)) < len(statement.knowers), 'DUPLICATE_ENTITY_REFERENCE'))
+        if code:
+            skipped[code] += 1
+            continue
+        problems = [knower_problem(ref, statement.quote) for ref in statement.knowers]
+        statement = statement.model_copy(update={'knowers': [ref for ref, why in zip(statement.knowers, problems) if not why]})
         expected = 'intended' if statement.kind in ('plan', 'goal') else 'uncertain' if statement.kind == 'conjecture' else 'asserted'
-        _require(statement.certainty == expected, 'SEMANTIC_TYPE_CONFLICT')
-        # 명시적 표지의 보수적 거절일 뿐 한국어 의미 판별의 완전한 대체가 아니다.
-        if statement.certainty == 'asserted':
-            _require(not any(cue in statement.quote for cue in ('계획', '추측', '것 같', '싶어', '예정', '지도 모', '소문')), 'UNCERTAIN_SOURCE_AS_FACT')
-        if statement.kind in ('plan', 'goal', 'conjecture'):
-            _require(statement.occurredEpisode is None, 'INTENTION_IS_NOT_EVENT')
-        if statement.kind == 'event':
-            _require(statement.occurredEpisode is not None, 'EVENT_TIME_REQUIRED')
-        _require(statement.occurredEpisode is None or statement.occurredEpisode <= episode.number, 'FUTURE_EVENT')
-        _require(statement.knownFromEpisode in (0, episode.number), 'INVALID_KNOWLEDGE_TIME')
-        if statement.knownFromEpisode == 0:
-            _require(statement.kind == 'fact' and statement.occurredEpisode == 0 and statement.document == 'memory', 'INVALID_PRESTORY_MEMORY')
-            _require('이야기 시작 전부터' in statement.quote, 'PRESTORY_EVIDENCE_REQUIRED')
-        if statement.kind in ('plan', 'goal'):
-            _require(statement.document in ('goal', 'memory'), 'INTENTION_DOCUMENT_CONFLICT')
-        if statement.kind == 'conjecture':
-            _require(statement.document == 'memory', 'CONJECTURE_DOCUMENT_CONFLICT')
+        occurred, line = statement.occurredEpisode, _line(statement)
         fingerprint = (statement.kind, tuple(sorted(statement.subjects)), statement.quote)
-        _require(fingerprint not in seen, 'DUPLICATE_STATEMENT')
+        event_body = len(f'발생: {occurred}화 / 참여: ') + len(', '.join(mentions[ref].name for ref in statement.subjects)) + 1 + len(line)
+        prestory = statement.kind == 'fact' and occurred == 0 and statement.document == 'memory'
+        overflow = (statement.kind == 'event' and event_body > DOC_LIMIT) or any(used[shelf] + len(line) > DOC_LIMIT for shelf in shelves(statement))
+        code = _first(
+            (statement.certainty != expected, 'SEMANTIC_TYPE_CONFLICT'),
+            (statement.kind in ('plan', 'goal', 'conjecture') and occurred is not None, 'INTENTION_IS_NOT_EVENT'),
+            (statement.kind == 'event' and occurred is None, 'EVENT_TIME_REQUIRED'),
+            (occurred is not None and occurred > n, 'FUTURE_EVENT'),
+            (statement.knownFromEpisode not in (0, n), 'INVALID_KNOWLEDGE_TIME'),
+            (statement.knownFromEpisode == 0 and not prestory, 'INVALID_PRESTORY_MEMORY'),
+            (statement.kind in ('plan', 'goal') and statement.document not in ('goal', 'memory'), 'INTENTION_DOCUMENT_CONFLICT'),
+            (statement.kind == 'conjecture' and statement.document != 'memory', 'CONJECTURE_DOCUMENT_CONFLICT'),
+            (statement.document == 'memory' and statement.kind != 'event' and not statement.knowers, 'UNREPRESENTABLE_STATEMENT'),
+            (fingerprint in seen, 'DUPLICATE_STATEMENT'),
+            (overflow, 'DOCUMENT_TOO_LONG'))
+        if code:
+            skipped[code] += 1
+            continue
+        skipped.update(why for why in problems if why)
         seen.add(fingerprint)
-    seen = set()
+        for shelf in shelves(statement):
+            used[shelf] += len(line) + 1
+        statements.append(statement)
+
+    relations, linked = [], set()
     for relation in proposed.relationships:
-        _require(relation.change != 'learned', 'RELATION_DISCOVERY_NOT_REPRESENTABLE')
-        _require(relation.change != 'changed', 'RELATION_CHANGE_NOT_REPRESENTABLE')
-        _require(relation.ended == (relation.change == 'ended'), 'RELATION_CHANGE_CONFLICT')
-        _require(relation.source in mentions and relation.target in mentions and relation.source != relation.target, 'INVALID_RELATION_ENDPOINT')
-        # LoadPayload에는 관계 공개 회차가 따로 없다. 소급 공개나 미래 관계를 과거로 넣지 않는다.
-        _require(relation.fromEpisode == episode.number, 'UNSUPPORTED_RELATION_TIME')
-        fingerprint = (relation.source, relation.target, relation.label, relation.fromEpisode)
-        _require(fingerprint not in seen, 'DUPLICATE_RELATION')
-        seen.add(fingerprint)
-    return EpisodeExtraction(**proposed.model_dump(), number=episode.number, title=episode.title,
-                             source=episode.body, sourceHash=_source_hash(episode), evidence=evidence)
+        code = sound(relation) or _first(
+            (not (relation.source in mentions and relation.target in mentions and relation.source != relation.target), 'INVALID_RELATION_ENDPOINT'),
+            ((relation.source, relation.target, relation.label) in linked, 'DUPLICATE_RELATION'))
+        if code:
+            skipped[code] += 1
+            continue
+        linked.add((relation.source, relation.target, relation.label))
+        relations.append(ExtractedRelation(**relation.model_dump(), fromEpisode=n, ended=relation.change == 'ended'))
+    _require(mentions or not skipped, 'NO_VERIFIED_MENTION')
+    quotes = sorted({row.quote for row in [*mentions.values(), *statements, *relations]})
+    return EpisodeExtraction(mentions=list(mentions.values()), statements=statements, relationships=relations, number=n, title=episode.title,
+                             source=episode.body, sourceHash=_source_hash(episode), evidence=[_evidence(episode.body, q) for q in quotes],
+                             skipped=dict(skipped))
 
 
 def extract(episode: EpisodeText) -> EpisodeExtraction:
@@ -101,8 +147,10 @@ def _inputs(extractions):
         row = EpisodeExtraction.model_validate(raw)
         _require(number == row.number, 'EPISODE_MISMATCH')
         data = EpisodeText(number=row.number, title=row.title, body=row.source)
-        checked = _validate(data, row.model_dump(include=set(ProposedExtraction.model_fields)))
-        _require(checked == row, 'EXTRACTION_EVIDENCE_MISMATCH')
+        # 저장된 결과를 모델 출력 모양으로 되돌려 다시 거른다. 더 빠지거나 값이 달라지는 항목이 있으면 바뀐 것이다(건수 skipped는 그대로 둔다).
+        again = row.model_dump(include={'mentions': True, 'statements': True, 'relationships': {'__all__': set(ProposedRelation.model_fields)}})
+        checked = _validate(data, again)
+        _require(checked.model_copy(update={'skipped': row.skipped}) == row, 'EXTRACTION_EVIDENCE_MISMATCH')
         result[number] = row
     return result
 
@@ -114,41 +162,70 @@ def _key(ref):
 def _resolution(rows, proposed):
     mentions = {f'{n}:{m.id}': m for n, row in rows.items() for m in row.mentions}
     parent = {ref: ref for ref in mentions}
+    episode = lambda ref: int(ref.split(':')[0])  # noqa: E731
     def root(ref):
         while parent[ref] != ref:
             ref = parent[ref]
         return ref
+    def sound(link):  # 근거가 어긋난 링크는 그 링크 하나만 버린다(Content가 받은 결정을 같은 조건으로 다시 검증한다)
+        if not (link.left in mentions and link.right in mentions and link.left != link.right):
+            return False
+        left, right = mentions[link.left], mentions[link.right]
+        return (link.evidenceEpisode in rows and link.confirmedAt == link.evidenceEpisode
+                and link.confirmedAt >= max(episode(link.left), episode(link.right))
+                and _quote_start(rows[link.evidenceEpisode].source, link.quote) >= 0
+                and left.name in link.quote and right.name in link.quote and left.kind == right.kind
+                and (link.basis != 'same_name' or left.name == right.name))
+    links = sorted((link for link in proposed.links if sound(link)), key=lambda l: (l.confirmedAt, min(l.left, l.right), max(l.left, l.right)))
+    distinct = [frozenset((l.left, l.right)) for l in links if l.basis == 'distinct']
     decisions = []
     pairs = set()
-    distinct = [frozenset((l.left, l.right)) for l in proposed.links if l.basis == 'distinct']
-    for link in sorted(proposed.links, key=lambda l: (l.confirmedAt, min(l.left, l.right), max(l.left, l.right))):
-        _require(link.left in mentions and link.right in mentions and link.left != link.right, 'INVALID_IDENTITY_REFERENCE')
+    for link in links:
         pair = frozenset((link.left, link.right))
-        _require(pair not in pairs, 'DUPLICATE_IDENTITY_LINK'); pairs.add(pair)
-        _require(link.evidenceEpisode in rows and link.confirmedAt == link.evidenceEpisode, 'INVALID_IDENTITY_TIME')
-        _require(link.confirmedAt >= max(int(r.split(':')[0]) for r in pair), 'IDENTITY_BEFORE_MENTION')
-        _evidence(rows[link.evidenceEpisode].source, link.quote)
+        if pair in pairs:
+            continue  # 같은 쌍의 링크는 먼저 온 것만 쓴다
         left, right = mentions[link.left], mentions[link.right]
-        _require(left.name in link.quote and right.name in link.quote, 'IDENTITY_NAMES_NOT_IN_EVIDENCE')
-        _require(left.kind == right.kind, 'IDENTITY_KIND_CONFLICT')
         status, reason = 'deferred', link.basis
         if link.basis == 'distinct':
             status = 'distinct'
-        elif link.basis in ('explicit_alias', 'explicit_coreference'):
+        elif link.basis in ('explicit_alias', 'explicit_coreference', 'same_name'):
             if left.name != right.name:
                 reason = 'AUTHOR_REVIEW_REQUIRED' if left.kind == 'character' else 'DIFFERENT_NAMES'
             else:
                 a, b = sorted((root(link.left), root(link.right)))
-                _require(not any({root(r) for r in pair} <= {a, b} for pair in distinct), 'CONTRADICTORY_IDENTITY')
+                if any({root(r) for r in p} <= {a, b} for p in distinct):
+                    continue  # 다른 대상이라고 가른 쌍을 합치게 되는 링크
                 parent[b] = a
                 status, reason = 'merged', link.basis
+        pairs.add(pair)
         decisions.append(IdentityDecision(link=link, status=status, reason=reason))
+    # 같은 종류·같은 이름은 기본으로 같은 대상이다. 모델이 이미 판단한 쌍, 앞선 후보가 둘 이상인 경우, 같은 회차에 같은 이름이 둘인 경우
+    # (모델이 일부러 가른 것)는 묶지 않는다. 근거는 뒤 회차 대상의 검증된 인용이고, 결정 목록에 같은 링크로 남아 organize가 같은 결과를 다시 만든다.
+    order = sorted(mentions, key=lambda ref: (episode(ref), ref))
+    same = lambda a, b: (mentions[a].kind, mentions[a].name) == (mentions[b].kind, mentions[b].name)  # noqa: E731
+    for i, ref in enumerate(order):
+        n = episode(ref)
+        if any(episode(x) == n and x != ref and same(x, ref) for x in order):
+            continue
+        earlier = {root(x): x for x in reversed(order[:i]) if episode(x) < n and same(x, ref)}  # 묶음마다 가장 앞 회차의 ref
+        if len(earlier) != 1:
+            continue
+        (top, left), = earlier.items()
+        pair = frozenset((left, ref))
+        if top == root(ref) or pair in pairs or any({root(r) for r in p} <= {top, root(ref)} for p in distinct):
+            continue
+        pairs.add(pair)
+        a, b = sorted((top, root(ref)))
+        parent[b] = a
+        decisions.append(IdentityDecision(link=IdentityLink(left=left, right=ref, basis='same_name', confirmedAt=n, evidenceEpisode=n,
+                                                            quote=mentions[ref].quote), status='merged', reason='same_name'))
+    decisions.sort(key=lambda d: (d.link.confirmedAt, min(d.link.left, d.link.right), max(d.link.left, d.link.right)))
     return IdentityResolution(inputHashes={n: _hash(json.dumps(row.model_dump(), sort_keys=True, ensure_ascii=False, separators=(',', ':'))) for n, row in rows.items()},
                               mapping={ref: _key(root(ref)) for ref in sorted(parent)}, decisions=decisions)
 
 
 def resolve(extractions: dict[int, object]) -> IdentityResolution:
-    """이름 자동 병합 없이 명시적 근거만 적용한다. key는 정렬된 회차-local ID에서 결정한다."""
+    """같은 종류·같은 이름은 기본으로 병합하고, 모델이 알린 동명이인·별칭 링크를 근거가 맞는 것만 적용한다. key는 정렬된 회차-local ID에서 결정한다."""
     try:
         rows = _inputs(extractions)
         return _resolution(rows, ProposedResolution.model_validate(agent.resolve(list(rows.values()))))
@@ -179,30 +256,27 @@ def _organize(identity, rows):
                 if mention.kind == 'character': docs[key] = {'soul': [], 'goal': [], 'episodes': {}}
             elif mention.name != cards[key].title and mention.name not in cards[key].aliases:
                 cards[key].aliases.append(mention.name)
+    _require(cards, 'NO_SETTINGS_FOUND')
     relations = []
     for n, row in rows.items():
         for statement in row.statements:
             subjects = sorted({identity.mapping[f'{n}:{ref}'] for ref in statement.subjects})
-            text = f'[{statement.kind}] {statement.quote}'
-            represented = bool(statement.knowers) or statement.kind == 'event'
+            text = _line(statement)
             if statement.kind == 'event':
                 key = 'event-' + str(uuid5(NAMESPACE_URL, f'storyfork:manuscript:{n}:{statement.id}'))
                 names = ', '.join(cards[k].title for k in subjects)
-                cards[key] = Card(key=key, cardType='event', title=f'{n}화 사건 {statement.id}', aliases=[],
+                cards[key] = Card(key=key, cardType='event', title=f'{n}화 · {statement.quote[:24]}', aliases=[],
                                   body=f'발생: {statement.occurredEpisode}화 / 참여: {names}\n{text}', firstEpisode=n)
+            # 카드 본문·SOUL·GOAL은 첫 등장 회차의 진술만 싣는다(회차 차원이 없어 뒤 회차 내용이 앞으로 새면 안 된다). 뒤 회차의 재서술은 싣지 않는다.
             for key in subjects:
                 if first[key] == n and statement.document in ('identity', 'soul', 'goal'):
                     target = bodies[key] if statement.document == 'identity' or key not in docs else docs[key][statement.document]
                     target.append(text)
-                    represented = True
-                elif key not in docs and statement.kind != 'event':
-                    raise PreprocessingFailure('UNSUPPORTED_LATER_SETTING_STATE', 422)
-            _require(represented, 'UNREPRESENTABLE_STATEMENT')
-            # 인물의 명시적 인지 대상에만 기억을 넣는다. 미래 회차는 이전 bucket으로 합치지 않는다.
+            # 인물의 명시적 인지 대상에만 기억을 넣는다. 시작 전 기억은 첫 등장 회차에서만 00이고, 뒤 회차에서 밝혀진 것은 그 회차 기억이다.
             for ref in statement.knowers:
                 key = identity.mapping[f'{n}:{ref}']
-                _require(statement.knownFromEpisode != 0 or n == first[key], 'RETROACTIVE_MEMORY_NOT_REPRESENTABLE')
-                memory = docs[key]['episodes'].setdefault(f'{statement.knownFromEpisode:02}', [])
+                bucket = 0 if statement.knownFromEpisode == 0 and n == first[key] else n
+                memory = docs[key]['episodes'].setdefault(f'{bucket:02}', [])
                 if text not in memory: memory.append(text)
         for relation in row.relationships:
             source, target = (identity.mapping[f'{n}:{ref}'] for ref in (relation.source, relation.target))
@@ -213,7 +287,7 @@ def _organize(identity, rows):
     for key, documents in docs.items():
         cards[key].characterDocs = CharacterDocs(soul='\n'.join(dict.fromkeys(documents['soul'])),
             goal='\n'.join(dict.fromkeys(documents['goal'])), episodes={n: '\n'.join(lines) for n, lines in sorted(documents['episodes'].items())})
-    # 모델/문서 길이 한도 초과도 잘라내지 않는다. 재검증으로 모두 실패시킨다.
+    # 문서 길이 한도는 추출 때(_validate) 대상별로 막았다. 그래도 넘치면 잘라내지 않고 재검증으로 실패시킨다.
     candidates = {}
     for decision in identity.decisions:
         if decision.reason == 'AUTHOR_REVIEW_REQUIRED':

@@ -79,8 +79,6 @@
             "source": "m1",
             "target": "m3",
             "label": "소속",
-            "fromEpisode": 1,
-            "ended": false,
             "change": "started",
             "quote": "길동은 활빈당에 가입했다."
           }
@@ -226,8 +224,6 @@
             "source": "m1",
             "target": "m2",
             "label": "소속",
-            "fromEpisode": 4,
-            "ended": true,
             "change": "ended",
             "quote": "길동은 활빈당을 탈퇴했다."
           }

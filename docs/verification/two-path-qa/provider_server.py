@@ -9,7 +9,6 @@ sys.path.insert(0,str(root/'backend/ai-service'))
 sys.meta_path[:]=[f for f in sys.meta_path if '__editable__' not in getattr(f,'__module__','')]
 from fastapi import FastAPI
 from app.manuscript_extraction import service
-from app.manuscript_extraction.router import router
 from app.preprocessing.router import router as job_router
 from app.initial_world.router import router as initial_router
 from app.initial_world import service as initial_service
@@ -35,7 +34,7 @@ service.agent.resolve=lambda rows:{'links':[l for l in data['resolution']['links
 os.environ['INTERNAL_TOKEN']='qa-only-manuscript-internal-token-32-chars'
 os.environ['CONTENT_SERVICE_BASE_URL']=os.environ.get('MANUSCRIPT_QA_CONTENT_URL','http://127.0.0.1:18761')
 os.environ.pop('OPENAI_API_KEY',None)
-app=FastAPI();app.include_router(router);app.include_router(job_router)
+app=FastAPI();app.include_router(job_router)
 initial_service.agent.propose=propose
 app.include_router(initial_router)
 

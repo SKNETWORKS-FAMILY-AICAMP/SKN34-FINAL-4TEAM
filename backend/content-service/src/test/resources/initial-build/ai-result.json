@@ -74,10 +74,10 @@
           "source": "m1",
           "target": "m3",
           "label": "소속",
-          "fromEpisode": 1,
-          "ended": false,
           "change": "started",
-          "quote": "길동은 활빈당에 가입했다."
+          "quote": "길동은 활빈당에 가입했다.",
+          "fromEpisode": 1,
+          "ended": false
         }
       ],
       "schemaVersion": "manuscript-extraction.v1",
@@ -122,7 +122,8 @@
           "end": 30,
           "quoteHash": "20da009de3c8f1343490e4d13c69beb2bb1326f0ec778863acf5ab520b5f8d1b"
         }
-      ]
+      ],
+      "skipped": {}
     },
     {
       "mentions": [
@@ -169,7 +170,8 @@
           "end": 52,
           "quoteHash": "db15a1008c0067d4a5330748780585a4bdb72561ee2529b2b43681fa2efbdf64"
         }
-      ]
+      ],
+      "skipped": {}
     },
     {
       "mentions": [
@@ -258,7 +260,8 @@
           "end": 57,
           "quoteHash": "b9ede6f324a0e1f916b3698e59f76462d246df3e88a57feccdfebe07c7c1bf6b"
         }
-      ]
+      ],
+      "skipped": {}
     },
     {
       "mentions": [
@@ -299,10 +302,10 @@
           "source": "m1",
           "target": "m2",
           "label": "소속",
-          "fromEpisode": 4,
-          "ended": true,
           "change": "ended",
-          "quote": "길동은 활빈당을 탈퇴했다."
+          "quote": "길동은 활빈당을 탈퇴했다.",
+          "fromEpisode": 4,
+          "ended": true
         }
       ],
       "schemaVersion": "manuscript-extraction.v1",
@@ -329,16 +332,17 @@
           "end": 40,
           "quoteHash": "e7dd72c6ea374671601c0213e35b877aa1246693d3cd610e9b4573eaf4692892"
         }
-      ]
+      ],
+      "skipped": {}
     }
   ],
   "identity": {
     "schemaVersion": "manuscript-identity.v1",
     "inputHashes": {
-      "1": "c1c4e8ccf18a3b387f43ddd8616d9be96aac63450c2bc5e699f528f3c11bb065",
-      "2": "950b54da0762d54067d0dad15d61f999a3a84fb42fc60ddb23a208e700a6cc62",
-      "3": "dfa4dd696d46b1945fb6b5c2575f5ae1dd8f28d8aaf9392faeb0f52d6ca8cf88",
-      "4": "5abf11d980ad1cc54d811b08fd75780bd2eba2ca47b7803590cab7c11ee08425"
+      "1": "06f9ba03844840aa707bed2881f4b3db91e10dd1ef5958e9529a65523d69d2ff",
+      "2": "02209ff242e54f166054df06e8280444bf83c6f0c0825915814a329f586d2812",
+      "3": "3ba6dd5dde701085fc215e0a77fda65965e0d40b58fdbaf5d685a5432aa910cf",
+      "4": "d8ff74d62008cb7c93e94d2be4473a0097dfd6b4d3915f07790617c48ca376cc"
     },
     "mapping": {
       "1:m1": "entity-27e8292a-c237-59db-b3f9-355a10ca5480",
@@ -422,13 +426,13 @@
         "body": "길동",
         "firstEpisode": 1,
         "characterDocs": {
-          "soul": "[description] 길동은 약자를 돕는 성격이다.",
-          "goal": "[plan] 길동은 산을 넘을 계획이었다.",
+          "soul": "[묘사] 길동은 약자를 돕는 성격이다.",
+          "goal": "[계획] 길동은 산을 넘을 계획이었다.",
           "episodes": {
-            "00": "[fact] 길동은 이야기 시작 전부터 자신의 출생을 알고 있었다.",
-            "01": "[description] 길동은 약자를 돕는 성격이다.\n[plan] 길동은 산을 넘을 계획이었다.",
-            "03": "[event] 길동은 산을 넘었다.\n[goal] 길동은 이제 백성을 다스리고 싶어 했다.\n[fact] 길동만이 비밀 지도를 보았다.",
-            "04": "[event] 길동은 활빈당을 탈퇴했다."
+            "00": "[사실] 길동은 이야기 시작 전부터 자신의 출생을 알고 있었다.",
+            "01": "[묘사] 길동은 약자를 돕는 성격이다.\n[계획] 길동은 산을 넘을 계획이었다.",
+            "03": "[사건] 길동은 산을 넘었다.\n[목표] 길동은 이제 백성을 다스리고 싶어 했다.\n[사실] 길동만이 비밀 지도를 보았다.",
+            "04": "[사건] 길동은 활빈당을 탈퇴했다."
           }
         }
       },
@@ -443,7 +447,7 @@
           "soul": "",
           "goal": "",
           "episodes": {
-            "02": "[conjecture] 상인 홍길동은 의적이 사라졌을 것이라고 추측했다."
+            "02": "[추측] 상인 홍길동은 의적이 사라졌을 것이라고 추측했다."
           }
         }
       },
@@ -472,18 +476,18 @@
       {
         "key": "event-a8b315b4-0231-53fe-86bb-decf00724e75",
         "cardType": "event",
-        "title": "3화 사건 s1",
+        "title": "3화 · 길동은 산을 넘었다.",
         "aliases": [],
-        "body": "발생: 3화 / 참여: 길동\n[event] 길동은 산을 넘었다.",
+        "body": "발생: 3화 / 참여: 길동\n[사건] 길동은 산을 넘었다.",
         "firstEpisode": 3,
         "characterDocs": null
       },
       {
         "key": "event-fedc555a-249b-5695-b674-8413eceda354",
         "cardType": "event",
-        "title": "4화 사건 s1",
+        "title": "4화 · 길동은 활빈당을 탈퇴했다.",
         "aliases": [],
-        "body": "발생: 4화 / 참여: 길동, 활빈당\n[event] 길동은 활빈당을 탈퇴했다.",
+        "body": "발생: 4화 / 참여: 길동, 활빈당\n[사건] 길동은 활빈당을 탈퇴했다.",
         "firstEpisode": 4,
         "characterDocs": null
       }
