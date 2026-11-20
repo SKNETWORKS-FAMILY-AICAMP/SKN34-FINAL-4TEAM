@@ -12,8 +12,9 @@
 | `sim_config.py` | 설정 A~E(환경 변수 조합)·스위치 적용·같은 경로의 설정 재사용 계획·예상 호출 수와 금액(순수 함수) |
 | `sim_worlds.py` | TimeChara·홍길동전 시연 세계관·해리 포터 원문 기반 세계관(`hp_world`) → `service.World`(Content 호출 없음), 표본 고정, 고정 장면 목록(해리 포터 8 + 한국어 2) |
 | `hp_chapters.py` | 해리 포터 번역본 장 나누기(머리 형식·목차·빠진 장 처리, 못 찾은 장은 묶음) |
-| `hp_build.py` | 장 → 모델 추출 → 정체 정리(영어 이름) → 인물 문서 → `.data/hp/world.json`(시연 세계관 형식, 서버 한도 안) · `preview.md` |
-| `hp_seed.py` | `world.json`을 로컬 스택에 배치로 적재(`seed.py` 함수 재사용, localhost만, 비밀번호는 환경변수) |
+| `hp_build.py` | 장 → 모델 추출 → 정체 정리(영어 이름) → 인물 IDENTITY·SOUL·GOAL → `.data/hp/world.json`(시연 세계관 형식, 서버 한도 안·인물당 관계 상한) · `preview.md` |
+| `hp_traits.py` | SOUL·GOAL 다시 쓰기: 원문 전체의 변하지 않는 면만 쓰게 하는 요청, 반전·결과 금지 낱말(정해 둔 것 + 인물의 뒤 회차에만 나오는 고유명사) 검사 |
+| `hp_seed.py` | `world.json`을 로컬 스택에 배치로 적재하고 다시 실행하면 서버를 world.json과 같게 맞춘다(바뀐 카드·관계 갱신, 줄어든 관계는 종료 연결로 끝냄; `seed.py` 함수 재사용, localhost만, 비밀번호는 환경변수) |
 | `sim_via.py` | `--via ocx`: 로컬 OpenCodex 게이트웨이(구독 경로) 어댑터와 금액 0 장부 |
 | `sim_quality.py` | 품질: 질문 → 운영 인물 턴 경로(`character_view` → `act` → 서버 규칙 → `check` → 재생성) → 공개 기준 채점 |
 | `sim_speed.py` | 속도: 고정 장면을 장면 에이전트로 끝까지 돌려 `UsageLedger` 기록을 집계 단위로 만든다 |
@@ -37,6 +38,6 @@
 - 속도는 장면을 순서대로 돈다(병렬 호출이 지연을 흔들지 않게). 품질은 `--workers`(기본 12) 질문씩 병렬이다.
 - 질문·응답·모델 응답 본문은 오류 메시지·로그에 넣지 않는다. 호출 실패·채점 실패는 점수를 꾸미지 않고 `errors`·`failedJudge`로 센다.
 - **해리 포터 원문 기반 세계관**(`build-hp`·`seed-hp`, 방법·누설 방지·한계는 [결과 문서 §8](../../../../docs/evaluation/simulation.md#8-원문-기반-세계관해리-포터)): `build-hp`는 장부 누적 상한(`--limit-usd`, 기본 18달러)을 시작 전 예상과 호출 사이 모두 지키고, 끝낸 호출은 디스크 캐시에 남아 같은 명령이 이어 받는다.
-  `seed-hp`는 로컬 스택(localhost만)에만 넣고 공유·원격 DB에는 넣지 않는다. 비밀번호는 환경변수 `STORYFORK_SEED_PASSWORD`로만 받고 출력하지 않는다.
+  `seed-hp`는 로컬 스택(localhost만)에만 넣고 공유·원격 DB에는 넣지 않는다. 다시 실행하면 회차마다 서버의 그 시점 관계와 world.json의 그 시점 관계를 비교해 다른 것만 보낸다(서버는 관계를 지우지 않고 종료 연결을 쓰므로 줄어든 관계도 이렇게 끝난다). 비밀번호는 환경변수 `STORYFORK_SEED_PASSWORD`로만 받고 출력하지 않는다.
 - **`--via ocx`**: OpenAI 상한에 닿으면 안내하는 이어 받기 경로다(로컬 OpenCodex 게이트웨이, 금액 0, 모델 gpt-6-luna). `speed`는 거절한다. ocx 호출은 장부에 `via: ocx`·금액 0으로 남고 품질 결과의 문항 기록에 `via`가 남는다(openai·ocx가 섞이면 `report`가 알린다).
 - 의존성 파일은 바꾸지 않았다.

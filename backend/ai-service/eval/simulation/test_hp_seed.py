@@ -111,7 +111,10 @@ class FakeStack:
         if route == '/api/v1/works':
             return (200, [dict(x) for x in self.works.values()]) if method == 'GET' else self.create_work(body)
         if route == '/api/v1/world-studios':
-            self.worlds.setdefault(body['id'], {'revision': 0, 'cards': {}, 'edges': {}, 'current': None, 'revisions': {}, 'visibility': 'private', 'genre': None, 'last': None})
+            if body['id'] in self.worlds and (self.worlds[body['id']]['name'], self.worlds[body['id']]['description']) != (body['name'], body['description']):
+                return 409, {'detail': '다른 편집본 또는 저장 요청과 충돌했습니다.'}   # 세계관 생성은 같은 이름·설명일 때만 멱등이다
+            self.worlds.setdefault(body['id'], {'revision': 0, 'cards': {}, 'edges': {}, 'current': None, 'revisions': {}, 'visibility': 'private', 'genre': None, 'last': None,
+                                                'name': body['name'], 'description': body['description']})
             return 200, self.draft(body['id'], None)
         if route.startswith('/api/v1/world-studios/'):
             wid, rest = parts[4], parts[5:]
@@ -120,6 +123,8 @@ class FakeStack:
                 return 200, {'worldId': wid, 'visibility': body['visibility'], 'genre': body['genre']}
             if rest[:1] == ['revisions']:
                 return self.revisions(wid, method, rest[1:], body)
+            if method == 'GET' and wid not in self.worlds:
+                return 404, {'detail': '세계관을 찾을 수 없습니다.'}
             return (200, self.draft(wid, int(query.split('=')[1]) if query else None)) if method == 'GET' else self.put(wid, body)
         if route.startswith('/api/v1/works/'):
             work, rest = self.works[parts[4]], '/'.join(parts[5:])
@@ -146,7 +151,7 @@ class FakeStack:
         world, rels = self.worlds[wid], []
         for history in world['edges'].values():
             seen = [e for e in history if episode is None or e <= episode]
-            if seen:
+            if seen and history[max(seen)] is not None:   # None은 종료 연결(그 회차부터 관계가 없다)
                 rels.append(history[max(seen)])
         return {'worldId': wid, 'draftRevision': world['revision'], 'currentRevisionId': world['current'], 'cards': list(world['cards'].values()),
                 'relationships': rels, 'visibility': world['visibility'], 'genre': world['genre']}
@@ -176,18 +181,23 @@ class FakeStack:
                 or len(json.dumps(body, ensure_ascii=False, separators=(',', ':')).encode('utf-8')) > 2_000_000:
             return 422, {'detail': '세계관 입력 크기를 확인하세요.'}
         known = set(world['cards']) | {c['id'] for c in body['cards']}
-        if any(r['sourceCardId'] not in known or r['targetCardId'] not in known for r in body['relationships']):
+        if any(r.get('lifecycle') != 'removed' and (r['sourceCardId'] not in known or r['targetCardId'] not in known) for r in body['relationships']):
             return 422, {'detail': '관계의 시작 카드가 이 세계관에 없습니다.'}
         if world['last'] == (body['key'], body['expectedDraftRevision']) and world['revision'] == body['expectedDraftRevision'] + 1:
             return 200, self.draft(wid, body['episode'])   # 같은 요청의 재전송은 다시 적용하지 않는다
         if body['expectedDraftRevision'] != world['revision']:
             return 409, {'detail': 'draftRevision이 달라요'}
+        world['name'], world['description'] = body['name'], body['description']   # 초안을 저장하면 이름·설명이 갱신된다
         for card in body['cards']:
             world['cards'][card['id']] = card
         for relation in body['relationships']:
             history = world['edges'].setdefault(relation['id'], {})
             seen = [e for e in history if e <= body['episode']]
-            if not seen or history[max(seen)] != relation:
+            tip = history[max(seen)] if seen else None
+            if relation.get('lifecycle') == 'removed':
+                if tip is not None:   # 그 시점에 보이는 관계만 종료 연결을 쓴다(같은 회차의 옛 연결은 덮어쓴다)
+                    history[body['episode']] = None
+            elif tip != relation:
                 history[body['episode']] = relation
         world['revision'] += 1
         world['last'] = (body['key'], body['expectedDraftRevision'])
@@ -248,7 +258,7 @@ def test_카드_130장을_한_번에_보내면_서버_한도를_넘고_바이트
     everything = {'expectedDraftRevision': 0, 'name': 'n', 'description': 'd', 'cards': [seed.card_payload(c, seed.scope_of(WORLD), {x['key'] for x in WORLD['cards']}) for c in WORLD['cards']],
                   'relationships': [], 'replace': False, 'episode': 1, 'key': 'k'}
     other = FakeStack()
-    other.call('POST', '/api/v1/world-studios', {'id': WORLD_ID})
+    other.call('POST', '/api/v1/world-studios', {'id': WORLD_ID, 'name': '시험', 'description': '시험'})
     assert other.call('PUT', f'/api/v1/world-studios/{WORLD_ID}/draft', everything)[0] == 422
 
 
@@ -290,7 +300,7 @@ def test_관계는_회차별로_그_회차에_새로_생기거나_바뀐_것만_
 def test_처음_실행은_카드와_관계를_모두_보내고_통계를_센다(first_run):
     fake, stats, logs, waits = first_run
     (work,) = fake.works.values()
-    assert stats == {'work': work['id'], 'world': WORLD_ID, 'episodes': 4, 'cards': {'sent': 130, 'skipped': 0}, 'relations': {'sent': 59, 'skipped': 0},
+    assert stats == {'work': work['id'], 'world': WORLD_ID, 'episodes': 7, 'cards': {'sent': 130, 'skipped': 0}, 'relations': {'sent': 59, 'removed': 0, 'skipped': 0},
                      'batches': {'ok': len([b for b in fake.puts if b['cards'] or b['relationships']]), 'retried': 0, 'failed': 0}}
     assert waits == [] and len(fake.world['cards']) == 130
 
@@ -302,7 +312,7 @@ def test_두_번째_실행은_아무것도_보내지_않는다():
     stats, _, waits = run(fake, **OPTIONS)
     assert (len(fake.puts), len(fake.revision_posts), fake.world['revision']) == before[:3]   # PUT draft 0회, 확정 0회
     assert [c for c in fake.calls[before[3]:] if c[0] != 'GET' and c != ('POST', '/api/v1/world-studios')] == []   # 세계관 생성(POST)은 id로 멱등이라 다시 부른다
-    assert stats['cards'] == {'sent': 0, 'skipped': 130} and stats['relations'] == {'sent': 0, 'skipped': 59}
+    assert stats['cards'] == {'sent': 0, 'skipped': 130} and stats['relations'] == {'sent': 0, 'removed': 0, 'skipped': 59}
     assert stats['batches'] == {'ok': 0, 'retried': 0, 'failed': 0} and waits == []
 
 
@@ -351,7 +361,7 @@ def test_끝내지_못한_실행은_다시_실행하면_남은_배치만_보내�
     saved = len(fake.puts)
     stats, _, waits = run(fake, **OPTIONS)
     assert len(fake.puts) == saved + 1 and fake.puts[-1]['episode'] == 4 and len(fake.puts[-1]['relationships']) == 10   # 4화 관계 한 배치뿐
-    assert stats['cards'] == {'sent': 0, 'skipped': 130} and stats['relations'] == {'sent': 10, 'skipped': 49} and waits == []
+    assert stats['cards'] == {'sent': 0, 'skipped': 130} and stats['relations'] == {'sent': 10, 'removed': 0, 'skipped': 49} and waits == []
     assert len(fake.revision_posts) == 1 and next(iter(fake.works.values()))['worldStudioId'] == WORLD_ID   # 이번에야 확정하고 연결한다
     for episode, count in ((1, 24), (2, 36), (4, 46), (7, 52)):
         assert len(fake.draft(WORLD_ID, episode)['relationships']) == count
@@ -436,10 +446,12 @@ def test_회차가_하나뿐이면_관계_수가_같다는_검사에서_제외�
 def test_관계_수_확인은_마지막_회차의_서버_수가_올린_수와_다르면_실패한다():
     fake = FakeStack()
     fake.put_original = fake.put
+    lost = seed.relation_id('ch-40~org-00', seed.scope_of(WORLD))   # 7화에 처음 생기는 관계
+
     def drop_one(wid, body):   # 마지막 회차의 관계 하나를 서버가 저장하지 않은 것처럼 보이게 한다
         status, data = fake.put_original(wid, body)
-        if body['episode'] == 7 and body['relationships']:
-            fake.worlds[wid]['edges'].pop(body['relationships'][0]['id'])
+        if body['episode'] == 7:
+            fake.worlds[wid]['edges'].pop(lost, None)
         return status, data
     fake.put = drop_one
     with pytest.raises(seed.SeedError) as caught:
@@ -484,7 +496,7 @@ def test_저장_key는_입력에서만_정해지고_서버_한도_안이다(firs
 
 def test_모의_서버는_같은_key와_revision의_재전송을_한_번만_적용한다():
     fake = FakeStack()
-    fake.call('POST', '/api/v1/world-studios', {'id': WORLD_ID})
+    fake.call('POST', '/api/v1/world-studios', {'id': WORLD_ID, 'name': '시험', 'description': '시험'})
     body = {'expectedDraftRevision': 0, 'name': 'n', 'description': 'd', 'cards': [], 'relationships': [], 'replace': False, 'episode': 1, 'key': 'same'}
     first, second = (fake.call('PUT', f'/api/v1/world-studios/{WORLD_ID}/draft', body) for _ in range(2))
     assert first[0] == second[0] == 200 and fake.world['revision'] == 1
@@ -561,7 +573,99 @@ def test_main은_로그인해_적재하고_통계를_숫자만_한_줄_JSON으�
     assert hp_seed.main(['--world', str(path), '--base-url', 'http://localhost:5173/']) == 0
     out, err = capsys.readouterr()
     stats = json.loads(out.strip().splitlines()[-1])
-    assert stats['cards'] == {'sent': 130, 'skipped': 0} and stats['relations'] == {'sent': 59, 'skipped': 0} and stats['batches']['failed'] == 0
+    assert stats['cards'] == {'sent': 130, 'skipped': 0} and stats['relations'] == {'sent': 59, 'removed': 0, 'skipped': 0} and stats['batches']['failed'] == 0
     assert max(len(b['cards']) for b in fake.puts) == 50   # 기본 배치 크기(카드 50개)
     assert logins == [('http://localhost:5173', seed.EMAIL, SECRET)]
     assert SECRET not in out + err and CARD_TEXT not in out + err and REL_TEXT not in out + err
+
+
+# --- world.json이 줄거나 바뀐 뒤 다시 적재: 서버를 world.json과 같게 맞춘다 ---------------------------------------------------------------
+
+def assert_matches(fake, world):
+    """서버의 모든 회차 시점 관계가 world.json의 그 시점(관계 id와 비교 필드)과 같다."""
+    for episode in range(1, seed.episodes(world)[-1] + 1):
+        server = {r['id']: r for r in fake.draft(WORLD_ID, episode)['relationships']}
+        wanted = {r['id']: r for r in seed.relations_at(world, episode)}
+        assert set(server) == set(wanted), f'{episode}화 관계 id'
+        assert not [i for i in wanted if seed._differs(wanted[i], server[i], seed.RELATION_FIELDS)], f'{episode}화 관계 값'
+
+
+def without(world, *keys):
+    """keys의 관계를 (모든 회차 기록째) 뺀 세계관."""
+    smaller = copy.deepcopy(world)
+    smaller['relationships'] = [r for r in world['relationships'] if r['key'] not in keys]
+    return smaller
+
+
+def test_줄어든_관계는_옛_기록이_있는_모든_회차에서_종료_연결로_끝나고_다시_실행하면_더_보내지_않는다():
+    fake = FakeStack()
+    run(fake, **OPTIONS)
+    gone = ('ch-00>ch-01>emotional', 'ch-00~ev-00', 'ch-30~loc-00')   # 기록이 1·2화, 1·2화, 4·7화에 있다
+    smaller = without(WORLD, *gone)
+    before = len(fake.puts)
+    stats, _, _ = run(fake, smaller, **OPTIONS)
+    assert stats['relations'] == {'sent': 0, 'removed': 6, 'skipped': 59 - 6 - 0} or stats['relations']['removed'] == 6   # 옛 기록 6개를 회차마다 끝냈다
+    assert stats['cards'] == {'sent': 0, 'skipped': 130}
+    ended = [r for body in fake.puts[before:] for r in body['relationships']]
+    assert len(ended) == 6 and all(r['lifecycle'] == 'removed' for r in ended) and {r['id'] for r in ended} == {seed.relation_id(k, seed.scope_of(WORLD)) for k in gone}
+    assert_matches(fake, smaller)
+    assert len(fake.draft(WORLD_ID, 7)['relationships']) == 52 - 3
+    mark = len(fake.puts)
+    again, _, _ = run(fake, smaller, **OPTIONS)
+    assert len(fake.puts) == mark and again['relations'] == {'sent': 0, 'removed': 0, 'skipped': 53} and again['batches'] == {'ok': 0, 'retried': 0, 'failed': 0}
+
+
+def test_값이_바뀐_관계와_뒤_기록이_사라진_관계도_모든_회차에서_world_json과_같아진다():
+    fake = FakeStack()
+    run(fake, **OPTIONS)
+    changed = copy.deepcopy(WORLD)
+    key = 'ch-02>ch-03>emotional'   # 1화 '친구'·2화 '다툼'
+    changed['relationships'] = [dict(r, body='바뀐 본문') if (r['key'], r['from']) == (key, 1) else r for r in WORLD['relationships'] if (r['key'], r['from']) != (key, 2)]
+    stats, _, _ = run(fake, changed, **OPTIONS)
+    assert stats['relations']['removed'] == 0 and stats['relations']['sent'] == 2   # 1화의 값을 고치고, 2화 시점도 그 값으로 맞춘다(옛 2화 연결을 같은 값으로 덮는다)
+    assert_matches(fake, changed)
+
+
+def test_바뀐_카드만_다시_보내고_확정은_한_번_더_남긴다():
+    fake = FakeStack()
+    run(fake, **OPTIONS)
+    changed = copy.deepcopy(WORLD)
+    changed['cards'][3]['characterDocs'] = dict(changed['cards'][3]['characterDocs'], soul='새로 쓴 SOUL')
+    before, revisions = len(fake.puts), len(fake.revision_posts)
+    stats, _, _ = run(fake, changed, **OPTIONS)
+    sent = fake.puts[before:]
+    assert stats['cards'] == {'sent': 1, 'skipped': 129} and stats['relations']['sent'] == 0 and stats['relations']['removed'] == 0
+    assert len(sent) == 1 and [c['id'] for c in sent[0]['cards']] == [seed.card_id('ch-03', seed.scope_of(WORLD))] and sent[0]['relationships'] == []
+    assert fake.world['cards'][seed.card_id('ch-03', seed.scope_of(WORLD))]['semanticMetadata']['characterDocs']['soul'] == '새로 쓴 SOUL'
+    assert len(fake.revision_posts) == revisions + 1   # 카드가 바뀌었으니 확정 버전을 새로 남긴다
+
+
+def test_관계를_끝내는_배치가_일시_실패하면_그_배치만_다시_보낸다():
+    fake = FakeStack()
+    run(fake, **OPTIONS)
+    smaller = without(WORLD, 'ch-00>ch-01>emotional', 'ch-00~ev-00')
+    failed = []
+
+    def flaky(n, body):
+        if not failed and any(r.get('lifecycle') == 'removed' for r in body['relationships']):
+            failed.append(n)
+            return 500, '모의 서버 오류'
+    fake.fail = flaky
+    stats, _, waits = run(fake, smaller, **OPTIONS)
+    assert failed and waits == [2] and stats['batches']['retried'] == 1 and stats['batches']['failed'] == 0 and stats['relations']['removed'] == 4
+    assert_matches(fake, smaller)
+
+
+def test_세계관_설명을_고친_뒤_다시_적재해도_세계관을_다시_만들지_않고_새_설명으로_갱신한다():
+    fake = FakeStack()
+    run(fake, **OPTIONS)
+    renamed = copy.deepcopy(WORLD)
+    renamed['world']['description'] = '고친 설명'
+    changed = copy.deepcopy(renamed)
+    changed['cards'][5]['body'] = '고친 본문'   # 저장이 한 번은 있어야 설명이 갱신된다
+    before = len(fake.calls)
+    run(fake, changed, **OPTIONS)
+    assert ('POST', '/api/v1/world-studios') not in fake.calls[before:] and fake.world['description'] == '고친 설명'
+    mark = len(fake.puts)
+    run(fake, changed, **OPTIONS)
+    assert len(fake.puts) == mark   # 같으면 다시 보내지 않는다

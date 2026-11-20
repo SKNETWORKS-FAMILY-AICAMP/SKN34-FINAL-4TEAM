@@ -2,8 +2,8 @@
 
 시연 세계관 적재(infrastructure/sample-data/simulation-demo/seed.py)의 함수(작품 찾기·카드·관계 변환·값 비교·확정)를 그대로 불러 쓰고(seed.py는 고치지 않는다) 회차 저장 루프만 배치로 바꿨다.
 카드가 3천~4천 개라 seed.seed처럼 한 번에 보내면 서버 한도(WorldStudioService.validateEditRequest: 요청당 카드 1000개·직렬화 본문 2,000,000바이트)를 넘는다. 그래서
-① 카드를 개수·바이트 한도 안의 배치로 모두 저장한 뒤(서버가 관계 양 끝 카드를 검사한다) ② 관계를 회차 오름차순으로, 그 회차에 시작하는 기록(새로 생기거나 값이 바뀌는 것)만 배치로 보낸다.
-저장 key는 보내는 입력에서 정해 같은 입력의 재시도가 같은 요청으로 알아봐진다. 배치 하나가 실패하면 2초·4초… 기다려 서버를 다시 읽고(응답을 못 받은 사이 들어간 것은 빼고) 다시 보낸다.
+① 카드를 개수·바이트 한도 안의 배치로 모두 저장한 뒤(서버가 관계 양 끝 카드를 검사한다) ② 관계를 회차 오름차순으로, 회차마다 서버의 그 시점 관계와 world.json의 그 시점 관계를 비교해 다른 것만 배치로 보낸다(고칠 것은 그 회차의 연결로, world.json에서 줄어든 것은 종료 연결로).
+서버는 관계를 지우지 않고 회차마다 종료 연결(lifecycle removed)을 쓰므로 줄어든 관계도 이 비교로 모든 회차에서 끝난다. 저장 key는 보내는 입력에서 정해 같은 입력의 재시도가 같은 요청으로 알아봐진다. 배치 하나가 실패하면 2초·4초… 기다려 서버를 다시 읽고(응답을 못 받은 사이 들어간 것은 빼고) 다시 보낸다.
 모든 시도가 실패한 배치는 세고 다음 배치로 계속 가며, 한 번 훑은 뒤 남은 단계만 한 번 더 시도하고 그래도 남으면 SeedError다(카드가 다 들어가지 않으면 관계는 보내지 않는다).
 world['work']에는 title·creationType·genres가 있어야 한다(seed._ensure_work가 읽는다). 원고(episodes/*.md)는 발행하지 않는다.
 서버가 끝에서 거절할 입력(빈 제목·본문 카드, 마지막 회차 시점 관계 10,000개 초과)은 아무것도 보내기 전에 알린다(check_world).
@@ -74,15 +74,18 @@ def _label(field: str, episode: int) -> str:
 
 
 def _pending(seed, draft: dict, field: str, items: list, fields) -> list:
-    """서버 초안(draft[field])에 없거나 값이 다른 항목."""
+    """서버 초안(draft[field])에 없거나 값이 다른 항목, 그리고 끝내려는 항목(lifecycle removed)은 서버에 아직 보이는 것."""
     have = {x['id']: x for x in draft[field]}
-    return [x for x in items if seed._differs(x, have.get(x['id']), fields)]
+    return [x for x in items if (x['id'] in have if x.get('lifecycle') == 'removed' else seed._differs(x, have.get(x['id']), fields))]
 
 
 def seed_hp(seed, world: dict, call, *, log=print, cards_per_batch=50, relations_per_batch=200, max_bytes=1_500_000, attempts=3, wait=time.sleep) -> dict:
-    """world를 배치로 적재하고 숫자만 담은 통계를 돌려준다. 흐름은 seed.seed와 같다: 작품 확인 → 세계관 생성·장르 → 카드 → 관계(회차별) → 확정 버전 한 번 → 작품 연결 → 회차별 관계 수 확인.
+    """world를 배치로 적재해 서버를 world.json과 같게 맞추고 숫자만 담은 통계를 돌려준다. 흐름은 seed.seed와 같다: 작품 확인 → 세계관 생성·장르 → 카드 → 관계(회차별) → 확정 버전 → 작품 연결 → 확인.
+    관계는 1화부터 마지막 회차까지 회차마다 서버의 그 시점 관계와 world.json의 그 시점 관계를 비교해 값이 다른 것은 고치고(그 회차의 연결로 쓴다), 서버에만 있는 것은 종료 연결로 끝낸다(removed).
+    서버는 관계를 지우지 않고 회차마다 종료 연결을 쓰므로, 줄어든 관계는 옛 연결이 있는 회차마다 끝내야 모든 회차에서 같아진다(앞 회차부터 차례로 맞추고 매번 서버를 다시 읽는다).
     call(method, path, body) → (status, json)이고 wait(초)는 재시도 사이에 부른다(시험에서는 기록용 대역). 통계의 batches는 ok(첫 시도에 저장)·retried(재시도 끝에 저장)·failed(모든 시도가 실패한 횟수,
-    한 번 더에서 저장돼도 센다)이고, cards·relations의 sent는 보낸 수, skipped는 서버에 이미 같은 값이라 보내지 않은 수다. 끝내 저장하지 못한 배치가 있으면 SeedError(배치 수와 종류만)."""
+    한 번 더에서 저장돼도 센다)이고, cards·relations의 sent는 보낸(새로 쓰거나 고친) 수, removed는 끝낸 관계 수, skipped는 서버에 이미 같은 값이라 보내지 않은 수다.
+    끝내 저장하지 못한 배치가 있으면 SeedError(배치 수와 종류만)."""
     check_world(seed, world)
     ok, meta = seed._ok, world['world']
     wid = meta['id']
@@ -90,14 +93,20 @@ def seed_hp(seed, world: dict, call, *, log=print, cards_per_batch=50, relations
     work = seed._ensure_work(call, world['work'], BASE, log, wid)
     row = ok(call('GET', f'/api/v1/works/{work}'), '작품 조회')
     seed._check_link(row, wid)
-    ok(call('POST', '/api/v1/world-studios', {'id': wid, 'name': meta['name'], 'description': meta['description']}), '세계관 생성')
+    if call('GET', path)[0] != 200:   # 세계관 생성은 이름·설명이 같을 때만 멱등이라(고치면 409) 이미 있으면 만들지 않는다. 이름·설명은 초안을 저장할 때 갱신된다.
+        ok(call('POST', '/api/v1/world-studios', {'id': wid, 'name': meta['name'], 'description': meta['description']}), '세계관 생성')
     seed._ensure_world_genre(call, wid, meta['genre'], log)
     scope, keys = seed.scope_of(world), {c['key'] for c in world['cards']}
     cards = [seed.card_payload(c, scope, keys) for c in world['cards']]
-    starts = defaultdict(set)   # 회차 → 그 회차에 시작하는(새로 생기거나 값이 바뀌는) 관계 id
+    last = seed.episodes(world)[-1]
+    starting = defaultdict(list)   # 회차 → 그 회차에 시작하는(새로 생기거나 값이 바뀌는) 관계 payload
     for rel in world['relationships']:
-        starts[rel['from']].add(seed.relation_id(rel['key'], scope))
-    stats = {'cards': {'sent': 0, 'skipped': 0}, 'relations': {'sent': 0, 'skipped': 0}, 'batches': {'ok': 0, 'retried': 0, 'failed': 0}}
+        starting[rel['from']].append(seed.relation_payload(rel, scope))
+    desired, now = {}, {}          # 회차 → 그 시점의 관계 id → payload (관계마다 그 회차 이하의 가장 최근 값)
+    for episode in range(1, last + 1):
+        now.update({p['id']: p for p in starting[episode]})
+        desired[episode] = dict(now)
+    stats = {'cards': {'sent': 0, 'skipped': 0}, 'relations': {'sent': 0, 'removed': 0, 'skipped': 0}, 'batches': {'ok': 0, 'retried': 0, 'failed': 0}}
 
     def read(episode):
         return ok(call('GET', f'{path}?episode={episode}'), f'{episode}화 시점 조회')
@@ -110,17 +119,31 @@ def seed_hp(seed, world: dict, call, *, log=print, cards_per_batch=50, relations
         key = f'hp-seed-cards-{digest}' if field == 'cards' else f'hp-seed-rel-{episode}-{digest}'
         return ok(call('PUT', f'{path}/draft', {**body, 'key': key}), f'{_label(field, episode)} 저장')
 
-    def run(field, episode, wanted, fields, per_batch, again):
-        """한 단계(카드 전부, 또는 한 회차의 관계)를 서버와 비교해 새로 보낼 것만 배치로 보낸다. 모든 시도가 실패한 배치 수를 돌려준다."""
-        label, group = _label(field, episode), stats['cards' if field == 'cards' else 'relations']
+    def pending(field, episode, draft):
+        """이 단계가 서버에 해야 할 일과 이미 같아 건너뛰는 수: 카드는 world.json의 카드 전부, 관계는 그 회차의 시점(고칠 것 + 끝낼 것)이다."""
+        if field == 'cards':
+            todo = _pending(seed, draft, 'cards', cards, seed.CARD_FIELDS)
+            return todo, len(cards) - len(todo)
+        want = desired[episode]
+        todo = _pending(seed, draft, 'relationships', list(want.values()), seed.RELATION_FIELDS)
+        new = {p['id'] for p in starting[episode]}
+        skipped = len(new) - sum(1 for x in todo if x['id'] in new)
+        return todo + [{**x, 'lifecycle': 'removed'} for x in draft['relationships'] if x['id'] not in want], skipped
+
+    def run(field, episode, again):
+        """한 단계(카드 전부, 또는 한 회차의 관계)를 서버와 비교해 보낼 것만 배치로 보낸다. 모든 시도가 실패한 배치 수를 돌려준다."""
+        label, group, fields = _label(field, episode), stats['cards' if field == 'cards' else 'relations'], (seed.CARD_FIELDS if field == 'cards' else seed.RELATION_FIELDS)
         draft = read(episode)
-        todo = _pending(seed, draft, field, wanted, fields)
+        todo, skipped = pending(field, episode, draft)
         if not again:   # 이 실행이 보낼 것(성공하면 모두 들어간다)과 서버에 이미 같은 값이라 건너뛰는 것
-            group['sent'] += len(todo)
-            group['skipped'] += len(wanted) - len(todo)
+            ended = sum(1 for x in todo if x.get('lifecycle') == 'removed')
+            group['sent'] += len(todo) - ended
+            group['skipped'] += skipped
+            if ended:
+                group['removed'] += ended
             if not todo:
                 log(f'{label}: 이미 적재돼 있어요')
-        pieces, lost = split_batches(todo, per_batch, max_bytes), 0
+        pieces, lost = split_batches(todo, cards_per_batch if field == 'cards' else relations_per_batch, max_bytes), 0
         for i, piece in enumerate(pieces, 1):
             if len(piece) == 1 and (size := len(json.dumps(piece, ensure_ascii=False).encode('utf-8'))) > max_bytes:
                 log(f'{label} 배치 {i}/{len(pieces)}: 항목 하나가 {size}바이트로 한도 {max_bytes}바이트를 넘어요(혼자 보냄)')
@@ -150,28 +173,28 @@ def seed_hp(seed, world: dict, call, *, log=print, cards_per_batch=50, relations
         left = [s for s in stages if run(*s, False)]
         if left:
             log(f'끝내지 못한 {len(left)}개 단계만 한 번 더 시도해요')
-            lost = {_label(s[0], s[1]): run(*s, True) for s in left}
+            lost = {_label(*s): run(*s, True) for s in left}
             if any(lost.values()):
                 raise seed.SeedError(f'배치 {sum(lost.values())}개를 끝내 저장하지 못했어요: ' + ', '.join(name for name, n in lost.items() if n))
 
-    phase([('cards', 1, cards, seed.CARD_FIELDS, cards_per_batch)])
-    phase(('relationships', e, [r for r in seed.relations_at(world, e) if r['id'] in starts[e]], seed.RELATION_FIELDS, relations_per_batch)
-          for e in seed.episodes(world) if starts[e])
+    phase([('cards', 1)])
+    phase(('relationships', e) for e in range(1, last + 1))
     seed._confirm(call, wid, cards, log)
     if row.get('worldStudioId') != wid:
         ok(call('PUT', f'/api/v1/works/{work}/world-studio', {'worldId': wid}), '작품 연결')
         log('작품에 연결했어요')
-    episodes = seed.episodes(world)
-    last = episodes[-1]
-    # 관계는 지워지지 않아 회차별 관계 수가 늘기만 하므로, 첫·마지막 회차의 수가 같으면 모든 회차가 같다(seed.seed의 검사와 같은 뜻).
-    counts = {e: len(read(e)['relationships']) for e in dict.fromkeys((episodes[0], last))}
+    # 관계는 회차마다 맞췄으니 첫·가운데·마지막 회차의 서버 관계가 world.json의 그 시점과 같은지 다시 읽어 확인한다(관계 id 집합).
+    counts = {}
+    for episode in dict.fromkeys((1, (1 + last) // 2, last)):
+        found = {x['id'] for x in read(episode)['relationships']}
+        counts[episode] = len(found)
+        if found != set(desired[episode]):
+            raise seed.SeedError(f'{episode}화 시점 관계가 서버에 {len(found)}개로, world.json의 {len(desired[episode])}개와 달라요.')
     log('회차별 관계 수: ' + ' · '.join(f'{e}화 {n}' for e, n in counts.items()))
-    expected = len(seed.relations_at(world, last))
-    if counts[last] != expected:
-        raise seed.SeedError(f'{last}화 시점 관계가 서버에 {counts[last]}개로, 올린 {expected}개와 달라요.')
-    if len(counts) > 1 and len(set(counts.values())) == 1:
+    # 관계는 끝나지 않는 한 늘기만 하므로 첫·마지막 회차의 수가 같으면 회차별 관계가 저장되지 않은 것이다(seed.seed의 검사와 같은 뜻).
+    if len(counts) > 1 and len({counts[1], counts[last]}) == 1:
         raise seed.SeedError('회차별 관계 수가 모두 같아요. 회차별 관계가 저장되지 않은 것 같아요(DEC-51).')
-    return {'work': work, 'world': wid, 'episodes': len(episodes), **stats}
+    return {'work': work, 'world': wid, 'episodes': last, **stats}
 
 
 def main(argv: list[str] | None = None) -> int:
