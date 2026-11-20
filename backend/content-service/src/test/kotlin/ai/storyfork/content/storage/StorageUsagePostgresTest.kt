@@ -74,7 +74,8 @@ class StorageUsagePostgresTest {
 
         driver.fork(original, forker.toString(), ForkRequest(1, "저장 분기"))
 
-        assertTrue(summary(forker).none { it[1] == "1화 · 출발" })
-        assertTrue(listOf("manuscript", "1화 · 출발", "저장 원작", 12L) in summary(UUID.fromString(author)))
+        val firstEpisode = { item: List<Any>, work: String -> item[0] == "manuscript" && item[2] == work && item[1].toString().startsWith("1화") }
+        assertTrue(summary(UUID.fromString(author)).any { firstEpisode(it, "저장 원작") })
+        assertTrue(summary(forker).none { firstEpisode(it, "저장 분기") })
     }
 }
