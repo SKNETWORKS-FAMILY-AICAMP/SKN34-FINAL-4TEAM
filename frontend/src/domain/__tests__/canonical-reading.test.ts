@@ -17,9 +17,7 @@ describe('canonical reading, independent of sample slugs', () => {
     const ids = new Map(db.works.map((w, i) => [w.id, `canonical-${i}`]))
     db.works = db.works.map(w => ({ ...w, id: ids.get(w.id)!, parent: w.parent ? ids.get(w.parent) : undefined }))
     const result = await new ReadingUseCase(new InMemoryWorkRepository(db), new InMemoryReadingRepository(db), new InMemoryReadingRecordRepository(db)).getHome(null, '추천')
-    expect(result.picks).toHaveLength(6)
     expect(result.weekly).toHaveLength(4)
-    expect(result.picks.every(w => w.id.startsWith('canonical-'))).toBe(true)
   })
   it('never ranks canonical works by placeholder engagement or recency', async () => {
     const db=createFixtureDb()

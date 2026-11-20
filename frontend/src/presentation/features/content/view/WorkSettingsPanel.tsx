@@ -36,10 +36,10 @@ export function WorkSettingsPanel({ workId, useCase }: { workId: string; useCase
           </form>
           {vm.notice && <p role='status'>{vm.notice}</p>}
           <h3>자동 처리</h3>
-          <dl className='ep-settings-rules'>
-            <dt>설정 추출</dt><dd>수동</dd>
-            <dt>표기 교정</dt><dd>작가 검토</dd>
-            <dt>AI 자율 연재</dt><dd>꺼짐</dd>
+          <dl className='ep-facts'>
+            <div><dt>설정 추출</dt><dd>수동</dd></div>
+            <div><dt>표기 교정</dt><dd>작가 검토</dd></div>
+            <div><dt>AI 자율 연재</dt><dd>꺼짐</dd></div>
           </dl>
           <h3>설정 변경 이력</h3>
           {settings.history.length ? (

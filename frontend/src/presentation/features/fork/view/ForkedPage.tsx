@@ -12,7 +12,7 @@ export function ForkedPage() {
   const vm = useForkedViewModel(id)
   const d = vm.data
   useDocumentTitle('포크 소설')
-  if (d === undefined) return <><Gnb/><main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry}/></main></>
+  if (d === undefined) return <main className="wrap" id="main" tabIndex={-1}><ContentLoadState failed={vm.isError} retry={vm.retry}/></main>
   if (d === null) {
     return (
       <>

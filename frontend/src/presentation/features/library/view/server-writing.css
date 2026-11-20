@@ -1,6 +1,9 @@
 /* 서재의 가로 카드 목록(집필 중인 작품·내가 만드는 세계관)이 함께 쓴다. */
 .server-writing { margin-bottom: 32px; }
-.server-writing .libtabs { margin: 12px 0 16px; }
+/* 작품 구분은 위쪽 서재 메뉴(.libtabs)와 같은 밑줄 탭이 아니라 작은 알약 필터로 그려 1차 메뉴와 2차 필터를 구분한다. 높이 44px는 전역 규칙 그대로다. */
+.server-writing .libtabs { margin: 12px 0 16px; border-bottom: 0; gap: 4px; }
+.server-writing .libtabs button { font-size: 14px; padding: 0 12px; border-radius: 999px; border-bottom: 0; margin-bottom: 0; }
+.server-writing .libtabs button.on { background: var(--muted-bg); color: var(--ink); }
 .server-writing-error { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 12px; }
 .server-writing-content { min-width: 0; overflow-wrap: anywhere; }
 .server-writing .li h3 { font-size: 15px; font-weight: 700; line-height: 1.5; }

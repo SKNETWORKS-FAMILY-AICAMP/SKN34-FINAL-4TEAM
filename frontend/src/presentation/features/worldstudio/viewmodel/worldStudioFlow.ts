@@ -11,7 +11,7 @@ export function worldStudioFlow(state:StudioFlow,action:StudioFlowAction):Studio
  }
 }
 
-/** 작성 모드는 탭 줄 없는 4단계 마법사(기본 정보 → 설정 카드 → 관계 연결 → 검토·저장), 관리 모드는 탭 줄·헤더 저장 영역·헤더 편집 패널이다. */
+/** 작성 모드는 사이드바 없는 4단계 마법사(기본 정보 → 설정 카드 → 관계 연결 → 검토·저장), 관리 모드는 왼쪽 사이드바(보기 메뉴·도구·저장 영역)·헤더 편집 패널이다. */
 export type StudioMode='write'|'manage'
 /** 새 세계관 만들기가 성공해 이동한 주소에 붙는 표시(`?new=1`). 새로고침해도 마법사가 유지되고, 첫 저장이 성공하거나 마법사를 나가면 `replace`로 지운다. */
 export const NEW_WORLD_QUERY='new'

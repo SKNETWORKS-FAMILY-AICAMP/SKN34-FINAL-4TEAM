@@ -27,6 +27,8 @@ it('연결된 세계관은 이름을 그 세계관 관리 화면 링크로 보�
   expect(link.getAttribute('href')).toBe('/worldstudio/mine')
   expect(link.closest('p')?.textContent).toBe('연결된 세계관: 이 소설의 세계')
   expect(card().queryByRole('combobox')).toBeNull()
+  // 1:1·독자 위키 공개 범위 설명은 고를 때 필요한 정보라 이미 연결된 뒤에는 읽히지 않는다.
+  expect(card().queryByText(/세계관 하나는 소설 하나에만 연결돼요/)).toBeNull()
   fireEvent.click(card().getByRole('button', { name: '연결 해제' }))
   expect(onLink).toHaveBeenCalledWith(null)
 })
@@ -34,6 +36,8 @@ it('연결된 세계관은 이름을 그 세계관 관리 화면 링크로 보�
 it('미연결이면 기본값이 선택 안 함이라 고르기 전에는 연결할 수 없고, 고른 세계관으로만 연결을 요청한다', async () => {
   const { card, onLink } = show(null, async () => [...MINE, world('free-2', '둘째 빈 세계')])
   const select = await card().findByRole('combobox', { name: '연결할 세계관' })
+  // 연결 전에는 세계관을 고르는 데 필요한 규칙 설명이 그대로 보인다.
+  expect(card().getByText(/세계관 하나는 소설 하나에만 연결돼요/)).toBeTruthy()
   // 다른 소설에 연결된 세계관은 빠지고, 목록을 읽은 뒤 이 소설에서 연결을 푼 세계관은 다시 고를 수 있다. 맨 위 기본 선택은 어느 세계관도 아닌 '선택 안 함'이다.
   expect(within(select).getAllByRole('option').map((o) => o.textContent)).toEqual(['선택 안 함', '빈 세계', '이 소설의 세계', '둘째 빈 세계'])
   expect(within(select).getByRole('option', { name: '선택 안 함', selected: true })).toBeTruthy()

@@ -164,7 +164,7 @@ export function WorkOverview({ work: w, locked, busy, draftCount, coverRevision,
               )}
           </section>
           {/* 작품 전체를 지우는 동작은 분기 정책과 섞지 않고 따로 둔다. 편집 중에는 잠가 저장하지 않은 입력을 잃지 않게 한다. */}
-          <section className='tcard ep-card' aria-labelledby='ep-delete-title'>
+          <section className='ep-delete' aria-labelledby='ep-delete-title'>
             <div className='ep-sec-head'>
               <h2 id='ep-delete-title'>작품 삭제</h2>
               <button type='button' className='btn sm ep-danger' disabled={blocked} onClick={() => void onDeleteWork()}>작품 삭제</button>
@@ -342,7 +342,6 @@ function OwnCover({ workId, editing, blocked, disabled, editRef, onBusy, onEdit,
           : !media.busy && !media.error && <img className='stored-image' src='/default-work-cover.svg' alt='기본 작품 표지' />}
       </div>
       {media.error && <p role='alert' className='ep-alert small'>{media.error}</p>}
-      <p role='status' className='small muted'>{media.busy ? '파일을 처리하고 있어요…' : media.notice}</p>
       {editing
         ? (
           <>
@@ -403,6 +402,8 @@ function OwnCover({ workId, editing, blocked, disabled, editRef, onBusy, onEdit,
             표지 편집
           </button>
         )}
+      {/* 결과 문구(라이브 영역)는 동작 줄 뒤에 둔다: 표지와 '표지 편집' 버튼 사이에 빈 문단이 끼어 버튼이 36px 떨어져 보였다. */}
+      <p role='status' className='small muted'>{media.busy ? '파일을 처리하고 있어요…' : media.notice}</p>
     </div>
   )
 }

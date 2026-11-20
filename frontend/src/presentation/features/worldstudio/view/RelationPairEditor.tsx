@@ -167,7 +167,6 @@ export function RelationPairEditor(
               )}
               <details>
                 <summary>항목 이름 직접 쓰기</summary>
-                {r.value.title && <p className='small'>{r.value.title}</p>}
                 <label className='field'>
                   {field} 이름<input
                     className='inp'
@@ -264,7 +263,7 @@ export function RelationPairEditor(
           관계 항목 {removed.length}개를 삭제할 예정이에요. 다른 관계와 감정은 유지돼요.
         </p>
       )}
-      {error && <p role='alert' className='world-error'>{studio.error || error}</p>}
+      {error && <p role='alert' className='ep-alert'>{studio.error || error}</p>}
       <div className='relationship-apply'>
         <button type='button' className='btn pri' onClick={vm.apply}>편집본에 적용</button>
         <button type='button' className='btn' onClick={() => { if (studio.confirmRelationDiscard()) onClose() }}>취소</button>
