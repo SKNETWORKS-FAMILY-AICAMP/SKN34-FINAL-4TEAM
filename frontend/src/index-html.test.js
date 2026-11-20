@@ -170,6 +170,12 @@ describe('storyfork.css theme tokens', () => {
     expect(declOf(sheet.find((rule) => rule.media === '(max-width:600px)' && rule.selector === '.whero .cover'), 'max-width')).toBe('130px')
   })
 
+  it('limits the new h2 step styling to the fork form', () => {
+    const headings = sheet.filter((rule) => selectorsOf(rule).includes('main.fork .fstep h2'))
+    expect(headings.some((rule) => selectorsOf(rule).includes('.fstep h3'))).toBe(true)
+    expect(sheet.some((rule) => selectorsOf(rule).includes('.fstep h2'))).toBe(false)
+  })
+
   it('aligns the work-detail cover with the top of long work information', () => {
     expect(declOf(sheet.find((rule) => !rule.media && rule.selector === '.calm .whero'), 'align-items')).toBe('start')
   })
