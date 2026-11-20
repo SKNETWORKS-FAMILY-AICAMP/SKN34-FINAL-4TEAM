@@ -469,7 +469,7 @@ def _response(state: dict) -> OrchestrationResponse:
         # 장면은 에이전트 상태에서 진행 중이라 바깥 상태의 단계에는 아직 결과가 없다. 멈춘 payload의 단계가 현재 모습이다.
         state = {**state, 'status': 'waiting', 'message': message, 'steps': waiting.get('steps', state.get('steps', [])),
                  'missingInputs': waiting.get('missingInputs', []), 'awaitingApproval': approval, 'awaitingScene': scene, 'pendingAction': waiting.get('pendingAction'),
-                 'approvalEpisode': (state.get('target') or {}).get('episode') if approval in APPROVABLE else None}
+                 'approvalEpisode': (state.get('target') or {}).get('episode') if approval in APPROVABLE or scene else None}
     return OrchestrationResponse.model_validate({k: v for k, v in state.items() if k in OrchestrationResponse.model_fields})
 
 
