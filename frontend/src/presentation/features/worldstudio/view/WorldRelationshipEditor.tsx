@@ -147,14 +147,13 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
   const readOnlyReason = useId(), deleteReason = useId()
   return (
     <section ref={section} className='world-map relationship-editor' aria-label='관계 편집' onKeyDown={(e) => { if (choosing && e.key === 'Escape') stopChoosing() }}>
-      <p className='small muted'>구조적 관계와 방향별 감정을 따로 작성해요.</p>
       <fieldset className='world-fields' disabled={studio.busy}>
         <legend className='sr-only'>관계 대상 선택</legend>
         <div className='relationship-service-layout'>
           <div className='relationship-stage'>
             <div className='relationship-toolbar'>
               <h4>관계도</h4>
-              <button className='btn pri sm' type='button' onClick={()=>{if(!studio.confirmRelationDiscard())return;const id=studio.addCard('character');if(id)studio.editCard(id)}}>인물 추가</button>
+              <button className='btn sm' type='button' onClick={()=>{if(!studio.confirmRelationDiscard())return;const id=studio.addCard('character');if(id)studio.editCard(id)}}>인물 추가</button>
               <button className='btn sm' type='button' onClick={()=>setLayoutVersion(v=>v+1)}>배치 정돈</button>
             </div>
             <div className='relationship-hint' role='status'>{choosing?<>{name(source)}의 연결 상대를 고르세요.<button ref={cancelConnect} className='btn sm' type='button' onClick={stopChoosing}>연결 취소</button></>:'카드를 차례로 두 번 누르면 관계를 이을 수 있어요. 실선은 구조 관계, 점선은 감정이에요. 위치는 저장되지 않아요.'}</div>
@@ -169,11 +168,13 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
               </div>
             )}
             <CharacterCards key={layoutVersion} vm={{...map,graph}} editing={{busy:studio.busy,selectedRelations:open?studio.editing!.settings.filter(s=>s.item.kind==='relation'&&((s.item.subjectId===source&&s.item.targetId===target)||(s.item.subjectId===target&&s.item.targetId===source))).map(s=>s.item.id):[],targetSource:choosing?source:null,onPick:pick,onSelect:id=>{if(choosing){selectPair(source,id,true)}else if(studio.confirmRelationDiscard()){studio.editCard(id)}},onConnect:id=>{if(selectPair(id,'',false))setChoosing(true)},onRelation:id=>studio.editRelation(id)}}/>
-            <label>관계도 설정 검색 <input type='search' className='inp' value={graphQuery} onChange={(e) => { setGraphQuery(e.target.value); setChoicePage(0) }} /></label>
-            <div role='group' aria-label='관계도 중심 설정'>{choices.items.map((node) => <button type='button' className='btn sm' key={node.id} aria-pressed={anchor === node.id} onClick={() => { setAnchor(node.id); setNeighborPage(0); setEdgePage(0) }}>{node.name}</button>)}</div>
-            <PageControls label="설정 목록" page={choices.page} pages={choices.pages} onPage={setChoicePage} />
-            {anchorNode ? <><p className='small muted'>{anchorNode.name}의 연결된 설정 {neighbors.size}개를 보여요.</p><button type='button' className='btn sm' onClick={() => { setAnchor(''); setEdgePage(0) }}>전체 관계도로</button><PageControls label="그래프" page={neighborPages.page} pages={neighborPages.pages} onPage={(next) => { setNeighborPage(next); setEdgePage(0) }} /></> : <><PageControls label="그래프" page={graphNodes.page} pages={graphNodes.pages} onPage={(next) => { setGraphPage(next); setEdgePage(0) }} />{graphNodes.pages > 1 && <p className='small muted'>설정을 검색해 선택하면 다른 페이지의 관계도 볼 수 있어요. 전체 관계는 아래 목록에서 확인하고 편집할 수 있어요.</p>}</>}
-            {graphEdges.pages > 1 && <><p className='small muted'>현재 카드의 관계를 페이지별로 보여요.</p><PageControls label="연결선" page={graphEdges.page} pages={graphEdges.pages} onPage={setEdgePage} /></>}
+            <div className='relationship-focus'>
+              <label>관계도 설정 검색 <input type='search' className='inp' value={graphQuery} onChange={(e) => { setGraphQuery(e.target.value); setChoicePage(0) }} /></label>
+              <div role='group' aria-label='관계도 중심 설정'>{choices.items.map((node) => <button type='button' className='btn sm' key={node.id} aria-pressed={anchor === node.id} onClick={() => { setAnchor(node.id); setNeighborPage(0); setEdgePage(0) }}>{node.name}</button>)}</div>
+              <PageControls label="설정 목록" page={choices.page} pages={choices.pages} onPage={setChoicePage} />
+              {anchorNode ? <><p className='small muted'>{anchorNode.name}의 연결된 설정 {neighbors.size}개를 보여요.</p><button type='button' className='btn sm' onClick={() => { setAnchor(''); setEdgePage(0) }}>전체 관계도로</button><PageControls label="그래프" page={neighborPages.page} pages={neighborPages.pages} onPage={(next) => { setNeighborPage(next); setEdgePage(0) }} /></> : <><PageControls label="그래프" page={graphNodes.page} pages={graphNodes.pages} onPage={(next) => { setGraphPage(next); setEdgePage(0) }} />{graphNodes.pages > 1 && <p className='small muted'>설정을 검색해 선택하면 다른 페이지의 관계도 볼 수 있어요. 전체 관계는 아래 목록에서 확인하고 편집할 수 있어요.</p>}</>}
+              {graphEdges.pages > 1 && <><p className='small muted'>현재 카드의 관계를 페이지별로 보여요.</p><PageControls label="연결선" page={graphEdges.page} pages={graphEdges.pages} onPage={setEdgePage} /></>}
+            </div>
             <ul className='relationship-legend' aria-label='범례'>
               <li><LineKey tone='edge' />구조 관계</li>
               <li><LineKey tone='emotion' dashed />감정(방향별)</li>
@@ -183,7 +184,6 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
           <div className='relationship-service-form'>
             <section className='relationship-add' aria-label='관계 추가'>
               <h4>관계 추가</h4>
-              <p className='small muted'>그래프에서 카드를 차례로 두 번 누르거나, 아래에서 두 설정을 고르세요.</p>
               <div className='world-form-row'>
                 <div className='field'>
                   <label>관계 주체 검색<input className='inp' type='search' value={sourceQuery} onChange={(e) => { setSourceQuery(e.target.value); setSourcePage(0) }} /></label>
@@ -257,7 +257,7 @@ export function WorldRelationshipEditor({ studio }: { studio: VM }) {
               </div>
               {studio.deleteLock && <p id={deleteReason} className='small muted'>{studio.deleteLock}</p>}
               {people.length < 2 && (
-                <p>설정 카드에서 설정 두 개를 먼저 추가하세요. 관계 없이도 저장할 수 있어요.</p>
+                <p className='small muted'>설정 카드에서 설정 두 개를 먼저 추가하세요. 관계 없이도 저장할 수 있어요.</p>
               )}
               {deletion && (
                 <CardDeletionConfirm
