@@ -142,6 +142,13 @@ describe('storyfork.css 관리자 전체 폭 틀 계약', () => {
     expect(opsCss).not.toMatch(/\.table-head\s*\{[^}]*align-items\s*:\s*stretch/)
   })
 
+  it('표 행 조치 버튼은 음수 여백 대신 셀 가운데 맞춤으로 글자와 맞추고, 쪽 이동 줄은 글자와 버튼을 세로 가운데로 둔다', () => {
+    // 버튼 높이(36·44px)·글자 크기에 매인 음수 여백(-7.5px·-11.5px)은 값이 바뀌거나 버튼이 다른 글자 아래 줄로 내려가면 겹친다: 셀을 가운데 맞춤하면 높이와 상관없이 중심이 맞는다.
+    expect(value('.adm td', 'vertical-align')).toBe('middle')
+    expect([value('.adm td .btn', 'margin-top'), values('.adm td .btn', 'margin-top', '(max-width:600px),(pointer:coarse)'), values('.adm td .admin-inline:has(.inp) .btn', 'margin-top')]).toEqual([undefined, [], []])
+    expect(opsCss).toMatch(/\.admin-pager\s*\{[^}]*align-items\s*:\s*center/)
+  })
+
   it('900px 이하에서는 브랜드를 가로 스크롤 메뉴 밖 상단바 왼쪽에 둔다(메뉴 안 브랜드가 잘리던 audit 지적)', () => {
     // 상단바 브랜드는 데스크톱에서는 숨기고(사이드바 맨 위 브랜드가 맡는다) 900px 이하에서 보인다.
     expect([value('.adm .admin-brand-top', 'display'), narrow('.adm .admin-brand-top', 'display')]).toEqual(['none', 'flex'])

@@ -63,7 +63,7 @@ export function ActionLines({ vm, prefix, target }: { vm: VM; prefix: string; ta
 export function Pager({ page, size, total, limit, onPage }: { page: number; size: number; total: number; limit?: number; onPage: (page: number) => void }) {
   const last = lastPage(total, size, limit)
   return (
-    <nav className="rowend" aria-label="쪽 이동">
+    <nav className="rowend admin-pager" aria-label="쪽 이동">
       <span className="small muted">전체 {total.toLocaleString('ko-KR')}건 · {page + 1}/{last + 1}쪽</span>
       <button type="button" className="btn sm" disabled={page <= 0} onClick={() => onPage(page - 1)}>이전</button>
       <button type="button" className="btn sm" disabled={page >= last} onClick={() => onPage(page + 1)}>다음</button>

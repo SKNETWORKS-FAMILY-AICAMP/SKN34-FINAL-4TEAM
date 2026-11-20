@@ -58,6 +58,8 @@
 }
 .adm .admin-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .adm .admin-operations .admin-inline .inp { width: auto; min-width: 140px; }
+/* 쪽 이동 줄: '전체 N건 · 1/1쪽' 글자를 36px 이전·다음 버튼과 세로 가운데로 둔다(.rowend 기본은 맨 위 정렬이라 글자가 떠 보인다). */
+.adm .admin-pager { align-items: center; }
 .adm .kpi span.small { display: block; margin-top: 2px; }
 .adm .kpi b.unavailable { font-size: 15px; color: var(--sub); }
 .adm .kpi a { display: inline-block; margin-top: 8px; font-size: 13px; color: var(--pri-ink); }

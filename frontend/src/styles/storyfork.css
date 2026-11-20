@@ -349,16 +349,16 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}th{text-align:left;co
 .adm .admin-nav a{display:flex;align-items:center;gap:8px}.adm .nav-demo{margin-left:auto;padding:1px 6px;border-radius:999px;color:var(--fixed-pri);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--fixed-pri) 55%,transparent);font-size:10.5px;font-weight:800;letter-spacing:.02em}.adm .audit-list li.muted{display:block}.adm .report-state{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}.adm .report-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.adm .report-actions form{display:grid;align-content:start;gap:10px;padding-top:14px;border-top:1px solid var(--line)}.adm .workspace:focus{outline:none}@media (max-width:600px){.adm-scroll table:has(th.act) :is(th,td):last-child{position:sticky;right:0;background:var(--surface);box-shadow:-10px 0 10px -10px color-mix(in srgb,var(--ink) 35%,transparent)}.adm-scroll table:has(th.act) th:last-child{background:var(--surface)}.adm-scroll table:has(th.act) tr.sel td:last-child{background:var(--pri-soft)}}
 @media (max-width:900px){.adm{display:flex;flex-direction:column}.adm .admin-col{display:contents}.adm .top{order:-1;position:static;padding:0 16px}.adm .admin-brand-top{display:flex;align-items:center;margin-right:auto;font-size:16px;font-weight:800;color:var(--ink);white-space:nowrap}.adm .admin-nav{position:static;max-height:none;display:flex;overflow-x:auto;gap:10px;padding:8px 12px}.adm .admin-nav .admin-brand{display:none}.adm .admin-nav section{display:flex;align-items:center;gap:4px;flex:none}.adm .admin-nav h2{padding:0 2px 0 10px;border-left:1px solid color-mix(in srgb,var(--fixed-ink) 22%,transparent);white-space:nowrap}.adm .admin-nav :is(button,a){white-space:nowrap}.adm .report-actions{grid-template-columns:minmax(0,1fr)}.adm .workspace{min-width:0;padding:20px 16px 40px}}
 @media (max-width:600px){.adm .workspace{padding-top:14px}.adm .admin-head{align-items:start;flex-direction:column}.adm .admin-head h1{font-size:21px}.adm .form-grid{grid-template-columns:minmax(0,1fr)}.adm .form-grid .wide{grid-column:auto}.adm .audit-list li{grid-template-columns:1fr;gap:3px}}
-/* 행 조치 버튼(36px)의 글자가 같은 줄 셀 글자(한 줄 21px)보다 (36-21)/2=7.5px 아래로 처지므로 위로 당겨 첫 줄과 맞춘다(누르는 영역·초점 링은 그대로, 44px가 되는 좁은 화면·터치는 아래 터치 규칙에서 11.5px). 입력칸과 함께 있는 줄(.admin-inline:has(.inp))은 입력과 맞아야 해서 제외.
-   차분하게(quieter): 색은 상태(실패)·주 행동에만 쓰고 나머지는 중립 토큰으로 물러난다. 전역 .chip·.btn·.panel·th는 그대로 두고 .adm 안에서만 바꾼다.
-   상태 칩은 배경 없는 중립 글자이고 실패·오류(.bad)만 --danger 글자+작은 점이다(의미는 글자가 전한다; 점은 대체 글자를 비워 읽지 않게 한다). 표 안 행 조치는 테두리 없는 글자 버튼이고 위험 조치(.danger)만 --danger 글자다. */
+/* 차분하게(quieter): 색은 상태(실패)·주 행동에만 쓰고 나머지는 중립 토큰으로 물러난다. 전역 .chip·.btn·.panel·th는 그대로 두고 .adm 안에서만 바꾼다.
+   상태 칩은 배경 없는 중립 글자이고 실패·오류(.bad)만 --danger 글자+작은 점이다(의미는 글자가 전한다; 점은 대체 글자를 비워 읽지 않게 한다). 표 안 행 조치는 테두리 없는 글자 버튼이고 위험 조치(.danger)만 --danger 글자다.
+   표 셀은 가운데 맞춤이라 한 줄 글자와 행 조치 버튼(36px, 터치 44px)의 중심이 높이와 상관없이 맞는다(여러 줄 셀은 가운데에 놓인다). */
 .adm .panel,.adm .kpi div{border-radius:12px}
 .adm th{background:none;border-bottom:1px solid var(--line2);font-size:12.5px;font-weight:600}
-.adm td b{font-weight:600}
+.adm td{vertical-align:middle}.adm td b{font-weight:600}
 .adm .chip{height:auto;padding:0;border-radius:0;background:none;color:var(--sub);font-size:12.5px;font-weight:600}.adm .chip+.chip{margin-left:8px}
 .adm .chip.bad{color:var(--danger)}.adm .chip.bad::before{content:'●';content:'●' / '';font-size:.7em}
 .adm .admin-head .chip{height:24px;padding:0 9px;border:1px solid var(--line2);border-radius:999px}
-.adm td .btn{margin-top:-7.5px;border-color:transparent;background:transparent;color:var(--pri-ink);font-weight:600}.adm td .admin-inline:has(.inp) .btn{margin-top:0}.adm td .btn:hover,.adm td .btn.pri:hover{background:var(--muted-bg)}.adm td .btn.pri{font-weight:700}.adm td .btn.danger{color:var(--danger)}
+.adm td .btn{border-color:transparent;background:transparent;color:var(--pri-ink);font-weight:600}.adm td .btn:hover,.adm td .btn.pri:hover{background:var(--muted-bg)}.adm td .btn.pri{font-weight:700}.adm td .btn.danger{color:var(--danger)}
 /* 푸터가 있으면 어두운 사이드바 열 바로 아래에 푸터를 붙이고(위 여백 없음, .lg+.foot와 같은 이유) 푸터 안 내용도 틀처럼 전체 폭을 쓴다.
    고정(sticky) 상단바(60px) 밑으로 키보드 초점·건너뛰기 이동이 들어가 가리지 않게 스크롤 여백을 둔다(900px 이하는 상단바가 고정이 아니다). */
 .adm+.foot{margin-top:0}.adm+.foot .wrap{max-width:none}
@@ -591,7 +591,6 @@ input,textarea{caret-color:var(--pri)}
  .btn.sm,.sortt :is(button,a),.tagbar :is(button,a),.seg button,.chq button,.pop button,.logo,.nav :is(button,a),.search,.chips button,.svw :is(button,a),.pick2 button,.inp.sm,.rback,.adm .admin-nav :is(button,a),.wcat>:is(button,a),.wdocs :is(button,a),.wcheck,.wev,.wmen,.mlist button,.sec-h .more,.t10h .more{min-height:44px}
  .sheet .x,.rib,.cm .lk,.thm,.guide .x,.narrative-row .move button{min-width:44px;min-height:44px}
  button.avatar{width:44px;height:44px}
- .adm td .btn{margin-top:-11.5px}
  .wdocs :is(button,a){display:flex;align-items:center}.sec-h .more,.t10h .more{display:inline-flex;align-items:center}
  .eps-q{height:auto}.eps-q input{min-height:44px}
  /* 스포일러 댓글 보기·제보 정정하기처럼 클래스 없는 접이식 제목(약 22px)도 누르기 쉽게 한다. 안쪽 여백으로 키워 펼침 표시(▸)를 지킨다. */
